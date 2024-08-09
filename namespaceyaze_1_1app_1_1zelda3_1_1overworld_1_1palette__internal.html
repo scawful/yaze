@@ -114,7 +114,7 @@ $(function(){initNavTree('namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ac0260bcfd3c55dfe7d7155123619445d" id="r_ac0260bcfd3c55dfe7d7155123619445d"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac0260bcfd3c55dfe7d7155123619445d">SetColorsPalette</a> (<a class="el" href="classyaze_1_1app_1_1Rom.html">Rom</a> &amp;<a class="el" href="structrom.html">rom</a>, int index, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;current, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> <a class="el" href="controller_8h.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> animated, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> aux1, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> aux2, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> hud, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a> bgrcolor, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> spr, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> spr2)</td></tr>
+<tr class="memitem:ac0260bcfd3c55dfe7d7155123619445d" id="r_ac0260bcfd3c55dfe7d7155123619445d"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac0260bcfd3c55dfe7d7155123619445d">SetColorsPalette</a> (<a class="el" href="classyaze_1_1app_1_1Rom.html">Rom</a> &amp;rom, int index, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;current, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> <a class="el" href="controller_8h.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> animated, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> aux1, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> aux2, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> hud, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a> bgrcolor, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> spr, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> spr2)</td></tr>
 <tr class="separator:ac0260bcfd3c55dfe7d7155123619445d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
@@ -182,7 +182,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html#aedc0397576767705de230e2b1178b3e2">yaze::app::gfx::SnesPalette::Create()</a>, and <a class="el" href="controller_8h.html#a3c04138a5bfe5d72780bb7e82a18e627">main()</a>.</p>
+<p class="reference">References <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html#aedc0397576767705de230e2b1178b3e2">yaze::app::gfx::SnesPalette::Create()</a>, <a class="el" href="controller_8h.html#a3c04138a5bfe5d72780bb7e82a18e627">main()</a>, and <a class="el" href="classyaze_1_1app_1_1Rom.html#a0855ec3a63a82723541f870bdd00f53d">yaze::app::Rom::palette_group()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b">yaze::app::zelda3::overworld::OverworldMap::LoadPalette()</a>.</p>
 <div class="dynheader">
@@ -190,11 +190,13 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal_ac0260bcfd3c55dfe7d7155123619445d_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal_ac0260bcfd3c55dfe7d7155123619445d_cgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal_ac0260bcfd3c55dfe7d7155123619445d_cgraph" id="anamespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal_ac0260bcfd3c55dfe7d7155123619445d_cgraph">
-<area shape="rect" title=" " alt="" coords="5,379,177,435"/>
+<area shape="rect" title=" " alt="" coords="5,407,177,463"/>
 <area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html#aedc0397576767705de230e2b1178b3e2" title=" " alt="" coords="225,357,399,398"/>
-<area shape="poly" title=" " alt="" coords="177,393,209,389,210,394,178,398"/>
+<area shape="poly" title=" " alt="" coords="177,410,216,400,217,405,178,415"/>
 <area shape="rect" href="app_2yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title="Main entry point for the application." alt="" coords="287,422,336,448"/>
-<area shape="poly" title=" " alt="" coords="178,415,272,427,272,433,177,421"/>
+<area shape="poly" title=" " alt="" coords="177,432,272,432,272,438,177,438"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a0855ec3a63a82723541f870bdd00f53d" title=" " alt="" coords="236,472,388,513"/>
+<area shape="poly" title=" " alt="" coords="178,455,221,466,220,471,177,460"/>
 <area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a3bb770108edb03390f0458b1ad48af00" title=" " alt="" coords="460,5,627,46"/>
 <area shape="poly" title=" " alt="" coords="336,432,369,426,384,419,397,408,413,386,424,364,433,321,430,279,422,236,412,192,409,148,418,103,429,80,445,57,447,55,451,58,449,61,433,83,423,105,415,149,418,192,427,235,436,278,438,322,429,366,418,389,401,411,387,423,370,431,337,437"/>
 <area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a301e2a1e2a9d20dfe9824c8fc1c39b35" title=" " alt="" coords="470,71,617,111"/>
@@ -212,17 +214,17 @@ Here is the call graph for this function:</div>
 <area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a473842231f08f37aba1e40ad62397760" title=" " alt="" coords="460,447,627,487"/>
 <area shape="poly" title=" " alt="" coords="337,436,445,451,445,456,336,441"/>
 <area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#ab91b550d982432084d70abcbe0fa76bd" title=" " alt="" coords="460,512,627,553"/>
-<area shape="poly" title=" " alt="" coords="338,445,448,497,466,504,464,509,446,501,336,450"/>
+<area shape="poly" title=" " alt="" coords="338,437,368,445,400,458,425,477,448,497,461,503,458,508,446,501,421,482,398,463,366,450,336,442"/>
 <area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0fe694ddfbbfa5c288983d1e5cdb50de" title=" " alt="" coords="460,577,627,618"/>
-<area shape="poly" title=" " alt="" coords="326,447,375,502,410,534,448,562,459,568,456,573,446,567,406,538,371,506,322,450"/>
+<area shape="poly" title=" " alt="" coords="337,434,369,441,401,458,413,471,420,485,426,511,432,537,438,550,449,562,454,567,450,571,445,566,433,553,427,539,421,513,415,487,408,474,397,462,368,446,336,439"/>
 <area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a14b03ac590781c59ff14e2a2cfcbbffa" title=" " alt="" coords="470,643,617,683"/>
-<area shape="poly" title=" " alt="" coords="321,447,338,483,365,531,403,583,449,628,458,634,455,638,445,632,399,586,361,534,333,485,316,449"/>
+<area shape="poly" title=" " alt="" coords="338,433,370,440,387,448,401,458,417,480,425,502,426,544,427,587,434,607,449,628,459,636,455,640,445,631,429,610,422,587,421,545,420,503,412,483,397,462,384,452,368,445,337,439"/>
 <area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#ac11726994035cd0caf4ab0d7e86a1495" title=" " alt="" coords="470,708,617,749"/>
-<area shape="poly" title=" " alt="" coords="319,447,332,493,357,559,396,631,420,664,449,693,458,700,455,704,445,697,416,667,391,634,352,562,327,495,314,449"/>
+<area shape="poly" title=" " alt="" coords="338,433,370,440,387,447,401,459,421,489,430,518,430,548,426,577,423,606,423,635,430,664,449,693,459,702,455,706,445,697,425,666,417,636,417,606,421,577,425,548,424,519,416,491,397,462,384,452,369,445,336,438"/>
 <area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a64c3e853b26cde351c4925ba5f47072a" title=" " alt="" coords="470,773,617,814"/>
-<area shape="poly" title=" " alt="" coords="317,448,327,504,350,588,367,633,389,679,416,721,449,758,458,766,455,770,445,762,412,724,384,681,362,635,345,589,322,505,312,449"/>
+<area shape="poly" title=" " alt="" coords="337,433,370,439,387,447,401,459,426,497,435,535,433,573,427,610,420,647,418,684,426,721,449,759,459,768,455,772,445,762,421,723,413,684,415,646,421,609,428,572,429,536,421,499,397,462,384,451,369,444,336,438"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a33fb74cfc42e9f3206dd266021bd1186" title=" " alt="" coords="469,838,618,864"/>
-<area shape="poly" title=" " alt="" coords="316,448,321,515,340,617,357,672,380,728,410,779,449,824,457,830,454,834,445,828,406,782,375,730,352,674,335,618,316,516,311,449"/>
+<area shape="poly" title=" " alt="" coords="337,433,370,439,387,447,401,459,418,482,430,506,436,529,439,553,435,599,425,644,415,689,412,734,414,756,421,779,432,801,449,824,457,832,454,835,445,827,428,804,416,781,409,757,406,734,410,688,420,643,430,598,434,553,431,530,425,508,414,485,397,462,384,451,369,444,336,438"/>
 </map>
 </div>
 

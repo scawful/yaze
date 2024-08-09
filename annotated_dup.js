@@ -298,11 +298,12 @@ var annotated_dup =
     [ "AppDelegate", "classAppDelegate.html", null ],
     [ "AppViewController", "classAppViewController.html", null ],
     [ "errordata", "structerrordata.html", "structerrordata" ],
-    [ "rom", "structrom.html", "structrom" ],
     [ "snes_color", "structsnes__color.html", "structsnes__color" ],
     [ "snes_palette", "structsnes__palette.html", "structsnes__palette" ],
     [ "sprite", "structsprite.html", "structsprite" ],
     [ "sprite_action", "structsprite__action.html", "structsprite__action" ],
     [ "sprite_instruction", "structsprite__instruction.html", "structsprite__instruction" ],
-    [ "yaze_extension", "structyaze__extension.html", "structyaze__extension" ]
+    [ "yaze_extension", "structyaze__extension.html", "structyaze__extension" ],
+    [ "yaze_flags", "structyaze__flags.html", "structyaze__flags" ],
+    [ "z3_rom", "structz3__rom.html", "structz3__rom" ]
 ];

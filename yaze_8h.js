@@ -1,10 +1,12 @@
 var yaze_8h =
 [
-    [ "rom", "structrom.html", "structrom" ],
-    [ "rom", "yaze_8h.html#a0da7c730bc7cda0a4497722a0a5a140e", null ],
-    [ "yaze_initialize", "yaze_8h.html#a97d98bdf26ec1c1ed6ddfe923aae147d", null ],
-    [ "yaze_cleanup", "yaze_8h.html#ae2c64be32a8f7916912aacef327b5f43", null ],
-    [ "load_rom", "yaze_8h.html#a3c0fa4340d019f16cc3bfc22832e63dd", null ],
-    [ "unload_rom", "yaze_8h.html#a2219de43f7183c78e7aae4aae4d02f6a", null ],
-    [ "get_color_from_paletteset", "yaze_8h.html#a3c42f8cb1bfba12aa06c785afe2a57da", null ]
+    [ "yaze_flags", "structyaze__flags.html", "structyaze__flags" ],
+    [ "z3_rom", "structz3__rom.html", "structz3__rom" ],
+    [ "yaze_flags", "yaze_8h.html#a85553b5710db1102c037bdb355991631", null ],
+    [ "z3_rom", "yaze_8h.html#ac77c4e371c3965f72bf4ac3321600f54", null ],
+    [ "yaze_init", "yaze_8h.html#af4c0f181175784dda7fdd05a462fae43", null ],
+    [ "yaze_cleanup", "yaze_8h.html#a2f31206311a6fa23618eed894f1f5cd6", null ],
+    [ "yaze_load_rom", "yaze_8h.html#adfaf105df03accd07b94f1e60c6ed8bf", null ],
+    [ "yaze_unload_rom", "yaze_8h.html#a883ab5865f5e61a639dc3dafcd45e8c7", null ],
+    [ "yaze_get_color_from_paletteset", "yaze_8h.html#adfb236b5541502ced4544a6678e79d0e", null ]
 ];

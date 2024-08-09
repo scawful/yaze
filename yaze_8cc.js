@@ -1,8 +1,8 @@
 var yaze_8cc =
 [
-    [ "yaze_initialize", "yaze_8cc.html#a97d98bdf26ec1c1ed6ddfe923aae147d", null ],
-    [ "yaze_cleanup", "yaze_8cc.html#ae2c64be32a8f7916912aacef327b5f43", null ],
-    [ "load_rom", "yaze_8cc.html#a3c0fa4340d019f16cc3bfc22832e63dd", null ],
-    [ "unload_rom", "yaze_8cc.html#a2219de43f7183c78e7aae4aae4d02f6a", null ],
-    [ "get_color_from_paletteset", "yaze_8cc.html#a3c42f8cb1bfba12aa06c785afe2a57da", null ]
+    [ "yaze_init", "yaze_8cc.html#aa7a5ef35202509b12f43e4c52608ef49", null ],
+    [ "yaze_cleanup", "yaze_8cc.html#a29fdfcf0cfd5f08d2b6defbefc7a99bf", null ],
+    [ "yaze_load_rom", "yaze_8cc.html#adfaf105df03accd07b94f1e60c6ed8bf", null ],
+    [ "yaze_unload_rom", "yaze_8cc.html#a883ab5865f5e61a639dc3dafcd45e8c7", null ],
+    [ "yaze_get_color_from_paletteset", "yaze_8cc.html#adfb236b5541502ced4544a6678e79d0e", null ]
 ];

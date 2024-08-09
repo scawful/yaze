@@ -245,9 +245,9 @@ var NAVTREEINDEX25 =
 "globals_u.html":[10,1,0,17],
 "globals_vars.html":[10,1,2],
 "globals_y.html":[10,1,0,18],
+"globals_z.html":[10,1,0,19],
 "graphics__editor_8cc.html":[10,0,1,0,1,2,2],
 "graphics__editor_8cc.html#a0d26ca53d73b81e2de5e8e8fb1f5f39d":[10,0,1,0,1,2,2,1],
 "graphics__editor_8cc.html#a4e2fdc967f4f1af218c03efeadbb4e7b":[10,0,1,0,1,2,2,0],
-"graphics__editor_8cc.html#adb56eccacd0c92f50ac9f67f53da559b":[10,0,1,0,1,2,2,2],
-"graphics__editor_8h.html":[10,0,1,0,1,2,3]
+"graphics__editor_8cc.html#adb56eccacd0c92f50ac9f67f53da559b":[10,0,1,0,1,2,2,2]
 };

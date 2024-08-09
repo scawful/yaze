@@ -2209,7 +2209,7 @@ var searchData=
   ['imguiidissuer_2206',['ImGuiIdIssuer',['../classyaze_1_1app_1_1core_1_1ImGuiIdIssuer.html',1,'yaze::app::core']]],
   ['imm_2207',['imm',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a98a13b1c7651ce643f07c7cf5e3ff18b',1,'yaze::app::emu::audio::Spc700']]],
   ['immediate_2208',['Immediate',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a7ec7da672f728a57495f47d27696f9de',1,'yaze::app::emu::Cpu::Immediate(uint32_t *low, bool xFlag)'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a593cef120ed966126e8b634859f2535a',1,'yaze::app::emu::Cpu::Immediate(bool index_size=false)']]],
-  ['impl_2209',['impl',['../structrom.html#a607297aef2aa8d87e92d74fdb36d1c5f',1,'rom']]],
+  ['impl_2209',['impl',['../structz3__rom.html#a45e40fd103967152330133b0f3c803d2',1,'z3_rom']]],
   ['import_5fcanvas_5f_2210',['import_canvas_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a4b25cd81df006d8e0fa70a3c54a3afce',1,'yaze::app::editor::GraphicsEditor']]],
   ['import_5fdata_5f_2211',['import_data_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ad131d5ea455f449c1226c3b0339cb573',1,'yaze::app::editor::GraphicsEditor']]],
   ['in_5firq_5f_2212',['in_irq_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a0bac635d150f82e592bbcdd9d35b1379',1,'yaze::app::emu::SNES']]],

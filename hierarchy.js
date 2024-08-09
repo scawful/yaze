@@ -191,7 +191,6 @@ var hierarchy =
     [ "yaze::app::editor::RecentFilesManager", "classyaze_1_1app_1_1editor_1_1RecentFilesManager.html", null ],
     [ "yaze::app::core::ResourceLabelManager", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html", null ],
     [ "yaze::app::core::ResourceLabelManager::ResourceType", "structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html", null ],
-    [ "rom", "structrom.html", null ],
     [ "yaze::app::emu::memory::RomInfo", "classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html", null ],
     [ "yaze::app::zelda3::dungeon::RoomEntrance", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html", null ],
     [ "yaze::app::emu::video::ScreenDisplay", "structyaze_1_1app_1_1emu_1_1video_1_1ScreenDisplay.html", null ],
@@ -302,5 +301,7 @@ var hierarchy =
     [ "yaze::app::emu::video::WramAccessRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1WramAccessRegisters.html", null ],
     [ "yaze::app::Rom::WriteAction", "structyaze_1_1app_1_1Rom_1_1WriteAction.html", null ],
     [ "yaze_extension", "structyaze__extension.html", null ],
+    [ "yaze_flags", "structyaze__flags.html", null ],
+    [ "z3_rom", "structz3__rom.html", null ],
     [ "yaze::app::editor::zsprite::ZSprite", "structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html", null ]
 ];

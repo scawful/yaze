@@ -1,0 +1,5 @@
+<map id="yaze_flags" name="yaze_flags">
+<area shape="rect" id="Node000001" title="Flags to initialize the Yaze library." alt="" coords="5,94,87,120"/>
+<area shape="rect" id="Node000002" href="$structz3__rom.html" title="Primitive of a Zelda3 ROM." alt="" coords="14,5,78,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="49,47,49,94,43,94,43,47"/>
+</map>

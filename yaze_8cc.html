@@ -174,40 +174,70 @@ Include dependency graph for yaze.cc:</div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a97d98bdf26ec1c1ed6ddfe923aae147d" id="r_a97d98bdf26ec1c1ed6ddfe923aae147d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a97d98bdf26ec1c1ed6ddfe923aae147d">yaze_initialize</a> (void)</td></tr>
-<tr class="separator:a97d98bdf26ec1c1ed6ddfe923aae147d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae2c64be32a8f7916912aacef327b5f43" id="r_ae2c64be32a8f7916912aacef327b5f43"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae2c64be32a8f7916912aacef327b5f43">yaze_cleanup</a> (void)</td></tr>
-<tr class="separator:ae2c64be32a8f7916912aacef327b5f43"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3c0fa4340d019f16cc3bfc22832e63dd" id="r_a3c0fa4340d019f16cc3bfc22832e63dd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structrom.html">rom</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3c0fa4340d019f16cc3bfc22832e63dd">load_rom</a> (const char *filename)</td></tr>
-<tr class="separator:a3c0fa4340d019f16cc3bfc22832e63dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2219de43f7183c78e7aae4aae4d02f6a" id="r_a2219de43f7183c78e7aae4aae4d02f6a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2219de43f7183c78e7aae4aae4d02f6a">unload_rom</a> (<a class="el" href="structrom.html">rom</a> <a class="el" href="structrom.html">rom</a>)</td></tr>
-<tr class="separator:a2219de43f7183c78e7aae4aae4d02f6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3c42f8cb1bfba12aa06c785afe2a57da" id="r_a3c42f8cb1bfba12aa06c785afe2a57da"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structsnes__color.html">snes_color</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3c42f8cb1bfba12aa06c785afe2a57da">get_color_from_paletteset</a> (const <a class="el" href="structrom.html">rom</a> *<a class="el" href="structrom.html">rom</a>, int palette_set, int palette, int color)</td></tr>
-<tr class="separator:a3c42f8cb1bfba12aa06c785afe2a57da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa7a5ef35202509b12f43e4c52608ef49" id="r_aa7a5ef35202509b12f43e4c52608ef49"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa7a5ef35202509b12f43e4c52608ef49">yaze_init</a> (<a class="el" href="structyaze__flags.html">yaze_flags</a> *flags)</td></tr>
+<tr class="memdesc:aa7a5ef35202509b12f43e4c52608ef49"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the Yaze library.  <br /></td></tr>
+<tr class="separator:aa7a5ef35202509b12f43e4c52608ef49"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a29fdfcf0cfd5f08d2b6defbefc7a99bf" id="r_a29fdfcf0cfd5f08d2b6defbefc7a99bf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a29fdfcf0cfd5f08d2b6defbefc7a99bf">yaze_cleanup</a> (<a class="el" href="structyaze__flags.html">yaze_flags</a> *flags)</td></tr>
+<tr class="memdesc:a29fdfcf0cfd5f08d2b6defbefc7a99bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clean up the Yaze library.  <br /></td></tr>
+<tr class="separator:a29fdfcf0cfd5f08d2b6defbefc7a99bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adfaf105df03accd07b94f1e60c6ed8bf" id="r_adfaf105df03accd07b94f1e60c6ed8bf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structz3__rom.html">z3_rom</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adfaf105df03accd07b94f1e60c6ed8bf">yaze_load_rom</a> (const char *filename)</td></tr>
+<tr class="memdesc:adfaf105df03accd07b94f1e60c6ed8bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a Zelda3 ROM from a file.  <br /></td></tr>
+<tr class="separator:adfaf105df03accd07b94f1e60c6ed8bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a883ab5865f5e61a639dc3dafcd45e8c7" id="r_a883ab5865f5e61a639dc3dafcd45e8c7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a883ab5865f5e61a639dc3dafcd45e8c7">yaze_unload_rom</a> (<a class="el" href="structz3__rom.html">z3_rom</a> *rom)</td></tr>
+<tr class="memdesc:a883ab5865f5e61a639dc3dafcd45e8c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unload a Zelda3 ROM.  <br /></td></tr>
+<tr class="separator:a883ab5865f5e61a639dc3dafcd45e8c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adfb236b5541502ced4544a6678e79d0e" id="r_adfb236b5541502ced4544a6678e79d0e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structsnes__color.html">snes_color</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adfb236b5541502ced4544a6678e79d0e">yaze_get_color_from_paletteset</a> (const <a class="el" href="structz3__rom.html">z3_rom</a> *rom, int palette_set, int palette, int color)</td></tr>
+<tr class="memdesc:adfb236b5541502ced4544a6678e79d0e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a color from a palette set.  <br /></td></tr>
+<tr class="separator:adfb236b5541502ced4544a6678e79d0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a97d98bdf26ec1c1ed6ddfe923aae147d" name="a97d98bdf26ec1c1ed6ddfe923aae147d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a97d98bdf26ec1c1ed6ddfe923aae147d">&#9670;&#160;</a></span>yaze_initialize()</h2>
+<a id="aa7a5ef35202509b12f43e4c52608ef49" name="aa7a5ef35202509b12f43e4c52608ef49"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa7a5ef35202509b12f43e4c52608ef49">&#9670;&#160;</a></span>yaze_init()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void yaze_initialize </td>
+          <td class="memname">void yaze_init </td>
           <td>(</td>
-          <td class="paramtype">void</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="structyaze__flags.html">yaze_flags</a> *</td>          <td class="paramname"><span class="paramname"><em>flags</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000033">Todo</a></b></dt><dd>Implement yaze_initialize </dd></dl>
+
+<p>Initialize the Yaze library. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">flags</td><td>Flags to initialize the library. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="reference">References <a class="el" href="structyaze__flags.html#a669fbd0fb3c0128413551092e5ea7efc">yaze_flags::rom</a>, <a class="el" href="structyaze__flags.html#a421d358ecdb700393958e380d325fb08">yaze_flags::rom_filename</a>, and <a class="el" href="#adfaf105df03accd07b94f1e60c6ed8bf">yaze_load_rom()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="namespaceyaze__test.html#aa5679193987e33bb912f97f4cc420c02">yaze_test::TEST()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="yaze_8cc_aa7a5ef35202509b12f43e4c52608ef49_cgraph.png" border="0" usemap="#ayaze_8cc_aa7a5ef35202509b12f43e4c52608ef49_cgraph" alt=""/></div>
+<map name="ayaze_8cc_aa7a5ef35202509b12f43e4c52608ef49_cgraph" id="ayaze_8cc_aa7a5ef35202509b12f43e4c52608ef49_cgraph">
+<area shape="rect" title="Initialize the Yaze library." alt="" coords="5,55,77,80"/>
+<area shape="rect" href="yaze_8cc.html#adfaf105df03accd07b94f1e60c6ed8bf" title="Load a Zelda3 ROM from a file." alt="" coords="125,55,232,80"/>
+<area shape="poly" title=" " alt="" coords="77,65,109,65,109,70,77,70"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="308,5,446,31"/>
+<area shape="poly" title=" " alt="" coords="232,52,279,40,307,33,308,38,281,45,233,57"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197" title=" " alt="" coords="280,55,473,80"/>
+<area shape="poly" title=" " alt="" coords="233,65,264,65,264,70,233,70"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a648c0cee09095aad6aa881fc114a9f5f" title=" " alt="" coords="308,104,445,130"/>
+<area shape="poly" title=" " alt="" coords="233,78,281,90,308,97,307,102,279,95,232,83"/>
+</map>
+</div>
 
 </div>
 </div>
-<a id="ae2c64be32a8f7916912aacef327b5f43" name="ae2c64be32a8f7916912aacef327b5f43"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae2c64be32a8f7916912aacef327b5f43">&#9670;&#160;</a></span>yaze_cleanup()</h2>
+<a id="a29fdfcf0cfd5f08d2b6defbefc7a99bf" name="a29fdfcf0cfd5f08d2b6defbefc7a99bf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a29fdfcf0cfd5f08d2b6defbefc7a99bf">&#9670;&#160;</a></span>yaze_cleanup()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -215,25 +245,44 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname">void yaze_cleanup </td>
           <td>(</td>
-          <td class="paramtype">void</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="structyaze__flags.html">yaze_flags</a> *</td>          <td class="paramname"><span class="paramname"><em>flags</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000034">Todo</a></b></dt><dd>Implement yaze_cleanup </dd></dl>
+
+<p>Clean up the Yaze library. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">flags</td><td>Flags used to initialize the library. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="reference">References <a class="el" href="structyaze__flags.html#a669fbd0fb3c0128413551092e5ea7efc">yaze_flags::rom</a>, and <a class="el" href="#a883ab5865f5e61a639dc3dafcd45e8c7">yaze_unload_rom()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="namespaceyaze__test.html#aa5679193987e33bb912f97f4cc420c02">yaze_test::TEST()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="yaze_8cc_a29fdfcf0cfd5f08d2b6defbefc7a99bf_cgraph.png" border="0" usemap="#ayaze_8cc_a29fdfcf0cfd5f08d2b6defbefc7a99bf_cgraph" alt=""/></div>
+<map name="ayaze_8cc_a29fdfcf0cfd5f08d2b6defbefc7a99bf_cgraph" id="ayaze_8cc_a29fdfcf0cfd5f08d2b6defbefc7a99bf_cgraph">
+<area shape="rect" title="Clean up the Yaze library." alt="" coords="5,5,105,31"/>
+<area shape="rect" href="yaze_8cc.html#a883ab5865f5e61a639dc3dafcd45e8c7" title="Unload a Zelda3 ROM." alt="" coords="153,5,274,31"/>
+<area shape="poly" title=" " alt="" coords="105,16,137,16,137,21,105,21"/>
+</map>
+</div>
 
 </div>
 </div>
-<a id="a3c0fa4340d019f16cc3bfc22832e63dd" name="a3c0fa4340d019f16cc3bfc22832e63dd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3c0fa4340d019f16cc3bfc22832e63dd">&#9670;&#160;</a></span>load_rom()</h2>
+<a id="adfaf105df03accd07b94f1e60c6ed8bf" name="adfaf105df03accd07b94f1e60c6ed8bf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adfaf105df03accd07b94f1e60c6ed8bf">&#9670;&#160;</a></span>yaze_load_rom()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structrom.html">rom</a> load_rom </td>
+          <td class="memname"><a class="el" href="structz3__rom.html">z3_rom</a> * yaze_load_rom </td>
           <td>(</td>
           <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>filename</em></span></td><td>)</td>
           <td></td>
@@ -241,61 +290,69 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="structrom.html#a405873e3680b9580e046e34b3bb9d03c">rom::data</a>, <a class="el" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b">yaze::app::Rom::data()</a>, <a class="el" href="structrom.html#a21610e4edac9395f87520ff7df4c113a">rom::filename</a>, <a class="el" href="structrom.html#a607297aef2aa8d87e92d74fdb36d1c5f">rom::impl</a>, <a class="el" href="classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197">yaze::app::Rom::LoadFromFile()</a>, <a class="el" href="structrom.html#aec9f07782018394cc793a01174d3aeca">rom::size</a>, and <a class="el" href="classyaze_1_1app_1_1Rom.html#a648c0cee09095aad6aa881fc114a9f5f">yaze::app::Rom::size()</a>.</p>
+<p>Load a Zelda3 ROM from a file. </p>
+
+<p class="reference">References <a class="el" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b">yaze::app::Rom::data()</a>, <a class="el" href="structz3__rom.html#aebb69d9d2a7965247b86f454c54d4fa4">z3_rom::data</a>, <a class="el" href="structz3__rom.html#a2a47dd5739f2c3b3218f1760c7d54ede">z3_rom::filename</a>, <a class="el" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">z3_rom::impl</a>, <a class="el" href="classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197">yaze::app::Rom::LoadFromFile()</a>, <a class="el" href="classyaze_1_1app_1_1Rom.html#a648c0cee09095aad6aa881fc114a9f5f">yaze::app::Rom::size()</a>, and <a class="el" href="structz3__rom.html#a5f9ea7b175b6c9c43a2a5efec5a1fd5c">z3_rom::size</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="#aa7a5ef35202509b12f43e4c52608ef49">yaze_init()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="yaze_8cc_a3c0fa4340d019f16cc3bfc22832e63dd_cgraph.png" border="0" usemap="#ayaze_8cc_a3c0fa4340d019f16cc3bfc22832e63dd_cgraph" alt=""/></div>
-<map name="ayaze_8cc_a3c0fa4340d019f16cc3bfc22832e63dd_cgraph" id="ayaze_8cc_a3c0fa4340d019f16cc3bfc22832e63dd_cgraph">
-<area shape="rect" title=" " alt="" coords="5,80,80,106"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="155,31,294,56"/>
-<area shape="poly" title=" " alt="" coords="79,79,127,65,153,58,154,63,128,70,81,84"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197" title=" " alt="" coords="128,80,321,106"/>
-<area shape="poly" title=" " alt="" coords="80,90,112,90,112,96,80,96"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a648c0cee09095aad6aa881fc114a9f5f" title=" " alt="" coords="156,129,292,155"/>
-<area shape="poly" title=" " alt="" coords="81,102,128,116,154,122,153,128,127,121,79,107"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd" title=" " alt="" coords="390,5,552,31"/>
-<area shape="poly" title=" " alt="" coords="288,77,320,66,344,53,368,40,387,33,389,38,370,45,346,58,322,71,290,82"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="374,55,569,80"/>
-<area shape="poly" title=" " alt="" coords="321,80,358,76,359,82,322,86"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="369,104,573,130"/>
-<area shape="poly" title=" " alt="" coords="322,100,354,103,353,108,321,105"/>
-<area shape="rect" href="structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a" title=" " alt="" coords="382,154,560,194"/>
-<area shape="poly" title=" " alt="" coords="289,104,322,114,346,127,370,140,385,146,383,151,368,145,344,132,320,119,287,109"/>
+<div class="center"><img src="yaze_8cc_adfaf105df03accd07b94f1e60c6ed8bf_cgraph.png" border="0" usemap="#ayaze_8cc_adfaf105df03accd07b94f1e60c6ed8bf_cgraph" alt=""/></div>
+<map name="ayaze_8cc_adfaf105df03accd07b94f1e60c6ed8bf_cgraph" id="ayaze_8cc_adfaf105df03accd07b94f1e60c6ed8bf_cgraph">
+<area shape="rect" title="Load a Zelda3 ROM from a file." alt="" coords="5,80,113,106"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="188,31,326,56"/>
+<area shape="poly" title=" " alt="" coords="112,77,160,65,188,58,189,63,161,70,114,82"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197" title=" " alt="" coords="161,80,354,106"/>
+<area shape="poly" title=" " alt="" coords="113,90,145,90,145,96,113,96"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a648c0cee09095aad6aa881fc114a9f5f" title=" " alt="" coords="189,129,326,155"/>
+<area shape="poly" title=" " alt="" coords="114,104,161,116,189,123,188,128,160,121,112,109"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd" title=" " alt="" coords="424,5,585,31"/>
+<area shape="poly" title=" " alt="" coords="321,77,353,66,377,53,401,40,420,33,422,38,403,45,379,58,355,71,323,82"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="406,55,602,80"/>
+<area shape="poly" title=" " alt="" coords="354,80,391,76,392,82,355,86"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="402,104,606,130"/>
+<area shape="poly" title=" " alt="" coords="355,100,387,103,386,108,354,105"/>
+<area shape="rect" href="structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a" title=" " alt="" coords="416,154,593,194"/>
+<area shape="poly" title=" " alt="" coords="322,104,355,114,379,127,403,140,418,146,416,151,401,145,377,132,353,119,320,109"/>
 </map>
 </div>
 
 </div>
 </div>
-<a id="a2219de43f7183c78e7aae4aae4d02f6a" name="a2219de43f7183c78e7aae4aae4d02f6a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2219de43f7183c78e7aae4aae4d02f6a">&#9670;&#160;</a></span>unload_rom()</h2>
+<a id="a883ab5865f5e61a639dc3dafcd45e8c7" name="a883ab5865f5e61a639dc3dafcd45e8c7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a883ab5865f5e61a639dc3dafcd45e8c7">&#9670;&#160;</a></span>yaze_unload_rom()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void unload_rom </td>
+          <td class="memname">void yaze_unload_rom </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structrom.html">rom</a></td>          <td class="paramname"><span class="paramname"><em>rom</em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="structz3__rom.html">z3_rom</a> *</td>          <td class="paramname"><span class="paramname"><em>rom</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="structrom.html#a607297aef2aa8d87e92d74fdb36d1c5f">rom::impl</a>.</p>
+<p>Unload a Zelda3 ROM. </p>
+
+<p class="reference">References <a class="el" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">z3_rom::impl</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="#a29fdfcf0cfd5f08d2b6defbefc7a99bf">yaze_cleanup()</a>.</p>
 
 </div>
 </div>
-<a id="a3c42f8cb1bfba12aa06c785afe2a57da" name="a3c42f8cb1bfba12aa06c785afe2a57da"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3c42f8cb1bfba12aa06c785afe2a57da">&#9670;&#160;</a></span>get_color_from_paletteset()</h2>
+<a id="adfb236b5541502ced4544a6678e79d0e" name="adfb236b5541502ced4544a6678e79d0e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adfb236b5541502ced4544a6678e79d0e">&#9670;&#160;</a></span>yaze_get_color_from_paletteset()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structsnes__color.html">snes_color</a> get_color_from_paletteset </td>
+          <td class="memname"><a class="el" href="structsnes__color.html">snes_color</a> yaze_get_color_from_paletteset </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="structrom.html">rom</a> *</td>          <td class="paramname"><span class="paramname"><em>rom</em></span>, </td>
+          <td class="paramtype">const <a class="el" href="structz3__rom.html">z3_rom</a> *</td>          <td class="paramname"><span class="paramname"><em>rom</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -315,15 +372,17 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="structsnes__color.html#abe07ebebd2f735f932b7a7a065506f9f">snes_color::blue</a>, <a class="el" href="structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4">snes_color::green</a>, <a class="el" href="structrom.html#a607297aef2aa8d87e92d74fdb36d1c5f">rom::impl</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#afca5c6d2c283689f3def35935d0ace6e">yaze::app::gfx::kPaletteGroupAddressesKeys</a>, <a class="el" href="classyaze_1_1app_1_1Rom.html#a0855ec3a63a82723541f870bdd00f53d">yaze::app::Rom::palette_group()</a>, and <a class="el" href="structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58">snes_color::red</a>.</p>
+<p>Get a color from a palette set. </p>
+
+<p class="reference">References <a class="el" href="structsnes__color.html#abe07ebebd2f735f932b7a7a065506f9f">snes_color::blue</a>, <a class="el" href="structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4">snes_color::green</a>, <a class="el" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">z3_rom::impl</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#afca5c6d2c283689f3def35935d0ace6e">yaze::app::gfx::kPaletteGroupAddressesKeys</a>, <a class="el" href="classyaze_1_1app_1_1Rom.html#a0855ec3a63a82723541f870bdd00f53d">yaze::app::Rom::palette_group()</a>, and <a class="el" href="structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58">snes_color::red</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="yaze_8cc_a3c42f8cb1bfba12aa06c785afe2a57da_cgraph.png" border="0" usemap="#ayaze_8cc_a3c42f8cb1bfba12aa06c785afe2a57da_cgraph" alt=""/></div>
-<map name="ayaze_8cc_a3c42f8cb1bfba12aa06c785afe2a57da_cgraph" id="ayaze_8cc_a3c42f8cb1bfba12aa06c785afe2a57da_cgraph">
-<area shape="rect" title=" " alt="" coords="5,13,177,38"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a0855ec3a63a82723541f870bdd00f53d" title=" " alt="" coords="225,5,377,46"/>
-<area shape="poly" title=" " alt="" coords="177,23,209,23,209,28,177,28"/>
+<div class="center"><img src="yaze_8cc_adfb236b5541502ced4544a6678e79d0e_cgraph.png" border="0" usemap="#ayaze_8cc_adfb236b5541502ced4544a6678e79d0e_cgraph" alt=""/></div>
+<map name="ayaze_8cc_adfb236b5541502ced4544a6678e79d0e_cgraph" id="ayaze_8cc_adfb236b5541502ced4544a6678e79d0e_cgraph">
+<area shape="rect" title="Get a color from a palette set." alt="" coords="5,5,146,46"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a0855ec3a63a82723541f870bdd00f53d" title=" " alt="" coords="194,5,346,46"/>
+<area shape="poly" title=" " alt="" coords="146,23,178,23,178,28,146,28"/>
 </map>
 </div>
 

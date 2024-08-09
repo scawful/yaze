@@ -1,6 +1,12 @@
 var NAVTREEINDEX51 =
 {
-"yaze_8h.html#ae2c64be32a8f7916912aacef327b5f43":[10,0,1,8,3],
+"yaze_8h.html#a2f31206311a6fa23618eed894f1f5cd6":[10,0,1,8,5],
+"yaze_8h.html#a85553b5710db1102c037bdb355991631":[10,0,1,8,2],
+"yaze_8h.html#a883ab5865f5e61a639dc3dafcd45e8c7":[10,0,1,8,7],
+"yaze_8h.html#ac77c4e371c3965f72bf4ac3321600f54":[10,0,1,8,3],
+"yaze_8h.html#adfaf105df03accd07b94f1e60c6ed8bf":[10,0,1,8,6],
+"yaze_8h.html#adfb236b5541502ced4544a6678e79d0e":[10,0,1,8,8],
+"yaze_8h.html#af4c0f181175784dda7fdd05a462fae43":[10,0,1,8,4],
 "yaze_8h_source.html":[10,0,1,8],
 "yaze__c__py_8cc.html":[10,0,1,5,0],
 "yaze__py_8cc.html":[10,0,1,5,1],
