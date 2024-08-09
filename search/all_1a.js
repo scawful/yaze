@@ -261,7 +261,7 @@ var searchData=
   ['snes_5fcolor_2eh_258',['snes_color.h',['../app_2gfx_2snes__color_8h.html',1,'(Global Namespace)'],['../base_2snes__color_8h.html',1,'(Global Namespace)']]],
   ['snes_5fgreen_5fmask_259',['SNES_GREEN_MASK',['../namespaceyaze_1_1app_1_1gfx.html#ad23eb7c59ab96c08179a6d6625ad0fdd',1,'yaze::app::gfx']]],
   ['snes_5fgreen_5fshift_260',['SNES_GREEN_SHIFT',['../namespaceyaze_1_1app_1_1gfx.html#a0912d77a56151905de5232b2a90cb5f8',1,'yaze::app::gfx']]],
-  ['snes_5fpalette_261',['snes_palette',['../structsnes__palette.html',1,'snes_palette'],['../base_2snes__color_8h.html#ae878f60a39304c3c09a219467e353cec',1,'snes_palette:&#160;snes_color.h']]],
+  ['snes_5fpalette_261',['snes_palette',['../structsnes__palette.html',1,'snes_palette'],['../base_2snes__color_8h.html#a100f9af9f8e1bb9d2ad73476ab774655',1,'snes_palette:&#160;snes_color.h']]],
   ['snes_5fpalette_2ecc_262',['snes_palette.cc',['../snes__palette_8cc.html',1,'']]],
   ['snes_5fpalette_2eh_263',['snes_palette.h',['../snes__palette_8h.html',1,'']]],
   ['snes_5fpalette_5ftest_2ecc_264',['snes_palette_test.cc',['../snes__palette__test_8cc.html',1,'']]],
