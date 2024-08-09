@@ -8,12 +8,13 @@ target_include_directories(
   lib/
   app/
   ${CMAKE_SOURCE_DIR}/src/
-  /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/Headers
+  ${Boost_INCLUDE_DIRS}
 )
 
 target_link_libraries(
   yaze_ext PUBLIC
-  Python
+  ${PYTHON_LIBRARIES}
+  Boost::python3
 )
 
 # C Sample 
