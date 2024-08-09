@@ -17,6 +17,9 @@ struct z3_overworld_map {
   uint8_t* tile16_data; /**< Pointer to the 16x16 tile data. */
 };
 
+/**
+ * @brief Primitive of the overworld.
+ */
 struct z3_overworld {
   z3_overworld_map* maps; /**< Pointer to the overworld maps. */
   void* impl;             // yaze::app::Overworld*
