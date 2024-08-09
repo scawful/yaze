@@ -33,6 +33,7 @@ const int kTextData2 = 0x75F40;
 const int kTextData2End = 0x773FF;
 const int kPointersDictionaries = 0x74703;
 const int kCharactersWidth = 0x74ADF;
+constexpr int kNumDictionaryEntries = 97;
 
 const string DICTIONARYTOKEN = "D";
 const uint8_t DICTOFF = 0x88;
