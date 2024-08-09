@@ -34,8 +34,8 @@ void yaze_unload_rom(z3_rom* rom) {
   }
 }
 
-snes_color get_color_from_paletteset(const rom* rom, int palette_set,
-                                     int palette, int color) {
+snes_color yaze_get_color_from_paletteset(const z3_rom* rom, int palette_set,
+                                          int palette, int color) {
   snes_color color_struct;
   color_struct.red = 0;
   color_struct.green = 0;

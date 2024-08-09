@@ -32,8 +32,8 @@ struct yaze_flags {
 z3_rom* yaze_load_rom(const char* filename);
 void yaze_unload_rom(z3_rom* rom);
 
-snes_color get_color_from_paletteset(const rom* rom, int palette_set,
-                                     int palette, int color);
+snes_color yaze_get_color_from_paletteset(const z3_rom* rom, int palette_set,
+                                          int palette, int color);
 
 #ifdef __cplusplus
 }
