@@ -140,6 +140,9 @@ struct TextElement {
   }
 
   bool Empty() { return ID == 0; }
+
+  // Comparison operator
+  bool operator==(const TextElement& other) const { return ID == other.ID; }
 };
 
 struct ParsedElement {

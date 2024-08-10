@@ -40,10 +40,6 @@ const uint8_t BANKID = 0x80;
 
 constexpr uint8_t kBlockTerminator = 0x80;
 
-std::vector<uint8_t> ParseMessageToData(std::string str);
-
-static ParsedElement FindMatchingElement(std::string str);
-
 constexpr uint8_t kScrollVertical = 0x73;
 constexpr uint8_t kLine1 = 0x74;
 constexpr uint8_t kLine2 = 0x75;
@@ -184,6 +180,9 @@ static TextElement DictionaryElement =
 
 class MessageEditor : public Editor, public SharedRom {
  public:
+  static std::vector<uint8_t> ParseMessageToData(std::string str);
+  static ParsedElement FindMatchingElement(std::string str);
+
   struct DictionaryEntry {
     uint8_t ID;
     std::string Contents;
@@ -237,7 +236,6 @@ class MessageEditor : public Editor, public SharedRom {
   absl::Status Save();
   void Delete();
   void SelectAll();
-  // void RegisterTests(ImGuiTestEngine* e) override;
 
   TextElement FindMatchingCommand(uint8_t byte);
   TextElement FindMatchingSpecial(uint8_t value);
@@ -261,40 +259,36 @@ class MessageEditor : public Editor, public SharedRom {
 
   static const std::vector<DictionaryEntry> AllDicts;
 
-  uint8_t width_array[100];
-  std::string romname = "";
-
-  int text_line = 0;
-  int text_pos = 0;
-  int shown_lines = 0;
-  int selected_tile = 0;
-
+ private:
   bool skip_next = false;
   bool from_form = false;
-
-  std::vector<MessageData> ListOfTexts;
-  std::vector<MessageData> DisplayedMessages;
-  std::vector<std::string> ParsedMessages;
-
-  MessageData CurrentMessage;
-
- private:
-  static const TextElement DictionaryElement;
-
   bool data_loaded_ = false;
+
+  int text_line_ = 0;
+  int text_position_ = 0;
+  int shown_lines_ = 0;
+  int selected_tile = 0;
   int current_message_id_ = 0;
+
+  uint8_t width_array[100];
 
   std::string search_text_ = "";
 
-  gui::Canvas font_gfx_canvas_{"##FontGfxCanvas", ImVec2(128, 128)};
-  gui::Canvas current_font_gfx16_canvas_{"##CurrentMessageGfx",
-                                         ImVec2(172, 4096)};
+  std::vector<MessageData> list_of_texts_;
+  std::vector<MessageData> displayed_messages_;
+  std::vector<std::string> parsed_messages_;
+
+  MessageData current_message_;
+
+  Bytes font_gfx16_data_;
+  Bytes current_font_gfx16_data_;
 
   gfx::Bitmap font_gfx_bitmap_;
   gfx::Bitmap current_font_gfx16_bitmap_;
 
-  Bytes font_gfx16_data;
-  Bytes current_font_gfx16_data_;
+  gui::Canvas font_gfx_canvas_{"##FontGfxCanvas", ImVec2(128, 128)};
+  gui::Canvas current_font_gfx16_canvas_{"##CurrentMessageGfx",
+                                         ImVec2(172, 4096)};
 
   gfx::SnesPalette font_preview_colors_;
 
