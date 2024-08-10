@@ -1,0 +1,12 @@
+<map id="src/app/editor/system/extension_manager.h" name="src/app/editor/system/extension_manager.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="74,5,221,46"/>
+<area shape="rect" id="Node000002" href="$editor__manager_8h.html" title=" " alt="" coords="80,94,216,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,62,150,94,145,94,145,62"/>
+<area shape="rect" id="Node000003" href="$controller_8cc.html" title=" " alt="" coords="5,271,173,297"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="94,146,73,163,58,184,53,207,59,230,70,252,82,270,77,273,65,255,54,232,48,207,53,182,70,159,90,141"/>
+<area shape="rect" id="Node000004" href="$controller_8h.html" title=" " alt="" coords="68,190,228,216"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="150,150,150,190,145,190,145,150"/>
+<area shape="rect" id="Node000008" href="$editor__manager_8cc.html" title=" " alt="" coords="252,183,388,223"/>
+<area shape="poly" id="edge5_Node000002_Node000008" title=" " alt="" coords="201,140,282,180,280,185,199,144"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="132,230,100,272,96,269,127,227"/>
+</map>

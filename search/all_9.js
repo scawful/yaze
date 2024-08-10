@@ -14,7 +14,7 @@ var searchData=
   ['backup_11',['Backup',['../classyaze_1_1cli_1_1Backup.html',1,'yaze::cli']]],
   ['backup_5from_5f_12',['backup_rom_',['../classyaze_1_1app_1_1editor_1_1EditorManager.html#a310292da2ba5e31149e4347563288f7e',1,'yaze::app::editor::EditorManager']]],
   ['badr_13',['bAdr',['../structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a55b8a7d418f9ef2990d943fa904a95d4',1,'yaze::app::emu::memory::DmaChannel']]],
-  ['bankid_14',['BANKID',['../namespaceyaze_1_1app_1_1editor.html#a76ccaa4ed9652d123bea40a369f314cf',1,'yaze::app::editor']]],
+  ['bankid_14',['BANKID',['../namespaceyaze_1_1app_1_1editor.html#a6aec0c3a8b77cc747c1ae9d851a06234',1,'yaze::app::editor']]],
   ['banksize_15',['BankSize',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a656c5d7c708bc346677991611ab505ac',1,'yaze::app::emu::memory']]],
   ['banksize_16',['bankSize',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a3949190d51d3c8aed1d4a693c12d95fc',1,'yaze::app::emu::memory::RomInfo']]],
   ['banktoken_17',['BANKToken',['../namespaceyaze_1_1app_1_1editor.html#a850a7222bba2ccad93ba6aadd8f37430',1,'yaze::app::editor']]],

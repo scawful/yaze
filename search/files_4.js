@@ -9,5 +9,6 @@ var searchData=
   ['entity_2ecc_6',['entity.cc',['../entity_8cc.html',1,'']]],
   ['entity_2eh_7',['entity.h',['../entity_8h.html',1,'']]],
   ['extension_2ecc_8',['extension.cc',['../extension_8cc.html',1,'']]],
-  ['extension_2eh_9',['extension.h',['../extension_8h.html',1,'']]]
+  ['extension_2eh_9',['extension.h',['../extension_8h.html',1,'']]],
+  ['extension_5fmanager_2eh_10',['extension_manager.h',['../extension__manager_8h.html',1,'']]]
 ];

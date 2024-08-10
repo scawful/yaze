@@ -1,6 +1,5 @@
 var NAVTREEINDEX51 =
 {
-"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#a45c7af9c0ee6d1a8ef3b159ab48bc5f0":[9,0,1,0,5,2,0,0],
 "structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#ac0b74c47202dcac21769d177be66a441":[8,0,2,0,6,3,3,1],
 "structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#ac0b74c47202dcac21769d177be66a441":[9,0,1,0,5,2,0,1],
 "structyaze_1_1cli_1_1Commands.html":[8,0,2,1,6],
