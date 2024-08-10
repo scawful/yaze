@@ -20,6 +20,7 @@
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/settings_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
+#include "app/editor/system/extension_manager.h"
 #include "app/editor/utils/gfx_context.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/snes_palette.h"
@@ -110,7 +111,7 @@ class EditorManager : public SharedRom,
 
   Project current_project_;
   yaze_editor_context editor_context_;
-  std::vector<yaze_extension*> extensions_;
+  ExtensionManager extension_manager_;
 
   AssemblyEditor assembly_editor_;
   DungeonEditor dungeon_editor_;
