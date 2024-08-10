@@ -356,7 +356,7 @@ void MasterEditor::DrawStatusPopup() {
 void MasterEditor::DrawAboutPopup() {
   if (about_) OpenPopup("About");
   if (BeginPopupModal("About", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-    Text("Yet Another Zelda3 Editor - v%.2f", core::kYazeVersion);
+    Text("Yet Another Zelda3 Editor - v%s", core::kYazeVersion);
     Text("Written by: scawful");
     Spacing();
     Text("Special Thanks: Zarby89, JaredBrian");
@@ -411,7 +411,7 @@ void MasterEditor::DrawYazeMenu() {
     }
     PopStyleColor();
 
-    Text("%s", absl::StrCat("yaze v", core::kYazeVersion).c_str());
+    Text("yaze v%s", core::kYazeVersion.c_str());
 
     EndMenuBar();
   }
