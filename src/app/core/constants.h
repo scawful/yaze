@@ -125,15 +125,6 @@ using Bytes = std::vector<uint8_t>;
 
 namespace yaze {
 namespace app {
-
-using OWBlockset = std::vector<std::vector<uint16_t>>;
-struct OWMapTiles {
-  OWBlockset light_world;    // 64 maps
-  OWBlockset dark_world;     // 64 maps
-  OWBlockset special_world;  // 32 maps
-};
-using OWMapTiles = struct OWMapTiles;
-
 namespace core {
 
 constexpr uint32_t kRedPen = 0xFF0000FF;

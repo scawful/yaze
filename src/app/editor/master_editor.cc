@@ -411,7 +411,7 @@ void MasterEditor::DrawYazeMenu() {
     }
     PopStyleColor();
 
-    Text("yaze v%s", core::kYazeVersion.c_str());
+    Text("yaze v%s", core::kYazeVersion.data());
 
     EndMenuBar();
   }
