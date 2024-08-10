@@ -3,7 +3,7 @@ set(
   app/editor/dungeon/dungeon_editor.cc
   app/editor/master_editor.cc
   app/editor/settings_editor.cc
-  app/editor/overworld_editor.cc
+  app/editor/overworld/overworld_editor.cc
   app/editor/sprite/sprite_editor.cc
   app/editor/music/music_editor.cc
   app/editor/message/message_editor.cc

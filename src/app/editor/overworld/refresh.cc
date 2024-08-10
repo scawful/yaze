@@ -1,5 +1,5 @@
 #include "app/core/platform/renderer.h"
-#include "app/editor/overworld_editor.h"
+#include "app/editor/overworld/overworld_editor.h"
 
 namespace yaze {
 namespace app {

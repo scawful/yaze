@@ -3,7 +3,7 @@
 
 #include "imgui/imgui.h"
 
-#include "app/editor/overworld_editor.h"
+#include "app/editor/overworld/overworld_editor.h"
 #include "app/zelda3/common.h"
 #include "app/zelda3/overworld/overworld.h"
 

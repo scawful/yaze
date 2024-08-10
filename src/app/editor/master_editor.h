@@ -17,7 +17,7 @@
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/message/message_editor.h"
 #include "app/editor/music/music_editor.h"
-#include "app/editor/overworld_editor.h"
+#include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/settings_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/utils/gfx_context.h"
