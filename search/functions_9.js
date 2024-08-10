@@ -54,7 +54,7 @@ var searchData=
   ['is_5ftransparent_51',['is_transparent',['../classyaze_1_1app_1_1gfx_1_1SnesColor.html#afa9b649077606cd18ab6b408827b7830',1,'yaze::app::gfx::SnesColor']]],
   ['isactive_52',['IsActive',['../classyaze_1_1app_1_1core_1_1Controller.html#afd6011a3b58a78452d3ab5308382bf0d',1,'yaze::app::core::Controller']]],
   ['isbreakpoint_53',['IsBreakpoint',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a2517d9afa3c27cd2385509b561f9a003',1,'yaze::app::emu::Cpu']]],
-  ['iseditoractive_54',['IsEditorActive',['../namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a2fc24babfcbf8040128e6cd2fd5ff904',1,'yaze::app::editor::anonymous_namespace{master_editor.cc}']]],
+  ['iseditoractive_54',['IsEditorActive',['../namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#afe227063e9a69617e556bb4ae5c6b486',1,'yaze::app::editor::anonymous_namespace{editor_manager.cc}']]],
   ['ismousehovering_55',['IsMouseHovering',['../classyaze_1_1app_1_1gui_1_1Canvas.html#aeaa4f10b3e51c996f98099d4944b1ae2',1,'yaze::app::gui::Canvas']]],
   ['ismousehoveringoverentity_56',['IsMouseHoveringOverEntity',['../namespaceyaze_1_1app_1_1editor.html#a9630e35305cf9e744b59e289ea1867ea',1,'yaze::app::editor']]],
   ['itemlabel_57',['ItemLabel',['../namespaceyaze_1_1app_1_1gui.html#a09b85853f6496c7b5eba061ea976c68e',1,'yaze::app::gui']]]

@@ -68,7 +68,7 @@ var searchData=
   ['overworld_5fanimated_65',['overworld_animated',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a85931a0b917dd21a823d0ce3bc4e4ff6',1,'yaze::app::gfx::PaletteGroupMap']]],
   ['overworld_5faux_66',['overworld_aux',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a0bfdc2bf22eede9dce4960dc200bc197',1,'yaze::app::gfx::PaletteGroupMap']]],
   ['overworld_5fcanvas_5ffullscreen_5f_67',['overworld_canvas_fullscreen_',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#af5585c043c2c6ae59e363ff07b6158fc',1,'yaze::app::editor::OverworldEditor']]],
-  ['overworld_5feditor_5f_68',['overworld_editor_',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#ae3e6367019a598087c3d29e2fe981c0d',1,'yaze::app::editor::MasterEditor']]],
+  ['overworld_5feditor_5f_68',['overworld_editor_',['../classyaze_1_1app_1_1editor_1_1EditorManager.html#ab95357d78aa4565823e7f5d4829ae05b',1,'yaze::app::editor::EditorManager']]],
   ['overworld_5fmain_69',['overworld_main',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a1ed0d46a588ace10b7e5e2c56bf95814',1,'yaze::app::gfx::PaletteGroupMap']]],
   ['overworld_5fmaps_5f_70',['overworld_maps_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#aaa1ff39e427bf00d5601f1b5eaff29ab',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['overworld_5fmini_5fmap_71',['overworld_mini_map',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#afda628180d5d01e09289b3752bd3c56e',1,'yaze::app::gfx::PaletteGroupMap']]],

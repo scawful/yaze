@@ -1,7 +1,7 @@
 <map id="src/app/editor/utils/flags.h" name="src/app/editor/utils/flags.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="99,5,227,46"/>
-<area shape="rect" id="Node000002" href="$master__editor_8cc.html" title=" " alt="" coords="5,94,150,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,59,99,95,95,92,131,55"/>
-<area shape="rect" id="Node000003" href="$settings__editor_8cc.html" title=" " alt="" coords="174,94,325,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="195,55,232,92,228,95,191,59"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="93,5,222,46"/>
+<area shape="rect" id="Node000002" href="$editor__manager_8cc.html" title=" " alt="" coords="5,94,142,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,59,94,95,91,92,126,56"/>
+<area shape="rect" id="Node000003" href="$settings__editor_8cc.html" title=" " alt="" coords="166,94,317,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="189,56,224,92,221,95,185,59"/>
 </map>

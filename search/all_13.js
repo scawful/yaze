@@ -123,7 +123,7 @@ var searchData=
   ['loadoverworldminimappalettes_120',['LoadOverworldMiniMapPalettes',['../namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#af624df2438c3def1da9a3c82ab7e58ee',1,'yaze::app::gfx::palette_group_internal']]],
   ['loadpalette_121',['LoadPalette',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['loadprototype_122',['LoadPrototype',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a8a7e2c53b269b69dcc5b24efc79ab72b',1,'yaze::app::zelda3::overworld::Overworld']]],
-  ['loadrom_123',['LoadRom',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#a9f009622041f091ffd009851b5e21cfa',1,'yaze::app::editor::MasterEditor']]],
+  ['loadrom_123',['LoadRom',['../classyaze_1_1app_1_1editor_1_1EditorManager.html#adc012bf4ec50c0b61bdd2e6639ea03a6',1,'yaze::app::editor::EditorManager']]],
   ['loadroomfromrom_124',['LoadRoomFromROM',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#abec4b139db7e26fb07c5260a12037d4f',1,'yaze::app::zelda3::dungeon::Room']]],
   ['loadroomgraphics_125',['LoadRoomGraphics',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a4e7f202fb1e73b70c4f0e664ed5a560c',1,'yaze::app::zelda3::dungeon::Room']]],
   ['loadscr_126',['LoadScr',['../namespaceyaze_1_1app_1_1gfx_1_1scad__format.html#abbaf0d3bc11b96aee6681513c0128d26',1,'yaze::app::gfx::scad_format']]],

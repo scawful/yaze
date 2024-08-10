@@ -7,7 +7,7 @@ var searchData=
   ['background_5fbmps_5f_4',['background_bmps_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a0936d3e39b6aa07bea7c44552e570513',1,'yaze::app::zelda3::dungeon::Room']]],
   ['background_5ftileset_5f_5',['background_tileset_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a1bec4674fa141c1b4377251ee3a114b5',1,'yaze::app::zelda3::dungeon::Room']]],
   ['background_5ftype_5f_6',['background_type_',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a2690ce059ce750838ceb0c61449b58f0',1,'yaze::app::editor::DungeonEditor']]],
-  ['backup_5from_5f_7',['backup_rom_',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#af5ced715091382e36d8eb260424c9b6b',1,'yaze::app::editor::MasterEditor']]],
+  ['backup_5from_5f_7',['backup_rom_',['../classyaze_1_1app_1_1editor_1_1EditorManager.html#a310292da2ba5e31149e4347563288f7e',1,'yaze::app::editor::EditorManager']]],
   ['badr_8',['bAdr',['../structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a55b8a7d418f9ef2990d943fa904a95d4',1,'yaze::app::emu::memory::DmaChannel']]],
   ['bankid_9',['BANKID',['../namespaceyaze_1_1app_1_1editor.html#a76ccaa4ed9652d123bea40a369f314cf',1,'yaze::app::editor']]],
   ['banksize_10',['bankSize',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a3949190d51d3c8aed1d4a693c12d95fc',1,'yaze::app::emu::memory::RomInfo']]],

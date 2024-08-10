@@ -119,8 +119,6 @@ var NAVTREEINDEX0 =
 "app__delegate_8h_source.html":[10,0,1,0,0,0,0],
 "app__delegate_8mm.html":[10,0,1,0,0,0,1],
 "app__delegate_8mm_source.html":[10,0,1,0,0,0,1],
-"app__view__controller_8h.html":[10,0,1,0,0,0,2],
-"app__view__controller_8h_source.html":[10,0,1,0,0,0,2],
 "apu_8cc.html":[10,0,1,0,2,0,1],
 "apu_8cc_source.html":[10,0,1,0,2,0,1],
 "apu_8h.html":[10,0,1,0,2,0,2],
@@ -249,5 +247,7 @@ var NAVTREEINDEX0 =
 "classsample_1_1MyExtension.html#a5362f2e87611e0d5ab85136966dcd3a3":[8,0,1,0,1],
 "classsample_1_1MyExtension.html#a5362f2e87611e0d5ab85136966dcd3a3":[9,0,0,0,1],
 "classsample_1_1MyExtension.html#a5921bced1be6aff505f1e6862c581630":[8,0,1,0,3],
-"classsample_1_1MyExtension.html#a5921bced1be6aff505f1e6862c581630":[9,0,0,0,3]
+"classsample_1_1MyExtension.html#a5921bced1be6aff505f1e6862c581630":[9,0,0,0,3],
+"classsample_1_1MyExtension.html#a5cce56bac23d54f475fd2bcdbc16944b":[8,0,1,0,2],
+"classsample_1_1MyExtension.html#a5cce56bac23d54f475fd2bcdbc16944b":[9,0,0,0,2]
 };

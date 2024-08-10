@@ -1,10 +1,10 @@
 <map id="yaze::app::core::Controller::SetupScreen" name="yaze::app::core::Controller::SetupScreen">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,47,172,87"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1MasterEditor.html#a2fffd239b37c766e0ea7e41771fed34b" title=" " alt="" coords="220,47,395,87"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1EditorManager.html#a32721c1f3d6bc5ea5eaab6b7f7d06046" title=" " alt="" coords="220,47,405,87"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,64,204,64,204,70,172,70"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a42629ebab5240eac4df7bccc9cc04bf9" title=" " alt="" coords="443,5,638,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="395,49,427,43,428,48,396,54"/>
-<area shape="rect" id="Node000014" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="452,94,629,120"/>
-<area shape="poly" id="edge3_Node000002_Node000014" title=" " alt="" coords="396,79,447,88,447,94,395,85"/>
-<area shape="poly" id="edge4_Node000014_Node000014" title=" " alt="" coords="502,95,494,86,499,76,515,70,541,68,569,70,584,77,581,82,568,75,541,73,516,75,503,80,500,85,506,92"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a42629ebab5240eac4df7bccc9cc04bf9" title=" " alt="" coords="453,5,648,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="405,48,437,43,438,48,406,54"/>
+<area shape="rect" id="Node000014" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="462,94,639,120"/>
+<area shape="poly" id="edge3_Node000002_Node000014" title=" " alt="" coords="406,80,456,88,455,94,405,85"/>
+<area shape="poly" id="edge4_Node000014_Node000014" title=" " alt="" coords="511,96,503,86,508,76,524,70,551,68,580,70,595,77,593,82,579,75,551,73,525,75,512,80,509,85,515,92"/>
 </map>

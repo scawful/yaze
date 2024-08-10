@@ -1,7 +1,5 @@
 var NAVTREEINDEX15 =
 {
-"classyaze_1_1app_1_1gfx_1_1Bitmap.html#a87cf19397188c2833d41e468055e8c0d":[8,0,2,0,4,4,3],
-"classyaze_1_1app_1_1gfx_1_1Bitmap.html#a87cf19397188c2833d41e468055e8c0d":[9,0,1,0,3,2,3],
 "classyaze_1_1app_1_1gfx_1_1Bitmap.html#a8c994f9b82ac7098eca079548f671ac8":[8,0,2,0,4,4,44],
 "classyaze_1_1app_1_1gfx_1_1Bitmap.html#a8c994f9b82ac7098eca079548f671ac8":[9,0,1,0,3,2,44],
 "classyaze_1_1app_1_1gfx_1_1Bitmap.html#a8dc88b98260f56685407f1e965d4c1b3":[8,0,2,0,4,4,56],
@@ -249,5 +247,7 @@ var NAVTREEINDEX15 =
 "classyaze_1_1app_1_1gfx_1_1Tile32.html#a358fe2d7fa9891156da4e81a412aad05":[8,0,2,0,4,13,6],
 "classyaze_1_1app_1_1gfx_1_1Tile32.html#a358fe2d7fa9891156da4e81a412aad05":[9,0,1,0,3,11,6],
 "classyaze_1_1app_1_1gfx_1_1Tile32.html#a3f8e954646fd197dabb326e22b47daa5":[8,0,2,0,4,13,1],
-"classyaze_1_1app_1_1gfx_1_1Tile32.html#a3f8e954646fd197dabb326e22b47daa5":[9,0,1,0,3,11,1]
+"classyaze_1_1app_1_1gfx_1_1Tile32.html#a3f8e954646fd197dabb326e22b47daa5":[9,0,1,0,3,11,1],
+"classyaze_1_1app_1_1gfx_1_1Tile32.html#a5d881c811398e635b3ae1328429e776d":[8,0,2,0,4,13,0],
+"classyaze_1_1app_1_1gfx_1_1Tile32.html#a5d881c811398e635b3ae1328429e776d":[9,0,1,0,3,11,0]
 };

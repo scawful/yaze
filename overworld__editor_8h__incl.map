@@ -1,4 +1,4 @@
-<map id="src/app/editor/overworld_editor.h" name="src/app/editor/overworld_editor.h">
+<map id="src/app/editor/overworld/overworld_editor.h" name="src/app/editor/overworld/overworld_editor.h">
 <area shape="rect" id="Node000001" title=" " alt="" coords="1024,5,1184,46"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="263,685,361,710"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1023,32,801,40,520,54,265,72,174,84,121,97,76,115,40,134,27,146,17,160,10,179,8,202,8,536,15,573,33,603,60,628,94,648,132,663,173,675,248,688,247,694,171,680,131,668,92,653,57,632,29,606,10,575,3,537,3,202,5,178,12,158,23,142,37,130,74,110,119,91,173,79,264,67,520,48,801,35,1023,27"/>

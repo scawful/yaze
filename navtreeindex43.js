@@ -1,7 +1,5 @@
 var NAVTREEINDEX43 =
 {
-"sample_8py.html":[10,0,1,3,3],
-"sample_8py.html#a0603021e3c2bad26b919fd8b5e5132f6":[10,0,1,3,3,1],
 "sample_8py_source.html":[10,0,1,3,3],
 "scad__format_8cc.html":[10,0,1,0,3,4],
 "scad__format_8cc.html#a040f56ef613e47195e7749709b12073a":[10,0,1,0,3,4,1],
@@ -27,10 +25,10 @@ var NAVTREEINDEX43 =
 "screen__editor_8h_source.html":[10,0,1,0,1,2,7],
 "sdl__deleter_8h.html":[10,0,1,0,0,1,0],
 "sdl__deleter_8h_source.html":[10,0,1,0,0,1,0],
-"settings__editor_8cc.html":[10,0,1,0,1,12],
-"settings__editor_8cc_source.html":[10,0,1,0,1,12],
-"settings__editor_8h.html":[10,0,1,0,1,13],
-"settings__editor_8h_source.html":[10,0,1,0,1,13],
+"settings__editor_8cc.html":[10,0,1,0,1,10],
+"settings__editor_8cc_source.html":[10,0,1,0,1,10],
+"settings__editor_8h.html":[10,0,1,0,1,11],
+"settings__editor_8h_source.html":[10,0,1,0,1,11],
 "snes_8cc.html":[10,0,1,0,2,7],
 "snes_8cc.html#a81d0f6f44caa1180f02c65980a9bc7e9":[10,0,1,0,2,7,1],
 "snes_8cc.html#aae723effd7ed469f002c818eb4ad7ff8":[10,0,1,0,2,7,0],
@@ -249,5 +247,7 @@ var NAVTREEINDEX43 =
 "structyaze_1_1app_1_1Project.html#a263882d68051ab974cce1e5ec012ec89":[9,0,1,0,6,9],
 "structyaze_1_1app_1_1Project.html#a44268c81f31bf4c22b5b934541fcdca3":[8,0,2,0,7,1],
 "structyaze_1_1app_1_1Project.html#a44268c81f31bf4c22b5b934541fcdca3":[9,0,1,0,6,1],
-"structyaze_1_1app_1_1Project.html#a5212c318cd29ee7939c840e1a0bd9886":[8,0,2,0,7,10]
+"structyaze_1_1app_1_1Project.html#a5212c318cd29ee7939c840e1a0bd9886":[8,0,2,0,7,10],
+"structyaze_1_1app_1_1Project.html#a5212c318cd29ee7939c840e1a0bd9886":[9,0,1,0,6,10],
+"structyaze_1_1app_1_1Project.html#a87cdf057e929273012305fcda08adb87":[8,0,2,0,7,3]
 };

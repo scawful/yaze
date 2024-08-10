@@ -8,10 +8,8 @@ var dir_767a2d6ce89f966c317c25dc7e3aed5d =
     [ "overworld", "dir_2a6e74d3eed253325bbc2e3058622b3c.html", "dir_2a6e74d3eed253325bbc2e3058622b3c" ],
     [ "sprite", "dir_d61788e60caad948d761f6bd7dfa638e.html", "dir_d61788e60caad948d761f6bd7dfa638e" ],
     [ "utils", "dir_eee38b1326d1deb5c23215757340cf7d.html", "dir_eee38b1326d1deb5c23215757340cf7d" ],
-    [ "master_editor.cc", "master__editor_8cc.html", "master__editor_8cc" ],
-    [ "master_editor.h", "master__editor_8h.html", "master__editor_8h" ],
-    [ "overworld_editor.cc", "overworld__editor_8cc.html", "overworld__editor_8cc" ],
-    [ "overworld_editor.h", "overworld__editor_8h.html", "overworld__editor_8h" ],
+    [ "editor_manager.cc", "editor__manager_8cc.html", "editor__manager_8cc" ],
+    [ "editor_manager.h", "editor__manager_8h.html", "editor__manager_8h" ],
     [ "settings_editor.cc", "settings__editor_8cc.html", null ],
     [ "settings_editor.h", "settings__editor_8h.html", "settings__editor_8h" ]
 ];

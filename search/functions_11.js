@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['quit_0',['quit',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#adde7f7131533b85f51cf10adcac3b03e',1,'yaze::app::editor::MasterEditor']]]
+  ['quit_0',['quit',['../classyaze_1_1app_1_1editor_1_1EditorManager.html#ab86ebb5f138d99fe6e5ebc20af9cdbd6',1,'yaze::app::editor::EditorManager']]]
 ];

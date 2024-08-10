@@ -1,7 +1,5 @@
 var NAVTREEINDEX1 =
 {
-"classsample_1_1MyExtension.html#a5cce56bac23d54f475fd2bcdbc16944b":[8,0,1,0,2],
-"classsample_1_1MyExtension.html#a5cce56bac23d54f475fd2bcdbc16944b":[9,0,0,0,2],
 "classsample_1_1MyExtension.html#a6eddcd2665f70a38edf5c793d6de0a01":[8,0,1,0,6],
 "classsample_1_1MyExtension.html#a6eddcd2665f70a38edf5c793d6de0a01":[9,0,0,0,6],
 "classyaze_1_1app_1_1Rom.html":[8,0,2,0,8],
@@ -168,8 +166,6 @@ var NAVTREEINDEX1 =
 "classyaze_1_1app_1_1SharedRom.html#aec8bf2950681ab4539b7b7213e947855":[9,0,1,0,8,1],
 "classyaze_1_1app_1_1core_1_1Controller.html":[8,0,2,0,1,2],
 "classyaze_1_1app_1_1core_1_1Controller.html":[9,0,1,0,0,0],
-"classyaze_1_1app_1_1core_1_1Controller.html#a04af31e0a744915d95f466cdee06da66":[8,0,2,0,1,2,12],
-"classyaze_1_1app_1_1core_1_1Controller.html#a04af31e0a744915d95f466cdee06da66":[9,0,1,0,0,0,12],
 "classyaze_1_1app_1_1core_1_1Controller.html#a04c21c318b230bba2f09201b47bb1f7d":[8,0,2,0,1,2,21],
 "classyaze_1_1app_1_1core_1_1Controller.html#a04c21c318b230bba2f09201b47bb1f7d":[9,0,1,0,0,0,21],
 "classyaze_1_1app_1_1core_1_1Controller.html#a0fe694ddfbbfa5c288983d1e5cdb50de":[8,0,2,0,1,2,3],
@@ -178,6 +174,8 @@ var NAVTREEINDEX1 =
 "classyaze_1_1app_1_1core_1_1Controller.html#a100a89b072e1fd51b58816c76f4f7a1c":[9,0,1,0,0,0,16],
 "classyaze_1_1app_1_1core_1_1Controller.html#a1a77e2f432d143785d65f70c1372cd50":[8,0,2,0,1,2,8],
 "classyaze_1_1app_1_1core_1_1Controller.html#a1a77e2f432d143785d65f70c1372cd50":[9,0,1,0,0,0,8],
+"classyaze_1_1app_1_1core_1_1Controller.html#a246b251b2662cf167c9bef44447b031c":[8,0,2,0,1,2,18],
+"classyaze_1_1app_1_1core_1_1Controller.html#a246b251b2662cf167c9bef44447b031c":[9,0,1,0,0,0,18],
 "classyaze_1_1app_1_1core_1_1Controller.html#a2aa3c78db90d65c697c2af17ac00f904":[8,0,2,0,1,2,19],
 "classyaze_1_1app_1_1core_1_1Controller.html#a2aa3c78db90d65c697c2af17ac00f904":[9,0,1,0,0,0,19],
 "classyaze_1_1app_1_1core_1_1Controller.html#a303df51e1187d339e9548ea7d669df34":[8,0,2,0,1,2,9],
@@ -204,12 +202,12 @@ var NAVTREEINDEX1 =
 "classyaze_1_1app_1_1core_1_1Controller.html#a754ae5dac2fefc1128d2bf3d95333c07":[9,0,1,0,0,0,11],
 "classyaze_1_1app_1_1core_1_1Controller.html#a7de45c3e705b21ddd623f5a36e3dfd55":[8,0,2,0,1,2,7],
 "classyaze_1_1app_1_1core_1_1Controller.html#a7de45c3e705b21ddd623f5a36e3dfd55":[9,0,1,0,0,0,7],
+"classyaze_1_1app_1_1core_1_1Controller.html#a8aa32ff5dfedb8fc416506713d8964e6":[8,0,2,0,1,2,12],
+"classyaze_1_1app_1_1core_1_1Controller.html#a8aa32ff5dfedb8fc416506713d8964e6":[9,0,1,0,0,0,12],
 "classyaze_1_1app_1_1core_1_1Controller.html#ab838dd08a4dcd9757d19d330fc22467e":[8,0,2,0,1,2,17],
 "classyaze_1_1app_1_1core_1_1Controller.html#ab838dd08a4dcd9757d19d330fc22467e":[9,0,1,0,0,0,17],
 "classyaze_1_1app_1_1core_1_1Controller.html#ab91b550d982432084d70abcbe0fa76bd":[8,0,2,0,1,2,2],
 "classyaze_1_1app_1_1core_1_1Controller.html#ab91b550d982432084d70abcbe0fa76bd":[9,0,1,0,0,0,2],
-"classyaze_1_1app_1_1core_1_1Controller.html#abaabde3c5cafdc04aad7d073d7b5fcfd":[8,0,2,0,1,2,18],
-"classyaze_1_1app_1_1core_1_1Controller.html#abaabde3c5cafdc04aad7d073d7b5fcfd":[9,0,1,0,0,0,18],
 "classyaze_1_1app_1_1core_1_1Controller.html#aedd8bb2ace258403e9f3808e2520e4b9":[8,0,2,0,1,2,20],
 "classyaze_1_1app_1_1core_1_1Controller.html#aedd8bb2ace258403e9f3808e2520e4b9":[9,0,1,0,0,0,20],
 "classyaze_1_1app_1_1core_1_1Controller.html#afd6011a3b58a78452d3ab5308382bf0d":[8,0,2,0,1,2,0],
@@ -249,5 +247,7 @@ var NAVTREEINDEX1 =
 "classyaze_1_1app_1_1core_1_1NotifyValue.html#a8c1c4f83a2af9c120618feb95360c734":[8,0,2,0,1,8,4],
 "classyaze_1_1app_1_1core_1_1NotifyValue.html#a8c1c4f83a2af9c120618feb95360c734":[9,0,1,0,0,6,4],
 "classyaze_1_1app_1_1core_1_1NotifyValue.html#a9e237459e1ec31bb6a7a75b5ebf90734":[8,0,2,0,1,8,0],
-"classyaze_1_1app_1_1core_1_1NotifyValue.html#a9e237459e1ec31bb6a7a75b5ebf90734":[9,0,1,0,0,6,0]
+"classyaze_1_1app_1_1core_1_1NotifyValue.html#a9e237459e1ec31bb6a7a75b5ebf90734":[9,0,1,0,0,6,0],
+"classyaze_1_1app_1_1core_1_1NotifyValue.html#aa2a4e853d2ab01d9b092916eabc8f437":[8,0,2,0,1,8,5],
+"classyaze_1_1app_1_1core_1_1NotifyValue.html#aa2a4e853d2ab01d9b092916eabc8f437":[9,0,1,0,0,6,5]
 };

@@ -119,7 +119,7 @@ var searchData=
   ['graphics_5fbuffer_5f_116',['graphics_buffer_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ad98707f7b9ee9c728dd07ec91be72569',1,'yaze::app::editor::GraphicsEditor::graphics_buffer_'],['../classyaze_1_1app_1_1Rom.html#a95a2922f020624c4e4f6efd999b504d6',1,'yaze::app::Rom::graphics_buffer_']]],
   ['graphics_5feditor_2ecc_117',['graphics_editor.cc',['../graphics__editor_8cc.html',1,'']]],
   ['graphics_5feditor_2eh_118',['graphics_editor.h',['../graphics__editor_8h.html',1,'']]],
-  ['graphics_5feditor_5f_119',['graphics_editor_',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#a64f3b2f4b6888a71038c8cfa84213cff',1,'yaze::app::editor::MasterEditor']]],
+  ['graphics_5feditor_5f_119',['graphics_editor_',['../classyaze_1_1app_1_1editor_1_1EditorManager.html#a1e23450815af793f55767edc76bf16f7',1,'yaze::app::editor::EditorManager']]],
   ['graphics_5fmanager_5f_120',['graphics_manager_',['../classyaze_1_1app_1_1Rom.html#a8f6654753e3a5b9bf4a555792cf6e5dd',1,'yaze::app::Rom']]],
   ['graphics_5fsheet_5fcanvas_5f_121',['graphics_sheet_canvas_',['../classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a3742405e0081e791eb9025ea17061cf8',1,'yaze::app::editor::SpriteEditor']]],
   ['graphics_5fsheets_5f_122',['graphics_sheets_',['../classyaze_1_1app_1_1Rom.html#a4cf6d30e97cf7bed332d5ad22a0e2f71',1,'yaze::app::Rom']]],

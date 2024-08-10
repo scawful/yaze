@@ -7,12 +7,12 @@ var namespaceyaze_1_1app_1_1editor =
     [ "anonymous_namespace{dungeon_editor.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02dungeon__editor_8cc_03.html", [
       [ "RenderUnusedSets", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02dungeon__editor_8cc_03.html#a855f42ed8bc436596ca3cb7f897ef357", null ]
     ] ],
+    [ "anonymous_namespace{editor_manager.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html", [
+      [ "BeginCentered", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#a15688e2c940ad3cb8b55d2478fdf8967", null ],
+      [ "IsEditorActive", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#afe227063e9a69617e556bb4ae5c6b486", null ]
+    ] ],
     [ "anonymous_namespace{gfx_group_editor.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html", [
       [ "DrawPaletteFromPaletteGroup", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html#a77edb703f6d7539411087a40d6ddd01f", null ]
-    ] ],
-    [ "anonymous_namespace{master_editor.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html", [
-      [ "BeginCentered", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a2ba6e51388d9b35fd4f27705a42659b8", null ],
-      [ "IsEditorActive", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a2fc24babfcbf8040128e6cd2fd5ff904", null ]
     ] ],
     [ "anonymous_namespace{palette_editor.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02palette__editor_8cc_03.html", [
       [ "CustomFormatString", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02palette__editor_8cc_03.html#a28830f354bea9a16ce56d9c8b30f8df7", null ]
@@ -23,6 +23,7 @@ var namespaceyaze_1_1app_1_1editor =
     [ "AssemblyEditor", "classyaze_1_1app_1_1editor_1_1AssemblyEditor.html", "classyaze_1_1app_1_1editor_1_1AssemblyEditor" ],
     [ "DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", "classyaze_1_1app_1_1editor_1_1DungeonEditor" ],
     [ "Editor", "classyaze_1_1app_1_1editor_1_1Editor.html", "classyaze_1_1app_1_1editor_1_1Editor" ],
+    [ "EditorManager", "classyaze_1_1app_1_1editor_1_1EditorManager.html", "classyaze_1_1app_1_1editor_1_1EditorManager" ],
     [ "EntranceContext", "classyaze_1_1app_1_1editor_1_1EntranceContext.html", "classyaze_1_1app_1_1editor_1_1EntranceContext" ],
     [ "ExampleAppPropertyEditor", "structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html", "structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor" ],
     [ "ExampleMemberInfo", "structyaze_1_1app_1_1editor_1_1ExampleMemberInfo.html", "structyaze_1_1app_1_1editor_1_1ExampleMemberInfo" ],
@@ -31,7 +32,6 @@ var namespaceyaze_1_1app_1_1editor =
     [ "GfxGroupEditor", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor" ],
     [ "GraphicsEditor", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html", "classyaze_1_1app_1_1editor_1_1GraphicsEditor" ],
     [ "KeyboardShortcuts", "structyaze_1_1app_1_1editor_1_1KeyboardShortcuts.html", "structyaze_1_1app_1_1editor_1_1KeyboardShortcuts" ],
-    [ "MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html", "classyaze_1_1app_1_1editor_1_1MasterEditor" ],
     [ "MemoryEditorWithDiffChecker", "structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html", "structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker" ],
     [ "MessageData", "structyaze_1_1app_1_1editor_1_1MessageData.html", "structyaze_1_1app_1_1editor_1_1MessageData" ],
     [ "MessageEditor", "classyaze_1_1app_1_1editor_1_1MessageEditor.html", "classyaze_1_1app_1_1editor_1_1MessageEditor" ],

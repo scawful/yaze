@@ -96,8 +96,8 @@ var hierarchy =
       [ "yaze::app::core::Controller", "classyaze_1_1app_1_1core_1_1Controller.html", null ],
       [ "yaze::app::core::Renderer", "classyaze_1_1app_1_1core_1_1Renderer.html", null ],
       [ "yaze::app::editor::DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", null ],
+      [ "yaze::app::editor::EditorManager", "classyaze_1_1app_1_1editor_1_1EditorManager.html", null ],
       [ "yaze::app::editor::FlagsMenu", "structyaze_1_1app_1_1editor_1_1FlagsMenu.html", null ],
-      [ "yaze::app::editor::MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html", null ],
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ],
       [ "yaze::app::emu::Cpu", "classyaze_1_1app_1_1emu_1_1Cpu.html", null ],
       [ "yaze::app::zelda3::dungeon::Room", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html", null ],
@@ -107,7 +107,7 @@ var hierarchy =
     [ "yaze::app::emu::audio::Spc700::Flags", "structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html", null ],
     [ "yaze::app::core::FolderItem", "structyaze_1_1app_1_1core_1_1FolderItem.html", null ],
     [ "yaze::app::editor::context::GfxContext", "classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html", [
-      [ "yaze::app::editor::MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html", null ],
+      [ "yaze::app::editor::EditorManager", "classyaze_1_1app_1_1editor_1_1EditorManager.html", null ],
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ],
       [ "yaze::app::editor::Tile16Editor", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html", null ],
       [ "yaze::app::zelda3::overworld::OverworldMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html", null ]
@@ -204,9 +204,9 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::SETINI", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html", null ],
     [ "yaze::app::SharedRom", "classyaze_1_1app_1_1SharedRom.html", [
       [ "yaze::app::editor::DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", null ],
+      [ "yaze::app::editor::EditorManager", "classyaze_1_1app_1_1editor_1_1EditorManager.html", null ],
       [ "yaze::app::editor::GfxGroupEditor", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html", null ],
       [ "yaze::app::editor::GraphicsEditor", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html", null ],
-      [ "yaze::app::editor::MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html", null ],
       [ "yaze::app::editor::MemoryEditorWithDiffChecker", "structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html", null ],
       [ "yaze::app::editor::MessageEditor", "classyaze_1_1app_1_1editor_1_1MessageEditor.html", null ],
       [ "yaze::app::editor::MusicEditor", "classyaze_1_1app_1_1editor_1_1MusicEditor.html", null ],
