@@ -8,13 +8,49 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
+#include "base/overworld.h"
 #include "base/snes_color.h"
 #include "base/sprite.h"
-#include "base/overworld.h"
 
+typedef struct z3_rom z3_rom;
 typedef struct yaze_flags yaze_flags;
 typedef struct yaze_project yaze_project;
-typedef struct z3_rom z3_rom;
+
+typedef struct yaze_command_registry yaze_command_registry;
+
+/**
+ * @brief Command registry.
+ */
+struct yaze_command_registry {
+  void (*register_command)(const char* name, void (*command)(void));
+};
+
+typedef struct yaze_event_dispatcher yaze_event_dispatcher;
+
+/**
+ * @brief Event dispatcher.
+ */
+struct yaze_event_dispatcher {
+  void (*register_event_hook)(void (*event_hook)(void));
+};
+
+typedef struct yaze_editor_context yaze_editor_context;
+
+/**
+ * @brief Extension editor context.
+ */
+struct yaze_editor_context {
+  yaze_project* project;
+
+  yaze_command_registry* command_registry;
+  yaze_event_dispatcher* event_dispatcher;
+
+  ImGuiContext* imgui_context;
+  ImGuiIO* imgui_io;
+
+  void (*ShowDialog)(const char* title, const char* message);
+  void (*LogMessage)(const char* message);
+};
 
 /**
  * @brief Flags to initialize the Yaze library.
