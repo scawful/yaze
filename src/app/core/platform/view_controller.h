@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_CORE_PLATFORM_APP_VIEW_CONTROLLER_H
-#define YAZE_APP_CORE_PLATFORM_APP_VIEW_CONTROLLER_H
+#ifndef YAZE_APP_CORE_PLATFORM_VIEW_CONTROLLER_H
+#define YAZE_APP_CORE_PLATFORM_VIEW_CONTROLLER_H
 
 #ifdef __APPLE__
 #include <TargetConditionals.h>
@@ -12,6 +12,8 @@
 @interface AppViewController : UIViewController <MTKViewDelegate>
 @property(nonatomic) yaze::app::core::Controller *controller;
 @property(nonatomic) UIHoverGestureRecognizer *hoverGestureRecognizer;
+@property(notatomic) UIPinchGestureRecognizer *pinchRecognizer;
+@property(nonatomic) UISwipeGestureRecognizer *swipeRecognizer;
 @end
 #endif
 
