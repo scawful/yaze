@@ -7,6 +7,12 @@ extern "C" {
 
 #include "yaze.h"
 
+typedef void (*yaze_initialize_func)(void);
+typedef void (*yaze_cleanup_func)(void);
+typedef void (*yaze_extend_ui_func)(yaze_editor_context* context);
+typedef void (*yaze_manipulate_rom_func)(z3_rom* rom);
+typedef void (*yaze_command_func)(void);
+typedef void (*yaze_event_hook_func)(void);
 
 typedef enum {
   YAZE_EVENT_ROM_LOADED,
@@ -24,20 +30,57 @@ typedef struct yaze_extension {
   const char* name;
   const char* version;
 
-  // Initialization function
-  void (*initialize)(void);
+  /**
+   * @brief Function to initialize the extension.
+   *
+   * @details This function is called when the extension is loaded. It can be
+   * used to set up any resources or state needed by the extension.
+   */
+  yaze_initialize_func initialize;
 
-  // Cleanup function
-  void (*cleanup)(void);
+  /**
+   * @brief Function to clean up the extension.
+   *
+   * @details This function is called when the extension is unloaded. It can be
+   * used to clean up any resources or state used by the extension.
+   */
+  yaze_cleanup_func cleanup;
 
-  // Function to extend editor functionality
-  void (*extend_functionality)(void* editor_context);
+  /**
+   * @brief Function to manipulate the ROM.
+   *
+   * @param rom The ROM to manipulate.
+   *
+   */
+  yaze_manipulate_rom_func manipulate_rom;
 
-  // ImGui rendering callback
-  yaze_imgui_render_callback render_ui;
+  /**
+   * @brief Function to extend the UI.
+   *
+   * @param context The editor context.
+   *
+   * @details This function is called when the extension is loaded. It can be
+   * used to add custom UI elements to the editor. The context parameter
+   * provides access to the project, command registry, event dispatcher, and
+   * ImGui context.
+   */
+  yaze_extend_ui_func extend_ui;
 
-  // ROM manipulation callback
-  yaze_rom_operation manipulate_rom;
+  /**
+   * @brief Register commands in the yaze_command_registry.
+   */
+  yaze_command_func register_commands;
+
+  /**
+   * @brief Register custom tools in the yaze_command_registry.
+   */
+  yaze_command_func register_custom_tools;
+
+  /**
+   * @brief Register event hooks in the yaze_event_dispatcher.
+   */
+  void (*register_event_hooks)(yaze_event_type event,
+                               yaze_event_hook_func hook);
 
 } yaze_extension;
 
