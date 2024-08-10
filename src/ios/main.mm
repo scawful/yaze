@@ -95,6 +95,10 @@
     abort();
   }
   _controller->SetupScreen();
+  
+  _hoverGestureRecognizer = [[UIHoverGestureRecognizer alloc] initWithTarget:self action:@selector(hoverGesture:)];
+  [self.view addGestureRecognizer:_hoverGestureRecognizer];
+  
   return self;
 }
 
@@ -196,9 +200,9 @@
     }
   }
   io.AddMouseButtonEvent(0, hasActiveTouch);
-  
-  UIHoverGestureRecognizer *hoverGestureRecognizer = [[UIHoverGestureRecognizer alloc] initWithTarget:self action:@selector(hoverGesture:)];
-  [self.view addGestureRecognizer:hoverGestureRecognizer];
+
+}
+
 - (void)hoverGesture:(UIHoverGestureRecognizer *)gesture {
   ImGuiIO &io = ImGui::GetIO();
   io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
@@ -343,33 +347,8 @@
 //-----------------------------------------------------------------------------------
 
 #if TARGET_OS_OSX
-
 int main(int argc, const char *argv[]) { return NSApplicationMain(argc, argv); }
-
 #else
-
-// int SDL_main(int argc, char*argv[]) {
-//   yaze::app::core::Controller controller;
-//   controller.OnEntry();
-//   while (controller.IsActive()) {
-//        controller.OnInput();
-//        if (auto status = controller.OnLoad(); !status.ok()) {
-//          std::cerr << status.message() << std::endl;
-//          break;
-//        }
-//        controller.DoRender();
-//      }
-//      controller.OnExit();
-//
-//    return EXIT_SUCCESS;
-//
-//
-//   return 0;
-// }
-// int main(int argc, char *argv[])
-//{
-//     return SDL_UIKitRunApp(argc, argv, SDL_main);
-// }
 
 int main(int argc, char *argv[]) {
   @autoreleasepool {
