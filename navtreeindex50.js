@@ -1,7 +1,5 @@
 var NAVTREEINDEX50 =
 {
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#aa0476ebecf1aeb04c48cd0f5db7564fe":[8,0,2,0,4,1,1,1],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#aa0476ebecf1aeb04c48cd0f5db7564fe":[9,0,1,0,3,0,1,1],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#aa5c637582cb2b8c609d14c660eb80584":[8,0,2,0,4,1,1,10],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#aa5c637582cb2b8c609d14c660eb80584":[9,0,1,0,3,0,1,10],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ada885d11cc579116d21c5acb7b4e8356":[8,0,2,0,4,1,1,5],
@@ -249,5 +247,7 @@ var NAVTREEINDEX50 =
 "structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#a45c7af9c0ee6d1a8ef3b159ab48bc5f0":[8,0,2,0,6,3,3,0],
 "structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#a45c7af9c0ee6d1a8ef3b159ab48bc5f0":[9,0,1,0,5,2,0,0],
 "structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#ac0b74c47202dcac21769d177be66a441":[8,0,2,0,6,3,3,1],
-"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#ac0b74c47202dcac21769d177be66a441":[9,0,1,0,5,2,0,1]
+"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#ac0b74c47202dcac21769d177be66a441":[9,0,1,0,5,2,0,1],
+"structyaze_1_1cli_1_1Commands.html":[8,0,2,1,6],
+"structyaze_1_1cli_1_1Commands.html":[9,0,1,1,5]
 };

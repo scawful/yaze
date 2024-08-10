@@ -3,7 +3,6 @@ var message__editor_8h =
     [ "yaze::app::editor::MessageEditor", "classyaze_1_1app_1_1editor_1_1MessageEditor.html", "classyaze_1_1app_1_1editor_1_1MessageEditor" ],
     [ "yaze::app::editor::MessageEditor::DictionaryEntry", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry" ],
     [ "yaze::app::editor::MessageEditor::TextBox", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox" ],
-    [ "ParseMessageToData", "message__editor_8h.html#adbfa49c529abc70e97df75a0ef62228d", null ],
     [ "kGfxFont", "message__editor_8h.html#aa1645f9cefd3a3eee31ab26d57e4df85", null ],
     [ "kTextData", "message__editor_8h.html#a5378c14c6c09c86859f162a15d8f8b40", null ],
     [ "kTextDataEnd", "message__editor_8h.html#aafa4c7734912061b11c2e1400d48ea91", null ],

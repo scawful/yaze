@@ -1,9 +1,5 @@
 var NAVTREEINDEX44 =
 {
-"structyaze_1_1app_1_1Project.html#a1311a5bc2b450b80dca82fe1b42b6681":[8,0,2,0,8,7],
-"structyaze_1_1app_1_1Project.html#a1311a5bc2b450b80dca82fe1b42b6681":[9,0,1,0,7,7],
-"structyaze_1_1app_1_1Project.html#a1fc4df458b4799b79350be13248ab889":[8,0,2,0,8,11],
-"structyaze_1_1app_1_1Project.html#a1fc4df458b4799b79350be13248ab889":[9,0,1,0,7,11],
 "structyaze_1_1app_1_1Project.html#a263882d68051ab974cce1e5ec012ec89":[8,0,2,0,8,9],
 "structyaze_1_1app_1_1Project.html#a263882d68051ab974cce1e5ec012ec89":[9,0,1,0,7,9],
 "structyaze_1_1app_1_1Project.html#a44268c81f31bf4c22b5b934541fcdca3":[8,0,2,0,8,1],
@@ -249,5 +245,9 @@ var NAVTREEINDEX44 =
 "structyaze_1_1app_1_1editor_1_1MessageData.html#af68c49fb17a726f835a90efc2b608e93":[8,0,2,0,2,21,0],
 "structyaze_1_1app_1_1editor_1_1MessageData.html#af68c49fb17a726f835a90efc2b608e93":[9,0,1,0,1,16,0],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html":[8,0,2,0,2,22,0],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html":[9,0,1,0,1,17,0]
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html":[9,0,1,0,1,17,0],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a08319c6c72f68154abf815f2cceaa431":[8,0,2,0,2,22,0,0],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a08319c6c72f68154abf815f2cceaa431":[9,0,1,0,1,17,0,0],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a48641fc485f400576b2ec510df754abe":[8,0,2,0,2,22,0,2],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a48641fc485f400576b2ec510df754abe":[9,0,1,0,1,17,0,2]
 };

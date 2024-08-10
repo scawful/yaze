@@ -20,7 +20,7 @@ var searchData=
   ['parent_17',['Parent',['../structyaze_1_1app_1_1editor_1_1ParsedElement.html#a5c708003a3dbc1c7f25ee95392285fbf',1,'yaze::app::editor::ParsedElement::Parent'],['../structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#a426d99ab5f73aeca978a5525d96c5655',1,'yaze::app::editor::ExampleTreeNode::Parent']]],
   ['parent_18',['parent',['../structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#ad7e6555f90dc9a2765b7f74019f5eb8d',1,'yaze::app::gui::zeml::Node']]],
   ['parent_5f_19',['parent_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#acdb31d7dc119cd9849a5e495f284e656',1,'yaze::app::zelda3::overworld::OverworldMap']]],
-  ['parsedmessages_20',['ParsedMessages',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a8d49dfccd78a33bfe1bb78bfc306fa68',1,'yaze::app::editor::MessageEditor']]],
+  ['parsed_5fmessages_5f_20',['parsed_messages_',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a3b891275ccdc05865ad5e128d26bf01e',1,'yaze::app::editor::MessageEditor']]],
   ['paste_5fbutton_5fpressed_21',['paste_button_pressed',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ab286ad9629ffa0fe75c0cfa3fa8885c0',1,'yaze::app::editor::ScreenEditor']]],
   ['pattern_22',['Pattern',['../structyaze_1_1app_1_1editor_1_1TextElement.html#a35c0d52aaebe5434a1637bc8fc89ab13',1,'yaze::app::editor::TextElement']]],
   ['pb_23',['PB',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a552594250165fbb3711f5745932ac422',1,'yaze::app::emu::Cpu']]],

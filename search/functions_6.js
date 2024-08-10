@@ -10,10 +10,11 @@ var searchData=
   ['finddictionaryentry_7',['FindDictionaryEntry',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a48a41a2c0be24b99f875d6044a4146c0',1,'yaze::app::editor::MessageEditor']]],
   ['findmatchingcharacter_8',['FindMatchingCharacter',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a6d358680a98b9024debe47681a7a14da',1,'yaze::app::editor::MessageEditor']]],
   ['findmatchingcommand_9',['FindMatchingCommand',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a89baba38033bead5acbad6875cdd06d7',1,'yaze::app::editor::MessageEditor']]],
-  ['findmatchingspecial_10',['FindMatchingSpecial',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a66e60fe3fb008767506f41aa3353486f',1,'yaze::app::editor::MessageEditor']]],
-  ['findmetastamp_11',['FindMetastamp',['../namespaceyaze_1_1app_1_1gfx_1_1scad__format.html#abe047922c043574add4a0819ba82ea31',1,'yaze::app::gfx::scad_format']]],
-  ['flags_12',['flags',['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116',1,'yaze::app::core::ExperimentFlags']]],
-  ['flagstobyte_13',['FlagsToByte',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a832b5fee99b6f3f5db5346038336792f',1,'yaze::app::emu::audio::Spc700']]],
-  ['focus_14',['Focus',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a25effced7ec29b9cd4510b0ebe25b5c5',1,'yaze::app::editor::MessageEditor::TextBox']]],
-  ['for_5feach_15',['for_each',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#adcb7e249d2137ea11ef46872ea32d376',1,'yaze::app::gfx::PaletteGroupMap']]]
+  ['findmatchingelement_10',['FindMatchingElement',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a8c64cf0585c7d41a0a927894f0885bda',1,'yaze::app::editor::MessageEditor']]],
+  ['findmatchingspecial_11',['FindMatchingSpecial',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a66e60fe3fb008767506f41aa3353486f',1,'yaze::app::editor::MessageEditor']]],
+  ['findmetastamp_12',['FindMetastamp',['../namespaceyaze_1_1app_1_1gfx_1_1scad__format.html#abe047922c043574add4a0819ba82ea31',1,'yaze::app::gfx::scad_format']]],
+  ['flags_13',['flags',['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116',1,'yaze::app::core::ExperimentFlags']]],
+  ['flagstobyte_14',['FlagsToByte',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a832b5fee99b6f3f5db5346038336792f',1,'yaze::app::emu::audio::Spc700']]],
+  ['focus_15',['Focus',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a25effced7ec29b9cd4510b0ebe25b5c5',1,'yaze::app::editor::MessageEditor::TextBox']]],
+  ['for_5feach_16',['for_each',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#adcb7e249d2137ea11ef46872ea32d376',1,'yaze::app::gfx::PaletteGroupMap']]]
 ];

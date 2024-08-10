@@ -6,6 +6,7 @@ var structyaze_1_1app_1_1editor_1_1TextElement =
     [ "ToString", "structyaze_1_1app_1_1editor_1_1TextElement.html#a685cf2bd70fa00156f7a78348073e693", null ],
     [ "MatchMe", "structyaze_1_1app_1_1editor_1_1TextElement.html#a70901248823499d9b4d0484fefb9ec4e", null ],
     [ "Empty", "structyaze_1_1app_1_1editor_1_1TextElement.html#a5e4935ff0f5aa23e63c7369c4d0e9d2e", null ],
+    [ "operator==", "structyaze_1_1app_1_1editor_1_1TextElement.html#ab0e3679182b04a3978a392fa271ffa90", null ],
     [ "ID", "structyaze_1_1app_1_1editor_1_1TextElement.html#a4a5a10c8d0d37ca58a9883b6efb3a41a", null ],
     [ "Token", "structyaze_1_1app_1_1editor_1_1TextElement.html#ac5b9f9e7e8a9f97c7ded7e834e5b5a02", null ],
     [ "GenericToken", "structyaze_1_1app_1_1editor_1_1TextElement.html#a0330075e944c117a8df77a8db72bbcbd", null ],
