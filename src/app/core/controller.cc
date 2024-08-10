@@ -13,7 +13,7 @@
 #include "absl/strings/str_format.h"
 #include "app/core/platform/file_path.h"
 #include "app/core/platform/font_loader.h"
-#include "app/editor/master_editor.h"
+#include "app/editor/editor_manager.h"
 #include "app/gui/icons.h"
 #include "app/gui/style.h"
 
@@ -133,7 +133,7 @@ void InitializeClipboard() {
   io.ClipboardUserData = nullptr;
 }
 
-void HandleKeyDown(SDL_Event &event, editor::MasterEditor &editor) {
+void HandleKeyDown(SDL_Event &event, editor::EditorManager &editor) {
   ImGuiIO &io = ImGui::GetIO();
   io.KeysDown[event.key.keysym.scancode] = (event.type == SDL_KEYDOWN);
   io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
@@ -189,7 +189,7 @@ void HandleKeyDown(SDL_Event &event, editor::MasterEditor &editor) {
   }
 }
 
-void HandleKeyUp(SDL_Event &event, editor::MasterEditor &editor) {
+void HandleKeyUp(SDL_Event &event, editor::EditorManager &editor) {
   ImGuiIO &io = ImGui::GetIO();
   int key = event.key.keysym.scancode;
   IM_ASSERT(key >= 0 && key < IM_ARRAYSIZE(io.KeysDown));
@@ -282,11 +282,11 @@ absl::Status Controller::OnEntry(std::string filename) {
   RETURN_IF_ERROR(CreateGuiContext())
   if (flags()->kLoadAudioDevice) {
     RETURN_IF_ERROR(LoadAudioDevice())
-    master_editor_.emulator().set_audio_buffer(audio_buffer_);
-    master_editor_.emulator().set_audio_device_id(audio_device_);
+    editor_manager_.emulator().set_audio_buffer(audio_buffer_);
+    editor_manager_.emulator().set_audio_device_id(audio_device_);
   }
   InitializeKeymap();
-  master_editor_.SetupScreen(filename);
+  editor_manager_.SetupScreen(filename);
   active_ = true;
   return absl::OkStatus();
 }
@@ -299,10 +299,10 @@ void Controller::OnInput() {
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
       case SDL_KEYDOWN:
-        HandleKeyDown(event, master_editor_);
+        HandleKeyDown(event, editor_manager_);
         break;
       case SDL_KEYUP:
-        HandleKeyUp(event, master_editor_);
+        HandleKeyUp(event, editor_manager_);
         break;
       case SDL_TEXTINPUT:
         io.AddInputCharactersUTF8(event.text.text);
@@ -331,7 +331,7 @@ void Controller::OnInput() {
 }
 
 absl::Status Controller::OnLoad() {
-  if (master_editor_.quit()) {
+  if (editor_manager_.quit()) {
     active_ = false;
   }
 #if TARGET_OS_IPHONE != 1
@@ -339,7 +339,7 @@ absl::Status Controller::OnLoad() {
     NewMasterFrame();
   }
 #endif
-  RETURN_IF_ERROR(master_editor_.Update());
+  RETURN_IF_ERROR(editor_manager_.Update());
 #if TARGET_OS_IPHONE != 1
   if (platform_ != Platform::kiOS) {
     End();
@@ -544,7 +544,7 @@ absl::Status Controller::LoadAudioDevice() {
         absl::StrFormat("Failed to open audio: %s\n", SDL_GetError()));
   }
   audio_buffer_ = new int16_t[audio_frequency_ / 50 * 4];
-  master_editor_.emulator().set_audio_buffer(audio_buffer_);
+  editor_manager_.emulator().set_audio_buffer(audio_buffer_);
   SDL_PauseAudioDevice(audio_device_, 0);
   return absl::OkStatus();
 }
