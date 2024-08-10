@@ -7,9 +7,13 @@ extern "C" {
 
 #include "yaze.h"
 
-typedef void (*yaze_imgui_render_callback)(void* editor_context);
 
-typedef void (*yaze_rom_operation)(z3_rom* rom);
+typedef enum {
+  YAZE_EVENT_ROM_LOADED,
+  YAZE_EVENT_ROM_SAVED,
+  YAZE_EVENT_SPRITE_MODIFIED,
+  YAZE_EVENT_PALETTE_CHANGED,
+} yaze_event_type;
 
 /**
  * @brief Extension interface for Yaze.
