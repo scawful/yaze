@@ -26,6 +26,7 @@
 #include "app/gui/input.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
+#include "ext/extension.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
@@ -356,7 +357,7 @@ void MasterEditor::DrawStatusPopup() {
 void MasterEditor::DrawAboutPopup() {
   if (about_) OpenPopup("About");
   if (BeginPopupModal("About", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-    Text("Yet Another Zelda3 Editor - v%s", core::kYazeVersion);
+    Text("Yet Another Zelda3 Editor - v%s", core::kYazeVersion.data());
     Text("Written by: scawful");
     Spacing();
     Text("Special Thanks: Zarby89, JaredBrian");
@@ -391,12 +392,7 @@ void MasterEditor::DrawYazeMenu() {
   static bool show_command_line_interface = false;
 
   if (BeginMenuBar()) {
-    DrawFileMenu();
-    DrawEditMenu();
-    DrawViewMenu();
-    DrawTestMenu();
-    DrawProjectMenu();
-    DrawHelpMenu();
+    DrawYazeMenuBar();
 
     SameLine(GetWindowWidth() - GetStyle().ItemSpacing.x -
              CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x - 150);
@@ -441,7 +437,7 @@ void MasterEditor::OpenRomOrProject(const std::string& filename) {
   }
 }
 
-void MasterEditor::DrawFileMenu() {
+void MasterEditor::DrawYazeMenuBar() {
   static bool save_as_menu = false;
   static bool new_project_menu = false;
 
@@ -578,9 +574,7 @@ void MasterEditor::DrawFileMenu() {
     }
     End();
   }
-}
 
-void MasterEditor::DrawEditMenu() {
   if (BeginMenu("Edit")) {
     MENU_ITEM2("Undo", "Ctrl+Z") { status_ = current_editor_->Undo(); }
     MENU_ITEM2("Redo", "Ctrl+Y") { status_ = current_editor_->Redo(); }
@@ -592,9 +586,7 @@ void MasterEditor::DrawEditMenu() {
     MENU_ITEM2("Find", "Ctrl+F") {}
     EndMenu();
   }
-}
 
-void MasterEditor::DrawViewMenu() {
   static bool show_imgui_metrics = false;
   static bool show_memory_editor = false;
   static bool show_asm_editor = false;
@@ -643,18 +635,21 @@ void MasterEditor::DrawViewMenu() {
     MenuItem("ImGui Metrics", nullptr, &show_imgui_metrics);
     EndMenu();
   }
-}
 
-void MasterEditor::DrawTestMenu() {
-  static bool show_tests_ = false;
-
-  if (BeginMenu("Tests")) {
-    MenuItem("Run Tests", nullptr, &show_tests_);
+  if (BeginMenu("Extensions")) {
+    if (MenuItem("Load Extension", nullptr, nullptr)) {
+      // Load the extension
+    }
+    if (MenuItem("Unload Extension")) {
+      // Unload the extension
+    }
+    if (BeginMenu("Extensions")) {
+      // List all loaded extensions
+      EndMenu();
+    }
     EndMenu();
   }
-}
 
-void MasterEditor::DrawProjectMenu() {
   static bool show_resource_label_manager = false;
 
   if (current_project_.project_opened_) {
@@ -676,9 +671,7 @@ void MasterEditor::DrawProjectMenu() {
       current_project_.labels_filename_ = rom()->resource_label()->filename_;
     }
   }
-}
 
-void MasterEditor::DrawHelpMenu() {
   static bool open_rom_help = false;
   static bool open_supported_features = false;
   static bool open_manage_project = false;
