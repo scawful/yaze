@@ -355,6 +355,35 @@ struct PaletteGroupMap {
     RETURN_IF_ERROR(func(overworld_mini_map));
     return absl::OkStatus();
   }
+
+  void clear() {
+    overworld_main.Clear();
+    overworld_aux.Clear();
+    overworld_animated.Clear();
+    hud.Clear();
+    global_sprites.Clear();
+    armors.Clear();
+    swords.Clear();
+    shields.Clear();
+    sprites_aux1.Clear();
+    sprites_aux2.Clear();
+    sprites_aux3.Clear();
+    dungeon_main.Clear();
+    grass.Clear();
+    object_3d.Clear();
+    overworld_mini_map.Clear();
+  }
+
+  bool empty() {
+    return overworld_main.size() == 0 && overworld_aux.size() == 0 &&
+           overworld_animated.size() == 0 && hud.size() == 0 &&
+           global_sprites.size() == 0 && armors.size() == 0 &&
+           swords.size() == 0 && shields.size() == 0 &&
+           sprites_aux1.size() == 0 && sprites_aux2.size() == 0 &&
+           sprites_aux3.size() == 0 && dungeon_main.size() == 0 &&
+           grass.size() == 0 && object_3d.size() == 0 &&
+           overworld_mini_map.size() == 0;
+  }
 };
 
 absl::StatusOr<PaletteGroup> CreatePaletteGroupFromColFile(
