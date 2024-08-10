@@ -178,7 +178,7 @@ var searchData=
   ['overworldtransitionpositiony_175',['overworldTransitionPositionY',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a03b8e6933914ee3f39cf82d94f692bcf',1,'yaze::app::zelda3::overworld']]],
   ['ow_5fmap_5fcanvas_5f_176',['ow_map_canvas_',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a7a3b2cbce87c4b42102efa627db2d703',1,'yaze::app::editor::OverworldEditor']]],
   ['ow_5ftilemap_5ffilename_5f_177',['ow_tilemap_filename_',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a89120f7ab240957c5c33e58f5285b9d8',1,'yaze::app::editor::OverworldEditor']]],
-  ['owblockset_178',['OWBlockset',['../namespaceyaze_1_1app.html#a1528910dca250c6119a96d559b114430',1,'yaze::app']]],
+  ['owblockset_178',['OWBlockset',['../namespaceyaze_1_1app_1_1zelda3.html#aec01fb1cfaa7d77c7f95166738b07dda',1,'yaze::app::zelda3']]],
   ['owentranceentranceid_179',['OWEntranceEntranceId',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a6368fdd73a36241248ab1be9cc86f9b4',1,'yaze::app::zelda3::overworld']]],
   ['owentrancemap_180',['OWEntranceMap',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a4d4087a0070c2b62fe93befe22fa6218',1,'yaze::app::zelda3::overworld']]],
   ['owentrancepos_181',['OWEntrancePos',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a248e76c95d7bd2d10a79715894f69233',1,'yaze::app::zelda3::overworld']]],
@@ -209,7 +209,7 @@ var searchData=
   ['owholearea_206',['OWHoleArea',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#aaaf9d5a4298e1b692146bdc0cc330a7d',1,'yaze::app::zelda3::overworld']]],
   ['owholeentrance_207',['OWHoleEntrance',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a082e5c7c386f119b49c474d43a3d1dc5',1,'yaze::app::zelda3::overworld']]],
   ['owholepos_208',['OWHolePos',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a732b50ea9d1dea59f1dc95dcc9684162',1,'yaze::app::zelda3::overworld']]],
-  ['owmaptiles_209',['OWMapTiles',['../structyaze_1_1app_1_1OWMapTiles.html',1,'yaze::app::OWMapTiles'],['../namespaceyaze_1_1app.html#a683a233a45db8227628e1d8a669157f6',1,'yaze::app::OWMapTiles']]],
+  ['owmaptiles_209',['OWMapTiles',['../structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html',1,'yaze::app::zelda3::OWMapTiles'],['../namespaceyaze_1_1app_1_1zelda3.html#ae0956b7be8834150a570eff3faad7d62',1,'yaze::app::zelda3::OWMapTiles']]],
   ['owwhirlpoolposition_210',['OWWhirlpoolPosition',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a1a22d188af97dacd26d1c79528d96fc0',1,'yaze::app::zelda3::overworld']]],
   ['ox_5f_211',['ox_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a13cadb7aea7575759f72f1415db9f035',1,'yaze::app::zelda3::dungeon::RoomObject']]],
   ['oy_5f_212',['oy_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#af416d9b98e5d3d9c799f54cc3711ed07',1,'yaze::app::zelda3::dungeon::RoomObject']]]

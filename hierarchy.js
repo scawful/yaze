@@ -179,7 +179,7 @@ var hierarchy =
       [ "yaze::app::zelda3::overworld::OverworldExit", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html", null ],
       [ "yaze::app::zelda3::overworld::OverworldItem", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldItem.html", null ]
     ] ],
-    [ "yaze::app::OWMapTiles", "structyaze_1_1app_1_1OWMapTiles.html", null ],
+    [ "yaze::app::zelda3::OWMapTiles", "structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html", null ],
     [ "yaze::app::editor::palette_internal::PaletteChange", "structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html", null ],
     [ "yaze::app::editor::palette_internal::PaletteEditorHistory", "classyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html", null ],
     [ "yaze::app::gfx::PaletteGroup", "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html", null ],

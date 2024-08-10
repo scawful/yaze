@@ -9,13 +9,10 @@ var namespaceyaze_1_1app =
     [ "gfx", "namespaceyaze_1_1app_1_1gfx.html", "namespaceyaze_1_1app_1_1gfx" ],
     [ "gui", "namespaceyaze_1_1app_1_1gui.html", "namespaceyaze_1_1app_1_1gui" ],
     [ "zelda3", "namespaceyaze_1_1app_1_1zelda3.html", "namespaceyaze_1_1app_1_1zelda3" ],
-    [ "OWMapTiles", "structyaze_1_1app_1_1OWMapTiles.html", "structyaze_1_1app_1_1OWMapTiles" ],
     [ "Project", "structyaze_1_1app_1_1Project.html", "structyaze_1_1app_1_1Project" ],
     [ "Rom", "classyaze_1_1app_1_1Rom.html", "classyaze_1_1app_1_1Rom" ],
     [ "SharedRom", "classyaze_1_1app_1_1SharedRom.html", "classyaze_1_1app_1_1SharedRom" ],
     [ "VersionConstants", "structyaze_1_1app_1_1VersionConstants.html", "structyaze_1_1app_1_1VersionConstants" ],
-    [ "OWBlockset", "namespaceyaze_1_1app.html#a1528910dca250c6119a96d559b114430", null ],
-    [ "OWMapTiles", "namespaceyaze_1_1app.html#a683a233a45db8227628e1d8a669157f6", null ],
     [ "Z3_Version", "namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47", [
       [ "US", "namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a7516fd43adaa5e0b8a65a672c39845d2", null ],
       [ "JP", "namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a24d22e03afb23edb45c6c8cfa16a280e", null ],

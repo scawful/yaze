@@ -59,7 +59,7 @@ var searchData=
   ['license_56',['License',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a3d6e17d3d4cb495fc71fa77c41b0decd',1,'yaze::app::emu::memory::License'],['../md_README.html#autotoc_md27',1,'License']]],
   ['license_57',['license',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a4a7c7461ce733f7d969949f32aefe9f4',1,'yaze::app::emu::memory::RomInfo']]],
   ['light_5fmaps_5fto_5fload_5f_58',['light_maps_to_load_',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad5a24f68bf8ab1a9aa7f7f0c95d1dbed',1,'yaze::app::editor::OverworldEditor']]],
-  ['light_5fworld_59',['light_world',['../structyaze_1_1app_1_1OWMapTiles.html#a55b33d6a9467ca55394bb37c5ef4f510',1,'yaze::app::OWMapTiles']]],
+  ['light_5fworld_59',['light_world',['../structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html#a97bc0aaeb6b020051980f6bc942f40b0',1,'yaze::app::zelda3::OWMapTiles']]],
   ['limitofmap32_60',['LimitOfMap32',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a98d1a91677ea63f4b03aa1c1e1fbc267',1,'yaze::app::zelda3::overworld']]],
   ['line_61',['line',['../structerrordata.html#a35adf8e081dfc3e30d5b732504878c7f',1,'errordata']]],
   ['link_5fcanvas_5f_62',['link_canvas_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a780a22f9e7d9ce21721e9205111c1054',1,'yaze::app::editor::GraphicsEditor']]],

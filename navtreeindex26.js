@@ -1,7 +1,5 @@
 var NAVTREEINDEX26 =
 {
-"flags_8h_source.html":[10,0,1,0,1,7,1],
-"font__loader_8cc.html":[10,0,1,0,0,0,11],
 "font__loader_8cc_source.html":[10,0,1,0,0,0,11],
 "font__loader_8h.html":[10,0,1,0,0,0,12],
 "font__loader_8h.html#a7390a9bf6e7c82bbe4cddbf00844d86d":[10,0,1,0,0,0,12,0],
@@ -249,5 +247,7 @@ var NAVTREEINDEX26 =
 "icons_8h.html#a0a5d24ddfb1f3541a8024bfabab1727b":[10,0,1,0,4,6,73],
 "icons_8h.html#a0a6945e192c4179687b2a8ad8ab48376":[10,0,1,0,4,6,804],
 "icons_8h.html#a0aa23122cd31ffdfaa5d163f97e7f20d":[10,0,1,0,4,6,1205],
-"icons_8h.html#a0aac86530c1becc4cdc934b545b1d85a":[10,0,1,0,4,6,1123]
+"icons_8h.html#a0aac86530c1becc4cdc934b545b1d85a":[10,0,1,0,4,6,1123],
+"icons_8h.html#a0b02253c829c479b9de0b53741f215c0":[10,0,1,0,4,6,728],
+"icons_8h.html#a0b927ed0ff48154ce492532769f6a4a9":[10,0,1,0,4,6,1552]
 };

@@ -1,7 +1,5 @@
 var NAVTREEINDEX51 =
 {
-"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#ac0b74c47202dcac21769d177be66a441":[8,0,2,0,6,3,3,1],
-"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#ac0b74c47202dcac21769d177be66a441":[9,0,1,0,5,2,0,1],
 "structyaze_1_1cli_1_1Commands.html":[8,0,2,1,6],
 "structyaze_1_1cli_1_1Commands.html":[9,0,1,1,5],
 "structyaze_1_1cli_1_1Commands.html#a564941340fe0299473dafc0bb1a1d8a6":[8,0,2,1,6,0],
@@ -150,6 +148,8 @@ var NAVTREEINDEX51 =
 "z3ed_8cc.html#a2ce01552171fe2c443f90b424ffdd398":[10,0,1,2,2,0],
 "z3ed_8cc_source.html":[10,0,1,2,2],
 "zelda3_2common_8h.html":[10,0,1,0,5,5],
+"zelda3_2common_8h.html#ae0956b7be8834150a570eff3faad7d62":[10,0,1,0,5,5,3],
+"zelda3_2common_8h.html#aec01fb1cfaa7d77c7f95166738b07dda":[10,0,1,0,5,5,2],
 "zelda3_2common_8h_source.html":[10,0,1,0,5,5],
 "zeml_8cc.html":[10,0,1,0,4,11],
 "zeml_8cc.html#a03a069771465c842d3c6d861a4b6b539":[10,0,1,0,4,11,4],

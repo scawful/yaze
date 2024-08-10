@@ -112,7 +112,7 @@ var searchData=
   ['spc_5fopcode_5fmap_109',['spc_opcode_map',['../audio_2internal_2opcodes_8h.html#a93cb5efaf6af57a758585c8135874b0e',1,'opcodes.h']]],
   ['spcbank_110',['spcbank',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a08e377f478ad9510eacff1f9c4af88f0',1,'yaze::app::zelda3::music::Tracker']]],
   ['spclen_111',['spclen',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#add2920618a827e0cff3c30dfb258647c',1,'yaze::app::zelda3::music::Tracker']]],
-  ['special_5fworld_112',['special_world',['../structyaze_1_1app_1_1OWMapTiles.html#a3e7fe9668f224335dc95d2668be8f5ae',1,'yaze::app::OWMapTiles']]],
+  ['special_5fworld_112',['special_world',['../structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html#aed6936be2282202a02db2b3a20f08059',1,'yaze::app::zelda3::OWMapTiles']]],
   ['spr_113',['spr',['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#ac354ac1895be4514977939995ebc6fc9',1,'yaze::app::gfx::Paletteset']]],
   ['spr2_114',['spr2',['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#a91a578a40c36305401a31d34533e572f',1,'yaze::app::gfx::Paletteset']]],
   ['spr_5fgfx_5f_115',['spr_gfx_',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#aaf84910977821e161042442e64b299d5',1,'yaze::app::editor::OverworldEditor']]],

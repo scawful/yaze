@@ -12,7 +12,7 @@ var searchData=
   ['recentchanges_9',['recentChanges',['../classyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html#a6c1ac684b9c2dcb22377bcc54c501420',1,'yaze::app::editor::palette_internal::PaletteEditorHistory']]],
   ['recentfiles_5f_10',['recentFiles_',['../classyaze_1_1app_1_1editor_1_1RecentFilesManager.html#a7c9402a286b20b09301d051ffb3ee574',1,'yaze::app::editor::RecentFilesManager']]],
   ['red_11',['red',['../structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58',1,'snes_color']]],
-  ['refresh_5fblockset_5f_12',['refresh_blockset_',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#af940abeeb591a64d8166bd44bbd6ee6b',1,'yaze::app::editor::OverworldEditor']]],
+  ['refresh_5fblockset_5f_12',['refresh_blockset_',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad623c309a42ab5ea0c6c07a6cd2a6316',1,'yaze::app::editor::OverworldEditor']]],
   ['refresh_5fgraphics_5f_13',['refresh_graphics_',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a8355fc1c5f44823030df548abb7bd948',1,'yaze::app::editor::DungeonEditor::refresh_graphics_'],['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#abdd4ac514ce8600e0e2812d1b40bcb80',1,'yaze::app::editor::GraphicsEditor::refresh_graphics_'],['../classyaze_1_1app_1_1gui_1_1Canvas.html#a1ee6c782d10d1fa882d00fe8f19e1359',1,'yaze::app::gui::Canvas::refresh_graphics_']]],
   ['release_5fqueue_5f_14',['release_queue_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a945800e3039c0f98f9168a173e21de9a',1,'yaze::app::editor::GraphicsEditor']]],
   ['remapping_15',['remapping',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#aefe451e6ca6c1ed01d19d4c1f1a77f03',1,'yaze::app::emu::video::PpuRegisters::VMAIN']]],

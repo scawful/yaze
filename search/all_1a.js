@@ -306,7 +306,7 @@ var searchData=
   ['spclen_303',['spclen',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#add2920618a827e0cff3c30dfb258647c',1,'yaze::app::zelda3::music::Tracker']]],
   ['spcread_304',['SpcRead',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a57fe32259ad8866d4b7df0ad78601e11',1,'yaze::app::emu::audio::Apu']]],
   ['spcwrite_305',['SpcWrite',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a1635c1bb61926cc862b49bb56e2e3e98',1,'yaze::app::emu::audio::Apu']]],
-  ['special_5fworld_306',['special_world',['../structyaze_1_1app_1_1OWMapTiles.html#a3e7fe9668f224335dc95d2668be8f5ae',1,'yaze::app::OWMapTiles']]],
+  ['special_5fworld_306',['special_world',['../structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html#aed6936be2282202a02db2b3a20f08059',1,'yaze::app::zelda3::OWMapTiles']]],
   ['specialobjecttype_307',['SpecialObjectType',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ac46cb973cf8ca0aa50e953f5c8978f2b',1,'yaze::app::zelda3::dungeon']]],
   ['splitcompressionpiece_308',['SplitCompressionPiece',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a99a3331f6a6866bb8a694c1d828154fc',1,'yaze::app::gfx::lc_lz2']]],
   ['splitcompressionpiecev3_309',['SplitCompressionPieceV3',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aca37c4a4f8c6a88dd487cc2cc7fff58a',1,'yaze::app::gfx::lc_lz2']]],

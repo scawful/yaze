@@ -1,20 +1,20 @@
 <map id="yaze::app::zelda3::overworld::Overworld" name="yaze::app::zelda3::overworld::Overworld">
-<area shape="rect" id="Node000001" title="Represents the full Overworld data, light and dark world." alt="" coords="678,67,820,108"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="412,5,560,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="577,29,655,48,701,64,699,69,653,53,575,35"/>
+<area shape="rect" id="Node000001" title="Represents the full Overworld data, light and dark world." alt="" coords="671,67,813,108"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="409,5,557,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="573,30,648,48,694,64,692,69,646,53,572,35"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="20,51,195,92"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="211,71,677,83,677,88,211,77"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="433,124,540,150"/>
-<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="211,87,433,125,432,130,210,92"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="555,121,677,98,678,103,556,127"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="211,71,670,83,670,88,211,77"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="429,124,536,150"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="211,87,429,125,429,130,210,92"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="551,121,670,98,671,104,552,127"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1BitmapManager.html" title="Hash map container of shared pointers to Bitmaps." alt="" coords="10,120,205,146"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="221,133,234,133,432,134,432,140,234,138,220,138"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="221,133,234,133,429,134,429,140,234,138,220,138"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="20,169,195,195"/>
-<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="210,174,295,167,384,156,432,147,433,152,385,161,296,172,210,179"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="210,174,295,167,384,156,428,147,429,153,385,161,296,172,210,179"/>
 <area shape="rect" id="Node000007" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="5,219,210,244"/>
-<area shape="poly" id="edge7_Node000004_Node000007" title=" " alt="" coords="225,235,265,231,306,224,346,212,383,194,391,186,395,178,399,168,407,159,431,146,434,151,410,163,403,171,399,180,395,189,386,198,348,217,307,229,266,237,225,240"/>
+<area shape="poly" id="edge7_Node000004_Node000007" title=" " alt="" coords="225,234,265,231,306,223,346,211,383,194,391,187,395,178,399,169,407,160,429,148,431,153,410,164,403,172,399,181,395,190,386,198,348,216,307,229,266,236,226,240"/>
 <area shape="rect" id="Node000009" href="$structyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="24,268,191,309"/>
-<area shape="poly" id="edge8_Node000004_Node000009" title=" " alt="" coords="206,300,252,300,299,293,344,279,383,254,392,243,395,233,395,209,394,185,398,172,407,159,431,143,434,148,411,163,403,174,400,185,400,209,401,234,396,246,386,258,346,284,300,299,252,305,206,305"/>
-<area shape="rect" id="Node000010" href="$structyaze_1_1app_1_1OWMapTiles.html" title=" " alt="" coords="409,173,564,199"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="557,166,653,135,711,106,714,111,655,140,559,171"/>
+<area shape="poly" id="edge8_Node000004_Node000009" title=" " alt="" coords="206,300,252,300,299,293,344,279,383,254,391,244,395,233,395,210,395,186,398,173,407,160,427,146,430,150,411,164,403,175,400,186,401,210,401,234,396,246,386,258,346,284,300,299,252,305,206,305"/>
+<area shape="rect" id="Node000010" href="$structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html" title="Overworld map tile32 data." alt="" coords="421,174,544,214"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="558,169,646,136,705,106,707,111,648,141,560,174"/>
 </map>

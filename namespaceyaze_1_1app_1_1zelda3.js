@@ -8,9 +8,12 @@ var namespaceyaze_1_1app_1_1zelda3 =
     [ "overworld", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html", "namespaceyaze_1_1app_1_1zelda3_1_1overworld" ],
     [ "screen", "namespaceyaze_1_1app_1_1zelda3_1_1screen.html", "namespaceyaze_1_1app_1_1zelda3_1_1screen" ],
     [ "OverworldEntity", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity" ],
+    [ "OWMapTiles", "structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html", "structyaze_1_1app_1_1zelda3_1_1OWMapTiles" ],
     [ "Sprite", "classyaze_1_1app_1_1zelda3_1_1Sprite.html", "classyaze_1_1app_1_1zelda3_1_1Sprite" ],
     [ "SpriteAction", "classyaze_1_1app_1_1zelda3_1_1SpriteAction.html", "classyaze_1_1app_1_1zelda3_1_1SpriteAction" ],
     [ "SpriteBuilder", "classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html", "classyaze_1_1app_1_1zelda3_1_1SpriteBuilder" ],
     [ "SpriteInstruction", "classyaze_1_1app_1_1zelda3_1_1SpriteInstruction.html", "classyaze_1_1app_1_1zelda3_1_1SpriteInstruction" ],
+    [ "OWBlockset", "namespaceyaze_1_1app_1_1zelda3.html#aec01fb1cfaa7d77c7f95166738b07dda", null ],
+    [ "OWMapTiles", "namespaceyaze_1_1app_1_1zelda3.html#ae0956b7be8834150a570eff3faad7d62", null ],
     [ "kSpriteProperties", "namespaceyaze_1_1app_1_1zelda3.html#aaeedd086060117eff0ce895be0515421", null ]
 ];

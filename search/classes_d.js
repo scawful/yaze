@@ -21,5 +21,5 @@ var searchData=
   ['overworldexit_18',['OverworldExit',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html',1,'yaze::app::zelda3::overworld']]],
   ['overworlditem_19',['OverworldItem',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldItem.html',1,'yaze::app::zelda3::overworld']]],
   ['overworldmap_20',['OverworldMap',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html',1,'yaze::app::zelda3::overworld']]],
-  ['owmaptiles_21',['OWMapTiles',['../structyaze_1_1app_1_1OWMapTiles.html',1,'yaze::app']]]
+  ['owmaptiles_21',['OWMapTiles',['../structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html',1,'yaze::app::zelda3']]]
 ];

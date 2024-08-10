@@ -109,6 +109,7 @@ $(function(){initNavTree('namespaceyaze_1_1app_1_1zelda3.html',''); initResizabl
   <div class="summary">
 <a href="#namespaces">Namespaces</a> &#124;
 <a href="#nested-classes">Classes</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">yaze::app::zelda3 Namespace Reference</div></div>
 </div><!--header-->
@@ -137,6 +138,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html">OverworldEntity</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Base class for all overworld entities.  <a href="classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html">OWMapTiles</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Overworld map tile32 data.  <a href="structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1zelda3_1_1Sprite.html">Sprite</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A class for managing sprites in the overworld and underworld.  <a href="classyaze_1_1app_1_1zelda3_1_1Sprite.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -147,6 +151,14 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1zelda3_1_1SpriteInstruction.html">SpriteInstruction</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:aec01fb1cfaa7d77c7f95166738b07dda" id="r_aec01fb1cfaa7d77c7f95166738b07dda"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aec01fb1cfaa7d77c7f95166738b07dda">OWBlockset</a> = std::vector&lt;std::vector&lt;uint16_t&gt;&gt;</td></tr>
+<tr class="memdesc:aec01fb1cfaa7d77c7f95166738b07dda"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents tile32 data for the overworld.  <br /></td></tr>
+<tr class="separator:aec01fb1cfaa7d77c7f95166738b07dda"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0956b7be8834150a570eff3faad7d62" id="r_ae0956b7be8834150a570eff3faad7d62"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae0956b7be8834150a570eff3faad7d62">OWMapTiles</a> = struct OWMapTiles</td></tr>
+<tr class="separator:ae0956b7be8834150a570eff3faad7d62"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:aaeedd086060117eff0ce895be0515421" id="r_aaeedd086060117eff0ce895be0515421"><td class="memItemLeft" align="right" valign="top">constexpr const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aaeedd086060117eff0ce895be0515421">kSpriteProperties</a> []</td></tr>
@@ -154,7 +166,42 @@ Variables</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Zelda 3 specific classes and functions. </p>
-</div><h2 class="groupheader">Variable Documentation</h2>
+</div><h2 class="groupheader">Typedef Documentation</h2>
+<a id="aec01fb1cfaa7d77c7f95166738b07dda" name="aec01fb1cfaa7d77c7f95166738b07dda"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec01fb1cfaa7d77c7f95166738b07dda">&#9670;&#160;</a></span>OWBlockset</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#aec01fb1cfaa7d77c7f95166738b07dda">yaze::app::zelda3::OWBlockset</a> = std::vector&lt;std::vector&lt;uint16_t&gt;&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Represents tile32 data for the overworld. </p>
+
+<p class="definition">Definition at line <a class="el" href="zelda3_2common_8h_source.html#l00015">15</a> of file <a class="el" href="zelda3_2common_8h_source.html">common.h</a>.</p>
+
+</div>
+</div>
+<a id="ae0956b7be8834150a570eff3faad7d62" name="ae0956b7be8834150a570eff3faad7d62"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae0956b7be8834150a570eff3faad7d62">&#9670;&#160;</a></span>OWMapTiles</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using yaze::app::zelda3::OWMapTiles = struct OWMapTiles</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="zelda3_2common_8h_source.html#l00025">25</a> of file <a class="el" href="zelda3_2common_8h_source.html">common.h</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Variable Documentation</h2>
 <a id="aaeedd086060117eff0ce895be0515421" name="aaeedd086060117eff0ce895be0515421"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aaeedd086060117eff0ce895be0515421">&#9670;&#160;</a></span>kSpriteProperties</h2>
 

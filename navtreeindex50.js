@@ -1,15 +1,5 @@
 var NAVTREEINDEX50 =
 {
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a95750045285413be80ea99ae294f2e38":[8,0,2,0,4,1,1,8],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a95750045285413be80ea99ae294f2e38":[9,0,1,0,3,0,1,8],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#aa0476ebecf1aeb04c48cd0f5db7564fe":[8,0,2,0,4,1,1,1],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#aa0476ebecf1aeb04c48cd0f5db7564fe":[9,0,1,0,3,0,1,1],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#aa5c637582cb2b8c609d14c660eb80584":[8,0,2,0,4,1,1,10],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#aa5c637582cb2b8c609d14c660eb80584":[9,0,1,0,3,0,1,10],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ada885d11cc579116d21c5acb7b4e8356":[8,0,2,0,4,1,1,5],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ada885d11cc579116d21c5acb7b4e8356":[9,0,1,0,3,0,1,5],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae11cfcee0de7150ad5128529d10bb186":[8,0,2,0,4,1,1,7],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae11cfcee0de7150ad5128529d10bb186":[9,0,1,0,3,0,1,7],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae75528fc689654968586b3863d94692d":[8,0,2,0,4,1,1,4],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae75528fc689654968586b3863d94692d":[9,0,1,0,3,0,1,4],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#af4106f923d69298648b4d5c165adc29d":[8,0,2,0,4,1,1,13],
@@ -202,6 +192,14 @@ var NAVTREEINDEX50 =
 "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ac26b59be8f9cf9fd06239b55f5a57383":[9,0,1,0,4,0,3,0],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ac6ae054a393303e48b3a873b7930e866":[8,0,2,0,5,1,3,6],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ac6ae054a393303e48b3a873b7930e866":[9,0,1,0,4,0,3,6],
+"structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html":[8,0,2,0,6,6],
+"structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html":[9,0,1,0,5,5],
+"structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html#a97bc0aaeb6b020051980f6bc942f40b0":[8,0,2,0,6,6,0],
+"structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html#a97bc0aaeb6b020051980f6bc942f40b0":[9,0,1,0,5,5,0],
+"structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html#aed6936be2282202a02db2b3a20f08059":[8,0,2,0,6,6,2],
+"structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html#aed6936be2282202a02db2b3a20f08059":[9,0,1,0,5,5,2],
+"structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html#af689e4031a1d740e5f618f6af14371a0":[8,0,2,0,6,6,1],
+"structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html#af689e4031a1d740e5f618f6af14371a0":[9,0,1,0,5,5,1],
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData.html":[8,0,2,0,6,1,0],
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData.html":[9,0,1,0,5,0,0],
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData.html#a20d5b4ddbd5b3e104cb61986cacbe07f":[8,0,2,0,6,1,0,0],
@@ -249,5 +247,7 @@ var NAVTREEINDEX50 =
 "structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html":[8,0,2,0,6,3,3],
 "structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html":[9,0,1,0,5,2,0],
 "structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#a45c7af9c0ee6d1a8ef3b159ab48bc5f0":[8,0,2,0,6,3,3,0],
-"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#a45c7af9c0ee6d1a8ef3b159ab48bc5f0":[9,0,1,0,5,2,0,0]
+"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#a45c7af9c0ee6d1a8ef3b159ab48bc5f0":[9,0,1,0,5,2,0,0],
+"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#ac0b74c47202dcac21769d177be66a441":[8,0,2,0,6,3,3,1],
+"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#ac0b74c47202dcac21769d177be66a441":[9,0,1,0,5,2,0,1]
 };

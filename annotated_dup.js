@@ -256,12 +256,12 @@ var annotated_dup =
             [ "TitleScreen", "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html", "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen" ]
           ] ],
           [ "OverworldEntity", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity" ],
+          [ "OWMapTiles", "structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html", "structyaze_1_1app_1_1zelda3_1_1OWMapTiles" ],
           [ "Sprite", "classyaze_1_1app_1_1zelda3_1_1Sprite.html", "classyaze_1_1app_1_1zelda3_1_1Sprite" ],
           [ "SpriteAction", "classyaze_1_1app_1_1zelda3_1_1SpriteAction.html", "classyaze_1_1app_1_1zelda3_1_1SpriteAction" ],
           [ "SpriteBuilder", "classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html", "classyaze_1_1app_1_1zelda3_1_1SpriteBuilder" ],
           [ "SpriteInstruction", "classyaze_1_1app_1_1zelda3_1_1SpriteInstruction.html", "classyaze_1_1app_1_1zelda3_1_1SpriteInstruction" ]
         ] ],
-        [ "OWMapTiles", "structyaze_1_1app_1_1OWMapTiles.html", "structyaze_1_1app_1_1OWMapTiles" ],
         [ "Project", "structyaze_1_1app_1_1Project.html", "structyaze_1_1app_1_1Project" ],
         [ "Rom", "classyaze_1_1app_1_1Rom.html", "classyaze_1_1app_1_1Rom" ],
         [ "SharedRom", "classyaze_1_1app_1_1SharedRom.html", "classyaze_1_1app_1_1SharedRom" ],
