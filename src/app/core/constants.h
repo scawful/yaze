@@ -137,7 +137,7 @@ using OWMapTiles = struct OWMapTiles;
 namespace core {
 
 constexpr uint32_t kRedPen = 0xFF0000FF;
-constexpr float kYazeVersion = 0.2;
+constexpr std::string_view kYazeVersion = "0.2.0";
 
 // ============================================================================
 // Magic numbers
