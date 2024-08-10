@@ -24,9 +24,7 @@
 #undef main
 #endif
 
-//#define SDL_main main
-
-#include "app/core/platform/app_view_controller.h"
+#include "app/core/platform/view_controller.h"
 #include "imgui/backends/imgui_impl_metal.h"
 #include "imgui/imgui.h"
 
@@ -73,11 +71,7 @@
   // Enable native IME.
   SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
 
-  //  SDL_Window* window = SDL_CreateWindow("Yet Another Zelda3 Editor", SDL_WINDOWPOS_CENTERED,
-  //  SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-  //  SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED |
-  //  SDL_RENDERER_PRESENTVSYNC);
-
+  // TODO: Maybe allow HIGH DPI? If it improves touch.
   if (!_controller->CreateSDL_Window().ok()) {
     printf("Error creating window: %s\n", SDL_GetError());
     abort();
@@ -98,6 +92,13 @@
   
   _hoverGestureRecognizer = [[UIHoverGestureRecognizer alloc] initWithTarget:self action:@selector(hoverGesture:)];
   [self.view addGestureRecognizer:_hoverGestureRecognizer];
+  
+  _pinchRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(handlePinch:)];
+  [self.view addGestureRecognizer:_pinchRecognizer];
+
+  _swipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipe:)];
+  _swipeRecognizer.direction = UISwipeGestureRecognizerDirectionRight | UISwipeGestureRecognizerDirectionLeft;
+  [self.view addGestureRecognizer:_swipeRecognizer];
   
   return self;
 }
@@ -224,6 +225,22 @@
 }
 - (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
   [self updateIOWithTouchEvent:event];
+}
+
+- (void)handlePinch:(UIPinchGestureRecognizer *)gesture {
+    ImGuiIO &io = ImGui::GetIO();
+    io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
+    io.AddMouseWheelEvent(0.0f, gesture.scale);
+}
+
+- (void)handleSwipe:(UISwipeGestureRecognizer *)gesture {
+    ImGuiIO &io = ImGui::GetIO();
+    io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
+    if (gesture.direction == UISwipeGestureRecognizerDirectionRight) {
+        io.AddMouseWheelEvent(1.0f, 0.0f);  // Swipe Right
+    } else if (gesture.direction == UISwipeGestureRecognizerDirectionLeft) {
+        io.AddMouseWheelEvent(-1.0f, 0.0f);  // Swipe Left
+    }
 }
 
 #endif
