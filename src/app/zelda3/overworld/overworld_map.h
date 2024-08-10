@@ -1,8 +1,6 @@
 #ifndef YAZE_APP_ZELDA3_OVERWORLD_MAP_H
 #define YAZE_APP_ZELDA3_OVERWORLD_MAP_H
 
-#include "imgui/imgui.h"
-
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -16,6 +14,8 @@
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
+#include "app/zelda3/common.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {

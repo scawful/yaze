@@ -1314,7 +1314,7 @@ absl::Status OverworldEditor::LoadAnimatedMaps() {
     map.DrawAnimatedTiles();
     RETURN_IF_ERROR(map.BuildTileset());
     RETURN_IF_ERROR(map.BuildTiles16Gfx(overworld_.tiles16().size()));
-    OWBlockset blockset;
+    zelda3::OWBlockset blockset;
     if (current_world_ == 0) {
       blockset = overworld_.map_tiles().light_world;
     } else if (current_world_ == 1) {

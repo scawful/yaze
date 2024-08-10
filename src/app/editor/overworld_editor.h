@@ -288,7 +288,7 @@ class OverworldEditor : public Editor,
   gfx::BitmapTable sprite_previews_;
   gfx::BitmapTable animated_maps_;
 
-  OWBlockset refresh_blockset_;
+  zelda3::OWBlockset refresh_blockset_;
 
   gui::zeml::Node layout_node_;
   absl::Status status_;
