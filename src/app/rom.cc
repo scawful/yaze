@@ -108,7 +108,8 @@ absl::Status Rom::LoadAllGraphicsData() {
           GetGraphicsAddress(data(), i, version_constants().kOverworldGfxPtr1,
                              version_constants().kOverworldGfxPtr2,
                              version_constants().kOverworldGfxPtr3);
-      ASSIGN_OR_RETURN(sheet, gfx::lc_lz2::DecompressV2(data(), offset))
+      ASSIGN_OR_RETURN(sheet,
+                       gfx::lc_lz2::DecompressV2(rom_data_.data(), offset))
       bpp3 = true;
     }
 
@@ -232,12 +233,14 @@ absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
 }
 
 absl::Status Rom::LoadFromPointer(uchar* data, size_t length, bool z3_load) {
-  if (!data)
+  if (!data || length == 0)
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `data` is empty.");
 
-  for (int i = 0; i < length; ++i) rom_data_.push_back(data[i]);
+  if (!palette_groups_.empty()) palette_groups_.clear();
+  if (rom_data_.size() < length) rom_data_.resize(length);
 
+  std::copy(data, data + length, rom_data_.begin());
   size_ = length;
 
   if (z3_load) {
