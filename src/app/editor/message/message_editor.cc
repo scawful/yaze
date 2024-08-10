@@ -46,7 +46,7 @@ using ImGui::Text;
 using ImGui::TextWrapped;
 using ImGui::TreeNode;
 
-static ParsedElement FindMatchingElement(std::string str) {
+ParsedElement MessageEditor::FindMatchingElement(std::string str) {
   std::smatch match;
   for (auto& textElement : TextCommands) {
     match = textElement.MatchMe(str);
@@ -60,9 +60,12 @@ static ParsedElement FindMatchingElement(std::string str) {
     }
   }
 
-  match = DictionaryElement.MatchMe(str);
+  const auto dictionary_element =
+      TextElement(0x80, DICTIONARYTOKEN, true, "Dictionary");
+
+  match = dictionary_element.MatchMe(str);
   if (match.size() > 0) {
-    return ParsedElement(DictionaryElement,
+    return ParsedElement(dictionary_element,
                          DICTOFF + std::stoi(match[1].str(), nullptr, 16));
   }
   return ParsedElement();
@@ -79,25 +82,30 @@ std::string ReplaceAllDictionaryWords(std::string str) {
   return temp;
 }
 
-std::vector<uint8_t> ParseMessageToData(std::string str) {
+std::vector<uint8_t> MessageEditor::ParseMessageToData(std::string str) {
   std::vector<uint8_t> bytes;
-  std::string tempString = str;
+  std::string temp_string = str;
   int pos = 0;
 
-  while (pos < tempString.size()) {
+  while (pos < temp_string.size()) {
     // Get next text fragment.
-    if (tempString[pos] == '[') {
-      int next = tempString.find(']', pos);
+    if (temp_string[pos] == '[') {
+      int next = temp_string.find(']', pos);
       if (next == -1) {
         break;
       }
 
       ParsedElement parsedElement =
-          FindMatchingElement(tempString.substr(pos, next - pos + 1));
+          FindMatchingElement(temp_string.substr(pos, next - pos + 1));
+
+      const auto dictionary_element =
+          TextElement(0x80, DICTIONARYTOKEN, true, "Dictionary");
+
       if (!parsedElement.Active) {
-        break;  // TODO: handle badness.
-        // } else if (parsedElement.Parent == DictionaryElement) {
-        //   bytes.push_back(parsedElement.Value);
+        core::logf("Error parsing message: %s", temp_string);
+        break;
+      } else if (parsedElement.Parent == dictionary_element) {
+        bytes.push_back(parsedElement.Value);
       } else {
         bytes.push_back(parsedElement.Parent.ID);
 
@@ -109,10 +117,10 @@ std::vector<uint8_t> ParseMessageToData(std::string str) {
       pos = next + 1;
       continue;
     } else {
-      uint8_t bb = MessageEditor::FindMatchingCharacter(tempString[pos++]);
+      uint8_t bb = MessageEditor::FindMatchingCharacter(temp_string[pos++]);
 
       if (bb != 0xFF) {
-        // TODO: handle badness.
+        core::logf("Error parsing message: %s", temp_string);
         bytes.push_back(bb);
       }
     }
@@ -124,7 +132,7 @@ std::vector<uint8_t> ParseMessageToData(std::string str) {
 absl::Status MessageEditor::Update() {
   if (rom()->is_loaded() && !data_loaded_) {
     RETURN_IF_ERROR(Initialize());
-    CurrentMessage = ListOfTexts[1];
+    current_message_ = list_of_texts_[1];
     data_loaded_ = true;
   }
 
@@ -153,10 +161,10 @@ absl::Status MessageEditor::Update() {
 
 void MessageEditor::DrawMessageList() {
   if (InputText("Search", &search_text_)) {
-    DisplayedMessages.clear();
-    for (const auto& message : ListOfTexts) {
+    displayed_messages_.clear();
+    for (const auto& message : list_of_texts_) {
       if (absl::StrContains(message.ContentsParsed, search_text_)) {
-        DisplayedMessages.push_back(message);
+        displayed_messages_.push_back(message);
       }
     }
   }
@@ -172,18 +180,18 @@ void MessageEditor::DrawMessageList() {
 
       TableHeadersRow();
 
-      for (const auto& message : ListOfTexts) {
+      for (const auto& message : list_of_texts_) {
         TableNextColumn();
         if (Button(core::UppercaseHexWord(message.ID).c_str())) {
-          CurrentMessage = message;
+          current_message_ = message;
           DrawMessagePreview();
         }
         TableNextColumn();
-        TextWrapped("%s", ParsedMessages[message.ID].c_str());
+        TextWrapped("%s", parsed_messages_[message.ID].c_str());
         TableNextColumn();
         TextWrapped(
             "%s",
-            core::UppercaseHexLong(ListOfTexts[message.ID].Address).c_str());
+            core::UppercaseHexLong(list_of_texts_[message.ID].Address).c_str());
       }
 
       EndTable();
@@ -193,10 +201,11 @@ void MessageEditor::DrawMessageList() {
 }
 
 void MessageEditor::DrawCurrentMessage() {
-  Button(absl::StrCat("Message ", CurrentMessage.ID).c_str());
-  if (InputTextMultiline("##MessageEditor", &ParsedMessages[CurrentMessage.ID],
+  Button(absl::StrCat("Message ", current_message_.ID).c_str());
+  if (InputTextMultiline("##MessageEditor",
+                         &parsed_messages_[current_message_.ID],
                          ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-    CurrentMessage.Data = ParseMessageToData(message_text_box_.text);
+    current_message_.Data = ParseMessageToData(message_text_box_.text);
     DrawMessagePreview();
   }
   Separator();
@@ -260,11 +269,11 @@ absl::Status MessageEditor::Initialize() {
   for (int i = 0; i < 0x4000; i++) {
     data[i] = rom()->data()[kGfxFont + i];
   }
-  font_gfx16_data = gfx::SnesTo8bppSheet(data, /*bpp=*/2);
+  font_gfx16_data_ = gfx::SnesTo8bppSheet(data, /*bpp=*/2);
 
   // 4bpp
   RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
-      128, 128, 8, font_gfx16_data, font_gfx_bitmap_, font_preview_colors_))
+      128, 128, 8, font_gfx16_data_, font_gfx_bitmap_, font_preview_colors_))
 
   current_font_gfx16_data_.reserve(172 * 4096);
   for (int i = 0; i < 172 * 4096; i++) {
@@ -283,11 +292,11 @@ absl::Status MessageEditor::Initialize() {
 
   *font_gfx_bitmap_.mutable_palette() = color_palette;
 
-  for (const auto& message : ListOfTexts) {
-    DisplayedMessages.push_back(message);
+  for (const auto& message : list_of_texts_) {
+    displayed_messages_.push_back(message);
   }
 
-  for (const auto& each_message : ListOfTexts) {
+  for (const auto& each_message : list_of_texts_) {
     // Each string has a [:XX] char encoded
     // The corresponding character is found in CharEncoder unordered_map
     std::string parsed_message = "";
@@ -316,7 +325,7 @@ absl::Status MessageEditor::Initialize() {
         }
       }
     }
-    ParsedMessages.push_back(parsed_message);
+    parsed_messages_.push_back(parsed_message);
   }
 
   DrawMessagePreview();
@@ -370,7 +379,7 @@ void MessageEditor::ReadAllTextData() {
           MessageData(message_id++, pos, current_message_raw, temp_bytes_raw,
                       current_message_parsed, temp_bytes_parsed);
 
-      ListOfTexts.push_back(message);
+      list_of_texts_.push_back(message);
 
       temp_bytes_raw.clear();
       temp_bytes_parsed.clear();
@@ -536,7 +545,7 @@ void MessageEditor::DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
       // Formula information to get tile index position in the array.
       // ((ID / nbrofXtiles) * (imgwidth/2) + (ID - ((ID/16)*16) ))
       int tx = ((drawid / 16) * 512) + ((drawid - ((drawid / 16) * 16)) * 4);
-      uint8_t pixel = font_gfx16_data[tx + (yl * 64) + xl];
+      uint8_t pixel = font_gfx16_data_[tx + (yl * 64) + xl];
 
       // nx,ny = object position, xx,yy = tile position, xl,yl = pixel
       // position
@@ -575,25 +584,25 @@ void MessageEditor::DrawCharacterToPreview(const std::vector<uint8_t>& text) {
       int srcy = value / 16;
       int srcx = value - (value & (~0xF));
 
-      if (text_pos >= 170) {
-        text_pos = 0;
-        text_line++;
+      if (text_position_ >= 170) {
+        text_position_ = 0;
+        text_line_++;
       }
 
-      DrawTileToPreview(text_pos, text_line * 16, srcx, srcy, 0, 1, 2);
-      text_pos += width_array[value];
+      DrawTileToPreview(text_position_, text_line_ * 16, srcx, srcy, 0, 1, 2);
+      text_position_ += width_array[value];
     } else if (value == kLine1) {
-      text_pos = 0;
-      text_line = 0;
+      text_position_ = 0;
+      text_line_ = 0;
     } else if (value == kScrollVertical) {
-      text_pos = 0;
-      text_line += 1;
+      text_position_ = 0;
+      text_line_ += 1;
     } else if (value == kLine2) {
-      text_pos = 0;
-      text_line = 1;
+      text_position_ = 0;
+      text_line_ = 1;
     } else if (value == kLine3) {
-      text_pos = 0;
-      text_line = 2;
+      text_position_ = 0;
+      text_line_ = 2;
     } else if (value == 0x6B || value == 0x6D || value == 0x6E ||
                value == 0x77 || value == 0x78 || value == 0x79 ||
                value == 0x7A) {
@@ -619,13 +628,13 @@ void MessageEditor::DrawCharacterToPreview(const std::vector<uint8_t>& text) {
 
 void MessageEditor::DrawMessagePreview()  // From Parsing.
 {
-  text_line = 0;
+  text_line_ = 0;
   for (int i = 0; i < (172 * 4096); i++) {
     current_font_gfx16_data_[i] = 0;
   }
-  text_pos = 0;
-  DrawCharacterToPreview(CurrentMessage.Data);
-  shown_lines = 0;
+  text_position_ = 0;
+  DrawCharacterToPreview(current_message_.Data);
+  shown_lines_ = 0;
 }
 
 absl::Status MessageEditor::Cut() {
@@ -677,7 +686,7 @@ absl::Status MessageEditor::Save() {
   int pos = kTextData;
   bool in_second_bank = false;
 
-  for (const auto& message : ListOfTexts) {
+  for (const auto& message : list_of_texts_) {
     for (const auto value : message.Data) {
       RETURN_IF_ERROR(rom()->Write(pos, value));
 
