@@ -7,17 +7,6 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 
-#if defined(__APPLE__) && defined(__MACH__)
-#include <TargetConditionals.h>
-#if TARGET_IPHONE_SIMULATOR == 1
-#include "imgui/backends/imgui_impl_metal.h"
-#elif TARGET_OS_IPHONE == 1
-#include "imgui/backends/imgui_impl_metal.h"
-#elif TARGET_OS_MAC == 1
-
-#endif
-#endif
-
 #include <memory>
 
 #include "absl/status/status.h"
@@ -276,14 +265,9 @@ void HandleMouseMovement(int &wheel) {
 
 absl::Status Controller::OnEntry(std::string filename) {
 #if defined(__APPLE__) && defined(__MACH__)
-#if TARGET_IPHONE_SIMULATOR == 1
-  /* iOS in Xcode simulator */
-  platform_ = Platform::kiOS;
-#elif TARGET_OS_IPHONE == 1
-  /* iOS */
+#if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1
   platform_ = Platform::kiOS;
 #elif TARGET_OS_MAC == 1
-  /* macOS */
   platform_ = Platform::kMacOS;
 #endif
 #elif defined(_WIN32)
@@ -293,7 +277,6 @@ absl::Status Controller::OnEntry(std::string filename) {
 #else
   platform_ = Platform::kUnknown;
 #endif
-
   RETURN_IF_ERROR(CreateSDL_Window())
   RETURN_IF_ERROR(CreateRenderer())
   RETURN_IF_ERROR(CreateGuiContext())
