@@ -28,9 +28,11 @@
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
+#include "ext/extension.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "imgui_memory_editor.h"
+#include "yaze.h"
 
 namespace yaze {
 namespace app {
@@ -86,12 +88,7 @@ class MasterEditor : public SharedRom,
   void DrawInfoPopup();
 
   void DrawYazeMenu();
-  void DrawFileMenu();
-  void DrawEditMenu();
-  void DrawViewMenu();
-  void DrawTestMenu();
-  void DrawProjectMenu();
-  void DrawHelpMenu();
+  void DrawYazeMenuBar();
 
   void LoadRom();
   void SaveRom();
@@ -112,6 +109,8 @@ class MasterEditor : public SharedRom,
   emu::Emulator emulator_;
 
   Project current_project_;
+  yaze_editor_context editor_context_;
+  std::vector<yaze_extension*> extensions_;
 
   AssemblyEditor assembly_editor_;
   DungeonEditor dungeon_editor_;
