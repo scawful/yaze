@@ -14,7 +14,7 @@
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/music/music_editor.h"
-#include "app/editor/overworld_editor.h"
+#include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/utils/flags.h"
 #include "app/editor/utils/recent_files.h"

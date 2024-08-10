@@ -61,7 +61,7 @@ For developers to reference.
     - [app/editor/dungeon_editor.cc](../src/app/editor/dungeon_editor.cc)
     - [app/editor/graphics_editor.cc](../src/app/editor/graphics_editor.cc)
     - [app/editor/music_editor.cc](../src/app/editor/music_editor.cc)
-    - [app/editor/overworld_editor.cc](../src/app/editor/overworld_editor.cc)
+    - [app/editor/overworld/overworld_editor.cc](../src/app/editor/overworld/overworld_editor.cc)
     - [app/editor/screen_editor.cc](../src/app/editor/screen_editor.cc)
     - [app/editor/sprite_editor.cc](../src/app/editor/sprite_editor.cc)
 

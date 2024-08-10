@@ -647,6 +647,12 @@ void OverworldEditor::DrawOverworldCanvas() {
   ow_map_canvas_.DrawGrid();
   ow_map_canvas_.DrawOverlay();
   EndChild();
+
+  // Handle mouse wheel activity
+  if (ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && ImGui::IsMouseDragging(ImGuiMouseButton_Middle)) {
+    ImGui::SetScrollX(ImGui::GetScrollX() + ImGui::GetIO().MouseWheelH * 16.0f);
+    ImGui::SetScrollY(ImGui::GetScrollY() + ImGui::GetIO().MouseWheel * 16.0f);
+  }
 }
 
 absl::Status OverworldEditor::DrawTile16Selector() {
