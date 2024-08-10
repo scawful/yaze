@@ -10,6 +10,7 @@
 #include <stack>
 #include <string>
 
+#include "absl/strings/str_format.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -181,17 +182,25 @@ class ImGuiIdIssuer {
   }
 };
 
+static bool log_to_console = false;
+static std::string log_file_out = "log.txt";
+
+template <typename... Args>
+static void logf(const absl::FormatSpec<Args...> &format, const Args &...args) {
+  std::string message = absl::StrFormat(format, args...);
+  if (log_to_console) {
+    std::cout << message << std::endl;
+  }
+  static std::ofstream fout(log_file_out, std::ios::out | std::ios::app);
+  fout << message << std::endl;
+}
+
 class Logger {
  public:
   static void log(std::string message) {
-    static std::ofstream fout("log.txt", std::ios::out | std::ios::app);
+    static std::ofstream fout(log_file_out, std::ios::out | std::ios::app);
     fout << message << std::endl;
   }
-
-  // log to console
-  static void logc(std::string message) { logs.emplace_back(message); }
-
-  static std::vector<std::string> logs;
 };
 
 constexpr uint32_t kFastRomRegion = 0x808000;
