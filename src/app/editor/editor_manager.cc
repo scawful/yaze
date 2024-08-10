@@ -1,4 +1,4 @@
-#include "master_editor.h"
+#include "editor_manager.h"
 
 #include "ImGuiColorTextEdit/TextEditor.h"
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
@@ -59,14 +59,14 @@ bool IsEditorActive(Editor* editor, std::vector<Editor*>& active_editors) {
 
 }  // namespace
 
-void MasterEditor::SetupScreen(std::string filename) {
+void EditorManager::SetupScreen(std::string filename) {
   if (!filename.empty()) {
     PRINT_IF_ERROR(rom()->LoadFromFile(filename));
   }
   overworld_editor_.InitializeZeml();
 }
 
-absl::Status MasterEditor::Update() {
+absl::Status EditorManager::Update() {
   ManageKeyboardShortcuts();
 
   DrawYazeMenu();
@@ -88,7 +88,7 @@ absl::Status MasterEditor::Update() {
   return absl::OkStatus();
 }
 
-void MasterEditor::ManageActiveEditors() {
+void EditorManager::ManageActiveEditors() {
   // Show popup pane to select an editor to add
   static bool show_add_editor = false;
   if (show_add_editor) OpenPopup("AddEditor");
@@ -251,7 +251,7 @@ void MasterEditor::ManageActiveEditors() {
   }
 }
 
-void MasterEditor::ManageKeyboardShortcuts() {
+void EditorManager::ManageKeyboardShortcuts() {
   bool ctrl_or_super = (GetIO().KeyCtrl || GetIO().KeySuper);
 
   // If CMD + R is pressed, reload the top result of recent files
@@ -309,7 +309,7 @@ void MasterEditor::ManageKeyboardShortcuts() {
   }
 }
 
-void MasterEditor::DrawFileDialog() {
+void EditorManager::DrawFileDialog() {
   gui::FileDialogPipeline("ChooseFileDlgKey", ".sfc,.smc", std::nullopt, [&]() {
     std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
     status_ = rom()->LoadFromFile(filePathName);
@@ -326,7 +326,7 @@ void MasterEditor::DrawFileDialog() {
   });
 }
 
-void MasterEditor::DrawStatusPopup() {
+void EditorManager::DrawStatusPopup() {
   if (!status_.ok()) {
     show_status_ = true;
     prev_status_ = status_;
@@ -354,7 +354,7 @@ void MasterEditor::DrawStatusPopup() {
   }
 }
 
-void MasterEditor::DrawAboutPopup() {
+void EditorManager::DrawAboutPopup() {
   if (about_) OpenPopup("About");
   if (BeginPopupModal("About", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
     Text("Yet Another Zelda3 Editor - v%s", core::kYazeVersion.data());
@@ -371,7 +371,7 @@ void MasterEditor::DrawAboutPopup() {
   }
 }
 
-void MasterEditor::DrawInfoPopup() {
+void EditorManager::DrawInfoPopup() {
   if (rom_info_) OpenPopup("ROM Information");
   if (BeginPopupModal("ROM Information", nullptr,
                       ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -387,7 +387,7 @@ void MasterEditor::DrawInfoPopup() {
   }
 }
 
-void MasterEditor::DrawYazeMenu() {
+void EditorManager::DrawYazeMenu() {
   static bool show_display_settings = false;
   static bool show_command_line_interface = false;
 
@@ -426,7 +426,7 @@ void MasterEditor::DrawYazeMenu() {
   }
 }
 
-void MasterEditor::OpenRomOrProject(const std::string& filename) {
+void EditorManager::OpenRomOrProject(const std::string& filename) {
   if (absl::StrContains(filename, ".yaze")) {
     status_ = current_project_.Open(filename);
     if (status_.ok()) {
@@ -437,7 +437,7 @@ void MasterEditor::OpenRomOrProject(const std::string& filename) {
   }
 }
 
-void MasterEditor::DrawYazeMenuBar() {
+void EditorManager::DrawYazeMenuBar() {
   static bool save_as_menu = false;
   static bool new_project_menu = false;
 
@@ -755,7 +755,7 @@ void MasterEditor::DrawYazeMenuBar() {
   }
 }
 
-void MasterEditor::LoadRom() {
+void EditorManager::LoadRom() {
   if (flags()->kNewFileDialogWrapper) {
     auto file_name = FileDialogWrapper::ShowOpenFileDialog();
     PRINT_IF_ERROR(rom()->LoadFromFile(file_name));
@@ -769,7 +769,7 @@ void MasterEditor::LoadRom() {
   }
 }
 
-void MasterEditor::SaveRom() {
+void EditorManager::SaveRom() {
   if (flags()->kSaveDungeonMaps) {
     status_ = screen_editor_.SaveDungeonMaps();
     RETURN_VOID_IF_ERROR(status_);
@@ -804,7 +804,7 @@ void MasterEditor::SaveRom() {
   status_ = rom()->SaveToFile(backup_rom_, save_new_auto_);
 }
 
-absl::Status MasterEditor::OpenProject() {
+absl::Status EditorManager::OpenProject() {
   RETURN_IF_ERROR(rom()->LoadFromFile(current_project_.rom_filename_));
 
   if (!rom()->resource_label()->LoadLabels(current_project_.labels_filename_)) {

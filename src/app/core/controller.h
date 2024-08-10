@@ -13,7 +13,7 @@
 #include "absl/status/status.h"
 #include "app/core/common.h"
 #include "app/core/platform/renderer.h"
-#include "app/editor/master_editor.h"
+#include "app/editor/editor_manager.h"
 #include "app/editor/utils/editor.h"
 #include "app/gui/icons.h"
 #include "app/gui/style.h"
@@ -47,8 +47,8 @@ class Controller : public ExperimentFlags {
   absl::Status LoadFontFamilies() const;
   absl::Status LoadAudioDevice();
 
-  void SetupScreen() { master_editor_.SetupScreen(); }
-  auto master_editor() -> editor::MasterEditor & { return master_editor_; }
+  void SetupScreen() { editor_manager_.SetupScreen(); }
+  auto editor_manager() -> editor::EditorManager & { return editor_manager_; }
   auto renderer() -> SDL_Renderer * {
     return Renderer::GetInstance().renderer();
   }
@@ -59,7 +59,7 @@ class Controller : public ExperimentFlags {
 
   bool active_;
   Platform platform_;
-  editor::MasterEditor master_editor_;
+  editor::EditorManager editor_manager_;
 
   int audio_frequency_ = 48000;
   int16_t *audio_buffer_;

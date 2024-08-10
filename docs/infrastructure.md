@@ -53,7 +53,7 @@ For developers to reference.
   - Updates `editor::MasterEditor`
   - Renders the output to the screen.
   - Handles the teardown of SDL and ImGui resources.
-- [app/editor/master_editor.cc](../src/app/editor/master_editor.cc)
+- [app/editor/editor_manager.cc](../src/app/editor/editor_manager.cc)
   - Handles the main menu bar
   - Handles `absl::Status` errors as popups delivered to the user.
   - Update all the editors in a tab view.
