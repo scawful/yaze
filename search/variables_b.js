@@ -46,7 +46,8 @@ var searchData=
   ['log_5f_43',['log_',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ae3be0be62f792f6a4aeccbbcd567a907',1,'yaze::app::emu::audio::Spc700']]],
   ['log_5finstructions_5f_44',['log_instructions_',['../classyaze_1_1app_1_1emu_1_1Cpu.html#acebca66f87dfe28dc6aa6a3da1541a8a',1,'yaze::app::emu::Cpu']]],
   ['logger_5f_45',['logger_',['../classyaze_1_1app_1_1emu_1_1Loggable.html#ae3a9d001ac766a58a93dbbffe3f759db',1,'yaze::app::emu::Loggable']]],
-  ['lowdata_46',['lowData',['../structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#ac0b74c47202dcac21769d177be66a441',1,'yaze::app::zelda3::overworld::MapData']]],
-  ['lowerx_5f_47',['lowerX_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#aec8738828518bb2ae745570bbf2e761c',1,'yaze::app::zelda3::Sprite']]],
-  ['lowery_5f_48',['lowerY_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#aaaa3daa3f857ed554c4bac9e7203a280',1,'yaze::app::zelda3::Sprite']]]
+  ['logmessage_46',['LogMessage',['../structyaze__editor__context.html#a78848069ed97ec1084103943ac348332',1,'yaze_editor_context']]],
+  ['lowdata_47',['lowData',['../structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#ac0b74c47202dcac21769d177be66a441',1,'yaze::app::zelda3::overworld::MapData']]],
+  ['lowerx_5f_48',['lowerX_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#aec8738828518bb2ae745570bbf2e761c',1,'yaze::app::zelda3::Sprite']]],
+  ['lowery_5f_49',['lowerY_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#aaaa3daa3f857ed554c4bac9e7203a280',1,'yaze::app::zelda3::Sprite']]]
 ];

@@ -27,7 +27,7 @@ var searchData=
   ['main_5fgfx_5fid_5f_24',['main_gfx_id_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a442d926995e0ec762c1c00c891a4b0eb',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['mainscreenenabled_25',['mainScreenEnabled',['../structyaze_1_1app_1_1emu_1_1video_1_1Layer.html#ad2bc74c15ac856215392c9e1014faa84',1,'yaze::app::emu::video::Layer']]],
   ['mainscreenwindowed_26',['mainScreenWindowed',['../structyaze_1_1app_1_1emu_1_1video_1_1Layer.html#a42cc91b0b9215c578d90914b7630019c',1,'yaze::app::emu::video::Layer']]],
-  ['manipulate_5from_27',['manipulate_rom',['../structyaze__extension.html#af1321f2f3acbb5d7265fe79caba85dd8',1,'yaze_extension']]],
+  ['manipulate_5from_27',['manipulate_rom',['../structyaze__extension.html#a98c292db5ca1e3d87858cda250e39811',1,'yaze_extension']]],
   ['manual_5fpb_5f_28',['manual_pb_',['../classyaze_1_1app_1_1emu_1_1Emulator.html#ab46a750f4f62af7258e3a6017002a9cd',1,'yaze::app::emu::Emulator']]],
   ['manual_5fpc_5f_29',['manual_pc_',['../classyaze_1_1app_1_1emu_1_1Emulator.html#a5d0ad10b780e8373de10d79580cb9959',1,'yaze::app::emu::Emulator']]],
   ['map32perscreen_30',['Map32PerScreen',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a576e2b69a5247b1fc32b52b7a9a6f236',1,'yaze::app::zelda3::overworld']]],

@@ -33,7 +33,7 @@ var searchData=
   ['mainsubscreendesignation_30',['MainSubScreenDesignation',['../structyaze_1_1app_1_1emu_1_1video_1_1MainSubScreenDesignation.html',1,'yaze::app::emu::video']]],
   ['manageactiveeditors_31',['ManageActiveEditors',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#aef088de58cae5ac63a9a5e1ca301a4f7',1,'yaze::app::editor::MasterEditor']]],
   ['managekeyboardshortcuts_32',['ManageKeyboardShortcuts',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#ab8f6a26e08f7e931a51c5e4d95b373f8',1,'yaze::app::editor::MasterEditor']]],
-  ['manipulate_5from_33',['manipulate_rom',['../structyaze__extension.html#af1321f2f3acbb5d7265fe79caba85dd8',1,'yaze_extension::manipulate_rom'],['../classsample_1_1MyExtension.html#a18ec5266cabbd5001f0940b2a00a48b4',1,'sample.MyExtension.manipulate_rom()']]],
+  ['manipulate_5from_33',['manipulate_rom',['../structyaze__extension.html#a98c292db5ca1e3d87858cda250e39811',1,'yaze_extension::manipulate_rom'],['../classsample_1_1MyExtension.html#a18ec5266cabbd5001f0940b2a00a48b4',1,'sample.MyExtension.manipulate_rom()']]],
   ['manual_5fpb_5f_34',['manual_pb_',['../classyaze_1_1app_1_1emu_1_1Emulator.html#ab46a750f4f62af7258e3a6017002a9cd',1,'yaze::app::emu::Emulator']]],
   ['manual_5fpc_5f_35',['manual_pc_',['../classyaze_1_1app_1_1emu_1_1Emulator.html#a5d0ad10b780e8373de10d79580cb9959',1,'yaze::app::emu::Emulator']]],
   ['map32perscreen_36',['Map32PerScreen',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a576e2b69a5247b1fc32b52b7a9a6f236',1,'yaze::app::zelda3::overworld']]],

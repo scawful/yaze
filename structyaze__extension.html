@@ -122,9 +122,18 @@ Collaboration diagram for yaze_extension:</div>
 <div class="dyncontent">
 <div class="center"><img src="structyaze__extension__coll__graph.png" border="0" usemap="#ayaze__extension_coll__map" alt="Collaboration graph"/></div>
 <map name="ayaze__extension_coll__map" id="ayaze__extension_coll__map">
-<area shape="rect" title="Extension interface for Yaze." alt="" coords="5,94,115,120"/>
+<area shape="rect" title="Extension interface for Yaze." alt="" coords="5,271,115,297"/>
 <area shape="rect" href="structz3__rom.html" title="Primitive of a Zelda3 ROM." alt="" coords="28,5,92,31"/>
-<area shape="poly" title=" " alt="" coords="63,47,63,94,57,94,57,47"/>
+<area shape="poly" title=" " alt="" coords="63,46,63,271,57,271,57,46"/>
+<area shape="rect" href="structyaze__project.html" title="Primitive of a Yaze project." alt="" coords="76,94,169,120"/>
+<area shape="poly" title=" " alt="" coords="80,42,116,92,112,95,76,45"/>
+<area shape="rect" href="structyaze__editor__context.html" title="Extension editor context." alt="" coords="159,183,294,208"/>
+<area shape="poly" title=" " alt="" coords="191,218,85,273,82,268,189,214"/>
+<area shape="poly" title=" " alt="" coords="150,128,214,180,211,184,147,132"/>
+<area shape="rect" href="structyaze__command__registry.html" title="Command registry." alt="" coords="193,94,354,120"/>
+<area shape="poly" title=" " alt="" coords="262,135,235,184,231,181,257,132"/>
+<area shape="rect" href="structyaze__event__dispatcher.html" title="Event dispatcher." alt="" coords="378,94,531,120"/>
+<area shape="poly" title=" " alt="" coords="426,131,368,161,290,185,289,180,366,156,423,126"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -134,22 +143,33 @@ Public Attributes</h2></td></tr>
 <tr class="separator:af08fb5a1a5551c79898ebd6a3d375d8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a78827a2290a2eea969ded6fec5fcc4e9" id="r_a78827a2290a2eea969ded6fec5fcc4e9"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a78827a2290a2eea969ded6fec5fcc4e9">version</a></td></tr>
 <tr class="separator:a78827a2290a2eea969ded6fec5fcc4e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a24c9e7db82ccbb58a930f3fa6b4c4c6d" id="r_a24c9e7db82ccbb58a930f3fa6b4c4c6d"><td class="memItemLeft" align="right" valign="top">void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a24c9e7db82ccbb58a930f3fa6b4c4c6d">initialize</a> )(void)</td></tr>
-<tr class="separator:a24c9e7db82ccbb58a930f3fa6b4c4c6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5437179462b8d5046807baf3ecee4fcd" id="r_a5437179462b8d5046807baf3ecee4fcd"><td class="memItemLeft" align="right" valign="top">void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5437179462b8d5046807baf3ecee4fcd">cleanup</a> )(void)</td></tr>
-<tr class="separator:a5437179462b8d5046807baf3ecee4fcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2bc8f6b71a997f957653060d17db482d" id="r_a2bc8f6b71a997f957653060d17db482d"><td class="memItemLeft" align="right" valign="top">void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2bc8f6b71a997f957653060d17db482d">extend_functionality</a> )(void *editor_context)</td></tr>
-<tr class="separator:a2bc8f6b71a997f957653060d17db482d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af139bd98e0ef0062b2437e8827514355" id="r_af139bd98e0ef0062b2437e8827514355"><td class="memItemLeft" align="right" valign="top"><a class="el" href="extension_8h.html#a6a804aeb897c428855a7cf379bc122ab">yaze_imgui_render_callback</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af139bd98e0ef0062b2437e8827514355">render_ui</a></td></tr>
-<tr class="separator:af139bd98e0ef0062b2437e8827514355"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af1321f2f3acbb5d7265fe79caba85dd8" id="r_af1321f2f3acbb5d7265fe79caba85dd8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="extension_8h.html#af35ab287f33dc4558b1d5628e8c2cd72">yaze_rom_operation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af1321f2f3acbb5d7265fe79caba85dd8">manipulate_rom</a></td></tr>
-<tr class="separator:af1321f2f3acbb5d7265fe79caba85dd8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a62d89167cd6b0ad7d91811e145290be5" id="r_a62d89167cd6b0ad7d91811e145290be5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="extension_8h.html#a5376fbd095d0a46d5aa8108750fb2164">yaze_initialize_func</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a62d89167cd6b0ad7d91811e145290be5">initialize</a></td></tr>
+<tr class="memdesc:a62d89167cd6b0ad7d91811e145290be5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to initialize the extension.  <br /></td></tr>
+<tr class="separator:a62d89167cd6b0ad7d91811e145290be5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99596502df4c2037a9d22c4f555435ae" id="r_a99596502df4c2037a9d22c4f555435ae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="extension_8h.html#a75ef22f3a15fb60314f902a5bf7d0b7e">yaze_cleanup_func</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a99596502df4c2037a9d22c4f555435ae">cleanup</a></td></tr>
+<tr class="memdesc:a99596502df4c2037a9d22c4f555435ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to clean up the extension.  <br /></td></tr>
+<tr class="separator:a99596502df4c2037a9d22c4f555435ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a98c292db5ca1e3d87858cda250e39811" id="r_a98c292db5ca1e3d87858cda250e39811"><td class="memItemLeft" align="right" valign="top"><a class="el" href="extension_8h.html#a4bebf41f76e112cadb5b5487257890f3">yaze_manipulate_rom_func</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a98c292db5ca1e3d87858cda250e39811">manipulate_rom</a></td></tr>
+<tr class="memdesc:a98c292db5ca1e3d87858cda250e39811"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to manipulate the ROM.  <br /></td></tr>
+<tr class="separator:a98c292db5ca1e3d87858cda250e39811"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2c69e105138b9f02fdc2c79a3b7e1bf" id="r_ae2c69e105138b9f02fdc2c79a3b7e1bf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="extension_8h.html#a8abc8ff086951f23b7b6afedc65e8778">yaze_extend_ui_func</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae2c69e105138b9f02fdc2c79a3b7e1bf">extend_ui</a></td></tr>
+<tr class="memdesc:ae2c69e105138b9f02fdc2c79a3b7e1bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to extend the UI.  <br /></td></tr>
+<tr class="separator:ae2c69e105138b9f02fdc2c79a3b7e1bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab5caaa7a8474cc7490939408ac19f9b6" id="r_ab5caaa7a8474cc7490939408ac19f9b6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="extension_8h.html#a5ee825610fb53ae2ce081e640e65b17a">yaze_command_func</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab5caaa7a8474cc7490939408ac19f9b6">register_commands</a></td></tr>
+<tr class="memdesc:ab5caaa7a8474cc7490939408ac19f9b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register commands in the <a class="el" href="structyaze__command__registry.html" title="Command registry.">yaze_command_registry</a>.  <br /></td></tr>
+<tr class="separator:ab5caaa7a8474cc7490939408ac19f9b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a36ef1ce66a944fcc28a2e5cf4549320d" id="r_a36ef1ce66a944fcc28a2e5cf4549320d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="extension_8h.html#a5ee825610fb53ae2ce081e640e65b17a">yaze_command_func</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a36ef1ce66a944fcc28a2e5cf4549320d">register_custom_tools</a></td></tr>
+<tr class="memdesc:a36ef1ce66a944fcc28a2e5cf4549320d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register custom tools in the <a class="el" href="structyaze__command__registry.html" title="Command registry.">yaze_command_registry</a>.  <br /></td></tr>
+<tr class="separator:a36ef1ce66a944fcc28a2e5cf4549320d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a915dc258dbe16e28b842c4d0d7f13f3e" id="r_a915dc258dbe16e28b842c4d0d7f13f3e"><td class="memItemLeft" align="right" valign="top">void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a915dc258dbe16e28b842c4d0d7f13f3e">register_event_hooks</a> )(<a class="el" href="extension_8h.html#a2f02cd3cc75a35376be20a31f7c2621f">yaze_event_type</a> event, <a class="el" href="extension_8h.html#a324a96b4f6012f197de6933930354c26">yaze_event_hook_func</a> hook)</td></tr>
+<tr class="memdesc:a915dc258dbe16e28b842c4d0d7f13f3e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register event hooks in the <a class="el" href="structyaze__event__dispatcher.html" title="Event dispatcher.">yaze_event_dispatcher</a>.  <br /></td></tr>
+<tr class="separator:a915dc258dbe16e28b842c4d0d7f13f3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Extension interface for Yaze. </p>
 <p>Yaze extensions can be written in C or Python. </p>
 
-<p class="definition">Definition at line <a class="el" href="extension_8h_source.html#l00019">19</a> of file <a class="el" href="extension_8h_source.html">extension.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="extension_8h_source.html#l00029">29</a> of file <a class="el" href="extension_8h_source.html">extension.h</a>.</p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
 <a id="af08fb5a1a5551c79898ebd6a3d375d8c" name="af08fb5a1a5551c79898ebd6a3d375d8c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af08fb5a1a5551c79898ebd6a3d375d8c">&#9670;&#160;</a></span>name</h2>
@@ -163,7 +183,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="extension_8h_source.html#l00020">20</a> of file <a class="el" href="extension_8h_source.html">extension.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="extension_8h_source.html#l00030">30</a> of file <a class="el" href="extension_8h_source.html">extension.h</a>.</p>
 
 </div>
 </div>
@@ -179,91 +199,152 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="extension_8h_source.html#l00021">21</a> of file <a class="el" href="extension_8h_source.html">extension.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="extension_8h_source.html#l00031">31</a> of file <a class="el" href="extension_8h_source.html">extension.h</a>.</p>
 
 </div>
 </div>
-<a id="a24c9e7db82ccbb58a930f3fa6b4c4c6d" name="a24c9e7db82ccbb58a930f3fa6b4c4c6d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a24c9e7db82ccbb58a930f3fa6b4c4c6d">&#9670;&#160;</a></span>initialize</h2>
+<a id="a62d89167cd6b0ad7d91811e145290be5" name="a62d89167cd6b0ad7d91811e145290be5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a62d89167cd6b0ad7d91811e145290be5">&#9670;&#160;</a></span>initialize</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void(* yaze_extension::initialize) (void)</td>
+          <td class="memname"><a class="el" href="extension_8h.html#a5376fbd095d0a46d5aa8108750fb2164">yaze_initialize_func</a> yaze_extension::initialize</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="extension_8h_source.html#l00024">24</a> of file <a class="el" href="extension_8h_source.html">extension.h</a>.</p>
+<p>Function to initialize the extension. </p>
+<p>This function is called when the extension is loaded. It can be used to set up any resources or state needed by the extension. </p>
+
+<p class="definition">Definition at line <a class="el" href="extension_8h_source.html#l00039">39</a> of file <a class="el" href="extension_8h_source.html">extension.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="extension_8cc_source.html#l00012">yaze_load_c_extension()</a>.</p>
 
 </div>
 </div>
-<a id="a5437179462b8d5046807baf3ecee4fcd" name="a5437179462b8d5046807baf3ecee4fcd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5437179462b8d5046807baf3ecee4fcd">&#9670;&#160;</a></span>cleanup</h2>
+<a id="a99596502df4c2037a9d22c4f555435ae" name="a99596502df4c2037a9d22c4f555435ae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99596502df4c2037a9d22c4f555435ae">&#9670;&#160;</a></span>cleanup</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void(* yaze_extension::cleanup) (void)</td>
+          <td class="memname"><a class="el" href="extension_8h.html#a75ef22f3a15fb60314f902a5bf7d0b7e">yaze_cleanup_func</a> yaze_extension::cleanup</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="extension_8h_source.html#l00027">27</a> of file <a class="el" href="extension_8h_source.html">extension.h</a>.</p>
+<p>Function to clean up the extension. </p>
+<p>This function is called when the extension is unloaded. It can be used to clean up any resources or state used by the extension. </p>
+
+<p class="definition">Definition at line <a class="el" href="extension_8h_source.html#l00047">47</a> of file <a class="el" href="extension_8h_source.html">extension.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="extension_8cc_source.html#l00046">yaze_cleanup_extension()</a>.</p>
 
 </div>
 </div>
-<a id="a2bc8f6b71a997f957653060d17db482d" name="a2bc8f6b71a997f957653060d17db482d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2bc8f6b71a997f957653060d17db482d">&#9670;&#160;</a></span>extend_functionality</h2>
+<a id="a98c292db5ca1e3d87858cda250e39811" name="a98c292db5ca1e3d87858cda250e39811"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a98c292db5ca1e3d87858cda250e39811">&#9670;&#160;</a></span>manipulate_rom</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void(* yaze_extension::extend_functionality) (void *editor_context)</td>
+          <td class="memname"><a class="el" href="extension_8h.html#a4bebf41f76e112cadb5b5487257890f3">yaze_manipulate_rom_func</a> yaze_extension::manipulate_rom</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="extension_8h_source.html#l00030">30</a> of file <a class="el" href="extension_8h_source.html">extension.h</a>.</p>
+<p>Function to manipulate the ROM. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">rom</td><td>The ROM to manipulate. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="extension_8h_source.html#l00055">55</a> of file <a class="el" href="extension_8h_source.html">extension.h</a>.</p>
 
 </div>
 </div>
-<a id="af139bd98e0ef0062b2437e8827514355" name="af139bd98e0ef0062b2437e8827514355"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af139bd98e0ef0062b2437e8827514355">&#9670;&#160;</a></span>render_ui</h2>
+<a id="ae2c69e105138b9f02fdc2c79a3b7e1bf" name="ae2c69e105138b9f02fdc2c79a3b7e1bf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae2c69e105138b9f02fdc2c79a3b7e1bf">&#9670;&#160;</a></span>extend_ui</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="extension_8h.html#a6a804aeb897c428855a7cf379bc122ab">yaze_imgui_render_callback</a> yaze_extension::render_ui</td>
+          <td class="memname"><a class="el" href="extension_8h.html#a8abc8ff086951f23b7b6afedc65e8778">yaze_extend_ui_func</a> yaze_extension::extend_ui</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="extension_8h_source.html#l00033">33</a> of file <a class="el" href="extension_8h_source.html">extension.h</a>.</p>
+<p>Function to extend the UI. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">context</td><td>The editor context.</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>This function is called when the extension is loaded. It can be used to add custom UI elements to the editor. The context parameter provides access to the project, command registry, event dispatcher, and <a class="el" href="namespaceImGui.html">ImGui</a> context. </p>
+
+<p class="definition">Definition at line <a class="el" href="extension_8h_source.html#l00067">67</a> of file <a class="el" href="extension_8h_source.html">extension.h</a>.</p>
 
 </div>
 </div>
-<a id="af1321f2f3acbb5d7265fe79caba85dd8" name="af1321f2f3acbb5d7265fe79caba85dd8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af1321f2f3acbb5d7265fe79caba85dd8">&#9670;&#160;</a></span>manipulate_rom</h2>
+<a id="ab5caaa7a8474cc7490939408ac19f9b6" name="ab5caaa7a8474cc7490939408ac19f9b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab5caaa7a8474cc7490939408ac19f9b6">&#9670;&#160;</a></span>register_commands</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="extension_8h.html#af35ab287f33dc4558b1d5628e8c2cd72">yaze_rom_operation</a> yaze_extension::manipulate_rom</td>
+          <td class="memname"><a class="el" href="extension_8h.html#a5ee825610fb53ae2ce081e640e65b17a">yaze_command_func</a> yaze_extension::register_commands</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="extension_8h_source.html#l00036">36</a> of file <a class="el" href="extension_8h_source.html">extension.h</a>.</p>
+<p>Register commands in the <a class="el" href="structyaze__command__registry.html" title="Command registry.">yaze_command_registry</a>. </p>
+
+<p class="definition">Definition at line <a class="el" href="extension_8h_source.html#l00072">72</a> of file <a class="el" href="extension_8h_source.html">extension.h</a>.</p>
+
+</div>
+</div>
+<a id="a36ef1ce66a944fcc28a2e5cf4549320d" name="a36ef1ce66a944fcc28a2e5cf4549320d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a36ef1ce66a944fcc28a2e5cf4549320d">&#9670;&#160;</a></span>register_custom_tools</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="extension_8h.html#a5ee825610fb53ae2ce081e640e65b17a">yaze_command_func</a> yaze_extension::register_custom_tools</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Register custom tools in the <a class="el" href="structyaze__command__registry.html" title="Command registry.">yaze_command_registry</a>. </p>
+
+<p class="definition">Definition at line <a class="el" href="extension_8h_source.html#l00077">77</a> of file <a class="el" href="extension_8h_source.html">extension.h</a>.</p>
+
+</div>
+</div>
+<a id="a915dc258dbe16e28b842c4d0d7f13f3e" name="a915dc258dbe16e28b842c4d0d7f13f3e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a915dc258dbe16e28b842c4d0d7f13f3e">&#9670;&#160;</a></span>register_event_hooks</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void(* yaze_extension::register_event_hooks) (<a class="el" href="extension_8h.html#a2f02cd3cc75a35376be20a31f7c2621f">yaze_event_type</a> event, <a class="el" href="extension_8h.html#a324a96b4f6012f197de6933930354c26">yaze_event_hook_func</a> hook)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Register event hooks in the <a class="el" href="structyaze__event__dispatcher.html" title="Event dispatcher.">yaze_event_dispatcher</a>. </p>
+
+<p class="definition">Definition at line <a class="el" href="extension_8h_source.html#l00082">82</a> of file <a class="el" href="extension_8h_source.html">extension.h</a>.</p>
 
 </div>
 </div>

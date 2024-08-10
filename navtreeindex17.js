@@ -1,11 +1,5 @@
 var NAVTREEINDEX17 =
 {
-"classyaze_1_1app_1_1gui_1_1Canvas.html#ad17173281c8bff40791005696eb67294":[8,0,2,0,5,4,33],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#ad17173281c8bff40791005696eb67294":[9,0,1,0,4,3,33],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#ad6f5ccc4f5eb90c558dc6398fe55c56c":[8,0,2,0,5,4,58],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#ad6f5ccc4f5eb90c558dc6398fe55c56c":[9,0,1,0,4,3,58],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#ad7768fd0084397490f139be92660fdab":[8,0,2,0,5,4,49],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#ad7768fd0084397490f139be92660fdab":[9,0,1,0,4,3,49],
 "classyaze_1_1app_1_1gui_1_1Canvas.html#adcf94e785e5229860e85b8cd61248b59":[8,0,2,0,5,4,6],
 "classyaze_1_1app_1_1gui_1_1Canvas.html#adcf94e785e5229860e85b8cd61248b59":[9,0,1,0,4,3,6],
 "classyaze_1_1app_1_1gui_1_1Canvas.html#ae0c6843587427e07648940ba6a93a0e5":[8,0,2,0,5,4,76],
@@ -249,5 +243,11 @@ var NAVTREEINDEX17 =
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html#aace78add8628287108e3edaa2a67ef84":[8,0,2,0,6,1,1,0],
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html#aace78add8628287108e3edaa2a67ef84":[9,0,1,0,5,0,1,0],
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html#ae59bcd100add5fe458788a35f514cb30":[8,0,2,0,6,1,1,1],
-"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html#ae59bcd100add5fe458788a35f514cb30":[9,0,1,0,5,0,1,1]
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html#ae59bcd100add5fe458788a35f514cb30":[9,0,1,0,5,0,1,1],
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html":[8,0,2,0,6,1,2],
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html":[9,0,1,0,5,0,2],
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a02bd6f2b89e5d746dfb8966a9c4410f3":[8,0,2,0,6,1,2,13],
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a02bd6f2b89e5d746dfb8966a9c4410f3":[9,0,1,0,5,0,2,13],
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a0f2f1656055d1308fa853f6dc7e56de5":[8,0,2,0,6,1,2,14],
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a0f2f1656055d1308fa853f6dc7e56de5":[9,0,1,0,5,0,2,14]
 };

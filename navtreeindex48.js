@@ -1,5 +1,10 @@
 var NAVTREEINDEX48 =
 {
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html#a0abc0ca2f5b83a4e889bb325daf537d9":[9,0,1,0,2,2,0,23,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html#a3ed7886d02e29628739b42414c21a63c":[8,0,2,0,3,4,0,23,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html#a3ed7886d02e29628739b42414c21a63c":[9,0,1,0,2,2,0,23,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html#ac133e617f85476531c1a998fd0074cd2":[8,0,2,0,3,4,0,23,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html#ac133e617f85476531c1a998fd0074cd2":[9,0,1,0,2,2,0,23,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDL.html":[8,0,2,0,3,4,0,24],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDL.html":[9,0,1,0,2,2,0,24],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDL.html#a61947628db9f8d0a244bb9184b83f12b":[8,0,2,0,3,4,0,24,0],
@@ -244,10 +249,5 @@ var NAVTREEINDEX48 =
 "structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#ae4673db8bb8e8e3227e4f5fafa3a0ca8":[9,0,1,0,2,2,16,3],
 "structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html":[8,0,2,0,3,4,17],
 "structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html":[9,0,1,0,2,2,17],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html#a4d45c61890f77bbfc8abd50faa0984fb":[8,0,2,0,3,4,17,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html#a4d45c61890f77bbfc8abd50faa0984fb":[9,0,1,0,2,2,17,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html#a4f40e4499f2487074d07749e0aea6ebb":[8,0,2,0,3,4,17,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html#a4f40e4499f2487074d07749e0aea6ebb":[9,0,1,0,2,2,17,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html#aa9ca54a92ab7593490f62b7f20818256":[8,0,2,0,3,4,17,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html#aa9ca54a92ab7593490f62b7f20818256":[9,0,1,0,2,2,17,0]
+"structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html#a4d45c61890f77bbfc8abd50faa0984fb":[8,0,2,0,3,4,17,2]
 };

@@ -1,11 +1,5 @@
 var NAVTREEINDEX6 =
 {
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#adacc9331ba9ee4ab27e8b96526e5a096":[8,0,2,0,2,24,14],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#adacc9331ba9ee4ab27e8b96526e5a096":[9,0,1,0,1,19,14],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#adc6f7400a763b56561afefe58e314e16":[8,0,2,0,2,24,38],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#adc6f7400a763b56561afefe58e314e16":[9,0,1,0,1,19,38],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#add759813df08b39e6e70eff9fef81ead":[8,0,2,0,2,24,57],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#add759813df08b39e6e70eff9fef81ead":[9,0,1,0,1,19,57],
 "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#adebe5b364cbdbddaf073491e10f0b0a3":[8,0,2,0,2,24,22],
 "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#adebe5b364cbdbddaf073491e10f0b0a3":[9,0,1,0,1,19,22],
 "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ae2d19a49679caaba81b92114aa77dd2f":[8,0,2,0,2,24,33],
@@ -249,5 +243,11 @@ var NAVTREEINDEX6 =
 "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#aebdcddf7178899f6869cd786a8ab6b22":[8,0,2,0,2,30,18],
 "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#aebdcddf7178899f6869cd786a8ab6b22":[9,0,1,0,1,25,18],
 "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#af10b8051a999b0f1414a119ccea6db6e":[8,0,2,0,2,30,4],
-"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#af10b8051a999b0f1414a119ccea6db6e":[9,0,1,0,1,25,4]
+"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#af10b8051a999b0f1414a119ccea6db6e":[9,0,1,0,1,25,4],
+"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#af1f7b5eef4fe08eb0ea1fb172fc99746":[8,0,2,0,2,30,5],
+"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#af1f7b5eef4fe08eb0ea1fb172fc99746":[9,0,1,0,1,25,5],
+"classyaze_1_1app_1_1editor_1_1Tile16Editor.html":[8,0,2,0,2,33],
+"classyaze_1_1app_1_1editor_1_1Tile16Editor.html":[9,0,1,0,1,28],
+"classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a0308b63b20c73fc380308f112e77ff2c":[8,0,2,0,2,33,19],
+"classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a0308b63b20c73fc380308f112e77ff2c":[9,0,1,0,1,28,19]
 };

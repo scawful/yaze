@@ -1,0 +1,13 @@
+<map id="yaze_editor_context" name="yaze_editor_context">
+<area shape="rect" id="Node000001" title="Extension editor context." alt="" coords="172,183,307,208"/>
+<area shape="rect" id="Node000002" href="$structyaze__project.html" title="Primitive of a Yaze project." alt="" coords="42,94,136,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,125,220,180,217,184,122,130"/>
+<area shape="rect" id="Node000003" href="$structz3__rom.html" title="Primitive of a Zelda3 ROM." alt="" coords="5,5,69,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="54,43,84,92,80,95,50,46"/>
+<area shape="rect" id="Node000004" href="$structz3__overworld.html" title="Primitive of the overworld." alt="" coords="92,5,190,31"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="128,46,98,95,94,92,124,43"/>
+<area shape="rect" id="Node000006" href="$structyaze__command__registry.html" title="Command registry." alt="" coords="160,94,320,120"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="242,135,242,182,237,182,237,135"/>
+<area shape="rect" id="Node000007" href="$structyaze__event__dispatcher.html" title="Event dispatcher." alt="" coords="344,94,498,120"/>
+<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="398,132,356,161,293,185,291,180,353,156,395,128"/>
+</map>

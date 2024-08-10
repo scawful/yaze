@@ -1,5 +1,10 @@
 var NAVTREEINDEX44 =
 {
+"structyaze_1_1app_1_1Project.html#a5212c318cd29ee7939c840e1a0bd9886":[9,0,1,0,6,10],
+"structyaze_1_1app_1_1Project.html#a87cdf057e929273012305fcda08adb87":[8,0,2,0,7,3],
+"structyaze_1_1app_1_1Project.html#a87cdf057e929273012305fcda08adb87":[9,0,1,0,6,3],
+"structyaze_1_1app_1_1Project.html#a9041849c10198cbdd0d4c7c0f1122097":[8,0,2,0,7,0],
+"structyaze_1_1app_1_1Project.html#a9041849c10198cbdd0d4c7c0f1122097":[9,0,1,0,6,0],
 "structyaze_1_1app_1_1Project.html#aa68ec754ecc85e2ec52a375a55746fab":[8,0,2,0,7,2],
 "structyaze_1_1app_1_1Project.html#aa68ec754ecc85e2ec52a375a55746fab":[9,0,1,0,6,2],
 "structyaze_1_1app_1_1Project.html#aaaec6f4568b290cb85dad5c0e58bd485":[8,0,2,0,7,8],
@@ -244,10 +249,5 @@ var NAVTREEINDEX44 =
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a5208c6ead9f36537b8126dfedf260bb5":[9,0,1,0,1,17,0,3],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a68f9d3c4fa8cb8cc6a70d66b4c379369":[8,0,2,0,2,22,0,7],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a68f9d3c4fa8cb8cc6a70d66b4c379369":[9,0,1,0,1,17,0,7],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a6b8e37c82576963597a46b0a3a27242a":[8,0,2,0,2,22,0,1],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a6b8e37c82576963597a46b0a3a27242a":[9,0,1,0,1,17,0,1],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a8b83aa6c17def11f9cde0cde25c4dd98":[8,0,2,0,2,22,0,8],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a8b83aa6c17def11f9cde0cde25c4dd98":[9,0,1,0,1,17,0,8],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#aaaf19488a2d6e9496a2448063d6ddc66":[8,0,2,0,2,22,0,5],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#aaaf19488a2d6e9496a2448063d6ddc66":[9,0,1,0,1,17,0,5]
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a6b8e37c82576963597a46b0a3a27242a":[8,0,2,0,2,22,0,1]
 };

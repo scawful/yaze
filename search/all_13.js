@@ -152,7 +152,7 @@ var searchData=
   ['logger_5f_149',['logger_',['../classyaze_1_1app_1_1emu_1_1Loggable.html#ae3a9d001ac766a58a93dbbffe3f759db',1,'yaze::app::emu::Loggable']]],
   ['loginstruction_150',['LogInstruction',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a3271dbfd4c6e2c2d252b0cf780b1f396',1,'yaze::app::emu::audio::Spc700']]],
   ['loginstructions_151',['LogInstructions',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a3361d0712df46b8fd18d91b57533a491',1,'yaze::app::emu::Cpu']]],
-  ['logmessage_152',['LogMessage',['../classyaze_1_1app_1_1emu_1_1Loggable.html#a17cc982c7eb52c90c85102cbe3eb2dd5',1,'yaze::app::emu::Loggable']]],
+  ['logmessage_152',['LogMessage',['../structyaze__editor__context.html#a78848069ed97ec1084103943ac348332',1,'yaze_editor_context::LogMessage'],['../classyaze_1_1app_1_1emu_1_1Loggable.html#a17cc982c7eb52c90c85102cbe3eb2dd5',1,'yaze::app::emu::Loggable::LogMessage()']]],
   ['low_5from_153',['LOW_ROM',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a656c5d7c708bc346677991611ab505aca13fd73acd158e42fa79bc6b14ed3235c',1,'yaze::app::emu::memory']]],
   ['lowdata_154',['lowData',['../structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#ac0b74c47202dcac21769d177be66a441',1,'yaze::app::zelda3::overworld::MapData']]],
   ['lowerx_5f_155',['lowerX_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#aec8738828518bb2ae745570bbf2e761c',1,'yaze::app::zelda3::Sprite']]],
