@@ -24,6 +24,7 @@
 #include "absl/container/flat_hash_map.h"  // for flat_hash_map
 #include "absl/status/status.h"            // for Status
 #include "absl/status/statusor.h"          // for StatusOr
+#include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"  // for string_view
@@ -435,7 +436,14 @@ class Rom : public core::ExperimentFlags {
   auto data() { return rom_data_.data(); }
   auto vector() const { return rom_data_; }
   auto filename() const { return filename_; }
-  auto is_loaded() const { return is_loaded_; }
+  auto is_loaded() const {
+    if (!absl::StrContains(filename_, ".sfc") &&
+        !absl::StrContains(filename_, ".smc")) {
+      return false;
+    }
+    return is_loaded_;
+  }
+  auto set_filename(std::string name) { filename_ = name; }
   auto version() const { return version_; }
 
   uint8_t& operator[](int i) {
