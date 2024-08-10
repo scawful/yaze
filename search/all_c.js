@@ -26,7 +26,7 @@ var searchData=
   ['edittrack_23',['EditTrack',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a2aa4c35b85280b2fb5522d05d06dde30',1,'yaze::app::zelda3::music::Tracker']]],
   ['ei_24',['EI',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af98ae59887dca4d31d5c3e214650b379',1,'yaze::app::emu::audio::Spc700']]],
   ['empty_25',['Empty',['../structyaze_1_1app_1_1editor_1_1TextElement.html#a5e4935ff0f5aa23e63c7369c4d0e9d2e',1,'yaze::app::editor::TextElement']]],
-  ['empty_26',['empty',['../classyaze_1_1app_1_1gfx_1_1SnesPalette.html#acafdde853184fe8a13d3716a71a9280f',1,'yaze::app::gfx::SnesPalette']]],
+  ['empty_26',['empty',['../classyaze_1_1app_1_1gfx_1_1SnesPalette.html#acafdde853184fe8a13d3716a71a9280f',1,'yaze::app::gfx::SnesPalette::empty()'],['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#ac6db5712e9f2bacd6b439cfa9bbcd007',1,'yaze::app::gfx::PaletteGroupMap::empty()']]],
   ['emu_2ecc_27',['emu.cc',['../emu_8cc.html',1,'']]],
   ['emulator_28',['Emulator',['../classyaze_1_1app_1_1emu_1_1Emulator.html',1,'yaze::app::emu::Emulator'],['../classyaze_1_1cli_1_1Emulator.html',1,'yaze::cli::Emulator'],['../classyaze_1_1app_1_1emu_1_1Emulator.html#a6243b4d5bab5741b747a8b7755027dac',1,'yaze::app::emu::Emulator::Emulator()']]],
   ['emulator_29',['emulator',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#a6c329d941533145ee9a6a1e76f560ab4',1,'yaze::app::editor::MasterEditor']]],

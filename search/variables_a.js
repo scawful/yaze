@@ -169,6 +169,6 @@ var searchData=
   ['kusebitmapmanager_166',['kUseBitmapManager',['../structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a03ccf185ab28a2136269f01bec2324d4',1,'yaze::app::core::ExperimentFlags::Flags']]],
   ['kusenewimguiinput_167',['kUseNewImGuiInput',['../structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a0628f11c5b5638d2daa076847e05dad6',1,'yaze::app::core::ExperimentFlags::Flags']]],
   ['kworldlist_168',['kWorldList',['../namespaceyaze_1_1app_1_1editor.html#ab365f83737393fc1ac411d87ba2fbdb8',1,'yaze::app::editor']]],
-  ['kyazeversion_169',['kYazeVersion',['../namespaceyaze_1_1app_1_1core.html#a6d651e38582177a01a8c5d06a1ddfb56',1,'yaze::app::core']]],
+  ['kyazeversion_169',['kYazeVersion',['../namespaceyaze_1_1app_1_1core.html#aeb4d11eb76af13a125dd20d79bc2bce3',1,'yaze::app::core']]],
   ['kzeropos_170',['kZeroPos',['../namespaceyaze_1_1app_1_1gui.html#ad0c8579d9331babbd61e4e56d637256e',1,'yaze::app::gui']]]
 ];

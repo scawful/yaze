@@ -1,13 +1,17 @@
 <map id="yaze_test::gfx_test::anonymous_namespace{compression_test::cc}::ExpectDecompressOk" name="yaze_test::gfx_test::anonymous_namespace{compression_test::cc}::ExpectDecompressOk">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,173,100"/>
-<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="46,28,48,18,56,10,70,5,89,3,111,5,125,12,122,17,109,10,89,8,71,10,59,14,53,21,51,29"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="474,26,612,52"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,57,458,41,459,47,173,63"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#af131745512540c4cfed3589ebb545d0f" title=" " alt="" coords="221,72,393,113"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="173,73,205,77,205,82,173,78"/>
-<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="393,71,467,54,469,59,394,76"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="446,77,641,103"/>
-<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="393,89,430,89,430,94,393,94"/>
-<area shape="rect" id="Node000025" href="$classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="441,126,645,152"/>
-<area shape="poly" id="edge6_Node000003_Node000025" title=" " alt="" coords="394,107,460,120,459,126,393,112"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,46,173,116"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="46,44,48,35,56,26,70,21,89,19,111,22,125,29,122,33,109,27,89,24,71,26,59,31,53,37,51,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="474,5,612,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,67,458,27,459,32,174,72"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#af131745512540c4cfed3589ebb545d0f" title=" " alt="" coords="221,88,393,129"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="173,89,205,93,205,98,173,94"/>
+<area shape="poly" id="edge5_Node000003_Node000002" title=" " alt="" coords="344,86,389,63,440,41,464,33,466,38,442,46,391,68,346,90"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a2207246826dd57c62a9edfa6eb5de388" title=" " alt="" coords="454,55,633,96"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="393,94,438,88,438,93,394,99"/>
+<area shape="rect" id="Node000006" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#ac6db5712e9f2bacd6b439cfa9bbcd007" title=" " alt="" coords="454,120,633,161"/>
+<area shape="poly" id="edge6_Node000003_Node000006" title=" " alt="" coords="394,118,438,124,438,129,393,123"/>
+<area shape="rect" id="Node000008" href="$namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="446,185,641,211"/>
+<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="347,127,392,150,442,170,466,178,464,183,440,175,390,154,345,132"/>
+<area shape="rect" id="Node000029" href="$classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="441,235,645,260"/>
+<area shape="poly" id="edge8_Node000003_Node000029" title=" " alt="" coords="328,128,377,175,408,200,442,221,454,226,452,231,440,226,405,205,373,179,324,132"/>
 </map>

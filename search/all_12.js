@@ -263,6 +263,6 @@ var searchData=
   ['kworldcolors_260',['kWorldColors',['../namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39da7e0abbddcfa0a281649c2eda4a10e7a8',1,'yaze::app::gfx']]],
   ['kworldlist_261',['kWorldList',['../namespaceyaze_1_1app_1_1editor.html#ab365f83737393fc1ac411d87ba2fbdb8',1,'yaze::app::editor']]],
   ['kworldmap_262',['kWorldMap',['../namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39da8e750447f4a3a99a17ac9d37fc073c9f',1,'yaze::app::gfx']]],
-  ['kyazeversion_263',['kYazeVersion',['../namespaceyaze_1_1app_1_1core.html#a6d651e38582177a01a8c5d06a1ddfb56',1,'yaze::app::core']]],
+  ['kyazeversion_263',['kYazeVersion',['../namespaceyaze_1_1app_1_1core.html#aeb4d11eb76af13a125dd20d79bc2bce3',1,'yaze::app::core']]],
   ['kzeropos_264',['kZeroPos',['../namespaceyaze_1_1app_1_1gui.html#ad0c8579d9331babbd61e4e56d637256e',1,'yaze::app::gui']]]
 ];

@@ -65,7 +65,7 @@ var namespaceyaze_1_1app_1_1core =
     [ "StringReplace", "namespaceyaze_1_1app_1_1core.html#a3a09b2b310aed5efa2c537cef269660c", null ],
     [ "kFastRomRegion", "namespaceyaze_1_1app_1_1core.html#ab62c06b7266ecc1577fb9da5d8f7401c", null ],
     [ "kRedPen", "namespaceyaze_1_1app_1_1core.html#a386b985dabb5995d3943457a20547f19", null ],
-    [ "kYazeVersion", "namespaceyaze_1_1app_1_1core.html#a6d651e38582177a01a8c5d06a1ddfb56", null ],
+    [ "kYazeVersion", "namespaceyaze_1_1app_1_1core.html#aeb4d11eb76af13a125dd20d79bc2bce3", null ],
     [ "UncompressedSheetSize", "namespaceyaze_1_1app_1_1core.html#aa81639987a081f9954d7d8d61d39c92d", null ],
     [ "NumberOfRooms", "namespaceyaze_1_1app_1_1core.html#a9453e71bb422bc071352f1771d54cd1a", null ],
     [ "NumberOfColors", "namespaceyaze_1_1app_1_1core.html#ad1b9b539b2fe081253a8d14f80c654ae", null ],

@@ -35,7 +35,7 @@ var constants_8h =
     [ "OWBlockset", "constants_8h.html#a1528910dca250c6119a96d559b114430", null ],
     [ "OWMapTiles", "constants_8h.html#a683a233a45db8227628e1d8a669157f6", null ],
     [ "kRedPen", "constants_8h.html#a386b985dabb5995d3943457a20547f19", null ],
-    [ "kYazeVersion", "constants_8h.html#a6d651e38582177a01a8c5d06a1ddfb56", null ],
+    [ "kYazeVersion", "constants_8h.html#aeb4d11eb76af13a125dd20d79bc2bce3", null ],
     [ "UncompressedSheetSize", "constants_8h.html#aa81639987a081f9954d7d8d61d39c92d", null ],
     [ "NumberOfRooms", "constants_8h.html#a9453e71bb422bc071352f1771d54cd1a", null ],
     [ "NumberOfColors", "constants_8h.html#ad1b9b539b2fe081253a8d14f80c654ae", null ],

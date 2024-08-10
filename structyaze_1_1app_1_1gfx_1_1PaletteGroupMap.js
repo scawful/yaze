@@ -2,6 +2,8 @@ var structyaze_1_1app_1_1gfx_1_1PaletteGroupMap =
 [
     [ "get_group", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a1c3d723bedf93eb7725c5b133b56f1b5", null ],
     [ "for_each", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#adcb7e249d2137ea11ef46872ea32d376", null ],
+    [ "clear", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a2207246826dd57c62a9edfa6eb5de388", null ],
+    [ "empty", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#ac6db5712e9f2bacd6b439cfa9bbcd007", null ],
     [ "overworld_main", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a1ed0d46a588ace10b7e5e2c56bf95814", null ],
     [ "overworld_aux", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a0bfdc2bf22eede9dce4960dc200bc197", null ],
     [ "overworld_animated", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a85931a0b917dd21a823d0ce3bc4e4ff6", null ],
