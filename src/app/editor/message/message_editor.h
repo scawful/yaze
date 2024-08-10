@@ -178,9 +178,37 @@ static TextElement DictionaryElement =
 
 class MessageEditor : public Editor, public SharedRom {
  public:
+  MessageEditor() { type_ = EditorType::kMessage; }
+
+  absl::Status Initialize();
+  absl::Status Update() override;
+  void DrawMessageList();
+  void DrawCurrentMessage();
+  void DrawTextCommands();
+
+  void ReadAllTextData();
+  void BuildDictionaryEntries();
+
+  absl::Status Cut() override;
+  absl::Status Copy() override;
+  absl::Status Paste() override;
+  absl::Status Undo() override;
+  absl::Status Redo() override {
+    return absl::UnimplementedError("Redo not implemented");
+  }
+  absl::Status Find() override {
+    return absl::UnimplementedError("Find not implemented");
+  }
+  absl::Status Save();
+  void Delete();
+  void SelectAll();
+
+  TextElement FindMatchingCommand(uint8_t byte);
+  TextElement FindMatchingSpecial(uint8_t value);
+  std::string ParseTextDataByte(uint8_t value);
+
   static std::vector<uint8_t> ParseMessageToData(std::string str);
   static ParsedElement FindMatchingElement(std::string str);
-
   struct DictionaryEntry {
     uint8_t ID;
     std::string Contents;
@@ -209,37 +237,7 @@ class MessageEditor : public Editor, public SharedRom {
       return replacedString;
     }
   };
-
-  MessageEditor() { type_ = EditorType::kMessage; }
-
-  absl::Status Update() override;
-  void DrawMessageList();
-  void DrawCurrentMessage();
-  void DrawTextCommands();
-
-  absl::Status Initialize();
-  void ReadAllTextData();
-  void BuildDictionaryEntries();
-
-  absl::Status Cut() override;
-  absl::Status Copy() override;
-  absl::Status Paste() override;
-  absl::Status Undo() override;
-  absl::Status Redo() override {
-    return absl::UnimplementedError("Redo not implemented");
-  }
-  absl::Status Find() override {
-    return absl::UnimplementedError("Find not implemented");
-  }
-  absl::Status Save();
-  void Delete();
-  void SelectAll();
-
-  TextElement FindMatchingCommand(uint8_t byte);
-  TextElement FindMatchingSpecial(uint8_t value);
-  std::string ParseTextDataByte(uint8_t value);
   DictionaryEntry GetDictionaryFromID(uint8_t value);
-
   static uint8_t FindDictionaryEntry(uint8_t value);
   static uint8_t FindMatchingCharacter(char value);
   void DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,

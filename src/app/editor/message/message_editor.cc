@@ -46,87 +46,85 @@ using ImGui::Text;
 using ImGui::TextWrapped;
 using ImGui::TreeNode;
 
-ParsedElement MessageEditor::FindMatchingElement(std::string str) {
-  std::smatch match;
-  for (auto& textElement : TextCommands) {
-    match = textElement.MatchMe(str);
-    if (match.size() > 0) {
-      if (textElement.HasArgument) {
-        return ParsedElement(textElement,
-                             std::stoi(match[1].str(), nullptr, 16));
+absl::Status MessageEditor::Initialize() {
+  for (int i = 0; i < 100; i++) {
+    width_array[i] = rom()->data()[kCharactersWidth + i];
+  }
+
+  BuildDictionaryEntries();
+  ReadAllTextData();
+
+  font_preview_colors_.AddColor(0x7FFF);  // White
+  font_preview_colors_.AddColor(0x7C00);  // Red
+  font_preview_colors_.AddColor(0x03E0);  // Green
+  font_preview_colors_.AddColor(0x001F);  // Blue
+
+  std::vector<uint8_t> data(0x4000, 0);
+  for (int i = 0; i < 0x4000; i++) {
+    data[i] = rom()->data()[kGfxFont + i];
+  }
+  font_gfx16_data_ = gfx::SnesTo8bppSheet(data, /*bpp=*/2);
+
+  // 4bpp
+  RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
+      128, 128, 8, font_gfx16_data_, font_gfx_bitmap_, font_preview_colors_))
+
+  current_font_gfx16_data_.reserve(172 * 4096);
+  for (int i = 0; i < 172 * 4096; i++) {
+    current_font_gfx16_data_.push_back(0);
+  }
+
+  // 8bpp
+  RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
+      172, 4096, 64, current_font_gfx16_data_, current_font_gfx16_bitmap_,
+      font_preview_colors_))
+
+  gfx::SnesPalette color_palette = font_gfx_bitmap_.palette();
+  for (int i = 0; i < font_preview_colors_.size(); i++) {
+    *color_palette.mutable_color(i) = font_preview_colors_[i];
+  }
+
+  *font_gfx_bitmap_.mutable_palette() = color_palette;
+
+  for (const auto& message : list_of_texts_) {
+    displayed_messages_.push_back(message);
+  }
+
+  for (const auto& each_message : list_of_texts_) {
+    // Each string has a [:XX] char encoded
+    // The corresponding character is found in CharEncoder unordered_map
+    std::string parsed_message = "";
+    for (const auto& byte : each_message.Data) {
+      // Find the char byte in the CharEncoder map
+      if (CharEncoder.contains(byte)) {
+        parsed_message.push_back(CharEncoder.at(byte));
       } else {
-        return ParsedElement(textElement, 0);
-      }
-    }
-  }
+        // If the byte is not found in the CharEncoder map, it is a command
+        // or a dictionary entry
+        if (byte >= DICTOFF && byte < (DICTOFF + 97)) {
+          // Dictionary entry
+          auto dictionaryEntry = GetDictionaryFromID(byte - DICTOFF);
+          parsed_message.append(dictionaryEntry.Contents);
+        } else {
+          // Command
+          TextElement textElement = FindMatchingCommand(byte);
+          if (!textElement.Empty()) {
+            // If the element is line 2, 3 or V we add a newline
+            if (textElement.ID == kScrollVertical || textElement.ID == kLine2 ||
+                textElement.ID == kLine3)
+              parsed_message.append("\n");
 
-  const auto dictionary_element =
-      TextElement(0x80, DICTIONARYTOKEN, true, "Dictionary");
-
-  match = dictionary_element.MatchMe(str);
-  if (match.size() > 0) {
-    return ParsedElement(dictionary_element,
-                         DICTOFF + std::stoi(match[1].str(), nullptr, 16));
-  }
-  return ParsedElement();
-}
-
-std::string ReplaceAllDictionaryWords(std::string str) {
-  std::string temp = str;
-  for (const auto& entry : AllDictionaries) {
-    if (absl::StrContains(temp, entry.Contents)) {
-      temp = absl::StrReplaceAll(temp, {{entry.Contents, entry.Contents}});
-    }
-  }
-
-  return temp;
-}
-
-std::vector<uint8_t> MessageEditor::ParseMessageToData(std::string str) {
-  std::vector<uint8_t> bytes;
-  std::string temp_string = str;
-  int pos = 0;
-
-  while (pos < temp_string.size()) {
-    // Get next text fragment.
-    if (temp_string[pos] == '[') {
-      int next = temp_string.find(']', pos);
-      if (next == -1) {
-        break;
-      }
-
-      ParsedElement parsedElement =
-          FindMatchingElement(temp_string.substr(pos, next - pos + 1));
-
-      const auto dictionary_element =
-          TextElement(0x80, DICTIONARYTOKEN, true, "Dictionary");
-
-      if (!parsedElement.Active) {
-        core::logf("Error parsing message: %s", temp_string);
-        break;
-      } else if (parsedElement.Parent == dictionary_element) {
-        bytes.push_back(parsedElement.Value);
-      } else {
-        bytes.push_back(parsedElement.Parent.ID);
-
-        if (parsedElement.Parent.HasArgument) {
-          bytes.push_back(parsedElement.Value);
+            parsed_message.append(textElement.GenericToken);
+          }
         }
       }
-
-      pos = next + 1;
-      continue;
-    } else {
-      uint8_t bb = MessageEditor::FindMatchingCharacter(temp_string[pos++]);
-
-      if (bb != 0xFF) {
-        core::logf("Error parsing message: %s", temp_string);
-        bytes.push_back(bb);
-      }
     }
+    parsed_messages_.push_back(parsed_message);
   }
 
-  return bytes;
+  DrawMessagePreview();
+
+  return absl::OkStatus();
 }
 
 absl::Status MessageEditor::Update() {
@@ -250,87 +248,6 @@ void MessageEditor::DrawTextCommands() {
     }
     EndChild();
   }
-}
-
-absl::Status MessageEditor::Initialize() {
-  for (int i = 0; i < 100; i++) {
-    width_array[i] = rom()->data()[kCharactersWidth + i];
-  }
-
-  BuildDictionaryEntries();
-  ReadAllTextData();
-
-  font_preview_colors_.AddColor(0x7FFF);  // White
-  font_preview_colors_.AddColor(0x7C00);  // Red
-  font_preview_colors_.AddColor(0x03E0);  // Green
-  font_preview_colors_.AddColor(0x001F);  // Blue
-
-  std::vector<uint8_t> data(0x4000, 0);
-  for (int i = 0; i < 0x4000; i++) {
-    data[i] = rom()->data()[kGfxFont + i];
-  }
-  font_gfx16_data_ = gfx::SnesTo8bppSheet(data, /*bpp=*/2);
-
-  // 4bpp
-  RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
-      128, 128, 8, font_gfx16_data_, font_gfx_bitmap_, font_preview_colors_))
-
-  current_font_gfx16_data_.reserve(172 * 4096);
-  for (int i = 0; i < 172 * 4096; i++) {
-    current_font_gfx16_data_.push_back(0);
-  }
-
-  // 8bpp
-  RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
-      172, 4096, 64, current_font_gfx16_data_, current_font_gfx16_bitmap_,
-      font_preview_colors_))
-
-  gfx::SnesPalette color_palette = font_gfx_bitmap_.palette();
-  for (int i = 0; i < font_preview_colors_.size(); i++) {
-    *color_palette.mutable_color(i) = font_preview_colors_[i];
-  }
-
-  *font_gfx_bitmap_.mutable_palette() = color_palette;
-
-  for (const auto& message : list_of_texts_) {
-    displayed_messages_.push_back(message);
-  }
-
-  for (const auto& each_message : list_of_texts_) {
-    // Each string has a [:XX] char encoded
-    // The corresponding character is found in CharEncoder unordered_map
-    std::string parsed_message = "";
-    for (const auto& byte : each_message.Data) {
-      // Find the char byte in the CharEncoder map
-      if (CharEncoder.contains(byte)) {
-        parsed_message.push_back(CharEncoder.at(byte));
-      } else {
-        // If the byte is not found in the CharEncoder map, it is a command
-        // or a dictionary entry
-        if (byte >= DICTOFF && byte < (DICTOFF + 97)) {
-          // Dictionary entry
-          auto dictionaryEntry = GetDictionaryFromID(byte - DICTOFF);
-          parsed_message.append(dictionaryEntry.Contents);
-        } else {
-          // Command
-          TextElement textElement = FindMatchingCommand(byte);
-          if (!textElement.Empty()) {
-            // If the element is line 2, 3 or V we add a newline
-            if (textElement.ID == kScrollVertical || textElement.ID == kLine2 ||
-                textElement.ID == kLine3)
-              parsed_message.append("\n");
-
-            parsed_message.append(textElement.GenericToken);
-          }
-        }
-      }
-    }
-    parsed_messages_.push_back(parsed_message);
-  }
-
-  DrawMessagePreview();
-
-  return absl::OkStatus();
 }
 
 void MessageEditor::BuildDictionaryEntries() {
@@ -480,6 +397,89 @@ TextElement MessageEditor::FindMatchingSpecial(uint8_t value) {
   return empty_element;
 }
 
+ParsedElement MessageEditor::FindMatchingElement(std::string str) {
+  std::smatch match;
+  for (auto& textElement : TextCommands) {
+    match = textElement.MatchMe(str);
+    if (match.size() > 0) {
+      if (textElement.HasArgument) {
+        return ParsedElement(textElement,
+                             std::stoi(match[1].str(), nullptr, 16));
+      } else {
+        return ParsedElement(textElement, 0);
+      }
+    }
+  }
+
+  const auto dictionary_element =
+      TextElement(0x80, DICTIONARYTOKEN, true, "Dictionary");
+
+  match = dictionary_element.MatchMe(str);
+  if (match.size() > 0) {
+    return ParsedElement(dictionary_element,
+                         DICTOFF + std::stoi(match[1].str(), nullptr, 16));
+  }
+  return ParsedElement();
+}
+
+std::string ReplaceAllDictionaryWords(std::string str) {
+  std::string temp = str;
+  for (const auto& entry : AllDictionaries) {
+    if (absl::StrContains(temp, entry.Contents)) {
+      temp = absl::StrReplaceAll(temp, {{entry.Contents, entry.Contents}});
+    }
+  }
+
+  return temp;
+}
+
+std::vector<uint8_t> MessageEditor::ParseMessageToData(std::string str) {
+  std::vector<uint8_t> bytes;
+  std::string temp_string = str;
+  int pos = 0;
+
+  while (pos < temp_string.size()) {
+    // Get next text fragment.
+    if (temp_string[pos] == '[') {
+      int next = temp_string.find(']', pos);
+      if (next == -1) {
+        break;
+      }
+
+      ParsedElement parsedElement =
+          FindMatchingElement(temp_string.substr(pos, next - pos + 1));
+
+      const auto dictionary_element =
+          TextElement(0x80, DICTIONARYTOKEN, true, "Dictionary");
+
+      if (!parsedElement.Active) {
+        core::logf("Error parsing message: %s", temp_string);
+        break;
+      } else if (parsedElement.Parent == dictionary_element) {
+        bytes.push_back(parsedElement.Value);
+      } else {
+        bytes.push_back(parsedElement.Parent.ID);
+
+        if (parsedElement.Parent.HasArgument) {
+          bytes.push_back(parsedElement.Value);
+        }
+      }
+
+      pos = next + 1;
+      continue;
+    } else {
+      uint8_t bb = MessageEditor::FindMatchingCharacter(temp_string[pos++]);
+
+      if (bb != 0xFF) {
+        core::logf("Error parsing message: %s", temp_string);
+        bytes.push_back(bb);
+      }
+    }
+  }
+
+  return bytes;
+}
+
 MessageEditor::DictionaryEntry MessageEditor::GetDictionaryFromID(
     uint8_t value) {
   if (value < 0 || value >= AllDictionaries.size()) {
@@ -626,8 +626,8 @@ void MessageEditor::DrawCharacterToPreview(const std::vector<uint8_t>& text) {
   }
 }
 
-void MessageEditor::DrawMessagePreview()  // From Parsing.
-{
+void MessageEditor::DrawMessagePreview() {
+  // From Parsing.
   text_line_ = 0;
   for (int i = 0; i < (172 * 4096); i++) {
     current_font_gfx16_data_[i] = 0;
