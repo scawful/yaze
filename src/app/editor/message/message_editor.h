@@ -23,27 +23,25 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-// TEXT EDITOR RELATED CONSTANTS
-const int kGfxFont = 0x70000;  // 2bpp format
-const int kTextData = 0xE0000;
-const int kTextDataEnd = 0xE7FFF;
-const int kTextData2 = 0x75F40;
-const int kTextData2End = 0x773FF;
-const int kPointersDictionaries = 0x74703;
-const int kCharactersWidth = 0x74ADF;
+constexpr int kGfxFont = 0x70000;  // 2bpp format
+constexpr int kTextData = 0xE0000;
+constexpr int kTextDataEnd = 0xE7FFF;
+constexpr int kTextData2 = 0x75F40;
+constexpr int kTextData2End = 0x773FF;
+constexpr int kPointersDictionaries = 0x74703;
+constexpr int kCharactersWidth = 0x74ADF;
 constexpr int kNumDictionaryEntries = 97;
 
-const std::string DICTIONARYTOKEN = "D";
-const uint8_t DICTOFF = 0x88;
-const std::string BANKToken = "BANK";
-const uint8_t BANKID = 0x80;
-
 constexpr uint8_t kBlockTerminator = 0x80;
-
+constexpr uint8_t DICTOFF = 0x88;
+constexpr uint8_t BANKID = 0x80;
 constexpr uint8_t kScrollVertical = 0x73;
 constexpr uint8_t kLine1 = 0x74;
 constexpr uint8_t kLine2 = 0x75;
 constexpr uint8_t kLine3 = 0x76;
+
+const std::string DICTIONARYTOKEN = "D";
+const std::string BANKToken = "BANK";
 
 static const TextElement TextCommands[] = {
     TextElement(0x6B, "W", true, "Window border"),

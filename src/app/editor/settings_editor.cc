@@ -3,7 +3,6 @@
 
 #include "absl/status/status.h"
 #include "app/editor/utils/flags.h"
-#include "app/editor/utils/keyboard_shortcuts.h"
 #include "app/editor/settings_editor.h"
 #include "app/editor/utils/flags.h"
 
