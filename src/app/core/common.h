@@ -271,6 +271,8 @@ void ApplyBpsPatch(const std::vector<uint8_t> &source,
                    const std::vector<uint8_t> &patch,
                    std::vector<uint8_t> &target);
 
+absl::StatusOr<std::string> CheckVersion(const char *version);
+
 }  // namespace core
 }  // namespace app
 }  // namespace yaze
