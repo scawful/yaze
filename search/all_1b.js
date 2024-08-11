@@ -472,7 +472,7 @@ var searchData=
   ['subw_469',['SUBW',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#aa1eac5708ec297344f48678c116f129c',1,'yaze::app::emu::audio::Spc700']]],
   ['super_5fdonkey_5f_470',['super_donkey_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a7c4e569fe7cc191f2e11dae93e1d765a',1,'yaze::app::editor::GraphicsEditor']]],
   ['super_5fdonkey_5fcanvas_5f_471',['super_donkey_canvas_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab3ef6d8c4bdbf2b67fd7fc74e16bff89',1,'yaze::app::editor::GraphicsEditor']]],
-  ['supported_20features_472',['Supported Features',['../index.html#autotoc_md40',1,'']]],
+  ['supported_20features_472',['Supported Features',['../index.html#autotoc_md41',1,'']]],
   ['surface_473',['surface',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a484c886ec526a3541338c4b32005399b',1,'yaze::app::gfx::Bitmap']]],
   ['surface_5f_474',['surface_',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a1bdc41c93b1cdf24763e085f79b5043d',1,'yaze::app::gfx::Bitmap']]],
   ['sustainlevel_475',['sustainLevel',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#aa326f22067d8c1c37c40af231b98e48f',1,'yaze::app::emu::audio::DspChannel']]],

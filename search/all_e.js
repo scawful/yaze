@@ -3,7 +3,7 @@ var searchData=
   ['f32_5fto_5fint8_5fsat_0',['F32_TO_INT8_SAT',['../palette__editor_8cc.html#ad2559c98ebd96ce5373e91ebc28f455a',1,'palette_editor.cc']]],
   ['fast_5fmem_5f_1',['fast_mem_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a78edf487e8006eab83dfef045cee66e4',1,'yaze::app::emu::SNES']]],
   ['fast_5from_2',['FAST_ROM',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#af9424b79590fad583d381935a03cb4b9a93364bc7d2865bb7cd3a8a79628315af',1,'yaze::app::emu::memory']]],
-  ['features_3',['Supported Features',['../index.html#autotoc_md40',1,'']]],
+  ['features_3',['Supported Features',['../index.html#autotoc_md41',1,'']]],
   ['feedbackvolume_4',['feedbackVolume',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a5341fdff49c7f45daacd5716fa0f8b24',1,'yaze::app::emu::audio::Dsp']]],
   ['fetchlargemaps_5',['FetchLargeMaps',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a7833a69e0cdbd2004285a7a57b1c7bea',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['fetchsubtypeinfo_6',['FetchSubtypeInfo',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a362da1288267fc7ce4ca6db3d141156a',1,'yaze::app::zelda3::dungeon::DungeonObjectRenderer']]],
@@ -102,7 +102,7 @@ var searchData=
   ['full_5fgraphic_99',['full_graphic',['../structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#aa3366284a3078a891e3b57ca7b9124c0',1,'yaze::app::emu::video::VideoPortControl']]],
   ['full_5fpalette_5f_100',['full_palette_',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a9fb55b114a36b11d6474d778770f242a',1,'yaze::app::editor::DungeonEditor']]],
   ['function_101',['Function',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a86408593c34af77fdd90df932f8b5261',1,'yaze::app::gui::zeml']]],
-  ['functionality_102',['Extending Functionality',['../index.html#autotoc_md42',1,'']]],
+  ['functionality_102',['Extending Functionality',['../index.html#autotoc_md40',1,'']]],
   ['functions_103',['functions',['../classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html#a7fbca91dff24d2693693c24b45e3092b',1,'yaze::app::zelda3::SpriteBuilder']]],
   ['fx_104',['FX',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42a25c6b7f8757be1397484ae6888e5a990',1,'yaze::app::emu::memory']]]
 ];

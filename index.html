@@ -116,10 +116,14 @@ $(function(){initNavTree('index.html',''); initResizable(true); });
 <h1><a class="anchor" id="autotoc_md39"></a>
 General Tips</h1>
 <ul>
-<li>Experiment flags determine whether certain features are enabled or not. To change your flags, go to File -&gt; Options -&gt; Experiment Flags or in the Settings tab.</li>
+<li>Experiment flags determine whether certain features are enabled or not. To change your flags, go to <code>File</code> &gt; <code>Options</code> &gt; <code>Experiment Flags</code> or in the Settings tab.</li>
 <li>Backup files are enabled by default. Each save will produce a timestamped copy of your ROM before you last saved. You can disable this feature in the settings.</li>
 </ul>
 <h1><a class="anchor" id="autotoc_md40"></a>
+Extending Functionality</h1>
+<p>In addition to the built-in features, this software provides a pure C library interface and a Python module that can be used for building extensions and custom sprites without assembly. In the editor these can be loaded under the <code>Extensions</code> menu.</p>
+<p>This feature is still in development and is not yet fully documented.</p>
+<h1><a class="anchor" id="autotoc_md41"></a>
 Supported Features</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -159,8 +163,8 @@ Supported Features</h1>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Asar Patching   </td><td class="markdownTableBodyNone">In Progress   </td><td class="markdownTableBodyNone">Apply Asar patches to your ROM or Project.   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md41"></a>
-z3ed cli</h1>
+<h1><a class="anchor" id="autotoc_md42"></a>
+Command Line Interface</h1>
 <p>Included with the editor is a command line interface (CLI) that allows you to perform various operations on your ROMs from the command line. This aims to reduce the need for multiple tools in zelda3 hacking like Zcompress, LunarExpand, LunarAddress, Asar, and others.</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -188,10 +192,6 @@ z3ed cli</h1>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">PC to SNES Address   </td><td class="markdownTableBodyNone">-p   </td><td class="markdownTableBodyNone">address   </td><td class="markdownTableBodyNone">Complete   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md42"></a>
-Extending Functionality</h1>
-<p>In addition to the built-in features, this software provides a pure C library interface and a Python module that can be used for building extensions and custom sprites without assembly.</p>
-<p>This feature is still in development and is not yet fully documented. </p>
 </div></div><!-- PageDoc -->
 <a href="doxygen_crawl.html"></a>
 </div><!-- contents -->

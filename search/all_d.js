@@ -133,7 +133,7 @@ var searchData=
   ['experimentflags_130',['ExperimentFlags',['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html',1,'yaze::app::core::ExperimentFlags'],['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html#ab31b958a7216371310b254fdc2780dcd',1,'yaze::app::core::ExperimentFlags::ExperimentFlags()']]],
   ['extbg_131',['extbg',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a759800c7b68e91f0289bc899fd02064b',1,'yaze::app::emu::video::PpuRegisters::SETINI']]],
   ['extend_5fui_132',['extend_ui',['../structyaze__extension.html#ae2c69e105138b9f02fdc2c79a3b7e1bf',1,'yaze_extension::extend_ui'],['../classsample_1_1YazePyExtension.html#a7985768d15fd8340de8ac1a073858132',1,'sample.YazePyExtension.extend_ui()']]],
-  ['extending_20functionality_133',['Extending Functionality',['../index.html#autotoc_md42',1,'']]],
+  ['extending_20functionality_133',['Extending Functionality',['../index.html#autotoc_md40',1,'']]],
   ['extension_2ecc_134',['extension.cc',['../extension_8cc.html',1,'']]],
   ['extension_2eh_135',['extension.h',['../extension_8h.html',1,'']]],
   ['extension_5fmanager_2ecc_136',['extension_manager.cc',['../extension__manager_8cc.html',1,'']]],
