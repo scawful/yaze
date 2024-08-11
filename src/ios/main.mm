@@ -60,12 +60,19 @@
 
   SDL_SetMainReady();
   SDL_iOSSetEventPump(SDL_TRUE);
-
-  // TODO: Process arguments.
-  //    auto argc = NSProcessInfo.processInfo.arguments.count;
-  //    char** argv = NSProcessInfo.processInfo.arguments.firstObject.string;
-  //    SDL_main(argc, argv);
-
+  int argc = NSProcessInfo.processInfo.arguments.count;
+  char** argv = new char*[argc];
+  for (int i = 0; i < argc; i++) {
+    NSString* arg = NSProcessInfo.processInfo.arguments[i];
+    const char* cString = [arg UTF8String];
+    argv[i] = new char[strlen(cString) + 1];
+    strcpy(argv[i], cString);
+  }
+  
+  std::string rom_filename = "";
+  if (argc > 0) {
+    rom_filename = argv[0];
+  }
   SDL_iOSSetEventPump(SDL_FALSE);
 
   // Enable native IME.
