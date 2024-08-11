@@ -22,24 +22,7 @@
 #include "app/gui/canvas.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
-#include "asar.h"
-
-extern "C" bool asar_patch(const char* patchloc, char* romdata, int buflen,
-                           int* romlen);
-
-// These structures are returned from various functions.
-struct errordata {
-  const char* fullerrdata;
-  const char* rawerrdata;
-  const char* block;
-  const char* filename;
-  int line;
-  const char* callerfilename;
-  int callerline;
-  int errid;
-};
-
-extern "C" const struct errordata* asar_geterrors(int* count);
+#include "asar-dll-bindings/c/asar.h"
 
 namespace yaze {
 namespace cli {
