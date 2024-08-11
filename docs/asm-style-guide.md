@@ -4,7 +4,7 @@
 
 This guide is based primarily on the [Oracle of Secrets](https://github.com/scawful/Oracle-of-Secrets) codebase and is meant for the [Asar](https://github.com/RPGHacker/asar) assembler and derives influence from the [Asar 1.9 Manual](https://rpghacker.github.io/asar/asar_19/manual/).
 
-Custom assembly code applied to the game should be included through the [yaze.asm](../assets/asm/yaze.asm) file. This file can be applied to the ROM by the editor using the Asar library or included into a projects codebase for use with the Asar assembler.
+Custom assembly code applied to the game should be included through the `yaze.asm` file found in `assets/asm`. This file can be applied to the ROM by the editor using the Asar library or included into a projects codebase for use with the Asar assembler.
 
 ## Table of Contents
 

@@ -31,7 +31,7 @@ The goal of yaze is to build a cross platform editor for the Legend of Zelda: A 
 
 ## Dependencies
 
-See [build-instructions.md](../docs/build-instructions.md) for more information.
+See [build-instructions.md](docs/build-instructions.md) for more information.
 
 - **SDL2**: Graphics library
 - **ImGui**: GUI library

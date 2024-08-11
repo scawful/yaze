@@ -16,7 +16,7 @@ Objective-C Code should follow the [Google Objective-C Style Guide](https://goog
 
 Python Code should follow the [PEP 8 Style Guide](https://pep8.org/).
 
-Assembly code should follow the [65816 Style Guide](asm-style-guide.md).
+Assembly code should follow the [65816 Style Guide](docs/asm-style-guide.md).
 
 
 ## Key Areas of Contribution
@@ -82,7 +82,7 @@ Quality assurance and documentation are critical to yaze's success. Contribution
 
 ## Building the Project
 
-For detailed instructions on building YAZE, including its dependencies and supported platforms, refer to `build-instructions.md`.
+For detailed instructions on building YAZE, including its dependencies and supported platforms, refer to [build-instructions.md](docs/build-instructions.md).
 
 ## Getting Started
 
@@ -101,7 +101,7 @@ git submodule update --init --recursive
 
 3. Build the Project:
 
-Follow the instructions in the `build-instructions.md` file to configure and build the project on your target platform.
+Follow the instructions in the [build-instructions.md](docs/build-instructions.md). file to configure and build the project on your target platform.
 
 4. Run the Application:
 
