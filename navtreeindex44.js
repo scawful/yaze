@@ -1,11 +1,5 @@
 var NAVTREEINDEX44 =
 {
-"structsnes__palette.html#ad4057af514d8aab3c6a429b693bb9ac6":[9,0,7,2],
-"structsnes__palette.html#af78e1764df4b15340c56da97b8e2c965":[9,0,7,1],
-"structyaze_1_1app_1_1Project.html":[8,0,2,0,7],
-"structyaze_1_1app_1_1Project.html":[9,0,1,0,6],
-"structyaze_1_1app_1_1Project.html#a113a64ce6f082a98598e821feaeaebfe":[8,0,2,0,7,6],
-"structyaze_1_1app_1_1Project.html#a113a64ce6f082a98598e821feaeaebfe":[9,0,1,0,6,6],
 "structyaze_1_1app_1_1Project.html#a1311a5bc2b450b80dca82fe1b42b6681":[8,0,2,0,7,7],
 "structyaze_1_1app_1_1Project.html#a1311a5bc2b450b80dca82fe1b42b6681":[9,0,1,0,6,7],
 "structyaze_1_1app_1_1Project.html#a1fc4df458b4799b79350be13248ab889":[8,0,2,0,7,11],
@@ -249,5 +243,11 @@ var NAVTREEINDEX44 =
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a8b83aa6c17def11f9cde0cde25c4dd98":[8,0,2,0,2,22,0,8],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a8b83aa6c17def11f9cde0cde25c4dd98":[9,0,1,0,1,17,0,8],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#aaaf19488a2d6e9496a2448063d6ddc66":[8,0,2,0,2,22,0,5],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#aaaf19488a2d6e9496a2448063d6ddc66":[9,0,1,0,1,17,0,5]
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#aaaf19488a2d6e9496a2448063d6ddc66":[9,0,1,0,1,17,0,5],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#ae66d11822aa7bde03ca95a4debb1b44f":[8,0,2,0,2,22,0,6],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#ae66d11822aa7bde03ca95a4debb1b44f":[9,0,1,0,1,17,0,6],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#afdb8790daa668f95b954c7af3f089426":[8,0,2,0,2,22,0,4],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#afdb8790daa668f95b954c7af3f089426":[9,0,1,0,1,17,0,4],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html":[8,0,2,0,2,22,1],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html":[9,0,1,0,1,17,1]
 };

@@ -1,8 +1,10 @@
 <map id="src/ext/sample.c" name="src/ext/sample.c">
-<area shape="rect" id="Node000001" title=" " alt="" coords="46,5,162,31"/>
-<area shape="rect" id="Node000002" href="$extension_8h.html" title=" " alt="" coords="5,79,113,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,33,77,67,72,64,95,30"/>
-<area shape="rect" id="Node000003" href="$yaze_8h.html" title=" " alt="" coords="76,153,133,178"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="112,31,127,79,126,110,119,139,113,137,121,109,122,79,107,32"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="69,103,91,138,86,141,64,106"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="85,5,201,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,65,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,34,68,72,65,68,123,29"/>
+<area shape="rect" id="Node000003" href="$extension_8h.html" title=" " alt="" coords="89,79,197,105"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="146,31,146,63,140,63,140,31"/>
+<area shape="rect" id="Node000004" href="$yaze_8h.html" title=" " alt="" coords="160,153,217,178"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="165,29,190,49,211,78,215,94,214,110,205,139,200,138,209,109,209,94,206,80,186,53,162,33"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="153,103,175,138,170,141,148,106"/>
 </map>

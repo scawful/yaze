@@ -138,9 +138,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a5dabaad70704ecff759f67c5ddf63ff2" id="r_a5dabaad70704ecff759f67c5ddf63ff2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze__extension.html">yaze_extension</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5dabaad70704ecff759f67c5ddf63ff2">get_yaze_extension</a> ()</td></tr>
 <tr class="memdesc:a5dabaad70704ecff759f67c5ddf63ff2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the extension interface.  <br /></td></tr>
 <tr class="separator:a5dabaad70704ecff759f67c5ddf63ff2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad7ff704596102319fa64ae7043f91fc7" id="r_ad7ff704596102319fa64ae7043f91fc7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad7ff704596102319fa64ae7043f91fc7">yaze_load_c_extension</a> (const char *extension_path)</td></tr>
-<tr class="memdesc:ad7ff704596102319fa64ae7043f91fc7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a C extension.  <br /></td></tr>
-<tr class="separator:ad7ff704596102319fa64ae7043f91fc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ad95bb0844cdc4fc7f4d55fba5df3d1" id="r_a7ad95bb0844cdc4fc7f4d55fba5df3d1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7ad95bb0844cdc4fc7f4d55fba5df3d1">yaze_load_c_extension</a> (const char *extension_path, <a class="el" href="structyaze__editor__context.html">yaze_editor_context</a> *context)</td></tr>
+<tr class="memdesc:a7ad95bb0844cdc4fc7f4d55fba5df3d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a C extension.  <br /></td></tr>
+<tr class="separator:a7ad95bb0844cdc4fc7f4d55fba5df3d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9132b0bf264bc6cfc6cd123346b0a3e2" id="r_a9132b0bf264bc6cfc6cd123346b0a3e2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9132b0bf264bc6cfc6cd123346b0a3e2">yaze_load_py_extension</a> (const char *script_path)</td></tr>
 <tr class="memdesc:a9132b0bf264bc6cfc6cd123346b0a3e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a Python extension.  <br /></td></tr>
 <tr class="separator:a9132b0bf264bc6cfc6cd123346b0a3e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -158,7 +158,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="structyaze__extension.html">yaze_extension</a> * get_yaze_extension </td>
           <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td class="paramtype">void</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -170,8 +170,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ad7ff704596102319fa64ae7043f91fc7" name="ad7ff704596102319fa64ae7043f91fc7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad7ff704596102319fa64ae7043f91fc7">&#9670;&#160;</a></span>yaze_load_c_extension()</h2>
+<a id="a7ad95bb0844cdc4fc7f4d55fba5df3d1" name="a7ad95bb0844cdc4fc7f4d55fba5df3d1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7ad95bb0844cdc4fc7f4d55fba5df3d1">&#9670;&#160;</a></span>yaze_load_c_extension()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -179,8 +179,12 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname">void yaze_load_c_extension </td>
           <td>(</td>
-          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>extension_path</em></span></td><td>)</td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>extension_path</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="structyaze__editor__context.html">yaze_editor_context</a> *</td>          <td class="paramname"><span class="paramname"><em>context</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">

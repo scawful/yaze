@@ -206,9 +206,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a5dabaad70704ecff759f67c5ddf63ff2" id="r_a5dabaad70704ecff759f67c5ddf63ff2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze__extension.html">yaze_extension</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5dabaad70704ecff759f67c5ddf63ff2">get_yaze_extension</a> ()</td></tr>
 <tr class="memdesc:a5dabaad70704ecff759f67c5ddf63ff2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the extension interface.  <br /></td></tr>
 <tr class="separator:a5dabaad70704ecff759f67c5ddf63ff2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad7ff704596102319fa64ae7043f91fc7" id="r_ad7ff704596102319fa64ae7043f91fc7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad7ff704596102319fa64ae7043f91fc7">yaze_load_c_extension</a> (const char *extension_path)</td></tr>
-<tr class="memdesc:ad7ff704596102319fa64ae7043f91fc7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a C extension.  <br /></td></tr>
-<tr class="separator:ad7ff704596102319fa64ae7043f91fc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ad95bb0844cdc4fc7f4d55fba5df3d1" id="r_a7ad95bb0844cdc4fc7f4d55fba5df3d1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7ad95bb0844cdc4fc7f4d55fba5df3d1">yaze_load_c_extension</a> (const char *extension_path, <a class="el" href="structyaze__editor__context.html">yaze_editor_context</a> *context)</td></tr>
+<tr class="memdesc:a7ad95bb0844cdc4fc7f4d55fba5df3d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a C extension.  <br /></td></tr>
+<tr class="separator:a7ad95bb0844cdc4fc7f4d55fba5df3d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9132b0bf264bc6cfc6cd123346b0a3e2" id="r_a9132b0bf264bc6cfc6cd123346b0a3e2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9132b0bf264bc6cfc6cd123346b0a3e2">yaze_load_py_extension</a> (const char *script_path)</td></tr>
 <tr class="memdesc:a9132b0bf264bc6cfc6cd123346b0a3e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a Python extension.  <br /></td></tr>
 <tr class="separator:a9132b0bf264bc6cfc6cd123346b0a3e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -373,26 +373,34 @@ Functions</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="extension_8cc_source.html#l00010">10</a> of file <a class="el" href="extension_8cc_source.html">extension.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="sample_8c_source.html#l00008">my_extension_cleanup()</a>, <a class="el" href="sample_8c_source.html#l00004">my_extension_initialize()</a>, and <a class="el" href="sample_8c_source.html#l00012">my_extension_manipulate_rom()</a>.</p>
+<p class="reference">References <a class="el" href="sample_8c_source.html#l00010">my_extension_cleanup()</a>, <a class="el" href="sample_8c_source.html#l00012">my_extension_extend_ui()</a>, <a class="el" href="sample_8c_source.html#l00006">my_extension_initialize()</a>, <a class="el" href="sample_8c_source.html#l00016">my_extension_manipulate_rom()</a>, <a class="el" href="sample_8c_source.html#l00020">my_extension_register_commands()</a>, <a class="el" href="sample_8c_source.html#l00033">my_extension_register_custom_tools()</a>, and <a class="el" href="sample_8c_source.html#l00028">my_extension_register_event_hooks()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="extension_8h_a5dabaad70704ecff759f67c5ddf63ff2_cgraph.png" border="0" usemap="#aextension_8h_a5dabaad70704ecff759f67c5ddf63ff2_cgraph" alt=""/></div>
 <map name="aextension_8h_a5dabaad70704ecff759f67c5ddf63ff2_cgraph" id="aextension_8h_a5dabaad70704ecff759f67c5ddf63ff2_cgraph">
-<area shape="rect" title="Get the extension interface." alt="" coords="5,55,140,80"/>
-<area shape="rect" href="sample_8c.html#a3c7c4dec1ad5658afc76ca8ebc6f4c92" title=" " alt="" coords="211,5,364,31"/>
-<area shape="poly" title=" " alt="" coords="131,51,213,32,214,38,132,57"/>
-<area shape="rect" href="sample_8c.html#a4e881c1093a2a7718784c3156b29f69e" title=" " alt="" coords="211,55,364,80"/>
-<area shape="poly" title=" " alt="" coords="140,65,195,65,195,70,140,70"/>
-<area shape="rect" href="sample_8c.html#a9caf69a8b1426457bc1ee26e47479702" title=" " alt="" coords="188,104,387,130"/>
-<area shape="poly" title=" " alt="" coords="132,78,214,97,213,103,131,84"/>
+<area shape="rect" title="Get the extension interface." alt="" coords="5,153,140,179"/>
+<area shape="rect" href="sample_8c.html#ac81303da181cbfaf74c5ebfe5890b7ee" title=" " alt="" coords="211,5,364,31"/>
+<area shape="poly" title=" " alt="" coords="80,151,121,97,151,66,186,40,195,35,198,40,189,44,155,70,125,101,84,155"/>
+<area shape="rect" href="sample_8c.html#a461eb5e123897fa98f572e65f059439a" title=" " alt="" coords="206,55,368,80"/>
+<area shape="poly" title=" " alt="" coords="89,151,131,120,187,89,202,83,204,88,189,94,134,124,92,155"/>
+<area shape="rect" href="sample_8c.html#a8bfafe7ed591c0216c098c3efa579ba8" title=" " alt="" coords="211,104,364,130"/>
+<area shape="poly" title=" " alt="" coords="131,150,213,131,214,136,132,155"/>
+<area shape="rect" href="sample_8c.html#a9caf69a8b1426457bc1ee26e47479702" title=" " alt="" coords="188,153,387,179"/>
+<area shape="poly" title=" " alt="" coords="140,164,172,164,172,169,140,169"/>
+<area shape="rect" href="sample_8c.html#a84b8a88c8489b1ca34d4c63523cb4857" title=" " alt="" coords="212,203,362,244"/>
+<area shape="poly" title=" " alt="" coords="124,177,198,197,196,202,123,182"/>
+<area shape="rect" href="sample_8c.html#ae8d8abf84a36fcbf4c4796171d35c485" title=" " alt="" coords="212,268,362,309"/>
+<area shape="poly" title=" " alt="" coords="89,177,132,214,189,253,202,260,200,264,186,258,129,219,86,181"/>
+<area shape="rect" href="sample_8c.html#a349a43fe0276396f8a22533b4ecf49fe" title=" " alt="" coords="212,334,362,374"/>
+<area shape="poly" title=" " alt="" coords="82,178,121,245,152,285,189,319,200,325,197,330,186,323,148,288,117,248,78,181"/>
 </map>
 </div>
 
 </div>
 </div>
-<a id="ad7ff704596102319fa64ae7043f91fc7" name="ad7ff704596102319fa64ae7043f91fc7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad7ff704596102319fa64ae7043f91fc7">&#9670;&#160;</a></span>yaze_load_c_extension()</h2>
+<a id="a7ad95bb0844cdc4fc7f4d55fba5df3d1" name="a7ad95bb0844cdc4fc7f4d55fba5df3d1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7ad95bb0844cdc4fc7f4d55fba5df3d1">&#9670;&#160;</a></span>yaze_load_c_extension()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -400,8 +408,12 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">void yaze_load_c_extension </td>
           <td>(</td>
-          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>extension_path</em></span></td><td>)</td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>extension_path</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="structyaze__editor__context.html">yaze_editor_context</a> *</td>          <td class="paramname"><span class="paramname"><em>context</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">

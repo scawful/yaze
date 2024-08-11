@@ -1,11 +1,5 @@
 var NAVTREEINDEX45 =
 {
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#ae66d11822aa7bde03ca95a4debb1b44f":[8,0,2,0,2,22,0,6],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#ae66d11822aa7bde03ca95a4debb1b44f":[9,0,1,0,1,17,0,6],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#afdb8790daa668f95b954c7af3f089426":[8,0,2,0,2,22,0,4],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#afdb8790daa668f95b954c7af3f089426":[9,0,1,0,1,17,0,4],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html":[8,0,2,0,2,22,1],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html":[9,0,1,0,1,17,1],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a07ae2d062ac3f905e65cbf5d0b67e59b":[8,0,2,0,2,22,1,8],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a07ae2d062ac3f905e65cbf5d0b67e59b":[9,0,1,0,1,17,1,8],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a1901abc8b7ca912bf11a93b72b217755":[8,0,2,0,2,22,1,6],
@@ -249,5 +243,11 @@ var NAVTREEINDEX45 =
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#aff612fe6b12aa8e83a4133e0458ce8f9":[8,0,2,0,2,7,5,33],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#aff612fe6b12aa8e83a4133e0458ce8f9":[9,0,1,0,1,2,5,33],
 "structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html":[8,0,2,0,3,10,0],
-"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html":[9,0,1,0,2,8,0]
+"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html":[9,0,1,0,2,8,0],
+"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a1809514af68de6d3f90ef91080066f6f":[8,0,2,0,3,10,0,0],
+"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a1809514af68de6d3f90ef91080066f6f":[9,0,1,0,2,8,0,0],
+"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a648410982bd27d1595954585265d5397":[8,0,2,0,3,10,0,1],
+"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a648410982bd27d1595954585265d5397":[9,0,1,0,2,8,0,1],
+"structyaze_1_1app_1_1emu_1_1Input.html":[8,0,2,0,3,11],
+"structyaze_1_1app_1_1emu_1_1Input.html":[9,0,1,0,2,9]
 };

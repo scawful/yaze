@@ -1,6 +1,5 @@
 var command__handler_8h =
 [
-    [ "errordata", "structerrordata.html", "structerrordata" ],
     [ "yaze::cli::Color::Modifier", "classyaze_1_1cli_1_1Color_1_1Modifier.html", "classyaze_1_1cli_1_1Color_1_1Modifier" ],
     [ "yaze::cli::CommandHandler", "classyaze_1_1cli_1_1CommandHandler.html", "classyaze_1_1cli_1_1CommandHandler" ],
     [ "yaze::cli::ApplyPatch", "classyaze_1_1cli_1_1ApplyPatch.html", "classyaze_1_1cli_1_1ApplyPatch" ],
@@ -30,7 +29,5 @@ var command__handler_8h =
       [ "BG_GREEN", "command__handler_8h.html#a2aac92fcaacd2c1da7a5fcbaa85ddb07ad162fdc0ae310baa3677fe1c7fd69d8d", null ],
       [ "BG_BLUE", "command__handler_8h.html#a2aac92fcaacd2c1da7a5fcbaa85ddb07a247842c5cb8470c6793a259e155249f8", null ],
       [ "BG_DEFAULT", "command__handler_8h.html#a2aac92fcaacd2c1da7a5fcbaa85ddb07ad8782db7e1edccbceae55686ad2a2863", null ]
-    ] ],
-    [ "asar_patch", "command__handler_8h.html#ad4bb3b1dff789102c94b41235a6a29c2", null ],
-    [ "asar_geterrors", "command__handler_8h.html#a393c4a3ba5b30aedcb85e5e6b4b98399", null ]
+    ] ]
 ];

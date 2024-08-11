@@ -1,19 +1,15 @@
 <map id="yaze::cli::AsarPatch::handle" name="yaze::cli::AsarPatch::handle">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,72,139,113"/>
-<area shape="rect" id="Node000002" href="$command__handler_8h.html#a393c4a3ba5b30aedcb85e5e6b4b98399" title=" " alt="" coords="231,5,336,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,70,186,40,215,31,217,36,188,45,116,75"/>
-<area shape="rect" id="Node000003" href="$command__handler_8h.html#ad4bb3b1dff789102c94b41235a6a29c2" title=" " alt="" coords="241,55,326,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="138,82,225,72,226,77,139,88"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197" title=" " alt="" coords="187,104,380,130"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="139,98,171,101,171,107,138,103"/>
-<area shape="rect" id="Node000029" href="$classyaze_1_1app_1_1Rom.html#a33fb74cfc42e9f3206dd266021bd1186" title=" " alt="" coords="209,153,358,179"/>
-<area shape="poly" id="edge8_Node000001_Node000029" title=" " alt="" coords="118,111,188,140,208,146,207,151,186,145,116,116"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd" title=" " alt="" coords="450,29,611,55"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="347,101,379,90,403,77,427,64,446,57,448,62,429,69,405,82,381,95,349,106"/>
-<area shape="rect" id="Node000006" href="$namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="432,79,628,104"/>
-<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="380,104,417,100,418,106,381,110"/>
-<area shape="rect" id="Node000027" href="$classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="428,128,632,154"/>
-<area shape="poly" id="edge6_Node000004_Node000027" title=" " alt="" coords="381,124,413,127,412,132,380,129"/>
-<area shape="rect" id="Node000028" href="$structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a" title=" " alt="" coords="442,178,619,218"/>
-<area shape="poly" id="edge7_Node000004_Node000028" title=" " alt="" coords="348,128,381,138,405,151,429,164,444,170,442,175,427,169,403,156,379,143,346,133"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,98,139,138"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197" title=" " alt="" coords="187,80,380,106"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,108,171,104,171,109,139,113"/>
+<area shape="rect" id="Node000027" href="$classyaze_1_1app_1_1Rom.html#a33fb74cfc42e9f3206dd266021bd1186" title=" " alt="" coords="209,129,358,155"/>
+<area shape="poly" id="edge6_Node000001_Node000027" title=" " alt="" coords="139,123,193,129,193,135,138,128"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd" title=" " alt="" coords="450,5,611,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="318,77,427,40,453,33,454,38,429,45,320,82"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="432,55,628,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="380,80,417,76,418,82,381,86"/>
+<area shape="rect" id="Node000025" href="$classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="428,104,632,130"/>
+<area shape="poly" id="edge4_Node000002_Node000025" title=" " alt="" coords="381,100,413,103,412,108,380,105"/>
+<area shape="rect" id="Node000026" href="$structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a" title=" " alt="" coords="442,154,619,194"/>
+<area shape="poly" id="edge5_Node000002_Node000026" title=" " alt="" coords="348,104,381,114,405,127,429,140,444,146,442,151,427,145,403,132,379,119,346,109"/>
 </map>

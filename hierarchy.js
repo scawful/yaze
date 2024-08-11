@@ -86,7 +86,6 @@ var hierarchy =
     [ "yaze::app::editor::EntranceContext", "classyaze_1_1app_1_1editor_1_1EntranceContext.html", [
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ]
     ] ],
-    [ "errordata", "structerrordata.html", null ],
     [ "yaze::app::editor::ExampleAppPropertyEditor", "structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html", null ],
     [ "yaze::app::editor::ExampleMemberInfo", "structyaze_1_1app_1_1editor_1_1ExampleMemberInfo.html", null ],
     [ "yaze::app::editor::ExampleTreeNode", "structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html", null ],

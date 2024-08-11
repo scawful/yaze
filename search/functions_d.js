@@ -90,7 +90,12 @@ var searchData=
   ['mutable_5ftile_5finfo_87',['mutable_tile_info',['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html#acd26aa9f811eccbb7ecdc2a0505f0c23',1,'yaze::app::gfx::Tilesheet']]],
   ['mvn_88',['MVN',['../classyaze_1_1app_1_1emu_1_1Cpu.html#aeac1d4fa688a68b1f542d0dd60b8e7ed',1,'yaze::app::emu::Cpu']]],
   ['mvp_89',['MVP',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a2a2159120a5ad1203b5fb919b30dbecc',1,'yaze::app::emu::Cpu']]],
-  ['my_5fextension_5fcleanup_90',['my_extension_cleanup',['../sample_8c.html#a3c7c4dec1ad5658afc76ca8ebc6f4c92',1,'sample.c']]],
-  ['my_5fextension_5finitialize_91',['my_extension_initialize',['../sample_8c.html#a4e881c1093a2a7718784c3156b29f69e',1,'sample.c']]],
-  ['my_5fextension_5fmanipulate_5from_92',['my_extension_manipulate_rom',['../sample_8c.html#a9caf69a8b1426457bc1ee26e47479702',1,'sample.c']]]
+  ['my_5fextension_5fcleanup_90',['my_extension_cleanup',['../sample_8c.html#ac81303da181cbfaf74c5ebfe5890b7ee',1,'sample.c']]],
+  ['my_5fextension_5fextend_5fui_91',['my_extension_extend_ui',['../sample_8c.html#a461eb5e123897fa98f572e65f059439a',1,'sample.c']]],
+  ['my_5fextension_5fhandle_5ffile_5fformat_92',['my_extension_handle_file_format',['../sample_8c.html#a4950be88c4db232e7d3e9c42f75cdbf8',1,'sample.c']]],
+  ['my_5fextension_5finitialize_93',['my_extension_initialize',['../sample_8c.html#a8bfafe7ed591c0216c098c3efa579ba8',1,'sample.c']]],
+  ['my_5fextension_5fmanipulate_5from_94',['my_extension_manipulate_rom',['../sample_8c.html#a9caf69a8b1426457bc1ee26e47479702',1,'sample.c']]],
+  ['my_5fextension_5fregister_5fcommands_95',['my_extension_register_commands',['../sample_8c.html#a84b8a88c8489b1ca34d4c63523cb4857',1,'sample.c']]],
+  ['my_5fextension_5fregister_5fcustom_5ftools_96',['my_extension_register_custom_tools',['../sample_8c.html#ae8d8abf84a36fcbf4c4796171d35c485',1,'sample.c']]],
+  ['my_5fextension_5fregister_5fevent_5fhooks_97',['my_extension_register_event_hooks',['../sample_8c.html#a349a43fe0276396f8a22533b4ecf49fe',1,'sample.c']]]
 ];

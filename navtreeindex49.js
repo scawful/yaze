@@ -1,11 +1,5 @@
 var NAVTREEINDEX49 =
 {
-"structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html":[8,0,2,0,3,4,18],
-"structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html":[9,0,1,0,2,2,18],
-"structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html#a24ba8c4ee71d144a4e6cfff9751f1fc7":[8,0,2,0,3,4,18,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html#a24ba8c4ee71d144a4e6cfff9751f1fc7":[9,0,1,0,2,2,18,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html#a65676b42d31bb546829a1959c7938a85":[8,0,2,0,3,4,18,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html#a65676b42d31bb546829a1959c7938a85":[9,0,1,0,2,2,18,3],
 "structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html#a659942da8015601529e01170802cb422":[8,0,2,0,3,4,18,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html#a659942da8015601529e01170802cb422":[9,0,1,0,2,2,18,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html#a65ff0c5ec1ba48eec1623a96779236b8":[8,0,2,0,3,4,18,6],
@@ -249,5 +243,11 @@ var NAVTREEINDEX49 =
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ada885d11cc579116d21c5acb7b4e8356":[8,0,2,0,4,1,1,5],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ada885d11cc579116d21c5acb7b4e8356":[9,0,1,0,3,0,1,5],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae11cfcee0de7150ad5128529d10bb186":[8,0,2,0,4,1,1,7],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae11cfcee0de7150ad5128529d10bb186":[9,0,1,0,3,0,1,7]
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae11cfcee0de7150ad5128529d10bb186":[9,0,1,0,3,0,1,7],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae75528fc689654968586b3863d94692d":[8,0,2,0,4,1,1,4],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae75528fc689654968586b3863d94692d":[9,0,1,0,3,0,1,4],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#af4106f923d69298648b4d5c165adc29d":[8,0,2,0,4,1,1,13],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#af4106f923d69298648b4d5c165adc29d":[9,0,1,0,3,0,1,13],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html":[8,0,2,0,4,1,2],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html":[9,0,1,0,3,0,2]
 };
