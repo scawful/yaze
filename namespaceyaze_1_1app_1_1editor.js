@@ -21,6 +21,8 @@ var namespaceyaze_1_1app_1_1editor =
     [ "palette_internal", "namespaceyaze_1_1app_1_1editor_1_1palette__internal.html", "namespaceyaze_1_1app_1_1editor_1_1palette__internal" ],
     [ "zsprite", "namespaceyaze_1_1app_1_1editor_1_1zsprite.html", "namespaceyaze_1_1app_1_1editor_1_1zsprite" ],
     [ "AssemblyEditor", "classyaze_1_1app_1_1editor_1_1AssemblyEditor.html", "classyaze_1_1app_1_1editor_1_1AssemblyEditor" ],
+    [ "Command", "classyaze_1_1app_1_1editor_1_1Command.html", "classyaze_1_1app_1_1editor_1_1Command" ],
+    [ "CommandManager", "classyaze_1_1app_1_1editor_1_1CommandManager.html", "classyaze_1_1app_1_1editor_1_1CommandManager" ],
     [ "DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", "classyaze_1_1app_1_1editor_1_1DungeonEditor" ],
     [ "Editor", "classyaze_1_1app_1_1editor_1_1Editor.html", "classyaze_1_1app_1_1editor_1_1Editor" ],
     [ "EditorManager", "classyaze_1_1app_1_1editor_1_1EditorManager.html", "classyaze_1_1app_1_1editor_1_1EditorManager" ],

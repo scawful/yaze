@@ -1,3 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html" title=" " alt="" coords="5,5,168,46"/>
+<area shape="rect" id="Node000000" href="$classyaze_1_1app_1_1emu_1_1Clock.html" title=" " alt="" coords="5,35,150,60"/>
+<area shape="rect" id="Node000001" href="$classyaze_1_1app_1_1emu_1_1ClockImpl.html" title=" " alt="" coords="198,5,367,31"/>
+<area shape="poly" id="edge62_Node000000_Node000001" title=" " alt="" coords="165,32,197,28,198,33,165,38"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MockClock.html" title="Mock CPU class for testing." alt="" coords="204,55,361,96"/>
+<area shape="poly" id="edge63_Node000000_Node000002" title=" " alt="" coords="166,57,204,62,203,67,165,62"/>
 </map>

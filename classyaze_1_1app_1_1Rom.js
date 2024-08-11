@@ -65,7 +65,7 @@ var classyaze_1_1app_1_1Rom =
     [ "size_", "classyaze_1_1app_1_1Rom.html#a0de46f110cfc769f2dcf3508a9dee3dd", null ],
     [ "is_loaded_", "classyaze_1_1app_1_1Rom.html#ab720ccf07dc591f330c0ea037a147efa", null ],
     [ "has_header_", "classyaze_1_1app_1_1Rom.html#afcf31cdd3de12148c02881c93d24bc1a", null ],
-    [ "title_", "classyaze_1_1app_1_1Rom.html#a3998f6405edbf671bb52692c83d670cd", null ],
+    [ "title_", "classyaze_1_1app_1_1Rom.html#a096e8cffa319074595dbccc5c68d9614", null ],
     [ "filename_", "classyaze_1_1app_1_1Rom.html#a91a162b1c152c1c602ecc1501b248989", null ],
     [ "rom_data_", "classyaze_1_1app_1_1Rom.html#a352975e58562e4e0b415f0e3761cfbc8", null ],
     [ "graphics_buffer_", "classyaze_1_1app_1_1Rom.html#a95a2922f020624c4e4f6efd999b504d6", null ],

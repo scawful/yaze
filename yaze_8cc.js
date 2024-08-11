@@ -1,5 +1,6 @@
 var yaze_8cc =
 [
+    [ "yaze_check_version", "yaze_8cc.html#a9fff64bba6ed578ae091960204b84648", null ],
     [ "yaze_init", "yaze_8cc.html#aa7a5ef35202509b12f43e4c52608ef49", null ],
     [ "yaze_cleanup", "yaze_8cc.html#a29fdfcf0cfd5f08d2b6defbefc7a99bf", null ],
     [ "yaze_load_project", "yaze_8cc.html#a92aac5e465c19a821bf5ce2f19943651", null ],

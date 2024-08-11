@@ -98,7 +98,7 @@ var searchData=
   ['time_5fover_5f_95',['time_over_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ae84934679c5846cbb036d2105019ddb6',1,'yaze::app::emu::video::Ppu']]],
   ['timer_5f_96',['timer_',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a7987d0d775127223c65b8aa60d0a3776',1,'yaze::app::emu::audio::Apu']]],
   ['title_97',['title',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#ac934bc7cda01326ea78351395ec47c9d',1,'yaze::app::emu::memory::RomInfo::title'],['../structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a43e594271673fbb84233a89f7ad2954b',1,'yaze::app::gui::zeml::WidgetAttributes::title']]],
-  ['title_5f_98',['title_',['../classyaze_1_1app_1_1Rom.html#a3998f6405edbf671bb52692c83d670cd',1,'yaze::app::Rom']]],
+  ['title_5f_98',['title_',['../classyaze_1_1app_1_1Rom.html#a096e8cffa319074595dbccc5c68d9614',1,'yaze::app::Rom']]],
   ['tm_99',['TM',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#af2ca5ded212f3005513f09af31c96030',1,'yaze::app::emu::video::PpuRegisters']]],
   ['tmw_100',['TMW',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a22bd791fdf9d37bfbb0e6a909d030d40',1,'yaze::app::emu::video::PpuRegisters']]],
   ['token_101',['Token',['../structyaze_1_1app_1_1editor_1_1TextElement.html#ac5b9f9e7e8a9f97c7ded7e834e5b5a02',1,'yaze::app::editor::TextElement::Token'],['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a8b83aa6c17def11f9cde0cde25c4dd98',1,'yaze::app::editor::MessageEditor::DictionaryEntry::Token']]],

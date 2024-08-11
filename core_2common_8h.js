@@ -20,5 +20,6 @@ var core_2common_8h =
     [ "stle16b", "core_2common_8h.html#a58dc78cb3c691e3d7fa277549bc9bed3", null ],
     [ "CreateBpsPatch", "core_2common_8h.html#a8fb8f2496d6a4d905dac9bc80c02f803", null ],
     [ "ApplyBpsPatch", "core_2common_8h.html#a0785e35814ceaa845a06f4a6b0d2bbb0", null ],
+    [ "CheckVersion", "core_2common_8h.html#a733400a6fb45f8737465befded39c773", null ],
     [ "kFastRomRegion", "core_2common_8h.html#ab62c06b7266ecc1577fb9da5d8f7401c", null ]
 ];

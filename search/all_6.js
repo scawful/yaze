@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['7_2001_2027_202024_0',['0.0.7 (01-27-2024)',['../md_docs_2changelog.html#autotoc_md10',1,'']]]
+  ['6_2011_2022_202023_0',['0.0.6 (11-22-2023)',['../md_docs_2changelog.html#autotoc_md9',1,'']]],
+  ['6_20rom_20manipulation_1',['6. ROM Manipulation',['../md_docs_2contributing.html#autotoc_md20',1,'']]]
 ];
