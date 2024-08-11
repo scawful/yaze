@@ -7,7 +7,7 @@ extern "C" {
 
 #include "yaze.h"
 
-typedef void (*yaze_initialize_func)(void);
+typedef void (*yaze_initialize_func)(yaze_editor_context* context);
 typedef void (*yaze_cleanup_func)(void);
 typedef void (*yaze_extend_ui_func)(yaze_editor_context* context);
 typedef void (*yaze_manipulate_rom_func)(z3_rom* rom);
