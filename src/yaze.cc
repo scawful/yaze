@@ -1,7 +1,20 @@
 #include "yaze.h"
 
+#include <cstdio>
+
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
+
+void yaze_check_version(const char* version) {
+  auto version_check = yaze::app::core::CheckVersion(version);
+  if (!version_check.ok()) {
+    // Print the error message to the console for a pure C interface.
+    printf("%s\n", version_check.status().message().c_str());
+    // Exit the program if the version check fails.
+    exit(1);
+  }
+  return;
+}
 
 void yaze_init(yaze_flags* flags) {
   if (flags == nullptr) {

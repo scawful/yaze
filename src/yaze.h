@@ -64,6 +64,8 @@ struct yaze_flags {
   z3_rom* rom;
 };
 
+void yaze_check_version(const char* version);
+
 /**
  * @brief Initialize the Yaze library.
  *

@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "imgui/imgui.h"
 
@@ -320,6 +321,17 @@ void ApplyBpsPatch(const std::vector<uint8_t> &source,
           crc32(std::vector<uint8_t>(patch.begin(), patch.end() - 4))) {
     throw std::runtime_error("Checksum mismatch");
   }
+}
+
+absl::StatusOr<std::string> CheckVersion(const char* version) {
+  std::string version_string = version;
+  if (version_string != kYazeVersion) {
+    std::string message = absl::StrFormat(
+        "Yaze version mismatch: expected %s, got %s", kYazeVersion,
+        version_string.c_str());
+    return absl::InvalidArgumentError(message);
+  }
+  return version_string;
 }
 
 }  // namespace core
