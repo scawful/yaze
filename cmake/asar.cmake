@@ -7,6 +7,7 @@ set(ASAR_GEN_DLL_TEST OFF)
 set(ASAR_STATIC_SRC_DIR "${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar")
 
 get_target_property(ASAR_INCLUDE_DIR asar-static INCLUDE_DIRECTORIES)
+list(APPEND ASAR_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/lib/asar/src")
 target_include_directories(asar-static PRIVATE ${ASAR_INCLUDE_DIR})
 
 set(ASAR_STATIC_SRC
