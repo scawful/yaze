@@ -209,7 +209,9 @@ absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
     // Copy ROM title
     constexpr uint32_t kTitleStringOffset = 0x7FC0;
     constexpr uint32_t kTitleStringLength = 20;
-    memcpy(title_, rom_data_.data() + kTitleStringOffset, kTitleStringLength);
+    std::copy(rom_data_.begin() + kTitleStringOffset,
+              rom_data_.begin() + kTitleStringOffset + kTitleStringLength,
+              title_.begin());
     if (rom_data_[kTitleStringOffset + 0x19] == 0) {
       version_ = Z3_Version::JP;
     } else {
@@ -247,7 +249,9 @@ absl::Status Rom::LoadFromPointer(uchar* data, size_t length, bool z3_load) {
     // Copy ROM title
     constexpr uint32_t kTitleStringOffset = 0x7FC0;
     constexpr uint32_t kTitleStringLength = 20;
-    memcpy(title_, rom_data_.data() + kTitleStringOffset, kTitleStringLength);
+    std::copy(rom_data_.begin() + kTitleStringOffset,
+              rom_data_.begin() + kTitleStringOffset + kTitleStringLength,
+              title_.begin());
     if (rom_data_[kTitleStringOffset + 0x19] == 0) {
       version_ = Z3_Version::JP;
     } else {
