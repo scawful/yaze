@@ -5,35 +5,35 @@
 
 #include <algorithm>
 #include <chrono>
-#include <cstddef>  // for size_t
-#include <cstdint>  // for uint32_t, uint8_t, uint16_t
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
 #include <ctime>
 #include <filesystem>
 #include <fstream>
-#include <functional>     // for function
-#include <iostream>       // for string, operator<<, basic_...
-#include <map>            // for map
-#include <memory>         // for shared_ptr, make_shared
-#include <stack>          // for stack
-#include <string>         // for hash, operator==
-#include <unordered_map>  // for unordered_map
+#include <functional>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <stack>
+#include <string>
+#include <unordered_map>
 #include <variant>
-#include <vector>  // for vector
+#include <vector>
 
-#include "absl/container/flat_hash_map.h"  // for flat_hash_map
-#include "absl/status/status.h"            // for Status
-#include "absl/status/statusor.h"          // for StatusOr
+#include "absl/container/flat_hash_map.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "absl/strings/string_view.h"  // for string_view
+#include "absl/strings/string_view.h"
 #include "app/core/common.h"
-#include "app/core/constants.h"  // for Bytes, uchar, armorPalettes
+#include "app/core/constants.h"
 #include "app/core/labeling.h"
-#include "app/gfx/bitmap.h"  // for Bitmap, BitmapTable
+#include "app/gfx/bitmap.h"
 #include "app/gfx/compression.h"
-#include "app/gfx/snes_palette.h"  // for PaletteGroup, SNESColor
+#include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 
 namespace yaze {
@@ -511,8 +511,8 @@ class Rom : public core::ExperimentFlags {
   long size_ = 0;
   bool is_loaded_ = false;
   bool has_header_ = false;
-  uchar title_[21] = "ROM Not Loaded";
-  std::string filename_;
+  std::string title_ = "ROM Not Loaded";
+  std::string filename_ = "";
 
   // Full contiguous rom space
   Bytes rom_data_;

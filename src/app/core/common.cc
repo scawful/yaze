@@ -15,6 +15,7 @@
 
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
+#include "app/core/constants.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -323,12 +324,12 @@ void ApplyBpsPatch(const std::vector<uint8_t> &source,
   }
 }
 
-absl::StatusOr<std::string> CheckVersion(const char* version) {
+absl::StatusOr<std::string> CheckVersion(const char *version) {
   std::string version_string = version;
-  if (version_string != kYazeVersion) {
-    std::string message = absl::StrFormat(
-        "Yaze version mismatch: expected %s, got %s", kYazeVersion,
-        version_string.c_str());
+  if (version_string != core::kYazeVersion) {
+    std::string message =
+        absl::StrFormat("Yaze version mismatch: expected %s, got %s",
+                        core::kYazeVersion, version_string.c_str());
     return absl::InvalidArgumentError(message);
   }
   return version_string;

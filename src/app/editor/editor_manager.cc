@@ -375,7 +375,7 @@ void EditorManager::DrawInfoPopup() {
   if (rom_info_) OpenPopup("ROM Information");
   if (BeginPopupModal("ROM Information", nullptr,
                       ImGuiWindowFlags_AlwaysAutoResize)) {
-    Text("Title: %s", rom()->title());
+    Text("Title: %s", rom()->title().c_str());
     Text("ROM Size: %ld", rom()->size());
 
     if (Button("Close", gui::kDefaultModalSize) ||
