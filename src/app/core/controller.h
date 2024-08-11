@@ -47,7 +47,7 @@ class Controller : public ExperimentFlags {
   absl::Status LoadFontFamilies() const;
   absl::Status LoadAudioDevice();
 
-  void SetupScreen() { editor_manager_.SetupScreen(); }
+  void SetupScreen(std::string filename = "") { editor_manager_.SetupScreen(filename); }
   auto editor_manager() -> editor::EditorManager & { return editor_manager_; }
   auto renderer() -> SDL_Renderer * {
     return Renderer::GetInstance().renderer();

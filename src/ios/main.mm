@@ -91,11 +91,10 @@
   ImGui_ImplSDL2_InitForSDLRenderer(_controller->window(), _controller->renderer());
   ImGui_ImplSDLRenderer2_Init(_controller->renderer());
 
-  _controller->editor_manager().overworld_editor().InitializeZeml();
   if (!_controller->LoadFontFamilies().ok()) {
     abort();
   }
-  _controller->SetupScreen();
+  _controller->SetupScreen(rom_filename);
   
   _hoverGestureRecognizer = [[UIHoverGestureRecognizer alloc] initWithTarget:self action:@selector(hoverGesture:)];
   [self.view addGestureRecognizer:_hoverGestureRecognizer];
