@@ -2,22 +2,6 @@
 
 For developers to reference.
 
-## Z3ED cli
-
-| Command | Arg | Params | Status |
-|---------|-----|--------|--------|
-| Apply BPS Patch | -a | rom_file bps_file | In progress |
-| Create BPS Patch | -c | bps_file src_file modified_file | Not started |
-| Asar Patch | -asar | asm_file rom_file | In progress |
-| Open ROM | -o | rom_file | Complete |
-| Backup ROM | -b | rom_file [new_file] | In progress |
-| Expand ROM | -x | rom_file file_size | Not started |
-| Transfer Tile16 | -t | src_rom dest_rom tile32_id_list(csv) | Complete |
-| Export Graphics | -e | rom_file bin_file | In progress |
-| Import Graphics | -i | bin_file rom_file | Not started |
-| SNES to PC Address | -s | address | Complete |
-| PC to SNES Address | -p | address | Complete |
-
 ## Targets
 
 - **yaze**: Desktop application for Windows/macOS/Linux
