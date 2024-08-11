@@ -1,5 +1,5 @@
 # SDL2
-if (UNIX)
+if (UNIX OR MINGW)
   add_subdirectory(src/lib/SDL)
 else()
   find_package(SDL2)
@@ -13,4 +13,14 @@ if(WIN32 OR MINGW)
 endif()
 
 # libpng
-find_package(PNG REQUIRED)
+if (MINGW)
+  set(ZLIB_ROOT ${CMAKE_SOURCE_DIR}/build-windows/src/lib/zlib)
+  set(ZLIB_LIBRARY ${CMAKE_SOURCE_DIR}/build-windows/src/lib/zlib)
+  set(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/src/lib/zlib)
+  set(YAZE_BUILD_PYTHON OFF)
+  set(YAZE_BUILD_EXTENSIONS OFF)
+  add_subdirectory(src/lib/zlib)
+  add_subdirectory(src/lib/libpng)
+else()
+  find_package(PNG REQUIRED)
+endif()
