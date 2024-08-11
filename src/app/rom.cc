@@ -1,31 +1,31 @@
 #include "rom.h"
 
-#include <algorithm>      // for remove
-#include <chrono>         // for system_clock
-#include <cstddef>        // for size_t
-#include <cstdint>        // for uint32_t, uint8_t
-#include <cstring>        // for memcpy
-#include <ctime>          // for ctime
-#include <filesystem>     // for copy_options, copy_options...
-#include <fstream>        // for string, fstream, ifstream
-#include <stack>          // for stack
-#include <string>         // for hash, operator==, char_traits
-#include <unordered_map>  // for unordered_map, operator!=
-#include <utility>        // for tuple_element<>::type
-#include <vector>         // for vector, vector<>::value_type
+#include <algorithm>
+#include <chrono>
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <ctime>
+#include <filesystem>
+#include <fstream>
+#include <stack>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
-#include "absl/container/flat_hash_map.h"  // for flat_hash_map, BitMask
-#include "absl/status/status.h"            // for OkStatus, InternalError
-#include "absl/status/statusor.h"          // for StatusOr
-#include "absl/strings/str_cat.h"          // for StrCat
-#include "absl/strings/string_view.h"      // for string_view, operator==
-#include "app/core/constants.h"            // for Bytes, ASSIGN_OR_RETURN
+#include "absl/container/flat_hash_map.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
+#include "absl/strings/string_view.h"
+#include "app/core/constants.h"
 #include "app/core/platform/renderer.h"
-#include "app/gfx/bitmap.h"        // for Bitmap, BitmapTable
-#include "app/gfx/compression.h"   // for DecompressV2
-#include "app/gfx/snes_color.h"    // for SNESColor
-#include "app/gfx/snes_palette.h"  // for PaletteGroup
-#include "app/gfx/snes_tile.h"     // for SnesTo8bppSheet
+#include "app/gfx/bitmap.h"
+#include "app/gfx/compression.h"
+#include "app/gfx/snes_color.h"
+#include "app/gfx/snes_palette.h"
+#include "app/gfx/snes_tile.h"
 
 namespace yaze {
 namespace app {
