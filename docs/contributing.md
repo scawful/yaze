@@ -1,8 +1,23 @@
 # Contributing
 
-This project is looking for contributors to help improve the software and enhance the user experience. If you are interested in contributing, please read the following guidelines.
+This project is looking for contributors to help improve the software and enhance the user experience. If you are interested in contributing, please read the following guidelines and suggestions for areas where you can make a difference.
 
 Discussion on the editor and its development can be found on the [Oracle of Secrets Discord](https://discord.gg/MBFkMTPEmk) server.
+
+## Style Guide
+
+When contributing to the project, please follow these guidelines to ensure consistency and readability across the codebase:
+
+C++ Code should follow the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) with the following exceptions:
+
+- Boost libraries are allowed, but require cross platform compatibility.
+
+Objective-C Code should follow the [Google Objective-C Style Guide](https://google.github.io/styleguide/objcguide.html).
+
+Python Code should follow the [PEP 8 Style Guide](https://pep8.org/).
+
+Assembly code should follow the [65816 Style Guide](asm-style-guide.md).
+
 
 ## Key Areas of Contribution
 
@@ -92,7 +107,7 @@ Follow the instructions in the `build-instructions.md` file to configure and bui
 
 After building, you can run the application on your chosen platform and start exploring the existing features.
 
-## Contributing
+## Contributing your Changes
 
 1. Fork the Repository:
 
