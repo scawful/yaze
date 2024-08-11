@@ -1,5 +1,6 @@
 #include "message_editor.h"
 
+#include <algorithm>
 #include <regex>
 #include <sstream>
 #include <string>
@@ -304,7 +305,9 @@ void MessageEditor::ReadAllTextData() {
       current_message_parsed.clear();
 
       continue;
-    } else if (current_byte == 0xFF) {
+    }
+
+    if (current_byte == 0xFF) {
       break;
     }
 
@@ -335,7 +338,6 @@ void MessageEditor::ReadAllTextData() {
 
     // Check for special characters.
     text_element = FindMatchingSpecial(current_byte);
-
     if (!text_element.Empty()) {
       current_message_raw.append(text_element.GetParameterizedToken());
       current_message_parsed.append(text_element.GetParameterizedToken());
@@ -388,13 +390,15 @@ TextElement MessageEditor::FindMatchingCommand(uint8_t b) {
 }
 
 TextElement MessageEditor::FindMatchingSpecial(uint8_t value) {
-  TextElement empty_element;
-  for (const auto text_element : SpecialChars) {
-    if (text_element.ID == value) {
-      return text_element;
-    }
+  auto it = std::find_if(SpecialChars.begin(), SpecialChars.end(),
+                         [value](const TextElement& text_element) {
+                           return text_element.ID == value;
+                         });
+  if (it != SpecialChars.end()) {
+    return *it;
   }
-  return empty_element;
+
+  return TextElement();
 }
 
 ParsedElement MessageEditor::FindMatchingElement(std::string str) {
@@ -468,7 +472,7 @@ std::vector<uint8_t> MessageEditor::ParseMessageToData(std::string str) {
       pos = next + 1;
       continue;
     } else {
-      uint8_t bb = MessageEditor::FindMatchingCharacter(temp_string[pos++]);
+      uint8_t bb = FindMatchingCharacter(temp_string[pos++]);
 
       if (bb != 0xFF) {
         core::logf("Error parsing message: %s", temp_string);
