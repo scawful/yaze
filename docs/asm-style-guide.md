@@ -174,29 +174,31 @@ struct AncillaAdd_HookshotData $099AF8
   .offset_x: skip 8
 endstruct
 
-...
-
 AncillaAdd_Hookshot:
-.speed_y
-  #_099AF8: db -64 ; up
-  #_099AF9: db  64 ; down
-  #_099AFA: db   0 ; left
-  #_099AFB: db   0 ; right
-.speed_x
-  #_099AFC: db   0 ; up
-  #_099AFD: db   0 ; down
-  #_099AFE: db -64 ; left
-  #_099AFF: db  64 ; right
-.offset_y
-  #_099B00: dw   4 ; up
-  #_099B02: dw  20 ; down
-  #_099B04: dw   8 ; left
-  #_099B06: dw   8 ; right
-.offset_x
-  #_099B08: dw   0 ; up
-  #_099B0A: dw   0 ; down
-  #_099B0C: dw  -4 ; left
-  #_099B0E: dw  11 ; right
+  ; $099AF0
+  .speed_y
+  db -64 ; up
+  db  64 ; down
+  db   0 ; left
+  db   0 ; right
+  ; $099AFC
+  .speed_x
+  db   0 ; up
+  db   0 ; down
+  db -64 ; left
+  db  64 ; right
+  ; $099B00
+  .offset_y
+  dw   4 ; up
+  dw  20 ; down
+  dw   8 ; left
+  dw   8 ; right
+  ; $099B08
+  .offset_x
+  dw   0 ; up
+  dw   0 ; down
+  dw  -4 ; left
+  dw  11 ; right
 ```
 
 ## Code Organization
@@ -204,6 +206,7 @@ AncillaAdd_Hookshot:
 - **Logical Grouping**: Organize code into logical sections, with related routines and macros grouped together.
 - **Separation of Concerns**: Ensure that each section of code is responsible for a specific task or set of related tasks, avoiding tightly coupled code.
 - **Modularity**: Write code in a modular way, making it easier to reuse and maintain.
+- **Status Registers**: Indent code blocks when using status register operations (PHX, PLX, etc.) to improve readability.
 
 Example:
 
@@ -215,6 +218,9 @@ Sprite_Minecart_Main:
 {
     JSR HandleTileDirections
     JSR HandleDynamicSwitchTileDirections
+    PHX
+      JSR HandleMinecartMovement
+    PLX
     RTS
 }
 ```
