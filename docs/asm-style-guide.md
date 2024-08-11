@@ -1,4 +1,4 @@
-# 65816 Assembly Style Guide
+# Asm Style Guide
 
 65816 Assembly is the assembly language used by the Super Nintendo Entertainment System (SNES) and its Ricoh 5A22 processor. This style guide provides conventions and best practices for writing 65816 assembly code in the context of the yaze project. Following these guidelines will help maintain consistency and readability across the codebase.
 
@@ -14,7 +14,6 @@ Custom assembly code applied to the game should be included through the [yaze.as
 - [Directives](#directives)
 - [Instructions](#instructions)
 - [Macros](#macros)
-- [Conditional Assembly](#conditional-assembly)
 - [Loops and Branching](#loops-and-branching)
 - [Data Structures](#data-structures)
 - [Code Organization](#code-organization)
@@ -130,19 +129,6 @@ Example:
 endmacro
 ```
 
-## Conditional Assembly
-
-- **Usage**: Use conditional assembly directives to manage code that should only be included under certain conditions (e.g., debug builds).
-- **Documentation**: Clearly document the conditions under which the code is assembled and how to toggle those conditions.
-
-Example:
-
-```asm
-%ifdef DEBUG
-    LDA #$01 : STA DebugFlag
-%endif
-```
-
 ## Loops and Branching
 
 - **Branch Labels**: Use meaningful names for branch labels, prefixed with a dot (`.`) for local branches.
@@ -174,6 +160,43 @@ Example:
     db $00, $02, $00, $04 ; South
     db $03, $01, $00, $00 ; West
 }
+```
+
+- **Structs**: Use structs to group related data together, improving readability and maintainability.
+
+Example:
+
+```asm
+struct AncillaAdd_HookshotData $099AF8
+  .speed_y: skip 4
+  .speed_x: skip 4
+  .offset_y: skip 8
+  .offset_x: skip 8
+endstruct
+
+...
+
+AncillaAdd_Hookshot:
+.speed_y
+  #_099AF8: db -64 ; up
+  #_099AF9: db  64 ; down
+  #_099AFA: db   0 ; left
+  #_099AFB: db   0 ; right
+.speed_x
+  #_099AFC: db   0 ; up
+  #_099AFD: db   0 ; down
+  #_099AFE: db -64 ; left
+  #_099AFF: db  64 ; right
+.offset_y
+  #_099B00: dw   4 ; up
+  #_099B02: dw  20 ; down
+  #_099B04: dw   8 ; left
+  #_099B06: dw   8 ; right
+.offset_x
+  #_099B08: dw   0 ; up
+  #_099B0A: dw   0 ; down
+  #_099B0C: dw  -4 ; left
+  #_099B0E: dw  11 ; right
 ```
 
 ## Code Organization
