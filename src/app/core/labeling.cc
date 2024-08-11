@@ -34,6 +34,10 @@ std::string UppercaseHexLong(uint32_t dword) {
   std::string result = absl::StrFormat("0x%06X", dword);
   return result;
 }
+std::string UppercaseHexLongLong(uint64_t qword) {
+  std::string result = absl::StrFormat("0x%08X", qword);
+  return result;
+}
 
 bool StringReplace(std::string& str, const std::string& from,
                    const std::string& to) {
