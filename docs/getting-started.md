@@ -8,8 +8,14 @@ Please note that this project is currently a work in progress, and some features
 
 ## General Tips
 
-- Experiment flags determine whether certain features are enabled or not. To change your flags, go to File -> Options -> Experiment Flags or in the Settings tab.
+- Experiment flags determine whether certain features are enabled or not. To change your flags, go to `File` > `Options` > `Experiment Flags` or in the Settings tab.
 - Backup files are enabled by default. Each save will produce a timestamped copy of your ROM before you last saved. You can disable this feature in the settings.
+
+## Extending Functionality
+
+In addition to the built-in features, this software provides a pure C library interface and a Python module that can be used for building extensions and custom sprites without assembly. In the editor these can be loaded under the `Extensions` menu.
+
+This feature is still in development and is not yet fully documented.
 
 ## Supported Features 
 
@@ -33,7 +39,7 @@ Please note that this project is currently a work in progress, and some features
 | Hex Editing | Done | View and edit ROM data in hex. |
 | Asar Patching | In Progress | Apply Asar patches to your ROM or Project. |
 
-## z3ed cli
+## Command Line Interface
 
 Included with the editor is a command line interface (CLI) that allows you to perform various operations on your ROMs from the command line. This aims to reduce the need for multiple tools in zelda3 hacking like Zcompress, LunarExpand, LunarAddress, Asar, and others.
 
@@ -52,8 +58,3 @@ Included with the editor is a command line interface (CLI) that allows you to pe
 | PC to SNES Address | -p | address | Complete |
 
 
-## Extending Functionality
-
-In addition to the built-in features, this software provides a pure C library interface and a Python module that can be used for building extensions and custom sprites without assembly. 
-
-This feature is still in development and is not yet fully documented.
