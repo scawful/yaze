@@ -13,10 +13,9 @@ namespace editor {
 const uint8_t MESSAGETERMINATOR = 0x7F;
 
 std::string ReplaceAllDictionaryWords(std::string str);
-std::vector<uint8_t> ParseMessageToData(std::string str);
 
-const std::string CHEESE = "\uBEBE";  // Inserted into commands to protect
-                                      // them from dictionary replacements.
+// Inserted into commands to protect them from dictionary replacements.
+const std::string CHEESE = "\uBEBE";
 
 struct MessageData {
   int ID;
@@ -46,12 +45,6 @@ struct MessageData {
     Data = other.Data;
     DataParsed = other.DataParsed;
     ContentsParsed = other.ContentsParsed;
-  }
-
-  void SetMessage(std::string messageString) {
-    ContentsParsed = messageString;
-    RawString = OptimizeMessageForDictionary(messageString);
-    RecalculateData();
   }
 
   std::string ToString() {
@@ -84,11 +77,6 @@ struct MessageData {
         absl::StrReplaceAll(replacedString, {{CHEESE, ""}});
 
     return finalString;
-  }
-
-  void RecalculateData() {
-    Data = ParseMessageToData(RawString);
-    DataParsed = ParseMessageToData(ContentsParsed);
   }
 };
 
