@@ -10,7 +10,7 @@ var searchData=
   ['game_5fx_5f_7',['game_x_',['../classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a3f02e182efd8ed7a87214b81a811da96',1,'yaze::app::zelda3::OverworldEntity']]],
   ['game_5fy_8',['game_y',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldItem.html#af2326f0b05525b18581c2d6f7226290b',1,'yaze::app::zelda3::overworld::OverworldItem']]],
   ['game_5fy_5f_9',['game_y_',['../classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a2a68113a53f6a08947dbea06de02b9fc',1,'yaze::app::zelda3::OverworldEntity']]],
-  ['general_20tips_10',['General Tips',['../md_docs_2getting-started.html#autotoc_md27',1,'']]],
+  ['general_20tips_10',['General Tips',['../md_docs_2getting-started.html#autotoc_md41',1,'']]],
   ['general_5fscreen_5fmode_11',['general_screen_mode',['../structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#ab2615c0068251aa6b5481ca6bb91c345',1,'yaze::app::emu::video::ScreenMode']]],
   ['generictoken_12',['GenericToken',['../structyaze_1_1app_1_1editor_1_1TextElement.html#a0330075e944c117a8df77a8db72bbcbd',1,'yaze::app::editor::TextElement']]],
   ['get_13',['get',['../classyaze_1_1app_1_1core_1_1NotifyValue.html#a04463e5cc23e8afb393e359c2b7389d6',1,'yaze::app::core::NotifyValue']]],
@@ -85,7 +85,7 @@ var searchData=
   ['gettilefromposition_82',['GetTileFromPosition',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a9e3c20e6ae6887b70de2a971fbf3804c',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['gettileidfrommousepos_83',['GetTileIdFromMousePos',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a2a3e458dc0afc50553d82a9b961344c5',1,'yaze::app::gui::Canvas']]],
   ['gettilesinfo_84',['GetTilesInfo',['../namespaceyaze_1_1app_1_1gfx.html#aefa90c55f0eea489bc7a6dd716300e90',1,'yaze::app::gfx']]],
-  ['getting_20started_85',['Getting Started',['../md_docs_2getting-started.html',1,'Getting Started'],['../md_docs_2contributing.html#autotoc_md23',1,'Getting Started']]],
+  ['getting_20started_85',['Getting Started',['../md_docs_2getting-started.html',1,'Getting Started'],['../md_docs_2contributing.html#autotoc_md37',1,'Getting Started']]],
   ['getting_2dstarted_2emd_86',['getting-started.md',['../getting-started_8md.html',1,'']]],
   ['getvramremap_87',['GetVramRemap',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a88ab8ef055956e1cfaacd2cd8ca060d7',1,'yaze::app::emu::video::Ppu']]],
   ['getwindowstate_88',['GetWindowState',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ab98435209212151dc85b98cf8f6a0eb1',1,'yaze::app::emu::video::Ppu']]],
@@ -111,7 +111,7 @@ var searchData=
   ['global_5fsprites_108',['global_sprites',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a732269bb5e7ca5456b300caec6a568be',1,'yaze::app::gfx::PaletteGroupMap']]],
   ['globalaction_109',['globalAction',['../classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html#a662ad26ec58a4ca86bf3cb33160365f8',1,'yaze::app::zelda3::SpriteBuilder']]],
   ['globalspritepalettesdw_110',['globalSpritePalettesDW',['../namespaceyaze_1_1app_1_1gfx.html#ad65648ff8763499c2b0092caf7af2534',1,'yaze::app::gfx']]],
-  ['gnu_20linux_111',['GNU/Linux',['../md_docs_2build-instructions.html#autotoc_md4',1,'']]],
+  ['gnu_20linux_111',['GNU/Linux',['../md_docs_2build-instructions.html#autotoc_md17',1,'']]],
   ['graphics_5fbin_112',['graphics_bin',['../classyaze_1_1app_1_1Rom.html#a6f1314506031b4a334b3d411116be32f',1,'yaze::app::Rom']]],
   ['graphics_5fbin_5f_113',['graphics_bin_',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a58dbdf98d363fbb798a16efbfd387186',1,'yaze::app::editor::DungeonEditor::graphics_bin_'],['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ad5cf2744b27c297c22d45b9bdd754144',1,'yaze::app::editor::GraphicsEditor::graphics_bin_'],['../classyaze_1_1app_1_1editor_1_1Tile16Editor.html#ae9352faebbea08be0bdf84cddd0bae9a',1,'yaze::app::editor::Tile16Editor::graphics_bin_'],['../classyaze_1_1app_1_1Rom.html#a305268d32995912a2e212100dc771689',1,'yaze::app::Rom::graphics_bin_']]],
   ['graphics_5fbin_5fcanvas_5f_114',['graphics_bin_canvas_',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a48a8ea5b8d8ce02497cea50f42aff725',1,'yaze::app::editor::OverworldEditor']]],
@@ -138,5 +138,6 @@ var searchData=
   ['grayscalepalette_135',['GrayscalePalette',['../namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#a94dc5ccbe969297d607afd1821c3d118',1,'yaze::app::gfx::anonymous_namespace{bitmap.cc}']]],
   ['green_136',['green',['../structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4',1,'snes_color']]],
   ['group_5fname_137',['group_name',['../structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html#a253b528bc00a090f79ce9e69f7b87032',1,'yaze::app::editor::palette_internal::PaletteChange']]],
-  ['guitestable_138',['GuiTestable',['../classyaze_1_1app_1_1core_1_1GuiTestable.html',1,'yaze::app::core']]]
+  ['guide_138',['Guide',['../md_docs_2asm-style-guide.html',1,'65816 Assembly Style Guide'],['../md_docs_2contributing.html#autotoc_md27',1,'Style Guide']]],
+  ['guitestable_139',['GuiTestable',['../classyaze_1_1app_1_1core_1_1GuiTestable.html',1,'yaze::app::core']]]
 ];

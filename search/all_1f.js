@@ -39,7 +39,7 @@ var searchData=
   ['windowmasksettings_36',['WindowMaskSettings',['../structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html',1,'yaze::app::emu::video']]],
   ['windowmasksettings2_37',['WindowMaskSettings2',['../structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings2.html',1,'yaze::app::emu::video']]],
   ['windowposition_38',['WindowPosition',['../structyaze_1_1app_1_1emu_1_1video_1_1WindowPosition.html',1,'yaze::app::emu::video']]],
-  ['windows_39',['Windows',['../md_docs_2build-instructions.html#autotoc_md1',1,'']]],
+  ['windows_39',['Windows',['../md_docs_2build-instructions.html#autotoc_md14',1,'']]],
   ['withhead_40',['withhead',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#aafa055b899ae61d795321e7bad1600af',1,'yaze::app::zelda3::music::Tracker']]],
   ['wobjlog_41',['WOBJLOG',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJLOG.html',1,'yaze::app::emu::video::PpuRegisters::WOBJLOG'],['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a9dd2253b733e3788977c091f1e9adc60',1,'yaze::app::emu::video::PpuRegisters::WOBJLOG']]],
   ['wobjsel_42',['WOBJSEL',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html',1,'yaze::app::emu::video::PpuRegisters::WOBJSEL'],['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#ac0943e4703e990b0a88f8485466c0dbe',1,'yaze::app::emu::video::PpuRegisters::WOBJSEL']]],

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['started_0',['Getting Started',['../md_docs_2getting-started.html',1,'']]]
+  ['overview_0',['Infrastructure Overview',['../md_docs_2infrastructure.html',1,'']]]
 ];

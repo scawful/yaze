@@ -25,54 +25,69 @@
 var NAVTREE =
 [
   [ "yaze", "index.html", [
+    [ "65816 Assembly Style Guide", "md_docs_2asm-style-guide.html", [
+      [ "Table of Contents", "md_docs_2asm-style-guide.html#autotoc_md1", null ],
+      [ "File Structure", "md_docs_2asm-style-guide.html#autotoc_md2", null ],
+      [ "Labels and Symbols", "md_docs_2asm-style-guide.html#autotoc_md3", null ],
+      [ "Comments", "md_docs_2asm-style-guide.html#autotoc_md4", null ],
+      [ "Directives", "md_docs_2asm-style-guide.html#autotoc_md5", null ],
+      [ "Instructions", "md_docs_2asm-style-guide.html#autotoc_md6", null ],
+      [ "Macros", "md_docs_2asm-style-guide.html#autotoc_md7", null ],
+      [ "Conditional Assembly", "md_docs_2asm-style-guide.html#autotoc_md8", null ],
+      [ "Loops and Branching", "md_docs_2asm-style-guide.html#autotoc_md9", null ],
+      [ "Data Structures", "md_docs_2asm-style-guide.html#autotoc_md10", null ],
+      [ "Code Organization", "md_docs_2asm-style-guide.html#autotoc_md11", null ],
+      [ "Custom Code", "md_docs_2asm-style-guide.html#autotoc_md12", null ]
+    ] ],
     [ "Build Instructions", "md_docs_2build-instructions.html", [
-      [ "Windows", "md_docs_2build-instructions.html#autotoc_md1", null ],
-      [ "macOS", "md_docs_2build-instructions.html#autotoc_md2", null ],
-      [ "iOS", "md_docs_2build-instructions.html#autotoc_md3", null ],
-      [ "GNU/Linux", "md_docs_2build-instructions.html#autotoc_md4", null ]
+      [ "Windows", "md_docs_2build-instructions.html#autotoc_md14", null ],
+      [ "macOS", "md_docs_2build-instructions.html#autotoc_md15", null ],
+      [ "iOS", "md_docs_2build-instructions.html#autotoc_md16", null ],
+      [ "GNU/Linux", "md_docs_2build-instructions.html#autotoc_md17", null ]
     ] ],
     [ "Changelog", "md_docs_2changelog.html", [
-      [ "0.0.1 (06-08-2022)", "md_docs_2changelog.html#autotoc_md6", null ],
-      [ "0.0.2 - 0.0.4", "md_docs_2changelog.html#autotoc_md7", null ],
-      [ "0.0.5 (11-21-2023)", "md_docs_2changelog.html#autotoc_md8", null ],
-      [ "0.0.6 (11-22-2023)", "md_docs_2changelog.html#autotoc_md9", null ],
-      [ "0.0.7 (01-27-2024)", "md_docs_2changelog.html#autotoc_md10", null ],
-      [ "0.1.0 (05-11-2024)", "md_docs_2changelog.html#autotoc_md11", null ],
-      [ "0.2.0 (07-20-2024)", "md_docs_2changelog.html#autotoc_md12", null ]
+      [ "0.0.1 (06-08-2022)", "md_docs_2changelog.html#autotoc_md19", null ],
+      [ "0.0.2 - 0.0.4", "md_docs_2changelog.html#autotoc_md20", null ],
+      [ "0.0.5 (11-21-2023)", "md_docs_2changelog.html#autotoc_md21", null ],
+      [ "0.0.6 (11-22-2023)", "md_docs_2changelog.html#autotoc_md22", null ],
+      [ "0.0.7 (01-27-2024)", "md_docs_2changelog.html#autotoc_md23", null ],
+      [ "0.1.0 (05-11-2024)", "md_docs_2changelog.html#autotoc_md24", null ],
+      [ "0.2.0 (07-20-2024)", "md_docs_2changelog.html#autotoc_md25", null ]
     ] ],
     [ "Contributing", "md_docs_2contributing.html", [
-      [ "Key Areas of Contribution", "md_docs_2contributing.html#autotoc_md14", [
-        [ "Extensions System", "md_docs_2contributing.html#autotoc_md15", null ],
-        [ "Sprite Builder System", "md_docs_2contributing.html#autotoc_md16", null ],
-        [ "Emulator Subsystem", "md_docs_2contributing.html#autotoc_md17", null ],
-        [ "Editor Management", "md_docs_2contributing.html#autotoc_md18", null ],
-        [ "User Interface and UX", "md_docs_2contributing.html#autotoc_md19", null ],
-        [ "ROM Manipulation", "md_docs_2contributing.html#autotoc_md20", null ],
-        [ "Testing and Documentation", "md_docs_2contributing.html#autotoc_md21", null ]
+      [ "Style Guide", "md_docs_2contributing.html#autotoc_md27", null ],
+      [ "Key Areas of Contribution", "md_docs_2contributing.html#autotoc_md28", [
+        [ "Extensions System", "md_docs_2contributing.html#autotoc_md29", null ],
+        [ "Sprite Builder System", "md_docs_2contributing.html#autotoc_md30", null ],
+        [ "Emulator Subsystem", "md_docs_2contributing.html#autotoc_md31", null ],
+        [ "Editor Management", "md_docs_2contributing.html#autotoc_md32", null ],
+        [ "User Interface and UX", "md_docs_2contributing.html#autotoc_md33", null ],
+        [ "ROM Manipulation", "md_docs_2contributing.html#autotoc_md34", null ],
+        [ "Testing and Documentation", "md_docs_2contributing.html#autotoc_md35", null ]
       ] ],
-      [ "Building the Project", "md_docs_2contributing.html#autotoc_md22", null ],
-      [ "Getting Started", "md_docs_2contributing.html#autotoc_md23", null ],
-      [ "Contributing", "md_docs_2contributing.html#autotoc_md24", null ]
+      [ "Building the Project", "md_docs_2contributing.html#autotoc_md36", null ],
+      [ "Getting Started", "md_docs_2contributing.html#autotoc_md37", null ],
+      [ "Contributing your Changes", "md_docs_2contributing.html#autotoc_md38", null ]
     ] ],
     [ "Getting Started", "md_docs_2getting-started.html", [
-      [ "Prerequisites", "md_docs_2getting-started.html#autotoc_md26", null ],
-      [ "General Tips", "md_docs_2getting-started.html#autotoc_md27", null ],
-      [ "Z3ED cli", "md_docs_2getting-started.html#autotoc_md28", null ]
+      [ "Prerequisites", "md_docs_2getting-started.html#autotoc_md40", null ],
+      [ "General Tips", "md_docs_2getting-started.html#autotoc_md41", null ],
+      [ "Z3ED cli", "md_docs_2getting-started.html#autotoc_md42", null ]
     ] ],
     [ "Infrastructure Overview", "md_docs_2infrastructure.html", [
-      [ "Targets", "md_docs_2infrastructure.html#autotoc_md30", null ],
-      [ "Directory Structure", "md_docs_2infrastructure.html#autotoc_md31", null ],
-      [ "Dependencies", "md_docs_2infrastructure.html#autotoc_md32", null ],
-      [ "Flow of Control", "md_docs_2infrastructure.html#autotoc_md33", null ],
-      [ "Rom", "md_docs_2infrastructure.html#autotoc_md34", null ],
-      [ "Bitmap", "md_docs_2infrastructure.html#autotoc_md35", null ]
+      [ "Targets", "md_docs_2infrastructure.html#autotoc_md44", null ],
+      [ "Directory Structure", "md_docs_2infrastructure.html#autotoc_md45", null ],
+      [ "Dependencies", "md_docs_2infrastructure.html#autotoc_md46", null ],
+      [ "Flow of Control", "md_docs_2infrastructure.html#autotoc_md47", null ],
+      [ "Rom", "md_docs_2infrastructure.html#autotoc_md48", null ],
+      [ "Bitmap", "md_docs_2infrastructure.html#autotoc_md49", null ]
     ] ],
     [ "Yet Another Zelda3 Editor", "md_README.html", [
-      [ "Description", "md_README.html#autotoc_md37", null ],
-      [ "Building and installation", "md_README.html#autotoc_md38", null ],
-      [ "Documentation", "md_README.html#autotoc_md39", null ],
-      [ "License", "md_README.html#autotoc_md40", null ],
-      [ "Screenshots", "md_README.html#autotoc_md41", null ]
+      [ "Description", "md_README.html#autotoc_md51", null ],
+      [ "Building and installation", "md_README.html#autotoc_md52", null ],
+      [ "Documentation", "md_README.html#autotoc_md53", null ],
+      [ "License", "md_README.html#autotoc_md54", null ],
+      [ "Screenshots", "md_README.html#autotoc_md55", null ]
     ] ],
     [ "Todo List", "todo.html", null ],
     [ "Deprecated List", "deprecated.html", null ],
@@ -155,23 +170,23 @@ var NAVTREEINDEX =
 "icons_8h.html#ab7ed0e0ee7e360a66799e7724b0c28a7",
 "icons_8h.html#ad53a0b54054d0e51660795515dd0196a",
 "icons_8h.html#aefcea681ee7a680f0e349e9d4891c630",
-"md_docs_2infrastructure.html#autotoc_md35",
-"namespaceyaze_1_1app_1_1editor.html#a01297032ea6f9841c13ac229d798caaa",
-"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#abb96c2b7c83a666142cb78b263f6ac56",
-"namespaceyaze_1_1app_1_1gui.html#a7384985f0828445ea12d9da02d92f4ec",
-"namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a2adbfb4e7e605a7521226e226d1e33bc",
-"namespaceyaze__test_1_1emu__test.html#a5c914d1271dc592dcb6dab4f50d88665",
-"overworld_8cc.html#a2b56d8805cb8d768a32d570cc90b6ba1",
-"room__entrance_8h.html#ac38609b41574aecb67cd13827e64ed5d",
-"spc700__test_8cc.html#a745d2267977135acb0bf15f014e93627",
-"structyaze_1_1app_1_1editor_1_1MessageData.html#a074f1197c0fe7c914397ab3b3919179b",
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a72e9c76d34af337c1b2d5d9609e150ea",
-"structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#a2fa19795b01890defda2ab58bdf7c075",
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#ab7d5da21e07d3ce9670d367f53a34958",
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html#a9368aa1b67b2012c45b5febbb2af377b",
-"structyaze_1_1app_1_1gfx_1_1Paletteset.html#ad822701d3de12df1aac37a332b4ca9ed",
-"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html",
-"zeml_8h.html#a04d9f20f3406cf47d73f3868c9af4824ac89686a387d2b12b3c729ce35a0bcb5b"
+"md_docs_2contributing.html#autotoc_md35",
+"namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02common_8cc_03.html#aa92217917e3512f40ae3d7f2a2c2bf22",
+"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a8c8b3f87636a015c88ca7ee6d7bf74f5",
+"namespaceyaze_1_1app_1_1gui.html#a3cce6ce5c9b245f61e6531334c427476",
+"namespaceyaze_1_1app_1_1zelda3_1_1overworld.html",
+"namespaceyaze__test_1_1emu__test.html#a523ec1c6993bc057627178db5339747b",
+"namespaceyaze__test_1_1rom__test.html",
+"room__entrance_8h.html#a8a57e67b18a3e6646a95d0fffd4a162c",
+"spc700_8h_source.html",
+"structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#accea715679a6045b5bd6fabf6665719f",
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a4b1ebf6fdf62883180790797a40c15ab",
+"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729a32397e7b452045b821e5c7be9d5df1e1",
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7D.html",
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJLOG.html#a215ce6545058c9aed83daebf7a3fe802",
+"structyaze_1_1app_1_1gfx_1_1Paletteset.html#a83e829e4f1a7490116c54b32c38a9e81",
+"structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html#aed6936be2282202a02db2b3a20f08059",
+"zeml_8h.html#a04d9f20f3406cf47d73f3868c9af4824a39fd0fc98cc838a96dce6647bc44c909"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

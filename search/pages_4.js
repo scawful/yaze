@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['editor_0',['Yet Another Zelda3 Editor',['../md_README.html',1,'']]]
+  ['deprecated_20list_0',['Deprecated List',['../deprecated.html',1,'']]]
 ];
