@@ -21,8 +21,8 @@ struct z3_overworld_map {
  * @brief Primitive of the overworld.
  */
 struct z3_overworld {
-  z3_overworld_map* maps; /**< Pointer to the overworld maps. */
-  void* impl;             // yaze::app::Overworld*
+  z3_overworld_map** maps; /**< Pointer to the overworld maps. */
+  void* impl;              // yaze::app::Overworld*
 };
 
 #ifdef __cplusplus

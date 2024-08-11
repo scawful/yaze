@@ -24,8 +24,8 @@ BOOST_PYTHON_MODULE(yaze) {
       .def_readonly("colors", &snes_palette::colors);
 
   class_<z3_sprite_action>("z3_sprite_action")
-      .def_readonly("name", &sprite_action::name)
-      .def_readonly("id", &sprite_action::id);
+      .def_readonly("name", &z3_sprite_action::name)
+      .def_readonly("id", &z3_sprite_action::id);
 
   class_<z3_sprite>("sprite")
       .def_readonly("name", &z3_sprite::name)
