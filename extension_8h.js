@@ -1,7 +1,7 @@
 var extension_8h =
 [
     [ "yaze_extension", "structyaze__extension.html", "structyaze__extension" ],
-    [ "yaze_initialize_func", "extension_8h.html#a5376fbd095d0a46d5aa8108750fb2164", null ],
+    [ "yaze_initialize_func", "extension_8h.html#ab5ab0deeeaa063d2e5564c5f12900421", null ],
     [ "yaze_cleanup_func", "extension_8h.html#a75ef22f3a15fb60314f902a5bf7d0b7e", null ],
     [ "yaze_extend_ui_func", "extension_8h.html#a8abc8ff086951f23b7b6afedc65e8778", null ],
     [ "yaze_manipulate_rom_func", "extension_8h.html#a4bebf41f76e112cadb5b5487257890f3", null ],

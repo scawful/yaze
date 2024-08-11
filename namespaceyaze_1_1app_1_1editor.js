@@ -66,7 +66,6 @@ var namespaceyaze_1_1app_1_1editor =
       [ "kSettings", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52ac935a934100d15241aefe3f7081e7767", null ]
     ] ],
     [ "ReplaceAllDictionaryWords", "namespaceyaze_1_1app_1_1editor.html#a15f24c296207cfe5e5d65f8e6ced2906", null ],
-    [ "ParseMessageToData", "namespaceyaze_1_1app_1_1editor.html#adbfa49c529abc70e97df75a0ef62228d", null ],
     [ "IsMouseHoveringOverEntity", "namespaceyaze_1_1app_1_1editor.html#a9630e35305cf9e744b59e289ea1867ea", null ],
     [ "MoveEntityOnGrid", "namespaceyaze_1_1app_1_1editor.html#aa29d0f421e7ccf6a963c1358791c99de", null ],
     [ "HandleEntityDragging", "namespaceyaze_1_1app_1_1editor.html#ae8a17a5dca3b6ce2fb6dfaa9e045451d", null ],
@@ -102,6 +101,7 @@ var namespaceyaze_1_1app_1_1editor =
     [ "kPointersDictionaries", "namespaceyaze_1_1app_1_1editor.html#a3fde9ee2c49e4291e4237f0bc0d4b33a", null ],
     [ "kCharactersWidth", "namespaceyaze_1_1app_1_1editor.html#ada3f1c12ec92e258194ccb58c93bfc1b", null ],
     [ "kNumDictionaryEntries", "namespaceyaze_1_1app_1_1editor.html#adda17c1c63e0d77cd9100cab3700d10d", null ],
+    [ "kNumMessages", "namespaceyaze_1_1app_1_1editor.html#a34052db2e8cb156e3cd2297e5222ebba", null ],
     [ "kBlockTerminator", "namespaceyaze_1_1app_1_1editor.html#ac8b7c1572a3d598ce7b1eaa702542980", null ],
     [ "DICTOFF", "namespaceyaze_1_1app_1_1editor.html#a3759630a3dcabc07760675dda8bf5c8c", null ],
     [ "BANKID", "namespaceyaze_1_1app_1_1editor.html#a6aec0c3a8b77cc747c1ae9d851a06234", null ],

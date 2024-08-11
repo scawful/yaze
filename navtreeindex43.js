@@ -1,5 +1,7 @@
 var NAVTREEINDEX43 =
 {
+"room__object_8h.html#ac3c0be1a02f8dce7d5bbca92747b4f9cae74cd2151daef72e4f50e4c6e05df1f1":[10,0,1,0,5,0,8,7,7],
+"room__object_8h.html#ac46cb973cf8ca0aa50e953f5c8978f2b":[10,0,1,0,5,0,8,5],
 "room__object_8h.html#ac46cb973cf8ca0aa50e953f5c8978f2ba080a546abcbea74459f27ba33313993d":[10,0,1,0,5,0,8,5,0],
 "room__object_8h.html#ac46cb973cf8ca0aa50e953f5c8978f2ba4196867d030ad1793b4087b9747f8b04":[10,0,1,0,5,0,8,5,2],
 "room__object_8h.html#ac46cb973cf8ca0aa50e953f5c8978f2ba52a3e405eb69e72cd81af3c5e1f93065":[10,0,1,0,5,0,8,5,1],
@@ -247,7 +249,5 @@ var NAVTREEINDEX43 =
 "structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58":[9,0,6,0],
 "structsnes__color.html#abe07ebebd2f735f932b7a7a065506f9f":[9,0,6,1],
 "structsnes__palette.html":[9,0,7],
-"structsnes__palette.html#aa3f32ff0f52e7ada19fb5afdd477258f":[9,0,7,0],
-"structsnes__palette.html#ad4057af514d8aab3c6a429b693bb9ac6":[9,0,7,2],
-"structsnes__palette.html#af78e1764df4b15340c56da97b8e2c965":[9,0,7,1]
+"structsnes__palette.html#aa3f32ff0f52e7ada19fb5afdd477258f":[9,0,7,0]
 };

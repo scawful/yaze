@@ -23,7 +23,7 @@ var searchData=
   ['eorm_20',['EORM',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a03ae1c051eedfeef057b09b087ad9da9',1,'yaze::app::emu::audio::Spc700']]],
   ['evaluatesprites_21',['EvaluateSprites',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a5321aaeae09fb0786c02bd847d636347',1,'yaze::app::emu::video::Ppu']]],
   ['executeactions_22',['ExecuteActions',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a32ea3c388ebf019406a39bdbe5f60154',1,'yaze::app::gui::zeml']]],
-  ['executeextensionui_23',['ExecuteExtensionUI',['../classyaze_1_1app_1_1editor_1_1ExtensionManager.html#aca895749eacf939c0586b11237bdf279',1,'yaze::app::editor::ExtensionManager']]],
+  ['executeextensionui_23',['ExecuteExtensionUI',['../classyaze_1_1app_1_1editor_1_1ExtensionManager.html#aa56ed21836a2dfbc72c19394649c304f',1,'yaze::app::editor::ExtensionManager']]],
   ['executeinstruction_24',['ExecuteInstruction',['../classyaze_1_1app_1_1emu_1_1Cpu.html#ae5f8a8d0e5f8f1a72c4475ac402acda0',1,'yaze::app::emu::Cpu']]],
   ['executeinstructions_25',['ExecuteInstructions',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a51e282a3d4d7ac88639072b6158fe95f',1,'yaze::app::emu::audio::Spc700']]],
   ['exits_26',['exits',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a75458468789e4051c8009a219687db93',1,'yaze::app::zelda3::overworld::Overworld']]],

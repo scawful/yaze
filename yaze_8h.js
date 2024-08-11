@@ -6,6 +6,8 @@ var yaze_8h =
     [ "yaze_flags", "structyaze__flags.html", "structyaze__flags" ],
     [ "yaze_project", "structyaze__project.html", "structyaze__project" ],
     [ "z3_rom", "structz3__rom.html", "structz3__rom" ],
+    [ "ImGuiContext", "yaze_8h.html#a1a5e20dfc6e9f47a19ee561a3ee245e7", null ],
+    [ "ImGuiIO", "yaze_8h.html#a2fe9e20dc4d305e10865cb2447303c7b", null ],
     [ "z3_rom", "yaze_8h.html#ac77c4e371c3965f72bf4ac3321600f54", null ],
     [ "yaze_flags", "yaze_8h.html#a85553b5710db1102c037bdb355991631", null ],
     [ "yaze_project", "yaze_8h.html#aab59cfba52c0fddf9ea046b113ed2395", null ],

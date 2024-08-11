@@ -9,7 +9,7 @@ var searchData=
   ['yaze_5fextend_5fui_5ffunc_6',['yaze_extend_ui_func',['../extension_8h.html#a8abc8ff086951f23b7b6afedc65e8778',1,'extension.h']]],
   ['yaze_5fextension_7',['yaze_extension',['../extension_8h.html#a84339e67846d381495b6fa1bd47dcf6d',1,'extension.h']]],
   ['yaze_5fflags_8',['yaze_flags',['../yaze_8h.html#a85553b5710db1102c037bdb355991631',1,'yaze.h']]],
-  ['yaze_5finitialize_5ffunc_9',['yaze_initialize_func',['../extension_8h.html#a5376fbd095d0a46d5aa8108750fb2164',1,'extension.h']]],
+  ['yaze_5finitialize_5ffunc_9',['yaze_initialize_func',['../extension_8h.html#ab5ab0deeeaa063d2e5564c5f12900421',1,'extension.h']]],
   ['yaze_5fmanipulate_5from_5ffunc_10',['yaze_manipulate_rom_func',['../extension_8h.html#a4bebf41f76e112cadb5b5487257890f3',1,'extension.h']]],
   ['yaze_5fproject_11',['yaze_project',['../yaze_8h.html#aab59cfba52c0fddf9ea046b113ed2395',1,'yaze.h']]]
 ];

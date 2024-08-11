@@ -11,6 +11,7 @@ var message__editor_8h =
     [ "kPointersDictionaries", "message__editor_8h.html#a3fde9ee2c49e4291e4237f0bc0d4b33a", null ],
     [ "kCharactersWidth", "message__editor_8h.html#ada3f1c12ec92e258194ccb58c93bfc1b", null ],
     [ "kNumDictionaryEntries", "message__editor_8h.html#adda17c1c63e0d77cd9100cab3700d10d", null ],
+    [ "kNumMessages", "message__editor_8h.html#a34052db2e8cb156e3cd2297e5222ebba", null ],
     [ "kBlockTerminator", "message__editor_8h.html#ac8b7c1572a3d598ce7b1eaa702542980", null ],
     [ "DICTOFF", "message__editor_8h.html#a3759630a3dcabc07760675dda8bf5c8c", null ],
     [ "BANKID", "message__editor_8h.html#a6aec0c3a8b77cc747c1ae9d851a06234", null ],
