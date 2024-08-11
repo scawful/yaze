@@ -92,7 +92,7 @@ yaze_extension* get_yaze_extension();
 /**
  * @brief Load a C extension.
  */
-void yaze_load_c_extension(const char* extension_path);
+void yaze_load_c_extension(const char* extension_path, yaze_editor_context* context);
 
 /**
  * @brief Load a Python extension.

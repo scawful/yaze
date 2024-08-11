@@ -9,7 +9,7 @@ static yaze_extension* extension = nullptr;
 
 yaze_extension* get_yaze_extension() { return extension; }
 
-void yaze_load_c_extension(const char* extension_path) {
+void yaze_load_c_extension(const char* extension_path, yaze_editor_context* context) {
   handle = dlopen(extension_path, RTLD_LAZY);
   if (!handle) {
     std::cerr << "Cannot open extension: " << dlerror() << std::endl;
@@ -30,7 +30,7 @@ void yaze_load_c_extension(const char* extension_path) {
 
   extension = get_extension();
   if (extension && extension->initialize) {
-    extension->initialize();
+    extension->initialize(context);
   } else {
     std::cerr << "Failed to initialize the extension." << std::endl;
     dlclose(handle);
