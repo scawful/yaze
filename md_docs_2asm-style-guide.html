@@ -287,7 +287,7 @@ Code Organization</h1>
 <li><b>Logical Grouping</b>: Organize code into logical sections, with related routines and macros grouped together.</li>
 <li><b>Separation of Concerns</b>: Ensure that each section of code is responsible for a specific task or set of related tasks, avoiding tightly coupled code.</li>
 <li><b>Modularity</b>: Write code in a modular way, making it easier to reuse and maintain.</li>
-<li><b>Status Registers</b>: Indent code blocks when using status register operations (PHX, PLX, etc.) to improve readability.</li>
+<li><b>Status Registers and Stack Operations</b>: Indent code blocks when using status register operations (REP, SEP, PHX, PLX, etc.) to improve readability.</li>
 </ul>
 <p>Example:</p>
 <div class="fragment"><div class="line">; =========================================================</div>
@@ -300,6 +300,10 @@ Code Organization</h1>
 <div class="line">    PHX</div>
 <div class="line">      JSR HandleMinecartMovement</div>
 <div class="line">    PLX</div>
+<div class="line"> </div>
+<div class="line">    REP #$20</div>
+<div class="line">      LDA !SpriteDirection : STA $00</div>
+<div class="line">    SEP #$20</div>
 <div class="line">    RTS</div>
 <div class="line">}</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md11"></a>
