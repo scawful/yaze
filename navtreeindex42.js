@@ -1,11 +1,7 @@
 var NAVTREEINDEX42 =
 {
-"namespaceyaze__test_1_1rom__test.html":[10,0,3,2],
-"namespaceyaze__test_1_1rom__test.html#a4ea4a19d28098c541431cc6487bb41ca":[10,0,3,2,1],
-"namespaceyaze__test_1_1zelda3__test.html":[10,0,3,3],
-"namespaceyaze__test_1_1zelda3__test.html#a07b9796f775461cda7052ae6b36c00f6":[10,0,3,3,1],
-"namespaceyaze__test_1_1zelda3__test.html#a4fb9d4eed544d8e7bb23bd4e8c52f49a":[10,0,3,3,3],
-"namespaceyaze__test_1_1zelda3__test.html#a7e08f34b925fb2b5072b4356130a8e08":[10,0,3,3,2],
+"namespaceyaze__test_1_1zelda3__test.html#a07b9796f775461cda7052ae6b36c00f6":[10,0,3,2,1],
+"namespaceyaze__test_1_1zelda3__test.html#a7e08f34b925fb2b5072b4356130a8e08":[10,0,3,2,2],
 "object__names_8h.html":[12,0,1,0,5,0,0],
 "object__names_8h_source.html":[12,0,1,0,5,0,0],
 "object__renderer_8cc.html":[12,0,1,0,5,0,1],
@@ -164,7 +160,7 @@ var NAVTREEINDEX42 =
 "rom_8h.html#aad75d3fb5bdf3b72aa19e3af3209082f":[12,0,1,0,7,9],
 "rom_8h_source.html":[12,0,1,0,7],
 "rom__test_8cc.html":[12,0,1,6,4],
-"rom__test_8cc.html#a4ea4a19d28098c541431cc6487bb41ca":[12,0,1,6,4,1],
+"rom__test_8cc.html#af11101ca98ab2c0156d8413523a269f2":[12,0,1,6,4,1],
 "rom__test_8cc_source.html":[12,0,1,6,4],
 "room_8cc.html":[12,0,1,0,5,0,3],
 "room_8cc.html#a0f77f770ccfbbdff838b4ff12cb07957":[12,0,1,0,5,0,3,4],
@@ -249,5 +245,9 @@ var NAVTREEINDEX42 =
 "room__entrance_8h.html#a757d5fe50c0e8590453231ebae2d0543":[12,0,1,0,5,0,5,10],
 "room__entrance_8h.html#a76e88538171e5bf5efcaa9a50dfcd217":[12,0,1,0,5,0,5,43],
 "room__entrance_8h.html#a782ca5ecdb27f03071a264ef3512a3eb":[12,0,1,0,5,0,5,15],
-"room__entrance_8h.html#a7f7e79a6411a503a3486df0d93970d7b":[12,0,1,0,5,0,5,11]
+"room__entrance_8h.html#a7f7e79a6411a503a3486df0d93970d7b":[12,0,1,0,5,0,5,11],
+"room__entrance_8h.html#a8a57e67b18a3e6646a95d0fffd4a162c":[12,0,1,0,5,0,5,54],
+"room__entrance_8h.html#a8e06eaadeaaf6a3f113356e792bc4180":[12,0,1,0,5,0,5,12],
+"room__entrance_8h.html#a905a50b0ad0eff4772c29bd46e99b69a":[12,0,1,0,5,0,5,6],
+"room__entrance_8h.html#a949cad52fdce6419953d2ce9620de093":[12,0,1,0,5,0,5,36]
 };

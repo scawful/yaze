@@ -1,9 +1,9 @@
-<map id="yaze_test::rom_test::RomTest" name="yaze_test::rom_test::RomTest">
-<area shape="rect" id="Node000001" title=" " alt="" coords="596,87,729,127"/>
+<map id="yaze_test::RomTest" name="yaze_test::RomTest">
+<area shape="rect" id="Node000001" title=" " alt="" coords="596,94,731,120"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="416,70,508,96"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="524,88,596,96,595,102,524,93"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="409,120,516,145"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="531,121,595,113,596,118,532,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="531,121,595,113,596,118,531,126"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="20,5,195,46"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="211,22,254,27,300,36,345,50,386,71,395,80,400,89,403,98,410,106,427,117,424,121,407,110,399,101,395,91,391,83,383,76,342,55,298,41,253,32,210,27"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1BitmapManager.html" title="Hash map container of shared pointers to Bitmaps." alt="" coords="10,70,205,96"/>

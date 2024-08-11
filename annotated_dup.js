@@ -296,12 +296,10 @@ var annotated_dup =
         [ "PpuTest", "classyaze__test_1_1emu__test_1_1PpuTest.html", "classyaze__test_1_1emu__test_1_1PpuTest" ],
         [ "Spc700Test", "classyaze__test_1_1emu__test_1_1Spc700Test.html", "classyaze__test_1_1emu__test_1_1Spc700Test" ]
       ] ],
-      [ "rom_test", "namespaceyaze__test_1_1rom__test.html", [
-        [ "RomTest", "classyaze__test_1_1rom__test_1_1RomTest.html", "classyaze__test_1_1rom__test_1_1RomTest" ]
-      ] ],
       [ "zelda3_test", "namespaceyaze__test_1_1zelda3__test.html", [
         [ "SpriteBuilderTest", "classyaze__test_1_1zelda3__test_1_1SpriteBuilderTest.html", "classyaze__test_1_1zelda3__test_1_1SpriteBuilderTest" ]
-      ] ]
+      ] ],
+      [ "RomTest", "classyaze__test_1_1RomTest.html", "classyaze__test_1_1RomTest" ]
     ] ],
     [ "AppDelegate", "classAppDelegate.html", null ],
     [ "AppViewController", "classAppViewController.html", null ],

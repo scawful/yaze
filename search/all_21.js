@@ -89,10 +89,9 @@ var searchData=
   ['yaze_5ftest_3a_3agfx_5ftest_86',['gfx_test',['../namespaceyaze__test_1_1gfx__test.html',1,'yaze_test']]],
   ['yaze_5ftest_3a_3agfx_5ftest_3a_3aanonymous_5fnamespace_7bcompression_5ftest_2ecc_7d_87',['anonymous_namespace{compression_test.cc}',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html',1,'yaze_test::gfx_test']]],
   ['yaze_5ftest_3a_3agfx_5ftest_3a_3aanonymous_5fnamespace_7bsnes_5fpalette_5ftest_2ecc_7d_88',['anonymous_namespace{snes_palette_test.cc}',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html',1,'yaze_test::gfx_test']]],
-  ['yaze_5ftest_3a_3arom_5ftest_89',['rom_test',['../namespaceyaze__test_1_1rom__test.html',1,'yaze_test']]],
-  ['yaze_5ftest_3a_3azelda3_5ftest_90',['zelda3_test',['../namespaceyaze__test_1_1zelda3__test.html',1,'yaze_test']]],
-  ['yaze_5funload_5from_91',['yaze_unload_rom',['../yaze_8cc.html#a883ab5865f5e61a639dc3dafcd45e8c7',1,'yaze_unload_rom(z3_rom *rom):&#160;yaze.cc'],['../yaze_8h.html#a883ab5865f5e61a639dc3dafcd45e8c7',1,'yaze_unload_rom(z3_rom *rom):&#160;yaze.cc']]],
-  ['yazepyextension_92',['YazePyExtension',['../classsample_1_1YazePyExtension.html',1,'sample']]],
-  ['yet_20another_20zelda3_20editor_93',['Yet Another Zelda3 Editor',['../md_README.html',1,'']]],
-  ['your_20changes_94',['Contributing your Changes',['../md_docs_2contributing.html#autotoc_md37',1,'']]]
+  ['yaze_5ftest_3a_3azelda3_5ftest_89',['zelda3_test',['../namespaceyaze__test_1_1zelda3__test.html',1,'yaze_test']]],
+  ['yaze_5funload_5from_90',['yaze_unload_rom',['../yaze_8cc.html#a883ab5865f5e61a639dc3dafcd45e8c7',1,'yaze_unload_rom(z3_rom *rom):&#160;yaze.cc'],['../yaze_8h.html#a883ab5865f5e61a639dc3dafcd45e8c7',1,'yaze_unload_rom(z3_rom *rom):&#160;yaze.cc']]],
+  ['yazepyextension_91',['YazePyExtension',['../classsample_1_1YazePyExtension.html',1,'sample']]],
+  ['yet_20another_20zelda3_20editor_92',['Yet Another Zelda3 Editor',['../md_README.html',1,'']]],
+  ['your_20changes_93',['Contributing your Changes',['../md_docs_2contributing.html#autotoc_md37',1,'']]]
 ];

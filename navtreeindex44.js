@@ -1,9 +1,5 @@
 var NAVTREEINDEX44 =
 {
-"spc700_8h_source.html":[12,0,1,0,2,0,6],
-"spc700__test_8cc.html":[12,0,1,6,0,2],
-"spc700__test_8cc.html#a18f23b8bcebe28827e9fcd84fe5986e0":[12,0,1,6,0,2,15],
-"spc700__test_8cc.html#a227362d15af207cc8d7f1ae35d2bb317":[12,0,1,6,0,2,17],
 "spc700__test_8cc.html#a232a68b57a1c9a655af90b8552934fe7":[12,0,1,6,0,2,28],
 "spc700__test_8cc.html#a2438715df2d81efb844f013ca5b67e87":[12,0,1,6,0,2,8],
 "spc700__test_8cc.html#a2e99db7136a2bbfddc30126e02b68403":[12,0,1,6,0,2,6],
@@ -38,7 +34,6 @@ var NAVTREEINDEX44 =
 "sprite__builder_8h.html#aaeedd086060117eff0ce895be0515421":[12,0,1,0,5,4,3,3],
 "sprite__builder_8h_source.html":[12,0,1,0,5,4,3],
 "sprite__builder__test_8cc.html":[12,0,1,6,2,1],
-"sprite__builder__test_8cc.html#a4fb9d4eed544d8e7bb23bd4e8c52f49a":[12,0,1,6,2,1,2],
 "sprite__builder__test_8cc.html#a7e08f34b925fb2b5072b4356130a8e08":[12,0,1,6,2,1,1],
 "sprite__builder__test_8cc_source.html":[12,0,1,6,2,1],
 "sprite__editor_8cc.html":[12,0,1,0,1,6,0],
@@ -249,5 +244,10 @@ var NAVTREEINDEX44 =
 "structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#a70c9fc37ff80f1861537e9a316fa0296":[10,0,2,0,2,17,4],
 "structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#a70c9fc37ff80f1861537e9a316fa0296":[11,0,1,0,1,12,4],
 "structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#ac4d3cb6b22fb02c82d9e1d0e01a65e66":[10,0,2,0,2,17,0],
-"structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#ac4d3cb6b22fb02c82d9e1d0e01a65e66":[11,0,1,0,1,12,0]
+"structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#ac4d3cb6b22fb02c82d9e1d0e01a65e66":[11,0,1,0,1,12,0],
+"structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#accea715679a6045b5bd6fabf6665719f":[10,0,2,0,2,17,3],
+"structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#accea715679a6045b5bd6fabf6665719f":[11,0,1,0,1,12,3],
+"structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#af16a2c4ed1011e499291387f41e9347d":[10,0,2,0,2,17,1],
+"structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#af16a2c4ed1011e499291387f41e9347d":[11,0,1,0,1,12,1],
+"structyaze_1_1app_1_1editor_1_1FlagsMenu.html":[10,0,2,0,2,19]
 };

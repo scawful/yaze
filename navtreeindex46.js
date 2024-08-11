@@ -1,10 +1,5 @@
 var NAVTREEINDEX46 =
 {
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a4b1ebf6fdf62883180790797a40c15ab":[10,0,2,0,2,7,5,10],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a4b1ebf6fdf62883180790797a40c15ab":[11,0,1,0,1,2,5,10],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a50c1390717a8c1f1c611f36bf2a1f095":[10,0,2,0,2,7,5,14],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a50c1390717a8c1f1c611f36bf2a1f095":[11,0,1,0,1,2,5,14],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a572bc6af2ae0f2d0f3450cfb5b6d7e48":[10,0,2,0,2,7,5,8],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a572bc6af2ae0f2d0f3450cfb5b6d7e48":[11,0,1,0,1,2,5,8],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a5d7a79428664714f909c2d1767972ef5":[10,0,2,0,2,7,5,22],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a5d7a79428664714f909c2d1767972ef5":[11,0,1,0,1,2,5,22],
@@ -249,5 +244,10 @@ var NAVTREEINDEX46 =
 "structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ac9cf6b2856310b9db84e94bf7fc744bf":[10,0,2,0,3,4,1,4],
 "structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ac9cf6b2856310b9db84e94bf7fc744bf":[11,0,1,0,2,2,1,4],
 "structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729":[10,0,2,0,3,4,1,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729":[11,0,1,0,2,2,1,0]
+"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729":[11,0,1,0,2,2,1,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729a32397e7b452045b821e5c7be9d5df1e1":[10,0,2,0,3,4,1,0,3],
+"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729a32397e7b452045b821e5c7be9d5df1e1":[11,0,1,0,2,2,1,0,3],
+"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729a7915383cc2c1fff7ccfb328167cde9bf":[10,0,2,0,3,4,1,0,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729a7915383cc2c1fff7ccfb328167cde9bf":[11,0,1,0,2,2,1,0,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729a7bcea1112a95a00ed61d6b680f628c84":[10,0,2,0,3,4,1,0,0]
 };
