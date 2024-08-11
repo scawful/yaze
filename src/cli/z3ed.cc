@@ -24,11 +24,11 @@ namespace cli {
 namespace {
 
 void HelpCommand() {
-  Color::Modifier ylw(Color::FG_YELLOW);
-  Color::Modifier mag(Color::FG_MAGENTA);
-  Color::Modifier red(Color::FG_RED);
-  Color::Modifier reset(Color::FG_RESET);
-  Color::Modifier underline(Color::FG_UNDERLINE);
+  ColorModifier ylw(ColorCode::FG_YELLOW);
+  ColorModifier mag(ColorCode::FG_MAGENTA);
+  ColorModifier red(ColorCode::FG_RED);
+  ColorModifier reset(ColorCode::FG_RESET);
+  ColorModifier underline(ColorCode::FG_UNDERLINE);
   std::cout << "\n";
   std::cout << ylw << " ▲  " << reset << "    z3ed\n";
   std::cout << ylw << "▲ ▲ " << reset << "    by " << mag << "scawful\n\n"

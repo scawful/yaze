@@ -27,8 +27,7 @@
 namespace yaze {
 namespace cli {
 
-namespace Color {
-enum Code {
+enum ColorCode {
   FG_RED = 31,
   FG_GREEN = 32,
   FG_YELLOW = 33,
@@ -42,16 +41,15 @@ enum Code {
   BG_BLUE = 44,
   BG_DEFAULT = 49
 };
-class Modifier {
-  Code code;
+class ColorModifier {
+  ColorCode code;
 
  public:
-  explicit Modifier(Code pCode) : code(pCode) {}
-  friend std::ostream& operator<<(std::ostream& os, const Modifier& mod) {
+  explicit ColorModifier(ColorCode pCode) : code(pCode) {}
+  friend std::ostream& operator<<(std::ostream& os, const ColorModifier& mod) {
     return os << "\033[" << mod.code << "m";
   }
 };
-}  // namespace Color
 
 class CommandHandler {
  public:
@@ -131,9 +129,9 @@ class CreatePatch : public CommandHandler {
 class Open : public CommandHandler {
  public:
   absl::Status handle(const std::vector<std::string>& arg_vec) override {
-    Color::Modifier green(Color::FG_GREEN);
-    Color::Modifier blue(Color::FG_BLUE);
-    Color::Modifier reset(Color::FG_RESET);
+    ColorModifier green(ColorCode::FG_GREEN);
+    ColorModifier blue(ColorCode::FG_BLUE);
+    ColorModifier reset(ColorCode::FG_RESET);
     auto const& arg = arg_vec[0];
     RETURN_IF_ERROR(rom_.LoadFromFile(arg))
     std::cout << "Title: " << green << rom_.title() << std::endl;
@@ -177,8 +175,8 @@ class Compress : public CommandHandler {
 class Decompress : public CommandHandler {
  public:
   absl::Status handle(const std::vector<std::string>& arg_vec) override {
-    Color::Modifier underline(Color::FG_UNDERLINE);
-    Color::Modifier reset(Color::FG_RESET);
+    ColorModifier underline(ColorCode::FG_UNDERLINE);
+    ColorModifier reset(ColorCode::FG_RESET);
     std::cout << "Please specify the tilesheets you want to export\n";
     std::cout << "You can input an individual sheet, a range X-Y, or comma "
                  "separate values.\n\n";
@@ -244,7 +242,7 @@ class PcToSnes : public CommandHandler {
     uint32_t pc_address;
     ss >> std::hex >> pc_address;
     uint32_t snes_address = app::core::PcToSnes(pc_address);
-    Color::Modifier blue(Color::FG_BLUE);
+    ColorModifier blue(ColorCode::FG_BLUE);
     std::cout << "SNES LoROM Address: ";
     std::cout << blue << "$" << std::uppercase << std::hex << snes_address
               << "\n";
