@@ -105,7 +105,7 @@ var searchData=
   ['rol_102',['Rol',['../classyaze_1_1app_1_1emu_1_1Cpu.html#aeca9ba85c2928d9bb1cad746c25eb7b7',1,'yaze::app::emu::Cpu']]],
   ['rom_103',['Rom',['../classyaze_1_1app_1_1Rom.html',1,'yaze::app::Rom'],['../md_docs_2infrastructure.html#autotoc_md48',1,'Rom']]],
   ['rom_104',['rom',['../structyaze__flags.html#a669fbd0fb3c0128413551092e5ea7efc',1,'yaze_flags::rom'],['../structyaze__project.html#a84af4b5ab51a85b5903704c0de8e83c9',1,'yaze_project::rom'],['../classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff',1,'yaze::app::SharedRom::rom()']]],
-  ['rom_20manipulation_105',['6. ROM Manipulation',['../md_docs_2contributing.html#autotoc_md34',1,'']]],
+  ['rom_20manipulation_105',['6. ROM Manipulation',['../md_docs_2contributing.html#autotoc_md33',1,'']]],
   ['rom_2ecc_106',['rom.cc',['../rom_8cc.html',1,'']]],
   ['rom_2eh_107',['rom.h',['../rom_8h.html',1,'']]],
   ['rom_5f_108',['rom_',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a64f06f24045b90e93dbf12826fd69309',1,'yaze::app::emu::memory::MemoryImpl::rom_'],['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a09d87c63d0379d7ca501d84bbb6611d2',1,'yaze::app::zelda3::overworld::Overworld::rom_'],['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a21fa9e22429560b918d5d4886983100b',1,'yaze::app::zelda3::overworld::OverworldMap::rom_'],['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a0e6d93b602130becb262c173930e0b56',1,'yaze::app::zelda3::screen::TitleScreen::rom_'],['../classyaze_1_1cli_1_1CommandHandler.html#acc56dd1a58d975d6cb9b44b8c7e11b2a',1,'yaze::cli::CommandHandler::rom_'],['../classyaze__test_1_1rom__test_1_1RomTest.html#a4e23f735d334e195b2c7777ac78583ac',1,'yaze_test::rom_test::RomTest::rom_']]],

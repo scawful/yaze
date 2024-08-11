@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['build_20instructions_0',['Build Instructions',['../md_docs_2build-instructions.html',1,'']]]
+  ['changelog_0',['Changelog',['../md_docs_2changelog.html',1,'']]],
+  ['contributing_1',['Contributing',['../md_docs_2contributing.html',1,'']]]
 ];

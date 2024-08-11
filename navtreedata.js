@@ -25,7 +25,8 @@
 var NAVTREE =
 [
   [ "yaze", "index.html", [
-    [ "65816 Assembly Style Guide", "md_docs_2asm-style-guide.html", [
+    [ "Getting Started", "index.html", "index" ],
+    [ "Asm Style Guide", "md_docs_2asm-style-guide.html", [
       [ "Table of Contents", "md_docs_2asm-style-guide.html#autotoc_md1", null ],
       [ "File Structure", "md_docs_2asm-style-guide.html#autotoc_md2", null ],
       [ "Labels and Symbols", "md_docs_2asm-style-guide.html#autotoc_md3", null ],
@@ -33,46 +34,40 @@ var NAVTREE =
       [ "Directives", "md_docs_2asm-style-guide.html#autotoc_md5", null ],
       [ "Instructions", "md_docs_2asm-style-guide.html#autotoc_md6", null ],
       [ "Macros", "md_docs_2asm-style-guide.html#autotoc_md7", null ],
-      [ "Conditional Assembly", "md_docs_2asm-style-guide.html#autotoc_md8", null ],
-      [ "Loops and Branching", "md_docs_2asm-style-guide.html#autotoc_md9", null ],
-      [ "Data Structures", "md_docs_2asm-style-guide.html#autotoc_md10", null ],
-      [ "Code Organization", "md_docs_2asm-style-guide.html#autotoc_md11", null ],
-      [ "Custom Code", "md_docs_2asm-style-guide.html#autotoc_md12", null ]
+      [ "Loops and Branching", "md_docs_2asm-style-guide.html#autotoc_md8", null ],
+      [ "Data Structures", "md_docs_2asm-style-guide.html#autotoc_md9", null ],
+      [ "Code Organization", "md_docs_2asm-style-guide.html#autotoc_md10", null ],
+      [ "Custom Code", "md_docs_2asm-style-guide.html#autotoc_md11", null ]
     ] ],
     [ "Build Instructions", "md_docs_2build-instructions.html", [
-      [ "Windows", "md_docs_2build-instructions.html#autotoc_md14", null ],
-      [ "macOS", "md_docs_2build-instructions.html#autotoc_md15", null ],
-      [ "iOS", "md_docs_2build-instructions.html#autotoc_md16", null ],
-      [ "GNU/Linux", "md_docs_2build-instructions.html#autotoc_md17", null ]
+      [ "Windows", "md_docs_2build-instructions.html#autotoc_md13", null ],
+      [ "macOS", "md_docs_2build-instructions.html#autotoc_md14", null ],
+      [ "iOS", "md_docs_2build-instructions.html#autotoc_md15", null ],
+      [ "GNU/Linux", "md_docs_2build-instructions.html#autotoc_md16", null ]
     ] ],
     [ "Changelog", "md_docs_2changelog.html", [
-      [ "0.0.1 (06-08-2022)", "md_docs_2changelog.html#autotoc_md19", null ],
-      [ "0.0.2 - 0.0.4", "md_docs_2changelog.html#autotoc_md20", null ],
-      [ "0.0.5 (11-21-2023)", "md_docs_2changelog.html#autotoc_md21", null ],
-      [ "0.0.6 (11-22-2023)", "md_docs_2changelog.html#autotoc_md22", null ],
-      [ "0.0.7 (01-27-2024)", "md_docs_2changelog.html#autotoc_md23", null ],
-      [ "0.1.0 (05-11-2024)", "md_docs_2changelog.html#autotoc_md24", null ],
-      [ "0.2.0 (07-20-2024)", "md_docs_2changelog.html#autotoc_md25", null ]
+      [ "0.0.1 (06-08-2022)", "md_docs_2changelog.html#autotoc_md18", null ],
+      [ "0.0.2 - 0.0.4", "md_docs_2changelog.html#autotoc_md19", null ],
+      [ "0.0.5 (11-21-2023)", "md_docs_2changelog.html#autotoc_md20", null ],
+      [ "0.0.6 (11-22-2023)", "md_docs_2changelog.html#autotoc_md21", null ],
+      [ "0.0.7 (01-27-2024)", "md_docs_2changelog.html#autotoc_md22", null ],
+      [ "0.1.0 (05-11-2024)", "md_docs_2changelog.html#autotoc_md23", null ],
+      [ "0.2.0 (07-20-2024)", "md_docs_2changelog.html#autotoc_md24", null ]
     ] ],
     [ "Contributing", "md_docs_2contributing.html", [
-      [ "Style Guide", "md_docs_2contributing.html#autotoc_md27", null ],
-      [ "Key Areas of Contribution", "md_docs_2contributing.html#autotoc_md28", [
-        [ "Extensions System", "md_docs_2contributing.html#autotoc_md29", null ],
-        [ "Sprite Builder System", "md_docs_2contributing.html#autotoc_md30", null ],
-        [ "Emulator Subsystem", "md_docs_2contributing.html#autotoc_md31", null ],
-        [ "Editor Management", "md_docs_2contributing.html#autotoc_md32", null ],
-        [ "User Interface and UX", "md_docs_2contributing.html#autotoc_md33", null ],
-        [ "ROM Manipulation", "md_docs_2contributing.html#autotoc_md34", null ],
-        [ "Testing and Documentation", "md_docs_2contributing.html#autotoc_md35", null ]
+      [ "Style Guide", "md_docs_2contributing.html#autotoc_md26", null ],
+      [ "Key Areas of Contribution", "md_docs_2contributing.html#autotoc_md27", [
+        [ "Extensions System", "md_docs_2contributing.html#autotoc_md28", null ],
+        [ "Sprite Builder System", "md_docs_2contributing.html#autotoc_md29", null ],
+        [ "Emulator Subsystem", "md_docs_2contributing.html#autotoc_md30", null ],
+        [ "Editor Management", "md_docs_2contributing.html#autotoc_md31", null ],
+        [ "User Interface and UX", "md_docs_2contributing.html#autotoc_md32", null ],
+        [ "ROM Manipulation", "md_docs_2contributing.html#autotoc_md33", null ],
+        [ "Testing and Documentation", "md_docs_2contributing.html#autotoc_md34", null ]
       ] ],
-      [ "Building the Project", "md_docs_2contributing.html#autotoc_md36", null ],
-      [ "Getting Started", "md_docs_2contributing.html#autotoc_md37", null ],
-      [ "Contributing your Changes", "md_docs_2contributing.html#autotoc_md38", null ]
-    ] ],
-    [ "Getting Started", "md_docs_2getting-started.html", [
-      [ "Prerequisites", "md_docs_2getting-started.html#autotoc_md40", null ],
-      [ "General Tips", "md_docs_2getting-started.html#autotoc_md41", null ],
-      [ "Z3ED cli", "md_docs_2getting-started.html#autotoc_md42", null ]
+      [ "Building the Project", "md_docs_2contributing.html#autotoc_md35", null ],
+      [ "Getting Started", "md_docs_2contributing.html#autotoc_md36", null ],
+      [ "Contributing your Changes", "md_docs_2contributing.html#autotoc_md37", null ]
     ] ],
     [ "Infrastructure Overview", "md_docs_2infrastructure.html", [
       [ "Targets", "md_docs_2infrastructure.html#autotoc_md44", null ],
@@ -170,7 +165,7 @@ var NAVTREEINDEX =
 "icons_8h.html#ab7ed0e0ee7e360a66799e7724b0c28a7",
 "icons_8h.html#ad53a0b54054d0e51660795515dd0196a",
 "icons_8h.html#aefcea681ee7a680f0e349e9d4891c630",
-"md_docs_2contributing.html#autotoc_md35",
+"md_docs_2contributing.html#autotoc_md30",
 "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02common_8cc_03.html#aa92217917e3512f40ae3d7f2a2c2bf22",
 "namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a8c8b3f87636a015c88ca7ee6d7bf74f5",
 "namespaceyaze_1_1app_1_1gui.html#a3cce6ce5c9b245f61e6531334c427476",

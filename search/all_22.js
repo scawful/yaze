@@ -9,7 +9,7 @@ var searchData=
   ['z3_5fsprite_6',['z3_sprite',['../structz3__sprite.html',1,'z3_sprite'],['../base_2sprite_8h.html#aa425967528383fae3ef201b558b40919',1,'z3_sprite:&#160;sprite.h']]],
   ['z3_5fsprite_5faction_7',['z3_sprite_action',['../structz3__sprite__action.html',1,'z3_sprite_action'],['../base_2sprite_8h.html#ab46681168ddbde5b53617c6daba0619a',1,'z3_sprite_action:&#160;sprite.h']]],
   ['z3_5fversion_8',['Z3_Version',['../namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47',1,'yaze::app']]],
-  ['z3ed_20cli_9',['Z3ED cli',['../md_docs_2getting-started.html#autotoc_md42',1,'']]],
+  ['z3ed_20cli_9',['z3ed cli',['../index.html#autotoc_md41',1,'']]],
   ['z3ed_2ecc_10',['z3ed.cc',['../z3ed_8cc.html',1,'']]],
   ['z_5f_11',['z_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#aafefb9b7ab557cf772fe2262f9e32ed9',1,'yaze::app::zelda3::dungeon::RoomObject']]],
   ['zamuse_12',['ZAMUSE',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a3d6e17d3d4cb495fc71fa77c41b0decda51125cf8d2949e70d4ad3c5ce7e53fe7',1,'yaze::app::emu::memory']]],

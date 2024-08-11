@@ -52,10 +52,10 @@ var searchData=
   ['usage_5fstats_5f_49',['usage_stats_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a3428daf21717a428618501086dcd85ba',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['usegain_50',['useGain',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a82eda11d67a3cf502b5208a9f48381ac',1,'yaze::app::emu::audio::DspChannel']]],
   ['usenoise_51',['useNoise',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#ac1082ac73482d5ff9423fa87b1b47d31',1,'yaze::app::emu::audio::DspChannel']]],
-  ['user_20interface_20and_20ux_52',['5. User Interface and UX',['../md_docs_2contributing.html#autotoc_md33',1,'']]],
+  ['user_20interface_20and_20ux_52',['5. User Interface and UX',['../md_docs_2contributing.html#autotoc_md32',1,'']]],
   ['user_5froutines_53',['user_routines',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1SubEditor.html#a7360988e9e7b46f993f2d83cde771012',1,'yaze::app::editor::zsprite::SubEditor']]],
   ['userroutine_54',['UserRoutine',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1UserRoutine.html',1,'yaze::app::editor::zsprite::UserRoutine'],['../structyaze_1_1app_1_1editor_1_1zsprite_1_1UserRoutine.html#a309368e6eacf3a91ce676065c1b71a7e',1,'yaze::app::editor::zsprite::UserRoutine::UserRoutine()']]],
   ['userroutines_55',['userRoutines',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a04253ed0fec3faabbadb137efd017c06',1,'yaze::app::editor::zsprite::ZSprite']]],
   ['ushort_56',['ushort',['../constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0',1,'constants.h']]],
-  ['ux_57',['5. User Interface and UX',['../md_docs_2contributing.html#autotoc_md33',1,'']]]
+  ['ux_57',['5. User Interface and UX',['../md_docs_2contributing.html#autotoc_md32',1,'']]]
 ];

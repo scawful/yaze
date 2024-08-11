@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.12.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: 65816 Assembly Style Guide</title>
+<title>yaze: Asm Style Guide</title>
 <link rel="icon" href="yaze.ico" type="image/x-icon" />
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
@@ -106,7 +106,7 @@ $(function(){initNavTree('md_docs_2asm-style-guide.html',''); initResizable(true
 </div>
 
 <div><div class="header">
-  <div class="headertitle"><div class="title">65816 Assembly Style Guide</div></div>
+  <div class="headertitle"><div class="title">Asm Style Guide</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="autotoc_md0"></a></p>
@@ -122,7 +122,6 @@ Table of Contents</h1>
 <li>Directives</li>
 <li>Instructions</li>
 <li>Macros</li>
-<li>Conditional Assembly</li>
 <li>Loops and Branching</li>
 <li>Data Structures</li>
 <li>Code Organization</li>
@@ -220,16 +219,6 @@ Macros</h1>
 <div class="line">    RTS</div>
 <div class="line">endmacro</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md8"></a>
-Conditional Assembly</h1>
-<ul>
-<li><b>Usage</b>: Use conditional assembly directives to manage code that should only be included under certain conditions (e.g., debug builds).</li>
-<li><b>Documentation</b>: Clearly document the conditions under which the code is assembled and how to toggle those conditions.</li>
-</ul>
-<p>Example:</p>
-<div class="fragment"><div class="line">%ifdef DEBUG</div>
-<div class="line">    LDA #$01 : STA DebugFlag</div>
-<div class="line">%endif</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md9"></a>
 Loops and Branching</h1>
 <ul>
 <li><b>Branch Labels</b>: Use meaningful names for branch labels, prefixed with a dot (<code>.</code>) for local branches.</li>
@@ -242,7 +231,7 @@ Loops and Branching</h1>
 <div class="line">    BRA .loop_start</div>
 <div class="line">.end_loop</div>
 <div class="line">    RTS</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md10"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md9"></a>
 Data Structures</h1>
 <ul>
 <li><b>Alignment</b>: Align data tables and structures clearly, and use comments to describe the purpose and layout of each.</li>
@@ -256,7 +245,41 @@ Data Structures</h1>
 <div class="line">    db $00, $02, $00, $04 ; South</div>
 <div class="line">    db $03, $01, $00, $00 ; West</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md11"></a>
+</div><!-- fragment --><ul>
+<li><b>Structs</b>: Use structs to group related data together, improving readability and maintainability.</li>
+</ul>
+<p>Example:</p>
+<div class="fragment"><div class="line">struct AncillaAdd_HookshotData $099AF8</div>
+<div class="line">  .speed_y: skip 4</div>
+<div class="line">  .speed_x: skip 4</div>
+<div class="line">  .offset_y: skip 8</div>
+<div class="line">  .offset_x: skip 8</div>
+<div class="line">endstruct</div>
+<div class="line"> </div>
+<div class="line">...</div>
+<div class="line"> </div>
+<div class="line">AncillaAdd_Hookshot:</div>
+<div class="line">.speed_y</div>
+<div class="line">  #_099AF8: db -64 ; up</div>
+<div class="line">  #_099AF9: db  64 ; down</div>
+<div class="line">  #_099AFA: db   0 ; left</div>
+<div class="line">  #_099AFB: db   0 ; right</div>
+<div class="line">.speed_x</div>
+<div class="line">  #_099AFC: db   0 ; up</div>
+<div class="line">  #_099AFD: db   0 ; down</div>
+<div class="line">  #_099AFE: db -64 ; left</div>
+<div class="line">  #_099AFF: db  64 ; right</div>
+<div class="line">.offset_y</div>
+<div class="line">  #_099B00: dw   4 ; up</div>
+<div class="line">  #_099B02: dw  20 ; down</div>
+<div class="line">  #_099B04: dw   8 ; left</div>
+<div class="line">  #_099B06: dw   8 ; right</div>
+<div class="line">.offset_x</div>
+<div class="line">  #_099B08: dw   0 ; up</div>
+<div class="line">  #_099B0A: dw   0 ; down</div>
+<div class="line">  #_099B0C: dw  -4 ; left</div>
+<div class="line">  #_099B0E: dw  11 ; right</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md10"></a>
 Code Organization</h1>
 <ul>
 <li><b>Logical Grouping</b>: Organize code into logical sections, with related routines and macros grouped together.</li>
@@ -273,7 +296,7 @@ Code Organization</h1>
 <div class="line">    JSR HandleDynamicSwitchTileDirections</div>
 <div class="line">    RTS</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md12"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md11"></a>
 Custom Code</h1>
 <ul>
 <li><b>Integration</b>: Include custom assembly code in the <code>yaze.asm</code> file to ensure it is applied correctly to the ROM. The module should include a define and conditional statement to allow users to disable the module if needed.</li>
