@@ -2,6 +2,8 @@
 
 For developers to reference.
 
+The goal of yaze is to build a cross platform editor for the Legend of Zelda: A Link to the Past. The project is built using C++20, SDL2, and ImGui. The project is built using CMake and is designed to be modular and extensible. The project is designed to be built on Windows, macOS, iOS, and Linux.
+
 ## Targets
 
 - **yaze**: Desktop application for Windows/macOS/Linux
@@ -10,6 +12,7 @@ For developers to reference.
 - **yaze_py**: Python Module
 - **yaze_ext**: Extensions library
 - **yaze_test**: Unit test executable
+- **yaze_ios**: iOS application
 
 ## Directory Structure
 
@@ -21,9 +24,20 @@ For developers to reference.
   - **base**: Contains the base data headers for `yaze_c`
   - **cli**:  Contains the command line interface `z3ed`
   - **ext**:  Contains the extensions library `yaze_ext`
-  - **py**:   Contains the Python module `yaze_py`
+  - **ios**:  Contains the iOS application `yaze_ios`
   - **lib**:  Contains the dependencies as git submodules
-- **test**: Contains testing interface `yaze_test`
+  - **py**:   Contains the Python module `yaze_py`
+  - **test**: Contains testing interface `yaze_test`
+
+## Dependencies
+
+See [build-instructions.md](../docs/build-instructions.md) for more information.
+
+- **SDL2**: Graphics library
+- **ImGui**: GUI library
+- **Abseil**: C++ library
+- **libpng**: Image library
+- **Boost**: Python library
 
 ## Flow of Control
 
@@ -61,5 +75,5 @@ The `Rom` class provides methods to manipulate and access data from a ROM.
 - [app/gfx/bitmap.cc](../src/app/gfx/bitmap.cc)
 - [app/gfx/bitmap.h](../src/app/gfx/bitmap.cc)
 
-This class is responsible for creating, managing, and manipulating bitmap data, which can be displayed on the screen using SDL2 Textures and the ImGui draw list.
+This class is responsible for creating, managing, and manipulating bitmap data, which can be displayed on the screen using SDL2 Textures and the ImGui draw list. It also provides functions for exporting these bitmaps to the clipboard in PNG format using libpng.
 
