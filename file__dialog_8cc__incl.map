@@ -2,6 +2,8 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,5,150,46"/>
 <area shape="rect" id="Node000002" href="$file__dialog_8h.html" title=" " alt="" coords="33,94,122,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="80,46,80,78,75,78,75,46"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="51,168,104,193"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="80,120,80,152,75,152,75,120"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="11,168,64,193"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="73,121,54,155,49,153,69,119"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="89,168,146,193"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="86,119,106,153,101,155,82,121"/>
 </map>
