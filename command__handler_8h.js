@@ -1,6 +1,6 @@
 var command__handler_8h =
 [
-    [ "yaze::cli::Color::Modifier", "classyaze_1_1cli_1_1Color_1_1Modifier.html", "classyaze_1_1cli_1_1Color_1_1Modifier" ],
+    [ "yaze::cli::ColorModifier", "classyaze_1_1cli_1_1ColorModifier.html", "classyaze_1_1cli_1_1ColorModifier" ],
     [ "yaze::cli::CommandHandler", "classyaze_1_1cli_1_1CommandHandler.html", "classyaze_1_1cli_1_1CommandHandler" ],
     [ "yaze::cli::ApplyPatch", "classyaze_1_1cli_1_1ApplyPatch.html", "classyaze_1_1cli_1_1ApplyPatch" ],
     [ "yaze::cli::AsarPatch", "classyaze_1_1cli_1_1AsarPatch.html", "classyaze_1_1cli_1_1AsarPatch" ],
@@ -16,18 +16,18 @@ var command__handler_8h =
     [ "yaze::cli::Expand", "classyaze_1_1cli_1_1Expand.html", "classyaze_1_1cli_1_1Expand" ],
     [ "yaze::cli::Emulator", "classyaze_1_1cli_1_1Emulator.html", "classyaze_1_1cli_1_1Emulator" ],
     [ "yaze::cli::Commands", "structyaze_1_1cli_1_1Commands.html", "structyaze_1_1cli_1_1Commands" ],
-    [ "Code", "command__handler_8h.html#a2aac92fcaacd2c1da7a5fcbaa85ddb07", [
-      [ "FG_RED", "command__handler_8h.html#a2aac92fcaacd2c1da7a5fcbaa85ddb07ae2a4010747ddc4d433183ed40495dcf0", null ],
-      [ "FG_GREEN", "command__handler_8h.html#a2aac92fcaacd2c1da7a5fcbaa85ddb07ae27866138193393975f123a86743ce4e", null ],
-      [ "FG_YELLOW", "command__handler_8h.html#a2aac92fcaacd2c1da7a5fcbaa85ddb07a0ef503419ce5c0cc97052f36b8fa18e3", null ],
-      [ "FG_BLUE", "command__handler_8h.html#a2aac92fcaacd2c1da7a5fcbaa85ddb07a6a7a1a9e9a9ebe8f515df5f842ede3c2", null ],
-      [ "FG_MAGENTA", "command__handler_8h.html#a2aac92fcaacd2c1da7a5fcbaa85ddb07aad77cbb7ba9aa452b0446f3e203d1463", null ],
-      [ "FG_DEFAULT", "command__handler_8h.html#a2aac92fcaacd2c1da7a5fcbaa85ddb07a33eeb86da361b29485a6014f51b933fd", null ],
-      [ "FG_RESET", "command__handler_8h.html#a2aac92fcaacd2c1da7a5fcbaa85ddb07ae68c33127ab1e01d5a4024d3622ac598", null ],
-      [ "FG_UNDERLINE", "command__handler_8h.html#a2aac92fcaacd2c1da7a5fcbaa85ddb07a7d6407511dfc9f0093d02612a6b4b21c", null ],
-      [ "BG_RED", "command__handler_8h.html#a2aac92fcaacd2c1da7a5fcbaa85ddb07a90fea7d88dafda5e704010b6a80ae9a8", null ],
-      [ "BG_GREEN", "command__handler_8h.html#a2aac92fcaacd2c1da7a5fcbaa85ddb07ad162fdc0ae310baa3677fe1c7fd69d8d", null ],
-      [ "BG_BLUE", "command__handler_8h.html#a2aac92fcaacd2c1da7a5fcbaa85ddb07a247842c5cb8470c6793a259e155249f8", null ],
-      [ "BG_DEFAULT", "command__handler_8h.html#a2aac92fcaacd2c1da7a5fcbaa85ddb07ad8782db7e1edccbceae55686ad2a2863", null ]
+    [ "ColorCode", "command__handler_8h.html#a926a1f01429821b946fbc7bf6a0e1c13", [
+      [ "FG_RED", "command__handler_8h.html#a926a1f01429821b946fbc7bf6a0e1c13a4b3fe8bd07590c5242ffeb569f12d042", null ],
+      [ "FG_GREEN", "command__handler_8h.html#a926a1f01429821b946fbc7bf6a0e1c13adf9cdb5cc87ab40e68b82da53692c6eb", null ],
+      [ "FG_YELLOW", "command__handler_8h.html#a926a1f01429821b946fbc7bf6a0e1c13ac5082de4ed3909d3e748c7e3a65c4eac", null ],
+      [ "FG_BLUE", "command__handler_8h.html#a926a1f01429821b946fbc7bf6a0e1c13aed9ed6f701ea4e70b31a4af8b7c25774", null ],
+      [ "FG_MAGENTA", "command__handler_8h.html#a926a1f01429821b946fbc7bf6a0e1c13a78e83cf0c6853972149f99464e07d6a3", null ],
+      [ "FG_DEFAULT", "command__handler_8h.html#a926a1f01429821b946fbc7bf6a0e1c13aaedf239b28f8dca2b04dfd33ee54231d", null ],
+      [ "FG_RESET", "command__handler_8h.html#a926a1f01429821b946fbc7bf6a0e1c13a1cb945599687cd0735552b0ee8b8c188", null ],
+      [ "FG_UNDERLINE", "command__handler_8h.html#a926a1f01429821b946fbc7bf6a0e1c13abd432d1329e89b03bfdace04f4bb63c7", null ],
+      [ "BG_RED", "command__handler_8h.html#a926a1f01429821b946fbc7bf6a0e1c13a48f1f14c50fd2dc7990f64e14c13f7a2", null ],
+      [ "BG_GREEN", "command__handler_8h.html#a926a1f01429821b946fbc7bf6a0e1c13a070d71f135c1fd8202a0bc60489ed126", null ],
+      [ "BG_BLUE", "command__handler_8h.html#a926a1f01429821b946fbc7bf6a0e1c13a324225274cf8961d1a58621a486a47c6", null ],
+      [ "BG_DEFAULT", "command__handler_8h.html#a926a1f01429821b946fbc7bf6a0e1c13a84737875f595b13df43c52d4fe13f770", null ]
     ] ]
 ];

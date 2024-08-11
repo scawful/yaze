@@ -42,12 +42,11 @@ var searchData=
   ['yaze_3a_3aapp_3a_3azelda3_3a_3ascreen_39',['screen',['../namespaceyaze_1_1app_1_1zelda3_1_1screen.html',1,'yaze::app::zelda3']]],
   ['yaze_3a_3acli_40',['cli',['../namespaceyaze_1_1cli.html',1,'yaze']]],
   ['yaze_3a_3acli_3a_3aanonymous_5fnamespace_7bz3ed_2ecc_7d_41',['anonymous_namespace{z3ed.cc}',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html',1,'yaze::cli']]],
-  ['yaze_3a_3acli_3a_3acolor_42',['Color',['../namespaceyaze_1_1cli_1_1Color.html',1,'yaze::cli']]],
-  ['yaze_5ftest_43',['yaze_test',['../namespaceyaze__test.html',1,'']]],
-  ['yaze_5ftest_3a_3aemu_5ftest_44',['emu_test',['../namespaceyaze__test_1_1emu__test.html',1,'yaze_test']]],
-  ['yaze_5ftest_3a_3agfx_5ftest_45',['gfx_test',['../namespaceyaze__test_1_1gfx__test.html',1,'yaze_test']]],
-  ['yaze_5ftest_3a_3agfx_5ftest_3a_3aanonymous_5fnamespace_7bcompression_5ftest_2ecc_7d_46',['anonymous_namespace{compression_test.cc}',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html',1,'yaze_test::gfx_test']]],
-  ['yaze_5ftest_3a_3agfx_5ftest_3a_3aanonymous_5fnamespace_7bsnes_5fpalette_5ftest_2ecc_7d_47',['anonymous_namespace{snes_palette_test.cc}',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html',1,'yaze_test::gfx_test']]],
-  ['yaze_5ftest_3a_3arom_5ftest_48',['rom_test',['../namespaceyaze__test_1_1rom__test.html',1,'yaze_test']]],
-  ['yaze_5ftest_3a_3azelda3_5ftest_49',['zelda3_test',['../namespaceyaze__test_1_1zelda3__test.html',1,'yaze_test']]]
+  ['yaze_5ftest_42',['yaze_test',['../namespaceyaze__test.html',1,'']]],
+  ['yaze_5ftest_3a_3aemu_5ftest_43',['emu_test',['../namespaceyaze__test_1_1emu__test.html',1,'yaze_test']]],
+  ['yaze_5ftest_3a_3agfx_5ftest_44',['gfx_test',['../namespaceyaze__test_1_1gfx__test.html',1,'yaze_test']]],
+  ['yaze_5ftest_3a_3agfx_5ftest_3a_3aanonymous_5fnamespace_7bcompression_5ftest_2ecc_7d_45',['anonymous_namespace{compression_test.cc}',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html',1,'yaze_test::gfx_test']]],
+  ['yaze_5ftest_3a_3agfx_5ftest_3a_3aanonymous_5fnamespace_7bsnes_5fpalette_5ftest_2ecc_7d_46',['anonymous_namespace{snes_palette_test.cc}',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html',1,'yaze_test::gfx_test']]],
+  ['yaze_5ftest_3a_3arom_5ftest_47',['rom_test',['../namespaceyaze__test_1_1rom__test.html',1,'yaze_test']]],
+  ['yaze_5ftest_3a_3azelda3_5ftest_48',['zelda3_test',['../namespaceyaze__test_1_1zelda3__test.html',1,'yaze_test']]]
 ];

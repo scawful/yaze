@@ -42,6 +42,7 @@ var hierarchy =
     ] ],
     [ "yaze::app::emu::video::PpuRegisters::COLDATA", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1COLDATA.html", null ],
     [ "yaze::app::emu::video::Color", "structyaze_1_1app_1_1emu_1_1video_1_1Color.html", null ],
+    [ "yaze::cli::ColorModifier", "classyaze_1_1cli_1_1ColorModifier.html", null ],
     [ "yaze::cli::CommandHandler", "classyaze_1_1cli_1_1CommandHandler.html", [
       [ "yaze::cli::ApplyPatch", "classyaze_1_1cli_1_1ApplyPatch.html", null ],
       [ "yaze::cli::AsarPatch", "classyaze_1_1cli_1_1AsarPatch.html", null ],
@@ -147,7 +148,6 @@ var hierarchy =
     [ "yaze::app::editor::MessageData", "structyaze_1_1app_1_1editor_1_1MessageData.html", null ],
     [ "yaze::app::emu::MnemonicMode", "structyaze_1_1app_1_1emu_1_1MnemonicMode.html", null ],
     [ "yaze::app::emu::MnemonicModeHash", "structyaze_1_1app_1_1emu_1_1MnemonicModeHash.html", null ],
-    [ "yaze::cli::Color::Modifier", "classyaze_1_1cli_1_1Color_1_1Modifier.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::Mosaic", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::MPYH", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1MPYH.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::MPYL", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1MPYL.html", null ],

@@ -104,7 +104,7 @@ var searchData=
   ['allowsorting_101',['AllowSorting',['../structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#afc2849681a7eefa51da3a5efd3958746',1,'yaze::app::gui::GfxSheetAssetBrowser']]],
   ['and_102',['AND',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ae6674616db70040804fc0ebc043cd199',1,'yaze::app::emu::audio::Spc700::AND()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#abef14ba9af06345d2ad1b4f1b8f3e897',1,'yaze::app::emu::Cpu::AND(uint32_t address, bool immediate=false)']]],
   ['and_103',['And',['../classyaze_1_1app_1_1emu_1_1Cpu.html#aa31a4182d3c302256b39db60f84c3ce2',1,'yaze::app::emu::Cpu']]],
-  ['and_20installation_104',['Building and installation',['../md_README.html#autotoc_md25',1,'']]],
+  ['and_20installation_104',['Building and installation',['../md_README.html#autotoc_md26',1,'']]],
   ['and1_105',['AND1',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a69fdad3969f614b9fa565fe793b5765a',1,'yaze::app::emu::audio::Spc700']]],
   ['andabsolutelong_106',['ANDAbsoluteLong',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a0194a32ccd8e277478ae874b564f5ccd',1,'yaze::app::emu::Cpu']]],
   ['andm_107',['ANDM',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a02a08e3c2af343a2077640e936bd8d1d',1,'yaze::app::emu::audio::Spc700']]],

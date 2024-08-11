@@ -56,7 +56,7 @@ var searchData=
   ['length_53',['Length',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a68f9d3c4fa8cb8cc6a70d66b4c379369',1,'yaze::app::editor::MessageEditor::DictionaryEntry']]],
   ['length_54',['length',['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#acb65024fd97259b45d718e1823e70db2',1,'yaze::app::gfx::lc_lz2::CompressionPiece']]],
   ['libc_5ftest_2ecc_55',['libc_test.cc',['../libc__test_8cc.html',1,'']]],
-  ['license_56',['License',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a3d6e17d3d4cb495fc71fa77c41b0decd',1,'yaze::app::emu::memory::License'],['../md_README.html#autotoc_md27',1,'License']]],
+  ['license_56',['License',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a3d6e17d3d4cb495fc71fa77c41b0decd',1,'yaze::app::emu::memory::License'],['../md_README.html#autotoc_md28',1,'License']]],
   ['license_57',['license',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a4a7c7461ce733f7d969949f32aefe9f4',1,'yaze::app::emu::memory::RomInfo']]],
   ['light_5fmaps_5fto_5fload_5f_58',['light_maps_to_load_',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad5a24f68bf8ab1a9aa7f7f0c95d1dbed',1,'yaze::app::editor::OverworldEditor']]],
   ['light_5fworld_59',['light_world',['../structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html#a97bc0aaeb6b020051980f6bc942f40b0',1,'yaze::app::zelda3::OWMapTiles']]],

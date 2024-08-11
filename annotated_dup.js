@@ -268,12 +268,10 @@ var annotated_dup =
         [ "VersionConstants", "structyaze_1_1app_1_1VersionConstants.html", "structyaze_1_1app_1_1VersionConstants" ]
       ] ],
       [ "cli", "namespaceyaze_1_1cli.html", [
-        [ "Color", "namespaceyaze_1_1cli_1_1Color.html", [
-          [ "Modifier", "classyaze_1_1cli_1_1Color_1_1Modifier.html", "classyaze_1_1cli_1_1Color_1_1Modifier" ]
-        ] ],
         [ "ApplyPatch", "classyaze_1_1cli_1_1ApplyPatch.html", "classyaze_1_1cli_1_1ApplyPatch" ],
         [ "AsarPatch", "classyaze_1_1cli_1_1AsarPatch.html", "classyaze_1_1cli_1_1AsarPatch" ],
         [ "Backup", "classyaze_1_1cli_1_1Backup.html", "classyaze_1_1cli_1_1Backup" ],
+        [ "ColorModifier", "classyaze_1_1cli_1_1ColorModifier.html", "classyaze_1_1cli_1_1ColorModifier" ],
         [ "CommandHandler", "classyaze_1_1cli_1_1CommandHandler.html", "classyaze_1_1cli_1_1CommandHandler" ],
         [ "Commands", "structyaze_1_1cli_1_1Commands.html", "structyaze_1_1cli_1_1Commands" ],
         [ "Compress", "classyaze_1_1cli_1_1Compress.html", "classyaze_1_1cli_1_1Compress" ],

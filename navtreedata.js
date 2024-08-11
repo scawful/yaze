@@ -42,22 +42,23 @@ var NAVTREE =
     ] ],
     [ "Getting Started", "md_docs_2getting-started.html", [
       [ "Prerequisites", "md_docs_2getting-started.html#autotoc_md14", null ],
-      [ "General Tips", "md_docs_2getting-started.html#autotoc_md15", null ]
+      [ "General Tips", "md_docs_2getting-started.html#autotoc_md15", null ],
+      [ "Z3ED cli", "md_docs_2getting-started.html#autotoc_md16", null ]
     ] ],
     [ "Infrastructure Overview", "md_docs_2infrastructure.html", [
-      [ "Z3ED cli", "md_docs_2infrastructure.html#autotoc_md17", null ],
       [ "Targets", "md_docs_2infrastructure.html#autotoc_md18", null ],
       [ "Directory Structure", "md_docs_2infrastructure.html#autotoc_md19", null ],
-      [ "Flow of Control", "md_docs_2infrastructure.html#autotoc_md20", null ],
-      [ "Rom", "md_docs_2infrastructure.html#autotoc_md21", null ],
-      [ "Bitmap", "md_docs_2infrastructure.html#autotoc_md22", null ]
+      [ "Dependencies", "md_docs_2infrastructure.html#autotoc_md20", null ],
+      [ "Flow of Control", "md_docs_2infrastructure.html#autotoc_md21", null ],
+      [ "Rom", "md_docs_2infrastructure.html#autotoc_md22", null ],
+      [ "Bitmap", "md_docs_2infrastructure.html#autotoc_md23", null ]
     ] ],
     [ "Yet Another Zelda3 Editor", "md_README.html", [
-      [ "Description", "md_README.html#autotoc_md24", null ],
-      [ "Building and installation", "md_README.html#autotoc_md25", null ],
-      [ "Documentation", "md_README.html#autotoc_md26", null ],
-      [ "License", "md_README.html#autotoc_md27", null ],
-      [ "Screenshots", "md_README.html#autotoc_md28", null ]
+      [ "Description", "md_README.html#autotoc_md25", null ],
+      [ "Building and installation", "md_README.html#autotoc_md26", null ],
+      [ "Documentation", "md_README.html#autotoc_md27", null ],
+      [ "License", "md_README.html#autotoc_md28", null ],
+      [ "Screenshots", "md_README.html#autotoc_md29", null ]
     ] ],
     [ "Todo List", "todo.html", null ],
     [ "Deprecated List", "deprecated.html", null ],
@@ -140,11 +141,11 @@ var NAVTREEINDEX =
 "icons_8h.html#abc79cb94dad424b14104e9c4a9e454e9",
 "icons_8h.html#ad86d921ccd1040fdeb9f9aaeb942378a",
 "icons_8h.html#af2afb92da8e5c87f5e62f836f1d6a46c",
-"memory_8h_source.html",
-"namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52a773324726da2f589c757da4c39336156",
-"namespaceyaze_1_1app_1_1gfx.html#a674cd542901e81be5be7fe865bf6b1b9",
-"namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a9dffbf69ffba8bc38bc4e01abf4b1675",
-"namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a8b57e68289adb6aed5e33c99f28722d3",
+"memory_8h.html#af9424b79590fad583d381935a03cb4b9a93364bc7d2865bb7cd3a8a79628315af",
+"namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52a3e1c9b3724e1f17fea630f35337bc792",
+"namespaceyaze_1_1app_1_1gfx.html#a5cad6a1e7078e7d8717fcaae95411535",
+"namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a9bcd3c3f49e92fc9edba1362c9fdb25e",
+"namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a8719845f5be733edc86173da68b3cbb3",
 "namespaceyaze__test_1_1emu__test.html#a8125f3c5a6fa14ca6c4889f5187602d9",
 "ppu_8h.html#a427e9200555ca4f3514cbdc4f560e499afb18b5da29e7e7098a82fe478934ce8b",
 "room__object_8h.html#ac46cb973cf8ca0aa50e953f5c8978f2ba080a546abcbea74459f27ba33313993d",

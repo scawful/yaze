@@ -2274,7 +2274,7 @@ var searchData=
   ['insertspecialbutton_5fclick_2271',['InsertSpecialButton_Click',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a87a319903c6f98f669fb7551a7396526',1,'yaze::app::editor::MessageEditor']]],
   ['inspectmemory_2272',['InspectMemory',['../classyaze_1_1app_1_1emu_1_1Debugger.html#ab61a3c5e93e674b09ceb73e0f2c40f75',1,'yaze::app::emu::Debugger']]],
   ['inspectregister_2273',['InspectRegister',['../classyaze_1_1app_1_1emu_1_1Debugger.html#af3f8bbae464d331e0ae27d670f4c7e6e',1,'yaze::app::emu::Debugger']]],
-  ['installation_2274',['Building and installation',['../md_README.html#autotoc_md25',1,'']]],
+  ['installation_2274',['Building and installation',['../md_README.html#autotoc_md26',1,'']]],
   ['instruction_2275',['instruction',['../classyaze_1_1app_1_1emu_1_1InstructionEntry.html#a15cb4366ccc26265dd6cd8d03f4938cd',1,'yaze::app::emu::InstructionEntry']]],
   ['instruction_5f_2276',['instruction_',['../classyaze_1_1app_1_1zelda3_1_1SpriteInstruction.html#a0f8d4ab61593ebcb88a531fdc6011886',1,'yaze::app::zelda3::SpriteInstruction']]],
   ['instruction_5flog_5f_2277',['instruction_log_',['../classyaze_1_1app_1_1emu_1_1Cpu.html#ace36964f4e475d0723f890a2df872054',1,'yaze::app::emu::Cpu']]],

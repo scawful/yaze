@@ -108,7 +108,8 @@ $(function(){initNavTree('namespaceyaze_1_1cli.html',''); initResizable(true); }
 <div class="header">
   <div class="summary">
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#nested-classes">Classes</a>  </div>
+<a href="#nested-classes">Classes</a> &#124;
+<a href="#enum-members">Enumerations</a>  </div>
   <div class="headertitle"><div class="title">yaze::cli Namespace Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -120,8 +121,6 @@ $(function(){initNavTree('namespaceyaze_1_1cli.html',''); initResizable(true); }
 Namespaces</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html">anonymous_namespace{z3ed.cc}</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1cli_1_1Color.html">Color</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -131,6 +130,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1cli_1_1Backup.html">Backup</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classyaze_1_1cli_1_1Backup.html" title="Backup a Rom file.">Backup</a> a Rom file.  <a href="classyaze_1_1cli_1_1Backup.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1cli_1_1ColorModifier.html">ColorModifier</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1cli_1_1CommandHandler.html">CommandHandler</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -164,10 +165,62 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1cli_1_1Tile16Transfer.html">Tile16Transfer</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Transfer tile 16 data from one Rom to another.  <a href="classyaze_1_1cli_1_1Tile16Transfer.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:a926a1f01429821b946fbc7bf6a0e1c13" id="r_a926a1f01429821b946fbc7bf6a0e1c13"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a926a1f01429821b946fbc7bf6a0e1c13">ColorCode</a> { <br />
+&#160;&#160;<a class="el" href="#a926a1f01429821b946fbc7bf6a0e1c13a4b3fe8bd07590c5242ffeb569f12d042">FG_RED</a> = 31
+, <a class="el" href="#a926a1f01429821b946fbc7bf6a0e1c13adf9cdb5cc87ab40e68b82da53692c6eb">FG_GREEN</a> = 32
+, <a class="el" href="#a926a1f01429821b946fbc7bf6a0e1c13ac5082de4ed3909d3e748c7e3a65c4eac">FG_YELLOW</a> = 33
+, <a class="el" href="#a926a1f01429821b946fbc7bf6a0e1c13aed9ed6f701ea4e70b31a4af8b7c25774">FG_BLUE</a> = 36
+, <br />
+&#160;&#160;<a class="el" href="#a926a1f01429821b946fbc7bf6a0e1c13a78e83cf0c6853972149f99464e07d6a3">FG_MAGENTA</a> = 35
+, <a class="el" href="#a926a1f01429821b946fbc7bf6a0e1c13aaedf239b28f8dca2b04dfd33ee54231d">FG_DEFAULT</a> = 39
+, <a class="el" href="#a926a1f01429821b946fbc7bf6a0e1c13a1cb945599687cd0735552b0ee8b8c188">FG_RESET</a> = 0
+, <a class="el" href="#a926a1f01429821b946fbc7bf6a0e1c13abd432d1329e89b03bfdace04f4bb63c7">FG_UNDERLINE</a> = 4
+, <br />
+&#160;&#160;<a class="el" href="#a926a1f01429821b946fbc7bf6a0e1c13a48f1f14c50fd2dc7990f64e14c13f7a2">BG_RED</a> = 41
+, <a class="el" href="#a926a1f01429821b946fbc7bf6a0e1c13a070d71f135c1fd8202a0bc60489ed126">BG_GREEN</a> = 42
+, <a class="el" href="#a926a1f01429821b946fbc7bf6a0e1c13a324225274cf8961d1a58621a486a47c6">BG_BLUE</a> = 44
+, <a class="el" href="#a926a1f01429821b946fbc7bf6a0e1c13a84737875f595b13df43c52d4fe13f770">BG_DEFAULT</a> = 49
+<br />
+ }</td></tr>
+<tr class="separator:a926a1f01429821b946fbc7bf6a0e1c13"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Namespace for the command line interface. </p>
-</div></div><!-- contents -->
+</div><h2 class="groupheader">Enumeration Type Documentation</h2>
+<a id="a926a1f01429821b946fbc7bf6a0e1c13" name="a926a1f01429821b946fbc7bf6a0e1c13"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a926a1f01429821b946fbc7bf6a0e1c13">&#9670;&#160;</a></span>ColorCode</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="#a926a1f01429821b946fbc7bf6a0e1c13">yaze::cli::ColorCode</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a926a1f01429821b946fbc7bf6a0e1c13a4b3fe8bd07590c5242ffeb569f12d042" name="a926a1f01429821b946fbc7bf6a0e1c13a4b3fe8bd07590c5242ffeb569f12d042"></a>FG_RED&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a926a1f01429821b946fbc7bf6a0e1c13adf9cdb5cc87ab40e68b82da53692c6eb" name="a926a1f01429821b946fbc7bf6a0e1c13adf9cdb5cc87ab40e68b82da53692c6eb"></a>FG_GREEN&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a926a1f01429821b946fbc7bf6a0e1c13ac5082de4ed3909d3e748c7e3a65c4eac" name="a926a1f01429821b946fbc7bf6a0e1c13ac5082de4ed3909d3e748c7e3a65c4eac"></a>FG_YELLOW&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a926a1f01429821b946fbc7bf6a0e1c13aed9ed6f701ea4e70b31a4af8b7c25774" name="a926a1f01429821b946fbc7bf6a0e1c13aed9ed6f701ea4e70b31a4af8b7c25774"></a>FG_BLUE&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a926a1f01429821b946fbc7bf6a0e1c13a78e83cf0c6853972149f99464e07d6a3" name="a926a1f01429821b946fbc7bf6a0e1c13a78e83cf0c6853972149f99464e07d6a3"></a>FG_MAGENTA&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a926a1f01429821b946fbc7bf6a0e1c13aaedf239b28f8dca2b04dfd33ee54231d" name="a926a1f01429821b946fbc7bf6a0e1c13aaedf239b28f8dca2b04dfd33ee54231d"></a>FG_DEFAULT&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a926a1f01429821b946fbc7bf6a0e1c13a1cb945599687cd0735552b0ee8b8c188" name="a926a1f01429821b946fbc7bf6a0e1c13a1cb945599687cd0735552b0ee8b8c188"></a>FG_RESET&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a926a1f01429821b946fbc7bf6a0e1c13abd432d1329e89b03bfdace04f4bb63c7" name="a926a1f01429821b946fbc7bf6a0e1c13abd432d1329e89b03bfdace04f4bb63c7"></a>FG_UNDERLINE&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a926a1f01429821b946fbc7bf6a0e1c13a48f1f14c50fd2dc7990f64e14c13f7a2" name="a926a1f01429821b946fbc7bf6a0e1c13a48f1f14c50fd2dc7990f64e14c13f7a2"></a>BG_RED&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a926a1f01429821b946fbc7bf6a0e1c13a070d71f135c1fd8202a0bc60489ed126" name="a926a1f01429821b946fbc7bf6a0e1c13a070d71f135c1fd8202a0bc60489ed126"></a>BG_GREEN&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a926a1f01429821b946fbc7bf6a0e1c13a324225274cf8961d1a58621a486a47c6" name="a926a1f01429821b946fbc7bf6a0e1c13a324225274cf8961d1a58621a486a47c6"></a>BG_BLUE&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a926a1f01429821b946fbc7bf6a0e1c13a84737875f595b13df43c52d4fe13f770" name="a926a1f01429821b946fbc7bf6a0e1c13a84737875f595b13df43c52d4fe13f770"></a>BG_DEFAULT&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+<p class="definition">Definition at line <a class="el" href="command__handler_8h_source.html#l00030">30</a> of file <a class="el" href="command__handler_8h_source.html">command_handler.h</a>.</p>
+
+</div>
+</div>
+</div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

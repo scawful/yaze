@@ -109,36 +109,9 @@ $(function(){initNavTree('md_docs_2infrastructure.html',''); initResizable(true)
   <div class="headertitle"><div class="title">Infrastructure Overview</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md16"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md17"></a></p>
 <p>For developers to reference.</p>
-<h1><a class="anchor" id="autotoc_md17"></a>
-Z3ED cli</h1>
-<table class="markdownTable">
-<tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Command   </th><th class="markdownTableHeadNone">Arg   </th><th class="markdownTableHeadNone">Params   </th><th class="markdownTableHeadNone">Status    </th></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Apply BPS Patch   </td><td class="markdownTableBodyNone">-a   </td><td class="markdownTableBodyNone">rom_file bps_file   </td><td class="markdownTableBodyNone">In progress    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Create BPS Patch   </td><td class="markdownTableBodyNone">-c   </td><td class="markdownTableBodyNone">bps_file src_file modified_file   </td><td class="markdownTableBodyNone">Not started    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Asar Patch   </td><td class="markdownTableBodyNone">-asar   </td><td class="markdownTableBodyNone">asm_file rom_file   </td><td class="markdownTableBodyNone">In progress    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Open ROM   </td><td class="markdownTableBodyNone">-o   </td><td class="markdownTableBodyNone">rom_file   </td><td class="markdownTableBodyNone">Complete    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Backup ROM   </td><td class="markdownTableBodyNone">-b   </td><td class="markdownTableBodyNone">rom_file [new_file]   </td><td class="markdownTableBodyNone">In progress    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Expand ROM   </td><td class="markdownTableBodyNone">-x   </td><td class="markdownTableBodyNone">rom_file file_size   </td><td class="markdownTableBodyNone">Not started    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Transfer Tile16   </td><td class="markdownTableBodyNone">-t   </td><td class="markdownTableBodyNone">src_rom dest_rom tile32_id_list(csv)   </td><td class="markdownTableBodyNone">Complete    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Export Graphics   </td><td class="markdownTableBodyNone">-e   </td><td class="markdownTableBodyNone">rom_file bin_file   </td><td class="markdownTableBodyNone">In progress    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Import Graphics   </td><td class="markdownTableBodyNone">-i   </td><td class="markdownTableBodyNone">bin_file rom_file   </td><td class="markdownTableBodyNone">Not started    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">SNES to PC Address   </td><td class="markdownTableBodyNone">-s   </td><td class="markdownTableBodyNone">address   </td><td class="markdownTableBodyNone">Complete    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">PC to SNES Address   </td><td class="markdownTableBodyNone">-p   </td><td class="markdownTableBodyNone">address   </td><td class="markdownTableBodyNone">Complete   </td></tr>
-</table>
+<p>The goal of yaze is to build a cross platform editor for the Legend of Zelda: A Link to the Past. The project is built using C++20, SDL2, and <a class="el" href="namespaceImGui.html">ImGui</a>. The project is built using CMake and is designed to be modular and extensible. The project is designed to be built on Windows, macOS, iOS, and Linux.</p>
 <h1><a class="anchor" id="autotoc_md18"></a>
 Targets</h1>
 <ul>
@@ -148,6 +121,7 @@ Targets</h1>
 <li><b>yaze_py</b>: Python Module</li>
 <li><b>yaze_ext</b>: Extensions library</li>
 <li><b><a class="el" href="namespaceyaze__test.html">yaze_test</a></b>: Unit test executable</li>
+<li><b>yaze_ios</b>: iOS application</li>
 </ul>
 <h1><a class="anchor" id="autotoc_md19"></a>
 Directory Structure</h1>
@@ -160,13 +134,24 @@ Directory Structure</h1>
 <li><b>base</b>: Contains the base data headers for <code>yaze_c</code></li>
 <li><b>cli</b>: Contains the command line interface <code>z3ed</code></li>
 <li><b>ext</b>: Contains the extensions library <code>yaze_ext</code></li>
-<li><b>py</b>: Contains the Python module <code>yaze_py</code></li>
+<li><b>ios</b>: Contains the iOS application <code>yaze_ios</code></li>
 <li><b>lib</b>: Contains the dependencies as git submodules</li>
-</ul>
-</li>
+<li><b>py</b>: Contains the Python module <code>yaze_py</code></li>
 <li><b>test</b>: Contains testing interface <code><a class="el" href="namespaceyaze__test.html">yaze_test</a></code></li>
 </ul>
+</li>
+</ul>
 <h1><a class="anchor" id="autotoc_md20"></a>
+Dependencies</h1>
+<p>See <a class="el" href="md_docs_2build-instructions.html">build-instructions.md</a> for more information.</p>
+<ul>
+<li><b>SDL2</b>: Graphics library</li>
+<li><b><a class="el" href="namespaceImGui.html">ImGui</a></b>: GUI library</li>
+<li><b>Abseil</b>: C++ library</li>
+<li><b>libpng</b>: Image library</li>
+<li><b>Boost</b>: Python library</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md21"></a>
 Flow of Control</h1>
 <ul>
 <li><a href="../src/app/yaze.cc">app/yaze.cc</a><ul>
@@ -199,20 +184,20 @@ Flow of Control</h1>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md21"></a>
+<h1><a class="anchor" id="autotoc_md22"></a>
 Rom</h1>
 <ul>
 <li><a href="../src/app/rom.cc">app/rom.cc</a></li>
 <li><a href="../src/app/rom.h">app/rom.h</a></li>
 </ul>
 <p>The <code>Rom</code> class provides methods to manipulate and access data from a ROM.</p>
-<h1><a class="anchor" id="autotoc_md22"></a>
+<h1><a class="anchor" id="autotoc_md23"></a>
 Bitmap</h1>
 <ul>
 <li><a href="../src/app/gfx/bitmap.cc">app/gfx/bitmap.cc</a></li>
 <li><a href="../src/app/gfx/bitmap.cc">app/gfx/bitmap.h</a></li>
 </ul>
-<p>This class is responsible for creating, managing, and manipulating bitmap data, which can be displayed on the screen using SDL2 Textures and the <a class="el" href="namespaceImGui.html">ImGui</a> draw list. </p>
+<p>This class is responsible for creating, managing, and manipulating bitmap data, which can be displayed on the screen using SDL2 Textures and the <a class="el" href="namespaceImGui.html">ImGui</a> draw list. It also provides functions for exporting these bitmaps to the clipboard in PNG format using libpng. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

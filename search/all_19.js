@@ -103,7 +103,7 @@ var searchData=
   ['right_5fposition_100',['right_position',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WH1.html#a1e7bbe342ec01fd68d19bc22ce25116d',1,'yaze::app::emu::video::PpuRegisters::WH1::right_position'],['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WH3.html#a42d360e81cce0e443f174089638bd596',1,'yaze::app::emu::video::PpuRegisters::WH3::right_position']]],
   ['rol_101',['ROL',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a5acae392f43808bb021b102a35d867cd',1,'yaze::app::emu::audio::Spc700::ROL()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#aac1425622119cd6e0eb55c3c42ce0490',1,'yaze::app::emu::Cpu::ROL(uint32_t address, bool accumulator=false)']]],
   ['rol_102',['Rol',['../classyaze_1_1app_1_1emu_1_1Cpu.html#aeca9ba85c2928d9bb1cad746c25eb7b7',1,'yaze::app::emu::Cpu']]],
-  ['rom_103',['Rom',['../classyaze_1_1app_1_1Rom.html',1,'yaze::app::Rom'],['../md_docs_2infrastructure.html#autotoc_md21',1,'Rom']]],
+  ['rom_103',['Rom',['../classyaze_1_1app_1_1Rom.html',1,'yaze::app::Rom'],['../md_docs_2infrastructure.html#autotoc_md22',1,'Rom']]],
   ['rom_104',['rom',['../structyaze__flags.html#a669fbd0fb3c0128413551092e5ea7efc',1,'yaze_flags::rom'],['../structyaze__project.html#a84af4b5ab51a85b5903704c0de8e83c9',1,'yaze_project::rom'],['../classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff',1,'yaze::app::SharedRom::rom()']]],
   ['rom_2ecc_105',['rom.cc',['../rom_8cc.html',1,'']]],
   ['rom_2eh_106',['rom.h',['../rom_8h.html',1,'']]],
