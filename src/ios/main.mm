@@ -102,10 +102,12 @@
   _pinchRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(handlePinch:)];
   [self.view addGestureRecognizer:_pinchRecognizer];
 
+  _longPressRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPress:)];
+  [self.view addGestureRecognizer:_longPressRecognizer];
+
   _swipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipe:)];
   _swipeRecognizer.direction = UISwipeGestureRecognizerDirectionRight | UISwipeGestureRecognizerDirectionLeft;
   [self.view addGestureRecognizer:_swipeRecognizer];
-  
   return self;
 }
 
@@ -247,6 +249,12 @@
     } else if (gesture.direction == UISwipeGestureRecognizerDirectionLeft) {
         io.AddMouseWheelEvent(-1.0f, 0.0f);  // Swipe Left
     }
+}
+
+- (void)handleLongPress:(UILongPressGestureRecognizer *)gesture {
+    ImGuiIO &io = ImGui::GetIO();
+    io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
+    io.AddMouseButtonEvent(1, gesture.state == UIGestureRecognizerStateBegan);
 }
 
 #endif

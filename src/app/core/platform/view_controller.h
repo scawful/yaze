@@ -14,6 +14,7 @@
 @property(nonatomic) UIHoverGestureRecognizer *hoverGestureRecognizer;
 @property(nonatomic) UIPinchGestureRecognizer *pinchRecognizer;
 @property(nonatomic) UISwipeGestureRecognizer *swipeRecognizer;
+@property(nonatomic) UILongPressGestureRecognizer *longPressRecognizer;
 @end
 #endif
 
