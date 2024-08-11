@@ -6,6 +6,20 @@ find_package(Boost COMPONENTS python3 REQUIRED)
 add_library(
   yaze_py MODULE
   py/yaze_py.cc
+  yaze.cc
+  app/rom.cc
+  app/core/common.cc
+  app/core/labeling.cc
+  app/zelda3/overworld/overworld_map.cc
+  app/zelda3/overworld/overworld.cc
+  app/zelda3/sprite/sprite.cc
+  app/editor/utils/gfx_context.cc
+  ${YAZE_APP_GFX_SRC}
+  ${IMGUI_PATH}/imgui.cpp
+  ${IMGUI_PATH}/imgui_demo.cpp
+  ${IMGUI_PATH}/imgui_draw.cpp
+  ${IMGUI_PATH}/imgui_widgets.cpp
+  ${IMGUI_PATH}/misc/cpp/imgui_stdlib.cpp
 )
 
 if (APPLE)
@@ -19,6 +33,7 @@ target_include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/
   lib/
   app/
+  ${SDL_INCLUDE_DIR}
   ${PYTHON_HEADERS}
   ${Boost_INCLUDE_DIRS}
   ${PYTHON_INCLUDE_DIRS}
@@ -26,6 +41,11 @@ target_include_directories(
 
 target_link_libraries(
   yaze_py PUBLIC
+  ${SDL_TARGETS}
+  ${ABSL_TARGETS}
   ${PYTHON_LIBRARIES}
+  ${PNG_LIBRARIES}
   Boost::python3
+  ImGui
+  ImGuiTestEngine
 )
