@@ -45,7 +45,7 @@ var searchData=
   ['clc_42',['CLC',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a8a37daa9d234b799f02ee3ce137143f6',1,'yaze::app::emu::Cpu']]],
   ['cld_43',['CLD',['../classyaze_1_1app_1_1emu_1_1Cpu.html#ae9b61f01ebca0530a50e5dc52b995ffb',1,'yaze::app::emu::Cpu']]],
   ['cleanup_44',['Cleanup',['../classyaze_1_1app_1_1core_1_1ImGuiIdIssuer.html#a6a72c661af53807c231df559c08337f6',1,'yaze::app::core::ImGuiIdIssuer::Cleanup()'],['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a92e9eee7eb9444d8b4b199d42be570dd',1,'yaze::app::gfx::Bitmap::Cleanup()']]],
-  ['cleanup_45',['cleanup',['../classsample_1_1MyExtension.html#a5cce56bac23d54f475fd2bcdbc16944b',1,'sample::MyExtension']]],
+  ['cleanup_45',['cleanup',['../classsample_1_1YazePyExtension.html#a37f3c3042e2d884f8996742d0643572e',1,'sample::YazePyExtension']]],
   ['clear_46',['Clear',['../classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a3b5ffdf58bc7bd0d99132637ca550bea',1,'yaze::app::gfx::SnesPalette::Clear()'],['../structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a14d4ec1a5d5b648a98b68478412393cf',1,'yaze::app::gfx::PaletteGroup::Clear()']]],
   ['clear_47',['clear',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#aaf1bec33eb2b93faba25849a46cf9fc4',1,'yaze::app::editor::MessageEditor::TextBox::clear()'],['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a2207246826dd57c62a9edfa6eb5de388',1,'yaze::app::gfx::PaletteGroupMap::clear()']]],
   ['clear_5fcache_48',['clear_cache',['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#aeb7888d2921893232ce9845a950246bf',1,'yaze::app::gfx::BitmapManager']]],

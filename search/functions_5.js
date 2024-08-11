@@ -36,5 +36,6 @@ var searchData=
   ['expectdecompressok_33',['ExpectDecompressOk',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a9a4b5c91e8f06dcd94d036e9e7935c09',1,'yaze_test::gfx_test::anonymous_namespace{compression_test.cc}']]],
   ['expectnewcompressionpieceok_34',['ExpectNewCompressionPieceOk',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#ad321fb3042ea69a672c2435bd7440db7',1,'yaze_test::gfx_test::anonymous_namespace{compression_test.cc}']]],
   ['experimentflags_35',['ExperimentFlags',['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html#ab31b958a7216371310b254fdc2780dcd',1,'yaze::app::core::ExperimentFlags']]],
-  ['extract_36',['Extract',['../namespaceyaze_1_1app_1_1gfx.html#af350b17d01f5a0bc15edc46e05fedcaa',1,'yaze::app::gfx']]]
+  ['extend_5fui_36',['extend_ui',['../classsample_1_1YazePyExtension.html#a7985768d15fd8340de8ac1a073858132',1,'sample::YazePyExtension']]],
+  ['extract_37',['Extract',['../namespaceyaze_1_1app_1_1gfx.html#af350b17d01f5a0bc15edc46e05fedcaa',1,'yaze::app::gfx']]]
 ];

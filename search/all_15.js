@@ -34,7 +34,7 @@ var searchData=
   ['manageactiveeditors_31',['ManageActiveEditors',['../classyaze_1_1app_1_1editor_1_1EditorManager.html#a02331d406af84e09473a9e958fbc053f',1,'yaze::app::editor::EditorManager']]],
   ['managekeyboardshortcuts_32',['ManageKeyboardShortcuts',['../classyaze_1_1app_1_1editor_1_1EditorManager.html#aaf2a5fd0890c58763d5be669fd031cd8',1,'yaze::app::editor::EditorManager']]],
   ['management_33',['4. Editor Management',['../md_docs_2contributing.html#autotoc_md18',1,'']]],
-  ['manipulate_5from_34',['manipulate_rom',['../structyaze__extension.html#a98c292db5ca1e3d87858cda250e39811',1,'yaze_extension::manipulate_rom'],['../classsample_1_1MyExtension.html#a18ec5266cabbd5001f0940b2a00a48b4',1,'sample.MyExtension.manipulate_rom()']]],
+  ['manipulate_5from_34',['manipulate_rom',['../structyaze__extension.html#a98c292db5ca1e3d87858cda250e39811',1,'yaze_extension::manipulate_rom'],['../classsample_1_1YazePyExtension.html#ad42ffc811a8b12a4ed24d43ce348ced4',1,'sample.YazePyExtension.manipulate_rom()']]],
   ['manipulation_35',['6. ROM Manipulation',['../md_docs_2contributing.html#autotoc_md20',1,'']]],
   ['manual_5fpb_5f_36',['manual_pb_',['../classyaze_1_1app_1_1emu_1_1Emulator.html#ab46a750f4f62af7258e3a6017002a9cd',1,'yaze::app::emu::Emulator']]],
   ['manual_5fpc_5f_37',['manual_pc_',['../classyaze_1_1app_1_1emu_1_1Emulator.html#a5d0ad10b780e8373de10d79580cb9959',1,'yaze::app::emu::Emulator']]],
@@ -260,11 +260,10 @@ var searchData=
   ['my_5fextension_5fregister_5fcommands_257',['my_extension_register_commands',['../sample_8c.html#a84b8a88c8489b1ca34d4c63523cb4857',1,'sample.c']]],
   ['my_5fextension_5fregister_5fcustom_5ftools_258',['my_extension_register_custom_tools',['../sample_8c.html#ae8d8abf84a36fcbf4c4796171d35c485',1,'sample.c']]],
   ['my_5fextension_5fregister_5fevent_5fhooks_259',['my_extension_register_event_hooks',['../sample_8c.html#a349a43fe0276396f8a22533b4ecf49fe',1,'sample.c']]],
-  ['myextension_260',['MyExtension',['../classsample_1_1MyExtension.html',1,'sample']]],
-  ['myitemcolumnid_261',['MyItemColumnID',['../namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9',1,'yaze::app::editor']]],
-  ['myitemcolumnid_5faction_262',['MyItemColumnID_Action',['../namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9ad6ecde031e114c4933d033be84600cfb',1,'yaze::app::editor']]],
-  ['myitemcolumnid_5fdescription_263',['MyItemColumnID_Description',['../namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9a2c8a5284a6fd0fa69f3df471bf7f6cb0',1,'yaze::app::editor']]],
-  ['myitemcolumnid_5fid_264',['MyItemColumnID_ID',['../namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9a2289c3d3d4622c9558cb24ad8be37041',1,'yaze::app::editor']]],
-  ['myitemcolumnid_5fname_265',['MyItemColumnID_Name',['../namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9af56bbdb3a93b5c290a87b6c2d5a6e01c',1,'yaze::app::editor']]],
-  ['myitemcolumnid_5fquantity_266',['MyItemColumnID_Quantity',['../namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9ae174d554f93e36997c9267392b01d6da',1,'yaze::app::editor']]]
+  ['myitemcolumnid_260',['MyItemColumnID',['../namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9',1,'yaze::app::editor']]],
+  ['myitemcolumnid_5faction_261',['MyItemColumnID_Action',['../namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9ad6ecde031e114c4933d033be84600cfb',1,'yaze::app::editor']]],
+  ['myitemcolumnid_5fdescription_262',['MyItemColumnID_Description',['../namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9a2c8a5284a6fd0fa69f3df471bf7f6cb0',1,'yaze::app::editor']]],
+  ['myitemcolumnid_5fid_263',['MyItemColumnID_ID',['../namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9a2289c3d3d4622c9558cb24ad8be37041',1,'yaze::app::editor']]],
+  ['myitemcolumnid_5fname_264',['MyItemColumnID_Name',['../namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9af56bbdb3a93b5c290a87b6c2d5a6e01c',1,'yaze::app::editor']]],
+  ['myitemcolumnid_5fquantity_265',['MyItemColumnID_Quantity',['../namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9ae174d554f93e36997c9267392b01d6da',1,'yaze::app::editor']]]
 ];

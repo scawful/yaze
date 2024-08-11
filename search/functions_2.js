@@ -31,7 +31,7 @@ var searchData=
   ['blocks_28',['blocks',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a1cd0499023d62d5a6bffb3cf1c736e92',1,'yaze::app::zelda3::dungeon::Room']]],
   ['bmi_29',['BMI',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#acf4c0f0e37c11d6604c56c5b11d77891',1,'yaze::app::emu::audio::Spc700::BMI()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a3586be014788caaa8d1364d5ac1dcfcb',1,'yaze::app::emu::Cpu::BMI()']]],
   ['bne_30',['BNE',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#aed782ff7128fdd07c52d386be349207b',1,'yaze::app::emu::audio::Spc700::BNE()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a527f3fc6d3882f94bf5fbc0a125e23cf',1,'yaze::app::emu::Cpu::BNE()']]],
-  ['boost_5fpython_5fmodule_31',['BOOST_PYTHON_MODULE',['../yaze__py_8cc.html#ac188ed8af872505482048f48f3fcea1c',1,'yaze_py.cc']]],
+  ['boost_5fpython_5fmodule_31',['BOOST_PYTHON_MODULE',['../yaze__py_8cc.html#aa066fe72661b77be73878a8b9cf7e6f4',1,'yaze_py.cc']]],
   ['bouncefromtilecollision_32',['BounceFromTileCollision',['../classyaze_1_1app_1_1zelda3_1_1SpriteInstruction.html#a464f1d9d0918a1d1db1a7c5d8c5745eb',1,'yaze::app::zelda3::SpriteInstruction']]],
   ['bpl_33',['BPL',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a249f3a45da00f00ad29e3ca2a011874a',1,'yaze::app::emu::audio::Spc700::BPL()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a7e392733dd43683e7d37b58b46d95758',1,'yaze::app::emu::Cpu::BPL()']]],
   ['bpp8snestoindexed_34',['Bpp8SnesToIndexed',['../namespaceyaze_1_1app_1_1gfx.html#a7f314a1a135641431d8cd613173fb720',1,'yaze::app::gfx']]],

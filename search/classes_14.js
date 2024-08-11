@@ -5,5 +5,6 @@ var searchData=
   ['yaze_5fevent_5fdispatcher_2',['yaze_event_dispatcher',['../structyaze__event__dispatcher.html',1,'']]],
   ['yaze_5fextension_3',['yaze_extension',['../structyaze__extension.html',1,'']]],
   ['yaze_5fflags_4',['yaze_flags',['../structyaze__flags.html',1,'']]],
-  ['yaze_5fproject_5',['yaze_project',['../structyaze__project.html',1,'']]]
+  ['yaze_5fproject_5',['yaze_project',['../structyaze__project.html',1,'']]],
+  ['yazepyextension_6',['YazePyExtension',['../classsample_1_1YazePyExtension.html',1,'sample']]]
 ];

@@ -1,5 +1,17 @@
 var NAVTREEINDEX42 =
 {
+"overworld_8cc.html#a2b56d8805cb8d768a32d570cc90b6ba1":[11,0,1,0,5,2,0,2],
+"overworld_8cc.html#ac98b5712e9e6551a790b01d0a4cd881b":[11,0,1,0,5,2,0,1],
+"overworld_8cc_source.html":[11,0,1,0,5,2,0],
+"overworld__editor_8cc.html":[11,0,1,0,1,5,2],
+"overworld__editor_8cc.html#a82580c78db5fc851768be8445138aa3c":[11,0,1,0,1,5,2,0],
+"overworld__editor_8cc.html#ad773c0030307cc45282b8e59b648dff6":[11,0,1,0,1,5,2,1],
+"overworld__editor_8cc_source.html":[11,0,1,0,1,5,2],
+"overworld__editor_8h.html":[11,0,1,0,1,5,3],
+"overworld__editor_8h.html#a27ca683b9c4a9b8e530ed2cdd751989b":[11,0,1,0,1,5,3,7],
+"overworld__editor_8h.html#a38a54e512216d56370524903c0717d3d":[11,0,1,0,1,5,3,9],
+"overworld__editor_8h.html#a4d9b8c9589c6b1455c34c618611b3303":[11,0,1,0,1,5,3,2],
+"overworld__editor_8h.html#a612f649b633ee939924f6f56f7e1d1fa":[11,0,1,0,1,5,3,6],
 "overworld__editor_8h.html#aa2f8240c66088fdf579ae0becaa2d820":[11,0,1,0,1,5,3,4],
 "overworld__editor_8h.html#ab016b013560df6264216fd0a73b3f913":[11,0,1,0,1,5,3,3],
 "overworld__editor_8h.html#ab365f83737393fc1ac411d87ba2fbdb8":[11,0,1,0,1,5,3,5],
@@ -237,17 +249,5 @@ var NAVTREEINDEX42 =
 "room__entrance_8h.html#ab45eb1456b02983350fb4efc29fe6efe":[11,0,1,0,5,0,5,24],
 "room__entrance_8h.html#ab543322a997bf3480330a401cb5aad08":[11,0,1,0,5,0,5,2],
 "room__entrance_8h.html#ababe6a432142d41be104609d96b4a1a6":[11,0,1,0,5,0,5,50],
-"room__entrance_8h.html#ac0d35e25034ab1d248ac8f47b70423b9":[11,0,1,0,5,0,5,14],
-"room__entrance_8h.html#ac38609b41574aecb67cd13827e64ed5d":[11,0,1,0,5,0,5,42],
-"room__entrance_8h.html#ac567608c564648f1faf78d04acdabcaa":[11,0,1,0,5,0,5,9],
-"room__entrance_8h.html#ac783d39b38b5916ac5cd94461ce7cf9e":[11,0,1,0,5,0,5,30],
-"room__entrance_8h.html#acbb5ef750a1f9ba06476c5649bad1431":[11,0,1,0,5,0,5,16],
-"room__entrance_8h.html#ad1724b688c13324085260dcdce75515e":[11,0,1,0,5,0,5,20],
-"room__entrance_8h.html#ad2e32c6c807972e168e81c41f1d39882":[11,0,1,0,5,0,5,18],
-"room__entrance_8h.html#ad68a2a049457aa29266ca19f64972b09":[11,0,1,0,5,0,5,40],
-"room__entrance_8h.html#add381a04f73eeee65ce5fdab93928b57":[11,0,1,0,5,0,5,49],
-"room__entrance_8h.html#aebf1a9703c178e34de564ce0ca3ea7ee":[11,0,1,0,5,0,5,48],
-"room__entrance_8h.html#af75c66a2ada0eded12b28deaf8844f02":[11,0,1,0,5,0,5,47],
-"room__entrance_8h_source.html":[11,0,1,0,5,0,5],
-"room__names_8h.html":[11,0,1,0,5,0,6]
+"room__entrance_8h.html#ac0d35e25034ab1d248ac8f47b70423b9":[11,0,1,0,5,0,5,14]
 };
