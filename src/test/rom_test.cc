@@ -4,7 +4,6 @@
 #include <gtest/gtest.h>
 
 namespace yaze_test {
-namespace rom_test {
 
 using yaze::app::Rom;
 
@@ -18,5 +17,4 @@ TEST_F(RomTest, RomTest) {
   EXPECT_EQ(rom_.data(), nullptr);
 }
 
-}  // namespace rom_test
 }  // namespace yaze_test

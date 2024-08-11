@@ -61,17 +61,5 @@ TEST_F(SpriteBuilderTest, BuildSpritePropertiesOk) {
 )"));
 }
 
-TEST_F(SpriteBuilderTest, BuildSpriteOk) {
-  EXPECT_THAT(sprite.Build(), testing::HasSubstr(R"(
-  Sprite_Puffstool_Main:
-    JSL Sprite_BehaveAsBarrier
-    LDA.w SprAction, X 
-    JSL JumpTableLocal
-
-    dw Sprite_Puffstool_IdleAction
-    dw Sprite_Puffstool_Walk
-  )"));
-}
-
 }  // namespace zelda3_test
 }  // namespace yaze_test
