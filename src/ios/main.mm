@@ -1,5 +1,5 @@
 // yaze iOS Application
-// Uses SDL2, ImGui and Metal 
+// Uses SDL2 and ImGui
 
 #import <Foundation/Foundation.h>
 
@@ -28,9 +28,9 @@
 #include "imgui/backends/imgui_impl_metal.h"
 #include "imgui/imgui.h"
 
-//-----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // AppViewController
-//-----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 @implementation AppViewController
 
@@ -61,14 +61,14 @@
   SDL_SetMainReady();
   SDL_iOSSetEventPump(SDL_TRUE);
   int argc = NSProcessInfo.processInfo.arguments.count;
-  char** argv = new char*[argc];
+  char **argv = new char *[argc];
   for (int i = 0; i < argc; i++) {
-    NSString* arg = NSProcessInfo.processInfo.arguments[i];
-    const char* cString = [arg UTF8String];
+    NSString *arg = NSProcessInfo.processInfo.arguments[i];
+    const char *cString = [arg UTF8String];
     argv[i] = new char[strlen(cString) + 1];
     strcpy(argv[i], cString);
   }
-  
+
   std::string rom_filename = "";
   if (argc > 0) {
     rom_filename = argv[0];
@@ -95,18 +95,23 @@
     abort();
   }
   _controller->SetupScreen(rom_filename);
-  
-  _hoverGestureRecognizer = [[UIHoverGestureRecognizer alloc] initWithTarget:self action:@selector(hoverGesture:)];
+
+  _hoverGestureRecognizer =
+      [[UIHoverGestureRecognizer alloc] initWithTarget:self action:@selector(HoverGesture:)];
   [self.view addGestureRecognizer:_hoverGestureRecognizer];
-  
-  _pinchRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(handlePinch:)];
+
+  _pinchRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self
+                                                               action:@selector(HandlePinch:)];
   [self.view addGestureRecognizer:_pinchRecognizer];
 
-  _longPressRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPress:)];
+  _longPressRecognizer =
+      [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPress:)];
   [self.view addGestureRecognizer:_longPressRecognizer];
 
-  _swipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipe:)];
-  _swipeRecognizer.direction = UISwipeGestureRecognizerDirectionRight | UISwipeGestureRecognizerDirectionLeft;
+  _swipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self
+                                                               action:@selector(HandleSwipe:)];
+  _swipeRecognizer.direction =
+      UISwipeGestureRecognizerDirectionRight | UISwipeGestureRecognizerDirectionLeft;
   [self.view addGestureRecognizer:_swipeRecognizer];
   return self;
 }
@@ -170,9 +175,9 @@
 - (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size {
 }
 
-//-----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Input processing
-//-----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 #if TARGET_OS_OSX
 
@@ -194,7 +199,7 @@
 // multitouch correctly at all. This causes the "cursor" to behave very erratically
 // when there are multiple active touches. But for demo purposes, single-touch
 // interaction actually works surprisingly well.
-- (void)updateIOWithTouchEvent:(UIEvent *)event {
+- (void)UpdateIOWithTouchEvent:(UIEvent *)event {
   UITouch *anyTouch = event.allTouches.anyObject;
   CGPoint touchLocation = [anyTouch locationInView:self.view];
   ImGuiIO &io = ImGui::GetIO();
@@ -209,61 +214,61 @@
     }
   }
   io.AddMouseButtonEvent(0, hasActiveTouch);
-
 }
 
-- (void)hoverGesture:(UIHoverGestureRecognizer *)gesture {
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+  [self UpdateIOWithTouchEvent:event];
+}
+- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+  [self UpdateIOWithTouchEvent:event];
+}
+- (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+  [self UpdateIOWithTouchEvent:event];
+}
+- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+  [self UpdateIOWithTouchEvent:event];
+}
+
+- (void)HoverGesture:(UIHoverGestureRecognizer *)gesture {
   ImGuiIO &io = ImGui::GetIO();
   io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
   // Cast to UIGestureRecognizer to UIGestureRecognizer to get locationInView
   UIGestureRecognizer *gestureRecognizer = (UIGestureRecognizer *)gesture;
   if (gesture.zOffset < 0.50) {
-    io.AddMousePosEvent([gestureRecognizer locationInView:self.view].x, [gestureRecognizer locationInView:self.view].y);
+    io.AddMousePosEvent([gestureRecognizer locationInView:self.view].x,
+                        [gestureRecognizer locationInView:self.view].y);
   }
 }
 
-- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-  [self updateIOWithTouchEvent:event];
-}
-- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-  [self updateIOWithTouchEvent:event];
-}
-- (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-  [self updateIOWithTouchEvent:event];
-}
-- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-  [self updateIOWithTouchEvent:event];
+- (void)HandlePinch:(UIPinchGestureRecognizer *)gesture {
+  ImGuiIO &io = ImGui::GetIO();
+  io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
+  io.AddMouseWheelEvent(0.0f, gesture.scale);
 }
 
-- (void)handlePinch:(UIPinchGestureRecognizer *)gesture {
-    ImGuiIO &io = ImGui::GetIO();
-    io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
-    io.AddMouseWheelEvent(0.0f, gesture.scale);
-}
-
-- (void)handleSwipe:(UISwipeGestureRecognizer *)gesture {
-    ImGuiIO &io = ImGui::GetIO();
-    io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
-    if (gesture.direction == UISwipeGestureRecognizerDirectionRight) {
-        io.AddMouseWheelEvent(1.0f, 0.0f);  // Swipe Right
-    } else if (gesture.direction == UISwipeGestureRecognizerDirectionLeft) {
-        io.AddMouseWheelEvent(-1.0f, 0.0f);  // Swipe Left
-    }
+- (void)HandleSwipe:(UISwipeGestureRecognizer *)gesture {
+  ImGuiIO &io = ImGui::GetIO();
+  io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
+  if (gesture.direction == UISwipeGestureRecognizerDirectionRight) {
+    io.AddMouseWheelEvent(1.0f, 0.0f);  // Swipe Right
+  } else if (gesture.direction == UISwipeGestureRecognizerDirectionLeft) {
+    io.AddMouseWheelEvent(-1.0f, 0.0f);  // Swipe Left
+  }
 }
 
 - (void)handleLongPress:(UILongPressGestureRecognizer *)gesture {
-    ImGuiIO &io = ImGui::GetIO();
-    io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
-    io.AddMouseButtonEvent(1, gesture.state == UIGestureRecognizerStateBegan);
+  ImGuiIO &io = ImGui::GetIO();
+  io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
+  io.AddMouseButtonEvent(1, gesture.state == UIGestureRecognizerStateBegan);
 }
 
 #endif
 
 @end
 
-//-----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // AppDelegate
-//-----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 #if TARGET_OS_OSX
 
@@ -316,7 +321,7 @@
   SDL_Quit();
 }
 
-- (void)presentDocumentPickerWithCompletionHandler:
+- (void)PresentDocumentPickerWithCompletionHandler:
     (void (^)(NSString *selectedFile))completionHandler {
   self.completionHandler = completionHandler;
 
@@ -339,7 +344,7 @@
       self.completionHandler(selectedFileURL.path);
       std::string fileName = std::string([selectedFileURL.path UTF8String]);
 
-      // Extract the data from the file 
+      // Extract the data from the file
       [selectedFileURL startAccessingSecurityScopedResource];
 
       auto data = [NSData dataWithContentsOfURL:selectedFileURL];
@@ -347,12 +352,12 @@
       uchar *bytes = (uchar *)[data bytes];
       // Size of the data
       size_t size = [data length];
-      
+
       PRINT_IF_ERROR(yaze::app::SharedRom::shared_rom_->LoadFromPointer(bytes, size));
       std::string filename = std::string([selectedFileURL.path UTF8String]);
       yaze::app::SharedRom::shared_rom_->set_filename(filename);
       [selectedFileURL stopAccessingSecurityScopedResource];
-    
+
     } else {
       self.completionHandler(@"");
     }
@@ -373,9 +378,9 @@
 
 #endif
 
-//-----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Application main() function
-//-----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 #if TARGET_OS_OSX
 int main(int argc, const char *argv[]) { return NSApplicationMain(argc, argv); }

@@ -15,8 +15,8 @@
 
 @property  UIDocumentPickerViewController *documentPicker;
 @property (nonatomic, copy) void (^completionHandler)(NSString *selectedFile);
+- (void)PresentDocumentPickerWithCompletionHandler:(void (^)(NSString *selectedFile))completionHandler;
 
-- (void)presentDocumentPickerWithCompletionHandler:(void (^)(NSString *selectedFile))completionHandler;
 
 @end
 

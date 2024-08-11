@@ -22,7 +22,7 @@ static std::string selectedFile;
 
 void ShowOpenFileDialogImpl(void (^completionHandler)(std::string)) {
   AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
-  [appDelegate presentDocumentPickerWithCompletionHandler:^(NSString *filePath) {
+  [appDelegate PresentDocumentPickerWithCompletionHandler:^(NSString *filePath) {
     selectedFile = std::string([filePath UTF8String]);
     completionHandler(selectedFile);
   }];
@@ -34,11 +34,6 @@ std::string ShowOpenFileDialogSync() {
   ShowOpenFileDialogImpl(^(std::string filePath) {
     result = filePath;
   });
-
-  // Check if the documentPicker is done
-  //  while (result.empty()) {
-  //    [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
-  //  }
 
   return result;
 }
