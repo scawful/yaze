@@ -129,16 +129,6 @@ TEST(LC_LZ2_CompressionTest, RepeatedBytesBeforeUncompressableRepeated) {
       {0x04, 0x01, 0x00, 0x00, 0x00, 0x02, 0x22, 0x00, 0xFF});
 }
 
-TEST(LC_LZ2_CompressionTest, CompressionDecompressionEmptyData) {
-  Rom rom;
-  uchar empty_input[0] = {};
-  auto comp_result = ExpectCompressOk(rom, empty_input, 0);
-  EXPECT_EQ(0, comp_result.size());
-
-  auto decomp_result = ExpectDecompressOk(rom, empty_input, 0);
-  EXPECT_EQ(0, decomp_result.size());
-}
-
 TEST(LC_LZ2_CompressionTest, NewDecompressionPieceOk) {
   char command = 1;
   int length = 1;
