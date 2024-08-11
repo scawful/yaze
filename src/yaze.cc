@@ -6,10 +6,11 @@
 #include "app/zelda3/overworld/overworld.h"
 
 void yaze_check_version(const char* version) {
+  printf("Yaze version: %s\n", version);
   auto version_check = yaze::app::core::CheckVersion(version);
   if (!version_check.ok()) {
     // Print the error message to the console for a pure C interface.
-    printf("%s\n", version_check.status().message().c_str());
+    printf("%s\n", version_check.status().message().data());
     // Exit the program if the version check fails.
     exit(1);
   }

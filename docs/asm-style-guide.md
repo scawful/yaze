@@ -206,7 +206,7 @@ AncillaAdd_Hookshot:
 - **Logical Grouping**: Organize code into logical sections, with related routines and macros grouped together.
 - **Separation of Concerns**: Ensure that each section of code is responsible for a specific task or set of related tasks, avoiding tightly coupled code.
 - **Modularity**: Write code in a modular way, making it easier to reuse and maintain.
-- **Status Registers**: Indent code blocks when using status register operations (PHX, PLX, etc.) to improve readability.
+- **Status Registers and Stack Operations**: Indent code blocks when using status register operations (REP, SEP, PHX, PLX, etc.) to improve readability.
 
 Example:
 
@@ -221,6 +221,10 @@ Sprite_Minecart_Main:
     PHX
       JSR HandleMinecartMovement
     PLX
+
+    REP #$20
+      LDA !SpriteDirection : STA $00
+    SEP #$20
     RTS
 }
 ```
