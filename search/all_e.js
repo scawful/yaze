@@ -3,7 +3,7 @@ var searchData=
   ['f32_5fto_5fint8_5fsat_0',['F32_TO_INT8_SAT',['../palette__editor_8cc.html#ad2559c98ebd96ce5373e91ebc28f455a',1,'palette_editor.cc']]],
   ['fast_5fmem_5f_1',['fast_mem_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a78edf487e8006eab83dfef045cee66e4',1,'yaze::app::emu::SNES']]],
   ['fast_5from_2',['FAST_ROM',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#af9424b79590fad583d381935a03cb4b9a93364bc7d2865bb7cd3a8a79628315af',1,'yaze::app::emu::memory']]],
-  ['features_3',['Supported Features',['../index.html#autotoc_md39',1,'']]],
+  ['features_3',['Supported Features',['../index.html#autotoc_md40',1,'']]],
   ['feedbackvolume_4',['feedbackVolume',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a5341fdff49c7f45daacd5716fa0f8b24',1,'yaze::app::emu::audio::Dsp']]],
   ['fetchlargemaps_5',['FetchLargeMaps',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a7833a69e0cdbd2004285a7a57b1c7bea',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['fetchsubtypeinfo_6',['FetchSubtypeInfo',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a362da1288267fc7ce4ca6db3d141156a',1,'yaze::app::zelda3::dungeon::DungeonObjectRenderer']]],

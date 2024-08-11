@@ -155,7 +155,7 @@ var searchData=
   ['time_5fover_5f_152',['time_over_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ae84934679c5846cbb036d2105019ddb6',1,'yaze::app::emu::video::Ppu']]],
   ['timer_153',['Timer',['../structyaze_1_1app_1_1emu_1_1audio_1_1Timer.html',1,'yaze::app::emu::audio::Timer'],['../namespaceyaze_1_1app_1_1emu_1_1audio.html#a041af507339a504688fac0dd100cd4e7',1,'yaze::app::emu::audio::Timer']]],
   ['timer_5f_154',['timer_',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a7987d0d775127223c65b8aa60d0a3776',1,'yaze::app::emu::audio::Apu']]],
-  ['tips_155',['General Tips',['../index.html#autotoc_md40',1,'']]],
+  ['tips_155',['General Tips',['../index.html#autotoc_md39',1,'']]],
   ['title_156',['title',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#ac934bc7cda01326ea78351395ec47c9d',1,'yaze::app::emu::memory::RomInfo::title'],['../structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a43e594271673fbb84233a89f7ad2954b',1,'yaze::app::gui::zeml::WidgetAttributes::title'],['../classyaze_1_1app_1_1Rom.html#aa0a63ed3d9bfbe780f45f1b063c4fc98',1,'yaze::app::Rom::title() const']]],
   ['title_5f_157',['title_',['../classyaze_1_1app_1_1Rom.html#a096e8cffa319074595dbccc5c68d9614',1,'yaze::app::Rom']]],
   ['title_5fscreen_2ecc_158',['title_screen.cc',['../title__screen_8cc.html',1,'']]],

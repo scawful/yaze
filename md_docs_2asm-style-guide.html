@@ -256,35 +256,38 @@ Data Structures</h1>
 <div class="line">  .offset_x: skip 8</div>
 <div class="line">endstruct</div>
 <div class="line"> </div>
-<div class="line">...</div>
-<div class="line"> </div>
 <div class="line">AncillaAdd_Hookshot:</div>
-<div class="line">.speed_y</div>
-<div class="line">  #_099AF8: db -64 ; up</div>
-<div class="line">  #_099AF9: db  64 ; down</div>
-<div class="line">  #_099AFA: db   0 ; left</div>
-<div class="line">  #_099AFB: db   0 ; right</div>
-<div class="line">.speed_x</div>
-<div class="line">  #_099AFC: db   0 ; up</div>
-<div class="line">  #_099AFD: db   0 ; down</div>
-<div class="line">  #_099AFE: db -64 ; left</div>
-<div class="line">  #_099AFF: db  64 ; right</div>
-<div class="line">.offset_y</div>
-<div class="line">  #_099B00: dw   4 ; up</div>
-<div class="line">  #_099B02: dw  20 ; down</div>
-<div class="line">  #_099B04: dw   8 ; left</div>
-<div class="line">  #_099B06: dw   8 ; right</div>
-<div class="line">.offset_x</div>
-<div class="line">  #_099B08: dw   0 ; up</div>
-<div class="line">  #_099B0A: dw   0 ; down</div>
-<div class="line">  #_099B0C: dw  -4 ; left</div>
-<div class="line">  #_099B0E: dw  11 ; right</div>
+<div class="line">  ; $099AF0</div>
+<div class="line">  .speed_y</div>
+<div class="line">  db -64 ; up</div>
+<div class="line">  db  64 ; down</div>
+<div class="line">  db   0 ; left</div>
+<div class="line">  db   0 ; right</div>
+<div class="line">  ; $099AFC</div>
+<div class="line">  .speed_x</div>
+<div class="line">  db   0 ; up</div>
+<div class="line">  db   0 ; down</div>
+<div class="line">  db -64 ; left</div>
+<div class="line">  db  64 ; right</div>
+<div class="line">  ; $099B00</div>
+<div class="line">  .offset_y</div>
+<div class="line">  dw   4 ; up</div>
+<div class="line">  dw  20 ; down</div>
+<div class="line">  dw   8 ; left</div>
+<div class="line">  dw   8 ; right</div>
+<div class="line">  ; $099B08</div>
+<div class="line">  .offset_x</div>
+<div class="line">  dw   0 ; up</div>
+<div class="line">  dw   0 ; down</div>
+<div class="line">  dw  -4 ; left</div>
+<div class="line">  dw  11 ; right</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md10"></a>
 Code Organization</h1>
 <ul>
 <li><b>Logical Grouping</b>: Organize code into logical sections, with related routines and macros grouped together.</li>
 <li><b>Separation of Concerns</b>: Ensure that each section of code is responsible for a specific task or set of related tasks, avoiding tightly coupled code.</li>
 <li><b>Modularity</b>: Write code in a modular way, making it easier to reuse and maintain.</li>
+<li><b>Status Registers</b>: Indent code blocks when using status register operations (PHX, PLX, etc.) to improve readability.</li>
 </ul>
 <p>Example:</p>
 <div class="fragment"><div class="line">; =========================================================</div>
@@ -294,6 +297,9 @@ Code Organization</h1>
 <div class="line">{</div>
 <div class="line">    JSR HandleTileDirections</div>
 <div class="line">    JSR HandleDynamicSwitchTileDirections</div>
+<div class="line">    PHX</div>
+<div class="line">      JSR HandleMinecartMovement</div>
+<div class="line">    PLX</div>
 <div class="line">    RTS</div>
 <div class="line">}</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md11"></a>

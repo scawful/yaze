@@ -10,7 +10,7 @@ var searchData=
   ['game_5fx_5f_7',['game_x_',['../classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a3f02e182efd8ed7a87214b81a811da96',1,'yaze::app::zelda3::OverworldEntity']]],
   ['game_5fy_8',['game_y',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldItem.html#af2326f0b05525b18581c2d6f7226290b',1,'yaze::app::zelda3::overworld::OverworldItem']]],
   ['game_5fy_5f_9',['game_y_',['../classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a2a68113a53f6a08947dbea06de02b9fc',1,'yaze::app::zelda3::OverworldEntity']]],
-  ['general_20tips_10',['General Tips',['../index.html#autotoc_md40',1,'']]],
+  ['general_20tips_10',['General Tips',['../index.html#autotoc_md39',1,'']]],
   ['general_5fscreen_5fmode_11',['general_screen_mode',['../structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#ab2615c0068251aa6b5481ca6bb91c345',1,'yaze::app::emu::video::ScreenMode']]],
   ['generictoken_12',['GenericToken',['../structyaze_1_1app_1_1editor_1_1TextElement.html#a0330075e944c117a8df77a8db72bbcbd',1,'yaze::app::editor::TextElement']]],
   ['get_13',['get',['../classyaze_1_1app_1_1core_1_1NotifyValue.html#a04463e5cc23e8afb393e359c2b7389d6',1,'yaze::app::core::NotifyValue']]],
