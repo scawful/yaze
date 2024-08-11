@@ -5,6 +5,10 @@ For VSCode users, use the following CMake extensions
 - https://marketplace.visualstudio.com/items?itemName=twxs.cmake
 - https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools
 
+Yaze uses CMake to build the project. If you are unexperienced with CMake, please refer to the [CMake documentation](https://cmake.org/documentation/).
+
+The gui editor is built using SDL2 and ImGui. For reference on how to use ImGui, see the [Getting Started](https://github.com/ocornut/imgui/wiki/Getting-Started) guide. For SDL2, see the [SDL2 documentation](https://wiki.libsdl.org/).
+
 For those who want to reduce compile times, consider installing the dependencies on your system. 
 
 ## Windows
