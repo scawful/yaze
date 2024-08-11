@@ -6,11 +6,21 @@ This editor is built to be compatible with ZScream projects and is designed to b
 
 Please note that this project is currently a work in progress, and some features may not be fully implemented or may be subject to change.
 
+## General Tips
+
+- Experiment flags determine whether certain features are enabled or not. To change your flags, go to File -> Options -> Experiment Flags or in the Settings tab.
+- Backup files are enabled by default. Each save will produce a timestamped copy of your ROM before you last saved. You can disable this feature in the settings.
+
 ## Supported Features 
 
 | Feature | Status | Details |
 |---------|--------|-------------|
-| Overworld | In Progress | Save overworld maps, entrances, exits, items, properties. |
+| Overworld Maps | Done | Edit and save tile32 data. |
+| Overworld Map Properties | Done | Edit and save map properties. |
+| Overworld Entrances | Done | Edit and save entrance data. |
+| Overworld Exits | Done | Edit and save exit data. |
+| Overworld Sprites | In Progress | Edit sprite positions, add and remove sprites. |
+| Tile16 Editing | Todo | Edit and save tile16 data. |
 | Dungeon | In Progress | View dungeon room metadata and edit room data. |
 | Palette | In Progress | Edit and save palettes, palette groups. |
 | Graphics Sheets | In Progress | Edit and save graphics sheets. |
@@ -22,11 +32,6 @@ Please note that this project is currently a work in progress, and some features
 | Scad Format | Done-ish | Open and view scad files (SCR, CGX, COL) |
 | Hex Editing | Done | View and edit ROM data in hex. |
 | Asar Patching | In Progress | Apply Asar patches to your ROM or Project. |
-
-## General Tips
-
-- Experiment flags determine whether certain features are enabled or not. To change your flags, go to File -> Options -> Experiment Flags or in the Settings tab.
-- Backup files are enabled by default. Each save will produce a timestamped copy of your ROM before you last saved. You can disable this feature in the settings.
 
 ## z3ed cli
 
