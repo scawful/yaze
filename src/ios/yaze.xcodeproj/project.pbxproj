@@ -73,11 +73,6 @@
 		E318D9262C59C08300091322 /* sprite_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D87A2C59C08300091322 /* sprite_editor.cc */; };
 		E318D9272C59C08300091322 /* gfx_context.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8802C59C08300091322 /* gfx_context.cc */; };
 		E318D9282C59C08300091322 /* gfx_context.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8802C59C08300091322 /* gfx_context.cc */; };
-		E318D92C2C59C08300091322 /* master_editor_test.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8862C59C08300091322 /* master_editor_test.cc */; };
-		E318D92D2C59C08300091322 /* master_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8872C59C08300091322 /* master_editor.cc */; };
-		E318D92E2C59C08300091322 /* master_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8872C59C08300091322 /* master_editor.cc */; };
-		E318D92F2C59C08300091322 /* overworld_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8892C59C08300091322 /* overworld_editor.cc */; };
-		E318D9302C59C08300091322 /* overworld_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8892C59C08300091322 /* overworld_editor.cc */; };
 		E318D9312C59C08300091322 /* settings_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D88B2C59C08300091322 /* settings_editor.cc */; };
 		E318D9322C59C08300091322 /* settings_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D88B2C59C08300091322 /* settings_editor.cc */; };
 		E318D9332C59C08300091322 /* addressing.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D88E2C59C08300091322 /* addressing.cc */; };
@@ -747,6 +742,8 @@
 		E318E87B2C605D5700091322 /* SDL2.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = E318E8572C5D74B700091322 /* SDL2.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		E318E87F2C609B3500091322 /* PencilKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E318E87E2C609B3500091322 /* PencilKit.framework */; };
 		E34C789C2C5882A100A6C275 /* imgui_tables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5079822D257677DB0038A28D /* imgui_tables.cpp */; };
+		E3BE958D2C68379B008DD1E7 /* editor_manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE958B2C68379B008DD1E7 /* editor_manager.cc */; };
+		E3BE95902C6837C8008DD1E7 /* overworld_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE958F2C6837C8008DD1E7 /* overworld_editor.cc */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -924,11 +921,6 @@
 		E318D8812C59C08300091322 /* gfx_context.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gfx_context.h; sourceTree = "<group>"; };
 		E318D8822C59C08300091322 /* keyboard_shortcuts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = keyboard_shortcuts.h; sourceTree = "<group>"; };
 		E318D8832C59C08300091322 /* recent_files.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = recent_files.h; sourceTree = "<group>"; };
-		E318D8862C59C08300091322 /* master_editor_test.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = master_editor_test.cc; sourceTree = "<group>"; };
-		E318D8872C59C08300091322 /* master_editor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = master_editor.cc; sourceTree = "<group>"; };
-		E318D8882C59C08300091322 /* master_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = master_editor.h; sourceTree = "<group>"; };
-		E318D8892C59C08300091322 /* overworld_editor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = overworld_editor.cc; sourceTree = "<group>"; };
-		E318D88A2C59C08300091322 /* overworld_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = overworld_editor.h; sourceTree = "<group>"; };
 		E318D88B2C59C08300091322 /* settings_editor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = settings_editor.cc; sourceTree = "<group>"; };
 		E318D88C2C59C08300091322 /* settings_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = settings_editor.h; sourceTree = "<group>"; };
 		E318D88E2C59C08300091322 /* addressing.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = addressing.cc; sourceTree = "<group>"; };
@@ -1018,7 +1010,6 @@
 		E318D8F62C59C08300091322 /* rom.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = rom.cc; sourceTree = "<group>"; };
 		E318D8F72C59C08300091322 /* rom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rom.h; sourceTree = "<group>"; };
 		E318D8F82C59C08300091322 /* yaze.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yaze.cc; sourceTree = "<group>"; };
-		E318D8F92C59C08300091322 /* yaze.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yaze.h; sourceTree = "<group>"; };
 		E318D98B2C59CBBB00091322 /* TextEditor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextEditor.cpp; path = ../../yaze/src/lib/ImGuiColorTextEdit/TextEditor.cpp; sourceTree = "<group>"; };
 		E318D98C2C59CBBB00091322 /* TextEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextEditor.h; path = ../../yaze/src/lib/ImGuiColorTextEdit/TextEditor.h; sourceTree = "<group>"; };
 		E318D9942C59CDF800091322 /* imgui_impl_sdl2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = imgui_impl_sdl2.cpp; sourceTree = "<group>"; };
@@ -2418,11 +2409,16 @@
 		E318E8112C5B24CD00091322 /* MaterialIcons-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "MaterialIcons-Regular.ttf"; sourceTree = "<group>"; };
 		E318E8122C5B24CD00091322 /* NotoSansJP.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = NotoSansJP.ttf; sourceTree = "<group>"; };
 		E318E8332C5BD8C000091322 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.5.sdk/System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = DEVELOPER_DIR; };
-		E318E8352C5C4DCD00091322 /* app_view_controller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = app_view_controller.h; sourceTree = "<group>"; };
 		E318E8492C5D74B700091322 /* SDL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL.xcodeproj; path = ../lib/SDL/Xcode/SDL/SDL.xcodeproj; sourceTree = "<group>"; };
 		E318E8762C5D949200091322 /* yaze.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = yaze.png; sourceTree = "<group>"; };
 		E318E8782C5D958400091322 /* Media.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Media.xcassets; sourceTree = "<group>"; };
 		E318E87E2C609B3500091322 /* PencilKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PencilKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.5.sdk/System/Library/Frameworks/PencilKit.framework; sourceTree = DEVELOPER_DIR; };
+		E38985002C67082800D4CF13 /* renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = renderer.h; sourceTree = "<group>"; };
+		E38985012C67CDDB00D4CF13 /* view_controller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = view_controller.h; sourceTree = "<group>"; };
+		E3BE958B2C68379B008DD1E7 /* editor_manager.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = editor_manager.cc; sourceTree = "<group>"; };
+		E3BE958C2C68379B008DD1E7 /* editor_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = editor_manager.h; sourceTree = "<group>"; };
+		E3BE958E2C6837C8008DD1E7 /* overworld_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = overworld_editor.h; sourceTree = "<group>"; };
+		E3BE958F2C6837C8008DD1E7 /* overworld_editor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = overworld_editor.cc; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2552,7 +2548,8 @@
 		E318D8512C59C08300091322 /* platform */ = {
 			isa = PBXGroup;
 			children = (
-				E318E8352C5C4DCD00091322 /* app_view_controller.h */,
+				E38985012C67CDDB00D4CF13 /* view_controller.h */,
+				E38985002C67082800D4CF13 /* renderer.h */,
 				E318E7F72C5A8DE200091322 /* file_path.h */,
 				E318E7F82C5A8DE200091322 /* file_path.mm */,
 				E318D8472C59C08300091322 /* app_delegate.h */,
@@ -2645,6 +2642,8 @@
 		E318D8792C59C08300091322 /* overworld */ = {
 			isa = PBXGroup;
 			children = (
+				E3BE958F2C6837C8008DD1E7 /* overworld_editor.cc */,
+				E3BE958E2C6837C8008DD1E7 /* overworld_editor.h */,
 				E318D8762C59C08300091322 /* entity.cc */,
 				E318D8772C59C08300091322 /* entity.h */,
 				E318D8782C59C08300091322 /* refresh.cc */,
@@ -2686,11 +2685,8 @@
 				E318D8792C59C08300091322 /* overworld */,
 				E318D87D2C59C08300091322 /* sprite */,
 				E318D8842C59C08300091322 /* utils */,
-				E318D8862C59C08300091322 /* master_editor_test.cc */,
-				E318D8872C59C08300091322 /* master_editor.cc */,
-				E318D8882C59C08300091322 /* master_editor.h */,
-				E318D8892C59C08300091322 /* overworld_editor.cc */,
-				E318D88A2C59C08300091322 /* overworld_editor.h */,
+				E3BE958B2C68379B008DD1E7 /* editor_manager.cc */,
+				E3BE958C2C68379B008DD1E7 /* editor_manager.h */,
 				E318D88B2C59C08300091322 /* settings_editor.cc */,
 				E318D88C2C59C08300091322 /* settings_editor.h */,
 			);
@@ -2917,7 +2913,6 @@
 				E318D8F62C59C08300091322 /* rom.cc */,
 				E318D8F72C59C08300091322 /* rom.h */,
 				E318D8F82C59C08300091322 /* yaze.cc */,
-				E318D8F92C59C08300091322 /* yaze.h */,
 			);
 			name = app;
 			path = ../app;
@@ -5407,6 +5402,7 @@
 				E318E2352C5A4FC300091322 /* time_zone_libc.cc in Sources */,
 				E318E1B72C5A4FC200091322 /* cord_analysis.cc in Sources */,
 				E318D8FD2C59C08300091322 /* clipboard.cc in Sources */,
+				E3BE958D2C68379B008DD1E7 /* editor_manager.cc in Sources */,
 				E318D9072C59C08300091322 /* common.cc in Sources */,
 				E318D96D2C59C08300091322 /* object_renderer.cc in Sources */,
 				E318DFFD2C5A4FBF00091322 /* stacktrace_emscripten-inl.inc in Sources */,
@@ -5420,6 +5416,7 @@
 				E318DF552C5A4FBE00091322 /* spinlock_wait.cc in Sources */,
 				E318D90D2C59C08300091322 /* assembly_editor.cc in Sources */,
 				E318D9152C59C08300091322 /* palette_editor.cc in Sources */,
+				E3BE95902C6837C8008DD1E7 /* overworld_editor.cc in Sources */,
 				E318E0AB2C5A4FC000091322 /* exponential_biased.cc in Sources */,
 				E318D9232C59C08300091322 /* refresh.cc in Sources */,
 				E318D9332C59C08300091322 /* addressing.cc in Sources */,
@@ -5468,7 +5465,6 @@
 				E318E1ED2C5A4FC200091322 /* str_split.cc in Sources */,
 				E318E7BB2C5A548C00091322 /* pngrtran.c in Sources */,
 				E318D9352C59C08300091322 /* instructions.cc in Sources */,
-				E318D92D2C59C08300091322 /* master_editor.cc in Sources */,
 				E318E0ED2C5A4FC000091322 /* randen.cc in Sources */,
 				E318E7052C5A4FC900091322 /* clock.cc in Sources */,
 				E318DFA72C5A4FBE00091322 /* hashtablez_sampler.cc in Sources */,
@@ -5494,7 +5490,6 @@
 				E318E1872C5A4FC100091322 /* cordz_sample_token.cc in Sources */,
 				E318DF4D2C5A4FBE00091322 /* spinlock_akaros.inc in Sources */,
 				E318E1B32C5A4FC200091322 /* charconv.cc in Sources */,
-				E318D92F2C59C08300091322 /* overworld_editor.cc in Sources */,
 				E318E1612C5A4FC100091322 /* cord_internal.cc in Sources */,
 				E318DF4B2C5A4FBE00091322 /* scoped_set_env.cc in Sources */,
 				E318E7232C5A4FC900091322 /* bad_any_cast.cc in Sources */,
@@ -5667,7 +5662,6 @@
 				E318E0622C5A4FBF00091322 /* usage_config_test.cc in Sources */,
 				E318D91C2C59C08300091322 /* message_editor_test.cc in Sources */,
 				E318E6FE2C5A4FC900091322 /* civil_time_test.cc in Sources */,
-				E318D92E2C59C08300091322 /* master_editor.cc in Sources */,
 				E318E1EC2C5A4FC200091322 /* str_split_test.cc in Sources */,
 				E318E70C2C5A4FC900091322 /* duration_test.cc in Sources */,
 				E318E7AE2C5A548C00091322 /* png.c in Sources */,
@@ -5869,7 +5863,6 @@
 				E318DFDA2C5A4FBF00091322 /* node_hash_map_test.cc in Sources */,
 				E318D9022C59C08300091322 /* file_dialog.mm in Sources */,
 				E318E73A2C5A4FC900091322 /* variant_test.cc in Sources */,
-				E318D9302C59C08300091322 /* overworld_editor.cc in Sources */,
 				E318D96E2C59C08300091322 /* object_renderer.cc in Sources */,
 				E318E1142C5A4FC100091322 /* gaussian_distribution.cc in Sources */,
 				E318E1F22C5A4FC200091322 /* string_view_test.cc in Sources */,
@@ -5877,7 +5870,6 @@
 				E318D9102C59C08300091322 /* dungeon_editor.cc in Sources */,
 				8309BDA8253CCC080045E2A1 /* main.mm in Sources */,
 				E318E1242C5A4FC100091322 /* seed_sequences.cc in Sources */,
-				E318D92C2C59C08300091322 /* master_editor_test.cc in Sources */,
 				E318D9562C59C08300091322 /* compression.cc in Sources */,
 				E318E7BA2C5A548C00091322 /* pngrio.c in Sources */,
 				E318DFD02C5A4FBF00091322 /* flat_hash_map_test.cc in Sources */,

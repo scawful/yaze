@@ -12,6 +12,9 @@ extern "C" {
 #include "base/snes_color.h"
 #include "base/sprite.h"
 
+typedef struct ImGuiContext ImGuiContext;
+typedef struct ImGuiIO ImGuiIO;
+
 typedef struct z3_rom z3_rom;
 typedef struct yaze_flags yaze_flags;
 typedef struct yaze_project yaze_project;
