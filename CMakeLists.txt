@@ -35,7 +35,6 @@ include(cmake/absl.cmake)
 include(cmake/sdl2.cmake)
 
 # Asar 
-add_subdirectory(src/lib/asar/src)
 include(cmake/asar.cmake)
 
 # ImGui
