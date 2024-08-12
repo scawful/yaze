@@ -118,7 +118,7 @@ class FileDialogWrapper {
   }
 };
 
-#elif defined(__APPLE__)
+#else
 
 #include <string>
 #include <vector>
@@ -133,8 +133,6 @@ class FileDialogWrapper {
       const std::string& folder_path);
 };
 
-#else
-#error "Unsupported platform."
 #endif
 
 #endif  // YAZE_APP_CORE_PLATFORM_FILE_DIALOG_H
