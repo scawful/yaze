@@ -1,4 +1,6 @@
 # Asar Assembler for 65816 SNES Assembly
+add_subdirectory(src/lib/asar/src)
+
 set(ASAR_GEN_EXE OFF)
 set(ASAR_GEN_DLL ON)
 set(ASAR_GEN_LIB ON)
