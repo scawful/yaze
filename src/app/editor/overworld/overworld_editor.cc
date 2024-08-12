@@ -93,7 +93,7 @@ absl::Status OverworldEditor::Update() {
   status_ = absl::OkStatus();
   if (rom()->is_loaded() && !all_gfx_loaded_) {
     RETURN_IF_ERROR(tile16_editor_.InitBlockset(
-        &tile16_blockset_bmp_, current_gfx_bmp_, tile16_individual_,
+        tile16_blockset_bmp_, current_gfx_bmp_, tile16_individual_,
         *overworld_.mutable_all_tiles_types()));
     gfx_group_editor_.InitBlockset(&tile16_blockset_bmp_);
     RETURN_IF_ERROR(LoadEntranceTileTypes(*rom()));
@@ -649,7 +649,8 @@ void OverworldEditor::DrawOverworldCanvas() {
   EndChild();
 
   // Handle mouse wheel activity
-  if (ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && ImGui::IsMouseDragging(ImGuiMouseButton_Middle)) {
+  if (ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) &&
+      ImGui::IsMouseDragging(ImGuiMouseButton_Middle)) {
     ImGui::SetScrollX(ImGui::GetScrollX() + ImGui::GetIO().MouseWheelH * 16.0f);
     ImGui::SetScrollY(ImGui::GetScrollY() + ImGui::GetIO().MouseWheel * 16.0f);
   }
