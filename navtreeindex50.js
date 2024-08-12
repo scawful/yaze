@@ -1,5 +1,16 @@
 var NAVTREEINDEX50 =
 {
+"structyaze_1_1app_1_1gfx_1_1Paletteset.html#a00ca88ba48070f05c0b514f431f84e05":[10,0,2,0,4,9,2],
+"structyaze_1_1app_1_1gfx_1_1Paletteset.html#a00ca88ba48070f05c0b514f431f84e05":[11,0,1,0,3,7,2],
+"structyaze_1_1app_1_1gfx_1_1Paletteset.html#a0a80e06e1afb298ef992e5d4ff92ef54":[10,0,2,0,4,9,5],
+"structyaze_1_1app_1_1gfx_1_1Paletteset.html#a0a80e06e1afb298ef992e5d4ff92ef54":[11,0,1,0,3,7,5],
+"structyaze_1_1app_1_1gfx_1_1Paletteset.html#a7ae1992dfafdcbfa463c58f873b0e368":[10,0,2,0,4,9,0],
+"structyaze_1_1app_1_1gfx_1_1Paletteset.html#a7ae1992dfafdcbfa463c58f873b0e368":[11,0,1,0,3,7,0],
+"structyaze_1_1app_1_1gfx_1_1Paletteset.html#a83e829e4f1a7490116c54b32c38a9e81":[10,0,2,0,4,9,6],
+"structyaze_1_1app_1_1gfx_1_1Paletteset.html#a83e829e4f1a7490116c54b32c38a9e81":[11,0,1,0,3,7,6],
+"structyaze_1_1app_1_1gfx_1_1Paletteset.html#a91a578a40c36305401a31d34533e572f":[10,0,2,0,4,9,9],
+"structyaze_1_1app_1_1gfx_1_1Paletteset.html#a91a578a40c36305401a31d34533e572f":[11,0,1,0,3,7,9],
+"structyaze_1_1app_1_1gfx_1_1Paletteset.html#a976ee6db80165948cb5926900634973c":[10,0,2,0,4,9,7],
 "structyaze_1_1app_1_1gfx_1_1Paletteset.html#a976ee6db80165948cb5926900634973c":[11,0,1,0,3,7,7],
 "structyaze_1_1app_1_1gfx_1_1Paletteset.html#a9dd6fc6a7929d4ee784680448f632d3f":[10,0,2,0,4,9,3],
 "structyaze_1_1app_1_1gfx_1_1Paletteset.html#a9dd6fc6a7929d4ee784680448f632d3f":[11,0,1,0,3,7,3],
@@ -238,16 +249,5 @@ var NAVTREEINDEX50 =
 "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ac25e8b4fa6fdda74c26f600609949d70":[10,0,2,0,5,1,3,11],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ac25e8b4fa6fdda74c26f600609949d70":[11,0,1,0,4,0,3,11],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ac26b59be8f9cf9fd06239b55f5a57383":[10,0,2,0,5,1,3,0],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ac26b59be8f9cf9fd06239b55f5a57383":[11,0,1,0,4,0,3,0],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ac6ae054a393303e48b3a873b7930e866":[10,0,2,0,5,1,3,6],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ac6ae054a393303e48b3a873b7930e866":[11,0,1,0,4,0,3,6],
-"structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html":[10,0,2,0,6,6],
-"structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html":[11,0,1,0,5,5],
-"structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html#a97bc0aaeb6b020051980f6bc942f40b0":[10,0,2,0,6,6,0],
-"structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html#a97bc0aaeb6b020051980f6bc942f40b0":[11,0,1,0,5,5,0],
-"structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html#aed6936be2282202a02db2b3a20f08059":[10,0,2,0,6,6,2],
-"structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html#aed6936be2282202a02db2b3a20f08059":[11,0,1,0,5,5,2],
-"structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html#af689e4031a1d740e5f618f6af14371a0":[10,0,2,0,6,6,1],
-"structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html#af689e4031a1d740e5f618f6af14371a0":[11,0,1,0,5,5,1],
-"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData.html":[10,0,2,0,6,1,0]
+"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ac26b59be8f9cf9fd06239b55f5a57383":[11,0,1,0,4,0,3,0]
 };

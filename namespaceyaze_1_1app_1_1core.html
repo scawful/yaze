@@ -237,6 +237,12 @@ Functions</h2></td></tr>
 <tr class="separator:a2ff2ac002e5fb8bfce1316ae33e95f02"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3a09b2b310aed5efa2c537cef269660c" id="r_a3a09b2b310aed5efa2c537cef269660c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3a09b2b310aed5efa2c537cef269660c">StringReplace</a> (std::string &amp;str, const std::string &amp;from, const std::string &amp;to)</td></tr>
 <tr class="separator:a3a09b2b310aed5efa2c537cef269660c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3a5f0036423b8fed47b9c94c24ae82b7" id="r_a3a5f0036423b8fed47b9c94c24ae82b7"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3a5f0036423b8fed47b9c94c24ae82b7">LoadFile</a> (const std::string &amp;filename)</td></tr>
+<tr class="separator:a3a5f0036423b8fed47b9c94c24ae82b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a473cd82ecbb24197525abe7561f732" id="r_a1a473cd82ecbb24197525abe7561f732"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1a473cd82ecbb24197525abe7561f732">GetFileExtension</a> (const std::string &amp;filename)</td></tr>
+<tr class="separator:a1a473cd82ecbb24197525abe7561f732"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c9555d9e2a9c9a6bd57db6bcd1e98f6" id="r_a0c9555d9e2a9c9a6bd57db6bcd1e98f6"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0c9555d9e2a9c9a6bd57db6bcd1e98f6">GetFileName</a> (const std::string &amp;filename)</td></tr>
+<tr class="separator:a0c9555d9e2a9c9a6bd57db6bcd1e98f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -1231,6 +1237,64 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="labeling_8cc_source.html#l00042">42</a> of file <a class="el" href="labeling_8cc_source.html">labeling.cc</a>.</p>
+
+</div>
+</div>
+<a id="a3a5f0036423b8fed47b9c94c24ae82b7" name="a3a5f0036423b8fed47b9c94c24ae82b7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3a5f0036423b8fed47b9c94c24ae82b7">&#9670;&#160;</a></span>LoadFile()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string yaze::app::core::LoadFile </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>filename</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000002">Todo</a></b></dt><dd>Load a file based on the platform and add error handling </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="file__util_8cc_source.html#l00017">17</a> of file <a class="el" href="file__util_8cc_source.html">file_util.cc</a>.</p>
+
+</div>
+</div>
+<a id="a1a473cd82ecbb24197525abe7561f732" name="a1a473cd82ecbb24197525abe7561f732"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1a473cd82ecbb24197525abe7561f732">&#9670;&#160;</a></span>GetFileExtension()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string yaze::app::core::GetFileExtension </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>filename</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="file__util_8h_source.html#l00010">10</a> of file <a class="el" href="file__util_8h_source.html">file_util.h</a>.</p>
+
+</div>
+</div>
+<a id="a0c9555d9e2a9c9a6bd57db6bcd1e98f6" name="a0c9555d9e2a9c9a6bd57db6bcd1e98f6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c9555d9e2a9c9a6bd57db6bcd1e98f6">&#9670;&#160;</a></span>GetFileName()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string yaze::app::core::GetFileName </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>filename</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="file__util_8h_source.html#l00018">18</a> of file <a class="el" href="file__util_8h_source.html">file_util.h</a>.</p>
 
 </div>
 </div>

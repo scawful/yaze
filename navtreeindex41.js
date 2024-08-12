@@ -1,5 +1,16 @@
 var NAVTREEINDEX41 =
 {
+"namespaceyaze__test_1_1emu__test.html#a4cf2b77b424e8de6f2514358453acc2c":[10,0,3,0,87],
+"namespaceyaze__test_1_1emu__test.html#a4d0b3c45acc66fc8950ef681b95c8a0f":[10,0,3,0,151],
+"namespaceyaze__test_1_1emu__test.html#a4dea6d65a1d6e59c8143139da609e5a9":[10,0,3,0,18],
+"namespaceyaze__test_1_1emu__test.html#a4eabbbb840165c2456bd1dc315ebc61a":[10,0,3,0,12],
+"namespaceyaze__test_1_1emu__test.html#a4f20e6490067fe0754df7d6b91d01579":[10,0,3,0,88],
+"namespaceyaze__test_1_1emu__test.html#a4f4a59ee8a269b6e7b14831e98b60382":[10,0,3,0,113],
+"namespaceyaze__test_1_1emu__test.html#a4fbbaab1e4a8d90322cb68e4d128f19f":[10,0,3,0,251],
+"namespaceyaze__test_1_1emu__test.html#a4fe89662e1f7eeaf05127a9eeac9d7aa":[10,0,3,0,262],
+"namespaceyaze__test_1_1emu__test.html#a4ff573954726f863c0e8ff0450d7f482":[10,0,3,0,110],
+"namespaceyaze__test_1_1emu__test.html#a5158544e59c914b93bcf2fa703a0fd26":[10,0,3,0,274],
+"namespaceyaze__test_1_1emu__test.html#a51e705b8a46eff8731379930e42f0f44":[10,0,3,0,34],
 "namespaceyaze__test_1_1emu__test.html#a523ec1c6993bc057627178db5339747b":[10,0,3,0,19],
 "namespaceyaze__test_1_1emu__test.html#a525da6714ac2f083fcd7e75a6de6640b":[10,0,3,0,133],
 "namespaceyaze__test_1_1emu__test.html#a52b1e556a9fa85074703f8c7684a871f":[10,0,3,0,85],
@@ -238,16 +249,5 @@ var NAVTREEINDEX41 =
 "namespaceyaze__test_1_1gfx__test.html#ae65f0018ce5a591abdd29bcbccb6f567":[10,0,3,1,17],
 "namespaceyaze__test_1_1gfx__test.html#ae974a1d17ac339bb96e17521b20b73e2":[10,0,3,1,26],
 "namespaceyaze__test_1_1gfx__test.html#af0af714b430f415a2acba3539808b418":[10,0,3,1,8],
-"namespaceyaze__test_1_1gfx__test.html#af40e0d4f10bb4b9ad27af81907a9426b":[10,0,3,1,9],
-"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html":[10,0,3,1,0],
-"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a1fb9d104aaa5a98088365fc4fa9a4051":[10,0,3,1,0,6],
-"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a3c947699f1339a039d54e26a7733f959":[10,0,3,1,0,1],
-"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a459125f1e224d2a45277b3df62809a21":[10,0,3,1,0,0],
-"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a6d3877d903d4a73f31adf0e7c136aa3b":[10,0,3,1,0,5],
-"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a9a4b5c91e8f06dcd94d036e9e7935c09":[10,0,3,1,0,2],
-"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#ad321fb3042ea69a672c2435bd7440db7":[10,0,3,1,0,3],
-"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#af7d97bb47668a484667bf3236ff487d4":[10,0,3,1,0,4],
-"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html":[10,0,3,1,1],
-"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html#adf4131f02d62c5b0c5805036ea85d97a":[10,0,3,1,1,0],
-"namespaceyaze__test_1_1zelda3__test.html":[10,0,3,2]
+"namespaceyaze__test_1_1gfx__test.html#af40e0d4f10bb4b9ad27af81907a9426b":[10,0,3,1,9]
 };

@@ -45,7 +45,7 @@ var searchData=
   ['loadentrances_42',['LoadEntrances',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#ab10e3104adf4804e20a61048d1e6c45d',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['loadentrancetiletypes_43',['LoadEntranceTileTypes',['../classyaze_1_1app_1_1editor_1_1EntranceContext.html#a33e05c3134af0a0767b8f3d80dc28d9f',1,'yaze::app::editor::EntranceContext']]],
   ['loadexits_44',['LoadExits',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a63cd6d964c33e6a1c4d72a29e7caffc0',1,'yaze::app::zelda3::overworld::Overworld']]],
-  ['loadfile_45',['LoadFile',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#ab66fc494201a906e415db8cddcde2e08',1,'yaze::app::gui::zeml']]],
+  ['loadfile_45',['LoadFile',['../namespaceyaze_1_1app_1_1core.html#a3a5f0036423b8fed47b9c94c24ae82b7',1,'yaze::app::core::LoadFile()'],['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#ab66fc494201a906e415db8cddcde2e08',1,'yaze::app::gui::zeml::LoadFile()']]],
   ['loadfolder_46',['LoadFolder',['../namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html#aa24a786b26c2f9d49f09de1d3338e459',1,'yaze::app::editor::anonymous_namespace{assembly_editor.cc}']]],
   ['loadfontfamilies_47',['LoadFontFamilies',['../classyaze_1_1app_1_1core_1_1Controller.html#a303df51e1187d339e9548ea7d669df34',1,'yaze::app::core::Controller']]],
   ['loadfrombytes_48',['LoadFromBytes',['../classyaze_1_1app_1_1Rom.html#a651c07af2317f9c3206738506cad01e0',1,'yaze::app::Rom']]],

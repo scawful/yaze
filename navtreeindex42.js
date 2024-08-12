@@ -1,5 +1,16 @@
 var NAVTREEINDEX42 =
 {
+"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html":[10,0,3,1,0],
+"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a1fb9d104aaa5a98088365fc4fa9a4051":[10,0,3,1,0,6],
+"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a3c947699f1339a039d54e26a7733f959":[10,0,3,1,0,1],
+"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a459125f1e224d2a45277b3df62809a21":[10,0,3,1,0,0],
+"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a6d3877d903d4a73f31adf0e7c136aa3b":[10,0,3,1,0,5],
+"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a9a4b5c91e8f06dcd94d036e9e7935c09":[10,0,3,1,0,2],
+"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#ad321fb3042ea69a672c2435bd7440db7":[10,0,3,1,0,3],
+"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#af7d97bb47668a484667bf3236ff487d4":[10,0,3,1,0,4],
+"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html":[10,0,3,1,1],
+"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html#adf4131f02d62c5b0c5805036ea85d97a":[10,0,3,1,1,0],
+"namespaceyaze__test_1_1zelda3__test.html":[10,0,3,2],
 "namespaceyaze__test_1_1zelda3__test.html#a07b9796f775461cda7052ae6b36c00f6":[10,0,3,2,1],
 "namespaceyaze__test_1_1zelda3__test.html#a7e08f34b925fb2b5072b4356130a8e08":[10,0,3,2,2],
 "object__names_8h.html":[12,0,1,0,5,0,0],
@@ -238,16 +249,5 @@ var NAVTREEINDEX42 =
 "room__entrance_8h.html#a67911e9e26c4053ada7caa675a16f8b0":[12,0,1,0,5,0,5,35],
 "room__entrance_8h.html#a686ed6c276186e3c03818c909b9303ca":[12,0,1,0,5,0,5,13],
 "room__entrance_8h.html#a6a4bbd51a2ad5a44d7ade9526cd71440":[12,0,1,0,5,0,5,52],
-"room__entrance_8h.html#a6cf0576297d0ddf53565674217f0aaf1":[12,0,1,0,5,0,5,57],
-"room__entrance_8h.html#a6d1bf26e0df8caccda122a946e2d9a8a":[12,0,1,0,5,0,5,8],
-"room__entrance_8h.html#a6e124d3e7ba928e307aa3ffc8252f6b1":[12,0,1,0,5,0,5,28],
-"room__entrance_8h.html#a7052e10d392f1f04a527d7cd4ed6c1ae":[12,0,1,0,5,0,5,41],
-"room__entrance_8h.html#a757d5fe50c0e8590453231ebae2d0543":[12,0,1,0,5,0,5,10],
-"room__entrance_8h.html#a76e88538171e5bf5efcaa9a50dfcd217":[12,0,1,0,5,0,5,43],
-"room__entrance_8h.html#a782ca5ecdb27f03071a264ef3512a3eb":[12,0,1,0,5,0,5,15],
-"room__entrance_8h.html#a7f7e79a6411a503a3486df0d93970d7b":[12,0,1,0,5,0,5,11],
-"room__entrance_8h.html#a8a57e67b18a3e6646a95d0fffd4a162c":[12,0,1,0,5,0,5,54],
-"room__entrance_8h.html#a8e06eaadeaaf6a3f113356e792bc4180":[12,0,1,0,5,0,5,12],
-"room__entrance_8h.html#a905a50b0ad0eff4772c29bd46e99b69a":[12,0,1,0,5,0,5,6],
-"room__entrance_8h.html#a949cad52fdce6419953d2ce9620de093":[12,0,1,0,5,0,5,36]
+"room__entrance_8h.html#a6cf0576297d0ddf53565674217f0aaf1":[12,0,1,0,5,0,5,57]
 };
