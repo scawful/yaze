@@ -15,4 +15,7 @@ set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -pipe -g -feliminate-unused-debug-types --sysroot=$arm_root")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -pipe -g -feliminate-unused-debug-types")
+
+# Static link the C++ standard library
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
