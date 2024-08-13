@@ -12,6 +12,9 @@ set(YAZE_INSTALL_CLIB OFF)
 set(YAZE_BUILD_TESTS OFF)
 set(YAZE_BUILD_EXTENSIONS ON)
 
+# libpng features in bitmap.cc
+add_definitions("-DYAZE_LIB_PNG=1")
+
 # C++ Standard and CMake Specifications 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
