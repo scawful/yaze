@@ -256,10 +256,12 @@ void Bitmap::Reformat(int format) {
                                      GetSnesPixelFormat(format)),
       SDL_Surface_Deleter());
   surface_->pixels = pixel_data_;
-  if (!ApplyPalette(palette_).ok()) {
-    // Some sort of error occurred, throw an exception?
-  }
   active_ = true;
+  auto apply_palette = ApplyPalette(palette_);
+  if (!apply_palette.ok()) {
+    SDL_Log("Failed to apply palette: %s\n", apply_palette.message().data());
+    active_ = false;
+  }
 }
 
 void Bitmap::CreateTexture(SDL_Renderer *renderer) {
@@ -402,9 +404,7 @@ absl::Status Bitmap::ApplyPaletteWithTransparent(const SnesPalette &palette,
     i++;
   }
   SDL_LockSurface(surface_.get());
-  if (SDL_GetError() != nullptr) {  // Check for SDL errors
-    return absl::InternalError(absl::StrCat("SDL Error: ", SDL_GetError()));
-  }
+  SDL_RETURN_IF_ERROR()
   return absl::OkStatus();
 }
 

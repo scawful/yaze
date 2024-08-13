@@ -20,6 +20,9 @@ std::vector<snes_color> Extract(const char* data, unsigned int offset,
 
 std::vector<char> Convert(const std::vector<snes_color>& palette);
 
+constexpr uint8_t kColorByteMax = 255;
+constexpr float kColorByteMaxF = 255.f;
+
 /**
  * @brief SNES Color container
  *
@@ -35,9 +38,9 @@ class SnesColor {
   SnesColor() : rgb_(0.f, 0.f, 0.f, 0.f), snes_(0) {}
   explicit SnesColor(const ImVec4 val) : rgb_(val) {
     snes_color color;
-    color.red = val.x / 255;
-    color.green = val.y / 255;
-    color.blue = val.z / 255;
+    color.red = val.x / kColorByteMax;
+    color.green = val.y / kColorByteMax;
+    color.blue = val.z / kColorByteMax;
     snes_ = ConvertRGBtoSNES(color);
   }
   explicit SnesColor(const uint16_t val) : snes_(val) {
@@ -45,12 +48,12 @@ class SnesColor {
     rgb_ = ImVec4(color.red, color.green, color.blue, 0.f);
   }
   explicit SnesColor(const snes_color val)
-      : rgb_(val.red, val.green, val.blue, 255.f),
+      : rgb_(val.red, val.green, val.blue, kColorByteMaxF),
         snes_(ConvertRGBtoSNES(val)),
         rom_color_(val) {}
 
   SnesColor(uint8_t r, uint8_t g, uint8_t b) {
-    rgb_ = ImVec4(r, g, b, 255.f);
+    rgb_ = ImVec4(r, g, b, kColorByteMaxF);
     snes_color color;
     color.red = r;
     color.green = g;
@@ -62,9 +65,9 @@ class SnesColor {
   ImVec4 rgb() const { return rgb_; }
 
   void set_rgb(const ImVec4 val) {
-    rgb_.x = val.x / 255;
-    rgb_.y = val.y / 255;
-    rgb_.z = val.z / 255;
+    rgb_.x = val.x / kColorByteMax;
+    rgb_.y = val.y / kColorByteMax;
+    rgb_.z = val.z / kColorByteMax;
     snes_color color;
     color.red = val.x;
     color.green = val.y;
