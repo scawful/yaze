@@ -235,6 +235,11 @@ void Bitmap::Create(int width, int height, int depth, const Bytes &data) {
 
 void Bitmap::Create(int width, int height, int depth, int format,
                     const Bytes &data) {
+  if (data.empty()) {
+    SDL_Log("Bitmap data is empty\n");
+    active_ = false;
+    return;
+  }
   active_ = true;
   width_ = width;
   height_ = height;
@@ -246,6 +251,11 @@ void Bitmap::Create(int width, int height, int depth, int format,
       SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
                                      GetSnesPixelFormat(format)),
       SDL_Surface_Deleter());
+  if (surface_ == nullptr) {
+    SDL_Log("SDL_CreateRGBSurfaceWithFormat failed: %s\n", SDL_GetError());
+    active_ = false;
+    return;
+  }
   surface_->pixels = pixel_data_;
   active_ = true;
 }
@@ -355,7 +365,7 @@ absl::Status Bitmap::ApplyPalette(const SnesPalette &palette) {
     sdl_palette->colors[i].a = pal_color.rgb().w;
   }
   SDL_LockSurface(surface_.get());
-  SDL_RETURN_IF_ERROR()
+  // SDL_RETURN_IF_ERROR()
   return absl::OkStatus();
 }
 
@@ -379,7 +389,7 @@ absl::Status Bitmap::ApplyPaletteFromPaletteGroup(const SnesPalette &palette,
     }
   }
   SDL_LockSurface(surface_.get());
-  SDL_RETURN_IF_ERROR()
+  // SDL_RETURN_IF_ERROR()
   return absl::OkStatus();
 }
 
@@ -404,7 +414,7 @@ absl::Status Bitmap::ApplyPaletteWithTransparent(const SnesPalette &palette,
     i++;
   }
   SDL_LockSurface(surface_.get());
-  SDL_RETURN_IF_ERROR()
+  // SDL_RETURN_IF_ERROR()
   return absl::OkStatus();
 }
 

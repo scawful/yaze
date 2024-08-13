@@ -206,7 +206,7 @@ class Bitmap {
   bool modified_ = false;
   void *texture_pixels = nullptr;
 
-  uchar *pixel_data_;
+  uint8_t *pixel_data_ = nullptr;
   Bytes data_;
 
   std::vector<uint8_t> png_data_;
