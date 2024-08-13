@@ -12,7 +12,6 @@ add_executable(
   ${YAZE_APP_ZELDA3_SRC}
   ${YAZE_GUI_SRC}
   ${IMGUI_SRC}
-  ${IMGUI_TEST_ENGINE_SOURCES}
 )
 
 target_include_directories(
@@ -33,7 +32,6 @@ target_link_libraries(
   ${SDL_TARGETS}
   ${PNG_LIBRARIES}
   ${CMAKE_DL_LIBS}
-  ImGuiTestEngine
   ImGui
 )
 
