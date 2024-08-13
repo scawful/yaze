@@ -1,7 +1,9 @@
 #include "bitmap.h"
 
 #include <SDL.h>
+#if YAZE_LIB_PNG == 1
 #include <png.h>
+#endif
 
 #include <cstdint>
 #include <memory>
@@ -187,6 +189,11 @@ void ConvertPngToSurface(const std::vector<uint8_t> &png_data,
   SDL_Log("Successfully created SDL_Surface from PNG data");
 }
 
+std::vector<uint8_t> Bitmap::GetPngData() {
+  ConvertSurfaceToPNG(surface_.get(), png_data_);
+  return png_data_;
+}
+
 #endif  // YAZE_LIB_PNG
 
 namespace {
@@ -213,11 +220,6 @@ Uint32 GetSnesPixelFormat(int format) {
   return SDL_PIXELFORMAT_INDEX8;
 }
 }  // namespace
-
-std::vector<uint8_t> Bitmap::GetPngData() {
-  ConvertSurfaceToPNG(surface_.get(), png_data_);
-  return png_data_;
-}
 
 void Bitmap::SaveSurfaceToFile(std::string_view filename) {
   SDL_SaveBMP(surface_.get(), filename.data());

@@ -46,6 +46,7 @@ enum BitmapFormat {
   k8bpp = 3,
 };
 
+#if YAZE_LIB_PNG == 1
 /**
  * @brief Convert SDL_Surface to PNG image data.
  */
@@ -56,6 +57,7 @@ bool ConvertSurfaceToPNG(SDL_Surface *surface, std::vector<uint8_t> &buffer);
  */
 void ConvertPngToSurface(const std::vector<uint8_t> &png_data,
                          SDL_Surface **outSurface);
+#endif
 
 /**
  * @brief Represents a bitmap image.
@@ -87,7 +89,10 @@ class Bitmap {
     }
   }
 
+#if YAZE_LIB_PNG == 1
   std::vector<uint8_t> GetPngData();
+#endif
+
   void SaveSurfaceToFile(std::string_view filename);
 
   /**
