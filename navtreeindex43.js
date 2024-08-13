@@ -1,15 +1,5 @@
 var NAVTREEINDEX43 =
 {
-"room__entrance_8h.html#a905a50b0ad0eff4772c29bd46e99b69a":[12,0,1,0,5,0,5,6],
-"room__entrance_8h.html#a949cad52fdce6419953d2ce9620de093":[12,0,1,0,5,0,5,36],
-"room__entrance_8h.html#a9dbbade5d8888f8eed6b9aaeb58fc6e6":[12,0,1,0,5,0,5,58],
-"room__entrance_8h.html#aa21d4cc6503f57faae549b549f7346f1":[12,0,1,0,5,0,5,56],
-"room__entrance_8h.html#aa652544f7bc818e458bfde204d79c85c":[12,0,1,0,5,0,5,7],
-"room__entrance_8h.html#ab1bd585358915628affdef42efcbbad5":[12,0,1,0,5,0,5,46],
-"room__entrance_8h.html#ab28e69d7af2ba7e19460f0299ec4c04e":[12,0,1,0,5,0,5,26],
-"room__entrance_8h.html#ab3fbd338b4a847a3500635d5a170f188":[12,0,1,0,5,0,5,37],
-"room__entrance_8h.html#ab45eb1456b02983350fb4efc29fe6efe":[12,0,1,0,5,0,5,24],
-"room__entrance_8h.html#ab543322a997bf3480330a401cb5aad08":[12,0,1,0,5,0,5,2],
 "room__entrance_8h.html#ababe6a432142d41be104609d96b4a1a6":[12,0,1,0,5,0,5,50],
 "room__entrance_8h.html#ac0d35e25034ab1d248ac8f47b70423b9":[12,0,1,0,5,0,5,14],
 "room__entrance_8h.html#ac38609b41574aecb67cd13827e64ed5d":[12,0,1,0,5,0,5,42],
@@ -249,5 +239,15 @@ var NAVTREEINDEX43 =
 "spc700_8h.html#a5208202a4f25f5f6f30cf9b374de1cd1":[12,0,1,0,2,0,6,5],
 "spc700_8h_source.html":[12,0,1,0,2,0,6],
 "spc700__test_8cc.html":[12,0,1,6,0,2],
-"spc700__test_8cc.html#a18f23b8bcebe28827e9fcd84fe5986e0":[12,0,1,6,0,2,15]
+"spc700__test_8cc.html#a18f23b8bcebe28827e9fcd84fe5986e0":[12,0,1,6,0,2,15],
+"spc700__test_8cc.html#a227362d15af207cc8d7f1ae35d2bb317":[12,0,1,6,0,2,17],
+"spc700__test_8cc.html#a232a68b57a1c9a655af90b8552934fe7":[12,0,1,6,0,2,28],
+"spc700__test_8cc.html#a2438715df2d81efb844f013ca5b67e87":[12,0,1,6,0,2,8],
+"spc700__test_8cc.html#a2e99db7136a2bbfddc30126e02b68403":[12,0,1,6,0,2,6],
+"spc700__test_8cc.html#a322da3aef17e83cf36447625abf1bb64":[12,0,1,6,0,2,12],
+"spc700__test_8cc.html#a406a7c61239569b9fb405b573769c04d":[12,0,1,6,0,2,5],
+"spc700__test_8cc.html#a4454777cbb3159c7747539b7a8d85b51":[12,0,1,6,0,2,11],
+"spc700__test_8cc.html#a552143068d475552a3d3758594991c9d":[12,0,1,6,0,2,4],
+"spc700__test_8cc.html#a57acda66fce8781cba748dd3905f4a9d":[12,0,1,6,0,2,3],
+"spc700__test_8cc.html#a5ac6fd47dc8026531f4ea342bee84ae0":[12,0,1,6,0,2,13]
 };

@@ -1,9 +1,5 @@
 var NAVTREEINDEX1 =
 {
-"classsample_1_1YazePyExtension.html#a35838e6a0cb380621b87c8f30dd8db92":[10,0,1,0,8],
-"classsample_1_1YazePyExtension.html#a35838e6a0cb380621b87c8f30dd8db92":[11,0,0,0,8],
-"classsample_1_1YazePyExtension.html#a37f3c3042e2d884f8996742d0643572e":[10,0,1,0,2],
-"classsample_1_1YazePyExtension.html#a37f3c3042e2d884f8996742d0643572e":[11,0,0,0,2],
 "classsample_1_1YazePyExtension.html#a7985768d15fd8340de8ac1a073858132":[10,0,1,0,4],
 "classsample_1_1YazePyExtension.html#a7985768d15fd8340de8ac1a073858132":[11,0,0,0,4],
 "classsample_1_1YazePyExtension.html#a9ebe9f4913fb5338642a8000726add6e":[10,0,1,0,10],
@@ -249,5 +245,9 @@ var NAVTREEINDEX1 =
 "classyaze_1_1app_1_1core_1_1Logger.html":[10,0,2,0,1,7],
 "classyaze_1_1app_1_1core_1_1Logger.html":[11,0,1,0,0,5],
 "classyaze_1_1app_1_1core_1_1NotifyValue.html":[10,0,2,0,1,8],
-"classyaze_1_1app_1_1core_1_1NotifyValue.html":[11,0,1,0,0,6]
+"classyaze_1_1app_1_1core_1_1NotifyValue.html":[11,0,1,0,0,6],
+"classyaze_1_1app_1_1core_1_1NotifyValue.html#a04463e5cc23e8afb393e359c2b7389d6":[10,0,2,0,1,8,3],
+"classyaze_1_1app_1_1core_1_1NotifyValue.html#a04463e5cc23e8afb393e359c2b7389d6":[11,0,1,0,0,6,3],
+"classyaze_1_1app_1_1core_1_1NotifyValue.html#a21d574dee5d1a560da33cfccfaa0439b":[10,0,2,0,1,8,1],
+"classyaze_1_1app_1_1core_1_1NotifyValue.html#a21d574dee5d1a560da33cfccfaa0439b":[11,0,1,0,0,6,1]
 };

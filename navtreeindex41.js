@@ -1,15 +1,5 @@
 var NAVTREEINDEX41 =
 {
-"namespaceyaze__test_1_1emu__test.html#a4ff573954726f863c0e8ff0450d7f482":[10,0,3,0,110],
-"namespaceyaze__test_1_1emu__test.html#a5158544e59c914b93bcf2fa703a0fd26":[10,0,3,0,274],
-"namespaceyaze__test_1_1emu__test.html#a51e705b8a46eff8731379930e42f0f44":[10,0,3,0,34],
-"namespaceyaze__test_1_1emu__test.html#a523ec1c6993bc057627178db5339747b":[10,0,3,0,19],
-"namespaceyaze__test_1_1emu__test.html#a525da6714ac2f083fcd7e75a6de6640b":[10,0,3,0,133],
-"namespaceyaze__test_1_1emu__test.html#a52b1e556a9fa85074703f8c7684a871f":[10,0,3,0,85],
-"namespaceyaze__test_1_1emu__test.html#a531c6b6bcb349eee584e19641642756a":[10,0,3,0,285],
-"namespaceyaze__test_1_1emu__test.html#a552143068d475552a3d3758594991c9d":[10,0,3,0,301],
-"namespaceyaze__test_1_1emu__test.html#a5565f441a2c9343709192274c8c1c148":[10,0,3,0,154],
-"namespaceyaze__test_1_1emu__test.html#a561fce76ce5c17cc9e730695c09692e9":[10,0,3,0,5],
 "namespaceyaze__test_1_1emu__test.html#a56fa05ec5ed49749cbdd0ca13597c702":[10,0,3,0,116],
 "namespaceyaze__test_1_1emu__test.html#a57acda66fce8781cba748dd3905f4a9d":[10,0,3,0,300],
 "namespaceyaze__test_1_1emu__test.html#a58f5122788f0511c9165f14864c654e5":[10,0,3,0,216],
@@ -249,5 +239,15 @@ var NAVTREEINDEX41 =
 "namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a9a4b5c91e8f06dcd94d036e9e7935c09":[10,0,3,1,0,2],
 "namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#ad321fb3042ea69a672c2435bd7440db7":[10,0,3,1,0,3],
 "namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#af7d97bb47668a484667bf3236ff487d4":[10,0,3,1,0,4],
-"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html":[10,0,3,1,1]
+"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html":[10,0,3,1,1],
+"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html#adf4131f02d62c5b0c5805036ea85d97a":[10,0,3,1,1,0],
+"namespaceyaze__test_1_1zelda3__test.html":[10,0,3,2],
+"namespaceyaze__test_1_1zelda3__test.html#a07b9796f775461cda7052ae6b36c00f6":[10,0,3,2,1],
+"namespaceyaze__test_1_1zelda3__test.html#a7e08f34b925fb2b5072b4356130a8e08":[10,0,3,2,2],
+"object__names_8h.html":[12,0,1,0,5,0,0],
+"object__names_8h_source.html":[12,0,1,0,5,0,0],
+"object__renderer_8cc.html":[12,0,1,0,5,0,1],
+"object__renderer_8cc_source.html":[12,0,1,0,5,0,1],
+"object__renderer_8h.html":[12,0,1,0,5,0,2],
+"object__renderer_8h_source.html":[12,0,1,0,5,0,2]
 };

@@ -22,10 +22,6 @@ var namespaceyaze_1_1app_1_1gfx =
       [ "Load3DObjectPalettes", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#abfd54beae496fe3e6677c318323bd247", null ],
       [ "LoadOverworldMiniMapPalettes", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#af624df2438c3def1da9a3c82ab7e58ee", null ]
     ] ],
-    [ "png_internal", "namespaceyaze_1_1app_1_1gfx_1_1png__internal.html", [
-      [ "PngWriteCallback", "namespaceyaze_1_1app_1_1gfx_1_1png__internal.html#a53aeb82a831a953afeb7c2927e6f318d", null ],
-      [ "PngReadCallback", "namespaceyaze_1_1app_1_1gfx_1_1png__internal.html#ab53bd64d40cacbbcfadd7f3b2715cf93", null ]
-    ] ],
     [ "scad_format", "namespaceyaze_1_1app_1_1gfx_1_1scad__format.html", "namespaceyaze_1_1app_1_1gfx_1_1scad__format" ],
     [ "Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html", "classyaze_1_1app_1_1gfx_1_1Bitmap" ],
     [ "BitmapManager", "classyaze_1_1app_1_1gfx_1_1BitmapManager.html", "classyaze_1_1app_1_1gfx_1_1BitmapManager" ],
@@ -68,8 +64,6 @@ var namespaceyaze_1_1app_1_1gfx =
       [ "Tile8", "namespaceyaze_1_1app_1_1gfx.html#ae95a00ff98c9e69d426f80c487e2dac7af741ccc3c4a5d5202699b366e0b822a5", null ],
       [ "Tile16", "namespaceyaze_1_1app_1_1gfx.html#ae95a00ff98c9e69d426f80c487e2dac7a0136ed56bdc945f798e3b2ff271ba011", null ]
     ] ],
-    [ "ConvertSurfaceToPNG", "namespaceyaze_1_1app_1_1gfx.html#a3a4cc9da2681d2e1da832bda1ed8290d", null ],
-    [ "ConvertPngToSurface", "namespaceyaze_1_1app_1_1gfx.html#a069b0b0eeca9b5f4a98f38fcd86aaaa1", null ],
     [ "ConvertSNEStoRGB", "namespaceyaze_1_1app_1_1gfx.html#aab504a319aec14fc51e9f309d12c767b", null ],
     [ "ConvertRGBtoSNES", "namespaceyaze_1_1app_1_1gfx.html#a1d7b7b9da156693ec13b608343cd7b49", null ],
     [ "ConvertRGBtoSNES", "namespaceyaze_1_1app_1_1gfx.html#a674cd542901e81be5be7fe865bf6b1b9", null ],
@@ -105,6 +99,8 @@ var namespaceyaze_1_1app_1_1gfx =
     [ "SNES_BLUE_MASK", "namespaceyaze_1_1app_1_1gfx.html#a9f93560824621862a7e4889d592cb2df", null ],
     [ "SNES_GREEN_SHIFT", "namespaceyaze_1_1app_1_1gfx.html#a0912d77a56151905de5232b2a90cb5f8", null ],
     [ "SNES_BLUE_SHIFT", "namespaceyaze_1_1app_1_1gfx.html#aefdc5379d7c7907c0b2cf786b9e5d166", null ],
+    [ "kColorByteMax", "namespaceyaze_1_1app_1_1gfx.html#ae2123f33a8fb5b50ff714b9994aab899", null ],
+    [ "kColorByteMaxF", "namespaceyaze_1_1app_1_1gfx.html#a1981d5f88428f048841f93bad2cc5ec3", null ],
     [ "kPaletteGroupAddressMap", "namespaceyaze_1_1app_1_1gfx.html#a0b33005e899a93e458f6b70f359f047b", null ],
     [ "kPaletteGroupColorCounts", "namespaceyaze_1_1app_1_1gfx.html#a5cad6a1e7078e7d8717fcaae95411535", null ],
     [ "kNumPalettes", "namespaceyaze_1_1app_1_1gfx.html#aa82fac7101cc6d02ab0d5c2d5553213c", null ],

@@ -1,15 +1,5 @@
 var NAVTREEINDEX46 =
 {
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a572bc6af2ae0f2d0f3450cfb5b6d7e48":[10,0,2,0,2,7,5,8],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a572bc6af2ae0f2d0f3450cfb5b6d7e48":[11,0,1,0,1,2,5,8],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a5d7a79428664714f909c2d1767972ef5":[10,0,2,0,2,7,5,22],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a5d7a79428664714f909c2d1767972ef5":[11,0,1,0,1,2,5,22],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a60882a35480d30be5dabf52715ff67dd":[10,0,2,0,2,7,5,32],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a60882a35480d30be5dabf52715ff67dd":[11,0,1,0,1,2,5,32],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a6429e0a03c243effa40d0b4b197e1864":[10,0,2,0,2,7,5,1],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a6429e0a03c243effa40d0b4b197e1864":[11,0,1,0,1,2,5,1],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a65bf3a16bf9fe2df2969000cc981547b":[10,0,2,0,2,7,5,9],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a65bf3a16bf9fe2df2969000cc981547b":[11,0,1,0,1,2,5,9],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a72e9c76d34af337c1b2d5d9609e150ea":[10,0,2,0,2,7,5,2],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a72e9c76d34af337c1b2d5d9609e150ea":[11,0,1,0,1,2,5,2],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a76c93780defb8cb69ffb1a098a5e5bc4":[10,0,2,0,2,7,5,21],
@@ -249,5 +239,15 @@ var NAVTREEINDEX46 =
 "structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729a32397e7b452045b821e5c7be9d5df1e1":[10,0,2,0,3,4,1,0,3],
 "structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729a32397e7b452045b821e5c7be9d5df1e1":[11,0,1,0,2,2,1,0,3],
 "structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729a7915383cc2c1fff7ccfb328167cde9bf":[10,0,2,0,3,4,1,0,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729a7915383cc2c1fff7ccfb328167cde9bf":[11,0,1,0,2,2,1,0,1]
+"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729a7915383cc2c1fff7ccfb328167cde9bf":[11,0,1,0,2,2,1,0,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729a7bcea1112a95a00ed61d6b680f628c84":[10,0,2,0,3,4,1,0,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729a7bcea1112a95a00ed61d6b680f628c84":[11,0,1,0,2,2,1,0,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729aaf6bc4921532ebb1c732bfcfd864619f":[10,0,2,0,3,4,1,0,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729aaf6bc4921532ebb1c732bfcfd864619f":[11,0,1,0,2,2,1,0,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html":[10,0,2,0,3,4,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html":[11,0,1,0,2,2,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#a18ce3edd06619cf78923e1fda841f353":[10,0,2,0,3,4,2,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#a18ce3edd06619cf78923e1fda841f353":[11,0,1,0,2,2,2,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#a2bc5d22962313ad674b8ba58925fbce8":[10,0,2,0,3,4,2,5],
+"structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#a2bc5d22962313ad674b8ba58925fbce8":[11,0,1,0,2,2,2,5]
 };

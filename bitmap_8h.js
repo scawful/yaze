@@ -9,8 +9,6 @@ var bitmap_8h =
       [ "k4bpp", "bitmap_8h.html#a9a4f97a4dc623c7581bf43f61a19f5ffa8bfe24506d59df1a4476cd0a35a0e787", null ],
       [ "k8bpp", "bitmap_8h.html#a9a4f97a4dc623c7581bf43f61a19f5ffae27e66cb9bf5a5fa97b12936990b150b", null ]
     ] ],
-    [ "ConvertSurfaceToPNG", "bitmap_8h.html#a3a4cc9da2681d2e1da832bda1ed8290d", null ],
-    [ "ConvertPngToSurface", "bitmap_8h.html#a069b0b0eeca9b5f4a98f38fcd86aaaa1", null ],
     [ "SNES_PIXELFORMAT_INDEXED", "bitmap_8h.html#abd8392f2567021f0b26d5f7a184329fa", null ],
     [ "SNES_PIXELFORMAT_2BPP", "bitmap_8h.html#a801752cb921f7e16a55028f76bdb1837", null ],
     [ "SNES_PIXELFORMAT_4BPP", "bitmap_8h.html#a192c4cda963b17f9be296f9ae193b501", null ],

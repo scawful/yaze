@@ -4,7 +4,6 @@ var classyaze_1_1app_1_1gfx_1_1Bitmap =
     [ "Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html#afe4955e48e94c72d6ce5b39eb2a3c17d", null ],
     [ "Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html#a9d6c809ffd9849ac5575879ac3710ca5", null ],
     [ "Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html#a87cf19397188c2833d41e468055e8c0d", null ],
-    [ "GetPngData", "classyaze_1_1app_1_1gfx_1_1Bitmap.html#aa44b245b70e14ba19887a33455b7124b", null ],
     [ "SaveSurfaceToFile", "classyaze_1_1app_1_1gfx_1_1Bitmap.html#a5aa228b19b8cc24290dc02f98930b3f4", null ],
     [ "Create", "classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2809cc0b6a95a467a182c7777b65c8ec", null ],
     [ "Create", "classyaze_1_1app_1_1gfx_1_1Bitmap.html#a24c62c1c8ab874c81c0e8e6c4a8004bc", null ],

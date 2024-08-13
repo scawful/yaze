@@ -148,8 +148,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ac47243320078379b2b29cf6fcd3935c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3232fb97b5561c563c2e34041ea084a5" id="r_a3232fb97b5561c563c2e34041ea084a5"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3232fb97b5561c563c2e34041ea084a5">mutable_color</a> (int i)</td></tr>
 <tr class="separator:a3232fb97b5561c563c2e34041ea084a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3b5ffdf58bc7bd0d99132637ca550bea" id="r_a3b5ffdf58bc7bd0d99132637ca550bea"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3b5ffdf58bc7bd0d99132637ca550bea">Clear</a> ()</td></tr>
-<tr class="separator:a3b5ffdf58bc7bd0d99132637ca550bea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd260966310e7f9275bc9ee13283a89f" id="r_afd260966310e7f9275bc9ee13283a89f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afd260966310e7f9275bc9ee13283a89f">clear</a> ()</td></tr>
+<tr class="separator:afd260966310e7f9275bc9ee13283a89f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad50a103d8012360fca29d69c20bd9bed" id="r_ad50a103d8012360fca29d69c20bd9bed"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad50a103d8012360fca29d69c20bd9bed">size</a> () const</td></tr>
 <tr class="separator:ad50a103d8012360fca29d69c20bd9bed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acafdde853184fe8a13d3716a71a9280f" id="r_acafdde853184fe8a13d3716a71a9280f"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acafdde853184fe8a13d3716a71a9280f">empty</a> () const</td></tr>
@@ -172,7 +172,7 @@ Private Attributes</h2></td></tr>
 <div class="textblock"><p>Represents a palette of colors for the Super Nintendo Entertainment System (SNES). </p>
 <p>The <code><a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES).">SnesPalette</a></code> class provides functionality to create, modify, and access colors in an SNES palette. It supports various constructors to initialize the palette with different types of data. The palette can be modified by adding or changing colors, and it can be cleared to remove all colors. Colors in the palette can be accessed using index-based access or through the <code>GetColor</code> method. The class also provides a method to create a sub-palette by selecting a range of colors from the original palette. </p>
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00107">107</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00105">105</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ac989c8f1f096e810461f6503f5a89ef7" name="ac989c8f1f096e810461f6503f5a89ef7"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac989c8f1f096e810461f6503f5a89ef7">&#9670;&#160;</a></span>SnesPalette() <span class="overload">[1/7]</span></h2>
@@ -199,9 +199,9 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00110">110</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00108">108</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00181">colors</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00177">colors</a>.</p>
 
 </div>
 </div>
@@ -255,7 +255,7 @@ template&lt;typename T &gt; </div>
 
 <p class="definition">Definition at line <a class="el" href="snes__palette_8cc_source.html#l00223">223</a> of file <a class="el" href="snes__palette_8cc_source.html">snes_palette.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="base_2snes__color_8h_source.html#l00015">snes_color::blue</a>, <a class="el" href="snes__palette_8h_source.html#l00181">colors</a>, <a class="el" href="snes__color_8cc_source.html#l00020">yaze::app::gfx::ConvertSNEStoRGB()</a>, <a class="el" href="base_2snes__color_8h_source.html#l00016">snes_color::green</a>, <a class="el" href="base_2snes__color_8h_source.html#l00014">snes_color::red</a>, <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00064">yaze::app::gfx::SnesColor::set_rgb()</a>, <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00077">yaze::app::gfx::SnesColor::set_snes()</a>, and <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00085">yaze::app::gfx::SnesColor::snes()</a>.</p>
+<p class="reference">References <a class="el" href="base_2snes__color_8h_source.html#l00015">snes_color::blue</a>, <a class="el" href="snes__palette_8h_source.html#l00177">colors</a>, <a class="el" href="snes__color_8cc_source.html#l00020">yaze::app::gfx::ConvertSNEStoRGB()</a>, <a class="el" href="base_2snes__color_8h_source.html#l00016">snes_color::green</a>, <a class="el" href="base_2snes__color_8h_source.html#l00014">snes_color::red</a>, <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00067">yaze::app::gfx::SnesColor::set_rgb()</a>, <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00080">yaze::app::gfx::SnesColor::set_snes()</a>, and <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00088">yaze::app::gfx::SnesColor::snes()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -303,7 +303,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="snes__palette_8cc_source.html#l00235">235</a> of file <a class="el" href="snes__palette_8cc_source.html">snes_palette.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="base_2snes__color_8h_source.html#l00015">snes_color::blue</a>, <a class="el" href="snes__palette_8h_source.html#l00181">colors</a>, <a class="el" href="snes__color_8cc_source.html#l00020">yaze::app::gfx::ConvertSNEStoRGB()</a>, <a class="el" href="base_2snes__color_8h_source.html#l00016">snes_color::green</a>, <a class="el" href="base_2snes__color_8h_source.html#l00014">snes_color::red</a>, <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00064">yaze::app::gfx::SnesColor::set_rgb()</a>, <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00077">yaze::app::gfx::SnesColor::set_snes()</a>, and <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00085">yaze::app::gfx::SnesColor::snes()</a>.</p>
+<p class="reference">References <a class="el" href="base_2snes__color_8h_source.html#l00015">snes_color::blue</a>, <a class="el" href="snes__palette_8h_source.html#l00177">colors</a>, <a class="el" href="snes__color_8cc_source.html#l00020">yaze::app::gfx::ConvertSNEStoRGB()</a>, <a class="el" href="base_2snes__color_8h_source.html#l00016">snes_color::green</a>, <a class="el" href="base_2snes__color_8h_source.html#l00014">snes_color::red</a>, <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00067">yaze::app::gfx::SnesColor::set_rgb()</a>, <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00080">yaze::app::gfx::SnesColor::set_snes()</a>, and <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00088">yaze::app::gfx::SnesColor::snes()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -351,7 +351,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="snes__palette_8cc_source.html#l00247">247</a> of file <a class="el" href="snes__palette_8cc_source.html">snes_palette.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00181">colors</a>, and <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00064">yaze::app::gfx::SnesColor::set_rgb()</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00177">colors</a>, and <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00067">yaze::app::gfx::SnesColor::set_rgb()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -392,7 +392,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="snes__palette_8cc_source.html#l00255">255</a> of file <a class="el" href="snes__palette_8cc_source.html">snes_palette.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00181">colors</a>, <a class="el" href="snes__color_8cc_source.html#l00034">yaze::app::gfx::ConvertRGBtoSNES()</a>, and <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00077">yaze::app::gfx::SnesColor::set_snes()</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00177">colors</a>, <a class="el" href="snes__color_8cc_source.html#l00034">yaze::app::gfx::ConvertRGBtoSNES()</a>, and <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00080">yaze::app::gfx::SnesColor::set_snes()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -435,7 +435,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="snes__palette_8cc_source.html#l00263">263</a> of file <a class="el" href="snes__palette_8cc_source.html">snes_palette.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00181">colors</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00177">colors</a>.</p>
 
 </div>
 </div>
@@ -463,9 +463,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00123">123</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00121">121</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00181">colors</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00177">colors</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00233">yaze::app::zelda3::overworld::palette_internal::SetColorsPalette()</a>.</p>
 
@@ -494,11 +494,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00129">129</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00127">127</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00181">colors</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00177">colors</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="snes__palette_8cc_source.html#l00299">yaze::app::gfx::CreatePaletteGroupFromColFile()</a>, <a class="el" href="snes__palette_8cc_source.html#l00312">yaze::app::gfx::CreatePaletteGroupFromLargePalette()</a>, <a class="el" href="message__editor_8cc_source.html#l00050">yaze::app::editor::MessageEditor::Initialize()</a>, <a class="el" href="snes__palette_8h_source.html#l00172">sub_palette()</a>, and <a class="el" href="snes__palette__test_8cc_source.html#l00027">yaze_test::gfx_test::TEST()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="snes__palette_8cc_source.html#l00299">yaze::app::gfx::CreatePaletteGroupFromColFile()</a>, <a class="el" href="snes__palette_8cc_source.html#l00312">yaze::app::gfx::CreatePaletteGroupFromLargePalette()</a>, <a class="el" href="message__editor_8cc_source.html#l00050">yaze::app::editor::MessageEditor::Initialize()</a>, <a class="el" href="snes__palette_8h_source.html#l00168">sub_palette()</a>, and <a class="el" href="snes__palette__test_8cc_source.html#l00027">yaze_test::gfx_test::TEST()</a>.</p>
 
 </div>
 </div>
@@ -525,9 +525,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00131">131</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00128">128</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00181">colors</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00177">colors</a>.</p>
 
 </div>
 </div>
@@ -554,9 +554,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00133">133</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00129">129</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00181">colors</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00177">colors</a>.</p>
 
 </div>
 </div>
@@ -583,11 +583,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00135">135</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00131">131</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00181">colors</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00177">colors</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00354">yaze::app::gfx::Bitmap::ApplyPaletteFromPaletteGroup()</a>, <a class="el" href="color_8cc_source.html#l00056">yaze::app::gui::DisplayPalette()</a>, <a class="el" href="palette__editor_8cc_source.html#l00259">yaze::app::editor::PaletteEditor::DrawPaletteGroup()</a>, <a class="el" href="palette__editor_8cc_source.html#l00439">yaze::app::editor::PaletteEditor::EditColorInPalette()</a>, <a class="el" href="palette__editor_8h_source.html#l00113">yaze::app::editor::PaletteEditor::InitializeSavedPalette()</a>, and <a class="el" href="palette__editor_8cc_source.html#l00455">yaze::app::editor::PaletteEditor::ResetColorToOriginal()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00362">yaze::app::gfx::Bitmap::ApplyPaletteFromPaletteGroup()</a>, <a class="el" href="color_8cc_source.html#l00056">yaze::app::gui::DisplayPalette()</a>, <a class="el" href="palette__editor_8cc_source.html#l00259">yaze::app::editor::PaletteEditor::DrawPaletteGroup()</a>, <a class="el" href="palette__editor_8cc_source.html#l00439">yaze::app::editor::PaletteEditor::EditColorInPalette()</a>, <a class="el" href="palette__editor_8h_source.html#l00113">yaze::app::editor::PaletteEditor::InitializeSavedPalette()</a>, and <a class="el" href="palette__editor_8cc_source.html#l00455">yaze::app::editor::PaletteEditor::ResetColorToOriginal()</a>.</p>
 
 </div>
 </div>
@@ -614,16 +614,16 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00142">142</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00138">138</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00181">colors</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00177">colors</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00259">yaze::app::editor::PaletteEditor::DrawPaletteGroup()</a>, and <a class="el" href="message__editor_8cc_source.html#l00050">yaze::app::editor::MessageEditor::Initialize()</a>.</p>
 
 </div>
 </div>
-<a id="a3b5ffdf58bc7bd0d99132637ca550bea" name="a3b5ffdf58bc7bd0d99132637ca550bea"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3b5ffdf58bc7bd0d99132637ca550bea">&#9670;&#160;</a></span>Clear()</h2>
+<a id="afd260966310e7f9275bc9ee13283a89f" name="afd260966310e7f9275bc9ee13283a89f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd260966310e7f9275bc9ee13283a89f">&#9670;&#160;</a></span>clear()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -632,7 +632,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void yaze::app::gfx::SnesPalette::Clear </td>
+          <td class="memname">void yaze::app::gfx::SnesPalette::clear </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
@@ -645,11 +645,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00144">144</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00140">140</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00181">colors</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00177">colors</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00153">yaze::app::gfx::Bitmap::Cleanup()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00158">yaze::app::gfx::Bitmap::Cleanup()</a>.</p>
 
 </div>
 </div>
@@ -676,11 +676,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00146">146</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00141">141</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00181">colors</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00177">colors</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00354">yaze::app::gfx::Bitmap::ApplyPaletteFromPaletteGroup()</a>, <a class="el" href="snes__palette_8cc_source.html#l00312">yaze::app::gfx::CreatePaletteGroupFromLargePalette()</a>, <a class="el" href="color_8cc_source.html#l00056">yaze::app::gui::DisplayPalette()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00584">yaze::app::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="gfx__group__editor_8cc_source.html#l00228">yaze::app::editor::anonymous_namespace{gfx_group_editor.cc}::DrawPaletteFromPaletteGroup()</a>, <a class="el" href="palette__editor_8cc_source.html#l00259">yaze::app::editor::PaletteEditor::DrawPaletteGroup()</a>, <a class="el" href="palette__editor_8cc_source.html#l00439">yaze::app::editor::PaletteEditor::EditColorInPalette()</a>, <a class="el" href="message__editor_8cc_source.html#l00050">yaze::app::editor::MessageEditor::Initialize()</a>, <a class="el" href="palette__editor_8h_source.html#l00113">yaze::app::editor::PaletteEditor::InitializeSavedPalette()</a>, <a class="el" href="bitmap_8h_source.html#l00170">yaze::app::gfx::Bitmap::palette_size()</a>, <a class="el" href="palette__editor_8cc_source.html#l00455">yaze::app::editor::PaletteEditor::ResetColorToOriginal()</a>, <a class="el" href="rom_8cc_source.html#l00380">yaze::app::Rom::SavePalette()</a>, <a class="el" href="color_8cc_source.html#l00129">yaze::app::gui::SelectablePalettePipeline()</a>, and <a class="el" href="snes__palette__test_8cc_source.html#l00027">yaze_test::gfx_test::TEST()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00362">yaze::app::gfx::Bitmap::ApplyPaletteFromPaletteGroup()</a>, <a class="el" href="snes__palette_8cc_source.html#l00312">yaze::app::gfx::CreatePaletteGroupFromLargePalette()</a>, <a class="el" href="color_8cc_source.html#l00056">yaze::app::gui::DisplayPalette()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00584">yaze::app::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="gfx__group__editor_8cc_source.html#l00228">yaze::app::editor::anonymous_namespace{gfx_group_editor.cc}::DrawPaletteFromPaletteGroup()</a>, <a class="el" href="palette__editor_8cc_source.html#l00259">yaze::app::editor::PaletteEditor::DrawPaletteGroup()</a>, <a class="el" href="palette__editor_8cc_source.html#l00439">yaze::app::editor::PaletteEditor::EditColorInPalette()</a>, <a class="el" href="message__editor_8cc_source.html#l00050">yaze::app::editor::MessageEditor::Initialize()</a>, <a class="el" href="palette__editor_8h_source.html#l00113">yaze::app::editor::PaletteEditor::InitializeSavedPalette()</a>, <a class="el" href="bitmap_8h_source.html#l00175">yaze::app::gfx::Bitmap::palette_size()</a>, <a class="el" href="palette__editor_8cc_source.html#l00455">yaze::app::editor::PaletteEditor::ResetColorToOriginal()</a>, <a class="el" href="rom_8cc_source.html#l00380">yaze::app::Rom::SavePalette()</a>, <a class="el" href="color_8cc_source.html#l00129">yaze::app::gui::SelectablePalettePipeline()</a>, and <a class="el" href="snes__palette__test_8cc_source.html#l00027">yaze_test::gfx_test::TEST()</a>.</p>
 
 </div>
 </div>
@@ -707,9 +707,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00147">147</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00142">142</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00181">colors</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00177">colors</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="gfx__group__editor_8cc_source.html#l00228">yaze::app::editor::anonymous_namespace{gfx_group_editor.cc}::DrawPaletteFromPaletteGroup()</a>.</p>
 
@@ -738,9 +738,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00149">149</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00144">144</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00181">colors</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00177">colors</a>.</p>
 
 </div>
 </div>
@@ -771,9 +771,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00157">157</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00152">152</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00181">colors</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00177">colors</a>.</p>
 
 </div>
 </div>
@@ -804,9 +804,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00164">164</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00159">159</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00181">colors</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00177">colors</a>.</p>
 
 </div>
 </div>
@@ -837,11 +837,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00172">172</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00168">168</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00129">AddColor()</a>, and <a class="el" href="snes__palette_8h_source.html#l00181">colors</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00127">AddColor()</a>, and <a class="el" href="snes__palette_8h_source.html#l00177">colors</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00354">yaze::app::gfx::Bitmap::ApplyPaletteFromPaletteGroup()</a>, and <a class="el" href="bitmap_8cc_source.html#l00378">yaze::app::gfx::Bitmap::ApplyPaletteWithTransparent()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00362">yaze::app::gfx::Bitmap::ApplyPaletteFromPaletteGroup()</a>, and <a class="el" href="bitmap_8cc_source.html#l00386">yaze::app::gfx::Bitmap::ApplyPaletteWithTransparent()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -877,9 +877,9 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <p>The colors in the palette. </p>
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00181">181</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00177">177</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="snes__palette_8h_source.html#l00131">AddColor()</a>, <a class="el" href="snes__palette_8h_source.html#l00129">AddColor()</a>, <a class="el" href="snes__palette_8h_source.html#l00133">AddColor()</a>, <a class="el" href="snes__palette_8h_source.html#l00144">Clear()</a>, <a class="el" href="snes__palette_8h_source.html#l00123">Create()</a>, <a class="el" href="snes__palette_8h_source.html#l00147">empty()</a>, <a class="el" href="snes__palette_8h_source.html#l00135">GetColor()</a>, <a class="el" href="snes__palette_8h_source.html#l00142">mutable_color()</a>, <a class="el" href="snes__palette_8h_source.html#l00164">operator()()</a>, <a class="el" href="snes__palette_8h_source.html#l00157">operator()()</a>, <a class="el" href="snes__palette_8h_source.html#l00149">operator[]()</a>, <a class="el" href="snes__palette_8h_source.html#l00146">size()</a>, <a class="el" href="snes__palette_8cc_source.html#l00223">SnesPalette()</a>, <a class="el" href="snes__palette_8cc_source.html#l00247">SnesPalette()</a>, <a class="el" href="snes__palette_8cc_source.html#l00255">SnesPalette()</a>, <a class="el" href="snes__palette_8cc_source.html#l00263">SnesPalette()</a>, <a class="el" href="snes__palette_8h_source.html#l00110">SnesPalette()</a>, <a class="el" href="snes__palette_8cc_source.html#l00235">SnesPalette()</a>, and <a class="el" href="snes__palette_8h_source.html#l00172">sub_palette()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="snes__palette_8h_source.html#l00128">AddColor()</a>, <a class="el" href="snes__palette_8h_source.html#l00127">AddColor()</a>, <a class="el" href="snes__palette_8h_source.html#l00129">AddColor()</a>, <a class="el" href="snes__palette_8h_source.html#l00140">clear()</a>, <a class="el" href="snes__palette_8h_source.html#l00121">Create()</a>, <a class="el" href="snes__palette_8h_source.html#l00142">empty()</a>, <a class="el" href="snes__palette_8h_source.html#l00131">GetColor()</a>, <a class="el" href="snes__palette_8h_source.html#l00138">mutable_color()</a>, <a class="el" href="snes__palette_8h_source.html#l00159">operator()()</a>, <a class="el" href="snes__palette_8h_source.html#l00152">operator()()</a>, <a class="el" href="snes__palette_8h_source.html#l00144">operator[]()</a>, <a class="el" href="snes__palette_8h_source.html#l00141">size()</a>, <a class="el" href="snes__palette_8cc_source.html#l00223">SnesPalette()</a>, <a class="el" href="snes__palette_8cc_source.html#l00247">SnesPalette()</a>, <a class="el" href="snes__palette_8cc_source.html#l00255">SnesPalette()</a>, <a class="el" href="snes__palette_8cc_source.html#l00263">SnesPalette()</a>, <a class="el" href="snes__palette_8h_source.html#l00108">SnesPalette()</a>, <a class="el" href="snes__palette_8cc_source.html#l00235">SnesPalette()</a>, and <a class="el" href="snes__palette_8h_source.html#l00168">sub_palette()</a>.</p>
 
 </div>
 </div>

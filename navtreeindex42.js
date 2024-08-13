@@ -1,15 +1,5 @@
 var NAVTREEINDEX42 =
 {
-"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html#adf4131f02d62c5b0c5805036ea85d97a":[10,0,3,1,1,0],
-"namespaceyaze__test_1_1zelda3__test.html":[10,0,3,2],
-"namespaceyaze__test_1_1zelda3__test.html#a07b9796f775461cda7052ae6b36c00f6":[10,0,3,2,1],
-"namespaceyaze__test_1_1zelda3__test.html#a7e08f34b925fb2b5072b4356130a8e08":[10,0,3,2,2],
-"object__names_8h.html":[12,0,1,0,5,0,0],
-"object__names_8h_source.html":[12,0,1,0,5,0,0],
-"object__renderer_8cc.html":[12,0,1,0,5,0,1],
-"object__renderer_8cc_source.html":[12,0,1,0,5,0,1],
-"object__renderer_8h.html":[12,0,1,0,5,0,2],
-"object__renderer_8h_source.html":[12,0,1,0,5,0,2],
 "overworld_8cc.html":[12,0,1,0,5,2,0],
 "overworld_8cc.html#a044bbb36700e16ea5936a62a00c629e5":[12,0,1,0,5,2,0,0],
 "overworld_8cc.html#a2b56d8805cb8d768a32d570cc90b6ba1":[12,0,1,0,5,2,0,2],
@@ -249,5 +239,15 @@ var NAVTREEINDEX42 =
 "room__entrance_8h.html#a782ca5ecdb27f03071a264ef3512a3eb":[12,0,1,0,5,0,5,15],
 "room__entrance_8h.html#a7f7e79a6411a503a3486df0d93970d7b":[12,0,1,0,5,0,5,11],
 "room__entrance_8h.html#a8a57e67b18a3e6646a95d0fffd4a162c":[12,0,1,0,5,0,5,54],
-"room__entrance_8h.html#a8e06eaadeaaf6a3f113356e792bc4180":[12,0,1,0,5,0,5,12]
+"room__entrance_8h.html#a8e06eaadeaaf6a3f113356e792bc4180":[12,0,1,0,5,0,5,12],
+"room__entrance_8h.html#a905a50b0ad0eff4772c29bd46e99b69a":[12,0,1,0,5,0,5,6],
+"room__entrance_8h.html#a949cad52fdce6419953d2ce9620de093":[12,0,1,0,5,0,5,36],
+"room__entrance_8h.html#a9dbbade5d8888f8eed6b9aaeb58fc6e6":[12,0,1,0,5,0,5,58],
+"room__entrance_8h.html#aa21d4cc6503f57faae549b549f7346f1":[12,0,1,0,5,0,5,56],
+"room__entrance_8h.html#aa652544f7bc818e458bfde204d79c85c":[12,0,1,0,5,0,5,7],
+"room__entrance_8h.html#ab1bd585358915628affdef42efcbbad5":[12,0,1,0,5,0,5,46],
+"room__entrance_8h.html#ab28e69d7af2ba7e19460f0299ec4c04e":[12,0,1,0,5,0,5,26],
+"room__entrance_8h.html#ab3fbd338b4a847a3500635d5a170f188":[12,0,1,0,5,0,5,37],
+"room__entrance_8h.html#ab45eb1456b02983350fb4efc29fe6efe":[12,0,1,0,5,0,5,24],
+"room__entrance_8h.html#ab543322a997bf3480330a401cb5aad08":[12,0,1,0,5,0,5,2]
 };

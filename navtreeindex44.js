@@ -1,15 +1,5 @@
 var NAVTREEINDEX44 =
 {
-"spc700__test_8cc.html#a227362d15af207cc8d7f1ae35d2bb317":[12,0,1,6,0,2,17],
-"spc700__test_8cc.html#a232a68b57a1c9a655af90b8552934fe7":[12,0,1,6,0,2,28],
-"spc700__test_8cc.html#a2438715df2d81efb844f013ca5b67e87":[12,0,1,6,0,2,8],
-"spc700__test_8cc.html#a2e99db7136a2bbfddc30126e02b68403":[12,0,1,6,0,2,6],
-"spc700__test_8cc.html#a322da3aef17e83cf36447625abf1bb64":[12,0,1,6,0,2,12],
-"spc700__test_8cc.html#a406a7c61239569b9fb405b573769c04d":[12,0,1,6,0,2,5],
-"spc700__test_8cc.html#a4454777cbb3159c7747539b7a8d85b51":[12,0,1,6,0,2,11],
-"spc700__test_8cc.html#a552143068d475552a3d3758594991c9d":[12,0,1,6,0,2,4],
-"spc700__test_8cc.html#a57acda66fce8781cba748dd3905f4a9d":[12,0,1,6,0,2,3],
-"spc700__test_8cc.html#a5ac6fd47dc8026531f4ea342bee84ae0":[12,0,1,6,0,2,13],
 "spc700__test_8cc.html#a5de85d3b08552136d091b5533796ee49":[12,0,1,6,0,2,19],
 "spc700__test_8cc.html#a745d2267977135acb0bf15f014e93627":[12,0,1,6,0,2,7],
 "spc700__test_8cc.html#a7bb9f13b8edcbef06cdb8a5489f11199":[12,0,1,6,0,2,10],
@@ -249,5 +239,15 @@ var NAVTREEINDEX44 =
 "structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#accea715679a6045b5bd6fabf6665719f":[10,0,2,0,2,17,3],
 "structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#accea715679a6045b5bd6fabf6665719f":[11,0,1,0,1,12,3],
 "structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#af16a2c4ed1011e499291387f41e9347d":[10,0,2,0,2,17,1],
-"structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#af16a2c4ed1011e499291387f41e9347d":[11,0,1,0,1,12,1]
+"structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#af16a2c4ed1011e499291387f41e9347d":[11,0,1,0,1,12,1],
+"structyaze_1_1app_1_1editor_1_1FlagsMenu.html":[10,0,2,0,2,19],
+"structyaze_1_1app_1_1editor_1_1FlagsMenu.html":[11,0,1,0,1,14],
+"structyaze_1_1app_1_1editor_1_1FlagsMenu.html#a7e05e45f0d1e8918fbf1d34b966e3d7e":[10,0,2,0,2,19,0],
+"structyaze_1_1app_1_1editor_1_1FlagsMenu.html#a7e05e45f0d1e8918fbf1d34b966e3d7e":[11,0,1,0,1,14,0],
+"structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html":[10,0,2,0,2,22],
+"structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html":[11,0,1,0,1,17],
+"structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html#aa354716a735200ebf42c2504de8d28fe":[10,0,2,0,2,22,0],
+"structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html#aa354716a735200ebf42c2504de8d28fe":[11,0,1,0,1,17,0],
+"structyaze_1_1app_1_1editor_1_1MessageData.html":[10,0,2,0,2,23],
+"structyaze_1_1app_1_1editor_1_1MessageData.html":[11,0,1,0,1,18]
 };

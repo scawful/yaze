@@ -13,6 +13,5 @@ var style_8h =
     [ "DrawDisplaySettings", "style_8h.html#a1ea1d6c7891279ea571030df8a323fd6", null ],
     [ "TextWithSeparators", "style_8h.html#ab6367acf830417f141068389444b7173", null ],
     [ "ColorsYaze", "style_8h.html#a977a7571691d73f9f4ab817427cae497", null ],
-    [ "GetAssemblyLanguageDef", "style_8h.html#a374f2b642919cc9fed20c7fa82c5fab7", null ],
-    [ "RenderTabItem", "style_8h.html#a6102acd483c1a081fdb3aa350d8a0827", null ]
+    [ "GetAssemblyLanguageDef", "style_8h.html#a374f2b642919cc9fed20c7fa82c5fab7", null ]
 ];
