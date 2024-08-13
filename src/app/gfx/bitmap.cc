@@ -205,20 +205,7 @@ Bitmap::Bitmap(int width, int height, int depth, int data_size) {
 }
 
 void Bitmap::Create(int width, int height, int depth, const Bytes &data) {
-  active_ = true;
-  width_ = width;
-  height_ = height;
-  depth_ = depth;
-  data_ = data;
-  data_size_ = data.size();
-  pixel_data_ = data_.data();
-  surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
-      SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
-                                     SDL_PIXELFORMAT_INDEX8),
-      SDL_Surface_Deleter());
-  surface_->pixels = pixel_data_;
-  GrayscalePalette(surface_->format->palette);
-  active_ = true;
+  Create(width, height, depth, kIndexed, data);
 }
 
 void Bitmap::Create(int width, int height, int depth, int format,
