@@ -246,6 +246,10 @@ void Bitmap::Create(int width, int height, int depth, int format,
   depth_ = depth;
   data_ = data;
   data_size_ = data.size();
+  if (data_size_ == 0) {
+    SDL_Log("Data provided to Bitmap is empty.\n");
+    return;
+  }
   pixel_data_ = data_.data();
   surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
       SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
