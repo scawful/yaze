@@ -161,7 +161,7 @@ class Bitmap {
     height_ = 0;
     depth_ = 0;
     data_size_ = 0;
-    palette_.Clear();
+    palette_.clear();
   }
 
   auto sdl_palette() {

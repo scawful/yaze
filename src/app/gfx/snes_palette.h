@@ -1,8 +1,6 @@
 #ifndef YAZE_APP_GFX_PALETTE_H
 #define YAZE_APP_GFX_PALETTE_H
 
-#include <SDL.h>
-
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -127,9 +125,7 @@ class SnesPalette {
   }
 
   void AddColor(const SnesColor& color) { colors.emplace_back(color); }
-
   void AddColor(const snes_color& color) { colors.emplace_back(color); }
-
   void AddColor(uint16_t color) { colors.emplace_back(color); }
 
   absl::StatusOr<SnesColor> GetColor(int i) const {
@@ -141,8 +137,7 @@ class SnesPalette {
 
   auto mutable_color(int i) { return &colors[i]; }
 
-  void Clear() { colors.clear(); }
-
+  void clear() { colors.clear(); }
   auto size() const { return colors.size(); }
   auto empty() const { return colors.empty(); }
 
@@ -156,14 +151,15 @@ class SnesPalette {
 
   void operator()(int i, const SnesColor& color) {
     if (i >= colors.size()) {
-      throw std::out_of_range("SNESPalette: Index out of bounds");
+      std::cout << SNESPalette: Index out of bounds << std::endl;
     }
     colors[i] = color;
   }
 
   void operator()(int i, const ImVec4& color) {
     if (i >= colors.size()) {
-      throw std::out_of_range("SNESPalette: Index out of bounds");
+      std::cout << SNESPalette: Index out of bounds << std::endl;
+      return;
     }
     colors[i].set_rgb(color);
     colors[i].set_modified(true);
