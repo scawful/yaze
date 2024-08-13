@@ -7,6 +7,7 @@
 #include "absl/debugging/symbolize.h"
 #include "app/core/controller.h"
 #include "imgui/imgui.h"
+#include "imgui_test_engine/imgui_te_context.h"
 #include "imgui_test_engine/imgui_te_engine.h"
 #include "test/integration/test_editor.h"
 
@@ -32,7 +33,7 @@ int main(int argc, char* argv[]) {
 
     while (controller.IsActive()) {
       controller.OnInput();
-      if (!controller.OnLoad().ok()) {
+      if (const auto status = controller.OnTestLoad(); !status.ok()) {
         return EXIT_FAILURE;
       }
       controller.DoRender();
