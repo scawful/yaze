@@ -41,9 +41,6 @@ void ColorsYaze();
 
 TextEditor::LanguageDefinition GetAssemblyLanguageDef();
 
-void RenderTabItem(const std::string& title,
-                   const std::function<void()>& render_func);
-
 class BitmapViewer {
  public:
   BitmapViewer() : current_bitmap_index_(0) {}

@@ -7,6 +7,7 @@ namespace yaze {
 namespace app {
 namespace gui {
 
+// TODO: Add more display settings to popup windows.
 void BeginWindowWithDisplaySettings(const char* id, bool* active,
                                     const ImVec2& size,
                                     ImGuiWindowFlags flags) {
@@ -418,6 +419,7 @@ void TextWithSeparators(const absl::string_view& text) {
   ImGui::Separator();
 }
 
+// TODO: Make the ColorsYaze style into a configuration file.
 void ColorsYaze() {
   ImGuiStyle* style = &ImGui::GetStyle();
   ImVec4* colors = style->Colors;
@@ -515,14 +517,6 @@ void ColorsYaze() {
   colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
   colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
   colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
-}
-
-void RenderTabItem(const std::string& title,
-                   const std::function<void()>& render_func) {
-  if (ImGui::BeginTabItem(title.c_str())) {
-    render_func();
-    ImGui::EndTabItem();
-  }
 }
 
 // ============================================================================

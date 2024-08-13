@@ -18,7 +18,7 @@ using gfx::SnesColor;
 
 // A utility function to convert an SnesColor object to an ImVec4 with
 // normalized color values
-ImVec4 ConvertSNESColorToImVec4(const SnesColor& color);
+ImVec4 ConvertSnesColorToImVec4(const SnesColor& color);
 
 // The wrapper function for ImGui::ColorButton that takes a SnesColor reference
 IMGUI_API bool SnesColorButton(absl::string_view id, SnesColor& color,
