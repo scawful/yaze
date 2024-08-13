@@ -2,8 +2,6 @@ var namespaceyaze_1_1app_1_1gfx =
 [
     [ "anonymous_namespace{bitmap.cc}", "namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html", [
       [ "GrayscalePalette", "namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#a94dc5ccbe969297d607afd1821c3d118", null ],
-      [ "PngWriteCallback", "namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#a39681199e9a1c1462f86f3cf6f47949b", null ],
-      [ "PngReadCallback", "namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#aaf33c2cd8ed6392cfebc1bfa9f23c9b2", null ],
       [ "GetSnesPixelFormat", "namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#ae7f2ff7c05fc2ee1712a7c71dc95a37a", null ]
     ] ],
     [ "lc_lz2", "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html", "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2" ],
@@ -23,6 +21,10 @@ var namespaceyaze_1_1app_1_1gfx =
       [ "LoadGrassColors", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a484ece2a9dfd0fc5a61543db155b5754", null ],
       [ "Load3DObjectPalettes", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#abfd54beae496fe3e6677c318323bd247", null ],
       [ "LoadOverworldMiniMapPalettes", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#af624df2438c3def1da9a3c82ab7e58ee", null ]
+    ] ],
+    [ "png_internal", "namespaceyaze_1_1app_1_1gfx_1_1png__internal.html", [
+      [ "PngWriteCallback", "namespaceyaze_1_1app_1_1gfx_1_1png__internal.html#a53aeb82a831a953afeb7c2927e6f318d", null ],
+      [ "PngReadCallback", "namespaceyaze_1_1app_1_1gfx_1_1png__internal.html#ab53bd64d40cacbbcfadd7f3b2715cf93", null ]
     ] ],
     [ "scad_format", "namespaceyaze_1_1app_1_1gfx_1_1scad__format.html", "namespaceyaze_1_1app_1_1gfx_1_1scad__format" ],
     [ "Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html", "classyaze_1_1app_1_1gfx_1_1Bitmap" ],
@@ -77,12 +79,11 @@ var namespaceyaze_1_1app_1_1gfx =
     [ "GetCgxColor", "namespaceyaze_1_1app_1_1gfx.html#a1b60824abe89dea75cf945b0e77f1b8d", null ],
     [ "GetColFileData", "namespaceyaze_1_1app_1_1gfx.html#a9cae2d3018552dc353ffe8c1ef77cc63", null ],
     [ "GetPaletteAddress", "namespaceyaze_1_1app_1_1gfx.html#a04544775b5724bfbe086cb024eb4091a", null ],
-    [ "ReadPaletteFromRom", "namespaceyaze_1_1app_1_1gfx.html#a03f22b0abee97bf4bcb4d226a7148f96", null ],
+    [ "ReadPaletteFromRom", "namespaceyaze_1_1app_1_1gfx.html#a770b616b1a09b80f72fdd549ec6a7f34", null ],
     [ "ToFloatArray", "namespaceyaze_1_1app_1_1gfx.html#a72e75c41a6c90cdfc4a26ddeb54cc1ef", null ],
     [ "CreatePaletteGroupFromColFile", "namespaceyaze_1_1app_1_1gfx.html#abdc15a02218fe29002585f61230af828", null ],
-    [ "CreatePaletteGroupFromLargePalette", "namespaceyaze_1_1app_1_1gfx.html#ae5807cdf64ba8eed9e0b94335c514674", null ],
+    [ "CreatePaletteGroupFromLargePalette", "namespaceyaze_1_1app_1_1gfx.html#a1bb7565b38ebe9348abb69352315d32f", null ],
     [ "LoadAllPalettes", "namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180", null ],
-    [ "ReadPaletteFromRom", "namespaceyaze_1_1app_1_1gfx.html#a770b616b1a09b80f72fdd549ec6a7f34", null ],
     [ "UnpackBppTile", "namespaceyaze_1_1app_1_1gfx.html#a4ec1226f327e64dcc4a789f6d21f4a24", null ],
     [ "PackBppTile", "namespaceyaze_1_1app_1_1gfx.html#a552ecb78eb0a711234650adab705305c", null ],
     [ "ConvertBpp", "namespaceyaze_1_1app_1_1gfx.html#ab26e7d963d877f126b4ff7442c473864", null ],

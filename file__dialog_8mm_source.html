@@ -150,15 +150,15 @@ $(function(){initNavTree('file__dialog_8mm_source.html',''); initResizable(true)
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>}</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>}</div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> </div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>std::string FileDialogWrapper::ShowOpenFileDialog() { <span class="keywordflow">return</span> ShowOpenFileDialogSync(); }</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>std::string <a class="code hl_function" href="classFileDialogWrapper.html#a1f62d9438a0cae4abd608e60f21ed39b">FileDialogWrapper::ShowOpenFileDialog</a>() { <span class="keywordflow">return</span> ShowOpenFileDialogSync(); }</div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>std::string FileDialogWrapper::ShowOpenFolderDialog() { <span class="keywordflow">return</span> <span class="stringliteral">&quot;&quot;</span>; }</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>std::string <a class="code hl_function" href="classFileDialogWrapper.html#a3dd232b48cacec8962495342a47eaa4a">FileDialogWrapper::ShowOpenFolderDialog</a>() { <span class="keywordflow">return</span> <span class="stringliteral">&quot;&quot;</span>; }</div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span> </div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>std::vector&lt;std::string&gt; FileDialogWrapper::GetFilesInFolder(<span class="keyword">const</span> std::string &amp;folder) {</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>std::vector&lt;std::string&gt; <a class="code hl_function" href="classFileDialogWrapper.html#ac347af05f729872e107a3c090269c3b3">FileDialogWrapper::GetFilesInFolder</a>(<span class="keyword">const</span> std::string &amp;folder) {</div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  <span class="keywordflow">return</span> {};</div>
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>}</div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>std::vector&lt;std::string&gt; FileDialogWrapper::GetSubdirectoriesInFolder(<span class="keyword">const</span> std::string &amp;folder) {</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>std::vector&lt;std::string&gt; <a class="code hl_function" href="classFileDialogWrapper.html#a7ccf9a9773c3adbc1794bb36779aa70b">FileDialogWrapper::GetSubdirectoriesInFolder</a>(<span class="keyword">const</span> std::string &amp;folder) {</div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  <span class="keywordflow">return</span> {};</div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>}</div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span> </div>
@@ -167,7 +167,7 @@ $(function(){initNavTree('file__dialog_8mm_source.html',''); initResizable(true)
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span><span class="preprocessor">#import &lt;Cocoa/Cocoa.h&gt;</span></div>
 <div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>std::string FileDialogWrapper::ShowOpenFileDialog() {</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>std::string <a class="code hl_function" href="classFileDialogWrapper.html#a1f62d9438a0cae4abd608e60f21ed39b">FileDialogWrapper::ShowOpenFileDialog</a>() {</div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>  NSOpenPanel* openPanel = [NSOpenPanel openPanel];</div>
 <div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>  [openPanel setCanChooseFiles:YES];</div>
 <div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>  [openPanel setCanChooseDirectories:NO];</div>
@@ -182,7 +182,7 @@ $(function(){initNavTree('file__dialog_8mm_source.html',''); initResizable(true)
 <div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>  <span class="keywordflow">return</span> <span class="stringliteral">&quot;&quot;</span>;</div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>}</div>
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>std::string FileDialogWrapper::ShowOpenFolderDialog() {</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>std::string <a class="code hl_function" href="classFileDialogWrapper.html#a3dd232b48cacec8962495342a47eaa4a">FileDialogWrapper::ShowOpenFolderDialog</a>() {</div>
 <div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  NSOpenPanel* openPanel = [NSOpenPanel openPanel];</div>
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>  [openPanel setCanChooseFiles:NO];</div>
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>  [openPanel setCanChooseDirectories:YES];</div>
@@ -197,7 +197,7 @@ $(function(){initNavTree('file__dialog_8mm_source.html',''); initResizable(true)
 <div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>  <span class="keywordflow">return</span> <span class="stringliteral">&quot;&quot;</span>;</div>
 <div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>}</div>
 <div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span> </div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>std::vector&lt;std::string&gt; FileDialogWrapper::GetFilesInFolder(<span class="keyword">const</span> std::string&amp; folder) {</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>std::vector&lt;std::string&gt; <a class="code hl_function" href="classFileDialogWrapper.html#ac347af05f729872e107a3c090269c3b3">FileDialogWrapper::GetFilesInFolder</a>(<span class="keyword">const</span> std::string&amp; folder) {</div>
 <div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>  std::vector&lt;std::string&gt; filenames;</div>
 <div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>  NSFileManager* fileManager = [NSFileManager defaultManager];</div>
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>  NSDirectoryEnumerator* enumerator =</div>
@@ -212,7 +212,7 @@ $(function(){initNavTree('file__dialog_8mm_source.html',''); initResizable(true)
 <div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>  <span class="keywordflow">return</span> filenames;</div>
 <div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>}</div>
 <div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span> </div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>std::vector&lt;std::string&gt; FileDialogWrapper::GetSubdirectoriesInFolder(<span class="keyword">const</span> std::string&amp; folder) {</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>std::vector&lt;std::string&gt; <a class="code hl_function" href="classFileDialogWrapper.html#a7ccf9a9773c3adbc1794bb36779aa70b">FileDialogWrapper::GetSubdirectoriesInFolder</a>(<span class="keyword">const</span> std::string&amp; folder) {</div>
 <div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>  std::vector&lt;std::string&gt; subdirectories;</div>
 <div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>  NSFileManager* fileManager = [NSFileManager defaultManager];</div>
 <div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>  NSDirectoryEnumerator* enumerator =</div>
@@ -239,6 +239,10 @@ $(function(){initNavTree('file__dialog_8mm_source.html',''); initResizable(true)
 <div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span><span class="preprocessor">#endif  </span><span class="comment">// __APPLE__ &amp;&amp; __MACH__</span></div>
 <div class="ttc" id="aapp__delegate_8h_html"><div class="ttname"><a href="app__delegate_8h.html">app_delegate.h</a></div></div>
 <div class="ttc" id="aclassAppDelegate_html"><div class="ttname"><a href="classAppDelegate.html">AppDelegate</a></div><div class="ttdef"><b>Definition</b> <a href="main_8mm_source.html#l00306">main.mm:306</a></div></div>
+<div class="ttc" id="aclassFileDialogWrapper_html_a1f62d9438a0cae4abd608e60f21ed39b"><div class="ttname"><a href="classFileDialogWrapper.html#a1f62d9438a0cae4abd608e60f21ed39b">FileDialogWrapper::ShowOpenFileDialog</a></div><div class="ttdeci">static std::string ShowOpenFileDialog()</div></div>
+<div class="ttc" id="aclassFileDialogWrapper_html_a3dd232b48cacec8962495342a47eaa4a"><div class="ttname"><a href="classFileDialogWrapper.html#a3dd232b48cacec8962495342a47eaa4a">FileDialogWrapper::ShowOpenFolderDialog</a></div><div class="ttdeci">static std::string ShowOpenFolderDialog()</div></div>
+<div class="ttc" id="aclassFileDialogWrapper_html_a7ccf9a9773c3adbc1794bb36779aa70b"><div class="ttname"><a href="classFileDialogWrapper.html#a7ccf9a9773c3adbc1794bb36779aa70b">FileDialogWrapper::GetSubdirectoriesInFolder</a></div><div class="ttdeci">static std::vector&lt; std::string &gt; GetSubdirectoriesInFolder(const std::string &amp;folder_path)</div></div>
+<div class="ttc" id="aclassFileDialogWrapper_html_ac347af05f729872e107a3c090269c3b3"><div class="ttname"><a href="classFileDialogWrapper.html#ac347af05f729872e107a3c090269c3b3">FileDialogWrapper::GetFilesInFolder</a></div><div class="ttdeci">static std::vector&lt; std::string &gt; GetFilesInFolder(const std::string &amp;folder_path)</div></div>
 <div class="ttc" id="afile__dialog_8h_html"><div class="ttname"><a href="file__dialog_8h.html">file_dialog.h</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

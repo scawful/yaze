@@ -12,7 +12,7 @@ var searchData=
   ['readlong_9',['ReadLong',['../classyaze_1_1app_1_1Rom.html#a3aef2571b980d4da3df2d9451cabad17',1,'yaze::app::Rom']]],
   ['readopcode_10',['ReadOpcode',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#aed9e3d900db6d82ccb2b0ae05b487d14',1,'yaze::app::emu::audio::Spc700::ReadOpcode()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a9813c4c7e34c95f4b36571523bf139e3',1,'yaze::app::emu::Cpu::ReadOpcode()']]],
   ['readopcodeword_11',['ReadOpcodeWord',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af7098fe4b498624c7bf810c2dae2f6cd',1,'yaze::app::emu::audio::Spc700::ReadOpcodeWord()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a0ccc1f7d6c7e5b1a47ccf8d224a1c4db',1,'yaze::app::emu::Cpu::ReadOpcodeWord()']]],
-  ['readpalettefromrom_12',['ReadPaletteFromRom',['../namespaceyaze_1_1app_1_1gfx.html#a03f22b0abee97bf4bcb4d226a7148f96',1,'yaze::app::gfx::ReadPaletteFromRom(int offset, int num_colors, const uchar *rom)'],['../namespaceyaze_1_1app_1_1gfx.html#a770b616b1a09b80f72fdd549ec6a7f34',1,'yaze::app::gfx::ReadPaletteFromRom(int offset, int num_colors, const uint8_t *rom)']]],
+  ['readpalettefromrom_12',['ReadPaletteFromRom',['../namespaceyaze_1_1app_1_1gfx.html#a770b616b1a09b80f72fdd549ec6a7f34',1,'yaze::app::gfx']]],
   ['readreg_13',['ReadReg',['../classyaze_1_1app_1_1emu_1_1SNES.html#a3ce9ccc983bd4fce86a2b1371536cee2',1,'yaze::app::emu::SNES']]],
   ['readromheader_14',['ReadRomHeader',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a71b0a38ce8f8a1293b9ed00ba83c5028',1,'yaze::app::emu::memory::MemoryImpl']]],
   ['readtile16_15',['ReadTile16',['../classyaze_1_1app_1_1Rom.html#a46623661861b99b7ddee15fae0d774d8',1,'yaze::app::Rom']]],

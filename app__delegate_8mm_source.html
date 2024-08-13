@@ -317,7 +317,7 @@ $(function(){initNavTree('app__delegate_8mm_source.html',''); initResizable(true
 <div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>}</div>
 <div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span> </div>
 <div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>- (void)openFileAction:(<span class="keywordtype">id</span>)sender {</div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="classyaze_1_1app_1_1SharedRom.html#a309d5dc79f612e1387732f46597dbd84">yaze::app::SharedRom::shared_rom_</a>-&gt;LoadFromFile(FileDialogWrapper::ShowOpenFileDialog())</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="classyaze_1_1app_1_1SharedRom.html#a309d5dc79f612e1387732f46597dbd84">yaze::app::SharedRom::shared_rom_</a>-&gt;LoadFromFile(<a class="code hl_function" href="classFileDialogWrapper.html#a1f62d9438a0cae4abd608e60f21ed39b">FileDialogWrapper::ShowOpenFileDialog</a>())</div>
 <div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>           .ok()) {</div>
 <div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>    NSAlert *alert = [[NSAlert alloc] init];</div>
 <div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>    [alert setMessageText:@&quot;Error&quot;];</div>
@@ -351,6 +351,7 @@ $(function(){initNavTree('app__delegate_8mm_source.html',''); initResizable(true
 <div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aapp__delegate_8h_html"><div class="ttname"><a href="app__delegate_8h.html">app_delegate.h</a></div></div>
 <div class="ttc" id="aclassAppDelegate_html"><div class="ttname"><a href="classAppDelegate.html">AppDelegate</a></div><div class="ttdef"><b>Definition</b> <a href="main_8mm_source.html#l00306">main.mm:306</a></div></div>
+<div class="ttc" id="aclassFileDialogWrapper_html_a1f62d9438a0cae4abd608e60f21ed39b"><div class="ttname"><a href="classFileDialogWrapper.html#a1f62d9438a0cae4abd608e60f21ed39b">FileDialogWrapper::ShowOpenFileDialog</a></div><div class="ttdeci">static std::string ShowOpenFileDialog()</div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1SharedRom_html_a309d5dc79f612e1387732f46597dbd84"><div class="ttname"><a href="classyaze_1_1app_1_1SharedRom.html#a309d5dc79f612e1387732f46597dbd84">yaze::app::SharedRom::shared_rom_</a></div><div class="ttdeci">static std::shared_ptr&lt; Rom &gt; shared_rom_</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00561">rom.h:561</a></div></div>
 <div class="ttc" id="acontroller_8h_html"><div class="ttname"><a href="controller_8h.html">controller.h</a></div></div>
 <div class="ttc" id="aeditor_8h_html"><div class="ttname"><a href="editor_8h.html">editor.h</a></div></div>

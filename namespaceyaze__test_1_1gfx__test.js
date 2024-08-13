@@ -33,7 +33,6 @@ var namespaceyaze__test_1_1gfx__test =
     [ "TEST", "namespaceyaze__test_1_1gfx__test.html#a6e6ea0ebe7dfee204d25102e65367771", null ],
     [ "TEST", "namespaceyaze__test_1_1gfx__test.html#a982e6bc9a15fd299b184f33b3beaa967", null ],
     [ "TEST", "namespaceyaze__test_1_1gfx__test.html#ac79465247aad16f5bf69c7bb4476eb6a", null ],
-    [ "TEST", "namespaceyaze__test_1_1gfx__test.html#a1a263e0ae5ef8848f9ab4910765f1db3", null ],
     [ "TEST", "namespaceyaze__test_1_1gfx__test.html#a7bc433fcb4d48845ad5aa57f317365af", null ],
     [ "TEST", "namespaceyaze__test_1_1gfx__test.html#a553516597f84d193decd64cac53ae815", null ],
     [ "TEST", "namespaceyaze__test_1_1gfx__test.html#ae974a1d17ac339bb96e17521b20b73e2", null ],

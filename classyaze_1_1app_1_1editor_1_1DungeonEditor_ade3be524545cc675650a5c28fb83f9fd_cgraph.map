@@ -1,6 +1,6 @@
 <map id="yaze::app::editor::DungeonEditor::Initialize" name="yaze::app::editor::DungeonEditor::Initialize">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,196,164,237"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gfx.html#ae5807cdf64ba8eed9e0b94335c514674" title=" " alt="" coords="216,71,398,111"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gfx.html#a1bb7565b38ebe9348abb69352315d32f" title=" " alt="" coords="216,71,398,111"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,193,154,158,210,122,224,115,226,120,213,127,157,162,112,197"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="220,160,395,201"/>
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="164,201,204,194,204,200,165,206"/>
@@ -8,9 +8,9 @@
 <area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="165,226,196,232,195,237,164,232"/>
 <area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="219,329,396,354"/>
 <area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="121,235,213,290,267,319,265,324,210,295,118,240"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html#adcf50af0ebbb8dfeb2a628b10100a9fc" title=" " alt="" coords="454,5,628,46"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a305057f8a2e4f4ab1f9f2eebe994721d" title=" " alt="" coords="454,5,628,46"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="382,68,450,48,451,53,383,73"/>
-<area shape="rect" id="Node000004" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a1ddc8e3e0f2e6379693670a5accd0b3b" title=" " alt="" coords="451,71,630,111"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a8fa2347dd7c201ffd8189cab6177798a" title=" " alt="" coords="451,71,630,111"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="399,88,436,88,436,94,399,94"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html#ad50a103d8012360fca29d69c20bd9bed" title=" " alt="" coords="454,136,628,177"/>
 <area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="383,109,451,129,450,134,382,114"/>

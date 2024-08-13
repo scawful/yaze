@@ -1,13 +1,5 @@
 var NAVTREEINDEX39 =
 {
-"namespaceyaze_1_1app_1_1gui.html#a0dee1b29d58201456f0fc225794a4a21":[10,0,2,0,5,27],
-"namespaceyaze_1_1app_1_1gui.html#a0f01f74c711bfe7b939d8f239f5f4b31":[10,0,2,0,5,52],
-"namespaceyaze_1_1app_1_1gui.html#a111f2967e1d2d56e2188777b4551a77b":[10,0,2,0,5,51],
-"namespaceyaze_1_1app_1_1gui.html#a1ea1d6c7891279ea571030df8a323fd6":[10,0,2,0,5,42],
-"namespaceyaze_1_1app_1_1gui.html#a2bf29114274dce89e615eccfa0c8202e":[10,0,2,0,5,13],
-"namespaceyaze_1_1app_1_1gui.html#a2bf29114274dce89e615eccfa0c8202eaaf937713a39275d7c02a4a08b982d81a":[10,0,2,0,5,13,1],
-"namespaceyaze_1_1app_1_1gui.html#a2bf29114274dce89e615eccfa0c8202eac06bd766ba0c680aa7ce4145dd31eb99":[10,0,2,0,5,13,0],
-"namespaceyaze_1_1app_1_1gui.html#a2bf29114274dce89e615eccfa0c8202eafb5397a5037cdaeda0a604dcbfe8c01f":[10,0,2,0,5,13,2],
 "namespaceyaze_1_1app_1_1gui.html#a374f2b642919cc9fed20c7fa82c5fab7":[10,0,2,0,5,46],
 "namespaceyaze_1_1app_1_1gui.html#a37d30bfb30a0b8009d689eee0085eed0":[10,0,2,0,5,21],
 "namespaceyaze_1_1app_1_1gui.html#a3cce6ce5c9b245f61e6531334c427476":[10,0,2,0,5,23],
@@ -249,5 +241,13 @@ var NAVTREEINDEX39 =
 "namespaceyaze_1_1app_1_1zelda3_1_1music.html#a2b3c427473083d084492da3958e03e63":[10,0,2,0,6,2,6],
 "namespaceyaze_1_1app_1_1zelda3_1_1music.html#a3407566be0a556a2ebecf32b78d7dab9":[10,0,2,0,6,2,14],
 "namespaceyaze_1_1app_1_1zelda3_1_1music.html#a603a4a83eb4d9dfde0c14d3acc6f42ab":[10,0,2,0,6,2,2],
-"namespaceyaze_1_1app_1_1zelda3_1_1music.html#a84b93f0b01be6a6dd1e85dd11354d6bd":[10,0,2,0,6,2,9]
+"namespaceyaze_1_1app_1_1zelda3_1_1music.html#a84b93f0b01be6a6dd1e85dd11354d6bd":[10,0,2,0,6,2,9],
+"namespaceyaze_1_1app_1_1zelda3_1_1music.html#a98cdd85309c1dc75eba79a75d551ec4e":[10,0,2,0,6,2,4],
+"namespaceyaze_1_1app_1_1zelda3_1_1music.html#a9c6669c5e833cfd1c94ddf5ca2581a30":[10,0,2,0,6,2,5],
+"namespaceyaze_1_1app_1_1zelda3_1_1music.html#aa04d07eb2b4d97ae99d0421370f23a84":[10,0,2,0,6,2,7],
+"namespaceyaze_1_1app_1_1zelda3_1_1music.html#aa76a3e96c7ad81d30e389fcb5634ed8c":[10,0,2,0,6,2,13],
+"namespaceyaze_1_1app_1_1zelda3_1_1music.html#ab66ec996d4cbc3cabec1adbb6d6a76de":[10,0,2,0,6,2,1],
+"namespaceyaze_1_1app_1_1zelda3_1_1music.html#ab8e8feb10728cf14eb3f5745c0eeac2a":[10,0,2,0,6,2,12],
+"namespaceyaze_1_1app_1_1zelda3_1_1music.html#ac53e684fc25368f7b89cb6f647606eee":[10,0,2,0,6,2,10],
+"namespaceyaze_1_1app_1_1zelda3_1_1music.html#ad5f4eb2ab2baf68c9346230e1a6904e0":[10,0,2,0,6,2,3]
 };

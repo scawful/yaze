@@ -1,26 +1,28 @@
 <map id="yaze::app::editor::OverworldEditor::RefreshTile16Blockset" name="yaze::app::editor::OverworldEditor::RefreshTile16Blockset">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,242,205,298"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a63a3008e5953e88af8a8ed6667ab2a61" title="Copy color data from the SnesPalette into the SDL_Palette." alt="" coords="262,33,406,74"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,240,172,163,209,121,251,84,256,80,259,84,254,88,213,125,177,166,125,243"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#acf4cf859e6e5f629a3877ad76ab78fc4" title=" " alt="" coords="263,98,406,154"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="141,239,192,202,251,163,259,159,262,164,254,168,195,206,144,244"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1core_1_1Renderer.html#acd1048086e983ab44d0875b079927bfa" title=" " alt="" coords="253,177,416,218"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="195,239,252,221,254,226,197,244"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a9963c88f554ac4261b9d583756b6069a" title=" " alt="" coords="263,242,406,298"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="205,267,248,267,248,272,205,272"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a25a64c2875596385980c9fb5d77ebfab" title=" " alt="" coords="263,322,406,378"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="188,296,249,317,248,322,186,301"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a8cb0698993e08901dbf8c9c136be5350" title=" " alt="" coords="263,402,406,458"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="138,296,191,341,254,387,261,391,258,396,251,392,188,345,135,300"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1core_1_1Renderer.html#aedcffb1f7a16396dbe8a5685c62573d7" title="Used to update a bitmap on the screen." alt="" coords="253,481,416,522"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="123,297,144,335,174,380,211,427,254,468,259,471,256,475,251,472,207,430,170,384,140,338,118,299"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,271,205,327"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a63a3008e5953e88af8a8ed6667ab2a61" title="Copy color data from the SnesPalette into the SDL_Palette." alt="" coords="262,63,406,103"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,269,172,193,209,150,251,113,256,109,259,114,254,117,213,154,177,196,125,272"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#acf4cf859e6e5f629a3877ad76ab78fc4" title=" " alt="" coords="263,127,406,183"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="141,269,192,231,251,193,259,188,262,193,254,197,195,236,144,273"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1core_1_1Renderer.html#acd1048086e983ab44d0875b079927bfa" title=" " alt="" coords="253,207,416,247"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="195,268,252,250,254,255,197,273"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a9963c88f554ac4261b9d583756b6069a" title=" " alt="" coords="263,271,406,327"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="205,296,248,296,248,302,205,302"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a25a64c2875596385980c9fb5d77ebfab" title=" " alt="" coords="263,351,406,407"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="188,325,249,347,248,352,186,330"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a8cb0698993e08901dbf8c9c136be5350" title=" " alt="" coords="263,431,406,487"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="138,325,191,370,254,417,261,421,258,425,251,421,188,375,135,329"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1core_1_1Renderer.html#aedcffb1f7a16396dbe8a5685c62573d7" title="Used to update a bitmap on the screen." alt="" coords="253,511,416,551"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="123,326,144,364,174,410,211,456,254,497,259,500,256,505,251,501,207,460,170,413,140,367,118,329"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aeb279f4bb0cb3d5771ae33177d660de8" title=" " alt="" coords="486,5,630,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="406,42,470,34,470,39,407,47"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="406,62,470,45,471,51,407,67"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1SnesColor.html#ac521c69eed2432f839a39c0bbfb19be7" title=" " alt="" coords="464,70,651,96"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="407,60,449,66,448,71,406,66"/>
-<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="470,448,645,489"/>
-<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="416,487,454,481,455,486,417,492"/>
-<area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#ae061f9e46947eddeab58c59a2aaeaff2" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="486,513,630,554"/>
-<area shape="poly" id="edge12_Node000010_Node000012" title=" " alt="" coords="417,511,470,518,469,524,416,516"/>
-<area shape="poly" id="edge11_Node000011_Node000011" title=" " alt="" coords="515,448,513,438,520,429,535,423,558,421,582,424,596,430,594,435,580,429,558,427,536,429,523,433,519,439,521,447"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="407,80,448,80,448,86,407,86"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a9efa827efd4b03f98cff6029da7bccc7" title=" " alt="" coords="486,120,630,161"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="407,99,471,115,470,121,406,104"/>
+<area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="470,477,645,518"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="416,516,454,510,455,516,417,521"/>
+<area shape="rect" id="Node000013" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#ae061f9e46947eddeab58c59a2aaeaff2" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="486,543,630,583"/>
+<area shape="poly" id="edge13_Node000011_Node000013" title=" " alt="" coords="417,540,470,548,469,553,416,545"/>
+<area shape="poly" id="edge12_Node000012_Node000012" title=" " alt="" coords="515,477,513,467,520,458,535,453,558,451,582,453,596,459,594,464,580,458,558,456,536,458,523,463,519,469,521,476"/>
 </map>

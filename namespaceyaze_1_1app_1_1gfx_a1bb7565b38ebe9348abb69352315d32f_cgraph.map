@@ -1,8 +1,8 @@
 <map id="yaze::app::gfx::CreatePaletteGroupFromLargePalette" name="yaze::app::gfx::CreatePaletteGroupFromLargePalette">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,71,188,111"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html#adcf50af0ebbb8dfeb2a628b10100a9fc" title=" " alt="" coords="238,5,412,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a305057f8a2e4f4ab1f9f2eebe994721d" title=" " alt="" coords="238,5,412,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,68,236,48,238,53,171,73"/>
-<area shape="rect" id="Node000003" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a1ddc8e3e0f2e6379693670a5accd0b3b" title=" " alt="" coords="236,71,415,111"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a8fa2347dd7c201ffd8189cab6177798a" title=" " alt="" coords="236,71,415,111"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="188,88,220,88,220,94,188,94"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html#ad50a103d8012360fca29d69c20bd9bed" title=" " alt="" coords="238,136,412,177"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="171,109,238,129,236,134,169,114"/>

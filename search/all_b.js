@@ -302,7 +302,7 @@ var searchData=
   ['createinternalopcodemap_299',['CreateInternalOpcodeMap',['../classyaze_1_1app_1_1emu_1_1AsmParser.html#a3d939f3edae43a796e80acddf0e8a087',1,'yaze::app::emu::AsmParser']]],
   ['createorgetlabel_300',['CreateOrGetLabel',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#ab5527e695ccdbad0e335d27b8e6cecc1',1,'yaze::app::core::ResourceLabelManager']]],
   ['createpalettegroupfromcolfile_301',['CreatePaletteGroupFromColFile',['../namespaceyaze_1_1app_1_1gfx.html#abdc15a02218fe29002585f61230af828',1,'yaze::app::gfx']]],
-  ['createpalettegroupfromlargepalette_302',['CreatePaletteGroupFromLargePalette',['../namespaceyaze_1_1app_1_1gfx.html#ae5807cdf64ba8eed9e0b94335c514674',1,'yaze::app::gfx']]],
+  ['createpalettegroupfromlargepalette_302',['CreatePaletteGroupFromLargePalette',['../namespaceyaze_1_1app_1_1gfx.html#a1bb7565b38ebe9348abb69352315d32f',1,'yaze::app::gfx']]],
   ['createpatch_303',['CreatePatch',['../classyaze_1_1cli_1_1CreatePatch.html',1,'yaze::cli']]],
   ['createrenderer_304',['CreateRenderer',['../classyaze_1_1app_1_1core_1_1Controller.html#a7de45c3e705b21ddd623f5a36e3dfd55',1,'yaze::app::core::Controller::CreateRenderer()'],['../classyaze_1_1app_1_1core_1_1Renderer.html#a0cd5bc71f50a38f2f42ca58e312cc0cf',1,'yaze::app::core::Renderer::CreateRenderer()']]],
   ['createrepeatedbetweenuncompressable_305',['CreateRepeatedBetweenUncompressable',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a1fb9d104aaa5a98088365fc4fa9a4051',1,'yaze_test::gfx_test::anonymous_namespace{compression_test.cc}']]],

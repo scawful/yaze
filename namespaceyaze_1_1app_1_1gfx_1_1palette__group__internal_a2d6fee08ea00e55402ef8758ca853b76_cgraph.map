@@ -1,8 +1,8 @@
 <map id="yaze::app::gfx::palette_group_internal::LoadSpriteAux2Palettes" name="yaze::app::gfx::palette_group_internal::LoadSpriteAux2Palettes">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,31,213,87"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a1ddc8e3e0f2e6379693670a5accd0b3b" title=" " alt="" coords="261,5,440,46"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a8fa2347dd7c201ffd8189cab6177798a" title=" " alt="" coords="261,5,440,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,42,245,37,246,43,214,47"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx.html#a03f22b0abee97bf4bcb4d226a7148f96" title=" " alt="" coords="263,71,438,111"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx.html#a770b616b1a09b80f72fdd549ec6a7f34" title=" " alt="" coords="263,71,438,111"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="214,70,248,75,248,80,213,75"/>
 <area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx.html#a1d7b7b9da156693ec13b608343cd7b49" title=" " alt="" coords="488,78,711,104"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="438,88,472,88,472,94,438,94"/>

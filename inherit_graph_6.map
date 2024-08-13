@@ -1,13 +1,3 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,128,98,154"/>
-<area shape="rect" id="Node000001" href="$classyaze__test_1_1RomTest.html" title=" " alt="" coords="152,5,288,31"/>
-<area shape="poly" id="edge2_Node000000_Node000001" title=" " alt="" coords="69,114,102,77,144,41,168,29,171,34,147,46,106,80,73,117"/>
-<area shape="rect" id="Node000002" href="$classyaze__test_1_1emu__test_1_1CpuTest.html" title=" " alt="" coords="152,55,288,96"/>
-<area shape="poly" id="edge3_Node000000_Node000002" title=" " alt="" coords="100,119,165,94,167,99,102,124"/>
-<area shape="rect" id="Node000003" href="$classyaze__test_1_1emu__test_1_1PpuTest.html" title=" " alt="" coords="152,120,288,161"/>
-<area shape="poly" id="edge4_Node000000_Node000003" title=" " alt="" coords="113,138,152,138,152,144,113,144"/>
-<area shape="rect" id="Node000004" href="$classyaze__test_1_1emu__test_1_1Spc700Test.html" title=" " alt="" coords="152,186,288,226"/>
-<area shape="poly" id="edge5_Node000000_Node000004" title=" " alt="" coords="102,157,167,183,165,188,100,162"/>
-<area shape="rect" id="Node000005" href="$classyaze__test_1_1zelda3__test_1_1SpriteBuilderTest.html" title=" " alt="" coords="146,251,294,292"/>
-<area shape="poly" id="edge6_Node000000_Node000005" title=" " alt="" coords="74,164,107,200,147,236,168,248,165,253,144,240,103,204,70,168"/>
+<area shape="rect" id="Node000000" href="$structsnes__palette.html" title="Primitive of a SNES color palette." alt="" coords="5,5,101,31"/>
 </map>

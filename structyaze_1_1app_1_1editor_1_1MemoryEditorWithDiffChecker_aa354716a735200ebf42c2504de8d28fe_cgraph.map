@@ -1,17 +1,19 @@
 <map id="yaze::app::editor::MemoryEditorWithDiffChecker::Update" name="yaze::app::editor::MemoryEditorWithDiffChecker::Update">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,126,199,182"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,162,199,218"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd" title=" " alt="" coords="510,5,671,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,124,179,79,211,57,246,40,308,21,373,11,437,7,494,8,494,13,437,13,374,16,309,27,248,45,214,61,182,83,131,128"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,160,141,130,170,97,205,65,246,40,307,18,372,7,436,3,494,4,494,10,436,8,373,12,309,23,248,45,208,69,174,100,145,134,123,163"/>
 <area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gui.html#a3cce6ce5c9b245f61e6531334c427476" title=" " alt="" coords="266,55,421,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="161,123,246,89,267,82,268,88,248,94,163,128"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="136,160,186,123,246,89,260,83,262,88,248,94,189,127,139,164"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197" title=" " alt="" coords="247,104,440,130"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="199,137,241,130,241,135,199,142"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="181,159,246,138,270,131,271,137,247,143,183,164"/>
 <area shape="rect" id="Node000028" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="255,177,432,203"/>
-<area shape="poly" id="edge8_Node000001_Node000028" title=" " alt="" coords="199,166,240,172,239,177,199,171"/>
-<area shape="rect" id="Node000029" href="$classyaze_1_1app_1_1Rom.html#a648c0cee09095aad6aa881fc114a9f5f" title=" " alt="" coords="275,227,412,252"/>
-<area shape="poly" id="edge10_Node000001_Node000029" title=" " alt="" coords="165,180,248,213,269,220,267,225,246,218,163,185"/>
-<area shape="rect" id="Node000030" href="$namespaceyaze_1_1app_1_1core.html#aac6170e3d4875c2f4cfcc39bee40eb1a" title=" " alt="" coords="257,276,430,302"/>
-<area shape="poly" id="edge11_Node000001_Node000030" title=" " alt="" coords="134,180,185,223,248,262,261,268,259,273,245,267,182,227,130,184"/>
+<area shape="poly" id="edge8_Node000001_Node000028" title=" " alt="" coords="199,188,240,188,240,193,199,193"/>
+<area shape="rect" id="Node000029" href="$classFileDialogWrapper.html#a1f62d9438a0cae4abd608e60f21ed39b" title=" " alt="" coords="272,227,414,268"/>
+<area shape="poly" id="edge10_Node000001_Node000029" title=" " alt="" coords="200,211,258,224,256,230,198,216"/>
+<area shape="rect" id="Node000030" href="$classyaze_1_1app_1_1Rom.html#a648c0cee09095aad6aa881fc114a9f5f" title=" " alt="" coords="275,292,412,318"/>
+<area shape="poly" id="edge11_Node000001_Node000030" title=" " alt="" coords="143,216,192,248,248,277,267,284,265,289,246,282,189,253,140,221"/>
+<area shape="rect" id="Node000031" href="$namespaceyaze_1_1app_1_1core.html#aac6170e3d4875c2f4cfcc39bee40eb1a" title=" " alt="" coords="257,341,430,367"/>
+<area shape="poly" id="edge12_Node000001_Node000031" title=" " alt="" coords="126,217,178,274,211,303,248,328,258,333,256,338,245,332,208,307,174,277,122,220"/>
 <area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="416,101,439,91,453,79,462,66,471,53,487,40,496,35,499,40,489,44,475,56,466,69,457,82,441,95,418,106"/>
 <area shape="rect" id="Node000005" href="$namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="492,55,688,80"/>
 <area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="411,101,507,81,508,87,412,106"/>

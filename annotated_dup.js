@@ -303,6 +303,7 @@ var annotated_dup =
     ] ],
     [ "AppDelegate", "classAppDelegate.html", null ],
     [ "AppViewController", "classAppViewController.html", null ],
+    [ "FileDialogWrapper", "classFileDialogWrapper.html", null ],
     [ "snes_color", "structsnes__color.html", "structsnes__color" ],
     [ "snes_palette", "structsnes__palette.html", "structsnes__palette" ],
     [ "yaze_command_registry", "structyaze__command__registry.html", "structyaze__command__registry" ],
