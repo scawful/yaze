@@ -109,46 +109,31 @@ class SnesPalette {
   template <typename T>
   explicit SnesPalette(const std::vector<T>& data) {
     for (const auto& item : data) {
-      colors.push_back(SnesColor(item));
+      colors.emplace_back(SnesColor(item));
     }
-    size_ = data.size();
   }
 
   SnesPalette() = default;
-
-  explicit SnesPalette(uint8_t mSize);
   explicit SnesPalette(char* snesPal);
   explicit SnesPalette(const unsigned char* snes_pal);
   explicit SnesPalette(const std::vector<ImVec4>&);
   explicit SnesPalette(const std::vector<snes_color>&);
   explicit SnesPalette(const std::vector<SnesColor>&);
 
-  SDL_Palette* GetSDL_Palette();
-
   void Create(const std::vector<SnesColor>& cols) {
     for (const auto& each : cols) {
-      colors.push_back(each);
+      colors.emplace_back(each);
     }
-    size_ = cols.size();
   }
 
-  void AddColor(SnesColor color) {
-    colors.push_back(color);
-    size_++;
-  }
+  void AddColor(const SnesColor& color) { colors.emplace_back(color); }
 
-  void AddColor(snes_color color) {
-    colors.emplace_back(color);
-    size_++;
-  }
+  void AddColor(const snes_color& color) { colors.emplace_back(color); }
 
-  void AddColor(uint16_t color) {
-    colors.emplace_back(color);
-    size_++;
-  }
+  void AddColor(uint16_t color) { colors.emplace_back(color); }
 
   absl::StatusOr<SnesColor> GetColor(int i) const {
-    if (i > size_) {
+    if (i > colors.size()) {
       return absl::InvalidArgumentError("SnesPalette: Index out of bounds");
     }
     return colors[i];
@@ -156,16 +141,13 @@ class SnesPalette {
 
   auto mutable_color(int i) { return &colors[i]; }
 
-  void Clear() {
-    colors.clear();
-    size_ = 0;
-  }
+  void Clear() { colors.clear(); }
 
   auto size() const { return colors.size(); }
   auto empty() const { return colors.empty(); }
 
   SnesColor& operator[](int i) {
-    if (i > size_) {
+    if (i > colors.size()) {
       std::cout << "SNESPalette: Index out of bounds" << std::endl;
       return colors[0];
     }
@@ -173,14 +155,14 @@ class SnesPalette {
   }
 
   void operator()(int i, const SnesColor& color) {
-    if (i >= size_) {
+    if (i >= colors.size()) {
       throw std::out_of_range("SNESPalette: Index out of bounds");
     }
     colors[i] = color;
   }
 
   void operator()(int i, const ImVec4& color) {
-    if (i >= size_) {
+    if (i >= colors.size()) {
       throw std::out_of_range("SNESPalette: Index out of bounds");
     }
     colors[i].set_rgb(color);
@@ -196,7 +178,6 @@ class SnesPalette {
   }
 
  private:
-  int size_ = 0;                 /**< The size of the palette. */
   std::vector<SnesColor> colors; /**< The colors in the palette. */
 };
 
@@ -213,34 +194,24 @@ std::array<float, 4> ToFloatArray(const SnesColor& color);
 struct PaletteGroup {
   PaletteGroup() = default;
 
-  explicit PaletteGroup(uint8_t mSize);
+  void AddPalette(SnesPalette pal) { palettes.emplace_back(pal); }
 
-  absl::Status AddPalette(SnesPalette pal) {
-    palettes.emplace_back(pal);
-    size_ = palettes.size();
-    return absl::OkStatus();
-  }
-
-  absl::Status AddColor(SnesColor color) {
-    if (size_ == 0) {
+  void AddColor(SnesColor color) {
+    if (palettes.empty()) {
       palettes.emplace_back();
     }
     palettes[0].AddColor(color);
-    return absl::OkStatus();
   }
 
-  void Clear() {
-    palettes.clear();
-    size_ = 0;
-  }
-
+  void Clear() { palettes.clear(); }
+  void SetName(const std::string& name) { name_ = name; }
   auto name() const { return name_; }
   auto size() const { return palettes.size(); }
   auto mutable_palette(int i) { return &palettes[i]; }
   auto palette(int i) const { return palettes[i]; }
 
   SnesPalette operator[](int i) {
-    if (i > size_) {
+    if (i > palettes.size()) {
       std::cout << "PaletteGroup: Index out of bounds" << std::endl;
       return palettes[0];
     }
@@ -248,31 +219,14 @@ struct PaletteGroup {
   }
 
   const SnesPalette& operator[](int i) const {
-    if (i > size_) {
+    if (i > palettes.size()) {
       std::cout << "PaletteGroup: Index out of bounds" << std::endl;
       return palettes[0];
     }
     return palettes[i];
   }
 
-  absl::Status operator()(int i, const SnesColor& color) {
-    if (i >= size_) {
-      return absl::InvalidArgumentError("PaletteGroup: Index out of bounds");
-    }
-    palettes[i](0, color);
-    return absl::OkStatus();
-  }
-
-  absl::Status operator()(int i, const ImVec4& color) {
-    if (i >= size_) {
-      return absl::InvalidArgumentError("PaletteGroup: Index out of bounds");
-    }
-    palettes[i](0, color);
-    return absl::OkStatus();
-  }
-
  private:
-  int size_ = 0;
   std::string name_;
   std::vector<SnesPalette> palettes;
 };
@@ -389,8 +343,9 @@ struct PaletteGroupMap {
 absl::StatusOr<PaletteGroup> CreatePaletteGroupFromColFile(
     std::vector<SnesColor>& colors);
 
+// Take a SNESPalette with N many colors and divide it into palettes of 8 colors
 absl::StatusOr<PaletteGroup> CreatePaletteGroupFromLargePalette(
-    SnesPalette& palette);
+    SnesPalette& palette, int num_colors = 8);
 
 /**
  * @brief Loads all the palettes for the game.

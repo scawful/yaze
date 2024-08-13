@@ -31,16 +31,6 @@ TEST(SNESPaletteTest, AddColor) {
   ASSERT_EQ(palette.size(), 1);
 }
 
-TEST(SNESPaletteTest, GetColorOutOfBounds) {
-  yaze::app::gfx::SnesPalette palette;
-  std::vector<yaze::app::gfx::SnesColor> colors(5);
-  palette.Create(colors);
-
-  // TODO: Fix this test, behavior has changed since the original
-  // ASSERT_THROW(palette.GetColor(10), std::exception);
-  // ASSERT_THROW(palette[10], std::exception);
-}
-
 TEST(SNESColorTest, ConvertRGBtoSNES) {
   snes_color color = {132, 132, 132};
   uint16_t snes = ConvertRGBtoSNES(color);
