@@ -12,6 +12,11 @@
 #include "app/core/constants.h"
 #include "app/gfx/snes_palette.h"
 
+#define SDL_RETURN_IF_ERROR()                   \
+  if (SDL_GetError() != nullptr) {              \
+    return absl::InternalError(SDL_GetError()); \
+  }
+
 namespace yaze {
 namespace app {
 namespace gfx {
@@ -19,14 +24,7 @@ namespace gfx {
 using core::SDL_Surface_Deleter;
 using core::SDL_Texture_Deleter;
 
-namespace {
-void GrayscalePalette(SDL_Palette *palette) {
-  for (int i = 0; i < 8; i++) {
-    palette->colors[i].r = i * 31;
-    palette->colors[i].g = i * 31;
-    palette->colors[i].b = i * 31;
-  }
-}
+namespace png_internal {
 
 void PngWriteCallback(png_structp png_ptr, png_bytep data, png_size_t length) {
   std::vector<uint8_t> *p = (std::vector<uint8_t> *)png_get_io_ptr(png_ptr);
@@ -50,20 +48,7 @@ void PngReadCallback(png_structp png_ptr, png_bytep outBytes,
   }
 }
 
-Uint32 GetSnesPixelFormat(int format) {
-  switch (format) {
-    case 0:
-      return SDL_PIXELFORMAT_INDEX8;
-    case 1:
-      return SNES_PIXELFORMAT_2BPP;
-    case 2:
-      return SNES_PIXELFORMAT_4BPP;
-    case 3:
-      return SNES_PIXELFORMAT_8BPP;
-  }
-  return SDL_PIXELFORMAT_INDEX8;
-}
-}  // namespace
+}  // namespace png_internal
 
 bool ConvertSurfaceToPNG(SDL_Surface *surface, std::vector<uint8_t> &buffer) {
   png_structp png_ptr = png_create_write_struct("1.6.40", NULL, NULL, NULL);
@@ -200,6 +185,40 @@ void ConvertPngToSurface(const std::vector<uint8_t> &png_data,
   SDL_Log("Successfully created SDL_Surface from PNG data");
 }
 
+namespace {
+
+void GrayscalePalette(SDL_Palette *palette) {
+  for (int i = 0; i < 8; i++) {
+    palette->colors[i].r = i * 31;
+    palette->colors[i].g = i * 31;
+    palette->colors[i].b = i * 31;
+  }
+}
+
+Uint32 GetSnesPixelFormat(int format) {
+  switch (format) {
+    case 0:
+      return SDL_PIXELFORMAT_INDEX8;
+    case 1:
+      return SNES_PIXELFORMAT_2BPP;
+    case 2:
+      return SNES_PIXELFORMAT_4BPP;
+    case 3:
+      return SNES_PIXELFORMAT_8BPP;
+  }
+  return SDL_PIXELFORMAT_INDEX8;
+}
+}  // namespace
+
+std::vector<uint8_t> Bitmap::GetPngData() {
+  ConvertSurfaceToPNG(surface_.get(), png_data_);
+  return png_data_;
+}
+
+void Bitmap::SaveSurfaceToFile(std::string_view filename) {
+  SDL_SaveBMP(surface_.get(), filename.data());
+}
+
 Bitmap::Bitmap(int width, int height, int depth, int data_size) {
   Create(width, height, depth, Bytes(data_size, 0));
 }
@@ -303,58 +322,32 @@ void Bitmap::UpdateTexture(std::shared_ptr<SDL_Renderer> renderer) {
       SDL_Texture_Deleter{}};
 }
 
-void Bitmap::SaveSurfaceToFile(std::string_view filename) {
-  SDL_SaveBMP(surface_.get(), filename.data());
-}
-
-void Bitmap::SetSurface(SDL_Surface *surface) {
-  surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
-      surface, SDL_Surface_Deleter());
-}
-
-std::vector<uint8_t> Bitmap::GetPngData() {
-  ConvertSurfaceToPNG(surface_.get(), png_data_);
-  return png_data_;
-}
-
-void Bitmap::LoadFromPngData(const std::vector<uint8_t> &png_data, int width,
-                             int height) {
-  width_ = width;
-  height_ = height;
-  SDL_Surface *surface = surface_.get();
-  ConvertPngToSurface(png_data, &surface);
-  surface_.reset(surface);
-}
-
-// Convert SNESPalette to SDL_Palette for surface.
 absl::Status Bitmap::ApplyPalette(const SnesPalette &palette) {
   if (surface_ == nullptr) {
-    return absl::FailedPreconditionError("Surface is null");
+    return absl::FailedPreconditionError(
+        "Surface is null. Palette not applied");
   }
-
   if (surface_->format == nullptr || surface_->format->palette == nullptr) {
-    return absl::FailedPreconditionError("Surface format or palette is null");
+    return absl::FailedPreconditionError(
+        "Surface format or palette is null. Palette not applied.");
   }
-
   palette_ = palette;
 
-  SDL_Palette *sdlPalette = surface_->format->palette;
-  if (sdlPalette == nullptr) {
+  SDL_Palette *sdl_palette = surface_->format->palette;
+  if (sdl_palette == nullptr) {
     return absl::InternalError("Failed to get SDL palette");
   }
 
   SDL_UnlockSurface(surface_.get());
-
   for (int i = 0; i < palette.size(); ++i) {
     ASSIGN_OR_RETURN(gfx::SnesColor pal_color, palette.GetColor(i));
-    sdlPalette->colors[i].r = pal_color.rgb().x;
-    sdlPalette->colors[i].g = pal_color.rgb().y;
-    sdlPalette->colors[i].b = pal_color.rgb().z;
-    sdlPalette->colors[i].a = pal_color.rgb().w;
+    sdl_palette->colors[i].r = pal_color.rgb().x;
+    sdl_palette->colors[i].g = pal_color.rgb().y;
+    sdl_palette->colors[i].b = pal_color.rgb().z;
+    sdl_palette->colors[i].a = pal_color.rgb().w;
   }
-
   SDL_LockSurface(surface_.get());
-
+  SDL_RETURN_IF_ERROR()
   return absl::OkStatus();
 }
 
@@ -378,6 +371,7 @@ absl::Status Bitmap::ApplyPaletteFromPaletteGroup(const SnesPalette &palette,
     }
   }
   SDL_LockSurface(surface_.get());
+  SDL_RETURN_IF_ERROR()
   return absl::OkStatus();
 }
 
@@ -402,6 +396,9 @@ absl::Status Bitmap::ApplyPaletteWithTransparent(const SnesPalette &palette,
     i++;
   }
   SDL_LockSurface(surface_.get());
+  if (SDL_GetError() != nullptr) {  // Check for SDL errors
+    return absl::InternalError(absl::StrCat("SDL Error: ", SDL_GetError()));
+  }
   return absl::OkStatus();
 }
 
