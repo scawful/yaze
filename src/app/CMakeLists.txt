@@ -33,6 +33,7 @@ target_link_libraries(
   ${PNG_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ImGui
+  ImGuiTestEngine
 )
 
 if (APPLE)
