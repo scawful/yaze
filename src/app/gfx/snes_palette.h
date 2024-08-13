@@ -151,14 +151,14 @@ class SnesPalette {
 
   void operator()(int i, const SnesColor& color) {
     if (i >= colors.size()) {
-      std::cout << SNESPalette: Index out of bounds << std::endl;
+      std::cout << "SNESPalette: Index out of bounds" << std::endl;
     }
     colors[i] = color;
   }
 
   void operator()(int i, const ImVec4& color) {
     if (i >= colors.size()) {
-      std::cout << SNESPalette: Index out of bounds << std::endl;
+      std::cout << "SNESPalette: Index out of bounds" << std::endl;
       return;
     }
     colors[i].set_rgb(color);
