@@ -24,6 +24,8 @@ namespace gfx {
 using core::SDL_Surface_Deleter;
 using core::SDL_Texture_Deleter;
 
+#if YAZE_LIB_PNG == 1
+
 namespace png_internal {
 
 void PngWriteCallback(png_structp png_ptr, png_bytep data, png_size_t length) {
@@ -70,7 +72,7 @@ bool ConvertSurfaceToPNG(SDL_Surface *surface, std::vector<uint8_t> &buffer) {
     return false;
   }
 
-  png_set_write_fn(png_ptr, &buffer, PngWriteCallback, NULL);
+  png_set_write_fn(png_ptr, &buffer, png_internal::PngWriteCallback, NULL);
 
   png_colorp pal_ptr;
 
@@ -142,7 +144,7 @@ void ConvertPngToSurface(const std::vector<uint8_t> &png_data,
   }
 
   // Set our custom read function
-  png_set_read_fn(png_ptr, &data, PngReadCallback);
+  png_set_read_fn(png_ptr, &data, png_internal::PngReadCallback);
 
   // Read the PNG info
   png_read_info(png_ptr, info_ptr);
@@ -184,6 +186,8 @@ void ConvertPngToSurface(const std::vector<uint8_t> &png_data,
 
   SDL_Log("Successfully created SDL_Surface from PNG data");
 }
+
+#endif  // YAZE_LIB_PNG
 
 namespace {
 
