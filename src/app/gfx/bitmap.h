@@ -87,6 +87,9 @@ class Bitmap {
     }
   }
 
+  std::vector<uint8_t> GetPngData();
+  void SaveSurfaceToFile(std::string_view filename);
+
   /**
    * @brief Creates a bitmap object with the provided graphical data.
    */
@@ -109,12 +112,6 @@ class Bitmap {
   void UpdateTexture(std::shared_ptr<SDL_Renderer> renderer);
   void CreateTexture(SDL_Renderer *renderer);
   void UpdateTexture(SDL_Renderer *renderer, bool use_sdl_update = false);
-
-  void SaveSurfaceToFile(std::string_view filename);
-  void SetSurface(SDL_Surface *surface);
-  std::vector<uint8_t> GetPngData();
-  void LoadFromPngData(const std::vector<uint8_t> &png_data, int width,
-                       int height);
 
   /**
    * @brief Copy color data from the SnesPalette into the SDL_Palette
