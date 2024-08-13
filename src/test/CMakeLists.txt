@@ -28,11 +28,12 @@ add_executable(
   app/core/common.cc
   app/core/labeling.cc
   app/editor/utils/gfx_context.cc
+  ${ASAR_STATIC_SRC}
   ${YAZE_APP_EMU_SRC}
   ${YAZE_APP_GFX_SRC}
   ${YAZE_GUI_SRC}
-  lib/imgui/misc/cpp/imgui_stdlib.cpp
-  ${ASAR_STATIC_SRC}
+  ${IMGUI_SRC}
+  ${IMGUI_TEST_ENGINE_SOURCES}
 )
 
 target_include_directories(
