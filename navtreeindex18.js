@@ -1,5 +1,11 @@
 var NAVTREEINDEX18 =
 {
+"classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html#aff02a4fb2da38194c8f11b27e887de9c":[10,0,2,0,6,9,0],
+"classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html#aff02a4fb2da38194c8f11b27e887de9c":[11,0,1,0,5,8,0],
+"classyaze_1_1app_1_1zelda3_1_1SpriteInstruction.html":[10,0,2,0,6,10],
+"classyaze_1_1app_1_1zelda3_1_1SpriteInstruction.html":[11,0,1,0,5,9],
+"classyaze_1_1app_1_1zelda3_1_1SpriteInstruction.html#a0f8d4ab61593ebcb88a531fdc6011886":[10,0,2,0,6,10,2],
+"classyaze_1_1app_1_1zelda3_1_1SpriteInstruction.html#a0f8d4ab61593ebcb88a531fdc6011886":[11,0,1,0,5,9,2],
 "classyaze_1_1app_1_1zelda3_1_1SpriteInstruction.html#a937a1bc726abc1b782276b084e53e6ae":[10,0,2,0,6,10,1],
 "classyaze_1_1app_1_1zelda3_1_1SpriteInstruction.html#a937a1bc726abc1b782276b084e53e6ae":[11,0,1,0,5,9,1],
 "classyaze_1_1app_1_1zelda3_1_1SpriteInstruction.html#a9f55aff8d4917f533c5c2ae9e9e709c9":[10,0,2,0,6,10,0],
@@ -243,11 +249,5 @@ var NAVTREEINDEX18 =
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#acf87859a15d9914abd4a2ef893edeaac":[10,0,2,0,6,1,6,19],
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#acf87859a15d9914abd4a2ef893edeaac":[11,0,1,0,5,0,6,19],
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#ada84a30f44d944d9985f47165ea256f9":[10,0,2,0,6,1,6,21],
-"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#ada84a30f44d944d9985f47165ea256f9":[11,0,1,0,5,0,6,21],
-"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#afbc3da4a6d8e0b79ff0bc2299f7a2a01":[10,0,2,0,6,1,6,12],
-"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#afbc3da4a6d8e0b79ff0bc2299f7a2a01":[11,0,1,0,5,0,6,12],
-"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#affb2e91045a2c9d2a8ca3b4118f23b9f":[10,0,2,0,6,1,6,26],
-"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#affb2e91045a2c9d2a8ca3b4118f23b9f":[11,0,1,0,5,0,6,26],
-"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html":[10,0,2,0,6,1,7],
-"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html":[11,0,1,0,5,0,7]
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#ada84a30f44d944d9985f47165ea256f9":[11,0,1,0,5,0,6,21]
 };

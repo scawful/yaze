@@ -11,10 +11,10 @@
 <area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="423,111,474,151,518,198,549,239,545,242,514,202,471,155,420,116"/>
 <area shape="rect" id="Node000006" href="$emulator_8h.html" title=" " alt="" coords="535,160,692,186"/>
 <area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="438,108,580,157,578,162,437,113"/>
-<area shape="rect" id="Node000015" href="$dma_8h.html" title=" " alt="" coords="317,153,460,193"/>
-<area shape="poly" id="edge7_Node000003_Node000015" title=" " alt="" coords="391,120,391,152,386,152,386,120"/>
-<area shape="rect" id="Node000017" href="$command__handler_8h.html" title=" " alt="" coords="716,160,893,186"/>
-<area shape="poly" id="edge10_Node000003_Node000017" title=" " alt="" coords="469,105,705,150,742,157,741,162,704,155,468,111"/>
+<area shape="rect" id="Node000016" href="$dma_8h.html" title=" " alt="" coords="317,153,460,193"/>
+<area shape="poly" id="edge7_Node000003_Node000016" title=" " alt="" coords="391,120,391,152,386,152,386,120"/>
+<area shape="rect" id="Node000018" href="$command__handler_8h.html" title=" " alt="" coords="716,160,893,186"/>
+<area shape="poly" id="edge10_Node000003_Node000018" title=" " alt="" coords="469,105,705,150,742,157,741,162,704,155,468,111"/>
 <area shape="poly" id="edge6_Node000006_Node000005" title=" " alt="" coords="598,200,566,242,562,239,594,197"/>
-<area shape="poly" id="edge8_Node000015_Node000002" title=" " alt="" coords="303,199,125,243,124,238,301,194"/>
+<area shape="poly" id="edge8_Node000016_Node000002" title=" " alt="" coords="303,199,125,243,124,238,301,194"/>
 </map>

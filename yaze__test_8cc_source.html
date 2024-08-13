@@ -110,22 +110,67 @@ $(function(){initNavTree('yaze__test_8cc_source.html',''); initResizable(true); 
 </div><!--header-->
 <div class="contents">
 <a href="yaze__test_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno"><a class="line" href="yaze__test_8cc.html#a51f528deaaeb973f417b46a2ec36f850">    1</a></span><span class="preprocessor">#define SDL_MAIN_HANDLED</span></div>
-<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#include &lt;gtest/gtest.h&gt;</span></div>
-<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &quot;absl/debugging/failure_signal_handler.h&quot;</span></div>
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &quot;absl/debugging/symbolize.h&quot;</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
-<div class="foldopen" id="foldopen00007" data-start="{" data-end="}">
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno"><a class="line" href="yaze__test_8cc.html#a0ddf1224851353fc92bfbff6f499fa97">    7</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="yaze__test_8cc.html#a0ddf1224851353fc92bfbff6f499fa97">main</a>(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span>* argv[]) {</div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span>  absl::InitializeSymbolizer(argv[0]);</div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span>  absl::FailureSignalHandlerOptions options;</div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>  absl::InstallFailureSignalHandler(options);</div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>  ::testing::InitGoogleTest(&amp;argc, argv);</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>  <span class="keywordflow">return</span> RUN_ALL_TESTS();</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>}</div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;SDL.h&gt;</span></div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;gtest/gtest.h&gt;</span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;absl/debugging/failure_signal_handler.h&quot;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;absl/debugging/symbolize.h&quot;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;<a class="code" href="controller_8h.html">app/core/controller.h</a>&quot;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;imgui/imgui.h&quot;</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;imgui_test_engine/imgui_te_engine.h&quot;</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;<a class="code" href="test__editor_8h.html">test/integration/test_editor.h</a>&quot;</span></div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
+<div class="foldopen" id="foldopen00013" data-start="{" data-end="}">
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno"><a class="line" href="yaze__test_8cc.html#a0ddf1224851353fc92bfbff6f499fa97">   13</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="yaze__test_8cc.html#a0ddf1224851353fc92bfbff6f499fa97">main</a>(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span>* argv[]) {</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>  absl::InitializeSymbolizer(argv[0]);</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>  absl::FailureSignalHandlerOptions options;</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  absl::InstallFailureSignalHandler(options);</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  <span class="comment">// Support the ability to launch an integration test window.</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  SDL_SetMainReady();</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  <span class="comment">// Check if the argument says `integration`</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  <span class="keywordflow">if</span> (argc &gt; 1 &amp;&amp; std::string(argv[1]) == <span class="stringliteral">&quot;integration&quot;</span>) {</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    <a class="code hl_class" href="classyaze__test_1_1integration_1_1TestEditor.html">yaze_test::integration::TestEditor</a> test_editor;</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    <a class="code hl_class" href="classyaze_1_1app_1_1core_1_1Controller.html">yaze::app::core::Controller</a> controller;</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    controller.<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1Controller.html#aa4c89161dd58aba2ed7d2267368e8382">init_test_editor</a>(&amp;test_editor);</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    <span class="keyword">auto</span> entry = controller.<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1Controller.html#a59403e741f392a42bdbbe874b9ebeea1">OnEntry</a>();</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    <span class="keywordflow">if</span> (!entry.ok()) {</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>      <span class="keywordflow">return</span> EXIT_FAILURE;</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    }</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    <span class="keywordflow">while</span> (controller.<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1Controller.html#afd6011a3b58a78452d3ab5308382bf0d">IsActive</a>()) {</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>      controller.<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1Controller.html#ab91b550d982432084d70abcbe0fa76bd">OnInput</a>();</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>      <span class="keywordflow">if</span> (!controller.<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1Controller.html#a0fe694ddfbbfa5c288983d1e5cdb50de">OnLoad</a>().ok()) {</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>        <span class="keywordflow">return</span> EXIT_FAILURE;</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>      }</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>      controller.<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1Controller.html#a3bb770108edb03390f0458b1ad48af00">DoRender</a>();</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    }</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    controller.<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1Controller.html#a473842231f08f37aba1e40ad62397760">OnExit</a>();</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    <span class="keywordflow">return</span> EXIT_SUCCESS;</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  }</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span> </div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  ::testing::InitGoogleTest(&amp;argc, argv);</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  <span class="keywordflow">return</span> RUN_ALL_TESTS();</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>}</div>
 </div>
-<div class="ttc" id="ayaze__test_8cc_html_a0ddf1224851353fc92bfbff6f499fa97"><div class="ttname"><a href="yaze__test_8cc.html#a0ddf1224851353fc92bfbff6f499fa97">main</a></div><div class="ttdeci">int main(int argc, char *argv[])</div><div class="ttdef"><b>Definition</b> <a href="#l00007">yaze_test.cc:7</a></div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1core_1_1Controller_html"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1Controller.html">yaze::app::core::Controller</a></div><div class="ttdoc">Main controller for the application.</div><div class="ttdef"><b>Definition</b> <a href="controller_8h_source.html#l00035">controller.h:35</a></div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1core_1_1Controller_html_a0fe694ddfbbfa5c288983d1e5cdb50de"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1Controller.html#a0fe694ddfbbfa5c288983d1e5cdb50de">yaze::app::core::Controller::OnLoad</a></div><div class="ttdeci">absl::Status OnLoad()</div><div class="ttdef"><b>Definition</b> <a href="controller_8cc_source.html#l00332">controller.cc:332</a></div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1core_1_1Controller_html_a3bb770108edb03390f0458b1ad48af00"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1Controller.html#a3bb770108edb03390f0458b1ad48af00">yaze::app::core::Controller::DoRender</a></div><div class="ttdeci">void DoRender() const</div><div class="ttdef"><b>Definition</b> <a href="controller_8cc_source.html#l00355">controller.cc:355</a></div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1core_1_1Controller_html_a473842231f08f37aba1e40ad62397760"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1Controller.html#a473842231f08f37aba1e40ad62397760">yaze::app::core::Controller::OnExit</a></div><div class="ttdeci">void OnExit()</div><div class="ttdef"><b>Definition</b> <a href="controller_8cc_source.html#l00363">controller.cc:363</a></div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1core_1_1Controller_html_a59403e741f392a42bdbbe874b9ebeea1"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1Controller.html#a59403e741f392a42bdbbe874b9ebeea1">yaze::app::core::Controller::OnEntry</a></div><div class="ttdeci">absl::Status OnEntry(std::string filename=&quot;&quot;)</div><div class="ttdef"><b>Definition</b> <a href="controller_8cc_source.html#l00265">controller.cc:265</a></div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1core_1_1Controller_html_aa4c89161dd58aba2ed7d2267368e8382"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1Controller.html#aa4c89161dd58aba2ed7d2267368e8382">yaze::app::core::Controller::init_test_editor</a></div><div class="ttdeci">void init_test_editor(editor::Editor *editor)</div><div class="ttdef"><b>Definition</b> <a href="controller_8h_source.html#l00059">controller.h:59</a></div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1core_1_1Controller_html_ab91b550d982432084d70abcbe0fa76bd"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1Controller.html#ab91b550d982432084d70abcbe0fa76bd">yaze::app::core::Controller::OnInput</a></div><div class="ttdeci">void OnInput()</div><div class="ttdef"><b>Definition</b> <a href="controller_8cc_source.html#l00293">controller.cc:293</a></div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1core_1_1Controller_html_afd6011a3b58a78452d3ab5308382bf0d"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1Controller.html#afd6011a3b58a78452d3ab5308382bf0d">yaze::app::core::Controller::IsActive</a></div><div class="ttdeci">bool IsActive() const</div><div class="ttdef"><b>Definition</b> <a href="controller_8h_source.html#l00037">controller.h:37</a></div></div>
+<div class="ttc" id="aclassyaze__test_1_1integration_1_1TestEditor_html"><div class="ttname"><a href="classyaze__test_1_1integration_1_1TestEditor.html">yaze_test::integration::TestEditor</a></div><div class="ttdef"><b>Definition</b> <a href="test__editor_8h_source.html#l00009">test_editor.h:9</a></div></div>
+<div class="ttc" id="acontroller_8h_html"><div class="ttname"><a href="controller_8h.html">controller.h</a></div></div>
+<div class="ttc" id="atest__editor_8h_html"><div class="ttname"><a href="test__editor_8h.html">test_editor.h</a></div></div>
+<div class="ttc" id="ayaze__test_8cc_html_a0ddf1224851353fc92bfbff6f499fa97"><div class="ttname"><a href="yaze__test_8cc.html#a0ddf1224851353fc92bfbff6f499fa97">main</a></div><div class="ttdeci">int main(int argc, char *argv[])</div><div class="ttdef"><b>Definition</b> <a href="#l00013">yaze_test.cc:13</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

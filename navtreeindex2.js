@@ -1,5 +1,11 @@
 var NAVTREEINDEX2 =
 {
+"classyaze_1_1app_1_1core_1_1NotifyValue.html":[10,0,2,0,1,8],
+"classyaze_1_1app_1_1core_1_1NotifyValue.html":[11,0,1,0,0,6],
+"classyaze_1_1app_1_1core_1_1NotifyValue.html#a04463e5cc23e8afb393e359c2b7389d6":[10,0,2,0,1,8,3],
+"classyaze_1_1app_1_1core_1_1NotifyValue.html#a04463e5cc23e8afb393e359c2b7389d6":[11,0,1,0,0,6,3],
+"classyaze_1_1app_1_1core_1_1NotifyValue.html#a21d574dee5d1a560da33cfccfaa0439b":[10,0,2,0,1,8,1],
+"classyaze_1_1app_1_1core_1_1NotifyValue.html#a21d574dee5d1a560da33cfccfaa0439b":[11,0,1,0,0,6,1],
 "classyaze_1_1app_1_1core_1_1NotifyValue.html#a30bc0a6b388f40a9257d040c64effa2d":[10,0,2,0,1,8,7],
 "classyaze_1_1app_1_1core_1_1NotifyValue.html#a30bc0a6b388f40a9257d040c64effa2d":[11,0,1,0,0,6,7],
 "classyaze_1_1app_1_1core_1_1NotifyValue.html#a4a6aa7feda4ee383e11addcfd9b726c4":[10,0,2,0,1,8,10],
@@ -243,11 +249,5 @@ var NAVTREEINDEX2 =
 "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ad7d7dec042753480a8b1664c5f7ce1c4":[10,0,2,0,2,11,20],
 "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ad7d7dec042753480a8b1664c5f7ce1c4":[11,0,1,0,1,6,20],
 "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#adb2df7fb203eaa1cfe67b5b990b075df":[10,0,2,0,2,11,9],
-"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#adb2df7fb203eaa1cfe67b5b990b075df":[11,0,1,0,1,6,9],
-"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#adbd9b1dcc626a6bf912437d9664c1b3e":[10,0,2,0,2,11,65],
-"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#adbd9b1dcc626a6bf912437d9664c1b3e":[11,0,1,0,1,6,65],
-"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ade3be524545cc675650a5c28fb83f9fd":[10,0,2,0,2,11,11],
-"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ade3be524545cc675650a5c28fb83f9fd":[11,0,1,0,1,6,11],
-"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ae7adc6080a9bd43fe99ded5c04ad4999":[10,0,2,0,2,11,58],
-"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ae7adc6080a9bd43fe99ded5c04ad4999":[11,0,1,0,1,6,58]
+"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#adb2df7fb203eaa1cfe67b5b990b075df":[11,0,1,0,1,6,9]
 };

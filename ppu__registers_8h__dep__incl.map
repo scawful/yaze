@@ -8,19 +8,19 @@
 <area shape="poly" id="edge6_Node000002_Node000004" title=" " alt="" coords="413,123,364,141,341,154,320,170,307,185,299,200,292,230,287,262,281,280,270,299,240,331,208,354,205,350,236,327,266,295,276,278,282,261,287,229,294,198,302,182,317,166,338,149,361,136,411,118"/>
 <area shape="rect" id="Node000005" href="$snes_8h.html" title=" " alt="" coords="120,264,255,290"/>
 <area shape="poly" id="edge7_Node000002_Node000005" title=" " alt="" coords="413,121,343,139,308,152,276,170,249,192,226,218,196,265,192,262,222,215,245,188,273,165,306,148,341,134,411,116"/>
-<area shape="rect" id="Node000022" href="$ppu_8cc.html" title=" " alt="" coords="330,175,501,201"/>
-<area shape="poly" id="edge8_Node000002_Node000022" title=" " alt="" coords="485,132,432,177,428,173,482,128"/>
-<area shape="rect" id="Node000023" href="$object__renderer_8h.html" title=" " alt="" coords="524,168,683,208"/>
-<area shape="poly" id="edge9_Node000002_Node000023" title=" " alt="" coords="537,128,582,165,579,169,533,132"/>
-<area shape="rect" id="Node000025" href="$room__object_8h.html" title=" " alt="" coords="575,256,734,297"/>
-<area shape="poly" id="edge12_Node000002_Node000025" title=" " alt="" coords="607,114,656,132,678,147,697,166,704,190,700,214,688,238,674,257,670,254,684,235,695,213,699,190,692,169,675,151,654,137,605,119"/>
-<area shape="rect" id="Node000032" href="$room__object__test_8cc.html" title=" " alt="" coords="642,345,781,386"/>
-<area shape="poly" id="edge14_Node000002_Node000032" title=" " alt="" coords="607,114,665,132,693,147,718,166,742,196,754,226,755,259,748,298,739,323,727,346,722,343,734,321,742,296,749,258,749,227,738,198,714,170,690,151,663,137,605,119"/>
-<area shape="rect" id="Node000033" href="$ppu__test_8cc.html" title=" " alt="" coords="808,175,973,201"/>
-<area shape="poly" id="edge13_Node000002_Node000033" title=" " alt="" coords="583,121,832,172,831,177,582,126"/>
+<area shape="rect" id="Node000023" href="$ppu_8cc.html" title=" " alt="" coords="330,175,501,201"/>
+<area shape="poly" id="edge8_Node000002_Node000023" title=" " alt="" coords="485,132,432,177,428,173,482,128"/>
+<area shape="rect" id="Node000024" href="$object__renderer_8h.html" title=" " alt="" coords="524,168,683,208"/>
+<area shape="poly" id="edge9_Node000002_Node000024" title=" " alt="" coords="537,128,582,165,579,169,533,132"/>
+<area shape="rect" id="Node000026" href="$room__object_8h.html" title=" " alt="" coords="575,256,734,297"/>
+<area shape="poly" id="edge12_Node000002_Node000026" title=" " alt="" coords="607,114,656,132,678,147,697,166,704,190,700,214,688,238,674,257,670,254,684,235,695,213,699,190,692,169,675,151,654,137,605,119"/>
+<area shape="rect" id="Node000033" href="$room__object__test_8cc.html" title=" " alt="" coords="642,345,781,386"/>
+<area shape="poly" id="edge14_Node000002_Node000033" title=" " alt="" coords="607,114,665,132,693,147,718,166,742,196,754,226,755,259,748,298,739,323,727,346,722,343,734,321,742,296,749,258,749,227,738,198,714,170,690,151,663,137,605,119"/>
+<area shape="rect" id="Node000034" href="$ppu__test_8cc.html" title=" " alt="" coords="808,175,973,201"/>
+<area shape="poly" id="edge13_Node000002_Node000034" title=" " alt="" coords="583,121,832,172,831,177,582,126"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="102,217,101,256,103,276,110,296,121,313,135,327,166,350,163,354,132,331,117,316,105,298,98,278,95,256,97,216"/>
 <area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="129,210,178,262,174,265,125,214"/>
 <area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="190,305,190,352,185,352,185,305"/>
-<area shape="poly" id="edge10_Node000023_Node000025" title=" " alt="" coords="625,221,645,255,641,257,621,223"/>
-<area shape="poly" id="edge11_Node000025_Node000032" title=" " alt="" coords="678,308,701,343,696,346,673,311"/>
+<area shape="poly" id="edge10_Node000024_Node000026" title=" " alt="" coords="625,221,645,255,641,257,621,223"/>
+<area shape="poly" id="edge11_Node000026_Node000033" title=" " alt="" coords="678,308,701,343,696,346,673,311"/>
 </map>

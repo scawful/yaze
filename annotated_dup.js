@@ -296,6 +296,9 @@ var annotated_dup =
         [ "PpuTest", "classyaze__test_1_1emu__test_1_1PpuTest.html", "classyaze__test_1_1emu__test_1_1PpuTest" ],
         [ "Spc700Test", "classyaze__test_1_1emu__test_1_1Spc700Test.html", "classyaze__test_1_1emu__test_1_1Spc700Test" ]
       ] ],
+      [ "integration", "namespaceyaze__test_1_1integration.html", [
+        [ "TestEditor", "classyaze__test_1_1integration_1_1TestEditor.html", "classyaze__test_1_1integration_1_1TestEditor" ]
+      ] ],
       [ "zelda3_test", "namespaceyaze__test_1_1zelda3__test.html", [
         [ "SpriteBuilderTest", "classyaze__test_1_1zelda3__test_1_1SpriteBuilderTest.html", "classyaze__test_1_1zelda3__test_1_1SpriteBuilderTest" ]
       ] ],

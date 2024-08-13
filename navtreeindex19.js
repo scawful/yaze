@@ -1,5 +1,11 @@
 var NAVTREEINDEX19 =
 {
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#afbc3da4a6d8e0b79ff0bc2299f7a2a01":[10,0,2,0,6,1,6,12],
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#afbc3da4a6d8e0b79ff0bc2299f7a2a01":[11,0,1,0,5,0,6,12],
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#affb2e91045a2c9d2a8ca3b4118f23b9f":[10,0,2,0,6,1,6,26],
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#affb2e91045a2c9d2a8ca3b4118f23b9f":[11,0,1,0,5,0,6,26],
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html":[10,0,2,0,6,1,7],
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html":[11,0,1,0,5,0,7],
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a10d50201321b2acc023237913943fc78":[10,0,2,0,6,1,7,15],
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a10d50201321b2acc023237913943fc78":[11,0,1,0,5,0,7,15],
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a13cadb7aea7575759f72f1415db9f035":[10,0,2,0,6,1,7,20],
@@ -243,11 +249,5 @@ var NAVTREEINDEX19 =
 "classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#afd1d2d9928f7e92b8eb3beb1ffba09b1":[10,0,2,0,6,2,0,42],
 "classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#afd1d2d9928f7e92b8eb3beb1ffba09b1":[11,0,1,0,5,1,0,42],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html":[10,0,2,0,6,3,4],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html":[11,0,1,0,5,2,1],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a0036d9be60f3b1bd8b420ce83b21d1d2":[10,0,2,0,6,3,4,75],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a0036d9be60f3b1bd8b420ce83b21d1d2":[11,0,1,0,5,2,1,75],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a033b7be7e566f46f2018b1ca3a152f1f":[10,0,2,0,6,3,4,37],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a033b7be7e566f46f2018b1ca3a152f1f":[11,0,1,0,5,2,1,37],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a04484c8282fc08c511a9eefa2dc71048":[10,0,2,0,6,3,4,35],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a04484c8282fc08c511a9eefa2dc71048":[11,0,1,0,5,2,1,35]
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html":[11,0,1,0,5,2,1]
 };

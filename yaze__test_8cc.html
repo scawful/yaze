@@ -112,21 +112,76 @@ $(function(){initNavTree('yaze__test_8cc.html',''); initResizable(true); });
   <div class="headertitle"><div class="title">yaze_test.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;gtest/gtest.h&gt;</code><br />
+<div class="textblock"><code>#include &lt;SDL.h&gt;</code><br />
+<code>#include &lt;gtest/gtest.h&gt;</code><br />
 <code>#include &quot;absl/debugging/failure_signal_handler.h&quot;</code><br />
 <code>#include &quot;absl/debugging/symbolize.h&quot;</code><br />
+<code>#include &quot;<a class="el" href="controller_8h_source.html">app/core/controller.h</a>&quot;</code><br />
+<code>#include &quot;imgui/imgui.h&quot;</code><br />
+<code>#include &quot;imgui_test_engine/imgui_te_engine.h&quot;</code><br />
+<code>#include &quot;<a class="el" href="test__editor_8h_source.html">test/integration/test_editor.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for yaze_test.cc:</div>
 <div class="dyncontent">
 <div class="center"><img src="yaze__test_8cc__incl.png" border="0" usemap="#asrc_2test_2yaze__test_8cc" alt=""/></div>
 <map name="asrc_2test_2yaze__test_8cc" id="asrc_2test_2yaze__test_8cc">
-<area shape="rect" title=" " alt="" coords="125,5,267,31"/>
-<area shape="rect" title=" " alt="" coords="5,86,99,112"/>
-<area shape="poly" title=" " alt="" coords="175,34,89,81,86,76,173,29"/>
-<area shape="rect" title=" " alt="" coords="122,79,270,120"/>
-<area shape="poly" title=" " alt="" coords="199,31,199,64,193,64,193,31"/>
-<area shape="rect" title=" " alt="" coords="294,86,474,112"/>
-<area shape="poly" title=" " alt="" coords="226,29,343,78,340,83,224,34"/>
+<area shape="rect" title=" " alt="" coords="711,5,853,31"/>
+<area shape="rect" title=" " alt="" coords="5,256,63,282"/>
+<area shape="poly" title=" " alt="" coords="711,27,524,45,412,60,301,82,257,89,218,93,149,98,118,105,90,117,62,138,35,169,27,186,24,204,28,241,23,242,19,204,22,184,30,166,58,134,87,112,117,100,148,93,217,88,257,84,300,76,412,55,524,39,710,21"/>
+<area shape="rect" title=" " alt="" coords="313,86,406,112"/>
+<area shape="poly" title=" " alt="" coords="711,31,575,50,419,82,409,84,408,79,417,76,574,45,711,25"/>
+<area shape="rect" title=" " alt="" coords="430,79,577,120"/>
+<area shape="poly" title=" " alt="" coords="740,34,588,77,587,72,738,29"/>
+<area shape="rect" title=" " alt="" coords="602,86,781,112"/>
+<area shape="poly" title=" " alt="" coords="770,33,718,78,715,74,766,29"/>
+<area shape="rect" href="controller_8h.html" title=" " alt="" coords="805,86,943,112"/>
+<area shape="poly" title=" " alt="" coords="798,29,850,74,847,78,794,33"/>
+<area shape="rect" title=" " alt="" coords="1341,330,1439,356"/>
+<area shape="poly" title=" " alt="" coords="853,17,1045,24,1165,32,1289,45,1409,64,1516,89,1562,105,1602,123,1634,143,1657,166,1667,183,1671,199,1669,215,1662,231,1638,259,1606,284,1570,305,1531,321,1455,338,1454,333,1529,315,1568,300,1603,280,1635,255,1658,228,1664,214,1666,200,1662,185,1653,169,1631,147,1599,128,1560,110,1515,94,1408,69,1289,50,1165,37,1045,29,853,23"/>
+<area shape="rect" title=" " alt="" coords="1125,79,1287,120"/>
+<area shape="poly" title=" " alt="" coords="852,29,1111,76,1110,81,851,34"/>
+<area shape="rect" href="test__editor_8h.html" title=" " alt="" coords="967,79,1101,120"/>
+<area shape="poly" title=" " alt="" coords="822,29,958,71,956,77,820,34"/>
+<area shape="poly" title=" " alt="" coords="829,115,793,122,653,128,419,131,298,135,189,142,106,154,78,161,61,170,49,185,41,203,35,241,30,240,36,201,44,182,58,166,76,156,105,148,189,137,298,130,419,126,653,122,792,117,828,110"/>
+<area shape="rect" title=" " alt="" coords="660,330,728,356"/>
+<area shape="poly" title=" " alt="" coords="823,115,592,170,582,188,581,208,587,228,598,249,631,288,667,318,663,322,627,291,594,252,582,230,576,209,577,187,588,166,821,110"/>
+<area shape="rect" title=" " alt="" coords="1167,168,1314,208"/>
+<area shape="poly" title=" " alt="" coords="926,110,1153,163,1151,168,925,115"/>
+<area shape="rect" title=" " alt="" coords="71,168,218,208"/>
+<area shape="poly" title=" " alt="" coords="828,115,793,122,638,141,515,147,391,153,234,170,233,165,391,147,515,142,637,136,792,117,827,110"/>
+<area shape="rect" title=" " alt="" coords="242,175,356,201"/>
+<area shape="poly" title=" " alt="" coords="827,115,793,122,674,138,581,145,488,152,369,170,355,173,353,168,368,165,487,147,580,140,673,133,792,117,826,110"/>
+<area shape="poly" title=" " alt="" coords="921,110,956,117,1085,122,1301,125,1414,129,1514,136,1590,148,1616,156,1632,166,1642,179,1647,193,1648,206,1644,219,1627,243,1600,264,1565,284,1526,301,1450,328,1449,323,1524,296,1562,279,1597,260,1623,239,1640,217,1643,205,1642,194,1637,182,1628,170,1614,161,1589,153,1513,141,1413,134,1301,130,1085,127,955,122,920,115"/>
+<area shape="rect" title=" " alt="" coords="381,175,527,201"/>
+<area shape="poly" title=" " alt="" coords="824,115,793,122,547,170,528,174,527,169,545,165,792,117,823,110"/>
+<area shape="rect" title=" " alt="" coords="1086,256,1222,282"/>
+<area shape="poly" title=" " alt="" coords="924,110,1033,139,1080,154,1106,165,1122,182,1134,202,1150,240,1145,242,1130,204,1118,186,1103,170,1078,159,1032,144,923,115"/>
+<area shape="rect" href="core_2common_8h.html" title=" " alt="" coords="744,256,879,282"/>
+<area shape="poly" title=" " alt="" coords="872,114,824,243,819,241,867,112"/>
+<area shape="rect" href="renderer_8h.html" title=" " alt="" coords="602,175,786,201"/>
+<area shape="poly" title=" " alt="" coords="850,115,734,171,732,166,847,110"/>
+<area shape="rect" href="editor__manager_8h.html" title=" " alt="" coords="911,175,1093,201"/>
+<area shape="poly" title=" " alt="" coords="893,110,973,164,970,168,890,115"/>
+<area shape="rect" href="icons_8h.html" title=" " alt="" coords="902,256,1011,282"/>
+<area shape="poly" title=" " alt="" coords="877,112,884,156,891,182,902,207,915,227,932,244,928,248,911,230,897,210,886,184,879,157,872,113"/>
+<area shape="rect" href="editor_8h.html" title=" " alt="" coords="1466,175,1618,201"/>
+<area shape="poly" title=" " alt="" coords="922,110,956,117,1095,135,1205,142,1314,148,1454,165,1476,169,1475,174,1454,170,1314,153,1204,147,1095,140,955,122,921,115"/>
+<area shape="rect" href="style_8h.html" title=" " alt="" coords="1338,175,1442,201"/>
+<area shape="poly" title=" " alt="" coords="923,110,956,117,1060,132,1141,139,1223,147,1327,165,1339,168,1337,173,1325,170,1222,152,1141,145,1059,137,955,122,922,115"/>
+<area shape="poly" title=" " alt="" coords="793,285,728,324,725,319,790,280"/>
+<area shape="poly" title=" " alt="" coords="880,278,890,279,1326,332,1326,337,890,285,879,283"/>
+<area shape="poly" title=" " alt="" coords="602,203,540,211,78,265,78,260,539,206,602,198"/>
+<area shape="poly" title=" " alt="" coords="697,201,697,314,691,314,691,201"/>
+<area shape="poly" title=" " alt="" coords="765,199,1071,251,1071,256,764,204"/>
+<area shape="poly" title=" " alt="" coords="713,199,782,245,779,250,710,203"/>
+<area shape="poly" title=" " alt="" coords="1010,200,1035,240,1053,262,1075,280,1137,309,1204,327,1269,336,1326,340,1326,345,1269,342,1203,332,1136,314,1073,284,1049,266,1030,243,1005,203"/>
+<area shape="poly" title=" " alt="" coords="1026,199,1118,246,1116,251,1024,204"/>
+<area shape="poly" title=" " alt="" coords="974,204,855,253,853,248,972,199"/>
+<area shape="poly" title=" " alt="" coords="997,203,974,244,969,241,993,200"/>
+<area shape="poly" title=" " alt="" coords="1487,204,1455,211,1232,255,1231,250,1453,206,1486,199"/>
+<area shape="poly" title=" " alt="" coords="1393,201,1393,314,1387,314,1387,201"/>
+<area shape="poly" title=" " alt="" coords="1354,204,1206,253,1204,248,1353,199"/>
+<area shape="poly" title=" " alt="" coords="1102,114,1114,117,1210,133,1284,142,1359,150,1454,165,1475,169,1474,174,1454,170,1358,155,1284,147,1209,138,1114,122,1101,120"/>
 </map>
 </div>
 </div>
@@ -179,7 +234,62 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="yaze__test_8cc_source.html#l00007">7</a> of file <a class="el" href="yaze__test_8cc_source.html">yaze_test.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="yaze__test_8cc_source.html#l00013">13</a> of file <a class="el" href="yaze__test_8cc_source.html">yaze_test.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="controller_8cc_source.html#l00355">yaze::app::core::Controller::DoRender()</a>, <a class="el" href="controller_8h_source.html#l00059">yaze::app::core::Controller::init_test_editor()</a>, <a class="el" href="controller_8h_source.html#l00037">yaze::app::core::Controller::IsActive()</a>, <a class="el" href="controller_8cc_source.html#l00265">yaze::app::core::Controller::OnEntry()</a>, <a class="el" href="controller_8cc_source.html#l00363">yaze::app::core::Controller::OnExit()</a>, <a class="el" href="controller_8cc_source.html#l00293">yaze::app::core::Controller::OnInput()</a>, and <a class="el" href="controller_8cc_source.html#l00332">yaze::app::core::Controller::OnLoad()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="yaze__test_8cc_a0ddf1224851353fc92bfbff6f499fa97_cgraph.png" border="0" usemap="#ayaze__test_8cc_a0ddf1224851353fc92bfbff6f499fa97_cgraph" alt=""/></div>
+<map name="ayaze__test_8cc_a0ddf1224851353fc92bfbff6f499fa97_cgraph" id="ayaze__test_8cc_a0ddf1224851353fc92bfbff6f499fa97_cgraph">
+<area shape="rect" title=" " alt="" coords="5,290,55,316"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a3bb770108edb03390f0458b1ad48af00" title=" " alt="" coords="326,413,493,454"/>
+<area shape="poly" title=" " alt="" coords="54,288,98,268,154,252,184,248,214,249,244,255,271,269,286,283,294,299,298,332,301,366,307,383,319,399,323,402,319,406,315,402,302,385,296,367,293,333,289,301,282,286,267,273,242,260,214,254,184,253,155,257,99,273,56,292"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#aa4c89161dd58aba2ed7d2267368e8382" title=" " alt="" coords="103,283,269,323"/>
+<area shape="poly" title=" " alt="" coords="55,300,87,300,87,306,55,306"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#afd6011a3b58a78452d3ab5308382bf0d" title=" " alt="" coords="103,348,269,389"/>
+<area shape="poly" title=" " alt="" coords="56,311,104,333,119,339,117,344,102,337,54,316"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a59403e741f392a42bdbbe874b9ebeea1" title=" " alt="" coords="103,168,269,209"/>
+<area shape="poly" title=" " alt="" coords="39,288,65,257,101,225,118,214,121,219,104,229,69,261,43,291"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a473842231f08f37aba1e40ad62397760" title=" " alt="" coords="103,24,269,65"/>
+<area shape="poly" title=" " alt="" coords="34,289,61,230,100,155,156,75,161,78,105,158,66,232,39,291"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#ab91b550d982432084d70abcbe0fa76bd" title=" " alt="" coords="103,413,269,454"/>
+<area shape="poly" title=" " alt="" coords="40,315,65,356,83,378,104,398,111,403,108,408,101,402,79,382,61,359,36,318"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0fe694ddfbbfa5c288983d1e5cdb50de" title=" " alt="" coords="103,479,269,519"/>
+<area shape="poly" title=" " alt="" coords="36,316,43,346,56,385,76,427,105,464,109,468,105,472,101,467,72,430,51,387,38,347,31,317"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Renderer.html#acd1048086e983ab44d0875b079927bfa" title=" " alt="" coords="774,328,937,369"/>
+<area shape="poly" title=" " alt="" coords="493,432,604,426,665,418,725,406,766,392,804,374,806,379,768,397,726,411,666,424,605,432,493,438"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a746ab671d01d9038163e1d2997a2ab20" title=" " alt="" coords="555,356,721,397"/>
+<area shape="poly" title=" " alt="" coords="492,410,539,398,540,404,494,415"/>
+<area shape="poly" title=" " alt="" coords="721,363,758,358,758,363,722,368"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a1a77e2f432d143785d65f70c1372cd50" title=" " alt="" coords="326,348,493,389"/>
+<area shape="poly" title=" " alt="" coords="247,207,271,225,282,240,289,254,295,281,301,307,308,320,319,333,324,337,320,341,315,337,303,323,296,309,290,282,284,256,278,242,267,229,244,211"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="550,204,726,245"/>
+<area shape="poly" title=" " alt="" coords="260,207,317,218,429,226,535,226,535,232,429,231,317,223,259,212"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a7de45c3e705b21ddd623f5a36e3dfd55" title=" " alt="" coords="555,5,721,46"/>
+<area shape="poly" title=" " alt="" coords="200,166,247,113,279,85,316,63,371,43,429,30,486,22,539,20,539,25,487,28,430,35,373,48,318,68,283,90,251,117,204,169"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a3994f2ee79504cd00f9f9e49f1462be0" title=" " alt="" coords="326,168,493,209"/>
+<area shape="poly" title=" " alt="" coords="270,186,311,186,311,191,270,191"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1EditorManager.html#a3f47746661640b9b0a2828bd9eba8556" title=" " alt="" coords="558,92,718,133"/>
+<area shape="poly" title=" " alt="" coords="205,165,252,124,283,104,316,88,375,76,435,73,494,77,547,86,546,91,493,82,435,78,375,81,318,94,285,108,255,128,208,169"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a38dbbdccc2f338bee9fd0662e1957895" title=" " alt="" coords="326,103,493,143"/>
+<area shape="poly" title=" " alt="" coords="257,165,322,146,323,151,259,170"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1EditorManager.html#a32721c1f3d6bc5ea5eaab6b7f7d06046" title=" " alt="" coords="317,283,502,323"/>
+<area shape="poly" title=" " alt="" coords="237,207,270,225,295,244,318,262,340,274,338,278,316,267,291,248,268,229,235,212"/>
+<area shape="poly" title=" " alt="" coords="493,349,550,342,638,339,726,342,758,342,758,348,726,347,638,344,551,347,494,354"/>
+<area shape="poly" title=" " alt="" coords="493,369,539,370,539,376,493,374"/>
+<area shape="poly" title=" " alt="" coords="475,345,501,333,546,299,600,253,604,257,550,303,504,337,478,350"/>
+<area shape="poly" title=" " alt="" coords="597,204,595,194,602,185,616,179,638,177,662,180,676,186,673,191,660,185,638,183,617,185,605,189,600,195,602,203"/>
+<area shape="poly" title=" " alt="" coords="684,44,707,60,728,79,771,137,805,201,830,262,847,312,842,314,825,264,800,204,766,140,724,82,704,64,681,49"/>
+<area shape="poly" title=" " alt="" coords="494,199,535,205,534,211,493,204"/>
+<area shape="poly" title=" " alt="" coords="493,116,542,114,543,119,493,122"/>
+<area shape="poly" title=" " alt="" coords="270,39,324,42,384,50,446,65,504,89,520,101,531,113,552,143,604,192,600,195,548,146,526,116,517,104,501,93,444,70,383,55,324,47,269,44"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1EditorManager.html#ab86ebb5f138d99fe6e5ebc20af9cdbd6" title=" " alt="" coords="344,544,475,585"/>
+<area shape="poly" title=" " alt="" coords="259,517,330,538,329,544,257,522"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1EditorManager.html#a15ba6f2e8e536306da6c2b58f2a7795d" title=" " alt="" coords="334,479,486,519"/>
+<area shape="poly" title=" " alt="" coords="270,496,318,496,318,502,270,502"/>
+</map>
+</div>
 
 </div>
 </div>

@@ -84,7 +84,8 @@ var hierarchy =
       [ "yaze::app::editor::PaletteEditor", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html", null ],
       [ "yaze::app::editor::ScreenEditor", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html", null ],
       [ "yaze::app::editor::SettingsEditor", "classyaze_1_1app_1_1editor_1_1SettingsEditor.html", null ],
-      [ "yaze::app::editor::SpriteEditor", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html", null ]
+      [ "yaze::app::editor::SpriteEditor", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html", null ],
+      [ "yaze_test::integration::TestEditor", "classyaze__test_1_1integration_1_1TestEditor.html", null ]
     ] ],
     [ "yaze::app::editor::EntranceContext", "classyaze_1_1app_1_1editor_1_1EntranceContext.html", [
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ]

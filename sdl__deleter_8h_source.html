@@ -129,7 +129,7 @@ $(function(){initNavTree('sdl__deleter_8h_source.html',''); initResizable(true);
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno"><a class="line" href="structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter.html">   21</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter.html">SDL_Texture_Deleter</a> {</div>
 <div class="foldopen" id="foldopen00022" data-start="{" data-end="}">
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno"><a class="line" href="structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter.html#a280039dc5fd4d44d811cf18ab0a3c67d">   22</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter.html#a280039dc5fd4d44d811cf18ab0a3c67d">operator()</a>(SDL_Texture *p)<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>    <span class="keywordflow">if</span> (p) SDL_DestroyTexture(p);</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>    <span class="keywordflow">if</span> (p == <span class="keyword">nullptr</span>) SDL_DestroyTexture(p);</div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  }</div>
 </div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>};</div>
@@ -140,7 +140,7 @@ $(function(){initNavTree('sdl__deleter_8h_source.html',''); initResizable(true);
 <div class="foldopen" id="foldopen00031" data-start="{" data-end="}">
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="structyaze_1_1app_1_1core_1_1SDL__Surface__Deleter.html#aba2fec0e329833a8fbd34e6d0eb3cd3d">   31</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="structyaze_1_1app_1_1core_1_1SDL__Surface__Deleter.html#aba2fec0e329833a8fbd34e6d0eb3cd3d">operator()</a>(SDL_Surface *p)<span class="keyword"> const </span>{</div>
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    <span class="comment">// Check if the surface is not null</span></div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    <span class="keywordflow">if</span> (p) SDL_FreeSurface(p);</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    <span class="keywordflow">if</span> (p == <span class="keyword">nullptr</span>) SDL_FreeSurface(p);</div>
 <div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  }</div>
 </div>
 <div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>};</div>
