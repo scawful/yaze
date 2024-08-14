@@ -411,7 +411,6 @@ class Rom : public core::ExperimentFlags {
   Bytes graphics_buffer() const { return graphics_buffer_; }
 
   [[deprecated]] auto bitmap_manager() { return graphics_manager_; }
-  [[deprecated]] auto mutable_bitmap_manager() { return &graphics_manager_; }
 
   auto link_graphics() { return link_graphics_; }
   auto mutable_link_graphics() { return &link_graphics_; }
