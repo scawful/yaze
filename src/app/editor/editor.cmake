@@ -2,7 +2,6 @@ set(
   YAZE_APP_EDITOR_SRC
   app/editor/editor_manager.cc
   app/editor/dungeon/dungeon_editor.cc
-  app/editor/settings_editor.cc
   app/editor/overworld/overworld_editor.cc
   app/editor/sprite/sprite_editor.cc
   app/editor/music/music_editor.cc
@@ -16,5 +15,6 @@ set(
   app/editor/utils/gfx_context.cc
   app/editor/overworld/refresh.cc
   app/editor/overworld/entity.cc
+  app/editor/system/settings_editor.cc
   app/editor/system/extension_manager.cc
 )

@@ -68,15 +68,15 @@ if(APPLE)
 endif()
 
 if (YAZE_BUILD_APP)
-  include(app/CMakeLists.txt)
+  include(app/app.cmake)
 endif()
 
 if (YAZE_BUILD_Z3ED)
-  include(cli/CMakeLists.txt) 
+  include(cli/z3ed.cmake) 
 endif()
 
 if (YAZE_BUILD_EXTENSIONS)
-  include(ext/CMakeLists.txt)
+  include(ext/ext.cmake)
 endif()
 
 if (YAZE_BUILD_PYTHON)
