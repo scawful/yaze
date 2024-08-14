@@ -1,5 +1,5 @@
-include(app/editor/CMakeLists.txt)
-include(app/zelda3/CMakeLists.txt)
+include(app/editor/editor.cmake)
+include(app/zelda3/zelda3.cmake)
 
 add_executable(
   yaze
