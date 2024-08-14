@@ -1,26 +1,13 @@
-# GoogleTest ------------------------------------------------------------------
-include(FetchContent)
-FetchContent_Declare(
-  googletest
-  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
-)
-
-# For Windows: Prevent overriding the parent project's compiler/linker settings
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
-enable_testing()
-
+include(../cmake/gtest.cmake)
 
 add_executable(
   yaze_test
   test/yaze_test.cc
   test/libc_test.cc
   test/rom_test.cc
-  # test/emu/cpu_test.cc
-  # test/emu/spc700_test.cc
-  # test/emu/ppu_test.cc
   test/gfx/compression_test.cc
   test/gfx/snes_palette_test.cc
+  test/integration/test_editor.cc
   test/zelda3/room_object_test.cc
   test/zelda3/sprite_builder_test.cc
   cli/command_handler.cc
