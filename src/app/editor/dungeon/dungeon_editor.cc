@@ -109,7 +109,7 @@ absl::Status DungeonEditor::Initialize() {
   ASSIGN_OR_RETURN(current_palette_group_,
                    gfx::CreatePaletteGroupFromLargePalette(full_palette_));
 
-  graphics_bin_ = *rom()->mutable_bitmap_manager();
+  graphics_bin_ = rom()->gfx_sheets();
   // Create a vector of pointers to the current block bitmaps
   for (int block : rooms_[current_room_id_].blocks()) {
     room_gfx_sheets_.emplace_back(&graphics_bin_[block]);
