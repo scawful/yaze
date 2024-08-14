@@ -137,8 +137,7 @@ void DungeonObjectRenderer::UpdateObjectBitmap() {
     int x = column * 8;
     int y = row * 8;
 
-    auto sheet =
-        rom()->mutable_bitmap_manager()->at(vram_.sheets[sheet_number]);
+    auto sheet = rom()->mutable_gfx_sheets()->at(vram_.sheets[sheet_number]);
 
     // Copy the tile from VRAM using the read tile_id
     sheet.Get8x8Tile(tile_id, x, y, tilemap_, tilemap_offset);
