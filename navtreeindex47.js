@@ -1,5 +1,9 @@
 var NAVTREEINDEX47 =
 {
+"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#a47cff82663e28fdaf0a10de3eb491996a4d6c2ba87154df13303a36d2df9d0603":[10,0,2,0,3,4,1,1,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#a47cff82663e28fdaf0a10de3eb491996a4d6c2ba87154df13303a36d2df9d0603":[11,0,1,0,2,2,1,1,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#a47cff82663e28fdaf0a10de3eb491996a4f648e52e4b46e97723a662b69282c08":[10,0,2,0,3,4,1,1,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#a47cff82663e28fdaf0a10de3eb491996a4f648e52e4b46e97723a662b69282c08":[11,0,1,0,2,2,1,1,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#a47cff82663e28fdaf0a10de3eb491996a6e24c2fba60bf0169b9d27e24d696c06":[10,0,2,0,3,4,1,1,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#a47cff82663e28fdaf0a10de3eb491996a6e24c2fba60bf0169b9d27e24d696c06":[11,0,1,0,2,2,1,1,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#a892f53f81f8de8cefd09ee8aa1ab7617":[10,0,2,0,3,4,1,7],
@@ -245,9 +249,5 @@ var NAVTREEINDEX47 =
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1COLDATA.html#ad677dc33a98739b55b34f1865c286e0b":[10,0,2,0,3,4,0,10,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1COLDATA.html#ad677dc33a98739b55b34f1865c286e0b":[11,0,1,0,2,2,0,10,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1INIDISP.html":[10,0,2,0,3,4,0,11],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1INIDISP.html":[11,0,1,0,2,2,0,11],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1INIDISP.html#a0d251e71a1b82779b44c09b86cbedcdc":[10,0,2,0,3,4,0,11,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1INIDISP.html#a0d251e71a1b82779b44c09b86cbedcdc":[11,0,1,0,2,2,0,11,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1INIDISP.html#a53762bbf78c8d04ffd255ef245d3cccb":[10,0,2,0,3,4,0,11,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1INIDISP.html#a53762bbf78c8d04ffd255ef245d3cccb":[11,0,1,0,2,2,0,11,0]
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1INIDISP.html":[11,0,1,0,2,2,0,11]
 };

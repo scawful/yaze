@@ -35,7 +35,7 @@ var searchData=
   ['register_5fevent_5fhooks_32',['register_event_hooks',['../classsample_1_1YazePyExtension.html#a35838e6a0cb380621b87c8f30dd8db92',1,'sample::YazePyExtension']]],
   ['registercommand_33',['RegisterCommand',['../classyaze_1_1app_1_1editor_1_1CommandManager.html#ad0266adc274f79de7feff6e5adf51f6e',1,'yaze::app::editor::CommandManager']]],
   ['registerextension_34',['RegisterExtension',['../classyaze_1_1app_1_1editor_1_1ExtensionManager.html#a35ab543171c82490d34bcdd0082bb8a8',1,'yaze::app::editor::ExtensionManager']]],
-  ['registertests_35',['RegisterTests',['../classyaze_1_1app_1_1core_1_1GuiTestable.html#aaf5d09f118abccfa38c08ed34bb0bbd0',1,'yaze::app::core::GuiTestable']]],
+  ['registertests_35',['RegisterTests',['../classyaze_1_1app_1_1core_1_1GuiTestable.html#aaf5d09f118abccfa38c08ed34bb0bbd0',1,'yaze::app::core::GuiTestable::RegisterTests()'],['../classyaze__test_1_1integration_1_1TestEditor.html#ab5d57233080b15cf2bf7ccbbf46f444d',1,'yaze_test::integration::TestEditor::RegisterTests()']]],
   ['rel_36',['rel',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a225fb3c09dc421aed541bc18bd4bfad8',1,'yaze::app::emu::audio::Spc700']]],
   ['removebreakpoint_37',['RemoveBreakpoint',['../classyaze_1_1app_1_1emu_1_1Debugger.html#adc69f0170896f53165190e39b14e1556',1,'yaze::app::emu::Debugger']]],
   ['removeignoredfiles_38',['RemoveIgnoredFiles',['../namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html#a691d9587a1c2d30c533a26743c4ab459',1,'yaze::app::editor::anonymous_namespace{assembly_editor.cc}']]],

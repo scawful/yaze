@@ -54,7 +54,7 @@ var searchData=
   ['register_5fevent_5fhooks_51',['register_event_hooks',['../structyaze__extension.html#a915dc258dbe16e28b842c4d0d7f13f3e',1,'yaze_extension::register_event_hooks'],['../classsample_1_1YazePyExtension.html#a35838e6a0cb380621b87c8f30dd8db92',1,'sample.YazePyExtension.register_event_hooks()']]],
   ['registercommand_52',['RegisterCommand',['../classyaze_1_1app_1_1editor_1_1CommandManager.html#ad0266adc274f79de7feff6e5adf51f6e',1,'yaze::app::editor::CommandManager']]],
   ['registerextension_53',['RegisterExtension',['../classyaze_1_1app_1_1editor_1_1ExtensionManager.html#a35ab543171c82490d34bcdd0082bb8a8',1,'yaze::app::editor::ExtensionManager']]],
-  ['registertests_54',['RegisterTests',['../classyaze_1_1app_1_1core_1_1GuiTestable.html#aaf5d09f118abccfa38c08ed34bb0bbd0',1,'yaze::app::core::GuiTestable']]],
+  ['registertests_54',['RegisterTests',['../classyaze_1_1app_1_1core_1_1GuiTestable.html#aaf5d09f118abccfa38c08ed34bb0bbd0',1,'yaze::app::core::GuiTestable::RegisterTests()'],['../classyaze__test_1_1integration_1_1TestEditor.html#ab5d57233080b15cf2bf7ccbbf46f444d',1,'yaze_test::integration::TestEditor::RegisterTests()']]],
   ['rel_55',['rel',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a225fb3c09dc421aed541bc18bd4bfad8',1,'yaze::app::emu::audio::Spc700']]],
   ['release_5fqueue_5f_56',['release_queue_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a945800e3039c0f98f9168a173e21de9a',1,'yaze::app::editor::GraphicsEditor']]],
   ['remapping_57',['remapping',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#aefe451e6ca6c1ed01d19d4c1f1a77f03',1,'yaze::app::emu::video::PpuRegisters::VMAIN']]],
