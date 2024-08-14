@@ -142,12 +142,11 @@ absl::Status Rom::LoadAllGraphicsData() {
 }
 
 absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
-  std::string full_filename = std::filesystem::absolute(filename).string();
   if (filename.empty()) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `filename` is empty.");
   }
-  // Set filename
+  std::string full_filename = std::filesystem::absolute(filename).string();
   filename_ = full_filename;
 
   // Open file
@@ -177,10 +176,7 @@ absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
   // Check if the sROM has a header
   constexpr size_t baseROMSize = 1048576;  // 1MB
   constexpr size_t headerSize = 0x200;     // 512 bytes
-  if (size_ % baseROMSize == headerSize) {
-    std::cout << "ROM has a header" << std::endl;
-    has_header_ = true;
-  }
+  has_header_ = (size_ % baseROMSize == headerSize);
 
   // Remove header if present
   if (has_header_) {
@@ -193,21 +189,8 @@ absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
   // Close file
   file.close();
 
-  // Load Zelda 3 specific data if requested
   if (z3_load) {
-    // Copy ROM title
-    constexpr uint32_t kTitleStringOffset = 0x7FC0;
-    constexpr uint32_t kTitleStringLength = 20;
-    std::copy(rom_data_.begin() + kTitleStringOffset,
-              rom_data_.begin() + kTitleStringOffset + kTitleStringLength,
-              title_.begin());
-    if (rom_data_[kTitleStringOffset + 0x19] == 0) {
-      version_ = Z3_Version::JP;
-    } else {
-      version_ = Z3_Version::US;
-    }
-    RETURN_IF_ERROR(gfx::LoadAllPalettes(rom_data_, palette_groups_));
-    LoadGfxGroups();
+    RETURN_IF_ERROR(LoadZelda3());
   }
 
   // Expand the ROM data to 2MB without changing the data in the first 1MB
@@ -235,24 +218,29 @@ absl::Status Rom::LoadFromPointer(uchar* data, size_t length, bool z3_load) {
   size_ = length;
 
   if (z3_load) {
-    // Copy ROM title
-    constexpr uint32_t kTitleStringOffset = 0x7FC0;
-    constexpr uint32_t kTitleStringLength = 20;
-    std::copy(rom_data_.begin() + kTitleStringOffset,
-              rom_data_.begin() + kTitleStringOffset + kTitleStringLength,
-              title_.begin());
-    if (rom_data_[kTitleStringOffset + 0x19] == 0) {
-      version_ = Z3_Version::JP;
-    } else {
-      version_ = Z3_Version::US;
-    }
-    RETURN_IF_ERROR(gfx::LoadAllPalettes(rom_data_, palette_groups_));
-    LoadGfxGroups();
+    RETURN_IF_ERROR(LoadZelda3());
   }
 
   // Set is_loaded_ flag and return success
   is_loaded_ = true;
 
+  return absl::OkStatus();
+}
+
+absl::Status Rom::LoadZelda3() {
+  constexpr uint32_t kTitleStringOffset = 0x7FC0;
+  constexpr uint32_t kTitleStringLength = 20;
+  // Copy ROM title
+  std::copy(rom_data_.begin() + kTitleStringOffset,
+            rom_data_.begin() + kTitleStringOffset + kTitleStringLength,
+            title_.begin());
+  if (rom_data_[kTitleStringOffset + 0x19] == 0) {
+    version_ = Z3_Version::JP;
+  } else {
+    version_ = Z3_Version::US;
+  }
+  RETURN_IF_ERROR(gfx::LoadAllPalettes(rom_data_, palette_groups_));
+  RETURN_IF_ERROR(LoadGfxGroups());
   return absl::OkStatus();
 }
 
@@ -310,7 +298,7 @@ absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
   }
 
   if (flags()->kSaveGfxGroups) {
-    SaveGroupsToRom();
+    RETURN_IF_ERROR(SaveGroupsToRom());
   }
 
   if (save_new) {

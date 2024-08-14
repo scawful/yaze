@@ -473,9 +473,6 @@ class Rom : public core::ExperimentFlags {
   std::vector<std::vector<uint8_t>> spriteset_ids;
   std::vector<std::vector<uint8_t>> paletteset_ids;
 
-  void LoadGfxGroups();
-  void SaveGroupsToRom();
-
   struct WriteAction {
     int address;
     std::variant<int, uint8_t, uint16_t, short, std::vector<uint8_t>,
@@ -520,6 +517,8 @@ class Rom : public core::ExperimentFlags {
     }
     return absl::OkStatus();
   }
+
+  absl::Status LoadZelda3();
   absl::Status LoadGfxGroups();
   absl::Status SaveGroupsToRom();
 
