@@ -332,11 +332,10 @@ void ScreenEditor::DrawDungeonMapsEditor() {
   if (!dungeon_maps_loaded_) {
     if (LoadDungeonMaps().ok()) {
       if (LoadDungeonMapTile16().ok()) {
-        auto bitmap_manager = rom()->mutable_bitmap_manager();
-        sheets_.emplace(0, *bitmap_manager->mutable_bitmap(212));
-        sheets_.emplace(1, *bitmap_manager->mutable_bitmap(213));
-        sheets_.emplace(2, *bitmap_manager->mutable_bitmap(214));
-        sheets_.emplace(3, *bitmap_manager->mutable_bitmap(215));
+        sheets_.emplace(0, rom()->gfx_sheets()[212]);
+        sheets_.emplace(1, rom()->gfx_sheets()[213]);
+        sheets_.emplace(2, rom()->gfx_sheets()[214]);
+        sheets_.emplace(3, rom()->gfx_sheets()[215]);
         dungeon_maps_loaded_ = true;
       } else {
         ImGui::Text("Failed to load dungeon map tile16");
