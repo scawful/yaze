@@ -4,8 +4,9 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-namespace yaze_test {
-namespace emu_test {
+namespace yaze {
+namespace test {
+namespace emu {
 
 using testing::_;
 using testing::Return;
@@ -470,5 +471,6 @@ TEST_F(Spc700Test, BootIplRomOk) {
   // EXPECT_EQ(spc700.PC, 0xFFC1 + 0x3F);
 }
 
-}  // namespace emu_test
-}  // namespace yaze_test
+}  // namespace emu
+}  // namespace test
+}  // namespace yaze

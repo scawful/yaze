@@ -9,8 +9,9 @@
 #include "app/emu/memory/memory.h"
 #include "app/emu/memory/mock_memory.h"
 
-namespace yaze_test {
-namespace emu_test {
+namespace yaze {
+namespace test {
+namespace emu {
 
 using yaze::app::emu::AsmParser;
 using yaze::app::emu::Cpu;
@@ -4197,5 +4198,6 @@ TEST_F(CpuTest, XCESwitchBackAndForth) {
   EXPECT_FALSE(cpu.E);           // Emulation mode flag should be cleared
 }
 
-}  // namespace emu_test
-}  // namespace yaze_test
+}  // namespace emu
+}  // namespace test
+}  // namespace yaze

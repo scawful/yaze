@@ -2,7 +2,8 @@
 
 #include "yaze.h"
 
-namespace yaze_test {
+namespace yaze {
+namespace test {
 
 TEST(YazeCLibTest, InitializeAndCleanup) {
   yaze_flags flags;
@@ -10,4 +11,5 @@ TEST(YazeCLibTest, InitializeAndCleanup) {
   yaze_cleanup(&flags);
 }
 
-}  // namespace yaze_test
+}  // namespace test
+}  // namespace yaze

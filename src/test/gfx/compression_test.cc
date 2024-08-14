@@ -10,8 +10,9 @@
 
 #define BUILD_HEADER(command, length) (command << 5) + (length - 1)
 
-namespace yaze_test {
-namespace gfx_test {
+namespace yaze {
+namespace test {
+namespace gfx {
 
 using yaze::app::Rom;
 using yaze::app::gfx::lc_lz2::CompressionContext;
@@ -419,5 +420,6 @@ TEST(LC_LZ2_CompressionTest, DecompressionMixingCommand) {
   EXPECT_THAT(random1_o, ElementsAreArray(decomp_result.data(), 9));
 }
 
-}  // namespace gfx_test
-}  // namespace yaze_test
+}  // namespace gfx
+}  // namespace test
+}  // namespace yaze
