@@ -62,17 +62,16 @@ absl::StatusOr<Bytes> Rom::Load2BppGraphics() {
 }
 
 absl::Status Rom::LoadLinkGraphics() {
-  const auto link_gfx_offset = 0x80000;  // $10:8000
-  const auto link_gfx_length = 0x800;    // 0x4000 or 0x7000?
+  const uint32_t link_gfx_offset = 0x80000;  // $10:8000
+  const uint16_t link_gfx_length = 0x800;    // 0x4000 or 0x7000?
   link_palette_ = palette_groups_.armors[0];
 
   // Load Links graphics from the ROM
-  for (int i = 0; i < 14; i++) {
+  for (int i = 0; i < kNumLinkSheets; i++) {
     ASSIGN_OR_RETURN(
         auto link_sheet_data,
         ReadByteVector(/*offset=*/link_gfx_offset + (i * link_gfx_length),
                        /*length=*/link_gfx_length))
-    // auto link_sheet_8bpp = gfx::SnesTo8bppSheet(link_sheet_data, /*bpp=*/4);
     // Convert to 3bpp, then from 3bpp to 8bpp before creating bitmap.
     auto link_sheet_3bpp = gfx::Convert4bppTo3bpp(link_sheet_data);
     auto link_sheet_8bpp = gfx::SnesTo8bppSheet(link_sheet_3bpp, /*bpp=*/3);
@@ -132,9 +131,9 @@ absl::Status Rom::LoadAllGraphicsData() {
             RETURN_IF_ERROR(graphics_manager_[i].ApplyPaletteWithTransparent(
                 palette_groups_.dungeon_main[0], 0));
           }
-          graphics_manager_[i].CreateTexture(Renderer::GetInstance().renderer());
+          graphics_manager_[i].CreateTexture(
+              Renderer::GetInstance().renderer());
         }
-        
       }
 
       if (flags()->kUseBitmapManager) {
@@ -410,13 +409,13 @@ void Rom::LoadGfxGroups() {
   spriteset_ids.resize(144, std::vector<uint8_t>(4));
   paletteset_ids.resize(72, std::vector<uint8_t>(4));
 
-  int gfxPointer =
+  int gfx_ptr =
       (rom_data_[kGfxGroupsPointer + 1] << 8) + rom_data_[kGfxGroupsPointer];
-  gfxPointer = core::SnesToPc(gfxPointer);
+  gfx_ptr = core::SnesToPc(gfx_ptr);
 
   for (int i = 0; i < 37; i++) {
     for (int j = 0; j < 8; j++) {
-      main_blockset_ids[i][j] = rom_data_[gfxPointer + (i * 8) + j];
+      main_blockset_ids[i][j] = rom_data_[gfx_ptr + (i * 8) + j];
     }
   }
 
@@ -442,13 +441,13 @@ void Rom::LoadGfxGroups() {
 }
 
 void Rom::SaveGroupsToRom() {
-  int gfxPointer =
+  int gfx_ptr =
       (rom_data_[kGfxGroupsPointer + 1] << 8) + rom_data_[kGfxGroupsPointer];
-  gfxPointer = core::SnesToPc(gfxPointer);
+  gfx_ptr = core::SnesToPc(gfx_ptr);
 
   for (int i = 0; i < 37; i++) {
     for (int j = 0; j < 8; j++) {
-      rom_data_[gfxPointer + (i * 8) + j] = main_blockset_ids[i][j];
+      rom_data_[gfx_ptr + (i * 8) + j] = main_blockset_ids[i][j];
     }
   }
 
