@@ -6,7 +6,8 @@
 #include "imgui_test_engine/imgui_te_context.h"
 #include "imgui_test_engine/imgui_te_engine.h"
 
-namespace yaze_test {
+namespace yaze {
+namespace test {
 namespace integration {
 
 class TestEditor : public yaze::app::editor::Editor {
@@ -39,12 +40,12 @@ class TestEditor : public yaze::app::editor::Editor {
 
   void RegisterTests(ImGuiTestEngine* engine);
 
-  private:
-
+ private:
   ImGuiTestEngine* engine_;
 };
 
 }  // namespace integration
-}  // namespace yaze_test
+}  // namespace test
+}  // namespace yaze
 
 #endif  // YAZE_TEST_INTEGRATION_TEST_EDITOR_H

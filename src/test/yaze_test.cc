@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
   if (argc > 1 && std::string(argv[1]) == "integration") {
     // Support the ability to launch an integration test window.
     // SDL_SetMainReady();
-    yaze_test::integration::TestEditor test_editor;
+    yaze::test::integration::TestEditor test_editor;
     yaze::app::core::Controller controller;
     controller.init_test_editor(&test_editor);
 

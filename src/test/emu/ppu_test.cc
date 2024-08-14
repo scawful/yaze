@@ -6,8 +6,9 @@
 #include "app/emu/memory/memory.h"
 #include "app/emu/memory/mock_memory.h"
 
-namespace yaze_test {
-namespace emu_test {
+namespace yaze {
+namespace test {
+namespace emu {
 
 using yaze::app::emu::Clock;
 using yaze::app::emu::memory::MockClock;
@@ -56,5 +57,6 @@ class PpuTest : public ::testing::Test {
   }
 };
 
-}  // namespace emu_test
-}  // namespace yaze_test
+}  // namespace emu
+}  // namespace test
+}  // namespace yaze

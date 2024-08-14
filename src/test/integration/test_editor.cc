@@ -5,7 +5,8 @@
 #include "imgui_test_engine/imgui_te_engine.h"
 #include "imgui_test_engine/imgui_te_ui.h"
 
-namespace yaze_test {
+namespace yaze {
+namespace test {
 namespace integration {
 
 absl::Status TestEditor::Update() {
@@ -35,4 +36,5 @@ void TestEditor::RegisterTests(ImGuiTestEngine* engine) {
 }
 
 }  // namespace integration
-}  // namespace yaze_test
+}  // namespace test
+}  // namespace yaze

@@ -5,8 +5,9 @@
 
 #include "app/gfx/snes_color.h"
 
-namespace yaze_test {
-namespace gfx_test {
+namespace yaze {
+namespace test {
+namespace gfx {
 
 using ::testing::ElementsAreArray;
 using yaze::app::gfx::ConvertRGBtoSNES;
@@ -92,5 +93,6 @@ TEST(SNESColorTest, Convert) {
   EXPECT_THAT(data, ElementsAreArray(snes_string.data(), 10));
 }
 
-}  // namespace gfx_test
-}  // namespace yaze_test
+}  // namespace gfx
+}  // namespace test
+}  // namespace yaze

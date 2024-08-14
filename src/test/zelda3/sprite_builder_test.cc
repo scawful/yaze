@@ -3,8 +3,9 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-namespace yaze_test {
-namespace zelda3_test {
+namespace yaze {
+namespace test {
+namespace zelda3 {
 
 using namespace yaze::app::zelda3;
 
@@ -54,12 +55,12 @@ class SpriteBuilderTest : public ::testing::Test {
 };
 
 TEST_F(SpriteBuilderTest, BuildSpritePropertiesOk) {
-  EXPECT_THAT(sprite.BuildProperties(), 
-  testing::HasSubstr(R"(!SPRID = $00
+  EXPECT_THAT(sprite.BuildProperties(), testing::HasSubstr(R"(!SPRID = $00
 !NbrTiles = $00
 !Harmless = $00
 )"));
 }
 
 }  // namespace zelda3_test
-}  // namespace yaze_test
+}  // namespace test
+}  // namespace yaze
