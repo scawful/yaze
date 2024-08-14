@@ -2,6 +2,9 @@
 #define YAZE_TEST_INTEGRATION_TEST_EDITOR_H
 
 #include "app/editor/utils/editor.h"
+#include "imgui/imgui.h"
+#include "imgui_test_engine/imgui_te_context.h"
+#include "imgui_test_engine/imgui_te_engine.h"
 
 namespace yaze_test {
 namespace integration {
@@ -32,9 +35,13 @@ class TestEditor : public yaze::app::editor::Editor {
     return absl::UnimplementedError("Not implemented");
   }
 
-  absl::Status Update() override {
-    return absl::UnimplementedError("Not implemented");
-  }
+  absl::Status Update() override;
+
+  void RegisterTests(ImGuiTestEngine* engine);
+
+  private:
+
+  ImGuiTestEngine* engine_;
 };
 
 }  // namespace integration
