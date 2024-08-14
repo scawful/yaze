@@ -73,8 +73,6 @@
 		E318D9262C59C08300091322 /* sprite_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D87A2C59C08300091322 /* sprite_editor.cc */; };
 		E318D9272C59C08300091322 /* gfx_context.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8802C59C08300091322 /* gfx_context.cc */; };
 		E318D9282C59C08300091322 /* gfx_context.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8802C59C08300091322 /* gfx_context.cc */; };
-		E318D9312C59C08300091322 /* settings_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D88B2C59C08300091322 /* settings_editor.cc */; };
-		E318D9322C59C08300091322 /* settings_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D88B2C59C08300091322 /* settings_editor.cc */; };
 		E318D9332C59C08300091322 /* addressing.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D88E2C59C08300091322 /* addressing.cc */; };
 		E318D9342C59C08300091322 /* addressing.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D88E2C59C08300091322 /* addressing.cc */; };
 		E318D9352C59C08300091322 /* instructions.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D88F2C59C08300091322 /* instructions.cc */; };
@@ -742,6 +740,8 @@
 		E318E87B2C605D5700091322 /* SDL2.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = E318E8572C5D74B700091322 /* SDL2.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		E318E87F2C609B3500091322 /* PencilKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E318E87E2C609B3500091322 /* PencilKit.framework */; };
 		E34C789C2C5882A100A6C275 /* imgui_tables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5079822D257677DB0038A28D /* imgui_tables.cpp */; };
+		E38A97F72C6C4CE3005FB662 /* extension_manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = E38A97F22C6C4CE3005FB662 /* extension_manager.cc */; };
+		E38A97F82C6C4CE3005FB662 /* settings_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E38A97F42C6C4CE3005FB662 /* settings_editor.cc */; };
 		E3BE958D2C68379B008DD1E7 /* editor_manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE958B2C68379B008DD1E7 /* editor_manager.cc */; };
 		E3BE95902C6837C8008DD1E7 /* overworld_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE958F2C6837C8008DD1E7 /* overworld_editor.cc */; };
 /* End PBXBuildFile section */
@@ -921,8 +921,6 @@
 		E318D8812C59C08300091322 /* gfx_context.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gfx_context.h; sourceTree = "<group>"; };
 		E318D8822C59C08300091322 /* keyboard_shortcuts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = keyboard_shortcuts.h; sourceTree = "<group>"; };
 		E318D8832C59C08300091322 /* recent_files.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = recent_files.h; sourceTree = "<group>"; };
-		E318D88B2C59C08300091322 /* settings_editor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = settings_editor.cc; sourceTree = "<group>"; };
-		E318D88C2C59C08300091322 /* settings_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = settings_editor.h; sourceTree = "<group>"; };
 		E318D88E2C59C08300091322 /* addressing.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = addressing.cc; sourceTree = "<group>"; };
 		E318D88F2C59C08300091322 /* instructions.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = instructions.cc; sourceTree = "<group>"; };
 		E318D8902C59C08300091322 /* opcodes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = opcodes.h; sourceTree = "<group>"; };
@@ -2415,6 +2413,11 @@
 		E318E87E2C609B3500091322 /* PencilKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PencilKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.5.sdk/System/Library/Frameworks/PencilKit.framework; sourceTree = DEVELOPER_DIR; };
 		E38985002C67082800D4CF13 /* renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = renderer.h; sourceTree = "<group>"; };
 		E38985012C67CDDB00D4CF13 /* view_controller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = view_controller.h; sourceTree = "<group>"; };
+		E38A97F12C6C4CE3005FB662 /* command_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = command_manager.h; sourceTree = "<group>"; };
+		E38A97F22C6C4CE3005FB662 /* extension_manager.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = extension_manager.cc; sourceTree = "<group>"; };
+		E38A97F32C6C4CE3005FB662 /* extension_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = extension_manager.h; sourceTree = "<group>"; };
+		E38A97F42C6C4CE3005FB662 /* settings_editor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = settings_editor.cc; sourceTree = "<group>"; };
+		E38A97F52C6C4CE3005FB662 /* settings_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = settings_editor.h; sourceTree = "<group>"; };
 		E3BE958B2C68379B008DD1E7 /* editor_manager.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = editor_manager.cc; sourceTree = "<group>"; };
 		E3BE958C2C68379B008DD1E7 /* editor_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = editor_manager.h; sourceTree = "<group>"; };
 		E3BE958E2C6837C8008DD1E7 /* overworld_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = overworld_editor.h; sourceTree = "<group>"; };
@@ -2685,10 +2688,9 @@
 				E318D8792C59C08300091322 /* overworld */,
 				E318D87D2C59C08300091322 /* sprite */,
 				E318D8842C59C08300091322 /* utils */,
+				E38A97F62C6C4CE3005FB662 /* system */,
 				E3BE958B2C68379B008DD1E7 /* editor_manager.cc */,
 				E3BE958C2C68379B008DD1E7 /* editor_manager.h */,
-				E318D88B2C59C08300091322 /* settings_editor.cc */,
-				E318D88C2C59C08300091322 /* settings_editor.h */,
 			);
 			path = editor;
 			sourceTree = "<group>";
@@ -5069,6 +5071,18 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		E38A97F62C6C4CE3005FB662 /* system */ = {
+			isa = PBXGroup;
+			children = (
+				E38A97F12C6C4CE3005FB662 /* command_manager.h */,
+				E38A97F22C6C4CE3005FB662 /* extension_manager.cc */,
+				E38A97F32C6C4CE3005FB662 /* extension_manager.h */,
+				E38A97F42C6C4CE3005FB662 /* settings_editor.cc */,
+				E38A97F52C6C4CE3005FB662 /* settings_editor.h */,
+			);
+			path = system;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -5411,10 +5425,10 @@
 				E318D9132C59C08300091322 /* graphics_editor.cc in Sources */,
 				E318DF632C5A4FBE00091322 /* sysinfo.cc in Sources */,
 				E318D90F2C59C08300091322 /* dungeon_editor.cc in Sources */,
-				E318D9312C59C08300091322 /* settings_editor.cc in Sources */,
 				E318D9032C59C08300091322 /* font_loader.cc in Sources */,
 				E318DF552C5A4FBE00091322 /* spinlock_wait.cc in Sources */,
 				E318D90D2C59C08300091322 /* assembly_editor.cc in Sources */,
+				E38A97F72C6C4CE3005FB662 /* extension_manager.cc in Sources */,
 				E318D9152C59C08300091322 /* palette_editor.cc in Sources */,
 				E3BE95902C6837C8008DD1E7 /* overworld_editor.cc in Sources */,
 				E318E0AB2C5A4FC000091322 /* exponential_biased.cc in Sources */,
@@ -5466,6 +5480,7 @@
 				E318E7BB2C5A548C00091322 /* pngrtran.c in Sources */,
 				E318D9352C59C08300091322 /* instructions.cc in Sources */,
 				E318E0ED2C5A4FC000091322 /* randen.cc in Sources */,
+				E38A97F82C6C4CE3005FB662 /* settings_editor.cc in Sources */,
 				E318E7052C5A4FC900091322 /* clock.cc in Sources */,
 				E318DFA72C5A4FBE00091322 /* hashtablez_sampler.cc in Sources */,
 				E318E1F92C5A4FC200091322 /* substitute.cc in Sources */,
@@ -5855,7 +5870,6 @@
 				E318E0482C5A4FBF00091322 /* commandlineflag.cc in Sources */,
 				E318E0DA2C5A4FC000091322 /* pool_urbg.cc in Sources */,
 				E318E1A82C5A4FC200091322 /* ascii_benchmark.cc in Sources */,
-				E318D9322C59C08300091322 /* settings_editor.cc in Sources */,
 				07A82ED92139418F0078D120 /* imgui_widgets.cpp in Sources */,
 				E318E7062C5A4FC900091322 /* clock.cc in Sources */,
 				E318DFF22C5A4FBF00091322 /* elf_mem_image.cc in Sources */,
