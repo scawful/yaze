@@ -1,8 +1,6 @@
 #ifndef YAZE_APP_EDITOR_DUNGEONEDITOR_H
 #define YAZE_APP_EDITOR_DUNGEONEDITOR_H
 
-#include "imgui/imgui.h"
-
 #include "app/core/common.h"
 #include "app/core/labeling.h"
 #include "app/editor/graphics/gfx_group_editor.h"
@@ -11,6 +9,7 @@
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/rom.h"
+#include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_object.h"
@@ -120,7 +119,7 @@ class DungeonEditor : public Editor,
   gui::Canvas object_canvas_;
 
   gfx::Bitmap room_gfx_bmp_;
-  gfx::BitmapManager graphics_bin_;
+  std::array<gfx::Bitmap, kNumGfxSheets> graphics_bin_;
 
   std::vector<gfx::Bitmap*> room_gfx_sheets_;
   std::vector<zelda3::dungeon::Room> rooms_;
