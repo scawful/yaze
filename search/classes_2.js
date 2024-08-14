@@ -26,6 +26,6 @@ var searchData=
   ['counterirqnmiregisters_23',['CounterIrqNmiRegisters',['../structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html',1,'yaze::app::emu::video']]],
   ['cpu_24',['Cpu',['../classyaze_1_1app_1_1emu_1_1Cpu.html',1,'yaze::app::emu']]],
   ['cpucallbacks_25',['CpuCallbacks',['../structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html',1,'yaze::app::emu::memory']]],
-  ['cputest_26',['CpuTest',['../classyaze__test_1_1emu__test_1_1CpuTest.html',1,'yaze_test::emu_test']]],
+  ['cputest_26',['CpuTest',['../classyaze_1_1test_1_1emu_1_1CpuTest.html',1,'yaze::test::emu']]],
   ['createpatch_27',['CreatePatch',['../classyaze_1_1cli_1_1CreatePatch.html',1,'yaze::cli']]]
 ];

@@ -1,0 +1,5 @@
+<map id="yaze::test::RomTest" name="yaze::test::RomTest">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,140,105"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="26,5,119,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="75,46,75,79,70,79,70,46"/>
+</map>

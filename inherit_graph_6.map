@@ -1,13 +1,13 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,128,98,154"/>
-<area shape="rect" id="Node000001" href="$classyaze__test_1_1RomTest.html" title=" " alt="" coords="152,5,288,31"/>
-<area shape="poly" id="edge2_Node000000_Node000001" title=" " alt="" coords="69,114,102,77,144,41,168,29,171,34,147,46,106,80,73,117"/>
-<area shape="rect" id="Node000002" href="$classyaze__test_1_1emu__test_1_1CpuTest.html" title=" " alt="" coords="152,55,288,96"/>
-<area shape="poly" id="edge3_Node000000_Node000002" title=" " alt="" coords="100,119,165,94,167,99,102,124"/>
-<area shape="rect" id="Node000003" href="$classyaze__test_1_1emu__test_1_1PpuTest.html" title=" " alt="" coords="152,120,288,161"/>
-<area shape="poly" id="edge4_Node000000_Node000003" title=" " alt="" coords="113,138,152,138,152,144,113,144"/>
-<area shape="rect" id="Node000004" href="$classyaze__test_1_1emu__test_1_1Spc700Test.html" title=" " alt="" coords="152,186,288,226"/>
-<area shape="poly" id="edge5_Node000000_Node000004" title=" " alt="" coords="102,157,167,183,165,188,100,162"/>
-<area shape="rect" id="Node000005" href="$classyaze__test_1_1zelda3__test_1_1SpriteBuilderTest.html" title=" " alt="" coords="146,251,294,292"/>
-<area shape="poly" id="edge6_Node000000_Node000005" title=" " alt="" coords="74,164,107,200,147,236,168,248,165,253,144,240,103,204,70,168"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,104,98,130"/>
+<area shape="rect" id="Node000001" href="$classyaze_1_1test_1_1RomTest.html" title=" " alt="" coords="170,5,304,31"/>
+<area shape="poly" id="edge2_Node000000_Node000001" title=" " alt="" coords="75,91,106,64,144,40,171,29,173,34,147,45,109,69,78,95"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1test_1_1emu_1_1CpuTest.html" title=" " alt="" coords="156,55,318,80"/>
+<area shape="poly" id="edge3_Node000000_Node000002" title=" " alt="" coords="112,98,145,89,184,78,186,83,146,94,113,103"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1test_1_1emu_1_1PpuTest.html" title=" " alt="" coords="156,104,318,130"/>
+<area shape="poly" id="edge4_Node000000_Node000003" title=" " alt="" coords="113,114,156,114,156,120,113,120"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1test_1_1emu_1_1Spc700Test.html" title=" " alt="" coords="146,153,328,179"/>
+<area shape="poly" id="edge5_Node000000_Node000004" title=" " alt="" coords="113,131,146,140,186,150,184,155,145,145,112,136"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1test_1_1zelda3_1_1SpriteBuilderTest.html" title=" " alt="" coords="173,203,300,244"/>
+<area shape="poly" id="edge6_Node000000_Node000005" title=" " alt="" coords="79,138,110,165,147,189,174,202,172,207,144,194,107,169,76,142"/>
 </map>

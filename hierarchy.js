@@ -15,7 +15,7 @@ var hierarchy =
     ] ],
     [ "yaze::app::emu::audio::AudioRam", "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html", [
       [ "yaze::app::emu::audio::AudioRamImpl", "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html", null ],
-      [ "yaze_test::emu_test::MockAudioRam", "classyaze__test_1_1emu__test_1_1MockAudioRam.html", null ]
+      [ "yaze::test::emu::MockAudioRam", "classyaze_1_1test_1_1emu_1_1MockAudioRam.html", null ]
     ] ],
     [ "yaze::app::emu::video::BackgroundLayer", "structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::BGHOFS", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGHOFS.html", null ],
@@ -84,7 +84,7 @@ var hierarchy =
       [ "yaze::app::editor::ScreenEditor", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html", null ],
       [ "yaze::app::editor::SettingsEditor", "classyaze_1_1app_1_1editor_1_1SettingsEditor.html", null ],
       [ "yaze::app::editor::SpriteEditor", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html", null ],
-      [ "yaze_test::integration::TestEditor", "classyaze__test_1_1integration_1_1TestEditor.html", null ]
+      [ "yaze::test::integration::TestEditor", "classyaze_1_1test_1_1integration_1_1TestEditor.html", null ]
     ] ],
     [ "yaze::app::editor::EntranceContext", "classyaze_1_1app_1_1editor_1_1EntranceContext.html", [
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ]
@@ -188,7 +188,7 @@ var hierarchy =
     [ "yaze::app::gfx::Paletteset", "structyaze_1_1app_1_1gfx_1_1Paletteset.html", null ],
     [ "yaze::app::editor::ParsedElement", "structyaze_1_1app_1_1editor_1_1ParsedElement.html", null ],
     [ "yaze::app::emu::video::PpuInterface", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html", [
-      [ "yaze_test::emu_test::MockPpu", "classyaze__test_1_1emu__test_1_1MockPpu.html", null ]
+      [ "yaze::test::emu::MockPpu", "classyaze_1_1test_1_1emu_1_1MockPpu.html", null ]
     ] ],
     [ "yaze::app::zelda3::dungeon::PseudoVram", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html", null ],
     [ "yaze::app::editor::RecentFilesManager", "classyaze_1_1app_1_1editor_1_1RecentFilesManager.html", null ],
@@ -248,11 +248,11 @@ var hierarchy =
     [ "yaze::app::editor::zsprite::SubEditor", "structyaze_1_1app_1_1editor_1_1zsprite_1_1SubEditor.html", null ],
     [ "yaze::app::zelda3::dungeon::SubtypeInfo", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html", null ],
     [ "testing::Test", null, [
-      [ "yaze_test::RomTest", "classyaze__test_1_1RomTest.html", null ],
-      [ "yaze_test::emu_test::CpuTest", "classyaze__test_1_1emu__test_1_1CpuTest.html", null ],
-      [ "yaze_test::emu_test::PpuTest", "classyaze__test_1_1emu__test_1_1PpuTest.html", null ],
-      [ "yaze_test::emu_test::Spc700Test", "classyaze__test_1_1emu__test_1_1Spc700Test.html", null ],
-      [ "yaze_test::zelda3_test::SpriteBuilderTest", "classyaze__test_1_1zelda3__test_1_1SpriteBuilderTest.html", null ]
+      [ "yaze::test::RomTest", "classyaze_1_1test_1_1RomTest.html", null ],
+      [ "yaze::test::emu::CpuTest", "classyaze_1_1test_1_1emu_1_1CpuTest.html", null ],
+      [ "yaze::test::emu::PpuTest", "classyaze_1_1test_1_1emu_1_1PpuTest.html", null ],
+      [ "yaze::test::emu::Spc700Test", "classyaze_1_1test_1_1emu_1_1Spc700Test.html", null ],
+      [ "yaze::test::zelda3::SpriteBuilderTest", "classyaze_1_1test_1_1zelda3_1_1SpriteBuilderTest.html", null ]
     ] ],
     [ "yaze::app::editor::MessageEditor::TextBox", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html", null ],
     [ "yaze::app::editor::TextElement", "structyaze_1_1app_1_1editor_1_1TextElement.html", null ],

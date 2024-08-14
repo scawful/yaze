@@ -30,7 +30,7 @@ var searchData=
   ['vmdatalread_27',['VMDATALREAD',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a93768abb983f383b1851fdb37b929f6c',1,'yaze::app::emu::video::PpuRegisters']]],
   ['volumel_28',['volumeL',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#acc8f70b0417bbd61c570c73b7f152fcb',1,'yaze::app::emu::audio::DspChannel']]],
   ['volumer_29',['volumeR',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a8742b2e841d342e517ea4152f2bd16e7',1,'yaze::app::emu::audio::DspChannel']]],
-  ['vram_30',['vram',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#af7ce9ce0c5b745159d762069b62780dd',1,'yaze::app::emu::video::Ppu::vram'],['../classyaze__test_1_1emu__test_1_1MockPpu.html#ab372ad9d08b1ea28a08ede8293bb5193',1,'yaze_test::emu_test::MockPpu::vram']]],
+  ['vram_30',['vram',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#af7ce9ce0c5b745159d762069b62780dd',1,'yaze::app::emu::video::Ppu::vram'],['../classyaze_1_1test_1_1emu_1_1MockPpu.html#a4843d08a171ca5b4fb3e86b3449fbdc6',1,'yaze::test::emu::MockPpu::vram']]],
   ['vram_5f_31',['vram_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#adbc371cfde6610d0712bf6b8fd3b04f7',1,'yaze::app::zelda3::dungeon::DungeonObjectRenderer']]],
   ['vram_5faddress_32',['vram_address',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html#a075c907cb2a44942ea081b9790f17a6b',1,'yaze::app::emu::video::PpuRegisters::BGSC']]],
   ['vram_5fbase_5faddress_5f_33',['vram_base_address_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#abc5f97b86579e3f11494d49d81d616c5',1,'yaze::app::emu::video::Ppu']]],

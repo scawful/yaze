@@ -1,7 +1,0 @@
-<map id="yaze_test::gfx_test::TEST" name="yaze_test::gfx_test::TEST">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,134,46"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gfx.html#ad373c73aedd572d880fc5c49e0b4782e" title=" " alt="" coords="182,13,330,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,23,166,23,166,28,134,28"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx.html#a1d7b7b9da156693ec13b608343cd7b49" title=" " alt="" coords="378,13,601,38"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="330,23,363,23,363,28,330,28"/>
-</map>

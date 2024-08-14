@@ -59,5 +59,6 @@ var searchData=
   ['iseditoractive_56',['IsEditorActive',['../namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#afe227063e9a69617e556bb4ae5c6b486',1,'yaze::app::editor::anonymous_namespace{editor_manager.cc}']]],
   ['ismousehovering_57',['IsMouseHovering',['../classyaze_1_1app_1_1gui_1_1Canvas.html#aeaa4f10b3e51c996f98099d4944b1ae2',1,'yaze::app::gui::Canvas']]],
   ['ismousehoveringoverentity_58',['IsMouseHoveringOverEntity',['../namespaceyaze_1_1app_1_1editor.html#a9630e35305cf9e744b59e289ea1867ea',1,'yaze::app::editor']]],
-  ['itemlabel_59',['ItemLabel',['../namespaceyaze_1_1app_1_1gui.html#a09b85853f6496c7b5eba061ea976c68e',1,'yaze::app::gui']]]
+  ['isokandholds_59',['IsOkAndHolds',['../namespaceyaze_1_1test.html#ace6494b75531bde42a021a993af2b3e1',1,'yaze::test']]],
+  ['itemlabel_60',['ItemLabel',['../namespaceyaze_1_1app_1_1gui.html#a09b85853f6496c7b5eba061ea976c68e',1,'yaze::app::gui']]]
 ];

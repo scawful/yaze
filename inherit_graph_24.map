@@ -20,8 +20,8 @@
 <area shape="poly" id="edge15_Node000000_Node000040" title=" " alt="" coords="98,316,113,259,137,190,175,119,199,86,227,57,251,42,277,32,279,37,253,46,230,61,203,89,179,121,142,192,118,261,103,317"/>
 <area shape="rect" id="Node000020" href="$classyaze_1_1app_1_1editor_1_1SpriteEditor.html" title="Allows the user to edit sprites." alt="" coords="278,267,396,307"/>
 <area shape="poly" id="edge16_Node000000_Node000020" title=" " alt="" coords="166,330,277,300,278,305,168,335"/>
-<area shape="rect" id="Node000041" href="$classyaze__test_1_1integration_1_1TestEditor.html" title=" " alt="" coords="266,71,408,111"/>
-<area shape="poly" id="edge17_Node000000_Node000041" title=" " alt="" coords="103,316,121,272,147,220,183,167,227,122,265,102,267,107,230,126,187,171,152,223,126,274,108,318"/>
+<area shape="rect" id="Node000041" href="$classyaze_1_1test_1_1integration_1_1TestEditor.html" title=" " alt="" coords="267,71,408,111"/>
+<area shape="poly" id="edge17_Node000000_Node000041" title=" " alt="" coords="103,316,121,272,147,220,183,167,227,122,265,102,268,107,230,126,187,171,152,223,126,274,108,318"/>
 <area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1editor_1_1EntranceContext.html" title=" " alt="" coords="34,659,152,699"/>
 <area shape="poly" id="edge18_Node000011_Node000010" title=" " alt="" coords="167,676,278,676,278,682,167,682"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="5,1517,181,1558"/>

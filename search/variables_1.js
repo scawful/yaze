@@ -71,7 +71,7 @@ var searchData=
   ['bg_5fobj_5fflag_68',['bg_obj_flag',['../structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#aa4256048c610b0905f30486c42b093cb',1,'yaze::app::gfx::scad_format::CgxHeader']]],
   ['bghofs_5f_69',['bghofs_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a0405fa250ba699476fc6e20766ac538c',1,'yaze::app::emu::video::Ppu']]],
   ['bgmode_70',['BGMODE',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a137a89e211e1cd3682a1eec350a04e14',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['bgmode_71',['bgMode',['../classyaze__test_1_1emu__test_1_1MockPpu.html#aff15c5e301bd7c355d29c1442ffa2858',1,'yaze_test::emu_test::MockPpu']]],
+  ['bgmode_71',['bgMode',['../classyaze_1_1test_1_1emu_1_1MockPpu.html#a4ebcfd47c482bcba5c1201825dcbe173',1,'yaze::test::emu::MockPpu']]],
   ['bgnba_5f_72',['bgnba_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#adc2238456167cfd663d6d23e673ad9b0',1,'yaze::app::emu::video::Ppu']]],
   ['bgsc_5f_73',['bgsc_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ae920d2f7043f0518740a11b1b2bc1d5e',1,'yaze::app::emu::video::Ppu']]],
   ['bgvofs_5f_74',['bgvofs_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#aed266d4b5c928024572b97bdf74dbbaf',1,'yaze::app::emu::video::Ppu']]],

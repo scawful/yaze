@@ -1,9 +1,0 @@
-<map id="yaze_test::zelda3_test::SpriteBuilderTest" name="yaze_test::zelda3_test::SpriteBuilderTest">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,213,154,253"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="12,116,104,142"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="66,157,78,212,73,213,61,158"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html" title=" " alt="" coords="128,109,252,150"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="160,162,103,214,99,210,156,158"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1zelda3_1_1SpriteAction.html" title=" " alt="" coords="128,5,252,46"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="193,62,193,109,188,109,188,62"/>
-</map>

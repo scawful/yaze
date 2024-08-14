@@ -73,7 +73,7 @@ var searchData=
   ['tilemap_5from_5f_70',['tilemap_rom_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#aa351f7c0730c1ce61d47bdd3c41e9172',1,'yaze::app::editor::GraphicsEditor']]],
   ['tilemapadr_71',['tilemapAdr',['../structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#adcafd64c85e5736f637bbef22a1219ed',1,'yaze::app::emu::video::BgLayer']]],
   ['tilemaphigher_72',['tilemapHigher',['../structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#add1c5ebc400841f2bee8a2fe7a5d73b5',1,'yaze::app::emu::video::BgLayer']]],
-  ['tilemaps_73',['tilemaps',['../classyaze__test_1_1emu__test_1_1MockPpu.html#ae72aa7b851ecc219ee6f503d075262ac',1,'yaze_test::emu_test::MockPpu']]],
+  ['tilemaps_73',['tilemaps',['../classyaze_1_1test_1_1emu_1_1MockPpu.html#a4326df9b358f611bc34ce8f0b7bd7d23',1,'yaze::test::emu::MockPpu']]],
   ['tilemapwider_74',['tilemapWider',['../structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#a5ed9b814ca70d91871deffb9e0595c2d',1,'yaze::app::emu::video::BgLayer']]],
   ['tilenamemask_75',['TileNameMask',['../namespaceyaze_1_1app_1_1gfx.html#ad7955598311233ccedaea17464db0dac',1,'yaze::app::gfx']]],
   ['tilenumber_76',['tileNumber',['../structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a984940db659b968c30b27d01518b215b',1,'yaze::app::emu::video::TilemapEntry']]],

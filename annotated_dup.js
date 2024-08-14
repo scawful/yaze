@@ -286,23 +286,23 @@ var annotated_dup =
         [ "ReadFromRom", "classyaze_1_1cli_1_1ReadFromRom.html", "classyaze_1_1cli_1_1ReadFromRom" ],
         [ "SnesToPc", "classyaze_1_1cli_1_1SnesToPc.html", "classyaze_1_1cli_1_1SnesToPc" ],
         [ "Tile16Transfer", "classyaze_1_1cli_1_1Tile16Transfer.html", "classyaze_1_1cli_1_1Tile16Transfer" ]
+      ] ],
+      [ "test", "namespaceyaze_1_1test.html", [
+        [ "emu", "namespaceyaze_1_1test_1_1emu.html", [
+          [ "CpuTest", "classyaze_1_1test_1_1emu_1_1CpuTest.html", "classyaze_1_1test_1_1emu_1_1CpuTest" ],
+          [ "MockAudioRam", "classyaze_1_1test_1_1emu_1_1MockAudioRam.html", "classyaze_1_1test_1_1emu_1_1MockAudioRam" ],
+          [ "MockPpu", "classyaze_1_1test_1_1emu_1_1MockPpu.html", "classyaze_1_1test_1_1emu_1_1MockPpu" ],
+          [ "PpuTest", "classyaze_1_1test_1_1emu_1_1PpuTest.html", "classyaze_1_1test_1_1emu_1_1PpuTest" ],
+          [ "Spc700Test", "classyaze_1_1test_1_1emu_1_1Spc700Test.html", "classyaze_1_1test_1_1emu_1_1Spc700Test" ]
+        ] ],
+        [ "integration", "namespaceyaze_1_1test_1_1integration.html", [
+          [ "TestEditor", "classyaze_1_1test_1_1integration_1_1TestEditor.html", "classyaze_1_1test_1_1integration_1_1TestEditor" ]
+        ] ],
+        [ "zelda3", "namespaceyaze_1_1test_1_1zelda3.html", [
+          [ "SpriteBuilderTest", "classyaze_1_1test_1_1zelda3_1_1SpriteBuilderTest.html", "classyaze_1_1test_1_1zelda3_1_1SpriteBuilderTest" ]
+        ] ],
+        [ "RomTest", "classyaze_1_1test_1_1RomTest.html", "classyaze_1_1test_1_1RomTest" ]
       ] ]
-    ] ],
-    [ "yaze_test", "namespaceyaze__test.html", [
-      [ "emu_test", "namespaceyaze__test_1_1emu__test.html", [
-        [ "CpuTest", "classyaze__test_1_1emu__test_1_1CpuTest.html", "classyaze__test_1_1emu__test_1_1CpuTest" ],
-        [ "MockAudioRam", "classyaze__test_1_1emu__test_1_1MockAudioRam.html", "classyaze__test_1_1emu__test_1_1MockAudioRam" ],
-        [ "MockPpu", "classyaze__test_1_1emu__test_1_1MockPpu.html", "classyaze__test_1_1emu__test_1_1MockPpu" ],
-        [ "PpuTest", "classyaze__test_1_1emu__test_1_1PpuTest.html", "classyaze__test_1_1emu__test_1_1PpuTest" ],
-        [ "Spc700Test", "classyaze__test_1_1emu__test_1_1Spc700Test.html", "classyaze__test_1_1emu__test_1_1Spc700Test" ]
-      ] ],
-      [ "integration", "namespaceyaze__test_1_1integration.html", [
-        [ "TestEditor", "classyaze__test_1_1integration_1_1TestEditor.html", "classyaze__test_1_1integration_1_1TestEditor" ]
-      ] ],
-      [ "zelda3_test", "namespaceyaze__test_1_1zelda3__test.html", [
-        [ "SpriteBuilderTest", "classyaze__test_1_1zelda3__test_1_1SpriteBuilderTest.html", "classyaze__test_1_1zelda3__test_1_1SpriteBuilderTest" ]
-      ] ],
-      [ "RomTest", "classyaze__test_1_1RomTest.html", "classyaze__test_1_1RomTest" ]
     ] ],
     [ "AppDelegate", "classAppDelegate.html", null ],
     [ "AppViewController", "classAppViewController.html", null ],
