@@ -191,21 +191,9 @@ class Decompress : public CommandHandler {
     std::string sheet_input;
     std::cin >> sheet_input;
 
-    // Batch Mode
-    // if (arg_vec.size() == 1) {
-    //   auto rom_filename = arg_vec[1];
-    //   RETURN_IF_ERROR(rom_.LoadFromFile(arg, true))
-    //   RETURN_IF_ERROR(rom_.LoadAllGraphicsData())
-    //   for (auto& graphic_sheet : rom_.graphics_bin()) {
-    //     const auto filename =
-    //         absl::StrCat(rom_.filename(), graphic_sheet.first);
-    //     graphic_sheet.second.SaveSurfaceToFile(filename);
-    //   }
-    // }
-
     std::cout << "Decompress selected with argument: " << arg_vec[0]
               << std::endl;
-    return absl::OkStatus();
+    return absl::UnimplementedError("Decompress not implemented");
   }
 };
 
