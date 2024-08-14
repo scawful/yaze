@@ -143,7 +143,7 @@ absl::Status Rom::LoadAllGraphicsData() {
 
 absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
   std::string full_filename = std::filesystem::absolute(filename).string();
-  if (full_filename.empty()) {
+  if (filename.empty()) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `filename` is empty.");
   }
@@ -153,7 +153,7 @@ absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
   // Open file
   std::ifstream file(filename_, std::ios::binary);
   if (!file.is_open()) {
-    return absl::InternalError(
+    return absl::NotFoundError(
         absl::StrCat("Could not open ROM file: ", filename_));
   }
 
