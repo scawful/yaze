@@ -11,6 +11,7 @@ var rom_8h =
       [ "RANDO", "rom_8h.html#a24bebdceeb59d0f451c59123c0a38d47a9cffbad7f42a5a6e18e4a9431187b051", null ]
     ] ],
     [ "kNumGfxSheets", "rom_8h.html#a9bbafa7d5f1809f3d216b5082f65d1b2", null ],
+    [ "kNumLinkSheets", "rom_8h.html#a4c7fab5470426166f7fcba0162f75387", null ],
     [ "kNormalGfxSpaceStart", "rom_8h.html#a3ef17b1c481a3e73d2d97a92e3995b04", null ],
     [ "kNormalGfxSpaceEnd", "rom_8h.html#a3ef7d1df5d323905102b5a1cef9d447d", null ],
     [ "kFontSpriteLocation", "rom_8h.html#a6cba51ea80792c0f6a876549882f3778", null ],

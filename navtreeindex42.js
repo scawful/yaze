@@ -1,10 +1,5 @@
 var NAVTREEINDEX42 =
 {
-"namespaceyaze__test_1_1gfx__test.html#a912b8cd12060ae65e08729af021a7e1e":[10,0,3,1,14],
-"namespaceyaze__test_1_1gfx__test.html#a982e6bc9a15fd299b184f33b3beaa967":[10,0,3,1,21],
-"namespaceyaze__test_1_1gfx__test.html#aae614732019e6f806ae921acf0996a36":[10,0,3,1,27],
-"namespaceyaze__test_1_1gfx__test.html#abfbf85fed17ab61a9bc06d125bbedd93":[10,0,3,1,13],
-"namespaceyaze__test_1_1gfx__test.html#ac79465247aad16f5bf69c7bb4476eb6a":[10,0,3,1,22],
 "namespaceyaze__test_1_1gfx__test.html#add9e8679e6e2cf6c44e7b164151b9245":[10,0,3,1,19],
 "namespaceyaze__test_1_1gfx__test.html#adfb53d60db9c464ebf4f0b816ed61296":[10,0,3,1,3],
 "namespaceyaze__test_1_1gfx__test.html#ae20400d61a9b652970778a4b0fd554e4":[10,0,3,1,26],
@@ -177,11 +172,12 @@ var NAVTREEINDEX42 =
 "rom_8h.html#a24bebdceeb59d0f451c59123c0a38d47a38f99abbc1d339c277c0669e7bc373c0":[12,0,1,0,7,4,2],
 "rom_8h.html#a24bebdceeb59d0f451c59123c0a38d47a7516fd43adaa5e0b8a65a672c39845d2":[12,0,1,0,7,4,0],
 "rom_8h.html#a24bebdceeb59d0f451c59123c0a38d47a9cffbad7f42a5a6e18e4a9431187b051":[12,0,1,0,7,4,3],
-"rom_8h.html#a3ef17b1c481a3e73d2d97a92e3995b04":[12,0,1,0,7,6],
-"rom_8h.html#a3ef7d1df5d323905102b5a1cef9d447d":[12,0,1,0,7,7],
-"rom_8h.html#a6cba51ea80792c0f6a876549882f3778":[12,0,1,0,7,8],
+"rom_8h.html#a3ef17b1c481a3e73d2d97a92e3995b04":[12,0,1,0,7,7],
+"rom_8h.html#a3ef7d1df5d323905102b5a1cef9d447d":[12,0,1,0,7,8],
+"rom_8h.html#a4c7fab5470426166f7fcba0162f75387":[12,0,1,0,7,6],
+"rom_8h.html#a6cba51ea80792c0f6a876549882f3778":[12,0,1,0,7,9],
 "rom_8h.html#a9bbafa7d5f1809f3d216b5082f65d1b2":[12,0,1,0,7,5],
-"rom_8h.html#aad75d3fb5bdf3b72aa19e3af3209082f":[12,0,1,0,7,9],
+"rom_8h.html#aad75d3fb5bdf3b72aa19e3af3209082f":[12,0,1,0,7,10],
 "rom_8h_source.html":[12,0,1,0,7],
 "rom__test_8cc.html":[12,0,1,6,5],
 "rom__test_8cc.html#af11101ca98ab2c0156d8413523a269f2":[12,0,1,6,5,1],
@@ -249,5 +245,9 @@ var NAVTREEINDEX42 =
 "room__entrance_8h.html#a2b69e7b3a65b0c36c85de38f9c5df38d":[12,0,1,0,5,0,5,21],
 "room__entrance_8h.html#a318974354aea6ec42a8a17fb6f349397":[12,0,1,0,5,0,5,38],
 "room__entrance_8h.html#a3235497c08a2e5e78249ac79a8fed0cf":[12,0,1,0,5,0,5,44],
-"room__entrance_8h.html#a3621b7b221ef40f6e1264fa639599308":[12,0,1,0,5,0,5,31]
+"room__entrance_8h.html#a3621b7b221ef40f6e1264fa639599308":[12,0,1,0,5,0,5,31],
+"room__entrance_8h.html#a3f7bd67025f62e6e16537e16ef8b1a27":[12,0,1,0,5,0,5,1],
+"room__entrance_8h.html#a4180d8a55f2e6f467197fad4ba525a62":[12,0,1,0,5,0,5,32],
+"room__entrance_8h.html#a42b13b90ef235bf6c84c6ea49ceb5533":[12,0,1,0,5,0,5,3],
+"room__entrance_8h.html#a484f052b7cd8186a64c2350088f4e966":[12,0,1,0,5,0,5,25]
 };

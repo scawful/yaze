@@ -1,11 +1,5 @@
 var NAVTREEINDEX10 =
 {
-"classyaze_1_1app_1_1emu_1_1Emulator.html#ab46a750f4f62af7258e3a6017002a9cd":[10,0,2,0,3,10,22],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#ab46a750f4f62af7258e3a6017002a9cd":[11,0,1,0,2,8,22],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#aba8cfa17f73c297631194e4bc66fceb4":[10,0,2,0,3,10,30],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#aba8cfa17f73c297631194e4bc66fceb4":[11,0,1,0,2,8,30],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#abb2362878c817db5de336bdf4dab0710":[10,0,2,0,3,10,12],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#abb2362878c817db5de336bdf4dab0710":[11,0,1,0,2,8,12],
 "classyaze_1_1app_1_1emu_1_1Emulator.html#ad4baea4deebf6b7bb0ca845be47b443f":[10,0,2,0,3,10,2],
 "classyaze_1_1app_1_1emu_1_1Emulator.html#ad4baea4deebf6b7bb0ca845be47b443f":[11,0,1,0,2,8,2],
 "classyaze_1_1app_1_1emu_1_1Emulator.html#adebab95dcb3ddb1840e35b91ae733d1f":[10,0,2,0,3,10,4],
@@ -249,5 +243,11 @@ var NAVTREEINDEX10 =
 "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a001a2c404bc6b0fd83b98a70527e8050":[10,0,2,0,3,2,2,5],
 "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a001a2c404bc6b0fd83b98a70527e8050":[11,0,1,0,2,0,2,5],
 "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a3a54c05966bf0ff2cdf022224aaf5a0a":[10,0,2,0,3,2,2,3],
-"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a3a54c05966bf0ff2cdf022224aaf5a0a":[11,0,1,0,2,0,2,3]
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a3a54c05966bf0ff2cdf022224aaf5a0a":[11,0,1,0,2,0,2,3],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a48aa23112a613be3af4fa5e38d83084f":[10,0,2,0,3,2,2,4],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a48aa23112a613be3af4fa5e38d83084f":[11,0,1,0,2,0,2,4],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a76190c7cd6dd60be18f60576f007cb46":[10,0,2,0,3,2,2,2],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a76190c7cd6dd60be18f60576f007cb46":[11,0,1,0,2,0,2,2],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a9309b30b3cf01e47b6b840d218be16a8":[10,0,2,0,3,2,2,0],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a9309b30b3cf01e47b6b840d218be16a8":[11,0,1,0,2,0,2,0]
 };

@@ -1,11 +1,5 @@
 var NAVTREEINDEX6 =
 {
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#acdc57d40e84aa51832ceea9b44f2bd07":[10,0,2,0,2,26,110],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#acdc57d40e84aa51832ceea9b44f2bd07":[11,0,1,0,1,21,110],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#acdc9cc9a39a3bc56ab0385df03c270b4":[10,0,2,0,2,26,42],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#acdc9cc9a39a3bc56ab0385df03c270b4":[11,0,1,0,1,21,42],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad12fc613f26e0e284e9913c062a45cf3":[10,0,2,0,2,26,83],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad12fc613f26e0e284e9913c062a45cf3":[11,0,1,0,1,21,83],
 "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad286811de6fd19191bc31071660b91d7":[10,0,2,0,2,26,63],
 "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad286811de6fd19191bc31071660b91d7":[11,0,1,0,1,21,63],
 "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad2f9ccf2715ea7e4f64a50354fbb34d0":[10,0,2,0,2,26,114],
@@ -249,5 +243,11 @@ var NAVTREEINDEX6 =
 "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a1a23a674e0163f649ea906127b9a3d92":[10,0,2,0,2,32,20],
 "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a1a23a674e0163f649ea906127b9a3d92":[11,0,1,0,1,27,20],
 "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a2ea6edd6df5cfe9456afbe515c1d4489":[10,0,2,0,2,32,15],
-"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a2ea6edd6df5cfe9456afbe515c1d4489":[11,0,1,0,1,27,15]
+"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a2ea6edd6df5cfe9456afbe515c1d4489":[11,0,1,0,1,27,15],
+"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a31111a8e9e7f2b9f94da5b5dd33f7e2c":[10,0,2,0,2,32,7],
+"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a31111a8e9e7f2b9f94da5b5dd33f7e2c":[11,0,1,0,1,27,7],
+"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a3742405e0081e791eb9025ea17061cf8":[10,0,2,0,2,32,23],
+"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a3742405e0081e791eb9025ea17061cf8":[11,0,1,0,1,27,23],
+"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a39bf8023b725f8753b29f9b9ff95f244":[10,0,2,0,2,32,21],
+"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a39bf8023b725f8753b29f9b9ff95f244":[11,0,1,0,1,27,21]
 };

@@ -94,9 +94,7 @@ var classyaze_1_1app_1_1editor_1_1GraphicsEditor =
     [ "scr_bitmap_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a3bc5f5d7daa6fe3ebb3b5ef48f267a42", null ],
     [ "bin_bitmap_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a0463dd8967cb6589942e3a3d3ad56e95", null ],
     [ "link_full_sheet_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a3d008265cae542d0f4e93f942f498ed8", null ],
-    [ "graphics_bin_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ad5cf2744b27c297c22d45b9bdd754144", null ],
-    [ "clipboard_graphics_bin_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a14f476da08176e3fa48797b78a129c75", null ],
-    [ "link_graphics_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a1f1bcccaa587cdaa91fe58952c177997", null ],
+    [ "gfx_sheets_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2fdc42a947a6c2d862768b6958bcc38d", null ],
     [ "col_file_palette_group_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a4d9b121f799d75095d6a4fe28a0a07da", null ],
     [ "z3_rom_palette_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#aa08f03b3f1cae1e05dcdabdf9a87a8f9", null ],
     [ "col_file_palette_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a98d3793db22e701823fd8b56abbee5a1", null ],
@@ -104,6 +102,7 @@ var classyaze_1_1app_1_1editor_1_1GraphicsEditor =
     [ "import_canvas_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a4b25cd81df006d8e0fa70a3c54a3afce", null ],
     [ "scr_canvas_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a69f72b9458d9b0b9756858ec6b14969e", null ],
     [ "super_donkey_canvas_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab3ef6d8c4bdbf2b67fd7fc74e16bff89", null ],
+    [ "graphics_bin_canvas_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ad770479335ca645c6337f2090a9fa513", null ],
     [ "current_sheet_canvas_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a83cde84643af97c42c4c138b27144b53", null ],
     [ "link_canvas_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a780a22f9e7d9ce21721e9205111c1054", null ],
     [ "status_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a3c2002c3b6a76b2f93c6504f894791a2", null ]

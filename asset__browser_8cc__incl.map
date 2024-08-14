@@ -1,13 +1,20 @@
 <map id="src/app/gui/asset_browser.cc" name="src/app/gui/asset_browser.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="140,5,331,31"/>
-<area shape="rect" id="Node000002" href="$asset__browser_8h.html" title=" " alt="" coords="96,79,212,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,34,181,71,177,67,220,30"/>
-<area shape="rect" id="Node000025" title=" " alt="" coords="236,79,397,105"/>
-<area shape="poly" id="edge5_Node000001_Node000025" title=" " alt="" coords="251,30,293,67,290,71,247,34"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,153,103,178"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="139,107,85,145,82,141,135,103"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="127,153,181,178"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="157,105,157,137,151,137,151,105"/>
-<area shape="rect" id="Node000005" href="$bitmap_8h.html" title=" " alt="" coords="205,153,322,178"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="174,103,234,142,231,146,171,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="181,5,372,31"/>
+<area shape="rect" id="Node000002" href="$asset__browser_8h.html" title=" " alt="" coords="155,79,272,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="268,33,236,69,232,65,264,29"/>
+<area shape="rect" id="Node000039" title=" " alt="" coords="330,226,492,252"/>
+<area shape="poly" id="edge10_Node000001_Node000039" title=" " alt="" coords="286,30,398,212,394,215,281,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="145,153,194,178"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="209,106,187,141,183,138,204,103"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="40,226,94,252"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="155,105,70,125,34,139,13,154,8,169,13,185,24,200,39,214,35,218,20,204,8,187,3,169,9,151,32,134,69,120,154,100"/>
+<area shape="rect" id="Node000005" href="$bitmap_8h.html" title=" " alt="" coords="190,226,306,252"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="250,103,283,122,299,135,311,152,315,170,309,188,296,205,281,219,277,215,292,201,304,186,309,170,306,154,295,139,280,126,248,108"/>
+<area shape="rect" id="Node000026" href="$rom_8h.html" title=" " alt="" coords="218,153,297,178"/>
+<area shape="poly" id="edge5_Node000002_Node000026" title=" " alt="" coords="223,103,244,138,240,141,219,106"/>
+<area shape="rect" id="Node000025" title=" " alt="" coords="24,153,121,178"/>
+<area shape="poly" id="edge9_Node000002_Node000025" title=" " alt="" coords="191,108,111,148,109,143,188,103"/>
+<area shape="poly" id="edge6_Node000026_Node000004" title=" " alt="" coords="226,181,109,225,107,220,224,176"/>
+<area shape="poly" id="edge8_Node000026_Node000005" title=" " alt="" coords="259,179,254,211,249,211,253,178"/>
+<area shape="poly" id="edge7_Node000026_Node000039" title=" " alt="" coords="285,176,372,217,370,222,282,181"/>
 </map>

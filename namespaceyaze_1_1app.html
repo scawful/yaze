@@ -175,6 +175,8 @@ Variables</h2></td></tr>
 <tr class="separator:a02c28e406561ede6e5a46381e26b4653"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9bbafa7d5f1809f3d216b5082f65d1b2" id="r_a9bbafa7d5f1809f3d216b5082f65d1b2"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9bbafa7d5f1809f3d216b5082f65d1b2">kNumGfxSheets</a> = 223</td></tr>
 <tr class="separator:a9bbafa7d5f1809f3d216b5082f65d1b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4c7fab5470426166f7fcba0162f75387" id="r_a4c7fab5470426166f7fcba0162f75387"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4c7fab5470426166f7fcba0162f75387">kNumLinkSheets</a> = 14</td></tr>
+<tr class="separator:a4c7fab5470426166f7fcba0162f75387"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3ef17b1c481a3e73d2d97a92e3995b04" id="r_a3ef17b1c481a3e73d2d97a92e3995b04"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3ef17b1c481a3e73d2d97a92e3995b04">kNormalGfxSpaceStart</a> = 0x87000</td></tr>
 <tr class="separator:a3ef17b1c481a3e73d2d97a92e3995b04"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3ef7d1df5d323905102b5a1cef9d447d" id="r_a3ef7d1df5d323905102b5a1cef9d447d"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3ef7d1df5d323905102b5a1cef9d447d">kNormalGfxSpaceEnd</a> = 0xC4200</td></tr>
@@ -266,7 +268,7 @@ Variables</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00034">34</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00089">yaze::app::Rom::LoadAllGraphicsData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00088">yaze::app::Rom::LoadAllGraphicsData()</a>.</p>
 
 </div>
 </div>
@@ -292,7 +294,7 @@ Variables</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00035">35</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00408">yaze::app::Rom::LoadGfxGroups()</a>, and <a class="el" href="rom_8cc_source.html#l00445">yaze::app::Rom::SaveGroupsToRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00406">yaze::app::Rom::LoadGfxGroups()</a>, and <a class="el" href="rom_8cc_source.html#l00443">yaze::app::Rom::SaveGroupsToRom()</a>.</p>
 
 </div>
 </div>
@@ -318,7 +320,33 @@ Variables</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00121">121</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00089">yaze::app::Rom::LoadAllGraphicsData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="asset__browser_8h_source.html#l00191">yaze::app::gui::GfxSheetAssetBrowser::Initialize()</a>, <a class="el" href="rom_8cc_source.html#l00088">yaze::app::Rom::LoadAllGraphicsData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00188">yaze::app::editor::GraphicsEditor::UpdateGfxSheetList()</a>.</p>
+
+</div>
+</div>
+<a id="a4c7fab5470426166f7fcba0162f75387" name="a4c7fab5470426166f7fcba0162f75387"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4c7fab5470426166f7fcba0162f75387">&#9670;&#160;</a></span>kNumLinkSheets</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t yaze::app::kNumLinkSheets = 14</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00122">122</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00064">yaze::app::Rom::LoadLinkGraphics()</a>.</p>
 
 </div>
 </div>
@@ -342,7 +370,7 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00122">122</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00123">123</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -366,7 +394,7 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00123">123</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00124">124</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -390,7 +418,7 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00124">124</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00125">125</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -414,9 +442,9 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00125">125</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00126">126</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00408">yaze::app::Rom::LoadGfxGroups()</a>, and <a class="el" href="rom_8cc_source.html#l00445">yaze::app::Rom::SaveGroupsToRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00406">yaze::app::Rom::LoadGfxGroups()</a>, and <a class="el" href="rom_8cc_source.html#l00443">yaze::app::Rom::SaveGroupsToRom()</a>.</p>
 
 </div>
 </div>

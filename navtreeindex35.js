@@ -1,11 +1,5 @@
 var NAVTREEINDEX35 =
 {
-"icons_8h.html#aec8bf36bdb8886b0da778ab56a61f4c7":[12,0,1,0,4,6,1832],
-"icons_8h.html#aec97dfbbafbe581a3dcdbfc3aefd2bd2":[12,0,1,0,4,6,1096],
-"icons_8h.html#aeccec3881ae3e4e84b64884f4a255871":[12,0,1,0,4,6,1946],
-"icons_8h.html#aecd5821b4a728bde718b4378d5137be6":[12,0,1,0,4,6,364],
-"icons_8h.html#aece16889a9b89669fe549b3858548532":[12,0,1,0,4,6,2050],
-"icons_8h.html#aecf0ab41169e4f8246539a058ef6e2b9":[12,0,1,0,4,6,2023],
 "icons_8h.html#aed30111387aab745f5a8f9cad26aa381":[12,0,1,0,4,6,621],
 "icons_8h.html#aed54a854f1ecc0ebe4de01c5aee5f628":[12,0,1,0,4,6,2083],
 "icons_8h.html#aed5add88f20ab43531ba3299736619da":[12,0,1,0,4,6,138],
@@ -249,5 +243,11 @@ var NAVTREEINDEX35 =
 "md_docs_2asm-style-guide.html#autotoc_md10":[1,9],
 "md_docs_2asm-style-guide.html#autotoc_md11":[1,10],
 "md_docs_2asm-style-guide.html#autotoc_md2":[1,1],
-"md_docs_2asm-style-guide.html#autotoc_md3":[1,2]
+"md_docs_2asm-style-guide.html#autotoc_md3":[1,2],
+"md_docs_2asm-style-guide.html#autotoc_md4":[1,3],
+"md_docs_2asm-style-guide.html#autotoc_md5":[1,4],
+"md_docs_2asm-style-guide.html#autotoc_md6":[1,5],
+"md_docs_2asm-style-guide.html#autotoc_md7":[1,6],
+"md_docs_2asm-style-guide.html#autotoc_md8":[1,7],
+"md_docs_2asm-style-guide.html#autotoc_md9":[1,8]
 };

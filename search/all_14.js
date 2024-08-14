@@ -66,7 +66,7 @@ var searchData=
   ['link_5fcanvas_5f_63',['link_canvas_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a780a22f9e7d9ce21721e9205111c1054',1,'yaze::app::editor::GraphicsEditor']]],
   ['link_5ffull_5fsheet_5f_64',['link_full_sheet_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a3d008265cae542d0f4e93f942f498ed8',1,'yaze::app::editor::GraphicsEditor']]],
   ['link_5fgraphics_65',['link_graphics',['../classyaze_1_1app_1_1Rom.html#a48f0987559ea7f4f48c5cd41e3fe3f39',1,'yaze::app::Rom']]],
-  ['link_5fgraphics_5f_66',['link_graphics_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a1f1bcccaa587cdaa91fe58952c177997',1,'yaze::app::editor::GraphicsEditor::link_graphics_'],['../classyaze_1_1app_1_1Rom.html#a90e78f8cf6ca86e02e476443336408c0',1,'yaze::app::Rom::link_graphics_']]],
+  ['link_5fgraphics_5f_66',['link_graphics_',['../classyaze_1_1app_1_1Rom.html#af674fa24d0c7004775f28a5549dad1b4',1,'yaze::app::Rom']]],
   ['link_5fpalette_5f_67',['link_palette_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ac5a5e5c6768534267ddf3cbbca719feb',1,'yaze::app::editor::GraphicsEditor::link_palette_'],['../classyaze_1_1app_1_1Rom.html#ac44e734fa63168aba69b5177318445d4',1,'yaze::app::Rom::link_palette_']]],
   ['linux_68',['GNU/Linux',['../md_docs_2build-instructions.html#autotoc_md16',1,'']]],
   ['list_69',['List',['../deprecated.html',1,'Deprecated List'],['../test.html',1,'Test List'],['../todo.html',1,'Todo List']]],

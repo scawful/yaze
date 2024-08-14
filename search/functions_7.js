@@ -80,9 +80,8 @@ var searchData=
   ['gfx_5fgroup_5feditor_77',['gfx_group_editor',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a8c0cdb0a0b7bd8693e2fa44812d7b04e',1,'yaze::app::editor::OverworldEditor']]],
   ['gfx_5fsheets_78',['gfx_sheets',['../classyaze_1_1app_1_1Rom.html#a0911436fac0734acd28f4fe24ab02c28',1,'yaze::app::Rom']]],
   ['global_5fscale_79',['global_scale',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a8b45ea0c49744d0398c3f031e907f235',1,'yaze::app::gui::Canvas']]],
-  ['graphics_5fbin_80',['graphics_bin',['../classyaze_1_1app_1_1Rom.html#a6f1314506031b4a334b3d411116be32f',1,'yaze::app::Rom']]],
-  ['graphics_5fbuffer_81',['graphics_buffer',['../classyaze_1_1app_1_1Rom.html#addbd2dd0eaa13c92ed0f9c0b1e5e3610',1,'yaze::app::Rom']]],
-  ['graphicsbincanvaspipeline_82',['GraphicsBinCanvasPipeline',['../namespaceyaze_1_1app_1_1gui.html#af3842eaca5095da067d7248aeda9d006',1,'yaze::app::gui']]],
-  ['graphicseditor_83',['GraphicsEditor',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab83436301f2e730afbf6753e2827687e',1,'yaze::app::editor::GraphicsEditor']]],
-  ['grayscalepalette_84',['GrayscalePalette',['../namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#a94dc5ccbe969297d607afd1821c3d118',1,'yaze::app::gfx::anonymous_namespace{bitmap.cc}']]]
+  ['graphics_5fbuffer_80',['graphics_buffer',['../classyaze_1_1app_1_1Rom.html#addbd2dd0eaa13c92ed0f9c0b1e5e3610',1,'yaze::app::Rom']]],
+  ['graphicsbincanvaspipeline_81',['GraphicsBinCanvasPipeline',['../namespaceyaze_1_1app_1_1gui.html#af3842eaca5095da067d7248aeda9d006',1,'yaze::app::gui']]],
+  ['graphicseditor_82',['GraphicsEditor',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab83436301f2e730afbf6753e2827687e',1,'yaze::app::editor::GraphicsEditor']]],
+  ['grayscalepalette_83',['GrayscalePalette',['../namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#a94dc5ccbe969297d607afd1821c3d118',1,'yaze::app::gfx::anonymous_namespace{bitmap.cc}']]]
 ];
