@@ -410,8 +410,6 @@ class Rom : public core::ExperimentFlags {
   // Full graphical data for the game
   Bytes graphics_buffer() const { return graphics_buffer_; }
 
-  [[deprecated]] auto bitmap_manager() { return graphics_manager_; }
-
   auto link_graphics() { return link_graphics_; }
   auto mutable_link_graphics() { return &link_graphics_; }
 
@@ -524,8 +522,6 @@ class Rom : public core::ExperimentFlags {
 
   Z3_Version version_ = Z3_Version::US;
 
-  [[deprecated("BitmapManager has unpredictable destructor behavior.")]] gfx::
-      BitmapManager graphics_manager_;
   gfx::SnesPalette link_palette_;
   gfx::PaletteGroupMap palette_groups_;
   core::ResourceLabelManager resource_label_manager_;

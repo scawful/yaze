@@ -695,7 +695,8 @@ void OverworldEditor::DrawTile8Selector() {
   graphics_bin_canvas_.DrawBackground();
   graphics_bin_canvas_.DrawContextMenu();
   if (all_gfx_loaded_) {
-    for (auto &[key, value] : rom()->bitmap_manager()) {
+    int key = 0;
+    for (auto &value : rom()->gfx_sheets()) {
       int offset = 0x40 * (key + 1);
       int top_left_y = graphics_bin_canvas_.zero_point().y + 2;
       if (key >= 1) {
@@ -707,6 +708,7 @@ void OverworldEditor::DrawTile8Selector() {
           ImVec2(graphics_bin_canvas_.zero_point().x + 2, top_left_y),
           ImVec2(graphics_bin_canvas_.zero_point().x + 0x100,
                  graphics_bin_canvas_.zero_point().y + offset));
+      key++;
     }
   }
   graphics_bin_canvas_.DrawGrid();

@@ -219,51 +219,6 @@ class Bitmap {
 
 using BitmapTable = std::unordered_map<int, gfx::Bitmap>;
 
-/**
- * @brief Hash map container of shared pointers to Bitmaps.
- * \deprecated Moved to fixed array or vector for storing groups of bitmaps.
- */
-class BitmapManager {
- private:
-  std::unordered_map<int, gfx::Bitmap> bitmap_cache_;
-
- public:
-  void LoadBitmap(int id, const Bytes &data, int width, int height, int depth) {
-    bitmap_cache_[id].Create(width, height, depth, data);
-  }
-
-  gfx::Bitmap &operator[](int id) {
-    auto it = bitmap_cache_.find(id);
-    if (it != bitmap_cache_.end()) {
-      return it->second;
-    }
-    return bitmap_cache_.begin()->second;
-  }
-  gfx::Bitmap &shared_bitmap(int id) {
-    auto it = bitmap_cache_.find(id);
-    if (it != bitmap_cache_.end()) {
-      return it->second;
-    }
-    throw std::runtime_error(
-        absl::StrCat("Bitmap with id ", id, " not found."));
-  }
-  auto mutable_bitmap(int id) { return &bitmap_cache_[id]; }
-  void clear_cache() { bitmap_cache_.clear(); }
-  auto size() const { return bitmap_cache_.size(); }
-  auto at(int id) const { return bitmap_cache_.at(id); }
-
-  using value_type = std::pair<const int, gfx::Bitmap>;
-  using iterator = std::unordered_map<int, gfx::Bitmap>::iterator;
-  using const_iterator = std::unordered_map<int, gfx::Bitmap>::const_iterator;
-
-  iterator begin() noexcept { return bitmap_cache_.begin(); }
-  iterator end() noexcept { return bitmap_cache_.end(); }
-  const_iterator begin() const noexcept { return bitmap_cache_.begin(); }
-  const_iterator end() const noexcept { return bitmap_cache_.end(); }
-  const_iterator cbegin() const noexcept { return bitmap_cache_.cbegin(); }
-  const_iterator cend() const noexcept { return bitmap_cache_.cend(); }
-};
-
 }  // namespace gfx
 }  // namespace app
 }  // namespace yaze

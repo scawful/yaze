@@ -30,9 +30,6 @@ namespace core {
 class ExperimentFlags {
  public:
   struct Flags {
-    // Bitmap manager abstraction to manage graphics bin of Rom.
-    bool kUseBitmapManager = true;
-
     // Log instructions to the GUI debugger.
     bool kLogInstructions = true;
 

@@ -124,7 +124,6 @@ class DungeonEditor : public Editor,
   std::vector<gfx::Bitmap*> room_gfx_sheets_;
   std::vector<zelda3::dungeon::Room> rooms_;
   std::vector<zelda3::dungeon::RoomEntrance> entrances_;
-  std::vector<gfx::BitmapManager> room_graphics_;
   zelda3::dungeon::DungeonObjectRenderer object_renderer_;
 
   absl::flat_hash_map<uint16_t, int> spriteset_usage_;

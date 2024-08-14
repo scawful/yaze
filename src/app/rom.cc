@@ -116,33 +116,24 @@ absl::Status Rom::LoadAllGraphicsData() {
       auto converted_sheet = gfx::SnesTo8bppSheet(sheet, 3);
       graphics_sheets_[i].Create(core::kTilesheetWidth, core::kTilesheetHeight,
                                  core::kTilesheetDepth, converted_sheet);
+      if (graphics_sheets_[i].is_active()) {
+        if (i > 115) {
+          // Apply sprites palette
+          RETURN_IF_ERROR(graphics_sheets_[i].ApplyPaletteWithTransparent(
+              palette_groups_.global_sprites[0], 0));
+        } else {
+          RETURN_IF_ERROR(graphics_sheets_[i].ApplyPaletteWithTransparent(
+              palette_groups_.dungeon_main[0], 0));
+        }
+      }
       graphics_sheets_[i].CreateTexture(Renderer::GetInstance().renderer());
 
-      if (flags()->kUseBitmapManager) {
-        graphics_manager_.LoadBitmap(i, converted_sheet, core::kTilesheetWidth,
-                                     core::kTilesheetHeight,
-                                     core::kTilesheetDepth);
-        if (graphics_manager_[i].is_active()) {
-          if (i > 115) {
-            // Apply sprites palette
-            RETURN_IF_ERROR(graphics_manager_[i].ApplyPaletteWithTransparent(
-                palette_groups_.global_sprites[0], 0));
-          } else {
-            RETURN_IF_ERROR(graphics_manager_[i].ApplyPaletteWithTransparent(
-                palette_groups_.dungeon_main[0], 0));
-          }
-          graphics_manager_[i].CreateTexture(
-              Renderer::GetInstance().renderer());
-        }
+      for (int j = 0; j < graphics_sheets_[i].size(); ++j) {
+        graphics_buffer_.push_back(graphics_sheets_[i].at(j));
       }
 
-      if (flags()->kUseBitmapManager) {
-        for (int j = 0; j < graphics_manager_[i].size(); ++j) {
-          graphics_buffer_.push_back(graphics_manager_[i].at(j));
-        }
-      }
     } else {
-      for (int j = 0; j < graphics_manager_[0].size(); ++j) {
+      for (int j = 0; j < graphics_sheets_[0].size(); ++j) {
         graphics_buffer_.push_back(0xFF);
       }
     }

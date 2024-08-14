@@ -305,9 +305,7 @@ void MessageEditor::ReadAllTextData() {
       current_message_parsed.clear();
 
       continue;
-    }
-
-    if (current_byte == 0xFF) {
+    } else if (current_byte == 0xFF) {
       break;
     }
 
@@ -381,7 +379,7 @@ void MessageEditor::ReadAllTextData() {
 
 TextElement MessageEditor::FindMatchingCommand(uint8_t b) {
   TextElement empty_element;
-  for (const auto text_element : TextCommands) {
+  for (const auto& text_element : TextCommands) {
     if (text_element.ID == b) {
       return text_element;
     }
