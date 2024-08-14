@@ -1,5 +1,11 @@
 var NAVTREEINDEX51 =
 {
+"structyaze_1_1app_1_1gui_1_1zeml_1_1Token.html#acdede365098af306630412f5454ccb6c":[11,0,1,0,4,0,2,1],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html":[10,0,2,0,5,1,3],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html":[11,0,1,0,4,0,3],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a0877113f9b6c3a3522c9f4255c155924":[10,0,2,0,5,1,3,8],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a0877113f9b6c3a3522c9f4255c155924":[11,0,1,0,4,0,3,8],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a1d818a63047fa9417e1edb648e05aca4":[10,0,2,0,5,1,3,5],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a1d818a63047fa9417e1edb648e05aca4":[11,0,1,0,4,0,3,5],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a30bb67469bd35fee3adc4fdd09c36dab":[10,0,2,0,5,1,3,2],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a30bb67469bd35fee3adc4fdd09c36dab":[11,0,1,0,4,0,3,2],
@@ -243,11 +249,5 @@ var NAVTREEINDEX51 =
 "yaze_8h.html#acd3a71fa68d6d64ec2b68e8232856b77":[12,0,1,8,12],
 "yaze_8h.html#adfaf105df03accd07b94f1e60c6ed8bf":[12,0,1,8,18],
 "yaze_8h.html#adfb236b5541502ced4544a6678e79d0e":[12,0,1,8,20],
-"yaze_8h.html#af4c0f181175784dda7fdd05a462fae43":[12,0,1,8,15],
-"yaze_8h_source.html":[12,0,1,8],
-"yaze__c__py_8cc.html":[12,0,1,5,0],
-"yaze__c__py_8cc_source.html":[12,0,1,5,0],
-"yaze__py_8cc.html":[12,0,1,5,1],
-"yaze__py_8cc.html#aa066fe72661b77be73878a8b9cf7e6f4":[12,0,1,5,1,0],
-"yaze__py_8cc_source.html":[12,0,1,5,1]
+"yaze_8h.html#af4c0f181175784dda7fdd05a462fae43":[12,0,1,8,15]
 };

@@ -1,5 +1,11 @@
 var NAVTREEINDEX38 =
 {
+"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a8c8b3f87636a015c88ca7ee6d7bf74f5":[10,0,2,0,3,4,0,82],
+"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a8e91c94399ae4473f7f927a616d4d7fc":[10,0,2,0,3,4,0,78],
+"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a917b1cfd38dda769c7541becf78c3a7b":[10,0,2,0,3,4,0,92],
+"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a935e14f26d347ea30a2cdc9ffebd42a5":[10,0,2,0,3,4,0,72],
+"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a93768abb983f383b1851fdb37b929f6c":[10,0,2,0,3,4,0,110],
+"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a974642af2ae98776f8a2f7efe0c39a7f":[10,0,2,0,3,4,0,86],
 "namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a98dadd260db0bf7d185e0ecbfbd7be8a":[10,0,2,0,3,4,0,64],
 "namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a9dd2253b733e3788977c091f1e9adc60":[10,0,2,0,3,4,0,96],
 "namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a9dd53b42b74e95d87bbd36e697311052":[10,0,2,0,3,4,0,98],
@@ -243,11 +249,5 @@ var NAVTREEINDEX38 =
 "namespaceyaze_1_1app_1_1gui.html#a37d30bfb30a0b8009d689eee0085eed0":[10,0,2,0,5,21],
 "namespaceyaze_1_1app_1_1gui.html#a3cce6ce5c9b245f61e6531334c427476":[10,0,2,0,5,23],
 "namespaceyaze_1_1app_1_1gui.html#a3e37a9d87a9c3d7669d67fc7873f7c65":[10,0,2,0,5,22],
-"namespaceyaze_1_1app_1_1gui.html#a4e98334d8cfb28352cebdd857eb52530":[10,0,2,0,5,37],
-"namespaceyaze_1_1app_1_1gui.html#a54b571106f4a250d7a5d29ef87faf06f":[10,0,2,0,5,29],
-"namespaceyaze_1_1app_1_1gui.html#a574b5072f4f467f12dbdb9ea2eb41e50":[10,0,2,0,5,33],
-"namespaceyaze_1_1app_1_1gui.html#a5c3bc66feb8dec0e9d06a5d65411f0cd":[10,0,2,0,5,46],
-"namespaceyaze_1_1app_1_1gui.html#a607720b784682d3ef9edce3bc2801a0f":[10,0,2,0,5,40],
-"namespaceyaze_1_1app_1_1gui.html#a65f49225270284b6353e95334659788c":[10,0,2,0,5,36],
-"namespaceyaze_1_1app_1_1gui.html#a69040af6cbf02bd16c9e22e4bff2b99e":[10,0,2,0,5,34]
+"namespaceyaze_1_1app_1_1gui.html#a4e98334d8cfb28352cebdd857eb52530":[10,0,2,0,5,37]
 };
