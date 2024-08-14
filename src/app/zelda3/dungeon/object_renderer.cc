@@ -106,7 +106,6 @@ void DungeonObjectRenderer::RenderObject(const SubtypeInfo& info) {
     uint8_t opcode = cpu.ReadByte(cpu.PB << 16 | cpu.PC);
     cpu.ExecuteInstruction(opcode);
 
-
     i++;
   }
 
@@ -138,10 +137,11 @@ void DungeonObjectRenderer::UpdateObjectBitmap() {
     int x = column * 8;
     int y = row * 8;
 
-    auto sheet = rom()->mutable_graphics_sheet(vram_.sheets[sheet_number]);
+    auto sheet =
+        rom()->mutable_bitmap_manager()->at(vram_.sheets[sheet_number]);
 
     // Copy the tile from VRAM using the read tile_id
-    sheet->Get8x8Tile(tile_id, x, y, tilemap_, tilemap_offset);
+    sheet.Get8x8Tile(tile_id, x, y, tilemap_, tilemap_offset);
   }
 
   bitmap_.Create(256, 256, 8, tilemap_);

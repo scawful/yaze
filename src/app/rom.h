@@ -409,10 +409,6 @@ class Rom : public core::ExperimentFlags {
   // Full graphical data for the game
   Bytes graphics_buffer() const { return graphics_buffer_; }
 
-  [[deprecated]] gfx::BitmapTable graphics_bin() const { return graphics_bin_; }
-  [[deprecated]] gfx::Bitmap* mutable_graphics_sheet(int index) {
-    return &graphics_bin_.at(index);
-  }
   [[deprecated]] auto bitmap_manager() { return graphics_manager_; }
   [[deprecated]] auto mutable_bitmap_manager() { return &graphics_manager_; }
 
@@ -524,7 +520,6 @@ class Rom : public core::ExperimentFlags {
   std::array<gfx::Bitmap, kNumGfxSheets> graphics_sheets_;
 
   Z3_Version version_ = Z3_Version::US;
-  gfx::BitmapTable graphics_bin_;
 
   [[deprecated("BitmapManager has unpredictable destructor behavior.")]] gfx::
       BitmapManager graphics_manager_;

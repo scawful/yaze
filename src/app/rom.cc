@@ -123,20 +123,19 @@ absl::Status Rom::LoadAllGraphicsData() {
         graphics_manager_.LoadBitmap(i, converted_sheet, core::kTilesheetWidth,
                                      core::kTilesheetHeight,
                                      core::kTilesheetDepth);
-        if (i > 115) {
-          // Apply sprites palette
-          RETURN_IF_ERROR(graphics_manager_[i].ApplyPaletteWithTransparent(
-              palette_groups_.global_sprites[0], 0));
-        } else {
-          RETURN_IF_ERROR(graphics_manager_[i].ApplyPaletteWithTransparent(
-              palette_groups_.dungeon_main[0], 0));
+        if (graphics_manager_[i].is_active()) {
+          if (i > 115) {
+            // Apply sprites palette
+            RETURN_IF_ERROR(graphics_manager_[i].ApplyPaletteWithTransparent(
+                palette_groups_.global_sprites[0], 0));
+          } else {
+            RETURN_IF_ERROR(graphics_manager_[i].ApplyPaletteWithTransparent(
+                palette_groups_.dungeon_main[0], 0));
+          }
+          graphics_manager_[i].CreateTexture(Renderer::GetInstance().renderer());
         }
-        graphics_manager_[i].CreateTexture(Renderer::GetInstance().renderer());
+        
       }
-      graphics_bin_[i] =
-          gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
-                      core::kTilesheetDepth, converted_sheet);
-      graphics_bin_.at(i).CreateTexture(Renderer::GetInstance().renderer());
 
       if (flags()->kUseBitmapManager) {
         for (int j = 0; j < graphics_manager_[i].size(); ++j) {
@@ -144,7 +143,7 @@ absl::Status Rom::LoadAllGraphicsData() {
         }
       }
     } else {
-      for (int j = 0; j < graphics_bin_[0].size(); ++j) {
+      for (int j = 0; j < graphics_manager_[0].size(); ++j) {
         graphics_buffer_.push_back(0xFF);
       }
     }
