@@ -193,7 +193,6 @@ var annotated_dup =
             [ "CgxHeader", "structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html", "structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader" ]
           ] ],
           [ "Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html", "classyaze_1_1app_1_1gfx_1_1Bitmap" ],
-          [ "BitmapManager", "classyaze_1_1app_1_1gfx_1_1BitmapManager.html", "classyaze_1_1app_1_1gfx_1_1BitmapManager" ],
           [ "OamTile", "classyaze_1_1app_1_1gfx_1_1OamTile.html", "classyaze_1_1app_1_1gfx_1_1OamTile" ],
           [ "PaletteGroup", "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html", "structyaze_1_1app_1_1gfx_1_1PaletteGroup" ],
           [ "PaletteGroupMap", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap" ],

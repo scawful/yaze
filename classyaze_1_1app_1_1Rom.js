@@ -31,8 +31,6 @@ var classyaze_1_1app_1_1Rom =
     [ "resource_label", "classyaze_1_1app_1_1Rom.html#a4e1d9a909f3d6875aa433134e71f1a33", null ],
     [ "version_constants", "classyaze_1_1app_1_1Rom.html#a0c5236f4dc9e1fd7ad98f058d154a139", null ],
     [ "graphics_buffer", "classyaze_1_1app_1_1Rom.html#addbd2dd0eaa13c92ed0f9c0b1e5e3610", null ],
-    [ "bitmap_manager", "classyaze_1_1app_1_1Rom.html#a0d39a485896a82ecf534d8470a1f8f9c", null ],
-    [ "mutable_bitmap_manager", "classyaze_1_1app_1_1Rom.html#ae7b13c9229d8692c35e1c72e1e473583", null ],
     [ "link_graphics", "classyaze_1_1app_1_1Rom.html#a48f0987559ea7f4f48c5cd41e3fe3f39", null ],
     [ "mutable_link_graphics", "classyaze_1_1app_1_1Rom.html#ab991e800548e8f3c06b5880427697002", null ],
     [ "gfx_sheets", "classyaze_1_1app_1_1Rom.html#a0911436fac0734acd28f4fe24ab02c28", null ],
@@ -70,7 +68,6 @@ var classyaze_1_1app_1_1Rom =
     [ "graphics_sheets_", "classyaze_1_1app_1_1Rom.html#a4cf6d30e97cf7bed332d5ad22a0e2f71", null ],
     [ "link_graphics_", "classyaze_1_1app_1_1Rom.html#af674fa24d0c7004775f28a5549dad1b4", null ],
     [ "version_", "classyaze_1_1app_1_1Rom.html#a1346fc16ff818495adbff118422a3664", null ],
-    [ "graphics_manager_", "classyaze_1_1app_1_1Rom.html#a8f6654753e3a5b9bf4a555792cf6e5dd", null ],
     [ "link_palette_", "classyaze_1_1app_1_1Rom.html#ac44e734fa63168aba69b5177318445d4", null ],
     [ "palette_groups_", "classyaze_1_1app_1_1Rom.html#a84a871742c05354dc477c49bdd5a7496", null ],
     [ "resource_label_manager_", "classyaze_1_1app_1_1Rom.html#aeed1d79aa226ead085fab4a997396f27", null ]

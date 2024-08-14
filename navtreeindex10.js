@@ -1,13 +1,5 @@
 var NAVTREEINDEX10 =
 {
-"classyaze_1_1app_1_1emu_1_1Emulator.html#ad4baea4deebf6b7bb0ca845be47b443f":[10,0,2,0,3,10,2],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#ad4baea4deebf6b7bb0ca845be47b443f":[11,0,1,0,2,8,2],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#adebab95dcb3ddb1840e35b91ae733d1f":[10,0,2,0,3,10,4],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#adebab95dcb3ddb1840e35b91ae733d1f":[11,0,1,0,2,8,4],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#ae0afccc1d612dd7c8ad96f74e44b9a37":[10,0,2,0,3,10,27],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#ae0afccc1d612dd7c8ad96f74e44b9a37":[11,0,1,0,2,8,27],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#ae44b9e7548dde43578830f2c277eaa28":[10,0,2,0,3,10,10],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#ae44b9e7548dde43578830f2c277eaa28":[11,0,1,0,2,8,10],
 "classyaze_1_1app_1_1emu_1_1Emulator.html#aebd3efff1294c50a7a54fe928c48ca2d":[10,0,2,0,3,10,3],
 "classyaze_1_1app_1_1emu_1_1Emulator.html#aebd3efff1294c50a7a54fe928c48ca2d":[11,0,1,0,2,8,3],
 "classyaze_1_1app_1_1emu_1_1Emulator.html#afc104621863ff7b3e894dba82b93584c":[10,0,2,0,3,10,7],
@@ -249,5 +241,13 @@ var NAVTREEINDEX10 =
 "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a76190c7cd6dd60be18f60576f007cb46":[10,0,2,0,3,2,2,2],
 "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a76190c7cd6dd60be18f60576f007cb46":[11,0,1,0,2,0,2,2],
 "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a9309b30b3cf01e47b6b840d218be16a8":[10,0,2,0,3,2,2,0],
-"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a9309b30b3cf01e47b6b840d218be16a8":[11,0,1,0,2,0,2,0]
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a9309b30b3cf01e47b6b840d218be16a8":[11,0,1,0,2,0,2,0],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#aba918304c71c8f4f5619ed20da96ed0d":[10,0,2,0,3,2,2,1],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#aba918304c71c8f4f5619ed20da96ed0d":[11,0,1,0,2,0,2,1],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html":[10,0,2,0,3,2,3],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html":[11,0,1,0,2,0,3],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#a4cde2a8dbc5f26c56a845a6fc0401f92":[10,0,2,0,3,2,3,5],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#a4cde2a8dbc5f26c56a845a6fc0401f92":[11,0,1,0,2,0,3,5],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#a63d23e35f646d4f76e49f3d287247447":[10,0,2,0,3,2,3,4],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#a63d23e35f646d4f76e49f3d287247447":[11,0,1,0,2,0,3,4]
 };

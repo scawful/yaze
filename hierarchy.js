@@ -25,7 +25,6 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::BGSC", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::BGVOFS", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGVOFS.html", null ],
     [ "yaze::app::gfx::Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html", null ],
-    [ "yaze::app::gfx::BitmapManager", "classyaze_1_1app_1_1gfx_1_1BitmapManager.html", null ],
     [ "yaze::app::gui::BitmapViewer", "classyaze_1_1app_1_1gui_1_1BitmapViewer.html", null ],
     [ "yaze::app::emu::Emulator::Bookmark", "structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::CGADD", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGADD.html", null ],

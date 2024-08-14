@@ -1,13 +1,5 @@
 var NAVTREEINDEX6 =
 {
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad286811de6fd19191bc31071660b91d7":[10,0,2,0,2,26,63],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad286811de6fd19191bc31071660b91d7":[11,0,1,0,1,21,63],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad2f9ccf2715ea7e4f64a50354fbb34d0":[10,0,2,0,2,26,114],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad2f9ccf2715ea7e4f64a50354fbb34d0":[11,0,1,0,1,21,114],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad5724be9460dadba266d46e6aa2b21a6":[10,0,2,0,2,26,61],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad5724be9460dadba266d46e6aa2b21a6":[11,0,1,0,1,21,61],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad5a24f68bf8ab1a9aa7f7f0c95d1dbed":[10,0,2,0,2,26,66],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad5a24f68bf8ab1a9aa7f7f0c95d1dbed":[11,0,1,0,1,21,66],
 "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad623c309a42ab5ea0c6c07a6cd2a6316":[10,0,2,0,2,26,116],
 "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad623c309a42ab5ea0c6c07a6cd2a6316":[11,0,1,0,1,21,116],
 "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad9584b2d18fb38325fa925fd8a7d83cc":[10,0,2,0,2,26,6],
@@ -249,5 +241,13 @@ var NAVTREEINDEX6 =
 "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a3742405e0081e791eb9025ea17061cf8":[10,0,2,0,2,32,23],
 "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a3742405e0081e791eb9025ea17061cf8":[11,0,1,0,1,27,23],
 "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a39bf8023b725f8753b29f9b9ff95f244":[10,0,2,0,2,32,21],
-"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a39bf8023b725f8753b29f9b9ff95f244":[11,0,1,0,1,27,21]
+"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a39bf8023b725f8753b29f9b9ff95f244":[11,0,1,0,1,27,21],
+"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a3ca7f0fb231bd64da22689d34e313646":[10,0,2,0,2,32,14],
+"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a3ca7f0fb231bd64da22689d34e313646":[11,0,1,0,1,27,14],
+"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a50f16c13901c3e02ef449d8e05eab66f":[10,0,2,0,2,32,1],
+"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a50f16c13901c3e02ef449d8e05eab66f":[11,0,1,0,1,27,1],
+"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a585867c4d96b5d11c36a080b38850ed5":[10,0,2,0,2,32,3],
+"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a585867c4d96b5d11c36a080b38850ed5":[11,0,1,0,1,27,3],
+"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a637178076ff892c7b8660fbbcd52f4b2":[10,0,2,0,2,32,9],
+"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a637178076ff892c7b8660fbbcd52f4b2":[11,0,1,0,1,27,9]
 };

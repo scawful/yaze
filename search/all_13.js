@@ -254,12 +254,11 @@ var searchData=
   ['ktriforcepalette_251',['kTriforcePalette',['../namespaceyaze_1_1app_1_1gfx.html#ab47dd091bf3b8405ae6afb90ed28e448',1,'yaze::app::gfx']]],
   ['ktriforcevertices_252',['kTriforceVertices',['../namespaceyaze_1_1app_1_1zelda3_1_1screen.html#a39dc4dfcdf8dc19684de96af1de4d3e9',1,'yaze::app::zelda3::screen']]],
   ['kunknown_253',['kUnknown',['../namespaceyaze_1_1app_1_1core.html#a4e61b0cd86cff55adee7c5b20c7dc700a25c2dc47991b3df171ed5192bcf70390',1,'yaze::app::core']]],
-  ['kusebitmapmanager_254',['kUseBitmapManager',['../structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a03ccf185ab28a2136269f01bec2324d4',1,'yaze::app::core::ExperimentFlags::Flags']]],
-  ['kusenewimguiinput_255',['kUseNewImGuiInput',['../structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a0628f11c5b5638d2daa076847e05dad6',1,'yaze::app::core::ExperimentFlags::Flags']]],
-  ['kwindows_256',['kWindows',['../namespaceyaze_1_1app_1_1core.html#a4e61b0cd86cff55adee7c5b20c7dc700aad547616982f990862d4e1213452c089',1,'yaze::app::core']]],
-  ['kworldcolors_257',['kWorldColors',['../namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39da7e0abbddcfa0a281649c2eda4a10e7a8',1,'yaze::app::gfx']]],
-  ['kworldlist_258',['kWorldList',['../namespaceyaze_1_1app_1_1editor.html#ab365f83737393fc1ac411d87ba2fbdb8',1,'yaze::app::editor']]],
-  ['kworldmap_259',['kWorldMap',['../namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39da8e750447f4a3a99a17ac9d37fc073c9f',1,'yaze::app::gfx']]],
-  ['kyazeversion_260',['kYazeVersion',['../namespaceyaze_1_1app_1_1core.html#aeb4d11eb76af13a125dd20d79bc2bce3',1,'yaze::app::core']]],
-  ['kzeropos_261',['kZeroPos',['../namespaceyaze_1_1app_1_1gui.html#ad0c8579d9331babbd61e4e56d637256e',1,'yaze::app::gui']]]
+  ['kusenewimguiinput_254',['kUseNewImGuiInput',['../structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a0628f11c5b5638d2daa076847e05dad6',1,'yaze::app::core::ExperimentFlags::Flags']]],
+  ['kwindows_255',['kWindows',['../namespaceyaze_1_1app_1_1core.html#a4e61b0cd86cff55adee7c5b20c7dc700aad547616982f990862d4e1213452c089',1,'yaze::app::core']]],
+  ['kworldcolors_256',['kWorldColors',['../namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39da7e0abbddcfa0a281649c2eda4a10e7a8',1,'yaze::app::gfx']]],
+  ['kworldlist_257',['kWorldList',['../namespaceyaze_1_1app_1_1editor.html#ab365f83737393fc1ac411d87ba2fbdb8',1,'yaze::app::editor']]],
+  ['kworldmap_258',['kWorldMap',['../namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39da8e750447f4a3a99a17ac9d37fc073c9f',1,'yaze::app::gfx']]],
+  ['kyazeversion_259',['kYazeVersion',['../namespaceyaze_1_1app_1_1core.html#aeb4d11eb76af13a125dd20d79bc2bce3',1,'yaze::app::core']]],
+  ['kzeropos_260',['kZeroPos',['../namespaceyaze_1_1app_1_1gui.html#ad0c8579d9331babbd61e4e56d637256e',1,'yaze::app::gui']]]
 ];

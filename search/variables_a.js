@@ -170,9 +170,8 @@ var searchData=
   ['ktoolsettableflags_167',['kToolsetTableFlags',['../namespaceyaze_1_1app_1_1editor.html#ab016b013560df6264216fd0a73b3f913',1,'yaze::app::editor']]],
   ['ktriforcepalette_168',['kTriforcePalette',['../namespaceyaze_1_1app_1_1gfx.html#ab47dd091bf3b8405ae6afb90ed28e448',1,'yaze::app::gfx']]],
   ['ktriforcevertices_169',['kTriforceVertices',['../namespaceyaze_1_1app_1_1zelda3_1_1screen.html#a39dc4dfcdf8dc19684de96af1de4d3e9',1,'yaze::app::zelda3::screen']]],
-  ['kusebitmapmanager_170',['kUseBitmapManager',['../structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a03ccf185ab28a2136269f01bec2324d4',1,'yaze::app::core::ExperimentFlags::Flags']]],
-  ['kusenewimguiinput_171',['kUseNewImGuiInput',['../structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a0628f11c5b5638d2daa076847e05dad6',1,'yaze::app::core::ExperimentFlags::Flags']]],
-  ['kworldlist_172',['kWorldList',['../namespaceyaze_1_1app_1_1editor.html#ab365f83737393fc1ac411d87ba2fbdb8',1,'yaze::app::editor']]],
-  ['kyazeversion_173',['kYazeVersion',['../namespaceyaze_1_1app_1_1core.html#aeb4d11eb76af13a125dd20d79bc2bce3',1,'yaze::app::core']]],
-  ['kzeropos_174',['kZeroPos',['../namespaceyaze_1_1app_1_1gui.html#ad0c8579d9331babbd61e4e56d637256e',1,'yaze::app::gui']]]
+  ['kusenewimguiinput_170',['kUseNewImGuiInput',['../structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a0628f11c5b5638d2daa076847e05dad6',1,'yaze::app::core::ExperimentFlags::Flags']]],
+  ['kworldlist_171',['kWorldList',['../namespaceyaze_1_1app_1_1editor.html#ab365f83737393fc1ac411d87ba2fbdb8',1,'yaze::app::editor']]],
+  ['kyazeversion_172',['kYazeVersion',['../namespaceyaze_1_1app_1_1core.html#aeb4d11eb76af13a125dd20d79bc2bce3',1,'yaze::app::core']]],
+  ['kzeropos_173',['kZeroPos',['../namespaceyaze_1_1app_1_1gui.html#ad0c8579d9331babbd61e4e56d637256e',1,'yaze::app::gui']]]
 ];

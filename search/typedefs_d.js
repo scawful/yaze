@@ -1,15 +1,11 @@
 var searchData=
 [
-  ['yaze_5fcleanup_5ffunc_0',['yaze_cleanup_func',['../extension_8h.html#a75ef22f3a15fb60314f902a5bf7d0b7e',1,'extension.h']]],
-  ['yaze_5fcommand_5ffunc_1',['yaze_command_func',['../extension_8h.html#a5ee825610fb53ae2ce081e640e65b17a',1,'extension.h']]],
-  ['yaze_5fcommand_5fregistry_2',['yaze_command_registry',['../yaze_8h.html#a11c9f21801c8a65de35b0cba1a0d6a09',1,'yaze.h']]],
-  ['yaze_5feditor_5fcontext_3',['yaze_editor_context',['../yaze_8h.html#aa5f9c0aba87080afdbdfe7cb6792d89e',1,'yaze.h']]],
-  ['yaze_5fevent_5fdispatcher_4',['yaze_event_dispatcher',['../yaze_8h.html#acd3a71fa68d6d64ec2b68e8232856b77',1,'yaze.h']]],
-  ['yaze_5fevent_5fhook_5ffunc_5',['yaze_event_hook_func',['../extension_8h.html#a324a96b4f6012f197de6933930354c26',1,'extension.h']]],
-  ['yaze_5fextend_5fui_5ffunc_6',['yaze_extend_ui_func',['../extension_8h.html#a8abc8ff086951f23b7b6afedc65e8778',1,'extension.h']]],
-  ['yaze_5fextension_7',['yaze_extension',['../extension_8h.html#a84339e67846d381495b6fa1bd47dcf6d',1,'extension.h']]],
-  ['yaze_5fflags_8',['yaze_flags',['../yaze_8h.html#a85553b5710db1102c037bdb355991631',1,'yaze.h']]],
-  ['yaze_5finitialize_5ffunc_9',['yaze_initialize_func',['../extension_8h.html#ab5ab0deeeaa063d2e5564c5f12900421',1,'extension.h']]],
-  ['yaze_5fmanipulate_5from_5ffunc_10',['yaze_manipulate_rom_func',['../extension_8h.html#a4bebf41f76e112cadb5b5487257890f3',1,'extension.h']]],
-  ['yaze_5fproject_11',['yaze_project',['../yaze_8h.html#aab59cfba52c0fddf9ea046b113ed2395',1,'yaze.h']]]
+  ['z3_5foverworld_0',['z3_overworld',['../base_2overworld_8h.html#abdc52e81d57a1315f85ad3a9faa486d9',1,'overworld.h']]],
+  ['z3_5foverworld_5fmap_1',['z3_overworld_map',['../base_2overworld_8h.html#aecefc7cd1d556e95bb7a2d5fe8a2255a',1,'overworld.h']]],
+  ['z3_5from_2',['z3_rom',['../yaze_8h.html#ac77c4e371c3965f72bf4ac3321600f54',1,'yaze.h']]],
+  ['z3_5fsprite_3',['z3_sprite',['../base_2sprite_8h.html#aa425967528383fae3ef201b558b40919',1,'sprite.h']]],
+  ['z3_5fsprite_5faction_4',['z3_sprite_action',['../base_2sprite_8h.html#ab46681168ddbde5b53617c6daba0619a',1,'sprite.h']]],
+  ['zeldainstrument_5',['ZeldaInstrument',['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#ae7b18fa864b8ce743eb6dde1dd35520f',1,'yaze::app::zelda3::music']]],
+  ['zeldasfxinstrument_6',['ZeldaSfxInstrument',['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#a84b93f0b01be6a6dd1e85dd11354d6bd',1,'yaze::app::zelda3::music']]],
+  ['zeldawave_7',['ZeldaWave',['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#a2b3c427473083d084492da3958e03e63',1,'yaze::app::zelda3::music']]]
 ];

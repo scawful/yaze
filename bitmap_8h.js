@@ -1,7 +1,6 @@
 var bitmap_8h =
 [
     [ "yaze::app::gfx::Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html", "classyaze_1_1app_1_1gfx_1_1Bitmap" ],
-    [ "yaze::app::gfx::BitmapManager", "classyaze_1_1app_1_1gfx_1_1BitmapManager.html", "classyaze_1_1app_1_1gfx_1_1BitmapManager" ],
     [ "BitmapTable", "bitmap_8h.html#a858420796068f9283ed3cb7dd88f9138", null ],
     [ "BitmapFormat", "bitmap_8h.html#a9a4f97a4dc623c7581bf43f61a19f5ff", [
       [ "kIndexed", "bitmap_8h.html#a9a4f97a4dc623c7581bf43f61a19f5ffa4c73c14797db718d5133dc97c2d617e2", null ],

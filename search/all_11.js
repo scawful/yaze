@@ -2348,6 +2348,5 @@ var searchData=
   ['items_2345',['Items',['../structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#ad180999245dee44a239d4e90954c8193',1,'yaze::app::gui::GfxSheetAssetBrowser']]],
   ['items_5fcount_2346',['ITEMS_COUNT',['../structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a0d93ece3c6a3cf5efcf601a410ee9aec',1,'yaze::app::gui::MultiSelectWithClipper']]],
   ['items_5fdata_5fend_2347',['items_data_end',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ab3fbd338b4a847a3500635d5a170f188',1,'yaze::app::zelda3::dungeon']]],
-  ['items_5fdata_5fstart_2348',['items_data_start',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a949cad52fdce6419953d2ce9620de093',1,'yaze::app::zelda3::dungeon']]],
-  ['iterator_2349',['iterator',['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a2cc72eaef324e5ae7547e26f0818f8e6',1,'yaze::app::gfx::BitmapManager']]]
+  ['items_5fdata_5fstart_2348',['items_data_start',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a949cad52fdce6419953d2ce9620de093',1,'yaze::app::zelda3::dungeon']]]
 ];

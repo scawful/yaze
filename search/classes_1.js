@@ -9,7 +9,6 @@ var searchData=
   ['bgsc_6',['BGSC',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html',1,'yaze::app::emu::video::PpuRegisters']]],
   ['bgvofs_7',['BGVOFS',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGVOFS.html',1,'yaze::app::emu::video::PpuRegisters']]],
   ['bitmap_8',['Bitmap',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html',1,'yaze::app::gfx']]],
-  ['bitmapmanager_9',['BitmapManager',['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html',1,'yaze::app::gfx']]],
-  ['bitmapviewer_10',['BitmapViewer',['../classyaze_1_1app_1_1gui_1_1BitmapViewer.html',1,'yaze::app::gui']]],
-  ['bookmark_11',['Bookmark',['../structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html',1,'yaze::app::emu::Emulator']]]
+  ['bitmapviewer_9',['BitmapViewer',['../classyaze_1_1app_1_1gui_1_1BitmapViewer.html',1,'yaze::app::gui']]],
+  ['bookmark_10',['Bookmark',['../structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html',1,'yaze::app::emu::Emulator']]]
 ];
