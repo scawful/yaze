@@ -119,6 +119,7 @@ static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
      }}};
 
 constexpr uint32_t kNumGfxSheets = 223;
+constexpr uint32_t kNumLinkSheets = 14; 
 constexpr uint32_t kNormalGfxSpaceStart = 0x87000;
 constexpr uint32_t kNormalGfxSpaceEnd = 0xC4200;
 constexpr uint32_t kFontSpriteLocation = 0x70000;
@@ -519,11 +520,13 @@ class Rom : public core::ExperimentFlags {
   // All graphics sheets in the game
   std::array<gfx::Bitmap, kNumGfxSheets> graphics_sheets_;
 
+  // All graphics sheets for Link
+  std::array<gfx::Bitmap, kNumLinkSheets> link_graphics_;
+
   Z3_Version version_ = Z3_Version::US;
 
   [[deprecated("BitmapManager has unpredictable destructor behavior.")]] gfx::
       BitmapManager graphics_manager_;
-  gfx::BitmapTable link_graphics_;
   gfx::SnesPalette link_palette_;
   gfx::PaletteGroupMap palette_groups_;
   core::ResourceLabelManager resource_label_manager_;
