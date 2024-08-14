@@ -1,11 +1,12 @@
 #ifndef YAZE_APP_GUI_ASSET_BROWSER_H
 #define YAZE_APP_GUI_ASSET_BROWSER_H
 
-#include "imgui/imgui.h"
-
+#include <array>
 #include <string>
 
 #include "app/gfx/bitmap.h"
+#include "app/rom.h"
+#include "imgui/imgui.h"
 
 #define IM_MIN(A, B) (((A) < (B)) ? (A) : (B))
 #define IM_MAX(A, B) (((A) >= (B)) ? (A) : (B))
@@ -187,9 +188,9 @@ struct GfxSheetAssetBrowser {
   int LayoutLineCount = 0;
   bool Initialized = false;
 
-  void Initialize(gfx::BitmapManager* bmp_manager) {
+  void Initialize(const std::array<gfx::Bitmap, kNumGfxSheets>& bmp_manager) {
     // Load the assets
-    for (int i = 0; i < bmp_manager->size(); i++) {
+    for (int i = 0; i < kNumGfxSheets; i++) {
       Items.push_back(UnsortedAsset(i));
     }
     Initialized = true;
@@ -238,7 +239,7 @@ struct GfxSheetAssetBrowser {
     LayoutOuterPadding = floorf(LayoutItemSpacing * 0.5f);
   }
 
-  void Draw(gfx::BitmapManager* bmp_manager);
+  void Draw(const std::array<gfx::Bitmap, kNumGfxSheets>& bmp_manager);
 };
 
 }  // namespace gui
