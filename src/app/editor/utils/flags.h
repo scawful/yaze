@@ -52,7 +52,6 @@ struct FlagsMenu : public core::ExperimentFlags {
     Checkbox("Enable Console Logging", &mutable_flags()->kLogToConsole);
     Checkbox("Enable Texture Streaming",
              &mutable_flags()->kLoadTexturesAsStreaming);
-    Checkbox("Use Bitmap Manager", &mutable_flags()->kUseBitmapManager);
     Checkbox("Log Instructions to Debugger",
              &mutable_flags()->kLogInstructions);
     Checkbox("Save All Palettes", &mutable_flags()->kSaveAllPalettes);
