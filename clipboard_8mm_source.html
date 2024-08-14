@@ -117,7 +117,7 @@ $(function(){initNavTree('clipboard_8mm_source.html',''); initResizable(true); }
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#ifdef TARGET_OS_MAC</span></div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#import &lt;Cocoa/Cocoa.h&gt;</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="keywordtype">void</span> <a class="code hl_function" href="clipboard_8cc.html#a4119d0ecf1e8258e0383d1f120c7e0bd">CopyImageToClipboard</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; pngData) {</div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1core.html#a665b3fdfdf571c43045821e49c8ad8ca">yaze::app::core::CopyImageToClipboard</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; pngData) {</div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span>  NSData* data = [NSData dataWithBytes:pngData.data() length:pngData.size()];</div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>  NSImage* image = [[NSImage alloc] initWithData:data];</div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
@@ -126,7 +126,7 @@ $(function(){initNavTree('clipboard_8mm_source.html',''); initResizable(true); }
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>  [pasteboard writeObjects:@[ image ]];</div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>}</div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="keywordtype">void</span> <a class="code hl_function" href="clipboard_8cc.html#af06810f16d07fa41a0345dfa0f61769a">GetImageFromClipboard</a>(std::vector&lt;uint8_t&gt;&amp; pixel_data, <span class="keywordtype">int</span>&amp; width, <span class="keywordtype">int</span>&amp; height) {</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1core.html#aa3d3837210480bcf7d7260fd40b9bcaf">yaze::app::core::GetImageFromClipboard</a>(std::vector&lt;uint8_t&gt;&amp; pixel_data, <span class="keywordtype">int</span>&amp; width, <span class="keywordtype">int</span>&amp; height) {</div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  NSPasteboard* pasteboard = [NSPasteboard generalPasteboard];</div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  NSArray* classArray = [NSArray arrayWithObject:[NSImage <span class="keyword">class</span>]];</div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  NSDictionary* options = [NSDictionary dictionary];</div>
@@ -154,9 +154,9 @@ $(function(){initNavTree('clipboard_8mm_source.html',''); initResizable(true); }
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>}</div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="preprocessor">#endif</span></div>
-<div class="ttc" id="aclipboard_8cc_html_a4119d0ecf1e8258e0383d1f120c7e0bd"><div class="ttname"><a href="clipboard_8cc.html#a4119d0ecf1e8258e0383d1f120c7e0bd">CopyImageToClipboard</a></div><div class="ttdeci">void CopyImageToClipboard(const std::vector&lt; uint8_t &gt; &amp;data)</div><div class="ttdef"><b>Definition</b> <a href="clipboard_8cc_source.html#l00006">clipboard.cc:6</a></div></div>
-<div class="ttc" id="aclipboard_8cc_html_af06810f16d07fa41a0345dfa0f61769a"><div class="ttname"><a href="clipboard_8cc.html#af06810f16d07fa41a0345dfa0f61769a">GetImageFromClipboard</a></div><div class="ttdeci">void GetImageFromClipboard(std::vector&lt; uint8_t &gt; &amp;data, int &amp;width, int &amp;height)</div><div class="ttdef"><b>Definition</b> <a href="clipboard_8cc_source.html#l00007">clipboard.cc:7</a></div></div>
 <div class="ttc" id="aclipboard_8h_html"><div class="ttname"><a href="clipboard_8h.html">clipboard.h</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1core_html_a665b3fdfdf571c43045821e49c8ad8ca"><div class="ttname"><a href="namespaceyaze_1_1app_1_1core.html#a665b3fdfdf571c43045821e49c8ad8ca">yaze::app::core::CopyImageToClipboard</a></div><div class="ttdeci">void CopyImageToClipboard(const std::vector&lt; uint8_t &gt; &amp;data)</div><div class="ttdef"><b>Definition</b> <a href="clipboard_8cc_source.html#l00010">clipboard.cc:10</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1core_html_aa3d3837210480bcf7d7260fd40b9bcaf"><div class="ttname"><a href="namespaceyaze_1_1app_1_1core.html#aa3d3837210480bcf7d7260fd40b9bcaf">yaze::app::core::GetImageFromClipboard</a></div><div class="ttdeci">void GetImageFromClipboard(std::vector&lt; uint8_t &gt; &amp;data, int &amp;width, int &amp;height)</div><div class="ttdef"><b>Definition</b> <a href="clipboard_8cc_source.html#l00011">clipboard.cc:11</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

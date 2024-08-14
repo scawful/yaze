@@ -1,5 +1,6 @@
 var NAVTREEINDEX22 =
 {
+"classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#ae09803203f46716ffc481b4d2a384cc1":[11,0,1,0,5,3,2,35],
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#ae4dca5a0cdca67f9c3d0b398b661a354":[10,0,2,0,6,4,2,10],
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#ae4dca5a0cdca67f9c3d0b398b661a354":[11,0,1,0,5,3,2,10],
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#aeb7f82dcc80a13eeb0da83968556e45a":[10,0,2,0,6,4,2,34],
@@ -187,12 +188,12 @@ var NAVTREEINDEX22 =
 "classyaze__test_1_1zelda3__test_1_1SpriteBuilderTest.html#a27af27806293be3baee3d152112107a5":[10,0,3,3,0,1],
 "classyaze__test_1_1zelda3__test_1_1SpriteBuilderTest.html#a27af27806293be3baee3d152112107a5":[11,0,2,2,0,1],
 "clipboard_8cc.html":[12,0,1,0,0,0,2],
-"clipboard_8cc.html#a4119d0ecf1e8258e0383d1f120c7e0bd":[12,0,1,0,0,0,2,0],
-"clipboard_8cc.html#af06810f16d07fa41a0345dfa0f61769a":[12,0,1,0,0,0,2,1],
+"clipboard_8cc.html#a665b3fdfdf571c43045821e49c8ad8ca":[12,0,1,0,0,0,2,0],
+"clipboard_8cc.html#aa3d3837210480bcf7d7260fd40b9bcaf":[12,0,1,0,0,0,2,1],
 "clipboard_8cc_source.html":[12,0,1,0,0,0,2],
 "clipboard_8h.html":[12,0,1,0,0,0,3],
-"clipboard_8h.html#a4119d0ecf1e8258e0383d1f120c7e0bd":[12,0,1,0,0,0,3,0],
-"clipboard_8h.html#af06810f16d07fa41a0345dfa0f61769a":[12,0,1,0,0,0,3,1],
+"clipboard_8h.html#a665b3fdfdf571c43045821e49c8ad8ca":[12,0,1,0,0,0,3,0],
+"clipboard_8h.html#aa3d3837210480bcf7d7260fd40b9bcaf":[12,0,1,0,0,0,3,1],
 "clipboard_8h_source.html":[12,0,1,0,0,0,3],
 "clipboard_8mm.html":[12,0,1,0,0,0,4],
 "clipboard_8mm_source.html":[12,0,1,0,0,0,4],
@@ -248,6 +249,5 @@ var NAVTREEINDEX22 =
 "common_8cc.html#aa650dcba786cb2df29aa1af7bbc967c7":[12,0,1,0,0,2,1],
 "common_8cc.html#aa6c12bd455e5cf377d2362c6dc7fab85":[12,0,1,0,0,2,18],
 "common_8cc.html#aa92217917e3512f40ae3d7f2a2c2bf22":[12,0,1,0,0,2,0],
-"common_8cc.html#abce256524e8544fc43aaa56a4c23d807":[12,0,1,0,0,2,2],
-"common_8cc.html#ac2588b6c37606c1692a7a4771dfc5356":[12,0,1,0,0,2,16]
+"common_8cc.html#abce256524e8544fc43aaa56a4c23d807":[12,0,1,0,0,2,2]
 };

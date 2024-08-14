@@ -1,5 +1,6 @@
 var NAVTREEINDEX26 =
 {
+"extension_8h.html#ab5ab0deeeaa063d2e5564c5f12900421":[12,0,1,3,1,1],
 "extension_8h.html#adf21b7491daa4f0b9c1527463087eb1e":[12,0,1,3,1,12],
 "extension_8h_source.html":[12,0,1,3,1],
 "extension__manager_8cc.html":[12,0,1,0,1,7,1],
@@ -13,7 +14,7 @@ var NAVTREEINDEX26 =
 "file__dialog_8mm.html":[12,0,1,0,0,0,7],
 "file__dialog_8mm_source.html":[12,0,1,0,0,0,7],
 "file__path_8h.html":[12,0,1,0,0,0,8],
-"file__path_8h.html#ad9b1acb0b6f1b1d41003a8594d7dd0b3":[12,0,1,0,0,0,8,0],
+"file__path_8h.html#aed8ea2c93d2742812c27b5eb038a9bec":[12,0,1,0,0,0,8,0],
 "file__path_8h_source.html":[12,0,1,0,0,0,8],
 "file__path_8mm.html":[12,0,1,0,0,0,9],
 "file__path_8mm_source.html":[12,0,1,0,0,0,9],
@@ -248,6 +249,5 @@ var NAVTREEINDEX26 =
 "icons_8h.html#a068077d71999f84a659bc5ce02751fd1":[12,0,1,0,4,6,965],
 "icons_8h.html#a06f0a086864b451fe74a7b27ccbca5fc":[12,0,1,0,4,6,1715],
 "icons_8h.html#a06fb58e87e82b9fd6bdfe6a2166c9f97":[12,0,1,0,4,6,1284],
-"icons_8h.html#a0700434a09ef6b83290071cfdf7ec5b5":[12,0,1,0,4,6,1091],
-"icons_8h.html#a070f633e91eed639f7adf13199625a93":[12,0,1,0,4,6,915]
+"icons_8h.html#a0700434a09ef6b83290071cfdf7ec5b5":[12,0,1,0,4,6,1091]
 };

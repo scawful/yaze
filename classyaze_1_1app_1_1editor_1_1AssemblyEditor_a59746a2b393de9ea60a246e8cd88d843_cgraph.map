@@ -1,11 +1,11 @@
 <map id="yaze::app::editor::AssemblyEditor::UpdateCodeView" name="yaze::app::editor::AssemblyEditor::UpdateCodeView">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,85,224,126"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a251e190bebef70d1bb97f0a4f69354ce" title=" " alt="" coords="275,5,464,61"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,82,259,62,260,67,190,87"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a8454aa52bbab115efca6cdba65ff791b" title=" " alt="" coords="272,85,467,126"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="224,102,256,102,256,108,224,108"/>
-<area shape="rect" id="Node000005" href="$classFileDialogWrapper.html#a3dd232b48cacec8962495342a47eaa4a" title=" " alt="" coords="291,150,448,191"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="197,124,276,144,275,149,196,129"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a10a8be6a9f198c73d1192887cfd06305" title=" " alt="" coords="515,13,734,54"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="464,30,499,30,499,36,464,36"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a251e190bebef70d1bb97f0a4f69354ce" title=" " alt="" coords="283,5,472,61"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,82,267,61,268,66,192,87"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a8454aa52bbab115efca6cdba65ff791b" title=" " alt="" coords="280,85,475,126"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="224,102,264,102,264,108,224,108"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1core_1_1FileDialogWrapper.html#ae315e60d9a6fe353ce3384036deae56a" title=" " alt="" coords="272,150,483,191"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="200,124,279,143,277,148,199,129"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a10a8be6a9f198c73d1192887cfd06305" title=" " alt="" coords="531,13,750,54"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="472,30,515,30,515,36,472,36"/>
 </map>

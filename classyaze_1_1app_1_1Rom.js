@@ -67,8 +67,8 @@ var classyaze_1_1app_1_1Rom =
     [ "graphics_buffer_", "classyaze_1_1app_1_1Rom.html#a95a2922f020624c4e4f6efd999b504d6", null ],
     [ "graphics_sheets_", "classyaze_1_1app_1_1Rom.html#a4cf6d30e97cf7bed332d5ad22a0e2f71", null ],
     [ "link_graphics_", "classyaze_1_1app_1_1Rom.html#af674fa24d0c7004775f28a5549dad1b4", null ],
-    [ "version_", "classyaze_1_1app_1_1Rom.html#a1346fc16ff818495adbff118422a3664", null ],
+    [ "resource_label_manager_", "classyaze_1_1app_1_1Rom.html#aeed1d79aa226ead085fab4a997396f27", null ],
     [ "link_palette_", "classyaze_1_1app_1_1Rom.html#ac44e734fa63168aba69b5177318445d4", null ],
     [ "palette_groups_", "classyaze_1_1app_1_1Rom.html#a84a871742c05354dc477c49bdd5a7496", null ],
-    [ "resource_label_manager_", "classyaze_1_1app_1_1Rom.html#aeed1d79aa226ead085fab4a997396f27", null ]
+    [ "version_", "classyaze_1_1app_1_1Rom.html#a1346fc16ff818495adbff118422a3664", null ]
 ];

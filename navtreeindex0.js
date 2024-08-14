@@ -232,7 +232,6 @@ var NAVTREEINDEX0 =
 "canvas_8h_source.html":[12,0,1,0,4,3],
 "classAppDelegate.html":[11,0,3],
 "classAppViewController.html":[11,0,4],
-"classFileDialogWrapper.html":[11,0,5],
 "classes.html":[11,1],
 "classsample_1_1YazePyExtension.html":[10,0,1,0],
 "classsample_1_1YazePyExtension.html":[11,0,0,0],
@@ -249,5 +248,6 @@ var NAVTREEINDEX0 =
 "classsample_1_1YazePyExtension.html#a35838e6a0cb380621b87c8f30dd8db92":[10,0,1,0,8],
 "classsample_1_1YazePyExtension.html#a35838e6a0cb380621b87c8f30dd8db92":[11,0,0,0,8],
 "classsample_1_1YazePyExtension.html#a37f3c3042e2d884f8996742d0643572e":[10,0,1,0,2],
-"classsample_1_1YazePyExtension.html#a37f3c3042e2d884f8996742d0643572e":[11,0,0,0,2]
+"classsample_1_1YazePyExtension.html#a37f3c3042e2d884f8996742d0643572e":[11,0,0,0,2],
+"classsample_1_1YazePyExtension.html#a7985768d15fd8340de8ac1a073858132":[10,0,1,0,4]
 };

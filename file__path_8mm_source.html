@@ -109,31 +109,34 @@ $(function(){initNavTree('file__path_8mm_source.html',''); initResizable(true); 
   <div class="headertitle"><div class="title">file_path.mm</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="file__path_8mm.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &lt;iostream&gt;</span></div>
-<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#include &lt;string&gt;</span></div>
-<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#if defined(__APPLE__) &amp;&amp; defined(__MACH__)</span></div>
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;Foundation/Foundation.h&gt;</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;TargetConditionals.h&gt;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span> </div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1</span></div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span>std::string <a class="code hl_function" href="file__path_8h.html#ad9b1acb0b6f1b1d41003a8594d7dd0b3">GetBundleResourcePath</a>() {</div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span>  NSBundle* bundle = [NSBundle mainBundle];</div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>  NSString* resourceDirectoryPath = [bundle bundlePath];</div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>  NSString* path = [resourceDirectoryPath stringByAppendingString:<span class="stringliteral">@&quot;/&quot;</span>];</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>  <span class="keywordflow">return</span> [path UTF8String];</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>}</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#elif TARGET_OS_MAC == 1</span></div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>std::string <a class="code hl_function" href="file__path_8h.html#ad9b1acb0b6f1b1d41003a8594d7dd0b3">GetBundleResourcePath</a>() {</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  NSBundle* bundle = [NSBundle mainBundle];</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  NSString* resourceDirectoryPath = [bundle bundlePath];</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  NSString* path = [resourceDirectoryPath stringByAppendingString:<span class="stringliteral">@&quot;/&quot;</span>];</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  <span class="keywordflow">return</span> [path UTF8String];</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>}</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#endif</span></div>
-<div class="ttc" id="afile__path_8h_html_ad9b1acb0b6f1b1d41003a8594d7dd0b3"><div class="ttname"><a href="file__path_8h.html#ad9b1acb0b6f1b1d41003a8594d7dd0b3">GetBundleResourcePath</a></div><div class="ttdeci">std::string GetBundleResourcePath()</div></div>
+<a href="file__path_8mm.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="file__path_8h.html">file_path.h</a>&quot;</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;iostream&gt;</span></div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#if defined(__APPLE__) &amp;&amp; defined(__MACH__)</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;Foundation/Foundation.h&gt;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &lt;TargetConditionals.h&gt;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>std::string <a class="code hl_function" href="namespaceyaze_1_1app_1_1core.html#aed8ea2c93d2742812c27b5eb038a9bec">yaze::app::core::GetBundleResourcePath</a>() {</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>  NSBundle* bundle = [NSBundle mainBundle];</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>  NSString* resourceDirectoryPath = [bundle bundlePath];</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>  NSString* path = [resourceDirectoryPath stringByAppendingString:<span class="stringliteral">@&quot;/&quot;</span>];</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>  <span class="keywordflow">return</span> [path UTF8String];</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>}</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#elif TARGET_OS_MAC == 1</span></div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>std::string <a class="code hl_function" href="namespaceyaze_1_1app_1_1core.html#aed8ea2c93d2742812c27b5eb038a9bec">yaze::app::core::GetBundleResourcePath</a>() {</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  NSBundle* bundle = [NSBundle mainBundle];</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  NSString* resourceDirectoryPath = [bundle bundlePath];</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  NSString* path = [resourceDirectoryPath stringByAppendingString:<span class="stringliteral">@&quot;/&quot;</span>];</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  <span class="keywordflow">return</span> [path UTF8String];</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>}</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#endif</span></div>
+<div class="ttc" id="afile__path_8h_html"><div class="ttname"><a href="file__path_8h.html">file_path.h</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1core_html_aed8ea2c93d2742812c27b5eb038a9bec"><div class="ttname"><a href="namespaceyaze_1_1app_1_1core.html#aed8ea2c93d2742812c27b5eb038a9bec">yaze::app::core::GetBundleResourcePath</a></div><div class="ttdeci">std::string GetBundleResourcePath()</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

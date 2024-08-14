@@ -8,6 +8,7 @@ var annotated_dup =
         [ "core", "namespaceyaze_1_1app_1_1core.html", [
           [ "Controller", "classyaze_1_1app_1_1core_1_1Controller.html", "classyaze_1_1app_1_1core_1_1Controller" ],
           [ "ExperimentFlags", "classyaze_1_1app_1_1core_1_1ExperimentFlags.html", "classyaze_1_1app_1_1core_1_1ExperimentFlags" ],
+          [ "FileDialogWrapper", "classyaze_1_1app_1_1core_1_1FileDialogWrapper.html", null ],
           [ "FolderItem", "structyaze_1_1app_1_1core_1_1FolderItem.html", "structyaze_1_1app_1_1core_1_1FolderItem" ],
           [ "GuiTestable", "classyaze_1_1app_1_1core_1_1GuiTestable.html", "classyaze_1_1app_1_1core_1_1GuiTestable" ],
           [ "ImGuiIdIssuer", "classyaze_1_1app_1_1core_1_1ImGuiIdIssuer.html", null ],
@@ -305,7 +306,6 @@ var annotated_dup =
     ] ],
     [ "AppDelegate", "classAppDelegate.html", null ],
     [ "AppViewController", "classAppViewController.html", null ],
-    [ "FileDialogWrapper", "classFileDialogWrapper.html", null ],
     [ "snes_color", "structsnes__color.html", "structsnes__color" ],
     [ "snes_palette", "structsnes__palette.html", "structsnes__palette" ],
     [ "yaze_command_registry", "structyaze__command__registry.html", "structyaze__command__registry" ],

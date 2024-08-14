@@ -31,7 +31,7 @@ var searchData=
   ['file_5futil_2ecc_28',['file_util.cc',['../file__util_8cc.html',1,'']]],
   ['file_5futil_2eh_29',['file_util.h',['../file__util_8h.html',1,'']]],
   ['filedialogpipeline_30',['FileDialogPipeline',['../namespaceyaze_1_1app_1_1gui.html#a574b5072f4f467f12dbdb9ea2eb41e50',1,'yaze::app::gui']]],
-  ['filedialogwrapper_31',['FileDialogWrapper',['../classFileDialogWrapper.html',1,'']]],
+  ['filedialogwrapper_31',['FileDialogWrapper',['../classyaze_1_1app_1_1core_1_1FileDialogWrapper.html',1,'yaze::app::core']]],
   ['filename_32',['filename',['../structyaze__project.html#a7ed60b0607dbcd6641155f161fd7593f',1,'yaze_project::filename'],['../structz3__rom.html#a2a47dd5739f2c3b3218f1760c7d54ede',1,'z3_rom::filename'],['../classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd',1,'yaze::app::Rom::filename()']]],
   ['filename_5f_33',['filename_',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa45ad7a2d16b486946224270eaeb0cec',1,'yaze::app::core::ResourceLabelManager::filename_'],['../classyaze_1_1app_1_1editor_1_1RecentFilesManager.html#adea068b41f8a0e7a2b01493d660c49b4',1,'yaze::app::editor::RecentFilesManager::filename_'],['../classyaze_1_1app_1_1Rom.html#a91a162b1c152c1c602ecc1501b248989',1,'yaze::app::Rom::filename_']]],
   ['filepath_34',['filepath',['../structyaze_1_1app_1_1Project.html#a1311a5bc2b450b80dca82fe1b42b6681',1,'yaze::app::Project']]],

@@ -1,13 +1,13 @@
 <map id="yaze::cli::CommandHandler" name="yaze::cli::CommandHandler">
-<area shape="rect" id="Node000001" title=" " alt="" coords="596,96,772,121"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="409,96,516,121"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="531,106,596,106,596,111,531,111"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="596,108,772,133"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="409,108,516,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="531,118,596,118,596,123,531,123"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="20,5,195,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="211,34,297,49,386,71,437,92,435,97,384,76,295,54,210,40"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="20,70,195,96"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="210,88,409,102,408,107,210,93"/>
-<area shape="rect" id="Node000005" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="5,120,210,145"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="225,133,304,132,384,125,414,119,415,124,385,130,304,137,225,139"/>
-<area shape="rect" id="Node000007" href="$structyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="24,169,191,210"/>
-<area shape="poly" id="edge5_Node000002_Node000007" title=" " alt="" coords="206,186,294,176,340,167,384,154,416,138,443,120,446,124,419,143,386,159,341,172,295,182,207,191"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="211,38,297,55,386,80,439,105,436,109,384,86,296,61,210,43"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="24,71,191,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="206,96,409,113,408,119,206,102"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="20,136,195,161"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="210,144,295,141,384,133,408,129,409,134,385,138,295,146,210,150"/>
+<area shape="rect" id="Node000006" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="5,185,210,210"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="225,194,304,184,384,165,416,149,443,131,446,136,419,154,386,170,305,190,226,199"/>
 </map>

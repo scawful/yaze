@@ -106,7 +106,7 @@ var hierarchy =
       [ "yaze::app::zelda3::overworld::Overworld", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html", null ]
     ] ],
     [ "yaze::app::editor::ExtensionManager", "classyaze_1_1app_1_1editor_1_1ExtensionManager.html", null ],
-    [ "FileDialogWrapper", "classFileDialogWrapper.html", null ],
+    [ "yaze::app::core::FileDialogWrapper", "classyaze_1_1app_1_1core_1_1FileDialogWrapper.html", null ],
     [ "yaze::app::core::ExperimentFlags::Flags", "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html", null ],
     [ "yaze::app::emu::audio::Spc700::Flags", "structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html", null ],
     [ "yaze::app::core::FolderItem", "structyaze_1_1app_1_1core_1_1FolderItem.html", null ],
