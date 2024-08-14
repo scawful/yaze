@@ -24,9 +24,23 @@ namespace test {
 // StatusIs is a matcher that matches a status that has the same code and
 // message as the expected status.
 MATCHER_P(StatusIs, status, "") { return arg.code() == status; }
-MATCHER_P(StatusIs, status, "") { 
-  return arg.code() == status;  
+
+// Support for testing absl::StatusOr.
+template <typename T>
+::testing::AssertionResult IsOkAndHolds(const absl::StatusOr<T>& status_or,
+                                        const T& value) {
+  if (!status_or.ok()) {
+    return ::testing::AssertionFailure()
+           << "Expected status to be OK, but got: " << status_or.status();
+  }
+  if (status_or.value() != value) {
+    return ::testing::AssertionFailure() << "Expected value to be " << value
+                                         << ", but got: " << status_or.value();
+  }
+  return ::testing::AssertionSuccess();
 }
+
+MATCHER_P(IsOkAndHolds, value, "") { return IsOkAndHolds(arg, value); }
 
 }  // namespace test
 }  // namespace yaze
