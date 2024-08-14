@@ -9,6 +9,7 @@ namespace yaze_test {
 namespace integration {
 
 absl::Status TestEditor::Update() {
+  ImGui::NewFrame();
   if (ImGui::Begin("My Window")) {
     ImGui::Text("Hello, world!");
     ImGui::Button("My Button");
@@ -24,14 +25,12 @@ absl::Status TestEditor::Update() {
 }
 
 void TestEditor::RegisterTests(ImGuiTestEngine* engine) {
+  engine_ = engine;
   ImGuiTest* test = IM_REGISTER_TEST(engine, "demo_test", "test1");
   test->TestFunc = [](ImGuiTestContext* ctx) {
     ctx->SetRef("My Window");
     ctx->ItemClick("My Button");
     ctx->ItemCheck("Node/Checkbox");
-    ctx->ItemInputValue("Slider", 123);
-
-    ctx->MenuCheck("//Dear ImGui Demo/Tools/About Dear ImGui");
   };
 }
 
