@@ -84,7 +84,7 @@ if (YAZE_BUILD_EXTENSIONS)
 endif()
 
 if (YAZE_BUILD_PYTHON)
-  include(py/CMakeLists.txt)
+  include(py/yaze_py.cmake)
 endif()
 
 if (UNIX)
