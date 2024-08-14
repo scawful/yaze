@@ -209,14 +209,14 @@ class Rom : public core::ExperimentFlags {
   // Read functions
   absl::StatusOr<uint8_t> ReadByte(int offset) {
     if (offset >= rom_data_.size()) {
-      return absl::InvalidArgumentError("Offset out of range");
+      return absl::FailedPreconditionError("Offset out of range");
     }
     return rom_data_[offset];
   }
 
   absl::StatusOr<uint16_t> ReadWord(int offset) {
     if (offset + 1 >= rom_data_.size()) {
-      return absl::InvalidArgumentError("Offset out of range");
+      return absl::FailedPreconditionError("Offset out of range");
     }
     auto result = (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
     return result;
@@ -228,7 +228,7 @@ class Rom : public core::ExperimentFlags {
 
   absl::StatusOr<uint32_t> ReadLong(int offset) {
     if (offset + 2 >= rom_data_.size()) {
-      return absl::InvalidArgumentError("Offset out of range");
+      return absl::FailedPreconditionError("Offset out of range");
     }
     auto result = (uint32_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8) |
                              (rom_data_[offset + 2] << 16));
@@ -238,7 +238,7 @@ class Rom : public core::ExperimentFlags {
   absl::StatusOr<std::vector<uint8_t>> ReadByteVector(uint32_t offset,
                                                       uint32_t length) {
     if (offset + length > rom_data_.size()) {
-      return absl::InvalidArgumentError("Offset and length out of range");
+      return absl::FailedPreconditionError("Offset and length out of range");
     }
     std::vector<uint8_t> result;
     for (int i = offset; i < offset + length; i++) {
