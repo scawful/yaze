@@ -124,6 +124,10 @@ constexpr uint32_t kNormalGfxSpaceStart = 0x87000;
 constexpr uint32_t kNormalGfxSpaceEnd = 0xC4200;
 constexpr uint32_t kFontSpriteLocation = 0x70000;
 constexpr uint32_t kGfxGroupsPointer = 0x6237;
+constexpr uint32_t kNumMainBlocksets = 37;
+constexpr uint32_t kNumRoomBlocksets = 82;
+constexpr uint32_t kNumSpritesets = 144;
+constexpr uint32_t kNumPalettesets = 72;
 
 /**
  * @brief The Rom class is used to load, save, and modify Rom data.
@@ -516,6 +520,8 @@ class Rom : public core::ExperimentFlags {
     }
     return absl::OkStatus();
   }
+  absl::Status LoadGfxGroups();
+  absl::Status SaveGroupsToRom();
 
   long size_ = 0;
   bool is_loaded_ = false;
