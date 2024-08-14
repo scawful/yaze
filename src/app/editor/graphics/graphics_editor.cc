@@ -1,20 +1,15 @@
 #include "graphics_editor.h"
 
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
-#include "imgui/imgui.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
-#include "imgui_memory_editor.h"
-
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/core/platform/clipboard.h"
+#include "app/core/platform/renderer.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/compression.h"
 #include "app/gfx/scad_format.h"
 #include "app/gfx/snes_palette.h"
-#include "app/core/platform/renderer.h"
-
 #include "app/gfx/snes_tile.h"
 #include "app/gui/asset_browser.h"
 #include "app/gui/canvas.h"
@@ -22,6 +17,9 @@
 #include "app/gui/input.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
+#include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+#include "imgui_memory_editor.h"
 
 namespace yaze {
 namespace app {
@@ -395,7 +393,7 @@ absl::Status GraphicsEditor::UpdateLinkGfxView() {
     link_canvas_.DrawGrid(16.0f);
 
     int i = 0;
-    for (auto [key, link_sheet] : *rom()->mutable_link_graphics()) {
+    for (auto link_sheet : *rom()->mutable_link_graphics()) {
       int x_offset = 0;
       int y_offset = core::kTilesheetHeight * i * 4;
       link_canvas_.DrawContextMenu(&link_sheet);
