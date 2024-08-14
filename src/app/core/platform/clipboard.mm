@@ -6,7 +6,7 @@
 #ifdef TARGET_OS_MAC
 #import <Cocoa/Cocoa.h>
 
-void CopyImageToClipboard(const std::vector<uint8_t>& pngData) {
+void yaze::app::core::CopyImageToClipboard(const std::vector<uint8_t>& pngData) {
   NSData* data = [NSData dataWithBytes:pngData.data() length:pngData.size()];
   NSImage* image = [[NSImage alloc] initWithData:data];
 
@@ -15,7 +15,7 @@ void CopyImageToClipboard(const std::vector<uint8_t>& pngData) {
   [pasteboard writeObjects:@[ image ]];
 }
 
-void GetImageFromClipboard(std::vector<uint8_t>& pixel_data, int& width, int& height) {
+void yaze::app::core::GetImageFromClipboard(std::vector<uint8_t>& pixel_data, int& width, int& height) {
   NSPasteboard* pasteboard = [NSPasteboard generalPasteboard];
   NSArray* classArray = [NSArray arrayWithObject:[NSImage class]];
   NSDictionary* options = [NSDictionary dictionary];

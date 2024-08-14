@@ -130,7 +130,7 @@ void GraphicsEditor::DrawGfxEditToolset() {
     if (Button(ICON_MD_CONTENT_COPY)) {
       std::vector<uint8_t> png_data =
           rom()->gfx_sheets().at(current_sheet_).GetPngData();
-      CopyImageToClipboard(png_data);
+      core::CopyImageToClipboard(png_data);
     }
     HOVER_HINT("Copy to Clipboard");
 
@@ -138,7 +138,7 @@ void GraphicsEditor::DrawGfxEditToolset() {
     if (Button(ICON_MD_CONTENT_PASTE)) {
       std::vector<uint8_t> png_data;
       int width, height;
-      GetImageFromClipboard(png_data, width, height);
+      core::GetImageFromClipboard(png_data, width, height);
       if (png_data.size() > 0) {
         rom()
             ->mutable_gfx_sheets()
