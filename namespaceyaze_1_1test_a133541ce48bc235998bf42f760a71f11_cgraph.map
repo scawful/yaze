@@ -1,0 +1,8 @@
+<map id="yaze::test::TEST_F" name="yaze::test::TEST_F">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,135,55"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#a3407620def35f4549495332e6e302898" title=" " alt="" coords="183,29,394,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,40,167,40,167,45,135,45"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="252,31,245,21,249,11,264,5,288,3,315,5,329,12,326,17,314,10,288,8,265,10,253,15,250,20,256,27"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#a99dae24153d271a7feab7740b8f752a7" title=" " alt="" coords="442,29,623,55"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="395,40,426,40,426,45,395,45"/>
+</map>

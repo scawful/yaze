@@ -301,6 +301,7 @@ var annotated_dup =
         [ "zelda3", "namespaceyaze_1_1test_1_1zelda3.html", [
           [ "SpriteBuilderTest", "classyaze_1_1test_1_1zelda3_1_1SpriteBuilderTest.html", "classyaze_1_1test_1_1zelda3_1_1SpriteBuilderTest" ]
         ] ],
+        [ "MockRom", "classyaze_1_1test_1_1MockRom.html", "classyaze_1_1test_1_1MockRom" ],
         [ "RomTest", "classyaze_1_1test_1_1RomTest.html", "classyaze_1_1test_1_1RomTest" ]
       ] ]
     ] ],

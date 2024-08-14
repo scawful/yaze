@@ -21,10 +21,11 @@ var searchData=
   ['mockclock_18',['MockClock',['../classyaze_1_1app_1_1emu_1_1memory_1_1MockClock.html',1,'yaze::app::emu::memory']]],
   ['mockmemory_19',['MockMemory',['../classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html',1,'yaze::app::emu::memory']]],
   ['mockppu_20',['MockPpu',['../classyaze_1_1test_1_1emu_1_1MockPpu.html',1,'yaze::test::emu']]],
-  ['mosaic_21',['Mosaic',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['mpyh_22',['MPYH',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1MPYH.html',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['mpyl_23',['MPYL',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1MPYL.html',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['mpym_24',['MPYM',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1MPYM.html',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['multiselectwithclipper_25',['MultiSelectWithClipper',['../structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html',1,'yaze::app::gui']]],
-  ['musiceditor_26',['MusicEditor',['../classyaze_1_1app_1_1editor_1_1MusicEditor.html',1,'yaze::app::editor']]]
+  ['mockrom_21',['MockRom',['../classyaze_1_1test_1_1MockRom.html',1,'yaze::test']]],
+  ['mosaic_22',['Mosaic',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['mpyh_23',['MPYH',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1MPYH.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['mpyl_24',['MPYL',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1MPYL.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['mpym_25',['MPYM',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1MPYM.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['multiselectwithclipper_26',['MultiSelectWithClipper',['../structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html',1,'yaze::app::gui']]],
+  ['musiceditor_27',['MusicEditor',['../classyaze_1_1app_1_1editor_1_1MusicEditor.html',1,'yaze::app::editor']]]
 ];

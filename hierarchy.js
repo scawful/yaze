@@ -94,7 +94,9 @@ var hierarchy =
     [ "yaze::app::editor::ExampleTreeNode", "structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html", null ],
     [ "yaze::app::core::ExperimentFlags", "classyaze_1_1app_1_1core_1_1ExperimentFlags.html", [
       [ "yaze::app::Project", "structyaze_1_1app_1_1Project.html", null ],
-      [ "yaze::app::Rom", "classyaze_1_1app_1_1Rom.html", null ],
+      [ "yaze::app::Rom", "classyaze_1_1app_1_1Rom.html", [
+        [ "yaze::test::MockRom", "classyaze_1_1test_1_1MockRom.html", null ]
+      ] ],
       [ "yaze::app::core::Controller", "classyaze_1_1app_1_1core_1_1Controller.html", null ],
       [ "yaze::app::core::Renderer", "classyaze_1_1app_1_1core_1_1Renderer.html", null ],
       [ "yaze::app::editor::DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", null ],
