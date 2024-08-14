@@ -129,7 +129,7 @@ void GraphicsEditor::DrawGfxEditToolset() {
     TableNextColumn();
     if (Button(ICON_MD_CONTENT_COPY)) {
       std::vector<uint8_t> png_data =
-          rom()->bitmap_manager().shared_bitmap(current_sheet_).GetPngData();
+          rom()->gfx_sheets().at(current_sheet_).GetPngData();
       CopyImageToClipboard(png_data);
     }
     HOVER_HINT("Copy to Clipboard");
@@ -141,11 +141,11 @@ void GraphicsEditor::DrawGfxEditToolset() {
       GetImageFromClipboard(png_data, width, height);
       if (png_data.size() > 0) {
         rom()
-            ->mutable_bitmap_manager()
-            ->mutable_bitmap(current_sheet_)
-            ->Create(width, height, 8, png_data);
+            ->mutable_gfx_sheets()
+            ->at(current_sheet_)
+            .Create(width, height, 8, png_data);
         Renderer::GetInstance().UpdateBitmap(
-            rom()->mutable_bitmap_manager()->mutable_bitmap(current_sheet_));
+            &rom()->mutable_gfx_sheets()->at(current_sheet_));
       }
     }
     HOVER_HINT("Paste from Clipboard");
@@ -165,7 +165,7 @@ void GraphicsEditor::DrawGfxEditToolset() {
     }
 
     TableNextColumn();
-    auto bitmap = rom()->bitmap_manager()[current_sheet_];
+    auto bitmap = rom()->gfx_sheets()[current_sheet_];
     auto palette = bitmap.palette();
     for (int i = 0; i < 8; i++) {
       ImGui::SameLine();
@@ -289,8 +289,7 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
                               ImGuiWindowFlags_AlwaysVerticalScrollbar |
                               ImGuiWindowFlags_AlwaysHorizontalScrollbar);
 
-        gfx::Bitmap& current_bitmap =
-            *rom()->mutable_bitmap_manager()->mutable_bitmap(sheet_id);
+        gfx::Bitmap& current_bitmap = rom()->mutable_gfx_sheets()->at(sheet_id);
 
         auto draw_tile_event = [&]() {
           current_sheet_canvas_.DrawTileOnBitmap(tile_size_, &current_bitmap,
@@ -299,8 +298,8 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
         };
 
         current_sheet_canvas_.UpdateColorPainter(
-            rom()->bitmap_manager()[sheet_id], current_color_, draw_tile_event,
-            tile_size_, current_scale_);
+            rom()->mutable_gfx_sheets()->at(sheet_id), current_color_,
+            draw_tile_event, tile_size_, current_scale_);
 
         ImGui::EndChild();
         ImGui::EndTabItem();
@@ -332,7 +331,7 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
       current_sheet_ = id;
       //  ImVec2(0x100, 0x40),
       current_sheet_canvas_.UpdateColorPainter(
-          rom()->bitmap_manager()[id], current_color_,
+          rom()->mutable_gfx_sheets()->at(id), current_color_,
           [&]() {
 
           },
@@ -369,11 +368,12 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
 
     if (refresh_graphics_ && !open_sheets_.empty()) {
       RETURN_IF_ERROR(
-          rom()->bitmap_manager()[current_sheet_].ApplyPaletteWithTransparent(
-              palette, edit_palette_sub_index_));
+          rom()
+              ->mutable_gfx_sheets()
+              ->at(current_sheet_)
+              .ApplyPaletteWithTransparent(palette, edit_palette_sub_index_));
       Renderer::GetInstance().UpdateBitmap(
-          rom()->mutable_bitmap_manager()->mutable_bitmap(current_sheet_),
-          true);
+          &rom()->mutable_gfx_sheets()->at(current_sheet_), true);
       refresh_graphics_ = false;
     }
   }
