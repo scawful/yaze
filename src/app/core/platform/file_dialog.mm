@@ -56,7 +56,7 @@ std::vector<std::string> FileDialogWrapper::GetSubdirectoriesInFolder(const std:
 
 #import <Cocoa/Cocoa.h>
 
-std::string FileDialogWrapper::ShowOpenFileDialog() {
+std::string yaze::app::core::FileDialogWrapper::ShowOpenFileDialog() {
   NSOpenPanel* openPanel = [NSOpenPanel openPanel];
   [openPanel setCanChooseFiles:YES];
   [openPanel setCanChooseDirectories:NO];
@@ -71,7 +71,7 @@ std::string FileDialogWrapper::ShowOpenFileDialog() {
   return "";
 }
 
-std::string FileDialogWrapper::ShowOpenFolderDialog() {
+std::string yaze::app::core::FileDialogWrapper::ShowOpenFolderDialog() {
   NSOpenPanel* openPanel = [NSOpenPanel openPanel];
   [openPanel setCanChooseFiles:NO];
   [openPanel setCanChooseDirectories:YES];
@@ -86,7 +86,8 @@ std::string FileDialogWrapper::ShowOpenFolderDialog() {
   return "";
 }
 
-std::vector<std::string> FileDialogWrapper::GetFilesInFolder(const std::string& folder) {
+std::vector<std::string> yaze::app::core::FileDialogWrapper::GetFilesInFolder(
+    const std::string& folder) {
   std::vector<std::string> filenames;
   NSFileManager* fileManager = [NSFileManager defaultManager];
   NSDirectoryEnumerator* enumerator =
@@ -101,7 +102,8 @@ std::vector<std::string> FileDialogWrapper::GetFilesInFolder(const std::string& 
   return filenames;
 }
 
-std::vector<std::string> FileDialogWrapper::GetSubdirectoriesInFolder(const std::string& folder) {
+std::vector<std::string> yaze::app::core::FileDialogWrapper::GetSubdirectoriesInFolder(
+    const std::string& folder) {
   std::vector<std::string> subdirectories;
   NSFileManager* fileManager = [NSFileManager defaultManager];
   NSDirectoryEnumerator* enumerator =

@@ -246,7 +246,7 @@ void Emulator::RenderNavBar() {
   }
 
   if (open_file) {
-    auto file_name = FileDialogWrapper::ShowOpenFileDialog();
+    auto file_name = core::FileDialogWrapper::ShowOpenFileDialog();
     if (!file_name.empty()) {
       std::ifstream file(file_name, std::ios::binary);
       // Load the data directly into rom_data

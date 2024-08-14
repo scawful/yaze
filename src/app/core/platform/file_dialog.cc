@@ -1,5 +1,9 @@
 #include "file_dialog.h"
 
+namespace yaze {
+namespace app {
+namespace core {
+
 #if defined(__linux__)
 
 std::string FileDialogWrapper::ShowOpenFileDialog() {
@@ -21,3 +25,7 @@ std::vector<std::string> FileDialogWrapper::GetFilesInFolder(
 }
 
 #endif
+
+}  // namespace core
+}  // namespace app
+}  // namespace yaze

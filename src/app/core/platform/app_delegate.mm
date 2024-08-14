@@ -206,7 +206,8 @@
 }
 
 - (void)openFileAction:(id)sender {
-  if (!yaze::app::SharedRom::shared_rom_->LoadFromFile(FileDialogWrapper::ShowOpenFileDialog())
+  if (!yaze::app::SharedRom::shared_rom_
+           ->LoadFromFile(yaze::app::core::FileDialogWrapper::ShowOpenFileDialog())
            .ok()) {
     NSAlert *alert = [[NSAlert alloc] init];
     [alert setMessageText:@"Error"];

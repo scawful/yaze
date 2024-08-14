@@ -39,6 +39,7 @@ namespace app {
 namespace editor {
 
 using namespace ImGui;
+using core::FileDialogWrapper;
 
 namespace {
 
@@ -484,8 +485,8 @@ void EditorManager::DrawYazeMenuBar() {
       }
       if (MenuItem("Open Project")) {
         // Open an existing project
-        status_ =
-            current_project_.Open(FileDialogWrapper::ShowOpenFileDialog());
+        status_ = current_project_.Open(
+            core::FileDialogWrapper::ShowOpenFileDialog());
         if (status_.ok()) {
           status_ = OpenProject();
         }

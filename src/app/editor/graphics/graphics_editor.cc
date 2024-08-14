@@ -370,10 +370,10 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
       RETURN_IF_ERROR(
           rom()
               ->mutable_gfx_sheets()
-              ->at(current_sheet_)
+              ->data()[current_sheet_]
               .ApplyPaletteWithTransparent(palette, edit_palette_sub_index_));
       Renderer::GetInstance().UpdateBitmap(
-          &rom()->mutable_gfx_sheets()->at(current_sheet_), true);
+          &rom()->mutable_gfx_sheets()->data()[current_sheet_], true);
       refresh_graphics_ = false;
     }
   }
