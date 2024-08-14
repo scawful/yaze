@@ -10,7 +10,8 @@ using namespace ImGui;
 
 const ImGuiTableSortSpecs* AssetObject::s_current_sort_specs = NULL;
 
-void GfxSheetAssetBrowser::Draw(gfx::BitmapManager* bmp_manager) {
+void GfxSheetAssetBrowser::Draw(
+    const std::array<gfx::Bitmap, kNumGfxSheets>& bmp_manager) {
   PushItemWidth(GetFontSize() * 10);
   SeparatorText("Contents");
   Checkbox("Show Type Overlay", &ShowTypeOverlay);
@@ -228,10 +229,9 @@ void GfxSheetAssetBrowser::Draw(gfx::BitmapManager* bmp_manager) {
             if (display_label) {
               ImU32 label_col = GetColorU32(
                   item_is_selected ? ImGuiCol_Text : ImGuiCol_TextDisabled);
-              draw_list->AddImage(
-                  (void*)bmp_manager->mutable_bitmap(item_data->ID)->texture(),
-                  box_min, box_max, ImVec2(0, 0), ImVec2(1, 1),
-                  GetColorU32(ImVec4(1, 1, 1, 1)));
+              draw_list->AddImage((void*)bmp_manager[item_data->ID].texture(),
+                                  box_min, box_max, ImVec2(0, 0), ImVec2(1, 1),
+                                  GetColorU32(ImVec4(1, 1, 1, 1)));
               draw_list->AddText(ImVec2(box_min.x, box_max.y - GetFontSize()),
                                  label_col,
                                  absl::StrFormat("%X", item_data->ID).c_str());
