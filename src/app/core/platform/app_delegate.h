@@ -10,13 +10,27 @@
 /* iOS in Xcode simulator */
 #import <UIKit/UIKit.h>
 
-@interface AppDelegate : UIResponder <UIApplicationDelegate, UIDocumentPickerDelegate>
+#import <PencilKit/PencilKit.h>
+
+@interface AppDelegate : UIResponder <UIApplicationDelegate, UIDocumentPickerDelegate, UITabBarControllerDelegate, PKCanvasViewDelegate>
 @property (strong, nonatomic) UIWindow *window;
 
 @property  UIDocumentPickerViewController *documentPicker;
 @property (nonatomic, copy) void (^completionHandler)(NSString *selectedFile);
 - (void)PresentDocumentPickerWithCompletionHandler:(void (^)(NSString *selectedFile))completionHandler;
 
+// TODO: Setup a tab bar controller for multiple yaze instances
+@property (nonatomic) UITabBarController *tabBarController;
+
+// TODO: Setup a font picker for the text editor and display settings
+@property (nonatomic) UIFontPickerViewController *fontPicker;
+
+// TODO: Setup the pencil kit for drawing
+@property PKToolPicker *toolPicker;
+@property PKCanvasView *canvasView;
+
+// TODO: Setup the file manager for file operations
+@property NSFileManager *fileManager;
 
 @end
 
