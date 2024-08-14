@@ -123,7 +123,8 @@ endif()
 include(test/CMakeLists.txt)
 
 # Yaze C API
-add_library(yaze_c SHARED
+add_library(
+  yaze_c SHARED
   ./yaze.cc
   app/rom.cc
   ${YAZE_APP_EMU_SRC}

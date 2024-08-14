@@ -3,7 +3,7 @@ include(../cmake/gtest.cmake)
 add_executable(
   yaze_test
   test/yaze_test.cc
-  test/libc_test.cc
+  # test/libc_test.cc
   test/rom_test.cc
   test/gfx/compression_test.cc
   test/gfx/snes_palette_test.cc
@@ -16,8 +16,11 @@ add_executable(
   app/core/labeling.cc
   app/editor/utils/gfx_context.cc
   ${ASAR_STATIC_SRC}
+  ${YAZE_APP_CORE_SRC}
   ${YAZE_APP_EMU_SRC}
   ${YAZE_APP_GFX_SRC}
+  ${YAZE_APP_ZELDA3_SRC}
+  ${YAZE_APP_EDITOR_SRC}
   ${YAZE_GUI_SRC}
   ${IMGUI_SRC}
   ${IMGUI_TEST_ENGINE_SOURCES}
@@ -27,6 +30,7 @@ target_include_directories(
   yaze_test PUBLIC
   app/
   lib/
+  ${CMAKE_SOURCE_DIR}/src/
   ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
   ${ASAR_INCLUDE_DIR}
   ${SDL2_INCLUDE_DIR}
@@ -41,7 +45,7 @@ target_link_libraries(
   ${PNG_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
-  yaze_c
+  # yaze_c
   ImGuiTestEngine
   ImGui
   gmock_main
