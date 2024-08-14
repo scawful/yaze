@@ -75,5 +75,43 @@ TEST_F(RomTest, ReadWordInvalid) {
               StatusIs(absl::StatusCode::kFailedPrecondition));
 }
 
+TEST_F(RomTest, ReadLongOk) {
+  EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
+
+  for (size_t i = 0; i < kMockRomData.size(); i += 4) {
+    // Little endian
+    EXPECT_THAT(rom_.ReadLong(i),
+                IsOkAndHolds<uint32_t>((kMockRomData[i]) | kMockRomData[i] |
+                                       kMockRomData[i + 1] << 8 |
+                                       kMockRomData[i + 2] << 16));
+  }
+}
+
+TEST_F(RomTest, ReadLongInvalid) {
+  EXPECT_THAT(rom_.ReadLong(0).status(),
+              StatusIs(absl::StatusCode::kFailedPrecondition));
+}
+
+TEST_F(RomTest, ReadBytesOk) {
+  EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
+
+  std::vector<uint8_t> bytes;
+  ASSERT_OK_AND_ASSIGN(bytes, rom_.ReadByteVector(0, kMockRomData.size()));
+  EXPECT_THAT(bytes, ::testing::ContainerEq(kMockRomData));
+}
+
+TEST_F(RomTest, ReadBytesInvalid) {
+  EXPECT_THAT(rom_.ReadByteVector(0, 1).status(),
+              StatusIs(absl::StatusCode::kFailedPrecondition));
+}
+
+TEST_F(RomTest, ReadBytesOutOfRange) {
+  EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
+
+  std::vector<uint8_t> bytes;
+  EXPECT_THAT(rom_.ReadByteVector(kMockRomData.size() + 1, 1).status(),
+              StatusIs(absl::StatusCode::kOutOfRange));
+}
+
 }  // namespace test
 }  // namespace yaze
