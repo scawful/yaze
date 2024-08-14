@@ -28,6 +28,7 @@
 #include "imgui_memory_editor.h"
 
 using namespace yaze::app;
+using yaze::app::core::SDL_Deleter;
 
 int main(int argc, char **argv) {
   absl::InitializeSymbolizer(argv[0]);
@@ -37,8 +38,8 @@ int main(int argc, char **argv) {
   options.alarm_on_failure_secs = true;
   absl::InstallFailureSignalHandler(options);
 
-  std::unique_ptr<SDL_Window, sdl_deleter> window_;
-  std::unique_ptr<SDL_Renderer, sdl_deleter> renderer_;
+  std::unique_ptr<SDL_Window, SDL_Deleter> window_;
+  std::unique_ptr<SDL_Renderer, SDL_Deleter> renderer_;
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
     return EXIT_FAILURE;
   } else {
@@ -47,23 +48,23 @@ int main(int argc, char **argv) {
     int screenWidth = displayMode.w * 0.8;
     int screenHeight = displayMode.h * 0.8;
 
-    window_ = std::unique_ptr<SDL_Window, sdl_deleter>(
+    window_ = std::unique_ptr<SDL_Window, SDL_Deleter>(
         SDL_CreateWindow("Yaze Emulator",          // window title
                          SDL_WINDOWPOS_UNDEFINED,  // initial x position
                          SDL_WINDOWPOS_UNDEFINED,  // initial y position
                          512,                      // width, in pixels
                          480,                      // height, in pixels
                          SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI),
-        sdl_deleter());
+        SDL_Deleter());
     if (window_ == nullptr) {
       return EXIT_FAILURE;
     }
   }
 
-  renderer_ = std::unique_ptr<SDL_Renderer, sdl_deleter>(
+  renderer_ = std::unique_ptr<SDL_Renderer, SDL_Deleter>(
       SDL_CreateRenderer(window_.get(), -1,
                          SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
-      sdl_deleter());
+      SDL_Deleter());
   if (renderer_ == nullptr) {
     return EXIT_FAILURE;
   } else {

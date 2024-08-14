@@ -5,6 +5,7 @@ project(yaze VERSION 0.2.0)
 
 # Build Flags
 set(YAZE_BUILD_APP ON)
+set(YAZE_BUILD_EMU ON)
 set(YAZE_BUILD_Z3ED ON)
 set(YAZE_BUILD_PYTHON ON)
 set(YAZE_BUILD_CLIB ON)

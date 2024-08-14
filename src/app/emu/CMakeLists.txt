@@ -20,4 +20,12 @@ target_include_directories(
   ${SDL2_INCLUDE_DIR}
 )
 
-target_link_libraries(yaze_emu PUBLIC ${ABSL_TARGETS} ${SDL_TARGETS} ${PNG_LIBRARIES} ${CMAKE_DL_LIBS} ImGui)
+target_link_libraries(
+  yaze_emu PUBLIC 
+  ${ABSL_TARGETS} 
+  ${SDL_TARGETS} 
+  ${PNG_LIBRARIES} 
+  ${CMAKE_DL_LIBS} 
+  ImGui
+  ImGuiTestEngine
+)

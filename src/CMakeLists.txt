@@ -71,6 +71,10 @@ if (YAZE_BUILD_APP)
   include(app/app.cmake)
 endif()
 
+if (YAZE_BUILD_EMU)
+  include(app/emu/CMakeLists.txt)
+endif()
+
 if (YAZE_BUILD_Z3ED)
   include(cli/z3ed.cmake) 
 endif()
