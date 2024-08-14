@@ -39,15 +39,19 @@ std::string ShowOpenFileDialogSync() {
 }
 }
 
-std::string FileDialogWrapper::ShowOpenFileDialog() { return ShowOpenFileDialogSync(); }
+std::string yaze::app::core::FileDialogWrapper::ShowOpenFileDialog() {
+  return ShowOpenFileDialogSync();
+}
 
-std::string FileDialogWrapper::ShowOpenFolderDialog() { return ""; }
+std::string yaze::app::core::FileDialogWrapper::ShowOpenFolderDialog() { return ""; }
 
-std::vector<std::string> FileDialogWrapper::GetFilesInFolder(const std::string &folder) {
+std::vector<std::string> yaze::app::core::FileDialogWrapper::GetFilesInFolder(
+    const std::string &folder) {
   return {};
 }
 
-std::vector<std::string> FileDialogWrapper::GetSubdirectoriesInFolder(const std::string &folder) {
+std::vector<std::string> yaze::app::core::FileDialogWrapper::GetSubdirectoriesInFolder(
+    const std::string &folder) {
   return {};
 }
 
