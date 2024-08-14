@@ -113,5 +113,65 @@ TEST_F(RomTest, ReadBytesOutOfRange) {
               StatusIs(absl::StatusCode::kOutOfRange));
 }
 
+TEST_F(RomTest, WriteByteOk) {
+  EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
+
+  for (size_t i = 0; i < kMockRomData.size(); ++i) {
+    EXPECT_OK(rom_.WriteByte(i, 0xFF));
+    uint8_t byte;
+    ASSERT_OK_AND_ASSIGN(byte, rom_.ReadByte(i));
+    EXPECT_EQ(byte, 0xFF);
+  }
+}
+
+TEST_F(RomTest, WriteByteInvalid) {
+  EXPECT_THAT(rom_.WriteByte(0, 0xFF),
+              StatusIs(absl::StatusCode::kFailedPrecondition));
+
+  EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
+  EXPECT_THAT(rom_.WriteByte(kMockRomData.size(), 0xFF),
+              StatusIs(absl::StatusCode::kOutOfRange));
+}
+
+TEST_F(RomTest, WriteWordOk) {
+  EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
+
+  for (size_t i = 0; i < kMockRomData.size(); i += 2) {
+    EXPECT_OK(rom_.WriteWord(i, 0xFFFF));
+    uint16_t word;
+    ASSERT_OK_AND_ASSIGN(word, rom_.ReadWord(i));
+    EXPECT_EQ(word, 0xFFFF);
+  }
+}
+
+TEST_F(RomTest, WriteWordInvalid) {
+  EXPECT_THAT(rom_.WriteWord(0, 0xFFFF),
+              StatusIs(absl::StatusCode::kFailedPrecondition));
+
+  EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
+  EXPECT_THAT(rom_.WriteWord(kMockRomData.size(), 0xFFFF),
+              StatusIs(absl::StatusCode::kOutOfRange));
+}
+
+TEST_F(RomTest, WriteLongOk) {
+  EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
+
+  for (size_t i = 0; i < kMockRomData.size(); i += 4) {
+    EXPECT_OK(rom_.WriteLong(i, 0xFFFFFF));
+    uint32_t word;
+    ASSERT_OK_AND_ASSIGN(word, rom_.ReadLong(i));
+    EXPECT_EQ(word, 0xFFFFFF);
+  }
+}
+
+TEST_F(RomTest, WriteLongInvalid) {
+  EXPECT_THAT(rom_.WriteLong(0, 0xFFFFFF),
+              StatusIs(absl::StatusCode::kFailedPrecondition));
+
+  EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
+  EXPECT_THAT(rom_.WriteLong(kMockRomData.size(), 0xFFFFFFFF),
+              StatusIs(absl::StatusCode::kOutOfRange));
+}
+
 }  // namespace test
 }  // namespace yaze

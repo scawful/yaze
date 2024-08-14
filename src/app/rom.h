@@ -301,8 +301,9 @@ class Rom : public core::ExperimentFlags {
   }
 
   absl::Status WriteByte(int addr, uint8_t value) {
+    RETURN_IF_ERROR(ReadWritePreconditions());
     if (addr >= rom_data_.size()) {
-      return absl::InvalidArgumentError(absl::StrFormat(
+      return absl::OutOfRangeError(absl::StrFormat(
           "Attempt to write byte %#02x value failed, address %d out of range",
           value, addr));
     }
@@ -314,8 +315,9 @@ class Rom : public core::ExperimentFlags {
   }
 
   absl::Status WriteWord(int addr, uint16_t value) {
+    RETURN_IF_ERROR(ReadWritePreconditions());
     if (addr + 1 >= rom_data_.size()) {
-      return absl::InvalidArgumentError(absl::StrFormat(
+      return absl::OutOfRangeError(absl::StrFormat(
           "Attempt to write word %#04x value failed, address %d out of range",
           value, addr));
     }
@@ -327,8 +329,9 @@ class Rom : public core::ExperimentFlags {
   }
 
   absl::Status WriteShort(int addr, uint16_t value) {
+    RETURN_IF_ERROR(ReadWritePreconditions());
     if (addr + 1 >= rom_data_.size()) {
-      return absl::InvalidArgumentError(absl::StrFormat(
+      return absl::OutOfRangeError(absl::StrFormat(
           "Attempt to write short %#04x value failed, address %d out of range",
           value, addr));
     }
@@ -340,8 +343,9 @@ class Rom : public core::ExperimentFlags {
   }
 
   absl::Status WriteLong(uint32_t addr, uint32_t value) {
+    RETURN_IF_ERROR(ReadWritePreconditions());
     if (addr + 2 >= rom_data_.size()) {
-      return absl::InvalidArgumentError(absl::StrFormat(
+      return absl::OutOfRangeError(absl::StrFormat(
           "Attempt to write long %#06x value failed, address %d out of range",
           value, addr));
     }
