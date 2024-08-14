@@ -4,6 +4,10 @@
 #include <string>
 #include <vector>
 
+namespace yaze {
+namespace app {
+namespace core {
+
 #ifdef _WIN32
 // Include Windows-specific headers
 #include <shobjidl.h>
@@ -83,7 +87,7 @@ class FileDialogWrapper {
   }
 
   static std::vector<std::string> GetSubdirectoriesInFolder(
-      const std::string& folder_path) {
+      const std::string &folder_path) {
     std::vector<std::string> subdirectories;
     WIN32_FIND_DATA findFileData;
     HANDLE hFind = FindFirstFile((folder_path + "\\*").c_str(), &findFileData);
@@ -102,7 +106,7 @@ class FileDialogWrapper {
   }
 
   static std::vector<std::string> GetFilesInFolder(
-      const std::string& folder_path) {
+      const std::string &folder_path) {
     std::vector<std::string> files;
     WIN32_FIND_DATA findFileData;
     HANDLE hFind = FindFirstFile((folder_path + "\\*").c_str(), &findFileData);
@@ -134,5 +138,9 @@ class FileDialogWrapper {
 };
 
 #endif
+
+}  // namespace core
+}  // namespace app
+}  // namespace yaze
 
 #endif  // YAZE_APP_CORE_PLATFORM_FILE_DIALOG_H

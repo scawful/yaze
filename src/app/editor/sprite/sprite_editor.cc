@@ -243,7 +243,7 @@ void SpriteEditor::DrawCustomSpritesMetadata() {
   // ZSprite Maker format open file dialog
   if (ImGui::Button("Open ZSprite")) {
     // Open ZSprite file
-    std::string file_path = FileDialogWrapper::ShowOpenFileDialog();
+    std::string file_path = core::FileDialogWrapper::ShowOpenFileDialog();
     if (!file_path.empty()) {
       zsprite::ZSprite zsprite;
       status_ = zsprite.Load(file_path);

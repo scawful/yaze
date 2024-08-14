@@ -46,7 +46,7 @@ struct MemoryEditorWithDiffChecker : public SharedRom {
     static Rom comparison_rom;
     ImGui::Begin("Hex Editor", &show_memory_editor);
     if (ImGui::Button("Compare Rom")) {
-      auto file_name = FileDialogWrapper::ShowOpenFileDialog();
+      auto file_name = core::FileDialogWrapper::ShowOpenFileDialog();
       PRINT_IF_ERROR(comparison_rom.LoadFromFile(file_name));
       show_compare_rom = true;
     }
