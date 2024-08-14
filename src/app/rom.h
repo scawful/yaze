@@ -543,9 +543,6 @@ class Rom : public core::ExperimentFlags {
   // Label manager for unique resource names.
   core::ResourceLabelManager resource_label_manager_;
 
-  // Link's palette
-  gfx::SnesPalette link_palette_;
-
   // All palette groups in the game
   gfx::PaletteGroupMap palette_groups_;
 
