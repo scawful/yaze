@@ -7,6 +7,7 @@
 #include "absl/debugging/symbolize.h"
 #include "app/core/controller.h"
 #include "app/core/platform/renderer.h"
+#include "app/gui/style.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
@@ -24,13 +25,17 @@ int main(int argc, char* argv[]) {
   // Check if the argument says `integration`
   if (argc > 1 && std::string(argv[1]) == "integration") {
     // Support the ability to launch an integration test window.
-    SDL_SetMainReady();
+    // SDL_SetMainReady();
     yaze_test::integration::TestEditor test_editor;
     yaze::app::core::Controller controller;
     controller.init_test_editor(&test_editor);
 
-    controller.CreateSDL_Window();
-    controller.CreateRenderer();
+    if (!controller.CreateSDL_Window().ok()) {
+      return EXIT_FAILURE;
+    }
+    if (!controller.CreateRenderer().ok()) {
+      return EXIT_FAILURE;
+    }
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
@@ -52,6 +57,10 @@ int main(int argc, char* argv[]) {
 
     test_editor.RegisterTests(engine);
     ImGuiTestEngine_Start(engine, ImGui::GetCurrentContext());
+    controller.set_active(true);
+
+    // Set the default style
+    yaze::app::gui::ColorsYaze();
 
     // Build a new ImGui frame
     ImGui_ImplSDLRenderer2_NewFrame();
