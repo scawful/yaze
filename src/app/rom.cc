@@ -208,11 +208,6 @@ absl::Status Rom::LoadZelda3() {
   constexpr size_t baseROMSize = 1048576;  // 1MB
   constexpr size_t headerSize = 0x200;     // 512 bytes
   if (size_ % baseROMSize == headerSize) {
-    has_header_ = true;
-  }
-
-  // Remove header if present
-  if (has_header_) {
     auto header =
         std::vector<uchar>(rom_data_.begin(), rom_data_.begin() + 0x200);
     rom_data_.erase(rom_data_.begin(), rom_data_.begin() + 0x200);

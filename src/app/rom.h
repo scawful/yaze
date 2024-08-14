@@ -212,7 +212,11 @@ class Rom : public core::ExperimentFlags {
 
   absl::Status ReadWritePreconditions() {
     if (!is_loaded_) {
-      return absl::FailedPreconditionError("ROM not loaded");
+      return absl::FailedPreconditionError("ROM file not loaded");
+    }
+    if (rom_data_.empty() || size_ == 0) {
+      return absl::FailedPreconditionError(
+          "File was loaded, but ROM data was empty.");
     }
     return absl::OkStatus();
   }
@@ -499,7 +503,6 @@ class Rom : public core::ExperimentFlags {
     }
     auto error_message = absl::StrFormat("Invalid write argument type: %s",
                                          typeid(action.value).name());
-    throw std::runtime_error(error_message);
     return absl::InvalidArgumentError(error_message);
   }
 
@@ -522,10 +525,16 @@ class Rom : public core::ExperimentFlags {
   absl::Status LoadGfxGroups();
   absl::Status SaveGroupsToRom();
 
-  long size_ = 0;
+  // ROM file loaded flag
   bool is_loaded_ = false;
-  bool has_header_ = false;
-  std::string title_ = "ROM Not Loaded";
+
+  // Size of the ROM data.
+  unsigned long size_ = 0;
+
+  // Title of the ROM loaded from the header
+  std::string title_ = "ROM not loaded";
+
+  // Filename of the ROM
   std::string filename_ = "";
 
   // Full contiguous rom space
