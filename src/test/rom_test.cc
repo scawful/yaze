@@ -10,10 +10,22 @@
 namespace yaze {
 namespace test {
 
+using ::testing::_;
+using ::testing::DoAll;
+using ::testing::Return;
+
 const static std::vector<uint8_t> kMockRomData = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A,
     0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15,
     0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
+};
+
+class MockRom : public app::Rom {
+ public:
+  MOCK_METHOD(absl::Status, WriteHelper, (const WriteAction&), (override));
+  MOCK_METHOD(absl::Status, ReadHelper, (uint8_t&, int));
+  MOCK_METHOD(absl::Status, ReadHelper, (uint16_t&, int));
+  MOCK_METHOD(absl::Status, ReadHelper, (std::vector<uint8_t>&, int));
 };
 
 class RomTest : public ::testing::Test {
@@ -171,6 +183,61 @@ TEST_F(RomTest, WriteLongInvalid) {
   EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
   EXPECT_THAT(rom_.WriteLong(kMockRomData.size(), 0xFFFFFFFF),
               StatusIs(absl::StatusCode::kOutOfRange));
+}
+
+TEST_F(RomTest, WriteTransactionSuccess) {
+  MockRom mock_rom;
+
+  EXPECT_CALL(mock_rom, WriteHelper(_))
+      .WillRepeatedly(Return(absl::OkStatus()));
+
+  EXPECT_OK(mock_rom.WriteTransaction(
+      app::Rom::WriteAction{0x1000, uint8_t{0xFF}},
+      app::Rom::WriteAction{0x1001, uint16_t{0xABCD}},
+      app::Rom::WriteAction{0x1002, std::vector<uint8_t>{0x12, 0x34}}));
+}
+
+TEST_F(RomTest, WriteTransactionFailure) {
+  MockRom mock_rom;
+
+  EXPECT_CALL(mock_rom, WriteHelper(_))
+      .WillOnce(Return(absl::OkStatus()))
+      .WillOnce(Return(absl::InternalError("Write failed")));
+
+  EXPECT_EQ(mock_rom.WriteTransaction(
+                app::Rom::WriteAction{0x1000, uint8_t{0xFF}},
+                app::Rom::WriteAction{0x1001, uint16_t{0xABCD}}),
+            absl::InternalError("Write failed"));
+}
+
+TEST_F(RomTest, ReadTransactionSuccess) {
+  MockRom mock_rom;
+  uint8_t byte_val;
+  uint16_t word_val;
+
+  EXPECT_CALL(mock_rom, ReadHelper(byte_val, _))
+      .WillOnce(
+          DoAll(testing::SetArgReferee<0>(0xFF), Return(absl::OkStatus())));
+
+  EXPECT_CALL(mock_rom, ReadHelper(word_val, _))
+      .WillOnce(
+          DoAll(testing::SetArgReferee<0>(0xABCD), Return(absl::OkStatus())));
+
+  EXPECT_OK(mock_rom.ReadTransaction(byte_val, 0x1000, word_val, 0x1001));
+
+  EXPECT_EQ(byte_val, 0xFF);
+  EXPECT_EQ(word_val, 0xABCD);
+}
+
+TEST_F(RomTest, ReadTransactionFailure) {
+  MockRom mock_rom;
+  uint8_t byte_val;
+
+  EXPECT_CALL(mock_rom, ReadHelper(byte_val, _))
+      .WillOnce(Return(absl::InternalError("Read failed")));
+
+  EXPECT_EQ(mock_rom.ReadTransaction(byte_val, 0x1000),
+            absl::InternalError("Read failed"));
 }
 
 }  // namespace test
