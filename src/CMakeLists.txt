@@ -141,13 +141,12 @@ target_include_directories(
   lib/
   app/
   ${CMAKE_SOURCE_DIR}/src/
-  ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
 )
 
 target_link_libraries(
-  yaze_c PUBLIC
+  yaze_c PRIVATE
   ${ABSL_TARGETS}
   ${SDL_TARGETS}
   ${PNG_LIBRARIES}
