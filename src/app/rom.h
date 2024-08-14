@@ -472,7 +472,6 @@ class Rom : public core::ExperimentFlags {
   void LoadGfxGroups();
   void SaveGroupsToRom();
 
- private:
   struct WriteAction {
     int address;
     std::variant<int, uint8_t, uint16_t, short, std::vector<uint8_t>,
@@ -480,7 +479,8 @@ class Rom : public core::ExperimentFlags {
         value;
   };
 
-  absl::Status WriteHelper(const WriteAction& action) {
+ private:
+  virtual absl::Status WriteHelper(const WriteAction& action) {
     if (std::holds_alternative<uint8_t>(action.value)) {
       return Write(action.address, std::get<uint8_t>(action.value));
     } else if (std::holds_alternative<uint16_t>(action.value) ||
