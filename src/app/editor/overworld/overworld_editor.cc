@@ -230,7 +230,7 @@ absl::Status OverworldEditor::DrawToolset() {
       std::vector<uint8_t> png_data;
       if (gfx::ConvertSurfaceToPNG(maps_bmp_[current_map_].surface(),
                                    png_data)) {
-        CopyImageToClipboard(png_data);
+        core::CopyImageToClipboard(png_data);
       } else {
         status_ = absl::InternalError(
             "Failed to convert overworld map surface to PNG");

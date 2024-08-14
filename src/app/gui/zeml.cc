@@ -594,7 +594,7 @@ std::string LoadFile(const std::string& filename) {
 
   #ifdef __APPLE__
     #if TARGET_OS_IOS == 1
-      const std::string kBundlePath = GetBundleResourcePath();
+      const std::string kBundlePath = core::GetBundleResourcePath();
       std::ifstream file(kBundlePath + filename);
     #else
       std::ifstream file(kPath + filename);
