@@ -1,5 +1,5 @@
-<map id="src/app/editor/settings_editor.h" name="src/app/editor/settings_editor.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="66,5,216,46"/>
+<map id="src/app/editor/system/settings_editor.h" name="src/app/editor/system/settings_editor.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="68,5,214,46"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,94,103,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,48,80,85,77,81,117,44"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="129,168,264,193"/>

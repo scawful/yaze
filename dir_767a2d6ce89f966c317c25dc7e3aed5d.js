@@ -10,7 +10,5 @@ var dir_767a2d6ce89f966c317c25dc7e3aed5d =
     [ "system", "dir_6786299e5fb540707e8551af9d97f855.html", "dir_6786299e5fb540707e8551af9d97f855" ],
     [ "utils", "dir_eee38b1326d1deb5c23215757340cf7d.html", "dir_eee38b1326d1deb5c23215757340cf7d" ],
     [ "editor_manager.cc", "editor__manager_8cc.html", "editor__manager_8cc" ],
-    [ "editor_manager.h", "editor__manager_8h.html", "editor__manager_8h" ],
-    [ "settings_editor.cc", "settings__editor_8cc.html", null ],
-    [ "settings_editor.h", "settings__editor_8h.html", "settings__editor_8h" ]
+    [ "editor_manager.h", "editor__manager_8h.html", "editor__manager_8h" ]
 ];
