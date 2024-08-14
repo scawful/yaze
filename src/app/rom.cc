@@ -64,7 +64,6 @@ absl::StatusOr<Bytes> Rom::Load2BppGraphics() {
 absl::Status Rom::LoadLinkGraphics() {
   const uint32_t link_gfx_offset = 0x80000;  // $10:8000
   const uint16_t link_gfx_length = 0x800;    // 0x4000 or 0x7000?
-  link_palette_ = palette_groups_.armors[0];
 
   // Load Links graphics from the ROM
   for (int i = 0; i < kNumLinkSheets; i++) {
@@ -72,16 +71,12 @@ absl::Status Rom::LoadLinkGraphics() {
         auto link_sheet_data,
         ReadByteVector(/*offset=*/link_gfx_offset + (i * link_gfx_length),
                        /*length=*/link_gfx_length))
-    // Convert to 3bpp, then from 3bpp to 8bpp before creating bitmap.
-    auto link_sheet_3bpp = gfx::Convert4bppTo3bpp(link_sheet_data);
-    auto link_sheet_8bpp = gfx::SnesTo8bppSheet(link_sheet_3bpp, /*bpp=*/3);
+    auto link_sheet_8bpp = gfx::SnesTo8bppSheet(link_sheet_data, /*bpp=*/4);
     link_graphics_[i].Create(core::kTilesheetWidth, core::kTilesheetHeight,
                              core::kTilesheetDepth, link_sheet_8bpp);
-    RETURN_IF_ERROR(
-        link_graphics_[i].ApplyPaletteWithTransparent(link_palette_, 0));
+    RETURN_IF_ERROR(link_graphics_[i].ApplyPalette(palette_groups_.armors[0]);)
     Renderer::GetInstance().RenderBitmap(&link_graphics_[i]);
   }
-
   return absl::OkStatus();
 }
 
@@ -173,36 +168,20 @@ absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
   // Read file into rom_data_
   file.read(reinterpret_cast<char*>(rom_data_.data()), size_);
 
-  // Check if the sROM has a header
-  constexpr size_t baseROMSize = 1048576;  // 1MB
-  constexpr size_t headerSize = 0x200;     // 512 bytes
-  has_header_ = (size_ % baseROMSize == headerSize);
-
-  // Remove header if present
-  if (has_header_) {
-    auto header =
-        std::vector<uchar>(rom_data_.begin(), rom_data_.begin() + 0x200);
-    rom_data_.erase(rom_data_.begin(), rom_data_.begin() + 0x200);
-    size_ -= 0x200;
-  }
-
   // Close file
   file.close();
+
+  // Set is_loaded_ flag and return success
+  is_loaded_ = true;
 
   if (z3_load) {
     RETURN_IF_ERROR(LoadZelda3());
   }
 
-  // Expand the ROM data to 2MB without changing the data in the first 1MB
-  rom_data_.resize(baseROMSize * 2);
-  size_ = baseROMSize * 2;
-
   // Set up the resource labels
   std::string resource_label_filename = absl::StrFormat("%s.labels", filename);
   resource_label_manager_.LoadLabels(resource_label_filename);
 
-  // Set is_loaded_ flag and return success
-  is_loaded_ = true;
   return absl::OkStatus();
 }
 
@@ -216,21 +195,33 @@ absl::Status Rom::LoadFromPointer(uchar* data, size_t length, bool z3_load) {
 
   std::copy(data, data + length, rom_data_.begin());
   size_ = length;
+  is_loaded_ = true;
 
   if (z3_load) {
     RETURN_IF_ERROR(LoadZelda3());
   }
-
-  // Set is_loaded_ flag and return success
-  is_loaded_ = true;
-
   return absl::OkStatus();
 }
 
 absl::Status Rom::LoadZelda3() {
+  // Check if the ROM has a header
+  constexpr size_t baseROMSize = 1048576;  // 1MB
+  constexpr size_t headerSize = 0x200;     // 512 bytes
+  if (size_ % baseROMSize == headerSize) {
+    has_header_ = true;
+  }
+
+  // Remove header if present
+  if (has_header_) {
+    auto header =
+        std::vector<uchar>(rom_data_.begin(), rom_data_.begin() + 0x200);
+    rom_data_.erase(rom_data_.begin(), rom_data_.begin() + 0x200);
+    size_ -= 0x200;
+  }
+
+  // Copy ROM title
   constexpr uint32_t kTitleStringOffset = 0x7FC0;
   constexpr uint32_t kTitleStringLength = 20;
-  // Copy ROM title
   std::copy(rom_data_.begin() + kTitleStringOffset,
             rom_data_.begin() + kTitleStringOffset + kTitleStringLength,
             title_.begin());
@@ -239,8 +230,15 @@ absl::Status Rom::LoadZelda3() {
   } else {
     version_ = Z3_Version::US;
   }
+
+  // Load additional resources
   RETURN_IF_ERROR(gfx::LoadAllPalettes(rom_data_, palette_groups_));
   RETURN_IF_ERROR(LoadGfxGroups());
+
+  // Expand the ROM data to 2MB without changing the data in the first 1MB
+  rom_data_.resize(baseROMSize * 2);
+  size_ = baseROMSize * 2;
+
   return absl::OkStatus();
 }
 
