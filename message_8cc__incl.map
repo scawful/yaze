@@ -1,0 +1,21 @@
+<map id="src/app/core/message.cc" name="src/app/core/message.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="236,5,403,31"/>
+<area shape="rect" id="Node000002" href="$message_8h.html" title=" " alt="" coords="277,79,362,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="322,31,322,63,317,63,317,31"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,153,47,178"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="277,104,183,124,62,155,61,150,181,119,276,99"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="71,153,149,178"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="285,108,161,150,159,145,283,103"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="172,153,229,178"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="301,107,235,147,232,142,298,103"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="252,153,309,178"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="315,106,297,140,292,138,311,104"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="333,153,386,178"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="328,104,348,138,343,140,324,106"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="411,153,468,178"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="341,103,407,142,405,147,338,108"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="492,153,602,178"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="359,103,495,145,493,150,357,108"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="627,153,684,178"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="363,98,471,119,612,150,611,155,470,124,361,103"/>
+</map>

@@ -64,5 +64,5 @@ var searchData=
   ['rooms_5fsprite_5fpointer_61',['rooms_sprite_pointer',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a21aa3281b0882e27ecf96551fd127057',1,'yaze::app::zelda3::dungeon']]],
   ['roomset_5fcanvas_5f_62',['roomset_canvas_',['../classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a78e6bc6710bb1866dba09d810ffc167a',1,'yaze::app::editor::GfxGroupEditor']]],
   ['routine_5fptr_63',['routine_ptr',['../structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html#a01c21417ac7eb559881ce6e3361f8de7',1,'yaze::app::zelda3::dungeon::SubtypeInfo']]],
-  ['running_5f_64',['running_',['../classyaze_1_1app_1_1emu_1_1Emulator.html#a97c9139aa0c99b34917b8b6cb59db81c',1,'yaze::app::emu::Emulator::running_'],['../classyaze_1_1app_1_1emu_1_1SNES.html#aef94854c9b17a57a9c49f84fea0bf808',1,'yaze::app::emu::SNES::running_']]]
+  ['running_5f_64',['running_',['../classyaze_1_1app_1_1core_1_1AsyncMessageDispatcher.html#afd96e0af8d9aa027e35154b05d54a8ff',1,'yaze::app::core::AsyncMessageDispatcher::running_'],['../classyaze_1_1app_1_1emu_1_1Emulator.html#a97c9139aa0c99b34917b8b6cb59db81c',1,'yaze::app::emu::Emulator::running_'],['../classyaze_1_1app_1_1emu_1_1SNES.html#aef94854c9b17a57a9c49f84fea0bf808',1,'yaze::app::emu::SNES::running_']]]
 ];

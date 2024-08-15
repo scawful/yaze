@@ -6,19 +6,29 @@ var annotated_dup =
     [ "yaze", "namespaceyaze.html", [
       [ "app", "namespaceyaze_1_1app.html", [
         [ "core", "namespaceyaze_1_1app_1_1core.html", [
+          [ "AsyncMessageDispatcher", "classyaze_1_1app_1_1core_1_1AsyncMessageDispatcher.html", "classyaze_1_1app_1_1core_1_1AsyncMessageDispatcher" ],
           [ "Controller", "classyaze_1_1app_1_1core_1_1Controller.html", "classyaze_1_1app_1_1core_1_1Controller" ],
           [ "ExperimentFlags", "classyaze_1_1app_1_1core_1_1ExperimentFlags.html", "classyaze_1_1app_1_1core_1_1ExperimentFlags" ],
           [ "FileDialogWrapper", "classyaze_1_1app_1_1core_1_1FileDialogWrapper.html", null ],
           [ "FolderItem", "structyaze_1_1app_1_1core_1_1FolderItem.html", "structyaze_1_1app_1_1core_1_1FolderItem" ],
-          [ "GuiTestable", "classyaze_1_1app_1_1core_1_1GuiTestable.html", "classyaze_1_1app_1_1core_1_1GuiTestable" ],
+          [ "IMessageListener", "classyaze_1_1app_1_1core_1_1IMessageListener.html", "classyaze_1_1app_1_1core_1_1IMessageListener" ],
+          [ "IMessageProtocol", "classyaze_1_1app_1_1core_1_1IMessageProtocol.html", "classyaze_1_1app_1_1core_1_1IMessageProtocol" ],
           [ "ImGuiIdIssuer", "classyaze_1_1app_1_1core_1_1ImGuiIdIssuer.html", null ],
           [ "Logger", "classyaze_1_1app_1_1core_1_1Logger.html", null ],
+          [ "Message", "structyaze_1_1app_1_1core_1_1Message.html", "structyaze_1_1app_1_1core_1_1Message" ],
+          [ "MessageDispatcher", "classyaze_1_1app_1_1core_1_1MessageDispatcher.html", "classyaze_1_1app_1_1core_1_1MessageDispatcher" ],
+          [ "MessageFilter", "classyaze_1_1app_1_1core_1_1MessageFilter.html", "classyaze_1_1app_1_1core_1_1MessageFilter" ],
+          [ "Notification", "structyaze_1_1app_1_1core_1_1Notification.html", "structyaze_1_1app_1_1core_1_1Notification" ],
+          [ "NotificationCenter", "classyaze_1_1app_1_1core_1_1NotificationCenter.html", "classyaze_1_1app_1_1core_1_1NotificationCenter" ],
           [ "NotifyValue", "classyaze_1_1app_1_1core_1_1NotifyValue.html", "classyaze_1_1app_1_1core_1_1NotifyValue" ],
+          [ "ObjectFactory", "classyaze_1_1app_1_1core_1_1ObjectFactory.html", "classyaze_1_1app_1_1core_1_1ObjectFactory" ],
+          [ "Reflectable", "classyaze_1_1app_1_1core_1_1Reflectable.html", "classyaze_1_1app_1_1core_1_1Reflectable" ],
           [ "Renderer", "classyaze_1_1app_1_1core_1_1Renderer.html", "classyaze_1_1app_1_1core_1_1Renderer" ],
           [ "ResourceLabelManager", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html", "structyaze_1_1app_1_1core_1_1ResourceLabelManager" ],
           [ "SDL_Deleter", "structyaze_1_1app_1_1core_1_1SDL__Deleter.html", "structyaze_1_1app_1_1core_1_1SDL__Deleter" ],
           [ "SDL_Surface_Deleter", "structyaze_1_1app_1_1core_1_1SDL__Surface__Deleter.html", "structyaze_1_1app_1_1core_1_1SDL__Surface__Deleter" ],
-          [ "SDL_Texture_Deleter", "structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter.html", "structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter" ]
+          [ "SDL_Texture_Deleter", "structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter.html", "structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter" ],
+          [ "Swizzler", "classyaze_1_1app_1_1core_1_1Swizzler.html", "classyaze_1_1app_1_1core_1_1Swizzler" ]
         ] ],
         [ "editor", "namespaceyaze_1_1app_1_1editor.html", [
           [ "context", "namespaceyaze_1_1app_1_1editor_1_1context.html", [

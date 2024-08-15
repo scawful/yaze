@@ -119,7 +119,8 @@ var hierarchy =
       [ "yaze::app::zelda3::overworld::OverworldMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html", null ]
     ] ],
     [ "yaze::app::gui::GfxSheetAssetBrowser", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html", null ],
-    [ "yaze::app::core::GuiTestable", "classyaze_1_1app_1_1core_1_1GuiTestable.html", null ],
+    [ "yaze::app::core::IMessageListener", "classyaze_1_1app_1_1core_1_1IMessageListener.html", null ],
+    [ "yaze::app::core::IMessageProtocol", "classyaze_1_1app_1_1core_1_1IMessageProtocol.html", null ],
     [ "yaze::app::core::ImGuiIdIssuer", "classyaze_1_1app_1_1core_1_1ImGuiIdIssuer.html", null ],
     [ "ImGuiSelectionBasicStorage", null, [
       [ "yaze::app::gui::ExampleSelectionWithDeletion", "structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html", null ]
@@ -130,6 +131,7 @@ var hierarchy =
     [ "yaze::app::gfx::Tilesheet::InternalTile16", "structyaze_1_1app_1_1gfx_1_1Tilesheet_1_1InternalTile16.html", null ],
     [ "yaze::app::emu::video::JoypadRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1JoypadRegisters.html", null ],
     [ "yaze::app::emu::video::Layer", "structyaze_1_1app_1_1emu_1_1video_1_1Layer.html", null ],
+    [ "yaze::app::core::MessageDispatcher::ListenerWithFilter", "structyaze_1_1app_1_1core_1_1MessageDispatcher_1_1ListenerWithFilter.html", null ],
     [ "yaze::app::emu::Loggable", "classyaze_1_1app_1_1emu_1_1Loggable.html", [
       [ "yaze::app::emu::Cpu", "classyaze_1_1app_1_1emu_1_1Cpu.html", null ],
       [ "yaze::app::emu::memory::MemoryImpl", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html", null ]
@@ -150,7 +152,14 @@ var hierarchy =
       [ "yaze::app::emu::memory::MemoryImpl", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html", null ],
       [ "yaze::app::emu::memory::MockMemory", "classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html", null ]
     ] ],
+    [ "yaze::app::core::Message", "structyaze_1_1app_1_1core_1_1Message.html", [
+      [ "yaze::app::core::Notification", "structyaze_1_1app_1_1core_1_1Notification.html", null ]
+    ] ],
     [ "yaze::app::editor::MessageData", "structyaze_1_1app_1_1editor_1_1MessageData.html", null ],
+    [ "yaze::app::core::MessageDispatcher", "classyaze_1_1app_1_1core_1_1MessageDispatcher.html", [
+      [ "yaze::app::core::AsyncMessageDispatcher", "classyaze_1_1app_1_1core_1_1AsyncMessageDispatcher.html", null ]
+    ] ],
+    [ "yaze::app::core::MessageFilter", "classyaze_1_1app_1_1core_1_1MessageFilter.html", null ],
     [ "yaze::app::emu::MnemonicMode", "structyaze_1_1app_1_1emu_1_1MnemonicMode.html", null ],
     [ "yaze::app::emu::MnemonicModeHash", "structyaze_1_1app_1_1emu_1_1MnemonicModeHash.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::Mosaic", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html", null ],
@@ -159,6 +168,7 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::MPYM", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1MPYM.html", null ],
     [ "yaze::app::gui::MultiSelectWithClipper", "structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html", null ],
     [ "yaze::app::gui::zeml::Node", "structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html", null ],
+    [ "yaze::app::core::NotificationCenter", "classyaze_1_1app_1_1core_1_1NotificationCenter.html", null ],
     [ "yaze::app::core::NotifyValue< T >", "classyaze_1_1app_1_1core_1_1NotifyValue.html", null ],
     [ "yaze::app::core::NotifyValue< uint32_t >", "classyaze_1_1app_1_1core_1_1NotifyValue.html", null ],
     [ "yaze::app::core::NotifyValue< uint8_t >", "classyaze_1_1app_1_1core_1_1NotifyValue.html", null ],
@@ -172,6 +182,7 @@ var hierarchy =
     [ "yaze::app::editor::zsprite::OamTile", "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html", null ],
     [ "yaze::app::gfx::OamTile", "classyaze_1_1app_1_1gfx_1_1OamTile.html", null ],
     [ "yaze::app::zelda3::dungeon::object_door", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html", null ],
+    [ "yaze::app::core::ObjectFactory", "classyaze_1_1app_1_1core_1_1ObjectFactory.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::OBJSEL", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OBJSEL.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::OPHCT", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OPHCT.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::OPVCT", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OPVCT.html", null ],
@@ -194,6 +205,7 @@ var hierarchy =
     ] ],
     [ "yaze::app::zelda3::dungeon::PseudoVram", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html", null ],
     [ "yaze::app::editor::RecentFilesManager", "classyaze_1_1app_1_1editor_1_1RecentFilesManager.html", null ],
+    [ "yaze::app::core::Reflectable", "classyaze_1_1app_1_1core_1_1Reflectable.html", null ],
     [ "yaze::app::core::ResourceLabelManager", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html", null ],
     [ "yaze::app::core::ResourceLabelManager::ResourceType", "structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html", null ],
     [ "yaze::app::emu::memory::RomInfo", "classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html", null ],
@@ -249,6 +261,7 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::STAT78", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT78.html", null ],
     [ "yaze::app::editor::zsprite::SubEditor", "structyaze_1_1app_1_1editor_1_1zsprite_1_1SubEditor.html", null ],
     [ "yaze::app::zelda3::dungeon::SubtypeInfo", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html", null ],
+    [ "yaze::app::core::Swizzler", "classyaze_1_1app_1_1core_1_1Swizzler.html", null ],
     [ "testing::Test", null, [
       [ "yaze::test::RomTest", "classyaze_1_1test_1_1RomTest.html", null ],
       [ "yaze::test::emu::CpuTest", "classyaze_1_1test_1_1emu_1_1CpuTest.html", null ],

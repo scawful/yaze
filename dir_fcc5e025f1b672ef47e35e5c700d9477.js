@@ -9,6 +9,8 @@ var dir_fcc5e025f1b672ef47e35e5c700d9477 =
     [ "controller.h", "controller_8h.html", "controller_8h" ],
     [ "labeling.cc", "labeling_8cc.html", "labeling_8cc" ],
     [ "labeling.h", "labeling_8h.html", "labeling_8h" ],
-    [ "project.h", "project_8h.html", "project_8h" ],
-    [ "testable.h", "testable_8h.html", "testable_8h" ]
+    [ "message.cc", "message_8cc.html", null ],
+    [ "message.h", "message_8h.html", "message_8h" ],
+    [ "notification.h", "notification_8h.html", "notification_8h" ],
+    [ "project.h", "project_8h.html", "project_8h" ]
 ];

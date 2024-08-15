@@ -8,8 +8,9 @@ var searchData=
   ['nop_5',['NOP',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a08491a73e714c14e55a219459106063e',1,'yaze::app::emu::audio::Spc700::NOP()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a9637cbd326e98eca30f2797035851e65',1,'yaze::app::emu::Cpu::NOP()']]],
   ['not1_6',['NOT1',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ac1cce66d63f5225e0fa76ec279e02280',1,'yaze::app::emu::audio::Spc700']]],
   ['notc_7',['NOTC',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#aca963717f13985bd0b8988b89333dcd8',1,'yaze::app::emu::audio::Spc700']]],
-  ['notifyvalue_8',['NotifyValue',['../classyaze_1_1app_1_1core_1_1NotifyValue.html#a9e237459e1ec31bb6a7a75b5ebf90734',1,'yaze::app::core::NotifyValue::NotifyValue()'],['../classyaze_1_1app_1_1core_1_1NotifyValue.html#a21d574dee5d1a560da33cfccfaa0439b',1,'yaze::app::core::NotifyValue::NotifyValue(const T &amp;value)']]],
-  ['num_5ftiles_9',['num_tiles',['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a8baef78ba58fc7933571de5931735d57',1,'yaze::app::gfx::Tilesheet']]],
-  ['nx_10',['nx',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a7c4de3701d0d56a9b4361da242352b6c',1,'yaze::app::zelda3::Sprite']]],
-  ['ny_11',['ny',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#ae391c6d54a338f4d2acdc383f39324da',1,'yaze::app::zelda3::Sprite']]]
+  ['notification_8',['Notification',['../structyaze_1_1app_1_1core_1_1Notification.html#a6bf93e95319a6b68070fa4684dac50be',1,'yaze::app::core::Notification']]],
+  ['notifyvalue_9',['NotifyValue',['../classyaze_1_1app_1_1core_1_1NotifyValue.html#a9e237459e1ec31bb6a7a75b5ebf90734',1,'yaze::app::core::NotifyValue::NotifyValue()'],['../classyaze_1_1app_1_1core_1_1NotifyValue.html#a21d574dee5d1a560da33cfccfaa0439b',1,'yaze::app::core::NotifyValue::NotifyValue(const T &amp;value)']]],
+  ['num_5ftiles_10',['num_tiles',['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a8baef78ba58fc7933571de5931735d57',1,'yaze::app::gfx::Tilesheet']]],
+  ['nx_11',['nx',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a7c4de3701d0d56a9b4361da242352b6c',1,'yaze::app::zelda3::Sprite']]],
+  ['ny_12',['ny',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#ae391c6d54a338f4d2acdc383f39324da',1,'yaze::app::zelda3::Sprite']]]
 ];

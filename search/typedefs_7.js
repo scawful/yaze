@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['owblockset_0',['OWBlockset',['../namespaceyaze_1_1app_1_1zelda3.html#aec01fb1cfaa7d77c7f95166738b07dda',1,'yaze::app::zelda3']]],
-  ['owmaptiles_1',['OWMapTiles',['../namespaceyaze_1_1app_1_1zelda3.html#ae0956b7be8834150a570eff3faad7d62',1,'yaze::app::zelda3']]]
+  ['messagehandler_0',['MessageHandler',['../namespaceyaze_1_1app_1_1core.html#ab44def4db46e8e341b87deedbac5ac45',1,'yaze::app::core']]]
 ];
