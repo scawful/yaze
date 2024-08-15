@@ -15,5 +15,9 @@ var rom_8h =
     [ "kNormalGfxSpaceStart", "rom_8h.html#a3ef17b1c481a3e73d2d97a92e3995b04", null ],
     [ "kNormalGfxSpaceEnd", "rom_8h.html#a3ef7d1df5d323905102b5a1cef9d447d", null ],
     [ "kFontSpriteLocation", "rom_8h.html#a6cba51ea80792c0f6a876549882f3778", null ],
-    [ "kGfxGroupsPointer", "rom_8h.html#aad75d3fb5bdf3b72aa19e3af3209082f", null ]
+    [ "kGfxGroupsPointer", "rom_8h.html#aad75d3fb5bdf3b72aa19e3af3209082f", null ],
+    [ "kNumMainBlocksets", "rom_8h.html#aab7ae1c6c1f53dc67967ef446b6f1454", null ],
+    [ "kNumRoomBlocksets", "rom_8h.html#a223d942fccf2b7b125c99611d5aafb2f", null ],
+    [ "kNumSpritesets", "rom_8h.html#a451077027ec769e34627daf9b66f67c0", null ],
+    [ "kNumPalettesets", "rom_8h.html#ac53a28cbb330029d4c5267572cdf87f2", null ]
 ];

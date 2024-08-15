@@ -1,5 +1,11 @@
 var NAVTREEINDEX45 =
 {
+"structyaze_1_1app_1_1core_1_1SDL__Deleter.html#a0fe2ac24a808fbaa88a6b04154ebe3f3":[11,0,1,0,0,10,1],
+"structyaze_1_1app_1_1core_1_1SDL__Deleter.html#a4625aa4f089afda65d64f71e420def80":[10,0,2,0,1,12,0],
+"structyaze_1_1app_1_1core_1_1SDL__Deleter.html#a4625aa4f089afda65d64f71e420def80":[11,0,1,0,0,10,0],
+"structyaze_1_1app_1_1core_1_1SDL__Surface__Deleter.html":[10,0,2,0,1,13],
+"structyaze_1_1app_1_1core_1_1SDL__Surface__Deleter.html":[11,0,1,0,0,11],
+"structyaze_1_1app_1_1core_1_1SDL__Surface__Deleter.html#aba2fec0e329833a8fbd34e6d0eb3cd3d":[10,0,2,0,1,13,0],
 "structyaze_1_1app_1_1core_1_1SDL__Surface__Deleter.html#aba2fec0e329833a8fbd34e6d0eb3cd3d":[11,0,1,0,0,11,0],
 "structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter.html":[10,0,2,0,1,14],
 "structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter.html":[11,0,1,0,0,12],
@@ -243,11 +249,5 @@ var NAVTREEINDEX45 =
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#aacfc410659b92938ba62ef9b7fd1af0a":[11,0,1,0,1,2,1,2],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#ad49bad9b74ff6aa9a08c0d8a0036a6fc":[10,0,2,0,2,7,1,1],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#ad49bad9b74ff6aa9a08c0d8a0036a6fc":[11,0,1,0,1,2,1,1],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#ad779d1f733e79e51db14b576a4922696":[10,0,2,0,2,7,1,9],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#ad779d1f733e79e51db14b576a4922696":[11,0,1,0,1,2,1,9],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#afa3a562930e1aa2078fec5f2b9e21c3b":[10,0,2,0,2,7,1,7],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#afa3a562930e1aa2078fec5f2b9e21c3b":[11,0,1,0,1,2,1,7],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html":[10,0,2,0,2,7,2],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html":[11,0,1,0,1,2,2],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html#a5551bf8b22273217faab619c0541e729":[10,0,2,0,2,7,2,1]
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#ad779d1f733e79e51db14b576a4922696":[10,0,2,0,2,7,1,9]
 };

@@ -1,5 +1,11 @@
 var NAVTREEINDEX46 =
 {
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#ad779d1f733e79e51db14b576a4922696":[11,0,1,0,1,2,1,9],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#afa3a562930e1aa2078fec5f2b9e21c3b":[10,0,2,0,2,7,1,7],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#afa3a562930e1aa2078fec5f2b9e21c3b":[11,0,1,0,1,2,1,7],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html":[10,0,2,0,2,7,2],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html":[11,0,1,0,1,2,2],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html#a5551bf8b22273217faab619c0541e729":[10,0,2,0,2,7,2,1],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html#a5551bf8b22273217faab619c0541e729":[11,0,1,0,1,2,2,1],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html#ad9fec8eb3aa77f33f3825b89575a0c9f":[10,0,2,0,2,7,2,0],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html#ad9fec8eb3aa77f33f3825b89575a0c9f":[11,0,1,0,1,2,2,0],
@@ -243,11 +249,5 @@ var NAVTREEINDEX46 =
 "structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a60ce77139f8f6e99b3648551d0c92835":[11,0,1,0,2,1,1,6],
 "structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a898fb2edd9d32908f011653ca2e71438":[10,0,2,0,3,3,2,12],
 "structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a898fb2edd9d32908f011653ca2e71438":[11,0,1,0,2,1,1,12],
-"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a8d50909626b686fb5686aa20e77b2703":[10,0,2,0,3,3,2,2],
-"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a8d50909626b686fb5686aa20e77b2703":[11,0,1,0,2,1,1,2],
-"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#aa496c7c0204d59918d683649f22d8b3e":[10,0,2,0,3,3,2,14],
-"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#aa496c7c0204d59918d683649f22d8b3e":[11,0,1,0,2,1,1,14],
-"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#acb4fc5d9084ee149ea2d396dc60885cd":[10,0,2,0,3,3,2,13],
-"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#acb4fc5d9084ee149ea2d396dc60885cd":[11,0,1,0,2,1,1,13],
-"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#acc1a94a8370739462fd30b0869ecb690":[10,0,2,0,3,3,2,7]
+"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a8d50909626b686fb5686aa20e77b2703":[10,0,2,0,3,3,2,2]
 };

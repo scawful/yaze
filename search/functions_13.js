@@ -5,7 +5,7 @@ var searchData=
   ['savedungeonmaps_2',['SaveDungeonMaps',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa8b8ec92880eda214d23e1572b021ee2',1,'yaze::app::editor::ScreenEditor']]],
   ['saveentrances_3',['SaveEntrances',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a69e89ad16ae44607da9f95c96dd937af',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['saveexits_4',['SaveExits',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a9b3f7a2efc8903a8823f658b8a8e89ca',1,'yaze::app::zelda3::overworld::Overworld']]],
-  ['savegroupstorom_5',['SaveGroupsToRom',['../classyaze_1_1app_1_1Rom.html#a32176a26208fc061f4120781d5d69315',1,'yaze::app::Rom']]],
+  ['savegroupstorom_5',['SaveGroupsToRom',['../classyaze_1_1app_1_1Rom.html#a8c8b5544db072b46a4ed29c856069670',1,'yaze::app::Rom']]],
   ['saveitems_6',['SaveItems',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a360abadc2ddbecea2f6810e25e8d0f9b',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['savelabels_7',['SaveLabels',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aed5f6e97efa683a19fe0d63371e0d904',1,'yaze::app::core::ResourceLabelManager']]],
   ['savelargemaps_8',['SaveLargeMaps',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a3c4060bc8d8dca0ff62bf1583da07bfc',1,'yaze::app::zelda3::overworld::Overworld']]],

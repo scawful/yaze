@@ -1,5 +1,11 @@
 var NAVTREEINDEX50 =
 {
+"structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a3b0e53aef55e8afa9c037bae825671a6":[11,0,1,0,3,5,12],
+"structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a4a81950a8f35e5ef45fb53b2a8c074be":[10,0,2,0,4,7,14],
+"structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a4a81950a8f35e5ef45fb53b2a8c074be":[11,0,1,0,3,5,14],
+"structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a58a88c313cf21d850142d8ddb4df3f8f":[10,0,2,0,4,7,13],
+"structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a58a88c313cf21d850142d8ddb4df3f8f":[11,0,1,0,3,5,13],
+"structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a732269bb5e7ca5456b300caec6a568be":[10,0,2,0,4,7,8],
 "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a732269bb5e7ca5456b300caec6a568be":[11,0,1,0,3,5,8],
 "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a746919ea4b090e582dea1183f3488fd8":[10,0,2,0,4,7,11],
 "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a746919ea4b090e582dea1183f3488fd8":[11,0,1,0,3,5,11],
@@ -243,11 +249,5 @@ var NAVTREEINDEX50 =
 "structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#ad7e6555f90dc9a2765b7f74019f5eb8d":[11,0,1,0,4,0,1,5],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#ae9aae2dced3f45f0c312d189dd8fd092":[10,0,2,0,5,1,1,4],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#ae9aae2dced3f45f0c312d189dd8fd092":[11,0,1,0,4,0,1,4],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#af43f4178a6f7aea3bedf8c22c90a04ad":[10,0,2,0,5,1,1,2],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#af43f4178a6f7aea3bedf8c22c90a04ad":[11,0,1,0,4,0,1,2],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1Token.html":[10,0,2,0,5,1,2],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1Token.html":[11,0,1,0,4,0,2],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1Token.html#a053fe2582d014967f8e4068720df561f":[10,0,2,0,5,1,2,0],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1Token.html#a053fe2582d014967f8e4068720df561f":[11,0,1,0,4,0,2,0],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1Token.html#acdede365098af306630412f5454ccb6c":[10,0,2,0,5,1,2,1]
+"structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#af43f4178a6f7aea3bedf8c22c90a04ad":[10,0,2,0,5,1,1,2]
 };

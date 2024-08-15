@@ -1,7 +1,5 @@
 var NAVTREEINDEX22 =
 {
-"classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#acf32d06d3140b6b7d91f6a49607ce20a":[11,0,1,0,5,3,2,9],
-"classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#ae09803203f46716ffc481b4d2a384cc1":[10,0,2,0,6,4,2,35],
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#ae09803203f46716ffc481b4d2a384cc1":[11,0,1,0,5,3,2,35],
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#ae4dca5a0cdca67f9c3d0b398b661a354":[10,0,2,0,6,4,2,10],
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#ae4dca5a0cdca67f9c3d0b398b661a354":[11,0,1,0,5,3,2,10],
@@ -249,5 +247,7 @@ var NAVTREEINDEX22 =
 "command__handler_8h.html#a926a1f01429821b946fbc7bf6a0e1c13aed9ed6f701ea4e70b31a4af8b7c25774":[12,0,1,2,1,16,3],
 "command__handler_8h_source.html":[12,0,1,2,1],
 "command__manager_8h.html":[12,0,1,0,1,7,0],
-"command__manager_8h_source.html":[12,0,1,0,1,7,0]
+"command__manager_8h_source.html":[12,0,1,0,1,7,0],
+"common_8cc.html":[12,0,1,0,0,2],
+"common_8cc.html#a0785e35814ceaa845a06f4a6b0d2bbb0":[12,0,1,0,0,2,20]
 };

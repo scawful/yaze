@@ -27,5 +27,9 @@ var namespaceyaze_1_1app =
     [ "kNormalGfxSpaceStart", "namespaceyaze_1_1app.html#a3ef17b1c481a3e73d2d97a92e3995b04", null ],
     [ "kNormalGfxSpaceEnd", "namespaceyaze_1_1app.html#a3ef7d1df5d323905102b5a1cef9d447d", null ],
     [ "kFontSpriteLocation", "namespaceyaze_1_1app.html#a6cba51ea80792c0f6a876549882f3778", null ],
-    [ "kGfxGroupsPointer", "namespaceyaze_1_1app.html#aad75d3fb5bdf3b72aa19e3af3209082f", null ]
+    [ "kGfxGroupsPointer", "namespaceyaze_1_1app.html#aad75d3fb5bdf3b72aa19e3af3209082f", null ],
+    [ "kNumMainBlocksets", "namespaceyaze_1_1app.html#aab7ae1c6c1f53dc67967ef446b6f1454", null ],
+    [ "kNumRoomBlocksets", "namespaceyaze_1_1app.html#a223d942fccf2b7b125c99611d5aafb2f", null ],
+    [ "kNumSpritesets", "namespaceyaze_1_1app.html#a451077027ec769e34627daf9b66f67c0", null ],
+    [ "kNumPalettesets", "namespaceyaze_1_1app.html#ac53a28cbb330029d4c5267572cdf87f2", null ]
 ];
