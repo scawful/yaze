@@ -4,6 +4,7 @@ set(
   app/core/controller.cc
   app/core/labeling.cc
   app/emu/emulator.cc
+  app/core/message.cc
 )
 
 set(
