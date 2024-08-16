@@ -261,7 +261,6 @@ void EditorManager::ManageKeyboardShortcuts() {
     manager.Load();
     if (!manager.GetRecentFiles().empty()) {
       auto front = manager.GetRecentFiles().front();
-      std::cout << "Reloading: " << front << std::endl;
       OpenRomOrProject(front);
     }
   }
@@ -424,17 +423,6 @@ void EditorManager::DrawYazeMenu() {
           ImGuiWindowFlags_None);
     Text("Enter a command:");
     End();
-  }
-}
-
-void EditorManager::OpenRomOrProject(const std::string& filename) {
-  if (absl::StrContains(filename, ".yaze")) {
-    status_ = current_project_.Open(filename);
-    if (status_.ok()) {
-      status_ = OpenProject();
-    }
-  } else {
-    status_ = rom()->LoadFromFile(filename);
   }
 }
 
@@ -803,6 +791,17 @@ void EditorManager::SaveRom() {
   }
 
   status_ = rom()->SaveToFile(backup_rom_, save_new_auto_);
+}
+
+void EditorManager::OpenRomOrProject(const std::string& filename) {
+  if (absl::StrContains(filename, ".yaze")) {
+    status_ = current_project_.Open(filename);
+    if (status_.ok()) {
+      status_ = OpenProject();
+    }
+  } else {
+    status_ = rom()->LoadFromFile(filename);
+  }
 }
 
 absl::Status EditorManager::OpenProject() {
