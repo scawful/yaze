@@ -56,51 +56,52 @@ var NAVTREE =
     ] ],
     [ "Contributing", "md_docs_2contributing.html", [
       [ "Style Guide", "md_docs_2contributing.html#autotoc_md26", null ],
-      [ "Key Areas of Contribution", "md_docs_2contributing.html#autotoc_md27", [
-        [ "Extensions System", "md_docs_2contributing.html#autotoc_md28", null ],
-        [ "Sprite Builder System", "md_docs_2contributing.html#autotoc_md29", null ],
-        [ "Emulator Subsystem", "md_docs_2contributing.html#autotoc_md30", null ],
-        [ "Editor Management", "md_docs_2contributing.html#autotoc_md31", null ],
-        [ "User Interface and UX", "md_docs_2contributing.html#autotoc_md32", null ],
-        [ "ROM Manipulation", "md_docs_2contributing.html#autotoc_md33", null ],
-        [ "Testing and Documentation", "md_docs_2contributing.html#autotoc_md34", null ]
+      [ "Testing Facilities", "md_docs_2contributing.html#autotoc_md27", null ],
+      [ "Key Areas of Contribution", "md_docs_2contributing.html#autotoc_md28", [
+        [ "Extensions System", "md_docs_2contributing.html#autotoc_md29", null ],
+        [ "Sprite Builder System", "md_docs_2contributing.html#autotoc_md30", null ],
+        [ "Emulator Subsystem", "md_docs_2contributing.html#autotoc_md31", null ],
+        [ "Editor Management", "md_docs_2contributing.html#autotoc_md32", null ],
+        [ "User Interface and UX", "md_docs_2contributing.html#autotoc_md33", null ],
+        [ "ROM Manipulation", "md_docs_2contributing.html#autotoc_md34", null ],
+        [ "Testing and Documentation", "md_docs_2contributing.html#autotoc_md35", null ]
       ] ],
-      [ "Building the Project", "md_docs_2contributing.html#autotoc_md35", null ],
-      [ "Getting Started", "md_docs_2contributing.html#autotoc_md36", null ],
-      [ "Contributing your Changes", "md_docs_2contributing.html#autotoc_md37", null ]
+      [ "Building the Project", "md_docs_2contributing.html#autotoc_md36", null ],
+      [ "Getting Started", "md_docs_2contributing.html#autotoc_md37", null ],
+      [ "Contributing your Changes", "md_docs_2contributing.html#autotoc_md38", null ]
     ] ],
     [ "Infrastructure Overview", "md_docs_2infrastructure.html", [
-      [ "Targets", "md_docs_2infrastructure.html#autotoc_md44", null ],
-      [ "Directory Structure", "md_docs_2infrastructure.html#autotoc_md45", null ],
-      [ "Dependencies", "md_docs_2infrastructure.html#autotoc_md46", null ],
-      [ "Flow of Control", "md_docs_2infrastructure.html#autotoc_md47", null ],
-      [ "Rom", "md_docs_2infrastructure.html#autotoc_md48", null ],
-      [ "Bitmap", "md_docs_2infrastructure.html#autotoc_md49", null ]
+      [ "Targets", "md_docs_2infrastructure.html#autotoc_md45", null ],
+      [ "Directory Structure", "md_docs_2infrastructure.html#autotoc_md46", null ],
+      [ "Dependencies", "md_docs_2infrastructure.html#autotoc_md47", null ],
+      [ "Flow of Control", "md_docs_2infrastructure.html#autotoc_md48", null ],
+      [ "Rom", "md_docs_2infrastructure.html#autotoc_md49", null ],
+      [ "Bitmap", "md_docs_2infrastructure.html#autotoc_md50", null ]
     ] ],
     [ "Message Passing", "md_docs_2message-passing.html", [
-      [ "Overview", "md_docs_2message-passing.html#autotoc_md51", [
-        [ "Key Components", "md_docs_2message-passing.html#autotoc_md52", null ],
-        [ "Getting Started", "md_docs_2message-passing.html#autotoc_md53", [
-          [ "Setting Up the Message Dispatcher", "md_docs_2message-passing.html#autotoc_md54", null ],
-          [ "Registering Listeners", "md_docs_2message-passing.html#autotoc_md55", null ],
-          [ "Sending Messages", "md_docs_2message-passing.html#autotoc_md56", null ],
-          [ "Using Protocols and Filters", "md_docs_2message-passing.html#autotoc_md57", null ],
-          [ "Dynamic Method Binding and Swizzling", "md_docs_2message-passing.html#autotoc_md58", null ],
-          [ "Reflection and Object Creation", "md_docs_2message-passing.html#autotoc_md59", null ]
+      [ "Overview", "md_docs_2message-passing.html#autotoc_md52", [
+        [ "Key Components", "md_docs_2message-passing.html#autotoc_md53", null ],
+        [ "Getting Started", "md_docs_2message-passing.html#autotoc_md54", [
+          [ "Setting Up the Message Dispatcher", "md_docs_2message-passing.html#autotoc_md55", null ],
+          [ "Registering Listeners", "md_docs_2message-passing.html#autotoc_md56", null ],
+          [ "Sending Messages", "md_docs_2message-passing.html#autotoc_md57", null ],
+          [ "Using Protocols and Filters", "md_docs_2message-passing.html#autotoc_md58", null ],
+          [ "Dynamic Method Binding and Swizzling", "md_docs_2message-passing.html#autotoc_md59", null ],
+          [ "Reflection and Object Creation", "md_docs_2message-passing.html#autotoc_md60", null ]
         ] ],
-        [ "Using the Notification System", "md_docs_2message-passing.html#autotoc_md60", [
-          [ "Setting Up the Notification Center", "md_docs_2message-passing.html#autotoc_md61", null ],
-          [ "Adding and Removing Observers", "md_docs_2message-passing.html#autotoc_md62", null ],
-          [ "Posting Notifications", "md_docs_2message-passing.html#autotoc_md63", null ]
+        [ "Using the Notification System", "md_docs_2message-passing.html#autotoc_md61", [
+          [ "Setting Up the Notification Center", "md_docs_2message-passing.html#autotoc_md62", null ],
+          [ "Adding and Removing Observers", "md_docs_2message-passing.html#autotoc_md63", null ],
+          [ "Posting Notifications", "md_docs_2message-passing.html#autotoc_md64", null ]
         ] ]
       ] ]
     ] ],
     [ "Yet Another Zelda3 Editor", "md_README.html", [
-      [ "Description", "md_README.html#autotoc_md65", null ],
-      [ "Building and installation", "md_README.html#autotoc_md66", null ],
-      [ "Documentation", "md_README.html#autotoc_md67", null ],
-      [ "License", "md_README.html#autotoc_md68", null ],
-      [ "Screenshots", "md_README.html#autotoc_md69", null ]
+      [ "Description", "md_README.html#autotoc_md66", null ],
+      [ "Building and installation", "md_README.html#autotoc_md67", null ],
+      [ "Documentation", "md_README.html#autotoc_md68", null ],
+      [ "License", "md_README.html#autotoc_md69", null ],
+      [ "Screenshots", "md_README.html#autotoc_md70", null ]
     ] ],
     [ "Todo List", "todo.html", null ],
     [ "Deprecated List", "deprecated.html", null ],
@@ -184,13 +185,13 @@ var NAVTREEINDEX =
 "icons_8h.html#ae6f042b4db6bc702cad0e56a600da2c7",
 "input_8cc.html#a7a6e5dd24afd88fdec480761eb826800",
 "namespacemembers_vars.html",
-"namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bead43bb7d5a33aec2376fcec383643161c",
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a10759b617f42c78708923c70558ad3c3",
-"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6a4bbd51a2ad5a44d7ade9526cd71440",
-"namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a2ce01552171fe2c443f90b424ffdd398",
-"namespaceyaze_1_1test_1_1emu.html#aaf046399b660ecb2e89bfd4e1f5013a9",
-"ppu__registers_8h.html#aa1cbd3d3252bd3d5d74dcf922a7676e0",
-"scad__format_8cc.html#abbaf0d3bc11b96aee6681513c0128d26",
+"namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bead1f75ae076ac2ea547ef047ad1358346",
+"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a010e2733baa0608e0113b3cc3494b587",
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a686ed6c276186e3c03818c909b9303ca",
+"namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a1c411f9b56b338d661c91c0dbdfac795",
+"namespaceyaze_1_1test_1_1emu.html#aadab5eaa5fbc5a92d7a1a4f133239851",
+"ppu__registers_8h.html#a9dd53b42b74e95d87bbd36e697311052",
+"scad__format_8cc.html#a727d2b36d35304c829d68a5ac9851175",
 "structyaze_1_1app_1_1Rom_1_1WriteAction.html#ab4cc03fb5a0c1660ef92dc81a19d6bca",
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a27ebae9155a40156d7748893b8080aea",
 "structyaze_1_1app_1_1emu_1_1MnemonicMode.html",
@@ -198,7 +199,7 @@ var NAVTREEINDEX =
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OBJSEL.html#a11c386525602a122f22e09848742eb51",
 "structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html#ac705632560d310154f870cce2afcf91a",
 "structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html",
-"structyaze__extension.html#a98c292db5ca1e3d87858cda250e39811"
+"structyaze__extension.html#a915dc258dbe16e28b842c4d0d7f13f3e"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

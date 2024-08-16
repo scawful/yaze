@@ -109,12 +109,12 @@ $(function(){initNavTree('md_docs_2message-passing.html',''); initResizable(true
   <div class="headertitle"><div class="title">Message Passing</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md50"></a></p>
-<h1><a class="anchor" id="autotoc_md51"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md51"></a></p>
+<h1><a class="anchor" id="autotoc_md52"></a>
 Overview</h1>
 <p>yaze includes a message passing and notification system as part of its core library. Supports message filtering, dynamic method binding, swizzling, and reflection. This message system was inspired by Objective-C and Cocoa's message passing system. It aims to overcome some of the difficulties with handling events in <a class="el" href="namespaceImGui.html">ImGui</a>.</p>
 <p>This system is currently in development and most of the content here was generated using ChatGPT to help me organize my thoughts. I will be updating this document as I continue to develop the system.</p>
-<h2><a class="anchor" id="autotoc_md52"></a>
+<h2><a class="anchor" id="autotoc_md53"></a>
 Key Components</h2>
 <ul>
 <li><b>Message</b>: A basic unit of communication between components. It contains a type, sender, and an optional payload.</li>
@@ -129,9 +129,9 @@ Key Components</h2>
 <li><b>Notification</b>: A specialized message used to broadcast events to multiple observers.</li>
 <li><b>NotificationCenter</b>: A central hub for managing notifications and observers.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md53"></a>
+<h2><a class="anchor" id="autotoc_md54"></a>
 Getting Started</h2>
-<h3><a class="anchor" id="autotoc_md54"></a>
+<h3><a class="anchor" id="autotoc_md55"></a>
 1. <b>Setting Up the Message Dispatcher</b></h3>
 <p>To start using the message passing system, first create an instance of <code>MessageDispatcher</code> or <code>AsyncMessageDispatcher</code> depending on whether you need synchronous or asynchronous message handling.</p>
 <div class="fragment"><div class="line"><a class="code hl_class" href="classyaze_1_1app_1_1core_1_1MessageDispatcher.html">yaze::app::core::MessageDispatcher</a> dispatcher;</div>
@@ -142,7 +142,7 @@ Getting Started</h2>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1AsyncMessageDispatcher_html_a3fe8e1c541b94f50dfddf454eb7943dd"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1AsyncMessageDispatcher.html#a3fe8e1c541b94f50dfddf454eb7943dd">yaze::app::core::AsyncMessageDispatcher::Start</a></div><div class="ttdeci">void Start()</div><div class="ttdef"><b>Definition</b> <a href="message_8cc_source.html#l00071">message.cc:71</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1MessageDispatcher_html"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1MessageDispatcher.html">yaze::app::core::MessageDispatcher</a></div><div class="ttdef"><b>Definition</b> <a href="message_8h_source.html#l00046">message.h:46</a></div></div>
 </div><!-- fragment --><p>The EditorManager in the main yaze app will have a MessageDispatcher instance which can be injected into the various Editor components. This will allow the components to communicate with each other without needing to know about each other.</p>
-<h3><a class="anchor" id="autotoc_md55"></a>
+<h3><a class="anchor" id="autotoc_md56"></a>
 2. <b>Registering Listeners</b></h3>
 <p>Components that need to listen for messages must implement the <code>IMessageListener</code> interface and register themselves with the dispatcher.</p>
 <div class="fragment"><div class="line"><span class="keyword">class </span>MyListener : <span class="keyword">public</span> <a class="code hl_class" href="classyaze_1_1app_1_1core_1_1IMessageListener.html">yaze::app::core::IMessageListener</a> {</div>
@@ -158,13 +158,13 @@ Getting Started</h2>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1IMessageListener_html_a99fbf8d99b7ddb8a7a99600159ae0d6a"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1IMessageListener.html#a99fbf8d99b7ddb8a7a99600159ae0d6a">yaze::app::core::IMessageListener::OnMessageReceived</a></div><div class="ttdeci">virtual void OnMessageReceived(const Message &amp;message)=0</div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1MessageDispatcher_html_a656f88319faf850b5e28b7500242c017"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1MessageDispatcher.html#a656f88319faf850b5e28b7500242c017">yaze::app::core::MessageDispatcher::RegisterListener</a></div><div class="ttdeci">void RegisterListener(const std::string &amp;message_type, IMessageListener *listener)</div><div class="ttdef"><b>Definition</b> <a href="message_8cc_source.html#l00009">message.cc:9</a></div></div>
 <div class="ttc" id="astructyaze_1_1app_1_1core_1_1Message_html"><div class="ttname"><a href="structyaze_1_1app_1_1core_1_1Message.html">yaze::app::core::Message</a></div><div class="ttdef"><b>Definition</b> <a href="message_8h_source.html#l00017">message.h:17</a></div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md56"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md57"></a>
 3. <b>Sending Messages</b></h3>
 <p>To communicate between components, create a <code>Message</code> and send it through the dispatcher.</p>
 <div class="fragment"><div class="line"><a class="code hl_struct" href="structyaze_1_1app_1_1core_1_1Message.html">yaze::app::core::Message</a> message(<span class="stringliteral">&quot;MyMessageType&quot;</span>, <span class="keyword">this</span>, some_payload);</div>
 <div class="line">dispatcher.<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1MessageDispatcher.html#ac56fbc9453ad3e193ef17124181b0c42">SendMessage</a>(message);</div>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1MessageDispatcher_html_ac56fbc9453ad3e193ef17124181b0c42"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1MessageDispatcher.html#ac56fbc9453ad3e193ef17124181b0c42">yaze::app::core::MessageDispatcher::SendMessage</a></div><div class="ttdeci">void SendMessage(const Message &amp;message)</div><div class="ttdef"><b>Definition</b> <a href="message_8cc_source.html#l00037">message.cc:37</a></div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md57"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md58"></a>
 4. <b>Using Protocols and Filters</b></h3>
 <p>For more advanced message handling, you can define custom protocols and filters. Protocols can determine if they can handle a message, while filters can refine which messages are received by a listener.</p>
 <div class="fragment"><div class="line"><span class="keyword">class </span>MyProtocol : <span class="keyword">public</span> <a class="code hl_class" href="classyaze_1_1app_1_1core_1_1IMessageProtocol.html">yaze::app::core::IMessageProtocol</a> {</div>
@@ -193,7 +193,7 @@ Getting Started</h2>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1MessageFilter_html"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1MessageFilter.html">yaze::app::core::MessageFilter</a></div><div class="ttdef"><b>Definition</b> <a href="message_8h_source.html#l00038">message.h:38</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1MessageFilter_html_a0bdd16a76ced3c095558d8e4cee963c3"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1MessageFilter.html#a0bdd16a76ced3c095558d8e4cee963c3">yaze::app::core::MessageFilter::ShouldReceiveMessage</a></div><div class="ttdeci">virtual bool ShouldReceiveMessage(const Message &amp;message) const =0</div></div>
 <div class="ttc" id="astructyaze_1_1app_1_1core_1_1Message_html_adc5d40ebe2149c064c81873fe52344ca"><div class="ttname"><a href="structyaze_1_1app_1_1core_1_1Message.html#adc5d40ebe2149c064c81873fe52344ca">yaze::app::core::Message::type</a></div><div class="ttdeci">std::string type</div><div class="ttdef"><b>Definition</b> <a href="message_8h_source.html#l00018">message.h:18</a></div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md58"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md59"></a>
 5. <b>Dynamic Method Binding and Swizzling</b></h3>
 <p>To dynamically bind methods to message types or change the behavior of methods at runtime, use the <code>Swizzler</code> and <code>BindHandler</code> methods.</p>
 <div class="fragment"><div class="line">dispatcher.<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1MessageDispatcher.html#a718efac9cbc056b48f883c2810220917">BindHandler</a>(<span class="stringliteral">&quot;MyMessageType&quot;</span>, [](<span class="keyword">const</span> <a class="code hl_struct" href="structyaze_1_1app_1_1core_1_1Message.html">yaze::app::core::Message</a>&amp; message) {</div>
@@ -205,7 +205,7 @@ Getting Started</h2>
 <div class="line">  <span class="comment">// New method behavior</span></div>
 <div class="line">});</div>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1MessageDispatcher_html_a718efac9cbc056b48f883c2810220917"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1MessageDispatcher.html#a718efac9cbc056b48f883c2810220917">yaze::app::core::MessageDispatcher::BindHandler</a></div><div class="ttdeci">void BindHandler(const std::string &amp;message_type, MessageHandler handler)</div><div class="ttdef"><b>Definition</b> <a href="message_8cc_source.html#l00032">message.cc:32</a></div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md59"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md60"></a>
 6. <b>Reflection and Object Creation</b></h3>
 <p>For systems that require dynamic inspection and manipulation of objects, implement the <code>Reflectable</code> interface and use the <code>ObjectFactory</code> to create instances dynamically.</p>
 <div class="fragment"><div class="line"><span class="keyword">class </span>MyObject : <span class="keyword">public</span> <a class="code hl_class" href="classyaze_1_1app_1_1core_1_1Reflectable.html">yaze::app::core::Reflectable</a> {</div>
@@ -235,15 +235,15 @@ Getting Started</h2>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1Reflectable_html_a60b0ab33512e4b1cdcb041fbb57fb90a"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1Reflectable.html#a60b0ab33512e4b1cdcb041fbb57fb90a">yaze::app::core::Reflectable::GetPropertyNames</a></div><div class="ttdeci">virtual std::vector&lt; std::string &gt; GetPropertyNames() const =0</div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1Reflectable_html_a94c47da07919fd6a0b546649ac9720e4"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1Reflectable.html#a94c47da07919fd6a0b546649ac9720e4">yaze::app::core::Reflectable::GetTypeName</a></div><div class="ttdeci">virtual std::string GetTypeName() const =0</div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1Reflectable_html_aa26ab36308c568353e9c986c881e3c20"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1Reflectable.html#aa26ab36308c568353e9c986c881e3c20">yaze::app::core::Reflectable::GetPropertyValue</a></div><div class="ttdeci">virtual std::any GetPropertyValue(const std::string &amp;property_name) const =0</div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md60"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md61"></a>
 Using the Notification System</h2>
 <p>The yaze notification system that allows for broadcasting events to multiple observers. This is particularly useful when you need to inform several parts of the editor about a state change or event without tightly coupling them.</p>
-<h3><a class="anchor" id="autotoc_md61"></a>
+<h3><a class="anchor" id="autotoc_md62"></a>
 1. <b>Setting Up the Notification Center</b></h3>
 <p>To use notifications, create an instance of <code>NotificationCenter</code>.</p>
 <div class="fragment"><div class="line"><a class="code hl_class" href="classyaze_1_1app_1_1core_1_1NotificationCenter.html">yaze::app::core::NotificationCenter</a> notification_center;</div>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1NotificationCenter_html"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1NotificationCenter.html">yaze::app::core::NotificationCenter</a></div><div class="ttdef"><b>Definition</b> <a href="notification_8h_source.html#l00020">notification.h:20</a></div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md62"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md63"></a>
 2. <b>Adding and Removing Observers</b></h3>
 <p>Observers, which are typically components implementing the <code>IMessageListener</code> interface, can register themselves to listen for specific notifications.</p>
 <div class="fragment"><div class="line">MyListener observer;</div>
@@ -252,7 +252,7 @@ Using the Notification System</h2>
 </div><!-- fragment --><p>If an observer no longer needs to listen for notifications, it can be removed:</p>
 <div class="fragment"><div class="line">notification_center.<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1NotificationCenter.html#a8a11bba2bebbdc3dc2c4feae574a9932">RemoveObserver</a>(<span class="stringliteral">&quot;MyNotificationType&quot;</span>, &amp;observer);</div>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1NotificationCenter_html_a8a11bba2bebbdc3dc2c4feae574a9932"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1NotificationCenter.html#a8a11bba2bebbdc3dc2c4feae574a9932">yaze::app::core::NotificationCenter::RemoveObserver</a></div><div class="ttdeci">void RemoveObserver(const std::string &amp;notificationType, IMessageListener *observer)</div><div class="ttdef"><b>Definition</b> <a href="notification_8h_source.html#l00027">notification.h:27</a></div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md63"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md64"></a>
 3. <b>Posting Notifications</b></h3>
 <p>To broadcast a notification, create a <code>Notification</code> object and post it through the <code>NotificationCenter</code>. All registered observers will receive the notification.</p>
 <div class="fragment"><div class="line"><a class="code hl_struct" href="structyaze_1_1app_1_1core_1_1Notification.html">yaze::app::core::Notification</a> notification(<span class="stringliteral">&quot;MyNotificationType&quot;</span>, <span class="keyword">this</span>, some_payload);</div>
