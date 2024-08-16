@@ -112,7 +112,8 @@ $(function(){initNavTree('md_docs_2message-passing.html',''); initResizable(true
 <div class="textblock"><p><a class="anchor" id="autotoc_md50"></a></p>
 <h1><a class="anchor" id="autotoc_md51"></a>
 Overview</h1>
-<p>yaze includes a message passing and notification system as part of its core library. This system allows different parts of your application to communicate through messages, enabling a loosely coupled architecture that enhances modularity, maintainability, and scalability. The system supports advanced features such as message filtering, dynamic method binding, swizzling, and reflection, making it highly dynamic and adaptable for complex applications, including those requiring plugin or extension systems.</p>
+<p>yaze includes a message passing and notification system as part of its core library. Supports message filtering, dynamic method binding, swizzling, and reflection. This message system was inspired by Objective-C and Cocoa's message passing system. It aims to overcome some of the difficulties with handling events in <a class="el" href="namespaceImGui.html">ImGui</a>.</p>
+<p>This system is currently in development and most of the content here was generated using ChatGPT to help me organize my thoughts. I will be updating this document as I continue to develop the system.</p>
 <h2><a class="anchor" id="autotoc_md52"></a>
 Key Components</h2>
 <ul>
@@ -140,7 +141,8 @@ Getting Started</h2>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1AsyncMessageDispatcher_html"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1AsyncMessageDispatcher.html">yaze::app::core::AsyncMessageDispatcher</a></div><div class="ttdef"><b>Definition</b> <a href="message_8h_source.html#l00072">message.h:72</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1AsyncMessageDispatcher_html_a3fe8e1c541b94f50dfddf454eb7943dd"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1AsyncMessageDispatcher.html#a3fe8e1c541b94f50dfddf454eb7943dd">yaze::app::core::AsyncMessageDispatcher::Start</a></div><div class="ttdeci">void Start()</div><div class="ttdef"><b>Definition</b> <a href="message_8cc_source.html#l00071">message.cc:71</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1MessageDispatcher_html"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1MessageDispatcher.html">yaze::app::core::MessageDispatcher</a></div><div class="ttdef"><b>Definition</b> <a href="message_8h_source.html#l00046">message.h:46</a></div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md55"></a>
+</div><!-- fragment --><p>The EditorManager in the main yaze app will have a MessageDispatcher instance which can be injected into the various Editor components. This will allow the components to communicate with each other without needing to know about each other.</p>
+<h3><a class="anchor" id="autotoc_md55"></a>
 2. <b>Registering Listeners</b></h3>
 <p>Components that need to listen for messages must implement the <code>IMessageListener</code> interface and register themselves with the dispatcher.</p>
 <div class="fragment"><div class="line"><span class="keyword">class </span>MyListener : <span class="keyword">public</span> <a class="code hl_class" href="classyaze_1_1app_1_1core_1_1IMessageListener.html">yaze::app::core::IMessageListener</a> {</div>
@@ -257,10 +259,7 @@ Using the Notification System</h2>
 <div class="line">notification_center.<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1NotificationCenter.html#a69b509671e8418dcfd0ccd390b2ba006">PostNotification</a>(notification);</div>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1NotificationCenter_html_a69b509671e8418dcfd0ccd390b2ba006"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1NotificationCenter.html#a69b509671e8418dcfd0ccd390b2ba006">yaze::app::core::NotificationCenter::PostNotification</a></div><div class="ttdeci">void PostNotification(const Notification &amp;notification)</div><div class="ttdef"><b>Definition</b> <a href="notification_8h_source.html#l00035">notification.h:35</a></div></div>
 <div class="ttc" id="astructyaze_1_1app_1_1core_1_1Notification_html"><div class="ttname"><a href="structyaze_1_1app_1_1core_1_1Notification.html">yaze::app::core::Notification</a></div><div class="ttdef"><b>Definition</b> <a href="notification_8h_source.html#l00015">notification.h:15</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md64"></a>
-Extending the System</h2>
-<p>This system is designed to be highly extensible. You can create plugins that register their own message handlers, protocols, and dynamic behaviors. Additionally, the use of method swizzling and reflection allows for runtime changes to object behavior and properties, making this system ideal for applications that require a high degree of flexibility and modularity. </p>
-</div></div><!-- contents -->
+</div><!-- fragment --> </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->
 <!-- start footer part -->

@@ -1,6 +1,5 @@
 var NAVTREEINDEX39 =
 {
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a010e2733baa0608e0113b3cc3494b587":[11,0,2,0,4,1,75],
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a10759b617f42c78708923c70558ad3c3":[11,0,2,0,4,1,76],
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a1096bfd9b8cd35b662338aff6dfdfd02":[11,0,2,0,4,1,69],
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a11694c65d1aa9358f9d4e5d041630a5e":[11,0,2,0,4,1,39],
@@ -249,5 +248,6 @@ var NAVTREEINDEX39 =
 "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a5a2dba6c66b6af619e21140e6ab884f1":[11,0,2,0,6,1,117],
 "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6189ca775c0bc0e86285c2a3d63c055b":[11,0,2,0,6,1,91],
 "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6461857648cc083161b4d51256290d38":[11,0,2,0,6,1,96],
-"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a67911e9e26c4053ada7caa675a16f8b0":[11,0,2,0,6,1,97]
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a67911e9e26c4053ada7caa675a16f8b0":[11,0,2,0,6,1,97],
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a686ed6c276186e3c03818c909b9303ca":[11,0,2,0,6,1,75]
 };

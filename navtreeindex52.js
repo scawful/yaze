@@ -1,6 +1,5 @@
 var NAVTREEINDEX52 =
 {
-"structyaze__extension.html#a915dc258dbe16e28b842c4d0d7f13f3e":[12,0,9,8],
 "structyaze__extension.html#a98c292db5ca1e3d87858cda250e39811":[12,0,9,4],
 "structyaze__extension.html#a99596502df4c2037a9d22c4f555435ae":[12,0,9,3],
 "structyaze__extension.html#ab5caaa7a8474cc7490939408ac19f9b6":[12,0,9,6],

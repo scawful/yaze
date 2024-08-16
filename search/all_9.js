@@ -109,7 +109,7 @@ var searchData=
   ['and_20branching_106',['Loops and Branching',['../md_docs_2asm-style-guide.html#autotoc_md8',1,'']]],
   ['and_20documentation_107',['7. Testing and Documentation',['../md_docs_2contributing.html#autotoc_md34',1,'']]],
   ['and_20filters_20strong_108',['4. &lt;strong&gt;Using Protocols and Filters&lt;/strong&gt;',['../md_docs_2message-passing.html#autotoc_md57',1,'']]],
-  ['and_20installation_109',['Building and installation',['../md_README.html#autotoc_md67',1,'']]],
+  ['and_20installation_109',['Building and installation',['../md_README.html#autotoc_md66',1,'']]],
   ['and_20object_20creation_20strong_110',['6. &lt;strong&gt;Reflection and Object Creation&lt;/strong&gt;',['../md_docs_2message-passing.html#autotoc_md59',1,'']]],
   ['and_20removing_20observers_20strong_111',['2. &lt;strong&gt;Adding and Removing Observers&lt;/strong&gt;',['../md_docs_2message-passing.html#autotoc_md62',1,'']]],
   ['and_20swizzling_20strong_112',['5. &lt;strong&gt;Dynamic Method Binding and Swizzling&lt;/strong&gt;',['../md_docs_2message-passing.html#autotoc_md58',1,'']]],

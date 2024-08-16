@@ -154,31 +154,32 @@ Dependencies</h1>
 <h1><a class="anchor" id="autotoc_md47"></a>
 Flow of Control</h1>
 <ul>
-<li><a href="../src/app/yaze.cc">app/yaze.cc</a><ul>
+<li><a class="el" href="app_2yaze_8cc.html">app/yaze.cc</a><ul>
 <li>Initializes <code>absl::FailureSignalHandler</code> for stack tracing.</li>
 <li>Runs the <code>core::Controller</code> loop.</li>
 </ul>
 </li>
-<li><a href="../src/app/core/controller.cc">app/core/controller.cc</a><ul>
+<li><a class="el" href="controller_8cc.html">app/core/controller.cc</a><ul>
 <li>Initializes SDLRenderer and SDLWindow</li>
 <li>Initializes <a class="el" href="namespaceImGui.html">ImGui</a>, fonts, themes, and clipboard.</li>
 <li>Handles user input from keyboard and mouse.</li>
-<li>Updates <code>editor::MasterEditor</code></li>
 <li>Renders the output to the screen.</li>
 <li>Handles the teardown of SDL and <a class="el" href="namespaceImGui.html">ImGui</a> resources.</li>
 </ul>
 </li>
-<li><a href="../src/app/editor/editor_manager.cc">app/editor/editor_manager.cc</a><ul>
+<li><a class="el" href="editor__manager_8cc.html">app/editor/editor_manager.cc</a><ul>
 <li>Handles the main menu bar</li>
 <li>Handles <code>absl::Status</code> errors as popups delivered to the user.</li>
+<li>Dispatches messages to the various editors.</li>
 <li>Update all the editors in a tab view.<ul>
-<li><a href="../src/app/editor/assembly_editor.cc">app/editor/assembly_editor.cc</a></li>
-<li><a href="../src/app/editor/dungeon_editor.cc">app/editor/dungeon_editor.cc</a></li>
-<li><a href="../src/app/editor/graphics_editor.cc">app/editor/graphics_editor.cc</a></li>
-<li><a href="../src/app/editor/music_editor.cc">app/editor/music_editor.cc</a></li>
-<li><a href="../src/app/editor/overworld/overworld_editor.cc">app/editor/overworld/overworld_editor.cc</a></li>
-<li><a href="../src/app/editor/screen_editor.cc">app/editor/screen_editor.cc</a></li>
-<li><a href="../src/app/editor/sprite_editor.cc">app/editor/sprite_editor.cc</a></li>
+<li><a class="el" href="assembly__editor_8cc.html">app/editor/code/assembly_editor.cc</a></li>
+<li><a class="el" href="dungeon__editor_8cc.html">app/editor/dungeon/dungeon_editor.cc</a></li>
+<li><a class="el" href="graphics__editor_8cc.html">app/editor/graphics/graphics_editor.cc</a></li>
+<li><a class="el" href="music__editor_8cc.html">app/editor/music/music_editor.cc</a></li>
+<li><a class="el" href="overworld__editor_8cc.html">app/editor/overworld/overworld_editor.cc</a></li>
+<li><a class="el" href="screen__editor_8cc.html">app/editor/graphics/screen_editor.cc</a></li>
+<li>app/editor/sprites/sprite_editor.cc</li>
+<li><a class="el" href="settings__editor_8cc.html">app/editor/system/settings_editor.cc</a></li>
 </ul>
 </li>
 </ul>
@@ -187,15 +188,16 @@ Flow of Control</h1>
 <h1><a class="anchor" id="autotoc_md48"></a>
 Rom</h1>
 <ul>
-<li><a href="../src/app/rom.cc">app/rom.cc</a></li>
-<li><a href="../src/app/rom.h">app/rom.h</a></li>
+<li><a class="el" href="rom_8cc.html">app/rom.cc</a></li>
+<li><a class="el" href="rom_8h.html">app/rom.h</a></li>
 </ul>
-<p>The <code>Rom</code> class provides methods to manipulate and access data from a ROM.</p>
+<p>The Rom class provides methods to manipulate and access data from a ROM.</p>
+<p>Currently implemented as a singleton with SharedRom which is not great but has helped with development velocity. Potential room for improvement is to refactor the editors to take the ROM as a parameter.</p>
 <h1><a class="anchor" id="autotoc_md49"></a>
 Bitmap</h1>
 <ul>
-<li><a href="../src/app/gfx/bitmap.cc">app/gfx/bitmap.cc</a></li>
-<li><a href="../src/app/gfx/bitmap.cc">app/gfx/bitmap.h</a></li>
+<li><a class="el" href="bitmap_8cc.html">app/gfx/bitmap.cc</a></li>
+<li><a class="el" href="bitmap_8h.html">app/gfx/bitmap.h</a></li>
 </ul>
 <p>This class is responsible for creating, managing, and manipulating bitmap data, which can be displayed on the screen using SDL2 Textures and the <a class="el" href="namespaceImGui.html">ImGui</a> draw list. It also provides functions for exporting these bitmaps to the clipboard in PNG format using libpng. </p>
 </div></div><!-- contents -->

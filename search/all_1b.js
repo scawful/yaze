@@ -56,7 +56,7 @@ var searchData=
   ['screendisplay_53',['ScreenDisplay',['../structyaze_1_1app_1_1emu_1_1video_1_1ScreenDisplay.html',1,'yaze::app::emu::video']]],
   ['screeneditor_54',['ScreenEditor',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html',1,'yaze::app::editor::ScreenEditor'],['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a57e1846d63486b8115f219d85f3c25f0',1,'yaze::app::editor::ScreenEditor::ScreenEditor()']]],
   ['screenmode_55',['ScreenMode',['../structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html',1,'yaze::app::emu::video']]],
-  ['screenshots_56',['Screenshots',['../md_README.html#autotoc_md70',1,'']]],
+  ['screenshots_56',['Screenshots',['../md_README.html#autotoc_md69',1,'']]],
   ['scroll_5fmod_5fx_5f_57',['scroll_mod_x_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a4c279851222f22c056f6eec0f63e30d1',1,'yaze::app::zelda3::overworld::OverworldExit']]],
   ['scroll_5fmod_5fy_5f_58',['scroll_mod_y_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a13b80fcd396ae1ee67a5e4985142c4ba',1,'yaze::app::zelda3::overworld::OverworldExit']]],
   ['scroll_5fprev2_5f_59',['scroll_prev2_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#aafba95e65bfe8d3735664e101d3a8510',1,'yaze::app::emu::video::Ppu']]],
@@ -507,5 +507,5 @@ var searchData=
   ['symbols_504',['Labels and Symbols',['../md_docs_2asm-style-guide.html#autotoc_md3',1,'']]],
   ['sync_5fcycle_5f_505',['sync_cycle_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a53b7d3cab53fc715b1d2faf766b320cd',1,'yaze::app::emu::SNES']]],
   ['synccycles_506',['SyncCycles',['../classyaze_1_1app_1_1emu_1_1SNES.html#a30e9981a3dcb64b7ef7d91e1b9ea0d54',1,'yaze::app::emu::SNES']]],
-  ['system_507',['System',['../md_docs_2contributing.html#autotoc_md28',1,'1. Extensions System'],['../md_docs_2contributing.html#autotoc_md29',1,'2. Sprite Builder System'],['../md_docs_2message-passing.html#autotoc_md64',1,'Extending the System'],['../md_docs_2message-passing.html#autotoc_md60',1,'Using the Notification System']]]
+  ['system_507',['System',['../md_docs_2contributing.html#autotoc_md28',1,'1. Extensions System'],['../md_docs_2contributing.html#autotoc_md29',1,'2. Sprite Builder System'],['../md_docs_2message-passing.html#autotoc_md60',1,'Using the Notification System']]]
 ];

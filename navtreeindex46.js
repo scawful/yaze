@@ -1,6 +1,5 @@
 var NAVTREEINDEX46 =
 {
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a27ebae9155a40156d7748893b8080aea":[11,0,2,0,2,24,1,16],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a27ebae9155a40156d7748893b8080aea":[12,0,1,0,1,19,1,16],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a2d2e890d1aade0de54e7cb4bc29c5d8f":[11,0,2,0,2,24,1,4],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a2d2e890d1aade0de54e7cb4bc29c5d8f":[12,0,1,0,1,19,1,4],
@@ -249,5 +248,6 @@ var NAVTREEINDEX46 =
 "structyaze_1_1app_1_1emu_1_1Input.html#a4bd6913899d0154cd0b483054e4cac02":[11,0,2,0,3,11,1],
 "structyaze_1_1app_1_1emu_1_1Input.html#a4bd6913899d0154cd0b483054e4cac02":[12,0,1,0,2,9,1],
 "structyaze_1_1app_1_1emu_1_1Input.html#af8b655a657a9717d2846e801332dccaa":[11,0,2,0,3,11,3],
-"structyaze_1_1app_1_1emu_1_1Input.html#af8b655a657a9717d2846e801332dccaa":[12,0,1,0,2,9,3]
+"structyaze_1_1app_1_1emu_1_1Input.html#af8b655a657a9717d2846e801332dccaa":[12,0,1,0,2,9,3],
+"structyaze_1_1app_1_1emu_1_1MnemonicMode.html":[11,0,2,0,3,15]
 };

@@ -183,7 +183,7 @@ var searchData=
   ['buildbitmap_180',['BuildBitmap',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa5f5de6ba6a9981025112ad3a82f12ff',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['builddictionaryentries_181',['BuildDictionaryEntries',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#ace1256aebd3505dbc421d28e711f2068',1,'yaze::app::editor::MessageEditor']]],
   ['builder_20system_182',['2. Sprite Builder System',['../md_docs_2contributing.html#autotoc_md29',1,'']]],
-  ['building_20and_20installation_183',['Building and installation',['../md_README.html#autotoc_md67',1,'']]],
+  ['building_20and_20installation_183',['Building and installation',['../md_README.html#autotoc_md66',1,'']]],
   ['building_20the_20project_184',['Building the Project',['../md_docs_2contributing.html#autotoc_md35',1,'']]],
   ['buildmap_185',['BuildMap',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ae92286a9910136f008547268b1e6e415',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['buildproperties_186',['BuildProperties',['../classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html#a22502207fa71c2073b1db111364d5c09',1,'yaze::app::zelda3::SpriteBuilder']]],
