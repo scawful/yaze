@@ -35,7 +35,7 @@ class NotificationCenter {
   void PostNotification(const Notification& notification) {
     const auto& observerList = observers[notification.type];
     for (auto observer : observerList) {
-      observer->onMessageReceived(notification);
+      observer->OnMessageReceived(notification);
     }
   }
 
