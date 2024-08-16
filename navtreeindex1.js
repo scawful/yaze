@@ -1,5 +1,7 @@
 var NAVTREEINDEX1 =
 {
+"classsample_1_1YazePyExtension.html#a37f3c3042e2d884f8996742d0643572e":[12,0,0,0,2],
+"classsample_1_1YazePyExtension.html#a7985768d15fd8340de8ac1a073858132":[11,0,1,0,4],
 "classsample_1_1YazePyExtension.html#a7985768d15fd8340de8ac1a073858132":[12,0,0,0,4],
 "classsample_1_1YazePyExtension.html#a9ebe9f4913fb5338642a8000726add6e":[11,0,1,0,10],
 "classsample_1_1YazePyExtension.html#a9ebe9f4913fb5338642a8000726add6e":[12,0,0,0,10],
@@ -247,7 +249,5 @@ var NAVTREEINDEX1 =
 "classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7":[12,0,1,0,0,2,4],
 "classyaze_1_1app_1_1core_1_1ExperimentFlags.html#adfe896cce0f2a15e43e80667c0f46dd0":[11,0,2,0,1,4,2],
 "classyaze_1_1app_1_1core_1_1ExperimentFlags.html#adfe896cce0f2a15e43e80667c0f46dd0":[12,0,1,0,0,2,2],
-"classyaze_1_1app_1_1core_1_1FileDialogWrapper.html":[11,0,2,0,1,5],
-"classyaze_1_1app_1_1core_1_1FileDialogWrapper.html":[12,0,1,0,0,3],
-"classyaze_1_1app_1_1core_1_1IMessageListener.html":[11,0,2,0,1,7]
+"classyaze_1_1app_1_1core_1_1FileDialogWrapper.html":[11,0,2,0,1,5]
 };

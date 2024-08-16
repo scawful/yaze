@@ -1,5 +1,7 @@
 var NAVTREEINDEX38 =
 {
+"namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111beac1b745637d21e826ddc70aed14d3ff1d":[11,0,2,0,3,18,8],
+"namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bead1e184db8889c39a379adbf7f3494217":[11,0,2,0,3,18,11],
 "namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bead1f75ae076ac2ea547ef047ad1358346":[11,0,2,0,3,18,13],
 "namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bead43bb7d5a33aec2376fcec383643161c":[11,0,2,0,3,18,27],
 "namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bead44ed864e421867b99c29a0c6391083b":[11,0,2,0,3,18,17],
@@ -247,7 +249,5 @@ var NAVTREEINDEX38 =
 "namespaceyaze_1_1app_1_1gfx.html#afca5c6d2c283689f3def35935d0ace6e":[11,0,2,0,4,61],
 "namespaceyaze_1_1app_1_1gfx.html#afe2b409c93b8b037b20a8d4ac2df3353":[11,0,2,0,4,46],
 "namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html":[11,0,2,0,4,0],
-"namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#a94dc5ccbe969297d607afd1821c3d118":[11,0,2,0,4,0,0],
-"namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#ae7f2ff7c05fc2ee1712a7c71dc95a37a":[11,0,2,0,4,0,1],
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html":[11,0,2,0,4,1]
+"namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#a94dc5ccbe969297d607afd1821c3d118":[11,0,2,0,4,0,0]
 };

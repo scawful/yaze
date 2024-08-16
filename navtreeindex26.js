@@ -1,5 +1,7 @@
 var NAVTREEINDEX26 =
 {
+"dma_8h_source.html":[13,0,1,0,2,3,1],
+"dma__channel_8h.html":[13,0,1,0,2,3,2],
 "dma__channel_8h.html#a4325dc93396259dd574f1198e94a11ef":[13,0,1,0,2,3,2,1],
 "dma__channel_8h_source.html":[13,0,1,0,2,3,2],
 "dsp_8cc.html":[13,0,1,0,2,0,3],
@@ -247,7 +249,5 @@ var NAVTREEINDEX26 =
 "gfx__group__editor_8h.html":[13,0,1,0,1,2,1],
 "gfx__group__editor_8h_source.html":[13,0,1,0,1,2,1],
 "globals.html":[13,1,0],
-"globals.html":[13,1,0,0],
-"globals_b.html":[13,1,0,1],
-"globals_c.html":[13,1,0,2]
+"globals.html":[13,1,0,0]
 };
