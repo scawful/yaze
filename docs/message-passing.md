@@ -2,7 +2,9 @@
 
 ## Overview
 
-yaze includes a message passing and notification system as part of its core library. This system allows different parts of your application to communicate through messages, enabling a loosely coupled architecture that enhances modularity, maintainability, and scalability. The system supports advanced features such as message filtering, dynamic method binding, swizzling, and reflection, making it highly dynamic and adaptable for complex applications, including those requiring plugin or extension systems.
+yaze includes a message passing and notification system as part of its core library. Supports message filtering, dynamic method binding, swizzling, and reflection. This message system was inspired by Objective-C and Cocoa's message passing system. It aims to overcome some of the difficulties with handling events in ImGui.
+
+This system is currently in development and most of the content here was generated using ChatGPT to help me organize my thoughts. I will be updating this document as I continue to develop the system.
 
 ### Key Components
 
@@ -30,6 +32,8 @@ yaze::app::core::MessageDispatcher dispatcher;
 yaze::app::core::AsyncMessageDispatcher async_dispatcher;
 async_dispatcher.Start();
 ```
+
+The EditorManager in the main yaze app will have a MessageDispatcher instance which can be injected into the various Editor components. This will allow the components to communicate with each other without needing to know about each other.
 
 #### 2. **Registering Listeners**
 
@@ -159,7 +163,3 @@ To broadcast a notification, create a `Notification` object and post it through 
 yaze::app::core::Notification notification("MyNotificationType", this, some_payload);
 notification_center.PostNotification(notification);
 ```
-
-### Extending the System
-
-This system is designed to be highly extensible. You can create plugins that register their own message handlers, protocols, and dynamic behaviors. Additionally, the use of method swizzling and reflection allows for runtime changes to object behavior and properties, making this system ideal for applications that require a high degree of flexibility and modularity.
