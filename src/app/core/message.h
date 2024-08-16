@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "absl/status/status.h"
+
 namespace yaze {
 namespace app {
 namespace core {
@@ -26,7 +28,7 @@ struct Message {
 class IMessageListener {
  public:
   virtual ~IMessageListener() = default;
-  virtual void OnMessageReceived(const Message& message) = 0;
+  virtual absl::Status OnMessageReceived(const Message& message) = 0;
 };
 
 class IMessageProtocol {
@@ -108,6 +110,8 @@ class Reflectable {
   virtual std::any GetPropertyValue(const std::string& property_name) const = 0;
   virtual void SetPropertyValue(const std::string& property_name,
                                 const std::any& value) = 0;
+  virtual std::any InvokeMethod(const std::string& method_name,
+                                const std::vector<std::any>& args) = 0;
 };
 
 class ObjectFactory {
