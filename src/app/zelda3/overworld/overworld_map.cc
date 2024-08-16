@@ -1,7 +1,5 @@
 #include "overworld_map.h"
 
-#include "imgui/imgui.h"
-
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -14,6 +12,7 @@
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {
@@ -211,6 +210,11 @@ void OverworldMap::LoadAreaGraphicsBlocksets() {
   }
 }
 
+// TODO: Change the conditions for death mountain gfx
+// JaredBrian: This is how ZS did it, but in 3.0.4 I changed it to just check
+// for 03, 05, 07, and the DW ones as that's how it would appear in-game if you
+// were to make area 03 not a large area anymore for example, so you might want
+// to do the same.
 void OverworldMap::LoadDeathMountainGFX() {
   static_graphics_[7] = (((parent_ >= 0x03 && parent_ <= 0x07) ||
                           (parent_ >= 0x0B && parent_ <= 0x0E)) ||
