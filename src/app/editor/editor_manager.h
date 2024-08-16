@@ -8,6 +8,7 @@
 #include "absl/status/status.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
+#include "app/core/message.h"
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/code/memory_editor.h"
@@ -18,9 +19,9 @@
 #include "app/editor/message/message_editor.h"
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
-#include "app/editor/system/settings_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/extension_manager.h"
+#include "app/editor/system/settings_editor.h"
 #include "app/editor/utils/gfx_context.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/snes_palette.h"
@@ -81,7 +82,6 @@ class EditorManager : public SharedRom,
  private:
   void ManageActiveEditors();
   void ManageKeyboardShortcuts();
-  void OpenRomOrProject(const std::string& filename);
 
   void DrawFileDialog();
   void DrawStatusPopup();
@@ -94,6 +94,7 @@ class EditorManager : public SharedRom,
   void LoadRom();
   void SaveRom();
 
+  void OpenRomOrProject(const std::string& filename);
   absl::Status OpenProject();
 
   bool quit_ = false;
@@ -112,6 +113,7 @@ class EditorManager : public SharedRom,
   Project current_project_;
   yaze_editor_context editor_context_;
   ExtensionManager extension_manager_;
+  core::MessageDispatcher dispatcher_;
 
   AssemblyEditor assembly_editor_;
   DungeonEditor dungeon_editor_;
