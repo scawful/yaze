@@ -36,8 +36,11 @@ using ImGui::Selectable;
 using ImGui::Separator;
 using ImGui::Text;
 
+constexpr uint32_t kBlackColor = IM_COL32(0, 0, 0, 255);
 constexpr uint32_t kRectangleColor = IM_COL32(32, 32, 32, 255);
-constexpr uint32_t kRectangleBorder = IM_COL32(255, 255, 255, 255);
+constexpr uint32_t kWhiteColor = IM_COL32(255, 255, 255, 255);
+constexpr uint32_t kOutlineRect = IM_COL32(255, 255, 255, 200);
+
 constexpr ImGuiButtonFlags kMouseFlags =
     ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight;
 
@@ -73,7 +76,7 @@ void Canvas::DrawBackground(ImVec2 canvas_size, bool can_drag) {
 
   // Draw border and background color
   draw_list_->AddRectFilled(canvas_p0_, canvas_p1_, kRectangleColor);
-  draw_list_->AddRect(canvas_p0_, canvas_p1_, kRectangleBorder);
+  draw_list_->AddRect(canvas_p0_, canvas_p1_, kWhiteColor);
 
   ImGui::InvisibleButton(
       canvas_id_.c_str(),
@@ -407,7 +410,7 @@ void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
                         canvas_p0_.y + drag_start_pos.y);
     auto end = ImVec2(canvas_p0_.x + drag_end_pos.x + tile_size,
                       canvas_p0_.y + drag_end_pos.y + tile_size);
-    draw_list_->AddRect(start, end, kRectangleBorder);
+    draw_list_->AddRect(start, end, kWhiteColor);
     dragging = true;
   }
 
@@ -476,7 +479,7 @@ void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, float scale) {
                        ImVec2(canvas_p0_.x, canvas_p0_.y),
                        ImVec2(canvas_p0_.x + (bitmap.width() * scale),
                               canvas_p0_.y + (bitmap.height() * scale)));
-  draw_list_->AddRect(canvas_p0_, canvas_p1_, kRectangleBorder);
+  draw_list_->AddRect(canvas_p0_, canvas_p1_, kWhiteColor);
 }
 
 void Canvas::DrawBitmap(const Bitmap &bitmap, int x_offset, int y_offset,
@@ -513,7 +516,7 @@ void Canvas::DrawOutline(int x, int y, int w, int h) {
                 canvas_p0_.y + scrolling_.y + y);
   ImVec2 size(canvas_p0_.x + scrolling_.x + x + w,
               canvas_p0_.y + scrolling_.y + y + h);
-  draw_list_->AddRect(origin, size, IM_COL32(255, 255, 255, 200), 0, 0, 1.5f);
+  draw_list_->AddRect(origin, size, kOutlineRect, 0, 0, 1.5f);
 }
 
 void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color) {
@@ -609,29 +612,31 @@ void Canvas::DrawRect(int x, int y, int w, int h, ImVec4 color) {
   // Add a black outline
   ImVec2 outline_origin(origin.x - 1, origin.y - 1);
   ImVec2 outline_size(size.x + 1, size.y + 1);
-  draw_list_->AddRect(outline_origin, outline_size, IM_COL32(0, 0, 0, 255));
+  draw_list_->AddRect(outline_origin, outline_size, kBlackColor);
 }
 
 void Canvas::DrawText(std::string text, int x, int y) {
   draw_list_->AddText(ImVec2(canvas_p0_.x + scrolling_.x + x + 1,
                              canvas_p0_.y + scrolling_.y + y + 1),
-                      IM_COL32(0, 0, 0, 255), text.data());
+                      kBlackColor, text.data());
   draw_list_->AddText(
       ImVec2(canvas_p0_.x + scrolling_.x + x, canvas_p0_.y + scrolling_.y + y),
-      IM_COL32(255, 255, 255, 255), text.data());
+      kWhiteColor, text.data());
 }
 
 void Canvas::DrawGridLines(float grid_step) {
+  const uint32_t grid_color = IM_COL32(200, 200, 200, 50);
+  const float grid_thickness = 0.5f;
   for (float x = fmodf(scrolling_.x, grid_step);
        x < canvas_sz_.x * global_scale_; x += grid_step)
     draw_list_->AddLine(ImVec2(canvas_p0_.x + x, canvas_p0_.y),
-                        ImVec2(canvas_p0_.x + x, canvas_p1_.y),
-                        IM_COL32(200, 200, 200, 50), 0.5f);
+                        ImVec2(canvas_p0_.x + x, canvas_p1_.y), grid_color,
+                        grid_thickness);
   for (float y = fmodf(scrolling_.y, grid_step);
        y < canvas_sz_.y * global_scale_; y += grid_step)
     draw_list_->AddLine(ImVec2(canvas_p0_.x, canvas_p0_.y + y),
-                        ImVec2(canvas_p1_.x, canvas_p0_.y + y),
-                        IM_COL32(200, 200, 200, 50), 0.5f);
+                        ImVec2(canvas_p1_.x, canvas_p0_.y + y), grid_color,
+                        grid_thickness);
 }
 
 void Canvas::DrawInfoGrid(float grid_step, int tile_id_offset, int label_id) {
@@ -660,7 +665,7 @@ void Canvas::DrawInfoGrid(float grid_step, int tile_id_offset, int label_id) {
           draw_list_->AddText(
               ImVec2(canvas_p0_.x + x + (grid_step / 2) - tile_id_offset,
                      canvas_p0_.y + y + (grid_step / 2) - tile_id_offset),
-              IM_COL32(255, 255, 255, 255), label.data());
+              kWhiteColor, label.data());
         }
       }
     }
@@ -699,7 +704,7 @@ void Canvas::DrawGrid(float grid_step, int tile_id_offset) {
           std::string hex_id = absl::StrFormat("%02X", tile_id);
           draw_list_->AddText(ImVec2(canvas_p0_.x + x + (grid_step / 2) - 4,
                                      canvas_p0_.y + y + (grid_step / 2) - 4),
-                              IM_COL32(255, 255, 255, 255), hex_id.data());
+                              kWhiteColor, hex_id.data());
         }
       }
     }
@@ -721,7 +726,7 @@ void Canvas::DrawGrid(float grid_step, int tile_id_offset) {
           draw_list_->AddText(
               ImVec2(canvas_p0_.x + x + (grid_step / 2) - tile_id_offset,
                      canvas_p0_.y + y + (grid_step / 2) - tile_id_offset),
-              IM_COL32(255, 255, 255, 255), label.data());
+              kWhiteColor, label.data());
         }
       }
     }
@@ -735,7 +740,7 @@ void Canvas::DrawOverlay() {
     draw_list_->AddRect(
         ImVec2(origin.x + points_[n].x, origin.y + points_[n].y),
         ImVec2(origin.x + points_[n + 1].x, origin.y + points_[n + 1].y),
-        IM_COL32(255, 255, 255, 255), 1.0f);
+        kWhiteColor, 1.0f);
   }
 
   if (!selected_points_.empty()) {
@@ -744,7 +749,7 @@ void Canvas::DrawOverlay() {
                                  origin.y + selected_points_[n].y),
                           ImVec2(origin.x + selected_points_[n + 1].x + 0x10,
                                  origin.y + selected_points_[n + 1].y + 0x10),
-                          IM_COL32(255, 255, 255, 255), 1.0f);
+                          kWhiteColor, 1.0f);
     }
   }
 
