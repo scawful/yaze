@@ -21,6 +21,7 @@ The goal of yaze is to build a cross platform editor for the Legend of Zelda: A 
 - **docs**: Contains documentation for users and developers.
 - **src**: Contains source files. 
   - **app**:  Contains the GUI editor `yaze`
+  - **app/emu**:  Contains a standalone Snes emulator application `yaze_emu`
   - **base**: Contains the base data headers for `yaze_c`
   - **cli**:  Contains the command line interface `z3ed`
   - **ext**:  Contains the extensions library `yaze_ext`
@@ -58,10 +59,14 @@ See [build-instructions.md](docs/build-instructions.md) for more information.
     - app/editor/code/assembly_editor.cc
     - app/editor/dungeon/dungeon_editor.cc
     - app/editor/graphics/graphics_editor.cc
+    - app/editor/graphics/gfx_group_editor.cc
+    - app/editor/graphics/palette_editor.cc
+    - app/editor/graphics/tile16_editor.cc
+    - app/editor/message/message_editor.cc
     - app/editor/music/music_editor.cc
     - app/editor/overworld/overworld_editor.cc
     - app/editor/graphics/screen_editor.cc
-    - app/editor/sprites/sprite_editor.cc
+    - app/editor/sprite/sprite_editor.cc
     - app/editor/system/settings_editor.cc
 
 ## Rom
