@@ -18,6 +18,11 @@ Python Code should follow the [PEP 8 Style Guide](https://pep8.org/).
 
 Assembly code should follow the [65816 Style Guide](docs/asm-style-guide.md).
 
+## Testing Facilities
+
+The project includes the `yaze_test` target which defines unit tests and an integration test window. The unit tests make use of GoogleTest and GoogleMock. The integration test window is an ImGui window build out of the yaze::app::core::Controller and yaze::test::integration::TestEditor. The integration test window can be accessed by passing the argument `integration` to the target.
+
+New modules should define unit tests in the `src/test` directory and integration tests in the `src/test/integration` directory. The `yaze_test` target will automatically include all tests in these directories.
 
 ## Key Areas of Contribution
 
