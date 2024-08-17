@@ -299,11 +299,13 @@ absl::Status OverworldEditor::DrawToolset() {
   return absl::OkStatus();
 }
 
+constexpr std::array<const char *, 8> kMapSettingsColumnNames = {
+    "##WorldId", "##GfxId",  "##PalId",  "##SprGfxId",
+    "##5thCol",  "##6thCol", "##7thCol", "##8thCol"};
+
 void OverworldEditor::DrawOverworldMapSettings() {
   if (BeginTable(kOWMapTable.data(), 8, kOWMapFlags, ImVec2(0, 0), -1)) {
-    for (const auto &name :
-         {"##1stCol", "##gfxCol", "##palCol", "##sprgfxCol", "##sprpalCol",
-          "##msgidCol", "##2ndCol", "##mosaic"})
+    for (const auto &name : kMapSettingsColumnNames)
       ImGui::TableSetupColumn(name);
 
     TableNextColumn();
@@ -1023,13 +1025,9 @@ absl::Status OverworldEditor::LoadGraphics() {
 
     // Add the vector for the current tile to the vector of tile pixel data
     tile16_individual_data_.push_back(tile_data);
-  }
-
-  // Render the bitmaps of each tile.
-  for (int id = 0; id < 4096; id++) {
     tile16_individual_.emplace_back();
     RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
-        0x10, 0x10, 0x80, tile16_individual_data_[id], tile16_individual_[id],
+        0x10, 0x10, 0x80, tile16_individual_data_[i], tile16_individual_[i],
         palette_));
   }
 
