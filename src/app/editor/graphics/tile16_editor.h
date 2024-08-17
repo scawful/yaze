@@ -35,7 +35,7 @@ class Tile16Editor : public context::GfxContext, public SharedRom {
   absl::Status Update();
   absl::Status DrawMenu();
 
-  absl::Status DrawTile16Editor();
+  void DrawTile16Editor();
   absl::Status UpdateTile16Transfer();
   absl::Status UpdateBlockset();
 
@@ -105,7 +105,7 @@ class Tile16Editor : public context::GfxContext, public SharedRom {
   gfx::SnesPalette palette_;
   zelda3::overworld::Overworld transfer_overworld_;
 
-  gfx::BitmapTable graphics_bin_;
+  absl::Status status_;
 
   Rom transfer_rom_;
   absl::Status transfer_status_;
