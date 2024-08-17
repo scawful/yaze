@@ -77,7 +77,7 @@ absl::Status Tile16Editor::Update() {
 
   RETURN_IF_ERROR(DrawMenu());
   if (BeginTabBar("Tile16 Editor Tabs")) {
-    RETURN_IF_ERROR(DrawTile16Editor());
+    DrawTile16Editor();
     RETURN_IF_ERROR(UpdateTile16Transfer());
     EndTabBar();
   }
@@ -99,7 +99,7 @@ absl::Status Tile16Editor::DrawMenu() {
   return absl::OkStatus();
 }
 
-absl::Status Tile16Editor::DrawTile16Editor() {
+void Tile16Editor::DrawTile16Editor() {
   if (BeginTabItem("Tile16 Editing")) {
     if (BeginTable("#Tile16EditorTable", 2, TABLE_BORDERS_RESIZABLE,
                    ImVec2(0, 0))) {
@@ -110,18 +110,23 @@ absl::Status Tile16Editor::DrawTile16Editor() {
       TableHeadersRow();
       TableNextRow();
       TableNextColumn();
-      RETURN_IF_ERROR(UpdateBlockset());
+      status_ = UpdateBlockset();
+      if (!status_.ok()) {
+        EndTable();
+      }
 
       TableNextColumn();
-      RETURN_IF_ERROR(UpdateTile16Edit());
-      RETURN_IF_ERROR(DrawTileEditControls());
+      status_ = UpdateTile16Edit();
+      if (status_ != absl::OkStatus()) {
+        EndTable();
+      }
+      status_ = DrawTileEditControls();
 
       EndTable();
     }
 
     EndTabItem();
   }
-  return absl::OkStatus();
 }
 
 absl::Status Tile16Editor::UpdateBlockset() {
@@ -129,14 +134,12 @@ absl::Status Tile16Editor::UpdateBlockset() {
   gui::BeginChildWithScrollbar("##Tile16EditorBlocksetScrollRegion");
   blockset_canvas_.DrawBackground();
   gui::EndPadding();
-  {
-    blockset_canvas_.DrawContextMenu();
-    blockset_canvas_.DrawTileSelector(32);
-    blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 0, map_blockset_loaded_);
-    blockset_canvas_.DrawGrid();
-    blockset_canvas_.DrawOverlay();
-    EndChild();
-  }
+  blockset_canvas_.DrawContextMenu();
+  blockset_canvas_.DrawTileSelector(32);
+  blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 0, map_blockset_loaded_);
+  blockset_canvas_.DrawGrid();
+  blockset_canvas_.DrawOverlay();
+  EndChild();
 
   if (!blockset_canvas_.points().empty()) {
     notify_tile16.mutable_get() = blockset_canvas_.GetTileIdFromMousePos();
@@ -168,8 +171,8 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 click_position) {
 
   // Calculate the pixel start position within the Tile16
   ImVec2 start_position;
-  start_position.x = ((tile_index_x) / 4) * 0x40;
-  start_position.y = ((tile_index_y) / 4) * 0x40;
+  start_position.x = tile_index_x * 0x40;
+  start_position.y = tile_index_y * 0x40;
   std::cout << "Start Position X: " << start_position.x << std::endl;
   std::cout << "Start Position Y: " << start_position.y << std::endl;
 
@@ -262,9 +265,10 @@ absl::Status Tile16Editor::DrawTileEditControls() {
     if (value > 0x00) {
       RETURN_IF_ERROR(
           current_gfx_bmp_.ApplyPaletteWithTransparent(palette, value));
+      Renderer::GetInstance().UpdateBitmap(&current_gfx_bmp_);
+
       RETURN_IF_ERROR(
           current_tile16_bmp_.ApplyPaletteWithTransparent(palette, value));
-      Renderer::GetInstance().UpdateBitmap(&current_gfx_bmp_);
       Renderer::GetInstance().UpdateBitmap(&current_tile16_bmp_);
     }
   }
@@ -322,8 +326,17 @@ absl::Status Tile16Editor::LoadTile8() {
   return absl::OkStatus();
 }
 
-// ============================================================================
-// Tile16 Transfer
+absl::Status Tile16Editor::SetCurrentTile(int id) {
+  current_tile16_ = id;
+  current_tile16_bmp_ = tile16_individual_[id];
+  auto ow_main_pal_group = rom()->palette_group().overworld_main;
+  RETURN_IF_ERROR(
+      current_tile16_bmp_.ApplyPalette(ow_main_pal_group[current_palette_]));
+  Renderer::GetInstance().RenderBitmap(&current_tile16_bmp_);
+  return absl::OkStatus();
+}
+
+#pragma mark - Tile16Transfer
 
 absl::Status Tile16Editor::UpdateTile16Transfer() {
   if (BeginTabItem("Tile16 Transfer")) {
@@ -385,16 +398,6 @@ absl::Status Tile16Editor::UpdateTransferTileCanvas() {
                             (8192 * 2), 0x20, transfer_blockset_loaded_, true,
                             3);
 
-  return absl::OkStatus();
-}
-
-absl::Status Tile16Editor::SetCurrentTile(int id) {
-  current_tile16_ = id;
-  current_tile16_bmp_ = tile16_individual_[id];
-  auto ow_main_pal_group = rom()->palette_group().overworld_main;
-  RETURN_IF_ERROR(
-      current_tile16_bmp_.ApplyPalette(ow_main_pal_group[current_palette_]));
-  Renderer::GetInstance().RenderBitmap(&current_tile16_bmp_);
   return absl::OkStatus();
 }
 
