@@ -1,8 +1,6 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLDEDITOR_H
 #define YAZE_APP_EDITOR_OVERWORLDEDITOR_H
 
-#include "imgui/imgui.h"
-
 #include <cmath>
 #include <unordered_map>
 
@@ -25,6 +23,7 @@
 #include "app/gui/zeml.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {
@@ -101,8 +100,8 @@ class EntranceContext {
  */
 class OverworldEditor : public Editor,
                         public SharedRom,
-                        public context::GfxContext,
                         public EntranceContext,
+                        public context::GfxContext,
                         public core::ExperimentFlags {
  public:
   OverworldEditor() { type_ = EditorType::kOverworld; }
@@ -110,12 +109,14 @@ class OverworldEditor : public Editor,
   void InitializeZeml();
 
   absl::Status Update() final;
-  absl::Status Undo() { return absl::UnimplementedError("Undo"); }
-  absl::Status Redo() { return absl::UnimplementedError("Redo"); }
-  absl::Status Cut() { return absl::UnimplementedError("Cut"); }
-  absl::Status Copy() { return absl::UnimplementedError("Copy"); }
-  absl::Status Paste() { return absl::UnimplementedError("Paste"); }
-  absl::Status Find() { return absl::UnimplementedError("Find Unused Tiles"); }
+  absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
+  absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
+  absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
+  absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
+  absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
+  absl::Status Find() override {
+    return absl::UnimplementedError("Find Unused Tiles");
+  }
 
   auto overworld() { return &overworld_; }
 
