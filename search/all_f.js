@@ -118,7 +118,7 @@ var searchData=
   ['globalaction_115',['globalAction',['../classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html#a662ad26ec58a4ca86bf3cb33160365f8',1,'yaze::app::zelda3::SpriteBuilder']]],
   ['globalspritepalettesdw_116',['globalSpritePalettesDW',['../namespaceyaze_1_1app_1_1gfx.html#ad65648ff8763499c2b0092caf7af2534',1,'yaze::app::gfx']]],
   ['gnu_20linux_117',['GNU/Linux',['../md_docs_2build-instructions.html#autotoc_md16',1,'']]],
-  ['graphics_5fbin_5f_118',['graphics_bin_',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a42b459975d95dee574f13f76d5a0bdc8',1,'yaze::app::editor::DungeonEditor::graphics_bin_'],['../classyaze_1_1app_1_1editor_1_1Tile16Editor.html#ae9352faebbea08be0bdf84cddd0bae9a',1,'yaze::app::editor::Tile16Editor::graphics_bin_']]],
+  ['graphics_5fbin_5f_118',['graphics_bin_',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a42b459975d95dee574f13f76d5a0bdc8',1,'yaze::app::editor::DungeonEditor']]],
   ['graphics_5fbin_5fcanvas_5f_119',['graphics_bin_canvas_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ad770479335ca645c6337f2090a9fa513',1,'yaze::app::editor::GraphicsEditor::graphics_bin_canvas_'],['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a48a8ea5b8d8ce02497cea50f42aff725',1,'yaze::app::editor::OverworldEditor::graphics_bin_canvas_']]],
   ['graphics_5fbuffer_120',['graphics_buffer',['../classyaze_1_1app_1_1Rom.html#addbd2dd0eaa13c92ed0f9c0b1e5e3610',1,'yaze::app::Rom']]],
   ['graphics_5fbuffer_5f_121',['graphics_buffer_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ad98707f7b9ee9c728dd07ec91be72569',1,'yaze::app::editor::GraphicsEditor::graphics_buffer_'],['../classyaze_1_1app_1_1Rom.html#a95a2922f020624c4e4f6efd999b504d6',1,'yaze::app::Rom::graphics_buffer_']]],

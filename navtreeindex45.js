@@ -1,5 +1,11 @@
 var NAVTREEINDEX45 =
 {
+"structyaze_1_1app_1_1Project.html#aaaec6f4568b290cb85dad5c0e58bd485":[11,0,2,0,7,8],
+"structyaze_1_1app_1_1Project.html#aaaec6f4568b290cb85dad5c0e58bd485":[12,0,1,0,6,8],
+"structyaze_1_1app_1_1Project.html#aaed58f3c0aa7f90c5221c36972c41d9f":[11,0,2,0,7,5],
+"structyaze_1_1app_1_1Project.html#aaed58f3c0aa7f90c5221c36972c41d9f":[12,0,1,0,6,5],
+"structyaze_1_1app_1_1Project.html#af787b1715ddb7d9ff91a0ddfefa145aa":[11,0,2,0,7,4],
+"structyaze_1_1app_1_1Project.html#af787b1715ddb7d9ff91a0ddfefa145aa":[12,0,1,0,6,4],
 "structyaze_1_1app_1_1Rom_1_1WriteAction.html":[11,0,2,0,8,0],
 "structyaze_1_1app_1_1Rom_1_1WriteAction.html":[12,0,1,0,7,0],
 "structyaze_1_1app_1_1Rom_1_1WriteAction.html#a84be097167d049d7423c0a4c5d85ecf3":[11,0,2,0,8,0,0],
@@ -243,11 +249,5 @@ var NAVTREEINDEX45 =
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#ae66d11822aa7bde03ca95a4debb1b44f":[11,0,2,0,2,24,0,6],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#ae66d11822aa7bde03ca95a4debb1b44f":[12,0,1,0,1,19,0,6],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#afdb8790daa668f95b954c7af3f089426":[11,0,2,0,2,24,0,4],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#afdb8790daa668f95b954c7af3f089426":[12,0,1,0,1,19,0,4],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html":[11,0,2,0,2,24,1],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html":[12,0,1,0,1,19,1],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a07ae2d062ac3f905e65cbf5d0b67e59b":[11,0,2,0,2,24,1,8],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a07ae2d062ac3f905e65cbf5d0b67e59b":[12,0,1,0,1,19,1,8],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a1901abc8b7ca912bf11a93b72b217755":[11,0,2,0,2,24,1,6],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a1901abc8b7ca912bf11a93b72b217755":[12,0,1,0,1,19,1,6]
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#afdb8790daa668f95b954c7af3f089426":[12,0,1,0,1,19,0,4]
 };

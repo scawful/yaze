@@ -115,6 +115,7 @@ var namespaceyaze_1_1app_1_1editor =
     [ "BANKToken", "namespaceyaze_1_1app_1_1editor.html#a850a7222bba2ccad93ba6aadd8f37430", null ],
     [ "kTile16Size", "namespaceyaze_1_1app_1_1editor.html#a82580c78db5fc851768be8445138aa3c", null ],
     [ "kOverworldMapSize", "namespaceyaze_1_1app_1_1editor.html#ad773c0030307cc45282b8e59b648dff6", null ],
+    [ "kMapSettingsColumnNames", "namespaceyaze_1_1app_1_1editor.html#a3bcc245e8b7ed3a6b4c786890541a090", null ],
     [ "kOWMapFlags", "namespaceyaze_1_1app_1_1editor.html#a4d9b8c9589c6b1455c34c618611b3303", null ],
     [ "kToolsetTableFlags", "namespaceyaze_1_1app_1_1editor.html#ab016b013560df6264216fd0a73b3f913", null ],
     [ "kOWEditFlags", "namespaceyaze_1_1app_1_1editor.html#aa2f8240c66088fdf579ae0becaa2d820", null ],

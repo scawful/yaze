@@ -3,7 +3,7 @@ var classyaze_1_1app_1_1editor_1_1Tile16Editor =
     [ "InitBlockset", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a843661c6e5ff3f63cce36fdf05464985", null ],
     [ "Update", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#afea4cb552d027833add7e5f7851ffffb", null ],
     [ "DrawMenu", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#ae260891d3ef076ec09fbc9866132cd77", null ],
-    [ "DrawTile16Editor", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a94cd1c92b4e5480f8e64d6d72723236d", null ],
+    [ "DrawTile16Editor", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a1960f0f9ccf1c88216ee5bf9e58fb094", null ],
     [ "UpdateTile16Transfer", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a75b389ccc2d6afb6d900f0898beee59d", null ],
     [ "UpdateBlockset", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a1709ecca119ad2a307eccb9b1f5e9ea1", null ],
     [ "DrawToCurrentTile16", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a688b0a5dd7a0b3e5281ef5a29b722c68", null ],
@@ -41,7 +41,7 @@ var classyaze_1_1app_1_1editor_1_1Tile16Editor =
     [ "palette_editor_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a4e4aba9137fa52d64b51857a36bcdb4a", null ],
     [ "palette_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#aeb1777662a4a0f658013c5d572738597", null ],
     [ "transfer_overworld_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a947d8a2b941872b74d462ff2ab6b35c1", null ],
-    [ "graphics_bin_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#ae9352faebbea08be0bdf84cddd0bae9a", null ],
+    [ "status_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a8326e4f3d1e48a6f8fd988b1ecf15eaf", null ],
     [ "transfer_rom_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#aeb17e791df154a736308bc315f3fe06e", null ],
     [ "transfer_status_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a6a9190d69d0478136a819365c74ad2c0", null ]
 ];

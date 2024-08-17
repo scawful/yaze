@@ -1,5 +1,11 @@
 var NAVTREEINDEX47 =
 {
+"structyaze_1_1app_1_1emu_1_1Input.html":[11,0,2,0,3,11],
+"structyaze_1_1app_1_1emu_1_1Input.html":[12,0,1,0,2,9],
+"structyaze_1_1app_1_1emu_1_1Input.html#a148f78b31f4342c2c99f39ebff3a20a2":[11,0,2,0,3,11,0],
+"structyaze_1_1app_1_1emu_1_1Input.html#a148f78b31f4342c2c99f39ebff3a20a2":[12,0,1,0,2,9,0],
+"structyaze_1_1app_1_1emu_1_1Input.html#a2c83bec32dcd976692e53d4d740e70e9":[11,0,2,0,3,11,2],
+"structyaze_1_1app_1_1emu_1_1Input.html#a2c83bec32dcd976692e53d4d740e70e9":[12,0,1,0,2,9,2],
 "structyaze_1_1app_1_1emu_1_1Input.html#a4bd6913899d0154cd0b483054e4cac02":[11,0,2,0,3,11,1],
 "structyaze_1_1app_1_1emu_1_1Input.html#a4bd6913899d0154cd0b483054e4cac02":[12,0,1,0,2,9,1],
 "structyaze_1_1app_1_1emu_1_1Input.html#af8b655a657a9717d2846e801332dccaa":[11,0,2,0,3,11,3],
@@ -243,11 +249,5 @@ var NAVTREEINDEX47 =
 "structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#ab4960c2eca1f62eca4b80181f7e43461":[11,0,2,0,3,4,5,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#ab4960c2eca1f62eca4b80181f7e43461":[12,0,1,0,2,2,5,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#acfc09ac9c5860a276fc9812459c68a52":[11,0,2,0,3,4,5,7],
-"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#acfc09ac9c5860a276fc9812459c68a52":[12,0,1,0,2,2,5,7],
-"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#ad07480da6860dce6b95ce57b0f429fb1":[11,0,2,0,3,4,5,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#ad07480da6860dce6b95ce57b0f429fb1":[12,0,1,0,2,2,5,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#ad1468b45968185d54c93d8dd302de5e9":[11,0,2,0,3,4,5,8],
-"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#ad1468b45968185d54c93d8dd302de5e9":[12,0,1,0,2,2,5,8],
-"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#ad509a8023cc0cf5172285a19ea254d22":[11,0,2,0,3,4,5,6],
-"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#ad509a8023cc0cf5172285a19ea254d22":[12,0,1,0,2,2,5,6]
+"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#acfc09ac9c5860a276fc9812459c68a52":[12,0,1,0,2,2,5,7]
 };

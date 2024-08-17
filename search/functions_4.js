@@ -162,7 +162,7 @@ var searchData=
   ['drawtext_159',['DrawText',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a34368006660aa3fdf79e9428af12e961',1,'yaze::app::gui::Canvas']]],
   ['drawtextcommands_160',['DrawTextCommands',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a9cde2031bd16ed689d7a45719293c70f',1,'yaze::app::editor::MessageEditor']]],
   ['drawtile_161',['DrawTile',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#adcc5f8115da5732c0f08a780bc2166fa',1,'yaze::app::zelda3::dungeon::RoomObject']]],
-  ['drawtile16editor_162',['DrawTile16Editor',['../classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a94cd1c92b4e5480f8e64d6d72723236d',1,'yaze::app::editor::Tile16Editor']]],
+  ['drawtile16editor_162',['DrawTile16Editor',['../classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a1960f0f9ccf1c88216ee5bf9e58fb094',1,'yaze::app::editor::Tile16Editor']]],
   ['drawtile16selector_163',['DrawTile16Selector',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ae2d19a49679caaba81b92114aa77dd2f',1,'yaze::app::editor::OverworldEditor']]],
   ['drawtile8selector_164',['DrawTile8Selector',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a096f01d94fd9f1c48d29f00693b248fc',1,'yaze::app::editor::OverworldEditor']]],
   ['drawtileeditcontrols_165',['DrawTileEditControls',['../classyaze_1_1app_1_1editor_1_1Tile16Editor.html#afe4b0aaf110b5ff60d26d18e61b4e6c8',1,'yaze::app::editor::Tile16Editor']]],

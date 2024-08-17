@@ -1,5 +1,11 @@
 var NAVTREEINDEX46 =
 {
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html":[11,0,2,0,2,24,1],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html":[12,0,1,0,1,19,1],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a07ae2d062ac3f905e65cbf5d0b67e59b":[11,0,2,0,2,24,1,8],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a07ae2d062ac3f905e65cbf5d0b67e59b":[12,0,1,0,1,19,1,8],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a1901abc8b7ca912bf11a93b72b217755":[11,0,2,0,2,24,1,6],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a1901abc8b7ca912bf11a93b72b217755":[12,0,1,0,1,19,1,6],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a25effced7ec29b9cd4510b0ebe25b5c5":[11,0,2,0,2,24,1,7],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a25effced7ec29b9cd4510b0ebe25b5c5":[12,0,1,0,1,19,1,7],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a276721b5cc34fbc79fc434127b1cc1f4":[11,0,2,0,2,24,1,13],
@@ -243,11 +249,5 @@ var NAVTREEINDEX46 =
 "structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a1809514af68de6d3f90ef91080066f6f":[11,0,2,0,3,10,0,0],
 "structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a1809514af68de6d3f90ef91080066f6f":[12,0,1,0,2,8,0,0],
 "structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a648410982bd27d1595954585265d5397":[11,0,2,0,3,10,0,1],
-"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a648410982bd27d1595954585265d5397":[12,0,1,0,2,8,0,1],
-"structyaze_1_1app_1_1emu_1_1Input.html":[11,0,2,0,3,11],
-"structyaze_1_1app_1_1emu_1_1Input.html":[12,0,1,0,2,9],
-"structyaze_1_1app_1_1emu_1_1Input.html#a148f78b31f4342c2c99f39ebff3a20a2":[11,0,2,0,3,11,0],
-"structyaze_1_1app_1_1emu_1_1Input.html#a148f78b31f4342c2c99f39ebff3a20a2":[12,0,1,0,2,9,0],
-"structyaze_1_1app_1_1emu_1_1Input.html#a2c83bec32dcd976692e53d4d740e70e9":[11,0,2,0,3,11,2],
-"structyaze_1_1app_1_1emu_1_1Input.html#a2c83bec32dcd976692e53d4d740e70e9":[12,0,1,0,2,9,2]
+"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a648410982bd27d1595954585265d5397":[12,0,1,0,2,8,0,1]
 };

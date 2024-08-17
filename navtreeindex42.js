@@ -1,5 +1,10 @@
 var NAVTREEINDEX42 =
 {
+"namespaceyaze_1_1test_1_1emu.html#aa555da5a94195ed5152474e4e20ef219":[11,0,2,2,0,155],
+"namespaceyaze_1_1test_1_1emu.html#aa6ca2585a6bedc4d01bc2f97ed8a38a3":[11,0,2,2,0,70],
+"namespaceyaze_1_1test_1_1emu.html#aa6dfd209f9fd8aba9f6dd069a669ac2d":[11,0,2,2,0,36],
+"namespaceyaze_1_1test_1_1emu.html#aa8292e939d1bbbe03b046f3a216421de":[11,0,2,2,0,72],
+"namespaceyaze_1_1test_1_1emu.html#aa829997fe456280bf268a0079feae908":[11,0,2,2,0,156],
 "namespaceyaze_1_1test_1_1emu.html#aa85fb0d6140ad9001bb78571c8dee4c0":[11,0,2,2,0,14],
 "namespaceyaze_1_1test_1_1emu.html#aa89b78fdf4da3b1b558571fb19a22fd0":[11,0,2,2,0,144],
 "namespaceyaze_1_1test_1_1emu.html#aaa2b569ee7dbd629eaff9042257bd992":[11,0,2,2,0,204],
@@ -161,6 +166,7 @@ var NAVTREEINDEX42 =
 "overworld_8cc.html#ac98b5712e9e6551a790b01d0a4cd881b":[13,0,1,0,5,2,0,1],
 "overworld_8cc_source.html":[13,0,1,0,5,2,0],
 "overworld__editor_8cc.html":[13,0,1,0,1,5,2],
+"overworld__editor_8cc.html#a3bcc245e8b7ed3a6b4c786890541a090":[13,0,1,0,1,5,2,2],
 "overworld__editor_8cc.html#a82580c78db5fc851768be8445138aa3c":[13,0,1,0,1,5,2,0],
 "overworld__editor_8cc.html#ad773c0030307cc45282b8e59b648dff6":[13,0,1,0,1,5,2,1],
 "overworld__editor_8cc_source.html":[13,0,1,0,1,5,2],
@@ -243,11 +249,5 @@ var NAVTREEINDEX42 =
 "ppu__registers_8h.html#a7d04d335a4454eeb9c470102bed49109":[13,0,1,0,2,4,2,101],
 "ppu__registers_8h.html#a7e53b67263346d48e856d039574f4c93":[13,0,1,0,2,4,2,69],
 "ppu__registers_8h.html#a81a88901a26cd16ed54c24be0b808d6b":[13,0,1,0,2,4,2,56],
-"ppu__registers_8h.html#a89b46326419805846ac6c6fffae52f8a":[13,0,1,0,2,4,2,112],
-"ppu__registers_8h.html#a8a1ecc11a80c32ce0e88308f33469956":[13,0,1,0,2,4,2,68],
-"ppu__registers_8h.html#a8ba1df9436e8e02f33ce9fbcc04e168d":[13,0,1,0,2,4,2,114],
-"ppu__registers_8h.html#a8c8b3f87636a015c88ca7ee6d7bf74f5":[13,0,1,0,2,4,2,82],
-"ppu__registers_8h.html#a8e91c94399ae4473f7f927a616d4d7fc":[13,0,1,0,2,4,2,78],
-"ppu__registers_8h.html#a917b1cfd38dda769c7541becf78c3a7b":[13,0,1,0,2,4,2,92],
-"ppu__registers_8h.html#a935e14f26d347ea30a2cdc9ffebd42a5":[13,0,1,0,2,4,2,72]
+"ppu__registers_8h.html#a89b46326419805846ac6c6fffae52f8a":[13,0,1,0,2,4,2,112]
 };
