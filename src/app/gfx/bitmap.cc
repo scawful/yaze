@@ -399,6 +399,23 @@ absl::Status Bitmap::ApplyPaletteFromPaletteGroup(const SnesPalette &palette,
 
 absl::Status Bitmap::ApplyPaletteWithTransparent(const SnesPalette &palette,
                                                  int index, int length) {
+  if (index < 0 || index >= palette.size()) {
+    return absl::InvalidArgumentError("Invalid palette index");
+  }
+
+  if (length < 0 || length > palette.size()) {
+    return absl::InvalidArgumentError("Invalid palette length");
+  }
+
+  if (index + length > palette.size()) {
+    return absl::InvalidArgumentError("Palette index + length exceeds size");
+  }
+
+  if (surface_ == nullptr) {
+    return absl::FailedPreconditionError(
+        "Surface is null. Palette not applied");
+  }
+
   auto start_index = index * 7;
   palette_ = palette.sub_palette(start_index, start_index + 7);
   std::vector<ImVec4> colors;
