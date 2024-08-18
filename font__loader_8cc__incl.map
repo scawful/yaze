@@ -1,11 +1,17 @@
 <map id="src/app/core/platform/font_loader.cc" name="src/app/core/platform/font_loader.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="173,5,317,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="357,5,501,46"/>
 <area shape="rect" id="Node000002" href="$font__loader_8h.html" title=" " alt="" coords="5,94,154,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="209,49,131,89,129,84,206,44"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="178,102,232,127"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="238,48,219,89,214,86,233,45"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="256,102,314,127"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="256,45,275,86,271,89,251,48"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="338,102,435,127"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="278,44,355,91,352,96,276,49"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="357,48,169,94,168,88,355,42"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="178,102,275,127"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="384,49,269,98,267,93,382,44"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="300,102,353,127"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="407,49,353,94,350,90,404,44"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="377,102,480,127"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="432,47,432,86,426,86,426,47"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="504,102,562,127"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="454,44,509,90,505,94,451,49"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="586,102,747,127"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="484,44,619,93,618,98,482,49"/>
+<area shape="rect" id="Node000008" href="$icons_8h.html" title=" " alt="" coords="771,102,879,127"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="502,37,623,61,760,91,771,94,770,99,759,97,622,66,501,43"/>
 </map>
