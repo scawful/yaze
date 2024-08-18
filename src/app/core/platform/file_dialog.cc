@@ -12,7 +12,7 @@ namespace core {
 
 #ifdef _WIN32
 
-static std::string ShowOpenFileDialog() {
+ std::string FileDialogWrapper::ShowOpenFileDialog() {
   CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
   IFileDialog *pfd = NULL;
@@ -44,7 +44,7 @@ static std::string ShowOpenFileDialog() {
   return file_path_windows;
 }
 
-static std::string ShowOpenFolderDialog() {
+ std::string FileDialogWrapper::ShowOpenFolderDialog() {
   CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
   IFileDialog *pfd = NULL;
@@ -83,7 +83,7 @@ static std::string ShowOpenFolderDialog() {
   return folder_path_windows;
 }
 
-static std::vector<std::string> GetSubdirectoriesInFolder(
+std::vector<std::string> FileDialogWrapper::GetSubdirectoriesInFolder(
     const std::string &folder_path) {
   std::vector<std::string> subdirectories;
   WIN32_FIND_DATA findFileData;
@@ -102,7 +102,7 @@ static std::vector<std::string> GetSubdirectoriesInFolder(
   return subdirectories;
 }
 
-static std::vector<std::string> GetFilesInFolder(
+std::vector<std::string> FileDialogWrapper::GetFilesInFolder(
     const std::string &folder_path) {
   std::vector<std::string> files;
   WIN32_FIND_DATA findFileData;
