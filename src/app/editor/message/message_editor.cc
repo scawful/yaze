@@ -307,7 +307,7 @@ void MessageEditor::ReadAllTextDataV2() {
   uint8_t current_byte = 0;
   while (current_byte != 0xFF) {
     current_byte = rom()->data()[pos++];
-    if (current_byte == MESSAGETERMINATOR) {
+    if (current_byte == kMessageTerminator) {
       auto message =
           MessageData(message_id++, pos, current_raw_message, raw_message,
                       current_parsed_message, parsed_message);
@@ -403,7 +403,7 @@ void MessageEditor::ReadAllTextData() {
   while (true) {
     current_byte = rom()->data()[pos++];
 
-    if (current_byte == MESSAGETERMINATOR) {
+    if (current_byte == kMessageTerminator) {
       auto message =
           MessageData(message_id++, pos, current_message_raw, temp_bytes_raw,
                       current_message_parsed, temp_bytes_parsed);
@@ -488,53 +488,6 @@ void MessageEditor::ReadAllTextData() {
   }
 }
 
-TextElement MessageEditor::FindMatchingCommand(uint8_t b) {
-  TextElement empty_element;
-  for (const auto& text_element : TextCommands) {
-    if (text_element.ID == b) {
-      return text_element;
-    }
-  }
-  return empty_element;
-}
-
-TextElement MessageEditor::FindMatchingSpecial(uint8_t value) {
-  auto it = std::find_if(SpecialChars.begin(), SpecialChars.end(),
-                         [value](const TextElement& text_element) {
-                           return text_element.ID == value;
-                         });
-  if (it != SpecialChars.end()) {
-    return *it;
-  }
-
-  return TextElement();
-}
-
-ParsedElement MessageEditor::FindMatchingElement(std::string str) {
-  std::smatch match;
-  for (auto& textElement : TextCommands) {
-    match = textElement.MatchMe(str);
-    if (match.size() > 0) {
-      if (textElement.HasArgument) {
-        return ParsedElement(textElement,
-                             std::stoi(match[1].str(), nullptr, 16));
-      } else {
-        return ParsedElement(textElement, 0);
-      }
-    }
-  }
-
-  const auto dictionary_element =
-      TextElement(0x80, DICTIONARYTOKEN, true, "Dictionary");
-
-  match = dictionary_element.MatchMe(str);
-  if (match.size() > 0) {
-    return ParsedElement(dictionary_element,
-                         DICTOFF + std::stoi(match[1].str(), nullptr, 16));
-  }
-  return ParsedElement();
-}
-
 std::string ReplaceAllDictionaryWords(std::string str) {
   std::string temp = str;
   for (const auto& entry : AllDictionaries) {
@@ -542,55 +495,7 @@ std::string ReplaceAllDictionaryWords(std::string str) {
       temp = absl::StrReplaceAll(temp, {{entry.Contents, entry.Contents}});
     }
   }
-
   return temp;
-}
-
-std::vector<uint8_t> MessageEditor::ParseMessageToData(std::string str) {
-  std::vector<uint8_t> bytes;
-  std::string temp_string = str;
-  int pos = 0;
-
-  while (pos < temp_string.size()) {
-    // Get next text fragment.
-    if (temp_string[pos] == '[') {
-      int next = temp_string.find(']', pos);
-      if (next == -1) {
-        break;
-      }
-
-      ParsedElement parsedElement =
-          FindMatchingElement(temp_string.substr(pos, next - pos + 1));
-
-      const auto dictionary_element =
-          TextElement(0x80, DICTIONARYTOKEN, true, "Dictionary");
-
-      if (!parsedElement.Active) {
-        core::logf("Error parsing message: %s", temp_string);
-        break;
-      } else if (parsedElement.Parent == dictionary_element) {
-        bytes.push_back(parsedElement.Value);
-      } else {
-        bytes.push_back(parsedElement.Parent.ID);
-
-        if (parsedElement.Parent.HasArgument) {
-          bytes.push_back(parsedElement.Value);
-        }
-      }
-
-      pos = next + 1;
-      continue;
-    } else {
-      uint8_t bb = FindMatchingCharacter(temp_string[pos++]);
-
-      if (bb != 0xFF) {
-        core::logf("Error parsing message: %s", temp_string);
-        bytes.push_back(bb);
-      }
-    }
-  }
-
-  return bytes;
 }
 
 MessageEditor::DictionaryEntry MessageEditor::GetDictionaryFromID(
@@ -599,52 +504,6 @@ MessageEditor::DictionaryEntry MessageEditor::GetDictionaryFromID(
     return DictionaryEntry();
   }
   return AllDictionaries[value];
-}
-
-uint8_t MessageEditor::FindDictionaryEntry(uint8_t value) {
-  if (value < DICTOFF || value == 0xFF) {
-    return -1;
-  }
-
-  return value - DICTOFF;
-}
-
-uint8_t MessageEditor::FindMatchingCharacter(char value) {
-  for (const auto [key, char_value] : CharEncoder) {
-    if (value == char_value) {
-      return key;
-    }
-  }
-  return 0xFF;
-}
-
-std::string MessageEditor::ParseTextDataByte(uint8_t value) {
-  if (CharEncoder.contains(value)) {
-    char c = CharEncoder.at(value);
-    std::string str = "";
-    str.push_back(c);
-    return str;
-  }
-
-  // Check for command.
-  TextElement textElement = FindMatchingCommand(value);
-  if (!textElement.Empty()) {
-    return textElement.GenericToken;
-  }
-
-  // Check for special characters.
-  textElement = FindMatchingSpecial(value);
-  if (!textElement.Empty()) {
-    return textElement.GenericToken;
-  }
-
-  // Check for dictionary.
-  int dictionary = FindDictionaryEntry(value);
-  if (dictionary >= 0) {
-    return absl::StrFormat("[%s:%X]", DICTIONARYTOKEN, dictionary);
-  }
-
-  return "";
 }
 
 void MessageEditor::DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
@@ -819,7 +678,7 @@ absl::Status MessageEditor::Save() {
     }
 
     RETURN_IF_ERROR(
-        rom()->Write(pos++, MESSAGETERMINATOR));  // , true, "Terminator text"
+        rom()->Write(pos++, kMessageTerminator));  // , true, "Terminator text"
   }
 
   // Verify that we didn't go over the space available for the second block.

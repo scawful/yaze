@@ -34,84 +34,11 @@ constexpr int kNumDictionaryEntries = 97;
 constexpr int kNumMessages = 396;
 
 constexpr uint8_t kBlockTerminator = 0x80;
-constexpr uint8_t DICTOFF = 0x88;
 constexpr uint8_t BANKID = 0x80;
 constexpr uint8_t kScrollVertical = 0x73;
 constexpr uint8_t kLine1 = 0x74;
 constexpr uint8_t kLine2 = 0x75;
 constexpr uint8_t kLine3 = 0x76;
-
-const std::string DICTIONARYTOKEN = "D";
-const std::string BANKToken = "BANK";
-
-static const std::vector<TextElement> TextCommands = {
-    TextElement(0x6B, "W", true, "Window border"),
-    TextElement(0x6D, "P", true, "Window position"),
-    TextElement(0x6E, "SPD", true, "Scroll speed"),
-    TextElement(0x7A, "S", true, "Text draw speed"),
-    TextElement(0x77, "C", true, "Text color"),
-    TextElement(0x6A, "L", false, "Player name"),
-    TextElement(0x74, "1", false, "Line 1"),
-    TextElement(0x75, "2", false, "Line 2"),
-    TextElement(0x76, "3", false, "Line 3"),
-    TextElement(0x7E, "K", false, "Wait for key"),
-    TextElement(0x73, "V", false, "Scroll text"),
-    TextElement(0x78, "WT", true, "Delay X"),
-    TextElement(0x6C, "N", true, "BCD number"),
-    TextElement(0x79, "SFX", true, "Sound effect"),
-    TextElement(0x71, "CH3", false, "Choose 3"),
-    TextElement(0x72, "CH2", false, "Choose 2 high"),
-    TextElement(0x6F, "CH2L", false, "Choose 2 low"),
-    TextElement(0x68, "CH2I", false, "Choose 2 indented"),
-    TextElement(0x69, "CHI", false, "Choose item"),
-    TextElement(0x67, "IMG", false, "Next attract image"),
-    TextElement(0x80, BANKToken, false, "Bank marker (automatic)"),
-    TextElement(0x70, "NONO", false, "Crash"),
-};
-
-static const std::vector<TextElement> SpecialChars = {
-    TextElement(0x43, "...", false, "Ellipsis …"),
-    TextElement(0x4D, "UP", false, "Arrow ↑"),
-    TextElement(0x4E, "DOWN", false, "Arrow ↓"),
-    TextElement(0x4F, "LEFT", false, "Arrow ←"),
-    TextElement(0x50, "RIGHT", false, "Arrow →"),
-    TextElement(0x5B, "A", false, "Button Ⓐ"),
-    TextElement(0x5C, "B", false, "Button Ⓑ"),
-    TextElement(0x5D, "X", false, "Button ⓧ"),
-    TextElement(0x5E, "Y", false, "Button ⓨ"),
-    TextElement(0x52, "HP1L", false, "1 HP left"),
-    TextElement(0x53, "HP1R", false, "1 HP right"),
-    TextElement(0x54, "HP2L", false, "2 HP left"),
-    TextElement(0x55, "HP3L", false, "3 HP left"),
-    TextElement(0x56, "HP3R", false, "3 HP right"),
-    TextElement(0x57, "HP4L", false, "4 HP left"),
-    TextElement(0x58, "HP4R", false, "4 HP right"),
-    TextElement(0x47, "HY0", false, "Hieroglyph ☥"),
-    TextElement(0x48, "HY1", false, "Hieroglyph 𓈗"),
-    TextElement(0x49, "HY2", false, "Hieroglyph Ƨ"),
-    TextElement(0x4A, "LFL", false, "Link face left"),
-    TextElement(0x4B, "LFR", false, "Link face right"),
-};
-
-static const std::unordered_map<uint8_t, wchar_t> CharEncoder = {
-    {0x00, 'A'},  {0x01, 'B'},  {0x02, 'C'},  {0x03, 'D'},  {0x04, 'E'},
-    {0x05, 'F'},  {0x06, 'G'},  {0x07, 'H'},  {0x08, 'I'},  {0x09, 'J'},
-    {0x0A, 'K'},  {0x0B, 'L'},  {0x0C, 'M'},  {0x0D, 'N'},  {0x0E, 'O'},
-    {0x0F, 'P'},  {0x10, 'Q'},  {0x11, 'R'},  {0x12, 'S'},  {0x13, 'T'},
-    {0x14, 'U'},  {0x15, 'V'},  {0x16, 'W'},  {0x17, 'X'},  {0x18, 'Y'},
-    {0x19, 'Z'},  {0x1A, 'a'},  {0x1B, 'b'},  {0x1C, 'c'},  {0x1D, 'd'},
-    {0x1E, 'e'},  {0x1F, 'f'},  {0x20, 'g'},  {0x21, 'h'},  {0x22, 'i'},
-    {0x23, 'j'},  {0x24, 'k'},  {0x25, 'l'},  {0x26, 'm'},  {0x27, 'n'},
-    {0x28, 'o'},  {0x29, 'p'},  {0x2A, 'q'},  {0x2B, 'r'},  {0x2C, 's'},
-    {0x2D, 't'},  {0x2E, 'u'},  {0x2F, 'v'},  {0x30, 'w'},  {0x31, 'x'},
-    {0x32, 'y'},  {0x33, 'z'},  {0x34, '0'},  {0x35, '1'},  {0x36, '2'},
-    {0x37, '3'},  {0x38, '4'},  {0x39, '5'},  {0x3A, '6'},  {0x3B, '7'},
-    {0x3C, '8'},  {0x3D, '9'},  {0x3E, '!'},  {0x3F, '?'},  {0x40, '-'},
-    {0x41, '.'},  {0x42, ','},  {0x44, '>'},  {0x45, '('},  {0x46, ')'},
-    {0x4C, '"'},  {0x51, '\''}, {0x59, ' '},  {0x5A, '<'},  {0x5F, L'¡'},
-    {0x60, L'¡'}, {0x61, L'¡'}, {0x62, L' '}, {0x63, L' '}, {0x64, L' '},
-    {0x65, ' '},  {0x66, '_'},
-};
 
 static TextElement DictionaryElement =
     TextElement(0x80, DICTIONARYTOKEN, true, "Dictionary");
@@ -144,12 +71,6 @@ class MessageEditor : public Editor, public SharedRom {
   void Delete();
   void SelectAll();
 
-  TextElement FindMatchingCommand(uint8_t byte);
-  TextElement FindMatchingSpecial(uint8_t value);
-  std::string ParseTextDataByte(uint8_t value);
-
-  static std::vector<uint8_t> ParseMessageToData(std::string str);
-  static ParsedElement FindMatchingElement(std::string str);
   struct DictionaryEntry {
     uint8_t ID;
     std::string Contents;
@@ -179,8 +100,6 @@ class MessageEditor : public Editor, public SharedRom {
     }
   };
   DictionaryEntry GetDictionaryFromID(uint8_t value);
-  static uint8_t FindDictionaryEntry(uint8_t value);
-  static uint8_t FindMatchingCharacter(char value);
   void DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
                          int sizex = 1, int sizey = 1);
   void DrawCharacterToPreview(char c);
@@ -193,8 +112,6 @@ class MessageEditor : public Editor, public SharedRom {
   void InsertCommandButton_Click_1();
   void InsertSpecialButton_Click();
   void InsertSelectedText(std::string str);
-
-  static const std::vector<DictionaryEntry> AllDicts;
 
  private:
   bool skip_next = false;
