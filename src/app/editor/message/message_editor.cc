@@ -131,11 +131,12 @@ absl::Status MessageEditor::Update() {
     data_loaded_ = true;
   }
 
-  if (BeginTable("##MessageEditor", 3,
+  if (BeginTable("##MessageEditor", 4,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable)) {
     TableSetupColumn("List");
     TableSetupColumn("Contents");
     TableSetupColumn("Commands");
+    TableSetupColumn("Dictionary");
 
     TableHeadersRow();
 
@@ -147,6 +148,26 @@ absl::Status MessageEditor::Update() {
 
     TableNextColumn();
     DrawTextCommands();
+
+    TableNextColumn();
+    if (ImGui::BeginChild("##DictionaryChild", ImVec2(0, 0), true,
+                          ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+      if (BeginTable("##Dictionary", 2,
+                     ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable)) {
+        TableSetupColumn("ID");
+        TableSetupColumn("Contents");
+
+        for (const auto& dictionary : AllDictionaries) {
+          TableNextColumn();
+          Text("%s", core::UppercaseHexWord(dictionary.ID).c_str());
+          TableNextColumn();
+          Text("%s", dictionary.Contents.c_str());
+        }
+        EndTable();
+      }
+
+      EndChild();
+    }
 
     EndTable();
   }
