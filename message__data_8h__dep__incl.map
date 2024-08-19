@@ -1,9 +1,11 @@
 <map id="src/app/editor/message/message_data.h" name="src/app/editor/message/message_data.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="80,5,238,46"/>
-<area shape="rect" id="Node000002" href="$message__editor_8h.html" title=" " alt="" coords="80,94,238,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,62,162,94,156,94,156,62"/>
-<area shape="rect" id="Node000003" href="$editor__manager_8h.html" title=" " alt="" coords="5,183,142,223"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="131,148,95,184,91,180,127,144"/>
-<area shape="rect" id="Node000011" href="$message__editor_8cc.html" title=" " alt="" coords="166,183,323,223"/>
-<area shape="poly" id="edge3_Node000002_Node000011" title=" " alt="" coords="191,144,227,180,223,184,187,148"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="96,5,253,46"/>
+<area shape="rect" id="Node000002" href="$message__data_8cc.html" title=" " alt="" coords="5,94,163,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,59,106,95,103,92,142,55"/>
+<area shape="rect" id="Node000003" href="$message__editor_8h.html" title=" " alt="" coords="187,94,344,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="208,55,247,92,243,95,204,59"/>
+<area shape="rect" id="Node000004" href="$editor__manager_8h.html" title=" " alt="" coords="112,183,248,223"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="237,148,201,184,197,180,234,144"/>
+<area shape="rect" id="Node000012" href="$message__editor_8cc.html" title=" " alt="" coords="272,183,429,223"/>
+<area shape="poly" id="edge4_Node000003_Node000012" title=" " alt="" coords="297,144,333,180,329,184,293,148"/>
 </map>

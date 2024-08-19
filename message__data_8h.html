@@ -114,21 +114,33 @@ $(function(){initNavTree('message__data_8h.html',''); initResizable(true); });
   <div class="headertitle"><div class="title">message_data.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;string&gt;</code><br />
+<div class="textblock"><code>#include &lt;iostream&gt;</code><br />
+<code>#include &lt;regex&gt;</code><br />
+<code>#include &lt;string&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
+<code>#include &quot;absl/strings/str_format.h&quot;</code><br />
+<code>#include &quot;absl/strings/str_replace.h&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for message_data.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="message__data_8h__incl.png" border="0" usemap="#asrc_2app_2editor_2message_2message__data_8h" alt=""/></div>
 <map name="asrc_2app_2editor_2message_2message__data_8h" id="asrc_2app_2editor_2message_2message__data_8h">
-<area shape="rect" title=" " alt="" coords="33,5,191,46"/>
-<area shape="rect" title=" " alt="" coords="5,94,59,120"/>
-<area shape="poly" title=" " alt="" coords="94,48,57,85,53,81,90,45"/>
-<area shape="rect" title=" " alt="" coords="83,94,141,120"/>
-<area shape="poly" title=" " alt="" coords="115,46,115,78,109,78,109,46"/>
-<area shape="rect" title=" " alt="" coords="165,94,307,120"/>
-<area shape="poly" title=" " alt="" coords="144,44,206,83,203,88,141,49"/>
+<area shape="rect" title=" " alt="" coords="205,5,362,46"/>
+<area shape="rect" title=" " alt="" coords="5,94,77,120"/>
+<area shape="poly" title=" " alt="" coords="224,49,92,92,91,87,222,44"/>
+<area shape="rect" title=" " alt="" coords="100,94,152,120"/>
+<area shape="poly" title=" " alt="" coords="246,49,165,89,163,84,243,44"/>
+<area shape="rect" title=" " alt="" coords="177,94,230,120"/>
+<area shape="poly" title=" " alt="" coords="266,48,229,85,225,81,262,45"/>
+<area shape="rect" title=" " alt="" coords="255,94,312,120"/>
+<area shape="poly" title=" " alt="" coords="286,46,286,78,281,78,281,46"/>
+<area shape="rect" title=" " alt="" coords="336,94,479,120"/>
+<area shape="poly" title=" " alt="" coords="316,44,377,83,374,88,313,49"/>
+<area shape="rect" title=" " alt="" coords="503,94,664,120"/>
+<area shape="poly" title=" " alt="" coords="359,44,523,87,522,92,358,49"/>
+<area shape="rect" title=" " alt="" coords="688,94,855,120"/>
+<area shape="poly" title=" " alt="" coords="363,37,682,88,681,94,362,42"/>
 </map>
 </div>
 </div><div class="textblock"><div class="dynheader">
@@ -136,13 +148,15 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="message__data_8h__dep__incl.png" border="0" usemap="#asrc_2app_2editor_2message_2message__data_8hdep" alt=""/></div>
 <map name="asrc_2app_2editor_2message_2message__data_8hdep" id="asrc_2app_2editor_2message_2message__data_8hdep">
-<area shape="rect" title=" " alt="" coords="80,5,238,46"/>
-<area shape="rect" href="message__editor_8h.html" title=" " alt="" coords="80,94,238,135"/>
-<area shape="poly" title=" " alt="" coords="162,62,162,94,156,94,156,62"/>
-<area shape="rect" href="editor__manager_8h.html" title=" " alt="" coords="5,183,142,223"/>
-<area shape="poly" title=" " alt="" coords="131,148,95,184,91,180,127,144"/>
-<area shape="rect" href="message__editor_8cc.html" title=" " alt="" coords="166,183,323,223"/>
-<area shape="poly" title=" " alt="" coords="191,144,227,180,223,184,187,148"/>
+<area shape="rect" title=" " alt="" coords="96,5,253,46"/>
+<area shape="rect" href="message__data_8cc.html" title=" " alt="" coords="5,94,163,135"/>
+<area shape="poly" title=" " alt="" coords="145,59,106,95,103,92,142,55"/>
+<area shape="rect" href="message__editor_8h.html" title=" " alt="" coords="187,94,344,135"/>
+<area shape="poly" title=" " alt="" coords="208,55,247,92,243,95,204,59"/>
+<area shape="rect" href="editor__manager_8h.html" title=" " alt="" coords="112,183,248,223"/>
+<area shape="poly" title=" " alt="" coords="237,148,201,184,197,180,234,144"/>
+<area shape="rect" href="message__editor_8cc.html" title=" " alt="" coords="272,183,429,223"/>
+<area shape="poly" title=" " alt="" coords="297,144,333,180,329,184,293,148"/>
 </map>
 </div>
 </div>
@@ -170,13 +184,33 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a903cdfb934c048134f9cd12283b60f32" id="r_a903cdfb934c048134f9cd12283b60f32"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1editor.html#a903cdfb934c048134f9cd12283b60f32">yaze::app::editor::FindMatchingCharacter</a> (char value)</td></tr>
+<tr class="separator:a903cdfb934c048134f9cd12283b60f32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3099ee5f96067379b03d477c1fdd1016" id="r_a3099ee5f96067379b03d477c1fdd1016"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1editor.html#a3099ee5f96067379b03d477c1fdd1016">yaze::app::editor::FindDictionaryEntry</a> (uint8_t value)</td></tr>
+<tr class="separator:a3099ee5f96067379b03d477c1fdd1016"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a15f24c296207cfe5e5d65f8e6ced2906" id="r_a15f24c296207cfe5e5d65f8e6ced2906"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1editor.html#a15f24c296207cfe5e5d65f8e6ced2906">yaze::app::editor::ReplaceAllDictionaryWords</a> (std::string str)</td></tr>
 <tr class="separator:a15f24c296207cfe5e5d65f8e6ced2906"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac915a1e39b12e26c6f818d1a08ca05c1" id="r_ac915a1e39b12e26c6f818d1a08ca05c1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1app_1_1editor_1_1TextElement.html">TextElement</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1editor.html#ac915a1e39b12e26c6f818d1a08ca05c1">yaze::app::editor::FindMatchingCommand</a> (uint8_t b)</td></tr>
+<tr class="separator:ac915a1e39b12e26c6f818d1a08ca05c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aadbfbb6b8f84c831c0201e3e09faa4e2" id="r_aadbfbb6b8f84c831c0201e3e09faa4e2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1app_1_1editor_1_1TextElement.html">TextElement</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1editor.html#aadbfbb6b8f84c831c0201e3e09faa4e2">yaze::app::editor::FindMatchingSpecial</a> (uint8_t value)</td></tr>
+<tr class="separator:aadbfbb6b8f84c831c0201e3e09faa4e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a34e00c874a636843f203374afeb777c7" id="r_a34e00c874a636843f203374afeb777c7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1app_1_1editor_1_1ParsedElement.html">ParsedElement</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1editor.html#a34e00c874a636843f203374afeb777c7">yaze::app::editor::FindMatchingElement</a> (const std::string &amp;str)</td></tr>
+<tr class="separator:a34e00c874a636843f203374afeb777c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af06b6e8af641ee53dbc34d85c4270ddd" id="r_af06b6e8af641ee53dbc34d85c4270ddd"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1editor.html#af06b6e8af641ee53dbc34d85c4270ddd">yaze::app::editor::ParseTextDataByte</a> (uint8_t value)</td></tr>
+<tr class="separator:af06b6e8af641ee53dbc34d85c4270ddd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbfa49c529abc70e97df75a0ef62228d" id="r_adbfa49c529abc70e97df75a0ef62228d"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1editor.html#adbfa49c529abc70e97df75a0ef62228d">yaze::app::editor::ParseMessageToData</a> (std::string str)</td></tr>
+<tr class="separator:adbfa49c529abc70e97df75a0ef62228d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:ad49c36e0b8bf699d3ef697d7a7c21e56" id="r_ad49c36e0b8bf699d3ef697d7a7c21e56"><td class="memItemLeft" align="right" valign="top">const uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1editor.html#ad49c36e0b8bf699d3ef697d7a7c21e56">yaze::app::editor::MESSAGETERMINATOR</a> = 0x7F</td></tr>
-<tr class="separator:ad49c36e0b8bf699d3ef697d7a7c21e56"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7985c28be7e66bda21adef7bb3b456c4" id="r_a7985c28be7e66bda21adef7bb3b456c4"><td class="memItemLeft" align="right" valign="top">const uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1editor.html#a7985c28be7e66bda21adef7bb3b456c4">yaze::app::editor::kMessageTerminator</a> = 0x7F</td></tr>
+<tr class="separator:a7985c28be7e66bda21adef7bb3b456c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a850a7222bba2ccad93ba6aadd8f37430" id="r_a850a7222bba2ccad93ba6aadd8f37430"><td class="memItemLeft" align="right" valign="top">const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1editor.html#a850a7222bba2ccad93ba6aadd8f37430">yaze::app::editor::BANKToken</a> = &quot;BANK&quot;</td></tr>
+<tr class="separator:a850a7222bba2ccad93ba6aadd8f37430"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0fa9018bc42caddcbec2c22a7418ce11" id="r_a0fa9018bc42caddcbec2c22a7418ce11"><td class="memItemLeft" align="right" valign="top">const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1editor.html#a0fa9018bc42caddcbec2c22a7418ce11">yaze::app::editor::DICTIONARYTOKEN</a> = &quot;D&quot;</td></tr>
+<tr class="separator:a0fa9018bc42caddcbec2c22a7418ce11"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3759630a3dcabc07760675dda8bf5c8c" id="r_a3759630a3dcabc07760675dda8bf5c8c"><td class="memItemLeft" align="right" valign="top">constexpr uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1editor.html#a3759630a3dcabc07760675dda8bf5c8c">yaze::app::editor::DICTOFF</a> = 0x88</td></tr>
+<tr class="separator:a3759630a3dcabc07760675dda8bf5c8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab97da3dff9dae706531f752f9f310f82" id="r_ab97da3dff9dae706531f752f9f310f82"><td class="memItemLeft" align="right" valign="top">const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1editor.html#ab97da3dff9dae706531f752f9f310f82">yaze::app::editor::CHEESE</a> = &quot;\uBEBE&quot;</td></tr>
 <tr class="separator:ab97da3dff9dae706531f752f9f310f82"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>

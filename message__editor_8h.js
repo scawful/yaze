@@ -13,12 +13,9 @@ var message__editor_8h =
     [ "kNumDictionaryEntries", "message__editor_8h.html#adda17c1c63e0d77cd9100cab3700d10d", null ],
     [ "kNumMessages", "message__editor_8h.html#a34052db2e8cb156e3cd2297e5222ebba", null ],
     [ "kBlockTerminator", "message__editor_8h.html#ac8b7c1572a3d598ce7b1eaa702542980", null ],
-    [ "DICTOFF", "message__editor_8h.html#a3759630a3dcabc07760675dda8bf5c8c", null ],
     [ "BANKID", "message__editor_8h.html#a6aec0c3a8b77cc747c1ae9d851a06234", null ],
     [ "kScrollVertical", "message__editor_8h.html#afb187108a5c884ecf602a288f963d16a", null ],
     [ "kLine1", "message__editor_8h.html#aa73f642d6f89196ee44f4bbe47b77801", null ],
     [ "kLine2", "message__editor_8h.html#abc8039376561d7f168e7fa3508aeafa7", null ],
-    [ "kLine3", "message__editor_8h.html#a033a615e52c32eb60c82a44d242d54de", null ],
-    [ "DICTIONARYTOKEN", "message__editor_8h.html#a0fa9018bc42caddcbec2c22a7418ce11", null ],
-    [ "BANKToken", "message__editor_8h.html#a850a7222bba2ccad93ba6aadd8f37430", null ]
+    [ "kLine3", "message__editor_8h.html#a033a615e52c32eb60c82a44d242d54de", null ]
 ];

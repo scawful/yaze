@@ -1,9 +1,17 @@
 <map id="src/app/editor/message/message_data.h" name="src/app/editor/message/message_data.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="33,5,191,46"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,94,59,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,48,57,85,53,81,90,45"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="83,94,141,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="115,46,115,78,109,78,109,46"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="165,94,307,120"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="144,44,206,83,203,88,141,49"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="205,5,362,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,94,77,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="224,49,92,92,91,87,222,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="100,94,152,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="246,49,165,89,163,84,243,44"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="177,94,230,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="266,48,229,85,225,81,262,45"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="255,94,312,120"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="286,46,286,78,281,78,281,46"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="336,94,479,120"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="316,44,377,83,374,88,313,49"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="503,94,664,120"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="359,44,523,87,522,92,358,49"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="688,94,855,120"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="363,37,682,88,681,94,362,42"/>
 </map>

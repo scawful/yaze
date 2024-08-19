@@ -1,5 +1,22 @@
 var NAVTREEINDEX52 =
 {
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#ae7cf3ee8a2b5f40f925d9a721ceaa939":[12,0,1,0,5,0,3,6],
+"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html":[11,0,2,0,6,3,3],
+"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html":[12,0,1,0,5,2,0],
+"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#a45c7af9c0ee6d1a8ef3b159ab48bc5f0":[11,0,2,0,6,3,3,0],
+"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#a45c7af9c0ee6d1a8ef3b159ab48bc5f0":[12,0,1,0,5,2,0,0],
+"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#ac0b74c47202dcac21769d177be66a441":[11,0,2,0,6,3,3,1],
+"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#ac0b74c47202dcac21769d177be66a441":[12,0,1,0,5,2,0,1],
+"structyaze_1_1cli_1_1Commands.html":[11,0,2,1,6],
+"structyaze_1_1cli_1_1Commands.html":[12,0,1,1,5],
+"structyaze_1_1cli_1_1Commands.html#a564941340fe0299473dafc0bb1a1d8a6":[11,0,2,1,6,0],
+"structyaze_1_1cli_1_1Commands.html#a564941340fe0299473dafc0bb1a1d8a6":[12,0,1,1,5,0],
+"structyaze__command__registry.html":[12,0,6],
+"structyaze__command__registry.html#ae884832d62a9d0ab5090fc94f01dc3ca":[12,0,6,0],
+"structyaze__editor__context.html":[12,0,7],
+"structyaze__editor__context.html#a2d28d8b8c1c7cc2c90d72f89346a7ebc":[12,0,7,4],
+"structyaze__editor__context.html#a3e747d7d0638142be1b42e0fb5f0bf60":[12,0,7,0],
+"structyaze__editor__context.html#a42bd8a63b8e9d7d458b44587d9270dff":[12,0,7,2],
 "structyaze__editor__context.html#a5a8878ed1bf934cfbfac022d08abc951":[12,0,7,1],
 "structyaze__editor__context.html#a78848069ed97ec1084103943ac348332":[12,0,7,6],
 "structyaze__editor__context.html#a7f60513045ba57bd5be5d2aed34f5321":[12,0,7,5],
@@ -232,11 +249,5 @@ var NAVTREEINDEX52 =
 "zeml_8h.html#a8012c292c03901c7a7f2aa7a0d82fee5ac5301693c4e792bcd5a479ef38fb8f8d":[13,0,1,0,4,12,6,2],
 "zeml_8h.html#a8012c292c03901c7a7f2aa7a0d82fee5af4ec5f57bd4d31b803312d873be40da9":[13,0,1,0,4,12,6,1],
 "zeml_8h.html#a805db34a520725f235fdb7d642e343f3":[13,0,1,0,4,12,15],
-"zeml_8h.html#ab66fc494201a906e415db8cddcde2e08":[13,0,1,0,4,12,19],
-"zeml_8h.html#acc213c0cf052c4538f80f16261cbbcbc":[13,0,1,0,4,12,11],
-"zeml_8h.html#ad579d58e78d2fd24d70a4e4afa4d8307":[13,0,1,0,4,12,13],
-"zeml_8h.html#aef3beb3e97e844a0512d586ecfb7bf06":[13,0,1,0,4,12,7],
-"zeml_8h_source.html":[13,0,1,0,4,12],
-"zsprite_8h.html":[13,0,1,0,1,6,2],
-"zsprite_8h_source.html":[13,0,1,0,1,6,2]
+"zeml_8h.html#ab66fc494201a906e415db8cddcde2e08":[13,0,1,0,4,12,19]
 };
