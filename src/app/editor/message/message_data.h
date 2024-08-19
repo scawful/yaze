@@ -51,10 +51,6 @@ struct MessageData {
     return absl::StrFormat("%0X - %s", ID, ContentsParsed);
   }
 
-  std::string GetDumpedContents() {
-    return absl::StrFormat("%000X : %s\r\n\r\n", ID, ContentsParsed);
-  }
-
   std::string OptimizeMessageForDictionary(std::string messageString) {
     std::stringstream protons;
     bool command = false;
@@ -77,6 +73,11 @@ struct MessageData {
         absl::StrReplaceAll(replacedString, {{CHEESE, ""}});
 
     return finalString;
+  }
+
+  void SetMessage(const std::string& message) {
+    RawString = message;
+    ContentsParsed = OptimizeMessageForDictionary(message);
   }
 };
 
