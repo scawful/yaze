@@ -69,7 +69,7 @@ static const std::vector<TextElement> TextCommands = {
     TextElement(0x70, "NONO", false, "Crash"),
 };
 
-static std::vector<TextElement> SpecialChars = {
+static const std::vector<TextElement> SpecialChars = {
     TextElement(0x43, "...", false, "Ellipsis …"),
     TextElement(0x4D, "UP", false, "Arrow ↑"),
     TextElement(0x4E, "DOWN", false, "Arrow ↓"),
@@ -126,7 +126,8 @@ class MessageEditor : public Editor, public SharedRom {
   void DrawCurrentMessage();
   void DrawTextCommands();
 
-  void ReadAllTextData();
+  void ReadAllTextDataV2();
+  [[deprecated]] void ReadAllTextData();
   void BuildDictionaryEntries();
 
   absl::Status Cut() override;
@@ -211,7 +212,6 @@ class MessageEditor : public Editor, public SharedRom {
   std::string search_text_ = "";
 
   std::vector<MessageData> list_of_texts_;
-  std::vector<MessageData> displayed_messages_;
   std::vector<std::string> parsed_messages_;
 
   MessageData current_message_;
