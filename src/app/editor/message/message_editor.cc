@@ -53,7 +53,7 @@ absl::Status MessageEditor::Initialize() {
   }
 
   BuildDictionaryEntries();
-  ReadAllTextData();
+  ReadAllTextDataV2();
 
   font_preview_colors_.AddColor(0x7FFF);  // White
   font_preview_colors_.AddColor(0x7C00);  // Red
@@ -86,10 +86,6 @@ absl::Status MessageEditor::Initialize() {
   }
 
   *font_gfx_bitmap_.mutable_palette() = color_palette;
-
-  for (const auto& message : list_of_texts_) {
-    displayed_messages_.push_back(message);
-  }
 
   for (const auto& each_message : list_of_texts_) {
     // Each string has a [:XX] char encoded
@@ -160,12 +156,7 @@ absl::Status MessageEditor::Update() {
 
 void MessageEditor::DrawMessageList() {
   if (InputText("Search", &search_text_)) {
-    displayed_messages_.clear();
-    for (const auto& message : list_of_texts_) {
-      if (absl::StrContains(message.ContentsParsed, search_text_)) {
-        displayed_messages_.push_back(message);
-      }
-    }
+    // TODO: ImGui style text filtering
   }
 
   if (BeginChild("##MessagesList", ImVec2(0, 0), true,
@@ -274,8 +265,107 @@ void MessageEditor::BuildDictionaryEntries() {
     AllDictionaries.push_back(DictionaryEntry{(uint8_t)i, stringBuilder.str()});
   }
 
-  // AllDictionaries.OrderByDescending(dictionary = > dictionary.Length);
-  AllDictionaries[0].Length = 0;
+  std::sort(AllDictionaries.begin(), AllDictionaries.end(),
+            [](const DictionaryEntry& a, const DictionaryEntry& b) {
+              return a.Contents.size() > b.Contents.size();
+            });
+}
+
+// TODO: Fix the command parsing.
+void MessageEditor::ReadAllTextDataV2() {
+  // Read all text data from the ROM.
+  int pos = kTextData;
+  int message_id = 0;
+
+  std::vector<uint8_t> raw_message;
+  std::vector<uint8_t> parsed_message;
+
+  std::string current_raw_message;
+  std::string current_parsed_message;
+
+  uint8_t current_byte = 0;
+  while (current_byte != 0xFF) {
+    current_byte = rom()->data()[pos++];
+    if (current_byte == MESSAGETERMINATOR) {
+      auto message =
+          MessageData(message_id++, pos, current_raw_message, raw_message,
+                      current_parsed_message, parsed_message);
+
+      list_of_texts_.push_back(message);
+
+      raw_message.clear();
+      parsed_message.clear();
+      current_raw_message.clear();
+      current_parsed_message.clear();
+
+      continue;
+    }
+
+    raw_message.push_back(current_byte);
+
+    // Check for command.
+    TextElement text_element = FindMatchingCommand(current_byte);
+    if (!text_element.Empty()) {
+      // raw_message.push_back(current_byte);
+      parsed_message.push_back(current_byte);
+      if (text_element.HasArgument) {
+        current_byte = rom()->data()[pos++];
+        raw_message.push_back(current_byte);
+        parsed_message.push_back(current_byte);
+      }
+
+      current_raw_message.append(
+          text_element.GetParameterizedToken(current_byte));
+      current_parsed_message.append(
+          text_element.GetParameterizedToken(current_byte));
+
+      if (text_element.Token == BANKToken) {
+        pos = kTextData2;
+      }
+
+      continue;
+    }
+
+    // Check for special characters.
+    text_element = FindMatchingSpecial(current_byte);
+    if (!text_element.Empty()) {
+      current_raw_message.append(text_element.GetParameterizedToken());
+      current_parsed_message.append(text_element.GetParameterizedToken());
+      parsed_message.push_back(current_byte);
+      continue;
+    }
+
+    // Check for dictionary.
+    int dictionary = FindDictionaryEntry(current_byte);
+    if (dictionary >= 0) {
+      current_raw_message.append("[");
+      current_raw_message.append(DICTIONARYTOKEN);
+      current_raw_message.append(":");
+      current_raw_message.append(core::UppercaseHexWord(dictionary));
+      current_raw_message.append("]");
+
+      uint32_t address = core::Get24LocalFromPC(
+          rom()->data(), kPointersDictionaries + (dictionary * 2));
+      uint32_t address_end = core::Get24LocalFromPC(
+          rom()->data(), kPointersDictionaries + ((dictionary + 1) * 2));
+
+      for (uint32_t i = address; i < address_end; i++) {
+        parsed_message.push_back(rom()->data()[i]);
+        current_parsed_message.append(ParseTextDataByte(rom()->data()[i]));
+      }
+
+      continue;
+    }
+
+    // Everything else.
+    if (CharEncoder.contains(current_byte)) {
+      std::string str = "";
+      str.push_back(CharEncoder.at(current_byte));
+      current_raw_message.append(str);
+      current_parsed_message.append(str);
+      parsed_message.push_back(current_byte);
+    }
+  }
 }
 
 void MessageEditor::ReadAllTextData() {
