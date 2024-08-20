@@ -154,6 +154,11 @@ void ResourceLabelManager::SelectableLabelWithNameEdit(
   }
 }
 
+std::string ResourceLabelManager::GetLabel(const std::string& type,
+                                           const std::string& key) {
+  return labels_[type][key];
+}
+
 std::string ResourceLabelManager::CreateOrGetLabel(
     const std::string& type, const std::string& key,
     const std::string& defaultValue) {

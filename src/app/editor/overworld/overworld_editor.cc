@@ -1118,38 +1118,8 @@ void OverworldEditor::DrawOverworldProperties() {
   SameLine();
   properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 1.0f, 32, 3);
 
-  static bool dark_world = false;
-  int world = dark_world ? 3 : 0;
-  static int current = 0;
-
   static bool show_gfx_group = false;
   Checkbox("Show Gfx Group Editor", &show_gfx_group);
-  if (Checkbox("Dark World", &dark_world)) {
-    properties_canvas_.set_current_labels(current + world);
-  }
-  SameLine();
-  if (Button("Area Graphics")) {
-    current = 0;
-    properties_canvas_.set_current_labels(current + world);
-  }
-  SameLine();
-  if (Button("Area Palette")) {
-    current = 1;
-    properties_canvas_.set_current_labels(current + world);
-  }
-  if (Button("Sprite Graphics")) {
-    if (dark_world) {
-      properties_canvas_.set_current_labels(7);
-    } else {
-      properties_canvas_.set_current_labels(6);
-    }
-  }
-  SameLine();
-  if (Button("Sprite Palette")) {
-    current = 2;
-    properties_canvas_.set_current_labels(current + world);
-  }
-
   if (show_gfx_group) {
     gui::BeginWindowWithDisplaySettings("Gfx Group Editor", &show_gfx_group);
     status_ = gfx_group_editor_.Update();
@@ -1219,7 +1189,9 @@ absl::Status OverworldEditor::UpdateUsageStats() {
     if (BeginChild("UnusedSpritesetScroll", ImVec2(0, 0), true,
                    ImGuiWindowFlags_HorizontalScrollbar)) {
       for (int i = 0; i < 0x81; i++) {
-        std::string str = absl::StrFormat("%#x", i);
+        auto entrance_name = rom()->resource_label()->GetLabel(
+            "Dungeon Entrance Names", core::UppercaseHexByte(i));
+        std::string str = absl::StrFormat("%#x - %s", i, entrance_name);
         if (Selectable(str.c_str(), selected_entrance_ == i,
                        overworld_.entrances().at(i).deleted
                            ? ImGuiSelectableFlags_Disabled
