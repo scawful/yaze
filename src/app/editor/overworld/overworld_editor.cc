@@ -420,8 +420,8 @@ void OverworldEditor::DrawOverworldEdits() {
   selected_world[index_x][index_y] = current_tile16_;
 }
 
-void OverworldEditor::RenderUpdatedMapBitmap(const ImVec2 &click_position,
-                                             const std::vector<uint8_t> &tile_data) {
+void OverworldEditor::RenderUpdatedMapBitmap(
+    const ImVec2 &click_position, const std::vector<uint8_t> &tile_data) {
   // Calculate the tile position relative to the current active map
   constexpr int tile_size = 16;  // Tile size is 16x16 pixels
 
@@ -771,7 +771,6 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
   for (auto &each : overworld_.entrances()) {
     if (each.map_id_ < 0x40 + (current_world_ * 0x40) &&
         each.map_id_ >= (current_world_ * 0x40) && !each.deleted) {
-      // Make this yellow
       auto color = ImVec4(255, 255, 0, 100);
       if (each.is_hole_) {
         color = ImVec4(255, 255, 255, 200);
@@ -936,13 +935,24 @@ void OverworldEditor::DrawOverworldItems() {
 void OverworldEditor::DrawOverworldSprites() {
   int i = 0;
   for (auto &sprite : *overworld_.mutable_sprites(game_state_)) {
-    int map_id = sprite.map_id();
-    int map_x = sprite.map_x();
-    int map_y = sprite.map_y();
+    if (!sprite.deleted()) {
+      int map_id = sprite.map_id();
+      // map x and map y are relative to the map
+      // So we need to check if the map is large or small then add the offset
 
-    if (map_id < 0x40 + (current_world_ * 0x40) &&
-        map_id >= (current_world_ * 0x40) && !sprite.deleted()) {
-      ow_map_canvas_.DrawRect(map_x, map_y, 16, 16,
+      // Calculate the superX and superY values
+      int superY = map_id / 8;
+      int superX = map_id % 8;
+
+      // Calculate the map_x and map_y values
+      int map_x = sprite.map_x();
+      int map_y = sprite.map_y();
+
+      // Calculate the actual map_x and map_y values
+      map_x += superX * 512;
+      map_y += superY * 512;
+
+      ow_map_canvas_.DrawRect(map_x, map_y, kTile16Size, kTile16Size,
                               /*magenta*/ ImVec4(255, 0, 255, 150));
       if (current_mode == EditingMode::SPRITES) {
         HandleEntityDragging(&sprite, ow_map_canvas_.zero_point(),
@@ -955,7 +965,6 @@ void OverworldEditor::DrawOverworldSprites() {
           current_sprite_ = sprite;
         }
       }
-
       ow_map_canvas_.DrawText(absl::StrFormat("%s", sprite.name()), map_x,
                               map_y);
     }
@@ -1002,7 +1011,8 @@ absl::Status OverworldEditor::LoadGraphics() {
   // Loop through the tiles and copy their pixel data into separate vectors
   for (int i = 0; i < 4096; i++) {
     // Create a new vector for the pixel data of the current tile
-    std::vector<uint8_t> tile_data(16 * 16, 0x00);  // More efficient initialization
+    std::vector<uint8_t> tile_data(16 * 16,
+                                   0x00);  // More efficient initialization
 
     // Copy the pixel data for the current tile into the vector
     for (int ty = 0; ty < 16; ty++) {

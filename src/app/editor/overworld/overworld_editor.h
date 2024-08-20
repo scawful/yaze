@@ -178,7 +178,6 @@ class OverworldEditor : public Editor,
 
   absl::Status UpdateUsageStats();
   void DrawUsageGrid();
-
   void DrawDebugWindow();
 
   auto gfx_group_editor() const { return gfx_group_editor_; }
@@ -204,28 +203,16 @@ class OverworldEditor : public Editor,
   int current_exit_id_ = 0;
   int current_item_id_ = 0;
   int current_sprite_id_ = 0;
+  int current_blockset_ = 0;
   int game_state_ = 1;
   int current_tile16_ = 0;
-  int selected_tile_ = 0;
-  int current_blockset_ = 0;
   int selected_entrance_ = 0;
   int selected_usage_map_ = 0xFFFF;
 
-  char map_gfx_[3] = "";
-  char map_palette_[3] = "";
-  char spr_gfx_[3] = "";
-  char spr_palette_[3] = "";
-  char message_id_[5] = "";
-  char staticgfx[16];
-
-  bool opt_enable_grid = true;
   bool all_gfx_loaded_ = false;
   bool map_blockset_loaded_ = false;
   bool selected_tile_loaded_ = false;
-  bool update_selected_tile_ = true;
-  bool is_dragging_entrance_ = false;
   bool show_tile16_editor_ = false;
-  bool show_gfx_group_editor_ = false;
   bool overworld_canvas_fullscreen_ = false;
   bool middle_mouse_dragging_ = false;
   bool is_dragging_entity_ = false;
