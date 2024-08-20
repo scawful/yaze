@@ -647,6 +647,7 @@ void Canvas::DrawInfoGrid(float grid_step, int tile_id_offset, int label_id) {
     grid_step *= global_scale_;  // Apply global scale to grid step
 
     DrawGridLines(grid_step);
+    DrawCustomHighlight(grid_step);
 
     if (enable_custom_labels_) {
       // Draw the contents of labels on the grid
@@ -672,6 +673,19 @@ void Canvas::DrawInfoGrid(float grid_step, int tile_id_offset, int label_id) {
   }
 }
 
+void Canvas::DrawCustomHighlight(float grid_step) {
+  if (highlight_tile_id != -1) {
+    int tile_x = highlight_tile_id % 8;
+    int tile_y = highlight_tile_id / 8;
+    ImVec2 tile_pos(canvas_p0_.x + scrolling_.x + tile_x * grid_step,
+                    canvas_p0_.y + scrolling_.y + tile_y * grid_step);
+    ImVec2 tile_pos_end(tile_pos.x + grid_step, tile_pos.y + grid_step);
+
+    draw_list_->AddRectFilled(tile_pos, tile_pos_end,
+                              IM_COL32(255, 0, 255, 255));
+  }
+}
+
 void Canvas::DrawGrid(float grid_step, int tile_id_offset) {
   // Draw grid + all lines in the canvas
   draw_list_->PushClipRect(canvas_p0_, canvas_p1_, true);
@@ -680,17 +694,7 @@ void Canvas::DrawGrid(float grid_step, int tile_id_offset) {
     grid_step *= global_scale_;  // Apply global scale to grid step
 
     DrawGridLines(grid_step);
-
-    if (highlight_tile_id != -1) {
-      int tile_x = highlight_tile_id % 8;
-      int tile_y = highlight_tile_id / 8;
-      ImVec2 tile_pos(canvas_p0_.x + scrolling_.x + tile_x * grid_step,
-                      canvas_p0_.y + scrolling_.y + tile_y * grid_step);
-      ImVec2 tile_pos_end(tile_pos.x + grid_step, tile_pos.y + grid_step);
-
-      draw_list_->AddRectFilled(tile_pos, tile_pos_end,
-                                IM_COL32(255, 0, 255, 255));
-    }
+    DrawCustomHighlight(grid_step);
 
     if (enable_hex_tile_labels_) {
       // Draw the hex ID of the tile in the center of the tile square
