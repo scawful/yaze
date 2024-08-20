@@ -135,6 +135,7 @@ class Canvas : public SharedRom {
     canvas_sz_ = canvas_size;
     custom_canvas_size_ = true;
   }
+  void DrawCustomHighlight(float grid_step);
   bool IsMouseHovering() const { return is_hovered_; }
   void ZoomIn() { global_scale_ += 0.25f; }
   void ZoomOut() { global_scale_ -= 0.25f; }
