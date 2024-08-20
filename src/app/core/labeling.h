@@ -38,6 +38,7 @@ struct ResourceLabelManager {
   void SelectableLabelWithNameEdit(bool selected, const std::string& type,
                                    const std::string& key,
                                    const std::string& defaultValue);
+  std::string GetLabel(const std::string& type, const std::string& key);
   std::string CreateOrGetLabel(const std::string& type, const std::string& key,
                                const std::string& defaultValue);
 
