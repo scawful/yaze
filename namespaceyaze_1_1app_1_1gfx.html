@@ -241,23 +241,23 @@ Functions</h2></td></tr>
 <tr class="separator:abdc15a02218fe29002585f61230af828"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1bb7565b38ebe9348abb69352315d32f" id="r_a1bb7565b38ebe9348abb69352315d32f"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html">PaletteGroup</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1bb7565b38ebe9348abb69352315d32f">CreatePaletteGroupFromLargePalette</a> (<a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">SnesPalette</a> &amp;palette, int num_colors)</td></tr>
 <tr class="separator:a1bb7565b38ebe9348abb69352315d32f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a54b0c20ee2f3df0fb9a988b215754180" id="r_a54b0c20ee2f3df0fb9a988b215754180"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a54b0c20ee2f3df0fb9a988b215754180">LoadAllPalettes</a> (const <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &amp;rom_data, <a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html">PaletteGroupMap</a> &amp;groups)</td></tr>
-<tr class="memdesc:a54b0c20ee2f3df0fb9a988b215754180"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads all the palettes for the game.  <br /></td></tr>
-<tr class="separator:a54b0c20ee2f3df0fb9a988b215754180"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4ec1226f327e64dcc4a789f6d21f4a24" id="r_a4ec1226f327e64dcc4a789f6d21f4a24"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1app_1_1gfx_1_1tile8.html">tile8</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4ec1226f327e64dcc4a789f6d21f4a24">UnpackBppTile</a> (const <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &amp;data, const uint32_t offset, const uint32_t bpp)</td></tr>
-<tr class="separator:a4ec1226f327e64dcc4a789f6d21f4a24"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a552ecb78eb0a711234650adab705305c" id="r_a552ecb78eb0a711234650adab705305c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a552ecb78eb0a711234650adab705305c">PackBppTile</a> (const <a class="el" href="structyaze_1_1app_1_1gfx_1_1tile8.html">tile8</a> &amp;tile, const uint32_t bpp)</td></tr>
-<tr class="separator:a552ecb78eb0a711234650adab705305c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9499fc92c20ba2d6bd2936e5a905091c" id="r_a9499fc92c20ba2d6bd2936e5a905091c"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9499fc92c20ba2d6bd2936e5a905091c">LoadAllPalettes</a> (const std::vector&lt; uint8_t &gt; &amp;rom_data, <a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html">PaletteGroupMap</a> &amp;groups)</td></tr>
+<tr class="memdesc:a9499fc92c20ba2d6bd2936e5a905091c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads all the palettes for the game.  <br /></td></tr>
+<tr class="separator:a9499fc92c20ba2d6bd2936e5a905091c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e28a066b295ab514049968bfef05747" id="r_a9e28a066b295ab514049968bfef05747"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1app_1_1gfx_1_1tile8.html">tile8</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9e28a066b295ab514049968bfef05747">UnpackBppTile</a> (const std::vector&lt; uint8_t &gt; &amp;data, const uint32_t offset, const uint32_t bpp)</td></tr>
+<tr class="separator:a9e28a066b295ab514049968bfef05747"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3393bdf562a11dce53934f403523b15a" id="r_a3393bdf562a11dce53934f403523b15a"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3393bdf562a11dce53934f403523b15a">PackBppTile</a> (const <a class="el" href="structyaze_1_1app_1_1gfx_1_1tile8.html">tile8</a> &amp;tile, const uint32_t bpp)</td></tr>
+<tr class="separator:a3393bdf562a11dce53934f403523b15a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab26e7d963d877f126b4ff7442c473864" id="r_ab26e7d963d877f126b4ff7442c473864"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab26e7d963d877f126b4ff7442c473864">ConvertBpp</a> (const std::vector&lt; uint8_t &gt; &amp;tiles, uint32_t from_bpp, uint32_t to_bpp)</td></tr>
 <tr class="separator:ab26e7d963d877f126b4ff7442c473864"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acbccad0c8c3b4758e2ed3425058623d7" id="r_acbccad0c8c3b4758e2ed3425058623d7"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acbccad0c8c3b4758e2ed3425058623d7">Convert3bppTo4bpp</a> (const std::vector&lt; uint8_t &gt; &amp;tiles)</td></tr>
 <tr class="separator:acbccad0c8c3b4758e2ed3425058623d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a12666f7bb6b6dcacbb721b16eded9000" id="r_a12666f7bb6b6dcacbb721b16eded9000"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a12666f7bb6b6dcacbb721b16eded9000">Convert4bppTo3bpp</a> (const std::vector&lt; uint8_t &gt; &amp;tiles)</td></tr>
 <tr class="separator:a12666f7bb6b6dcacbb721b16eded9000"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a568c3c8e5996e53a73ef3cf6e1dd851f" id="r_a568c3c8e5996e53a73ef3cf6e1dd851f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a568c3c8e5996e53a73ef3cf6e1dd851f">SnesTo8bppSheet</a> (const <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &amp;sheet, int bpp)</td></tr>
-<tr class="separator:a568c3c8e5996e53a73ef3cf6e1dd851f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7f314a1a135641431d8cd613173fb720" id="r_a7f314a1a135641431d8cd613173fb720"><td class="memItemLeft" align="right" valign="top"><a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7f314a1a135641431d8cd613173fb720">Bpp8SnesToIndexed</a> (<a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> data, uint64_t bpp)</td></tr>
-<tr class="separator:a7f314a1a135641431d8cd613173fb720"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8010d42263caa323598496adadafc605" id="r_a8010d42263caa323598496adadafc605"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8010d42263caa323598496adadafc605">SnesTo8bppSheet</a> (const std::vector&lt; uint8_t &gt; &amp;sheet, int bpp)</td></tr>
+<tr class="separator:a8010d42263caa323598496adadafc605"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ff6fc75a8c652c747bde4467eafcfa0" id="r_a6ff6fc75a8c652c747bde4467eafcfa0"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6ff6fc75a8c652c747bde4467eafcfa0">Bpp8SnesToIndexed</a> (std::vector&lt; uint8_t &gt; data, uint64_t bpp)</td></tr>
+<tr class="separator:a6ff6fc75a8c652c747bde4467eafcfa0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad8ba19f73c435e3e5527673d5b0cc096" id="r_ad8ba19f73c435e3e5527673d5b0cc096"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad8ba19f73c435e3e5527673d5b0cc096">TileInfoToWord</a> (<a class="el" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> tile_info)</td></tr>
 <tr class="separator:ad8ba19f73c435e3e5527673d5b0cc096"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1c0d7314890a130ceda6eec9def39c4e" id="r_a1c0d7314890a130ceda6eec9def39c4e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1c0d7314890a130ceda6eec9def39c4e">WordToTileInfo</a> (uint16_t word)</td></tr>
@@ -909,8 +909,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a54b0c20ee2f3df0fb9a988b215754180" name="a54b0c20ee2f3df0fb9a988b215754180"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a54b0c20ee2f3df0fb9a988b215754180">&#9670;&#160;</a></span>LoadAllPalettes()</h2>
+<a id="a9499fc92c20ba2d6bd2936e5a905091c" name="a9499fc92c20ba2d6bd2936e5a905091c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9499fc92c20ba2d6bd2936e5a905091c">&#9670;&#160;</a></span>LoadAllPalettes()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -918,7 +918,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">absl::Status yaze::app::gfx::LoadAllPalettes </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>rom_data</em></span>, </td>
+          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>rom_data</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -940,38 +940,38 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_a54b0c20ee2f3df0fb9a988b215754180_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_a54b0c20ee2f3df0fb9a988b215754180_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1gfx_a54b0c20ee2f3df0fb9a988b215754180_cgraph" id="anamespaceyaze_1_1app_1_1gfx_a54b0c20ee2f3df0fb9a988b215754180_cgraph">
+<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_a9499fc92c20ba2d6bd2936e5a905091c_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_a9499fc92c20ba2d6bd2936e5a905091c_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1gfx_a9499fc92c20ba2d6bd2936e5a905091c_cgraph" id="anamespaceyaze_1_1app_1_1gfx_a9499fc92c20ba2d6bd2936e5a905091c_cgraph">
 <area shape="rect" title="Loads all the palettes for the game." alt="" coords="5,564,201,590"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#abfd54beae496fe3e6677c318323bd247" title=" " alt="" coords="264,693,462,749"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a01fcbee85e0b56dbed869025e9baf5f0" title=" " alt="" coords="264,693,462,749"/>
 <area shape="poly" title=" " alt="" coords="121,589,176,632,250,679,261,684,259,689,247,683,173,636,118,593"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#abd54b5c15508a816b7235ea37997e045" title=" " alt="" coords="250,773,477,814"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#ab19ea0a18b1dfd169ca065d02d8e6707" title=" " alt="" coords="250,773,477,814"/>
 <area shape="poly" title=" " alt="" coords="113,589,132,624,163,670,202,718,250,759,257,763,254,768,247,763,199,722,158,673,128,627,109,592"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#aab4790ba080edc4104f90e2a7cc0a989" title=" " alt="" coords="266,837,461,893"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a63c59f7b29331f76abac4ec2aa4d4358" title=" " alt="" coords="266,837,461,893"/>
 <area shape="poly" title=" " alt="" coords="111,590,127,634,155,697,196,764,222,796,250,823,255,827,252,831,247,827,218,799,192,767,151,699,122,636,106,592"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a6fcba58c441d2a0e28155df84118c907" title=" " alt="" coords="256,917,471,973"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a1dd18664f70a4ff129c66025d4eb94f9" title=" " alt="" coords="256,917,471,973"/>
 <area shape="poly" title=" " alt="" coords="109,590,121,647,146,731,165,777,188,823,216,866,251,903,254,906,250,910,247,907,212,869,183,825,160,779,141,733,115,648,104,591"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a484ece2a9dfd0fc5a61543db155b5754" title=" " alt="" coords="255,1062,472,1103"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a567c873f1a165345e79ce659e3d94c15" title=" " alt="" coords="255,1062,472,1103"/>
 <area shape="poly" title=" " alt="" coords="107,590,110,669,116,726,128,791,145,860,171,928,205,992,251,1047,254,1051,251,1055,247,1051,201,995,166,930,140,861,122,792,111,727,105,669,101,590"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a3942163d8d3f295042c5ec0cdb06d8b7" title=" " alt="" coords="253,997,474,1038"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a23771c236fe9440da057d7d39dbbb35d" title=" " alt="" coords="253,997,474,1038"/>
 <area shape="poly" title=" " alt="" coords="107,590,114,660,135,766,153,824,178,882,210,936,251,983,253,985,249,989,247,987,205,939,173,884,148,826,130,767,109,660,102,591"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a575aaf027a43b460824e247cb5c9baec" title=" " alt="" coords="262,5,465,61"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#aadacbeef2438678a4b5f174a4d0dccf7" title=" " alt="" coords="262,5,465,61"/>
 <area shape="poly" title=" " alt="" coords="101,564,104,481,110,420,121,350,138,276,164,203,200,133,222,101,247,71,249,69,253,73,251,75,226,104,204,136,169,205,143,278,126,351,115,420,109,481,107,564"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#adef88d8d1e48d1cdad625fce5064f75f" title=" " alt="" coords="262,85,465,141"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a456324728cc873b04d46e5b631b5fde1" title=" " alt="" coords="262,85,465,141"/>
 <area shape="poly" title=" " alt="" coords="102,564,109,493,130,383,148,321,173,260,205,202,247,151,249,149,253,153,251,155,210,205,178,262,153,323,135,384,114,493,107,564"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a885356ec4a36e5ef64119ca676b14257" title=" " alt="" coords="262,165,465,221"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a4f79e19c1af3a0e043ee2e663bce1ef7" title=" " alt="" coords="262,165,465,221"/>
 <area shape="poly" title=" " alt="" coords="103,563,114,504,139,415,158,366,182,317,211,272,247,231,250,228,254,232,251,235,215,275,186,320,163,368,144,417,119,505,109,564"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#af624df2438c3def1da9a3c82ab7e58ee" title=" " alt="" coords="262,245,465,301"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a3e82655289f0e50b7a974919ec09c58b" title=" " alt="" coords="262,245,465,301"/>
 <area shape="poly" title=" " alt="" coords="105,563,120,516,148,449,190,375,217,341,247,311,251,308,254,312,250,315,221,345,195,378,153,451,125,518,110,565"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#acf3dcbf9595622efea530ea4afed87b7" title=" " alt="" coords="249,325,478,366"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a0ce563b505afbd73bad15cdd86b5e67b" title=" " alt="" coords="249,325,478,366"/>
 <area shape="poly" title=" " alt="" coords="108,563,126,526,156,475,196,421,221,396,247,375,254,371,257,375,250,379,224,400,200,425,160,478,130,528,112,565"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a1c8f4a993ae8fb87c07f714b41a5991d" title=" " alt="" coords="260,389,467,445"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a65f405d5925ed46e672e6e66fb683a4a" title=" " alt="" coords="260,389,467,445"/>
 <area shape="poly" title=" " alt="" coords="115,562,170,511,207,481,247,455,257,450,260,454,250,459,210,486,173,515,119,566"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a2d6fee08ea00e55402ef8758ca853b76" title=" " alt="" coords="260,469,467,525"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a93ef5cb13b0af6bafdb9b84cb4666094" title=" " alt="" coords="260,469,467,525"/>
 <area shape="poly" title=" " alt="" coords="147,561,255,527,257,533,148,566"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#aee28ac501ff95be94bc01b0fbbcb0545" title=" " alt="" coords="260,549,467,605"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#aa3e1c7c7c8f89dd171d37133cf57c61a" title=" " alt="" coords="260,549,467,605"/>
 <area shape="poly" title=" " alt="" coords="201,574,244,574,244,580,201,580"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#ae251945cd53721f7e2d027ebc3cec6c9" title=" " alt="" coords="249,629,478,670"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#aec182929ccd4491e3e096f8d9e957758" title=" " alt="" coords="249,629,478,670"/>
 <area shape="poly" title=" " alt="" coords="153,588,273,622,272,627,151,593"/>
 <area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a8fa2347dd7c201ffd8189cab6177798a" title=" " alt="" coords="526,481,705,522"/>
 <area shape="poly" title=" " alt="" coords="461,691,476,679,489,662,496,646,500,612,504,576,511,558,524,539,537,528,540,532,528,543,515,560,509,578,505,612,501,647,494,665,480,683,465,696"/>
@@ -1012,8 +1012,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a4ec1226f327e64dcc4a789f6d21f4a24" name="a4ec1226f327e64dcc4a789f6d21f4a24"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4ec1226f327e64dcc4a789f6d21f4a24">&#9670;&#160;</a></span>UnpackBppTile()</h2>
+<a id="a9e28a066b295ab514049968bfef05747" name="a9e28a066b295ab514049968bfef05747"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9e28a066b295ab514049968bfef05747">&#9670;&#160;</a></span>UnpackBppTile()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1021,7 +1021,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname"><a class="el" href="structyaze_1_1app_1_1gfx_1_1tile8.html">tile8</a> yaze::app::gfx::UnpackBppTile </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
+          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1044,14 +1044,14 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a552ecb78eb0a711234650adab705305c" name="a552ecb78eb0a711234650adab705305c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a552ecb78eb0a711234650adab705305c">&#9670;&#160;</a></span>PackBppTile()</h2>
+<a id="a3393bdf562a11dce53934f403523b15a" name="a3393bdf562a11dce53934f403523b15a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3393bdf562a11dce53934f403523b15a">&#9670;&#160;</a></span>PackBppTile()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> yaze::app::gfx::PackBppTile </td>
+          <td class="memname">std::vector&lt; uint8_t &gt; yaze::app::gfx::PackBppTile </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="structyaze_1_1app_1_1gfx_1_1tile8.html">tile8</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>tile</em></span>, </td>
         </tr>
@@ -1106,9 +1106,9 @@ Here is the call graph for this function:</div>
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_ab26e7d963d877f126b4ff7442c473864_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_ab26e7d963d877f126b4ff7442c473864_cgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_ab26e7d963d877f126b4ff7442c473864_cgraph" id="anamespaceyaze_1_1app_1_1gfx_ab26e7d963d877f126b4ff7442c473864_cgraph">
 <area shape="rect" title=" " alt="" coords="5,31,177,56"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a552ecb78eb0a711234650adab705305c" title=" " alt="" coords="232,5,410,31"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a3393bdf562a11dce53934f403523b15a" title=" " alt="" coords="232,5,410,31"/>
 <area shape="poly" title=" " alt="" coords="177,31,217,27,217,32,177,37"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a4ec1226f327e64dcc4a789f6d21f4a24" title=" " alt="" coords="225,55,417,80"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a9e28a066b295ab514049968bfef05747" title=" " alt="" coords="225,55,417,80"/>
 <area shape="poly" title=" " alt="" coords="177,50,209,53,209,58,177,55"/>
 </map>
 </div>
@@ -1141,9 +1141,9 @@ Here is the call graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="5,23,182,64"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#ab26e7d963d877f126b4ff7442c473864" title=" " alt="" coords="230,31,401,56"/>
 <area shape="poly" title=" " alt="" coords="182,41,214,41,214,46,182,46"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a552ecb78eb0a711234650adab705305c" title=" " alt="" coords="456,5,634,31"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a3393bdf562a11dce53934f403523b15a" title=" " alt="" coords="456,5,634,31"/>
 <area shape="poly" title=" " alt="" coords="401,31,441,27,441,32,402,37"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a4ec1226f327e64dcc4a789f6d21f4a24" title=" " alt="" coords="449,55,641,80"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a9e28a066b295ab514049968bfef05747" title=" " alt="" coords="449,55,641,80"/>
 <area shape="poly" title=" " alt="" coords="402,50,434,53,433,58,401,55"/>
 </map>
 </div>
@@ -1176,25 +1176,25 @@ Here is the call graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="5,23,182,64"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#ab26e7d963d877f126b4ff7442c473864" title=" " alt="" coords="230,31,401,56"/>
 <area shape="poly" title=" " alt="" coords="182,41,214,41,214,46,182,46"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a552ecb78eb0a711234650adab705305c" title=" " alt="" coords="456,5,634,31"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a3393bdf562a11dce53934f403523b15a" title=" " alt="" coords="456,5,634,31"/>
 <area shape="poly" title=" " alt="" coords="401,31,441,27,441,32,402,37"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a4ec1226f327e64dcc4a789f6d21f4a24" title=" " alt="" coords="449,55,641,80"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a9e28a066b295ab514049968bfef05747" title=" " alt="" coords="449,55,641,80"/>
 <area shape="poly" title=" " alt="" coords="402,50,434,53,433,58,401,55"/>
 </map>
 </div>
 
 </div>
 </div>
-<a id="a568c3c8e5996e53a73ef3cf6e1dd851f" name="a568c3c8e5996e53a73ef3cf6e1dd851f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a568c3c8e5996e53a73ef3cf6e1dd851f">&#9670;&#160;</a></span>SnesTo8bppSheet()</h2>
+<a id="a8010d42263caa323598496adadafc605" name="a8010d42263caa323598496adadafc605"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8010d42263caa323598496adadafc605">&#9670;&#160;</a></span>SnesTo8bppSheet()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> yaze::app::gfx::SnesTo8bppSheet </td>
+          <td class="memname">std::vector&lt; uint8_t &gt; yaze::app::gfx::SnesTo8bppSheet </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>sheet</em></span>, </td>
+          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>sheet</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1212,16 +1212,16 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a7f314a1a135641431d8cd613173fb720" name="a7f314a1a135641431d8cd613173fb720"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7f314a1a135641431d8cd613173fb720">&#9670;&#160;</a></span>Bpp8SnesToIndexed()</h2>
+<a id="a6ff6fc75a8c652c747bde4467eafcfa0" name="a6ff6fc75a8c652c747bde4467eafcfa0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6ff6fc75a8c652c747bde4467eafcfa0">&#9670;&#160;</a></span>Bpp8SnesToIndexed()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> yaze::app::gfx::Bpp8SnesToIndexed </td>
+          <td class="memname">std::vector&lt; uint8_t &gt; yaze::app::gfx::Bpp8SnesToIndexed </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a></td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
+          <td class="paramtype">std::vector&lt; uint8_t &gt;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>

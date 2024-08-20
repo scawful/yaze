@@ -60,7 +60,7 @@ var classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld =
     [ "AssembleMap32Tiles", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a49f47f27aa202b075bbaaa02d7688419", null ],
     [ "AssembleMap16Tiles", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#ae730300a6798373c002a3141a6fcfc9c", null ],
     [ "AssignWorldTiles", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a7a76226d39aa92564ee7b7ca9f8372e7", null ],
-    [ "OrganizeMapTiles", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#ad58427a774324e9ce54eb95053c6b6ae", null ],
+    [ "OrganizeMapTiles", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a6a42132b0bfd9c93af6c6f07b9521baf", null ],
     [ "DecompressAllMapTiles", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a1351191860902e038bd7f538f0bb87d4", null ],
     [ "DecompressProtoMapTiles", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a2e8ed9e6c1589dc33a5c1817703cf760", null ],
     [ "current_world_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a1d123b333e65cf1ab4934935c3d0a82f", null ],

@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,381,205,422"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a63a3008e5953e88af8a8ed6667ab2a61" title="Copy color data from the SnesPalette into the SDL_Palette." alt="" coords="265,92,410,133"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,379,251,213,307,143,312,146,255,217,125,383"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2809cc0b6a95a467a182c7777b65c8ec" title="Creates a bitmap object with the provided graphical data." alt="" coords="265,251,410,291"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a69e8baa626a476b4cc55790fcdfd0d5c" title="Creates a bitmap object with the provided graphical data." alt="" coords="265,251,410,291"/>
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="132,379,186,341,251,302,264,296,266,300,254,307,189,345,135,383"/>
 <area shape="rect" id="Node000011" href="$namespaceyaze_1_1app_1_1gfx_1_1scad__format.html#af4c5a9dd5cff79a3c0e3ebdf62620336" title="Draw screen tilemap with graphical data." alt="" coords="253,316,422,357"/>
 <area shape="poly" id="edge11_Node000001_Node000011" title=" " alt="" coords="179,378,247,359,248,364,180,383"/>

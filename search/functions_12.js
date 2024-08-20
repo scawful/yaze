@@ -58,7 +58,7 @@ var searchData=
   ['rendersetusage_55',['RenderSetUsage',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#afe63798e3e84955c656a9565d7332c9d',1,'yaze::app::editor::DungeonEditor']]],
   ['rendersnesppu_56',['RenderSnesPpu',['../classyaze_1_1app_1_1emu_1_1Emulator.html#ae44b9e7548dde43578830f2c277eaa28',1,'yaze::app::emu::Emulator']]],
   ['renderunusedsets_57',['RenderUnusedSets',['../namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02dungeon__editor_8cc_03.html#a855f42ed8bc436596ca3cb7f897ef357',1,'yaze::app::editor::anonymous_namespace{dungeon_editor.cc}']]],
-  ['renderupdatedmapbitmap_58',['RenderUpdatedMapBitmap',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a800f8b17c76d3ccca98c2b7304bb2e1b',1,'yaze::app::editor::OverworldEditor']]],
+  ['renderupdatedmapbitmap_58',['RenderUpdatedMapBitmap',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ae304b148803933964748bf22d5672467',1,'yaze::app::editor::OverworldEditor']]],
   ['rep_59',['REP',['../classyaze_1_1app_1_1emu_1_1Cpu.html#ae5c27ce7f1f78cd3754a78437e31769e',1,'yaze::app::emu::Cpu']]],
   ['replacealldictionarywords_60',['ReplaceAllDictionaryWords',['../namespaceyaze_1_1app_1_1editor.html#a15f24c296207cfe5e5d65f8e6ced2906',1,'yaze::app::editor']]],
   ['replaceinstancesofin_61',['ReplaceInstancesOfIn',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a5208c6ead9f36537b8126dfedf260bb5',1,'yaze::app::editor::MessageEditor::DictionaryEntry']]],

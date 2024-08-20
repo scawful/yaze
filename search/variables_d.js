@@ -37,6 +37,6 @@ var searchData=
   ['numsndinst_34',['numsndinst',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a3a293acea6c6f02e8f961b4cba9d782b',1,'yaze::app::zelda3::music::Tracker']]],
   ['numsong_35',['numsong',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a259e9bf45491b6f88d3bde20140c2a6e',1,'yaze::app::zelda3::music::Tracker']]],
   ['numwave_36',['numwave',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a907b04477b65604f7f5911221ef73db0',1,'yaze::app::zelda3::music::Tracker']]],
-  ['nx_5f_37',['nx_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#ac5798f143928c9d73416a01843952c74',1,'yaze::app::zelda3::dungeon::RoomObject::nx_'],['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#aae570b554346f3de96807197e9f2182c',1,'yaze::app::zelda3::Sprite::nx_']]],
-  ['ny_5f_38',['ny_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a22f8b165203e9a288f226bc9901038d6',1,'yaze::app::zelda3::dungeon::RoomObject::ny_'],['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#ac802f3182b6e06bc0347f4051586eb97',1,'yaze::app::zelda3::Sprite::ny_']]]
+  ['nx_5f_37',['nx_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#ac5798f143928c9d73416a01843952c74',1,'yaze::app::zelda3::dungeon::RoomObject::nx_'],['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a940c595e6ea3e41c8d7dd2c956df8d6f',1,'yaze::app::zelda3::Sprite::nx_']]],
+  ['ny_5f_38',['ny_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a22f8b165203e9a288f226bc9901038d6',1,'yaze::app::zelda3::dungeon::RoomObject::ny_'],['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a60640b354764e22fdf36123238efab00',1,'yaze::app::zelda3::Sprite::ny_']]]
 ];

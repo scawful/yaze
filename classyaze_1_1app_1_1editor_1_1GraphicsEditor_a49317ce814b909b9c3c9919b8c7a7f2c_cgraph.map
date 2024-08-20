@@ -12,11 +12,11 @@
 <area shape="poly" id="edge18_Node000001_Node000049" title=" " alt="" coords="145,555,255,609,269,614,267,619,253,613,143,560"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a63a3008e5953e88af8a8ed6667ab2a61" title="Copy color data from the SnesPalette into the SDL_Palette." alt="" coords="514,5,658,46"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="359,266,378,221,407,165,445,107,493,57,500,52,503,56,497,61,449,111,411,168,383,223,364,268"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2809cc0b6a95a467a182c7777b65c8ec" title="Creates a bitmap object with the provided graphical data." alt="" coords="514,95,658,135"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a69e8baa626a476b4cc55790fcdfd0d5c" title="Creates a bitmap object with the provided graphical data." alt="" coords="514,95,658,135"/>
 <area shape="poly" id="edge3_Node000002_Node000007" title=" " alt="" coords="370,265,422,205,456,173,494,145,501,140,504,145,496,149,460,177,426,209,374,268"/>
 <area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="516,160,655,185"/>
 <area shape="poly" id="edge5_Node000002_Node000012" title=" " alt="" coords="385,265,435,229,494,195,512,188,514,193,496,200,438,233,388,269"/>
-<area shape="rect" id="Node000013" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="516,209,655,250"/>
+<area shape="rect" id="Node000013" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a88778055d3a79cf869fc78ed66949b3f" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="516,209,655,250"/>
 <area shape="poly" id="edge6_Node000002_Node000013" title=" " alt="" coords="443,267,500,250,502,256,444,272"/>
 <area shape="rect" id="Node000015" href="$classyaze_1_1app_1_1core_1_1Renderer.html#acd1048086e983ab44d0875b079927bfa" title=" " alt="" coords="504,275,667,315"/>
 <area shape="poly" id="edge7_Node000002_Node000015" title=" " alt="" coords="444,292,488,292,488,298,444,298"/>
@@ -24,7 +24,7 @@
 <area shape="poly" id="edge8_Node000002_Node000016" title=" " alt="" coords="444,318,496,333,495,338,443,323"/>
 <area shape="rect" id="Node000019" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="498,429,674,454"/>
 <area shape="poly" id="edge9_Node000002_Node000019" title=" " alt="" coords="393,321,496,390,547,419,544,423,494,395,390,325"/>
-<area shape="rect" id="Node000020" href="$namespaceyaze_1_1app_1_1gfx.html#a568c3c8e5996e53a73ef3cf6e1dd851f" title=" " alt="" coords="498,479,674,519"/>
+<area shape="rect" id="Node000020" href="$namespaceyaze_1_1app_1_1gfx.html#a8010d42263caa323598496adadafc605" title=" " alt="" coords="498,479,674,519"/>
 <area shape="poly" id="edge11_Node000002_Node000020" title=" " alt="" coords="371,322,422,393,457,431,497,465,502,469,499,473,493,469,453,435,418,396,366,325"/>
 <area shape="poly" id="edge4_Node000007_Node000007" title=" " alt="" coords="541,95,539,85,546,76,562,70,586,68,611,70,626,77,624,82,610,76,586,73,563,75,550,80,544,86,547,93"/>
 <area shape="poly" id="edge10_Node000019_Node000019" title=" " alt="" coords="547,430,539,420,544,410,560,404,586,402,614,405,629,412,627,416,613,410,586,407,561,410,547,414,544,420,551,427"/>

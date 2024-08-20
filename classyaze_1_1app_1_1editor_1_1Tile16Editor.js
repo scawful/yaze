@@ -33,7 +33,7 @@ var classyaze_1_1app_1_1editor_1_1Tile16Editor =
     [ "current_gfx_bmp_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a6832662fa2e55dbb14e7c248fcfd2fc7", null ],
     [ "transfer_canvas_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a9379a1bc9a7e45a65c4a873e81998999", null ],
     [ "transfer_blockset_bmp_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a1a4a63f029e626d25efab197d57ce83d", null ],
-    [ "tile16_individual_data_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a6efaebc565c7681408fe0bb60aed4381", null ],
+    [ "tile16_individual_data_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a80a09dd04717601a48bacdcf0e0ad4ce", null ],
     [ "tile16_individual_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a943b8fcc5591a1d649fee8ea5f3074cf", null ],
     [ "current_gfx_individual_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a52886748563c1d5980649361d1da58b1", null ],
     [ "current_tile16_data_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a34171fc6769f6e489a5d370083775c5f", null ],

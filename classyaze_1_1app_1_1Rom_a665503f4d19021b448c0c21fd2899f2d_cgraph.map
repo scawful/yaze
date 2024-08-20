@@ -1,0 +1,13 @@
+<map id="yaze::app::Rom::Load2BppGraphics" name="yaze::app::Rom::Load2BppGraphics">
+<area shape="rect" id="Node000001" title="Loads 2bpp graphics from Rom data." alt="" coords="5,88,178,129"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="245,5,383,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,85,225,41,246,34,247,39,227,46,132,90"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a88778055d3a79cf869fc78ed66949b3f" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="244,55,384,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="177,93,228,86,229,91,178,99"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze_1_1app_1_1gfx.html#a8010d42263caa323598496adadafc605" title=" " alt="" coords="226,120,402,161"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="178,119,210,123,210,129,177,124"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1Rom.html#a0c5236f4dc9e1fd7ad98f058d154a139" title=" " alt="" coords="236,186,392,226"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="135,127,227,170,243,177,241,182,225,175,133,132"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a82347358f89c826105734df3d675e530" title=" " alt="" coords="450,55,563,96"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="384,73,435,73,435,78,384,78"/>
+</map>

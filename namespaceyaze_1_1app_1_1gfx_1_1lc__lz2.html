@@ -174,25 +174,25 @@ Functions</h2></td></tr>
 <tr class="separator:a7c322d88e059c6e52031a46badfa23c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a99a3331f6a6866bb8a694c1d828154fc" id="r_a99a3331f6a6866bb8a694c1d828154fc"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="#afb7d2a47f4d56fbe2ccabff51923533d">CompressionPiecePointer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a99a3331f6a6866bb8a694c1d828154fc">SplitCompressionPiece</a> (<a class="el" href="#afb7d2a47f4d56fbe2ccabff51923533d">CompressionPiecePointer</a> &amp;piece, int mode)</td></tr>
 <tr class="separator:a99a3331f6a6866bb8a694c1d828154fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab84de3d8297ed4cef2d90c0a925cda6f" id="r_ab84de3d8297ed4cef2d90c0a925cda6f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab84de3d8297ed4cef2d90c0a925cda6f">CreateCompressionString</a> (<a class="el" href="#afb7d2a47f4d56fbe2ccabff51923533d">CompressionPiecePointer</a> &amp;start, int mode)</td></tr>
-<tr class="separator:ab84de3d8297ed4cef2d90c0a925cda6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a173837cea546187dbf6392cfcfc6b331" id="r_a173837cea546187dbf6392cfcfc6b331"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a173837cea546187dbf6392cfcfc6b331">CreateCompressionString</a> (<a class="el" href="#afb7d2a47f4d56fbe2ccabff51923533d">CompressionPiecePointer</a> &amp;start, int mode)</td></tr>
+<tr class="separator:a173837cea546187dbf6392cfcfc6b331"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a77887f1e77391d7c90c5019790041ff4" id="r_a77887f1e77391d7c90c5019790041ff4"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a77887f1e77391d7c90c5019790041ff4">ValidateCompressionResult</a> (<a class="el" href="#afb7d2a47f4d56fbe2ccabff51923533d">CompressionPiecePointer</a> &amp;chain_head, int mode, int start, int src_data_pos)</td></tr>
 <tr class="separator:a77887f1e77391d7c90c5019790041ff4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a876aa4cf19da24112d3d66afd49eb8f2" id="r_a876aa4cf19da24112d3d66afd49eb8f2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#afb7d2a47f4d56fbe2ccabff51923533d">CompressionPiecePointer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a876aa4cf19da24112d3d66afd49eb8f2">MergeCopy</a> (<a class="el" href="#afb7d2a47f4d56fbe2ccabff51923533d">CompressionPiecePointer</a> &amp;start)</td></tr>
 <tr class="separator:a876aa4cf19da24112d3d66afd49eb8f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad1490ab6482040dde33225a8985b57c3" id="r_ad1490ab6482040dde33225a8985b57c3"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad1490ab6482040dde33225a8985b57c3">CompressV2</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, const int start, const int length, int mode=1, bool check=false)</td></tr>
-<tr class="memdesc:ad1490ab6482040dde33225a8985b57c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compresses a buffer of data using the LC_LZ2 algorithm.  <br /></td></tr>
-<tr class="separator:ad1490ab6482040dde33225a8985b57c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e2b12ac3e3d8128536d65cf91946438" id="r_a7e2b12ac3e3d8128536d65cf91946438"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7e2b12ac3e3d8128536d65cf91946438">CompressV2</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, const int start, const int length, int mode=1, bool check=false)</td></tr>
+<tr class="memdesc:a7e2b12ac3e3d8128536d65cf91946438"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compresses a buffer of data using the LC_LZ2 algorithm.  <br /></td></tr>
+<tr class="separator:a7e2b12ac3e3d8128536d65cf91946438"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab3d49b0d0ddf4ea0f89f7e5f1aefdeb8" id="r_ab3d49b0d0ddf4ea0f89f7e5f1aefdeb8"><td class="memItemLeft" align="right" valign="top">uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab3d49b0d0ddf4ea0f89f7e5f1aefdeb8">Compress</a> (uint8_t const *const src, int const oldsize, int *const size, int const flag)</td></tr>
 <tr class="separator:ab3d49b0d0ddf4ea0f89f7e5f1aefdeb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab029bf3391b9f450789088d69ee7d08f" id="r_ab029bf3391b9f450789088d69ee7d08f"><td class="memItemLeft" align="right" valign="top">uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab029bf3391b9f450789088d69ee7d08f">Uncompress</a> (uint8_t const *src, int *const size, int const p_big_endian)</td></tr>
 <tr class="separator:ab029bf3391b9f450789088d69ee7d08f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a405e942bb0f4f03896a275fb2bdf0623" id="r_a405e942bb0f4f03896a275fb2bdf0623"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a405e942bb0f4f03896a275fb2bdf0623">CompressGraphics</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, const int pos, const int length)</td></tr>
-<tr class="separator:a405e942bb0f4f03896a275fb2bdf0623"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9a7ac42c7d62b423375d6a2670250d81" id="r_a9a7ac42c7d62b423375d6a2670250d81"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9a7ac42c7d62b423375d6a2670250d81">CompressOverworld</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, const int pos, const int length)</td></tr>
-<tr class="separator:a9a7ac42c7d62b423375d6a2670250d81"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad1775e9e8b6c900303716aa064635aeb" id="r_ad1775e9e8b6c900303716aa064635aeb"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad1775e9e8b6c900303716aa064635aeb">CompressOverworld</a> (const std::vector&lt; uint8_t &gt; data, const int pos, const int length)</td></tr>
-<tr class="separator:ad1775e9e8b6c900303716aa064635aeb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad690afb8567ffbc07e6069052012f055" id="r_ad690afb8567ffbc07e6069052012f055"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad690afb8567ffbc07e6069052012f055">CompressGraphics</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, const int pos, const int length)</td></tr>
+<tr class="separator:ad690afb8567ffbc07e6069052012f055"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a189cfda5716a1c11fa2c827614adc713" id="r_a189cfda5716a1c11fa2c827614adc713"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a189cfda5716a1c11fa2c827614adc713">CompressOverworld</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, const int pos, const int length)</td></tr>
+<tr class="separator:a189cfda5716a1c11fa2c827614adc713"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a37b07399d74091a4a678ffd22edb7d1a" id="r_a37b07399d74091a4a678ffd22edb7d1a"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a37b07399d74091a4a678ffd22edb7d1a">CompressOverworld</a> (const std::vector&lt; uint8_t &gt; data, const int pos, const int length)</td></tr>
+<tr class="separator:a37b07399d74091a4a678ffd22edb7d1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa7d04d790a9cbfc4b08bdd51d4aa7f7" id="r_afa7d04d790a9cbfc4b08bdd51d4aa7f7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afa7d04d790a9cbfc4b08bdd51d4aa7f7">CheckByteRepeatV3</a> (<a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html">CompressionContext</a> &amp;context)</td></tr>
 <tr class="separator:afa7d04d790a9cbfc4b08bdd51d4aa7f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a457de785dbca08488422a649e1c5e1c6" id="r_a457de785dbca08488422a649e1c5e1c6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a457de785dbca08488422a649e1c5e1c6">CheckWordRepeatV3</a> (<a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html">CompressionContext</a> &amp;context)</td></tr>
@@ -217,24 +217,24 @@ Functions</h2></td></tr>
 <tr class="separator:aca37c4a4f8c6a88dd487cc2cc7fff58a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af33da6d271bc83cd2ad741dccccccbd3" id="r_af33da6d271bc83cd2ad741dccccccbd3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af33da6d271bc83cd2ad741dccccccbd3">FinalizeCompression</a> (<a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html">CompressionContext</a> &amp;context)</td></tr>
 <tr class="separator:af33da6d271bc83cd2ad741dccccccbd3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a370541438805cc97a0dbae2789d8fa7b" id="r_a370541438805cc97a0dbae2789d8fa7b"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a370541438805cc97a0dbae2789d8fa7b">CompressV3</a> (const std::vector&lt; uint8_t &gt; &amp;data, const int start, const int length, int mode=1, bool check=false)</td></tr>
-<tr class="memdesc:a370541438805cc97a0dbae2789d8fa7b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compresses a buffer of data using the LC_LZ2 algorithm.  <br /></td></tr>
-<tr class="separator:a370541438805cc97a0dbae2789d8fa7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a45cc1350da377d21e9aca0b34263dcab" id="r_a45cc1350da377d21e9aca0b34263dcab"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a45cc1350da377d21e9aca0b34263dcab">CompressV3</a> (const std::vector&lt; uint8_t &gt; &amp;data, const int start, const int length, int mode=1, bool check=false)</td></tr>
+<tr class="memdesc:a45cc1350da377d21e9aca0b34263dcab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compresses a buffer of data using the LC_LZ2 algorithm.  <br /></td></tr>
+<tr class="separator:a45cc1350da377d21e9aca0b34263dcab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae3ec60f2320d38749874e8d518182498" id="r_ae3ec60f2320d38749874e8d518182498"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae3ec60f2320d38749874e8d518182498">SetBuffer</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, int src_pos, int comp_accumulator)</td></tr>
 <tr class="separator:ae3ec60f2320d38749874e8d518182498"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9768d31ade99cfac5c730a47fd9bd944" id="r_a9768d31ade99cfac5c730a47fd9bd944"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9768d31ade99cfac5c730a47fd9bd944">SetBuffer</a> (const std::vector&lt; uint8_t &gt; &amp;data, int src_pos, int comp_accumulator)</td></tr>
 <tr class="separator:a9768d31ade99cfac5c730a47fd9bd944"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa7583d0d15778f0286acdb9425628785" id="r_aa7583d0d15778f0286acdb9425628785"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa7583d0d15778f0286acdb9425628785">memfill</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &amp;buffer, int buffer_pos, int offset, int length)</td></tr>
-<tr class="separator:aa7583d0d15778f0286acdb9425628785"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8a5cd746989bba5ac64eef034b664a92" id="r_a8a5cd746989bba5ac64eef034b664a92"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8a5cd746989bba5ac64eef034b664a92">DecompressV2</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, int offset, int size=0x800, int mode=1)</td></tr>
-<tr class="memdesc:a8a5cd746989bba5ac64eef034b664a92"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decompresses a buffer of data using the LC_LZ2 algorithm.  <br /></td></tr>
-<tr class="separator:a8a5cd746989bba5ac64eef034b664a92"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acd3f236eb012d461ff376a3ac70ef4ca" id="r_acd3f236eb012d461ff376a3ac70ef4ca"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acd3f236eb012d461ff376a3ac70ef4ca">DecompressGraphics</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, int pos, int size)</td></tr>
-<tr class="separator:acd3f236eb012d461ff376a3ac70ef4ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afe1d582fab6d08efe1544cdccb882830" id="r_afe1d582fab6d08efe1544cdccb882830"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afe1d582fab6d08efe1544cdccb882830">DecompressOverworld</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, int pos, int size)</td></tr>
-<tr class="separator:afe1d582fab6d08efe1544cdccb882830"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2106a455fd14b9093a5c1b8eeef23b00" id="r_a2106a455fd14b9093a5c1b8eeef23b00"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2106a455fd14b9093a5c1b8eeef23b00">DecompressOverworld</a> (const std::vector&lt; uint8_t &gt; data, int pos, int size)</td></tr>
-<tr class="separator:a2106a455fd14b9093a5c1b8eeef23b00"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82347358f89c826105734df3d675e530" id="r_a82347358f89c826105734df3d675e530"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a82347358f89c826105734df3d675e530">memfill</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, std::vector&lt; uint8_t &gt; &amp;buffer, int buffer_pos, int offset, int length)</td></tr>
+<tr class="separator:a82347358f89c826105734df3d675e530"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a88778055d3a79cf869fc78ed66949b3f" id="r_a88778055d3a79cf869fc78ed66949b3f"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a88778055d3a79cf869fc78ed66949b3f">DecompressV2</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, int offset, int size=0x800, int mode=1)</td></tr>
+<tr class="memdesc:a88778055d3a79cf869fc78ed66949b3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decompresses a buffer of data using the LC_LZ2 algorithm.  <br /></td></tr>
+<tr class="separator:a88778055d3a79cf869fc78ed66949b3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a357e637cdc726ce9a229d4f2c31c8bf9" id="r_a357e637cdc726ce9a229d4f2c31c8bf9"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a357e637cdc726ce9a229d4f2c31c8bf9">DecompressGraphics</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, int pos, int size)</td></tr>
+<tr class="separator:a357e637cdc726ce9a229d4f2c31c8bf9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a477d72e719baa8b2b41cbb8dc5121c40" id="r_a477d72e719baa8b2b41cbb8dc5121c40"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a477d72e719baa8b2b41cbb8dc5121c40">DecompressOverworld</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, int pos, int size)</td></tr>
+<tr class="separator:a477d72e719baa8b2b41cbb8dc5121c40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0e437612966490ddd3d3178acccca686" id="r_a0e437612966490ddd3d3178acccca686"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0e437612966490ddd3d3178acccca686">DecompressOverworld</a> (const std::vector&lt; uint8_t &gt; data, int pos, int size)</td></tr>
+<tr class="separator:a0e437612966490ddd3d3178acccca686"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -394,7 +394,7 @@ Variables</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00023">23</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00318">AddAlternativeCompressionCommand()</a>, <a class="el" href="compression_8cc_source.html#l00147">CompressionCommandAlternative()</a>, <a class="el" href="compression_8cc_source.html#l00284">CompressionCommandAlternativeV2()</a>, <a class="el" href="compression_8cc_source.html#l00416">CreateCompressionString()</a>, <a class="el" href="compression_8cc_source.html#l00493">MergeCopy()</a>, and <a class="el" href="compression_8cc_source.html#l00034">PrintCompressionChain()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00318">AddAlternativeCompressionCommand()</a>, <a class="el" href="compression_8cc_source.html#l00147">CompressionCommandAlternative()</a>, <a class="el" href="compression_8cc_source.html#l00284">CompressionCommandAlternativeV2()</a>, <a class="el" href="compression_8cc_source.html#l00416">CreateCompressionString()</a>, <a class="el" href="compression_8cc_source.html#l00494">MergeCopy()</a>, and <a class="el" href="compression_8cc_source.html#l00034">PrintCompressionChain()</a>.</p>
 
 </div>
 </div>
@@ -1028,14 +1028,14 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ab84de3d8297ed4cef2d90c0a925cda6f" name="ab84de3d8297ed4cef2d90c0a925cda6f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab84de3d8297ed4cef2d90c0a925cda6f">&#9670;&#160;</a></span>CreateCompressionString()</h2>
+<a id="a173837cea546187dbf6392cfcfc6b331" name="a173837cea546187dbf6392cfcfc6b331"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a173837cea546187dbf6392cfcfc6b331">&#9670;&#160;</a></span>CreateCompressionString()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> yaze::app::gfx::lc_lz2::CreateCompressionString </td>
+          <td class="memname">std::vector&lt; uint8_t &gt; yaze::app::gfx::lc_lz2::CreateCompressionString </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="#afb7d2a47f4d56fbe2ccabff51923533d">CompressionPiecePointer</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>start</em></span>, </td>
         </tr>
@@ -1051,12 +1051,12 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="compression_8h_source.html#l00012">BUILD_HEADER</a>, <a class="el" href="compression_8h_source.html#l00053">kCompressionStringMod</a>, <a class="el" href="compression_8h_source.html#l00045">kMaxLengthCompression</a>, <a class="el" href="compression_8h_source.html#l00044">kMaxLengthNormalHeader</a>, <a class="el" href="compression_8h_source.html#l00046">kNintendoMode1</a>, <a class="el" href="compression_8h_source.html#l00048">kSnesByteMax</a>, <a class="el" href="compression_8cc_source.html#l00023">PrintCompressionPiece()</a>, and <a class="el" href="compression_8cc_source.html#l00365">SplitCompressionPiece()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00519">CompressV2()</a>, and <a class="el" href="compression_8cc_source.html#l00474">ValidateCompressionResult()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00519">CompressV2()</a>, and <a class="el" href="compression_8cc_source.html#l00475">ValidateCompressionResult()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ab84de3d8297ed4cef2d90c0a925cda6f_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ab84de3d8297ed4cef2d90c0a925cda6f_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ab84de3d8297ed4cef2d90c0a925cda6f_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ab84de3d8297ed4cef2d90c0a925cda6f_cgraph">
+<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a173837cea546187dbf6392cfcfc6b331_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a173837cea546187dbf6392cfcfc6b331_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a173837cea546187dbf6392cfcfc6b331_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a173837cea546187dbf6392cfcfc6b331_cgraph">
 <area shape="rect" title=" " alt="" coords="5,39,204,79"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a4f20b93f15588bc2c13d40ae62e0940f" title=" " alt="" coords="252,5,438,46"/>
 <area shape="poly" title=" " alt="" coords="204,43,236,38,237,43,205,48"/>
@@ -1096,9 +1096,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00474">474</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00475">475</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="constants_8h_source.html#l00079">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00451">yaze::app::Rom::begin()</a>, <a class="el" href="compression_8cc_source.html#l00416">CreateCompressionString()</a>, <a class="el" href="rom_8h_source.html#l00453">yaze::app::Rom::data()</a>, <a class="el" href="compression_8cc_source.html#l01367">DecompressV2()</a>, <a class="el" href="rom_8cc_source.html#l00240">yaze::app::Rom::LoadFromBytes()</a>, <a class="el" href="constants_8h_source.html#l00071">RETURN_IF_ERROR</a>, and <a class="el" href="rom_8h_source.html#l00450">yaze::app::Rom::size()</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00079">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00451">yaze::app::Rom::begin()</a>, <a class="el" href="compression_8cc_source.html#l00416">CreateCompressionString()</a>, <a class="el" href="rom_8h_source.html#l00453">yaze::app::Rom::data()</a>, <a class="el" href="compression_8cc_source.html#l01372">DecompressV2()</a>, <a class="el" href="rom_8cc_source.html#l00240">yaze::app::Rom::LoadFromBytes()</a>, <a class="el" href="constants_8h_source.html#l00071">RETURN_IF_ERROR</a>, and <a class="el" href="rom_8h_source.html#l00450">yaze::app::Rom::size()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00519">CompressV2()</a>.</p>
 <div class="dynheader">
@@ -1109,13 +1109,13 @@ Here is the call graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="5,143,216,183"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a189bdc638fc1fd968f10498325c300d9" title=" " alt="" coords="291,6,435,32"/>
 <area shape="poly" title=" " alt="" coords="131,140,187,91,224,65,262,42,279,35,281,40,265,47,226,69,191,95,134,144"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab84de3d8297ed4cef2d90c0a925cda6f" title=" " alt="" coords="264,56,462,97"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a173837cea546187dbf6392cfcfc6b331" title=" " alt="" coords="264,56,462,97"/>
 <area shape="poly" title=" " alt="" coords="171,140,286,100,288,105,173,145"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="534,164,672,189"/>
 <area shape="poly" title=" " alt="" coords="216,155,334,153,462,156,518,162,518,167,462,162,334,158,216,160"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="293,236,432,277"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a88778055d3a79cf869fc78ed66949b3f" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="293,236,432,277"/>
 <area shape="poly" title=" " alt="" coords="164,181,265,221,285,228,283,233,263,225,162,186"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a651c07af2317f9c3206738506cad01e0" title=" " alt="" coords="277,171,449,211"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#adf1f16ed6b05f4481522961cdfef3995" title=" " alt="" coords="277,171,449,211"/>
 <area shape="poly" title=" " alt="" coords="217,172,261,177,261,182,216,177"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a648c0cee09095aad6aa881fc114a9f5f" title=" " alt="" coords="295,301,431,326"/>
 <area shape="poly" title=" " alt="" coords="133,182,189,234,225,262,265,286,281,293,279,298,262,291,222,266,185,238,129,186"/>
@@ -1123,7 +1123,7 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="462,53,494,46,495,51,463,58"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a99a3331f6a6866bb8a694c1d828154fc" title=" " alt="" coords="510,71,696,111"/>
 <area shape="poly" title=" " alt="" coords="463,80,495,82,495,87,462,85"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa7583d0d15778f0286acdb9425628785" title=" " alt="" coords="546,236,660,277"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a82347358f89c826105734df3d675e530" title=" " alt="" coords="546,236,660,277"/>
 <area shape="poly" title=" " alt="" coords="433,254,531,254,531,259,433,259"/>
 <area shape="poly" title=" " alt="" coords="449,183,518,179,519,184,450,188"/>
 </map>
@@ -1146,7 +1146,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00493">493</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00494">494</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="compression_8h_source.html#l00045">kMaxLengthCompression</a>, and <a class="el" href="compression_8cc_source.html#l00023">PrintCompressionPiece()</a>.</p>
 
@@ -1164,14 +1164,14 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ad1490ab6482040dde33225a8985b57c3" name="ad1490ab6482040dde33225a8985b57c3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad1490ab6482040dde33225a8985b57c3">&#9670;&#160;</a></span>CompressV2()</h2>
+<a id="a7e2b12ac3e3d8128536d65cf91946438" name="a7e2b12ac3e3d8128536d65cf91946438"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7e2b12ac3e3d8128536d65cf91946438">&#9670;&#160;</a></span>CompressV2()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt; yaze::app::gfx::lc_lz2::CompressV2 </td>
+          <td class="memname">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt; yaze::app::gfx::lc_lz2::CompressV2 </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
         </tr>
@@ -1203,14 +1203,14 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00519">519</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="compression_8cc_source.html#l00318">AddAlternativeCompressionCommand()</a>, <a class="el" href="compression_8h_source.html#l00058">yaze::app::gfx::lc_lz2::CompressionCommand::arguments</a>, <a class="el" href="compression_8cc_source.html#l00185">CheckByteRepeatV2()</a>, <a class="el" href="compression_8cc_source.html#l00215">CheckIncByteV2()</a>, <a class="el" href="compression_8cc_source.html#l00230">CheckIntraCopyV2()</a>, <a class="el" href="compression_8cc_source.html#l00195">CheckWordRepeatV2()</a>, <a class="el" href="compression_8h_source.html#l00061">yaze::app::gfx::lc_lz2::CompressionCommand::cmd_size</a>, <a class="el" href="compression_8cc_source.html#l00416">CreateCompressionString()</a>, <a class="el" href="compression_8h_source.html#l00064">yaze::app::gfx::lc_lz2::CompressionCommand::data_size</a>, <a class="el" href="compression_8h_source.html#l00038">kCommandDirectCopy</a>, <a class="el" href="compression_8cc_source.html#l00493">MergeCopy()</a>, <a class="el" href="compression_8cc_source.html#l00034">PrintCompressionChain()</a>, <a class="el" href="constants_8h_source.html#l00071">RETURN_IF_ERROR</a>, <a class="el" href="compression_8cc_source.html#l01340">SetBuffer()</a>, <a class="el" href="compression_8cc_source.html#l00474">ValidateCompressionResult()</a>, and <a class="el" href="compression_8cc_source.html#l00129">ValidateForByteGain()</a>.</p>
+<p class="reference">References <a class="el" href="compression_8cc_source.html#l00318">AddAlternativeCompressionCommand()</a>, <a class="el" href="compression_8h_source.html#l00058">yaze::app::gfx::lc_lz2::CompressionCommand::arguments</a>, <a class="el" href="compression_8cc_source.html#l00185">CheckByteRepeatV2()</a>, <a class="el" href="compression_8cc_source.html#l00215">CheckIncByteV2()</a>, <a class="el" href="compression_8cc_source.html#l00230">CheckIntraCopyV2()</a>, <a class="el" href="compression_8cc_source.html#l00195">CheckWordRepeatV2()</a>, <a class="el" href="compression_8h_source.html#l00061">yaze::app::gfx::lc_lz2::CompressionCommand::cmd_size</a>, <a class="el" href="compression_8cc_source.html#l00416">CreateCompressionString()</a>, <a class="el" href="compression_8h_source.html#l00064">yaze::app::gfx::lc_lz2::CompressionCommand::data_size</a>, <a class="el" href="compression_8h_source.html#l00038">kCommandDirectCopy</a>, <a class="el" href="compression_8cc_source.html#l00494">MergeCopy()</a>, <a class="el" href="compression_8cc_source.html#l00034">PrintCompressionChain()</a>, <a class="el" href="constants_8h_source.html#l00071">RETURN_IF_ERROR</a>, <a class="el" href="compression_8cc_source.html#l01345">SetBuffer()</a>, <a class="el" href="compression_8cc_source.html#l00475">ValidateCompressionResult()</a>, and <a class="el" href="compression_8cc_source.html#l00129">ValidateForByteGain()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00871">CompressGraphics()</a>, and <a class="el" href="compression_8cc_source.html#l00876">CompressOverworld()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00873">CompressGraphics()</a>, and <a class="el" href="compression_8cc_source.html#l00879">CompressOverworld()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad1490ab6482040dde33225a8985b57c3_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad1490ab6482040dde33225a8985b57c3_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad1490ab6482040dde33225a8985b57c3_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad1490ab6482040dde33225a8985b57c3_cgraph">
+<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a7e2b12ac3e3d8128536d65cf91946438_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a7e2b12ac3e3d8128536d65cf91946438_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a7e2b12ac3e3d8128536d65cf91946438_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a7e2b12ac3e3d8128536d65cf91946438_cgraph">
 <area shape="rect" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="5,298,131,339"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a7c322d88e059c6e52031a46badfa23c4" title=" " alt="" coords="437,92,648,147"/>
 <area shape="poly" title=" " alt="" coords="67,297,73,241,89,167,103,128,122,91,146,58,177,31,216,12,257,4,299,5,342,13,384,27,423,44,490,81,488,85,421,49,382,32,341,18,299,10,257,9,217,17,180,35,150,62,126,94,108,130,94,169,78,242,73,298"/>
@@ -1222,7 +1222,7 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="88,295,128,261,177,227,191,220,193,225,180,231,131,265,92,299"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a99f113d574564e9fb02470d77369b435" title=" " alt="" coords="197,241,371,281"/>
 <area shape="poly" title=" " alt="" coords="130,299,190,283,191,288,132,304"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab84de3d8297ed4cef2d90c0a925cda6f" title=" " alt="" coords="444,406,642,447"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a173837cea546187dbf6392cfcfc6b331" title=" " alt="" coords="444,406,642,447"/>
 <area shape="poly" title=" " alt="" coords="132,336,179,350,308,380,428,404,427,409,307,385,178,355,130,342"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a876aa4cf19da24112d3d66afd49eb8f2" title=" " alt="" coords="485,275,600,316"/>
 <area shape="poly" title=" " alt="" coords="131,313,470,296,470,302,131,318"/>
@@ -1246,9 +1246,9 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="376,519,467,498,468,503,377,524"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="720,583,859,608"/>
 <area shape="poly" title=" " alt="" coords="390,539,514,543,649,557,731,575,730,581,648,562,514,549,389,544"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="473,571,612,612"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a88778055d3a79cf869fc78ed66949b3f" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="473,571,612,612"/>
 <area shape="poly" title=" " alt="" coords="390,560,458,573,457,578,389,565"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a651c07af2317f9c3206738506cad01e0" title=" " alt="" coords="456,637,629,677"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#adf1f16ed6b05f4481522961cdfef3995" title=" " alt="" coords="456,637,629,677"/>
 <area shape="poly" title=" " alt="" coords="365,561,390,573,406,586,415,598,424,610,438,621,450,628,447,632,436,626,420,614,411,601,402,589,388,578,363,565"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a648c0cee09095aad6aa881fc114a9f5f" title=" " alt="" coords="474,701,611,727"/>
 <area shape="poly" title=" " alt="" coords="373,561,391,574,403,588,410,603,415,632,420,661,427,674,439,687,461,700,458,705,435,691,422,677,415,662,410,633,405,605,399,591,387,578,370,565"/>
@@ -1287,9 +1287,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00592">592</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00594">594</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00542">yaze::app::zelda3::overworld::Overworld::SaveOverworldMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00544">yaze::app::zelda3::overworld::Overworld::SaveOverworldMaps()</a>.</p>
 
 </div>
 </div>
@@ -1317,11 +1317,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00738">738</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00740">740</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="common_8cc_source.html#l00156">yaze::app::core::ldle16b()</a>, and <a class="el" href="common_8cc_source.html#l00125">yaze::app::core::stle16b()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00245">yaze::app::zelda3::overworld::Overworld::DecompressAllMapTiles()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00246">yaze::app::zelda3::overworld::Overworld::DecompressAllMapTiles()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1345,14 +1345,14 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a405e942bb0f4f03896a275fb2bdf0623" name="a405e942bb0f4f03896a275fb2bdf0623"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a405e942bb0f4f03896a275fb2bdf0623">&#9670;&#160;</a></span>CompressGraphics()</h2>
+<a id="ad690afb8567ffbc07e6069052012f055" name="ad690afb8567ffbc07e6069052012f055"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad690afb8567ffbc07e6069052012f055">&#9670;&#160;</a></span>CompressGraphics()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt; yaze::app::gfx::lc_lz2::CompressGraphics </td>
+          <td class="memname">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt; yaze::app::gfx::lc_lz2::CompressGraphics </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
         </tr>
@@ -1369,16 +1369,16 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00871">871</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00873">873</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="compression_8cc_source.html#l00519">CompressV2()</a>, and <a class="el" href="compression_8h_source.html#l00047">kNintendoMode2</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a405e942bb0f4f03896a275fb2bdf0623_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a405e942bb0f4f03896a275fb2bdf0623_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a405e942bb0f4f03896a275fb2bdf0623_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a405e942bb0f4f03896a275fb2bdf0623_cgraph">
+<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad690afb8567ffbc07e6069052012f055_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad690afb8567ffbc07e6069052012f055_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad690afb8567ffbc07e6069052012f055_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad690afb8567ffbc07e6069052012f055_cgraph">
 <area shape="rect" title=" " alt="" coords="5,338,167,379"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="215,338,340,379"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a7e2b12ac3e3d8128536d65cf91946438" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="215,338,340,379"/>
 <area shape="poly" title=" " alt="" coords="167,356,199,356,199,361,167,361"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a7c322d88e059c6e52031a46badfa23c4" title=" " alt="" coords="388,5,599,61"/>
 <area shape="poly" title=" " alt="" coords="278,337,287,285,306,214,337,138,359,103,386,71,389,69,392,73,390,75,364,106,342,141,311,216,292,286,283,338"/>
@@ -1390,7 +1390,7 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="297,336,337,301,387,267,400,260,402,265,389,271,340,305,301,340"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a99f113d574564e9fb02470d77369b435" title=" " alt="" coords="406,281,581,322"/>
 <area shape="poly" title=" " alt="" coords="340,339,399,323,401,329,341,344"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab84de3d8297ed4cef2d90c0a925cda6f" title=" " alt="" coords="647,465,846,506"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a173837cea546187dbf6392cfcfc6b331" title=" " alt="" coords="647,465,846,506"/>
 <area shape="poly" title=" " alt="" coords="340,351,397,351,463,354,532,363,600,381,632,396,663,414,714,452,711,457,660,418,630,400,598,386,531,368,462,359,397,356,340,357"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a876aa4cf19da24112d3d66afd49eb8f2" title=" " alt="" coords="436,396,551,436"/>
 <area shape="poly" title=" " alt="" coords="341,373,422,394,420,399,340,378"/>
@@ -1408,14 +1408,14 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a9a7ac42c7d62b423375d6a2670250d81" name="a9a7ac42c7d62b423375d6a2670250d81"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9a7ac42c7d62b423375d6a2670250d81">&#9670;&#160;</a></span>CompressOverworld() <span class="overload">[1/2]</span></h2>
+<a id="a189cfda5716a1c11fa2c827614adc713" name="a189cfda5716a1c11fa2c827614adc713"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a189cfda5716a1c11fa2c827614adc713">&#9670;&#160;</a></span>CompressOverworld() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt; yaze::app::gfx::lc_lz2::CompressOverworld </td>
+          <td class="memname">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt; yaze::app::gfx::lc_lz2::CompressOverworld </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
         </tr>
@@ -1432,16 +1432,16 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00876">876</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00879">879</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="compression_8cc_source.html#l00519">CompressV2()</a>, and <a class="el" href="compression_8h_source.html#l00046">kNintendoMode1</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a9a7ac42c7d62b423375d6a2670250d81_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a9a7ac42c7d62b423375d6a2670250d81_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a9a7ac42c7d62b423375d6a2670250d81_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a9a7ac42c7d62b423375d6a2670250d81_cgraph">
+<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a189cfda5716a1c11fa2c827614adc713_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a189cfda5716a1c11fa2c827614adc713_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a189cfda5716a1c11fa2c827614adc713_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a189cfda5716a1c11fa2c827614adc713_cgraph">
 <area shape="rect" title=" " alt="" coords="5,338,174,379"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,338,347,379"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a7e2b12ac3e3d8128536d65cf91946438" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,338,347,379"/>
 <area shape="poly" title=" " alt="" coords="174,356,206,356,206,361,174,361"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a7c322d88e059c6e52031a46badfa23c4" title=" " alt="" coords="395,5,606,61"/>
 <area shape="poly" title=" " alt="" coords="285,337,294,285,313,214,344,138,366,103,393,71,396,69,399,73,397,75,371,106,349,141,318,216,299,286,290,338"/>
@@ -1453,7 +1453,7 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="304,336,344,301,394,267,407,260,409,265,396,271,347,305,308,340"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a99f113d574564e9fb02470d77369b435" title=" " alt="" coords="414,281,588,322"/>
 <area shape="poly" title=" " alt="" coords="347,339,406,323,408,329,348,344"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab84de3d8297ed4cef2d90c0a925cda6f" title=" " alt="" coords="654,465,853,506"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a173837cea546187dbf6392cfcfc6b331" title=" " alt="" coords="654,465,853,506"/>
 <area shape="poly" title=" " alt="" coords="347,351,404,351,470,354,539,363,607,381,639,396,670,414,721,452,718,457,667,418,637,400,605,386,538,368,469,359,404,356,347,357"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a876aa4cf19da24112d3d66afd49eb8f2" title=" " alt="" coords="443,396,558,436"/>
 <area shape="poly" title=" " alt="" coords="348,373,429,394,427,399,347,378"/>
@@ -1471,14 +1471,14 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ad1775e9e8b6c900303716aa064635aeb" name="ad1775e9e8b6c900303716aa064635aeb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad1775e9e8b6c900303716aa064635aeb">&#9670;&#160;</a></span>CompressOverworld() <span class="overload">[2/2]</span></h2>
+<a id="a37b07399d74091a4a678ffd22edb7d1a" name="a37b07399d74091a4a678ffd22edb7d1a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a37b07399d74091a4a678ffd22edb7d1a">&#9670;&#160;</a></span>CompressOverworld() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt; yaze::app::gfx::lc_lz2::CompressOverworld </td>
+          <td class="memname">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt; yaze::app::gfx::lc_lz2::CompressOverworld </td>
           <td>(</td>
           <td class="paramtype">const std::vector&lt; uint8_t &gt;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
         </tr>
@@ -1495,16 +1495,16 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00881">881</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00885">885</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="compression_8cc_source.html#l01307">CompressV3()</a>, and <a class="el" href="compression_8h_source.html#l00046">kNintendoMode1</a>.</p>
+<p class="reference">References <a class="el" href="compression_8cc_source.html#l01311">CompressV3()</a>, and <a class="el" href="compression_8h_source.html#l00046">kNintendoMode1</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad1775e9e8b6c900303716aa064635aeb_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad1775e9e8b6c900303716aa064635aeb_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad1775e9e8b6c900303716aa064635aeb_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad1775e9e8b6c900303716aa064635aeb_cgraph">
+<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a37b07399d74091a4a678ffd22edb7d1a_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a37b07399d74091a4a678ffd22edb7d1a_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a37b07399d74091a4a678ffd22edb7d1a_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a37b07399d74091a4a678ffd22edb7d1a_cgraph">
 <area shape="rect" title=" " alt="" coords="5,215,174,255"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,215,347,255"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a45cc1350da377d21e9aca0b34263dcab" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,215,347,255"/>
 <area shape="poly" title=" " alt="" coords="174,232,206,232,206,238,174,238"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a4bb15ea4d4366ad87a5f64081ad9de4e" title=" " alt="" coords="410,5,607,46"/>
 <area shape="poly" title=" " alt="" coords="290,214,304,179,326,137,356,93,393,56,399,52,402,56,397,60,360,96,331,139,309,181,295,216"/>
@@ -1540,11 +1540,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00889">889</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00893">893</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="compression_8h_source.html#l00058">yaze::app::gfx::lc_lz2::CompressionCommand::arguments</a>, <a class="el" href="compression_8h_source.html#l00179">yaze::app::gfx::lc_lz2::CompressionContext::current_cmd</a>, <a class="el" href="compression_8h_source.html#l00169">yaze::app::gfx::lc_lz2::CompressionContext::data</a>, <a class="el" href="compression_8h_source.html#l00064">yaze::app::gfx::lc_lz2::CompressionCommand::data_size</a>, <a class="el" href="compression_8cc_source.html#l00013">DEBUG_LOG</a>, <a class="el" href="compression_8h_source.html#l00039">kCommandByteFill</a>, <a class="el" href="compression_8h_source.html#l00174">yaze::app::gfx::lc_lz2::CompressionContext::last_pos</a>, and <a class="el" href="compression_8h_source.html#l00173">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01029">CheckAvailableCompressionCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01033">CheckAvailableCompressionCommands()</a>.</p>
 
 </div>
 </div>
@@ -1563,11 +1563,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00909">909</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00913">913</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="compression_8h_source.html#l00058">yaze::app::gfx::lc_lz2::CompressionCommand::arguments</a>, <a class="el" href="compression_8h_source.html#l00179">yaze::app::gfx::lc_lz2::CompressionContext::current_cmd</a>, <a class="el" href="compression_8h_source.html#l00169">yaze::app::gfx::lc_lz2::CompressionContext::data</a>, <a class="el" href="compression_8h_source.html#l00064">yaze::app::gfx::lc_lz2::CompressionCommand::data_size</a>, <a class="el" href="compression_8cc_source.html#l00013">DEBUG_LOG</a>, <a class="el" href="compression_8h_source.html#l00040">kCommandWordFill</a>, <a class="el" href="compression_8h_source.html#l00174">yaze::app::gfx::lc_lz2::CompressionContext::last_pos</a>, and <a class="el" href="compression_8h_source.html#l00173">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01029">CheckAvailableCompressionCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01033">CheckAvailableCompressionCommands()</a>.</p>
 
 </div>
 </div>
@@ -1586,11 +1586,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00935">935</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00939">939</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="compression_8h_source.html#l00058">yaze::app::gfx::lc_lz2::CompressionCommand::arguments</a>, <a class="el" href="compression_8h_source.html#l00179">yaze::app::gfx::lc_lz2::CompressionContext::current_cmd</a>, <a class="el" href="compression_8h_source.html#l00169">yaze::app::gfx::lc_lz2::CompressionContext::data</a>, <a class="el" href="compression_8h_source.html#l00064">yaze::app::gfx::lc_lz2::CompressionCommand::data_size</a>, <a class="el" href="compression_8cc_source.html#l00013">DEBUG_LOG</a>, <a class="el" href="compression_8h_source.html#l00041">kCommandIncreasingFill</a>, <a class="el" href="compression_8h_source.html#l00174">yaze::app::gfx::lc_lz2::CompressionContext::last_pos</a>, and <a class="el" href="compression_8h_source.html#l00173">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01029">CheckAvailableCompressionCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01033">CheckAvailableCompressionCommands()</a>.</p>
 
 </div>
 </div>
@@ -1609,11 +1609,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00967">967</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00971">971</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="compression_8h_source.html#l00058">yaze::app::gfx::lc_lz2::CompressionCommand::arguments</a>, <a class="el" href="compression_8h_source.html#l00179">yaze::app::gfx::lc_lz2::CompressionContext::current_cmd</a>, <a class="el" href="compression_8h_source.html#l00169">yaze::app::gfx::lc_lz2::CompressionContext::data</a>, <a class="el" href="compression_8h_source.html#l00064">yaze::app::gfx::lc_lz2::CompressionCommand::data_size</a>, <a class="el" href="compression_8cc_source.html#l00013">DEBUG_LOG</a>, <a class="el" href="compression_8h_source.html#l00042">kCommandRepeatingBytes</a>, <a class="el" href="compression_8h_source.html#l00048">kSnesByteMax</a>, and <a class="el" href="compression_8h_source.html#l00173">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01029">CheckAvailableCompressionCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01033">CheckAvailableCompressionCommands()</a>.</p>
 
 </div>
 </div>
@@ -1632,11 +1632,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01022">1022</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01026">1026</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="compression_8h_source.html#l00179">yaze::app::gfx::lc_lz2::CompressionContext::current_cmd</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01307">CompressV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01311">CompressV3()</a>.</p>
 
 </div>
 </div>
@@ -1655,11 +1655,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01029">1029</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01033">1033</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="compression_8h_source.html#l00058">yaze::app::gfx::lc_lz2::CompressionCommand::arguments</a>, <a class="el" href="compression_8cc_source.html#l00889">CheckByteRepeatV3()</a>, <a class="el" href="compression_8cc_source.html#l00935">CheckIncByteV3()</a>, <a class="el" href="compression_8cc_source.html#l00967">CheckIntraCopyV3()</a>, <a class="el" href="compression_8cc_source.html#l00909">CheckWordRepeatV3()</a>, <a class="el" href="compression_8h_source.html#l00179">yaze::app::gfx::lc_lz2::CompressionContext::current_cmd</a>, <a class="el" href="compression_8h_source.html#l00064">yaze::app::gfx::lc_lz2::CompressionCommand::data_size</a>, <a class="el" href="compression_8cc_source.html#l00013">DEBUG_LOG</a>, and <a class="el" href="compression_8h_source.html#l00173">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>.</p>
+<p class="reference">References <a class="el" href="compression_8h_source.html#l00058">yaze::app::gfx::lc_lz2::CompressionCommand::arguments</a>, <a class="el" href="compression_8cc_source.html#l00893">CheckByteRepeatV3()</a>, <a class="el" href="compression_8cc_source.html#l00939">CheckIncByteV3()</a>, <a class="el" href="compression_8cc_source.html#l00971">CheckIntraCopyV3()</a>, <a class="el" href="compression_8cc_source.html#l00913">CheckWordRepeatV3()</a>, <a class="el" href="compression_8h_source.html#l00179">yaze::app::gfx::lc_lz2::CompressionContext::current_cmd</a>, <a class="el" href="compression_8h_source.html#l00064">yaze::app::gfx::lc_lz2::CompressionCommand::data_size</a>, <a class="el" href="compression_8cc_source.html#l00013">DEBUG_LOG</a>, and <a class="el" href="compression_8h_source.html#l00173">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01307">CompressV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01311">CompressV3()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1694,11 +1694,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01042">1042</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01046">1046</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="compression_8h_source.html#l00061">yaze::app::gfx::lc_lz2::CompressionCommand::cmd_size</a>, <a class="el" href="compression_8h_source.html#l00177">yaze::app::gfx::lc_lz2::CompressionContext::cmd_with_max</a>, <a class="el" href="compression_8h_source.html#l00179">yaze::app::gfx::lc_lz2::CompressionContext::current_cmd</a>, <a class="el" href="compression_8h_source.html#l00169">yaze::app::gfx::lc_lz2::CompressionContext::data</a>, <a class="el" href="compression_8h_source.html#l00064">yaze::app::gfx::lc_lz2::CompressionCommand::data_size</a>, <a class="el" href="compression_8cc_source.html#l00013">DEBUG_LOG</a>, <a class="el" href="compression_8h_source.html#l00038">kCommandDirectCopy</a>, and <a class="el" href="compression_8h_source.html#l00173">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01307">CompressV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01311">CompressV3()</a>.</p>
 
 </div>
 </div>
@@ -1717,11 +1717,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01079">1079</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01083">1083</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="compression_8h_source.html#l00012">BUILD_HEADER</a>, <a class="el" href="compression_8h_source.html#l00177">yaze::app::gfx::lc_lz2::CompressionContext::cmd_with_max</a>, <a class="el" href="compression_8h_source.html#l00176">yaze::app::gfx::lc_lz2::CompressionContext::comp_accumulator</a>, <a class="el" href="compression_8h_source.html#l00170">yaze::app::gfx::lc_lz2::CompressionContext::compressed_data</a>, <a class="el" href="compression_8h_source.html#l00169">yaze::app::gfx::lc_lz2::CompressionContext::data</a>, <a class="el" href="compression_8cc_source.html#l00013">DEBUG_LOG</a>, <a class="el" href="compression_8h_source.html#l00174">yaze::app::gfx::lc_lz2::CompressionContext::last_pos</a>, and <a class="el" href="compression_8h_source.html#l00173">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01307">CompressV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01311">CompressV3()</a>.</p>
 
 </div>
 </div>
@@ -1740,11 +1740,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01131">1131</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01135">1135</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="compression_8h_source.html#l00058">yaze::app::gfx::lc_lz2::CompressionCommand::arguments</a>, <a class="el" href="compression_8h_source.html#l00012">BUILD_HEADER</a>, <a class="el" href="compression_8h_source.html#l00061">yaze::app::gfx::lc_lz2::CompressionCommand::cmd_size</a>, <a class="el" href="compression_8h_source.html#l00177">yaze::app::gfx::lc_lz2::CompressionContext::cmd_with_max</a>, <a class="el" href="compression_8h_source.html#l00176">yaze::app::gfx::lc_lz2::CompressionContext::comp_accumulator</a>, <a class="el" href="compression_8h_source.html#l00170">yaze::app::gfx::lc_lz2::CompressionContext::compressed_data</a>, <a class="el" href="compression_8h_source.html#l00179">yaze::app::gfx::lc_lz2::CompressionContext::current_cmd</a>, <a class="el" href="compression_8h_source.html#l00169">yaze::app::gfx::lc_lz2::CompressionContext::data</a>, <a class="el" href="compression_8h_source.html#l00064">yaze::app::gfx::lc_lz2::CompressionCommand::data_size</a>, <a class="el" href="compression_8cc_source.html#l00013">DEBUG_LOG</a>, and <a class="el" href="compression_8h_source.html#l00173">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01307">CompressV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01311">CompressV3()</a>.</p>
 
 </div>
 </div>
@@ -1763,11 +1763,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01174">1174</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01178">1178</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="constants_8h_source.html#l00079">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00451">yaze::app::Rom::begin()</a>, <a class="el" href="compression_8h_source.html#l00170">yaze::app::gfx::lc_lz2::CompressionContext::compressed_data</a>, <a class="el" href="rom_8h_source.html#l00453">yaze::app::Rom::data()</a>, <a class="el" href="compression_8cc_source.html#l01367">DecompressV2()</a>, <a class="el" href="rom_8cc_source.html#l00240">yaze::app::Rom::LoadFromBytes()</a>, <a class="el" href="constants_8h_source.html#l00071">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00450">yaze::app::Rom::size()</a>, <a class="el" href="compression_8h_source.html#l00173">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>, and <a class="el" href="compression_8h_source.html#l00175">yaze::app::gfx::lc_lz2::CompressionContext::start</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00079">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00451">yaze::app::Rom::begin()</a>, <a class="el" href="compression_8h_source.html#l00170">yaze::app::gfx::lc_lz2::CompressionContext::compressed_data</a>, <a class="el" href="rom_8h_source.html#l00453">yaze::app::Rom::data()</a>, <a class="el" href="compression_8cc_source.html#l01372">DecompressV2()</a>, <a class="el" href="rom_8cc_source.html#l00240">yaze::app::Rom::LoadFromBytes()</a>, <a class="el" href="constants_8h_source.html#l00071">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00450">yaze::app::Rom::size()</a>, <a class="el" href="compression_8h_source.html#l00173">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>, and <a class="el" href="compression_8h_source.html#l00175">yaze::app::gfx::lc_lz2::CompressionContext::start</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01307">CompressV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01311">CompressV3()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1778,13 +1778,13 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="160,103,279,48,312,34,314,39,281,53,163,108"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="500,85,638,111"/>
 <area shape="poly" title=" " alt="" coords="208,103,279,92,366,88,452,92,485,92,484,98,452,97,366,94,280,97,209,108"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="296,171,436,212"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a88778055d3a79cf869fc78ed66949b3f" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="296,171,436,212"/>
 <area shape="poly" title=" " alt="" coords="199,145,282,167,280,172,198,150"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a651c07af2317f9c3206738506cad01e0" title=" " alt="" coords="280,106,452,146"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#adf1f16ed6b05f4481522961cdfef3995" title=" " alt="" coords="280,106,452,146"/>
 <area shape="poly" title=" " alt="" coords="232,124,264,124,264,129,232,129"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a648c0cee09095aad6aa881fc114a9f5f" title=" " alt="" coords="298,236,434,262"/>
 <area shape="poly" title=" " alt="" coords="150,145,209,183,281,221,298,228,296,233,279,226,206,187,147,149"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa7583d0d15778f0286acdb9425628785" title=" " alt="" coords="512,171,626,212"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a82347358f89c826105734df3d675e530" title=" " alt="" coords="512,171,626,212"/>
 <area shape="poly" title=" " alt="" coords="436,189,497,189,497,194,436,194"/>
 <area shape="poly" title=" " alt="" coords="452,112,484,107,485,112,453,117"/>
 </map>
@@ -1811,11 +1811,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01191">1191</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01195">1195</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="compression_8h_source.html#l00076">yaze::app::gfx::lc_lz2::CompressionPiece::argument</a>, <a class="el" href="compression_8h_source.html#l00075">yaze::app::gfx::lc_lz2::CompressionPiece::argument_length</a>, <a class="el" href="compression_8h_source.html#l00073">yaze::app::gfx::lc_lz2::CompressionPiece::command</a>, <a class="el" href="compression_8h_source.html#l00039">kCommandByteFill</a>, <a class="el" href="compression_8h_source.html#l00038">kCommandDirectCopy</a>, <a class="el" href="compression_8h_source.html#l00041">kCommandIncreasingFill</a>, <a class="el" href="compression_8h_source.html#l00042">kCommandRepeatingBytes</a>, <a class="el" href="compression_8h_source.html#l00040">kCommandWordFill</a>, <a class="el" href="compression_8h_source.html#l00045">kMaxLengthCompression</a>, <a class="el" href="compression_8h_source.html#l00046">kNintendoMode1</a>, <a class="el" href="compression_8h_source.html#l00047">kNintendoMode2</a>, <a class="el" href="compression_8h_source.html#l00048">kSnesByteMax</a>, and <a class="el" href="compression_8h_source.html#l00074">yaze::app::gfx::lc_lz2::CompressionPiece::length</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01240">FinalizeCompression()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01244">FinalizeCompression()</a>.</p>
 
 </div>
 </div>
@@ -1834,11 +1834,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01240">1240</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01244">1244</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="compression_8h_source.html#l00076">yaze::app::gfx::lc_lz2::CompressionPiece::argument</a>, <a class="el" href="compression_8h_source.html#l00075">yaze::app::gfx::lc_lz2::CompressionPiece::argument_length</a>, <a class="el" href="compression_8h_source.html#l00012">BUILD_HEADER</a>, <a class="el" href="compression_8h_source.html#l00073">yaze::app::gfx::lc_lz2::CompressionPiece::command</a>, <a class="el" href="compression_8h_source.html#l00176">yaze::app::gfx::lc_lz2::CompressionContext::comp_accumulator</a>, <a class="el" href="compression_8h_source.html#l00170">yaze::app::gfx::lc_lz2::CompressionContext::compressed_data</a>, <a class="el" href="compression_8h_source.html#l00171">yaze::app::gfx::lc_lz2::CompressionContext::compression_pieces</a>, <a class="el" href="compression_8h_source.html#l00172">yaze::app::gfx::lc_lz2::CompressionContext::compression_string</a>, <a class="el" href="compression_8h_source.html#l00169">yaze::app::gfx::lc_lz2::CompressionContext::data</a>, <a class="el" href="compression_8cc_source.html#l00013">DEBUG_LOG</a>, <a class="el" href="compression_8h_source.html#l00053">kCompressionStringMod</a>, <a class="el" href="compression_8h_source.html#l00045">kMaxLengthCompression</a>, <a class="el" href="compression_8h_source.html#l00044">kMaxLengthNormalHeader</a>, <a class="el" href="compression_8h_source.html#l00046">kNintendoMode1</a>, <a class="el" href="compression_8h_source.html#l00048">kSnesByteMax</a>, <a class="el" href="compression_8h_source.html#l00074">yaze::app::gfx::lc_lz2::CompressionPiece::length</a>, <a class="el" href="compression_8h_source.html#l00180">yaze::app::gfx::lc_lz2::CompressionContext::mode</a>, <a class="el" href="compression_8cc_source.html#l01191">SplitCompressionPieceV3()</a>, and <a class="el" href="compression_8h_source.html#l00173">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>.</p>
+<p class="reference">References <a class="el" href="compression_8h_source.html#l00076">yaze::app::gfx::lc_lz2::CompressionPiece::argument</a>, <a class="el" href="compression_8h_source.html#l00075">yaze::app::gfx::lc_lz2::CompressionPiece::argument_length</a>, <a class="el" href="compression_8h_source.html#l00012">BUILD_HEADER</a>, <a class="el" href="compression_8h_source.html#l00073">yaze::app::gfx::lc_lz2::CompressionPiece::command</a>, <a class="el" href="compression_8h_source.html#l00176">yaze::app::gfx::lc_lz2::CompressionContext::comp_accumulator</a>, <a class="el" href="compression_8h_source.html#l00170">yaze::app::gfx::lc_lz2::CompressionContext::compressed_data</a>, <a class="el" href="compression_8h_source.html#l00171">yaze::app::gfx::lc_lz2::CompressionContext::compression_pieces</a>, <a class="el" href="compression_8h_source.html#l00172">yaze::app::gfx::lc_lz2::CompressionContext::compression_string</a>, <a class="el" href="compression_8h_source.html#l00169">yaze::app::gfx::lc_lz2::CompressionContext::data</a>, <a class="el" href="compression_8cc_source.html#l00013">DEBUG_LOG</a>, <a class="el" href="compression_8h_source.html#l00053">kCompressionStringMod</a>, <a class="el" href="compression_8h_source.html#l00045">kMaxLengthCompression</a>, <a class="el" href="compression_8h_source.html#l00044">kMaxLengthNormalHeader</a>, <a class="el" href="compression_8h_source.html#l00046">kNintendoMode1</a>, <a class="el" href="compression_8h_source.html#l00048">kSnesByteMax</a>, <a class="el" href="compression_8h_source.html#l00074">yaze::app::gfx::lc_lz2::CompressionPiece::length</a>, <a class="el" href="compression_8h_source.html#l00180">yaze::app::gfx::lc_lz2::CompressionContext::mode</a>, <a class="el" href="compression_8cc_source.html#l01195">SplitCompressionPieceV3()</a>, and <a class="el" href="compression_8h_source.html#l00173">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01307">CompressV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01311">CompressV3()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1852,14 +1852,14 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a370541438805cc97a0dbae2789d8fa7b" name="a370541438805cc97a0dbae2789d8fa7b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a370541438805cc97a0dbae2789d8fa7b">&#9670;&#160;</a></span>CompressV3()</h2>
+<a id="a45cc1350da377d21e9aca0b34263dcab" name="a45cc1350da377d21e9aca0b34263dcab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a45cc1350da377d21e9aca0b34263dcab">&#9670;&#160;</a></span>CompressV3()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt; yaze::app::gfx::lc_lz2::CompressV3 </td>
+          <td class="memname">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt; yaze::app::gfx::lc_lz2::CompressV3 </td>
           <td>(</td>
           <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
         </tr>
@@ -1889,16 +1889,16 @@ Here is the call graph for this function:</div>
 <p>Compresses a buffer of data using the LC_LZ2 algorithm. </p>
 <dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000002">Deprecated</a></b></dt><dd>Use Compress and Uncompress instead. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01307">1307</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01311">1311</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="compression_8cc_source.html#l01131">AddCompressionToChain()</a>, <a class="el" href="compression_8cc_source.html#l01029">CheckAvailableCompressionCommands()</a>, <a class="el" href="compression_8h_source.html#l00177">yaze::app::gfx::lc_lz2::CompressionContext::cmd_with_max</a>, <a class="el" href="compression_8h_source.html#l00170">yaze::app::gfx::lc_lz2::CompressionContext::compressed_data</a>, <a class="el" href="compression_8cc_source.html#l00013">DEBUG_LOG</a>, <a class="el" href="compression_8cc_source.html#l01042">DetermineBestCompression()</a>, <a class="el" href="compression_8cc_source.html#l01240">FinalizeCompression()</a>, <a class="el" href="compression_8cc_source.html#l01079">HandleDirectCopy()</a>, <a class="el" href="compression_8cc_source.html#l01022">InitializeCompression()</a>, <a class="el" href="compression_8h_source.html#l00174">yaze::app::gfx::lc_lz2::CompressionContext::last_pos</a>, <a class="el" href="constants_8h_source.html#l00071">RETURN_IF_ERROR</a>, <a class="el" href="compression_8h_source.html#l00173">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>, and <a class="el" href="compression_8cc_source.html#l01174">ValidateCompressionResultV3()</a>.</p>
+<p class="reference">References <a class="el" href="compression_8cc_source.html#l01135">AddCompressionToChain()</a>, <a class="el" href="compression_8cc_source.html#l01033">CheckAvailableCompressionCommands()</a>, <a class="el" href="compression_8h_source.html#l00177">yaze::app::gfx::lc_lz2::CompressionContext::cmd_with_max</a>, <a class="el" href="compression_8h_source.html#l00170">yaze::app::gfx::lc_lz2::CompressionContext::compressed_data</a>, <a class="el" href="compression_8cc_source.html#l00013">DEBUG_LOG</a>, <a class="el" href="compression_8cc_source.html#l01046">DetermineBestCompression()</a>, <a class="el" href="compression_8cc_source.html#l01244">FinalizeCompression()</a>, <a class="el" href="compression_8cc_source.html#l01083">HandleDirectCopy()</a>, <a class="el" href="compression_8cc_source.html#l01026">InitializeCompression()</a>, <a class="el" href="compression_8h_source.html#l00174">yaze::app::gfx::lc_lz2::CompressionContext::last_pos</a>, <a class="el" href="constants_8h_source.html#l00071">RETURN_IF_ERROR</a>, <a class="el" href="compression_8h_source.html#l00173">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>, and <a class="el" href="compression_8cc_source.html#l01178">ValidateCompressionResultV3()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00881">CompressOverworld()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00885">CompressOverworld()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a370541438805cc97a0dbae2789d8fa7b_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a370541438805cc97a0dbae2789d8fa7b_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a370541438805cc97a0dbae2789d8fa7b_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a370541438805cc97a0dbae2789d8fa7b_cgraph">
+<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a45cc1350da377d21e9aca0b34263dcab_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a45cc1350da377d21e9aca0b34263dcab_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a45cc1350da377d21e9aca0b34263dcab_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a45cc1350da377d21e9aca0b34263dcab_cgraph">
 <area shape="rect" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="5,271,131,311"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a4bb15ea4d4366ad87a5f64081ad9de4e" title=" " alt="" coords="193,61,390,102"/>
 <area shape="poly" title=" " alt="" coords="74,270,88,235,110,193,139,149,177,112,183,108,186,112,180,116,143,152,114,195,93,237,79,272"/>
@@ -1928,9 +1928,9 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="377,464,404,451,418,441,427,431,437,420,452,409,481,395,484,400,454,413,440,424,431,434,421,445,406,456,379,469"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="702,478,841,504"/>
 <area shape="poly" title=" " alt="" coords="381,463,453,452,554,444,598,445,655,452,723,470,721,475,654,458,598,451,554,449,453,458,382,469"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="484,467,623,507"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a88778055d3a79cf869fc78ed66949b3f" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="484,467,623,507"/>
 <area shape="poly" title=" " alt="" coords="405,484,468,484,468,490,405,490"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a651c07af2317f9c3206738506cad01e0" title=" " alt="" coords="468,532,640,573"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#adf1f16ed6b05f4481522961cdfef3995" title=" " alt="" coords="468,532,640,573"/>
 <area shape="poly" title=" " alt="" coords="377,505,455,525,454,530,376,511"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a648c0cee09095aad6aa881fc114a9f5f" title=" " alt="" coords="486,597,622,622"/>
 <area shape="poly" title=" " alt="" coords="323,505,382,544,454,582,474,589,472,594,452,587,379,549,320,510"/>
@@ -1964,7 +1964,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01340">1340</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01345">1345</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00519">CompressV2()</a>.</p>
 
@@ -1994,12 +1994,12 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01348">1348</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01353">1353</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
 </div>
 </div>
-<a id="aa7583d0d15778f0286acdb9425628785" name="aa7583d0d15778f0286acdb9425628785"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa7583d0d15778f0286acdb9425628785">&#9670;&#160;</a></span>memfill()</h2>
+<a id="a82347358f89c826105734df3d675e530" name="a82347358f89c826105734df3d675e530"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a82347358f89c826105734df3d675e530">&#9670;&#160;</a></span>memfill()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2012,7 +2012,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>buffer</em></span>, </td>
+          <td class="paramtype">std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>buffer</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -2032,20 +2032,20 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01357">1357</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01362">1362</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01367">DecompressV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01372">DecompressV2()</a>.</p>
 
 </div>
 </div>
-<a id="a8a5cd746989bba5ac64eef034b664a92" name="a8a5cd746989bba5ac64eef034b664a92"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8a5cd746989bba5ac64eef034b664a92">&#9670;&#160;</a></span>DecompressV2()</h2>
+<a id="a88778055d3a79cf869fc78ed66949b3f" name="a88778055d3a79cf869fc78ed66949b3f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a88778055d3a79cf869fc78ed66949b3f">&#9670;&#160;</a></span>DecompressV2()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt; yaze::app::gfx::lc_lz2::DecompressV2 </td>
+          <td class="memname">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt; yaze::app::gfx::lc_lz2::DecompressV2 </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
         </tr>
@@ -2070,32 +2070,32 @@ Here is the call graph for this function:</div>
 <p>Decompresses a buffer of data using the LC_LZ2 algorithm. </p>
 <dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000003">Deprecated</a></b></dt><dd>Use Compress and Uncompress instead. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01367">1367</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01372">1372</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="compression_8h_source.html#l00039">kCommandByteFill</a>, <a class="el" href="compression_8h_source.html#l00038">kCommandDirectCopy</a>, <a class="el" href="compression_8h_source.html#l00041">kCommandIncreasingFill</a>, <a class="el" href="compression_8h_source.html#l00049">kCommandMod</a>, <a class="el" href="compression_8h_source.html#l00042">kCommandRepeatingBytes</a>, <a class="el" href="compression_8h_source.html#l00040">kCommandWordFill</a>, <a class="el" href="compression_8h_source.html#l00051">kExpandedLengthMod</a>, <a class="el" href="compression_8h_source.html#l00050">kExpandedMod</a>, <a class="el" href="compression_8h_source.html#l00046">kNintendoMode1</a>, <a class="el" href="compression_8h_source.html#l00052">kNormalLengthMod</a>, <a class="el" href="compression_8h_source.html#l00048">kSnesByteMax</a>, and <a class="el" href="compression_8cc_source.html#l01357">memfill()</a>.</p>
+<p class="reference">References <a class="el" href="compression_8h_source.html#l00039">kCommandByteFill</a>, <a class="el" href="compression_8h_source.html#l00038">kCommandDirectCopy</a>, <a class="el" href="compression_8h_source.html#l00041">kCommandIncreasingFill</a>, <a class="el" href="compression_8h_source.html#l00049">kCommandMod</a>, <a class="el" href="compression_8h_source.html#l00042">kCommandRepeatingBytes</a>, <a class="el" href="compression_8h_source.html#l00040">kCommandWordFill</a>, <a class="el" href="compression_8h_source.html#l00051">kExpandedLengthMod</a>, <a class="el" href="compression_8h_source.html#l00050">kExpandedMod</a>, <a class="el" href="compression_8h_source.html#l00046">kNintendoMode1</a>, <a class="el" href="compression_8h_source.html#l00052">kNormalLengthMod</a>, <a class="el" href="compression_8h_source.html#l00048">kSnesByteMax</a>, and <a class="el" href="compression_8cc_source.html#l01362">memfill()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01454">DecompressGraphics()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00765">yaze::app::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="compression_8cc_source.html#l01463">DecompressOverworld()</a>, <a class="el" href="compression_8cc_source.html#l01458">DecompressOverworld()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00789">yaze::app::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00654">yaze::app::editor::GraphicsEditor::DrawTilemapImport()</a>, <a class="el" href="rom_8cc_source.html#l00045">yaze::app::Rom::Load2BppGraphics()</a>, <a class="el" href="rom_8cc_source.html#l00083">yaze::app::Rom::LoadAllGraphicsData()</a>, <a class="el" href="compression_8cc_source.html#l00474">ValidateCompressionResult()</a>, and <a class="el" href="compression_8cc_source.html#l01174">ValidateCompressionResultV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01459">DecompressGraphics()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00765">yaze::app::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="compression_8cc_source.html#l01469">DecompressOverworld()</a>, <a class="el" href="compression_8cc_source.html#l01464">DecompressOverworld()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00789">yaze::app::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00654">yaze::app::editor::GraphicsEditor::DrawTilemapImport()</a>, <a class="el" href="rom_8cc_source.html#l00045">yaze::app::Rom::Load2BppGraphics()</a>, <a class="el" href="rom_8cc_source.html#l00083">yaze::app::Rom::LoadAllGraphicsData()</a>, <a class="el" href="compression_8cc_source.html#l00475">ValidateCompressionResult()</a>, and <a class="el" href="compression_8cc_source.html#l01178">ValidateCompressionResultV3()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a8a5cd746989bba5ac64eef034b664a92_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a8a5cd746989bba5ac64eef034b664a92_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a8a5cd746989bba5ac64eef034b664a92_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a8a5cd746989bba5ac64eef034b664a92_cgraph">
+<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a88778055d3a79cf869fc78ed66949b3f_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a88778055d3a79cf869fc78ed66949b3f_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a88778055d3a79cf869fc78ed66949b3f_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a88778055d3a79cf869fc78ed66949b3f_cgraph">
 <area shape="rect" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="5,5,145,46"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa7583d0d15778f0286acdb9425628785" title=" " alt="" coords="193,5,306,46"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a82347358f89c826105734df3d675e530" title=" " alt="" coords="193,5,306,46"/>
 <area shape="poly" title=" " alt="" coords="145,23,177,23,177,28,145,28"/>
 </map>
 </div>
 
 </div>
 </div>
-<a id="acd3f236eb012d461ff376a3ac70ef4ca" name="acd3f236eb012d461ff376a3ac70ef4ca"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acd3f236eb012d461ff376a3ac70ef4ca">&#9670;&#160;</a></span>DecompressGraphics()</h2>
+<a id="a357e637cdc726ce9a229d4f2c31c8bf9" name="a357e637cdc726ce9a229d4f2c31c8bf9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a357e637cdc726ce9a229d4f2c31c8bf9">&#9670;&#160;</a></span>DecompressGraphics()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt; yaze::app::gfx::lc_lz2::DecompressGraphics </td>
+          <td class="memname">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt; yaze::app::gfx::lc_lz2::DecompressGraphics </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
         </tr>
@@ -2112,32 +2112,32 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01454">1454</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01459">1459</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="compression_8cc_source.html#l01367">DecompressV2()</a>, and <a class="el" href="compression_8h_source.html#l00047">kNintendoMode2</a>.</p>
+<p class="reference">References <a class="el" href="compression_8cc_source.html#l01372">DecompressV2()</a>, and <a class="el" href="compression_8h_source.html#l00047">kNintendoMode2</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_acd3f236eb012d461ff376a3ac70ef4ca_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_acd3f236eb012d461ff376a3ac70ef4ca_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_acd3f236eb012d461ff376a3ac70ef4ca_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_acd3f236eb012d461ff376a3ac70ef4ca_cgraph">
+<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a357e637cdc726ce9a229d4f2c31c8bf9_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a357e637cdc726ce9a229d4f2c31c8bf9_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a357e637cdc726ce9a229d4f2c31c8bf9_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a357e637cdc726ce9a229d4f2c31c8bf9_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,181,46"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="229,5,368,46"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a88778055d3a79cf869fc78ed66949b3f" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="229,5,368,46"/>
 <area shape="poly" title=" " alt="" coords="181,23,214,23,214,28,181,28"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa7583d0d15778f0286acdb9425628785" title=" " alt="" coords="416,5,529,46"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a82347358f89c826105734df3d675e530" title=" " alt="" coords="416,5,529,46"/>
 <area shape="poly" title=" " alt="" coords="369,23,400,23,400,28,369,28"/>
 </map>
 </div>
 
 </div>
 </div>
-<a id="afe1d582fab6d08efe1544cdccb882830" name="afe1d582fab6d08efe1544cdccb882830"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afe1d582fab6d08efe1544cdccb882830">&#9670;&#160;</a></span>DecompressOverworld() <span class="overload">[1/2]</span></h2>
+<a id="a477d72e719baa8b2b41cbb8dc5121c40" name="a477d72e719baa8b2b41cbb8dc5121c40"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a477d72e719baa8b2b41cbb8dc5121c40">&#9670;&#160;</a></span>DecompressOverworld() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt; yaze::app::gfx::lc_lz2::DecompressOverworld </td>
+          <td class="memname">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt; yaze::app::gfx::lc_lz2::DecompressOverworld </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
         </tr>
@@ -2154,34 +2154,34 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01458">1458</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01464">1464</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="compression_8cc_source.html#l01367">DecompressV2()</a>, and <a class="el" href="compression_8h_source.html#l00046">kNintendoMode1</a>.</p>
+<p class="reference">References <a class="el" href="compression_8cc_source.html#l01372">DecompressV2()</a>, and <a class="el" href="compression_8h_source.html#l00046">kNintendoMode1</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l01483">yaze::app::zelda3::overworld::Overworld::DecompressProtoMapTiles()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l01485">yaze::app::zelda3::overworld::Overworld::DecompressProtoMapTiles()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_afe1d582fab6d08efe1544cdccb882830_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_afe1d582fab6d08efe1544cdccb882830_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_afe1d582fab6d08efe1544cdccb882830_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_afe1d582fab6d08efe1544cdccb882830_cgraph">
+<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a477d72e719baa8b2b41cbb8dc5121c40_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a477d72e719baa8b2b41cbb8dc5121c40_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a477d72e719baa8b2b41cbb8dc5121c40_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a477d72e719baa8b2b41cbb8dc5121c40_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,188,46"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="236,5,375,46"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a88778055d3a79cf869fc78ed66949b3f" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="236,5,375,46"/>
 <area shape="poly" title=" " alt="" coords="188,23,220,23,220,28,188,28"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa7583d0d15778f0286acdb9425628785" title=" " alt="" coords="423,5,536,46"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a82347358f89c826105734df3d675e530" title=" " alt="" coords="423,5,536,46"/>
 <area shape="poly" title=" " alt="" coords="376,23,407,23,407,28,376,28"/>
 </map>
 </div>
 
 </div>
 </div>
-<a id="a2106a455fd14b9093a5c1b8eeef23b00" name="a2106a455fd14b9093a5c1b8eeef23b00"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2106a455fd14b9093a5c1b8eeef23b00">&#9670;&#160;</a></span>DecompressOverworld() <span class="overload">[2/2]</span></h2>
+<a id="a0e437612966490ddd3d3178acccca686" name="a0e437612966490ddd3d3178acccca686"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0e437612966490ddd3d3178acccca686">&#9670;&#160;</a></span>DecompressOverworld() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt; yaze::app::gfx::lc_lz2::DecompressOverworld </td>
+          <td class="memname">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt; yaze::app::gfx::lc_lz2::DecompressOverworld </td>
           <td>(</td>
           <td class="paramtype">const std::vector&lt; uint8_t &gt;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
         </tr>
@@ -2198,18 +2198,18 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01463">1463</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l01469">1469</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="compression_8cc_source.html#l01367">DecompressV2()</a>, and <a class="el" href="compression_8h_source.html#l00046">kNintendoMode1</a>.</p>
+<p class="reference">References <a class="el" href="compression_8cc_source.html#l01372">DecompressV2()</a>, and <a class="el" href="compression_8h_source.html#l00046">kNintendoMode1</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a2106a455fd14b9093a5c1b8eeef23b00_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a2106a455fd14b9093a5c1b8eeef23b00_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a2106a455fd14b9093a5c1b8eeef23b00_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a2106a455fd14b9093a5c1b8eeef23b00_cgraph">
+<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a0e437612966490ddd3d3178acccca686_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a0e437612966490ddd3d3178acccca686_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a0e437612966490ddd3d3178acccca686_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a0e437612966490ddd3d3178acccca686_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,188,46"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="236,5,375,46"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a88778055d3a79cf869fc78ed66949b3f" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="236,5,375,46"/>
 <area shape="poly" title=" " alt="" coords="188,23,220,23,220,28,188,28"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa7583d0d15778f0286acdb9425628785" title=" " alt="" coords="423,5,536,46"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a82347358f89c826105734df3d675e530" title=" " alt="" coords="423,5,536,46"/>
 <area shape="poly" title=" " alt="" coords="376,23,407,23,407,28,376,28"/>
 </map>
 </div>
@@ -2417,7 +2417,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="compression_8h_source.html#l00038">38</a> of file <a class="el" href="compression_8h_source.html">compression.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00519">CompressV2()</a>, <a class="el" href="compression_8cc_source.html#l01367">DecompressV2()</a>, <a class="el" href="compression_8cc_source.html#l01042">DetermineBestCompression()</a>, <a class="el" href="compression_8cc_source.html#l00365">SplitCompressionPiece()</a>, and <a class="el" href="compression_8cc_source.html#l01191">SplitCompressionPieceV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00519">CompressV2()</a>, <a class="el" href="compression_8cc_source.html#l01372">DecompressV2()</a>, <a class="el" href="compression_8cc_source.html#l01046">DetermineBestCompression()</a>, <a class="el" href="compression_8cc_source.html#l00365">SplitCompressionPiece()</a>, and <a class="el" href="compression_8cc_source.html#l01195">SplitCompressionPieceV3()</a>.</p>
 
 </div>
 </div>
@@ -2443,7 +2443,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="compression_8h_source.html#l00039">39</a> of file <a class="el" href="compression_8h_source.html">compression.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00043">CheckByteRepeat()</a>, <a class="el" href="compression_8cc_source.html#l00185">CheckByteRepeatV2()</a>, <a class="el" href="compression_8cc_source.html#l00889">CheckByteRepeatV3()</a>, <a class="el" href="compression_8cc_source.html#l01367">DecompressV2()</a>, <a class="el" href="compression_8cc_source.html#l00365">SplitCompressionPiece()</a>, and <a class="el" href="compression_8cc_source.html#l01191">SplitCompressionPieceV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00043">CheckByteRepeat()</a>, <a class="el" href="compression_8cc_source.html#l00185">CheckByteRepeatV2()</a>, <a class="el" href="compression_8cc_source.html#l00893">CheckByteRepeatV3()</a>, <a class="el" href="compression_8cc_source.html#l01372">DecompressV2()</a>, <a class="el" href="compression_8cc_source.html#l00365">SplitCompressionPiece()</a>, and <a class="el" href="compression_8cc_source.html#l01195">SplitCompressionPieceV3()</a>.</p>
 
 </div>
 </div>
@@ -2469,7 +2469,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="compression_8h_source.html#l00040">40</a> of file <a class="el" href="compression_8h_source.html">compression.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00055">CheckWordRepeat()</a>, <a class="el" href="compression_8cc_source.html#l00195">CheckWordRepeatV2()</a>, <a class="el" href="compression_8cc_source.html#l00909">CheckWordRepeatV3()</a>, <a class="el" href="compression_8cc_source.html#l01367">DecompressV2()</a>, <a class="el" href="compression_8cc_source.html#l00365">SplitCompressionPiece()</a>, and <a class="el" href="compression_8cc_source.html#l01191">SplitCompressionPieceV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00055">CheckWordRepeat()</a>, <a class="el" href="compression_8cc_source.html#l00195">CheckWordRepeatV2()</a>, <a class="el" href="compression_8cc_source.html#l00913">CheckWordRepeatV3()</a>, <a class="el" href="compression_8cc_source.html#l01372">DecompressV2()</a>, <a class="el" href="compression_8cc_source.html#l00365">SplitCompressionPiece()</a>, and <a class="el" href="compression_8cc_source.html#l01195">SplitCompressionPieceV3()</a>.</p>
 
 </div>
 </div>
@@ -2495,7 +2495,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="compression_8h_source.html#l00041">41</a> of file <a class="el" href="compression_8h_source.html">compression.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00077">CheckIncByte()</a>, <a class="el" href="compression_8cc_source.html#l00215">CheckIncByteV2()</a>, <a class="el" href="compression_8cc_source.html#l00935">CheckIncByteV3()</a>, <a class="el" href="compression_8cc_source.html#l01367">DecompressV2()</a>, <a class="el" href="compression_8cc_source.html#l00365">SplitCompressionPiece()</a>, and <a class="el" href="compression_8cc_source.html#l01191">SplitCompressionPieceV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00077">CheckIncByte()</a>, <a class="el" href="compression_8cc_source.html#l00215">CheckIncByteV2()</a>, <a class="el" href="compression_8cc_source.html#l00939">CheckIncByteV3()</a>, <a class="el" href="compression_8cc_source.html#l01372">DecompressV2()</a>, <a class="el" href="compression_8cc_source.html#l00365">SplitCompressionPiece()</a>, and <a class="el" href="compression_8cc_source.html#l01195">SplitCompressionPieceV3()</a>.</p>
 
 </div>
 </div>
@@ -2521,7 +2521,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="compression_8h_source.html#l00042">42</a> of file <a class="el" href="compression_8h_source.html">compression.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00093">CheckIntraCopy()</a>, <a class="el" href="compression_8cc_source.html#l00230">CheckIntraCopyV2()</a>, <a class="el" href="compression_8cc_source.html#l00967">CheckIntraCopyV3()</a>, <a class="el" href="compression_8cc_source.html#l01367">DecompressV2()</a>, <a class="el" href="compression_8cc_source.html#l00365">SplitCompressionPiece()</a>, and <a class="el" href="compression_8cc_source.html#l01191">SplitCompressionPieceV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00093">CheckIntraCopy()</a>, <a class="el" href="compression_8cc_source.html#l00230">CheckIntraCopyV2()</a>, <a class="el" href="compression_8cc_source.html#l00971">CheckIntraCopyV3()</a>, <a class="el" href="compression_8cc_source.html#l01372">DecompressV2()</a>, <a class="el" href="compression_8cc_source.html#l00365">SplitCompressionPiece()</a>, and <a class="el" href="compression_8cc_source.html#l01195">SplitCompressionPieceV3()</a>.</p>
 
 </div>
 </div>
@@ -2571,7 +2571,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="compression_8h_source.html#l00044">44</a> of file <a class="el" href="compression_8h_source.html">compression.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00416">CreateCompressionString()</a>, and <a class="el" href="compression_8cc_source.html#l01240">FinalizeCompression()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00416">CreateCompressionString()</a>, and <a class="el" href="compression_8cc_source.html#l01244">FinalizeCompression()</a>.</p>
 
 </div>
 </div>
@@ -2597,7 +2597,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="compression_8h_source.html#l00045">45</a> of file <a class="el" href="compression_8h_source.html">compression.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00416">CreateCompressionString()</a>, <a class="el" href="compression_8cc_source.html#l01240">FinalizeCompression()</a>, <a class="el" href="compression_8cc_source.html#l00493">MergeCopy()</a>, <a class="el" href="compression_8cc_source.html#l00365">SplitCompressionPiece()</a>, and <a class="el" href="compression_8cc_source.html#l01191">SplitCompressionPieceV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00416">CreateCompressionString()</a>, <a class="el" href="compression_8cc_source.html#l01244">FinalizeCompression()</a>, <a class="el" href="compression_8cc_source.html#l00494">MergeCopy()</a>, <a class="el" href="compression_8cc_source.html#l00365">SplitCompressionPiece()</a>, and <a class="el" href="compression_8cc_source.html#l01195">SplitCompressionPieceV3()</a>.</p>
 
 </div>
 </div>
@@ -2623,7 +2623,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="compression_8h_source.html#l00046">46</a> of file <a class="el" href="compression_8h_source.html">compression.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00881">CompressOverworld()</a>, <a class="el" href="compression_8cc_source.html#l00876">CompressOverworld()</a>, <a class="el" href="compression_8cc_source.html#l00416">CreateCompressionString()</a>, <a class="el" href="compression_8cc_source.html#l01463">DecompressOverworld()</a>, <a class="el" href="compression_8cc_source.html#l01458">DecompressOverworld()</a>, <a class="el" href="compression_8cc_source.html#l01367">DecompressV2()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00654">yaze::app::editor::GraphicsEditor::DrawTilemapImport()</a>, <a class="el" href="compression_8cc_source.html#l01240">FinalizeCompression()</a>, <a class="el" href="compression_8cc_source.html#l00365">SplitCompressionPiece()</a>, and <a class="el" href="compression_8cc_source.html#l01191">SplitCompressionPieceV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00885">CompressOverworld()</a>, <a class="el" href="compression_8cc_source.html#l00879">CompressOverworld()</a>, <a class="el" href="compression_8cc_source.html#l00416">CreateCompressionString()</a>, <a class="el" href="compression_8cc_source.html#l01469">DecompressOverworld()</a>, <a class="el" href="compression_8cc_source.html#l01464">DecompressOverworld()</a>, <a class="el" href="compression_8cc_source.html#l01372">DecompressV2()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00654">yaze::app::editor::GraphicsEditor::DrawTilemapImport()</a>, <a class="el" href="compression_8cc_source.html#l01244">FinalizeCompression()</a>, <a class="el" href="compression_8cc_source.html#l00365">SplitCompressionPiece()</a>, and <a class="el" href="compression_8cc_source.html#l01195">SplitCompressionPieceV3()</a>.</p>
 
 </div>
 </div>
@@ -2649,7 +2649,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="compression_8h_source.html#l00047">47</a> of file <a class="el" href="compression_8h_source.html">compression.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00871">CompressGraphics()</a>, <a class="el" href="compression_8cc_source.html#l01454">DecompressGraphics()</a>, <a class="el" href="compression_8cc_source.html#l00365">SplitCompressionPiece()</a>, and <a class="el" href="compression_8cc_source.html#l01191">SplitCompressionPieceV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00873">CompressGraphics()</a>, <a class="el" href="compression_8cc_source.html#l01459">DecompressGraphics()</a>, <a class="el" href="compression_8cc_source.html#l00365">SplitCompressionPiece()</a>, and <a class="el" href="compression_8cc_source.html#l01195">SplitCompressionPieceV3()</a>.</p>
 
 </div>
 </div>
@@ -2675,7 +2675,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="compression_8h_source.html#l00048">48</a> of file <a class="el" href="compression_8h_source.html">compression.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00093">CheckIntraCopy()</a>, <a class="el" href="compression_8cc_source.html#l00230">CheckIntraCopyV2()</a>, <a class="el" href="compression_8cc_source.html#l00967">CheckIntraCopyV3()</a>, <a class="el" href="compression_8cc_source.html#l00416">CreateCompressionString()</a>, <a class="el" href="compression_8cc_source.html#l01367">DecompressV2()</a>, <a class="el" href="compression_8cc_source.html#l01240">FinalizeCompression()</a>, <a class="el" href="compression_8cc_source.html#l00365">SplitCompressionPiece()</a>, and <a class="el" href="compression_8cc_source.html#l01191">SplitCompressionPieceV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00093">CheckIntraCopy()</a>, <a class="el" href="compression_8cc_source.html#l00230">CheckIntraCopyV2()</a>, <a class="el" href="compression_8cc_source.html#l00971">CheckIntraCopyV3()</a>, <a class="el" href="compression_8cc_source.html#l00416">CreateCompressionString()</a>, <a class="el" href="compression_8cc_source.html#l01372">DecompressV2()</a>, <a class="el" href="compression_8cc_source.html#l01244">FinalizeCompression()</a>, <a class="el" href="compression_8cc_source.html#l00365">SplitCompressionPiece()</a>, and <a class="el" href="compression_8cc_source.html#l01195">SplitCompressionPieceV3()</a>.</p>
 
 </div>
 </div>
@@ -2701,7 +2701,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="compression_8h_source.html#l00049">49</a> of file <a class="el" href="compression_8h_source.html">compression.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01367">DecompressV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01372">DecompressV2()</a>.</p>
 
 </div>
 </div>
@@ -2727,7 +2727,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="compression_8h_source.html#l00050">50</a> of file <a class="el" href="compression_8h_source.html">compression.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01367">DecompressV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01372">DecompressV2()</a>.</p>
 
 </div>
 </div>
@@ -2753,7 +2753,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="compression_8h_source.html#l00051">51</a> of file <a class="el" href="compression_8h_source.html">compression.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01367">DecompressV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01372">DecompressV2()</a>.</p>
 
 </div>
 </div>
@@ -2779,7 +2779,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="compression_8h_source.html#l00052">52</a> of file <a class="el" href="compression_8h_source.html">compression.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01367">DecompressV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01372">DecompressV2()</a>.</p>
 
 </div>
 </div>
@@ -2805,7 +2805,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="compression_8h_source.html#l00053">53</a> of file <a class="el" href="compression_8h_source.html">compression.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00416">CreateCompressionString()</a>, and <a class="el" href="compression_8cc_source.html#l01240">FinalizeCompression()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00416">CreateCompressionString()</a>, and <a class="el" href="compression_8cc_source.html#l01244">FinalizeCompression()</a>.</p>
 
 </div>
 </div>

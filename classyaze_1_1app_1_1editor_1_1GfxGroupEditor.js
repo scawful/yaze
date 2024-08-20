@@ -21,7 +21,7 @@ var classyaze_1_1app_1_1editor_1_1GfxGroupEditor =
     [ "palette_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a8d49460b11a1a2593f16b90b42317c03", null ],
     [ "palette_group_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a22d0e8e6437032ab8fd3f1a1231d6c87", null ],
     [ "tile16_blockset_bmp_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a8ec0f12695a0cc700428196471e1cb0c", null ],
-    [ "tile16_individual_data_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#afbce4491a53be650fa691fef65151008", null ],
+    [ "tile16_individual_data_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a7fc56a761b38cd5735ee31616cf7ca09", null ],
     [ "tile16_individual_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a913cfece5eab5d95ae98adb7f7432615", null ],
     [ "gfx_group_viewer_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#aa3187fc60ffc2f53e9bc5a280122cc97", null ],
     [ "overworld_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a08eb22444a0d5c10ae4328f512f67b5b", null ]

@@ -30,7 +30,6 @@ var constants_8h =
     [ "ushort", "constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0", null ],
     [ "uint", "constants_8h.html#a69aa29b598b851b0640aa225a9e5d61d", null ],
     [ "uchar", "constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21", null ],
-    [ "Bytes", "constants_8h.html#a2640b748d10e1cbab1f408f43c52449d", null ],
     [ "kRedPen", "constants_8h.html#a386b985dabb5995d3943457a20547f19", null ],
     [ "kYazeVersion", "constants_8h.html#aeb4d11eb76af13a125dd20d79bc2bce3", null ],
     [ "UncompressedSheetSize", "constants_8h.html#aa81639987a081f9954d7d8d61d39c92d", null ],

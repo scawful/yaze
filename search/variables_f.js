@@ -54,7 +54,7 @@ var searchData=
   ['preclampgain_51',['preclampGain',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a50fd8568dc14b1cd56d0ad228213ab40',1,'yaze::app::emu::audio::DspChannel']]],
   ['prev_5fstatus_5f_52',['prev_status_',['../classyaze_1_1app_1_1editor_1_1EditorManager.html#a6c2784b54236d440427f318ca9b7b5fe',1,'yaze::app::editor::EditorManager']]],
   ['prevent_5fmath_5fmode_5f_53',['prevent_math_mode_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a4a6e6e5a5e5ef05175e7ad07a02c6046',1,'yaze::app::emu::video::Ppu']]],
-  ['preview_5fgfx_5f_54',['preview_gfx_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a58564852af4d78e4ecf2cccc4b426bc5',1,'yaze::app::zelda3::Sprite']]],
+  ['preview_5fgfx_5f_54',['preview_gfx_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#ad0d3e3fd3be37275160484ef51525d75',1,'yaze::app::zelda3::Sprite']]],
   ['preview_5fid_5f_55',['preview_id_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#ac3eb9753b6821b1c216a36322fc64ecb',1,'yaze::app::zelda3::dungeon::RoomObject']]],
   ['preview_5fobject_5fdata_5f_56',['preview_object_data_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a4d9921e7e83156d9ca44cd61f278eb09',1,'yaze::app::zelda3::dungeon::RoomObject']]],
   ['preview_5fpalette_5fid_5f_57',['preview_palette_id_',['../classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#acc048786441ec82cbbe3a0c5c0ce7b8b',1,'yaze::app::editor::GfxGroupEditor']]],

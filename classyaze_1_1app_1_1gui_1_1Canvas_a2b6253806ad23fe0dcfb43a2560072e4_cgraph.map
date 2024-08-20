@@ -1,5 +1,7 @@
 <map id="yaze::app::gui::Canvas::DrawGrid" name="yaze::app::gui::Canvas::DrawGrid">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,153,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#aff0d9773e5e0ec3edbe46df159149615" title=" " alt="" coords="201,5,348,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,23,185,23,185,28,153,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,153,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a159991fdfabc49642771bfb9d1305e06" title=" " alt="" coords="201,5,354,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,44,185,38,186,44,154,49"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#aff0d9773e5e0ec3edbe46df159149615" title=" " alt="" coords="204,71,351,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="154,68,188,74,188,79,153,74"/>
 </map>

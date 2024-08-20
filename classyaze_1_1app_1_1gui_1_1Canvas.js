@@ -29,6 +29,7 @@ var classyaze_1_1app_1_1gui_1_1Canvas =
     [ "DrawLayeredElements", "classyaze_1_1app_1_1gui_1_1Canvas.html#abc504b6300add9cfdc90a6317fd24747", null ],
     [ "GetTileIdFromMousePos", "classyaze_1_1app_1_1gui_1_1Canvas.html#a2a3e458dc0afc50553d82a9b961344c5", null ],
     [ "SetCanvasSize", "classyaze_1_1app_1_1gui_1_1Canvas.html#a0ace1c816323fe05d96cdba7aa89d6d9", null ],
+    [ "DrawCustomHighlight", "classyaze_1_1app_1_1gui_1_1Canvas.html#a159991fdfabc49642771bfb9d1305e06", null ],
     [ "IsMouseHovering", "classyaze_1_1app_1_1gui_1_1Canvas.html#aeaa4f10b3e51c996f98099d4944b1ae2", null ],
     [ "ZoomIn", "classyaze_1_1app_1_1gui_1_1Canvas.html#a3d245d538658062773a8972c57d43eae", null ],
     [ "ZoomOut", "classyaze_1_1app_1_1gui_1_1Canvas.html#aaf4f7f9d8a94909686f2db38550df2f3", null ],

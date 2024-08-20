@@ -244,8 +244,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:aa093b0830089978f3b4e6e6732fd3bf5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab286ad9629ffa0fe75c0cfa3fa8885c0" id="r_ab286ad9629ffa0fe75c0cfa3fa8885c0"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab286ad9629ffa0fe75c0cfa3fa8885c0">paste_button_pressed</a> = false</td></tr>
 <tr class="separator:ab286ad9629ffa0fe75c0cfa3fa8885c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac41e3f4204c98c2fdca762b64e86f7b9" id="r_ac41e3f4204c98c2fdca762b64e86f7b9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac41e3f4204c98c2fdca762b64e86f7b9">all_gfx_</a></td></tr>
-<tr class="separator:ac41e3f4204c98c2fdca762b64e86f7b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae150e813709c5d9ab3e48ecc2dfd34fe" id="r_ae150e813709c5d9ab3e48ecc2dfd34fe"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae150e813709c5d9ab3e48ecc2dfd34fe">all_gfx_</a></td></tr>
+<tr class="separator:ae150e813709c5d9ab3e48ecc2dfd34fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a88f59b26b11674da6989409cd58e0787" id="r_a88f59b26b11674da6989409cd58e0787"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html">zelda3::screen::Inventory</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a88f59b26b11674da6989409cd58e0787">inventory_</a></td></tr>
 <tr class="separator:a88f59b26b11674da6989409cd58e0787"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa92cc04d58d5ff066e47edd631fd4711" id="r_aa92cc04d58d5ff066e47edd631fd4711"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa92cc04d58d5ff066e47edd631fd4711">palette_</a></td></tr>
@@ -757,7 +757,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="screen__editor_8cc_source.html#l00047">47</a> of file <a class="el" href="screen__editor_8cc_source.html">screen_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="inventory_8h_source.html#l00020">yaze::app::zelda3::screen::Inventory::Bitmap()</a>, <a class="el" href="inventory_8cc_source.html#l00016">yaze::app::zelda3::screen::Inventory::Create()</a>, <a class="el" href="color_8cc_source.html#l00056">yaze::app::gui::DisplayPalette()</a>, <a class="el" href="canvas_8cc_source.html#l00069">yaze::app::gui::Canvas::DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00464">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00104">yaze::app::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00675">yaze::app::gui::Canvas::DrawGrid()</a>, <a class="el" href="screen__editor_8cc_source.html#l00088">DrawInventoryToolset()</a>, <a class="el" href="canvas_8cc_source.html#l00736">yaze::app::gui::Canvas::DrawOverlay()</a>, <a class="el" href="constants_8h_source.html#l00014">END_TAB_ITEM</a>, <a class="el" href="screen__editor_8h_source.html#l00089">inventory_</a>, <a class="el" href="inventory_8h_source.html#l00022">yaze::app::zelda3::screen::Inventory::Palette()</a>, <a class="el" href="screen__editor_8h_source.html#l00090">palette_</a>, <a class="el" href="rom_8h_source.html#l00577">yaze::app::SharedRom::rom()</a>, <a class="el" href="screen__editor_8h_source.html#l00091">screen_canvas_</a>, <a class="el" href="screen__editor_8h_source.html#l00099">status_</a>, <a class="el" href="constants_8h_source.html#l00013">TAB_ITEM</a>, <a class="el" href="inventory_8h_source.html#l00021">yaze::app::zelda3::screen::Inventory::Tilesheet()</a>, and <a class="el" href="screen__editor_8h_source.html#l00092">tilesheet_canvas_</a>.</p>
+<p class="reference">References <a class="el" href="inventory_8h_source.html#l00020">yaze::app::zelda3::screen::Inventory::Bitmap()</a>, <a class="el" href="inventory_8cc_source.html#l00016">yaze::app::zelda3::screen::Inventory::Create()</a>, <a class="el" href="color_8cc_source.html#l00056">yaze::app::gui::DisplayPalette()</a>, <a class="el" href="canvas_8cc_source.html#l00069">yaze::app::gui::Canvas::DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00464">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00104">yaze::app::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00689">yaze::app::gui::Canvas::DrawGrid()</a>, <a class="el" href="screen__editor_8cc_source.html#l00088">DrawInventoryToolset()</a>, <a class="el" href="canvas_8cc_source.html#l00740">yaze::app::gui::Canvas::DrawOverlay()</a>, <a class="el" href="constants_8h_source.html#l00014">END_TAB_ITEM</a>, <a class="el" href="screen__editor_8h_source.html#l00089">inventory_</a>, <a class="el" href="inventory_8h_source.html#l00022">yaze::app::zelda3::screen::Inventory::Palette()</a>, <a class="el" href="screen__editor_8h_source.html#l00090">palette_</a>, <a class="el" href="rom_8h_source.html#l00577">yaze::app::SharedRom::rom()</a>, <a class="el" href="screen__editor_8h_source.html#l00091">screen_canvas_</a>, <a class="el" href="screen__editor_8h_source.html#l00099">status_</a>, <a class="el" href="constants_8h_source.html#l00013">TAB_ITEM</a>, <a class="el" href="inventory_8h_source.html#l00021">yaze::app::zelda3::screen::Inventory::Tilesheet()</a>, and <a class="el" href="screen__editor_8h_source.html#l00092">tilesheet_canvas_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00031">Update()</a>.</p>
 <div class="dynheader">
@@ -794,7 +794,7 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="350,298,402,251,435,226,471,206,532,182,596,164,714,143,715,148,597,169,534,187,473,211,438,231,405,255,354,301"/>
 <area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#adf5e92395a8357970ba6355f3d73f939" title=" " alt="" coords="472,272,665,313"/>
 <area shape="poly" title=" " alt="" coords="413,308,456,303,457,308,413,313"/>
-<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2809cc0b6a95a467a182c7777b65c8ec" title="Creates a bitmap object with the provided graphical data." alt="" coords="729,207,874,247"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a69e8baa626a476b4cc55790fcdfd0d5c" title="Creates a bitmap object with the provided graphical data." alt="" coords="729,207,874,247"/>
 <area shape="poly" title=" " alt="" coords="357,297,407,263,439,247,471,235,533,222,597,215,714,216,714,221,598,220,534,227,473,240,441,252,410,268,360,302"/>
 <area shape="rect" href="classyaze_1_1app_1_1core_1_1Renderer.html#acd1048086e983ab44d0875b079927bfa" title=" " alt="" coords="720,380,883,421"/>
 <area shape="poly" title=" " alt="" coords="377,339,422,357,473,372,532,383,592,391,704,398,704,403,592,396,531,389,471,378,421,362,375,344"/>
@@ -1027,7 +1027,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="screen__editor_8cc_source.html#l00254">254</a> of file <a class="el" href="screen__editor_8cc_source.html">screen_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="screen__editor_8h_source.html#l00082">boss_room</a>, <a class="el" href="screen__editor_8h_source.html#l00085">copy_button_pressed</a>, <a class="el" href="canvas_8cc_source.html#l00069">yaze::app::gui::Canvas::DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00464">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00675">yaze::app::gui::Canvas::DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00522">yaze::app::gui::Canvas::DrawOutlineWithColor()</a>, <a class="el" href="canvas_8cc_source.html#l00736">yaze::app::gui::Canvas::DrawOverlay()</a>, <a class="el" href="canvas_8cc_source.html#l00618">yaze::app::gui::Canvas::DrawText()</a>, <a class="el" href="canvas_8cc_source.html#l00343">yaze::app::gui::Canvas::DrawTileSelector()</a>, <a class="el" href="screen__editor_8h_source.html#l00073">dungeon_map_labels_</a>, <a class="el" href="screen__editor_8h_source.html#l00072">dungeon_maps_</a>, <a class="el" href="screen__editor_8h_source.html#l00083">floor_number</a>, <a class="el" href="renderer_8h_source.html#l00030">yaze::app::core::Renderer::GetInstance()</a>, <a class="el" href="tilesheet_8h_source.html#l00054">yaze::app::gfx::Tilesheet::GetTile16()</a>, <a class="el" href="input_8cc_source.html#l00177">yaze::app::gui::InputHexByte()</a>, <a class="el" href="input_8cc_source.html#l00163">yaze::app::gui::InputHexWord()</a>, <a class="el" href="constants_8h_source.html#l00130">yaze::app::core::kRedPen</a>, <a class="el" href="screen__editor_8h_source.html#l00086">paste_button_pressed</a>, <a class="el" href="canvas_8h_source.html#l00142">yaze::app::gui::Canvas::points()</a>, <a class="el" href="renderer_8h_source.html#l00052">yaze::app::core::Renderer::RenderBitmap()</a>, <a class="el" href="screen__editor_8h_source.html#l00091">screen_canvas_</a>, <a class="el" href="screen__editor_8h_source.html#l00080">selected_dungeon</a>, <a class="el" href="screen__editor_8h_source.html#l00081">selected_room</a>, <a class="el" href="screen__editor_8h_source.html#l00075">tile16_individual_</a>, and <a class="el" href="screen__editor_8h_source.html#l00097">tile16_sheet_</a>.</p>
+<p class="reference">References <a class="el" href="screen__editor_8h_source.html#l00082">boss_room</a>, <a class="el" href="screen__editor_8h_source.html#l00085">copy_button_pressed</a>, <a class="el" href="canvas_8cc_source.html#l00069">yaze::app::gui::Canvas::DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00464">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00689">yaze::app::gui::Canvas::DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00522">yaze::app::gui::Canvas::DrawOutlineWithColor()</a>, <a class="el" href="canvas_8cc_source.html#l00740">yaze::app::gui::Canvas::DrawOverlay()</a>, <a class="el" href="canvas_8cc_source.html#l00618">yaze::app::gui::Canvas::DrawText()</a>, <a class="el" href="canvas_8cc_source.html#l00343">yaze::app::gui::Canvas::DrawTileSelector()</a>, <a class="el" href="screen__editor_8h_source.html#l00073">dungeon_map_labels_</a>, <a class="el" href="screen__editor_8h_source.html#l00072">dungeon_maps_</a>, <a class="el" href="screen__editor_8h_source.html#l00083">floor_number</a>, <a class="el" href="renderer_8h_source.html#l00030">yaze::app::core::Renderer::GetInstance()</a>, <a class="el" href="tilesheet_8h_source.html#l00054">yaze::app::gfx::Tilesheet::GetTile16()</a>, <a class="el" href="input_8cc_source.html#l00177">yaze::app::gui::InputHexByte()</a>, <a class="el" href="input_8cc_source.html#l00163">yaze::app::gui::InputHexWord()</a>, <a class="el" href="constants_8h_source.html#l00129">yaze::app::core::kRedPen</a>, <a class="el" href="screen__editor_8h_source.html#l00086">paste_button_pressed</a>, <a class="el" href="canvas_8h_source.html#l00143">yaze::app::gui::Canvas::points()</a>, <a class="el" href="renderer_8h_source.html#l00052">yaze::app::core::Renderer::RenderBitmap()</a>, <a class="el" href="screen__editor_8h_source.html#l00091">screen_canvas_</a>, <a class="el" href="screen__editor_8h_source.html#l00080">selected_dungeon</a>, <a class="el" href="screen__editor_8h_source.html#l00081">selected_room</a>, <a class="el" href="screen__editor_8h_source.html#l00075">tile16_individual_</a>, and <a class="el" href="screen__editor_8h_source.html#l00097">tile16_sheet_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00331">DrawDungeonMapsEditor()</a>.</p>
 <div class="dynheader">
@@ -1035,51 +1035,53 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1editor_1_1ScreenEditor_abcc115ac33f92c971fa197820e2cc517_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1ScreenEditor_abcc115ac33f92c971fa197820e2cc517_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1editor_1_1ScreenEditor_abcc115ac33f92c971fa197820e2cc517_cgraph" id="aclassyaze_1_1app_1_1editor_1_1ScreenEditor_abcc115ac33f92c971fa197820e2cc517_cgraph">
-<area shape="rect" title=" " alt="" coords="5,463,249,503"/>
+<area shape="rect" title=" " alt="" coords="5,511,249,551"/>
 <area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a1068606a5a066f19a39932e05d71da1e" title=" " alt="" coords="316,37,463,78"/>
-<area shape="poly" title=" " alt="" coords="131,462,151,400,185,312,233,214,262,167,295,123,315,102,337,85,340,89,318,106,299,126,266,170,237,217,190,314,156,401,137,463"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a546bca6ab34aed7e893ef6c5e8d56f32" title=" " alt="" coords="316,136,463,177"/>
-<area shape="poly" title=" " alt="" coords="132,461,152,407,185,334,233,256,262,220,295,188,301,183,304,187,298,192,266,223,237,259,190,337,157,409,137,463"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a2b6253806ad23fe0dcfb43a2560072e4" title=" " alt="" coords="316,201,463,242"/>
-<area shape="poly" title=" " alt="" coords="136,461,159,418,194,362,240,304,295,253,303,248,306,252,298,257,244,308,199,365,164,421,141,463"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a7512bcb95bd84e63e1a2b345fc0f00a7" title=" " alt="" coords="312,267,466,307"/>
-<area shape="poly" title=" " alt="" coords="143,460,205,392,248,353,295,318,305,312,308,317,298,323,252,357,209,395,147,464"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aabe6f55d89a641416172d54f83595105" title=" " alt="" coords="316,332,463,373"/>
-<area shape="poly" title=" " alt="" coords="159,460,221,422,296,383,311,376,313,381,298,388,224,427,162,465"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a34368006660aa3fdf79e9428af12e961" title=" " alt="" coords="316,397,463,438"/>
-<area shape="poly" title=" " alt="" coords="211,459,300,437,301,442,212,465"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a0477eb766134ca850c832a30c2380049" title=" " alt="" coords="316,463,463,503"/>
-<area shape="poly" title=" " alt="" coords="249,480,300,480,300,486,249,486"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1Renderer.html#acd1048086e983ab44d0875b079927bfa" title=" " alt="" coords="308,528,471,569"/>
-<area shape="poly" title=" " alt="" coords="212,501,293,522,291,527,211,507"/>
-<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a69bef91dcc26fb952a982236fb484908" title=" " alt="" coords="311,593,468,634"/>
-<area shape="poly" title=" " alt="" coords="162,501,224,539,298,578,313,585,311,590,296,583,221,544,159,506"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb" title=" " alt="" coords="299,658,480,684"/>
-<area shape="poly" title=" " alt="" coords="146,502,208,572,250,610,298,643,311,650,309,655,295,648,247,615,204,575,142,506"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#aeb673569b394c59150347b1c88016afd" title=" " alt="" coords="297,708,482,733"/>
-<area shape="poly" title=" " alt="" coords="141,502,164,543,199,595,244,649,270,673,298,694,306,698,303,703,295,699,267,677,240,653,195,599,160,546,136,505"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a8540f6602c32ce8d64db7ecacbf93a8f" title=" " alt="" coords="316,757,463,798"/>
-<area shape="poly" title=" " alt="" coords="138,503,160,552,194,616,240,684,268,716,298,744,304,748,301,752,295,748,264,720,236,688,189,619,155,554,134,505"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1Renderer.html#ad484aa3c634ad0d28fb92131dc7ba9f0" title="Used to render a bitmap to the screen." alt="" coords="308,823,471,863"/>
-<area shape="poly" title=" " alt="" coords="136,503,154,563,186,644,208,688,233,731,264,772,298,808,304,812,300,816,295,812,260,775,229,734,203,691,181,646,149,564,131,505"/>
+<area shape="poly" title=" " alt="" coords="131,510,151,444,185,349,233,242,262,189,295,139,319,110,346,86,349,90,323,114,299,142,267,191,238,244,190,351,156,445,136,511"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a546bca6ab34aed7e893ef6c5e8d56f32" title=" " alt="" coords="316,152,463,193"/>
+<area shape="poly" title=" " alt="" coords="134,509,157,458,192,387,239,309,295,236,337,199,341,204,299,240,243,312,197,389,162,460,139,511"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a2b6253806ad23fe0dcfb43a2560072e4" title=" " alt="" coords="316,249,463,290"/>
+<area shape="poly" title=" " alt="" coords="136,509,159,466,194,410,240,352,295,301,303,296,306,300,298,305,244,356,199,413,164,469,141,511"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a7512bcb95bd84e63e1a2b345fc0f00a7" title=" " alt="" coords="312,315,466,355"/>
+<area shape="poly" title=" " alt="" coords="143,508,205,440,248,401,295,366,305,360,308,365,298,371,252,405,209,443,147,512"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aabe6f55d89a641416172d54f83595105" title=" " alt="" coords="316,380,463,421"/>
+<area shape="poly" title=" " alt="" coords="159,508,221,470,296,431,311,424,313,429,298,436,224,475,162,513"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a34368006660aa3fdf79e9428af12e961" title=" " alt="" coords="316,445,463,486"/>
+<area shape="poly" title=" " alt="" coords="211,507,300,485,301,490,212,513"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a0477eb766134ca850c832a30c2380049" title=" " alt="" coords="316,511,463,551"/>
+<area shape="poly" title=" " alt="" coords="249,528,300,528,300,534,249,534"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Renderer.html#acd1048086e983ab44d0875b079927bfa" title=" " alt="" coords="308,576,471,617"/>
+<area shape="poly" title=" " alt="" coords="212,549,293,570,291,575,211,555"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a69bef91dcc26fb952a982236fb484908" title=" " alt="" coords="311,641,468,682"/>
+<area shape="poly" title=" " alt="" coords="162,549,224,587,298,626,313,633,311,638,296,631,221,592,159,554"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb" title=" " alt="" coords="299,706,480,732"/>
+<area shape="poly" title=" " alt="" coords="146,550,208,620,250,658,298,691,311,698,309,703,295,696,247,663,204,623,142,554"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#aeb673569b394c59150347b1c88016afd" title=" " alt="" coords="297,756,482,781"/>
+<area shape="poly" title=" " alt="" coords="141,550,164,591,199,643,244,697,270,721,298,742,306,746,303,751,295,747,267,725,240,701,195,647,160,594,136,553"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a8540f6602c32ce8d64db7ecacbf93a8f" title=" " alt="" coords="316,805,463,846"/>
+<area shape="poly" title=" " alt="" coords="138,551,160,600,194,664,240,732,268,764,298,792,304,796,301,800,295,796,264,768,236,736,189,667,155,602,134,553"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Renderer.html#ad484aa3c634ad0d28fb92131dc7ba9f0" title="Used to render a bitmap to the screen." alt="" coords="308,871,471,911"/>
+<area shape="poly" title=" " alt="" coords="136,551,154,611,186,692,208,736,233,779,264,820,298,856,304,860,300,864,295,860,260,823,229,782,203,739,181,694,149,612,131,553"/>
 <area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#ac2d34563e8dab9da97186d48988bb7e7" title=" " alt="" coords="544,5,691,46"/>
 <area shape="poly" title=" " alt="" coords="463,45,528,35,529,41,464,50"/>
 <area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a58894beb33c1cdc8d2bba3700e594775" title=" " alt="" coords="546,71,690,111"/>
-<area shape="poly" title=" " alt="" coords="462,133,530,113,531,118,463,138"/>
+<area shape="poly" title=" " alt="" coords="448,149,543,114,545,120,450,154"/>
 <area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a53138d1af2eb5e52a5b389f34e81c81e" title=" " alt="" coords="546,136,690,177"/>
-<area shape="poly" title=" " alt="" coords="463,154,530,154,530,159,463,159"/>
+<area shape="poly" title=" " alt="" coords="463,165,530,160,530,165,463,170"/>
 <area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#aadcfd533d552f042877e537d4ba56fd2" title=" " alt="" coords="546,201,690,242"/>
-<area shape="poly" title=" " alt="" coords="463,175,531,194,530,199,462,180"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aff0d9773e5e0ec3edbe46df159149615" title=" " alt="" coords="544,267,691,307"/>
-<area shape="poly" title=" " alt="" coords="463,240,530,259,529,264,462,245"/>
-<area shape="rect" href="namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="542,682,693,708"/>
-<area shape="poly" title=" " alt="" coords="481,678,527,683,526,688,480,683"/>
-<area shape="poly" title=" " alt="" coords="482,707,526,702,527,708,483,713"/>
-<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a60dbb218a86c57687580ec77be457511" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="546,777,690,818"/>
-<area shape="poly" title=" " alt="" coords="471,824,530,812,531,818,472,829"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="530,867,705,907"/>
-<area shape="poly" title=" " alt="" coords="472,856,515,865,514,870,471,861"/>
-<area shape="poly" title=" " alt="" coords="575,867,572,857,580,848,595,842,618,840,642,842,657,849,655,854,641,848,618,845,596,847,583,852,578,858,580,865"/>
+<area shape="poly" title=" " alt="" coords="464,186,531,200,529,205,463,191"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a159991fdfabc49642771bfb9d1305e06" title=" " alt="" coords="541,267,694,307"/>
+<area shape="poly" title=" " alt="" coords="464,273,526,277,526,283,463,278"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aff0d9773e5e0ec3edbe46df159149615" title=" " alt="" coords="544,332,691,373"/>
+<area shape="poly" title=" " alt="" coords="449,288,483,300,547,324,545,329,481,306,447,293"/>
+<area shape="rect" href="namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="542,730,693,756"/>
+<area shape="poly" title=" " alt="" coords="481,726,527,731,526,736,480,731"/>
+<area shape="poly" title=" " alt="" coords="482,755,526,750,527,756,483,761"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a60dbb218a86c57687580ec77be457511" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="546,825,690,866"/>
+<area shape="poly" title=" " alt="" coords="471,872,530,860,531,866,472,877"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="530,915,705,955"/>
+<area shape="poly" title=" " alt="" coords="472,904,515,913,514,918,471,909"/>
+<area shape="poly" title=" " alt="" coords="575,915,572,905,580,896,595,890,618,888,642,890,657,897,655,902,641,896,618,893,596,895,583,900,578,906,580,913"/>
 </map>
 </div>
 
@@ -1110,7 +1112,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="screen__editor_8cc_source.html#l00331">331</a> of file <a class="el" href="screen__editor_8cc_source.html">screen_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tilesheet_8h_source.html#l00078">yaze::app::gfx::Tilesheet::bitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00069">yaze::app::gui::Canvas::DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00464">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00501">yaze::app::gui::Canvas::DrawBitmapTable()</a>, <a class="el" href="canvas_8cc_source.html#l00104">yaze::app::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="screen__editor_8cc_source.html#l00254">DrawDungeonMapsTabs()</a>, <a class="el" href="canvas_8cc_source.html#l00675">yaze::app::gui::Canvas::DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00736">yaze::app::gui::Canvas::DrawOverlay()</a>, <a class="el" href="canvas_8cc_source.html#l00343">yaze::app::gui::Canvas::DrawTileSelector()</a>, <a class="el" href="screen__editor_8h_source.html#l00077">dungeon_maps_loaded_</a>, <a class="el" href="screen__editor_8cc_source.html#l00113">LoadDungeonMaps()</a>, <a class="el" href="screen__editor_8cc_source.html#l00215">LoadDungeonMapTile16()</a>, <a class="el" href="canvas_8h_source.html#l00142">yaze::app::gui::Canvas::points()</a>, <a class="el" href="rom_8h_source.html#l00577">yaze::app::SharedRom::rom()</a>, <a class="el" href="screen__editor_8h_source.html#l00080">selected_dungeon</a>, <a class="el" href="screen__editor_8h_source.html#l00079">selected_tile16_</a>, <a class="el" href="screen__editor_8h_source.html#l00095">sheets_</a>, <a class="el" href="screen__editor_8h_source.html#l00097">tile16_sheet_</a>, <a class="el" href="screen__editor_8h_source.html#l00093">tilemap_canvas_</a>, and <a class="el" href="screen__editor_8h_source.html#l00092">tilesheet_canvas_</a>.</p>
+<p class="reference">References <a class="el" href="tilesheet_8h_source.html#l00078">yaze::app::gfx::Tilesheet::bitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00069">yaze::app::gui::Canvas::DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00464">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00501">yaze::app::gui::Canvas::DrawBitmapTable()</a>, <a class="el" href="canvas_8cc_source.html#l00104">yaze::app::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="screen__editor_8cc_source.html#l00254">DrawDungeonMapsTabs()</a>, <a class="el" href="canvas_8cc_source.html#l00689">yaze::app::gui::Canvas::DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00740">yaze::app::gui::Canvas::DrawOverlay()</a>, <a class="el" href="canvas_8cc_source.html#l00343">yaze::app::gui::Canvas::DrawTileSelector()</a>, <a class="el" href="screen__editor_8h_source.html#l00077">dungeon_maps_loaded_</a>, <a class="el" href="screen__editor_8cc_source.html#l00113">LoadDungeonMaps()</a>, <a class="el" href="screen__editor_8cc_source.html#l00215">LoadDungeonMapTile16()</a>, <a class="el" href="canvas_8h_source.html#l00143">yaze::app::gui::Canvas::points()</a>, <a class="el" href="rom_8h_source.html#l00577">yaze::app::SharedRom::rom()</a>, <a class="el" href="screen__editor_8h_source.html#l00080">selected_dungeon</a>, <a class="el" href="screen__editor_8h_source.html#l00079">selected_tile16_</a>, <a class="el" href="screen__editor_8h_source.html#l00095">sheets_</a>, <a class="el" href="screen__editor_8h_source.html#l00097">tile16_sheet_</a>, <a class="el" href="screen__editor_8h_source.html#l00093">tilemap_canvas_</a>, and <a class="el" href="screen__editor_8h_source.html#l00092">tilesheet_canvas_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00031">Update()</a>.</p>
 <div class="dynheader">
@@ -1472,8 +1474,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ac41e3f4204c98c2fdca762b64e86f7b9" name="ac41e3f4204c98c2fdca762b64e86f7b9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac41e3f4204c98c2fdca762b64e86f7b9">&#9670;&#160;</a></span>all_gfx_</h2>
+<a id="ae150e813709c5d9ab3e48ecc2dfd34fe" name="ae150e813709c5d9ab3e48ecc2dfd34fe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae150e813709c5d9ab3e48ecc2dfd34fe">&#9670;&#160;</a></span>all_gfx_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1482,7 +1484,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> yaze::app::editor::ScreenEditor::all_gfx_</td>
+          <td class="memname">std::vector&lt;uint8_t&gt; yaze::app::editor::ScreenEditor::all_gfx_</td>
         </tr>
       </table>
   </td>

@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,146,191,202"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="258,5,396,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,144,170,92,202,65,237,41,250,35,253,40,240,46,206,69,174,96,124,148"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="257,55,396,96"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a88778055d3a79cf869fc78ed66949b3f" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="257,55,396,96"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="156,143,238,106,254,100,256,104,240,111,159,148"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1core_1_1Renderer.html#acd1048086e983ab44d0875b079927bfa" title=" " alt="" coords="245,120,408,161"/>
 <area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="191,158,230,152,230,158,192,163"/>
@@ -10,9 +10,9 @@
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="192,185,230,190,230,195,191,190"/>
 <area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="239,275,415,300"/>
 <area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="157,200,287,265,284,270,155,205"/>
-<area shape="rect" id="Node000010" href="$namespaceyaze_1_1app_1_1gfx.html#a568c3c8e5996e53a73ef3cf6e1dd851f" title=" " alt="" coords="239,324,415,365"/>
+<area shape="rect" id="Node000010" href="$namespaceyaze_1_1app_1_1gfx.html#a8010d42263caa323598496adadafc605" title=" " alt="" coords="239,324,415,365"/>
 <area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="123,200,173,256,205,285,240,311,248,315,245,320,237,315,202,289,170,260,119,204"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa7583d0d15778f0286acdb9425628785" title=" " alt="" coords="494,55,607,96"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a82347358f89c826105734df3d675e530" title=" " alt="" coords="494,55,607,96"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="397,73,478,73,478,78,397,78"/>
 <area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a60dbb218a86c57687580ec77be457511" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="478,154,623,194"/>
 <area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="408,192,463,184,464,189,409,197"/>

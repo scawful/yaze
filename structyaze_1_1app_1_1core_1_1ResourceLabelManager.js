@@ -6,6 +6,7 @@ var structyaze_1_1app_1_1core_1_1ResourceLabelManager =
     [ "DisplayLabels", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#a4a7244cd437062f705d72ac6abc08f35", null ],
     [ "EditLabel", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#adff5679951d249e2a677399f98f1d6dd", null ],
     [ "SelectableLabelWithNameEdit", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#ae8b5387ea50ef824bd980bd8f4e63b3c", null ],
+    [ "GetLabel", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#a00b0860ed7bd13ed7f3b613f6eb94b51", null ],
     [ "CreateOrGetLabel", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#ab5527e695ccdbad0e335d27b8e6cecc1", null ],
     [ "labels_loaded_", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#a701e040767f58f22b5172b6170b86c24", null ],
     [ "filename_", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa45ad7a2d16b486946224270eaeb0cec", null ],

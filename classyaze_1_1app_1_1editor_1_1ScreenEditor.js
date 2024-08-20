@@ -30,7 +30,7 @@ var classyaze_1_1app_1_1editor_1_1ScreenEditor =
     [ "floor_number", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a5085b792c58db9657440783d875f07a8", null ],
     [ "copy_button_pressed", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa093b0830089978f3b4e6e6732fd3bf5", null ],
     [ "paste_button_pressed", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ab286ad9629ffa0fe75c0cfa3fa8885c0", null ],
-    [ "all_gfx_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ac41e3f4204c98c2fdca762b64e86f7b9", null ],
+    [ "all_gfx_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ae150e813709c5d9ab3e48ecc2dfd34fe", null ],
     [ "inventory_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a88f59b26b11674da6989409cd58e0787", null ],
     [ "palette_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa92cc04d58d5ff066e47edd631fd4711", null ],
     [ "screen_canvas_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a2d26cb69caa7e546be36fde44b6c1c8a", null ],

@@ -4,7 +4,7 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,237,159,204,216,173,277,148,341,127,458,97,459,102,342,132,279,153,218,177,162,209,116,242"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#adf5e92395a8357970ba6355f3d73f939" title=" " alt="" coords="217,240,410,281"/>
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="169,258,201,258,201,263,169,263"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2809cc0b6a95a467a182c7777b65c8ec" title="Creates a bitmap object with the provided graphical data." alt="" coords="474,152,618,193"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a69e8baa626a476b4cc55790fcdfd0d5c" title="Creates a bitmap object with the provided graphical data." alt="" coords="474,152,618,193"/>
 <area shape="poly" id="edge13_Node000001_Node000007" title=" " alt="" coords="129,237,170,219,216,204,278,191,342,182,458,172,458,177,343,187,279,196,217,210,172,224,131,242"/>
 <area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1core_1_1Renderer.html#acd1048086e983ab44d0875b079927bfa" title=" " alt="" coords="464,217,628,258"/>
 <area shape="poly" id="edge14_Node000001_Node000012" title=" " alt="" coords="159,237,216,226,276,221,337,220,449,225,449,230,337,225,277,226,217,231,160,242"/>
