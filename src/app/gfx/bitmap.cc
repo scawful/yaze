@@ -226,15 +226,15 @@ void Bitmap::SaveSurfaceToFile(std::string_view filename) {
 }
 
 Bitmap::Bitmap(int width, int height, int depth, int data_size) {
-  Create(width, height, depth, Bytes(data_size, 0));
+  Create(width, height, depth, std::vector<uint8_t>(data_size, 0));
 }
 
-void Bitmap::Create(int width, int height, int depth, const Bytes &data) {
+void Bitmap::Create(int width, int height, int depth, const std::vector<uint8_t> &data) {
   Create(width, height, depth, kIndexed, data);
 }
 
 void Bitmap::Create(int width, int height, int depth, int format,
-                    const Bytes &data) {
+                    const std::vector<uint8_t> &data) {
   if (data.empty()) {
     SDL_Log("Bitmap data is empty\n");
     active_ = false;

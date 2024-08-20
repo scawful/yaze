@@ -166,8 +166,8 @@ class GraphicsEditor : public SharedRom, public Editor {
   MemoryEditor cgx_memory_editor_;
   MemoryEditor col_memory_editor_;
   PaletteEditor palette_editor_;
-  Bytes import_data_;
-  Bytes graphics_buffer_;
+  std::vector<uint8_t> import_data_;
+  std::vector<uint8_t> graphics_buffer_;
   std::vector<uint8_t> decoded_cgx_;
   std::vector<uint8_t> cgx_data_;
   std::vector<uint8_t> extra_cgx_data_;

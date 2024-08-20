@@ -588,7 +588,7 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
   void AssembleMap16Tiles();
   void AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
                         OWBlockset &world);
-  void OrganizeMapTiles(Bytes &bytes, Bytes &bytes2, int i, int sx, int sy,
+  void OrganizeMapTiles(std::vector<uint8_t> &bytes, std::vector<uint8_t> &bytes2, int i, int sx, int sy,
                         int &ttpos);
   absl::Status DecompressAllMapTiles();
 

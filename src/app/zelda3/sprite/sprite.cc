@@ -6,7 +6,7 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
-void Sprite::InitSprite(const Bytes& src, uchar mapid, uchar id, uchar x,
+void Sprite::InitSprite(const std::vector<uint8_t>& src, uchar mapid, uchar id, uchar x,
                         uchar y, int map_x, int map_y) {
   current_gfx_ = src;
   overworld_ = true;
@@ -27,7 +27,7 @@ void Sprite::InitSprite(const Bytes& src, uchar mapid, uchar id, uchar x,
   }
 }
 
-Sprite::Sprite(Bytes src, uchar mapid, uchar id, uchar x, uchar y, int map_x,
+Sprite::Sprite(std::vector<uint8_t> src, uchar mapid, uchar id, uchar x, uchar y, int map_x,
                int map_y)
     : current_gfx_(src),
       map_id_(static_cast<int>(mapid)),

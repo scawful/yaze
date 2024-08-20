@@ -25,7 +25,7 @@ namespace gfx {
  * @brief Internal functions for loading palettes by group.
  */
 namespace palette_group_internal {
-absl::Status LoadOverworldMainPalettes(const Bytes& rom_data,
+absl::Status LoadOverworldMainPalettes(const std::vector<uint8_t>& rom_data,
                                        gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 6; i++) {
@@ -37,7 +37,7 @@ absl::Status LoadOverworldMainPalettes(const Bytes& rom_data,
 }
 
 absl::Status LoadOverworldAuxiliaryPalettes(
-    const Bytes& rom_data, gfx::PaletteGroupMap& palette_groups) {
+    const std::vector<uint8_t>& rom_data, gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 20; i++) {
     palette_groups.overworld_aux.AddPalette(
@@ -48,7 +48,7 @@ absl::Status LoadOverworldAuxiliaryPalettes(
 }
 
 absl::Status LoadOverworldAnimatedPalettes(
-    const Bytes& rom_data, gfx::PaletteGroupMap& palette_groups) {
+    const std::vector<uint8_t>& rom_data, gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 14; i++) {
     palette_groups.overworld_animated.AddPalette(gfx::ReadPaletteFromRom(
@@ -57,7 +57,7 @@ absl::Status LoadOverworldAnimatedPalettes(
   return absl::OkStatus();
 }
 
-absl::Status LoadHUDPalettes(const Bytes& rom_data,
+absl::Status LoadHUDPalettes(const std::vector<uint8_t>& rom_data,
                              gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 2; i++) {
@@ -67,7 +67,7 @@ absl::Status LoadHUDPalettes(const Bytes& rom_data,
   return absl::OkStatus();
 }
 
-absl::Status LoadGlobalSpritePalettes(const Bytes& rom_data,
+absl::Status LoadGlobalSpritePalettes(const std::vector<uint8_t>& rom_data,
                                       gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   palette_groups.global_sprites.AddPalette(
@@ -77,7 +77,7 @@ absl::Status LoadGlobalSpritePalettes(const Bytes& rom_data,
   return absl::OkStatus();
 }
 
-absl::Status LoadArmorPalettes(const Bytes& rom_data,
+absl::Status LoadArmorPalettes(const std::vector<uint8_t>& rom_data,
                                gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 5; i++) {
@@ -87,7 +87,7 @@ absl::Status LoadArmorPalettes(const Bytes& rom_data,
   return absl::OkStatus();
 }
 
-absl::Status LoadSwordPalettes(const Bytes& rom_data,
+absl::Status LoadSwordPalettes(const std::vector<uint8_t>& rom_data,
                                gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 4; i++) {
@@ -97,7 +97,7 @@ absl::Status LoadSwordPalettes(const Bytes& rom_data,
   return absl::OkStatus();
 }
 
-absl::Status LoadShieldPalettes(const Bytes& rom_data,
+absl::Status LoadShieldPalettes(const std::vector<uint8_t>& rom_data,
                                 gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 3; i++) {
@@ -107,7 +107,7 @@ absl::Status LoadShieldPalettes(const Bytes& rom_data,
   return absl::OkStatus();
 }
 
-absl::Status LoadSpriteAux1Palettes(const Bytes& rom_data,
+absl::Status LoadSpriteAux1Palettes(const std::vector<uint8_t>& rom_data,
                                     gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 12; i++) {
@@ -117,7 +117,7 @@ absl::Status LoadSpriteAux1Palettes(const Bytes& rom_data,
   return absl::OkStatus();
 }
 
-absl::Status LoadSpriteAux2Palettes(const Bytes& rom_data,
+absl::Status LoadSpriteAux2Palettes(const std::vector<uint8_t>& rom_data,
                                     gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 11; i++) {
@@ -127,7 +127,7 @@ absl::Status LoadSpriteAux2Palettes(const Bytes& rom_data,
   return absl::OkStatus();
 }
 
-absl::Status LoadSpriteAux3Palettes(const Bytes& rom_data,
+absl::Status LoadSpriteAux3Palettes(const std::vector<uint8_t>& rom_data,
                                     gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 24; i++) {
@@ -137,7 +137,7 @@ absl::Status LoadSpriteAux3Palettes(const Bytes& rom_data,
   return absl::OkStatus();
 }
 
-absl::Status LoadDungeonMainPalettes(const Bytes& rom_data,
+absl::Status LoadDungeonMainPalettes(const std::vector<uint8_t>& rom_data,
                                      gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 20; i++) {
@@ -147,7 +147,7 @@ absl::Status LoadDungeonMainPalettes(const Bytes& rom_data,
   return absl::OkStatus();
 }
 
-absl::Status LoadGrassColors(const Bytes& rom_data,
+absl::Status LoadGrassColors(const std::vector<uint8_t>& rom_data,
                              gfx::PaletteGroupMap& palette_groups) {
   palette_groups.grass.AddColor(
       gfx::ReadColorFromRom(kHardcodedGrassLW, rom_data.data()));
@@ -158,7 +158,7 @@ absl::Status LoadGrassColors(const Bytes& rom_data,
   return absl::OkStatus();
 }
 
-absl::Status Load3DObjectPalettes(const Bytes& rom_data,
+absl::Status Load3DObjectPalettes(const std::vector<uint8_t>& rom_data,
                                   gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   palette_groups.object_3d.AddPalette(
@@ -169,7 +169,7 @@ absl::Status Load3DObjectPalettes(const Bytes& rom_data,
 }
 
 absl::Status LoadOverworldMiniMapPalettes(
-    const Bytes& rom_data, gfx::PaletteGroupMap& palette_groups) {
+    const std::vector<uint8_t>& rom_data, gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 2; i++) {
     palette_groups.overworld_mini_map.AddPalette(gfx::ReadPaletteFromRom(
@@ -327,7 +327,7 @@ absl::StatusOr<PaletteGroup> CreatePaletteGroupFromLargePalette(
 using namespace palette_group_internal;
 
 // TODO: Refactor LoadAllPalettes to use group names, move to zelda3 namespace
-absl::Status LoadAllPalettes(const Bytes& rom_data, PaletteGroupMap& groups) {
+absl::Status LoadAllPalettes(const std::vector<uint8_t>& rom_data, PaletteGroupMap& groups) {
   RETURN_IF_ERROR(LoadOverworldMainPalettes(rom_data, groups))
   RETURN_IF_ERROR(LoadOverworldAuxiliaryPalettes(rom_data, groups))
   RETURN_IF_ERROR(LoadOverworldAnimatedPalettes(rom_data, groups))

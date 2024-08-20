@@ -706,30 +706,6 @@ std::string MessageEditor::DisplayTextOverflowError(int pos, bool bank) {
   return message;
 }
 
-// push_backs a command to the text field when the push_back command button is
-// pressed or the command is double clicked in the list.
-void MessageEditor::InsertCommandButton_Click_1() {
-  // InsertSelectedText(
-  //     TextCommands[TextCommandList.SelectedIndex].GetParameterizedToken(
-  //         (uint8_t)ParamsBox.HexValue));
-}
-
-// push_backs a special character to the text field when the push_back command
-// button is pressed or the character is double clicked in the list.
-void MessageEditor::InsertSpecialButton_Click() {
-  // InsertSelectedText(
-  //     SpecialChars[SpecialsList.SelectedIndex].GetParameterizedToken());
-}
-
-void MessageEditor::InsertSelectedText(std::string str) {
-  int textboxPos = message_text_box_.selection_start;
-  from_form = true;
-  // message_text_box_.Text = message_text_box_.Text.Insert(textboxPos, str);
-  from_form = false;
-  message_text_box_.selection_start = textboxPos + str.size();
-  message_text_box_.Focus();
-}
-
 void MessageEditor::Delete() {
   // Determine if any text is selected in the TextBox control.
   if (message_text_box_.selection_length == 0) {

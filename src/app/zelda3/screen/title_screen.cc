@@ -13,10 +13,10 @@ namespace zelda3 {
 namespace screen {
 
 void TitleScreen::Create() {
-  tiles8Bitmap.Create(128, 512, 8, Bytes(0, 0x20000));
-  tilesBG1Bitmap.Create(256, 256, 8, Bytes(0, 0x80000));
-  tilesBG2Bitmap.Create(256, 256, 8, Bytes(0, 0x80000));
-  oamBGBitmap.Create(256, 256, 8, Bytes(0, 0x80000));
+  tiles8Bitmap.Create(128, 512, 8, std::vector<uint8_t>(0, 0x20000));
+  tilesBG1Bitmap.Create(256, 256, 8, std::vector<uint8_t>(0, 0x80000));
+  tilesBG2Bitmap.Create(256, 256, 8, std::vector<uint8_t>(0, 0x80000));
+  oamBGBitmap.Create(256, 256, 8, std::vector<uint8_t>(0, 0x80000));
   BuildTileset();
   LoadTitleScreen();
 }

@@ -712,7 +712,7 @@ absl::Status GraphicsEditor::DrawClipboardImport() {
   if (Button("Paste From Clipboard")) {
     const char* text = ImGui::GetClipboardText();
     if (text) {
-      const auto clipboard_data = Bytes(text, text + strlen(text));
+      const auto clipboard_data = std::vector<uint8_t>(text, text + strlen(text));
       ImGui::MemFree((void*)text);
       status_ = temp_rom_.LoadFromBytes(clipboard_data);
       is_open_ = true;

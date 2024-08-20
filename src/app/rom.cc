@@ -42,8 +42,8 @@ int GetGraphicsAddress(const uchar* data, uint8_t addr, uint32_t ptr1,
 }
 }  // namespace
 
-absl::StatusOr<Bytes> Rom::Load2BppGraphics() {
-  Bytes sheet;
+absl::StatusOr<std::vector<uint8_t>> Rom::Load2BppGraphics() {
+  std::vector<uint8_t> sheet;
   const uint8_t sheets[] = {113, 114, 218, 219, 220, 221};
 
   for (const auto& sheet_id : sheets) {
@@ -81,7 +81,7 @@ absl::Status Rom::LoadLinkGraphics() {
 }
 
 absl::Status Rom::LoadAllGraphicsData() {
-  Bytes sheet;
+  std::vector<uint8_t> sheet;
   bool bpp3 = false;
 
   for (int i = 0; i < kNumGfxSheets; i++) {
@@ -237,7 +237,7 @@ absl::Status Rom::LoadZelda3() {
   return absl::OkStatus();
 }
 
-absl::Status Rom::LoadFromBytes(const Bytes& data) {
+absl::Status Rom::LoadFromBytes(const std::vector<uint8_t>& data) {
   if (data.empty()) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `data` is empty.");

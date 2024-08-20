@@ -352,7 +352,7 @@ absl::StatusOr<PaletteGroup> CreatePaletteGroupFromLargePalette(
  * groups.
  *
  */
-absl::Status LoadAllPalettes(const Bytes& rom_data, PaletteGroupMap& groups);
+absl::Status LoadAllPalettes(const std::vector<uint8_t>& rom_data, PaletteGroupMap& groups);
 
 /**
  * @brief Represents a set of palettes used in a SNES graphics system.

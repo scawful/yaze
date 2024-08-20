@@ -142,7 +142,7 @@ class Rom : public core::ExperimentFlags {
    * appending the converted sheet data to a byte vector.
    *
    */
-  absl::StatusOr<Bytes> Load2BppGraphics();
+  absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics();
 
   /**
    * @brief Loads the players 4bpp graphics sheet from Rom data.
@@ -178,7 +178,7 @@ class Rom : public core::ExperimentFlags {
    */
   absl::Status LoadFromFile(const std::string& filename, bool z3_load = true);
   absl::Status LoadFromPointer(uchar* data, size_t length, bool z3_load = true);
-  absl::Status LoadFromBytes(const Bytes& data);
+  absl::Status LoadFromBytes(const std::vector<uint8_t>& data);
 
   /**
    * @brief Saves the Rom data to a file
@@ -431,7 +431,7 @@ class Rom : public core::ExperimentFlags {
   }
 
   // Full graphical data for the game
-  Bytes graphics_buffer() const { return graphics_buffer_; }
+  std::vector<uint8_t> graphics_buffer() const { return graphics_buffer_; }
 
   auto link_graphics() { return link_graphics_; }
   auto mutable_link_graphics() { return &link_graphics_; }
@@ -538,10 +538,10 @@ class Rom : public core::ExperimentFlags {
   std::string filename_ = "";
 
   // Full contiguous rom space
-  Bytes rom_data_;
+  std::vector<uint8_t> rom_data_;
 
   // Full contiguous graphics space
-  Bytes graphics_buffer_;
+  std::vector<uint8_t> graphics_buffer_;
 
   // All graphics sheets in the game
   std::array<gfx::Bitmap, kNumGfxSheets> graphics_sheets_;

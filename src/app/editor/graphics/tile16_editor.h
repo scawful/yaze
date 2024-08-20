@@ -91,7 +91,7 @@ class Tile16Editor : public context::GfxContext, public SharedRom {
   gui::Canvas transfer_canvas_;
   gfx::Bitmap transfer_blockset_bmp_;
 
-  std::vector<Bytes> tile16_individual_data_;
+  std::vector<std::vector<uint8_t>> tile16_individual_data_;
   std::vector<gfx::Bitmap> tile16_individual_;
 
   std::vector<gfx::Bitmap> current_gfx_individual_;

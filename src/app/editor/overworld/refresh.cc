@@ -122,7 +122,7 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
         std::launch::async,
         [&](int index) {
           // Create a new vector for the pixel data of the current tile
-          Bytes tile_data(16 * 16, 0x00);  // More efficient initialization
+          std::vector<uint8_t> tile_data(16 * 16, 0x00);  // More efficient initialization
 
           // Copy the pixel data for the current tile into the vector
           for (int ty = 0; ty < 16; ty++) {

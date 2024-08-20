@@ -26,9 +26,9 @@ namespace zelda3 {
 class Sprite : public OverworldEntity {
  public:
   Sprite() = default;
-  Sprite(Bytes src, uchar mapid, uchar id, uchar x, uchar y, int map_x,
+  Sprite(std::vector<uint8_t> src, uchar mapid, uchar id, uchar x, uchar y, int map_x,
          int map_y);
-  void InitSprite(const Bytes& src, uchar mapid, uchar id, uchar x, uchar y,
+  void InitSprite(const std::vector<uint8_t>& src, uchar mapid, uchar id, uchar x, uchar y,
                   int map_x, int map_y);
   void updateBBox();
 
@@ -64,7 +64,7 @@ class Sprite : public OverworldEntity {
   auto set_deleted(bool deleted) { deleted_ = deleted; }
 
  private:
-  Bytes current_gfx_;
+  std::vector<uint8_t> current_gfx_;
   bool overworld_;
 
   uchar map_id_;
@@ -81,7 +81,7 @@ class Sprite : public OverworldEntity {
 
   int map_x_;
   int map_y_;
-  Bytes preview_gfx_;
+  std::vector<uint8_t> preview_gfx_;
   uchar lowerX_;
   uchar lowerY_;
   uchar higherX_;
