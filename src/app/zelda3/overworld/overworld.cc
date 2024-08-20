@@ -223,7 +223,8 @@ void Overworld::AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
   world[position_x2][position_y2] = tiles32_unique_[tpos].tile3_;
 }
 
-void Overworld::OrganizeMapTiles(std::vector<uint8_t> &bytes, std::vector<uint8_t> &bytes2, int i, int sx,
+void Overworld::OrganizeMapTiles(std::vector<uint8_t> &bytes,
+                                 std::vector<uint8_t> &bytes2, int i, int sx,
                                  int sy, int &ttpos) {
   for (int y = 0; y < 16; y++) {
     for (int x = 0; x < 16; x++) {
@@ -487,13 +488,14 @@ absl::Status Overworld::LoadSprites() {
   return absl::OkStatus();
 }
 
-absl::Status Overworld::LoadSpritesFromMap(int sprite_start, int sprite_count,
-                                           int sprite_index) {
-  for (int i = 0; i < sprite_count; i++) {
+absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,
+                                           int num_maps_per_gamestate,
+                                           int game_state) {
+  for (int i = 0; i < num_maps_per_gamestate; i++) {
     if (map_parent_[i] != i) continue;
 
-    int ptrPos = sprite_start + (i * 2);
-    ASSIGN_OR_RETURN(auto word_addr, rom()->ReadWord(ptrPos));
+    int current_spr_ptr = sprites_per_gamestate_ptr + (i * 2);
+    ASSIGN_OR_RETURN(auto word_addr, rom()->ReadWord(current_spr_ptr));
     int sprite_address = core::SnesToPc((0x09 << 0x10) | word_addr);
     while (true) {
       ASSIGN_OR_RETURN(uint8_t b1, rom()->ReadByte(sprite_address));
@@ -502,7 +504,7 @@ absl::Status Overworld::LoadSpritesFromMap(int sprite_start, int sprite_count,
       if (b1 == 0xFF) break;
 
       int editor_map_index = i;
-      if (sprite_index != 0) {
+      if (game_state != 0) {
         if (editor_map_index >= 128)
           editor_map_index -= 128;
         else if (editor_map_index >= 64)
@@ -513,10 +515,10 @@ absl::Status Overworld::LoadSpritesFromMap(int sprite_start, int sprite_count,
 
       int realX = ((b2 & 0x3F) * 16) + mapX * 512;
       int realY = ((b1 & 0x3F) * 16) + mapY * 512;
-      all_sprites_[sprite_index].emplace_back(
+      all_sprites_[game_state].emplace_back(
           overworld_maps_[i].current_graphics(), (uint8_t)i, b3,
           (uint8_t)(b2 & 0x3F), (uint8_t)(b1 & 0x3F), realX, realY);
-      // all_sprites_[sprite_index][i].Draw();
+      // all_sprites_[game_state][i].Draw();
 
       sprite_address += 3;
     }

@@ -6,57 +6,13 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
-void Sprite::InitSprite(const std::vector<uint8_t>& src, uchar mapid, uchar id, uchar x,
-                        uchar y, int map_x, int map_y) {
-  current_gfx_ = src;
-  overworld_ = true;
-  map_id_ = static_cast<int>(mapid);
-  id_ = id;
-  this->type_ = zelda3::OverworldEntity::EntityType::kSprite;
-  this->entity_id_ = id;
-  this->x_ = map_x_;
-  this->y_ = map_y_;
-  nx_ = x;
-  ny_ = y;
-  name_ = core::kSpriteDefaultNames[id];
-  map_x_ = map_x;
-  map_y_ = map_y;
-  preview_gfx_.reserve(64 * 64);
-  for (int i = 0; i < 64 * 64; i++) {
-    preview_gfx_.push_back(0xFF);
-  }
-}
-
-Sprite::Sprite(std::vector<uint8_t> src, uchar mapid, uchar id, uchar x, uchar y, int map_x,
-               int map_y)
-    : current_gfx_(src),
-      map_id_(static_cast<int>(mapid)),
-      id_(id),
-      nx_(x),
-      ny_(y),
-      map_x_(map_x),
-      map_y_(map_y) {
-  this->type_ = zelda3::OverworldEntity::EntityType::kSprite;
-  this->entity_id_ = id;
-  this->x_ = map_x_;
-  this->y_ = map_y_;
-  current_gfx_ = src;
-  overworld_ = true;
-
-  name_ = core::kSpriteDefaultNames[id];
-  preview_gfx_.reserve(64 * 64);
-  for (int i = 0; i < 64 * 64; i++) {
-    preview_gfx_.push_back(0xFF);
-  }
-}
-
 void Sprite::UpdateMapProperties(short map_id) {
   map_x_ = x_;
   map_y_ = y_;
   name_ = core::kSpriteDefaultNames[id_];
 }
 
-void Sprite::updateCoordinates(int map_x, int map_y) {
+void Sprite::UpdateCoordinates(int map_x, int map_y) {
   map_x_ = map_x;
   map_y_ = map_y;
 }
@@ -69,8 +25,8 @@ void Sprite::updateBBox() {
 }
 
 void Sprite::Draw() {
-  uchar x = nx_;
-  uchar y = ny_;
+  uint8_t x = nx_;
+  uint8_t y = ny_;
 
   if (overlord_ == 0x07) {
     if (id_ == 0x1A) {
@@ -123,22 +79,22 @@ void Sprite::Draw() {
   } else if (id_ == 0x02) {
     DrawSpriteTile((x * 16), (y * 16), 0, 16, 10);
   } else if (id_ == 0x04) {
-    uchar p = 3;
+    uint8_t p = 3;
 
     DrawSpriteTile((x * 16), (y * 16), 14, 28, p);
     DrawSpriteTile((x * 16), (y * 16), 14, 30, p);
   } else if (id_ == 0x05) {
-    uchar p = 3;
+    uint8_t p = 3;
 
     DrawSpriteTile((x * 16), (y * 16), 14, 28, p);
     DrawSpriteTile((x * 16), (y * 16), 14, 30, p);
   } else if (id_ == 0x06) {
-    uchar p = 3;
+    uint8_t p = 3;
 
     DrawSpriteTile((x * 16), (y * 16), 14, 28, p);
     DrawSpriteTile((x * 16), (y * 16), 14, 30, p);
   } else if (id_ == 0x07) {
-    uchar p = 3;
+    uint8_t p = 3;
 
     DrawSpriteTile((x * 16), (y * 16), 14, 28, p);
     DrawSpriteTile((x * 16), (y * 16), 14, 30, p);
@@ -948,7 +904,7 @@ void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
       int index = (x) + (y * 64) + (mx + (my * 0x80));
 
       if (index >= 0 && index <= 4096) {
-        preview_gfx_[index] = (uchar)((pixel & 0x0F) + 112 + (pal * 8));
+        preview_gfx_[index] = (uint8_t)((pixel & 0x0F) + 112 + (pal * 8));
       }
     }
   }
