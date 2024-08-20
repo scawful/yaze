@@ -109,10 +109,6 @@ class MessageEditor : public Editor, public SharedRom {
   void DrawMessagePreview();
   std::string DisplayTextOverflowError(int pos, bool bank);
 
-  void InsertCommandButton_Click_1();
-  void InsertSpecialButton_Click();
-  void InsertSelectedText(std::string str);
-
  private:
   bool skip_next = false;
   bool from_form = false;
@@ -133,8 +129,8 @@ class MessageEditor : public Editor, public SharedRom {
 
   MessageData current_message_;
 
-  Bytes font_gfx16_data_;
-  Bytes current_font_gfx16_data_;
+  std::vector<uint8_t> font_gfx16_data_;
+  std::vector<uint8_t> current_font_gfx16_data_;
 
   gfx::Bitmap font_gfx_bitmap_;
   gfx::Bitmap current_font_gfx16_bitmap_;

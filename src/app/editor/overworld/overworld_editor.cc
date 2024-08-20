@@ -132,7 +132,7 @@ absl::Status OverworldEditor::DrawToolset() {
   static bool show_gfx_group = false;
   static bool show_properties = false;
 
-  if (BeginTable("OWToolset", 23, kToolsetTableFlags, ImVec2(0, 0))) {
+  if (BeginTable("OWToolset", 22, kToolsetTableFlags, ImVec2(0, 0))) {
     for (const auto &name : kToolsetColumnNames)
       ImGui::TableSetupColumn(name.data());
 
@@ -243,17 +243,10 @@ absl::Status OverworldEditor::DrawToolset() {
 
     TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
 
-    TableNextColumn();  // Experimental
-    Checkbox("Experimental", &show_experimental);
-
     TableNextColumn();
     Checkbox("Properties", &show_properties);
 
     ImGui::EndTable();
-  }
-
-  if (show_experimental) {
-    RETURN_IF_ERROR(DrawExperimentalModal())
   }
 
   if (show_tile16_editor_) {
@@ -428,7 +421,7 @@ void OverworldEditor::DrawOverworldEdits() {
 }
 
 void OverworldEditor::RenderUpdatedMapBitmap(const ImVec2 &click_position,
-                                             const Bytes &tile_data) {
+                                             const std::vector<uint8_t> &tile_data) {
   // Calculate the tile position relative to the current active map
   constexpr int tile_size = 16;  // Tile size is 16x16 pixels
 
@@ -987,8 +980,6 @@ void OverworldEditor::DrawOverworldSprites() {
   }
 }
 
-// ----------------------------------------------------------------------------
-
 absl::Status OverworldEditor::LoadGraphics() {
   // Load the Link to the Past overworld.
   RETURN_IF_ERROR(overworld_.Load(*rom()))
@@ -1011,7 +1002,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   // Loop through the tiles and copy their pixel data into separate vectors
   for (int i = 0; i < 4096; i++) {
     // Create a new vector for the pixel data of the current tile
-    Bytes tile_data(16 * 16, 0x00);  // More efficient initialization
+    std::vector<uint8_t> tile_data(16 * 16, 0x00);  // More efficient initialization
 
     // Copy the pixel data for the current tile into the vector
     for (int ty = 0; ty < 16; ty++) {
@@ -1127,55 +1118,6 @@ void OverworldEditor::DrawOverworldProperties() {
   }
 }
 
-absl::Status OverworldEditor::DrawExperimentalModal() {
-  ImGui::Begin("Experimental", &show_experimental);
-
-  DrawDebugWindow();
-
-  gui::TextWithSeparators("PROTOTYPE OVERWORLD TILEMAP LOADER");
-  Text("Please provide two files:");
-  Text("One based on MAPn.DAT, which represents the overworld tilemap");
-  Text("One based on MAPDATn.DAT, which is the tile32 configurations.");
-  Text("Currently, loading CGX for this component is NOT supported. ");
-  Text("Please load a US ROM of LTTP (JP ROM support coming soon).");
-  Text(
-      "Once you've loaded the files, you can click the button below to load "
-      "the tilemap into the editor");
-
-  ImGui::InputText("##TilemapFile", &ow_tilemap_filename_);
-  SameLine();
-  gui::FileDialogPipeline(
-      "ImportTilemapsKey", ".DAT,.dat\0", "Tilemap Hex File", [this]() {
-        ow_tilemap_filename_ = ImGuiFileDialog::Instance()->GetFilePathName();
-      });
-
-  ImGui::InputText("##Tile32ConfigurationFile",
-                   &tile32_configuration_filename_);
-  SameLine();
-  gui::FileDialogPipeline("ImportTile32Key", ".DAT,.dat\0", "Tile32 Hex File",
-                          [this]() {
-                            tile32_configuration_filename_ =
-                                ImGuiFileDialog::Instance()->GetFilePathName();
-                          });
-
-  if (Button("Load Prototype Overworld with ROM graphics")) {
-    RETURN_IF_ERROR(LoadGraphics())
-    all_gfx_loaded_ = true;
-  }
-
-  gui::TextWithSeparators("Configuration");
-
-  gui::InputHexShort("Tilemap File Offset (High)", &tilemap_file_offset_high_);
-  gui::InputHexShort("Tilemap File Offset (Low)", &tilemap_file_offset_low_);
-
-  gui::InputHexShort("LW Maps to Load", &light_maps_to_load_);
-  gui::InputHexShort("DW Maps to Load", &dark_maps_to_load_);
-  gui::InputHexShort("SP Maps to Load", &sp_maps_to_load_);
-
-  ImGui::End();
-  return absl::OkStatus();
-}
-
 absl::Status OverworldEditor::UpdateUsageStats() {
   if (BeginTable("UsageStatsTable", 3, kOWEditFlags, ImVec2(0, 0))) {
     TableSetupColumn("Entrances");
@@ -1226,16 +1168,6 @@ absl::Status OverworldEditor::UpdateUsageStats() {
   return absl::OkStatus();
 }
 
-void OverworldEditor::CalculateUsageStats() {
-  absl::flat_hash_map<uint16_t, int> entrance_usage;
-  for (auto each_entrance : overworld_.entrances()) {
-    if (each_entrance.map_id_ < 0x40 + (current_world_ * 0x40) &&
-        each_entrance.map_id_ >= (current_world_ * 0x40)) {
-      entrance_usage[each_entrance.entrance_id_]++;
-    }
-  }
-}
-
 void OverworldEditor::DrawUsageGrid() {
   // Create a grid of 8x8 squares
   int totalSquares = 128;
@@ -1283,37 +1215,6 @@ void OverworldEditor::DrawUsageGrid() {
     }
   }
 }
-
-absl::Status OverworldEditor::LoadAnimatedMaps() {
-  int world_index = 0;
-  static std::vector<bool> animated_built(0x40, false);
-  if (!animated_built[world_index]) {
-    animated_maps_[world_index] = maps_bmp_[world_index];
-    auto &map = *overworld_.mutable_overworld_map(world_index);
-    map.DrawAnimatedTiles();
-    RETURN_IF_ERROR(map.BuildTileset());
-    RETURN_IF_ERROR(map.BuildTiles16Gfx(overworld_.tiles16().size()));
-    zelda3::OWBlockset blockset;
-    if (current_world_ == 0) {
-      blockset = overworld_.map_tiles().light_world;
-    } else if (current_world_ == 1) {
-      blockset = overworld_.map_tiles().dark_world;
-    } else {
-      blockset = overworld_.map_tiles().special_world;
-    }
-    RETURN_IF_ERROR(map.BuildBitmap(blockset));
-
-    RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
-        kOverworldMapSize, kOverworldMapSize, 0x200, map.bitmap_data(),
-        animated_maps_[world_index], *map.mutable_current_palette()));
-
-    animated_built[world_index] = true;
-  }
-
-  return absl::OkStatus();
-}
-
-// ----------------------------------------------------------------------------
 
 void OverworldEditor::DrawDebugWindow() {
   Text("Current Map: %d", current_map_);

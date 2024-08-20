@@ -223,7 +223,7 @@ void Overworld::AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
   world[position_x2][position_y2] = tiles32_unique_[tpos].tile3_;
 }
 
-void Overworld::OrganizeMapTiles(Bytes &bytes, Bytes &bytes2, int i, int sx,
+void Overworld::OrganizeMapTiles(std::vector<uint8_t> &bytes, std::vector<uint8_t> &bytes2, int i, int sx,
                                  int sy, int &ttpos) {
   for (int y = 0; y < 16; y++) {
     for (int x = 0; x < 16; x++) {

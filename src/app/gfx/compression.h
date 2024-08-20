@@ -142,21 +142,21 @@ void CompressionCommandAlternativeV2(const uchar* data,
  * @brief Compresses a buffer of data using the LC_LZ2 algorithm.
  * \deprecated Use Compress and Uncompress instead.
  */
-absl::StatusOr<Bytes> CompressV2(const uchar* data, const int start,
+absl::StatusOr<std::vector<uint8_t>> CompressV2(const uchar* data, const int start,
                                  const int length, int mode = 1,
                                  bool check = false);
 
-absl::StatusOr<Bytes> CompressGraphics(const uchar* data, const int pos,
+absl::StatusOr<std::vector<uint8_t>> CompressGraphics(const uchar* data, const int pos,
                                        const int length);
-absl::StatusOr<Bytes> CompressOverworld(const uchar* data, const int pos,
+absl::StatusOr<std::vector<uint8_t>> CompressOverworld(const uchar* data, const int pos,
                                         const int length);
-absl::StatusOr<Bytes> CompressOverworld(const std::vector<uint8_t> data,
+absl::StatusOr<std::vector<uint8_t>> CompressOverworld(const std::vector<uint8_t> data,
                                         const int pos, const int length);
 
 absl::StatusOr<CompressionPiecePointer> SplitCompressionPiece(
     CompressionPiecePointer& piece, int mode);
 
-Bytes CreateCompressionString(CompressionPiecePointer& start, int mode);
+std::vector<uint8_t> CreateCompressionString(CompressionPiecePointer& start, int mode);
 
 absl::Status ValidateCompressionResult(CompressionPiecePointer& chain_head,
                                        int mode, int start, int src_data_pos);
@@ -213,7 +213,7 @@ void FinalizeCompression(CompressionContext& context);
  * @brief Compresses a buffer of data using the LC_LZ2 algorithm.
  * \deprecated Use Compress and Uncompress instead.
  */
-absl::StatusOr<Bytes> CompressV3(const std::vector<uint8_t>& data,
+absl::StatusOr<std::vector<uint8_t>> CompressV3(const std::vector<uint8_t>& data,
                                  const int start, const int length,
                                  int mode = 1, bool check = false);
 
@@ -229,18 +229,18 @@ uint8_t* Uncompress(uint8_t const* src, int* const size,
 std::string SetBuffer(const std::vector<uint8_t>& data, int src_pos,
                       int comp_accumulator);
 std::string SetBuffer(const uchar* data, int src_pos, int comp_accumulator);
-void memfill(const uchar* data, Bytes& buffer, int buffer_pos, int offset,
+void memfill(const uchar* data, std::vector<uint8_t>& buffer, int buffer_pos, int offset,
              int length);
 
 /**
  * @brief Decompresses a buffer of data using the LC_LZ2 algorithm.
  * \deprecated Use Compress and Uncompress instead.
  */
-absl::StatusOr<Bytes> DecompressV2(const uchar* data, int offset,
+absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uchar* data, int offset,
                                    int size = 0x800, int mode = 1);
-absl::StatusOr<Bytes> DecompressGraphics(const uchar* data, int pos, int size);
-absl::StatusOr<Bytes> DecompressOverworld(const uchar* data, int pos, int size);
-absl::StatusOr<Bytes> DecompressOverworld(const std::vector<uint8_t> data,
+absl::StatusOr<std::vector<uint8_t>> DecompressGraphics(const uchar* data, int pos, int size);
+absl::StatusOr<std::vector<uint8_t>> DecompressOverworld(const uchar* data, int pos, int size);
+absl::StatusOr<std::vector<uint8_t>> DecompressOverworld(const std::vector<uint8_t> data,
                                           int pos, int size);
 
 }  // namespace lc_lz2

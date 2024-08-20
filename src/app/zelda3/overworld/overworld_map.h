@@ -139,10 +139,10 @@ class OverworldMap : public editor::context::GfxContext {
   uchar static_graphics_[16];
 
   Rom rom_;
-  Bytes all_gfx_;
-  Bytes current_blockset_;
-  Bytes current_gfx_;
-  Bytes bitmap_data_;
+  std::vector<uint8_t> all_gfx_;
+  std::vector<uint8_t> current_blockset_;
+  std::vector<uint8_t> current_gfx_;
+  std::vector<uint8_t> bitmap_data_;
   OWMapTiles map_tiles_;
 
   gfx::SnesPalette current_palette_;

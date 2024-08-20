@@ -37,11 +37,11 @@ static constexpr uint kTile8DisplayHeight = 64;
 static constexpr float kInputFieldSize = 30.f;
 
 static constexpr absl::string_view kToolsetColumnNames[] = {
-    "#undoTool",      "#redoTool",  "#separator2", "#zoomOutTool",
-    "#zoomInTool",    "#separator", "#drawTool",   "#history",
-    "#entranceTool",  "#exitTool",  "#itemTool",   "#spriteTool",
-    "#transportTool", "#musicTool", "#separator3", "#tilemapTool",
-    "propertiesTool"};
+    "#undoTool",      "#redoTool",   "#separator2",      "#zoomOutTool",
+    "#zoomInTool",    "#separator",  "#drawTool",        "#history",
+    "#entranceTool",  "#exitTool",   "#itemTool",        "#spriteTool",
+    "#transportTool", "#musicTool",  "#separator3",      "#tilemapTool",
+    "propertiesTool", "#separator4", "#experimentalTool"};
 
 constexpr ImGuiTableFlags kOWMapFlags =
     ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable;
@@ -156,7 +156,7 @@ class OverworldEditor : public Editor,
   void DrawOverworldMaps();
   void DrawOverworldEdits();
   void RenderUpdatedMapBitmap(const ImVec2& click_position,
-                              const Bytes& tile_data);
+                              const std::vector<uint8_t>& tile_data);
   void CheckForOverworldEdits();
   void CheckForSelectRectangle();
   absl::Status CheckForCurrentMap();
@@ -176,13 +176,9 @@ class OverworldEditor : public Editor,
 
   void DrawOverworldProperties();
 
-  absl::Status DrawExperimentalModal();
-
   absl::Status UpdateUsageStats();
   void DrawUsageGrid();
-  void CalculateUsageStats();
 
-  absl::Status LoadAnimatedMaps();
   void DrawDebugWindow();
 
   auto gfx_group_editor() const { return gfx_group_editor_; }
@@ -204,12 +200,14 @@ class OverworldEditor : public Editor,
   int current_world_ = 0;
   int current_map_ = 0;
   int current_parent_ = 0;
+  int current_entrance_id_ = 0;
+  int current_exit_id_ = 0;
+  int current_item_id_ = 0;
+  int current_sprite_id_ = 0;
   int game_state_ = 1;
   int current_tile16_ = 0;
   int selected_tile_ = 0;
-
   int current_blockset_ = 0;
-
   int selected_entrance_ = 0;
   int selected_usage_map_ = 0xFFFF;
 
@@ -219,12 +217,6 @@ class OverworldEditor : public Editor,
   char spr_palette_[3] = "";
   char message_id_[5] = "";
   char staticgfx[16];
-
-  uint32_t tilemap_file_offset_high_ = 0;
-  uint32_t tilemap_file_offset_low_ = 0;
-  uint32_t light_maps_to_load_ = 0x51;
-  uint32_t dark_maps_to_load_ = 0x2A;
-  uint32_t sp_maps_to_load_ = 0x07;
 
   bool opt_enable_grid = true;
   bool all_gfx_loaded_ = false;
@@ -236,29 +228,20 @@ class OverworldEditor : public Editor,
   bool show_gfx_group_editor_ = false;
   bool overworld_canvas_fullscreen_ = false;
   bool middle_mouse_dragging_ = false;
-
   bool is_dragging_entity_ = false;
+
   zelda3::OverworldEntity* dragged_entity_;
   zelda3::OverworldEntity* current_entity_;
-
-  int current_entrance_id_ = 0;
   zelda3::overworld::OverworldEntrance current_entrance_;
-  int current_exit_id_ = 0;
   zelda3::overworld::OverworldExit current_exit_;
-  int current_item_id_ = 0;
   zelda3::overworld::OverworldItem current_item_;
-  int current_sprite_id_ = 0;
   zelda3::Sprite current_sprite_;
 
-  bool show_experimental = false;
-  std::string ow_tilemap_filename_ = "";
-  std::string tile32_configuration_filename_ = "";
-
-  Bytes selected_tile_data_;
-  std::vector<Bytes> tile16_individual_data_;
+  std::vector<uint8_t> selected_tile_data_;
+  std::vector<std::vector<uint8_t>> tile16_individual_data_;
   std::vector<gfx::Bitmap> tile16_individual_;
 
-  std::vector<Bytes> tile8_individual_data_;
+  std::vector<std::vector<uint8_t>> tile8_individual_data_;
   std::vector<gfx::Bitmap> tile8_individual_;
 
   Tile16Editor tile16_editor_;
@@ -287,7 +270,6 @@ class OverworldEditor : public Editor,
   gfx::BitmapTable maps_bmp_;
   gfx::BitmapTable current_graphics_set_;
   gfx::BitmapTable sprite_previews_;
-  gfx::BitmapTable animated_maps_;
 
   zelda3::OWBlockset refresh_blockset_;
 

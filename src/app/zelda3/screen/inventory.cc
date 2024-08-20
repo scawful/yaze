@@ -76,7 +76,7 @@ absl::Status Inventory::BuildTileset() {
   tilesheets_.reserve(6 * 0x2000);
   for (int i = 0; i < 6 * 0x2000; i++) tilesheets_.push_back(0xFF);
   ASSIGN_OR_RETURN(tilesheets_, rom()->Load2BppGraphics())
-  Bytes test;
+  std::vector<uint8_t> test;
   for (int i = 0; i < 0x4000; i++) {
     test_.push_back(tilesheets_[i]);
   }

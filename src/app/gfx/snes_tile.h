@@ -14,8 +14,8 @@ namespace gfx {
 constexpr uint8_t kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
                                         0x08, 0x04, 0x02, 0x01};
 
-Bytes SnesTo8bppSheet(const Bytes& sheet, int bpp);
-Bytes Bpp8SnesToIndexed(Bytes data, uint64_t bpp = 0);
+std::vector<uint8_t> SnesTo8bppSheet(const std::vector<uint8_t>& sheet, int bpp);
+std::vector<uint8_t> Bpp8SnesToIndexed(std::vector<uint8_t> data, uint64_t bpp = 0);
 
 struct tile8 {
   uint32_t id;
@@ -24,10 +24,10 @@ struct tile8 {
 };
 using tile8 = struct tile8;
 
-tile8 UnpackBppTile(const Bytes& data, const uint32_t offset,
+tile8 UnpackBppTile(const std::vector<uint8_t>& data, const uint32_t offset,
                     const uint32_t bpp);
 
-Bytes PackBppTile(const tile8& tile, const uint32_t bpp);
+std::vector<uint8_t> PackBppTile(const tile8& tile, const uint32_t bpp);
 
 std::vector<uint8_t> ConvertBpp(const std::vector<uint8_t>& tiles,
                                 uint32_t from_bpp, uint32_t to_bpp);

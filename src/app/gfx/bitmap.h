@@ -72,11 +72,11 @@ class Bitmap {
   Bitmap() = default;
 
   Bitmap(int width, int height, int depth, int data_size);
-  Bitmap(int width, int height, int depth, const Bytes &data)
+  Bitmap(int width, int height, int depth, const std::vector<uint8_t> &data)
       : width_(width), height_(height), depth_(depth), data_(data) {
     Create(width, height, depth, data);
   }
-  Bitmap(int width, int height, int depth, const Bytes &data,
+  Bitmap(int width, int height, int depth, const std::vector<uint8_t> &data,
          const SnesPalette &palette)
       : width_(width),
         height_(height),
@@ -98,8 +98,8 @@ class Bitmap {
   /**
    * @brief Creates a bitmap object with the provided graphical data.
    */
-  void Create(int width, int height, int depth, const Bytes &data);
-  void Create(int width, int height, int depth, int format, const Bytes &data);
+  void Create(int width, int height, int depth, const std::vector<uint8_t> &data);
+  void Create(int width, int height, int depth, int format, const std::vector<uint8_t> &data);
 
   void Reformat(int format);
 
@@ -192,7 +192,7 @@ class Bitmap {
   auto modified() const { return modified_; }
   auto is_active() const { return active_; }
   void set_active(bool active) { active_ = active; }
-  void set_data(const Bytes &data) { data_ = data; }
+  void set_data(const std::vector<uint8_t> &data) { data_ = data; }
   void set_modified(bool modified) { modified_ = modified; }
 
  private:
@@ -207,7 +207,7 @@ class Bitmap {
   void *texture_pixels = nullptr;
 
   uint8_t *pixel_data_ = nullptr;
-  Bytes data_;
+  std::vector<uint8_t> data_;
 
   std::vector<uint8_t> png_data_;
 

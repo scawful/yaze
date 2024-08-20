@@ -60,7 +60,7 @@ class GfxGroupEditor : public SharedRom {
   gfx::PaletteGroup palette_group_;
   gfx::Bitmap* tile16_blockset_bmp_;
 
-  std::vector<Bytes> tile16_individual_data_;
+  std::vector<std::vector<uint8_t>> tile16_individual_data_;
   std::vector<gfx::Bitmap> tile16_individual_;
 
   gui::BitmapViewer gfx_group_viewer_;

@@ -121,7 +121,6 @@
 using ushort = unsigned short;
 using uint = unsigned int;
 using uchar = unsigned char;
-using Bytes = std::vector<uint8_t>;
 
 namespace yaze {
 namespace app {

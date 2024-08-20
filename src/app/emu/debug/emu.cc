@@ -101,7 +101,7 @@ int main(int argc, char **argv) {
 
   Rom rom_;
   emu::SNES snes_;
-  Bytes rom_data_;
+  std::vector<uint8_t> rom_data_;
 
   bool running = true;
   bool loaded = false;

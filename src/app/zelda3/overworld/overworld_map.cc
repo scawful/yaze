@@ -525,7 +525,7 @@ absl::Status OverworldMap::BuildTiles16Gfx(int count) {
 
 namespace {
 
-void CopyTile8bpp16(int x, int y, int tile, Bytes& bitmap, Bytes& blockset) {
+void CopyTile8bpp16(int x, int y, int tile, std::vector<uint8_t>& bitmap, std::vector<uint8_t>& blockset) {
   int src_pos =
       ((tile - ((tile / 0x08) * 0x08)) * 0x10) + ((tile / 0x08) * 2048);
   int dest_pos = (x + (y * 0x200));

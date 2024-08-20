@@ -85,7 +85,7 @@ class ScreenEditor : public SharedRom, public Editor {
   bool copy_button_pressed = false;
   bool paste_button_pressed = false;
 
-  Bytes all_gfx_;
+  std::vector<uint8_t> all_gfx_;
   zelda3::screen::Inventory inventory_;
   gfx::SnesPalette palette_;
   gui::Canvas screen_canvas_;

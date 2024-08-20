@@ -413,10 +413,11 @@ absl::StatusOr<CompressionPiecePointer> SplitCompressionPiece(
   return new_piece;
 }
 
-Bytes CreateCompressionString(CompressionPiecePointer& start, int mode) {
+std::vector<uint8_t> CreateCompressionString(CompressionPiecePointer& start,
+                                             int mode) {
   uint pos = 0;
   auto piece = start;
-  Bytes output;
+  std::vector<uint8_t> output;
 
   while (piece != nullptr) {
     if (piece->length <= kMaxLengthNormalHeader) {  // Normal header
@@ -515,12 +516,13 @@ CompressionPiecePointer MergeCopy(CompressionPiecePointer& start) {
   return start;
 }
 
-// TODO TEST compressed data border for each cmd
-absl::StatusOr<Bytes> CompressV2(const uchar* data, const int start,
-                                 const int length, int mode, bool check) {
+absl::StatusOr<std::vector<uint8_t>> CompressV2(const uchar* data,
+                                                const int start,
+                                                const int length, int mode,
+                                                bool check) {
   // Surely there's no need to compress zero...
   if (length == 0) {
-    return Bytes();
+    return std::vector<uint8_t>();
   }
 
   // Worst case should be a copy of the string with extended header
@@ -868,18 +870,20 @@ uint8_t* Uncompress(uint8_t const* src, int* const size,
   return b2;
 }
 
-absl::StatusOr<Bytes> CompressGraphics(const uchar* data, const int pos,
-                                       const int length) {
+absl::StatusOr<std::vector<uint8_t>> CompressGraphics(const uchar* data,
+                                                      const int pos,
+                                                      const int length) {
   return CompressV2(data, pos, length, kNintendoMode2);
 }
 
-absl::StatusOr<Bytes> CompressOverworld(const uchar* data, const int pos,
-                                        const int length) {
+absl::StatusOr<std::vector<uint8_t>> CompressOverworld(const uchar* data,
+                                                       const int pos,
+                                                       const int length) {
   return CompressV2(data, pos, length, kNintendoMode1);
 }
 
-absl::StatusOr<Bytes> CompressOverworld(const std::vector<uint8_t> data,
-                                        const int pos, const int length) {
+absl::StatusOr<std::vector<uint8_t>> CompressOverworld(
+    const std::vector<uint8_t> data, const int pos, const int length) {
   return CompressV3(data, pos, length, kNintendoMode1);
 }
 
@@ -1304,11 +1308,11 @@ void FinalizeCompression(CompressionContext& context) {
             << context.compressed_data.size());
 }
 
-absl::StatusOr<Bytes> CompressV3(const std::vector<uint8_t>& data,
-                                 const int start, const int length, int mode,
-                                 bool check) {
+absl::StatusOr<std::vector<uint8_t>> CompressV3(
+    const std::vector<uint8_t>& data, const int start, const int length,
+    int mode, bool check) {
   if (length == 0) {
-    return Bytes();
+    return std::vector<uint8_t>();
   }
 
   CompressionContext context(data, start, length, mode);
@@ -1332,7 +1336,8 @@ absl::StatusOr<Bytes> CompressV3(const std::vector<uint8_t>& data,
   }
 
   FinalizeCompression(context);
-  return Bytes(context.compressed_data.begin(), context.compressed_data.end());
+  return std::vector<uint8_t>(context.compressed_data.begin(),
+                              context.compressed_data.end());
 }
 
 // Decompression
@@ -1354,8 +1359,8 @@ std::string SetBuffer(const std::vector<uint8_t>& data, int src_pos,
   return buffer;
 }
 
-void memfill(const uchar* data, Bytes& buffer, int buffer_pos, int offset,
-             int length) {
+void memfill(const uchar* data, std::vector<uint8_t>& buffer, int buffer_pos,
+             int offset, int length) {
   auto a = data[offset];
   auto b = data[offset + 1];
   for (int i = 0; i < length; i = i + 2) {
@@ -1364,13 +1369,13 @@ void memfill(const uchar* data, Bytes& buffer, int buffer_pos, int offset,
   }
 }
 
-absl::StatusOr<Bytes> DecompressV2(const uchar* data, int offset, int size,
-                                   int mode) {
+absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uchar* data, int offset,
+                                                  int size, int mode) {
   if (size == 0) {
-    return Bytes();
+    return std::vector<uint8_t>();
   }
 
-  Bytes buffer(size, 0);
+  std::vector<uint8_t> buffer(size, 0);
   uint length = 0;
   uint buffer_pos = 0;
   uchar command = 0;
@@ -1451,17 +1456,18 @@ absl::StatusOr<Bytes> DecompressV2(const uchar* data, int offset, int size,
   return buffer;
 }
 
-absl::StatusOr<Bytes> DecompressGraphics(const uchar* data, int pos, int size) {
+absl::StatusOr<std::vector<uint8_t>> DecompressGraphics(const uchar* data,
+                                                        int pos, int size) {
   return DecompressV2(data, pos, size, kNintendoMode2);
 }
 
-absl::StatusOr<Bytes> DecompressOverworld(const uchar* data, int pos,
-                                          int size) {
+absl::StatusOr<std::vector<uint8_t>> DecompressOverworld(const uchar* data,
+                                                         int pos, int size) {
   return DecompressV2(data, pos, size, kNintendoMode1);
 }
 
-absl::StatusOr<Bytes> DecompressOverworld(const std::vector<uint8_t> data,
-                                          int pos, int size) {
+absl::StatusOr<std::vector<uint8_t>> DecompressOverworld(
+    const std::vector<uint8_t> data, int pos, int size) {
   return DecompressV2(data.data(), pos, size, kNintendoMode1);
 }
 

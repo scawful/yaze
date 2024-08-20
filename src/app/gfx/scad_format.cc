@@ -20,8 +20,8 @@ namespace scad_format {
 void FindMetastamp() {
   int matching_position = -1;
   bool matched = false;
-  Bytes cgx_rom;
-  Bytes raw_data_;
+  std::vector<uint8_t> cgx_rom;
+  std::vector<uint8_t> raw_data_;
   for (int i = 0;
        i < cgx_rom.size() - sizeof(kMatchedBytes) - kOffsetFromMatchedBytesEnd;
        i++) {

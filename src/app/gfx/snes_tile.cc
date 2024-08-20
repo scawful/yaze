@@ -22,7 +22,7 @@ constexpr ushort TileVFlipBit = 0x8000;
 // Bits used for tile name
 constexpr ushort TileNameMask = 0x03FF;
 
-tile8 UnpackBppTile(const Bytes& data, const uint32_t offset,
+tile8 UnpackBppTile(const std::vector<uint8_t>& data, const uint32_t offset,
                     const uint32_t bpp) {
   tile8 tile;
   assert(bpp >= 1 && bpp <= 8);
@@ -79,7 +79,7 @@ tile8 UnpackBppTile(const Bytes& data, const uint32_t offset,
   return tile;
 }
 
-Bytes PackBppTile(const tile8& tile, const uint32_t bpp) {
+std::vector<uint8_t> PackBppTile(const tile8& tile, const uint32_t bpp) {
   // Allocate memory for output data
   std::vector<uint8_t> output(bpp * 8, 0);  // initialized with 0
   unsigned maxcolor = 2 << bpp;
@@ -148,7 +148,7 @@ std::vector<uint8_t> Convert4bppTo3bpp(const std::vector<uint8_t>& tiles) {
   return ConvertBpp(tiles, 4, 3);
 }
 
-Bytes SnesTo8bppSheet(const Bytes& sheet, int bpp) {
+std::vector<uint8_t> SnesTo8bppSheet(const std::vector<uint8_t>& sheet, int bpp) {
   int xx = 0;  // positions where we are at on the sheet
   int yy = 0;
   int pos = 0;
@@ -167,7 +167,7 @@ Bytes SnesTo8bppSheet(const Bytes& sheet, int bpp) {
   } else if (bpp == 8) {
     bpp = 64;
   }
-  Bytes sheet_buffer_out(buffer_size);
+  std::vector<uint8_t> sheet_buffer_out(buffer_size);
 
   for (int i = 0; i < num_tiles; i++) {  // for each tiles, 16 per line
     for (int y = 0; y < 8; y++) {        // for each line
@@ -200,7 +200,7 @@ Bytes SnesTo8bppSheet(const Bytes& sheet, int bpp) {
   return sheet_buffer_out;
 }
 
-Bytes Bpp8SnesToIndexed(Bytes data, uint64_t bpp) {
+std::vector<uint8_t> Bpp8SnesToIndexed(std::vector<uint8_t> data, uint64_t bpp) {
   // 3BPP
   // [r0,bp1],[r0,bp2],[r1,bp1],[r1,bp2],[r2,bp1],[r2,bp2],[r3,bp1],[r3,bp2]
   // [r4,bp1],[r4,bp2],[r5,bp1],[r5,bp2],[r6,bp1],[r6,bp2],[r7,bp1],[r7,bp2]
@@ -212,7 +212,7 @@ Bytes Bpp8SnesToIndexed(Bytes data, uint64_t bpp) {
   // [r4,bp7],[r4,bp8],[r5,bp7],[r5,bp8],[r6,bp7],[r6,bp8],[r7,bp7],[r7,bp8]
 
   // 16 tiles = 1024 bytes
-  auto buffer = Bytes(data.size());
+  auto buffer = std::vector<uint8_t>(data.size());
   std::vector<std::vector<uint8_t>> bitmap_data;
   bitmap_data.resize(0x80);
   for (auto& each : bitmap_data) {
