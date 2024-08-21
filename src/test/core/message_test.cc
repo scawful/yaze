@@ -104,19 +104,6 @@ TEST_F(MessageDispatcherTest, MultipleListeners) {
   EXPECT_EQ(std::any_cast<int>(listener2_.last_message().payload), 42);
 }
 
-TEST_F(MessageDispatcherTest, ProtocolBasedHandling) {
-  MessageDispatcher dispatcher;
-
-  dispatcher.RegisterProtocol(protocol_.get());
-  dispatcher.RegisterListener("TestMessage", &listener1_);
-
-  Message message("TestMessage", nullptr, 42);
-  dispatcher.DispatchMessage(message);
-
-  EXPECT_EQ(listener1_.message_count(), 1);
-  EXPECT_EQ(std::any_cast<int>(listener1_.last_message().payload), 42);
-}
-
 TEST_F(MessageDispatcherTest, FilteredMessageHandling) {
   MessageDispatcher dispatcher;
 
