@@ -125,6 +125,7 @@ static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
 
 constexpr uint32_t kNumGfxSheets = 223;
 constexpr uint32_t kNumLinkSheets = 14;
+constexpr uint32_t kTile16Ptr = 0x78000;
 constexpr uint32_t kNormalGfxSpaceStart = 0x87000;
 constexpr uint32_t kNormalGfxSpaceEnd = 0xC4200;
 constexpr uint32_t kFontSpriteLocation = 0x70000;
@@ -219,6 +220,27 @@ class Rom : public core::ExperimentFlags {
    */
   absl::Status SaveAllPalettes();
 
+  /**
+   * @brief Expand the Rom data to a specified size.
+   */
+  void Expand(int size) {
+    rom_data_.resize(size);
+    size_ = size;
+  }
+
+  /**
+   *  @brief Close the Rom file.
+   */
+  absl::Status Close() {
+    rom_data_.clear();
+    size_ = 0;
+    is_loaded_ = false;
+    return absl::OkStatus();
+  }
+
+  /**
+   * @brief Precondition check for reading and writing to the Rom.
+   */
   absl::Status ReadWritePreconditions() {
     if (!is_loaded_) {
       return absl::FailedPreconditionError("ROM file not loaded");
@@ -277,7 +299,7 @@ class Rom : public core::ExperimentFlags {
 
   absl::StatusOr<gfx::Tile16> ReadTile16(uint32_t tile16_id) {
     // Skip 8 bytes per tile.
-    auto tpos = 0x78000 + (tile16_id * 0x08);
+    auto tpos = kTile16Ptr + (tile16_id * 0x08);
     gfx::Tile16 tile16;
     ASSIGN_OR_RETURN(auto new_tile0, ReadWord(tpos))
     tile16.tile0_ = gfx::WordToTileInfo(new_tile0);
@@ -295,7 +317,7 @@ class Rom : public core::ExperimentFlags {
 
   absl::Status WriteTile16(int tile16_id, const gfx::Tile16& tile) {
     // Skip 8 bytes per tile.
-    auto tpos = 0x78000 + (tile16_id * 0x08);
+    auto tpos = kTile16Ptr + (tile16_id * 0x08);
     RETURN_IF_ERROR(WriteShort(tpos, gfx::TileInfoToWord(tile.tile0_)));
     tpos += 2;
     RETURN_IF_ERROR(WriteShort(tpos, gfx::TileInfoToWord(tile.tile1_)));
@@ -420,16 +442,13 @@ class Rom : public core::ExperimentFlags {
     return status;
   }
 
-  void Expand(int size) {
-    rom_data_.resize(size);
-    size_ = size;
-  }
-
-  absl::Status Close() {
-    rom_data_.clear();
-    size_ = 0;
-    is_loaded_ = false;
-    return absl::OkStatus();
+  uint8_t& operator[](int i) {
+    if (i > size_) {
+      std::cout << "ROM: Index " << i << " out of bounds, size: " << size_
+                << std::endl;
+      return rom_data_[0];
+    }
+    return rom_data_[i];
   }
 
   core::ResourceLabelManager* resource_label() {
@@ -437,6 +456,14 @@ class Rom : public core::ExperimentFlags {
   }
   VersionConstants version_constants() const {
     return kVersionConstantsMap.at(version_);
+  }
+
+  auto is_loaded() const {
+    if (!absl::StrContains(filename_, ".sfc") &&
+        !absl::StrContains(filename_, ".smc")) {
+      return false;
+    }
+    return is_loaded_;
   }
 
   // Full graphical data for the game
@@ -461,25 +488,9 @@ class Rom : public core::ExperimentFlags {
   auto end() { return rom_data_.end(); }
   auto data() { return rom_data_.data(); }
   auto vector() const { return rom_data_; }
-  auto filename() const { return filename_; }
-  auto is_loaded() const {
-    if (!absl::StrContains(filename_, ".sfc") &&
-        !absl::StrContains(filename_, ".smc")) {
-      return false;
-    }
-    return is_loaded_;
-  }
-  auto set_filename(std::string name) { filename_ = name; }
   auto version() const { return version_; }
-
-  uint8_t& operator[](int i) {
-    if (i > size_) {
-      std::cout << "ROM: Index " << i << " out of bounds, size: " << size_
-                << std::endl;
-      return rom_data_[0];
-    }
-    return rom_data_[i];
-  }
+  auto filename() const { return filename_; }
+  auto set_filename(std::string name) { filename_ = name; }
 
   std::vector<std::vector<uint8_t>> main_blockset_ids;
   std::vector<std::vector<uint8_t>> room_blockset_ids;

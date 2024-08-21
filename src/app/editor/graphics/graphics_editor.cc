@@ -599,7 +599,7 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
                                          /*z3_load=*/false);
         auto col_data_ = gfx::GetColFileData(temp_rom_.data());
         if (col_file_palette_group_.size() != 0) {
-          col_file_palette_group_.Clear();
+          col_file_palette_group_.clear();
         }
         auto col_file_palette_group_status =
             gfx::CreatePaletteGroupFromColFile(col_data_);

@@ -73,7 +73,7 @@ absl::Status LoadGlobalSpritePalettes(const std::vector<uint8_t>& rom_data,
   palette_groups.global_sprites.AddPalette(
       gfx::ReadPaletteFromRom(kGlobalSpritesLW, /*num_colors=*/60, data));
   palette_groups.global_sprites.AddPalette(
-      gfx::ReadPaletteFromRom(globalSpritePalettesDW, /*num_colors=*/60, data));
+      gfx::ReadPaletteFromRom(kGlobalSpritePalettesDW, /*num_colors=*/60, data));
   return absl::OkStatus();
 }
 
@@ -152,9 +152,9 @@ absl::Status LoadGrassColors(const std::vector<uint8_t>& rom_data,
   palette_groups.grass.AddColor(
       gfx::ReadColorFromRom(kHardcodedGrassLW, rom_data.data()));
   palette_groups.grass.AddColor(
-      gfx::ReadColorFromRom(hardcodedGrassDW, rom_data.data()));
+      gfx::ReadColorFromRom(kHardcodedGrassDW, rom_data.data()));
   palette_groups.grass.AddColor(
-      gfx::ReadColorFromRom(hardcodedGrassSpecial, rom_data.data()));
+      gfx::ReadColorFromRom(kHardcodedGrassSpecial, rom_data.data()));
   return absl::OkStatus();
 }
 
@@ -164,7 +164,7 @@ absl::Status Load3DObjectPalettes(const std::vector<uint8_t>& rom_data,
   palette_groups.object_3d.AddPalette(
       gfx::ReadPaletteFromRom(kTriforcePalette, 8, data));
   palette_groups.object_3d.AddPalette(
-      gfx::ReadPaletteFromRom(crystalPalette, 8, data));
+      gfx::ReadPaletteFromRom(kCrystalPalette, 8, data));
   return absl::OkStatus();
 }
 
