@@ -5,6 +5,25 @@ namespace app {
 namespace zelda3 {
 namespace dungeon {
 
+ObjectOption operator|(ObjectOption lhs, ObjectOption rhs) {
+  return static_cast<ObjectOption>(static_cast<int>(lhs) |
+                                   static_cast<int>(rhs));
+}
+
+ObjectOption operator&(ObjectOption lhs, ObjectOption rhs) {
+  return static_cast<ObjectOption>(static_cast<int>(lhs) &
+                                   static_cast<int>(rhs));
+}
+
+ObjectOption operator^(ObjectOption lhs, ObjectOption rhs) {
+  return static_cast<ObjectOption>(static_cast<int>(lhs) ^
+                                   static_cast<int>(rhs));
+}
+
+ObjectOption operator~(ObjectOption option) {
+  return static_cast<ObjectOption>(~static_cast<int>(option));
+}
+
 SubtypeInfo FetchSubtypeInfo(uint16_t object_id) {
   SubtypeInfo info;
 
@@ -31,7 +50,7 @@ SubtypeInfo FetchSubtypeInfo(uint16_t object_id) {
   return info;
 }
 
-void RoomObject::DrawTile(Tile t, int xx, int yy,
+void RoomObject::DrawTile(gfx::Tile16 t, int xx, int yy,
                           std::vector<uint8_t>& current_gfx16,
                           std::vector<uint8_t>& tiles_bg1_buffer,
                           std::vector<uint8_t>& tiles_bg2_buffer,

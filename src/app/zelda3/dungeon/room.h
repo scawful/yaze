@@ -117,7 +117,15 @@ struct ChestData {
   bool size_;
 };
 
-struct StaircaseRooms {};
+struct StaircaseRooms {
+  StaircaseRooms() = default;
+  StaircaseRooms(uchar i, uchar r, const char* label)
+      : id_(i), room_(r), label_(label){};
+
+  uchar id_;
+  uchar room_;
+  const char* label_;
+};
 
 class Room : public SharedRom {
  public:
