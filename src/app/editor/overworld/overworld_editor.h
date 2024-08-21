@@ -29,19 +29,18 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-static constexpr uint k4BPP = 4;
-static constexpr uint kByteSize = 3;
-static constexpr uint kMessageIdSize = 5;
-static constexpr uint kNumSheetsToLoad = 223;
-static constexpr uint kTile8DisplayHeight = 64;
-static constexpr float kInputFieldSize = 30.f;
-
-static constexpr absl::string_view kToolsetColumnNames[] = {
-    "#undoTool",      "#redoTool",   "#separator2",      "#zoomOutTool",
-    "#zoomInTool",    "#separator",  "#drawTool",        "#history",
-    "#entranceTool",  "#exitTool",   "#itemTool",        "#spriteTool",
-    "#transportTool", "#musicTool",  "#separator3",      "#tilemapTool",
-    "propertiesTool", "#separator4", "#experimentalTool"};
+constexpr uint k4BPP = 4;
+constexpr uint kByteSize = 3;
+constexpr uint kMessageIdSize = 5;
+constexpr uint kNumSheetsToLoad = 223;
+constexpr uint kTile8DisplayHeight = 64;
+constexpr uint kOverworldMapSize = 0x200;
+constexpr float kInputFieldSize = 30.f;
+constexpr ImVec2 kOverworldCanvasSize(kOverworldMapSize * 8,
+                                      kOverworldMapSize * 8);
+constexpr ImVec2 kCurrentGfxCanvasSize(0x100 + 1, 0x10 * 0x40 + 1);
+constexpr ImVec2 kBlocksetCanvasSize(0x100 + 1, 0x2000 + 1);
+constexpr ImVec2 kGraphicsBinCanvasSize(0x100 + 1, kNumSheetsToLoad * 0x40 + 1);
 
 constexpr ImGuiTableFlags kOWMapFlags =
     ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable;
@@ -50,6 +49,13 @@ constexpr ImGuiTableFlags kOWEditFlags =
     ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
     ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
     ImGuiTableFlags_BordersV;
+
+static constexpr absl::string_view kToolsetColumnNames[] = {
+    "#undoTool",      "#redoTool",   "#separator2",      "#zoomOutTool",
+    "#zoomInTool",    "#separator",  "#drawTool",        "#history",
+    "#entranceTool",  "#exitTool",   "#itemTool",        "#spriteTool",
+    "#transportTool", "#musicTool",  "#separator3",      "#tilemapTool",
+    "propertiesTool", "#separator4", "#experimentalTool"};
 
 constexpr absl::string_view kWorldList =
     "Light World\0Dark World\0Extra World\0";
@@ -217,13 +223,6 @@ class OverworldEditor : public Editor,
   bool middle_mouse_dragging_ = false;
   bool is_dragging_entity_ = false;
 
-  zelda3::OverworldEntity* dragged_entity_;
-  zelda3::OverworldEntity* current_entity_;
-  zelda3::overworld::OverworldEntrance current_entrance_;
-  zelda3::overworld::OverworldExit current_exit_;
-  zelda3::overworld::OverworldItem current_item_;
-  zelda3::Sprite current_sprite_;
-
   std::vector<uint8_t> selected_tile_data_;
   std::vector<std::vector<uint8_t>> tile16_individual_data_;
   std::vector<gfx::Bitmap> tile16_individual_;
@@ -234,21 +233,9 @@ class OverworldEditor : public Editor,
   Tile16Editor tile16_editor_;
   GfxGroupEditor gfx_group_editor_;
   PaletteEditor palette_editor_;
-  zelda3::overworld::Overworld overworld_;
-
-  gui::Canvas ow_map_canvas_{"owMapCanvas", ImVec2(0x200 * 8, 0x200 * 8),
-                             gui::CanvasGridSize::k64x64};
-  gui::Canvas current_gfx_canvas_{"customGfxCanvas",
-                                  ImVec2(0x100 + 1, 0x10 * 0x40 + 1),
-                                  gui::CanvasGridSize::k32x32};
-  gui::Canvas blockset_canvas_{"blocksetCanvas", ImVec2(0x100 + 1, 0x2000 + 1),
-                               gui::CanvasGridSize::k32x32};
-  gui::Canvas graphics_bin_canvas_{
-      "graphicsBinCanvas", ImVec2(0x100 + 1, kNumSheetsToLoad * 0x40 + 1),
-      gui::CanvasGridSize::k16x16};
-  gui::Canvas properties_canvas_;
 
   gfx::SnesPalette palette_;
+
   gfx::Bitmap selected_tile_bmp_;
   gfx::Bitmap tile16_blockset_bmp_;
   gfx::Bitmap current_gfx_bmp_;
@@ -258,8 +245,28 @@ class OverworldEditor : public Editor,
   gfx::BitmapTable current_graphics_set_;
   gfx::BitmapTable sprite_previews_;
 
+  zelda3::overworld::Overworld overworld_;
   zelda3::OWBlockset refresh_blockset_;
 
+  zelda3::Sprite current_sprite_;
+
+  zelda3::overworld::OverworldEntrance current_entrance_;
+  zelda3::overworld::OverworldExit current_exit_;
+  zelda3::overworld::OverworldItem current_item_;
+
+  zelda3::OverworldEntity* current_entity_;
+  zelda3::OverworldEntity* dragged_entity_;
+
+  gui::Canvas ow_map_canvas_{"OwMap", kOverworldCanvasSize,
+                             gui::CanvasGridSize::k64x64};
+  gui::Canvas current_gfx_canvas_{"CurrentGfx", kCurrentGfxCanvasSize,
+                                  gui::CanvasGridSize::k32x32};
+  gui::Canvas blockset_canvas_{"OwBlockset", kBlocksetCanvasSize,
+                               gui::CanvasGridSize::k32x32};
+  gui::Canvas graphics_bin_canvas_{"GraphicsBin", kGraphicsBinCanvasSize,
+                                   gui::CanvasGridSize::k16x16};
+  gui::Canvas properties_canvas_{"Properties", ImVec2(0x100, 0x100),
+                                 gui::CanvasGridSize::k8x8};
   gui::zeml::Node layout_node_;
   absl::Status status_;
 };

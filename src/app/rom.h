@@ -128,6 +128,10 @@ constexpr uint32_t kNumMainBlocksets = 37;
 constexpr uint32_t kNumRoomBlocksets = 82;
 constexpr uint32_t kNumSpritesets = 144;
 constexpr uint32_t kNumPalettesets = 72;
+constexpr uint32_t kUncompressedSheetSize = 0x0800;
+
+// TODO: Verify what this was used for in ZS
+constexpr uint32_t kMaxGraphics = 0xC3FB5;
 
 /**
  * @brief The Rom class is used to load, save, and modify Rom data.

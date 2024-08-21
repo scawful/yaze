@@ -80,6 +80,8 @@ constexpr int door_pos_right = 0x19C6;
 
 constexpr int dungeon_spr_ptrs = 0x090000;
 
+constexpr int NumberOfRooms = 296;
+
 constexpr ushort stairsObjects[] = {0x139, 0x138, 0x13B, 0x12E, 0x12D};
 
 class DungeonDestination {

@@ -28,6 +28,18 @@ namespace zelda3 {
  */
 namespace overworld {
 
+constexpr int GravesYTilePos = 0x49968;    // short (0x0F entries)
+constexpr int GravesXTilePos = 0x49986;    // short (0x0F entries)
+constexpr int GravesTilemapPos = 0x499A4;  // short (0x0F entries)
+constexpr int GravesGFX = 0x499C2;         // short (0x0F entries)
+
+constexpr int GravesXPos = 0x4994A;      // short (0x0F entries)
+constexpr int GravesYLine = 0x4993A;     // short (0x08 entries)
+constexpr int GravesCountOnY = 0x499E0;  // Byte 0x09 entries
+
+constexpr int GraveLinkSpecialHole = 0x46DD9;    // short
+constexpr int GraveLinkSpecialStairs = 0x46DE0;  // short
+
 // List of secret item names
 const std::vector<std::string> kSecretItemNames = {
     "Nothing",        // 0
@@ -588,7 +600,8 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
   void AssembleMap16Tiles();
   void AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
                         OWBlockset &world);
-  void OrganizeMapTiles(std::vector<uint8_t> &bytes, std::vector<uint8_t> &bytes2, int i, int sx, int sy,
+  void OrganizeMapTiles(std::vector<uint8_t> &bytes,
+                        std::vector<uint8_t> &bytes2, int i, int sx, int sy,
                         int &ttpos);
   absl::Status DecompressAllMapTiles();
 

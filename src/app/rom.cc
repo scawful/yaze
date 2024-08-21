@@ -72,8 +72,8 @@ absl::Status Rom::LoadLinkGraphics() {
         ReadByteVector(/*offset=*/link_gfx_offset + (i * link_gfx_length),
                        /*length=*/link_gfx_length))
     auto link_sheet_8bpp = gfx::SnesTo8bppSheet(link_sheet_data, /*bpp=*/4);
-    link_graphics_[i].Create(core::kTilesheetWidth, core::kTilesheetHeight,
-                             core::kTilesheetDepth, link_sheet_8bpp);
+    link_graphics_[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+                             gfx::kTilesheetDepth, link_sheet_8bpp);
     RETURN_IF_ERROR(link_graphics_[i].ApplyPalette(palette_groups_.armors[0]);)
     Renderer::GetInstance().RenderBitmap(&link_graphics_[i]);
   }
@@ -109,8 +109,8 @@ absl::Status Rom::LoadAllGraphicsData() {
 
     if (bpp3) {
       auto converted_sheet = gfx::SnesTo8bppSheet(sheet, 3);
-      graphics_sheets_[i].Create(core::kTilesheetWidth, core::kTilesheetHeight,
-                                 core::kTilesheetDepth, converted_sheet);
+      graphics_sheets_[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+                                 gfx::kTilesheetDepth, converted_sheet);
       if (graphics_sheets_[i].is_active()) {
         if (i > 115) {
           // Apply sprites palette

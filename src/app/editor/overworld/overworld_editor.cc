@@ -58,7 +58,6 @@ using ImGui::TableSetupColumn;
 using ImGui::Text;
 
 constexpr int kTile16Size = 0x10;
-constexpr int kOverworldMapSize = 0x200;
 
 void OverworldEditor::InitializeZeml() {
   // Load zeml string from layouts/overworld.zeml

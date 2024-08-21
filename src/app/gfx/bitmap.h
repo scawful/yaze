@@ -98,8 +98,10 @@ class Bitmap {
   /**
    * @brief Creates a bitmap object with the provided graphical data.
    */
-  void Create(int width, int height, int depth, const std::vector<uint8_t> &data);
-  void Create(int width, int height, int depth, int format, const std::vector<uint8_t> &data);
+  void Create(int width, int height, int depth,
+              const std::vector<uint8_t> &data);
+  void Create(int width, int height, int depth, int format,
+              const std::vector<uint8_t> &data);
 
   void Reformat(int format);
 

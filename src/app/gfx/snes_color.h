@@ -11,6 +11,8 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
+constexpr int NumberOfColors = 3143;
+
 snes_color ConvertSNEStoRGB(uint16_t snes_color);
 uint16_t ConvertRGBtoSNES(const snes_color& color);
 uint16_t ConvertRGBtoSNES(const ImVec4& color);

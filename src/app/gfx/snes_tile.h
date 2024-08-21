@@ -11,11 +11,17 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
+constexpr int kTilesheetWidth = 128;
+constexpr int kTilesheetHeight = 32;
+constexpr int kTilesheetDepth = 8;
+
 constexpr uint8_t kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
                                         0x08, 0x04, 0x02, 0x01};
 
-std::vector<uint8_t> SnesTo8bppSheet(const std::vector<uint8_t>& sheet, int bpp);
-std::vector<uint8_t> Bpp8SnesToIndexed(std::vector<uint8_t> data, uint64_t bpp = 0);
+std::vector<uint8_t> SnesTo8bppSheet(const std::vector<uint8_t>& sheet,
+                                     int bpp);
+std::vector<uint8_t> Bpp8SnesToIndexed(std::vector<uint8_t> data,
+                                       uint64_t bpp = 0);
 
 struct tile8 {
   uint32_t id;
@@ -151,7 +157,7 @@ class Tile16 {
 
 /**
  * @brief Object Attribute Memory tile abstraction container
-*/
+ */
 class OamTile {
  public:
   int x_;
