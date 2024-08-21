@@ -1,6 +1,9 @@
 #include "extension_manager.h"
 
+#if defined(__unix__) || defined(__unix) || defined(unix) || \
+    defined(__APPLE__) && defined(__MACH__)
 #include <dlfcn.h>
+#endif
 
 #include <iostream>
 #include <vector>
@@ -13,6 +16,8 @@ namespace editor {
 
 void ExtensionManager::LoadExtension(const std::string& filename,
                                      yaze_editor_context* context) {
+#if defined(__unix__) || defined(__unix) || defined(unix) || \
+    defined(__APPLE__) && defined(__MACH__)
   auto extension_path = filename.c_str();
   void* handle = dlopen(extension_path, RTLD_LAZY);
   if (!handle) {
@@ -42,6 +47,7 @@ void ExtensionManager::LoadExtension(const std::string& filename,
   }
 
   extensions_.push_back(extension);
+#endif
 }
 
 void ExtensionManager::RegisterExtension(yaze_extension* extension) {

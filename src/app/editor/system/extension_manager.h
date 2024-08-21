@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_SYSTEM_EXTENSION_MANAGER_H
 #define YAZE_APP_EDITOR_SYSTEM_EXTENSION_MANAGER_H
 
+#include <string>
 #include <vector>
 
 #include "base/extension.h"
