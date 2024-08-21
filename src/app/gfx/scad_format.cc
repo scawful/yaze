@@ -128,7 +128,7 @@ absl::Status DrawScrWithCgx(uint8_t bpp, std::vector<uint8_t>& map_data,
     p = each_dimension;
     // for each tile on the tile buffer
     for (int i = 0; i < 0x400; i++) {
-      if (map_data[i + p] != 0xFFFF) {
+      if (map_data[i + p] != 0xFF) {
         auto t = gfx::GetTilesInfo(map_data[i + p]);
 
         for (auto yl = 0; yl < 8; yl++) {
