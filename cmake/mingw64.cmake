@@ -1,4 +1,4 @@
-# cmake -DCMAKE_TOOLCHAIN_FILE=./cmake/mingw64.cmake -B build-windows
+# cmake -DCMAKE_TOOLCHAIN_FILE=./cmake/mingw64.cmake -B build-windows && cmake --build ./build-windows
 
 set(CMAKE_SYSTEM_NAME Windows)
 set(CMAKE_SYSTEM_VERSION 1)
