@@ -101,14 +101,9 @@ struct Project : public core::ExperimentFlags {
     return absl::OkStatus();
   }
 
-  absl::Status SerializeExperimentFlags() {
-    auto flags = mutable_flags();
-    // TODO: Serialize flags
-    return absl::OkStatus();
-  }
-
   bool project_opened_ = false;
   std::string name;
+  std::string flags = "";
   std::string filepath;
   std::string rom_filename_ = "";
   std::string code_folder_ = "";

@@ -45,9 +45,6 @@ int main(int argc, char **argv) {
   } else {
     SDL_DisplayMode displayMode;
     SDL_GetCurrentDisplayMode(0, &displayMode);
-    int screenWidth = displayMode.w * 0.8;
-    int screenHeight = displayMode.h * 0.8;
-
     window_ = std::unique_ptr<SDL_Window, SDL_Deleter>(
         SDL_CreateWindow("Yaze Emulator",          // window title
                          SDL_WINDOWPOS_UNDEFINED,  // initial x position
@@ -112,7 +109,10 @@ int main(int argc, char **argv) {
   int wanted_samples_ = 0;
   SDL_Event event;
 
-  rom_.LoadFromFile("inidisp_hammer_0f00.sfc");
+  if (!rom_.LoadFromFile("inidisp_hammer_0f00.sfc").ok()) {
+    return EXIT_FAILURE;
+  }
+
   if (rom_.is_loaded()) {
     rom_data_ = rom_.vector();
     snes_.Init(rom_data_);

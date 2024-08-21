@@ -11,7 +11,6 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
-
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/compression.h"
@@ -641,9 +640,6 @@ absl::Status Overworld::SaveOverworldMaps() {
     } else {
       // Save pointer for map1
       int snes_pos = map_pointers1[map_pointers1_id[i]];
-      uint8_t b1 = (uint8_t)(snes_pos & 0xFF);
-      uint8_t b2 = (uint8_t)((snes_pos >> 8) & 0xFF);
-      uint8_t b3 = (uint8_t)((snes_pos >> 16) & 0xFF);
       core::Logger::log("Saving map pointers1 for map " +
                         core::UppercaseHexByte(i) + " at " +
                         core::UppercaseHexLong(snes_pos));
@@ -667,9 +663,6 @@ absl::Status Overworld::SaveOverworldMaps() {
       std::copy(b.begin(), b.end(), map_data_p2[i].begin());
       int snes_pos = core::PcToSnes(pos);
       map_pointers2[i] = snes_pos;
-      uint8_t b1 = (uint8_t)(snes_pos & 0xFF);
-      uint8_t b2 = (uint8_t)((snes_pos >> 8) & 0xFF);
-      uint8_t b3 = (uint8_t)((snes_pos >> 16) & 0xFF);
       core::Logger::log("Saving map pointers2 and compressed data for map " +
                         core::UppercaseHexByte(i) + " at " +
                         core::UppercaseHexLong(snes_pos));

@@ -119,7 +119,6 @@ class RoomObject : public SharedRom {
   }
 
   void AddTiles(int nbr, int pos) {
-    auto rom_data = rom()->data();
     for (int i = 0; i < nbr; i++) {
       ASSIGN_OR_LOG_ERROR(auto tile, rom()->ReadTile16(pos + (i * 2)));
       tiles_.push_back(tile);

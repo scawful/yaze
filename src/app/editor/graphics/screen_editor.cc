@@ -9,7 +9,6 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
-
 #include "app/core/constants.h"
 #include "app/core/platform/renderer.h"
 #include "app/gfx/bitmap.h"
@@ -197,13 +196,9 @@ absl::Status ScreenEditor::SaveDungeonMaps() {
     const int nbr_basements = dungeon_maps_[d].nbr_of_basement;
     for (int i = 0; i < nbr_floors + nbr_basements; i++) {
       for (int j = 0; j < 25; j++) {
-        // rom()->data()[pcPtr + j + (i * 25)] =
-        //     dungeon_maps_[d].floor_rooms[i][j];
-        // rom()->data()[pcPtrGFX++] = dungeon_maps_[d].floor_gfx[i][j];
-
-        RETURN_IF_ERROR(rom()->WriteByte(ptr + j + (i * 25),
+        RETURN_IF_ERROR(rom()->WriteByte(pcPtr + j + (i * 25),
                                          dungeon_maps_[d].floor_rooms[i][j]));
-        RETURN_IF_ERROR(rom()->WriteByte(ptrGFX + j + (i * 25),
+        RETURN_IF_ERROR(rom()->WriteByte(pcPtrGFX + j + (i * 25),
                                          dungeon_maps_[d].floor_gfx[i][j]));
         pcPtrGFX++;
       }
@@ -275,8 +270,6 @@ void ScreenEditor::DrawDungeonMapsTabs() {
         for (int j = 0; j < 25; j++) {
           if (current_dungeon.floor_rooms[floor_number][j] != 0x0F) {
             int tile16_id = current_dungeon.floor_rooms[floor_number][j];
-            int tile_x = (tile16_id % 16) * 16;
-            int tile_y = (tile16_id / 16) * 16;
             int posX = ((j % 5) * 32);
             int posY = ((j / 5) * 32);
 

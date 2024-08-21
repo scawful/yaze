@@ -37,7 +37,7 @@ constexpr float kColorByteMaxF = 255.f;
  */
 class SnesColor {
  public:
-  SnesColor() : rgb_(0.f, 0.f, 0.f, 0.f), snes_(0) {}
+  SnesColor() : rgb_(0.f, 0.f, 0.f, 0.f), snes_(0), rom_color_({0, 0, 0}) {}
   explicit SnesColor(const ImVec4 val) : rgb_(val) {
     snes_color color;
     color.red = val.x / kColorByteMax;
