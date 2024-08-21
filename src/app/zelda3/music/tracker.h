@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "absl/status/status.h"
-
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
@@ -45,7 +44,7 @@ constexpr int kDungeonMusicBank = 0x0D8000;
 using text_buf_ty = char[512];
 // ============================================================================
 
-using SongSPCBlock = struct {
+struct SongSPCBlock {
   unsigned short start;
   unsigned short len;
   unsigned short relnum;
@@ -59,7 +58,7 @@ using SongSPCBlock = struct {
 
 // =============================================================================
 
-using SongRange = struct {
+struct SongRange {
   unsigned short start;
   unsigned short end;
 
@@ -75,7 +74,7 @@ using SongRange = struct {
 
 // =============================================================================
 
-using SongPart = struct {
+struct SongPart {
   uchar flag;
   uchar inst;
   short tbl[8];
@@ -84,7 +83,7 @@ using SongPart = struct {
 
 // =============================================================================
 
-using Song = struct {
+struct Song {
   unsigned char flag;
   unsigned char inst;
   SongPart **tbl;
@@ -95,7 +94,7 @@ using Song = struct {
 };
 // =============================================================================
 
-using ZeldaWave = struct {
+struct ZeldaWave {
   int lopst;
   int end;
   short lflag;
@@ -105,7 +104,7 @@ using ZeldaWave = struct {
 
 // ============================================================================
 
-using SampleEdit = struct {
+struct SampleEdit {
   unsigned short flag;
   unsigned short init;
   unsigned short editsamp;
@@ -130,7 +129,7 @@ using SampleEdit = struct {
 
 // =============================================================================
 
-using ZeldaInstrument = struct {
+struct ZeldaInstrument {
   unsigned char samp;
   unsigned char ad;
   unsigned char sr;
@@ -141,7 +140,7 @@ using ZeldaInstrument = struct {
 
 // =============================================================================
 
-using ZeldaSfxInstrument = struct {
+struct ZeldaSfxInstrument {
   unsigned char voll;
   unsigned char volr;
   short freq;
@@ -154,7 +153,7 @@ using ZeldaSfxInstrument = struct {
 
 // =============================================================================
 
-using SPCCommand = struct {
+struct SPCCommand {
   unsigned short addr;
   short next;
   short prev;
