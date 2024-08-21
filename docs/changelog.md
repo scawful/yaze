@@ -39,3 +39,9 @@
 - iOS app support
 - Graphics Sheet Browser
 - Project Files
+
+## 0.2.1 (08-20-2024)
+
+- Improved MessageEditor parsing
+- Added integration test window
+- Bitmap bug fixes

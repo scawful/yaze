@@ -124,7 +124,7 @@ namespace yaze {
 namespace app {
 namespace core {
 
-constexpr std::string_view kYazeVersion = "0.2.0";
+constexpr std::string_view kYazeVersion = "0.2.1";
 
 }  // namespace core
 }  // namespace app
