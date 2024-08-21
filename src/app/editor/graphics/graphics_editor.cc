@@ -397,7 +397,7 @@ absl::Status GraphicsEditor::UpdateLinkGfxView() {
     int i = 0;
     for (auto link_sheet : *rom()->mutable_link_graphics()) {
       int x_offset = 0;
-      int y_offset = core::kTilesheetHeight * i * 4;
+      int y_offset = gfx::kTilesheetHeight * i * 4;
       link_canvas_.DrawContextMenu(&link_sheet);
       link_canvas_.DrawBitmap(link_sheet, x_offset, y_offset, 4);
       i++;
@@ -767,7 +767,7 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
                                      temp_rom_.data(), current_offset_, size))
 
   auto converted_sheet = gfx::SnesTo8bppSheet(import_data_, 3);
-  bin_bitmap_.Create(core::kTilesheetWidth, 0x2000, core::kTilesheetDepth,
+  bin_bitmap_.Create(gfx::kTilesheetWidth, 0x2000, gfx::kTilesheetDepth,
                      converted_sheet);
 
   if (rom()->is_loaded()) {
@@ -795,8 +795,8 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
         auto decompressed_data,
         gfx::lc_lz2::DecompressV2(temp_rom_.data(), offset_value, 0x1000))
     auto converted_sheet = gfx::SnesTo8bppSheet(decompressed_data, 3);
-    gfx_sheets_[i] = gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
-                                 core::kTilesheetDepth, converted_sheet);
+    gfx_sheets_[i] = gfx::Bitmap(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+                                 gfx::kTilesheetDepth, converted_sheet);
     if (col_file_) {
       status_ = gfx_sheets_[i].ApplyPalette(
           col_file_palette_group_[current_palette_index_]);
@@ -820,8 +820,8 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
         auto decompressed_data,
         gfx::lc_lz2::DecompressV2(temp_rom_.data(), offset_value, 0x1000))
     auto converted_sheet = gfx::SnesTo8bppSheet(decompressed_data, 3);
-    gfx_sheets_[i] = gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
-                                 core::kTilesheetDepth, converted_sheet);
+    gfx_sheets_[i] = gfx::Bitmap(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+                                 gfx::kTilesheetDepth, converted_sheet);
     if (col_file_) {
       status_ = gfx_sheets_[i].ApplyPalette(
           col_file_palette_group_[current_palette_index_]);

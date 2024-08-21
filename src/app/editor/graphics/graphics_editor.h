@@ -192,7 +192,7 @@ class GraphicsEditor : public SharedRom, public Editor {
                                     gui::CanvasGridSize::k8x8};
   gui::Canvas link_canvas_{
       "LinkCanvas",
-      ImVec2(core::kTilesheetWidth * 4, core::kTilesheetHeight * 0x10 * 4),
+      ImVec2(gfx::kTilesheetWidth * 4, gfx::kTilesheetHeight * 0x10 * 4),
       gui::CanvasGridSize::k16x16};
   absl::Status status_;
 };

@@ -1,7 +1,5 @@
 #include "screen_editor.h"
 
-#include "imgui/imgui.h"
-
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -13,20 +11,23 @@
 #include "absl/strings/string_view.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
+#include "app/core/platform/renderer.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gfx/tilesheet.h"
 #include "app/gui/canvas.h"
-#include "app/core/platform/renderer.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/zelda3/dungeon/room.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {
 namespace editor {
 
 using core::Renderer;
+
+constexpr uint32_t kRedPen = 0xFF0000FF;
 
 absl::Status ScreenEditor::Update() {
   TAB_BAR("##TabBar")
@@ -290,7 +291,7 @@ void ScreenEditor::DrawDungeonMapsTabs() {
 
             if (current_dungeon.floor_rooms[floor_number][j] == boss_room) {
               screen_canvas_.DrawOutlineWithColor((posX * 2), (posY * 2), 64,
-                                                  64, core::kRedPen);
+                                                  64, kRedPen);
             }
 
             std::string label =

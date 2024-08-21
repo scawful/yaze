@@ -9,7 +9,7 @@ namespace zelda3 {
 void Sprite::UpdateMapProperties(short map_id) {
   map_x_ = x_;
   map_y_ = y_;
-  name_ = core::kSpriteDefaultNames[id_];
+  name_ = kSpriteDefaultNames[id_];
 }
 
 void Sprite::UpdateCoordinates(int map_x, int map_y) {

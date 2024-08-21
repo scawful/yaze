@@ -5,7 +5,7 @@ namespace app {
 namespace zelda3 {
 namespace dungeon {
 
-void DungeonObjectRenderer::LoadObject(uint16_t objectId,
+void DungeonObjectRenderer::LoadObject(uint32_t routine_ptr,
                                        std::array<uint8_t, 16>& sheet_ids) {
   vram_.sheets = sheet_ids;
 
@@ -13,48 +13,14 @@ void DungeonObjectRenderer::LoadObject(uint16_t objectId,
   // Prepare the CPU and memory environment
   memory_.Initialize(rom_data_);
 
-  // Fetch the subtype pointers for the given object ID
-  auto subtypeInfo = FetchSubtypeInfo(objectId);
-
   // Configure the object based on the fetched information
-  ConfigureObject(subtypeInfo);
+  ConfigureObject();
 
   // Run the CPU emulation for the object's draw routines
-  RenderObject(subtypeInfo);
+  RenderObject(routine_ptr);
 }
 
-SubtypeInfo DungeonObjectRenderer::FetchSubtypeInfo(uint16_t object_id) {
-  SubtypeInfo info;
-
-  // Determine the subtype based on objectId
-  uint8_t subtype = 1;
-
-  // Based on the subtype, fetch the correct pointers
-  switch (subtype) {
-    case 1:  // Subtype 1
-      info.subtype_ptr = core::subtype1_tiles + (object_id & 0xFF) * 2;
-      info.routine_ptr = core::subtype1_tiles + 0x200 + (object_id & 0xFF) * 2;
-      std::cout << "Subtype 1 " << std::hex << info.subtype_ptr << std::endl;
-      std::cout << "Subtype 1 " << std::hex << info.routine_ptr << std::endl;
-      break;
-    case 2:  // Subtype 2
-      info.subtype_ptr = core::subtype2_tiles + (object_id & 0x7F) * 2;
-      info.routine_ptr = core::subtype2_tiles + 0x80 + (object_id & 0x7F) * 2;
-      break;
-    case 3:  // Subtype 3
-      info.subtype_ptr = core::subtype3_tiles + (object_id & 0xFF) * 2;
-      info.routine_ptr = core::subtype3_tiles + 0x100 + (object_id & 0xFF) * 2;
-      break;
-    default:
-      // Handle unknown subtype
-      throw std::runtime_error("Unknown subtype for object ID: " +
-                               std::to_string(object_id));
-  }
-
-  return info;
-}
-
-void DungeonObjectRenderer::ConfigureObject(const SubtypeInfo& info) {
+void DungeonObjectRenderer::ConfigureObject() {
   cpu.A = 0x03D8;
   cpu.X = 0x03D8;
   cpu.DB = 0x7E;
@@ -94,12 +60,12 @@ void DungeonObjectRenderer::ConfigureObject(const SubtypeInfo& info) {
     #_0198A9: INY #4
     #_0198AD: RTS
 */
-void DungeonObjectRenderer::RenderObject(const SubtypeInfo& info) {
+void DungeonObjectRenderer::RenderObject(uint32_t routine_ptr) {
   cpu.PB = 0x01;
 
   // Push an initial value to the stack we can read later to confirm we are
   // done
-  cpu.PushLong(0x01 << 16 | info.routine_ptr);
+  cpu.PushLong(0x01 << 16 | routine_ptr);
 
   int i = 0;
   while (true) {

@@ -21,6 +21,13 @@ namespace app {
 namespace zelda3 {
 namespace dungeon {
 
+struct SubtypeInfo {
+  uint32_t subtype_ptr;
+  uint32_t routine_ptr;
+};
+
+SubtypeInfo FetchSubtypeInfo(uint16_t object_id);
+
 struct Tile {};
 
 enum class SpecialObjectType { Chest, BigChest, InterroomStairs };
@@ -34,7 +41,7 @@ enum Background2 {
   Addition,
   Normal,
   Transparent,
-  DarkRoom  // TODO: Determine if DarkRoom will stay there or not
+  DarkRoom
 };
 
 enum Sorting {
@@ -57,6 +64,12 @@ enum ObjectOption {
   Bgr = 16,
   Stairs = 32
 };
+
+constexpr int kRoomObjectSubtype1 = 0x8000;          // JP = Same
+constexpr int kRoomObjectSubtype2 = 0x83F0;          // JP = Same
+constexpr int kRoomObjectSubtype3 = 0x84F0;          // JP = Same
+constexpr int kRoomObjectTileAddress = 0x1B52;       // JP = Same
+constexpr int kRoomObjectTileAddressFloor = 0x1B5A;  // JP = Same
 
 class RoomObject : public SharedRom {
  public:
@@ -166,11 +179,10 @@ class Subtype1 : public RoomObject {
            int tileCount)
       : RoomObject(id, x, y, size, layer), tile_count_(tileCount) {
     auto rom_data = rom()->data();
-    int pos =
-        core::tile_address +
-        static_cast<int16_t>(
-            (rom_data[core::subtype1_tiles + ((id & 0xFF) * 2) + 1] << 8) +
-            rom_data[core::subtype1_tiles + ((id & 0xFF) * 2)]);
+    int pos = kRoomObjectTileAddress +
+              static_cast<int16_t>(
+                  (rom_data[kRoomObjectSubtype1 + ((id & 0xFF) * 2) + 1] << 8) +
+                  rom_data[kRoomObjectSubtype1 + ((id & 0xFF) * 2)]);
     AddTiles(tile_count_, pos);
     sort = (Sorting)(Sorting::Horizontal | Sorting::Wall);
   }
@@ -194,11 +206,10 @@ class Subtype2 : public RoomObject {
   Subtype2(int16_t id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer)
       : RoomObject(id, x, y, size, layer) {
     auto rom_data = rom()->data();
-    int pos =
-        core::tile_address +
-        static_cast<int16_t>(
-            (rom_data[core::subtype2_tiles + ((id & 0x7F) * 2) + 1] << 8) +
-            rom_data[core::subtype2_tiles + ((id & 0x7F) * 2)]);
+    int pos = kRoomObjectTileAddress +
+              static_cast<int16_t>(
+                  (rom_data[kRoomObjectSubtype2 + ((id & 0x7F) * 2) + 1] << 8) +
+                  rom_data[kRoomObjectSubtype2 + ((id & 0x7F) * 2)]);
     AddTiles(8, pos);
     sort = (Sorting)(Sorting::Horizontal | Sorting::Wall);
   }
@@ -220,11 +231,10 @@ class Subtype3 : public RoomObject {
   Subtype3(int16_t id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer)
       : RoomObject(id, x, y, size, layer) {
     auto rom_data = rom()->data();
-    int pos =
-        core::tile_address +
-        static_cast<int16_t>(
-            (rom_data[core::subtype3_tiles + ((id & 0xFF) * 2) + 1] << 8) +
-            rom_data[core::subtype3_tiles + ((id & 0xFF) * 2)]);
+    int pos = kRoomObjectTileAddress +
+              static_cast<int16_t>(
+                  (rom_data[kRoomObjectSubtype3 + ((id & 0xFF) * 2) + 1] << 8) +
+                  rom_data[kRoomObjectSubtype3 + ((id & 0xFF) * 2)]);
     AddTiles(8, pos);
     sort = (Sorting)(Sorting::Horizontal | Sorting::Wall);
   }
