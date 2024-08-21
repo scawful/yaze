@@ -9,7 +9,6 @@
 #include "app/gui/input.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/object_names.h"
-#include "app/zelda3/dungeon/room_names.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
 
