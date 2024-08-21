@@ -2,7 +2,6 @@
 
 #include <cstdint>
 
-
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
@@ -13,10 +12,10 @@ namespace zelda3 {
 namespace screen {
 
 void TitleScreen::Create() {
-  tiles8Bitmap.Create(128, 512, 8, std::vector<uint8_t>(0, 0x20000));
-  tilesBG1Bitmap.Create(256, 256, 8, std::vector<uint8_t>(0, 0x80000));
-  tilesBG2Bitmap.Create(256, 256, 8, std::vector<uint8_t>(0, 0x80000));
-  oamBGBitmap.Create(256, 256, 8, std::vector<uint8_t>(0, 0x80000));
+  tiles8Bitmap.Create(128, 512, 8, std::vector<uint8_t>(0x20000));
+  tilesBG1Bitmap.Create(256, 256, 8, std::vector<uint8_t>(0x80000));
+  tilesBG2Bitmap.Create(256, 256, 8, std::vector<uint8_t>(0x80000));
+  oamBGBitmap.Create(256, 256, 8, std::vector<uint8_t>(0x80000));
   BuildTileset();
   LoadTitleScreen();
 }
@@ -44,7 +43,7 @@ void TitleScreen::BuildTileset() {
   uchar* currentmapgfx8Data = tiles8Bitmap.mutable_data().data();
 
   // All gfx of the game pack of 2048 bytes (4bpp)
-  uchar* allgfxData = nullptr;  // rom_.GetMasterGraphicsBin();
+  uchar* allgfxData = nullptr;
   for (int i = 0; i < 16; i++) {
     for (int j = 0; j < 2048; j++) {
       uchar mapByte = allgfxData[j + (staticgfx[i] * 2048)];

@@ -37,8 +37,6 @@ class DungeonObjectRenderer : public SharedRom {
   auto mutable_memory() { return &memory_; }
 
  private:
-  uint16_t pc_with_rts_;
-
   std::vector<uint8_t> tilemap_;
   std::vector<uint8_t> rom_data_;
 
