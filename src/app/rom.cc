@@ -62,15 +62,15 @@ absl::StatusOr<std::vector<uint8_t>> Rom::Load2BppGraphics() {
 }
 
 absl::Status Rom::LoadLinkGraphics() {
-  const uint32_t link_gfx_offset = 0x80000;  // $10:8000
-  const uint16_t link_gfx_length = 0x800;    // 0x4000 or 0x7000?
+  const uint32_t kLinkGfxOffset = 0x80000;  // $10:8000
+  const uint16_t kLinkGfxLength = 0x800;    // 0x4000 or 0x7000?
 
   // Load Links graphics from the ROM
   for (int i = 0; i < kNumLinkSheets; i++) {
     ASSIGN_OR_RETURN(
         auto link_sheet_data,
-        ReadByteVector(/*offset=*/link_gfx_offset + (i * link_gfx_length),
-                       /*length=*/link_gfx_length))
+        ReadByteVector(/*offset=*/kLinkGfxOffset + (i * kLinkGfxLength),
+                       /*length=*/kLinkGfxLength))
     auto link_sheet_8bpp = gfx::SnesTo8bppSheet(link_sheet_data, /*bpp=*/4);
     link_graphics_[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                              gfx::kTilesheetDepth, link_sheet_8bpp);
@@ -205,9 +205,9 @@ absl::Status Rom::LoadFromPointer(uchar* data, size_t length, bool z3_load) {
 
 absl::Status Rom::LoadZelda3() {
   // Check if the ROM has a header
-  constexpr size_t baseROMSize = 1048576;  // 1MB
-  constexpr size_t headerSize = 0x200;     // 512 bytes
-  if (size_ % baseROMSize == headerSize) {
+  constexpr size_t kBaseRomSize = 1048576;  // 1MB
+  constexpr size_t kHeaderSize = 0x200;     // 512 bytes
+  if (size_ % kBaseRomSize == kHeaderSize) {
     auto header =
         std::vector<uchar>(rom_data_.begin(), rom_data_.begin() + 0x200);
     rom_data_.erase(rom_data_.begin(), rom_data_.begin() + 0x200);
@@ -231,8 +231,8 @@ absl::Status Rom::LoadZelda3() {
   RETURN_IF_ERROR(LoadGfxGroups());
 
   // Expand the ROM data to 2MB without changing the data in the first 1MB
-  rom_data_.resize(baseROMSize * 2);
-  size_ = baseROMSize * 2;
+  rom_data_.resize(kBaseRomSize * 2);
+  size_ = kBaseRomSize * 2;
 
   return absl::OkStatus();
 }
@@ -349,7 +349,6 @@ absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
 
 absl::Status Rom::SavePalette(int index, const std::string& group_name,
                               gfx::SnesPalette& palette) {
-  // Iterate through all colors in the palette
   for (size_t j = 0; j < palette.size(); ++j) {
     gfx::SnesColor color = palette[j];
     // If the color is modified, save the color to the ROM

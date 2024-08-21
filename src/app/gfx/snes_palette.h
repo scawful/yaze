@@ -62,30 +62,34 @@ constexpr int kOverworldPaletteMain = 0xDE6C8;
 constexpr int kOverworldPaletteAux = 0xDE86C;
 constexpr int kOverworldPaletteAnimated = 0xDE604;
 constexpr int kGlobalSpritesLW = 0xDD218;
-constexpr int globalSpritePalettesDW = 0xDD290;
-// Green, Blue, Red, Bunny, Electrocuted (15 colors each)
-constexpr int kArmorPalettes = 0xDD308;
+constexpr int kGlobalSpritePalettesDW = 0xDD290;
+constexpr int kArmorPalettes =
+    0xDD308; /** < Green, Blue, Red, Bunny, Electrocuted (15 colors each) */
 constexpr int kSpritesPalettesAux1 = 0xDD39E;  // 7 colors each
 constexpr int kSpritesPalettesAux2 = 0xDD446;  // 7 colors each
 constexpr int kSpritesPalettesAux3 = 0xDD4E0;  // 7 colors each
 constexpr int kSwordPalettes = 0xDD630;        // 3 colors each - 4 entries
 constexpr int kShieldPalettes = 0xDD648;       // 4 colors each - 3 entries
 constexpr int kHudPalettes = 0xDD660;
-constexpr int dungeonMapPalettes = 0xDD70A;    // 21 colors
-constexpr int kDungeonMainPalettes = 0xDD734;  //(15*6) colors each - 20 entries
-constexpr int dungeonMapBgPalettes = 0xDE544;  // 16*6
+constexpr int kDungeonMapPalettes = 0xDD70A;  // 21 colors
+constexpr int kDungeonMainPalettes =
+    0xDD734;  // (15*6) colors each - 20 entries
+constexpr int kDungeonMapBgPalettes = 0xDE544;  // 16*6
+
 // Mirrored Value at 0x75645 : 0x75625
 constexpr int kHardcodedGrassLW = 0x5FEA9;
-constexpr int hardcodedGrassDW = 0x05FEB3;  // 0x7564F
-constexpr int hardcodedGrassSpecial = 0x75640;
+constexpr int kHardcodedGrassDW = 0x05FEB3;  // 0x7564F
+constexpr int kHardcodedGrassSpecial = 0x75640;
 constexpr int kOverworldMiniMapPalettes = 0x55B27;
 constexpr int kTriforcePalette = 0x64425;
-constexpr int crystalPalette = 0xF4CD3;
-// 2 bytes for each overworld area (320)
-constexpr int customAreaSpecificBGPalette = 0x140000;
-constexpr int customAreaSpecificBGASM = 0x140150;
+constexpr int kCrystalPalette = 0xF4CD3;
+constexpr int CustomAreaSpecificBGPalette =
+    0x140000; /** < 2 bytes for each overworld area (320) */
+
+constexpr int CustomAreaSpecificBGASM = 0x140150;
+
 // 1 byte, not 0 if enabled
-constexpr int customAreaSpecificBGEnabled = 0x140140;
+constexpr int kCustomAreaSpecificBGEnabled = 0x140140;
 
 uint32_t GetPaletteAddress(const std::string& group_name, size_t palette_index,
                            size_t color_index);
@@ -199,7 +203,7 @@ struct PaletteGroup {
     palettes[0].AddColor(color);
   }
 
-  void Clear() { palettes.clear(); }
+  void clear() { palettes.clear(); }
   void SetName(const std::string& name) { name_ = name; }
   auto name() const { return name_; }
   auto size() const { return palettes.size(); }
@@ -307,21 +311,21 @@ struct PaletteGroupMap {
   }
 
   void clear() {
-    overworld_main.Clear();
-    overworld_aux.Clear();
-    overworld_animated.Clear();
-    hud.Clear();
-    global_sprites.Clear();
-    armors.Clear();
-    swords.Clear();
-    shields.Clear();
-    sprites_aux1.Clear();
-    sprites_aux2.Clear();
-    sprites_aux3.Clear();
-    dungeon_main.Clear();
-    grass.Clear();
-    object_3d.Clear();
-    overworld_mini_map.Clear();
+    overworld_main.clear();
+    overworld_aux.clear();
+    overworld_animated.clear();
+    hud.clear();
+    global_sprites.clear();
+    armors.clear();
+    swords.clear();
+    shields.clear();
+    sprites_aux1.clear();
+    sprites_aux2.clear();
+    sprites_aux3.clear();
+    dungeon_main.clear();
+    grass.clear();
+    object_3d.clear();
+    overworld_mini_map.clear();
   }
 
   bool empty() {
@@ -339,7 +343,9 @@ struct PaletteGroupMap {
 absl::StatusOr<PaletteGroup> CreatePaletteGroupFromColFile(
     std::vector<SnesColor>& colors);
 
-// Take a SNESPalette with N many colors and divide it into palettes of 8 colors
+/**
+ * @brief Take a SNESPalette, divide it into palettes of 8 colors
+ */
 absl::StatusOr<PaletteGroup> CreatePaletteGroupFromLargePalette(
     SnesPalette& palette, int num_colors = 8);
 
@@ -352,7 +358,8 @@ absl::StatusOr<PaletteGroup> CreatePaletteGroupFromLargePalette(
  * groups.
  *
  */
-absl::Status LoadAllPalettes(const std::vector<uint8_t>& rom_data, PaletteGroupMap& groups);
+absl::Status LoadAllPalettes(const std::vector<uint8_t>& rom_data,
+                             PaletteGroupMap& groups);
 
 /**
  * @brief Represents a set of palettes used in a SNES graphics system.
