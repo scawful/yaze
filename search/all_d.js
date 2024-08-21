@@ -1,10 +1,10 @@
 var searchData=
 [
   ['f32_5fto_5fint8_5fsat_0',['F32_TO_INT8_SAT',['../palette__editor_8cc.html#ad2559c98ebd96ce5373e91ebc28f455a',1,'palette_editor.cc']]],
-  ['facilities_1',['Testing Facilities',['../md_docs_2contributing.html#autotoc_md27',1,'']]],
+  ['facilities_1',['Testing Facilities',['../md_docs_2contributing.html#autotoc_md28',1,'']]],
   ['fast_5fmem_5f_2',['fast_mem_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a78edf487e8006eab83dfef045cee66e4',1,'yaze::app::emu::SNES']]],
   ['fast_5from_3',['FAST_ROM',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#af9424b79590fad583d381935a03cb4b9a93364bc7d2865bb7cd3a8a79628315af',1,'yaze::app::emu::memory']]],
-  ['features_4',['Supported Features',['../index.html#autotoc_md42',1,'']]],
+  ['features_4',['Supported Features',['../index.html#autotoc_md43',1,'']]],
   ['feedbackvolume_5',['feedbackVolume',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a5341fdff49c7f45daacd5716fa0f8b24',1,'yaze::app::emu::audio::Dsp']]],
   ['fetchlargemaps_6',['FetchLargeMaps',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a7833a69e0cdbd2004285a7a57b1c7bea',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['fetchsubtypeinfo_7',['FetchSubtypeInfo',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#afa1d894d9706beec670641597b714396',1,'yaze::app::zelda3::dungeon']]],
@@ -43,7 +43,7 @@ var searchData=
   ['filter_40',['filter',['../structyaze_1_1app_1_1core_1_1MessageDispatcher_1_1ListenerWithFilter.html#a68eed279a998a40317fae07acd0f3085',1,'yaze::app::core::MessageDispatcher::ListenerWithFilter']]],
   ['filter_5f_41',['filter_',['../classyaze_1_1test_1_1message__system_1_1MessageDispatcherTest.html#ad616f87b79430dde7afcda9cc07b7ec0',1,'yaze::test::message_system::MessageDispatcherTest']]],
   ['filtered_5flisteners_5f_42',['filtered_listeners_',['../classyaze_1_1app_1_1core_1_1MessageDispatcher.html#a736aecb172e9225b6bc18a6d60e518e9',1,'yaze::app::core::MessageDispatcher']]],
-  ['filters_20strong_43',['4. &lt;strong&gt;Using Protocols and Filters&lt;/strong&gt;',['../md_docs_2message-passing.html#autotoc_md58',1,'']]],
+  ['filters_20strong_43',['4. &lt;strong&gt;Using Protocols and Filters&lt;/strong&gt;',['../md_docs_2message-passing.html#autotoc_md59',1,'']]],
   ['finalizecompression_44',['FinalizeCompression',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#af33da6d271bc83cd2ad741dccccccbd3',1,'yaze::app::gfx::lc_lz2']]],
   ['find_45',['Find',['../classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a808dd0bc5acbfa7b8951e5386399b74a',1,'yaze::app::editor::AssemblyEditor::Find()'],['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#adb2df7fb203eaa1cfe67b5b990b075df',1,'yaze::app::editor::DungeonEditor::Find()'],['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a33048442656e6be39f987c2a33c49f98',1,'yaze::app::editor::GraphicsEditor::Find()'],['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a9f99fd3ee61076392a31e606a72f2bbf',1,'yaze::app::editor::PaletteEditor::Find()'],['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ae5368583dac430cfef59d1698a5f1628',1,'yaze::app::editor::ScreenEditor::Find()'],['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a4132306aac532000531b8dfddc781492',1,'yaze::app::editor::MessageEditor::Find()'],['../classyaze_1_1app_1_1editor_1_1MusicEditor.html#ab28d56d3638b0c5bf9efcda7285c8a2d',1,'yaze::app::editor::MusicEditor::Find()'],['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ac66f4692cb9b971ed9de7d164393c73b',1,'yaze::app::editor::OverworldEditor::Find()'],['../classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a0148aa3b65f194f110da78156ee923dc',1,'yaze::app::editor::SpriteEditor::Find()'],['../classyaze_1_1app_1_1editor_1_1SettingsEditor.html#a1e68fbd7585493bde3393e92e48b16e1',1,'yaze::app::editor::SettingsEditor::Find()'],['../classyaze_1_1app_1_1editor_1_1Editor.html#aa3e4e4a595aeea6ff984d916e50f711b',1,'yaze::app::editor::Editor::Find()'],['../classyaze_1_1test_1_1integration_1_1TestEditor.html#a745a8d3e202eb7128caa283b02c3323e',1,'yaze::test::integration::TestEditor::Find()']]],
   ['finddictionaryentry_46',['FindDictionaryEntry',['../namespaceyaze_1_1app_1_1editor.html#a3099ee5f96067379b03d477c1fdd1016',1,'yaze::app::editor']]],
@@ -80,7 +80,7 @@ var searchData=
   ['floor_5fnumber_77',['floor_number',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a5085b792c58db9657440783d875f07a8',1,'yaze::app::editor::ScreenEditor']]],
   ['floor_5frooms_78',['floor_rooms',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a3f3b7570510506caa504d50d0d0807c6',1,'yaze::app::zelda3::screen::DungeonMap']]],
   ['floors_79',['Floors',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ac3c0be1a02f8dce7d5bbca92747b4f9cae70340033b22f19b9a25b59360eae20e',1,'yaze::app::zelda3::dungeon']]],
-  ['flow_20of_20control_80',['Flow of Control',['../md_docs_2infrastructure.html#autotoc_md48',1,'']]],
+  ['flow_20of_20control_80',['Flow of Control',['../md_docs_2infrastructure.html#autotoc_md49',1,'']]],
   ['focus_81',['Focus',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a25effced7ec29b9cd4510b0ebe25b5c5',1,'yaze::app::editor::MessageEditor::TextBox']]],
   ['folderitem_82',['FolderItem',['../structyaze_1_1app_1_1core_1_1FolderItem.html',1,'yaze::app::core::FolderItem'],['../namespaceyaze_1_1app_1_1core.html#ae3d315799cc5396556e7b023473121dd',1,'yaze::app::core::FolderItem']]],
   ['font_5fgfx16_5fdata_5f_83',['font_gfx16_data_',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#ae214a9adbb2c6a54d84a38eb0070133b',1,'yaze::app::editor::MessageEditor']]],
@@ -110,7 +110,7 @@ var searchData=
   ['full_5fgraphic_107',['full_graphic',['../structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#aa3366284a3078a891e3b57ca7b9124c0',1,'yaze::app::emu::video::VideoPortControl']]],
   ['full_5fpalette_5f_108',['full_palette_',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a9fb55b114a36b11d6474d778770f242a',1,'yaze::app::editor::DungeonEditor']]],
   ['function_109',['Function',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a86408593c34af77fdd90df932f8b5261',1,'yaze::app::gui::zeml']]],
-  ['functionality_110',['Extending Functionality',['../index.html#autotoc_md41',1,'']]],
+  ['functionality_110',['Extending Functionality',['../index.html#autotoc_md42',1,'']]],
   ['functions_111',['functions',['../classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html#a7fbca91dff24d2693693c24b45e3092b',1,'yaze::app::zelda3::SpriteBuilder']]],
   ['fx_112',['FX',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42a25c6b7f8757be1397484ae6888e5a990',1,'yaze::app::emu::memory']]]
 ];

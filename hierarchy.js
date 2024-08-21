@@ -205,7 +205,6 @@ var hierarchy =
       [ "yaze::test::emu::MockPpu", "classyaze_1_1test_1_1emu_1_1MockPpu.html", null ]
     ] ],
     [ "yaze::app::zelda3::dungeon::PseudoVram", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html", null ],
-    [ "PythonYazeExtensionWrapper", "classPythonYazeExtensionWrapper.html", null ],
     [ "yaze::app::editor::RecentFilesManager", "classyaze_1_1app_1_1editor_1_1RecentFilesManager.html", null ],
     [ "yaze::app::core::Reflectable", "classyaze_1_1app_1_1core_1_1Reflectable.html", null ],
     [ "yaze::app::core::ResourceLabelManager", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html", null ],
@@ -327,6 +326,5 @@ var hierarchy =
     [ "z3_overworld_map", "structz3__overworld__map.html", null ],
     [ "z3_rom", "structz3__rom.html", null ],
     [ "z3_sprite", "structz3__sprite.html", null ],
-    [ "z3_sprite_action", "structz3__sprite__action.html", null ],
     [ "yaze::app::editor::zsprite::ZSprite", "structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html", null ]
 ];

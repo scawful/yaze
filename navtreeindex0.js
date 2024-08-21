@@ -196,8 +196,7 @@ var NAVTREEINDEX0 =
 "base_2snes__color_8h.html#a7010d1b3caf12995e0ecb41a1c446b94":[13,0,1,1,3,2],
 "base_2snes__color_8h_source.html":[13,0,1,1,3],
 "base_2sprite_8h.html":[13,0,1,1,4],
-"base_2sprite_8h.html#aa425967528383fae3ef201b558b40919":[13,0,1,1,4,3],
-"base_2sprite_8h.html#ab46681168ddbde5b53617c6daba0619a":[13,0,1,1,4,2],
+"base_2sprite_8h.html#aa425967528383fae3ef201b558b40919":[13,0,1,1,4,1],
 "base_2sprite_8h_source.html":[13,0,1,1,4],
 "bitmap_8cc.html":[13,0,1,0,3,0],
 "bitmap_8cc.html#a7ff41a09894e97938253afc4e6387add":[13,0,1,0,3,0,0],
@@ -244,10 +243,11 @@ var NAVTREEINDEX0 =
 "canvas_8h_source.html":[13,0,1,0,4,3],
 "classAppDelegate.html":[12,0,1],
 "classAppViewController.html":[12,0,2],
-"classPythonYazeExtensionWrapper.html":[12,0,3],
-"classPythonYazeExtensionWrapper.html#a1ce323d14ae709dda5ae53219725d89e":[12,0,3,11],
-"classPythonYazeExtensionWrapper.html#a28ad0780217d58831b3583e6d085316e":[12,0,3,10],
-"classPythonYazeExtensionWrapper.html#a325b87cd5ffb3ecb98eafc31f80b42dc":[12,0,3,9],
-"classPythonYazeExtensionWrapper.html#a3b0799238cd6a132723ffff287591650":[12,0,3,0],
-"classPythonYazeExtensionWrapper.html#a4156e953d7006b96b91c4689867de550":[12,0,3,1]
+"classes.html":[12,1],
+"classyaze_1_1app_1_1Rom.html":[11,0,1,0,8],
+"classyaze_1_1app_1_1Rom.html":[12,0,0,0,7],
+"classyaze_1_1app_1_1Rom.html#a0405fc759dcf30d80378d1f63f93cbc0":[11,0,1,0,8,19],
+"classyaze_1_1app_1_1Rom.html#a0405fc759dcf30d80378d1f63f93cbc0":[12,0,0,0,7,19],
+"classyaze_1_1app_1_1Rom.html#a051bf6416f14b1547621cc3d556a6e22":[11,0,1,0,8,37],
+"classyaze_1_1app_1_1Rom.html#a051bf6416f14b1547621cc3d556a6e22":[12,0,0,0,7,37]
 };

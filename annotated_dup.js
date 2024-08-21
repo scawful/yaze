@@ -317,7 +317,6 @@ var annotated_dup =
     ] ],
     [ "AppDelegate", "classAppDelegate.html", null ],
     [ "AppViewController", "classAppViewController.html", null ],
-    [ "PythonYazeExtensionWrapper", "classPythonYazeExtensionWrapper.html", "classPythonYazeExtensionWrapper" ],
     [ "snes_color", "structsnes__color.html", "structsnes__color" ],
     [ "snes_palette", "structsnes__palette.html", "structsnes__palette" ],
     [ "yaze_command_registry", "structyaze__command__registry.html", "structyaze__command__registry" ],
@@ -329,6 +328,5 @@ var annotated_dup =
     [ "z3_overworld", "structz3__overworld.html", "structz3__overworld" ],
     [ "z3_overworld_map", "structz3__overworld__map.html", "structz3__overworld__map" ],
     [ "z3_rom", "structz3__rom.html", "structz3__rom" ],
-    [ "z3_sprite", "structz3__sprite.html", "structz3__sprite" ],
-    [ "z3_sprite_action", "structz3__sprite__action.html", "structz3__sprite__action" ]
+    [ "z3_sprite", "structz3__sprite.html", "structz3__sprite" ]
 ];

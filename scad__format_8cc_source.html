@@ -247,7 +247,7 @@ $(function(){initNavTree('scad__format_8cc_source.html',''); initResizable(true)
 <div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>    p = each_dimension;</div>
 <div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>    <span class="comment">// for each tile on the tile buffer</span></div>
 <div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 0x400; i++) {</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>      <span class="keywordflow">if</span> (map_data[i + p] != 0xFFFF) {</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>      <span class="keywordflow">if</span> (map_data[i + p] != 0xFF) {</div>
 <div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>        <span class="keyword">auto</span> t = <a class="code hl_function" href="namespaceyaze_1_1app_1_1gfx.html#aefa90c55f0eea489bc7a6dd716300e90">gfx::GetTilesInfo</a>(map_data[i + p]);</div>
 <div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span> </div>
 <div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>        <span class="keywordflow">for</span> (<span class="keyword">auto</span> yl = 0; yl &lt; 8; yl++) {</div>

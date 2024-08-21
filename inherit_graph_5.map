@@ -1,3 +1,15 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structsnes__palette.html" title="Primitive of a SNES color palette." alt="" coords="5,5,101,31"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,129,98,155"/>
+<area shape="rect" id="Node000001" href="$classyaze_1_1test_1_1RomTest.html" title=" " alt="" coords="187,5,322,31"/>
+<area shape="poly" id="edge2_Node000000_Node000001" title=" " alt="" coords="68,115,100,76,121,56,144,40,186,24,187,29,147,45,124,60,104,79,72,118"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1test_1_1emu_1_1CpuTest.html" title=" " alt="" coords="174,55,335,80"/>
+<area shape="poly" id="edge3_Node000000_Node000002" title=" " alt="" coords="85,119,145,89,179,78,181,83,147,94,87,123"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1test_1_1emu_1_1PpuTest.html" title=" " alt="" coords="174,104,335,130"/>
+<area shape="poly" id="edge4_Node000000_Node000003" title=" " alt="" coords="113,132,173,124,174,130,114,137"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1test_1_1emu_1_1Spc700Test.html" title=" " alt="" coords="163,153,346,179"/>
+<area shape="poly" id="edge5_Node000000_Node000004" title=" " alt="" coords="114,147,163,153,162,158,113,152"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1test_1_1message__system_1_1MessageDispatcherTest.html" title=" " alt="" coords="146,203,363,244"/>
+<area shape="poly" id="edge6_Node000000_Node000005" title=" " alt="" coords="90,161,147,189,177,200,175,205,145,194,87,166"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1test_1_1zelda3_1_1SpriteBuilderTest.html" title=" " alt="" coords="191,268,318,309"/>
+<area shape="poly" id="edge7_Node000000_Node000006" title=" " alt="" coords="70,167,102,212,123,234,147,253,191,274,189,278,144,258,120,238,98,215,66,170"/>
 </map>

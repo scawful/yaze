@@ -1,5 +1,0 @@
-<map id="z3_sprite" name="z3_sprite">
-<area shape="rect" id="Node000001" title="Primitive of a sprite." alt="" coords="26,94,100,120"/>
-<area shape="rect" id="Node000002" href="$structz3__sprite__action.html" title="Sprite action." alt="" coords="5,5,121,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="66,47,66,94,60,94,60,47"/>
-</map>

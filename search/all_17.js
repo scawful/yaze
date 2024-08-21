@@ -129,7 +129,7 @@ var searchData=
   ['priority_5frotation_126',['priority_rotation',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html#a3ed7886d02e29628739b42414c21a63c',1,'yaze::app::emu::video::PpuRegisters::OAMADDH']]],
   ['priority_5ftile_127',['priority_tile',['../classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a6bc96ce50b3c559702874737255ce2c2',1,'yaze::app::editor::Tile16Editor']]],
   ['processgraphicsbuffer_128',['ProcessGraphicsBuffer',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a2d8b3af68743844921ed494d37c926a2',1,'yaze::app::zelda3::overworld::OverworldMap']]],
-  ['project_129',['Project',['../md_docs_2contributing.html#autotoc_md36',1,'Building the Project'],['../structyaze_1_1app_1_1Project.html',1,'yaze::app::Project']]],
+  ['project_129',['Project',['../md_docs_2contributing.html#autotoc_md37',1,'Building the Project'],['../structyaze_1_1app_1_1Project.html',1,'yaze::app::Project']]],
   ['project_130',['project',['../structyaze__editor__context.html#a3e747d7d0638142be1b42e0fb5f0bf60',1,'yaze_editor_context']]],
   ['project_2eh_131',['project.h',['../project_8h.html',1,'']]],
   ['project_5fopened_5f_132',['project_opened_',['../structyaze_1_1app_1_1Project.html#aaed58f3c0aa7f90c5221c36972c41d9f',1,'yaze::app::Project']]],
@@ -165,7 +165,7 @@ var searchData=
   ['property_5fwatersprite_162',['property_watersprite',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a2c53cdba7dcd7969baeb68ab86294663',1,'yaze::app::editor::zsprite::ZSprite']]],
   ['proto_5fmap_5fdata_5f_163',['proto_map_data_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a091f7494347d7e9e9c01ed7c6752b7f7',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['protocol_5f_164',['protocol_',['../classyaze_1_1test_1_1message__system_1_1MessageDispatcherTest.html#a99626f5058533446232c16e5ca782027',1,'yaze::test::message_system::MessageDispatcherTest']]],
-  ['protocols_20and_20filters_20strong_165',['4. &lt;strong&gt;Using Protocols and Filters&lt;/strong&gt;',['../md_docs_2message-passing.html#autotoc_md58',1,'']]],
+  ['protocols_20and_20filters_20strong_165',['4. &lt;strong&gt;Using Protocols and Filters&lt;/strong&gt;',['../md_docs_2message-passing.html#autotoc_md59',1,'']]],
   ['protocols_5f_166',['protocols_',['../classyaze_1_1app_1_1core_1_1MessageDispatcher.html#a26a1c3bbe157362bbadcf7713846d38e',1,'yaze::app::core::MessageDispatcher']]],
   ['pseudo_5fhires_5f_167',['pseudo_hires_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a0e5fb16de4cb54edc6b76eaf13843677',1,'yaze::app::emu::video::Ppu']]],
   ['pseudovram_168',['PseudoVram',['../structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html',1,'yaze::app::zelda3::dungeon']]],
@@ -179,6 +179,5 @@ var searchData=
   ['pushbyte_176',['PushByte',['../classyaze_1_1app_1_1emu_1_1Cpu.html#add7919bb964f2c59741c702d70a914bf',1,'yaze::app::emu::Cpu::PushByte()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3228ebfb57d9a23f6e3bfe08f9ca53a7',1,'yaze::app::emu::memory::Memory::PushByte()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ae328d319170e1bb4e36596597012ac0b',1,'yaze::app::emu::memory::MemoryImpl::PushByte()']]],
   ['pushlong_177',['PushLong',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a8fbe61b263b95e73d2702739183e81bb',1,'yaze::app::emu::Cpu::PushLong()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a096c6a0d0f6fe092b3810105f3c9a8ea',1,'yaze::app::emu::memory::Memory::PushLong()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a9b8e58090ad02e7d4c08c8c898533f1b',1,'yaze::app::emu::memory::MemoryImpl::PushLong()']]],
   ['pushword_178',['PushWord',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a6f886eb9db792ee52e64026ac30e309f',1,'yaze::app::emu::Cpu::PushWord()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a47698f1cd27578e14af1219a8941c278',1,'yaze::app::emu::memory::Memory::PushWord()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a2de591be654966d4fa2d2dd377ab4e6e',1,'yaze::app::emu::memory::MemoryImpl::PushWord()']]],
-  ['putpixels_179',['PutPixels',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#abfae099f8f3ce10b2e043cc6adf4e7f5',1,'yaze::app::emu::video::Ppu']]],
-  ['pythonyazeextensionwrapper_180',['PythonYazeExtensionWrapper',['../classPythonYazeExtensionWrapper.html',1,'PythonYazeExtensionWrapper'],['../classPythonYazeExtensionWrapper.html#a3b0799238cd6a132723ffff287591650',1,'PythonYazeExtensionWrapper::PythonYazeExtensionWrapper()']]]
+  ['putpixels_179',['PutPixels',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#abfae099f8f3ce10b2e043cc6adf4e7f5',1,'yaze::app::emu::video::Ppu']]]
 ];
