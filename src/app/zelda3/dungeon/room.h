@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <vector>
 
-#include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -118,7 +117,7 @@ struct ChestData {
 
 struct StaircaseRooms {};
 
-class Room : public SharedRom, public core::ExperimentFlags {
+class Room : public SharedRom {
  public:
   Room() = default;
   Room(int room_id) : room_id_(room_id) {}

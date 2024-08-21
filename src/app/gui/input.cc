@@ -6,7 +6,7 @@
 
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "absl/strings/string_view.h"
-#include "app/core/common.h"
+
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"

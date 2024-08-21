@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <vector>
 
-#include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -72,9 +71,8 @@ void Room::LoadHeader() {
     // Existing room size address calculation...
     auto room_size_address = 0xF8000 + (room_id_ * 3);
 
-    if (flags()->kLogToConsole)
-      std::cout << "Room #" << room_id_ << " Address: " << std::hex
-                << room_size_address << std::endl;
+    std::cout << "Room #" << room_id_ << " Address: " << std::hex
+              << room_size_address << std::endl;
 
     // Reading bytes for long address construction
     uint8_t low = rom()->data()[room_size_address];
@@ -83,15 +81,13 @@ void Room::LoadHeader() {
 
     // Constructing the long address
     int long_address = (bank << 16) | (high << 8) | low;
-    if (flags()->kLogToConsole)
-      std::cout << std::hex << std::setfill('0') << std::setw(6) << long_address
-                << std::endl;
+    std::cout << std::hex << std::setfill('0') << std::setw(6) << long_address
+              << std::endl;
     room_size_pointer_ = long_address;
 
     if (long_address == 0x0A8000) {
       // Blank room disregard in size calculation
-      if (flags()->kLogToConsole)
-        std::cout << "Size of Room #" << room_id_ << ": 0 bytes" << std::endl;
+      std::cout << "Size of Room #" << room_id_ << ": 0 bytes" << std::endl;
       room_size_ = 0;
     } else {
       // use the long address to calculate the size of the room
@@ -100,9 +96,8 @@ void Room::LoadHeader() {
 
       int next_room_address = 0xF8000 + ((room_id_ + 1) * 3);
 
-      if (flags()->kLogToConsole)
-        std::cout << "Next Room Address: " << std::hex << next_room_address
-                  << std::endl;
+      std::cout << "Next Room Address: " << std::hex << next_room_address
+                << std::endl;
 
       // Reading bytes for long address construction
       uint8_t next_low = rom()->data()[next_room_address];
@@ -112,19 +107,17 @@ void Room::LoadHeader() {
       // Constructing the long address
       int next_long_address = (next_bank << 16) | (next_high << 8) | next_low;
 
-      if (flags()->kLogToConsole)
-        std::cout << std::hex << std::setfill('0') << std::setw(6)
-                  << next_long_address << std::endl;
+      std::cout << std::hex << std::setfill('0') << std::setw(6)
+                << next_long_address << std::endl;
 
       // Calculate the size of the room
       int room_size = next_long_address - long_address;
       room_size_ = room_size;
-      if (flags()->kLogToConsole)
-        std::cout << "Size of Room #" << room_id_ << ": " << std::dec
-                  << room_size << " bytes" << std::endl;
+      std::cout << "Size of Room #" << room_id_ << ": " << std::dec << room_size
+                << " bytes" << std::endl;
     }
   } catch (const std::exception& e) {
-    if (flags()->kLogToConsole) std::cout << "Error: " << e.what() << std::endl;
+    std::cout << "Error: " << e.what() << std::endl;
   }
 }
 

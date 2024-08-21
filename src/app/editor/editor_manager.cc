@@ -4,7 +4,7 @@
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "abseil-cpp/absl/strings/match.h"
 #include "absl/status/status.h"
-#include "app/core/common.h"
+
 #include "app/core/constants.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/platform/renderer.h"

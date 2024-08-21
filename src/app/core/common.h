@@ -159,27 +159,6 @@ class NotifyValue {
   T temp_value_;
 };
 
-class ImGuiIdIssuer {
- private:
-  static std::stack<ImGuiID> idStack;
-
- public:
-  // Generate and push a new ID onto the stack
-  static ImGuiID GetNewID() {
-    static int counter = 1;  // Start from 1 to ensure uniqueness
-    ImGuiID child_id = ImGui::GetID((void *)(intptr_t)counter++);
-    idStack.push(child_id);
-    return child_id;
-  }
-
-  // Pop all IDs from the stack (can be called explicitly or upon program exit)
-  static void Cleanup() {
-    while (!idStack.empty()) {
-      idStack.pop();
-    }
-  }
-};
-
 static bool log_to_console = false;
 static std::string log_file_out = "log.txt";
 
@@ -236,22 +215,24 @@ inline uint32_t MapBankToWordAddress(uint8_t bank, uint16_t addr) noexcept {
 
 uint32_t Get24LocalFromPC(uint8_t *data, int addr, bool pc = true);
 
-int HexToDec(char *input, int length);
-
-// "Store little endian 16-bit value using a byte pointer, offset by an
-// index before dereferencing"
+/**
+ * @brief Store little endian 16-bit value using a byte pointer, offset by an
+ * index before dereferencing
+ */
 void stle16b_i(uint8_t *const p_arr, size_t const p_index,
                uint16_t const p_val);
 
-// Load little endian halfword (16-bit) dereferenced from an arrays of bytes.
-// This version provides an index that will be multiplied by 2 and added to the
-// base address.
+void stle16b(uint8_t *const p_arr, uint16_t const p_val);
+
+/**
+ * @brief Load little endian halfword (16-bit) dereferenced from an arrays of
+ * bytes. This version provides an index that will be multiplied by 2 and added
+ * to the base address.
+ */
 uint16_t ldle16b_i(uint8_t const *const p_arr, size_t const p_index);
 
 // Load little endian halfword (16-bit) dereferenced from
 uint16_t ldle16b(uint8_t const *const p_arr);
-
-void stle16b(uint8_t *const p_arr, uint16_t const p_val);
 
 struct FolderItem {
   std::string name;

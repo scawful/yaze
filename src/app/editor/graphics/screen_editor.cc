@@ -9,7 +9,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
-#include "app/core/common.h"
+
 #include "app/core/constants.h"
 #include "app/core/platform/renderer.h"
 #include "app/gfx/bitmap.h"

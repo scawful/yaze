@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "app/core/common.h"
+
 #include "app/editor/utils/gfx_context.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"

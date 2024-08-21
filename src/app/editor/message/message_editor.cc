@@ -11,7 +11,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_replace.h"
 #include "absl/strings/str_split.h"
-#include "app/core/common.h"
+
 #include "app/core/platform/renderer.h"
 #include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"

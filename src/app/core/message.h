@@ -21,6 +21,7 @@ struct Message {
   void* sender;
   std::any payload;
 
+  Message() = default;
   Message(const std::string& type, void* sender, const std::any& payload)
       : type(type), sender(sender), payload(payload) {}
 };
