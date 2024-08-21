@@ -39,7 +39,9 @@
 namespace yaze {
 namespace app {
 
-// Define an enum class for the different versions of the game
+/**
+ * @brief Different versions of the game supported by the Rom class.
+ */
 enum class Z3_Version {
   US = 1,     // US version
   JP = 2,     // JP version
@@ -48,7 +50,7 @@ enum class Z3_Version {
 };
 
 /**
- * @brief A struct to hold version constants for each version of the game.
+ * @brief Constants for each version of the game.
  */
 struct VersionConstants {
   uint32_t kGfxAnimatedPointer;
@@ -116,7 +118,10 @@ static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
          0x233C0,  // kMap32TileBR
          0x5B97,   // kSpriteBlocksetPointer
          0x67DD0,  // kDungeonPalettesGroups
-     }}};
+     }},
+    {Z3_Version::SD, {}},
+    {Z3_Version::RANDO, {}},
+};
 
 constexpr uint32_t kNumGfxSheets = 223;
 constexpr uint32_t kNumLinkSheets = 14;
