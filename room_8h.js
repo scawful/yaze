@@ -42,5 +42,7 @@ var room_8h =
     [ "door_pos_right", "room_8h.html#af1424eb7b499dacebbcd29f8c46fcf1a", null ],
     [ "dungeon_spr_ptrs", "room_8h.html#af3b336bda353741f109a7ecec96ce2b5", null ],
     [ "NumberOfRooms", "room_8h.html#aa66ebd23138577105b6a458ee86cbc7d", null ],
-    [ "stairsObjects", "room_8h.html#a89e8d245bac0bb52d9310af054df7b1f", null ]
+    [ "stairsObjects", "room_8h.html#a89e8d245bac0bb52d9310af054df7b1f", null ],
+    [ "kRoomNames", "room_8h.html#ad762809d12104cb30876fa97b1bc8f27", null ],
+    [ "kEntranceNames", "room_8h.html#abc3a2e7da3f410c59fa73b7adac975c8", null ]
 ];

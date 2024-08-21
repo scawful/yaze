@@ -113,137 +113,136 @@ $(function(){initNavTree('title__screen_8cc_source.html',''); initResizable(true
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span> </div>
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;<a class="code" href="bitmap_8h.html">app/gfx/bitmap.h</a>&quot;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;<a class="code" href="snes__tile_8h.html">app/gfx/snes_tile.h</a>&quot;</span></div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;<a class="code" href="rom_8h.html">app/rom.h</a>&quot;</span></div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="keyword">namespace </span>app {</div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keyword">namespace </span>zelda3 {</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="keyword">namespace </span>screen {</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
-<div class="foldopen" id="foldopen00015" data-start="{" data-end="}">
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#ac1ca5ea93e859a413ed7b8a316b524de">   15</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#ac1ca5ea93e859a413ed7b8a316b524de">TitleScreen::Create</a>() {</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>  <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a8ecd9b7cf4381403b32970c86dbecc6c">tiles8Bitmap</a>.<a class="code hl_function" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a69e8baa626a476b4cc55790fcdfd0d5c">Create</a>(128, 512, 8, std::vector&lt;uint8_t&gt;(0, 0x20000));</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a591220f5065d594e4c7526cd1f5e9bce">tilesBG1Bitmap</a>.<a class="code hl_function" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a69e8baa626a476b4cc55790fcdfd0d5c">Create</a>(256, 256, 8, std::vector&lt;uint8_t&gt;(0, 0x80000));</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a68fbd67e0b3e973a6ca7fdfd1aaed95c">tilesBG2Bitmap</a>.<a class="code hl_function" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a69e8baa626a476b4cc55790fcdfd0d5c">Create</a>(256, 256, 8, std::vector&lt;uint8_t&gt;(0, 0x80000));</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a1efee1fd650caa53a27eeeb6ed6d85d9">oamBGBitmap</a>.<a class="code hl_function" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a69e8baa626a476b4cc55790fcdfd0d5c">Create</a>(256, 256, 8, std::vector&lt;uint8_t&gt;(0, 0x80000));</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  <a class="code hl_function" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#aef8eac64449c87f4cba7148c852ed2fc">BuildTileset</a>();</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  <a class="code hl_function" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a9450adba1736b84602290e3095535f4f">LoadTitleScreen</a>();</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>}</div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &quot;<a class="code" href="bitmap_8h.html">app/gfx/bitmap.h</a>&quot;</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;<a class="code" href="snes__tile_8h.html">app/gfx/snes_tile.h</a>&quot;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;<a class="code" href="rom_8h.html">app/rom.h</a>&quot;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keyword">namespace </span>app {</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="keyword">namespace </span>zelda3 {</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keyword">namespace </span>screen {</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
+<div class="foldopen" id="foldopen00014" data-start="{" data-end="}">
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#ac1ca5ea93e859a413ed7b8a316b524de">   14</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#ac1ca5ea93e859a413ed7b8a316b524de">TitleScreen::Create</a>() {</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>  <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a8ecd9b7cf4381403b32970c86dbecc6c">tiles8Bitmap</a>.<a class="code hl_function" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a69e8baa626a476b4cc55790fcdfd0d5c">Create</a>(128, 512, 8, std::vector&lt;uint8_t&gt;(0x20000));</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>  <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a591220f5065d594e4c7526cd1f5e9bce">tilesBG1Bitmap</a>.<a class="code hl_function" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a69e8baa626a476b4cc55790fcdfd0d5c">Create</a>(256, 256, 8, std::vector&lt;uint8_t&gt;(0x80000));</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a68fbd67e0b3e973a6ca7fdfd1aaed95c">tilesBG2Bitmap</a>.<a class="code hl_function" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a69e8baa626a476b4cc55790fcdfd0d5c">Create</a>(256, 256, 8, std::vector&lt;uint8_t&gt;(0x80000));</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a1efee1fd650caa53a27eeeb6ed6d85d9">oamBGBitmap</a>.<a class="code hl_function" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a69e8baa626a476b4cc55790fcdfd0d5c">Create</a>(256, 256, 8, std::vector&lt;uint8_t&gt;(0x80000));</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  <a class="code hl_function" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#aef8eac64449c87f4cba7148c852ed2fc">BuildTileset</a>();</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  <a class="code hl_function" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a9450adba1736b84602290e3095535f4f">LoadTitleScreen</a>();</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>}</div>
 </div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
-<div class="foldopen" id="foldopen00024" data-start="{" data-end="}">
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#aef8eac64449c87f4cba7148c852ed2fc">   24</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#aef8eac64449c87f4cba7148c852ed2fc">TitleScreen::BuildTileset</a>() {</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <a class="code hl_typedef" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> staticgfx[16];</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  <span class="comment">// Main Blocksets</span></div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  <span class="comment">// TODO: get the gfx from the GFX class rather than the rom.</span></div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="comment">// for (int i = 0; i &lt; 8; i++) {</span></div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>  <span class="comment">//   staticgfx[i] = GfxGroups.mainGfx[titleScreenTilesGFX][i];</span></div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  <span class="comment">// }</span></div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  staticgfx[8] = 115 + 0;</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  <span class="comment">// staticgfx[9] = (GfxGroups.spriteGfx[titleScreenSpritesGFX][3] + 115);</span></div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  staticgfx[10] = 115 + 6;</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  staticgfx[11] = 115 + 7;</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  <span class="comment">// staticgfx[12] = (GfxGroups.spriteGfx[titleScreenSpritesGFX][0] + 115);</span></div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>  staticgfx[13] = 112;</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  staticgfx[14] = 112;</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  staticgfx[15] = 112;</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  <span class="comment">// Loaded gfx for the current screen (empty at this point)</span></div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  <a class="code hl_typedef" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a>* currentmapgfx8Data = <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a8ecd9b7cf4381403b32970c86dbecc6c">tiles8Bitmap</a>.<a class="code hl_function" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#ae50d84bd88d181d2c1dae099c046e653">mutable_data</a>().data();</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span> </div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  <span class="comment">// All gfx of the game pack of 2048 bytes (4bpp)</span></div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  <a class="code hl_typedef" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a>* allgfxData = <span class="keyword">nullptr</span>;  <span class="comment">// rom_.GetMasterGraphicsBin();</span></div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 16; i++) {</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> j = 0; j &lt; 2048; j++) {</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>      <a class="code hl_typedef" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> mapByte = allgfxData[j + (staticgfx[i] * 2048)];</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>      <span class="keywordflow">switch</span> (i) {</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>        <span class="keywordflow">case</span> 0:</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        <span class="keywordflow">case</span> 3:</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>        <span class="keywordflow">case</span> 4:</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>        <span class="keywordflow">case</span> 5:</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>          mapByte += 0x88;</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>          <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>      }</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span> </div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>      currentmapgfx8Data[(i * 2048) + j] = mapByte;  <span class="comment">// Upload used gfx data</span></div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    }</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>  }</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>}</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
+<div class="foldopen" id="foldopen00023" data-start="{" data-end="}">
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#aef8eac64449c87f4cba7148c852ed2fc">   23</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#aef8eac64449c87f4cba7148c852ed2fc">TitleScreen::BuildTileset</a>() {</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  <a class="code hl_typedef" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> staticgfx[16];</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  <span class="comment">// Main Blocksets</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  <span class="comment">// TODO: get the gfx from the GFX class rather than the rom.</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  <span class="comment">// for (int i = 0; i &lt; 8; i++) {</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="comment">//   staticgfx[i] = GfxGroups.mainGfx[titleScreenTilesGFX][i];</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>  <span class="comment">// }</span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>  staticgfx[8] = 115 + 0;</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  <span class="comment">// staticgfx[9] = (GfxGroups.spriteGfx[titleScreenSpritesGFX][3] + 115);</span></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  staticgfx[10] = 115 + 6;</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  staticgfx[11] = 115 + 7;</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <span class="comment">// staticgfx[12] = (GfxGroups.spriteGfx[titleScreenSpritesGFX][0] + 115);</span></div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  staticgfx[13] = 112;</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>  staticgfx[14] = 112;</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  staticgfx[15] = 112;</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> </div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  <span class="comment">// Loaded gfx for the current screen (empty at this point)</span></div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  <a class="code hl_typedef" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a>* currentmapgfx8Data = <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a8ecd9b7cf4381403b32970c86dbecc6c">tiles8Bitmap</a>.<a class="code hl_function" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#ae50d84bd88d181d2c1dae099c046e653">mutable_data</a>().data();</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  <span class="comment">// All gfx of the game pack of 2048 bytes (4bpp)</span></div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  <a class="code hl_typedef" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a>* allgfxData = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 16; i++) {</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> j = 0; j &lt; 2048; j++) {</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>      <a class="code hl_typedef" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> mapByte = allgfxData[j + (staticgfx[i] * 2048)];</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>      <span class="keywordflow">switch</span> (i) {</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>        <span class="keywordflow">case</span> 0:</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>        <span class="keywordflow">case</span> 3:</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        <span class="keywordflow">case</span> 4:</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>        <span class="keywordflow">case</span> 5:</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>          mapByte += 0x88;</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>          <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>      }</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>      currentmapgfx8Data[(i * 2048) + j] = mapByte;  <span class="comment">// Upload used gfx data</span></div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    }</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>  }</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>}</div>
 </div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span> </div>
-<div class="foldopen" id="foldopen00065" data-start="{" data-end="}">
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a9450adba1736b84602290e3095535f4f">   65</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a9450adba1736b84602290e3095535f4f">TitleScreen::LoadTitleScreen</a>() {</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>  <span class="keywordtype">int</span> pos =</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>      (<a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a0e6d93b602130becb262c173930e0b56">rom_</a>[0x138C + 3] &lt;&lt; 16) + (<a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a0e6d93b602130becb262c173930e0b56">rom_</a>[0x1383 + 3] &lt;&lt; 8) + <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a0e6d93b602130becb262c173930e0b56">rom_</a>[0x137A + 3];</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 1024; i++) {</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a34d2c60555858317ff72c91327f3cf68">tilesBG1Buffer</a>[i] = 492;</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a8eab25e232da985a1204cb92af04d86a">tilesBG2Buffer</a>[i] = 492;</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>  }</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>  pos = <a class="code hl_function" href="namespaceyaze_1_1app_1_1core.html#aac6170e3d4875c2f4cfcc39bee40eb1a">core::SnesToPc</a>(pos);</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span> </div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>  <span class="keywordflow">while</span> ((<a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a0e6d93b602130becb262c173930e0b56">rom_</a>[pos] &amp; 0x80) != 0x80) {</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    <span class="keywordtype">int</span> dest_addr = pos;  <span class="comment">// $03 and $04</span></div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    pos += 2;</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    <span class="keywordtype">short</span> length = pos;</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    <span class="keywordtype">bool</span> increment64 = (length &amp; 0x8000) == 0x8000;</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    <span class="keywordtype">bool</span> fixsource = (length &amp; 0x4000) == 0x4000;</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    pos += 2;</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span> </div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    length = (short)((length &amp; 0x07FF));</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span> </div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    <span class="keywordtype">int</span> j = 0;</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    <span class="keywordtype">int</span> jj = 0;</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    <span class="keywordtype">int</span> posB = pos;</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    <span class="keywordflow">while</span> (j &lt; (length / 2) + 1) {</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>      <a class="code hl_typedef" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a> tiledata = (<a class="code hl_typedef" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a>)pos;</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>      <span class="keywordflow">if</span> (dest_addr &gt;= 0x1000) {</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>        <span class="comment">// destAddr -= 0x1000;</span></div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>        <span class="keywordflow">if</span> (dest_addr &lt; 0x2000) {</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>          <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a34d2c60555858317ff72c91327f3cf68">tilesBG1Buffer</a>[dest_addr - 0x1000] = tiledata;</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>        }</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>      } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>        <span class="keywordflow">if</span> (dest_addr &lt; 0x1000) {</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>          <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a8eab25e232da985a1204cb92af04d86a">tilesBG2Buffer</a>[dest_addr] = tiledata;</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>        }</div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>      }</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span> </div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>      <span class="keywordflow">if</span> (increment64) {</div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>        dest_addr += 32;</div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>      } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>        dest_addr++;</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>      }</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span> </div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>      <span class="keywordflow">if</span> (!fixsource) {</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>        pos += 2;</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>      }</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span> </div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>      jj += 2;</div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>      j++;</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>    }</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span> </div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>    <span class="keywordflow">if</span> (fixsource) {</div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>      pos += 2;</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>    } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>      pos = posB + jj;</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>    }</div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>  }</div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span> </div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>  <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a9fe33aab92120a9d3fae9936d4400873">pal_selected_</a> = 2;</div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>}</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span> </div>
+<div class="foldopen" id="foldopen00064" data-start="{" data-end="}">
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a9450adba1736b84602290e3095535f4f">   64</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a9450adba1736b84602290e3095535f4f">TitleScreen::LoadTitleScreen</a>() {</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>  <span class="keywordtype">int</span> pos =</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>      (<a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a0e6d93b602130becb262c173930e0b56">rom_</a>[0x138C + 3] &lt;&lt; 16) + (<a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a0e6d93b602130becb262c173930e0b56">rom_</a>[0x1383 + 3] &lt;&lt; 8) + <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a0e6d93b602130becb262c173930e0b56">rom_</a>[0x137A + 3];</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span> </div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 1024; i++) {</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a34d2c60555858317ff72c91327f3cf68">tilesBG1Buffer</a>[i] = 492;</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a8eab25e232da985a1204cb92af04d86a">tilesBG2Buffer</a>[i] = 492;</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>  }</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span> </div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  pos = <a class="code hl_function" href="namespaceyaze_1_1app_1_1core.html#aac6170e3d4875c2f4cfcc39bee40eb1a">core::SnesToPc</a>(pos);</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  <span class="keywordflow">while</span> ((<a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a0e6d93b602130becb262c173930e0b56">rom_</a>[pos] &amp; 0x80) != 0x80) {</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    <span class="keywordtype">int</span> dest_addr = pos;  <span class="comment">// $03 and $04</span></div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    pos += 2;</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    <span class="keywordtype">short</span> length = pos;</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    <span class="keywordtype">bool</span> increment64 = (length &amp; 0x8000) == 0x8000;</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    <span class="keywordtype">bool</span> fixsource = (length &amp; 0x4000) == 0x4000;</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    pos += 2;</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span> </div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    length = (short)((length &amp; 0x07FF));</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span> </div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    <span class="keywordtype">int</span> j = 0;</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    <span class="keywordtype">int</span> jj = 0;</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    <span class="keywordtype">int</span> posB = pos;</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    <span class="keywordflow">while</span> (j &lt; (length / 2) + 1) {</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>      <a class="code hl_typedef" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a> tiledata = (<a class="code hl_typedef" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a>)pos;</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>      <span class="keywordflow">if</span> (dest_addr &gt;= 0x1000) {</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>        <span class="comment">// destAddr -= 0x1000;</span></div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>        <span class="keywordflow">if</span> (dest_addr &lt; 0x2000) {</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>          <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a34d2c60555858317ff72c91327f3cf68">tilesBG1Buffer</a>[dest_addr - 0x1000] = tiledata;</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>        }</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>      } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>        <span class="keywordflow">if</span> (dest_addr &lt; 0x1000) {</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>          <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a8eab25e232da985a1204cb92af04d86a">tilesBG2Buffer</a>[dest_addr] = tiledata;</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>        }</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>      }</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span> </div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>      <span class="keywordflow">if</span> (increment64) {</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>        dest_addr += 32;</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>      } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>        dest_addr++;</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>      }</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span> </div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>      <span class="keywordflow">if</span> (!fixsource) {</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>        pos += 2;</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>      }</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span> </div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>      jj += 2;</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>      j++;</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>    }</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span> </div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>    <span class="keywordflow">if</span> (fixsource) {</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>      pos += 2;</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>    } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>      pos = posB + jj;</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>    }</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>  }</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span> </div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>  <a class="code hl_variable" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a9fe33aab92120a9d3fae9936d4400873">pal_selected_</a> = 2;</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>}</div>
 </div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span> </div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>}  <span class="comment">// namespace screen</span></div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>}  <span class="comment">// namespace zelda3</span></div>
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>}  <span class="comment">// namespace app</span></div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span> </div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>}  <span class="comment">// namespace screen</span></div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>}  <span class="comment">// namespace zelda3</span></div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>}  <span class="comment">// namespace app</span></div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="abitmap_8h_html"><div class="ttname"><a href="bitmap_8h.html">bitmap.h</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1gfx_1_1Bitmap_html_a69e8baa626a476b4cc55790fcdfd0d5c"><div class="ttname"><a href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a69e8baa626a476b4cc55790fcdfd0d5c">yaze::app::gfx::Bitmap::Create</a></div><div class="ttdeci">void Create(int width, int height, int depth, const std::vector&lt; uint8_t &gt; &amp;data)</div><div class="ttdoc">Creates a bitmap object with the provided graphical data.</div><div class="ttdef"><b>Definition</b> <a href="bitmap_8cc_source.html#l00232">bitmap.cc:232</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1gfx_1_1Bitmap_html_ae50d84bd88d181d2c1dae099c046e653"><div class="ttname"><a href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#ae50d84bd88d181d2c1dae099c046e653">yaze::app::gfx::Bitmap::mutable_data</a></div><div class="ttdeci">auto &amp; mutable_data()</div><div class="ttdef"><b>Definition</b> <a href="bitmap_8h_source.html#l00184">bitmap.h:184</a></div></div>
@@ -254,10 +253,10 @@ $(function(){initNavTree('title__screen_8cc_source.html',''); initResizable(true
 <div class="ttc" id="aclassyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen_html_a68fbd67e0b3e973a6ca7fdfd1aaed95c"><div class="ttname"><a href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a68fbd67e0b3e973a6ca7fdfd1aaed95c">yaze::app::zelda3::screen::TitleScreen::tilesBG2Bitmap</a></div><div class="ttdeci">gfx::Bitmap tilesBG2Bitmap</div><div class="ttdef"><b>Definition</b> <a href="title__screen_8h_source.html#l00073">title_screen.h:73</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen_html_a8eab25e232da985a1204cb92af04d86a"><div class="ttname"><a href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a8eab25e232da985a1204cb92af04d86a">yaze::app::zelda3::screen::TitleScreen::tilesBG2Buffer</a></div><div class="ttdeci">ushort tilesBG2Buffer[0x1000]</div><div class="ttdef"><b>Definition</b> <a href="title__screen_8h_source.html#l00054">title_screen.h:54</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen_html_a8ecd9b7cf4381403b32970c86dbecc6c"><div class="ttname"><a href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a8ecd9b7cf4381403b32970c86dbecc6c">yaze::app::zelda3::screen::TitleScreen::tiles8Bitmap</a></div><div class="ttdeci">gfx::Bitmap tiles8Bitmap</div><div class="ttdef"><b>Definition</b> <a href="title__screen_8h_source.html#l00075">title_screen.h:75</a></div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen_html_a9450adba1736b84602290e3095535f4f"><div class="ttname"><a href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a9450adba1736b84602290e3095535f4f">yaze::app::zelda3::screen::TitleScreen::LoadTitleScreen</a></div><div class="ttdeci">void LoadTitleScreen()</div><div class="ttdef"><b>Definition</b> <a href="#l00065">title_screen.cc:65</a></div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen_html_a9450adba1736b84602290e3095535f4f"><div class="ttname"><a href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a9450adba1736b84602290e3095535f4f">yaze::app::zelda3::screen::TitleScreen::LoadTitleScreen</a></div><div class="ttdeci">void LoadTitleScreen()</div><div class="ttdef"><b>Definition</b> <a href="#l00064">title_screen.cc:64</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen_html_a9fe33aab92120a9d3fae9936d4400873"><div class="ttname"><a href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a9fe33aab92120a9d3fae9936d4400873">yaze::app::zelda3::screen::TitleScreen::pal_selected_</a></div><div class="ttdeci">int pal_selected_</div><div class="ttdef"><b>Definition</b> <a href="title__screen_8h_source.html#l00045">title_screen.h:45</a></div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen_html_ac1ca5ea93e859a413ed7b8a316b524de"><div class="ttname"><a href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#ac1ca5ea93e859a413ed7b8a316b524de">yaze::app::zelda3::screen::TitleScreen::Create</a></div><div class="ttdeci">void Create()</div><div class="ttdef"><b>Definition</b> <a href="#l00015">title_screen.cc:15</a></div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen_html_aef8eac64449c87f4cba7148c852ed2fc"><div class="ttname"><a href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#aef8eac64449c87f4cba7148c852ed2fc">yaze::app::zelda3::screen::TitleScreen::BuildTileset</a></div><div class="ttdeci">void BuildTileset()</div><div class="ttdef"><b>Definition</b> <a href="#l00024">title_screen.cc:24</a></div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen_html_ac1ca5ea93e859a413ed7b8a316b524de"><div class="ttname"><a href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#ac1ca5ea93e859a413ed7b8a316b524de">yaze::app::zelda3::screen::TitleScreen::Create</a></div><div class="ttdeci">void Create()</div><div class="ttdef"><b>Definition</b> <a href="#l00014">title_screen.cc:14</a></div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen_html_aef8eac64449c87f4cba7148c852ed2fc"><div class="ttname"><a href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#aef8eac64449c87f4cba7148c852ed2fc">yaze::app::zelda3::screen::TitleScreen::BuildTileset</a></div><div class="ttdeci">void BuildTileset()</div><div class="ttdef"><b>Definition</b> <a href="#l00023">title_screen.cc:23</a></div></div>
 <div class="ttc" id="aconstants_8h_html_ae48ac2456c5ad6c956fef86e7bef3a21"><div class="ttname"><a href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a></div><div class="ttdeci">unsigned char uchar</div><div class="ttdef"><b>Definition</b> <a href="constants_8h_source.html#l00121">constants.h:121</a></div></div>
 <div class="ttc" id="aconstants_8h_html_ae666ff9c44d45e6b7b6b8ed4340dd9c0"><div class="ttname"><a href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a></div><div class="ttdeci">unsigned short ushort</div><div class="ttdef"><b>Definition</b> <a href="constants_8h_source.html#l00119">constants.h:119</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1app_1_1core_html_aac6170e3d4875c2f4cfcc39bee40eb1a"><div class="ttname"><a href="namespaceyaze_1_1app_1_1core.html#aac6170e3d4875c2f4cfcc39bee40eb1a">yaze::app::core::SnesToPc</a></div><div class="ttdeci">uint32_t SnesToPc(uint32_t addr) noexcept</div><div class="ttdef"><b>Definition</b> <a href="core_2common_8h_source.html#l00185">common.h:185</a></div></div>

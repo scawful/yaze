@@ -1,10 +1,5 @@
 var NAVTREEINDEX44 =
 {
-"scad__format_8h_source.html":[13,0,1,0,3,5],
-"screen__editor_8cc.html":[13,0,1,0,1,2,6],
-"screen__editor_8cc.html#a2e1f276c472172c8ab3236dbaf1ea013":[13,0,1,0,1,2,6,0],
-"screen__editor_8cc_source.html":[13,0,1,0,1,2,6],
-"screen__editor_8h.html":[13,0,1,0,1,2,7],
 "screen__editor_8h_source.html":[13,0,1,0,1,2,7],
 "sdl__deleter_8h.html":[13,0,1,0,0,1,2],
 "sdl__deleter_8h_source.html":[13,0,1,0,0,1,2],
@@ -249,5 +244,10 @@ var NAVTREEINDEX44 =
 "structyaze_1_1app_1_1VersionConstants.html#a173a06f01d6c2ad8d60a123b30b0d180":[11,0,1,0,10,14],
 "structyaze_1_1app_1_1VersionConstants.html#a173a06f01d6c2ad8d60a123b30b0d180":[12,0,0,0,9,14],
 "structyaze_1_1app_1_1VersionConstants.html#a341a9ee60141bc00bb1f401db351a4e9":[11,0,1,0,10,9],
-"structyaze_1_1app_1_1VersionConstants.html#a341a9ee60141bc00bb1f401db351a4e9":[12,0,0,0,9,9]
+"structyaze_1_1app_1_1VersionConstants.html#a341a9ee60141bc00bb1f401db351a4e9":[12,0,0,0,9,9],
+"structyaze_1_1app_1_1VersionConstants.html#a386a075f984f4def0a0fecc03eadfcd8":[11,0,1,0,10,15],
+"structyaze_1_1app_1_1VersionConstants.html#a386a075f984f4def0a0fecc03eadfcd8":[12,0,0,0,9,15],
+"structyaze_1_1app_1_1VersionConstants.html#a4234a733bb894b28e29544d432fb2f5c":[11,0,1,0,10,2],
+"structyaze_1_1app_1_1VersionConstants.html#a4234a733bb894b28e29544d432fb2f5c":[12,0,0,0,9,2],
+"structyaze_1_1app_1_1VersionConstants.html#a4fc07f79f59dd6bc791cf394158968aa":[11,0,1,0,10,4]
 };

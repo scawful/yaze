@@ -1,10 +1,5 @@
 var NAVTREEINDEX52 =
 {
-"structz3__overworld.html":[12,0,11],
-"structz3__overworld.html#a13da5630932291eaed93b6a173359f74":[12,0,11,1],
-"structz3__overworld.html#a623e0b2387aa861e1db639b56c42b3d2":[12,0,11,0],
-"structz3__overworld__map.html":[12,0,12],
-"structz3__overworld__map.html#a2cf3a34c1089178933e2f8e46ef938c3":[12,0,12,0],
 "structz3__overworld__map.html#abba247908f323bcda8aca56fd5ea4224":[12,0,12,2],
 "structz3__overworld__map.html#ac515eedfa33da8b05784da8713fdb414":[12,0,12,1],
 "structz3__rom.html":[12,0,13],

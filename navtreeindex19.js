@@ -1,7 +1,5 @@
 var NAVTREEINDEX19 =
 {
-"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a22f8b165203e9a288f226bc9901038d6":[11,0,1,0,6,1,7,19],
-"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a22f8b165203e9a288f226bc9901038d6":[12,0,0,0,5,0,7,19],
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a234aab69e6a7cb5ba7c78239b66d0bcd":[11,0,1,0,6,1,7,6],
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a234aab69e6a7cb5ba7c78239b66d0bcd":[12,0,0,0,5,0,7,6],
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a286182f9f81d26a1e933d9378c087d5b":[11,0,1,0,6,1,7,32],
@@ -249,5 +247,7 @@ var NAVTREEINDEX19 =
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a1d123b333e65cf1ab4934935c3d0a82f":[11,0,1,0,6,3,4,58],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a1d123b333e65cf1ab4934935c3d0a82f":[12,0,0,0,5,2,1,58],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a210cf23dffc5a90b4c8e286c5e77cf78":[11,0,1,0,6,3,4,32],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a210cf23dffc5a90b4c8e286c5e77cf78":[12,0,0,0,5,2,1,32]
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a210cf23dffc5a90b4c8e286c5e77cf78":[12,0,0,0,5,2,1,32],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a25a64c2875596385980c9fb5d77ebfab":[11,0,1,0,6,3,4,43],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a25a64c2875596385980c9fb5d77ebfab":[12,0,0,0,5,2,1,43]
 };
