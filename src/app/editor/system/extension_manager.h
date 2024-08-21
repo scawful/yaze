@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "ext/extension.h"
+#include "base/extension.h"
 
 namespace yaze {
 namespace app {
@@ -11,6 +11,7 @@ namespace editor {
 
 class ExtensionManager {
  public:
+  void LoadExtension(const std::string& filename, yaze_editor_context* context);
   void RegisterExtension(yaze_extension* extension);
   void InitializeExtensions(yaze_editor_context* context);
   void ShutdownExtensions();

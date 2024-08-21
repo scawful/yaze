@@ -2,9 +2,8 @@
 
 #include "ImGuiColorTextEdit/TextEditor.h"
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
-#include "abseil-cpp/absl/strings/match.h"
 #include "absl/status/status.h"
-
+#include "absl/strings/match.h"
 #include "app/core/constants.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/platform/renderer.h"
@@ -26,7 +25,7 @@
 #include "app/gui/input.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
-#include "ext/extension.h"
+#include "base/extension.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
@@ -71,7 +70,6 @@ absl::Status EditorManager::Update() {
   ManageKeyboardShortcuts();
 
   DrawYazeMenu();
-  DrawFileDialog();
   DrawStatusPopup();
   DrawAboutPopup();
   DrawInfoPopup();
@@ -309,22 +307,7 @@ void EditorManager::ManageKeyboardShortcuts() {
   }
 }
 
-void EditorManager::DrawFileDialog() {
-  gui::FileDialogPipeline("ChooseFileDlgKey", ".sfc,.smc", std::nullopt, [&]() {
-    std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-    status_ = rom()->LoadFromFile(filePathName);
-    static RecentFilesManager manager("recent_files.txt");
-
-    // Load existing recent files
-    manager.Load();
-
-    // Add a new file
-    manager.AddFile(filePathName);
-
-    // Save the updated list
-    manager.Save();
-  });
-}
+void EditorManager::DrawFileDialog() {}
 
 void EditorManager::DrawStatusPopup() {
   if (!status_.ok()) {
@@ -389,39 +372,23 @@ void EditorManager::DrawInfoPopup() {
 
 void EditorManager::DrawYazeMenu() {
   static bool show_display_settings = false;
-  static bool show_command_line_interface = false;
 
   if (BeginMenuBar()) {
     DrawYazeMenuBar();
-
     SameLine(GetWindowWidth() - GetStyle().ItemSpacing.x -
-             CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x - 150);
-    // Modify the style of the button to have no background color
+             CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x - 110);
     PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
     if (Button(ICON_MD_DISPLAY_SETTINGS)) {
       show_display_settings = !show_display_settings;
     }
-
-    if (Button(ICON_MD_TERMINAL)) {
-      show_command_line_interface = !show_command_line_interface;
-    }
     PopStyleColor();
-
     Text("yaze v%s", core::kYazeVersion.data());
-
     EndMenuBar();
   }
 
   if (show_display_settings) {
     Begin("Display Settings", &show_display_settings, ImGuiWindowFlags_None);
     gui::DrawDisplaySettings();
-    End();
-  }
-
-  if (show_command_line_interface) {
-    Begin("Command Line Interface", &show_command_line_interface,
-          ImGuiWindowFlags_None);
-    Text("Enter a command:");
     End();
   }
 }
@@ -572,7 +539,7 @@ void EditorManager::DrawYazeMenuBar() {
     MENU_ITEM2("Copy", "Ctrl+C") { status_ = current_editor_->Copy(); }
     MENU_ITEM2("Paste", "Ctrl+V") { status_ = current_editor_->Paste(); }
     Separator();
-    MENU_ITEM2("Find", "Ctrl+F") {}
+    MENU_ITEM2("Find", "Ctrl+F") { status_ = current_editor_->Find(); }
     EndMenu();
   }
 
@@ -583,26 +550,15 @@ void EditorManager::DrawYazeMenuBar() {
   static bool show_palette_editor = false;
   static bool show_emulator = false;
 
+  if (show_imgui_demo) ShowDemoWindow();
+  if (show_imgui_metrics) ShowMetricsWindow(&show_imgui_metrics);
+  if (show_memory_editor) memory_editor_.Update(show_memory_editor);
+  if (show_asm_editor) assembly_editor_.Update(show_asm_editor);
+
   if (show_emulator) {
     Begin("Emulator", &show_emulator, ImGuiWindowFlags_MenuBar);
     emulator_.Run();
     End();
-  }
-
-  if (show_imgui_metrics) {
-    ShowMetricsWindow(&show_imgui_metrics);
-  }
-
-  if (show_memory_editor) {
-    memory_editor_.Update(show_memory_editor);
-  }
-
-  if (show_imgui_demo) {
-    ShowDemoWindow();
-  }
-
-  if (show_asm_editor) {
-    assembly_editor_.Update(show_asm_editor);
   }
 
   if (show_palette_editor) {
@@ -625,22 +581,7 @@ void EditorManager::DrawYazeMenuBar() {
     EndMenu();
   }
 
-  if (BeginMenu("Extensions")) {
-    if (MenuItem("Load Extension", nullptr, nullptr)) {
-      // Load the extension
-    }
-    if (MenuItem("Unload Extension")) {
-      // Unload the extension
-    }
-    if (BeginMenu("Extensions")) {
-      // List all loaded extensions
-      EndMenu();
-    }
-    EndMenu();
-  }
-
   static bool show_resource_label_manager = false;
-
   if (current_project_.project_opened_) {
     // Project Menu
     if (BeginMenu("Project")) {
@@ -651,13 +592,6 @@ void EditorManager::DrawYazeMenuBar() {
       Separator();
       MenuItem("Resource Labels", nullptr, &show_resource_label_manager);
       EndMenu();
-    }
-  }
-  if (show_resource_label_manager) {
-    rom()->resource_label()->DisplayLabels(&show_resource_label_manager);
-    if (current_project_.project_opened_ &&
-        !current_project_.labels_filename_.empty()) {
-      current_project_.labels_filename_ = rom()->resource_label()->filename_;
     }
   }
 
@@ -729,11 +663,10 @@ void EditorManager::DrawYazeMenuBar() {
     Text("Project Menu");
     Text("Create a new project or open an existing one.");
     Text("Save the project to save the current state of the project.");
-    Text(
+    TextWrapped(
         "To save a project, you need to first open a ROM and initialize your "
         "code path and labels file. Label resource manager can be found in "
-        "the "
-        "View menu. Code path is set in the Code editor after opening a "
+        "the View menu. Code path is set in the Code editor after opening a "
         "folder.");
 
     if (Button("Close", gui::kDefaultModalSize)) {
@@ -742,19 +675,24 @@ void EditorManager::DrawYazeMenuBar() {
     }
     EndPopup();
   }
+
+  if (show_resource_label_manager) {
+    rom()->resource_label()->DisplayLabels(&show_resource_label_manager);
+    if (current_project_.project_opened_ &&
+        !current_project_.labels_filename_.empty()) {
+      current_project_.labels_filename_ = rom()->resource_label()->filename_;
+    }
+  }
 }
 
 void EditorManager::LoadRom() {
-  if (flags()->kNewFileDialogWrapper) {
-    auto file_name = FileDialogWrapper::ShowOpenFileDialog();
-    PRINT_IF_ERROR(rom()->LoadFromFile(file_name));
+  auto file_name = FileDialogWrapper::ShowOpenFileDialog();
+  auto load_rom = rom()->LoadFromFile(file_name);
+  if (load_rom.ok()) {
     static RecentFilesManager manager("recent_files.txt");
     manager.Load();
     manager.AddFile(file_name);
     manager.Save();
-  } else {
-    ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Open ROM",
-                                            ".sfc,.smc", ".");
   }
 }
 

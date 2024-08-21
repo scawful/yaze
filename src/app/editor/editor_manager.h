@@ -30,7 +30,7 @@
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
-#include "ext/extension.h"
+#include "base/extension.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "imgui_memory_editor.h"

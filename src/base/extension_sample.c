@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "ext/extension.h"
+#include "base/extension.h"
 #include "yaze.h"
 
 void my_extension_initialize(yaze_editor_context* context) {
