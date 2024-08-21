@@ -56,7 +56,6 @@ void Spc700::RunOpcode() {
 }
 
 void Spc700::ExecuteInstructions(uint8_t opcode) {
-  uint16_t initialPC = PC;
   switch (opcode) {
     case 0x00: {  // nop imp
       read(PC);

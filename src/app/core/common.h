@@ -108,6 +108,46 @@ class ExperimentFlags {
     }
     return flags_.get();
   }
+  std::string Serialize() const {
+    std::string result;
+    result +=
+        "kLogInstructions: " + std::to_string(flags_->kLogInstructions) + "\n";
+    result +=
+        "kUseNewImGuiInput: " + std::to_string(flags_->kUseNewImGuiInput) +
+        "\n";
+    result +=
+        "kSaveAllPalettes: " + std::to_string(flags_->kSaveAllPalettes) + "\n";
+    result +=
+        "kSaveGfxGroups: " + std::to_string(flags_->kSaveGfxGroups) + "\n";
+    result += "kSaveWithChangeQueue: " +
+              std::to_string(flags_->kSaveWithChangeQueue) + "\n";
+    result += "kDrawDungeonRoomGraphics: " +
+              std::to_string(flags_->kDrawDungeonRoomGraphics) + "\n";
+    result += "kNewFileDialogWrapper: " +
+              std::to_string(flags_->kNewFileDialogWrapper) + "\n";
+    result +=
+        "kLoadSystemFonts: " + std::to_string(flags_->kLoadSystemFonts) + "\n";
+    result += "kLoadTexturesAsStreaming: " +
+              std::to_string(flags_->kLoadTexturesAsStreaming) + "\n";
+    result +=
+        "kSaveDungeonMaps: " + std::to_string(flags_->kSaveDungeonMaps) + "\n";
+    result += "kLogToConsole: " + std::to_string(flags_->kLogToConsole) + "\n";
+    result +=
+        "kLoadAudioDevice: " + std::to_string(flags_->kLoadAudioDevice) + "\n";
+    result += "kDrawOverworldSprites: " +
+              std::to_string(flags_->overworld.kDrawOverworldSprites) + "\n";
+    result += "kSaveOverworldMaps: " +
+              std::to_string(flags_->overworld.kSaveOverworldMaps) + "\n";
+    result += "kSaveOverworldEntrances: " +
+              std::to_string(flags_->overworld.kSaveOverworldEntrances) + "\n";
+    result += "kSaveOverworldExits: " +
+              std::to_string(flags_->overworld.kSaveOverworldExits) + "\n";
+    result += "kSaveOverworldItems: " +
+              std::to_string(flags_->overworld.kSaveOverworldItems) + "\n";
+    result += "kSaveOverworldProperties: " +
+              std::to_string(flags_->overworld.kSaveOverworldProperties) + "\n";
+    return result;
+  }
 
  private:
   static std::shared_ptr<Flags> flags_;

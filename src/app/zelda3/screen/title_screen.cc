@@ -21,7 +21,7 @@ void TitleScreen::Create() {
 }
 
 void TitleScreen::BuildTileset() {
-  uchar staticgfx[16];
+  uchar staticgfx[16] = {0};
 
   // Main Blocksets
 

@@ -434,9 +434,14 @@ void Room::LoadSprites() {
       break;
     }
 
-    // sprites_.emplace_back(this, b3, (b2 & 0x1F), (b1 & 0x1F),
-    //                       ((b2 & 0xE0) >> 5) + ((b1 & 0x60) >> 2),
-    //                       (b1 & 0x80) >> 7);
+    Sprite new_sprite;
+    /**
+     * TODO: Implement Sprite constructor for Dungeons
+      (b3, (b2 & 0x1F), (b1 & 0x1F),
+      ((b2 & 0xE0) >> 5) + ((b1 & 0x60) >> 2),
+      (b1 & 0x80) >> 7);
+    */
+    sprites_.emplace_back(new_sprite);
 
     if (sprites_.size() > 1) {
       Sprite& spr = sprites_.back();

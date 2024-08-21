@@ -446,7 +446,6 @@ absl::Status Controller::CreateGuiContext() {
 absl::Status Controller::LoadFontFamilies() const {
   ImGuiIO &io = ImGui::GetIO();
 
-  const char *assets_path = "assets/font/";
   static const char *KARLA_REGULAR = "Karla-Regular.ttf";
   static const char *ROBOTO_MEDIUM = "Roboto-Medium.ttf";
   static const char *COUSINE_REGULAR = "Cousine-Regular.ttf";

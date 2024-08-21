@@ -298,7 +298,6 @@ absl::Status Tile16Editor::LoadTile8() {
 
         // Calculate the position in the current gfx data
         int num_columns = current_gfx_bmp_.width() / 8;
-        int num_rows = current_gfx_bmp_.height() / 8;
         int x = (index % num_columns) * 8 + tx;
         int y = (index / num_columns) * 8 + ty;
         int gfx_position = x + (y * 0x100);

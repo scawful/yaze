@@ -228,7 +228,6 @@ void ApplyBpsPatch(const std::vector<uint8_t> &source,
   }
 
   size_t patch_offset = 4;
-  uint64_t source_size = decode(patch, patch_offset);
   uint64_t target_size = decode(patch, patch_offset);
   uint64_t metadata_size = decode(patch, patch_offset);
   patch_offset += metadata_size;
