@@ -10,7 +10,6 @@ The goal of yaze is to build a cross platform editor for the Legend of Zelda: A 
 - **z3ed**: Command Line Interface
 - **yaze_c**: C Library
 - **yaze_py**: Python Module
-- **yaze_ext**: Extensions library
 - **yaze_test**: Unit test executable
 - **yaze_ios**: iOS application
 
@@ -24,7 +23,6 @@ The goal of yaze is to build a cross platform editor for the Legend of Zelda: A 
   - **app/emu**:  Contains a standalone Snes emulator application `yaze_emu`
   - **base**: Contains the base data headers for `yaze_c`
   - **cli**:  Contains the command line interface `z3ed`
-  - **ext**:  Contains the extensions library `yaze_ext`
   - **ios**:  Contains the iOS application `yaze_ios`
   - **lib**:  Contains the dependencies as git submodules
   - **py**:   Contains the Python module `yaze_py`
