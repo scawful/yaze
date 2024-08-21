@@ -44,7 +44,7 @@ var searchData=
   ['romsize_41',['romSize',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a0afba9e6f2360600fa9224bcc900af0d',1,'yaze::app::emu::memory::RomInfo::romSize'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ad5304c7686fdf1fbaed57c6d528b7d7a',1,'yaze::app::emu::memory::MemoryImpl::romSize']]],
   ['romspeed_42',['romSpeed',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a742c74c8a0caba5f8cb19108211a82ea',1,'yaze::app::emu::memory::RomInfo']]],
   ['romtype_43',['romType',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a67a430ad5d9ad998e7b6676831a4bba8',1,'yaze::app::emu::memory::RomInfo']]],
-  ['room_5f_44',['room_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#a7c0b0d1577765422b5c41ac65dcc8282',1,'yaze::app::zelda3::dungeon::RoomEntrance']]],
+  ['room_5f_44',['room_',['../structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html#a02f4fc6fd56774c1bdaddfd1f0e3f95d',1,'yaze::app::zelda3::dungeon::StaircaseRooms::room_'],['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#a7c0b0d1577765422b5c41ac65dcc8282',1,'yaze::app::zelda3::dungeon::RoomEntrance::room_']]],
   ['room_5faddresses_5f_45',['room_addresses_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ab8edb03540182ed3bf788a86d00adf2d',1,'yaze::app::zelda3::dungeon::Room']]],
   ['room_5fblockset_5fids_46',['room_blockset_ids',['../classyaze_1_1app_1_1Rom.html#a7d0f6c6698cda9faad65023a65d04f26',1,'yaze::app::Rom']]],
   ['room_5fgfx_5fbmp_5f_47',['room_gfx_bmp_',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a1264bae6928abca6c0b53fa4312779ea',1,'yaze::app::editor::DungeonEditor']]],

@@ -228,6 +228,8 @@ var NAVTREEINDEX1 =
 "classyaze_1_1app_1_1core_1_1ExperimentFlags.html#ab31b958a7216371310b254fdc2780dcd":[12,0,0,0,0,2,1],
 "classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7":[11,0,1,0,1,4,4],
 "classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7":[12,0,0,0,0,2,4],
+"classyaze_1_1app_1_1core_1_1ExperimentFlags.html#ad456e770c81eb6ab2eea9b8864af1663":[11,0,1,0,1,4,5],
+"classyaze_1_1app_1_1core_1_1ExperimentFlags.html#ad456e770c81eb6ab2eea9b8864af1663":[12,0,0,0,0,2,5],
 "classyaze_1_1app_1_1core_1_1ExperimentFlags.html#adfe896cce0f2a15e43e80667c0f46dd0":[11,0,1,0,1,4,2],
 "classyaze_1_1app_1_1core_1_1ExperimentFlags.html#adfe896cce0f2a15e43e80667c0f46dd0":[12,0,0,0,0,2,2],
 "classyaze_1_1app_1_1core_1_1FileDialogWrapper.html":[11,0,1,0,1,5],
@@ -247,7 +249,5 @@ var NAVTREEINDEX1 =
 "classyaze_1_1app_1_1core_1_1Logger.html":[11,0,1,0,1,9],
 "classyaze_1_1app_1_1core_1_1Logger.html":[12,0,0,0,0,7],
 "classyaze_1_1app_1_1core_1_1MessageDispatcher.html":[11,0,1,0,1,11],
-"classyaze_1_1app_1_1core_1_1MessageDispatcher.html":[12,0,0,0,0,9],
-"classyaze_1_1app_1_1core_1_1MessageDispatcher.html#a26a1c3bbe157362bbadcf7713846d38e":[11,0,1,0,1,11,11],
-"classyaze_1_1app_1_1core_1_1MessageDispatcher.html#a26a1c3bbe157362bbadcf7713846d38e":[12,0,0,0,0,9,11]
+"classyaze_1_1app_1_1core_1_1MessageDispatcher.html":[12,0,0,0,0,9]
 };

@@ -33,7 +33,7 @@ var searchData=
   ['normal_30',['Normal',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4a477d2e3258de4b8143f4ee311a66a212',1,'yaze::app::zelda3::dungeon']]],
   ['not1_31',['NOT1',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ac1cce66d63f5225e0fa76ec279e02280',1,'yaze::app::emu::audio::Spc700']]],
   ['notc_32',['NOTC',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#aca963717f13985bd0b8988b89333dcd8',1,'yaze::app::emu::audio::Spc700']]],
-  ['nothing_33',['Nothing',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abe17795abf1adfe947a81911733145daa2490e9a00eef4bde027f8c73fffdaa69',1,'yaze::app::zelda3::dungeon']]],
+  ['nothing_33',['Nothing',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abe17795abf1adfe947a81911733145daaf80a4ad87fee7c9fdc19b7769495fdb5',1,'yaze::app::zelda3::dungeon']]],
   ['notify_5fpalette_34',['notify_palette',['../classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a0308b63b20c73fc380308f112e77ff2c',1,'yaze::app::editor::Tile16Editor']]],
   ['notify_5ftile16_35',['notify_tile16',['../classyaze_1_1app_1_1editor_1_1Tile16Editor.html#aa34e3e3378834c0054fcba8fda09f0a3',1,'yaze::app::editor::Tile16Editor']]],
   ['notifyvalue_36',['NotifyValue',['../classyaze_1_1app_1_1core_1_1NotifyValue.html',1,'yaze::app::core::NotifyValue&lt; T &gt;'],['../classyaze_1_1app_1_1core_1_1NotifyValue.html#a9e237459e1ec31bb6a7a75b5ebf90734',1,'yaze::app::core::NotifyValue::NotifyValue()'],['../classyaze_1_1app_1_1core_1_1NotifyValue.html#a21d574dee5d1a560da33cfccfaa0439b',1,'yaze::app::core::NotifyValue::NotifyValue(const T &amp;value)']]],

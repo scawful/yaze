@@ -27,7 +27,7 @@ var searchData=
   ['fixed_5fcolor_5fg_5f_24',['fixed_color_g_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ad4302d710456d0d09fd9ea156a12f7e9',1,'yaze::app::emu::video::Ppu']]],
   ['fixed_5fcolor_5fr_5f_25',['fixed_color_r_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ad205649e3dfe5125d2430ff9059375ee',1,'yaze::app::emu::video::Ppu']]],
   ['fixed_5fsubscreen_26',['fixed_subscreen',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGWSEL.html#aa3058f1e861c80ae82f31bac55f29ba5',1,'yaze::app::emu::video::PpuRegisters::CGWSEL']]],
-  ['flags_27',['flags',['../structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ab3f542605d401c12d51fc6a8494e31bf',1,'yaze::app::gui::zeml::WidgetAttributes']]],
+  ['flags_27',['flags',['../structyaze_1_1app_1_1Project.html#a38ee1a624e82d5504dde88babf26c4a1',1,'yaze::app::Project::flags'],['../structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ab3f542605d401c12d51fc6a8494e31bf',1,'yaze::app::gui::zeml::WidgetAttributes::flags']]],
   ['flags_5f_28',['flags_',['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a90c81a943c914ebc2d06be515c76fc83',1,'yaze::app::core::ExperimentFlags']]],
   ['flip_5fhorizontal_29',['flip_horizontal',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#a9d576ba251475b7a639c639b1b4c95ac',1,'yaze::app::emu::video::PpuRegisters::M7SEL']]],
   ['flip_5fvertical_30',['flip_vertical',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#ab47b238a6b141afda1726dcc32260b51',1,'yaze::app::emu::video::PpuRegisters::M7SEL']]],

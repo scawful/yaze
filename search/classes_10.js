@@ -6,7 +6,7 @@ var searchData=
   ['testprotocol_3',['TestProtocol',['../classyaze_1_1test_1_1message__system_1_1TestProtocol.html',1,'yaze::test::message_system']]],
   ['textbox_4',['TextBox',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html',1,'yaze::app::editor::MessageEditor']]],
   ['textelement_5',['TextElement',['../structyaze_1_1app_1_1editor_1_1TextElement.html',1,'yaze::app::editor']]],
-  ['tile_6',['Tile',['../structyaze_1_1app_1_1emu_1_1video_1_1Tile.html',1,'yaze::app::emu::video::Tile'],['../structyaze_1_1app_1_1zelda3_1_1dungeon_1_1Tile.html',1,'yaze::app::zelda3::dungeon::Tile']]],
+  ['tile_6',['Tile',['../structyaze_1_1app_1_1emu_1_1video_1_1Tile.html',1,'yaze::app::emu::video']]],
   ['tile16_7',['Tile16',['../classyaze_1_1app_1_1gfx_1_1Tile16.html',1,'yaze::app::gfx']]],
   ['tile16editor_8',['Tile16Editor',['../classyaze_1_1app_1_1editor_1_1Tile16Editor.html',1,'yaze::app::editor']]],
   ['tile16transfer_9',['Tile16Transfer',['../classyaze_1_1cli_1_1Tile16Transfer.html',1,'yaze::cli']]],

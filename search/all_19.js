@@ -144,7 +144,7 @@ var searchData=
   ['room_141',['Room',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html',1,'yaze::app::zelda3::dungeon::Room'],['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#aafee27986a481972d0d581f4a2840c50',1,'yaze::app::zelda3::dungeon::Room::Room()=default'],['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#aec573d87629ec69e7b727341d4dee8fd',1,'yaze::app::zelda3::dungeon::Room::Room(int room_id)']]],
   ['room_2ecc_142',['room.cc',['../room_8cc.html',1,'']]],
   ['room_2eh_143',['room.h',['../room_8h.html',1,'']]],
-  ['room_5f_144',['room_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#a7c0b0d1577765422b5c41ac65dcc8282',1,'yaze::app::zelda3::dungeon::RoomEntrance']]],
+  ['room_5f_144',['room_',['../structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html#a02f4fc6fd56774c1bdaddfd1f0e3f95d',1,'yaze::app::zelda3::dungeon::StaircaseRooms::room_'],['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#a7c0b0d1577765422b5c41ac65dcc8282',1,'yaze::app::zelda3::dungeon::RoomEntrance::room_']]],
   ['room_5faddresses_5f_145',['room_addresses_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ab8edb03540182ed3bf788a86d00adf2d',1,'yaze::app::zelda3::dungeon::Room']]],
   ['room_5fblockset_5fids_146',['room_blockset_ids',['../classyaze_1_1app_1_1Rom.html#a7d0f6c6698cda9faad65023a65d04f26',1,'yaze::app::Rom']]],
   ['room_5fentrance_2eh_147',['room_entrance.h',['../room__entrance_8h.html',1,'']]],

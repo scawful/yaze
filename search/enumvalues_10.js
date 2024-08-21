@@ -23,6 +23,6 @@ var searchData=
   ['sram_5f16_5fkbit_20',['SRAM_16_KBIT',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#ae1f596ac5f8a1e7501c140f8415a11e1add6897099a27180343e5aea5dfe36017',1,'yaze::app::emu::memory']]],
   ['sram_5f32_5fkbit_21',['SRAM_32_KBIT',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#ae1f596ac5f8a1e7501c140f8415a11e1af2781a1fc8478f4ccb59b52689028233',1,'yaze::app::emu::memory']]],
   ['sram_5f64_5fkbit_22',['SRAM_64_KBIT',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#ae1f596ac5f8a1e7501c140f8415a11e1a639ff04505dc710ee0436422e55ad043',1,'yaze::app::emu::memory']]],
-  ['stairs_23',['Stairs',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abe17795abf1adfe947a81911733145daaec2c59a8ff9de88501730a1193b164b9',1,'yaze::app::zelda3::dungeon']]],
+  ['stairs_23',['Stairs',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abe17795abf1adfe947a81911733145daa0b01cc688e1e0b5f6b70f858a1b389ae',1,'yaze::app::zelda3::dungeon']]],
   ['string_24',['String',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a06f18a00b63cc01c30a59b40e16297bea27118326006d3829667a400ad23d5d98',1,'yaze::app::gui::zeml']]]
 ];

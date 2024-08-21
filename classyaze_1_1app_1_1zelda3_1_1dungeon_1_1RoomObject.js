@@ -11,7 +11,9 @@ var classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject =
     [ "GetSizeSized", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a72c0a79ec2c2309ae2649c0924f96a6f", null ],
     [ "UpdateSize", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a56ed10efb9d156ee1a4b0e96664c093d", null ],
     [ "AddTiles", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a234aab69e6a7cb5ba7c78239b66d0bcd", null ],
-    [ "DrawTile", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#adcc5f8115da5732c0f08a780bc2166fa", null ],
+    [ "DrawTile", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a1b3b53214dacce5a3c2e1e17fc4c3c05", null ],
+    [ "options", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a263221b824153e80672eaab0bb679e60", null ],
+    [ "set_options", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a1aa7309672025ad004fdc16b2f9a82d5", null ],
     [ "all_bgs_", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#af3dffa5521da01372565676d2816ef21", null ],
     [ "lit_", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a8fde3a2784e0bcdd2770733b55520629", null ],
     [ "deleted_", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#afe89f55f0c6db0168c5b83905ac4cd59", null ],
@@ -40,8 +42,8 @@ var classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject =
     [ "preview_id_", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#ac3eb9753b6821b1c216a36322fc64ecb", null ],
     [ "unique_id_", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#aafeecacb8f33011735e31d8913f592f1", null ],
     [ "name_", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a43d09b9e4924aa830a178ebadc270731", null ],
-    [ "layer_", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a16330deeb4e22cf371f8be8c46fc57e5", null ],
-    [ "options_", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#aaf96dd3ca77a3cd635e5a3dd527f777d", null ],
+    [ "preview_object_data_", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a4d9921e7e83156d9ca44cd61f278eb09", null ],
     [ "tiles_", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a21dec8e1e690365ee30f112e62ce32df", null ],
-    [ "preview_object_data_", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a4d9921e7e83156d9ca44cd61f278eb09", null ]
+    [ "layer_", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a16330deeb4e22cf371f8be8c46fc57e5", null ],
+    [ "options_", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#aaf96dd3ca77a3cd635e5a3dd527f777d", null ]
 ];

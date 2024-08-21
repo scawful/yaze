@@ -165,6 +165,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a3ca4ac9c1ee303eef4c43b1d59eca116"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aceb78c3bf9ad001f9d111f50fe731ab7" id="r_aceb78c3bf9ad001f9d111f50fe731ab7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html">Flags</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aceb78c3bf9ad001f9d111f50fe731ab7">mutable_flags</a> ()</td></tr>
 <tr class="separator:aceb78c3bf9ad001f9d111f50fe731ab7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad456e770c81eb6ab2eea9b8864af1663" id="r_ad456e770c81eb6ab2eea9b8864af1663"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad456e770c81eb6ab2eea9b8864af1663">Serialize</a> () const</td></tr>
+<tr class="separator:ad456e770c81eb6ab2eea9b8864af1663"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-static-attribs" name="pri-static-attribs"></a>
 Static Private Attributes</h2></td></tr>
@@ -252,9 +254,9 @@ Static Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00098">98</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
 
-<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00098">flags()</a>, and <a class="el" href="core_2common_8h_source.html#l00113">flags_</a>.</p>
+<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00098">flags()</a>, and <a class="el" href="core_2common_8h_source.html#l00153">flags_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00414">yaze::app::core::Controller::CreateGuiContext()</a>, <a class="el" href="controller_8cc_source.html#l00375">yaze::app::core::Controller::CreateSDL_Window()</a>, <a class="el" href="overworld_8cc_source.html#l01062">yaze::app::zelda3::overworld::Overworld::CreateTile32Tilemap()</a>, <a class="el" href="core_2common_8h_source.html#l00098">flags()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00072">yaze::app::editor::DungeonEditor::Initialize()</a>, <a class="el" href="overworld_8cc_source.html#l00373">yaze::app::zelda3::overworld::Overworld::LoadExits()</a>, <a class="el" href="cpu_8cc_source.html#l01805">yaze::app::emu::Cpu::LogInstructions()</a>, <a class="el" href="controller_8cc_source.html#l00265">yaze::app::core::Controller::OnEntry()</a>, <a class="el" href="controller_8cc_source.html#l00363">yaze::app::core::Controller::OnExit()</a>, <a class="el" href="renderer_8h_source.html#l00052">yaze::app::core::Renderer::RenderBitmap()</a>, <a class="el" href="overworld_8cc_source.html#l01361">yaze::app::zelda3::overworld::Overworld::SaveItems()</a>, <a class="el" href="editor__manager_8cc_source.html#l00699">yaze::app::editor::EditorManager::SaveRom()</a>, <a class="el" href="rom_8cc_source.html#l00251">yaze::app::Rom::SaveToFile()</a>, <a class="el" href="project_8h_source.html#l00104">yaze::app::Project::SerializeExperimentFlags()</a>, and <a class="el" href="renderer_8h_source.html#l00063">yaze::app::core::Renderer::UpdateBitmap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00414">yaze::app::core::Controller::CreateGuiContext()</a>, <a class="el" href="controller_8cc_source.html#l00375">yaze::app::core::Controller::CreateSDL_Window()</a>, <a class="el" href="overworld_8cc_source.html#l01055">yaze::app::zelda3::overworld::Overworld::CreateTile32Tilemap()</a>, <a class="el" href="core_2common_8h_source.html#l00098">flags()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00072">yaze::app::editor::DungeonEditor::Initialize()</a>, <a class="el" href="overworld_8cc_source.html#l00372">yaze::app::zelda3::overworld::Overworld::LoadExits()</a>, <a class="el" href="cpu_8cc_source.html#l01805">yaze::app::emu::Cpu::LogInstructions()</a>, <a class="el" href="controller_8cc_source.html#l00265">yaze::app::core::Controller::OnEntry()</a>, <a class="el" href="controller_8cc_source.html#l00363">yaze::app::core::Controller::OnExit()</a>, <a class="el" href="renderer_8h_source.html#l00052">yaze::app::core::Renderer::RenderBitmap()</a>, <a class="el" href="overworld_8cc_source.html#l01354">yaze::app::zelda3::overworld::Overworld::SaveItems()</a>, <a class="el" href="editor__manager_8cc_source.html#l00699">yaze::app::editor::EditorManager::SaveRom()</a>, <a class="el" href="rom_8cc_source.html#l00251">yaze::app::Rom::SaveToFile()</a>, and <a class="el" href="renderer_8h_source.html#l00063">yaze::app::core::Renderer::UpdateBitmap()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -292,9 +294,38 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00105">105</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
 
-<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00113">flags_</a>.</p>
+<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00153">flags_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="flags_8h_source.html#l00019">yaze::app::editor::FlagsMenu::Draw()</a>, and <a class="el" href="project_8h_source.html#l00104">yaze::app::Project::SerializeExperimentFlags()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="flags_8h_source.html#l00019">yaze::app::editor::FlagsMenu::Draw()</a>.</p>
+
+</div>
+</div>
+<a id="ad456e770c81eb6ab2eea9b8864af1663" name="ad456e770c81eb6ab2eea9b8864af1663"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad456e770c81eb6ab2eea9b8864af1663">&#9670;&#160;</a></span>Serialize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string yaze::app::core::ExperimentFlags::Serialize </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00111">111</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
+
+<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00153">flags_</a>.</p>
 
 </div>
 </div>
@@ -319,9 +350,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00113">113</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00153">153</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="core_2common_8h_source.html#l00098">flags()</a>, and <a class="el" href="core_2common_8h_source.html#l00105">mutable_flags()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="core_2common_8h_source.html#l00098">flags()</a>, <a class="el" href="core_2common_8h_source.html#l00105">mutable_flags()</a>, and <a class="el" href="core_2common_8h_source.html#l00111">Serialize()</a>.</p>
 
 </div>
 </div>

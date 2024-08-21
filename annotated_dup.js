@@ -238,12 +238,11 @@ var annotated_dup =
             [ "Room", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room" ],
             [ "RoomEntrance", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance" ],
             [ "RoomObject", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject" ],
-            [ "StaircaseRooms", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html", null ],
+            [ "StaircaseRooms", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms" ],
             [ "Subtype1", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype1.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype1" ],
             [ "Subtype2", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype2.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype2" ],
             [ "Subtype3", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3" ],
-            [ "SubtypeInfo", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo" ],
-            [ "Tile", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1Tile.html", null ]
+            [ "SubtypeInfo", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo" ]
           ] ],
           [ "music", "namespaceyaze_1_1app_1_1zelda3_1_1music.html", [
             [ "Tracker", "classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html", "classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker" ]

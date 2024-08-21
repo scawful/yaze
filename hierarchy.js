@@ -274,7 +274,6 @@ var hierarchy =
     [ "yaze::app::editor::MessageEditor::TextBox", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html", null ],
     [ "yaze::app::editor::TextElement", "structyaze_1_1app_1_1editor_1_1TextElement.html", null ],
     [ "yaze::app::emu::video::Tile", "structyaze_1_1app_1_1emu_1_1video_1_1Tile.html", null ],
-    [ "yaze::app::zelda3::dungeon::Tile", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1Tile.html", null ],
     [ "yaze::app::gfx::Tile16", "classyaze_1_1app_1_1gfx_1_1Tile16.html", null ],
     [ "yaze::app::gfx::Tile32", "classyaze_1_1app_1_1gfx_1_1Tile32.html", null ],
     [ "yaze::app::gfx::tile8", "structyaze_1_1app_1_1gfx_1_1tile8.html", null ],
