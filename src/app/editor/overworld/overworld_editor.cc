@@ -8,7 +8,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
-#include "app/core/common.h"
+
 #include "app/core/constants.h"
 #include "app/core/platform/clipboard.h"
 #include "app/core/platform/renderer.h"

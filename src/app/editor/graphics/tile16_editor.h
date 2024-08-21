@@ -5,6 +5,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/core/common.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/utils/editor.h"
 #include "app/editor/utils/gfx_context.h"

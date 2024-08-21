@@ -55,50 +55,12 @@ uint32_t crc32(const std::vector<uint8_t> &data) {
   return ::crc32(crc, data.data(), data.size());
 }
 
-}  // namespace
-
-std::shared_ptr<ExperimentFlags::Flags> ExperimentFlags::flags_;
-
-// Initialize the static member
-std::stack<ImGuiID> ImGuiIdIssuer::idStack;
-
-uint32_t Get24LocalFromPC(uint8_t *data, int addr, bool pc) {
-  uint32_t ret =
-      (PcToSnes(addr) & 0xFF0000) | (data[addr + 1] << 8) | data[addr];
-  if (pc) {
-    return SnesToPc(ret);
-  }
-  return ret;
-}
-
-// hextodec has been imported from SNESDisasm to parse hex numbers
-int HexToDec(char *input, int length) {
-  int result = 0;
-  int value;
-  int ceiling = length - 1;
-  int power16 = 16;
-
-  int j = ceiling;
-
-  for (; j >= 0; j--) {
-    if (input[j] >= 'A' && input[j] <= 'F') {
-      value = input[j] - 'F';
-      value += 15;
-    } else {
-      value = input[j] - '9';
-      value += 9;
-    }
-
-    if (j == ceiling) {
-      result += value;
-      continue;
-    }
-
-    result += (value * power16);
-    power16 *= 16;
-  }
-
-  return result;
+// "load little endian value at the given byte offset and shift to get its
+// value relative to the base offset (powers of 256, essentially)"
+unsigned ldle(uint8_t const *const p_arr, unsigned const p_index) {
+  uint32_t v = p_arr[p_index];
+  v <<= (8 * p_index);
+  return v;
 }
 
 void stle(uint8_t *const p_arr, size_t const p_index, unsigned const p_val) {
@@ -122,24 +84,6 @@ void stle2(uint8_t *const p_arr, unsigned const p_val) {
 void stle3(uint8_t *const p_arr, unsigned const p_val) {
   stle(p_arr, 3, p_val);
 }
-void stle16b(uint8_t *const p_arr, uint16_t const p_val) {
-  stle0(p_arr, p_val);
-  stle1(p_arr, p_val);
-}
-
-void stle16b_i(uint8_t *const p_arr, size_t const p_index,
-               uint16_t const p_val) {
-  stle16b(p_arr + (p_index * 2), p_val);
-}
-// "load little endian value at the given byte offset and shift to get its
-// value relative to the base offset (powers of 256, essentially)"
-unsigned ldle(uint8_t const *const p_arr, unsigned const p_index) {
-  uint32_t v = p_arr[p_index];
-
-  v <<= (8 * p_index);
-
-  return v;
-}
 
 // Helper function to get the first byte in a little endian number
 uint32_t ldle0(uint8_t const *const p_arr) { return ldle(p_arr, 0); }
@@ -153,11 +97,32 @@ uint32_t ldle2(uint8_t const *const p_arr) { return ldle(p_arr, 2); }
 // Helper function to get the third byte in a little endian number
 uint32_t ldle3(uint8_t const *const p_arr) { return ldle(p_arr, 3); }
 
+}  // namespace
+
+std::shared_ptr<ExperimentFlags::Flags> ExperimentFlags::flags_;
+
+uint32_t Get24LocalFromPC(uint8_t *data, int addr, bool pc) {
+  uint32_t ret =
+      (PcToSnes(addr) & 0xFF0000) | (data[addr + 1] << 8) | data[addr];
+  if (pc) {
+    return SnesToPc(ret);
+  }
+  return ret;
+}
+
+void stle16b_i(uint8_t *const p_arr, size_t const p_index,
+               uint16_t const p_val) {
+  stle16b(p_arr + (p_index * 2), p_val);
+}
+
+void stle16b(uint8_t *const p_arr, uint16_t const p_val) {
+  stle0(p_arr, p_val);
+  stle1(p_arr, p_val);
+}
+
 uint16_t ldle16b(uint8_t const *const p_arr) {
   uint16_t v = 0;
-
   v |= (ldle0(p_arr) | ldle1(p_arr));
-
   return v;
 }
 
@@ -175,82 +140,83 @@ void CreateBpsPatch(const std::vector<uint8_t> &source,
   encode(target.size(), patch);
   encode(0, patch);  // No metadata
 
-  size_t sourceOffset = 0;
-  size_t targetOffset = 0;
-  int64_t sourceRelOffset = 0;
-  int64_t targetRelOffset = 0;
+  size_t source_offset = 0;
+  size_t target_offset = 0;
+  int64_t source_rel_offset = 0;
+  int64_t target_rel_offset = 0;
 
-  while (targetOffset < target.size()) {
-    if (sourceOffset < source.size() &&
-        source[sourceOffset] == target[targetOffset]) {
+  while (target_offset < target.size()) {
+    if (source_offset < source.size() &&
+        source[source_offset] == target[target_offset]) {
       size_t length = 0;
-      while (sourceOffset + length < source.size() &&
-             targetOffset + length < target.size() &&
-             source[sourceOffset + length] == target[targetOffset + length]) {
+      while (source_offset + length < source.size() &&
+             target_offset + length < target.size() &&
+             source[source_offset + length] == target[target_offset + length]) {
         length++;
       }
       encode((length - 1) << 2 | 0, patch);  // SourceRead
-      sourceOffset += length;
-      targetOffset += length;
+      source_offset += length;
+      target_offset += length;
     } else {
       size_t length = 0;
-      while (targetOffset + length < target.size() &&
-             (sourceOffset + length >= source.size() ||
-              source[sourceOffset + length] != target[targetOffset + length])) {
+      while (
+          target_offset + length < target.size() &&
+          (source_offset + length >= source.size() ||
+           source[source_offset + length] != target[target_offset + length])) {
         length++;
       }
       if (length > 0) {
         encode((length - 1) << 2 | 1, patch);  // TargetRead
         for (size_t i = 0; i < length; i++) {
-          patch.push_back(target[targetOffset + i]);
+          patch.push_back(target[target_offset + i]);
         }
-        targetOffset += length;
+        target_offset += length;
       }
     }
 
     // SourceCopy
-    if (sourceOffset < source.size()) {
+    if (source_offset < source.size()) {
       size_t length = 0;
-      int64_t offset = sourceOffset - sourceRelOffset;
-      while (sourceOffset + length < source.size() &&
-             targetOffset + length < target.size() &&
-             source[sourceOffset + length] == target[targetOffset + length]) {
+      int64_t offset = source_offset - source_rel_offset;
+      while (source_offset + length < source.size() &&
+             target_offset + length < target.size() &&
+             source[source_offset + length] == target[target_offset + length]) {
         length++;
       }
       if (length > 0) {
         encode((length - 1) << 2 | 2, patch);
         encode((offset < 0 ? 1 : 0) | (abs(offset) << 1), patch);
-        sourceOffset += length;
-        targetOffset += length;
-        sourceRelOffset = sourceOffset;
+        source_offset += length;
+        target_offset += length;
+        source_rel_offset = source_offset;
       }
     }
 
     // TargetCopy
-    if (targetOffset > 0) {
+    if (target_offset > 0) {
       size_t length = 0;
-      int64_t offset = targetOffset - targetRelOffset;
-      while (targetOffset + length < target.size() &&
-             target[targetOffset - 1] == target[targetOffset + length]) {
+      int64_t offset = target_offset - target_rel_offset;
+      while (target_offset + length < target.size() &&
+             target[target_offset - 1] == target[target_offset + length]) {
         length++;
       }
       if (length > 0) {
         encode((length - 1) << 2 | 3, patch);
         encode((offset < 0 ? 1 : 0) | (abs(offset) << 1), patch);
-        targetOffset += length;
-        targetRelOffset = targetOffset;
+        target_offset += length;
+        target_rel_offset = target_offset;
       }
     }
   }
 
   patch.resize(patch.size() + 12);  // Make space for the checksums
-  uint32_t sourceChecksum = crc32(source);
-  uint32_t targetChecksum = crc32(target);
-  uint32_t patchChecksum = crc32(patch);
+  uint32_t source_checksum = crc32(source);
+  uint32_t target_checksum = crc32(target);
+  uint32_t patch_checksum = crc32(patch);
 
-  memcpy(patch.data() + patch.size() - 12, &sourceChecksum, sizeof(uint32_t));
-  memcpy(patch.data() + patch.size() - 8, &targetChecksum, sizeof(uint32_t));
-  memcpy(patch.data() + patch.size() - 4, &patchChecksum, sizeof(uint32_t));
+  memcpy(patch.data() + patch.size() - 12, &source_checksum, sizeof(uint32_t));
+  memcpy(patch.data() + patch.size() - 8, &target_checksum, sizeof(uint32_t));
+  memcpy(patch.data() + patch.size() - 4, &patch_checksum, sizeof(uint32_t));
 }
 
 void ApplyBpsPatch(const std::vector<uint8_t> &source,
@@ -261,48 +227,48 @@ void ApplyBpsPatch(const std::vector<uint8_t> &source,
     throw std::runtime_error("Invalid patch format");
   }
 
-  size_t patchOffset = 4;
-  uint64_t sourceSize = decode(patch, patchOffset);
-  uint64_t targetSize = decode(patch, patchOffset);
-  uint64_t metadataSize = decode(patch, patchOffset);
-  patchOffset += metadataSize;
+  size_t patch_offset = 4;
+  uint64_t source_size = decode(patch, patch_offset);
+  uint64_t target_size = decode(patch, patch_offset);
+  uint64_t metadata_size = decode(patch, patch_offset);
+  patch_offset += metadata_size;
 
-  target.resize(targetSize);
-  size_t sourceOffset = 0;
-  size_t targetOffset = 0;
-  int64_t sourceRelOffset = 0;
-  int64_t targetRelOffset = 0;
+  target.resize(target_size);
+  size_t source_offset = 0;
+  size_t target_offset = 0;
+  int64_t source_rel_offset = 0;
+  int64_t target_rel_offset = 0;
 
-  while (patchOffset < patch.size() - 12) {
-    uint64_t data = decode(patch, patchOffset);
+  while (patch_offset < patch.size() - 12) {
+    uint64_t data = decode(patch, patch_offset);
     uint64_t command = data & 3;
     uint64_t length = (data >> 2) + 1;
 
     switch (command) {
       case 0:  // SourceRead
         while (length--) {
-          target[targetOffset++] = source[sourceOffset++];
+          target[target_offset++] = source[source_offset++];
         }
         break;
       case 1:  // TargetRead
         while (length--) {
-          target[targetOffset++] = patch[patchOffset++];
+          target[target_offset++] = patch[patch_offset++];
         }
         break;
       case 2:  // SourceCopy
       {
-        int64_t offsetData = decode(patch, patchOffset);
-        sourceRelOffset += (offsetData & 1 ? -1 : +1) * (offsetData >> 1);
+        int64_t offsetData = decode(patch, patch_offset);
+        source_rel_offset += (offsetData & 1 ? -1 : +1) * (offsetData >> 1);
         while (length--) {
-          target[targetOffset++] = source[sourceRelOffset++];
+          target[target_offset++] = source[source_rel_offset++];
         }
       } break;
       case 3:  // TargetCopy
       {
-        uint64_t offsetData = decode(patch, patchOffset);
-        targetRelOffset += (offsetData & 1 ? -1 : +1) * (offsetData >> 1);
+        uint64_t offsetData = decode(patch, patch_offset);
+        target_rel_offset += (offsetData & 1 ? -1 : +1) * (offsetData >> 1);
         while (length--) {
-          target[targetOffset++] = target[targetRelOffset++];
+          target[target_offset++] = target[target_rel_offset++];
         }
       }
       default:
@@ -310,15 +276,15 @@ void ApplyBpsPatch(const std::vector<uint8_t> &source,
     }
   }
 
-  uint32_t sourceChecksum;
-  uint32_t targetChecksum;
-  uint32_t patchChecksum;
-  memcpy(&sourceChecksum, patch.data() + patch.size() - 12, sizeof(uint32_t));
-  memcpy(&targetChecksum, patch.data() + patch.size() - 8, sizeof(uint32_t));
-  memcpy(&patchChecksum, patch.data() + patch.size() - 4, sizeof(uint32_t));
+  uint32_t source_checksum;
+  uint32_t target_checksum;
+  uint32_t patch_checksum;
+  memcpy(&source_checksum, patch.data() + patch.size() - 12, sizeof(uint32_t));
+  memcpy(&target_checksum, patch.data() + patch.size() - 8, sizeof(uint32_t));
+  memcpy(&patch_checksum, patch.data() + patch.size() - 4, sizeof(uint32_t));
 
-  if (sourceChecksum != crc32(source) || targetChecksum != crc32(target) ||
-      patchChecksum !=
+  if (source_checksum != crc32(source) || target_checksum != crc32(target) ||
+      patch_checksum !=
           crc32(std::vector<uint8_t>(patch.begin(), patch.end() - 4))) {
     throw std::runtime_error("Checksum mismatch");
   }

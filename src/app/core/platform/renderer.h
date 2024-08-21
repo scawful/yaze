@@ -69,7 +69,8 @@ class Renderer : public ExperimentFlags {
   }
 
   absl::Status CreateAndRenderBitmap(int width, int height, int depth,
-                                     const std::vector<uint8_t>& data, gfx::Bitmap& bitmap,
+                                     const std::vector<uint8_t>& data,
+                                     gfx::Bitmap& bitmap,
                                      gfx::SnesPalette& palette) {
     bitmap.Create(width, height, depth, data);
     RETURN_IF_ERROR(bitmap.ApplyPalette(palette));

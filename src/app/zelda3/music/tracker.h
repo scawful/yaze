@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/core/common.h"
+
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"

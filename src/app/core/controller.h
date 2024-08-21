@@ -11,7 +11,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "absl/status/status.h"
-#include "app/core/common.h"
+
 #include "app/core/platform/renderer.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/utils/editor.h"

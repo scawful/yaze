@@ -6,7 +6,7 @@
 #include "ImGuiColorTextEdit/TextEditor.h"
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "absl/status/status.h"
-#include "app/core/common.h"
+
 #include "app/core/constants.h"
 #include "app/core/message.h"
 #include "app/core/project.h"

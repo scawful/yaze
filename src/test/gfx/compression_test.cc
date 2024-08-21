@@ -33,7 +33,7 @@ using ::testing::TypedEq;
 
 namespace {
 
-Bytes ExpectCompressOk(Rom& rom, uchar* in, int in_size) {
+std::vector<uint8_t> ExpectCompressOk(Rom& rom, uchar* in, int in_size) {
   auto load_status = rom.LoadFromPointer(in, in_size, false);
   EXPECT_TRUE(load_status.ok());
   auto compression_status = CompressV3(rom.vector(), 0, in_size);
@@ -42,7 +42,8 @@ Bytes ExpectCompressOk(Rom& rom, uchar* in, int in_size) {
   return compressed_bytes;
 }
 
-Bytes ExpectDecompressBytesOk(Rom& rom, Bytes& in) {
+std::vector<uint8_t> ExpectDecompressBytesOk(Rom& rom,
+                                             std::vector<uint8_t>& in) {
   auto load_status = rom.LoadFromBytes(in);
   EXPECT_TRUE(load_status.ok());
   auto decompression_status = DecompressV2(rom.data(), 0, in.size());
@@ -51,7 +52,7 @@ Bytes ExpectDecompressBytesOk(Rom& rom, Bytes& in) {
   return decompressed_bytes;
 }
 
-Bytes ExpectDecompressOk(Rom& rom, uchar* in, int in_size) {
+std::vector<uint8_t> ExpectDecompressOk(Rom& rom, uchar* in, int in_size) {
   auto load_status = rom.LoadFromPointer(in, in_size, false);
   EXPECT_TRUE(load_status.ok());
   auto decompression_status = DecompressV2(rom.data(), 0, in_size);
@@ -73,16 +74,16 @@ std::shared_ptr<CompressionPiece> ExpectNewCompressionPieceOk(
 void AssertCompressionQuality(
     const std::vector<uint8_t>& uncompressed_data,
     const std::vector<uint8_t>& expected_compressed_data) {
-  absl::StatusOr<Bytes> result =
+  absl::StatusOr<std::vector<uint8_t>> result =
       CompressV3(uncompressed_data, 0, uncompressed_data.size(), 0, false);
   ASSERT_TRUE(result.ok());
   auto compressed_data = std::move(*result);
   EXPECT_THAT(compressed_data, ElementsAreArray(expected_compressed_data));
 }
 
-Bytes ExpectCompressV3Ok(const std::vector<uint8_t>& uncompressed_data,
+std::vector<uint8_t> ExpectCompressV3Ok(const std::vector<uint8_t>& uncompressed_data,
                          const std::vector<uint8_t>& expected_compressed_data) {
-  absl::StatusOr<Bytes> result =
+  absl::StatusOr<std::vector<uint8_t>> result =
       CompressV3(uncompressed_data, 0, uncompressed_data.size(), 0, false);
   EXPECT_TRUE(result.ok());
   auto compressed_data = std::move(*result);
@@ -396,7 +397,7 @@ TEST(CheckIncByteV3Test, NotAnIncreasingSequence) {
 
 TEST(LC_LZ2_CompressionTest, DecompressionValidCommand) {
   Rom rom;
-  Bytes simple_copy_input = {BUILD_HEADER(0x00, 0x02), 0x2A, 0x45, 0xFF};
+  std::vector<uint8_t> simple_copy_input = {BUILD_HEADER(0x00, 0x02), 0x2A, 0x45, 0xFF};
   uchar simple_copy_output[2] = {0x2A, 0x45};
   auto decomp_result = ExpectDecompressBytesOk(rom, simple_copy_input);
   EXPECT_THAT(simple_copy_output, ElementsAreArray(decomp_result.data(), 2));
