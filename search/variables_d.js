@@ -10,7 +10,7 @@ var searchData=
   ['nbr_5fof_5fbasement_7',['nbr_of_basement',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a83b87932812883175733be35ac1be729',1,'yaze::app::zelda3::screen::DungeonMap']]],
   ['nbr_5fof_5ffloor_8',['nbr_of_floor',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a869c6f5679814521a2d05bf6fbb2d2bb',1,'yaze::app::zelda3::screen::DungeonMap']]],
   ['new_5fcolor_9',['new_color',['../structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html#af74249fe652d2c8cab3ff2148c0f9f85',1,'yaze::app::editor::palette_internal::PaletteChange']]],
-  ['next_10',['next',['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a45a290ab1cc359c527b923b854601ccf',1,'yaze::app::gfx::lc_lz2::CompressionPiece']]],
+  ['next_10',['next',['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a45a290ab1cc359c527b923b854601ccf',1,'yaze::app::gfx::lc_lz2::CompressionPiece::next'],['../structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a7801492e0f97172fb81475b324920f35',1,'yaze::app::zelda3::music::SPCCommand::next']]],
   ['next_5fhoriz_5fevent_11',['next_horiz_event',['../classyaze_1_1app_1_1emu_1_1SNES.html#ac48a2aab8f015b498a70470c10b7d3f4',1,'yaze::app::emu::SNES']]],
   ['nextaction_12',['nextAction',['../classyaze_1_1app_1_1zelda3_1_1SpriteAction.html#ac19bf57775e62009080af01cd8442f2d',1,'yaze::app::zelda3::SpriteAction']]],
   ['nextitemid_13',['NextItemId',['../structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a0795f5236ac1c495df600671014cb46e',1,'yaze::app::gui::GfxSheetAssetBrowser']]],
@@ -33,10 +33,11 @@ var searchData=
   ['numberofowsprites_30',['NumberOfOWSprites',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a1732d384055165e663939826507e47e9',1,'yaze::app::zelda3::overworld']]],
   ['numberofrooms_31',['NumberOfRooms',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#aa66ebd23138577105b6a458ee86cbc7d',1,'yaze::app::zelda3::dungeon']]],
   ['numinst_32',['numinst',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a71f30e3208b7f41d9ddfa6f7078a9ad6',1,'yaze::app::zelda3::music::Tracker']]],
-  ['numseg_33',['numseg',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a2dd1de584af8d9d37795768b6f2900fd',1,'yaze::app::zelda3::music::Tracker']]],
-  ['numsndinst_34',['numsndinst',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a3a293acea6c6f02e8f961b4cba9d782b',1,'yaze::app::zelda3::music::Tracker']]],
-  ['numsong_35',['numsong',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a259e9bf45491b6f88d3bde20140c2a6e',1,'yaze::app::zelda3::music::Tracker']]],
-  ['numwave_36',['numwave',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a907b04477b65604f7f5911221ef73db0',1,'yaze::app::zelda3::music::Tracker']]],
-  ['nx_5f_37',['nx_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#ac5798f143928c9d73416a01843952c74',1,'yaze::app::zelda3::dungeon::RoomObject::nx_'],['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a940c595e6ea3e41c8d7dd2c956df8d6f',1,'yaze::app::zelda3::Sprite::nx_']]],
-  ['ny_5f_38',['ny_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a22f8b165203e9a288f226bc9901038d6',1,'yaze::app::zelda3::dungeon::RoomObject::ny_'],['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a60640b354764e22fdf36123238efab00',1,'yaze::app::zelda3::Sprite::ny_']]]
+  ['numparts_33',['numparts',['../structyaze_1_1app_1_1zelda3_1_1music_1_1Song.html#a9f33d6ef8430aea15ab1cb98cc2d4232',1,'yaze::app::zelda3::music::Song']]],
+  ['numseg_34',['numseg',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a2dd1de584af8d9d37795768b6f2900fd',1,'yaze::app::zelda3::music::Tracker']]],
+  ['numsndinst_35',['numsndinst',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a3a293acea6c6f02e8f961b4cba9d782b',1,'yaze::app::zelda3::music::Tracker']]],
+  ['numsong_36',['numsong',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a259e9bf45491b6f88d3bde20140c2a6e',1,'yaze::app::zelda3::music::Tracker']]],
+  ['numwave_37',['numwave',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a907b04477b65604f7f5911221ef73db0',1,'yaze::app::zelda3::music::Tracker']]],
+  ['nx_5f_38',['nx_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#ac5798f143928c9d73416a01843952c74',1,'yaze::app::zelda3::dungeon::RoomObject::nx_'],['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a940c595e6ea3e41c8d7dd2c956df8d6f',1,'yaze::app::zelda3::Sprite::nx_']]],
+  ['ny_5f_39',['ny_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a22f8b165203e9a288f226bc9901038d6',1,'yaze::app::zelda3::dungeon::RoomObject::ny_'],['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a60640b354764e22fdf36123238efab00',1,'yaze::app::zelda3::Sprite::ny_']]]
 ];

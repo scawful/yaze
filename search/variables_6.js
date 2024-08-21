@@ -1,7 +1,7 @@
 var searchData=
 [
   ['g_0',['g',['../structyaze_1_1app_1_1emu_1_1video_1_1Color.html#a63d1f31ea8be3398a349967fbe840902',1,'yaze::app::emu::video::Color']]],
-  ['gain_1',['gain',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#ab47df8a8a8ffc8cfda17252c5a1aec46',1,'yaze::app::emu::audio::DspChannel']]],
+  ['gain_1',['gain',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#ab47df8a8a8ffc8cfda17252c5a1aec46',1,'yaze::app::emu::audio::DspChannel::gain'],['../structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaInstrument.html#ab17a74397abc10f046b4adc032ae8626',1,'yaze::app::zelda3::music::ZeldaInstrument::gain'],['../structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#a78f2cd7fe079d50bd72ae94bab00c2fe',1,'yaze::app::zelda3::music::ZeldaSfxInstrument::gain']]],
   ['gainmode_2',['gainMode',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a0522a9f90bde6dd82074cdf0a5980894',1,'yaze::app::emu::audio::DspChannel']]],
   ['gainsustainlevel_3',['gainSustainLevel',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#adcd5d2d0d18f30777d23592530e7189c',1,'yaze::app::emu::audio::DspChannel']]],
   ['gainvalue_4',['gainValue',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a2b5d40cf2b89750f0e293e3681e4ab4c',1,'yaze::app::emu::audio::DspChannel']]],

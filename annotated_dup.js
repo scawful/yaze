@@ -245,7 +245,16 @@ var annotated_dup =
             [ "SubtypeInfo", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo" ]
           ] ],
           [ "music", "namespaceyaze_1_1app_1_1zelda3_1_1music.html", [
-            [ "Tracker", "classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html", "classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker" ]
+            [ "SampleEdit", "structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html", "structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit" ],
+            [ "Song", "structyaze_1_1app_1_1zelda3_1_1music_1_1Song.html", "structyaze_1_1app_1_1zelda3_1_1music_1_1Song" ],
+            [ "SongPart", "structyaze_1_1app_1_1zelda3_1_1music_1_1SongPart.html", "structyaze_1_1app_1_1zelda3_1_1music_1_1SongPart" ],
+            [ "SongRange", "structyaze_1_1app_1_1zelda3_1_1music_1_1SongRange.html", "structyaze_1_1app_1_1zelda3_1_1music_1_1SongRange" ],
+            [ "SongSPCBlock", "structyaze_1_1app_1_1zelda3_1_1music_1_1SongSPCBlock.html", "structyaze_1_1app_1_1zelda3_1_1music_1_1SongSPCBlock" ],
+            [ "SPCCommand", "structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html", "structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand" ],
+            [ "Tracker", "classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html", "classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker" ],
+            [ "ZeldaInstrument", "structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaInstrument.html", "structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaInstrument" ],
+            [ "ZeldaSfxInstrument", "structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html", "structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaSfxInstrument" ],
+            [ "ZeldaWave", "structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaWave.html", "structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaWave" ]
           ] ],
           [ "overworld", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html", [
             [ "MapData", "structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html", "structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData" ],

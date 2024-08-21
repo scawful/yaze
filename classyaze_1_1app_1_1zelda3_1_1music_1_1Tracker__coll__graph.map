@@ -1,0 +1,17 @@
+<map id="yaze::app::zelda3::music::Tracker" name="yaze::app::zelda3::music::Tracker">
+<area shape="rect" id="Node000001" title=" " alt="" coords="371,201,494,242"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1zelda3_1_1music_1_1SongPart.html" title=" " alt="" coords="31,5,155,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,28,214,35,260,47,306,64,348,89,375,114,398,144,426,200,421,202,393,147,372,118,345,93,304,69,258,52,213,40,170,33"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1app_1_1zelda3_1_1music_1_1SongRange.html" title=" " alt="" coords="28,71,158,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,100,259,121,304,135,348,154,382,175,411,199,408,203,379,180,345,159,303,140,258,126,172,105"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html" title=" " alt="" coords="19,136,167,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="183,168,347,199,371,204,370,209,346,204,182,173"/>
+<area shape="rect" id="Node000005" href="$structyaze_1_1app_1_1zelda3_1_1music_1_1SongSPCBlock.html" title=" " alt="" coords="17,201,169,242"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="185,219,370,219,370,224,185,224"/>
+<area shape="rect" id="Node000006" href="$structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaWave.html" title=" " alt="" coords="29,267,157,307"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="172,272,346,239,370,234,371,239,347,245,173,277"/>
+<area shape="rect" id="Node000007" href="$structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaInstrument.html" title=" " alt="" coords="15,332,171,373"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="186,336,266,317,345,286,380,265,409,240,412,244,383,269,348,291,267,322,187,341"/>
+<area shape="rect" id="Node000008" href="$structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html" title=" " alt="" coords="5,397,181,438"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="196,408,273,389,310,374,345,353,372,328,394,298,421,241,426,244,398,301,376,331,348,357,313,378,274,394,197,413"/>
+</map>
