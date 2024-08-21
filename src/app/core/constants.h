@@ -1,9 +1,7 @@
 #ifndef YAZE_APP_CORE_CONSTANTS_H
 #define YAZE_APP_CORE_CONSTANTS_H
 
-#include <vector>
-
-#include "absl/strings/string_view.h"
+#include <string_view>
 
 #define TAB_BAR(w) if (ImGui::BeginTabBar(w)) {
 #define END_TAB_BAR() \

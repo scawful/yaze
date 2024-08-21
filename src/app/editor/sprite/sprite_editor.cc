@@ -4,6 +4,7 @@
 #include "app/editor/sprite/zsprite.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
+#include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace app {
@@ -71,13 +72,13 @@ void SpriteEditor::DrawVanillaSpriteEditor() {
       for (int n = 0; n < active_sprites_.Size;) {
         bool open = true;
 
-        if (active_sprites_[n] > sizeof(kSpriteDefaultNames) / 4) {
+        if (active_sprites_[n] > sizeof(zelda3::kSpriteDefaultNames) / 4) {
           active_sprites_.erase(active_sprites_.Data + n);
           continue;
         }
 
         if (ImGui::BeginTabItem(
-                kSpriteDefaultNames[active_sprites_[n]].data(), &open,
+                zelda3::kSpriteDefaultNames[active_sprites_[n]].data(), &open,
                 ImGuiTabItemFlags_None)) {
           DrawSpriteCanvas();
           ImGui::EndTabItem();
@@ -188,10 +189,10 @@ void SpriteEditor::DrawSpritesList() {
                         ImVec2(ImGui::GetContentRegionAvail().x, 0), true,
                         ImGuiWindowFlags_NoDecoration)) {
     int i = 0;
-    for (const auto each_sprite_name : kSpriteDefaultNames) {
+    for (const auto each_sprite_name : zelda3::kSpriteDefaultNames) {
       rom()->resource_label()->SelectableLabelWithNameEdit(
           current_sprite_id_ == i, "Sprite Names", core::UppercaseHexByte(i),
-          kSpriteDefaultNames[i].data());
+          zelda3::kSpriteDefaultNames[i].data());
       if (ImGui::IsItemClicked()) {
         current_sprite_id_ = i;
         if (!active_sprites_.contains(i)) {

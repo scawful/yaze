@@ -1,8 +1,9 @@
 #include "snes_tile.h"
 
+#include <cassert>
 #include <cstdint>
-#include <vector>
 #include <stdexcept>
+#include <vector>
 
 #include "app/core/constants.h"
 
@@ -148,7 +149,8 @@ std::vector<uint8_t> Convert4bppTo3bpp(const std::vector<uint8_t>& tiles) {
   return ConvertBpp(tiles, 4, 3);
 }
 
-std::vector<uint8_t> SnesTo8bppSheet(const std::vector<uint8_t>& sheet, int bpp) {
+std::vector<uint8_t> SnesTo8bppSheet(const std::vector<uint8_t>& sheet,
+                                     int bpp) {
   int xx = 0;  // positions where we are at on the sheet
   int yy = 0;
   int pos = 0;
@@ -200,7 +202,8 @@ std::vector<uint8_t> SnesTo8bppSheet(const std::vector<uint8_t>& sheet, int bpp)
   return sheet_buffer_out;
 }
 
-std::vector<uint8_t> Bpp8SnesToIndexed(std::vector<uint8_t> data, uint64_t bpp) {
+std::vector<uint8_t> Bpp8SnesToIndexed(std::vector<uint8_t> data,
+                                       uint64_t bpp) {
   // 3BPP
   // [r0,bp1],[r0,bp2],[r1,bp1],[r1,bp2],[r2,bp1],[r2,bp2],[r3,bp1],[r3,bp2]
   // [r4,bp1],[r4,bp2],[r5,bp1],[r5,bp2],[r6,bp1],[r6,bp2],[r7,bp1],[r7,bp2]

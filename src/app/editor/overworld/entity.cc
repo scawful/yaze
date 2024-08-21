@@ -384,7 +384,7 @@ void DrawSpriteTable(std::function<void(int)> onSpriteSelect) {
   // Initialize items if empty
   if (items.empty()) {
     for (int i = 0; i < 256; ++i) {
-      items.push_back(SpriteItem{i, kSpriteDefaultNames[i].data()});
+      items.push_back(SpriteItem{i, zelda3::kSpriteDefaultNames[i].data()});
     }
   }
 
