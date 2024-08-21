@@ -366,29 +366,28 @@ void Room::LoadObjects() {
         sizeXY = 0;
       }
 
-      RoomObject r =
-          AddObject(oid, posX, posY, sizeXY, static_cast<uint8_t>(layer));
-
-      /**
-      if (r != nullptr) {
-        tilesObjects.push_back(r);
-      }
-
+      RoomObject r(oid, posX, posY, sizeXY, static_cast<uint8_t>(layer));
+      tile_objects_.push_back(r);
 
       for (short stair : stairsObjects) {
         if (stair == oid) {
           if (nbr_of_staircase < 4) {
-            tilesObjects.back().options |= ObjectOption::Stairs;
-            staircaseRooms.push_back(StaircaseRoom(
-                posX, posY, "To " + staircase_rooms_[nbr_of_staircase]));
+            tile_objects_.back().set_options(ObjectOption::Stairs |
+                                             tile_objects_.back().options());
+            staircase_rooms_vec_.push_back(StaircaseRooms(
+                posX, posY,
+                absl::StrCat("To ", staircase_rooms_[nbr_of_staircase])
+                    .data()));
             nbr_of_staircase++;
           } else {
-            tilesObjects.back().options |= ObjectOption::Stairs;
-            staircaseRooms.push_back(StaircaseRoom(posX, posY, "To ???"));
+            tile_objects_.back().set_options(ObjectOption::Stairs |
+                                             tile_objects_.back().options());
+            staircase_rooms_vec_.push_back(
+                StaircaseRooms(posX, posY, "To ???"));
           }
         }
       }
-
+      /**
       if (oid == 0xF99) {
         if (chests_in_room.size() > 0) {
           tilesObjects.back().options |= ObjectOption::Chest;
@@ -408,7 +407,6 @@ void Room::LoadObjects() {
       tilesObjects.push_back(object_door(static_cast<short>((b2 << 8) + b1), 0,
                                          0, 0, static_cast<uint8_t>(layer)));
     }
-
     **/
     }
   }

@@ -28,8 +28,6 @@ struct SubtypeInfo {
 
 SubtypeInfo FetchSubtypeInfo(uint16_t object_id);
 
-struct Tile {};
-
 enum class SpecialObjectType { Chest, BigChest, InterroomStairs };
 
 enum Background2 {
@@ -55,7 +53,7 @@ enum Sorting {
   SortStairs = 64
 };
 
-enum ObjectOption {
+enum class ObjectOption {
   Nothing = 0,
   Door = 1,
   Chest = 2,
@@ -64,6 +62,11 @@ enum ObjectOption {
   Bgr = 16,
   Stairs = 32
 };
+
+ObjectOption operator|(ObjectOption lhs, ObjectOption rhs);
+ObjectOption operator&(ObjectOption lhs, ObjectOption rhs);
+ObjectOption operator^(ObjectOption lhs, ObjectOption rhs);
+ObjectOption operator~(ObjectOption option);
 
 constexpr int kRoomObjectSubtype1 = 0x8000;          // JP = Same
 constexpr int kRoomObjectSubtype2 = 0x83F0;          // JP = Same
@@ -123,10 +126,14 @@ class RoomObject : public SharedRom {
     }
   }
 
-  void DrawTile(Tile t, int xx, int yy, std::vector<uint8_t>& current_gfx16,
+  void DrawTile(gfx::Tile16 t, int xx, int yy,
+                std::vector<uint8_t>& current_gfx16,
                 std::vector<uint8_t>& tiles_bg1_buffer,
                 std::vector<uint8_t>& tiles_bg2_buffer,
                 ushort tile_under = 0xFFFF);
+
+  auto options() const { return options_; }
+  void set_options(ObjectOption options) { options_ = options; }
 
  protected:
   bool all_bgs_ = false;
@@ -161,19 +168,19 @@ class RoomObject : public SharedRom {
 
   std::string name_;
 
+  std::vector<uint8_t> preview_object_data_;
+  std::vector<gfx::Tile16> tiles_;
+
   LayerType layer_;
   ObjectOption options_ = ObjectOption::Nothing;
-  std::vector<gfx::Tile16> tiles_;
-  std::vector<uint8_t> preview_object_data_;
 };
 
 class Subtype1 : public RoomObject {
  public:
-  std::vector<Tile> tiles;
-  std::string name;
   bool allBgs;
-  Sorting sort;
   int tile_count_;
+  std::string name;
+  Sorting sort;
 
   Subtype1(int16_t id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer,
            int tileCount)
@@ -187,10 +194,13 @@ class Subtype1 : public RoomObject {
     sort = (Sorting)(Sorting::Horizontal | Sorting::Wall);
   }
 
-  void Draw() {
+  void Draw(std::vector<uint8_t>& current_gfx16,
+            std::vector<uint8_t>& tiles_bg1_buffer,
+            std::vector<uint8_t>& tiles_bg2_buffer) {
     for (int s = 0; s < size_ + (tile_count_ == 8 ? 1 : 0); s++) {
       for (int i = 0; i < tile_count_; i++) {
-        // DrawTile(tiles[i], ((s * 2)) * 8, (i / 2) * 8);
+        DrawTile(tiles_[i], ((s * 2)) * 8, (i / 2) * 8, current_gfx16,
+                 tiles_bg1_buffer, tiles_bg2_buffer);
       }
     }
   }
@@ -198,7 +208,6 @@ class Subtype1 : public RoomObject {
 
 class Subtype2 : public RoomObject {
  public:
-  std::vector<Tile> tiles;
   std::string name;
   bool allBgs;
   Sorting sort;
@@ -214,18 +223,20 @@ class Subtype2 : public RoomObject {
     sort = (Sorting)(Sorting::Horizontal | Sorting::Wall);
   }
 
-  void Draw() {
+  void Draw(std::vector<uint8_t>& current_gfx16,
+            std::vector<uint8_t>& tiles_bg1_buffer,
+            std::vector<uint8_t>& tiles_bg2_buffer) {
     for (int i = 0; i < 8; i++) {
-      // DrawTile(tiles[i], x_ * 8, (y_ + i) * 8);
+      DrawTile(tiles_[i], x_ * 8, (y_ + i) * 8, current_gfx16, tiles_bg1_buffer,
+               tiles_bg2_buffer);
     }
   }
 };
 
 class Subtype3 : public RoomObject {
  public:
-  std::vector<Tile> tiles;
-  std::string name;
   bool allBgs;
+  std::string name;
   Sorting sort;
 
   Subtype3(int16_t id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer)
@@ -239,9 +250,12 @@ class Subtype3 : public RoomObject {
     sort = (Sorting)(Sorting::Horizontal | Sorting::Wall);
   }
 
-  void Draw() {
+  void Draw(std::vector<uint8_t>& current_gfx16,
+            std::vector<uint8_t>& tiles_bg1_buffer,
+            std::vector<uint8_t>& tiles_bg2_buffer) {
     for (int i = 0; i < 8; i++) {
-      // DrawTile(tiles[i], x_ * 8, (y_ + i) * 8);
+      DrawTile(tiles_[i], x_ * 8, (y_ + i) * 8, current_gfx16, tiles_bg1_buffer,
+               tiles_bg2_buffer);
     }
   }
 };
