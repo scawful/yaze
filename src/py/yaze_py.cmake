@@ -1,5 +1,3 @@
-find_package(PythonLibs 3.8 REQUIRED)
-cmake_policy(SET CMP0167 NEW)
 find_package(Boost COMPONENTS python3 REQUIRED)
 
 # target x86_64 for module 

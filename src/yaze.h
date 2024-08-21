@@ -12,9 +12,6 @@ extern "C" {
 #include "base/snes_color.h"
 #include "base/sprite.h"
 
-typedef struct ImGuiContext ImGuiContext;
-typedef struct ImGuiIO ImGuiIO;
-
 typedef struct z3_rom z3_rom;
 typedef struct yaze_flags yaze_flags;
 typedef struct yaze_project yaze_project;
@@ -47,12 +44,6 @@ struct yaze_editor_context {
 
   yaze_command_registry* command_registry;
   yaze_event_dispatcher* event_dispatcher;
-
-  ImGuiContext* imgui_context;
-  ImGuiIO* imgui_io;
-
-  void (*ShowDialog)(const char* title, const char* message);
-  void (*LogMessage)(const char* message);
 };
 
 /**
