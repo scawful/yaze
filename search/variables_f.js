@@ -97,7 +97,8 @@ var searchData=
   ['property_5fstatue_94',['property_statue',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#aaa6d5b26493226f7d4c7b18ae1427a69',1,'yaze::app::editor::zsprite::ZSprite']]],
   ['property_5fwatersprite_95',['property_watersprite',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a2c53cdba7dcd7969baeb68ab86294663',1,'yaze::app::editor::zsprite::ZSprite']]],
   ['proto_5fmap_5fdata_5f_96',['proto_map_data_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a091f7494347d7e9e9c01ed7c6752b7f7',1,'yaze::app::zelda3::overworld::Overworld']]],
-  ['protocols_5f_97',['protocols_',['../classyaze_1_1app_1_1core_1_1MessageDispatcher.html#a26a1c3bbe157362bbadcf7713846d38e',1,'yaze::app::core::MessageDispatcher']]],
-  ['pseudo_5fhires_5f_98',['pseudo_hires_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a0e5fb16de4cb54edc6b76eaf13843677',1,'yaze::app::emu::video::Ppu']]],
-  ['psw_99',['PSW',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#acb00737c3faffb45fe382615ad14a92f',1,'yaze::app::emu::audio::Spc700']]]
+  ['protocol_5f_97',['protocol_',['../classyaze_1_1test_1_1message__system_1_1MessageDispatcherTest.html#a99626f5058533446232c16e5ca782027',1,'yaze::test::message_system::MessageDispatcherTest']]],
+  ['protocols_5f_98',['protocols_',['../classyaze_1_1app_1_1core_1_1MessageDispatcher.html#a26a1c3bbe157362bbadcf7713846d38e',1,'yaze::app::core::MessageDispatcher']]],
+  ['pseudo_5fhires_5f_99',['pseudo_hires_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a0e5fb16de4cb54edc6b76eaf13843677',1,'yaze::app::emu::video::Ppu']]],
+  ['psw_100',['PSW',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#acb00737c3faffb45fe382615ad14a92f',1,'yaze::app::emu::audio::Spc700']]]
 ];

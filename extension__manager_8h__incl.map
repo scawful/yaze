@@ -1,9 +1,9 @@
 <map id="src/app/editor/system/extension_manager.h" name="src/app/editor/system/extension_manager.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="14,5,161,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="16,5,164,46"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,94,63,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="76,48,53,83,48,80,72,45"/>
-<area shape="rect" id="Node000003" href="$extension_8h.html" title=" " alt="" coords="87,94,194,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="103,45,126,80,122,83,98,48"/>
-<area shape="rect" id="Node000004" href="$yaze_8h.html" title=" " alt="" coords="112,168,169,193"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="143,120,143,152,138,152,138,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="78,48,54,83,49,79,74,45"/>
+<area shape="rect" id="Node000003" href="$extension_8h.html" title=" " alt="" coords="87,94,205,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="106,45,131,79,126,83,102,48"/>
+<area shape="rect" id="Node000004" href="$yaze_8h.html" title=" " alt="" coords="117,168,175,193"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="149,120,149,152,143,152,143,120"/>
 </map>

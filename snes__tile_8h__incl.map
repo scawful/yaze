@@ -1,14 +1,13 @@
 <map id="src/app/gfx/snes_tile.h" name="src/app/gfx/snes_tile.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="77,5,228,31"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="85,5,236,31"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,79,66,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,34,70,73,67,68,132,29"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,34,71,73,69,69,138,29"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="89,79,150,105"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="150,32,134,66,129,64,145,30"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="159,160,216,186"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="158,31,184,144,179,146,153,32"/>
-<area shape="rect" id="Node000005" href="$constants_8h.html" title=" " alt="" coords="224,79,367,105"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="178,29,259,69,256,74,176,34"/>
-<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="281,107,218,153,215,149,278,103"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="240,153,364,193"/>
-<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="299,105,302,137,297,138,294,105"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="156,33,136,67,132,64,152,30"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="174,79,231,105"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="170,30,190,64,185,67,165,33"/>
+<area shape="rect" id="Node000005" href="$constants_8h.html" title=" " alt="" coords="255,79,397,105"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="190,29,285,70,283,75,188,34"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="282,153,370,178"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="329,105,329,137,324,137,324,105"/>
 </map>

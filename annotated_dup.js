@@ -1,8 +1,5 @@
 var annotated_dup =
 [
-    [ "sample", "namespacesample.html", [
-      [ "YazePyExtension", "classsample_1_1YazePyExtension.html", "classsample_1_1YazePyExtension" ]
-    ] ],
     [ "yaze", "namespaceyaze.html", [
       [ "app", "namespaceyaze_1_1app.html", [
         [ "core", "namespaceyaze_1_1app_1_1core.html", [
@@ -13,13 +10,10 @@ var annotated_dup =
           [ "FolderItem", "structyaze_1_1app_1_1core_1_1FolderItem.html", "structyaze_1_1app_1_1core_1_1FolderItem" ],
           [ "IMessageListener", "classyaze_1_1app_1_1core_1_1IMessageListener.html", "classyaze_1_1app_1_1core_1_1IMessageListener" ],
           [ "IMessageProtocol", "classyaze_1_1app_1_1core_1_1IMessageProtocol.html", "classyaze_1_1app_1_1core_1_1IMessageProtocol" ],
-          [ "ImGuiIdIssuer", "classyaze_1_1app_1_1core_1_1ImGuiIdIssuer.html", null ],
           [ "Logger", "classyaze_1_1app_1_1core_1_1Logger.html", null ],
           [ "Message", "structyaze_1_1app_1_1core_1_1Message.html", "structyaze_1_1app_1_1core_1_1Message" ],
           [ "MessageDispatcher", "classyaze_1_1app_1_1core_1_1MessageDispatcher.html", "classyaze_1_1app_1_1core_1_1MessageDispatcher" ],
           [ "MessageFilter", "classyaze_1_1app_1_1core_1_1MessageFilter.html", "classyaze_1_1app_1_1core_1_1MessageFilter" ],
-          [ "Notification", "structyaze_1_1app_1_1core_1_1Notification.html", "structyaze_1_1app_1_1core_1_1Notification" ],
-          [ "NotificationCenter", "classyaze_1_1app_1_1core_1_1NotificationCenter.html", "classyaze_1_1app_1_1core_1_1NotificationCenter" ],
           [ "NotifyValue", "classyaze_1_1app_1_1core_1_1NotifyValue.html", "classyaze_1_1app_1_1core_1_1NotifyValue" ],
           [ "ObjectFactory", "classyaze_1_1app_1_1core_1_1ObjectFactory.html", "classyaze_1_1app_1_1core_1_1ObjectFactory" ],
           [ "Reflectable", "classyaze_1_1app_1_1core_1_1Reflectable.html", "classyaze_1_1app_1_1core_1_1Reflectable" ],
@@ -308,6 +302,12 @@ var annotated_dup =
         [ "integration", "namespaceyaze_1_1test_1_1integration.html", [
           [ "TestEditor", "classyaze_1_1test_1_1integration_1_1TestEditor.html", "classyaze_1_1test_1_1integration_1_1TestEditor" ]
         ] ],
+        [ "message_system", "namespaceyaze_1_1test_1_1message__system.html", [
+          [ "MessageDispatcherTest", "classyaze_1_1test_1_1message__system_1_1MessageDispatcherTest.html", "classyaze_1_1test_1_1message__system_1_1MessageDispatcherTest" ],
+          [ "TestFilter", "classyaze_1_1test_1_1message__system_1_1TestFilter.html", "classyaze_1_1test_1_1message__system_1_1TestFilter" ],
+          [ "TestListener", "classyaze_1_1test_1_1message__system_1_1TestListener.html", "classyaze_1_1test_1_1message__system_1_1TestListener" ],
+          [ "TestProtocol", "classyaze_1_1test_1_1message__system_1_1TestProtocol.html", "classyaze_1_1test_1_1message__system_1_1TestProtocol" ]
+        ] ],
         [ "zelda3", "namespaceyaze_1_1test_1_1zelda3.html", [
           [ "SpriteBuilderTest", "classyaze_1_1test_1_1zelda3_1_1SpriteBuilderTest.html", "classyaze_1_1test_1_1zelda3_1_1SpriteBuilderTest" ]
         ] ],
@@ -317,6 +317,7 @@ var annotated_dup =
     ] ],
     [ "AppDelegate", "classAppDelegate.html", null ],
     [ "AppViewController", "classAppViewController.html", null ],
+    [ "PythonYazeExtensionWrapper", "classPythonYazeExtensionWrapper.html", "classPythonYazeExtensionWrapper" ],
     [ "snes_color", "structsnes__color.html", "structsnes__color" ],
     [ "snes_palette", "structsnes__palette.html", "structsnes__palette" ],
     [ "yaze_command_registry", "structyaze__command__registry.html", "structyaze__command__registry" ],

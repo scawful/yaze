@@ -6,8 +6,8 @@
 <area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="554,33,520,76,516,72,550,30"/>
 <area shape="rect" id="Node000009" href="$rom_8h.html" title=" " alt="" coords="948,168,1027,193"/>
 <area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="594,29,942,159,940,164,592,34"/>
-<area shape="rect" id="Node000048" href="$app_2zelda3_2overworld_2overworld_8h.html" title=" " alt="" coords="552,79,695,120"/>
-<area shape="poly" id="edge26_Node000001_Node000048" title=" " alt="" coords="573,30,601,65,597,68,568,33"/>
+<area shape="rect" id="Node000049" href="$app_2zelda3_2overworld_2overworld_8h.html" title=" " alt="" coords="552,79,695,120"/>
+<area shape="poly" id="edge26_Node000001_Node000049" title=" " alt="" coords="573,30,601,65,597,68,568,33"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="149,168,216,193"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="287,115,215,161,212,157,284,110"/>
 <area shape="rect" id="Node000004" title=" " alt="" coords="321,241,385,267"/>
@@ -50,7 +50,7 @@
 <area shape="poly" id="edge24_Node000009_Node000023" title=" " alt="" coords="961,196,864,238,862,233,959,191"/>
 <area shape="rect" id="Node000024" title=" " alt="" coords="873,241,926,267"/>
 <area shape="poly" id="edge25_Node000009_Node000024" title=" " alt="" coords="974,196,928,234,925,229,971,192"/>
-<area shape="poly" id="edge29_Node000048_Node000009" title=" " alt="" coords="696,114,934,165,933,170,695,119"/>
-<area shape="poly" id="edge27_Node000048_Node000010" title=" " alt="" coords="611,122,550,195,512,233,509,229,546,192,607,118"/>
-<area shape="poly" id="edge28_Node000048_Node000022" title=" " alt="" coords="620,121,584,227,579,226,615,119"/>
+<area shape="poly" id="edge29_Node000049_Node000009" title=" " alt="" coords="696,114,934,165,933,170,695,119"/>
+<area shape="poly" id="edge27_Node000049_Node000010" title=" " alt="" coords="611,122,550,195,512,233,509,229,546,192,607,118"/>
+<area shape="poly" id="edge28_Node000049_Node000022" title=" " alt="" coords="620,121,584,227,579,226,615,119"/>
 </map>

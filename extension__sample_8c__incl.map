@@ -1,0 +1,10 @@
+<map id="src/base/extension_sample.c" name="src/base/extension_sample.c">
+<area shape="rect" id="Node000001" title=" " alt="" coords="83,5,214,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,94,65,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,49,66,87,63,83,119,44"/>
+<area shape="rect" id="Node000003" href="$extension_8h.html" title=" " alt="" coords="89,94,208,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="151,46,151,78,146,78,146,46"/>
+<area shape="rect" id="Node000004" href="$yaze_8h.html" title=" " alt="" coords="168,168,225,193"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="180,44,203,66,221,93,225,109,224,125,214,155,209,153,219,124,220,109,217,95,199,69,177,48"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="158,118,182,153,177,156,154,121"/>
+</map>

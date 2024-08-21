@@ -49,6 +49,7 @@ var namespaceyaze_1_1app_1_1zelda3_1_1dungeon =
       [ "Bgr", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abe17795abf1adfe947a81911733145daa4dc6baef96f60a48335beafe308edb99", null ],
       [ "Stairs", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abe17795abf1adfe947a81911733145daaec2c59a8ff9de88501730a1193b164b9", null ]
     ] ],
+    [ "FetchSubtypeInfo", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#afa1d894d9706beec670641597b714396", null ],
     [ "kGfxBufferOffset", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ab8dbbb08aa7f63249b56c7745e4cb2c4", null ],
     [ "kGfxBufferStride", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#afd8adac87e802213a5cbd0de48ff03ea", null ],
     [ "kGfxBufferAnimatedFrameOffset", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a32b59ef37653bde9297b927d9f156bca", null ],
@@ -93,6 +94,7 @@ var namespaceyaze_1_1app_1_1zelda3_1_1dungeon =
     [ "door_pos_left", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a8e407314faaa0e60903d0dcec25cac77", null ],
     [ "door_pos_right", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#af1424eb7b499dacebbcd29f8c46fcf1a", null ],
     [ "dungeon_spr_ptrs", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#af3b336bda353741f109a7ecec96ce2b5", null ],
+    [ "NumberOfRooms", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#aa66ebd23138577105b6a458ee86cbc7d", null ],
     [ "stairsObjects", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a89e8d245bac0bb52d9310af054df7b1f", null ],
     [ "entrance_room", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a3f7bd67025f62e6e16537e16ef8b1a27", null ],
     [ "entrance_scrolledge", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ab543322a997bf3480330a401cb5aad08", null ],
@@ -153,5 +155,10 @@ var namespaceyaze_1_1app_1_1zelda3_1_1dungeon =
     [ "bedSheetPositionX", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6cf0576297d0ddf53565674217f0aaf1", null ],
     [ "bedSheetPositionY", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a9dbbade5d8888f8eed6b9aaeb58fc6e6", null ],
     [ "kRoomNames", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ad762809d12104cb30876fa97b1bc8f27", null ],
-    [ "kEntranceNames", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abc3a2e7da3f410c59fa73b7adac975c8", null ]
+    [ "kEntranceNames", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abc3a2e7da3f410c59fa73b7adac975c8", null ],
+    [ "kRoomObjectSubtype1", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a4d3dca801aac291bcef02fd67dbacfc6", null ],
+    [ "kRoomObjectSubtype2", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a924d247fa87bd24fcc4b14b32d87fb5b", null ],
+    [ "kRoomObjectSubtype3", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a77a42c7a71d63c8c5e77518f13e8e03c", null ],
+    [ "kRoomObjectTileAddress", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ad744b936a6304a4aaf32fc1519901fcd", null ],
+    [ "kRoomObjectTileAddressFloor", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a4c39e3effd5150667a58c51218ab6f5c", null ]
 ];

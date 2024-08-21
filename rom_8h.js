@@ -19,5 +19,7 @@ var rom_8h =
     [ "kNumMainBlocksets", "rom_8h.html#aab7ae1c6c1f53dc67967ef446b6f1454", null ],
     [ "kNumRoomBlocksets", "rom_8h.html#a223d942fccf2b7b125c99611d5aafb2f", null ],
     [ "kNumSpritesets", "rom_8h.html#a451077027ec769e34627daf9b66f67c0", null ],
-    [ "kNumPalettesets", "rom_8h.html#ac53a28cbb330029d4c5267572cdf87f2", null ]
+    [ "kNumPalettesets", "rom_8h.html#ac53a28cbb330029d4c5267572cdf87f2", null ],
+    [ "kUncompressedSheetSize", "rom_8h.html#a64f8fa5b345e7d72292e7ce15e882331", null ],
+    [ "kMaxGraphics", "rom_8h.html#a5f8a196cdfa37e480edbac75506b30ce", null ]
 ];

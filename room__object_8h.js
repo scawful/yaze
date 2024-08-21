@@ -1,5 +1,6 @@
 var room__object_8h =
 [
+    [ "yaze::app::zelda3::dungeon::SubtypeInfo", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo" ],
     [ "yaze::app::zelda3::dungeon::Tile", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1Tile.html", null ],
     [ "yaze::app::zelda3::dungeon::RoomObject", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject" ],
     [ "yaze::app::zelda3::dungeon::Subtype1", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype1.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype1" ],
@@ -39,5 +40,11 @@ var room__object_8h =
       [ "Torch", "room__object_8h.html#abe17795abf1adfe947a81911733145daade7f713f41ab16d3a70f4c1808abb967", null ],
       [ "Bgr", "room__object_8h.html#abe17795abf1adfe947a81911733145daa4dc6baef96f60a48335beafe308edb99", null ],
       [ "Stairs", "room__object_8h.html#abe17795abf1adfe947a81911733145daaec2c59a8ff9de88501730a1193b164b9", null ]
-    ] ]
+    ] ],
+    [ "FetchSubtypeInfo", "room__object_8h.html#afa1d894d9706beec670641597b714396", null ],
+    [ "kRoomObjectSubtype1", "room__object_8h.html#a4d3dca801aac291bcef02fd67dbacfc6", null ],
+    [ "kRoomObjectSubtype2", "room__object_8h.html#a924d247fa87bd24fcc4b14b32d87fb5b", null ],
+    [ "kRoomObjectSubtype3", "room__object_8h.html#a77a42c7a71d63c8c5e77518f13e8e03c", null ],
+    [ "kRoomObjectTileAddress", "room__object_8h.html#ad744b936a6304a4aaf32fc1519901fcd", null ],
+    [ "kRoomObjectTileAddressFloor", "room__object_8h.html#a4c39e3effd5150667a58c51218ab6f5c", null ]
 ];

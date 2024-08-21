@@ -17,5 +17,8 @@ var snes__tile_8h =
     [ "WordToTileInfo", "snes__tile_8h.html#a1c0d7314890a130ceda6eec9def39c4e", null ],
     [ "TileInfoToShort", "snes__tile_8h.html#a8b918c5ebd5aeb116c421ae7125e4128", null ],
     [ "GetTilesInfo", "snes__tile_8h.html#aefa90c55f0eea489bc7a6dd716300e90", null ],
+    [ "kTilesheetWidth", "snes__tile_8h.html#a6ff959ac156037d8e329fb7407fb22ce", null ],
+    [ "kTilesheetHeight", "snes__tile_8h.html#ad483c5e1fb09da11a6f1ae19b5c1c35e", null ],
+    [ "kTilesheetDepth", "snes__tile_8h.html#a2c9eb84fc181d14f0b37aafcdd31aa6d", null ],
     [ "kGraphicsBitmap", "snes__tile_8h.html#aa4d05c0ec507bdb37d9c5b41f2d4ee58", null ]
 ];

@@ -98,6 +98,7 @@ var namespaceyaze_1_1app_1_1gfx =
     [ "SNES_BLUE_MASK", "namespaceyaze_1_1app_1_1gfx.html#a9f93560824621862a7e4889d592cb2df", null ],
     [ "SNES_GREEN_SHIFT", "namespaceyaze_1_1app_1_1gfx.html#a0912d77a56151905de5232b2a90cb5f8", null ],
     [ "SNES_BLUE_SHIFT", "namespaceyaze_1_1app_1_1gfx.html#aefdc5379d7c7907c0b2cf786b9e5d166", null ],
+    [ "NumberOfColors", "namespaceyaze_1_1app_1_1gfx.html#a9a60aa10f33af4e1bec6b786cf73c149", null ],
     [ "kColorByteMax", "namespaceyaze_1_1app_1_1gfx.html#ae2123f33a8fb5b50ff714b9994aab899", null ],
     [ "kColorByteMaxF", "namespaceyaze_1_1app_1_1gfx.html#a1981d5f88428f048841f93bad2cc5ec3", null ],
     [ "kPaletteGroupAddressMap", "namespaceyaze_1_1app_1_1gfx.html#a0b33005e899a93e458f6b70f359f047b", null ],
@@ -132,5 +133,8 @@ var namespaceyaze_1_1app_1_1gfx =
     [ "TileHFlipBit", "namespaceyaze_1_1app_1_1gfx.html#a3dfbc94092307bb3201c87c5e9182e82", null ],
     [ "TileVFlipBit", "namespaceyaze_1_1app_1_1gfx.html#a9edb3a29e85c2a935d0d0f7014b5fb2a", null ],
     [ "TileNameMask", "namespaceyaze_1_1app_1_1gfx.html#ad7955598311233ccedaea17464db0dac", null ],
+    [ "kTilesheetWidth", "namespaceyaze_1_1app_1_1gfx.html#a6ff959ac156037d8e329fb7407fb22ce", null ],
+    [ "kTilesheetHeight", "namespaceyaze_1_1app_1_1gfx.html#ad483c5e1fb09da11a6f1ae19b5c1c35e", null ],
+    [ "kTilesheetDepth", "namespaceyaze_1_1app_1_1gfx.html#a2c9eb84fc181d14f0b37aafcdd31aa6d", null ],
     [ "kGraphicsBitmap", "namespaceyaze_1_1app_1_1gfx.html#aa4d05c0ec507bdb37d9c5b41f2d4ee58", null ]
 ];

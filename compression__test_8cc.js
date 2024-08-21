@@ -1,12 +1,12 @@
 var compression__test_8cc =
 [
     [ "BUILD_HEADER", "compression__test_8cc.html#aca48128a724010a9277720f53bde1a5a", null ],
-    [ "ExpectCompressOk", "compression__test_8cc.html#a51260f59e77553ff6acb6b3b8fb33e79", null ],
-    [ "ExpectDecompressBytesOk", "compression__test_8cc.html#a61437e7217c4fcb98565e1e463773c21", null ],
-    [ "ExpectDecompressOk", "compression__test_8cc.html#a488348c22054d8befbd5dea2d323602b", null ],
+    [ "ExpectCompressOk", "compression__test_8cc.html#a7e61b801ab6ab1acffe01cbed90902ed", null ],
+    [ "ExpectDecompressBytesOk", "compression__test_8cc.html#a06283a3f6164333bb7526f5eb6715af1", null ],
+    [ "ExpectDecompressOk", "compression__test_8cc.html#ad3649d55dea19b8ed440734fbb79bdba", null ],
     [ "ExpectNewCompressionPieceOk", "compression__test_8cc.html#ac45cf5dbe79ff7777896b2ca53a7dfd9", null ],
     [ "AssertCompressionQuality", "compression__test_8cc.html#a804c98e5473ed6d7a93336ec135f4051", null ],
-    [ "ExpectCompressV3Ok", "compression__test_8cc.html#afa7dc732986d5b338bc1d6ac5da8f41e", null ],
+    [ "ExpectCompressV3Ok", "compression__test_8cc.html#ab9aca8e4864b366e1f45a11590a5a525", null ],
     [ "CreateRepeatedBetweenUncompressable", "compression__test_8cc.html#a019743e9ff4f1e4dba0d326b1b9a233b", null ],
     [ "TEST", "compression__test_8cc.html#a5176acedec8635dc50caaba6e56b4503", null ],
     [ "TEST", "compression__test_8cc.html#afc11233f201f4b54f6f93105c25d2386", null ],

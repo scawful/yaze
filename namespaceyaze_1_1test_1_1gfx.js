@@ -1,12 +1,12 @@
 var namespaceyaze_1_1test_1_1gfx =
 [
     [ "anonymous_namespace{compression_test.cc}", "namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html", [
-      [ "ExpectCompressOk", "namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#a51260f59e77553ff6acb6b3b8fb33e79", null ],
-      [ "ExpectDecompressBytesOk", "namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#a61437e7217c4fcb98565e1e463773c21", null ],
-      [ "ExpectDecompressOk", "namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#a488348c22054d8befbd5dea2d323602b", null ],
+      [ "ExpectCompressOk", "namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#a7e61b801ab6ab1acffe01cbed90902ed", null ],
+      [ "ExpectDecompressBytesOk", "namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#a06283a3f6164333bb7526f5eb6715af1", null ],
+      [ "ExpectDecompressOk", "namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#ad3649d55dea19b8ed440734fbb79bdba", null ],
       [ "ExpectNewCompressionPieceOk", "namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#ac45cf5dbe79ff7777896b2ca53a7dfd9", null ],
       [ "AssertCompressionQuality", "namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#a804c98e5473ed6d7a93336ec135f4051", null ],
-      [ "ExpectCompressV3Ok", "namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#afa7dc732986d5b338bc1d6ac5da8f41e", null ],
+      [ "ExpectCompressV3Ok", "namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#ab9aca8e4864b366e1f45a11590a5a525", null ],
       [ "CreateRepeatedBetweenUncompressable", "namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#a019743e9ff4f1e4dba0d326b1b9a233b", null ]
     ] ],
     [ "anonymous_namespace{snes_palette_test.cc}", "namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02snes__palette__test_8cc_03.html", [

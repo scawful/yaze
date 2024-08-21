@@ -126,7 +126,7 @@ $(function(){initNavTree('font__loader_8cc_source.html',''); initResizable(true)
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="keywordtype">int</span> CALLBACK EnumFontFamExProc(<span class="keyword">const</span> LOGFONT* lpelfe, <span class="keyword">const</span> TEXTMETRIC* lpntme,</div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>                               DWORD FontType, LPARAM lParam) {</div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  <span class="comment">// Step 3: Load the font into ImGui</span></div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  <a class="code hl_typedef" href="yaze_8h.html#a2fe9e20dc4d305e10865cb2447303c7b">ImGuiIO</a>&amp; io = ImGui::GetIO();</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  ImGuiIO&amp; io = ImGui::GetIO();</div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  io.Fonts-&gt;AddFontFromFileTTF(lpelfe-&gt;lfFaceName, 16.0f);</div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  <span class="keywordflow">return</span> 1;</div>
@@ -181,7 +181,7 @@ $(function(){initNavTree('font__loader_8cc_source.html',''); initResizable(true)
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    RegCloseKey(hKey);</div>
 <div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>  }</div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span> </div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  <a class="code hl_typedef" href="yaze_8h.html#a2fe9e20dc4d305e10865cb2447303c7b">ImGuiIO</a>&amp; io = ImGui::GetIO();</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  ImGuiIO&amp; io = ImGui::GetIO();</div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
 <div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  <span class="comment">// List of common font face names</span></div>
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>  <span class="keyword">static</span> <span class="keyword">const</span> std::unordered_set&lt;std::string&gt; commonFontFaceNames = {</div>
@@ -248,7 +248,6 @@ $(function(){initNavTree('font__loader_8cc_source.html',''); initResizable(true)
 <div class="ttc" id="aicons_8h_html"><div class="ttname"><a href="icons_8h.html">icons.h</a></div></div>
 <div class="ttc" id="aicons_8h_html_a6cb0d114de0f8bb079998be79d3b001c"><div class="ttname"><a href="icons_8h.html#a6cb0d114de0f8bb079998be79d3b001c">ICON_MIN_MD</a></div><div class="ttdeci">#define ICON_MIN_MD</div><div class="ttdef"><b>Definition</b> <a href="icons_8h_source.html#l00008">icons.h:8</a></div></div>
 <div class="ttc" id="aicons_8h_html_afbf738deb227afe8e9b196ba09a7c360"><div class="ttname"><a href="icons_8h.html#afbf738deb227afe8e9b196ba09a7c360">FONT_ICON_FILE_NAME_MD</a></div><div class="ttdeci">#define FONT_ICON_FILE_NAME_MD</div><div class="ttdef"><b>Definition</b> <a href="icons_8h_source.html#l00006">icons.h:6</a></div></div>
-<div class="ttc" id="ayaze_8h_html_a2fe9e20dc4d305e10865cb2447303c7b"><div class="ttname"><a href="yaze_8h.html#a2fe9e20dc4d305e10865cb2447303c7b">ImGuiIO</a></div><div class="ttdeci">struct ImGuiIO ImGuiIO</div><div class="ttdef"><b>Definition</b> <a href="yaze_8h_source.html#l00016">yaze.h:16</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

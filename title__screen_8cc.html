@@ -113,7 +113,6 @@ $(function(){initNavTree('title__screen_8cc.html',''); initResizable(true); });
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="title__screen_8h_source.html">title_screen.h</a>&quot;</code><br />
 <code>#include &lt;cstdint&gt;</code><br />
-<code>#include &quot;<a class="el" href="core_2common_8h_source.html">app/core/common.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="bitmap_8h_source.html">app/gfx/bitmap.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="snes__tile_8h_source.html">app/gfx/snes_tile.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="rom_8h_source.html">app/rom.h</a>&quot;</code><br />
@@ -122,31 +121,26 @@ Include dependency graph for title_screen.cc:</div>
 <div class="dyncontent">
 <div class="center"><img src="title__screen_8cc__incl.png" border="0" usemap="#asrc_2app_2zelda3_2screen_2title__screen_8cc" alt=""/></div>
 <map name="asrc_2app_2zelda3_2screen_2title__screen_8cc" id="asrc_2app_2zelda3_2screen_2title__screen_8cc">
-<area shape="rect" title=" " alt="" coords="174,5,322,46"/>
-<area shape="rect" href="title__screen_8h.html" title=" " alt="" coords="156,94,255,120"/>
-<area shape="poly" title=" " alt="" coords="240,48,222,81,217,79,235,45"/>
-<area shape="rect" title=" " alt="" coords="210,315,270,341"/>
-<area shape="poly" title=" " alt="" coords="205,49,131,87,93,112,57,140,29,170,12,202,9,217,9,233,14,249,23,265,34,275,50,283,95,298,195,318,194,323,93,303,48,288,31,279,19,269,9,251,4,234,3,217,7,200,25,167,54,136,90,108,129,83,202,44"/>
-<area shape="rect" href="core_2common_8h.html" title=" " alt="" coords="226,241,361,267"/>
-<area shape="poly" title=" " alt="" coords="257,46,269,93,292,225,287,226,264,95,251,47"/>
-<area shape="rect" href="bitmap_8h.html" title=" " alt="" coords="34,241,150,267"/>
-<area shape="poly" title=" " alt="" coords="205,49,174,69,146,96,127,128,113,163,98,227,93,225,108,161,122,125,142,92,170,65,203,44"/>
-<area shape="rect" href="snes__tile_8h.html" title=" " alt="" coords="437,241,566,267"/>
-<area shape="poly" title=" " alt="" coords="288,44,369,94,413,128,454,166,476,196,493,226,488,229,472,199,450,169,410,132,366,98,285,49"/>
-<area shape="rect" href="rom_8h.html" title=" " alt="" coords="329,168,407,193"/>
-<area shape="poly" title=" " alt="" coords="270,44,313,92,355,153,351,156,309,96,266,48"/>
-<area shape="poly" title=" " alt="" coords="207,120,206,183,209,225,216,266,229,300,224,302,211,268,204,225,201,183,202,120"/>
-<area shape="poly" title=" " alt="" coords="215,119,281,227,276,229,210,121"/>
-<area shape="poly" title=" " alt="" coords="198,122,113,231,109,227,194,118"/>
-<area shape="poly" title=" " alt="" coords="255,112,335,130,379,145,420,165,458,195,486,227,482,231,454,199,417,170,377,150,334,135,254,117"/>
-<area shape="poly" title=" " alt="" coords="234,118,327,159,325,163,232,123"/>
-<area shape="poly" title=" " alt="" coords="287,269,260,304,256,301,282,266"/>
-<area shape="poly" title=" " alt="" coords="118,265,202,305,200,310,116,270"/>
-<area shape="poly" title=" " alt="" coords="458,270,286,317,285,312,456,265"/>
-<area shape="poly" title=" " alt="" coords="376,193,384,228,383,249,376,268,358,289,335,304,286,322,284,317,332,299,354,285,371,266,378,248,378,229,370,195"/>
-<area shape="poly" title=" " alt="" coords="357,196,319,233,315,229,354,192"/>
-<area shape="poly" title=" " alt="" coords="329,195,154,240,153,234,328,189"/>
-<area shape="poly" title=" " alt="" coords="392,192,466,231,464,236,389,196"/>
+<area shape="rect" title=" " alt="" coords="108,5,256,46"/>
+<area shape="rect" href="title__screen_8h.html" title=" " alt="" coords="133,94,231,120"/>
+<area shape="poly" title=" " alt="" coords="184,46,184,78,179,78,179,46"/>
+<area shape="rect" title=" " alt="" coords="157,315,217,341"/>
+<area shape="poly" title=" " alt="" coords="153,49,98,89,70,115,43,144,23,174,11,205,10,236,23,265,47,289,77,306,110,316,142,321,141,327,109,321,75,311,44,294,18,269,5,236,6,204,18,171,39,140,66,111,95,85,149,44"/>
+<area shape="rect" href="bitmap_8h.html" title=" " alt="" coords="33,241,149,267"/>
+<area shape="poly" title=" " alt="" coords="160,48,140,70,123,95,110,129,101,164,94,226,89,225,96,163,105,127,118,93,136,66,157,45"/>
+<area shape="rect" href="snes__tile_8h.html" title=" " alt="" coords="276,241,405,267"/>
+<area shape="poly" title=" " alt="" coords="220,44,252,65,286,93,318,127,342,167,348,197,348,226,342,225,343,197,337,169,314,130,283,97,249,70,217,49"/>
+<area shape="rect" href="rom_8h.html" title=" " alt="" coords="224,168,302,193"/>
+<area shape="poly" title=" " alt="" coords="207,45,227,66,246,93,257,123,263,152,258,153,252,124,241,95,223,70,203,48"/>
+<area shape="poly" title=" " alt="" coords="185,120,189,299,184,300,179,120"/>
+<area shape="poly" title=" " alt="" coords="177,121,109,229,104,227,172,119"/>
+<area shape="poly" title=" " alt="" coords="232,117,276,136,297,149,316,166,333,195,340,225,335,227,328,197,312,169,294,153,274,140,230,122"/>
+<area shape="poly" title=" " alt="" coords="197,118,240,155,236,159,194,122"/>
+<area shape="poly" title=" " alt="" coords="109,265,161,304,158,308,106,270"/>
+<area shape="poly" title=" " alt="" coords="316,270,228,311,226,306,313,265"/>
+<area shape="poly" title=" " alt="" coords="259,195,203,303,198,300,255,192"/>
+<area shape="poly" title=" " alt="" coords="235,196,135,237,133,233,233,191"/>
+<area shape="poly" title=" " alt="" coords="278,192,318,229,315,233,274,196"/>
 </map>
 </div>
 </div>

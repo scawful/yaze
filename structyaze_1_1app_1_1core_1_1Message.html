@@ -115,19 +115,11 @@ $(function(){initNavTree('structyaze_1_1app_1_1core_1_1Message.html',''); initRe
 <div class="contents">
 
 <p><code>#include &lt;<a class="el" href="message_8h_source.html">message.h</a>&gt;</code></p>
-<div class="dynheader">
-Inheritance diagram for yaze::app::core::Message:</div>
-<div class="dyncontent">
-<div class="center"><img src="structyaze_1_1app_1_1core_1_1Message__inherit__graph.png" border="0" usemap="#ayaze_1_1app_1_1core_1_1Message_inherit__map" alt="Inheritance graph"/></div>
-<map name="ayaze_1_1app_1_1core_1_1Message_inherit__map" id="ayaze_1_1app_1_1core_1_1Message_inherit__map">
-<area shape="rect" title=" " alt="" coords="11,5,176,31"/>
-<area shape="rect" href="structyaze_1_1app_1_1core_1_1Notification.html" title=" " alt="" coords="5,79,182,105"/>
-<area shape="poly" title=" " alt="" coords="96,46,96,79,91,79,91,46"/>
-</map>
-<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:a8fc92812ee817d62117cd9667fd8afb3" id="r_a8fc92812ee817d62117cd9667fd8afb3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8fc92812ee817d62117cd9667fd8afb3">Message</a> ()=default</td></tr>
+<tr class="separator:a8fc92812ee817d62117cd9667fd8afb3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab1f4b54709534852ab8ac72df773d33c" id="r_ab1f4b54709534852ab8ac72df773d33c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab1f4b54709534852ab8ac72df773d33c">Message</a> (const std::string &amp;<a class="el" href="#adc5d40ebe2149c064c81873fe52344ca">type</a>, void *<a class="el" href="#aee0a24f5a247edabfc464707c96aa022">sender</a>, const std::any &amp;<a class="el" href="#a7c050b1dc6f915c1ba78c1989c57da70">payload</a>)</td></tr>
 <tr class="separator:ab1f4b54709534852ab8ac72df773d33c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -144,8 +136,33 @@ Public Attributes</h2></td></tr>
 <div class="textblock">
 <p class="definition">Definition at line <a class="el" href="message_8h_source.html#l00019">19</a> of file <a class="el" href="message_8h_source.html">message.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a8fc92812ee817d62117cd9667fd8afb3" name="a8fc92812ee817d62117cd9667fd8afb3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8fc92812ee817d62117cd9667fd8afb3">&#9670;&#160;</a></span>Message() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">yaze::app::core::Message::Message </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ab1f4b54709534852ab8ac72df773d33c" name="ab1f4b54709534852ab8ac72df773d33c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab1f4b54709534852ab8ac72df773d33c">&#9670;&#160;</a></span>Message()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ab1f4b54709534852ab8ac72df773d33c">&#9670;&#160;</a></span>Message() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -176,7 +193,7 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message_8h_source.html#l00024">24</a> of file <a class="el" href="message_8h_source.html">message.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message_8h_source.html#l00025">25</a> of file <a class="el" href="message_8h_source.html">message.h</a>.</p>
 
 </div>
 </div>
@@ -195,7 +212,7 @@ Public Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="message_8h_source.html#l00020">20</a> of file <a class="el" href="message_8h_source.html">message.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message_8cc_source.html#l00044">yaze::app::core::MessageDispatcher::DispatchMessage()</a>, <a class="el" href="notification_8h_source.html#l00035">yaze::app::core::NotificationCenter::PostNotification()</a>, and <a class="el" href="message_8cc_source.html#l00037">yaze::app::core::MessageDispatcher::SendMessage()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__test_8cc_source.html#l00035">yaze::test::message_system::TestProtocol::CanHandleMessage()</a>, <a class="el" href="message_8cc_source.html#l00044">yaze::app::core::MessageDispatcher::DispatchMessage()</a>, and <a class="el" href="message_8cc_source.html#l00037">yaze::app::core::MessageDispatcher::SendMessage()</a>.</p>
 
 </div>
 </div>
@@ -228,6 +245,8 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="message_8h_source.html#l00022">22</a> of file <a class="el" href="message_8h_source.html">message.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="message__test_8cc_source.html#l00042">yaze::test::message_system::TestFilter::ShouldReceiveMessage()</a>.</p>
 
 </div>
 </div>

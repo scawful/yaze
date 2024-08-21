@@ -31,5 +31,7 @@ var namespaceyaze_1_1app =
     [ "kNumMainBlocksets", "namespaceyaze_1_1app.html#aab7ae1c6c1f53dc67967ef446b6f1454", null ],
     [ "kNumRoomBlocksets", "namespaceyaze_1_1app.html#a223d942fccf2b7b125c99611d5aafb2f", null ],
     [ "kNumSpritesets", "namespaceyaze_1_1app.html#a451077027ec769e34627daf9b66f67c0", null ],
-    [ "kNumPalettesets", "namespaceyaze_1_1app.html#ac53a28cbb330029d4c5267572cdf87f2", null ]
+    [ "kNumPalettesets", "namespaceyaze_1_1app.html#ac53a28cbb330029d4c5267572cdf87f2", null ],
+    [ "kUncompressedSheetSize", "namespaceyaze_1_1app.html#a64f8fa5b345e7d72292e7ce15e882331", null ],
+    [ "kMaxGraphics", "namespaceyaze_1_1app.html#a5f8a196cdfa37e480edbac75506b30ce", null ]
 ];
