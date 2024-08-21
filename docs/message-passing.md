@@ -17,8 +17,6 @@ This system is currently in development and most of the content here was generat
 - **Swizzler**: A utility that allows you to dynamically replace (swizzle) methods on objects at runtime, enabling dynamic behavior changes.
 - **Reflectable**: An interface that allows for runtime inspection and manipulation of objects' properties.
 - **ObjectFactory**: A factory for creating instances of `Reflectable` objects dynamically based on type names.
-- **Notification**: A specialized message used to broadcast events to multiple observers.
-- **NotificationCenter**: A central hub for managing notifications and observers.
 
 ### Getting Started
 
@@ -125,41 +123,4 @@ class MyObject : public yaze::app::core::Reflectable {
 yaze::app::core::ObjectFactory factory;
 factory.RegisterType<MyObject>("MyObject");
 auto my_object = factory.CreateObject("MyObject");
-```
-
-
-### Using the Notification System
-
-The yaze notification system that allows for broadcasting events to multiple observers. This is particularly useful when you need to inform several parts of the editor about a state change or event without tightly coupling them.
-
-#### 1. **Setting Up the Notification Center**
-
-To use notifications, create an instance of `NotificationCenter`.
-
-```cpp
-yaze::app::core::NotificationCenter notification_center;
-```
-
-#### 2. **Adding and Removing Observers**
-
-Observers, which are typically components implementing the `IMessageListener` interface, can register themselves to listen for specific notifications.
-
-```cpp
-MyListener observer;
-notification_center.AddObserver("MyNotificationType", &observer);
-```
-
-If an observer no longer needs to listen for notifications, it can be removed:
-
-```cpp
-notification_center.RemoveObserver("MyNotificationType", &observer);
-```
-
-#### 3. **Posting Notifications**
-
-To broadcast a notification, create a `Notification` object and post it through the `NotificationCenter`. All registered observers will receive the notification.
-
-```cpp
-yaze::app::core::Notification notification("MyNotificationType", this, some_payload);
-notification_center.PostNotification(notification);
 ```
