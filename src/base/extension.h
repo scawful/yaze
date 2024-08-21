@@ -84,26 +84,6 @@ typedef struct yaze_extension {
 
 } yaze_extension;
 
-/**
- * @brief Get the extension interface.
- */
-yaze_extension* get_yaze_extension();
-
-/**
- * @brief Load a C extension.
- */
-void yaze_load_c_extension(const char* extension_path, yaze_editor_context* context);
-
-/**
- * @brief Load a Python extension.
- */
-void yaze_load_py_extension(const char* script_path);
-
-/**
- * @brief Clean up the extension.
- */
-void yaze_cleanup_extension();
-
 #ifdef __cplusplus
 }
 #endif

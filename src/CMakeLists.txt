@@ -80,10 +80,6 @@ if (YAZE_BUILD_Z3ED)
   include(cli/z3ed.cmake) 
 endif()
 
-if (YAZE_BUILD_EXTENSIONS)
-  include(ext/ext.cmake)
-endif()
-
 if (YAZE_BUILD_PYTHON)
   include(py/yaze_py.cmake)
 endif()
