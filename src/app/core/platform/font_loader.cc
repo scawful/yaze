@@ -1,13 +1,12 @@
 #include "app/core/platform/font_loader.h"
 
-#include <imgui/imgui.h>
-
 #include <string>
 #include <unordered_set>
 #include <vector>
 
 #include "absl/strings/str_format.h"
 #include "app/gui/icons.h"
+#include "imgui/imgui.h"
 
 #ifdef _WIN32
 #include <Windows.h>
