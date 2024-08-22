@@ -80,11 +80,10 @@ var searchData=
   ['getvramremap_77',['GetVramRemap',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a88ab8ef055956e1cfaacd2cd8ca060d7',1,'yaze::app::emu::video::Ppu']]],
   ['getwindowstate_78',['GetWindowState',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ab98435209212151dc85b98cf8f6a0eb1',1,'yaze::app::emu::video::Ppu']]],
   ['getzeroflag_79',['GetZeroFlag',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a78ab4a43929b6149cadd3c39483f94c9',1,'yaze::app::emu::Cpu']]],
-  ['gfx_5fgroup_5feditor_80',['gfx_group_editor',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a8c0cdb0a0b7bd8693e2fa44812d7b04e',1,'yaze::app::editor::OverworldEditor']]],
-  ['gfx_5fsheets_81',['gfx_sheets',['../classyaze_1_1app_1_1Rom.html#a0911436fac0734acd28f4fe24ab02c28',1,'yaze::app::Rom']]],
-  ['global_5fscale_82',['global_scale',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a8b45ea0c49744d0398c3f031e907f235',1,'yaze::app::gui::Canvas']]],
-  ['graphics_5fbuffer_83',['graphics_buffer',['../classyaze_1_1app_1_1Rom.html#a1d95813c5dcaea0bc9b085a1501a1614',1,'yaze::app::Rom']]],
-  ['graphicsbincanvaspipeline_84',['GraphicsBinCanvasPipeline',['../namespaceyaze_1_1app_1_1gui.html#af3842eaca5095da067d7248aeda9d006',1,'yaze::app::gui']]],
-  ['graphicseditor_85',['GraphicsEditor',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab83436301f2e730afbf6753e2827687e',1,'yaze::app::editor::GraphicsEditor']]],
-  ['grayscalepalette_86',['GrayscalePalette',['../namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#a94dc5ccbe969297d607afd1821c3d118',1,'yaze::app::gfx::anonymous_namespace{bitmap.cc}']]]
+  ['gfx_5fsheets_80',['gfx_sheets',['../classyaze_1_1app_1_1Rom.html#a0911436fac0734acd28f4fe24ab02c28',1,'yaze::app::Rom']]],
+  ['global_5fscale_81',['global_scale',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a8b45ea0c49744d0398c3f031e907f235',1,'yaze::app::gui::Canvas']]],
+  ['graphics_5fbuffer_82',['graphics_buffer',['../classyaze_1_1app_1_1Rom.html#a1d95813c5dcaea0bc9b085a1501a1614',1,'yaze::app::Rom']]],
+  ['graphicsbincanvaspipeline_83',['GraphicsBinCanvasPipeline',['../namespaceyaze_1_1app_1_1gui.html#af3842eaca5095da067d7248aeda9d006',1,'yaze::app::gui']]],
+  ['graphicseditor_84',['GraphicsEditor',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab83436301f2e730afbf6753e2827687e',1,'yaze::app::editor::GraphicsEditor']]],
+  ['grayscalepalette_85',['GrayscalePalette',['../namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#a94dc5ccbe969297d607afd1821c3d118',1,'yaze::app::gfx::anonymous_namespace{bitmap.cc}']]]
 ];

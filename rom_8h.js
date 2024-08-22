@@ -12,6 +12,7 @@ var rom_8h =
     ] ],
     [ "kNumGfxSheets", "rom_8h.html#a9bbafa7d5f1809f3d216b5082f65d1b2", null ],
     [ "kNumLinkSheets", "rom_8h.html#a4c7fab5470426166f7fcba0162f75387", null ],
+    [ "kTile16Ptr", "rom_8h.html#a11bc2d853f5f345a8225759635e64aac", null ],
     [ "kNormalGfxSpaceStart", "rom_8h.html#a3ef17b1c481a3e73d2d97a92e3995b04", null ],
     [ "kNormalGfxSpaceEnd", "rom_8h.html#a3ef7d1df5d323905102b5a1cef9d447d", null ],
     [ "kFontSpriteLocation", "rom_8h.html#a6cba51ea80792c0f6a876549882f3778", null ],

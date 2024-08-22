@@ -1,6 +1,6 @@
 <map id="yaze::app::editor::GraphicsEditor::DrawPaletteControls" name="yaze::app::editor::GraphicsEditor::DrawPaletteControls">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,350,189,406"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a14d4ec1a5d5b648a98b68478412393cf" title=" " alt="" coords="244,5,423,46"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a1f7b8b3ede1d972d618476a7c764a9a0" title=" " alt="" coords="244,5,423,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="100,349,113,289,138,211,156,169,178,129,204,91,235,57,239,53,243,57,239,61,208,94,183,132,161,172,143,213,119,290,105,350"/>
 <area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx.html#abdc15a02218fe29002585f61230af828" title=" " alt="" coords="242,71,424,111"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="104,349,120,300,147,239,185,176,208,147,235,121,239,118,242,122,238,125,212,150,189,179,152,241,125,302,109,350"/>

@@ -3,7 +3,7 @@ var structyaze_1_1app_1_1gfx_1_1PaletteGroup =
     [ "PaletteGroup", "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a89de7d5a6034f58e61e8d536612680ed", null ],
     [ "AddPalette", "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a8fa2347dd7c201ffd8189cab6177798a", null ],
     [ "AddColor", "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#ab115e2eb11d6e5763706970ca6f0a4a5", null ],
-    [ "Clear", "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a14d4ec1a5d5b648a98b68478412393cf", null ],
+    [ "clear", "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a1f7b8b3ede1d972d618476a7c764a9a0", null ],
     [ "SetName", "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#adda3694dc0f5aeae8504c9c09aefe77c", null ],
     [ "name", "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a8dcaf29b0aa5d5202f20cfd7408aae5c", null ],
     [ "size", "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a1e809967b23511be48bc9e034dabb98d", null ],

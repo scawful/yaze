@@ -239,8 +239,9 @@ Functions</h2></td></tr>
 <tr class="separator:a72e75c41a6c90cdfc4a26ddeb54cc1ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abdc15a02218fe29002585f61230af828" id="r_abdc15a02218fe29002585f61230af828"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html">PaletteGroup</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abdc15a02218fe29002585f61230af828">CreatePaletteGroupFromColFile</a> (std::vector&lt; <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html">SnesColor</a> &gt; &amp;palette_rows)</td></tr>
 <tr class="separator:abdc15a02218fe29002585f61230af828"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1bb7565b38ebe9348abb69352315d32f" id="r_a1bb7565b38ebe9348abb69352315d32f"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html">PaletteGroup</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1bb7565b38ebe9348abb69352315d32f">CreatePaletteGroupFromLargePalette</a> (<a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">SnesPalette</a> &amp;palette, int num_colors)</td></tr>
-<tr class="separator:a1bb7565b38ebe9348abb69352315d32f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae17c9d133fe0b57af7775daed2a99632" id="r_ae17c9d133fe0b57af7775daed2a99632"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html">PaletteGroup</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae17c9d133fe0b57af7775daed2a99632">CreatePaletteGroupFromLargePalette</a> (<a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">SnesPalette</a> &amp;palette, int num_colors=8)</td></tr>
+<tr class="memdesc:ae17c9d133fe0b57af7775daed2a99632"><td class="mdescLeft">&#160;</td><td class="mdescRight">Take a SNESPalette, divide it into palettes of 8 colors.  <br /></td></tr>
+<tr class="separator:ae17c9d133fe0b57af7775daed2a99632"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9499fc92c20ba2d6bd2936e5a905091c" id="r_a9499fc92c20ba2d6bd2936e5a905091c"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9499fc92c20ba2d6bd2936e5a905091c">LoadAllPalettes</a> (const std::vector&lt; uint8_t &gt; &amp;rom_data, <a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html">PaletteGroupMap</a> &amp;groups)</td></tr>
 <tr class="memdesc:a9499fc92c20ba2d6bd2936e5a905091c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads all the palettes for the game.  <br /></td></tr>
 <tr class="separator:a9499fc92c20ba2d6bd2936e5a905091c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -311,9 +312,9 @@ Variables</h2></td></tr>
 <tr class="separator:a9001b2ad2991156a62ae569ba10af003"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae291a690c13a2279f7e7bde3530d72ce" id="r_ae291a690c13a2279f7e7bde3530d72ce"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae291a690c13a2279f7e7bde3530d72ce">kGlobalSpritesLW</a> = 0xDD218</td></tr>
 <tr class="separator:ae291a690c13a2279f7e7bde3530d72ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad65648ff8763499c2b0092caf7af2534" id="r_ad65648ff8763499c2b0092caf7af2534"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad65648ff8763499c2b0092caf7af2534">globalSpritePalettesDW</a> = 0xDD290</td></tr>
-<tr class="separator:ad65648ff8763499c2b0092caf7af2534"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8bb97aefe618a264a3146b468efe047c" id="r_a8bb97aefe618a264a3146b468efe047c"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8bb97aefe618a264a3146b468efe047c">kArmorPalettes</a> = 0xDD308</td></tr>
+<tr class="memitem:aa58e5cffaa3f9a225c09b3503fb750a4" id="r_aa58e5cffaa3f9a225c09b3503fb750a4"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa58e5cffaa3f9a225c09b3503fb750a4">kGlobalSpritePalettesDW</a> = 0xDD290</td></tr>
+<tr class="separator:aa58e5cffaa3f9a225c09b3503fb750a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8bb97aefe618a264a3146b468efe047c" id="r_a8bb97aefe618a264a3146b468efe047c"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8bb97aefe618a264a3146b468efe047c">kArmorPalettes</a></td></tr>
 <tr class="separator:a8bb97aefe618a264a3146b468efe047c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa1117aaeee42846e4308758b3aee2e27" id="r_aa1117aaeee42846e4308758b3aee2e27"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa1117aaeee42846e4308758b3aee2e27">kSpritesPalettesAux1</a> = 0xDD39E</td></tr>
 <tr class="separator:aa1117aaeee42846e4308758b3aee2e27"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -327,30 +328,30 @@ Variables</h2></td></tr>
 <tr class="separator:a418bc3fecde2bda188afca830e579e47"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4770bf6f5a7b3c846dfffa831af78e77" id="r_a4770bf6f5a7b3c846dfffa831af78e77"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4770bf6f5a7b3c846dfffa831af78e77">kHudPalettes</a> = 0xDD660</td></tr>
 <tr class="separator:a4770bf6f5a7b3c846dfffa831af78e77"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a071c3bac19f7d896b905aae174b3b405" id="r_a071c3bac19f7d896b905aae174b3b405"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a071c3bac19f7d896b905aae174b3b405">dungeonMapPalettes</a> = 0xDD70A</td></tr>
-<tr class="separator:a071c3bac19f7d896b905aae174b3b405"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae9b7f2665bae4f2b5c325eee9fbfa6b8" id="r_ae9b7f2665bae4f2b5c325eee9fbfa6b8"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae9b7f2665bae4f2b5c325eee9fbfa6b8">kDungeonMainPalettes</a> = 0xDD734</td></tr>
+<tr class="memitem:a16c661c69b804c32d0d52cd22566aea8" id="r_a16c661c69b804c32d0d52cd22566aea8"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a16c661c69b804c32d0d52cd22566aea8">kDungeonMapPalettes</a> = 0xDD70A</td></tr>
+<tr class="separator:a16c661c69b804c32d0d52cd22566aea8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9b7f2665bae4f2b5c325eee9fbfa6b8" id="r_ae9b7f2665bae4f2b5c325eee9fbfa6b8"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae9b7f2665bae4f2b5c325eee9fbfa6b8">kDungeonMainPalettes</a></td></tr>
 <tr class="separator:ae9b7f2665bae4f2b5c325eee9fbfa6b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af24227f12e35cee27e02ac5cdf2917a7" id="r_af24227f12e35cee27e02ac5cdf2917a7"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af24227f12e35cee27e02ac5cdf2917a7">dungeonMapBgPalettes</a> = 0xDE544</td></tr>
-<tr class="separator:af24227f12e35cee27e02ac5cdf2917a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a45c6a1335377e6e837e6434603a67829" id="r_a45c6a1335377e6e837e6434603a67829"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a45c6a1335377e6e837e6434603a67829">kDungeonMapBgPalettes</a> = 0xDE544</td></tr>
+<tr class="separator:a45c6a1335377e6e837e6434603a67829"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac4d29fc38eff919400ffe7539916a092" id="r_ac4d29fc38eff919400ffe7539916a092"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac4d29fc38eff919400ffe7539916a092">kHardcodedGrassLW</a> = 0x5FEA9</td></tr>
 <tr class="separator:ac4d29fc38eff919400ffe7539916a092"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1f92dd3bbb2f7ec67b25120ff3633cb6" id="r_a1f92dd3bbb2f7ec67b25120ff3633cb6"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1f92dd3bbb2f7ec67b25120ff3633cb6">hardcodedGrassDW</a> = 0x05FEB3</td></tr>
-<tr class="separator:a1f92dd3bbb2f7ec67b25120ff3633cb6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a278245076a8586dff24ca6179d552973" id="r_a278245076a8586dff24ca6179d552973"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a278245076a8586dff24ca6179d552973">hardcodedGrassSpecial</a> = 0x75640</td></tr>
-<tr class="separator:a278245076a8586dff24ca6179d552973"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c49b524537892b1e50cb0b6170cfb5a" id="r_a9c49b524537892b1e50cb0b6170cfb5a"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9c49b524537892b1e50cb0b6170cfb5a">kHardcodedGrassDW</a> = 0x05FEB3</td></tr>
+<tr class="separator:a9c49b524537892b1e50cb0b6170cfb5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adcafdd4e5f91ba625d54b5f7dc3bd718" id="r_adcafdd4e5f91ba625d54b5f7dc3bd718"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adcafdd4e5f91ba625d54b5f7dc3bd718">kHardcodedGrassSpecial</a> = 0x75640</td></tr>
+<tr class="separator:adcafdd4e5f91ba625d54b5f7dc3bd718"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1abaeaa69942f3f60185d02f71c0a9e8" id="r_a1abaeaa69942f3f60185d02f71c0a9e8"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1abaeaa69942f3f60185d02f71c0a9e8">kOverworldMiniMapPalettes</a> = 0x55B27</td></tr>
 <tr class="separator:a1abaeaa69942f3f60185d02f71c0a9e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab47dd091bf3b8405ae6afb90ed28e448" id="r_ab47dd091bf3b8405ae6afb90ed28e448"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab47dd091bf3b8405ae6afb90ed28e448">kTriforcePalette</a> = 0x64425</td></tr>
 <tr class="separator:ab47dd091bf3b8405ae6afb90ed28e448"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afb93caf0e5c73561bb23e0a4e280b67b" id="r_afb93caf0e5c73561bb23e0a4e280b67b"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afb93caf0e5c73561bb23e0a4e280b67b">crystalPalette</a> = 0xF4CD3</td></tr>
-<tr class="separator:afb93caf0e5c73561bb23e0a4e280b67b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a40019a86ba5949e9718f7b0c6bcbd0e5" id="r_a40019a86ba5949e9718f7b0c6bcbd0e5"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a40019a86ba5949e9718f7b0c6bcbd0e5">customAreaSpecificBGPalette</a> = 0x140000</td></tr>
-<tr class="separator:a40019a86ba5949e9718f7b0c6bcbd0e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af9428fc450b4576d347b011dbe9f4de9" id="r_af9428fc450b4576d347b011dbe9f4de9"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af9428fc450b4576d347b011dbe9f4de9">customAreaSpecificBGASM</a> = 0x140150</td></tr>
-<tr class="separator:af9428fc450b4576d347b011dbe9f4de9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae1d1dbe7d5ac2221fd0bee658639fabd" id="r_ae1d1dbe7d5ac2221fd0bee658639fabd"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae1d1dbe7d5ac2221fd0bee658639fabd">customAreaSpecificBGEnabled</a> = 0x140140</td></tr>
-<tr class="separator:ae1d1dbe7d5ac2221fd0bee658639fabd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa6fbb456ce073ca3a2716d3f1fe4c9db" id="r_aa6fbb456ce073ca3a2716d3f1fe4c9db"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa6fbb456ce073ca3a2716d3f1fe4c9db">kCrystalPalette</a> = 0xF4CD3</td></tr>
+<tr class="separator:aa6fbb456ce073ca3a2716d3f1fe4c9db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b16726b222c6545a801cc54287de3a1" id="r_a2b16726b222c6545a801cc54287de3a1"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2b16726b222c6545a801cc54287de3a1">CustomAreaSpecificBGPalette</a></td></tr>
+<tr class="separator:a2b16726b222c6545a801cc54287de3a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a08fc786d573a87783ddee2c5506d5e08" id="r_a08fc786d573a87783ddee2c5506d5e08"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a08fc786d573a87783ddee2c5506d5e08">CustomAreaSpecificBGASM</a> = 0x140150</td></tr>
+<tr class="separator:a08fc786d573a87783ddee2c5506d5e08"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac96a013e342d2d7ff0a7ac90a9d19d68" id="r_ac96a013e342d2d7ff0a7ac90a9d19d68"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac96a013e342d2d7ff0a7ac90a9d19d68">kCustomAreaSpecificBGEnabled</a> = 0x140140</td></tr>
+<tr class="separator:ac96a013e342d2d7ff0a7ac90a9d19d68"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2a7462981584270ed52ef80ea6cb031a" id="r_a2a7462981584270ed52ef80ea6cb031a"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2a7462981584270ed52ef80ea6cb031a">TilePriorityBit</a> = 0x2000</td></tr>
 <tr class="separator:a2a7462981584270ed52ef80ea6cb031a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3dfbc94092307bb3201c87c5e9182e82" id="r_a3dfbc94092307bb3201c87c5e9182e82"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3dfbc94092307bb3201c87c5e9182e82">TileHFlipBit</a> = 0x4000</td></tr>
@@ -858,7 +859,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="snes__palette_8cc_source.html#l00299">299</a> of file <a class="el" href="snes__palette_8cc_source.html">snes_palette.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00127">yaze::app::gfx::SnesPalette::AddColor()</a>, and <a class="el" href="snes__palette_8h_source.html#l00193">yaze::app::gfx::PaletteGroup::AddPalette()</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00131">yaze::app::gfx::SnesPalette::AddColor()</a>, and <a class="el" href="snes__palette_8h_source.html#l00197">yaze::app::gfx::PaletteGroup::AddPalette()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00585">yaze::app::editor::GraphicsEditor::DrawPaletteControls()</a>.</p>
 <div class="dynheader">
@@ -876,8 +877,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a1bb7565b38ebe9348abb69352315d32f" name="a1bb7565b38ebe9348abb69352315d32f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1bb7565b38ebe9348abb69352315d32f">&#9670;&#160;</a></span>CreatePaletteGroupFromLargePalette()</h2>
+<a id="ae17c9d133fe0b57af7775daed2a99632" name="ae17c9d133fe0b57af7775daed2a99632"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae17c9d133fe0b57af7775daed2a99632">&#9670;&#160;</a></span>CreatePaletteGroupFromLargePalette()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -895,17 +896,19 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Take a SNESPalette, divide it into palettes of 8 colors. </p>
+
 <p class="definition">Definition at line <a class="el" href="snes__palette_8cc_source.html#l00312">312</a> of file <a class="el" href="snes__palette_8cc_source.html">snes_palette.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00127">yaze::app::gfx::SnesPalette::AddColor()</a>, <a class="el" href="snes__palette_8h_source.html#l00193">yaze::app::gfx::PaletteGroup::AddPalette()</a>, and <a class="el" href="snes__palette_8h_source.html#l00141">yaze::app::gfx::SnesPalette::size()</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00131">yaze::app::gfx::SnesPalette::AddColor()</a>, <a class="el" href="snes__palette_8h_source.html#l00197">yaze::app::gfx::PaletteGroup::AddPalette()</a>, and <a class="el" href="snes__palette_8h_source.html#l00145">yaze::app::gfx::SnesPalette::size()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="dungeon__editor_8cc_source.html#l00072">yaze::app::editor::DungeonEditor::Initialize()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_a1bb7565b38ebe9348abb69352315d32f_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_a1bb7565b38ebe9348abb69352315d32f_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1gfx_a1bb7565b38ebe9348abb69352315d32f_cgraph" id="anamespaceyaze_1_1app_1_1gfx_a1bb7565b38ebe9348abb69352315d32f_cgraph">
-<area shape="rect" title=" " alt="" coords="5,71,188,111"/>
+<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_ae17c9d133fe0b57af7775daed2a99632_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_ae17c9d133fe0b57af7775daed2a99632_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1gfx_ae17c9d133fe0b57af7775daed2a99632_cgraph" id="anamespaceyaze_1_1app_1_1gfx_ae17c9d133fe0b57af7775daed2a99632_cgraph">
+<area shape="rect" title="Take a SNESPalette, divide it into palettes of 8 colors." alt="" coords="5,71,188,111"/>
 <area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a305057f8a2e4f4ab1f9f2eebe994721d" title=" " alt="" coords="238,5,412,46"/>
 <area shape="poly" title=" " alt="" coords="169,68,236,48,238,53,171,73"/>
 <area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a8fa2347dd7c201ffd8189cab6177798a" title=" " alt="" coords="236,71,415,111"/>
@@ -937,7 +940,7 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Loads all the palettes for the game. </p>
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000026">Todo</a></b></dt><dd>Refactor LoadAllPalettes to use group names, move to <a class="el" href="namespaceyaze_1_1app_1_1zelda3.html" title="Zelda 3 specific classes and functions.">zelda3</a> namespace </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000027">Todo</a></b></dt><dd>Refactor LoadAllPalettes to use group names, move to <a class="el" href="namespaceyaze_1_1app_1_1zelda3.html" title="Zelda 3 specific classes and functions.">zelda3</a> namespace </dd></dl>
 <p>This function loads all the palettes for the game, including overworld, HUD, armor, swords, shields, sprites, dungeon, grass, and 3D object palettes. It also adds the loaded palettes to their respective palette groups. </p>
 
 <p class="definition">Definition at line <a class="el" href="snes__palette_8cc_source.html#l00330">330</a> of file <a class="el" href="snes__palette_8cc_source.html">snes_palette.cc</a>.</p>
@@ -1264,7 +1267,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="snes__tile_8h_source.html#l00058">yaze::app::gfx::TileInfo::horizontal_mirror_</a>, <a class="el" href="snes__tile_8h_source.html#l00054">yaze::app::gfx::TileInfo::id_</a>, <a class="el" href="snes__tile_8h_source.html#l00056">yaze::app::gfx::TileInfo::over_</a>, <a class="el" href="snes__tile_8h_source.html#l00055">yaze::app::gfx::TileInfo::palette_</a>, and <a class="el" href="snes__tile_8h_source.html#l00057">yaze::app::gfx::TileInfo::vertical_mirror_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00296">yaze::app::Rom::WriteTile16()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00318">yaze::app::Rom::WriteTile16()</a>.</p>
 
 </div>
 </div>
@@ -1285,7 +1288,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00324">324</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00211">yaze::app::editor::ScreenEditor::LoadDungeonMapTile16()</a>, and <a class="el" href="rom_8h_source.html#l00278">yaze::app::Rom::ReadTile16()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00211">yaze::app::editor::ScreenEditor::LoadDungeonMapTile16()</a>, and <a class="el" href="rom_8h_source.html#l00300">yaze::app::Rom::ReadTile16()</a>.</p>
 
 </div>
 </div>
@@ -1738,13 +1741,13 @@ Here is the call graph for this function:</div>
 <div class="line">    {<span class="stringliteral">&quot;ow_mini_map&quot;</span>, <a class="code hl_variable" href="#a1abaeaa69942f3f60185d02f71c0a9e8">kOverworldMiniMapPalettes</a>},</div>
 <div class="line">}</div>
 <div class="ttc" id="anamespaceyaze_1_1app_1_1gfx_html_a1109fd37ad59587ef2692ce6e9be059d"><div class="ttname"><a href="#a1109fd37ad59587ef2692ce6e9be059d">yaze::app::gfx::kSwordPalettes</a></div><div class="ttdeci">constexpr int kSwordPalettes</div><div class="ttdef"><b>Definition</b> <a href="snes__palette_8h_source.html#l00071">snes_palette.h:71</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1app_1_1gfx_html_a1abaeaa69942f3f60185d02f71c0a9e8"><div class="ttname"><a href="#a1abaeaa69942f3f60185d02f71c0a9e8">yaze::app::gfx::kOverworldMiniMapPalettes</a></div><div class="ttdeci">constexpr int kOverworldMiniMapPalettes</div><div class="ttdef"><b>Definition</b> <a href="snes__palette_8h_source.html#l00081">snes_palette.h:81</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gfx_html_a1abaeaa69942f3f60185d02f71c0a9e8"><div class="ttname"><a href="#a1abaeaa69942f3f60185d02f71c0a9e8">yaze::app::gfx::kOverworldMiniMapPalettes</a></div><div class="ttdeci">constexpr int kOverworldMiniMapPalettes</div><div class="ttdef"><b>Definition</b> <a href="snes__palette_8h_source.html#l00083">snes_palette.h:83</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1app_1_1gfx_html_a418bc3fecde2bda188afca830e579e47"><div class="ttname"><a href="#a418bc3fecde2bda188afca830e579e47">yaze::app::gfx::kShieldPalettes</a></div><div class="ttdeci">constexpr int kShieldPalettes</div><div class="ttdef"><b>Definition</b> <a href="snes__palette_8h_source.html#l00072">snes_palette.h:72</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1app_1_1gfx_html_a4e61adb2bc4ea59dc06bef1a6c1c30de"><div class="ttname"><a href="#a4e61adb2bc4ea59dc06bef1a6c1c30de">yaze::app::gfx::kSpritesPalettesAux3</a></div><div class="ttdeci">constexpr int kSpritesPalettesAux3</div><div class="ttdef"><b>Definition</b> <a href="snes__palette_8h_source.html#l00070">snes_palette.h:70</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1app_1_1gfx_html_a8bb97aefe618a264a3146b468efe047c"><div class="ttname"><a href="#a8bb97aefe618a264a3146b468efe047c">yaze::app::gfx::kArmorPalettes</a></div><div class="ttdeci">constexpr int kArmorPalettes</div><div class="ttdef"><b>Definition</b> <a href="snes__palette_8h_source.html#l00067">snes_palette.h:67</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gfx_html_a8bb97aefe618a264a3146b468efe047c"><div class="ttname"><a href="#a8bb97aefe618a264a3146b468efe047c">yaze::app::gfx::kArmorPalettes</a></div><div class="ttdeci">constexpr int kArmorPalettes</div><div class="ttdef"><b>Definition</b> <a href="snes__palette_8h_source.html#l00066">snes_palette.h:66</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1app_1_1gfx_html_aa1117aaeee42846e4308758b3aee2e27"><div class="ttname"><a href="#aa1117aaeee42846e4308758b3aee2e27">yaze::app::gfx::kSpritesPalettesAux1</a></div><div class="ttdeci">constexpr int kSpritesPalettesAux1</div><div class="ttdef"><b>Definition</b> <a href="snes__palette_8h_source.html#l00068">snes_palette.h:68</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1app_1_1gfx_html_ab47dd091bf3b8405ae6afb90ed28e448"><div class="ttname"><a href="#ab47dd091bf3b8405ae6afb90ed28e448">yaze::app::gfx::kTriforcePalette</a></div><div class="ttdeci">constexpr int kTriforcePalette</div><div class="ttdef"><b>Definition</b> <a href="snes__palette_8h_source.html#l00082">snes_palette.h:82</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1app_1_1gfx_html_ac4d29fc38eff919400ffe7539916a092"><div class="ttname"><a href="#ac4d29fc38eff919400ffe7539916a092">yaze::app::gfx::kHardcodedGrassLW</a></div><div class="ttdeci">constexpr int kHardcodedGrassLW</div><div class="ttdef"><b>Definition</b> <a href="snes__palette_8h_source.html#l00078">snes_palette.h:78</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gfx_html_ab47dd091bf3b8405ae6afb90ed28e448"><div class="ttname"><a href="#ab47dd091bf3b8405ae6afb90ed28e448">yaze::app::gfx::kTriforcePalette</a></div><div class="ttdeci">constexpr int kTriforcePalette</div><div class="ttdef"><b>Definition</b> <a href="snes__palette_8h_source.html#l00084">snes_palette.h:84</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gfx_html_ac4d29fc38eff919400ffe7539916a092"><div class="ttname"><a href="#ac4d29fc38eff919400ffe7539916a092">yaze::app::gfx::kHardcodedGrassLW</a></div><div class="ttdeci">constexpr int kHardcodedGrassLW</div><div class="ttdef"><b>Definition</b> <a href="snes__palette_8h_source.html#l00080">snes_palette.h:80</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1app_1_1gfx_html_ac965d3ca691429e5d401200b5064960f"><div class="ttname"><a href="#ac965d3ca691429e5d401200b5064960f">yaze::app::gfx::kOverworldPaletteMain</a></div><div class="ttdeci">constexpr int kOverworldPaletteMain</div><div class="ttdef"><b>Definition</b> <a href="snes__palette_8h_source.html#l00061">snes_palette.h:61</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1app_1_1gfx_html_ace7f5fff742b86348e766115b8283d72"><div class="ttname"><a href="#ace7f5fff742b86348e766115b8283d72">yaze::app::gfx::kOverworldPaletteAux</a></div><div class="ttdeci">constexpr int kOverworldPaletteAux</div><div class="ttdef"><b>Definition</b> <a href="snes__palette_8h_source.html#l00062">snes_palette.h:62</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1app_1_1gfx_html_ad2e65305aae5d8bd6e3302d17578a69e"><div class="ttname"><a href="#ad2e65305aae5d8bd6e3302d17578a69e">yaze::app::gfx::kSpritesPalettesAux2</a></div><div class="ttdeci">constexpr int kSpritesPalettesAux2</div><div class="ttdef"><b>Definition</b> <a href="snes__palette_8h_source.html#l00069">snes_palette.h:69</a></div></div>
@@ -1943,8 +1946,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ad65648ff8763499c2b0092caf7af2534" name="ad65648ff8763499c2b0092caf7af2534"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad65648ff8763499c2b0092caf7af2534">&#9670;&#160;</a></span>globalSpritePalettesDW</h2>
+<a id="aa58e5cffaa3f9a225c09b3503fb750a4" name="aa58e5cffaa3f9a225c09b3503fb750a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa58e5cffaa3f9a225c09b3503fb750a4">&#9670;&#160;</a></span>kGlobalSpritePalettesDW</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1953,7 +1956,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int yaze::app::gfx::globalSpritePalettesDW = 0xDD290</td>
+          <td class="memname">int yaze::app::gfx::kGlobalSpritePalettesDW = 0xDD290</td>
         </tr>
       </table>
   </td>
@@ -1979,7 +1982,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int yaze::app::gfx::kArmorPalettes = 0xDD308</td>
+          <td class="memname">int yaze::app::gfx::kArmorPalettes</td>
         </tr>
       </table>
   </td>
@@ -1988,8 +1991,10 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00067">67</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">    0xDD308</div>
+</div><!-- fragment -->
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00066">66</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="snes__palette_8cc_source.html#l00080">yaze::app::gfx::palette_group_internal::LoadArmorPalettes()</a>.</p>
 
@@ -2014,6 +2019,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>&lt; Green, Blue, Red, Bunny, Electrocuted (15 colors each) </p>
 
 <p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00068">68</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
@@ -2151,8 +2157,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a071c3bac19f7d896b905aae174b3b405" name="a071c3bac19f7d896b905aae174b3b405"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a071c3bac19f7d896b905aae174b3b405">&#9670;&#160;</a></span>dungeonMapPalettes</h2>
+<a id="a16c661c69b804c32d0d52cd22566aea8" name="a16c661c69b804c32d0d52cd22566aea8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a16c661c69b804c32d0d52cd22566aea8">&#9670;&#160;</a></span>kDungeonMapPalettes</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2161,7 +2167,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int yaze::app::gfx::dungeonMapPalettes = 0xDD70A</td>
+          <td class="memname">int yaze::app::gfx::kDungeonMapPalettes = 0xDD70A</td>
         </tr>
       </table>
   </td>
@@ -2185,7 +2191,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int yaze::app::gfx::kDungeonMainPalettes = 0xDD734</td>
+          <td class="memname">int yaze::app::gfx::kDungeonMainPalettes</td>
         </tr>
       </table>
   </td>
@@ -2194,15 +2200,17 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">    0xDD734</div>
+</div><!-- fragment -->
 <p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00075">75</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="snes__palette_8cc_source.html#l00140">yaze::app::gfx::palette_group_internal::LoadDungeonMainPalettes()</a>.</p>
 
 </div>
 </div>
-<a id="af24227f12e35cee27e02ac5cdf2917a7" name="af24227f12e35cee27e02ac5cdf2917a7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af24227f12e35cee27e02ac5cdf2917a7">&#9670;&#160;</a></span>dungeonMapBgPalettes</h2>
+<a id="a45c6a1335377e6e837e6434603a67829" name="a45c6a1335377e6e837e6434603a67829"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a45c6a1335377e6e837e6434603a67829">&#9670;&#160;</a></span>kDungeonMapBgPalettes</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2211,7 +2219,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int yaze::app::gfx::dungeonMapBgPalettes = 0xDE544</td>
+          <td class="memname">int yaze::app::gfx::kDungeonMapBgPalettes = 0xDE544</td>
         </tr>
       </table>
   </td>
@@ -2221,7 +2229,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00076">76</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00077">77</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
 </div>
 </div>
@@ -2245,59 +2253,59 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00078">78</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="snes__palette_8cc_source.html#l00150">yaze::app::gfx::palette_group_internal::LoadGrassColors()</a>.</p>
-
-</div>
-</div>
-<a id="a1f92dd3bbb2f7ec67b25120ff3633cb6" name="a1f92dd3bbb2f7ec67b25120ff3633cb6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1f92dd3bbb2f7ec67b25120ff3633cb6">&#9670;&#160;</a></span>hardcodedGrassDW</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::app::gfx::hardcodedGrassDW = 0x05FEB3</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00079">79</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="snes__palette_8cc_source.html#l00150">yaze::app::gfx::palette_group_internal::LoadGrassColors()</a>.</p>
-
-</div>
-</div>
-<a id="a278245076a8586dff24ca6179d552973" name="a278245076a8586dff24ca6179d552973"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a278245076a8586dff24ca6179d552973">&#9670;&#160;</a></span>hardcodedGrassSpecial</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::app::gfx::hardcodedGrassSpecial = 0x75640</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
 <p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00080">80</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="snes__palette_8cc_source.html#l00150">yaze::app::gfx::palette_group_internal::LoadGrassColors()</a>.</p>
+
+</div>
+</div>
+<a id="a9c49b524537892b1e50cb0b6170cfb5a" name="a9c49b524537892b1e50cb0b6170cfb5a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c49b524537892b1e50cb0b6170cfb5a">&#9670;&#160;</a></span>kHardcodedGrassDW</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int yaze::app::gfx::kHardcodedGrassDW = 0x05FEB3</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00081">81</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="snes__palette_8cc_source.html#l00150">yaze::app::gfx::palette_group_internal::LoadGrassColors()</a>.</p>
+
+</div>
+</div>
+<a id="adcafdd4e5f91ba625d54b5f7dc3bd718" name="adcafdd4e5f91ba625d54b5f7dc3bd718"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adcafdd4e5f91ba625d54b5f7dc3bd718">&#9670;&#160;</a></span>kHardcodedGrassSpecial</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int yaze::app::gfx::kHardcodedGrassSpecial = 0x75640</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00082">82</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="snes__palette_8cc_source.html#l00150">yaze::app::gfx::palette_group_internal::LoadGrassColors()</a>.</p>
 
@@ -2323,7 +2331,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00081">81</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00083">83</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="snes__palette_8cc_source.html#l00171">yaze::app::gfx::palette_group_internal::LoadOverworldMiniMapPalettes()</a>.</p>
 
@@ -2349,14 +2357,14 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00082">82</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00084">84</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="snes__palette_8cc_source.html#l00161">yaze::app::gfx::palette_group_internal::Load3DObjectPalettes()</a>.</p>
 
 </div>
 </div>
-<a id="afb93caf0e5c73561bb23e0a4e280b67b" name="afb93caf0e5c73561bb23e0a4e280b67b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afb93caf0e5c73561bb23e0a4e280b67b">&#9670;&#160;</a></span>crystalPalette</h2>
+<a id="aa6fbb456ce073ca3a2716d3f1fe4c9db" name="aa6fbb456ce073ca3a2716d3f1fe4c9db"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa6fbb456ce073ca3a2716d3f1fe4c9db">&#9670;&#160;</a></span>kCrystalPalette</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2365,33 +2373,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int yaze::app::gfx::crystalPalette = 0xF4CD3</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00083">83</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="snes__palette_8cc_source.html#l00161">yaze::app::gfx::palette_group_internal::Load3DObjectPalettes()</a>.</p>
-
-</div>
-</div>
-<a id="a40019a86ba5949e9718f7b0c6bcbd0e5" name="a40019a86ba5949e9718f7b0c6bcbd0e5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a40019a86ba5949e9718f7b0c6bcbd0e5">&#9670;&#160;</a></span>customAreaSpecificBGPalette</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::app::gfx::customAreaSpecificBGPalette = 0x140000</td>
+          <td class="memname">int yaze::app::gfx::kCrystalPalette = 0xF4CD3</td>
         </tr>
       </table>
   </td>
@@ -2403,10 +2385,12 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00085">85</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
+<p class="reference">Referenced by <a class="el" href="snes__palette_8cc_source.html#l00161">yaze::app::gfx::palette_group_internal::Load3DObjectPalettes()</a>.</p>
+
 </div>
 </div>
-<a id="af9428fc450b4576d347b011dbe9f4de9" name="af9428fc450b4576d347b011dbe9f4de9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af9428fc450b4576d347b011dbe9f4de9">&#9670;&#160;</a></span>customAreaSpecificBGASM</h2>
+<a id="a2b16726b222c6545a801cc54287de3a1" name="a2b16726b222c6545a801cc54287de3a1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2b16726b222c6545a801cc54287de3a1">&#9670;&#160;</a></span>CustomAreaSpecificBGPalette</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2415,7 +2399,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int yaze::app::gfx::customAreaSpecificBGASM = 0x140150</td>
+          <td class="memname">int yaze::app::gfx::CustomAreaSpecificBGPalette</td>
         </tr>
       </table>
   </td>
@@ -2424,13 +2408,15 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">    0x140000</div>
+</div><!-- fragment -->
 <p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00086">86</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
 </div>
 </div>
-<a id="ae1d1dbe7d5ac2221fd0bee658639fabd" name="ae1d1dbe7d5ac2221fd0bee658639fabd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae1d1dbe7d5ac2221fd0bee658639fabd">&#9670;&#160;</a></span>customAreaSpecificBGEnabled</h2>
+<a id="a08fc786d573a87783ddee2c5506d5e08" name="a08fc786d573a87783ddee2c5506d5e08"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a08fc786d573a87783ddee2c5506d5e08">&#9670;&#160;</a></span>CustomAreaSpecificBGASM</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2439,7 +2425,32 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int yaze::app::gfx::customAreaSpecificBGEnabled = 0x140140</td>
+          <td class="memname">int yaze::app::gfx::CustomAreaSpecificBGASM = 0x140150</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>&lt; 2 bytes for each overworld area (320) </p>
+
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00089">89</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+
+</div>
+</div>
+<a id="ac96a013e342d2d7ff0a7ac90a9d19d68" name="ac96a013e342d2d7ff0a7ac90a9d19d68"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac96a013e342d2d7ff0a7ac90a9d19d68">&#9670;&#160;</a></span>kCustomAreaSpecificBGEnabled</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int yaze::app::gfx::kCustomAreaSpecificBGEnabled = 0x140140</td>
         </tr>
       </table>
   </td>
@@ -2449,7 +2460,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00088">88</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00092">92</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
 </div>
 </div>

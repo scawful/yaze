@@ -46,7 +46,7 @@ var classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld =
     [ "AreaPalette", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#acf4cf859e6e5f629a3877ad76ab78fc4", null ],
     [ "AreaPaletteById", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a4c7d421421981f7e78fbb48079864962", null ],
     [ "BitmapData", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a344e8315d5400268b5e2616217588e28", null ],
-    [ "Tile16Blockset", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a8cb0698993e08901dbf8c9c136be5350", null ],
+    [ "tile16_blockset_data", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a8c34281c24bb2df6f5e84824981b3d78", null ],
     [ "is_loaded", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#ac332585f991158c51c147febd96fef9f", null ],
     [ "set_current_map", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a25a64c2875596385980c9fb5d77ebfab", null ],
     [ "map_tiles", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a700a46d318e034bc2d61079ad14d3114", null ],

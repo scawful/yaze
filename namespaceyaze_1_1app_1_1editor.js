@@ -133,6 +133,7 @@ var namespaceyaze_1_1app_1_1editor =
     [ "kNumSheetsToLoad", "namespaceyaze_1_1app_1_1editor.html#a6678d2b73ebeb257498dde5bc4fc82be", null ],
     [ "kTile8DisplayHeight", "namespaceyaze_1_1app_1_1editor.html#a653ce0ffcbf604409137f56d61900c0f", null ],
     [ "kOverworldMapSize", "namespaceyaze_1_1app_1_1editor.html#a254b2febb746863c570c877aeba337b6", null ],
+    [ "kNumTile16Individual", "namespaceyaze_1_1app_1_1editor.html#afa98703fb5940fcb9017bcd9c6ce2a14", null ],
     [ "kInputFieldSize", "namespaceyaze_1_1app_1_1editor.html#ae04d2e74f9f6029740a0ffede60b29d0", null ],
     [ "kOWMapFlags", "namespaceyaze_1_1app_1_1editor.html#a4d9b8c9589c6b1455c34c618611b3303", null ],
     [ "kToolsetTableFlags", "namespaceyaze_1_1app_1_1editor.html#ab016b013560df6264216fd0a73b3f913", null ],

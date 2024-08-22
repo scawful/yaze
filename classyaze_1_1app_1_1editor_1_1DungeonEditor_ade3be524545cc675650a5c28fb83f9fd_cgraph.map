@@ -1,6 +1,6 @@
 <map id="yaze::app::editor::DungeonEditor::Initialize" name="yaze::app::editor::DungeonEditor::Initialize">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,196,164,237"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gfx.html#a1bb7565b38ebe9348abb69352315d32f" title=" " alt="" coords="216,71,398,111"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gfx.html#ae17c9d133fe0b57af7775daed2a99632" title="Take a SNESPalette, divide it into palettes of 8 colors." alt="" coords="216,71,398,111"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,193,154,158,210,122,224,115,226,120,213,127,157,162,112,197"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="220,160,395,201"/>
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="164,201,204,194,204,200,165,206"/>

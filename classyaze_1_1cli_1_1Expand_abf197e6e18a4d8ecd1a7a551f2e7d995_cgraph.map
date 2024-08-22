@@ -1,6 +1,6 @@
 <map id="yaze::cli::Expand::handle" name="yaze::cli::Expand::handle">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,52,126,93"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#a6763e33072305e9ecf662b366bd6f956" title=" " alt="" coords="193,20,348,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#a6763e33072305e9ecf662b366bd6f956" title="Expand the Rom data to a specified size." alt="" coords="193,20,348,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,59,186,47,187,52,126,64"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197" title=" " alt="" coords="174,84,367,110"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="126,77,158,81,158,86,126,82"/>
