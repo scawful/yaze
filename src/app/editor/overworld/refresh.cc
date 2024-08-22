@@ -113,18 +113,15 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
   RETURN_IF_ERROR(tile16_blockset_bmp_.ApplyPalette(palette_));
 
   // Copy the tile16 data into individual tiles.
-  auto tile16_data = overworld_.tile16_blockset_data();
+  const auto tile16_data = overworld_.tile16_blockset_data();
 
   std::vector<std::future<void>> futures;
   // Loop through the tiles and copy their pixel data into separate vectors
-  for (int i = 0; i < 4096; i++) {
+  for (int i = 0; i < kNumTile16Individual; i++) {
     futures.push_back(std::async(
         std::launch::async,
         [&](int index) {
-          // Create a new vector for the pixel data of the current tile
-          std::vector<uint8_t> tile_data(16 * 16, 0x00);  // More efficient initialization
-
-          // Copy the pixel data for the current tile into the vector
+          std::vector<uint8_t> tile_data(16 * 16, 0x00);
           for (int ty = 0; ty < 16; ty++) {
             for (int tx = 0; tx < 16; tx++) {
               int position = tx + (ty * 0x10);
@@ -134,9 +131,6 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
               tile_data[position] = value;
             }
           }
-
-          // Add the vector for the current tile to the vector of tile pixel
-          // data
           tile16_individual_[index].set_data(tile_data);
         },
         i));
@@ -147,7 +141,7 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
   }
 
   // Render the bitmaps of each tile.
-  for (int id = 0; id < 4096; id++) {
+  for (int id = 0; id < kNumTile16Individual; id++) {
     RETURN_IF_ERROR(tile16_individual_[id].ApplyPalette(palette_));
     Renderer::GetInstance().UpdateBitmap(&tile16_individual_[id]);
   }

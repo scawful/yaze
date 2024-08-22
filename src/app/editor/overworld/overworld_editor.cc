@@ -669,16 +669,15 @@ void OverworldEditor::DrawTile8Selector() {
 }
 
 absl::Status OverworldEditor::DrawAreaGraphics() {
-  if (overworld_.is_loaded()) {
-    if (current_graphics_set_.count(current_map_) == 0) {
-      overworld_.set_current_map(current_map_);
-      palette_ = overworld_.AreaPalette();
-      gfx::Bitmap bmp;
-      RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
-          0x80, kOverworldMapSize, 0x08, overworld_.current_graphics(), bmp,
-          palette_));
-      current_graphics_set_[current_map_] = bmp;
-    }
+  if (overworld_.is_loaded() &&
+      current_graphics_set_.count(current_map_) == 0) {
+    overworld_.set_current_map(current_map_);
+    palette_ = overworld_.AreaPalette();
+    gfx::Bitmap bmp;
+    RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
+        0x80, kOverworldMapSize, 0x08, overworld_.current_graphics(), bmp,
+        palette_));
+    current_graphics_set_[current_map_] = bmp;
   }
 
   gui::BeginPadding(3);
