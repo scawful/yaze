@@ -60,7 +60,6 @@
 		E318D9182C59C08300091322 /* screen_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8692C59C08300091322 /* screen_editor.cc */; };
 		E318D9192C59C08300091322 /* tile16_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D86B2C59C08300091322 /* tile16_editor.cc */; };
 		E318D91A2C59C08300091322 /* tile16_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D86B2C59C08300091322 /* tile16_editor.cc */; };
-		E318D91C2C59C08300091322 /* message_editor_test.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D86F2C59C08300091322 /* message_editor_test.cc */; };
 		E318D91D2C59C08300091322 /* message_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8702C59C08300091322 /* message_editor.cc */; };
 		E318D91E2C59C08300091322 /* message_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8702C59C08300091322 /* message_editor.cc */; };
 		E318D91F2C59C08300091322 /* music_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8732C59C08300091322 /* music_editor.cc */; };
@@ -740,6 +739,7 @@
 		E318E87B2C605D5700091322 /* SDL2.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = E318E8572C5D74B700091322 /* SDL2.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		E318E87F2C609B3500091322 /* PencilKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E318E87E2C609B3500091322 /* PencilKit.framework */; };
 		E34C789C2C5882A100A6C275 /* imgui_tables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5079822D257677DB0038A28D /* imgui_tables.cpp */; };
+		E384E2D62C76C6E800147029 /* message_data.cc in Sources */ = {isa = PBXBuildFile; fileRef = E384E2D52C76C6C800147029 /* message_data.cc */; };
 		E38A97F72C6C4CE3005FB662 /* extension_manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = E38A97F22C6C4CE3005FB662 /* extension_manager.cc */; };
 		E38A97F82C6C4CE3005FB662 /* settings_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E38A97F42C6C4CE3005FB662 /* settings_editor.cc */; };
 		E3BE958D2C68379B008DD1E7 /* editor_manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE958B2C68379B008DD1E7 /* editor_manager.cc */; };
@@ -904,7 +904,6 @@
 		E318D86B2C59C08300091322 /* tile16_editor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tile16_editor.cc; sourceTree = "<group>"; };
 		E318D86C2C59C08300091322 /* tile16_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tile16_editor.h; sourceTree = "<group>"; };
 		E318D86E2C59C08300091322 /* message_data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = message_data.h; sourceTree = "<group>"; };
-		E318D86F2C59C08300091322 /* message_editor_test.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = message_editor_test.cc; sourceTree = "<group>"; };
 		E318D8702C59C08300091322 /* message_editor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = message_editor.cc; sourceTree = "<group>"; };
 		E318D8712C59C08300091322 /* message_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = message_editor.h; sourceTree = "<group>"; };
 		E318D8732C59C08300091322 /* music_editor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = music_editor.cc; sourceTree = "<group>"; };
@@ -2411,6 +2410,7 @@
 		E318E8762C5D949200091322 /* yaze.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = yaze.png; sourceTree = "<group>"; };
 		E318E8782C5D958400091322 /* Media.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Media.xcassets; sourceTree = "<group>"; };
 		E318E87E2C609B3500091322 /* PencilKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PencilKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.5.sdk/System/Library/Frameworks/PencilKit.framework; sourceTree = DEVELOPER_DIR; };
+		E384E2D52C76C6C800147029 /* message_data.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = message_data.cc; sourceTree = "<group>"; };
 		E38985002C67082800D4CF13 /* renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = renderer.h; sourceTree = "<group>"; };
 		E38985012C67CDDB00D4CF13 /* view_controller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = view_controller.h; sourceTree = "<group>"; };
 		E38A97F12C6C4CE3005FB662 /* command_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = command_manager.h; sourceTree = "<group>"; };
@@ -2625,8 +2625,8 @@
 		E318D8722C59C08300091322 /* message */ = {
 			isa = PBXGroup;
 			children = (
+				E384E2D52C76C6C800147029 /* message_data.cc */,
 				E318D86E2C59C08300091322 /* message_data.h */,
-				E318D86F2C59C08300091322 /* message_editor_test.cc */,
 				E318D8702C59C08300091322 /* message_editor.cc */,
 				E318D8712C59C08300091322 /* message_editor.h */,
 			);
@@ -5134,6 +5134,7 @@
 				TargetAttributes = {
 					8307E7C320E9F9C900473790 = {
 						CreatedOnToolsVersion = 9.4.1;
+						LastSwiftMigration = 1540;
 						ProvisioningStyle = Automatic;
 					};
 					8307E7D920E9F9C900473790 = {
@@ -5285,6 +5286,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E384E2D62C76C6E800147029 /* message_data.cc in Sources */,
 				E318E7932C5A542700091322 /* distribution_test_util.cc in Sources */,
 				E318E7942C5A542700091322 /* distribution_test_util.h in Sources */,
 				E318D9692C59C08300091322 /* style.cc in Sources */,
@@ -5675,7 +5677,6 @@
 				E318E1882C5A4FC100091322 /* cordz_sample_token.cc in Sources */,
 				E318DFDE2C5A4FBF00091322 /* sample_element_size_test.cc in Sources */,
 				E318E0622C5A4FBF00091322 /* usage_config_test.cc in Sources */,
-				E318D91C2C59C08300091322 /* message_editor_test.cc in Sources */,
 				E318E6FE2C5A4FC900091322 /* civil_time_test.cc in Sources */,
 				E318E1EC2C5A4FC200091322 /* str_split_test.cc in Sources */,
 				E318E70C2C5A4FC900091322 /* duration_test.cc in Sources */,
@@ -6114,6 +6115,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = yaze;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = SN8Z922TT6;
@@ -6144,6 +6146,9 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "org.halext.yaze-ios";
 				PRODUCT_NAME = yaze;
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = "iOS/yaze_ios-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 				SYSTEM_HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../lib/SDL/include\"",
 					/Users/scawful/Code/lpng1643,
@@ -6165,6 +6170,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = yaze;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = SN8Z922TT6;
@@ -6186,6 +6192,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "org.halext.yaze-ios";
 				PRODUCT_NAME = yaze;
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = "iOS/yaze_ios-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
 				SYSTEM_HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../lib/SDL/include\"",
 					/Users/scawful/Code/lpng1643,
