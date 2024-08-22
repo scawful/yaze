@@ -8,7 +8,6 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
-
 #include "app/core/constants.h"
 #include "app/core/platform/clipboard.h"
 #include "app/core/platform/renderer.h"
@@ -986,6 +985,28 @@ void OverworldEditor::DrawOverworldSprites() {
       }
     }
   }
+}
+
+absl::Status OverworldEditor::Save() {
+  if (flags()->overworld.kSaveOverworldMaps) {
+    RETURN_IF_ERROR(overworld_.CreateTile32Tilemap());
+    RETURN_IF_ERROR(overworld_.SaveMap32Tiles());
+    RETURN_IF_ERROR(overworld_.SaveMap16Tiles());
+    RETURN_IF_ERROR(overworld_.SaveOverworldMaps());
+  }
+  if (flags()->overworld.kSaveOverworldEntrances) {
+    RETURN_IF_ERROR(overworld_.SaveEntrances());
+  }
+  if (flags()->overworld.kSaveOverworldExits) {
+    RETURN_IF_ERROR(overworld_.SaveExits());
+  }
+  if (flags()->overworld.kSaveOverworldItems) {
+    RETURN_IF_ERROR(overworld_.SaveItems());
+  }
+  if (flags()->overworld.kSaveOverworldProperties) {
+    RETURN_IF_ERROR(overworld_.SaveMapProperties());
+  }
+  return absl::OkStatus();
 }
 
 absl::Status OverworldEditor::LoadGraphics() {

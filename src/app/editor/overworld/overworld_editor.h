@@ -8,7 +8,6 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
-
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/graphics/tile16_editor.h"
@@ -123,6 +122,7 @@ class OverworldEditor : public Editor,
   absl::Status Find() override {
     return absl::UnimplementedError("Find Unused Tiles");
   }
+  absl::Status Save();
 
   auto overworld() { return &overworld_; }
 
@@ -185,8 +185,6 @@ class OverworldEditor : public Editor,
   absl::Status UpdateUsageStats();
   void DrawUsageGrid();
   void DrawDebugWindow();
-
-  auto gfx_group_editor() const { return gfx_group_editor_; }
 
   enum class EditingMode {
     DRAW_TILE,
