@@ -34,6 +34,7 @@ constexpr uint kMessageIdSize = 5;
 constexpr uint kNumSheetsToLoad = 223;
 constexpr uint kTile8DisplayHeight = 64;
 constexpr uint kOverworldMapSize = 0x200;
+constexpr uint kNumTile16Individual = 4096;
 constexpr float kInputFieldSize = 30.f;
 constexpr ImVec2 kOverworldCanvasSize(kOverworldMapSize * 8,
                                       kOverworldMapSize * 8);
@@ -142,9 +143,19 @@ class OverworldEditor : public Editor,
   absl::Status LoadGraphics();
 
  private:
-  absl::Status UpdateFullscreenCanvas();
+  /**
+   * @brief Draws the canvas, tile16 selector, and toolset in fullscreen
+   */
+  void DrawFullscreenCanvas();
 
-  absl::Status DrawToolset();
+  /**
+   * @brief Toolset for entrances, exits, items, sprites, and transports.
+   */
+  void DrawToolset();
+
+  /**
+   * @brief Draws the overworld map settings. Graphics, palettes, etc.
+   */
   void DrawOverworldMapSettings();
 
   void RefreshChildMap(int i);
@@ -163,8 +174,27 @@ class OverworldEditor : public Editor,
   void DrawOverworldEdits();
   void RenderUpdatedMapBitmap(const ImVec2& click_position,
                               const std::vector<uint8_t>& tile_data);
+
+  /**
+   * @brief Check for changes to the overworld map.
+   *
+   * This function either draws the tile painter with the current tile16 or
+   * group of tile16 data with ow_map_canvas_ and DrawOverworldEdits or it
+   * checks for left mouse button click/drag to select a tile16 or group of
+   * tile16 data from the overworld map canvas. Similar to ZScream selection.
+   */
   void CheckForOverworldEdits();
+
+  /**
+   * @brief Draw and create the tile16 IDs that are currently selected.
+   */
   void CheckForSelectRectangle();
+
+  /**
+   * @brief Check for changes to the overworld map. Calls RefreshOverworldMap
+   * and RefreshTile16Blockset on the current map if it is modified and is
+   * actively being edited.
+   */
   absl::Status CheckForCurrentMap();
   void CheckForMousePan();
 

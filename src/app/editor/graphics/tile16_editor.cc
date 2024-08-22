@@ -387,7 +387,7 @@ absl::Status Tile16Editor::UpdateTransferTileCanvas() {
 
     // Create the tile16 blockset image
     RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
-        0x80, 0x2000, 0x80, transfer_overworld_.Tile16Blockset(),
+        0x80, 0x2000, 0x80, transfer_overworld_.tile16_blockset_data(),
         transfer_blockset_bmp_, palette_));
     transfer_blockset_loaded_ = true;
   }
