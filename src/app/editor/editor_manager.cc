@@ -701,32 +701,9 @@ void EditorManager::SaveRom() {
     status_ = screen_editor_.SaveDungeonMaps();
     RETURN_VOID_IF_ERROR(status_);
   }
-  if (flags()->overworld.kSaveOverworldMaps) {
-    RETURN_VOID_IF_ERROR(
-        status_ = overworld_editor_.overworld()->CreateTile32Tilemap());
-    status_ = overworld_editor_.overworld()->SaveMap32Tiles();
-    RETURN_VOID_IF_ERROR(status_);
-    status_ = overworld_editor_.overworld()->SaveMap16Tiles();
-    RETURN_VOID_IF_ERROR(status_);
-    status_ = overworld_editor_.overworld()->SaveOverworldMaps();
-    RETURN_VOID_IF_ERROR(status_);
-  }
-  if (flags()->overworld.kSaveOverworldEntrances) {
-    status_ = overworld_editor_.overworld()->SaveEntrances();
-    RETURN_VOID_IF_ERROR(status_);
-  }
-  if (flags()->overworld.kSaveOverworldExits) {
-    status_ = overworld_editor_.overworld()->SaveExits();
-    RETURN_VOID_IF_ERROR(status_);
-  }
-  if (flags()->overworld.kSaveOverworldItems) {
-    status_ = overworld_editor_.overworld()->SaveItems();
-    RETURN_VOID_IF_ERROR(status_);
-  }
-  if (flags()->overworld.kSaveOverworldProperties) {
-    status_ = overworld_editor_.overworld()->SaveMapProperties();
-    RETURN_VOID_IF_ERROR(status_);
-  }
+
+  status_ = overworld_editor_.Save();
+  RETURN_VOID_IF_ERROR(status_);
 
   status_ = rom()->SaveToFile(backup_rom_, save_new_auto_);
 }
