@@ -255,7 +255,7 @@ class Rom : public core::ExperimentFlags {
   // Read functions
   absl::StatusOr<uint8_t> ReadByte(int offset) {
     RETURN_IF_ERROR(ReadWritePreconditions());
-    if (offset >= rom_data_.size()) {
+    if (offset >= static_cast<int>(rom_data_.size())) {
       return absl::FailedPreconditionError("Offset out of range");
     }
     return rom_data_[offset];
@@ -263,7 +263,7 @@ class Rom : public core::ExperimentFlags {
 
   absl::StatusOr<uint16_t> ReadWord(int offset) {
     RETURN_IF_ERROR(ReadWritePreconditions());
-    if (offset + 1 >= rom_data_.size()) {
+    if (offset + 1 >= static_cast<int>(rom_data_.size())) {
       return absl::FailedPreconditionError("Offset out of range");
     }
     auto result = (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
@@ -276,7 +276,7 @@ class Rom : public core::ExperimentFlags {
 
   absl::StatusOr<uint32_t> ReadLong(int offset) {
     RETURN_IF_ERROR(ReadWritePreconditions());
-    if (offset + 2 >= rom_data_.size()) {
+    if (offset + 2 >= static_cast<int>(rom_data_.size())) {
       return absl::OutOfRangeError("Offset out of range");
     }
     auto result = (uint32_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8) |
@@ -287,11 +287,11 @@ class Rom : public core::ExperimentFlags {
   absl::StatusOr<std::vector<uint8_t>> ReadByteVector(uint32_t offset,
                                                       uint32_t length) {
     RETURN_IF_ERROR(ReadWritePreconditions());
-    if (offset + length > rom_data_.size()) {
+    if (offset + length > static_cast<uint32_t>(rom_data_.size())) {
       return absl::OutOfRangeError("Offset and length out of range");
     }
     std::vector<uint8_t> result;
-    for (int i = offset; i < offset + length; i++) {
+    for (uint32_t i = offset; i < offset + length; i++) {
       result.push_back(rom_data_[i]);
     }
     return result;
@@ -330,7 +330,7 @@ class Rom : public core::ExperimentFlags {
 
   // Write functions
   absl::Status Write(int addr, int value) {
-    if (addr >= rom_data_.size()) {
+    if (addr >= static_cast<int>(rom_data_.size())) {
       return absl::InvalidArgumentError(absl::StrFormat(
           "Attempt to write %d value failed, address %d out of range", value,
           addr));
@@ -341,7 +341,7 @@ class Rom : public core::ExperimentFlags {
 
   absl::Status WriteByte(int addr, uint8_t value) {
     RETURN_IF_ERROR(ReadWritePreconditions());
-    if (addr >= rom_data_.size()) {
+    if (addr >= static_cast<int>(rom_data_.size())) {
       return absl::OutOfRangeError(absl::StrFormat(
           "Attempt to write byte %#02x value failed, address %d out of range",
           value, addr));
@@ -355,7 +355,7 @@ class Rom : public core::ExperimentFlags {
 
   absl::Status WriteWord(int addr, uint16_t value) {
     RETURN_IF_ERROR(ReadWritePreconditions());
-    if (addr + 1 >= rom_data_.size()) {
+    if (addr + 1 >= static_cast<int>(rom_data_.size())) {
       return absl::OutOfRangeError(absl::StrFormat(
           "Attempt to write word %#04x value failed, address %d out of range",
           value, addr));
@@ -369,7 +369,7 @@ class Rom : public core::ExperimentFlags {
 
   absl::Status WriteShort(int addr, uint16_t value) {
     RETURN_IF_ERROR(ReadWritePreconditions());
-    if (addr + 1 >= rom_data_.size()) {
+    if (addr + 1 >= static_cast<int>(rom_data_.size())) {
       return absl::OutOfRangeError(absl::StrFormat(
           "Attempt to write short %#04x value failed, address %d out of range",
           value, addr));
@@ -383,7 +383,7 @@ class Rom : public core::ExperimentFlags {
 
   absl::Status WriteLong(uint32_t addr, uint32_t value) {
     RETURN_IF_ERROR(ReadWritePreconditions());
-    if (addr + 2 >= rom_data_.size()) {
+    if (addr + 2 >= static_cast<uint32_t>(rom_data_.size())) {
       return absl::OutOfRangeError(absl::StrFormat(
           "Attempt to write long %#06x value failed, address %d out of range",
           value, addr));
@@ -397,12 +397,13 @@ class Rom : public core::ExperimentFlags {
   }
 
   absl::Status WriteVector(int addr, std::vector<uint8_t> data) {
-    if (addr + data.size() > rom_data_.size()) {
+    if (addr + static_cast<int>(data.size()) >
+        static_cast<int>(rom_data_.size())) {
       return absl::InvalidArgumentError(absl::StrFormat(
           "Attempt to write vector value failed, address %d out of range",
           addr));
     }
-    for (int i = 0; i < data.size(); i++) {
+    for (int i = 0; i < static_cast<int>(data.size()); i++) {
       rom_data_[addr + i] = data[i];
     }
     core::Logger::log(absl::StrFormat("WriteVector: %#06X: %s", addr,
@@ -442,7 +443,7 @@ class Rom : public core::ExperimentFlags {
     return status;
   }
 
-  uint8_t& operator[](int i) {
+  uint8_t& operator[](unsigned long i) {
     if (i > size_) {
       std::cout << "ROM: Index " << i << " out of bounds, size: " << size_
                 << std::endl;
