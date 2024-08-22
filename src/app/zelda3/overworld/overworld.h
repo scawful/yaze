@@ -79,21 +79,21 @@ constexpr int overworldItemsEndData = 0xDC89C;  // 0DC89E
 
 class OverworldItem : public OverworldEntity {
  public:
-  bool bg2 = false;
-  uint8_t game_x;
-  uint8_t game_y;
-  uint8_t id;
-  uint16_t room_map_id;
+  bool bg2_ = false;
+  uint8_t id_;
+  uint8_t game_x_;
+  uint8_t game_y_;
+  uint16_t room_map_id_;
   int unique_id = 0;
   bool deleted = false;
   OverworldItem() = default;
 
   OverworldItem(uint8_t id, uint16_t room_map_id, int x, int y, bool bg2) {
-    this->id = id;
+    this->id_ = id;
     this->x_ = x;
     this->y_ = y;
-    this->bg2 = bg2;
-    this->room_map_id = room_map_id;
+    this->bg2_ = bg2;
+    this->room_map_id_ = room_map_id;
     this->map_id_ = room_map_id;
     this->entity_id_ = id;
     this->type_ = kItem;
@@ -101,32 +101,28 @@ class OverworldItem : public OverworldEntity {
     int map_x = room_map_id - ((room_map_id / 8) * 8);
     int map_y = room_map_id / 8;
 
-    this->game_x = static_cast<uint8_t>(std::abs(x - (map_x * 512)) / 16);
-    this->game_y = static_cast<uint8_t>(std::abs(y - (map_y * 512)) / 16);
-    // this->unique_id = ROM.unique_item_id++;
+    game_x_ = static_cast<uint8_t>(std::abs(x - (map_x * 512)) / 16);
+    game_y_ = static_cast<uint8_t>(std::abs(y - (map_y * 512)) / 16);
   }
 
-  void UpdateMapProperties(int16_t room_map_id) override {
-    this->room_map_id = static_cast<uint16_t>(room_map_id);
+  void UpdateMapProperties(uint16_t room_map_id) override {
+    room_map_id_ = room_map_id;
 
-    if (room_map_id >= 64) {
-      room_map_id -= 64;
+    if (room_map_id_ >= 64) {
+      room_map_id_ -= 64;
     }
 
-    int map_x = room_map_id - ((room_map_id / 8) * 8);
-    int map_y = room_map_id / 8;
+    int map_x = room_map_id_ - ((room_map_id_ / 8) * 8);
+    int map_y = room_map_id_ / 8;
 
-    this->game_x =
-        static_cast<uint8_t>(std::abs(this->x_ - (map_x * 512)) / 16);
-    this->game_y =
-        static_cast<uint8_t>(std::abs(this->y_ - (map_y * 512)) / 16);
+    game_x_ = static_cast<uint8_t>(std::abs(x_ - (map_x * 512)) / 16);
+    game_y_ = static_cast<uint8_t>(std::abs(y_ - (map_y * 512)) / 16);
 
     std::cout << "Item:      " << std::hex << std::setw(2) << std::setfill('0')
-              << static_cast<int>(this->id) << " MapId: " << std::hex
-              << std::setw(2) << std::setfill('0')
-              << static_cast<int>(this->room_map_id)
-              << " X: " << static_cast<int>(this->game_x)
-              << " Y: " << static_cast<int>(this->game_y) << std::endl;
+              << static_cast<int>(id_) << " MapId: " << std::hex << std::setw(2)
+              << std::setfill('0') << static_cast<int>(room_map_id_)
+              << " X: " << static_cast<int>(game_x_)
+              << " Y: " << static_cast<int>(game_y_) << std::endl;
   }
 };
 
@@ -191,7 +187,6 @@ class OverworldExit : public OverworldEntity {
         entrance_id_(0),
         area_x_(0),
         area_y_(0),
-        is_hole_(false),
         room_id_(room_id),
         y_scroll_(y_scroll),
         x_scroll_(x_scroll),
@@ -203,12 +198,13 @@ class OverworldExit : public OverworldEntity {
         scroll_mod_x_(scroll_mod_x),
         door_type_1_(door_type_1),
         door_type_2_(door_type_2),
+        is_hole_(false),
         deleted_(deleted) {
     // Initialize entity variables
-    this->x_ = player_x;
-    this->y_ = player_y;
-    this->map_id_ = map_id;
-    this->type_ = kExit;
+    x_ = player_x;
+    y_ = player_y;
+    map_id_ = map_id;
+    type_ = kExit;
 
     int mapX = (map_id_ - ((map_id_ / 8) * 8));
     int mapY = (map_id_ / 8);
@@ -242,7 +238,7 @@ class OverworldExit : public OverworldEntity {
   }
 
   // Overworld overworld
-  void UpdateMapProperties(short map_id) override {
+  void UpdateMapProperties(uint16_t map_id) override {
     map_id_ = map_id;
 
     int large = 256;
@@ -365,7 +361,7 @@ class OverworldEntrance : public OverworldEntity {
                                  is_hole_);
   }
 
-  void UpdateMapProperties(short map_id) override {
+  void UpdateMapProperties(uint16_t map_id) override {
     map_id_ = map_id;
 
     if (map_id_ >= 64) {

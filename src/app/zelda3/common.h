@@ -45,14 +45,14 @@ class OverworldEntity {
   int game_x_;
   int game_y_;
   int entity_id_;
-  int map_id_;
+  uint16_t map_id_;
 
   auto set_x(int x) { x_ = x; }
   auto set_y(int y) { y_ = y; }
 
   OverworldEntity() = default;
 
-  virtual void UpdateMapProperties(short map_id) = 0;
+  virtual void UpdateMapProperties(uint16_t map_id) = 0;
 };
 
 static const std::string TileTypeNames[] = {

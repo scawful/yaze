@@ -328,7 +328,7 @@ class Sprite : public OverworldEntity {
                       bool mirror_x = false, bool mirror_y = false,
                       int sizex = 2, int sizey = 2);
 
-  void UpdateMapProperties(short map_id) override;
+  void UpdateMapProperties(uint16_t map_id) override;
 
   // New methods
   void UpdateCoordinates(int map_x, int map_y);

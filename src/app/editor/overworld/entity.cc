@@ -132,7 +132,7 @@ bool DrawOverworldEntrancePopup(
   }
   if (ImGui::BeginPopupModal("Entrance editor", NULL,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    gui::InputHex("Map ID", &entrance.map_id_);
+    gui::InputHexWord("Map ID", &entrance.map_id_);
     gui::InputHexByte("Entrance ID", &entrance.entrance_id_,
                       kInputFieldSize + 20);
     gui::InputHex("X", &entrance.x_);
@@ -209,7 +209,7 @@ bool DrawExitEditorPopup(zelda3::overworld::OverworldExit &exit) {
     gui::InputHexWord("Room", &exit.room_id_);
     SameLine();
     gui::InputHex("Entity ID", &exit.entity_id_, 4);
-    gui::InputHex("Map", &exit.map_id_);
+    gui::InputHexWord("Map", &exit.map_id_);
     SameLine();
     Checkbox("Automatic", &exit.is_automatic_);
 
@@ -350,8 +350,8 @@ bool DrawItemEditorPopup(zelda3::overworld::OverworldItem &item) {
     ImGui::BeginGroup();
     for (int i = 0; i < zelda3::overworld::kSecretItemNames.size(); i++) {
       if (Selectable(zelda3::overworld::kSecretItemNames[i].c_str(),
-                     item.id == i)) {
-        item.id = i;
+                     item.id_ == i)) {
+        item.id_ = i;
       }
     }
     ImGui::EndGroup();

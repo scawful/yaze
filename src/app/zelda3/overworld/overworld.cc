@@ -468,8 +468,8 @@ absl::Status Overworld::LoadItems() {
                               (y * 16) + (sy * 512), false);
       auto size = all_items_.size();
 
-      all_items_[size - 1].game_x = (uint8_t)x;
-      all_items_[size - 1].game_y = (uint8_t)y;
+      all_items_[size - 1].game_x_ = (uint8_t)x;
+      all_items_[size - 1].game_y_ = (uint8_t)y;
       addr += 3;
     }
   }
@@ -1335,7 +1335,7 @@ bool compareItemsArrays(std::vector<OverworldItem> itemArray1,
       // Check all sprite in 2nd array if one match
       if (itemArray1[i].x_ == itemArray2[j].x_ &&
           itemArray1[i].y_ == itemArray2[j].y_ &&
-          itemArray1[i].id == itemArray2[j].id) {
+          itemArray1[i].id_ == itemArray2[j].id_) {
         match = true;
         break;
       }
@@ -1357,11 +1357,11 @@ absl::Status Overworld::SaveItems() {
   for (int i = 0; i < 128; i++) {
     room_items[i] = std::vector<OverworldItem>();
     for (const OverworldItem &item : all_items_) {
-      if (item.room_map_id == i) {
+      if (item.room_map_id_ == i) {
         room_items[i].emplace_back(item);
-        if (item.id == 0x86) {
+        if (item.id_ == 0x86) {
           RETURN_IF_ERROR(rom()->WriteWord(
-              0x16DC5 + (i * 2), (item.game_x + (item.game_y * 64)) * 2));
+              0x16DC5 + (i * 2), (item.game_x_ + (item.game_y_ * 64)) * 2));
         }
       }
     }
@@ -1398,11 +1398,11 @@ absl::Status Overworld::SaveItems() {
       item_pointers[i] = data_pos;
       for (const OverworldItem &item : room_items[i]) {
         short map_pos =
-            static_cast<short>(((item.game_y << 6) + item.game_x) << 1);
+            static_cast<short>(((item.game_y_ << 6) + item.game_x_) << 1);
 
         uint32_t data = static_cast<uint8_t>(map_pos & 0xFF) |
                         static_cast<uint8_t>(map_pos >> 8) |
-                        static_cast<uint8_t>(item.id);
+                        static_cast<uint8_t>(item.id_);
         RETURN_IF_ERROR(rom()->WriteLong(data_pos, data));
         data_pos += 3;
       }

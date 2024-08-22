@@ -6,7 +6,7 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
-void Sprite::UpdateMapProperties(short map_id) {
+void Sprite::UpdateMapProperties(uint16_t map_id) {
   map_x_ = x_;
   map_y_ = y_;
   name_ = kSpriteDefaultNames[id_];
