@@ -113,7 +113,7 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
   RETURN_IF_ERROR(tile16_blockset_bmp_.ApplyPalette(palette_));
 
   // Copy the tile16 data into individual tiles.
-  auto tile16_data = overworld_.Tile16Blockset();
+  auto tile16_data = overworld_.tile16_blockset_data();
 
   std::vector<std::future<void>> futures;
   // Loop through the tiles and copy their pixel data into separate vectors

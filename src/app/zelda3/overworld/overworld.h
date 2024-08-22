@@ -573,7 +573,7 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
   auto BitmapData() const {
     return overworld_maps_[current_map_].bitmap_data();
   }
-  auto Tile16Blockset() const {
+  auto tile16_blockset_data() const {
     return overworld_maps_[current_map_].current_tile16_blockset();
   }
   auto is_loaded() const { return is_loaded_; }
