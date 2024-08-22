@@ -66,7 +66,7 @@ absl::Status Rom::LoadLinkGraphics() {
   const uint16_t kLinkGfxLength = 0x800;    // 0x4000 or 0x7000?
 
   // Load Links graphics from the ROM
-  for (int i = 0; i < kNumLinkSheets; i++) {
+  for (uint32_t i = 0; i < kNumLinkSheets; i++) {
     ASSIGN_OR_RETURN(
         auto link_sheet_data,
         ReadByteVector(/*offset=*/kLinkGfxOffset + (i * kLinkGfxLength),
@@ -84,7 +84,7 @@ absl::Status Rom::LoadAllGraphicsData() {
   std::vector<uint8_t> sheet;
   bool bpp3 = false;
 
-  for (int i = 0; i < kNumGfxSheets; i++) {
+  for (uint32_t i = 0; i < kNumGfxSheets; i++) {
     if (i >= 115 && i <= 126) {  // uncompressed sheets
       sheet.resize(Uncompressed3BPPSize);
       auto offset =
@@ -383,26 +383,26 @@ absl::Status Rom::LoadGfxGroups() {
   ASSIGN_OR_RETURN(auto main_blockset_ptr, ReadWord(kGfxGroupsPointer));
   main_blockset_ptr = core::SnesToPc(main_blockset_ptr);
 
-  for (int i = 0; i < kNumMainBlocksets; i++) {
+  for (uint32_t i = 0; i < kNumMainBlocksets; i++) {
     for (int j = 0; j < 8; j++) {
       main_blockset_ids[i][j] = rom_data_[main_blockset_ptr + (i * 8) + j];
     }
   }
 
-  for (int i = 0; i < kNumRoomBlocksets; i++) {
+  for (uint32_t i = 0; i < kNumRoomBlocksets; i++) {
     for (int j = 0; j < 4; j++) {
       room_blockset_ids[i][j] = rom_data_[kEntranceGfxGroup + (i * 4) + j];
     }
   }
 
-  for (int i = 0; i < kNumSpritesets; i++) {
+  for (uint32_t i = 0; i < kNumSpritesets; i++) {
     for (int j = 0; j < 4; j++) {
       spriteset_ids[i][j] =
           rom_data_[version_constants().kSpriteBlocksetPointer + (i * 4) + j];
     }
   }
 
-  for (int i = 0; i < kNumPalettesets; i++) {
+  for (uint32_t i = 0; i < kNumPalettesets; i++) {
     for (int j = 0; j < 4; j++) {
       paletteset_ids[i][j] =
           rom_data_[version_constants().kDungeonPalettesGroups + (i * 4) + j];
@@ -416,26 +416,26 @@ absl::Status Rom::SaveGroupsToRom() {
   ASSIGN_OR_RETURN(auto main_blockset_ptr, ReadWord(kGfxGroupsPointer));
   main_blockset_ptr = core::SnesToPc(main_blockset_ptr);
 
-  for (int i = 0; i < kNumMainBlocksets; i++) {
+  for (uint32_t i = 0; i < kNumMainBlocksets; i++) {
     for (int j = 0; j < 8; j++) {
       rom_data_[main_blockset_ptr + (i * 8) + j] = main_blockset_ids[i][j];
     }
   }
 
-  for (int i = 0; i < kNumRoomBlocksets; i++) {
+  for (uint32_t i = 0; i < kNumRoomBlocksets; i++) {
     for (int j = 0; j < 4; j++) {
       rom_data_[kEntranceGfxGroup + (i * 4) + j] = room_blockset_ids[i][j];
     }
   }
 
-  for (int i = 0; i < kNumSpritesets; i++) {
+  for (uint32_t i = 0; i < kNumSpritesets; i++) {
     for (int j = 0; j < 4; j++) {
       rom_data_[version_constants().kSpriteBlocksetPointer + (i * 4) + j] =
           spriteset_ids[i][j];
     }
   }
 
-  for (int i = 0; i < kNumPalettesets; i++) {
+  for (uint32_t i = 0; i < kNumPalettesets; i++) {
     for (int j = 0; j < 4; j++) {
       rom_data_[version_constants().kDungeonPalettesGroups + (i * 4) + j] =
           paletteset_ids[i][j];
