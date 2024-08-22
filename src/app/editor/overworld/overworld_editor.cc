@@ -843,8 +843,8 @@ void OverworldEditor::DrawOverworldItems() {
   int i = 0;
   for (auto &item : *overworld_.mutable_all_items()) {
     // Get the item's bitmap and real X and Y positions
-    if (item.room_map_id < 0x40 + (current_world_ * 0x40) &&
-        item.room_map_id >= (current_world_ * 0x40) && !item.deleted) {
+    if (item.room_map_id_ < 0x40 + (current_world_ * 0x40) &&
+        item.room_map_id_ >= (current_world_ * 0x40) && !item.deleted) {
       ow_map_canvas_.DrawRect(item.x_, item.y_, 16, 16, ImVec4(255, 0, 0, 150));
 
       if (current_mode == EditingMode::ITEMS) {
@@ -862,10 +862,10 @@ void OverworldEditor::DrawOverworldItems() {
         }
       }
       std::string item_name = "";
-      if (item.id < zelda3::overworld::kSecretItemNames.size()) {
-        item_name = zelda3::overworld::kSecretItemNames[item.id];
+      if (item.id_ < zelda3::overworld::kSecretItemNames.size()) {
+        item_name = zelda3::overworld::kSecretItemNames[item.id_];
       } else {
-        item_name = absl::StrFormat("0x%02X", item.id);
+        item_name = absl::StrFormat("0x%02X", item.id_);
       }
       ow_map_canvas_.DrawText(item_name, item.x_, item.y_);
     }
