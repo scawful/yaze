@@ -452,14 +452,7 @@ class Rom : public core::ExperimentFlags {
     return rom_data_[i];
   }
 
-  core::ResourceLabelManager* resource_label() {
-    return &resource_label_manager_;
-  }
-  VersionConstants version_constants() const {
-    return kVersionConstantsMap.at(version_);
-  }
-
-  auto is_loaded() const {
+  bool is_loaded() const {
     if (!absl::StrContains(filename_, ".sfc") &&
         !absl::StrContains(filename_, ".smc")) {
       return false;
@@ -470,9 +463,18 @@ class Rom : public core::ExperimentFlags {
   // Full graphical data for the game
   std::vector<uint8_t> graphics_buffer() const { return graphics_buffer_; }
 
+  auto title() const { return title_; }
+  auto size() const { return size_; }
+  auto begin() { return rom_data_.begin(); }
+  auto end() { return rom_data_.end(); }
+  auto data() { return rom_data_.data(); }
+  auto vector() const { return rom_data_; }
+  auto version() const { return version_; }
+  auto filename() const { return filename_; }
+  auto set_filename(std::string name) { filename_ = name; }
+
   auto link_graphics() { return link_graphics_; }
   auto mutable_link_graphics() { return &link_graphics_; }
-
   auto gfx_sheets() { return graphics_sheets_; }
   auto mutable_gfx_sheets() { return &graphics_sheets_; }
 
@@ -483,15 +485,12 @@ class Rom : public core::ExperimentFlags {
     return palette_groups_.dungeon_main.mutable_palette(i);
   }
 
-  auto title() const { return title_; }
-  auto size() const { return size_; }
-  auto begin() { return rom_data_.begin(); }
-  auto end() { return rom_data_.end(); }
-  auto data() { return rom_data_.data(); }
-  auto vector() const { return rom_data_; }
-  auto version() const { return version_; }
-  auto filename() const { return filename_; }
-  auto set_filename(std::string name) { filename_ = name; }
+  core::ResourceLabelManager* resource_label() {
+    return &resource_label_manager_;
+  }
+  VersionConstants version_constants() const {
+    return kVersionConstantsMap.at(version_);
+  }
 
   std::vector<std::vector<uint8_t>> main_blockset_ids;
   std::vector<std::vector<uint8_t>> room_blockset_ids;

@@ -3,10 +3,6 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 
-#include "imgui/imgui.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
-#include "imgui_memory_editor.h"
-
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -15,11 +11,13 @@
 #include <vector>
 
 #include "absl/strings/string_view.h"
-
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
+#include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+#include "imgui_memory_editor.h"
 
 namespace yaze {
 namespace app {
