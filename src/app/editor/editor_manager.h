@@ -6,7 +6,6 @@
 #include "ImGuiColorTextEdit/TextEditor.h"
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "absl/status/status.h"
-
 #include "app/core/constants.h"
 #include "app/core/message.h"
 #include "app/core/project.h"
@@ -42,8 +41,8 @@ namespace editor {
 
 /**
  * @class EditorManager
- * @brief The EditorManager class represents the main editor for a Rom in the
- * Yaze application.
+ * @brief The EditorManager controls the main editor window and manages the
+ * various editor classes.
  *
  * This class inherits from SharedRom, GfxContext, and ExperimentFlags, and
  * provides functionality for setting up the screen, updating the editor, and
@@ -58,9 +57,7 @@ namespace editor {
  * @note This class assumes the presence of an SDL_Renderer object for rendering
  * graphics.
  */
-class EditorManager : public SharedRom,
-                      public context::GfxContext,
-                      public core::ExperimentFlags {
+class EditorManager : public SharedRom, public core::ExperimentFlags {
  public:
   EditorManager() {
     current_editor_ = &overworld_editor_;
@@ -77,13 +74,11 @@ class EditorManager : public SharedRom,
 
   auto emulator() -> emu::Emulator& { return emulator_; }
   auto quit() { return quit_; }
-  auto overworld_editor() -> OverworldEditor& { return overworld_editor_; }
 
  private:
   void ManageActiveEditors();
   void ManageKeyboardShortcuts();
 
-  void DrawFileDialog();
   void DrawStatusPopup();
   void DrawAboutPopup();
   void DrawInfoPopup();
@@ -106,15 +101,18 @@ class EditorManager : public SharedRom,
   bool rom_assets_loaded_ = false;
 
   absl::Status status_;
-  absl::Status prev_status_;
 
+  ImVector<int> active_tabs_;
+  std::vector<Editor*> active_editors_;
+
+  core::MessageDispatcher dispatcher_;
   emu::Emulator emulator_;
 
   Project current_project_;
   yaze_editor_context editor_context_;
   ExtensionManager extension_manager_;
-  core::MessageDispatcher dispatcher_;
 
+  Editor* current_editor_ = nullptr;
   AssemblyEditor assembly_editor_;
   DungeonEditor dungeon_editor_;
   GraphicsEditor graphics_editor_;
@@ -126,10 +124,6 @@ class EditorManager : public SharedRom,
   SettingsEditor settings_editor_;
   MessageEditor message_editor_;
   MemoryEditorWithDiffChecker memory_editor_;
-
-  ImVector<int> active_tabs_;
-  std::vector<Editor*> active_editors_;
-  Editor* current_editor_ = nullptr;
 };
 
 }  // namespace editor

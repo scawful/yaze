@@ -307,17 +307,16 @@ void EditorManager::ManageKeyboardShortcuts() {
   }
 }
 
-void EditorManager::DrawFileDialog() {}
-
 void EditorManager::DrawStatusPopup() {
+  static absl::Status prev_status;
   if (!status_.ok()) {
     show_status_ = true;
-    prev_status_ = status_;
+    prev_status = status_;
   }
 
   if (show_status_ && (BeginCentered("StatusWindow"))) {
     Text("%s", ICON_MD_ERROR);
-    Text("%s", prev_status_.ToString().c_str());
+    Text("%s", prev_status.ToString().c_str());
     Spacing();
     NextColumn();
     Columns(1);
@@ -331,7 +330,7 @@ void EditorManager::DrawStatusPopup() {
     }
     SameLine();
     if (Button(ICON_MD_CONTENT_COPY, ImVec2(50, 0))) {
-      SetClipboardText(prev_status_.ToString().c_str());
+      SetClipboardText(prev_status.ToString().c_str());
     }
     End();
   }
