@@ -228,7 +228,7 @@ void DrawPaletteFromPaletteGroup(gfx::SnesPalette &palette) {
   if (palette.empty()) {
     return;
   }
-  for (int n = 0; n < palette.size(); n++) {
+  for (size_t n = 0; n < palette.size(); n++) {
     PushID(n);
     if ((n % 8) != 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
 
