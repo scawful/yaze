@@ -1,9 +1,9 @@
 var classyaze_1_1app_1_1zelda3_1_1Sprite =
 [
     [ "Sprite", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a1d6525d65ef9e2d3c7c47b193fe875ca", null ],
-    [ "Sprite", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a2be2c26a0d8fd9244cb5b791d52d0132", null ],
-    [ "InitSprite", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a9307aaee69bb9e226346cdc2e137f958", null ],
-    [ "updateBBox", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#aaa990c9bf0385267d954278b095da82d", null ],
+    [ "Sprite", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a9f5e6e5213d1c61b1dff298077bf0667", null ],
+    [ "InitSprite", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a7947727791daf1415d5ebddd1b7ce6fa", null ],
+    [ "UpdateBoundaryBox", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#afa4c38ec6ac19c59a1faa69eebff1d88", null ],
     [ "Draw", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a7aff276963041b1940a655f03058f487", null ],
     [ "DrawSpriteTile", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#ae952503a9ee84414beb369002187bc5e", null ],
     [ "UpdateMapProperties", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a8302416c1cc79afe99096227637c3fbc", null ],
@@ -21,7 +21,6 @@ var classyaze_1_1app_1_1zelda3_1_1Sprite =
     [ "game_state", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#afa2ad3edbfa8bbf7a5b3d40d1ee2ee4f", null ],
     [ "layer", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a46056200712d312353dcf2e58dbe0ec8", null ],
     [ "subtype", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a6f0938ad1dfe95f7ba160829408f0093", null ],
-    [ "keyDrop", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#ab39b6fe560fc64d1997e2e2c3740b4aa", null ],
     [ "Width", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#ab319db57b91ed5319e67ccbdeb1517aa", null ],
     [ "Height", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a5e626f0aaf77ff65b663b8d85453d947", null ],
     [ "name", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a5aec436b8c78a4ed1a3a289c5b94a755", null ],

@@ -33,5 +33,5 @@ var namespaceyaze_1_1test =
     [ "TEST_F", "namespaceyaze_1_1test.html#a6214fd496ebfa0358a3346ff7d4c4557", null ],
     [ "TEST_F", "namespaceyaze_1_1test.html#aec2bf6e34867a811d1808f5a92ab4e91", null ],
     [ "TEST_F", "namespaceyaze_1_1test.html#a133541ce48bc235998bf42f760a71f11", null ],
-    [ "TEST", "namespaceyaze_1_1test.html#a87ae7547e95fa60a2d1aace2c16c4b6a", null ]
+    [ "TEST", "namespaceyaze_1_1test.html#a78da9926dd3a9fd284a44538572b40f1", null ]
 ];

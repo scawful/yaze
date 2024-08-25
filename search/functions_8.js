@@ -28,7 +28,7 @@ var searchData=
   ['initializekeymap_25',['InitializeKeymap',['../namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a6ec26934019f1b1ca5465fecdf13830e',1,'yaze::app::core::anonymous_namespace{controller.cc}']]],
   ['initializesavedpalette_26',['InitializeSavedPalette',['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a982d41b1b6b8e6a481818417a3d1d407',1,'yaze::app::editor::PaletteEditor']]],
   ['initializezeml_27',['InitializeZeml',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a42629ebab5240eac4df7bccc9cc04bf9',1,'yaze::app::editor::OverworldEditor']]],
-  ['initsprite_28',['InitSprite',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a9307aaee69bb9e226346cdc2e137f958',1,'yaze::app::zelda3::Sprite']]],
+  ['initsprite_28',['InitSprite',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a7947727791daf1415d5ebddd1b7ce6fa',1,'yaze::app::zelda3::Sprite']]],
   ['inlineupdate_29',['InlineUpdate',['../classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a9f089b67eecb6b7639f24a096b92dbc7',1,'yaze::app::editor::AssemblyEditor']]],
   ['input_5flatch_30',['input_latch',['../namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#aae723effd7ed469f002c818eb4ad7ff8',1,'yaze::app::emu::anonymous_namespace{snes.cc}']]],
   ['input_5fread_31',['input_read',['../namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#a81d0f6f44caa1180f02c65980a9bc7e9',1,'yaze::app::emu::anonymous_namespace{snes.cc}']]],
@@ -55,7 +55,7 @@ var searchData=
   ['isbreakpoint_52',['IsBreakpoint',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a2517d9afa3c27cd2385509b561f9a003',1,'yaze::app::emu::Cpu']]],
   ['iseditoractive_53',['IsEditorActive',['../namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#afe227063e9a69617e556bb4ae5c6b486',1,'yaze::app::editor::anonymous_namespace{editor_manager.cc}']]],
   ['ismousehovering_54',['IsMouseHovering',['../classyaze_1_1app_1_1gui_1_1Canvas.html#aeaa4f10b3e51c996f98099d4944b1ae2',1,'yaze::app::gui::Canvas']]],
-  ['ismousehoveringoverentity_55',['IsMouseHoveringOverEntity',['../namespaceyaze_1_1app_1_1editor.html#a9630e35305cf9e744b59e289ea1867ea',1,'yaze::app::editor']]],
+  ['ismousehoveringoverentity_55',['IsMouseHoveringOverEntity',['../namespaceyaze_1_1app_1_1editor.html#a3b0a22b38dbd611fd2afe5bd10186d5d',1,'yaze::app::editor']]],
   ['isokandholds_56',['IsOkAndHolds',['../namespaceyaze_1_1test.html#ace6494b75531bde42a021a993af2b3e1',1,'yaze::test']]],
   ['itemlabel_57',['ItemLabel',['../namespaceyaze_1_1app_1_1gui.html#a09b85853f6496c7b5eba061ea976c68e',1,'yaze::app::gui']]]
 ];

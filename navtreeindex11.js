@@ -1,5 +1,13 @@
 var NAVTREEINDEX11 =
 {
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html":[11,0,1,0,3,2,2],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html":[12,0,0,0,2,0,2],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a001a2c404bc6b0fd83b98a70527e8050":[11,0,1,0,3,2,2,5],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a001a2c404bc6b0fd83b98a70527e8050":[12,0,0,0,2,0,2,5],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a3a54c05966bf0ff2cdf022224aaf5a0a":[11,0,1,0,3,2,2,3],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a3a54c05966bf0ff2cdf022224aaf5a0a":[12,0,0,0,2,0,2,3],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a48aa23112a613be3af4fa5e38d83084f":[11,0,1,0,3,2,2,4],
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a48aa23112a613be3af4fa5e38d83084f":[12,0,0,0,2,0,2,4],
 "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a76190c7cd6dd60be18f60576f007cb46":[11,0,1,0,3,2,2,2],
 "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a76190c7cd6dd60be18f60576f007cb46":[12,0,0,0,2,0,2,2],
 "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a9309b30b3cf01e47b6b840d218be16a8":[11,0,1,0,3,2,2,0],
@@ -241,13 +249,5 @@ var NAVTREEINDEX11 =
 "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a6c94dcc08b5202470e222e2015a6182c":[11,0,1,0,3,2,6,27],
 "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a6c94dcc08b5202470e222e2015a6182c":[12,0,0,0,2,0,6,27],
 "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a6e10ec566fec9539af245cd96b9338fe":[11,0,1,0,3,2,6,94],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a6e10ec566fec9539af245cd96b9338fe":[12,0,0,0,2,0,6,94],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a6ec5d0c41f41495d51a867e7fe71c5f7":[11,0,1,0,3,2,6,9],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a6ec5d0c41f41495d51a867e7fe71c5f7":[12,0,0,0,2,0,6,9],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a750807e09fa8b8844143c5502492987c":[11,0,1,0,3,2,6,93],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a750807e09fa8b8844143c5502492987c":[12,0,0,0,2,0,6,93],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a78754223f00c5fda76ec9103316a85a6":[11,0,1,0,3,2,6,119],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a78754223f00c5fda76ec9103316a85a6":[12,0,0,0,2,0,6,119],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a7d92b735859f21b6cbabb1ff9cc881eb":[11,0,1,0,3,2,6,120],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a7d92b735859f21b6cbabb1ff9cc881eb":[12,0,0,0,2,0,6,120]
+"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a6e10ec566fec9539af245cd96b9338fe":[12,0,0,0,2,0,6,94]
 };

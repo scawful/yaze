@@ -17,10 +17,9 @@ var searchData=
   ['overworld_14',['Overworld',['../structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html',1,'yaze::app::core::ExperimentFlags::Flags::Overworld'],['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['overworldasset_15',['OverworldAsset',['../structyaze_1_1app_1_1gui_1_1OverworldAsset.html',1,'yaze::app::gui']]],
   ['overworldeditor_16',['OverworldEditor',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html',1,'yaze::app::editor']]],
-  ['overworldentity_17',['OverworldEntity',['../classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html',1,'yaze::app::zelda3']]],
-  ['overworldentrance_18',['OverworldEntrance',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance.html',1,'yaze::app::zelda3::overworld']]],
-  ['overworldexit_19',['OverworldExit',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html',1,'yaze::app::zelda3::overworld']]],
-  ['overworlditem_20',['OverworldItem',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldItem.html',1,'yaze::app::zelda3::overworld']]],
-  ['overworldmap_21',['OverworldMap',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html',1,'yaze::app::zelda3::overworld']]],
-  ['owmaptiles_22',['OWMapTiles',['../structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html',1,'yaze::app::zelda3']]]
+  ['overworldentrance_17',['OverworldEntrance',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance.html',1,'yaze::app::zelda3::overworld']]],
+  ['overworldexit_18',['OverworldExit',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html',1,'yaze::app::zelda3::overworld']]],
+  ['overworlditem_19',['OverworldItem',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldItem.html',1,'yaze::app::zelda3::overworld']]],
+  ['overworldmap_20',['OverworldMap',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html',1,'yaze::app::zelda3::overworld']]],
+  ['owmaptiles_21',['OWMapTiles',['../structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html',1,'yaze::app::zelda3']]]
 ];

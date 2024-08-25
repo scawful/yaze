@@ -122,9 +122,17 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ad0266adc274f79de7feff6e5adf51f6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af766b50fe53dfb566970a7a6f0108e50" id="r_af766b50fe53dfb566970a7a6f0108e50"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af766b50fe53dfb566970a7a6f0108e50">ExecuteCommand</a> (const std::string &amp;shortcut)</td></tr>
 <tr class="separator:af766b50fe53dfb566970a7a6f0108e50"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea5b03f308e92cb6617fed99df995ce5" id="r_aea5b03f308e92cb6617fed99df995ce5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aea5b03f308e92cb6617fed99df995ce5">Undo</a> ()</td></tr>
+<tr class="separator:aea5b03f308e92cb6617fed99df995ce5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a24a5e2b504ae10e1bfbf81cfb597732c" id="r_a24a5e2b504ae10e1bfbf81cfb597732c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a24a5e2b504ae10e1bfbf81cfb597732c">Redo</a> ()</td></tr>
+<tr class="separator:a24a5e2b504ae10e1bfbf81cfb597732c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
+<tr class="memitem:af8978255fe7332b661bedbe8d64a2d46" id="r_af8978255fe7332b661bedbe8d64a2d46"><td class="memItemLeft" align="right" valign="top">std::stack&lt; <a class="el" href="classyaze_1_1app_1_1editor_1_1Command.html">Command</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af8978255fe7332b661bedbe8d64a2d46">undo_stack_</a></td></tr>
+<tr class="separator:af8978255fe7332b661bedbe8d64a2d46"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac593b2420eced4b4036acdacb9ff18e3" id="r_ac593b2420eced4b4036acdacb9ff18e3"><td class="memItemLeft" align="right" valign="top">std::stack&lt; <a class="el" href="classyaze_1_1app_1_1editor_1_1Command.html">Command</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac593b2420eced4b4036acdacb9ff18e3">redo_stack_</a></td></tr>
+<tr class="separator:ac593b2420eced4b4036acdacb9ff18e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a61858f5c8a2e27ac07b46d2e033ff8f5" id="r_a61858f5c8a2e27ac07b46d2e033ff8f5"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; std::string, <a class="el" href="classyaze_1_1app_1_1editor_1_1Command.html">Command</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a61858f5c8a2e27ac07b46d2e033ff8f5">commands_</a></td></tr>
 <tr class="separator:a61858f5c8a2e27ac07b46d2e033ff8f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -161,7 +169,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="command__manager_8h_source.html#l00019">19</a> of file <a class="el" href="command__manager_8h_source.html">command_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="command__manager_8h_source.html#l00030">commands_</a>.</p>
+<p class="reference">References <a class="el" href="command__manager_8h_source.html#l00048">commands_</a>.</p>
 
 </div>
 </div>
@@ -190,11 +198,121 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="command__manager_8h_source.html#l00023">23</a> of file <a class="el" href="command__manager_8h_source.html">command_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="command__manager_8h_source.html#l00030">commands_</a>.</p>
+<p class="reference">References <a class="el" href="command__manager_8h_source.html#l00048">commands_</a>.</p>
+
+</div>
+</div>
+<a id="aea5b03f308e92cb6617fed99df995ce5" name="aea5b03f308e92cb6617fed99df995ce5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea5b03f308e92cb6617fed99df995ce5">&#9670;&#160;</a></span>Undo()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::editor::CommandManager::Undo </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="command__manager_8h_source.html#l00029">29</a> of file <a class="el" href="command__manager_8h_source.html">command_manager.h</a>.</p>
+
+<p class="reference">References <a class="el" href="command__manager_8h_source.html#l00047">redo_stack_</a>, and <a class="el" href="command__manager_8h_source.html#l00046">undo_stack_</a>.</p>
+
+</div>
+</div>
+<a id="a24a5e2b504ae10e1bfbf81cfb597732c" name="a24a5e2b504ae10e1bfbf81cfb597732c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a24a5e2b504ae10e1bfbf81cfb597732c">&#9670;&#160;</a></span>Redo()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::editor::CommandManager::Redo </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="command__manager_8h_source.html#l00037">37</a> of file <a class="el" href="command__manager_8h_source.html">command_manager.h</a>.</p>
+
+<p class="reference">References <a class="el" href="command__manager_8h_source.html#l00047">redo_stack_</a>, and <a class="el" href="command__manager_8h_source.html#l00046">undo_stack_</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="af8978255fe7332b661bedbe8d64a2d46" name="af8978255fe7332b661bedbe8d64a2d46"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af8978255fe7332b661bedbe8d64a2d46">&#9670;&#160;</a></span>undo_stack_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::stack&lt;<a class="el" href="classyaze_1_1app_1_1editor_1_1Command.html">Command</a>*&gt; yaze::app::editor::CommandManager::undo_stack_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="command__manager_8h_source.html#l00046">46</a> of file <a class="el" href="command__manager_8h_source.html">command_manager.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="command__manager_8h_source.html#l00037">Redo()</a>, and <a class="el" href="command__manager_8h_source.html#l00029">Undo()</a>.</p>
+
+</div>
+</div>
+<a id="ac593b2420eced4b4036acdacb9ff18e3" name="ac593b2420eced4b4036acdacb9ff18e3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac593b2420eced4b4036acdacb9ff18e3">&#9670;&#160;</a></span>redo_stack_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::stack&lt;<a class="el" href="classyaze_1_1app_1_1editor_1_1Command.html">Command</a>*&gt; yaze::app::editor::CommandManager::redo_stack_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="command__manager_8h_source.html#l00047">47</a> of file <a class="el" href="command__manager_8h_source.html">command_manager.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="command__manager_8h_source.html#l00037">Redo()</a>, and <a class="el" href="command__manager_8h_source.html#l00029">Undo()</a>.</p>
+
+</div>
+</div>
 <a id="a61858f5c8a2e27ac07b46d2e033ff8f5" name="a61858f5c8a2e27ac07b46d2e033ff8f5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a61858f5c8a2e27ac07b46d2e033ff8f5">&#9670;&#160;</a></span>commands_</h2>
 
@@ -215,7 +333,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="command__manager_8h_source.html#l00030">30</a> of file <a class="el" href="command__manager_8h_source.html">command_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="command__manager_8h_source.html#l00048">48</a> of file <a class="el" href="command__manager_8h_source.html">command_manager.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="command__manager_8h_source.html#l00023">ExecuteCommand()</a>, and <a class="el" href="command__manager_8h_source.html#l00019">RegisterCommand()</a>.</p>
 

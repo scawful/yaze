@@ -111,6 +111,12 @@ var hierarchy =
     [ "yaze::app::core::ExperimentFlags::Flags", "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html", null ],
     [ "yaze::app::emu::audio::Spc700::Flags", "structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html", null ],
     [ "yaze::app::core::FolderItem", "structyaze_1_1app_1_1core_1_1FolderItem.html", null ],
+    [ "yaze::app::zelda3::GameEntity", "classyaze_1_1app_1_1zelda3_1_1GameEntity.html", [
+      [ "yaze::app::zelda3::Sprite", "classyaze_1_1app_1_1zelda3_1_1Sprite.html", null ],
+      [ "yaze::app::zelda3::overworld::OverworldEntrance", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance.html", null ],
+      [ "yaze::app::zelda3::overworld::OverworldExit", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html", null ],
+      [ "yaze::app::zelda3::overworld::OverworldItem", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldItem.html", null ]
+    ] ],
     [ "yaze::app::editor::context::GfxContext", "classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html", [
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ],
       [ "yaze::app::editor::Tile16Editor", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html", null ],
@@ -187,12 +193,6 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::OPHCT", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OPHCT.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::OPVCT", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OPVCT.html", null ],
     [ "yaze::app::core::ExperimentFlags::Flags::Overworld", "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html", null ],
-    [ "yaze::app::zelda3::OverworldEntity", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html", [
-      [ "yaze::app::zelda3::Sprite", "classyaze_1_1app_1_1zelda3_1_1Sprite.html", null ],
-      [ "yaze::app::zelda3::overworld::OverworldEntrance", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance.html", null ],
-      [ "yaze::app::zelda3::overworld::OverworldExit", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html", null ],
-      [ "yaze::app::zelda3::overworld::OverworldItem", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldItem.html", null ]
-    ] ],
     [ "yaze::app::zelda3::OWMapTiles", "structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html", null ],
     [ "yaze::app::editor::palette_internal::PaletteChange", "structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html", null ],
     [ "yaze::app::editor::palette_internal::PaletteEditorHistory", "classyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html", null ],

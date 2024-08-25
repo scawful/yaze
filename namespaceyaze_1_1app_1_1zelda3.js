@@ -7,7 +7,7 @@ var namespaceyaze_1_1app_1_1zelda3 =
     [ "music", "namespaceyaze_1_1app_1_1zelda3_1_1music.html", "namespaceyaze_1_1app_1_1zelda3_1_1music" ],
     [ "overworld", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html", "namespaceyaze_1_1app_1_1zelda3_1_1overworld" ],
     [ "screen", "namespaceyaze_1_1app_1_1zelda3_1_1screen.html", "namespaceyaze_1_1app_1_1zelda3_1_1screen" ],
-    [ "OverworldEntity", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity" ],
+    [ "GameEntity", "classyaze_1_1app_1_1zelda3_1_1GameEntity.html", "classyaze_1_1app_1_1zelda3_1_1GameEntity" ],
     [ "OWMapTiles", "structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html", "structyaze_1_1app_1_1zelda3_1_1OWMapTiles" ],
     [ "Sprite", "classyaze_1_1app_1_1zelda3_1_1Sprite.html", "classyaze_1_1app_1_1zelda3_1_1Sprite" ],
     [ "SpriteAction", "classyaze_1_1app_1_1zelda3_1_1SpriteAction.html", "classyaze_1_1app_1_1zelda3_1_1SpriteAction" ],

@@ -53,7 +53,7 @@
 <area shape="poly" id="edge26_Node000020_Node000021" title=" " alt="" coords="386,922,429,930,504,943,503,948,428,935,385,928"/>
 <area shape="rect" id="Node000026" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html" title="A class for managing sprites in the overworld and underworld." alt="" coords="1477,1257,1601,1298"/>
 <area shape="poly" id="edge36_Node000001_Node000026" title=" " alt="" coords="1616,1283,1654,1283,1694,1276,1732,1263,1765,1241,1783,1215,1798,1176,1822,1074,1837,967,1844,889,1850,889,1842,968,1827,1075,1803,1178,1787,1218,1769,1245,1734,1268,1695,1282,1655,1288,1616,1289"/>
-<area shape="rect" id="Node000027" href="$classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html" title="Base class for all overworld entities." alt="" coords="1138,1189,1262,1230"/>
+<area shape="rect" id="Node000027" href="$classyaze_1_1app_1_1zelda3_1_1GameEntity.html" title="Base class for all overworld and dungeon entities." alt="" coords="1138,1189,1262,1230"/>
 <area shape="poly" id="edge44_Node000001_Node000027" title=" " alt="" coords="1277,1214,1353,1217,1443,1217,1540,1210,1635,1194,1708,1176,1736,1161,1765,1133,1786,1103,1803,1071,1827,1002,1840,937,1845,888,1850,889,1845,938,1833,1003,1808,1073,1791,1106,1769,1136,1739,1165,1710,1181,1636,1199,1541,1216,1443,1223,1353,1223,1277,1219"/>
 <area shape="poly" id="edge37_Node000026_Node000027" title=" " alt="" coords="1278,1222,1477,1262,1476,1268,1277,1227"/>
 <area shape="rect" id="Node000028" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance.html" title=" " alt="" coords="1442,1322,1636,1363"/>

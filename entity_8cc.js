@@ -1,8 +1,8 @@
 var entity_8cc =
 [
-    [ "IsMouseHoveringOverEntity", "entity_8cc.html#a9630e35305cf9e744b59e289ea1867ea", null ],
-    [ "MoveEntityOnGrid", "entity_8cc.html#aa29d0f421e7ccf6a963c1358791c99de", null ],
-    [ "HandleEntityDragging", "entity_8cc.html#ae8a17a5dca3b6ce2fb6dfaa9e045451d", null ],
+    [ "IsMouseHoveringOverEntity", "entity_8cc.html#a3b0a22b38dbd611fd2afe5bd10186d5d", null ],
+    [ "MoveEntityOnGrid", "entity_8cc.html#ace90e0c864a9d9ecd6649295d7889245", null ],
+    [ "HandleEntityDragging", "entity_8cc.html#ada8b496b36d6077c367962ba669467ce", null ],
     [ "DrawEntranceInserterPopup", "entity_8cc.html#a42fb86004959376148f91a02ba3672a7", null ],
     [ "DrawOverworldEntrancePopup", "entity_8cc.html#a688bb3d0916bba857711d26044c616a8", null ],
     [ "DrawExitInserterPopup", "entity_8cc.html#a8e2dfb0a5debed526b32ea5ec1097d9f", null ],

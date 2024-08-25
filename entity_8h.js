@@ -8,9 +8,9 @@ var entity_8h =
       [ "MyItemColumnID_Quantity", "entity_8h.html#a568eb6ef1a6b96b1a90075ec38b7d1a9ae174d554f93e36997c9267392b01d6da", null ],
       [ "MyItemColumnID_Description", "entity_8h.html#a568eb6ef1a6b96b1a90075ec38b7d1a9a2c8a5284a6fd0fa69f3df471bf7f6cb0", null ]
     ] ],
-    [ "IsMouseHoveringOverEntity", "entity_8h.html#a9630e35305cf9e744b59e289ea1867ea", null ],
-    [ "MoveEntityOnGrid", "entity_8h.html#aa29d0f421e7ccf6a963c1358791c99de", null ],
-    [ "HandleEntityDragging", "entity_8h.html#ae8a17a5dca3b6ce2fb6dfaa9e045451d", null ],
+    [ "IsMouseHoveringOverEntity", "entity_8h.html#a3b0a22b38dbd611fd2afe5bd10186d5d", null ],
+    [ "MoveEntityOnGrid", "entity_8h.html#ace90e0c864a9d9ecd6649295d7889245", null ],
+    [ "HandleEntityDragging", "entity_8h.html#ada8b496b36d6077c367962ba669467ce", null ],
     [ "DrawEntranceInserterPopup", "entity_8h.html#a42fb86004959376148f91a02ba3672a7", null ],
     [ "DrawOverworldEntrancePopup", "entity_8h.html#a688bb3d0916bba857711d26044c616a8", null ],
     [ "DrawExitInserterPopup", "entity_8h.html#a8e2dfb0a5debed526b32ea5ec1097d9f", null ],
