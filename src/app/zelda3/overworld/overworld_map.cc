@@ -190,52 +190,41 @@ void OverworldMap::LoadCustomOverworldData() {
       rom_.version_constants().kOverworldGfxGroups2;
 
   // Main Blocksets
-  custom_tileset_.TileGFX0 =
-      (uint8_t)rom_[overworld_gfx_groups2 + (indexWorld * 8) + 0];
-  custom_tileset_.TileGFX1 =
-      (uint8_t)rom_[overworld_gfx_groups2 + (indexWorld * 8) + 1];
-  custom_tileset_.TileGFX2 =
-      (uint8_t)rom_[overworld_gfx_groups2 + (indexWorld * 8) + 2];
-  custom_tileset_.TileGFX3 =
-      (uint8_t)rom_[overworld_gfx_groups2 + (indexWorld * 8) + 3];
-  custom_tileset_.TileGFX4 =
-      (uint8_t)rom_[overworld_gfx_groups2 + (indexWorld * 8) + 4];
-  custom_tileset_.TileGFX5 =
-      (uint8_t)rom_[overworld_gfx_groups2 + (indexWorld * 8) + 5];
-  custom_tileset_.TileGFX6 =
-      (uint8_t)rom_[overworld_gfx_groups2 + (indexWorld * 8) + 6];
-  custom_tileset_.TileGFX7 =
-      (uint8_t)rom_[overworld_gfx_groups2 + (indexWorld * 8) + 7];
+
+  for (int i = 0; i < 8; i++) {
+    custom_gfx_ids_[i] =
+        (uint8_t)rom_[overworld_gfx_groups2 + (indexWorld * 8) + i];
+  }
 
   const auto overworldgfxGroups = rom_.version_constants().kOverworldGfxGroups1;
 
   // Replace the variable tiles with the variable ones.
   uint8_t temp = rom_[overworldgfxGroups + (area_graphics_ * 4)];
   if (temp != 0) {
-    custom_tileset_.TileGFX3 = temp;
+    custom_gfx_ids_[3] = temp;
   } else {
-    custom_tileset_.TileGFX3 = 0xFF;
+    custom_gfx_ids_[3] = 0xFF;
   }
 
   temp = rom_[overworldgfxGroups + (area_graphics_ * 4) + 1];
   if (temp != 0) {
-    custom_tileset_.TileGFX4 = temp;
+    custom_gfx_ids_[4] = temp;
   } else {
-    custom_tileset_.TileGFX4 = 0xFF;
+    custom_gfx_ids_[4] = 0xFF;
   }
 
   temp = rom_[overworldgfxGroups + (area_graphics_ * 4) + 2];
   if (temp != 0) {
-    custom_tileset_.TileGFX5 = temp;
+    custom_gfx_ids_[5] = temp;
   } else {
-    custom_tileset_.TileGFX5 = 0xFF;
+    custom_gfx_ids_[5] = 0xFF;
   }
 
   temp = rom_[overworldgfxGroups + (area_graphics_ * 4) + 3];
   if (temp != 0) {
-    custom_tileset_.TileGFX6 = temp;
+    custom_gfx_ids_[6] = temp;
   } else {
-    custom_tileset_.TileGFX6 = 0xFF;
+    custom_gfx_ids_[6] = 0xFF;
   }
 
   // Set the animated GFX values.
@@ -282,22 +271,10 @@ void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
   // This is just to load the GFX groups for ROMs that have an older version
   // of the Overworld ASM already applied.
   if (asm_version >= 0x01 && asm_version != 0xFF) {
-    custom_tileset_.TileGFX0 =
-        rom_[OverworldCustomTileGFXGroupArray + (index_ * 8) + 0];
-    custom_tileset_.TileGFX1 =
-        rom_[OverworldCustomTileGFXGroupArray + (index_ * 8) + 1];
-    custom_tileset_.TileGFX2 =
-        rom_[OverworldCustomTileGFXGroupArray + (index_ * 8) + 2];
-    custom_tileset_.TileGFX3 =
-        rom_[OverworldCustomTileGFXGroupArray + (index_ * 8) + 3];
-    custom_tileset_.TileGFX4 =
-        rom_[OverworldCustomTileGFXGroupArray + (index_ * 8) + 4];
-    custom_tileset_.TileGFX5 =
-        rom_[OverworldCustomTileGFXGroupArray + (index_ * 8) + 5];
-    custom_tileset_.TileGFX6 =
-        rom_[OverworldCustomTileGFXGroupArray + (index_ * 8) + 6];
-    custom_tileset_.TileGFX7 =
-        rom_[OverworldCustomTileGFXGroupArray + (index_ * 8) + 7];
+    for (int i = 0; i < 8; i++) {
+      custom_gfx_ids_[i] =
+          rom_[OverworldCustomTileGFXGroupArray + (index_ * 8) + i];
+    }
 
     animated_gfx_ = rom_[OverworldCustomAnimatedGFXArray + index_];
   } else {
@@ -312,30 +289,12 @@ void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
     }
 
     // Main Blocksets
-    custom_tileset_.TileGFX0 =
-        (uint8_t)rom_[rom_.version_constants().kOverworldGfxGroups2 +
-                      (indexWorld * 8) + 0];
-    custom_tileset_.TileGFX1 =
-        (uint8_t)rom_[rom_.version_constants().kOverworldGfxGroups2 +
-                      (indexWorld * 8) + 1];
-    custom_tileset_.TileGFX2 =
-        (uint8_t)rom_[rom_.version_constants().kOverworldGfxGroups2 +
-                      (indexWorld * 8) + 2];
-    custom_tileset_.TileGFX3 =
-        (uint8_t)rom_[rom_.version_constants().kOverworldGfxGroups2 +
-                      (indexWorld * 8) + 3];
-    custom_tileset_.TileGFX4 =
-        (uint8_t)rom_[rom_.version_constants().kOverworldGfxGroups2 +
-                      (indexWorld * 8) + 4];
-    custom_tileset_.TileGFX5 =
-        (uint8_t)rom_[rom_.version_constants().kOverworldGfxGroups2 +
-                      (indexWorld * 8) + 5];
-    custom_tileset_.TileGFX6 =
-        (uint8_t)rom_[rom_.version_constants().kOverworldGfxGroups2 +
-                      (indexWorld * 8) + 6];
-    custom_tileset_.TileGFX7 =
-        (uint8_t)rom_[rom_.version_constants().kOverworldGfxGroups2 +
-                      (indexWorld * 8) + 7];
+
+    for (int i = 0; i < 8; i++) {
+      custom_gfx_ids_[i] =
+          (uint8_t)rom_[rom_.version_constants().kOverworldGfxGroups2 +
+                        (indexWorld * 8) + i];
+    }
 
     const auto overworldgfxGroups =
         rom_.version_constants().kOverworldGfxGroups1;
@@ -345,30 +304,30 @@ void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
     // anything" value.
     uint8_t temp = rom_[overworldgfxGroups + (area_graphics_ * 4)];
     if (temp != 0x00) {
-      custom_tileset_.TileGFX3 = temp;
+      custom_gfx_ids_[3] = temp;
     } else {
-      custom_tileset_.TileGFX3 = 0xFF;
+      custom_gfx_ids_[3] = 0xFF;
     }
 
     temp = rom_[overworldgfxGroups + (area_graphics_ * 4) + 1];
     if (temp != 0x00) {
-      custom_tileset_.TileGFX4 = temp;
+      custom_gfx_ids_[4] = temp;
     } else {
-      custom_tileset_.TileGFX4 = 0xFF;
+      custom_gfx_ids_[4] = 0xFF;
     }
 
     temp = rom_[overworldgfxGroups + (area_graphics_ * 4) + 2];
     if (temp != 0x00) {
-      custom_tileset_.TileGFX5 = temp;
+      custom_gfx_ids_[5] = temp;
     } else {
-      custom_tileset_.TileGFX5 = 0xFF;
+      custom_gfx_ids_[5] = 0xFF;
     }
 
     temp = rom_[overworldgfxGroups + (area_graphics_ * 4) + 3];
     if (temp != 0x00) {
-      custom_tileset_.TileGFX6 = temp;
+      custom_gfx_ids_[6] = temp;
     } else {
-      custom_tileset_.TileGFX6 = 0xFF;
+      custom_gfx_ids_[6] = 0xFF;
     }
 
     // Set the animated GFX values.
@@ -453,9 +412,9 @@ void OverworldMap::LoadAreaGraphicsBlocksets() {
 
 // TODO: Change the conditions for death mountain gfx
 // JaredBrian: This is how ZS did it, but in 3.0.4 I changed it to just check
-// for 03, 05, 07, and the DW ones as that's how it would appear in-game if you
-// were to make area 03 not a large area anymore for example, so you might want
-// to do the same.
+// for 03, 05, 07, and the DW ones as that's how it would appear in-game if
+// you were to make area 03 not a large area anymore for example, so you might
+// want to do the same.
 void OverworldMap::LoadDeathMountainGFX() {
   static_graphics_[7] = (((parent_ >= 0x03 && parent_ <= 0x07) ||
                           (parent_ >= 0x0B && parent_ <= 0x0E)) ||
