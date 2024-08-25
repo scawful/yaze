@@ -25,10 +25,10 @@ struct OWMapTiles {
 using OWMapTiles = struct OWMapTiles;
 
 /**
- * @class OverworldEntity
- * @brief Base class for all overworld entities.
+ * @class GameEntity
+ * @brief Base class for all overworld and dungeon entities.
  */
-class OverworldEntity {
+class GameEntity {
  public:
   enum EntityType {
     kEntrance = 0,
@@ -38,8 +38,9 @@ class OverworldEntity {
     kTransport = 4,
     kMusic = 5,
     kTilemap = 6,
-    kProperties = 7
-  } type_;
+    kProperties = 7,
+    kDungeonSprite = 8,
+  } entity_type_;
   int x_;
   int y_;
   int game_x_;
@@ -50,7 +51,7 @@ class OverworldEntity {
   auto set_x(int x) { x_ = x; }
   auto set_y(int y) { y_ = y; }
 
-  OverworldEntity() = default;
+  GameEntity() = default;
 
   virtual void UpdateMapProperties(uint16_t map_id) = 0;
 };
