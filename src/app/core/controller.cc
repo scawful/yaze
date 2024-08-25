@@ -117,21 +117,6 @@ void InitializeKeymap() {
   io.KeyMap[ImGuiKey_F12] = SDL_GetScancodeFromKey(SDLK_F12);
 }
 
-void ImGui_ImplSDL2_SetClipboardText(void *user_data, const char *text) {
-  SDL_SetClipboardText(text);
-}
-
-const char *ImGui_ImplSDL2_GetClipboardText(void *user_data) {
-  return SDL_GetClipboardText();
-}
-
-void InitializeClipboard() {
-  ImGuiIO &io = ImGui::GetIO();
-  io.SetClipboardTextFn = ImGui_ImplSDL2_SetClipboardText;
-  io.GetClipboardTextFn = ImGui_ImplSDL2_GetClipboardText;
-  io.ClipboardUserData = nullptr;
-}
-
 void HandleKeyDown(SDL_Event &event, editor::EditorManager &editor) {
   ImGuiIO &io = ImGui::GetIO();
   io.KeysDown[event.key.keysym.scancode] = (event.type == SDL_KEYDOWN);
@@ -279,11 +264,8 @@ absl::Status Controller::OnEntry(std::string filename) {
   RETURN_IF_ERROR(CreateSDL_Window())
   RETURN_IF_ERROR(CreateRenderer())
   RETURN_IF_ERROR(CreateGuiContext())
-  if (flags()->kLoadAudioDevice) {
-    RETURN_IF_ERROR(LoadAudioDevice())
-    editor_manager_.emulator().set_audio_buffer(audio_buffer_);
-    editor_manager_.emulator().set_audio_device_id(audio_device_);
-  }
+  RETURN_IF_ERROR(LoadAudioDevice())
+
   InitializeKeymap();
   editor_manager_.SetupScreen(filename);
   active_ = true;
@@ -361,11 +343,8 @@ void Controller::DoRender() const {
 }
 
 void Controller::OnExit() {
-  if (flags()->kLoadAudioDevice) {
-    SDL_PauseAudioDevice(audio_device_, 1);
-    SDL_CloseAudioDevice(audio_device_);
-    delete audio_buffer_;
-  }
+  SDL_PauseAudioDevice(audio_device_, 1);
+  SDL_CloseAudioDevice(audio_device_);
   ImGui_ImplSDLRenderer2_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
@@ -373,13 +352,9 @@ void Controller::OnExit() {
 }
 
 absl::Status Controller::CreateSDL_Window() {
-  auto sdl_flags = SDL_INIT_VIDEO | SDL_INIT_TIMER;
+  auto sdl_flags = SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER;
   if (flags()->kUseNewImGuiInput) {
     sdl_flags |= SDL_INIT_GAMECONTROLLER;
-  }
-
-  if (flags()->kLoadAudioDevice) {
-    sdl_flags |= SDL_INIT_AUDIO;
   }
 
   if (SDL_Init(sdl_flags) != 0) {
@@ -546,9 +521,11 @@ absl::Status Controller::LoadAudioDevice() {
     return absl::InternalError(
         absl::StrFormat("Failed to open audio: %s\n", SDL_GetError()));
   }
-  audio_buffer_ = new int16_t[audio_frequency_ / 50 * 4];
-  editor_manager_.emulator().set_audio_buffer(audio_buffer_);
+  // audio_buffer_ = new int16_t[audio_frequency_ / 50 * 4];
+  audio_buffer_ = std::make_shared<int16_t>(audio_frequency_ / 50 * 4);
   SDL_PauseAudioDevice(audio_device_, 0);
+  editor_manager_.emulator().set_audio_buffer(audio_buffer_.get());
+  editor_manager_.emulator().set_audio_device_id(audio_device_);
   return absl::OkStatus();
 }
 

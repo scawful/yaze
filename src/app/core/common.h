@@ -68,9 +68,6 @@ class ExperimentFlags {
     // Log to the console.
     bool kLogToConsole = false;
 
-    // Load audio device for emulator
-    bool kLoadAudioDevice = false;
-
     // Overworld flags
     struct Overworld {
       // Load and render overworld sprites to the screen. Unstable.
@@ -132,8 +129,6 @@ class ExperimentFlags {
     result +=
         "kSaveDungeonMaps: " + std::to_string(flags_->kSaveDungeonMaps) + "\n";
     result += "kLogToConsole: " + std::to_string(flags_->kLogToConsole) + "\n";
-    result +=
-        "kLoadAudioDevice: " + std::to_string(flags_->kLoadAudioDevice) + "\n";
     result += "kDrawOverworldSprites: " +
               std::to_string(flags_->overworld.kDrawOverworldSprites) + "\n";
     result += "kSaveOverworldMaps: " +

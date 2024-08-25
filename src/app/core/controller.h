@@ -11,7 +11,6 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "absl/status/status.h"
-
 #include "app/core/platform/renderer.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/utils/editor.h"
@@ -68,8 +67,8 @@ class Controller : public ExperimentFlags {
   editor::EditorManager editor_manager_;
 
   int audio_frequency_ = 48000;
-  int16_t *audio_buffer_;
   SDL_AudioDeviceID audio_device_;
+  std::shared_ptr<int16_t> audio_buffer_;
   std::shared_ptr<SDL_Window> window_;
 };
 
