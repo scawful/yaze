@@ -6,7 +6,6 @@
 #include <unordered_map>
 #include <vector>
 
-
 #include "app/editor/utils/gfx_context.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
@@ -21,8 +20,19 @@ namespace overworld {
 
 OverworldMap::OverworldMap(int index, Rom& rom,
                            std::vector<gfx::Tile16>& tiles16)
-    : parent_(index), index_(index), rom_(rom), tiles16_(tiles16) {
+    : index_(index), parent_(index), rom_(rom), tiles16_(tiles16) {
   LoadAreaInfo();
+
+  if (flags()->kLoadCustomOverworld) {
+    // If the custom overworld ASM has NOT already been applied, manually set
+    // the vanilla values.
+    uint8_t asm_version = rom_[OverworldCustomASMHasBeenApplied];
+    if (asm_version == 0x00) {
+      LoadCustomOverworldData();
+    } else {
+      SetupCustomTileset(asm_version);
+    }
+  }
 }
 
 absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
@@ -141,6 +151,236 @@ void OverworldMap::LoadAreaInfo() {
     sprite_palette_[1] = rom_[overworldSpritePalette + parent_ + 0x80];
     sprite_palette_[2] = rom_[overworldSpritePalette + parent_ + 0x80];
   }
+}
+
+void OverworldMap::LoadCustomOverworldData() {
+  // Set the main palette values.
+  if (index_ < 0x40) {
+    area_palette_ = 0;
+  } else if (index_ >= 0x40 && index_ < 0x80) {
+    area_palette_ = 1;
+  } else if (index_ >= 0x80 && index_ < 0xA0) {
+    area_palette_ = 0;
+  }
+
+  if (index_ == 0x03 || index_ == 0x05 || index_ == 0x07) {
+    area_palette_ = 2;
+  } else if (index_ == 0x43 || index_ == 0x45 || index_ == 0x47) {
+    area_palette_ = 3;
+  } else if (index_ == 0x88) {
+    area_palette_ = 4;
+  }
+
+  // Set the mosaic values.
+  mosaic_ = index_ == 0x00 || index_ == 0x40 || index_ == 0x80 ||
+            index_ == 0x81 || index_ == 0x88;
+
+  int indexWorld = 0x20;
+
+  if (parent_ >= 0x40 && parent_ < 0x80)  // DW
+  {
+    indexWorld = 0x21;
+  } else if (parent_ == 0x88)  // Triforce room
+  {
+    indexWorld = 0x24;
+  }
+
+  const auto overworld_gfx_groups2 =
+      rom_.version_constants().kOverworldGfxGroups2;
+
+  // Main Blocksets
+  custom_tileset_.TileGFX0 =
+      (uint8_t)rom_[overworld_gfx_groups2 + (indexWorld * 8) + 0];
+  custom_tileset_.TileGFX1 =
+      (uint8_t)rom_[overworld_gfx_groups2 + (indexWorld * 8) + 1];
+  custom_tileset_.TileGFX2 =
+      (uint8_t)rom_[overworld_gfx_groups2 + (indexWorld * 8) + 2];
+  custom_tileset_.TileGFX3 =
+      (uint8_t)rom_[overworld_gfx_groups2 + (indexWorld * 8) + 3];
+  custom_tileset_.TileGFX4 =
+      (uint8_t)rom_[overworld_gfx_groups2 + (indexWorld * 8) + 4];
+  custom_tileset_.TileGFX5 =
+      (uint8_t)rom_[overworld_gfx_groups2 + (indexWorld * 8) + 5];
+  custom_tileset_.TileGFX6 =
+      (uint8_t)rom_[overworld_gfx_groups2 + (indexWorld * 8) + 6];
+  custom_tileset_.TileGFX7 =
+      (uint8_t)rom_[overworld_gfx_groups2 + (indexWorld * 8) + 7];
+
+  const auto overworldgfxGroups = rom_.version_constants().kOverworldGfxGroups1;
+
+  // Replace the variable tiles with the variable ones.
+  uint8_t temp = rom_[overworldgfxGroups + (area_graphics_ * 4)];
+  if (temp != 0) {
+    custom_tileset_.TileGFX3 = temp;
+  } else {
+    custom_tileset_.TileGFX3 = 0xFF;
+  }
+
+  temp = rom_[overworldgfxGroups + (area_graphics_ * 4) + 1];
+  if (temp != 0) {
+    custom_tileset_.TileGFX4 = temp;
+  } else {
+    custom_tileset_.TileGFX4 = 0xFF;
+  }
+
+  temp = rom_[overworldgfxGroups + (area_graphics_ * 4) + 2];
+  if (temp != 0) {
+    custom_tileset_.TileGFX5 = temp;
+  } else {
+    custom_tileset_.TileGFX5 = 0xFF;
+  }
+
+  temp = rom_[overworldgfxGroups + (area_graphics_ * 4) + 3];
+  if (temp != 0) {
+    custom_tileset_.TileGFX6 = temp;
+  } else {
+    custom_tileset_.TileGFX6 = 0xFF;
+  }
+
+  // Set the animated GFX values.
+  if (index_ == 0x03 || index_ == 0x05 || index_ == 0x07 || index_ == 0x43 ||
+      index_ == 0x45 || index_ == 0x47) {
+    animated_gfx_ = 0x59;
+  } else {
+    animated_gfx_ = 0x5B;
+  }
+
+  // Set the subscreen overlay values.
+  subscreen_overlay_ = 0x00FF;
+
+  if (index_ == 0x00 ||
+      index_ == 0x40)  // Add fog 2 to the lost woods and skull woods.
+  {
+    subscreen_overlay_ = 0x009D;
+  } else if (index_ == 0x03 || index_ == 0x05 ||
+             index_ == 0x07)  // Add the sky BG to LW death mountain.
+  {
+    subscreen_overlay_ = 0x0095;
+  } else if (index_ == 0x43 || index_ == 0x45 ||
+             index_ == 0x47)  // Add the lava to DW death mountain.
+  {
+    subscreen_overlay_ = 0x009C;
+  } else if (index_ == 0x5B)  // TODO: Might need this one too "index == 0x1B"
+                              // but for now I don't think so.
+  {
+    subscreen_overlay_ = 0x0096;
+  } else if (index_ == 0x80)  // Add fog 1 to the master sword area.
+  {
+    subscreen_overlay_ = 0x0097;
+  } else if (index_ ==
+             0x88)  // Add the triforce room curtains to the triforce room.
+  {
+    subscreen_overlay_ = 0x0093;
+  }
+}
+
+void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
+  area_palette_ = rom_[OverworldCustomMainPaletteArray + index_];
+  mosaic_ = rom_[OverworldCustomMosaicArray + index_] != 0x00;
+
+  // This is just to load the GFX groups for ROMs that have an older version
+  // of the Overworld ASM already applied.
+  if (asm_version >= 0x01 && asm_version != 0xFF) {
+    custom_tileset_.TileGFX0 =
+        rom_[OverworldCustomTileGFXGroupArray + (index_ * 8) + 0];
+    custom_tileset_.TileGFX1 =
+        rom_[OverworldCustomTileGFXGroupArray + (index_ * 8) + 1];
+    custom_tileset_.TileGFX2 =
+        rom_[OverworldCustomTileGFXGroupArray + (index_ * 8) + 2];
+    custom_tileset_.TileGFX3 =
+        rom_[OverworldCustomTileGFXGroupArray + (index_ * 8) + 3];
+    custom_tileset_.TileGFX4 =
+        rom_[OverworldCustomTileGFXGroupArray + (index_ * 8) + 4];
+    custom_tileset_.TileGFX5 =
+        rom_[OverworldCustomTileGFXGroupArray + (index_ * 8) + 5];
+    custom_tileset_.TileGFX6 =
+        rom_[OverworldCustomTileGFXGroupArray + (index_ * 8) + 6];
+    custom_tileset_.TileGFX7 =
+        rom_[OverworldCustomTileGFXGroupArray + (index_ * 8) + 7];
+
+    animated_gfx_ = rom_[OverworldCustomAnimatedGFXArray + index_];
+  } else {
+    int indexWorld = 0x20;
+
+    if (parent_ >= 0x40 && parent_ < 0x80)  // DW
+    {
+      indexWorld = 0x21;
+    } else if (parent_ == 0x88)  // Triforce room
+    {
+      indexWorld = 0x24;
+    }
+
+    // Main Blocksets
+    custom_tileset_.TileGFX0 =
+        (uint8_t)rom_[rom_.version_constants().kOverworldGfxGroups2 +
+                      (indexWorld * 8) + 0];
+    custom_tileset_.TileGFX1 =
+        (uint8_t)rom_[rom_.version_constants().kOverworldGfxGroups2 +
+                      (indexWorld * 8) + 1];
+    custom_tileset_.TileGFX2 =
+        (uint8_t)rom_[rom_.version_constants().kOverworldGfxGroups2 +
+                      (indexWorld * 8) + 2];
+    custom_tileset_.TileGFX3 =
+        (uint8_t)rom_[rom_.version_constants().kOverworldGfxGroups2 +
+                      (indexWorld * 8) + 3];
+    custom_tileset_.TileGFX4 =
+        (uint8_t)rom_[rom_.version_constants().kOverworldGfxGroups2 +
+                      (indexWorld * 8) + 4];
+    custom_tileset_.TileGFX5 =
+        (uint8_t)rom_[rom_.version_constants().kOverworldGfxGroups2 +
+                      (indexWorld * 8) + 5];
+    custom_tileset_.TileGFX6 =
+        (uint8_t)rom_[rom_.version_constants().kOverworldGfxGroups2 +
+                      (indexWorld * 8) + 6];
+    custom_tileset_.TileGFX7 =
+        (uint8_t)rom_[rom_.version_constants().kOverworldGfxGroups2 +
+                      (indexWorld * 8) + 7];
+
+    const auto overworldgfxGroups =
+        rom_.version_constants().kOverworldGfxGroups1;
+
+    // Replace the variable tiles with the variable ones.
+    // If the variable is 00 set it to 0xFF which is the new "don't load
+    // anything" value.
+    uint8_t temp = rom_[overworldgfxGroups + (area_graphics_ * 4)];
+    if (temp != 0x00) {
+      custom_tileset_.TileGFX3 = temp;
+    } else {
+      custom_tileset_.TileGFX3 = 0xFF;
+    }
+
+    temp = rom_[overworldgfxGroups + (area_graphics_ * 4) + 1];
+    if (temp != 0x00) {
+      custom_tileset_.TileGFX4 = temp;
+    } else {
+      custom_tileset_.TileGFX4 = 0xFF;
+    }
+
+    temp = rom_[overworldgfxGroups + (area_graphics_ * 4) + 2];
+    if (temp != 0x00) {
+      custom_tileset_.TileGFX5 = temp;
+    } else {
+      custom_tileset_.TileGFX5 = 0xFF;
+    }
+
+    temp = rom_[overworldgfxGroups + (area_graphics_ * 4) + 3];
+    if (temp != 0x00) {
+      custom_tileset_.TileGFX6 = temp;
+    } else {
+      custom_tileset_.TileGFX6 = 0xFF;
+    }
+
+    // Set the animated GFX values.
+    if (index_ == 0x03 || index_ == 0x05 || index_ == 0x07 || index_ == 0x43 ||
+        index_ == 0x45 || index_ == 0x47) {
+      animated_gfx_ = 0x59;
+    } else {
+      animated_gfx_ = 0x5B;
+    }
+  }
+
+  subscreen_overlay_ =
+      rom_[OverworldCustomSubscreenOverlayArray + (index_ * 2)];
 }
 
 // ============================================================================
@@ -525,7 +765,8 @@ absl::Status OverworldMap::BuildTiles16Gfx(int count) {
 
 namespace {
 
-void CopyTile8bpp16(int x, int y, int tile, std::vector<uint8_t>& bitmap, std::vector<uint8_t>& blockset) {
+void CopyTile8bpp16(int x, int y, int tile, std::vector<uint8_t>& bitmap,
+                    std::vector<uint8_t>& blockset) {
   int src_pos =
       ((tile - ((tile / 0x08) * 0x08)) * 0x10) + ((tile / 0x08) * 2048);
   int dest_pos = (x + (y * 0x200));
