@@ -125,7 +125,7 @@ class Bitmap {
    */
   absl::Status ApplyPalette(const SnesPalette &palette);
   absl::Status ApplyPaletteWithTransparent(const SnesPalette &palette,
-                                           int index, int length = 7);
+                                           size_t index, int length = 7);
   void ApplyPalette(const std::vector<SDL_Color> &palette);
   absl::Status ApplyPaletteFromPaletteGroup(const SnesPalette &palette,
                                             int palette_id);
@@ -203,7 +203,6 @@ class Bitmap {
   int depth_ = 0;
   int data_size_ = 0;
 
-  bool freed_ = false;
   bool active_ = false;
   bool modified_ = false;
   void *texture_pixels = nullptr;
