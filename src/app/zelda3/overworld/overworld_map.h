@@ -8,7 +8,6 @@
 #include <vector>
 
 #include "absl/status/status.h"
-
 #include "app/editor/utils/gfx_context.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -23,6 +22,44 @@ namespace zelda3 {
 namespace overworld {
 
 static constexpr int kTileOffsets[] = {0, 8, 4096, 4104};
+
+// 1 byte, not 0 if enabled
+constexpr int OverworldCustomASMHasBeenApplied = 0x140145;
+
+// 2 bytes for each overworld area (0x140)
+constexpr int OverworldCustomAreaSpecificBGPalette = 0x140000;
+
+// 1 byte, not 0 if enabled
+constexpr int OverworldCustomAreaSpecificBGEnabled = 0x140140;
+
+// 1 byte for each overworld area (0xA0)
+constexpr int OverworldCustomMainPaletteArray = 0x140160;
+// 1 byte, not 0 if enabled
+constexpr int OverworldCustomMainPaletteEnabled = 0x140141;
+
+// 1 byte for each overworld area (0xA0)
+constexpr int OverworldCustomMosaicArray = 0x140200;
+
+// 1 byte, not 0 if enabled
+constexpr int OverworldCustomMosaicEnabled = 0x140142;
+
+// 1 byte for each overworld area (0xA0)
+constexpr int OverworldCustomAnimatedGFXArray = 0x1402A0;
+
+// 1 byte, not 0 if enabled
+constexpr int OverworldCustomAnimatedGFXEnabled = 0x140143;
+
+// 2 bytes for each overworld area (0x140)
+constexpr int OverworldCustomSubscreenOverlayArray = 0x140340;
+
+// 1 byte, not 0 if enabled
+constexpr int OverworldCustomSubscreenOverlayEnabled = 0x140144;
+
+// 8 bytes for each overworld area (0x500)
+constexpr int OverworldCustomTileGFXGroupArray = 0x140480;
+
+// 1 byte, not 0 if enabled
+constexpr int OverworldCustomTileGFXGroupEnabled = 0x140148;
 
 /**
  * @brief Represents a single Overworld map screen.
