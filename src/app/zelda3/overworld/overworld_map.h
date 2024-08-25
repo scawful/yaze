@@ -118,6 +118,29 @@ class OverworldMap : public editor::context::GfxContext {
   auto set_sprite_palette(int i, uint8_t value) { sprite_palette_[i] = value; }
   auto set_message_id(uint16_t value) { message_id_ = value; }
 
+  uint8_t* mutable_custom_tileset(int index) {
+    switch (index) {
+      case 0:
+        return &custom_tileset_.TileGFX0;
+      case 1:
+        return &custom_tileset_.TileGFX1;
+      case 2:
+        return &custom_tileset_.TileGFX2;
+      case 3:
+        return &custom_tileset_.TileGFX3;
+      case 4:
+        return &custom_tileset_.TileGFX4;
+      case 5:
+        return &custom_tileset_.TileGFX5;
+      case 6:
+        return &custom_tileset_.TileGFX6;
+      case 7:
+        return &custom_tileset_.TileGFX7;
+      default:
+        return &custom_tileset_.TileGFX0;
+    }
+  }
+
   void SetAsLargeMap(int parent_index, int quadrant) {
     parent_ = parent_index;
     large_index_ = quadrant;

@@ -332,7 +332,78 @@ void OverworldEditor::DrawOverworldMapSettings() {
 }
 
 void OverworldEditor::DrawCustomOverworldMapSettings() {
-  // TODO: Add @JaredBrian ZSCustomOverworld features to OverworldEditor
+  if (BeginTable(kOWMapTable.data(), 15, kOWMapFlags, ImVec2(0, 0), -1)) {
+    for (const auto &name : kMapSettingsColumnNames)
+      ImGui::TableSetupColumn(name);
+
+    TableNextColumn();
+    ImGui::SetNextItemWidth(120.f);
+    ImGui::Combo("##world", &current_world_, kWorldList.data(), 3);
+
+    static const std::array<std::string, 8> kCustomMapSettingsColumnNames = {
+        "TileGfx0", "TileGfx1", "TileGfx2", "TileGfx3",
+        "TileGfx4", "TileGfx5", "TileGfx6", "TileGfx7"};
+    for (int i = 0; i < 8; ++i) {
+      TableNextColumn();
+      ImGui::BeginGroup();
+      if (gui::InputHexByte(kCustomMapSettingsColumnNames[i].data(),
+                            overworld_.mutable_overworld_map(current_map_)
+                                ->mutable_custom_tileset(i),
+                            kInputFieldSize)) {
+        RefreshMapProperties();
+        RefreshOverworldMap();
+      }
+      ImGui::EndGroup();
+    }
+
+    TableNextColumn();
+    ImGui::BeginGroup();
+    if (gui::InputHexByte("Palette",
+                          overworld_.mutable_overworld_map(current_map_)
+                              ->mutable_area_palette(),
+                          kInputFieldSize)) {
+      RefreshMapProperties();
+      status_ = RefreshMapPalette();
+      RefreshOverworldMap();
+    }
+    ImGui::EndGroup();
+
+    TableNextColumn();
+    ImGui::BeginGroup();
+    gui::InputHexByte("Spr Gfx",
+                      overworld_.mutable_overworld_map(current_map_)
+                          ->mutable_sprite_graphics(game_state_),
+                      kInputFieldSize);
+    ImGui::EndGroup();
+
+    TableNextColumn();
+    ImGui::BeginGroup();
+    gui::InputHexByte("Spr Palette",
+                      overworld_.mutable_overworld_map(current_map_)
+                          ->mutable_sprite_palette(game_state_),
+                      kInputFieldSize);
+    ImGui::EndGroup();
+
+    TableNextColumn();
+    ImGui::BeginGroup();
+    gui::InputHexWord(
+        "Msg Id",
+        overworld_.mutable_overworld_map(current_map_)->mutable_message_id(),
+        kInputFieldSize + 20);
+    ImGui::EndGroup();
+
+    TableNextColumn();
+    ImGui::SetNextItemWidth(100.f);
+    ImGui::Combo("##World", &game_state_, kGamePartComboString.data(), 3);
+
+    TableNextColumn();
+    ImGui::Checkbox(
+        "##mosaic",
+        overworld_.mutable_overworld_map(current_map_)->mutable_mosaic());
+    HOVER_HINT("Enable Mosaic effect for the current map");
+
+    ImGui::EndTable();
+  }
 }
 
 void OverworldEditor::DrawOverworldMaps() {
