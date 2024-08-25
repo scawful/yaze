@@ -331,6 +331,10 @@ void OverworldEditor::DrawOverworldMapSettings() {
   }
 }
 
+void OverworldEditor::DrawCustomOverworldMapSettings() {
+  // TODO: Add @JaredBrian ZSCustomOverworld features to OverworldEditor
+}
+
 void OverworldEditor::DrawOverworldMaps() {
   int xx = 0;
   int yy = 0;
@@ -564,10 +568,13 @@ void OverworldEditor::CheckForMousePan() {
   }
 }
 
-// TODO: Add @JaredBrian ZSCustomOverworld features to OverworldEditor
 void OverworldEditor::DrawOverworldCanvas() {
   if (all_gfx_loaded_) {
-    DrawOverworldMapSettings();
+    if (flags()->overworld.kLoadCustomOverworld) {
+      DrawCustomOverworldMapSettings();
+    } else {
+      DrawOverworldMapSettings();
+    }
     Separator();
   }
 
