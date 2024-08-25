@@ -171,7 +171,7 @@ void Overworld::AssembleMap32Tiles() {
                        256));
   };
 
-  // Loop through each 32x32 pixel tile in the rom()->
+  // Loop through each 32x32 pixel tile in the rom
   for (int i = 0; i < 0x33F0; i += 6) {
     // Loop through each quadrant of the 32x32 pixel tile.
     for (int k = 0; k < 4; k++) {
@@ -252,8 +252,8 @@ absl::Status Overworld::DecompressAllMapTiles() {
     return core::SnesToPc(p);
   };
 
-  int lowest = 0x0FFFFF;
-  int highest = 0x0F8000;
+  uint32_t lowest = 0x0FFFFF;
+  uint32_t highest = 0x0F8000;
   int sx = 0;
   int sy = 0;
   int c = 0;
@@ -275,14 +275,14 @@ absl::Status Overworld::DecompressAllMapTiles() {
     int size1, size2;
     auto decomp = gfx::lc_lz2::Uncompress(rom()->data() + p2, &size1, 1);
     bytes.resize(size1);
-    for (int i = 0; i < size1; i++) {
-      bytes[i] = decomp[i];
+    for (int j = 0; j < size1; j++) {
+      bytes[j] = decomp[j];
     }
     free(decomp);
     decomp = gfx::lc_lz2::Uncompress(rom()->data() + p1, &size2, 1);
     bytes2.resize(size2);
-    for (int i = 0; i < size2; i++) {
-      bytes2[i] = decomp[i];
+    for (int j = 0; j < size2; j++) {
+      bytes2[j] = decomp[j];
     }
     free(decomp);
 
@@ -1081,8 +1081,7 @@ absl::Status Overworld::CreateTile32Tilemap() {
   }
 
   // Create the unique tiles list
-  for (int i = 0; i < unique_tiles.size(); ++i) {
-    // static_cast<uint16_t>(tile)
+  for (size_t i = 0; i < unique_tiles.size(); ++i) {
     tiles32_unique_.emplace_back(gfx::Tile32(unique_tiles[i]));
   }
 
@@ -1331,9 +1330,9 @@ bool compareItemsArrays(std::vector<OverworldItem> itemArray1,
   }
 
   bool match;
-  for (int i = 0; i < itemArray1.size(); i++) {
+  for (size_t i = 0; i < itemArray1.size(); i++) {
     match = false;
-    for (int j = 0; j < itemArray2.size(); j++) {
+    for (size_t j = 0; j < itemArray2.size(); j++) {
       // Check all sprite in 2nd array if one match
       if (itemArray1[i].x_ == itemArray2[j].x_ &&
           itemArray1[i].y_ == itemArray2[j].y_ &&
@@ -1482,7 +1481,7 @@ absl::Status Overworld::DecompressProtoMapTiles(const std::string &filename) {
   int sx = 0;
   int sy = 0;
   int c = 0;
-  for (int i = 0; i < proto_map_data_.size(); i++) {
+  for (size_t i = 0; i < proto_map_data_.size(); i++) {
     int ttpos = 0;
 
     ASSIGN_OR_RETURN(auto bytes, gfx::lc_lz2::DecompressOverworld(

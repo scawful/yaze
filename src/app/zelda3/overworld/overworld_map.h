@@ -119,26 +119,7 @@ class OverworldMap : public editor::context::GfxContext {
   auto set_message_id(uint16_t value) { message_id_ = value; }
 
   uint8_t* mutable_custom_tileset(int index) {
-    switch (index) {
-      case 0:
-        return &custom_tileset_.TileGFX0;
-      case 1:
-        return &custom_tileset_.TileGFX1;
-      case 2:
-        return &custom_tileset_.TileGFX2;
-      case 3:
-        return &custom_tileset_.TileGFX3;
-      case 4:
-        return &custom_tileset_.TileGFX4;
-      case 5:
-        return &custom_tileset_.TileGFX5;
-      case 6:
-        return &custom_tileset_.TileGFX6;
-      case 7:
-        return &custom_tileset_.TileGFX7;
-      default:
-        return &custom_tileset_.TileGFX0;
-    }
+    return &custom_gfx_ids_[index];
   }
 
   void SetAsLargeMap(int parent_index, int quadrant) {
@@ -198,19 +179,7 @@ class OverworldMap : public editor::context::GfxContext {
   uint8_t animated_gfx_ = 0;        // Custom Overworld Animated ID
   uint16_t subscreen_overlay_ = 0;  // Custom Overworld Subscreen Overlay ID
 
-  struct CustomTileset {
-    uint8_t TileGFX0;
-    uint8_t TileGFX1;
-    uint8_t TileGFX2;
-    uint8_t TileGFX3;
-    uint8_t TileGFX4;
-    uint8_t TileGFX5;
-    uint8_t TileGFX6;
-    uint8_t TileGFX7;
-  };
-
-  struct CustomTileset custom_tileset_;
-
+  uint8_t custom_gfx_ids_[8];
   uchar sprite_graphics_[3];
   uchar sprite_palette_[3];
   uchar area_music_[4];
