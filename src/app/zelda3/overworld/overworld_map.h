@@ -141,6 +141,8 @@ class OverworldMap : public editor::context::GfxContext {
 
  private:
   void LoadAreaInfo();
+  void LoadCustomOverworldData();
+  void SetupCustomTileset(uint8_t asm_version);
 
   void LoadMainBlocksetId();
   void LoadSpritesBlocksets();
