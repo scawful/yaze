@@ -3,7 +3,6 @@ include(../cmake/gtest.cmake)
 add_executable(
   yaze_test
   test/yaze_test.cc
-  # test/libc_test.cc
   test/rom_test.cc
   test/core/message_test.cc
   test/gfx/compression_test.cc
@@ -46,7 +45,7 @@ target_link_libraries(
   ${PNG_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
-  # yaze_c
+  yaze_c
   ImGuiTestEngine
   ImGui
   gmock_main
@@ -56,6 +55,7 @@ target_link_libraries(
 )
 target_compile_definitions(yaze_test PRIVATE "linux")
 target_compile_definitions(yaze_test PRIVATE "stricmp=strcasecmp")
+target_compile_definitions(yaze_test PRIVATE "IMGUI_ENABLE_TEST_ENGINE")
 
 include(GoogleTest)
 gtest_discover_tests(yaze_test)
