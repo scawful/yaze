@@ -898,8 +898,8 @@ void OverworldEditor::DrawOverworldSprites() {
       // So we need to check if the map is large or small then add the offset
 
       // Calculate the superX and superY values
-      int superY = map_id / 8;
-      int superX = map_id % 8;
+      // int superY = map_id / 8;
+      // int superX = map_id % 8;
 
       // Calculate the map_x and map_y values
       int map_x = sprite.map_x();

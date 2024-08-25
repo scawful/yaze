@@ -17,7 +17,7 @@ void Sprite::UpdateCoordinates(int map_x, int map_y) {
   map_y_ = map_y;
 }
 
-void Sprite::updateBBox() {
+void Sprite::UpdateBoundaryBox() {
   lowerX_ = 1;
   lowerY_ = 1;
   higherX_ = 15;
