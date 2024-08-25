@@ -16,7 +16,7 @@ using ImGui::SameLine;
 using ImGui::Selectable;
 using ImGui::Text;
 
-bool IsMouseHoveringOverEntity(const zelda3::OverworldEntity &entity,
+bool IsMouseHoveringOverEntity(const zelda3::GameEntity &entity,
                                ImVec2 canvas_p0, ImVec2 scrolling) {
   // Get the mouse position relative to the canvas
   const ImGuiIO &io = ImGui::GetIO();
@@ -31,7 +31,7 @@ bool IsMouseHoveringOverEntity(const zelda3::OverworldEntity &entity,
   return false;
 }
 
-void MoveEntityOnGrid(zelda3::OverworldEntity *entity, ImVec2 canvas_p0,
+void MoveEntityOnGrid(zelda3::GameEntity *entity, ImVec2 canvas_p0,
                       ImVec2 scrolling, bool free_movement) {
   // Get the mouse position relative to the canvas
   const ImGuiIO &io = ImGui::GetIO();
@@ -51,19 +51,19 @@ void MoveEntityOnGrid(zelda3::OverworldEntity *entity, ImVec2 canvas_p0,
   entity->set_y(new_y);
 }
 
-void HandleEntityDragging(zelda3::OverworldEntity *entity, ImVec2 canvas_p0,
+void HandleEntityDragging(zelda3::GameEntity *entity, ImVec2 canvas_p0,
                           ImVec2 scrolling, bool &is_dragging_entity,
-                          zelda3::OverworldEntity *&dragged_entity,
-                          zelda3::OverworldEntity *&current_entity,
+                          zelda3::GameEntity *&dragged_entity,
+                          zelda3::GameEntity *&current_entity,
                           bool free_movement) {
   std::string entity_type = "Entity";
-  if (entity->type_ == zelda3::OverworldEntity::EntityType::kExit) {
+  if (entity->entity_type_ == zelda3::GameEntity::EntityType::kExit) {
     entity_type = "Exit";
-  } else if (entity->type_ == zelda3::OverworldEntity::EntityType::kEntrance) {
+  } else if (entity->entity_type_ == zelda3::GameEntity::EntityType::kEntrance) {
     entity_type = "Entrance";
-  } else if (entity->type_ == zelda3::OverworldEntity::EntityType::kSprite) {
+  } else if (entity->entity_type_ == zelda3::GameEntity::EntityType::kSprite) {
     entity_type = "Sprite";
-  } else if (entity->type_ == zelda3::OverworldEntity::EntityType::kItem) {
+  } else if (entity->entity_type_ == zelda3::GameEntity::EntityType::kItem) {
     entity_type = "Item";
   }
   const auto is_hovering =
@@ -87,7 +87,7 @@ void HandleEntityDragging(zelda3::OverworldEntity *entity, ImVec2 canvas_p0,
   } else if (is_dragging_entity && dragged_entity == entity) {
     if (ImGui::BeginDragDropSource()) {
       ImGui::SetDragDropPayload("ENTITY_PAYLOAD", &entity,
-                                sizeof(zelda3::OverworldEntity));
+                                sizeof(zelda3::GameEntity));
       Text("Moving %s ID: %s", entity_type.c_str(),
            core::UppercaseHexByte(entity->entity_id_).c_str());
       ImGui::EndDragDropSource();

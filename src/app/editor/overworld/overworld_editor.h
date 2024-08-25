@@ -282,8 +282,8 @@ class OverworldEditor : public Editor,
   zelda3::overworld::OverworldExit current_exit_;
   zelda3::overworld::OverworldItem current_item_;
 
-  zelda3::OverworldEntity* current_entity_;
-  zelda3::OverworldEntity* dragged_entity_;
+  zelda3::GameEntity* current_entity_;
+  zelda3::GameEntity* dragged_entity_;
 
   gui::Canvas ow_map_canvas_{"OwMap", kOverworldCanvasSize,
                              gui::CanvasGridSize::k64x64};

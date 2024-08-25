@@ -77,7 +77,7 @@ constexpr int kOverworldItemsAddress = 0xDC8B9;  // 1BC2F9
 constexpr int overworldItemsBank = 0xDC8BF;
 constexpr int overworldItemsEndData = 0xDC89C;  // 0DC89E
 
-class OverworldItem : public OverworldEntity {
+class OverworldItem : public GameEntity {
  public:
   bool bg2_ = false;
   uint8_t id_;
@@ -96,7 +96,7 @@ class OverworldItem : public OverworldEntity {
     this->room_map_id_ = room_map_id;
     this->map_id_ = room_map_id;
     this->entity_id_ = id;
-    this->type_ = kItem;
+    this->entity_type_ = kItem;
 
     int map_x = room_map_id - ((room_map_id / 8) * 8);
     int map_y = room_map_id / 8;
@@ -155,7 +155,7 @@ constexpr int OWExitUnk1Whirlpool = 0x16BF5;     //    JP = ;016E91
 constexpr int OWExitUnk2Whirlpool = 0x16C17;     //    JP = ;016EB3
 constexpr int OWWhirlpoolPosition = 0x16CF8;     //    JP = ;016F94
 
-class OverworldExit : public OverworldEntity {
+class OverworldExit : public GameEntity {
  public:
   uint16_t y_scroll_;
   uint16_t x_scroll_;
@@ -204,7 +204,7 @@ class OverworldExit : public OverworldEntity {
     x_ = player_x;
     y_ = player_y;
     map_id_ = map_id;
-    type_ = kExit;
+    entity_type_ = kExit;
 
     int mapX = (map_id_ - ((map_id_ / 8) * 8));
     int mapY = (map_id_ / 8);
@@ -331,7 +331,7 @@ constexpr int OWHoleArea = 0xDB826;
 //(0x13 entries, 1 byte each)  corresponding entrance numbers
 constexpr int OWHoleEntrance = 0xDB84C;
 
-class OverworldEntrance : public OverworldEntity {
+class OverworldEntrance : public GameEntity {
  public:
   uint16_t map_pos_;
   uchar entrance_id_;
@@ -348,7 +348,7 @@ class OverworldEntrance : public OverworldEntity {
     y_ = y;
     map_id_ = map_id;
     entity_id_ = entrance_id;
-    type_ = kEntrance;
+    entity_type_ = kEntrance;
 
     int mapX = (map_id_ - ((map_id_ / 8) * 8));
     int mapY = (map_id_ / 8);

@@ -282,35 +282,34 @@ static const std::string kSpriteDefaultNames[]{
  * @class Sprite
  * @brief A class for managing sprites in the overworld and underworld.
  */
-class Sprite : public OverworldEntity {
+class Sprite : public GameEntity {
  public:
   Sprite() = default;
-  Sprite(std::vector<uint8_t> src, uint8_t mapid, uint8_t id, uint8_t x,
-         uint8_t y, int map_x, int map_y)
-      : current_gfx_(src),
-        map_id_(static_cast<int>(mapid)),
+  Sprite(std::vector<uint8_t> src, uint8_t overworld_map_id, uint8_t id,
+         uint8_t x, uint8_t y, int map_x, int map_y)
+      : map_id_(static_cast<int>(overworld_map_id)),
         id_(id),
         nx_(x),
         ny_(y),
         map_x_(map_x),
-        map_y_(map_y) {
-    type_ = zelda3::OverworldEntity::EntityType::kSprite;
+        map_y_(map_y),
+        current_gfx_(src) {
+    entity_type_ = zelda3::GameEntity::EntityType::kSprite;
     entity_id_ = id;
     x_ = map_x_;
     y_ = map_y_;
-    current_gfx_ = src;
     overworld_ = true;
     name_ = kSpriteDefaultNames[id];
     preview_gfx_.resize(64 * 64, 0xFF);
   }
 
-  void InitSprite(const std::vector<uint8_t>& src, uint8_t mapid, uint8_t id,
-                  uint8_t x, uint8_t y, int map_x, int map_y) {
+  void InitSprite(const std::vector<uint8_t>& src, uint8_t overworld_map_id,
+                  uint8_t id, uint8_t x, uint8_t y, int map_x, int map_y) {
     current_gfx_ = src;
     overworld_ = true;
-    map_id_ = static_cast<int>(mapid);
+    map_id_ = static_cast<int>(overworld_map_id);
     id_ = id;
-    type_ = zelda3::OverworldEntity::EntityType::kSprite;
+    entity_type_ = zelda3::GameEntity::EntityType::kSprite;
     entity_id_ = id;
     x_ = map_x_;
     y_ = map_y_;
@@ -321,7 +320,7 @@ class Sprite : public OverworldEntity {
     map_y_ = map_y;
     preview_gfx_.resize(64 * 64, 0xFF);
   }
-  void updateBBox();
+  void UpdateBoundaryBox();
 
   void Draw();
   void DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
@@ -347,7 +346,6 @@ class Sprite : public OverworldEntity {
 
   auto layer() const { return layer_; }
   auto subtype() const { return subtype_; }
-  auto& keyDrop() const { return key_drop_; }
 
   auto Width() const { return bounding_box_.w; }
   auto Height() const { return bounding_box_.h; }
