@@ -59,7 +59,8 @@ void HandleEntityDragging(zelda3::GameEntity *entity, ImVec2 canvas_p0,
   std::string entity_type = "Entity";
   if (entity->entity_type_ == zelda3::GameEntity::EntityType::kExit) {
     entity_type = "Exit";
-  } else if (entity->entity_type_ == zelda3::GameEntity::EntityType::kEntrance) {
+  } else if (entity->entity_type_ ==
+             zelda3::GameEntity::EntityType::kEntrance) {
     entity_type = "Entrance";
   } else if (entity->entity_type_ == zelda3::GameEntity::EntityType::kSprite) {
     entity_type = "Sprite";
@@ -310,11 +311,11 @@ bool DrawExitEditorPopup(zelda3::overworld::OverworldExit &exit) {
 void DrawItemInsertPopup() {
   // Contents of the Context Menu
   if (ImGui::BeginPopup("Item Inserter")) {
-    static int new_item_id = 0;
+    static size_t new_item_id = 0;
     Text("Add Item");
     BeginChild("ScrollRegion", ImVec2(150, 150), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
-    for (int i = 0; i < zelda3::overworld::kSecretItemNames.size(); i++) {
+    for (size_t i = 0; i < zelda3::overworld::kSecretItemNames.size(); i++) {
       if (Selectable(zelda3::overworld::kSecretItemNames[i].c_str(),
                      i == new_item_id)) {
         new_item_id = i;
@@ -348,7 +349,7 @@ bool DrawItemEditorPopup(zelda3::overworld::OverworldItem &item) {
     BeginChild("ScrollRegion", ImVec2(150, 150), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
     ImGui::BeginGroup();
-    for (int i = 0; i < zelda3::overworld::kSecretItemNames.size(); i++) {
+    for (size_t i = 0; i < zelda3::overworld::kSecretItemNames.size(); i++) {
       if (Selectable(zelda3::overworld::kSecretItemNames[i].c_str(),
                      item.id_ == i)) {
         item.id_ = i;
