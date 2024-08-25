@@ -169,6 +169,21 @@ class OverworldMap : public editor::context::GfxContext {
   uint16_t message_id_ = 0;
   uint8_t area_graphics_ = 0;
   uint8_t area_palette_ = 0;
+  uint8_t animated_gfx_ = 0;        // Custom Overworld Animated ID
+  uint16_t subscreen_overlay_ = 0;  // Custom Overworld Subscreen Overlay ID
+
+  struct CustomTileset {
+    uint8_t TileGFX0;
+    uint8_t TileGFX1;
+    uint8_t TileGFX2;
+    uint8_t TileGFX3;
+    uint8_t TileGFX4;
+    uint8_t TileGFX5;
+    uint8_t TileGFX6;
+    uint8_t TileGFX7;
+  };
+
+  struct CustomTileset custom_tileset_;
 
   uchar sprite_graphics_[3];
   uchar sprite_palette_[3];
