@@ -99,7 +99,6 @@ class DungeonEditor : public Editor,
   bool object_loaded_ = false;
   bool palette_showing_ = false;
   bool refresh_graphics_ = false;
-  bool show_object_render_ = false;
 
   uint16_t current_entrance_id_ = 0;
   uint16_t current_room_id_ = 0;

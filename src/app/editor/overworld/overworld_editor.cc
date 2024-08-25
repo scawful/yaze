@@ -64,7 +64,6 @@ absl::Status OverworldEditor::Update() {
     RETURN_IF_ERROR(tile16_editor_.InitBlockset(
         tile16_blockset_bmp_, current_gfx_bmp_, tile16_individual_,
         *overworld_.mutable_all_tiles_types()));
-    gfx_group_editor_.InitBlockset(&tile16_blockset_bmp_);
     RETURN_IF_ERROR(LoadEntranceTileTypes(*rom()));
     all_gfx_loaded_ = true;
   }
@@ -989,7 +988,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   tile16_individual_.reserve(kNumTile16Individual);
 
   // Loop through the tiles and copy their pixel data into separate vectors
-  for (int i = 0; i < kNumTile16Individual; i++) {
+  for (uint i = 0; i < kNumTile16Individual; i++) {
     std::vector<uint8_t> tile_data(kTile16Size * kTile16Size, 0x00);
 
     // Copy the pixel data for the current tile into the vector

@@ -58,11 +58,11 @@ core::FolderItem LoadFolder(const std::string& folder) {
   auto root_files = FileDialogWrapper::GetFilesInFolder(current_folder.name);
   current_folder.files = RemoveIgnoredFiles(root_files, ignored_files);
 
-  for (const auto& folder :
+  for (const auto& subfolder :
        FileDialogWrapper::GetSubdirectoriesInFolder(current_folder.name)) {
     core::FolderItem folder_item;
-    folder_item.name = folder;
-    std::string full_folder = current_folder.name + "/" + folder;
+    folder_item.name = subfolder;
+    std::string full_folder = current_folder.name + "/" + subfolder;
     auto folder_files = FileDialogWrapper::GetFilesInFolder(full_folder);
     for (const auto& files : folder_files) {
       // Remove subdirectory files
