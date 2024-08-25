@@ -17,16 +17,21 @@ void yaze_check_version(const char* version) {
   return;
 }
 
-void yaze_init(yaze_flags* flags) {
+int yaze_init(yaze_flags* flags) {
   if (flags == nullptr) {
-    return;
+    return -1;
   }
 
   if (flags->rom_filename == nullptr) {
-    return;
+    return -1;
   }
 
   flags->rom = yaze_load_rom(flags->rom_filename);
+  if (flags->rom == nullptr) {
+    return -1;
+  }
+
+  return 0;
 }
 
 void yaze_cleanup(yaze_flags* flags) {
