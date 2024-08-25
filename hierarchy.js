@@ -65,7 +65,6 @@ var hierarchy =
     [ "yaze::app::gfx::lc_lz2::CompressionPiece", "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html", null ],
     [ "yaze::app::emu::video::CounterIrqNmiRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html", null ],
     [ "yaze::app::emu::memory::CpuCallbacks", "structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html", null ],
-    [ "yaze::app::zelda3::overworld::OverworldMap::CustomTileset", "structyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap_1_1CustomTileset.html", null ],
     [ "yaze::app::emu::Debugger", "classyaze_1_1app_1_1emu_1_1Debugger.html", null ],
     [ "yaze::app::editor::MessageEditor::DictionaryEntry", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html", null ],
     [ "yaze::app::emu::memory::DmaChannel", "structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html", null ],

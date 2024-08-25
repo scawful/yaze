@@ -164,7 +164,7 @@ var NAVTREEINDEX =
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a0936d3e39b6aa07bea7c44552e570513",
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a894011db4a1890dd5293884a1b44539f",
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a63cd6d964c33e6a1c4d72a29e7caffc0",
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a52aa16be4832b99c556556305f74c77f",
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a475efabb024822a369d8ef9f34f0d64d",
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#af4db8c06e4092f2187f538150f405f88",
 "color_8cc.html#a0bc43cf96eee48124511ea473cb37b84",
 "controller_8cc.html#aaffe64ca7a9a2b85375f661ca0a50824",
@@ -196,7 +196,7 @@ var NAVTREEINDEX =
 "structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html",
 "structyaze_1_1app_1_1gfx_1_1tile8.html#ac555fcfe8e1ab5d894c2a07ee342c014",
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a871202a2f6ff3ed215b48865864306ae",
-"tracker_8cc.html"
+"yaze_8cc.html#a92aac5e465c19a821bf5ce2f19943651"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

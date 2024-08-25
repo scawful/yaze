@@ -1,7 +1,6 @@
 var overworld__map_8h =
 [
     [ "yaze::app::zelda3::overworld::OverworldMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap" ],
-    [ "yaze::app::zelda3::overworld::OverworldMap::CustomTileset", "structyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap_1_1CustomTileset.html", "structyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap_1_1CustomTileset" ],
     [ "OverworldCustomASMHasBeenApplied", "overworld__map_8h.html#a48dac1f1245b40e44f1d39edd6d35674", null ],
     [ "OverworldCustomAreaSpecificBGPalette", "overworld__map_8h.html#a8719845f5be733edc86173da68b3cbb3", null ],
     [ "OverworldCustomAreaSpecificBGEnabled", "overworld__map_8h.html#a4438d2b578d4f90d3fcb46b26175dcbf", null ],

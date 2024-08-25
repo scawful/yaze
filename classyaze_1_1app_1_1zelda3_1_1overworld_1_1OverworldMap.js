@@ -1,6 +1,5 @@
 var classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap =
 [
-    [ "CustomTileset", "structyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap_1_1CustomTileset.html", "structyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap_1_1CustomTileset" ],
     [ "OverworldMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a27dcd2a2ee3260c8cf9a103318c1f1a2", null ],
     [ "OverworldMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a8b008cdafe62b2671e5402aae204d663", null ],
     [ "BuildMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ae92286a9910136f008547268b1e6e415", null ],
@@ -68,7 +67,7 @@ var classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap =
     [ "area_palette_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ad6ec5bc90ba66b4a671dc9924313bc95", null ],
     [ "animated_gfx_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#af194059ca7889775bf7c2f241b2a4ad8", null ],
     [ "subscreen_overlay_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a8fbb31771f538a1dc5d5396764f11278", null ],
-    [ "custom_tileset_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a554e5bb89dd4e1a2343f8fe5810e1b74", null ],
+    [ "custom_gfx_ids_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a3ca4e3639aad718224c6d972ffaa8de6", null ],
     [ "sprite_graphics_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a5794745e620a36c3363d66bcf6090376", null ],
     [ "sprite_palette_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a9ae08947f3f0c6abe5a5b741c93e5d49", null ],
     [ "area_music_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ab21ba256124761530abf71b22017bbbf", null ],
