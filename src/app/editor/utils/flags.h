@@ -1,9 +1,8 @@
 #ifndef YAZE_APP_EDITOR_UTILS_FLAGS_H
 #define YAZE_APP_EDITOR_UTILS_FLAGS_H
 
-#include "imgui/imgui.h"
-
 #include "core/common.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {
@@ -31,6 +30,8 @@ struct FlagsMenu : public core::ExperimentFlags {
                &mutable_flags()->overworld.kSaveOverworldItems);
       Checkbox("Save Overworld Properties",
                &mutable_flags()->overworld.kSaveOverworldProperties);
+      Checkbox("Load Custom Overworld",
+               &mutable_flags()->overworld.kLoadCustomOverworld);
       ImGui::EndMenu();
     }
 

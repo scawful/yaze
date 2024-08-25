@@ -87,6 +87,9 @@ class ExperimentFlags {
 
       // Save overworld properties to the Rom.
       bool kSaveOverworldProperties = true;
+
+      // Load custom overworld data from the ROM and enable UI.
+      bool kLoadCustomOverworld = false;
     } overworld;
   };
 
