@@ -1,5 +1,9 @@
 var NAVTREEINDEX50 =
 {
+"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html":[11,0,1,0,3,4,21],
+"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html":[12,0,0,0,2,2,21],
+"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a444549c6f7fdca6cd0c030afe322c408":[11,0,1,0,3,4,21,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a444549c6f7fdca6cd0c030afe322c408":[12,0,0,0,2,2,21,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a4ea833ba45199d9be83d84739649d997":[11,0,1,0,3,4,21,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a4ea833ba45199d9be83d84739649d997":[12,0,0,0,2,2,21,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a4f5e11fcc7c601b7c0335cd1fa83b9fd":[11,0,1,0,3,4,21,4],
@@ -245,9 +249,5 @@ var NAVTREEINDEX50 =
 "structyaze_1_1app_1_1gfx_1_1tile8.html#a35952d1a5775988e0a00dcd1b865a43f":[11,0,1,0,4,13,1],
 "structyaze_1_1app_1_1gfx_1_1tile8.html#a35952d1a5775988e0a00dcd1b865a43f":[12,0,0,0,3,11,1],
 "structyaze_1_1app_1_1gfx_1_1tile8.html#a89f6ada5d869638b665fcfe357d14b53":[11,0,1,0,4,13,2],
-"structyaze_1_1app_1_1gfx_1_1tile8.html#a89f6ada5d869638b665fcfe357d14b53":[12,0,0,0,3,11,2],
-"structyaze_1_1app_1_1gfx_1_1tile8.html#ac555fcfe8e1ab5d894c2a07ee342c014":[11,0,1,0,4,13,0],
-"structyaze_1_1app_1_1gfx_1_1tile8.html#ac555fcfe8e1ab5d894c2a07ee342c014":[12,0,0,0,3,11,0],
-"structyaze_1_1app_1_1gui_1_1AssetObject.html":[11,0,1,0,5,2],
-"structyaze_1_1app_1_1gui_1_1AssetObject.html":[12,0,0,0,4,1]
+"structyaze_1_1app_1_1gfx_1_1tile8.html#a89f6ada5d869638b665fcfe357d14b53":[12,0,0,0,3,11,2]
 };

@@ -1,5 +1,9 @@
 var NAVTREEINDEX52 =
 {
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a871202a2f6ff3ed215b48865864306ae":[11,0,1,0,6,2,0,10],
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a871202a2f6ff3ed215b48865864306ae":[12,0,0,0,5,1,0,10],
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a94dd2b3cdef5af3c038c271a861506fd":[11,0,1,0,6,2,0,9],
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a94dd2b3cdef5af3c038c271a861506fd":[12,0,0,0,5,1,0,9],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#aa6cde3b5cffee90b4ecbf802e4476aff":[11,0,1,0,6,2,0,5],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#aa6cde3b5cffee90b4ecbf802e4476aff":[12,0,0,0,5,1,0,5],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#ab7523029ca8bf895112b2087a91a3d71":[11,0,1,0,6,2,0,4],
@@ -245,9 +249,5 @@ var NAVTREEINDEX52 =
 "title__screen_8cc_source.html":[13,0,1,0,5,3,3],
 "title__screen_8h.html":[13,0,1,0,5,3,4],
 "title__screen_8h_source.html":[13,0,1,0,5,3,4],
-"todo.html":[8],
-"tracker_8cc.html":[13,0,1,0,5,1,0],
-"tracker_8cc.html#a472bdd7d0f3ed081e6559215b39cdf55":[13,0,1,0,5,1,0,0],
-"tracker_8cc_source.html":[13,0,1,0,5,1,0],
-"tracker_8h.html":[13,0,1,0,5,1,1]
+"todo.html":[8]
 };

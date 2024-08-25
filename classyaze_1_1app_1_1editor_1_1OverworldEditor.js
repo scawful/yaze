@@ -26,6 +26,7 @@ var classyaze_1_1app_1_1editor_1_1OverworldEditor =
     [ "DrawFullscreenCanvas", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a6957846beba1e88979d66bafb6ec8de9", null ],
     [ "DrawToolset", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#af2638c632a09e1f9b145ae61f87148ba", null ],
     [ "DrawOverworldMapSettings", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#afe914f5828f45abb1b44fbe377211d2f", null ],
+    [ "DrawCustomOverworldMapSettings", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a51f1dc5a99a843e90174e65c9cb1bbf4", null ],
     [ "RefreshChildMap", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ac01d3d837a19f3a62e0f72b42e134de6", null ],
     [ "RefreshOverworldMap", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ae6074600cb60368e702c2b7bc2aa42fc", null ],
     [ "RefreshMapPalette", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#abfb4edfdd1ac731feb7a284a839fdd33", null ],

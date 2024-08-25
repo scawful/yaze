@@ -1,5 +1,7 @@
 var NAVTREEINDEX17 =
 {
+"classyaze_1_1app_1_1zelda3_1_1GameEntity.html":[12,0,0,0,5,4],
+"classyaze_1_1app_1_1zelda3_1_1GameEntity.html#a0e27bd7fd8ad115bd8190a4cb57973d4":[11,0,1,0,6,5,11],
 "classyaze_1_1app_1_1zelda3_1_1GameEntity.html#a0e27bd7fd8ad115bd8190a4cb57973d4":[12,0,0,0,5,4,11],
 "classyaze_1_1app_1_1zelda3_1_1GameEntity.html#a15832df17cd1c0131168131017ebdab9":[11,0,1,0,6,5,4],
 "classyaze_1_1app_1_1zelda3_1_1GameEntity.html#a15832df17cd1c0131168131017ebdab9":[12,0,0,0,5,4,4],
@@ -247,7 +249,5 @@ var NAVTREEINDEX17 =
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#aeac66a349b1e2e3d149214a0caa2f018":[12,0,0,0,5,0,2,8],
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html":[11,0,1,0,6,1,5],
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html":[12,0,0,0,5,0,5],
-"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a0936d3e39b6aa07bea7c44552e570513":[11,0,1,0,6,1,5,53],
-"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a0936d3e39b6aa07bea7c44552e570513":[12,0,0,0,5,0,5,53],
-"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a0a965f13856bfbe16449335f0671e06e":[11,0,1,0,6,1,5,49]
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a0936d3e39b6aa07bea7c44552e570513":[11,0,1,0,6,1,5,53]
 };

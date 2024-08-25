@@ -2,7 +2,7 @@ var classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap =
 [
     [ "CustomTileset", "structyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap_1_1CustomTileset.html", "structyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap_1_1CustomTileset" ],
     [ "OverworldMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a27dcd2a2ee3260c8cf9a103318c1f1a2", null ],
-    [ "OverworldMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a899b506e4aa8da2909369bbdaa20af8b", null ],
+    [ "OverworldMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a8b008cdafe62b2671e5402aae204d663", null ],
     [ "BuildMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ae92286a9910136f008547268b1e6e415", null ],
     [ "LoadAreaGraphics", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a258b27a2046939401415e2a847c98a4a", null ],
     [ "LoadPalette", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b", null ],
@@ -39,6 +39,7 @@ var classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap =
     [ "set_sprite_graphics", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa3568a846ad09825845cc9f0ce0410dc", null ],
     [ "set_sprite_palette", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ac17e16d71208826758b911e89212da10", null ],
     [ "set_message_id", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#acd121506346b91c913c783e66cce6dea", null ],
+    [ "mutable_custom_tileset", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aed613ebcfca20e30b769923f1b7d7b34", null ],
     [ "SetAsLargeMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a9b9b248400a85e616f06897908f917f1", null ],
     [ "SetAsSmallMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a65d804d853a167e5375f944062de772b", null ],
     [ "Destroy", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a8135e1bb66c6b071aecd464db298ecdd", null ],
