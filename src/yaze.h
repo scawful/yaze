@@ -62,7 +62,7 @@ void yaze_check_version(const char* version);
  *
  * @param flags Flags to initialize the library.
  */
-void yaze_init(yaze_flags*);
+int yaze_init(yaze_flags*);
 
 /**
  * @brief Clean up the Yaze library.

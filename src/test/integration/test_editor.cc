@@ -1,5 +1,7 @@
 #include "test/integration/test_editor.h"
 
+#include <SDL.h>
+
 #include "app/core/controller.h"
 #include "app/core/platform/renderer.h"
 #include "app/gui/style.h"
@@ -91,6 +93,7 @@ int RunIntegrationTest() {
 
   ImGuiTestEngine_Stop(engine);
   controller.OnExit();
+  return EXIT_SUCCESS;
 }
 
 }  // namespace integration

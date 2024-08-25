@@ -2,7 +2,6 @@
 
 #include "yaze.h"
 
-#include <SDL.h>
 #include <gtest/gtest.h>
 
 #include "absl/debugging/failure_signal_handler.h"
@@ -12,9 +11,18 @@
 namespace yaze {
 namespace test {
 
-TEST(YazeTest, InitializeAndCleanup) {
+TEST(YazeTest, LoadAndUnloadRom) {
   yaze_flags flags;
-  yaze_init(&flags);
+  flags.rom_filename = "zelda3.sfc";
+  const int init = yaze_init(&flags);
+  ASSERT_EQ(init, 0);
+  yaze_cleanup(&flags);
+}
+
+TEST(YazeTest, NoFilename) {
+  yaze_flags flags;
+  const int init = yaze_init(&flags);
+  ASSERT_EQ(init, -1);
   yaze_cleanup(&flags);
 }
 
