@@ -1,14 +1,5 @@
 var NAVTREEINDEX52 =
 {
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html":[11,0,1,0,6,2,0],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html":[12,0,0,0,5,1,0],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a03a77adaaeeb9bb626c9cb345aef15ba":[11,0,1,0,6,2,0,12],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a03a77adaaeeb9bb626c9cb345aef15ba":[12,0,0,0,5,1,0,12],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a0ad27119da593ce7713a06a434ec966f":[11,0,1,0,6,2,0,11],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a0ad27119da593ce7713a06a434ec966f":[12,0,0,0,5,1,0,11],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a2933cbbb803118109df7c738815ade22":[11,0,1,0,6,2,0,6],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a2933cbbb803118109df7c738815ade22":[12,0,0,0,5,1,0,6],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a34856f89057de462467d3a5a1185d2d1":[11,0,1,0,6,2,0,0],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a34856f89057de462467d3a5a1185d2d1":[12,0,0,0,5,1,0,0],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a41909930a89fd120c517dee41bfc515a":[11,0,1,0,6,2,0,2],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a41909930a89fd120c517dee41bfc515a":[12,0,0,0,5,1,0,2],
@@ -249,5 +240,14 @@ var NAVTREEINDEX52 =
 "title__screen_8h_source.html":[13,0,1,0,5,3,4],
 "todo.html":[8],
 "tracker_8cc.html":[13,0,1,0,5,1,0],
-"tracker_8cc.html#a472bdd7d0f3ed081e6559215b39cdf55":[13,0,1,0,5,1,0,0]
+"tracker_8cc.html#a472bdd7d0f3ed081e6559215b39cdf55":[13,0,1,0,5,1,0,0],
+"tracker_8cc_source.html":[13,0,1,0,5,1,0],
+"tracker_8h.html":[13,0,1,0,5,1,1],
+"tracker_8h.html#a25bedc591c14056dde9badebe62964ee":[13,0,1,0,5,1,1,16],
+"tracker_8h.html#a28df42cbcd47f22dbf5ef91fcb6c73b1":[13,0,1,0,5,1,1,15],
+"tracker_8h.html#a3407566be0a556a2ebecf32b78d7dab9":[13,0,1,0,5,1,1,14],
+"tracker_8h.html#aa76a3e96c7ad81d30e389fcb5634ed8c":[13,0,1,0,5,1,1,13],
+"tracker_8h.html#ab66ec996d4cbc3cabec1adbb6d6a76de":[13,0,1,0,5,1,1,10],
+"tracker_8h.html#ab8e8feb10728cf14eb3f5745c0eeac2a":[13,0,1,0,5,1,1,12],
+"tracker_8h.html#af474276ff049f20df44cde7b0cd6c155":[13,0,1,0,5,1,1,11]
 };

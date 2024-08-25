@@ -10,7 +10,7 @@
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="145,227,228,189,262,177,264,182,230,194,148,232"/>
 <area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1editor_1_1DungeonEditor.html" title="DungeonEditor class for editing dungeons." alt="" coords="253,203,371,244"/>
 <area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="195,239,252,230,253,235,196,244"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1editor_1_1EditorManager.html" title="The EditorManager class represents the main editor for a Rom in the Yaze application." alt="" coords="253,268,371,309"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes." alt="" coords="253,268,371,309"/>
 <area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="196,269,253,278,252,283,195,274"/>
 <area shape="rect" id="Node000009" href="$structyaze_1_1app_1_1editor_1_1FlagsMenu.html" title=" " alt="" coords="253,334,371,374"/>
 <area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="151,282,230,318,259,331,257,336,228,323,149,287"/>

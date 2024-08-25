@@ -10,7 +10,6 @@ var namespaceyaze_1_1test =
     [ "MATCHER_P", "namespaceyaze_1_1test.html#a966536ba60abd09d24a03d6824214d30", null ],
     [ "IsOkAndHolds", "namespaceyaze_1_1test.html#ace6494b75531bde42a021a993af2b3e1", null ],
     [ "MATCHER_P", "namespaceyaze_1_1test.html#a9a26abfe41bf9190bacbb085d2060936", null ],
-    [ "TEST", "namespaceyaze_1_1test.html#a87ae7547e95fa60a2d1aace2c16c4b6a", null ],
     [ "TEST_F", "namespaceyaze_1_1test.html#a9853b0265931c2e3346e991d89ad8e5d", null ],
     [ "TEST_F", "namespaceyaze_1_1test.html#a780c23f4cff8991e55184dd0106f25ef", null ],
     [ "TEST_F", "namespaceyaze_1_1test.html#a942a13590f7efa52c684b7bd8a56dd2a", null ],
@@ -33,5 +32,6 @@ var namespaceyaze_1_1test =
     [ "TEST_F", "namespaceyaze_1_1test.html#ade9156e8abbe35235cee5787775638e4", null ],
     [ "TEST_F", "namespaceyaze_1_1test.html#a6214fd496ebfa0358a3346ff7d4c4557", null ],
     [ "TEST_F", "namespaceyaze_1_1test.html#aec2bf6e34867a811d1808f5a92ab4e91", null ],
-    [ "TEST_F", "namespaceyaze_1_1test.html#a133541ce48bc235998bf42f760a71f11", null ]
+    [ "TEST_F", "namespaceyaze_1_1test.html#a133541ce48bc235998bf42f760a71f11", null ],
+    [ "TEST", "namespaceyaze_1_1test.html#a87ae7547e95fa60a2d1aace2c16c4b6a", null ]
 ];

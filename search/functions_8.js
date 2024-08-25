@@ -48,7 +48,7 @@ var searchData=
   ['is_5factive_45',['is_active',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#af000dd41553b175927de20edeb82fe0f',1,'yaze::app::gfx::Bitmap']]],
   ['is_5finitialized_46',['is_initialized',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a84d10cf4fde7abb0eaba6cdd4234546b',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['is_5flarge_5fmap_47',['is_large_map',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aaa47b58da90968f00ca117496dd1a802',1,'yaze::app::zelda3::overworld::OverworldMap']]],
-  ['is_5floaded_48',['is_loaded',['../classyaze_1_1app_1_1Rom.html#a97244952183e1d6e2fc285057bcf6491',1,'yaze::app::Rom::is_loaded()'],['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#ac332585f991158c51c147febd96fef9f',1,'yaze::app::zelda3::overworld::Overworld::is_loaded()']]],
+  ['is_5floaded_48',['is_loaded',['../classyaze_1_1app_1_1Rom.html#a8f96cde5ff71fd3a176bd8d68e67b438',1,'yaze::app::Rom::is_loaded()'],['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#ac332585f991158c51c147febd96fef9f',1,'yaze::app::zelda3::overworld::Overworld::is_loaded()']]],
   ['is_5fmodified_49',['is_modified',['../classyaze_1_1app_1_1gfx_1_1SnesColor.html#aadd1f07feec605cdae8952a53ad9f5d2',1,'yaze::app::gfx::SnesColor']]],
   ['is_5ftransparent_50',['is_transparent',['../classyaze_1_1app_1_1gfx_1_1SnesColor.html#afa9b649077606cd18ab6b408827b7830',1,'yaze::app::gfx::SnesColor']]],
   ['isactive_51',['IsActive',['../classyaze_1_1app_1_1core_1_1Controller.html#afd6011a3b58a78452d3ab5308382bf0d',1,'yaze::app::core::Controller']]],

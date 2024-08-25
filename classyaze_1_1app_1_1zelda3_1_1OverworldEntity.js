@@ -13,12 +13,12 @@ var classyaze_1_1app_1_1zelda3_1_1OverworldEntity =
     [ "OverworldEntity", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#ad24096bcb44bdb355f1d1d4f7d15de84", null ],
     [ "set_x", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#ab0ab5da42fad67882c894e85eba32e7f", null ],
     [ "set_y", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a039476bc5127718f110382ca6d160095", null ],
-    [ "UpdateMapProperties", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#ad756d842139061f376bb6c8ae11404b2", null ],
+    [ "UpdateMapProperties", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#ad9b672ff4b47f7d98d0c18a0ed9e6e3a", null ],
     [ "type_", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a876c814822113936eeaa28d946f5b078", null ],
     [ "x_", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#aa7b4429aa4b649cc0f10828101695924", null ],
     [ "y_", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#adbdde02a63cdec5a74d6d2b128b622d7", null ],
     [ "game_x_", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a3f02e182efd8ed7a87214b81a811da96", null ],
     [ "game_y_", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a2a68113a53f6a08947dbea06de02b9fc", null ],
     [ "entity_id_", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a27ba0c0186fb1c5b27b8aec437457e42", null ],
-    [ "map_id_", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a94345cfc47c2f6960d2a72fd87ca207c", null ]
+    [ "map_id_", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#ae04748975bb2173217ec6e873ffafd30", null ]
 ];

@@ -160,8 +160,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a039476bc5127718f110382ca6d160095"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad24096bcb44bdb355f1d1d4f7d15de84" id="r_ad24096bcb44bdb355f1d1d4f7d15de84"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad24096bcb44bdb355f1d1d4f7d15de84">OverworldEntity</a> ()=default</td></tr>
 <tr class="separator:ad24096bcb44bdb355f1d1d4f7d15de84"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad756d842139061f376bb6c8ae11404b2" id="r_ad756d842139061f376bb6c8ae11404b2"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad756d842139061f376bb6c8ae11404b2">UpdateMapProperties</a> (short map_id)=0</td></tr>
-<tr class="separator:ad756d842139061f376bb6c8ae11404b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad9b672ff4b47f7d98d0c18a0ed9e6e3a" id="r_ad9b672ff4b47f7d98d0c18a0ed9e6e3a"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad9b672ff4b47f7d98d0c18a0ed9e6e3a">UpdateMapProperties</a> (uint16_t map_id)=0</td></tr>
+<tr class="separator:ad9b672ff4b47f7d98d0c18a0ed9e6e3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -177,8 +177,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a2a68113a53f6a08947dbea06de02b9fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a27ba0c0186fb1c5b27b8aec437457e42" id="r_a27ba0c0186fb1c5b27b8aec437457e42"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a27ba0c0186fb1c5b27b8aec437457e42">entity_id_</a></td></tr>
 <tr class="separator:a27ba0c0186fb1c5b27b8aec437457e42"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a94345cfc47c2f6960d2a72fd87ca207c" id="r_a94345cfc47c2f6960d2a72fd87ca207c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a94345cfc47c2f6960d2a72fd87ca207c">map_id_</a></td></tr>
-<tr class="separator:a94345cfc47c2f6960d2a72fd87ca207c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae04748975bb2173217ec6e873ffafd30" id="r_ae04748975bb2173217ec6e873ffafd30"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae04748975bb2173217ec6e873ffafd30">map_id_</a></td></tr>
+<tr class="separator:ae04748975bb2173217ec6e873ffafd30"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Base class for all overworld entities. </p>
@@ -300,8 +300,8 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="ad756d842139061f376bb6c8ae11404b2" name="ad756d842139061f376bb6c8ae11404b2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad756d842139061f376bb6c8ae11404b2">&#9670;&#160;</a></span>UpdateMapProperties()</h2>
+<a id="ad9b672ff4b47f7d98d0c18a0ed9e6e3a" name="ad9b672ff4b47f7d98d0c18a0ed9e6e3a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad9b672ff4b47f7d98d0c18a0ed9e6e3a">&#9670;&#160;</a></span>UpdateMapProperties()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -312,7 +312,7 @@ Public Attributes</h2></td></tr>
         <tr>
           <td class="memname">virtual void yaze::app::zelda3::OverworldEntity::UpdateMapProperties </td>
           <td>(</td>
-          <td class="paramtype">short</td>          <td class="paramname"><span class="paramname"><em>map_id</em></span></td><td>)</td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>map_id</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -323,7 +323,7 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Implemented in <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance.html#aa695e07e948d6bd71ab22be6e2faa430">yaze::app::zelda3::overworld::OverworldEntrance</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a66776187196da356d1c8a15f8fb23835">yaze::app::zelda3::overworld::OverworldExit</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Sprite.html#aae335a701da76d98c6ecf33b7c12878f">yaze::app::zelda3::Sprite</a>.</p>
+<p>Implemented in <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance.html#a7c07e5b431534c30e10b7ec608dbb60f">yaze::app::zelda3::overworld::OverworldEntrance</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a288ae374f7cdc90b740de52b16d5ef8f">yaze::app::zelda3::overworld::OverworldExit</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldItem.html#afdebc8df5b6cf7bd6cc24c99e93fdfea">yaze::app::zelda3::overworld::OverworldItem</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Sprite.html#a8302416c1cc79afe99096227637c3fbc">yaze::app::zelda3::Sprite</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="entity_8cc_source.html#l00054">yaze::app::editor::HandleEntityDragging()</a>.</p>
 
@@ -342,7 +342,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="entity_8cc_source.html#l00054">yaze::app::editor::HandleEntityDragging()</a>, <a class="el" href="app_2zelda3_2sprite_2sprite_8h_source.html#l00307">yaze::app::zelda3::Sprite::InitSprite()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00348">yaze::app::zelda3::overworld::OverworldEntrance::OverworldEntrance()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00185">yaze::app::zelda3::overworld::OverworldExit::OverworldExit()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00091">yaze::app::zelda3::overworld::OverworldItem::OverworldItem()</a>, and <a class="el" href="app_2zelda3_2sprite_2sprite_8h_source.html#l00288">yaze::app::zelda3::Sprite::Sprite()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="entity_8cc_source.html#l00054">yaze::app::editor::HandleEntityDragging()</a>, <a class="el" href="app_2zelda3_2sprite_2sprite_8h_source.html#l00307">yaze::app::zelda3::Sprite::InitSprite()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00344">yaze::app::zelda3::overworld::OverworldEntrance::OverworldEntrance()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00181">yaze::app::zelda3::overworld::OverworldExit::OverworldExit()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00091">yaze::app::zelda3::overworld::OverworldItem::OverworldItem()</a>, and <a class="el" href="app_2zelda3_2sprite_2sprite_8h_source.html#l00288">yaze::app::zelda3::Sprite::Sprite()</a>.</p>
 
 </div>
 </div>
@@ -360,7 +360,7 @@ Public Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="zelda3_2common_8h_source.html#l00043">43</a> of file <a class="el" href="zelda3_2common_8h_source.html">common.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00363">yaze::app::zelda3::overworld::OverworldEntrance::Copy()</a>, <a class="el" href="entity_8cc_source.html#l00178">yaze::app::editor::DrawExitEditorPopup()</a>, <a class="el" href="entity_8cc_source.html#l00127">yaze::app::editor::DrawOverworldEntrancePopup()</a>, <a class="el" href="entity_8cc_source.html#l00054">yaze::app::editor::HandleEntityDragging()</a>, <a class="el" href="app_2zelda3_2sprite_2sprite_8h_source.html#l00307">yaze::app::zelda3::Sprite::InitSprite()</a>, <a class="el" href="entity_8cc_source.html#l00019">yaze::app::editor::IsMouseHoveringOverEntity()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00348">yaze::app::zelda3::overworld::OverworldEntrance::OverworldEntrance()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00185">yaze::app::zelda3::overworld::OverworldExit::OverworldExit()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00091">yaze::app::zelda3::overworld::OverworldItem::OverworldItem()</a>, <a class="el" href="zelda3_2common_8h_source.html#l00050">set_x()</a>, <a class="el" href="app_2zelda3_2sprite_2sprite_8h_source.html#l00288">yaze::app::zelda3::Sprite::Sprite()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00368">yaze::app::zelda3::overworld::OverworldEntrance::UpdateMapProperties()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00245">yaze::app::zelda3::overworld::OverworldExit::UpdateMapProperties()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00109">yaze::app::zelda3::overworld::OverworldItem::UpdateMapProperties()</a>, <a class="el" href="sprite_8cc_source.html#l00009">yaze::app::zelda3::Sprite::UpdateMapProperties()</a>, and <a class="el" href="app_2zelda3_2sprite_2sprite_8h_source.html#l00339">yaze::app::zelda3::Sprite::x()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00359">yaze::app::zelda3::overworld::OverworldEntrance::Copy()</a>, <a class="el" href="entity_8cc_source.html#l00178">yaze::app::editor::DrawExitEditorPopup()</a>, <a class="el" href="entity_8cc_source.html#l00127">yaze::app::editor::DrawOverworldEntrancePopup()</a>, <a class="el" href="entity_8cc_source.html#l00054">yaze::app::editor::HandleEntityDragging()</a>, <a class="el" href="app_2zelda3_2sprite_2sprite_8h_source.html#l00307">yaze::app::zelda3::Sprite::InitSprite()</a>, <a class="el" href="entity_8cc_source.html#l00019">yaze::app::editor::IsMouseHoveringOverEntity()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00344">yaze::app::zelda3::overworld::OverworldEntrance::OverworldEntrance()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00181">yaze::app::zelda3::overworld::OverworldExit::OverworldExit()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00091">yaze::app::zelda3::overworld::OverworldItem::OverworldItem()</a>, <a class="el" href="zelda3_2common_8h_source.html#l00050">set_x()</a>, <a class="el" href="app_2zelda3_2sprite_2sprite_8h_source.html#l00288">yaze::app::zelda3::Sprite::Sprite()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00364">yaze::app::zelda3::overworld::OverworldEntrance::UpdateMapProperties()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00241">yaze::app::zelda3::overworld::OverworldExit::UpdateMapProperties()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00108">yaze::app::zelda3::overworld::OverworldItem::UpdateMapProperties()</a>, <a class="el" href="sprite_8cc_source.html#l00009">yaze::app::zelda3::Sprite::UpdateMapProperties()</a>, and <a class="el" href="app_2zelda3_2sprite_2sprite_8h_source.html#l00339">yaze::app::zelda3::Sprite::x()</a>.</p>
 
 </div>
 </div>
@@ -378,7 +378,7 @@ Public Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="zelda3_2common_8h_source.html#l00044">44</a> of file <a class="el" href="zelda3_2common_8h_source.html">common.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00363">yaze::app::zelda3::overworld::OverworldEntrance::Copy()</a>, <a class="el" href="entity_8cc_source.html#l00178">yaze::app::editor::DrawExitEditorPopup()</a>, <a class="el" href="entity_8cc_source.html#l00127">yaze::app::editor::DrawOverworldEntrancePopup()</a>, <a class="el" href="entity_8cc_source.html#l00054">yaze::app::editor::HandleEntityDragging()</a>, <a class="el" href="app_2zelda3_2sprite_2sprite_8h_source.html#l00307">yaze::app::zelda3::Sprite::InitSprite()</a>, <a class="el" href="entity_8cc_source.html#l00019">yaze::app::editor::IsMouseHoveringOverEntity()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00348">yaze::app::zelda3::overworld::OverworldEntrance::OverworldEntrance()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00185">yaze::app::zelda3::overworld::OverworldExit::OverworldExit()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00091">yaze::app::zelda3::overworld::OverworldItem::OverworldItem()</a>, <a class="el" href="zelda3_2common_8h_source.html#l00051">set_y()</a>, <a class="el" href="app_2zelda3_2sprite_2sprite_8h_source.html#l00288">yaze::app::zelda3::Sprite::Sprite()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00368">yaze::app::zelda3::overworld::OverworldEntrance::UpdateMapProperties()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00245">yaze::app::zelda3::overworld::OverworldExit::UpdateMapProperties()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00109">yaze::app::zelda3::overworld::OverworldItem::UpdateMapProperties()</a>, <a class="el" href="sprite_8cc_source.html#l00009">yaze::app::zelda3::Sprite::UpdateMapProperties()</a>, and <a class="el" href="app_2zelda3_2sprite_2sprite_8h_source.html#l00340">yaze::app::zelda3::Sprite::y()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00359">yaze::app::zelda3::overworld::OverworldEntrance::Copy()</a>, <a class="el" href="entity_8cc_source.html#l00178">yaze::app::editor::DrawExitEditorPopup()</a>, <a class="el" href="entity_8cc_source.html#l00127">yaze::app::editor::DrawOverworldEntrancePopup()</a>, <a class="el" href="entity_8cc_source.html#l00054">yaze::app::editor::HandleEntityDragging()</a>, <a class="el" href="app_2zelda3_2sprite_2sprite_8h_source.html#l00307">yaze::app::zelda3::Sprite::InitSprite()</a>, <a class="el" href="entity_8cc_source.html#l00019">yaze::app::editor::IsMouseHoveringOverEntity()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00344">yaze::app::zelda3::overworld::OverworldEntrance::OverworldEntrance()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00181">yaze::app::zelda3::overworld::OverworldExit::OverworldExit()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00091">yaze::app::zelda3::overworld::OverworldItem::OverworldItem()</a>, <a class="el" href="zelda3_2common_8h_source.html#l00051">set_y()</a>, <a class="el" href="app_2zelda3_2sprite_2sprite_8h_source.html#l00288">yaze::app::zelda3::Sprite::Sprite()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00364">yaze::app::zelda3::overworld::OverworldEntrance::UpdateMapProperties()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00241">yaze::app::zelda3::overworld::OverworldExit::UpdateMapProperties()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00108">yaze::app::zelda3::overworld::OverworldItem::UpdateMapProperties()</a>, <a class="el" href="sprite_8cc_source.html#l00009">yaze::app::zelda3::Sprite::UpdateMapProperties()</a>, and <a class="el" href="app_2zelda3_2sprite_2sprite_8h_source.html#l00340">yaze::app::zelda3::Sprite::y()</a>.</p>
 
 </div>
 </div>
@@ -428,25 +428,25 @@ Public Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="zelda3_2common_8h_source.html#l00047">47</a> of file <a class="el" href="zelda3_2common_8h_source.html">common.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="entity_8cc_source.html#l00178">yaze::app::editor::DrawExitEditorPopup()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00792">yaze::app::editor::OverworldEditor::DrawOverworldExits()</a>, <a class="el" href="entity_8cc_source.html#l00054">yaze::app::editor::HandleEntityDragging()</a>, <a class="el" href="app_2zelda3_2sprite_2sprite_8h_source.html#l00307">yaze::app::zelda3::Sprite::InitSprite()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00348">yaze::app::zelda3::overworld::OverworldEntrance::OverworldEntrance()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00091">yaze::app::zelda3::overworld::OverworldItem::OverworldItem()</a>, and <a class="el" href="app_2zelda3_2sprite_2sprite_8h_source.html#l00288">yaze::app::zelda3::Sprite::Sprite()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="entity_8cc_source.html#l00178">yaze::app::editor::DrawExitEditorPopup()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00791">yaze::app::editor::OverworldEditor::DrawOverworldExits()</a>, <a class="el" href="entity_8cc_source.html#l00054">yaze::app::editor::HandleEntityDragging()</a>, <a class="el" href="app_2zelda3_2sprite_2sprite_8h_source.html#l00307">yaze::app::zelda3::Sprite::InitSprite()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00344">yaze::app::zelda3::overworld::OverworldEntrance::OverworldEntrance()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00091">yaze::app::zelda3::overworld::OverworldItem::OverworldItem()</a>, and <a class="el" href="app_2zelda3_2sprite_2sprite_8h_source.html#l00288">yaze::app::zelda3::Sprite::Sprite()</a>.</p>
 
 </div>
 </div>
-<a id="a94345cfc47c2f6960d2a72fd87ca207c" name="a94345cfc47c2f6960d2a72fd87ca207c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a94345cfc47c2f6960d2a72fd87ca207c">&#9670;&#160;</a></span>map_id_</h2>
+<a id="ae04748975bb2173217ec6e873ffafd30" name="ae04748975bb2173217ec6e873ffafd30"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae04748975bb2173217ec6e873ffafd30">&#9670;&#160;</a></span>map_id_</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int yaze::app::zelda3::OverworldEntity::map_id_</td>
+          <td class="memname">uint16_t yaze::app::zelda3::OverworldEntity::map_id_</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="zelda3_2common_8h_source.html#l00048">48</a> of file <a class="el" href="zelda3_2common_8h_source.html">common.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00363">yaze::app::zelda3::overworld::OverworldEntrance::Copy()</a>, <a class="el" href="entity_8cc_source.html#l00178">yaze::app::editor::DrawExitEditorPopup()</a>, <a class="el" href="entity_8cc_source.html#l00127">yaze::app::editor::DrawOverworldEntrancePopup()</a>, <a class="el" href="entity_8cc_source.html#l00054">yaze::app::editor::HandleEntityDragging()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00348">yaze::app::zelda3::overworld::OverworldEntrance::OverworldEntrance()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00185">yaze::app::zelda3::overworld::OverworldExit::OverworldExit()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00091">yaze::app::zelda3::overworld::OverworldItem::OverworldItem()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00368">yaze::app::zelda3::overworld::OverworldEntrance::UpdateMapProperties()</a>, and <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00245">yaze::app::zelda3::overworld::OverworldExit::UpdateMapProperties()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00359">yaze::app::zelda3::overworld::OverworldEntrance::Copy()</a>, <a class="el" href="entity_8cc_source.html#l00178">yaze::app::editor::DrawExitEditorPopup()</a>, <a class="el" href="entity_8cc_source.html#l00127">yaze::app::editor::DrawOverworldEntrancePopup()</a>, <a class="el" href="entity_8cc_source.html#l00054">yaze::app::editor::HandleEntityDragging()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00344">yaze::app::zelda3::overworld::OverworldEntrance::OverworldEntrance()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00181">yaze::app::zelda3::overworld::OverworldExit::OverworldExit()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00091">yaze::app::zelda3::overworld::OverworldItem::OverworldItem()</a>, <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00364">yaze::app::zelda3::overworld::OverworldEntrance::UpdateMapProperties()</a>, and <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00241">yaze::app::zelda3::overworld::OverworldExit::UpdateMapProperties()</a>.</p>
 
 </div>
 </div>

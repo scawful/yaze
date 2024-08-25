@@ -2,7 +2,7 @@ var classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit =
 [
     [ "OverworldExit", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#ab9f462b6526070992ed558903ee38950", null ],
     [ "OverworldExit", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a277a7ded0d28e34ac6e3acc48945e71a", null ],
-    [ "UpdateMapProperties", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a66776187196da356d1c8a15f8fb23835", null ],
+    [ "UpdateMapProperties", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a288ae374f7cdc90b740de52b16d5ef8f", null ],
     [ "y_scroll_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#af7e12ad85e1e16c49114f225927a98e0", null ],
     [ "x_scroll_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#ad0b5cd085658d1b4b36f5f2d26df5f97", null ],
     [ "y_player_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#ac98d75678849c45c5e0219acefef63a2", null ],

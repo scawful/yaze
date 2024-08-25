@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title="A class to hold a shared pointer to a Rom object." alt="" coords="5,634,154,660"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1DungeonEditor.html" title="DungeonEditor class for editing dungeons." alt="" coords="251,5,370,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="80,618,92,498,114,331,130,245,149,166,172,102,186,77,200,57,223,40,250,30,252,35,226,44,204,61,190,79,177,104,155,168,135,246,119,331,97,499,86,619"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1EditorManager.html" title="The EditorManager class represents the main editor for a Rom in the Yaze application." alt="" coords="251,71,370,111"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes." alt="" coords="251,71,370,111"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="81,618,94,510,118,362,134,287,153,218,175,162,200,123,223,105,250,95,252,100,225,110,204,126,180,164,158,220,140,288,123,363,99,511,86,619"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html" title="Manage graphics group configurations in a Rom." alt="" coords="251,136,370,177"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="82,618,97,522,123,394,157,270,177,221,200,188,223,171,250,161,252,166,226,176,204,192,182,224,162,272,128,395,102,523,87,619"/>

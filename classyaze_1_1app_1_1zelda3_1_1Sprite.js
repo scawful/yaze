@@ -6,7 +6,7 @@ var classyaze_1_1app_1_1zelda3_1_1Sprite =
     [ "updateBBox", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#aaa990c9bf0385267d954278b095da82d", null ],
     [ "Draw", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a7aff276963041b1940a655f03058f487", null ],
     [ "DrawSpriteTile", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#ae952503a9ee84414beb369002187bc5e", null ],
-    [ "UpdateMapProperties", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#aae335a701da76d98c6ecf33b7c12878f", null ],
+    [ "UpdateMapProperties", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a8302416c1cc79afe99096227637c3fbc", null ],
     [ "UpdateCoordinates", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#ade3a5e43b3613d6fcb14562b48249c5f", null ],
     [ "PreviewGraphics", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a865a93f22f2fd7d436e25ec927ca3c42", null ],
     [ "id", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#ae35b8ea7765e1fefd6ebe2e7ef2810b5", null ],
