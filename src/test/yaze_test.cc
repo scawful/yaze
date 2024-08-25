@@ -12,7 +12,7 @@
 namespace yaze {
 namespace test {
 
-TEST(YazeCLibTest, InitializeAndCleanup) {
+TEST(YazeTest, InitializeAndCleanup) {
   yaze_flags flags;
   yaze_init(&flags);
   yaze_cleanup(&flags);
