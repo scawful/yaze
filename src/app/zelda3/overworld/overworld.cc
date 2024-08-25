@@ -86,8 +86,10 @@ absl::Status Overworld::Load(Rom &rom) {
   AssembleMap16Tiles();
   RETURN_IF_ERROR(DecompressAllMapTiles())
 
+  const bool load_custom_overworld = flags()->overworld.kLoadCustomOverworld;
   for (int map_index = 0; map_index < kNumOverworldMaps; ++map_index)
-    overworld_maps_.emplace_back(map_index, rom_, tiles16_);
+    overworld_maps_.emplace_back(map_index, rom_, tiles16_,
+                                 load_custom_overworld);
 
   FetchLargeMaps();
   LoadEntrances();
@@ -1516,8 +1518,10 @@ absl::Status Overworld::LoadPrototype(Rom &rom,
   AssembleMap16Tiles();
   RETURN_IF_ERROR(DecompressProtoMapTiles(tilemap_filename))
 
+  const bool load_custom_overworld = flags()->overworld.kLoadCustomOverworld;
   for (int map_index = 0; map_index < kNumOverworldMaps; ++map_index)
-    overworld_maps_.emplace_back(map_index, rom_, tiles16_);
+    overworld_maps_.emplace_back(map_index, rom_, tiles16_,
+                                 load_custom_overworld);
 
   FetchLargeMaps();
   LoadEntrances();

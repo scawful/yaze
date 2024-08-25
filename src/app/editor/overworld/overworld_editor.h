@@ -157,6 +157,7 @@ class OverworldEditor : public Editor,
    * @brief Draws the overworld map settings. Graphics, palettes, etc.
    */
   void DrawOverworldMapSettings();
+  void DrawCustomOverworldMapSettings();
 
   void RefreshChildMap(int i);
   void RefreshOverworldMap();

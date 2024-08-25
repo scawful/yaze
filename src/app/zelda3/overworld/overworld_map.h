@@ -67,7 +67,8 @@ constexpr int OverworldCustomTileGFXGroupEnabled = 0x140148;
 class OverworldMap : public editor::context::GfxContext {
  public:
   OverworldMap() = default;
-  OverworldMap(int index, Rom& rom, std::vector<gfx::Tile16>& tiles16);
+  OverworldMap(int index, Rom& rom, std::vector<gfx::Tile16>& tiles16,
+               bool load_custom_data = false);
 
   absl::Status BuildMap(int count, int game_state, int world,
                         OWBlockset& world_blockset);

@@ -19,11 +19,12 @@ namespace zelda3 {
 namespace overworld {
 
 OverworldMap::OverworldMap(int index, Rom& rom,
-                           std::vector<gfx::Tile16>& tiles16)
+                           std::vector<gfx::Tile16>& tiles16,
+                           bool load_custom_data)
     : index_(index), parent_(index), rom_(rom), tiles16_(tiles16) {
   LoadAreaInfo();
 
-  if (flags()->kLoadCustomOverworld) {
+  if (load_custom_data) {
     // If the custom overworld ASM has NOT already been applied, manually set
     // the vanilla values.
     uint8_t asm_version = rom_[OverworldCustomASMHasBeenApplied];
