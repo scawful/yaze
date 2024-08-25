@@ -111,14 +111,11 @@ class MessageEditor : public Editor, public SharedRom {
 
  private:
   bool skip_next = false;
-  bool from_form = false;
   bool data_loaded_ = false;
 
   int text_line_ = 0;
   int text_position_ = 0;
   int shown_lines_ = 0;
-  int selected_tile = 0;
-  int current_message_id_ = 0;
 
   uint8_t width_array[100];
 

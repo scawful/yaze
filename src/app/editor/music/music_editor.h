@@ -82,13 +82,6 @@ class MusicEditor : public SharedRom, public Editor {
   ImGuiTableFlags music_editor_flags_ = ImGuiTableFlags_SizingFixedFit |
                                         ImGuiTableFlags_Resizable |
                                         ImGuiTableFlags_Reorderable;
-
-  ImGuiTableFlags channel_table_flags_ =
-      ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
-      ImGuiTableFlags_Hideable | ImGuiTableFlags_Sortable |
-      ImGuiTableFlags_SortMulti | ImGuiTableFlags_RowBg |
-      ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV |
-      ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_ScrollY;
 };
 
 }  // namespace editor

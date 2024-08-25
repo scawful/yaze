@@ -56,9 +56,9 @@ yaze includes an emulator subsystem that allows developers to test their modific
 
 ### 4. Editor Management
 
-The `MasterEditor` class manages the core functionalities of YAZE, including rendering the UI, handling user input, and managing multiple editors. While this class is central to yaze's operations, it has many responsibilities. You can help by:
+The `EditorManager` class manages the core functionalities of YAZE, including rendering the UI, handling user input, and managing multiple editors. While this class is central to yaze's operations, it has many responsibilities. You can help by:
 
-- Refactoring `MasterEditor` to delegate responsibilities to specialized managers (e.g., `MenuManager`, `TabManager`, `StatusManager`).
+- Refactoring `EditorManager` to delegate responsibilities to specialized managers (e.g., `MenuManager`, `TabManager`, `StatusManager`).
 - Optimizing the rendering and update loop to improve performance, especially when handling large textures or complex editors.
 - Implementing new features that streamline the editing process, such as better keyboard shortcuts, command palette integration, or project management tools.
 
