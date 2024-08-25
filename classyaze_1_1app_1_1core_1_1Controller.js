@@ -24,7 +24,7 @@ var classyaze_1_1app_1_1core_1_1Controller =
     [ "test_editor_", "classyaze_1_1app_1_1core_1_1Controller.html#a744669264b9b8d8a2d15408fd09711e7", null ],
     [ "editor_manager_", "classyaze_1_1app_1_1core_1_1Controller.html#a246b251b2662cf167c9bef44447b031c", null ],
     [ "audio_frequency_", "classyaze_1_1app_1_1core_1_1Controller.html#a2aa3c78db90d65c697c2af17ac00f904", null ],
-    [ "audio_buffer_", "classyaze_1_1app_1_1core_1_1Controller.html#aedd8bb2ace258403e9f3808e2520e4b9", null ],
     [ "audio_device_", "classyaze_1_1app_1_1core_1_1Controller.html#a04c21c318b230bba2f09201b47bb1f7d", null ],
+    [ "audio_buffer_", "classyaze_1_1app_1_1core_1_1Controller.html#aa53fb018931496b9e7c8709b62a9730f", null ],
     [ "window_", "classyaze_1_1app_1_1core_1_1Controller.html#a4eec59b32e068b3fd8df4a23732fb082", null ]
 ];

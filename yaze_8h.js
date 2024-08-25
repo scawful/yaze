@@ -13,7 +13,7 @@ var yaze_8h =
     [ "yaze_event_dispatcher", "yaze_8h.html#acd3a71fa68d6d64ec2b68e8232856b77", null ],
     [ "yaze_editor_context", "yaze_8h.html#aa5f9c0aba87080afdbdfe7cb6792d89e", null ],
     [ "yaze_check_version", "yaze_8h.html#a9fff64bba6ed578ae091960204b84648", null ],
-    [ "yaze_init", "yaze_8h.html#af4c0f181175784dda7fdd05a462fae43", null ],
+    [ "yaze_init", "yaze_8h.html#ad32e8cb5771925ce1df13bd6aeaf14b3", null ],
     [ "yaze_cleanup", "yaze_8h.html#a2f31206311a6fa23618eed894f1f5cd6", null ],
     [ "yaze_load_project", "yaze_8h.html#a92aac5e465c19a821bf5ce2f19943651", null ],
     [ "yaze_load_rom", "yaze_8h.html#adfaf105df03accd07b94f1e60c6ed8bf", null ],

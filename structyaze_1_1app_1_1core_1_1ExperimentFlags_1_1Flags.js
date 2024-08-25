@@ -12,6 +12,5 @@ var structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags =
     [ "kLoadTexturesAsStreaming", "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a14803cbe621eab0e83fcec4bcc353502", null ],
     [ "kSaveDungeonMaps", "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a23ffa3479c7b8b16cf28828237a917e9", null ],
     [ "kLogToConsole", "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a8f98060d879a94a4cba5dfc2ee4d8e26", null ],
-    [ "kLoadAudioDevice", "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a4e136288c038565539e738dc1ae43114", null ],
     [ "overworld", "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a957b9ff3e7b65985583bcc96d21e289c", null ]
 ];

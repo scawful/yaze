@@ -18,9 +18,6 @@ var namespaceyaze_1_1app_1_1core =
     [ "anonymous_namespace{controller.cc}", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html", [
       [ "NewMasterFrame", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#aaffe64ca7a9a2b85375f661ca0a50824", null ],
       [ "InitializeKeymap", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a6ec26934019f1b1ca5465fecdf13830e", null ],
-      [ "ImGui_ImplSDL2_SetClipboardText", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a7cedf84adb43edcf0230f6589e90d588", null ],
-      [ "ImGui_ImplSDL2_GetClipboardText", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a4f7ea20b69b7320bab22711cf18cb436", null ],
-      [ "InitializeClipboard", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#adaf08d50dc9917daec65db2f32379043", null ],
       [ "HandleKeyDown", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a36c94eec28cffa019f242fd6431272f2", null ],
       [ "HandleKeyUp", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a4a5f8ec1b855f419f06b5326a81a88b7", null ],
       [ "ChangeWindowSizeEvent", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#ae74e0ed0e27003c9a7f411ac36bedf31", null ],

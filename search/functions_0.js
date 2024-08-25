@@ -66,7 +66,7 @@ var searchData=
   ['applydeletionpreloop_63',['ApplyDeletionPreLoop',['../structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html#ae875ea39bd408fb139cb4f551d9df949',1,'yaze::app::gui::ExampleSelectionWithDeletion']]],
   ['applypalette_64',['ApplyPalette',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a63a3008e5953e88af8a8ed6667ab2a61',1,'yaze::app::gfx::Bitmap::ApplyPalette(const SnesPalette &amp;palette)'],['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a1dd346f8c7f2faf2765f19539012ecf0',1,'yaze::app::gfx::Bitmap::ApplyPalette(const std::vector&lt; SDL_Color &gt; &amp;palette)']]],
   ['applypalettefrompalettegroup_65',['ApplyPaletteFromPaletteGroup',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#abd48b40af92ef2e71ba442471734af8a',1,'yaze::app::gfx::Bitmap']]],
-  ['applypalettewithtransparent_66',['ApplyPaletteWithTransparent',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a24c4b7b033b5edee88e552ecc4cd1103',1,'yaze::app::gfx::Bitmap']]],
+  ['applypalettewithtransparent_66',['ApplyPaletteWithTransparent',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a30982c9ff6392f4dcadfc49e9fba2b98',1,'yaze::app::gfx::Bitmap']]],
   ['applyspeedtowardsplayer_67',['ApplySpeedTowardsPlayer',['../classyaze_1_1app_1_1zelda3_1_1SpriteInstruction.html#a9e128ca261edbef0f429ab1068e5586d',1,'yaze::app::zelda3::SpriteInstruction']]],
   ['apu_68',['Apu',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a408cf2cd3cb5e57ff594c771763c6786',1,'yaze::app::emu::audio::Apu']]],
   ['apu_69',['apu',['../classyaze_1_1app_1_1emu_1_1SNES.html#a136b05c68e9ba83c6da6ad46b976590d',1,'yaze::app::emu::SNES']]],

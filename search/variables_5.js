@@ -59,12 +59,10 @@ var searchData=
   ['frame_5fstart_56',['frame_start',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1AnimationGroup.html#aa7eafc2a8ab66dc94a25b2732d8d2dbc',1,'yaze::app::editor::zsprite::AnimationGroup']]],
   ['frames_57',['Frames',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1SubEditor.html#a0471980f75c395f09e6bb7cfa12610a7',1,'yaze::app::editor::zsprite::SubEditor']]],
   ['frames_5f_58',['frames_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a8dfd0dde2f2ad16996ec624811468153',1,'yaze::app::emu::SNES']]],
-  ['freed_5f_59',['freed_',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a9b81fdb9c9c167a551a7147dfbe119d4',1,'yaze::app::gfx::Bitmap']]],
-  ['freq_60',['freq',['../structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#aa3d0774790427f9379746b162207be0b',1,'yaze::app::zelda3::music::ZeldaSfxInstrument']]],
-  ['frequency_61',['frequency',['../classyaze_1_1app_1_1emu_1_1ClockImpl.html#af8546af43797ed80f52a784d35f04689',1,'yaze::app::emu::ClockImpl']]],
-  ['from_5fform_62',['from_form',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a7674802f2047192c1f24ce97c152c5f7',1,'yaze::app::editor::MessageEditor']]],
-  ['fromb_63',['fromB',['../structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#aa496c7c0204d59918d683649f22d8b3e',1,'yaze::app::emu::memory::DmaChannel']]],
-  ['full_5fgraphic_64',['full_graphic',['../structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#aa3366284a3078a891e3b57ca7b9124c0',1,'yaze::app::emu::video::VideoPortControl']]],
-  ['full_5fpalette_5f_65',['full_palette_',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a9fb55b114a36b11d6474d778770f242a',1,'yaze::app::editor::DungeonEditor']]],
-  ['functions_66',['functions',['../classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html#a7fbca91dff24d2693693c24b45e3092b',1,'yaze::app::zelda3::SpriteBuilder']]]
+  ['freq_59',['freq',['../structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#aa3d0774790427f9379746b162207be0b',1,'yaze::app::zelda3::music::ZeldaSfxInstrument']]],
+  ['frequency_60',['frequency',['../classyaze_1_1app_1_1emu_1_1ClockImpl.html#af8546af43797ed80f52a784d35f04689',1,'yaze::app::emu::ClockImpl']]],
+  ['fromb_61',['fromB',['../structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#aa496c7c0204d59918d683649f22d8b3e',1,'yaze::app::emu::memory::DmaChannel']]],
+  ['full_5fgraphic_62',['full_graphic',['../structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#aa3366284a3078a891e3b57ca7b9124c0',1,'yaze::app::emu::video::VideoPortControl']]],
+  ['full_5fpalette_5f_63',['full_palette_',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a9fb55b114a36b11d6474d778770f242a',1,'yaze::app::editor::DungeonEditor']]],
+  ['functions_64',['functions',['../classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html#a7fbca91dff24d2693693c24b45e3092b',1,'yaze::app::zelda3::SpriteBuilder']]]
 ];

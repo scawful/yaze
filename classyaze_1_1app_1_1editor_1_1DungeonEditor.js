@@ -46,7 +46,6 @@ var classyaze_1_1app_1_1editor_1_1DungeonEditor =
     [ "object_loaded_", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a80a4d6824fcf2908b51a4b85cbced688", null ],
     [ "palette_showing_", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#af6a7da46d62db32b0711d3e097bf2920", null ],
     [ "refresh_graphics_", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a8355fc1c5f44823030df548abb7bd948", null ],
-    [ "show_object_render_", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ae8ecc26f2c610d8749179b49cb8919ad", null ],
     [ "current_entrance_id_", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a38172056cefbeade4f25bf3cfb4191fa", null ],
     [ "current_room_id_", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a0f5156ea639f0d5c45de9a857e9505ca", null ],
     [ "current_palette_id_", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ad30b2ab1cea05d385d5c56134f95b799", null ],
