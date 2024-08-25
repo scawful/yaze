@@ -26,7 +26,25 @@ class CommandManager {
     }
   }
 
+  void Undo() {
+    if (!undo_stack_.empty()) {
+      undo_stack_.top()->Execute();
+      redo_stack_.push(undo_stack_.top());
+      undo_stack_.pop();
+    }
+  }
+
+  void Redo() {
+    if (!redo_stack_.empty()) {
+      redo_stack_.top()->Execute();
+      undo_stack_.push(redo_stack_.top());
+      redo_stack_.pop();
+    }
+  }
+
  private:
+  std::stack<Command*> undo_stack_;
+  std::stack<Command*> redo_stack_;
   std::unordered_map<std::string, Command*> commands_;
 };
 
