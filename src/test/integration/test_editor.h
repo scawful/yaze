@@ -44,6 +44,8 @@ class TestEditor : public yaze::app::editor::Editor {
   ImGuiTestEngine* engine_;
 };
 
+int RunIntegrationTest();
+
 }  // namespace integration
 }  // namespace test
 }  // namespace yaze
