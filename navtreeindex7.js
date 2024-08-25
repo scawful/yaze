@@ -1,16 +1,5 @@
 var NAVTREEINDEX7 =
 {
-"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#ad0d65a234fdec8b34c7e342060768b57":[11,0,1,0,2,32,19],
-"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#ad0d65a234fdec8b34c7e342060768b57":[12,0,0,0,1,27,19],
-"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#ad6c19a0b9f25ff3c2e986d75ad65e886":[11,0,1,0,2,32,12],
-"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#ad6c19a0b9f25ff3c2e986d75ad65e886":[12,0,0,0,1,27,12],
-"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#ae681d6ba4332c789e9df7323966868b2":[11,0,1,0,2,32,2],
-"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#ae681d6ba4332c789e9df7323966868b2":[12,0,0,0,1,27,2],
-"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#ae7f23607348f335f3e8fef6cc0515acb":[11,0,1,0,2,32,13],
-"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#ae7f23607348f335f3e8fef6cc0515acb":[12,0,0,0,1,27,13],
-"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#ae860f9a04a9377ad2301a08c28286a4e":[11,0,1,0,2,32,25],
-"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#ae860f9a04a9377ad2301a08c28286a4e":[12,0,0,0,1,27,25],
-"classyaze_1_1app_1_1editor_1_1SpriteEditor.html#aebdcddf7178899f6869cd786a8ab6b22":[11,0,1,0,2,32,18],
 "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#aebdcddf7178899f6869cd786a8ab6b22":[12,0,0,0,1,27,18],
 "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#af10b8051a999b0f1414a119ccea6db6e":[11,0,1,0,2,32,4],
 "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#af10b8051a999b0f1414a119ccea6db6e":[12,0,0,0,1,27,4],
@@ -249,5 +238,16 @@ var NAVTREEINDEX7 =
 "classyaze_1_1app_1_1emu_1_1Cpu.html#a1fb902aa73de541311c3d8da5ecceda7":[11,0,1,0,3,8,7],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#a1fb902aa73de541311c3d8da5ecceda7":[12,0,0,0,2,6,7],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#a21a9130afb4c124b74b9539eaf612237":[11,0,1,0,3,8,47],
-"classyaze_1_1app_1_1emu_1_1Cpu.html#a21a9130afb4c124b74b9539eaf612237":[12,0,0,0,2,6,47]
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a21a9130afb4c124b74b9539eaf612237":[12,0,0,0,2,6,47],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a21e560b5e3c6a9986f6030c168598b10":[11,0,1,0,3,8,27],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a21e560b5e3c6a9986f6030c168598b10":[12,0,0,0,2,6,27],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a227f81378528f276f4413c22b3ad5378":[11,0,1,0,3,8,181],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a227f81378528f276f4413c22b3ad5378":[12,0,0,0,2,6,181],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a22f505282963e09d2ce60ab9ee1ed09e":[11,0,1,0,3,8,22],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a22f505282963e09d2ce60ab9ee1ed09e":[12,0,0,0,2,6,22],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a2517d9afa3c27cd2385509b561f9a003":[11,0,1,0,3,8,204],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a2517d9afa3c27cd2385509b561f9a003":[12,0,0,0,2,6,204],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a26869180ff06142956897eaf20eb10bc":[11,0,1,0,3,8,226],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a26869180ff06142956897eaf20eb10bc":[12,0,0,0,2,6,226],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a27f382e5cab3f3a9fdd40ccfbb2733e4":[11,0,1,0,3,8,41]
 };

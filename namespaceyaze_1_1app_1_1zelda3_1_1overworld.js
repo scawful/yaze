@@ -105,6 +105,13 @@ var namespaceyaze_1_1app_1_1zelda3_1_1overworld =
     [ "transition_target_west", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#abf17aae78edfc4efb3b8b36a1424aa2c", null ],
     [ "overworldCustomMosaicASM", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a7ae607a6fe86024e79f4f0ebd62609d5", null ],
     [ "overworldCustomMosaicArray", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a627325d434f85340abfbed9c71b3871d", null ],
+    [ "kMap16Tiles", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a5166b928d6a093a71b355dc6105f0d0a", null ],
+    [ "kNumOverworldMaps", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a70c7c08105d9eb4a588c0a3c99f069cb", null ],
+    [ "Map32PerScreen", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a576e2b69a5247b1fc32b52b7a9a6f236", null ],
+    [ "NumberOfMap16", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a856cdd82779f7ccd18724185657a39cb", null ],
+    [ "LimitOfMap32", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a98d1a91677ea63f4b03aa1c1e1fbc267", null ],
+    [ "NumberOfOWSprites", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a1732d384055165e663939826507e47e9", null ],
+    [ "NumberOfMap32", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a68d6f6bdbe29611536f936c351886954", null ],
     [ "OverworldCustomASMHasBeenApplied", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a48dac1f1245b40e44f1d39edd6d35674", null ],
     [ "OverworldCustomAreaSpecificBGPalette", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a8719845f5be733edc86173da68b3cbb3", null ],
     [ "OverworldCustomAreaSpecificBGEnabled", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a4438d2b578d4f90d3fcb46b26175dcbf", null ],
@@ -116,11 +123,6 @@ var namespaceyaze_1_1app_1_1zelda3_1_1overworld =
     [ "OverworldCustomAnimatedGFXEnabled", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a6f8248d8e2326b6570216edc0fd98f3e", null ],
     [ "OverworldCustomSubscreenOverlayArray", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#af0b449f583b5de9ca7706a1f18adb571", null ],
     [ "OverworldCustomSubscreenOverlayEnabled", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#aaa8c190d9d584e0c674b7e70483b6d82", null ],
-    [ "kMap16Tiles", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a5166b928d6a093a71b355dc6105f0d0a", null ],
-    [ "kNumOverworldMaps", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a70c7c08105d9eb4a588c0a3c99f069cb", null ],
-    [ "Map32PerScreen", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a576e2b69a5247b1fc32b52b7a9a6f236", null ],
-    [ "NumberOfMap16", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a856cdd82779f7ccd18724185657a39cb", null ],
-    [ "LimitOfMap32", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a98d1a91677ea63f4b03aa1c1e1fbc267", null ],
-    [ "NumberOfOWSprites", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a1732d384055165e663939826507e47e9", null ],
-    [ "NumberOfMap32", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a68d6f6bdbe29611536f936c351886954", null ]
+    [ "OverworldCustomTileGFXGroupArray", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#ab16b446cfc4286aa20921d61edbf861f", null ],
+    [ "OverworldCustomTileGFXGroupEnabled", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#ad854a0141805696d519e0f862ed3d0a3", null ]
 ];

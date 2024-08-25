@@ -1,5 +1,6 @@
 var classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap =
 [
+    [ "CustomTileset", "structyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap_1_1CustomTileset.html", "structyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap_1_1CustomTileset" ],
     [ "OverworldMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a27dcd2a2ee3260c8cf9a103318c1f1a2", null ],
     [ "OverworldMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a899b506e4aa8da2909369bbdaa20af8b", null ],
     [ "BuildMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ae92286a9910136f008547268b1e6e415", null ],
@@ -42,6 +43,8 @@ var classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap =
     [ "SetAsSmallMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a65d804d853a167e5375f944062de772b", null ],
     [ "Destroy", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a8135e1bb66c6b071aecd464db298ecdd", null ],
     [ "LoadAreaInfo", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a5be8dc8fb831b61a7d729401f9c9495b", null ],
+    [ "LoadCustomOverworldData", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#addeb669fb6fa1b13fb3ea37f2f541021", null ],
+    [ "SetupCustomTileset", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a7e8611d2243fb93975b923ca2c4d9cea", null ],
     [ "LoadMainBlocksetId", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aee75a48b2066ce9755daf017e6b49457", null ],
     [ "LoadSpritesBlocksets", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa72dcf4181f2b183912085d81359c5ea", null ],
     [ "LoadMainBlocksets", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a0ddd082b5c5655b6be2fe0f5914c7140", null ],
@@ -62,6 +65,9 @@ var classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap =
     [ "message_id_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a64ba5357d7d9a26734a8a964c8f29bef", null ],
     [ "area_graphics_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a18ecdcf7f492a171346e4947d1f85de6", null ],
     [ "area_palette_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ad6ec5bc90ba66b4a671dc9924313bc95", null ],
+    [ "animated_gfx_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#af194059ca7889775bf7c2f241b2a4ad8", null ],
+    [ "subscreen_overlay_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a8fbb31771f538a1dc5d5396764f11278", null ],
+    [ "custom_tileset_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a554e5bb89dd4e1a2343f8fe5810e1b74", null ],
     [ "sprite_graphics_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a5794745e620a36c3363d66bcf6090376", null ],
     [ "sprite_palette_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a9ae08947f3f0c6abe5a5b741c93e5d49", null ],
     [ "area_music_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ab21ba256124761530abf71b22017bbbf", null ],

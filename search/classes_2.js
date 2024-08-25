@@ -27,5 +27,6 @@ var searchData=
   ['cpu_24',['Cpu',['../classyaze_1_1app_1_1emu_1_1Cpu.html',1,'yaze::app::emu']]],
   ['cpucallbacks_25',['CpuCallbacks',['../structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html',1,'yaze::app::emu::memory']]],
   ['cputest_26',['CpuTest',['../classyaze_1_1test_1_1emu_1_1CpuTest.html',1,'yaze::test::emu']]],
-  ['createpatch_27',['CreatePatch',['../classyaze_1_1cli_1_1CreatePatch.html',1,'yaze::cli']]]
+  ['createpatch_27',['CreatePatch',['../classyaze_1_1cli_1_1CreatePatch.html',1,'yaze::cli']]],
+  ['customtileset_28',['CustomTileset',['../structyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap_1_1CustomTileset.html',1,'yaze::app::zelda3::overworld::OverworldMap']]]
 ];

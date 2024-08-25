@@ -1,6 +1,5 @@
 var NAVTREEINDEX22 =
 {
-"classyaze_1_1cli_1_1ApplyPatch.html#ad09fbd364de8de32d372d0a24959f5a6":[11,0,1,1,1,0],
 "classyaze_1_1cli_1_1ApplyPatch.html#ad09fbd364de8de32d372d0a24959f5a6":[12,0,0,1,0,0],
 "classyaze_1_1cli_1_1AsarPatch.html":[11,0,1,1,2],
 "classyaze_1_1cli_1_1AsarPatch.html":[12,0,0,1,1],
@@ -249,5 +248,6 @@ var NAVTREEINDEX22 =
 "color_8cc.html":[13,0,1,0,4,4],
 "color_8cc.html#a0bc43cf96eee48124511ea473cb37b84":[13,0,1,0,4,4,2],
 "color_8cc.html#a37d30bfb30a0b8009d689eee0085eed0":[13,0,1,0,4,4,3],
-"color_8cc.html#a3e37a9d87a9c3d7669d67fc7873f7c65":[13,0,1,0,4,4,4]
+"color_8cc.html#a3e37a9d87a9c3d7669d67fc7873f7c65":[13,0,1,0,4,4,4],
+"color_8cc.html#a838b901d0d778b73533721340be522a7":[13,0,1,0,4,4,0]
 };
