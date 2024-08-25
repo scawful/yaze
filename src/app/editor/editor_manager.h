@@ -109,8 +109,8 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
   emu::Emulator emulator_;
 
   Project current_project_;
-  yaze_editor_context editor_context_;
   ExtensionManager extension_manager_;
+  yaze_editor_context editor_context_;
 
   Editor* current_editor_ = nullptr;
   AssemblyEditor assembly_editor_;

@@ -1,5 +1,7 @@
 #define SDL_MAIN_HANDLED
 
+#include "yaze.h"
+
 #include <SDL.h>
 #include <gtest/gtest.h>
 
@@ -15,6 +17,18 @@
 #include "imgui_test_engine/imgui_te_engine.h"
 #include "imgui_test_engine/imgui_te_imconfig.h"
 #include "test/integration/test_editor.h"
+
+namespace yaze {
+namespace test {
+
+TEST(YazeCLibTest, InitializeAndCleanup) {
+  yaze_flags flags;
+  yaze_init(&flags);
+  yaze_cleanup(&flags);
+}
+
+}  // namespace test
+}  // namespace yaze
 
 int main(int argc, char* argv[]) {
   absl::InitializeSymbolizer(argv[0]);
