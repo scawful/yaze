@@ -1,7 +1,5 @@
 #include "overworld.h"
 
-#include <SDL.h>
-
 #include <algorithm>
 #include <fstream>
 #include <future>
