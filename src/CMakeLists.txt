@@ -119,6 +119,7 @@ endif()
 
 include(test/CMakeLists.txt)
 
+if (YAZE_BUILD_CLIB)
 # Yaze C API
 add_library(
   yaze_c SHARED
@@ -161,8 +162,10 @@ if (YAZE_INSTALL_CLIB)
 
   install(
   FILES 
-    yaze.h 
-    base/sprite.h 
-    base/snes_color.h 
+    yaze.h
+    base/sprite.h
+    base/snes_color.h
+    base/overworld.h
   DESTINATION include)
+endif()
 endif()
