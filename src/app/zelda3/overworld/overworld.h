@@ -514,6 +514,7 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
   auto exits() const { return &all_exits_; }
   auto mutable_exits() { return &all_exits_; }
   std::vector<gfx::Tile16> tiles16() const { return tiles16_; }
+  auto mutable_tiles16() { return &tiles16_; }
 
   auto Sprites(int state) const { return all_sprites_[state]; }
   auto mutable_sprites(int state) { return &all_sprites_[state]; }

@@ -18,10 +18,8 @@ namespace app {
 namespace zelda3 {
 namespace overworld {
 
-OverworldMap::OverworldMap(int index, Rom& rom,
-                           std::vector<gfx::Tile16>& tiles16,
-                           bool load_custom_data)
-    : index_(index), parent_(index), rom_(rom), tiles16_(tiles16) {
+OverworldMap::OverworldMap(int index, Rom& rom, bool load_custom_data)
+    : index_(index), parent_(index), rom_(rom) {
   LoadAreaInfo();
 
   if (load_custom_data) {
@@ -37,6 +35,7 @@ OverworldMap::OverworldMap(int index, Rom& rom,
 }
 
 absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
+                                    std::vector<gfx::Tile16>& tiles16,
                                     OWBlockset& world_blockset) {
   game_state_ = game_state;
   world_ = world;
@@ -59,7 +58,7 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
 
   LoadAreaGraphics();
   RETURN_IF_ERROR(BuildTileset())
-  RETURN_IF_ERROR(BuildTiles16Gfx(count))
+  RETURN_IF_ERROR(BuildTiles16Gfx(tiles16, count))
   RETURN_IF_ERROR(LoadPalette());
   RETURN_IF_ERROR(BuildBitmap(world_blockset))
   built_ = true;
@@ -678,7 +677,8 @@ absl::Status OverworldMap::BuildTileset() {
   return absl::OkStatus();
 }
 
-absl::Status OverworldMap::BuildTiles16Gfx(int count) {
+absl::Status OverworldMap::BuildTiles16Gfx(std::vector<gfx::Tile16>& tiles16,
+                                           int count) {
   if (current_blockset_.size() == 0) current_blockset_.resize(0x100000, 0x00);
 
   const int offsets[] = {0x00, 0x08, 0x400, 0x408};
@@ -687,7 +687,7 @@ absl::Status OverworldMap::BuildTiles16Gfx(int count) {
 
   for (auto i = 0; i < count; i++) {
     for (auto tile = 0; tile < 0x04; tile++) {
-      gfx::TileInfo info = tiles16_[i].tiles_info[tile];
+      gfx::TileInfo info = tiles16[i].tiles_info[tile];
       int offset = offsets[tile];
       for (auto y = 0; y < 0x08; ++y) {
         for (auto x = 0; x < 0x08; ++x) {

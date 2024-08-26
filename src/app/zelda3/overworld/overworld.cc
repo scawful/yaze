@@ -86,8 +86,7 @@ absl::Status Overworld::Load(Rom &rom) {
 
   const bool load_custom_overworld = flags()->overworld.kLoadCustomOverworld;
   for (int map_index = 0; map_index < kNumOverworldMaps; ++map_index)
-    overworld_maps_.emplace_back(map_index, rom_, tiles16_,
-                                 load_custom_overworld);
+    overworld_maps_.emplace_back(map_index, rom_, load_custom_overworld);
 
   FetchLargeMaps();
   LoadEntrances();
@@ -314,7 +313,7 @@ absl::Status Overworld::LoadOverworldMaps() {
     }
     auto task_function = [this, i, size, world_type]() {
       return overworld_maps_[i].BuildMap(size, game_state_, world_type,
-                                         GetMapTiles(world_type));
+                                         tiles16_, GetMapTiles(world_type));
     };
     futures.emplace_back(std::async(std::launch::async, task_function));
   }
@@ -1517,28 +1516,27 @@ absl::Status Overworld::LoadPrototype(Rom &rom,
 
   const bool load_custom_overworld = flags()->overworld.kLoadCustomOverworld;
   for (int map_index = 0; map_index < kNumOverworldMaps; ++map_index)
-    overworld_maps_.emplace_back(map_index, rom_, tiles16_,
-                                 load_custom_overworld);
+    overworld_maps_.emplace_back(map_index, rom_, load_custom_overworld);
 
   FetchLargeMaps();
   LoadEntrances();
 
   auto size = tiles16_.size();
   std::vector<std::future<absl::Status>> futures;
-  for (int i = 0; i < kNumOverworldMaps; ++i) {
-    futures.emplace_back(std::async(std::launch::async, [this, i, size]() {
-      if (i < 64) {
-        return overworld_maps_[i].BuildMap(size, game_state_, 0,
-                                           map_tiles_.light_world);
-      } else if (i < 0x80 && i >= 0x40) {
-        return overworld_maps_[i].BuildMap(size, game_state_, 1,
-                                           map_tiles_.dark_world);
-      } else {
-        return overworld_maps_[i].BuildMap(size, game_state_, 2,
-                                           map_tiles_.special_world);
-      }
-    }));
-  }
+  // for (int i = 0; i < kNumOverworldMaps; ++i) {
+  //   futures.emplace_back(std::async(std::launch::async, [this, i, size]() {
+  //     if (i < 64) {
+  //       return overworld_maps_[i].BuildMap(size, game_state_, 0,
+  //                                          map_tiles_.light_world);
+  //     } else if (i < 0x80 && i >= 0x40) {
+  //       return overworld_maps_[i].BuildMap(size, game_state_, 1,
+  //                                          map_tiles_.dark_world);
+  //     } else {
+  //       return overworld_maps_[i].BuildMap(size, game_state_, 2,
+  //                                          map_tiles_.special_world);
+  //     }
+  //   }));
+  // }
 
   // Wait for all tasks to complete and check their results
   for (auto &future : futures) {
