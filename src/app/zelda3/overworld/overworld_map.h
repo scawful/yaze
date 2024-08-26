@@ -67,16 +67,16 @@ constexpr int OverworldCustomTileGFXGroupEnabled = 0x140148;
 class OverworldMap : public editor::context::GfxContext {
  public:
   OverworldMap() = default;
-  OverworldMap(int index, Rom& rom, std::vector<gfx::Tile16>& tiles16,
-               bool load_custom_data = false);
+  OverworldMap(int index, Rom& rom, bool load_custom_data = false);
 
   absl::Status BuildMap(int count, int game_state, int world,
+                        std::vector<gfx::Tile16>& tiles16,
                         OWBlockset& world_blockset);
 
   void LoadAreaGraphics();
   absl::Status LoadPalette();
   absl::Status BuildTileset();
-  absl::Status BuildTiles16Gfx(int count);
+  absl::Status BuildTiles16Gfx(std::vector<gfx::Tile16>& tiles16, int count);
   absl::Status BuildBitmap(OWBlockset& world_blockset);
 
   void DrawAnimatedTiles();
@@ -118,9 +118,7 @@ class OverworldMap : public editor::context::GfxContext {
   auto set_sprite_palette(int i, uint8_t value) { sprite_palette_[i] = value; }
   auto set_message_id(uint16_t value) { message_id_ = value; }
 
-  uint8_t* mutable_custom_tileset(int index) {
-    return &custom_gfx_ids_[index];
-  }
+  uint8_t* mutable_custom_tileset(int index) { return &custom_gfx_ids_[index]; }
 
   void SetAsLargeMap(int parent_index, int quadrant) {
     parent_ = parent_index;
@@ -141,7 +139,6 @@ class OverworldMap : public editor::context::GfxContext {
     current_blockset_.clear();
     current_gfx_.clear();
     bitmap_data_.clear();
-    tiles16_.clear();
   }
 
  private:
@@ -193,7 +190,6 @@ class OverworldMap : public editor::context::GfxContext {
   OWMapTiles map_tiles_;
 
   gfx::SnesPalette current_palette_;
-  std::vector<gfx::Tile16> tiles16_;
 };
 
 }  // namespace overworld
