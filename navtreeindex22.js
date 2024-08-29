@@ -1,7 +1,5 @@
 var NAVTREEINDEX22 =
 {
-"classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#af4db8c06e4092f2187f538150f405f88":[12,0,0,0,5,3,2,13],
-"classyaze_1_1cli_1_1ApplyPatch.html":[11,0,1,1,1],
 "classyaze_1_1cli_1_1ApplyPatch.html":[12,0,0,1,0],
 "classyaze_1_1cli_1_1ApplyPatch.html#ad09fbd364de8de32d372d0a24959f5a6":[11,0,1,1,1,0],
 "classyaze_1_1cli_1_1ApplyPatch.html#ad09fbd364de8de32d372d0a24959f5a6":[12,0,0,1,0,0],
@@ -249,5 +247,7 @@ var NAVTREEINDEX22 =
 "clipboard_8mm_source.html":[13,0,1,0,0,0,4],
 "clock_8h.html":[13,0,1,0,2,1,1],
 "clock_8h_source.html":[13,0,1,0,2,1,1],
-"color_8cc.html":[13,0,1,0,4,4]
+"color_8cc.html":[13,0,1,0,4,4],
+"color_8cc.html#a0bc43cf96eee48124511ea473cb37b84":[13,0,1,0,4,4,2],
+"color_8cc.html#a37d30bfb30a0b8009d689eee0085eed0":[13,0,1,0,4,4,3]
 };

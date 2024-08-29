@@ -1,17 +1,5 @@
 var NAVTREEINDEX50 =
 {
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html":[11,0,1,0,3,4,21],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html":[12,0,0,0,2,2,21],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a444549c6f7fdca6cd0c030afe322c408":[11,0,1,0,3,4,21,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a444549c6f7fdca6cd0c030afe322c408":[12,0,0,0,2,2,21,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a4ea833ba45199d9be83d84739649d997":[11,0,1,0,3,4,21,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a4ea833ba45199d9be83d84739649d997":[12,0,0,0,2,2,21,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a4f5e11fcc7c601b7c0335cd1fa83b9fd":[11,0,1,0,3,4,21,4],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a4f5e11fcc7c601b7c0335cd1fa83b9fd":[12,0,0,0,2,2,21,4],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a654a3fdd5af0541e335317700d5f8b09":[11,0,1,0,3,4,21,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a654a3fdd5af0541e335317700d5f8b09":[12,0,0,0,2,2,21,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a984940db659b968c30b27d01518b215b":[11,0,1,0,3,4,21,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a984940db659b968c30b27d01518b215b":[12,0,0,0,2,2,21,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html":[11,0,1,0,3,4,23],
 "structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html":[12,0,0,0,2,2,23],
 "structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#a05b95b8bfff1c172634780c21e57ae29":[11,0,1,0,3,4,23,0],
@@ -249,5 +237,17 @@ var NAVTREEINDEX50 =
 "structyaze_1_1app_1_1gfx_1_1tile8.html#a35952d1a5775988e0a00dcd1b865a43f":[11,0,1,0,4,13,1],
 "structyaze_1_1app_1_1gfx_1_1tile8.html#a35952d1a5775988e0a00dcd1b865a43f":[12,0,0,0,3,11,1],
 "structyaze_1_1app_1_1gfx_1_1tile8.html#a89f6ada5d869638b665fcfe357d14b53":[11,0,1,0,4,13,2],
-"structyaze_1_1app_1_1gfx_1_1tile8.html#a89f6ada5d869638b665fcfe357d14b53":[12,0,0,0,3,11,2]
+"structyaze_1_1app_1_1gfx_1_1tile8.html#a89f6ada5d869638b665fcfe357d14b53":[12,0,0,0,3,11,2],
+"structyaze_1_1app_1_1gfx_1_1tile8.html#ac555fcfe8e1ab5d894c2a07ee342c014":[11,0,1,0,4,13,0],
+"structyaze_1_1app_1_1gfx_1_1tile8.html#ac555fcfe8e1ab5d894c2a07ee342c014":[12,0,0,0,3,11,0],
+"structyaze_1_1app_1_1gui_1_1AssetObject.html":[11,0,1,0,5,2],
+"structyaze_1_1app_1_1gui_1_1AssetObject.html":[12,0,0,0,4,1],
+"structyaze_1_1app_1_1gui_1_1AssetObject.html#a04f7defe99b7bbfc93d1db5043e42884":[11,0,1,0,5,2,0],
+"structyaze_1_1app_1_1gui_1_1AssetObject.html#a04f7defe99b7bbfc93d1db5043e42884":[12,0,0,0,4,1,0],
+"structyaze_1_1app_1_1gui_1_1AssetObject.html#a21ce3281b1913403a1e6155d868df59e":[11,0,1,0,5,2,1],
+"structyaze_1_1app_1_1gui_1_1AssetObject.html#a21ce3281b1913403a1e6155d868df59e":[12,0,0,0,4,1,1],
+"structyaze_1_1app_1_1gui_1_1AssetObject.html#a3d61947c9f1aaf9a3bff84f9c27c25ac":[11,0,1,0,5,2,2],
+"structyaze_1_1app_1_1gui_1_1AssetObject.html#a3d61947c9f1aaf9a3bff84f9c27c25ac":[12,0,0,0,4,1,2],
+"structyaze_1_1app_1_1gui_1_1DungeonAsset.html":[11,0,1,0,5,5],
+"structyaze_1_1app_1_1gui_1_1DungeonAsset.html":[12,0,0,0,4,4]
 };

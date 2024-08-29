@@ -63,6 +63,7 @@ var hierarchy =
     [ "yaze::app::gfx::lc_lz2::CompressionCommand", "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html", null ],
     [ "yaze::app::gfx::lc_lz2::CompressionContext", "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html", null ],
     [ "yaze::app::gfx::lc_lz2::CompressionPiece", "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html", null ],
+    [ "yaze::app::editor::ConstantManager", "classyaze_1_1app_1_1editor_1_1ConstantManager.html", null ],
     [ "yaze::app::emu::video::CounterIrqNmiRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html", null ],
     [ "yaze::app::emu::memory::CpuCallbacks", "structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html", null ],
     [ "yaze::app::emu::Debugger", "classyaze_1_1app_1_1emu_1_1Debugger.html", null ],

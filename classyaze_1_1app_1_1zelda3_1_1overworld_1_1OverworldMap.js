@@ -1,12 +1,12 @@
 var classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap =
 [
     [ "OverworldMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a27dcd2a2ee3260c8cf9a103318c1f1a2", null ],
-    [ "OverworldMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a8b008cdafe62b2671e5402aae204d663", null ],
-    [ "BuildMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ae92286a9910136f008547268b1e6e415", null ],
+    [ "OverworldMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aca9a5ea6f74163d4c6892d133e4a2a45", null ],
+    [ "BuildMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#abf12758016e690c41c5d674b469eacc1", null ],
     [ "LoadAreaGraphics", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a258b27a2046939401415e2a847c98a4a", null ],
     [ "LoadPalette", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b", null ],
     [ "BuildTileset", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a2b99eea59aadb6b1b79857ef38fe3d92", null ],
-    [ "BuildTiles16Gfx", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#abeb15e05e37bf1100bf4b53b9d58c50e", null ],
+    [ "BuildTiles16Gfx", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a0e39358c4dc39e4202f5f094d721d7c8", null ],
     [ "BuildBitmap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa5f5de6ba6a9981025112ad3a82f12ff", null ],
     [ "DrawAnimatedTiles", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a41bf9610a2b97a6eac90c586f222d095", null ],
     [ "current_tile16_blockset", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aca7498e557c5e2dbb6051c4e881b3921", null ],
@@ -78,6 +78,5 @@ var classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap =
     [ "current_gfx_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a3a66a387bbfa921dd6be95547eeb6b37", null ],
     [ "bitmap_data_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a5332b7309d9faf62b11171de5eeb8c02", null ],
     [ "map_tiles_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a475efabb024822a369d8ef9f34f0d64d", null ],
-    [ "current_palette_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#abeb427dc75fc331e18d903b1372211e9", null ],
-    [ "tiles16_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a8884400aa5eb03d7dd02c38b9d3ddc0f", null ]
+    [ "current_palette_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#abeb427dc75fc331e18d903b1372211e9", null ]
 ];

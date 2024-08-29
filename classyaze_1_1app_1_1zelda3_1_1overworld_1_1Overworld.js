@@ -34,6 +34,7 @@ var classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld =
     [ "exits", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a75458468789e4051c8009a219687db93", null ],
     [ "mutable_exits", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#aa5c03ff72371d98adbabacb62675bf42", null ],
     [ "tiles16", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a969e19cd190712135d1b38e573de52bf", null ],
+    [ "mutable_tiles16", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a032ab0cc0f0f780c0b6f009c4373faae", null ],
     [ "Sprites", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a5ddd14d658514b66f557a0e32995b1f3", null ],
     [ "mutable_sprites", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a0a159388517ef56a1d34cf23bc5dbab3", null ],
     [ "current_graphics", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a11d2777abe31bff6b419835a6d7b137b", null ],

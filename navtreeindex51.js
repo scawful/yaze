@@ -1,17 +1,5 @@
 var NAVTREEINDEX51 =
 {
-"structyaze_1_1app_1_1gfx_1_1tile8.html#ac555fcfe8e1ab5d894c2a07ee342c014":[11,0,1,0,4,13,0],
-"structyaze_1_1app_1_1gfx_1_1tile8.html#ac555fcfe8e1ab5d894c2a07ee342c014":[12,0,0,0,3,11,0],
-"structyaze_1_1app_1_1gui_1_1AssetObject.html":[11,0,1,0,5,2],
-"structyaze_1_1app_1_1gui_1_1AssetObject.html":[12,0,0,0,4,1],
-"structyaze_1_1app_1_1gui_1_1AssetObject.html#a04f7defe99b7bbfc93d1db5043e42884":[11,0,1,0,5,2,0],
-"structyaze_1_1app_1_1gui_1_1AssetObject.html#a04f7defe99b7bbfc93d1db5043e42884":[12,0,0,0,4,1,0],
-"structyaze_1_1app_1_1gui_1_1AssetObject.html#a21ce3281b1913403a1e6155d868df59e":[11,0,1,0,5,2,1],
-"structyaze_1_1app_1_1gui_1_1AssetObject.html#a21ce3281b1913403a1e6155d868df59e":[12,0,0,0,4,1,1],
-"structyaze_1_1app_1_1gui_1_1AssetObject.html#a3d61947c9f1aaf9a3bff84f9c27c25ac":[11,0,1,0,5,2,2],
-"structyaze_1_1app_1_1gui_1_1AssetObject.html#a3d61947c9f1aaf9a3bff84f9c27c25ac":[12,0,0,0,4,1,2],
-"structyaze_1_1app_1_1gui_1_1DungeonAsset.html":[11,0,1,0,5,5],
-"structyaze_1_1app_1_1gui_1_1DungeonAsset.html":[12,0,0,0,4,4],
 "structyaze_1_1app_1_1gui_1_1DungeonAsset.html#a85ad3a711636fbfe817ad097e213cef1":[11,0,1,0,5,5,0],
 "structyaze_1_1app_1_1gui_1_1DungeonAsset.html#a85ad3a711636fbfe817ad097e213cef1":[12,0,0,0,4,4,0],
 "structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html":[11,0,1,0,5,6],
@@ -249,5 +237,17 @@ var NAVTREEINDEX51 =
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a4b571e5b03a8dfd371ee9b523fff95e0":[11,0,1,0,6,2,0,13],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a4b571e5b03a8dfd371ee9b523fff95e0":[12,0,0,0,5,1,0,13],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a650e610ce6348c6cf393be41f42c625f":[11,0,1,0,6,2,0,1],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a650e610ce6348c6cf393be41f42c625f":[12,0,0,0,5,1,0,1]
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a650e610ce6348c6cf393be41f42c625f":[12,0,0,0,5,1,0,1],
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a871202a2f6ff3ed215b48865864306ae":[11,0,1,0,6,2,0,10],
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a871202a2f6ff3ed215b48865864306ae":[12,0,0,0,5,1,0,10],
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a94dd2b3cdef5af3c038c271a861506fd":[11,0,1,0,6,2,0,9],
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a94dd2b3cdef5af3c038c271a861506fd":[12,0,0,0,5,1,0,9],
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#aa6cde3b5cffee90b4ecbf802e4476aff":[11,0,1,0,6,2,0,5],
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#aa6cde3b5cffee90b4ecbf802e4476aff":[12,0,0,0,5,1,0,5],
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#ab7523029ca8bf895112b2087a91a3d71":[11,0,1,0,6,2,0,4],
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#ab7523029ca8bf895112b2087a91a3d71":[12,0,0,0,5,1,0,4],
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#ad85979389e056e43a7b1de4190e20620":[11,0,1,0,6,2,0,8],
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#ad85979389e056e43a7b1de4190e20620":[12,0,0,0,5,1,0,8],
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#ad96dd3c3885e6899cafb13b903c33e05":[11,0,1,0,6,2,0,7],
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#ad96dd3c3885e6899cafb13b903c33e05":[12,0,0,0,5,1,0,7]
 };

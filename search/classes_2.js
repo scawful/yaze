@@ -22,10 +22,11 @@ var searchData=
   ['compressioncommand_19',['CompressionCommand',['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html',1,'yaze::app::gfx::lc_lz2']]],
   ['compressioncontext_20',['CompressionContext',['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html',1,'yaze::app::gfx::lc_lz2']]],
   ['compressionpiece_21',['CompressionPiece',['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html',1,'yaze::app::gfx::lc_lz2']]],
-  ['controller_22',['Controller',['../classyaze_1_1app_1_1core_1_1Controller.html',1,'yaze::app::core']]],
-  ['counterirqnmiregisters_23',['CounterIrqNmiRegisters',['../structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html',1,'yaze::app::emu::video']]],
-  ['cpu_24',['Cpu',['../classyaze_1_1app_1_1emu_1_1Cpu.html',1,'yaze::app::emu']]],
-  ['cpucallbacks_25',['CpuCallbacks',['../structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html',1,'yaze::app::emu::memory']]],
-  ['cputest_26',['CpuTest',['../classyaze_1_1test_1_1emu_1_1CpuTest.html',1,'yaze::test::emu']]],
-  ['createpatch_27',['CreatePatch',['../classyaze_1_1cli_1_1CreatePatch.html',1,'yaze::cli']]]
+  ['constantmanager_22',['ConstantManager',['../classyaze_1_1app_1_1editor_1_1ConstantManager.html',1,'yaze::app::editor']]],
+  ['controller_23',['Controller',['../classyaze_1_1app_1_1core_1_1Controller.html',1,'yaze::app::core']]],
+  ['counterirqnmiregisters_24',['CounterIrqNmiRegisters',['../structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html',1,'yaze::app::emu::video']]],
+  ['cpu_25',['Cpu',['../classyaze_1_1app_1_1emu_1_1Cpu.html',1,'yaze::app::emu']]],
+  ['cpucallbacks_26',['CpuCallbacks',['../structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html',1,'yaze::app::emu::memory']]],
+  ['cputest_27',['CpuTest',['../classyaze_1_1test_1_1emu_1_1CpuTest.html',1,'yaze::test::emu']]],
+  ['createpatch_28',['CreatePatch',['../classyaze_1_1cli_1_1CreatePatch.html',1,'yaze::cli']]]
 ];
