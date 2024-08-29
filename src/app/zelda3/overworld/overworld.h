@@ -431,6 +431,7 @@ constexpr int overworldCustomMosaicArray = 0x1301F0;
 
 constexpr int kMap16Tiles = 0x78000;
 constexpr int kNumOverworldMaps = 160;
+constexpr int kNumTile16Individual = 4096;
 constexpr int Map32PerScreen = 256;
 constexpr int NumberOfMap16 = 3752;  // 4096
 constexpr int LimitOfMap32 = 8864;
@@ -550,7 +551,9 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
   };
 
   void FetchLargeMaps();
-  void AssembleMap32Tiles();
+  absl::StatusOr<uint16_t> GetTile16ForTile32(int index, int quadrant,
+                                              int dimension);
+  absl::Status AssembleMap32Tiles();
   void AssembleMap16Tiles();
   void AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
                         OWBlockset &world);
