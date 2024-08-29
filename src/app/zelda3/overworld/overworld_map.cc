@@ -48,8 +48,8 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
         area_graphics_ = 0x51;
         area_palette_ = 0x00;
       } else {
-        area_graphics_ = rom_[mapGfx + parent_];
-        area_palette_ = rom_[overworldMapPalette + parent_];
+        area_graphics_ = rom_[kAreaGfxIdPtr + parent_];
+        area_palette_ = rom_[kOverworldMapPaletteIds + parent_];
       }
 
       initialized_ = true;
@@ -75,11 +75,11 @@ void OverworldMap::LoadAreaInfo() {
     }
   }
 
-  message_id_ = rom_.toint16(overworldMessages + (parent_ * 2));
+  message_id_ = rom_.toint16(kOverworldMessageIds + (parent_ * 2));
 
   if (index_ < 0x40) {
-    area_graphics_ = rom_[mapGfx + parent_];
-    area_palette_ = rom_[overworldMapPalette + parent_];
+    area_graphics_ = rom_[kAreaGfxIdPtr + parent_];
+    area_palette_ = rom_[kOverworldMapPaletteIds + parent_];
 
     area_music_[0] = rom_[overworldMusicBegining + parent_];
     area_music_[1] = rom_[overworldMusicZelda + parent_];
@@ -90,21 +90,21 @@ void OverworldMap::LoadAreaInfo() {
     sprite_graphics_[1] = rom_[overworldSpriteset + parent_ + 0x40];
     sprite_graphics_[2] = rom_[overworldSpriteset + parent_ + 0x80];
 
-    sprite_palette_[0] = rom_[overworldSpritePalette + parent_];
-    sprite_palette_[1] = rom_[overworldSpritePalette + parent_ + 0x40];
-    sprite_palette_[2] = rom_[overworldSpritePalette + parent_ + 0x80];
+    sprite_palette_[0] = rom_[kOverworldSpritePaletteIds + parent_];
+    sprite_palette_[1] = rom_[kOverworldSpritePaletteIds + parent_ + 0x40];
+    sprite_palette_[2] = rom_[kOverworldSpritePaletteIds + parent_ + 0x80];
   } else if (index_ < 0x80) {
-    area_graphics_ = rom_[mapGfx + parent_];
-    area_palette_ = rom_[overworldMapPalette + parent_];
+    area_graphics_ = rom_[kAreaGfxIdPtr + parent_];
+    area_palette_ = rom_[kOverworldMapPaletteIds + parent_];
     area_music_[0] = rom_[overworldMusicDW + (parent_ - 64)];
 
     sprite_graphics_[0] = rom_[overworldSpriteset + parent_ + 0x80];
     sprite_graphics_[1] = rom_[overworldSpriteset + parent_ + 0x80];
     sprite_graphics_[2] = rom_[overworldSpriteset + parent_ + 0x80];
 
-    sprite_palette_[0] = rom_[overworldSpritePalette + parent_ + 0x80];
-    sprite_palette_[1] = rom_[overworldSpritePalette + parent_ + 0x80];
-    sprite_palette_[2] = rom_[overworldSpritePalette + parent_ + 0x80];
+    sprite_palette_[0] = rom_[kOverworldSpritePaletteIds + parent_ + 0x80];
+    sprite_palette_[1] = rom_[kOverworldSpritePaletteIds + parent_ + 0x80];
+    sprite_palette_[2] = rom_[kOverworldSpritePaletteIds + parent_ + 0x80];
   } else {
     if (index_ == 0x94) {
       parent_ = 0x80;
@@ -139,17 +139,17 @@ void OverworldMap::LoadAreaInfo() {
       area_palette_ = 0x00;
     } else {
       // pyramid bg use 0x5B map
-      area_graphics_ = rom_[mapGfx + parent_];
-      area_palette_ = rom_[overworldMapPalette + parent_];
+      area_graphics_ = rom_[kAreaGfxIdPtr + parent_];
+      area_palette_ = rom_[kOverworldMapPaletteIds + parent_];
     }
 
     sprite_graphics_[0] = rom_[overworldSpriteset + parent_ + 0x80];
     sprite_graphics_[1] = rom_[overworldSpriteset + parent_ + 0x80];
     sprite_graphics_[2] = rom_[overworldSpriteset + parent_ + 0x80];
 
-    sprite_palette_[0] = rom_[overworldSpritePalette + parent_ + 0x80];
-    sprite_palette_[1] = rom_[overworldSpritePalette + parent_ + 0x80];
-    sprite_palette_[2] = rom_[overworldSpritePalette + parent_ + 0x80];
+    sprite_palette_[0] = rom_[kOverworldSpritePaletteIds + parent_ + 0x80];
+    sprite_palette_[1] = rom_[kOverworldSpritePaletteIds + parent_ + 0x80];
+    sprite_palette_[2] = rom_[kOverworldSpritePaletteIds + parent_ + 0x80];
   }
 }
 
@@ -571,9 +571,9 @@ absl::StatusOr<gfx::SnesPalette> OverworldMap::GetPalette(
 }
 
 absl::Status OverworldMap::LoadPalette() {
-  int previousPalId = index_ > 0 ? rom_[overworldMapPalette + parent_ - 1] : 0;
+  int previousPalId = index_ > 0 ? rom_[kOverworldMapPaletteIds + parent_ - 1] : 0;
   int previousSprPalId =
-      index_ > 0 ? rom_[overworldSpritePalette + parent_ - 1] : 0;
+      index_ > 0 ? rom_[kOverworldSpritePaletteIds + parent_ - 1] : 0;
 
   area_palette_ = std::min((int)area_palette_, 0xA3);
 

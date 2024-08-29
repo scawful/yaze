@@ -12,7 +12,7 @@ void OverworldEditor::RefreshChildMap(int map_index) {
   status_ = overworld_.mutable_overworld_map(map_index)->BuildTileset();
   PRINT_IF_ERROR(status_);
   status_ = overworld_.mutable_overworld_map(map_index)->BuildTiles16Gfx(
-      overworld_.tiles16().size());
+      *overworld_.mutable_tiles16(), overworld_.tiles16().size());
   PRINT_IF_ERROR(status_);
   status_ = overworld_.mutable_overworld_map(map_index)->BuildBitmap(
       overworld_.GetMapTiles(current_world_));
