@@ -293,8 +293,7 @@ class OverworldEditor : public Editor,
                                gui::CanvasGridSize::k32x32};
   gui::Canvas graphics_bin_canvas_{"GraphicsBin", kGraphicsBinCanvasSize,
                                    gui::CanvasGridSize::k16x16};
-  gui::Canvas properties_canvas_{"Properties", ImVec2(0x100, 0x100),
-                                 gui::CanvasGridSize::k8x8};
+  gui::Canvas properties_canvas_;
   gui::zeml::Node layout_node_;
   absl::Status status_;
 };

@@ -749,7 +749,7 @@ absl::Status OverworldEditor::DrawAreaGraphics() {
   if (overworld_.is_loaded() &&
       current_graphics_set_.count(current_map_) == 0) {
     overworld_.set_current_map(current_map_);
-    palette_ = overworld_.AreaPalette();
+    palette_ = overworld_.current_area_palette();
     gfx::Bitmap bmp;
     RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
         0x80, kOverworldMapSize, 0x08, overworld_.current_graphics(), bmp,
@@ -1048,7 +1048,7 @@ absl::Status OverworldEditor::Save() {
 absl::Status OverworldEditor::LoadGraphics() {
   // Load the Link to the Past overworld.
   RETURN_IF_ERROR(overworld_.Load(*rom()))
-  palette_ = overworld_.AreaPalette();
+  palette_ = overworld_.current_area_palette();
 
   // Create the area graphics image
   RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
@@ -1091,9 +1091,9 @@ absl::Status OverworldEditor::LoadGraphics() {
   // Render the overworld maps loaded from the ROM.
   for (int i = 0; i < zelda3::overworld::kNumOverworldMaps; ++i) {
     overworld_.set_current_map(i);
-    auto palette = overworld_.AreaPalette();
+    auto palette = overworld_.current_area_palette();
     RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
-        kOverworldMapSize, kOverworldMapSize, 0x200, overworld_.BitmapData(),
+        kOverworldMapSize, kOverworldMapSize, 0x200, overworld_.current_map_bitmap_data(),
         maps_bmp_[i], palette));
   }
 
@@ -1159,21 +1159,21 @@ void OverworldEditor::DrawOverworldProperties() {
   }
 
   Text("Area Gfx LW/DW");
-  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 1.0f, 32, 0);
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32, 0);
   SameLine();
-  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 1.0f, 32, 1);
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32, 1);
   ImGui::Separator();
 
   Text("Sprite Gfx LW/DW");
-  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 1.0f, 32, 6);
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32, 6);
   SameLine();
-  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 1.0f, 32, 7);
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32, 7);
   ImGui::Separator();
 
   Text("Area Pal LW/DW");
-  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 1.0f, 32, 2);
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32, 2);
   SameLine();
-  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 1.0f, 32, 3);
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32, 3);
 
   static bool show_gfx_group = false;
   Checkbox("Show Gfx Group Editor", &show_gfx_group);

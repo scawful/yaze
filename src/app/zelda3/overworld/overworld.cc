@@ -7,7 +7,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
@@ -21,61 +20,6 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 namespace overworld {
-
-namespace {
-
-absl::flat_hash_map<int, MapData> parseFile(const std::string &filename) {
-  absl::flat_hash_map<int, MapData> resultMap;
-
-  std::ifstream file(filename);
-  if (!file.is_open()) {
-    std::cerr << "Failed to open file: " << filename << std::endl;
-    return resultMap;
-  }
-
-  std::string line;
-  int currentKey;
-  bool isHigh = true;
-
-  while (getline(file, line)) {
-    // Skip empty or whitespace-only lines
-    if (line.find_first_not_of(" \t\r\n") == std::string::npos) {
-      continue;
-    }
-
-    // If the line starts with "MAPDTH" or "MAPDTL", extract the ID.
-    if (line.find("MAPDTH") == 0) {
-      auto num_str = line.substr(6);  // Extract ID after "MAPDTH"
-      currentKey = std::stoi(num_str);
-      isHigh = true;
-    } else if (line.find("MAPDTL") == 0) {
-      auto num_str = line.substr(6);  // Extract ID after "MAPDTH"
-      currentKey = std::stoi(num_str);
-      isHigh = false;
-    } else {
-      // Check if the currentKey is already in the map. If not, initialize it.
-      if (resultMap.find(currentKey) == resultMap.end()) {
-        resultMap[currentKey] = MapData();
-      }
-
-      // Split the line by commas and convert to uint8_t.
-      std::stringstream ss(line);
-      std::string valueStr;
-      while (getline(ss, valueStr, ',')) {
-        uint8_t value = std::stoi(valueStr, nullptr, 16);
-        if (isHigh) {
-          resultMap[currentKey].highData.emplace_back(value);
-        } else {
-          resultMap[currentKey].lowData.emplace_back(value);
-        }
-      }
-    }
-  }
-
-  return resultMap;
-}
-
-}  // namespace
 
 absl::Status Overworld::Load(Rom &rom) {
   rom_ = rom;
@@ -1485,96 +1429,6 @@ absl::Status Overworld::SaveMapProperties() {
   }
 
   return absl::OkStatus();
-}
-
-absl::Status Overworld::DecompressProtoMapTiles(const std::string &filename) {
-  proto_map_data_ = parseFile(filename);
-  int sx = 0;
-  int sy = 0;
-  int c = 0;
-  for (size_t i = 0; i < proto_map_data_.size(); i++) {
-    int ttpos = 0;
-
-    ASSIGN_OR_RETURN(auto bytes, gfx::lc_lz2::DecompressOverworld(
-                                     proto_map_data_[i].lowData, 0,
-                                     proto_map_data_[i].lowData.size()))
-    ASSIGN_OR_RETURN(auto bytes2, gfx::lc_lz2::DecompressOverworld(
-                                      proto_map_data_[i].highData, 0,
-                                      proto_map_data_[i].highData.size()))
-    OrganizeMapTiles(bytes, bytes2, i, sx, sy, ttpos);
-
-    sx++;
-    if (sx >= 8) {
-      sy++;
-      sx = 0;
-    }
-
-    c++;
-    if (c >= 64) {
-      sx = 0;
-      sy = 0;
-      c = 0;
-    }
-  }
-
-  return absl::OkStatus();
-}
-
-absl::Status Overworld::LoadPrototype(Rom &rom,
-                                      const std::string &tilemap_filename) {
-  rom_ = rom;
-
-  RETURN_IF_ERROR(AssembleMap32Tiles());
-  AssembleMap16Tiles();
-  RETURN_IF_ERROR(DecompressProtoMapTiles(tilemap_filename))
-
-  const bool load_custom_overworld = flags()->overworld.kLoadCustomOverworld;
-  for (int map_index = 0; map_index < kNumOverworldMaps; ++map_index)
-    overworld_maps_.emplace_back(map_index, rom_, load_custom_overworld);
-
-  FetchLargeMaps();
-  LoadEntrances();
-
-  auto size = tiles16_.size();
-  std::vector<std::future<absl::Status>> futures;
-  // for (int i = 0; i < kNumOverworldMaps; ++i) {
-  //   futures.emplace_back(std::async(std::launch::async, [this, i, size]() {
-  //     if (i < 64) {
-  //       return overworld_maps_[i].BuildMap(size, game_state_, 0,
-  //                                          map_tiles_.light_world);
-  //     } else if (i < 0x80 && i >= 0x40) {
-  //       return overworld_maps_[i].BuildMap(size, game_state_, 1,
-  //                                          map_tiles_.dark_world);
-  //     } else {
-  //       return overworld_maps_[i].BuildMap(size, game_state_, 2,
-  //                                          map_tiles_.special_world);
-  //     }
-  //   }));
-  // }
-
-  // Wait for all tasks to complete and check their results
-  for (auto &future : futures) {
-    absl::Status status = future.get();
-    if (!status.ok()) {
-      return status;
-    }
-  }
-
-  is_loaded_ = true;
-  return absl::OkStatus();
-}
-
-OWBlockset &Overworld::GetMapTiles(int world_type) {
-  switch (world_type) {
-    case 0:
-      return map_tiles_.light_world;
-    case 1:
-      return map_tiles_.dark_world;
-    case 2:
-      return map_tiles_.special_world;
-    default:
-      return map_tiles_.light_world;
-  }
 }
 
 }  // namespace overworld
