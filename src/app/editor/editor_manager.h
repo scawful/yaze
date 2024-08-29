@@ -19,6 +19,7 @@
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
+#include "app/editor/system/constant_manager.h"
 #include "app/editor/system/extension_manager.h"
 #include "app/editor/system/settings_editor.h"
 #include "app/editor/utils/gfx_context.h"
@@ -109,6 +110,7 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
   emu::Emulator emulator_;
 
   Project current_project_;
+  ConstantManager constant_manager_;
   ExtensionManager extension_manager_;
   yaze_editor_context editor_context_;
 
