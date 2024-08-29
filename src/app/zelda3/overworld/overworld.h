@@ -451,7 +451,6 @@ struct MapData {
  */
 class Overworld : public SharedRom, public core::ExperimentFlags {
  public:
-  OWBlockset &GetMapTiles(int world_type);
   absl::Status Load(Rom &rom);
   absl::Status LoadOverworldMaps();
   void LoadTileTypes();
@@ -475,7 +474,6 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
   absl::Status SaveMap32Tiles();
 
   absl::Status SaveMapProperties();
-  absl::Status LoadPrototype(Rom &rom_, const std::string &tilemap_filename);
 
   void Destroy() {
     for (auto &map : overworld_maps_) {
@@ -489,7 +487,6 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
     is_loaded_ = false;
   }
 
-  int current_world_ = 0;
   int GetTileFromPosition(ImVec2 position) const {
     if (current_world_ == 0) {
       return map_tiles_.light_world[position.x][position.y];
@@ -500,6 +497,19 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
     }
   }
 
+  OWBlockset &GetMapTiles(int world_type) {
+    switch (world_type) {
+      case 0:
+        return map_tiles_.light_world;
+      case 1:
+        return map_tiles_.dark_world;
+      case 2:
+        return map_tiles_.special_world;
+      default:
+        return map_tiles_.light_world;
+    }
+  }
+
   auto overworld_maps() const { return overworld_maps_; }
   auto overworld_map(int i) const { return &overworld_maps_[i]; }
   auto mutable_overworld_map(int i) { return &overworld_maps_[i]; }
@@ -507,8 +517,7 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
   auto mutable_exits() { return &all_exits_; }
   std::vector<gfx::Tile16> tiles16() const { return tiles16_; }
   auto mutable_tiles16() { return &tiles16_; }
-
-  auto Sprites(int state) const { return all_sprites_[state]; }
+  auto sprites(int state) const { return all_sprites_[state]; }
   auto mutable_sprites(int state) { return &all_sprites_[state]; }
   auto current_graphics() const {
     return overworld_maps_[current_map_].current_graphics();
@@ -519,13 +528,10 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
   auto mutable_holes() { return &all_holes_; }
   auto deleted_entrances() const { return deleted_entrances_; }
   auto mutable_deleted_entrances() { return &deleted_entrances_; }
-  auto AreaPalette() const {
+  auto current_area_palette() const {
     return overworld_maps_[current_map_].current_palette();
   }
-  auto AreaPaletteById(int id) const {
-    return overworld_maps_[id].current_palette();
-  }
-  auto BitmapData() const {
+  auto current_map_bitmap_data() const {
     return overworld_maps_[current_map_].bitmap_data();
   }
   auto tile16_blockset_data() const {
@@ -533,12 +539,10 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
   }
   auto is_loaded() const { return is_loaded_; }
   void set_current_map(int i) { current_map_ = i; }
-
   auto map_tiles() const { return map_tiles_; }
   auto mutable_map_tiles() { return &map_tiles_; }
   auto all_items() const { return all_items_; }
   auto mutable_all_items() { return &all_items_; }
-  auto &ref_all_items() { return all_items_; }
   auto all_tiles_types() const { return all_tiles_types_; }
   auto mutable_all_tiles_types() { return &all_tiles_types_; }
 
@@ -562,12 +566,11 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
                         int &ttpos);
   absl::Status DecompressAllMapTiles();
 
-  absl::Status DecompressProtoMapTiles(const std::string &filename);
-
   bool is_loaded_ = false;
 
   int game_state_ = 0;
   int current_map_ = 0;
+  int current_world_ = 0;
   uchar map_parent_[160];
 
   Rom rom_;
@@ -600,7 +603,6 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
   std::vector<int> map_pointers2 = std::vector<int>(kNumOverworldMaps);
 
   std::vector<absl::flat_hash_map<uint16_t, int>> usage_stats_;
-  absl::flat_hash_map<int, MapData> proto_map_data_;
 };
 
 }  // namespace overworld

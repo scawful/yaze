@@ -60,7 +60,7 @@ void OverworldEditor::RefreshOverworldMap() {
 absl::Status OverworldEditor::RefreshMapPalette() {
   RETURN_IF_ERROR(
       overworld_.mutable_overworld_map(current_map_)->LoadPalette());
-  const auto current_map_palette = overworld_.AreaPalette();
+  const auto current_map_palette = overworld_.current_area_palette();
 
   if (overworld_.overworld_map(current_map_)->is_large_map()) {
     // We need to update the map and its siblings if it's a large map
@@ -107,7 +107,7 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
   current_blockset_ = overworld_.overworld_map(current_map_)->area_graphics();
 
   overworld_.set_current_map(current_map_);
-  palette_ = overworld_.AreaPalette();
+  palette_ = overworld_.current_area_palette();
   // Create the tile16 blockset image
   Renderer::GetInstance().UpdateBitmap(&tile16_blockset_bmp_);
   RETURN_IF_ERROR(tile16_blockset_bmp_.ApplyPalette(palette_));

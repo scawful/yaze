@@ -383,7 +383,7 @@ absl::Status Tile16Editor::UpdateTransferTileCanvas() {
     // Load the Link to the Past overworld.
     PRINT_IF_ERROR(transfer_overworld_.Load(transfer_rom_))
     transfer_overworld_.set_current_map(0);
-    palette_ = transfer_overworld_.AreaPalette();
+    palette_ = transfer_overworld_.current_area_palette();
 
     // Create the tile16 blockset image
     RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
