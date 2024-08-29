@@ -376,13 +376,8 @@ class OverworldEntrance : public GameEntity {
   }
 };
 
-constexpr int kCompressedAllMap32PointersHigh = 0x1794D;
-constexpr int kCompressedAllMap32PointersLow = 0x17B2D;
-constexpr int overworldPalGroup1 = 0xDE6C8;
-constexpr int overworldPalGroup2 = 0xDE86C;
-constexpr int overworldPalGroup3 = 0xDE604;
-constexpr int overworldMapPalette = 0x7D1C;
-constexpr int overworldSpritePalette = 0x7B41;
+constexpr int kOverworldMapPaletteIds = 0x7D1C;
+constexpr int kOverworldSpritePaletteIds = 0x7B41;
 constexpr int overworldMapPaletteGroup = 0x75504;
 constexpr int overworldSpritePaletteGroup = 0x75580;
 constexpr int overworldSpriteset = 0x7A41;
@@ -392,12 +387,8 @@ constexpr int overworldSpritesBegining = 0x4C881;
 constexpr int overworldSpritesAgahnim = 0x4CA21;
 constexpr int overworldSpritesZelda = 0x4C901;
 
-constexpr int mapGfx = 0x7C9C;
-constexpr int overlayPointers = 0x77664;
-constexpr int overlayPointersBank = 0x0E;
-
-constexpr int overworldTilesType = 0x71459;
-constexpr int overworldMessages = 0x3F51D;
+constexpr int kAreaGfxIdPtr = 0x7C9C;
+constexpr int kOverworldMessageIds = 0x3F51D;
 
 constexpr int overworldMusicBegining = 0x14303;
 constexpr int overworldMusicZelda = 0x14303 + 0x40;
