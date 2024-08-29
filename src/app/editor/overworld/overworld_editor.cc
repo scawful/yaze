@@ -970,7 +970,7 @@ void OverworldEditor::DrawOverworldSprites() {
   int i = 0;
   for (auto &sprite : *overworld_.mutable_sprites(game_state_)) {
     if (!sprite.deleted()) {
-      int map_id = sprite.map_id();
+      // int map_id = sprite.map_id();
       // map x and map y are relative to the map
       // So we need to check if the map is large or small then add the offset
 
@@ -1063,10 +1063,10 @@ absl::Status OverworldEditor::LoadGraphics() {
 
   // Copy the tile16 data into individual tiles.
   auto tile16_data = overworld_.tile16_blockset_data();
-  tile16_individual_.reserve(kNumTile16Individual);
+  tile16_individual_.reserve(zelda3::overworld::kNumTile16Individual);
 
   // Loop through the tiles and copy their pixel data into separate vectors
-  for (uint i = 0; i < kNumTile16Individual; i++) {
+  for (uint i = 0; i < zelda3::overworld::kNumTile16Individual; i++) {
     std::vector<uint8_t> tile_data(kTile16Size * kTile16Size, 0x00);
 
     // Copy the pixel data for the current tile into the vector

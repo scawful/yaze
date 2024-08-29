@@ -34,7 +34,6 @@ constexpr uint kMessageIdSize = 5;
 constexpr uint kNumSheetsToLoad = 223;
 constexpr uint kTile8DisplayHeight = 64;
 constexpr uint kOverworldMapSize = 0x200;
-constexpr uint kNumTile16Individual = 4096;
 constexpr float kInputFieldSize = 30.f;
 constexpr ImVec2 kOverworldCanvasSize(kOverworldMapSize * 8,
                                       kOverworldMapSize * 8);
