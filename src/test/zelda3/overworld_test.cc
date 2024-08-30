@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 
 #include "app/rom.h"
+#include "app/zelda3/overworld/overworld.h"
 #include "app/zelda3/overworld/overworld_map.h"
 #include "test/core/testing.h"
 
@@ -39,13 +40,17 @@ TEST_F(OverworldTest, OverworldLoadNoRomDataError) {
 TEST_F(OverworldTest, OverworldLoadRomDataOk) {
   // Arrange
   EXPECT_OK(rom()->LoadFromFile("zelda3.sfc"));
-  EXPECT_OK(rom()->LoadAllGraphicsData());
+  EXPECT_OK(rom()->LoadAllGraphicsData(/*defer_render=*/true));
 
   // Act
   auto status = overworld_.Load(*rom());
 
   // Assert
   EXPECT_TRUE(status.ok());
+  EXPECT_EQ(overworld_.overworld_maps().size(),
+            app::zelda3::overworld::kNumOverworldMaps);
+  EXPECT_EQ(overworld_.tiles16().size(),
+            app::zelda3::overworld::kNumTile16Individual);
 }
 
 }  // namespace zelda3

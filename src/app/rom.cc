@@ -80,7 +80,7 @@ absl::Status Rom::LoadLinkGraphics() {
   return absl::OkStatus();
 }
 
-absl::Status Rom::LoadAllGraphicsData() {
+absl::Status Rom::LoadAllGraphicsData(bool defer_render) {
   std::vector<uint8_t> sheet;
   bool bpp3 = false;
 
@@ -121,7 +121,10 @@ absl::Status Rom::LoadAllGraphicsData() {
               palette_groups_.dungeon_main[0], 0));
         }
       }
-      graphics_sheets_[i].CreateTexture(Renderer::GetInstance().renderer());
+
+      if (!defer_render) {
+        graphics_sheets_[i].CreateTexture(Renderer::GetInstance().renderer());
+      }
 
       for (int j = 0; j < graphics_sheets_[i].size(); ++j) {
         graphics_buffer_.push_back(graphics_sheets_[i].at(j));
