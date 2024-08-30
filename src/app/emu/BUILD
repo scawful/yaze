@@ -1,0 +1,38 @@
+cc_library(
+    name = "yaze_app_emu",
+    srcs = [
+        "audio/apu.cc",
+        "audio/dsp.cc",
+        "audio/internal/addressing.cc",
+        "audio/internal/instructions.cc",
+        "audio/spc700.cc",
+        "cpu/cpu.cc",
+        "cpu/internal/addressing.cc",
+        "cpu/internal/instructions.cc",
+        "memory/dma.cc",
+        "memory/memory.cc",
+        "snes.cc",
+        "video/ppu.cc",
+    ],
+    hdrs = [
+        "audio/apu.h",
+        "audio/dsp.h",
+        "audio/internal/opcodes.h",
+        "audio/spc700.h",
+        "cpu/cpu.h",
+        "cpu/internal/opcodes.h",
+        "memory/dma.h",
+        "memory/memory.h",
+        "snes.h",
+        "video/ppu.h",
+    ],
+    copts = [
+        "-std=c++20",
+        "-isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk",
+    ],
+    includes = [
+        ".",
+        "../../",
+    ],
+    visibility = ["//visibility:public"],
+)
