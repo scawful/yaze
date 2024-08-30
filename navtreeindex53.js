@@ -1,7 +1,5 @@
 var NAVTREEINDEX53 =
 {
-"yaze_8cc.html#adfb236b5541502ced4544a6678e79d0e":[13,0,1,6,6],
-"yaze_8cc_source.html":[13,0,1,6],
 "yaze_8h.html":[13,0,1,7],
 "yaze_8h.html#a11c9f21801c8a65de35b0cba1a0d6a09":[13,0,1,7,9],
 "yaze_8h.html#a2f31206311a6fa23618eed894f1f5cd6":[13,0,1,7,14],

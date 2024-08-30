@@ -245,9 +245,9 @@ var NAVTREEINDEX42 =
 "project_8h_source.html":[13,0,1,0,0,11],
 "recent__files_8h.html":[13,0,1,0,1,8,4],
 "recent__files_8h_source.html":[13,0,1,0,1,8,4],
-"refresh_8cc.html":[13,0,1,0,1,5,4],
-"refresh_8cc_source.html":[13,0,1,0,1,5,4],
 "renderer_8h.html":[13,0,1,0,0,0,13],
 "renderer_8h_source.html":[13,0,1,0,0,0,13],
-"rom_8cc.html":[13,0,1,0,6]
+"rom_8cc.html":[13,0,1,0,6],
+"rom_8cc.html#a02c28e406561ede6e5a46381e26b4653":[13,0,1,0,6,2],
+"rom_8cc.html#a4c2c2d45869b398e8183f4215fb8c25b":[13,0,1,0,6,1]
 };
