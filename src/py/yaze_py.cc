@@ -1,9 +1,9 @@
 #include <boost/python.hpp>
 
-#include "base/extension.h"
-#include "base/overworld.h"
-#include "base/snes_color.h"
-#include "base/sprite.h"
+#include "incl/extension.h"
+#include "incl/overworld.h"
+#include "incl/snes_color.h"
+#include "incl/sprite.h"
 #include "yaze.h"
 
 BOOST_PYTHON_MODULE(yaze_py) {

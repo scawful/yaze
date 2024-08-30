@@ -7,7 +7,7 @@
 #include "app/emu/cpu/internal/opcodes.h"
 #include "app/emu/debug/asm_parser.h"
 #include "app/emu/memory/memory.h"
-#include "app/emu/memory/mock_memory.h"
+#include "test/mocks/mock_memory.h"
 
 namespace yaze {
 namespace test {

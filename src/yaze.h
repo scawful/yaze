@@ -8,9 +8,9 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
-#include "base/overworld.h"
-#include "base/snes_color.h"
-#include "base/sprite.h"
+#include "incl/overworld.h"
+#include "incl/snes_color.h"
+#include "incl/sprite.h"
 
 typedef struct z3_rom z3_rom;
 typedef struct yaze_flags yaze_flags;

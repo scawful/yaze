@@ -4,7 +4,7 @@
 
 namespace yaze {
 namespace test {
-namespace message_system {
+namespace message {
 
 using app::core::IMessageListener;
 using app::core::IMessageProtocol;
@@ -119,6 +119,6 @@ TEST_F(MessageDispatcherTest, FilteredMessageHandling) {
   EXPECT_EQ(listener1_.message_count(), 1);
 }
 
-}  // namespace message_system
+}  // namespace message
 }  // namespace test
 }  // namespace yaze

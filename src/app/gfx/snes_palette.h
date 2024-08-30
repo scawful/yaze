@@ -13,7 +13,7 @@
 #include "absl/status/statusor.h"
 #include "app/core/constants.h"
 #include "app/gfx/snes_color.h"
-#include "base/snes_color.h"
+#include "incl/snes_color.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
