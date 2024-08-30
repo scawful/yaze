@@ -4,7 +4,7 @@
 
 #include "app/emu/cpu/clock.h"
 #include "app/emu/memory/memory.h"
-#include "app/emu/memory/mock_memory.h"
+#include "test/mocks/mock_memory.h"
 
 namespace yaze {
 namespace test {

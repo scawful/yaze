@@ -25,7 +25,7 @@
 #include "app/gui/input.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
-#include "base/extension.h"
+#include "incl/extension.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"

@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "base/snes_color.h"
+#include "incl/snes_color.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
