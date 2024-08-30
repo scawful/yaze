@@ -107,9 +107,9 @@ if (YAZE_BUILD_LIB)
     install(
     FILES 
       yaze.h
-      base/sprite.h
-      base/snes_color.h
-      base/overworld.h
+      incl/sprite.h
+      incl/snes_color.h
+      incl/overworld.h
     DESTINATION include)
   endif()
 endif()
