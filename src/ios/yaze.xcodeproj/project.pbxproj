@@ -66,8 +66,6 @@
 		E318D9202C59C08300091322 /* music_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8732C59C08300091322 /* music_editor.cc */; };
 		E318D9212C59C08300091322 /* entity.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8762C59C08300091322 /* entity.cc */; };
 		E318D9222C59C08300091322 /* entity.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8762C59C08300091322 /* entity.cc */; };
-		E318D9232C59C08300091322 /* refresh.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8782C59C08300091322 /* refresh.cc */; };
-		E318D9242C59C08300091322 /* refresh.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8782C59C08300091322 /* refresh.cc */; };
 		E318D9252C59C08300091322 /* sprite_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D87A2C59C08300091322 /* sprite_editor.cc */; };
 		E318D9262C59C08300091322 /* sprite_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D87A2C59C08300091322 /* sprite_editor.cc */; };
 		E318D9272C59C08300091322 /* gfx_context.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8802C59C08300091322 /* gfx_context.cc */; };
@@ -113,8 +111,6 @@
 		E318D95E2C59C08300091322 /* snes_tile.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8C22C59C08300091322 /* snes_tile.cc */; };
 		E318D95F2C59C08300091322 /* tilesheet.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8C42C59C08300091322 /* tilesheet.cc */; };
 		E318D9602C59C08300091322 /* tilesheet.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8C42C59C08300091322 /* tilesheet.cc */; };
-		E318D9612C59C08300091322 /* asset_browser.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8C72C59C08300091322 /* asset_browser.cc */; };
-		E318D9622C59C08300091322 /* asset_browser.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8C72C59C08300091322 /* asset_browser.cc */; };
 		E318D9632C59C08300091322 /* canvas.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8C92C59C08300091322 /* canvas.cc */; };
 		E318D9642C59C08300091322 /* canvas.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8C92C59C08300091322 /* canvas.cc */; };
 		E318D9652C59C08300091322 /* color.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8CB2C59C08300091322 /* color.cc */; };
@@ -742,6 +738,7 @@
 		E384E2D62C76C6E800147029 /* message_data.cc in Sources */ = {isa = PBXBuildFile; fileRef = E384E2D52C76C6C800147029 /* message_data.cc */; };
 		E38A97F72C6C4CE3005FB662 /* extension_manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = E38A97F22C6C4CE3005FB662 /* extension_manager.cc */; };
 		E38A97F82C6C4CE3005FB662 /* settings_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E38A97F42C6C4CE3005FB662 /* settings_editor.cc */; };
+		E3B864952C8214B500122951 /* asset_browser.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3B864902C82144A00122951 /* asset_browser.cc */; };
 		E3BE958D2C68379B008DD1E7 /* editor_manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE958B2C68379B008DD1E7 /* editor_manager.cc */; };
 		E3BE95902C6837C8008DD1E7 /* overworld_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE958F2C6837C8008DD1E7 /* overworld_editor.cc */; };
 /* End PBXBuildFile section */
@@ -910,7 +907,6 @@
 		E318D8742C59C08300091322 /* music_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = music_editor.h; sourceTree = "<group>"; };
 		E318D8762C59C08300091322 /* entity.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = entity.cc; sourceTree = "<group>"; };
 		E318D8772C59C08300091322 /* entity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = entity.h; sourceTree = "<group>"; };
-		E318D8782C59C08300091322 /* refresh.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = refresh.cc; sourceTree = "<group>"; };
 		E318D87A2C59C08300091322 /* sprite_editor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sprite_editor.cc; sourceTree = "<group>"; };
 		E318D87B2C59C08300091322 /* sprite_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sprite_editor.h; sourceTree = "<group>"; };
 		E318D87C2C59C08300091322 /* zsprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = zsprite.h; sourceTree = "<group>"; };
@@ -967,8 +963,6 @@
 		E318D8C32C59C08300091322 /* snes_tile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = snes_tile.h; sourceTree = "<group>"; };
 		E318D8C42C59C08300091322 /* tilesheet.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tilesheet.cc; sourceTree = "<group>"; };
 		E318D8C52C59C08300091322 /* tilesheet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tilesheet.h; sourceTree = "<group>"; };
-		E318D8C72C59C08300091322 /* asset_browser.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = asset_browser.cc; sourceTree = "<group>"; };
-		E318D8C82C59C08300091322 /* asset_browser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = asset_browser.h; sourceTree = "<group>"; };
 		E318D8C92C59C08300091322 /* canvas.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = canvas.cc; sourceTree = "<group>"; };
 		E318D8CA2C59C08300091322 /* canvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = canvas.h; sourceTree = "<group>"; };
 		E318D8CB2C59C08300091322 /* color.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = color.cc; sourceTree = "<group>"; };
@@ -2418,6 +2412,8 @@
 		E38A97F32C6C4CE3005FB662 /* extension_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = extension_manager.h; sourceTree = "<group>"; };
 		E38A97F42C6C4CE3005FB662 /* settings_editor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = settings_editor.cc; sourceTree = "<group>"; };
 		E38A97F52C6C4CE3005FB662 /* settings_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = settings_editor.h; sourceTree = "<group>"; };
+		E3B8648F2C82144A00122951 /* asset_browser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = asset_browser.h; sourceTree = "<group>"; };
+		E3B864902C82144A00122951 /* asset_browser.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = asset_browser.cc; sourceTree = "<group>"; };
 		E3BE958B2C68379B008DD1E7 /* editor_manager.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = editor_manager.cc; sourceTree = "<group>"; };
 		E3BE958C2C68379B008DD1E7 /* editor_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = editor_manager.h; sourceTree = "<group>"; };
 		E3BE958E2C6837C8008DD1E7 /* overworld_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = overworld_editor.h; sourceTree = "<group>"; };
@@ -2649,7 +2645,6 @@
 				E3BE958E2C6837C8008DD1E7 /* overworld_editor.h */,
 				E318D8762C59C08300091322 /* entity.cc */,
 				E318D8772C59C08300091322 /* entity.h */,
-				E318D8782C59C08300091322 /* refresh.cc */,
 			);
 			path = overworld;
 			sourceTree = "<group>";
@@ -2815,8 +2810,7 @@
 		E318D8D42C59C08300091322 /* gui */ = {
 			isa = PBXGroup;
 			children = (
-				E318D8C72C59C08300091322 /* asset_browser.cc */,
-				E318D8C82C59C08300091322 /* asset_browser.h */,
+				E3B864942C82146700122951 /* modules */,
 				E318D8C92C59C08300091322 /* canvas.cc */,
 				E318D8CA2C59C08300091322 /* canvas.h */,
 				E318D8CB2C59C08300091322 /* color.cc */,
@@ -5083,6 +5077,15 @@
 			path = system;
 			sourceTree = "<group>";
 		};
+		E3B864942C82146700122951 /* modules */ = {
+			isa = PBXGroup;
+			children = (
+				E3B864902C82144A00122951 /* asset_browser.cc */,
+				E3B8648F2C82144A00122951 /* asset_browser.h */,
+			);
+			path = modules;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -5286,6 +5289,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E3B864952C8214B500122951 /* asset_browser.cc in Sources */,
 				E384E2D62C76C6E800147029 /* message_data.cc in Sources */,
 				E318E7932C5A542700091322 /* distribution_test_util.cc in Sources */,
 				E318E7942C5A542700091322 /* distribution_test_util.h in Sources */,
@@ -5369,7 +5373,6 @@
 				E318DFF32C5A4FBF00091322 /* examine_stack.cc in Sources */,
 				E318E1BB2C5A4FC200091322 /* cord_buffer.cc in Sources */,
 				E318D8FB2C59C08300091322 /* app_delegate.mm in Sources */,
-				E318D9612C59C08300091322 /* asset_browser.cc in Sources */,
 				E318D9192C59C08300091322 /* tile16_editor.cc in Sources */,
 				83BBEA0720EB54E700295997 /* imgui_demo.cpp in Sources */,
 				E318E1992C5A4FC200091322 /* ostringstream.cc in Sources */,
@@ -5434,7 +5437,6 @@
 				E318D9152C59C08300091322 /* palette_editor.cc in Sources */,
 				E3BE95902C6837C8008DD1E7 /* overworld_editor.cc in Sources */,
 				E318E0AB2C5A4FC000091322 /* exponential_biased.cc in Sources */,
-				E318D9232C59C08300091322 /* refresh.cc in Sources */,
 				E318D9332C59C08300091322 /* addressing.cc in Sources */,
 				E318E0B12C5A4FC000091322 /* periodic_sampler.cc in Sources */,
 				E318DF6F2C5A4FBE00091322 /* unscaledcycleclock.cc in Sources */,
@@ -5717,7 +5719,6 @@
 				E318E0362C5A4FBF00091322 /* private_handle_accessor.cc in Sources */,
 				E318D9202C59C08300091322 /* music_editor.cc in Sources */,
 				E318D97A2C59C08300091322 /* overworld.cc in Sources */,
-				E318D9622C59C08300091322 /* asset_browser.cc in Sources */,
 				E318E1F62C5A4FC200091322 /* strip_test.cc in Sources */,
 				E318E0A82C5A4FC000091322 /* int128.cc in Sources */,
 				E318E1002C5A4FC000091322 /* beta_distribution_test.cc in Sources */,
@@ -5856,7 +5857,6 @@
 				E318DF842C5A4FBE00091322 /* invoke_test.cc in Sources */,
 				E318E1422C5A4FC100091322 /* checker_test.cc in Sources */,
 				E318E1B22C5A4FC200091322 /* charconv_test.cc in Sources */,
-				E318D9242C59C08300091322 /* refresh.cc in Sources */,
 				E318E1BC2C5A4FC200091322 /* cord_buffer.cc in Sources */,
 				E318D9082C59C08300091322 /* common.cc in Sources */,
 				E318E1DE2C5A4FC200091322 /* str_format_test.cc in Sources */,
