@@ -1,0 +1,9 @@
+set(
+  YAZE_GUI_SRC
+  app/gui/modules/asset_browser.cc
+  app/gui/canvas.cc
+  app/gui/input.cc
+  app/gui/style.cc
+  app/gui/color.cc
+  app/gui/zeml.cc
+)

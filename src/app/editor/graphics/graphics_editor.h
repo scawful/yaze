@@ -8,7 +8,7 @@
 #include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
-#include "app/gui/asset_browser.h"
+#include "app/gui/modules/asset_browser.h"
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
 #include "app/rom.h"

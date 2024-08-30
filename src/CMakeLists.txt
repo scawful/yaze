@@ -1,34 +1,4 @@
 set(
-  YAZE_APP_CORE_SRC
-  app/core/common.cc
-  app/core/controller.cc
-  app/core/labeling.cc
-  app/emu/emulator.cc
-  app/core/message.cc
-)
-
-set(
-  YAZE_APP_GFX_SRC
-  app/gfx/bitmap.cc
-  app/gfx/compression.cc
-  app/gfx/scad_format.cc
-  app/gfx/snes_palette.cc
-  app/gfx/snes_tile.cc
-  app/gfx/snes_color.cc
-  app/gfx/tilesheet.cc
-)
-
-set(
-  YAZE_GUI_SRC
-  app/gui/asset_browser.cc
-  app/gui/canvas.cc
-  app/gui/input.cc
-  app/gui/style.cc
-  app/gui/color.cc
-  app/gui/zeml.cc
-)
-
-set(
   YAZE_APP_EMU_SRC
   app/emu/audio/apu.cc
   app/emu/audio/spc700.cc
@@ -43,30 +13,6 @@ set(
   app/emu/memory/memory.cc
   app/emu/snes.cc
 )
-
-if (WIN32 OR MINGW OR UNIX AND NOT APPLE)
-  list(APPEND YAZE_APP_CORE_SRC
-    app/core/platform/font_loader.cc
-    app/core/platform/clipboard.cc
-    app/core/platform/file_dialog.cc
-  )
-endif()
-
-if(APPLE)
-    list(APPEND YAZE_APP_CORE_SRC 
-      app/core/platform/file_dialog.mm
-      app/core/platform/app_delegate.mm
-      app/core/platform/font_loader.mm
-      app/core/platform/clipboard.mm
-      app/core/platform/file_path.mm
-    )
-
-    find_library(COCOA_LIBRARY Cocoa)
-    if(NOT COCOA_LIBRARY)
-        message(FATAL_ERROR "Cocoa not found")
-    endif()
-    set(CMAKE_EXE_LINKER_FLAGS "-framework ServiceManagement -framework Foundation -framework Cocoa")
-endif()
 
 if (YAZE_BUILD_APP)
   include(app/app.cmake)
@@ -119,7 +65,7 @@ endif()
 
 include(test/CMakeLists.txt)
 
-if (YAZE_BUILD_CLIB)
+if (YAZE_BUILD_LIB)
 # Yaze C API
 add_library(
   yaze_c SHARED
@@ -154,7 +100,7 @@ target_link_libraries(
   ImGui
 )
 
-if (YAZE_INSTALL_CLIB)
+if (YAZE_INSTALL_LIB)
   install(TARGETS yaze_c
           RUNTIME DESTINATION bin
           LIBRARY DESTINATION lib

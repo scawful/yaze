@@ -11,7 +11,7 @@
 #include "app/gfx/scad_format.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
-#include "app/gui/asset_browser.h"
+#include "app/gui/modules/asset_browser.h"
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
 #include "app/gui/input.h"
