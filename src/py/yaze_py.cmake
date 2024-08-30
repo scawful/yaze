@@ -1,4 +1,4 @@
-find_package(PythonLibs REQUIRED)
+find_package(PythonLibs 3.11 REQUIRED)
 find_package(Boost COMPONENTS python3 REQUIRED)
 
 # target x86_64 for module 
