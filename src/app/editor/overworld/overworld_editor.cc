@@ -1107,7 +1107,7 @@ absl::Status OverworldEditor::LoadGraphics() {
 absl::Status OverworldEditor::LoadSpriteGraphics() {
   // Render the sprites for each Overworld map
   for (int i = 0; i < 3; i++)
-    for (auto const &sprite : overworld_.Sprites(i)) {
+    for (auto const &sprite : overworld_.sprites(i)) {
       int width = sprite.Width();
       int height = sprite.Height();
       int depth = 0x40;
