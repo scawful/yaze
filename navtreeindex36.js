@@ -1,5 +1,7 @@
 var NAVTREEINDEX36 =
 {
+"md_docs_2contributing.html#autotoc_md38":[4,4],
+"md_docs_2contributing.html#autotoc_md39":[4,5],
 "md_docs_2infrastructure.html":[5],
 "md_docs_2infrastructure.html#autotoc_md46":[5,0],
 "md_docs_2infrastructure.html#autotoc_md47":[5,1],
@@ -114,13 +116,13 @@ var NAVTREEINDEX36 =
 "message__editor_8h.html#afb187108a5c884ecf602a288f963d16a":[13,0,1,0,1,3,3,14],
 "message__editor_8h_source.html":[13,0,1,0,1,3,3],
 "message__test_8cc.html":[13,0,1,5,0,0],
-"message__test_8cc.html#a1407e9cac96b0a4ab54302876257010a":[13,0,1,5,0,0,7],
-"message__test_8cc.html#a4ac17a2be59948be11b86ed968bcd11d":[13,0,1,5,0,0,5],
-"message__test_8cc.html#a93f7e5a495b44324ef8bfa0aee7c1a54":[13,0,1,5,0,0,6],
-"message__test_8cc.html#aded04e61b1c64f6dfbee581b3d7d0eaa":[13,0,1,5,0,0,4],
+"message__test_8cc.html#a39fdb121c61cdd3f1e3e88833a5f5273":[13,0,1,5,0,0,4],
+"message__test_8cc.html#a9523fa5f9f15564b86753f68bca95612":[13,0,1,5,0,0,6],
+"message__test_8cc.html#aa05bc5a6adc48e2f7a6fe1fcd9dc0128":[13,0,1,5,0,0,5],
+"message__test_8cc.html#abf4cb9f365e513fff4983338ffe14a4a":[13,0,1,5,0,0,7],
 "message__test_8cc_source.html":[13,0,1,5,0,0],
-"mock__memory_8h.html":[13,0,1,0,2,3,5],
-"mock__memory_8h_source.html":[13,0,1,0,2,3,5],
+"mock__memory_8h.html":[13,0,1,5,4,0],
+"mock__memory_8h_source.html":[13,0,1,5,4,0],
 "music__editor_8cc.html":[13,0,1,0,1,4,0],
 "music__editor_8cc_source.html":[13,0,1,0,1,4,0],
 "music__editor_8h.html":[13,0,1,0,1,4,1],
@@ -247,7 +249,5 @@ var NAVTREEINDEX36 =
 "namespaceyaze_1_1app_1_1core.html#a9fc1194f545000fb140d178e5a54ff81":[11,0,1,0,1,39],
 "namespaceyaze_1_1app_1_1core.html#aa3d3837210480bcf7d7260fd40b9bcaf":[11,0,1,0,1,43],
 "namespaceyaze_1_1app_1_1core.html#aa6c12bd455e5cf377d2362c6dc7fab85":[11,0,1,0,1,29],
-"namespaceyaze_1_1app_1_1core.html#aac6170e3d4875c2f4cfcc39bee40eb1a":[11,0,1,0,1,33],
-"namespaceyaze_1_1app_1_1core.html#ab44def4db46e8e341b87deedbac5ac45":[11,0,1,0,1,23],
-"namespaceyaze_1_1app_1_1core.html#ab62c06b7266ecc1577fb9da5d8f7401c":[11,0,1,0,1,48]
+"namespaceyaze_1_1app_1_1core.html#aac6170e3d4875c2f4cfcc39bee40eb1a":[11,0,1,0,1,33]
 };

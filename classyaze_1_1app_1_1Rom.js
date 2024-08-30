@@ -3,7 +3,7 @@ var classyaze_1_1app_1_1Rom =
     [ "WriteAction", "structyaze_1_1app_1_1Rom_1_1WriteAction.html", "structyaze_1_1app_1_1Rom_1_1WriteAction" ],
     [ "Load2BppGraphics", "classyaze_1_1app_1_1Rom.html#a665503f4d19021b448c0c21fd2899f2d", null ],
     [ "LoadLinkGraphics", "classyaze_1_1app_1_1Rom.html#a84a0ad99e1136f93397504493d644624", null ],
-    [ "LoadAllGraphicsData", "classyaze_1_1app_1_1Rom.html#a8afecbb24f3daf7a1df52586be587d82", null ],
+    [ "LoadAllGraphicsData", "classyaze_1_1app_1_1Rom.html#a503fa234b2293e619fa2b30a47f33e42", null ],
     [ "LoadFromFile", "classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197", null ],
     [ "LoadFromPointer", "classyaze_1_1app_1_1Rom.html#af131745512540c4cfed3589ebb545d0f", null ],
     [ "LoadFromBytes", "classyaze_1_1app_1_1Rom.html#adf1f16ed6b05f4481522961cdfef3995", null ],

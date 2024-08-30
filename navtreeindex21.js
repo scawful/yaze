@@ -1,16 +1,5 @@
 var NAVTREEINDEX21 =
 {
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a5794745e620a36c3363d66bcf6090376":[11,0,1,0,6,3,8,68],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a5794745e620a36c3363d66bcf6090376":[12,0,0,0,5,2,5,68],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a59ada685a3370f927179e941a9977027":[11,0,1,0,6,3,8,23],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a59ada685a3370f927179e941a9977027":[12,0,0,0,5,2,5,23],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a5b0904783be6d8f2e8daf09225d6494b":[11,0,1,0,6,3,8,28],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a5b0904783be6d8f2e8daf09225d6494b":[12,0,0,0,5,2,5,28],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a5bcd1bcdc7fb88ea52ae0b04cb2e8702":[11,0,1,0,6,3,8,58],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a5bcd1bcdc7fb88ea52ae0b04cb2e8702":[12,0,0,0,5,2,5,58],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a5be8dc8fb831b61a7d729401f9c9495b":[11,0,1,0,6,3,8,42],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a5be8dc8fb831b61a7d729401f9c9495b":[12,0,0,0,5,2,5,42],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a64ba5357d7d9a26734a8a964c8f29bef":[11,0,1,0,6,3,8,62],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a64ba5357d7d9a26734a8a964c8f29bef":[12,0,0,0,5,2,5,62],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a65d804d853a167e5375f944062de772b":[11,0,1,0,6,3,8,40],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a65d804d853a167e5375f944062de772b":[12,0,0,0,5,2,5,40],
@@ -249,5 +238,16 @@ var NAVTREEINDEX21 =
 "classyaze_1_1cli_1_1AsarPatch.html":[11,0,1,1,2],
 "classyaze_1_1cli_1_1AsarPatch.html":[12,0,0,1,1],
 "classyaze_1_1cli_1_1AsarPatch.html#ae1b0683ca9b985db4914475c3c5723f2":[11,0,1,1,2,0],
-"classyaze_1_1cli_1_1AsarPatch.html#ae1b0683ca9b985db4914475c3c5723f2":[12,0,0,1,1,0]
+"classyaze_1_1cli_1_1AsarPatch.html#ae1b0683ca9b985db4914475c3c5723f2":[12,0,0,1,1,0],
+"classyaze_1_1cli_1_1Backup.html":[11,0,1,1,3],
+"classyaze_1_1cli_1_1Backup.html":[12,0,0,1,2],
+"classyaze_1_1cli_1_1Backup.html#a845ea1e5e58afebf7321edcb25e57498":[11,0,1,1,3,0],
+"classyaze_1_1cli_1_1Backup.html#a845ea1e5e58afebf7321edcb25e57498":[12,0,0,1,2,0],
+"classyaze_1_1cli_1_1ColorModifier.html":[11,0,1,1,4],
+"classyaze_1_1cli_1_1ColorModifier.html":[12,0,0,1,3],
+"classyaze_1_1cli_1_1ColorModifier.html#a11a77718f7775c70110f761f029ccab9":[11,0,1,1,4,2],
+"classyaze_1_1cli_1_1ColorModifier.html#a11a77718f7775c70110f761f029ccab9":[12,0,0,1,3,2],
+"classyaze_1_1cli_1_1ColorModifier.html#a4d0d627e1b550244b221283341fd375b":[11,0,1,1,4,1],
+"classyaze_1_1cli_1_1ColorModifier.html#a4d0d627e1b550244b221283341fd375b":[12,0,0,1,3,1],
+"classyaze_1_1cli_1_1ColorModifier.html#ab4490a40261b1fd3d0c9248be2656dfb":[11,0,1,1,4,0]
 };

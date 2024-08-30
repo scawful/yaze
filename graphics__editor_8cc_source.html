@@ -6,7 +6,6 @@
 <meta name="generator" content="Doxygen 1.12.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>yaze: src/app/editor/graphics/graphics_editor.cc Source File</title>
-<link rel="icon" href="yaze.ico" type="image/x-icon" />
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="jquery.js"></script>
@@ -34,7 +33,6 @@
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr id="projectrow">
-  <td id="projectlogo"><img alt="Logo" src="yaze.ico"/></td>
   <td id="projectalign">
    <div id="projectname">yaze<span id="projectnumber">&#160;0.2.0</span>
    </div>
@@ -122,7 +120,7 @@ $(function(){initNavTree('graphics__editor_8cc_source.html',''); initResizable(t
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;<a class="code" href="scad__format_8h.html">app/gfx/scad_format.h</a>&quot;</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &quot;<a class="code" href="snes__palette_8h.html">app/gfx/snes_palette.h</a>&quot;</span></div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="snes__tile_8h.html">app/gfx/snes_tile.h</a>&quot;</span></div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;<a class="code" href="asset__browser_8h.html">app/gui/asset_browser.h</a>&quot;</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;<a class="code" href="asset__browser_8h.html">app/gui/modules/asset_browser.h</a>&quot;</span></div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &quot;<a class="code" href="canvas_8h.html">app/gui/canvas.h</a>&quot;</span></div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#include &quot;<a class="code" href="color_8h.html">app/gui/color.h</a>&quot;</span></div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &quot;<a class="code" href="input_8h.html">app/gui/input.h</a>&quot;</span></div>
@@ -1002,8 +1000,8 @@ $(function(){initNavTree('graphics__editor_8cc_source.html',''); initResizable(t
 <div class="ttc" id="aclassyaze_1_1app_1_1Rom_html_a648c0cee09095aad6aa881fc114a9f5f"><div class="ttname"><a href="classyaze_1_1app_1_1Rom.html#a648c0cee09095aad6aa881fc114a9f5f">yaze::app::Rom::size</a></div><div class="ttdeci">auto size() const</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00467">rom.h:467</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1Rom_html_a8f96cde5ff71fd3a176bd8d68e67b438"><div class="ttname"><a href="classyaze_1_1app_1_1Rom.html#a8f96cde5ff71fd3a176bd8d68e67b438">yaze::app::Rom::is_loaded</a></div><div class="ttdeci">bool is_loaded() const</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00455">rom.h:455</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1Rom_html_a92d3c9243147354399c1914c255c113b"><div class="ttname"><a href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b">yaze::app::Rom::data</a></div><div class="ttdeci">auto data()</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00470">rom.h:470</a></div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1Rom_html_acd54932cc184cdb1d66ab026c66b1197"><div class="ttname"><a href="classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197">yaze::app::Rom::LoadFromFile</a></div><div class="ttdeci">absl::Status LoadFromFile(const std::string &amp;filename, bool z3_load=true)</div><div class="ttdef"><b>Definition</b> <a href="rom_8cc_source.html#l00139">rom.cc:139</a></div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1Rom_html_adf1f16ed6b05f4481522961cdfef3995"><div class="ttname"><a href="classyaze_1_1app_1_1Rom.html#adf1f16ed6b05f4481522961cdfef3995">yaze::app::Rom::LoadFromBytes</a></div><div class="ttdeci">absl::Status LoadFromBytes(const std::vector&lt; uint8_t &gt; &amp;data)</div><div class="ttdef"><b>Definition</b> <a href="rom_8cc_source.html#l00240">rom.cc:240</a></div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1Rom_html_acd54932cc184cdb1d66ab026c66b1197"><div class="ttname"><a href="classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197">yaze::app::Rom::LoadFromFile</a></div><div class="ttdeci">absl::Status LoadFromFile(const std::string &amp;filename, bool z3_load=true)</div><div class="ttdef"><b>Definition</b> <a href="rom_8cc_source.html#l00142">rom.cc:142</a></div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1Rom_html_adf1f16ed6b05f4481522961cdfef3995"><div class="ttname"><a href="classyaze_1_1app_1_1Rom.html#adf1f16ed6b05f4481522961cdfef3995">yaze::app::Rom::LoadFromBytes</a></div><div class="ttdeci">absl::Status LoadFromBytes(const std::vector&lt; uint8_t &gt; &amp;data)</div><div class="ttdef"><b>Definition</b> <a href="rom_8cc_source.html#l00243">rom.cc:243</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1SharedRom_html_a2847e836811cb7620c6c464bffb8e5ff"><div class="ttname"><a href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff">yaze::app::SharedRom::rom</a></div><div class="ttdeci">auto rom()</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00597">rom.h:597</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1Renderer_html_acd1048086e983ab44d0875b079927bfa"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1Renderer.html#acd1048086e983ab44d0875b079927bfa">yaze::app::core::Renderer::GetInstance</a></div><div class="ttdeci">static Renderer &amp; GetInstance()</div><div class="ttdef"><b>Definition</b> <a href="renderer_8h_source.html#l00030">renderer.h:30</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1Renderer_html_ad484aa3c634ad0d28fb92131dc7ba9f0"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1Renderer.html#ad484aa3c634ad0d28fb92131dc7ba9f0">yaze::app::core::Renderer::RenderBitmap</a></div><div class="ttdeci">void RenderBitmap(gfx::Bitmap *bitmap)</div><div class="ttdoc">Used to render a bitmap to the screen.</div><div class="ttdef"><b>Definition</b> <a href="renderer_8h_source.html#l00052">renderer.h:52</a></div></div>

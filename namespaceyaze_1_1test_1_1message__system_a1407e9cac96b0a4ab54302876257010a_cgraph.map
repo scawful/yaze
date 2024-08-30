@@ -1,7 +1,0 @@
-<map id="yaze::test::message_system::TEST_F" name="yaze::test::message_system::TEST_F">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,41,140,82"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1core_1_1MessageDispatcher.html#ae037bab27135d9c7279e07dab8350729" title=" " alt="" coords="188,5,381,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,48,172,42,173,47,140,53"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1core_1_1MessageDispatcher.html#afd58f3e60c0d86d8dfe48aab18dbb2de" title=" " alt="" coords="194,70,374,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="140,70,179,77,178,82,140,76"/>
-</map>

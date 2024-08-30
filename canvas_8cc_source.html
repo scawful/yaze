@@ -6,7 +6,6 @@
 <meta name="generator" content="Doxygen 1.12.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>yaze: src/app/gui/canvas.cc Source File</title>
-<link rel="icon" href="yaze.ico" type="image/x-icon" />
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="jquery.js"></script>
@@ -34,7 +33,6 @@
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr id="projectrow">
-  <td id="projectlogo"><img alt="Logo" src="yaze.ico"/></td>
   <td id="projectalign">
    <div id="projectname">yaze<span id="projectnumber">&#160;0.2.0</span>
    </div>
@@ -125,9 +123,10 @@ $(function(){initNavTree('canvas_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="keyword">namespace </span>app {</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="keyword">namespace </span>gui {</div>
+<div class="foldopen" id="foldopen00017" data-start="{" data-end="}">
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1app_1_1gui.html">   17</a></span><span class="keyword">namespace </span>gui {</div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="keyword">using </span>core::Renderer;</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="keyword">using </span><a class="code hl_class" href="classyaze_1_1app_1_1core_1_1Renderer.html">core::Renderer</a>;</div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="keyword">using </span>ImGui::BeginMenu;</div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="keyword">using </span>ImGui::BeginPopup;</div>
@@ -1026,11 +1025,13 @@ $(function(){initNavTree('canvas_8cc_source.html',''); initResizable(true); });
 </div>
 <div class="line"><a id="l00858" name="l00858"></a><span class="lineno">  858</span> </div>
 <div class="line"><a id="l00859" name="l00859"></a><span class="lineno">  859</span>}  <span class="comment">// namespace gui</span></div>
+</div>
 <div class="line"><a id="l00860" name="l00860"></a><span class="lineno">  860</span>}  <span class="comment">// namespace app</span></div>
 <div class="line"><a id="l00861" name="l00861"></a><span class="lineno">  861</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="abitmap_8h_html"><div class="ttname"><a href="bitmap_8h.html">bitmap.h</a></div></div>
 <div class="ttc" id="acanvas_8h_html"><div class="ttname"><a href="canvas_8h.html">canvas.h</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1SharedRom_html_a2847e836811cb7620c6c464bffb8e5ff"><div class="ttname"><a href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff">yaze::app::SharedRom::rom</a></div><div class="ttdeci">auto rom()</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00597">rom.h:597</a></div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1core_1_1Renderer_html"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1Renderer.html">yaze::app::core::Renderer</a></div><div class="ttdoc">The Renderer class represents the renderer for the Yaze application.</div><div class="ttdef"><b>Definition</b> <a href="renderer_8h_source.html#l00028">renderer.h:28</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1Renderer_html_acd1048086e983ab44d0875b079927bfa"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1Renderer.html#acd1048086e983ab44d0875b079927bfa">yaze::app::core::Renderer::GetInstance</a></div><div class="ttdeci">static Renderer &amp; GetInstance()</div><div class="ttdef"><b>Definition</b> <a href="renderer_8h_source.html#l00030">renderer.h:30</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1Renderer_html_aedcffb1f7a16396dbe8a5685c62573d7"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1Renderer.html#aedcffb1f7a16396dbe8a5685c62573d7">yaze::app::core::Renderer::UpdateBitmap</a></div><div class="ttdeci">void UpdateBitmap(gfx::Bitmap *bitmap, bool use_sdl_update=false)</div><div class="ttdoc">Used to update a bitmap on the screen.</div><div class="ttdef"><b>Definition</b> <a href="renderer_8h_source.html#l00063">renderer.h:63</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1gfx_1_1Bitmap_html"><div class="ttname"><a href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">yaze::app::gfx::Bitmap</a></div><div class="ttdoc">Represents a bitmap image.</div><div class="ttdef"><b>Definition</b> <a href="bitmap_8h_source.html#l00070">bitmap.h:70</a></div></div>

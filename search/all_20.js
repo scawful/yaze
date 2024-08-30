@@ -60,7 +60,7 @@ var searchData=
   ['yaze_3a_3atest_3a_3agfx_3a_3aanonymous_5fnamespace_7bcompression_5ftest_2ecc_7d_57',['anonymous_namespace{compression_test.cc}',['../namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html',1,'yaze::test::gfx']]],
   ['yaze_3a_3atest_3a_3agfx_3a_3aanonymous_5fnamespace_7bsnes_5fpalette_5ftest_2ecc_7d_58',['anonymous_namespace{snes_palette_test.cc}',['../namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02snes__palette__test_8cc_03.html',1,'yaze::test::gfx']]],
   ['yaze_3a_3atest_3a_3aintegration_59',['integration',['../namespaceyaze_1_1test_1_1integration.html',1,'yaze::test']]],
-  ['yaze_3a_3atest_3a_3amessage_5fsystem_60',['message_system',['../namespaceyaze_1_1test_1_1message__system.html',1,'yaze::test']]],
+  ['yaze_3a_3atest_3a_3amessage_60',['message',['../namespaceyaze_1_1test_1_1message.html',1,'yaze::test']]],
   ['yaze_3a_3atest_3a_3azelda3_61',['zelda3',['../namespaceyaze_1_1test_1_1zelda3.html',1,'yaze::test']]],
   ['yaze_5fcheck_5fversion_62',['yaze_check_version',['../yaze_8cc.html#a9fff64bba6ed578ae091960204b84648',1,'yaze_check_version(const char *version):&#160;yaze.cc'],['../yaze_8h.html#a9fff64bba6ed578ae091960204b84648',1,'yaze_check_version(const char *version):&#160;yaze.cc']]],
   ['yaze_5fcleanup_63',['yaze_cleanup',['../yaze_8cc.html#a29fdfcf0cfd5f08d2b6defbefc7a99bf',1,'yaze_cleanup(yaze_flags *flags):&#160;yaze.cc'],['../yaze_8h.html#a2f31206311a6fa23618eed894f1f5cd6',1,'yaze_cleanup(yaze_flags *):&#160;yaze.cc']]],

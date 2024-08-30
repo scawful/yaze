@@ -1,15 +1,15 @@
 <map id="src/yaze.h" name="src/yaze.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="167,5,247,31"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="163,5,243,31"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,79,73,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,34,83,75,81,70,177,29"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="322,153,385,178"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="185,34,163,48,143,66,133,85,133,94,137,103,147,112,164,121,208,136,307,155,306,161,206,141,161,126,144,117,133,106,127,95,127,84,139,62,160,44,182,29"/>
-<area shape="rect" id="Node000004" href="$base_2overworld_8h.html" title=" " alt="" coords="147,79,267,105"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="210,31,210,63,204,63,204,31"/>
-<area shape="rect" id="Node000005" href="$base_2snes__color_8h.html" title=" " alt="" coords="290,79,417,105"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="233,29,316,69,314,74,231,34"/>
-<area shape="rect" id="Node000006" href="$base_2sprite_8h.html" title=" " alt="" coords="441,79,536,105"/>
-<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="248,27,427,72,425,77,247,32"/>
-<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="356,105,356,137,351,137,351,105"/>
-<area shape="poly" id="edge7_Node000006_Node000003" title=" " alt="" coords="467,108,391,147,389,143,464,103"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,34,82,75,80,70,174,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="310,153,373,178"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="183,34,162,48,143,66,133,85,133,94,137,103,162,120,202,135,295,155,294,160,201,140,159,125,133,106,128,95,127,84,139,63,158,44,180,29"/>
+<area shape="rect" id="Node000004" href="$incl_2overworld_8h.html" title=" " alt="" coords="147,79,259,105"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="206,31,206,63,200,63,200,31"/>
+<area shape="rect" id="Node000005" href="$incl_2snes__color_8h.html" title=" " alt="" coords="282,79,401,105"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="228,29,306,69,303,74,225,34"/>
+<area shape="rect" id="Node000006" href="$incl_2sprite_8h.html" title=" " alt="" coords="425,79,512,105"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="244,28,411,72,409,77,243,33"/>
+<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="344,105,344,137,339,137,339,105"/>
+<area shape="poly" id="edge7_Node000006_Node000003" title=" " alt="" coords="448,108,378,147,375,142,446,103"/>
 </map>

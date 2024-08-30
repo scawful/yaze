@@ -1,5 +1,5 @@
-<map id="src/app/emu/memory/mock_memory.h" name="src/app/emu/memory/mock_memory.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="111,5,254,46"/>
+<map id="src/test/mocks/mock_memory.h" name="src/test/mocks/mock_memory.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="110,5,255,46"/>
 <area shape="rect" id="Node000002" href="$cpu__test_8cc.html" title=" " alt="" coords="5,94,171,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,58,104,95,101,91,146,54"/>
 <area shape="rect" id="Node000003" href="$ppu__test_8cc.html" title=" " alt="" coords="195,94,360,120"/>

@@ -1,5 +1,7 @@
 var NAVTREEINDEX50 =
 {
+"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a4ea833ba45199d9be83d84739649d997":[11,0,1,0,3,4,21,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a4ea833ba45199d9be83d84739649d997":[12,0,0,0,2,2,21,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a4f5e11fcc7c601b7c0335cd1fa83b9fd":[11,0,1,0,3,4,21,4],
 "structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a4f5e11fcc7c601b7c0335cd1fa83b9fd":[12,0,0,0,2,2,21,4],
 "structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a654a3fdd5af0541e335317700d5f8b09":[11,0,1,0,3,4,21,3],
@@ -247,7 +249,5 @@ var NAVTREEINDEX50 =
 "structyaze_1_1app_1_1gfx_1_1tile8.html#ac555fcfe8e1ab5d894c2a07ee342c014":[11,0,1,0,4,13,0],
 "structyaze_1_1app_1_1gfx_1_1tile8.html#ac555fcfe8e1ab5d894c2a07ee342c014":[12,0,0,0,3,11,0],
 "structyaze_1_1app_1_1gui_1_1AssetObject.html":[11,0,1,0,5,2],
-"structyaze_1_1app_1_1gui_1_1AssetObject.html":[12,0,0,0,4,1],
-"structyaze_1_1app_1_1gui_1_1AssetObject.html#a04f7defe99b7bbfc93d1db5043e42884":[11,0,1,0,5,2,0],
-"structyaze_1_1app_1_1gui_1_1AssetObject.html#a04f7defe99b7bbfc93d1db5043e42884":[12,0,0,0,4,1,0]
+"structyaze_1_1app_1_1gui_1_1AssetObject.html":[12,0,0,0,4,1]
 };

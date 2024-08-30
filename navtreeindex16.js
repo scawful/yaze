@@ -1,16 +1,5 @@
 var NAVTREEINDEX16 =
 {
-"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a2598482c94f8c510c9d833b84b513f5a":[11,0,1,0,4,15,21],
-"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a2598482c94f8c510c9d833b84b513f5a":[12,0,0,0,3,13,21],
-"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a2ffb94ffb630c4f75ae893ba09e2df79":[11,0,1,0,4,15,26],
-"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a2ffb94ffb630c4f75ae893ba09e2df79":[12,0,0,0,3,13,26],
-"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3631b95b8895dca807064f2b3e1e9114":[11,0,1,0,4,15,31],
-"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3631b95b8895dca807064f2b3e1e9114":[12,0,0,0,3,13,31],
-"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3bbb033a4f1257e803eb61d078a14b87":[11,0,1,0,4,15,5],
-"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3bbb033a4f1257e803eb61d078a14b87":[12,0,0,0,3,13,5],
-"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3d47fcb7e4afe690b68f3b84ebc40db5":[11,0,1,0,4,15,32],
-"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3d47fcb7e4afe690b68f3b84ebc40db5":[12,0,0,0,3,13,32],
-"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a4575c8eaa2336fb84adc5f2c0b78e1b2":[11,0,1,0,4,15,2],
 "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a4575c8eaa2336fb84adc5f2c0b78e1b2":[12,0,0,0,3,13,2],
 "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a53eb833dae18f049d50d933a3dde266d":[11,0,1,0,4,15,1],
 "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a53eb833dae18f049d50d933a3dde266d":[12,0,0,0,3,13,1],
@@ -249,5 +238,16 @@ var NAVTREEINDEX16 =
 "classyaze_1_1app_1_1gui_1_1Canvas.html#aff0d9773e5e0ec3edbe46df159149615":[11,0,1,0,5,4,22],
 "classyaze_1_1app_1_1gui_1_1Canvas.html#aff0d9773e5e0ec3edbe46df159149615":[12,0,0,0,4,3,22],
 "classyaze_1_1app_1_1zelda3_1_1GameEntity.html":[11,0,1,0,6,5],
-"classyaze_1_1app_1_1zelda3_1_1GameEntity.html":[12,0,0,0,5,4]
+"classyaze_1_1app_1_1zelda3_1_1GameEntity.html":[12,0,0,0,5,4],
+"classyaze_1_1app_1_1zelda3_1_1GameEntity.html#a0e27bd7fd8ad115bd8190a4cb57973d4":[11,0,1,0,6,5,11],
+"classyaze_1_1app_1_1zelda3_1_1GameEntity.html#a0e27bd7fd8ad115bd8190a4cb57973d4":[12,0,0,0,5,4,11],
+"classyaze_1_1app_1_1zelda3_1_1GameEntity.html#a15832df17cd1c0131168131017ebdab9":[11,0,1,0,6,5,4],
+"classyaze_1_1app_1_1zelda3_1_1GameEntity.html#a15832df17cd1c0131168131017ebdab9":[12,0,0,0,5,4,4],
+"classyaze_1_1app_1_1zelda3_1_1GameEntity.html#a37c39002e98b7966cdc263622b6dd7fe":[11,0,1,0,6,5,0],
+"classyaze_1_1app_1_1zelda3_1_1GameEntity.html#a37c39002e98b7966cdc263622b6dd7fe":[12,0,0,0,5,4,0],
+"classyaze_1_1app_1_1zelda3_1_1GameEntity.html#a37c39002e98b7966cdc263622b6dd7fea21f9b54b18e5ce0f6b5048a9b8ed6d40":[11,0,1,0,6,5,0,8],
+"classyaze_1_1app_1_1zelda3_1_1GameEntity.html#a37c39002e98b7966cdc263622b6dd7fea21f9b54b18e5ce0f6b5048a9b8ed6d40":[12,0,0,0,5,4,0,8],
+"classyaze_1_1app_1_1zelda3_1_1GameEntity.html#a37c39002e98b7966cdc263622b6dd7fea2ccb2085ef4d4cc741f8ce72f739933d":[11,0,1,0,6,5,0,1],
+"classyaze_1_1app_1_1zelda3_1_1GameEntity.html#a37c39002e98b7966cdc263622b6dd7fea2ccb2085ef4d4cc741f8ce72f739933d":[12,0,0,0,5,4,0,1],
+"classyaze_1_1app_1_1zelda3_1_1GameEntity.html#a37c39002e98b7966cdc263622b6dd7fea3be069872233cf14c4e6f9fae80fdf0b":[11,0,1,0,6,5,0,5]
 };

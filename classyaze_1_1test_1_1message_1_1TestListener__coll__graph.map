@@ -1,0 +1,7 @@
+<map id="yaze::test::message::TestListener" name="yaze::test::message::TestListener">
+<area shape="rect" id="Node000001" title=" " alt="" coords="117,109,251,150"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1core_1_1IMessageListener.html" title=" " alt="" coords="5,5,174,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,55,168,107,164,110,116,59"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1app_1_1core_1_1Message.html" title=" " alt="" coords="198,13,362,38"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="260,52,205,110,201,107,256,48"/>
+</map>

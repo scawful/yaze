@@ -16,7 +16,7 @@ var searchData=
   ['message_13',['Message',['../structyaze_1_1app_1_1core_1_1Message.html',1,'yaze::app::core']]],
   ['messagedata_14',['MessageData',['../structyaze_1_1app_1_1editor_1_1MessageData.html',1,'yaze::app::editor']]],
   ['messagedispatcher_15',['MessageDispatcher',['../classyaze_1_1app_1_1core_1_1MessageDispatcher.html',1,'yaze::app::core']]],
-  ['messagedispatchertest_16',['MessageDispatcherTest',['../classyaze_1_1test_1_1message__system_1_1MessageDispatcherTest.html',1,'yaze::test::message_system']]],
+  ['messagedispatchertest_16',['MessageDispatcherTest',['../classyaze_1_1test_1_1message_1_1MessageDispatcherTest.html',1,'yaze::test::message']]],
   ['messageeditor_17',['MessageEditor',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html',1,'yaze::app::editor']]],
   ['messagefilter_18',['MessageFilter',['../classyaze_1_1app_1_1core_1_1MessageFilter.html',1,'yaze::app::core']]],
   ['mnemonicmode_19',['MnemonicMode',['../structyaze_1_1app_1_1emu_1_1MnemonicMode.html',1,'yaze::app::emu']]],

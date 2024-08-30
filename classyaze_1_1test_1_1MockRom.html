@@ -6,7 +6,6 @@
 <meta name="generator" content="Doxygen 1.12.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>yaze: yaze::test::MockRom Class Reference</title>
-<link rel="icon" href="yaze.ico" type="image/x-icon" />
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="jquery.js"></script>
@@ -34,7 +33,6 @@
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr id="projectrow">
-  <td id="projectlogo"><img alt="Logo" src="yaze.ico"/></td>
   <td id="projectalign">
    <div id="projectname">yaze<span id="projectnumber">&#160;0.2.0</span>
    </div>
@@ -164,9 +162,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a84a0ad99e1136f93397504493d644624 inherit pub_methods_classyaze_1_1app_1_1Rom" id="r_a84a0ad99e1136f93397504493d644624"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1Rom.html#a84a0ad99e1136f93397504493d644624">LoadLinkGraphics</a> ()</td></tr>
 <tr class="memdesc:a84a0ad99e1136f93397504493d644624 inherit pub_methods_classyaze_1_1app_1_1Rom"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads the players 4bpp graphics sheet from <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data.  <br /></td></tr>
 <tr class="separator:a84a0ad99e1136f93397504493d644624 inherit pub_methods_classyaze_1_1app_1_1Rom"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8afecbb24f3daf7a1df52586be587d82 inherit pub_methods_classyaze_1_1app_1_1Rom" id="r_a8afecbb24f3daf7a1df52586be587d82"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1Rom.html#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData</a> ()</td></tr>
-<tr class="memdesc:a8afecbb24f3daf7a1df52586be587d82 inherit pub_methods_classyaze_1_1app_1_1Rom"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function iterates over all graphics sheets in the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> and loads them into memory. Depending on the sheet's index, it may be uncompressed or compressed using the LC-LZ2 algorithm. The uncompressed sheets are 3 bits per pixel (BPP), while the compressed sheets are 4 BPP. The loaded graphics data is converted to 8 BPP and stored in a bitmap.  <br /></td></tr>
-<tr class="separator:a8afecbb24f3daf7a1df52586be587d82 inherit pub_methods_classyaze_1_1app_1_1Rom"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a503fa234b2293e619fa2b30a47f33e42 inherit pub_methods_classyaze_1_1app_1_1Rom" id="r_a503fa234b2293e619fa2b30a47f33e42"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1Rom.html#a503fa234b2293e619fa2b30a47f33e42">LoadAllGraphicsData</a> (bool defer_render=false)</td></tr>
+<tr class="memdesc:a503fa234b2293e619fa2b30a47f33e42 inherit pub_methods_classyaze_1_1app_1_1Rom"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function iterates over all graphics sheets in the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> and loads them into memory. Depending on the sheet's index, it may be uncompressed or compressed using the LC-LZ2 algorithm. The uncompressed sheets are 3 bits per pixel (BPP), while the compressed sheets are 4 BPP. The loaded graphics data is converted to 8 BPP and stored in a bitmap.  <br /></td></tr>
+<tr class="separator:a503fa234b2293e619fa2b30a47f33e42 inherit pub_methods_classyaze_1_1app_1_1Rom"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acd54932cc184cdb1d66ab026c66b1197 inherit pub_methods_classyaze_1_1app_1_1Rom" id="r_acd54932cc184cdb1d66ab026c66b1197"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile</a> (const std::string &amp;<a class="el" href="classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd">filename</a>, bool z3_load=true)</td></tr>
 <tr class="separator:acd54932cc184cdb1d66ab026c66b1197 inherit pub_methods_classyaze_1_1app_1_1Rom"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af131745512540c4cfed3589ebb545d0f inherit pub_methods_classyaze_1_1app_1_1Rom" id="r_af131745512540c4cfed3589ebb545d0f"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1Rom.html#af131745512540c4cfed3589ebb545d0f">LoadFromPointer</a> (<a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *<a class="el" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b">data</a>, size_t length, bool z3_load=true)</td></tr>

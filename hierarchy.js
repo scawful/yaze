@@ -125,10 +125,10 @@ var hierarchy =
     ] ],
     [ "yaze::app::gui::GfxSheetAssetBrowser", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html", null ],
     [ "yaze::app::core::IMessageListener", "classyaze_1_1app_1_1core_1_1IMessageListener.html", [
-      [ "yaze::test::message_system::TestListener", "classyaze_1_1test_1_1message__system_1_1TestListener.html", null ]
+      [ "yaze::test::message::TestListener", "classyaze_1_1test_1_1message_1_1TestListener.html", null ]
     ] ],
     [ "yaze::app::core::IMessageProtocol", "classyaze_1_1app_1_1core_1_1IMessageProtocol.html", [
-      [ "yaze::test::message_system::TestProtocol", "classyaze_1_1test_1_1message__system_1_1TestProtocol.html", null ]
+      [ "yaze::test::message::TestProtocol", "classyaze_1_1test_1_1message_1_1TestProtocol.html", null ]
     ] ],
     [ "ImGuiSelectionBasicStorage", null, [
       [ "yaze::app::gui::ExampleSelectionWithDeletion", "structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html", null ]
@@ -166,7 +166,7 @@ var hierarchy =
       [ "yaze::app::core::AsyncMessageDispatcher", "classyaze_1_1app_1_1core_1_1AsyncMessageDispatcher.html", null ]
     ] ],
     [ "yaze::app::core::MessageFilter", "classyaze_1_1app_1_1core_1_1MessageFilter.html", [
-      [ "yaze::test::message_system::TestFilter", "classyaze_1_1test_1_1message__system_1_1TestFilter.html", null ]
+      [ "yaze::test::message::TestFilter", "classyaze_1_1test_1_1message_1_1TestFilter.html", null ]
     ] ],
     [ "yaze::app::emu::MnemonicMode", "structyaze_1_1app_1_1emu_1_1MnemonicMode.html", null ],
     [ "yaze::app::emu::MnemonicModeHash", "structyaze_1_1app_1_1emu_1_1MnemonicModeHash.html", null ],
@@ -275,7 +275,7 @@ var hierarchy =
       [ "yaze::test::emu::CpuTest", "classyaze_1_1test_1_1emu_1_1CpuTest.html", null ],
       [ "yaze::test::emu::PpuTest", "classyaze_1_1test_1_1emu_1_1PpuTest.html", null ],
       [ "yaze::test::emu::Spc700Test", "classyaze_1_1test_1_1emu_1_1Spc700Test.html", null ],
-      [ "yaze::test::message_system::MessageDispatcherTest", "classyaze_1_1test_1_1message__system_1_1MessageDispatcherTest.html", null ],
+      [ "yaze::test::message::MessageDispatcherTest", "classyaze_1_1test_1_1message_1_1MessageDispatcherTest.html", null ],
       [ "yaze::test::zelda3::OverworldTest", "classyaze_1_1test_1_1zelda3_1_1OverworldTest.html", null ],
       [ "yaze::test::zelda3::SpriteBuilderTest", "classyaze_1_1test_1_1zelda3_1_1SpriteBuilderTest.html", null ]
     ] ],

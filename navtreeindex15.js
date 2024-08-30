@@ -1,16 +1,5 @@
 var NAVTREEINDEX15 =
 {
-"classyaze_1_1app_1_1gfx_1_1Bitmap.html#a60dbb218a86c57687580ec77be457511":[11,0,1,0,4,4,8],
-"classyaze_1_1app_1_1gfx_1_1Bitmap.html#a60dbb218a86c57687580ec77be457511":[12,0,0,0,3,2,8],
-"classyaze_1_1app_1_1gfx_1_1Bitmap.html#a632826783c32f69f3cadd272d5ccbe49":[11,0,1,0,4,4,0],
-"classyaze_1_1app_1_1gfx_1_1Bitmap.html#a632826783c32f69f3cadd272d5ccbe49":[12,0,0,0,3,2,0],
-"classyaze_1_1app_1_1gfx_1_1Bitmap.html#a63a3008e5953e88af8a8ed6667ab2a61":[11,0,1,0,4,4,12],
-"classyaze_1_1app_1_1gfx_1_1Bitmap.html#a63a3008e5953e88af8a8ed6667ab2a61":[12,0,0,0,3,2,12],
-"classyaze_1_1app_1_1gfx_1_1Bitmap.html#a64c154439924ee867d7babceefeef6e0":[11,0,1,0,4,4,54],
-"classyaze_1_1app_1_1gfx_1_1Bitmap.html#a64c154439924ee867d7babceefeef6e0":[12,0,0,0,3,2,54],
-"classyaze_1_1app_1_1gfx_1_1Bitmap.html#a69cd109c0caf4882996a817bfccec7e3":[11,0,1,0,4,4,33],
-"classyaze_1_1app_1_1gfx_1_1Bitmap.html#a69cd109c0caf4882996a817bfccec7e3":[12,0,0,0,3,2,33],
-"classyaze_1_1app_1_1gfx_1_1Bitmap.html#a69e8baa626a476b4cc55790fcdfd0d5c":[11,0,1,0,4,4,5],
 "classyaze_1_1app_1_1gfx_1_1Bitmap.html#a69e8baa626a476b4cc55790fcdfd0d5c":[12,0,0,0,3,2,5],
 "classyaze_1_1app_1_1gfx_1_1Bitmap.html#a70f9ccd7345a19ca2cece04bd7aea521":[11,0,1,0,4,4,44],
 "classyaze_1_1app_1_1gfx_1_1Bitmap.html#a70f9ccd7345a19ca2cece04bd7aea521":[12,0,0,0,3,2,44],
@@ -249,5 +238,16 @@ var NAVTREEINDEX15 =
 "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a155394e37ae95d04cbb69801a090ab22":[11,0,1,0,4,15,29],
 "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a155394e37ae95d04cbb69801a090ab22":[12,0,0,0,3,13,29],
 "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a1beb3a44fde850be423e8eb502af383f":[11,0,1,0,4,15,17],
-"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a1beb3a44fde850be423e8eb502af383f":[12,0,0,0,3,13,17]
+"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a1beb3a44fde850be423e8eb502af383f":[12,0,0,0,3,13,17],
+"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a2598482c94f8c510c9d833b84b513f5a":[11,0,1,0,4,15,21],
+"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a2598482c94f8c510c9d833b84b513f5a":[12,0,0,0,3,13,21],
+"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a2ffb94ffb630c4f75ae893ba09e2df79":[11,0,1,0,4,15,26],
+"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a2ffb94ffb630c4f75ae893ba09e2df79":[12,0,0,0,3,13,26],
+"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3631b95b8895dca807064f2b3e1e9114":[11,0,1,0,4,15,31],
+"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3631b95b8895dca807064f2b3e1e9114":[12,0,0,0,3,13,31],
+"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3bbb033a4f1257e803eb61d078a14b87":[11,0,1,0,4,15,5],
+"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3bbb033a4f1257e803eb61d078a14b87":[12,0,0,0,3,13,5],
+"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3d47fcb7e4afe690b68f3b84ebc40db5":[11,0,1,0,4,15,32],
+"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3d47fcb7e4afe690b68f3b84ebc40db5":[12,0,0,0,3,13,32],
+"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a4575c8eaa2336fb84adc5f2c0b78e1b2":[11,0,1,0,4,15,2]
 };

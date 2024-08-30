@@ -311,11 +311,11 @@ var annotated_dup =
         [ "integration", "namespaceyaze_1_1test_1_1integration.html", [
           [ "TestEditor", "classyaze_1_1test_1_1integration_1_1TestEditor.html", "classyaze_1_1test_1_1integration_1_1TestEditor" ]
         ] ],
-        [ "message_system", "namespaceyaze_1_1test_1_1message__system.html", [
-          [ "MessageDispatcherTest", "classyaze_1_1test_1_1message__system_1_1MessageDispatcherTest.html", "classyaze_1_1test_1_1message__system_1_1MessageDispatcherTest" ],
-          [ "TestFilter", "classyaze_1_1test_1_1message__system_1_1TestFilter.html", "classyaze_1_1test_1_1message__system_1_1TestFilter" ],
-          [ "TestListener", "classyaze_1_1test_1_1message__system_1_1TestListener.html", "classyaze_1_1test_1_1message__system_1_1TestListener" ],
-          [ "TestProtocol", "classyaze_1_1test_1_1message__system_1_1TestProtocol.html", "classyaze_1_1test_1_1message__system_1_1TestProtocol" ]
+        [ "message", "namespaceyaze_1_1test_1_1message.html", [
+          [ "MessageDispatcherTest", "classyaze_1_1test_1_1message_1_1MessageDispatcherTest.html", "classyaze_1_1test_1_1message_1_1MessageDispatcherTest" ],
+          [ "TestFilter", "classyaze_1_1test_1_1message_1_1TestFilter.html", "classyaze_1_1test_1_1message_1_1TestFilter" ],
+          [ "TestListener", "classyaze_1_1test_1_1message_1_1TestListener.html", "classyaze_1_1test_1_1message_1_1TestListener" ],
+          [ "TestProtocol", "classyaze_1_1test_1_1message_1_1TestProtocol.html", "classyaze_1_1test_1_1message_1_1TestProtocol" ]
         ] ],
         [ "zelda3", "namespaceyaze_1_1test_1_1zelda3.html", [
           [ "OverworldTest", "classyaze_1_1test_1_1zelda3_1_1OverworldTest.html", "classyaze_1_1test_1_1zelda3_1_1OverworldTest" ],
