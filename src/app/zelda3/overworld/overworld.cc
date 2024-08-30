@@ -1073,7 +1073,6 @@ absl::Status Overworld::SaveMap32Tiles() {
   core::Logger::log("Saving Map32 Tiles");
   constexpr int kMaxUniqueTiles = 0x4540;
   constexpr int kTilesPer32x32Tile = 6;
-  constexpr int kQuadrantsPer32x32Tile = 4;
 
   int unique_tile_index = 0;
   int num_unique_tiles = tiles32_unique_.size();
