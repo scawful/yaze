@@ -99,9 +99,8 @@ var searchData=
   ['property_5fstatis_96',['property_statis',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#aba13e0e9d2f0badcc2fc1074afa3ac73',1,'yaze::app::editor::zsprite::ZSprite']]],
   ['property_5fstatue_97',['property_statue',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#aaa6d5b26493226f7d4c7b18ae1427a69',1,'yaze::app::editor::zsprite::ZSprite']]],
   ['property_5fwatersprite_98',['property_watersprite',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a2c53cdba7dcd7969baeb68ab86294663',1,'yaze::app::editor::zsprite::ZSprite']]],
-  ['proto_5fmap_5fdata_5f_99',['proto_map_data_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a091f7494347d7e9e9c01ed7c6752b7f7',1,'yaze::app::zelda3::overworld::Overworld']]],
-  ['protocol_5f_100',['protocol_',['../classyaze_1_1test_1_1message__system_1_1MessageDispatcherTest.html#a99626f5058533446232c16e5ca782027',1,'yaze::test::message_system::MessageDispatcherTest']]],
-  ['protocols_5f_101',['protocols_',['../classyaze_1_1app_1_1core_1_1MessageDispatcher.html#a26a1c3bbe157362bbadcf7713846d38e',1,'yaze::app::core::MessageDispatcher']]],
-  ['pseudo_5fhires_5f_102',['pseudo_hires_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a0e5fb16de4cb54edc6b76eaf13843677',1,'yaze::app::emu::video::Ppu']]],
-  ['psw_103',['PSW',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#acb00737c3faffb45fe382615ad14a92f',1,'yaze::app::emu::audio::Spc700']]]
+  ['protocol_5f_99',['protocol_',['../classyaze_1_1test_1_1message__system_1_1MessageDispatcherTest.html#a99626f5058533446232c16e5ca782027',1,'yaze::test::message_system::MessageDispatcherTest']]],
+  ['protocols_5f_100',['protocols_',['../classyaze_1_1app_1_1core_1_1MessageDispatcher.html#a26a1c3bbe157362bbadcf7713846d38e',1,'yaze::app::core::MessageDispatcher']]],
+  ['pseudo_5fhires_5f_101',['pseudo_hires_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a0e5fb16de4cb54edc6b76eaf13843677',1,'yaze::app::emu::video::Ppu']]],
+  ['psw_102',['PSW',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#acb00737c3faffb45fe382615ad14a92f',1,'yaze::app::emu::audio::Spc700']]]
 ];

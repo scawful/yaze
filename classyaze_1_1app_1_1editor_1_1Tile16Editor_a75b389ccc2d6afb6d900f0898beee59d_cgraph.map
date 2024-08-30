@@ -46,16 +46,16 @@
 <area shape="poly" id="edge10_Node000016_Node000024" title=" " alt="" coords="869,844,896,828,922,802,945,772,982,707,1008,645,1023,595,1028,597,1013,647,987,710,950,775,926,805,899,832,872,848"/>
 <area shape="poly" id="edge11_Node000024_Node000024" title=" " alt="" coords="995,557,987,547,991,537,1007,531,1034,529,1063,532,1078,539,1076,544,1062,537,1034,534,1009,536,995,541,992,546,999,553"/>
 <area shape="poly" id="edge34_Node000049_Node000020" title=" " alt="" coords="352,988,450,1064,516,1106,589,1145,667,1175,707,1184,746,1189,785,1190,824,1184,861,1173,896,1154,927,1129,953,1099,974,1065,991,1029,1014,957,1026,898,1031,899,1019,959,996,1031,978,1068,957,1102,931,1133,899,1159,863,1178,825,1189,786,1195,746,1195,706,1189,665,1180,587,1150,513,1111,447,1068,349,992"/>
-<area shape="rect" id="Node000050" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#acf4cf859e6e5f629a3877ad76ab78fc4" title=" " alt="" coords="482,862,624,918"/>
-<area shape="poly" id="edge25_Node000049_Node000050" title=" " alt="" coords="411,931,466,913,468,918,412,936"/>
-<area shape="rect" id="Node000051" href="$namespaceyaze_1_1app_1_1gui.html#ac8855b43699a5fdc16812db22be8cc43" title=" " alt="" coords="459,941,647,982"/>
-<area shape="poly" id="edge26_Node000049_Node000051" title=" " alt="" coords="411,959,443,959,443,964,411,964"/>
+<area shape="rect" id="Node000050" href="$namespaceyaze_1_1app_1_1gui.html#ac8855b43699a5fdc16812db22be8cc43" title=" " alt="" coords="459,941,647,982"/>
+<area shape="poly" id="edge25_Node000049_Node000050" title=" " alt="" coords="411,959,443,959,443,964,411,964"/>
+<area shape="rect" id="Node000051" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#add38279defc62f32104286440f74e61f" title=" " alt="" coords="480,862,626,918"/>
+<area shape="poly" id="edge32_Node000049_Node000051" title=" " alt="" coords="411,931,465,914,466,919,412,936"/>
 <area shape="rect" id="Node000052" href="$namespaceyaze_1_1app_1_1gui.html#a574b5072f4f467f12dbdb9ea2eb41e50" title=" " alt="" coords="473,1007,633,1047"/>
 <area shape="poly" id="edge33_Node000049_Node000052" title=" " alt="" coords="412,985,464,999,462,1005,411,990"/>
-<area shape="poly" id="edge27_Node000051_Node000010" title=" " alt="" coords="631,980,649,993,667,1018,674,1042,680,1066,697,1089,710,1099,707,1103,693,1093,675,1068,669,1044,662,1020,645,997,628,985"/>
-<area shape="poly" id="edge28_Node000051_Node000012" title=" " alt="" coords="630,939,645,928,663,904,669,880,675,854,693,829,707,819,710,823,697,833,680,857,674,881,667,906,649,932,633,943"/>
-<area shape="poly" id="edge29_Node000051_Node000016" title=" " alt="" coords="621,938,646,927,670,911,694,894,709,887,712,892,697,899,673,915,649,932,623,943"/>
-<area shape="poly" id="edge30_Node000051_Node000035" title=" " alt="" coords="648,971,708,979,707,985,648,977"/>
-<area shape="poly" id="edge31_Node000051_Node000038" title=" " alt="" coords="620,980,649,993,673,1008,697,1023,712,1030,710,1035,694,1028,670,1013,646,997,618,985"/>
-<area shape="poly" id="edge32_Node000051_Node000039" title=" " alt="" coords="648,946,707,938,708,943,648,951"/>
+<area shape="poly" id="edge26_Node000050_Node000010" title=" " alt="" coords="631,980,649,993,667,1018,674,1042,680,1066,697,1089,710,1099,707,1103,693,1093,675,1068,669,1044,662,1020,645,997,628,985"/>
+<area shape="poly" id="edge27_Node000050_Node000012" title=" " alt="" coords="630,939,645,928,663,904,669,880,675,854,693,829,707,819,710,823,697,833,680,857,674,881,667,906,649,932,633,943"/>
+<area shape="poly" id="edge28_Node000050_Node000016" title=" " alt="" coords="621,938,646,927,670,911,694,894,709,887,712,892,697,899,673,915,649,932,623,943"/>
+<area shape="poly" id="edge29_Node000050_Node000035" title=" " alt="" coords="648,971,708,979,707,985,648,977"/>
+<area shape="poly" id="edge30_Node000050_Node000038" title=" " alt="" coords="620,980,649,993,673,1008,697,1023,712,1030,710,1035,694,1028,670,1013,646,997,618,985"/>
+<area shape="poly" id="edge31_Node000050_Node000039" title=" " alt="" coords="648,946,707,938,708,943,648,951"/>
 </map>

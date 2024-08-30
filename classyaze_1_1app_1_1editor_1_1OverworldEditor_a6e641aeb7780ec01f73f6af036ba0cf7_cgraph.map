@@ -24,8 +24,8 @@
 <area shape="poly" id="edge16_Node000014_Node000011" title=" " alt="" coords="519,290,604,272,605,278,520,296"/>
 <area shape="rect" id="Node000015" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a63a3008e5953e88af8a8ed6667ab2a61" title="Copy color data from the SnesPalette into the SDL_Palette." alt="" coords="629,300,773,341"/>
 <area shape="poly" id="edge10_Node000014_Node000015" title=" " alt="" coords="520,313,613,316,613,321,520,319"/>
-<area shape="rect" id="Node000019" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#acf4cf859e6e5f629a3877ad76ab78fc4" title=" " alt="" coords="630,364,772,420"/>
-<area shape="poly" id="edge11_Node000014_Node000019" title=" " alt="" coords="521,339,616,366,614,371,519,344"/>
+<area shape="rect" id="Node000019" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#add38279defc62f32104286440f74e61f" title=" " alt="" coords="628,364,774,420"/>
+<area shape="poly" id="edge11_Node000014_Node000019" title=" " alt="" coords="521,339,614,365,613,370,519,344"/>
 <area shape="rect" id="Node000020" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a25a64c2875596385980c9fb5d77ebfab" title=" " alt="" coords="630,444,772,500"/>
 <area shape="poly" id="edge14_Node000014_Node000020" title=" " alt="" coords="521,336,546,352,563,372,571,392,578,411,594,430,617,445,614,450,590,434,573,414,566,394,558,374,542,356,518,341"/>
 <area shape="rect" id="Node000021" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a8c34281c24bb2df6f5e84824981b3d78" title=" " alt="" coords="628,524,774,580"/>

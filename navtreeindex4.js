@@ -1,5 +1,6 @@
 var NAVTREEINDEX4 =
 {
+"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a05534d48990ca3d2dee3efdd0897943e":[11,0,1,0,2,22,37],
 "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a05534d48990ca3d2dee3efdd0897943e":[12,0,0,0,1,17,37],
 "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a06ad238de7663a746a2ea27a97aae83a":[11,0,1,0,2,22,20],
 "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a06ad238de7663a746a2ea27a97aae83a":[12,0,0,0,1,17,20],
@@ -248,6 +249,5 @@ var NAVTREEINDEX4 =
 "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a9b80e6534d17004854e9b5705158f62c":[11,0,1,0,2,25,15],
 "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a9b80e6534d17004854e9b5705158f62c":[12,0,0,0,1,20,15],
 "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a9bd3cd61a4f3382c912ef9ccfb24e1dc":[11,0,1,0,2,25,23],
-"classyaze_1_1app_1_1editor_1_1MessageEditor.html#a9bd3cd61a4f3382c912ef9ccfb24e1dc":[12,0,0,0,1,20,23],
-"classyaze_1_1app_1_1editor_1_1MessageEditor.html#a9cde2031bd16ed689d7a45719293c70f":[11,0,1,0,2,25,7]
+"classyaze_1_1app_1_1editor_1_1MessageEditor.html#a9bd3cd61a4f3382c912ef9ccfb24e1dc":[12,0,0,0,1,20,23]
 };

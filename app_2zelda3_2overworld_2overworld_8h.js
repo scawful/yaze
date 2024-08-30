@@ -87,6 +87,7 @@ var app_2zelda3_2overworld_2overworld_8h =
     [ "overworldCustomMosaicArray", "app_2zelda3_2overworld_2overworld_8h.html#a627325d434f85340abfbed9c71b3871d", null ],
     [ "kMap16Tiles", "app_2zelda3_2overworld_2overworld_8h.html#a5166b928d6a093a71b355dc6105f0d0a", null ],
     [ "kNumOverworldMaps", "app_2zelda3_2overworld_2overworld_8h.html#a70c7c08105d9eb4a588c0a3c99f069cb", null ],
+    [ "kNumTile16Individual", "app_2zelda3_2overworld_2overworld_8h.html#a64b3789d1759b55e85679e71b7cb9676", null ],
     [ "Map32PerScreen", "app_2zelda3_2overworld_2overworld_8h.html#a576e2b69a5247b1fc32b52b7a9a6f236", null ],
     [ "NumberOfMap16", "app_2zelda3_2overworld_2overworld_8h.html#a856cdd82779f7ccd18724185657a39cb", null ],
     [ "LimitOfMap32", "app_2zelda3_2overworld_2overworld_8h.html#a98d1a91677ea63f4b03aa1c1e1fbc267", null ],

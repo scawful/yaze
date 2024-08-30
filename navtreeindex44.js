@@ -1,5 +1,9 @@
 var NAVTREEINDEX44 =
 {
+"snes__color_8cc.html#a674cd542901e81be5be7fe865bf6b1b9":[13,0,1,0,3,6,2],
+"snes__color_8cc.html#a9cae2d3018552dc353ffe8c1ef77cc63":[13,0,1,0,3,6,7],
+"snes__color_8cc.html#a9f93560824621862a7e4889d592cb2df":[13,0,1,0,3,6,10],
+"snes__color_8cc.html#aab504a319aec14fc51e9f309d12c767b":[13,0,1,0,3,6,0],
 "snes__color_8cc.html#ad23eb7c59ab96c08179a6d6625ad0fdd":[13,0,1,0,3,6,9],
 "snes__color_8cc.html#ad373c73aedd572d880fc5c49e0b4782e":[13,0,1,0,3,6,5],
 "snes__color_8cc.html#aefdc5379d7c7907c0b2cf786b9e5d166":[13,0,1,0,3,6,12],
@@ -164,9 +168,9 @@ var NAVTREEINDEX44 =
 "sprite__builder_8h.html":[13,0,1,0,5,4,4],
 "sprite__builder_8h.html#aaeedd086060117eff0ce895be0515421":[13,0,1,0,5,4,4,3],
 "sprite__builder_8h_source.html":[13,0,1,0,5,4,4],
-"sprite__builder__test_8cc.html":[13,0,1,5,4,0],
-"sprite__builder__test_8cc.html#a654b8ca13dc35081cce801247fbf2b7e":[13,0,1,5,4,0,1],
-"sprite__builder__test_8cc_source.html":[13,0,1,5,4,0],
+"sprite__builder__test_8cc.html":[13,0,1,5,4,1],
+"sprite__builder__test_8cc.html#a654b8ca13dc35081cce801247fbf2b7e":[13,0,1,5,4,1,1],
+"sprite__builder__test_8cc_source.html":[13,0,1,5,4,1],
 "sprite__editor_8cc.html":[13,0,1,0,1,6,0],
 "sprite__editor_8cc_source.html":[13,0,1,0,1,6,0],
 "sprite__editor_8h.html":[13,0,1,0,1,6,1],
@@ -245,9 +249,5 @@ var NAVTREEINDEX44 =
 "structyaze_1_1app_1_1VersionConstants.html#ac717e3238838980713fdb62368f3f694":[11,0,1,0,10,8],
 "structyaze_1_1app_1_1VersionConstants.html#ac717e3238838980713fdb62368f3f694":[12,0,0,0,9,8],
 "structyaze_1_1app_1_1VersionConstants.html#ade6d7e68fbc0605192f5c719d473aabe":[11,0,1,0,10,13],
-"structyaze_1_1app_1_1VersionConstants.html#ade6d7e68fbc0605192f5c719d473aabe":[12,0,0,0,9,13],
-"structyaze_1_1app_1_1VersionConstants.html#af30df1c4cf8b9c366a45e6694cd6a3b9":[11,0,1,0,10,16],
-"structyaze_1_1app_1_1VersionConstants.html#af30df1c4cf8b9c366a45e6694cd6a3b9":[12,0,0,0,9,16],
-"structyaze_1_1app_1_1VersionConstants.html#afc98ca987308233703abbf22aa587555":[11,0,1,0,10,11],
-"structyaze_1_1app_1_1VersionConstants.html#afc98ca987308233703abbf22aa587555":[12,0,0,0,9,11]
+"structyaze_1_1app_1_1VersionConstants.html#ade6d7e68fbc0605192f5c719d473aabe":[12,0,0,0,9,13]
 };

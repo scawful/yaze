@@ -22,10 +22,10 @@
 <area shape="poly" id="edge16_Node000001_Node000057" title=" " alt="" coords="117,489,168,561,205,602,247,637,262,645,259,650,244,641,201,606,164,565,113,492"/>
 <area shape="rect" id="Node000058" href="$classyaze_1_1app_1_1editor_1_1Tile16Editor.html#afea4cb552d027833add7e5f7851ffffb" title=" " alt="" coords="281,717,418,758"/>
 <area shape="poly" id="edge18_Node000001_Node000058" title=" " alt="" coords="112,490,130,534,158,591,197,651,221,678,247,702,268,715,266,720,244,706,217,682,193,654,154,594,125,536,107,492"/>
-<area shape="rect" id="Node000141" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a3d245d538658062773a8972c57d43eae" title=" " alt="" coords="276,783,424,823"/>
-<area shape="poly" id="edge22_Node000001_Node000141" title=" " alt="" coords="109,490,123,545,150,620,168,660,190,699,217,736,247,768,264,779,261,783,244,772,212,739,186,702,163,662,145,622,118,547,104,491"/>
-<area shape="rect" id="Node000142" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#aaf4f7f9d8a94909686f2db38550df2f3" title=" " alt="" coords="276,848,424,889"/>
-<area shape="poly" id="edge23_Node000001_Node000142" title=" " alt="" coords="107,490,118,556,141,648,159,698,183,747,212,793,247,833,264,845,261,849,244,837,208,796,178,750,155,700,136,650,112,557,102,491"/>
+<area shape="rect" id="Node000145" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a3d245d538658062773a8972c57d43eae" title=" " alt="" coords="276,783,424,823"/>
+<area shape="poly" id="edge22_Node000001_Node000145" title=" " alt="" coords="109,490,123,545,150,620,168,660,190,699,217,736,247,768,264,779,261,783,244,772,212,739,186,702,163,662,145,622,118,547,104,491"/>
+<area shape="rect" id="Node000146" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#aaf4f7f9d8a94909686f2db38550df2f3" title=" " alt="" coords="276,848,424,889"/>
+<area shape="poly" id="edge23_Node000001_Node000146" title=" " alt="" coords="107,490,118,556,141,648,159,698,183,747,212,793,247,833,264,845,261,849,244,837,208,796,178,750,155,700,136,650,112,557,102,491"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a982d41b1b6b8e6a481818417a3d1d407" title=" " alt="" coords="506,410,691,466"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="443,410,491,418,490,423,442,415"/>
 <area shape="poly" id="edge6_Node000008_Node000002" title=" " alt="" coords="371,180,426,118,461,85,501,57,511,51,513,56,503,61,465,90,429,122,375,183"/>

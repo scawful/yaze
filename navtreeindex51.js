@@ -1,5 +1,9 @@
 var NAVTREEINDEX51 =
 {
+"structyaze_1_1app_1_1gui_1_1AssetObject.html#a3d61947c9f1aaf9a3bff84f9c27c25ac":[11,0,1,0,5,2,2],
+"structyaze_1_1app_1_1gui_1_1AssetObject.html#a3d61947c9f1aaf9a3bff84f9c27c25ac":[12,0,0,0,4,1,2],
+"structyaze_1_1app_1_1gui_1_1DungeonAsset.html":[11,0,1,0,5,5],
+"structyaze_1_1app_1_1gui_1_1DungeonAsset.html":[12,0,0,0,4,4],
 "structyaze_1_1app_1_1gui_1_1DungeonAsset.html#a85ad3a711636fbfe817ad097e213cef1":[11,0,1,0,5,5,0],
 "structyaze_1_1app_1_1gui_1_1DungeonAsset.html#a85ad3a711636fbfe817ad097e213cef1":[12,0,0,0,4,4,0],
 "structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html":[11,0,1,0,5,6],
@@ -245,9 +249,5 @@ var NAVTREEINDEX51 =
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#aa6cde3b5cffee90b4ecbf802e4476aff":[11,0,1,0,6,2,0,5],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#aa6cde3b5cffee90b4ecbf802e4476aff":[12,0,0,0,5,1,0,5],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#ab7523029ca8bf895112b2087a91a3d71":[11,0,1,0,6,2,0,4],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#ab7523029ca8bf895112b2087a91a3d71":[12,0,0,0,5,1,0,4],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#ad85979389e056e43a7b1de4190e20620":[11,0,1,0,6,2,0,8],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#ad85979389e056e43a7b1de4190e20620":[12,0,0,0,5,1,0,8],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#ad96dd3c3885e6899cafb13b903c33e05":[11,0,1,0,6,2,0,7],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#ad96dd3c3885e6899cafb13b903c33e05":[12,0,0,0,5,1,0,7]
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#ab7523029ca8bf895112b2087a91a3d71":[12,0,0,0,5,1,0,4]
 };

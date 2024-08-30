@@ -1,12 +1,5 @@
 var NAVTREEINDEX21 =
 {
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a442d926995e0ec762c1c00c891a4b0eb":[12,0,0,0,5,2,5,61],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a475efabb024822a369d8ef9f34f0d64d":[11,0,1,0,6,3,8,77],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a475efabb024822a369d8ef9f34f0d64d":[12,0,0,0,5,2,5,77],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a52aa16be4832b99c556556305f74c77f":[11,0,1,0,6,3,8,18],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a52aa16be4832b99c556556305f74c77f":[12,0,0,0,5,2,5,18],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a5332b7309d9faf62b11171de5eeb8c02":[11,0,1,0,6,3,8,76],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a5332b7309d9faf62b11171de5eeb8c02":[12,0,0,0,5,2,5,76],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a5794745e620a36c3363d66bcf6090376":[11,0,1,0,6,3,8,68],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a5794745e620a36c3363d66bcf6090376":[12,0,0,0,5,2,5,68],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a59ada685a3370f927179e941a9977027":[11,0,1,0,6,3,8,23],
@@ -249,5 +242,12 @@ var NAVTREEINDEX21 =
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#aef8eac64449c87f4cba7148c852ed2fc":[12,0,0,0,5,3,2,1],
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#af4db8c06e4092f2187f538150f405f88":[11,0,1,0,6,4,2,13],
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#af4db8c06e4092f2187f538150f405f88":[12,0,0,0,5,3,2,13],
-"classyaze_1_1cli_1_1ApplyPatch.html":[11,0,1,1,1]
+"classyaze_1_1cli_1_1ApplyPatch.html":[11,0,1,1,1],
+"classyaze_1_1cli_1_1ApplyPatch.html":[12,0,0,1,0],
+"classyaze_1_1cli_1_1ApplyPatch.html#ad09fbd364de8de32d372d0a24959f5a6":[11,0,1,1,1,0],
+"classyaze_1_1cli_1_1ApplyPatch.html#ad09fbd364de8de32d372d0a24959f5a6":[12,0,0,1,0,0],
+"classyaze_1_1cli_1_1AsarPatch.html":[11,0,1,1,2],
+"classyaze_1_1cli_1_1AsarPatch.html":[12,0,0,1,1],
+"classyaze_1_1cli_1_1AsarPatch.html#ae1b0683ca9b985db4914475c3c5723f2":[11,0,1,1,2,0],
+"classyaze_1_1cli_1_1AsarPatch.html#ae1b0683ca9b985db4914475c3c5723f2":[12,0,0,1,1,0]
 };

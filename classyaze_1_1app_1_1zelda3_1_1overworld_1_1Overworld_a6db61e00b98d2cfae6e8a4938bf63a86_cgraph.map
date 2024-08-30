@@ -1,0 +1,12 @@
+<map id="yaze::app::zelda3::overworld::Overworld::GetTile16ForTile32" name="yaze::app::zelda3::overworld::Overworld::GetTile16ForTile32">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,40,148,95"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#adc977745ac851fd2b982e24bfc7053f3" title=" " alt="" coords="198,5,367,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,48,211,32,212,38,149,53"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1Rom.html#a997bfee0f4d228a4d9f30166647f8b37" title=" " alt="" coords="196,55,369,80"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="148,65,180,65,180,70,148,70"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1Rom.html#a0c5236f4dc9e1fd7ad98f058d154a139" title=" " alt="" coords="205,104,360,145"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="149,85,193,97,192,102,148,90"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#af1f19dccd552a9eceee8f07ad0485fbb" title="Precondition check for reading and writing to the Rom." alt="" coords="417,23,590,64"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="368,25,402,29,401,34,367,31"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="369,55,401,52,402,57,370,61"/>
+</map>
