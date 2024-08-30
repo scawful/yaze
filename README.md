@@ -30,8 +30,8 @@ By default this will build all targets.
 
 - **yaze**:       Editor Application
 - **yaze_c**:     C Library
+- **yaze_emu**:   SNES Emulator
 - **yaze_py**:    Python Module
-- **yaze_ext**:   Extensions Library
 - **yaze_test**:  Unit Tests
 - **z3ed**:       Command Line Interface
 
