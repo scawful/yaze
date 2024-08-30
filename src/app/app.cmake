@@ -1,4 +1,7 @@
+include(app/core/core.cmake)
 include(app/editor/editor.cmake)
+include(app/gfx/gfx.cmake)
+include(app/gui/gui.cmake)
 include(app/zelda3/zelda3.cmake)
 
 add_executable(

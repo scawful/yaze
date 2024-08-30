@@ -1,16 +1,18 @@
 # Yet Another Zelda3 Editor
 # by scawful
 cmake_minimum_required(VERSION 3.10)
-project(yaze VERSION 0.2.0)
+project(yaze VERSION 0.2.0
+             DESCRIPTION "Yet Another Zelda3 Editor"
+             LANGUAGES CXX)
 
 # Build Flags
 set(YAZE_BUILD_APP ON)
+set(YAZE_BUILD_LIB ON)
 set(YAZE_BUILD_EMU ON)
 set(YAZE_BUILD_Z3ED ON)
-set(YAZE_BUILD_PYTHON ON)
-set(YAZE_BUILD_CLIB ON)
-set(YAZE_INSTALL_CLIB OFF)
+set(YAZE_BUILD_PYTHON OFF)
 set(YAZE_BUILD_TESTS OFF)
+set(YAZE_INSTALL_LIB OFF)
 
 # libpng features in bitmap.cc
 add_definitions("-DYAZE_LIB_PNG=1")
