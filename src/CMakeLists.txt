@@ -17,17 +17,17 @@ set(
 if (YAZE_BUILD_APP)
   include(app/app.cmake)
 endif()
-
 if (YAZE_BUILD_EMU)
-  include(app/emu/CMakeLists.txt)
+  include(app/emu/emu.cmake)
 endif()
-
 if (YAZE_BUILD_Z3ED)
   include(cli/z3ed.cmake) 
 endif()
-
 if (YAZE_BUILD_PYTHON)
   include(py/yaze_py.cmake)
+endif()
+if (YAZE_BUILD_TESTS)
+  include(test/CMakeLists.txt)
 endif()
 
 if (UNIX)
@@ -63,55 +63,53 @@ set_target_properties(yaze
 )
 endif()
 
-include(test/CMakeLists.txt)
-
-if (YAZE_BUILD_LIB)
 # Yaze C API
-add_library(
-  yaze_c SHARED
-  ./yaze.cc
-  app/rom.cc
-  ${YAZE_APP_EMU_SRC}
-  ${YAZE_APP_CORE_SRC}
-  ${YAZE_APP_EDITOR_SRC}
-  ${YAZE_APP_GFX_SRC}
-  ${YAZE_APP_ZELDA3_SRC}
-  ${YAZE_GUI_SRC}
-  ${IMGUI_SRC}
-  ${IMGUI_TEST_ENGINE_SOURCES}
-)
+if (YAZE_BUILD_LIB)
+  add_library(
+    yaze_c SHARED
+    ./yaze.cc
+    app/rom.cc
+    ${YAZE_APP_EMU_SRC}
+    ${YAZE_APP_CORE_SRC}
+    ${YAZE_APP_EDITOR_SRC}
+    ${YAZE_APP_GFX_SRC}
+    ${YAZE_APP_ZELDA3_SRC}
+    ${YAZE_GUI_SRC}
+    ${IMGUI_SRC}
+    ${IMGUI_TEST_ENGINE_SOURCES}
+  )
 
-target_include_directories(
-  yaze_c PUBLIC
-  lib/
-  app/
-  ${CMAKE_SOURCE_DIR}/src/
-  ${PNG_INCLUDE_DIRS}
-  ${SDL2_INCLUDE_DIR}
-)
+  target_include_directories(
+    yaze_c PUBLIC
+    lib/
+    app/
+    ${CMAKE_SOURCE_DIR}/src/
+    ${PNG_INCLUDE_DIRS}
+    ${SDL2_INCLUDE_DIR}
+  )
 
-target_link_libraries(
-  yaze_c PRIVATE
-  ${ABSL_TARGETS}
-  ${SDL_TARGETS}
-  ${PNG_LIBRARIES}
-  ${CMAKE_DL_LIBS}
-  ImGuiTestEngine
-  ImGui
-)
+  target_link_libraries(
+    yaze_c PRIVATE
+    ${ABSL_TARGETS}
+    ${SDL_TARGETS}
+    ${PNG_LIBRARIES}
+    ${CMAKE_DL_LIBS}
+    ImGuiTestEngine
+    ImGui
+  )
 
-if (YAZE_INSTALL_LIB)
-  install(TARGETS yaze_c
-          RUNTIME DESTINATION bin
-          LIBRARY DESTINATION lib
-          ARCHIVE DESTINATION lib/static)
+  if (YAZE_INSTALL_LIB)
+    install(TARGETS yaze_c
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib/static)
 
-  install(
-  FILES 
-    yaze.h
-    base/sprite.h
-    base/snes_color.h
-    base/overworld.h
-  DESTINATION include)
-endif()
+    install(
+    FILES 
+      yaze.h
+      base/sprite.h
+      base/snes_color.h
+      base/overworld.h
+    DESTINATION include)
+  endif()
 endif()
