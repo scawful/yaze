@@ -5,6 +5,7 @@
 
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld_map.h"
+#include "test/core/testing.h"
 
 namespace yaze {
 namespace test {
@@ -33,6 +34,18 @@ TEST_F(OverworldTest, OverworldLoadNoRomDataError) {
   // Assert
   EXPECT_FALSE(status.ok());
   EXPECT_THAT(status.message(), testing::HasSubstr("ROM file not loaded"));
+}
+
+TEST_F(OverworldTest, OverworldLoadRomDataOk) {
+  // Arrange
+  EXPECT_OK(rom()->LoadFromFile("zelda3.sfc"));
+  EXPECT_OK(rom()->LoadAllGraphicsData());
+
+  // Act
+  auto status = overworld_.Load(*rom());
+
+  // Assert
+  EXPECT_TRUE(status.ok());
 }
 
 }  // namespace zelda3
