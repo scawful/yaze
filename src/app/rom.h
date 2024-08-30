@@ -177,7 +177,7 @@ class Rom : public core::ExperimentFlags {
    * | 218-222 | Compressed 2bpp | 0x800 chars | Decompressed each |
    *
    */
-  absl::Status LoadAllGraphicsData();
+  absl::Status LoadAllGraphicsData(bool defer_render = false);
 
   /**
    * Load Rom data from a file.
