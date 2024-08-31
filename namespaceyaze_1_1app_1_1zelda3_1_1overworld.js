@@ -10,7 +10,6 @@ var namespaceyaze_1_1app_1_1zelda3_1_1overworld =
     [ "palette_internal", "namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal.html", [
       [ "SetColorsPalette", "namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal.html#ac0260bcfd3c55dfe7d7155123619445d", null ]
     ] ],
-    [ "MapData", "structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html", "structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData" ],
     [ "Overworld", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld" ],
     [ "OverworldEntrance", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance.html", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance" ],
     [ "OverworldExit", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit" ],

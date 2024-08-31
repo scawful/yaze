@@ -196,7 +196,7 @@ var NAVTREEINDEX =
 "structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a4f5e11fcc7c601b7c0335cd1fa83b9fd",
 "structyaze_1_1app_1_1gui_1_1AssetObject.html#a21ce3281b1913403a1e6155d868df59e",
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#ab7523029ca8bf895112b2087a91a3d71",
-"yaze_8h.html"
+"yaze_8h.html#a9fff64bba6ed578ae091960204b84648"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

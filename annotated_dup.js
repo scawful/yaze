@@ -258,7 +258,6 @@ var annotated_dup =
             [ "ZeldaWave", "structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaWave.html", "structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaWave" ]
           ] ],
           [ "overworld", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html", [
-            [ "MapData", "structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html", "structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData" ],
             [ "Overworld", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld" ],
             [ "OverworldEntrance", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance.html", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance" ],
             [ "OverworldExit", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit" ],

@@ -164,9 +164,8 @@ var searchData=
   ['loops_20and_20branching_161',['Loops and Branching',['../md_docs_2asm-style-guide.html#autotoc_md8',1,'']]],
   ['lopst_162',['lopst',['../structyaze_1_1app_1_1zelda3_1_1music_1_1Song.html#a863fee8eb28bf2b03c5bbde713f101a2',1,'yaze::app::zelda3::music::Song::lopst'],['../structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaWave.html#a7f8fac0994d744db9938ec93acee0309',1,'yaze::app::zelda3::music::ZeldaWave::lopst']]],
   ['low_5from_163',['LOW_ROM',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a656c5d7c708bc346677991611ab505aca13fd73acd158e42fa79bc6b14ed3235c',1,'yaze::app::emu::memory']]],
-  ['lowdata_164',['lowData',['../structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#ac0b74c47202dcac21769d177be66a441',1,'yaze::app::zelda3::overworld::MapData']]],
-  ['lowerx_5f_165',['lowerX_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#aa222a845ef5040cb1fb35c3f7a3a4240',1,'yaze::app::zelda3::Sprite']]],
-  ['lowery_5f_166',['lowerY_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a2e9273f3602017329233c2e9d753d200',1,'yaze::app::zelda3::Sprite']]],
-  ['lsr_167',['LSR',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a56da1a2caefded33312287e67dd51213',1,'yaze::app::emu::audio::Spc700::LSR()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a5072f70a9c7470c467dee5c8172d5f5a',1,'yaze::app::emu::Cpu::LSR(uint16_t address, bool accumulator=false)']]],
-  ['lsr_168',['Lsr',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a14badf0a328781809eb8e09dccb96321',1,'yaze::app::emu::Cpu']]]
+  ['lowerx_5f_164',['lowerX_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#aa222a845ef5040cb1fb35c3f7a3a4240',1,'yaze::app::zelda3::Sprite']]],
+  ['lowery_5f_165',['lowerY_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a2e9273f3602017329233c2e9d753d200',1,'yaze::app::zelda3::Sprite']]],
+  ['lsr_166',['LSR',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a56da1a2caefded33312287e67dd51213',1,'yaze::app::emu::audio::Spc700::LSR()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a5072f70a9c7470c467dee5c8172d5f5a',1,'yaze::app::emu::Cpu::LSR(uint16_t address, bool accumulator=false)']]],
+  ['lsr_167',['Lsr',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a14badf0a328781809eb8e09dccb96321',1,'yaze::app::emu::Cpu']]]
 ];

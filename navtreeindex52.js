@@ -114,12 +114,6 @@ var NAVTREEINDEX52 =
 "structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaWave.html#aafd7bc7661125d2d5a83e9a6a5c8529d":[12,0,0,0,5,1,9,3],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaWave.html#afba130b28474eaa991a00c9356017912":[11,0,1,0,6,2,9,2],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaWave.html#afba130b28474eaa991a00c9356017912":[12,0,0,0,5,1,9,2],
-"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html":[11,0,1,0,6,3,3],
-"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html":[12,0,0,0,5,2,0],
-"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#a45c7af9c0ee6d1a8ef3b159ab48bc5f0":[11,0,1,0,6,3,3,0],
-"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#a45c7af9c0ee6d1a8ef3b159ab48bc5f0":[12,0,0,0,5,2,0,0],
-"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#ac0b74c47202dcac21769d177be66a441":[11,0,1,0,6,3,3,1],
-"structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html#ac0b74c47202dcac21769d177be66a441":[12,0,0,0,5,2,0,1],
 "structyaze_1_1cli_1_1Commands.html":[11,0,1,1,6],
 "structyaze_1_1cli_1_1Commands.html":[12,0,0,1,5],
 "structyaze_1_1cli_1_1Commands.html#a564941340fe0299473dafc0bb1a1d8a6":[11,0,1,1,6,0],
@@ -249,5 +243,11 @@ var NAVTREEINDEX52 =
 "yaze_8cc.html#ac1b3f6a8db6317860537e91d20a2c7f5":[13,0,1,6,7],
 "yaze_8cc.html#adfaf105df03accd07b94f1e60c6ed8bf":[13,0,1,6,4],
 "yaze_8cc.html#adfb236b5541502ced4544a6678e79d0e":[13,0,1,6,6],
-"yaze_8cc_source.html":[13,0,1,6]
+"yaze_8cc_source.html":[13,0,1,6],
+"yaze_8h.html":[13,0,1,7],
+"yaze_8h.html#a11c9f21801c8a65de35b0cba1a0d6a09":[13,0,1,7,9],
+"yaze_8h.html#a2f31206311a6fa23618eed894f1f5cd6":[13,0,1,7,14],
+"yaze_8h.html#a85553b5710db1102c037bdb355991631":[13,0,1,7,7],
+"yaze_8h.html#a883ab5865f5e61a639dc3dafcd45e8c7":[13,0,1,7,17],
+"yaze_8h.html#a92aac5e465c19a821bf5ce2f19943651":[13,0,1,7,15]
 };

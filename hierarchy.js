@@ -154,7 +154,6 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::M7X", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7X.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::M7Y", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7Y.html", null ],
     [ "yaze::app::emu::video::MainSubScreenDesignation", "structyaze_1_1app_1_1emu_1_1video_1_1MainSubScreenDesignation.html", null ],
-    [ "yaze::app::zelda3::overworld::MapData", "structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html", null ],
     [ "yaze::app::emu::video::MaskLogicSettings", "structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html", null ],
     [ "yaze::app::emu::memory::Memory", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html", [
       [ "yaze::app::emu::memory::MemoryImpl", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html", null ],

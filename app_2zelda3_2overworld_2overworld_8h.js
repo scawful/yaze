@@ -3,7 +3,6 @@ var app_2zelda3_2overworld_2overworld_8h =
     [ "yaze::app::zelda3::overworld::OverworldItem", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldItem.html", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldItem" ],
     [ "yaze::app::zelda3::overworld::OverworldExit", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit" ],
     [ "yaze::app::zelda3::overworld::OverworldEntrance", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance.html", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance" ],
-    [ "yaze::app::zelda3::overworld::MapData", "structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html", "structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData" ],
     [ "yaze::app::zelda3::overworld::Overworld", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld" ],
     [ "GravesYTilePos", "app_2zelda3_2overworld_2overworld_8h.html#acc88e87fcf3a9cb23c1fe5e914225cc2", null ],
     [ "GravesXTilePos", "app_2zelda3_2overworld_2overworld_8h.html#af238c3102b938d90024047658e064bd4", null ],
