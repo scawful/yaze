@@ -438,11 +438,6 @@ constexpr int LimitOfMap32 = 8864;
 constexpr int NumberOfOWSprites = 352;
 constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
 
-struct MapData {
-  std::vector<uint8_t> highData;
-  std::vector<uint8_t> lowData;
-};
-
 /**
  * @brief Represents the full Overworld data, light and dark world.
  *
