@@ -37,7 +37,7 @@ var searchData=
   ['empty_34',['Empty',['../structyaze_1_1app_1_1editor_1_1TextElement.html#a5e4935ff0f5aa23e63c7369c4d0e9d2e',1,'yaze::app::editor::TextElement']]],
   ['empty_35',['empty',['../classyaze_1_1app_1_1gfx_1_1SnesPalette.html#acafdde853184fe8a13d3716a71a9280f',1,'yaze::app::gfx::SnesPalette::empty()'],['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#ac6db5712e9f2bacd6b439cfa9bbcd007',1,'yaze::app::gfx::PaletteGroupMap::empty()']]],
   ['emu_2ecc_36',['emu.cc',['../emu_8cc.html',1,'']]],
-  ['emulator_37',['Emulator',['../classyaze_1_1app_1_1emu_1_1Emulator.html',1,'yaze::app::emu::Emulator'],['../classyaze_1_1cli_1_1Emulator.html',1,'yaze::cli::Emulator'],['../classyaze_1_1app_1_1emu_1_1Emulator.html#a6243b4d5bab5741b747a8b7755027dac',1,'yaze::app::emu::Emulator::Emulator()']]],
+  ['emulator_37',['Emulator',['../classyaze_1_1app_1_1emu_1_1Emulator.html',1,'yaze::app::emu::Emulator'],['../classyaze_1_1app_1_1emu_1_1Emulator.html#a6243b4d5bab5741b747a8b7755027dac',1,'yaze::app::emu::Emulator::Emulator()']]],
   ['emulator_38',['emulator',['../classyaze_1_1app_1_1editor_1_1EditorManager.html#a3f47746661640b9b0a2828bd9eba8556',1,'yaze::app::editor::EditorManager']]],
   ['emulator_20subsystem_39',['3. Emulator Subsystem',['../md_docs_2contributing.html#autotoc_md32',1,'']]],
   ['emulator_2ecc_40',['emulator.cc',['../emulator_8cc.html',1,'']]],

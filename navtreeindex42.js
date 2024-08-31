@@ -1,10 +1,5 @@
 var NAVTREEINDEX42 =
 {
-"namespaceyaze_1_1test_1_1emu.html#aef5bd9a59e96ac6b65c1b5136369330c":[11,0,1,2,0,85],
-"namespaceyaze_1_1test_1_1emu.html#aef6b9ce23acae39a39316b77a2b41e18":[11,0,1,2,0,306],
-"namespaceyaze_1_1test_1_1emu.html#aefa3137d9c7820a8dad40eb49375ac2e":[11,0,1,2,0,110],
-"namespaceyaze_1_1test_1_1emu.html#af01447f9faebfbd01fd59037988bfdae":[11,0,1,2,0,192],
-"namespaceyaze_1_1test_1_1emu.html#af02a4fc3e79210d16a3166a7a3751a50":[11,0,1,2,0,80],
 "namespaceyaze_1_1test_1_1emu.html#af11f7de3d969ef12e0f1efaaeab17afd":[11,0,1,2,0,119],
 "namespaceyaze_1_1test_1_1emu.html#af13905fa42495983e9308ffe9cb29fc7":[11,0,1,2,0,146],
 "namespaceyaze_1_1test_1_1emu.html#af1984270a56b75c7f901862bab74a929":[11,0,1,2,0,231],
@@ -151,6 +146,8 @@ var NAVTREEINDEX42 =
 "palette__editor_8cc_source.html":[13,0,1,0,1,2,4],
 "palette__editor_8h.html":[13,0,1,0,1,2,5],
 "palette__editor_8h_source.html":[13,0,1,0,1,2,5],
+"patch_8cc.html":[13,0,1,1,0,1],
+"patch_8cc_source.html":[13,0,1,1,0,1],
 "ppu_8cc.html":[13,0,1,0,2,4,0],
 "ppu_8cc_source.html":[13,0,1,0,2,4,0],
 "ppu_8h.html":[13,0,1,0,2,4,1],
@@ -249,5 +246,8 @@ var NAVTREEINDEX42 =
 "renderer_8h_source.html":[13,0,1,0,0,0,13],
 "rom_8cc.html":[13,0,1,0,6],
 "rom_8cc.html#a02c28e406561ede6e5a46381e26b4653":[13,0,1,0,6,2],
-"rom_8cc.html#a4c2c2d45869b398e8183f4215fb8c25b":[13,0,1,0,6,1]
+"rom_8cc.html#a4c2c2d45869b398e8183f4215fb8c25b":[13,0,1,0,6,1],
+"rom_8cc.html#af32ff136fcce381db4ac72da93552f31":[13,0,1,0,6,0],
+"rom_8cc_source.html":[13,0,1,0,6],
+"rom_8h.html":[13,0,1,0,7]
 };

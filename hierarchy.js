@@ -50,7 +50,6 @@ var hierarchy =
       [ "yaze::cli::Compress", "classyaze_1_1cli_1_1Compress.html", null ],
       [ "yaze::cli::CreatePatch", "classyaze_1_1cli_1_1CreatePatch.html", null ],
       [ "yaze::cli::Decompress", "classyaze_1_1cli_1_1Decompress.html", null ],
-      [ "yaze::cli::Emulator", "classyaze_1_1cli_1_1Emulator.html", null ],
       [ "yaze::cli::Expand", "classyaze_1_1cli_1_1Expand.html", null ],
       [ "yaze::cli::Open", "classyaze_1_1cli_1_1Open.html", null ],
       [ "yaze::cli::PcToSnes", "classyaze_1_1cli_1_1PcToSnes.html", null ],

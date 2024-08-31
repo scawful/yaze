@@ -257,7 +257,7 @@ var searchData=
   ['sndlen1_254',['sndlen1',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#ad33f81b99dcf2688ea9bf0d049f6d6d2',1,'yaze::app::zelda3::music::Tracker']]],
   ['sndlen2_255',['sndlen2',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a7d2f17d88712ada04f411fe69aeb9cdf',1,'yaze::app::zelda3::music::Tracker']]],
   ['snes_256',['SNES',['../classyaze_1_1app_1_1emu_1_1SNES.html',1,'yaze::app::emu::SNES'],['../classyaze_1_1app_1_1emu_1_1SNES.html#a822681136d9a3009b5cbf13fb7d9bc5a',1,'yaze::app::emu::SNES::SNES()']]],
-  ['snes_257',['snes',['../classyaze_1_1cli_1_1Emulator.html#a785295296362f373a818e5089afd0d96',1,'yaze::cli::Emulator::snes'],['../classyaze_1_1app_1_1emu_1_1Emulator.html#aebd3efff1294c50a7a54fe928c48ca2d',1,'yaze::app::emu::Emulator::snes()'],['../classyaze_1_1app_1_1gfx_1_1SnesColor.html#adaa3a2d2195382f2172c39a62e33dcaa',1,'yaze::app::gfx::SnesColor::snes()']]],
+  ['snes_257',['snes',['../classyaze_1_1app_1_1emu_1_1Emulator.html#aebd3efff1294c50a7a54fe928c48ca2d',1,'yaze::app::emu::Emulator::snes()'],['../classyaze_1_1app_1_1gfx_1_1SnesColor.html#adaa3a2d2195382f2172c39a62e33dcaa',1,'yaze::app::gfx::SnesColor::snes()']]],
   ['snes_2ecc_258',['snes.cc',['../snes_8cc.html',1,'']]],
   ['snes_2eh_259',['snes.h',['../snes_8h.html',1,'']]],
   ['snes_5f_260',['snes_',['../classyaze_1_1app_1_1emu_1_1Emulator.html#a6c6ccc11f41bdc323dfa4c1bd1ab5dfa',1,'yaze::app::emu::Emulator::snes_'],['../classyaze_1_1app_1_1gfx_1_1SnesColor.html#a3e744b22ab31142ad22076ed5b28fd56',1,'yaze::app::gfx::SnesColor::snes_']]],

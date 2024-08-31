@@ -13,7 +13,6 @@ var namespaceyaze_1_1cli =
     [ "Compress", "classyaze_1_1cli_1_1Compress.html", "classyaze_1_1cli_1_1Compress" ],
     [ "CreatePatch", "classyaze_1_1cli_1_1CreatePatch.html", "classyaze_1_1cli_1_1CreatePatch" ],
     [ "Decompress", "classyaze_1_1cli_1_1Decompress.html", "classyaze_1_1cli_1_1Decompress" ],
-    [ "Emulator", "classyaze_1_1cli_1_1Emulator.html", "classyaze_1_1cli_1_1Emulator" ],
     [ "Expand", "classyaze_1_1cli_1_1Expand.html", "classyaze_1_1cli_1_1Expand" ],
     [ "Open", "classyaze_1_1cli_1_1Open.html", "classyaze_1_1cli_1_1Open" ],
     [ "PcToSnes", "classyaze_1_1cli_1_1PcToSnes.html", "classyaze_1_1cli_1_1PcToSnes" ],
