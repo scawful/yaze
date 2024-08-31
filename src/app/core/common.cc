@@ -294,7 +294,7 @@ absl::StatusOr<std::string> CheckVersion(const char *version) {
   if (version_string != kYazeVersion) {
     std::string message =
         absl::StrFormat("Yaze version mismatch: expected %s, got %s",
-                        kYazeVersion, version_string.c_str());
+                        kYazeVersion.data(), version_string.c_str());
     return absl::InvalidArgumentError(message);
   }
   return version_string;
