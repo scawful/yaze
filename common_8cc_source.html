@@ -441,7 +441,7 @@ $(function(){initNavTree('common_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>  <span class="keywordflow">if</span> (version_string != <a class="code hl_variable" href="namespaceyaze_1_1app_1_1core.html#aeb4d11eb76af13a125dd20d79bc2bce3">kYazeVersion</a>) {</div>
 <div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>    std::string message =</div>
 <div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>        absl::StrFormat(<span class="stringliteral">&quot;Yaze version mismatch: expected %s, got %s&quot;</span>,</div>
-<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>                        <a class="code hl_variable" href="namespaceyaze_1_1app_1_1core.html#aeb4d11eb76af13a125dd20d79bc2bce3">kYazeVersion</a>, version_string.c_str());</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>                        <a class="code hl_variable" href="namespaceyaze_1_1app_1_1core.html#aeb4d11eb76af13a125dd20d79bc2bce3">kYazeVersion</a>.data(), version_string.c_str());</div>
 <div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>    <span class="keywordflow">return</span> absl::InvalidArgumentError(message);</div>
 <div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>  }</div>
 <div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>  <span class="keywordflow">return</span> version_string;</div>
