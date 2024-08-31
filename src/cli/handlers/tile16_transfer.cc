@@ -1,12 +1,11 @@
-#include "cli/command_handler.h"
+#include <string>
+#include <vector>
 
-#include <string>  // for basic_string, char_traits, stoi
-#include <vector>  // for vector, vector<>::value_type
-
-#include "absl/status/status.h"  // for OkStatus, Status
-#include "app/core/common.h"     // for app
-#include "app/core/constants.h"  // for RETURN_IF_ERROR
-#include "app/rom.h"             // for ROM
+#include "absl/status/status.h"
+#include "app/core/common.h"
+#include "app/core/constants.h"
+#include "app/rom.h"
+#include "cli/command.h"
 
 namespace yaze {
 namespace cli {
