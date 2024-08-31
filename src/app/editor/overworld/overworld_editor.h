@@ -54,7 +54,7 @@ static constexpr absl::string_view kToolsetColumnNames[] = {
     "#zoomInTool",    "#separator",  "#drawTool",        "#history",
     "#entranceTool",  "#exitTool",   "#itemTool",        "#spriteTool",
     "#transportTool", "#musicTool",  "#separator3",      "#tilemapTool",
-    "propertiesTool", "#separator4", "#experimentalTool"};
+    "propertiesTool", "#separator4", "#experimentalTool", "#properties", "#separator5"};
 
 constexpr absl::string_view kWorldList =
     "Light World\0Dark World\0Extra World\0";
