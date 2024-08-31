@@ -1,7 +1,9 @@
 add_executable(
   z3ed
   cli/z3ed.cc
-  cli/command_handler.cc
+  cli/handlers/compress.cc
+  cli/handlers/patch.cc
+  cli/handlers/tile16_transfer.cc
   app/rom.cc
   app/core/common.cc
   app/core/labeling.cc

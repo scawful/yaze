@@ -62,65 +62,17 @@ class CommandHandler {
 
 class ApplyPatch : public CommandHandler {
  public:
-  absl::Status handle(const std::vector<std::string>& arg_vec) override {
-    std::string rom_filename = arg_vec[1];
-    std::string patch_filename = arg_vec[2];
-    RETURN_IF_ERROR(rom_.LoadFromFile(rom_filename))
-    auto source = rom_.vector();
-    std::ifstream patch_file(patch_filename, std::ios::binary);
-    std::vector<uint8_t> patch;
-    patch.resize(rom_.size());
-    patch_file.read((char*)patch.data(), patch.size());
-
-    // Apply patch
-    std::vector<uint8_t> patched;
-    app::core::ApplyBpsPatch(source, patch, patched);
-
-    // Save patched file
-    std::ofstream patched_rom("patched.sfc", std::ios::binary);
-    patched_rom.write((char*)patched.data(), patched.size());
-    patched_rom.close();
-    return absl::OkStatus();
-  }
+  absl::Status handle(const std::vector<std::string>& arg_vec) override;
 };
 
 class AsarPatch : public CommandHandler {
  public:
-  absl::Status handle(const std::vector<std::string>& arg_vec) override {
-    std::string patch_filename = arg_vec[1];
-    std::string rom_filename = arg_vec[2];
-    RETURN_IF_ERROR(rom_.LoadFromFile(rom_filename))
-    int buflen = rom_.vector().size();
-    int romlen = rom_.vector().size();
-    if (!asar_patch(patch_filename.c_str(), rom_filename.data(), buflen,
-                    &romlen)) {
-      std::string error_message = "Failed to apply patch: ";
-      int num_errors = 0;
-      const errordata* errors = asar_geterrors(&num_errors);
-      for (int i = 0; i < num_errors; i++) {
-        error_message += absl::StrFormat("%s", errors[i].fullerrdata);
-      }
-      return absl::InternalError(error_message);
-    }
-    return absl::OkStatus();
-  }
+  absl::Status handle(const std::vector<std::string>& arg_vec) override;
 };
 
 class CreatePatch : public CommandHandler {
  public:
-  absl::Status handle(const std::vector<std::string>& arg_vec) override {
-    std::vector<uint8_t> source;
-    std::vector<uint8_t> target;
-    std::vector<uint8_t> patch;
-    // Create patch
-    app::core::CreateBpsPatch(source, target, patch);
-
-    // Save patch to file
-    // std::ofstream patchFile("patch.bps", ios::binary);
-    // patchFile.write(reinterpret_cast<const char*>(patch.data()),
-    // patch.size()); patchFile.close();
-    return absl::OkStatus();
-  }
+  absl::Status handle(const std::vector<std::string>& arg_vec) override;
 };
 
 /**
@@ -161,10 +113,7 @@ class Backup : public CommandHandler {
 // Compress Graphics
 class Compress : public CommandHandler {
  public:
-  absl::Status handle(const std::vector<std::string>& arg_vec) override {
-    std::cout << "Compress selected with argument: " << arg_vec[0] << std::endl;
-    return absl::OkStatus();
-  }
+  absl::Status handle(const std::vector<std::string>& arg_vec) override;
 };
 
 // Decompress (Export) Graphics
@@ -174,27 +123,7 @@ class Compress : public CommandHandler {
 // mode:
 class Decompress : public CommandHandler {
  public:
-  absl::Status handle(const std::vector<std::string>& arg_vec) override {
-    ColorModifier underline(ColorCode::FG_UNDERLINE);
-    ColorModifier reset(ColorCode::FG_RESET);
-    std::cout << "Please specify the tilesheets you want to export\n";
-    std::cout << "You can input an individual sheet, a range X-Y, or comma "
-                 "separate values.\n\n";
-    std::cout << underline << "Tilesheets\n" << reset;
-    std::cout << "0-112 -> compressed 3bpp bgr \n";
-    std::cout << "113-114 -> compressed 2bpp\n";
-    std::cout << "115-126 -> uncompressed 3bpp sprites\n";
-    std::cout << "127-217 -> compressed 3bpp sprites\n";
-    std::cout << "218-222 -> compressed 2bpp\n";
-
-    std::cout << "Enter tilesheets: ";
-    std::string sheet_input;
-    std::cin >> sheet_input;
-
-    std::cout << "Decompress selected with argument: " << arg_vec[0]
-              << std::endl;
-    return absl::UnimplementedError("Decompress not implemented");
-  }
+  absl::Status handle(const std::vector<std::string>& arg_vec) override;
 };
 
 /**
@@ -312,29 +241,10 @@ class Expand : public CommandHandler {
 };
 
 /**
- * @brief Start the emulator on a SNES Rom file.
-
-  * @param arg_vec `-emu <rom_file> <optional:num_cpu_cycles>`
-  * @return absl::Status
-*/
-class Emulator : public CommandHandler {
- public:
-  absl::Status handle(const std::vector<std::string>& arg_vec) override {
-    std::string filename = arg_vec[0];
-    RETURN_IF_ERROR(rom_.LoadFromFile(filename))
-
-    return absl::OkStatus();
-  }
-
-  app::emu::SNES snes;
-};
-
-/**
  * @brief Command handler for the CLI.
  */
 struct Commands {
   std::unordered_map<std::string, std::shared_ptr<CommandHandler>> handlers = {
-      {"-emu", std::make_shared<Emulator>()},
       {"-a", std::make_shared<ApplyPatch>()},
       {"-asar", std::make_shared<AsarPatch>()},
       {"-c", std::make_shared<CreatePatch>()},

@@ -8,10 +8,14 @@
 #include <unordered_map>
 #include <vector>
 
+#include "absl/flags/flag.h"
 #include "absl/status/status.h"
 #include "app/core/constants.h"
 #include "app/rom.h"
-#include "cli/command_handler.h"
+#include "cli/command.h"
+
+ABSL_FLAG(bool, verbose, false, "Enable verbose output");
+ABSL_FLAG(bool, debug, false, "Enable debug output");
 
 namespace yaze {
 
