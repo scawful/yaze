@@ -17,7 +17,7 @@ set(YAZE_INSTALL_LIB OFF)
 # libpng features in bitmap.cc
 add_definitions("-DYAZE_LIB_PNG=1")
 
-# C++ Standard and CMake Specifications 
+# C++ Standard and CMake Specifications
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -39,7 +39,7 @@ include(cmake/absl.cmake)
 # SDL2 and PNG
 include(cmake/sdl2.cmake)
 
-# Asar 
+# Asar
 include(cmake/asar.cmake)
 
 # ImGui
