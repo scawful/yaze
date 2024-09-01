@@ -50,11 +50,12 @@ constexpr ImGuiTableFlags kOWEditFlags =
     ImGuiTableFlags_BordersV;
 
 static constexpr absl::string_view kToolsetColumnNames[] = {
-    "#undoTool",      "#redoTool",   "#separator2",      "#zoomOutTool",
-    "#zoomInTool",    "#separator",  "#drawTool",        "#history",
-    "#entranceTool",  "#exitTool",   "#itemTool",        "#spriteTool",
-    "#transportTool", "#musicTool",  "#separator3",      "#tilemapTool",
-    "propertiesTool", "#separator4", "#experimentalTool", "#properties", "#separator5"};
+    "#undoTool",      "#redoTool",   "#separator2",       "#zoomOutTool",
+    "#zoomInTool",    "#separator",  "#drawTool",         "#history",
+    "#entranceTool",  "#exitTool",   "#itemTool",         "#spriteTool",
+    "#transportTool", "#musicTool",  "#separator3",       "#tilemapTool",
+    "propertiesTool", "#separator4", "#experimentalTool", "#properties",
+    "#separator5"};
 
 constexpr absl::string_view kWorldList =
     "Light World\0Dark World\0Extra World\0";
@@ -229,6 +230,21 @@ class OverworldEditor : public Editor,
 
   EditingMode current_mode = EditingMode::DRAW_TILE;
   EditingMode previous_mode = EditingMode::DRAW_TILE;
+
+  enum OverworldProperty {
+    LW_AREA_GFX,
+    DW_AREA_GFX,
+    LW_AREA_PAL,
+    DW_AREA_PAL,
+    LW_SPR_GFX_PART1,
+    LW_SPR_GFX_PART2,
+    DW_SPR_GFX_PART1,
+    DW_SPR_GFX_PART2,
+    LW_SPR_PAL_PART1,
+    LW_SPR_PAL_PART2,
+    DW_SPR_PAL_PART1,
+    DW_SPR_PAL_PART2,
+  };
 
   int current_world_ = 0;
   int current_map_ = 0;

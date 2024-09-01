@@ -1268,54 +1268,94 @@ void OverworldEditor::DrawOverworldProperties() {
     for (int i = 0; i < 0x40; i++) {
       std::string area_graphics_str = absl::StrFormat(
           "%02hX", overworld_.overworld_map(i)->area_graphics());
-      properties_canvas_.mutable_labels(0)->push_back(area_graphics_str);
+      properties_canvas_.mutable_labels(OverworldProperty::LW_AREA_GFX)
+          ->push_back(area_graphics_str);
+
       area_graphics_str = absl::StrFormat(
           "%02hX", overworld_.overworld_map(i + 0x40)->area_graphics());
-      properties_canvas_.mutable_labels(3)->push_back(area_graphics_str);
-    }
-    for (int i = 0; i < 0x40; i++) {
+      properties_canvas_.mutable_labels(OverworldProperty::DW_AREA_GFX)
+          ->push_back(area_graphics_str);
+
       std::string area_palette_str =
           absl::StrFormat("%02hX", overworld_.overworld_map(i)->area_palette());
-      properties_canvas_.mutable_labels(1)->push_back(area_palette_str);
+      properties_canvas_.mutable_labels(OverworldProperty::LW_AREA_PAL)
+          ->push_back(area_palette_str);
+
       area_palette_str = absl::StrFormat(
           "%02hX", overworld_.overworld_map(i + 0x40)->area_palette());
-      properties_canvas_.mutable_labels(4)->push_back(area_palette_str);
-    }
-    for (int i = 0; i < 0x40; i++) {
+      properties_canvas_.mutable_labels(OverworldProperty::DW_AREA_PAL)
+          ->push_back(area_palette_str);
       std::string sprite_gfx_str = absl::StrFormat(
           "%02hX", overworld_.overworld_map(i)->sprite_graphics(1));
-      properties_canvas_.mutable_labels(6)->push_back(sprite_gfx_str);
+      properties_canvas_.mutable_labels(OverworldProperty::LW_SPR_GFX_PART1)
+          ->push_back(sprite_gfx_str);
+
+      sprite_gfx_str = absl::StrFormat(
+          "%02hX", overworld_.overworld_map(i)->sprite_graphics(2));
+      properties_canvas_.mutable_labels(OverworldProperty::LW_SPR_GFX_PART2)
+          ->push_back(sprite_gfx_str);
+
       sprite_gfx_str = absl::StrFormat(
           "%02hX", overworld_.overworld_map(i + 0x40)->sprite_graphics(1));
-      properties_canvas_.mutable_labels(7)->push_back(sprite_gfx_str);
-    }
-    for (int i = 0; i < 0x40; i++) {
+      properties_canvas_.mutable_labels(OverworldProperty::DW_SPR_GFX_PART1)
+          ->push_back(sprite_gfx_str);
+
+      sprite_gfx_str = absl::StrFormat(
+          "%02hX", overworld_.overworld_map(i + 0x40)->sprite_graphics(2));
+      properties_canvas_.mutable_labels(OverworldProperty::DW_SPR_GFX_PART2)
+          ->push_back(sprite_gfx_str);
+
       std::string sprite_palette_str = absl::StrFormat(
           "%02hX", overworld_.overworld_map(i)->sprite_palette(1));
-      properties_canvas_.mutable_labels(2)->push_back(sprite_palette_str);
+      properties_canvas_.mutable_labels(OverworldProperty::LW_SPR_PAL_PART1)
+          ->push_back(sprite_palette_str);
+
+      sprite_palette_str = absl::StrFormat(
+          "%02hX", overworld_.overworld_map(i)->sprite_palette(2));
+      properties_canvas_.mutable_labels(OverworldProperty::LW_SPR_PAL_PART2)
+          ->push_back(sprite_palette_str);
+
       sprite_palette_str = absl::StrFormat(
           "%02hX", overworld_.overworld_map(i + 0x40)->sprite_palette(1));
-      properties_canvas_.mutable_labels(5)->push_back(sprite_palette_str);
+      properties_canvas_.mutable_labels(OverworldProperty::DW_SPR_PAL_PART1)
+          ->push_back(sprite_palette_str);
+
+      sprite_palette_str = absl::StrFormat(
+          "%02hX", overworld_.overworld_map(i + 0x40)->sprite_palette(2));
+      properties_canvas_.mutable_labels(OverworldProperty::DW_SPR_PAL_PART2)
+          ->push_back(sprite_palette_str);
     }
     init_properties = true;
   }
 
   Text("Area Gfx LW/DW");
-  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32, 0);
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32,
+                                    OverworldProperty::LW_AREA_GFX);
   SameLine();
-  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32, 1);
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32,
+                                    OverworldProperty::DW_AREA_GFX);
   ImGui::Separator();
 
   Text("Sprite Gfx LW/DW");
-  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32, 6);
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32,
+                                    OverworldProperty::LW_SPR_GFX_PART1);
   SameLine();
-  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32, 7);
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32,
+                                    OverworldProperty::DW_SPR_GFX_PART1);
+  SameLine();
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32,
+                                    OverworldProperty::LW_SPR_GFX_PART2);
+  SameLine();
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32,
+                                    OverworldProperty::DW_SPR_GFX_PART2);
   ImGui::Separator();
 
   Text("Area Pal LW/DW");
-  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32, 2);
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32,
+                                    OverworldProperty::LW_AREA_PAL);
   SameLine();
-  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32, 3);
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32,
+                                    OverworldProperty::DW_AREA_PAL);
 
   static bool show_gfx_group = false;
   Checkbox("Show Gfx Group Editor", &show_gfx_group);
