@@ -10,7 +10,6 @@ add_executable(
   test/integration/test_editor.cc
   test/zelda3/overworld_test.cc
   test/zelda3/sprite_builder_test.cc
-  cli/command_handler.cc
   app/rom.cc
   app/core/common.cc
   app/core/labeling.cc

@@ -21,7 +21,7 @@ if (YAZE_BUILD_EMU)
   include(app/emu/emu.cmake)
 endif()
 if (YAZE_BUILD_Z3ED)
-  include(cli/z3ed.cmake) 
+  include(cli/z3ed.cmake)
 endif()
 if (YAZE_BUILD_PYTHON)
   include(py/yaze_py.cmake)
@@ -35,9 +35,9 @@ if (UNIX)
   target_compile_definitions(yaze PRIVATE "stricmp=strcasecmp")
 endif()
 
-if(MACOS)         
+if(MACOS)
   set(MACOSX_BUNDLE_ICON_FILE ${CMAKE_SOURCE_DIR}/yaze.ico)
-  set_target_properties(yaze 
+  set_target_properties(yaze
       PROPERTIES
       BUNDLE True
       ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
@@ -46,7 +46,7 @@ if(MACOS)
       MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/cmake/yaze.plist.in
   )
 elseif(UNIX)
-  set_target_properties(yaze 
+  set_target_properties(yaze
     PROPERTIES
     BUNDLE True
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
@@ -105,7 +105,7 @@ if (YAZE_BUILD_LIB)
             ARCHIVE DESTINATION lib/static)
 
     install(
-    FILES 
+    FILES
       yaze.h
       incl/sprite.h
       incl/snes_color.h
