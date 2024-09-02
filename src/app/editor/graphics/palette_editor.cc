@@ -85,6 +85,93 @@ static inline float color_saturate(float f) {
          0.5f))  // Saturated, always output 0..255
 }  // namespace
 
+absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
+  static ImVec4 color = ImVec4(0, 0, 0, 255.f);
+  static ImVec4 current_palette[256] = {};
+  ImGuiColorEditFlags misc_flags = ImGuiColorEditFlags_AlphaPreview |
+                                   ImGuiColorEditFlags_NoDragDrop |
+                                   ImGuiColorEditFlags_NoOptions;
+
+  // Generate a default palette. The palette will persist and can be edited.
+  static bool init = false;
+  if (loaded && !init) {
+    for (int n = 0; n < palette.size(); n++) {
+      ASSIGN_OR_RETURN(auto color, palette.GetColor(n));
+      current_palette[n].x = color.rgb().x / 255;
+      current_palette[n].y = color.rgb().y / 255;
+      current_palette[n].z = color.rgb().z / 255;
+      current_palette[n].w = 255;  // Alpha
+    }
+    init = true;
+  }
+
+  static ImVec4 backup_color;
+  bool open_popup = ColorButton("MyColor##3b", color, misc_flags);
+  SameLine(0, GetStyle().ItemInnerSpacing.x);
+  open_popup |= Button("Palette");
+  if (open_popup) {
+    OpenPopup("mypicker");
+    backup_color = color;
+  }
+
+  if (BeginPopup("mypicker")) {
+    TEXT_WITH_SEPARATOR("Current Overworld Palette");
+    ColorPicker4("##picker", (float*)&color,
+                 misc_flags | ImGuiColorEditFlags_NoSidePreview |
+                     ImGuiColorEditFlags_NoSmallPreview);
+    SameLine();
+
+    BeginGroup();  // Lock X position
+    Text("Current ==>");
+    SameLine();
+    Text("Previous");
+
+    if (Button("Update Map Palette")) {
+    }
+
+    ColorButton(
+        "##current", color,
+        ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf,
+        ImVec2(60, 40));
+    SameLine();
+
+    if (ColorButton(
+            "##previous", backup_color,
+            ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf,
+            ImVec2(60, 40)))
+      color = backup_color;
+
+    // List of Colors in Overworld Palette
+    Separator();
+    Text("Palette");
+    for (int n = 0; n < IM_ARRAYSIZE(current_palette); n++) {
+      PushID(n);
+      if ((n % 8) != 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
+
+      if (ColorButton("##palette", current_palette[n], kPalButtonFlags2,
+                      ImVec2(20, 20)))
+        color = ImVec4(current_palette[n].x, current_palette[n].y,
+                       current_palette[n].z, color.w);  // Preserve alpha!
+
+      if (BeginDragDropTarget()) {
+        if (const ImGuiPayload* payload =
+                AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F))
+          memcpy((float*)&current_palette[n], payload->Data, sizeof(float) * 3);
+        if (const ImGuiPayload* payload =
+                AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_4F))
+          memcpy((float*)&current_palette[n], payload->Data, sizeof(float) * 4);
+        EndDragDropTarget();
+      }
+
+      PopID();
+    }
+    EndGroup();
+    EndPopup();
+  }
+
+  return absl::OkStatus();
+}
+
 absl::Status PaletteEditor::Update() {
   if (rom()->is_loaded()) {
     // Initialize the labels
@@ -355,84 +442,6 @@ absl::Status PaletteEditor::HandleColorPopup(gfx::SnesPalette& palette, int i,
 
   EndPopup();
   return absl::OkStatus();
-}
-
-void PaletteEditor::DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
-  static ImVec4 color = ImVec4(0, 0, 0, 255.f);
-  ImGuiColorEditFlags misc_flags = ImGuiColorEditFlags_AlphaPreview |
-                                   ImGuiColorEditFlags_NoDragDrop |
-                                   ImGuiColorEditFlags_NoOptions;
-
-  // Generate a default palette. The palette will persist and can be edited.
-  static bool init = false;
-  if (loaded && !init) {
-    status_ = InitializeSavedPalette(palette);
-    init = true;
-  }
-
-  static ImVec4 backup_color;
-  bool open_popup = ColorButton("MyColor##3b", color, misc_flags);
-  SameLine(0, GetStyle().ItemInnerSpacing.x);
-  open_popup |= Button("Palette");
-  if (open_popup) {
-    OpenPopup("mypicker");
-    backup_color = color;
-  }
-
-  if (BeginPopup("mypicker")) {
-    TEXT_WITH_SEPARATOR("Current Overworld Palette");
-    ColorPicker4("##picker", (float*)&color,
-                 misc_flags | ImGuiColorEditFlags_NoSidePreview |
-                     ImGuiColorEditFlags_NoSmallPreview);
-    SameLine();
-
-    BeginGroup();  // Lock X position
-    Text("Current ==>");
-    SameLine();
-    Text("Previous");
-
-    if (Button("Update Map Palette")) {
-    }
-
-    ColorButton(
-        "##current", color,
-        ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf,
-        ImVec2(60, 40));
-    SameLine();
-
-    if (ColorButton(
-            "##previous", backup_color,
-            ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf,
-            ImVec2(60, 40)))
-      color = backup_color;
-
-    // List of Colors in Overworld Palette
-    Separator();
-    Text("Palette");
-    for (int n = 0; n < IM_ARRAYSIZE(saved_palette_); n++) {
-      PushID(n);
-      if ((n % 8) != 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
-
-      if (ColorButton("##palette", saved_palette_[n], kPalButtonFlags2,
-                      ImVec2(20, 20)))
-        color = ImVec4(saved_palette_[n].x, saved_palette_[n].y,
-                       saved_palette_[n].z, color.w);  // Preserve alpha!
-
-      if (BeginDragDropTarget()) {
-        if (const ImGuiPayload* payload =
-                AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F))
-          memcpy((float*)&saved_palette_[n], payload->Data, sizeof(float) * 3);
-        if (const ImGuiPayload* payload =
-                AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_4F))
-          memcpy((float*)&saved_palette_[n], payload->Data, sizeof(float) * 4);
-        EndDragDropTarget();
-      }
-
-      PopID();
-    }
-    EndGroup();
-    EndPopup();
-  }
 }
 
 absl::Status PaletteEditor::EditColorInPalette(gfx::SnesPalette& palette,
