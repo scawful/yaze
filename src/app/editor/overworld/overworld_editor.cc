@@ -205,7 +205,7 @@ void OverworldEditor::DrawToolset() {
     HOVER_HINT("Copy Map to Clipboard");
 
     TableNextColumn();  // Palette
-    palette_editor_.DisplayPalette(palette_, overworld_.is_loaded());
+    DisplayPalette(palette_, overworld_.is_loaded());
 
     TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
 
