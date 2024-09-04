@@ -39,7 +39,7 @@ var searchData=
   ['display_36',['Display',['../classyaze_1_1app_1_1gui_1_1BitmapViewer.html#ae6a86e35e36f01d7ee37de4408cb33a7',1,'yaze::app::gui::BitmapViewer']]],
   ['displaycategorytable_37',['DisplayCategoryTable',['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a3e63e29b01fb5fd97acd9d710f5560a9',1,'yaze::app::editor::PaletteEditor']]],
   ['displaylabels_38',['DisplayLabels',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#a4a7244cd437062f705d72ac6abc08f35',1,'yaze::app::core::ResourceLabelManager']]],
-  ['displaypalette_39',['DisplayPalette',['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html#aabc08b8ae1c0e6fa35d69700dec1ab10',1,'yaze::app::editor::PaletteEditor::DisplayPalette()'],['../namespaceyaze_1_1app_1_1gui.html#a37d30bfb30a0b8009d689eee0085eed0',1,'yaze::app::gui::DisplayPalette()']]],
+  ['displaypalette_39',['DisplayPalette',['../namespaceyaze_1_1app_1_1editor.html#af2891f5f91ee57327ed884b879cac364',1,'yaze::app::editor::DisplayPalette()'],['../namespaceyaze_1_1app_1_1gui.html#a37d30bfb30a0b8009d689eee0085eed0',1,'yaze::app::gui::DisplayPalette()']]],
   ['displaytextoverflowerror_40',['DisplayTextOverflowError',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a24a9e21df7d1ca2e0ac038bd4f2991e7',1,'yaze::app::editor::MessageEditor']]],
   ['div_41',['DIV',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a6570d92730e20c1b1619e5cdd8821073',1,'yaze::app::emu::audio::Spc700']]],
   ['dma_5fchannels_42',['dma_channels',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a27824db4c395c5a49017d5651947a531',1,'yaze::app::emu::memory::MemoryImpl']]],

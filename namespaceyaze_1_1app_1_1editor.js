@@ -68,6 +68,7 @@ var namespaceyaze_1_1app_1_1editor =
       [ "kMessage", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52a9b74dc5b6954a9e2ba62b24c1f8c01e0", null ],
       [ "kSettings", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52ac935a934100d15241aefe3f7081e7767", null ]
     ] ],
+    [ "DisplayPalette", "namespaceyaze_1_1app_1_1editor.html#af2891f5f91ee57327ed884b879cac364", null ],
     [ "FindMatchingCharacter", "namespaceyaze_1_1app_1_1editor.html#a903cdfb934c048134f9cd12283b60f32", null ],
     [ "FindDictionaryEntry", "namespaceyaze_1_1app_1_1editor.html#a3099ee5f96067379b03d477c1fdd1016", null ],
     [ "FindMatchingCommand", "namespaceyaze_1_1app_1_1editor.html#ac915a1e39b12e26c6f818d1a08ca05c1", null ],

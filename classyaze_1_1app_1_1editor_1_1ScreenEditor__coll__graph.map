@@ -9,14 +9,14 @@
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="631,403,749,444"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="764,413,802,402,836,383,863,357,884,326,910,269,915,271,888,329,867,360,839,387,804,407,765,418"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="5,272,180,298"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="157,300,245,319,356,338,480,347,543,346,604,340,676,326,747,307,866,267,867,272,748,312,677,331,605,345,543,351,480,352,356,343,244,325,156,305"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="156,300,244,320,356,338,480,347,543,346,604,340,676,326,747,307,866,267,867,272,748,312,677,331,605,345,543,351,480,352,355,343,243,325,155,305"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1Tilesheet.html" title="Represents a tilesheet, which is a collection of tiles stored in a bitmap." alt="" coords="448,289,604,315"/>
 <area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="195,286,448,297,447,302,195,292"/>
 <area shape="poly" id="edge12_Node000007_Node000004" title=" " alt="" coords="195,270,424,240,627,212,628,217,424,245,195,275"/>
 <area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="278,189,422,215"/>
 <area shape="poly" id="edge11_Node000008_Node000004" title=" " alt="" coords="132,263,203,233,277,213,278,218,205,238,134,267"/>
 <area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="620,287,861,254,862,260,620,292"/>
-<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="439,81,520,82,605,93,689,120,770,156,839,194,890,226,888,230,836,198,767,161,688,125,604,98,520,87,439,87"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="439,82,520,82,605,93,689,120,770,156,839,194,890,226,888,230,836,198,767,160,688,125,604,98,520,87,439,87"/>
 <area shape="poly" id="edge13_Node000007_Node000006" title=" " alt="" coords="435,105,448,108,493,114,528,117,563,123,605,139,641,160,669,183,666,187,637,164,603,143,562,128,528,123,492,120,448,113,434,111"/>
 <area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="767,218,862,235,861,241,766,223"/>
 <area shape="poly" id="edge10_Node000007_Node000008" title=" " alt="" coords="438,201,448,202,628,203,628,209,448,207,438,207"/>

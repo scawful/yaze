@@ -10,6 +10,20 @@ var classyaze_1_1app_1_1editor_1_1OverworldEditor =
       [ "MUSIC", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ada65fa31f9d3b0a085a5ab6d7f04422fad74c735013cdd2b883e25ccca502a2e9", null ],
       [ "PAN", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ada65fa31f9d3b0a085a5ab6d7f04422fad74461db15255d85a44ffd72419646b3", null ]
     ] ],
+    [ "OverworldProperty", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0c", [
+      [ "LW_AREA_GFX", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0ca258a803c890f04c82a954964317cc26c", null ],
+      [ "DW_AREA_GFX", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0ca1f3440df6add463af044463b87ec8c1b", null ],
+      [ "LW_AREA_PAL", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0cabd527d50338026c819691835ba03bfd1", null ],
+      [ "DW_AREA_PAL", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0cabd3a3159a87bf56f58bf4f1c95075f3f", null ],
+      [ "LW_SPR_GFX_PART1", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0cafc1aefcba9dca2c0e25e567785ed1626", null ],
+      [ "LW_SPR_GFX_PART2", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0ca5cb803f5b2a4866f77fe751fc01edf94", null ],
+      [ "DW_SPR_GFX_PART1", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0ca60d9c7af5932a255fce13a66b432aeb7", null ],
+      [ "DW_SPR_GFX_PART2", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0ca37fff600a65e3b44be4da745e5e2b187", null ],
+      [ "LW_SPR_PAL_PART1", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0ca3b424ca06ffe11667d45a82bbf635239", null ],
+      [ "LW_SPR_PAL_PART2", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0caaca409c630a7c3d887cbafbaa8182e8d", null ],
+      [ "DW_SPR_PAL_PART1", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0caff405665d866a733a8d480047a990060", null ],
+      [ "DW_SPR_PAL_PART2", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0ca7cecfc86b37c75e0baa007f5f0e681fe", null ]
+    ] ],
     [ "OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a7710239a59515755a005fa060ae6a210", null ],
     [ "InitializeZeml", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a42629ebab5240eac4df7bccc9cc04bf9", null ],
     [ "Update", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff", null ],

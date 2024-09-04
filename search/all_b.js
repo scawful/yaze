@@ -103,7 +103,7 @@ var searchData=
   ['display_5fdescription_100',['display_description',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a5cbd2921188ae566328aaa1b62c96faa',1,'yaze::app::core::ResourceLabelManager::ResourceType']]],
   ['displaycategorytable_101',['DisplayCategoryTable',['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a3e63e29b01fb5fd97acd9d710f5560a9',1,'yaze::app::editor::PaletteEditor']]],
   ['displaylabels_102',['DisplayLabels',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#a4a7244cd437062f705d72ac6abc08f35',1,'yaze::app::core::ResourceLabelManager']]],
-  ['displaypalette_103',['DisplayPalette',['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html#aabc08b8ae1c0e6fa35d69700dec1ab10',1,'yaze::app::editor::PaletteEditor::DisplayPalette()'],['../namespaceyaze_1_1app_1_1gui.html#a37d30bfb30a0b8009d689eee0085eed0',1,'yaze::app::gui::DisplayPalette()']]],
+  ['displaypalette_103',['DisplayPalette',['../namespaceyaze_1_1app_1_1editor.html#af2891f5f91ee57327ed884b879cac364',1,'yaze::app::editor::DisplayPalette()'],['../namespaceyaze_1_1app_1_1gui.html#a37d30bfb30a0b8009d689eee0085eed0',1,'yaze::app::gui::DisplayPalette()']]],
   ['displaytextoverflowerror_104',['DisplayTextOverflowError',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a24a9e21df7d1ca2e0ac038bd4f2991e7',1,'yaze::app::editor::MessageEditor']]],
   ['div_105',['DIV',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a6570d92730e20c1b1619e5cdd8821073',1,'yaze::app::emu::audio::Spc700']]],
   ['divide_5fa_5f_106',['divide_a_',['../classyaze_1_1app_1_1emu_1_1SNES.html#ae64f449564d9174c85588673295004ad',1,'yaze::app::emu::SNES']]],
@@ -309,6 +309,12 @@ var searchData=
   ['dungeons_5fstartrooms_306',['dungeons_startrooms',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#aebf1a9703c178e34de564ce0ca3ea7ee',1,'yaze::app::zelda3::dungeon']]],
   ['dungmap_5fselected_5f_307',['dungmap_selected_',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#af4db8c06e4092f2187f538150f405f88',1,'yaze::app::zelda3::screen::TitleScreen']]],
   ['dungmap_5fselected_5ftile_5f_308',['dungmap_selected_tile_',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a47e912dcc1c85fffdef87a24904cfcc8',1,'yaze::app::zelda3::screen::TitleScreen']]],
-  ['dwmapdata_309',['dwmapdata',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a56935ed61bc47613e2155e0f49e47cae',1,'yaze::app::zelda3::screen::TitleScreen']]],
-  ['dynamic_20method_20binding_20and_20swizzling_20strong_310',['5. &lt;strong&gt;Dynamic Method Binding and Swizzling&lt;/strong&gt;',['../md_docs_2message-passing.html#autotoc_md60',1,'']]]
+  ['dw_5farea_5fgfx_309',['DW_AREA_GFX',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0ca1f3440df6add463af044463b87ec8c1b',1,'yaze::app::editor::OverworldEditor']]],
+  ['dw_5farea_5fpal_310',['DW_AREA_PAL',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0cabd3a3159a87bf56f58bf4f1c95075f3f',1,'yaze::app::editor::OverworldEditor']]],
+  ['dw_5fspr_5fgfx_5fpart1_311',['DW_SPR_GFX_PART1',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0ca60d9c7af5932a255fce13a66b432aeb7',1,'yaze::app::editor::OverworldEditor']]],
+  ['dw_5fspr_5fgfx_5fpart2_312',['DW_SPR_GFX_PART2',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0ca37fff600a65e3b44be4da745e5e2b187',1,'yaze::app::editor::OverworldEditor']]],
+  ['dw_5fspr_5fpal_5fpart1_313',['DW_SPR_PAL_PART1',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0caff405665d866a733a8d480047a990060',1,'yaze::app::editor::OverworldEditor']]],
+  ['dw_5fspr_5fpal_5fpart2_314',['DW_SPR_PAL_PART2',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0ca7cecfc86b37c75e0baa007f5f0e681fe',1,'yaze::app::editor::OverworldEditor']]],
+  ['dwmapdata_315',['dwmapdata',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a56935ed61bc47613e2155e0f49e47cae',1,'yaze::app::zelda3::screen::TitleScreen']]],
+  ['dynamic_20method_20binding_20and_20swizzling_20strong_316',['5. &lt;strong&gt;Dynamic Method Binding and Swizzling&lt;/strong&gt;',['../md_docs_2message-passing.html#autotoc_md60',1,'']]]
 ];

@@ -8,7 +8,7 @@ var searchData=
   ['rawstring_5',['RawString',['../structyaze_1_1app_1_1editor_1_1MessageData.html#aeced036e482180e96002b652809a3fc9',1,'yaze::app::editor::MessageData']]],
   ['read_6',['read',['../structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html#ae2de4a1b5eaaab325dd6733eaf3024df',1,'yaze::app::emu::audio::ApuCallbacks']]],
   ['read_5fbyte_7',['read_byte',['../structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html#a65bffac8e1772de3b097db957e71b58b',1,'yaze::app::emu::memory::CpuCallbacks']]],
-  ['recentchanges_8',['recentChanges',['../classyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html#a6c1ac684b9c2dcb22377bcc54c501420',1,'yaze::app::editor::palette_internal::PaletteEditorHistory']]],
+  ['recent_5fchanges_5f_8',['recent_changes_',['../classyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html#adc87aff9a0b38910b10710a6676caf01',1,'yaze::app::editor::palette_internal::PaletteEditorHistory']]],
   ['recentfiles_5f_9',['recentFiles_',['../classyaze_1_1app_1_1editor_1_1RecentFilesManager.html#a7c9402a286b20b09301d051ffb3ee574',1,'yaze::app::editor::RecentFilesManager']]],
   ['red_10',['red',['../structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58',1,'snes_color']]],
   ['redo_5fstack_5f_11',['redo_stack_',['../classyaze_1_1app_1_1editor_1_1CommandManager.html#ac593b2420eced4b4036acdacb9ff18e3',1,'yaze::app::editor::CommandManager']]],

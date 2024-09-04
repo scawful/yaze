@@ -1,7 +1,7 @@
 <map id="yaze::app::editor::MessageEditor::ReadAllTextDataV2" name="yaze::app::editor::MessageEditor::ReadAllTextDataV2">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,212,189,268"/>
 <area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1editor_1_1TextElement.html#a5e4935ff0f5aa23e63c7369c4d0e9d2e" title=" " alt="" coords="506,5,642,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,211,130,176,158,136,193,97,235,66,299,39,366,24,432,18,491,17,491,22,432,23,367,29,300,44,238,71,197,101,162,140,134,179,114,213"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,211,130,176,158,135,193,96,235,65,299,38,366,23,432,17,491,16,491,22,432,22,367,28,300,43,238,69,197,100,162,139,134,179,114,213"/>
 <area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1editor.html#a3099ee5f96067379b03d477c1fdd1016" title=" " alt="" coords="508,73,640,114"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="114,210,135,182,163,150,197,121,236,98,301,78,369,70,435,71,493,76,493,82,435,76,369,76,302,83,238,103,200,125,167,154,139,185,118,213"/>
 <area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1editor.html#ac915a1e39b12e26c6f818d1a08ca05c1" title=" " alt="" coords="495,144,653,185"/>

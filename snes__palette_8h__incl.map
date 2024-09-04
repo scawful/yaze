@@ -1,7 +1,7 @@
 <map id="src/app/gfx/snes_palette.h" name="src/app/gfx/snes_palette.h">
 <area shape="rect" id="Node000001" title=" " alt="" coords="424,5,597,31"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,153,66,178"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="423,27,245,46,162,61,129,71,105,81,88,94,73,109,50,141,46,138,69,105,84,90,102,77,127,66,161,56,244,41,423,22"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="423,27,244,46,161,61,128,71,104,81,87,94,72,109,50,141,46,138,68,105,83,89,101,77,126,66,160,56,243,40,423,22"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="396,79,456,105"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="498,34,454,71,450,67,494,30"/>
 <area shape="rect" id="Node000004" title=" " alt="" coords="480,79,540,105"/>

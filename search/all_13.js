@@ -167,5 +167,11 @@ var searchData=
   ['lowerx_5f_164',['lowerX_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#aa222a845ef5040cb1fb35c3f7a3a4240',1,'yaze::app::zelda3::Sprite']]],
   ['lowery_5f_165',['lowerY_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a2e9273f3602017329233c2e9d753d200',1,'yaze::app::zelda3::Sprite']]],
   ['lsr_166',['LSR',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a56da1a2caefded33312287e67dd51213',1,'yaze::app::emu::audio::Spc700::LSR()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a5072f70a9c7470c467dee5c8172d5f5a',1,'yaze::app::emu::Cpu::LSR(uint16_t address, bool accumulator=false)']]],
-  ['lsr_167',['Lsr',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a14badf0a328781809eb8e09dccb96321',1,'yaze::app::emu::Cpu']]]
+  ['lsr_167',['Lsr',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a14badf0a328781809eb8e09dccb96321',1,'yaze::app::emu::Cpu']]],
+  ['lw_5farea_5fgfx_168',['LW_AREA_GFX',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0ca258a803c890f04c82a954964317cc26c',1,'yaze::app::editor::OverworldEditor']]],
+  ['lw_5farea_5fpal_169',['LW_AREA_PAL',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0cabd527d50338026c819691835ba03bfd1',1,'yaze::app::editor::OverworldEditor']]],
+  ['lw_5fspr_5fgfx_5fpart1_170',['LW_SPR_GFX_PART1',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0cafc1aefcba9dca2c0e25e567785ed1626',1,'yaze::app::editor::OverworldEditor']]],
+  ['lw_5fspr_5fgfx_5fpart2_171',['LW_SPR_GFX_PART2',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0ca5cb803f5b2a4866f77fe751fc01edf94',1,'yaze::app::editor::OverworldEditor']]],
+  ['lw_5fspr_5fpal_5fpart1_172',['LW_SPR_PAL_PART1',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0ca3b424ca06ffe11667d45a82bbf635239',1,'yaze::app::editor::OverworldEditor']]],
+  ['lw_5fspr_5fpal_5fpart2_173',['LW_SPR_PAL_PART2',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0caaca409c630a7c3d887cbafbaa8182e8d',1,'yaze::app::editor::OverworldEditor']]]
 ];
