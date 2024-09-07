@@ -14,6 +14,26 @@ set(
   app/emu/snes.cc
 )
 
+set(YAZE_RESOURCE_FILES
+  ${CMAKE_SOURCE_DIR}/assets/layouts/overworld.zeml
+  ${CMAKE_SOURCE_DIR}/assets/font/Karla-Regular.ttf
+  ${CMAKE_SOURCE_DIR}/assets/font/Roboto-Medium.ttf
+  ${CMAKE_SOURCE_DIR}/assets/font/Cousine-Regular.ttf
+  ${CMAKE_SOURCE_DIR}/assets/font/DroidSans.ttf
+  ${CMAKE_SOURCE_DIR}/assets/font/NotoSansJP.ttf
+  ${CMAKE_SOURCE_DIR}/assets/font/IBMPlexSansJP-Bold.ttf
+  ${CMAKE_SOURCE_DIR}/assets/font/MaterialIcons-Regular.ttf
+)
+
+foreach (FILE ${YAZE_RESOURCE_FILES})
+  file(RELATIVE_PATH NEW_FILE "${CMAKE_SOURCE_DIR}/assets" ${FILE})
+  get_filename_component(NEW_FILE_PATH ${NEW_FILE} DIRECTORY)
+  set_source_files_properties(${FILE}
+    PROPERTIES
+    MACOSX_PACKAGE_LOCATION "Resources/${NEW_FILE_PATH}"
+  )
+endforeach()
+
 if (YAZE_BUILD_APP)
   include(app/app.cmake)
 endif()
@@ -30,13 +50,8 @@ if (YAZE_BUILD_TESTS)
   include(test/CMakeLists.txt)
 endif()
 
-if (UNIX)
-  target_compile_definitions(yaze PRIVATE "linux")
-  target_compile_definitions(yaze PRIVATE "stricmp=strcasecmp")
-endif()
-
 if(MACOS)
-  set(MACOSX_BUNDLE_ICON_FILE ${CMAKE_SOURCE_DIR}/yaze.ico)
+  set(MACOSX_BUNDLE_ICON_FILE ${CMAKE_SOURCE_DIR}/win32/yaze.ico)
   set_target_properties(yaze
       PROPERTIES
       BUNDLE True
@@ -44,6 +59,7 @@ if(MACOS)
       LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
       RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
       MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/cmake/yaze.plist.in
+      RESOURCE ${YAZE_RESOURCE_FILES}
   )
 elseif(UNIX)
   set_target_properties(yaze
@@ -53,6 +69,8 @@ elseif(UNIX)
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
   )
+  target_compile_definitions(yaze PRIVATE "linux")
+  target_compile_definitions(yaze PRIVATE "stricmp=strcasecmp")
 else()
 set_target_properties(yaze
     PROPERTIES
