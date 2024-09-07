@@ -3,10 +3,7 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 
-#include "ImGuiColorTextEdit/TextEditor.h"
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "absl/status/status.h"
-#include "app/core/constants.h"
 #include "app/core/message.h"
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
@@ -22,18 +19,10 @@
 #include "app/editor/system/constant_manager.h"
 #include "app/editor/system/extension_manager.h"
 #include "app/editor/system/settings_editor.h"
-#include "app/editor/utils/gfx_context.h"
 #include "app/emu/emulator.h"
-#include "app/gfx/snes_palette.h"
-#include "app/gfx/snes_tile.h"
-#include "app/gui/canvas.h"
-#include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
-#include "incl/extension.h"
 #include "imgui/imgui.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
-#include "imgui_memory_editor.h"
 #include "yaze.h"
 
 namespace yaze {

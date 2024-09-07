@@ -1,22 +1,15 @@
 #ifndef YAZE_APP_EDITOR_MESSAGE_EDITOR_H
 #define YAZE_APP_EDITOR_MESSAGE_EDITOR_H
 
-#include <iostream>
-#include <regex>
-#include <sstream>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "absl/strings/str_replace.h"
-#include "absl/strings/str_split.h"
 #include "app/editor/message/message_data.h"
 #include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gui/canvas.h"
-#include "app/gui/icons.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -32,9 +25,12 @@ constexpr int kPointersDictionaries = 0x74703;
 constexpr int kCharactersWidth = 0x74ADF;
 constexpr int kNumDictionaryEntries = 97;
 constexpr int kNumMessages = 396;
+constexpr int kCurrentMessageWidth = 172;
+constexpr int kCurrentMessageHeight = 4096;
 
+constexpr uint8_t kWidthArraySize = 100;
 constexpr uint8_t kBlockTerminator = 0x80;
-constexpr uint8_t BANKID = 0x80;
+constexpr uint8_t kMessageBankChangeId = 0x80;
 constexpr uint8_t kScrollVertical = 0x73;
 constexpr uint8_t kLine1 = 0x74;
 constexpr uint8_t kLine2 = 0x75;
@@ -117,26 +113,25 @@ class MessageEditor : public Editor, public SharedRom {
   int text_position_ = 0;
   int shown_lines_ = 0;
 
-  uint8_t width_array[100];
+  uint8_t width_array[kWidthArraySize];
 
   std::string search_text_ = "";
 
-  std::vector<MessageData> list_of_texts_;
+  std::vector<uint8_t> font_gfx16_data_;
+  std::vector<uint8_t> current_font_gfx16_data_;
   std::vector<std::string> parsed_messages_;
+
+  std::vector<MessageData> list_of_texts_;
 
   MessageData current_message_;
 
-  std::vector<uint8_t> font_gfx16_data_;
-  std::vector<uint8_t> current_font_gfx16_data_;
-
   gfx::Bitmap font_gfx_bitmap_;
   gfx::Bitmap current_font_gfx16_bitmap_;
+  gfx::SnesPalette font_preview_colors_;
 
   gui::Canvas font_gfx_canvas_{"##FontGfxCanvas", ImVec2(128, 128)};
   gui::Canvas current_font_gfx16_canvas_{"##CurrentMessageGfx",
                                          ImVec2(172, 4096)};
-
-  gfx::SnesPalette font_preview_colors_;
 
   struct TextBox {
     std::string text;
