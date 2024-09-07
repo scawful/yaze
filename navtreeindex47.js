@@ -1,5 +1,11 @@
 var NAVTREEINDEX47 =
 {
+"structyaze_1_1app_1_1emu_1_1MnemonicMode.html#a4f0be7e3dd8ee90d3a854eb8a86abbe9":[11,0,1,0,3,15,1],
+"structyaze_1_1app_1_1emu_1_1MnemonicMode.html#a4f0be7e3dd8ee90d3a854eb8a86abbe9":[12,0,0,0,2,13,1],
+"structyaze_1_1app_1_1emu_1_1MnemonicMode.html#ab895f760ef6a5b54e76d9ec79c390d96":[11,0,1,0,3,15,2],
+"structyaze_1_1app_1_1emu_1_1MnemonicMode.html#ab895f760ef6a5b54e76d9ec79c390d96":[12,0,0,0,2,13,2],
+"structyaze_1_1app_1_1emu_1_1MnemonicModeHash.html":[11,0,1,0,3,16],
+"structyaze_1_1app_1_1emu_1_1MnemonicModeHash.html":[12,0,0,0,2,14],
 "structyaze_1_1app_1_1emu_1_1MnemonicModeHash.html#a65bd0d4f280e67de8bd5fc8a464eac31":[11,0,1,0,3,16,0],
 "structyaze_1_1app_1_1emu_1_1MnemonicModeHash.html#a65bd0d4f280e67de8bd5fc8a464eac31":[12,0,0,0,2,14,0],
 "structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html":[11,0,1,0,3,2,1],
@@ -243,11 +249,5 @@ var NAVTREEINDEX47 =
 "structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#a5b9c7746a851eb1b1864279b496a59de":[11,0,1,0,3,4,6,5],
 "structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#a5b9c7746a851eb1b1864279b496a59de":[12,0,0,0,2,2,6,5],
 "structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#aa62d98cb9689ba74771f4bcae8fdf887":[11,0,1,0,3,4,6,4],
-"structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#aa62d98cb9689ba74771f4bcae8fdf887":[12,0,0,0,2,2,6,4],
-"structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#ab5a2f34f63d70045edea66829edd63ab":[11,0,1,0,3,4,6,6],
-"structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#ab5a2f34f63d70045edea66829edd63ab":[12,0,0,0,2,2,6,6],
-"structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#abcc1ab58efc73f4f2e8746ea305667d4":[11,0,1,0,3,4,6,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#abcc1ab58efc73f4f2e8746ea305667d4":[12,0,0,0,2,2,6,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#ad9c09906667ecd76be6fb0efcc1377b4":[11,0,1,0,3,4,6,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#ad9c09906667ecd76be6fb0efcc1377b4":[12,0,0,0,2,2,6,1]
+"structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#aa62d98cb9689ba74771f4bcae8fdf887":[12,0,0,0,2,2,6,4]
 };

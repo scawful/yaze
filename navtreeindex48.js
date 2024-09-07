@@ -1,5 +1,11 @@
 var NAVTREEINDEX48 =
 {
+"structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#ab5a2f34f63d70045edea66829edd63ab":[11,0,1,0,3,4,6,6],
+"structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#ab5a2f34f63d70045edea66829edd63ab":[12,0,0,0,2,2,6,6],
+"structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#abcc1ab58efc73f4f2e8746ea305667d4":[11,0,1,0,3,4,6,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#abcc1ab58efc73f4f2e8746ea305667d4":[12,0,0,0,2,2,6,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#ad9c09906667ecd76be6fb0efcc1377b4":[11,0,1,0,3,4,6,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#ad9c09906667ecd76be6fb0efcc1377b4":[12,0,0,0,2,2,6,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#aecf0281dcc5046ff450563ce1af23f58":[11,0,1,0,3,4,6,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#aecf0281dcc5046ff450563ce1af23f58":[12,0,0,0,2,2,6,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#af50b61d731c11a26326f195241e6cc57":[11,0,1,0,3,4,6,7],
@@ -243,11 +249,5 @@ var NAVTREEINDEX48 =
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OBJSEL.html#a11c386525602a122f22e09848742eb51":[11,0,1,0,3,4,0,27,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OBJSEL.html#a11c386525602a122f22e09848742eb51":[12,0,0,0,2,2,0,27,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OBJSEL.html#a27d3becf9f83a41c1c39df207359161c":[11,0,1,0,3,4,0,27,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OBJSEL.html#a27d3becf9f83a41c1c39df207359161c":[12,0,0,0,2,2,0,27,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OBJSEL.html#a3edb7a2019b60fe2adc540ee1eb76908":[11,0,1,0,3,4,0,27,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OBJSEL.html#a3edb7a2019b60fe2adc540ee1eb76908":[12,0,0,0,2,2,0,27,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OBJSEL.html#a6e48a0e60507eeef724bc0ee5960415b":[11,0,1,0,3,4,0,27,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OBJSEL.html#a6e48a0e60507eeef724bc0ee5960415b":[12,0,0,0,2,2,0,27,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OPHCT.html":[11,0,1,0,3,4,0,28],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OPHCT.html":[12,0,0,0,2,2,0,28]
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OBJSEL.html#a27d3becf9f83a41c1c39df207359161c":[12,0,0,0,2,2,0,27,2]
 };
