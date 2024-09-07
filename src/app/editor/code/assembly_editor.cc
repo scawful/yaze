@@ -1,10 +1,9 @@
 #include "assembly_editor.h"
 
+#include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "ImGuiColorTextEdit/TextEditor.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/gui/icons.h"
-#include "app/gui/input.h"
-#include "core/constants.h"
 
 namespace yaze {
 namespace app {
@@ -13,7 +12,7 @@ namespace editor {
 using core::FileDialogWrapper;
 
 namespace {
-
+ 
 std::vector<std::string> RemoveIgnoredFiles(
     const std::vector<std::string>& files,
     const std::vector<std::string>& ignored_files) {

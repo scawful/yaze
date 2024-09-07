@@ -1,7 +1,6 @@
 #ifndef YAZE_APP_EDITOR_MESSAGE_MESSAGE_DATA_H
 #define YAZE_APP_EDITOR_MESSAGE_MESSAGE_DATA_H
 
-#include <iostream>
 #include <regex>
 #include <string>
 #include <vector>

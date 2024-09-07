@@ -28,11 +28,9 @@ namespace editor {
 
 using core::Renderer;
 
-using ImGui::Begin;
 using ImGui::BeginChild;
 using ImGui::BeginTable;
 using ImGui::Button;
-using ImGui::End;
 using ImGui::EndChild;
 using ImGui::EndTable;
 using ImGui::InputText;
@@ -41,14 +39,12 @@ using ImGui::SameLine;
 using ImGui::Separator;
 using ImGui::TableHeadersRow;
 using ImGui::TableNextColumn;
-using ImGui::TableNextRow;
 using ImGui::TableSetupColumn;
 using ImGui::Text;
 using ImGui::TextWrapped;
-using ImGui::TreeNode;
 
 absl::Status MessageEditor::Initialize() {
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < kWidthArraySize; i++) {
     width_array[i] = rom()->data()[kCharactersWidth + i];
   }
 
@@ -70,15 +66,15 @@ absl::Status MessageEditor::Initialize() {
   RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
       128, 128, 8, font_gfx16_data_, font_gfx_bitmap_, font_preview_colors_))
 
-  current_font_gfx16_data_.reserve(172 * 4096);
-  for (int i = 0; i < 172 * 4096; i++) {
+  current_font_gfx16_data_.reserve(kCurrentMessageWidth * kCurrentMessageHeight);
+  for (int i = 0; i < kCurrentMessageWidth * kCurrentMessageHeight; i++) {
     current_font_gfx16_data_.push_back(0);
   }
 
   // 8bpp
   RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
-      172, 4096, 64, current_font_gfx16_data_, current_font_gfx16_bitmap_,
-      font_preview_colors_))
+      kCurrentMessageWidth, kCurrentMessageHeight, 64, current_font_gfx16_data_,
+      current_font_gfx16_bitmap_, font_preview_colors_))
 
   gfx::SnesPalette color_palette = font_gfx_bitmap_.palette();
   for (int i = 0; i < font_preview_colors_.size(); i++) {

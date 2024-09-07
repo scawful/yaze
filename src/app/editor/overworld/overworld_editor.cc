@@ -2,11 +2,9 @@
 
 #include <cmath>
 #include <unordered_map>
+#include <vector>
 
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
-#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
-#include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/core/constants.h"
 #include "app/core/platform/clipboard.h"
@@ -15,7 +13,6 @@
 #include "app/editor/overworld/entity.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
-#include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"

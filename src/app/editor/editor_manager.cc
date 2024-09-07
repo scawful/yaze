@@ -1,12 +1,9 @@
 #include "editor_manager.h"
 
-#include "ImGuiColorTextEdit/TextEditor.h"
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "absl/status/status.h"
 #include "absl/strings/match.h"
 #include "app/core/constants.h"
 #include "app/core/platform/file_dialog.h"
-#include "app/core/platform/renderer.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/dungeon/dungeon_editor.h"
 #include "app/editor/graphics/graphics_editor.h"
@@ -18,20 +15,12 @@
 #include "app/editor/utils/flags.h"
 #include "app/editor/utils/recent_files.h"
 #include "app/emu/emulator.h"
-#include "app/gfx/snes_palette.h"
-#include "app/gfx/snes_tile.h"
-#include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
-#include "incl/extension.h"
-#include "imgui/backends/imgui_impl_sdl2.h"
-#include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
-#include "imgui_internal.h"
-#include "imgui_memory_editor.h"
 
 namespace yaze {
 namespace app {
