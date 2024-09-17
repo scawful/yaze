@@ -145,6 +145,38 @@ std::vector<uint8_t> ParseMessageToData(std::string str) {
   return bytes;
 }
 
+std::vector<DictionaryEntry> BuildDictionaryEntries(app::Rom* rom) {
+  std::vector<DictionaryEntry> AllDictionaries;
+  for (int i = 0; i < kNumDictionaryEntries; i++) {
+    std::vector<uint8_t> bytes;
+    std::stringstream stringBuilder;
+
+    int address = core::SnesToPc(
+        kTextData + (rom->data()[kPointersDictionaries + (i * 2) + 1] << 8) +
+        rom->data()[kPointersDictionaries + (i * 2)]);
+
+    int temppush_backress = core::SnesToPc(
+        kTextData +
+        (rom->data()[kPointersDictionaries + ((i + 1) * 2) + 1] << 8) +
+        rom->data()[kPointersDictionaries + ((i + 1) * 2)]);
+
+    while (address < temppush_backress) {
+      uint8_t uint8_tDictionary = rom->data()[address++];
+      bytes.push_back(uint8_tDictionary);
+      stringBuilder << ParseTextDataByte(uint8_tDictionary);
+    }
+
+    AllDictionaries.push_back(DictionaryEntry{(uint8_t)i, stringBuilder.str()});
+  }
+
+  std::sort(AllDictionaries.begin(), AllDictionaries.end(),
+            [](const DictionaryEntry& a, const DictionaryEntry& b) {
+              return a.Contents.size() > b.Contents.size();
+            });
+
+  return AllDictionaries;
+}
+
 }  // namespace editor
 }  // namespace app
 }  // namespace yaze
