@@ -1,16 +1,11 @@
 var message__editor_8h =
 [
     [ "yaze::app::editor::MessageEditor", "classyaze_1_1app_1_1editor_1_1MessageEditor.html", "classyaze_1_1app_1_1editor_1_1MessageEditor" ],
-    [ "yaze::app::editor::MessageEditor::DictionaryEntry", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry" ],
     [ "yaze::app::editor::MessageEditor::TextBox", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox" ],
     [ "kGfxFont", "message__editor_8h.html#a55f8d2df21868311de583a0b9d316a09", null ],
-    [ "kTextData", "message__editor_8h.html#a605e94adaebaae701af52da93fe1b5eb", null ],
-    [ "kTextDataEnd", "message__editor_8h.html#a4173da708cbdbecf668ac5315d511348", null ],
     [ "kTextData2", "message__editor_8h.html#a65cd8c717496394bde0c7fb860b7bf08", null ],
     [ "kTextData2End", "message__editor_8h.html#ac6e39bf669b2a77ca1d3b8aea39e0257", null ],
-    [ "kPointersDictionaries", "message__editor_8h.html#a3fde9ee2c49e4291e4237f0bc0d4b33a", null ],
     [ "kCharactersWidth", "message__editor_8h.html#ada3f1c12ec92e258194ccb58c93bfc1b", null ],
-    [ "kNumDictionaryEntries", "message__editor_8h.html#adda17c1c63e0d77cd9100cab3700d10d", null ],
     [ "kNumMessages", "message__editor_8h.html#a34052db2e8cb156e3cd2297e5222ebba", null ],
     [ "kCurrentMessageWidth", "message__editor_8h.html#aac4b58422a8fb67c7f0830a5c28afd8a", null ],
     [ "kCurrentMessageHeight", "message__editor_8h.html#a5345c7a1c473021cdcd62c1f972495bf", null ],

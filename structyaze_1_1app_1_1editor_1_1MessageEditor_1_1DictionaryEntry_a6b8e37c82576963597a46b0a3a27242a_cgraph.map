@@ -1,9 +1,0 @@
-<map id="yaze::app::editor::MessageEditor::DictionaryEntry::DictionaryEntry" name="yaze::app::editor::MessageEditor::DictionaryEntry::DictionaryEntry">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,205,87"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1editor.html#adbfa49c529abc70e97df75a0ef62228d" title=" " alt="" coords="253,39,403,79"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,56,238,56,238,62,205,62"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1editor.html#a903cdfb934c048134f9cd12283b60f32" title=" " alt="" coords="451,5,606,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="403,44,435,38,436,44,404,49"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1editor.html#a34e00c874a636843f203374afeb777c7" title=" " alt="" coords="456,71,602,111"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="404,68,441,74,440,80,403,74"/>
-</map>

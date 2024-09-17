@@ -44,6 +44,7 @@ var annotated_dup =
           [ "Command", "classyaze_1_1app_1_1editor_1_1Command.html", "classyaze_1_1app_1_1editor_1_1Command" ],
           [ "CommandManager", "classyaze_1_1app_1_1editor_1_1CommandManager.html", "classyaze_1_1app_1_1editor_1_1CommandManager" ],
           [ "ConstantManager", "classyaze_1_1app_1_1editor_1_1ConstantManager.html", "classyaze_1_1app_1_1editor_1_1ConstantManager" ],
+          [ "DictionaryEntry", "structyaze_1_1app_1_1editor_1_1DictionaryEntry.html", "structyaze_1_1app_1_1editor_1_1DictionaryEntry" ],
           [ "DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", "classyaze_1_1app_1_1editor_1_1DungeonEditor" ],
           [ "Editor", "classyaze_1_1app_1_1editor_1_1Editor.html", "classyaze_1_1app_1_1editor_1_1Editor" ],
           [ "EditorManager", "classyaze_1_1app_1_1editor_1_1EditorManager.html", "classyaze_1_1app_1_1editor_1_1EditorManager" ],

@@ -23,7 +23,7 @@ var searchData=
   ['operator_5e_20',['operator^',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#acbe6d60cd1693a56f4aab97bdac2f3fb',1,'yaze::app::zelda3::dungeon']]],
   ['operator_7c_21',['operator|',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6a9452416d917ccb246fbc455e485900',1,'yaze::app::zelda3::dungeon']]],
   ['operator_7e_22',['operator~',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a86644c3f8bc3f03fd330b2c3b4f0ba00',1,'yaze::app::zelda3::dungeon']]],
-  ['optimizemessagefordictionary_23',['OptimizeMessageForDictionary',['../structyaze_1_1app_1_1editor_1_1MessageData.html#aadd07b70dd09431d38aef82b06a8823e',1,'yaze::app::editor::MessageData']]],
+  ['optimizemessagefordictionary_23',['OptimizeMessageForDictionary',['../structyaze_1_1app_1_1editor_1_1MessageData.html#ad9cb7d827cf862bca6656c9566dd17e5',1,'yaze::app::editor::MessageData']]],
   ['options_24',['options',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a263221b824153e80672eaab0bb679e60',1,'yaze::app::zelda3::dungeon::RoomObject']]],
   ['or_25',['OR',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a854437ef362be1aab8b4c14ab95e24ee',1,'yaze::app::emu::audio::Spc700']]],
   ['or1_26',['OR1',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ae81eb107c2f4d3098f83bc5ef7098077',1,'yaze::app::emu::audio::Spc700']]],

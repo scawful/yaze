@@ -27,7 +27,7 @@ var searchData=
   ['getconfiguration_24',['GetConfiguration',['../classyaze_1_1app_1_1zelda3_1_1SpriteInstruction.html#a9f55aff8d4917f533c5c2ae9e9e709c9',1,'yaze::app::zelda3::SpriteInstruction::GetConfiguration()'],['../classyaze_1_1app_1_1zelda3_1_1SpriteAction.html#a9358a8070e253e964af73c497a3a66d8',1,'yaze::app::zelda3::SpriteAction::GetConfiguration()']]],
   ['getcyclecount_25',['GetCycleCount',['../classyaze_1_1app_1_1emu_1_1Clock.html#af5eba8a7fbfc88b616681f45aee43363',1,'yaze::app::emu::Clock::GetCycleCount()'],['../classyaze_1_1app_1_1emu_1_1ClockImpl.html#aa956f286687ea8f90c66ac86b121167e',1,'yaze::app::emu::ClockImpl::GetCycleCount()']]],
   ['getdecimalflag_26',['GetDecimalFlag',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a71b2370e61f38cc8db84eda58801d991',1,'yaze::app::emu::Cpu']]],
-  ['getdictionaryfromid_27',['GetDictionaryFromID',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#aba1875ff6fc2a84ec1c0ebe42474858e',1,'yaze::app::editor::MessageEditor']]],
+  ['getdictionaryfromid_27',['GetDictionaryFromID',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a0ee688c930b7e64513f3bcb6b369bbe6',1,'yaze::app::editor::MessageEditor']]],
   ['getfileextension_28',['GetFileExtension',['../namespaceyaze_1_1app_1_1core.html#a1a473cd82ecbb24197525abe7561f732',1,'yaze::app::core']]],
   ['getfilename_29',['GetFileName',['../namespaceyaze_1_1app_1_1core.html#a0c9555d9e2a9c9a6bd57db6bcd1e98f6',1,'yaze::app::core']]],
   ['getfilesinfolder_30',['GetFilesInFolder',['../classyaze_1_1app_1_1core_1_1FileDialogWrapper.html#af6ea3c447189991302c768b606093ea0',1,'yaze::app::core::FileDialogWrapper']]],

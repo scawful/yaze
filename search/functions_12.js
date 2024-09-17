@@ -98,7 +98,7 @@ var searchData=
   ['setinterruptflag_95',['SetInterruptFlag',['../classyaze_1_1app_1_1emu_1_1Cpu.html#acd6085dff0627bccc03cf9059aeb6449',1,'yaze::app::emu::Cpu']]],
   ['setirq_96',['SetIrq',['../classyaze_1_1app_1_1emu_1_1Cpu.html#addca095c57925e9e2c6d58d7e0ab6f4b',1,'yaze::app::emu::Cpu']]],
   ['setmemorycontents_97',['SetMemoryContents',['../classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a259eb37eba4c2a535ace1cc35b9ca851',1,'yaze::app::emu::memory::MockMemory::SetMemoryContents(const std::vector&lt; uint8_t &gt; &amp;data)'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a5645dd4cf8f238e9d96b424310570f48',1,'yaze::app::emu::memory::MockMemory::SetMemoryContents(const std::vector&lt; uint16_t &gt; &amp;data)']]],
-  ['setmessage_98',['SetMessage',['../structyaze_1_1app_1_1editor_1_1MessageData.html#a3ca69b477d04920f580ceac48e4cbf10',1,'yaze::app::editor::MessageData']]],
+  ['setmessage_98',['SetMessage',['../structyaze_1_1app_1_1editor_1_1MessageData.html#ad0d4ff734d64302b8941258d1c2e95a3',1,'yaze::app::editor::MessageData']]],
   ['setname_99',['SetName',['../structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#adda3694dc0f5aeae8504c9c09aefe77c',1,'yaze::app::gfx::PaletteGroup']]],
   ['setnegativeflag_100',['SetNegativeFlag',['../classyaze_1_1app_1_1emu_1_1Cpu.html#af90740ac26ee90c4f9d39d96d01e116b',1,'yaze::app::emu::Cpu']]],
   ['setnextaction_101',['SetNextAction',['../classyaze_1_1app_1_1zelda3_1_1SpriteAction.html#a5e4a75199dbb3ad15241b55f05422971',1,'yaze::app::zelda3::SpriteAction']]],

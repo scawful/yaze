@@ -66,7 +66,7 @@ var hierarchy =
     [ "yaze::app::emu::video::CounterIrqNmiRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html", null ],
     [ "yaze::app::emu::memory::CpuCallbacks", "structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html", null ],
     [ "yaze::app::emu::Debugger", "classyaze_1_1app_1_1emu_1_1Debugger.html", null ],
-    [ "yaze::app::editor::MessageEditor::DictionaryEntry", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html", null ],
+    [ "yaze::app::editor::DictionaryEntry", "structyaze_1_1app_1_1editor_1_1DictionaryEntry.html", null ],
     [ "yaze::app::emu::memory::DmaChannel", "structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html", null ],
     [ "yaze::app::emu::video::DmaRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html", null ],
     [ "yaze::app::emu::audio::Dsp", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html", null ],

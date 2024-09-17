@@ -92,7 +92,7 @@ var searchData=
   ['operator_7c_89',['operator|',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6a9452416d917ccb246fbc455e485900',1,'yaze::app::zelda3::dungeon']]],
   ['operator_7e_90',['operator~',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a86644c3f8bc3f03fd330b2c3b4f0ba00',1,'yaze::app::zelda3::dungeon']]],
   ['ophct_91',['OPHCT',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OPHCT.html',1,'yaze::app::emu::video::PpuRegisters::OPHCT'],['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#ac6872e99c3489a50d3028baafcbe168b',1,'yaze::app::emu::video::PpuRegisters::OPHCT']]],
-  ['optimizemessagefordictionary_92',['OptimizeMessageForDictionary',['../structyaze_1_1app_1_1editor_1_1MessageData.html#aadd07b70dd09431d38aef82b06a8823e',1,'yaze::app::editor::MessageData']]],
+  ['optimizemessagefordictionary_92',['OptimizeMessageForDictionary',['../structyaze_1_1app_1_1editor_1_1MessageData.html#ad9cb7d827cf862bca6656c9566dd17e5',1,'yaze::app::editor::MessageData']]],
   ['options_93',['options',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a263221b824153e80672eaab0bb679e60',1,'yaze::app::zelda3::dungeon::RoomObject']]],
   ['options_5f_94',['options_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#aaf96dd3ca77a3cd635e5a3dd527f777d',1,'yaze::app::zelda3::dungeon::RoomObject']]],
   ['opvct_95',['OPVCT',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OPVCT.html',1,'yaze::app::emu::video::PpuRegisters::OPVCT'],['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a8ba1df9436e8e02f33ce9fbcc04e168d',1,'yaze::app::emu::video::PpuRegisters::OPVCT']]],

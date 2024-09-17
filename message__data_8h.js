@@ -1,19 +1,25 @@
 var message__data_8h =
 [
+    [ "yaze::app::editor::DictionaryEntry", "structyaze_1_1app_1_1editor_1_1DictionaryEntry.html", "structyaze_1_1app_1_1editor_1_1DictionaryEntry" ],
     [ "yaze::app::editor::MessageData", "structyaze_1_1app_1_1editor_1_1MessageData.html", "structyaze_1_1app_1_1editor_1_1MessageData" ],
     [ "yaze::app::editor::TextElement", "structyaze_1_1app_1_1editor_1_1TextElement.html", "structyaze_1_1app_1_1editor_1_1TextElement" ],
     [ "yaze::app::editor::ParsedElement", "structyaze_1_1app_1_1editor_1_1ParsedElement.html", "structyaze_1_1app_1_1editor_1_1ParsedElement" ],
     [ "FindMatchingCharacter", "message__data_8h.html#a903cdfb934c048134f9cd12283b60f32", null ],
     [ "FindDictionaryEntry", "message__data_8h.html#a3099ee5f96067379b03d477c1fdd1016", null ],
-    [ "ReplaceAllDictionaryWords", "message__data_8h.html#a15f24c296207cfe5e5d65f8e6ced2906", null ],
+    [ "ParseMessageToData", "message__data_8h.html#adbfa49c529abc70e97df75a0ef62228d", null ],
+    [ "BuildDictionaryEntries", "message__data_8h.html#a6be9c5b53ff197a95e1287076d8e71af", null ],
+    [ "ReplaceAllDictionaryWords", "message__data_8h.html#afcd0ceeb3d8ba860c6daef4e0fb664d3", null ],
     [ "FindMatchingCommand", "message__data_8h.html#ac915a1e39b12e26c6f818d1a08ca05c1", null ],
     [ "FindMatchingSpecial", "message__data_8h.html#aadbfbb6b8f84c831c0201e3e09faa4e2", null ],
     [ "FindMatchingElement", "message__data_8h.html#a34e00c874a636843f203374afeb777c7", null ],
     [ "ParseTextDataByte", "message__data_8h.html#af06b6e8af641ee53dbc34d85c4270ddd", null ],
-    [ "ParseMessageToData", "message__data_8h.html#adbfa49c529abc70e97df75a0ef62228d", null ],
     [ "kMessageTerminator", "message__data_8h.html#a7985c28be7e66bda21adef7bb3b456c4", null ],
     [ "BANKToken", "message__data_8h.html#a850a7222bba2ccad93ba6aadd8f37430", null ],
     [ "DICTIONARYTOKEN", "message__data_8h.html#a0fa9018bc42caddcbec2c22a7418ce11", null ],
     [ "DICTOFF", "message__data_8h.html#a3759630a3dcabc07760675dda8bf5c8c", null ],
+    [ "kTextData", "message__data_8h.html#a605e94adaebaae701af52da93fe1b5eb", null ],
+    [ "kTextDataEnd", "message__data_8h.html#a4173da708cbdbecf668ac5315d511348", null ],
+    [ "kNumDictionaryEntries", "message__data_8h.html#adda17c1c63e0d77cd9100cab3700d10d", null ],
+    [ "kPointersDictionaries", "message__data_8h.html#a3fde9ee2c49e4291e4237f0bc0d4b33a", null ],
     [ "CHEESE", "message__data_8h.html#ab97da3dff9dae706531f752f9f310f82", null ]
 ];

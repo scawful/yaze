@@ -97,7 +97,7 @@ var searchData=
   ['compression_5fpieces_94',['compression_pieces',['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae75528fc689654968586b3863d94692d',1,'yaze::app::gfx::lc_lz2::CompressionContext']]],
   ['compression_5fstring_95',['compression_string',['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ada885d11cc579116d21c5acb7b4e8356',1,'yaze::app::gfx::lc_lz2::CompressionContext']]],
   ['constant_5fmanager_5f_96',['constant_manager_',['../classyaze_1_1app_1_1editor_1_1EditorManager.html#a5f0c8aae871d92b5f23ab4268f5773a9',1,'yaze::app::editor::EditorManager']]],
-  ['contents_97',['Contents',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#aaaf19488a2d6e9496a2448063d6ddc66',1,'yaze::app::editor::MessageEditor::DictionaryEntry']]],
+  ['contents_97',['Contents',['../structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#a67a9dec363756bf1c24b829c4fe2573c',1,'yaze::app::editor::DictionaryEntry']]],
   ['contentsparsed_98',['ContentsParsed',['../structyaze_1_1app_1_1editor_1_1MessageData.html#a074f1197c0fe7c914397ab3b3919179b',1,'yaze::app::editor::MessageData']]],
   ['context_5fid_5f_99',['context_id_',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a5031aaba312a2ebb54a1f9ba881b8694',1,'yaze::app::gui::Canvas']]],
   ['converted_5fsurface_5f_100',['converted_surface_',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#add1fc786fb298af7d3e13a086031c90a',1,'yaze::app::gfx::Bitmap']]],

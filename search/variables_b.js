@@ -31,7 +31,7 @@ var searchData=
   ['layoutselectablespacing_28',['LayoutSelectableSpacing',['../structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#adbffdb3417817678bf9c3d62bb46e122',1,'yaze::app::gui::GfxSheetAssetBrowser']]],
   ['left_5fposition_29',['left_position',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WH0.html#a07ba4f12e9c6cea693bdcfba04611aab',1,'yaze::app::emu::video::PpuRegisters::WH0::left_position'],['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WH2.html#a74b3bfbbe98a0d4a39acce158e9b313b',1,'yaze::app::emu::video::PpuRegisters::WH2::left_position']]],
   ['len_30',['len',['../structyaze_1_1app_1_1zelda3_1_1music_1_1SongSPCBlock.html#afc0bfd6f92d89bffb3dac63c2c64c82e',1,'yaze::app::zelda3::music::SongSPCBlock']]],
-  ['length_31',['Length',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a68f9d3c4fa8cb8cc6a70d66b4c379369',1,'yaze::app::editor::MessageEditor::DictionaryEntry']]],
+  ['length_31',['Length',['../structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#a43743a48629a1007f062237c0255907d',1,'yaze::app::editor::DictionaryEntry']]],
   ['length_32',['length',['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#acb65024fd97259b45d718e1823e70db2',1,'yaze::app::gfx::lc_lz2::CompressionPiece']]],
   ['lflag_33',['lflag',['../structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaWave.html#afba130b28474eaa991a00c9356017912',1,'yaze::app::zelda3::music::ZeldaWave']]],
   ['license_34',['license',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a4a7c7461ce733f7d969949f32aefe9f4',1,'yaze::app::emu::memory::RomInfo']]],

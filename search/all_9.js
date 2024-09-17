@@ -182,7 +182,7 @@ var searchData=
   ['build_2dinstructions_2emd_179',['build-instructions.md',['../build-instructions_8md.html',1,'']]],
   ['build_5fheader_180',['BUILD_HEADER',['../compression_8h.html#aca48128a724010a9277720f53bde1a5a',1,'BUILD_HEADER:&#160;compression.h'],['../compression__test_8cc.html#aca48128a724010a9277720f53bde1a5a',1,'BUILD_HEADER:&#160;compression_test.cc']]],
   ['buildbitmap_181',['BuildBitmap',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa5f5de6ba6a9981025112ad3a82f12ff',1,'yaze::app::zelda3::overworld::OverworldMap']]],
-  ['builddictionaryentries_182',['BuildDictionaryEntries',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#ace1256aebd3505dbc421d28e711f2068',1,'yaze::app::editor::MessageEditor']]],
+  ['builddictionaryentries_182',['BuildDictionaryEntries',['../namespaceyaze_1_1app_1_1editor.html#a6be9c5b53ff197a95e1287076d8e71af',1,'yaze::app::editor']]],
   ['builder_20system_183',['2. Sprite Builder System',['../md_docs_2contributing.html#autotoc_md31',1,'']]],
   ['building_20and_20installation_184',['Building and installation',['../md_README.html#autotoc_md64',1,'']]],
   ['building_20the_20project_185',['Building the Project',['../md_docs_2contributing.html#autotoc_md37',1,'']]],

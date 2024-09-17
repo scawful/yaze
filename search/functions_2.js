@@ -84,7 +84,7 @@ var searchData=
   ['compressv2_81',['CompressV2',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a7e2b12ac3e3d8128536d65cf91946438',1,'yaze::app::gfx::lc_lz2']]],
   ['compressv3_82',['CompressV3',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a45cc1350da377d21e9aca0b34263dcab',1,'yaze::app::gfx::lc_lz2']]],
   ['configureobject_83',['ConfigureObject',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a05530320167f3102203a0bd3f3294562',1,'yaze::app::zelda3::dungeon::DungeonObjectRenderer']]],
-  ['containedinstring_84',['ContainedInString',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a48641fc485f400576b2ec510df754abe',1,'yaze::app::editor::MessageEditor::DictionaryEntry']]],
+  ['containedinstring_84',['ContainedInString',['../structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#ae3e6da297bf4183bc126451cce6b5ee4',1,'yaze::app::editor::DictionaryEntry']]],
   ['convert_85',['Convert',['../namespaceyaze_1_1app_1_1gfx.html#ad373c73aedd572d880fc5c49e0b4782e',1,'yaze::app::gfx']]],
   ['convert3bppto4bpp_86',['Convert3bppTo4bpp',['../namespaceyaze_1_1app_1_1gfx.html#acbccad0c8c3b4758e2ed3425058623d7',1,'yaze::app::gfx']]],
   ['convert4bppto3bpp_87',['Convert4bppTo3bpp',['../namespaceyaze_1_1app_1_1gfx.html#a12666f7bb6b6dcacbb721b16eded9000',1,'yaze::app::gfx']]],

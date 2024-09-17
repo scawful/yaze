@@ -25,7 +25,7 @@ var searchData=
   ['dex_22',['DEX',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a6099c0385b03c133b48cd5ee323cd5d2',1,'yaze::app::emu::Cpu']]],
   ['dey_23',['DEY',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a5cab5717420a053a5d6835ec9b974e46',1,'yaze::app::emu::Cpu']]],
   ['di_24',['DI',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#aa359808b7793f7c3cf34809b8667e17c',1,'yaze::app::emu::audio::Spc700']]],
-  ['dictionaryentry_25',['DictionaryEntry',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a08319c6c72f68154abf815f2cceaa431',1,'yaze::app::editor::MessageEditor::DictionaryEntry::DictionaryEntry()=default'],['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a6b8e37c82576963597a46b0a3a27242a',1,'yaze::app::editor::MessageEditor::DictionaryEntry::DictionaryEntry(uint8_t i, std::string s)']]],
+  ['dictionaryentry_25',['DictionaryEntry',['../structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#a22786377dba65c7afe572145265af2a9',1,'yaze::app::editor::DictionaryEntry::DictionaryEntry()=default'],['../structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#af3836ac45f6a7c3e7cb98c3576223911',1,'yaze::app::editor::DictionaryEntry::DictionaryEntry(uint8_t i, std::string s)']]],
   ['directpage_26',['DirectPage',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a1b6e9a3dcc8b9f8b024d38487fb0edb0',1,'yaze::app::emu::Cpu']]],
   ['directpageindexedindirectx_27',['DirectPageIndexedIndirectX',['../classyaze_1_1app_1_1emu_1_1Cpu.html#ac04204c7280f294562a3189818c2549f',1,'yaze::app::emu::Cpu']]],
   ['directpageindexedx_28',['DirectPageIndexedX',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a59bb8ea7357ba488ea699318d6d066ca',1,'yaze::app::emu::Cpu']]],

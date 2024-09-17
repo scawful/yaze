@@ -1,6 +1,5 @@
 var classyaze_1_1app_1_1editor_1_1MessageEditor =
 [
-    [ "DictionaryEntry", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry" ],
     [ "TextBox", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox" ],
     [ "MessageEditor", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#ab40336547deb092bf03e5d8e81ff71c7", null ],
     [ "Initialize", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#ad40e04b04c13c2365d38fdcd631ed128", null ],
@@ -10,7 +9,6 @@ var classyaze_1_1app_1_1editor_1_1MessageEditor =
     [ "DrawTextCommands", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a9cde2031bd16ed689d7a45719293c70f", null ],
     [ "ReadAllTextDataV2", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a9604260979c0fb4476c1c3060392f052", null ],
     [ "ReadAllTextData", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a3d72f76ce6ed3b8f7fa1cc5fa3281d0d", null ],
-    [ "BuildDictionaryEntries", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#ace1256aebd3505dbc421d28e711f2068", null ],
     [ "Cut", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a6442e5e6116fabd69ad47ee169a07122", null ],
     [ "Copy", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a49403ebf83c06977253741785d25897a", null ],
     [ "Paste", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a1818dd682ec717c61413b6e98617a8bc", null ],
@@ -20,7 +18,7 @@ var classyaze_1_1app_1_1editor_1_1MessageEditor =
     [ "Save", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a60adbc581ef0146f823a90dcdc3cbc41", null ],
     [ "Delete", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a75765e5ffc1def042e9091c1293e7e9b", null ],
     [ "SelectAll", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a6610b956e8c0f1120deb90bfa93d612d", null ],
-    [ "GetDictionaryFromID", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#aba1875ff6fc2a84ec1c0ebe42474858e", null ],
+    [ "GetDictionaryFromID", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a0ee688c930b7e64513f3bcb6b369bbe6", null ],
     [ "DrawTileToPreview", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a1651526d4fe73e12a9cdc04eae707740", null ],
     [ "DrawCharacterToPreview", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a45714a30dbeca4ac0e6dab387e3f234c", null ],
     [ "DrawCharacterToPreview", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a9bd3cd61a4f3382c912ef9ccfb24e1dc", null ],
@@ -38,6 +36,7 @@ var classyaze_1_1app_1_1editor_1_1MessageEditor =
     [ "current_font_gfx16_data_", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a492afc77ad2e0dd845ce009e460fef68", null ],
     [ "parsed_messages_", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a3b891275ccdc05865ad5e128d26bf01e", null ],
     [ "list_of_texts_", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#ae042b5fb253bf4788ff50921c831076d", null ],
+    [ "all_dictionaries_", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#ae418216bf0926bf1729816e872b5f2f2", null ],
     [ "current_message_", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a54a6635c8826c6c5b51ea353a88887a9", null ],
     [ "font_gfx_bitmap_", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a9f81e1c8a4aceca7198793e2e2a46d5f", null ],
     [ "current_font_gfx16_bitmap_", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#ac629c67abae9f4e06acfe55d5271d7d8", null ],

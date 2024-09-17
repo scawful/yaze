@@ -2,7 +2,7 @@ var searchData=
 [
   ['debugger_0',['Debugger',['../classyaze_1_1app_1_1emu_1_1Debugger.html',1,'yaze::app::emu']]],
   ['decompress_1',['Decompress',['../classyaze_1_1cli_1_1Decompress.html',1,'yaze::cli']]],
-  ['dictionaryentry_2',['DictionaryEntry',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html',1,'yaze::app::editor::MessageEditor']]],
+  ['dictionaryentry_2',['DictionaryEntry',['../structyaze_1_1app_1_1editor_1_1DictionaryEntry.html',1,'yaze::app::editor']]],
   ['dmachannel_3',['DmaChannel',['../structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html',1,'yaze::app::emu::memory']]],
   ['dmaregisters_4',['DmaRegisters',['../structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html',1,'yaze::app::emu::video']]],
   ['dsp_5',['Dsp',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html',1,'yaze::app::emu::audio']]],
