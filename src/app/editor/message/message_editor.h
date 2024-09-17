@@ -17,13 +17,9 @@ namespace app {
 namespace editor {
 
 constexpr int kGfxFont = 0x70000;  // 2bpp format
-constexpr int kTextData = 0xE0000;
-constexpr int kTextDataEnd = 0xE7FFF;
 constexpr int kTextData2 = 0x75F40;
 constexpr int kTextData2End = 0x773FF;
-constexpr int kPointersDictionaries = 0x74703;
 constexpr int kCharactersWidth = 0x74ADF;
-constexpr int kNumDictionaryEntries = 97;
 constexpr int kNumMessages = 396;
 constexpr int kCurrentMessageWidth = 172;
 constexpr int kCurrentMessageHeight = 4096;
@@ -51,7 +47,6 @@ class MessageEditor : public Editor, public SharedRom {
 
   void ReadAllTextDataV2();
   [[deprecated]] void ReadAllTextData();
-  void BuildDictionaryEntries();
 
   absl::Status Cut() override;
   absl::Status Copy() override;
@@ -67,34 +62,6 @@ class MessageEditor : public Editor, public SharedRom {
   void Delete();
   void SelectAll();
 
-  struct DictionaryEntry {
-    uint8_t ID;
-    std::string Contents;
-    std::vector<uint8_t> Data;
-    int Length;
-    std::string Token;
-
-    DictionaryEntry() = default;
-    DictionaryEntry(uint8_t i, std::string s)
-        : Contents(s), ID(i), Length(s.length()) {
-      Token = absl::StrFormat("[%s:%00X]", DICTIONARYTOKEN, ID);
-      Data = ParseMessageToData(Contents);
-    }
-
-    bool ContainedInString(std::string s) {
-      return s.find(Contents) != std::string::npos;
-    }
-
-    std::string ReplaceInstancesOfIn(std::string s) {
-      std::string replacedString = s;
-      size_t pos = replacedString.find(Contents);
-      while (pos != std::string::npos) {
-        replacedString.replace(pos, Contents.length(), Token);
-        pos = replacedString.find(Contents, pos + Token.length());
-      }
-      return replacedString;
-    }
-  };
   DictionaryEntry GetDictionaryFromID(uint8_t value);
   void DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
                          int sizex = 1, int sizey = 1);
@@ -122,6 +89,8 @@ class MessageEditor : public Editor, public SharedRom {
   std::vector<std::string> parsed_messages_;
 
   std::vector<MessageData> list_of_texts_;
+
+  std::vector<DictionaryEntry> all_dictionaries_;
 
   MessageData current_message_;
 
@@ -190,8 +159,6 @@ class MessageEditor : public Editor, public SharedRom {
 
   TextBox message_text_box_;
 };
-
-static std::vector<MessageEditor::DictionaryEntry> AllDictionaries;
 
 }  // namespace editor
 }  // namespace app

@@ -8,6 +8,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_replace.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace app {
@@ -41,7 +42,46 @@ static const std::unordered_map<uint8_t, wchar_t> CharEncoder = {
 uint8_t FindMatchingCharacter(char value);
 uint8_t FindDictionaryEntry(uint8_t value);
 
-std::string ReplaceAllDictionaryWords(std::string str);
+std::vector<uint8_t> ParseMessageToData(std::string str);
+
+struct DictionaryEntry {
+  uint8_t ID;
+  std::string Contents;
+  std::vector<uint8_t> Data;
+  int Length;
+  std::string Token;
+
+  DictionaryEntry() = default;
+  DictionaryEntry(uint8_t i, std::string s)
+      : Contents(s), ID(i), Length(s.length()) {
+    Token = absl::StrFormat("[%s:%00X]", DICTIONARYTOKEN, ID);
+    Data = ParseMessageToData(Contents);
+  }
+
+  bool ContainedInString(std::string s) {
+    return s.find(Contents) != std::string::npos;
+  }
+
+  std::string ReplaceInstancesOfIn(std::string s) {
+    std::string replacedString = s;
+    size_t pos = replacedString.find(Contents);
+    while (pos != std::string::npos) {
+      replacedString.replace(pos, Contents.length(), Token);
+      pos = replacedString.find(Contents, pos + Token.length());
+    }
+    return replacedString;
+  }
+};
+
+constexpr int kTextData = 0xE0000;
+constexpr int kTextDataEnd = 0xE7FFF;
+constexpr int kNumDictionaryEntries = 97;
+constexpr int kPointersDictionaries = 0x74703;
+
+std::vector<DictionaryEntry> BuildDictionaryEntries(app::Rom* rom);
+
+std::string ReplaceAllDictionaryWords(std::string str,
+                                      std::vector<DictionaryEntry> dictionary);
 
 // Inserted into commands to protect them from dictionary replacements.
 const std::string CHEESE = "\uBEBE";
@@ -80,7 +120,9 @@ struct MessageData {
     return absl::StrFormat("%0X - %s", ID, ContentsParsed);
   }
 
-  std::string OptimizeMessageForDictionary(std::string messageString) {
+  std::string OptimizeMessageForDictionary(
+      std::string messageString,
+      const std::vector<DictionaryEntry>& dictionary) {
     std::stringstream protons;
     bool command = false;
     for (const auto& c : messageString) {
@@ -97,16 +139,18 @@ struct MessageData {
     }
 
     std::string protonsString = protons.str();
-    std::string replacedString = ReplaceAllDictionaryWords(protonsString);
+    std::string replacedString =
+        ReplaceAllDictionaryWords(protonsString, dictionary);
     std::string finalString =
         absl::StrReplaceAll(replacedString, {{CHEESE, ""}});
 
     return finalString;
   }
 
-  void SetMessage(const std::string& message) {
+  void SetMessage(const std::string& message,
+                  const std::vector<DictionaryEntry>& dictionary) {
     RawString = message;
-    ContentsParsed = OptimizeMessageForDictionary(message);
+    ContentsParsed = OptimizeMessageForDictionary(message, dictionary);
   }
 };
 
@@ -232,8 +276,6 @@ struct ParsedElement {
 ParsedElement FindMatchingElement(const std::string& str);
 
 std::string ParseTextDataByte(uint8_t value);
-
-std::vector<uint8_t> ParseMessageToData(std::string str);
 
 }  // namespace editor
 }  // namespace app
