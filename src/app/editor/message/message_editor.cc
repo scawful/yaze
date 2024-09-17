@@ -11,7 +11,6 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_replace.h"
 #include "absl/strings/str_split.h"
-
 #include "app/core/platform/renderer.h"
 #include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
@@ -48,7 +47,7 @@ absl::Status MessageEditor::Initialize() {
     width_array[i] = rom()->data()[kCharactersWidth + i];
   }
 
-  BuildDictionaryEntries();
+  all_dictionaries_ = BuildDictionaryEntries(rom());
   ReadAllTextDataV2();
 
   font_preview_colors_.AddColor(0x7FFF);  // White
@@ -66,7 +65,8 @@ absl::Status MessageEditor::Initialize() {
   RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
       128, 128, 8, font_gfx16_data_, font_gfx_bitmap_, font_preview_colors_))
 
-  current_font_gfx16_data_.reserve(kCurrentMessageWidth * kCurrentMessageHeight);
+  current_font_gfx16_data_.reserve(kCurrentMessageWidth *
+                                   kCurrentMessageHeight);
   for (int i = 0; i < kCurrentMessageWidth * kCurrentMessageHeight; i++) {
     current_font_gfx16_data_.push_back(0);
   }
@@ -153,7 +153,7 @@ absl::Status MessageEditor::Update() {
         TableSetupColumn("ID");
         TableSetupColumn("Contents");
 
-        for (const auto& dictionary : AllDictionaries) {
+        for (const auto& dictionary : all_dictionaries_) {
           TableNextColumn();
           Text("%s", core::UppercaseHexWord(dictionary.ID).c_str());
           TableNextColumn();
@@ -259,34 +259,6 @@ void MessageEditor::DrawTextCommands() {
   }
 }
 
-void MessageEditor::BuildDictionaryEntries() {
-  for (int i = 0; i < kNumDictionaryEntries; i++) {
-    std::vector<uint8_t> bytes;
-    std::stringstream stringBuilder;
-
-    int address = core::SnesToPc(
-        kTextData + (rom()->data()[kPointersDictionaries + (i * 2) + 1] << 8) +
-        rom()->data()[kPointersDictionaries + (i * 2)]);
-
-    int temppush_backress = core::SnesToPc(
-        kTextData +
-        (rom()->data()[kPointersDictionaries + ((i + 1) * 2) + 1] << 8) +
-        rom()->data()[kPointersDictionaries + ((i + 1) * 2)]);
-
-    while (address < temppush_backress) {
-      uint8_t uint8_tDictionary = rom()->data()[address++];
-      bytes.push_back(uint8_tDictionary);
-      stringBuilder << ParseTextDataByte(uint8_tDictionary);
-    }
-
-    AllDictionaries.push_back(DictionaryEntry{(uint8_t)i, stringBuilder.str()});
-  }
-
-  std::sort(AllDictionaries.begin(), AllDictionaries.end(),
-            [](const DictionaryEntry& a, const DictionaryEntry& b) {
-              return a.Contents.size() > b.Contents.size();
-            });
-}
 
 // TODO: Fix the command parsing.
 void MessageEditor::ReadAllTextDataV2() {
@@ -484,9 +456,10 @@ void MessageEditor::ReadAllTextData() {
   }
 }
 
-std::string ReplaceAllDictionaryWords(std::string str) {
+std::string ReplaceAllDictionaryWords(std::string str,
+                                      std::vector<DictionaryEntry> dictionary) {
   std::string temp = str;
-  for (const auto& entry : AllDictionaries) {
+  for (const auto& entry : dictionary) {
     if (absl::StrContains(temp, entry.Contents)) {
       temp = absl::StrReplaceAll(temp, {{entry.Contents, entry.Contents}});
     }
@@ -494,12 +467,11 @@ std::string ReplaceAllDictionaryWords(std::string str) {
   return temp;
 }
 
-MessageEditor::DictionaryEntry MessageEditor::GetDictionaryFromID(
-    uint8_t value) {
-  if (value < 0 || value >= AllDictionaries.size()) {
+DictionaryEntry MessageEditor::GetDictionaryFromID(uint8_t value) {
+  if (value < 0 || value >= all_dictionaries_.size()) {
     return DictionaryEntry();
   }
-  return AllDictionaries[value];
+  return all_dictionaries_[value];
 }
 
 void MessageEditor::DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
