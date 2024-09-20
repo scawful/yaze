@@ -1,8 +1,5 @@
 #include "message_editor.h"
 
-#include <algorithm>
-#include <regex>
-#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -10,14 +7,11 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_replace.h"
-#include "absl/strings/str_split.h"
 #include "app/core/platform/renderer.h"
-#include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
-#include "app/gui/icons.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
 
