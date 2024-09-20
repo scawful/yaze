@@ -242,6 +242,8 @@ void EditorManager::ManageActiveEditors() {
 void EditorManager::ManageKeyboardShortcuts() {
   bool ctrl_or_super = (GetIO().KeyCtrl || GetIO().KeySuper);
 
+  command_manager_.ShowWhichKey();
+
   // If CMD + R is pressed, reload the top result of recent files
   if (IsKeyDown(ImGuiKey_R) && ctrl_or_super) {
     static RecentFilesManager manager("recent_files.txt");
