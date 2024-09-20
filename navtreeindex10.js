@@ -1,5 +1,9 @@
 var NAVTREEINDEX10 =
 {
+"classyaze_1_1app_1_1emu_1_1Emulator.html#afc104621863ff7b3e894dba82b93584c":[12,0,0,0,2,8,7],
+"classyaze_1_1app_1_1emu_1_1InstructionEntry.html":[11,0,1,0,3,12],
+"classyaze_1_1app_1_1emu_1_1InstructionEntry.html":[12,0,0,0,2,10],
+"classyaze_1_1app_1_1emu_1_1InstructionEntry.html#a15cb4366ccc26265dd6cd8d03f4938cd":[11,0,1,0,3,12,8],
 "classyaze_1_1app_1_1emu_1_1InstructionEntry.html#a15cb4366ccc26265dd6cd8d03f4938cd":[12,0,0,0,2,10,8],
 "classyaze_1_1app_1_1emu_1_1InstructionEntry.html#a298fbf6ee3485a0cb3d57ba9983a88a4":[11,0,1,0,3,12,6],
 "classyaze_1_1app_1_1emu_1_1InstructionEntry.html#a298fbf6ee3485a0cb3d57ba9983a88a4":[12,0,0,0,2,10,6],
@@ -245,9 +249,5 @@ var NAVTREEINDEX10 =
 "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#a63d23e35f646d4f76e49f3d287247447":[12,0,0,0,2,0,3,4],
 "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#a6895aa2fd6ea083c879383c5676f36f5":[11,0,1,0,3,2,3,2],
 "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#a6895aa2fd6ea083c879383c5676f36f5":[12,0,0,0,2,0,3,2],
-"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#a8ee78566ee684d86501a70fc0f1998a4":[11,0,1,0,3,2,3,3],
-"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#a8ee78566ee684d86501a70fc0f1998a4":[12,0,0,0,2,0,3,3],
-"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#a9aa26b544ec73e15f27c57ccdddbd173":[11,0,1,0,3,2,3,1],
-"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#a9aa26b544ec73e15f27c57ccdddbd173":[12,0,0,0,2,0,3,1],
-"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#aa948eeb2852e719dd90c2e8a80764746":[11,0,1,0,3,2,3,0]
+"classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#a8ee78566ee684d86501a70fc0f1998a4":[11,0,1,0,3,2,3,3]
 };

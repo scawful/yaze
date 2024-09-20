@@ -1,5 +1,11 @@
 var NAVTREEINDEX39 =
 {
+"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a9aac5b62ca1178803afc6b1c6b42b7e0":[11,0,1,0,4,1,72],
+"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa5f36c0fbde5994c88d0a644f97aac0f":[11,0,1,0,4,1,68],
+"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa8bcf90e524970ee34af92030ea7066f":[11,0,1,0,4,1,77],
+"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab029bf3391b9f450789088d69ee7d08f":[11,0,1,0,4,1,29],
+"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab1a2b7e8919a316888cef2f9dd30318b":[11,0,1,0,4,1,66],
+"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab38fd85b5bab43edf01facb52cfcf3a9":[11,0,1,0,4,1,38],
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab3d49b0d0ddf4ea0f89f7e5f1aefdeb8":[11,0,1,0,4,1,28],
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab489a08c731f0c501bc54a64a7a95554":[11,0,1,0,4,1,71],
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab8452f0e53d55ed76cd1687c072a85b4":[11,0,1,0,4,1,16],
@@ -243,11 +249,5 @@ var NAVTREEINDEX39 =
 "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a9b177a7be6077af963cf6a0124cc7a4f":[11,0,1,0,6,1,90],
 "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a9dbbade5d8888f8eed6b9aaeb58fc6e6":[11,0,1,0,6,1,127],
 "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#aa042a30dbaf259b94e54d659091186a8":[11,0,1,0,6,1,78],
-"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#aa1a97e196edeeb0623079d954a112f8a":[11,0,1,0,6,1,33],
-"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#aa21d4cc6503f57faae549b549f7346f1":[11,0,1,0,6,1,125],
-"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#aa66ebd23138577105b6a458ee86cbc7d":[11,0,1,0,6,1,66],
-"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#aa7fc2bb3bbe78c431f4bd9611c5cb7e5":[11,0,1,0,6,1,47],
-"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ab1bd585358915628affdef42efcbbad5":[11,0,1,0,6,1,115],
-"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ab3fbd338b4a847a3500635d5a170f188":[11,0,1,0,6,1,106],
-"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ab5122358cbc3f1e1b3af618090861eb9":[11,0,1,0,6,1,36]
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#aa1a97e196edeeb0623079d954a112f8a":[11,0,1,0,6,1,33]
 };

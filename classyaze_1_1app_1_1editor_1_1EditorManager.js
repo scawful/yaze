@@ -29,6 +29,7 @@ var classyaze_1_1app_1_1editor_1_1EditorManager =
     [ "dispatcher_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#ae8c07d10ee604e4ada896c6fe5fcfa19", null ],
     [ "emulator_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a6d9c86076813e1db3874e59826591ee9", null ],
     [ "current_project_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a910841c4251150731903413688f87871", null ],
+    [ "command_manager_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a711937e26c890d83e8bbc8f1cba5dad2", null ],
     [ "constant_manager_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a5f0c8aae871d92b5f23ab4268f5773a9", null ],
     [ "extension_manager_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a0dc4e071ef63fe80f44265c07bff4ac7", null ],
     [ "editor_context_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a96eef7e316c643bb0182df65a8bbda39", null ],

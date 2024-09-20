@@ -1,5 +1,11 @@
 var NAVTREEINDEX51 =
 {
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#aacd8064d7e8b0a25dbd0041a71b2d36e":[12,0,0,0,3,0,2,2],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#ac5fbf712c448072f5738ceaed7182684":[11,0,1,0,4,1,2,0],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#ac5fbf712c448072f5738ceaed7182684":[12,0,0,0,3,0,2,0],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#acb65024fd97259b45d718e1823e70db2":[11,0,1,0,4,1,2,3],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#acb65024fd97259b45d718e1823e70db2":[12,0,0,0,3,0,2,3],
+"structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html":[11,0,1,0,4,3,0],
 "structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html":[12,0,0,0,3,1,0],
 "structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#a33d45d7b7309794608d24f2d0e778f36":[11,0,1,0,4,3,0,4],
 "structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#a33d45d7b7309794608d24f2d0e778f36":[12,0,0,0,3,1,0,4],
@@ -243,11 +249,5 @@ var NAVTREEINDEX51 =
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a46470250f1e84266ae72fdc2b4e325e3":[12,0,0,0,5,1,5,11],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a550b4b1722c44eeea621a0f3ebf376f2":[11,0,1,0,6,2,5,9],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a550b4b1722c44eeea621a0f3ebf376f2":[12,0,0,0,5,1,5,9],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a5b5bd0d24138f4db0c7d0dfb5ed2b283":[11,0,1,0,6,2,5,3],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a5b5bd0d24138f4db0c7d0dfb5ed2b283":[12,0,0,0,5,1,5,3],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a7801492e0f97172fb81475b324920f35":[11,0,1,0,6,2,5,1],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a7801492e0f97172fb81475b324920f35":[12,0,0,0,5,1,5,1],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a7afcc7f869544a88de42a95b0d971a08":[11,0,1,0,6,2,5,7],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a7afcc7f869544a88de42a95b0d971a08":[12,0,0,0,5,1,5,7],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a830de195423d85d0d3507b6f84d60f65":[11,0,1,0,6,2,5,4]
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a5b5bd0d24138f4db0c7d0dfb5ed2b283":[11,0,1,0,6,2,5,3]
 };

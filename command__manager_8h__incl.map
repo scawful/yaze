@@ -1,7 +1,9 @@
 <map id="src/app/editor/system/command_manager.h" name="src/app/editor/system/command_manager.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="9,5,159,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="35,5,184,46"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,94,59,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="73,48,51,82,46,79,69,45"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="82,94,192,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="99,45,123,80,118,83,95,48"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,48,57,84,53,81,88,45"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="83,94,136,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="112,46,112,78,107,78,107,46"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="160,94,270,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="137,44,188,82,185,86,134,49"/>
 </map>

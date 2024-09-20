@@ -1,5 +1,11 @@
 var NAVTREEINDEX50 =
 {
+"structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html#a65ff0c5ec1ba48eec1623a96779236b8":[12,0,0,0,2,2,18,6],
+"structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html#a72fbc356a242327ecac585cf686cb1e7":[11,0,1,0,3,4,18,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html#a72fbc356a242327ecac585cf686cb1e7":[12,0,0,0,2,2,18,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html#a9fe7948cc6711475bdfabd14e35897b7":[11,0,1,0,3,4,18,5],
+"structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html#a9fe7948cc6711475bdfabd14e35897b7":[12,0,0,0,2,2,18,5],
+"structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html#ac705632560d310154f870cce2afcf91a":[11,0,1,0,3,4,18,4],
 "structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html#ac705632560d310154f870cce2afcf91a":[12,0,0,0,2,2,18,4],
 "structyaze_1_1app_1_1emu_1_1video_1_1Tile.html":[11,0,1,0,3,4,19],
 "structyaze_1_1app_1_1emu_1_1video_1_1Tile.html":[12,0,0,0,2,2,19],
@@ -243,11 +249,5 @@ var NAVTREEINDEX50 =
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a44d1f5ba632d32f1a1c629a947784a3f":[12,0,0,0,3,0,2,4],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a45a290ab1cc359c527b923b854601ccf":[11,0,1,0,4,1,2,6],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a45a290ab1cc359c527b923b854601ccf":[12,0,0,0,3,0,2,6],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#aacd8064d7e8b0a25dbd0041a71b2d36e":[11,0,1,0,4,1,2,2],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#aacd8064d7e8b0a25dbd0041a71b2d36e":[12,0,0,0,3,0,2,2],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#ac5fbf712c448072f5738ceaed7182684":[11,0,1,0,4,1,2,0],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#ac5fbf712c448072f5738ceaed7182684":[12,0,0,0,3,0,2,0],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#acb65024fd97259b45d718e1823e70db2":[11,0,1,0,4,1,2,3],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#acb65024fd97259b45d718e1823e70db2":[12,0,0,0,3,0,2,3],
-"structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html":[11,0,1,0,4,3,0]
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#aacd8064d7e8b0a25dbd0041a71b2d36e":[11,0,1,0,4,1,2,2]
 };

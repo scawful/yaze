@@ -1,5 +1,11 @@
 var NAVTREEINDEX44 =
 {
+"scad__format_8cc.html#a401765bf79628a0f353807bc0a825797":[13,0,1,0,3,4,4],
+"scad__format_8cc.html#a727d2b36d35304c829d68a5ac9851175":[13,0,1,0,3,4,5],
+"scad__format_8cc.html#abbaf0d3bc11b96aee6681513c0128d26":[13,0,1,0,3,4,2],
+"scad__format_8cc.html#abe047922c043574add4a0819ba82ea31":[13,0,1,0,3,4,0],
+"scad__format_8cc.html#af4c5a9dd5cff79a3c0e3ebdf62620336":[13,0,1,0,3,4,3],
+"scad__format_8cc_source.html":[13,0,1,0,3,4],
 "scad__format_8h.html":[13,0,1,0,3,5],
 "scad__format_8h.html#a040f56ef613e47195e7749709b12073a":[13,0,1,0,3,5,3],
 "scad__format_8h.html#a401765bf79628a0f353807bc0a825797":[13,0,1,0,3,5,5],
@@ -17,10 +23,10 @@ var NAVTREEINDEX44 =
 "screen__editor_8h_source.html":[13,0,1,0,1,2,7],
 "sdl__deleter_8h.html":[13,0,1,0,0,1,2],
 "sdl__deleter_8h_source.html":[13,0,1,0,0,1,2],
-"settings__editor_8cc.html":[13,0,1,0,1,7,4],
-"settings__editor_8cc_source.html":[13,0,1,0,1,7,4],
-"settings__editor_8h.html":[13,0,1,0,1,7,5],
-"settings__editor_8h_source.html":[13,0,1,0,1,7,5],
+"settings__editor_8cc.html":[13,0,1,0,1,7,5],
+"settings__editor_8cc_source.html":[13,0,1,0,1,7,5],
+"settings__editor_8h.html":[13,0,1,0,1,7,6],
+"settings__editor_8h_source.html":[13,0,1,0,1,7,6],
 "snes_8cc.html":[13,0,1,0,2,7],
 "snes_8cc.html#a81d0f6f44caa1180f02c65980a9bc7e9":[13,0,1,0,2,7,1],
 "snes_8cc.html#aae723effd7ed469f002c818eb4ad7ff8":[13,0,1,0,2,7,0],
@@ -243,11 +249,5 @@ var NAVTREEINDEX44 =
 "structyaze_1_1app_1_1Project.html#aa68ec754ecc85e2ec52a375a55746fab":[12,0,0,0,6,2],
 "structyaze_1_1app_1_1Project.html#aaaec6f4568b290cb85dad5c0e58bd485":[11,0,1,0,7,8],
 "structyaze_1_1app_1_1Project.html#aaaec6f4568b290cb85dad5c0e58bd485":[12,0,0,0,6,8],
-"structyaze_1_1app_1_1Project.html#aaed58f3c0aa7f90c5221c36972c41d9f":[11,0,1,0,7,4],
-"structyaze_1_1app_1_1Project.html#aaed58f3c0aa7f90c5221c36972c41d9f":[12,0,0,0,6,4],
-"structyaze_1_1app_1_1Rom_1_1WriteAction.html":[11,0,1,0,8,0],
-"structyaze_1_1app_1_1Rom_1_1WriteAction.html":[12,0,0,0,7,0],
-"structyaze_1_1app_1_1Rom_1_1WriteAction.html#a84be097167d049d7423c0a4c5d85ecf3":[11,0,1,0,8,0,0],
-"structyaze_1_1app_1_1Rom_1_1WriteAction.html#a84be097167d049d7423c0a4c5d85ecf3":[12,0,0,0,7,0,0],
-"structyaze_1_1app_1_1Rom_1_1WriteAction.html#ab4cc03fb5a0c1660ef92dc81a19d6bca":[11,0,1,0,8,0,1]
+"structyaze_1_1app_1_1Project.html#aaed58f3c0aa7f90c5221c36972c41d9f":[11,0,1,0,7,4]
 };

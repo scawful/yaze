@@ -1,5 +1,11 @@
 var NAVTREEINDEX26 =
 {
+"entity_8h.html#a568eb6ef1a6b96b1a90075ec38b7d1a9a2289c3d3d4622c9558cb24ad8be37041":[13,0,1,0,1,5,1,1,0],
+"entity_8h.html#a568eb6ef1a6b96b1a90075ec38b7d1a9a2c8a5284a6fd0fa69f3df471bf7f6cb0":[13,0,1,0,1,5,1,1,4],
+"entity_8h.html#a568eb6ef1a6b96b1a90075ec38b7d1a9ad6ecde031e114c4933d033be84600cfb":[13,0,1,0,1,5,1,1,2],
+"entity_8h.html#a568eb6ef1a6b96b1a90075ec38b7d1a9ae174d554f93e36997c9267392b01d6da":[13,0,1,0,1,5,1,1,3],
+"entity_8h.html#a568eb6ef1a6b96b1a90075ec38b7d1a9af56bbdb3a93b5c290a87b6c2d5a6e01c":[13,0,1,0,1,5,1,1,1],
+"entity_8h.html#a688bb3d0916bba857711d26044c616a8":[13,0,1,0,1,5,1,6],
 "entity_8h.html#a7f2e162ec2e063a656a26c470447e623":[13,0,1,0,1,5,1,13],
 "entity_8h.html#a8557273e0ebf81434085e92623b94d8b":[13,0,1,0,1,5,1,9],
 "entity_8h.html#a8e2dfb0a5debed526b32ea5ec1097d9f":[13,0,1,0,1,5,1,7],
@@ -22,10 +28,10 @@ var NAVTREEINDEX26 =
 "extension_8h.html#a8abc8ff086951f23b7b6afedc65e8778":[13,0,1,2,0,3],
 "extension_8h.html#ab5ab0deeeaa063d2e5564c5f12900421":[13,0,1,2,0,1],
 "extension_8h_source.html":[13,0,1,2,0],
-"extension__manager_8cc.html":[13,0,1,0,1,7,2],
-"extension__manager_8cc_source.html":[13,0,1,0,1,7,2],
-"extension__manager_8h.html":[13,0,1,0,1,7,3],
-"extension__manager_8h_source.html":[13,0,1,0,1,7,3],
+"extension__manager_8cc.html":[13,0,1,0,1,7,3],
+"extension__manager_8cc_source.html":[13,0,1,0,1,7,3],
+"extension__manager_8h.html":[13,0,1,0,1,7,4],
+"extension__manager_8h_source.html":[13,0,1,0,1,7,4],
 "extension__sample_8c.html":[13,0,1,2,1],
 "extension__sample_8c.html#a349a43fe0276396f8a22533b4ecf49fe":[13,0,1,2,1,6],
 "extension__sample_8c.html#a461eb5e123897fa98f572e65f059439a":[13,0,1,2,1,2],
@@ -243,11 +249,5 @@ var NAVTREEINDEX26 =
 "icons_8h.html#a02fcada40907551ca9b22c0f936c4da6":[13,0,1,0,4,5,750],
 "icons_8h.html#a033fea8b70c1c6043f868dfdf5996ea9":[13,0,1,0,4,5,199],
 "icons_8h.html#a0344782f57e38ac9305084e7de9a6888":[13,0,1,0,4,5,1604],
-"icons_8h.html#a0357c49cb467635012bf50d46e702dcd":[13,0,1,0,4,5,1993],
-"icons_8h.html#a0379cddad69cb78d3bd2a12c2060f507":[13,0,1,0,4,5,1607],
-"icons_8h.html#a038c5470bdbb0548bdb522e00d0349be":[13,0,1,0,4,5,1005],
-"icons_8h.html#a03b38d3e0a840630c9165e3fcc09e28b":[13,0,1,0,4,5,912],
-"icons_8h.html#a03c7ebba5cd0b9e5079c56598ed437e9":[13,0,1,0,4,5,900],
-"icons_8h.html#a0417ad7f7ff58cad937e917a762eaf70":[13,0,1,0,4,5,359],
-"icons_8h.html#a043dd854a8cf00c5fab256df41006d54":[13,0,1,0,4,5,1954]
+"icons_8h.html#a0357c49cb467635012bf50d46e702dcd":[13,0,1,0,4,5,1993]
 };
