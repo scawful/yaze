@@ -16,5 +16,6 @@ set(
   app/editor/utils/gfx_context.cc
   app/editor/overworld/entity.cc
   app/editor/system/settings_editor.cc
+  app/editor/system/command_manager.cc
   app/editor/system/extension_manager.cc
 )

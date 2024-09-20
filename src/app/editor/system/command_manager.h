@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_SYSTEM_COMMAND_MANAGER_H
 #define YAZE_APP_EDITOR_SYSTEM_COMMAND_MANAGER_H
 
+#include <stack>
 #include <string>
 #include <unordered_map>
 
@@ -16,6 +17,8 @@ class Command {
 
 class CommandManager {
  public:
+  void ShowWhichKey();
+
   void RegisterCommand(const std::string& shortcut, Command* command) {
     commands_[shortcut] = command;
   }
@@ -51,3 +54,5 @@ class CommandManager {
 }  // namespace editor
 }  // namespace app
 }  // namespace yaze
+
+#endif  // YAZE_APP_EDITOR_SYSTEM_COMMAND_MANAGER_H
