@@ -1,5 +1,13 @@
 var NAVTREEINDEX46 =
 {
+"structyaze_1_1app_1_1editor_1_1MessageData.html#aeced036e482180e96002b652809a3fc9":[12,0,0,0,1,20,8],
+"structyaze_1_1app_1_1editor_1_1MessageData.html#af68c49fb17a726f835a90efc2b608e93":[11,0,1,0,2,25,0],
+"structyaze_1_1app_1_1editor_1_1MessageData.html#af68c49fb17a726f835a90efc2b608e93":[12,0,0,0,1,20,0],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html":[11,0,1,0,2,26,0],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html":[12,0,0,0,1,21,0],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a07ae2d062ac3f905e65cbf5d0b67e59b":[11,0,1,0,2,26,0,8],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a07ae2d062ac3f905e65cbf5d0b67e59b":[12,0,0,0,1,21,0,8],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a1901abc8b7ca912bf11a93b72b217755":[11,0,1,0,2,26,0,6],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a1901abc8b7ca912bf11a93b72b217755":[12,0,0,0,1,21,0,6],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a25effced7ec29b9cd4510b0ebe25b5c5":[11,0,1,0,2,26,0,7],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a25effced7ec29b9cd4510b0ebe25b5c5":[12,0,0,0,1,21,0,7],
@@ -241,13 +249,5 @@ var NAVTREEINDEX46 =
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#aff612fe6b12aa8e83a4133e0458ce8f9":[12,0,0,0,1,2,5,33],
 "structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html":[11,0,1,0,3,10,0],
 "structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html":[12,0,0,0,2,8,0],
-"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a1809514af68de6d3f90ef91080066f6f":[11,0,1,0,3,10,0,0],
-"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a1809514af68de6d3f90ef91080066f6f":[12,0,0,0,2,8,0,0],
-"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a648410982bd27d1595954585265d5397":[11,0,1,0,3,10,0,1],
-"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a648410982bd27d1595954585265d5397":[12,0,0,0,2,8,0,1],
-"structyaze_1_1app_1_1emu_1_1Input.html":[11,0,1,0,3,11],
-"structyaze_1_1app_1_1emu_1_1Input.html":[12,0,0,0,2,9],
-"structyaze_1_1app_1_1emu_1_1Input.html#a148f78b31f4342c2c99f39ebff3a20a2":[11,0,1,0,3,11,0],
-"structyaze_1_1app_1_1emu_1_1Input.html#a148f78b31f4342c2c99f39ebff3a20a2":[12,0,0,0,2,9,0],
-"structyaze_1_1app_1_1emu_1_1Input.html#a2c83bec32dcd976692e53d4d740e70e9":[11,0,1,0,3,11,2]
+"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a1809514af68de6d3f90ef91080066f6f":[11,0,1,0,3,10,0,0]
 };

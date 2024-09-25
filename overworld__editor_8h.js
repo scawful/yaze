@@ -20,5 +20,8 @@ var overworld__editor_8h =
     [ "kGamePartComboString", "overworld__editor_8h.html#a612f649b633ee939924f6f56f7e1d1fa", null ],
     [ "kTileSelectorTab", "overworld__editor_8h.html#a27ca683b9c4a9b8e530ed2cdd751989b", null ],
     [ "kOWEditTable", "overworld__editor_8h.html#ae7bc8cccfba1fa113c9f0e2381589aff", null ],
-    [ "kOWMapTable", "overworld__editor_8h.html#a38a54e512216d56370524903c0717d3d", null ]
+    [ "kOWMapTable", "overworld__editor_8h.html#a38a54e512216d56370524903c0717d3d", null ],
+    [ "kEntranceTileTypePtrLow", "overworld__editor_8h.html#a50b6d5b2d384cd0d3f6618ce0a44d6f7", null ],
+    [ "kEntranceTileTypePtrHigh", "overworld__editor_8h.html#a1dffb3832edf68811af2fccb4cb17520", null ],
+    [ "kNumEntranceTileTypes", "overworld__editor_8h.html#ac0fec45f7cbaf38c9fda2a6c9bc6e9c2", null ]
 ];

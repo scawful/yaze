@@ -1,5 +1,13 @@
 var NAVTREEINDEX51 =
 {
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a1fa4b2dc352ae8971e01a74f32df19c7":[12,0,0,0,3,0,2,5],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a2daec788927fd0792e1390b68dc6c9bc":[11,0,1,0,4,1,2,1],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a2daec788927fd0792e1390b68dc6c9bc":[12,0,0,0,3,0,2,1],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a44d1f5ba632d32f1a1c629a947784a3f":[11,0,1,0,4,1,2,4],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a44d1f5ba632d32f1a1c629a947784a3f":[12,0,0,0,3,0,2,4],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a45a290ab1cc359c527b923b854601ccf":[11,0,1,0,4,1,2,6],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a45a290ab1cc359c527b923b854601ccf":[12,0,0,0,3,0,2,6],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#aacd8064d7e8b0a25dbd0041a71b2d36e":[11,0,1,0,4,1,2,2],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#aacd8064d7e8b0a25dbd0041a71b2d36e":[12,0,0,0,3,0,2,2],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#ac5fbf712c448072f5738ceaed7182684":[11,0,1,0,4,1,2,0],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#ac5fbf712c448072f5738ceaed7182684":[12,0,0,0,3,0,2,0],
@@ -241,13 +249,5 @@ var NAVTREEINDEX51 =
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html":[12,0,0,0,5,1,5],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a0b5b79ae496a23e3727b7b8ab8f57718":[11,0,1,0,6,2,5,2],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a0b5b79ae496a23e3727b7b8ab8f57718":[12,0,0,0,5,1,5,2],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a210e869e15789185c1c0b047df76ffd2":[11,0,1,0,6,2,5,0],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a210e869e15789185c1c0b047df76ffd2":[12,0,0,0,5,1,5,0],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a3533ea54de65115e91b2cc58358e5a97":[11,0,1,0,6,2,5,10],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a3533ea54de65115e91b2cc58358e5a97":[12,0,0,0,5,1,5,10],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a46470250f1e84266ae72fdc2b4e325e3":[11,0,1,0,6,2,5,11],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a46470250f1e84266ae72fdc2b4e325e3":[12,0,0,0,5,1,5,11],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a550b4b1722c44eeea621a0f3ebf376f2":[11,0,1,0,6,2,5,9],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a550b4b1722c44eeea621a0f3ebf376f2":[12,0,0,0,5,1,5,9],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a5b5bd0d24138f4db0c7d0dfb5ed2b283":[11,0,1,0,6,2,5,3]
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a210e869e15789185c1c0b047df76ffd2":[11,0,1,0,6,2,5,0]
 };

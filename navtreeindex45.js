@@ -1,5 +1,13 @@
 var NAVTREEINDEX45 =
 {
+"structyaze_1_1app_1_1Project.html#a87cdf057e929273012305fcda08adb87":[12,0,0,0,6,3],
+"structyaze_1_1app_1_1Project.html#a9041849c10198cbdd0d4c7c0f1122097":[11,0,1,0,7,0],
+"structyaze_1_1app_1_1Project.html#a9041849c10198cbdd0d4c7c0f1122097":[12,0,0,0,6,0],
+"structyaze_1_1app_1_1Project.html#aa68ec754ecc85e2ec52a375a55746fab":[11,0,1,0,7,2],
+"structyaze_1_1app_1_1Project.html#aa68ec754ecc85e2ec52a375a55746fab":[12,0,0,0,6,2],
+"structyaze_1_1app_1_1Project.html#aaaec6f4568b290cb85dad5c0e58bd485":[11,0,1,0,7,8],
+"structyaze_1_1app_1_1Project.html#aaaec6f4568b290cb85dad5c0e58bd485":[12,0,0,0,6,8],
+"structyaze_1_1app_1_1Project.html#aaed58f3c0aa7f90c5221c36972c41d9f":[11,0,1,0,7,4],
 "structyaze_1_1app_1_1Project.html#aaed58f3c0aa7f90c5221c36972c41d9f":[12,0,0,0,6,4],
 "structyaze_1_1app_1_1Rom_1_1WriteAction.html":[11,0,1,0,8,0],
 "structyaze_1_1app_1_1Rom_1_1WriteAction.html":[12,0,0,0,7,0],
@@ -241,13 +249,5 @@ var NAVTREEINDEX45 =
 "structyaze_1_1app_1_1editor_1_1MessageData.html#ad9cb7d827cf862bca6656c9566dd17e5":[12,0,0,0,1,20,4],
 "structyaze_1_1app_1_1editor_1_1MessageData.html#ae9eb7c736353201b5a91d30427ffca40":[11,0,1,0,2,25,1],
 "structyaze_1_1app_1_1editor_1_1MessageData.html#ae9eb7c736353201b5a91d30427ffca40":[12,0,0,0,1,20,1],
-"structyaze_1_1app_1_1editor_1_1MessageData.html#aeced036e482180e96002b652809a3fc9":[11,0,1,0,2,25,8],
-"structyaze_1_1app_1_1editor_1_1MessageData.html#aeced036e482180e96002b652809a3fc9":[12,0,0,0,1,20,8],
-"structyaze_1_1app_1_1editor_1_1MessageData.html#af68c49fb17a726f835a90efc2b608e93":[11,0,1,0,2,25,0],
-"structyaze_1_1app_1_1editor_1_1MessageData.html#af68c49fb17a726f835a90efc2b608e93":[12,0,0,0,1,20,0],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html":[11,0,1,0,2,26,0],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html":[12,0,0,0,1,21,0],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a07ae2d062ac3f905e65cbf5d0b67e59b":[11,0,1,0,2,26,0,8],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a07ae2d062ac3f905e65cbf5d0b67e59b":[12,0,0,0,1,21,0,8],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a1901abc8b7ca912bf11a93b72b217755":[11,0,1,0,2,26,0,6]
+"structyaze_1_1app_1_1editor_1_1MessageData.html#aeced036e482180e96002b652809a3fc9":[11,0,1,0,2,25,8]
 };
