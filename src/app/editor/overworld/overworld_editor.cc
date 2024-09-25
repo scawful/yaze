@@ -109,7 +109,7 @@ void OverworldEditor::DrawToolset() {
       status_ = Redo();
     }
 
-    TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
+    TEXT_COLUMN(ICON_MD_MORE_VERT) // Separator
 
     NEXT_COLUMN()
     if (Button(ICON_MD_ZOOM_OUT)) {
@@ -127,7 +127,7 @@ void OverworldEditor::DrawToolset() {
     }
     HOVER_HINT("Fullscreen Canvas")
 
-    TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
+    TEXT_COLUMN(ICON_MD_MORE_VERT) // Separator
 
     NEXT_COLUMN()
     if (Selectable(ICON_MD_PAN_TOOL_ALT, current_mode == EditingMode::PAN)) {
@@ -186,7 +186,7 @@ void OverworldEditor::DrawToolset() {
     }
     HOVER_HINT("Gfx Group Editor")
 
-    TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
+    TEXT_COLUMN(ICON_MD_MORE_VERT) // Separator
 
     TableNextColumn();
     if (Button(ICON_MD_CONTENT_COPY)) {
@@ -201,10 +201,10 @@ void OverworldEditor::DrawToolset() {
     }
     HOVER_HINT("Copy Map to Clipboard");
 
-    TableNextColumn();  // Palette
-    DisplayPalette(palette_, overworld_.is_loaded());
+    TableNextColumn(); // Palette
+    status_ = DisplayPalette(palette_, overworld_.is_loaded());
 
-    TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
+    TEXT_COLUMN(ICON_MD_MORE_VERT) // Separator
 
     TableNextColumn();
     Checkbox("Properties", &show_properties);
@@ -514,10 +514,12 @@ void OverworldEditor::CheckForOverworldEdits() {
       int end_x = std::floor(end.x / kTile16Size) * kTile16Size;
       int end_y = std::floor(end.y / kTile16Size) * kTile16Size;
 
-      if (start_x > end_x) std::swap(start_x, end_x);
-      if (start_y > end_y) std::swap(start_y, end_y);
+      if (start_x > end_x)
+        std::swap(start_x, end_x);
+      if (start_y > end_y)
+        std::swap(start_y, end_y);
 
-      constexpr int local_map_size = 512;  // Size of each local map
+      constexpr int local_map_size = 512; // Size of each local map
       // Number of tiles per local map (since each tile is 16x16)
       constexpr int tiles_per_local_map = local_map_size / kTile16Size;
 
@@ -668,7 +670,8 @@ void OverworldEditor::DrawOverworldCanvas() {
     if (current_mode == EditingMode::DRAW_TILE) {
       CheckForOverworldEdits();
     }
-    if (IsItemHovered()) status_ = CheckForCurrentMap();
+    if (IsItemHovered())
+      status_ = CheckForCurrentMap();
   }
 
   ow_map_canvas_.DrawGrid();
@@ -1146,7 +1149,8 @@ void OverworldEditor::RefreshOverworldMap() {
     // We need to update the map and its siblings if it's a large map
     for (int i = 1; i < 4; i++) {
       int sibling_index = overworld_.overworld_map(source_map_id)->parent() + i;
-      if (i >= 2) sibling_index += 6;
+      if (i >= 2)
+        sibling_index += 6;
       futures.push_back(
           std::async(std::launch::async, refresh_map_async, sibling_index));
       indices[i] = sibling_index;
@@ -1175,7 +1179,8 @@ absl::Status OverworldEditor::RefreshMapPalette() {
     // We need to update the map and its siblings if it's a large map
     for (int i = 1; i < 4; i++) {
       int sibling_index = overworld_.overworld_map(current_map_)->parent() + i;
-      if (i >= 2) sibling_index += 6;
+      if (i >= 2)
+        sibling_index += 6;
       RETURN_IF_ERROR(
           overworld_.mutable_overworld_map(sibling_index)->LoadPalette());
       RETURN_IF_ERROR(
@@ -1418,7 +1423,7 @@ void OverworldEditor::DrawUsageGrid() {
   int totalSquares = 128;
   int squaresWide = 8;
   int squaresTall = (totalSquares + squaresWide - 1) /
-                    squaresWide;  // Ceiling of totalSquares/squaresWide
+                    squaresWide; // Ceiling of totalSquares/squaresWide
 
   // Loop through each row
   for (int row = 0; row < squaresTall; ++row) {
@@ -1433,9 +1438,8 @@ void OverworldEditor::DrawUsageGrid() {
 
       // Set highlight color if needed
       if (highlight) {
-        PushStyleColor(
-            ImGuiCol_Button,
-            ImVec4(1.0f, 0.5f, 0.0f, 1.0f));  // Or any highlight color
+        PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 0.5f, 0.0f,
+                                               1.0f)); // Or any highlight color
       }
 
       // Create a button or selectable for each square
@@ -1520,6 +1524,6 @@ void OverworldEditor::InitializeZeml() {
   });
 }
 
-}  // namespace editor
-}  // namespace app
-}  // namespace yaze
+} // namespace editor
+} // namespace app
+} // namespace yaze

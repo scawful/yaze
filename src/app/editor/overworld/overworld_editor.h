@@ -66,13 +66,17 @@ constexpr absl::string_view kTileSelectorTab = "##TileSelectorTabBar";
 constexpr absl::string_view kOWEditTable = "##OWEditTable";
 constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
 
+constexpr int kEntranceTileTypePtrLow = 0xDB8BF;
+constexpr int kEntranceTileTypePtrHigh = 0xDB917;
+constexpr int kNumEntranceTileTypes = 0x2C;
+
 class EntranceContext {
  public:
   absl::Status LoadEntranceTileTypes(Rom& rom) {
-    int offset_low = 0xDB8BF;
-    int offset_high = 0xDB917;
+    int offset_low = kEntranceTileTypePtrLow;
+    int offset_high = kEntranceTileTypePtrHigh;
 
-    for (int i = 0; i < 0x2C; i++) {
+    for (int i = 0; i < kNumEntranceTileTypes; i++) {
       // Load entrance tile types
       ASSIGN_OR_RETURN(auto value_low, rom.ReadWord(offset_low + i));
       entrance_tile_types_low_.push_back(value_low);
@@ -157,6 +161,10 @@ class OverworldEditor : public Editor,
    * @brief Draws the overworld map settings. Graphics, palettes, etc.
    */
   void DrawOverworldMapSettings();
+
+  /**
+   * @brief Draw the overworld settings for ZSCustomOverworld.
+   */
   void DrawCustomOverworldMapSettings();
 
   void RefreshChildMap(int i);
