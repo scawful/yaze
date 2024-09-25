@@ -1,8 +1,6 @@
 
 #include "app/gui/zeml.h"
 
-#include "imgui/imgui.h"
-
 #include <cctype>
 #include <fstream>
 #include <functional>
@@ -11,9 +9,10 @@
 #include <string>
 #include <vector>
 
+#include "app/core/platform/file_path.h"
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
-#include "app/core/platform/file_path.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {
@@ -592,16 +591,17 @@ std::string LoadFile(const std::string& filename) {
   std::string fileContents;
   const std::string kPath = "assets/layouts/";
 
-  #ifdef __APPLE__
-    #if TARGET_OS_IOS == 1
-      const std::string kBundlePath = core::GetBundleResourcePath();
-      std::ifstream file(kBundlePath + filename);
-    #else
-      std::ifstream file(kPath + filename);
-    #endif
-  #else
-    std::ifstream file(kPath + filename);
-  #endif
+#ifdef __APPLE__
+#if TARGET_OS_IOS == 1
+  const std::string kBundlePath = core::GetBundleResourcePath();
+  std::ifstream file(kBundlePath + filename);
+#else
+  const std::string kBundlePath = SDL_GetBasePath();
+  std::ifstream file(kPath + filename);
+#endif
+#else
+  std::ifstream file(kPath + filename);
+#endif
 
   if (file.is_open()) {
     std::string line;
