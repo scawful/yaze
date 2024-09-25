@@ -8,7 +8,6 @@ namespace app {
 namespace editor {
 
 using ImGui::BeginChild;
-using ImGui::BeginGroup;
 using ImGui::Button;
 using ImGui::Checkbox;
 using ImGui::EndChild;

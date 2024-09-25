@@ -2,9 +2,7 @@
 
 #include "absl/status/status.h"
 #include "app/gfx/snes_palette.h"
-#include "app/gui/canvas.h"
 #include "app/gui/color.h"
-#include "app/gui/icons.h"
 #include "app/gui/style.h"
 #include "imgui/imgui.h"
 
