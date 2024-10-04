@@ -1,5 +1,15 @@
 var NAVTREEINDEX37 =
 {
+"namespaceyaze_1_1app.html#a451077027ec769e34627daf9b66f67c0":[11,0,1,0,24],
+"namespaceyaze_1_1app.html#a4c2c2d45869b398e8183f4215fb8c25b":[11,0,1,0,13],
+"namespaceyaze_1_1app.html#a4c7fab5470426166f7fcba0162f75387":[11,0,1,0,16],
+"namespaceyaze_1_1app.html#a5f8a196cdfa37e480edbac75506b30ce":[11,0,1,0,27],
+"namespaceyaze_1_1app.html#a64f8fa5b345e7d72292e7ce15e882331":[11,0,1,0,26],
+"namespaceyaze_1_1app.html#a6cba51ea80792c0f6a876549882f3778":[11,0,1,0,20],
+"namespaceyaze_1_1app.html#a9bbafa7d5f1809f3d216b5082f65d1b2":[11,0,1,0,15],
+"namespaceyaze_1_1app.html#aa899c44eb9e83190d881c30296137bb3":[11,0,1,0,12],
+"namespaceyaze_1_1app.html#aab7ae1c6c1f53dc67967ef446b6f1454":[11,0,1,0,22],
+"namespaceyaze_1_1app.html#aad75d3fb5bdf3b72aa19e3af3209082f":[11,0,1,0,21],
 "namespaceyaze_1_1app.html#ac53a28cbb330029d4c5267572cdf87f2":[11,0,1,0,25],
 "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html":[11,0,1,0,0],
 "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#af32ff136fcce381db4ac72da93552f31":[11,0,1,0,0,0],
@@ -239,15 +249,5 @@ var NAVTREEINDEX37 =
 "namespaceyaze_1_1app_1_1emu_1_1memory.html#a656c5d7c708bc346677991611ab505aca06872c974865d0398fc4808790ec9020":[11,0,1,0,3,3,11,1],
 "namespaceyaze_1_1app_1_1emu_1_1memory.html#a656c5d7c708bc346677991611ab505aca13fd73acd158e42fa79bc6b14ed3235c":[11,0,1,0,3,3,11,0],
 "namespaceyaze_1_1app_1_1emu_1_1memory.html#a82c121a932d402fbc78de6a189c6dc12":[11,0,1,0,3,3,15],
-"namespaceyaze_1_1app_1_1emu_1_1memory.html#a82c121a932d402fbc78de6a189c6dc12a1288179b503be9fd3d0ec42cb345a794":[11,0,1,0,3,3,15,1],
-"namespaceyaze_1_1app_1_1emu_1_1memory.html#a82c121a932d402fbc78de6a189c6dc12a583eb3075985fe0254b0262e812ddbfc":[11,0,1,0,3,3,15,2],
-"namespaceyaze_1_1app_1_1emu_1_1memory.html#a82c121a932d402fbc78de6a189c6dc12af5fedd41b4c6c5acb915567bfc61341a":[11,0,1,0,3,3,15,0],
-"namespaceyaze_1_1app_1_1emu_1_1memory.html#a8746750561338b2f964f81499005963c":[11,0,1,0,3,3,13],
-"namespaceyaze_1_1app_1_1emu_1_1memory.html#a8746750561338b2f964f81499005963ca47d98b6e45441d43ace22338773d716e":[11,0,1,0,3,3,13,2],
-"namespaceyaze_1_1app_1_1emu_1_1memory.html#a8746750561338b2f964f81499005963ca53fc8e61cfff609e2f4dc470ee019044":[11,0,1,0,3,3,13,3],
-"namespaceyaze_1_1app_1_1emu_1_1memory.html#a8746750561338b2f964f81499005963ca7bcc111bc3e7527412b9d4de987f29b7":[11,0,1,0,3,3,13,1],
-"namespaceyaze_1_1app_1_1emu_1_1memory.html#a8746750561338b2f964f81499005963caf5832fe9f67c4fbf468137c4dbb7e7eb":[11,0,1,0,3,3,13,4],
-"namespaceyaze_1_1app_1_1emu_1_1memory.html#a8746750561338b2f964f81499005963cafbd4a06eb42228b5b3c3e7f660406ed3":[11,0,1,0,3,3,13,0],
-"namespaceyaze_1_1app_1_1emu_1_1memory.html#aa5c0af2c57690c4a466298f7ba0f5db0":[11,0,1,0,3,3,9],
-"namespaceyaze_1_1app_1_1emu_1_1memory.html#aa8d809bc6229536975b18e7eea4fd0a9":[11,0,1,0,3,3,18]
+"namespaceyaze_1_1app_1_1emu_1_1memory.html#a82c121a932d402fbc78de6a189c6dc12a1288179b503be9fd3d0ec42cb345a794":[11,0,1,0,3,3,15,1]
 };

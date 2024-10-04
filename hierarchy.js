@@ -242,6 +242,7 @@ var hierarchy =
       ] ],
       [ "yaze::app::zelda3::overworld::Overworld", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html", null ],
       [ "yaze::app::zelda3::screen::Inventory", "classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html", null ],
+      [ "yaze::test::zelda3::MessageTest", "classyaze_1_1test_1_1zelda3_1_1MessageTest.html", null ],
       [ "yaze::test::zelda3::OverworldTest", "classyaze_1_1test_1_1zelda3_1_1OverworldTest.html", null ]
     ] ],
     [ "yaze::app::emu::video::PpuRegisters::SLHV", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SLHV.html", null ],
@@ -274,6 +275,7 @@ var hierarchy =
       [ "yaze::test::emu::PpuTest", "classyaze_1_1test_1_1emu_1_1PpuTest.html", null ],
       [ "yaze::test::emu::Spc700Test", "classyaze_1_1test_1_1emu_1_1Spc700Test.html", null ],
       [ "yaze::test::message::MessageDispatcherTest", "classyaze_1_1test_1_1message_1_1MessageDispatcherTest.html", null ],
+      [ "yaze::test::zelda3::MessageTest", "classyaze_1_1test_1_1zelda3_1_1MessageTest.html", null ],
       [ "yaze::test::zelda3::OverworldTest", "classyaze_1_1test_1_1zelda3_1_1OverworldTest.html", null ],
       [ "yaze::test::zelda3::SpriteBuilderTest", "classyaze_1_1test_1_1zelda3_1_1SpriteBuilderTest.html", null ]
     ] ],

@@ -317,6 +317,7 @@ var annotated_dup =
           [ "TestProtocol", "classyaze_1_1test_1_1message_1_1TestProtocol.html", "classyaze_1_1test_1_1message_1_1TestProtocol" ]
         ] ],
         [ "zelda3", "namespaceyaze_1_1test_1_1zelda3.html", [
+          [ "MessageTest", "classyaze_1_1test_1_1zelda3_1_1MessageTest.html", "classyaze_1_1test_1_1zelda3_1_1MessageTest" ],
           [ "OverworldTest", "classyaze_1_1test_1_1zelda3_1_1OverworldTest.html", "classyaze_1_1test_1_1zelda3_1_1OverworldTest" ],
           [ "SpriteBuilderTest", "classyaze_1_1test_1_1zelda3_1_1SpriteBuilderTest.html", "classyaze_1_1test_1_1zelda3_1_1SpriteBuilderTest" ]
         ] ],
