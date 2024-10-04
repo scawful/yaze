@@ -2,6 +2,7 @@
 
 #include <SDL.h>
 
+#include <filesystem>
 #include <memory>
 
 #include "absl/status/status.h"
@@ -402,10 +403,19 @@ absl::Status Controller::CreateGuiContext() {
                                     Renderer::GetInstance().renderer());
   ImGui_ImplSDLRenderer2_Init(Renderer::GetInstance().renderer());
 
-  if (flags()->kLoadSystemFonts) {
-    LoadSystemFonts();
-  } else {
+  // Check if the assets/fonts directory exists in our CWD
+  // Otherwise, load the system fonts.
+  const auto assets_path = std::filesystem::path("assets");
+  if (std::filesystem::is_directory(assets_path)) {
     RETURN_IF_ERROR(LoadFontFamilies());
+  } else {
+#ifdef __APPLE__
+    LoadSystemFonts();
+#else
+    return absl::InternalError(
+        "Could not find assets/fonts directory in the current working "
+        "directory");
+#endif
   }
 
   // Set the default style
