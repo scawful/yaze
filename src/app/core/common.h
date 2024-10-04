@@ -55,10 +55,6 @@ class ExperimentFlags {
     // Use the new platform specific file dialog wrappers.
     bool kNewFileDialogWrapper = true;
 
-    // Platform specific loading of fonts from the system. Currently
-    // only supports macOS.
-    bool kLoadSystemFonts = true;
-
     // Uses texture streaming from SDL for my dynamic updates.
     bool kLoadTexturesAsStreaming = true;
 
@@ -125,8 +121,6 @@ class ExperimentFlags {
               std::to_string(flags_->kDrawDungeonRoomGraphics) + "\n";
     result += "kNewFileDialogWrapper: " +
               std::to_string(flags_->kNewFileDialogWrapper) + "\n";
-    result +=
-        "kLoadSystemFonts: " + std::to_string(flags_->kLoadSystemFonts) + "\n";
     result += "kLoadTexturesAsStreaming: " +
               std::to_string(flags_->kLoadTexturesAsStreaming) + "\n";
     result +=
