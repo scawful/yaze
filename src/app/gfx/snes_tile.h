@@ -19,7 +19,7 @@ constexpr uint8_t kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
                                         0x08, 0x04, 0x02, 0x01};
 
 std::vector<uint8_t> SnesTo8bppSheet(const std::vector<uint8_t>& sheet,
-                                     int bpp);
+                                     int bpp, int num_sheets = 1);
 std::vector<uint8_t> Bpp8SnesToIndexed(std::vector<uint8_t> data,
                                        uint64_t bpp = 0);
 

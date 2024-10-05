@@ -149,14 +149,15 @@ std::vector<uint8_t> Convert4bppTo3bpp(const std::vector<uint8_t>& tiles) {
   return ConvertBpp(tiles, 4, 3);
 }
 
-std::vector<uint8_t> SnesTo8bppSheet(const std::vector<uint8_t>& sheet,
-                                     int bpp) {
+std::vector<uint8_t> SnesTo8bppSheet(const std::vector<uint8_t>& sheet, int bpp,
+                                     int num_sheets) {
   int xx = 0;  // positions where we are at on the sheet
   int yy = 0;
   int pos = 0;
   int ypos = 0;
   int num_tiles = 64;
   int buffer_size = 0x1000;
+
   if (bpp == 2) {
     bpp = 16;
     num_tiles = 128;
@@ -169,6 +170,12 @@ std::vector<uint8_t> SnesTo8bppSheet(const std::vector<uint8_t>& sheet,
   } else if (bpp == 8) {
     bpp = 64;
   }
+
+  if (num_sheets != 1) {
+    num_tiles *= num_sheets;
+    buffer_size *= num_sheets;
+  }
+
   std::vector<uint8_t> sheet_buffer_out(buffer_size);
 
   for (int i = 0; i < num_tiles; i++) {  // for each tiles, 16 per line
