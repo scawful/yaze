@@ -18,7 +18,7 @@ namespace app {
 namespace core {
 
 std::string UppercaseHexByte(uint8_t byte, bool leading = false);
-std::string UppercaseHexWord(uint16_t word);
+std::string UppercaseHexWord(uint16_t word, bool leading = false);
 std::string UppercaseHexLong(uint32_t dword);
 std::string UppercaseHexLongLong(uint64_t qword);
 
