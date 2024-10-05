@@ -37,6 +37,13 @@ using ImGui::TableSetupColumn;
 using ImGui::Text;
 using ImGui::TextWrapped;
 
+constexpr ImGuiTableFlags kMessageTableFlags = ImGuiTableFlags_Hideable |
+                                               ImGuiTableFlags_Borders |
+                                               ImGuiTableFlags_Resizable;
+
+constexpr ImGuiTableFlags kDictTableFlags =
+    ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable;
+
 absl::Status MessageEditor::Initialize() {
   for (int i = 0; i < kWidthArraySize; i++) {
     width_array[i] = rom()->data()[kCharactersWidth + i];
@@ -58,7 +65,8 @@ absl::Status MessageEditor::Initialize() {
 
   // 4bpp
   RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
-      128, 128, 8, font_gfx16_data_, font_gfx_bitmap_, font_preview_colors_))
+      kFontGfxMessageSize, kFontGfxMessageSize, kFontGfxMessageDepth,
+      font_gfx16_data_, font_gfx_bitmap_, font_preview_colors_))
 
   current_font_gfx16_data_.reserve(kCurrentMessageWidth *
                                    kCurrentMessageHeight);
@@ -122,8 +130,7 @@ absl::Status MessageEditor::Update() {
     data_loaded_ = true;
   }
 
-  if (BeginTable("##MessageEditor", 4,
-                 ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable)) {
+  if (BeginTable("##MessageEditor", 4, kDictTableFlags)) {
     TableSetupColumn("List");
     TableSetupColumn("Contents");
     TableSetupColumn("Commands");
@@ -143,8 +150,7 @@ absl::Status MessageEditor::Update() {
     TableNextColumn();
     if (ImGui::BeginChild("##DictionaryChild", ImVec2(0, 0), true,
                           ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-      if (BeginTable("##Dictionary", 2,
-                     ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable)) {
+      if (BeginTable("##Dictionary", 2, kDictTableFlags)) {
         TableSetupColumn("ID");
         TableSetupColumn("Contents");
 
@@ -173,9 +179,7 @@ void MessageEditor::DrawMessageList() {
 
   if (BeginChild("##MessagesList", ImVec2(0, 0), true,
                  ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-    if (BeginTable("##MessagesTable", 3,
-                   ImGuiTableFlags_Hideable | ImGuiTableFlags_Borders |
-                       ImGuiTableFlags_Resizable)) {
+    if (BeginTable("##MessagesTable", 3, kMessageTableFlags)) {
       TableSetupColumn("ID");
       TableSetupColumn("Contents");
       TableSetupColumn("Data");
