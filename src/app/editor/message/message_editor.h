@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "absl/strings/str_format.h"
 #include "app/editor/message/message_data.h"
 #include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
