@@ -14,6 +14,7 @@
 #include "app/gui/canvas.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
+#include "imgui.h"
 
 namespace yaze {
 namespace app {
@@ -53,7 +54,7 @@ absl::Status MessageEditor::Initialize() {
   for (int i = 0; i < 0x4000; i++) {
     data[i] = rom()->data()[kGfxFont + i];
   }
-  font_gfx16_data_ = gfx::SnesTo8bppSheet(data, /*bpp=*/2);
+  font_gfx16_data_ = gfx::SnesTo8bppSheet(data, /*bpp=*/2, /*num_sheets=*/2);
 
   // 4bpp
   RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
@@ -252,7 +253,6 @@ void MessageEditor::DrawTextCommands() {
     EndChild();
   }
 }
-
 
 // TODO: Fix the command parsing.
 void MessageEditor::ReadAllTextDataV2() {
