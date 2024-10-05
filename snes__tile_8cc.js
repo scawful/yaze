@@ -5,7 +5,7 @@ var snes__tile_8cc =
     [ "ConvertBpp", "snes__tile_8cc.html#ab26e7d963d877f126b4ff7442c473864", null ],
     [ "Convert3bppTo4bpp", "snes__tile_8cc.html#acbccad0c8c3b4758e2ed3425058623d7", null ],
     [ "Convert4bppTo3bpp", "snes__tile_8cc.html#a12666f7bb6b6dcacbb721b16eded9000", null ],
-    [ "SnesTo8bppSheet", "snes__tile_8cc.html#a8010d42263caa323598496adadafc605", null ],
+    [ "SnesTo8bppSheet", "snes__tile_8cc.html#a66e6eeec4cc818796b8384997b6b8bc3", null ],
     [ "Bpp8SnesToIndexed", "snes__tile_8cc.html#a6ff6fc75a8c652c747bde4467eafcfa0", null ],
     [ "TileInfoToWord", "snes__tile_8cc.html#ad8ba19f73c435e3e5527673d5b0cc096", null ],
     [ "WordToTileInfo", "snes__tile_8cc.html#a1c0d7314890a130ceda6eec9def39c4e", null ],

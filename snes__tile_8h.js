@@ -6,7 +6,7 @@ var snes__tile_8h =
     [ "yaze::app::gfx::Tile16", "classyaze_1_1app_1_1gfx_1_1Tile16.html", "classyaze_1_1app_1_1gfx_1_1Tile16" ],
     [ "yaze::app::gfx::OamTile", "classyaze_1_1app_1_1gfx_1_1OamTile.html", "classyaze_1_1app_1_1gfx_1_1OamTile" ],
     [ "tile8", "snes__tile_8h.html#ae0f46c5ecd3ca9929d6baa039aeccbc7", null ],
-    [ "SnesTo8bppSheet", "snes__tile_8h.html#a8010d42263caa323598496adadafc605", null ],
+    [ "SnesTo8bppSheet", "snes__tile_8h.html#a66e6eeec4cc818796b8384997b6b8bc3", null ],
     [ "Bpp8SnesToIndexed", "snes__tile_8h.html#a6ff6fc75a8c652c747bde4467eafcfa0", null ],
     [ "UnpackBppTile", "snes__tile_8h.html#a9e28a066b295ab514049968bfef05747", null ],
     [ "PackBppTile", "snes__tile_8h.html#a3393bdf562a11dce53934f403523b15a", null ],

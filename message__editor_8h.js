@@ -9,6 +9,8 @@ var message__editor_8h =
     [ "kNumMessages", "message__editor_8h.html#a34052db2e8cb156e3cd2297e5222ebba", null ],
     [ "kCurrentMessageWidth", "message__editor_8h.html#aac4b58422a8fb67c7f0830a5c28afd8a", null ],
     [ "kCurrentMessageHeight", "message__editor_8h.html#a5345c7a1c473021cdcd62c1f972495bf", null ],
+    [ "kFontGfxMessageSize", "message__editor_8h.html#a6e1aca13abd9a9e688f313ad08ffefd3", null ],
+    [ "kFontGfxMessageDepth", "message__editor_8h.html#a5b835a7e5ee15ea1ab7021b533f5fa1e", null ],
     [ "kWidthArraySize", "message__editor_8h.html#a7162175d08b96e4882fb81816528a6d4", null ],
     [ "kBlockTerminator", "message__editor_8h.html#ac8b7c1572a3d598ce7b1eaa702542980", null ],
     [ "kMessageBankChangeId", "message__editor_8h.html#aac04472986a3464abe0744d751bf4a11", null ],

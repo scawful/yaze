@@ -66,7 +66,7 @@ var namespaceyaze_1_1app_1_1core =
     [ "AddressFromBytes", "namespaceyaze_1_1app_1_1core.html#a883931821acdd5f501b3f0717d87951c", null ],
     [ "MapBankToWordAddress", "namespaceyaze_1_1app_1_1core.html#a50d5d0cd99032ef3fb17675891cc00a1", null ],
     [ "UppercaseHexByte", "namespaceyaze_1_1app_1_1core.html#adee4cb66335fc06d420159375b151524", null ],
-    [ "UppercaseHexWord", "namespaceyaze_1_1app_1_1core.html#a5e6d56ec7e31e6b12a788d15c931ec38", null ],
+    [ "UppercaseHexWord", "namespaceyaze_1_1app_1_1core.html#af8cc386a22a4537ace6f04d1e2f44707", null ],
     [ "UppercaseHexLong", "namespaceyaze_1_1app_1_1core.html#a9fc1194f545000fb140d178e5a54ff81", null ],
     [ "UppercaseHexLongLong", "namespaceyaze_1_1app_1_1core.html#a2ff2ac002e5fb8bfce1316ae33e95f02", null ],
     [ "StringReplace", "namespaceyaze_1_1app_1_1core.html#a3a09b2b310aed5efa2c537cef269660c", null ],

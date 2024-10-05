@@ -46,7 +46,7 @@ var searchData=
   ['uppercasehexbyte_43',['UppercaseHexByte',['../namespaceyaze_1_1app_1_1core.html#adee4cb66335fc06d420159375b151524',1,'yaze::app::core']]],
   ['uppercasehexlong_44',['UppercaseHexLong',['../namespaceyaze_1_1app_1_1core.html#a9fc1194f545000fb140d178e5a54ff81',1,'yaze::app::core']]],
   ['uppercasehexlonglong_45',['UppercaseHexLongLong',['../namespaceyaze_1_1app_1_1core.html#a2ff2ac002e5fb8bfce1316ae33e95f02',1,'yaze::app::core']]],
-  ['uppercasehexword_46',['UppercaseHexWord',['../namespaceyaze_1_1app_1_1core.html#a5e6d56ec7e31e6b12a788d15c931ec38',1,'yaze::app::core']]],
+  ['uppercasehexword_46',['UppercaseHexWord',['../namespaceyaze_1_1app_1_1core.html#af8cc386a22a4537ace6f04d1e2f44707',1,'yaze::app::core']]],
   ['us_47',['US',['../namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a7516fd43adaa5e0b8a65a672c39845d2',1,'yaze::app']]],
   ['usa_48',['USA',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a82c121a932d402fbc78de6a189c6dc12a1288179b503be9fd3d0ec42cb345a794',1,'yaze::app::emu::memory']]],
   ['usage_5fstats_5f_49',['usage_stats_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a3428daf21717a428618501086dcd85ba',1,'yaze::app::zelda3::overworld::Overworld']]],

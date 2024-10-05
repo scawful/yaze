@@ -82,7 +82,7 @@ var namespaceyaze_1_1app_1_1gfx =
     [ "ConvertBpp", "namespaceyaze_1_1app_1_1gfx.html#ab26e7d963d877f126b4ff7442c473864", null ],
     [ "Convert3bppTo4bpp", "namespaceyaze_1_1app_1_1gfx.html#acbccad0c8c3b4758e2ed3425058623d7", null ],
     [ "Convert4bppTo3bpp", "namespaceyaze_1_1app_1_1gfx.html#a12666f7bb6b6dcacbb721b16eded9000", null ],
-    [ "SnesTo8bppSheet", "namespaceyaze_1_1app_1_1gfx.html#a8010d42263caa323598496adadafc605", null ],
+    [ "SnesTo8bppSheet", "namespaceyaze_1_1app_1_1gfx.html#a66e6eeec4cc818796b8384997b6b8bc3", null ],
     [ "Bpp8SnesToIndexed", "namespaceyaze_1_1app_1_1gfx.html#a6ff6fc75a8c652c747bde4467eafcfa0", null ],
     [ "TileInfoToWord", "namespaceyaze_1_1app_1_1gfx.html#ad8ba19f73c435e3e5527673d5b0cc096", null ],
     [ "WordToTileInfo", "namespaceyaze_1_1app_1_1gfx.html#a1c0d7314890a130ceda6eec9def39c4e", null ],

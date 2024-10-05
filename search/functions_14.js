@@ -35,6 +35,6 @@ var searchData=
   ['uppercasehexbyte_32',['UppercaseHexByte',['../namespaceyaze_1_1app_1_1core.html#adee4cb66335fc06d420159375b151524',1,'yaze::app::core']]],
   ['uppercasehexlong_33',['UppercaseHexLong',['../namespaceyaze_1_1app_1_1core.html#a9fc1194f545000fb140d178e5a54ff81',1,'yaze::app::core']]],
   ['uppercasehexlonglong_34',['UppercaseHexLongLong',['../namespaceyaze_1_1app_1_1core.html#a2ff2ac002e5fb8bfce1316ae33e95f02',1,'yaze::app::core']]],
-  ['uppercasehexword_35',['UppercaseHexWord',['../namespaceyaze_1_1app_1_1core.html#a5e6d56ec7e31e6b12a788d15c931ec38',1,'yaze::app::core']]],
+  ['uppercasehexword_35',['UppercaseHexWord',['../namespaceyaze_1_1app_1_1core.html#af8cc386a22a4537ace6f04d1e2f44707',1,'yaze::app::core']]],
   ['userroutine_36',['UserRoutine',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1UserRoutine.html#a309368e6eacf3a91ce676065c1b71a7e',1,'yaze::app::editor::zsprite::UserRoutine']]]
 ];

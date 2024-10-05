@@ -1,5 +1,13 @@
 var NAVTREEINDEX43 =
 {
+"ppu__registers_8h.html#a4209857af28fae9f54a5f182ff220c4e":[13,0,1,0,2,4,2,105],
+"ppu__registers_8h.html#a465ea876d198acda719a0179d5ac61d8":[13,0,1,0,2,4,2,65],
+"ppu__registers_8h.html#a49db54a7f6e3b9c2e9b1a4412debda9f":[13,0,1,0,2,4,2,74],
+"ppu__registers_8h.html#a51c17ecb289be7aa55dbe0012a1ed47c":[13,0,1,0,2,4,2,116],
+"ppu__registers_8h.html#a5668b7ce55e5eb12bda791b26f5c1c5c":[13,0,1,0,2,4,2,54],
+"ppu__registers_8h.html#a62f11b2698b5a60d29e5c60a2339a022":[13,0,1,0,2,4,2,94],
+"ppu__registers_8h.html#a65d161957824d135dcc70370898ec8e9":[13,0,1,0,2,4,2,108],
+"ppu__registers_8h.html#a68b7b5b3473f57ac32a24c53edd972e5":[13,0,1,0,2,4,2,95],
 "ppu__registers_8h.html#a69b2d88962ee3c4b60118ec31ff72842":[13,0,1,0,2,4,2,109],
 "ppu__registers_8h.html#a6a2a4d60179c770d6c65eb713b99c24d":[13,0,1,0,2,4,2,81],
 "ppu__registers_8h.html#a6d9318393b7f32cef3933f7d2ef09f5d":[13,0,1,0,2,4,2,103],
@@ -241,13 +249,5 @@ var NAVTREEINDEX43 =
 "room__object_8h.html#a77a42c7a71d63c8c5e77518f13e8e03c":[13,0,1,0,5,0,7,16],
 "room__object_8h.html#a86644c3f8bc3f03fd330b2c3b4f0ba00":[13,0,1,0,5,0,7,13],
 "room__object_8h.html#a924d247fa87bd24fcc4b14b32d87fb5b":[13,0,1,0,5,0,7,15],
-"room__object_8h.html#abe17795abf1adfe947a81911733145da":[13,0,1,0,5,0,7,8],
-"room__object_8h.html#abe17795abf1adfe947a81911733145daa080a546abcbea74459f27ba33313993d":[13,0,1,0,5,0,7,8,2],
-"room__object_8h.html#abe17795abf1adfe947a81911733145daa0b01cc688e1e0b5f6b70f858a1b389ae":[13,0,1,0,5,0,7,8,6],
-"room__object_8h.html#abe17795abf1adfe947a81911733145daa103b58155b4c5cc09249629e7ccd5dc2":[13,0,1,0,5,0,7,8,5],
-"room__object_8h.html#abe17795abf1adfe947a81911733145daaa8b6ce53a1cdf2ee4d3f16b939029b2b":[13,0,1,0,5,0,7,8,4],
-"room__object_8h.html#abe17795abf1adfe947a81911733145daae1e4c8c9ccd9fc39c391da4bcd093fb2":[13,0,1,0,5,0,7,8,3],
-"room__object_8h.html#abe17795abf1adfe947a81911733145daaf44e14d49cd011d1e873d9fe0c4624f1":[13,0,1,0,5,0,7,8,1],
-"room__object_8h.html#abe17795abf1adfe947a81911733145daaf80a4ad87fee7c9fdc19b7769495fdb5":[13,0,1,0,5,0,7,8,0],
-"room__object_8h.html#ac3c0be1a02f8dce7d5bbca92747b4f9c":[13,0,1,0,5,0,7,7]
+"room__object_8h.html#abe17795abf1adfe947a81911733145da":[13,0,1,0,5,0,7,8]
 };
