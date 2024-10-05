@@ -22,6 +22,8 @@ constexpr int kCharactersWidth = 0x74ADF;
 constexpr int kNumMessages = 396;
 constexpr int kCurrentMessageWidth = 172;
 constexpr int kCurrentMessageHeight = 4096;
+constexpr int kFontGfxMessageSize = 128;
+constexpr int kFontGfxMessageDepth = 8;
 
 constexpr uint8_t kWidthArraySize = 100;
 constexpr uint8_t kBlockTerminator = 0x80;
