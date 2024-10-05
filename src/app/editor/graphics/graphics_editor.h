@@ -1,20 +1,16 @@
 #ifndef YAZE_APP_EDITOR_GRAPHICS_EDITOR_H
 #define YAZE_APP_EDITOR_GRAPHICS_EDITOR_H
 
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "absl/status/status.h"
-#include "absl/status/statusor.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/modules/asset_browser.h"
 #include "app/gui/canvas.h"
-#include "app/gui/input.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
 #include "imgui_memory_editor.h"
 
 namespace yaze {
