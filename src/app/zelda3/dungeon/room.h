@@ -15,6 +15,7 @@
 #include "app/rom.h"
 #include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/sprite/sprite.h"
+#include "incl/dungeon.h"
 
 namespace yaze {
 namespace app {
@@ -94,19 +95,6 @@ class DungeonDestination {
   uint8_t Index;
   uint8_t Target = 0;
   uint8_t TargetLayer = 0;
-};
-
-struct object_door {
-  object_door() = default;
-  object_door(short id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer)
-      : id_(id), x_(x), y_(y), size_(size), layer_(layer) {}
-
-  short id_;
-  uint8_t x_;
-  uint8_t y_;
-  uint8_t size_;
-  uint8_t type_;
-  uint8_t layer_;
 };
 
 struct ChestData {
