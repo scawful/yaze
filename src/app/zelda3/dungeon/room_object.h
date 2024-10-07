@@ -1,9 +1,7 @@
 #ifndef YAZE_APP_ZELDA3_DUNGEON_ROOM_OBJECT_H
 #define YAZE_APP_ZELDA3_DUNGEON_ROOM_OBJECT_H
 
-#include <array>
 #include <cstdint>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
