@@ -1,6 +1,9 @@
 #ifndef YAZE_APP_ZELDA3_COMMON_H
 #define YAZE_APP_ZELDA3_COMMON_H
 
+#include <vector>
+#include <cstdint>
+
 namespace yaze {
 namespace app {
 /**
