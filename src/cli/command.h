@@ -6,22 +6,13 @@
 #include <memory>
 #include <sstream>
 #include <string>
-#include <string_view>
 #include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
-#include "absl/strings/str_cat.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
-#include "app/emu/snes.h"
-#include "app/gfx/bitmap.h"
-#include "app/gfx/compression.h"
-#include "app/gfx/snes_palette.h"
-#include "app/gfx/snes_tile.h"
-#include "app/gui/canvas.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld/overworld.h"
 #include "asar-dll-bindings/c/asar.h"
 
 namespace yaze {
