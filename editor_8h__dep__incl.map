@@ -38,8 +38,8 @@
 <area shape="poly" id="edge45_Node000001_Node000038" title=" " alt="" coords="1491,30,1737,53,1889,70,2041,91,2059,94,2058,100,2040,97,1888,76,1736,58,1490,36"/>
 <area shape="rect" id="Node000040" href="$gfx__context_8h.html" title=" " alt="" coords="1483,183,1611,223"/>
 <area shape="poly" id="edge47_Node000001_Node000040" title=" " alt="" coords="1437,56,1534,181,1530,184,1433,60"/>
-<area shape="rect" id="Node000054" href="$test__editor_8h.html" title=" " alt="" coords="644,94,773,135"/>
-<area shape="poly" id="edge52_Node000001_Node000054" title=" " alt="" coords="1331,35,1090,57,941,75,793,97,774,100,773,95,792,91,941,70,1089,52,1331,30"/>
+<area shape="rect" id="Node000049" href="$test__editor_8h.html" title=" " alt="" coords="644,94,773,135"/>
+<area shape="poly" id="edge52_Node000001_Node000049" title=" " alt="" coords="1331,35,1090,57,941,75,793,97,774,100,773,95,792,91,941,70,1089,52,1331,30"/>
 <area shape="rect" id="Node000003" href="$controller_8cc.html" title=" " alt="" coords="174,190,341,216"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="436,136,290,192,288,187,434,131"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="407,133,162,185,151,188,150,183,161,180,406,128"/>
@@ -76,5 +76,5 @@
 <area shape="poly" id="edge49_Node000040_Node000025" title=" " alt="" coords="1497,233,1420,273,1418,269,1495,228"/>
 <area shape="poly" id="edge50_Node000040_Node000026" title=" " alt="" coords="1591,231,1611,249,1627,270,1633,292,1631,303,1625,314,1604,329,1575,340,1499,352,1421,357,1361,363,1348,365,1347,360,1360,357,1420,352,1499,346,1573,335,1602,324,1621,310,1626,301,1628,292,1622,272,1607,253,1587,235"/>
 <area shape="poly" id="edge51_Node000040_Node000030" title=" " alt="" coords="1550,239,1550,271,1544,271,1544,239"/>
-<area shape="poly" id="edge53_Node000054_Node000007" title=" " alt="" coords="711,150,711,182,706,182,706,150"/>
+<area shape="poly" id="edge53_Node000049_Node000007" title=" " alt="" coords="711,150,711,182,706,182,706,150"/>
 </map>

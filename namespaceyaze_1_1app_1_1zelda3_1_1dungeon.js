@@ -3,7 +3,6 @@ var namespaceyaze_1_1app_1_1zelda3_1_1dungeon =
     [ "ChestData", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData" ],
     [ "DungeonDestination", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination" ],
     [ "DungeonObjectRenderer", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer" ],
-    [ "object_door", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door" ],
     [ "PseudoVram", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram" ],
     [ "Room", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room" ],
     [ "RoomEntrance", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance" ],

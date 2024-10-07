@@ -172,6 +172,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a17764a35fd7bf641d4c1e84fb596d8a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9cde2031bd16ed689d7a45719293c70f" id="r_a9cde2031bd16ed689d7a45719293c70f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9cde2031bd16ed689d7a45719293c70f">DrawTextCommands</a> ()</td></tr>
 <tr class="separator:a9cde2031bd16ed689d7a45719293c70f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b988bc8d27c9ca2d845bf71508b5b38" id="r_a5b988bc8d27c9ca2d845bf71508b5b38"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5b988bc8d27c9ca2d845bf71508b5b38">DrawDictionary</a> ()</td></tr>
+<tr class="separator:a5b988bc8d27c9ca2d845bf71508b5b38"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9604260979c0fb4476c1c3060392f052" id="r_a9604260979c0fb4476c1c3060392f052"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9604260979c0fb4476c1c3060392f052">ReadAllTextDataV2</a> ()</td></tr>
 <tr class="separator:a9604260979c0fb4476c1c3060392f052"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3d72f76ce6ed3b8f7fa1cc5fa3281d0d" id="r_a3d72f76ce6ed3b8f7fa1cc5fa3281d0d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3d72f76ce6ed3b8f7fa1cc5fa3281d0d">ReadAllTextData</a> ()</td></tr>
@@ -326,7 +328,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00047">47</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00131">yaze::app::gfx::SnesPalette::AddColor()</a>, <a class="el" href="message__editor_8h_source.html#l00094">all_dictionaries_</a>, <a class="el" href="message__data_8cc_source.html#l00148">yaze::app::editor::BuildDictionaryEntries()</a>, <a class="el" href="message__editor_8h_source.html#l00099">current_font_gfx16_bitmap_</a>, <a class="el" href="message__editor_8h_source.html#l00089">current_font_gfx16_data_</a>, <a class="el" href="message__data_8h_source.html#l00020">yaze::app::editor::DICTOFF</a>, <a class="el" href="message__editor_8cc_source.html#l00567">DrawMessagePreview()</a>, <a class="el" href="message__data_8h_source.html#l00204">yaze::app::editor::TextElement::Empty()</a>, <a class="el" href="message__data_8cc_source.html#l00025">yaze::app::editor::FindMatchingCommand()</a>, <a class="el" href="message__editor_8h_source.html#l00088">font_gfx16_data_</a>, <a class="el" href="message__editor_8h_source.html#l00098">font_gfx_bitmap_</a>, <a class="el" href="message__editor_8h_source.html#l00100">font_preview_colors_</a>, <a class="el" href="message__data_8h_source.html#l00160">yaze::app::editor::TextElement::GenericToken</a>, <a class="el" href="message__editor_8cc_source.html#l00468">GetDictionaryFromID()</a>, <a class="el" href="renderer_8h_source.html#l00030">yaze::app::core::Renderer::GetInstance()</a>, <a class="el" href="message__data_8h_source.html#l00158">yaze::app::editor::TextElement::ID</a>, <a class="el" href="message__editor_8h_source.html#l00021">yaze::app::editor::kCharactersWidth</a>, <a class="el" href="message__editor_8h_source.html#l00024">yaze::app::editor::kCurrentMessageHeight</a>, <a class="el" href="message__editor_8h_source.html#l00023">yaze::app::editor::kCurrentMessageWidth</a>, <a class="el" href="message__editor_8h_source.html#l00026">yaze::app::editor::kFontGfxMessageDepth</a>, <a class="el" href="message__editor_8h_source.html#l00025">yaze::app::editor::kFontGfxMessageSize</a>, <a class="el" href="message__editor_8h_source.html#l00018">yaze::app::editor::kGfxFont</a>, <a class="el" href="message__editor_8h_source.html#l00033">yaze::app::editor::kLine2</a>, <a class="el" href="message__editor_8h_source.html#l00034">yaze::app::editor::kLine3</a>, <a class="el" href="message__editor_8h_source.html#l00031">yaze::app::editor::kScrollVertical</a>, <a class="el" href="message__editor_8h_source.html#l00028">yaze::app::editor::kWidthArraySize</a>, <a class="el" href="message__editor_8h_source.html#l00092">list_of_texts_</a>, <a class="el" href="snes__palette_8h_source.html#l00142">yaze::app::gfx::SnesPalette::mutable_color()</a>, <a class="el" href="bitmap_8h_source.html#l00176">yaze::app::gfx::Bitmap::mutable_palette()</a>, <a class="el" href="bitmap_8h_source.html#l00175">yaze::app::gfx::Bitmap::palette()</a>, <a class="el" href="message__editor_8h_source.html#l00090">parsed_messages_</a>, <a class="el" href="message__editor_8cc_source.html#l00262">ReadAllTextDataV2()</a>, <a class="el" href="constants_8h_source.html#l00069">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00597">yaze::app::SharedRom::rom()</a>, <a class="el" href="snes__palette_8h_source.html#l00145">yaze::app::gfx::SnesPalette::size()</a>, <a class="el" href="snes__tile_8cc_source.html#l00152">yaze::app::gfx::SnesTo8bppSheet()</a>, and <a class="el" href="message__editor_8h_source.html#l00084">width_array</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00131">yaze::app::gfx::SnesPalette::AddColor()</a>, <a class="el" href="message__editor_8h_source.html#l00095">all_dictionaries_</a>, <a class="el" href="message__data_8cc_source.html#l00148">yaze::app::editor::BuildDictionaryEntries()</a>, <a class="el" href="message__editor_8h_source.html#l00100">current_font_gfx16_bitmap_</a>, <a class="el" href="message__editor_8h_source.html#l00090">current_font_gfx16_data_</a>, <a class="el" href="message__data_8h_source.html#l00020">yaze::app::editor::DICTOFF</a>, <a class="el" href="message__editor_8cc_source.html#l00573">DrawMessagePreview()</a>, <a class="el" href="message__data_8h_source.html#l00204">yaze::app::editor::TextElement::Empty()</a>, <a class="el" href="message__data_8cc_source.html#l00025">yaze::app::editor::FindMatchingCommand()</a>, <a class="el" href="message__editor_8h_source.html#l00089">font_gfx16_data_</a>, <a class="el" href="message__editor_8h_source.html#l00099">font_gfx_bitmap_</a>, <a class="el" href="message__editor_8h_source.html#l00101">font_preview_colors_</a>, <a class="el" href="message__data_8h_source.html#l00160">yaze::app::editor::TextElement::GenericToken</a>, <a class="el" href="message__editor_8cc_source.html#l00471">GetDictionaryFromID()</a>, <a class="el" href="renderer_8h_source.html#l00030">yaze::app::core::Renderer::GetInstance()</a>, <a class="el" href="message__data_8h_source.html#l00158">yaze::app::editor::TextElement::ID</a>, <a class="el" href="message__editor_8h_source.html#l00021">yaze::app::editor::kCharactersWidth</a>, <a class="el" href="message__editor_8h_source.html#l00024">yaze::app::editor::kCurrentMessageHeight</a>, <a class="el" href="message__editor_8h_source.html#l00023">yaze::app::editor::kCurrentMessageWidth</a>, <a class="el" href="message__editor_8h_source.html#l00026">yaze::app::editor::kFontGfxMessageDepth</a>, <a class="el" href="message__editor_8h_source.html#l00025">yaze::app::editor::kFontGfxMessageSize</a>, <a class="el" href="message__editor_8h_source.html#l00018">yaze::app::editor::kGfxFont</a>, <a class="el" href="message__editor_8h_source.html#l00033">yaze::app::editor::kLine2</a>, <a class="el" href="message__editor_8h_source.html#l00034">yaze::app::editor::kLine3</a>, <a class="el" href="message__editor_8h_source.html#l00031">yaze::app::editor::kScrollVertical</a>, <a class="el" href="message__editor_8h_source.html#l00028">yaze::app::editor::kWidthArraySize</a>, <a class="el" href="message__editor_8h_source.html#l00093">list_of_texts_</a>, <a class="el" href="snes__palette_8h_source.html#l00142">yaze::app::gfx::SnesPalette::mutable_color()</a>, <a class="el" href="bitmap_8h_source.html#l00176">yaze::app::gfx::Bitmap::mutable_palette()</a>, <a class="el" href="bitmap_8h_source.html#l00175">yaze::app::gfx::Bitmap::palette()</a>, <a class="el" href="message__editor_8h_source.html#l00091">parsed_messages_</a>, <a class="el" href="message__editor_8cc_source.html#l00266">ReadAllTextDataV2()</a>, <a class="el" href="constants_8h_source.html#l00069">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00597">yaze::app::SharedRom::rom()</a>, <a class="el" href="snes__palette_8h_source.html#l00145">yaze::app::gfx::SnesPalette::size()</a>, <a class="el" href="snes__tile_8cc_source.html#l00152">yaze::app::gfx::SnesTo8bppSheet()</a>, and <a class="el" href="message__editor_8h_source.html#l00085">width_array</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00126">Update()</a>.</p>
 <div class="dynheader">
@@ -424,7 +426,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00126">126</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00094">all_dictionaries_</a>, <a class="el" href="message__editor_8h_source.html#l00096">current_message_</a>, <a class="el" href="message__editor_8h_source.html#l00078">data_loaded_</a>, <a class="el" href="message__editor_8cc_source.html#l00209">DrawCurrentMessage()</a>, <a class="el" href="message__editor_8cc_source.html#l00175">DrawMessageList()</a>, <a class="el" href="message__editor_8cc_source.html#l00247">DrawTextCommands()</a>, <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>, <a class="el" href="message__editor_8cc_source.html#l00044">yaze::app::editor::kDictTableFlags</a>, <a class="el" href="message__editor_8h_source.html#l00092">list_of_texts_</a>, <a class="el" href="constants_8h_source.html#l00069">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00597">yaze::app::SharedRom::rom()</a>, and <a class="el" href="labeling_8cc_source.html#l00029">yaze::app::core::UppercaseHexWord()</a>.</p>
+<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00097">current_message_</a>, <a class="el" href="message__editor_8h_source.html#l00079">data_loaded_</a>, <a class="el" href="message__editor_8cc_source.html#l00193">DrawCurrentMessage()</a>, <a class="el" href="message__editor_8cc_source.html#l00245">DrawDictionary()</a>, <a class="el" href="message__editor_8cc_source.html#l00159">DrawMessageList()</a>, <a class="el" href="message__editor_8cc_source.html#l00231">DrawTextCommands()</a>, <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>, <a class="el" href="message__editor_8cc_source.html#l00044">yaze::app::editor::kDictTableFlags</a>, <a class="el" href="message__editor_8h_source.html#l00093">list_of_texts_</a>, <a class="el" href="constants_8h_source.html#l00069">RETURN_IF_ERROR</a>, and <a class="el" href="rom_8h_source.html#l00597">yaze::app::SharedRom::rom()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00079">yaze::app::editor::EditorManager::ManageActiveEditors()</a>.</p>
 <div class="dynheader">
@@ -432,64 +434,64 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1editor_1_1MessageEditor_ad0ebe5a5c1a8bc2ba22b8ba165f3de68_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1MessageEditor_ad0ebe5a5c1a8bc2ba22b8ba165f3de68_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1editor_1_1MessageEditor_ad0ebe5a5c1a8bc2ba22b8ba165f3de68_cgraph" id="aclassyaze_1_1app_1_1editor_1_1MessageEditor_ad0ebe5a5c1a8bc2ba22b8ba165f3de68_cgraph">
-<area shape="rect" title=" " alt="" coords="5,859,161,899"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#a17764a35fd7bf641d4c1e84fb596d8a6" title=" " alt="" coords="233,307,418,363"/>
-<area shape="poly" title=" " alt="" coords="91,857,303,376,308,379,96,859"/>
-<area shape="rect" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="735,1260,912,1285"/>
-<area shape="poly" title=" " alt="" coords="98,899,148,981,186,1037,233,1097,288,1158,350,1215,418,1264,492,1302,528,1313,566,1318,642,1317,714,1305,773,1288,774,1293,715,1310,643,1322,566,1324,527,1318,490,1307,415,1269,346,1219,284,1162,229,1101,182,1040,143,984,93,901"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#a105032895c0ebed7eba4be11ba52dd66" title=" " alt="" coords="217,704,435,745"/>
-<area shape="poly" title=" " alt="" coords="112,856,207,791,274,751,277,755,210,796,115,860"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1core.html#af8cc386a22a4537ace6f04d1e2f44707" title=" " alt="" coords="502,740,676,781"/>
-<area shape="poly" title=" " alt="" coords="160,858,486,782,488,787,161,864"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#a9cde2031bd16ed689d7a45719293c70f" title=" " alt="" coords="209,985,443,1026"/>
-<area shape="poly" title=" " alt="" coords="108,898,153,934,210,970,225,977,223,982,207,975,150,939,105,902"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#ad40e04b04c13c2365d38fdcd631ed128" title=" " alt="" coords="246,920,406,961"/>
-<area shape="poly" title=" " alt="" coords="162,896,232,914,230,919,160,901"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a65f49225270284b6353e95334659788c" title=" " alt="" coords="498,350,681,376"/>
-<area shape="poly" title=" " alt="" coords="419,342,482,349,482,354,419,348"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a1068606a5a066f19a39932e05d71da1e" title=" " alt="" coords="516,400,663,441"/>
-<area shape="poly" title=" " alt="" coords="415,361,511,392,509,397,413,366"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a546bca6ab34aed7e893ef6c5e8d56f32" title=" " alt="" coords="516,465,663,506"/>
-<area shape="poly" title=" " alt="" coords="362,361,421,406,492,450,506,457,504,461,490,455,418,410,359,365"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#adcf94e785e5229860e85b8cd61248b59" title=" " alt="" coords="516,531,663,571"/>
-<area shape="poly" title=" " alt="" coords="348,362,407,438,447,479,493,515,503,522,500,526,489,520,443,483,403,441,343,365"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1Renderer.html#acd1048086e983ab44d0875b079927bfa" title=" " alt="" coords="742,531,905,571"/>
-<area shape="poly" title=" " alt="" coords="355,305,414,259,451,237,490,220,546,203,593,192,616,192,639,196,663,206,689,221,710,260,744,341,812,515,807,517,739,343,705,262,685,225,660,210,637,201,615,198,594,198,547,208,492,226,453,242,417,263,358,309"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1Renderer.html#aedcffb1f7a16396dbe8a5685c62573d7" title="Used to update a bitmap on the screen." alt="" coords="742,264,905,305"/>
-<area shape="poly" title=" " alt="" coords="335,306,356,259,389,203,433,148,460,125,490,106,543,84,589,76,635,84,689,106,730,135,764,173,791,213,810,249,805,251,786,215,760,176,727,139,686,111,634,89,589,82,544,89,492,111,463,129,437,152,393,206,361,261,340,308"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a2b6253806ad23fe0dcfb43a2560072e4" title=" " alt="" coords="516,5,663,46"/>
-<area shape="poly" title=" " alt="" coords="335,306,356,255,389,190,434,122,460,90,489,62,504,52,507,56,493,66,464,94,438,125,394,192,361,257,340,308"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#a63af96f2f33408282278ba6309997c0c" title=" " alt="" coords="491,660,687,716"/>
-<area shape="poly" title=" " alt="" coords="337,363,356,421,388,497,433,576,461,613,493,646,496,649,492,653,489,650,457,617,429,579,383,499,351,423,332,364"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aabe6f55d89a641416172d54f83595105" title=" " alt="" coords="516,120,663,161"/>
-<area shape="poly" title=" " alt="" coords="349,305,409,242,448,207,490,177,510,165,513,170,492,181,451,212,413,246,353,309"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a4e98334d8cfb28352cebdd857eb52530" title=" " alt="" coords="503,236,675,261"/>
-<area shape="poly" title=" " alt="" coords="397,304,490,271,517,263,519,268,492,276,399,309"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1editor.html#adbfa49c529abc70e97df75a0ef62228d" title=" " alt="" coords="514,285,664,326"/>
-<area shape="poly" title=" " alt="" coords="419,322,498,313,499,318,419,327"/>
-<area shape="poly" title=" " alt="" coords="663,548,726,548,726,554,663,554"/>
-<area shape="poly" title=" " alt="" coords="665,564,689,582,706,606,721,636,747,713,769,806,787,908,811,1106,823,1244,818,1244,806,1106,781,909,764,808,742,715,716,638,701,609,685,586,662,569"/>
-<area shape="poly" title=" " alt="" coords="662,530,686,516,729,470,764,416,791,363,808,318,813,320,796,365,769,419,734,473,689,520,665,535"/>
-<area shape="poly" title=" " alt="" coords="785,1261,777,1251,782,1241,797,1235,824,1233,852,1236,867,1242,864,1247,851,1241,823,1238,799,1240,785,1245,782,1250,789,1257"/>
-<area shape="poly" title=" " alt="" coords="435,707,475,701,476,706,436,712"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1core.html#a9fc1194f545000fb140d178e5a54ff81" title=" " alt="" coords="502,596,676,637"/>
-<area shape="poly" title=" " alt="" coords="368,701,490,646,506,640,508,645,492,651,370,706"/>
-<area shape="poly" title=" " alt="" coords="436,737,487,744,486,749,435,742"/>
-<area shape="poly" title=" " alt="" coords="355,917,415,879,490,841,520,831,546,826,593,823,638,816,661,807,686,790,710,768,732,744,767,688,793,632,810,585,815,587,798,634,772,691,736,747,714,772,689,794,663,811,639,821,594,828,547,831,521,836,492,845,418,883,357,922"/>
-<area shape="poly" title=" " alt="" coords="407,948,428,958,445,972,467,1007,475,1043,473,1079,466,1114,460,1149,459,1182,468,1214,493,1245,521,1266,553,1280,587,1290,622,1295,693,1295,755,1286,756,1291,693,1300,622,1300,586,1295,551,1285,518,1270,489,1249,464,1216,454,1183,455,1148,461,1113,468,1078,470,1044,463,1009,441,975,425,962,405,953"/>
-<area shape="poly" title=" " alt="" coords="336,918,360,878,394,827,438,774,489,726,494,723,497,727,493,730,442,777,398,830,364,881,341,921"/>
-<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a305057f8a2e4f4ab1f9f2eebe994721d" title=" " alt="" coords="502,1129,676,1170"/>
-<area shape="poly" title=" " alt="" coords="407,950,427,959,445,972,459,990,467,1008,470,1044,473,1080,480,1097,493,1115,497,1118,493,1122,489,1118,475,1100,468,1081,465,1045,462,1009,455,992,441,976,424,963,405,954"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1editor.html#a6be9c5b53ff197a95e1287076d8e71af" title=" " alt="" coords="516,1195,663,1235"/>
-<area shape="poly" title=" " alt="" coords="408,949,428,958,445,972,464,998,472,1025,473,1051,470,1077,468,1103,469,1129,476,1154,493,1180,504,1190,500,1194,489,1183,471,1156,463,1130,462,1103,465,1077,467,1051,466,1026,459,1001,441,975,425,963,405,953"/>
-<area shape="rect" href="structyaze_1_1app_1_1editor_1_1TextElement.html#a5e4935ff0f5aa23e63c7369c4d0e9d2e" title=" " alt="" coords="522,855,657,895"/>
-<area shape="poly" title=" " alt="" coords="406,918,506,893,507,898,407,923"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1editor.html#ac915a1e39b12e26c6f818d1a08ca05c1" title=" " alt="" coords="510,920,668,961"/>
-<area shape="poly" title=" " alt="" coords="406,938,494,938,494,943,406,943"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#a0ee688c930b7e64513f3bcb6b369bbe6" title=" " alt="" coords="494,984,685,1040"/>
-<area shape="poly" title=" " alt="" coords="404,959,479,979,477,985,402,964"/>
-<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a3232fb97b5561c563c2e34041ea084a5" title=" " alt="" coords="502,1064,676,1105"/>
-<area shape="poly" title=" " alt="" coords="408,952,445,972,462,991,470,1012,477,1031,493,1050,497,1054,494,1058,489,1054,472,1034,465,1014,457,994,441,976,405,957"/>
+<area shape="rect" title=" " alt="" coords="5,771,161,812"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#a17764a35fd7bf641d4c1e84fb596d8a6" title=" " alt="" coords="233,297,418,353"/>
+<area shape="poly" title=" " alt="" coords="93,770,301,365,305,368,97,772"/>
+<area shape="rect" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="735,807,912,832"/>
+<area shape="poly" title=" " alt="" coords="161,792,720,813,720,818,161,797"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#a5b988bc8d27c9ca2d845bf71508b5b38" title=" " alt="" coords="226,742,426,782"/>
+<area shape="poly" title=" " alt="" coords="161,779,210,773,210,779,161,785"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#a105032895c0ebed7eba4be11ba52dd66" title=" " alt="" coords="217,676,435,717"/>
+<area shape="poly" title=" " alt="" coords="121,768,208,728,230,720,231,725,210,733,123,773"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#a9cde2031bd16ed689d7a45719293c70f" title=" " alt="" coords="209,1000,443,1041"/>
+<area shape="poly" title=" " alt="" coords="94,811,110,849,135,896,168,944,210,985,218,990,215,995,207,990,164,948,130,899,105,851,89,813"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#ad40e04b04c13c2365d38fdcd631ed128" title=" " alt="" coords="246,935,406,976"/>
+<area shape="poly" title=" " alt="" coords="116,810,283,924,280,929,113,814"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a65f49225270284b6353e95334659788c" title=" " alt="" coords="498,221,681,247"/>
+<area shape="poly" title=" " alt="" coords="392,294,490,257,516,249,518,254,492,262,394,299"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a1068606a5a066f19a39932e05d71da1e" title=" " alt="" coords="516,271,663,312"/>
+<area shape="poly" title=" " alt="" coords="419,310,500,300,500,305,419,316"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a546bca6ab34aed7e893ef6c5e8d56f32" title=" " alt="" coords="516,336,663,377"/>
+<area shape="poly" title=" " alt="" coords="419,333,500,343,500,349,419,339"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#adcf94e785e5229860e85b8cd61248b59" title=" " alt="" coords="516,106,663,146"/>
+<area shape="poly" title=" " alt="" coords="348,295,408,230,447,194,490,163,510,151,513,156,492,167,451,198,412,233,352,298"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Renderer.html#acd1048086e983ab44d0875b079927bfa" title=" " alt="" coords="742,163,905,204"/>
+<area shape="poly" title=" " alt="" coords="355,295,414,247,451,224,490,206,550,190,611,180,672,175,726,175,726,180,672,181,612,185,551,195,492,211,453,229,417,252,358,299"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Renderer.html#aedcffb1f7a16396dbe8a5685c62573d7" title="Used to update a bitmap on the screen." alt="" coords="742,74,905,114"/>
+<area shape="poly" title=" " alt="" coords="335,295,356,248,388,191,433,135,460,111,490,92,548,71,610,62,671,63,727,69,726,74,671,68,610,67,549,76,492,97,463,115,436,139,392,194,360,250,340,298"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a2b6253806ad23fe0dcfb43a2560072e4" title=" " alt="" coords="516,467,663,508"/>
+<area shape="poly" title=" " alt="" coords="358,351,418,402,454,428,492,452,505,458,503,463,490,456,451,433,414,406,355,355"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#a63af96f2f33408282278ba6309997c0c" title=" " alt="" coords="491,597,687,653"/>
+<area shape="poly" title=" " alt="" coords="341,352,362,401,396,463,439,527,465,556,493,583,497,586,494,590,489,587,461,560,435,530,391,465,358,403,336,354"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aabe6f55d89a641416172d54f83595105" title=" " alt="" coords="516,532,663,573"/>
+<area shape="poly" title=" " alt="" coords="346,352,371,389,405,433,446,478,493,517,503,524,500,528,489,522,442,482,400,437,367,392,342,355"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a4e98334d8cfb28352cebdd857eb52530" title=" " alt="" coords="503,5,675,31"/>
+<area shape="poly" title=" " alt="" coords="334,296,355,243,387,177,432,108,459,76,489,48,510,35,512,40,493,52,463,80,436,111,392,179,359,245,339,298"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1editor.html#adbfa49c529abc70e97df75a0ef62228d" title=" " alt="" coords="514,402,664,442"/>
+<area shape="poly" title=" " alt="" coords="399,351,492,386,512,394,511,399,490,391,397,356"/>
+<area shape="poly" title=" " alt="" coords="664,142,727,157,726,162,663,147"/>
+<area shape="poly" title=" " alt="" coords="626,145,660,172,690,207,730,286,761,370,785,456,802,540,820,690,825,791,819,791,815,690,796,541,780,457,756,372,725,288,685,210,656,176,623,149"/>
+<area shape="poly" title=" " alt="" coords="663,113,726,105,727,110,664,119"/>
+<area shape="poly" title=" " alt="" coords="785,808,777,798,782,788,797,782,824,780,852,783,867,789,864,794,851,788,823,785,799,787,785,792,782,797,789,805"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1core.html#af8cc386a22a4537ace6f04d1e2f44707" title=" " alt="" coords="502,742,676,782"/>
+<area shape="poly" title=" " alt="" coords="426,760,487,760,487,765,426,765"/>
+<area shape="poly" title=" " alt="" coords="402,673,475,653,476,658,404,678"/>
+<area shape="poly" title=" " alt="" coords="411,715,490,735,489,740,410,720"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1core.html#a9fc1194f545000fb140d178e5a54ff81" title=" " alt="" coords="502,676,676,717"/>
+<area shape="poly" title=" " alt="" coords="435,694,487,694,487,700,435,700"/>
+<area shape="poly" title=" " alt="" coords="380,932,561,857,643,819,685,792,711,747,735,682,755,603,773,516,800,345,816,219,821,219,806,346,778,517,760,604,740,683,716,749,689,796,645,824,563,862,382,937"/>
+<area shape="poly" title=" " alt="" coords="407,971,470,980,541,984,616,977,652,969,686,957,724,935,757,905,784,873,804,844,809,847,788,876,761,908,727,939,688,962,653,974,616,983,541,989,469,986,406,977"/>
+<area shape="poly" title=" " alt="" coords="343,933,390,872,441,793,454,757,459,725,467,695,489,663,491,661,495,665,493,667,472,697,464,726,459,758,445,795,395,875,347,936"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a305057f8a2e4f4ab1f9f2eebe994721d" title=" " alt="" coords="502,1231,676,1272"/>
+<area shape="poly" title=" " alt="" coords="408,964,428,973,445,987,465,1016,473,1046,474,1075,470,1104,467,1133,467,1161,474,1189,493,1218,494,1219,490,1223,489,1221,469,1191,461,1162,461,1132,465,1103,468,1075,468,1047,460,1019,441,991,425,978,405,968"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1editor.html#a6be9c5b53ff197a95e1287076d8e71af" title=" " alt="" coords="516,907,663,948"/>
+<area shape="poly" title=" " alt="" coords="406,944,500,934,500,940,407,950"/>
+<area shape="rect" href="structyaze_1_1app_1_1editor_1_1TextElement.html#a5e4935ff0f5aa23e63c7369c4d0e9d2e" title=" " alt="" coords="522,1022,657,1062"/>
+<area shape="poly" title=" " alt="" coords="404,974,444,986,521,1013,519,1018,442,991,402,979"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1editor.html#ac915a1e39b12e26c6f818d1a08ca05c1" title=" " alt="" coords="510,1087,668,1128"/>
+<area shape="poly" title=" " alt="" coords="408,967,445,987,463,1008,470,1030,477,1052,493,1072,499,1077,496,1081,489,1076,472,1054,465,1032,458,1011,441,991,405,972"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#a0ee688c930b7e64513f3bcb6b369bbe6" title=" " alt="" coords="494,1152,685,1207"/>
+<area shape="poly" title=" " alt="" coords="407,965,427,974,445,987,460,1006,468,1025,471,1063,473,1100,480,1119,493,1138,495,1140,491,1143,489,1141,475,1121,468,1102,465,1063,462,1026,455,1009,441,991,425,978,405,969"/>
 </map>
 </div>
 
@@ -511,9 +513,9 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <dl class="todo"><dt><b><a class="el" href="todo.html#_todo000008">Todo</a></b></dt><dd><a class="el" href="namespaceImGui.html">ImGui</a> style text filtering </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00175">175</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00159">159</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00096">current_message_</a>, <a class="el" href="message__editor_8cc_source.html#l00567">DrawMessagePreview()</a>, <a class="el" href="message__editor_8cc_source.html#l00040">yaze::app::editor::kMessageTableFlags</a>, <a class="el" href="message__editor_8h_source.html#l00092">list_of_texts_</a>, <a class="el" href="message__editor_8h_source.html#l00090">parsed_messages_</a>, <a class="el" href="message__editor_8h_source.html#l00086">search_text_</a>, <a class="el" href="labeling_8cc_source.html#l00037">yaze::app::core::UppercaseHexLong()</a>, and <a class="el" href="labeling_8cc_source.html#l00029">yaze::app::core::UppercaseHexWord()</a>.</p>
+<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00097">current_message_</a>, <a class="el" href="message__editor_8cc_source.html#l00573">DrawMessagePreview()</a>, <a class="el" href="message__editor_8cc_source.html#l00040">yaze::app::editor::kMessageTableFlags</a>, <a class="el" href="message__editor_8h_source.html#l00093">list_of_texts_</a>, <a class="el" href="message__editor_8h_source.html#l00091">parsed_messages_</a>, <a class="el" href="message__editor_8h_source.html#l00087">search_text_</a>, <a class="el" href="labeling_8cc_source.html#l00037">yaze::app::core::UppercaseHexLong()</a>, and <a class="el" href="labeling_8cc_source.html#l00029">yaze::app::core::UppercaseHexWord()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00126">Update()</a>.</p>
 <div class="dynheader">
@@ -551,9 +553,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00209">209</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00193">193</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="style_8cc_source.html#l00036">yaze::app::gui::BeginPadding()</a>, <a class="el" href="message__editor_8h_source.html#l00099">current_font_gfx16_bitmap_</a>, <a class="el" href="message__editor_8h_source.html#l00103">current_font_gfx16_canvas_</a>, <a class="el" href="message__editor_8h_source.html#l00096">current_message_</a>, <a class="el" href="message__data_8h_source.html#l00094">yaze::app::editor::MessageData::Data</a>, <a class="el" href="canvas_8cc_source.html#l00069">yaze::app::gui::Canvas::DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00464">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00104">yaze::app::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00689">yaze::app::gui::Canvas::DrawGrid()</a>, <a class="el" href="message__editor_8cc_source.html#l00567">DrawMessagePreview()</a>, <a class="el" href="canvas_8cc_source.html#l00740">yaze::app::gui::Canvas::DrawOverlay()</a>, <a class="el" href="style_8cc_source.html#l00040">yaze::app::gui::EndPadding()</a>, <a class="el" href="message__editor_8h_source.html#l00098">font_gfx_bitmap_</a>, <a class="el" href="message__editor_8h_source.html#l00102">font_gfx_canvas_</a>, <a class="el" href="renderer_8h_source.html#l00030">yaze::app::core::Renderer::GetInstance()</a>, <a class="el" href="message__data_8h_source.html#l00090">yaze::app::editor::MessageData::ID</a>, <a class="el" href="message__editor_8h_source.html#l00161">message_text_box_</a>, <a class="el" href="message__editor_8h_source.html#l00090">parsed_messages_</a>, <a class="el" href="message__data_8cc_source.html#l00101">yaze::app::editor::ParseMessageToData()</a>, <a class="el" href="message__editor_8h_source.html#l00107">yaze::app::editor::MessageEditor::TextBox::text</a>, and <a class="el" href="renderer_8h_source.html#l00063">yaze::app::core::Renderer::UpdateBitmap()</a>.</p>
+<p class="reference">References <a class="el" href="style_8cc_source.html#l00036">yaze::app::gui::BeginPadding()</a>, <a class="el" href="message__editor_8h_source.html#l00100">current_font_gfx16_bitmap_</a>, <a class="el" href="message__editor_8h_source.html#l00104">current_font_gfx16_canvas_</a>, <a class="el" href="message__editor_8h_source.html#l00097">current_message_</a>, <a class="el" href="message__data_8h_source.html#l00094">yaze::app::editor::MessageData::Data</a>, <a class="el" href="canvas_8cc_source.html#l00069">yaze::app::gui::Canvas::DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00464">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00104">yaze::app::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00689">yaze::app::gui::Canvas::DrawGrid()</a>, <a class="el" href="message__editor_8cc_source.html#l00573">DrawMessagePreview()</a>, <a class="el" href="canvas_8cc_source.html#l00740">yaze::app::gui::Canvas::DrawOverlay()</a>, <a class="el" href="style_8cc_source.html#l00040">yaze::app::gui::EndPadding()</a>, <a class="el" href="message__editor_8h_source.html#l00099">font_gfx_bitmap_</a>, <a class="el" href="message__editor_8h_source.html#l00103">font_gfx_canvas_</a>, <a class="el" href="renderer_8h_source.html#l00030">yaze::app::core::Renderer::GetInstance()</a>, <a class="el" href="message__data_8h_source.html#l00090">yaze::app::editor::MessageData::ID</a>, <a class="el" href="message__editor_8h_source.html#l00162">message_text_box_</a>, <a class="el" href="message__editor_8h_source.html#l00091">parsed_messages_</a>, <a class="el" href="message__data_8cc_source.html#l00101">yaze::app::editor::ParseMessageToData()</a>, <a class="el" href="message__editor_8h_source.html#l00108">yaze::app::editor::MessageEditor::TextBox::text</a>, and <a class="el" href="renderer_8h_source.html#l00063">yaze::app::core::Renderer::UpdateBitmap()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00126">Update()</a>.</p>
 <div class="dynheader">
@@ -633,9 +635,42 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00247">247</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00231">231</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00126">Update()</a>.</p>
+
+</div>
+</div>
+<a id="a5b988bc8d27c9ca2d845bf71508b5b38" name="a5b988bc8d27c9ca2d845bf71508b5b38"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b988bc8d27c9ca2d845bf71508b5b38">&#9670;&#160;</a></span>DrawDictionary()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::editor::MessageEditor::DrawDictionary </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00245">245</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00095">all_dictionaries_</a>, <a class="el" href="message__editor_8cc_source.html#l00044">yaze::app::editor::kDictTableFlags</a>, and <a class="el" href="labeling_8cc_source.html#l00029">yaze::app::core::UppercaseHexWord()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00126">Update()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1editor_1_1MessageEditor_a5b988bc8d27c9ca2d845bf71508b5b38_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1MessageEditor_a5b988bc8d27c9ca2d845bf71508b5b38_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1editor_1_1MessageEditor_a5b988bc8d27c9ca2d845bf71508b5b38_cgraph" id="aclassyaze_1_1app_1_1editor_1_1MessageEditor_a5b988bc8d27c9ca2d845bf71508b5b38_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,206,46"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1core.html#af8cc386a22a4537ace6f04d1e2f44707" title=" " alt="" coords="254,5,428,46"/>
+<area shape="poly" title=" " alt="" coords="206,23,238,23,238,28,206,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -655,9 +690,9 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <dl class="todo"><dt><b><a class="el" href="todo.html#_todo000009">Todo</a></b></dt><dd>Fix the command parsing. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00262">262</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00266">266</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="message__data_8h_source.html#l00018">yaze::app::editor::BANKToken</a>, <a class="el" href="message__data_8h_source.html#l00019">yaze::app::editor::DICTIONARYTOKEN</a>, <a class="el" href="message__data_8h_source.html#l00204">yaze::app::editor::TextElement::Empty()</a>, <a class="el" href="message__data_8cc_source.html#l00018">yaze::app::editor::FindDictionaryEntry()</a>, <a class="el" href="message__data_8cc_source.html#l00025">yaze::app::editor::FindMatchingCommand()</a>, <a class="el" href="message__data_8cc_source.html#l00035">yaze::app::editor::FindMatchingSpecial()</a>, <a class="el" href="common_8cc_source.html#l00098">yaze::app::core::Get24LocalFromPC()</a>, <a class="el" href="message__data_8h_source.html#l00185">yaze::app::editor::TextElement::GetParameterizedToken()</a>, <a class="el" href="message__data_8h_source.html#l00164">yaze::app::editor::TextElement::HasArgument</a>, <a class="el" href="message__data_8h_source.html#l00017">yaze::app::editor::kMessageTerminator</a>, <a class="el" href="message__data_8h_source.html#l00079">yaze::app::editor::kPointersDictionaries</a>, <a class="el" href="message__data_8h_source.html#l00076">yaze::app::editor::kTextData</a>, <a class="el" href="message__editor_8h_source.html#l00019">yaze::app::editor::kTextData2</a>, <a class="el" href="message__editor_8h_source.html#l00092">list_of_texts_</a>, <a class="el" href="message__data_8cc_source.html#l00072">yaze::app::editor::ParseTextDataByte()</a>, <a class="el" href="rom_8h_source.html#l00597">yaze::app::SharedRom::rom()</a>, <a class="el" href="message__data_8h_source.html#l00159">yaze::app::editor::TextElement::Token</a>, and <a class="el" href="labeling_8cc_source.html#l00029">yaze::app::core::UppercaseHexWord()</a>.</p>
+<p class="reference">References <a class="el" href="message__data_8h_source.html#l00018">yaze::app::editor::BANKToken</a>, <a class="el" href="message__data_8h_source.html#l00019">yaze::app::editor::DICTIONARYTOKEN</a>, <a class="el" href="message__data_8h_source.html#l00204">yaze::app::editor::TextElement::Empty()</a>, <a class="el" href="message__data_8cc_source.html#l00018">yaze::app::editor::FindDictionaryEntry()</a>, <a class="el" href="message__data_8cc_source.html#l00025">yaze::app::editor::FindMatchingCommand()</a>, <a class="el" href="message__data_8cc_source.html#l00035">yaze::app::editor::FindMatchingSpecial()</a>, <a class="el" href="common_8cc_source.html#l00098">yaze::app::core::Get24LocalFromPC()</a>, <a class="el" href="message__data_8h_source.html#l00185">yaze::app::editor::TextElement::GetParameterizedToken()</a>, <a class="el" href="message__data_8h_source.html#l00164">yaze::app::editor::TextElement::HasArgument</a>, <a class="el" href="message__data_8h_source.html#l00017">yaze::app::editor::kMessageTerminator</a>, <a class="el" href="message__data_8h_source.html#l00079">yaze::app::editor::kPointersDictionaries</a>, <a class="el" href="message__data_8h_source.html#l00076">yaze::app::editor::kTextData</a>, <a class="el" href="message__editor_8h_source.html#l00019">yaze::app::editor::kTextData2</a>, <a class="el" href="message__editor_8h_source.html#l00093">list_of_texts_</a>, <a class="el" href="message__data_8cc_source.html#l00072">yaze::app::editor::ParseTextDataByte()</a>, <a class="el" href="rom_8h_source.html#l00597">yaze::app::SharedRom::rom()</a>, <a class="el" href="message__data_8h_source.html#l00159">yaze::app::editor::TextElement::Token</a>, and <a class="el" href="labeling_8cc_source.html#l00029">yaze::app::core::UppercaseHexWord()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>.</p>
 <div class="dynheader">
@@ -713,9 +748,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00358">358</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00361">361</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="message__data_8h_source.html#l00018">yaze::app::editor::BANKToken</a>, <a class="el" href="message__data_8h_source.html#l00019">yaze::app::editor::DICTIONARYTOKEN</a>, <a class="el" href="message__data_8h_source.html#l00204">yaze::app::editor::TextElement::Empty()</a>, <a class="el" href="message__data_8cc_source.html#l00018">yaze::app::editor::FindDictionaryEntry()</a>, <a class="el" href="message__data_8cc_source.html#l00025">yaze::app::editor::FindMatchingCommand()</a>, <a class="el" href="message__data_8cc_source.html#l00035">yaze::app::editor::FindMatchingSpecial()</a>, <a class="el" href="common_8cc_source.html#l00098">yaze::app::core::Get24LocalFromPC()</a>, <a class="el" href="message__data_8h_source.html#l00185">yaze::app::editor::TextElement::GetParameterizedToken()</a>, <a class="el" href="message__data_8h_source.html#l00164">yaze::app::editor::TextElement::HasArgument</a>, <a class="el" href="message__data_8h_source.html#l00017">yaze::app::editor::kMessageTerminator</a>, <a class="el" href="message__data_8h_source.html#l00079">yaze::app::editor::kPointersDictionaries</a>, <a class="el" href="message__data_8h_source.html#l00076">yaze::app::editor::kTextData</a>, <a class="el" href="message__editor_8h_source.html#l00019">yaze::app::editor::kTextData2</a>, <a class="el" href="message__editor_8h_source.html#l00092">list_of_texts_</a>, <a class="el" href="message__data_8cc_source.html#l00072">yaze::app::editor::ParseTextDataByte()</a>, <a class="el" href="rom_8h_source.html#l00597">yaze::app::SharedRom::rom()</a>, <a class="el" href="message__data_8h_source.html#l00159">yaze::app::editor::TextElement::Token</a>, and <a class="el" href="labeling_8cc_source.html#l00029">yaze::app::core::UppercaseHexWord()</a>.</p>
+<p class="reference">References <a class="el" href="message__data_8h_source.html#l00018">yaze::app::editor::BANKToken</a>, <a class="el" href="message__data_8h_source.html#l00019">yaze::app::editor::DICTIONARYTOKEN</a>, <a class="el" href="message__data_8h_source.html#l00204">yaze::app::editor::TextElement::Empty()</a>, <a class="el" href="message__data_8cc_source.html#l00018">yaze::app::editor::FindDictionaryEntry()</a>, <a class="el" href="message__data_8cc_source.html#l00025">yaze::app::editor::FindMatchingCommand()</a>, <a class="el" href="message__data_8cc_source.html#l00035">yaze::app::editor::FindMatchingSpecial()</a>, <a class="el" href="common_8cc_source.html#l00098">yaze::app::core::Get24LocalFromPC()</a>, <a class="el" href="message__data_8h_source.html#l00185">yaze::app::editor::TextElement::GetParameterizedToken()</a>, <a class="el" href="message__data_8h_source.html#l00164">yaze::app::editor::TextElement::HasArgument</a>, <a class="el" href="message__data_8h_source.html#l00017">yaze::app::editor::kMessageTerminator</a>, <a class="el" href="message__data_8h_source.html#l00079">yaze::app::editor::kPointersDictionaries</a>, <a class="el" href="message__data_8h_source.html#l00076">yaze::app::editor::kTextData</a>, <a class="el" href="message__editor_8h_source.html#l00019">yaze::app::editor::kTextData2</a>, <a class="el" href="message__editor_8h_source.html#l00093">list_of_texts_</a>, <a class="el" href="message__data_8cc_source.html#l00072">yaze::app::editor::ParseTextDataByte()</a>, <a class="el" href="rom_8h_source.html#l00597">yaze::app::SharedRom::rom()</a>, <a class="el" href="message__data_8h_source.html#l00159">yaze::app::editor::TextElement::Token</a>, and <a class="el" href="labeling_8cc_source.html#l00029">yaze::app::core::UppercaseHexWord()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -779,9 +814,9 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html#a0a6a8763609479556beea5fcdfbe9256">yaze::app::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00578">578</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00584">584</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00125">yaze::app::editor::MessageEditor::TextBox::Cut()</a>, <a class="el" href="message__editor_8h_source.html#l00161">message_text_box_</a>, and <a class="el" href="message__editor_8h_source.html#l00107">yaze::app::editor::MessageEditor::TextBox::text</a>.</p>
+<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00126">yaze::app::editor::MessageEditor::TextBox::Cut()</a>, <a class="el" href="message__editor_8h_source.html#l00162">message_text_box_</a>, and <a class="el" href="message__editor_8h_source.html#l00108">yaze::app::editor::MessageEditor::TextBox::text</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -822,9 +857,9 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html#ab30eea7bb6fd2bc6dd5d7e2678a92596">yaze::app::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00596">596</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00602">602</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00124">yaze::app::editor::MessageEditor::TextBox::Copy()</a>, <a class="el" href="message__editor_8h_source.html#l00161">message_text_box_</a>, and <a class="el" href="message__editor_8h_source.html#l00112">yaze::app::editor::MessageEditor::TextBox::selection_length</a>.</p>
+<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00125">yaze::app::editor::MessageEditor::TextBox::Copy()</a>, <a class="el" href="message__editor_8h_source.html#l00162">message_text_box_</a>, and <a class="el" href="message__editor_8h_source.html#l00113">yaze::app::editor::MessageEditor::TextBox::selection_length</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -863,9 +898,9 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html#acbcad60f025a80c9f1477ffe34dd1cba">yaze::app::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00587">587</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00593">593</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00161">message_text_box_</a>, and <a class="el" href="message__editor_8h_source.html#l00132">yaze::app::editor::MessageEditor::TextBox::Paste()</a>.</p>
+<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00162">message_text_box_</a>, and <a class="el" href="message__editor_8h_source.html#l00133">yaze::app::editor::MessageEditor::TextBox::Paste()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -904,9 +939,9 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html#a1b7f92efb9dd39fd68eae2363c108b1f">yaze::app::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00605">605</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00611">611</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00116">yaze::app::editor::MessageEditor::TextBox::can_undo</a>, <a class="el" href="message__editor_8h_source.html#l00123">yaze::app::editor::MessageEditor::TextBox::clearUndo()</a>, <a class="el" href="message__editor_8h_source.html#l00161">message_text_box_</a>, and <a class="el" href="message__editor_8h_source.html#l00118">yaze::app::editor::MessageEditor::TextBox::Undo()</a>.</p>
+<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00117">yaze::app::editor::MessageEditor::TextBox::can_undo</a>, <a class="el" href="message__editor_8h_source.html#l00124">yaze::app::editor::MessageEditor::TextBox::clearUndo()</a>, <a class="el" href="message__editor_8h_source.html#l00162">message_text_box_</a>, and <a class="el" href="message__editor_8h_source.html#l00119">yaze::app::editor::MessageEditor::TextBox::Undo()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -947,7 +982,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html#aaa80459a0949a512973a71cc6d9cad57">yaze::app::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00056">56</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00057">57</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
 </div>
 </div>
@@ -976,7 +1011,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html#aa3e4e4a595aeea6ff984d916e50f711b">yaze::app::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00059">59</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00060">60</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
 </div>
 </div>
@@ -995,9 +1030,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00617">617</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00623">623</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="message__editor_8cc_source.html#l00662">DisplayTextOverflowError()</a>, <a class="el" href="message__editor_8h_source.html#l00029">yaze::app::editor::kBlockTerminator</a>, <a class="el" href="message__editor_8h_source.html#l00021">yaze::app::editor::kCharactersWidth</a>, <a class="el" href="message__data_8h_source.html#l00017">yaze::app::editor::kMessageTerminator</a>, <a class="el" href="message__data_8h_source.html#l00076">yaze::app::editor::kTextData</a>, <a class="el" href="message__editor_8h_source.html#l00019">yaze::app::editor::kTextData2</a>, <a class="el" href="message__editor_8h_source.html#l00020">yaze::app::editor::kTextData2End</a>, <a class="el" href="message__data_8h_source.html#l00077">yaze::app::editor::kTextDataEnd</a>, <a class="el" href="message__editor_8h_source.html#l00092">list_of_texts_</a>, <a class="el" href="constants_8h_source.html#l00069">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00597">yaze::app::SharedRom::rom()</a>, and <a class="el" href="message__editor_8h_source.html#l00084">width_array</a>.</p>
+<p class="reference">References <a class="el" href="message__editor_8cc_source.html#l00668">DisplayTextOverflowError()</a>, <a class="el" href="message__editor_8h_source.html#l00029">yaze::app::editor::kBlockTerminator</a>, <a class="el" href="message__editor_8h_source.html#l00021">yaze::app::editor::kCharactersWidth</a>, <a class="el" href="message__data_8h_source.html#l00017">yaze::app::editor::kMessageTerminator</a>, <a class="el" href="message__data_8h_source.html#l00076">yaze::app::editor::kTextData</a>, <a class="el" href="message__editor_8h_source.html#l00019">yaze::app::editor::kTextData2</a>, <a class="el" href="message__editor_8h_source.html#l00020">yaze::app::editor::kTextData2End</a>, <a class="el" href="message__data_8h_source.html#l00077">yaze::app::editor::kTextDataEnd</a>, <a class="el" href="message__editor_8h_source.html#l00093">list_of_texts_</a>, <a class="el" href="constants_8h_source.html#l00069">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00597">yaze::app::SharedRom::rom()</a>, and <a class="el" href="message__editor_8h_source.html#l00085">width_array</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1029,9 +1064,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00675">675</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00681">681</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00140">yaze::app::editor::MessageEditor::TextBox::clear()</a>, <a class="el" href="message__editor_8h_source.html#l00161">message_text_box_</a>, and <a class="el" href="message__editor_8h_source.html#l00112">yaze::app::editor::MessageEditor::TextBox::selection_length</a>.</p>
+<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00141">yaze::app::editor::MessageEditor::TextBox::clear()</a>, <a class="el" href="message__editor_8h_source.html#l00162">message_text_box_</a>, and <a class="el" href="message__editor_8h_source.html#l00113">yaze::app::editor::MessageEditor::TextBox::selection_length</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1060,9 +1095,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00683">683</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00689">689</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00158">yaze::app::editor::MessageEditor::TextBox::Focus()</a>, <a class="el" href="message__editor_8h_source.html#l00161">message_text_box_</a>, <a class="el" href="message__editor_8h_source.html#l00152">yaze::app::editor::MessageEditor::TextBox::SelectAll()</a>, and <a class="el" href="message__editor_8h_source.html#l00112">yaze::app::editor::MessageEditor::TextBox::selection_length</a>.</p>
+<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00159">yaze::app::editor::MessageEditor::TextBox::Focus()</a>, <a class="el" href="message__editor_8h_source.html#l00162">message_text_box_</a>, <a class="el" href="message__editor_8h_source.html#l00153">yaze::app::editor::MessageEditor::TextBox::SelectAll()</a>, and <a class="el" href="message__editor_8h_source.html#l00113">yaze::app::editor::MessageEditor::TextBox::selection_length</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1093,11 +1128,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00468">468</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00471">471</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00094">all_dictionaries_</a>.</p>
+<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00095">all_dictionaries_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00514">DrawCharacterToPreview()</a>, and <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00520">DrawCharacterToPreview()</a>, and <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>.</p>
 
 </div>
 </div>
@@ -1145,11 +1180,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00475">475</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00478">478</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00089">current_font_gfx16_data_</a>, and <a class="el" href="message__editor_8h_source.html#l00088">font_gfx16_data_</a>.</p>
+<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00090">current_font_gfx16_data_</a>, and <a class="el" href="message__editor_8h_source.html#l00089">font_gfx16_data_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00514">DrawCharacterToPreview()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00520">DrawCharacterToPreview()</a>.</p>
 
 </div>
 </div>
@@ -1168,11 +1203,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00510">510</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00516">516</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="message__editor_8cc_source.html#l00510">DrawCharacterToPreview()</a>, and <a class="el" href="message__data_8cc_source.html#l00009">yaze::app::editor::FindMatchingCharacter()</a>.</p>
+<p class="reference">References <a class="el" href="message__editor_8cc_source.html#l00516">DrawCharacterToPreview()</a>, and <a class="el" href="message__data_8cc_source.html#l00009">yaze::app::editor::FindMatchingCharacter()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00510">DrawCharacterToPreview()</a>, <a class="el" href="message__editor_8cc_source.html#l00514">DrawCharacterToPreview()</a>, <a class="el" href="message__editor_8cc_source.html#l00567">DrawMessagePreview()</a>, and <a class="el" href="message__editor_8cc_source.html#l00504">DrawStringToPreview()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00516">DrawCharacterToPreview()</a>, <a class="el" href="message__editor_8cc_source.html#l00520">DrawCharacterToPreview()</a>, <a class="el" href="message__editor_8cc_source.html#l00573">DrawMessagePreview()</a>, and <a class="el" href="message__editor_8cc_source.html#l00510">DrawStringToPreview()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1202,9 +1237,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00514">514</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00520">520</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="message__data_8h_source.html#l00020">yaze::app::editor::DICTOFF</a>, <a class="el" href="message__editor_8cc_source.html#l00510">DrawCharacterToPreview()</a>, <a class="el" href="message__editor_8cc_source.html#l00504">DrawStringToPreview()</a>, <a class="el" href="message__editor_8cc_source.html#l00475">DrawTileToPreview()</a>, <a class="el" href="message__editor_8cc_source.html#l00468">GetDictionaryFromID()</a>, <a class="el" href="message__editor_8h_source.html#l00032">yaze::app::editor::kLine1</a>, <a class="el" href="message__editor_8h_source.html#l00033">yaze::app::editor::kLine2</a>, <a class="el" href="message__editor_8h_source.html#l00034">yaze::app::editor::kLine3</a>, <a class="el" href="message__editor_8h_source.html#l00031">yaze::app::editor::kScrollVertical</a>, <a class="el" href="message__editor_8h_source.html#l00077">skip_next</a>, <a class="el" href="message__editor_8h_source.html#l00080">text_line_</a>, <a class="el" href="message__editor_8h_source.html#l00081">text_position_</a>, and <a class="el" href="message__editor_8h_source.html#l00084">width_array</a>.</p>
+<p class="reference">References <a class="el" href="message__data_8h_source.html#l00020">yaze::app::editor::DICTOFF</a>, <a class="el" href="message__editor_8cc_source.html#l00516">DrawCharacterToPreview()</a>, <a class="el" href="message__editor_8cc_source.html#l00510">DrawStringToPreview()</a>, <a class="el" href="message__editor_8cc_source.html#l00478">DrawTileToPreview()</a>, <a class="el" href="message__editor_8cc_source.html#l00471">GetDictionaryFromID()</a>, <a class="el" href="message__editor_8h_source.html#l00032">yaze::app::editor::kLine1</a>, <a class="el" href="message__editor_8h_source.html#l00033">yaze::app::editor::kLine2</a>, <a class="el" href="message__editor_8h_source.html#l00034">yaze::app::editor::kLine3</a>, <a class="el" href="message__editor_8h_source.html#l00031">yaze::app::editor::kScrollVertical</a>, <a class="el" href="message__editor_8h_source.html#l00078">skip_next</a>, <a class="el" href="message__editor_8h_source.html#l00081">text_line_</a>, <a class="el" href="message__editor_8h_source.html#l00082">text_position_</a>, and <a class="el" href="message__editor_8h_source.html#l00085">width_array</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1243,11 +1278,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00504">504</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00510">510</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="message__editor_8cc_source.html#l00510">DrawCharacterToPreview()</a>.</p>
+<p class="reference">References <a class="el" href="message__editor_8cc_source.html#l00516">DrawCharacterToPreview()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00514">DrawCharacterToPreview()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00520">DrawCharacterToPreview()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1279,11 +1314,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00567">567</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00573">573</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00089">current_font_gfx16_data_</a>, <a class="el" href="message__editor_8h_source.html#l00096">current_message_</a>, <a class="el" href="message__data_8h_source.html#l00094">yaze::app::editor::MessageData::Data</a>, <a class="el" href="message__editor_8cc_source.html#l00510">DrawCharacterToPreview()</a>, <a class="el" href="message__editor_8h_source.html#l00082">shown_lines_</a>, <a class="el" href="message__editor_8h_source.html#l00080">text_line_</a>, and <a class="el" href="message__editor_8h_source.html#l00081">text_position_</a>.</p>
+<p class="reference">References <a class="el" href="message__editor_8h_source.html#l00090">current_font_gfx16_data_</a>, <a class="el" href="message__editor_8h_source.html#l00097">current_message_</a>, <a class="el" href="message__data_8h_source.html#l00094">yaze::app::editor::MessageData::Data</a>, <a class="el" href="message__editor_8cc_source.html#l00516">DrawCharacterToPreview()</a>, <a class="el" href="message__editor_8h_source.html#l00083">shown_lines_</a>, <a class="el" href="message__editor_8h_source.html#l00081">text_line_</a>, and <a class="el" href="message__editor_8h_source.html#l00082">text_position_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00209">DrawCurrentMessage()</a>, <a class="el" href="message__editor_8cc_source.html#l00175">DrawMessageList()</a>, and <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00193">DrawCurrentMessage()</a>, <a class="el" href="message__editor_8cc_source.html#l00159">DrawMessageList()</a>, and <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1319,11 +1354,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00662">662</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00668">668</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="message__data_8h_source.html#l00076">yaze::app::editor::kTextData</a>, <a class="el" href="message__editor_8h_source.html#l00019">yaze::app::editor::kTextData2</a>, <a class="el" href="message__editor_8h_source.html#l00020">yaze::app::editor::kTextData2End</a>, and <a class="el" href="message__data_8h_source.html#l00077">yaze::app::editor::kTextDataEnd</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00617">Save()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00623">Save()</a>.</p>
 
 </div>
 </div>
@@ -1348,9 +1383,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00077">77</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00078">78</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00514">DrawCharacterToPreview()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00520">DrawCharacterToPreview()</a>.</p>
 
 </div>
 </div>
@@ -1374,7 +1409,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00078">78</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00079">79</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00126">Update()</a>.</p>
 
@@ -1400,9 +1435,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00080">80</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00081">81</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00514">DrawCharacterToPreview()</a>, and <a class="el" href="message__editor_8cc_source.html#l00567">DrawMessagePreview()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00520">DrawCharacterToPreview()</a>, and <a class="el" href="message__editor_8cc_source.html#l00573">DrawMessagePreview()</a>.</p>
 
 </div>
 </div>
@@ -1426,9 +1461,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00081">81</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00082">82</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00514">DrawCharacterToPreview()</a>, and <a class="el" href="message__editor_8cc_source.html#l00567">DrawMessagePreview()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00520">DrawCharacterToPreview()</a>, and <a class="el" href="message__editor_8cc_source.html#l00573">DrawMessagePreview()</a>.</p>
 
 </div>
 </div>
@@ -1452,9 +1487,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00082">82</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00083">83</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00567">DrawMessagePreview()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00573">DrawMessagePreview()</a>.</p>
 
 </div>
 </div>
@@ -1478,9 +1513,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00084">84</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00085">85</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00514">DrawCharacterToPreview()</a>, <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>, and <a class="el" href="message__editor_8cc_source.html#l00617">Save()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00520">DrawCharacterToPreview()</a>, <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>, and <a class="el" href="message__editor_8cc_source.html#l00623">Save()</a>.</p>
 
 </div>
 </div>
@@ -1504,9 +1539,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00086">86</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00087">87</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00175">DrawMessageList()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00159">DrawMessageList()</a>.</p>
 
 </div>
 </div>
@@ -1530,9 +1565,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00088">88</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00089">89</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00475">DrawTileToPreview()</a>, and <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00478">DrawTileToPreview()</a>, and <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>.</p>
 
 </div>
 </div>
@@ -1556,9 +1591,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00089">89</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00090">90</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00567">DrawMessagePreview()</a>, <a class="el" href="message__editor_8cc_source.html#l00475">DrawTileToPreview()</a>, and <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00573">DrawMessagePreview()</a>, <a class="el" href="message__editor_8cc_source.html#l00478">DrawTileToPreview()</a>, and <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>.</p>
 
 </div>
 </div>
@@ -1582,9 +1617,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00090">90</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00091">91</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00209">DrawCurrentMessage()</a>, <a class="el" href="message__editor_8cc_source.html#l00175">DrawMessageList()</a>, and <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00193">DrawCurrentMessage()</a>, <a class="el" href="message__editor_8cc_source.html#l00159">DrawMessageList()</a>, and <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>.</p>
 
 </div>
 </div>
@@ -1608,9 +1643,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00092">92</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00093">93</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00175">DrawMessageList()</a>, <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>, <a class="el" href="message__editor_8cc_source.html#l00358">ReadAllTextData()</a>, <a class="el" href="message__editor_8cc_source.html#l00262">ReadAllTextDataV2()</a>, <a class="el" href="message__editor_8cc_source.html#l00617">Save()</a>, and <a class="el" href="message__editor_8cc_source.html#l00126">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00159">DrawMessageList()</a>, <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>, <a class="el" href="message__editor_8cc_source.html#l00361">ReadAllTextData()</a>, <a class="el" href="message__editor_8cc_source.html#l00266">ReadAllTextDataV2()</a>, <a class="el" href="message__editor_8cc_source.html#l00623">Save()</a>, and <a class="el" href="message__editor_8cc_source.html#l00126">Update()</a>.</p>
 
 </div>
 </div>
@@ -1634,9 +1669,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00094">94</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00095">95</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00468">GetDictionaryFromID()</a>, <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>, and <a class="el" href="message__editor_8cc_source.html#l00126">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00245">DrawDictionary()</a>, <a class="el" href="message__editor_8cc_source.html#l00471">GetDictionaryFromID()</a>, and <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>.</p>
 
 </div>
 </div>
@@ -1660,9 +1695,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00096">96</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00097">97</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00209">DrawCurrentMessage()</a>, <a class="el" href="message__editor_8cc_source.html#l00175">DrawMessageList()</a>, <a class="el" href="message__editor_8cc_source.html#l00567">DrawMessagePreview()</a>, and <a class="el" href="message__editor_8cc_source.html#l00126">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00193">DrawCurrentMessage()</a>, <a class="el" href="message__editor_8cc_source.html#l00159">DrawMessageList()</a>, <a class="el" href="message__editor_8cc_source.html#l00573">DrawMessagePreview()</a>, and <a class="el" href="message__editor_8cc_source.html#l00126">Update()</a>.</p>
 
 </div>
 </div>
@@ -1686,9 +1721,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00098">98</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00099">99</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00209">DrawCurrentMessage()</a>, and <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00193">DrawCurrentMessage()</a>, and <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>.</p>
 
 </div>
 </div>
@@ -1712,9 +1747,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00099">99</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00100">100</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00209">DrawCurrentMessage()</a>, and <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00193">DrawCurrentMessage()</a>, and <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>.</p>
 
 </div>
 </div>
@@ -1738,7 +1773,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00100">100</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00101">101</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00047">Initialize()</a>.</p>
 
@@ -1764,9 +1799,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00102">102</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00103">103</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00209">DrawCurrentMessage()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00193">DrawCurrentMessage()</a>.</p>
 
 </div>
 </div>
@@ -1792,9 +1827,9 @@ Here is the call graph for this function:</div>
 <b>Initial value:</b><div class="fragment"><div class="line">{<span class="stringliteral">&quot;##CurrentMessageGfx&quot;</span>,</div>
 <div class="line">                                         ImVec2(172, 4096)}</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00103">103</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00104">104</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00209">DrawCurrentMessage()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00193">DrawCurrentMessage()</a>.</p>
 
 </div>
 </div>
@@ -1818,9 +1853,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00161">161</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00162">162</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00596">Copy()</a>, <a class="el" href="message__editor_8cc_source.html#l00578">Cut()</a>, <a class="el" href="message__editor_8cc_source.html#l00675">Delete()</a>, <a class="el" href="message__editor_8cc_source.html#l00209">DrawCurrentMessage()</a>, <a class="el" href="message__editor_8cc_source.html#l00587">Paste()</a>, <a class="el" href="message__editor_8cc_source.html#l00683">SelectAll()</a>, and <a class="el" href="message__editor_8cc_source.html#l00605">Undo()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00602">Copy()</a>, <a class="el" href="message__editor_8cc_source.html#l00584">Cut()</a>, <a class="el" href="message__editor_8cc_source.html#l00681">Delete()</a>, <a class="el" href="message__editor_8cc_source.html#l00193">DrawCurrentMessage()</a>, <a class="el" href="message__editor_8cc_source.html#l00593">Paste()</a>, <a class="el" href="message__editor_8cc_source.html#l00689">SelectAll()</a>, and <a class="el" href="message__editor_8cc_source.html#l00611">Undo()</a>.</p>
 
 </div>
 </div>

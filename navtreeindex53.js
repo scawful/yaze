@@ -1,10 +1,5 @@
 var NAVTREEINDEX53 =
 {
-"test.html":[10],
-"test__editor_8cc.html":[13,0,1,5,3,0],
-"test__editor_8cc.html#a5a0d488d0d7c641874f7b8664f5f60d3":[13,0,1,5,3,0,0],
-"test__editor_8cc_source.html":[13,0,1,5,3,0],
-"test__editor_8h.html":[13,0,1,5,3,1],
 "test__editor_8h.html#a5a0d488d0d7c641874f7b8664f5f60d3":[13,0,1,5,3,1,1],
 "test__editor_8h_source.html":[13,0,1,5,3,1],
 "testing_8h.html":[13,0,1,5,0,1],

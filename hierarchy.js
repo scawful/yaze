@@ -186,7 +186,7 @@ var hierarchy =
     [ "yaze::app::emu::video::OAMSize", "structyaze_1_1app_1_1emu_1_1video_1_1OAMSize.html", null ],
     [ "yaze::app::editor::zsprite::OamTile", "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html", null ],
     [ "yaze::app::gfx::OamTile", "classyaze_1_1app_1_1gfx_1_1OamTile.html", null ],
-    [ "yaze::app::zelda3::dungeon::object_door", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html", null ],
+    [ "object_door", "structobject__door.html", null ],
     [ "yaze::app::core::ObjectFactory", "classyaze_1_1app_1_1core_1_1ObjectFactory.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::OBJSEL", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OBJSEL.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::OPHCT", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OPHCT.html", null ],

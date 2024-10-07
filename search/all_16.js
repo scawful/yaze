@@ -38,7 +38,7 @@ var searchData=
   ['object_20creation_20strong_35',['6. &lt;strong&gt;Reflection and Object Creation&lt;/strong&gt;',['../md_docs_2message-passing.html#autotoc_md61',1,'']]],
   ['object_5f3d_36',['object_3d',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#ac5f17ef2230b8b406444feacf37470d0',1,'yaze::app::gfx::PaletteGroupMap']]],
   ['object_5fcanvas_5f_37',['object_canvas_',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a537e646e8beab674e768f7d6f3e71fc8',1,'yaze::app::editor::DungeonEditor']]],
-  ['object_5fdoor_38',['object_door',['../structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html',1,'yaze::app::zelda3::dungeon::object_door'],['../structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#a9d51755c7ccb531d888a12737e0549bc',1,'yaze::app::zelda3::dungeon::object_door::object_door()=default'],['../structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#aac6ab6d02c15a68f8ed2ffd1a5045756',1,'yaze::app::zelda3::dungeon::object_door::object_door(short id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer)']]],
+  ['object_5fdoor_38',['object_door',['../structobject__door.html',1,'object_door'],['../structobject__door.html#a7621b28dfd795fe5f1be1bf1a669ea41',1,'object_door::object_door()=default'],['../structobject__door.html#a6445d82cfc51be43a7cdbb0504707d72',1,'object_door::object_door(short id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer)']]],
   ['object_5floaded_5f_39',['object_loaded_',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a80a4d6824fcf2908b51a4b85cbced688',1,'yaze::app::editor::DungeonEditor']]],
   ['object_5fnames_2eh_40',['object_names.h',['../object__names_8h.html',1,'']]],
   ['object_5frenderer_2ecc_41',['object_renderer.cc',['../object__renderer_8cc.html',1,'']]],

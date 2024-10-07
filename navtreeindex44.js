@@ -1,5 +1,9 @@
 var NAVTREEINDEX44 =
 {
+"room__object_8h.html#a77a42c7a71d63c8c5e77518f13e8e03c":[13,0,1,0,5,0,7,16],
+"room__object_8h.html#a86644c3f8bc3f03fd330b2c3b4f0ba00":[13,0,1,0,5,0,7,13],
+"room__object_8h.html#a924d247fa87bd24fcc4b14b32d87fb5b":[13,0,1,0,5,0,7,15],
+"room__object_8h.html#abe17795abf1adfe947a81911733145da":[13,0,1,0,5,0,7,8],
 "room__object_8h.html#abe17795abf1adfe947a81911733145daa080a546abcbea74459f27ba33313993d":[13,0,1,0,5,0,7,8,2],
 "room__object_8h.html#abe17795abf1adfe947a81911733145daa0b01cc688e1e0b5f6b70f858a1b389ae":[13,0,1,0,5,0,7,8,6],
 "room__object_8h.html#abe17795abf1adfe947a81911733145daa103b58155b4c5cc09249629e7ccd5dc2":[13,0,1,0,5,0,7,8,5],
@@ -245,9 +249,5 @@ var NAVTREEINDEX44 =
 "sprite__editor_8h.html#aaf264499bf4cb9570f8f7661d0146051":[13,0,1,0,1,6,1,2],
 "sprite__editor_8h.html#ad13ab0b69174d18b3d5dedde3f28e97e":[13,0,1,0,1,6,1,4],
 "sprite__editor_8h_source.html":[13,0,1,0,1,6,1],
-"structsnes__color.html":[12,0,3],
-"structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4":[12,0,3,2],
-"structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58":[12,0,3,0],
-"structsnes__color.html#abe07ebebd2f735f932b7a7a065506f9f":[12,0,3,1],
-"structsnes__palette.html":[12,0,4]
+"structobject__door.html":[12,0,3]
 };
