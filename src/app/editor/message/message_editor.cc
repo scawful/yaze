@@ -148,23 +148,7 @@ absl::Status MessageEditor::Update() {
     DrawTextCommands();
 
     TableNextColumn();
-    if (ImGui::BeginChild("##DictionaryChild", ImVec2(0, 0), true,
-                          ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-      if (BeginTable("##Dictionary", 2, kDictTableFlags)) {
-        TableSetupColumn("ID");
-        TableSetupColumn("Contents");
-
-        for (const auto& dictionary : all_dictionaries_) {
-          TableNextColumn();
-          Text("%s", core::UppercaseHexWord(dictionary.ID).c_str());
-          TableNextColumn();
-          Text("%s", dictionary.Contents.c_str());
-        }
-        EndTable();
-      }
-
-      EndChild();
-    }
+    DrawDictionary();
 
     EndTable();
   }
@@ -258,6 +242,26 @@ void MessageEditor::DrawTextCommands() {
   }
 }
 
+void MessageEditor::DrawDictionary() {
+  if (ImGui::BeginChild("##DictionaryChild", ImVec2(0, 0), true,
+                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+    if (BeginTable("##Dictionary", 2, kDictTableFlags)) {
+      TableSetupColumn("ID");
+      TableSetupColumn("Contents");
+
+      for (const auto& dictionary : all_dictionaries_) {
+        TableNextColumn();
+        Text("%s", core::UppercaseHexWord(dictionary.ID).c_str());
+        TableNextColumn();
+        Text("%s", dictionary.Contents.c_str());
+      }
+      EndTable();
+    }
+
+    EndChild();
+  }
+}
+
 // TODO: Fix the command parsing.
 void MessageEditor::ReadAllTextDataV2() {
   // Read all text data from the ROM.
@@ -293,7 +297,6 @@ void MessageEditor::ReadAllTextDataV2() {
     // Check for command.
     TextElement text_element = FindMatchingCommand(current_byte);
     if (!text_element.Empty()) {
-      // raw_message.push_back(current_byte);
       parsed_message.push_back(current_byte);
       if (text_element.HasArgument) {
         current_byte = rom()->data()[pos++];
@@ -474,7 +477,9 @@ DictionaryEntry MessageEditor::GetDictionaryFromID(uint8_t value) {
 
 void MessageEditor::DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
                                       int sizex, int sizey) {
-  int drawid = srcx + (srcy * 32);
+  const int num_x_tiles = 16;
+  const int img_width = 512;  // (imgwidth/2)
+  int draw_id = srcx + (srcy * 32);
   for (int yl = 0; yl < sizey * 8; yl++) {
     for (int xl = 0; xl < 4; xl++) {
       int mx = xl;
@@ -482,7 +487,8 @@ void MessageEditor::DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
 
       // Formula information to get tile index position in the array.
       // ((ID / nbrofXtiles) * (imgwidth/2) + (ID - ((ID/16)*16) ))
-      int tx = ((drawid / 16) * 512) + ((drawid - ((drawid / 16) * 16)) * 4);
+      int tx = ((draw_id / num_x_tiles) * img_width) +
+               ((draw_id - ((draw_id / 16) * 16)) * 4);
       uint8_t pixel = font_gfx16_data_[tx + (yl * 64) + xl];
 
       // nx,ny = object position, xx,yy = tile position, xl,yl = pixel

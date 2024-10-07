@@ -45,6 +45,7 @@ class MessageEditor : public Editor, public SharedRom {
   void DrawMessageList();
   void DrawCurrentMessage();
   void DrawTextCommands();
+  void DrawDictionary();
 
   void ReadAllTextDataV2();
   [[deprecated]] void ReadAllTextData();
