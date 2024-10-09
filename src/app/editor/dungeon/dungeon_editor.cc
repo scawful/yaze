@@ -498,7 +498,7 @@ void DungeonEditor::DrawRoomGraphics() {
         top_left_y = room_gfx_canvas_.zero_point().y + height * current_block;
       }
       room_gfx_canvas_.draw_list()->AddImage(
-          (void*)graphics_bin_[block].texture(),
+          (ImTextureID)(intptr_t)graphics_bin_[block].texture(),
           ImVec2(room_gfx_canvas_.zero_point().x + 2, top_left_y),
           ImVec2(room_gfx_canvas_.zero_point().x + 0x100,
                  room_gfx_canvas_.zero_point().y + offset));

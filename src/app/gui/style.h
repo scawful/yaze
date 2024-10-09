@@ -1,17 +1,17 @@
 #ifndef YAZE_APP_CORE_STYLE_H
 #define YAZE_APP_CORE_STYLE_H
 
-#include "ImGuiColorTextEdit/TextEditor.h"
-#include "imgui/imgui.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
-
 #include <functional>
 #include <vector>
 
+#include "ImGuiColorTextEdit/TextEditor.h"
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
+#include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+
 
 namespace yaze {
 namespace app {
@@ -72,7 +72,7 @@ class BitmapViewer {
     const gfx::Bitmap& current_bitmap = bitmaps[current_bitmap_index_];
     // Assuming Bitmap has a function to get its texture ID, and width and
     // height.
-    ImTextureID tex_id = current_bitmap.texture();
+    ImTextureID tex_id = (ImTextureID)(intptr_t)current_bitmap.texture();
     ImVec2 size(current_bitmap.width() * scale,
                 current_bitmap.height() * scale);
     // ImGui::Image(tex_id, size);
