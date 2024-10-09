@@ -118,7 +118,8 @@ void Emulator::RenderSnesPpu() {
                       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x - size.x) * 0.5f);
     ImGui::SetCursorPosY((ImGui::GetWindowSize().y - size.y) * 0.5f);
-    ImGui::Image((void*)ppu_texture_, size, ImVec2(0, 0), ImVec2(1, 1));
+    ImGui::Image((ImTextureID)(intptr_t)ppu_texture_, size, ImVec2(0, 0),
+                 ImVec2(1, 1));
     ImGui::EndChild();
 
   } else {

@@ -229,9 +229,10 @@ void GfxSheetAssetBrowser::Draw(
             if (display_label) {
               ImU32 label_col = GetColorU32(
                   item_is_selected ? ImGuiCol_Text : ImGuiCol_TextDisabled);
-              draw_list->AddImage((void*)bmp_manager[item_data->ID].texture(),
-                                  box_min, box_max, ImVec2(0, 0), ImVec2(1, 1),
-                                  GetColorU32(ImVec4(1, 1, 1, 1)));
+              draw_list->AddImage(
+                  (ImTextureID)(intptr_t)bmp_manager[item_data->ID].texture(),
+                  box_min, box_max, ImVec2(0, 0), ImVec2(1, 1),
+                  GetColorU32(ImVec4(1, 1, 1, 1)));
               draw_list->AddText(ImVec2(box_min.x, box_max.y - GetFontSize()),
                                  label_col,
                                  absl::StrFormat("%X", item_data->ID).c_str());

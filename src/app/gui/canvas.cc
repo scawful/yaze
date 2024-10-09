@@ -236,7 +236,7 @@ bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
 
     if (bitmap.is_active()) {
       draw_list_->AddImage(
-          (void *)bitmap.texture(),
+          (ImTextureID)(intptr_t)bitmap.texture(),
           ImVec2(origin.x + painter_pos.x, origin.y + painter_pos.y),
           ImVec2(origin.x + painter_pos.x + (size)*scale,
                  origin.y + painter_pos.y + size * scale));
@@ -464,7 +464,7 @@ void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
 void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, bool ready) {
   if (ready) {
     draw_list_->AddImage(
-        (void *)bitmap.texture(),
+        (ImTextureID)(intptr_t)bitmap.texture(),
         ImVec2(canvas_p0_.x + border_offset, canvas_p0_.y + border_offset),
         ImVec2(canvas_p0_.x + (bitmap.width() * 2),
                canvas_p0_.y + (bitmap.height() * 2)));
@@ -475,7 +475,7 @@ void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, float scale) {
   if (!bitmap.is_active()) {
     return;
   }
-  draw_list_->AddImage((void *)bitmap.texture(),
+  draw_list_->AddImage((ImTextureID)(intptr_t)bitmap.texture(),
                        ImVec2(canvas_p0_.x, canvas_p0_.y),
                        ImVec2(canvas_p0_.x + (bitmap.width() * scale),
                               canvas_p0_.y + (bitmap.height() * scale)));
@@ -488,7 +488,7 @@ void Canvas::DrawBitmap(const Bitmap &bitmap, int x_offset, int y_offset,
     return;
   }
   draw_list_->AddImage(
-      (void *)bitmap.texture(),
+      (ImTextureID)(intptr_t)bitmap.texture(),
       ImVec2(canvas_p0_.x + x_offset + scrolling_.x,
              canvas_p0_.y + y_offset + scrolling_.y),
       ImVec2(
@@ -505,7 +505,7 @@ void Canvas::DrawBitmapTable(const BitmapTable &gfx_bin) {
     if (key >= 1) {
       top_left_y = canvas_p0_.y + 0x40 * key;
     }
-    draw_list_->AddImage((void *)value.texture(),
+    draw_list_->AddImage((ImTextureID)(intptr_t)value.texture(),
                          ImVec2(canvas_p0_.x + 2, top_left_y),
                          ImVec2(canvas_p0_.x + 0x100, canvas_p0_.y + offset));
   }
@@ -805,7 +805,8 @@ void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
                                int num_sheets_to_load, int canvas_id,
                                bool is_loaded, gfx::BitmapTable &graphics_bin) {
   gui::Canvas canvas;
-  if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)canvas_id);
+  if (ImGuiID child_id =
+          ImGui::GetID((ImTextureID)(intptr_t)(intptr_t)canvas_id);
       ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
                         ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
     canvas.DrawBackground(ImVec2(width + 1, num_sheets_to_load * height + 1));
@@ -818,7 +819,7 @@ void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
           top_left_y = canvas.zero_point().y + height * key;
         }
         canvas.draw_list()->AddImage(
-            (void *)value.texture(),
+            (ImTextureID)(intptr_t)value.texture(),
             ImVec2(canvas.zero_point().x + 2, top_left_y),
             ImVec2(canvas.zero_point().x + 0x100,
                    canvas.zero_point().y + offset));
@@ -845,7 +846,8 @@ void BitmapCanvasPipeline(gui::Canvas &canvas, const gfx::Bitmap &bitmap,
   };
 
   if (scrollbar) {
-    if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)canvas_id);
+    if (ImGuiID child_id =
+            ImGui::GetID((ImTextureID)(intptr_t)(intptr_t)canvas_id);
         ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
                           ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
       draw_canvas(canvas, bitmap, width, height, tile_size, is_loaded);

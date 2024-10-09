@@ -11,10 +11,10 @@
 #include "app/gfx/scad_format.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
-#include "app/gui/modules/asset_browser.h"
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
 #include "app/gui/input.h"
+#include "app/gui/modules/asset_browser.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
@@ -215,7 +215,7 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
     if (value.is_active()) {
       auto texture = value.texture();
       graphics_bin_canvas_.draw_list()->AddImage(
-          (void*)texture,
+          (ImTextureID)(intptr_t)texture,
           ImVec2(graphics_bin_canvas_.zero_point().x + 2,
                  graphics_bin_canvas_.zero_point().y + 2),
           ImVec2(graphics_bin_canvas_.zero_point().x +
@@ -712,7 +712,8 @@ absl::Status GraphicsEditor::DrawClipboardImport() {
   if (Button("Paste From Clipboard")) {
     const char* text = ImGui::GetClipboardText();
     if (text) {
-      const auto clipboard_data = std::vector<uint8_t>(text, text + strlen(text));
+      const auto clipboard_data =
+          std::vector<uint8_t>(text, text + strlen(text));
       ImGui::MemFree((void*)text);
       status_ = temp_rom_.LoadFromBytes(clipboard_data);
       is_open_ = true;
