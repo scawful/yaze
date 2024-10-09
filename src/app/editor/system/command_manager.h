@@ -9,47 +9,42 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-class Command {
- public:
-  virtual ~Command() = default;
-  virtual void Execute() = 0;
-  virtual std::string GetDescription() const = 0;
-};
-
 class CommandManager {
  public:
-  void ShowWhichKey();
+  using Command = std::function<void()>;
 
-  void RegisterCommand(const std::string& shortcut, Command* command) {
-    commands_[shortcut] = command;
+  struct CommandInfo {
+    Command command;
+    char mnemonic;
+    std::string name;
+    std::string desc;
+    CommandInfo(Command command, char mnemonic, const std::string& name,
+                const std::string& desc)
+        : command(std::move(command)),
+          mnemonic(mnemonic),
+          name(name),
+          desc(desc) {}
+    CommandInfo() = default;
+  };
+
+  void RegisterCommand(const std::string& shortcut, Command command,
+                       char mnemonic, const std::string& name,
+                       const std::string& desc) {
+    commands_[shortcut] = {std::move(command), mnemonic, name, desc};
   }
 
   void ExecuteCommand(const std::string& shortcut) {
     if (commands_.find(shortcut) != commands_.end()) {
-      commands_[shortcut]->Execute();
+      commands_[shortcut].command();
     }
   }
 
-  void Undo() {
-    if (!undo_stack_.empty()) {
-      undo_stack_.top()->Execute();
-      redo_stack_.push(undo_stack_.top());
-      undo_stack_.pop();
-    }
-  }
+  void ShowWhichKey();
 
-  void Redo() {
-    if (!redo_stack_.empty()) {
-      redo_stack_.top()->Execute();
-      undo_stack_.push(redo_stack_.top());
-      redo_stack_.pop();
-    }
-  }
+  void InitializeDefaults();
 
  private:
-  std::stack<Command*> undo_stack_;
-  std::stack<Command*> redo_stack_;
-  std::unordered_map<std::string, Command*> commands_;
+  std::unordered_map<std::string, CommandInfo> commands_;
 };
 
 }  // namespace editor
