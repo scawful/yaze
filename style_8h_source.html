@@ -112,17 +112,17 @@ $(function(){initNavTree('style_8h_source.html',''); initResizable(true); });
 <a href="style_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef YAZE_APP_CORE_STYLE_H</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define YAZE_APP_CORE_STYLE_H</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &quot;ImGuiColorTextEdit/TextEditor.h&quot;</span></div>
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &quot;imgui/imgui.h&quot;</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;imgui/misc/cpp/imgui_stdlib.h&quot;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span> </div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &lt;functional&gt;</span></div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;absl/status/status.h&quot;</span></div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &quot;absl/strings/string_view.h&quot;</span></div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="constants_8h.html">app/core/constants.h</a>&quot;</span></div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;<a class="code" href="bitmap_8h.html">app/gfx/bitmap.h</a>&quot;</span></div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;functional&gt;</span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;ImGuiColorTextEdit/TextEditor.h&quot;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;absl/status/status.h&quot;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;absl/strings/string_view.h&quot;</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="constants_8h.html">app/core/constants.h</a>&quot;</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;<a class="code" href="bitmap_8h.html">app/gfx/bitmap.h</a>&quot;</span></div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &quot;imgui/imgui.h&quot;</span></div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;imgui/misc/cpp/imgui_stdlib.h&quot;</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="keyword">namespace </span>app {</div>
@@ -185,7 +185,7 @@ $(function(){initNavTree('style_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    <span class="keyword">const</span> <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>&amp; current_bitmap = bitmaps[<a class="code hl_variable" href="classyaze_1_1app_1_1gui_1_1BitmapViewer.html#a0a4cd408d25c89e8c0f35bf05f9da2ca">current_bitmap_index_</a>];</div>
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    <span class="comment">// Assuming Bitmap has a function to get its texture ID, and width and</span></div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    <span class="comment">// height.</span></div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    ImTextureID tex_id = current_bitmap.<a class="code hl_function" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a53138d1af2eb5e52a5b389f34e81c81e">texture</a>();</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    ImTextureID tex_id = (ImTextureID)(intptr_t)current_bitmap.<a class="code hl_function" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a53138d1af2eb5e52a5b389f34e81c81e">texture</a>();</div>
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    ImVec2 size(current_bitmap.<a class="code hl_function" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#aadcfd533d552f042877e537d4ba56fd2">width</a>() * scale,</div>
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>                current_bitmap.<a class="code hl_function" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a58894beb33c1cdc8d2bba3700e594775">height</a>() * scale);</div>
 <div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    <span class="comment">// ImGui::Image(tex_id, size);</span></div>

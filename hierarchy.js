@@ -42,7 +42,6 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::COLDATA", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1COLDATA.html", null ],
     [ "yaze::app::emu::video::Color", "structyaze_1_1app_1_1emu_1_1video_1_1Color.html", null ],
     [ "yaze::cli::ColorModifier", "classyaze_1_1cli_1_1ColorModifier.html", null ],
-    [ "yaze::app::editor::Command", "classyaze_1_1app_1_1editor_1_1Command.html", null ],
     [ "yaze::cli::CommandHandler", "classyaze_1_1cli_1_1CommandHandler.html", [
       [ "yaze::cli::ApplyPatch", "classyaze_1_1cli_1_1ApplyPatch.html", null ],
       [ "yaze::cli::AsarPatch", "classyaze_1_1cli_1_1AsarPatch.html", null ],
@@ -57,6 +56,7 @@ var hierarchy =
       [ "yaze::cli::SnesToPc", "classyaze_1_1cli_1_1SnesToPc.html", null ],
       [ "yaze::cli::Tile16Transfer", "classyaze_1_1cli_1_1Tile16Transfer.html", null ]
     ] ],
+    [ "yaze::app::editor::CommandManager::CommandInfo", "structyaze_1_1app_1_1editor_1_1CommandManager_1_1CommandInfo.html", null ],
     [ "yaze::app::editor::CommandManager", "classyaze_1_1app_1_1editor_1_1CommandManager.html", null ],
     [ "yaze::cli::Commands", "structyaze_1_1cli_1_1Commands.html", null ],
     [ "yaze::app::gfx::lc_lz2::CompressionCommand", "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html", null ],

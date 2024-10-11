@@ -1,14 +1,5 @@
 var NAVTREEINDEX52 =
 {
-"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html#aebc0851f0d488c54e783e07607f81a2d":[11,0,1,0,6,1,7,2],
-"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html#aebc0851f0d488c54e783e07607f81a2d":[12,0,0,0,5,0,7,2],
-"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html":[11,0,1,0,6,1,11],
-"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html":[12,0,0,0,5,0,11],
-"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html#a01c21417ac7eb559881ce6e3361f8de7":[11,0,1,0,6,1,11,1],
-"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html#a01c21417ac7eb559881ce6e3361f8de7":[12,0,0,0,5,0,11,1],
-"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html#a6304a516978d9b6ef2bd2a0f096b8ba0":[11,0,1,0,6,1,11,0],
-"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html#a6304a516978d9b6ef2bd2a0f096b8ba0":[12,0,0,0,5,0,11,0],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html":[11,0,1,0,6,2,5],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html":[12,0,0,0,5,1,5],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a0b5b79ae496a23e3727b7b8ab8f57718":[11,0,1,0,6,2,5,2],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a0b5b79ae496a23e3727b7b8ab8f57718":[12,0,0,0,5,1,5,2],
@@ -249,5 +240,14 @@ var NAVTREEINDEX52 =
 "test__editor_8cc.html":[13,0,1,5,3,0],
 "test__editor_8cc.html#a5a0d488d0d7c641874f7b8664f5f60d3":[13,0,1,5,3,0,0],
 "test__editor_8cc_source.html":[13,0,1,5,3,0],
-"test__editor_8h.html":[13,0,1,5,3,1]
+"test__editor_8h.html":[13,0,1,5,3,1],
+"test__editor_8h.html#a5a0d488d0d7c641874f7b8664f5f60d3":[13,0,1,5,3,1,1],
+"test__editor_8h_source.html":[13,0,1,5,3,1],
+"testing_8h.html":[13,0,1,5,0,1],
+"testing_8h.html#a78b51c162425db9db9990f17fbf61bf1":[13,0,1,5,0,1,0],
+"testing_8h.html#a966536ba60abd09d24a03d6824214d30":[13,0,1,5,0,1,3],
+"testing_8h.html#a9a26abfe41bf9190bacbb085d2060936":[13,0,1,5,0,1,5],
+"testing_8h.html#ab96d4608cc3b96df475b538b160c181d":[13,0,1,5,0,1,2],
+"testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7":[13,0,1,5,0,1,1],
+"testing_8h.html#ace6494b75531bde42a021a993af2b3e1":[13,0,1,5,0,1,4]
 };

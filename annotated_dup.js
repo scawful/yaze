@@ -41,7 +41,6 @@ var annotated_dup =
             [ "ZSprite", "structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html", "structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite" ]
           ] ],
           [ "AssemblyEditor", "classyaze_1_1app_1_1editor_1_1AssemblyEditor.html", "classyaze_1_1app_1_1editor_1_1AssemblyEditor" ],
-          [ "Command", "classyaze_1_1app_1_1editor_1_1Command.html", "classyaze_1_1app_1_1editor_1_1Command" ],
           [ "CommandManager", "classyaze_1_1app_1_1editor_1_1CommandManager.html", "classyaze_1_1app_1_1editor_1_1CommandManager" ],
           [ "ConstantManager", "classyaze_1_1app_1_1editor_1_1ConstantManager.html", "classyaze_1_1app_1_1editor_1_1ConstantManager" ],
           [ "DictionaryEntry", "structyaze_1_1app_1_1editor_1_1DictionaryEntry.html", "structyaze_1_1app_1_1editor_1_1DictionaryEntry" ],

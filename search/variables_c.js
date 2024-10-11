@@ -86,7 +86,7 @@ var searchData=
   ['min_83',['min',['../structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a9239e4dfb0cd13de06b658400a32525b',1,'yaze::app::gui::zeml::WidgetAttributes']]],
   ['mirror_5fx_84',['mirror_x',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a400b506f1640f7770dd5d3c424430870',1,'yaze::app::editor::zsprite::OamTile']]],
   ['mirror_5fy_85',['mirror_y',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a2f827349481e112b292f919f4076bae5',1,'yaze::app::editor::zsprite::OamTile']]],
-  ['mnemonic_86',['mnemonic',['../structyaze_1_1app_1_1emu_1_1MnemonicMode.html#a4f0be7e3dd8ee90d3a854eb8a86abbe9',1,'yaze::app::emu::MnemonicMode']]],
+  ['mnemonic_86',['mnemonic',['../structyaze_1_1app_1_1editor_1_1CommandManager_1_1CommandInfo.html#ab17993ac8f6d9d2d5948649355e7c601',1,'yaze::app::editor::CommandManager::CommandInfo::mnemonic'],['../structyaze_1_1app_1_1emu_1_1MnemonicMode.html#a4f0be7e3dd8ee90d3a854eb8a86abbe9',1,'yaze::app::emu::MnemonicMode::mnemonic']]],
   ['mnemonic_5fto_5fopcode_5f_87',['mnemonic_to_opcode_',['../classyaze_1_1app_1_1emu_1_1AsmParser.html#a4f2c9cab10ad45e17847630f5afbffb8',1,'yaze::app::emu::AsmParser']]],
   ['mock_5fclock_88',['mock_clock',['../classyaze_1_1test_1_1emu_1_1CpuTest.html#aef694c25c5ae49acc2b84473d4450c83',1,'yaze::test::emu::CpuTest::mock_clock'],['../classyaze_1_1test_1_1emu_1_1PpuTest.html#a8e354795f57256aeae6347783adcac52',1,'yaze::test::emu::PpuTest::mock_clock']]],
   ['mock_5fmemory_89',['mock_memory',['../classyaze_1_1test_1_1emu_1_1CpuTest.html#a42b5db2383d3a5d5e38d9c7c4db0987b',1,'yaze::test::emu::CpuTest::mock_memory'],['../classyaze_1_1test_1_1emu_1_1PpuTest.html#a3bb92cef9dd491d84a17037ed1f481c8',1,'yaze::test::emu::PpuTest::mock_memory']]],

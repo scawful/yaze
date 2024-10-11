@@ -1,14 +1,5 @@
 var NAVTREEINDEX51 =
 {
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a15e796758a2a322bdd05f1a5fd30326f":[11,0,1,0,4,1,1,0],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a15e796758a2a322bdd05f1a5fd30326f":[12,0,0,0,3,0,1,0],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a1c43a9a22946d989c3e132fff0ab86de":[11,0,1,0,4,1,1,12],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a1c43a9a22946d989c3e132fff0ab86de":[12,0,0,0,3,0,1,12],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a4a0bd6ba685beb8f050badd58f7f8f6a":[11,0,1,0,4,1,1,9],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a4a0bd6ba685beb8f050badd58f7f8f6a":[12,0,0,0,3,0,1,9],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a4e6e2d9852c791e614e1899253792744":[11,0,1,0,4,1,1,11],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a4e6e2d9852c791e614e1899253792744":[12,0,0,0,3,0,1,11],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a844167fc2c55b198f5426356cbf057e7":[11,0,1,0,4,1,1,2],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a844167fc2c55b198f5426356cbf057e7":[12,0,0,0,3,0,1,2],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a87923266c1515cfcab0989ff2fed00a3":[11,0,1,0,4,1,1,6],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a87923266c1515cfcab0989ff2fed00a3":[12,0,0,0,3,0,1,6],
@@ -249,5 +240,14 @@ var NAVTREEINDEX51 =
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html#a1e249f397b59942734dd1eb88de3bf62":[11,0,1,0,6,1,7,0],
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html#a1e249f397b59942734dd1eb88de3bf62":[12,0,0,0,5,0,7,0],
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html#a8bf1d421dee0394f3256e831b951fa7e":[11,0,1,0,6,1,7,4],
-"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html#a8bf1d421dee0394f3256e831b951fa7e":[12,0,0,0,5,0,7,4]
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html#a8bf1d421dee0394f3256e831b951fa7e":[12,0,0,0,5,0,7,4],
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html#aebc0851f0d488c54e783e07607f81a2d":[11,0,1,0,6,1,7,2],
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html#aebc0851f0d488c54e783e07607f81a2d":[12,0,0,0,5,0,7,2],
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html":[11,0,1,0,6,1,11],
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html":[12,0,0,0,5,0,11],
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html#a01c21417ac7eb559881ce6e3361f8de7":[11,0,1,0,6,1,11,1],
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html#a01c21417ac7eb559881ce6e3361f8de7":[12,0,0,0,5,0,11,1],
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html#a6304a516978d9b6ef2bd2a0f096b8ba0":[11,0,1,0,6,1,11,0],
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html#a6304a516978d9b6ef2bd2a0f096b8ba0":[12,0,0,0,5,0,11,0],
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html":[11,0,1,0,6,2,5]
 };

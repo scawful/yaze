@@ -341,121 +341,122 @@ $(function(){initNavTree('asset__browser_8cc_source.html',''); initResizable(tru
 <div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>            <span class="keywordflow">if</span> (display_label) {</div>
 <div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>              ImU32 label_col = GetColorU32(</div>
 <div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>                  item_is_selected ? ImGuiCol_Text : ImGuiCol_TextDisabled);</div>
-<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>              draw_list-&gt;AddImage((<span class="keywordtype">void</span>*)bmp_manager[item_data-&gt;<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1AssetObject.html#a21ce3281b1913403a1e6155d868df59e">ID</a>].texture(),</div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>                                  box_min, box_max, ImVec2(0, 0), ImVec2(1, 1),</div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>                                  GetColorU32(ImVec4(1, 1, 1, 1)));</div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>              draw_list-&gt;AddText(ImVec2(box_min.x, box_max.y - GetFontSize()),</div>
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>                                 label_col,</div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>                                 absl::StrFormat(<span class="stringliteral">&quot;%X&quot;</span>, item_data-&gt;<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1AssetObject.html#a21ce3281b1913403a1e6155d868df59e">ID</a>).c_str());</div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>            }</div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a7a5e3bfaf6fc5af5bbe6e24d5857d688">ShowTypeOverlay</a> &amp;&amp; item_data-&gt;<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1AssetObject.html#a3d61947c9f1aaf9a3bff84f9c27c25ac">Type</a> != 0) {</div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>              ImU32 type_col = icon_type_overlay_colors</div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>                  [item_data-&gt;<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1AssetObject.html#a3d61947c9f1aaf9a3bff84f9c27c25ac">Type</a> % IM_ARRAYSIZE(icon_type_overlay_colors)];</div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>              draw_list-&gt;AddRectFilled(</div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>                  ImVec2(box_max.x - 2 - icon_type_overlay_size.x,</div>
-<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>                         box_min.y + 2),</div>
-<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>                  ImVec2(box_max.x - 2,</div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>                         box_min.y + 2 + icon_type_overlay_size.y),</div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>                  type_col);</div>
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>            }</div>
-<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>          }</div>
-<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span> </div>
-<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>          PopID();</div>
-<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>        }</div>
-<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>      }</div>
-<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>    }</div>
-<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>    clipper.End();</div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>    PopStyleVar();  <span class="comment">// ImGuiStyleVar_ItemSpacing</span></div>
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span> </div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>    <span class="comment">// Context menu</span></div>
-<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>    <span class="keywordflow">if</span> (BeginPopupContextWindow()) {</div>
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>      Text(<span class="stringliteral">&quot;Selection: %d items&quot;</span>, <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8da3b94e27da48c986531b865ef96d24">Selection</a>.Size);</div>
-<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>      Separator();</div>
-<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>      <span class="keywordflow">if</span> (BeginMenu(<span class="stringliteral">&quot;Set Type&quot;</span>)) {</div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>        <span class="keywordflow">if</span> (MenuItem(<span class="stringliteral">&quot;Unsorted&quot;</span>)) {</div>
-<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>          <span class="keywordtype">void</span>* it = NULL;</div>
-<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>          ImGuiID <span class="keywordtype">id</span> = 0;</div>
-<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>          <span class="keywordflow">while</span> (<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8da3b94e27da48c986531b865ef96d24">Selection</a>.GetNextSelectedItem(&amp;it, &amp;<span class="keywordtype">id</span>)) <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#ad180999245dee44a239d4e90954c8193">Items</a>[id].Type = 0;</div>
-<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>        }</div>
-<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>        <span class="keywordflow">if</span> (MenuItem(<span class="stringliteral">&quot;Dungeon&quot;</span>)) {</div>
-<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>          <span class="keywordtype">void</span>* it = NULL;</div>
-<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>          ImGuiID <span class="keywordtype">id</span> = 0;</div>
-<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>          <span class="keywordflow">while</span> (<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8da3b94e27da48c986531b865ef96d24">Selection</a>.GetNextSelectedItem(&amp;it, &amp;<span class="keywordtype">id</span>)) <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#ad180999245dee44a239d4e90954c8193">Items</a>[id].Type = 1;</div>
-<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>        }</div>
-<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>        <span class="keywordflow">if</span> (MenuItem(<span class="stringliteral">&quot;Overworld&quot;</span>)) {</div>
-<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>          <span class="keywordtype">void</span>* it = NULL;</div>
-<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>          ImGuiID <span class="keywordtype">id</span> = 0;</div>
-<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>          <span class="keywordflow">while</span> (<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8da3b94e27da48c986531b865ef96d24">Selection</a>.GetNextSelectedItem(&amp;it, &amp;<span class="keywordtype">id</span>)) <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#ad180999245dee44a239d4e90954c8193">Items</a>[id].Type = 2;</div>
-<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>        }</div>
-<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>        <span class="keywordflow">if</span> (MenuItem(<span class="stringliteral">&quot;Sprite&quot;</span>)) {</div>
-<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>          <span class="keywordtype">void</span>* it = NULL;</div>
-<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>          ImGuiID <span class="keywordtype">id</span> = 0;</div>
-<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>          <span class="keywordflow">while</span> (<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8da3b94e27da48c986531b865ef96d24">Selection</a>.GetNextSelectedItem(&amp;it, &amp;<span class="keywordtype">id</span>)) <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#ad180999245dee44a239d4e90954c8193">Items</a>[id].Type = 3;</div>
-<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>        }</div>
-<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>        EndMenu();</div>
-<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>      }</div>
-<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>      Separator();</div>
-<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>      <span class="keywordflow">if</span> (MenuItem(<span class="stringliteral">&quot;Delete&quot;</span>, <span class="stringliteral">&quot;Del&quot;</span>, <span class="keyword">false</span>, <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8da3b94e27da48c986531b865ef96d24">Selection</a>.Size &gt; 0))</div>
-<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>        <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a4ee25156523b89e757d8f442e2c82408">RequestDelete</a> = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>      EndPopup();</div>
-<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>    }</div>
-<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span> </div>
-<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>    ms_io = EndMultiSelect();</div>
-<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>    <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8da3b94e27da48c986531b865ef96d24">Selection</a>.ApplyRequests(ms_io);</div>
-<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>    <span class="keywordflow">if</span> (want_delete)</div>
-<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>      <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8da3b94e27da48c986531b865ef96d24">Selection</a>.<a class="code hl_function" href="structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html#a89b3f1bc90a0517598b5ba7950f77882">ApplyDeletionPostLoop</a>(ms_io, <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#ad180999245dee44a239d4e90954c8193">Items</a>, item_curr_idx_to_focus);</div>
-<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span> </div>
-<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>    <span class="comment">// Zooming with CTRL+Wheel</span></div>
-<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>    <span class="keywordflow">if</span> (IsWindowAppearing()) <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#aedd3e084649438eb1a78fe210cc13470">ZoomWheelAccum</a> = 0.0f;</div>
-<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>    <span class="keywordflow">if</span> (IsWindowHovered() &amp;&amp; io.MouseWheel != 0.0f &amp;&amp;</div>
-<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>        IsKeyDown(ImGuiMod_Ctrl) &amp;&amp; IsAnyItemActive() == <span class="keyword">false</span>) {</div>
-<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>      <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#aedd3e084649438eb1a78fe210cc13470">ZoomWheelAccum</a> += io.MouseWheel;</div>
-<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>      <span class="keywordflow">if</span> (fabsf(<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#aedd3e084649438eb1a78fe210cc13470">ZoomWheelAccum</a>) &gt;= 1.0f) {</div>
-<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>        <span class="comment">// Calculate hovered item index from mouse location</span></div>
-<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>        <span class="comment">// FIXME: Locking aiming on &#39;hovered_item_idx&#39; (with a cool-down</span></div>
-<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>        <span class="comment">// timer) would ensure zoom keeps on it.</span></div>
-<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>        <span class="keyword">const</span> <span class="keywordtype">float</span> hovered_item_nx =</div>
-<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>            (io.MousePos.x - start_pos.x + <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a30b83de12c4c494c892ab4ee3e5683fa">LayoutItemSpacing</a> * 0.5f) /</div>
-<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>            <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a90d19ddf6a34d2066a5092cbcc2eb03f">LayoutItemStep</a>.x;</div>
-<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>        <span class="keyword">const</span> <span class="keywordtype">float</span> hovered_item_ny =</div>
-<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>            (io.MousePos.y - start_pos.y + <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a30b83de12c4c494c892ab4ee3e5683fa">LayoutItemSpacing</a> * 0.5f) /</div>
-<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>            <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a90d19ddf6a34d2066a5092cbcc2eb03f">LayoutItemStep</a>.y;</div>
-<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>        <span class="keyword">const</span> <span class="keywordtype">int</span> hovered_item_idx =</div>
-<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>            ((int)hovered_item_ny * <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a9b3937a44b047741c1b670b153246665">LayoutColumnCount</a>) + (<span class="keywordtype">int</span>)hovered_item_nx;</div>
-<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>        <span class="comment">// SetTooltip(&quot;%f,%f -&gt; item %d&quot;, hovered_item_nx,</span></div>
-<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>        <span class="comment">// hovered_item_ny, hovered_item_idx); // Move those 4 lines in block</span></div>
-<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>        <span class="comment">// above for easy debugging</span></div>
-<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span> </div>
-<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>        <span class="comment">// Zoom</span></div>
-<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>        <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8991d96479e9977691a6585d86135f41">IconSize</a> *= powf(1.1f, (<span class="keywordtype">float</span>)(<span class="keywordtype">int</span>)<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#aedd3e084649438eb1a78fe210cc13470">ZoomWheelAccum</a>);</div>
-<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>        <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8991d96479e9977691a6585d86135f41">IconSize</a> = <a class="code hl_define" href="asset__browser_8h.html#a25d1e4d29150e7587f99e0723493a004">IM_CLAMP</a>(<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8991d96479e9977691a6585d86135f41">IconSize</a>, 16.0f, 128.0f);</div>
-<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>        <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#aedd3e084649438eb1a78fe210cc13470">ZoomWheelAccum</a> -= (int)<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#aedd3e084649438eb1a78fe210cc13470">ZoomWheelAccum</a>;</div>
-<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>        <a class="code hl_function" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes</a>(avail_width);</div>
-<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span> </div>
-<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span>        <span class="comment">// Manipulate scroll to that we will land at the same Y location of</span></div>
-<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span>        <span class="comment">// currently hovered item.</span></div>
-<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>        <span class="comment">// - Calculate next frame position of item under mouse</span></div>
-<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>        <span class="comment">// - Set new scroll position to be used in next BeginChild()</span></div>
-<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>        <span class="comment">// call.</span></div>
-<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>        <span class="keywordtype">float</span> hovered_item_rel_pos_y =</div>
-<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>            ((float)(hovered_item_idx / <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a9b3937a44b047741c1b670b153246665">LayoutColumnCount</a>) +</div>
-<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span>             fmodf(hovered_item_ny, 1.0f)) *</div>
-<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span>            <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a90d19ddf6a34d2066a5092cbcc2eb03f">LayoutItemStep</a>.y;</div>
-<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span>        hovered_item_rel_pos_y += GetStyle().WindowPadding.y;</div>
-<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span>        <span class="keywordtype">float</span> mouse_local_y = io.MousePos.y - GetWindowPos().y;</div>
-<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>        SetScrollY(hovered_item_rel_pos_y - mouse_local_y);</div>
-<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span>      }</div>
-<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span>    }</div>
-<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span>  }</div>
-<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>  EndChild();</div>
-<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span> </div>
-<div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span>  Text(<span class="stringliteral">&quot;Selected: %d/%d items&quot;</span>, <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8da3b94e27da48c986531b865ef96d24">Selection</a>.Size, <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#ad180999245dee44a239d4e90954c8193">Items</a>.Size);</div>
-<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span>}</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>              draw_list-&gt;AddImage(</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>                  (ImTextureID)(intptr_t)bmp_manager[item_data-&gt;<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1AssetObject.html#a21ce3281b1913403a1e6155d868df59e">ID</a>].texture(),</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>                  box_min, box_max, ImVec2(0, 0), ImVec2(1, 1),</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>                  GetColorU32(ImVec4(1, 1, 1, 1)));</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>              draw_list-&gt;AddText(ImVec2(box_min.x, box_max.y - GetFontSize()),</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>                                 label_col,</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>                                 absl::StrFormat(<span class="stringliteral">&quot;%X&quot;</span>, item_data-&gt;<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1AssetObject.html#a21ce3281b1913403a1e6155d868df59e">ID</a>).c_str());</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>            }</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a7a5e3bfaf6fc5af5bbe6e24d5857d688">ShowTypeOverlay</a> &amp;&amp; item_data-&gt;<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1AssetObject.html#a3d61947c9f1aaf9a3bff84f9c27c25ac">Type</a> != 0) {</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>              ImU32 type_col = icon_type_overlay_colors</div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>                  [item_data-&gt;<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1AssetObject.html#a3d61947c9f1aaf9a3bff84f9c27c25ac">Type</a> % IM_ARRAYSIZE(icon_type_overlay_colors)];</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>              draw_list-&gt;AddRectFilled(</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>                  ImVec2(box_max.x - 2 - icon_type_overlay_size.x,</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>                         box_min.y + 2),</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>                  ImVec2(box_max.x - 2,</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>                         box_min.y + 2 + icon_type_overlay_size.y),</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>                  type_col);</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>            }</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>          }</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span> </div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>          PopID();</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>        }</div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>      }</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>    }</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>    clipper.End();</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>    PopStyleVar();  <span class="comment">// ImGuiStyleVar_ItemSpacing</span></div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span> </div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>    <span class="comment">// Context menu</span></div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>    <span class="keywordflow">if</span> (BeginPopupContextWindow()) {</div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>      Text(<span class="stringliteral">&quot;Selection: %d items&quot;</span>, <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8da3b94e27da48c986531b865ef96d24">Selection</a>.Size);</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>      Separator();</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>      <span class="keywordflow">if</span> (BeginMenu(<span class="stringliteral">&quot;Set Type&quot;</span>)) {</div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>        <span class="keywordflow">if</span> (MenuItem(<span class="stringliteral">&quot;Unsorted&quot;</span>)) {</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>          <span class="keywordtype">void</span>* it = NULL;</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>          ImGuiID <span class="keywordtype">id</span> = 0;</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>          <span class="keywordflow">while</span> (<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8da3b94e27da48c986531b865ef96d24">Selection</a>.GetNextSelectedItem(&amp;it, &amp;<span class="keywordtype">id</span>)) <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#ad180999245dee44a239d4e90954c8193">Items</a>[id].Type = 0;</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>        }</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>        <span class="keywordflow">if</span> (MenuItem(<span class="stringliteral">&quot;Dungeon&quot;</span>)) {</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>          <span class="keywordtype">void</span>* it = NULL;</div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>          ImGuiID <span class="keywordtype">id</span> = 0;</div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>          <span class="keywordflow">while</span> (<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8da3b94e27da48c986531b865ef96d24">Selection</a>.GetNextSelectedItem(&amp;it, &amp;<span class="keywordtype">id</span>)) <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#ad180999245dee44a239d4e90954c8193">Items</a>[id].Type = 1;</div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>        }</div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>        <span class="keywordflow">if</span> (MenuItem(<span class="stringliteral">&quot;Overworld&quot;</span>)) {</div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>          <span class="keywordtype">void</span>* it = NULL;</div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>          ImGuiID <span class="keywordtype">id</span> = 0;</div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>          <span class="keywordflow">while</span> (<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8da3b94e27da48c986531b865ef96d24">Selection</a>.GetNextSelectedItem(&amp;it, &amp;<span class="keywordtype">id</span>)) <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#ad180999245dee44a239d4e90954c8193">Items</a>[id].Type = 2;</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>        }</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>        <span class="keywordflow">if</span> (MenuItem(<span class="stringliteral">&quot;Sprite&quot;</span>)) {</div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>          <span class="keywordtype">void</span>* it = NULL;</div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>          ImGuiID <span class="keywordtype">id</span> = 0;</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>          <span class="keywordflow">while</span> (<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8da3b94e27da48c986531b865ef96d24">Selection</a>.GetNextSelectedItem(&amp;it, &amp;<span class="keywordtype">id</span>)) <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#ad180999245dee44a239d4e90954c8193">Items</a>[id].Type = 3;</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>        }</div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>        EndMenu();</div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>      }</div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>      Separator();</div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>      <span class="keywordflow">if</span> (MenuItem(<span class="stringliteral">&quot;Delete&quot;</span>, <span class="stringliteral">&quot;Del&quot;</span>, <span class="keyword">false</span>, <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8da3b94e27da48c986531b865ef96d24">Selection</a>.Size &gt; 0))</div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>        <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a4ee25156523b89e757d8f442e2c82408">RequestDelete</a> = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>      EndPopup();</div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>    }</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span> </div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>    ms_io = EndMultiSelect();</div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>    <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8da3b94e27da48c986531b865ef96d24">Selection</a>.ApplyRequests(ms_io);</div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>    <span class="keywordflow">if</span> (want_delete)</div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>      <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8da3b94e27da48c986531b865ef96d24">Selection</a>.<a class="code hl_function" href="structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html#a89b3f1bc90a0517598b5ba7950f77882">ApplyDeletionPostLoop</a>(ms_io, <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#ad180999245dee44a239d4e90954c8193">Items</a>, item_curr_idx_to_focus);</div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span> </div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>    <span class="comment">// Zooming with CTRL+Wheel</span></div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>    <span class="keywordflow">if</span> (IsWindowAppearing()) <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#aedd3e084649438eb1a78fe210cc13470">ZoomWheelAccum</a> = 0.0f;</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>    <span class="keywordflow">if</span> (IsWindowHovered() &amp;&amp; io.MouseWheel != 0.0f &amp;&amp;</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>        IsKeyDown(ImGuiMod_Ctrl) &amp;&amp; IsAnyItemActive() == <span class="keyword">false</span>) {</div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>      <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#aedd3e084649438eb1a78fe210cc13470">ZoomWheelAccum</a> += io.MouseWheel;</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>      <span class="keywordflow">if</span> (fabsf(<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#aedd3e084649438eb1a78fe210cc13470">ZoomWheelAccum</a>) &gt;= 1.0f) {</div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>        <span class="comment">// Calculate hovered item index from mouse location</span></div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>        <span class="comment">// FIXME: Locking aiming on &#39;hovered_item_idx&#39; (with a cool-down</span></div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>        <span class="comment">// timer) would ensure zoom keeps on it.</span></div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>        <span class="keyword">const</span> <span class="keywordtype">float</span> hovered_item_nx =</div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>            (io.MousePos.x - start_pos.x + <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a30b83de12c4c494c892ab4ee3e5683fa">LayoutItemSpacing</a> * 0.5f) /</div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>            <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a90d19ddf6a34d2066a5092cbcc2eb03f">LayoutItemStep</a>.x;</div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>        <span class="keyword">const</span> <span class="keywordtype">float</span> hovered_item_ny =</div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>            (io.MousePos.y - start_pos.y + <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a30b83de12c4c494c892ab4ee3e5683fa">LayoutItemSpacing</a> * 0.5f) /</div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>            <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a90d19ddf6a34d2066a5092cbcc2eb03f">LayoutItemStep</a>.y;</div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>        <span class="keyword">const</span> <span class="keywordtype">int</span> hovered_item_idx =</div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>            ((int)hovered_item_ny * <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a9b3937a44b047741c1b670b153246665">LayoutColumnCount</a>) + (<span class="keywordtype">int</span>)hovered_item_nx;</div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>        <span class="comment">// SetTooltip(&quot;%f,%f -&gt; item %d&quot;, hovered_item_nx,</span></div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>        <span class="comment">// hovered_item_ny, hovered_item_idx); // Move those 4 lines in block</span></div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>        <span class="comment">// above for easy debugging</span></div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span> </div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>        <span class="comment">// Zoom</span></div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>        <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8991d96479e9977691a6585d86135f41">IconSize</a> *= powf(1.1f, (<span class="keywordtype">float</span>)(<span class="keywordtype">int</span>)<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#aedd3e084649438eb1a78fe210cc13470">ZoomWheelAccum</a>);</div>
+<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>        <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8991d96479e9977691a6585d86135f41">IconSize</a> = <a class="code hl_define" href="asset__browser_8h.html#a25d1e4d29150e7587f99e0723493a004">IM_CLAMP</a>(<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8991d96479e9977691a6585d86135f41">IconSize</a>, 16.0f, 128.0f);</div>
+<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>        <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#aedd3e084649438eb1a78fe210cc13470">ZoomWheelAccum</a> -= (int)<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#aedd3e084649438eb1a78fe210cc13470">ZoomWheelAccum</a>;</div>
+<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span>        <a class="code hl_function" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes</a>(avail_width);</div>
+<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span> </div>
+<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span>        <span class="comment">// Manipulate scroll to that we will land at the same Y location of</span></div>
+<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>        <span class="comment">// currently hovered item.</span></div>
+<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>        <span class="comment">// - Calculate next frame position of item under mouse</span></div>
+<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>        <span class="comment">// - Set new scroll position to be used in next BeginChild()</span></div>
+<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>        <span class="comment">// call.</span></div>
+<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>        <span class="keywordtype">float</span> hovered_item_rel_pos_y =</div>
+<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span>            ((float)(hovered_item_idx / <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a9b3937a44b047741c1b670b153246665">LayoutColumnCount</a>) +</div>
+<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span>             fmodf(hovered_item_ny, 1.0f)) *</div>
+<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span>            <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a90d19ddf6a34d2066a5092cbcc2eb03f">LayoutItemStep</a>.y;</div>
+<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span>        hovered_item_rel_pos_y += GetStyle().WindowPadding.y;</div>
+<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>        <span class="keywordtype">float</span> mouse_local_y = io.MousePos.y - GetWindowPos().y;</div>
+<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span>        SetScrollY(hovered_item_rel_pos_y - mouse_local_y);</div>
+<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span>      }</div>
+<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span>    }</div>
+<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>  }</div>
+<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span>  EndChild();</div>
+<div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span> </div>
+<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span>  Text(<span class="stringliteral">&quot;Selected: %d/%d items&quot;</span>, <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a8da3b94e27da48c986531b865ef96d24">Selection</a>.Size, <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#ad180999245dee44a239d4e90954c8193">Items</a>.Size);</div>
+<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span>}</div>
 </div>
-<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span> </div>
-<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span>}  <span class="comment">// namespace gui</span></div>
-<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>}  <span class="comment">// namespace app</span></div>
-<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span> </div>
+<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>}  <span class="comment">// namespace gui</span></div>
+<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>}  <span class="comment">// namespace app</span></div>
+<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aasset__browser_8h_html"><div class="ttname"><a href="asset__browser_8h.html">asset_browser.h</a></div></div>
 <div class="ttc" id="aasset__browser_8h_html_a25d1e4d29150e7587f99e0723493a004"><div class="ttname"><a href="asset__browser_8h.html#a25d1e4d29150e7587f99e0723493a004">IM_CLAMP</a></div><div class="ttdeci">#define IM_CLAMP(V, MN, MX)</div><div class="ttdef"><b>Definition</b> <a href="asset__browser_8h_source.html#l00013">asset_browser.h:13</a></div></div>
 <div class="ttc" id="aasset__browser_8h_html_af25a13a96600f1a018104f6c2d3da645"><div class="ttname"><a href="asset__browser_8h.html#af25a13a96600f1a018104f6c2d3da645">IM_MIN</a></div><div class="ttdeci">#define IM_MIN(A, B)</div><div class="ttdef"><b>Definition</b> <a href="asset__browser_8h_source.html#l00011">asset_browser.h:11</a></div></div>

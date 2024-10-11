@@ -10,6 +10,5 @@ var searchData=
   ['entity_2eh_7',['entity.h',['../entity_8h.html',1,'']]],
   ['extension_2eh_8',['extension.h',['../extension_8h.html',1,'']]],
   ['extension_5fmanager_2ecc_9',['extension_manager.cc',['../extension__manager_8cc.html',1,'']]],
-  ['extension_5fmanager_2eh_10',['extension_manager.h',['../extension__manager_8h.html',1,'']]],
-  ['extension_5fsample_2ec_11',['extension_sample.c',['../extension__sample_8c.html',1,'']]]
+  ['extension_5fmanager_2eh_10',['extension_manager.h',['../extension__manager_8h.html',1,'']]]
 ];

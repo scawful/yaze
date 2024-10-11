@@ -121,25 +121,85 @@ $(function(){initNavTree('command__manager_8cc_source.html',''); initResizable(t
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="comment">// ImGui window with a list of the available key commands which can be used.</span></div>
 <div class="foldopen" id="foldopen00011" data-start="{" data-end="}">
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1editor_1_1CommandManager.html#a447c6b445d56dcf2d9b96bf40e5d9ce3">   11</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1app_1_1editor_1_1CommandManager.html#a447c6b445d56dcf2d9b96bf40e5d9ce3">CommandManager::ShowWhichKey</a>() {</div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>  <span class="keywordflow">if</span> (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Space))) {</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>    ImGui::OpenPopup(<span class="stringliteral">&quot;WhichKey&quot;</span>);</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="classyaze_1_1app_1_1editor_1_1CommandManager.html#aa8d2b892279cc281f38f96e97745c805">commands_</a>.empty()) {</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>    <a class="code hl_function" href="classyaze_1_1app_1_1editor_1_1CommandManager.html#a098d93eb0b0c8cfa3e4055f3f2f085d3">InitializeDefaults</a>();</div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>  }</div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>  <span class="keywordflow">if</span> (ImGui::BeginPopup(<span class="stringliteral">&quot;WhichKey&quot;</span>)) {</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [shortcut, command] : <a class="code hl_variable" href="classyaze_1_1app_1_1editor_1_1CommandManager.html#a61858f5c8a2e27ac07b46d2e033ff8f5">commands_</a>) {</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>      ImGui::Text(<span class="stringliteral">&quot;%s: %s&quot;</span>, shortcut.c_str(),</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>                  command-&gt;GetDescription().c_str());</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    }</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    ImGui::EndPopup();</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  }</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>}</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>  <span class="keywordflow">if</span> (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Space))) {</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>    ImGui::OpenPopup(<span class="stringliteral">&quot;WhichKey&quot;</span>);</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  }</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span> </div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  ImGui::SetNextWindowPos(ImVec2(0, ImGui::GetIO().DisplaySize.y - 100),</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>                          ImGuiCond_Always);</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, 100),</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>                           ImGuiCond_Always);</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  <span class="keywordflow">if</span> (ImGui::BeginPopup(<span class="stringliteral">&quot;WhichKey&quot;</span>)) {</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    <span class="comment">// ESC to close the popup</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    <span class="keywordflow">if</span> (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape))) {</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>      ImGui::CloseCurrentPopup();</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    }</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <span class="keyword">const</span> ImVec4 colors[] = {</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>        ImVec4(0.8f, 0.2f, 0.2f, 1.0f),  <span class="comment">// Soft Red</span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>        ImVec4(0.2f, 0.8f, 0.2f, 1.0f),  <span class="comment">// Soft Green</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>        ImVec4(0.2f, 0.2f, 0.8f, 1.0f),  <span class="comment">// Soft Blue</span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>        ImVec4(0.8f, 0.8f, 0.2f, 1.0f),  <span class="comment">// Soft Yellow</span></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>        ImVec4(0.8f, 0.2f, 0.8f, 1.0f),  <span class="comment">// Soft Magenta</span></div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>        ImVec4(0.2f, 0.8f, 0.8f, 1.0f)   <span class="comment">// Soft Cyan</span></div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    };</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="keyword">const</span> <span class="keywordtype">int</span> numColors = <span class="keyword">sizeof</span>(colors) / <span class="keyword">sizeof</span>(colors[0]);</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="keywordtype">int</span> colorIndex = 0;</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <span class="keywordflow">if</span> (ImGui::BeginTable(<span class="stringliteral">&quot;CommandsTable&quot;</span>, <a class="code hl_variable" href="classyaze_1_1app_1_1editor_1_1CommandManager.html#aa8d2b892279cc281f38f96e97745c805">commands_</a>.size(),</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>                          ImGuiTableFlags_SizingStretchProp)) {</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>      <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [shortcut, info] : <a class="code hl_variable" href="classyaze_1_1app_1_1editor_1_1CommandManager.html#aa8d2b892279cc281f38f96e97745c805">commands_</a>) {</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>        ImGui::TableNextColumn();</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>        ImGui::TextColored(colors[colorIndex], <span class="stringliteral">&quot;%c: %s&quot;</span>, info.mnemonic,</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>                           info.name.c_str());</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>        colorIndex = (colorIndex + 1) % numColors;</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>      }</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>      ImGui::EndTable();</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    }</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    ImGui::EndPopup();</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  }</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>}</div>
 </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>}  <span class="comment">// namespace editor</span></div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>}  <span class="comment">// namespace app</span></div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
+<div class="foldopen" id="foldopen00055" data-start="{" data-end="}">
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1editor_1_1CommandManager.html#a098d93eb0b0c8cfa3e4055f3f2f085d3">   55</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1app_1_1editor_1_1CommandManager.html#a098d93eb0b0c8cfa3e4055f3f2f085d3">CommandManager::InitializeDefaults</a>() {</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  <a class="code hl_variable" href="classyaze_1_1app_1_1editor_1_1CommandManager.html#aa8d2b892279cc281f38f96e97745c805">commands_</a> = {</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>      {<span class="stringliteral">&quot;O&quot;</span>,</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>       {[]() { <span class="comment">/* Open ROM logic */</span> }, <span class="charliteral">&#39;O&#39;</span>, <span class="stringliteral">&quot;Open ROM&quot;</span>,</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>        <span class="stringliteral">&quot;Open a ROM file for editing&quot;</span>}},</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>      {<span class="stringliteral">&quot;S&quot;</span>,</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>       {[]() { <span class="comment">/* Save ROM logic */</span> }, <span class="charliteral">&#39;S&#39;</span>, <span class="stringliteral">&quot;Save ROM&quot;</span>,</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>        <span class="stringliteral">&quot;Save the current ROM&quot;</span>}},</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>      {<span class="stringliteral">&quot;I&quot;</span>,</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>       {[]() { <span class="comment">/* Import Data logic */</span> }, <span class="charliteral">&#39;I&#39;</span>, <span class="stringliteral">&quot;Import Data&quot;</span>,</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>        <span class="stringliteral">&quot;Import data into the ROM&quot;</span>}},</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>      {<span class="stringliteral">&quot;E&quot;</span>,</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>       {[]() { <span class="comment">/* Export Data logic */</span> }, <span class="charliteral">&#39;E&#39;</span>, <span class="stringliteral">&quot;Export Data&quot;</span>,</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>        <span class="stringliteral">&quot;Export data from the ROM&quot;</span>}},</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>      {<span class="stringliteral">&quot;P&quot;</span>,</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>       {[]() { <span class="comment">/* Patch ROM logic */</span> }, <span class="charliteral">&#39;P&#39;</span>, <span class="stringliteral">&quot;Patch ROM&quot;</span>,</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>        <span class="stringliteral">&quot;Apply a patch to the ROM&quot;</span>}},</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>      {<span class="stringliteral">&quot;U&quot;</span>, {[]() { <span class="comment">/* Undo logic */</span> }, <span class="charliteral">&#39;U&#39;</span>, <span class="stringliteral">&quot;Undo&quot;</span>, <span class="stringliteral">&quot;Undo the last action&quot;</span>}},</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>      {<span class="stringliteral">&quot;R&quot;</span>,</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>       {[]() { <span class="comment">/* Redo logic */</span> }, <span class="charliteral">&#39;R&#39;</span>, <span class="stringliteral">&quot;Redo&quot;</span>, <span class="stringliteral">&quot;Redo the last undone action&quot;</span>}},</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>      {<span class="stringliteral">&quot;F&quot;</span>, {[]() { <span class="comment">/* Find logic */</span> }, <span class="charliteral">&#39;F&#39;</span>, <span class="stringliteral">&quot;Find&quot;</span>, <span class="stringliteral">&quot;Find data in the ROM&quot;</span>}},</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>      {<span class="stringliteral">&quot;G&quot;</span>,</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>       {[]() { <span class="comment">/* Goto logic */</span> }, <span class="charliteral">&#39;G&#39;</span>, <span class="stringliteral">&quot;Goto&quot;</span>,</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>        <span class="stringliteral">&quot;Go to a specific address in the ROM&quot;</span>}},</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>      {<span class="stringliteral">&quot;H&quot;</span>, {[]() { <span class="comment">/* Help logic */</span> }, <span class="charliteral">&#39;H&#39;</span>, <span class="stringliteral">&quot;Help&quot;</span>, <span class="stringliteral">&quot;Show help information&quot;</span>}}};</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>}</div>
+</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span> </div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>}  <span class="comment">// namespace editor</span></div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>}  <span class="comment">// namespace app</span></div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1CommandManager_html_a098d93eb0b0c8cfa3e4055f3f2f085d3"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1CommandManager.html#a098d93eb0b0c8cfa3e4055f3f2f085d3">yaze::app::editor::CommandManager::InitializeDefaults</a></div><div class="ttdeci">void InitializeDefaults()</div><div class="ttdef"><b>Definition</b> <a href="#l00055">command_manager.cc:55</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1CommandManager_html_a447c6b445d56dcf2d9b96bf40e5d9ce3"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1CommandManager.html#a447c6b445d56dcf2d9b96bf40e5d9ce3">yaze::app::editor::CommandManager::ShowWhichKey</a></div><div class="ttdeci">void ShowWhichKey()</div><div class="ttdef"><b>Definition</b> <a href="#l00011">command_manager.cc:11</a></div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1CommandManager_html_a61858f5c8a2e27ac07b46d2e033ff8f5"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1CommandManager.html#a61858f5c8a2e27ac07b46d2e033ff8f5">yaze::app::editor::CommandManager::commands_</a></div><div class="ttdeci">std::unordered_map&lt; std::string, Command * &gt; commands_</div><div class="ttdef"><b>Definition</b> <a href="command__manager_8h_source.html#l00052">command_manager.h:52</a></div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1CommandManager_html_aa8d2b892279cc281f38f96e97745c805"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1CommandManager.html#aa8d2b892279cc281f38f96e97745c805">yaze::app::editor::CommandManager::commands_</a></div><div class="ttdeci">std::unordered_map&lt; std::string, CommandInfo &gt; commands_</div><div class="ttdef"><b>Definition</b> <a href="command__manager_8h_source.html#l00047">command_manager.h:47</a></div></div>
 <div class="ttc" id="acommand__manager_8h_html"><div class="ttname"><a href="command__manager_8h.html">command_manager.h</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdef"><b>Definition</b> <a href="common_8cc_source.html#l00015">common.cc:15</a></div></div>
 </div><!-- fragment --></div><!-- contents -->

@@ -1,30 +1,27 @@
 <map id="src/yaze.h" name="src/yaze.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="488,5,568,31"/>
-<area shape="rect" id="Node000002" href="$editor__manager_8h.html" title=" " alt="" coords="135,241,271,282"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="473,25,406,35,329,57,292,74,258,95,228,122,205,154,197,176,195,199,200,241,195,241,190,199,192,174,200,151,224,118,255,91,290,69,327,52,405,30,472,20"/>
-<area shape="rect" id="Node000010" href="$extension_8h.html" title=" " alt="" coords="333,79,465,105"/>
-<area shape="poly" id="edge6_Node000001_Node000010" title=" " alt="" coords="494,41,422,81,420,76,492,37"/>
-<area shape="rect" id="Node000013" href="$extension__sample_8c.html" title=" " alt="" coords="436,153,559,193"/>
-<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="525,47,504,153,499,152,520,46"/>
-<area shape="rect" id="Node000014" href="$yaze__py_8cc.html" title=" " alt="" coords="582,160,706,186"/>
-<area shape="poly" id="edge14_Node000001_Node000014" title=" " alt="" coords="543,43,581,103,633,158,629,161,577,106,539,46"/>
-<area shape="rect" id="Node000015" href="$yaze__test_8cc.html" title=" " alt="" coords="591,79,732,105"/>
-<area shape="poly" id="edge15_Node000001_Node000015" title=" " alt="" coords="565,36,640,76,638,81,563,41"/>
-<area shape="rect" id="Node000016" href="$yaze_8cc.html" title=" " alt="" coords="756,79,842,105"/>
-<area shape="poly" id="edge16_Node000001_Node000016" title=" " alt="" coords="583,31,756,76,754,82,582,36"/>
-<area shape="rect" id="Node000003" href="$controller_8cc.html" title=" " alt="" coords="60,419,228,444"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="200,298,192,334,180,372,154,420,150,417,175,370,187,333,195,297"/>
-<area shape="rect" id="Node000004" href="$controller_8h.html" title=" " alt="" coords="5,338,166,363"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="166,293,103,339,100,335,163,289"/>
-<area shape="rect" id="Node000009" href="$editor__manager_8cc.html" title=" " alt="" coords="240,330,376,371"/>
-<area shape="poly" id="edge5_Node000002_Node000009" title=" " alt="" coords="240,290,286,327,283,332,237,294"/>
-<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="106,374,137,417,133,420,101,377"/>
-<area shape="rect" id="Node000011" href="$extension__manager_8cc.html" title=" " alt="" coords="308,241,463,282"/>
-<area shape="poly" id="edge7_Node000010_Node000011" title=" " alt="" coords="399,120,390,241,384,241,394,120"/>
-<area shape="rect" id="Node000012" href="$extension__manager_8h.html" title=" " alt="" coords="214,153,362,193"/>
-<area shape="poly" id="edge8_Node000010_Node000012" title=" " alt="" coords="371,116,317,154,314,150,368,112"/>
-<area shape="poly" id="edge11_Node000010_Node000013" title=" " alt="" coords="427,113,475,150,471,154,424,117"/>
-<area shape="poly" id="edge12_Node000010_Node000014" title=" " alt="" coords="452,107,607,157,606,162,450,112"/>
-<area shape="poly" id="edge9_Node000012_Node000002" title=" " alt="" coords="260,206,224,243,220,239,256,203"/>
-<area shape="poly" id="edge10_Node000012_Node000011" title=" " alt="" coords="323,202,365,239,362,243,320,206"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="403,5,482,31"/>
+<area shape="rect" id="Node000002" href="$editor__manager_8h.html" title=" " alt="" coords="80,241,216,282"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="388,28,327,40,259,63,227,79,196,100,170,124,150,154,142,175,140,199,145,240,140,241,135,199,137,174,145,151,166,121,193,96,224,75,257,58,326,35,387,22"/>
+<area shape="rect" id="Node000010" href="$extension_8h.html" title=" " alt="" coords="272,79,404,105"/>
+<area shape="poly" id="edge6_Node000001_Node000010" title=" " alt="" coords="414,42,358,81,355,76,411,38"/>
+<area shape="rect" id="Node000013" href="$yaze__py_8cc.html" title=" " alt="" coords="381,160,504,186"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="445,47,445,160,440,160,440,47"/>
+<area shape="rect" id="Node000014" href="$yaze__test_8cc.html" title=" " alt="" coords="480,79,621,105"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="475,38,533,76,530,81,472,42"/>
+<area shape="rect" id="Node000015" href="$yaze_8cc.html" title=" " alt="" coords="644,79,731,105"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="498,33,646,76,645,81,496,38"/>
+<area shape="rect" id="Node000003" href="$controller_8cc.html" title=" " alt="" coords="5,419,173,444"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="94,293,73,310,58,331,53,354,59,378,70,400,82,417,77,420,65,402,54,379,48,354,53,329,70,306,90,289"/>
+<area shape="rect" id="Node000004" href="$controller_8h.html" title=" " alt="" coords="68,338,228,363"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="150,298,150,337,145,337,145,298"/>
+<area shape="rect" id="Node000009" href="$editor__manager_8cc.html" title=" " alt="" coords="252,330,388,371"/>
+<area shape="poly" id="edge5_Node000002_Node000009" title=" " alt="" coords="201,287,282,327,280,332,199,292"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="132,377,100,420,96,417,127,374"/>
+<area shape="rect" id="Node000011" href="$extension__manager_8cc.html" title=" " alt="" coords="253,241,408,282"/>
+<area shape="poly" id="edge7_Node000010_Node000011" title=" " alt="" coords="340,120,334,241,329,241,334,120"/>
+<area shape="rect" id="Node000012" href="$extension__manager_8h.html" title=" " alt="" coords="159,153,307,193"/>
+<area shape="poly" id="edge8_Node000010_Node000012" title=" " alt="" coords="312,116,261,154,257,150,308,112"/>
+<area shape="poly" id="edge11_Node000010_Node000013" title=" " alt="" coords="368,112,428,158,425,162,365,116"/>
+<area shape="poly" id="edge9_Node000012_Node000002" title=" " alt="" coords="205,206,169,243,165,239,201,203"/>
+<area shape="poly" id="edge10_Node000012_Node000011" title=" " alt="" coords="268,202,310,239,307,243,264,206"/>
 </map>
