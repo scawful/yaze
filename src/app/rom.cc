@@ -8,20 +8,15 @@
 #include <ctime>
 #include <filesystem>
 #include <fstream>
-#include <stack>
 #include <string>
-#include <unordered_map>
-#include <utility>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "app/core/constants.h"
 #include "app/core/platform/renderer.h"
-#include "app/gfx/bitmap.h"
 #include "app/gfx/compression.h"
 #include "app/gfx/snes_color.h"
 #include "app/gfx/snes_palette.h"
@@ -35,7 +30,7 @@ constexpr int Uncompressed3BPPSize = 0x0600;
 constexpr int kEntranceGfxGroup = 0x5D97;
 
 namespace {
-int GetGraphicsAddress(const uchar* data, uint8_t addr, uint32_t ptr1,
+int GetGraphicsAddress(const uchar *data, uint8_t addr, uint32_t ptr1,
                        uint32_t ptr2, uint32_t ptr3) {
   return core::SnesToPc(core::AddressFromBytes(
       data[ptr1 + addr], data[ptr2 + addr], data[ptr3 + addr]));
@@ -46,7 +41,7 @@ absl::StatusOr<std::vector<uint8_t>> Rom::Load2BppGraphics() {
   std::vector<uint8_t> sheet;
   const uint8_t sheets[] = {113, 114, 218, 219, 220, 221};
 
-  for (const auto& sheet_id : sheets) {
+  for (const auto &sheet_id : sheets) {
     auto offset = GetGraphicsAddress(data(), sheet_id,
                                      version_constants().kOverworldGfxPtr1,
                                      version_constants().kOverworldGfxPtr2,
@@ -54,7 +49,7 @@ absl::StatusOr<std::vector<uint8_t>> Rom::Load2BppGraphics() {
     ASSIGN_OR_RETURN(auto decomp_sheet,
                      gfx::lc_lz2::DecompressV2(data(), offset))
     auto converted_sheet = gfx::SnesTo8bppSheet(decomp_sheet, 2);
-    for (const auto& each_pixel : converted_sheet) {
+    for (const auto &each_pixel : converted_sheet) {
       sheet.push_back(each_pixel);
     }
   }
@@ -139,7 +134,7 @@ absl::Status Rom::LoadAllGraphicsData(bool defer_render) {
   return absl::OkStatus();
 }
 
-absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
+absl::Status Rom::LoadFromFile(const std::string &filename, bool z3_load) {
   if (filename.empty()) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `filename` is empty.");
@@ -157,7 +152,7 @@ absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
   // Get file size and resize rom_data_
   try {
     size_ = std::filesystem::file_size(filename_);
-  } catch (const std::filesystem::filesystem_error& e) {
+  } catch (const std::filesystem::filesystem_error &e) {
     // Try to get the file size from the open file stream
     file.seekg(0, std::ios::end);
     if (!file) {
@@ -169,7 +164,7 @@ absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
   rom_data_.resize(size_);
 
   // Read file into rom_data_
-  file.read(reinterpret_cast<char*>(rom_data_.data()), size_);
+  file.read(reinterpret_cast<char *>(rom_data_.data()), size_);
 
   // Close file
   file.close();
@@ -188,7 +183,7 @@ absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
   return absl::OkStatus();
 }
 
-absl::Status Rom::LoadFromPointer(uchar* data, size_t length, bool z3_load) {
+absl::Status Rom::LoadFromPointer(uchar *data, size_t length, bool z3_load) {
   if (!data || length == 0)
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `data` is empty.");
@@ -212,8 +207,8 @@ absl::Status Rom::LoadZelda3() {
   constexpr size_t kHeaderSize = 0x200;     // 512 bytes
   if (size_ % kBaseRomSize == kHeaderSize) {
     auto header =
-        std::vector<uchar>(rom_data_.begin(), rom_data_.begin() + 0x200);
-    rom_data_.erase(rom_data_.begin(), rom_data_.begin() + 0x200);
+        std::vector<uchar>(rom_data_.begin(), rom_data_.begin() + kHeaderSize);
+    rom_data_.erase(rom_data_.begin(), rom_data_.begin() + kHeaderSize);
     size_ -= 0x200;
   }
 
@@ -240,7 +235,7 @@ absl::Status Rom::LoadZelda3() {
   return absl::OkStatus();
 }
 
-absl::Status Rom::LoadFromBytes(const std::vector<uint8_t>& data) {
+absl::Status Rom::LoadFromBytes(const std::vector<uint8_t> &data) {
   if (data.empty()) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `data` is empty.");
@@ -282,7 +277,7 @@ absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
     try {
       std::filesystem::copy(filename_, backup_filename,
                             std::filesystem::copy_options::overwrite_existing);
-    } catch (const std::filesystem::filesystem_error& e) {
+    } catch (const std::filesystem::filesystem_error &e) {
       non_firing_status = absl::InternalError(absl::StrCat(
           "Could not create backup file: ", backup_filename, " - ", e.what()));
     }
@@ -330,9 +325,9 @@ absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
   // Save the data to the file
   try {
     file.write(
-        static_cast<const char*>(static_cast<const void*>(rom_data_.data())),
+        static_cast<const char *>(static_cast<const void *>(rom_data_.data())),
         rom_data_.size());
-  } catch (const std::ofstream::failure& e) {
+  } catch (const std::ofstream::failure &e) {
     return absl::InternalError(absl::StrCat(
         "Error while writing to ROM file: ", filename, " - ", e.what()));
   }
@@ -350,8 +345,8 @@ absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
   return absl::OkStatus();
 }
 
-absl::Status Rom::SavePalette(int index, const std::string& group_name,
-                              gfx::SnesPalette& palette) {
+absl::Status Rom::SavePalette(int index, const std::string &group_name,
+                              gfx::SnesPalette &palette) {
   for (size_t j = 0; j < palette.size(); ++j) {
     gfx::SnesColor color = palette[j];
     // If the color is modified, save the color to the ROM
@@ -366,7 +361,7 @@ absl::Status Rom::SavePalette(int index, const std::string& group_name,
 
 absl::Status Rom::SaveAllPalettes() {
   RETURN_IF_ERROR(
-      palette_groups_.for_each([&](gfx::PaletteGroup& group) -> absl::Status {
+      palette_groups_.for_each([&](gfx::PaletteGroup &group) -> absl::Status {
         for (size_t i = 0; i < group.size(); ++i) {
           RETURN_IF_ERROR(
               SavePalette(i, group.name(), *group.mutable_palette(i)));
