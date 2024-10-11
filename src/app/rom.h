@@ -3,36 +3,26 @@
 
 #include <SDL.h>
 
-#include <algorithm>
-#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <ctime>
-#include <filesystem>
-#include <fstream>
-#include <functional>
 #include <iostream>
 #include <map>
 #include <memory>
-#include <stack>
 #include <string>
-#include <unordered_map>
 #include <variant>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/match.h"
-#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/core/labeling.h"
 #include "app/gfx/bitmap.h"
-#include "app/gfx/compression.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 
