@@ -27,7 +27,6 @@ namespace app {
 
 using core::Renderer;
 constexpr int Uncompressed3BPPSize = 0x0600;
-constexpr int kEntranceGfxGroup = 0x5D97;
 
 namespace {
 int GetGraphicsAddress(const uchar *data, uint8_t addr, uint32_t ptr1,
@@ -142,7 +141,6 @@ absl::Status Rom::LoadFromFile(const std::string &filename, bool z3_load) {
   std::string full_filename = std::filesystem::absolute(filename).string();
   filename_ = full_filename;
 
-  // Open file
   std::ifstream file(filename_, std::ios::binary);
   if (!file.is_open()) {
     return absl::NotFoundError(
@@ -165,8 +163,6 @@ absl::Status Rom::LoadFromFile(const std::string &filename, bool z3_load) {
 
   // Read file into rom_data_
   file.read(reinterpret_cast<char *>(rom_data_.data()), size_);
-
-  // Close file
   file.close();
 
   // Set is_loaded_ flag and return success
@@ -179,7 +175,6 @@ absl::Status Rom::LoadFromFile(const std::string &filename, bool z3_load) {
   // Set up the resource labels
   std::string resource_label_filename = absl::StrFormat("%s.labels", filename);
   resource_label_manager_.LoadLabels(resource_label_filename);
-
   return absl::OkStatus();
 }
 
@@ -226,6 +221,7 @@ absl::Status Rom::LoadZelda3() {
 
   // Load additional resources
   RETURN_IF_ERROR(gfx::LoadAllPalettes(rom_data_, palette_groups_));
+  // TODO Load gfx groups or expanded ZS values
   RETURN_IF_ERROR(LoadGfxGroups());
 
   // Expand the ROM data to 2MB without changing the data in the first 1MB
@@ -373,11 +369,6 @@ absl::Status Rom::SaveAllPalettes() {
 }
 
 absl::Status Rom::LoadGfxGroups() {
-  main_blockset_ids.resize(kNumMainBlocksets, std::vector<uint8_t>(8));
-  room_blockset_ids.resize(kNumRoomBlocksets, std::vector<uint8_t>(4));
-  spriteset_ids.resize(kNumSpritesets, std::vector<uint8_t>(4));
-  paletteset_ids.resize(kNumPalettesets, std::vector<uint8_t>(4));
-
   ASSIGN_OR_RETURN(auto main_blockset_ptr, ReadWord(kGfxGroupsPointer));
   main_blockset_ptr = core::SnesToPc(main_blockset_ptr);
 

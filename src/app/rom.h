@@ -120,11 +120,12 @@ constexpr uint32_t kNormalGfxSpaceStart = 0x87000;
 constexpr uint32_t kNormalGfxSpaceEnd = 0xC4200;
 constexpr uint32_t kFontSpriteLocation = 0x70000;
 constexpr uint32_t kGfxGroupsPointer = 0x6237;
+constexpr uint32_t kUncompressedSheetSize = 0x0800;
 constexpr uint32_t kNumMainBlocksets = 37;
 constexpr uint32_t kNumRoomBlocksets = 82;
 constexpr uint32_t kNumSpritesets = 144;
 constexpr uint32_t kNumPalettesets = 72;
-constexpr uint32_t kUncompressedSheetSize = 0x0800;
+constexpr uint32_t kEntranceGfxGroup = 0x5D97;
 
 // TODO: Verify what this was used for in ZS
 constexpr uint32_t kMaxGraphics = 0xC3FB5;
@@ -482,10 +483,10 @@ class Rom : public core::ExperimentFlags {
     return kVersionConstantsMap.at(version_);
   }
 
-  std::vector<std::vector<uint8_t>> main_blockset_ids;
-  std::vector<std::vector<uint8_t>> room_blockset_ids;
-  std::vector<std::vector<uint8_t>> spriteset_ids;
-  std::vector<std::vector<uint8_t>> paletteset_ids;
+  std::array<std::array<uint8_t, 8>, kNumMainBlocksets> main_blockset_ids;
+  std::array<std::array<uint8_t, 4>, kNumRoomBlocksets> room_blockset_ids;
+  std::array<std::array<uint8_t, 4>, kNumSpritesets> spriteset_ids;
+  std::array<std::array<uint8_t, 4>, kNumPalettesets> paletteset_ids;
 
   struct WriteAction {
     int address;
