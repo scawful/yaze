@@ -12,6 +12,7 @@
 #include "app/editor/editor_manager.h"
 #include "app/gui/icons.h"
 #include "app/gui/style.h"
+#include "core/utils/file_util.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
@@ -127,50 +128,50 @@ void HandleKeyDown(SDL_Event &event, editor::EditorManager &editor) {
   io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
 
   switch (event.key.keysym.sym) {
-    case SDLK_BACKSPACE:
-    case SDLK_LSHIFT:
-    case SDLK_LCTRL:
-    case SDLK_TAB:
-      io.KeysDown[event.key.keysym.scancode] = (event.type == SDL_KEYDOWN);
-      break;
-    case SDLK_z:
-      editor.emulator().snes().SetButtonState(1, 0, true);
-      break;
-    case SDLK_a:
-      editor.emulator().snes().SetButtonState(1, 1, true);
-      break;
-    case SDLK_RSHIFT:
-      editor.emulator().snes().SetButtonState(1, 2, true);
-      break;
-    case SDLK_RETURN:
-      editor.emulator().snes().SetButtonState(1, 3, true);
-      break;
-    case SDLK_UP:
-      editor.emulator().snes().SetButtonState(1, 4, true);
-      break;
-    case SDLK_DOWN:
-      editor.emulator().snes().SetButtonState(1, 5, true);
-      break;
-    case SDLK_LEFT:
-      editor.emulator().snes().SetButtonState(1, 6, true);
-      break;
-    case SDLK_RIGHT:
-      editor.emulator().snes().SetButtonState(1, 7, true);
-      break;
-    case SDLK_x:
-      editor.emulator().snes().SetButtonState(1, 8, true);
-      break;
-    case SDLK_s:
-      editor.emulator().snes().SetButtonState(1, 9, true);
-      break;
-    case SDLK_d:
-      editor.emulator().snes().SetButtonState(1, 10, true);
-      break;
-    case SDLK_c:
-      editor.emulator().snes().SetButtonState(1, 11, true);
-      break;
-    default:
-      break;
+  case SDLK_BACKSPACE:
+  case SDLK_LSHIFT:
+  case SDLK_LCTRL:
+  case SDLK_TAB:
+    io.KeysDown[event.key.keysym.scancode] = (event.type == SDL_KEYDOWN);
+    break;
+  case SDLK_z:
+    editor.emulator().snes().SetButtonState(1, 0, true);
+    break;
+  case SDLK_a:
+    editor.emulator().snes().SetButtonState(1, 1, true);
+    break;
+  case SDLK_RSHIFT:
+    editor.emulator().snes().SetButtonState(1, 2, true);
+    break;
+  case SDLK_RETURN:
+    editor.emulator().snes().SetButtonState(1, 3, true);
+    break;
+  case SDLK_UP:
+    editor.emulator().snes().SetButtonState(1, 4, true);
+    break;
+  case SDLK_DOWN:
+    editor.emulator().snes().SetButtonState(1, 5, true);
+    break;
+  case SDLK_LEFT:
+    editor.emulator().snes().SetButtonState(1, 6, true);
+    break;
+  case SDLK_RIGHT:
+    editor.emulator().snes().SetButtonState(1, 7, true);
+    break;
+  case SDLK_x:
+    editor.emulator().snes().SetButtonState(1, 8, true);
+    break;
+  case SDLK_s:
+    editor.emulator().snes().SetButtonState(1, 9, true);
+    break;
+  case SDLK_d:
+    editor.emulator().snes().SetButtonState(1, 10, true);
+    break;
+  case SDLK_c:
+    editor.emulator().snes().SetButtonState(1, 11, true);
+    break;
+  default:
+    break;
   }
 }
 
@@ -185,44 +186,44 @@ void HandleKeyUp(SDL_Event &event, editor::EditorManager &editor) {
   io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
 
   switch (event.key.keysym.sym) {
-    case SDLK_z:
-      editor.emulator().snes().SetButtonState(1, 0, false);
-      break;
-    case SDLK_a:
-      editor.emulator().snes().SetButtonState(1, 1, false);
-      break;
-    case SDLK_RSHIFT:
-      editor.emulator().snes().SetButtonState(1, 2, false);
-      break;
-    case SDLK_RETURN:
-      editor.emulator().snes().SetButtonState(1, 3, false);
-      break;
-    case SDLK_UP:
-      editor.emulator().snes().SetButtonState(1, 4, false);
-      break;
-    case SDLK_DOWN:
-      editor.emulator().snes().SetButtonState(1, 5, false);
-      break;
-    case SDLK_LEFT:
-      editor.emulator().snes().SetButtonState(1, 6, false);
-      break;
-    case SDLK_RIGHT:
-      editor.emulator().snes().SetButtonState(1, 7, false);
-      break;
-    case SDLK_x:
-      editor.emulator().snes().SetButtonState(1, 8, false);
-      break;
-    case SDLK_s:
-      editor.emulator().snes().SetButtonState(1, 9, false);
-      break;
-    case SDLK_d:
-      editor.emulator().snes().SetButtonState(1, 10, false);
-      break;
-    case SDLK_c:
-      editor.emulator().snes().SetButtonState(1, 11, false);
-      break;
-    default:
-      break;
+  case SDLK_z:
+    editor.emulator().snes().SetButtonState(1, 0, false);
+    break;
+  case SDLK_a:
+    editor.emulator().snes().SetButtonState(1, 1, false);
+    break;
+  case SDLK_RSHIFT:
+    editor.emulator().snes().SetButtonState(1, 2, false);
+    break;
+  case SDLK_RETURN:
+    editor.emulator().snes().SetButtonState(1, 3, false);
+    break;
+  case SDLK_UP:
+    editor.emulator().snes().SetButtonState(1, 4, false);
+    break;
+  case SDLK_DOWN:
+    editor.emulator().snes().SetButtonState(1, 5, false);
+    break;
+  case SDLK_LEFT:
+    editor.emulator().snes().SetButtonState(1, 6, false);
+    break;
+  case SDLK_RIGHT:
+    editor.emulator().snes().SetButtonState(1, 7, false);
+    break;
+  case SDLK_x:
+    editor.emulator().snes().SetButtonState(1, 8, false);
+    break;
+  case SDLK_s:
+    editor.emulator().snes().SetButtonState(1, 9, false);
+    break;
+  case SDLK_d:
+    editor.emulator().snes().SetButtonState(1, 10, false);
+    break;
+  case SDLK_c:
+    editor.emulator().snes().SetButtonState(1, 11, false);
+    break;
+  default:
+    break;
   }
 }
 
@@ -246,7 +247,7 @@ void HandleMouseMovement(int &wheel) {
   io.MouseWheel = static_cast<float>(wheel);
 }
 
-}  // namespace
+} // namespace
 
 absl::Status Controller::OnEntry(std::string filename) {
 #if defined(__APPLE__) && defined(__MACH__)
@@ -280,32 +281,32 @@ void Controller::OnInput() {
 
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
-      case SDL_KEYDOWN:
-        HandleKeyDown(event, editor_manager_);
+    case SDL_KEYDOWN:
+      HandleKeyDown(event, editor_manager_);
+      break;
+    case SDL_KEYUP:
+      HandleKeyUp(event, editor_manager_);
+      break;
+    case SDL_TEXTINPUT:
+      io.AddInputCharactersUTF8(event.text.text);
+      break;
+    case SDL_MOUSEWHEEL:
+      wheel = event.wheel.y;
+      break;
+    case SDL_WINDOWEVENT:
+      switch (event.window.event) {
+      case SDL_WINDOWEVENT_CLOSE:
+        active_ = false;
         break;
-      case SDL_KEYUP:
-        HandleKeyUp(event, editor_manager_);
-        break;
-      case SDL_TEXTINPUT:
-        io.AddInputCharactersUTF8(event.text.text);
-        break;
-      case SDL_MOUSEWHEEL:
-        wheel = event.wheel.y;
-        break;
-      case SDL_WINDOWEVENT:
-        switch (event.window.event) {
-          case SDL_WINDOWEVENT_CLOSE:
-            active_ = false;
-            break;
-          case SDL_WINDOWEVENT_SIZE_CHANGED:
-            ChangeWindowSizeEvent(event);
-            break;
-          default:
-            break;
-        }
+      case SDL_WINDOWEVENT_SIZE_CHANGED:
+        ChangeWindowSizeEvent(event);
         break;
       default:
         break;
+      }
+      break;
+    default:
+      break;
     }
   }
 
@@ -368,11 +369,11 @@ absl::Status Controller::CreateSDL_Window() {
     int screenHeight = displayMode.h * 0.8;
 
     window_ = std::unique_ptr<SDL_Window, core::SDL_Deleter>(
-        SDL_CreateWindow("Yet Another Zelda3 Editor",  // window title
-                         SDL_WINDOWPOS_UNDEFINED,      // initial x position
-                         SDL_WINDOWPOS_UNDEFINED,      // initial y position
-                         screenWidth,                  // width, in pixels
-                         screenHeight,                 // height, in pixels
+        SDL_CreateWindow("Yet Another Zelda3 Editor", // window title
+                         SDL_WINDOWPOS_UNDEFINED,     // initial x position
+                         SDL_WINDOWPOS_UNDEFINED,     // initial y position
+                         screenWidth,                 // width, in pixels
+                         screenHeight,                // height, in pixels
                          SDL_WINDOW_RESIZABLE),
         core::SDL_Deleter());
     if (window_ == nullptr) {
@@ -405,18 +406,18 @@ absl::Status Controller::CreateGuiContext() {
 
   // Check if the assets/fonts directory exists in our CWD
   // Otherwise, load the system fonts.
-  const auto assets_path = std::filesystem::path("assets");
-  if (std::filesystem::is_directory(assets_path)) {
-    RETURN_IF_ERROR(LoadFontFamilies());
-  } else {
-#ifdef __APPLE__
-    LoadSystemFonts();
-#else
-    return absl::InternalError(
-        "Could not find assets/fonts directory in the current working "
-        "directory");
-#endif
-  }
+  // const auto assets_path = std::filesystem::path("assets");
+  // if (std::filesystem::is_directory(assets_path)) {
+  RETURN_IF_ERROR(LoadFontFamilies());
+  // } else {
+  // #ifdef __APPLE__
+  // LoadSystemFonts();
+  // #else
+  // return absl::InternalError(
+  //    "Could not find assets/fonts directory in the current working "
+  //    "directory");
+  // #endif
+  //}
 
   // Set the default style
   gui::ColorsYaze();
@@ -424,6 +425,30 @@ absl::Status Controller::CreateGuiContext() {
   // Build a new ImGui frame
   ImGui_ImplSDLRenderer2_NewFrame();
   ImGui_ImplSDL2_NewFrame();
+
+  return absl::OkStatus();
+}
+
+absl::Status Controller::LoadConfigFiles() {
+  // Create and load a dotfile for the application
+  // This will store the user's preferences and settings
+  std::string config_directory = GetConfigDirectory(platform_);
+
+  // Create the directory if it doesn't exist
+  if (!std::filesystem::exists(config_directory)) {
+    std::filesystem::create_directory(config_directory);
+  }
+
+  // Check if the config file exists
+  std::string config_file = config_directory + "yaze.cfg";
+  if (!std::filesystem::exists(config_file)) {
+    // Create the file if it doesn't exist
+    std::ofstream file(config_file);
+    if (!file.is_open()) {
+      return absl::InternalError(
+          absl::StrFormat("Failed to create config file %s", config_file));
+    }
+  }
 
   return absl::OkStatus();
 }
@@ -437,8 +462,8 @@ absl::Status Controller::LoadFontFamilies() const {
   static const char *DROID_SANS = "DroidSans.ttf";
   static const char *NOTO_SANS_JP = "NotoSansJP.ttf";
   static const char *IBM_PLEX_JP = "IBMPlexSansJP-Bold.ttf";
-  static const float FONT_SIZE_DEFAULT = 14.0f;
-  static const float FONT_SIZE_DROID_SANS = 16.0f;
+  static const float FONT_SIZE_DEFAULT = 16.0f;
+  static const float FONT_SIZE_DROID_SANS = 18.0f;
   static const float ICON_FONT_SIZE = 18.0f;
 
   // Icon configuration
@@ -457,8 +482,8 @@ absl::Status Controller::LoadFontFamilies() const {
   icons_config.PixelSnapH = true;
 
   // List of fonts to be loaded
-  std::vector<const char *> font_paths = {KARLA_REGULAR, ROBOTO_MEDIUM,
-                                          COUSINE_REGULAR, IBM_PLEX_JP};
+  std::vector<const char *> font_paths = {
+      KARLA_REGULAR, ROBOTO_MEDIUM, COUSINE_REGULAR, IBM_PLEX_JP, DROID_SANS};
 
   // Load fonts with associated icon and Japanese merges
   for (const auto &font_path : font_paths) {
@@ -532,7 +557,7 @@ absl::Status Controller::LoadAudioDevice() {
   want.format = AUDIO_S16;
   want.channels = 2;
   want.samples = 2048;
-  want.callback = NULL;  // Uses the queue
+  want.callback = NULL; // Uses the queue
   audio_device_ = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
   if (audio_device_ == 0) {
     return absl::InternalError(
@@ -546,6 +571,6 @@ absl::Status Controller::LoadAudioDevice() {
   return absl::OkStatus();
 }
 
-}  // namespace core
-}  // namespace app
-}  // namespace yaze
+} // namespace core
+} // namespace app
+} // namespace yaze
