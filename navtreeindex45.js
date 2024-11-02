@@ -1,6 +1,14 @@
 var NAVTREEINDEX45 =
 {
-"structyaze_1_1app_1_1Project.html#a1fc4df458b4799b79350be13248ab889":[12,0,0,0,6,11],
+"structsnes__palette.html#aa3f32ff0f52e7ada19fb5afdd477258f":[12,0,5,0],
+"structsnes__palette.html#ad4057af514d8aab3c6a429b693bb9ac6":[12,0,5,2],
+"structsnes__palette.html#af78e1764df4b15340c56da97b8e2c965":[12,0,5,1],
+"structyaze_1_1app_1_1Project.html":[11,0,1,0,7],
+"structyaze_1_1app_1_1Project.html":[12,0,0,0,6],
+"structyaze_1_1app_1_1Project.html#a113a64ce6f082a98598e821feaeaebfe":[11,0,1,0,7,5],
+"structyaze_1_1app_1_1Project.html#a113a64ce6f082a98598e821feaeaebfe":[12,0,0,0,6,5],
+"structyaze_1_1app_1_1Project.html#a1311a5bc2b450b80dca82fe1b42b6681":[11,0,1,0,7,7],
+"structyaze_1_1app_1_1Project.html#a1311a5bc2b450b80dca82fe1b42b6681":[12,0,0,0,6,7],
 "structyaze_1_1app_1_1Project.html#a263882d68051ab974cce1e5ec012ec89":[11,0,1,0,7,9],
 "structyaze_1_1app_1_1Project.html#a263882d68051ab974cce1e5ec012ec89":[12,0,0,0,6,9],
 "structyaze_1_1app_1_1Project.html#a38ee1a624e82d5504dde88babf26c4a1":[11,0,1,0,7,6],
@@ -241,13 +249,5 @@ var NAVTREEINDEX45 =
 "structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#accea715679a6045b5bd6fabf6665719f":[12,0,0,0,1,13,3],
 "structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#af16a2c4ed1011e499291387f41e9347d":[11,0,1,0,2,18,1],
 "structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#af16a2c4ed1011e499291387f41e9347d":[12,0,0,0,1,13,1],
-"structyaze_1_1app_1_1editor_1_1FlagsMenu.html":[11,0,1,0,2,20],
-"structyaze_1_1app_1_1editor_1_1FlagsMenu.html":[12,0,0,0,1,15],
-"structyaze_1_1app_1_1editor_1_1FlagsMenu.html#a7e05e45f0d1e8918fbf1d34b966e3d7e":[11,0,1,0,2,20,0],
-"structyaze_1_1app_1_1editor_1_1FlagsMenu.html#a7e05e45f0d1e8918fbf1d34b966e3d7e":[12,0,0,0,1,15,0],
-"structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html":[11,0,1,0,2,23],
-"structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html":[12,0,0,0,1,18],
-"structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html#aa354716a735200ebf42c2504de8d28fe":[11,0,1,0,2,23,0],
-"structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html#aa354716a735200ebf42c2504de8d28fe":[12,0,0,0,1,18,0],
-"structyaze_1_1app_1_1editor_1_1MessageData.html":[11,0,1,0,2,24]
+"structyaze_1_1app_1_1editor_1_1FlagsMenu.html":[11,0,1,0,2,20]
 };

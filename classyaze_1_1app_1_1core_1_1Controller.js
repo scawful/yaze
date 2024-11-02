@@ -10,6 +10,7 @@ var classyaze_1_1app_1_1core_1_1Controller =
     [ "CreateSDL_Window", "classyaze_1_1app_1_1core_1_1Controller.html#a3994f2ee79504cd00f9f9e49f1462be0", null ],
     [ "CreateRenderer", "classyaze_1_1app_1_1core_1_1Controller.html#a7de45c3e705b21ddd623f5a36e3dfd55", null ],
     [ "CreateGuiContext", "classyaze_1_1app_1_1core_1_1Controller.html#a1a77e2f432d143785d65f70c1372cd50", null ],
+    [ "LoadConfigFiles", "classyaze_1_1app_1_1core_1_1Controller.html#a5bd6ae9f2f556b7c9a818ed0905e135b", null ],
     [ "LoadFontFamilies", "classyaze_1_1app_1_1core_1_1Controller.html#a303df51e1187d339e9548ea7d669df34", null ],
     [ "LoadAudioDevice", "classyaze_1_1app_1_1core_1_1Controller.html#a38dbbdccc2f338bee9fd0662e1957895", null ],
     [ "SetupScreen", "classyaze_1_1app_1_1core_1_1Controller.html#a16cd12a2e1ea1eb1adcc00b172578c5f", null ],

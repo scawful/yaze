@@ -1,5 +1,13 @@
 var NAVTREEINDEX46 =
 {
+"structyaze_1_1app_1_1editor_1_1FlagsMenu.html":[12,0,0,0,1,15],
+"structyaze_1_1app_1_1editor_1_1FlagsMenu.html#a7e05e45f0d1e8918fbf1d34b966e3d7e":[11,0,1,0,2,20,0],
+"structyaze_1_1app_1_1editor_1_1FlagsMenu.html#a7e05e45f0d1e8918fbf1d34b966e3d7e":[12,0,0,0,1,15,0],
+"structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html":[11,0,1,0,2,23],
+"structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html":[12,0,0,0,1,18],
+"structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html#aa354716a735200ebf42c2504de8d28fe":[11,0,1,0,2,23,0],
+"structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html#aa354716a735200ebf42c2504de8d28fe":[12,0,0,0,1,18,0],
+"structyaze_1_1app_1_1editor_1_1MessageData.html":[11,0,1,0,2,24],
 "structyaze_1_1app_1_1editor_1_1MessageData.html":[12,0,0,0,1,19],
 "structyaze_1_1app_1_1editor_1_1MessageData.html#a074f1197c0fe7c914397ab3b3919179b":[11,0,1,0,2,24,9],
 "structyaze_1_1app_1_1editor_1_1MessageData.html#a074f1197c0fe7c914397ab3b3919179b":[12,0,0,0,1,19,9],
@@ -241,13 +249,5 @@ var NAVTREEINDEX46 =
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a9913dc30fbdc6cfe3241921b6f9a0afe":[12,0,0,0,1,2,5,30],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#aa1420f4b021c021a8f4e5e6b82898a66":[11,0,1,0,2,7,5,3],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#aa1420f4b021c021a8f4e5e6b82898a66":[12,0,0,0,1,2,5,3],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#aa9d8e7eca8a9a46eabdec1a230089353":[11,0,1,0,2,7,5,12],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#aa9d8e7eca8a9a46eabdec1a230089353":[12,0,0,0,1,2,5,12],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#aaa6d5b26493226f7d4c7b18ae1427a69":[11,0,1,0,2,7,5,24],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#aaa6d5b26493226f7d4c7b18ae1427a69":[12,0,0,0,1,2,5,24],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#aae6dce50da2883263c1e0e85a82b0b8d":[11,0,1,0,2,7,5,19],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#aae6dce50da2883263c1e0e85a82b0b8d":[12,0,0,0,1,2,5,19],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#ab0466e9b5730986c18848e606d4e084a":[11,0,1,0,2,7,5,6],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#ab0466e9b5730986c18848e606d4e084a":[12,0,0,0,1,2,5,6],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#ab089f4f06238db8ce894e04805313363":[11,0,1,0,2,7,5,7]
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#aa9d8e7eca8a9a46eabdec1a230089353":[11,0,1,0,2,7,5,12]
 };

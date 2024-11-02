@@ -137,7 +137,7 @@ var searchData=
   ['sprites_5fend_5fdata_134',['sprites_end_data',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#aebf6c4f3d57e2ed86f1c80fca2267461',1,'yaze::app::zelda3::dungeon']]],
   ['spriteset_135',['spriteset',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a8e02517141adc810abef403bce0af462',1,'yaze::app::zelda3::dungeon::Room']]],
   ['spriteset_5fcanvas_5f_136',['spriteset_canvas_',['../classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#ac1d76f4141145027288ca43adfc37d2b',1,'yaze::app::editor::GfxGroupEditor']]],
-  ['spriteset_5fids_137',['spriteset_ids',['../classyaze_1_1app_1_1Rom.html#a6392c0e5a9e6c98a2b0179a501888d58',1,'yaze::app::Rom']]],
+  ['spriteset_5fids_137',['spriteset_ids',['../classyaze_1_1app_1_1Rom.html#a347cb8ac52d6521cc747ebf20f348d7d',1,'yaze::app::Rom']]],
   ['spriteset_5fusage_5f_138',['spriteset_usage_',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#aeac4b071575e89e537ae95960d43e009',1,'yaze::app::editor::DungeonEditor']]],
   ['sprname_139',['sprName',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a72e9c76d34af337c1b2d5d9609e150ea',1,'yaze::app::editor::zsprite::ZSprite']]],
   ['sr_140',['sr',['../structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaInstrument.html#ab2cab1bea548a4748d89d14913347536',1,'yaze::app::zelda3::music::ZeldaInstrument::sr'],['../structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#aa628dca7c45f1bfc12efd8267034f830',1,'yaze::app::zelda3::music::ZeldaSfxInstrument::sr']]],

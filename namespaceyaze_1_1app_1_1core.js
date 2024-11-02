@@ -73,9 +73,11 @@ var namespaceyaze_1_1app_1_1core =
     [ "CopyImageToClipboard", "namespaceyaze_1_1app_1_1core.html#a665b3fdfdf571c43045821e49c8ad8ca", null ],
     [ "GetImageFromClipboard", "namespaceyaze_1_1app_1_1core.html#aa3d3837210480bcf7d7260fd40b9bcaf", null ],
     [ "GetBundleResourcePath", "namespaceyaze_1_1app_1_1core.html#aed8ea2c93d2742812c27b5eb038a9bec", null ],
-    [ "LoadFile", "namespaceyaze_1_1app_1_1core.html#a3a5f0036423b8fed47b9c94c24ae82b7", null ],
     [ "GetFileExtension", "namespaceyaze_1_1app_1_1core.html#a1a473cd82ecbb24197525abe7561f732", null ],
     [ "GetFileName", "namespaceyaze_1_1app_1_1core.html#a0c9555d9e2a9c9a6bd57db6bcd1e98f6", null ],
+    [ "LoadFile", "namespaceyaze_1_1app_1_1core.html#a3321ea16855cf829721b4747fea79674", null ],
+    [ "SaveFile", "namespaceyaze_1_1app_1_1core.html#aefd3fbf112fab10a195209aee3986532", null ],
+    [ "GetConfigDirectory", "namespaceyaze_1_1app_1_1core.html#a77b5fa05538c937fff7d7a6517a56537", null ],
     [ "kFastRomRegion", "namespaceyaze_1_1app_1_1core.html#ab62c06b7266ecc1577fb9da5d8f7401c", null ],
     [ "kYazeVersion", "namespaceyaze_1_1app_1_1core.html#aeb4d11eb76af13a125dd20d79bc2bce3", null ]
 ];

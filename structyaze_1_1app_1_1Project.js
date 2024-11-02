@@ -10,6 +10,5 @@ var structyaze_1_1app_1_1Project =
     [ "filepath", "structyaze_1_1app_1_1Project.html#a1311a5bc2b450b80dca82fe1b42b6681", null ],
     [ "rom_filename_", "structyaze_1_1app_1_1Project.html#aaaec6f4568b290cb85dad5c0e58bd485", null ],
     [ "code_folder_", "structyaze_1_1app_1_1Project.html#a263882d68051ab974cce1e5ec012ec89", null ],
-    [ "labels_filename_", "structyaze_1_1app_1_1Project.html#a5212c318cd29ee7939c840e1a0bd9886", null ],
-    [ "previous_rom_filenames_", "structyaze_1_1app_1_1Project.html#a1fc4df458b4799b79350be13248ab889", null ]
+    [ "labels_filename_", "structyaze_1_1app_1_1Project.html#a5212c318cd29ee7939c840e1a0bd9886", null ]
 ];

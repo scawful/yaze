@@ -1,5 +1,15 @@
 var NAVTREEINDEX44 =
 {
+"room__object_8h.html#ac3c0be1a02f8dce7d5bbca92747b4f9ca3cad80b7a4e77dcf6f6784b97152b7f7":[13,0,1,0,5,0,7,7,0],
+"room__object_8h.html#ac3c0be1a02f8dce7d5bbca92747b4f9ca5866effe9067ea6ec6e1f64bbaac7ccf":[13,0,1,0,5,0,7,7,1],
+"room__object_8h.html#ac3c0be1a02f8dce7d5bbca92747b4f9ca6f57bc1b568ce04ae1bd006bf286d365":[13,0,1,0,5,0,7,7,3],
+"room__object_8h.html#ac3c0be1a02f8dce7d5bbca92747b4f9ca781f9812c9246cab41ee0a5643d5b9a0":[13,0,1,0,5,0,7,7,5],
+"room__object_8h.html#ac3c0be1a02f8dce7d5bbca92747b4f9ca9f55447fff6e0150376d8aaf88a94aa1":[13,0,1,0,5,0,7,7,4],
+"room__object_8h.html#ac3c0be1a02f8dce7d5bbca92747b4f9cae70340033b22f19b9a25b59360eae20e":[13,0,1,0,5,0,7,7,6],
+"room__object_8h.html#ac3c0be1a02f8dce7d5bbca92747b4f9cae74cd2151daef72e4f50e4c6e05df1f1":[13,0,1,0,5,0,7,7,7],
+"room__object_8h.html#ac46cb973cf8ca0aa50e953f5c8978f2b":[13,0,1,0,5,0,7,5],
+"room__object_8h.html#ac46cb973cf8ca0aa50e953f5c8978f2ba080a546abcbea74459f27ba33313993d":[13,0,1,0,5,0,7,5,0],
+"room__object_8h.html#ac46cb973cf8ca0aa50e953f5c8978f2ba4196867d030ad1793b4087b9747f8b04":[13,0,1,0,5,0,7,5,2],
 "room__object_8h.html#ac46cb973cf8ca0aa50e953f5c8978f2ba52a3e405eb69e72cd81af3c5e1f93065":[13,0,1,0,5,0,7,5,1],
 "room__object_8h.html#acbe6d60cd1693a56f4aab97bdac2f3fb":[13,0,1,0,5,0,7,12],
 "room__object_8h.html#ad744b936a6304a4aaf32fc1519901fcd":[13,0,1,0,5,0,7,17],
@@ -239,15 +249,5 @@ var NAVTREEINDEX44 =
 "structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4":[12,0,4,2],
 "structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58":[12,0,4,0],
 "structsnes__color.html#abe07ebebd2f735f932b7a7a065506f9f":[12,0,4,1],
-"structsnes__palette.html":[12,0,5],
-"structsnes__palette.html#aa3f32ff0f52e7ada19fb5afdd477258f":[12,0,5,0],
-"structsnes__palette.html#ad4057af514d8aab3c6a429b693bb9ac6":[12,0,5,2],
-"structsnes__palette.html#af78e1764df4b15340c56da97b8e2c965":[12,0,5,1],
-"structyaze_1_1app_1_1Project.html":[11,0,1,0,7],
-"structyaze_1_1app_1_1Project.html":[12,0,0,0,6],
-"structyaze_1_1app_1_1Project.html#a113a64ce6f082a98598e821feaeaebfe":[11,0,1,0,7,5],
-"structyaze_1_1app_1_1Project.html#a113a64ce6f082a98598e821feaeaebfe":[12,0,0,0,6,5],
-"structyaze_1_1app_1_1Project.html#a1311a5bc2b450b80dca82fe1b42b6681":[11,0,1,0,7,7],
-"structyaze_1_1app_1_1Project.html#a1311a5bc2b450b80dca82fe1b42b6681":[12,0,0,0,6,7],
-"structyaze_1_1app_1_1Project.html#a1fc4df458b4799b79350be13248ab889":[11,0,1,0,7,11]
+"structsnes__palette.html":[12,0,5]
 };

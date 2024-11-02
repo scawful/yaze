@@ -731,8 +731,8 @@ $(function(){initNavTree('zeml_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00596" name="l00596"></a><span class="lineno">  596</span>  <span class="keyword">const</span> std::string kBundlePath = <a class="code hl_function" href="namespaceyaze_1_1app_1_1core.html#aed8ea2c93d2742812c27b5eb038a9bec">core::GetBundleResourcePath</a>();</div>
 <div class="line"><a id="l00597" name="l00597"></a><span class="lineno">  597</span>  std::ifstream file(kBundlePath + filename);</div>
 <div class="line"><a id="l00598" name="l00598"></a><span class="lineno">  598</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l00599" name="l00599"></a><span class="lineno">  599</span>  <span class="keyword">const</span> std::string kBundlePath = SDL_GetBasePath();</div>
-<div class="line"><a id="l00600" name="l00600"></a><span class="lineno">  600</span>  std::ifstream file(kPath + filename);</div>
+<div class="line"><a id="l00599" name="l00599"></a><span class="lineno">  599</span>  <span class="keyword">const</span> std::string kBundlePath = <a class="code hl_function" href="namespaceyaze_1_1app_1_1core.html#aed8ea2c93d2742812c27b5eb038a9bec">core::GetBundleResourcePath</a>();</div>
+<div class="line"><a id="l00600" name="l00600"></a><span class="lineno">  600</span>  std::ifstream file(kBundlePath + <span class="stringliteral">&quot;Contents/Resources/layouts/&quot;</span> + filename);</div>
 <div class="line"><a id="l00601" name="l00601"></a><span class="lineno">  601</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00602" name="l00602"></a><span class="lineno">  602</span><span class="preprocessor">#else</span></div>
 <div class="line"><a id="l00603" name="l00603"></a><span class="lineno">  603</span>  std::ifstream file(kPath + filename);</div>
