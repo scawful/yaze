@@ -2,16 +2,10 @@
 #define YAZE_APP_CORE_LABELING_H_
 
 #include <cstdint>
-#include <fstream>
-#include <sstream>
 #include <string>
 #include <unordered_map>
-#include <vector>
 
-#include "absl/status/status.h"
-#include "absl/status/statusor.h"
-
-#include "app/core/constants.h"
+#include "absl/strings/string_view.h"
 
 namespace yaze {
 namespace app {

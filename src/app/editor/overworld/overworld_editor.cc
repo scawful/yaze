@@ -3,6 +3,7 @@
 #include <cmath>
 #include <unordered_map>
 #include <vector>
+#include <future>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"

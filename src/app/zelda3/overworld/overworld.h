@@ -1,8 +1,6 @@
 #ifndef YAZE_APP_DATA_OVERWORLD_H
 #define YAZE_APP_DATA_OVERWORLD_H
 
-#include <future>
-#include <memory>
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
@@ -330,6 +328,7 @@ constexpr int OWHoleArea = 0xDB826;
 constexpr int OWHoleEntrance = 0xDB84C;
 
 class OverworldEntrance : public GameEntity {
+
  public:
   uint16_t map_pos_;
   uchar entrance_id_;
