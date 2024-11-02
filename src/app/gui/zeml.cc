@@ -596,8 +596,8 @@ std::string LoadFile(const std::string& filename) {
   const std::string kBundlePath = core::GetBundleResourcePath();
   std::ifstream file(kBundlePath + filename);
 #else
-  const std::string kBundlePath = SDL_GetBasePath();
-  std::ifstream file(kPath + filename);
+  const std::string kBundlePath = core::GetBundleResourcePath();
+  std::ifstream file(kBundlePath + "Contents/Resources/layouts/" + filename);
 #endif
 #else
   std::ifstream file(kPath + filename);
