@@ -7,26 +7,18 @@ namespace yaze {
 namespace app {
 namespace core {
 
-std::string GetFileExtension(const std::string& filename) {
-  size_t dot = filename.find_last_of(".");
-  if (dot == std::string::npos) {
-    return "";
-  }
-  return filename.substr(dot + 1);
-}
+enum class Platform { kUnknown, kMacOS, kiOS, kWindows, kLinux };
 
-std::string GetFileName(const std::string& filename) {
-  size_t slash = filename.find_last_of("/");
-  if (slash == std::string::npos) {
-    return filename;
-  }
-  return filename.substr(slash + 1);
-}
+std::string GetFileExtension(const std::string &filename);
+std::string GetFileName(const std::string &filename);
+std::string LoadFile(const std::string &filename, Platform platform);
+std::string GetConfigDirectory(Platform platform);
 
-std::string LoadFile(const std::string& filename);
+void SaveFile(const std::string &filename, const std::string &data,
+              Platform platform);
 
-}  // namespace core
-}  // namespace app
-}  // namespace yaze
+} // namespace core
+} // namespace app
+} // namespace yaze
 
-#endif  // YAZE_APP_CORE_UTILS_FILE_UTIL_H
+#endif // YAZE_APP_CORE_UTILS_FILE_UTIL_H

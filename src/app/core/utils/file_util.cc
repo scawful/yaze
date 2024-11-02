@@ -14,12 +14,63 @@ namespace yaze {
 namespace app {
 namespace core {
 
-std::string LoadFile(const std::string& filename) {
+std::string GetFileExtension(const std::string &filename) {
+  size_t dot = filename.find_last_of(".");
+  if (dot == std::string::npos) {
+    return "";
+  }
+  return filename.substr(dot + 1);
+}
+
+std::string GetFileName(const std::string &filename) {
+  size_t slash = filename.find_last_of("/");
+  if (slash == std::string::npos) {
+    return filename;
+  }
+  return filename.substr(slash + 1);
+}
+
+std::string LoadFile(const std::string &filename, Platform platform) {
   std::string contents;
-  // TODO: Load a file based on the platform and add error handling
+  std::string filepath = GetConfigDirectory(platform) + "/" + filename;
+  std::ifstream file(filepath);
+  if (file.is_open()) {
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    contents = buffer.str();
+    file.close();
+  }
   return contents;
 }
 
-}  // namespace core
-}  // namespace app
-}  // namespace yaze
+void SaveFile(const std::string &filename, const std::string &contents,
+              Platform platform) {
+  std::string filepath = GetConfigDirectory(platform) + "/" + filename;
+  std::ofstream file(filepath);
+  if (file.is_open()) {
+    file << contents;
+    file.close();
+  }
+}
+
+std::string GetConfigDirectory(Platform platform) {
+  std::string config_directory = ".yaze";
+  switch (platform) {
+  case Platform::kMacOS:
+    config_directory = "~/Library/Application Support/yaze";
+    break;
+  case Platform::kWindows:
+    config_directory = "~/AppData/Roaming/yaze";
+    break;
+  case Platform::kLinux:
+    config_directory = "~/.config/yaze";
+    break;
+  default:
+    break;
+  }
+  return config_directory;
+}
+
+} // namespace core
+} // namespace app
+} // namespace yaze
