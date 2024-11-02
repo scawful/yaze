@@ -1,20 +1,13 @@
 #include "gfx_group_editor.h"
 
-#include <cmath>
-
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/editor/graphics/palette_editor.h"
-#include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
-#include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
-#include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -26,7 +19,6 @@ using ImGui::BeginGroup;
 using ImGui::BeginTabBar;
 using ImGui::BeginTabItem;
 using ImGui::BeginTable;
-using ImGui::ColorButton;
 using ImGui::EndChild;
 using ImGui::EndGroup;
 using ImGui::EndTabBar;
@@ -38,7 +30,6 @@ using ImGui::IsItemClicked;
 using ImGui::PopID;
 using ImGui::PushID;
 using ImGui::SameLine;
-using ImGui::Selectable;
 using ImGui::Separator;
 using ImGui::SetNextItemWidth;
 using ImGui::TableHeadersRow;

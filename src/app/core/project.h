@@ -1,14 +1,10 @@
 #ifndef YAZE_APP_CORE_PROJECT_H
 #define YAZE_APP_CORE_PROJECT_H
 
-#include <filesystem>
 #include <fstream>
 #include <string>
-#include <string_view>
-#include <vector>
 
 #include "absl/status/status.h"
-#include "absl/strings/match.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
 
@@ -26,7 +22,6 @@ constexpr char kEndOfProjectFile[] = "EndOfProjectFile";
  * user can have different rom file names for a single project and keep track of
  * backups.
  */
-
 struct Project : public core::ExperimentFlags {
   /**
    * @brief Creates a new project.
@@ -109,7 +104,6 @@ struct Project : public core::ExperimentFlags {
   std::string rom_filename_ = "";
   std::string code_folder_ = "";
   std::string labels_filename_ = "";
-  std::vector<std::string> previous_rom_filenames_;
 };
 
 }  // namespace app
