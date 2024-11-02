@@ -5,6 +5,7 @@ set(
   app/core/labeling.cc
   app/emu/emulator.cc
   app/core/message.cc
+  app/core/utils/file_util.cc
 )
 
 if (WIN32 OR MINGW OR UNIX AND NOT APPLE)
@@ -16,7 +17,7 @@ if (WIN32 OR MINGW OR UNIX AND NOT APPLE)
 endif()
 
 if(APPLE)
-    list(APPEND YAZE_APP_CORE_SRC 
+    list(APPEND YAZE_APP_CORE_SRC
       app/core/platform/file_dialog.mm
       app/core/platform/app_delegate.mm
       app/core/platform/font_loader.mm

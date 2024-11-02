@@ -12,18 +12,15 @@
 #include "imgui/imgui_internal.h"
 #include "absl/status/status.h"
 #include "app/core/platform/renderer.h"
+#include "app/core/utils/file_util.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/utils/editor.h"
-#include "app/gui/icons.h"
-#include "app/gui/style.h"
 
 int main(int argc, char **argv);
 
 namespace yaze {
 namespace app {
 namespace core {
-
-enum class Platform { kUnknown, kMacOS, kiOS, kWindows, kLinux };
 
 /**
  * @brief Main controller for the application.
@@ -44,6 +41,7 @@ class Controller : public ExperimentFlags {
   absl::Status CreateSDL_Window();
   absl::Status CreateRenderer();
   absl::Status CreateGuiContext();
+  absl::Status LoadConfigFiles();
   absl::Status LoadFontFamilies() const;
   absl::Status LoadAudioDevice();
 
