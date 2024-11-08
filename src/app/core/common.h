@@ -1,18 +1,14 @@
 #ifndef YAZE_CORE_COMMON_H
 #define YAZE_CORE_COMMON_H
 
-#include <chrono>
 #include <cstdint>
 #include <fstream>
-#include <functional>
 #include <iostream>
 #include <memory>
-#include <stack>
 #include <string>
 
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
-#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {
