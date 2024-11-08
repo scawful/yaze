@@ -26,7 +26,23 @@ TEST_F(MessageTest, LoadMessagesFromRomOk) {
   EXPECT_OK(message_editor_.Initialize());
 }
 
-TEST_F(MessageTest, FindMatchingCharacterOk) {}
+/**
+ * @test Verify that a single message can be loaded from the ROM.
+ *
+ * @details The message is loaded from the ROM and the message is parsed.
+ *
+ * Message #1 at address 0x0E000B
+  RawString:
+    [S:00][3][][:75][:44][CH2I]
+
+  Parsed:
+  [S:##]A
+  [3]give
+  [2]give >[CH2I]
+ */
+TEST_F(MessageTest, VerifySingleMessageFromRomOk) {
+  // TODO - Implement this test
+}
 
 }  // namespace zelda3
 }  // namespace test
