@@ -99,11 +99,13 @@ constexpr int bedPositionResetYHigh = 0x02DE62;
 constexpr int bedSheetPositionX = 0x0480BD;  // short value
 constexpr int bedSheetPositionY = 0x0480B8;  // short value
 
+/**
+ * @brief Dungeon Room Entrance or Spawn Point
+ */
 class RoomEntrance {
  public:
   RoomEntrance() = default;
-
-  RoomEntrance(Rom& rom, uint8_t entrance_id, bool is_spawn_point = false)
+  RoomEntrance(Rom &rom, uint8_t entrance_id, bool is_spawn_point = false)
       : entrance_id_(entrance_id) {
     room_ =
         static_cast<short>((rom[kEntranceRoom + (entrance_id * 2) + 1] << 8) +
@@ -209,7 +211,7 @@ class RoomEntrance {
     }
   }
 
-  absl::Status Save(Rom& rom, int entrance_id, bool is_spawn_point = false) {
+  absl::Status Save(Rom &rom, int entrance_id, bool is_spawn_point = false) {
     if (!is_spawn_point) {
       RETURN_IF_ERROR(
           rom.WriteShort(kEntranceYPosition + (entrance_id * 2), y_position_));
