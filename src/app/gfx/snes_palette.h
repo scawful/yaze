@@ -5,16 +5,14 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-#include <memory>
 #include <vector>
 
-#include "absl/base/casts.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/core/constants.h"
 #include "app/gfx/snes_color.h"
-#include "incl/snes_color.h"
 #include "imgui/imgui.h"
+#include "incl/snes_color.h"
 
 namespace yaze {
 namespace app {
@@ -51,7 +49,7 @@ static constexpr absl::string_view kPaletteGroupNames[] = {
     "sprites_aux3", "dungeon_main",   "ow_mini_map",  "ow_mini_map",
     "3d_object",    "3d_object"};
 
-constexpr const char* kPaletteGroupAddressesKeys[] = {
+constexpr const char *kPaletteGroupAddressesKeys[] = {
     "ow_main",        "ow_aux",       "ow_animated",  "hud",
     "global_sprites", "armors",       "swords",       "shields",
     "sprites_aux1",   "sprites_aux2", "sprites_aux3", "dungeon_main",
@@ -91,7 +89,7 @@ constexpr int CustomAreaSpecificBGASM = 0x140150;
 // 1 byte, not 0 if enabled
 constexpr int kCustomAreaSpecificBGEnabled = 0x140140;
 
-uint32_t GetPaletteAddress(const std::string& group_name, size_t palette_index,
+uint32_t GetPaletteAddress(const std::string &group_name, size_t palette_index,
                            size_t color_index);
 
 /**
@@ -109,27 +107,27 @@ uint32_t GetPaletteAddress(const std::string& group_name, size_t palette_index,
 class SnesPalette {
  public:
   template <typename T>
-  explicit SnesPalette(const std::vector<T>& data) {
-    for (const auto& item : data) {
+  explicit SnesPalette(const std::vector<T> &data) {
+    for (const auto &item : data) {
       colors.emplace_back(SnesColor(item));
     }
   }
 
   SnesPalette() = default;
-  explicit SnesPalette(char* snesPal);
-  explicit SnesPalette(const unsigned char* snes_pal);
-  explicit SnesPalette(const std::vector<ImVec4>&);
-  explicit SnesPalette(const std::vector<snes_color>&);
-  explicit SnesPalette(const std::vector<SnesColor>&);
+  explicit SnesPalette(char *snesPal);
+  explicit SnesPalette(const unsigned char *snes_pal);
+  explicit SnesPalette(const std::vector<ImVec4> &);
+  explicit SnesPalette(const std::vector<snes_color> &);
+  explicit SnesPalette(const std::vector<SnesColor> &);
 
-  void Create(const std::vector<SnesColor>& cols) {
-    for (const auto& each : cols) {
+  void Create(const std::vector<SnesColor> &cols) {
+    for (const auto &each : cols) {
       colors.emplace_back(each);
     }
   }
 
-  void AddColor(const SnesColor& color) { colors.emplace_back(color); }
-  void AddColor(const snes_color& color) { colors.emplace_back(color); }
+  void AddColor(const SnesColor &color) { colors.emplace_back(color); }
+  void AddColor(const snes_color &color) { colors.emplace_back(color); }
   void AddColor(uint16_t color) { colors.emplace_back(color); }
 
   absl::StatusOr<SnesColor> GetColor(int i) const {
@@ -145,7 +143,7 @@ class SnesPalette {
   auto size() const { return colors.size(); }
   auto empty() const { return colors.empty(); }
 
-  SnesColor& operator[](int i) {
+  SnesColor &operator[](int i) {
     if (i > colors.size()) {
       std::cout << "SNESPalette: Index out of bounds" << std::endl;
       return colors[0];
@@ -153,14 +151,14 @@ class SnesPalette {
     return colors[i];
   }
 
-  void operator()(int i, const SnesColor& color) {
+  void operator()(int i, const SnesColor &color) {
     if (i >= colors.size()) {
       std::cout << "SNESPalette: Index out of bounds" << std::endl;
     }
     colors[i] = color;
   }
 
-  void operator()(int i, const ImVec4& color) {
+  void operator()(int i, const ImVec4 &color) {
     if (i >= colors.size()) {
       std::cout << "SNESPalette: Index out of bounds" << std::endl;
       return;
@@ -181,9 +179,9 @@ class SnesPalette {
   std::vector<SnesColor> colors; /**< The colors in the palette. */
 };
 
-SnesPalette ReadPaletteFromRom(int offset, int num_colors, const uint8_t* rom);
+SnesPalette ReadPaletteFromRom(int offset, int num_colors, const uint8_t *rom);
 
-std::array<float, 4> ToFloatArray(const SnesColor& color);
+std::array<float, 4> ToFloatArray(const SnesColor &color);
 
 /**
  * @brief Represents a group of palettes.
@@ -204,7 +202,7 @@ struct PaletteGroup {
   }
 
   void clear() { palettes.clear(); }
-  void SetName(const std::string& name) { name_ = name; }
+  void SetName(const std::string &name) { name_ = name; }
   auto name() const { return name_; }
   auto size() const { return palettes.size(); }
   auto mutable_palette(int i) { return &palettes[i]; }
@@ -218,7 +216,7 @@ struct PaletteGroup {
     return palettes[i];
   }
 
-  const SnesPalette& operator[](int i) const {
+  const SnesPalette &operator[](int i) const {
     if (i > palettes.size()) {
       std::cout << "PaletteGroup: Index out of bounds" << std::endl;
       return palettes[0];
@@ -255,7 +253,7 @@ struct PaletteGroupMap {
   PaletteGroup object_3d;
   PaletteGroup overworld_mini_map;
 
-  auto get_group(const std::string& group_name) {
+  auto get_group(const std::string &group_name) {
     if (group_name == "ow_main") {
       return &overworld_main;
     } else if (group_name == "ow_aux") {
@@ -292,7 +290,7 @@ struct PaletteGroupMap {
   }
 
   template <typename Func>
-  absl::Status for_each(Func&& func) {
+  absl::Status for_each(Func &&func) {
     RETURN_IF_ERROR(func(overworld_aux));
     RETURN_IF_ERROR(func(overworld_animated));
     RETURN_IF_ERROR(func(hud));
@@ -341,13 +339,13 @@ struct PaletteGroupMap {
 };
 
 absl::StatusOr<PaletteGroup> CreatePaletteGroupFromColFile(
-    std::vector<SnesColor>& colors);
+    std::vector<SnesColor> &colors);
 
 /**
  * @brief Take a SNESPalette, divide it into palettes of 8 colors
  */
 absl::StatusOr<PaletteGroup> CreatePaletteGroupFromLargePalette(
-    SnesPalette& palette, int num_colors = 8);
+    SnesPalette &palette, int num_colors = 8);
 
 /**
  * @brief Loads all the palettes for the game.
@@ -358,8 +356,8 @@ absl::StatusOr<PaletteGroup> CreatePaletteGroupFromLargePalette(
  * groups.
  *
  */
-absl::Status LoadAllPalettes(const std::vector<uint8_t>& rom_data,
-                             PaletteGroupMap& groups);
+absl::Status LoadAllPalettes(const std::vector<uint8_t> &rom_data,
+                             PaletteGroupMap &groups);
 
 /**
  * @brief Represents a set of palettes used in a SNES graphics system.
