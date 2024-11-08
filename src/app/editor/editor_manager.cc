@@ -314,8 +314,7 @@ void EditorManager::DrawStatusPopup() {
     Separator();
     NewLine();
     SameLine(128);
-    if (Button("OK", gui::kDefaultModalSize) ||
-        IsKeyPressed(GetKeyIndex(ImGuiKey_Space))) {
+    if (Button("OK", gui::kDefaultModalSize) || IsKeyPressed(ImGuiKey_Space)) {
       show_status_ = false;
       status_ = absl::OkStatus();
     }
@@ -352,7 +351,7 @@ void EditorManager::DrawInfoPopup() {
     Text("ROM Size: %s", core::UppercaseHexLongLong(rom()->size()).c_str());
 
     if (Button("Close", gui::kDefaultModalSize) ||
-        IsKeyPressed(GetKeyIndex(ImGuiKey_Space))) {
+        IsKeyPressed(ImGuiKey_Escape)) {
       rom_info_ = false;
       CloseCurrentPopup();
     }

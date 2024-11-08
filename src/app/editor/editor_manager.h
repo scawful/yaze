@@ -16,8 +16,8 @@
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
-#include "app/editor/system/constant_manager.h"
 #include "app/editor/system/command_manager.h"
+#include "app/editor/system/constant_manager.h"
 #include "app/editor/system/extension_manager.h"
 #include "app/editor/system/settings_editor.h"
 #include "app/emu/emulator.h"
@@ -35,7 +35,7 @@ namespace editor {
  * @brief The EditorManager controls the main editor window and manages the
  * various editor classes.
  *
- * This class inherits from SharedRom, GfxContext, and ExperimentFlags, and
+ * This class inherits from SharedRom and ExperimentFlags, and
  * provides functionality for setting up the screen, updating the editor, and
  * shutting down the editor. It also includes methods for drawing various menus
  * and popups, saving the Rom, and managing editor-specific flags.
@@ -63,7 +63,7 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
   void SetupScreen(std::string filename = "");
   absl::Status Update();
 
-  auto emulator() -> emu::Emulator& { return emulator_; }
+  auto emulator() -> emu::Emulator & { return emulator_; }
   auto quit() { return quit_; }
 
  private:
@@ -80,7 +80,7 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
   void LoadRom();
   void SaveRom();
 
-  void OpenRomOrProject(const std::string& filename);
+  void OpenRomOrProject(const std::string &filename);
   absl::Status OpenProject();
 
   bool quit_ = false;
@@ -94,9 +94,8 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
   absl::Status status_;
 
   ImVector<int> active_tabs_;
-  std::vector<Editor*> active_editors_;
+  std::vector<Editor *> active_editors_;
 
-  core::MessageDispatcher dispatcher_;
   emu::Emulator emulator_;
 
   Project current_project_;
@@ -105,7 +104,7 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
   ExtensionManager extension_manager_;
   yaze_editor_context editor_context_;
 
-  Editor* current_editor_ = nullptr;
+  Editor *current_editor_ = nullptr;
   AssemblyEditor assembly_editor_;
   DungeonEditor dungeon_editor_;
   GraphicsEditor graphics_editor_;
