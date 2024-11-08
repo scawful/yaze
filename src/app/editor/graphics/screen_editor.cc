@@ -248,7 +248,7 @@ absl::Status ScreenEditor::LoadDungeonMapTile16() {
 }
 
 void ScreenEditor::DrawDungeonMapsTabs() {
-  auto current_dungeon = dungeon_maps_[selected_dungeon];
+  auto& current_dungeon = dungeon_maps_[selected_dungeon];
   if (ImGui::BeginTabBar("##DungeonMapTabs")) {
     auto nbr_floors =
         current_dungeon.nbr_of_floor + current_dungeon.nbr_of_basement;
@@ -274,10 +274,10 @@ void ScreenEditor::DrawDungeonMapsTabs() {
             int posY = ((j / 5) * 32);
 
             if (tile16_individual_.count(tile16_id) == 0) {
-              auto tile = tile16_sheet_.GetTile16(tile16_id);
-              std::cout << "Tile16: " << tile16_id << std::endl;
-              Renderer::GetInstance().RenderBitmap(&tile);
-              tile16_individual_[tile16_id] = tile;
+              tile16_individual_[tile16_id] =
+                  tile16_sheet_.GetTile16(tile16_id);
+              Renderer::GetInstance().RenderBitmap(
+                  &tile16_individual_[tile16_id]);
             }
             screen_canvas_.DrawBitmap(tile16_individual_[tile16_id], (posX * 2),
                                       (posY * 2), 4.0f);
@@ -312,6 +312,32 @@ void ScreenEditor::DrawDungeonMapsTabs() {
       &current_dungeon.floor_rooms[floor_number].at(selected_room));
 
   gui::InputHexWord("Boss Room", &current_dungeon.boss_room);
+
+  // Add Floor Button
+  if (ImGui::Button("Add Floor", ImVec2(100, 0)) &&
+      current_dungeon.nbr_of_floor < 8) {
+    current_dungeon.nbr_of_floor++;
+    dungeon_map_labels_[selected_dungeon].emplace_back();
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Remove Floor", ImVec2(100, 0)) &&
+      current_dungeon.nbr_of_floor > 0) {
+    current_dungeon.nbr_of_floor--;
+    dungeon_map_labels_[selected_dungeon].pop_back();
+  }
+
+  // Add Basement Button
+  if (ImGui::Button("Add Basement", ImVec2(100, 0)) &&
+      current_dungeon.nbr_of_basement < 8) {
+    current_dungeon.nbr_of_basement++;
+    dungeon_map_labels_[selected_dungeon].emplace_back();
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Remove Basement", ImVec2(100, 0)) &&
+      current_dungeon.nbr_of_basement > 0) {
+    current_dungeon.nbr_of_basement--;
+    dungeon_map_labels_[selected_dungeon].pop_back();
+  }
 
   if (ImGui::Button("Copy Floor", ImVec2(100, 0))) {
     copy_button_pressed = true;
