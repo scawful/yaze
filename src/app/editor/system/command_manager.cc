@@ -13,7 +13,7 @@ void CommandManager::ShowWhichKey() {
     InitializeDefaults();
   }
 
-  if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Space))) {
+  if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
     ImGui::OpenPopup("WhichKey");
   }
 
@@ -23,7 +23,7 @@ void CommandManager::ShowWhichKey() {
                            ImGuiCond_Always);
   if (ImGui::BeginPopup("WhichKey")) {
     // ESC to close the popup
-    if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
+    if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
       ImGui::CloseCurrentPopup();
     }
 
