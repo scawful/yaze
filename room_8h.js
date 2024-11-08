@@ -1,6 +1,7 @@
 var room_8h =
 [
     [ "yaze::app::zelda3::dungeon::DungeonDestination", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination" ],
+    [ "yaze::app::zelda3::dungeon::Chest", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1Chest.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1Chest" ],
     [ "yaze::app::zelda3::dungeon::ChestData", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData" ],
     [ "yaze::app::zelda3::dungeon::StaircaseRooms", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms" ],
     [ "yaze::app::zelda3::dungeon::Room", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room" ],

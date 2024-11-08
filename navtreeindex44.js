@@ -1,5 +1,9 @@
 var NAVTREEINDEX44 =
 {
+"room__object_8h.html#abe17795abf1adfe947a81911733145daaf44e14d49cd011d1e873d9fe0c4624f1":[13,0,1,0,5,0,7,8,1],
+"room__object_8h.html#abe17795abf1adfe947a81911733145daaf80a4ad87fee7c9fdc19b7769495fdb5":[13,0,1,0,5,0,7,8,0],
+"room__object_8h.html#ac3c0be1a02f8dce7d5bbca92747b4f9c":[13,0,1,0,5,0,7,7],
+"room__object_8h.html#ac3c0be1a02f8dce7d5bbca92747b4f9ca229b7530a186b20aa3e1b33b765f6fe0":[13,0,1,0,5,0,7,7,2],
 "room__object_8h.html#ac3c0be1a02f8dce7d5bbca92747b4f9ca3cad80b7a4e77dcf6f6784b97152b7f7":[13,0,1,0,5,0,7,7,0],
 "room__object_8h.html#ac3c0be1a02f8dce7d5bbca92747b4f9ca5866effe9067ea6ec6e1f64bbaac7ccf":[13,0,1,0,5,0,7,7,1],
 "room__object_8h.html#ac3c0be1a02f8dce7d5bbca92747b4f9ca6f57bc1b568ce04ae1bd006bf286d365":[13,0,1,0,5,0,7,7,3],
@@ -245,9 +249,5 @@ var NAVTREEINDEX44 =
 "structobject__door.html#a9504b5dfc85338fe363ddc8f54e11d9a":[12,0,3,4],
 "structobject__door.html#a9fbf0a35dae74a7e6b7db253170aa8bf":[12,0,3,2],
 "structobject__door.html#ac99a57c1f77364f9f5c9300bdcc1e5fa":[12,0,3,5],
-"structsnes__color.html":[12,0,4],
-"structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4":[12,0,4,2],
-"structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58":[12,0,4,0],
-"structsnes__color.html#abe07ebebd2f735f932b7a7a065506f9f":[12,0,4,1],
-"structsnes__palette.html":[12,0,5]
+"structsnes__color.html":[12,0,4]
 };

@@ -34,6 +34,7 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::CGWSEL", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGWSEL.html", null ],
     [ "yaze::app::gfx::scad_format::CgxHeader", "structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html", null ],
     [ "yaze::app::emu::video::CharacterLocation", "structyaze_1_1app_1_1emu_1_1video_1_1CharacterLocation.html", null ],
+    [ "yaze::app::zelda3::dungeon::Chest", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1Chest.html", null ],
     [ "yaze::app::zelda3::dungeon::ChestData", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData.html", null ],
     [ "yaze::app::emu::Clock", "classyaze_1_1app_1_1emu_1_1Clock.html", [
       [ "yaze::app::emu::ClockImpl", "classyaze_1_1app_1_1emu_1_1ClockImpl.html", null ],

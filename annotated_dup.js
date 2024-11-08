@@ -231,6 +231,7 @@ var annotated_dup =
         ] ],
         [ "zelda3", "namespaceyaze_1_1app_1_1zelda3.html", [
           [ "dungeon", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html", [
+            [ "Chest", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1Chest.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1Chest" ],
             [ "ChestData", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData" ],
             [ "DungeonDestination", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination" ],
             [ "DungeonObjectRenderer", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer" ],
