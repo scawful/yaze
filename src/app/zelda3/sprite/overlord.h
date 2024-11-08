@@ -7,7 +7,7 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
-static const std::string overlordnames[] = {
+static const std::string kOverlordNames[] = {
     "Overlord_SpritePositionTarget",
     "Overlord_AllDirectionMetalBallFactory",
     "Overlord_CascadeMetalBallFactory",

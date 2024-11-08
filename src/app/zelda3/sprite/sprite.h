@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "app/zelda3/common.h"
+#include "app/zelda3/sprite/overlord.h"
 
 namespace yaze {
 namespace app {
@@ -297,7 +298,18 @@ class Sprite : public GameEntity {
     preview_gfx_.resize(64 * 64, 0xFF);
   }
 
-  void InitSprite(const std::vector<uint8_t>& src, uint8_t overworld_map_id,
+  Sprite(uint8_t id, uint8_t x, uint8_t y, uint8_t subtype, uint8_t layer)
+      : id_(id), nx_(x), ny_(y), subtype_(subtype), layer_(layer) {
+    x_ = x;
+    y_ = y;
+    name_ = kSpriteDefaultNames[id];
+    if (((subtype & 0x07) == 0x07) && id > 0 && id <= 0x1A) {
+      name_ = kOverlordNames[id - 1];
+      overlord_ = 1;
+    }
+  }
+
+  void InitSprite(const std::vector<uint8_t> &src, uint8_t overworld_map_id,
                   uint8_t id, uint8_t x, uint8_t y, int map_x, int map_y) {
     current_gfx_ = src;
     overworld_ = true;
@@ -341,11 +353,12 @@ class Sprite : public GameEntity {
   auto layer() const { return layer_; }
   auto subtype() const { return subtype_; }
 
-  auto Width() const { return bounding_box_.w; }
-  auto Height() const { return bounding_box_.h; }
+  auto width() const { return bounding_box_.w; }
+  auto height() const { return bounding_box_.h; }
   auto name() { return name_; }
   auto deleted() const { return deleted_; }
   auto set_deleted(bool deleted) { deleted_ = deleted; }
+  auto set_key_drop(int key) { key_drop_ = key; }
 
  private:
   uint8_t map_id_;
@@ -354,18 +367,18 @@ class Sprite : public GameEntity {
   uint8_t nx_;
   uint8_t ny_;
   uint8_t overlord_ = 0;
-  uint8_t lowerX_;
-  uint8_t lowerY_;
-  uint8_t higherX_;
-  uint8_t higherY_;
+  uint8_t lower_x_ = 32;
+  uint8_t lower_y_ = 32;
+  uint8_t higher_x_ = 0;
+  uint8_t higher_y_ = 0;
 
   int width_ = 16;
   int height_ = 16;
-  int map_x_;
-  int map_y_;
-  int layer_;
-  int subtype_;
-  int key_drop_;
+  int map_x_ = 0;
+  int map_y_ = 0;
+  int layer_ = 0;
+  int subtype_ = 0;
+  int key_drop_ = 0;
 
   bool deleted_ = false;
   bool overworld_;

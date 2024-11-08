@@ -18,10 +18,10 @@ void Sprite::UpdateCoordinates(int map_x, int map_y) {
 }
 
 void Sprite::UpdateBoundaryBox() {
-  lowerX_ = 1;
-  lowerY_ = 1;
-  higherX_ = 15;
-  higherY_ = 15;
+  lower_x_ = 1;
+  lower_y_ = 1;
+  higher_x_ = 15;
+  higher_x_ = 15;
 }
 
 void Sprite::Draw() {
@@ -57,13 +57,13 @@ void Sprite::Draw() {
     }
 
     if (nx_ != x || ny_ != y) {
-      bounding_box_.x = (lowerX_ + (nx_ * 16));
-      bounding_box_.y = (lowerY_ + (ny_ * 16));
+      bounding_box_.x = (lower_x_ + (nx_ * 16));
+      bounding_box_.y = (lower_y_ + (ny_ * 16));
       bounding_box_.w = width_;
       bounding_box_.h = height_;
     } else {
-      bounding_box_.x = (lowerX_ + (x * 16));
-      bounding_box_.y = (lowerY_ + (y * 16));
+      bounding_box_.x = (lower_x_ + (x * 16));
+      bounding_box_.y = (lower_y_ + (y * 16));
       bounding_box_.w = width_;
       bounding_box_.h = height_;
     }
@@ -864,8 +864,8 @@ void Sprite::Draw() {
     DrawSpriteTile((x * 16), (y * 16), 4, 4, 5);
   }
 
-  bounding_box_.x = (lowerX_ + (x * 16));
-  bounding_box_.y = (lowerY_ + (y * 16));
+  bounding_box_.x = (lower_x_ + (x * 16));
+  bounding_box_.y = (lower_y_ + (y * 16));
   bounding_box_.w = width_;
   bounding_box_.h = height_;
 }
