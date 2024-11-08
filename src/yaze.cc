@@ -9,9 +9,7 @@ void yaze_check_version(const char* version) {
   printf("Yaze version: %s\n", version);
   auto version_check = yaze::app::core::CheckVersion(version);
   if (!version_check.ok()) {
-    // Print the error message to the console for a pure C interface.
     printf("%s\n", version_check.status().message().data());
-    // Exit the program if the version check fails.
     exit(1);
   }
   return;
@@ -40,11 +38,9 @@ void yaze_cleanup(yaze_flags* flags) {
   }
 }
 
-yaze_project* yaze_load_project(const char* filename) {
-  yaze_project* project = new yaze_project();
-  project->filename = filename;
-  project->rom = yaze_load_rom(filename);
-  project->overworld = yaze_load_overworld(project->rom);
+yaze_project yaze_load_project(const char* filename) {
+  yaze_project project;
+  project.filepath = filename;
   return project;
 }
 
