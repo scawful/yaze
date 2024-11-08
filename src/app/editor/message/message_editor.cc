@@ -87,6 +87,10 @@ absl::Status MessageEditor::Initialize() {
   *font_gfx_bitmap_.mutable_palette() = color_palette;
 
   for (const auto& each_message : list_of_texts_) {
+    std::cout << "Message #" << each_message.ID << " at address "
+              << core::UppercaseHexLong(each_message.Address) << std::endl;
+    std::cout << "  " << each_message.RawString << std::endl;
+
     // Each string has a [:XX] char encoded
     // The corresponding character is found in CharEncoder unordered_map
     std::string parsed_message = "";
@@ -115,6 +119,7 @@ absl::Status MessageEditor::Initialize() {
         }
       }
     }
+    std::cout << "  > " << parsed_message << std::endl;
     parsed_messages_.push_back(parsed_message);
   }
 
