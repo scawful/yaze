@@ -1,7 +1,5 @@
 var NAVTREEINDEX51 =
 {
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#aff8a41f0d6d8832e56617f2479e9a7dd":[12,0,0,0,3,0,0,1],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html":[11,0,1,0,4,1,1],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html":[12,0,0,0,3,0,1],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a15e796758a2a322bdd05f1a5fd30326f":[11,0,1,0,4,1,1,0],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a15e796758a2a322bdd05f1a5fd30326f":[12,0,0,0,3,0,1,0],
@@ -249,5 +247,7 @@ var NAVTREEINDEX51 =
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData.html#a8bfb670451180593ee329427b5e64e02":[12,0,0,0,5,0,1,3],
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData.html#a99c471a9b4e7ae04a5ab6928474bf382":[11,0,1,0,6,1,1,2],
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData.html#a99c471a9b4e7ae04a5ab6928474bf382":[12,0,0,0,5,0,1,2],
-"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html":[11,0,1,0,6,1,4]
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html":[11,0,1,0,6,1,4],
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html":[12,0,0,0,5,0,4],
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html#ab5cc76455491baaa00ffc98c2943869b":[11,0,1,0,6,1,4,0]
 };

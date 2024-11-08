@@ -1266,8 +1266,8 @@ $(function(){initNavTree('overworld__editor_8cc_source.html',''); initResizable(
 <div class="line"><a id="l01106" name="l01106"></a><span class="lineno"> 1106</span>  <span class="comment">// Render the sprites for each Overworld map</span></div>
 <div class="line"><a id="l01107" name="l01107"></a><span class="lineno"> 1107</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 3; i++)</div>
 <div class="line"><a id="l01108" name="l01108"></a><span class="lineno"> 1108</span>    <span class="keywordflow">for</span> (<span class="keyword">auto</span> <span class="keyword">const</span> &amp;sprite : <a class="code hl_variable" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a8c84cf5179f91884886d5d36d6e1a637">overworld_</a>.<a class="code hl_function" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#ab35c20946cebe1b7a842b76bfa00ff73">sprites</a>(i)) {</div>
-<div class="line"><a id="l01109" name="l01109"></a><span class="lineno"> 1109</span>      <span class="keywordtype">int</span> width = sprite.Width();</div>
-<div class="line"><a id="l01110" name="l01110"></a><span class="lineno"> 1110</span>      <span class="keywordtype">int</span> height = sprite.Height();</div>
+<div class="line"><a id="l01109" name="l01109"></a><span class="lineno"> 1109</span>      <span class="keywordtype">int</span> width = sprite.width();</div>
+<div class="line"><a id="l01110" name="l01110"></a><span class="lineno"> 1110</span>      <span class="keywordtype">int</span> height = sprite.height();</div>
 <div class="line"><a id="l01111" name="l01111"></a><span class="lineno"> 1111</span>      <span class="keywordtype">int</span> depth = 0x40;</div>
 <div class="line"><a id="l01112" name="l01112"></a><span class="lineno"> 1112</span>      <span class="keyword">auto</span> spr_gfx = sprite.PreviewGraphics();</div>
 <div class="line"><a id="l01113" name="l01113"></a><span class="lineno"> 1113</span>      <a class="code hl_variable" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad2f9ccf2715ea7e4f64a50354fbb34d0">sprite_previews_</a>[sprite.id()].Create(width, height, depth, spr_gfx);</div>

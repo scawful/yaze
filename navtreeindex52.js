@@ -1,7 +1,5 @@
 var NAVTREEINDEX52 =
 {
-"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html":[12,0,0,0,5,0,4],
-"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html#ab5cc76455491baaa00ffc98c2943869b":[11,0,1,0,6,1,4,0],
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html#ab5cc76455491baaa00ffc98c2943869b":[12,0,0,0,5,0,4,0],
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html#aec35c0e6961b9e1f5939c143245f6a09":[11,0,1,0,6,1,4,1],
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html#aec35c0e6961b9e1f5939c143245f6a09":[12,0,0,0,5,0,4,1],
@@ -214,9 +212,11 @@ var NAVTREEINDEX52 =
 "structyaze__flags.html#a669fbd0fb3c0128413551092e5ea7efc":[12,0,10,2],
 "structyaze__flags.html#ae08c910aedfa76b3acf54e89a8b4fb83":[12,0,10,0],
 "structyaze__project.html":[12,0,11],
-"structyaze__project.html#a7ed60b0607dbcd6641155f161fd7593f":[12,0,11,0],
-"structyaze__project.html#a84af4b5ab51a85b5903704c0de8e83c9":[12,0,11,1],
-"structyaze__project.html#ad7a63c0a296c1b2d021e002abf114be6":[12,0,11,2],
+"structyaze__project.html#a8ae2f8f736c006c43c1f574ac8a57527":[12,0,11,3],
+"structyaze__project.html#aa01dd899dc23a621e4a4f1de5c6c3722":[12,0,11,0],
+"structyaze__project.html#aa9deca5d69c0a57db8d0f093a9aeb2e2":[12,0,11,4],
+"structyaze__project.html#ab66490373523b4ddeaf85881857022f2":[12,0,11,2],
+"structyaze__project.html#aece42ca37a5482a6207c8dd6cb5956b4":[12,0,11,1],
 "structz3__overworld.html":[12,0,12],
 "structz3__overworld.html#a13da5630932291eaed93b6a173359f74":[12,0,12,1],
 "structz3__overworld.html#a623e0b2387aa861e1db639b56c42b3d2":[12,0,12,0],
