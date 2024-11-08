@@ -97,9 +97,17 @@ class DungeonDestination {
   uint8_t TargetLayer = 0;
 };
 
+struct Chest {
+  uint8_t x = 0;
+  uint8_t y = 0;
+  uint8_t item = 0;
+  bool picker = false;
+  bool big_chest = false;
+};
+
 struct ChestData {
   ChestData() = default;
-  ChestData(uchar i, bool s) : id_(i), size_(s){};
+  ChestData(uchar i, bool s) : id_(i), size_(s) {};
 
   uchar id_;
   bool size_;
@@ -107,12 +115,12 @@ struct ChestData {
 
 struct StaircaseRooms {
   StaircaseRooms() = default;
-  StaircaseRooms(uchar i, uchar r, const char* label)
-      : id_(i), room_(r), label_(label){};
+  StaircaseRooms(uchar i, uchar r, const char *label)
+      : id_(i), room_(r), label_(label) {};
 
   uchar id_;
   uchar room_;
-  const char* label_;
+  const char *label_;
 };
 
 class Room : public SharedRom {
@@ -120,6 +128,7 @@ class Room : public SharedRom {
   Room() = default;
   Room(int room_id) : room_id_(room_id) {}
   ~Room() = default;
+
   void LoadHeader();
   void LoadRoomFromROM();
 
@@ -132,7 +141,7 @@ class Room : public SharedRom {
   void LoadChests();
 
   auto blocks() const { return blocks_; }
-  auto& mutable_blocks() { return blocks_; }
+  auto &mutable_blocks() { return blocks_; }
   auto layer1() const { return background_bmps_[0]; }
   auto layer2() const { return background_bmps_[1]; }
   auto layer3() const { return background_bmps_[2]; }

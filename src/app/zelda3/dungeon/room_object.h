@@ -174,14 +174,14 @@ class RoomObject : public SharedRom {
 
 class Subtype1 : public RoomObject {
  public:
-  bool allBgs;
+  bool all_bgs;
   int tile_count_;
   std::string name;
   Sorting sort;
 
   Subtype1(int16_t id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer,
-           int tileCount)
-      : RoomObject(id, x, y, size, layer), tile_count_(tileCount) {
+           int tile_count)
+      : RoomObject(id, x, y, size, layer), tile_count_(tile_count) {
     auto rom_data = rom()->data();
     int pos = kRoomObjectTileAddress +
               static_cast<int16_t>(
@@ -206,7 +206,7 @@ class Subtype1 : public RoomObject {
 class Subtype2 : public RoomObject {
  public:
   std::string name;
-  bool allBgs;
+  bool all_bgs;
   Sorting sort;
 
   Subtype2(int16_t id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer)
@@ -232,7 +232,7 @@ class Subtype2 : public RoomObject {
 
 class Subtype3 : public RoomObject {
  public:
-  bool allBgs;
+  bool all_bgs;
   std::string name;
   Sorting sort;
 

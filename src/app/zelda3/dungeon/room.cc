@@ -117,7 +117,7 @@ void Room::LoadHeader() {
       std::cout << "Size of Room #" << room_id_ << ": " << std::dec << room_size
                 << " bytes" << std::endl;
     }
-  } catch (const std::exception& e) {
+  } catch (const std::exception &e) {
     std::cout << "Error: " << e.what() << std::endl;
   }
 }
@@ -184,8 +184,8 @@ void Room::LoadRoomFromROM() {
   hpos++;
 
   // Load room objects
-  int objectPointer = core::SnesToPc(room_object_pointer);
-  int room_address = objectPointer + (room_id_ * 3);
+  int object_pointer = core::SnesToPc(room_object_pointer);
+  int room_address = object_pointer + (room_id_ * 3);
   int objects_location = core::SnesToPc(room_address);
 
   // Load sprites
@@ -195,18 +195,18 @@ void Room::LoadRoomFromROM() {
 }
 
 void Room::LoadRoomGraphics(uchar entrance_blockset) {
-  const auto& mainGfx = rom()->main_blockset_ids;
-  const auto& roomGfx = rom()->room_blockset_ids;
-  const auto& spriteGfx = rom()->spriteset_ids;
+  const auto &main_gfx = rom()->main_blockset_ids;
+  const auto &room_gfx = rom()->room_blockset_ids;
+  const auto &sprite_gfx = rom()->spriteset_ids;
   current_gfx16_.reserve(0x4000);
 
   for (int i = 0; i < 8; i++) {
-    blocks_[i] = mainGfx[blockset][i];
+    blocks_[i] = main_gfx[blockset][i];
     if (i >= 6 && i <= 6) {
       // 3-6
       if (entrance_blockset != 0xFF) {
-        if (roomGfx[entrance_blockset][i - 3] != 0) {
-          blocks_[i] = roomGfx[entrance_blockset][i - 3];
+        if (room_gfx[entrance_blockset][i - 3] != 0) {
+          blocks_[i] = room_gfx[entrance_blockset][i - 3];
         }
       }
     }
@@ -217,7 +217,7 @@ void Room::LoadRoomGraphics(uchar entrance_blockset) {
   blocks_[10] = 115 + 6;
   blocks_[11] = 115 + 7;
   for (int i = 0; i < 4; i++) {
-    blocks_[12 + i] = (uchar)(spriteGfx[spriteset + 64][i] + 115);
+    blocks_[12 + i] = (uchar)(sprite_gfx[spriteset + 64][i] + 115);
   }  // 12-16 sprites
 }
 
@@ -276,11 +276,11 @@ void Room::LoadAnimatedGraphics() {
 
 void Room::LoadObjects() {
   auto rom_data = rom()->vector();
-  int objectPointer = (rom_data[room_object_pointer + 2] << 16) +
-                      (rom_data[room_object_pointer + 1] << 8) +
-                      (rom_data[room_object_pointer]);
-  objectPointer = core::SnesToPc(objectPointer);
-  int room_address = objectPointer + (room_id_ * 3);
+  int object_pointer = (rom_data[room_object_pointer + 2] << 16) +
+                       (rom_data[room_object_pointer + 1] << 8) +
+                       (rom_data[room_object_pointer]);
+  object_pointer = core::SnesToPc(object_pointer);
+  int room_address = object_pointer + (room_id_ * 3);
 
   int tile_address = (rom_data[room_address + 2] << 16) +
                      (rom_data[room_address + 1] << 8) + rom_data[room_address];
@@ -388,27 +388,28 @@ void Room::LoadObjects() {
           }
         }
       }
-      /**
+
       if (oid == 0xF99) {
-        if (chests_in_room.size() > 0) {
-          tilesObjects.back().options |= ObjectOption::Chest;
-          chest_list.push_back(
-              Chest(posX, posY, chests_in_room.front().itemIn, false));
-          chests_in_room.erase(chests_in_room.begin());
+        if (chests_in_room_.size() > 0) {
+          tile_objects_.back().set_options(ObjectOption::Chest |
+                                           tile_objects_.back().options());
+          // chest_list_.push_back(
+          //     Chest(posX, posY, chests_in_room_.front().itemIn, false));
+          chests_in_room_.erase(chests_in_room_.begin());
         }
       } else if (oid == 0xFB1) {
-        if (chests_in_room.size() > 0) {
-          tilesObjects.back().options |= ObjectOption::Chest;
-          chest_list.push_back(
-              Chest(posX + 1, posY, chests_in_room.front().itemIn, true));
-          chests_in_room.erase(chests_in_room.begin());
+        if (chests_in_room_.size() > 0) {
+          tile_objects_.back().set_options(ObjectOption::Chest |
+                                           tile_objects_.back().options());
+          // chest_list_.push_back(
+          //     Chest(posX + 1, posY, chests_in_room_.front().item_in, true));
+          chests_in_room_.erase(chests_in_room_.begin());
         }
       }
     } else {
-      tilesObjects.push_back(object_door(static_cast<short>((b2 << 8) + b1), 0,
-                                         0, 0, static_cast<uint8_t>(layer)));
-    }
-    **/
+      // tile_objects_.push_back(object_door(static_cast<short>((b2 << 8) + b1),
+      // 0,
+      //                                   0, 0, static_cast<uint8_t>(layer)));
     }
   }
 }
@@ -435,28 +436,23 @@ void Room::LoadSprites() {
       break;
     }
 
-    Sprite new_sprite;
-    /**
-     * TODO: Implement Sprite constructor for Dungeons
-      (b3, (b2 & 0x1F), (b1 & 0x1F),
-      ((b2 & 0xE0) >> 5) + ((b1 & 0x60) >> 2),
-      (b1 & 0x80) >> 7);
-    */
-    sprites_.emplace_back(new_sprite);
+    sprites_.emplace_back(b3, (b2 & 0x1F), (b1 & 0x1F),
+                          ((b2 & 0xE0) >> 5) + ((b1 & 0x60) >> 2),
+                          (b1 & 0x80) >> 7);
 
     if (sprites_.size() > 1) {
-      Sprite& spr = sprites_.back();
-      Sprite& prevSprite = sprites_[sprites_.size() - 2];
+      Sprite &spr = sprites_.back();
+      Sprite &prevSprite = sprites_[sprites_.size() - 2];
 
       if (spr.id() == 0xE4 && spr.x() == 0x00 && spr.y() == 0x1E &&
           spr.layer() == 1 && spr.subtype() == 0x18) {
-        // prevSprite.keyDrop() = 1;
+        prevSprite.set_key_drop(1);
         sprites_.pop_back();
       }
 
       if (spr.id() == 0xE4 && spr.x() == 0x00 && spr.y() == 0x1D &&
           spr.layer() == 1 && spr.subtype() == 0x18) {
-        // prevSprite.keyDrop() = 2;
+        prevSprite.set_key_drop(2);
         sprites_.pop_back();
       }
     }
@@ -467,12 +463,11 @@ void Room::LoadSprites() {
 
 void Room::LoadChests() {
   auto rom_data = rom()->vector();
-  int cpos = (rom_data[chests_data_pointer1 + 2] << 16) +
-             (rom_data[chests_data_pointer1 + 1] << 8) +
-             (rom_data[chests_data_pointer1]);
-  cpos = core::SnesToPc(cpos);
-  int clength = (rom_data[chests_length_pointer + 1] << 8) +
-                (rom_data[chests_length_pointer]);
+  uint32_t cpos = core::SnesToPc((rom_data[chests_data_pointer1 + 2] << 16) +
+                                 (rom_data[chests_data_pointer1 + 1] << 8) +
+                                 (rom_data[chests_data_pointer1]));
+  size_t clength = (rom_data[chests_length_pointer + 1] << 8) +
+                   (rom_data[chests_length_pointer]);
 
   for (int i = 0; i < clength; i++) {
     if ((((rom_data[cpos + (i * 3) + 1] << 8) + (rom_data[cpos + (i * 3)])) &
@@ -480,8 +475,7 @@ void Room::LoadChests() {
       // There's a chest in that room !
       bool big = false;
       if ((((rom_data[cpos + (i * 3) + 1] << 8) + (rom_data[cpos + (i * 3)])) &
-           0x8000) == 0x8000)  // ?????
-      {
+           0x8000) == 0x8000) {
         big = true;
       }
 
