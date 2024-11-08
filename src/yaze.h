@@ -13,26 +13,12 @@ extern "C" {
 #include "incl/sprite.h"
 
 typedef struct z3_rom z3_rom;
+
 typedef struct yaze_flags yaze_flags;
 typedef struct yaze_project yaze_project;
 
 typedef struct yaze_command_registry yaze_command_registry;
-
-/**
- * @brief Command registry.
- */
-struct yaze_command_registry {
-  void (*register_command)(const char* name, void (*command)(void));
-};
-
 typedef struct yaze_event_dispatcher yaze_event_dispatcher;
-
-/**
- * @brief Event dispatcher.
- */
-struct yaze_event_dispatcher {
-  void (*register_event_hook)(void (*event_hook)(void));
-};
 
 typedef struct yaze_editor_context yaze_editor_context;
 
@@ -75,13 +61,14 @@ void yaze_cleanup(yaze_flags*);
  * @brief Primitive of a Yaze project.
  */
 struct yaze_project {
-  const char* filename;
-
-  z3_rom* rom;
-  z3_overworld* overworld;
+  const char* name;
+  const char* filepath;
+  const char* rom_filename;
+  const char* code_folder;
+  const char* labels_filename;
 };
 
-yaze_project* yaze_load_project(const char* filename);
+yaze_project yaze_load_project(const char* filename);
 
 /**
  * @brief Primitive of a Zelda3 ROM.
@@ -110,6 +97,20 @@ snes_color yaze_get_color_from_paletteset(const z3_rom* rom, int palette_set,
                                           int palette, int color);
 
 z3_overworld* yaze_load_overworld(const z3_rom* rom);
+
+/**
+ * @brief Command registry.
+ */
+struct yaze_command_registry {
+  void (*register_command)(const char* name, void (*command)(void));
+};
+
+/**
+ * @brief Event dispatcher.
+ */
+struct yaze_event_dispatcher {
+  void (*register_event_hook)(void (*event_hook)(void));
+};
 
 #ifdef __cplusplus
 }
