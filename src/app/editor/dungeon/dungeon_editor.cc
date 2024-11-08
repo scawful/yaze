@@ -72,7 +72,7 @@ absl::Status DungeonEditor::Update() {
 absl::Status DungeonEditor::Initialize() {
   auto dungeon_man_pal_group = rom()->palette_group().dungeon_main;
   for (int i = 0; i < 0x100 + 40; i++) {
-    rooms_.emplace_back(zelda3::dungeon::Room(i));
+    rooms_.emplace_back(zelda3::dungeon::Room(/*room_id=*/i));
     rooms_[i].LoadHeader();
     rooms_[i].LoadRoomFromROM();
     if (flags()->kDrawDungeonRoomGraphics) {
