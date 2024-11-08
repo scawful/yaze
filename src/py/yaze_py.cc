@@ -35,9 +35,7 @@ BOOST_PYTHON_MODULE(yaze_py) {
       .def_readwrite("rom", &yaze_flags::rom);
 
   class_<yaze_project>("yaze_project")
-      .def_readonly("filename", &yaze_project::filename)
-      .def_readonly("rom", &yaze_project::rom)
-      .def_readonly("overworld", &yaze_project::overworld);
+    .def_readonly("filename", &yaze_project::filepath);
 
   class_<yaze_editor_context>("yaze_editor_context")
       .def_readonly("project", &yaze_editor_context::project);
