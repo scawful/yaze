@@ -7,9 +7,13 @@ namespace yaze {
 namespace app {
 namespace core {
 
+/**
+ * @brief GetBundleResourcePath returns the path to the bundle resource
+ * directory. Specific to MacOS.
+ */
 std::string GetBundleResourcePath();
 
-}
+}  // namespace core
 }  // namespace app
 }  // namespace yaze
 
