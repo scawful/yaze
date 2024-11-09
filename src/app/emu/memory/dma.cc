@@ -17,23 +17,23 @@ static const int transferLength[8] = {1, 2, 2, 4, 4, 4, 2, 4};
 void Reset(MemoryImpl* memory) {
   auto channel = memory->dma_channels();
   for (int i = 0; i < 8; i++) {
-    channel[i].bAdr = 0xff;
-    channel[i].aAdr = 0xffff;
-    channel[i].aBank = 0xff;
+    channel[i].b_addr = 0xff;
+    channel[i].a_addr = 0xffff;
+    channel[i].a_bank = 0xff;
     channel[i].size = 0xffff;
-    channel[i].indBank = 0xff;
-    channel[i].tableAdr = 0xffff;
-    channel[i].repCount = 0xff;
+    channel[i].ind_bank = 0xff;
+    channel[i].table_addr = 0xffff;
+    channel[i].rep_count = 0xff;
     channel[i].unusedByte = 0xff;
-    channel[i].dmaActive = false;
-    channel[i].hdmaActive = false;
+    channel[i].dma_active = false;
+    channel[i].hdma_active = false;
     channel[i].mode = 7;
     channel[i].fixed = true;
     channel[i].decrement = true;
     channel[i].indirect = true;
-    channel[i].fromB = true;
+    channel[i].from_b = true;
     channel[i].unusedBit = true;
-    channel[i].doTransfer = false;
+    channel[i].do_transfer = false;
     channel[i].terminated = false;
   }
   memory->set_dma_state(0);
@@ -51,20 +51,20 @@ uint8_t Read(MemoryImpl* memory, uint16_t adr) {
       val |= channel[c].decrement << 4;
       val |= channel[c].unusedBit << 5;
       val |= channel[c].indirect << 6;
-      val |= channel[c].fromB << 7;
+      val |= channel[c].from_b << 7;
       return val;
     }
     case 0x1: {
-      return channel[c].bAdr;
+      return channel[c].b_addr;
     }
     case 0x2: {
-      return channel[c].aAdr & 0xff;
+      return channel[c].a_addr & 0xff;
     }
     case 0x3: {
-      return channel[c].aAdr >> 8;
+      return channel[c].a_addr >> 8;
     }
     case 0x4: {
-      return channel[c].aBank;
+      return channel[c].a_bank;
     }
     case 0x5: {
       return channel[c].size & 0xff;
@@ -73,16 +73,16 @@ uint8_t Read(MemoryImpl* memory, uint16_t adr) {
       return channel[c].size >> 8;
     }
     case 0x7: {
-      return channel[c].indBank;
+      return channel[c].ind_bank;
     }
     case 0x8: {
-      return channel[c].tableAdr & 0xff;
+      return channel[c].table_addr & 0xff;
     }
     case 0x9: {
-      return channel[c].tableAdr >> 8;
+      return channel[c].table_addr >> 8;
     }
     case 0xa: {
-      return channel[c].repCount;
+      return channel[c].rep_count;
     }
     case 0xb:
     case 0xf: {
@@ -104,23 +104,23 @@ void Write(MemoryImpl* memory, uint16_t adr, uint8_t val) {
       channel[c].decrement = val & 0x10;
       channel[c].unusedBit = val & 0x20;
       channel[c].indirect = val & 0x40;
-      channel[c].fromB = val & 0x80;
+      channel[c].from_b = val & 0x80;
       break;
     }
     case 0x1: {
-      channel[c].bAdr = val;
+      channel[c].b_addr = val;
       break;
     }
     case 0x2: {
-      channel[c].aAdr = (channel[c].aAdr & 0xff00) | val;
+      channel[c].a_addr = (channel[c].a_addr & 0xff00) | val;
       break;
     }
     case 0x3: {
-      channel[c].aAdr = (channel[c].aAdr & 0xff) | (val << 8);
+      channel[c].a_addr = (channel[c].a_addr & 0xff) | (val << 8);
       break;
     }
     case 0x4: {
-      channel[c].aBank = val;
+      channel[c].a_bank = val;
       break;
     }
     case 0x5: {
@@ -132,19 +132,19 @@ void Write(MemoryImpl* memory, uint16_t adr, uint8_t val) {
       break;
     }
     case 0x7: {
-      channel[c].indBank = val;
+      channel[c].ind_bank = val;
       break;
     }
     case 0x8: {
-      channel[c].tableAdr = (channel[c].tableAdr & 0xff00) | val;
+      channel[c].table_addr = (channel[c].table_addr & 0xff00) | val;
       break;
     }
     case 0x9: {
-      channel[c].tableAdr = (channel[c].tableAdr & 0xff) | (val << 8);
+      channel[c].table_addr = (channel[c].table_addr & 0xff) | (val << 8);
       break;
     }
     case 0xa: {
-      channel[c].repCount = val;
+      channel[c].rep_count = val;
       break;
     }
     case 0xb:
@@ -168,22 +168,22 @@ void DoDma(SNES* snes, MemoryImpl* memory, int cpuCycles) {
   // full transfer overhead
   WaitCycle(snes, memory);
   for (int i = 0; i < 8; i++) {
-    if (!channel[i].dmaActive) continue;
+    if (!channel[i].dma_active) continue;
     // do channel i
     WaitCycle(snes, memory);  // overhead per channel
     int offIndex = 0;
-    while (channel[i].dmaActive) {
+    while (channel[i].dma_active) {
       WaitCycle(snes, memory);
-      TransferByte(snes, memory, channel[i].aAdr, channel[i].aBank,
-                   channel[i].bAdr + bAdrOffsets[channel[i].mode][offIndex++],
-                   channel[i].fromB);
+      TransferByte(snes, memory, channel[i].a_addr, channel[i].a_bank,
+                   channel[i].b_addr + bAdrOffsets[channel[i].mode][offIndex++],
+                   channel[i].from_b);
       offIndex &= 3;
       if (!channel[i].fixed) {
-        channel[i].aAdr += channel[i].decrement ? -1 : 1;
+        channel[i].a_addr += channel[i].decrement ? -1 : 1;
       }
       channel[i].size--;
       if (channel[i].size == 0) {
-        channel[i].dmaActive = false;
+        channel[i].dma_active = false;
       }
     }
   }
@@ -224,8 +224,8 @@ void InitHdma(SNES* snes, MemoryImpl* memory, bool do_sync, int cpu_cycles) {
   bool hdmaEnabled = false;
   // check if a channel is enabled, and do reset
   for (int i = 0; i < 8; i++) {
-    if (channel[i].hdmaActive) hdmaEnabled = true;
-    channel[i].doTransfer = false;
+    if (channel[i].hdma_active) hdmaEnabled = true;
+    channel[i].do_transfer = false;
     channel[i].terminated = false;
   }
   if (!hdmaEnabled) return;
@@ -235,24 +235,24 @@ void InitHdma(SNES* snes, MemoryImpl* memory, bool do_sync, int cpu_cycles) {
   // full transfer overhead
   snes->RunCycles(8);
   for (int i = 0; i < 8; i++) {
-    if (channel[i].hdmaActive) {
+    if (channel[i].hdma_active) {
       // terminate any dma
-      channel[i].dmaActive = false;
+      channel[i].dma_active = false;
       // load address, repCount, and indirect address if needed
       snes->RunCycles(8);
-      channel[i].tableAdr = channel[i].aAdr;
-      channel[i].repCount =
-          snes->Read((channel[i].aBank << 16) | channel[i].tableAdr++);
-      if (channel[i].repCount == 0) channel[i].terminated = true;
+      channel[i].table_addr = channel[i].a_addr;
+      channel[i].rep_count =
+          snes->Read((channel[i].a_bank << 16) | channel[i].table_addr++);
+      if (channel[i].rep_count == 0) channel[i].terminated = true;
       if (channel[i].indirect) {
         snes->RunCycles(8);
         channel[i].size =
-            snes->Read((channel[i].aBank << 16) | channel[i].tableAdr++);
+            snes->Read((channel[i].a_bank << 16) | channel[i].table_addr++);
         snes->RunCycles(8);
         channel[i].size |=
-            snes->Read((channel[i].aBank << 16) | channel[i].tableAdr++) << 8;
+            snes->Read((channel[i].a_bank << 16) | channel[i].table_addr++) << 8;
       }
-      channel[i].doTransfer = true;
+      channel[i].do_transfer = true;
     }
   }
   if (do_sync) snes->SyncCycles(false, cpu_cycles);
@@ -264,7 +264,7 @@ void DoHdma(SNES* snes, MemoryImpl* memory, bool do_sync, int cycles) {
   bool hdmaActive = false;
   int lastActive = 0;
   for (int i = 0; i < 8; i++) {
-    if (channel[i].hdmaActive) {
+    if (channel[i].hdma_active) {
       hdmaActive = true;
       if (!channel[i].terminated) lastActive = i;
     }
@@ -280,20 +280,20 @@ void DoHdma(SNES* snes, MemoryImpl* memory, bool do_sync, int cycles) {
   // do all copies
   for (int i = 0; i < 8; i++) {
     // terminate any dma
-    if (channel[i].hdmaActive) channel[i].dmaActive = false;
-    if (channel[i].hdmaActive && !channel[i].terminated) {
+    if (channel[i].hdma_active) channel[i].dma_active = false;
+    if (channel[i].hdma_active && !channel[i].terminated) {
       // do the hdma
-      if (channel[i].doTransfer) {
+      if (channel[i].do_transfer) {
         for (int j = 0; j < transferLength[channel[i].mode]; j++) {
           snes->RunCycles(8);
           if (channel[i].indirect) {
-            TransferByte(snes, memory, channel[i].size++, channel[i].indBank,
-                         channel[i].bAdr + bAdrOffsets[channel[i].mode][j],
-                         channel[i].fromB);
+            TransferByte(snes, memory, channel[i].size++, channel[i].ind_bank,
+                         channel[i].b_addr + bAdrOffsets[channel[i].mode][j],
+                         channel[i].from_b);
           } else {
-            TransferByte(snes, memory, channel[i].tableAdr++, channel[i].aBank,
-                         channel[i].bAdr + bAdrOffsets[channel[i].mode][j],
-                         channel[i].fromB);
+            TransferByte(snes, memory, channel[i].table_addr++, channel[i].a_bank,
+                         channel[i].b_addr + bAdrOffsets[channel[i].mode][j],
+                         channel[i].from_b);
           }
         }
       }
@@ -301,31 +301,31 @@ void DoHdma(SNES* snes, MemoryImpl* memory, bool do_sync, int cycles) {
   }
   // do all updates
   for (int i = 0; i < 8; i++) {
-    if (channel[i].hdmaActive && !channel[i].terminated) {
-      channel[i].repCount--;
-      channel[i].doTransfer = channel[i].repCount & 0x80;
+    if (channel[i].hdma_active && !channel[i].terminated) {
+      channel[i].rep_count--;
+      channel[i].do_transfer = channel[i].rep_count & 0x80;
       snes->RunCycles(8);
       uint8_t newRepCount =
-          snes->Read((channel[i].aBank << 16) | channel[i].tableAdr);
-      if ((channel[i].repCount & 0x7f) == 0) {
-        channel[i].repCount = newRepCount;
-        channel[i].tableAdr++;
+          snes->Read((channel[i].a_bank << 16) | channel[i].table_addr);
+      if ((channel[i].rep_count & 0x7f) == 0) {
+        channel[i].rep_count = newRepCount;
+        channel[i].table_addr++;
         if (channel[i].indirect) {
-          if (channel[i].repCount == 0 && i == lastActive) {
+          if (channel[i].rep_count == 0 && i == lastActive) {
             // if this is the last active channel, only fetch high, and use 0
             // for low
             channel[i].size = 0;
           } else {
             snes->RunCycles(8);
             channel[i].size =
-                snes->Read((channel[i].aBank << 16) | channel[i].tableAdr++);
+                snes->Read((channel[i].a_bank << 16) | channel[i].table_addr++);
           }
           snes->RunCycles(8);
           channel[i].size |=
-              snes->Read((channel[i].aBank << 16) | channel[i].tableAdr++) << 8;
+              snes->Read((channel[i].a_bank << 16) | channel[i].table_addr++) << 8;
         }
-        if (channel[i].repCount == 0) channel[i].terminated = true;
-        channel[i].doTransfer = true;
+        if (channel[i].rep_count == 0) channel[i].terminated = true;
+        channel[i].do_transfer = true;
       }
     }
   }
@@ -359,9 +359,9 @@ void StartDma(MemoryImpl* memory, uint8_t val, bool hdma) {
   auto channel = memory->dma_channels();
   for (int i = 0; i < 8; i++) {
     if (hdma) {
-      channel[i].hdmaActive = val & (1 << i);
+      channel[i].hdma_active = val & (1 << i);
     } else {
-      channel[i].dmaActive = val & (1 << i);
+      channel[i].dma_active = val & (1 << i);
     }
   }
   if (!hdma) {
