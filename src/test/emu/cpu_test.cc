@@ -5,7 +5,7 @@
 
 #include "app/emu/cpu/clock.h"
 #include "app/emu/cpu/internal/opcodes.h"
-#include "app/emu/debug/asm_parser.h"
+#include "app/emu/memory/asm_parser.h"
 #include "app/emu/memory/memory.h"
 #include "test/mocks/mock_memory.h"
 
