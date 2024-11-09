@@ -1,11 +1,11 @@
 #ifndef YAZE_BASE_DUNGEON_H_
 #define YAZE_BASE_DUNGEON_H_
 
-#include <stdint.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <stdint.h>
 
 struct object_door {
   object_door() = default;
