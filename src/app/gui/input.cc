@@ -45,7 +45,6 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
                                    ImGuiInputTextFlags_CharsScientific)) == 0)
     flags |= InputScalar_DefaultCharsFilter(data_type, format);
   flags |= ImGuiInputTextFlags_AutoSelectAll;
-  flags |= ImGuiInputTextFlags_NoMarkEdited;
 
   bool value_changed = false;
   // if (p_step == NULL) {
@@ -103,8 +102,7 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
   if (!no_step) {
     const ImVec2 backup_frame_padding = style.FramePadding;
     style.FramePadding.x = style.FramePadding.y;
-    ImGuiButtonFlags button_flags =
-        ImGuiButtonFlags_Repeat | ImGuiButtonFlags_DontClosePopups;
+    ImGuiButtonFlags button_flags = ImGuiButtonFlags_PressedOnClick;
     if (flags & ImGuiInputTextFlags_ReadOnly) BeginDisabled();
     SameLine(0, style.ItemInnerSpacing.x);
     if (ButtonEx("-", ImVec2(button_size, button_size), button_flags)) {
