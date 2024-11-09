@@ -10,7 +10,6 @@
 #include "app/core/common.h"
 #include "app/emu/cpu/clock.h"
 #include "app/emu/cpu/internal/opcodes.h"
-#include "app/emu/debug/log.h"
 #include "app/emu/memory/memory.h"
 
 namespace yaze {
@@ -36,7 +35,7 @@ class InstructionEntry {
   std::string instruction;  // Human-readable instruction text
 };
 
-class Cpu : public Loggable, public core::ExperimentFlags {
+class Cpu : public core::ExperimentFlags {
  public:
   explicit Cpu(memory::Memory& mem, Clock& vclock,
                memory::CpuCallbacks& callbacks)

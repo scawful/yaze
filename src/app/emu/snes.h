@@ -10,7 +10,6 @@
 #include "app/emu/audio/spc700.h"
 #include "app/emu/cpu/clock.h"
 #include "app/emu/cpu/cpu.h"
-#include "app/emu/debug/debugger.h"
 #include "app/emu/memory/memory.h"
 #include "app/emu/video/ppu.h"
 #include "app/rom.h"
@@ -80,7 +79,6 @@ class SNES {
  private:
   // Components of the SNES
   ClockImpl clock_;
-  Debugger debugger;
   memory::MemoryImpl memory_;
 
   memory::CpuCallbacks cpu_callbacks_ = {

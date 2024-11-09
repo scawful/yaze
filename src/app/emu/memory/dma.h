@@ -12,27 +12,6 @@ namespace emu {
 namespace memory {
 namespace dma {
 
-typedef struct DmaChannel {
-  uint8_t b_addr;
-  uint16_t a_addr;
-  uint8_t a_bank;
-  uint16_t size;        // also indirect hdma adr
-  uint8_t ind_bank;     // hdma
-  uint16_t table_addr;  // hdma
-  uint8_t rep_count;    // hdma
-  uint8_t unusedByte;
-  bool dma_active;
-  bool hdma_active;
-  uint8_t mode;
-  bool fixed;
-  bool decrement;
-  bool indirect;  // hdma
-  bool from_b;
-  bool unusedBit;
-  bool do_transfer;  // hdma
-  bool terminated;   // hdma
-} DmaChannel;
-
 void Reset(MemoryImpl* memory);
 void HandleDma(SNES* snes, MemoryImpl* memory, int cpu_cycles);
 

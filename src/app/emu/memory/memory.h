@@ -7,7 +7,6 @@
 #include <string>
 #include <vector>
 
-#include "app/emu/debug/log.h"
 #include "app/emu/memory/dma_channel.h"
 
 // LoROM (Mode 20):
@@ -161,7 +160,7 @@ class Memory {
  * system.
  *
  */
-class MemoryImpl : public Memory, public Loggable {
+class MemoryImpl : public Memory {
  public:
   uint32_t romSize;
   uint32_t sramSize;
