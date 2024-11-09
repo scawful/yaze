@@ -1,11 +1,7 @@
 <map id="yaze::app::emu::memory::MemoryImpl" name="yaze::app::emu::memory::MemoryImpl">
-<area shape="rect" id="Node000001" title="Implementation of the Memory interface for emulating memory in a SNES system." alt="" coords="510,63,667,103"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html" title="Memory interface." alt="" coords="253,5,410,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="427,44,510,63,509,68,426,49"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1Loggable.html" title=" " alt="" coords="250,70,414,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="430,80,509,80,509,86,430,86"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1Logger.html" title=" " alt="" coords="5,70,157,96"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="172,80,249,80,249,86,172,86"/>
-<area shape="rect" id="Node000005" href="$structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html" title=" " alt="" coords="253,120,410,161"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="426,117,509,98,510,103,427,122"/>
+<area shape="rect" id="Node000001" title="Implementation of the Memory interface for emulating memory in a SNES system." alt="" coords="96,109,253,150"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html" title="Memory interface." alt="" coords="5,5,163,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,56,159,107,155,110,110,60"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html" title=" " alt="" coords="187,5,344,46"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="240,60,194,110,190,107,236,56"/>
 </map>

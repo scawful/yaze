@@ -18,7 +18,7 @@
 <area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="216,709,289,725,287,730,215,715"/>
 <area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="790,750,967,776"/>
 <area shape="poly" id="edge24_Node000001_Node000012" title=" " alt="" coords="124,711,140,765,169,836,189,873,214,909,243,940,276,966,306,975,360,983,508,993,656,993,711,988,741,981,767,963,790,941,826,888,852,835,867,790,872,792,857,837,831,891,794,944,770,967,743,985,711,993,656,998,508,998,360,988,305,980,273,971,239,944,210,912,185,876,164,839,135,767,119,712"/>
-<area shape="rect" id="Node000014" href="$classyaze_1_1app_1_1core_1_1FileDialogWrapper.html#a854615c364a7e6f35bdfff2235685a23" title=" " alt="" coords="546,829,742,870"/>
+<area shape="rect" id="Node000014" href="$classyaze_1_1app_1_1core_1_1FileDialogWrapper.html#a854615c364a7e6f35bdfff2235685a23" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath." alt="" coords="546,829,742,870"/>
 <area shape="poly" id="edge30_Node000001_Node000014" title=" " alt="" coords="149,710,206,745,276,778,322,791,387,805,531,830,530,835,386,810,321,796,274,783,203,750,146,714"/>
 <area shape="rect" id="Node000015" href="$structyaze_1_1app_1_1Project.html#a44268c81f31bf4c22b5b934541fcdca3" title=" " alt="" coords="584,600,705,641"/>
 <area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="227,674,568,628,568,633,227,679"/>
@@ -36,7 +36,7 @@
 <area shape="poly" id="edge27_Node000001_Node000176" title=" " alt="" coords="121,712,129,791,138,846,152,906,172,969,199,1031,233,1089,276,1140,293,1152,312,1161,310,1165,290,1156,273,1144,229,1092,194,1034,167,971,147,908,133,847,124,792,116,712"/>
 <area shape="rect" id="Node000178" href="$classyaze_1_1app_1_1editor_1_1EditorManager.html#a505fbb77a7804073b2429d7473428d7d" title=" " alt="" coords="560,485,728,526"/>
 <area shape="poly" id="edge28_Node000001_Node000178" title=" " alt="" coords="132,668,189,607,229,575,274,549,342,525,413,510,482,502,545,499,545,505,483,507,414,515,343,530,276,553,232,579,193,611,135,672"/>
-<area shape="rect" id="Node000198" href="$classyaze_1_1app_1_1core_1_1FileDialogWrapper.html#ae315e60d9a6fe353ce3384036deae56a" title=" " alt="" coords="281,1220,492,1261"/>
+<area shape="rect" id="Node000198" href="$classyaze_1_1app_1_1core_1_1FileDialogWrapper.html#ae315e60d9a6fe353ce3384036deae56a" title="ShowOpenFolderDialog opens a file dialog and returns the selected folder path." alt="" coords="281,1220,492,1261"/>
 <area shape="poly" id="edge31_Node000001_Node000198" title=" " alt="" coords="120,712,124,801,132,864,144,933,164,1006,191,1078,229,1146,251,1177,277,1205,280,1209,277,1212,273,1209,247,1180,224,1149,187,1081,159,1008,139,935,126,865,119,801,114,712"/>
 <area shape="rect" id="Node000199" href="$classyaze_1_1app_1_1editor_1_1Editor.html#a1b7f92efb9dd39fd68eae2363c108b1f" title=" " alt="" coords="327,1285,446,1326"/>
 <area shape="poly" id="edge32_Node000001_Node000199" title=" " alt="" coords="123,711,141,826,174,995,196,1082,220,1161,247,1227,262,1252,277,1270,293,1284,313,1293,311,1298,291,1288,273,1274,257,1255,243,1229,215,1163,191,1083,169,996,136,827,118,712"/>

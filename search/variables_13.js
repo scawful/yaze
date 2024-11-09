@@ -3,7 +3,7 @@ var searchData=
   ['t_5floaded_0',['t_loaded',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a10ff77843827d8001fc6493db8fae4b5',1,'yaze::app::zelda3::music::Tracker']]],
   ['t_5fmodf_1',['t_modf',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a1f147632fc221e1b48e6675aab013a12',1,'yaze::app::zelda3::music::Tracker']]],
   ['t_5fnumber_2',['t_number',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a848f346e5c96fdff135b7cb006257313',1,'yaze::app::zelda3::music::Tracker']]],
-  ['tableadr_3',['tableAdr',['../structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a065c7b5dbe669be7d49b3f66c4b4923e',1,'yaze::app::emu::memory::DmaChannel']]],
+  ['table_5faddr_3',['table_addr',['../structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#aa426c8a67721f82d7c883e2e545fc823',1,'yaze::app::emu::memory::DmaChannel']]],
   ['tag1_5f_4',['tag1_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a9c957ca3546d0bb908860029030e060c',1,'yaze::app::zelda3::dungeon::Room']]],
   ['tag2_5f_5',['tag2_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a2d8d8d2fb6509e3b05956b9bd226da13',1,'yaze::app::zelda3::dungeon::Room']]],
   ['target_6',['Target',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html#a9005be6db5bf61379fb45bd0c9b06baa',1,'yaze::app::zelda3::dungeon::DungeonDestination']]],

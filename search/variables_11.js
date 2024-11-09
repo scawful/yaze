@@ -24,7 +24,7 @@ var searchData=
   ['relsz_21',['relsz',['../structyaze_1_1app_1_1zelda3_1_1music_1_1SongSPCBlock.html#a9c783565299e0becaa5f17d0eb05d737',1,'yaze::app::zelda3::music::SongSPCBlock']]],
   ['remapping_22',['remapping',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#aefe451e6ca6c1ed01d19d4c1f1a77f03',1,'yaze::app::emu::video::PpuRegisters::VMAIN']]],
   ['renderer_5f_23',['renderer_',['../classyaze_1_1app_1_1core_1_1Renderer.html#a23c3f3576fb179312094ccff83a76bd3',1,'yaze::app::core::Renderer']]],
-  ['repcount_24',['repCount',['../structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a60ce77139f8f6e99b3648551d0c92835',1,'yaze::app::emu::memory::DmaChannel']]],
+  ['rep_5fcount_24',['rep_count',['../structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a11b89455617455e08426c60df2306058',1,'yaze::app::emu::memory::DmaChannel']]],
   ['requestdelete_25',['RequestDelete',['../structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a4ee25156523b89e757d8f442e2c82408',1,'yaze::app::gui::GfxSheetAssetBrowser']]],
   ['requestsort_26',['RequestSort',['../structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#ac2ab61a7f8e00ecf713e6cbd05909748',1,'yaze::app::gui::GfxSheetAssetBrowser']]],
   ['reserved_27',['reserved',['../structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#a7253113d96cfb463bf1f164b35a055ae',1,'yaze::app::gfx::scad_format::CgxHeader']]],

@@ -51,8 +51,7 @@ var searchData=
   ['loading_5f_48',['loading_',['../classyaze_1_1app_1_1emu_1_1Emulator.html#a7c9e92454030f7fbe1dcbd9dbd40495b',1,'yaze::app::emu::Emulator']]],
   ['log_5f_49',['log_',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ae3be0be62f792f6a4aeccbbcd567a907',1,'yaze::app::emu::audio::Spc700']]],
   ['log_5finstructions_5f_50',['log_instructions_',['../classyaze_1_1app_1_1emu_1_1Cpu.html#acebca66f87dfe28dc6aa6a3da1541a8a',1,'yaze::app::emu::Cpu']]],
-  ['logger_5f_51',['logger_',['../classyaze_1_1app_1_1emu_1_1Loggable.html#ae3a9d001ac766a58a93dbbffe3f759db',1,'yaze::app::emu::Loggable']]],
-  ['lopst_52',['lopst',['../structyaze_1_1app_1_1zelda3_1_1music_1_1Song.html#a863fee8eb28bf2b03c5bbde713f101a2',1,'yaze::app::zelda3::music::Song::lopst'],['../structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaWave.html#a7f8fac0994d744db9938ec93acee0309',1,'yaze::app::zelda3::music::ZeldaWave::lopst']]],
-  ['lower_5fx_5f_53',['lower_x_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a37bbf32903b037488d4ad78b1330cb5b',1,'yaze::app::zelda3::Sprite']]],
-  ['lower_5fy_5f_54',['lower_y_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a43f9fb7f10191d9363f71a5d9ea46577',1,'yaze::app::zelda3::Sprite']]]
+  ['lopst_51',['lopst',['../structyaze_1_1app_1_1zelda3_1_1music_1_1Song.html#a863fee8eb28bf2b03c5bbde713f101a2',1,'yaze::app::zelda3::music::Song::lopst'],['../structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaWave.html#a7f8fac0994d744db9938ec93acee0309',1,'yaze::app::zelda3::music::ZeldaWave::lopst']]],
+  ['lower_5fx_5f_52',['lower_x_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a37bbf32903b037488d4ad78b1330cb5b',1,'yaze::app::zelda3::Sprite']]],
+  ['lower_5fy_5f_53',['lower_y_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a43f9fb7f10191d9363f71a5d9ea46577',1,'yaze::app::zelda3::Sprite']]]
 ];

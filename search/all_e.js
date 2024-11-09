@@ -50,7 +50,7 @@ var searchData=
   ['getid_47',['GetID',['../namespaceyaze_1_1app_1_1gui.html#a7384985f0828445ea12d9da02d92f4ec',1,'yaze::app::gui']]],
   ['getimagefromclipboard_48',['GetImageFromClipboard',['../namespaceyaze_1_1app_1_1core.html#aa3d3837210480bcf7d7260fd40b9bcaf',1,'yaze::app::core']]],
   ['getindexsize_49',['GetIndexSize',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a5adc7eff4a215152b75e0e81c60358c6',1,'yaze::app::emu::Cpu']]],
-  ['getinstance_50',['GetInstance',['../classyaze_1_1app_1_1core_1_1Renderer.html#acd1048086e983ab44d0875b079927bfa',1,'yaze::app::core::Renderer::GetInstance()'],['../classyaze_1_1app_1_1emu_1_1Logger.html#a97351340c6d5b10f47a68144524abe31',1,'yaze::app::emu::Logger::GetInstance()']]],
+  ['getinstance_50',['GetInstance',['../classyaze_1_1app_1_1core_1_1Renderer.html#acd1048086e983ab44d0875b079927bfa',1,'yaze::app::core::Renderer']]],
   ['getinstruction_51',['GetInstruction',['../classyaze_1_1app_1_1emu_1_1InstructionEntry.html#aa15536701eb857bfc8e1f6600e978eec',1,'yaze::app::emu::InstructionEntry']]],
   ['getinstructionlength_52',['GetInstructionLength',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a1cae58175cf9b0e07a365d4e411748e8',1,'yaze::app::emu::Cpu']]],
   ['getinterruptflag_53',['GetInterruptFlag',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a069bd8e9cd5fbdc5571009fd92bc19f3',1,'yaze::app::emu::Cpu']]],

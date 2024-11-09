@@ -9,7 +9,7 @@
 <area shape="rect" id="Node000006" href="$namespaceyaze_1_1app_1_1gui_1_1zeml.html#a056789d5e258e0872015ee1c9dae628a" title="Parse a zeml string." alt="" coords="249,237,379,278"/>
 <area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="145,167,261,227,258,232,143,172"/>
 <area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="276,95,274,85,280,76,294,70,314,68,336,70,348,77,346,81,334,76,314,73,295,75,284,80,279,86,281,93"/>
-<area shape="rect" id="Node000005" href="$namespaceyaze_1_1app_1_1core.html#aed8ea2c93d2742812c27b5eb038a9bec" title=" " alt="" coords="427,148,599,189"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze_1_1app_1_1core.html#aed8ea2c93d2742812c27b5eb038a9bec" title="GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS." alt="" coords="427,148,599,189"/>
 <area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="379,174,411,172,411,177,380,179"/>
 <area shape="rect" id="Node000007" href="$namespaceyaze_1_1app_1_1gui_1_1zeml.html#a805db34a520725f235fdb7d642e343f3" title="Parse a zeml node." alt="" coords="448,237,578,278"/>
 <area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="380,255,432,255,432,260,380,260"/>

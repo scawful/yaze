@@ -31,7 +31,7 @@
 <area shape="poly" id="edge9_Node000007_Node000009" title=" " alt="" coords="732,286,755,302,770,321,778,339,782,375,785,410,791,428,803,447,821,463,843,476,840,480,818,467,799,450,786,431,779,411,776,375,772,340,765,323,752,306,728,290"/>
 <area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1editor_1_1RecentFilesManager.html#a9506c379037bc2bfdc71051c9d8d500e" title=" " alt="" coords="811,316,988,357"/>
 <area shape="poly" id="edge11_Node000007_Node000010" title=" " alt="" coords="729,289,804,309,802,314,727,295"/>
-<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1core_1_1FileDialogWrapper.html#a854615c364a7e6f35bdfff2235685a23" title=" " alt="" coords="801,251,998,291"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1core_1_1FileDialogWrapper.html#a854615c364a7e6f35bdfff2235685a23" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath." alt="" coords="801,251,998,291"/>
 <area shape="poly" id="edge12_Node000007_Node000011" title=" " alt="" coords="730,268,786,268,786,274,730,274"/>
 <area shape="poly" id="edge10_Node000009_Node000009" title=" " alt="" coords="858,486,849,476,854,466,871,460,900,458,931,461,946,468,944,473,930,466,899,463,873,466,858,470,855,476,862,483"/>
 <area shape="poly" id="edge20_Node000012_Node000009" title=" " alt="" coords="483,420,539,431,805,479,804,484,539,436,482,425"/>

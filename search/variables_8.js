@@ -19,7 +19,7 @@ var searchData=
   ['increment_5fmode_16',['increment_mode',['../structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#ad9e3d821b035da5413027615a2b5f3a0',1,'yaze::app::emu::video::VideoPortControl']]],
   ['increment_5frate_17',['increment_rate',['../structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#a05b95b8bfff1c172634780c21e57ae29',1,'yaze::app::emu::video::VideoPortControl']]],
   ['increment_5fsize_18',['increment_size',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#a3e3871c7c22bda5f6ad0e5a15d7dd483',1,'yaze::app::emu::video::PpuRegisters::VMAIN']]],
-  ['indbank_19',['indBank',['../structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a269e45276f12978aa45d942c4f94b88c',1,'yaze::app::emu::memory::DmaChannel']]],
+  ['ind_5fbank_19',['ind_bank',['../structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#ab869ca5b2cf84a936500aa9dc9b049f8',1,'yaze::app::emu::memory::DmaChannel']]],
   ['index_20',['Index',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html#a71607b38bcc957eee162bea627d3e282',1,'yaze::app::zelda3::dungeon::DungeonDestination']]],
   ['index_21',['index',['../structyaze_1_1app_1_1emu_1_1video_1_1Tile.html#a3398a46f69dc283f04b07b0e1aaca545',1,'yaze::app::emu::video::Tile']]],
   ['index_5f_22',['index_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a36bbe66e8eafda0024f8b4752d991730',1,'yaze::app::zelda3::overworld::OverworldMap']]],

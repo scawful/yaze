@@ -1,26 +1,24 @@
 <map id="yaze::test::emu::CpuTest" name="yaze::test::emu::CpuTest">
-<area shape="rect" id="Node000001" title=" " alt="" coords="606,141,767,167"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="606,144,767,170"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="336,5,428,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="444,25,512,42,583,69,636,104,674,139,671,143,632,108,581,74,511,47,443,30"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="444,25,512,43,583,70,636,106,674,141,671,145,632,110,581,75,511,48,443,31"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1AsmParser.html" title=" " alt="" coords="294,55,470,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="463,82,583,113,654,138,652,143,581,118,461,87"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html" title="A mock implementation of the Memory class." alt="" coords="303,104,460,145"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="476,131,606,144,605,149,476,136"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html" title="Memory interface." alt="" coords="14,48,172,89"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="188,69,270,81,295,90,324,101,323,106,293,95,269,86,187,74"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1emu_1_1Cpu.html" title=" " alt="" coords="315,169,449,195"/>
-<area shape="poly" id="edge12_Node000009_Node000005" title=" " alt="" coords="165,93,271,140,295,154,327,166,326,171,293,159,268,145,163,98"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MockClock.html" title="Mock CPU class for testing." alt="" coords="303,230,460,270"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="475,229,581,199,658,165,661,170,583,204,477,234"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1emu_1_1Clock.html" title=" " alt="" coords="21,239,165,264"/>
-<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="181,248,303,248,303,253,181,254"/>
-<area shape="poly" id="edge13_Node000009_Node000007" title=" " alt="" coords="171,232,269,209,331,193,333,198,270,214,172,237"/>
-<area shape="rect" id="Node000008" href="$structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html" title=" " alt="" coords="14,299,172,340"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="187,323,251,324,322,320,397,311,469,295,532,268,590,232,637,195,670,166,674,169,641,199,593,236,535,272,471,300,398,317,323,326,251,329,187,329"/>
-<area shape="poly" id="edge11_Node000009_Node000008" title=" " alt="" coords="178,291,224,271,268,244,280,231,292,216,336,193,338,198,295,220,284,234,271,249,227,275,180,296"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="464,179,582,172,625,165,626,170,582,177,465,185"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1emu_1_1Loggable.html" title=" " alt="" coords="11,185,175,211"/>
-<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="191,190,314,183,314,189,191,195"/>
-<area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="5,120,181,161"/>
-<area shape="poly" id="edge10_Node000009_Node000012" title=" " alt="" coords="196,153,315,170,314,175,195,158"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="461,82,583,114,655,141,653,146,581,119,460,87"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html" title="A mock implementation of the Memory class." alt="" coords="303,170,460,210"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="476,177,605,163,606,168,476,183"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html" title="Memory interface." alt="" coords="14,176,172,217"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="187,192,303,189,303,195,187,197"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1emu_1_1Cpu.html" title=" " alt="" coords="315,235,449,260"/>
+<area shape="poly" id="edge11_Node000009_Node000005" title=" " alt="" coords="188,211,315,233,314,238,187,216"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MockClock.html" title="Mock CPU class for testing." alt="" coords="303,104,460,145"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="476,132,606,146,605,151,476,137"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1emu_1_1Clock.html" title=" " alt="" coords="21,127,165,152"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="180,129,205,128,302,124,303,129,205,133,180,134"/>
+<area shape="poly" id="edge12_Node000009_Node000007" title=" " alt="" coords="157,155,181,162,228,175,248,182,271,195,284,208,295,220,321,232,318,237,292,224,280,211,268,199,245,186,226,180,180,167,156,160"/>
+<area shape="rect" id="Node000008" href="$structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html" title=" " alt="" coords="14,320,172,361"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="187,334,322,319,397,305,469,285,502,273,527,260,581,225,666,168,669,172,583,230,529,264,504,278,471,290,398,310,323,324,187,340"/>
+<area shape="poly" id="edge10_Node000009_Node000008" title=" " alt="" coords="172,313,339,258,340,263,174,318"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="459,228,581,195,653,168,655,173,583,200,460,233"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="5,248,181,289"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="196,259,314,250,314,255,196,264"/>
 </map>

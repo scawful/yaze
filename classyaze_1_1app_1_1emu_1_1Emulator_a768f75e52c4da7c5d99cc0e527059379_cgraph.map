@@ -12,7 +12,7 @@
 <area shape="poly" id="edge11_Node000001_Node000030" title=" " alt="" coords="109,370,285,560,281,563,105,374"/>
 <area shape="rect" id="Node000062" href="$classyaze_1_1app_1_1emu_1_1Emulator.html#abb2362878c817db5de336bdf4dab0710" title=" " alt="" coords="233,867,395,907"/>
 <area shape="poly" id="edge21_Node000001_Node000062" title=" " alt="" coords="99,370,300,851,296,853,94,372"/>
-<area shape="rect" id="Node000067" href="$classyaze_1_1app_1_1core_1_1FileDialogWrapper.html#a854615c364a7e6f35bdfff2235685a23" title=" " alt="" coords="216,932,412,973"/>
+<area shape="rect" id="Node000067" href="$classyaze_1_1app_1_1core_1_1FileDialogWrapper.html#a854615c364a7e6f35bdfff2235685a23" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath." alt="" coords="216,932,412,973"/>
 <area shape="poly" id="edge27_Node000001_Node000067" title=" " alt="" coords="92,371,105,483,130,647,148,732,168,810,191,874,218,917,220,920,217,924,214,921,187,876,163,812,142,733,125,648,100,484,87,372"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a683c5e94e45d1336df9be9ccf9660d9f" title=" " alt="" coords="480,5,622,46"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="387,171,410,156,428,132,434,108,440,83,458,57,464,52,468,56,462,61,445,85,439,109,432,134,414,160,389,175"/>

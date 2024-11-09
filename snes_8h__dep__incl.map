@@ -1,7 +1,7 @@
 <map id="src/app/emu/snes.h" name="src/app/emu/snes.h">
 <area shape="rect" id="Node000001" title=" " alt="" coords="312,5,447,31"/>
-<area shape="rect" id="Node000002" href="$emu_8cc.html" title=" " alt="" coords="48,86,226,112"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="329,39,175,88,173,83,327,34"/>
+<area shape="rect" id="Node000002" href="$emu_8cc.html" title=" " alt="" coords="87,86,226,112"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="332,39,192,88,190,83,330,34"/>
 <area shape="rect" id="Node000003" href="$emulator_8cc.html" title=" " alt="" coords="5,175,170,201"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="349,42,290,81,266,102,240,122,178,154,122,177,120,172,176,149,237,117,262,98,287,77,346,37"/>
 <area shape="rect" id="Node000004" href="$emulator_8h.html" title=" " alt="" coords="301,86,458,112"/>

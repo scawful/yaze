@@ -42,7 +42,7 @@
 <area shape="poly" id="edge11_Node000017_Node000017" title=" " alt="" coords="575,341,568,331,572,321,587,315,612,313,639,316,653,322,651,327,638,321,612,318,589,320,576,325,573,330,580,337"/>
 <area shape="rect" id="Node000029" href="$structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#ae4f699b9de65ca8b9c6f4b392c7619ae" title=" " alt="" coords="541,651,683,691"/>
 <area shape="poly" id="edge17_Node000028_Node000029" title=" " alt="" coords="467,668,526,668,526,674,467,674"/>
-<area shape="rect" id="Node000030" href="$classyaze_1_1app_1_1core_1_1FileDialogWrapper.html#a854615c364a7e6f35bdfff2235685a23" title=" " alt="" coords="514,716,710,757"/>
+<area shape="rect" id="Node000030" href="$classyaze_1_1app_1_1core_1_1FileDialogWrapper.html#a854615c364a7e6f35bdfff2235685a23" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath." alt="" coords="514,716,710,757"/>
 <area shape="poly" id="edge18_Node000028_Node000030" title=" " alt="" coords="467,696,517,709,516,714,466,701"/>
 <area shape="rect" id="Node000032" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a159991fdfabc49642771bfb9d1305e06" title=" " alt="" coords="536,781,689,822"/>
 <area shape="poly" id="edge20_Node000031_Node000032" title=" " alt="" coords="436,758,521,778,519,783,434,763"/>

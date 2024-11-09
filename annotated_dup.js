@@ -179,12 +179,9 @@ var annotated_dup =
           [ "Clock", "classyaze_1_1app_1_1emu_1_1Clock.html", "classyaze_1_1app_1_1emu_1_1Clock" ],
           [ "ClockImpl", "classyaze_1_1app_1_1emu_1_1ClockImpl.html", "classyaze_1_1app_1_1emu_1_1ClockImpl" ],
           [ "Cpu", "classyaze_1_1app_1_1emu_1_1Cpu.html", "classyaze_1_1app_1_1emu_1_1Cpu" ],
-          [ "Debugger", "classyaze_1_1app_1_1emu_1_1Debugger.html", "classyaze_1_1app_1_1emu_1_1Debugger" ],
           [ "Emulator", "classyaze_1_1app_1_1emu_1_1Emulator.html", "classyaze_1_1app_1_1emu_1_1Emulator" ],
           [ "Input", "structyaze_1_1app_1_1emu_1_1Input.html", "structyaze_1_1app_1_1emu_1_1Input" ],
           [ "InstructionEntry", "classyaze_1_1app_1_1emu_1_1InstructionEntry.html", "classyaze_1_1app_1_1emu_1_1InstructionEntry" ],
-          [ "Loggable", "classyaze_1_1app_1_1emu_1_1Loggable.html", "classyaze_1_1app_1_1emu_1_1Loggable" ],
-          [ "Logger", "classyaze_1_1app_1_1emu_1_1Logger.html", "classyaze_1_1app_1_1emu_1_1Logger" ],
           [ "MnemonicMode", "structyaze_1_1app_1_1emu_1_1MnemonicMode.html", "structyaze_1_1app_1_1emu_1_1MnemonicMode" ],
           [ "MnemonicModeHash", "structyaze_1_1app_1_1emu_1_1MnemonicModeHash.html", "structyaze_1_1app_1_1emu_1_1MnemonicModeHash" ],
           [ "SNES", "classyaze_1_1app_1_1emu_1_1SNES.html", "classyaze_1_1app_1_1emu_1_1SNES" ]
@@ -316,6 +313,7 @@ var annotated_dup =
           [ "TestProtocol", "classyaze_1_1test_1_1message_1_1TestProtocol.html", "classyaze_1_1test_1_1message_1_1TestProtocol" ]
         ] ],
         [ "zelda3", "namespaceyaze_1_1test_1_1zelda3.html", [
+          [ "DungeonRoomTest", "classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest.html", "classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest" ],
           [ "MessageTest", "classyaze_1_1test_1_1zelda3_1_1MessageTest.html", "classyaze_1_1test_1_1zelda3_1_1MessageTest" ],
           [ "OverworldTest", "classyaze_1_1test_1_1zelda3_1_1OverworldTest.html", "classyaze_1_1test_1_1zelda3_1_1OverworldTest" ],
           [ "SpriteBuilderTest", "classyaze_1_1test_1_1zelda3_1_1SpriteBuilderTest.html", "classyaze_1_1test_1_1zelda3_1_1SpriteBuilderTest" ]

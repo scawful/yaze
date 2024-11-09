@@ -1,8 +1,8 @@
 var searchData=
 [
   ['a_0',['A',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a0644092dadabeb8d044edce105ba57b2',1,'yaze::app::emu::audio::Spc700::A'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a844ce10d191580998718ee3ec1caef61',1,'yaze::app::emu::Cpu::A']]],
-  ['aadr_1',['aAdr',['../structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a349209e52d75ba695c5bbc57a16ff573',1,'yaze::app::emu::memory::DmaChannel']]],
-  ['abank_2',['aBank',['../structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a8d50909626b686fb5686aa20e77b2703',1,'yaze::app::emu::memory::DmaChannel']]],
+  ['a_5faddr_1',['a_addr',['../structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a7c0455e3cfd56d796e1d20e762c33efe',1,'yaze::app::emu::memory::DmaChannel']]],
+  ['a_5fbank_2',['a_bank',['../structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a06b09e7eccdb40a6ac1c68264fa2c9fc',1,'yaze::app::emu::memory::DmaChannel']]],
   ['about_5f_3',['about_',['../classyaze_1_1app_1_1editor_1_1EditorManager.html#a874a8d3992d4cbb2ff040c6971083a51',1,'yaze::app::editor::EditorManager']]],
   ['access_5ftime_4',['access_time',['../classyaze_1_1app_1_1emu_1_1SNES.html#a7a9e725bf9b84e1c84ee4487209207ec',1,'yaze::app::emu::SNES']]],
   ['accumulatedtime_5',['accumulatedTime',['../classyaze_1_1app_1_1emu_1_1ClockImpl.html#a76d39a1a8524d2305f834262696653bc',1,'yaze::app::emu::ClockImpl']]],

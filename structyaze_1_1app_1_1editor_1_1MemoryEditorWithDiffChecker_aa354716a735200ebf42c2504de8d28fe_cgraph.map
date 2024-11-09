@@ -8,7 +8,7 @@
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="181,154,246,133,270,126,272,131,247,138,183,159"/>
 <area shape="rect" id="Node000029" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="257,172,433,198"/>
 <area shape="poly" id="edge7_Node000001_Node000029" title=" " alt="" coords="199,182,241,182,241,188,199,188"/>
-<area shape="rect" id="Node000030" href="$classyaze_1_1app_1_1core_1_1FileDialogWrapper.html#a854615c364a7e6f35bdfff2235685a23" title=" " alt="" coords="247,222,443,263"/>
+<area shape="rect" id="Node000030" href="$classyaze_1_1app_1_1core_1_1FileDialogWrapper.html#a854615c364a7e6f35bdfff2235685a23" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath." alt="" coords="247,222,443,263"/>
 <area shape="poly" id="edge9_Node000001_Node000030" title=" " alt="" coords="200,205,242,215,240,220,199,210"/>
 <area shape="rect" id="Node000031" href="$classyaze_1_1app_1_1Rom.html#a648c0cee09095aad6aa881fc114a9f5f" title=" " alt="" coords="277,287,413,312"/>
 <area shape="poly" id="edge10_Node000001_Node000031" title=" " alt="" coords="143,211,192,243,248,272,268,279,266,284,246,277,189,247,140,216"/>

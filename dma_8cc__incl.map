@@ -8,10 +8,10 @@
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="86,123,49,141,33,153,20,169,13,185,9,202,11,237,20,272,32,300,27,302,15,273,6,238,4,201,8,183,16,166,29,149,46,136,84,118"/>
 <area shape="rect" id="Node000004" href="$memory_8h.html" title=" " alt="" coords="81,241,262,267"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="143,119,159,167,171,226,165,227,154,168,138,121"/>
-<area shape="rect" id="Node000011" href="$snes_8h.html" title=" " alt="" coords="31,168,144,193"/>
-<area shape="poly" id="edge6_Node000002_Node000011" title=" " alt="" coords="130,121,106,156,102,153,125,118"/>
+<area shape="rect" id="Node000010" href="$snes_8h.html" title=" " alt="" coords="31,168,144,193"/>
+<area shape="poly" id="edge6_Node000002_Node000010" title=" " alt="" coords="130,121,106,156,102,153,125,118"/>
 <area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="151,270,80,309,77,305,148,265"/>
 <area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="184,265,216,302,212,305,180,269"/>
-<area shape="poly" id="edge7_Node000011_Node000003" title=" " alt="" coords="86,194,71,242,54,301,48,299,66,241,81,193"/>
-<area shape="poly" id="edge8_Node000011_Node000004" title=" " alt="" coords="103,192,147,229,144,233,100,196"/>
+<area shape="poly" id="edge7_Node000010_Node000003" title=" " alt="" coords="86,194,71,242,54,301,48,299,66,241,81,193"/>
+<area shape="poly" id="edge8_Node000010_Node000004" title=" " alt="" coords="103,192,147,229,144,233,100,196"/>
 </map>

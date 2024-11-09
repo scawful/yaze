@@ -8,7 +8,7 @@
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="172,184,214,184,214,189,172,189"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1editor_1_1RecentFilesManager.html#a9506c379037bc2bfdc71051c9d8d500e" title=" " alt="" coords="230,224,406,264"/>
 <area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="173,205,220,217,218,222,172,210"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1core_1_1FileDialogWrapper.html#a854615c364a7e6f35bdfff2235685a23" title=" " alt="" coords="220,289,416,330"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1core_1_1FileDialogWrapper.html#a854615c364a7e6f35bdfff2235685a23" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath." alt="" coords="220,289,416,330"/>
 <area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="117,205,164,239,221,273,235,280,233,285,218,278,161,244,114,209"/>
 <area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="280,175,272,165,277,155,292,149,318,147,346,150,360,157,358,161,344,155,318,152,294,154,280,159,278,164,284,172"/>
 </map>

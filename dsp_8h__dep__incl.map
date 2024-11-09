@@ -1,19 +1,15 @@
 <map id="src/app/emu/audio/dsp.h" name="src/app/emu/audio/dsp.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="218,5,382,31"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="130,5,294,31"/>
 <area shape="rect" id="Node000002" href="$apu_8cc.html" title=" " alt="" coords="5,153,176,178"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="269,42,208,81,108,154,104,150,205,77,266,37"/>
-<area shape="rect" id="Node000003" href="$apu_8h.html" title=" " alt="" coords="218,79,382,105"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="302,46,302,79,297,79,297,46"/>
-<area shape="rect" id="Node000021" href="$dsp_8cc.html" title=" " alt="" coords="405,79,576,105"/>
-<area shape="poly" id="edge10_Node000001_Node000021" title=" " alt="" coords="347,34,459,76,457,81,345,39"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="251,113,127,155,125,150,249,108"/>
-<area shape="rect" id="Node000004" href="$debugger_8h.html" title=" " alt="" coords="200,153,400,178"/>
-<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="302,120,302,152,297,152,297,120"/>
-<area shape="rect" id="Node000005" href="$snes_8cc.html" title=" " alt="" coords="322,300,464,326"/>
-<area shape="poly" id="edge8_Node000003_Node000005" title=" " alt="" coords="361,108,399,126,435,151,462,184,476,226,479,240,476,253,465,269,451,282,422,302,419,297,448,278,461,266,471,251,473,239,471,227,458,187,431,155,397,130,359,113"/>
-<area shape="rect" id="Node000006" href="$snes_8h.html" title=" " alt="" coords="326,226,461,252"/>
-<area shape="poly" id="edge9_Node000003_Node000006" title=" " alt="" coords="361,109,391,126,414,151,420,171,418,192,403,227,398,225,413,191,415,172,410,154,387,130,359,113"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="302,193,305,222,315,251,340,278,369,297,366,302,337,282,311,253,300,224,296,194"/>
-<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="329,186,379,224,376,228,326,190"/>
-<area shape="poly" id="edge7_Node000006_Node000005" title=" " alt="" coords="396,267,396,300,390,300,390,267"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,41,144,58,121,81,110,99,102,118,94,153,89,152,97,117,105,96,116,77,141,54,168,36"/>
+<area shape="rect" id="Node000003" href="$apu_8h.html" title=" " alt="" coords="130,79,294,105"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="214,46,214,79,209,79,209,46"/>
+<area shape="rect" id="Node000020" href="$dsp_8cc.html" title=" " alt="" coords="317,79,488,105"/>
+<area shape="poly" id="edge7_Node000001_Node000020" title=" " alt="" coords="259,34,371,76,369,81,257,39"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="179,115,113,154,110,150,177,111"/>
+<area shape="rect" id="Node000004" href="$snes_8cc.html" title=" " alt="" coords="194,226,336,252"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="222,118,241,177,262,225,257,227,236,179,217,120"/>
+<area shape="rect" id="Node000005" href="$snes_8h.html" title=" " alt="" coords="251,153,386,178"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="244,111,302,150,299,154,241,116"/>
+<area shape="poly" id="edge6_Node000005_Node000004" title=" " alt="" coords="303,192,276,227,272,224,298,189"/>
 </map>

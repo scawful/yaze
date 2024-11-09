@@ -34,7 +34,6 @@ var classyaze_1_1app_1_1emu_1_1SNES =
     [ "InitAccessTime", "classyaze_1_1app_1_1emu_1_1SNES.html#a24631987a6d2a24f9179bee38da85f8d", null ],
     [ "access_time", "classyaze_1_1app_1_1emu_1_1SNES.html#a7a9e725bf9b84e1c84ee4487209207ec", null ],
     [ "clock_", "classyaze_1_1app_1_1emu_1_1SNES.html#a530f0c5b5b25846acd2f4cab77c561cb", null ],
-    [ "debugger", "classyaze_1_1app_1_1emu_1_1SNES.html#a28bcfe49c25bd29af1ca192aa8726b24", null ],
     [ "memory_", "classyaze_1_1app_1_1emu_1_1SNES.html#a20f8463c8b4b147536e7c5d170800071", null ],
     [ "cpu_callbacks_", "classyaze_1_1app_1_1emu_1_1SNES.html#a52af3f515c87bba4fa28d646c5967908", null ],
     [ "cpu_", "classyaze_1_1app_1_1emu_1_1SNES.html#ad8d5297f8875eb7fb0fb007f8926fd4c", null ],

@@ -1,5 +1,5 @@
 <map id="yaze::app::gui::zeml::LoadFile" name="yaze::app::gui::zeml::LoadFile">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,5,136,46"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1core.html#aed8ea2c93d2742812c27b5eb038a9bec" title=" " alt="" coords="184,5,356,46"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1core.html#aed8ea2c93d2742812c27b5eb038a9bec" title="GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS." alt="" coords="184,5,356,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,23,168,23,168,28,136,28"/>
 </map>

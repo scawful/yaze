@@ -66,7 +66,6 @@ var hierarchy =
     [ "yaze::app::editor::ConstantManager", "classyaze_1_1app_1_1editor_1_1ConstantManager.html", null ],
     [ "yaze::app::emu::video::CounterIrqNmiRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html", null ],
     [ "yaze::app::emu::memory::CpuCallbacks", "structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html", null ],
-    [ "yaze::app::emu::Debugger", "classyaze_1_1app_1_1emu_1_1Debugger.html", null ],
     [ "yaze::app::editor::DictionaryEntry", "structyaze_1_1app_1_1editor_1_1DictionaryEntry.html", null ],
     [ "yaze::app::emu::memory::DmaChannel", "structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html", null ],
     [ "yaze::app::emu::video::DmaRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html", null ],
@@ -140,12 +139,7 @@ var hierarchy =
     [ "yaze::app::emu::video::JoypadRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1JoypadRegisters.html", null ],
     [ "yaze::app::emu::video::Layer", "structyaze_1_1app_1_1emu_1_1video_1_1Layer.html", null ],
     [ "yaze::app::core::MessageDispatcher::ListenerWithFilter", "structyaze_1_1app_1_1core_1_1MessageDispatcher_1_1ListenerWithFilter.html", null ],
-    [ "yaze::app::emu::Loggable", "classyaze_1_1app_1_1emu_1_1Loggable.html", [
-      [ "yaze::app::emu::Cpu", "classyaze_1_1app_1_1emu_1_1Cpu.html", null ],
-      [ "yaze::app::emu::memory::MemoryImpl", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html", null ]
-    ] ],
     [ "yaze::app::core::Logger", "classyaze_1_1app_1_1core_1_1Logger.html", null ],
-    [ "yaze::app::emu::Logger", "classyaze_1_1app_1_1emu_1_1Logger.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::M7A", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7A.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::M7B", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7B.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::M7C", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7C.html", null ],
@@ -243,6 +237,7 @@ var hierarchy =
       ] ],
       [ "yaze::app::zelda3::overworld::Overworld", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html", null ],
       [ "yaze::app::zelda3::screen::Inventory", "classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html", null ],
+      [ "yaze::test::zelda3::DungeonRoomTest", "classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest.html", null ],
       [ "yaze::test::zelda3::MessageTest", "classyaze_1_1test_1_1zelda3_1_1MessageTest.html", null ],
       [ "yaze::test::zelda3::OverworldTest", "classyaze_1_1test_1_1zelda3_1_1OverworldTest.html", null ]
     ] ],
@@ -276,6 +271,7 @@ var hierarchy =
       [ "yaze::test::emu::PpuTest", "classyaze_1_1test_1_1emu_1_1PpuTest.html", null ],
       [ "yaze::test::emu::Spc700Test", "classyaze_1_1test_1_1emu_1_1Spc700Test.html", null ],
       [ "yaze::test::message::MessageDispatcherTest", "classyaze_1_1test_1_1message_1_1MessageDispatcherTest.html", null ],
+      [ "yaze::test::zelda3::DungeonRoomTest", "classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest.html", null ],
       [ "yaze::test::zelda3::MessageTest", "classyaze_1_1test_1_1zelda3_1_1MessageTest.html", null ],
       [ "yaze::test::zelda3::OverworldTest", "classyaze_1_1test_1_1zelda3_1_1OverworldTest.html", null ],
       [ "yaze::test::zelda3::SpriteBuilderTest", "classyaze_1_1test_1_1zelda3_1_1SpriteBuilderTest.html", null ]
