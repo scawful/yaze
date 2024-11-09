@@ -7,8 +7,6 @@
 #include <string>
 #include <vector>
 
-#include "app/emu/debug/log.h"
-
 namespace yaze {
 namespace app {
 namespace emu {

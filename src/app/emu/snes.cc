@@ -9,7 +9,6 @@
 #include "app/emu/audio/spc700.h"
 #include "app/emu/cpu/clock.h"
 #include "app/emu/cpu/cpu.h"
-#include "app/emu/debug/debugger.h"
 #include "app/emu/memory/dma.h"
 #include "app/emu/memory/memory.h"
 #include "app/emu/video/ppu.h"
