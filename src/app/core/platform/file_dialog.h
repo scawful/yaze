@@ -10,7 +10,16 @@ namespace core {
 
 class FileDialogWrapper {
  public:
+  /**
+   * @brief ShowOpenFileDialog opens a file dialog and returns the selected
+   * filepath.
+   */
   static std::string ShowOpenFileDialog();
+
+  /**
+   * @brief ShowOpenFolderDialog opens a file dialog and returns the selected
+   * folder path.
+   */
   static std::string ShowOpenFolderDialog();
   static std::vector<std::string> GetSubdirectoriesInFolder(
       const std::string& folder_path);
