@@ -54,7 +54,7 @@ void MemoryImpl::Initialize(const std::vector<uint8_t>& romData, bool verbose) {
 }
 
 memory::RomInfo MemoryImpl::ReadRomHeader() {
-  memory::RomInfo romInfo;
+  memory::RomInfo rom_info;
 
   uint32_t offset = GetHeaderOffset();
 
@@ -64,44 +64,44 @@ memory::RomInfo MemoryImpl::ReadRomHeader() {
     title[i] = ReadByte(offset + i);
   }
   title[21] = '\0';  // Null-terminate the string
-  romInfo.title = std::string(title);
+  rom_info.title = std::string(title);
 
   // Read ROM speed and memory map mode
   uint8_t romSpeedAndMapMode = ReadByte(offset + 0x15);
-  romInfo.romSpeed = (memory::RomSpeed)(romSpeedAndMapMode & 0x07);
-  romInfo.bankSize = (memory::BankSize)((romSpeedAndMapMode >> 5) & 0x01);
+  rom_info.romSpeed = (memory::RomSpeed)(romSpeedAndMapMode & 0x07);
+  rom_info.bankSize = (memory::BankSize)((romSpeedAndMapMode >> 5) & 0x01);
 
   // Read ROM type
-  romInfo.romType = (memory::RomType)ReadByte(offset + 0x16);
+  rom_info.romType = (memory::RomType)ReadByte(offset + 0x16);
 
   // Read ROM size
-  romInfo.romSize = (memory::RomSize)ReadByte(offset + 0x17);
+  rom_info.romSize = (memory::RomSize)ReadByte(offset + 0x17);
 
   // Read RAM size
-  romInfo.sramSize = (memory::SramSize)ReadByte(offset + 0x18);
+  rom_info.sramSize = (memory::SramSize)ReadByte(offset + 0x18);
 
   // Read country code
-  romInfo.countryCode = (memory::CountryCode)ReadByte(offset + 0x19);
+  rom_info.countryCode = (memory::CountryCode)ReadByte(offset + 0x19);
 
   // Read license
-  romInfo.license = (memory::License)ReadByte(offset + 0x1A);
+  rom_info.license = (memory::License)ReadByte(offset + 0x1A);
 
   // Read ROM version
-  romInfo.version = ReadByte(offset + 0x1B);
+  rom_info.version = ReadByte(offset + 0x1B);
 
   // Read checksum complement
-  romInfo.checksumComplement = ReadWord(offset + 0x1E);
+  rom_info.checksumComplement = ReadWord(offset + 0x1E);
 
   // Read checksum
-  romInfo.checksum = ReadWord(offset + 0x1C);
+  rom_info.checksum = ReadWord(offset + 0x1C);
 
   // Read NMI VBL vector
-  romInfo.nmiVblVector = ReadWord(offset + 0x3E);
+  rom_info.nmiVblVector = ReadWord(offset + 0x3E);
 
   // Read reset vector
-  romInfo.resetVector = ReadWord(offset + 0x3C);
+  rom_info.resetVector = ReadWord(offset + 0x3C);
 
-  return romInfo;
+  return rom_info;
 }
 
 uint8_t MemoryImpl::cart_read(uint8_t bank, uint16_t adr) {
