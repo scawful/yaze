@@ -466,22 +466,6 @@ void Bitmap::Get8x8Tile(int tile_index, int x, int y,
   }
 }
 
-void Bitmap::Get16x16Tile(int tile_index, int x, int y,
-                          std::vector<uint8_t> &tile_data,
-                          int &tile_data_offset) {
-  int tile_offset = tile_index * (width_ * height_);
-  for (int i = 0; i < 16; i++) {
-    int row_offset = tile_offset + ((i / 8) * (width_ * 8));
-    for (int j = 0; j < 16; j++) {
-      int pixel_offset =
-          row_offset + ((j / 8) * 8) + ((i % 8) * width_) + (j % 8);
-      int pixel_value = data_[pixel_offset];
-      tile_data[tile_data_offset] = pixel_value;
-      tile_data_offset++;
-    }
-  }
-}
-
 void Bitmap::Get16x16Tile(int tile_x, int tile_y,
                           std::vector<uint8_t> &tile_data,
                           int &tile_data_offset) {
@@ -490,7 +474,7 @@ void Bitmap::Get16x16Tile(int tile_x, int tile_y,
       // Calculate the pixel position in the bitmap
       int pixel_x = tile_x + tx;
       int pixel_y = tile_y + ty;
-      int pixel_offset = pixel_y * width_ + pixel_x;
+      int pixel_offset = (pixel_y * width_) + pixel_x;
       int pixel_value = data_[pixel_offset];
 
       // Store the pixel value in the tile data
