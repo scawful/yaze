@@ -4,13 +4,20 @@
 
 #include <cstdint>
 #include <cstring>
+#include <fstream>
 #include <memory>
+#include <sstream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
 #include "app/core/constants.h"
+#include "app/gui/icons.h"
+#include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
 
 namespace yaze {
 namespace app {
@@ -92,6 +99,40 @@ uint32_t ldle2(uint8_t const *const p_arr) { return ldle(p_arr, 2); }
 uint32_t ldle3(uint8_t const *const p_arr) { return ldle(p_arr, 3); }
 
 }  // namespace
+
+std::string UppercaseHexByte(uint8_t byte, bool leading) {
+  if (leading) {
+    std::string result = absl::StrFormat("0x%02X", byte);
+    return result;
+  }
+  std::string result = absl::StrFormat("%02X", byte);
+  return result;
+}
+std::string UppercaseHexWord(uint16_t word, bool leading) {
+  if (leading) {
+    std::string result = absl::StrFormat("0x%04X", word);
+    return result;
+  }
+  std::string result = absl::StrFormat("%04X", word);
+  return result;
+}
+std::string UppercaseHexLong(uint32_t dword) {
+  std::string result = absl::StrFormat("0x%06X", dword);
+  return result;
+}
+std::string UppercaseHexLongLong(uint64_t qword) {
+  std::string result = absl::StrFormat("0x%08X", qword);
+  return result;
+}
+
+bool StringReplace(std::string &str, const std::string &from,
+                   const std::string &to) {
+  size_t start = str.find(from);
+  if (start == std::string::npos) return false;
+
+  str.replace(start, from.length(), to);
+  return true;
+}
 
 std::shared_ptr<ExperimentFlags::Flags> ExperimentFlags::flags_;
 
