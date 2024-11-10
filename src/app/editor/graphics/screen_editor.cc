@@ -503,6 +503,7 @@ void ScreenEditor::LoadBinaryGfx() {
       std::vector<uint8_t> bin_data((std::istreambuf_iterator<char>(file)),
                                     std::istreambuf_iterator<char>());
       auto converted_bin = gfx::SnesTo8bppSheet(bin_data, 4, 4);
+      gfx_bin_data_ = converted_bin;
       tile16_sheet_.clear();
       if (LoadDungeonMapTile16(converted_bin, true).ok()) {
         sheets_.clear();
