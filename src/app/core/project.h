@@ -8,7 +8,6 @@
 
 #include "absl/status/status.h"
 #include "app/core/common.h"
-#include "app/core/constants.h"
 #include "app/core/utils/file_util.h"
 
 namespace yaze {
@@ -27,23 +26,11 @@ constexpr char kEndOfProjectFile[] = "EndOfProjectFile";
  * backups.
  */
 struct Project : public core::ExperimentFlags {
-  /**
-   * @brief Creates a new project.
-   *
-   * @param project_name The name of the project.
-   * @param project_path The path to the project.
-   * @return An absl::Status indicating the success or failure of the project
-   * creation.
-   */
   absl::Status Create(const std::string& project_name) {
     name = project_name;
     project_opened_ = true;
     return absl::OkStatus();
   }
-
-  absl::Status Open(const std::string& project_path);
-  absl::Status Save();
-
   absl::Status CheckForEmptyFields() {
     if (name.empty() || filepath.empty() || rom_filename_.empty() ||
         code_folder_.empty() || labels_filename_.empty()) {
@@ -54,6 +41,8 @@ struct Project : public core::ExperimentFlags {
 
     return absl::OkStatus();
   }
+  absl::Status Open(const std::string &project_path);
+  absl::Status Save();
 
   bool project_opened_ = false;
   std::string name;
