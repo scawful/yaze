@@ -1,11 +1,11 @@
 #ifndef YAZE_BASE_SNES_COLOR_H_
 #define YAZE_BASE_SNES_COLOR_H_
 
-#include <stdint.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <stdint.h>
 
 /**
  * @brief Primitive of 16-bit RGB SNES color.

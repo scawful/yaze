@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#include <stdint.h>
+
 typedef struct z3_overworld z3_overworld;
 typedef struct z3_overworld_map z3_overworld_map;
 
