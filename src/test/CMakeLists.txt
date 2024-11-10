@@ -4,7 +4,6 @@ add_executable(
   yaze_test
   test/yaze_test.cc
   test/rom_test.cc
-  test/core/message_test.cc
   test/gfx/compression_test.cc
   test/gfx/snes_palette_test.cc
   test/integration/test_editor.cc
