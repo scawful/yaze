@@ -57,7 +57,7 @@ var classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld =
     [ "all_tiles_types", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#ad7c4d5ef3f1fdfd7c484c5dac34b66c3", null ],
     [ "mutable_all_tiles_types", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#acb19a11b1d4396f363f11fe33974a5d4", null ],
     [ "FetchLargeMaps", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a7833a69e0cdbd2004285a7a57b1c7bea", null ],
-    [ "GetTile16ForTile32", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a6db61e00b98d2cfae6e8a4938bf63a86", null ],
+    [ "GetTile16ForTile32", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a8aeab903978d89c6d28b718443ab6011", null ],
     [ "AssembleMap32Tiles", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a0a82dba625829d9de8c5cb8f2a51259e", null ],
     [ "AssembleMap16Tiles", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#ae730300a6798373c002a3141a6fcfc9c", null ],
     [ "AssignWorldTiles", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a7a76226d39aa92564ee7b7ca9f8372e7", null ],

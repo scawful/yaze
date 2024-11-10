@@ -120,7 +120,7 @@ var searchData=
   ['kmap32tileblexpanded_117',['kMap32TileBLExpanded',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a276c88881fba7da1a564ca6b6612403e',1,'yaze::app::zelda3::overworld']]],
   ['kmap32tilebr_118',['kMap32TileBR',['../structyaze_1_1app_1_1VersionConstants.html#a386a075f984f4def0a0fecc03eadfcd8',1,'yaze::app::VersionConstants']]],
   ['kmap32tilebrexpanded_119',['kMap32TileBRExpanded',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#abfb6fd36c0a80f7852f86a0df4c5ac65',1,'yaze::app::zelda3::overworld']]],
-  ['kmap32tilecount_120',['kMap32TileCount',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#adb06f580f7e582addd41317f1d48a5ce',1,'yaze::app::zelda3::overworld']]],
+  ['kmap32tilecountexpanded_120',['kMap32TileCountExpanded',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a1410a5088c236f3f9bd01e0f68c7648d',1,'yaze::app::zelda3::overworld']]],
   ['kmap32tileslength_121',['kMap32TilesLength',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a6640a85f8e974175b9f20aae53057bc3',1,'yaze::app::zelda3::overworld']]],
   ['kmap32tiletl_122',['kMap32TileTL',['../structyaze_1_1app_1_1VersionConstants.html#a9db2d97cd99c46ba680a12d343635fb1',1,'yaze::app::VersionConstants']]],
   ['kmap32tiletr_123',['kMap32TileTR',['../structyaze_1_1app_1_1VersionConstants.html#ade6d7e68fbc0605192f5c719d473aabe',1,'yaze::app::VersionConstants']]],

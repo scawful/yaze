@@ -1,5 +1,6 @@
 var NAVTREEINDEX25 =
 {
+"dsp_8cc_source.html":[13,0,1,0,2,0,3],
 "dsp_8h.html":[13,0,1,0,2,0,4],
 "dsp_8h.html#af5ad88c1151738c18f9d1da9993f8a71":[13,0,1,0,2,0,4,2],
 "dsp_8h_source.html":[13,0,1,0,2,0,4],
@@ -248,6 +249,5 @@ var NAVTREEINDEX25 =
 "gfx__group__editor_8h.html":[13,0,1,0,1,2,1],
 "gfx__group__editor_8h_source.html":[13,0,1,0,1,2,1],
 "globals.html":[13,1,0],
-"globals.html":[13,1,0,0],
-"globals_b.html":[13,1,0,1]
+"globals.html":[13,1,0,0]
 };

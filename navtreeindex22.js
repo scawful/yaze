@@ -1,5 +1,6 @@
 var NAVTREEINDEX22 =
 {
+"classyaze_1_1test_1_1emu_1_1PpuTest.html#a7c8064c7c0593894551271947a5d0b56":[12,0,0,2,0,3,0],
 "classyaze_1_1test_1_1emu_1_1PpuTest.html#a8e354795f57256aeae6347783adcac52":[11,0,1,2,0,3,3],
 "classyaze_1_1test_1_1emu_1_1PpuTest.html#a8e354795f57256aeae6347783adcac52":[12,0,0,2,0,3,3],
 "classyaze_1_1test_1_1emu_1_1Spc700Test.html":[11,0,1,2,0,4],
@@ -248,6 +249,5 @@ var NAVTREEINDEX22 =
 "compression_8h.html#ab1a2b7e8919a316888cef2f9dd30318b":[13,0,1,0,3,3,65],
 "compression_8h.html#ab38fd85b5bab43edf01facb52cfcf3a9":[13,0,1,0,3,3,36],
 "compression_8h.html#ab3d49b0d0ddf4ea0f89f7e5f1aefdeb8":[13,0,1,0,3,3,44],
-"compression_8h.html#ab489a08c731f0c501bc54a64a7a95554":[13,0,1,0,3,3,70],
-"compression_8h.html#ab8452f0e53d55ed76cd1687c072a85b4":[13,0,1,0,3,3,17]
+"compression_8h.html#ab489a08c731f0c501bc54a64a7a95554":[13,0,1,0,3,3,70]
 };

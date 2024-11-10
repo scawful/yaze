@@ -1,5 +1,6 @@
 var NAVTREEINDEX36 =
 {
+"namespacemembers_w.html":[11,1,0,20],
 "namespacemembers_z.html":[11,1,0,21],
 "namespaces.html":[11,0],
 "namespaceyaze.html":[11,0,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX36 =
 "namespaceyaze_1_1app_1_1emu_1_1audio.html#af5ad88c1151738c18f9d1da9993f8a71":[11,0,1,0,3,2,9],
 "namespaceyaze_1_1app_1_1emu_1_1memory.html":[11,0,1,0,3,3],
 "namespaceyaze_1_1app_1_1emu_1_1memory.html#a19348b7f6e5ed926e23abcaab49d6292":[11,0,1,0,3,3,10],
-"namespaceyaze_1_1app_1_1emu_1_1memory.html#a4325dc93396259dd574f1198e94a11ef":[11,0,1,0,3,3,7],
-"namespaceyaze_1_1app_1_1emu_1_1memory.html#a5f9f7302e888aafc8ef9cd0d6697b689":[11,0,1,0,3,3,12]
+"namespaceyaze_1_1app_1_1emu_1_1memory.html#a4325dc93396259dd574f1198e94a11ef":[11,0,1,0,3,3,7]
 };

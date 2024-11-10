@@ -1,5 +1,7 @@
 var NAVTREEINDEX44 =
 {
+"structyaze_1_1app_1_1Project.html#a38ee1a624e82d5504dde88babf26c4a1":[11,0,1,0,7,6],
+"structyaze_1_1app_1_1Project.html#a38ee1a624e82d5504dde88babf26c4a1":[12,0,0,0,6,6],
 "structyaze_1_1app_1_1Project.html#a44268c81f31bf4c22b5b934541fcdca3":[11,0,1,0,7,2],
 "structyaze_1_1app_1_1Project.html#a44268c81f31bf4c22b5b934541fcdca3":[12,0,0,0,6,2],
 "structyaze_1_1app_1_1Project.html#a5212c318cd29ee7939c840e1a0bd9886":[11,0,1,0,7,10],
@@ -247,7 +249,5 @@ var NAVTREEINDEX44 =
 "structyaze_1_1app_1_1editor_1_1MessageData.html#ad0d4ff734d64302b8941258d1c2e95a3":[11,0,1,0,2,24,5],
 "structyaze_1_1app_1_1editor_1_1MessageData.html#ad0d4ff734d64302b8941258d1c2e95a3":[12,0,0,0,1,19,5],
 "structyaze_1_1app_1_1editor_1_1MessageData.html#ad9cb7d827cf862bca6656c9566dd17e5":[11,0,1,0,2,24,4],
-"structyaze_1_1app_1_1editor_1_1MessageData.html#ad9cb7d827cf862bca6656c9566dd17e5":[12,0,0,0,1,19,4],
-"structyaze_1_1app_1_1editor_1_1MessageData.html#ae9eb7c736353201b5a91d30427ffca40":[11,0,1,0,2,24,1],
-"structyaze_1_1app_1_1editor_1_1MessageData.html#ae9eb7c736353201b5a91d30427ffca40":[12,0,0,0,1,19,1]
+"structyaze_1_1app_1_1editor_1_1MessageData.html#ad9cb7d827cf862bca6656c9566dd17e5":[12,0,0,0,1,19,4]
 };
