@@ -66,6 +66,7 @@ class ScreenEditor : public SharedRom, public Editor {
   absl::Status LoadDungeonMaps();
   absl::Status LoadDungeonMapTile16(const std::vector<uint8_t>& gfx_data,
                                     bool bin_mode = false);
+  absl::Status SaveDungeonMapTile16();
   void DrawDungeonMapsTabs();
   void DrawDungeonMapsEditor();
 
@@ -88,13 +89,16 @@ class ScreenEditor : public SharedRom, public Editor {
   std::unordered_map<int, gfx::Bitmap> tile16_individual_;
   std::vector<zelda3::screen::DungeonMap> dungeon_maps_;
   std::vector<std::vector<std::array<std::string, 25>>> dungeon_map_labels_;
+  std::array<uint16_t, 4> current_tile16_data_;
 
   absl::Status status_;
 
   gfx::SnesPalette palette_;
   gfx::BitmapTable sheets_;
   gfx::Tilesheet tile16_sheet_;
+  gfx::InternalTile16 current_tile16_info;
 
+  gui::Canvas current_tile_canvas_{"##CurrentTileCanvas"};
   gui::Canvas screen_canvas_;
   gui::Canvas tilesheet_canvas_;
   gui::Canvas tilemap_canvas_;

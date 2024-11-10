@@ -251,6 +251,33 @@ absl::Status ScreenEditor::LoadDungeonMapTile16(
   return absl::OkStatus();
 }
 
+absl::Status ScreenEditor::SaveDungeonMapTile16() {
+  for (int i = 0; i < 186; i++) {
+    int addr = zelda3::screen::kDungeonMapTile16;
+    if (rom()->data()[zelda3::screen::kDungeonMapExpCheck] != 0xB9) {
+      addr = zelda3::screen::kDungeonMapTile16Expanded;
+    }
+
+    gfx::TileInfo t1 = tile16_sheet_.tile_info()[i].tiles[0];
+    gfx::TileInfo t2 = tile16_sheet_.tile_info()[i].tiles[1];
+    gfx::TileInfo t3 = tile16_sheet_.tile_info()[i].tiles[2];
+    gfx::TileInfo t4 = tile16_sheet_.tile_info()[i].tiles[3];
+
+    auto tl = gfx::TileInfoToWord(t1);
+    RETURN_IF_ERROR(rom()->WriteWord(addr + (i * 8), tl));
+
+    auto tr = gfx::TileInfoToWord(t2);
+    RETURN_IF_ERROR(rom()->WriteWord(addr + 2 + (i * 8), tr));
+
+    auto bl = gfx::TileInfoToWord(t3);
+    RETURN_IF_ERROR(rom()->WriteWord(addr + 4 + (i * 8), bl));
+
+    auto br = gfx::TileInfoToWord(t4);
+    RETURN_IF_ERROR(rom()->WriteWord(addr + 6 + (i * 8), br));
+  }
+  return absl::OkStatus();
+}
+
 void ScreenEditor::DrawDungeonMapsTabs() {
   auto& current_dungeon = dungeon_maps_[selected_dungeon];
   if (ImGui::BeginTabBar("##DungeonMapTabs")) {
@@ -416,12 +443,40 @@ void ScreenEditor::DrawDungeonMapsEditor() {
       if (!tilesheet_canvas_.points().empty()) {
         selected_tile16_ = tilesheet_canvas_.points().front().x / 32 +
                            (tilesheet_canvas_.points().front().y / 32) * 16;
+        current_tile16_info = tile16_sheet_.tile_info().at(selected_tile16_);
+
         // Draw the selected tile
         if (!screen_canvas_.points().empty()) {
           dungeon_maps_[selected_dungeon]
               .floor_gfx[floor_number][selected_room] = selected_tile16_;
           tilesheet_canvas_.mutable_points()->clear();
         }
+      }
+
+      ImGui::Separator();
+      current_tile_canvas_.DrawBackground(ImVec2(64 * 2 + 2, 64 * 2 + 4));
+      current_tile_canvas_.DrawContextMenu();
+      current_tile_canvas_.DrawBitmap(tile16_individual_[selected_tile16_], 2,
+                                      4.0f);
+      current_tile_canvas_.DrawGrid(16.f);
+      current_tile_canvas_.DrawOverlay();
+
+      static bool modified = false;
+      modified |= gui::InputTileInfo("TL", &current_tile16_info.tiles[0]);
+      ImGui::SameLine();
+      modified |= gui::InputTileInfo("TR", &current_tile16_info.tiles[1]);
+      modified |= gui::InputTileInfo("BL", &current_tile16_info.tiles[2]);
+      ImGui::SameLine();
+      modified |= gui::InputTileInfo("BR", &current_tile16_info.tiles[3]);
+
+      if (modified) {
+        tile16_sheet_.ModifyTile16(
+            rom()->graphics_buffer(), current_tile16_info.tiles[0],
+            current_tile16_info.tiles[1], current_tile16_info.tiles[2],
+            current_tile16_info.tiles[3], selected_tile16_, 212);
+        Renderer::GetInstance().RenderBitmap(
+            &tile16_individual_[selected_tile16_]);
+        modified = false;
       }
     }
     ImGui::EndChild();

@@ -1,13 +1,12 @@
 #ifndef YAZE_GUI_CANVAS_H
 #define YAZE_GUI_CANVAS_H
 
-#include "imgui/imgui.h"
-
 #include <cmath>
 #include <string>
 
 #include "app/gfx/bitmap.h"
 #include "app/rom.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {
@@ -36,6 +35,9 @@ enum class CanvasGridSize { k8x8, k16x16, k32x32, k64x64 };
 class Canvas : public SharedRom {
  public:
   Canvas() = default;
+  explicit Canvas(const std::string& id) : canvas_id_(id) {
+    context_id_ = id + "Context";
+  }
   explicit Canvas(const std::string& id, ImVec2 canvas_size)
       : canvas_id_(id), custom_canvas_size_(true), canvas_sz_(canvas_size) {
     context_id_ = id + "Context";
