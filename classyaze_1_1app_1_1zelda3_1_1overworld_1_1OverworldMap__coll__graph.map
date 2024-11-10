@@ -6,8 +6,8 @@
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="565,95,727,110,726,115,565,100"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="20,5,195,46"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="211,39,385,68,442,79,442,84,384,74,210,45"/>
-<area shape="rect" id="Node000005" href="$structyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="24,71,191,111"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="206,88,442,88,442,94,206,94"/>
+<area shape="rect" id="Node000005" href="$structyaze_1_1app_1_1ResourceLabelManager.html" title=" " alt="" coords="24,71,191,111"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="207,88,442,88,442,94,207,94"/>
 <area shape="rect" id="Node000006" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="5,136,210,161"/>
 <area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="225,131,384,109,441,99,442,104,385,114,225,137"/>
 <area shape="rect" id="Node000008" href="$structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html" title="Overworld map tile32 data." alt="" coords="434,128,558,169"/>

@@ -55,7 +55,7 @@ var searchData=
   ['reset_52',['reset',['../classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#aba918304c71c8f4f5619ed20da96ed0d',1,'yaze::app::emu::audio::AudioRam::reset()'],['../classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#a9aa26b544ec73e15f27c57ccdddbd173',1,'yaze::app::emu::audio::AudioRamImpl::reset()']]],
   ['resetaccumulatedtime_53',['ResetAccumulatedTime',['../classyaze_1_1app_1_1emu_1_1Clock.html#ae6575e0403c9f6567e6e125f13349975',1,'yaze::app::emu::Clock::ResetAccumulatedTime()'],['../classyaze_1_1app_1_1emu_1_1ClockImpl.html#a517a1f69637e9793ad6929f10078a24d',1,'yaze::app::emu::ClockImpl::ResetAccumulatedTime()']]],
   ['resetcolortooriginal_54',['ResetColorToOriginal',['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a18e4b234d6b6a7d8d2ea8fa7c236415a',1,'yaze::app::editor::PaletteEditor']]],
-  ['resource_5flabel_55',['resource_label',['../classyaze_1_1app_1_1Rom.html#a4e1d9a909f3d6875aa433134e71f1a33',1,'yaze::app::Rom']]],
+  ['resource_5flabel_55',['resource_label',['../classyaze_1_1app_1_1Rom.html#a2fd62fb51a2820f09841c36636a7c496',1,'yaze::app::Rom']]],
   ['restoreoriginalcolor_56',['RestoreOriginalColor',['../classyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html#a1ca79819b43f44521d8c74b51d8618c4',1,'yaze::app::editor::palette_internal::PaletteEditorHistory']]],
   ['ret_57',['RET',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a67afe81a443d4c1b4525a41cf445461c',1,'yaze::app::emu::audio::Spc700']]],
   ['reti_58',['RETI',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a3966debfcc73a78eadcf276cf3965118',1,'yaze::app::emu::audio::Spc700']]],

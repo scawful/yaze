@@ -1,9 +1,9 @@
 var structyaze_1_1app_1_1Project =
 [
     [ "Create", "structyaze_1_1app_1_1Project.html#a9041849c10198cbdd0d4c7c0f1122097", null ],
+    [ "CheckForEmptyFields", "structyaze_1_1app_1_1Project.html#a87cdf057e929273012305fcda08adb87", null ],
     [ "Open", "structyaze_1_1app_1_1Project.html#a44268c81f31bf4c22b5b934541fcdca3", null ],
     [ "Save", "structyaze_1_1app_1_1Project.html#aa68ec754ecc85e2ec52a375a55746fab", null ],
-    [ "CheckForEmptyFields", "structyaze_1_1app_1_1Project.html#a87cdf057e929273012305fcda08adb87", null ],
     [ "project_opened_", "structyaze_1_1app_1_1Project.html#aaed58f3c0aa7f90c5221c36972c41d9f", null ],
     [ "name", "structyaze_1_1app_1_1Project.html#a113a64ce6f082a98598e821feaeaebfe", null ],
     [ "flags", "structyaze_1_1app_1_1Project.html#a38ee1a624e82d5504dde88babf26c4a1", null ],

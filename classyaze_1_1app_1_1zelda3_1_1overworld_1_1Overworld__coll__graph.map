@@ -7,8 +7,8 @@
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="429,107,536,132"/>
 <area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="211,81,429,110,429,115,211,86"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="552,111,647,100,670,96,671,102,647,105,553,116"/>
-<area shape="rect" id="Node000005" href="$structyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="24,116,191,157"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="206,138,293,138,384,133,429,127,429,133,385,138,293,143,206,143"/>
+<area shape="rect" id="Node000005" href="$structyaze_1_1app_1_1ResourceLabelManager.html" title=" " alt="" coords="24,116,191,157"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="207,138,293,138,384,133,429,127,429,133,385,138,294,143,207,143"/>
 <area shape="rect" id="Node000006" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="5,181,210,207"/>
 <area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="224,190,304,180,384,159,395,151,407,143,436,130,438,135,410,147,398,156,386,164,305,185,225,195"/>
 <area shape="rect" id="Node000008" href="$structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html" title="Overworld map tile32 data." alt="" coords="421,156,544,197"/>

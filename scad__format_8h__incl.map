@@ -1,7 +1,7 @@
 <map id="src/app/gfx/scad_format.h" name="src/app/gfx/scad_format.h">
 <area shape="rect" id="Node000001" title=" " alt="" coords="506,5,677,31"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,79,63,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="506,28,314,46,198,61,78,82,78,76,197,56,313,41,505,23"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="505,28,313,46,197,61,78,81,77,76,196,56,312,40,505,22"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="87,79,144,105"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="505,30,348,49,160,81,159,76,348,44,505,25"/>
 <area shape="rect" id="Node000004" title=" " alt="" coords="168,79,228,105"/>
@@ -28,6 +28,4 @@
 <area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="678,26,1133,76,1132,81,677,31"/>
 <area shape="rect" id="Node000015" href="$constants_8h.html" title=" " alt="" coords="1318,79,1460,105"/>
 <area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="677,22,952,43,1302,76,1302,81,951,48,677,28"/>
-<area shape="rect" id="Node000016" title=" " alt="" coords="1345,153,1432,178"/>
-<area shape="poly" id="edge15_Node000015_Node000016" title=" " alt="" coords="1391,105,1391,137,1386,137,1386,105"/>
 </map>

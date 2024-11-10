@@ -1,5 +1,16 @@
 var NAVTREEINDEX24 =
 {
+"cpu__test_8cc.html#a6cabdf84636f905e8deff86dba27fc77":[13,0,1,5,1,0,229],
+"cpu__test_8cc.html#a6e46a92b1355a95b15f05efa6fe000d5":[13,0,1,5,1,0,236],
+"cpu__test_8cc.html#a6eeb7cbc7896afdef0da9ad8b48eeb5b":[13,0,1,5,1,0,131],
+"cpu__test_8cc.html#a6f6190750688265a0d1c5882b7d543e4":[13,0,1,5,1,0,206],
+"cpu__test_8cc.html#a6f9ae5d22370e3a3c610f5927108a3c7":[13,0,1,5,1,0,167],
+"cpu__test_8cc.html#a6fbbbd2dab5c11ab54519848c85f7770":[13,0,1,5,1,0,232],
+"cpu__test_8cc.html#a6fbe9f4e4a0e9ed8f95894e190809e5e":[13,0,1,5,1,0,191],
+"cpu__test_8cc.html#a70abdabd45ea060c85202afc5fe59d17":[13,0,1,5,1,0,70],
+"cpu__test_8cc.html#a7119fa06f906180691cb6d19ad843ceb":[13,0,1,5,1,0,263],
+"cpu__test_8cc.html#a71f981b440c5f6a97bb5d6205a2b3839":[13,0,1,5,1,0,268],
+"cpu__test_8cc.html#a72ab812efad3b27a2a0af3f659acc5ba":[13,0,1,5,1,0,273],
 "cpu__test_8cc.html#a73dc652dc77be0e406afedf9e4818f31":[13,0,1,5,1,0,91],
 "cpu__test_8cc.html#a75b815911bcae7705e3427ec322a236c":[13,0,1,5,1,0,244],
 "cpu__test_8cc.html#a7772d1ba929bbd5850768170a8c6a9e9":[13,0,1,5,1,0,114],
@@ -238,16 +249,5 @@ var NAVTREEINDEX24 =
 "dungeon__editor_8cc_source.html":[13,0,1,0,1,1,0],
 "dungeon__editor_8h.html":[13,0,1,0,1,1,1],
 "dungeon__editor_8h.html#a607cc1d6a18d503ac31793087f6b177f":[13,0,1,0,1,1,1,3],
-"dungeon__editor_8h.html#a90b47303e5a0364d74f646617dbcd2e8":[13,0,1,0,1,1,1,2],
-"dungeon__editor_8h.html#ae940471e79391cb6b9753359bb18870b":[13,0,1,0,1,1,1,1],
-"dungeon__editor_8h_source.html":[13,0,1,0,1,1,1],
-"dungeon__map_8h.html":[13,0,1,0,5,3,0],
-"dungeon__map_8h.html#a04723792c33fb909313da909800e89d6":[13,0,1,0,5,3,0,11],
-"dungeon__map_8h.html#a1ed72ac083e2ac1b5de7d48af0f0ca5a":[13,0,1,0,5,3,0,4],
-"dungeon__map_8h.html#a39dc4dfcdf8dc19684de96af1de4d3e9":[13,0,1,0,5,3,0,9],
-"dungeon__map_8h.html#a7e7695ce1dea25d8a4ebf2fc344c3f19":[13,0,1,0,5,3,0,7],
-"dungeon__map_8h.html#a89f201570be22752c07c9e67335c1c00":[13,0,1,0,5,3,0,10],
-"dungeon__map_8h.html#a9e212daa65e0459d494ff6b806fdb8ae":[13,0,1,0,5,3,0,3],
-"dungeon__map_8h.html#aad255887550f0005eecfcf041ff2edca":[13,0,1,0,5,3,0,8],
-"dungeon__map_8h.html#ab1dd7f6b552064af99e2cc58d1aa1939":[13,0,1,0,5,3,0,6]
+"dungeon__editor_8h.html#a90b47303e5a0364d74f646617dbcd2e8":[13,0,1,0,1,1,1,2]
 };

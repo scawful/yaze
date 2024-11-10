@@ -147,8 +147,6 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1core_1_1Renderer.html">Renderer</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <a class="el" href="classyaze_1_1app_1_1core_1_1Renderer.html" title="The Renderer class represents the renderer for the Yaze application.">Renderer</a> class represents the renderer for the Yaze application.  <a href="classyaze_1_1app_1_1core_1_1Renderer.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1core_1_1ResourceLabelManager.html">ResourceLabelManager</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1core_1_1SDL__Deleter.html">SDL_Deleter</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deleter for SDL_Window and SDL_Renderer.  <a href="structyaze_1_1app_1_1core_1_1SDL__Deleter.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -179,6 +177,16 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:adee4cb66335fc06d420159375b151524" id="r_adee4cb66335fc06d420159375b151524"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adee4cb66335fc06d420159375b151524">UppercaseHexByte</a> (uint8_t byte, bool leading)</td></tr>
+<tr class="separator:adee4cb66335fc06d420159375b151524"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8cc386a22a4537ace6f04d1e2f44707" id="r_af8cc386a22a4537ace6f04d1e2f44707"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af8cc386a22a4537ace6f04d1e2f44707">UppercaseHexWord</a> (uint16_t word, bool leading)</td></tr>
+<tr class="separator:af8cc386a22a4537ace6f04d1e2f44707"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9fc1194f545000fb140d178e5a54ff81" id="r_a9fc1194f545000fb140d178e5a54ff81"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9fc1194f545000fb140d178e5a54ff81">UppercaseHexLong</a> (uint32_t dword)</td></tr>
+<tr class="separator:a9fc1194f545000fb140d178e5a54ff81"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2ff2ac002e5fb8bfce1316ae33e95f02" id="r_a2ff2ac002e5fb8bfce1316ae33e95f02"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2ff2ac002e5fb8bfce1316ae33e95f02">UppercaseHexLongLong</a> (uint64_t qword)</td></tr>
+<tr class="separator:a2ff2ac002e5fb8bfce1316ae33e95f02"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3a09b2b310aed5efa2c537cef269660c" id="r_a3a09b2b310aed5efa2c537cef269660c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3a09b2b310aed5efa2c537cef269660c">StringReplace</a> (std::string &amp;str, const std::string &amp;from, const std::string &amp;to)</td></tr>
+<tr class="separator:a3a09b2b310aed5efa2c537cef269660c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7b146f0a471eaf459077aadd4426caa6" id="r_a7b146f0a471eaf459077aadd4426caa6"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7b146f0a471eaf459077aadd4426caa6">Get24LocalFromPC</a> (uint8_t *data, int addr, bool pc)</td></tr>
 <tr class="separator:a7b146f0a471eaf459077aadd4426caa6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac553ac7a4fb1da8826212a15f8fc0548" id="r_ac553ac7a4fb1da8826212a15f8fc0548"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac553ac7a4fb1da8826212a15f8fc0548">stle16b_i</a> (uint8_t *const p_arr, size_t const p_index, uint16_t const p_val)</td></tr>
@@ -205,16 +213,6 @@ Functions</h2></td></tr>
 <tr class="separator:a883931821acdd5f501b3f0717d87951c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a50d5d0cd99032ef3fb17675891cc00a1" id="r_a50d5d0cd99032ef3fb17675891cc00a1"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a50d5d0cd99032ef3fb17675891cc00a1">MapBankToWordAddress</a> (uint8_t bank, uint16_t addr) noexcept</td></tr>
 <tr class="separator:a50d5d0cd99032ef3fb17675891cc00a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adee4cb66335fc06d420159375b151524" id="r_adee4cb66335fc06d420159375b151524"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adee4cb66335fc06d420159375b151524">UppercaseHexByte</a> (uint8_t byte, bool leading)</td></tr>
-<tr class="separator:adee4cb66335fc06d420159375b151524"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af8cc386a22a4537ace6f04d1e2f44707" id="r_af8cc386a22a4537ace6f04d1e2f44707"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af8cc386a22a4537ace6f04d1e2f44707">UppercaseHexWord</a> (uint16_t word, bool leading)</td></tr>
-<tr class="separator:af8cc386a22a4537ace6f04d1e2f44707"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9fc1194f545000fb140d178e5a54ff81" id="r_a9fc1194f545000fb140d178e5a54ff81"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9fc1194f545000fb140d178e5a54ff81">UppercaseHexLong</a> (uint32_t dword)</td></tr>
-<tr class="separator:a9fc1194f545000fb140d178e5a54ff81"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2ff2ac002e5fb8bfce1316ae33e95f02" id="r_a2ff2ac002e5fb8bfce1316ae33e95f02"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2ff2ac002e5fb8bfce1316ae33e95f02">UppercaseHexLongLong</a> (uint64_t qword)</td></tr>
-<tr class="separator:a2ff2ac002e5fb8bfce1316ae33e95f02"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3a09b2b310aed5efa2c537cef269660c" id="r_a3a09b2b310aed5efa2c537cef269660c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3a09b2b310aed5efa2c537cef269660c">StringReplace</a> (std::string &amp;str, const std::string &amp;from, const std::string &amp;to)</td></tr>
-<tr class="separator:a3a09b2b310aed5efa2c537cef269660c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a665b3fdfdf571c43045821e49c8ad8ca" id="r_a665b3fdfdf571c43045821e49c8ad8ca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a665b3fdfdf571c43045821e49c8ad8ca">CopyImageToClipboard</a> (const std::vector&lt; uint8_t &gt; &amp;data)</td></tr>
 <tr class="separator:a665b3fdfdf571c43045821e49c8ad8ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa3d3837210480bcf7d7260fd40b9bcaf" id="r_aa3d3837210480bcf7d7260fd40b9bcaf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa3d3837210480bcf7d7260fd40b9bcaf">GetImageFromClipboard</a> (std::vector&lt; uint8_t &gt; &amp;data, int &amp;width, int &amp;height)</td></tr>
@@ -235,10 +233,10 @@ Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:ab62c06b7266ecc1577fb9da5d8f7401c" id="r_ab62c06b7266ecc1577fb9da5d8f7401c"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab62c06b7266ecc1577fb9da5d8f7401c">kFastRomRegion</a> = 0x808000</td></tr>
-<tr class="separator:ab62c06b7266ecc1577fb9da5d8f7401c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeb4d11eb76af13a125dd20d79bc2bce3" id="r_aeb4d11eb76af13a125dd20d79bc2bce3"><td class="memItemLeft" align="right" valign="top">constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeb4d11eb76af13a125dd20d79bc2bce3">kYazeVersion</a> = &quot;0.2.1&quot;</td></tr>
 <tr class="separator:aeb4d11eb76af13a125dd20d79bc2bce3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab62c06b7266ecc1577fb9da5d8f7401c" id="r_ab62c06b7266ecc1577fb9da5d8f7401c"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab62c06b7266ecc1577fb9da5d8f7401c">kFastRomRegion</a> = 0x808000</td></tr>
+<tr class="separator:ab62c06b7266ecc1577fb9da5d8f7401c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Core application logic and utilities. </p>
@@ -255,7 +253,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00271">271</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00281">281</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
 
 </div>
 </div>
@@ -292,6 +290,126 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="adee4cb66335fc06d420159375b151524" name="adee4cb66335fc06d420159375b151524"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adee4cb66335fc06d420159375b151524">&#9670;&#160;</a></span>UppercaseHexByte()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string yaze::app::core::UppercaseHexByte </td>
+          <td>(</td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>byte</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>leading</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00103">103</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00385">yaze::app::zelda3::overworld::OverworldMap::DrawAnimatedTiles()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00339">yaze::app::editor::DungeonEditor::DrawEntranceSelector()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00800">yaze::app::editor::OverworldEditor::DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00866">yaze::app::editor::OverworldEditor::DrawOverworldExits()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00310">yaze::app::editor::DungeonEditor::DrawRoomSelector()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00187">yaze::app::editor::SpriteEditor::DrawSpritesList()</a>, <a class="el" href="entity_8cc_source.html#l00053">yaze::app::editor::HandleEntityDragging()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00052">yaze::app::editor::Tile16Editor::InitBlockset()</a>, <a class="el" href="screen__editor_8cc_source.html#l00113">yaze::app::editor::ScreenEditor::LoadDungeonMaps()</a>, <a class="el" href="overworld_8cc_source.html#l00496">yaze::app::zelda3::overworld::Overworld::SaveOverworldMaps()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01367">yaze::app::editor::OverworldEditor::UpdateUsageStats()</a>, <a class="el" href="rom_8h_source.html#l00333">yaze::app::Rom::WriteByte()</a>, and <a class="el" href="rom_8h_source.html#l00390">yaze::app::Rom::WriteVector()</a>.</p>
+
+</div>
+</div>
+<a id="af8cc386a22a4537ace6f04d1e2f44707" name="af8cc386a22a4537ace6f04d1e2f44707"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af8cc386a22a4537ace6f04d1e2f44707">&#9670;&#160;</a></span>UppercaseHexWord()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string yaze::app::core::UppercaseHexWord </td>
+          <td>(</td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>word</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>leading</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00111">111</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00250">yaze::app::editor::MessageEditor::DrawDictionary()</a>, <a class="el" href="message__editor_8cc_source.html#l00164">yaze::app::editor::MessageEditor::DrawMessageList()</a>, <a class="el" href="message__editor_8cc_source.html#l00366">yaze::app::editor::MessageEditor::ReadAllTextData()</a>, <a class="el" href="message__editor_8cc_source.html#l00271">yaze::app::editor::MessageEditor::ReadAllTextDataV2()</a>, <a class="el" href="rom_8h_source.html#l00405">yaze::app::Rom::WriteColor()</a>, <a class="el" href="rom_8h_source.html#l00361">yaze::app::Rom::WriteShort()</a>, and <a class="el" href="rom_8h_source.html#l00347">yaze::app::Rom::WriteWord()</a>.</p>
+
+</div>
+</div>
+<a id="a9fc1194f545000fb140d178e5a54ff81" name="a9fc1194f545000fb140d178e5a54ff81"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9fc1194f545000fb140d178e5a54ff81">&#9670;&#160;</a></span>UppercaseHexLong()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string yaze::app::core::UppercaseHexLong </td>
+          <td>(</td>
+          <td class="paramtype">uint32_t</td>          <td class="paramname"><span class="paramname"><em>dword</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00119">119</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00164">yaze::app::editor::MessageEditor::DrawMessageList()</a>, <a class="el" href="message__editor_8cc_source.html#l00047">yaze::app::editor::MessageEditor::Initialize()</a>, <a class="el" href="overworld_8cc_source.html#l00496">yaze::app::zelda3::overworld::Overworld::SaveOverworldMaps()</a>, and <a class="el" href="rom_8h_source.html#l00375">yaze::app::Rom::WriteLong()</a>.</p>
+
+</div>
+</div>
+<a id="a2ff2ac002e5fb8bfce1316ae33e95f02" name="a2ff2ac002e5fb8bfce1316ae33e95f02"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2ff2ac002e5fb8bfce1316ae33e95f02">&#9670;&#160;</a></span>UppercaseHexLongLong()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string yaze::app::core::UppercaseHexLongLong </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t</td>          <td class="paramname"><span class="paramname"><em>qword</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00123">123</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00346">yaze::app::editor::EditorManager::DrawInfoPopup()</a>.</p>
+
+</div>
+</div>
+<a id="a3a09b2b310aed5efa2c537cef269660c" name="a3a09b2b310aed5efa2c537cef269660c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3a09b2b310aed5efa2c537cef269660c">&#9670;&#160;</a></span>StringReplace()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::app::core::StringReplace </td>
+          <td>(</td>
+          <td class="paramtype">std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>str</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>from</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>to</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00128">128</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
+
+</div>
+</div>
 <a id="a7b146f0a471eaf459077aadd4426caa6" name="a7b146f0a471eaf459077aadd4426caa6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7b146f0a471eaf459077aadd4426caa6">&#9670;&#160;</a></span>Get24LocalFromPC()</h2>
 
@@ -316,9 +434,9 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00098">98</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00139">139</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00221">PcToSnes()</a>, and <a class="el" href="core_2common_8h_source.html#l00213">SnesToPc()</a>.</p>
+<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00231">PcToSnes()</a>, and <a class="el" href="core_2common_8h_source.html#l00223">SnesToPc()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00366">yaze::app::editor::MessageEditor::ReadAllTextData()</a>, and <a class="el" href="message__editor_8cc_source.html#l00271">yaze::app::editor::MessageEditor::ReadAllTextDataV2()</a>.</p>
 <div class="dynheader">
@@ -362,9 +480,9 @@ Here is the call graph for this function:</div>
 
 <p>Store little endian 16-bit value using a byte pointer, offset by an index before dereferencing. </p>
 
-<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00107">107</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00148">148</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="common_8cc_source.html#l00112">stle16b()</a>.</p>
+<p class="reference">References <a class="el" href="common_8cc_source.html#l00153">stle16b()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tracker_8cc_source.html#l00816">yaze::app::zelda3::music::Tracker::SaveSongs()</a>.</p>
 <div class="dynheader">
@@ -399,9 +517,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00112">112</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00153">153</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="common_8cc_source.html#l00107">stle16b_i()</a>, and <a class="el" href="compression_8cc_source.html#l00740">yaze::app::gfx::lc_lz2::Uncompress()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="common_8cc_source.html#l00148">stle16b_i()</a>, and <a class="el" href="compression_8cc_source.html#l00740">yaze::app::gfx::lc_lz2::Uncompress()</a>.</p>
 
 </div>
 </div>
@@ -420,9 +538,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00117">117</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00158">158</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="common_8cc_source.html#l00123">ldle16b_i()</a>, and <a class="el" href="compression_8cc_source.html#l00740">yaze::app::gfx::lc_lz2::Uncompress()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="common_8cc_source.html#l00164">ldle16b_i()</a>, and <a class="el" href="compression_8cc_source.html#l00740">yaze::app::gfx::lc_lz2::Uncompress()</a>.</p>
 
 </div>
 </div>
@@ -447,9 +565,9 @@ Here is the call graph for this function:</div>
 
 <p>Load little endian halfword (16-bit) dereferenced from an arrays of bytes. This version provides an index that will be multiplied by 2 and added to the base address. </p>
 
-<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00123">123</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00164">164</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="common_8cc_source.html#l00117">ldle16b()</a>.</p>
+<p class="reference">References <a class="el" href="common_8cc_source.html#l00158">ldle16b()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tracker_8cc_source.html#l00816">yaze::app::zelda3::music::Tracker::SaveSongs()</a>.</p>
 <div class="dynheader">
@@ -489,7 +607,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00127">127</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00168">168</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="patch_8cc_source.html#l00046">yaze::cli::CreatePatch::handle()</a>.</p>
 
@@ -519,7 +637,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00216">216</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00257">257</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="patch_8cc_source.html#l00006">yaze::cli::ApplyPatch::handle()</a>.</p>
 
@@ -540,9 +658,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00286">286</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00327">327</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="constants_8h_source.html#l00127">kYazeVersion</a>.</p>
+<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00022">kYazeVersion</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00008">yaze_check_version()</a>.</p>
 
@@ -571,11 +689,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00213">213</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00223">223</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
 
-<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00211">kFastRomRegion</a>.</p>
+<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00221">kFastRomRegion</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00148">yaze::app::editor::BuildDictionaryEntries()</a>, <a class="el" href="overworld_8cc_source.html#l00197">yaze::app::zelda3::overworld::Overworld::DecompressAllMapTiles()</a>, <a class="el" href="common_8cc_source.html#l00098">Get24LocalFromPC()</a>, <a class="el" href="rom_8cc_source.html#l00032">yaze::app::anonymous_namespace{rom.cc}::GetGraphicsAddress()</a>, <a class="el" href="command_8h_source.html#l00128">yaze::cli::SnesToPc::handle()</a>, <a class="el" href="room_8cc_source.html#l00257">yaze::app::zelda3::dungeon::Room::LoadAnimatedGraphics()</a>, <a class="el" href="room_8cc_source.html#l00464">yaze::app::zelda3::dungeon::Room::LoadChests()</a>, <a class="el" href="screen__editor_8cc_source.html#l00113">yaze::app::editor::ScreenEditor::LoadDungeonMaps()</a>, <a class="el" href="room_8cc_source.html#l00021">yaze::app::zelda3::dungeon::Room::LoadHeader()</a>, <a class="el" href="overworld_8cc_source.html#l00382">yaze::app::zelda3::overworld::Overworld::LoadItems()</a>, <a class="el" href="room_8cc_source.html#l00277">yaze::app::zelda3::dungeon::Room::LoadObjects()</a>, <a class="el" href="room_8cc_source.html#l00125">yaze::app::zelda3::dungeon::Room::LoadRoomFromROM()</a>, <a class="el" href="room_8cc_source.html#l00417">yaze::app::zelda3::dungeon::Room::LoadSprites()</a>, <a class="el" href="overworld_8cc_source.html#l00443">yaze::app::zelda3::overworld::Overworld::LoadSpritesFromMap()</a>, <a class="el" href="title__screen_8cc_source.html#l00064">yaze::app::zelda3::screen::TitleScreen::LoadTitleScreen()</a>, <a class="el" href="screen__editor_8cc_source.html#l00188">yaze::app::editor::ScreenEditor::SaveDungeonMaps()</a>, and <a class="el" href="memory__editor_8h_source.html#l00039">yaze::app::editor::MemoryEditorWithDiffChecker::Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00148">yaze::app::editor::BuildDictionaryEntries()</a>, <a class="el" href="overworld_8cc_source.html#l00197">yaze::app::zelda3::overworld::Overworld::DecompressAllMapTiles()</a>, <a class="el" href="common_8cc_source.html#l00139">Get24LocalFromPC()</a>, <a class="el" href="rom_8cc_source.html#l00032">yaze::app::anonymous_namespace{rom.cc}::GetGraphicsAddress()</a>, <a class="el" href="command_8h_source.html#l00128">yaze::cli::SnesToPc::handle()</a>, <a class="el" href="room_8cc_source.html#l00257">yaze::app::zelda3::dungeon::Room::LoadAnimatedGraphics()</a>, <a class="el" href="room_8cc_source.html#l00464">yaze::app::zelda3::dungeon::Room::LoadChests()</a>, <a class="el" href="screen__editor_8cc_source.html#l00113">yaze::app::editor::ScreenEditor::LoadDungeonMaps()</a>, <a class="el" href="room_8cc_source.html#l00021">yaze::app::zelda3::dungeon::Room::LoadHeader()</a>, <a class="el" href="overworld_8cc_source.html#l00382">yaze::app::zelda3::overworld::Overworld::LoadItems()</a>, <a class="el" href="room_8cc_source.html#l00277">yaze::app::zelda3::dungeon::Room::LoadObjects()</a>, <a class="el" href="room_8cc_source.html#l00125">yaze::app::zelda3::dungeon::Room::LoadRoomFromROM()</a>, <a class="el" href="room_8cc_source.html#l00417">yaze::app::zelda3::dungeon::Room::LoadSprites()</a>, <a class="el" href="overworld_8cc_source.html#l00443">yaze::app::zelda3::overworld::Overworld::LoadSpritesFromMap()</a>, <a class="el" href="title__screen_8cc_source.html#l00064">yaze::app::zelda3::screen::TitleScreen::LoadTitleScreen()</a>, <a class="el" href="screen__editor_8cc_source.html#l00188">yaze::app::editor::ScreenEditor::SaveDungeonMaps()</a>, and <a class="el" href="memory__editor_8h_source.html#l00039">yaze::app::editor::MemoryEditorWithDiffChecker::Update()</a>.</p>
 
 </div>
 </div>
@@ -602,9 +720,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00221">221</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00231">231</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="common_8cc_source.html#l00098">Get24LocalFromPC()</a>, <a class="el" href="command_8h_source.html#l00147">yaze::cli::PcToSnes::handle()</a>, <a class="el" href="overworld_8cc_source.html#l01309">yaze::app::zelda3::overworld::Overworld::SaveItems()</a>, and <a class="el" href="overworld_8cc_source.html#l00496">yaze::app::zelda3::overworld::Overworld::SaveOverworldMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="common_8cc_source.html#l00139">Get24LocalFromPC()</a>, <a class="el" href="command_8h_source.html#l00147">yaze::cli::PcToSnes::handle()</a>, <a class="el" href="overworld_8cc_source.html#l01309">yaze::app::zelda3::overworld::Overworld::SaveItems()</a>, and <a class="el" href="overworld_8cc_source.html#l00496">yaze::app::zelda3::overworld::Overworld::SaveOverworldMaps()</a>.</p>
 
 </div>
 </div>
@@ -640,7 +758,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00234">234</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00244">244</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00032">yaze::app::anonymous_namespace{rom.cc}::GetGraphicsAddress()</a>.</p>
 
@@ -673,127 +791,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00238">238</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
-
-</div>
-</div>
-<a id="adee4cb66335fc06d420159375b151524" name="adee4cb66335fc06d420159375b151524"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adee4cb66335fc06d420159375b151524">&#9670;&#160;</a></span>UppercaseHexByte()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::string yaze::app::core::UppercaseHexByte </td>
-          <td>(</td>
-          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>byte</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>leading</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="labeling_8cc_source.html#l00019">19</a> of file <a class="el" href="labeling_8cc_source.html">labeling.cc</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00385">yaze::app::zelda3::overworld::OverworldMap::DrawAnimatedTiles()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00340">yaze::app::editor::DungeonEditor::DrawEntranceSelector()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00800">yaze::app::editor::OverworldEditor::DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00866">yaze::app::editor::OverworldEditor::DrawOverworldExits()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00311">yaze::app::editor::DungeonEditor::DrawRoomSelector()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00187">yaze::app::editor::SpriteEditor::DrawSpritesList()</a>, <a class="el" href="entity_8cc_source.html#l00053">yaze::app::editor::HandleEntityDragging()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00052">yaze::app::editor::Tile16Editor::InitBlockset()</a>, <a class="el" href="screen__editor_8cc_source.html#l00113">yaze::app::editor::ScreenEditor::LoadDungeonMaps()</a>, <a class="el" href="overworld_8cc_source.html#l00496">yaze::app::zelda3::overworld::Overworld::SaveOverworldMaps()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01367">yaze::app::editor::OverworldEditor::UpdateUsageStats()</a>, <a class="el" href="rom_8h_source.html#l00333">yaze::app::Rom::WriteByte()</a>, and <a class="el" href="rom_8h_source.html#l00390">yaze::app::Rom::WriteVector()</a>.</p>
-
-</div>
-</div>
-<a id="af8cc386a22a4537ace6f04d1e2f44707" name="af8cc386a22a4537ace6f04d1e2f44707"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af8cc386a22a4537ace6f04d1e2f44707">&#9670;&#160;</a></span>UppercaseHexWord()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::string yaze::app::core::UppercaseHexWord </td>
-          <td>(</td>
-          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>word</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>leading</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="labeling_8cc_source.html#l00027">27</a> of file <a class="el" href="labeling_8cc_source.html">labeling.cc</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00250">yaze::app::editor::MessageEditor::DrawDictionary()</a>, <a class="el" href="message__editor_8cc_source.html#l00164">yaze::app::editor::MessageEditor::DrawMessageList()</a>, <a class="el" href="message__editor_8cc_source.html#l00366">yaze::app::editor::MessageEditor::ReadAllTextData()</a>, <a class="el" href="message__editor_8cc_source.html#l00271">yaze::app::editor::MessageEditor::ReadAllTextDataV2()</a>, <a class="el" href="rom_8h_source.html#l00405">yaze::app::Rom::WriteColor()</a>, <a class="el" href="rom_8h_source.html#l00361">yaze::app::Rom::WriteShort()</a>, and <a class="el" href="rom_8h_source.html#l00347">yaze::app::Rom::WriteWord()</a>.</p>
-
-</div>
-</div>
-<a id="a9fc1194f545000fb140d178e5a54ff81" name="a9fc1194f545000fb140d178e5a54ff81"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9fc1194f545000fb140d178e5a54ff81">&#9670;&#160;</a></span>UppercaseHexLong()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::string yaze::app::core::UppercaseHexLong </td>
-          <td>(</td>
-          <td class="paramtype">uint32_t</td>          <td class="paramname"><span class="paramname"><em>dword</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="labeling_8cc_source.html#l00035">35</a> of file <a class="el" href="labeling_8cc_source.html">labeling.cc</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00164">yaze::app::editor::MessageEditor::DrawMessageList()</a>, <a class="el" href="message__editor_8cc_source.html#l00047">yaze::app::editor::MessageEditor::Initialize()</a>, <a class="el" href="overworld_8cc_source.html#l00496">yaze::app::zelda3::overworld::Overworld::SaveOverworldMaps()</a>, and <a class="el" href="rom_8h_source.html#l00375">yaze::app::Rom::WriteLong()</a>.</p>
-
-</div>
-</div>
-<a id="a2ff2ac002e5fb8bfce1316ae33e95f02" name="a2ff2ac002e5fb8bfce1316ae33e95f02"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2ff2ac002e5fb8bfce1316ae33e95f02">&#9670;&#160;</a></span>UppercaseHexLongLong()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::string yaze::app::core::UppercaseHexLongLong </td>
-          <td>(</td>
-          <td class="paramtype">uint64_t</td>          <td class="paramname"><span class="paramname"><em>qword</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="labeling_8cc_source.html#l00039">39</a> of file <a class="el" href="labeling_8cc_source.html">labeling.cc</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00346">yaze::app::editor::EditorManager::DrawInfoPopup()</a>.</p>
-
-</div>
-</div>
-<a id="a3a09b2b310aed5efa2c537cef269660c" name="a3a09b2b310aed5efa2c537cef269660c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3a09b2b310aed5efa2c537cef269660c">&#9670;&#160;</a></span>StringReplace()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool yaze::app::core::StringReplace </td>
-          <td>(</td>
-          <td class="paramtype">std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>str</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>from</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>to</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="labeling_8cc_source.html#l00044">44</a> of file <a class="el" href="labeling_8cc_source.html">labeling.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00248">248</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
 
 </div>
 </div>
@@ -865,7 +863,7 @@ Here is the call graph for this function:</div>
 
 <p>GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS. </p>
 
-<p class="reference">Referenced by <a class="el" href="zeml_8cc_source.html#l00590">yaze::app::gui::zeml::LoadFile()</a>, and <a class="el" href="controller_8cc_source.html#l00456">yaze::app::core::Controller::LoadFontFamilies()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="zeml_8cc_source.html#l00590">yaze::app::gui::zeml::LoadFile()</a>, and <a class="el" href="controller_8cc_source.html#l00403">yaze::app::core::Controller::LoadFontFamilies()</a>.</p>
 
 </div>
 </div>
@@ -1001,37 +999,11 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#a4e61b0cd86cff55adee7c5b20c7dc700ae3f917d82e495f1c002357925ca3047e">kLinux</a>, <a class="el" href="#a4e61b0cd86cff55adee7c5b20c7dc700ad4b84d921444ff96b6ed220a036f9a8a">kMacOS</a>, and <a class="el" href="#a4e61b0cd86cff55adee7c5b20c7dc700aad547616982f990862d4e1213452c089">kWindows</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00432">yaze::app::core::Controller::LoadConfigFiles()</a>, <a class="el" href="file__util_8cc_source.html#l00033">LoadFile()</a>, and <a class="el" href="file__util_8cc_source.html#l00046">SaveFile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00379">yaze::app::core::Controller::LoadConfigFiles()</a>, <a class="el" href="file__util_8cc_source.html#l00033">LoadFile()</a>, and <a class="el" href="file__util_8cc_source.html#l00046">SaveFile()</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Variable Documentation</h2>
-<a id="ab62c06b7266ecc1577fb9da5d8f7401c" name="ab62c06b7266ecc1577fb9da5d8f7401c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab62c06b7266ecc1577fb9da5d8f7401c">&#9670;&#160;</a></span>kFastRomRegion</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint32_t yaze::app::core::kFastRomRegion = 0x808000</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00211">211</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="core_2common_8h_source.html#l00213">SnesToPc()</a>.</p>
-
-</div>
-</div>
 <a id="aeb4d11eb76af13a125dd20d79bc2bce3" name="aeb4d11eb76af13a125dd20d79bc2bce3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aeb4d11eb76af13a125dd20d79bc2bce3">&#9670;&#160;</a></span>kYazeVersion</h2>
 
@@ -1052,9 +1024,35 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="constants_8h_source.html#l00127">127</a> of file <a class="el" href="constants_8h_source.html">constants.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00022">22</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="common_8cc_source.html#l00286">CheckVersion()</a>, <a class="el" href="editor__manager_8cc_source.html#l00329">yaze::app::editor::EditorManager::DrawAboutPopup()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00362">yaze::app::editor::EditorManager::DrawYazeMenu()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="common_8cc_source.html#l00327">CheckVersion()</a>, <a class="el" href="editor__manager_8cc_source.html#l00329">yaze::app::editor::EditorManager::DrawAboutPopup()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00362">yaze::app::editor::EditorManager::DrawYazeMenu()</a>.</p>
+
+</div>
+</div>
+<a id="ab62c06b7266ecc1577fb9da5d8f7401c" name="ab62c06b7266ecc1577fb9da5d8f7401c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab62c06b7266ecc1577fb9da5d8f7401c">&#9670;&#160;</a></span>kFastRomRegion</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t yaze::app::core::kFastRomRegion = 0x808000</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00221">221</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="core_2common_8h_source.html#l00223">SnesToPc()</a>.</p>
 
 </div>
 </div>

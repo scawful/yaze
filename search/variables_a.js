@@ -73,7 +73,7 @@ var searchData=
   ['kexpandedlengthmod_70',['kExpandedLengthMod',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa8bcf90e524970ee34af92030ea7066f',1,'yaze::app::gfx::lc_lz2']]],
   ['kexpandedmod_71',['kExpandedMod',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a10759b617f42c78708923c70558ad3c3',1,'yaze::app::gfx::lc_lz2']]],
   ['key_5fdrop_5f_72',['key_drop_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#ade74bb1d0bb3940e2ee4582be99facc6',1,'yaze::app::zelda3::Sprite']]],
-  ['key_5fname_73',['key_name',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a9bb407e5132cd6819cf1e83d862eee4a',1,'yaze::app::core::ResourceLabelManager::ResourceType']]],
+  ['key_5fname_73',['key_name',['../structyaze_1_1app_1_1ResourceLabelManager_1_1ResourceType.html#a3bd77b749005e9487eaf1fe7c9e67dbc',1,'yaze::app::ResourceLabelManager::ResourceType']]],
   ['keybindings_5ffile_74',['keybindings_file',['../structyaze_1_1app_1_1Project.html#a6dc3a9ea4000d8910e8d35e91506db21',1,'yaze::app::Project']]],
   ['keyoff_75',['keyOff',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a6fe331f82365c68c78563f4f4b1a3d46',1,'yaze::app::emu::audio::DspChannel']]],
   ['keyon_76',['keyOn',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a362226b9040dfd39ae1da44f05d76702',1,'yaze::app::emu::audio::DspChannel']]],

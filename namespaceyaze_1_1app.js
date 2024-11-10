@@ -11,6 +11,7 @@ var namespaceyaze_1_1app =
     [ "zelda3", "namespaceyaze_1_1app_1_1zelda3.html", "namespaceyaze_1_1app_1_1zelda3" ],
     [ "Project", "structyaze_1_1app_1_1Project.html", "structyaze_1_1app_1_1Project" ],
     [ "RecentFilesManager", "classyaze_1_1app_1_1RecentFilesManager.html", "classyaze_1_1app_1_1RecentFilesManager" ],
+    [ "ResourceLabelManager", "structyaze_1_1app_1_1ResourceLabelManager.html", "structyaze_1_1app_1_1ResourceLabelManager" ],
     [ "Rom", "classyaze_1_1app_1_1Rom.html", "classyaze_1_1app_1_1Rom" ],
     [ "SharedRom", "classyaze_1_1app_1_1SharedRom.html", "classyaze_1_1app_1_1SharedRom" ],
     [ "VersionConstants", "structyaze_1_1app_1_1VersionConstants.html", "structyaze_1_1app_1_1VersionConstants" ],

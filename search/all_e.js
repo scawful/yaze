@@ -54,7 +54,7 @@ var searchData=
   ['getinstruction_51',['GetInstruction',['../classyaze_1_1app_1_1emu_1_1InstructionEntry.html#aa15536701eb857bfc8e1f6600e978eec',1,'yaze::app::emu::InstructionEntry']]],
   ['getinstructionlength_52',['GetInstructionLength',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a1cae58175cf9b0e07a365d4e411748e8',1,'yaze::app::emu::Cpu']]],
   ['getinterruptflag_53',['GetInterruptFlag',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a069bd8e9cd5fbdc5571009fd92bc19f3',1,'yaze::app::emu::Cpu']]],
-  ['getlabel_54',['GetLabel',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#a00b0860ed7bd13ed7f3b613f6eb94b51',1,'yaze::app::core::ResourceLabelManager']]],
+  ['getlabel_54',['GetLabel',['../structyaze_1_1app_1_1ResourceLabelManager.html#adf29c06e65b79ef37e278cc04d32f54c',1,'yaze::app::ResourceLabelManager']]],
   ['getmappedaddress_55',['GetMappedAddress',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a5f9577496ef6a8175f3e6e9f526c3cff',1,'yaze::app::emu::memory::MemoryImpl']]],
   ['getmaptiles_56',['GetMapTiles',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a2b312bf21f19270ff73835a7bf3e44cd',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['getmodifiedcolor_57',['GetModifiedColor',['../classyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html#aaa351cbf17bbe65d3fc5f40d243e8bcc',1,'yaze::app::editor::palette_internal::PaletteEditorHistory']]],

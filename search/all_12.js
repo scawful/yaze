@@ -119,7 +119,7 @@ var searchData=
   ['key_20areas_20of_20contribution_116',['Key Areas of Contribution',['../md_docs_2contributing.html#autotoc_md29',1,'']]],
   ['key_20components_117',['Key Components',['../md_docs_2message-passing.html#autotoc_md54',1,'']]],
   ['key_5fdrop_5f_118',['key_drop_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#ade74bb1d0bb3940e2ee4582be99facc6',1,'yaze::app::zelda3::Sprite']]],
-  ['key_5fname_119',['key_name',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a9bb407e5132cd6819cf1e83d862eee4a',1,'yaze::app::core::ResourceLabelManager::ResourceType']]],
+  ['key_5fname_119',['key_name',['../structyaze_1_1app_1_1ResourceLabelManager_1_1ResourceType.html#a3bd77b749005e9487eaf1fe7c9e67dbc',1,'yaze::app::ResourceLabelManager::ResourceType']]],
   ['keybindings_5ffile_120',['keybindings_file',['../structyaze_1_1app_1_1Project.html#a6dc3a9ea4000d8910e8d35e91506db21',1,'yaze::app::Project']]],
   ['keyoff_121',['keyOff',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a6fe331f82365c68c78563f4f4b1a3d46',1,'yaze::app::emu::audio::DspChannel']]],
   ['keyon_122',['keyOn',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a362226b9040dfd39ae1da44f05d76702',1,'yaze::app::emu::audio::DspChannel']]],

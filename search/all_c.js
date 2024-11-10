@@ -19,7 +19,7 @@ var searchData=
   ['editedfromeditor_16',['editedFromEditor',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#acd8b4977f977916542cc3acb0a09de49',1,'yaze::app::zelda3::screen::TitleScreen']]],
   ['editingmode_17',['EditingMode',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ada65fa31f9d3b0a085a5ab6d7f04422f',1,'yaze::app::editor::OverworldEditor']]],
   ['editinst_18',['editinst',['../structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a03a77adaaeeb9bb626c9cb345aef15ba',1,'yaze::app::zelda3::music::SampleEdit']]],
-  ['editlabel_19',['EditLabel',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#adff5679951d249e2a677399f98f1d6dd',1,'yaze::app::core::ResourceLabelManager']]],
+  ['editlabel_19',['EditLabel',['../structyaze_1_1app_1_1ResourceLabelManager.html#aebedbdd8ec0adc6a20003bbf719febe0',1,'yaze::app::ResourceLabelManager']]],
   ['editor_20',['Editor',['../classyaze_1_1app_1_1editor_1_1Editor.html',1,'yaze::app::editor::Editor'],['../classyaze_1_1app_1_1editor_1_1Editor.html#a27212f7c8f641e429a7c8e4613e48653',1,'yaze::app::editor::Editor::Editor()'],['../md_README.html',1,'Yet Another Zelda3 Editor']]],
   ['editor_21',['editor',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#acc342b1cba0b94980db3ccdde423c197',1,'yaze::app::editor::zsprite::ZSprite::editor'],['../structyaze_1_1app_1_1zelda3_1_1music_1_1SongRange.html#ac5e22bf5db971a805602326e85a3979f',1,'yaze::app::zelda3::music::SongRange::editor']]],
   ['editor_20management_22',['4. Editor Management',['../md_docs_2contributing.html#autotoc_md33',1,'']]],

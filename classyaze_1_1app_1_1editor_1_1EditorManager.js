@@ -24,7 +24,6 @@ var classyaze_1_1app_1_1editor_1_1EditorManager =
     [ "show_status_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a60db17bf7ee0d2de58b604252c2c6ff5", null ],
     [ "rom_assets_loaded_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#aeb254c86ea90dd5e269b77183edfcf18", null ],
     [ "status_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#abd80b087af780308f127bdb0573dc19d", null ],
-    [ "active_tabs_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#ae3ef04e1a0621f16906cd15213130316", null ],
     [ "active_editors_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#af734af1372e9d34f76bc1ce1b9c7625b", null ],
     [ "emulator_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a6d9c86076813e1db3874e59826591ee9", null ],
     [ "current_project_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a910841c4251150731903413688f87871", null ],

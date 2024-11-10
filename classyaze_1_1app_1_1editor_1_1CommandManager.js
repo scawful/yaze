@@ -6,5 +6,7 @@ var classyaze_1_1app_1_1editor_1_1CommandManager =
     [ "ExecuteCommand", "classyaze_1_1app_1_1editor_1_1CommandManager.html#af766b50fe53dfb566970a7a6f0108e50", null ],
     [ "ShowWhichKey", "classyaze_1_1app_1_1editor_1_1CommandManager.html#a447c6b445d56dcf2d9b96bf40e5d9ce3", null ],
     [ "InitializeDefaults", "classyaze_1_1app_1_1editor_1_1CommandManager.html#a098d93eb0b0c8cfa3e4055f3f2f085d3", null ],
+    [ "SaveKeybindings", "classyaze_1_1app_1_1editor_1_1CommandManager.html#a759e772088ab091fdb459500a7a5e046", null ],
+    [ "LoadKeybindings", "classyaze_1_1app_1_1editor_1_1CommandManager.html#a1d67d4d9cd950cbafb1894c957cf6eb4", null ],
     [ "commands_", "classyaze_1_1app_1_1editor_1_1CommandManager.html#aa8d2b892279cc281f38f96e97745c805", null ]
 ];

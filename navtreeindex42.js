@@ -1,9 +1,5 @@
 var NAVTREEINDEX42 =
 {
-"ppu__registers_8h.html#ac3c839baebcf8e51ad7aa2036d4cebfc":[13,0,1,0,2,3,2,100],
-"ppu__registers_8h.html#ac6872e99c3489a50d3028baafcbe168b":[13,0,1,0,2,3,2,113],
-"ppu__registers_8h.html#ac7b568a201cf964b594b159e7afb97e2":[13,0,1,0,2,3,2,60],
-"ppu__registers_8h.html#ac7d2d909c6cf1812f789c4ff5418ebdc":[13,0,1,0,2,3,2,85],
 "ppu__registers_8h.html#ad0e6434ac6054581184dd5d542344f67":[13,0,1,0,2,3,2,57],
 "ppu__registers_8h.html#ad7d7171b258c00181ae82a69382fbb62":[13,0,1,0,2,3,2,106],
 "ppu__registers_8h.html#ad988eb7f56a7f594377fe6a8a5bf4394":[13,0,1,0,2,3,2,88],
@@ -17,12 +13,12 @@ var NAVTREEINDEX42 =
 "ppu__registers_8h_source.html":[13,0,1,0,2,3,2],
 "ppu__test_8cc.html":[13,0,1,5,1,1],
 "ppu__test_8cc_source.html":[13,0,1,5,1,1],
-"project_8cc.html":[13,0,1,0,0,9],
-"project_8cc_source.html":[13,0,1,0,0,9],
-"project_8h.html":[13,0,1,0,0,10],
-"project_8h.html#a5a46a5b1e333533504916141e529b6aa":[13,0,1,0,0,10,2],
-"project_8h.html#aa899c44eb9e83190d881c30296137bb3":[13,0,1,0,0,10,3],
-"project_8h_source.html":[13,0,1,0,0,10],
+"project_8cc.html":[13,0,1,0,0,7],
+"project_8cc_source.html":[13,0,1,0,0,7],
+"project_8h.html":[13,0,1,0,0,8],
+"project_8h.html#a5a46a5b1e333533504916141e529b6aa":[13,0,1,0,0,8,4],
+"project_8h.html#aa899c44eb9e83190d881c30296137bb3":[13,0,1,0,0,8,5],
+"project_8h_source.html":[13,0,1,0,0,8],
 "renderer_8h.html":[13,0,1,0,0,0,13],
 "renderer_8h_source.html":[13,0,1,0,0,0,13],
 "rom_8cc.html":[13,0,1,0,6],
@@ -249,5 +245,9 @@ var NAVTREEINDEX42 =
 "scad__format_8cc_source.html":[13,0,1,0,3,4],
 "scad__format_8h.html":[13,0,1,0,3,5],
 "scad__format_8h.html#a040f56ef613e47195e7749709b12073a":[13,0,1,0,3,5,3],
-"scad__format_8h.html#a401765bf79628a0f353807bc0a825797":[13,0,1,0,3,5,5]
+"scad__format_8h.html#a401765bf79628a0f353807bc0a825797":[13,0,1,0,3,5,5],
+"scad__format_8h.html#a727d2b36d35304c829d68a5ac9851175":[13,0,1,0,3,5,6],
+"scad__format_8h.html#abbaf0d3bc11b96aee6681513c0128d26":[13,0,1,0,3,5,2],
+"scad__format_8h.html#abe047922c043574add4a0819ba82ea31":[13,0,1,0,3,5,1],
+"scad__format_8h.html#ade389308c0f184076c6dca217437cafb":[13,0,1,0,3,5,7]
 };

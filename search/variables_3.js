@@ -50,7 +50,7 @@ var searchData=
   ['directgain_47',['directGain',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#affc3d55a8d000409903ece4df0a4f509',1,'yaze::app::emu::audio::DspChannel']]],
   ['dirpage_48',['dirPage',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a1237ab86c116b35e6e926ee23d7b3755',1,'yaze::app::emu::audio::Dsp']]],
   ['disable_5fscreen_49',['disable_screen',['../structyaze_1_1app_1_1emu_1_1video_1_1ScreenDisplay.html#a844300027e1d3260a58e951ee32f8339',1,'yaze::app::emu::video::ScreenDisplay']]],
-  ['display_5fdescription_50',['display_description',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a5cbd2921188ae566328aaa1b62c96faa',1,'yaze::app::core::ResourceLabelManager::ResourceType']]],
+  ['display_5fdescription_50',['display_description',['../structyaze_1_1app_1_1ResourceLabelManager_1_1ResourceType.html#a3e6cb847f52da8095e9405365b48fea2',1,'yaze::app::ResourceLabelManager::ResourceType']]],
   ['divide_5fa_5f_51',['divide_a_',['../classyaze_1_1app_1_1emu_1_1SNES.html#ae64f449564d9174c85588673295004ad',1,'yaze::app::emu::SNES']]],
   ['divide_5fresult_5f_52',['divide_result_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a6bb6cb96206f332d09a8934796dbe7c5',1,'yaze::app::emu::SNES']]],
   ['divider_53',['divider',['../structyaze_1_1app_1_1emu_1_1audio_1_1Timer.html#a8ebed68c60bac458b200c028ca591625',1,'yaze::app::emu::audio::Timer']]],

@@ -1,10 +1,10 @@
 var searchData=
 [
   ['label_5f_0',['label_',['../structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html#a8bf1d421dee0394f3256e831b951fa7e',1,'yaze::app::zelda3::dungeon::StaircaseRooms']]],
-  ['labels_5f_1',['labels_',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#a1d1299cd0ebdaa2a62d145cd04203149',1,'yaze::app::core::ResourceLabelManager::labels_'],['../classyaze_1_1app_1_1gui_1_1Canvas.html#aec672b4a929916a1d77ce605624c3de8',1,'yaze::app::gui::Canvas::labels_']]],
+  ['labels_5f_1',['labels_',['../structyaze_1_1app_1_1ResourceLabelManager.html#aa8ba66d7a7e9a2e92441e4324110e3d2',1,'yaze::app::ResourceLabelManager::labels_'],['../classyaze_1_1app_1_1gui_1_1Canvas.html#aec672b4a929916a1d77ce605624c3de8',1,'yaze::app::gui::Canvas::labels_']]],
   ['labels_5ffilename_2',['labels_filename',['../structyaze__project.html#aa9deca5d69c0a57db8d0f093a9aeb2e2',1,'yaze_project']]],
   ['labels_5ffilename_5f_3',['labels_filename_',['../structyaze_1_1app_1_1Project.html#a5212c318cd29ee7939c840e1a0bd9886',1,'yaze::app::Project']]],
-  ['labels_5floaded_5f_4',['labels_loaded_',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#a701e040767f58f22b5172b6170b86c24',1,'yaze::app::core::ResourceLabelManager']]],
+  ['labels_5floaded_5f_4',['labels_loaded_',['../structyaze_1_1app_1_1ResourceLabelManager.html#a58345fcffcabf55b6ef9e42fa910bf6e',1,'yaze::app::ResourceLabelManager']]],
   ['ladder_5fbg_5f_5',['ladder_bg_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#a002cf8f7af38a1f13b9a4c70a1a8d912',1,'yaze::app::zelda3::dungeon::RoomEntrance']]],
   ['large_5findex_5f_6',['large_index_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a5bcd1bcdc7fb88ea52ae0b04cb2e8702',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['large_5fmap_5f_7',['large_map_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#afd7c6747b751ec2a1c6287cc37002c5c',1,'yaze::app::zelda3::overworld::OverworldExit::large_map_'],['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ac8c739a55379d446b3d57b568bc28998',1,'yaze::app::zelda3::overworld::OverworldMap::large_map_']]],

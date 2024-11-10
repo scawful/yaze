@@ -30,7 +30,7 @@ var searchData=
   ['reserved_27',['reserved',['../structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#a7253113d96cfb463bf1f164b35a055ae',1,'yaze::app::gfx::scad_format::CgxHeader']]],
   ['reset_28',['reset',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#ac3075ec11cbc6d60fda7b2cc9c6631e5',1,'yaze::app::emu::audio::Dsp']]],
   ['reset_5fwanted_5f_29',['reset_wanted_',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a5bfe8e73bc5318d60dc0f0b485d10080',1,'yaze::app::emu::audio::Spc700::reset_wanted_'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#aa78df1186383c3dc664d3c80bf3cee25',1,'yaze::app::emu::Cpu::reset_wanted_']]],
-  ['resource_5flabel_5fmanager_5f_30',['resource_label_manager_',['../classyaze_1_1app_1_1Rom.html#aeed1d79aa226ead085fab4a997396f27',1,'yaze::app::Rom']]],
+  ['resource_5flabel_5fmanager_5f_30',['resource_label_manager_',['../classyaze_1_1app_1_1Rom.html#a463e77c5a8dffd2d35c0695eb9202ae7',1,'yaze::app::Rom']]],
   ['rgb_5f_31',['rgb_',['../classyaze_1_1app_1_1gfx_1_1SnesColor.html#a9ff11ccbe16ff93e088c0faa9e70fcfa',1,'yaze::app::gfx::SnesColor']]],
   ['right_5fposition_32',['right_position',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WH1.html#a1e7bbe342ec01fd68d19bc22ce25116d',1,'yaze::app::emu::video::PpuRegisters::WH1::right_position'],['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WH3.html#a42d360e81cce0e443f174089638bd596',1,'yaze::app::emu::video::PpuRegisters::WH3::right_position']]],
   ['rom_33',['rom',['../structyaze__flags.html#a669fbd0fb3c0128413551092e5ea7efc',1,'yaze_flags']]],

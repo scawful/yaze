@@ -113,7 +113,7 @@ var searchData=
   ['createcompressionstring_110',['CreateCompressionString',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a173837cea546187dbf6392cfcfc6b331',1,'yaze::app::gfx::lc_lz2']]],
   ['createguicontext_111',['CreateGuiContext',['../classyaze_1_1app_1_1core_1_1Controller.html#a1a77e2f432d143785d65f70c1372cd50',1,'yaze::app::core::Controller']]],
   ['createinternalopcodemap_112',['CreateInternalOpcodeMap',['../classyaze_1_1app_1_1emu_1_1AsmParser.html#a3d939f3edae43a796e80acddf0e8a087',1,'yaze::app::emu::AsmParser']]],
-  ['createorgetlabel_113',['CreateOrGetLabel',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#ab5527e695ccdbad0e335d27b8e6cecc1',1,'yaze::app::core::ResourceLabelManager']]],
+  ['createorgetlabel_113',['CreateOrGetLabel',['../structyaze_1_1app_1_1ResourceLabelManager.html#a06d2fdf11e1dcf7f43c12dfa3da298f3',1,'yaze::app::ResourceLabelManager']]],
   ['createpalettegroupfromcolfile_114',['CreatePaletteGroupFromColFile',['../namespaceyaze_1_1app_1_1gfx.html#abdc15a02218fe29002585f61230af828',1,'yaze::app::gfx']]],
   ['createpalettegroupfromlargepalette_115',['CreatePaletteGroupFromLargePalette',['../namespaceyaze_1_1app_1_1gfx.html#ae17c9d133fe0b57af7775daed2a99632',1,'yaze::app::gfx']]],
   ['createrenderer_116',['CreateRenderer',['../classyaze_1_1app_1_1core_1_1Controller.html#a7de45c3e705b21ddd623f5a36e3dfd55',1,'yaze::app::core::Controller::CreateRenderer()'],['../classyaze_1_1app_1_1core_1_1Renderer.html#a0cd5bc71f50a38f2f42ca58e312cc0cf',1,'yaze::app::core::Renderer::CreateRenderer()']]],

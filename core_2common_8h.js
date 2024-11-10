@@ -7,6 +7,11 @@ var core_2common_8h =
     [ "yaze::app::core::Logger", "classyaze_1_1app_1_1core_1_1Logger.html", null ],
     [ "yaze::app::core::FolderItem", "structyaze_1_1app_1_1core_1_1FolderItem.html", "structyaze_1_1app_1_1core_1_1FolderItem" ],
     [ "FolderItem", "core_2common_8h.html#ae3d315799cc5396556e7b023473121dd", null ],
+    [ "UppercaseHexByte", "core_2common_8h.html#adee4cb66335fc06d420159375b151524", null ],
+    [ "UppercaseHexWord", "core_2common_8h.html#af8cc386a22a4537ace6f04d1e2f44707", null ],
+    [ "UppercaseHexLong", "core_2common_8h.html#a9fc1194f545000fb140d178e5a54ff81", null ],
+    [ "UppercaseHexLongLong", "core_2common_8h.html#a2ff2ac002e5fb8bfce1316ae33e95f02", null ],
+    [ "StringReplace", "core_2common_8h.html#a3a09b2b310aed5efa2c537cef269660c", null ],
     [ "SnesToPc", "core_2common_8h.html#aac6170e3d4875c2f4cfcc39bee40eb1a", null ],
     [ "PcToSnes", "core_2common_8h.html#a43bceda6fbaf66c02016c87c83adec48", null ],
     [ "AddressFromBytes", "core_2common_8h.html#a883931821acdd5f501b3f0717d87951c", null ],
@@ -19,5 +24,6 @@ var core_2common_8h =
     [ "CreateBpsPatch", "core_2common_8h.html#a8fb8f2496d6a4d905dac9bc80c02f803", null ],
     [ "ApplyBpsPatch", "core_2common_8h.html#a0785e35814ceaa845a06f4a6b0d2bbb0", null ],
     [ "CheckVersion", "core_2common_8h.html#a733400a6fb45f8737465befded39c773", null ],
+    [ "kYazeVersion", "core_2common_8h.html#aeb4d11eb76af13a125dd20d79bc2bce3", null ],
     [ "kFastRomRegion", "core_2common_8h.html#ab62c06b7266ecc1577fb9da5d8f7401c", null ]
 ];

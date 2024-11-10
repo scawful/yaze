@@ -1,7 +1,7 @@
 var searchData=
 [
   ['editcolorinpalette_0',['EditColorInPalette',['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html#ad846ef8535f8cbe6f8e4a9a16e0a29da',1,'yaze::app::editor::PaletteEditor']]],
-  ['editlabel_1',['EditLabel',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#adff5679951d249e2a677399f98f1d6dd',1,'yaze::app::core::ResourceLabelManager']]],
+  ['editlabel_1',['EditLabel',['../structyaze_1_1app_1_1ResourceLabelManager.html#aebedbdd8ec0adc6a20003bbf719febe0',1,'yaze::app::ResourceLabelManager']]],
   ['editor_2',['Editor',['../classyaze_1_1app_1_1editor_1_1Editor.html#a27212f7c8f641e429a7c8e4613e48653',1,'yaze::app::editor::Editor']]],
   ['editor_5fmanager_3',['editor_manager',['../classyaze_1_1app_1_1core_1_1Controller.html#a8aa32ff5dfedb8fc416506713d8964e6',1,'yaze::app::core::Controller']]],
   ['editormanager_4',['EditorManager',['../classyaze_1_1app_1_1editor_1_1EditorManager.html#ade8dbd0bb37ee7a7a7c077d5a2c703da',1,'yaze::app::editor::EditorManager']]],
