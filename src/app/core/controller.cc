@@ -347,7 +347,10 @@ absl::Status Controller::LoadConfigFiles() {
 
   // Create the directory if it doesn't exist
   if (!std::filesystem::exists(config_directory)) {
-    std::filesystem::create_directory(config_directory);
+    if (!std::filesystem::create_directory(config_directory)) {
+      return absl::InternalError(absl::StrFormat(
+          "Failed to create config directory %s", config_directory));
+    }
   }
 
   // Check if the config file exists
@@ -359,6 +362,7 @@ absl::Status Controller::LoadConfigFiles() {
       return absl::InternalError(
           absl::StrFormat("Failed to create config file %s", config_file));
     }
+    file.close();
   }
 
   return absl::OkStatus();

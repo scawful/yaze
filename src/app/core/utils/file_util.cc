@@ -56,21 +56,19 @@ void SaveFile(const std::string &filename, const std::string &contents,
 std::string GetConfigDirectory(Platform platform) {
   std::string config_directory = ".yaze";
   switch (platform) {
-  case Platform::kMacOS:
-    config_directory = "~/Library/Application Support/yaze";
-    break;
-  case Platform::kWindows:
-    config_directory = "~/AppData/Roaming/yaze";
-    break;
-  case Platform::kLinux:
-    config_directory = "~/.config/yaze";
-    break;
-  default:
-    break;
+    case Platform::kWindows:
+      config_directory = "~/AppData/Roaming/yaze";
+      break;
+    case Platform::kMacOS:
+    case Platform::kLinux:
+      config_directory = "~/.config/yaze";
+      break;
+    default:
+      break;
   }
   return config_directory;
 }
 
-} // namespace core
-} // namespace app
-} // namespace yaze
+}  // namespace core
+}  // namespace app
+}  // namespace yaze
