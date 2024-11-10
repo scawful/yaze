@@ -54,50 +54,50 @@ constexpr ImGuiTableFlags kGfxEditFlags = ImGuiTableFlags_Reorderable |
                                           ImGuiTableFlags_SizingStretchSame;
 
 absl::Status GraphicsEditor::Update() {
-  TAB_BAR("##TabBar")
-  status_ = UpdateGfxEdit();
-  TAB_ITEM("Sheet Browser")
-  if (asset_browser_.Initialized == false) {
-    asset_browser_.Initialize(rom()->gfx_sheets());
+  if (ImGui::BeginTabBar("##TabBar")) {
+    status_ = UpdateGfxEdit();
+    TAB_ITEM("Sheet Browser")
+    if (asset_browser_.Initialized == false) {
+      asset_browser_.Initialize(rom()->gfx_sheets());
+    }
+    asset_browser_.Draw(rom()->gfx_sheets());
+    END_TAB_ITEM()
+    status_ = UpdateScadView();
+    status_ = UpdateLinkGfxView();
+    ImGui::EndTabBar();
   }
-  asset_browser_.Draw(rom()->gfx_sheets());
-
-  END_TAB_ITEM()
-  status_ = UpdateScadView();
-  status_ = UpdateLinkGfxView();
-  END_TAB_BAR()
   CLEAR_AND_RETURN_STATUS(status_)
   return absl::OkStatus();
 }
 
 absl::Status GraphicsEditor::UpdateGfxEdit() {
-  TAB_ITEM("Sheet Editor")
+  if (ImGui::BeginTabItem("Sheet Editor")) {
+    if (ImGui::BeginTable("##GfxEditTable", 3, kGfxEditTableFlags,
+                          ImVec2(0, 0))) {
+      for (const auto& name :
+           {"Tilesheets", "Current Graphics", "Palette Controls"})
+        ImGui::TableSetupColumn(name);
 
-  if (ImGui::BeginTable("##GfxEditTable", 3, kGfxEditTableFlags,
-                        ImVec2(0, 0))) {
-    for (const auto& name :
-         {"Tilesheets", "Current Graphics", "Palette Controls"})
-      ImGui::TableSetupColumn(name);
+      ImGui::TableHeadersRow();
 
-    ImGui::TableHeadersRow();
+      NEXT_COLUMN();
+      status_ = UpdateGfxSheetList();
 
-    NEXT_COLUMN();
-    status_ = UpdateGfxSheetList();
+      NEXT_COLUMN();
+      if (rom()->is_loaded()) {
+        DrawGfxEditToolset();
+        status_ = UpdateGfxTabView();
+      }
 
-    NEXT_COLUMN();
-    if (rom()->is_loaded()) {
-      DrawGfxEditToolset();
-      status_ = UpdateGfxTabView();
+      NEXT_COLUMN();
+      if (rom()->is_loaded()) {
+        status_ = UpdatePaletteColumn();
+      }
     }
+    ImGui::EndTable();
 
-    NEXT_COLUMN();
-    if (rom()->is_loaded()) {
-      status_ = UpdatePaletteColumn();
-    }
+    ImGui::EndTabItem();
   }
-  ImGui::EndTable();
-
-  END_TAB_ITEM()
   return absl::OkStatus();
 }
 
