@@ -140,6 +140,7 @@ absl::Status Overworld::AssembleMap32Tiles() {
       }
     }
   } else {
+    expanded_tile32_ = true;
     const uint32_t map32address[4] = {
         rom_.version_constants().kMap32TileTL, kMap32TileTRExpanded,
         kMap32TileBLExpanded, kMap32TileBRExpanded};
@@ -189,6 +190,7 @@ void Overworld::AssembleMap16Tiles() {
       tiles16_.emplace_back(t0, t1, t2, t3);
     }
   } else {
+    expanded_tile16_ = true;
     tpos = kMap16TilesExpanded;
     for (int i = 0; i < NumberOfMap16Ex; ++i) {
       gfx::TileInfo t0 = gfx::GetTilesInfo(rom()->toint16(tpos));
@@ -525,13 +527,13 @@ absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,
 
 absl::Status Overworld::Save(Rom &rom) {
   rom_ = rom;
-
+  if (expanded_tile16_) RETURN_IF_ERROR(SaveMap16TilesExpanded())
   RETURN_IF_ERROR(SaveMap16Tiles())
+  if (expanded_tile32_) RETURN_IF_ERROR(SaveMap32TilesExpanded())
   RETURN_IF_ERROR(SaveMap32Tiles())
   RETURN_IF_ERROR(SaveOverworldMaps())
   RETURN_IF_ERROR(SaveEntrances())
   RETURN_IF_ERROR(SaveExits())
-
   return absl::OkStatus();
 }
 

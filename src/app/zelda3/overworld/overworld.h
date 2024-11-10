@@ -571,6 +571,8 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
   absl::Status DecompressAllMapTiles();
 
   bool is_loaded_ = false;
+  bool expanded_tile16_ = false;
+  bool expanded_tile32_ = false;
 
   int game_state_ = 0;
   int current_map_ = 0;
