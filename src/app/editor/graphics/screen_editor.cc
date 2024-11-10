@@ -124,13 +124,13 @@ absl::Status ScreenEditor::LoadDungeonMaps() {
         int ptr,
         rom()->ReadWord(zelda3::screen::kDungeonMapRoomsPtr + (d * 2)));
     ASSIGN_OR_RETURN(
-        int ptrGFX,
-        rom()->ReadWord(zelda3::screen::kDungeonMapRoomsPtr + (d * 2)));
-    ptr |= 0x0A0000;                  // Add bank to the short ptr
-    ptrGFX |= 0x0A0000;               // Add bank to the short ptr
-    int pcPtr = core::SnesToPc(ptr);  // Contains data for the next 25 rooms
-    int pcPtrGFX =
-        core::SnesToPc(ptrGFX);  // Contains data for the next 25 rooms
+        int ptr_gfx,
+        rom()->ReadWord(zelda3::screen::kDungeonMapGfxPtr + (d * 2)));
+    ptr |= 0x0A0000;                   // Add bank to the short ptr
+    ptr_gfx |= 0x0A0000;               // Add bank to the short ptr
+    int pc_ptr = core::SnesToPc(ptr);  // Contains data for the next 25 rooms
+    int pc_ptr_gfx =
+        core::SnesToPc(ptr_gfx);  // Contains data for the next 25 rooms
 
     ASSIGN_OR_RETURN(
         ushort bossRoomD,
@@ -162,12 +162,12 @@ absl::Status ScreenEditor::LoadDungeonMaps() {
       for (int j = 0; j < 25; j++) {
         // rdata[j] = 0x0F;
         gdata[j] = 0xFF;
-        rdata[j] = rom()->data()[pcPtr + j + (i * 25)];  // Set the rooms
+        rdata[j] = rom()->data()[pc_ptr + j + (i * 25)];  // Set the rooms
 
         if (rdata[j] == 0x0F) {
           gdata[j] = 0xFF;
         } else {
-          gdata[j] = rom()->data()[pcPtrGFX++];
+          gdata[j] = rom()->data()[pc_ptr_gfx++];
         }
 
         std::string label = core::UppercaseHexByte(rdata[j]);
@@ -188,19 +188,19 @@ absl::Status ScreenEditor::LoadDungeonMaps() {
 absl::Status ScreenEditor::SaveDungeonMaps() {
   for (int d = 0; d < 14; d++) {
     int ptr = zelda3::screen::kDungeonMapRoomsPtr + (d * 2);
-    int ptrGFX = zelda3::screen::kDungeonMapGfxPtr + (d * 2);
-    int pcPtr = core::SnesToPc(ptr);
-    int pcPtrGFX = core::SnesToPc(ptrGFX);
+    int ptr_gfx = zelda3::screen::kDungeonMapGfxPtr + (d * 2);
+    int pc_ptr = core::SnesToPc(ptr);
+    int pc_ptr_gfx = core::SnesToPc(ptr_gfx);
 
     const int nbr_floors = dungeon_maps_[d].nbr_of_floor;
     const int nbr_basements = dungeon_maps_[d].nbr_of_basement;
     for (int i = 0; i < nbr_floors + nbr_basements; i++) {
       for (int j = 0; j < 25; j++) {
-        RETURN_IF_ERROR(rom()->WriteByte(pcPtr + j + (i * 25),
+        RETURN_IF_ERROR(rom()->WriteByte(pc_ptr + j + (i * 25),
                                          dungeon_maps_[d].floor_rooms[i][j]));
-        RETURN_IF_ERROR(rom()->WriteByte(pcPtrGFX + j + (i * 25),
+        RETURN_IF_ERROR(rom()->WriteByte(pc_ptr_gfx + j + (i * 25),
                                          dungeon_maps_[d].floor_gfx[i][j]));
-        pcPtrGFX++;
+        pc_ptr_gfx++;
       }
     }
   }
@@ -240,6 +240,8 @@ absl::Status ScreenEditor::LoadDungeonMapTile16() {
     if (tile16_individual_.count(i) == 0) {
       auto tile = tile16_sheet_.GetTile16(i);
       tile16_individual_[i] = tile;
+      RETURN_IF_ERROR(tile16_individual_[i].ApplyPalette(
+          *rom()->mutable_dungeon_palette(3)));
       Renderer::GetInstance().RenderBitmap(&tile16_individual_[i]);
     }
   }
@@ -261,15 +263,13 @@ void ScreenEditor::DrawDungeonMapsTabs() {
 
       if (ImGui::BeginTabItem(tab_name.c_str())) {
         floor_number = i;
-        // screen_canvas_.LoadCustomLabels(dungeon_map_labels_[selected_dungeon]);
-        // screen_canvas_.set_current_labels(floor_number);
         screen_canvas_.DrawBackground(ImVec2(325, 325));
         screen_canvas_.DrawTileSelector(64.f);
 
         auto boss_room = current_dungeon.boss_room;
         for (int j = 0; j < 25; j++) {
           if (current_dungeon.floor_rooms[floor_number][j] != 0x0F) {
-            int tile16_id = current_dungeon.floor_rooms[floor_number][j];
+            int tile16_id = current_dungeon.floor_gfx[floor_number][j];
             int posX = ((j % 5) * 32);
             int posY = ((j / 5) * 32);
 
@@ -290,6 +290,8 @@ void ScreenEditor::DrawDungeonMapsTabs() {
             std::string label =
                 dungeon_map_labels_[selected_dungeon][floor_number][j];
             screen_canvas_.DrawText(label, (posX * 2), (posY * 2));
+            std::string gfx_id = core::UppercaseHexByte(tile16_id);
+            screen_canvas_.DrawText(gfx_id, (posX * 2), (posY * 2) + 16);
           }
         }
 
@@ -327,13 +329,13 @@ void ScreenEditor::DrawDungeonMapsTabs() {
   }
 
   // Add Basement Button
-  if (ImGui::Button("Add Basement", ImVec2(100, 0)) &&
+  if (ImGui::Button("Add Basement", ImVec2(110, 0)) &&
       current_dungeon.nbr_of_basement < 8) {
     current_dungeon.nbr_of_basement++;
     dungeon_map_labels_[selected_dungeon].emplace_back();
   }
   ImGui::SameLine();
-  if (ImGui::Button("Remove Basement", ImVec2(100, 0)) &&
+  if (ImGui::Button("Remove Basement", ImVec2(110, 0)) &&
       current_dungeon.nbr_of_basement > 0) {
     current_dungeon.nbr_of_basement--;
     dungeon_map_labels_[selected_dungeon].pop_back();

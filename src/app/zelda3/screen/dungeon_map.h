@@ -18,19 +18,18 @@ constexpr int kDungeonMapGfxPtr = 0x57BE4;  // 14 pointers of gfx data
 constexpr int kDungeonMapDataStart = 0x57039;
 
 // IF Byte = 0xB9 dungeon maps are not expanded
-constexpr int kDungeonMapExpCheck = 0x56652; // $0A:E652
-constexpr int kDungeonMapTile16 = 0x57009; // $0A:F009
-constexpr int kDungeonMapTile16Expanded = 0x109010; // $21:9010
+constexpr int kDungeonMapExpCheck = 0x56652;         // $0A:E652
+constexpr int kDungeonMapTile16 = 0x57009;           // $0A:F009
+constexpr int kDungeonMapTile16Expanded = 0x109010;  // $21:9010
 
 // 14 words values 0x000F = no boss
 constexpr int kDungeonMapBossRooms = 0x56807;
 constexpr int kTriforceVertices = 0x04FFD2;  // group of 3, X, Y ,Z
-constexpr int TriforceFaces = 0x04FFE4;      // group of 5
+constexpr int kTriforceFaces = 0x04FFE4;     // group of 5
 
-constexpr int crystalVertices = 0x04FF98;
+constexpr int kCrystalVertices = 0x04FF98;
 
-class DungeonMap {
- public:
+struct DungeonMap {
   unsigned short boss_room = 0xFFFF;
   unsigned char nbr_of_floor = 0;
   unsigned char nbr_of_basement = 0;
