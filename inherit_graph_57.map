@@ -1,3 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html" title=" " alt="" coords="5,5,148,46"/>
+<area shape="rect" id="Node000000" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html" title="Memory interface." alt="" coords="5,39,163,79"/>
+<area shape="rect" id="Node000001" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html" title="Implementation of the Memory interface for emulating memory in a SNES system." alt="" coords="211,5,368,46"/>
+<area shape="poly" id="edge66_Node000000_Node000001" title=" " alt="" coords="178,41,210,36,211,41,179,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html" title="A mock implementation of the Memory class." alt="" coords="211,71,368,111"/>
+<area shape="poly" id="edge67_Node000000_Node000002" title=" " alt="" coords="179,71,211,76,210,81,178,76"/>
 </map>

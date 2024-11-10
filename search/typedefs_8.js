@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['owblockset_0',['OWBlockset',['../namespaceyaze_1_1app_1_1zelda3.html#aec01fb1cfaa7d77c7f95166738b07dda',1,'yaze::app::zelda3']]],
-  ['owmaptiles_1',['OWMapTiles',['../namespaceyaze_1_1app_1_1zelda3.html#ae0956b7be8834150a570eff3faad7d62',1,'yaze::app::zelda3']]]
+  ['snes_5fcolor_0',['snes_color',['../incl_2snes__color_8h.html#a7010d1b3caf12995e0ecb41a1c446b94',1,'snes_color.h']]],
+  ['snes_5fpalette_1',['snes_palette',['../incl_2snes__color_8h.html#a100f9af9f8e1bb9d2ad73476ab774655',1,'snes_color.h']]]
 ];

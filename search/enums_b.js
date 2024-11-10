@@ -1,8 +1,5 @@
 var searchData=
 [
-  ['size_0',['Size',['../structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729',1,'yaze::app::emu::video::BackgroundLayer']]],
-  ['sorting_1',['Sorting',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ac3c0be1a02f8dce7d5bbca92747b4f9c',1,'yaze::app::zelda3::dungeon']]],
-  ['specialobjecttype_2',['SpecialObjectType',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ac46cb973cf8ca0aa50e953f5c8978f2b',1,'yaze::app::zelda3::dungeon']]],
-  ['spritesize_3',['SpriteSize',['../namespaceyaze_1_1app_1_1emu_1_1video.html#a55b219b70a80e3b20522da1a08cc6c0a',1,'yaze::app::emu::video']]],
-  ['sramsize_4',['SramSize',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#ae1f596ac5f8a1e7501c140f8415a11e1',1,'yaze::app::emu::memory']]]
+  ['tiletype_0',['TileType',['../namespaceyaze_1_1app_1_1gfx.html#ae95a00ff98c9e69d426f80c487e2dac7',1,'yaze::app::gfx']]],
+  ['tokentype_1',['TokenType',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a06f18a00b63cc01c30a59b40e16297be',1,'yaze::app::gui::zeml']]]
 ];

@@ -7,5 +7,6 @@ var searchData=
   ['ppu_2eh_4',['ppu.h',['../ppu_8h.html',1,'']]],
   ['ppu_5fregisters_2eh_5',['ppu_registers.h',['../ppu__registers_8h.html',1,'']]],
   ['ppu_5ftest_2ecc_6',['ppu_test.cc',['../ppu__test_8cc.html',1,'']]],
-  ['project_2eh_7',['project.h',['../project_8h.html',1,'']]]
+  ['project_2ecc_7',['project.cc',['../project_8cc.html',1,'']]],
+  ['project_2eh_8',['project.h',['../project_8h.html',1,'']]]
 ];

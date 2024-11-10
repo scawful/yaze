@@ -3,26 +3,17 @@ var annotated_dup =
     [ "yaze", "namespaceyaze.html", [
       [ "app", "namespaceyaze_1_1app.html", [
         [ "core", "namespaceyaze_1_1app_1_1core.html", [
-          [ "AsyncMessageDispatcher", "classyaze_1_1app_1_1core_1_1AsyncMessageDispatcher.html", "classyaze_1_1app_1_1core_1_1AsyncMessageDispatcher" ],
           [ "Controller", "classyaze_1_1app_1_1core_1_1Controller.html", "classyaze_1_1app_1_1core_1_1Controller" ],
           [ "ExperimentFlags", "classyaze_1_1app_1_1core_1_1ExperimentFlags.html", "classyaze_1_1app_1_1core_1_1ExperimentFlags" ],
           [ "FileDialogWrapper", "classyaze_1_1app_1_1core_1_1FileDialogWrapper.html", null ],
           [ "FolderItem", "structyaze_1_1app_1_1core_1_1FolderItem.html", "structyaze_1_1app_1_1core_1_1FolderItem" ],
-          [ "IMessageListener", "classyaze_1_1app_1_1core_1_1IMessageListener.html", "classyaze_1_1app_1_1core_1_1IMessageListener" ],
-          [ "IMessageProtocol", "classyaze_1_1app_1_1core_1_1IMessageProtocol.html", "classyaze_1_1app_1_1core_1_1IMessageProtocol" ],
           [ "Logger", "classyaze_1_1app_1_1core_1_1Logger.html", null ],
-          [ "Message", "structyaze_1_1app_1_1core_1_1Message.html", "structyaze_1_1app_1_1core_1_1Message" ],
-          [ "MessageDispatcher", "classyaze_1_1app_1_1core_1_1MessageDispatcher.html", "classyaze_1_1app_1_1core_1_1MessageDispatcher" ],
-          [ "MessageFilter", "classyaze_1_1app_1_1core_1_1MessageFilter.html", "classyaze_1_1app_1_1core_1_1MessageFilter" ],
           [ "NotifyValue", "classyaze_1_1app_1_1core_1_1NotifyValue.html", "classyaze_1_1app_1_1core_1_1NotifyValue" ],
-          [ "ObjectFactory", "classyaze_1_1app_1_1core_1_1ObjectFactory.html", "classyaze_1_1app_1_1core_1_1ObjectFactory" ],
-          [ "Reflectable", "classyaze_1_1app_1_1core_1_1Reflectable.html", "classyaze_1_1app_1_1core_1_1Reflectable" ],
           [ "Renderer", "classyaze_1_1app_1_1core_1_1Renderer.html", "classyaze_1_1app_1_1core_1_1Renderer" ],
           [ "ResourceLabelManager", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html", "structyaze_1_1app_1_1core_1_1ResourceLabelManager" ],
           [ "SDL_Deleter", "structyaze_1_1app_1_1core_1_1SDL__Deleter.html", "structyaze_1_1app_1_1core_1_1SDL__Deleter" ],
           [ "SDL_Surface_Deleter", "structyaze_1_1app_1_1core_1_1SDL__Surface__Deleter.html", "structyaze_1_1app_1_1core_1_1SDL__Surface__Deleter" ],
-          [ "SDL_Texture_Deleter", "structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter.html", "structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter" ],
-          [ "Swizzler", "classyaze_1_1app_1_1core_1_1Swizzler.html", "classyaze_1_1app_1_1core_1_1Swizzler" ]
+          [ "SDL_Texture_Deleter", "structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter.html", "structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter" ]
         ] ],
         [ "editor", "namespaceyaze_1_1app_1_1editor.html", [
           [ "context", "namespaceyaze_1_1app_1_1editor_1_1context.html", [
@@ -62,7 +53,6 @@ var annotated_dup =
           [ "OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", "classyaze_1_1app_1_1editor_1_1OverworldEditor" ],
           [ "PaletteEditor", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html", "classyaze_1_1app_1_1editor_1_1PaletteEditor" ],
           [ "ParsedElement", "structyaze_1_1app_1_1editor_1_1ParsedElement.html", "structyaze_1_1app_1_1editor_1_1ParsedElement" ],
-          [ "RecentFilesManager", "classyaze_1_1app_1_1editor_1_1RecentFilesManager.html", "classyaze_1_1app_1_1editor_1_1RecentFilesManager" ],
           [ "ScreenEditor", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html", "classyaze_1_1app_1_1editor_1_1ScreenEditor" ],
           [ "SettingsEditor", "classyaze_1_1app_1_1editor_1_1SettingsEditor.html", "classyaze_1_1app_1_1editor_1_1SettingsEditor" ],
           [ "SpriteEditor", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html", "classyaze_1_1app_1_1editor_1_1SpriteEditor" ],
@@ -87,8 +77,7 @@ var annotated_dup =
             [ "Memory", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory" ],
             [ "MemoryImpl", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl" ],
             [ "MockClock", "classyaze_1_1app_1_1emu_1_1memory_1_1MockClock.html", "classyaze_1_1app_1_1emu_1_1memory_1_1MockClock" ],
-            [ "MockMemory", "classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html", "classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory" ],
-            [ "RomInfo", "classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html", "classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo" ]
+            [ "MockMemory", "classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html", "classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory" ]
           ] ],
           [ "video", "namespaceyaze_1_1app_1_1emu_1_1video.html", [
             [ "PpuRegisters", "namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html", [
@@ -274,6 +263,7 @@ var annotated_dup =
           [ "SpriteInstruction", "classyaze_1_1app_1_1zelda3_1_1SpriteInstruction.html", "classyaze_1_1app_1_1zelda3_1_1SpriteInstruction" ]
         ] ],
         [ "Project", "structyaze_1_1app_1_1Project.html", "structyaze_1_1app_1_1Project" ],
+        [ "RecentFilesManager", "classyaze_1_1app_1_1RecentFilesManager.html", "classyaze_1_1app_1_1RecentFilesManager" ],
         [ "Rom", "classyaze_1_1app_1_1Rom.html", "classyaze_1_1app_1_1Rom" ],
         [ "SharedRom", "classyaze_1_1app_1_1SharedRom.html", "classyaze_1_1app_1_1SharedRom" ],
         [ "VersionConstants", "structyaze_1_1app_1_1VersionConstants.html", "structyaze_1_1app_1_1VersionConstants" ]
@@ -305,12 +295,6 @@ var annotated_dup =
         ] ],
         [ "integration", "namespaceyaze_1_1test_1_1integration.html", [
           [ "TestEditor", "classyaze_1_1test_1_1integration_1_1TestEditor.html", "classyaze_1_1test_1_1integration_1_1TestEditor" ]
-        ] ],
-        [ "message", "namespaceyaze_1_1test_1_1message.html", [
-          [ "MessageDispatcherTest", "classyaze_1_1test_1_1message_1_1MessageDispatcherTest.html", "classyaze_1_1test_1_1message_1_1MessageDispatcherTest" ],
-          [ "TestFilter", "classyaze_1_1test_1_1message_1_1TestFilter.html", "classyaze_1_1test_1_1message_1_1TestFilter" ],
-          [ "TestListener", "classyaze_1_1test_1_1message_1_1TestListener.html", "classyaze_1_1test_1_1message_1_1TestListener" ],
-          [ "TestProtocol", "classyaze_1_1test_1_1message_1_1TestProtocol.html", "classyaze_1_1test_1_1message_1_1TestProtocol" ]
         ] ],
         [ "zelda3", "namespaceyaze_1_1test_1_1zelda3.html", [
           [ "DungeonRoomTest", "classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest.html", "classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest" ],

@@ -48,6 +48,5 @@ var searchData=
   ['yaze_3a_3atest_3a_3agfx_3a_3aanonymous_5fnamespace_7bcompression_5ftest_2ecc_7d_45',['anonymous_namespace{compression_test.cc}',['../namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html',1,'yaze::test::gfx']]],
   ['yaze_3a_3atest_3a_3agfx_3a_3aanonymous_5fnamespace_7bsnes_5fpalette_5ftest_2ecc_7d_46',['anonymous_namespace{snes_palette_test.cc}',['../namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02snes__palette__test_8cc_03.html',1,'yaze::test::gfx']]],
   ['yaze_3a_3atest_3a_3aintegration_47',['integration',['../namespaceyaze_1_1test_1_1integration.html',1,'yaze::test']]],
-  ['yaze_3a_3atest_3a_3amessage_48',['message',['../namespaceyaze_1_1test_1_1message.html',1,'yaze::test']]],
-  ['yaze_3a_3atest_3a_3azelda3_49',['zelda3',['../namespaceyaze_1_1test_1_1zelda3.html',1,'yaze::test']]]
+  ['yaze_3a_3atest_3a_3azelda3_48',['zelda3',['../namespaceyaze_1_1test_1_1zelda3.html',1,'yaze::test']]]
 ];

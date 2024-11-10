@@ -10,6 +10,7 @@ var namespaceyaze_1_1app =
     [ "gui", "namespaceyaze_1_1app_1_1gui.html", "namespaceyaze_1_1app_1_1gui" ],
     [ "zelda3", "namespaceyaze_1_1app_1_1zelda3.html", "namespaceyaze_1_1app_1_1zelda3" ],
     [ "Project", "structyaze_1_1app_1_1Project.html", "structyaze_1_1app_1_1Project" ],
+    [ "RecentFilesManager", "classyaze_1_1app_1_1RecentFilesManager.html", "classyaze_1_1app_1_1RecentFilesManager" ],
     [ "Rom", "classyaze_1_1app_1_1Rom.html", "classyaze_1_1app_1_1Rom" ],
     [ "SharedRom", "classyaze_1_1app_1_1SharedRom.html", "classyaze_1_1app_1_1SharedRom" ],
     [ "VersionConstants", "structyaze_1_1app_1_1VersionConstants.html", "structyaze_1_1app_1_1VersionConstants" ],
@@ -19,6 +20,7 @@ var namespaceyaze_1_1app =
       [ "SD", "namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a38f99abbc1d339c277c0669e7bc373c0", null ],
       [ "RANDO", "namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a9cffbad7f42a5a6e18e4a9431187b051", null ]
     ] ],
+    [ "kRecentFilesFilename", "namespaceyaze_1_1app.html#a5a46a5b1e333533504916141e529b6aa", null ],
     [ "kEndOfProjectFile", "namespaceyaze_1_1app.html#aa899c44eb9e83190d881c30296137bb3", null ],
     [ "Uncompressed3BPPSize", "namespaceyaze_1_1app.html#a4c2c2d45869b398e8183f4215fb8c25b", null ],
     [ "kNumGfxSheets", "namespaceyaze_1_1app.html#a9bbafa7d5f1809f3d216b5082f65d1b2", null ],

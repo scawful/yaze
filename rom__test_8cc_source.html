@@ -163,7 +163,7 @@ $(function(){initNavTree('rom__test_8cc_source.html',''); initResizable(true); }
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
 <div class="foldopen" id="foldopen00047" data-start="{" data-end="}">
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a780c23f4cff8991e55184dd0106f25ef">   47</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a9853b0265931c2e3346e991d89ad8e5d">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1RomTest.html">RomTest</a>, LoadFromFile) {</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span><span class="preprocessor">#if __defined(__linux__)</span></div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span><span class="preprocessor">#if defined(__linux__)</span></div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  GTEST_SKIP();</div>
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  <a class="code hl_define" href="testing_8h.html#a78b51c162425db9db9990f17fbf61bf1">EXPECT_OK</a>(rom_.LoadFromFile(<span class="stringliteral">&quot;test.sfc&quot;</span>));</div>

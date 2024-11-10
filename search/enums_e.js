@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['yaze_5fevent_5ftype_0',['yaze_event_type',['../extension_8h.html#a2f02cd3cc75a35376be20a31f7c2621f',1,'extension.h']]]
+  ['z3_5fversion_0',['Z3_Version',['../namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47',1,'yaze::app']]]
 ];

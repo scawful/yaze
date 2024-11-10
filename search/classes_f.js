@@ -42,6 +42,5 @@ var searchData=
   ['subtype1_39',['Subtype1',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype1.html',1,'yaze::app::zelda3::dungeon']]],
   ['subtype2_40',['Subtype2',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype2.html',1,'yaze::app::zelda3::dungeon']]],
   ['subtype3_41',['Subtype3',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html',1,'yaze::app::zelda3::dungeon']]],
-  ['subtypeinfo_42',['SubtypeInfo',['../structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html',1,'yaze::app::zelda3::dungeon']]],
-  ['swizzler_43',['Swizzler',['../classyaze_1_1app_1_1core_1_1Swizzler.html',1,'yaze::app::core']]]
+  ['subtypeinfo_42',['SubtypeInfo',['../structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html',1,'yaze::app::zelda3::dungeon']]]
 ];

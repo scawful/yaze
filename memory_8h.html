@@ -110,8 +110,6 @@ $(function(){initNavTree('memory_8h.html',''); initResizable(true); });
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
-<a href="#enum-members">Enumerations</a> &#124;
-<a href="#func-members">Functions</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">memory.h File Reference</div></div>
 </div><!--header-->
@@ -218,8 +216,6 @@ This graph shows which files directly or indirectly include this file:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html">yaze::app::emu::memory::RomInfo</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html">yaze::app::emu::memory::CpuCallbacks</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html">yaze::app::emu::memory::Memory</a></td></tr>
@@ -246,61 +242,6 @@ Namespaces</h2></td></tr>
 Typedefs</h2></td></tr>
 <tr class="memitem:aa5c0af2c57690c4a466298f7ba0f5db0" id="r_aa5c0af2c57690c4a466298f7ba0f5db0"><td class="memItemLeft" align="right" valign="top">typedef struct yaze::app::emu::memory::CpuCallbacks&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#aa5c0af2c57690c4a466298f7ba0f5db0">yaze::app::emu::memory::CpuCallbacks</a></td></tr>
 <tr class="separator:aa5c0af2c57690c4a466298f7ba0f5db0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
-Enumerations</h2></td></tr>
-<tr class="memitem:af9424b79590fad583d381935a03cb4b9" id="r_af9424b79590fad583d381935a03cb4b9"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#af9424b79590fad583d381935a03cb4b9">yaze::app::emu::memory::RomSpeed</a> { <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#af9424b79590fad583d381935a03cb4b9a57959afe6aaafebd838308c358d47c1b">yaze::app::emu::memory::SLOW_ROM</a> = 0x00
-, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#af9424b79590fad583d381935a03cb4b9a93364bc7d2865bb7cd3a8a79628315af">yaze::app::emu::memory::FAST_ROM</a> = 0x07
- }</td></tr>
-<tr class="separator:af9424b79590fad583d381935a03cb4b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a656c5d7c708bc346677991611ab505ac" id="r_a656c5d7c708bc346677991611ab505ac"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a656c5d7c708bc346677991611ab505ac">yaze::app::emu::memory::BankSize</a> { <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a656c5d7c708bc346677991611ab505aca13fd73acd158e42fa79bc6b14ed3235c">yaze::app::emu::memory::LOW_ROM</a> = 0x00
-, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a656c5d7c708bc346677991611ab505aca06872c974865d0398fc4808790ec9020">yaze::app::emu::memory::HI_ROM</a> = 0x01
- }</td></tr>
-<tr class="separator:a656c5d7c708bc346677991611ab505ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a12641306720f09a7cef69ce4f30f2a42" id="r_a12641306720f09a7cef69ce4f30f2a42"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42">yaze::app::emu::memory::RomType</a> { <br />
-&#160;&#160;<a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42a06af17939e7e38f4a416e70f381f8dc1">yaze::app::emu::memory::ROM_DEFAULT</a> = 0x00
-, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42af974317d61876358bbbda11d4342abec">yaze::app::emu::memory::ROM_RAM</a> = 0x01
-, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42a53a557d7fc26bb072adc208bfad5c75c">yaze::app::emu::memory::ROM_SRAM</a> = 0x02
-, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42a26ee4d43a3f8e04eeeca955253425240">yaze::app::emu::memory::ROM_DSP1</a> = 0x03
-, <br />
-&#160;&#160;<a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42aadc7435e3139a31b1eb4981fd1a97932">yaze::app::emu::memory::ROM_DSP1_RAM</a> = 0x04
-, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42adb0448977677aee0697a52af296ec16b">yaze::app::emu::memory::ROM_DSP1_SRAM</a> = 0x05
-, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42a25c6b7f8757be1397484ae6888e5a990">yaze::app::emu::memory::FX</a> = 0x06
-<br />
- }</td></tr>
-<tr class="separator:a12641306720f09a7cef69ce4f30f2a42"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8746750561338b2f964f81499005963c" id="r_a8746750561338b2f964f81499005963c"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a8746750561338b2f964f81499005963c">yaze::app::emu::memory::RomSize</a> { <br />
-&#160;&#160;<a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a8746750561338b2f964f81499005963cafbd4a06eb42228b5b3c3e7f660406ed3">yaze::app::emu::memory::SIZE_2_MBIT</a> = 0x08
-, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a8746750561338b2f964f81499005963ca7bcc111bc3e7527412b9d4de987f29b7">yaze::app::emu::memory::SIZE_4_MBIT</a> = 0x09
-, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a8746750561338b2f964f81499005963ca47d98b6e45441d43ace22338773d716e">yaze::app::emu::memory::SIZE_8_MBIT</a> = 0x0A
-, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a8746750561338b2f964f81499005963ca53fc8e61cfff609e2f4dc470ee019044">yaze::app::emu::memory::SIZE_16_MBIT</a> = 0x0B
-, <br />
-&#160;&#160;<a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a8746750561338b2f964f81499005963caf5832fe9f67c4fbf468137c4dbb7e7eb">yaze::app::emu::memory::SIZE_32_MBIT</a> = 0x0C
-<br />
- }</td></tr>
-<tr class="separator:a8746750561338b2f964f81499005963c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae1f596ac5f8a1e7501c140f8415a11e1" id="r_ae1f596ac5f8a1e7501c140f8415a11e1"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#ae1f596ac5f8a1e7501c140f8415a11e1">yaze::app::emu::memory::SramSize</a> { <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#ae1f596ac5f8a1e7501c140f8415a11e1abd0ff805d704e6ebc396433ad5ffd027">yaze::app::emu::memory::NO_SRAM</a> = 0x00
-, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#ae1f596ac5f8a1e7501c140f8415a11e1add6897099a27180343e5aea5dfe36017">yaze::app::emu::memory::SRAM_16_KBIT</a> = 0x01
-, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#ae1f596ac5f8a1e7501c140f8415a11e1af2781a1fc8478f4ccb59b52689028233">yaze::app::emu::memory::SRAM_32_KBIT</a> = 0x02
-, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#ae1f596ac5f8a1e7501c140f8415a11e1a639ff04505dc710ee0436422e55ad043">yaze::app::emu::memory::SRAM_64_KBIT</a> = 0x03
- }</td></tr>
-<tr class="separator:ae1f596ac5f8a1e7501c140f8415a11e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a82c121a932d402fbc78de6a189c6dc12" id="r_a82c121a932d402fbc78de6a189c6dc12"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a82c121a932d402fbc78de6a189c6dc12">yaze::app::emu::memory::CountryCode</a> { <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a82c121a932d402fbc78de6a189c6dc12af5fedd41b4c6c5acb915567bfc61341a">yaze::app::emu::memory::JAPAN</a> = 0x00
-, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a82c121a932d402fbc78de6a189c6dc12a1288179b503be9fd3d0ec42cb345a794">yaze::app::emu::memory::USA</a> = 0x01
-, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a82c121a932d402fbc78de6a189c6dc12a583eb3075985fe0254b0262e812ddbfc">yaze::app::emu::memory::EUROPE_OCEANIA_ASIA</a> = 0x02
- }</td></tr>
-<tr class="separator:a82c121a932d402fbc78de6a189c6dc12"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d6e17d3d4cb495fc71fa77c41b0decd" id="r_a3d6e17d3d4cb495fc71fa77c41b0decd"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a3d6e17d3d4cb495fc71fa77c41b0decd">yaze::app::emu::memory::License</a> { <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a3d6e17d3d4cb495fc71fa77c41b0decdabcfb33bce795ff2de59e2d642dea24c5">yaze::app::emu::memory::INVALID</a> = 0
-, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a3d6e17d3d4cb495fc71fa77c41b0decdaee053100e506a6c5f6b8e9defb5ab00b">yaze::app::emu::memory::NINTENDO</a> = 1
-, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a3d6e17d3d4cb495fc71fa77c41b0decda51125cf8d2949e70d4ad3c5ce7e53fe7">yaze::app::emu::memory::ZAMUSE</a> = 5
-, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a3d6e17d3d4cb495fc71fa77c41b0decda1b997a94ec33f6dcd24edc335f3a4700">yaze::app::emu::memory::CAPCOM</a> = 8
- }</td></tr>
-<tr class="separator:a3d6e17d3d4cb495fc71fa77c41b0decd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
-Functions</h2></td></tr>
-<tr class="memitem:ac5d8b87f3f4e87dd3e2dcc58bb570987" id="r_ac5d8b87f3f4e87dd3e2dcc58bb570987"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#ac5d8b87f3f4e87dd3e2dcc58bb570987">yaze::app::emu::memory::DrawSnesMemoryMapping</a> (const <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html">MemoryImpl</a> &amp;memory)</td></tr>
-<tr class="separator:ac5d8b87f3f4e87dd3e2dcc58bb570987"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>

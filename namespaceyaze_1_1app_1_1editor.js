@@ -42,7 +42,6 @@ var namespaceyaze_1_1app_1_1editor =
     [ "OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", "classyaze_1_1app_1_1editor_1_1OverworldEditor" ],
     [ "PaletteEditor", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html", "classyaze_1_1app_1_1editor_1_1PaletteEditor" ],
     [ "ParsedElement", "structyaze_1_1app_1_1editor_1_1ParsedElement.html", "structyaze_1_1app_1_1editor_1_1ParsedElement" ],
-    [ "RecentFilesManager", "classyaze_1_1app_1_1editor_1_1RecentFilesManager.html", "classyaze_1_1app_1_1editor_1_1RecentFilesManager" ],
     [ "ScreenEditor", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html", "classyaze_1_1app_1_1editor_1_1ScreenEditor" ],
     [ "SettingsEditor", "classyaze_1_1app_1_1editor_1_1SettingsEditor.html", "classyaze_1_1app_1_1editor_1_1SettingsEditor" ],
     [ "SpriteEditor", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html", "classyaze_1_1app_1_1editor_1_1SpriteEditor" ],

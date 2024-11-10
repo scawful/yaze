@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['widgettype_0',['WidgetType',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824',1,'yaze::app::gui::zeml']]]
+  ['yaze_5fevent_5ftype_0',['yaze_event_type',['../extension_8h.html#a2f02cd3cc75a35376be20a31f7c2621f',1,'extension.h']]]
 ];

@@ -3,7 +3,6 @@ var namespaceyaze_1_1test =
     [ "emu", "namespaceyaze_1_1test_1_1emu.html", "namespaceyaze_1_1test_1_1emu" ],
     [ "gfx", "namespaceyaze_1_1test_1_1gfx.html", "namespaceyaze_1_1test_1_1gfx" ],
     [ "integration", "namespaceyaze_1_1test_1_1integration.html", "namespaceyaze_1_1test_1_1integration" ],
-    [ "message", "namespaceyaze_1_1test_1_1message.html", "namespaceyaze_1_1test_1_1message" ],
     [ "zelda3", "namespaceyaze_1_1test_1_1zelda3.html", "namespaceyaze_1_1test_1_1zelda3" ],
     [ "MockRom", "classyaze_1_1test_1_1MockRom.html", "classyaze_1_1test_1_1MockRom" ],
     [ "RomTest", "classyaze_1_1test_1_1RomTest.html", "classyaze_1_1test_1_1RomTest" ],
