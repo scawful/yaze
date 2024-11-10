@@ -4,7 +4,7 @@ set(
   app/core/controller.cc
   app/core/labeling.cc
   app/emu/emulator.cc
-  app/core/message.cc
+  app/core/project.cc
   app/core/utils/file_util.cc
 )
 
