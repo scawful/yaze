@@ -1069,6 +1069,56 @@ absl::Status Overworld::CreateTile32Tilemap() {
   return absl::OkStatus();
 }
 
+absl::Status Overworld::SaveMap32Expanded() {
+  int bottomLeft = kMap32TileBLExpanded;
+  int bottomRight = kMap32TileBRExpanded;
+  int topRight = kMap32TileTRExpanded;
+  int limit = 0x8A80;
+
+  // Updates the pointers too for the tile32
+  // Top Right
+  RETURN_IF_ERROR(
+      rom()->WriteLong(0x0176EC, core::PcToSnes(kMap32TileTRExpanded)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(0x0176F3, core::PcToSnes(kMap32TileTRExpanded + 1)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(0x0176FA, core::PcToSnes(kMap32TileTRExpanded + 2)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(0x017701, core::PcToSnes(kMap32TileTRExpanded + 3)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(0x017708, core::PcToSnes(kMap32TileTRExpanded + 4)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(0x01771A, core::PcToSnes(kMap32TileTRExpanded + 5)));
+
+  // BottomLeft
+  RETURN_IF_ERROR(
+      rom()->WriteLong(0x01772C, core::PcToSnes(kMap32TileBLExpanded)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(0x017733, core::PcToSnes(kMap32TileBLExpanded + 1)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(0x01773A, core::PcToSnes(kMap32TileBLExpanded + 2)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(0x017741, core::PcToSnes(kMap32TileBLExpanded + 3)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(0x017748, core::PcToSnes(kMap32TileBLExpanded + 4)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(0x01775A, core::PcToSnes(kMap32TileBLExpanded + 5)));
+
+  // BottomRight
+  RETURN_IF_ERROR(
+      rom()->WriteLong(0x01776C, core::PcToSnes(kMap32TileBRExpanded)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(0x017773, core::PcToSnes(kMap32TileBRExpanded + 1)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(0x01777A, core::PcToSnes(kMap32TileBRExpanded + 2)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(0x017781, core::PcToSnes(kMap32TileBRExpanded + 3)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(0x017788, core::PcToSnes(kMap32TileBRExpanded + 4)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(0x01779A, core::PcToSnes(kMap32TileBRExpanded + 5)));
+}
+
 absl::Status Overworld::SaveMap32Tiles() {
   core::Logger::log("Saving Map32 Tiles");
   constexpr int kMaxUniqueTiles = 0x4540;
@@ -1194,6 +1244,84 @@ absl::Status Overworld::SaveMap32Tiles() {
     unique_tile_index += 4;
     num_unique_tiles += 2;
   }
+
+  return absl::OkStatus();
+}
+
+absl::Status Overworld::SaveMap16Expanded() {
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x008865),
+                                   core::PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x0EDE4F),
+                                   core::PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x0EDEE9),
+                                   core::PcToSnes(kMap16TilesExpanded)));
+
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x1BBC2D),
+                                   core::PcToSnes(kMap16TilesExpanded + 2)));
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x1BBC4C),
+                                   core::PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x1BBCC2),
+                                   core::PcToSnes(kMap16TilesExpanded + 4)));
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x1BBCCB),
+                                   core::PcToSnes(kMap16TilesExpanded + 6)));
+
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x1BBEF6),
+                                   core::PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x1BBF23),
+                                   core::PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x1BC041),
+                                   core::PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x1BC9B3),
+                                   core::PcToSnes(kMap16TilesExpanded)));
+
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x1BC9BA),
+                                   core::PcToSnes(kMap16TilesExpanded + 2)));
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x1BC9C1),
+                                   core::PcToSnes(kMap16TilesExpanded + 4)));
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x1BC9C8),
+                                   core::PcToSnes(kMap16TilesExpanded + 6)));
+
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x1BCA40),
+                                   core::PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x1BCA47),
+                                   core::PcToSnes(kMap16TilesExpanded + 2)));
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x1BCA4E),
+                                   core::PcToSnes(kMap16TilesExpanded + 4)));
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x1BCA55),
+                                   core::PcToSnes(kMap16TilesExpanded + 6)));
+
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x02F457),
+                                   core::PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x02F45E),
+                                   core::PcToSnes(kMap16TilesExpanded + 2)));
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x02F467),
+                                   core::PcToSnes(kMap16TilesExpanded + 4)));
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x02F46E),
+                                   core::PcToSnes(kMap16TilesExpanded + 6)));
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x02F51F),
+                                   core::PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x02F526),
+                                   core::PcToSnes(kMap16TilesExpanded + 4)));
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x02F52F),
+                                   core::PcToSnes(kMap16TilesExpanded + 2)));
+  RETURN_IF_ERROR(rom()->WriteLong(core::SnesToPc(0x02F536),
+                                   core::PcToSnes(kMap16TilesExpanded + 6)));
+
+  RETURN_IF_ERROR(rom()->WriteShort(core::SnesToPc(0x02FE1C),
+                                    core::PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(rom()->WriteShort(core::SnesToPc(0x02FE23),
+                                    core::PcToSnes(kMap16TilesExpanded + 4)));
+  RETURN_IF_ERROR(rom()->WriteShort(core::SnesToPc(0x02FE2C),
+                                    core::PcToSnes(kMap16TilesExpanded + 2)));
+  RETURN_IF_ERROR(rom()->WriteShort(core::SnesToPc(0x02FE33),
+                                    core::PcToSnes(kMap16TilesExpanded + 6)));
+
+  RETURN_IF_ERROR(rom()->Write(
+      core::SnesToPc(0x02FD28),
+      static_cast<uint8_t>(core::PcToSnes(kMap16TilesExpanded) >> 16)));
+  RETURN_IF_ERROR(rom()->Write(
+      core::SnesToPc(0x02FD39),
+      static_cast<uint8_t>(core::PcToSnes(kMap16TilesExpanded) >> 16)));
 
   return absl::OkStatus();
 }
