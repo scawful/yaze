@@ -59,19 +59,6 @@ void HandleKeyDown(SDL_Event &event, editor::EditorManager &editor) {
   io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
 
   switch (event.key.keysym.sym) {
-    case SDLK_BACKSPACE:
-      io.AddKeyEvent(ImGuiKey_Backspace, true);
-      break;
-    case SDLK_LSHIFT:
-      io.AddKeyEvent(ImGuiKey_LeftShift, true);
-      break;
-    case SDLK_LCTRL:
-    case SDLK_RCTRL:
-      io.AddKeyEvent(ImGuiKey_LeftCtrl, true);
-      break;
-    case SDLK_TAB:
-      io.AddKeyEvent(ImGuiKey_Tab, true);
-      break;
     case SDLK_z:
       editor.emulator().snes().SetButtonState(1, 0, true);
       break;
@@ -122,19 +109,6 @@ void HandleKeyUp(SDL_Event &event, editor::EditorManager &editor) {
   io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
 
   switch (event.key.keysym.sym) {
-    case SDLK_BACKSPACE:
-      io.AddKeyEvent(ImGuiKey_Backspace, false);
-      break;
-    case SDLK_LSHIFT:
-      io.AddKeyEvent(ImGuiKey_LeftShift, false);
-      break;
-    case SDLK_LCTRL:
-    case SDLK_RCTRL:
-      io.AddKeyEvent(ImGuiKey_LeftCtrl, false);
-      break;
-    case SDLK_TAB:
-      io.AddKeyEvent(ImGuiKey_Tab, false);
-      break;
     case SDLK_z:
       editor.emulator().snes().SetButtonState(1, 0, false);
       break;
@@ -174,12 +148,6 @@ void HandleKeyUp(SDL_Event &event, editor::EditorManager &editor) {
     default:
       break;
   }
-}
-
-void ChangeWindowSizeEvent(SDL_Event &event) {
-  ImGuiIO &io = ImGui::GetIO();
-  io.DisplaySize.x = static_cast<float>(event.window.data1);
-  io.DisplaySize.y = static_cast<float>(event.window.data2);
 }
 
 void HandleMouseMovement(int &wheel) {
@@ -227,6 +195,7 @@ void Controller::OnInput() {
   ImGuiIO &io = ImGui::GetIO();
 
   while (SDL_PollEvent(&event)) {
+    ImGui_ImplSDL2_ProcessEvent(&event);
     switch (event.type) {
       case SDL_KEYDOWN:
         HandleKeyDown(event, editor_manager_);
@@ -234,19 +203,14 @@ void Controller::OnInput() {
       case SDL_KEYUP:
         HandleKeyUp(event, editor_manager_);
         break;
-      case SDL_TEXTINPUT:
-        io.AddInputCharactersUTF8(event.text.text);
-        break;
-      case SDL_MOUSEWHEEL:
-        wheel = event.wheel.y;
-        break;
       case SDL_WINDOWEVENT:
         switch (event.window.event) {
           case SDL_WINDOWEVENT_CLOSE:
             active_ = false;
             break;
           case SDL_WINDOWEVENT_SIZE_CHANGED:
-            ChangeWindowSizeEvent(event);
+            io.DisplaySize.x = static_cast<float>(event.window.data1);
+            io.DisplaySize.y = static_cast<float>(event.window.data2);
             break;
           default:
             break;
