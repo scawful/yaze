@@ -571,7 +571,8 @@ absl::StatusOr<gfx::SnesPalette> OverworldMap::GetPalette(
 }
 
 absl::Status OverworldMap::LoadPalette() {
-  int previousPalId = index_ > 0 ? rom_[kOverworldMapPaletteIds + parent_ - 1] : 0;
+  int previousPalId =
+      index_ > 0 ? rom_[kOverworldMapPaletteIds + parent_ - 1] : 0;
   int previousSprPalId =
       index_ > 0 ? rom_[kOverworldSpritePaletteIds + parent_ - 1] : 0;
 
@@ -723,23 +724,6 @@ absl::Status OverworldMap::BuildTiles16Gfx(std::vector<gfx::Tile16>& tiles16,
   return absl::OkStatus();
 }
 
-namespace {
-
-void CopyTile8bpp16(int x, int y, int tile, std::vector<uint8_t>& bitmap,
-                    std::vector<uint8_t>& blockset) {
-  int src_pos =
-      ((tile - ((tile / 0x08) * 0x08)) * 0x10) + ((tile / 0x08) * 2048);
-  int dest_pos = (x + (y * 0x200));
-  for (int yy = 0; yy < 0x10; yy++) {
-    for (int xx = 0; xx < 0x10; xx++) {
-      bitmap[dest_pos + xx + (yy * 0x200)] =
-          blockset[src_pos + xx + (yy * 0x80)];
-    }
-  }
-}
-
-}  // namespace
-
 absl::Status OverworldMap::BuildBitmap(OWBlockset& world_blockset) {
   if (bitmap_data_.size() != 0) {
     bitmap_data_.clear();
@@ -756,8 +740,8 @@ absl::Status OverworldMap::BuildBitmap(OWBlockset& world_blockset) {
     for (int x = 0; x < 0x20; x++) {
       auto xt = x + (superX * 0x20);
       auto yt = y + (superY * 0x20);
-      CopyTile8bpp16((x * 0x10), (y * 0x10), world_blockset[xt][yt],
-                     bitmap_data_, current_blockset_);
+      gfx::CopyTile8bpp16((x * 0x10), (y * 0x10), world_blockset[xt][yt],
+                          bitmap_data_, current_blockset_);
     }
   }
   return absl::OkStatus();
