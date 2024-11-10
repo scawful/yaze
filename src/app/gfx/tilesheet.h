@@ -15,6 +15,10 @@ namespace gfx {
 
 enum class TileType { Tile8, Tile16 };
 
+struct InternalTile16 {
+  std::array<TileInfo, 4> tiles;
+};
+
 /**
  * @class Tilesheet
  * @brief Represents a tilesheet, which is a collection of tiles stored in a
@@ -39,6 +43,10 @@ class Tilesheet {
                      const TileInfo& top_left, const TileInfo& top_right,
                      const TileInfo& bottom_left, const TileInfo& bottom_right,
                      int sheet_offset = 0);
+  void ModifyTile16(const std::vector<uint8_t>& graphics_buffer,
+                    const TileInfo& top_left, const TileInfo& top_right,
+                    const TileInfo& bottom_left, const TileInfo& bottom_right, int tile_id,
+                    int sheet_offset = 0);
 
   void ComposeAndPlaceTilePart(const std::vector<uint8_t>& graphics_buffer,
                                const TileInfo& tile_info, int baseX, int baseY);
@@ -113,18 +121,16 @@ class Tilesheet {
                         tileDataOffset);
   }
 
-  gfx::SnesPalette palette_;
-  std::vector<uint8_t> internal_data_;
-  std::shared_ptr<Bitmap> bitmap_;
-  struct InternalTile16 {
-    std::array<TileInfo, 4> tiles;
-  };
-  std::vector<InternalTile16> tile_info_;
   int num_tiles_ = 0;
   int tile_width_ = 0;
   int tile_height_ = 0;
   int sheet_offset_ = 0;
+
   TileType tile_type_;
+  SnesPalette palette_;
+  std::vector<uint8_t> internal_data_;
+  std::vector<InternalTile16> tile_info_;
+  std::shared_ptr<Bitmap> bitmap_;
 };
 
 absl::StatusOr<Tilesheet> CreateTilesheetFromGraphicsBuffer(

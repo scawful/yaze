@@ -84,6 +84,30 @@ void Tilesheet::ComposeTile16(const std::vector<uint8_t>& graphics_buffer,
   num_tiles_++;
 }
 
+void Tilesheet::ModifyTile16(const std::vector<uint8_t>& graphics_buffer,
+                             const TileInfo& top_left,
+                             const TileInfo& top_right,
+                             const TileInfo& bottom_left,
+                             const TileInfo& bottom_right, int tile_id,
+                             int sheet_offset) {
+  sheet_offset_ = sheet_offset;
+  // Calculate the base position for this Tile16 in the full-size bitmap
+  int tiles_per_row = bitmap_->width() / tile_width_;
+  int tile16_row = tile_id / tiles_per_row;
+  int tile16_column = tile_id % tiles_per_row;
+  int base_x = tile16_column * tile_width_;
+  int base_y = tile16_row * tile_height_;
+
+  // Compose and place each part of the Tile16
+  ComposeAndPlaceTilePart(graphics_buffer, top_left, base_x, base_y);
+  ComposeAndPlaceTilePart(graphics_buffer, top_right, base_x + 8, base_y);
+  ComposeAndPlaceTilePart(graphics_buffer, bottom_left, base_x, base_y + 8);
+  ComposeAndPlaceTilePart(graphics_buffer, bottom_right, base_x + 8,
+                          base_y + 8);
+
+  tile_info_[tile_id] = {top_left, top_right, bottom_left, bottom_right};
+}
+
 void Tilesheet::ComposeAndPlaceTilePart(
     const std::vector<uint8_t>& graphics_buffer, const TileInfo& tile_info,
     int base_x, int base_y) {
