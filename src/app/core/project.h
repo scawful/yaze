@@ -65,6 +65,34 @@ struct Project : public core::ExperimentFlags {
   std::string keybindings_file = "";
 };
 
+// Default types
+static constexpr absl::string_view kDefaultTypes[] = {
+    "Dungeon Names", "Dungeon Room Names", "Overworld Map Names"};
+
+struct ResourceLabelManager {
+  bool LoadLabels(const std::string& filename);
+  bool SaveLabels();
+  void DisplayLabels(bool* p_open);
+  void EditLabel(const std::string& type, const std::string& key,
+                 const std::string& newValue);
+  void SelectableLabelWithNameEdit(bool selected, const std::string& type,
+                                   const std::string& key,
+                                   const std::string& defaultValue);
+  std::string GetLabel(const std::string& type, const std::string& key);
+  std::string CreateOrGetLabel(const std::string& type, const std::string& key,
+                               const std::string& defaultValue);
+
+  bool labels_loaded_ = false;
+  std::string filename_;
+  struct ResourceType {
+    std::string key_name;
+    std::string display_description;
+  };
+
+  std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
+      labels_;
+};
+
 class RecentFilesManager {
  public:
   RecentFilesManager() : RecentFilesManager(kRecentFilesFilename) {}

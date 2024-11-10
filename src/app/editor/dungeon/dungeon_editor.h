@@ -2,7 +2,7 @@
 #define YAZE_APP_EDITOR_DUNGEONEDITOR_H
 
 #include "app/core/common.h"
-#include "app/core/labeling.h"
+#include "app/core/project.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/utils/editor.h"

@@ -19,6 +19,14 @@ namespace app {
  */
 namespace core {
 
+std::string UppercaseHexByte(uint8_t byte, bool leading = false);
+std::string UppercaseHexWord(uint16_t word, bool leading = false);
+std::string UppercaseHexLong(uint32_t dword);
+std::string UppercaseHexLongLong(uint64_t qword);
+
+bool StringReplace(std::string &str, const std::string &from,
+                   const std::string &to);
+
 /**
  * @class ExperimentFlags
  * @brief A class to manage experimental feature flags.

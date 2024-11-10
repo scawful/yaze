@@ -21,7 +21,7 @@
 #include "absl/strings/string_view.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
-#include "app/core/labeling.h"
+#include "app/core/project.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -476,9 +476,7 @@ class Rom : public core::ExperimentFlags {
     return palette_groups_.dungeon_main.mutable_palette(i);
   }
 
-  core::ResourceLabelManager* resource_label() {
-    return &resource_label_manager_;
-  }
+  ResourceLabelManager* resource_label() { return &resource_label_manager_; }
   VersionConstants version_constants() const {
     return kVersionConstantsMap.at(version_);
   }
@@ -561,7 +559,7 @@ class Rom : public core::ExperimentFlags {
   std::array<gfx::Bitmap, kNumLinkSheets> link_graphics_;
 
   // Label manager for unique resource names.
-  core::ResourceLabelManager resource_label_manager_;
+  ResourceLabelManager resource_label_manager_;
 
   // All palette groups in the game
   gfx::PaletteGroupMap palette_groups_;

@@ -1,6 +1,5 @@
 #include "dungeon_editor.h"
 
-#include "app/core/labeling.h"
 #include "app/core/platform/renderer.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
