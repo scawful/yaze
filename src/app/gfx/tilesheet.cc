@@ -63,7 +63,8 @@ void Tilesheet::ComposeTile16(const std::vector<uint8_t>& graphics_buffer,
                               const TileInfo& top_left,
                               const TileInfo& top_right,
                               const TileInfo& bottom_left,
-                              const TileInfo& bottom_right) {
+                              const TileInfo& bottom_right, int sheet_offset) {
+  sheet_offset_ = sheet_offset;
   // Calculate the base position for this Tile16 in the full-size bitmap
   int tiles_per_row = bitmap_->width() / tile_width_;
   int tile16_row = num_tiles_ / tiles_per_row;
@@ -123,13 +124,13 @@ std::vector<uint8_t> Tilesheet::FetchTileDataFromGraphicsBuffer(
 
   // Calculate the position in the graphics_buffer_ based on tile_id
   std::vector<uint8_t> tile_data(0x40, 0x00);
-  int sheet = (tile_id / tiles_per_sheet) % 4 + 212;
+  int sheet = (tile_id / tiles_per_sheet) % 4 + sheet_offset_;
   int position_in_sheet = tile_id % tiles_per_sheet;
   int row_in_sheet = position_in_sheet / tiles_per_row;
   int column_in_sheet = position_in_sheet % tiles_per_row;
 
-  // Ensure that the sheet ID is between 212 and 215
-  assert(sheet >= 212 && sheet <= 215);
+  // Ensure that the sheet ID is between 212 and 215 if using full gfx buffer
+  assert(sheet >= sheet_offset_ && sheet <= sheet_offset_ + 3);
 
   // Copy the tile data from the graphics_buffer_ to tile_data
   for (int y = 0; y < 8; ++y) {

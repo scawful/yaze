@@ -37,7 +37,8 @@ class Tilesheet {
 
   void ComposeTile16(const std::vector<uint8_t>& graphics_buffer,
                      const TileInfo& top_left, const TileInfo& top_right,
-                     const TileInfo& bottom_left, const TileInfo& bottom_right);
+                     const TileInfo& bottom_left, const TileInfo& bottom_right,
+                     int sheet_offset = 0);
 
   void ComposeAndPlaceTilePart(const std::vector<uint8_t>& graphics_buffer,
                                const TileInfo& tile_info, int baseX, int baseY);
@@ -84,6 +85,13 @@ class Tilesheet {
   auto tile_type() const { return tile_type_; }
   auto tile_info() const { return tile_info_; }
   auto mutable_tile_info() { return tile_info_; }
+  void clear() {
+    palette_.clear();
+    internal_data_.clear();
+    tile_info_.clear();
+    bitmap_.reset();
+    num_tiles_ = 0;
+  }
 
  private:
   int CalculateTileIndex(int x, int y) {
@@ -115,6 +123,7 @@ class Tilesheet {
   int num_tiles_ = 0;
   int tile_width_ = 0;
   int tile_height_ = 0;
+  int sheet_offset_ = 0;
   TileType tile_type_;
 };
 
