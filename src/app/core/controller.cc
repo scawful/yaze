@@ -51,179 +51,128 @@ void NewMasterFrame() {
   }
 }
 
-void InitializeKeymap() {
-  ImGuiIO &io = ImGui::GetIO();
-  io.KeyMap[ImGuiKey_LeftSuper] = SDL_GetScancodeFromKey(SDLK_LGUI);
-  io.KeyMap[ImGuiKey_Backspace] = SDL_GetScancodeFromKey(SDLK_BACKSPACE);
-  io.KeyMap[ImGuiKey_LeftShift] = SDL_GetScancodeFromKey(SDLK_LSHIFT);
-  io.KeyMap[ImGuiKey_Enter] = SDL_GetScancodeFromKey(SDLK_RETURN);
-  io.KeyMap[ImGuiKey_UpArrow] = SDL_GetScancodeFromKey(SDLK_UP);
-  io.KeyMap[ImGuiKey_DownArrow] = SDL_GetScancodeFromKey(SDLK_DOWN);
-  io.KeyMap[ImGuiKey_LeftArrow] = SDL_GetScancodeFromKey(SDLK_LEFT);
-  io.KeyMap[ImGuiKey_RightArrow] = SDL_GetScancodeFromKey(SDLK_RIGHT);
-  io.KeyMap[ImGuiKey_Delete] = SDL_GetScancodeFromKey(SDLK_DELETE);
-  io.KeyMap[ImGuiKey_Escape] = SDL_GetScancodeFromKey(SDLK_ESCAPE);
-  io.KeyMap[ImGuiKey_Tab] = SDL_GetScancodeFromKey(SDLK_TAB);
-  io.KeyMap[ImGuiKey_LeftCtrl] = SDL_GetScancodeFromKey(SDLK_LCTRL);
-  io.KeyMap[ImGuiKey_PageUp] = SDL_GetScancodeFromKey(SDLK_PAGEUP);
-  io.KeyMap[ImGuiKey_PageDown] = SDL_GetScancodeFromKey(SDLK_PAGEDOWN);
-  io.KeyMap[ImGuiKey_Home] = SDL_GetScancodeFromKey(SDLK_HOME);
-  io.KeyMap[ImGuiKey_Space] = SDL_GetScancodeFromKey(SDLK_SPACE);
-  io.KeyMap[ImGuiKey_1] = SDL_GetScancodeFromKey(SDLK_1);
-  io.KeyMap[ImGuiKey_2] = SDL_GetScancodeFromKey(SDLK_2);
-  io.KeyMap[ImGuiKey_3] = SDL_GetScancodeFromKey(SDLK_3);
-  io.KeyMap[ImGuiKey_4] = SDL_GetScancodeFromKey(SDLK_4);
-  io.KeyMap[ImGuiKey_5] = SDL_GetScancodeFromKey(SDLK_5);
-  io.KeyMap[ImGuiKey_6] = SDL_GetScancodeFromKey(SDLK_6);
-  io.KeyMap[ImGuiKey_7] = SDL_GetScancodeFromKey(SDLK_7);
-  io.KeyMap[ImGuiKey_8] = SDL_GetScancodeFromKey(SDLK_8);
-  io.KeyMap[ImGuiKey_9] = SDL_GetScancodeFromKey(SDLK_9);
-  io.KeyMap[ImGuiKey_0] = SDL_GetScancodeFromKey(SDLK_0);
-  io.KeyMap[ImGuiKey_A] = SDL_GetScancodeFromKey(SDLK_a);
-  io.KeyMap[ImGuiKey_B] = SDL_GetScancodeFromKey(SDLK_b);
-  io.KeyMap[ImGuiKey_C] = SDL_GetScancodeFromKey(SDLK_c);
-  io.KeyMap[ImGuiKey_D] = SDL_GetScancodeFromKey(SDLK_d);
-  io.KeyMap[ImGuiKey_E] = SDL_GetScancodeFromKey(SDLK_e);
-  io.KeyMap[ImGuiKey_F] = SDL_GetScancodeFromKey(SDLK_f);
-  io.KeyMap[ImGuiKey_G] = SDL_GetScancodeFromKey(SDLK_g);
-  io.KeyMap[ImGuiKey_H] = SDL_GetScancodeFromKey(SDLK_h);
-  io.KeyMap[ImGuiKey_I] = SDL_GetScancodeFromKey(SDLK_i);
-  io.KeyMap[ImGuiKey_J] = SDL_GetScancodeFromKey(SDLK_j);
-  io.KeyMap[ImGuiKey_K] = SDL_GetScancodeFromKey(SDLK_k);
-  io.KeyMap[ImGuiKey_L] = SDL_GetScancodeFromKey(SDLK_l);
-  io.KeyMap[ImGuiKey_M] = SDL_GetScancodeFromKey(SDLK_m);
-  io.KeyMap[ImGuiKey_N] = SDL_GetScancodeFromKey(SDLK_n);
-  io.KeyMap[ImGuiKey_O] = SDL_GetScancodeFromKey(SDLK_o);
-  io.KeyMap[ImGuiKey_P] = SDL_GetScancodeFromKey(SDLK_p);
-  io.KeyMap[ImGuiKey_Q] = SDL_GetScancodeFromKey(SDLK_q);
-  io.KeyMap[ImGuiKey_R] = SDL_GetScancodeFromKey(SDLK_r);
-  io.KeyMap[ImGuiKey_S] = SDL_GetScancodeFromKey(SDLK_s);
-  io.KeyMap[ImGuiKey_T] = SDL_GetScancodeFromKey(SDLK_t);
-  io.KeyMap[ImGuiKey_U] = SDL_GetScancodeFromKey(SDLK_u);
-  io.KeyMap[ImGuiKey_V] = SDL_GetScancodeFromKey(SDLK_v);
-  io.KeyMap[ImGuiKey_W] = SDL_GetScancodeFromKey(SDLK_w);
-  io.KeyMap[ImGuiKey_X] = SDL_GetScancodeFromKey(SDLK_x);
-  io.KeyMap[ImGuiKey_Y] = SDL_GetScancodeFromKey(SDLK_y);
-  io.KeyMap[ImGuiKey_Z] = SDL_GetScancodeFromKey(SDLK_z);
-  io.KeyMap[ImGuiKey_F1] = SDL_GetScancodeFromKey(SDLK_F1);
-  io.KeyMap[ImGuiKey_F2] = SDL_GetScancodeFromKey(SDLK_F2);
-  io.KeyMap[ImGuiKey_F3] = SDL_GetScancodeFromKey(SDLK_F3);
-  io.KeyMap[ImGuiKey_F4] = SDL_GetScancodeFromKey(SDLK_F4);
-  io.KeyMap[ImGuiKey_F5] = SDL_GetScancodeFromKey(SDLK_F5);
-  io.KeyMap[ImGuiKey_F6] = SDL_GetScancodeFromKey(SDLK_F6);
-  io.KeyMap[ImGuiKey_F7] = SDL_GetScancodeFromKey(SDLK_F7);
-  io.KeyMap[ImGuiKey_F8] = SDL_GetScancodeFromKey(SDLK_F8);
-  io.KeyMap[ImGuiKey_F9] = SDL_GetScancodeFromKey(SDLK_F9);
-  io.KeyMap[ImGuiKey_F10] = SDL_GetScancodeFromKey(SDLK_F10);
-  io.KeyMap[ImGuiKey_F11] = SDL_GetScancodeFromKey(SDLK_F11);
-  io.KeyMap[ImGuiKey_F12] = SDL_GetScancodeFromKey(SDLK_F12);
-}
-
 void HandleKeyDown(SDL_Event &event, editor::EditorManager &editor) {
   ImGuiIO &io = ImGui::GetIO();
-  io.KeysDown[event.key.keysym.scancode] = (event.type == SDL_KEYDOWN);
   io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
   io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
   io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
   io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
 
   switch (event.key.keysym.sym) {
-  case SDLK_BACKSPACE:
-  case SDLK_LSHIFT:
-  case SDLK_LCTRL:
-  case SDLK_TAB:
-    io.KeysDown[event.key.keysym.scancode] = (event.type == SDL_KEYDOWN);
-    break;
-  case SDLK_z:
-    editor.emulator().snes().SetButtonState(1, 0, true);
-    break;
-  case SDLK_a:
-    editor.emulator().snes().SetButtonState(1, 1, true);
-    break;
-  case SDLK_RSHIFT:
-    editor.emulator().snes().SetButtonState(1, 2, true);
-    break;
-  case SDLK_RETURN:
-    editor.emulator().snes().SetButtonState(1, 3, true);
-    break;
-  case SDLK_UP:
-    editor.emulator().snes().SetButtonState(1, 4, true);
-    break;
-  case SDLK_DOWN:
-    editor.emulator().snes().SetButtonState(1, 5, true);
-    break;
-  case SDLK_LEFT:
-    editor.emulator().snes().SetButtonState(1, 6, true);
-    break;
-  case SDLK_RIGHT:
-    editor.emulator().snes().SetButtonState(1, 7, true);
-    break;
-  case SDLK_x:
-    editor.emulator().snes().SetButtonState(1, 8, true);
-    break;
-  case SDLK_s:
-    editor.emulator().snes().SetButtonState(1, 9, true);
-    break;
-  case SDLK_d:
-    editor.emulator().snes().SetButtonState(1, 10, true);
-    break;
-  case SDLK_c:
-    editor.emulator().snes().SetButtonState(1, 11, true);
-    break;
-  default:
-    break;
+    case SDLK_BACKSPACE:
+      io.AddKeyEvent(ImGuiKey_Backspace, true);
+      break;
+    case SDLK_LSHIFT:
+      io.AddKeyEvent(ImGuiKey_LeftShift, true);
+      break;
+    case SDLK_LCTRL:
+    case SDLK_RCTRL:
+      io.AddKeyEvent(ImGuiKey_LeftCtrl, true);
+      break;
+    case SDLK_TAB:
+      io.AddKeyEvent(ImGuiKey_Tab, true);
+      break;
+    case SDLK_z:
+      editor.emulator().snes().SetButtonState(1, 0, true);
+      break;
+    case SDLK_a:
+      editor.emulator().snes().SetButtonState(1, 1, true);
+      break;
+    case SDLK_RSHIFT:
+      editor.emulator().snes().SetButtonState(1, 2, true);
+      break;
+    case SDLK_RETURN:
+      editor.emulator().snes().SetButtonState(1, 3, true);
+      break;
+    case SDLK_UP:
+      editor.emulator().snes().SetButtonState(1, 4, true);
+      break;
+    case SDLK_DOWN:
+      editor.emulator().snes().SetButtonState(1, 5, true);
+      break;
+    case SDLK_LEFT:
+      editor.emulator().snes().SetButtonState(1, 6, true);
+      break;
+    case SDLK_RIGHT:
+      editor.emulator().snes().SetButtonState(1, 7, true);
+      break;
+    case SDLK_x:
+      editor.emulator().snes().SetButtonState(1, 8, true);
+      break;
+    case SDLK_s:
+      editor.emulator().snes().SetButtonState(1, 9, true);
+      break;
+    case SDLK_d:
+      editor.emulator().snes().SetButtonState(1, 10, true);
+      break;
+    case SDLK_c:
+      editor.emulator().snes().SetButtonState(1, 11, true);
+      break;
+    default:
+      break;
   }
 }
 
 void HandleKeyUp(SDL_Event &event, editor::EditorManager &editor) {
   ImGuiIO &io = ImGui::GetIO();
   int key = event.key.keysym.scancode;
-  IM_ASSERT(key >= 0 && key < IM_ARRAYSIZE(io.KeysDown));
-  io.KeysDown[key] = (event.type == SDL_KEYDOWN);
   io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
   io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
   io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
   io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
 
   switch (event.key.keysym.sym) {
-  case SDLK_z:
-    editor.emulator().snes().SetButtonState(1, 0, false);
-    break;
-  case SDLK_a:
-    editor.emulator().snes().SetButtonState(1, 1, false);
-    break;
-  case SDLK_RSHIFT:
-    editor.emulator().snes().SetButtonState(1, 2, false);
-    break;
-  case SDLK_RETURN:
-    editor.emulator().snes().SetButtonState(1, 3, false);
-    break;
-  case SDLK_UP:
-    editor.emulator().snes().SetButtonState(1, 4, false);
-    break;
-  case SDLK_DOWN:
-    editor.emulator().snes().SetButtonState(1, 5, false);
-    break;
-  case SDLK_LEFT:
-    editor.emulator().snes().SetButtonState(1, 6, false);
-    break;
-  case SDLK_RIGHT:
-    editor.emulator().snes().SetButtonState(1, 7, false);
-    break;
-  case SDLK_x:
-    editor.emulator().snes().SetButtonState(1, 8, false);
-    break;
-  case SDLK_s:
-    editor.emulator().snes().SetButtonState(1, 9, false);
-    break;
-  case SDLK_d:
-    editor.emulator().snes().SetButtonState(1, 10, false);
-    break;
-  case SDLK_c:
-    editor.emulator().snes().SetButtonState(1, 11, false);
-    break;
-  default:
-    break;
+    case SDLK_BACKSPACE:
+      io.AddKeyEvent(ImGuiKey_Backspace, false);
+      break;
+    case SDLK_LSHIFT:
+      io.AddKeyEvent(ImGuiKey_LeftShift, false);
+      break;
+    case SDLK_LCTRL:
+    case SDLK_RCTRL:
+      io.AddKeyEvent(ImGuiKey_LeftCtrl, false);
+      break;
+    case SDLK_TAB:
+      io.AddKeyEvent(ImGuiKey_Tab, false);
+      break;
+    case SDLK_z:
+      editor.emulator().snes().SetButtonState(1, 0, false);
+      break;
+    case SDLK_a:
+      editor.emulator().snes().SetButtonState(1, 1, false);
+      break;
+    case SDLK_RSHIFT:
+      editor.emulator().snes().SetButtonState(1, 2, false);
+      break;
+    case SDLK_RETURN:
+      editor.emulator().snes().SetButtonState(1, 3, false);
+      break;
+    case SDLK_UP:
+      editor.emulator().snes().SetButtonState(1, 4, false);
+      break;
+    case SDLK_DOWN:
+      editor.emulator().snes().SetButtonState(1, 5, false);
+      break;
+    case SDLK_LEFT:
+      editor.emulator().snes().SetButtonState(1, 6, false);
+      break;
+    case SDLK_RIGHT:
+      editor.emulator().snes().SetButtonState(1, 7, false);
+      break;
+    case SDLK_x:
+      editor.emulator().snes().SetButtonState(1, 8, false);
+      break;
+    case SDLK_s:
+      editor.emulator().snes().SetButtonState(1, 9, false);
+      break;
+    case SDLK_d:
+      editor.emulator().snes().SetButtonState(1, 10, false);
+      break;
+    case SDLK_c:
+      editor.emulator().snes().SetButtonState(1, 11, false);
+      break;
+    default:
+      break;
   }
 }
 
@@ -247,7 +196,7 @@ void HandleMouseMovement(int &wheel) {
   io.MouseWheel = static_cast<float>(wheel);
 }
 
-} // namespace
+}  // namespace
 
 absl::Status Controller::OnEntry(std::string filename) {
 #if defined(__APPLE__) && defined(__MACH__)
@@ -267,8 +216,6 @@ absl::Status Controller::OnEntry(std::string filename) {
   RETURN_IF_ERROR(CreateRenderer())
   RETURN_IF_ERROR(CreateGuiContext())
   RETURN_IF_ERROR(LoadAudioDevice())
-
-  InitializeKeymap();
   editor_manager_.SetupScreen(filename);
   active_ = true;
   return absl::OkStatus();
@@ -281,32 +228,32 @@ void Controller::OnInput() {
 
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
-    case SDL_KEYDOWN:
-      HandleKeyDown(event, editor_manager_);
-      break;
-    case SDL_KEYUP:
-      HandleKeyUp(event, editor_manager_);
-      break;
-    case SDL_TEXTINPUT:
-      io.AddInputCharactersUTF8(event.text.text);
-      break;
-    case SDL_MOUSEWHEEL:
-      wheel = event.wheel.y;
-      break;
-    case SDL_WINDOWEVENT:
-      switch (event.window.event) {
-      case SDL_WINDOWEVENT_CLOSE:
-        active_ = false;
+      case SDL_KEYDOWN:
+        HandleKeyDown(event, editor_manager_);
         break;
-      case SDL_WINDOWEVENT_SIZE_CHANGED:
-        ChangeWindowSizeEvent(event);
+      case SDL_KEYUP:
+        HandleKeyUp(event, editor_manager_);
+        break;
+      case SDL_TEXTINPUT:
+        io.AddInputCharactersUTF8(event.text.text);
+        break;
+      case SDL_MOUSEWHEEL:
+        wheel = event.wheel.y;
+        break;
+      case SDL_WINDOWEVENT:
+        switch (event.window.event) {
+          case SDL_WINDOWEVENT_CLOSE:
+            active_ = false;
+            break;
+          case SDL_WINDOWEVENT_SIZE_CHANGED:
+            ChangeWindowSizeEvent(event);
+            break;
+          default:
+            break;
+        }
         break;
       default:
         break;
-      }
-      break;
-    default:
-      break;
     }
   }
 
@@ -369,11 +316,11 @@ absl::Status Controller::CreateSDL_Window() {
     int screenHeight = displayMode.h * 0.8;
 
     window_ = std::unique_ptr<SDL_Window, core::SDL_Deleter>(
-        SDL_CreateWindow("Yet Another Zelda3 Editor", // window title
-                         SDL_WINDOWPOS_UNDEFINED,     // initial x position
-                         SDL_WINDOWPOS_UNDEFINED,     // initial y position
-                         screenWidth,                 // width, in pixels
-                         screenHeight,                // height, in pixels
+        SDL_CreateWindow("Yet Another Zelda3 Editor",  // window title
+                         SDL_WINDOWPOS_UNDEFINED,      // initial x position
+                         SDL_WINDOWPOS_UNDEFINED,      // initial y position
+                         screenWidth,                  // width, in pixels
+                         screenHeight,                 // height, in pixels
                          SDL_WINDOW_RESIZABLE),
         core::SDL_Deleter());
     if (window_ == nullptr) {
@@ -557,7 +504,7 @@ absl::Status Controller::LoadAudioDevice() {
   want.format = AUDIO_S16;
   want.channels = 2;
   want.samples = 2048;
-  want.callback = NULL; // Uses the queue
+  want.callback = NULL;  // Uses the queue
   audio_device_ = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
   if (audio_device_ == 0) {
     return absl::InternalError(
@@ -571,6 +518,6 @@ absl::Status Controller::LoadAudioDevice() {
   return absl::OkStatus();
 }
 
-} // namespace core
-} // namespace app
-} // namespace yaze
+}  // namespace core
+}  // namespace app
+}  // namespace yaze
