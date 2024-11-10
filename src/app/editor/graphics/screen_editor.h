@@ -64,7 +64,7 @@ class ScreenEditor : public SharedRom, public Editor {
   void DrawInventoryToolset();
 
   absl::Status LoadDungeonMaps();
-  absl::Status LoadDungeonMapTile16();
+  absl::Status LoadDungeonMapTile16(const std::vector<uint8_t>& gfx_data, bool bin_mode = false);
   void DrawDungeonMapsTabs();
   void DrawDungeonMapsEditor();
 
