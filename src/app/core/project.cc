@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string>
 
+#include "app/core/constants.h"
 #include "app/gui/icons.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
