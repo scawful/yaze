@@ -1,0 +1,7 @@
+<map id="yaze::app::gfx::Tilesheet::FetchTileDataFromGraphicsBuffer" name="yaze::app::gfx::Tilesheet::FetchTileDataFromGraphicsBuffer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,230,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a9cfdb03a3d5a2e3169911fa2a9ff70bf" title=" " alt="" coords="278,5,434,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="230,41,262,36,263,41,230,46"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a5d01f6c5c6b31f7c6721fe0df6bf2dff" title=" " alt="" coords="278,71,434,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="230,71,263,76,262,81,230,77"/>
+</map>

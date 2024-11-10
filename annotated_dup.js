@@ -250,7 +250,7 @@ var annotated_dup =
             [ "OverworldMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap" ]
           ] ],
           [ "screen", "namespaceyaze_1_1app_1_1zelda3_1_1screen.html", [
-            [ "DungeonMap", "classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html", "classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap" ],
+            [ "DungeonMap", "structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html", "structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap" ],
             [ "Inventory", "classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html", "classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory" ],
             [ "TitleScreen", "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html", "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen" ]
           ] ],

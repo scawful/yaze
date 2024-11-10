@@ -72,7 +72,7 @@ var hierarchy =
     [ "yaze::app::emu::audio::Dsp", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html", null ],
     [ "yaze::app::emu::audio::DspChannel", "structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html", null ],
     [ "yaze::app::zelda3::dungeon::DungeonDestination", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html", null ],
-    [ "yaze::app::zelda3::screen::DungeonMap", "classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html", null ],
+    [ "yaze::app::zelda3::screen::DungeonMap", "structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html", null ],
     [ "yaze::app::editor::Editor", "classyaze_1_1app_1_1editor_1_1Editor.html", [
       [ "yaze::app::editor::AssemblyEditor", "classyaze_1_1app_1_1editor_1_1AssemblyEditor.html", null ],
       [ "yaze::app::editor::DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", null ],

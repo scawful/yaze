@@ -16,7 +16,7 @@ var classyaze_1_1app_1_1editor_1_1ScreenEditor =
     [ "DrawToolset", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa47ebd5eeb69e582ef5ef7bd920d3940", null ],
     [ "DrawInventoryToolset", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#add96fd1781c302cf95e2df7b4d5d1827", null ],
     [ "LoadDungeonMaps", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ac0eaa18aa6166c0374516e091c97a2fa", null ],
-    [ "LoadDungeonMapTile16", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a36d2f69c38cf0a15353d3a16986ec0b0", null ],
+    [ "LoadDungeonMapTile16", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a252144cd8656d6e4a5576027733aff87", null ],
     [ "DrawDungeonMapsTabs", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#abcc115ac33f92c971fa197820e2cc517", null ],
     [ "DrawDungeonMapsEditor", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a9dcd046f7d190f067d3720f520b0328a", null ],
     [ "dungeon_maps_loaded_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a54cd7324648ecd704eada38906eb8b8f", null ],

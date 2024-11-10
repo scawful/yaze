@@ -95,7 +95,7 @@ var searchData=
   ['blockset_5fusage_5f_92',['blockset_usage_',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a27472bcda17596f00343c2cdc4583f36',1,'yaze::app::editor::DungeonEditor']]],
   ['blue_93',['blue',['../structsnes__color.html#abe07ebebd2f735f932b7a7a065506f9f',1,'snes_color']]],
   ['bookmarks_94',['bookmarks',['../classyaze_1_1app_1_1emu_1_1Emulator.html#a4fbcfae2811c1534e06012f79364c237',1,'yaze::app::emu::Emulator']]],
-  ['boss_5froom_95',['boss_room',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#afd90209d6c64318cb85e6ee7899c6b9e',1,'yaze::app::editor::ScreenEditor::boss_room'],['../classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a7c96083d9cd7ad2d88d192b32d6f6373',1,'yaze::app::zelda3::screen::DungeonMap::boss_room']]],
+  ['boss_5froom_95',['boss_room',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#afd90209d6c64318cb85e6ee7899c6b9e',1,'yaze::app::editor::ScreenEditor::boss_room'],['../structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a7c96083d9cd7ad2d88d192b32d6f6373',1,'yaze::app::zelda3::screen::DungeonMap::boss_room']]],
   ['bossroom_96',['bossRoom',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a024a8b899d5df16e0a0828620a633dc3',1,'yaze::app::zelda3::screen::TitleScreen']]],
   ['bounding_5fbox_5f_97',['bounding_box_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a12171c6fe266c831122d3eedb6920aea',1,'yaze::app::zelda3::Sprite']]],
   ['breakpoints_5f_98',['breakpoints_',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a7556a2435a81b35b6d6289f741da167e',1,'yaze::app::emu::Cpu']]],

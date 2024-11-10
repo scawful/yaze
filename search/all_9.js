@@ -155,7 +155,7 @@ var searchData=
   ['bookmark_152',['Bookmark',['../structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html',1,'yaze::app::emu::Emulator']]],
   ['bookmarks_153',['bookmarks',['../classyaze_1_1app_1_1emu_1_1Emulator.html#a4fbcfae2811c1534e06012f79364c237',1,'yaze::app::emu::Emulator']]],
   ['boost_5fpython_5fmodule_154',['BOOST_PYTHON_MODULE',['../yaze__py_8cc.html#aa066fe72661b77be73878a8b9cf7e6f4',1,'yaze_py.cc']]],
-  ['boss_5froom_155',['boss_room',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#afd90209d6c64318cb85e6ee7899c6b9e',1,'yaze::app::editor::ScreenEditor::boss_room'],['../classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a7c96083d9cd7ad2d88d192b32d6f6373',1,'yaze::app::zelda3::screen::DungeonMap::boss_room']]],
+  ['boss_5froom_155',['boss_room',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#afd90209d6c64318cb85e6ee7899c6b9e',1,'yaze::app::editor::ScreenEditor::boss_room'],['../structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a7c96083d9cd7ad2d88d192b32d6f6373',1,'yaze::app::zelda3::screen::DungeonMap::boss_room']]],
   ['bossroom_156',['bossRoom',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a024a8b899d5df16e0a0828620a633dc3',1,'yaze::app::zelda3::screen::TitleScreen']]],
   ['bouncefromtilecollision_157',['BounceFromTileCollision',['../classyaze_1_1app_1_1zelda3_1_1SpriteInstruction.html#a464f1d9d0918a1d1db1a7c5d8c5745eb',1,'yaze::app::zelda3::SpriteInstruction']]],
   ['bounding_5fbox_5f_158',['bounding_box_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a12171c6fe266c831122d3eedb6920aea',1,'yaze::app::zelda3::Sprite']]],

@@ -40,7 +40,7 @@ var searchData=
   ['loaddeathmountaingfx_37',['LoadDeathMountainGFX',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a190050fff92075ff85985bbbf9719299',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['loaddungeonmainpalettes_38',['LoadDungeonMainPalettes',['../namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a63c59f7b29331f76abac4ec2aa4d4358',1,'yaze::app::gfx::palette_group_internal']]],
   ['loaddungeonmaps_39',['LoadDungeonMaps',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ac0eaa18aa6166c0374516e091c97a2fa',1,'yaze::app::editor::ScreenEditor']]],
-  ['loaddungeonmaptile16_40',['LoadDungeonMapTile16',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a36d2f69c38cf0a15353d3a16986ec0b0',1,'yaze::app::editor::ScreenEditor']]],
+  ['loaddungeonmaptile16_40',['LoadDungeonMapTile16',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a252144cd8656d6e4a5576027733aff87',1,'yaze::app::editor::ScreenEditor']]],
   ['loaddungeonroomsize_41',['LoadDungeonRoomSize',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a3d51398b7cfb24ece6f1db73d9fea4e7',1,'yaze::app::editor::DungeonEditor']]],
   ['loadentrances_42',['LoadEntrances',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#ab10e3104adf4804e20a61048d1e6c45d',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['loadentrancetiletypes_43',['LoadEntranceTileTypes',['../classyaze_1_1app_1_1editor_1_1EntranceContext.html#a33e05c3134af0a0767b8f3d80dc28d9f',1,'yaze::app::editor::EntranceContext']]],

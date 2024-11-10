@@ -1,7 +1,5 @@
 <map id="yaze::app::gfx::Tilesheet::GetTile16" name="yaze::app::gfx::Tilesheet::GetTile16">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,162,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a69bef91dcc26fb952a982236fb484908" title=" " alt="" coords="210,5,366,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,44,194,38,195,43,163,49"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aadcfd533d552f042877e537d4ba56fd2" title=" " alt="" coords="216,71,360,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="163,69,201,75,200,80,162,74"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,162,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aadcfd533d552f042877e537d4ba56fd2" title=" " alt="" coords="210,5,354,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,23,194,23,194,28,162,28"/>
 </map>
