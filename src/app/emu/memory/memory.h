@@ -31,67 +31,6 @@ namespace app {
 namespace emu {
 namespace memory {
 
-enum RomSpeed { SLOW_ROM = 0x00, FAST_ROM = 0x07 };
-
-enum BankSize { LOW_ROM = 0x00, HI_ROM = 0x01 };
-
-enum RomType {
-  ROM_DEFAULT = 0x00,
-  ROM_RAM = 0x01,
-  ROM_SRAM = 0x02,
-  ROM_DSP1 = 0x03,
-  ROM_DSP1_RAM = 0x04,
-  ROM_DSP1_SRAM = 0x05,
-  FX = 0x06
-};
-
-enum RomSize {
-  SIZE_2_MBIT = 0x08,
-  SIZE_4_MBIT = 0x09,
-  SIZE_8_MBIT = 0x0A,
-  SIZE_16_MBIT = 0x0B,
-  SIZE_32_MBIT = 0x0C
-};
-
-enum SramSize {
-  NO_SRAM = 0x00,
-  SRAM_16_KBIT = 0x01,
-  SRAM_32_KBIT = 0x02,
-  SRAM_64_KBIT = 0x03
-};
-
-enum CountryCode {
-  JAPAN = 0x00,
-  USA = 0x01,
-  EUROPE_OCEANIA_ASIA = 0x02,
-  // ... and other countries
-};
-
-enum License {
-  INVALID = 0,
-  NINTENDO = 1,
-  ZAMUSE = 5,
-  CAPCOM = 8,
-  // ... and other licenses
-};
-
-class RomInfo {
- public:
-  std::string title;
-  RomSpeed romSpeed;
-  BankSize bankSize;
-  RomType romType;
-  RomSize romSize;
-  SramSize sramSize;
-  CountryCode countryCode;
-  License license;
-  uint8_t version;
-  uint16_t checksumComplement;
-  uint16_t checksum;
-  uint16_t nmiVblVector;
-  uint16_t resetVector;
-};
-
 typedef struct CpuCallbacks {
   std::function<uint8_t(uint32_t)> read_byte;
   std::function<void(uint32_t, uint8_t)> write_byte;
@@ -162,15 +101,11 @@ class Memory {
  */
 class MemoryImpl : public Memory {
  public:
-  uint32_t romSize;
-  uint32_t sramSize;
   void Initialize(const std::vector<uint8_t>& romData, bool verbose = false);
 
   uint16_t GetHeaderOffset() {
-    uint8_t mapMode = memory_[(0x00 << 16) + 0xFFD5];
     uint16_t offset;
-
-    switch (mapMode & 0x07) {
+    switch (memory_[(0x00 << 16) + 0xFFD5] & 0x07) {
       case 0:  // LoROM
         offset = 0x7FC0;
         break;
@@ -188,8 +123,6 @@ class MemoryImpl : public Memory {
 
     return offset;
   }
-
-  memory::RomInfo ReadRomHeader();
 
   uint8_t cart_read(uint8_t bank, uint16_t adr);
   void cart_write(uint8_t bank, uint16_t adr, uint8_t val);
@@ -347,15 +280,16 @@ class MemoryImpl : public Memory {
 
   bool pal_timing_ = false;
 
+  // Memory regions
+  uint32_t rom_size_;
+  uint32_t sram_size_;
+
   // Frame timing
   uint16_t h_pos_ = 0;
   uint16_t v_pos_ = 0;
 
   // Dma State
   uint8_t dma_state_ = 0;
-
-  // Dma Channels
-  DmaChannel channel[8];
 
   // Open bus
   uint8_t open_bus_ = 0;
@@ -366,11 +300,12 @@ class MemoryImpl : public Memory {
   // Cart Type
   uint8_t type_ = 1;
 
+  // Dma Channels
+  DmaChannel channel[8];
+
   // Memory (64KB)
   std::vector<uint8_t> memory_;
 };
-
-void DrawSnesMemoryMapping(const MemoryImpl& memory);
 
 }  // namespace memory
 }  // namespace emu

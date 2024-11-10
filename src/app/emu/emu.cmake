@@ -1,7 +1,7 @@
 add_executable(
   yaze_emu
   app/rom.cc
-  app/emu/debug/emu.cc
+  app/emu/emu.cc
   ${YAZE_APP_EMU_SRC}
   ${YAZE_APP_CORE_SRC}
   ${YAZE_APP_EDITOR_SRC}
