@@ -41,8 +41,7 @@ absl::Status ScreenEditor::Update() {
   DrawTitleScreenEditor();
   DrawNamingScreenEditor();
   END_TAB_BAR()
-
-  return absl::OkStatus();
+  return status_;
 }
 
 void ScreenEditor::DrawInventoryMenuEditor() {
@@ -319,7 +318,7 @@ void ScreenEditor::DrawDungeonMapsTabs() {
 
   gui::InputHexWord("Boss Room", &current_dungeon.boss_room);
 
-  const ImVec2 button_size = ImVec2(120, 0);
+  const ImVec2 button_size = ImVec2(130, 0);
 
   // Add Floor Button
   if (ImGui::Button("Add Floor", button_size) &&
@@ -421,6 +420,7 @@ void ScreenEditor::DrawDungeonMapsEditor() {
         if (!screen_canvas_.points().empty()) {
           dungeon_maps_[selected_dungeon]
               .floor_gfx[floor_number][selected_room] = selected_tile16_;
+          tilesheet_canvas_.mutable_points()->clear();
         }
       }
     }
@@ -432,35 +432,39 @@ void ScreenEditor::DrawDungeonMapsEditor() {
     tilemap_canvas_.DrawBitmapTable(sheets_);
     tilemap_canvas_.DrawGrid();
     tilemap_canvas_.DrawOverlay();
-
-    if (ImGui::Button("Load GFX from BIN file")) {
-      std::string bin_file = core::FileDialogWrapper::ShowOpenFileDialog();
-      if (!bin_file.empty()) {
-        std::ifstream file(bin_file, std::ios::binary);
-        if (file.is_open()) {
-          // Read the gfx data into a buffer
-          std::vector<uint8_t> bin_data((std::istreambuf_iterator<char>(file)),
-                                        std::istreambuf_iterator<char>());
-          auto converted_bin = gfx::SnesTo8bppSheet(bin_data, 4, 4);
-          tile16_sheet_.clear();
-          LoadDungeonMapTile16(converted_bin, true);
-          sheets_.clear();
-          std::vector<std::vector<uint8_t>> gfx_sheets;
-
-          // Divide the bin into 4 sheets
-          for (int i = 0; i < 4; i++) {
-            gfx_sheets.emplace_back(converted_bin.begin() + (i * 0x1000),
-                                    converted_bin.begin() + ((i + 1) * 0x1000));
-            sheets_.emplace(i, gfx::Bitmap(128, 32, 8, gfx_sheets[i]));
-            sheets_[i].ApplyPalette(*rom()->mutable_dungeon_palette(3));
-            Renderer::GetInstance().RenderBitmap(&sheets_[i]);
-          }
-          file.close();
-        }
-      }
-    }
+    ImGui::Separator();
+    if (ImGui::Button("Load GFX from BIN file")) LoadBinaryGfx();
 
     ImGui::EndTable();
+  }
+}
+
+void ScreenEditor::LoadBinaryGfx() {
+  std::string bin_file = core::FileDialogWrapper::ShowOpenFileDialog();
+  if (!bin_file.empty()) {
+    std::ifstream file(bin_file, std::ios::binary);
+    if (file.is_open()) {
+      // Read the gfx data into a buffer
+      std::vector<uint8_t> bin_data((std::istreambuf_iterator<char>(file)),
+                                    std::istreambuf_iterator<char>());
+      auto converted_bin = gfx::SnesTo8bppSheet(bin_data, 4, 4);
+      tile16_sheet_.clear();
+      if (LoadDungeonMapTile16(converted_bin, true).ok()) {
+        sheets_.clear();
+        std::vector<std::vector<uint8_t>> gfx_sheets;
+        for (int i = 0; i < 4; i++) {
+          gfx_sheets.emplace_back(converted_bin.begin() + (i * 0x1000),
+                                  converted_bin.begin() + ((i + 1) * 0x1000));
+          sheets_.emplace(i, gfx::Bitmap(128, 32, 8, gfx_sheets[i]));
+          sheets_[i].ApplyPalette(*rom()->mutable_dungeon_palette(3));
+          Renderer::GetInstance().RenderBitmap(&sheets_[i]);
+        }
+        binary_gfx_loaded_ = true;
+      } else {
+        status_ = absl::InternalError("Failed to load dungeon map tile16");
+      }
+      file.close();
+    }
   }
 }
 

@@ -64,11 +64,15 @@ class ScreenEditor : public SharedRom, public Editor {
   void DrawInventoryToolset();
 
   absl::Status LoadDungeonMaps();
-  absl::Status LoadDungeonMapTile16(const std::vector<uint8_t>& gfx_data, bool bin_mode = false);
+  absl::Status LoadDungeonMapTile16(const std::vector<uint8_t>& gfx_data,
+                                    bool bin_mode = false);
   void DrawDungeonMapsTabs();
   void DrawDungeonMapsEditor();
 
+  void LoadBinaryGfx();
+
   bool dungeon_maps_loaded_ = false;
+  bool binary_gfx_loaded_ = false;
 
   uint8_t selected_room = 0;
   uint8_t boss_room = 0;
