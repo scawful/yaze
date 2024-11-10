@@ -16,7 +16,6 @@
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/utils/editor.h"
 #include "app/editor/utils/gfx_context.h"
-#include "app/editor/utils/recent_files.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"

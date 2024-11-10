@@ -4,7 +4,6 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 
 #include "absl/status/status.h"
-#include "app/core/message.h"
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/code/memory_editor.h"

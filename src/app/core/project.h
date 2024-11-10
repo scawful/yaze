@@ -1,16 +1,20 @@
 #ifndef YAZE_APP_CORE_PROJECT_H
 #define YAZE_APP_CORE_PROJECT_H
 
+#include <algorithm>
 #include <fstream>
 #include <string>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
+#include "app/core/utils/file_util.h"
 
 namespace yaze {
 namespace app {
 
+const std::string kRecentFilesFilename = "recent_files.txt";
 constexpr char kEndOfProjectFile[] = "EndOfProjectFile";
 
 /**
@@ -31,13 +35,13 @@ struct Project : public core::ExperimentFlags {
    * @return An absl::Status indicating the success or failure of the project
    * creation.
    */
-  absl::Status Create(const std::string &project_name) {
+  absl::Status Create(const std::string& project_name) {
     name = project_name;
     project_opened_ = true;
     return absl::OkStatus();
   }
 
-  absl::Status Open(const std::string &project_path);
+  absl::Status Open(const std::string& project_path);
   absl::Status Save();
 
   absl::Status CheckForEmptyFields() {
@@ -59,6 +63,54 @@ struct Project : public core::ExperimentFlags {
   std::string code_folder_ = "";
   std::string labels_filename_ = "";
   std::string keybindings_file = "";
+};
+
+class RecentFilesManager {
+ public:
+  RecentFilesManager() : RecentFilesManager(kRecentFilesFilename) {}
+  RecentFilesManager(const std::string& filename) : filename_(filename) {}
+
+  void AddFile(const std::string& file_path) {
+    // Add a file to the list, avoiding duplicates
+    auto it = std::find(recent_files_.begin(), recent_files_.end(), file_path);
+    if (it == recent_files_.end()) {
+      recent_files_.push_back(file_path);
+    }
+  }
+
+  void Save() {
+    std::ofstream file(filename_);
+    if (!file.is_open()) {
+      return;  // Handle the error appropriately
+    }
+
+    for (const auto& file_path : recent_files_) {
+      file << file_path << std::endl;
+    }
+  }
+
+  void Load() {
+    std::ifstream file(filename_);
+    if (!file.is_open()) {
+      return;
+    }
+
+    recent_files_.clear();
+    std::string line;
+    while (std::getline(file, line)) {
+      if (!line.empty()) {
+        recent_files_.push_back(line);
+      }
+    }
+  }
+
+  const std::vector<std::string>& GetRecentFiles() const {
+    return recent_files_;
+  }
+
+ private:
+  std::string filename_;
+  std::vector<std::string> recent_files_;
 };
 
 }  // namespace app
