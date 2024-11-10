@@ -328,7 +328,6 @@ constexpr int OWHoleArea = 0xDB826;
 constexpr int OWHoleEntrance = 0xDB84C;
 
 class OverworldEntrance : public GameEntity {
-
  public:
   uint16_t map_pos_;
   uchar entrance_id_;
@@ -428,6 +427,13 @@ constexpr int transition_target_west = 0x13F62;
 constexpr int overworldCustomMosaicASM = 0x1301D0;
 constexpr int overworldCustomMosaicArray = 0x1301F0;
 
+// Expanded tile16 and tile32
+constexpr int kMap16TilesExpanded = 0x1E8000;
+constexpr int kMap32TileTRExpanded = 0x020000;
+constexpr int kMap32TileBLExpanded = 0x1F0000;
+constexpr int kMap32TileBRExpanded = 0x1F8000;
+constexpr int kMap32TileCount = 0x0067E0;
+
 constexpr int kMap16Tiles = 0x78000;
 constexpr int kNumOverworldMaps = 160;
 constexpr int kNumTile16Individual = 4096;
@@ -464,7 +470,9 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
   absl::Status SaveItems();
 
   absl::Status CreateTile32Tilemap();
+  absl::Status SaveMap16Expanded();
   absl::Status SaveMap16Tiles();
+  absl::Status SaveMap32Expanded();
   absl::Status SaveMap32Tiles();
 
   absl::Status SaveMapProperties();
