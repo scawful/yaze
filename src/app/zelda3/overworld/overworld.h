@@ -432,13 +432,14 @@ constexpr int kMap16TilesExpanded = 0x1E8000;
 constexpr int kMap32TileTRExpanded = 0x020000;
 constexpr int kMap32TileBLExpanded = 0x1F0000;
 constexpr int kMap32TileBRExpanded = 0x1F8000;
-constexpr int kMap32TileCount = 0x0067E0;
+constexpr int kMap32TileCountExpanded = 0x0067E0;
 
 constexpr int kMap16Tiles = 0x78000;
 constexpr int kNumOverworldMaps = 160;
 constexpr int kNumTile16Individual = 4096;
 constexpr int Map32PerScreen = 256;
-constexpr int NumberOfMap16 = 3752;  // 4096
+constexpr int NumberOfMap16 = 3752;    // 4096
+constexpr int NumberOfMap16Ex = 4096;  // 4096
 constexpr int LimitOfMap32 = 8864;
 constexpr int NumberOfOWSprites = 352;
 constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
@@ -558,7 +559,8 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
 
   void FetchLargeMaps();
   absl::StatusOr<uint16_t> GetTile16ForTile32(int index, int quadrant,
-                                              int dimension);
+                                              int dimension,
+                                              const uint32_t *map32address);
   absl::Status AssembleMap32Tiles();
   void AssembleMap16Tiles();
   void AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
