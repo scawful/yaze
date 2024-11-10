@@ -45,7 +45,7 @@ TEST_F(RomTest, Uninitialized) {
 }
 
 TEST_F(RomTest, LoadFromFile) {
-#if __defined(__linux__)
+#if defined(__linux__)
   GTEST_SKIP();
 #endif
   EXPECT_OK(rom_.LoadFromFile("test.sfc"));
