@@ -19,6 +19,8 @@ namespace app {
  */
 namespace core {
 
+constexpr std::string_view kYazeVersion = "0.2.1";
+
 std::string UppercaseHexByte(uint8_t byte, bool leading = false);
 std::string UppercaseHexWord(uint16_t word, bool leading = false);
 std::string UppercaseHexLong(uint32_t dword);

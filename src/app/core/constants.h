@@ -1,8 +1,6 @@
 #ifndef YAZE_APP_CORE_CONSTANTS_H
 #define YAZE_APP_CORE_CONSTANTS_H
 
-#include <string_view>
-
 #define TAB_BAR(w) if (ImGui::BeginTabBar(w)) {
 #define END_TAB_BAR() \
   ImGui::EndTabBar(); \
@@ -119,15 +117,5 @@
 using ushort = unsigned short;
 using uint = unsigned int;
 using uchar = unsigned char;
-
-namespace yaze {
-namespace app {
-namespace core {
-
-constexpr std::string_view kYazeVersion = "0.2.1";
-
-}  // namespace core
-}  // namespace app
-}  // namespace yaze
 
 #endif
