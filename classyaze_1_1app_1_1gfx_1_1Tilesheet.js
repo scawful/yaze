@@ -1,10 +1,10 @@
 var classyaze_1_1app_1_1gfx_1_1Tilesheet =
 [
-    [ "InternalTile16", "structyaze_1_1app_1_1gfx_1_1Tilesheet_1_1InternalTile16.html", "structyaze_1_1app_1_1gfx_1_1Tilesheet_1_1InternalTile16" ],
     [ "Tilesheet", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a53eb833dae18f049d50d933a3dde266d", null ],
     [ "Tilesheet", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a4575c8eaa2336fb84adc5f2c0b78e1b2", null ],
     [ "Init", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a6571d25014f0c2fce8e26bc77557b16b", null ],
     [ "ComposeTile16", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#afd91f2cb40bc46372276986f7d1504cd", null ],
+    [ "ModifyTile16", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#ac38aafc18b272c16c9a926154a3cf84e", null ],
     [ "ComposeAndPlaceTilePart", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3bbb033a4f1257e803eb61d078a14b87", null ],
     [ "GetTile", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#acd099c85a36170ed6df6d1b6f1016748", null ],
     [ "GetTile16", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a6dcb1b373c60e1b65e55ce70f3e7daa5", null ],
@@ -26,13 +26,13 @@ var classyaze_1_1app_1_1gfx_1_1Tilesheet =
     [ "MirrorTileDataHorizontally", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a61f010cd4b88db7e27e0ab3685f09b18", null ],
     [ "MirrorTileData", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a905a4142620211f082f3704ee6465715", null ],
     [ "WriteTile", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a61bcc0eed32b7bb87cd82bb2a99b4af7", null ],
-    [ "palette_", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a2ffb94ffb630c4f75ae893ba09e2df79", null ],
-    [ "internal_data_", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#ae66409533f63c407f221ac6e625c60bd", null ],
-    [ "bitmap_", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#af7f2d997f7b6e73b0d0e390483f86356", null ],
-    [ "tile_info_", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a155394e37ae95d04cbb69801a090ab22", null ],
     [ "num_tiles_", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#ab8d3773d2d7b978b9fa6b5a8d521f2d8", null ],
     [ "tile_width_", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3631b95b8895dca807064f2b3e1e9114", null ],
     [ "tile_height_", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3d47fcb7e4afe690b68f3b84ebc40db5", null ],
     [ "sheet_offset_", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a623f5c0241abd36e424b64fe12dcabab", null ],
-    [ "tile_type_", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#aeb69091e75987665eed66aaa0a41ab56", null ]
+    [ "tile_type_", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#aeb69091e75987665eed66aaa0a41ab56", null ],
+    [ "palette_", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a5e1f9d4a8b449c935ce8ee6a1821fe53", null ],
+    [ "internal_data_", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#ae66409533f63c407f221ac6e625c60bd", null ],
+    [ "tile_info_", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a155394e37ae95d04cbb69801a090ab22", null ],
+    [ "bitmap_", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#af7f2d997f7b6e73b0d0e390483f86356", null ]
 ];

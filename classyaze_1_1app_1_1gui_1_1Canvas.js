@@ -1,6 +1,7 @@
 var classyaze_1_1app_1_1gui_1_1Canvas =
 [
     [ "Canvas", "classyaze_1_1app_1_1gui_1_1Canvas.html#abe47fe0ed9dca9856cebaf909d4c704e", null ],
+    [ "Canvas", "classyaze_1_1app_1_1gui_1_1Canvas.html#a305b181e679b959f5182101b8c89bc6b", null ],
     [ "Canvas", "classyaze_1_1app_1_1gui_1_1Canvas.html#a58f5f610b78dfa312b2c52455909dd6b", null ],
     [ "Canvas", "classyaze_1_1app_1_1gui_1_1Canvas.html#a20a73ef4a6a6205e4c1a65828bc6c014", null ],
     [ "UpdateColorPainter", "classyaze_1_1app_1_1gui_1_1Canvas.html#ab3fc6d261c425bd93ccec94da3a72cca", null ],

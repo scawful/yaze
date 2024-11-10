@@ -132,7 +132,7 @@ var searchData=
   ['tilenumber_129',['tileNumber',['../structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a984940db659b968c30b27d01518b215b',1,'yaze::app::emu::video::TilemapEntry']]],
   ['tileprioritybit_130',['TilePriorityBit',['../namespaceyaze_1_1app_1_1gfx.html#a2a7462981584270ed52ef80ea6cb031a',1,'yaze::app::gfx']]],
   ['tiles_131',['Tiles',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1AnimationGroup.html#a245a840c9f95468905b8e7e378595ff0',1,'yaze::app::editor::zsprite::AnimationGroup']]],
-  ['tiles_132',['tiles',['../structyaze_1_1app_1_1gfx_1_1Tilesheet_1_1InternalTile16.html#a7b22bd099bb9405c378e87968cc3c521',1,'yaze::app::gfx::Tilesheet::InternalTile16']]],
+  ['tiles_132',['tiles',['../structyaze_1_1app_1_1gfx_1_1InternalTile16.html#a24cb9138786f9c50f27d141cef205000',1,'yaze::app::gfx::InternalTile16']]],
   ['tiles16_133',['tiles16',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a969e19cd190712135d1b38e573de52bf',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['tiles16_5f_134',['tiles16_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a795f223fd4b75b0fd7a5b99e2ef6859c',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['tiles32_5f_135',['tiles32_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a33d157c2c0371f82d5a884680312a0ac',1,'yaze::app::zelda3::overworld::Overworld']]],

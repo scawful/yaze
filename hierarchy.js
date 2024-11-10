@@ -129,7 +129,7 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::INIDISP", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1INIDISP.html", null ],
     [ "yaze::app::emu::Input", "structyaze_1_1app_1_1emu_1_1Input.html", null ],
     [ "yaze::app::emu::InstructionEntry", "classyaze_1_1app_1_1emu_1_1InstructionEntry.html", null ],
-    [ "yaze::app::gfx::Tilesheet::InternalTile16", "structyaze_1_1app_1_1gfx_1_1Tilesheet_1_1InternalTile16.html", null ],
+    [ "yaze::app::gfx::InternalTile16", "structyaze_1_1app_1_1gfx_1_1InternalTile16.html", null ],
     [ "yaze::app::emu::video::JoypadRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1JoypadRegisters.html", null ],
     [ "yaze::app::emu::video::Layer", "structyaze_1_1app_1_1emu_1_1video_1_1Layer.html", null ],
     [ "yaze::app::core::Logger", "classyaze_1_1app_1_1core_1_1Logger.html", null ],

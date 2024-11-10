@@ -10,6 +10,7 @@ var input_8h =
     [ "InputHexByte", "input_8h.html#a00b45dc4f42711dff98b2893eda7b2bb", null ],
     [ "InputHexByte", "input_8h.html#a54b571106f4a250d7a5d29ef87faf06f", null ],
     [ "ListBox", "input_8h.html#ad1e770a2e8dbc1e8a62d33c3466ab2fe", null ],
+    [ "InputTileInfo", "input_8h.html#a4f3d575491f0726926a4d4eb1dcf184f", null ],
     [ "ItemLabel", "input_8h.html#a09b85853f6496c7b5eba061ea976c68e", null ],
     [ "GetID", "input_8h.html#a7384985f0828445ea12d9da02d92f4ec", null ],
     [ "FileDialogPipeline", "input_8h.html#a574b5072f4f467f12dbdb9ea2eb41e50", null ],
