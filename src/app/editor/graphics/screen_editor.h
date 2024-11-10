@@ -90,6 +90,7 @@ class ScreenEditor : public SharedRom, public Editor {
   std::vector<zelda3::screen::DungeonMap> dungeon_maps_;
   std::vector<std::vector<std::array<std::string, 25>>> dungeon_map_labels_;
   std::array<uint16_t, 4> current_tile16_data_;
+  std::vector<uint8_t> gfx_bin_data_;
 
   absl::Status status_;
 

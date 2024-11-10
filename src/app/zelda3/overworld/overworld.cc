@@ -527,9 +527,9 @@ absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,
 
 absl::Status Overworld::Save(Rom &rom) {
   rom_ = rom;
-  if (expanded_tile16_) RETURN_IF_ERROR(SaveMap16TilesExpanded())
+  if (expanded_tile16_) RETURN_IF_ERROR(SaveMap16Expanded())
   RETURN_IF_ERROR(SaveMap16Tiles())
-  if (expanded_tile32_) RETURN_IF_ERROR(SaveMap32TilesExpanded())
+  if (expanded_tile32_) RETURN_IF_ERROR(SaveMap32Expanded())
   RETURN_IF_ERROR(SaveMap32Tiles())
   RETURN_IF_ERROR(SaveOverworldMaps())
   RETURN_IF_ERROR(SaveEntrances())
