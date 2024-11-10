@@ -10,6 +10,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "app/core/constants.h"
+#include "app/core/platform/file_dialog.h"
 #include "app/core/platform/renderer.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
@@ -133,7 +134,7 @@ absl::Status ScreenEditor::LoadDungeonMaps() {
         core::SnesToPc(ptr_gfx);  // Contains data for the next 25 rooms
 
     ASSIGN_OR_RETURN(
-        ushort bossRoomD,
+        ushort boss_room_d,
         rom()->ReadWord(zelda3::screen::kDungeonMapBossRooms + (d * 2)));
 
     ASSIGN_OR_RETURN(
@@ -160,7 +161,6 @@ absl::Status ScreenEditor::LoadDungeonMaps() {
 
       // for each room on the floor
       for (int j = 0; j < 25; j++) {
-        // rdata[j] = 0x0F;
         gdata[j] = 0xFF;
         rdata[j] = rom()->data()[pc_ptr + j + (i * 25)];  // Set the rooms
 
@@ -178,7 +178,7 @@ absl::Status ScreenEditor::LoadDungeonMaps() {
       current_floor_rooms_d.push_back(rdata);  // Add new floor data
     }
 
-    dungeon_maps_.emplace_back(bossRoomD, nbr_floor_d, nbr_basement_d,
+    dungeon_maps_.emplace_back(boss_room_d, nbr_floor_d, nbr_basement_d,
                                current_floor_rooms_d, current_floor_gfx_d);
   }
 
@@ -208,7 +208,8 @@ absl::Status ScreenEditor::SaveDungeonMaps() {
   return absl::OkStatus();
 }
 
-absl::Status ScreenEditor::LoadDungeonMapTile16() {
+absl::Status ScreenEditor::LoadDungeonMapTile16(
+    const std::vector<uint8_t>& gfx_data, bool bin_mode) {
   tile16_sheet_.Init(256, 192, gfx::TileType::Tile16);
 
   for (int i = 0; i < 186; i++) {
@@ -229,7 +230,11 @@ absl::Status ScreenEditor::LoadDungeonMapTile16() {
     ASSIGN_OR_RETURN(auto br, rom()->ReadWord(addr + 6 + (i * 8)));
     gfx::TileInfo t4 = gfx::WordToTileInfo(br);  // Bottom right
 
-    tile16_sheet_.ComposeTile16(rom()->graphics_buffer(), t1, t2, t3, t4);
+    int sheet_offset = 212;
+    if (bin_mode) {
+      sheet_offset = 0;
+    }
+    tile16_sheet_.ComposeTile16(gfx_data, t1, t2, t3, t4, sheet_offset);
   }
 
   RETURN_IF_ERROR(tile16_sheet_.mutable_bitmap()->ApplyPalette(
@@ -237,13 +242,11 @@ absl::Status ScreenEditor::LoadDungeonMapTile16() {
   Renderer::GetInstance().RenderBitmap(&*tile16_sheet_.mutable_bitmap().get());
 
   for (int i = 0; i < tile16_sheet_.num_tiles(); ++i) {
-    if (tile16_individual_.count(i) == 0) {
-      auto tile = tile16_sheet_.GetTile16(i);
-      tile16_individual_[i] = tile;
-      RETURN_IF_ERROR(tile16_individual_[i].ApplyPalette(
-          *rom()->mutable_dungeon_palette(3)));
-      Renderer::GetInstance().RenderBitmap(&tile16_individual_[i]);
-    }
+    auto tile = tile16_sheet_.GetTile16(i);
+    tile16_individual_[i] = tile;
+    RETURN_IF_ERROR(
+        tile16_individual_[i].ApplyPalette(*rom()->mutable_dungeon_palette(3)));
+    Renderer::GetInstance().RenderBitmap(&tile16_individual_[i]);
   }
 
   return absl::OkStatus();
@@ -255,10 +258,11 @@ void ScreenEditor::DrawDungeonMapsTabs() {
     auto nbr_floors =
         current_dungeon.nbr_of_floor + current_dungeon.nbr_of_basement;
     for (int i = 0; i < nbr_floors; i++) {
-      std::string tab_name = absl::StrFormat("Floor %d", i + 1);
-      if (i >= current_dungeon.nbr_of_floor) {
-        tab_name = absl::StrFormat("Basement %d",
-                                   i - current_dungeon.nbr_of_floor + 1);
+      int basement_num = current_dungeon.nbr_of_basement - i;
+      std::string tab_name = absl::StrFormat("Basement %d", basement_num);
+      if (i >= current_dungeon.nbr_of_basement) {
+        tab_name = absl::StrFormat("Floor %d",
+                                   i - current_dungeon.nbr_of_basement + 1);
       }
 
       if (ImGui::BeginTabItem(tab_name.c_str())) {
@@ -315,37 +319,39 @@ void ScreenEditor::DrawDungeonMapsTabs() {
 
   gui::InputHexWord("Boss Room", &current_dungeon.boss_room);
 
+  const ImVec2 button_size = ImVec2(120, 0);
+
   // Add Floor Button
-  if (ImGui::Button("Add Floor", ImVec2(100, 0)) &&
+  if (ImGui::Button("Add Floor", button_size) &&
       current_dungeon.nbr_of_floor < 8) {
     current_dungeon.nbr_of_floor++;
     dungeon_map_labels_[selected_dungeon].emplace_back();
   }
   ImGui::SameLine();
-  if (ImGui::Button("Remove Floor", ImVec2(100, 0)) &&
+  if (ImGui::Button("Remove Floor", button_size) &&
       current_dungeon.nbr_of_floor > 0) {
     current_dungeon.nbr_of_floor--;
     dungeon_map_labels_[selected_dungeon].pop_back();
   }
 
   // Add Basement Button
-  if (ImGui::Button("Add Basement", ImVec2(110, 0)) &&
+  if (ImGui::Button("Add Basement", button_size) &&
       current_dungeon.nbr_of_basement < 8) {
     current_dungeon.nbr_of_basement++;
     dungeon_map_labels_[selected_dungeon].emplace_back();
   }
   ImGui::SameLine();
-  if (ImGui::Button("Remove Basement", ImVec2(110, 0)) &&
+  if (ImGui::Button("Remove Basement", button_size) &&
       current_dungeon.nbr_of_basement > 0) {
     current_dungeon.nbr_of_basement--;
     dungeon_map_labels_[selected_dungeon].pop_back();
   }
 
-  if (ImGui::Button("Copy Floor", ImVec2(100, 0))) {
+  if (ImGui::Button("Copy Floor", button_size)) {
     copy_button_pressed = true;
   }
   ImGui::SameLine();
-  if (ImGui::Button("Paste Floor", ImVec2(100, 0))) {
+  if (ImGui::Button("Paste Floor", button_size)) {
     paste_button_pressed = true;
   }
 }
@@ -353,7 +359,7 @@ void ScreenEditor::DrawDungeonMapsTabs() {
 void ScreenEditor::DrawDungeonMapsEditor() {
   if (!dungeon_maps_loaded_) {
     if (LoadDungeonMaps().ok()) {
-      if (LoadDungeonMapTile16().ok()) {
+      if (LoadDungeonMapTile16(rom()->graphics_buffer()).ok()) {
         sheets_.emplace(0, rom()->gfx_sheets()[212]);
         sheets_.emplace(1, rom()->gfx_sheets()[213]);
         sheets_.emplace(2, rom()->gfx_sheets()[214]);
@@ -374,7 +380,10 @@ void ScreenEditor::DrawDungeonMapsEditor() {
       "Thieves' Town",      "Ice Palace",    "Misery Mire",
       "Turtle Rock",        "Ganon's Tower"};
 
-  if (ImGui::BeginTable("DungeonMapsTable", 4, ImGuiTableFlags_Resizable)) {
+  if (ImGui::BeginTable("DungeonMapsTable", 4,
+                        ImGuiTableFlags_Resizable |
+                            ImGuiTableFlags_Reorderable |
+                            ImGuiTableFlags_Hideable)) {
     ImGui::TableSetupColumn("Dungeon");
     ImGui::TableSetupColumn("Map");
     ImGui::TableSetupColumn("Rooms Gfx");
@@ -408,6 +417,11 @@ void ScreenEditor::DrawDungeonMapsEditor() {
       if (!tilesheet_canvas_.points().empty()) {
         selected_tile16_ = tilesheet_canvas_.points().front().x / 32 +
                            (tilesheet_canvas_.points().front().y / 32) * 16;
+        // Draw the selected tile
+        if (!screen_canvas_.points().empty()) {
+          dungeon_maps_[selected_dungeon]
+              .floor_gfx[floor_number][selected_room] = selected_tile16_;
+        }
       }
     }
     ImGui::EndChild();
@@ -418,6 +432,33 @@ void ScreenEditor::DrawDungeonMapsEditor() {
     tilemap_canvas_.DrawBitmapTable(sheets_);
     tilemap_canvas_.DrawGrid();
     tilemap_canvas_.DrawOverlay();
+
+    if (ImGui::Button("Load GFX from BIN file")) {
+      std::string bin_file = core::FileDialogWrapper::ShowOpenFileDialog();
+      if (!bin_file.empty()) {
+        std::ifstream file(bin_file, std::ios::binary);
+        if (file.is_open()) {
+          // Read the gfx data into a buffer
+          std::vector<uint8_t> bin_data((std::istreambuf_iterator<char>(file)),
+                                        std::istreambuf_iterator<char>());
+          auto converted_bin = gfx::SnesTo8bppSheet(bin_data, 4, 4);
+          tile16_sheet_.clear();
+          LoadDungeonMapTile16(converted_bin, true);
+          sheets_.clear();
+          std::vector<std::vector<uint8_t>> gfx_sheets;
+
+          // Divide the bin into 4 sheets
+          for (int i = 0; i < 4; i++) {
+            gfx_sheets.emplace_back(converted_bin.begin() + (i * 0x1000),
+                                    converted_bin.begin() + ((i + 1) * 0x1000));
+            sheets_.emplace(i, gfx::Bitmap(128, 32, 8, gfx_sheets[i]));
+            sheets_[i].ApplyPalette(*rom()->mutable_dungeon_palette(3));
+            Renderer::GetInstance().RenderBitmap(&sheets_[i]);
+          }
+          file.close();
+        }
+      }
+    }
 
     ImGui::EndTable();
   }
