@@ -92,7 +92,6 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
 
   absl::Status status_;
 
-  ImVector<int> active_tabs_;
   std::vector<Editor *> active_editors_;
 
   emu::Emulator emulator_;
