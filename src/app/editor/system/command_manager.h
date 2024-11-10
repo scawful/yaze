@@ -43,6 +43,9 @@ class CommandManager {
 
   void InitializeDefaults();
 
+  void SaveKeybindings(const std::string& filepath);
+  void LoadKeybindings(const std::string& filepath);
+
  private:
   std::unordered_map<std::string, CommandInfo> commands_;
 };

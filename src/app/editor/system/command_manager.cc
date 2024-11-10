@@ -1,5 +1,7 @@
 #include "command_manager.h"
 
+#include <fstream>
+
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -77,6 +79,30 @@ void CommandManager::InitializeDefaults() {
        {[]() { /* Goto logic */ }, 'G', "Goto",
         "Go to a specific address in the ROM"}},
       {"H", {[]() { /* Help logic */ }, 'H', "Help", "Show help information"}}};
+}
+
+void CommandManager::SaveKeybindings(const std::string& filepath) {
+  std::ofstream out(filepath);
+  if (out.is_open()) {
+    for (const auto& [shortcut, info] : commands_) {
+      out << shortcut << " " << info.mnemonic << " " << info.name << " "
+          << info.desc << "\n";
+    }
+    out.close();
+  }
+}
+
+void CommandManager::LoadKeybindings(const std::string& filepath) {
+  std::ifstream in(filepath);
+  if (in.is_open()) {
+    commands_.clear();
+    std::string shortcut, name, desc;
+    char mnemonic;
+    while (in >> shortcut >> mnemonic >> name >> desc) {
+      commands_[shortcut] = {nullptr, mnemonic, name, desc};
+    }
+    in.close();
+  }
 }
 
 }  // namespace editor
