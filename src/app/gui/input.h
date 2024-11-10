@@ -13,6 +13,7 @@
 #include "absl/strings/string_view.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
+#include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
 #include "imgui/imgui.h"
@@ -44,6 +45,8 @@ IMGUI_API bool InputHexByte(const char* label, uint8_t* data, uint8_t max_value,
 IMGUI_API bool ListBox(const char* label, int* current_item,
                        const std::vector<std::string>& items,
                        int height_in_items = -1);
+
+bool InputTileInfo(const char* label, gfx::TileInfo* tile_info);
 
 using ItemLabelFlags = enum ItemLabelFlag {
   Left = 1u << 0u,

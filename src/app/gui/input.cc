@@ -8,6 +8,7 @@
 #include "absl/strings/string_view.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
+#include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
 #include "imgui/imgui.h"
@@ -244,6 +245,20 @@ bool ListBox(const char* label, int* current_item,
   int items_count = static_cast<int>(items.size());
   return ImGui::ListBox(label, current_item, items_ptr.data(), items_count,
                         height_in_items);
+}
+
+bool InputTileInfo(const char* label, gfx::TileInfo* tile_info) {
+  ImGui::PushID(label);
+  ImGui::BeginGroup();
+  bool changed = false;
+  changed |= InputHexWord(label, &tile_info->id_);
+  changed |= InputHexByte("Palette", &tile_info->palette_);
+  changed |= ImGui::Checkbox("Priority", &tile_info->over_);
+  changed |= ImGui::Checkbox("Vertical Flip", &tile_info->vertical_mirror_);
+  changed |= ImGui::Checkbox("Horizontal Flip", &tile_info->horizontal_mirror_);
+  ImGui::EndGroup();
+  ImGui::PopID();
+  return changed;
 }
 
 ImGuiID GetID(const std::string& id) { return ImGui::GetID(id.c_str()); }
