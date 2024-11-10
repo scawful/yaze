@@ -18,8 +18,8 @@ constexpr int kTilesheetDepth = 8;
 constexpr uint8_t kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
                                         0x08, 0x04, 0x02, 0x01};
 
-std::vector<uint8_t> SnesTo8bppSheet(const std::vector<uint8_t>& sheet,
-                                     int bpp, int num_sheets = 1);
+std::vector<uint8_t> SnesTo8bppSheet(const std::vector<uint8_t>& sheet, int bpp,
+                                     int num_sheets = 1);
 std::vector<uint8_t> Bpp8SnesToIndexed(std::vector<uint8_t> data,
                                        uint64_t bpp = 0);
 
@@ -40,6 +40,9 @@ std::vector<uint8_t> ConvertBpp(const std::vector<uint8_t>& tiles,
 
 std::vector<uint8_t> Convert3bppTo4bpp(const std::vector<uint8_t>& tiles);
 std::vector<uint8_t> Convert4bppTo3bpp(const std::vector<uint8_t>& tiles);
+
+void CopyTile8bpp16(int x, int y, int tile, std::vector<uint8_t>& bitmap,
+                    std::vector<uint8_t>& blockset);
 
 /**
  * @brief SNES 16-bit tile metadata container

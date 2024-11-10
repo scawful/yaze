@@ -386,6 +386,19 @@ TileInfo GetTilesInfo(uint16_t tile) {
   return TileInfo(tid, p, v, h, o);
 }
 
+void CopyTile8bpp16(int x, int y, int tile, std::vector<uint8_t>& bitmap,
+                    std::vector<uint8_t>& blockset) {
+  int src_pos =
+      ((tile - ((tile / 0x08) * 0x08)) * 0x10) + ((tile / 0x08) * 2048);
+  int dest_pos = (x + (y * 0x200));
+  for (int yy = 0; yy < 0x10; yy++) {
+    for (int xx = 0; xx < 0x10; xx++) {
+      bitmap[dest_pos + xx + (yy * 0x200)] =
+          blockset[src_pos + xx + (yy * 0x80)];
+    }
+  }
+}
+
 }  // namespace gfx
 }  // namespace app
 }  // namespace yaze
