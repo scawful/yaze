@@ -70,6 +70,15 @@ void yaze_unload_rom(z3_rom* rom) {
   }
 }
 
+yaze_bitmap yaze_load_bitmap(const char* filename) {
+  yaze_bitmap bitmap;
+  bitmap.width = 0;
+  bitmap.height = 0;
+  bitmap.bpp = 0;
+  bitmap.data = nullptr;
+  return bitmap;
+}
+
 snes_color yaze_get_color_from_paletteset(const z3_rom* rom, int palette_set,
                                           int palette, int color) {
   snes_color color_struct;
@@ -101,11 +110,8 @@ z3_overworld* yaze_load_overworld(const z3_rom* rom) {
   }
 
   yaze::app::Rom* internal_rom = static_cast<yaze::app::Rom*>(rom->impl);
-
-  yaze::app::zelda3::overworld::Overworld* internal_overworld =
-      new yaze::app::zelda3::overworld::Overworld();
-  auto load_ow = internal_overworld->Load(*internal_rom);
-  if (!load_ow.ok()) {
+  auto internal_overworld = new yaze::app::zelda3::overworld::Overworld();
+  if (!internal_overworld->Load(*internal_rom).ok()) {
     return nullptr;
   }
 
