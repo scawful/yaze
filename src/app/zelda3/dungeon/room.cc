@@ -164,23 +164,23 @@ void Room::LoadRoomFromROM() {
 
   b = rom_data[hpos];
 
-  pits_.TargetLayer = (uchar)(b & 0x03);
-  stair1_.TargetLayer = (uchar)((b >> 2) & 0x03);
-  stair2_.TargetLayer = (uchar)((b >> 4) & 0x03);
-  stair3_.TargetLayer = (uchar)((b >> 6) & 0x03);
+  pits_.target_layer = (uchar)(b & 0x03);
+  stair1_.target_layer = (uchar)((b >> 2) & 0x03);
+  stair2_.target_layer = (uchar)((b >> 4) & 0x03);
+  stair3_.target_layer = (uchar)((b >> 6) & 0x03);
   hpos++;
-  stair4_.TargetLayer = (uchar)(rom_data[hpos] & 0x03);
+  stair4_.target_layer = (uchar)(rom_data[hpos] & 0x03);
   hpos++;
 
-  pits_.Target = rom_data[hpos];
+  pits_.target = rom_data[hpos];
   hpos++;
-  stair1_.Target = rom_data[hpos];
+  stair1_.target = rom_data[hpos];
   hpos++;
-  stair2_.Target = rom_data[hpos];
+  stair2_.target = rom_data[hpos];
   hpos++;
-  stair3_.Target = rom_data[hpos];
+  stair3_.target = rom_data[hpos];
   hpos++;
-  stair4_.Target = rom_data[hpos];
+  stair4_.target = rom_data[hpos];
   hpos++;
 
   // Load room objects
@@ -375,7 +375,7 @@ void Room::LoadObjects() {
           if (nbr_of_staircase < 4) {
             tile_objects_.back().set_options(ObjectOption::Stairs |
                                              tile_objects_.back().options());
-            staircase_rooms_vec_.push_back(StaircaseRooms(
+            staircase_rooms_vec_.push_back(z3_staircase(
                 posX, posY,
                 absl::StrCat("To ", staircase_rooms_[nbr_of_staircase])
                     .data()));
@@ -383,8 +383,7 @@ void Room::LoadObjects() {
           } else {
             tile_objects_.back().set_options(ObjectOption::Stairs |
                                              tile_objects_.back().options());
-            staircase_rooms_vec_.push_back(
-                StaircaseRooms(posX, posY, "To ???"));
+            staircase_rooms_vec_.push_back(z3_staircase(posX, posY, "To ???"));
           }
         }
       }
@@ -480,7 +479,7 @@ void Room::LoadChests() {
       }
 
       chests_in_room_.emplace_back(
-          ChestData(rom_data[cpos + (i * 3) + 2], big));
+          z3_chest_data(rom_data[cpos + (i * 3) + 2], big));
     }
   }
 }

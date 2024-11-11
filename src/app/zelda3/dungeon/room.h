@@ -86,43 +86,6 @@ constexpr int NumberOfRooms = 296;
 
 constexpr ushort stairsObjects[] = {0x139, 0x138, 0x13B, 0x12E, 0x12D};
 
-class DungeonDestination {
- public:
-  DungeonDestination() = default;
-  ~DungeonDestination() = default;
-  DungeonDestination(uint8_t i) : Index(i) {}
-
-  uint8_t Index;
-  uint8_t Target = 0;
-  uint8_t TargetLayer = 0;
-};
-
-struct Chest {
-  uint8_t x = 0;
-  uint8_t y = 0;
-  uint8_t item = 0;
-  bool picker = false;
-  bool big_chest = false;
-};
-
-struct ChestData {
-  ChestData() = default;
-  ChestData(uchar i, bool s) : id_(i), size_(s) {};
-
-  uchar id_;
-  bool size_;
-};
-
-struct StaircaseRooms {
-  StaircaseRooms() = default;
-  StaircaseRooms(uchar i, uchar r, const char *label)
-      : id_(i), room_(r), label_(label) {};
-
-  uchar id_;
-  uchar room_;
-  const char *label_;
-};
-
 class Room : public SharedRom {
  public:
   Room() = default;
@@ -200,16 +163,16 @@ class Room : public SharedRom {
 
   std::array<gfx::Bitmap, 3> background_bmps_;
   std::vector<zelda3::Sprite> sprites_;
-  std::vector<StaircaseRooms> staircase_rooms_vec_;
+  std::vector<z3_staircase> staircase_rooms_vec_;
 
   Background2 bg2_;
-  DungeonDestination pits_;
-  DungeonDestination stair1_;
-  DungeonDestination stair2_;
-  DungeonDestination stair3_;
-  DungeonDestination stair4_;
+  z3_dungeon_destination pits_;
+  z3_dungeon_destination stair1_;
+  z3_dungeon_destination stair2_;
+  z3_dungeon_destination stair3_;
+  z3_dungeon_destination stair4_;
 
-  std::vector<ChestData> chests_in_room_;
+  std::vector<z3_chest_data> chests_in_room_;
   std::vector<RoomObject> tile_objects_;
 
   std::vector<int> room_addresses_;
