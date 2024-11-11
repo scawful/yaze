@@ -15,26 +15,26 @@ void yaze_check_version(const char* version) {
   return;
 }
 
-int yaze_init(yaze_flags* flags) {
-  if (flags == nullptr) {
+int yaze_init(yaze_editor_context* yaze_ctx) {
+  if (yaze_ctx->flags == nullptr) {
     return -1;
   }
 
-  if (flags->rom_filename == nullptr) {
+  if (yaze_ctx->flags->rom_filename == nullptr) {
     return -1;
   }
 
-  flags->rom = yaze_load_rom(flags->rom_filename);
-  if (flags->rom == nullptr) {
+  yaze_ctx->flags->rom = yaze_load_rom(yaze_ctx->flags->rom_filename);
+  if (yaze_ctx->flags->rom == nullptr) {
     return -1;
   }
 
   return 0;
 }
 
-void yaze_cleanup(yaze_flags* flags) {
-  if (flags->rom) {
-    yaze_unload_rom(flags->rom);
+void yaze_cleanup(yaze_editor_context* yaze_ctx) {
+  if (yaze_ctx->flags->rom) {
+    yaze_unload_rom(yaze_ctx->flags->rom);
   }
 }
 
