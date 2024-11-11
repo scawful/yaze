@@ -301,7 +301,7 @@ void Room::LoadObjects() {
 
   LoadChests();
 
-  staircase_rooms_vec_.clear();
+  z3_staircases_.clear();
   int nbr_of_staircase = 0;
 
   int pos = objects_location + 2;
@@ -375,7 +375,7 @@ void Room::LoadObjects() {
           if (nbr_of_staircase < 4) {
             tile_objects_.back().set_options(ObjectOption::Stairs |
                                              tile_objects_.back().options());
-            staircase_rooms_vec_.push_back(z3_staircase(
+            z3_staircases_.push_back(z3_staircase(
                 posX, posY,
                 absl::StrCat("To ", staircase_rooms_[nbr_of_staircase])
                     .data()));
@@ -383,7 +383,7 @@ void Room::LoadObjects() {
           } else {
             tile_objects_.back().set_options(ObjectOption::Stairs |
                                              tile_objects_.back().options());
-            staircase_rooms_vec_.push_back(z3_staircase(posX, posY, "To ???"));
+            z3_staircases_.push_back(z3_staircase(posX, posY, "To ???"));
           }
         }
       }
