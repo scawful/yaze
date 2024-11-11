@@ -8,6 +8,7 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
+#include "incl/dungeon.h"
 #include "incl/overworld.h"
 #include "incl/snes_color.h"
 #include "incl/sprite.h"
@@ -27,6 +28,7 @@ typedef struct yaze_editor_context yaze_editor_context;
  */
 struct yaze_editor_context {
   yaze_project* project;
+  yaze_flags* flags;
 
   yaze_command_registry* command_registry;
   yaze_event_dispatcher* event_dispatcher;
@@ -48,14 +50,14 @@ void yaze_check_version(const char* version);
  *
  * @param flags Flags to initialize the library.
  */
-int yaze_init(yaze_flags*);
+int yaze_init(yaze_editor_context*);
 
 /**
  * @brief Clean up the Yaze library.
  *
  * @param flags Flags used to initialize the library.
  */
-void yaze_cleanup(yaze_flags*);
+void yaze_cleanup(yaze_editor_context*);
 
 /**
  * @brief Primitive of a Yaze project.
