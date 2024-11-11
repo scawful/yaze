@@ -1,5 +1,11 @@
 var NAVTREEINDEX48 =
 {
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html":[11,0,1,0,3,4,0,23],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html":[12,0,0,0,2,2,0,23],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html#a0abc0ca2f5b83a4e889bb325daf537d9":[11,0,1,0,3,4,0,23,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html#a0abc0ca2f5b83a4e889bb325daf537d9":[12,0,0,0,2,2,0,23,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html#a3ed7886d02e29628739b42414c21a63c":[11,0,1,0,3,4,0,23,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html#a3ed7886d02e29628739b42414c21a63c":[12,0,0,0,2,2,0,23,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html#ac133e617f85476531c1a998fd0074cd2":[11,0,1,0,3,4,0,23,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html#ac133e617f85476531c1a998fd0074cd2":[12,0,0,0,2,2,0,23,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDL.html":[11,0,1,0,3,4,0,24],
@@ -243,11 +249,5 @@ var NAVTREEINDEX48 =
 "structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#ab2615c0068251aa6b5481ca6bb91c345":[11,0,1,0,3,4,16,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#ab2615c0068251aa6b5481ca6bb91c345":[12,0,0,0,2,2,16,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#ae4673db8bb8e8e3227e4f5fafa3a0ca8":[11,0,1,0,3,4,16,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#ae4673db8bb8e8e3227e4f5fafa3a0ca8":[12,0,0,0,2,2,16,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html":[11,0,1,0,3,4,17],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html":[12,0,0,0,2,2,17],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html#a4d45c61890f77bbfc8abd50faa0984fb":[11,0,1,0,3,4,17,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html#a4d45c61890f77bbfc8abd50faa0984fb":[12,0,0,0,2,2,17,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html#a4f40e4499f2487074d07749e0aea6ebb":[11,0,1,0,3,4,17,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html#a4f40e4499f2487074d07749e0aea6ebb":[12,0,0,0,2,2,17,1]
+"structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#ae4673db8bb8e8e3227e4f5fafa3a0ca8":[12,0,0,0,2,2,16,3]
 };

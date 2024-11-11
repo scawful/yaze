@@ -89,6 +89,7 @@ var namespaceyaze_1_1app_1_1gfx =
     [ "WordToTileInfo", "namespaceyaze_1_1app_1_1gfx.html#a1c0d7314890a130ceda6eec9def39c4e", null ],
     [ "TileInfoToShort", "namespaceyaze_1_1app_1_1gfx.html#a8b918c5ebd5aeb116c421ae7125e4128", null ],
     [ "GetTilesInfo", "namespaceyaze_1_1app_1_1gfx.html#aefa90c55f0eea489bc7a6dd716300e90", null ],
+    [ "CopyTile8bpp16", "namespaceyaze_1_1app_1_1gfx.html#ae2853e69608282a2a563d17d697c6a60", null ],
     [ "CreateTilesheetFromGraphicsBuffer", "namespaceyaze_1_1app_1_1gfx.html#afe2b409c93b8b037b20a8d4ac2df3353", null ],
     [ "SNES_PIXELFORMAT_INDEXED", "namespaceyaze_1_1app_1_1gfx.html#abd8392f2567021f0b26d5f7a184329fa", null ],
     [ "SNES_PIXELFORMAT_2BPP", "namespaceyaze_1_1app_1_1gfx.html#a801752cb921f7e16a55028f76bdb1837", null ],

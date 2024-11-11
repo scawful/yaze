@@ -1,5 +1,11 @@
 var NAVTREEINDEX47 =
 {
+"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a25961f76e6240c8916bf83d17aace70e":[11,0,1,0,3,4,5,4],
+"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a25961f76e6240c8916bf83d17aace70e":[12,0,0,0,2,2,5,4],
+"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a5414c6ea5979a0e6d18a4487e707bebc":[11,0,1,0,3,4,5,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a5414c6ea5979a0e6d18a4487e707bebc":[12,0,0,0,2,2,5,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a5ed479b72951879a7e2515a90ae029a6":[11,0,1,0,3,4,5,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a5ed479b72951879a7e2515a90ae029a6":[12,0,0,0,2,2,5,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a7bd8ab83a3192047e75f89908dbfa128":[11,0,1,0,3,4,5,5],
 "structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a7bd8ab83a3192047e75f89908dbfa128":[12,0,0,0,2,2,5,5],
 "structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#ab4960c2eca1f62eca4b80181f7e43461":[11,0,1,0,3,4,5,2],
@@ -243,11 +249,5 @@ var NAVTREEINDEX47 =
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html#a2aed862f530e9c1ac5886d978760b348":[11,0,1,0,3,4,0,19,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html#a2aed862f530e9c1ac5886d978760b348":[12,0,0,0,2,2,0,19,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html#aba6c09b121212b08cf03d900e69fa695":[11,0,1,0,3,4,0,19,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html#aba6c09b121212b08cf03d900e69fa695":[12,0,0,0,2,2,0,19,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html":[11,0,1,0,3,4,0,23],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html":[12,0,0,0,2,2,0,23],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html#a0abc0ca2f5b83a4e889bb325daf537d9":[11,0,1,0,3,4,0,23,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html#a0abc0ca2f5b83a4e889bb325daf537d9":[12,0,0,0,2,2,0,23,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html#a3ed7886d02e29628739b42414c21a63c":[11,0,1,0,3,4,0,23,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html#a3ed7886d02e29628739b42414c21a63c":[12,0,0,0,2,2,0,23,1]
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html#aba6c09b121212b08cf03d900e69fa695":[12,0,0,0,2,2,0,19,0]
 };

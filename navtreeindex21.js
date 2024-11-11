@@ -1,5 +1,11 @@
 var NAVTREEINDEX21 =
 {
+"classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#a550e848467ff431b8862e3f62c106471":[12,0,0,0,5,3,1,0],
+"classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#a658a9b69e42e95ade718fd5e3a21ec4c":[11,0,1,0,6,4,1,5],
+"classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#a658a9b69e42e95ade718fd5e3a21ec4c":[12,0,0,0,5,3,1,5],
+"classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#a872c3ca1d107c1df3ac5068592f706c8":[11,0,1,0,6,4,1,1],
+"classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#a872c3ca1d107c1df3ac5068592f706c8":[12,0,0,0,5,3,1,1],
+"classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#a8a8d3eac7eccffe1e75e3eadbb2f5175":[11,0,1,0,6,4,1,2],
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#a8a8d3eac7eccffe1e75e3eadbb2f5175":[12,0,0,0,5,3,1,2],
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#a8d60d62b3d07c6b88737400108fdfac2":[11,0,1,0,6,4,1,9],
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#a8d60d62b3d07c6b88737400108fdfac2":[12,0,0,0,5,3,1,9],
@@ -243,11 +249,5 @@ var NAVTREEINDEX21 =
 "classyaze_1_1test_1_1emu_1_1MockPpu.html#adccc0a3d6062c3d398a7ea42bebda639":[12,0,0,2,0,2,1],
 "classyaze_1_1test_1_1emu_1_1PpuTest.html":[11,0,1,2,0,3],
 "classyaze_1_1test_1_1emu_1_1PpuTest.html":[12,0,0,2,0,3],
-"classyaze_1_1test_1_1emu_1_1PpuTest.html#a3332d063ec7aa21d8c95e21a3a29c844":[11,0,1,2,0,3,4],
-"classyaze_1_1test_1_1emu_1_1PpuTest.html#a3332d063ec7aa21d8c95e21a3a29c844":[12,0,0,2,0,3,4],
-"classyaze_1_1test_1_1emu_1_1PpuTest.html#a3bb92cef9dd491d84a17037ed1f481c8":[11,0,1,2,0,3,2],
-"classyaze_1_1test_1_1emu_1_1PpuTest.html#a3bb92cef9dd491d84a17037ed1f481c8":[12,0,0,2,0,3,2],
-"classyaze_1_1test_1_1emu_1_1PpuTest.html#a6dd0b1428367d6b303f6deeb0b752836":[11,0,1,2,0,3,1],
-"classyaze_1_1test_1_1emu_1_1PpuTest.html#a6dd0b1428367d6b303f6deeb0b752836":[12,0,0,2,0,3,1],
-"classyaze_1_1test_1_1emu_1_1PpuTest.html#a7c8064c7c0593894551271947a5d0b56":[11,0,1,2,0,3,0]
+"classyaze_1_1test_1_1emu_1_1PpuTest.html#a3332d063ec7aa21d8c95e21a3a29c844":[11,0,1,2,0,3,4]
 };

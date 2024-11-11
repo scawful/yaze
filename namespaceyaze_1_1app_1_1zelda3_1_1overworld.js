@@ -4,9 +4,6 @@ var namespaceyaze_1_1app_1_1zelda3_1_1overworld =
       [ "GetAllTile16", "namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1anonymous__namespace_02overworld_8cc_03.html#ac98b5712e9e6551a790b01d0a4cd881b", null ],
       [ "compareItemsArrays", "namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1anonymous__namespace_02overworld_8cc_03.html#a2b56d8805cb8d768a32d570cc90b6ba1", null ]
     ] ],
-    [ "anonymous_namespace{overworld_map.cc}", "namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1anonymous__namespace_02overworld__map_8cc_03.html", [
-      [ "CopyTile8bpp16", "namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1anonymous__namespace_02overworld__map_8cc_03.html#ae130d8aef05129a9ea9a1b1910020392", null ]
-    ] ],
     [ "palette_internal", "namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal.html", [
       [ "SetColorsPalette", "namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal.html#ac0260bcfd3c55dfe7d7155123619445d", null ]
     ] ],

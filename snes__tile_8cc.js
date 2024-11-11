@@ -11,6 +11,7 @@ var snes__tile_8cc =
     [ "WordToTileInfo", "snes__tile_8cc.html#a1c0d7314890a130ceda6eec9def39c4e", null ],
     [ "TileInfoToShort", "snes__tile_8cc.html#a8b918c5ebd5aeb116c421ae7125e4128", null ],
     [ "GetTilesInfo", "snes__tile_8cc.html#aefa90c55f0eea489bc7a6dd716300e90", null ],
+    [ "CopyTile8bpp16", "snes__tile_8cc.html#ae2853e69608282a2a563d17d697c6a60", null ],
     [ "TilePriorityBit", "snes__tile_8cc.html#a2a7462981584270ed52ef80ea6cb031a", null ],
     [ "TileHFlipBit", "snes__tile_8cc.html#a3dfbc94092307bb3201c87c5e9182e82", null ],
     [ "TileVFlipBit", "snes__tile_8cc.html#a9edb3a29e85c2a935d0d0f7014b5fb2a", null ],

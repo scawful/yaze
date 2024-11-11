@@ -95,7 +95,7 @@ var searchData=
   ['copyimagetoclipboard_92',['CopyImageToClipboard',['../namespaceyaze_1_1app_1_1core.html#a665b3fdfdf571c43045821e49c8ad8ca',1,'yaze::app::core']]],
   ['copyroomgraphicstobuffer_93',['CopyRoomGraphicsToBuffer',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#aceeba40808704e2281e5cc3e1e131dcf',1,'yaze::app::zelda3::dungeon::Room']]],
   ['copytile_94',['CopyTile',['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a9da24d0eea29c07e716bc587de367d03',1,'yaze::app::gfx::Tilesheet']]],
-  ['copytile8bpp16_95',['CopyTile8bpp16',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1anonymous__namespace_02overworld__map_8cc_03.html#ae130d8aef05129a9ea9a1b1910020392',1,'yaze::app::zelda3::overworld::anonymous_namespace{overworld_map.cc}']]],
+  ['copytile8bpp16_95',['CopyTile8bpp16',['../namespaceyaze_1_1app_1_1gfx.html#ae2853e69608282a2a563d17d697c6a60',1,'yaze::app::gfx']]],
   ['cpu_96',['Cpu',['../classyaze_1_1app_1_1emu_1_1Cpu.html#aa07ed3f4bd68fd61b2ec05639db52601',1,'yaze::app::emu::Cpu']]],
   ['cpu_97',['cpu',['../classyaze_1_1app_1_1emu_1_1SNES.html#a993065537045cb8897aceff94b2941c7',1,'yaze::app::emu::SNES']]],
   ['cpuidle_98',['CpuIdle',['../classyaze_1_1app_1_1emu_1_1SNES.html#a4ee3b1e246aa38fbf615854c5a50fc53',1,'yaze::app::emu::SNES']]],

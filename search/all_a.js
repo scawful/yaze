@@ -261,7 +261,7 @@ var searchData=
   ['copyimagetoclipboard_258',['CopyImageToClipboard',['../namespaceyaze_1_1app_1_1core.html#a665b3fdfdf571c43045821e49c8ad8ca',1,'yaze::app::core']]],
   ['copyroomgraphicstobuffer_259',['CopyRoomGraphicsToBuffer',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#aceeba40808704e2281e5cc3e1e131dcf',1,'yaze::app::zelda3::dungeon::Room']]],
   ['copytile_260',['CopyTile',['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a9da24d0eea29c07e716bc587de367d03',1,'yaze::app::gfx::Tilesheet']]],
-  ['copytile8bpp16_261',['CopyTile8bpp16',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1anonymous__namespace_02overworld__map_8cc_03.html#ae130d8aef05129a9ea9a1b1910020392',1,'yaze::app::zelda3::overworld::anonymous_namespace{overworld_map.cc}']]],
+  ['copytile8bpp16_261',['CopyTile8bpp16',['../namespaceyaze_1_1app_1_1gfx.html#ae2853e69608282a2a563d17d697c6a60',1,'yaze::app::gfx']]],
   ['count_262',['Count',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1UserRoutine.html#a3e1d77aa58a742f1fc888ab4d0810058',1,'yaze::app::editor::zsprite::UserRoutine']]],
   ['count_263',['count',['../structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a3d3efe584ee8c72b9aa1508e15c9e377',1,'yaze::app::gui::zeml::WidgetAttributes']]],
   ['count_5ffrequency_264',['count_frequency',['../classyaze_1_1app_1_1emu_1_1Emulator.html#a1a707b8ee2053f510becaf9033d5d3e3',1,'yaze::app::emu::Emulator']]],

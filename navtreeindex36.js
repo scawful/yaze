@@ -1,5 +1,11 @@
 var NAVTREEINDEX36 =
 {
+"namespacemembers_vars_r.html":[11,1,2,12],
+"namespacemembers_vars_s.html":[11,1,2,13],
+"namespacemembers_vars_t.html":[11,1,2,14],
+"namespacemembers_vars_u.html":[11,1,2,15],
+"namespacemembers_vars_v.html":[11,1,2,16],
+"namespacemembers_vars_w.html":[11,1,2,17],
 "namespacemembers_w.html":[11,1,0,20],
 "namespacemembers_z.html":[11,1,0,21],
 "namespaces.html":[11,0],
@@ -243,11 +249,5 @@ var NAVTREEINDEX36 =
 "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html":[11,0,1,0,3,1],
 "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#a81d0f6f44caa1180f02c65980a9bc7e9":[11,0,1,0,3,1,1],
 "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#aae723effd7ed469f002c818eb4ad7ff8":[11,0,1,0,3,1,0],
-"namespaceyaze_1_1app_1_1emu_1_1audio.html":[11,0,1,0,3,2],
-"namespaceyaze_1_1app_1_1emu_1_1audio.html#a041af507339a504688fac0dd100cd4e7":[11,0,1,0,3,2,8],
-"namespaceyaze_1_1app_1_1emu_1_1audio.html#a5208202a4f25f5f6f30cf9b374de1cd1":[11,0,1,0,3,2,10],
-"namespaceyaze_1_1app_1_1emu_1_1audio.html#af5ad88c1151738c18f9d1da9993f8a71":[11,0,1,0,3,2,9],
-"namespaceyaze_1_1app_1_1emu_1_1memory.html":[11,0,1,0,3,3],
-"namespaceyaze_1_1app_1_1emu_1_1memory.html#a19348b7f6e5ed926e23abcaab49d6292":[11,0,1,0,3,3,10],
-"namespaceyaze_1_1app_1_1emu_1_1memory.html#a4325dc93396259dd574f1198e94a11ef":[11,0,1,0,3,3,7]
+"namespaceyaze_1_1app_1_1emu_1_1audio.html":[11,0,1,0,3,2]
 };

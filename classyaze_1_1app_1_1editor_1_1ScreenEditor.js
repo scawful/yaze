@@ -35,6 +35,7 @@ var classyaze_1_1app_1_1editor_1_1ScreenEditor =
     [ "dungeon_maps_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ae0ed2f4361b29e64f37bb68cd24a583a", null ],
     [ "dungeon_map_labels_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a0dd4b026b50d09f54e24404ec9d7bb39", null ],
     [ "current_tile16_data_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a97b8cad84c10972201491163a322ac1a", null ],
+    [ "gfx_bin_data_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a783e6652157438e57514e3b0a51bf8a1", null ],
     [ "status_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a4da093058d84665c2bd1b71afb7cc0aa", null ],
     [ "palette_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa92cc04d58d5ff066e47edd631fd4711", null ],
     [ "sheets_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#abe64d48a0fe1ba02325f290a38c1f7ae", null ],

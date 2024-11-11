@@ -1,5 +1,11 @@
 var NAVTREEINDEX35 =
 {
+"incl_2sprite_8h.html#aa425967528383fae3ef201b558b40919":[13,0,1,2,4,1],
+"incl_2sprite_8h_source.html":[13,0,1,2,4],
+"index.html":[],
+"index.html":[0],
+"index.html#autotoc_md41":[0,0],
+"index.html#autotoc_md42":[0,1],
 "index.html#autotoc_md43":[0,2],
 "index.html#autotoc_md44":[0,3],
 "input_8cc.html":[13,0,1,0,4,6],
@@ -243,11 +249,5 @@ var NAVTREEINDEX35 =
 "namespacemembers_vars_m.html":[11,1,2,8],
 "namespacemembers_vars_n.html":[11,1,2,9],
 "namespacemembers_vars_o.html":[11,1,2,10],
-"namespacemembers_vars_p.html":[11,1,2,11],
-"namespacemembers_vars_r.html":[11,1,2,12],
-"namespacemembers_vars_s.html":[11,1,2,13],
-"namespacemembers_vars_t.html":[11,1,2,14],
-"namespacemembers_vars_u.html":[11,1,2,15],
-"namespacemembers_vars_v.html":[11,1,2,16],
-"namespacemembers_vars_w.html":[11,1,2,17]
+"namespacemembers_vars_p.html":[11,1,2,11]
 };

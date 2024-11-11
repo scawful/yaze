@@ -1,5 +1,11 @@
 var NAVTREEINDEX46 =
 {
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#aee4286694f190a9c8257a2697f376445":[11,0,1,0,2,7,5,20],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#aee4286694f190a9c8257a2697f376445":[12,0,0,0,1,2,5,20],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#af070cadfffcaf3679915d2f220716df0":[11,0,1,0,2,7,5,15],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#af070cadfffcaf3679915d2f220716df0":[12,0,0,0,1,2,5,15],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#aff612fe6b12aa8e83a4133e0458ce8f9":[11,0,1,0,2,7,5,33],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#aff612fe6b12aa8e83a4133e0458ce8f9":[12,0,0,0,1,2,5,33],
 "structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html":[11,0,1,0,3,9,0],
 "structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html":[12,0,0,0,2,7,0],
 "structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a1809514af68de6d3f90ef91080066f6f":[11,0,1,0,3,9,0,0],
@@ -243,11 +249,5 @@ var NAVTREEINDEX46 =
 "structyaze_1_1app_1_1emu_1_1video_1_1Color.html#a8b7024556618c276a5e5d58608fb2a11":[11,0,1,0,3,4,4,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1Color.html#a8b7024556618c276a5e5d58608fb2a11":[12,0,0,0,2,2,4,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html":[11,0,1,0,3,4,5],
-"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html":[12,0,0,0,2,2,5],
-"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a25961f76e6240c8916bf83d17aace70e":[11,0,1,0,3,4,5,4],
-"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a25961f76e6240c8916bf83d17aace70e":[12,0,0,0,2,2,5,4],
-"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a5414c6ea5979a0e6d18a4487e707bebc":[11,0,1,0,3,4,5,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a5414c6ea5979a0e6d18a4487e707bebc":[12,0,0,0,2,2,5,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a5ed479b72951879a7e2515a90ae029a6":[11,0,1,0,3,4,5,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a5ed479b72951879a7e2515a90ae029a6":[12,0,0,0,2,2,5,1]
+"structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html":[12,0,0,0,2,2,5]
 };

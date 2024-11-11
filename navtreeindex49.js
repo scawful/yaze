@@ -1,5 +1,11 @@
 var NAVTREEINDEX49 =
 {
+"structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html":[11,0,1,0,3,4,17],
+"structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html":[12,0,0,0,2,2,17],
+"structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html#a4d45c61890f77bbfc8abd50faa0984fb":[11,0,1,0,3,4,17,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html#a4d45c61890f77bbfc8abd50faa0984fb":[12,0,0,0,2,2,17,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html#a4f40e4499f2487074d07749e0aea6ebb":[11,0,1,0,3,4,17,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html#a4f40e4499f2487074d07749e0aea6ebb":[12,0,0,0,2,2,17,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html#aa9ca54a92ab7593490f62b7f20818256":[11,0,1,0,3,4,17,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html#aa9ca54a92ab7593490f62b7f20818256":[12,0,0,0,2,2,17,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html":[11,0,1,0,3,4,18],
@@ -243,11 +249,5 @@ var NAVTREEINDEX49 =
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#aa5c637582cb2b8c609d14c660eb80584":[11,0,1,0,4,1,1,10],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#aa5c637582cb2b8c609d14c660eb80584":[12,0,0,0,3,0,1,10],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ada885d11cc579116d21c5acb7b4e8356":[11,0,1,0,4,1,1,5],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ada885d11cc579116d21c5acb7b4e8356":[12,0,0,0,3,0,1,5],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae11cfcee0de7150ad5128529d10bb186":[11,0,1,0,4,1,1,7],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae11cfcee0de7150ad5128529d10bb186":[12,0,0,0,3,0,1,7],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae75528fc689654968586b3863d94692d":[11,0,1,0,4,1,1,4],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae75528fc689654968586b3863d94692d":[12,0,0,0,3,0,1,4],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#af4106f923d69298648b4d5c165adc29d":[11,0,1,0,4,1,1,13],
-"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#af4106f923d69298648b4d5c165adc29d":[12,0,0,0,3,0,1,13]
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ada885d11cc579116d21c5acb7b4e8356":[12,0,0,0,3,0,1,5]
 };

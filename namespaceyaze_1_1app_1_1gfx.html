@@ -269,6 +269,8 @@ Functions</h2></td></tr>
 <tr class="separator:a8b918c5ebd5aeb116c421ae7125e4128"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aefa90c55f0eea489bc7a6dd716300e90" id="r_aefa90c55f0eea489bc7a6dd716300e90"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aefa90c55f0eea489bc7a6dd716300e90">GetTilesInfo</a> (uint16_t tile)</td></tr>
 <tr class="separator:aefa90c55f0eea489bc7a6dd716300e90"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2853e69608282a2a563d17d697c6a60" id="r_ae2853e69608282a2a563d17d697c6a60"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae2853e69608282a2a563d17d697c6a60">CopyTile8bpp16</a> (int x, int y, int tile, std::vector&lt; uint8_t &gt; &amp;bitmap, std::vector&lt; uint8_t &gt; &amp;blockset)</td></tr>
+<tr class="separator:ae2853e69608282a2a563d17d697c6a60"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afe2b409c93b8b037b20a8d4ac2df3353" id="r_afe2b409c93b8b037b20a8d4ac2df3353"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="classyaze_1_1app_1_1gfx_1_1Tilesheet.html">Tilesheet</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afe2b409c93b8b037b20a8d4ac2df3353">CreateTilesheetFromGraphicsBuffer</a> (const uint8_t *graphics_buffer, int width, int height, <a class="el" href="#ae95a00ff98c9e69d426f80c487e2dac7">TileType</a> tile_type, int sheet_id)</td></tr>
 <tr class="separator:afe2b409c93b8b037b20a8d4ac2df3353"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -1272,7 +1274,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00314">314</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__tile_8h_source.html#l00058">yaze::app::gfx::TileInfo::horizontal_mirror_</a>, <a class="el" href="snes__tile_8h_source.html#l00054">yaze::app::gfx::TileInfo::id_</a>, <a class="el" href="snes__tile_8h_source.html#l00056">yaze::app::gfx::TileInfo::over_</a>, <a class="el" href="snes__tile_8h_source.html#l00055">yaze::app::gfx::TileInfo::palette_</a>, and <a class="el" href="snes__tile_8h_source.html#l00057">yaze::app::gfx::TileInfo::vertical_mirror_</a>.</p>
+<p class="reference">References <a class="el" href="snes__tile_8h_source.html#l00061">yaze::app::gfx::TileInfo::horizontal_mirror_</a>, <a class="el" href="snes__tile_8h_source.html#l00057">yaze::app::gfx::TileInfo::id_</a>, <a class="el" href="snes__tile_8h_source.html#l00059">yaze::app::gfx::TileInfo::over_</a>, <a class="el" href="snes__tile_8h_source.html#l00058">yaze::app::gfx::TileInfo::palette_</a>, and <a class="el" href="snes__tile_8h_source.html#l00060">yaze::app::gfx::TileInfo::vertical_mirror_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00254">yaze::app::editor::ScreenEditor::SaveDungeonMapTile16()</a>, and <a class="el" href="rom_8h_source.html#l00309">yaze::app::Rom::WriteTile16()</a>.</p>
 
@@ -1316,7 +1318,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00346">346</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__tile_8h_source.html#l00058">yaze::app::gfx::TileInfo::horizontal_mirror_</a>, <a class="el" href="snes__tile_8h_source.html#l00054">yaze::app::gfx::TileInfo::id_</a>, <a class="el" href="snes__tile_8h_source.html#l00056">yaze::app::gfx::TileInfo::over_</a>, <a class="el" href="snes__tile_8h_source.html#l00055">yaze::app::gfx::TileInfo::palette_</a>, <a class="el" href="snes__tile_8cc_source.html#l00018">TileHFlipBit</a>, <a class="el" href="snes__tile_8cc_source.html#l00024">TileNameMask</a>, <a class="el" href="snes__tile_8cc_source.html#l00015">TilePriorityBit</a>, <a class="el" href="snes__tile_8cc_source.html#l00021">TileVFlipBit</a>, and <a class="el" href="snes__tile_8h_source.html#l00057">yaze::app::gfx::TileInfo::vertical_mirror_</a>.</p>
+<p class="reference">References <a class="el" href="snes__tile_8h_source.html#l00061">yaze::app::gfx::TileInfo::horizontal_mirror_</a>, <a class="el" href="snes__tile_8h_source.html#l00057">yaze::app::gfx::TileInfo::id_</a>, <a class="el" href="snes__tile_8h_source.html#l00059">yaze::app::gfx::TileInfo::over_</a>, <a class="el" href="snes__tile_8h_source.html#l00058">yaze::app::gfx::TileInfo::palette_</a>, <a class="el" href="snes__tile_8cc_source.html#l00018">TileHFlipBit</a>, <a class="el" href="snes__tile_8cc_source.html#l00024">TileNameMask</a>, <a class="el" href="snes__tile_8cc_source.html#l00015">TilePriorityBit</a>, <a class="el" href="snes__tile_8cc_source.html#l00021">TileVFlipBit</a>, and <a class="el" href="snes__tile_8h_source.html#l00060">yaze::app::gfx::TileInfo::vertical_mirror_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="scad__format_8cc_source.html#l00070">yaze::app::gfx::scad_format::LoadScr()</a>.</p>
 
@@ -1341,7 +1343,47 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="snes__tile_8cc_source.html#l00018">TileHFlipBit</a>, <a class="el" href="snes__tile_8cc_source.html#l00024">TileNameMask</a>, <a class="el" href="snes__tile_8cc_source.html#l00015">TilePriorityBit</a>, and <a class="el" href="snes__tile_8cc_source.html#l00021">TileVFlipBit</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00177">yaze::app::zelda3::overworld::Overworld::AssembleMap16Tiles()</a>, <a class="el" href="inventory_8cc_source.html#l00016">yaze::app::zelda3::screen::Inventory::Create()</a>, <a class="el" href="scad__format_8cc_source.html#l00122">yaze::app::gfx::scad_format::DrawScrWithCgx()</a>, and <a class="el" href="scad__format_8cc_source.html#l00070">yaze::app::gfx::scad_format::LoadScr()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00178">yaze::app::zelda3::overworld::Overworld::AssembleMap16Tiles()</a>, <a class="el" href="inventory_8cc_source.html#l00016">yaze::app::zelda3::screen::Inventory::Create()</a>, <a class="el" href="scad__format_8cc_source.html#l00122">yaze::app::gfx::scad_format::DrawScrWithCgx()</a>, and <a class="el" href="scad__format_8cc_source.html#l00070">yaze::app::gfx::scad_format::LoadScr()</a>.</p>
+
+</div>
+</div>
+<a id="ae2853e69608282a2a563d17d697c6a60" name="ae2853e69608282a2a563d17d697c6a60"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae2853e69608282a2a563d17d697c6a60">&#9670;&#160;</a></span>CopyTile8bpp16()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::gfx::CopyTile8bpp16 </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>x</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>y</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>tile</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>bitmap</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>blockset</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00389">389</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00727">yaze::app::zelda3::overworld::OverworldMap::BuildBitmap()</a>.</p>
 
 </div>
 </div>

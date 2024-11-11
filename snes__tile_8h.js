@@ -13,6 +13,7 @@ var snes__tile_8h =
     [ "ConvertBpp", "snes__tile_8h.html#ab26e7d963d877f126b4ff7442c473864", null ],
     [ "Convert3bppTo4bpp", "snes__tile_8h.html#acbccad0c8c3b4758e2ed3425058623d7", null ],
     [ "Convert4bppTo3bpp", "snes__tile_8h.html#a12666f7bb6b6dcacbb721b16eded9000", null ],
+    [ "CopyTile8bpp16", "snes__tile_8h.html#ae2853e69608282a2a563d17d697c6a60", null ],
     [ "TileInfoToWord", "snes__tile_8h.html#ad8ba19f73c435e3e5527673d5b0cc096", null ],
     [ "WordToTileInfo", "snes__tile_8h.html#a1c0d7314890a130ceda6eec9def39c4e", null ],
     [ "TileInfoToShort", "snes__tile_8h.html#a8b918c5ebd5aeb116c421ae7125e4128", null ],

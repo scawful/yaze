@@ -1,5 +1,11 @@
 var NAVTREEINDEX50 =
 {
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae11cfcee0de7150ad5128529d10bb186":[11,0,1,0,4,1,1,7],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae11cfcee0de7150ad5128529d10bb186":[12,0,0,0,3,0,1,7],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae75528fc689654968586b3863d94692d":[11,0,1,0,4,1,1,4],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae75528fc689654968586b3863d94692d":[12,0,0,0,3,0,1,4],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#af4106f923d69298648b4d5c165adc29d":[11,0,1,0,4,1,1,13],
+"structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#af4106f923d69298648b4d5c165adc29d":[12,0,0,0,3,0,1,13],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html":[11,0,1,0,4,1,2],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html":[12,0,0,0,3,0,2],
 "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a1fa4b2dc352ae8971e01a74f32df19c7":[11,0,1,0,4,1,2,5],
@@ -243,11 +249,5 @@ var NAVTREEINDEX50 =
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html#a6304a516978d9b6ef2bd2a0f096b8ba0":[11,0,1,0,6,1,12,0],
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html#a6304a516978d9b6ef2bd2a0f096b8ba0":[12,0,0,0,5,0,12,0],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html":[11,0,1,0,6,2,5],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html":[12,0,0,0,5,1,5],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a0b5b79ae496a23e3727b7b8ab8f57718":[11,0,1,0,6,2,5,2],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a0b5b79ae496a23e3727b7b8ab8f57718":[12,0,0,0,5,1,5,2],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a210e869e15789185c1c0b047df76ffd2":[11,0,1,0,6,2,5,0],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a210e869e15789185c1c0b047df76ffd2":[12,0,0,0,5,1,5,0],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a3533ea54de65115e91b2cc58358e5a97":[11,0,1,0,6,2,5,10],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a3533ea54de65115e91b2cc58358e5a97":[12,0,0,0,5,1,5,10]
+"structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html":[12,0,0,0,5,1,5]
 };
