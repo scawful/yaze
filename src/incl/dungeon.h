@@ -18,8 +18,8 @@ struct z3_object_door {
 
 struct z3_dungeon_destination {
   uint8_t index;
-  uint8_t target = 0;
-  uint8_t target_layer = 0;
+  uint8_t target;
+  uint8_t target_layer;
 };
 
 struct z3_staircase {
@@ -29,16 +29,28 @@ struct z3_staircase {
 };
 
 struct z3_chest {
-  uint8_t x = 0;
-  uint8_t y = 0;
-  uint8_t item = 0;
-  bool picker = false;
-  bool big_chest = false;
+  uint8_t x;
+  uint8_t y;
+  uint8_t item;
+  bool picker;
+  bool big_chest;
 };
 
 struct z3_chest_data {
-  uchar id;
+  uint8_t id;
   bool size;
+};
+
+enum z3_dungeon_background2 {
+  Off,
+  Parallax,
+  Dark,
+  OnTop,
+  Translucent,
+  Addition,
+  Normal,
+  Transparent,
+  DarkRoom
 };
 
 #ifdef __cplusplus

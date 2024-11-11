@@ -159,19 +159,19 @@ class Room : public SharedRom {
   int64_t room_size_pointer_;
 
   std::array<uint8_t, 16> blocks_;
-  std::array<uchar, 16> chest_list_;
 
   std::array<gfx::Bitmap, 3> background_bmps_;
   std::vector<zelda3::Sprite> sprites_;
   std::vector<z3_staircase> staircase_rooms_vec_;
 
-  Background2 bg2_;
+  z3_dungeon_background2 bg2_;
   z3_dungeon_destination pits_;
   z3_dungeon_destination stair1_;
   z3_dungeon_destination stair2_;
   z3_dungeon_destination stair3_;
   z3_dungeon_destination stair4_;
 
+  std::array<uchar, 16> chest_list_;
   std::vector<z3_chest_data> chests_in_room_;
   std::vector<RoomObject> tile_objects_;
 

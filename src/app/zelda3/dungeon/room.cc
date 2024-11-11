@@ -31,12 +31,12 @@ void Room::LoadHeader() {
 
   auto header_location = core::SnesToPc(address);
 
-  bg2_ = (Background2)((rom()->data()[header_location] >> 5) & 0x07);
+  bg2_ = (z3_dungeon_background2)((rom()->data()[header_location] >> 5) & 0x07);
   // collision = (CollisionKey)((rom()->data()[header_location] >> 2) & 0x07);
   is_light_ = ((rom()->data()[header_location]) & 0x01) == 1;
 
   if (is_light_) {
-    bg2_ = Background2::DarkRoom;
+    bg2_ = z3_dungeon_background2::DarkRoom;
   }
 
   palette = ((rom()->data()[header_location + 1] & 0x3F));

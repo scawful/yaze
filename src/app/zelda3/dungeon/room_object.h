@@ -28,18 +28,6 @@ SubtypeInfo FetchSubtypeInfo(uint16_t object_id);
 
 enum class SpecialObjectType { Chest, BigChest, InterroomStairs };
 
-enum Background2 {
-  Off,
-  Parallax,
-  Dark,
-  OnTop,
-  Translucent,
-  Addition,
-  Normal,
-  Transparent,
-  DarkRoom
-};
-
 enum Sorting {
   All = 0,
   Wall = 1,
@@ -87,34 +75,7 @@ class RoomObject : public SharedRom {
         ox_(x),
         oy_(y),
         width_(16),
-        height_(16),
-        unique_id_(0) {}
-
-  void GetObjectSize() {
-    previous_size_ = size_;
-    size_ = 1;
-    GetBaseSize();
-    UpdateSize();
-    size_ = 2;
-    GetSizeSized();
-    UpdateSize();
-    size_ = previous_size_;
-  }
-
-  void GetBaseSize() {
-    base_width_ = width_;
-    base_height_ = height_;
-  }
-
-  void GetSizeSized() {
-    size_height_ = height_ - base_height_;
-    size_width_ = width_ - base_width_;
-  }
-
-  void UpdateSize() {
-    width_ = 8;
-    height_ = 8;
-  }
+        height_(16) {}
 
   void AddTiles(int nbr, int pos) {
     for (int i = 0; i < nbr; i++) {
@@ -135,10 +96,6 @@ class RoomObject : public SharedRom {
  protected:
   bool all_bgs_ = false;
   bool lit_ = false;
-  bool deleted_ = false;
-  bool show_rectangle_ = false;
-  bool diagonal_fix_ = false;
-  bool selected_ = false;
 
   int16_t id_;
   uint8_t x_;
@@ -153,15 +110,8 @@ class RoomObject : public SharedRom {
 
   int width_;
   int height_;
-  int base_width_;
-  int base_height_;
-  int size_width_;
-  int size_height_;
-  int tile_index_ = 0;
   int offset_x_ = 0;
   int offset_y_ = 0;
-  int preview_id_ = 0;
-  int unique_id_ = 0;
 
   std::string name_;
 
