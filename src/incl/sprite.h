@@ -10,11 +10,11 @@ extern "C" {
 /**
  * @brief Primitive of a sprite.
  */
-struct z3_sprite {
+typedef struct z3_sprite {
   const char* name; /**< Name of the sprite. */
   uint8_t id;       /**< ID of the sprite. */
-};
-typedef struct z3_sprite z3_sprite;
+  uint8_t subtype;  /**< Subtype of the sprite. */
+} z3_sprite;
 
 #ifdef __cplusplus
 }

@@ -21,18 +21,16 @@ typedef struct yaze_project yaze_project;
 typedef struct yaze_command_registry yaze_command_registry;
 typedef struct yaze_event_dispatcher yaze_event_dispatcher;
 
-typedef struct yaze_editor_context yaze_editor_context;
-
 /**
  * @brief Extension editor context.
  */
-struct yaze_editor_context {
+typedef struct yaze_editor_context {
   yaze_project* project;
   yaze_flags* flags;
 
   yaze_command_registry* command_registry;
   yaze_event_dispatcher* event_dispatcher;
-};
+} yaze_editor_context;
 
 /**
  * @brief Flags to initialize the Yaze library.
@@ -91,6 +89,21 @@ z3_rom* yaze_load_rom(const char* filename);
  * @brief Unload a Zelda3 ROM.
  */
 void yaze_unload_rom(z3_rom* rom);
+
+/**
+ * @brief Primitive of a Bitmap
+ */
+typedef struct yaze_bitmap {
+  int width;
+  int height;
+  uint8_t bpp;
+  uint8_t* data;
+} yaze_bitmap;
+
+/**
+ * @brief Load a bitmap from a file.
+ */
+yaze_bitmap yaze_load_bitmap(const char* filename);
 
 /**
  * @brief Get a color from a palette set.
