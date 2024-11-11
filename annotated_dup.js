@@ -217,15 +217,11 @@ var annotated_dup =
         ] ],
         [ "zelda3", "namespaceyaze_1_1app_1_1zelda3.html", [
           [ "dungeon", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html", [
-            [ "Chest", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1Chest.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1Chest" ],
-            [ "ChestData", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData" ],
-            [ "DungeonDestination", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination" ],
             [ "DungeonObjectRenderer", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer" ],
             [ "PseudoVram", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram" ],
             [ "Room", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room" ],
             [ "RoomEntrance", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance" ],
             [ "RoomObject", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject" ],
-            [ "StaircaseRooms", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms" ],
             [ "Subtype1", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype1.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype1" ],
             [ "Subtype2", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype2.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype2" ],
             [ "Subtype3", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3" ],
@@ -309,7 +305,6 @@ var annotated_dup =
     ] ],
     [ "AppDelegate", "classAppDelegate.html", null ],
     [ "AppViewController", "classAppViewController.html", null ],
-    [ "object_door", "structobject__door.html", "structobject__door" ],
     [ "snes_color", "structsnes__color.html", "structsnes__color" ],
     [ "snes_palette", "structsnes__palette.html", "structsnes__palette" ],
     [ "yaze_command_registry", "structyaze__command__registry.html", "structyaze__command__registry" ],
@@ -318,8 +313,13 @@ var annotated_dup =
     [ "yaze_extension", "structyaze__extension.html", "structyaze__extension" ],
     [ "yaze_flags", "structyaze__flags.html", "structyaze__flags" ],
     [ "yaze_project", "structyaze__project.html", "structyaze__project" ],
+    [ "z3_chest", "structz3__chest.html", "structz3__chest" ],
+    [ "z3_chest_data", "structz3__chest__data.html", "structz3__chest__data" ],
+    [ "z3_dungeon_destination", "structz3__dungeon__destination.html", "structz3__dungeon__destination" ],
+    [ "z3_object_door", "structz3__object__door.html", "structz3__object__door" ],
     [ "z3_overworld", "structz3__overworld.html", "structz3__overworld" ],
     [ "z3_overworld_map", "structz3__overworld__map.html", "structz3__overworld__map" ],
     [ "z3_rom", "structz3__rom.html", "structz3__rom" ],
-    [ "z3_sprite", "structz3__sprite.html", "structz3__sprite" ]
+    [ "z3_sprite", "structz3__sprite.html", "structz3__sprite" ],
+    [ "z3_staircase", "structz3__staircase.html", "structz3__staircase" ]
 ];

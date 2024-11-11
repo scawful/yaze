@@ -10,17 +10,6 @@ var room__object_8h =
       [ "BigChest", "room__object_8h.html#ac46cb973cf8ca0aa50e953f5c8978f2ba52a3e405eb69e72cd81af3c5e1f93065", null ],
       [ "InterroomStairs", "room__object_8h.html#ac46cb973cf8ca0aa50e953f5c8978f2ba4196867d030ad1793b4087b9747f8b04", null ]
     ] ],
-    [ "Background2", "room__object_8h.html#a6b6d941855be57abcd325bb7a72bc6e4", [
-      [ "Off", "room__object_8h.html#a6b6d941855be57abcd325bb7a72bc6e4af0345dc2e403e84cbdab450c6365a95b", null ],
-      [ "Parallax", "room__object_8h.html#a6b6d941855be57abcd325bb7a72bc6e4a623a4fd9a6c960fa6164b9c9f4b96975", null ],
-      [ "Dark", "room__object_8h.html#a6b6d941855be57abcd325bb7a72bc6e4ae40f747bde1a0df3405a1ed9180db29f", null ],
-      [ "OnTop", "room__object_8h.html#a6b6d941855be57abcd325bb7a72bc6e4ae46a8c82ed18b9229dfc17bf90edbedd", null ],
-      [ "Translucent", "room__object_8h.html#a6b6d941855be57abcd325bb7a72bc6e4a6974a82b3d75af36fb863db8d7cea769", null ],
-      [ "Addition", "room__object_8h.html#a6b6d941855be57abcd325bb7a72bc6e4ab5bacc75ef1e3898ecdc2eac42b2f152", null ],
-      [ "Normal", "room__object_8h.html#a6b6d941855be57abcd325bb7a72bc6e4a477d2e3258de4b8143f4ee311a66a212", null ],
-      [ "Transparent", "room__object_8h.html#a6b6d941855be57abcd325bb7a72bc6e4a902a12a6ebfc50d677f0c7e2055fb40d", null ],
-      [ "DarkRoom", "room__object_8h.html#a6b6d941855be57abcd325bb7a72bc6e4ad9e1fb3111d9a8d704400749c4badbc7", null ]
-    ] ],
     [ "Sorting", "room__object_8h.html#ac3c0be1a02f8dce7d5bbca92747b4f9c", [
       [ "All", "room__object_8h.html#ac3c0be1a02f8dce7d5bbca92747b4f9ca3cad80b7a4e77dcf6f6784b97152b7f7", null ],
       [ "Wall", "room__object_8h.html#ac3c0be1a02f8dce7d5bbca92747b4f9ca5866effe9067ea6ec6e1f64bbaac7ccf", null ],

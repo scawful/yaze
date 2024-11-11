@@ -1,14 +1,10 @@
 var namespaceyaze_1_1app_1_1zelda3_1_1dungeon =
 [
-    [ "Chest", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1Chest.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1Chest" ],
-    [ "ChestData", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData" ],
-    [ "DungeonDestination", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination" ],
     [ "DungeonObjectRenderer", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer" ],
     [ "PseudoVram", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram" ],
     [ "Room", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room" ],
     [ "RoomEntrance", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance" ],
     [ "RoomObject", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject" ],
-    [ "StaircaseRooms", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms" ],
     [ "Subtype1", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype1.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype1" ],
     [ "Subtype2", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype2.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype2" ],
     [ "Subtype3", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3" ],
@@ -17,17 +13,6 @@ var namespaceyaze_1_1app_1_1zelda3_1_1dungeon =
       [ "Chest", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ac46cb973cf8ca0aa50e953f5c8978f2ba080a546abcbea74459f27ba33313993d", null ],
       [ "BigChest", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ac46cb973cf8ca0aa50e953f5c8978f2ba52a3e405eb69e72cd81af3c5e1f93065", null ],
       [ "InterroomStairs", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ac46cb973cf8ca0aa50e953f5c8978f2ba4196867d030ad1793b4087b9747f8b04", null ]
-    ] ],
-    [ "Background2", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4", [
-      [ "Off", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4af0345dc2e403e84cbdab450c6365a95b", null ],
-      [ "Parallax", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4a623a4fd9a6c960fa6164b9c9f4b96975", null ],
-      [ "Dark", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4ae40f747bde1a0df3405a1ed9180db29f", null ],
-      [ "OnTop", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4ae46a8c82ed18b9229dfc17bf90edbedd", null ],
-      [ "Translucent", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4a6974a82b3d75af36fb863db8d7cea769", null ],
-      [ "Addition", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4ab5bacc75ef1e3898ecdc2eac42b2f152", null ],
-      [ "Normal", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4a477d2e3258de4b8143f4ee311a66a212", null ],
-      [ "Transparent", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4a902a12a6ebfc50d677f0c7e2055fb40d", null ],
-      [ "DarkRoom", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4ad9e1fb3111d9a8d704400749c4badbc7", null ]
     ] ],
     [ "Sorting", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ac3c0be1a02f8dce7d5bbca92747b4f9c", [
       [ "All", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ac3c0be1a02f8dce7d5bbca92747b4f9ca3cad80b7a4e77dcf6f6784b97152b7f7", null ],

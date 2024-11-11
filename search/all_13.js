@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['label_5f_0',['label_',['../structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html#a8bf1d421dee0394f3256e831b951fa7e',1,'yaze::app::zelda3::dungeon::StaircaseRooms']]],
+  ['label_0',['label',['../structz3__staircase.html#a66a8b70b58ea54d4f3976f5c1e580e4c',1,'z3_staircase']]],
   ['labels_1',['labels',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a6cef821f344deda8bdb7549dc6e66d01',1,'yaze::app::gui::Canvas']]],
   ['labels_20and_20symbols_2',['Labels and Symbols',['../md_docs_2asm-style-guide.html#autotoc_md3',1,'']]],
   ['labels_5f_3',['labels_',['../structyaze_1_1app_1_1ResourceLabelManager.html#aa8ba66d7a7e9a2e92441e4324110e3d2',1,'yaze::app::ResourceLabelManager::labels_'],['../classyaze_1_1app_1_1gui_1_1Canvas.html#aec672b4a929916a1d77ce605624c3de8',1,'yaze::app::gui::Canvas::labels_']]],
@@ -22,13 +22,13 @@ var searchData=
   ['latched_5fstate_5f_19',['latched_state_',['../structyaze_1_1app_1_1emu_1_1Input.html#af8b655a657a9717d2846e801332dccaa',1,'yaze::app::emu::Input']]],
   ['latchhv_20',['LatchHV',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a5125a48b53c3ca1b979f487b949c26b1',1,'yaze::app::emu::video::Ppu']]],
   ['layer_21',['Layer',['../structyaze_1_1app_1_1emu_1_1video_1_1Layer.html',1,'yaze::app::emu::video::Layer'],['../namespaceyaze_1_1app_1_1emu_1_1video.html#a306a02cc51601ad0f21efa7a4cecbdb5',1,'yaze::app::emu::video::Layer']]],
-  ['layer_22',['layer',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a46056200712d312353dcf2e58dbe0ec8',1,'yaze::app::zelda3::Sprite']]],
+  ['layer_22',['layer',['../structz3__object__door.html#a6969552dcacacde4299df9fa156dccf2',1,'z3_object_door::layer'],['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a46056200712d312353dcf2e58dbe0ec8',1,'yaze::app::zelda3::Sprite::layer()']]],
   ['layer1_23',['layer1',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ae6f3018d6ce8a363b5e7492db55f6c91',1,'yaze::app::zelda3::dungeon::Room']]],
   ['layer2_24',['layer2',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ae81b1d8426f99dcea468ebab18888f19',1,'yaze::app::zelda3::dungeon::Room']]],
   ['layer2_5fbehavior_5f_25',['layer2_behavior_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a8bdd645147f8b3e71916fd5cc81e7ff2',1,'yaze::app::zelda3::dungeon::Room']]],
   ['layer2_5fmode_5f_26',['layer2_mode_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ac5d09648d0691c7ee852834bb65d3cea',1,'yaze::app::zelda3::dungeon::Room']]],
   ['layer3_27',['layer3',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a96a687bbcb34aa803f9fc138bbb8c6b5',1,'yaze::app::zelda3::dungeon::Room']]],
-  ['layer_5f_28',['layer_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#aad7b1c2fc7099fca22e46e4350664b4a',1,'yaze::app::emu::video::Ppu::layer_'],['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a16330deeb4e22cf371f8be8c46fc57e5',1,'yaze::app::zelda3::dungeon::RoomObject::layer_'],['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a94b7b1e97710881e402755f249f0124e',1,'yaze::app::zelda3::Sprite::layer_'],['../structobject__door.html#a1b020521d50b1eefa616ae1eee275556',1,'object_door::layer_']]],
+  ['layer_5f_28',['layer_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#aad7b1c2fc7099fca22e46e4350664b4a',1,'yaze::app::emu::video::Ppu::layer_'],['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a16330deeb4e22cf371f8be8c46fc57e5',1,'yaze::app::zelda3::dungeon::RoomObject::layer_'],['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a94b7b1e97710881e402755f249f0124e',1,'yaze::app::zelda3::Sprite::layer_']]],
   ['layertype_29',['LayerType',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a1e78c05ffe02bb4bc7b2f9dfcb86ba5a',1,'yaze::app::zelda3::dungeon::RoomObject']]],
   ['layout_30',['layout',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a5ab6ba418d68ff4557547af975990e0c',1,'yaze::app::zelda3::dungeon::Room']]],
   ['layout_5fnode_5f_31',['layout_node_',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#acbd340bb22f1f44d2705cd907657198c',1,'yaze::app::editor::OverworldEditor']]],

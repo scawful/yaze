@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['dark_0',['Dark',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4ae40f747bde1a0df3405a1ed9180db29f',1,'yaze::app::zelda3::dungeon']]],
-  ['darkroom_1',['DarkRoom',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4ad9e1fb3111d9a8d704400749c4badbc7',1,'yaze::app::zelda3::dungeon']]],
+  ['dark_0',['Dark',['../dungeon_8h.html#a86a9ab609ee1ad1b7d6740218b5738deab881c2fca9941a632de2b4af173a7906',1,'dungeon.h']]],
+  ['darkroom_1',['DarkRoom',['../dungeon_8h.html#a86a9ab609ee1ad1b7d6740218b5738deabd4ed2edf2b1c880c6568252e7cc7275',1,'dungeon.h']]],
   ['data_2',['Data',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a324ba56e42b5f4c60bae35729e8b0f1daf6068daa29dbb05a7ead1e3b5a48bbee',1,'yaze::app::emu::Cpu']]],
   ['definition_3',['Definition',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a0b890b1926b90387673882e6ccae7fdc',1,'yaze::app::gui::zeml']]],
   ['door_4',['Door',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abe17795abf1adfe947a81911733145daaf44e14d49cd011d1e873d9fe0c4624f1',1,'yaze::app::zelda3::dungeon']]],

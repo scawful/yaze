@@ -181,8 +181,7 @@ var searchData=
   ['dsp_178',['dsp',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ac5797bebb6a04d4fc65191e32916dc5a',1,'yaze::app::emu::audio::Apu']]],
   ['dungeon_5fpalette_179',['dungeon_palette',['../classyaze_1_1app_1_1Rom.html#abc79426dc768d8d43bd9bab55ef11660',1,'yaze::app::Rom']]],
   ['dungeonasset_180',['DungeonAsset',['../structyaze_1_1app_1_1gui_1_1DungeonAsset.html#a85ad3a711636fbfe817ad097e213cef1',1,'yaze::app::gui::DungeonAsset']]],
-  ['dungeondestination_181',['DungeonDestination',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html#aace78add8628287108e3edaa2a67ef84',1,'yaze::app::zelda3::dungeon::DungeonDestination::DungeonDestination()=default'],['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html#a29d26e1faa76a57861a99e64cd2f70d5',1,'yaze::app::zelda3::dungeon::DungeonDestination::DungeonDestination(uint8_t i)']]],
-  ['dungeoneditor_182',['DungeonEditor',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a3326e7ce3b46c75cb7bb6d37960c69f6',1,'yaze::app::editor::DungeonEditor']]],
-  ['dungeonmap_183',['DungeonMap',['../structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#adaa5bd3da06245604ea263d36b387613',1,'yaze::app::zelda3::screen::DungeonMap']]],
-  ['dungeonobjectrenderer_184',['DungeonObjectRenderer',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#ac5e185af4c95f27977661aa6b3efd575',1,'yaze::app::zelda3::dungeon::DungeonObjectRenderer']]]
+  ['dungeoneditor_181',['DungeonEditor',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a3326e7ce3b46c75cb7bb6d37960c69f6',1,'yaze::app::editor::DungeonEditor']]],
+  ['dungeonmap_182',['DungeonMap',['../structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#adaa5bd3da06245604ea263d36b387613',1,'yaze::app::zelda3::screen::DungeonMap']]],
+  ['dungeonobjectrenderer_183',['DungeonObjectRenderer',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#ac5e185af4c95f27977661aa6b3efd575',1,'yaze::app::zelda3::dungeon::DungeonObjectRenderer']]]
 ];

@@ -27,7 +27,7 @@ var searchData=
   ['noisesample_24',['noiseSample',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#ada09b0b5f167f0fff0b99cafde466e1e',1,'yaze::app::emu::audio::Dsp']]],
   ['nonscalable_25',['NonScalable',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ac3c0be1a02f8dce7d5bbca92747b4f9ca9f55447fff6e0150376d8aaf88a94aa1',1,'yaze::app::zelda3::dungeon']]],
   ['nop_26',['NOP',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a08491a73e714c14e55a219459106063e',1,'yaze::app::emu::audio::Spc700::NOP()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a9637cbd326e98eca30f2797035851e65',1,'yaze::app::emu::Cpu::NOP()']]],
-  ['normal_27',['Normal',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4a477d2e3258de4b8143f4ee311a66a212',1,'yaze::app::zelda3::dungeon']]],
+  ['normal_27',['Normal',['../dungeon_8h.html#a86a9ab609ee1ad1b7d6740218b5738dea5ecbcf0afce98b042f35ec71ba03fa4b',1,'dungeon.h']]],
   ['not1_28',['NOT1',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ac1cce66d63f5225e0fa76ec279e02280',1,'yaze::app::emu::audio::Spc700']]],
   ['notc_29',['NOTC',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#aca963717f13985bd0b8988b89333dcd8',1,'yaze::app::emu::audio::Spc700']]],
   ['nothing_30',['Nothing',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abe17795abf1adfe947a81911733145daaf80a4ad87fee7c9fdc19b7769495fdb5',1,'yaze::app::zelda3::dungeon']]],
