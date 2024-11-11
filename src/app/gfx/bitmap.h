@@ -133,8 +133,6 @@ class Bitmap {
   void Get8x8Tile(int tile_index, int x, int y, std::vector<uint8_t> &tile_data,
                   int &tile_data_offset);
 
-  void Get16x16Tile(int tile_index, int x, int y,
-                    std::vector<uint8_t> &tile_data, int &tile_data_offset);
   void Get16x16Tile(int tile_x, int tile_y, std::vector<uint8_t> &tile_data,
                     int &tile_data_offset);
 

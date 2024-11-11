@@ -1161,6 +1161,7 @@ absl::Status Overworld::SaveMap32Expanded() {
       rom()->WriteLong(0x017788, core::PcToSnes(kMap32TileBRExpanded + 4)));
   RETURN_IF_ERROR(
       rom()->WriteLong(0x01779A, core::PcToSnes(kMap32TileBRExpanded + 5)));
+  return absl::OkStatus();
 }
 
 absl::Status Overworld::SaveMap32Tiles() {
@@ -1449,20 +1450,20 @@ absl::Status Overworld::SaveExits() {
 
 namespace {
 
-bool compareItemsArrays(std::vector<OverworldItem> itemArray1,
-                        std::vector<OverworldItem> itemArray2) {
-  if (itemArray1.size() != itemArray2.size()) {
+bool compareItemsArrays(std::vector<OverworldItem> item_array1,
+                        std::vector<OverworldItem> item_array2) {
+  if (item_array1.size() != item_array2.size()) {
     return false;
   }
 
   bool match;
-  for (size_t i = 0; i < itemArray1.size(); i++) {
+  for (size_t i = 0; i < item_array1.size(); i++) {
     match = false;
-    for (size_t j = 0; j < itemArray2.size(); j++) {
+    for (size_t j = 0; j < item_array2.size(); j++) {
       // Check all sprite in 2nd array if one match
-      if (itemArray1[i].x_ == itemArray2[j].x_ &&
-          itemArray1[i].y_ == itemArray2[j].y_ &&
-          itemArray1[i].id_ == itemArray2[j].id_) {
+      if (item_array1[i].x_ == item_array2[j].x_ &&
+          item_array1[i].y_ == item_array2[j].y_ &&
+          item_array1[i].id_ == item_array2[j].id_) {
         match = true;
         break;
       }
