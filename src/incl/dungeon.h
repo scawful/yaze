@@ -5,43 +5,44 @@
 extern "C" {
 #endif
 
+#include <stdbool.h>
 #include <stdint.h>
 
-struct z3_object_door {
+typedef struct z3_object_door {
   short id;
   uint8_t x;
   uint8_t y;
   uint8_t size;
   uint8_t type;
   uint8_t layer;
-};
+} z3_object_door;
 
-struct z3_dungeon_destination {
+typedef struct z3_dungeon_destination {
   uint8_t index;
   uint8_t target;
   uint8_t target_layer;
-};
+} z3_dungeon_destination;
 
-struct z3_staircase {
+typedef struct z3_staircase {
   uint8_t id;
   uint8_t room;
   const char *label;
-};
+} z3_staircase;
 
-struct z3_chest {
+typedef struct z3_chest {
   uint8_t x;
   uint8_t y;
   uint8_t item;
   bool picker;
   bool big_chest;
-};
+} z3_chest;
 
-struct z3_chest_data {
+typedef struct z3_chest_data {
   uint8_t id;
   bool size;
-};
+} z3_chest_data;
 
-enum z3_dungeon_background2 {
+typedef enum z3_dungeon_background2 {
   Off,
   Parallax,
   Dark,
@@ -51,7 +52,7 @@ enum z3_dungeon_background2 {
   Normal,
   Transparent,
   DarkRoom
-};
+} z3_dungeon_background2;
 
 #ifdef __cplusplus
 }
