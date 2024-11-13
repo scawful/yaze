@@ -997,6 +997,11 @@ void OverworldEditor::DrawOverworldSprites() {
           current_sprite_ = sprite;
         }
       }
+      if (sprite_previews_[sprite.id()].is_active()) {
+        ow_map_canvas_.DrawBitmap(sprite_previews_[sprite.id()], map_x, map_y,
+                                  2.0f);
+      }
+
       ow_map_canvas_.DrawText(absl::StrFormat("%s", sprite.name()), map_x,
                               map_y);
     }
@@ -1108,8 +1113,11 @@ absl::Status OverworldEditor::LoadSpriteGraphics() {
     for (auto const &sprite : overworld_.sprites(i)) {
       int width = sprite.width();
       int height = sprite.height();
-      int depth = 0x40;
+      int depth = 0x10;
       auto spr_gfx = sprite.PreviewGraphics();
+      if (spr_gfx.empty() || width == 0 || height == 0) {
+        continue;
+      }
       sprite_previews_[sprite.id()].Create(width, height, depth, spr_gfx);
       RETURN_IF_ERROR(sprite_previews_[sprite.id()].ApplyPalette(palette_));
       Renderer::GetInstance().RenderBitmap(&(sprite_previews_[sprite.id()]));
