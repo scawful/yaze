@@ -32,12 +32,13 @@ int main(int argc, char** argv) {
     rom_filename = argv[1];
   }
 
+#ifdef __APPLE__
+  yaze_run_cocoa_app_delegate(rom_filename.c_str());
+  return EXIT_SUCCESS;
+#endif
+
   core::Controller controller;
   EXIT_IF_ERROR(controller.OnEntry(rom_filename))
-
-#ifdef __APPLE__
-  InitializeCocoa();
-#endif
 
   while (controller.IsActive()) {
     controller.OnInput();
