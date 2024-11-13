@@ -315,7 +315,6 @@ var annotated_dup =
     [ "yaze_editor_context", "structyaze__editor__context.html", "structyaze__editor__context" ],
     [ "yaze_event_dispatcher", "structyaze__event__dispatcher.html", "structyaze__event__dispatcher" ],
     [ "yaze_extension", "structyaze__extension.html", "structyaze__extension" ],
-    [ "yaze_flags", "structyaze__flags.html", "structyaze__flags" ],
     [ "yaze_project", "structyaze__project.html", "structyaze__project" ],
     [ "z3_chest", "structz3__chest.html", "structz3__chest" ],
     [ "z3_chest_data", "structz3__chest__data.html", "structz3__chest__data" ],

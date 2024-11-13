@@ -29,6 +29,7 @@ var searchData=
   ['wobjlog_26',['WOBJLOG',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a9dd2253b733e3788977c091f1e9adc60',1,'yaze::app::emu::video::PpuRegisters']]],
   ['wobjsel_27',['WOBJSEL',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#ac0943e4703e990b0a88f8485466c0dbe',1,'yaze::app::emu::video::PpuRegisters']]],
   ['world_5f_28',['world_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a0de6457335b63777689847f182867900',1,'yaze::app::zelda3::overworld::OverworldMap']]],
-  ['write_29',['write',['../structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html#a1ebfe64940285cafd2f2285c56824e96',1,'yaze::app::emu::audio::ApuCallbacks']]],
-  ['write_5fbyte_30',['write_byte',['../structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html#aa645d902d0f56d9dc4cc099ed79ae8fa',1,'yaze::app::emu::memory::CpuCallbacks']]]
+  ['world_5fid_29',['world_id',['../structz3__overworld__map.html#a7d01ce087b7925710e074ca7a59805a3',1,'z3_overworld_map']]],
+  ['write_30',['write',['../structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html#a1ebfe64940285cafd2f2285c56824e96',1,'yaze::app::emu::audio::ApuCallbacks']]],
+  ['write_5fbyte_31',['write_byte',['../structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html#aa645d902d0f56d9dc4cc099ed79ae8fa',1,'yaze::app::emu::memory::CpuCallbacks']]]
 ];

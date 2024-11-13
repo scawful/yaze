@@ -1,9 +1,5 @@
 var NAVTREEINDEX25 =
 {
-"dsp_8h_source.html":[13,0,1,0,2,0,4],
-"dungeon_8h.html":[13,0,1,2,1],
-"dungeon_8h.html#a0650308ec3a0a144265fe8e21ba1a4a4":[13,0,1,2,1,7],
-"dungeon_8h.html#a2be2f2f7b6256191a25575bc0d7215f6":[13,0,1,2,1,9],
 "dungeon_8h.html#a3fa752db36f7d9803f3777975c7bdf3e":[13,0,1,2,1,8],
 "dungeon_8h.html#a5a2f007730f2acc0e8d3e890c689ed88":[13,0,1,2,1,5],
 "dungeon_8h.html#a693241c2a867611acd4c6215d2cba1c1":[13,0,1,2,1,10],
@@ -249,5 +245,9 @@ var NAVTREEINDEX25 =
 "functions_vars_y.html":[12,3,2,24],
 "functions_vars_z.html":[12,3,2,25],
 "functions_w.html":[12,3,0,22],
-"functions_x.html":[12,3,0,23]
+"functions_x.html":[12,3,0,23],
+"functions_y.html":[12,3,0,24],
+"functions_z.html":[12,3,0,25],
+"functions_~.html":[12,3,0,26],
+"gfx__context_8cc.html":[13,0,1,0,1,8,2]
 };

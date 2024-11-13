@@ -1,9 +1,5 @@
 var NAVTREEINDEX44 =
 {
-"structyaze_1_1app_1_1Project.html#aa68ec754ecc85e2ec52a375a55746fab":[11,0,1,0,7,3],
-"structyaze_1_1app_1_1Project.html#aa68ec754ecc85e2ec52a375a55746fab":[12,0,0,0,6,3],
-"structyaze_1_1app_1_1Project.html#aaaec6f4568b290cb85dad5c0e58bd485":[11,0,1,0,7,8],
-"structyaze_1_1app_1_1Project.html#aaaec6f4568b290cb85dad5c0e58bd485":[12,0,0,0,6,8],
 "structyaze_1_1app_1_1Project.html#aaed58f3c0aa7f90c5221c36972c41d9f":[11,0,1,0,7,4],
 "structyaze_1_1app_1_1Project.html#aaed58f3c0aa7f90c5221c36972c41d9f":[12,0,0,0,6,4],
 "structyaze_1_1app_1_1ResourceLabelManager.html":[11,0,1,0,9],
@@ -249,5 +245,9 @@ var NAVTREEINDEX44 =
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a07ae2d062ac3f905e65cbf5d0b67e59b":[11,0,1,0,2,25,0,8],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a07ae2d062ac3f905e65cbf5d0b67e59b":[12,0,0,0,1,20,0,8],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a1901abc8b7ca912bf11a93b72b217755":[11,0,1,0,2,25,0,6],
-"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a1901abc8b7ca912bf11a93b72b217755":[12,0,0,0,1,20,0,6]
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a1901abc8b7ca912bf11a93b72b217755":[12,0,0,0,1,20,0,6],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a25effced7ec29b9cd4510b0ebe25b5c5":[11,0,1,0,2,25,0,7],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a25effced7ec29b9cd4510b0ebe25b5c5":[12,0,0,0,1,20,0,7],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a276721b5cc34fbc79fc434127b1cc1f4":[11,0,1,0,2,25,0,13],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a276721b5cc34fbc79fc434127b1cc1f4":[12,0,0,0,1,20,0,13]
 };

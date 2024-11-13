@@ -1,9 +1,5 @@
 var NAVTREEINDEX38 =
 {
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a59144c3685cd10bc358b440293e7c82d":[11,0,1,0,4,1,37],
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5be3958ac1fbf3bd0b6de3485a96b74d":[11,0,1,0,4,1,67],
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5f07065a9c2fb78b8df4f326aa9152ca":[11,0,1,0,4,1,64],
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a643331fe3b1d1a9dbbd2be8df42622ff":[11,0,1,0,4,1,4],
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a64c9eccb0e6bde5044cfd0b85126a423":[11,0,1,0,4,1,70],
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6704a0d05d04ae6217e4cf143d5862be":[11,0,1,0,4,1,36],
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6d13ac7649343808451edc35c4b9d74f":[11,0,1,0,4,1,11],
@@ -249,5 +245,9 @@ var NAVTREEINDEX38 =
 "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a86644c3f8bc3f03fd330b2c3b4f0ba00":[11,0,1,0,6,1,15],
 "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a8778ed49ecb276b45f13fbcca37c5386":[11,0,1,0,6,1,54],
 "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a891bf4b93a4bcd052d0295ff5f0a24e0":[11,0,1,0,6,1,65],
-"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a89e8d245bac0bb52d9310af054df7b1f":[11,0,1,0,6,1,62]
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a89e8d245bac0bb52d9310af054df7b1f":[11,0,1,0,6,1,62],
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a8a57e67b18a3e6646a95d0fffd4a162c":[11,0,1,0,6,1,118],
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a8e407314faaa0e60903d0dcec25cac77":[11,0,1,0,6,1,58],
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a8ee770724d0461e2c3f280c0f0435d05":[11,0,1,0,6,1,83],
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a924d247fa87bd24fcc4b14b32d87fb5b":[11,0,1,0,6,1,124]
 };

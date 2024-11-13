@@ -26,7 +26,7 @@
 <area shape="poly" id="edge13_Node000010_Node000011" title=" " alt="" coords="477,405,571,427,570,432,476,410"/>
 <area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ac01d3d837a19f3a62e0f72b42e134de6" title=" " alt="" coords="558,366,776,406"/>
 <area shape="poly" id="edge15_Node000010_Node000012" title=" " alt="" coords="511,384,542,384,542,389,511,389"/>
-<area shape="rect" id="Node000016" href="$classyaze_1_1app_1_1core_1_1Renderer.html#aedcffb1f7a16396dbe8a5685c62573d7" title="Used to update a bitmap on the screen." alt="" coords="586,496,749,537"/>
+<area shape="rect" id="Node000016" href="$classyaze_1_1app_1_1core_1_1Renderer.html#a94b4bfee2e6d44dc1fd6ba7d76d81bbf" title="Used to update a bitmap on the screen." alt="" coords="586,496,749,537"/>
 <area shape="poly" id="edge17_Node000010_Node000016" title=" " alt="" coords="420,405,483,443,559,481,578,489,576,493,557,486,481,447,417,409"/>
 <area shape="poly" id="edge16_Node000012_Node000005" title=" " alt="" coords="741,363,809,343,810,349,743,368"/>
 </map>

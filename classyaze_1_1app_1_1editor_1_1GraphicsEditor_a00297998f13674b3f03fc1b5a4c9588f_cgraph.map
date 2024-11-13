@@ -14,7 +14,7 @@
 <area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="123,200,173,256,205,285,240,311,248,315,245,320,237,315,202,289,170,260,119,204"/>
 <area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a82347358f89c826105734df3d675e530" title=" " alt="" coords="478,55,592,96"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="397,73,463,73,463,78,397,78"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a60dbb218a86c57687580ec77be457511" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="463,186,607,226"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#ac325d7d569706b4d3b5ccc450b8efff0" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="463,186,607,226"/>
 <area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="409,204,447,204,447,209,409,209"/>
 <area shape="poly" id="edge8_Node000008_Node000008" title=" " alt="" coords="292,276,285,266,289,256,304,250,327,248,352,251,365,258,363,262,351,256,327,253,305,255,293,260,291,265,296,273"/>
 </map>

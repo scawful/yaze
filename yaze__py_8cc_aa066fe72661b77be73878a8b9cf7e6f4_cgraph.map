@@ -1,6 +1,6 @@
 <map id="BOOST_PYTHON_MODULE" name="BOOST_PYTHON_MODULE">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,92,199,118"/>
-<area shape="rect" id="Node000002" href="$yaze_8cc.html#a9fff64bba6ed578ae091960204b84648" title=" " alt="" coords="248,5,386,31"/>
+<area shape="rect" id="Node000002" href="$yaze_8cc.html#a9fff64bba6ed578ae091960204b84648" title="Check the version of the Yaze library." alt="" coords="248,5,386,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,89,246,41,263,34,265,39,248,46,134,94"/>
 <area shape="rect" id="Node000004" href="$yaze_8cc.html#adfb236b5541502ced4544a6678e79d0e" title="Get a color from a palette set." alt="" coords="247,55,387,96"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="199,89,231,84,232,90,199,94"/>

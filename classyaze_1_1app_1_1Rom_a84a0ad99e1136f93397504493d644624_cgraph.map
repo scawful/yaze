@@ -10,6 +10,6 @@
 <area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="132,143,222,186,237,193,235,197,220,191,129,148"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1Rom.html#af1f19dccd552a9eceee8f07ad0485fbb" title="Precondition check for reading and writing to the Rom." alt="" coords="445,71,618,111"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="394,88,429,88,429,94,394,94"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a60dbb218a86c57687580ec77be457511" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="460,136,604,177"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#ac325d7d569706b4d3b5ccc450b8efff0" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="460,136,604,177"/>
 <area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="391,154,444,154,444,159,391,159"/>
 </map>

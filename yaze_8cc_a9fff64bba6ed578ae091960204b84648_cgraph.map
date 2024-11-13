@@ -1,5 +1,5 @@
 <map id="yaze_check_version" name="yaze_check_version">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,144,31"/>
+<area shape="rect" id="Node000001" title="Check the version of the Yaze library." alt="" coords="5,5,144,31"/>
 <area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1core.html#a733400a6fb45f8737465befded39c773" title=" " alt="" coords="192,5,384,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,16,176,16,176,21,144,21"/>
 </map>

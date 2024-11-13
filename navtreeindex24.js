@@ -1,9 +1,5 @@
 var NAVTREEINDEX24 =
 {
-"cpu__test_8cc.html#a686ba6854de84a5a26be56444ed89c73":[13,0,1,5,1,0,7],
-"cpu__test_8cc.html#a6894fac45b065a7d8451594a32d087a3":[13,0,1,5,1,0,101],
-"cpu__test_8cc.html#a68aeb98be1bed293a775bcd358ba5da3":[13,0,1,5,1,0,64],
-"cpu__test_8cc.html#a69458ba28370eac33337305ab9f9381c":[13,0,1,5,1,0,179],
 "cpu__test_8cc.html#a69d3c8102264a6a9ecd48287fd4f36de":[13,0,1,5,1,0,211],
 "cpu__test_8cc.html#a6aa5b8b8e25ba7286d200519039010bd":[13,0,1,5,1,0,119],
 "cpu__test_8cc.html#a6b0bd7ae7ce597ee7159a8e85ab53f02":[13,0,1,5,1,0,90],
@@ -249,5 +245,9 @@ var NAVTREEINDEX24 =
 "dsp_8cc.html":[13,0,1,0,2,0,3],
 "dsp_8cc_source.html":[13,0,1,0,2,0,3],
 "dsp_8h.html":[13,0,1,0,2,0,4],
-"dsp_8h.html#af5ad88c1151738c18f9d1da9993f8a71":[13,0,1,0,2,0,4,2]
+"dsp_8h.html#af5ad88c1151738c18f9d1da9993f8a71":[13,0,1,0,2,0,4,2],
+"dsp_8h_source.html":[13,0,1,0,2,0,4],
+"dungeon_8h.html":[13,0,1,2,1],
+"dungeon_8h.html#a0650308ec3a0a144265fe8e21ba1a4a4":[13,0,1,2,1,7],
+"dungeon_8h.html#a2be2f2f7b6256191a25575bc0d7215f6":[13,0,1,2,1,9]
 };

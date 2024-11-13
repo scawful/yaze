@@ -14,7 +14,7 @@
 <area shape="poly" id="edge9_Node000001_Node000011" title=" " alt="" coords="159,261,223,286,240,292,239,297,221,291,157,266"/>
 <area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1core_1_1NotifyValue.html#a8c1c4f83a2af9c120618feb95360c734" title=" " alt="" coords="234,365,412,406"/>
 <area shape="poly" id="edge10_Node000001_Node000012" title=" " alt="" coords="118,261,164,307,223,350,235,356,233,361,220,355,161,311,114,265"/>
-<area shape="rect" id="Node000013" href="$classyaze_1_1app_1_1core_1_1Renderer.html#aedcffb1f7a16396dbe8a5685c62573d7" title="Used to update a bitmap on the screen." alt="" coords="241,431,404,471"/>
+<area shape="rect" id="Node000013" href="$classyaze_1_1app_1_1core_1_1Renderer.html#a94b4bfee2e6d44dc1fd6ba7d76d81bbf" title="Used to update a bitmap on the screen." alt="" coords="241,431,404,471"/>
 <area shape="poly" id="edge11_Node000001_Node000013" title=" " alt="" coords="106,262,125,297,151,338,184,380,223,416,231,421,228,425,220,420,180,384,147,342,121,300,102,265"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aeb279f4bb0cb3d5771ae33177d660de8" title=" " alt="" coords="487,39,631,79"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="421,75,471,68,472,73,421,80"/>
@@ -22,6 +22,6 @@
 <area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="421,102,457,107,456,113,421,107"/>
 <area shape="rect" id="Node000010" href="$namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="484,250,635,276"/>
 <area shape="poly" id="edge8_Node000009_Node000010" title=" " alt="" coords="414,260,468,260,468,266,414,266"/>
-<area shape="rect" id="Node000014" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#ae061f9e46947eddeab58c59a2aaeaff2" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="487,431,631,471"/>
+<area shape="rect" id="Node000014" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a6c14a3208b915472183bae13ccf8bca0" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="487,431,631,471"/>
 <area shape="poly" id="edge12_Node000013_Node000014" title=" " alt="" coords="405,448,472,448,472,454,405,454"/>
 </map>

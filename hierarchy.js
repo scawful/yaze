@@ -304,7 +304,6 @@ var hierarchy =
     [ "yaze_editor_context", "structyaze__editor__context.html", null ],
     [ "yaze_event_dispatcher", "structyaze__event__dispatcher.html", null ],
     [ "yaze_extension", "structyaze__extension.html", null ],
-    [ "yaze_flags", "structyaze__flags.html", null ],
     [ "yaze_project", "structyaze__project.html", null ],
     [ "z3_chest", "structz3__chest.html", null ],
     [ "z3_chest_data", "structz3__chest__data.html", null ],

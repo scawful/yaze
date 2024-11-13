@@ -1,9 +1,5 @@
 var NAVTREEINDEX35 =
 {
-"incl_2overworld_8h.html#abdc52e81d57a1315f85ad3a9faa486d9":[13,0,1,2,2,2],
-"incl_2overworld_8h.html#aecefc7cd1d556e95bb7a2d5fe8a2255a":[13,0,1,2,2,3],
-"incl_2overworld_8h_source.html":[13,0,1,2,2],
-"incl_2snes__color_8h.html":[13,0,1,2,3],
 "incl_2snes__color_8h.html#a100f9af9f8e1bb9d2ad73476ab774655":[13,0,1,2,3,3],
 "incl_2snes__color_8h.html#a7010d1b3caf12995e0ecb41a1c446b94":[13,0,1,2,3,2],
 "incl_2snes__color_8h_source.html":[13,0,1,2,3],
@@ -249,5 +245,9 @@ var NAVTREEINDEX35 =
 "namespacemembers_s.html":[11,1,0,16],
 "namespacemembers_t.html":[11,1,0,17],
 "namespacemembers_type.html":[11,1,3],
-"namespacemembers_u.html":[11,1,0,18]
+"namespacemembers_u.html":[11,1,0,18],
+"namespacemembers_v.html":[11,1,0,19],
+"namespacemembers_vars.html":[11,1,2],
+"namespacemembers_vars.html":[11,1,2,0],
+"namespacemembers_vars_c.html":[11,1,2,1]
 };

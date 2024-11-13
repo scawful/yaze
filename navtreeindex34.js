@@ -1,9 +1,5 @@
 var NAVTREEINDEX34 =
 {
-"icons_8h.html#ae524fbbba5e017078119ee7c03e14c9f":[13,0,1,0,4,5,1368],
-"icons_8h.html#ae5291586640d655d41b1e1578bbd183f":[13,0,1,0,4,5,26],
-"icons_8h.html#ae538f3d382553e6b6b50b7384febdeb4":[13,0,1,0,4,5,857],
-"icons_8h.html#ae5614dd959e93f0d9d29a03b775cb611":[13,0,1,0,4,5,923],
 "icons_8h.html#ae584ee1a277f7b21f917822c1b79f7ae":[13,0,1,0,4,5,994],
 "icons_8h.html#ae59b80a77739a4e36d00776b9671bdd6":[13,0,1,0,4,5,1870],
 "icons_8h.html#ae5d47aac7ad9e228f8e61231de2323c1":[13,0,1,0,4,5,471],
@@ -249,5 +245,9 @@ var NAVTREEINDEX34 =
 "icons_8h.html#affe7999923869530419aea07b6c7ff29":[13,0,1,0,4,5,172],
 "icons_8h.html#afff9009d6fef719a3c441cd60de21210":[13,0,1,0,4,5,1471],
 "icons_8h_source.html":[13,0,1,0,4,5],
-"incl_2overworld_8h.html":[13,0,1,2,2]
+"incl_2overworld_8h.html":[13,0,1,2,2],
+"incl_2overworld_8h.html#abdc52e81d57a1315f85ad3a9faa486d9":[13,0,1,2,2,3],
+"incl_2overworld_8h.html#aecefc7cd1d556e95bb7a2d5fe8a2255a":[13,0,1,2,2,2],
+"incl_2overworld_8h_source.html":[13,0,1,2,2],
+"incl_2snes__color_8h.html":[13,0,1,2,3]
 };
