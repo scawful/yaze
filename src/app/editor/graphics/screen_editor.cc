@@ -470,11 +470,12 @@ void ScreenEditor::DrawDungeonMapsEditor() {
             rom()->graphics_buffer(), current_tile16_info.tiles[0],
             current_tile16_info.tiles[1], current_tile16_info.tiles[2],
             current_tile16_info.tiles[3], selected_tile16_, 212);
-        tile16_individual_[selected_tile16_] = tile16_sheet_.GetTile16(selected_tile16_);
+        tile16_individual_[selected_tile16_] =
+            tile16_sheet_.GetTile16(selected_tile16_);
         RETURN_VOID_IF_ERROR(tile16_individual_[selected_tile16_].ApplyPalette(
             *rom()->mutable_dungeon_palette(3)));
-        Renderer::GetInstance().UpdateBitmap(
-                                             &tile16_individual_[selected_tile16_], true);
+        Renderer::GetInstance().RenderBitmap(
+            &tile16_individual_[selected_tile16_]);
       }
     }
     ImGui::EndChild();
