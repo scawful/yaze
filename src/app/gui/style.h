@@ -12,13 +12,12 @@
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 
-
 namespace yaze {
 namespace app {
 namespace gui {
 
-void BeginWindowWithDisplaySettings(const char* id, bool* active,
-                                    const ImVec2& size = ImVec2(0, 0),
+void BeginWindowWithDisplaySettings(const char *id, bool *active,
+                                    const ImVec2 &size = ImVec2(0, 0),
                                     ImGuiWindowFlags flags = 0);
 
 void EndWindowWithDisplaySettings();
@@ -29,69 +28,24 @@ void EndPadding();
 void BeginNoPadding();
 void EndNoPadding();
 
-void BeginChildWithScrollbar(const char* str_id);
+void BeginChildWithScrollbar(const char *str_id);
 
 void BeginChildBothScrollbars(int id);
 
-void DrawDisplaySettings(ImGuiStyle* ref = nullptr);
+void DrawDisplaySettings(ImGuiStyle *ref = nullptr);
 
-void TextWithSeparators(const absl::string_view& text);
+void TextWithSeparators(const absl::string_view &text);
 
 void ColorsYaze();
 
 TextEditor::LanguageDefinition GetAssemblyLanguageDef();
 
-class BitmapViewer {
- public:
-  BitmapViewer() : current_bitmap_index_(0) {}
-
-  void Display(const std::vector<gfx::Bitmap>& bitmaps, float scale = 1.0f) {
-    if (bitmaps.empty()) {
-      ImGui::Text("No bitmaps available.");
-      return;
-    }
-
-    // Display the current bitmap index and total count.
-    ImGui::Text("Viewing Bitmap %d / %zu", current_bitmap_index_ + 1,
-                bitmaps.size());
-
-    // Buttons to navigate through bitmaps.
-    if (ImGui::Button("<- Prev")) {
-      if (current_bitmap_index_ > 0) {
-        --current_bitmap_index_;
-      }
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Next ->")) {
-      if (current_bitmap_index_ < bitmaps.size() - 1) {
-        ++current_bitmap_index_;
-      }
-    }
-
-    // Display the current bitmap.
-    const gfx::Bitmap& current_bitmap = bitmaps[current_bitmap_index_];
-    // Assuming Bitmap has a function to get its texture ID, and width and
-    // height.
-    ImTextureID tex_id = (ImTextureID)(intptr_t)current_bitmap.texture();
-    ImVec2 size(current_bitmap.width() * scale,
-                current_bitmap.height() * scale);
-    // ImGui::Image(tex_id, size);
-
-    // Scroll if the image is larger than the display area.
-    if (ImGui::BeginChild("BitmapScrollArea", ImVec2(0, 0), false,
-                          ImGuiWindowFlags_HorizontalScrollbar)) {
-      ImGui::Image(tex_id, size);
-      ImGui::EndChild();
-    }
-  }
-
- private:
-  int current_bitmap_index_;
-};
+void DrawBitmapViewer(const std::vector<gfx::Bitmap> &bitmaps, float scale,
+                      int &current_bitmap);
 
 // ============================================================================
 
-static const char* ExampleNames[] = {
+static const char *ExampleNames[] = {
     "Artichoke",      "Arugula",          "Asparagus",    "Avocado",
     "Bamboo Shoots",  "Bean Sprouts",     "Beans",        "Beet",
     "Belgian Endive", "Bell Pepper",      "Bitter Gourd", "Bok Choy",
@@ -113,7 +67,7 @@ struct MultiSelectWithClipper {
             ImGuiChildFlags_FrameStyle | ImGuiChildFlags_ResizeY)) {
       ImGuiMultiSelectFlags flags = ImGuiMultiSelectFlags_ClearOnEscape |
                                     ImGuiMultiSelectFlags_BoxSelect1d;
-      ImGuiMultiSelectIO* ms_io =
+      ImGuiMultiSelectIO *ms_io =
           ImGui::BeginMultiSelect(flags, selection.Size, ITEMS_COUNT);
       selection.ApplyRequests(ms_io);
 
@@ -121,7 +75,7 @@ struct MultiSelectWithClipper {
       clipper.Begin(ITEMS_COUNT);
       if (ms_io->RangeSrcItem != -1)
         clipper.IncludeItemByIndex(
-            (int)ms_io->RangeSrcItem);  // Ensure RangeSrc item is not clipped.
+            (int)ms_io->RangeSrcItem); // Ensure RangeSrc item is not clipped.
       while (clipper.Step()) {
         for (int n = clipper.DisplayStart; n < clipper.DisplayEnd; n++) {
           char label[64];
@@ -141,8 +95,8 @@ struct MultiSelectWithClipper {
   }
 };
 
-}  // namespace gui
-}  // namespace app
-}  // namespace yaze
+} // namespace gui
+} // namespace app
+} // namespace yaze
 
 #endif
