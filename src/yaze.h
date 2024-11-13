@@ -15,9 +15,7 @@ extern "C" {
 
 typedef struct z3_rom z3_rom;
 
-typedef struct yaze_flags yaze_flags;
 typedef struct yaze_project yaze_project;
-
 typedef struct yaze_command_registry yaze_command_registry;
 typedef struct yaze_event_dispatcher yaze_event_dispatcher;
 
@@ -26,34 +24,18 @@ typedef struct yaze_event_dispatcher yaze_event_dispatcher;
  */
 typedef struct yaze_editor_context {
   yaze_project* project;
-  yaze_flags* flags;
 
   yaze_command_registry* command_registry;
   yaze_event_dispatcher* event_dispatcher;
 } yaze_editor_context;
 
 /**
- * @brief Flags to initialize the Yaze library.
- */
-struct yaze_flags {
-  int debug;
-  const char* rom_filename;
-  z3_rom* rom;
-};
-
-void yaze_check_version(const char* version);
-
-/**
  * @brief Initialize the Yaze library.
- *
- * @param flags Flags to initialize the library.
  */
 int yaze_init(yaze_editor_context*);
 
 /**
  * @brief Clean up the Yaze library.
- *
- * @param flags Flags used to initialize the library.
  */
 void yaze_cleanup(yaze_editor_context*);
 
@@ -111,7 +93,15 @@ yaze_bitmap yaze_load_bitmap(const char* filename);
 snes_color yaze_get_color_from_paletteset(const z3_rom* rom, int palette_set,
                                           int palette, int color);
 
+/**
+ * @brief Load the overworld from a Zelda3 ROM.
+ */
 z3_overworld* yaze_load_overworld(const z3_rom* rom);
+
+/**
+ * @brief Check the version of the Yaze library.
+ */
+void yaze_check_version(const char* version);
 
 /**
  * @brief Command registry.
