@@ -3,18 +3,14 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <memory>
-#include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "app/editor/utils/gfx_context.h"
-#include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 #include "app/zelda3/common.h"
-#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {
@@ -88,9 +84,7 @@ class OverworldMap : public editor::context::GfxContext {
   auto is_large_map() const { return large_map_; }
   auto is_initialized() const { return initialized_; }
   auto parent() const { return parent_; }
-
   auto mutable_mosaic() { return &mosaic_; }
-
   auto mutable_current_palette() { return &current_palette_; }
 
   auto area_graphics() const { return area_graphics_; }
