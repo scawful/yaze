@@ -133,6 +133,36 @@ absl::Status Rom::LoadAllGraphicsData(bool defer_render) {
   return absl::OkStatus();
 }
 
+absl::Status Rom::SaveAllGraphicsData() {
+  for (int i = 0; i < kNumGfxSheets; i++) {
+    if (graphics_sheets_[i].is_active()) {
+      int from_bpp = 8;
+      int to_bpp = 3;
+      std::vector<uint8_t> final_data;
+      bool compressed = true;
+      if (i >= 115 && i <= 126) {
+        to_bpp = 3;
+        compressed = false;
+      } else if (i == 113 || i == 114 || i >= 218) {
+        to_bpp = 2;
+      }
+
+      auto sheet_data = graphics_sheets_[i].data();
+      final_data = gfx::ConvertBpp(sheet_data, from_bpp, to_bpp);
+      if (compressed) {
+        final_data = gfx::lc_lz2::CompressV2(final_data);
+      }
+      auto offset =
+          GetGraphicsAddress(data(), i, version_constants().kOverworldGfxPtr1,
+                             version_constants().kOverworldGfxPtr2,
+                             version_constants().kOverworldGfxPtr3);
+      std::copy(compressed_data.begin(), compressed_data.end(),
+                rom_data_.begin() + offset);
+    }
+  }
+  return absl::OkStatus();
+}
+
 absl::Status Rom::LoadFromFile(const std::string &filename, bool z3_load) {
   if (filename.empty()) {
     return absl::InvalidArgumentError(
@@ -280,13 +310,9 @@ absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
   }
 
   // Run the other save functions
-  if (flags()->kSaveAllPalettes) {
-    RETURN_IF_ERROR(SaveAllPalettes());
-  }
-
-  if (flags()->kSaveGfxGroups) {
-    RETURN_IF_ERROR(SaveGroupsToRom());
-  }
+  if (flags()->kSaveAllPalettes) RETURN_IF_ERROR(SaveAllPalettes());
+  if (flags()->kSaveGfxGroups) RETURN_IF_ERROR(SaveGroupsToRom());
+  if (flags()->kSaveGraphicsSheet) RETURN_IF_ERROR(SaveAllGraphicsData());
 
   if (save_new) {
     // Create a file of the same name and append the date between the filename
