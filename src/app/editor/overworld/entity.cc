@@ -15,6 +15,8 @@ using ImGui::SameLine;
 using ImGui::Selectable;
 using ImGui::Text;
 
+constexpr float kInputFieldSize = 30.f;
+
 bool IsMouseHoveringOverEntity(const zelda3::GameEntity &entity,
                                ImVec2 canvas_p0, ImVec2 scrolling) {
   // Get the mouse position relative to the canvas
