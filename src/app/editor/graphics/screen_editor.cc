@@ -1,12 +1,9 @@
 #include "screen_editor.h"
 
-#include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <sstream>
 #include <string>
 
-#include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "app/core/constants.h"
@@ -18,7 +15,6 @@
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
-#include "app/zelda3/dungeon/room.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -384,18 +380,19 @@ void ScreenEditor::DrawDungeonMapsTabs() {
 
 void ScreenEditor::DrawDungeonMapsEditor() {
   if (!dungeon_maps_loaded_) {
-    if (LoadDungeonMaps().ok()) {
-      if (LoadDungeonMapTile16(rom()->graphics_buffer()).ok()) {
-        sheets_.emplace(0, rom()->gfx_sheets()[212]);
-        sheets_.emplace(1, rom()->gfx_sheets()[213]);
-        sheets_.emplace(2, rom()->gfx_sheets()[214]);
-        sheets_.emplace(3, rom()->gfx_sheets()[215]);
-        dungeon_maps_loaded_ = true;
-      } else {
-        ImGui::Text("Failed to load dungeon map tile16");
-      }
-    } else {
+    if (!LoadDungeonMaps().ok()) {
       ImGui::Text("Failed to load dungeon maps");
+    }
+
+    if (LoadDungeonMapTile16(rom()->graphics_buffer()).ok()) {
+      // TODO: Load roomset gfx based on dungeon ID
+      sheets_.emplace(0, rom()->gfx_sheets()[212]);
+      sheets_.emplace(1, rom()->gfx_sheets()[213]);
+      sheets_.emplace(2, rom()->gfx_sheets()[214]);
+      sheets_.emplace(3, rom()->gfx_sheets()[215]);
+      dungeon_maps_loaded_ = true;
+    } else {
+      ImGui::Text("Failed to load dungeon map tile16");
     }
   }
 
@@ -461,22 +458,23 @@ void ScreenEditor::DrawDungeonMapsEditor() {
       current_tile_canvas_.DrawGrid(16.f);
       current_tile_canvas_.DrawOverlay();
 
-      static bool modified = false;
-      modified |= gui::InputTileInfo("TL", &current_tile16_info.tiles[0]);
+      gui::InputTileInfo("TL", &current_tile16_info.tiles[0]);
       ImGui::SameLine();
-      modified |= gui::InputTileInfo("TR", &current_tile16_info.tiles[1]);
-      modified |= gui::InputTileInfo("BL", &current_tile16_info.tiles[2]);
+      gui::InputTileInfo("TR", &current_tile16_info.tiles[1]);
+      gui::InputTileInfo("BL", &current_tile16_info.tiles[2]);
       ImGui::SameLine();
-      modified |= gui::InputTileInfo("BR", &current_tile16_info.tiles[3]);
+      gui::InputTileInfo("BR", &current_tile16_info.tiles[3]);
 
-      if (modified) {
+      if (ImGui::Button("Modify Tile16")) {
         tile16_sheet_.ModifyTile16(
             rom()->graphics_buffer(), current_tile16_info.tiles[0],
             current_tile16_info.tiles[1], current_tile16_info.tiles[2],
             current_tile16_info.tiles[3], selected_tile16_, 212);
-        Renderer::GetInstance().RenderBitmap(
-            &tile16_individual_[selected_tile16_]);
-        modified = false;
+        tile16_individual_[selected_tile16_] = tile16_sheet_.GetTile16(selected_tile16_);
+        RETURN_VOID_IF_ERROR(tile16_individual_[selected_tile16_].ApplyPalette(
+            *rom()->mutable_dungeon_palette(3)));
+        Renderer::GetInstance().UpdateBitmap(
+                                             &tile16_individual_[selected_tile16_], true);
       }
     }
     ImGui::EndChild();
