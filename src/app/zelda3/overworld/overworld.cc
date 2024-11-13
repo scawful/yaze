@@ -111,58 +111,44 @@ absl::StatusOr<uint16_t> Overworld::GetTile16ForTile32(
 constexpr int kMap32TilesLength = 0x33F0;
 
 absl::Status Overworld::AssembleMap32Tiles() {
-  if (rom()->data()[0x01772E] == 0x04) {
-    const uint32_t map32address[4] = {rom_.version_constants().kMap32TileTL,
-                                      rom_.version_constants().kMap32TileTR,
-                                      rom_.version_constants().kMap32TileBL,
-                                      rom_.version_constants().kMap32TileBR};
-    // Loop through each 32x32 pixel tile in the rom
-    for (int i = 0; i < kMap32TilesLength; i += 6) {
-      // Loop through each quadrant of the 32x32 pixel tile.
-      for (int k = 0; k < 4; k++) {
-        // Generate the 16-bit tile for the current quadrant of the current
-        // 32x32 pixel tile.
-        ASSIGN_OR_RETURN(uint16_t tl,
-                         GetTile16ForTile32(i, k, (int)Dimension::map32TilesTL,
-                                            map32address));
-        ASSIGN_OR_RETURN(uint16_t tr,
-                         GetTile16ForTile32(i, k, (int)Dimension::map32TilesTR,
-                                            map32address));
-        ASSIGN_OR_RETURN(uint16_t bl,
-                         GetTile16ForTile32(i, k, (int)Dimension::map32TilesBL,
-                                            map32address));
-        ASSIGN_OR_RETURN(uint16_t br,
-                         GetTile16ForTile32(i, k, (int)Dimension::map32TilesBR,
-                                            map32address));
-
-        // Add the generated 16-bit tiles to the tiles32 vector.
-        tiles32_unique_.emplace_back(gfx::Tile32(tl, tr, bl, br));
-      }
-    }
-  } else {
+  int num_tile32 = kMap32TilesLength;
+  uint32_t map32address[4] = {rom_.version_constants().kMap32TileTL,
+                              rom_.version_constants().kMap32TileTR,
+                              rom_.version_constants().kMap32TileBL,
+                              rom_.version_constants().kMap32TileBR};
+  if (rom()->data()[0x01772E] != 0x04) {
+    map32address[0] = rom_.version_constants().kMap32TileTL;
+    map32address[1] = kMap32TileTRExpanded;
+    map32address[2] = kMap32TileBLExpanded;
+    map32address[3] = kMap32TileBRExpanded;
+    num_tile32 = kMap32TileCountExpanded;
     expanded_tile32_ = true;
-    const uint32_t map32address[4] = {
-        rom_.version_constants().kMap32TileTL, kMap32TileTRExpanded,
-        kMap32TileBLExpanded, kMap32TileBRExpanded};
-    for (int i = 0; i < kMap32TileCountExpanded; i += 6) {
-      for (int k = 0; k < 4; k++) {
-        ASSIGN_OR_RETURN(uint16_t tl,
-                         GetTile16ForTile32(i, k, (int)Dimension::map32TilesTL,
-                                            map32address));
-        ASSIGN_OR_RETURN(uint16_t tr,
-                         GetTile16ForTile32(i, k, (int)Dimension::map32TilesTR,
-                                            map32address));
-        ASSIGN_OR_RETURN(uint16_t bl,
-                         GetTile16ForTile32(i, k, (int)Dimension::map32TilesBL,
-                                            map32address));
-        ASSIGN_OR_RETURN(uint16_t br,
-                         GetTile16ForTile32(i, k, (int)Dimension::map32TilesBR,
-                                            map32address));
+  }
 
-        tiles32_unique_.emplace_back(gfx::Tile32(tl, tr, bl, br));
-      }
+  // Loop through each 32x32 pixel tile in the rom
+  for (int i = 0; i < kMap32TilesLength; i += 6) {
+    // Loop through each quadrant of the 32x32 pixel tile.
+    for (int k = 0; k < 4; k++) {
+      // Generate the 16-bit tile for the current quadrant of the current
+      // 32x32 pixel tile.
+      ASSIGN_OR_RETURN(uint16_t tl,
+                        GetTile16ForTile32(i, k, (int)Dimension::map32TilesTL,
+                                          map32address));
+      ASSIGN_OR_RETURN(uint16_t tr,
+                        GetTile16ForTile32(i, k, (int)Dimension::map32TilesTR,
+                                          map32address));
+      ASSIGN_OR_RETURN(uint16_t bl,
+                        GetTile16ForTile32(i, k, (int)Dimension::map32TilesBL,
+                                          map32address));
+      ASSIGN_OR_RETURN(uint16_t br,
+                        GetTile16ForTile32(i, k, (int)Dimension::map32TilesBR,
+                                          map32address));
+
+      // Add the generated 16-bit tiles to the tiles32 vector.
+      tiles32_unique_.emplace_back(gfx::Tile32(tl, tr, bl, br));
     }
   }
+
   map_tiles_.light_world.resize(0x200);
   map_tiles_.dark_world.resize(0x200);
   map_tiles_.special_world.resize(0x200);
@@ -177,32 +163,23 @@ absl::Status Overworld::AssembleMap32Tiles() {
 
 void Overworld::AssembleMap16Tiles() {
   int tpos = kMap16Tiles;
-  if (rom()->data()[0x02FD28] == 0x0F) {
-    for (int i = 0; i < kNumTile16Individual; i += 1) {
-      gfx::TileInfo t0 = gfx::GetTilesInfo(rom()->toint16(tpos));
-      tpos += 2;
-      gfx::TileInfo t1 = gfx::GetTilesInfo(rom()->toint16(tpos));
-      tpos += 2;
-      gfx::TileInfo t2 = gfx::GetTilesInfo(rom()->toint16(tpos));
-      tpos += 2;
-      gfx::TileInfo t3 = gfx::GetTilesInfo(rom()->toint16(tpos));
-      tpos += 2;
-      tiles16_.emplace_back(t0, t1, t2, t3);
-    }
-  } else {
-    expanded_tile16_ = true;
+  int num_tile16 = kNumTile16Individual;
+  if (rom()->data()[0x02FD28] != 0x0F) {
     tpos = kMap16TilesExpanded;
-    for (int i = 0; i < NumberOfMap16Ex; ++i) {
-      gfx::TileInfo t0 = gfx::GetTilesInfo(rom()->toint16(tpos));
-      tpos += 2;
-      gfx::TileInfo t1 = gfx::GetTilesInfo(rom()->toint16(tpos));
-      tpos += 2;
-      gfx::TileInfo t2 = gfx::GetTilesInfo(rom()->toint16(tpos));
-      tpos += 2;
-      gfx::TileInfo t3 = gfx::GetTilesInfo(rom()->toint16(tpos));
-      tpos += 2;
-      tiles16_.emplace_back(t0, t1, t2, t3);
-    }
+    num_tile16 = NumberOfMap16Ex;
+    expanded_tile16_ = true;
+  }
+
+  for (int i = 0; i < num_tile16; i += 1) {
+    gfx::TileInfo t0 = gfx::GetTilesInfo(rom()->toint16(tpos));
+    tpos += 2;
+    gfx::TileInfo t1 = gfx::GetTilesInfo(rom()->toint16(tpos));
+    tpos += 2;
+    gfx::TileInfo t2 = gfx::GetTilesInfo(rom()->toint16(tpos));
+    tpos += 2;
+    gfx::TileInfo t3 = gfx::GetTilesInfo(rom()->toint16(tpos));
+    tpos += 2;
+    tiles16_.emplace_back(t0, t1, t2, t3);
   }
 }
 
@@ -333,10 +310,21 @@ void Overworld::LoadTileTypes() {
 }
 
 void Overworld::LoadEntrances() {
-  for (int i = 0; i < 129; i++) {
-    short map_id = rom()->toint16(OWEntranceMap + (i * 2));
-    uint16_t map_pos = rom()->toint16(OWEntrancePos + (i * 2));
-    uint8_t entrance_id = rom_[OWEntranceEntranceId + i];
+  int ow_entrance_map_ptr = OWEntranceMap;
+  int ow_entrance_pos_ptr = OWEntrancePos;
+  int ow_entrance_id_ptr = OWEntranceEntranceId;
+  int num_entrances = 129;
+  if (rom()->data()[0x0DB895] != 0xB8) {
+    ow_entrance_map_ptr = 0x0DB55F;
+    ow_entrance_pos_ptr = 0x0DB35F;
+    ow_entrance_id_ptr = 0x0DB75F;
+    expanded_entrances_ = true;
+  }
+
+  for (int i = 0; i < num_entrances; i++) {
+    short map_id = rom()->toint16(ow_entrance_map_ptr + (i * 2));
+    uint16_t map_pos = rom()->toint16(ow_entrance_pos_ptr + (i * 2));
+    uint8_t entrance_id = rom_[ow_entrance_id_ptr + i];
     int p = map_pos >> 1;
     int x = (p % 64);
     int y = (p >> 6);
@@ -511,10 +499,11 @@ absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,
 
       int realX = ((b2 & 0x3F) * 16) + mapX * 512;
       int realY = ((b1 & 0x3F) * 16) + mapY * 512;
-      all_sprites_[game_state].emplace_back(
-          overworld_maps_[i].current_graphics(), (uint8_t)i, b3,
-          (uint8_t)(b2 & 0x3F), (uint8_t)(b1 & 0x3F), realX, realY);
-      // all_sprites_[game_state][i].Draw();
+      auto current_gfx = overworld_maps_[i].current_graphics();
+      all_sprites_[game_state].emplace_back(current_gfx, (uint8_t)i, b3,
+                                            (uint8_t)(b2 & 0x3F),
+                                            (uint8_t)(b1 & 0x3F), realX, realY);
+      all_sprites_[game_state][i].Draw();
 
       sprite_address += 3;
     }

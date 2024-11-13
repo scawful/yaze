@@ -7,7 +7,6 @@
 #include "absl/status/status.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
-#include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 #include "app/zelda3/common.h"
@@ -327,6 +326,20 @@ constexpr int OWHoleArea = 0xDB826;
 //(0x13 entries, 1 byte each)  corresponding entrance numbers
 constexpr int OWHoleEntrance = 0xDB84C;
 
+// OWEntrances Expansion
+
+// Instructions for editors
+// if byte at (PC) address 0xDB895 == B8 then it is vanilla
+// Load normal overworld entrances data
+// Otherwise load from the expanded space
+// When saving just save in expanded space 256 values for each
+// (PC Addresses) - you can find snes address at the orgs below
+// 0x0DB35F = (short) Map16 tile address (mapPos in ZS)
+// 0x0DB55F = (short) Screen ID (MapID in ZS)
+// 0x0DB75F = (byte)  Entrance leading to (EntranceID in ZS)
+
+// *Important* the Screen ID now also require bit 0x8000 (15) being set to tell
+// entrance is a hole
 class OverworldEntrance : public GameEntity {
  public:
   uint16_t map_pos_;
@@ -350,11 +363,6 @@ class OverworldEntrance : public GameEntity {
     int mapY = (map_id_ / 8);
     area_x_ = (uchar)((std::abs(x - (mapX * 512)) / 16));
     area_y_ = (uchar)((std::abs(y - (mapY * 512)) / 16));
-  }
-
-  auto Copy() {
-    return new OverworldEntrance(x_, y_, entrance_id_, map_id_, map_pos_,
-                                 is_hole_);
   }
 
   void UpdateMapProperties(uint16_t map_id) override {
@@ -573,6 +581,7 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
   bool is_loaded_ = false;
   bool expanded_tile16_ = false;
   bool expanded_tile32_ = false;
+  bool expanded_entrances_ = false;
 
   int game_state_ = 0;
   int current_map_ = 0;
