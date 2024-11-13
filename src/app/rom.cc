@@ -150,7 +150,9 @@ absl::Status Rom::SaveAllGraphicsData() {
       auto sheet_data = graphics_sheets_[i].vector();
       final_data = gfx::ConvertBpp(sheet_data, from_bpp, to_bpp);
       if (compressed) {
-        final_data = gfx::lc_lz2::CompressV2(final_data);
+        ASSIGN_OR_RETURN(
+            final_data,
+            gfx::lc_lz2::CompressV2(final_data.data(), 0, final_data.size()));
       }
       auto offset =
           GetGraphicsAddress(data(), i, version_constants().kOverworldGfxPtr1,

@@ -49,21 +49,22 @@ absl::Status DungeonEditor::Update() {
     refresh_graphics_ = false;
   }
 
-  TAB_BAR("##DungeonEditorTabBar")
-  TAB_ITEM("Room Editor")
-  status_ = UpdateDungeonRoomView();
-  END_TAB_ITEM()
-  TAB_ITEM("Usage Statistics")
-  if (is_loaded_) {
-    static bool calc_stats = false;
-    if (!calc_stats) {
-      CalculateUsageStats();
-      calc_stats = true;
+  if (ImGui::BeginTabBar("##DungeonEditorTabBar")) {
+    TAB_ITEM("Room Editor")
+    status_ = UpdateDungeonRoomView();
+    END_TAB_ITEM()
+    TAB_ITEM("Usage Statistics")
+    if (is_loaded_) {
+      static bool calc_stats = false;
+      if (!calc_stats) {
+        CalculateUsageStats();
+        calc_stats = true;
+      }
+      DrawUsageStats();
     }
-    DrawUsageStats();
+    END_TAB_ITEM()
+    ImGui::EndTabBar();
   }
-  END_TAB_ITEM()
-  END_TAB_BAR()
 
   return absl::OkStatus();
 }
@@ -194,14 +195,15 @@ absl::Status DungeonEditor::UpdateDungeonRoomView() {
     TableNextRow();
 
     TableNextColumn();
-    TAB_BAR("##DungeonRoomTabBar");
-    TAB_ITEM("Rooms");
-    DrawRoomSelector();
-    END_TAB_ITEM();
-    TAB_ITEM("Entrances");
-    DrawEntranceSelector();
-    END_TAB_ITEM();
-    END_TAB_BAR();
+    if (ImGui::BeginTabBar("##DungeonRoomTabBar")) {
+      TAB_ITEM("Rooms");
+      DrawRoomSelector();
+      END_TAB_ITEM();
+      TAB_ITEM("Entrances");
+      DrawEntranceSelector();
+      END_TAB_ITEM();
+      ImGui::EndTabBar();
+    }
 
     TableNextColumn();
     DrawDungeonTabView();
