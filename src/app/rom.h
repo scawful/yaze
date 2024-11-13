@@ -193,6 +193,8 @@ class Rom : public core::ExperimentFlags {
   absl::Status SaveToFile(bool backup, bool save_new = false,
                           std::string filename = "");
 
+  absl::Status SaveAllGraphicsData();
+
   /**
    * Saves the given palette to the Rom if any of its colors have been modified.
    *
