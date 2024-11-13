@@ -52,6 +52,7 @@ struct FlagsMenu : public core::ExperimentFlags {
              &mutable_flags()->kLogInstructions);
     Checkbox("Save All Palettes", &mutable_flags()->kSaveAllPalettes);
     Checkbox("Save Gfx Groups", &mutable_flags()->kSaveGfxGroups);
+    Checkbox("Save Graphics Sheets", &mutable_flags()->kSaveGraphicsSheet);
     Checkbox("Use New ImGui Input", &mutable_flags()->kUseNewImGuiInput);
   }
 };

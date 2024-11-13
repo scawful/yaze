@@ -34,24 +34,10 @@ using ImGui::InputText;
 using ImGui::SameLine;
 using ImGui::TableNextColumn;
 
-static constexpr absl::string_view kGfxToolsetColumnNames[] = {
-    "#memoryEditor",
-    "##separator_gfx1",
-};
-
 constexpr ImGuiTableFlags kGfxEditTableFlags =
     ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable |
     ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable |
     ImGuiTableFlags_SizingFixedFit;
-
-constexpr ImGuiTabBarFlags kGfxEditTabBarFlags =
-    ImGuiTabBarFlags_AutoSelectNewTabs | ImGuiTabBarFlags_Reorderable |
-    ImGuiTabBarFlags_FittingPolicyResizeDown |
-    ImGuiTabBarFlags_TabListPopupButton;
-
-constexpr ImGuiTableFlags kGfxEditFlags = ImGuiTableFlags_Reorderable |
-                                          ImGuiTableFlags_Resizable |
-                                          ImGuiTableFlags_SizingStretchSame;
 
 absl::Status GraphicsEditor::Update() {
   if (ImGui::BeginTabBar("##TabBar")) {
@@ -260,6 +246,10 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
 
 absl::Status GraphicsEditor::UpdateGfxTabView() {
   static int next_tab_id = 0;
+  constexpr ImGuiTabBarFlags kGfxEditTabBarFlags =
+      ImGuiTabBarFlags_AutoSelectNewTabs | ImGuiTabBarFlags_Reorderable |
+      ImGuiTabBarFlags_FittingPolicyResizeDown |
+      ImGuiTabBarFlags_TabListPopupButton;
 
   if (ImGui::BeginTabBar("##GfxEditTabBar", kGfxEditTabBarFlags)) {
     if (ImGui::TabItemButton(ICON_MD_ADD, ImGuiTabItemFlags_Trailing |
@@ -439,6 +429,10 @@ absl::Status GraphicsEditor::UpdateScadView() {
     ImGui::End();
   }
 
+  constexpr ImGuiTableFlags kGfxEditFlags = ImGuiTableFlags_Reorderable |
+                                            ImGuiTableFlags_Resizable |
+                                            ImGuiTableFlags_SizingStretchSame;
+
   BEGIN_TABLE("#gfxEditTable", 4, kGfxEditFlags)
   SETUP_COLUMN("File Import (BIN, CGX, ROM)")
   SETUP_COLUMN("Palette (COL)")
@@ -490,6 +484,11 @@ absl::Status GraphicsEditor::UpdateScadView() {
 }
 
 absl::Status GraphicsEditor::DrawToolset() {
+  static constexpr absl::string_view kGfxToolsetColumnNames[] = {
+      "#memoryEditor",
+      "##separator_gfx1",
+  };
+
   if (ImGui::BeginTable("GraphicsToolset", 2, ImGuiTableFlags_SizingFixedFit,
                         ImVec2(0, 0))) {
     for (const auto& name : kGfxToolsetColumnNames)

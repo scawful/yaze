@@ -1,11 +1,6 @@
 #ifndef YAZE_APP_CORE_CONSTANTS_H
 #define YAZE_APP_CORE_CONSTANTS_H
 
-#define TAB_BAR(w) if (ImGui::BeginTabBar(w)) {
-#define END_TAB_BAR() \
-  ImGui::EndTabBar(); \
-  }
-
 #define TAB_ITEM(w) if (ImGui::BeginTabItem(w)) {
 #define END_TAB_ITEM() \
   ImGui::EndTabItem(); \

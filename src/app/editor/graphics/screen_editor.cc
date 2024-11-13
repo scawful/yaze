@@ -26,17 +26,19 @@ using core::Renderer;
 constexpr uint32_t kRedPen = 0xFF0000FF;
 
 absl::Status ScreenEditor::Update() {
-  TAB_BAR("##TabBar")
-  TAB_ITEM("Dungeon Maps")
-  if (rom()->is_loaded()) {
-    DrawDungeonMapsEditor();
+  if (ImGui::BeginTabBar("##ScreenEditorTabBar")) {
+    if (ImGui::BeginTabItem("Dungeon Maps")) {
+      if (rom()->is_loaded()) {
+        DrawDungeonMapsEditor();
+      }
+      ImGui::EndTabItem();
+    }
+    DrawInventoryMenuEditor();
+    DrawOverworldMapEditor();
+    DrawTitleScreenEditor();
+    DrawNamingScreenEditor();
+    ImGui::EndTabBar();
   }
-  END_TAB_ITEM()
-  DrawInventoryMenuEditor();
-  DrawOverworldMapEditor();
-  DrawTitleScreenEditor();
-  DrawNamingScreenEditor();
-  END_TAB_BAR()
   return status_;
 }
 
@@ -483,6 +485,7 @@ void ScreenEditor::DrawDungeonMapsEditor() {
     ImGui::TableNextColumn();
     tilemap_canvas_.DrawBackground(ImVec2(128 * 2 + 2, (192 * 2) + 4));
     tilemap_canvas_.DrawContextMenu();
+    tilemap_canvas_.DrawTileSelector(8.f);
     tilemap_canvas_.DrawBitmapTable(sheets_);
     tilemap_canvas_.DrawGrid();
     tilemap_canvas_.DrawOverlay();
@@ -524,16 +527,21 @@ void ScreenEditor::LoadBinaryGfx() {
 }
 
 void ScreenEditor::DrawTitleScreenEditor() {
-  TAB_ITEM("Title Screen")
-  END_TAB_ITEM()
+  if (ImGui::BeginTabItem("Title Screen")) {
+    ImGui::EndTabItem();
+  }
 }
+
 void ScreenEditor::DrawNamingScreenEditor() {
-  TAB_ITEM("Naming Screen")
-  END_TAB_ITEM()
+  if (ImGui::BeginTabItem("Naming Screen")) {
+    ImGui::EndTabItem();
+  }
 }
+
 void ScreenEditor::DrawOverworldMapEditor() {
-  TAB_ITEM("Overworld Map")
-  END_TAB_ITEM()
+  if (ImGui::BeginTabItem("Overworld Map")) {
+    ImGui::EndTabItem();
+  }
 }
 
 void ScreenEditor::DrawToolset() {
