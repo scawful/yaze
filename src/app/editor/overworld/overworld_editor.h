@@ -38,7 +38,7 @@ constexpr float kInputFieldSize = 30.f;
 constexpr ImVec2 kOverworldCanvasSize(kOverworldMapSize * 8,
                                       kOverworldMapSize * 8);
 constexpr ImVec2 kCurrentGfxCanvasSize(0x100 + 1, 0x10 * 0x40 + 1);
-constexpr ImVec2 kBlocksetCanvasSize(0x100 + 1, 0x2000 + 1);
+constexpr ImVec2 kBlocksetCanvasSize(0x100 + 1, 0x4000 + 1);
 constexpr ImVec2 kGraphicsBinCanvasSize(0x100 + 1, kNumSheetsToLoad * 0x40 + 1);
 
 constexpr ImGuiTableFlags kOWMapFlags =
