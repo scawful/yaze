@@ -40,7 +40,7 @@
 extern "C" {
 #endif
 
-void InitializeCocoa();
+void yaze_run_cocoa_app_delegate(const char *filename);
 
 #ifdef __cplusplus
 }  // extern "C"
