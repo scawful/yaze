@@ -23,9 +23,9 @@ constexpr ushort TileVFlipBit = 0x8000;
 // Bits used for tile name
 constexpr ushort TileNameMask = 0x03FF;
 
-tile8 UnpackBppTile(const std::vector<uint8_t>& data, const uint32_t offset,
+snes_tile8 UnpackBppTile(const std::vector<uint8_t>& data, const uint32_t offset,
                     const uint32_t bpp) {
-  tile8 tile;
+  snes_tile8 tile;
   assert(bpp >= 1 && bpp <= 8);
   unsigned int bpp_pos[8];  // More for conveniance and readibility
   for (int col = 0; col < 8; col++) {
@@ -80,7 +80,7 @@ tile8 UnpackBppTile(const std::vector<uint8_t>& data, const uint32_t offset,
   return tile;
 }
 
-std::vector<uint8_t> PackBppTile(const tile8& tile, const uint32_t bpp) {
+std::vector<uint8_t> PackBppTile(const snes_tile8& tile, const uint32_t bpp) {
   // Allocate memory for output data
   std::vector<uint8_t> output(bpp * 8, 0);  // initialized with 0
   unsigned maxcolor = 2 << bpp;
@@ -133,7 +133,7 @@ std::vector<uint8_t> ConvertBpp(const std::vector<uint8_t>& tiles,
   std::vector<uint8_t> converted(nb_tile * to_bpp * 8);
 
   for (unsigned int i = 0; i < nb_tile; i++) {
-    tile8 tile = UnpackBppTile(tiles, i * from_bpp * 8, from_bpp);
+    snes_tile8 tile = UnpackBppTile(tiles, i * from_bpp * 8, from_bpp);
     std::vector<uint8_t> packed_tile = PackBppTile(tile, to_bpp);
     std::memcpy(converted.data() + i * to_bpp * 8, packed_tile.data(),
                 to_bpp * 8);
