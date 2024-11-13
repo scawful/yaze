@@ -5,7 +5,7 @@
 #include <cstring>
 #include <vector>
 
-#include "app/core/constants.h"
+#include "incl/snes_tile.h"
 
 namespace yaze {
 namespace app {
@@ -23,17 +23,10 @@ std::vector<uint8_t> SnesTo8bppSheet(const std::vector<uint8_t>& sheet, int bpp,
 std::vector<uint8_t> Bpp8SnesToIndexed(std::vector<uint8_t> data,
                                        uint64_t bpp = 0);
 
-struct tile8 {
-  uint32_t id;
-  char data[64];
-  uint32_t palette_id;
-};
-using tile8 = struct tile8;
+snes_tile8 UnpackBppTile(const std::vector<uint8_t>& data,
+                         const uint32_t offset, const uint32_t bpp);
 
-tile8 UnpackBppTile(const std::vector<uint8_t>& data, const uint32_t offset,
-                    const uint32_t bpp);
-
-std::vector<uint8_t> PackBppTile(const tile8& tile, const uint32_t bpp);
+std::vector<uint8_t> PackBppTile(const snes_tile8& tile, const uint32_t bpp);
 
 std::vector<uint8_t> ConvertBpp(const std::vector<uint8_t>& tiles,
                                 uint32_t from_bpp, uint32_t to_bpp);
@@ -78,7 +71,6 @@ class TileInfo {
 uint16_t TileInfoToWord(TileInfo tile_info);
 TileInfo WordToTileInfo(uint16_t word);
 uint16_t TileInfoToShort(TileInfo tile_info);
-
 TileInfo GetTilesInfo(uint16_t tile);
 
 /**
@@ -139,15 +131,15 @@ class Tile16 {
   TileInfo tile1_;
   TileInfo tile2_;
   TileInfo tile3_;
-  std::vector<TileInfo> tiles_info;
+  std::array<TileInfo, 4> tiles_info;
 
   Tile16() = default;
   Tile16(TileInfo t0, TileInfo t1, TileInfo t2, TileInfo t3)
       : tile0_(t0), tile1_(t1), tile2_(t2), tile3_(t3) {
-    tiles_info.push_back(tile0_);
-    tiles_info.push_back(tile1_);
-    tiles_info.push_back(tile2_);
-    tiles_info.push_back(tile3_);
+    tiles_info[0] = tile0_;
+    tiles_info[1] = tile1_;
+    tiles_info[2] = tile2_;
+    tiles_info[3] = tile3_;
   }
 
   bool operator==(const Tile16& other) const {
@@ -179,6 +171,52 @@ class OamTile {
       tile_ = (uint16_t)(tile + 256 + 512);
     }
   }
+};
+
+class GraphicsBuffer {
+ public:
+  GraphicsBuffer() = default;
+  GraphicsBuffer(uint8_t bpp, const std::vector<uint8_t>& data)
+      : bpp_(bpp), data_(data) {}
+  GraphicsBuffer(uint8_t bpp, std::vector<uint8_t>&& data)
+      : bpp_(bpp), data_(std::move(data)) {}
+
+  uint8_t bpp() const { return bpp_; }
+  const std::vector<uint8_t>& data() const { return data_; }
+
+  void set_bpp(uint8_t bpp) { bpp_ = bpp; }
+  void set_data(const std::vector<uint8_t>& data) { data_ = data; }
+  void to_bpp(uint8_t bpp) {
+    if (bpp_ == bpp) {
+      return;
+    }
+    data_ = ConvertBpp(data_, bpp_, bpp);
+    bpp_ = bpp;
+  }
+
+  // Array-like access via operator[]
+  uint8_t& operator[](size_t index) {
+    if (index >= data_.size()) {
+      throw std::out_of_range("Index out of range");
+    }
+    return data_[index];
+  }
+
+  const uint8_t& operator[](size_t index) const {
+    if (index >= data_.size()) {
+      throw std::out_of_range("Index out of range");
+    }
+    return data_[index];
+  }
+
+  auto begin() { return data_.begin(); }
+  auto end() { return data_.end(); }
+  auto begin() const { return data_.begin(); }
+  auto end() const { return data_.end(); }
+
+ private:
+  uint8_t bpp_;
+  std::vector<uint8_t> data_;
 };
 
 }  // namespace gfx
