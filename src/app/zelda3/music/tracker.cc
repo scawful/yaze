@@ -11,14 +11,9 @@
 
 #include <cstdint>
 #include <cstdio>
-#include <memory>
-#include <string>
 #include <vector>
 
-#include "absl/status/status.h"
 #include "app/core/constants.h"
-#include "app/gfx/bitmap.h"
-#include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 
 namespace yaze {

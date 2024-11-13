@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "absl/strings/str_cat.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
