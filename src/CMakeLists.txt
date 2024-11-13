@@ -123,11 +123,15 @@ if (YAZE_BUILD_LIB)
             ARCHIVE DESTINATION lib/static)
 
     install(
-    FILES
-      yaze.h
-      incl/sprite.h
-      incl/snes_color.h
-      incl/overworld.h
-    DESTINATION include)
+      FILES
+        yaze.h
+        incl/sprite.h
+        incl/snes_tile.h
+        incl/snes_color.h
+        incl/overworld.h
+        incl/dungeon.h
+      DESTINATION
+        include
+    )
   endif()
 endif()
