@@ -1,9 +1,5 @@
 var NAVTREEINDEX37 =
 {
-"namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bead43bb7d5a33aec2376fcec383643161c":[11,0,1,0,3,15,27],
-"namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bead44ed864e421867b99c29a0c6391083b":[11,0,1,0,3,15,17],
-"namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111beaf3bc1bce25569418c897b2e9b215af92":[11,0,1,0,3,15,22],
-"namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111beafc6adf17891a646ee32f03f3da175e7d":[11,0,1,0,3,15,2],
 "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02emulator_8cc_03.html":[11,0,1,0,3,0],
 "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02emulator_8cc_03.html#a8661d56df6530eb9b492271d63b262ac":[11,0,1,0,3,0,0],
 "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html":[11,0,1,0,3,1],
@@ -249,5 +245,9 @@ var NAVTREEINDEX37 =
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a59144c3685cd10bc358b440293e7c82d":[11,0,1,0,4,1,37],
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5be3958ac1fbf3bd0b6de3485a96b74d":[11,0,1,0,4,1,67],
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5f07065a9c2fb78b8df4f326aa9152ca":[11,0,1,0,4,1,64],
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a643331fe3b1d1a9dbbd2be8df42622ff":[11,0,1,0,4,1,4]
+"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a643331fe3b1d1a9dbbd2be8df42622ff":[11,0,1,0,4,1,4],
+"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a64c9eccb0e6bde5044cfd0b85126a423":[11,0,1,0,4,1,70],
+"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6704a0d05d04ae6217e4cf143d5862be":[11,0,1,0,4,1,36],
+"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6d13ac7649343808451edc35c4b9d74f":[11,0,1,0,4,1,11],
+"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a767f193a16c49b5f65dbc9c0beeb422f":[11,0,1,0,4,1,61]
 };

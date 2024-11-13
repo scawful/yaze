@@ -175,6 +175,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a372a28056ae2edc74a0342b1e05ffc9f" id="r_a372a28056ae2edc74a0342b1e05ffc9f"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a372a28056ae2edc74a0342b1e05ffc9f">SaveToFile</a> (bool backup, bool save_new=false, std::string <a class="el" href="#a4de8b517183672043671781c9534a4dd">filename</a>=&quot;&quot;)</td></tr>
 <tr class="memdesc:a372a28056ae2edc74a0342b1e05ffc9f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Saves the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data to a file.  <br /></td></tr>
 <tr class="separator:a372a28056ae2edc74a0342b1e05ffc9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a30f35234c2c7c0b33e3b56e43b30e887" id="r_a30f35234c2c7c0b33e3b56e43b30e887"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a30f35234c2c7c0b33e3b56e43b30e887">SaveAllGraphicsData</a> ()</td></tr>
+<tr class="separator:a30f35234c2c7c0b33e3b56e43b30e887"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4ecd5e203ecac5987519ece53983fe63" id="r_a4ecd5e203ecac5987519ece53983fe63"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4ecd5e203ecac5987519ece53983fe63">SavePalette</a> (int index, const std::string &amp;group_name, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette)</td></tr>
 <tr class="separator:a4ecd5e203ecac5987519ece53983fe63"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3c470124716e2b4bb08f9b4ed1a19dd3" id="r_a3c470124716e2b4bb08f9b4ed1a19dd3"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3c470124716e2b4bb08f9b4ed1a19dd3">SaveAllPalettes</a> ()</td></tr>
@@ -354,7 +356,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00039">39</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="constants_8h_source.html#l00075">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00461">data()</a>, <a class="el" href="compression_8cc_source.html#l01372">yaze::app::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="snes__tile_8cc_source.html#l00152">yaze::app::gfx::SnesTo8bppSheet()</a>, and <a class="el" href="rom_8h_source.html#l00480">version_constants()</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00463">data()</a>, <a class="el" href="compression_8cc_source.html#l01372">yaze::app::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="snes__tile_8cc_source.html#l00152">yaze::app::gfx::SnesTo8bppSheet()</a>, and <a class="el" href="rom_8h_source.html#l00482">version_constants()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -395,7 +397,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00058">58</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00245">yaze::app::gfx::PaletteGroupMap::armors</a>, <a class="el" href="constants_8h_source.html#l00075">ASSIGN_OR_RETURN</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::app::core::Renderer::GetInstance()</a>, <a class="el" href="rom_8h_source.html#l00117">yaze::app::kNumLinkSheets</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00016">yaze::app::gfx::kTilesheetDepth</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00015">yaze::app::gfx::kTilesheetHeight</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00014">yaze::app::gfx::kTilesheetWidth</a>, <a class="el" href="rom_8h_source.html#l00559">link_graphics_</a>, <a class="el" href="rom_8h_source.html#l00565">palette_groups_</a>, <a class="el" href="rom_8h_source.html#l00278">ReadByteVector()</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::app::core::Renderer::RenderBitmap()</a>, <a class="el" href="constants_8h_source.html#l00067">RETURN_IF_ERROR</a>, and <a class="el" href="snes__tile_8cc_source.html#l00152">yaze::app::gfx::SnesTo8bppSheet()</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00245">yaze::app::gfx::PaletteGroupMap::armors</a>, <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::app::core::Renderer::GetInstance()</a>, <a class="el" href="rom_8h_source.html#l00117">yaze::app::kNumLinkSheets</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00016">yaze::app::gfx::kTilesheetDepth</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00015">yaze::app::gfx::kTilesheetHeight</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00014">yaze::app::gfx::kTilesheetWidth</a>, <a class="el" href="rom_8h_source.html#l00561">link_graphics_</a>, <a class="el" href="rom_8h_source.html#l00567">palette_groups_</a>, <a class="el" href="rom_8h_source.html#l00280">ReadByteVector()</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::app::core::Renderer::RenderBitmap()</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, and <a class="el" href="snes__tile_8cc_source.html#l00152">yaze::app::gfx::SnesTo8bppSheet()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -453,7 +455,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00077">77</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="constants_8h_source.html#l00075">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00461">data()</a>, <a class="el" href="compression_8cc_source.html#l01372">yaze::app::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="snes__palette_8h_source.html#l00251">yaze::app::gfx::PaletteGroupMap::dungeon_main</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::app::core::Renderer::GetInstance()</a>, <a class="el" href="snes__palette_8h_source.html#l00244">yaze::app::gfx::PaletteGroupMap::global_sprites</a>, <a class="el" href="rom_8h_source.html#l00553">graphics_buffer_</a>, <a class="el" href="rom_8h_source.html#l00556">graphics_sheets_</a>, <a class="el" href="rom_8h_source.html#l00116">yaze::app::kNumGfxSheets</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00016">yaze::app::gfx::kTilesheetDepth</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00015">yaze::app::gfx::kTilesheetHeight</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00014">yaze::app::gfx::kTilesheetWidth</a>, <a class="el" href="rom_8h_source.html#l00565">palette_groups_</a>, <a class="el" href="constants_8h_source.html#l00067">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>, <a class="el" href="snes__tile_8cc_source.html#l00152">yaze::app::gfx::SnesTo8bppSheet()</a>, <a class="el" href="rom_8cc_source.html#l00029">yaze::app::Uncompressed3BPPSize</a>, and <a class="el" href="rom_8h_source.html#l00480">version_constants()</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00463">data()</a>, <a class="el" href="compression_8cc_source.html#l01372">yaze::app::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="snes__palette_8h_source.html#l00251">yaze::app::gfx::PaletteGroupMap::dungeon_main</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::app::core::Renderer::GetInstance()</a>, <a class="el" href="snes__palette_8h_source.html#l00244">yaze::app::gfx::PaletteGroupMap::global_sprites</a>, <a class="el" href="rom_8h_source.html#l00555">graphics_buffer_</a>, <a class="el" href="rom_8h_source.html#l00558">graphics_sheets_</a>, <a class="el" href="rom_8h_source.html#l00116">yaze::app::kNumGfxSheets</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00016">yaze::app::gfx::kTilesheetDepth</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00015">yaze::app::gfx::kTilesheetHeight</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00014">yaze::app::gfx::kTilesheetWidth</a>, <a class="el" href="rom_8h_source.html#l00567">palette_groups_</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>, <a class="el" href="snes__tile_8cc_source.html#l00152">yaze::app::gfx::SnesTo8bppSheet()</a>, <a class="el" href="rom_8cc_source.html#l00029">yaze::app::Uncompressed3BPPSize</a>, and <a class="el" href="rom_8h_source.html#l00482">version_constants()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00364">yaze::app::editor::Tile16Editor::UpdateTransferTileCanvas()</a>.</p>
 <div class="dynheader">
@@ -506,11 +508,11 @@ Here is the call graph for this function:</div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00136">136</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00168">168</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00464">filename()</a>, <a class="el" href="rom_8h_source.html#l00547">filename_</a>, <a class="el" href="rom_8h_source.html#l00538">is_loaded_</a>, <a class="el" href="project_8cc_source.html#l00065">yaze::app::ResourceLabelManager::LoadLabels()</a>, <a class="el" href="rom_8cc_source.html#l00199">LoadZelda3()</a>, <a class="el" href="rom_8h_source.html#l00562">resource_label_manager_</a>, <a class="el" href="constants_8h_source.html#l00067">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>, and <a class="el" href="rom_8h_source.html#l00541">size_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00466">filename()</a>, <a class="el" href="rom_8h_source.html#l00549">filename_</a>, <a class="el" href="rom_8h_source.html#l00540">is_loaded_</a>, <a class="el" href="project_8cc_source.html#l00065">yaze::app::ResourceLabelManager::LoadLabels()</a>, <a class="el" href="rom_8cc_source.html#l00231">LoadZelda3()</a>, <a class="el" href="rom_8h_source.html#l00564">resource_label_manager_</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>, and <a class="el" href="rom_8h_source.html#l00543">size_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00678">yaze::app::editor::GraphicsEditor::DrawFileImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00636">yaze::app::editor::GraphicsEditor::DrawObjImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00585">yaze::app::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00654">yaze::app::editor::GraphicsEditor::DrawTilemapImport()</a>, <a class="el" href="patch_8cc_source.html#l00006">yaze::cli::ApplyPatch::handle()</a>, <a class="el" href="patch_8cc_source.html#l00027">yaze::cli::AsarPatch::handle()</a>, <a class="el" href="command_8h_source.html#l00092">yaze::cli::Backup::handle()</a>, <a class="el" href="command_8h_source.html#l00218">yaze::cli::Expand::handle()</a>, <a class="el" href="command_8h_source.html#l00074">yaze::cli::Open::handle()</a>, <a class="el" href="command_8h_source.html#l00169">yaze::cli::ReadFromRom::handle()</a>, <a class="el" href="tile16__transfer_8cc_source.html#l00015">yaze::cli::Tile16Transfer::handle()</a>, <a class="el" href="emu_8cc_source.html#l00033">main()</a>, <a class="el" href="memory__editor_8h_source.html#l00039">yaze::app::editor::MemoryEditorWithDiffChecker::Update()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00364">yaze::app::editor::Tile16Editor::UpdateTransferTileCanvas()</a>, and <a class="el" href="yaze_8cc_source.html#l00047">yaze_load_rom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00677">yaze::app::editor::GraphicsEditor::DrawFileImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00635">yaze::app::editor::GraphicsEditor::DrawObjImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00584">yaze::app::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00653">yaze::app::editor::GraphicsEditor::DrawTilemapImport()</a>, <a class="el" href="patch_8cc_source.html#l00006">yaze::cli::ApplyPatch::handle()</a>, <a class="el" href="patch_8cc_source.html#l00027">yaze::cli::AsarPatch::handle()</a>, <a class="el" href="command_8h_source.html#l00092">yaze::cli::Backup::handle()</a>, <a class="el" href="command_8h_source.html#l00218">yaze::cli::Expand::handle()</a>, <a class="el" href="command_8h_source.html#l00074">yaze::cli::Open::handle()</a>, <a class="el" href="command_8h_source.html#l00169">yaze::cli::ReadFromRom::handle()</a>, <a class="el" href="tile16__transfer_8cc_source.html#l00015">yaze::cli::Tile16Transfer::handle()</a>, <a class="el" href="emu_8cc_source.html#l00033">main()</a>, <a class="el" href="memory__editor_8h_source.html#l00039">yaze::app::editor::MemoryEditorWithDiffChecker::Update()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00364">yaze::app::editor::Tile16Editor::UpdateTransferTileCanvas()</a>, and <a class="el" href="yaze_8cc_source.html#l00047">yaze_load_rom()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -556,9 +558,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00181">181</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00213">213</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00311">yaze::app::gfx::PaletteGroupMap::clear()</a>, <a class="el" href="rom_8h_source.html#l00461">data()</a>, <a class="el" href="snes__palette_8h_source.html#l00329">yaze::app::gfx::PaletteGroupMap::empty()</a>, <a class="el" href="rom_8h_source.html#l00538">is_loaded_</a>, <a class="el" href="rom_8cc_source.html#l00199">LoadZelda3()</a>, <a class="el" href="rom_8h_source.html#l00565">palette_groups_</a>, <a class="el" href="constants_8h_source.html#l00067">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>, and <a class="el" href="rom_8h_source.html#l00541">size_</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00311">yaze::app::gfx::PaletteGroupMap::clear()</a>, <a class="el" href="rom_8h_source.html#l00463">data()</a>, <a class="el" href="snes__palette_8h_source.html#l00329">yaze::app::gfx::PaletteGroupMap::empty()</a>, <a class="el" href="rom_8h_source.html#l00540">is_loaded_</a>, <a class="el" href="rom_8cc_source.html#l00231">LoadZelda3()</a>, <a class="el" href="rom_8h_source.html#l00567">palette_groups_</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>, and <a class="el" href="rom_8h_source.html#l00543">size_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="compression__test_8cc_source.html#l00036">yaze::test::gfx::anonymous_namespace{compression_test.cc}::ExpectCompressOk()</a>, and <a class="el" href="compression__test_8cc_source.html#l00055">yaze::test::gfx::anonymous_namespace{compression_test.cc}::ExpectDecompressOk()</a>.</p>
 <div class="dynheader">
@@ -603,11 +605,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00234">234</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00266">266</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00461">data()</a>, <a class="el" href="rom_8h_source.html#l00538">is_loaded_</a>, <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>, and <a class="el" href="rom_8h_source.html#l00541">size_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00463">data()</a>, <a class="el" href="rom_8h_source.html#l00540">is_loaded_</a>, <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>, and <a class="el" href="rom_8h_source.html#l00543">size_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00710">yaze::app::editor::GraphicsEditor::DrawClipboardImport()</a>, <a class="el" href="compression__test_8cc_source.html#l00045">yaze::test::gfx::anonymous_namespace{compression_test.cc}::ExpectDecompressBytesOk()</a>, <a class="el" href="rom__test_8cc_source.html#l00236">yaze::test::TEST_F()</a>, <a class="el" href="rom__test_8cc_source.html#l00224">yaze::test::TEST_F()</a>, <a class="el" href="rom__test_8cc_source.html#l00210">yaze::test::TEST_F()</a>, <a class="el" href="rom__test_8cc_source.html#l00197">yaze::test::TEST_F()</a>, <a class="el" href="compression_8cc_source.html#l00475">yaze::app::gfx::lc_lz2::ValidateCompressionResult()</a>, and <a class="el" href="compression_8cc_source.html#l01178">yaze::app::gfx::lc_lz2::ValidateCompressionResultV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00709">yaze::app::editor::GraphicsEditor::DrawClipboardImport()</a>, <a class="el" href="compression__test_8cc_source.html#l00045">yaze::test::gfx::anonymous_namespace{compression_test.cc}::ExpectDecompressBytesOk()</a>, <a class="el" href="rom__test_8cc_source.html#l00236">yaze::test::TEST_F()</a>, <a class="el" href="rom__test_8cc_source.html#l00224">yaze::test::TEST_F()</a>, <a class="el" href="rom__test_8cc_source.html#l00210">yaze::test::TEST_F()</a>, <a class="el" href="rom__test_8cc_source.html#l00197">yaze::test::TEST_F()</a>, <a class="el" href="compression_8cc_source.html#l00475">yaze::app::gfx::lc_lz2::ValidateCompressionResult()</a>, and <a class="el" href="compression_8cc_source.html#l01178">yaze::app::gfx::lc_lz2::ValidateCompressionResultV3()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -655,9 +657,9 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>absl::Status Returns an OK status if the save was successful, otherwise returns an error status </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00245">245</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00277">277</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00464">filename()</a>, <a class="el" href="rom_8h_source.html#l00547">filename_</a>, <a class="el" href="core_2common_8h_source.html#l00100">yaze::app::core::ExperimentFlags::flags()</a>, <a class="el" href="constants_8h_source.html#l00067">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>, <a class="el" href="rom_8cc_source.html#l00358">SaveAllPalettes()</a>, and <a class="el" href="rom_8cc_source.html#l00404">SaveGroupsToRom()</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00466">filename()</a>, <a class="el" href="rom_8h_source.html#l00549">filename_</a>, <a class="el" href="core_2common_8h_source.html#l00103">yaze::app::core::ExperimentFlags::flags()</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>, <a class="el" href="rom_8cc_source.html#l00136">SaveAllGraphicsData()</a>, <a class="el" href="rom_8cc_source.html#l00386">SaveAllPalettes()</a>, and <a class="el" href="rom_8cc_source.html#l00432">SaveGroupsToRom()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="command_8h_source.html#l00092">yaze::cli::Backup::handle()</a>, and <a class="el" href="tile16__transfer_8cc_source.html#l00015">yaze::cli::Tile16Transfer::handle()</a>.</p>
 <div class="dynheader">
@@ -665,18 +667,95 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1Rom_a372a28056ae2edc74a0342b1e05ffc9f_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a372a28056ae2edc74a0342b1e05ffc9f_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1Rom_a372a28056ae2edc74a0342b1e05ffc9f_cgraph" id="aclassyaze_1_1app_1_1Rom_a372a28056ae2edc74a0342b1e05ffc9f_cgraph">
-<area shape="rect" title="Saves the Rom data to a file." alt="" coords="5,116,185,142"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd" title=" " alt="" coords="255,5,416,31"/>
-<area shape="poly" title=" " alt="" coords="112,113,164,78,232,41,252,33,254,38,234,46,167,82,115,118"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="248,79,424,120"/>
-<area shape="poly" title=" " alt="" coords="185,115,232,109,233,115,185,121"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a3c470124716e2b4bb08f9b4ed1a19dd3" title="Saves all palettes in the Rom." alt="" coords="233,144,439,170"/>
-<area shape="poly" title=" " alt="" coords="185,137,217,140,217,146,185,142"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a8c8b5544db072b46a4ed29c856069670" title=" " alt="" coords="243,194,428,234"/>
-<area shape="poly" title=" " alt="" coords="130,140,234,180,253,186,251,191,232,185,128,145"/>
-<area shape="poly" title=" " alt="" coords="291,79,288,69,296,60,312,55,336,53,362,55,377,61,375,66,361,60,336,58,313,60,299,65,294,70,296,78"/>
-<area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#adcb7e249d2137ea11ef46872ea32d376" title=" " alt="" coords="487,136,666,177"/>
-<area shape="poly" title=" " alt="" coords="440,154,471,154,471,160,440,160"/>
+<area shape="rect" title="Saves the Rom data to a file." alt="" coords="5,144,185,170"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd" title=" " alt="" coords="271,5,432,31"/>
+<area shape="poly" title=" " alt="" coords="106,142,157,92,192,64,231,41,255,32,257,37,234,46,195,69,160,96,110,146"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="264,79,439,120"/>
+<area shape="poly" title=" " alt="" coords="155,141,248,120,249,125,156,146"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a30f35234c2c7c0b33e3b56e43b30e887" title=" " alt="" coords="233,144,470,170"/>
+<area shape="poly" title=" " alt="" coords="185,154,217,154,217,160,185,160"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a3c470124716e2b4bb08f9b4ed1a19dd3" title="Saves all palettes in the Rom." alt="" coords="248,193,454,219"/>
+<area shape="poly" title=" " alt="" coords="166,168,267,187,266,192,165,173"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a8c8b5544db072b46a4ed29c856069670" title=" " alt="" coords="259,243,444,284"/>
+<area shape="poly" title=" " alt="" coords="118,168,170,198,234,229,250,235,249,240,232,234,167,203,115,172"/>
+<area shape="poly" title=" " alt="" coords="303,79,301,69,309,60,326,54,351,53,379,55,395,61,393,66,378,60,351,58,327,60,312,65,306,70,308,78"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a7e2b12ac3e3d8128536d65cf91946438" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="545,30,670,70"/>
+<area shape="poly" title=" " alt="" coords="441,141,469,129,483,118,492,106,501,93,516,80,530,72,532,77,520,84,505,97,497,109,487,122,471,134,443,146"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#ab26e7d963d877f126b4ff7442c473864" title=" " alt="" coords="522,95,693,120"/>
+<area shape="poly" title=" " alt="" coords="421,141,522,121,523,126,422,146"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="538,144,677,170"/>
+<area shape="poly" title=" " alt="" coords="471,154,523,154,523,160,471,160"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a0c5236f4dc9e1fd7ad98f058d154a139" title=" " alt="" coords="530,194,685,234"/>
+<area shape="poly" title=" " alt="" coords="421,168,471,178,515,189,514,194,469,183,420,173"/>
+<area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#adcb7e249d2137ea11ef46872ea32d376" title=" " alt="" coords="518,259,697,300"/>
+<area shape="poly" title=" " alt="" coords="423,217,471,229,538,251,537,256,469,234,421,222"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a30f35234c2c7c0b33e3b56e43b30e887" name="a30f35234c2c7c0b33e3b56e43b30e887"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a30f35234c2c7c0b33e3b56e43b30e887">&#9670;&#160;</a></span>SaveAllGraphicsData()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::app::Rom::SaveAllGraphicsData </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00136">136</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="compression_8cc_source.html#l00519">yaze::app::gfx::lc_lz2::CompressV2()</a>, <a class="el" href="snes__tile_8cc_source.html#l00130">yaze::app::gfx::ConvertBpp()</a>, <a class="el" href="rom_8h_source.html#l00463">data()</a>, <a class="el" href="rom_8h_source.html#l00558">graphics_sheets_</a>, <a class="el" href="rom_8h_source.html#l00116">yaze::app::kNumGfxSheets</a>, <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>, and <a class="el" href="rom_8h_source.html#l00482">version_constants()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00277">SaveToFile()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1Rom_a30f35234c2c7c0b33e3b56e43b30e887_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a30f35234c2c7c0b33e3b56e43b30e887_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1Rom_a30f35234c2c7c0b33e3b56e43b30e887_cgraph" id="aclassyaze_1_1app_1_1Rom_a30f35234c2c7c0b33e3b56e43b30e887_cgraph">
+<area shape="rect" title=" " alt="" coords="5,747,243,773"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a7e2b12ac3e3d8128536d65cf91946438" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="314,368,439,408"/>
+<area shape="poly" title=" " alt="" coords="132,745,350,420,355,423,136,748"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="799,644,938,670"/>
+<area shape="poly" title=" " alt="" coords="243,756,346,752,466,743,594,729,721,707,774,692,822,674,824,679,776,697,722,712,595,734,467,749,346,757,243,761"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#ab26e7d963d877f126b4ff7442c473864" title=" " alt="" coords="291,772,462,798"/>
+<area shape="poly" title=" " alt="" coords="243,769,275,772,275,778,243,774"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a0c5236f4dc9e1fd7ad98f058d154a139" title=" " alt="" coords="299,822,454,863"/>
+<area shape="poly" title=" " alt="" coords="167,771,298,814,297,819,165,776"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a7c322d88e059c6e52031a46badfa23c4" title=" " alt="" coords="510,5,721,61"/>
+<area shape="poly" title=" " alt="" coords="378,367,390,309,413,230,430,188,452,146,477,106,508,71,511,69,514,73,512,75,482,110,456,149,435,190,418,232,395,310,383,368"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab8452f0e53d55ed76cd1687c072a85b4" title=" " alt="" coords="530,85,701,126"/>
+<area shape="poly" title=" " alt="" coords="380,366,395,319,421,257,458,193,481,163,508,136,516,131,519,135,512,141,485,166,462,196,425,260,400,321,385,368"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a47224238ea7d6995a94ebf9d11daf31d" title=" " alt="" coords="542,150,689,191"/>
+<area shape="poly" title=" " alt="" coords="385,366,403,331,430,287,466,241,508,202,526,191,529,195,512,206,469,245,435,290,407,333,389,369"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2df55e67298266c8e63a33fd7aec0e40" title=" " alt="" coords="536,216,695,256"/>
+<area shape="poly" title=" " alt="" coords="394,365,443,316,474,290,509,267,521,260,524,265,511,271,478,294,446,320,398,369"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a99f113d574564e9fb02470d77369b435" title=" " alt="" coords="528,281,703,322"/>
+<area shape="poly" title=" " alt="" coords="434,364,542,325,544,330,436,369"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a173837cea546187dbf6392cfcfc6b331" title=" " alt="" coords="769,548,968,588"/>
+<area shape="poly" title=" " alt="" coords="439,369,501,358,574,353,650,359,687,368,723,381,768,412,805,452,834,495,854,532,850,535,829,497,801,456,764,416,720,386,685,373,649,364,573,358,501,363,440,374"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a876aa4cf19da24112d3d66afd49eb8f2" title=" " alt="" coords="558,396,673,436"/>
+<area shape="poly" title=" " alt="" coords="440,392,543,405,542,410,439,398"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#af359788c045b9ff15f7ba20fb7b294dc" title=" " alt="" coords="522,461,709,502"/>
+<area shape="poly" title=" " alt="" coords="421,406,511,445,531,453,530,458,509,450,419,411"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ae3ec60f2320d38749874e8d518182498" title=" " alt="" coords="559,526,672,567"/>
+<area shape="poly" title=" " alt="" coords="396,407,445,459,477,487,511,511,545,527,543,531,509,515,473,491,441,463,392,410"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a77887f1e77391d7c90c5019790041ff4" title=" " alt="" coords="510,592,721,632"/>
+<area shape="poly" title=" " alt="" coords="389,407,407,444,434,489,469,536,512,576,519,581,516,586,508,581,465,540,429,492,402,446,384,410"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a22ebd13aa91befebc4f342e86b3c04f7" title=" " alt="" coords="531,657,700,698"/>
+<area shape="poly" title=" " alt="" coords="385,408,399,456,424,519,461,585,485,615,512,642,520,648,516,652,508,646,481,619,457,588,420,521,394,457,380,409"/>
+<area shape="poly" title=" " alt="" coords="721,591,754,585,755,590,722,596"/>
+<area shape="poly" title=" " alt="" coords="722,628,784,639,783,645,721,633"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a02b0d49bf228197eebe2b6dfd9320f0c" title=" " alt="" coords="527,772,704,798"/>
+<area shape="poly" title=" " alt="" coords="462,782,512,782,512,788,462,788"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#ad8eb35d4cd9da6003436c1e8c778c811" title=" " alt="" coords="520,822,712,847"/>
+<area shape="poly" title=" " alt="" coords="443,796,535,815,534,821,442,801"/>
 </map>
 </div>
 
@@ -715,9 +794,9 @@ Here is the call graph for this function:</div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00344">344</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00372">372</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8cc_source.html#l00211">yaze::app::gfx::GetPaletteAddress()</a>, <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00091">yaze::app::gfx::SnesColor::is_modified()</a>, <a class="el" href="constants_8h_source.html#l00067">RETURN_IF_ERROR</a>, <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00094">yaze::app::gfx::SnesColor::set_modified()</a>, <a class="el" href="snes__palette_8h_source.html#l00143">yaze::app::gfx::SnesPalette::size()</a>, and <a class="el" href="rom_8h_source.html#l00405">WriteColor()</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8cc_source.html#l00211">yaze::app::gfx::GetPaletteAddress()</a>, <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00091">yaze::app::gfx::SnesColor::is_modified()</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00094">yaze::app::gfx::SnesColor::set_modified()</a>, <a class="el" href="snes__palette_8h_source.html#l00143">yaze::app::gfx::SnesPalette::size()</a>, and <a class="el" href="rom_8h_source.html#l00407">WriteColor()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -767,11 +846,11 @@ Here is the call graph for this function:</div>
 <p>Saves all palettes in the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a>. </p>
 <p>This function iterates through all palette groups and all palettes in each group, and saves each palette using the <a class="el" href="#a4ecd5e203ecac5987519ece53983fe63">SavePalette()</a> function. </p>
 
-<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00358">358</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00386">386</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00293">yaze::app::gfx::PaletteGroupMap::for_each()</a>, <a class="el" href="rom_8h_source.html#l00565">palette_groups_</a>, and <a class="el" href="constants_8h_source.html#l00067">RETURN_IF_ERROR</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00293">yaze::app::gfx::PaletteGroupMap::for_each()</a>, <a class="el" href="rom_8h_source.html#l00567">palette_groups_</a>, and <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00245">SaveToFile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00277">SaveToFile()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -810,9 +889,9 @@ Here is the call graph for this function:</div>
 
 <p>Expand the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data to a specified size. </p>
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00217">217</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00219">219</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>, <a class="el" href="rom_8h_source.html#l00458">size()</a>, and <a class="el" href="rom_8h_source.html#l00541">size_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>, <a class="el" href="rom_8h_source.html#l00460">size()</a>, and <a class="el" href="rom_8h_source.html#l00543">size_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="command_8h_source.html#l00218">yaze::cli::Expand::handle()</a>.</p>
 <div class="dynheader">
@@ -853,9 +932,9 @@ Here is the call graph for this function:</div>
 
 <p>Close the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> file. </p>
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00225">225</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00227">227</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00538">is_loaded_</a>, <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>, and <a class="el" href="rom_8h_source.html#l00541">size_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00540">is_loaded_</a>, <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>, and <a class="el" href="rom_8h_source.html#l00543">size_</a>.</p>
 
 </div>
 </div>
@@ -884,11 +963,11 @@ Here is the call graph for this function:</div>
 
 <p>Precondition check for reading and writing to the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00235">235</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00237">237</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00538">is_loaded_</a>, <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>, and <a class="el" href="rom_8h_source.html#l00541">size_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00540">is_loaded_</a>, <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>, and <a class="el" href="rom_8h_source.html#l00543">size_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00247">ReadByte()</a>, <a class="el" href="rom_8h_source.html#l00278">ReadByteVector()</a>, <a class="el" href="rom_8h_source.html#l00268">ReadLong()</a>, <a class="el" href="rom_8h_source.html#l00255">ReadWord()</a>, <a class="el" href="rom_8h_source.html#l00333">WriteByte()</a>, <a class="el" href="rom_8h_source.html#l00375">WriteLong()</a>, <a class="el" href="rom_8h_source.html#l00361">WriteShort()</a>, and <a class="el" href="rom_8h_source.html#l00347">WriteWord()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00249">ReadByte()</a>, <a class="el" href="rom_8h_source.html#l00280">ReadByteVector()</a>, <a class="el" href="rom_8h_source.html#l00270">ReadLong()</a>, <a class="el" href="rom_8h_source.html#l00257">ReadWord()</a>, <a class="el" href="rom_8h_source.html#l00335">WriteByte()</a>, <a class="el" href="rom_8h_source.html#l00377">WriteLong()</a>, <a class="el" href="rom_8h_source.html#l00363">WriteShort()</a>, and <a class="el" href="rom_8h_source.html#l00349">WriteWord()</a>.</p>
 
 </div>
 </div>
@@ -915,11 +994,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00247">247</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00249">249</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00235">ReadWritePreconditions()</a>, <a class="el" href="constants_8h_source.html#l00067">RETURN_IF_ERROR</a>, and <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00237">ReadWritePreconditions()</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, and <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00101">yaze::app::zelda3::overworld::Overworld::GetTile16ForTile32()</a>, <a class="el" href="command_8h_source.html#l00169">yaze::cli::ReadFromRom::handle()</a>, and <a class="el" href="rom_8h_source.html#l00519">ReadHelper()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00101">yaze::app::zelda3::overworld::Overworld::GetTile16ForTile32()</a>, <a class="el" href="command_8h_source.html#l00169">yaze::cli::ReadFromRom::handle()</a>, and <a class="el" href="rom_8h_source.html#l00521">ReadHelper()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -956,11 +1035,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00255">255</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00257">257</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00235">ReadWritePreconditions()</a>, <a class="el" href="constants_8h_source.html#l00067">RETURN_IF_ERROR</a>, and <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00237">ReadWritePreconditions()</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, and <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00101">yaze::app::zelda3::overworld::Overworld::GetTile16ForTile32()</a>, <a class="el" href="overworld__editor_8h_source.html#l00075">yaze::app::editor::EntranceContext::LoadEntranceTileTypes()</a>, <a class="el" href="rom_8h_source.html#l00519">ReadHelper()</a>, and <a class="el" href="rom_8h_source.html#l00291">ReadTile16()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00101">yaze::app::zelda3::overworld::Overworld::GetTile16ForTile32()</a>, <a class="el" href="overworld__editor_8h_source.html#l00075">yaze::app::editor::EntranceContext::LoadEntranceTileTypes()</a>, <a class="el" href="rom_8h_source.html#l00521">ReadHelper()</a>, and <a class="el" href="rom_8h_source.html#l00293">ReadTile16()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -997,9 +1076,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00264">264</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00266">266</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00068">yaze::app::zelda3::overworld::OverworldMap::LoadAreaInfo()</a>.</p>
 
@@ -1028,9 +1107,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00268">268</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00270">270</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00235">ReadWritePreconditions()</a>, <a class="el" href="constants_8h_source.html#l00067">RETURN_IF_ERROR</a>, and <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00237">ReadWritePreconditions()</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, and <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1071,11 +1150,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00278">278</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00280">280</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00235">ReadWritePreconditions()</a>, <a class="el" href="constants_8h_source.html#l00067">RETURN_IF_ERROR</a>, and <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00237">ReadWritePreconditions()</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, and <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="command_8h_source.html#l00169">yaze::cli::ReadFromRom::handle()</a>, <a class="el" href="rom_8cc_source.html#l00058">LoadLinkGraphics()</a>, and <a class="el" href="rom_8h_source.html#l00519">ReadHelper()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="command_8h_source.html#l00169">yaze::cli::ReadFromRom::handle()</a>, <a class="el" href="rom_8cc_source.html#l00058">LoadLinkGraphics()</a>, and <a class="el" href="rom_8h_source.html#l00521">ReadHelper()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1112,9 +1191,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00291">291</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00293">293</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="constants_8h_source.html#l00075">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00118">yaze::app::kTile16Ptr</a>, <a class="el" href="rom_8h_source.html#l00255">ReadWord()</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00130">yaze::app::gfx::Tile16::tile0_</a>, and <a class="el" href="snes__tile_8cc_source.html#l00331">yaze::app::gfx::WordToTileInfo()</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00118">yaze::app::kTile16Ptr</a>, <a class="el" href="rom_8h_source.html#l00257">ReadWord()</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00130">yaze::app::gfx::Tile16::tile0_</a>, and <a class="el" href="snes__tile_8cc_source.html#l00331">yaze::app::gfx::WordToTileInfo()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__transfer_8cc_source.html#l00015">yaze::cli::Tile16Transfer::handle()</a>.</p>
 <div class="dynheader">
@@ -1161,9 +1240,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00309">309</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00311">311</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00118">yaze::app::kTile16Ptr</a>, <a class="el" href="constants_8h_source.html#l00067">RETURN_IF_ERROR</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00130">yaze::app::gfx::Tile16::tile0_</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00131">yaze::app::gfx::Tile16::tile1_</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00132">yaze::app::gfx::Tile16::tile2_</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00133">yaze::app::gfx::Tile16::tile3_</a>, <a class="el" href="snes__tile_8cc_source.html#l00314">yaze::app::gfx::TileInfoToWord()</a>, and <a class="el" href="rom_8h_source.html#l00361">WriteShort()</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00118">yaze::app::kTile16Ptr</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00130">yaze::app::gfx::Tile16::tile0_</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00131">yaze::app::gfx::Tile16::tile1_</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00132">yaze::app::gfx::Tile16::tile2_</a>, <a class="el" href="app_2gfx_2snes__tile_8h_source.html#l00133">yaze::app::gfx::Tile16::tile3_</a>, <a class="el" href="snes__tile_8cc_source.html#l00314">yaze::app::gfx::TileInfoToWord()</a>, and <a class="el" href="rom_8h_source.html#l00363">WriteShort()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__transfer_8cc_source.html#l00015">yaze::cli::Tile16Transfer::handle()</a>.</p>
 <div class="dynheader">
@@ -1214,11 +1293,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00323">323</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00325">325</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="room__entrance_8h_source.html#l00214">yaze::app::zelda3::dungeon::RoomEntrance::Save()</a>, and <a class="el" href="rom_8h_source.html#l00497">WriteHelper()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="room__entrance_8h_source.html#l00214">yaze::app::zelda3::dungeon::RoomEntrance::Save()</a>, and <a class="el" href="rom_8h_source.html#l00499">WriteHelper()</a>.</p>
 
 </div>
 </div>
@@ -1249,9 +1328,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00333">333</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00335">335</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00461">data()</a>, <a class="el" href="core_2common_8h_source.html#l00215">yaze::app::core::Logger::log()</a>, <a class="el" href="rom_8h_source.html#l00235">ReadWritePreconditions()</a>, <a class="el" href="constants_8h_source.html#l00067">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>, and <a class="el" href="common_8cc_source.html#l00103">yaze::app::core::UppercaseHexByte()</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00463">data()</a>, <a class="el" href="core_2common_8h_source.html#l00218">yaze::app::core::Logger::log()</a>, <a class="el" href="rom_8h_source.html#l00237">ReadWritePreconditions()</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>, and <a class="el" href="common_8cc_source.html#l00103">yaze::app::core::UppercaseHexByte()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1298,9 +1377,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00347">347</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00349">349</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00215">yaze::app::core::Logger::log()</a>, <a class="el" href="rom_8h_source.html#l00235">ReadWritePreconditions()</a>, <a class="el" href="constants_8h_source.html#l00067">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>, and <a class="el" href="common_8cc_source.html#l00111">yaze::app::core::UppercaseHexWord()</a>.</p>
+<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00218">yaze::app::core::Logger::log()</a>, <a class="el" href="rom_8h_source.html#l00237">ReadWritePreconditions()</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>, and <a class="el" href="common_8cc_source.html#l00111">yaze::app::core::UppercaseHexWord()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1345,11 +1424,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00361">361</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00363">363</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00215">yaze::app::core::Logger::log()</a>, <a class="el" href="rom_8h_source.html#l00235">ReadWritePreconditions()</a>, <a class="el" href="constants_8h_source.html#l00067">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>, and <a class="el" href="common_8cc_source.html#l00111">yaze::app::core::UppercaseHexWord()</a>.</p>
+<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00218">yaze::app::core::Logger::log()</a>, <a class="el" href="rom_8h_source.html#l00237">ReadWritePreconditions()</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>, and <a class="el" href="common_8cc_source.html#l00111">yaze::app::core::UppercaseHexWord()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="room__entrance_8h_source.html#l00214">yaze::app::zelda3::dungeon::RoomEntrance::Save()</a>, <a class="el" href="rom_8h_source.html#l00405">WriteColor()</a>, <a class="el" href="rom_8h_source.html#l00497">WriteHelper()</a>, and <a class="el" href="rom_8h_source.html#l00309">WriteTile16()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="room__entrance_8h_source.html#l00214">yaze::app::zelda3::dungeon::RoomEntrance::Save()</a>, <a class="el" href="rom_8h_source.html#l00407">WriteColor()</a>, <a class="el" href="rom_8h_source.html#l00499">WriteHelper()</a>, and <a class="el" href="rom_8h_source.html#l00311">WriteTile16()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1394,9 +1473,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00375">375</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00377">377</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00215">yaze::app::core::Logger::log()</a>, <a class="el" href="rom_8h_source.html#l00235">ReadWritePreconditions()</a>, <a class="el" href="constants_8h_source.html#l00067">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>, and <a class="el" href="common_8cc_source.html#l00119">yaze::app::core::UppercaseHexLong()</a>.</p>
+<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00218">yaze::app::core::Logger::log()</a>, <a class="el" href="rom_8h_source.html#l00237">ReadWritePreconditions()</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>, and <a class="el" href="common_8cc_source.html#l00119">yaze::app::core::UppercaseHexLong()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1441,11 +1520,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00390">390</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00392">392</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00461">data()</a>, <a class="el" href="core_2common_8h_source.html#l00215">yaze::app::core::Logger::log()</a>, <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>, and <a class="el" href="common_8cc_source.html#l00103">yaze::app::core::UppercaseHexByte()</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00463">data()</a>, <a class="el" href="core_2common_8h_source.html#l00218">yaze::app::core::Logger::log()</a>, <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>, and <a class="el" href="common_8cc_source.html#l00103">yaze::app::core::UppercaseHexByte()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00497">WriteHelper()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00499">WriteHelper()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1490,11 +1569,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00405">405</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00407">407</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00215">yaze::app::core::Logger::log()</a>, <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00090">yaze::app::gfx::SnesColor::snes()</a>, <a class="el" href="common_8cc_source.html#l00111">yaze::app::core::UppercaseHexWord()</a>, and <a class="el" href="rom_8h_source.html#l00361">WriteShort()</a>.</p>
+<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00218">yaze::app::core::Logger::log()</a>, <a class="el" href="app_2gfx_2snes__color_8h_source.html#l00090">yaze::app::gfx::SnesColor::snes()</a>, <a class="el" href="common_8cc_source.html#l00111">yaze::app::core::UppercaseHexWord()</a>, and <a class="el" href="rom_8h_source.html#l00363">WriteShort()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00344">SavePalette()</a>, and <a class="el" href="rom_8h_source.html#l00497">WriteHelper()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00372">SavePalette()</a>, and <a class="el" href="rom_8h_source.html#l00499">WriteHelper()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1543,9 +1622,9 @@ template&lt;typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00416">416</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00418">418</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00497">WriteHelper()</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00499">WriteHelper()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="rom__test_8cc_source.html#l00210">yaze::test::TEST_F()</a>, and <a class="el" href="rom__test_8cc_source.html#l00197">yaze::test::TEST_F()</a>.</p>
 <div class="dynheader">
@@ -1604,11 +1683,11 @@ template&lt;typename T , typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00424">424</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00426">426</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00519">ReadHelper()</a>, and <a class="el" href="rom_8h_source.html#l00424">ReadTransaction()</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00521">ReadHelper()</a>, and <a class="el" href="rom_8h_source.html#l00426">ReadTransaction()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00424">ReadTransaction()</a>, <a class="el" href="rom__test_8cc_source.html#l00236">yaze::test::TEST_F()</a>, and <a class="el" href="rom__test_8cc_source.html#l00224">yaze::test::TEST_F()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00426">ReadTransaction()</a>, <a class="el" href="rom__test_8cc_source.html#l00236">yaze::test::TEST_F()</a>, and <a class="el" href="rom__test_8cc_source.html#l00224">yaze::test::TEST_F()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1652,9 +1731,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00437">437</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00439">439</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>, and <a class="el" href="rom_8h_source.html#l00541">size_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>, and <a class="el" href="rom_8h_source.html#l00543">size_</a>.</p>
 
 </div>
 </div>
@@ -1681,11 +1760,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00446">446</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00448">448</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00547">filename_</a>, and <a class="el" href="rom_8h_source.html#l00538">is_loaded_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00549">filename_</a>, and <a class="el" href="rom_8h_source.html#l00540">is_loaded_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00710">yaze::app::editor::GraphicsEditor::DrawClipboardImport()</a>, and <a class="el" href="emu_8cc_source.html#l00033">main()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00709">yaze::app::editor::GraphicsEditor::DrawClipboardImport()</a>, and <a class="el" href="emu_8cc_source.html#l00033">main()</a>.</p>
 
 </div>
 </div>
@@ -1712,9 +1791,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00455">455</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00457">457</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00553">graphics_buffer_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00555">graphics_buffer_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00670">yaze::app::zelda3::overworld::OverworldMap::BuildTileset()</a>.</p>
 
@@ -1743,9 +1822,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00457">457</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00459">459</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00544">title_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00546">title_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="command_8h_source.html#l00074">yaze::cli::Open::handle()</a>.</p>
 
@@ -1774,11 +1853,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00458">458</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00460">460</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00541">size_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00543">size_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00757">yaze::app::editor::GraphicsEditor::DrawMemoryEditor()</a>, <a class="el" href="rom_8h_source.html#l00217">Expand()</a>, <a class="el" href="patch_8cc_source.html#l00006">yaze::cli::ApplyPatch::handle()</a>, <a class="el" href="command_8h_source.html#l00074">yaze::cli::Open::handle()</a>, <a class="el" href="memory__editor_8h_source.html#l00039">yaze::app::editor::MemoryEditorWithDiffChecker::Update()</a>, <a class="el" href="compression_8cc_source.html#l00475">yaze::app::gfx::lc_lz2::ValidateCompressionResult()</a>, <a class="el" href="compression_8cc_source.html#l01178">yaze::app::gfx::lc_lz2::ValidateCompressionResultV3()</a>, and <a class="el" href="yaze_8cc_source.html#l00047">yaze_load_rom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00756">yaze::app::editor::GraphicsEditor::DrawMemoryEditor()</a>, <a class="el" href="rom_8h_source.html#l00219">Expand()</a>, <a class="el" href="patch_8cc_source.html#l00006">yaze::cli::ApplyPatch::handle()</a>, <a class="el" href="command_8h_source.html#l00074">yaze::cli::Open::handle()</a>, <a class="el" href="memory__editor_8h_source.html#l00039">yaze::app::editor::MemoryEditorWithDiffChecker::Update()</a>, <a class="el" href="compression_8cc_source.html#l00475">yaze::app::gfx::lc_lz2::ValidateCompressionResult()</a>, <a class="el" href="compression_8cc_source.html#l01178">yaze::app::gfx::lc_lz2::ValidateCompressionResultV3()</a>, and <a class="el" href="yaze_8cc_source.html#l00047">yaze_load_rom()</a>.</p>
 
 </div>
 </div>
@@ -1805,9 +1884,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00459">459</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00461">461</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00475">yaze::app::gfx::lc_lz2::ValidateCompressionResult()</a>, and <a class="el" href="compression_8cc_source.html#l01178">yaze::app::gfx::lc_lz2::ValidateCompressionResultV3()</a>.</p>
 
@@ -1836,9 +1915,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00460">460</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00462">462</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>.</p>
 
 </div>
 </div>
@@ -1865,11 +1944,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00461">461</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00463">463</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00148">yaze::app::editor::BuildDictionaryEntries()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00766">yaze::app::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00790">yaze::app::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00757">yaze::app::editor::GraphicsEditor::DrawMemoryEditor()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00585">yaze::app::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00654">yaze::app::editor::GraphicsEditor::DrawTilemapImport()</a>, <a class="el" href="compression__test_8cc_source.html#l00045">yaze::test::gfx::anonymous_namespace{compression_test.cc}::ExpectDecompressBytesOk()</a>, <a class="el" href="compression__test_8cc_source.html#l00055">yaze::test::gfx::anonymous_namespace{compression_test.cc}::ExpectDecompressOk()</a>, <a class="el" href="tracker_8cc_source.html#l00061">yaze::app::zelda3::music::Tracker::GetSPCAddr()</a>, <a class="el" href="rom_8cc_source.html#l00039">Load2BppGraphics()</a>, <a class="el" href="rom_8cc_source.html#l00077">LoadAllGraphicsData()</a>, <a class="el" href="rom_8cc_source.html#l00234">LoadFromBytes()</a>, <a class="el" href="rom_8cc_source.html#l00181">LoadFromPointer()</a>, <a class="el" href="tracker_8cc_source.html#l00388">yaze::app::zelda3::music::Tracker::LoadSongs()</a>, <a class="el" href="tracker_8cc_source.html#l00811">yaze::app::zelda3::music::Tracker::SaveSongs()</a>, <a class="el" href="compression_8cc_source.html#l00475">yaze::app::gfx::lc_lz2::ValidateCompressionResult()</a>, <a class="el" href="compression_8cc_source.html#l01178">yaze::app::gfx::lc_lz2::ValidateCompressionResultV3()</a>, <a class="el" href="rom_8h_source.html#l00333">WriteByte()</a>, <a class="el" href="tracker_8cc_source.html#l00781">yaze::app::zelda3::music::Tracker::WriteSPCData()</a>, <a class="el" href="rom_8h_source.html#l00390">WriteVector()</a>, and <a class="el" href="yaze_8cc_source.html#l00047">yaze_load_rom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00148">yaze::app::editor::BuildDictionaryEntries()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00765">yaze::app::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00789">yaze::app::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00756">yaze::app::editor::GraphicsEditor::DrawMemoryEditor()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00584">yaze::app::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00653">yaze::app::editor::GraphicsEditor::DrawTilemapImport()</a>, <a class="el" href="compression__test_8cc_source.html#l00045">yaze::test::gfx::anonymous_namespace{compression_test.cc}::ExpectDecompressBytesOk()</a>, <a class="el" href="compression__test_8cc_source.html#l00055">yaze::test::gfx::anonymous_namespace{compression_test.cc}::ExpectDecompressOk()</a>, <a class="el" href="tracker_8cc_source.html#l00061">yaze::app::zelda3::music::Tracker::GetSPCAddr()</a>, <a class="el" href="rom_8cc_source.html#l00039">Load2BppGraphics()</a>, <a class="el" href="rom_8cc_source.html#l00077">LoadAllGraphicsData()</a>, <a class="el" href="rom_8cc_source.html#l00266">LoadFromBytes()</a>, <a class="el" href="rom_8cc_source.html#l00213">LoadFromPointer()</a>, <a class="el" href="tracker_8cc_source.html#l00388">yaze::app::zelda3::music::Tracker::LoadSongs()</a>, <a class="el" href="rom_8cc_source.html#l00136">SaveAllGraphicsData()</a>, <a class="el" href="tracker_8cc_source.html#l00811">yaze::app::zelda3::music::Tracker::SaveSongs()</a>, <a class="el" href="compression_8cc_source.html#l00475">yaze::app::gfx::lc_lz2::ValidateCompressionResult()</a>, <a class="el" href="compression_8cc_source.html#l01178">yaze::app::gfx::lc_lz2::ValidateCompressionResultV3()</a>, <a class="el" href="rom_8h_source.html#l00335">WriteByte()</a>, <a class="el" href="tracker_8cc_source.html#l00781">yaze::app::zelda3::music::Tracker::WriteSPCData()</a>, <a class="el" href="rom_8h_source.html#l00392">WriteVector()</a>, and <a class="el" href="yaze_8cc_source.html#l00047">yaze_load_rom()</a>.</p>
 
 </div>
 </div>
@@ -1896,9 +1975,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00462">462</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00464">464</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="compression__test_8cc_source.html#l00036">yaze::test::gfx::anonymous_namespace{compression_test.cc}::ExpectCompressOk()</a>, <a class="el" href="patch_8cc_source.html#l00006">yaze::cli::ApplyPatch::handle()</a>, <a class="el" href="patch_8cc_source.html#l00027">yaze::cli::AsarPatch::handle()</a>, and <a class="el" href="emu_8cc_source.html#l00033">main()</a>.</p>
 
@@ -1927,9 +2006,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00463">463</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00465">465</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00568">version_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00570">version_</a>.</p>
 
 </div>
 </div>
@@ -1956,11 +2035,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00464">464</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00466">466</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00547">filename_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00549">filename_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00136">LoadFromFile()</a>, <a class="el" href="rom_8cc_source.html#l00245">SaveToFile()</a>, and <a class="el" href="memory__editor_8h_source.html#l00039">yaze::app::editor::MemoryEditorWithDiffChecker::Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00168">LoadFromFile()</a>, <a class="el" href="rom_8cc_source.html#l00277">SaveToFile()</a>, and <a class="el" href="memory__editor_8h_source.html#l00039">yaze::app::editor::MemoryEditorWithDiffChecker::Update()</a>.</p>
 
 </div>
 </div>
@@ -1987,9 +2066,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00465">465</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00467">467</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00547">filename_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00549">filename_</a>.</p>
 
 </div>
 </div>
@@ -2016,9 +2095,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00467">467</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00469">469</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00559">link_graphics_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00561">link_graphics_</a>.</p>
 
 </div>
 </div>
@@ -2045,9 +2124,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00468">468</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00470">470</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00559">link_graphics_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00561">link_graphics_</a>.</p>
 
 </div>
 </div>
@@ -2074,9 +2153,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00469">469</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00471">471</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00556">graphics_sheets_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00558">graphics_sheets_</a>.</p>
 
 </div>
 </div>
@@ -2103,9 +2182,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00470">470</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00472">472</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00556">graphics_sheets_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00558">graphics_sheets_</a>.</p>
 
 </div>
 </div>
@@ -2132,9 +2211,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00472">472</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00474">474</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00565">palette_groups_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00567">palette_groups_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00573">yaze::app::zelda3::overworld::OverworldMap::LoadPalette()</a>, <a class="el" href="overworld__map_8cc_source.html#l00436">yaze::app::zelda3::overworld::palette_internal::SetColorsPalette()</a>, and <a class="el" href="yaze_8cc_source.html#l00082">yaze_get_color_from_paletteset()</a>.</p>
 
@@ -2163,9 +2242,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00473">473</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00475">475</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00565">palette_groups_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00567">palette_groups_</a>.</p>
 
 </div>
 </div>
@@ -2192,9 +2271,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00474">474</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00476">476</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00251">yaze::app::gfx::PaletteGroupMap::dungeon_main</a>, and <a class="el" href="rom_8h_source.html#l00565">palette_groups_</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00251">yaze::app::gfx::PaletteGroupMap::dungeon_main</a>, and <a class="el" href="rom_8h_source.html#l00567">palette_groups_</a>.</p>
 
 </div>
 </div>
@@ -2221,9 +2300,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00475">475</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00477">477</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00251">yaze::app::gfx::PaletteGroupMap::dungeon_main</a>, <a class="el" href="snes__palette_8h_source.html#l00208">yaze::app::gfx::PaletteGroup::mutable_palette()</a>, and <a class="el" href="rom_8h_source.html#l00565">palette_groups_</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00251">yaze::app::gfx::PaletteGroupMap::dungeon_main</a>, <a class="el" href="snes__palette_8h_source.html#l00208">yaze::app::gfx::PaletteGroup::mutable_palette()</a>, and <a class="el" href="rom_8h_source.html#l00567">palette_groups_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2260,9 +2339,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00479">479</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00481">481</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00562">resource_label_manager_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00564">resource_label_manager_</a>.</p>
 
 </div>
 </div>
@@ -2289,11 +2368,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00480">480</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00482">482</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00568">version_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00570">version_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00113">yaze::app::zelda3::overworld::Overworld::AssembleMap32Tiles()</a>, <a class="el" href="overworld__map_8cc_source.html#l00560">yaze::app::zelda3::overworld::OverworldMap::GetPalette()</a>, <a class="el" href="rom_8cc_source.html#l00039">Load2BppGraphics()</a>, <a class="el" href="rom_8cc_source.html#l00077">LoadAllGraphicsData()</a>, <a class="el" href="overworld__map_8cc_source.html#l00402">yaze::app::zelda3::overworld::OverworldMap::LoadAreaGraphicsBlocksets()</a>, <a class="el" href="overworld__map_8cc_source.html#l00156">yaze::app::zelda3::overworld::OverworldMap::LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8cc_source.html#l00372">yaze::app::zelda3::overworld::OverworldMap::LoadMainBlocksets()</a>, <a class="el" href="overworld__map_8cc_source.html#l00573">yaze::app::zelda3::overworld::OverworldMap::LoadPalette()</a>, <a class="el" href="overworld__map_8cc_source.html#l00357">yaze::app::zelda3::overworld::OverworldMap::LoadSpritesBlocksets()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00266">yaze::app::zelda3::overworld::OverworldMap::SetupCustomTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00113">yaze::app::zelda3::overworld::Overworld::AssembleMap32Tiles()</a>, <a class="el" href="overworld__map_8cc_source.html#l00560">yaze::app::zelda3::overworld::OverworldMap::GetPalette()</a>, <a class="el" href="rom_8cc_source.html#l00039">Load2BppGraphics()</a>, <a class="el" href="rom_8cc_source.html#l00077">LoadAllGraphicsData()</a>, <a class="el" href="overworld__map_8cc_source.html#l00402">yaze::app::zelda3::overworld::OverworldMap::LoadAreaGraphicsBlocksets()</a>, <a class="el" href="overworld__map_8cc_source.html#l00156">yaze::app::zelda3::overworld::OverworldMap::LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8cc_source.html#l00372">yaze::app::zelda3::overworld::OverworldMap::LoadMainBlocksets()</a>, <a class="el" href="overworld__map_8cc_source.html#l00573">yaze::app::zelda3::overworld::OverworldMap::LoadPalette()</a>, <a class="el" href="overworld__map_8cc_source.html#l00357">yaze::app::zelda3::overworld::OverworldMap::LoadSpritesBlocksets()</a>, <a class="el" href="rom_8cc_source.html#l00136">SaveAllGraphicsData()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00266">yaze::app::zelda3::overworld::OverworldMap::SetupCustomTileset()</a>.</p>
 
 </div>
 </div>
@@ -2320,11 +2399,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00497">497</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00499">499</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00490">yaze::app::Rom::WriteAction::address</a>, <a class="el" href="rom_8h_source.html#l00493">yaze::app::Rom::WriteAction::value</a>, <a class="el" href="rom_8h_source.html#l00323">Write()</a>, <a class="el" href="rom_8h_source.html#l00405">WriteColor()</a>, <a class="el" href="rom_8h_source.html#l00361">WriteShort()</a>, and <a class="el" href="rom_8h_source.html#l00390">WriteVector()</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00492">yaze::app::Rom::WriteAction::address</a>, <a class="el" href="rom_8h_source.html#l00495">yaze::app::Rom::WriteAction::value</a>, <a class="el" href="rom_8h_source.html#l00325">Write()</a>, <a class="el" href="rom_8h_source.html#l00407">WriteColor()</a>, <a class="el" href="rom_8h_source.html#l00363">WriteShort()</a>, and <a class="el" href="rom_8h_source.html#l00392">WriteVector()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00416">WriteTransaction()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00418">WriteTransaction()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2387,11 +2466,11 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00519">519</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00521">521</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">References <a class="el" href="constants_8h_source.html#l00075">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00247">ReadByte()</a>, <a class="el" href="rom_8h_source.html#l00278">ReadByteVector()</a>, and <a class="el" href="rom_8h_source.html#l00255">ReadWord()</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00249">ReadByte()</a>, <a class="el" href="rom_8h_source.html#l00280">ReadByteVector()</a>, and <a class="el" href="rom_8h_source.html#l00257">ReadWord()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00424">ReadTransaction()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00426">ReadTransaction()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2436,11 +2515,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00199">199</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00231">231</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a24d22e03afb23edb45c6c8cfa16a280e">yaze::app::JP</a>, <a class="el" href="snes__palette_8cc_source.html#l00333">yaze::app::gfx::LoadAllPalettes()</a>, <a class="el" href="rom_8cc_source.html#l00371">LoadGfxGroups()</a>, <a class="el" href="rom_8h_source.html#l00565">palette_groups_</a>, <a class="el" href="constants_8h_source.html#l00067">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00550">rom_data_</a>, <a class="el" href="rom_8h_source.html#l00541">size_</a>, <a class="el" href="rom_8h_source.html#l00544">title_</a>, <a class="el" href="namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a7516fd43adaa5e0b8a65a672c39845d2">yaze::app::US</a>, and <a class="el" href="rom_8h_source.html#l00568">version_</a>.</p>
+<p class="reference">References <a class="el" href="namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a24d22e03afb23edb45c6c8cfa16a280e">yaze::app::JP</a>, <a class="el" href="snes__palette_8cc_source.html#l00333">yaze::app::gfx::LoadAllPalettes()</a>, <a class="el" href="rom_8cc_source.html#l00399">LoadGfxGroups()</a>, <a class="el" href="rom_8h_source.html#l00567">palette_groups_</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00552">rom_data_</a>, <a class="el" href="rom_8h_source.html#l00543">size_</a>, <a class="el" href="rom_8h_source.html#l00546">title_</a>, <a class="el" href="namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a7516fd43adaa5e0b8a65a672c39845d2">yaze::app::US</a>, and <a class="el" href="rom_8h_source.html#l00570">version_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00136">LoadFromFile()</a>, and <a class="el" href="rom_8cc_source.html#l00181">LoadFromPointer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00168">LoadFromFile()</a>, and <a class="el" href="rom_8cc_source.html#l00213">LoadFromPointer()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2509,11 +2588,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00371">371</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00399">399</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="constants_8h_source.html#l00075">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00128">yaze::app::kEntranceGfxGroup</a>, <a class="el" href="rom_8h_source.html#l00122">yaze::app::kGfxGroupsPointer</a>, <a class="el" href="rom_8h_source.html#l00124">yaze::app::kNumMainBlocksets</a>, <a class="el" href="rom_8h_source.html#l00127">yaze::app::kNumPalettesets</a>, <a class="el" href="rom_8h_source.html#l00125">yaze::app::kNumRoomBlocksets</a>, and <a class="el" href="rom_8h_source.html#l00126">yaze::app::kNumSpritesets</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00128">yaze::app::kEntranceGfxGroup</a>, <a class="el" href="rom_8h_source.html#l00122">yaze::app::kGfxGroupsPointer</a>, <a class="el" href="rom_8h_source.html#l00124">yaze::app::kNumMainBlocksets</a>, <a class="el" href="rom_8h_source.html#l00127">yaze::app::kNumPalettesets</a>, <a class="el" href="rom_8h_source.html#l00125">yaze::app::kNumRoomBlocksets</a>, and <a class="el" href="rom_8h_source.html#l00126">yaze::app::kNumSpritesets</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00199">LoadZelda3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00231">LoadZelda3()</a>.</p>
 
 </div>
 </div>
@@ -2540,11 +2619,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00404">404</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00432">432</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="constants_8h_source.html#l00075">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00128">yaze::app::kEntranceGfxGroup</a>, <a class="el" href="rom_8h_source.html#l00122">yaze::app::kGfxGroupsPointer</a>, <a class="el" href="rom_8h_source.html#l00124">yaze::app::kNumMainBlocksets</a>, <a class="el" href="rom_8h_source.html#l00127">yaze::app::kNumPalettesets</a>, <a class="el" href="rom_8h_source.html#l00125">yaze::app::kNumRoomBlocksets</a>, and <a class="el" href="rom_8h_source.html#l00126">yaze::app::kNumSpritesets</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00128">yaze::app::kEntranceGfxGroup</a>, <a class="el" href="rom_8h_source.html#l00122">yaze::app::kGfxGroupsPointer</a>, <a class="el" href="rom_8h_source.html#l00124">yaze::app::kNumMainBlocksets</a>, <a class="el" href="rom_8h_source.html#l00127">yaze::app::kNumPalettesets</a>, <a class="el" href="rom_8h_source.html#l00125">yaze::app::kNumRoomBlocksets</a>, and <a class="el" href="rom_8h_source.html#l00126">yaze::app::kNumSpritesets</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00245">SaveToFile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00277">SaveToFile()</a>.</p>
 
 </div>
 </div>
@@ -2561,7 +2640,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00484">484</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00486">486</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -2577,7 +2656,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00485">485</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00487">487</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -2593,7 +2672,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00486">486</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00488">488</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -2609,7 +2688,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00487">487</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00489">489</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -2633,9 +2712,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00538">538</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00540">540</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00225">Close()</a>, <a class="el" href="rom_8h_source.html#l00446">is_loaded()</a>, <a class="el" href="rom_8cc_source.html#l00234">LoadFromBytes()</a>, <a class="el" href="rom_8cc_source.html#l00136">LoadFromFile()</a>, <a class="el" href="rom_8cc_source.html#l00181">LoadFromPointer()</a>, and <a class="el" href="rom_8h_source.html#l00235">ReadWritePreconditions()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00227">Close()</a>, <a class="el" href="rom_8h_source.html#l00448">is_loaded()</a>, <a class="el" href="rom_8cc_source.html#l00266">LoadFromBytes()</a>, <a class="el" href="rom_8cc_source.html#l00168">LoadFromFile()</a>, <a class="el" href="rom_8cc_source.html#l00213">LoadFromPointer()</a>, and <a class="el" href="rom_8h_source.html#l00237">ReadWritePreconditions()</a>.</p>
 
 </div>
 </div>
@@ -2659,9 +2738,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00541">541</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00543">543</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00225">Close()</a>, <a class="el" href="rom_8h_source.html#l00217">Expand()</a>, <a class="el" href="rom_8cc_source.html#l00234">LoadFromBytes()</a>, <a class="el" href="rom_8cc_source.html#l00136">LoadFromFile()</a>, <a class="el" href="rom_8cc_source.html#l00181">LoadFromPointer()</a>, <a class="el" href="rom_8cc_source.html#l00199">LoadZelda3()</a>, <a class="el" href="rom_8h_source.html#l00437">operator[]()</a>, <a class="el" href="rom_8h_source.html#l00235">ReadWritePreconditions()</a>, and <a class="el" href="rom_8h_source.html#l00458">size()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00227">Close()</a>, <a class="el" href="rom_8h_source.html#l00219">Expand()</a>, <a class="el" href="rom_8cc_source.html#l00266">LoadFromBytes()</a>, <a class="el" href="rom_8cc_source.html#l00168">LoadFromFile()</a>, <a class="el" href="rom_8cc_source.html#l00213">LoadFromPointer()</a>, <a class="el" href="rom_8cc_source.html#l00231">LoadZelda3()</a>, <a class="el" href="rom_8h_source.html#l00439">operator[]()</a>, <a class="el" href="rom_8h_source.html#l00237">ReadWritePreconditions()</a>, and <a class="el" href="rom_8h_source.html#l00460">size()</a>.</p>
 
 </div>
 </div>
@@ -2685,9 +2764,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00544">544</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00546">546</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00199">LoadZelda3()</a>, and <a class="el" href="rom_8h_source.html#l00457">title()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00231">LoadZelda3()</a>, and <a class="el" href="rom_8h_source.html#l00459">title()</a>.</p>
 
 </div>
 </div>
@@ -2711,9 +2790,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00547">547</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00549">549</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00464">filename()</a>, <a class="el" href="rom_8h_source.html#l00446">is_loaded()</a>, <a class="el" href="rom_8cc_source.html#l00136">LoadFromFile()</a>, <a class="el" href="rom_8cc_source.html#l00245">SaveToFile()</a>, and <a class="el" href="rom_8h_source.html#l00465">set_filename()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00466">filename()</a>, <a class="el" href="rom_8h_source.html#l00448">is_loaded()</a>, <a class="el" href="rom_8cc_source.html#l00168">LoadFromFile()</a>, <a class="el" href="rom_8cc_source.html#l00277">SaveToFile()</a>, and <a class="el" href="rom_8h_source.html#l00467">set_filename()</a>.</p>
 
 </div>
 </div>
@@ -2737,9 +2816,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00550">550</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00552">552</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00459">begin()</a>, <a class="el" href="rom_8h_source.html#l00225">Close()</a>, <a class="el" href="rom_8h_source.html#l00461">data()</a>, <a class="el" href="rom_8h_source.html#l00460">end()</a>, <a class="el" href="rom_8h_source.html#l00217">Expand()</a>, <a class="el" href="rom_8cc_source.html#l00077">LoadAllGraphicsData()</a>, <a class="el" href="rom_8cc_source.html#l00234">LoadFromBytes()</a>, <a class="el" href="rom_8cc_source.html#l00136">LoadFromFile()</a>, <a class="el" href="rom_8cc_source.html#l00181">LoadFromPointer()</a>, <a class="el" href="rom_8cc_source.html#l00199">LoadZelda3()</a>, <a class="el" href="rom_8h_source.html#l00437">operator[]()</a>, <a class="el" href="rom_8h_source.html#l00247">ReadByte()</a>, <a class="el" href="rom_8h_source.html#l00278">ReadByteVector()</a>, <a class="el" href="rom_8h_source.html#l00268">ReadLong()</a>, <a class="el" href="rom_8h_source.html#l00255">ReadWord()</a>, <a class="el" href="rom_8h_source.html#l00235">ReadWritePreconditions()</a>, <a class="el" href="rom_8cc_source.html#l00245">SaveToFile()</a>, <a class="el" href="rom_8h_source.html#l00264">toint16()</a>, <a class="el" href="rom_8h_source.html#l00462">vector()</a>, <a class="el" href="rom_8h_source.html#l00323">Write()</a>, <a class="el" href="rom_8h_source.html#l00333">WriteByte()</a>, <a class="el" href="rom_8h_source.html#l00375">WriteLong()</a>, <a class="el" href="rom_8h_source.html#l00361">WriteShort()</a>, <a class="el" href="rom_8h_source.html#l00390">WriteVector()</a>, and <a class="el" href="rom_8h_source.html#l00347">WriteWord()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00461">begin()</a>, <a class="el" href="rom_8h_source.html#l00227">Close()</a>, <a class="el" href="rom_8h_source.html#l00463">data()</a>, <a class="el" href="rom_8h_source.html#l00462">end()</a>, <a class="el" href="rom_8h_source.html#l00219">Expand()</a>, <a class="el" href="rom_8cc_source.html#l00077">LoadAllGraphicsData()</a>, <a class="el" href="rom_8cc_source.html#l00266">LoadFromBytes()</a>, <a class="el" href="rom_8cc_source.html#l00168">LoadFromFile()</a>, <a class="el" href="rom_8cc_source.html#l00213">LoadFromPointer()</a>, <a class="el" href="rom_8cc_source.html#l00231">LoadZelda3()</a>, <a class="el" href="rom_8h_source.html#l00439">operator[]()</a>, <a class="el" href="rom_8h_source.html#l00249">ReadByte()</a>, <a class="el" href="rom_8h_source.html#l00280">ReadByteVector()</a>, <a class="el" href="rom_8h_source.html#l00270">ReadLong()</a>, <a class="el" href="rom_8h_source.html#l00257">ReadWord()</a>, <a class="el" href="rom_8h_source.html#l00237">ReadWritePreconditions()</a>, <a class="el" href="rom_8cc_source.html#l00136">SaveAllGraphicsData()</a>, <a class="el" href="rom_8cc_source.html#l00277">SaveToFile()</a>, <a class="el" href="rom_8h_source.html#l00266">toint16()</a>, <a class="el" href="rom_8h_source.html#l00464">vector()</a>, <a class="el" href="rom_8h_source.html#l00325">Write()</a>, <a class="el" href="rom_8h_source.html#l00335">WriteByte()</a>, <a class="el" href="rom_8h_source.html#l00377">WriteLong()</a>, <a class="el" href="rom_8h_source.html#l00363">WriteShort()</a>, <a class="el" href="rom_8h_source.html#l00392">WriteVector()</a>, and <a class="el" href="rom_8h_source.html#l00349">WriteWord()</a>.</p>
 
 </div>
 </div>
@@ -2763,9 +2842,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00553">553</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00555">555</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00455">graphics_buffer()</a>, and <a class="el" href="rom_8cc_source.html#l00077">LoadAllGraphicsData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00457">graphics_buffer()</a>, and <a class="el" href="rom_8cc_source.html#l00077">LoadAllGraphicsData()</a>.</p>
 
 </div>
 </div>
@@ -2789,9 +2868,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00556">556</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00558">558</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00469">gfx_sheets()</a>, <a class="el" href="rom_8cc_source.html#l00077">LoadAllGraphicsData()</a>, and <a class="el" href="rom_8h_source.html#l00470">mutable_gfx_sheets()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00471">gfx_sheets()</a>, <a class="el" href="rom_8cc_source.html#l00077">LoadAllGraphicsData()</a>, <a class="el" href="rom_8h_source.html#l00472">mutable_gfx_sheets()</a>, and <a class="el" href="rom_8cc_source.html#l00136">SaveAllGraphicsData()</a>.</p>
 
 </div>
 </div>
@@ -2815,9 +2894,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00559">559</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00561">561</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00467">link_graphics()</a>, <a class="el" href="rom_8cc_source.html#l00058">LoadLinkGraphics()</a>, and <a class="el" href="rom_8h_source.html#l00468">mutable_link_graphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00469">link_graphics()</a>, <a class="el" href="rom_8cc_source.html#l00058">LoadLinkGraphics()</a>, and <a class="el" href="rom_8h_source.html#l00470">mutable_link_graphics()</a>.</p>
 
 </div>
 </div>
@@ -2841,9 +2920,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00562">562</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00564">564</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00136">LoadFromFile()</a>, and <a class="el" href="rom_8h_source.html#l00479">resource_label()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00168">LoadFromFile()</a>, and <a class="el" href="rom_8h_source.html#l00481">resource_label()</a>.</p>
 
 </div>
 </div>
@@ -2867,9 +2946,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00565">565</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00567">567</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00474">dungeon_palette()</a>, <a class="el" href="rom_8cc_source.html#l00077">LoadAllGraphicsData()</a>, <a class="el" href="rom_8cc_source.html#l00181">LoadFromPointer()</a>, <a class="el" href="rom_8cc_source.html#l00058">LoadLinkGraphics()</a>, <a class="el" href="rom_8cc_source.html#l00199">LoadZelda3()</a>, <a class="el" href="rom_8h_source.html#l00475">mutable_dungeon_palette()</a>, <a class="el" href="rom_8h_source.html#l00473">mutable_palette_group()</a>, <a class="el" href="rom_8h_source.html#l00472">palette_group()</a>, and <a class="el" href="rom_8cc_source.html#l00358">SaveAllPalettes()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00476">dungeon_palette()</a>, <a class="el" href="rom_8cc_source.html#l00077">LoadAllGraphicsData()</a>, <a class="el" href="rom_8cc_source.html#l00213">LoadFromPointer()</a>, <a class="el" href="rom_8cc_source.html#l00058">LoadLinkGraphics()</a>, <a class="el" href="rom_8cc_source.html#l00231">LoadZelda3()</a>, <a class="el" href="rom_8h_source.html#l00477">mutable_dungeon_palette()</a>, <a class="el" href="rom_8h_source.html#l00475">mutable_palette_group()</a>, <a class="el" href="rom_8h_source.html#l00474">palette_group()</a>, and <a class="el" href="rom_8cc_source.html#l00386">SaveAllPalettes()</a>.</p>
 
 </div>
 </div>
@@ -2893,9 +2972,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00568">568</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00570">570</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00199">LoadZelda3()</a>, <a class="el" href="rom_8h_source.html#l00463">version()</a>, and <a class="el" href="rom_8h_source.html#l00480">version_constants()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00231">LoadZelda3()</a>, <a class="el" href="rom_8h_source.html#l00465">version()</a>, and <a class="el" href="rom_8h_source.html#l00482">version_constants()</a>.</p>
 
 </div>
 </div>

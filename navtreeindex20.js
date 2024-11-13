@@ -1,5 +1,7 @@
 var NAVTREEINDEX20 =
 {
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html":[12,0,0,0,5,2,2],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a02e374d74579c16575b179a8f367ce5b":[11,0,1,0,6,3,4,14],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a02e374d74579c16575b179a8f367ce5b":[12,0,0,0,5,2,2,14],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a102a9b2fe031d981399702b7d4c10916":[11,0,1,0,6,3,4,13],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a102a9b2fe031d981399702b7d4c10916":[12,0,0,0,5,2,2,13],
@@ -247,7 +249,5 @@ var NAVTREEINDEX20 =
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#a8d60d62b3d07c6b88737400108fdfac2":[12,0,0,0,5,3,1,9],
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#a975caeee4ef075967c5da0dec99c0dfc":[11,0,1,0,6,4,1,10],
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#a975caeee4ef075967c5da0dec99c0dfc":[12,0,0,0,5,3,1,10],
-"classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#ab4f6e14828b66b9e79d1f709024c3744":[11,0,1,0,6,4,1,3],
-"classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#ab4f6e14828b66b9e79d1f709024c3744":[12,0,0,0,5,3,1,3],
-"classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#acc8828b02e28e1d027b7988d7d23d650":[11,0,1,0,6,4,1,12]
+"classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#ab4f6e14828b66b9e79d1f709024c3744":[11,0,1,0,6,4,1,3]
 };

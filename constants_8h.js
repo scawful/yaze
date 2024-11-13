@@ -1,7 +1,5 @@
 var constants_8h =
 [
-    [ "TAB_BAR", "constants_8h.html#a2787dd8a1e56d8afff7bb6b2275a5631", null ],
-    [ "END_TAB_BAR", "constants_8h.html#a2b70aa0177c9118ef7d48ec0596653f4", null ],
     [ "TAB_ITEM", "constants_8h.html#ad50b96f19fd95562cdbcbaf0e1a0743c", null ],
     [ "END_TAB_ITEM", "constants_8h.html#a81f9a082dfcd5eb1f1c97c06e99afe11", null ],
     [ "MENU_ITEM", "constants_8h.html#a598a77bad310d5dab053961905b81fb0", null ],

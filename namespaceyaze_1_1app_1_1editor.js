@@ -98,8 +98,6 @@ var namespaceyaze_1_1app_1_1editor =
     [ "kDungeonTabBarFlags", "namespaceyaze_1_1app_1_1editor.html#a90b47303e5a0364d74f646617dbcd2e8", null ],
     [ "kDungeonTableFlags", "namespaceyaze_1_1app_1_1editor.html#a607cc1d6a18d503ac31793087f6b177f", null ],
     [ "kGfxEditTableFlags", "namespaceyaze_1_1app_1_1editor.html#a4e2fdc967f4f1af218c03efeadbb4e7b", null ],
-    [ "kGfxEditTabBarFlags", "namespaceyaze_1_1app_1_1editor.html#a0d26ca53d73b81e2de5e8e8fb1f5f39d", null ],
-    [ "kGfxEditFlags", "namespaceyaze_1_1app_1_1editor.html#adb56eccacd0c92f50ac9f67f53da559b", null ],
     [ "kSuperDonkeyTiles", "namespaceyaze_1_1app_1_1editor.html#a3719536e1885a648a2dd2338df5c57ac", null ],
     [ "kSuperDonkeySprites", "namespaceyaze_1_1app_1_1editor.html#a734a588c68d753b67fddf5b7bcac517b", null ],
     [ "kPaletteTableFlags", "namespaceyaze_1_1app_1_1editor.html#a7240deb8b0e5909fa9c74659fcf0b20c", null ],

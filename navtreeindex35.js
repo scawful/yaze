@@ -1,7 +1,5 @@
 var NAVTREEINDEX35 =
 {
-"incl_2snes__color_8h.html#a100f9af9f8e1bb9d2ad73476ab774655":[13,0,1,2,3,3],
-"incl_2snes__color_8h.html#a7010d1b3caf12995e0ecb41a1c446b94":[13,0,1,2,3,2],
 "incl_2snes__color_8h_source.html":[13,0,1,2,3],
 "incl_2snes__tile_8h.html":[13,0,1,2,4],
 "incl_2snes__tile_8h.html#a38e287988459276888c8616ac482a814":[13,0,1,2,4,5],
@@ -249,5 +247,7 @@ var NAVTREEINDEX35 =
 "namespacemembers_v.html":[11,1,0,19],
 "namespacemembers_vars.html":[11,1,2],
 "namespacemembers_vars.html":[11,1,2,0],
-"namespacemembers_vars_c.html":[11,1,2,1]
+"namespacemembers_vars_c.html":[11,1,2,1],
+"namespacemembers_vars_d.html":[11,1,2,2],
+"namespacemembers_vars_f.html":[11,1,2,3]
 };

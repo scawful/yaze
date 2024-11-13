@@ -1,7 +1,5 @@
 var NAVTREEINDEX51 =
 {
-"structyaze_1_1app_1_1zelda3_1_1music_1_1Song.html#aa1721b5e853df904fd1c922b2980c904":[11,0,1,0,6,2,1,6],
-"structyaze_1_1app_1_1zelda3_1_1music_1_1Song.html#aa1721b5e853df904fd1c922b2980c904":[12,0,0,0,5,1,1,6],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1Song.html#aec027b6b2eb51a186edc25a5901e7c38":[11,0,1,0,6,2,1,0],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1Song.html#aec027b6b2eb51a186edc25a5901e7c38":[12,0,0,0,5,1,1,0],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1Song.html#afd915f01c6b11c9bf3a17657b17d73a8":[11,0,1,0,6,2,1,2],
@@ -249,5 +247,7 @@ var NAVTREEINDEX51 =
 "tile16__transfer_8cc_source.html":[13,0,1,1,0,2],
 "tilesheet_8cc.html":[13,0,1,0,3,12],
 "tilesheet_8cc.html#afe2b409c93b8b037b20a8d4ac2df3353":[13,0,1,0,3,12,0],
-"tilesheet_8cc_source.html":[13,0,1,0,3,12]
+"tilesheet_8cc_source.html":[13,0,1,0,3,12],
+"tilesheet_8h.html":[13,0,1,0,3,13],
+"tilesheet_8h.html#ae95a00ff98c9e69d426f80c487e2dac7":[13,0,1,0,3,13,2]
 };
