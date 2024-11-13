@@ -1,7 +1,8 @@
 #include "assembly_editor.h"
 
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "ImGuiColorTextEdit/TextEditor.h"
+#include "ImGuiFileDialog/ImGuiFileDialog.h"
+#include "absl/strings/str_cat.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/gui/icons.h"
 
@@ -12,7 +13,7 @@ namespace editor {
 using core::FileDialogWrapper;
 
 namespace {
- 
+
 std::vector<std::string> RemoveIgnoredFiles(
     const std::vector<std::string>& files,
     const std::vector<std::string>& ignored_files) {

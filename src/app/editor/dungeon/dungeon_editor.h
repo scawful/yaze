@@ -2,12 +2,10 @@
 #define YAZE_APP_EDITOR_DUNGEONEDITOR_H
 
 #include "app/core/common.h"
-#include "app/core/project.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/utils/editor.h"
 #include "app/gui/canvas.h"
-#include "app/gui/icons.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
