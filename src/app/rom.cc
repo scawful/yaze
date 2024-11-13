@@ -147,7 +147,7 @@ absl::Status Rom::SaveAllGraphicsData() {
         to_bpp = 2;
       }
 
-      auto sheet_data = graphics_sheets_[i].data();
+      auto sheet_data = graphics_sheets_[i].vector();
       final_data = gfx::ConvertBpp(sheet_data, from_bpp, to_bpp);
       if (compressed) {
         final_data = gfx::lc_lz2::CompressV2(final_data);
@@ -156,7 +156,7 @@ absl::Status Rom::SaveAllGraphicsData() {
           GetGraphicsAddress(data(), i, version_constants().kOverworldGfxPtr1,
                              version_constants().kOverworldGfxPtr2,
                              version_constants().kOverworldGfxPtr3);
-      std::copy(compressed_data.begin(), compressed_data.end(),
+      std::copy(final_data.begin(), final_data.end(),
                 rom_data_.begin() + offset);
     }
   }
