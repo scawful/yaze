@@ -119,14 +119,14 @@ absl::Status DungeonEditor::RefreshGraphics() {
     int block = rooms_[current_room_id_].blocks()[i];
     RETURN_IF_ERROR(graphics_bin_[block].ApplyPaletteWithTransparent(
         current_palette_group_[current_palette_id_], 0));
-    Renderer::GetInstance().UpdateBitmap(&graphics_bin_[block], true);
+    Renderer::GetInstance().UpdateBitmap(&graphics_bin_[block]);
   }
   auto sprites_aux1_pal_group = rom()->palette_group().sprites_aux1;
   for (int i = 9; i < 16; i++) {
     int block = rooms_[current_room_id_].blocks()[i];
     RETURN_IF_ERROR(graphics_bin_[block].ApplyPaletteWithTransparent(
         sprites_aux1_pal_group[current_palette_id_], 0));
-    Renderer::GetInstance().UpdateBitmap(&graphics_bin_[block], true);
+    Renderer::GetInstance().UpdateBitmap(&graphics_bin_[block]);
   }
   return absl::OkStatus();
 }

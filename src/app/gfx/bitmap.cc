@@ -307,7 +307,7 @@ void Bitmap::CreateTexture(SDL_Renderer *renderer) {
   SDL_UnlockTexture(texture_.get());
 }
 
-void Bitmap::UpdateTexture(SDL_Renderer *renderer, bool use_sdl_update) {
+void Bitmap::UpdateTexture(SDL_Renderer *renderer) {
   SDL_Surface *converted_surface =
       SDL_ConvertSurfaceFormat(surface_.get(), SDL_PIXELFORMAT_ARGB8888, 0);
   if (converted_surface) {
@@ -319,26 +319,9 @@ void Bitmap::UpdateTexture(SDL_Renderer *renderer, bool use_sdl_update) {
 
   SDL_LockTexture(texture_.get(), nullptr, (void **)&texture_pixels,
                   &converted_surface_->pitch);
-  if (use_sdl_update) {
-    SDL_UpdateTexture(texture_.get(), nullptr, converted_surface_->pixels,
-                      converted_surface_->pitch);
-  } else {
-    memcpy(texture_pixels, converted_surface_->pixels,
-           converted_surface_->h * converted_surface_->pitch);
-  }
+  memcpy(texture_pixels, converted_surface_->pixels,
+         converted_surface_->h * converted_surface_->pitch);
   SDL_UnlockTexture(texture_.get());
-}
-
-void Bitmap::CreateTexture(std::shared_ptr<SDL_Renderer> renderer) {
-  texture_ = std::shared_ptr<SDL_Texture>{
-      SDL_CreateTextureFromSurface(renderer.get(), surface_.get()),
-      SDL_Texture_Deleter{}};
-}
-
-void Bitmap::UpdateTexture(std::shared_ptr<SDL_Renderer> renderer) {
-  texture_ = std::shared_ptr<SDL_Texture>{
-      SDL_CreateTextureFromSurface(renderer.get(), surface_.get()),
-      SDL_Texture_Deleter{}};
 }
 
 absl::Status Bitmap::ApplyPalette(const SnesPalette &palette) {

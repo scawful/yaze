@@ -108,14 +108,12 @@ class Bitmap {
    * Converts the surface from a RGB to ARGB format.
    * Uses SDL_TEXTUREACCESS_STREAMING to allow for live updates.
    */
-  void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
+  void CreateTexture(SDL_Renderer *renderer);
 
   /**
    * @brief Updates the underlying SDL_Texture when it already exists.
    */
-  void UpdateTexture(std::shared_ptr<SDL_Renderer> renderer);
-  void CreateTexture(SDL_Renderer *renderer);
-  void UpdateTexture(SDL_Renderer *renderer, bool use_sdl_update = false);
+  void UpdateTexture(SDL_Renderer *renderer);
 
   /**
    * @brief Copy color data from the SnesPalette into the SDL_Palette
