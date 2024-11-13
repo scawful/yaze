@@ -1,7 +1,6 @@
 #ifndef YAZE_APP_GFX_COMPRESSION_H
 #define YAZE_APP_GFX_COMPRESSION_H
 
-#include <iostream>
 #include <memory>
 #include <string>
 
