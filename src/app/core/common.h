@@ -67,6 +67,9 @@ class ExperimentFlags {
     // Save dungeon map edits to the Rom.
     bool kSaveDungeonMaps = false;
 
+    // Save graphics sheet to the Rom.
+    bool kSaveGraphicsSheet = false;
+
     // Log to the console.
     bool kLogToConsole = false;
 
