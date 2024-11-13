@@ -52,8 +52,8 @@ class Renderer {
   /**
    * @brief Used to update a bitmap on the screen.
    */
-  void UpdateBitmap(gfx::Bitmap *bitmap, bool use_sdl_update = false) {
-    bitmap->UpdateTexture(renderer_.get(), use_sdl_update);
+  void UpdateBitmap(gfx::Bitmap *bitmap) {
+    bitmap->UpdateTexture(renderer_.get());
   }
 
   absl::Status CreateAndRenderBitmap(int width, int height, int depth,

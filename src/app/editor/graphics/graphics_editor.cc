@@ -294,7 +294,7 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
         auto draw_tile_event = [&]() {
           current_sheet_canvas_.DrawTileOnBitmap(tile_size_, &current_bitmap,
                                                  current_color_);
-          Renderer::GetInstance().UpdateBitmap(&current_bitmap, true);
+          Renderer::GetInstance().UpdateBitmap(&current_bitmap);
         };
 
         current_sheet_canvas_.UpdateColorPainter(
@@ -373,7 +373,7 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
               ->data()[current_sheet_]
               .ApplyPaletteWithTransparent(palette, edit_palette_sub_index_));
       Renderer::GetInstance().UpdateBitmap(
-          &rom()->mutable_gfx_sheets()->data()[current_sheet_], true);
+          &rom()->mutable_gfx_sheets()->data()[current_sheet_]);
       refresh_graphics_ = false;
     }
   }
