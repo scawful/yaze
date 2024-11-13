@@ -1,6 +1,7 @@
 #include "palette_editor.h"
 
 #include "absl/status/status.h"
+#include "absl/strings/str_cat.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/color.h"
 #include "app/gui/style.h"

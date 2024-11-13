@@ -57,7 +57,6 @@ absl::Status Tile16Editor::InitBlockset(
   tile16_blockset_bmp_ = tile16_blockset_bmp;
   tile16_individual_ = tile16_individual;
   current_gfx_bmp_ = current_gfx_bmp;
-  tile8_gfx_data_ = current_gfx_bmp_.vector();
   RETURN_IF_ERROR(LoadTile8());
   ImVector<std::string> tile16_names;
   for (int i = 0; i < 0x200; ++i) {

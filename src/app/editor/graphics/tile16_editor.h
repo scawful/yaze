@@ -1,20 +1,14 @@
 #ifndef YAZE_APP_EDITOR_TILE16EDITOR_H
 #define YAZE_APP_EDITOR_TILE16EDITOR_H
 
-#include <cmath>
-
 #include "absl/status/status.h"
-#include "absl/status/statusor.h"
 #include "app/core/common.h"
 #include "app/editor/graphics/palette_editor.h"
-#include "app/editor/utils/editor.h"
 #include "app/editor/utils/gfx_context.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
-#include "app/gfx/tilesheet.h"
 #include "app/gui/canvas.h"
-#include "app/gui/icons.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
@@ -92,14 +86,8 @@ class Tile16Editor : public context::GfxContext, public SharedRom {
   gui::Canvas transfer_canvas_;
   gfx::Bitmap transfer_blockset_bmp_;
 
-  std::vector<std::vector<uint8_t>> tile16_individual_data_;
   std::vector<gfx::Bitmap> tile16_individual_;
-
   std::vector<gfx::Bitmap> current_gfx_individual_;
-
-  std::vector<uint8_t> current_tile16_data_;
-
-  std::vector<uint8_t> tile8_gfx_data_;
 
   PaletteEditor palette_editor_;
 

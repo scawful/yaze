@@ -4,15 +4,11 @@
 #include <array>
 
 #include "absl/status/status.h"
-#include "app/core/constants.h"
 #include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
-#include "app/gfx/snes_tile.h"
 #include "app/gfx/tilesheet.h"
 #include "app/gui/canvas.h"
-#include "app/gui/color.h"
-#include "app/gui/icons.h"
 #include "app/rom.h"
 #include "app/zelda3/screen/dungeon_map.h"
 #include "app/zelda3/screen/inventory.h"
