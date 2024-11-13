@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['data_0',['data',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a6ea2f1891a7aed682224eec5ac007882',1,'yaze::app::emu::memory::MemoryImpl::data()'],['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#aae636e8223b7a47a961526120b85cd90',1,'yaze::app::gfx::Bitmap::data()'],['../classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b',1,'yaze::app::Rom::data()']]],
+  ['data_0',['data',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a6ea2f1891a7aed682224eec5ac007882',1,'yaze::app::emu::memory::MemoryImpl::data()'],['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#aae636e8223b7a47a961526120b85cd90',1,'yaze::app::gfx::Bitmap::data()'],['../classyaze_1_1app_1_1gfx_1_1GraphicsBuffer.html#add9ce42c241e5baaa7191373df43659c',1,'yaze::app::gfx::GraphicsBuffer::data()'],['../classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b',1,'yaze::app::Rom::data()']]],
   ['dec_1',['DEC',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a5ff5f06d41678136c85609210c5ca9e0',1,'yaze::app::emu::audio::Spc700::DEC()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#adc9984b8a5eb1603eac494d2b00d886d',1,'yaze::app::emu::Cpu::DEC(uint32_t address, bool accumulator=false)']]],
   ['dec_2',['Dec',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a1882ad03a18706193eef850439ceceb8',1,'yaze::app::emu::Cpu']]],
   ['decode_3',['decode',['../namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02common_8cc_03.html#aa650dcba786cb2df29aa1af7bbc967c7',1,'yaze::app::core::anonymous_namespace{common.cc}']]],

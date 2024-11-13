@@ -12,7 +12,7 @@ var searchData=
   ['emulator_9',['Emulator',['../classyaze_1_1app_1_1emu_1_1Emulator.html#a6243b4d5bab5741b747a8b7755027dac',1,'yaze::app::emu::Emulator']]],
   ['emulator_10',['emulator',['../classyaze_1_1app_1_1editor_1_1EditorManager.html#a3f47746661640b9b0a2828bd9eba8556',1,'yaze::app::editor::EditorManager']]],
   ['encode_11',['encode',['../namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02common_8cc_03.html#aa92217917e3512f40ae3d7f2a2c2bf22',1,'yaze::app::core::anonymous_namespace{common.cc}']]],
-  ['end_12',['end',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a46132400c7395ec5cbfbe8d548edc508',1,'yaze::app::emu::memory::MemoryImpl::end()'],['../classyaze_1_1app_1_1Rom.html#a9d41a050bde62f6868d5ef92547c0b73',1,'yaze::app::Rom::end()']]],
+  ['end_12',['end',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a46132400c7395ec5cbfbe8d548edc508',1,'yaze::app::emu::memory::MemoryImpl::end()'],['../classyaze_1_1app_1_1gfx_1_1GraphicsBuffer.html#abca92a8e270a19d3ba8d5206e61f331f',1,'yaze::app::gfx::GraphicsBuffer::end()'],['../classyaze_1_1app_1_1gfx_1_1GraphicsBuffer.html#a9ee4141def6201ecdb0eea4d31e58780',1,'yaze::app::gfx::GraphicsBuffer::end() const'],['../classyaze_1_1app_1_1Rom.html#a9d41a050bde62f6868d5ef92547c0b73',1,'yaze::app::Rom::end()']]],
   ['endnopadding_13',['EndNoPadding',['../namespaceyaze_1_1app_1_1gui.html#aa6e68e729a3c4a16fda2ff2409097188',1,'yaze::app::gui']]],
   ['endpadding_14',['EndPadding',['../namespaceyaze_1_1app_1_1gui.html#a4e98334d8cfb28352cebdd857eb52530',1,'yaze::app::gui']]],
   ['endwindowwithdisplaysettings_15',['EndWindowWithDisplaySettings',['../namespaceyaze_1_1app_1_1gui.html#afa54cc8c1238cb1d0bef794cbd947b7d',1,'yaze::app::gui']]],

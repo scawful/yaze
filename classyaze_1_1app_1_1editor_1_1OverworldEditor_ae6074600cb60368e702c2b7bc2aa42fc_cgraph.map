@@ -6,19 +6,16 @@
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="254,139,324,130,325,135,255,144"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ac01d3d837a19f3a62e0f72b42e134de6" title=" " alt="" coords="302,173,520,214"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="255,170,286,175,285,180,254,176"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1core_1_1Renderer.html#aedcffb1f7a16396dbe8a5685c62573d7" title="Used to update a bitmap on the screen." alt="" coords="329,349,492,390"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="160,176,372,337,368,341,156,180"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a2b312bf21f19270ff73835a7bf3e44cd" title=" " alt="" coords="584,5,727,61"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="501,170,518,159,535,139,542,117,549,95,566,71,570,68,573,72,570,75,554,97,547,119,540,141,522,163,504,175"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a714f3591d4c0f7de91af53a00b37432b" title=" " alt="" coords="572,85,740,141"/>
-<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="484,170,519,159,562,144,564,149,521,164,486,175"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a032ab0cc0f0f780c0b6f009c4373faae" title=" " alt="" coords="584,165,727,221"/>
-<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="521,190,569,190,569,196,521,196"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a969e19cd190712135d1b38e573de52bf" title=" " alt="" coords="584,245,727,301"/>
-<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="476,211,570,243,569,248,474,217"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="568,349,743,390"/>
-<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="493,366,553,366,553,372,493,372"/>
-<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#ae061f9e46947eddeab58c59a2aaeaff2" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="584,414,728,455"/>
-<area shape="poly" id="edge11_Node000009_Node000011" title=" " alt="" coords="490,388,569,409,567,414,489,393"/>
-<area shape="poly" id="edge10_Node000010_Node000010" title=" " alt="" coords="610,349,607,339,615,330,631,324,656,322,682,325,698,331,696,336,681,330,656,327,632,329,618,334,613,340,615,348"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1core_1_1Renderer.html#aedcffb1f7a16396dbe8a5685c62573d7" title="Used to update a bitmap on the screen." alt="" coords="329,281,492,322"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="173,176,357,271,354,276,170,180"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a2b312bf21f19270ff73835a7bf3e44cd" title=" " alt="" coords="581,5,723,61"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="501,170,518,159,535,139,542,117,549,95,566,71,569,68,573,72,570,75,554,97,547,119,540,141,522,163,504,175"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a714f3591d4c0f7de91af53a00b37432b" title=" " alt="" coords="568,85,736,141"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="484,170,519,159,561,144,562,149,521,164,486,175"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a032ab0cc0f0f780c0b6f009c4373faae" title=" " alt="" coords="581,165,723,221"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="520,190,566,190,566,196,520,196"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a969e19cd190712135d1b38e573de52bf" title=" " alt="" coords="581,245,723,301"/>
+<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="475,211,567,242,566,247,473,217"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#ae061f9e46947eddeab58c59a2aaeaff2" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="580,325,724,366"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="493,313,565,327,564,332,492,319"/>
 </map>

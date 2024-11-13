@@ -15,7 +15,7 @@ var searchData=
   ['snes_5fpalette_2eh_12',['snes_palette.h',['../snes__palette_8h.html',1,'']]],
   ['snes_5fpalette_5ftest_2ecc_13',['snes_palette_test.cc',['../snes__palette__test_8cc.html',1,'']]],
   ['snes_5ftile_2ecc_14',['snes_tile.cc',['../snes__tile_8cc.html',1,'']]],
-  ['snes_5ftile_2eh_15',['snes_tile.h',['../snes__tile_8h.html',1,'']]],
+  ['snes_5ftile_2eh_15',['snes_tile.h',['../app_2gfx_2snes__tile_8h.html',1,'(Global Namespace)'],['../incl_2snes__tile_8h.html',1,'(Global Namespace)']]],
   ['spc700_2ecc_16',['spc700.cc',['../spc700_8cc.html',1,'']]],
   ['spc700_2eh_17',['spc700.h',['../spc700_8h.html',1,'']]],
   ['spc700_5ftest_2ecc_18',['spc700_test.cc',['../spc700__test_8cc.html',1,'']]],

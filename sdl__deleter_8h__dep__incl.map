@@ -47,23 +47,23 @@
 <area shape="poly" id="edge38_Node000020_Node000031" title=" " alt="" coords="1606,105,1819,105,2082,112,2206,119,2314,130,2394,145,2422,155,2439,166,2446,177,2448,189,2441,214,2425,238,2406,258,2402,254,2421,234,2436,212,2443,189,2441,179,2435,170,2419,160,2393,150,2313,135,2206,125,2081,117,1819,110,1606,110"/>
 <area shape="rect" id="Node000028" href="$graphics__editor_8h.html" title=" " alt="" coords="1388,168,1541,208"/>
 <area shape="poly" id="edge24_Node000020_Node000028" title=" " alt="" coords="1507,134,1481,169,1477,166,1502,131"/>
-<area shape="rect" id="Node000035" href="$screen__editor_8h.html" title=" " alt="" coords="876,168,1029,208"/>
-<area shape="poly" id="edge28_Node000020_Node000035" title=" " alt="" coords="1437,120,1258,141,1049,170,1030,174,1029,168,1048,165,1258,135,1437,114"/>
+<area shape="rect" id="Node000033" href="$screen__editor_8h.html" title=" " alt="" coords="876,168,1029,208"/>
+<area shape="poly" id="edge28_Node000020_Node000033" title=" " alt="" coords="1437,120,1258,141,1049,170,1030,174,1029,168,1048,165,1258,135,1437,114"/>
 <area shape="rect" id="Node000030" href="$tile16__editor_8h.html" title=" " alt="" coords="2041,168,2195,208"/>
 <area shape="poly" id="edge31_Node000020_Node000030" title=" " alt="" coords="1607,114,1797,134,2022,165,2042,168,2041,174,2022,170,1797,140,1606,119"/>
-<area shape="rect" id="Node000036" href="$message__editor_8h.html" title=" " alt="" coords="1155,168,1313,208"/>
-<area shape="poly" id="edge35_Node000020_Node000036" title=" " alt="" coords="1464,127,1307,170,1305,165,1462,122"/>
-<area shape="rect" id="Node000038" href="$constant__manager_8h.html" title=" " alt="" coords="1668,168,1814,208"/>
-<area shape="poly" id="edge39_Node000020_Node000038" title=" " alt="" coords="1571,123,1687,165,1685,170,1569,128"/>
-<area shape="rect" id="Node000034" href="$gfx__context_8cc.html" title=" " alt="" coords="1838,168,1966,208"/>
-<area shape="poly" id="edge40_Node000020_Node000034" title=" " alt="" coords="1605,120,1827,165,1838,168,1837,173,1825,170,1604,126"/>
+<area shape="rect" id="Node000034" href="$message__editor_8h.html" title=" " alt="" coords="1155,168,1313,208"/>
+<area shape="poly" id="edge35_Node000020_Node000034" title=" " alt="" coords="1464,127,1307,170,1305,165,1462,122"/>
+<area shape="rect" id="Node000036" href="$constant__manager_8h.html" title=" " alt="" coords="1668,168,1814,208"/>
+<area shape="poly" id="edge39_Node000020_Node000036" title=" " alt="" coords="1571,123,1687,165,1685,170,1569,128"/>
+<area shape="rect" id="Node000032" href="$gfx__context_8cc.html" title=" " alt="" coords="1838,168,1966,208"/>
+<area shape="poly" id="edge40_Node000020_Node000032" title=" " alt="" coords="1605,120,1827,165,1838,168,1837,173,1825,170,1604,126"/>
 <area shape="poly" id="edge20_Node000022_Node000021" title=" " alt="" coords="2302,219,2234,258,2231,254,2299,214"/>
 <area shape="poly" id="edge21_Node000022_Node000031" title=" " alt="" coords="2363,222,2376,255,2371,257,2358,224"/>
 <area shape="poly" id="edge22_Node000031_Node000014" title=" " alt="" coords="2286,302,2084,348,2083,343,2285,297"/>
 <area shape="poly" id="edge25_Node000028_Node000010" title=" " alt="" coords="1500,217,1542,254,1538,258,1496,221"/>
 <area shape="poly" id="edge26_Node000028_Node000016" title=" " alt="" coords="1439,222,1400,265,1396,262,1435,218"/>
-<area shape="poly" id="edge29_Node000035_Node000011" title=" " alt="" coords="982,218,1015,254,1011,258,978,222"/>
+<area shape="poly" id="edge29_Node000033_Node000011" title=" " alt="" coords="982,218,1015,254,1011,258,978,222"/>
 <area shape="poly" id="edge32_Node000030_Node000012" title=" " alt="" coords="2027,213,1817,260,1816,255,2026,208"/>
 <area shape="poly" id="edge33_Node000030_Node000031" title=" " alt="" coords="2193,211,2322,253,2320,258,2191,216"/>
-<area shape="poly" id="edge36_Node000036_Node000013" title=" " alt="" coords="1227,224,1218,257,1213,255,1222,223"/>
+<area shape="poly" id="edge36_Node000034_Node000013" title=" " alt="" coords="1227,224,1218,257,1213,255,1222,223"/>
 </map>

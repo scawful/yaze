@@ -10,10 +10,10 @@
 <area shape="poly" id="edge14_Node000001_Node000012" title=" " alt="" coords="159,237,216,226,276,221,337,220,449,225,449,230,337,225,277,226,217,231,160,242"/>
 <area shape="rect" id="Node000013" href="$classyaze_1_1app_1_1core_1_1Renderer.html#ad484aa3c634ad0d28fb92131dc7ba9f0" title="Used to render a bitmap to the screen." alt="" coords="464,283,628,323"/>
 <area shape="poly" id="edge16_Node000001_Node000013" title=" " alt="" coords="162,279,217,290,337,300,449,303,448,308,337,306,216,295,161,284"/>
-<area shape="rect" id="Node000016" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="458,372,634,397"/>
-<area shape="poly" id="edge17_Node000001_Node000016" title=" " alt="" coords="139,279,217,307,343,340,458,365,457,371,342,346,216,312,137,284"/>
-<area shape="rect" id="Node000017" href="$namespaceyaze_1_1app_1_1gfx.html#aefa90c55f0eea489bc7a6dd716300e90" title=" " alt="" coords="226,406,400,432"/>
-<area shape="poly" id="edge15_Node000001_Node000017" title=" " alt="" coords="106,279,153,332,184,360,218,385,245,398,243,403,215,389,181,364,149,336,102,283"/>
+<area shape="rect" id="Node000015" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="458,372,634,397"/>
+<area shape="poly" id="edge17_Node000001_Node000015" title=" " alt="" coords="139,279,217,307,343,340,458,365,457,371,342,346,216,312,137,284"/>
+<area shape="rect" id="Node000016" href="$namespaceyaze_1_1app_1_1gfx.html#aefa90c55f0eea489bc7a6dd716300e90" title=" " alt="" coords="226,406,400,432"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="106,279,153,332,184,360,218,385,245,398,243,403,215,389,181,364,149,336,102,283"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aeb279f4bb0cb3d5771ae33177d660de8" title=" " alt="" coords="704,5,848,46"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="618,62,688,45,689,50,619,68"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1SnesColor.html#ac521c69eed2432f839a39c0bbfb19be7" title=" " alt="" coords="682,70,870,96"/>
@@ -24,7 +24,7 @@
 <area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="368,237,475,196,477,201,370,242"/>
 <area shape="poly" id="edge9_Node000006_Node000012" title=" " alt="" coords="410,248,449,244,449,250,411,254"/>
 <area shape="poly" id="edge10_Node000006_Node000013" title=" " alt="" coords="411,275,450,283,449,288,410,281"/>
-<area shape="poly" id="edge11_Node000006_Node000016" title=" " alt="" coords="354,279,508,362,506,366,352,283"/>
+<area shape="poly" id="edge11_Node000006_Node000015" title=" " alt="" coords="354,279,508,362,506,366,352,283"/>
 <area shape="poly" id="edge8_Node000007_Node000007" title=" " alt="" coords="503,152,501,142,508,133,523,127,546,125,571,128,586,134,584,139,570,133,546,131,524,133,511,137,506,143,508,151"/>
-<area shape="poly" id="edge12_Node000016_Node000016" title=" " alt="" coords="508,373,501,363,505,353,521,347,546,345,574,348,589,354,586,359,573,353,546,350,522,352,509,357,506,362,512,369"/>
+<area shape="poly" id="edge12_Node000015_Node000015" title=" " alt="" coords="508,373,501,363,505,353,521,347,546,345,574,348,589,354,586,359,573,353,546,350,522,352,509,357,506,362,512,369"/>
 </map>

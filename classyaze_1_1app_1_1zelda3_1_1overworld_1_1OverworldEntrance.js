@@ -2,7 +2,6 @@ var classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance =
 [
     [ "OverworldEntrance", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance.html#a7145d3d4e5aee9cc86fb2677e45948e6", null ],
     [ "OverworldEntrance", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance.html#ab006b2ccbd37476c698b913709233a91", null ],
-    [ "Copy", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance.html#a5b119e16d9173f2972b336cf9e2878c9", null ],
     [ "UpdateMapProperties", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance.html#a7c07e5b431534c30e10b7ec608dbb60f", null ],
     [ "map_pos_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance.html#a8b48dfe706185dba9a00079d79b0a1d7", null ],
     [ "entrance_id_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance.html#a846e3bd8f6cd7a639204a38648c58c80", null ],

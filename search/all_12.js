@@ -28,7 +28,7 @@ var searchData=
   ['kblackcolor_25',['kBlackColor',['../namespaceyaze_1_1app_1_1gui.html#aee217a18ea62a7b03fe42c841e8e9ad6',1,'yaze::app::gui']]],
   ['kblock_26',['kBlock',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a79ca9b2e68af07ea7b21be213c02850da92d5381cba7b07b013a54dc8da48b690',1,'yaze::app::editor::DungeonEditor::kBlock'],['../namespaceyaze_1_1app_1_1gui.html#a2bf29114274dce89e615eccfa0c8202eaaf937713a39275d7c02a4a08b982d81a',1,'yaze::app::gui::kBlock']]],
   ['kblockmove_27',['kBlockMove',['../namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea3cbe906b3a7baaa1bc5a961d076fc7e5',1,'yaze::app::emu']]],
-  ['kblocksetcanvassize_28',['kBlocksetCanvasSize',['../namespaceyaze_1_1app_1_1editor.html#afd30e609db299c27c0ea6a2d9a8a5686',1,'yaze::app::editor']]],
+  ['kblocksetcanvassize_28',['kBlocksetCanvasSize',['../namespaceyaze_1_1app_1_1editor.html#a90dbf48c49e24028c6251e071a2a46f5',1,'yaze::app::editor']]],
   ['kblockterminator_29',['kBlockTerminator',['../namespaceyaze_1_1app_1_1editor.html#ac8b7c1572a3d598ce7b1eaa702542980',1,'yaze::app::editor']]],
   ['kbowitempos_30',['kBowItemPos',['../namespaceyaze_1_1app_1_1zelda3_1_1screen.html#a5df76f56f213e4e18759fa79b74c5a7a',1,'yaze::app::zelda3::screen']]],
   ['kbytesize_31',['kByteSize',['../namespaceyaze_1_1app_1_1editor.html#a52cef3be70f785f9c6bb422369870ad3',1,'yaze::app::editor']]],

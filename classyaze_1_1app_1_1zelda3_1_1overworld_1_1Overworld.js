@@ -66,6 +66,7 @@ var classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld =
     [ "is_loaded_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#ac3cf5ba9fe506ef1e57fc153975ecbaa", null ],
     [ "expanded_tile16_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a8d53fa1418aa016ab7904d7332804ed8", null ],
     [ "expanded_tile32_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a09e3bc5bdc63b31b32b4b6074c7b9196", null ],
+    [ "expanded_entrances_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a3c9e67d905b3495a146787d02dbe360f", null ],
     [ "game_state_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a6e274bec55a2927a60f67106e9e8833c", null ],
     [ "current_map_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a18be696f4a5cda8a3feae60983788683", null ],
     [ "current_world_", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a1d123b333e65cf1ab4934935c3d0a82f", null ],

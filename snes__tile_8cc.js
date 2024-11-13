@@ -1,7 +1,7 @@
 var snes__tile_8cc =
 [
-    [ "UnpackBppTile", "snes__tile_8cc.html#a9e28a066b295ab514049968bfef05747", null ],
-    [ "PackBppTile", "snes__tile_8cc.html#a3393bdf562a11dce53934f403523b15a", null ],
+    [ "UnpackBppTile", "snes__tile_8cc.html#ad8eb35d4cd9da6003436c1e8c778c811", null ],
+    [ "PackBppTile", "snes__tile_8cc.html#a02b0d49bf228197eebe2b6dfd9320f0c", null ],
     [ "ConvertBpp", "snes__tile_8cc.html#ab26e7d963d877f126b4ff7442c473864", null ],
     [ "Convert3bppTo4bpp", "snes__tile_8cc.html#acbccad0c8c3b4758e2ed3425058623d7", null ],
     [ "Convert4bppTo3bpp", "snes__tile_8cc.html#a12666f7bb6b6dcacbb721b16eded9000", null ],

@@ -20,9 +20,6 @@
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="407,80,448,80,448,86,407,86"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a9efa827efd4b03f98cff6029da7bccc7" title=" " alt="" coords="486,120,630,161"/>
 <area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="407,99,471,115,470,121,406,104"/>
-<area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="470,477,645,518"/>
-<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="416,516,454,510,455,516,417,521"/>
-<area shape="rect" id="Node000013" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#ae061f9e46947eddeab58c59a2aaeaff2" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="486,543,630,583"/>
-<area shape="poly" id="edge13_Node000011_Node000013" title=" " alt="" coords="417,540,470,548,469,553,416,545"/>
-<area shape="poly" id="edge12_Node000012_Node000012" title=" " alt="" coords="515,477,513,467,520,458,535,453,558,451,582,453,596,459,594,464,580,458,558,456,536,458,523,463,519,469,521,476"/>
+<area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#ae061f9e46947eddeab58c59a2aaeaff2" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="486,511,630,551"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="417,528,470,528,470,534,417,534"/>
 </map>

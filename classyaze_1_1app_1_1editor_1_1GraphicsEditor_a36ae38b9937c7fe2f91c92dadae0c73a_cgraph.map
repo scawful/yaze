@@ -8,12 +8,12 @@
 <area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="157,513,305,428,308,433,159,518"/>
 <area shape="rect" id="Node000017" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="488,601,665,626"/>
 <area shape="poly" id="edge19_Node000001_Node000017" title=" " alt="" coords="237,536,332,543,432,559,485,574,533,592,531,597,483,579,430,564,332,549,236,541"/>
-<area shape="rect" id="Node000028" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a2b6253806ad23fe0dcfb43a2560072e4" title=" " alt="" coords="284,573,431,614"/>
-<area shape="poly" id="edge15_Node000001_Node000028" title=" " alt="" coords="208,555,269,570,268,575,206,560"/>
-<area shape="rect" id="Node000031" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#aabe6f55d89a641416172d54f83595105" title=" " alt="" coords="284,639,431,679"/>
-<area shape="poly" id="edge18_Node000001_Node000031" title=" " alt="" coords="159,555,285,623,297,629,294,634,282,628,157,560"/>
-<area shape="rect" id="Node000032" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a725cdd037008035c36f62b7108c588d2" title=" " alt="" coords="284,704,431,745"/>
-<area shape="poly" id="edge20_Node000001_Node000032" title=" " alt="" coords="141,555,202,619,242,656,285,689,293,694,291,699,282,693,239,660,198,623,138,559"/>
+<area shape="rect" id="Node000027" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a2b6253806ad23fe0dcfb43a2560072e4" title=" " alt="" coords="284,573,431,614"/>
+<area shape="poly" id="edge15_Node000001_Node000027" title=" " alt="" coords="208,555,269,570,268,575,206,560"/>
+<area shape="rect" id="Node000030" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#aabe6f55d89a641416172d54f83595105" title=" " alt="" coords="284,639,431,679"/>
+<area shape="poly" id="edge18_Node000001_Node000030" title=" " alt="" coords="159,555,285,623,297,629,294,634,282,628,157,560"/>
+<area shape="rect" id="Node000031" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a725cdd037008035c36f62b7108c588d2" title=" " alt="" coords="284,704,431,745"/>
+<area shape="poly" id="edge20_Node000001_Node000031" title=" " alt="" coords="141,555,202,619,242,656,285,689,293,694,291,699,282,693,239,660,198,623,138,559"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#ac2d34563e8dab9da97186d48988bb7e7" title=" " alt="" coords="503,5,650,46"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="416,313,429,301,447,270,454,240,454,210,451,180,447,150,448,120,456,89,477,57,488,47,492,51,481,61,461,91,453,120,453,150,456,179,460,209,460,240,452,272,433,305,419,317"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a30982c9ff6392f4dcadfc49e9fba2b98" title=" " alt="" coords="479,71,674,111"/>
@@ -34,8 +34,8 @@
 <area shape="rect" id="Node000025" href="$classyaze_1_1app_1_1core_1_1Renderer.html#aedcffb1f7a16396dbe8a5685c62573d7" title="Used to update a bitmap on the screen." alt="" coords="495,512,658,553"/>
 <area shape="poly" id="edge14_Node000005_Node000025" title=" " alt="" coords="381,420,425,459,480,497,493,503,490,508,478,501,422,463,378,424"/>
 <area shape="poly" id="edge10_Node000017_Node000017" title=" " alt="" coords="540,602,533,592,537,582,552,576,577,574,604,577,617,584,615,588,602,582,577,579,553,582,541,586,538,592,544,599"/>
-<area shape="rect" id="Node000029" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a159991fdfabc49642771bfb9d1305e06" title=" " alt="" coords="500,651,653,691"/>
-<area shape="poly" id="edge16_Node000028_Node000029" title=" " alt="" coords="414,612,480,636,498,643,496,648,478,642,412,617"/>
-<area shape="rect" id="Node000030" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#aff0d9773e5e0ec3edbe46df159149615" title=" " alt="" coords="503,716,650,757"/>
-<area shape="poly" id="edge17_Node000028_Node000030" title=" " alt="" coords="415,612,433,625,449,645,457,665,465,683,481,701,491,708,488,712,477,705,460,686,452,667,444,648,429,629,412,617"/>
+<area shape="rect" id="Node000028" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a159991fdfabc49642771bfb9d1305e06" title=" " alt="" coords="500,651,653,691"/>
+<area shape="poly" id="edge16_Node000027_Node000028" title=" " alt="" coords="414,612,480,636,498,643,496,648,478,642,412,617"/>
+<area shape="rect" id="Node000029" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#aff0d9773e5e0ec3edbe46df159149615" title=" " alt="" coords="503,716,650,757"/>
+<area shape="poly" id="edge17_Node000027_Node000029" title=" " alt="" coords="415,612,433,625,449,645,457,665,465,683,481,701,491,708,488,712,477,705,460,686,452,667,444,648,429,629,412,617"/>
 </map>

@@ -1,5 +1,0 @@
-<map id="yaze::app::core::Renderer" name="yaze::app::core::Renderer">
-<area shape="rect" id="Node000001" title="The Renderer class represents the renderer for the Yaze application." alt="" coords="11,94,175,120"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="5,5,181,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="96,62,96,93,90,93,90,62"/>
-</map>

@@ -1,8 +1,5 @@
 <map id="yaze::app::core::Renderer::RenderBitmap" name="yaze::app::core::Renderer::RenderBitmap">
-<area shape="rect" id="Node000001" title="Used to render a bitmap to the screen." alt="" coords="5,51,169,91"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a60dbb218a86c57687580ec77be457511" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="232,5,376,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,51,216,41,217,47,169,57"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="217,95,392,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="169,85,202,92,201,97,168,90"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="263,95,261,85,268,76,282,70,304,68,328,70,342,77,340,81,327,76,304,73,284,75,271,80,266,86,268,93"/>
+<area shape="rect" id="Node000001" title="Used to render a bitmap to the screen." alt="" coords="5,5,169,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a60dbb218a86c57687580ec77be457511" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="217,5,361,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,23,201,23,201,28,169,28"/>
 </map>

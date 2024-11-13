@@ -31,11 +31,12 @@ var searchData=
   ['history_5f_28',['history_',['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html#afca98075081fad36480541aed7bf9b66',1,'yaze::app::editor::PaletteEditor']]],
   ['holewarp_29',['holewarp',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a11b49441f765c0c3e856e10ee157b70a',1,'yaze::app::zelda3::dungeon::Room']]],
   ['horizontal_5fcounter_5foutput_30',['horizontal_counter_output',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OPHCT.html#a34ff17c3a60d752dd0f0277fad117c7f',1,'yaze::app::emu::video::PpuRegisters::OPHCT']]],
-  ['horizontal_5fmirror_5f_31',['horizontal_mirror_',['../classyaze_1_1app_1_1gfx_1_1TileInfo.html#ad6ce2ed28b4fd3219e7d85959bec3afb',1,'yaze::app::gfx::TileInfo']]],
-  ['horizontal_5fscroll_32',['horizontal_scroll',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGHOFS.html#adfd2a1b0420971f8635b14c258dca045',1,'yaze::app::emu::video::PpuRegisters::BGHOFS']]],
-  ['horizontal_5ftilemap_5fcount_33',['horizontal_tilemap_count',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html#aedc59a47e96be0981ec5b19d080c2b47',1,'yaze::app::emu::video::PpuRegisters::BGSC']]],
-  ['horizontalirqtrigger_34',['horizontalIrqTrigger',['../structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a25961f76e6240c8916bf83d17aace70e',1,'yaze::app::emu::video::CounterIrqNmiRegisters']]],
-  ['horizontalscanlocation_35',['horizontalScanLocation',['../structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a5ed479b72951879a7e2515a90ae029a6',1,'yaze::app::emu::video::CounterIrqNmiRegisters']]],
-  ['hscroll_36',['hScroll',['../structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#a18ce3edd06619cf78923e1fda841f353',1,'yaze::app::emu::video::BgLayer']]],
-  ['hud_37',['hud',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a9a6153417857e46e9a17600179d72cf2',1,'yaze::app::gfx::PaletteGroupMap::hud'],['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#a976ee6db80165948cb5926900634973c',1,'yaze::app::gfx::Paletteset::hud']]]
+  ['horizontal_5fmirror_31',['horizontal_mirror',['../structsnes__tile__info.html#ae7281dca7dedcd51d3df374f072d5711',1,'snes_tile_info']]],
+  ['horizontal_5fmirror_5f_32',['horizontal_mirror_',['../classyaze_1_1app_1_1gfx_1_1TileInfo.html#ad6ce2ed28b4fd3219e7d85959bec3afb',1,'yaze::app::gfx::TileInfo']]],
+  ['horizontal_5fscroll_33',['horizontal_scroll',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGHOFS.html#adfd2a1b0420971f8635b14c258dca045',1,'yaze::app::emu::video::PpuRegisters::BGHOFS']]],
+  ['horizontal_5ftilemap_5fcount_34',['horizontal_tilemap_count',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html#aedc59a47e96be0981ec5b19d080c2b47',1,'yaze::app::emu::video::PpuRegisters::BGSC']]],
+  ['horizontalirqtrigger_35',['horizontalIrqTrigger',['../structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a25961f76e6240c8916bf83d17aace70e',1,'yaze::app::emu::video::CounterIrqNmiRegisters']]],
+  ['horizontalscanlocation_36',['horizontalScanLocation',['../structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a5ed479b72951879a7e2515a90ae029a6',1,'yaze::app::emu::video::CounterIrqNmiRegisters']]],
+  ['hscroll_37',['hScroll',['../structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#a18ce3edd06619cf78923e1fda841f353',1,'yaze::app::emu::video::BgLayer']]],
+  ['hud_38',['hud',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a9a6153417857e46e9a17600179d72cf2',1,'yaze::app::gfx::PaletteGroupMap::hud'],['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#a976ee6db80165948cb5926900634973c',1,'yaze::app::gfx::Paletteset::hud']]]
 ];

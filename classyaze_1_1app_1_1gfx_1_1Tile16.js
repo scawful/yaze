@@ -8,5 +8,5 @@ var classyaze_1_1app_1_1gfx_1_1Tile16 =
     [ "tile1_", "classyaze_1_1app_1_1gfx_1_1Tile16.html#a46686d99356c2a4289a53ae2c9dd0ba6", null ],
     [ "tile2_", "classyaze_1_1app_1_1gfx_1_1Tile16.html#a2b9c539131a2f72d34675578668ca5fd", null ],
     [ "tile3_", "classyaze_1_1app_1_1gfx_1_1Tile16.html#a60fc53890921800e8b3361ee40ed9b21", null ],
-    [ "tiles_info", "classyaze_1_1app_1_1gfx_1_1Tile16.html#a397d4cf467d45ea61d89e4abf8ee9e7d", null ]
+    [ "tiles_info", "classyaze_1_1app_1_1gfx_1_1Tile16.html#ae360913a62144b5b7e5e245e9e6b7253", null ]
 ];

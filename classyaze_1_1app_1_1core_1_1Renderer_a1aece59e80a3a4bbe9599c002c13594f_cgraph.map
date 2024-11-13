@@ -4,8 +4,8 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,281,268,141,272,145,117,285"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a69e8baa626a476b4cc55790fcdfd0d5c" title="Creates a bitmap object with the provided graphical data." alt="" coords="233,284,378,325"/>
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="176,302,218,302,218,307,176,307"/>
-<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1core_1_1Renderer.html#ad484aa3c634ad0d28fb92131dc7ba9f0" title="Used to render a bitmap to the screen." alt="" coords="224,447,387,487"/>
-<area shape="poly" id="edge11_Node000001_Node000011" title=" " alt="" coords="121,323,267,435,263,439,118,327"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1core_1_1Renderer.html#ad484aa3c634ad0d28fb92131dc7ba9f0" title="Used to render a bitmap to the screen." alt="" coords="224,381,387,422"/>
+<area shape="poly" id="edge11_Node000001_Node000011" title=" " alt="" coords="138,323,246,372,244,377,136,328"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aeb279f4bb0cb3d5771ae33177d660de8" title=" " alt="" coords="456,5,601,46"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="352,89,434,55,450,49,452,54,436,60,354,94"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1SnesColor.html#ac521c69eed2432f839a39c0bbfb19be7" title=" " alt="" coords="435,70,622,96"/>
@@ -22,8 +22,5 @@
 <area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aadcfd533d552f042877e537d4ba56fd2" title=" " alt="" coords="456,381,601,422"/>
 <area shape="poly" id="edge10_Node000006_Node000010" title=" " alt="" coords="347,323,436,366,453,373,451,378,434,371,344,328"/>
 <area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a60dbb218a86c57687580ec77be457511" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="456,447,601,487"/>
-<area shape="poly" id="edge12_Node000011_Node000012" title=" " alt="" coords="388,464,441,464,441,470,388,470"/>
-<area shape="rect" id="Node000013" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="441,536,616,577"/>
-<area shape="poly" id="edge13_Node000011_Node000013" title=" " alt="" coords="359,485,462,527,460,532,357,490"/>
-<area shape="poly" id="edge14_Node000013_Node000013" title=" " alt="" coords="486,536,484,526,491,517,506,511,529,509,553,512,567,518,565,523,551,517,529,515,507,517,494,521,490,527,492,535"/>
+<area shape="poly" id="edge12_Node000011_Node000012" title=" " alt="" coords="378,420,443,439,441,444,376,425"/>
 </map>

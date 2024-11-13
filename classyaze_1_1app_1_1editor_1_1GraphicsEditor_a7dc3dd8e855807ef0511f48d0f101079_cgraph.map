@@ -12,8 +12,8 @@
 <area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="181,420,256,442,255,447,179,425"/>
 <area shape="rect" id="Node000015" href="$classyaze_1_1app_1_1core_1_1Renderer.html#ad484aa3c634ad0d28fb92131dc7ba9f0" title="Used to render a bitmap to the screen." alt="" coords="255,512,418,553"/>
 <area shape="poly" id="edge15_Node000001_Node000015" title=" " alt="" coords="137,420,191,458,256,497,268,503,266,508,253,501,188,462,134,425"/>
-<area shape="rect" id="Node000018" href="$namespaceyaze_1_1app_1_1gui.html#ab6367acf830417f141068389444b7173" title=" " alt="" coords="259,577,414,618"/>
-<area shape="poly" id="edge19_Node000001_Node000018" title=" " alt="" coords="123,421,177,489,215,528,256,562,264,567,262,572,253,566,211,532,173,492,119,424"/>
+<area shape="rect" id="Node000017" href="$namespaceyaze_1_1app_1_1gui.html#ab6367acf830417f141068389444b7173" title=" " alt="" coords="259,577,414,618"/>
+<area shape="poly" id="edge17_Node000001_Node000017" title=" " alt="" coords="123,421,177,489,215,528,256,562,264,567,262,572,253,566,211,532,173,492,119,424"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aeb279f4bb0cb3d5771ae33177d660de8" title=" " alt="" coords="488,5,632,46"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="383,89,465,55,481,49,483,54,467,60,385,94"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1SnesColor.html#ac521c69eed2432f839a39c0bbfb19be7" title=" " alt="" coords="466,70,653,96"/>
@@ -33,7 +33,4 @@
 <area shape="poly" id="edge14_Node000013_Node000014" title=" " alt="" coords="402,464,462,464,462,470,402,470"/>
 <area shape="rect" id="Node000016" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a60dbb218a86c57687580ec77be457511" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="488,512,632,553"/>
 <area shape="poly" id="edge16_Node000015_Node000016" title=" " alt="" coords="419,530,472,530,472,535,419,535"/>
-<area shape="rect" id="Node000017" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="472,601,647,642"/>
-<area shape="poly" id="edge17_Node000015_Node000017" title=" " alt="" coords="390,551,493,592,491,597,388,556"/>
-<area shape="poly" id="edge18_Node000017_Node000017" title=" " alt="" coords="517,601,515,591,522,582,537,577,560,575,584,577,598,583,596,588,582,582,560,580,538,582,525,587,521,593,523,600"/>
 </map>

@@ -58,12 +58,13 @@ var searchData=
   ['evencycle_55',['evenCycle',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a76298376619909b0620cad6f42abf860',1,'yaze::app::emu::audio::Dsp']]],
   ['event_5fdispatcher_56',['event_dispatcher',['../structyaze__editor__context.html#a42bd8a63b8e9d7d458b44587d9270dff',1,'yaze_editor_context']]],
   ['exit_5f_57',['exit_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#aa495b8ad153bf19ff919e93e78878a3a',1,'yaze::app::zelda3::dungeon::RoomEntrance']]],
-  ['expanded_5ftile16_5f_58',['expanded_tile16_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a8d53fa1418aa016ab7904d7332804ed8',1,'yaze::app::zelda3::overworld::Overworld']]],
-  ['expanded_5ftile32_5f_59',['expanded_tile32_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a09e3bc5bdc63b31b32b4b6074c7b9196',1,'yaze::app::zelda3::overworld::Overworld']]],
-  ['extbg_60',['extbg',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a759800c7b68e91f0289bc899fd02064b',1,'yaze::app::emu::video::PpuRegisters::SETINI']]],
-  ['extend_5fui_61',['extend_ui',['../structyaze__extension.html#ae2c69e105138b9f02fdc2c79a3b7e1bf',1,'yaze_extension']]],
-  ['extension_5fmanager_5f_62',['extension_manager_',['../classyaze_1_1app_1_1editor_1_1EditorManager.html#a0dc4e071ef63fe80f44265c07bff4ac7',1,'yaze::app::editor::EditorManager']]],
-  ['extensions_5f_63',['extensions_',['../classyaze_1_1app_1_1editor_1_1ExtensionManager.html#a891ca5865b92f05b23befd30b2c8652f',1,'yaze::app::editor::ExtensionManager']]],
-  ['external_5fsync_64',['external_sync',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a20dee2003c9c0ad373582fd62bd0fbea',1,'yaze::app::emu::video::PpuRegisters::SETINI']]],
-  ['extra_5fcgx_5fdata_5f_65',['extra_cgx_data_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a748446fa56fa4560d5c9a30647f5fd7c',1,'yaze::app::editor::GraphicsEditor']]]
+  ['expanded_5fentrances_5f_58',['expanded_entrances_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a3c9e67d905b3495a146787d02dbe360f',1,'yaze::app::zelda3::overworld::Overworld']]],
+  ['expanded_5ftile16_5f_59',['expanded_tile16_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a8d53fa1418aa016ab7904d7332804ed8',1,'yaze::app::zelda3::overworld::Overworld']]],
+  ['expanded_5ftile32_5f_60',['expanded_tile32_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a09e3bc5bdc63b31b32b4b6074c7b9196',1,'yaze::app::zelda3::overworld::Overworld']]],
+  ['extbg_61',['extbg',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a759800c7b68e91f0289bc899fd02064b',1,'yaze::app::emu::video::PpuRegisters::SETINI']]],
+  ['extend_5fui_62',['extend_ui',['../structyaze__extension.html#ae2c69e105138b9f02fdc2c79a3b7e1bf',1,'yaze_extension']]],
+  ['extension_5fmanager_5f_63',['extension_manager_',['../classyaze_1_1app_1_1editor_1_1EditorManager.html#a0dc4e071ef63fe80f44265c07bff4ac7',1,'yaze::app::editor::EditorManager']]],
+  ['extensions_5f_64',['extensions_',['../classyaze_1_1app_1_1editor_1_1ExtensionManager.html#a891ca5865b92f05b23befd30b2c8652f',1,'yaze::app::editor::ExtensionManager']]],
+  ['external_5fsync_65',['external_sync',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a20dee2003c9c0ad373582fd62bd0fbea',1,'yaze::app::emu::video::PpuRegisters::SETINI']]],
+  ['extra_5fcgx_5fdata_5f_66',['extra_cgx_data_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a748446fa56fa4560d5c9a30647f5fd7c',1,'yaze::app::editor::GraphicsEditor']]]
 ];

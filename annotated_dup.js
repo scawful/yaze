@@ -184,6 +184,7 @@ var annotated_dup =
             [ "CgxHeader", "structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html", "structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader" ]
           ] ],
           [ "Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html", "classyaze_1_1app_1_1gfx_1_1Bitmap" ],
+          [ "GraphicsBuffer", "classyaze_1_1app_1_1gfx_1_1GraphicsBuffer.html", "classyaze_1_1app_1_1gfx_1_1GraphicsBuffer" ],
           [ "InternalTile16", "structyaze_1_1app_1_1gfx_1_1InternalTile16.html", "structyaze_1_1app_1_1gfx_1_1InternalTile16" ],
           [ "OamTile", "classyaze_1_1app_1_1gfx_1_1OamTile.html", "classyaze_1_1app_1_1gfx_1_1OamTile" ],
           [ "PaletteGroup", "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html", "structyaze_1_1app_1_1gfx_1_1PaletteGroup" ],
@@ -193,7 +194,6 @@ var annotated_dup =
           [ "SnesPalette", "classyaze_1_1app_1_1gfx_1_1SnesPalette.html", "classyaze_1_1app_1_1gfx_1_1SnesPalette" ],
           [ "Tile16", "classyaze_1_1app_1_1gfx_1_1Tile16.html", "classyaze_1_1app_1_1gfx_1_1Tile16" ],
           [ "Tile32", "classyaze_1_1app_1_1gfx_1_1Tile32.html", "classyaze_1_1app_1_1gfx_1_1Tile32" ],
-          [ "tile8", "structyaze_1_1app_1_1gfx_1_1tile8.html", "structyaze_1_1app_1_1gfx_1_1tile8" ],
           [ "TileInfo", "classyaze_1_1app_1_1gfx_1_1TileInfo.html", "classyaze_1_1app_1_1gfx_1_1TileInfo" ],
           [ "Tilesheet", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html", "classyaze_1_1app_1_1gfx_1_1Tilesheet" ]
         ] ],
@@ -306,6 +306,10 @@ var annotated_dup =
     [ "AppViewController", "classAppViewController.html", null ],
     [ "snes_color", "structsnes__color.html", "structsnes__color" ],
     [ "snes_palette", "structsnes__palette.html", "structsnes__palette" ],
+    [ "snes_tile16", "structsnes__tile16.html", "structsnes__tile16" ],
+    [ "snes_tile32", "structsnes__tile32.html", "structsnes__tile32" ],
+    [ "snes_tile8", "structsnes__tile8.html", "structsnes__tile8" ],
+    [ "snes_tile_info", "structsnes__tile__info.html", "structsnes__tile__info" ],
     [ "yaze_bitmap", "structyaze__bitmap.html", "structyaze__bitmap" ],
     [ "yaze_command_registry", "structyaze__command__registry.html", "structyaze__command__registry" ],
     [ "yaze_editor_context", "structyaze__editor__context.html", "structyaze__editor__context" ],

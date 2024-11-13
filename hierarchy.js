@@ -94,7 +94,6 @@ var hierarchy =
         [ "yaze::test::MockRom", "classyaze_1_1test_1_1MockRom.html", null ]
       ] ],
       [ "yaze::app::core::Controller", "classyaze_1_1app_1_1core_1_1Controller.html", null ],
-      [ "yaze::app::core::Renderer", "classyaze_1_1app_1_1core_1_1Renderer.html", null ],
       [ "yaze::app::editor::DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", null ],
       [ "yaze::app::editor::EditorManager", "classyaze_1_1app_1_1editor_1_1EditorManager.html", null ],
       [ "yaze::app::editor::FlagsMenu", "structyaze_1_1app_1_1editor_1_1FlagsMenu.html", null ],
@@ -119,6 +118,7 @@ var hierarchy =
       [ "yaze::app::zelda3::overworld::OverworldMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html", null ]
     ] ],
     [ "yaze::app::gui::GfxSheetAssetBrowser", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html", null ],
+    [ "yaze::app::gfx::GraphicsBuffer", "classyaze_1_1app_1_1gfx_1_1GraphicsBuffer.html", null ],
     [ "ImGuiSelectionBasicStorage", null, [
       [ "yaze::app::gui::ExampleSelectionWithDeletion", "structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html", null ]
     ] ],
@@ -179,6 +179,7 @@ var hierarchy =
     ] ],
     [ "yaze::app::zelda3::dungeon::PseudoVram", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html", null ],
     [ "yaze::app::RecentFilesManager", "classyaze_1_1app_1_1RecentFilesManager.html", null ],
+    [ "yaze::app::core::Renderer", "classyaze_1_1app_1_1core_1_1Renderer.html", null ],
     [ "yaze::app::ResourceLabelManager", "structyaze_1_1app_1_1ResourceLabelManager.html", null ],
     [ "yaze::app::ResourceLabelManager::ResourceType", "structyaze_1_1app_1_1ResourceLabelManager_1_1ResourceType.html", null ],
     [ "yaze::app::zelda3::dungeon::RoomEntrance", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html", null ],
@@ -223,6 +224,10 @@ var hierarchy =
     [ "yaze::app::emu::SNES", "classyaze_1_1app_1_1emu_1_1SNES.html", null ],
     [ "snes_color", "structsnes__color.html", null ],
     [ "snes_palette", "structsnes__palette.html", null ],
+    [ "snes_tile16", "structsnes__tile16.html", null ],
+    [ "snes_tile32", "structsnes__tile32.html", null ],
+    [ "snes_tile8", "structsnes__tile8.html", null ],
+    [ "snes_tile_info", "structsnes__tile__info.html", null ],
     [ "yaze::app::gfx::SnesColor", "classyaze_1_1app_1_1gfx_1_1SnesColor.html", null ],
     [ "yaze::app::gfx::SnesPalette", "classyaze_1_1app_1_1gfx_1_1SnesPalette.html", null ],
     [ "yaze::app::zelda3::music::Song", "structyaze_1_1app_1_1zelda3_1_1music_1_1Song.html", null ],
@@ -256,7 +261,6 @@ var hierarchy =
     [ "yaze::app::emu::video::Tile", "structyaze_1_1app_1_1emu_1_1video_1_1Tile.html", null ],
     [ "yaze::app::gfx::Tile16", "classyaze_1_1app_1_1gfx_1_1Tile16.html", null ],
     [ "yaze::app::gfx::Tile32", "classyaze_1_1app_1_1gfx_1_1Tile32.html", null ],
-    [ "yaze::app::gfx::tile8", "structyaze_1_1app_1_1gfx_1_1tile8.html", null ],
     [ "yaze::app::gfx::TileInfo", "classyaze_1_1app_1_1gfx_1_1TileInfo.html", null ],
     [ "yaze::app::emu::video::Tilemap", "structyaze_1_1app_1_1emu_1_1video_1_1Tilemap.html", null ],
     [ "yaze::app::emu::video::TilemapEntry", "structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html", null ],

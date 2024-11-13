@@ -56,13 +56,14 @@ var searchData=
   ['holewarp_53',['holewarp',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a11b49441f765c0c3e856e10ee157b70a',1,'yaze::app::zelda3::dungeon::Room']]],
   ['horizontal_54',['Horizontal',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ac3c0be1a02f8dce7d5bbca92747b4f9ca229b7530a186b20aa3e1b33b765f6fe0',1,'yaze::app::zelda3::dungeon']]],
   ['horizontal_5fcounter_5foutput_55',['horizontal_counter_output',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OPHCT.html#a34ff17c3a60d752dd0f0277fad117c7f',1,'yaze::app::emu::video::PpuRegisters::OPHCT']]],
-  ['horizontal_5fmirror_5f_56',['horizontal_mirror_',['../classyaze_1_1app_1_1gfx_1_1TileInfo.html#ad6ce2ed28b4fd3219e7d85959bec3afb',1,'yaze::app::gfx::TileInfo']]],
-  ['horizontal_5fscroll_57',['horizontal_scroll',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGHOFS.html#adfd2a1b0420971f8635b14c258dca045',1,'yaze::app::emu::video::PpuRegisters::BGHOFS']]],
-  ['horizontal_5ftilemap_5fcount_58',['horizontal_tilemap_count',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html#aedc59a47e96be0981ec5b19d080c2b47',1,'yaze::app::emu::video::PpuRegisters::BGSC']]],
-  ['horizontalirqtrigger_59',['horizontalIrqTrigger',['../structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a25961f76e6240c8916bf83d17aace70e',1,'yaze::app::emu::video::CounterIrqNmiRegisters']]],
-  ['horizontalscanlocation_60',['horizontalScanLocation',['../structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a5ed479b72951879a7e2515a90ae029a6',1,'yaze::app::emu::video::CounterIrqNmiRegisters']]],
-  ['hover_5fhint_61',['HOVER_HINT',['../constants_8h.html#ae341b584a47fc74d82c009e929269df9',1,'constants.h']]],
-  ['hover_5fmouse_5fpos_62',['hover_mouse_pos',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a3ea711829b4d116e65c82eb5687c8f0b',1,'yaze::app::gui::Canvas']]],
-  ['hscroll_63',['hScroll',['../structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#a18ce3edd06619cf78923e1fda841f353',1,'yaze::app::emu::video::BgLayer']]],
-  ['hud_64',['hud',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a9a6153417857e46e9a17600179d72cf2',1,'yaze::app::gfx::PaletteGroupMap::hud'],['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#a976ee6db80165948cb5926900634973c',1,'yaze::app::gfx::Paletteset::hud']]]
+  ['horizontal_5fmirror_56',['horizontal_mirror',['../structsnes__tile__info.html#ae7281dca7dedcd51d3df374f072d5711',1,'snes_tile_info']]],
+  ['horizontal_5fmirror_5f_57',['horizontal_mirror_',['../classyaze_1_1app_1_1gfx_1_1TileInfo.html#ad6ce2ed28b4fd3219e7d85959bec3afb',1,'yaze::app::gfx::TileInfo']]],
+  ['horizontal_5fscroll_58',['horizontal_scroll',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGHOFS.html#adfd2a1b0420971f8635b14c258dca045',1,'yaze::app::emu::video::PpuRegisters::BGHOFS']]],
+  ['horizontal_5ftilemap_5fcount_59',['horizontal_tilemap_count',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html#aedc59a47e96be0981ec5b19d080c2b47',1,'yaze::app::emu::video::PpuRegisters::BGSC']]],
+  ['horizontalirqtrigger_60',['horizontalIrqTrigger',['../structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a25961f76e6240c8916bf83d17aace70e',1,'yaze::app::emu::video::CounterIrqNmiRegisters']]],
+  ['horizontalscanlocation_61',['horizontalScanLocation',['../structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a5ed479b72951879a7e2515a90ae029a6',1,'yaze::app::emu::video::CounterIrqNmiRegisters']]],
+  ['hover_5fhint_62',['HOVER_HINT',['../constants_8h.html#ae341b584a47fc74d82c009e929269df9',1,'constants.h']]],
+  ['hover_5fmouse_5fpos_63',['hover_mouse_pos',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a3ea711829b4d116e65c82eb5687c8f0b',1,'yaze::app::gui::Canvas']]],
+  ['hscroll_64',['hScroll',['../structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#a18ce3edd06619cf78923e1fda841f353',1,'yaze::app::emu::video::BgLayer']]],
+  ['hud_65',['hud',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a9a6153417857e46e9a17600179d72cf2',1,'yaze::app::gfx::PaletteGroupMap::hud'],['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#a976ee6db80165948cb5926900634973c',1,'yaze::app::gfx::Paletteset::hud']]]
 ];

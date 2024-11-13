@@ -98,13 +98,14 @@ var searchData=
   ['bossroom_95',['bossRoom',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a024a8b899d5df16e0a0828620a633dc3',1,'yaze::app::zelda3::screen::TitleScreen']]],
   ['bounding_5fbox_5f_96',['bounding_box_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a12171c6fe266c831122d3eedb6920aea',1,'yaze::app::zelda3::Sprite']]],
   ['bpp_97',['bpp',['../structyaze__bitmap.html#ab4ab5935eae3fb291b328c25e0c53cc0',1,'yaze_bitmap']]],
-  ['breakpoints_5f_98',['breakpoints_',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a7556a2435a81b35b6d6289f741da167e',1,'yaze::app::emu::Cpu']]],
-  ['brightness_99',['brightness',['../structyaze_1_1app_1_1emu_1_1video_1_1ScreenDisplay.html#a0bba8e5a7a285e6faa7201e5246fd539',1,'yaze::app::emu::video::ScreenDisplay::brightness'],['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#afa4c2ac0c72fae10dcbf1ede8e326f7b',1,'yaze::app::emu::video::Ppu::brightness'],['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1INIDISP.html#a53762bbf78c8d04ffd255ef245d3cccb',1,'yaze::app::emu::video::PpuRegisters::INIDISP::brightness']]],
-  ['brrheader_100',['brrHeader',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a0e1547619f31199e8c21273ede94fe54',1,'yaze::app::emu::audio::DspChannel']]],
-  ['bstep_101',['bstep',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af8380ea2374bfec65e8b202907a555cc',1,'yaze::app::emu::audio::Spc700']]],
-  ['buf_102',['buf',['../structyaze_1_1app_1_1zelda3_1_1music_1_1SongSPCBlock.html#a13c5afaef4dda5856711deb56a7c5ebe',1,'yaze::app::zelda3::music::SongSPCBlock::buf'],['../structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaWave.html#a627ed4307db8b5a4eaf4af1fd0bf28c4',1,'yaze::app::zelda3::music::ZeldaWave::buf']]],
-  ['buffer_103',['buffer',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#ad7c43e0413fcee0125f8913566985b42',1,'yaze::app::editor::MessageEditor::TextBox']]],
-  ['bufferoffset_104',['bufferOffset',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a61e3ba4cdc0ce7b12df4b3de31054fc8',1,'yaze::app::emu::audio::DspChannel']]],
-  ['built_5f_105',['built_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a36e352c4704510da5c38f1af045cf0a3',1,'yaze::app::zelda3::overworld::OverworldMap']]],
-  ['bytestotransfer_106',['bytesToTransfer',['../structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#a5b9c7746a851eb1b1864279b496a59de',1,'yaze::app::emu::video::DmaRegisters']]]
+  ['bpp_5f_98',['bpp_',['../classyaze_1_1app_1_1gfx_1_1GraphicsBuffer.html#a737b70259d0b585933f313b734acafa7',1,'yaze::app::gfx::GraphicsBuffer']]],
+  ['breakpoints_5f_99',['breakpoints_',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a7556a2435a81b35b6d6289f741da167e',1,'yaze::app::emu::Cpu']]],
+  ['brightness_100',['brightness',['../structyaze_1_1app_1_1emu_1_1video_1_1ScreenDisplay.html#a0bba8e5a7a285e6faa7201e5246fd539',1,'yaze::app::emu::video::ScreenDisplay::brightness'],['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#afa4c2ac0c72fae10dcbf1ede8e326f7b',1,'yaze::app::emu::video::Ppu::brightness'],['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1INIDISP.html#a53762bbf78c8d04ffd255ef245d3cccb',1,'yaze::app::emu::video::PpuRegisters::INIDISP::brightness']]],
+  ['brrheader_101',['brrHeader',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a0e1547619f31199e8c21273ede94fe54',1,'yaze::app::emu::audio::DspChannel']]],
+  ['bstep_102',['bstep',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af8380ea2374bfec65e8b202907a555cc',1,'yaze::app::emu::audio::Spc700']]],
+  ['buf_103',['buf',['../structyaze_1_1app_1_1zelda3_1_1music_1_1SongSPCBlock.html#a13c5afaef4dda5856711deb56a7c5ebe',1,'yaze::app::zelda3::music::SongSPCBlock::buf'],['../structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaWave.html#a627ed4307db8b5a4eaf4af1fd0bf28c4',1,'yaze::app::zelda3::music::ZeldaWave::buf']]],
+  ['buffer_104',['buffer',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#ad7c43e0413fcee0125f8913566985b42',1,'yaze::app::editor::MessageEditor::TextBox']]],
+  ['bufferoffset_105',['bufferOffset',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a61e3ba4cdc0ce7b12df4b3de31054fc8',1,'yaze::app::emu::audio::DspChannel']]],
+  ['built_5f_106',['built_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a36e352c4704510da5c38f1af045cf0a3',1,'yaze::app::zelda3::overworld::OverworldMap']]],
+  ['bytestotransfer_107',['bytesToTransfer',['../structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#a5b9c7746a851eb1b1864279b496a59de',1,'yaze::app::emu::video::DmaRegisters']]]
 ];

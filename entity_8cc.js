@@ -11,5 +11,6 @@ var entity_8cc =
     [ "DrawItemEditorPopup", "entity_8cc.html#ade3b89ce612bae184d3d12eac0982c1a", null ],
     [ "DrawSpriteTable", "entity_8cc.html#ad79a7b2408242f84ae61bc0827ef4ee4", null ],
     [ "DrawSpriteInserterPopup", "entity_8cc.html#a2a5bf5f9e11b828afcf9859de7cb7658", null ],
-    [ "DrawSpriteEditorPopup", "entity_8cc.html#a7f2e162ec2e063a656a26c470447e623", null ]
+    [ "DrawSpriteEditorPopup", "entity_8cc.html#a7f2e162ec2e063a656a26c470447e623", null ],
+    [ "kInputFieldSize", "entity_8cc.html#ae04d2e74f9f6029740a0ffede60b29d0", null ]
 ];
