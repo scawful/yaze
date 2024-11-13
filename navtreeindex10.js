@@ -1,11 +1,5 @@
 var NAVTREEINDEX10 =
 {
-"classyaze_1_1app_1_1emu_1_1SNES.html#a89c5f3a1cc06a3f78398dfba567936b9":[12,0,0,0,2,12,64],
-"classyaze_1_1app_1_1emu_1_1SNES.html#a8a9edbbe3535e8d0aa5bbedac769fe9e":[11,0,1,0,3,14,16],
-"classyaze_1_1app_1_1emu_1_1SNES.html#a8a9edbbe3535e8d0aa5bbedac769fe9e":[12,0,0,0,2,12,16],
-"classyaze_1_1app_1_1emu_1_1SNES.html#a8c976683924456093ec663746af502b5":[11,0,1,0,3,14,1],
-"classyaze_1_1app_1_1emu_1_1SNES.html#a8c976683924456093ec663746af502b5":[12,0,0,0,2,12,1],
-"classyaze_1_1app_1_1emu_1_1SNES.html#a8ca11347c17a8bb5c39f47f153ed28a7":[11,0,1,0,3,14,46],
 "classyaze_1_1app_1_1emu_1_1SNES.html#a8ca11347c17a8bb5c39f47f153ed28a7":[12,0,0,0,2,12,46],
 "classyaze_1_1app_1_1emu_1_1SNES.html#a8d4279e4bd9798fc575b69e7e26f0504":[11,0,1,0,3,14,65],
 "classyaze_1_1app_1_1emu_1_1SNES.html#a8d4279e4bd9798fc575b69e7e26f0504":[12,0,0,0,2,12,65],
@@ -249,5 +243,11 @@ var NAVTREEINDEX10 =
 "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a03108716fc2a82b401b8e5c4f6fb2727":[12,0,0,0,2,0,6,26],
 "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a0351b14675ec59fd6f4fbade3a324c60":[11,0,1,0,3,2,6,84],
 "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a0351b14675ec59fd6f4fbade3a324c60":[12,0,0,0,2,0,6,84],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a038513eaaf2e25b485789ea1a433aec1":[11,0,1,0,3,2,6,15]
+"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a038513eaaf2e25b485789ea1a433aec1":[11,0,1,0,3,2,6,15],
+"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a038513eaaf2e25b485789ea1a433aec1":[12,0,0,0,2,0,6,15],
+"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a03ae1c051eedfeef057b09b087ad9da9":[11,0,1,0,3,2,6,64],
+"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a03ae1c051eedfeef057b09b087ad9da9":[12,0,0,0,2,0,6,64],
+"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a03d652990219711cf9d6f7ac8b0f3eea":[11,0,1,0,3,2,6,43],
+"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a03d652990219711cf9d6f7ac8b0f3eea":[12,0,0,0,2,0,6,43],
+"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a0644092dadabeb8d044edce105ba57b2":[11,0,1,0,3,2,6,133]
 };

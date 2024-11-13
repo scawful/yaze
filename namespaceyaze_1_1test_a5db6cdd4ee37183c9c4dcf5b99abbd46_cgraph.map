@@ -1,8 +1,8 @@
 <map id="yaze::test::TEST" name="yaze::test::TEST">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,31,120,56"/>
-<area shape="rect" id="Node000002" href="$yaze_8cc.html#a29fdfcf0cfd5f08d2b6defbefc7a99bf" title="Clean up the Yaze library." alt="" coords="168,5,267,31"/>
+<area shape="rect" id="Node000002" href="$yaze_8cc.html#a0a0de1f1ac633141312ab7e267fff4c4" title="Clean up the Yaze library." alt="" coords="168,5,267,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,32,152,26,153,31,121,37"/>
-<area shape="rect" id="Node000004" href="$yaze_8cc.html#a5b270d2f7e8cafbdddc7910922ead8c2" title="Initialize the Yaze library." alt="" coords="182,55,253,80"/>
+<area shape="rect" id="Node000004" href="$yaze_8cc.html#af1bd2705b6539a4d10490495d2fdde4b" title="Initialize the Yaze library." alt="" coords="182,55,253,80"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="120,50,167,57,166,62,120,55"/>
 <area shape="rect" id="Node000003" href="$yaze_8cc.html#a883ab5865f5e61a639dc3dafcd45e8c7" title="Unload a Zelda3 ROM." alt="" coords="315,5,436,31"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="267,16,300,16,300,21,267,21"/>

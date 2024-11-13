@@ -115,6 +115,7 @@ $(function(){initNavTree('yaze_8h.html',''); initResizable(true); });
 <div class="contents">
 <div class="textblock"><code>#include &lt;stddef.h&gt;</code><br />
 <code>#include &lt;stdint.h&gt;</code><br />
+<code>#include &quot;<a class="el" href="dungeon_8h_source.html">incl/dungeon.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="incl_2overworld_8h_source.html">incl/overworld.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="incl_2snes__color_8h_source.html">incl/snes_color.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="incl_2sprite_8h_source.html">incl/sprite.h</a>&quot;</code><br />
@@ -123,20 +124,25 @@ Include dependency graph for yaze.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="yaze_8h__incl.png" border="0" usemap="#asrc_2yaze_8h" alt=""/></div>
 <map name="asrc_2yaze_8h" id="asrc_2yaze_8h">
-<area shape="rect" title=" " alt="" coords="163,5,243,31"/>
+<area shape="rect" title=" " alt="" coords="233,5,312,31"/>
 <area shape="rect" title=" " alt="" coords="5,79,73,105"/>
-<area shape="poly" title=" " alt="" coords="176,34,82,75,80,70,174,29"/>
-<area shape="rect" title=" " alt="" coords="241,153,304,178"/>
-<area shape="poly" title=" " alt="" coords="182,34,162,48,144,65,133,85,133,94,137,103,155,123,177,137,227,155,225,160,175,142,151,127,133,106,128,95,128,83,139,62,159,44,179,29"/>
+<area shape="poly" title=" " alt="" coords="234,34,88,78,87,73,232,29"/>
+<area shape="rect" title=" " alt="" coords="310,153,373,178"/>
+<area shape="poly" title=" " alt="" coords="233,30,192,42,155,58,141,68,133,79,131,90,137,103,162,120,202,135,295,155,294,160,201,140,159,125,133,106,126,91,128,77,138,64,152,53,191,37,231,25"/>
+<area shape="rect" href="dungeon_8h.html" title=" " alt="" coords="536,79,640,105"/>
+<area shape="poly" title=" " alt="" coords="313,26,522,73,521,78,312,31"/>
 <area shape="rect" href="incl_2overworld_8h.html" title=" " alt="" coords="147,79,259,105"/>
-<area shape="poly" title=" " alt="" coords="206,31,206,63,200,63,200,31"/>
+<area shape="poly" title=" " alt="" coords="263,33,227,70,223,66,259,29"/>
 <area shape="rect" href="incl_2snes__color_8h.html" title=" " alt="" coords="282,79,401,105"/>
-<area shape="poly" title=" " alt="" coords="228,29,306,69,303,74,225,34"/>
+<area shape="poly" title=" " alt="" coords="286,29,321,66,318,70,282,33"/>
 <area shape="rect" href="incl_2sprite_8h.html" title=" " alt="" coords="425,79,512,105"/>
-<area shape="poly" title=" " alt="" coords="244,28,411,72,409,77,243,33"/>
-<area shape="poly" title=" " alt="" coords="216,103,252,140,248,143,213,107"/>
-<area shape="poly" title=" " alt="" coords="332,107,296,143,293,140,328,103"/>
-<area shape="poly" title=" " alt="" coords="436,108,319,150,318,145,434,103"/>
+<area shape="poly" title=" " alt="" coords="306,29,422,71,420,76,305,34"/>
+<area shape="poly" title=" " alt="" coords="547,108,389,153,388,148,546,103"/>
+<area shape="rect" title=" " alt="" coords="552,153,625,178"/>
+<area shape="poly" title=" " alt="" coords="591,105,591,137,586,137,586,105"/>
+<area shape="poly" title=" " alt="" coords="228,103,306,143,303,147,225,108"/>
+<area shape="poly" title=" " alt="" coords="344,105,344,137,339,137,339,105"/>
+<area shape="poly" title=" " alt="" coords="448,108,378,147,375,142,446,103"/>
 </map>
 </div>
 </div><div class="textblock"><div class="dynheader">
@@ -144,17 +150,17 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="yaze_8h__dep__incl.png" border="0" usemap="#asrc_2yaze_8hdep" alt=""/></div>
 <map name="asrc_2yaze_8hdep" id="asrc_2yaze_8hdep">
-<area shape="rect" title=" " alt="" coords="403,5,482,31"/>
+<area shape="rect" title=" " alt="" coords="384,5,463,31"/>
 <area shape="rect" href="editor__manager_8h.html" title=" " alt="" coords="80,241,216,282"/>
-<area shape="poly" title=" " alt="" coords="388,28,327,40,259,63,227,79,196,100,170,124,150,154,142,175,140,199,145,240,140,241,135,199,137,174,145,151,166,121,193,96,224,75,257,58,326,35,387,22"/>
-<area shape="rect" href="extension_8h.html" title=" " alt="" coords="272,79,404,105"/>
-<area shape="poly" title=" " alt="" coords="414,42,358,81,355,76,411,38"/>
-<area shape="rect" href="yaze__py_8cc.html" title=" " alt="" coords="381,160,504,186"/>
-<area shape="poly" title=" " alt="" coords="445,47,445,160,440,160,440,47"/>
-<area shape="rect" href="yaze__test_8cc.html" title=" " alt="" coords="480,79,621,105"/>
-<area shape="poly" title=" " alt="" coords="475,38,533,76,530,81,472,42"/>
-<area shape="rect" href="yaze_8cc.html" title=" " alt="" coords="644,79,731,105"/>
-<area shape="poly" title=" " alt="" coords="498,33,646,76,645,81,496,38"/>
+<area shape="poly" title=" " alt="" coords="369,26,307,33,242,44,184,60,163,69,150,81,138,99,131,120,128,164,134,206,143,240,138,242,129,207,123,164,126,118,134,97,146,77,161,65,182,55,240,38,307,27,368,21"/>
+<area shape="rect" href="extension_8h.html" title=" " alt="" coords="160,79,338,105"/>
+<area shape="poly" title=" " alt="" coords="381,40,280,81,278,76,379,35"/>
+<area shape="rect" href="yaze__py_8cc.html" title=" " alt="" coords="362,79,485,105"/>
+<area shape="poly" title=" " alt="" coords="426,46,426,79,421,79,421,46"/>
+<area shape="rect" href="yaze__test_8cc.html" title=" " alt="" coords="509,79,650,105"/>
+<area shape="poly" title=" " alt="" coords="465,35,554,76,552,81,463,40"/>
+<area shape="rect" href="yaze_8cc.html" title=" " alt="" coords="674,79,760,105"/>
+<area shape="poly" title=" " alt="" coords="479,30,674,77,673,83,478,35"/>
 <area shape="rect" href="controller_8cc.html" title=" " alt="" coords="5,419,173,444"/>
 <area shape="poly" title=" " alt="" coords="94,293,73,310,58,331,53,354,59,378,70,400,82,417,77,420,65,402,54,379,48,354,53,329,70,306,90,289"/>
 <area shape="rect" href="controller_8h.html" title=" " alt="" coords="68,338,228,363"/>
@@ -163,10 +169,9 @@ This graph shows which files directly or indirectly include this file:</div>
 <area shape="poly" title=" " alt="" coords="201,287,282,327,280,332,199,292"/>
 <area shape="poly" title=" " alt="" coords="132,377,100,420,96,417,127,374"/>
 <area shape="rect" href="extension__manager_8cc.html" title=" " alt="" coords="253,241,408,282"/>
-<area shape="poly" title=" " alt="" coords="340,120,334,241,329,241,334,120"/>
+<area shape="poly" title=" " alt="" coords="284,112,304,129,321,151,330,174,334,198,335,241,330,241,329,199,324,176,316,154,300,133,280,116"/>
 <area shape="rect" href="extension__manager_8h.html" title=" " alt="" coords="159,153,307,193"/>
-<area shape="poly" title=" " alt="" coords="312,116,261,154,257,150,308,112"/>
-<area shape="poly" title=" " alt="" coords="368,112,428,158,425,162,365,116"/>
+<area shape="poly" title=" " alt="" coords="246,121,240,153,234,152,241,120"/>
 <area shape="poly" title=" " alt="" coords="205,206,169,243,165,239,201,203"/>
 <area shape="poly" title=" " alt="" coords="268,202,310,239,307,243,264,206"/>
 </map>
@@ -188,6 +193,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structz3__rom.html">z3_rom</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of a Zelda3 ROM.  <a href="structz3__rom.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze__bitmap.html">yaze_bitmap</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of a Bitmap.  <a href="structyaze__bitmap.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze__command__registry.html">yaze_command_registry</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Command registry.  <a href="structyaze__command__registry.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -208,18 +216,22 @@ Typedefs</h2></td></tr>
 <tr class="memitem:acd3a71fa68d6d64ec2b68e8232856b77" id="r_acd3a71fa68d6d64ec2b68e8232856b77"><td class="memItemLeft" align="right" valign="top">typedef struct yaze_event_dispatcher&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acd3a71fa68d6d64ec2b68e8232856b77">yaze_event_dispatcher</a></td></tr>
 <tr class="separator:acd3a71fa68d6d64ec2b68e8232856b77"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa5f9c0aba87080afdbdfe7cb6792d89e" id="r_aa5f9c0aba87080afdbdfe7cb6792d89e"><td class="memItemLeft" align="right" valign="top">typedef struct yaze_editor_context&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa5f9c0aba87080afdbdfe7cb6792d89e">yaze_editor_context</a></td></tr>
+<tr class="memdesc:aa5f9c0aba87080afdbdfe7cb6792d89e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extension editor context.  <br /></td></tr>
 <tr class="separator:aa5f9c0aba87080afdbdfe7cb6792d89e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ba242cd4dc0870e4e4d6f943a1ad7a7" id="r_a5ba242cd4dc0870e4e4d6f943a1ad7a7"><td class="memItemLeft" align="right" valign="top">typedef struct yaze_bitmap&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5ba242cd4dc0870e4e4d6f943a1ad7a7">yaze_bitmap</a></td></tr>
+<tr class="memdesc:a5ba242cd4dc0870e4e4d6f943a1ad7a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of a Bitmap.  <br /></td></tr>
+<tr class="separator:a5ba242cd4dc0870e4e4d6f943a1ad7a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a9fff64bba6ed578ae091960204b84648" id="r_a9fff64bba6ed578ae091960204b84648"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9fff64bba6ed578ae091960204b84648">yaze_check_version</a> (const char *version)</td></tr>
 <tr class="separator:a9fff64bba6ed578ae091960204b84648"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad32e8cb5771925ce1df13bd6aeaf14b3" id="r_ad32e8cb5771925ce1df13bd6aeaf14b3"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad32e8cb5771925ce1df13bd6aeaf14b3">yaze_init</a> (<a class="el" href="structyaze__flags.html">yaze_flags</a> *)</td></tr>
-<tr class="memdesc:ad32e8cb5771925ce1df13bd6aeaf14b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the Yaze library.  <br /></td></tr>
-<tr class="separator:ad32e8cb5771925ce1df13bd6aeaf14b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2f31206311a6fa23618eed894f1f5cd6" id="r_a2f31206311a6fa23618eed894f1f5cd6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2f31206311a6fa23618eed894f1f5cd6">yaze_cleanup</a> (<a class="el" href="structyaze__flags.html">yaze_flags</a> *)</td></tr>
-<tr class="memdesc:a2f31206311a6fa23618eed894f1f5cd6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clean up the Yaze library.  <br /></td></tr>
-<tr class="separator:a2f31206311a6fa23618eed894f1f5cd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ab82f4fb7c455c56c01400dd7948805" id="r_a7ab82f4fb7c455c56c01400dd7948805"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7ab82f4fb7c455c56c01400dd7948805">yaze_init</a> (<a class="el" href="structyaze__editor__context.html">yaze_editor_context</a> *)</td></tr>
+<tr class="memdesc:a7ab82f4fb7c455c56c01400dd7948805"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the Yaze library.  <br /></td></tr>
+<tr class="separator:a7ab82f4fb7c455c56c01400dd7948805"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac6ab34b2015d370dc6b7be5728b163f5" id="r_ac6ab34b2015d370dc6b7be5728b163f5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac6ab34b2015d370dc6b7be5728b163f5">yaze_cleanup</a> (<a class="el" href="structyaze__editor__context.html">yaze_editor_context</a> *)</td></tr>
+<tr class="memdesc:ac6ab34b2015d370dc6b7be5728b163f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clean up the Yaze library.  <br /></td></tr>
+<tr class="separator:ac6ab34b2015d370dc6b7be5728b163f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac6958144cc1209550c0f77e8dce0b8d3" id="r_ac6958144cc1209550c0f77e8dce0b8d3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze__project.html">yaze_project</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac6958144cc1209550c0f77e8dce0b8d3">yaze_load_project</a> (const char *filename)</td></tr>
 <tr class="separator:ac6958144cc1209550c0f77e8dce0b8d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adfaf105df03accd07b94f1e60c6ed8bf" id="r_adfaf105df03accd07b94f1e60c6ed8bf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structz3__rom.html">z3_rom</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adfaf105df03accd07b94f1e60c6ed8bf">yaze_load_rom</a> (const char *filename)</td></tr>
@@ -228,6 +240,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a883ab5865f5e61a639dc3dafcd45e8c7" id="r_a883ab5865f5e61a639dc3dafcd45e8c7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a883ab5865f5e61a639dc3dafcd45e8c7">yaze_unload_rom</a> (<a class="el" href="structz3__rom.html">z3_rom</a> *rom)</td></tr>
 <tr class="memdesc:a883ab5865f5e61a639dc3dafcd45e8c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unload a Zelda3 ROM.  <br /></td></tr>
 <tr class="separator:a883ab5865f5e61a639dc3dafcd45e8c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a25bf6669809ad5e1ae299014a5f6fd0a" id="r_a25bf6669809ad5e1ae299014a5f6fd0a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze__bitmap.html">yaze_bitmap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a25bf6669809ad5e1ae299014a5f6fd0a">yaze_load_bitmap</a> (const char *filename)</td></tr>
+<tr class="memdesc:a25bf6669809ad5e1ae299014a5f6fd0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a bitmap from a file.  <br /></td></tr>
+<tr class="separator:a25bf6669809ad5e1ae299014a5f6fd0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adfb236b5541502ced4544a6678e79d0e" id="r_adfb236b5541502ced4544a6678e79d0e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structsnes__color.html">snes_color</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adfb236b5541502ced4544a6678e79d0e">yaze_get_color_from_paletteset</a> (const <a class="el" href="structz3__rom.html">z3_rom</a> *rom, int palette_set, int palette, int color)</td></tr>
 <tr class="memdesc:adfb236b5541502ced4544a6678e79d0e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a color from a palette set.  <br /></td></tr>
 <tr class="separator:adfb236b5541502ced4544a6678e79d0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -247,7 +262,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00015">15</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00016">16</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
 
 </div>
 </div>
@@ -263,7 +278,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00017">17</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00018">18</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
 
 </div>
 </div>
@@ -279,7 +294,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00018">18</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00019">19</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
 
 </div>
 </div>
@@ -295,7 +310,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00020">20</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00021">21</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
 
 </div>
 </div>
@@ -311,7 +326,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00021">21</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00022">22</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
 
 </div>
 </div>
@@ -327,7 +342,23 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00023">23</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
+<p>Extension editor context. </p>
+
+</div>
+</div>
+<a id="a5ba242cd4dc0870e4e4d6f943a1ad7a7" name="a5ba242cd4dc0870e4e4d6f943a1ad7a7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5ba242cd4dc0870e4e4d6f943a1ad7a7">&#9670;&#160;</a></span>yaze_bitmap</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct yaze_bitmap yaze_bitmap</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Primitive of a Bitmap. </p>
 
 </div>
 </div>
@@ -365,8 +396,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ad32e8cb5771925ce1df13bd6aeaf14b3" name="ad32e8cb5771925ce1df13bd6aeaf14b3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad32e8cb5771925ce1df13bd6aeaf14b3">&#9670;&#160;</a></span>yaze_init()</h2>
+<a id="a7ab82f4fb7c455c56c01400dd7948805" name="a7ab82f4fb7c455c56c01400dd7948805"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7ab82f4fb7c455c56c01400dd7948805">&#9670;&#160;</a></span>yaze_init()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -374,7 +405,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">int yaze_init </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structyaze__flags.html">yaze_flags</a> *</td>          <td class="paramname"><span class="paramname"><em>flags</em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="structyaze__editor__context.html">yaze_editor_context</a> *</td>          <td class="paramname"><span class="paramname"><em>yaze_ctx</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -390,14 +421,14 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00018">18</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="yaze_8h_source.html#l00041">yaze_flags::rom</a>, <a class="el" href="yaze_8h_source.html#l00040">yaze_flags::rom_filename</a>, and <a class="el" href="yaze_8cc_source.html#l00047">yaze_load_rom()</a>.</p>
+<p class="reference">References <a class="el" href="yaze_8h_source.html#l00029">yaze_editor_context::flags</a>, <a class="el" href="yaze_8h_source.html#l00041">yaze_flags::rom</a>, <a class="el" href="yaze_8h_source.html#l00040">yaze_flags::rom_filename</a>, and <a class="el" href="yaze_8cc_source.html#l00047">yaze_load_rom()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="yaze__test_8cc_source.html#l00014">yaze::test::TEST()</a>, and <a class="el" href="yaze__test_8cc_source.html#l00022">yaze::test::TEST()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="yaze_8h_ad32e8cb5771925ce1df13bd6aeaf14b3_cgraph.png" border="0" usemap="#ayaze_8h_ad32e8cb5771925ce1df13bd6aeaf14b3_cgraph" alt=""/></div>
-<map name="ayaze_8h_ad32e8cb5771925ce1df13bd6aeaf14b3_cgraph" id="ayaze_8h_ad32e8cb5771925ce1df13bd6aeaf14b3_cgraph">
+<div class="center"><img src="yaze_8h_a7ab82f4fb7c455c56c01400dd7948805_cgraph.png" border="0" usemap="#ayaze_8h_a7ab82f4fb7c455c56c01400dd7948805_cgraph" alt=""/></div>
+<map name="ayaze_8h_a7ab82f4fb7c455c56c01400dd7948805_cgraph" id="ayaze_8h_a7ab82f4fb7c455c56c01400dd7948805_cgraph">
 <area shape="rect" title="Initialize the Yaze library." alt="" coords="5,55,77,80"/>
 <area shape="rect" href="yaze_8cc.html#adfaf105df03accd07b94f1e60c6ed8bf" title="Load a Zelda3 ROM from a file." alt="" coords="125,55,232,80"/>
 <area shape="poly" title=" " alt="" coords="77,65,109,65,109,70,77,70"/>
@@ -412,8 +443,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a2f31206311a6fa23618eed894f1f5cd6" name="a2f31206311a6fa23618eed894f1f5cd6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2f31206311a6fa23618eed894f1f5cd6">&#9670;&#160;</a></span>yaze_cleanup()</h2>
+<a id="ac6ab34b2015d370dc6b7be5728b163f5" name="ac6ab34b2015d370dc6b7be5728b163f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac6ab34b2015d370dc6b7be5728b163f5">&#9670;&#160;</a></span>yaze_cleanup()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -421,7 +452,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">void yaze_cleanup </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structyaze__flags.html">yaze_flags</a> *</td>          <td class="paramname"><span class="paramname"><em>flags</em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="structyaze__editor__context.html">yaze_editor_context</a> *</td>          <td class="paramname"><span class="paramname"><em>yaze_ctx</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -437,14 +468,14 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00035">35</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="yaze_8h_source.html#l00041">yaze_flags::rom</a>, and <a class="el" href="yaze_8cc_source.html#l00063">yaze_unload_rom()</a>.</p>
+<p class="reference">References <a class="el" href="yaze_8h_source.html#l00029">yaze_editor_context::flags</a>, <a class="el" href="yaze_8h_source.html#l00041">yaze_flags::rom</a>, and <a class="el" href="yaze_8cc_source.html#l00063">yaze_unload_rom()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="yaze__test_8cc_source.html#l00014">yaze::test::TEST()</a>, and <a class="el" href="yaze__test_8cc_source.html#l00022">yaze::test::TEST()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="yaze_8h_a2f31206311a6fa23618eed894f1f5cd6_cgraph.png" border="0" usemap="#ayaze_8h_a2f31206311a6fa23618eed894f1f5cd6_cgraph" alt=""/></div>
-<map name="ayaze_8h_a2f31206311a6fa23618eed894f1f5cd6_cgraph" id="ayaze_8h_a2f31206311a6fa23618eed894f1f5cd6_cgraph">
+<div class="center"><img src="yaze_8h_ac6ab34b2015d370dc6b7be5728b163f5_cgraph.png" border="0" usemap="#ayaze_8h_ac6ab34b2015d370dc6b7be5728b163f5_cgraph" alt=""/></div>
+<map name="ayaze_8h_ac6ab34b2015d370dc6b7be5728b163f5_cgraph" id="ayaze_8h_ac6ab34b2015d370dc6b7be5728b163f5_cgraph">
 <area shape="rect" title="Clean up the Yaze library." alt="" coords="5,5,105,31"/>
 <area shape="rect" href="yaze_8cc.html#a883ab5865f5e61a639dc3dafcd45e8c7" title="Unload a Zelda3 ROM." alt="" coords="153,5,274,31"/>
 <area shape="poly" title=" " alt="" coords="105,16,137,16,137,21,105,21"/>
@@ -544,6 +575,29 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a25bf6669809ad5e1ae299014a5f6fd0a" name="a25bf6669809ad5e1ae299014a5f6fd0a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a25bf6669809ad5e1ae299014a5f6fd0a">&#9670;&#160;</a></span>yaze_load_bitmap()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structyaze__bitmap.html">yaze_bitmap</a> yaze_load_bitmap </td>
+          <td>(</td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>filename</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Load a bitmap from a file. </p>
+
+<p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00073">73</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="yaze_8h_source.html#l00099">yaze_bitmap::bpp</a>, <a class="el" href="yaze_8h_source.html#l00100">yaze_bitmap::data</a>, <a class="el" href="yaze_8h_source.html#l00098">yaze_bitmap::height</a>, and <a class="el" href="yaze_8h_source.html#l00097">yaze_bitmap::width</a>.</p>
+
+</div>
+</div>
 <a id="adfb236b5541502ced4544a6678e79d0e" name="adfb236b5541502ced4544a6678e79d0e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adfb236b5541502ced4544a6678e79d0e">&#9670;&#160;</a></span>yaze_get_color_from_paletteset()</h2>
 
@@ -575,7 +629,7 @@ Here is the call graph for this function:</div>
 
 <p>Get a color from a palette set. </p>
 
-<p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00073">73</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00082">82</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="incl_2snes__color_8h_source.html#l00015">snes_color::blue</a>, <a class="el" href="incl_2snes__color_8h_source.html#l00016">snes_color::green</a>, <a class="el" href="yaze_8h_source.html#l00080">z3_rom::impl</a>, <a class="el" href="snes__palette_8h_source.html#l00052">yaze::app::gfx::kPaletteGroupAddressesKeys</a>, <a class="el" href="rom_8h_source.html#l00472">yaze::app::Rom::palette_group()</a>, and <a class="el" href="incl_2snes__color_8h_source.html#l00014">snes_color::red</a>.</p>
 
@@ -608,52 +662,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00098">98</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00107">107</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="incl_2overworld_8h_source.html#l00017">z3_overworld_map::id</a>, <a class="el" href="incl_2overworld_8h_source.html#l00027">z3_overworld::impl</a>, <a class="el" href="yaze_8h_source.html#l00080">z3_rom::impl</a>, <a class="el" href="overworld_8cc_source.html#l00024">yaze::app::zelda3::overworld::Overworld::Load()</a>, <a class="el" href="incl_2overworld_8h_source.html#l00026">z3_overworld::maps</a>, and <a class="el" href="app_2zelda3_2overworld_2overworld_8h_source.html#l00516">yaze::app::zelda3::overworld::Overworld::overworld_maps()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="yaze_8h_ac1b3f6a8db6317860537e91d20a2c7f5_cgraph.png" border="0" usemap="#ayaze_8h_ac1b3f6a8db6317860537e91d20a2c7f5_cgraph" alt=""/></div>
-<map name="ayaze_8h_ac1b3f6a8db6317860537e91d20a2c7f5_cgraph" id="ayaze_8h_ac1b3f6a8db6317860537e91d20a2c7f5_cgraph">
-<area shape="rect" title=" " alt="" coords="5,427,147,453"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a7ece0d774606f16c3fd607ae84eb4141" title=" " alt="" coords="195,384,372,424"/>
-<area shape="poly" title=" " alt="" coords="147,425,179,419,180,424,148,430"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a04d4f57eb3bbf93e454b2b6d5dfcfbab" title=" " alt="" coords="212,448,354,504"/>
-<area shape="poly" title=" " alt="" coords="148,449,197,458,196,463,147,455"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#ae730300a6798373c002a3141a6fcfc9c" title=" " alt="" coords="428,5,580,61"/>
-<area shape="poly" title=" " alt="" coords="286,383,299,325,324,245,363,158,389,116,418,78,428,69,431,73,422,82,393,119,368,160,329,247,304,326,291,384"/>
-<area shape="rect" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="636,231,813,257"/>
-<area shape="poly" title=" " alt="" coords="285,383,296,327,319,254,336,216,358,180,386,148,419,122,462,101,502,96,542,104,589,121,625,140,658,165,706,216,702,220,654,169,623,145,587,126,541,110,502,102,464,106,421,126,389,152,363,183,341,219,324,256,301,329,290,384"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a0a82dba625829d9de8c5cb8f2a51259e" title=" " alt="" coords="428,136,580,192"/>
-<area shape="poly" title=" " alt="" coords="292,382,339,297,375,247,418,202,422,199,425,203,422,206,379,250,343,300,296,384"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a1351191860902e038bd7f538f0bb87d4" title=" " alt="" coords="420,216,588,272"/>
-<area shape="poly" title=" " alt="" coords="302,381,353,333,418,282,425,277,428,282,422,286,356,337,306,385"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a7833a69e0cdbd2004285a7a57b1c7bea" title=" " alt="" coords="433,296,575,352"/>
-<area shape="poly" title=" " alt="" coords="340,381,418,352,420,357,342,386"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="637,576,812,616"/>
-<area shape="poly" title=" " alt="" coords="360,423,374,434,389,456,396,479,395,524,394,545,396,565,405,584,422,602,447,617,475,627,505,633,535,635,596,630,651,618,652,624,597,636,535,641,504,639,474,633,445,622,418,606,400,587,391,567,389,545,390,524,390,480,384,459,370,438,357,427"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#ab10e3104adf4804e20a61048d1e6c45d" title=" " alt="" coords="433,376,575,432"/>
-<area shape="poly" title=" " alt="" coords="372,401,417,401,417,406,372,406"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a63cd6d964c33e6a1c4d72a29e7caffc0" title=" " alt="" coords="433,536,575,592"/>
-<area shape="poly" title=" " alt="" coords="357,423,374,434,392,456,399,478,406,500,422,522,425,525,421,529,418,526,401,502,394,480,387,459,370,438,354,427"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a0587df5bd63e09dc0cddd4e2e7e2edfa" title=" " alt="" coords="433,456,575,512"/>
-<area shape="poly" title=" " alt="" coords="343,422,373,433,419,450,418,455,371,438,341,427"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#ace1d29f68ebb254d6cfd5f848dfad01a" title=" " alt="" coords="430,667,578,722"/>
-<area shape="poly" title=" " alt="" coords="361,423,374,434,392,461,401,488,403,514,401,540,400,592,406,618,422,646,430,655,426,658,418,649,402,620,394,593,396,540,397,514,396,489,388,464,370,438,357,427"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a50c77f6b3c6650de63b1c4eabc6cae2e" title=" " alt="" coords="433,747,575,802"/>
-<area shape="poly" title=" " alt="" coords="362,423,374,434,398,473,407,511,406,548,401,584,395,620,393,657,401,694,422,733,424,735,420,738,418,736,396,696,388,657,389,620,395,583,401,547,402,511,393,475,370,438,358,427"/>
-<area shape="poly" title=" " alt="" coords="564,59,590,78,626,112,659,150,709,216,704,219,655,153,623,116,587,82,561,64"/>
-<area shape="poly" title=" " alt="" coords="688,232,681,222,685,213,700,206,725,204,751,207,765,214,763,219,750,212,724,210,701,212,689,216,686,222,692,229"/>
-<area shape="poly" title=" " alt="" coords="581,189,673,223,671,228,579,194"/>
-<area shape="poly" title=" " alt="" coords="588,241,621,241,621,246,588,246"/>
-<area shape="poly" title=" " alt="" coords="683,575,681,566,688,556,702,551,725,549,748,551,763,557,760,562,747,556,724,554,704,556,691,561,686,567,688,574"/>
-<area shape="poly" title=" " alt="" coords="568,373,587,362,649,313,699,266,702,270,653,317,590,366,570,378"/>
-<area shape="poly" title=" " alt="" coords="572,533,586,522,612,492,635,459,672,389,698,323,714,271,719,272,703,324,677,391,640,462,617,496,590,526,576,538"/>
-<area shape="poly" title=" " alt="" coords="576,571,622,578,621,584,575,577"/>
-<area shape="poly" title=" " alt="" coords="571,453,587,442,627,400,661,353,708,269,713,272,666,356,631,403,590,446,574,458"/>
-</map>
-</div>
+<p class="reference">References <a class="el" href="incl_2overworld_8h_source.html#l00017">z3_overworld_map::id</a>, <a class="el" href="incl_2overworld_8h_source.html#l00027">z3_overworld::impl</a>, <a class="el" href="yaze_8h_source.html#l00080">z3_rom::impl</a>, and <a class="el" href="incl_2overworld_8h_source.html#l00026">z3_overworld::maps</a>.</p>
 
 </div>
 </div>

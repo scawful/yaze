@@ -1,11 +1,5 @@
 var NAVTREEINDEX48 =
 {
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT77.html#a567611590cd448098505a03f94f1868e":[12,0,0,0,2,2,0,32,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT77.html#a63af17d4b22e5d2611697163a2da15fa":[11,0,1,0,3,4,0,32,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT77.html#a63af17d4b22e5d2611697163a2da15fa":[12,0,0,0,2,2,0,32,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT77.html#a763f74754b4cb85c63df7aabcaf228b3":[11,0,1,0,3,4,0,32,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT77.html#a763f74754b4cb85c63df7aabcaf228b3":[12,0,0,0,2,2,0,32,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT77.html#a9a2f8e18646e801e75edac277e618528":[11,0,1,0,3,4,0,32,4],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT77.html#a9a2f8e18646e801e75edac277e618528":[12,0,0,0,2,2,0,32,4],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT78.html":[11,0,1,0,3,4,0,33],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT78.html":[12,0,0,0,2,2,0,33],
@@ -249,5 +243,11 @@ var NAVTREEINDEX48 =
 "structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#a05b95b8bfff1c172634780c21e57ae29":[12,0,0,0,2,2,23,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#a6fa3eca3213665239501d1cc870a282d":[11,0,1,0,3,4,23,3],
 "structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#a6fa3eca3213665239501d1cc870a282d":[12,0,0,0,2,2,23,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#aa3366284a3078a891e3b57ca7b9124c0":[11,0,1,0,3,4,23,1]
+"structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#aa3366284a3078a891e3b57ca7b9124c0":[11,0,1,0,3,4,23,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#aa3366284a3078a891e3b57ca7b9124c0":[12,0,0,0,2,2,23,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#ad9e3d821b035da5413027615a2b5f3a0":[11,0,1,0,3,4,23,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#ad9e3d821b035da5413027615a2b5f3a0":[12,0,0,0,2,2,23,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html":[11,0,1,0,3,4,24],
+"structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html":[12,0,0,0,2,2,24],
+"structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html#a1d18f5c2625a5e95f72cdc4161095b91":[11,0,1,0,3,4,24,1]
 };

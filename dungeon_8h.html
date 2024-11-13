@@ -108,19 +108,23 @@ $(function(){initNavTree('dungeon_8h.html',''); initResizable(true); });
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#enum-members">Enumerations</a>  </div>
   <div class="headertitle"><div class="title">dungeon.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;stdint.h&gt;</code><br />
+<div class="textblock"><code>#include &lt;stdbool.h&gt;</code><br />
+<code>#include &lt;stdint.h&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for dungeon.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="dungeon_8h__incl.png" border="0" usemap="#asrc_2incl_2dungeon_8h" alt=""/></div>
 <map name="asrc_2incl_2dungeon_8h" id="asrc_2incl_2dungeon_8h">
-<area shape="rect" title=" " alt="" coords="5,5,132,31"/>
-<area shape="rect" title=" " alt="" coords="37,79,100,105"/>
-<area shape="poly" title=" " alt="" coords="71,31,71,63,66,63,66,31"/>
+<area shape="rect" title=" " alt="" coords="24,5,150,31"/>
+<area shape="rect" title=" " alt="" coords="5,79,79,105"/>
+<area shape="poly" title=" " alt="" coords="82,33,60,67,55,64,78,30"/>
+<area shape="rect" title=" " alt="" coords="102,79,166,105"/>
+<area shape="poly" title=" " alt="" coords="97,30,120,64,116,67,93,33"/>
 </map>
 </div>
 </div><div class="textblock"><div class="dynheader">
@@ -128,21 +132,32 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="dungeon_8h__dep__incl.png" border="0" usemap="#asrc_2incl_2dungeon_8hdep" alt=""/></div>
 <map name="asrc_2incl_2dungeon_8hdep" id="asrc_2incl_2dungeon_8hdep">
-<area shape="rect" title=" " alt="" coords="136,5,262,31"/>
+<area shape="rect" title=" " alt="" coords="195,5,321,31"/>
 <area shape="rect" href="room_8cc.html" title=" " alt="" coords="5,168,164,208"/>
-<area shape="poly" title=" " alt="" coords="184,46,100,169,96,166,180,43"/>
+<area shape="poly" title=" " alt="" coords="223,41,196,60,169,81,129,126,99,169,94,166,124,123,165,77,193,55,220,37"/>
 <area shape="rect" href="room_8h.html" title=" " alt="" coords="179,79,337,120"/>
-<area shape="poly" title=" " alt="" coords="219,42,245,77,241,80,215,45"/>
+<area shape="poly" title=" " alt="" coords="260,46,260,79,255,79,255,46"/>
+<area shape="rect" href="yaze_8h.html" title=" " alt="" coords="786,86,866,112"/>
+<area shape="poly" title=" " alt="" coords="337,28,786,90,785,95,336,33"/>
 <area shape="poly" title=" " alt="" coords="206,129,125,170,122,165,204,125"/>
 <area shape="rect" href="dungeon__editor_8cc.html" title=" " alt="" coords="181,256,334,297"/>
-<area shape="poly" title=" " alt="" coords="242,134,230,168,227,188,230,208,238,233,249,255,244,257,233,235,225,209,222,188,225,167,237,132"/>
+<area shape="poly" title=" " alt="" coords="241,134,228,168,226,188,228,208,237,233,248,255,244,257,232,235,223,209,220,188,223,167,236,132"/>
 <area shape="rect" href="dungeon__editor_8h.html" title=" " alt="" coords="238,168,392,208"/>
 <area shape="poly" title=" " alt="" coords="281,131,304,166,300,169,277,134"/>
-<area shape="rect" href="screen__editor_8cc.html" title=" " alt="" coords="416,168,569,208"/>
-<area shape="poly" title=" " alt="" coords="326,123,440,165,438,170,324,128"/>
-<area shape="rect" href="dungeon__room__test_8cc.html" title=" " alt="" coords="593,168,752,208"/>
-<area shape="poly" title=" " alt="" coords="352,117,582,165,593,167,592,172,581,170,351,123"/>
+<area shape="rect" href="dungeon__room__test_8cc.html" title=" " alt="" coords="416,168,575,208"/>
+<area shape="poly" title=" " alt="" coords="327,123,442,165,440,170,325,128"/>
 <area shape="poly" title=" " alt="" coords="296,223,273,257,269,254,292,220"/>
+<area shape="rect" href="editor__manager_8h.html" title=" " alt="" coords="451,256,587,297"/>
+<area shape="poly" title=" " alt="" coords="376,212,474,253,472,258,374,217"/>
+<area shape="poly" title=" " alt="" coords="772,117,706,138,639,170,592,208,540,258,537,254,589,204,636,165,704,133,770,111"/>
+<area shape="rect" href="extension_8h.html" title=" " alt="" coords="650,175,828,201"/>
+<area shape="poly" title=" " alt="" coords="805,125,753,177,749,173,801,121"/>
+<area shape="rect" href="yaze__py_8cc.html" title=" " alt="" coords="852,175,976,201"/>
+<area shape="poly" title=" " alt="" coords="851,121,904,173,900,177,847,125"/>
+<area shape="rect" href="yaze__test_8cc.html" title=" " alt="" coords="999,175,1140,201"/>
+<area shape="poly" title=" " alt="" coords="875,115,1036,172,1035,177,873,120"/>
+<area shape="rect" href="yaze_8cc.html" title=" " alt="" coords="1164,175,1250,201"/>
+<area shape="poly" title=" " alt="" coords="881,107,1006,131,1153,165,1175,172,1174,177,1152,170,1005,136,880,112"/>
 </map>
 </div>
 </div>
@@ -160,6 +175,21 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structz3__chest__data.html">z3_chest_data</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:a5a2f007730f2acc0e8d3e890c689ed88" id="r_a5a2f007730f2acc0e8d3e890c689ed88"><td class="memItemLeft" align="right" valign="top">typedef struct z3_object_door&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5a2f007730f2acc0e8d3e890c689ed88">z3_object_door</a></td></tr>
+<tr class="separator:a5a2f007730f2acc0e8d3e890c689ed88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6cecd1e67e34d535f23eb859b5ac8f61" id="r_a6cecd1e67e34d535f23eb859b5ac8f61"><td class="memItemLeft" align="right" valign="top">typedef struct z3_dungeon_destination&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6cecd1e67e34d535f23eb859b5ac8f61">z3_dungeon_destination</a></td></tr>
+<tr class="separator:a6cecd1e67e34d535f23eb859b5ac8f61"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0650308ec3a0a144265fe8e21ba1a4a4" id="r_a0650308ec3a0a144265fe8e21ba1a4a4"><td class="memItemLeft" align="right" valign="top">typedef struct z3_staircase&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0650308ec3a0a144265fe8e21ba1a4a4">z3_staircase</a></td></tr>
+<tr class="separator:a0650308ec3a0a144265fe8e21ba1a4a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3fa752db36f7d9803f3777975c7bdf3e" id="r_a3fa752db36f7d9803f3777975c7bdf3e"><td class="memItemLeft" align="right" valign="top">typedef struct z3_chest&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3fa752db36f7d9803f3777975c7bdf3e">z3_chest</a></td></tr>
+<tr class="separator:a3fa752db36f7d9803f3777975c7bdf3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2be2f2f7b6256191a25575bc0d7215f6" id="r_a2be2f2f7b6256191a25575bc0d7215f6"><td class="memItemLeft" align="right" valign="top">typedef struct z3_chest_data&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2be2f2f7b6256191a25575bc0d7215f6">z3_chest_data</a></td></tr>
+<tr class="separator:a2be2f2f7b6256191a25575bc0d7215f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a693241c2a867611acd4c6215d2cba1c1" id="r_a693241c2a867611acd4c6215d2cba1c1"><td class="memItemLeft" align="right" valign="top">typedef enum <a class="el" href="#a86a9ab609ee1ad1b7d6740218b5738de">z3_dungeon_background2</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a693241c2a867611acd4c6215d2cba1c1">z3_dungeon_background2</a></td></tr>
+<tr class="separator:a693241c2a867611acd4c6215d2cba1c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -179,6 +209,91 @@ Enumerations</h2></td></tr>
  }</td></tr>
 <tr class="separator:a86a9ab609ee1ad1b7d6740218b5738de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Typedef Documentation</h2>
+<a id="a5a2f007730f2acc0e8d3e890c689ed88" name="a5a2f007730f2acc0e8d3e890c689ed88"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5a2f007730f2acc0e8d3e890c689ed88">&#9670;&#160;</a></span>z3_object_door</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct z3_object_door z3_object_door</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6cecd1e67e34d535f23eb859b5ac8f61" name="a6cecd1e67e34d535f23eb859b5ac8f61"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6cecd1e67e34d535f23eb859b5ac8f61">&#9670;&#160;</a></span>z3_dungeon_destination</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct z3_dungeon_destination z3_dungeon_destination</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0650308ec3a0a144265fe8e21ba1a4a4" name="a0650308ec3a0a144265fe8e21ba1a4a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0650308ec3a0a144265fe8e21ba1a4a4">&#9670;&#160;</a></span>z3_staircase</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct z3_staircase z3_staircase</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3fa752db36f7d9803f3777975c7bdf3e" name="a3fa752db36f7d9803f3777975c7bdf3e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3fa752db36f7d9803f3777975c7bdf3e">&#9670;&#160;</a></span>z3_chest</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct z3_chest z3_chest</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2be2f2f7b6256191a25575bc0d7215f6" name="a2be2f2f7b6256191a25575bc0d7215f6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2be2f2f7b6256191a25575bc0d7215f6">&#9670;&#160;</a></span>z3_chest_data</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct z3_chest_data z3_chest_data</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a693241c2a867611acd4c6215d2cba1c1" name="a693241c2a867611acd4c6215d2cba1c1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a693241c2a867611acd4c6215d2cba1c1">&#9670;&#160;</a></span>z3_dungeon_background2</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef enum <a class="el" href="#a86a9ab609ee1ad1b7d6740218b5738de">z3_dungeon_background2</a> <a class="el" href="#a86a9ab609ee1ad1b7d6740218b5738de">z3_dungeon_background2</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
 <a id="a86a9ab609ee1ad1b7d6740218b5738de" name="a86a9ab609ee1ad1b7d6740218b5738de"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a86a9ab609ee1ad1b7d6740218b5738de">&#9670;&#160;</a></span>z3_dungeon_background2</h2>
@@ -203,7 +318,7 @@ Enumerations</h2></td></tr>
 <tr><td class="fieldname"><a id="a86a9ab609ee1ad1b7d6740218b5738deabd4ed2edf2b1c880c6568252e7cc7275" name="a86a9ab609ee1ad1b7d6740218b5738deabd4ed2edf2b1c880c6568252e7cc7275"></a>DarkRoom&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="dungeon_8h_source.html#l00044">44</a> of file <a class="el" href="dungeon_8h_source.html">dungeon.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="dungeon_8h_source.html#l00045">45</a> of file <a class="el" href="dungeon_8h_source.html">dungeon.h</a>.</p>
 
 </div>
 </div>

@@ -1,11 +1,5 @@
 var NAVTREEINDEX12 =
 {
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af57e6036e9debe00a415aa44a22014cd":[12,0,0,0,2,0,6,62],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af7098fe4b498624c7bf810c2dae2f6cd":[11,0,1,0,3,2,6,11],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af7098fe4b498624c7bf810c2dae2f6cd":[12,0,0,0,2,0,6,11],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af72fca7b16ff8ecb8688365e0490f703":[11,0,1,0,3,2,6,21],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af72fca7b16ff8ecb8688365e0490f703":[12,0,0,0,2,0,6,21],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af7d758e22634c9e859822125326d1017":[11,0,1,0,3,2,6,8],
 "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af7d758e22634c9e859822125326d1017":[12,0,0,0,2,0,6,8],
 "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af82a5af8b95ad22204ab6de079f9fad0":[11,0,1,0,3,2,6,24],
 "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af82a5af8b95ad22204ab6de079f9fad0":[12,0,0,0,2,0,6,24],
@@ -249,5 +243,11 @@ var NAVTREEINDEX12 =
 "classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a26b9e068ff9e2bdcb3831c4b6643fdab":[12,0,0,0,2,1,5,31],
 "classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a2795ba480c04276ccb5e9db7f092980b":[11,0,1,0,3,3,6,5],
 "classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a2795ba480c04276ccb5e9db7f092980b":[12,0,0,0,2,1,5,5],
-"classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a2b274d2e230ba601f741a742a6b2ef02":[11,0,1,0,3,3,6,33]
+"classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a2b274d2e230ba601f741a742a6b2ef02":[11,0,1,0,3,3,6,33],
+"classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a2b274d2e230ba601f741a742a6b2ef02":[12,0,0,0,2,1,5,33],
+"classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a2fd95d602806c412f6b5fd94b245964c":[11,0,1,0,3,3,6,40],
+"classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a2fd95d602806c412f6b5fd94b245964c":[12,0,0,0,2,1,5,40],
+"classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a37bd855ce74c383f34df6e17965a2db5":[11,0,1,0,3,3,6,18],
+"classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a37bd855ce74c383f34df6e17965a2db5":[12,0,0,0,2,1,5,18],
+"classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a3cb3d58ffe9d9e6231cad0b13b6d167d":[11,0,1,0,3,3,6,11]
 };

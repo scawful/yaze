@@ -1,15 +1,13 @@
 <map id="src/app/zelda3/dungeon/room.h" name="src/app/zelda3/dungeon/room.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="347,5,505,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="259,5,417,46"/>
 <area shape="rect" id="Node000002" href="$dungeon__editor_8cc.html" title=" " alt="" coords="5,183,159,223"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="332,38,246,57,202,74,162,96,139,116,120,139,93,183,89,181,116,136,136,112,159,92,200,69,244,52,331,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="245,54,202,72,162,96,140,116,121,140,94,184,89,181,117,137,136,113,159,92,200,67,243,49"/>
 <area shape="rect" id="Node000003" href="$dungeon__editor_8h.html" title=" " alt="" coords="172,94,325,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="373,55,290,96,288,91,371,51"/>
-<area shape="rect" id="Node000013" href="$screen__editor_8cc.html" title=" " alt="" coords="349,94,503,135"/>
-<area shape="poly" id="edge10_Node000001_Node000013" title=" " alt="" coords="429,62,429,94,423,94,423,62"/>
-<area shape="rect" id="Node000014" href="$room_8cc.html" title=" " alt="" coords="527,94,685,135"/>
-<area shape="poly" id="edge11_Node000001_Node000014" title=" " alt="" coords="482,51,566,91,564,96,479,55"/>
-<area shape="rect" id="Node000015" href="$dungeon__room__test_8cc.html" title=" " alt="" coords="709,94,868,135"/>
-<area shape="poly" id="edge12_Node000001_Node000015" title=" " alt="" coords="521,47,709,91,708,97,520,52"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="309,59,271,95,267,92,305,55"/>
+<area shape="rect" id="Node000013" href="$room_8cc.html" title=" " alt="" coords="350,94,508,135"/>
+<area shape="poly" id="edge10_Node000001_Node000013" title=" " alt="" coords="371,55,410,92,406,95,367,59"/>
+<area shape="rect" id="Node000014" href="$dungeon__room__test_8cc.html" title=" " alt="" coords="532,94,691,135"/>
+<area shape="poly" id="edge11_Node000001_Node000014" title=" " alt="" coords="416,49,550,91,548,96,414,54"/>
 <area shape="poly" id="edge7_Node000003_Node000002" title=" " alt="" coords="199,144,121,185,118,180,196,140"/>
 <area shape="rect" id="Node000004" href="$memory__editor_8h.html" title=" " alt="" coords="182,183,315,223"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="251,150,251,182,246,182,246,150"/>

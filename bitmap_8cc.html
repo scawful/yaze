@@ -118,8 +118,6 @@ $(function(){initNavTree('bitmap_8cc.html',''); initResizable(true); });
 <code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
 <code>#include &quot;absl/status/status.h&quot;</code><br />
-<code>#include &quot;absl/status/statusor.h&quot;</code><br />
-<code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="constants_8h_source.html">app/core/constants.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="snes__palette_8h_source.html">app/gfx/snes_palette.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
@@ -127,42 +125,33 @@ Include dependency graph for bitmap.cc:</div>
 <div class="dyncontent">
 <div class="center"><img src="bitmap_8cc__incl.png" border="0" usemap="#asrc_2app_2gfx_2bitmap_8cc" alt=""/></div>
 <map name="asrc_2app_2gfx_2bitmap_8cc" id="asrc_2app_2gfx_2bitmap_8cc">
-<area shape="rect" title=" " alt="" coords="604,5,749,31"/>
-<area shape="rect" href="bitmap_8h.html" title=" " alt="" coords="570,79,640,105"/>
-<area shape="poly" title=" " alt="" coords="667,33,630,70,626,66,663,29"/>
-<area shape="rect" title=" " alt="" coords="5,241,63,267"/>
-<area shape="poly" title=" " alt="" coords="604,26,375,44,261,60,215,70,180,81,157,94,135,111,97,150,68,192,48,228,44,226,64,189,93,147,131,107,154,90,178,77,213,65,260,55,374,39,603,20"/>
-<area shape="rect" title=" " alt="" coords="390,241,451,267"/>
-<area shape="poly" title=" " alt="" coords="604,27,404,47,307,62,238,82,207,95,184,108,166,126,150,154,145,169,144,182,148,194,155,204,179,221,213,234,253,242,296,248,375,251,375,256,296,253,253,248,211,239,176,226,151,208,143,196,139,183,139,168,145,152,162,123,181,104,205,90,236,76,305,57,404,42,603,22"/>
-<area shape="rect" title=" " alt="" coords="842,160,909,186"/>
-<area shape="poly" title=" " alt="" coords="694,29,850,149,846,153,691,34"/>
-<area shape="rect" title=" " alt="" coords="474,241,610,267"/>
-<area shape="poly" title=" " alt="" coords="604,30,488,46,355,72,291,89,236,108,191,130,163,154,155,173,157,182,162,191,459,238,459,243,159,196,152,184,149,173,159,151,188,126,234,103,290,84,353,67,487,41,603,25"/>
-<area shape="rect" title=" " alt="" coords="665,241,811,267"/>
-<area shape="poly" title=" " alt="" coords="750,16,832,24,879,32,926,45,973,62,1017,85,1056,115,1090,151,1098,173,1096,184,1089,195,1058,206,992,218,827,243,826,238,991,213,1057,200,1086,191,1091,182,1093,174,1085,154,1053,118,1014,90,971,67,924,50,877,38,831,29,749,22"/>
-<area shape="rect" title=" " alt="" coords="934,160,1076,186"/>
-<area shape="poly" title=" " alt="" coords="704,29,966,151,964,156,701,34"/>
-<area shape="rect" href="constants_8h.html" title=" " alt="" coords="835,241,977,267"/>
-<area shape="poly" title=" " alt="" coords="750,16,814,20,888,29,965,47,1038,77,1064,91,1084,106,1099,125,1112,152,1119,174,1118,184,1112,195,1094,209,1065,222,993,241,992,236,1063,217,1091,205,1108,192,1113,182,1114,174,1108,154,1095,128,1080,110,1062,96,1036,81,963,53,887,35,813,25,750,21"/>
-<area shape="rect" href="snes__palette_8h.html" title=" " alt="" coords="565,160,716,186"/>
-<area shape="poly" title=" " alt="" coords="676,32,650,146,644,144,671,31"/>
-<area shape="poly" title=" " alt="" coords="569,98,358,117,243,134,196,144,162,155,131,171,102,191,57,232,53,228,99,187,128,167,160,150,195,139,242,129,358,112,569,93"/>
-<area shape="poly" title=" " alt="" coords="593,107,448,233,444,229,589,103"/>
-<area shape="poly" title=" " alt="" coords="641,99,824,150,830,152,829,157,823,155,639,104"/>
-<area shape="rect" title=" " alt="" coords="316,153,440,193"/>
-<area shape="poly" title=" " alt="" coords="571,108,450,150,448,145,569,103"/>
-<area shape="poly" title=" " alt="" coords="592,107,572,128,555,154,545,191,543,226,538,226,540,190,550,152,568,124,588,103"/>
-<area shape="poly" title=" " alt="" coords="641,98,689,116,712,131,731,151,740,169,744,189,745,226,740,226,739,189,735,171,726,154,709,135,686,121,639,103"/>
-<area shape="poly" title=" " alt="" coords="641,97,921,150,938,154,937,159,920,155,640,102"/>
-<area shape="poly" title=" " alt="" coords="641,102,695,123,755,150,823,191,880,230,877,234,820,195,753,155,693,128,639,107"/>
-<area shape="rect" href="sdl__deleter_8h.html" title=" " alt="" coords="172,153,293,193"/>
-<area shape="poly" title=" " alt="" coords="569,102,309,155,308,149,568,97"/>
-<area shape="poly" title=" " alt="" coords="613,104,631,145,627,147,608,106"/>
-<area shape="poly" title=" " alt="" coords="184,196,78,238,76,233,182,191"/>
-<area shape="poly" title=" " alt="" coords="608,189,467,239,465,234,606,184"/>
-<area shape="poly" title=" " alt="" coords="627,188,570,234,567,229,624,184"/>
-<area shape="poly" title=" " alt="" coords="657,184,713,229,710,234,654,188"/>
-<area shape="poly" title=" " alt="" coords="682,184,852,234,850,239,681,189"/>
+<area shape="rect" title=" " alt="" coords="278,5,423,31"/>
+<area shape="rect" href="bitmap_8h.html" title=" " alt="" coords="315,79,385,105"/>
+<area shape="poly" title=" " alt="" coords="353,31,353,63,348,63,348,31"/>
+<area shape="rect" title=" " alt="" coords="127,241,184,267"/>
+<area shape="poly" title=" " alt="" coords="277,30,152,49,96,64,58,81,31,106,13,133,9,146,9,161,12,176,20,192,39,212,62,227,113,244,111,249,60,232,35,216,16,195,7,178,3,161,4,146,8,130,27,102,56,77,94,59,151,44,277,24"/>
+<area shape="rect" title=" " alt="" coords="484,241,544,267"/>
+<area shape="poly" title=" " alt="" coords="409,29,459,45,513,70,564,105,586,126,605,151,612,173,605,195,585,219,560,236,557,232,581,215,600,192,606,173,600,154,582,130,561,109,511,74,457,50,407,34"/>
+<area shape="rect" title=" " alt="" coords="51,160,119,186"/>
+<area shape="poly" title=" " alt="" coords="331,34,121,154,118,150,328,29"/>
+<area shape="rect" title=" " alt="" coords="611,241,746,267"/>
+<area shape="poly" title=" " alt="" coords="424,28,493,47,529,60,564,77,609,108,643,151,662,189,674,225,669,227,657,191,639,154,606,112,561,81,527,65,492,52,423,34"/>
+<area shape="rect" href="constants_8h.html" title=" " alt="" coords="279,241,421,267"/>
+<area shape="poly" title=" " alt="" coords="278,34,183,56,134,71,90,90,54,111,32,135,27,148,27,161,31,176,41,191,69,204,125,217,264,239,264,245,124,222,68,209,38,195,27,178,22,162,22,147,28,132,51,107,87,85,132,66,181,51,277,29"/>
+<area shape="rect" href="snes__palette_8h.html" title=" " alt="" coords="439,160,590,186"/>
+<area shape="poly" title=" " alt="" coords="365,29,492,148,489,151,361,33"/>
+<area shape="poly" title=" " alt="" coords="315,99,283,104,247,114,212,131,183,154,172,171,165,189,158,227,153,226,159,188,167,168,179,151,210,126,245,109,282,99,314,93"/>
+<area shape="poly" title=" " alt="" coords="360,104,388,145,428,191,481,231,478,235,424,195,383,148,355,107"/>
+<area shape="poly" title=" " alt="" coords="315,105,138,155,132,157,130,152,136,150,314,100"/>
+<area shape="poly" title=" " alt="" coords="386,91,432,96,489,105,548,123,604,150,624,167,642,187,668,226,663,229,638,190,621,171,601,155,546,128,487,111,432,101,386,97"/>
+<area shape="poly" title=" " alt="" coords="353,105,353,226,348,226,348,105"/>
+<area shape="rect" href="sdl__deleter_8h.html" title=" " alt="" coords="193,153,313,193"/>
+<area shape="poly" title=" " alt="" coords="337,107,290,145,287,141,334,103"/>
+<area shape="poly" title=" " alt="" coords="377,103,477,151,474,156,374,108"/>
+<area shape="poly" title=" " alt="" coords="231,196,184,233,181,229,227,192"/>
+<area shape="poly" title=" " alt="" coords="517,186,517,225,512,225,512,186"/>
+<area shape="poly" title=" " alt="" coords="541,184,641,232,638,237,538,189"/>
+<area shape="poly" title=" " alt="" coords="490,189,390,237,388,232,488,184"/>
 </map>
 </div>
 </div>
@@ -212,7 +201,7 @@ Functions</h2></td></tr>
 <div class="line">    <span class="keywordflow">return</span> absl::InternalError(SDL_GetError()); \</div>
 <div class="line">  }</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00017">17</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00015">15</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
 
 </div>
 </div>

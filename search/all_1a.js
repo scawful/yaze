@@ -440,7 +440,7 @@ var searchData=
   ['subscreenwindowed_437',['subScreenWindowed',['../structyaze_1_1app_1_1emu_1_1video_1_1Layer.html#a315941b327241b0a0f370a970435b44b',1,'yaze::app::emu::video::Layer']]],
   ['subsystem_438',['3. Emulator Subsystem',['../md_docs_2contributing.html#autotoc_md32',1,'']]],
   ['subtract_5fcolor_5f_439',['subtract_color_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ac7247f7c1d7ae0cb8f5c922d8b9b396a',1,'yaze::app::emu::video::Ppu']]],
-  ['subtype_440',['subtype',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a6f0938ad1dfe95f7ba160829408f0093',1,'yaze::app::zelda3::Sprite']]],
+  ['subtype_440',['subtype',['../structz3__sprite.html#a19b2d6579637fc6eb2f7b4b03dca4bbc',1,'z3_sprite::subtype'],['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a6f0938ad1dfe95f7ba160829408f0093',1,'yaze::app::zelda3::Sprite::subtype()']]],
   ['subtype1_441',['Subtype1',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype1.html',1,'yaze::app::zelda3::dungeon::Subtype1'],['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype1.html#a119d09b9bc28e90399f649d100986193',1,'yaze::app::zelda3::dungeon::Subtype1::Subtype1()']]],
   ['subtype2_442',['Subtype2',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype2.html',1,'yaze::app::zelda3::dungeon::Subtype2'],['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype2.html#aa521b775422e308ecf5709b1008b73c0',1,'yaze::app::zelda3::dungeon::Subtype2::Subtype2()']]],
   ['subtype3_443',['Subtype3',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html',1,'yaze::app::zelda3::dungeon::Subtype3'],['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html#a36f197599e80027d03ad7d7bec68d13f',1,'yaze::app::zelda3::dungeon::Subtype3::Subtype3()']]],

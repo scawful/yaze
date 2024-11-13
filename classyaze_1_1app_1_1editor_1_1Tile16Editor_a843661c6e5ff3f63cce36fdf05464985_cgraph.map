@@ -1,15 +1,13 @@
 <map id="yaze::app::editor::Tile16Editor::InitBlockset" name="yaze::app::editor::Tile16Editor::InitBlockset">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,201,170,242"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,169,170,210"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#ae8d7f558c1c4be753d7fa07869df8f39" title=" " alt="" coords="223,71,386,111"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,199,158,161,216,122,228,116,231,121,219,127,161,165,114,203"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,167,217,122,232,115,234,120,219,127,128,171"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a9a3d5d744dfdde97b8ff83c2b4a13e5b" title=" " alt="" coords="229,136,381,177"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="157,198,220,179,221,184,158,203"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="170,174,213,168,214,173,170,180"/>
 <area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a6c6ab4ced532dc08586fa9d69b69cf18" title=" " alt="" coords="231,201,378,242"/>
-<area shape="poly" id="edge9_Node000001_Node000011" title=" " alt="" coords="170,219,216,219,216,224,170,224"/>
+<area shape="poly" id="edge9_Node000001_Node000011" title=" " alt="" coords="170,199,216,206,215,211,170,204"/>
 <area shape="rect" id="Node000012" href="$namespaceyaze_1_1app_1_1core.html#adee4cb66335fc06d420159375b151524" title=" " alt="" coords="218,267,392,307"/>
-<area shape="poly" id="edge10_Node000001_Node000012" title=" " alt="" coords="158,240,221,259,220,264,157,245"/>
-<area shape="rect" id="Node000013" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2a93a310b1a281e6af3705476f279291" title=" " alt="" coords="233,332,377,373"/>
-<area shape="poly" id="edge11_Node000001_Node000013" title=" " alt="" coords="114,240,161,278,219,317,231,323,228,327,216,321,158,283,110,245"/>
+<area shape="poly" id="edge10_Node000001_Node000012" title=" " alt="" coords="130,208,219,251,234,258,232,263,217,256,127,213"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aae636e8223b7a47a961526120b85cd90" title=" " alt="" coords="456,5,600,46"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="370,133,390,121,405,105,414,90,422,73,438,57,446,52,449,56,442,61,427,77,418,92,410,109,394,125,373,138"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1core_1_1Renderer.html#acd1048086e983ab44d0875b079927bfa" title=" " alt="" coords="446,71,610,111"/>

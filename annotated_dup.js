@@ -205,7 +205,6 @@ var annotated_dup =
             [ "WidgetAttributes", "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html", "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes" ]
           ] ],
           [ "AssetObject", "structyaze_1_1app_1_1gui_1_1AssetObject.html", "structyaze_1_1app_1_1gui_1_1AssetObject" ],
-          [ "BitmapViewer", "classyaze_1_1app_1_1gui_1_1BitmapViewer.html", "classyaze_1_1app_1_1gui_1_1BitmapViewer" ],
           [ "Canvas", "classyaze_1_1app_1_1gui_1_1Canvas.html", "classyaze_1_1app_1_1gui_1_1Canvas" ],
           [ "DungeonAsset", "structyaze_1_1app_1_1gui_1_1DungeonAsset.html", "structyaze_1_1app_1_1gui_1_1DungeonAsset" ],
           [ "ExampleSelectionWithDeletion", "structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html", "structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion" ],
@@ -307,6 +306,7 @@ var annotated_dup =
     [ "AppViewController", "classAppViewController.html", null ],
     [ "snes_color", "structsnes__color.html", "structsnes__color" ],
     [ "snes_palette", "structsnes__palette.html", "structsnes__palette" ],
+    [ "yaze_bitmap", "structyaze__bitmap.html", "structyaze__bitmap" ],
     [ "yaze_command_registry", "structyaze__command__registry.html", "structyaze__command__registry" ],
     [ "yaze_editor_context", "structyaze__editor__context.html", "structyaze__editor__context" ],
     [ "yaze_event_dispatcher", "structyaze__event__dispatcher.html", "structyaze__event__dispatcher" ],

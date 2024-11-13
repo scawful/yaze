@@ -1,11 +1,5 @@
 var NAVTREEINDEX44 =
 {
-"structyaze_1_1app_1_1VersionConstants.html#a386a075f984f4def0a0fecc03eadfcd8":[12,0,0,0,11,15],
-"structyaze_1_1app_1_1VersionConstants.html#a4234a733bb894b28e29544d432fb2f5c":[11,0,1,0,12,2],
-"structyaze_1_1app_1_1VersionConstants.html#a4234a733bb894b28e29544d432fb2f5c":[12,0,0,0,11,2],
-"structyaze_1_1app_1_1VersionConstants.html#a4fc07f79f59dd6bc791cf394158968aa":[11,0,1,0,12,4],
-"structyaze_1_1app_1_1VersionConstants.html#a4fc07f79f59dd6bc791cf394158968aa":[12,0,0,0,11,4],
-"structyaze_1_1app_1_1VersionConstants.html#a6e5f46dd43f564fcbb8495b1abcd470b":[11,0,1,0,12,6],
 "structyaze_1_1app_1_1VersionConstants.html#a6e5f46dd43f564fcbb8495b1abcd470b":[12,0,0,0,11,6],
 "structyaze_1_1app_1_1VersionConstants.html#a7e2103291de8effbf9a66f49dbafd708":[11,0,1,0,12,0],
 "structyaze_1_1app_1_1VersionConstants.html#a7e2103291de8effbf9a66f49dbafd708":[12,0,0,0,11,0],
@@ -249,5 +243,11 @@ var NAVTREEINDEX44 =
 "structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html":[12,0,0,0,1,27,0],
 "structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a22ffe973b4f00a6e26e884ce73fec3ca":[11,0,1,0,2,32,0,3],
 "structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a22ffe973b4f00a6e26e884ce73fec3ca":[12,0,0,0,1,27,0,3],
-"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a2b652265b24cae91ddbc718ca700ae73":[11,0,1,0,2,32,0,4]
+"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a2b652265b24cae91ddbc718ca700ae73":[11,0,1,0,2,32,0,4],
+"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a2b652265b24cae91ddbc718ca700ae73":[12,0,0,0,1,27,0,4],
+"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a35fab93fd8c045f0bf85cd20e56b14ec":[11,0,1,0,2,32,0,6],
+"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a35fab93fd8c045f0bf85cd20e56b14ec":[12,0,0,0,1,27,0,6],
+"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a5345e0974eb748812c1921370fbbc5c0":[11,0,1,0,2,32,0,0],
+"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a5345e0974eb748812c1921370fbbc5c0":[12,0,0,0,1,27,0,0],
+"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a568be19eabf200b63fb15473e9b11bae":[11,0,1,0,2,32,0,5]
 };
