@@ -1,7 +1,6 @@
-// FontLoader.h
-#ifndef FONTLOADER_H
-#define FONTLOADER_H
+#ifndef YAZE_APP_CORE_PLATFORM_FONTLOADER_H
+#define YAZE_APP_CORE_PLATFORM_FONTLOADER_H
 
 void LoadSystemFonts();
 
-#endif  // FONTLOADER_H
+#endif // YAZE_APP_CORE_PLATFORM_FONTLOADER_H

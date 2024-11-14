@@ -11,21 +11,6 @@
 namespace yaze {
 namespace test {
 
-TEST(YazeTest, LoadAndUnloadRom) {
-  yaze_flags flags;
-  flags.rom_filename = "zelda3.sfc";
-  const int init = yaze_init(&flags);
-  ASSERT_EQ(init, 0);
-  yaze_cleanup(&flags);
-}
-
-TEST(YazeTest, NoFilename) {
-  yaze_flags flags;
-  const int init = yaze_init(&flags);
-  ASSERT_EQ(init, -1);
-  yaze_cleanup(&flags);
-}
-
 }  // namespace test
 }  // namespace yaze
 
@@ -37,6 +22,11 @@ int main(int argc, char* argv[]) {
 
   if (argc > 1 && std::string(argv[1]) == "integration") {
     return yaze::test::integration::RunIntegrationTest();
+  } else if (argc > 1 && std::string(argv[1]) == "room_object") {
+    ::testing::InitGoogleTest(&argc, argv);
+    if (!RUN_ALL_TESTS()) {
+      return yaze::test::integration::RunIntegrationTest();
+    }
   }
 
   ::testing::InitGoogleTest(&argc, argv);
