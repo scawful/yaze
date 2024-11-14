@@ -6,7 +6,9 @@ add_executable(
   cli/handlers/tile16_transfer.cc
   app/rom.cc
   app/core/common.cc
+  app/core/project.cc
   app/editor/utils/gfx_context.cc
+  app/core/platform/file_path.mm
   ${YAZE_APP_EMU_SRC}
   ${YAZE_APP_GFX_SRC}
   ${YAZE_APP_ZELDA3_SRC}
