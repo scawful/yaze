@@ -48,15 +48,6 @@
 
   _controller = new yaze::app::core::Controller();
 
-  // Setup Dear ImGui context
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGuiIO &io = ImGui::GetIO();
-  (void)io;
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
-
-  yaze::app::gui::ColorsYaze();
 
   SDL_SetMainReady();
   SDL_iOSSetEventPump(SDL_TRUE);
@@ -70,8 +61,8 @@
   }
 
   std::string rom_filename = "";
-  if (argc > 0) {
-    rom_filename = argv[0];
+  if (argc > 1) {
+    rom_filename = argv[1];
   }
   SDL_iOSSetEventPump(SDL_FALSE);
 
@@ -88,6 +79,16 @@
     abort();
   }
 
+  // Setup Dear ImGui context
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO &io = ImGui::GetIO();
+  (void)io;
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+
+  yaze::app::gui::ColorsYaze();
+
   ImGui_ImplSDL2_InitForSDLRenderer(_controller->window(), _controller->renderer());
   ImGui_ImplSDLRenderer2_Init(_controller->renderer());
 
@@ -95,6 +96,7 @@
     abort();
   }
   _controller->SetupScreen(rom_filename);
+  _controller->set_active(true);
 
   _hoverGestureRecognizer =
       [[UIHoverGestureRecognizer alloc] initWithTarget:self action:@selector(HoverGesture:)];
