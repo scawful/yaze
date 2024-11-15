@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['message_20passing_0',['Message Passing',['../md_docs_2message-passing.html',1,'']]]
+  ['overview_0',['Infrastructure Overview',['../md_docs_2infrastructure.html',1,'']]]
 ];

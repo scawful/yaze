@@ -84,7 +84,7 @@ var searchData=
   ['gettilefromposition_81',['GetTileFromPosition',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a9e3c20e6ae6887b70de2a971fbf3804c',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['gettileidfrommousepos_82',['GetTileIdFromMousePos',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a2a3e458dc0afc50553d82a9b961344c5',1,'yaze::app::gui::Canvas']]],
   ['gettilesinfo_83',['GetTilesInfo',['../namespaceyaze_1_1app_1_1gfx.html#aefa90c55f0eea489bc7a6dd716300e90',1,'yaze::app::gfx']]],
-  ['getting_20started_84',['Getting Started',['../index.html',1,'Getting Started'],['../md_docs_2contributing.html#autotoc_md38',1,'Getting Started'],['../md_docs_2message-passing.html#autotoc_md55',1,'Getting Started']]],
+  ['getting_20started_84',['Getting Started',['../index.html',1,'Getting Started'],['../md_docs_2contributing.html#autotoc_md38',1,'Getting Started']]],
   ['getting_2dstarted_2emd_85',['getting-started.md',['../getting-started_8md.html',1,'']]],
   ['getvramremap_86',['GetVramRemap',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a88ab8ef055956e1cfaacd2cd8ca060d7',1,'yaze::app::emu::video::Ppu']]],
   ['getwindowstate_87',['GetWindowState',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ab98435209212151dc85b98cf8f6a0eb1',1,'yaze::app::emu::video::Ppu']]],
