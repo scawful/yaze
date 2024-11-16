@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_ZELDA3_DUNGEON_ROOM_H
 #define YAZE_APP_ZELDA3_DUNGEON_ROOM_H
 
+#include <dungeon.h>
+
 #include <cstdint>
 #include <fstream>
 #include <string>
@@ -15,7 +17,6 @@
 #include "app/rom.h"
 #include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/sprite/sprite.h"
-#include "incl/dungeon.h"
 
 namespace yaze {
 namespace app {
