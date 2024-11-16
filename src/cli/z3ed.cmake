@@ -22,6 +22,7 @@ target_include_directories(
   lib/
   app/
   ${ASAR_INCLUDE_DIR}
+  ${CMAKE_SOURCE_DIR}/incl/
   ${CMAKE_SOURCE_DIR}/src/
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
