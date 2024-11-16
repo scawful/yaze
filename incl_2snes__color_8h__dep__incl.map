@@ -1,16 +1,5 @@
 <map id="incl/snes_color.h" name="incl/snes_color.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="180,5,298,31"/>
-<area shape="rect" id="Node000002" href="$yaze__py_8cc.html" title=" " alt="" coords="5,153,134,193"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,44,93,154,89,150,212,40"/>
-<area shape="rect" id="Node000003" href="$yaze_8h.html" title=" " alt="" coords="282,79,361,105"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="266,39,309,77,306,81,263,44"/>
-<area shape="poly" id="edge5_Node000003_Node000002" title=" " alt="" coords="269,112,133,155,132,150,267,107"/>
-<area shape="rect" id="Node000004" href="$extension_8h.html" title=" " alt="" coords="158,160,314,186"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="299,117,251,162,247,158,296,113"/>
-<area shape="rect" id="Node000007" href="$editor__manager_8h.html" title=" " alt="" coords="339,153,475,193"/>
-<area shape="poly" id="edge4_Node000003_Node000007" title=" " alt="" coords="347,113,388,150,384,154,344,117"/>
-<area shape="rect" id="Node000015" href="$yaze__test_8cc.html" title=" " alt="" coords="499,160,640,186"/>
-<area shape="poly" id="edge6_Node000003_Node000015" title=" " alt="" coords="375,107,532,157,530,162,373,112"/>
-<area shape="rect" id="Node000016" href="$yaze_8cc.html" title=" " alt="" coords="664,160,750,186"/>
-<area shape="poly" id="edge7_Node000003_Node000016" title=" " alt="" coords="377,98,504,118,653,150,675,157,674,162,651,155,503,123,376,103"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="10,5,129,31"/>
+<area shape="rect" id="Node000002" href="$yaze__py_8cc.html" title=" " alt="" coords="5,79,134,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="72,46,72,79,67,79,67,46"/>
 </map>

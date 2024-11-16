@@ -102,7 +102,7 @@ var searchData=
   ['rol_99',['ROL',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a5acae392f43808bb021b102a35d867cd',1,'yaze::app::emu::audio::Spc700::ROL()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#aac1425622119cd6e0eb55c3c42ce0490',1,'yaze::app::emu::Cpu::ROL(uint32_t address, bool accumulator=false)']]],
   ['rol_100',['Rol',['../classyaze_1_1app_1_1emu_1_1Cpu.html#aeca9ba85c2928d9bb1cad746c25eb7b7',1,'yaze::app::emu::Cpu']]],
   ['rom_101',['Rom',['../classyaze_1_1app_1_1Rom.html',1,'yaze::app::Rom'],['../md_docs_2infrastructure.html#autotoc_md50',1,'Rom']]],
-  ['rom_102',['rom',['../classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff',1,'yaze::app::SharedRom']]],
+  ['rom_102',['rom',['../structyaze__editor__context.html#accf9a0e86b9abfd1a17483a3a5906816',1,'yaze_editor_context::rom'],['../classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff',1,'yaze::app::SharedRom::rom()']]],
   ['rom_20manipulation_103',['6. ROM Manipulation',['../md_docs_2contributing.html#autotoc_md35',1,'']]],
   ['rom_2ecc_104',['rom.cc',['../rom_8cc.html',1,'']]],
   ['rom_2eh_105',['rom.h',['../rom_8h.html',1,'']]],

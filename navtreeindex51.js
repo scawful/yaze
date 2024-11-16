@@ -113,9 +113,10 @@ var NAVTREEINDEX51 =
 "structyaze__command__registry.html":[11,0,10],
 "structyaze__command__registry.html#ae884832d62a9d0ab5090fc94f01dc3ca":[11,0,10,0],
 "structyaze__editor__context.html":[11,0,11],
-"structyaze__editor__context.html#a3e747d7d0638142be1b42e0fb5f0bf60":[11,0,11,0],
-"structyaze__editor__context.html#a42bd8a63b8e9d7d458b44587d9270dff":[11,0,11,2],
-"structyaze__editor__context.html#a5a8878ed1bf934cfbfac022d08abc951":[11,0,11,1],
+"structyaze__editor__context.html#a3e747d7d0638142be1b42e0fb5f0bf60":[11,0,11,1],
+"structyaze__editor__context.html#a42bd8a63b8e9d7d458b44587d9270dff":[11,0,11,3],
+"structyaze__editor__context.html#a5a8878ed1bf934cfbfac022d08abc951":[11,0,11,2],
+"structyaze__editor__context.html#accf9a0e86b9abfd1a17483a3a5906816":[11,0,11,0],
 "structyaze__event__dispatcher.html":[11,0,12],
 "structyaze__event__dispatcher.html#a33479f8d825b22c996c9928f2e8ceda3":[11,0,12,0],
 "structyaze__extension.html":[11,0,13],
@@ -248,6 +249,5 @@ var NAVTREEINDEX51 =
 "title__screen_8cc.html":[12,0,2,0,5,3,3],
 "title__screen_8cc_source.html":[12,0,2,0,5,3,3],
 "title__screen_8h.html":[12,0,2,0,5,3,4],
-"title__screen_8h_source.html":[12,0,2,0,5,3,4],
-"todo.html":[7]
+"title__screen_8h_source.html":[12,0,2,0,5,3,4]
 };
