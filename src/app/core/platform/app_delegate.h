@@ -8,22 +8,25 @@
 
 #if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1
 /* iOS in Xcode simulator */
+#import <PencilKit/PencilKit.h>
 #import <UIKit/UIKit.h>
 
-#import <PencilKit/PencilKit.h>
+@interface AppDelegate : UIResponder <UIApplicationDelegate,
+                                      UIDocumentPickerDelegate,
+                                      UITabBarControllerDelegate,
+                                      PKCanvasViewDelegate>
+@property(strong, nonatomic) UIWindow *window;
 
-@interface AppDelegate : UIResponder <UIApplicationDelegate, UIDocumentPickerDelegate, UITabBarControllerDelegate, PKCanvasViewDelegate>
-@property (strong, nonatomic) UIWindow *window;
-
-@property  UIDocumentPickerViewController *documentPicker;
-@property (nonatomic, copy) void (^completionHandler)(NSString *selectedFile);
-- (void)PresentDocumentPickerWithCompletionHandler:(void (^)(NSString *selectedFile))completionHandler;
+@property UIDocumentPickerViewController *documentPicker;
+@property(nonatomic, copy) void (^completionHandler)(NSString *selectedFile);
+- (void)PresentDocumentPickerWithCompletionHandler:
+    (void (^)(NSString *selectedFile))completionHandler;
 
 // TODO: Setup a tab bar controller for multiple yaze instances
-@property (nonatomic) UITabBarController *tabBarController;
+@property(nonatomic) UITabBarController *tabBarController;
 
 // TODO: Setup a font picker for the text editor and display settings
-@property (nonatomic) UIFontPickerViewController *fontPicker;
+@property(nonatomic) UIFontPickerViewController *fontPicker;
 
 // TODO: Setup the pencil kit for drawing
 @property PKToolPicker *toolPicker;
@@ -40,6 +43,14 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Initialize the Cocoa application.
+ */
+void yaze_initialize_cocoa();
+
+/**
+ * @brief Run the Cocoa application delegate.
+ */
 void yaze_run_cocoa_app_delegate(const char *filename);
 
 #ifdef __cplusplus
