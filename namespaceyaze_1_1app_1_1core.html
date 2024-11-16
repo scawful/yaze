@@ -220,6 +220,10 @@ Functions</h2></td></tr>
 <tr class="memitem:aed8ea2c93d2742812c27b5eb038a9bec" id="r_aed8ea2c93d2742812c27b5eb038a9bec"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aed8ea2c93d2742812c27b5eb038a9bec">GetBundleResourcePath</a> ()</td></tr>
 <tr class="memdesc:aed8ea2c93d2742812c27b5eb038a9bec"><td class="mdescLeft">&#160;</td><td class="mdescRight">GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS.  <br /></td></tr>
 <tr class="separator:aed8ea2c93d2742812c27b5eb038a9bec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae980ff4b8fc1cbb9ea5e990eb9567f16" id="r_ae980ff4b8fc1cbb9ea5e990eb9567f16"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae980ff4b8fc1cbb9ea5e990eb9567f16">LoadPackageFonts</a> ()</td></tr>
+<tr class="separator:ae980ff4b8fc1cbb9ea5e990eb9567f16"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad8fc7c9242dc7232c703c11dcedb742b" id="r_ad8fc7c9242dc7232c703c11dcedb742b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad8fc7c9242dc7232c703c11dcedb742b">LoadSystemFonts</a> ()</td></tr>
+<tr class="separator:ad8fc7c9242dc7232c703c11dcedb742b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1a473cd82ecbb24197525abe7561f732" id="r_a1a473cd82ecbb24197525abe7561f732"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1a473cd82ecbb24197525abe7561f732">GetFileExtension</a> (const std::string &amp;filename)</td></tr>
 <tr class="separator:a1a473cd82ecbb24197525abe7561f732"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0c9555d9e2a9c9a6bd57db6bcd1e98f6" id="r_a0c9555d9e2a9c9a6bd57db6bcd1e98f6"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0c9555d9e2a9c9a6bd57db6bcd1e98f6">GetFileName</a> (const std::string &amp;filename)</td></tr>
@@ -693,7 +697,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="core_2common_8h_source.html#l00224">kFastRomRegion</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00148">yaze::app::editor::BuildDictionaryEntries()</a>, <a class="el" href="overworld_8cc_source.html#l00218">yaze::app::zelda3::overworld::Overworld::DecompressAllMapTiles()</a>, <a class="el" href="common_8cc_source.html#l00139">Get24LocalFromPC()</a>, <a class="el" href="rom_8cc_source.html#l00032">yaze::app::anonymous_namespace{rom.cc}::GetGraphicsAddress()</a>, <a class="el" href="command_8h_source.html#l00128">yaze::cli::SnesToPc::handle()</a>, <a class="el" href="room_8cc_source.html#l00258">yaze::app::zelda3::dungeon::Room::LoadAnimatedGraphics()</a>, <a class="el" href="room_8cc_source.html#l00464">yaze::app::zelda3::dungeon::Room::LoadChests()</a>, <a class="el" href="screen__editor_8cc_source.html#l00111">yaze::app::editor::ScreenEditor::LoadDungeonMaps()</a>, <a class="el" href="room_8cc_source.html#l00022">yaze::app::zelda3::dungeon::Room::LoadHeader()</a>, <a class="el" href="overworld_8cc_source.html#l00414">yaze::app::zelda3::overworld::Overworld::LoadItems()</a>, <a class="el" href="room_8cc_source.html#l00278">yaze::app::zelda3::dungeon::Room::LoadObjects()</a>, <a class="el" href="room_8cc_source.html#l00126">yaze::app::zelda3::dungeon::Room::LoadRoomFromROM()</a>, <a class="el" href="room_8cc_source.html#l00417">yaze::app::zelda3::dungeon::Room::LoadSprites()</a>, <a class="el" href="overworld_8cc_source.html#l00475">yaze::app::zelda3::overworld::Overworld::LoadSpritesFromMap()</a>, <a class="el" href="title__screen_8cc_source.html#l00064">yaze::app::zelda3::screen::TitleScreen::LoadTitleScreen()</a>, <a class="el" href="screen__editor_8cc_source.html#l00185">yaze::app::editor::ScreenEditor::SaveDungeonMaps()</a>, <a class="el" href="overworld_8cc_source.html#l01285">yaze::app::zelda3::overworld::Overworld::SaveMap16Expanded()</a>, and <a class="el" href="memory__editor_8h_source.html#l00039">yaze::app::editor::MemoryEditorWithDiffChecker::Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00148">yaze::app::editor::BuildDictionaryEntries()</a>, <a class="el" href="overworld_8cc_source.html#l00218">yaze::app::zelda3::overworld::Overworld::DecompressAllMapTiles()</a>, <a class="el" href="common_8cc_source.html#l00139">Get24LocalFromPC()</a>, <a class="el" href="rom_8cc_source.html#l00032">yaze::app::anonymous_namespace{rom.cc}::GetGraphicsAddress()</a>, <a class="el" href="command_8h_source.html#l00128">yaze::cli::SnesToPc::handle()</a>, <a class="el" href="room_8cc_source.html#l00259">yaze::app::zelda3::dungeon::Room::LoadAnimatedGraphics()</a>, <a class="el" href="room_8cc_source.html#l00465">yaze::app::zelda3::dungeon::Room::LoadChests()</a>, <a class="el" href="screen__editor_8cc_source.html#l00111">yaze::app::editor::ScreenEditor::LoadDungeonMaps()</a>, <a class="el" href="room_8cc_source.html#l00023">yaze::app::zelda3::dungeon::Room::LoadHeader()</a>, <a class="el" href="overworld_8cc_source.html#l00414">yaze::app::zelda3::overworld::Overworld::LoadItems()</a>, <a class="el" href="room_8cc_source.html#l00279">yaze::app::zelda3::dungeon::Room::LoadObjects()</a>, <a class="el" href="room_8cc_source.html#l00127">yaze::app::zelda3::dungeon::Room::LoadRoomFromROM()</a>, <a class="el" href="room_8cc_source.html#l00418">yaze::app::zelda3::dungeon::Room::LoadSprites()</a>, <a class="el" href="overworld_8cc_source.html#l00475">yaze::app::zelda3::overworld::Overworld::LoadSpritesFromMap()</a>, <a class="el" href="title__screen_8cc_source.html#l00064">yaze::app::zelda3::screen::TitleScreen::LoadTitleScreen()</a>, <a class="el" href="screen__editor_8cc_source.html#l00185">yaze::app::editor::ScreenEditor::SaveDungeonMaps()</a>, <a class="el" href="overworld_8cc_source.html#l01285">yaze::app::zelda3::overworld::Overworld::SaveMap16Expanded()</a>, and <a class="el" href="memory__editor_8h_source.html#l00039">yaze::app::editor::MemoryEditorWithDiffChecker::Update()</a>.</p>
 
 </div>
 </div>
@@ -863,7 +867,57 @@ Here is the call graph for this function:</div>
 
 <p>GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS. </p>
 
-<p class="reference">Referenced by <a class="el" href="zeml_8cc_source.html#l00590">yaze::app::gui::zeml::LoadFile()</a>, and <a class="el" href="controller_8cc_source.html#l00371">yaze::app::core::Controller::LoadFontFamilies()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="zeml_8cc_source.html#l00590">yaze::app::gui::zeml::LoadFile()</a>, and <a class="el" href="font__loader_8cc_source.html#l00018">LoadPackageFonts()</a>.</p>
+
+</div>
+</div>
+<a id="ae980ff4b8fc1cbb9ea5e990eb9567f16" name="ae980ff4b8fc1cbb9ea5e990eb9567f16"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae980ff4b8fc1cbb9ea5e990eb9567f16">&#9670;&#160;</a></span>LoadPackageFonts()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::app::core::LoadPackageFonts </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="font__loader_8cc_source.html#l00018">18</a> of file <a class="el" href="font__loader_8cc_source.html">font_loader.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="icons_8h_source.html#l00006">FONT_ICON_FILE_NAME_MD</a>, <a class="el" href="#aed8ea2c93d2742812c27b5eb038a9bec">GetBundleResourcePath()</a>, and <a class="el" href="icons_8h_source.html#l00008">ICON_MIN_MD</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00327">yaze::app::core::Controller::LoadFontFamilies()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="namespaceyaze_1_1app_1_1core_ae980ff4b8fc1cbb9ea5e990eb9567f16_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1core_ae980ff4b8fc1cbb9ea5e990eb9567f16_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1core_ae980ff4b8fc1cbb9ea5e990eb9567f16_cgraph" id="anamespaceyaze_1_1app_1_1core_ae980ff4b8fc1cbb9ea5e990eb9567f16_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,197,46"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1core.html#aed8ea2c93d2742812c27b5eb038a9bec" title="GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS." alt="" coords="245,5,417,46"/>
+<area shape="poly" title=" " alt="" coords="197,23,229,23,229,28,197,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ad8fc7c9242dc7232c703c11dcedb742b" name="ad8fc7c9242dc7232c703c11dcedb742b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad8fc7c9242dc7232c703c11dcedb742b">&#9670;&#160;</a></span>LoadSystemFonts()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::core::LoadSystemFonts </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -999,7 +1053,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#a4e61b0cd86cff55adee7c5b20c7dc700ae3f917d82e495f1c002357925ca3047e">kLinux</a>, <a class="el" href="#a4e61b0cd86cff55adee7c5b20c7dc700ad4b84d921444ff96b6ed220a036f9a8a">kMacOS</a>, and <a class="el" href="#a4e61b0cd86cff55adee7c5b20c7dc700aad547616982f990862d4e1213452c089">kWindows</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00343">yaze::app::core::Controller::LoadConfigFiles()</a>, <a class="el" href="file__util_8cc_source.html#l00033">LoadFile()</a>, and <a class="el" href="file__util_8cc_source.html#l00046">SaveFile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00353">yaze::app::core::Controller::LoadConfigFiles()</a>, <a class="el" href="file__util_8cc_source.html#l00033">LoadFile()</a>, and <a class="el" href="file__util_8cc_source.html#l00046">SaveFile()</a>.</p>
 
 </div>
 </div>

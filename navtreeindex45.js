@@ -1,5 +1,8 @@
 var NAVTREEINDEX45 =
 {
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a60d7de0339d2c7db41676a6c44e05388":[11,0,0,0,1,20,0,14],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a9baa2f71f10ee503ec692613927c38f4":[10,0,1,0,2,25,0,2],
+"structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a9baa2f71f10ee503ec692613927c38f4":[11,0,0,0,1,20,0,2],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#aa920f3941abc5430c1203ef374376382":[10,0,1,0,2,25,0,12],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#aa920f3941abc5430c1203ef374376382":[11,0,0,0,1,20,0,12],
 "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#aaf1bec33eb2b93faba25849a46cf9fc4":[10,0,1,0,2,25,0,5],
@@ -246,8 +249,5 @@ var NAVTREEINDEX45 =
 "structyaze_1_1app_1_1emu_1_1MnemonicMode.html#ab895f760ef6a5b54e76d9ec79c390d96":[11,0,0,0,2,10,2],
 "structyaze_1_1app_1_1emu_1_1MnemonicModeHash.html":[10,0,1,0,3,13],
 "structyaze_1_1app_1_1emu_1_1MnemonicModeHash.html":[11,0,0,0,2,11],
-"structyaze_1_1app_1_1emu_1_1MnemonicModeHash.html#a65bd0d4f280e67de8bd5fc8a464eac31":[10,0,1,0,3,13,0],
-"structyaze_1_1app_1_1emu_1_1MnemonicModeHash.html#a65bd0d4f280e67de8bd5fc8a464eac31":[11,0,0,0,2,11,0],
-"structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html":[10,0,1,0,3,2,1],
-"structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html":[11,0,0,0,2,0,1]
+"structyaze_1_1app_1_1emu_1_1MnemonicModeHash.html#a65bd0d4f280e67de8bd5fc8a464eac31":[10,0,1,0,3,13,0]
 };

@@ -1,5 +1,5 @@
-<map id="src/incl/dungeon.h" name="src/incl/dungeon.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="24,5,150,31"/>
+<map id="incl/dungeon.h" name="incl/dungeon.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="35,5,140,31"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,79,79,105"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="82,33,60,67,55,64,78,30"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="102,79,166,105"/>

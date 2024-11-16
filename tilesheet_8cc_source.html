@@ -115,9 +115,9 @@ $(function(){initNavTree('tilesheet_8cc_source.html',''); initResizable(true); }
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;<a class="code" href="bitmap_8h.html">app/gfx/bitmap.h</a>&quot;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;<a class="code" href="app_2gfx_2snes__color_8h.html">app/gfx/snes_color.h</a>&quot;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;<a class="code" href="src_2app_2gfx_2snes__color_8h.html">app/gfx/snes_color.h</a>&quot;</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;<a class="code" href="snes__palette_8h.html">app/gfx/snes_palette.h</a>&quot;</span></div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;<a class="code" href="app_2gfx_2snes__tile_8h.html">app/gfx/snes_tile.h</a>&quot;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;<a class="code" href="src_2app_2gfx_2snes__tile_8h.html">app/gfx/snes_tile.h</a>&quot;</span></div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keyword">namespace </span>app {</div>
@@ -341,10 +341,8 @@ $(function(){initNavTree('tilesheet_8cc_source.html',''); initResizable(true); }
 <div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>}  <span class="comment">// namespace gfx</span></div>
 <div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>}  <span class="comment">// namespace app</span></div>
 <div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>}  <span class="comment">// namespace yaze</span></div>
-<div class="ttc" id="aapp_2gfx_2snes__color_8h_html"><div class="ttname"><a href="app_2gfx_2snes__color_8h.html">snes_color.h</a></div></div>
-<div class="ttc" id="aapp_2gfx_2snes__tile_8h_html"><div class="ttname"><a href="app_2gfx_2snes__tile_8h.html">snes_tile.h</a></div></div>
 <div class="ttc" id="abitmap_8h_html"><div class="ttname"><a href="bitmap_8h.html">bitmap.h</a></div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1gfx_1_1TileInfo_html"><div class="ttname"><a href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">yaze::app::gfx::TileInfo</a></div><div class="ttdoc">SNES 16-bit tile metadata container.</div><div class="ttdef"><b>Definition</b> <a href="app_2gfx_2snes__tile_8h_source.html#l00048">snes_tile.h:48</a></div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1gfx_1_1TileInfo_html"><div class="ttname"><a href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">yaze::app::gfx::TileInfo</a></div><div class="ttdoc">SNES 16-bit tile metadata container.</div><div class="ttdef"><b>Definition</b> <a href="src_2app_2gfx_2snes__tile_8h_source.html#l00048">snes_tile.h:48</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1gfx_1_1Tilesheet_html"><div class="ttname"><a href="classyaze_1_1app_1_1gfx_1_1Tilesheet.html">yaze::app::gfx::Tilesheet</a></div><div class="ttdoc">Represents a tilesheet, which is a collection of tiles stored in a bitmap.</div><div class="ttdef"><b>Definition</b> <a href="tilesheet_8h_source.html#l00030">tilesheet.h:30</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1gfx_1_1Tilesheet_html_a155394e37ae95d04cbb69801a090ab22"><div class="ttname"><a href="classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a155394e37ae95d04cbb69801a090ab22">yaze::app::gfx::Tilesheet::tile_info_</a></div><div class="ttdeci">std::vector&lt; InternalTile16 &gt; tile_info_</div><div class="ttdef"><b>Definition</b> <a href="tilesheet_8h_source.html#l00132">tilesheet.h:132</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1gfx_1_1Tilesheet_html_a1beb3a44fde850be423e8eb502af383f"><div class="ttname"><a href="classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a1beb3a44fde850be423e8eb502af383f">yaze::app::gfx::Tilesheet::tile_type</a></div><div class="ttdeci">auto tile_type() const</div><div class="ttdef"><b>Definition</b> <a href="tilesheet_8h_source.html#l00093">tilesheet.h:93</a></div></div>
@@ -372,6 +370,8 @@ $(function(){initNavTree('tilesheet_8cc_source.html',''); initResizable(true); }
 <div class="ttc" id="anamespaceyaze_1_1app_1_1gfx_html_afe2b409c93b8b037b20a8d4ac2df3353"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gfx.html#afe2b409c93b8b037b20a8d4ac2df3353">yaze::app::gfx::CreateTilesheetFromGraphicsBuffer</a></div><div class="ttdeci">absl::StatusOr&lt; Tilesheet &gt; CreateTilesheetFromGraphicsBuffer(const uint8_t *graphics_buffer, int width, int height, TileType tile_type, int sheet_id)</div><div class="ttdef"><b>Definition</b> <a href="#l00015">tilesheet.cc:15</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdef"><b>Definition</b> <a href="common_8cc_source.html#l00022">common.cc:22</a></div></div>
 <div class="ttc" id="asnes__palette_8h_html"><div class="ttname"><a href="snes__palette_8h.html">snes_palette.h</a></div></div>
+<div class="ttc" id="asrc_2app_2gfx_2snes__color_8h_html"><div class="ttname"><a href="src_2app_2gfx_2snes__color_8h.html">snes_color.h</a></div></div>
+<div class="ttc" id="asrc_2app_2gfx_2snes__tile_8h_html"><div class="ttname"><a href="src_2app_2gfx_2snes__tile_8h.html">snes_tile.h</a></div></div>
 <div class="ttc" id="atilesheet_8h_html"><div class="ttname"><a href="tilesheet_8h.html">tilesheet.h</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

@@ -112,10 +112,23 @@ $(function(){initNavTree('font__loader_8h_source.html',''); initResizable(true);
 <a href="font__loader_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef YAZE_APP_CORE_PLATFORM_FONTLOADER_H</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define YAZE_APP_CORE_PLATFORM_FONTLOADER_H</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno"><a class="line" href="font__loader_8h.html#a7390a9bf6e7c82bbe4cddbf00844d86d">    4</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="font__loader_8h.html#a7390a9bf6e7c82bbe4cddbf00844d86d">LoadSystemFonts</a>();</div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &quot;absl/status/status.h&quot;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#endif </span><span class="comment">// YAZE_APP_CORE_PLATFORM_FONTLOADER_H</span></div>
-<div class="ttc" id="afont__loader_8h_html_a7390a9bf6e7c82bbe4cddbf00844d86d"><div class="ttname"><a href="font__loader_8h.html#a7390a9bf6e7c82bbe4cddbf00844d86d">LoadSystemFonts</a></div><div class="ttdeci">void LoadSystemFonts()</div></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="keyword">namespace </span>app {</div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="keyword">namespace </span>core {</div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1app_1_1core.html#ad8fc7c9242dc7232c703c11dcedb742b">   10</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1core.html#ad8fc7c9242dc7232c703c11dcedb742b">LoadSystemFonts</a>();</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>absl::Status <a class="code hl_function" href="namespaceyaze_1_1app_1_1core.html#ae980ff4b8fc1cbb9ea5e990eb9567f16">LoadPackageFonts</a>();</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>}  <span class="comment">// namespace core</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>}  <span class="comment">// namespace app</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_CORE_PLATFORM_FONTLOADER_H</span></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1core_html_ad8fc7c9242dc7232c703c11dcedb742b"><div class="ttname"><a href="namespaceyaze_1_1app_1_1core.html#ad8fc7c9242dc7232c703c11dcedb742b">yaze::app::core::LoadSystemFonts</a></div><div class="ttdeci">void LoadSystemFonts()</div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1core_html_ae980ff4b8fc1cbb9ea5e990eb9567f16"><div class="ttname"><a href="namespaceyaze_1_1app_1_1core.html#ae980ff4b8fc1cbb9ea5e990eb9567f16">yaze::app::core::LoadPackageFonts</a></div><div class="ttdeci">absl::Status LoadPackageFonts()</div><div class="ttdef"><b>Definition</b> <a href="font__loader_8cc_source.html#l00018">font_loader.cc:18</a></div></div>
+<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdef"><b>Definition</b> <a href="common_8cc_source.html#l00022">common.cc:22</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

@@ -10,7 +10,7 @@ var dir_f454b90621a5a35d9d5ef5e042a20159 =
     [ "file_dialog.mm", "file__dialog_8mm.html", null ],
     [ "file_path.h", "file__path_8h.html", "file__path_8h" ],
     [ "file_path.mm", "file__path_8mm.html", null ],
-    [ "font_loader.cc", "font__loader_8cc.html", null ],
+    [ "font_loader.cc", "font__loader_8cc.html", "font__loader_8cc" ],
     [ "font_loader.h", "font__loader_8h.html", "font__loader_8h" ],
     [ "font_loader.mm", "font__loader_8mm.html", null ],
     [ "renderer.h", "renderer_8h.html", "renderer_8h" ],

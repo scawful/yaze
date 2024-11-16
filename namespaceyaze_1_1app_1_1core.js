@@ -60,6 +60,8 @@ var namespaceyaze_1_1app_1_1core =
     [ "CopyImageToClipboard", "namespaceyaze_1_1app_1_1core.html#a665b3fdfdf571c43045821e49c8ad8ca", null ],
     [ "GetImageFromClipboard", "namespaceyaze_1_1app_1_1core.html#aa3d3837210480bcf7d7260fd40b9bcaf", null ],
     [ "GetBundleResourcePath", "namespaceyaze_1_1app_1_1core.html#aed8ea2c93d2742812c27b5eb038a9bec", null ],
+    [ "LoadPackageFonts", "namespaceyaze_1_1app_1_1core.html#ae980ff4b8fc1cbb9ea5e990eb9567f16", null ],
+    [ "LoadSystemFonts", "namespaceyaze_1_1app_1_1core.html#ad8fc7c9242dc7232c703c11dcedb742b", null ],
     [ "GetFileExtension", "namespaceyaze_1_1app_1_1core.html#a1a473cd82ecbb24197525abe7561f732", null ],
     [ "GetFileName", "namespaceyaze_1_1app_1_1core.html#a0c9555d9e2a9c9a6bd57db6bcd1e98f6", null ],
     [ "LoadFile", "namespaceyaze_1_1app_1_1core.html#a3321ea16855cf829721b4747fea79674", null ],

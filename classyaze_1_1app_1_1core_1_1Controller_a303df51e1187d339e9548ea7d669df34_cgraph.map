@@ -1,5 +1,7 @@
 <map id="yaze::app::core::Controller::LoadFontFamilies" name="yaze::app::core::Controller::LoadFontFamilies">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,5,172,46"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1core.html#aed8ea2c93d2742812c27b5eb038a9bec" title="GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS." alt="" coords="220,5,392,46"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1core.html#ae980ff4b8fc1cbb9ea5e990eb9567f16" title=" " alt="" coords="220,5,411,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,23,204,23,204,28,172,28"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1core.html#aed8ea2c93d2742812c27b5eb038a9bec" title="GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS." alt="" coords="459,5,631,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="411,23,443,23,443,28,411,28"/>
 </map>
