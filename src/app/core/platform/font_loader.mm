@@ -1,32 +1,20 @@
-// FontLoader.mm
 #include "app/core/platform/font_loader.h"
 
-#include "imgui/imgui.h"
-
-#include "app/gui/icons.h"
-
-#if defined(__APPLE__) && defined(__MACH__)
-/* Apple OSX and iOS (Darwin). */
+#import <CoreText/CoreText.h>
 #include <TargetConditionals.h>
 
-#import <CoreText/CoreText.h>
+#include "app/gui/icons.h"
+#include "imgui/imgui.h"
 
-#if TARGET_IPHONE_SIMULATOR == 1
-/* iOS in Xcode simulator */
-void LoadSystemFonts() {}
-
-#elif TARGET_OS_IPHONE == 1
+#if TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1
 /* iOS */
-void LoadSystemFonts() {}
+void yaze::app::core::LoadSystemFonts() {}
 
 #elif TARGET_OS_MAC == 1
 /* macOS */
-
 #import <Cocoa/Cocoa.h>
 
-// MacOS Implementation
-void LoadSystemFonts() {
-  // List of common macOS system fonts
+void yaze::app::core::LoadSystemFonts() {
   NSArray *fontNames = @[ @"Helvetica", @"Times New Roman", @"Courier", @"Arial", @"Verdana" ];
 
   for (NSString *fontName in fontNames) {
@@ -67,8 +55,5 @@ void LoadSystemFonts() {
     }
   }
 }
-#else
-// Unsupported platform
-#endif
 
 #endif

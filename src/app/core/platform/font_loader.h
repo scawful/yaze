@@ -1,6 +1,17 @@
 #ifndef YAZE_APP_CORE_PLATFORM_FONTLOADER_H
 #define YAZE_APP_CORE_PLATFORM_FONTLOADER_H
 
-void LoadSystemFonts();
+#include "absl/status/status.h"
 
-#endif // YAZE_APP_CORE_PLATFORM_FONTLOADER_H
+namespace yaze {
+namespace app {
+namespace core {
+
+void LoadSystemFonts();
+absl::Status LoadPackageFonts();
+
+}  // namespace core
+}  // namespace app
+}  // namespace yaze
+
+#endif  // YAZE_APP_CORE_PLATFORM_FONTLOADER_H
