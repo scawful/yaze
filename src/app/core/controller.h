@@ -5,16 +5,15 @@
 
 #include <memory>
 
-#include "imgui/backends/imgui_impl_sdl2.h"
-#include "imgui/backends/imgui_impl_sdlrenderer2.h"
-#include "imgui/imconfig.h"
-#include "imgui/imgui.h"
-#include "imgui/imgui_internal.h"
 #include "absl/status/status.h"
 #include "app/core/platform/renderer.h"
 #include "app/core/utils/file_util.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/utils/editor.h"
+#include "imgui/backends/imgui_impl_sdl2.h"
+#include "imgui/backends/imgui_impl_sdlrenderer2.h"
+#include "imgui/imconfig.h"
+#include "imgui/imgui.h"
 
 int main(int argc, char **argv);
 
@@ -38,12 +37,12 @@ class Controller : public ExperimentFlags {
   void DoRender() const;
   void OnExit();
 
-  absl::Status CreateSDL_Window();
+  absl::Status CreateWindow();
   absl::Status CreateRenderer();
   absl::Status CreateGuiContext();
-  absl::Status LoadConfigFiles();
   absl::Status LoadFontFamilies() const;
   absl::Status LoadAudioDevice();
+  absl::Status LoadConfigFiles();
 
   void SetupScreen(std::string filename = "") {
     editor_manager_.SetupScreen(filename);
