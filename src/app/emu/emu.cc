@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
   SDL_PauseAudioDevice(audio_device_, 0);
 
 #ifdef __APPLE__
-  InitializeCocoa();
+  yaze_initialize_cocoa();
 #endif
 
   auto ppu_texture_ =
