@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "absl/status/status.h"
+#include "absl/strings/str_format.h"
 #include "app/core/utils/sdl_deleter.h"
 #include "app/gfx/bitmap.h"
 
