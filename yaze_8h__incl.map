@@ -1,18 +1,22 @@
-<map id="src/yaze.h" name="src/yaze.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="201,5,280,31"/>
+<map id="incl/yaze.h" name="incl/yaze.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="209,5,290,31"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,79,73,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="207,34,89,76,87,71,205,29"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="78,153,141,178"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="206,34,170,53,137,81,122,109,115,138,110,137,117,107,133,77,167,48,204,29"/>
-<area shape="rect" id="Node000004" href="$dungeon_8h.html" title=" " alt="" coords="147,79,227,105"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="234,33,207,68,203,65,229,30"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="251,79,339,105"/>
-<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="251,30,279,65,275,68,247,33"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="362,79,457,105"/>
-<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="270,29,368,70,366,75,268,34"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="481,79,544,105"/>
-<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="281,27,466,76,465,81,280,33"/>
-<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="176,107,136,144,132,140,172,103"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="165,153,238,178"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="192,104,199,137,193,138,187,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,34,89,77,87,72,213,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="278,226,341,252"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="210,34,174,52,159,65,147,80,144,91,147,104,155,144,163,160,177,176,196,193,218,206,264,224,262,229,216,211,193,197,173,180,158,162,150,146,142,105,139,91,142,78,155,61,172,47,208,29"/>
+<area shape="rect" id="Node000004" href="$dungeon_8h.html" title=" " alt="" coords="156,79,236,105"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="243,33,217,68,212,65,239,30"/>
+<area shape="rect" id="Node000006" href="$incl_2overworld_8h.html" title=" " alt="" coords="261,79,348,105"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="261,30,288,65,284,68,257,33"/>
+<area shape="rect" id="Node000007" href="$incl_2sprite_8h.html" title=" " alt="" coords="347,153,411,178"/>
+<area shape="poly" id="edge12_Node000001_Node000007" title=" " alt="" coords="291,29,329,48,347,61,363,77,376,107,381,137,376,138,371,108,358,81,344,65,326,52,288,34"/>
+<area shape="rect" id="Node000008" href="$incl_2snes__color_8h.html" title=" " alt="" coords="434,153,529,178"/>
+<area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="286,29,335,49,387,77,428,108,462,140,458,143,425,112,384,81,333,54,284,34"/>
+<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="193,106,183,140,183,159,189,177,204,194,222,208,264,226,262,231,220,212,200,198,185,180,178,160,178,139,188,104"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="198,153,272,178"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="205,104,224,138,219,140,200,106"/>
+<area shape="poly" id="edge7_Node000006_Node000003" title=" " alt="" coords="307,105,311,211,306,211,302,105"/>
+<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="319,103,358,140,354,144,315,107"/>
+<area shape="poly" id="edge9_Node000007_Node000003" title=" " alt="" coords="369,180,334,217,330,213,366,177"/>
+<area shape="poly" id="edge11_Node000008_Node000003" title=" " alt="" coords="454,181,354,222,352,218,451,176"/>
 </map>

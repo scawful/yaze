@@ -1,5 +1,5 @@
-<map id="src/yaze.h" name="src/yaze.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="340,5,420,31"/>
+<map id="incl/yaze.h" name="incl/yaze.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="339,5,420,31"/>
 <area shape="rect" id="Node000002" href="$extension_8h.html" title=" " alt="" coords="84,86,241,112"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="333,39,197,88,195,83,331,34"/>
 <area shape="rect" id="Node000005" href="$editor__manager_8h.html" title=" " alt="" coords="197,256,333,297"/>
@@ -9,7 +9,7 @@
 <area shape="rect" id="Node000014" href="$yaze__test_8cc.html" title=" " alt="" coords="468,86,609,112"/>
 <area shape="poly" id="edge8_Node000001_Node000014" title=" " alt="" coords="419,36,515,84,513,88,417,41"/>
 <area shape="rect" id="Node000015" href="$yaze_8cc.html" title=" " alt="" coords="633,86,719,112"/>
-<area shape="poly" id="edge9_Node000001_Node000015" title=" " alt="" coords="435,29,622,76,643,83,642,88,620,82,434,34"/>
+<area shape="poly" id="edge9_Node000001_Node000015" title=" " alt="" coords="436,29,622,76,643,83,642,88,620,82,435,34"/>
 <area shape="rect" id="Node000003" href="$extension__manager_8cc.html" title=" " alt="" coords="5,256,160,297"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="128,123,103,143,85,169,78,191,76,214,80,256,75,256,71,214,73,190,80,166,100,139,124,119"/>
 <area shape="rect" id="Node000004" href="$extension__manager_8h.html" title=" " alt="" coords="94,168,242,208"/>
