@@ -48,7 +48,7 @@ int RunIntegrationTest() {
   yaze::app::core::Controller controller;
   controller.init_test_editor(&test_editor);
 
-  if (!controller.CreateSDL_Window().ok()) {
+  if (!controller.CreateWindow().ok()) {
     return EXIT_FAILURE;
   }
   if (!controller.CreateRenderer().ok()) {

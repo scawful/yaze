@@ -27,6 +27,7 @@ target_include_directories(
   yaze_test PUBLIC
   app/
   lib/
+  ${CMAKE_SOURCE_DIR}/incl/
   ${CMAKE_SOURCE_DIR}/src/
   ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
   ${ASAR_INCLUDE_DIR}

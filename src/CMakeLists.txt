@@ -44,7 +44,7 @@ if (YAZE_BUILD_Z3ED)
   include(cli/z3ed.cmake)
 endif()
 if (YAZE_BUILD_PYTHON)
-  include(py/yaze_py.cmake)
+  include(cli/python/yaze_py.cmake)
 endif()
 if (YAZE_BUILD_TESTS)
   include(test/CMakeLists.txt)
@@ -53,13 +53,13 @@ endif()
 if(MACOS)
   set(MACOSX_BUNDLE_ICON_FILE ${CMAKE_SOURCE_DIR}/win32/yaze.ico)
   set_target_properties(yaze
-      PROPERTIES
-      BUNDLE True
-      ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-      MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/cmake/yaze.plist.in
-      RESOURCE ${YAZE_RESOURCE_FILES}
+    PROPERTIES
+    BUNDLE True
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/cmake/yaze.plist.in
+    RESOURCE ${YAZE_RESOURCE_FILES}
   )
 elseif(UNIX)
   set_target_properties(yaze
@@ -72,13 +72,13 @@ elseif(UNIX)
   target_compile_definitions(yaze PRIVATE "linux")
   target_compile_definitions(yaze PRIVATE "stricmp=strcasecmp")
 else()
-set_target_properties(yaze
+  set_target_properties(yaze
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     LINK_FLAGS "${CMAKE_CURRENT_SOURCE_DIR}/win32/yaze.res"
-)
+  )
 endif()
 
 # Yaze C API
@@ -101,6 +101,7 @@ if (YAZE_BUILD_LIB)
     yaze_c PUBLIC
     lib/
     app/
+    ${CMAKE_SOURCE_DIR}/incl/
     ${CMAKE_SOURCE_DIR}/src/
     ${PNG_INCLUDE_DIRS}
     ${SDL2_INCLUDE_DIR}
