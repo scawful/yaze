@@ -8,10 +8,10 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
-#include "incl/dungeon.h"
-#include "incl/overworld.h"
-#include "incl/snes_color.h"
-#include "incl/sprite.h"
+#include "dungeon.h"
+#include "overworld.h"
+#include "snes_color.h"
+#include "sprite.h"
 
 typedef struct z3_rom z3_rom;
 
@@ -23,6 +23,7 @@ typedef struct yaze_event_dispatcher yaze_event_dispatcher;
  * @brief Extension editor context.
  */
 typedef struct yaze_editor_context {
+  z3_rom* rom;
   yaze_project* project;
 
   yaze_command_registry* command_registry;
