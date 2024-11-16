@@ -7,7 +7,7 @@ extern "C" {
 
 #include <stdint.h>
 
-#include "incl/sprite.h"
+#include "sprite.h"
 
 /**
  * @brief Primitive of an overworld map.
