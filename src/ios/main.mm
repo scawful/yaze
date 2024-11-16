@@ -48,7 +48,6 @@
 
   _controller = new yaze::app::core::Controller();
 
-
   SDL_SetMainReady();
   SDL_iOSSetEventPump(SDL_TRUE);
   int argc = NSProcessInfo.processInfo.arguments.count;
@@ -68,9 +67,7 @@
 
   // Enable native IME.
   SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
-
-  // TODO: Maybe allow HIGH DPI? If it improves touch.
-  if (!_controller->CreateSDL_Window().ok()) {
+  if (!_controller->CreateWindow().ok()) {
     printf("Error creating window: %s\n", SDL_GetError());
     abort();
   }
