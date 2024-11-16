@@ -1,5 +1,7 @@
 #include "room.h"
 
+#include <dungeon.h>
+
 #include <cstdint>
 #include <vector>
 
@@ -12,7 +14,6 @@
 #include "app/rom.h"
 #include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/sprite/sprite.h"
-#include "incl/dungeon.h"
 
 namespace yaze {
 namespace app {

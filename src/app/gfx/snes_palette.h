@@ -12,7 +12,7 @@
 #include "app/core/constants.h"
 #include "app/gfx/snes_color.h"
 #include "imgui/imgui.h"
-#include "incl/snes_color.h"
+#include "snes_color.h"
 
 namespace yaze {
 namespace app {

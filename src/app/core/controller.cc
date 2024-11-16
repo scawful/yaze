@@ -7,10 +7,8 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "app/core/platform/file_path.h"
 #include "app/core/platform/font_loader.h"
 #include "app/editor/editor_manager.h"
-#include "app/gui/icons.h"
 #include "app/gui/style.h"
 #include "core/utils/file_util.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
@@ -314,15 +312,7 @@ absl::Status Controller::CreateGuiContext() {
                                     Renderer::GetInstance().renderer());
   ImGui_ImplSDLRenderer2_Init(Renderer::GetInstance().renderer());
 
-  // const auto assets_path = std::filesystem::path("assets");
   RETURN_IF_ERROR(LoadFontFamilies());
-  // #ifdef __APPLE__
-  // LoadSystemFonts();
-  // #else
-  // return absl::InternalError(
-  //    "Could not find assets/fonts directory in the current working "
-  //    "directory");
-  // #endif
 
   // Set the default style
   gui::ColorsYaze();

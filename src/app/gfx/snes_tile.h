@@ -1,11 +1,11 @@
 #ifndef YAZE_APP_GFX_SNES_TILE_H
 #define YAZE_APP_GFX_SNES_TILE_H
 
+#include <snes_tile.h>
+
 #include <cstdint>
 #include <cstring>
 #include <vector>
-
-#include "incl/snes_tile.h"
 
 namespace yaze {
 namespace app {
