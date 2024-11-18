@@ -8,7 +8,7 @@ if (APPLE)
 add_executable(
   yaze
   MACOSX_BUNDLE
-  app/yaze.cc
+  app/main.cc
   app/rom.cc
   ${YAZE_APP_EMU_SRC}
   ${YAZE_APP_CORE_SRC}
@@ -24,7 +24,7 @@ add_executable(
 else()
 add_executable(
   yaze
-  app/yaze.cc
+  app/main.cc
   app/rom.cc
   ${YAZE_APP_EMU_SRC}
   ${YAZE_APP_CORE_SRC}
