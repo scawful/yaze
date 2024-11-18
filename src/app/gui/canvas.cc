@@ -4,7 +4,6 @@
 #include <string>
 
 #include "app/core/platform/renderer.h"
-#include "app/editor/graphics/graphics_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gui/color.h"
 #include "app/gui/input.h"
@@ -19,7 +18,6 @@ namespace gui {
 using core::Renderer;
 
 using ImGui::BeginMenu;
-using ImGui::BeginPopup;
 using ImGui::EndMenu;
 using ImGui::GetContentRegionAvail;
 using ImGui::GetCursorScreenPos;
@@ -33,7 +31,6 @@ using ImGui::IsMouseDragging;
 using ImGui::MenuItem;
 using ImGui::OpenPopupOnItemClick;
 using ImGui::Selectable;
-using ImGui::Separator;
 using ImGui::Text;
 
 constexpr uint32_t kBlackColor = IM_COL32(0, 0, 0, 255);

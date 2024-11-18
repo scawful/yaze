@@ -1,5 +1,6 @@
 set(
   YAZE_APP_EDITOR_SRC
+  app/editor/editor.cc
   app/editor/editor_manager.cc
   app/editor/dungeon/dungeon_editor.cc
   app/editor/overworld/overworld_editor.cc

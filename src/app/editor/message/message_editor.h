@@ -6,7 +6,7 @@
 
 #include "absl/status/status.h"
 #include "app/editor/message/message_data.h"
-#include "app/editor/utils/editor.h"
+#include "app/editor/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gui/canvas.h"
 #include "app/rom.h"

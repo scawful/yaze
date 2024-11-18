@@ -14,7 +14,7 @@
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
-#include "app/editor/utils/editor.h"
+#include "app/editor/editor.h"
 #include "app/editor/utils/gfx_context.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/snes_palette.h"

@@ -1,12 +1,15 @@
 #ifndef YAZE_APP_EDITOR_PALETTE_EDITOR_H
 #define YAZE_APP_EDITOR_PALETTE_EDITOR_H
 
+#include <deque>
+#include <string>
+#include <vector>
+
 #include "absl/status/status.h"
 #include "app/editor/graphics/gfx_group_editor.h"
-#include "app/editor/utils/editor.h"
+#include "app/editor/editor.h"
 #include "app/gfx/snes_palette.h"
-#include "app/gui/canvas.h"
-#include "app/gui/icons.h"
+#include "app/gfx/snes_color.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
 

@@ -3,7 +3,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/code/assembly_editor.h"
-#include "app/editor/utils/editor.h"
+#include "app/editor/editor.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"

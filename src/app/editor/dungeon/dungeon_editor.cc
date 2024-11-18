@@ -1,5 +1,6 @@
 #include "dungeon_editor.h"
 
+#include "absl/container/flat_hash_map.h"
 #include "app/core/platform/renderer.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"

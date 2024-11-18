@@ -1,7 +1,6 @@
 #ifndef YAZE_GUI_CANVAS_H
 #define YAZE_GUI_CANVAS_H
 
-#include <cmath>
 #include <string>
 
 #include "app/gfx/bitmap.h"
@@ -33,37 +32,46 @@ enum class CanvasGridSize { k8x8, k16x16, k32x32, k64x64 };
  * handling, tile painting, custom grid, and more.
  */
 class Canvas : public SharedRom {
- public:
+public:
   Canvas() = default;
-  explicit Canvas(const std::string& id) : canvas_id_(id) {
+  explicit Canvas(const std::string &id) : canvas_id_(id) {
     context_id_ = id + "Context";
   }
-  explicit Canvas(const std::string& id, ImVec2 canvas_size)
+  explicit Canvas(const std::string &id, ImVec2 canvas_size)
       : canvas_id_(id), custom_canvas_size_(true), canvas_sz_(canvas_size) {
     context_id_ = id + "Context";
   }
-  explicit Canvas(const std::string& id, ImVec2 canvas_size,
+  explicit Canvas(const std::string &id, ImVec2 canvas_size,
                   CanvasGridSize grid_size)
       : canvas_id_(id), custom_canvas_size_(true), canvas_sz_(canvas_size) {
     context_id_ = id + "Context";
+    SetCanvasGridSize(grid_size);
+  }
+  explicit Canvas(const std::string &id, ImVec2 canvas_size, CanvasGridSize grid_size, float global_scale)
+      : canvas_id_(id), custom_canvas_size_(true), canvas_sz_(canvas_size), global_scale_(global_scale) {
+    context_id_ = id + "Context";
+    SetCanvasGridSize(grid_size);
+  }
+
+  void SetCanvasGridSize(CanvasGridSize grid_size) {
     switch (grid_size) {
-      case CanvasGridSize::k8x8:
-        custom_step_ = 8.0f;
-        break;
-      case CanvasGridSize::k16x16:
-        custom_step_ = 16.0f;
-        break;
-      case CanvasGridSize::k32x32:
-        custom_step_ = 32.0f;
-        break;
-      case CanvasGridSize::k64x64:
-        custom_step_ = 64.0f;
-        break;
+    case CanvasGridSize::k8x8:
+      custom_step_ = 8.0f;
+      break;
+    case CanvasGridSize::k16x16:
+      custom_step_ = 16.0f;
+      break;
+    case CanvasGridSize::k32x32:
+      custom_step_ = 32.0f;
+      break;
+    case CanvasGridSize::k64x64:
+      custom_step_ = 64.0f;
+      break;
     }
   }
 
-  void UpdateColorPainter(gfx::Bitmap& bitmap, const ImVec4& color,
-                          const std::function<void()>& event, int tile_size,
+  void UpdateColorPainter(gfx::Bitmap &bitmap, const ImVec4 &color,
+                          const std::function<void()> &event, int tile_size,
                           float scale = 1.0f);
 
   void UpdateInfoGrid(ImVec2 bg_size, int tile_size, float scale = 1.0f,
@@ -75,16 +83,16 @@ class Canvas : public SharedRom {
 
   // Context Menu refers to what happens when the right mouse button is pressed
   // This routine also handles the scrolling for the canvas.
-  void DrawContextMenu(gfx::Bitmap* bitmap = nullptr);
+  void DrawContextMenu(gfx::Bitmap *bitmap = nullptr);
 
   // Tile painter shows a preview of the currently selected tile
   // and allows the user to left click to paint the tile or right
   // click to select a new tile to paint with.
-  bool DrawTilePainter(const Bitmap& bitmap, int size, float scale = 1.0f);
-  bool DrawSolidTilePainter(const ImVec4& color, int size);
+  bool DrawTilePainter(const Bitmap &bitmap, int size, float scale = 1.0f);
+  bool DrawSolidTilePainter(const ImVec4 &color, int size);
 
   // Draws a tile on the canvas at the specified position
-  void DrawTileOnBitmap(int tile_size, gfx::Bitmap* bitmap, ImVec4 color);
+  void DrawTileOnBitmap(int tile_size, gfx::Bitmap *bitmap, ImVec4 color);
 
   // Dictates which tile is currently selected based on what the user clicks
   // in the canvas window. Represented and split apart into a grid of tiles.
@@ -95,15 +103,15 @@ class Canvas : public SharedRom {
                       float scale = 1.0f);
 
   // Draws the contents of the Bitmap image to the Canvas
-  void DrawBitmap(const Bitmap& bitmap, int border_offset = 0,
+  void DrawBitmap(const Bitmap &bitmap, int border_offset = 0,
                   bool ready = true);
-  void DrawBitmap(const Bitmap& bitmap, int border_offset, float scale);
-  void DrawBitmap(const Bitmap& bitmap, int x_offset = 0, int y_offset = 0,
+  void DrawBitmap(const Bitmap &bitmap, int border_offset, float scale);
+  void DrawBitmap(const Bitmap &bitmap, int x_offset = 0, int y_offset = 0,
                   float scale = 1.0f, int alpha = 255);
-  void DrawBitmapTable(const BitmapTable& gfx_bin);
+  void DrawBitmapTable(const BitmapTable &gfx_bin);
 
-  void DrawBitmapGroup(std::vector<int>& group,
-                       std::vector<gfx::Bitmap>& tile16_individual_,
+  void DrawBitmapGroup(std::vector<int> &group,
+                       std::vector<gfx::Bitmap> &tile16_individual_,
                        int tile_size, float scale = 1.0f);
 
   void DrawOutline(int x, int y, int w, int h);
@@ -115,7 +123,7 @@ class Canvas : public SharedRom {
   void DrawText(std::string text, int x, int y);
   void DrawGridLines(float grid_step);
   void DrawGrid(float grid_step = 64.0f, int tile_id_offset = 8);
-  void DrawOverlay();  // last
+  void DrawOverlay(); // last
 
   void DrawInfoGrid(float grid_step = 64.0f, int tile_id_offset = 8,
                     int label_id = 0);
@@ -125,11 +133,11 @@ class Canvas : public SharedRom {
   int GetTileIdFromMousePos() {
     int x = mouse_pos_in_canvas_.x;
     int y = mouse_pos_in_canvas_.y;
-    int num_columns = canvas_sz_.x / custom_step_;
-    int num_rows = canvas_sz_.y / custom_step_;
+    int num_columns = (canvas_sz_.x / global_scale_) / custom_step_;
+    int num_rows = (canvas_sz_.y / global_scale_) / custom_step_;
     int tile_id = (x / custom_step_) + (y / custom_step_) * num_columns;
     if (tile_id >= num_columns * num_rows) {
-      tile_id = -1;  // Invalid tile ID
+      tile_id = -1; // Invalid tile ID
     }
     return tile_id;
   }
@@ -189,7 +197,7 @@ class Canvas : public SharedRom {
 
   auto hover_mouse_pos() const { return mouse_pos_in_canvas_; }
 
- private:
+private:
   bool draggable_ = false;
   bool is_hovered_ = false;
   bool enable_grid_ = true;
@@ -213,7 +221,7 @@ class Canvas : public SharedRom {
   std::string canvas_id_ = "Canvas";
   std::string context_id_ = "CanvasContext";
 
-  ImDrawList* draw_list_;
+  ImDrawList *draw_list_;
   ImVector<ImVec2> points_;
   ImVector<ImVector<std::string>> labels_;
   ImVec2 scrolling_;
@@ -229,14 +237,14 @@ class Canvas : public SharedRom {
 
 void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
                                int num_sheets_to_load, int canvas_id,
-                               bool is_loaded, BitmapTable& graphics_bin);
+                               bool is_loaded, BitmapTable &graphics_bin);
 
-void BitmapCanvasPipeline(gui::Canvas& canvas, const gfx::Bitmap& bitmap,
+void BitmapCanvasPipeline(gui::Canvas &canvas, const gfx::Bitmap &bitmap,
                           int width, int height, int tile_size, bool is_loaded,
                           bool scrollbar, int canvas_id);
 
-}  // namespace gui
-}  // namespace app
-}  // namespace yaze
+} // namespace gui
+} // namespace app
+} // namespace yaze
 
 #endif
