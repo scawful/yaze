@@ -1,17 +1,12 @@
-#include <cstdint>
 #include <cstring>
 #include <iostream>
 #include <memory>
-#include <sstream>
 #include <string>
-#include <string_view>
 #include <unordered_map>
 #include <vector>
 
 #include "absl/flags/flag.h"
-#include "absl/status/status.h"
 #include "app/core/constants.h"
-#include "app/rom.h"
 #include "cli/command.h"
 
 ABSL_FLAG(bool, verbose, false, "Enable verbose output");
