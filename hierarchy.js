@@ -84,6 +84,7 @@ var hierarchy =
       [ "yaze::test::integration::TestEditor", "classyaze_1_1test_1_1integration_1_1TestEditor.html", null ]
     ] ],
     [ "yaze::app::editor::EditorLayoutParams", "structyaze_1_1app_1_1editor_1_1EditorLayoutParams.html", null ],
+    [ "yaze::app::emu::EmulatorKeybindings", "structyaze_1_1app_1_1emu_1_1EmulatorKeybindings.html", null ],
     [ "yaze::app::editor::EntranceContext", "classyaze_1_1app_1_1editor_1_1EntranceContext.html", [
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ]
     ] ],

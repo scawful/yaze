@@ -32,10 +32,10 @@ var namespaceyaze_1_1test_1_1gfx =
     [ "TEST", "namespaceyaze_1_1test_1_1gfx.html#a061391cff9600cb60bf8b5a5d54682db", null ],
     [ "TEST", "namespaceyaze_1_1test_1_1gfx.html#a877b3f1c02f1cd88b661f9a61bd782b9", null ],
     [ "TEST", "namespaceyaze_1_1test_1_1gfx.html#a109d28423073a19c406cfaf51269a005", null ],
-    [ "TEST", "namespaceyaze_1_1test_1_1gfx.html#a05645a5c344dec29de77dc9a7693f823", null ],
-    [ "TEST", "namespaceyaze_1_1test_1_1gfx.html#a1c8bc6bbf164b179cc05a337c46b8661", null ],
-    [ "TEST", "namespaceyaze_1_1test_1_1gfx.html#abc8368ce202cfd6b8b2d455c00abb68b", null ],
-    [ "TEST", "namespaceyaze_1_1test_1_1gfx.html#af8f58c8fed8711657a15c1dc709f3b5d", null ],
-    [ "TEST", "namespaceyaze_1_1test_1_1gfx.html#aed39cbbbbc827eae3bee7215630692ae", null ],
-    [ "TEST", "namespaceyaze_1_1test_1_1gfx.html#a05236d10c223fd8a92133dea57f9fa67", null ]
+    [ "TEST", "namespaceyaze_1_1test_1_1gfx.html#a618b9db4d17e61ff06da44b6f2cb1cfe", null ],
+    [ "TEST", "namespaceyaze_1_1test_1_1gfx.html#a48cdfde637e27b4d21aeccfb9d71530e", null ],
+    [ "TEST", "namespaceyaze_1_1test_1_1gfx.html#a18176695888be19d4fb0671e83e01d05", null ],
+    [ "TEST", "namespaceyaze_1_1test_1_1gfx.html#ad04454af5f519d06707dd43a711fa04e", null ],
+    [ "TEST", "namespaceyaze_1_1test_1_1gfx.html#a1ae4f81310c8e28baa8749c01a42ed1a", null ],
+    [ "TEST", "namespaceyaze_1_1test_1_1gfx.html#a768afb33417f630205be6cd4df670341", null ]
 ];

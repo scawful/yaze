@@ -1,9 +1,5 @@
 var NAVTREEINDEX42 =
 {
-"room_8cc_source.html":[12,0,2,0,5,0,3],
-"room_8h.html":[12,0,2,0,5,0,4],
-"room_8h.html#a12f723ea2f6c2cf6841b5574d76bbb93":[12,0,2,0,5,0,4,24],
-"room_8h.html#a201fb7d3caabcc52f1f2073734ce6dfe":[12,0,2,0,5,0,4,32],
 "room_8h.html#a205a593a9e04cd8fff2dd217cb74ea65":[12,0,2,0,5,0,4,8],
 "room_8h.html#a21aa3281b0882e27ecf96551fd127057":[12,0,2,0,5,0,4,6],
 "room_8h.html#a23e14f92cbee2d45e7a316ae645bd210":[12,0,2,0,5,0,4,13],
@@ -181,17 +177,17 @@ var NAVTREEINDEX42 =
 "snes_8h.html":[12,0,2,0,2,8],
 "snes_8h_source.html":[12,0,2,0,2,8],
 "snes__color_8cc.html":[12,0,2,0,3,6],
+"snes__color_8cc.html#a00db465a778cd18f2df2da45974b0cbb":[12,0,2,0,3,6,2],
 "snes__color_8cc.html#a0912d77a56151905de5232b2a90cb5f8":[12,0,2,0,3,6,11],
 "snes__color_8cc.html#a1b60824abe89dea75cf945b0e77f1b8d":[12,0,2,0,3,6,6],
-"snes__color_8cc.html#a1d7b7b9da156693ec13b608343cd7b49":[12,0,2,0,3,6,1],
 "snes__color_8cc.html#a276da0ce346e9b3837ef0483e04eedd4":[12,0,2,0,3,6,3],
 "snes__color_8cc.html#a2c96a51c2e83a6e133720c10d10ebd17":[12,0,2,0,3,6,8],
-"snes__color_8cc.html#a674cd542901e81be5be7fe865bf6b1b9":[12,0,2,0,3,6,2],
 "snes__color_8cc.html#a9cae2d3018552dc353ffe8c1ef77cc63":[12,0,2,0,3,6,7],
 "snes__color_8cc.html#a9f93560824621862a7e4889d592cb2df":[12,0,2,0,3,6,10],
-"snes__color_8cc.html#aab504a319aec14fc51e9f309d12c767b":[12,0,2,0,3,6,0],
+"snes__color_8cc.html#ace8561cae82eacd977d77f14fe86ae2e":[12,0,2,0,3,6,0],
 "snes__color_8cc.html#ad23eb7c59ab96c08179a6d6625ad0fdd":[12,0,2,0,3,6,9],
 "snes__color_8cc.html#ad373c73aedd572d880fc5c49e0b4782e":[12,0,2,0,3,6,5],
+"snes__color_8cc.html#ada8bbf979fa3b08cc19504b83e4f304f":[12,0,2,0,3,6,1],
 "snes__color_8cc.html#aefdc5379d7c7907c0b2cf786b9e5d166":[12,0,2,0,3,6,12],
 "snes__color_8cc.html#af350b17d01f5a0bc15edc46e05fedcaa":[12,0,2,0,3,6,4],
 "snes__color_8cc_source.html":[12,0,2,0,3,6],
@@ -249,5 +245,9 @@ var NAVTREEINDEX42 =
 "snes__palette_8h.html#a76cda96f6c24e5962d99c9ffb0b9e39daf59b5b00d3468226089be51b38e41ca0":[12,0,2,0,3,9,4,11],
 "snes__palette_8h.html#a770b616b1a09b80f72fdd549ec6a7f34":[12,0,2,0,3,9,6],
 "snes__palette_8h.html#a8bb97aefe618a264a3146b468efe047c":[12,0,2,0,3,9,18],
-"snes__palette_8h.html#a9001b2ad2991156a62ae569ba10af003":[12,0,2,0,3,9,15]
+"snes__palette_8h.html#a9001b2ad2991156a62ae569ba10af003":[12,0,2,0,3,9,15],
+"snes__palette_8h.html#a9499fc92c20ba2d6bd2936e5a905091c":[12,0,2,0,3,9,10],
+"snes__palette_8h.html#a9c49b524537892b1e50cb0b6170cfb5a":[12,0,2,0,3,9,29],
+"snes__palette_8h.html#aa1117aaeee42846e4308758b3aee2e27":[12,0,2,0,3,9,19],
+"snes__palette_8h.html#aa58e5cffaa3f9a225c09b3503fb750a4":[12,0,2,0,3,9,17]
 };

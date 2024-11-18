@@ -63,9 +63,9 @@ var namespaceyaze_1_1app_1_1gfx =
       [ "Tile8", "namespaceyaze_1_1app_1_1gfx.html#ae95a00ff98c9e69d426f80c487e2dac7af741ccc3c4a5d5202699b366e0b822a5", null ],
       [ "Tile16", "namespaceyaze_1_1app_1_1gfx.html#ae95a00ff98c9e69d426f80c487e2dac7a0136ed56bdc945f798e3b2ff271ba011", null ]
     ] ],
-    [ "ConvertSNEStoRGB", "namespaceyaze_1_1app_1_1gfx.html#aab504a319aec14fc51e9f309d12c767b", null ],
-    [ "ConvertRGBtoSNES", "namespaceyaze_1_1app_1_1gfx.html#a1d7b7b9da156693ec13b608343cd7b49", null ],
-    [ "ConvertRGBtoSNES", "namespaceyaze_1_1app_1_1gfx.html#a674cd542901e81be5be7fe865bf6b1b9", null ],
+    [ "ConvertSnesToRgb", "namespaceyaze_1_1app_1_1gfx.html#ace8561cae82eacd977d77f14fe86ae2e", null ],
+    [ "ConvertRgbToSnes", "namespaceyaze_1_1app_1_1gfx.html#ada8bbf979fa3b08cc19504b83e4f304f", null ],
+    [ "ConvertRgbToSnes", "namespaceyaze_1_1app_1_1gfx.html#a00db465a778cd18f2df2da45974b0cbb", null ],
     [ "ReadColorFromRom", "namespaceyaze_1_1app_1_1gfx.html#a276da0ce346e9b3837ef0483e04eedd4", null ],
     [ "Extract", "namespaceyaze_1_1app_1_1gfx.html#af350b17d01f5a0bc15edc46e05fedcaa", null ],
     [ "Convert", "namespaceyaze_1_1app_1_1gfx.html#ad373c73aedd572d880fc5c49e0b4782e", null ],

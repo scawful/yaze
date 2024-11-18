@@ -1,6 +1,5 @@
 var NAVTREEINDEX34 =
 {
-"icons_8h.html#aef393b93553d526d3e0f0b86c5a02af2":[12,0,2,0,4,5,1165],
 "icons_8h.html#aef5e5e37c58122b5067ef6ccbed905e0":[12,0,2,0,4,5,2182],
 "icons_8h.html#aef6221f5a09f3f2603d4c2325593aaf1":[12,0,2,0,4,5,109],
 "icons_8h.html#aefcea681ee7a680f0e349e9d4891c630":[12,0,2,0,4,5,774],
@@ -249,5 +248,6 @@ var NAVTREEINDEX34 =
 "md_docs_2changelog.html#autotoc_md23":[3,5],
 "md_docs_2changelog.html#autotoc_md24":[3,6],
 "md_docs_2changelog.html#autotoc_md25":[3,7],
-"md_docs_2contributing.html":[4]
+"md_docs_2contributing.html":[4],
+"md_docs_2contributing.html#autotoc_md27":[4,0]
 };

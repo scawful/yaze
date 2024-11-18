@@ -1,6 +1,5 @@
 var NAVTREEINDEX35 =
 {
-"md_docs_2contributing.html#autotoc_md27":[4,0],
 "md_docs_2contributing.html#autotoc_md28":[4,1],
 "md_docs_2contributing.html#autotoc_md29":[4,2],
 "md_docs_2contributing.html#autotoc_md30":[4,2,0],
@@ -242,12 +241,13 @@ var NAVTREEINDEX35 =
 "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02common_8cc_03.html#aed24aba129e54192a66251b1f09f0dac":[10,0,1,0,1,0,10],
 "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02common_8cc_03.html#afe37fb0ddae997480772ab6c6ca095d7":[10,0,1,0,1,0,9],
 "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html":[10,0,1,0,1,1],
-"namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a36c94eec28cffa019f242fd6431272f2":[10,0,1,0,1,1,1],
-"namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a46122ee7395b7ce3cee8e8d45bc83a8d":[10,0,1,0,1,1,3],
-"namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a4a5f8ec1b855f419f06b5326a81a88b7":[10,0,1,0,1,1,2],
 "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#aaffe64ca7a9a2b85375f661ca0a50824":[10,0,1,0,1,1,0],
-"namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#adeba22af4590368ef689e0db7206e78c":[10,0,1,0,1,1,4],
+"namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#adeba22af4590368ef689e0db7206e78c":[10,0,1,0,1,1,1],
 "namespaceyaze_1_1app_1_1editor.html":[10,0,1,0,2],
 "namespaceyaze_1_1app_1_1editor.html#a01297032ea6f9841c13ac229d798caaa":[10,0,1,0,2,79],
-"namespaceyaze_1_1app_1_1editor.html#a033a615e52c32eb60c82a44d242d54de":[10,0,1,0,2,107]
+"namespaceyaze_1_1app_1_1editor.html#a033a615e52c32eb60c82a44d242d54de":[10,0,1,0,2,107],
+"namespaceyaze_1_1app_1_1editor.html#a0901dadb737acfb8045771489c3d4793":[10,0,1,0,2,40],
+"namespaceyaze_1_1app_1_1editor.html#a0fa9018bc42caddcbec2c22a7418ce11":[10,0,1,0,2,83],
+"namespaceyaze_1_1app_1_1editor.html#a1dffb3832edf68811af2fccb4cb17520":[10,0,1,0,2,126],
+"namespaceyaze_1_1app_1_1editor.html#a2069f944ef53eb187dae126277941b42":[10,0,1,0,2,77]
 };

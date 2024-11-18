@@ -15,6 +15,7 @@ var namespaceyaze_1_1app_1_1emu =
     [ "ClockImpl", "classyaze_1_1app_1_1emu_1_1ClockImpl.html", "classyaze_1_1app_1_1emu_1_1ClockImpl" ],
     [ "Cpu", "classyaze_1_1app_1_1emu_1_1Cpu.html", "classyaze_1_1app_1_1emu_1_1Cpu" ],
     [ "Emulator", "classyaze_1_1app_1_1emu_1_1Emulator.html", "classyaze_1_1app_1_1emu_1_1Emulator" ],
+    [ "EmulatorKeybindings", "structyaze_1_1app_1_1emu_1_1EmulatorKeybindings.html", "structyaze_1_1app_1_1emu_1_1EmulatorKeybindings" ],
     [ "Input", "structyaze_1_1app_1_1emu_1_1Input.html", "structyaze_1_1app_1_1emu_1_1Input" ],
     [ "InstructionEntry", "classyaze_1_1app_1_1emu_1_1InstructionEntry.html", "classyaze_1_1app_1_1emu_1_1InstructionEntry" ],
     [ "MnemonicMode", "structyaze_1_1app_1_1emu_1_1MnemonicMode.html", "structyaze_1_1app_1_1emu_1_1MnemonicMode" ],

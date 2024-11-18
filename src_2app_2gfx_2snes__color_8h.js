@@ -1,9 +1,9 @@
 var src_2app_2gfx_2snes__color_8h =
 [
     [ "yaze::app::gfx::SnesColor", "classyaze_1_1app_1_1gfx_1_1SnesColor.html", "classyaze_1_1app_1_1gfx_1_1SnesColor" ],
-    [ "ConvertSNEStoRGB", "src_2app_2gfx_2snes__color_8h.html#aab504a319aec14fc51e9f309d12c767b", null ],
-    [ "ConvertRGBtoSNES", "src_2app_2gfx_2snes__color_8h.html#a1d7b7b9da156693ec13b608343cd7b49", null ],
-    [ "ConvertRGBtoSNES", "src_2app_2gfx_2snes__color_8h.html#a674cd542901e81be5be7fe865bf6b1b9", null ],
+    [ "ConvertSnesToRgb", "src_2app_2gfx_2snes__color_8h.html#ace8561cae82eacd977d77f14fe86ae2e", null ],
+    [ "ConvertRgbToSnes", "src_2app_2gfx_2snes__color_8h.html#ada8bbf979fa3b08cc19504b83e4f304f", null ],
+    [ "ConvertRgbToSnes", "src_2app_2gfx_2snes__color_8h.html#a00db465a778cd18f2df2da45974b0cbb", null ],
     [ "Extract", "src_2app_2gfx_2snes__color_8h.html#af350b17d01f5a0bc15edc46e05fedcaa", null ],
     [ "Convert", "src_2app_2gfx_2snes__color_8h.html#ad373c73aedd572d880fc5c49e0b4782e", null ],
     [ "ReadColorFromRom", "src_2app_2gfx_2snes__color_8h.html#a276da0ce346e9b3837ef0483e04eedd4", null ],

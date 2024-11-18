@@ -1,9 +1,5 @@
 var NAVTREEINDEX44 =
 {
-"structsnes__tile__info.html#ae7281dca7dedcd51d3df374f072d5711":[11,0,8,4],
-"structyaze_1_1app_1_1Project.html":[10,0,1,0,7],
-"structyaze_1_1app_1_1Project.html":[11,0,0,0,6],
-"structyaze_1_1app_1_1Project.html#a113a64ce6f082a98598e821feaeaebfe":[10,0,1,0,7,5],
 "structyaze_1_1app_1_1Project.html#a113a64ce6f082a98598e821feaeaebfe":[11,0,0,0,6,5],
 "structyaze_1_1app_1_1Project.html#a1311a5bc2b450b80dca82fe1b42b6681":[10,0,1,0,7,7],
 "structyaze_1_1app_1_1Project.html#a1311a5bc2b450b80dca82fe1b42b6681":[11,0,0,0,6,7],
@@ -249,5 +245,9 @@ var NAVTREEINDEX44 =
 "structyaze_1_1app_1_1editor_1_1ExampleMemberInfo.html#aedb3f7301672903f9a2a3397ed678750":[11,0,0,0,1,13,0],
 "structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html":[10,0,1,0,2,19],
 "structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html":[11,0,0,0,1,14],
-"structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#a426d99ab5f73aeca978a5525d96c5655":[10,0,1,0,2,19,2]
+"structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#a426d99ab5f73aeca978a5525d96c5655":[10,0,1,0,2,19,2],
+"structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#a426d99ab5f73aeca978a5525d96c5655":[11,0,0,0,1,14,2],
+"structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#a4efeb565d38870d28921d68a93fb8cab":[10,0,1,0,2,19,5],
+"structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#a4efeb565d38870d28921d68a93fb8cab":[11,0,0,0,1,14,5],
+"structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#a54b57aaec997c2b1b696e8294de309d6":[10,0,1,0,2,19,7]
 };
