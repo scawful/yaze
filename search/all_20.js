@@ -12,7 +12,7 @@ var searchData=
   ['y_5fscroll_5f_9',['y_scroll_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#af7e12ad85e1e16c49114f225927a98e0',1,'yaze::app::zelda3::overworld::OverworldExit']]],
   ['ya_10',['YA',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a1a7d2cf456ec54c5d89acdaa92f8c1e1',1,'yaze::app::emu::audio::Spc700']]],
   ['yaze_11',['yaze',['../namespaceyaze.html',1,'']]],
-  ['yaze_2ecc_12',['yaze.cc',['../app_2yaze_8cc.html',1,'(Global Namespace)'],['../yaze_8cc.html',1,'(Global Namespace)']]],
+  ['yaze_2ecc_12',['yaze.cc',['../yaze_8cc.html',1,'']]],
   ['yaze_2eh_13',['yaze.h',['../yaze_8h.html',1,'']]],
   ['yaze_3a_3aapp_14',['app',['../namespaceyaze_1_1app.html',1,'yaze']]],
   ['yaze_3a_3aapp_3a_3aanonymous_5fnamespace_7brom_2ecc_7d_15',['anonymous_namespace{rom.cc}',['../namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html',1,'yaze::app']]],

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.12.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/yaze.cc Source File</title>
+<title>yaze: src/app/main.cc Source File</title>
 <link rel="icon" href="yaze.ico" type="image/x-icon" />
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
@@ -80,7 +80,7 @@ $(function() { codefold.init(0); });
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
-$(function(){initNavTree('app_2yaze_8cc_source.html',''); initResizable(true); });
+$(function(){initNavTree('main_8cc_source.html',''); initResizable(true); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -106,10 +106,10 @@ $(function(){initNavTree('app_2yaze_8cc_source.html',''); initResizable(true); }
 </div>
 
 <div class="header">
-  <div class="headertitle"><div class="title">yaze.cc</div></div>
+  <div class="headertitle"><div class="title">main.cc</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="app_2yaze_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#if defined(_WIN32)</span></div>
+<a href="main_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#if defined(_WIN32)</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define main SDL_main</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#elif __APPLE__</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &quot;<a class="code" href="app__delegate_8h.html">app/core/platform/app_delegate.h</a>&quot;</span></div>
@@ -122,7 +122,7 @@ $(function(){initNavTree('app_2yaze_8cc_source.html',''); initResizable(true); }
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="keyword">using namespace </span><a class="code hl_namespace" href="namespaceyaze_1_1app.html">yaze::app</a>;</div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
 <div class="foldopen" id="foldopen00020" data-start="{" data-end="}">
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno"><a class="line" href="app_2yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627">   20</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="app_2yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a>(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span>** argv) {</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno"><a class="line" href="main_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627">   20</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="main_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a>(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span>** argv) {</div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  absl::InitializeSymbolizer(argv[0]);</div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  absl::FailureSignalHandlerOptions options;</div>
@@ -158,7 +158,6 @@ $(function(){initNavTree('app_2yaze_8cc_source.html',''); initResizable(true); }
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>  <span class="keywordflow">return</span> EXIT_SUCCESS;</div>
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>}</div>
 </div>
-<div class="ttc" id="aapp_2yaze_8cc_html_a3c04138a5bfe5d72780bb7e82a18e627"><div class="ttname"><a href="app_2yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a></div><div class="ttdeci">int main(int argc, char **argv)</div><div class="ttdoc">Main entry point for the application.</div><div class="ttdef"><b>Definition</b> <a href="#l00020">yaze.cc:20</a></div></div>
 <div class="ttc" id="aapp__delegate_8h_html"><div class="ttname"><a href="app__delegate_8h.html">app_delegate.h</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1Controller_html"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1Controller.html">yaze::app::core::Controller</a></div><div class="ttdoc">Main controller for the application.</div><div class="ttdef"><b>Definition</b> <a href="controller_8h_source.html#l00030">controller.h:30</a></div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1Controller_html_a0fe694ddfbbfa5c288983d1e5cdb50de"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1Controller.html#a0fe694ddfbbfa5c288983d1e5cdb50de">yaze::app::core::Controller::OnLoad</a></div><div class="ttdeci">absl::Status OnLoad()</div><div class="ttdef"><b>Definition</b> <a href="controller_8cc_source.html#l00123">controller.cc:123</a></div></div>
@@ -169,13 +168,14 @@ $(function(){initNavTree('app_2yaze_8cc_source.html',''); initResizable(true); }
 <div class="ttc" id="aclassyaze_1_1app_1_1core_1_1Controller_html_afd6011a3b58a78452d3ab5308382bf0d"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1Controller.html#afd6011a3b58a78452d3ab5308382bf0d">yaze::app::core::Controller::IsActive</a></div><div class="ttdeci">bool IsActive() const</div><div class="ttdef"><b>Definition</b> <a href="controller_8h_source.html#l00032">controller.h:32</a></div></div>
 <div class="ttc" id="aconstants_8h_html_adf4d2e200654d8260cc2244953f64247"><div class="ttname"><a href="constants_8h.html#adf4d2e200654d8260cc2244953f64247">EXIT_IF_ERROR</a></div><div class="ttdeci">#define EXIT_IF_ERROR(expression)</div><div class="ttdef"><b>Definition</b> <a href="constants_8h_source.html#l00044">constants.h:44</a></div></div>
 <div class="ttc" id="acontroller_8h_html"><div class="ttname"><a href="controller_8h.html">controller.h</a></div></div>
+<div class="ttc" id="amain_8cc_html_a3c04138a5bfe5d72780bb7e82a18e627"><div class="ttname"><a href="main_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a></div><div class="ttdeci">int main(int argc, char **argv)</div><div class="ttdoc">Main entry point for the application.</div><div class="ttdef"><b>Definition</b> <a href="#l00020">main.cc:20</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1app_html"><div class="ttname"><a href="namespaceyaze_1_1app.html">yaze::app</a></div><div class="ttdoc">Main namespace for the ImGui application.</div><div class="ttdef"><b>Definition</b> <a href="common_8cc_source.html#l00023">common.cc:23</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="app_2yaze_8cc.html">yaze.cc</a></li>
+    <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="main_8cc.html">main.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.12.0 </li>
   </ul>
 </div>
