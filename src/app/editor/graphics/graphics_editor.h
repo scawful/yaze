@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_EDITOR_GRAPHICS_EDITOR_H
 #define YAZE_APP_EDITOR_GRAPHICS_EDITOR_H
 
+#include <stack>
+
 #include "absl/status/status.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/editor.h"
