@@ -9,7 +9,7 @@
 #include "app/core/platform/renderer.h"
 #include "app/core/utils/file_util.h"
 #include "app/editor/editor_manager.h"
-#include "app/editor/utils/editor.h"
+#include "app/editor/editor.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imconfig.h"

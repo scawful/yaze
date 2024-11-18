@@ -2,7 +2,7 @@
 #import "app/core/platform/app_delegate.h"
 #import "app/core/controller.h"
 #import "app/core/platform/file_dialog.h"
-#import "app/editor/utils/editor.h"
+#import "app/editor/editor.h"
 #import "app/rom.h"
 
 #if defined(__APPLE__) && defined(__MACH__)
@@ -225,6 +225,8 @@
   NSLog(@"Open Recent File action triggered");
 }
 
+@end
+
 extern "C" void yaze_initialize_cococa() {
   @autoreleasepool {
     AppDelegate *delegate = [[AppDelegate alloc] init];
@@ -249,8 +251,6 @@ extern "C" void yaze_run_cocoa_app_delegate(const char *filename) {
   }
   controller.OnExit();
 }
-
-@end
 
 #endif
 
