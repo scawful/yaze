@@ -82,13 +82,14 @@ void Controller::OnInput() {
     ImGui_ImplSDL2_ProcessEvent(&event);
     switch (event.type) {
       case SDL_KEYDOWN:
-      case SDL_KEYUP:
+      case SDL_KEYUP: {
         ImGuiIO &io = ImGui::GetIO();
         io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
         io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
         io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
         io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
         break;
+      }
       case SDL_WINDOWEVENT:
         switch (event.window.event) {
           case SDL_WINDOWEVENT_CLOSE:
@@ -107,7 +108,6 @@ void Controller::OnInput() {
     }
   }
 
-  ImGuiIO &io = ImGui::GetIO();
   int mouseX;
   int mouseY;
   const int buttons = SDL_GetMouseState(&mouseX, &mouseY);
