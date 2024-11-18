@@ -3,8 +3,10 @@
 
 #include <snes_tile.h>
 
+#include <array>
 #include <cstdint>
 #include <cstring>
+#include <stdexcept>
 #include <vector>
 
 namespace yaze {

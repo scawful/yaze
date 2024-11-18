@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+#include <filesystem>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
