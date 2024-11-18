@@ -2,17 +2,18 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="195,5,337,46"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,94,63,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="209,49,78,93,76,88,207,44"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="133,168,194,193"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="196,46,158,66,141,79,128,95,124,110,126,125,143,154,138,157,121,126,118,109,124,93,138,75,155,61,194,41"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="409,168,462,193"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="290,45,412,155,409,159,286,49"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="231,168,288,193"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="282,45,298,80,301,100,299,120,281,157,276,154,294,119,296,100,293,81,277,47"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="126,168,187,193"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="196,46,158,66,141,79,128,95,124,109,125,124,140,154,135,156,120,126,118,109,124,93,138,75,155,61,194,41"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="295,168,349,193"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="278,46,299,93,318,152,313,154,294,95,273,48"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="460,168,517,193"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="338,31,399,40,463,52,517,69,538,80,552,93,558,111,552,129,539,146,522,160,519,156,535,142,548,126,553,111,548,95,535,85,515,74,461,57,398,45,337,36"/>
 <area shape="rect" id="Node000006" href="$zelda3_2common_8h.html" title=" " alt="" coords="138,94,285,120"/>
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="255,48,231,83,226,79,250,45"/>
-<area shape="rect" id="Node000007" href="$overlord_8h.html" title=" " alt="" coords="410,94,589,120"/>
-<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="325,44,450,86,448,91,323,49"/>
-<area shape="poly" id="edge7_Node000006_Node000003" title=" " alt="" coords="206,121,182,156,178,153,201,118"/>
-<area shape="poly" id="edge6_Node000006_Node000005" title=" " alt="" coords="221,118,245,153,240,156,217,121"/>
-<area shape="poly" id="edge9_Node000007_Node000004" title=" " alt="" coords="491,122,458,158,454,154,487,118"/>
+<area shape="rect" id="Node000007" href="$overlord_8h.html" title=" " alt="" coords="359,94,538,120"/>
+<area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="313,44,408,85,406,90,311,49"/>
+<area shape="poly" id="edge7_Node000006_Node000003" title=" " alt="" coords="204,122,177,157,173,154,200,118"/>
+<area shape="poly" id="edge8_Node000006_Node000004" title=" " alt="" coords="232,118,292,157,289,161,229,122"/>
+<area shape="poly" id="edge6_Node000006_Node000005" title=" " alt="" coords="259,118,446,165,444,171,258,123"/>
+<area shape="poly" id="edge10_Node000007_Node000004" title=" " alt="" coords="428,123,358,162,355,157,426,118"/>
 </map>
