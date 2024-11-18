@@ -229,7 +229,7 @@ SnesPalette::SnesPalette(char *data) {
     SnesColor col;
     col.set_snes(static_cast<uchar>(data[i + 1]) << 8);
     col.set_snes(col.snes() | static_cast<uchar>(data[i]));
-    snes_color mColor = ConvertSNEStoRGB(col.snes());
+    snes_color mColor = ConvertSnesToRgb(col.snes());
     col.set_rgb(ImVec4(mColor.red, mColor.green, mColor.blue, 1.f));
     colors.push_back(col);
   }
@@ -241,7 +241,7 @@ SnesPalette::SnesPalette(const unsigned char *snes_pal) {
     SnesColor col;
     col.set_snes(snes_pal[i + 1] << (uint16_t)8);
     col.set_snes(col.snes() | snes_pal[i]);
-    snes_color mColor = ConvertSNEStoRGB(col.snes());
+    snes_color mColor = ConvertSnesToRgb(col.snes());
     col.set_rgb(ImVec4(mColor.red, mColor.green, mColor.blue, 1.f));
     colors.push_back(col);
   }
@@ -258,7 +258,7 @@ SnesPalette::SnesPalette(const std::vector<ImVec4> &cols) {
 SnesPalette::SnesPalette(const std::vector<snes_color> &cols) {
   for (const auto &each : cols) {
     SnesColor scol;
-    scol.set_snes(ConvertRGBtoSNES(each));
+    scol.set_snes(ConvertRgbToSnes(each));
     colors.push_back(scol);
   }
 }
@@ -279,7 +279,7 @@ SnesPalette ReadPaletteFromRom(int offset, int num_colors, const uint8_t *rom) {
     new_color.red = (color & 0x1F) * 8;
     new_color.green = ((color >> 5) & 0x1F) * 8;
     new_color.blue = ((color >> 10) & 0x1F) * 8;
-    colors[color_offset].set_snes(ConvertRGBtoSNES(new_color));
+    colors[color_offset].set_snes(ConvertRgbToSnes(new_color));
     if (color_offset == 0) {
       colors[color_offset].set_transparent(true);
     }

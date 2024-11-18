@@ -433,7 +433,7 @@ absl::Status PaletteEditor::HandleColorPopup(gfx::SnesPalette& palette, int i,
 
     // SNES Format
     CustomFormatString(buf, IM_ARRAYSIZE(buf), "$%04X",
-                       ConvertRGBtoSNES(ImVec4(col[0], col[1], col[2], 1.0f)));
+                       ConvertRgbToSnes(ImVec4(col[0], col[1], col[2], 1.0f)));
     if (Selectable(buf)) SetClipboardText(buf);
 
     EndPopup();

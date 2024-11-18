@@ -14,9 +14,9 @@ namespace gfx {
 
 constexpr int NumberOfColors = 3143;
 
-snes_color ConvertSNEStoRGB(uint16_t snes_color);
-uint16_t ConvertRGBtoSNES(const snes_color& color);
-uint16_t ConvertRGBtoSNES(const ImVec4& color);
+snes_color ConvertSnesToRgb(uint16_t snes_color);
+uint16_t ConvertRgbToSnes(const snes_color& color);
+uint16_t ConvertRgbToSnes(const ImVec4& color);
 
 std::vector<snes_color> Extract(const char* data, unsigned int offset,
                                 unsigned int palette_size);
@@ -44,15 +44,15 @@ class SnesColor {
     color.red = val.x / kColorByteMax;
     color.green = val.y / kColorByteMax;
     color.blue = val.z / kColorByteMax;
-    snes_ = ConvertRGBtoSNES(color);
+    snes_ = ConvertRgbToSnes(color);
   }
   explicit SnesColor(const uint16_t val) : snes_(val) {
-    snes_color color = ConvertSNEStoRGB(val);
+    snes_color color = ConvertSnesToRgb(val);
     rgb_ = ImVec4(color.red, color.green, color.blue, 0.f);
   }
   explicit SnesColor(const snes_color val)
       : rgb_(val.red, val.green, val.blue, kColorByteMaxF),
-        snes_(ConvertRGBtoSNES(val)),
+        snes_(ConvertRgbToSnes(val)),
         rom_color_(val) {}
 
   SnesColor(uint8_t r, uint8_t g, uint8_t b) {
@@ -61,7 +61,7 @@ class SnesColor {
     color.red = r;
     color.green = g;
     color.blue = b;
-    snes_ = ConvertRGBtoSNES(color);
+    snes_ = ConvertRgbToSnes(color);
     rom_color_ = color;
   }
 
@@ -76,13 +76,13 @@ class SnesColor {
     color.green = val.y;
     color.blue = val.z;
     rom_color_ = color;
-    snes_ = ConvertRGBtoSNES(color);
+    snes_ = ConvertRgbToSnes(color);
     modified = true;
   }
 
   void set_snes(uint16_t val) {
     snes_ = val;
-    snes_color col = ConvertSNEStoRGB(val);
+    snes_color col = ConvertSnesToRgb(val);
     rgb_ = ImVec4(col.red, col.green, col.blue, 0.f);
     modified = true;
   }
