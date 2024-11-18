@@ -38,7 +38,7 @@ constexpr int kDungeonMusicBank = 0x0D8000;
 using text_buf_ty = char[512];
 // ============================================================================
 
-struct SongSPCBlock {
+struct SongSpcBlock {
   unsigned short start;
   unsigned short len;
   unsigned short relnum;
@@ -147,7 +147,7 @@ struct ZeldaSfxInstrument {
 
 // =============================================================================
 
-struct SPCCommand {
+struct SpcCommand {
   unsigned short addr;
   short next;
   short prev;
@@ -166,22 +166,22 @@ struct SPCCommand {
 
 class Tracker {
  public:
-  SongSPCBlock *AllocSPCBlock(int len, int bank);
+  SongSpcBlock *AllocSpcBlock(int len, int bank);
 
-  unsigned char *GetSPCAddr(Rom &rom, unsigned short addr, short bank);
+  unsigned char *GetSpcAddr(Rom &rom, unsigned short addr, short bank);
 
-  short AllocSPCCommand();
+  short AllocSpcCommand();
 
   short GetBlockTime(Rom &rom, short num, short prevtime);
 
-  short SaveSPCCommand(Rom &rom, short num, short songtime, short endtr);
-  short LoadSPCCommand(Rom &rom, unsigned short addr, short bank, int t);
+  short SaveSpcCommand(Rom &rom, short num, short songtime, short endtr);
+  short LoadSpcCommand(Rom &rom, unsigned short addr, short bank, int t);
 
   void SaveSongs(Rom &rom);
 
   void LoadSongs(Rom &rom);
 
-  int WriteSPCData(Rom &rom, void *buf, int len, int addr, int spc, int limit);
+  int WriteSpcData(Rom &rom, void *buf, int len, int addr, int spc, int limit);
 
   void EditTrack(Rom &rom, short i);
 
@@ -241,9 +241,9 @@ class Tracker {
   std::vector<Song> songs;
   SongPart *sp_mark;
   SongRange *song_range_;
-  SPCCommand *current_spc_command_;
+  SpcCommand *current_spc_command_;
 
-  SongSPCBlock **ssblt;
+  SongSpcBlock **ssblt;
 
   ZeldaWave *waves;
   ZeldaInstrument *insts;
