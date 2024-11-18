@@ -67,7 +67,10 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
 
  private:
   void ManageActiveEditors();
+  absl::Status DrawDynamicLayout();
+
   void ManageKeyboardShortcuts();
+  void InitializeCommands();
 
   void DrawStatusPopup();
   void DrawAboutPopup();
@@ -89,20 +92,22 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
   bool save_new_auto_ = true;
   bool show_status_ = false;
   bool rom_assets_loaded_ = false;
+  bool dynamic_layout_ = false;
 
   absl::Status status_;
 
-  std::vector<Editor *> active_editors_;
-
   emu::Emulator emulator_;
+
+  std::vector<Editor *> active_editors_;
+  std::vector<EditorLayoutParams> active_layouts_;
 
   Project current_project_;
   CommandManager command_manager_;
   ConstantManager constant_manager_;
   ExtensionManager extension_manager_;
-  yaze_editor_context editor_context_;
 
   Editor *current_editor_ = nullptr;
+  EditorLayoutParams root_layout_;
   AssemblyEditor assembly_editor_;
   DungeonEditor dungeon_editor_;
   GraphicsEditor graphics_editor_;
@@ -114,6 +119,8 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
   SettingsEditor settings_editor_;
   MessageEditor message_editor_;
   MemoryEditorWithDiffChecker memory_editor_;
+
+  yaze_editor_context editor_context_;
 };
 
 }  // namespace editor
