@@ -48,119 +48,6 @@ void NewMasterFrame() {
   }
 }
 
-void HandleKeyDown(SDL_Event &event, editor::EditorManager &editor) {
-  ImGuiIO &io = ImGui::GetIO();
-  io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
-  io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
-  io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
-  io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
-
-  switch (event.key.keysym.sym) {
-    case SDLK_z:
-      editor.emulator().snes().SetButtonState(1, 0, true);
-      break;
-    case SDLK_a:
-      editor.emulator().snes().SetButtonState(1, 1, true);
-      break;
-    case SDLK_RSHIFT:
-      editor.emulator().snes().SetButtonState(1, 2, true);
-      break;
-    case SDLK_RETURN:
-      editor.emulator().snes().SetButtonState(1, 3, true);
-      break;
-    case SDLK_UP:
-      editor.emulator().snes().SetButtonState(1, 4, true);
-      break;
-    case SDLK_DOWN:
-      editor.emulator().snes().SetButtonState(1, 5, true);
-      break;
-    case SDLK_LEFT:
-      editor.emulator().snes().SetButtonState(1, 6, true);
-      break;
-    case SDLK_RIGHT:
-      editor.emulator().snes().SetButtonState(1, 7, true);
-      break;
-    case SDLK_x:
-      editor.emulator().snes().SetButtonState(1, 8, true);
-      break;
-    case SDLK_s:
-      editor.emulator().snes().SetButtonState(1, 9, true);
-      break;
-    case SDLK_d:
-      editor.emulator().snes().SetButtonState(1, 10, true);
-      break;
-    case SDLK_c:
-      editor.emulator().snes().SetButtonState(1, 11, true);
-      break;
-    default:
-      break;
-  }
-}
-
-void HandleKeyUp(SDL_Event &event, editor::EditorManager &editor) {
-  ImGuiIO &io = ImGui::GetIO();
-  int key = event.key.keysym.scancode;
-  io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
-  io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
-  io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
-  io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
-
-  switch (event.key.keysym.sym) {
-    case SDLK_z:
-      editor.emulator().snes().SetButtonState(1, 0, false);
-      break;
-    case SDLK_a:
-      editor.emulator().snes().SetButtonState(1, 1, false);
-      break;
-    case SDLK_RSHIFT:
-      editor.emulator().snes().SetButtonState(1, 2, false);
-      break;
-    case SDLK_RETURN:
-      editor.emulator().snes().SetButtonState(1, 3, false);
-      break;
-    case SDLK_UP:
-      editor.emulator().snes().SetButtonState(1, 4, false);
-      break;
-    case SDLK_DOWN:
-      editor.emulator().snes().SetButtonState(1, 5, false);
-      break;
-    case SDLK_LEFT:
-      editor.emulator().snes().SetButtonState(1, 6, false);
-      break;
-    case SDLK_RIGHT:
-      editor.emulator().snes().SetButtonState(1, 7, false);
-      break;
-    case SDLK_x:
-      editor.emulator().snes().SetButtonState(1, 8, false);
-      break;
-    case SDLK_s:
-      editor.emulator().snes().SetButtonState(1, 9, false);
-      break;
-    case SDLK_d:
-      editor.emulator().snes().SetButtonState(1, 10, false);
-      break;
-    case SDLK_c:
-      editor.emulator().snes().SetButtonState(1, 11, false);
-      break;
-    default:
-      break;
-  }
-}
-
-void HandleMouseMovement(int &wheel) {
-  ImGuiIO &io = ImGui::GetIO();
-  int mouseX;
-  int mouseY;
-  const int buttons = SDL_GetMouseState(&mouseX, &mouseY);
-
-  io.DeltaTime = 1.0f / 60.0f;
-  io.MousePos = ImVec2(static_cast<float>(mouseX), static_cast<float>(mouseY));
-  io.MouseDown[0] = buttons & SDL_BUTTON(SDL_BUTTON_LEFT);
-  io.MouseDown[1] = buttons & SDL_BUTTON(SDL_BUTTON_RIGHT);
-  io.MouseDown[2] = buttons & SDL_BUTTON(SDL_BUTTON_MIDDLE);
-  io.MouseWheel = static_cast<float>(wheel);
-}
-
 }  // namespace
 
 absl::Status Controller::OnEntry(std::string filename) {
@@ -195,10 +82,12 @@ void Controller::OnInput() {
     ImGui_ImplSDL2_ProcessEvent(&event);
     switch (event.type) {
       case SDL_KEYDOWN:
-        HandleKeyDown(event, editor_manager_);
-        break;
       case SDL_KEYUP:
-        HandleKeyUp(event, editor_manager_);
+        ImGuiIO &io = ImGui::GetIO();
+        io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
+        io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
+        io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
+        io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
         break;
       case SDL_WINDOWEVENT:
         switch (event.window.event) {
@@ -218,7 +107,17 @@ void Controller::OnInput() {
     }
   }
 
-  HandleMouseMovement(wheel);
+  ImGuiIO &io = ImGui::GetIO();
+  int mouseX;
+  int mouseY;
+  const int buttons = SDL_GetMouseState(&mouseX, &mouseY);
+
+  io.DeltaTime = 1.0f / 60.0f;
+  io.MousePos = ImVec2(static_cast<float>(mouseX), static_cast<float>(mouseY));
+  io.MouseDown[0] = buttons & SDL_BUTTON(SDL_BUTTON_LEFT);
+  io.MouseDown[1] = buttons & SDL_BUTTON(SDL_BUTTON_RIGHT);
+  io.MouseDown[2] = buttons & SDL_BUTTON(SDL_BUTTON_MIDDLE);
+  io.MouseWheel = static_cast<float>(wheel);
 }
 
 absl::Status Controller::OnLoad() {

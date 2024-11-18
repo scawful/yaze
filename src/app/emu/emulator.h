@@ -19,6 +19,21 @@ namespace app {
  */
 namespace emu {
 
+struct EmulatorKeybindings {
+  ImGuiKey a_button = ImGuiKey_Z;
+  ImGuiKey b_button = ImGuiKey_A;
+  ImGuiKey x_button = ImGuiKey_S;
+  ImGuiKey y_button = ImGuiKey_X;
+  ImGuiKey l_button = ImGuiKey_Q;
+  ImGuiKey r_button = ImGuiKey_W;
+  ImGuiKey start_button = ImGuiKey_RETURN;
+  ImGuiKey select_button = ImGuiKey_BACKSPACE;
+  ImGuiKey up_button = ImGuiKey_UP;
+  ImGuiKey down_button = ImGuiKey_DOWN;
+  ImGuiKey left_button = ImGuiKey_LEFT;
+  ImGuiKey right_button = ImGuiKey_RIGHT;
+};
+
 /**
  * @class Emulator
  * @brief A class for emulating and debugging SNES games.
@@ -144,6 +159,8 @@ class Emulator : public SharedRom {
   SDL_Texture* ppu_texture_;
 
   std::vector<uint8_t> rom_data_;
+
+  EmulatorKeybindings keybindings_;
 
   gui::zeml::Node emulator_node_;
 };

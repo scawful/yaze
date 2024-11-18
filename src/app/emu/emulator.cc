@@ -261,7 +261,101 @@ void Emulator::RenderNavBar() {
 
 void Emulator::HandleEvents() {
   // Handle user input events
-  // ...
+  if (ImGui::IsKeyPressed(keybindings_.a_button)) {
+    snes_.SetButtonState(1, 0, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.b_button)) {
+    snes_.SetButtonState(1, 1, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.select_button)) {
+    snes_.SetButtonState(1, 2, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.start_button)) {
+    snes_.SetButtonState(1, 3, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.up_button)) {
+    snes_.SetButtonState(1, 4, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.down_button)) {
+    snes_.SetButtonState(1, 5, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.left_button)) {
+    snes_.SetButtonState(1, 6, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.right_button)) {
+    snes_.SetButtonState(1, 7, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.x_button)) {
+    snes_.SetButtonState(1, 8, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.y_button)) {
+    snes_.SetButtonState(1, 9, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.l_button)) {
+    snes_.SetButtonState(1, 10, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.r_button)) {
+    snes_.SetButtonState(1, 11, true);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.a_button)) {
+    snes_.SetButtonState(1, 0, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.b_button)) {
+    snes_.SetButtonState(1, 1, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.select_button)) {
+    snes_.SetButtonState(1, 2, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.start_button)) {
+    snes_.SetButtonState(1, 3, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.up_button)) {
+    snes_.SetButtonState(1, 4, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.down_button)) {
+    snes_.SetButtonState(1, 5, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.left_button)) {
+    snes_.SetButtonState(1, 6, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.right_button)) {
+    snes_.SetButtonState(1, 7, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.x_button)) {
+    snes_.SetButtonState(1, 8, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.y_button)) {
+    snes_.SetButtonState(1, 9, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.l_button)) {
+    snes_.SetButtonState(1, 10, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.r_button)) {
+    snes_.SetButtonState(1, 11, false);
+  }
 }
 
 void Emulator::RenderBreakpointList() {
