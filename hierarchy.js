@@ -55,6 +55,7 @@ var hierarchy =
       [ "yaze::cli::Tile16Transfer", "classyaze_1_1cli_1_1Tile16Transfer.html", null ]
     ] ],
     [ "yaze::app::editor::CommandManager::CommandInfo", "structyaze_1_1app_1_1editor_1_1CommandManager_1_1CommandInfo.html", null ],
+    [ "yaze::app::editor::CommandManager::CommandInfoOrPrefix", "structyaze_1_1app_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html", null ],
     [ "yaze::app::editor::CommandManager", "classyaze_1_1app_1_1editor_1_1CommandManager.html", null ],
     [ "yaze::cli::Commands", "structyaze_1_1cli_1_1Commands.html", null ],
     [ "yaze::app::gfx::lc_lz2::CompressionCommand", "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html", null ],
@@ -82,6 +83,7 @@ var hierarchy =
       [ "yaze::app::editor::SpriteEditor", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html", null ],
       [ "yaze::test::integration::TestEditor", "classyaze_1_1test_1_1integration_1_1TestEditor.html", null ]
     ] ],
+    [ "yaze::app::editor::EditorLayoutParams", "structyaze_1_1app_1_1editor_1_1EditorLayoutParams.html", null ],
     [ "yaze::app::editor::EntranceContext", "classyaze_1_1app_1_1editor_1_1EntranceContext.html", [
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ]
     ] ],
@@ -233,9 +235,9 @@ var hierarchy =
     [ "yaze::app::zelda3::music::Song", "structyaze_1_1app_1_1zelda3_1_1music_1_1Song.html", null ],
     [ "yaze::app::zelda3::music::SongPart", "structyaze_1_1app_1_1zelda3_1_1music_1_1SongPart.html", null ],
     [ "yaze::app::zelda3::music::SongRange", "structyaze_1_1app_1_1zelda3_1_1music_1_1SongRange.html", null ],
-    [ "yaze::app::zelda3::music::SongSPCBlock", "structyaze_1_1app_1_1zelda3_1_1music_1_1SongSPCBlock.html", null ],
+    [ "yaze::app::zelda3::music::SongSpcBlock", "structyaze_1_1app_1_1zelda3_1_1music_1_1SongSpcBlock.html", null ],
     [ "yaze::app::emu::audio::Spc700", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html", null ],
-    [ "yaze::app::zelda3::music::SPCCommand", "structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html", null ],
+    [ "yaze::app::zelda3::music::SpcCommand", "structyaze_1_1app_1_1zelda3_1_1music_1_1SpcCommand.html", null ],
     [ "yaze::app::zelda3::SpriteAction", "classyaze_1_1app_1_1zelda3_1_1SpriteAction.html", null ],
     [ "yaze::app::emu::video::SpriteAttributes", "structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html", null ],
     [ "yaze::app::zelda3::SpriteBuilder", "classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html", null ],

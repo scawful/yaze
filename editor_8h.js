@@ -1,6 +1,8 @@
 var editor_8h =
 [
     [ "yaze::app::editor::Editor", "classyaze_1_1app_1_1editor_1_1Editor.html", "classyaze_1_1app_1_1editor_1_1Editor" ],
+    [ "yaze::app::editor::EditorLayoutParams", "structyaze_1_1app_1_1editor_1_1EditorLayoutParams.html", "structyaze_1_1app_1_1editor_1_1EditorLayoutParams" ],
+    [ "EditorLayoutParams", "editor_8h.html#aa090e01adaa87843423a18a2b867808b", null ],
     [ "EditorType", "editor_8h.html#a9bc6b53d6c4013c15c0dd5c838dedb52", [
       [ "kAssembly", "editor_8h.html#a9bc6b53d6c4013c15c0dd5c838dedb52ab686a008a9fc3fe70222034bef987ced", null ],
       [ "kDungeon", "editor_8h.html#a9bc6b53d6c4013c15c0dd5c838dedb52a773324726da2f589c757da4c39336156", null ],
@@ -13,5 +15,6 @@ var editor_8h =
       [ "kMessage", "editor_8h.html#a9bc6b53d6c4013c15c0dd5c838dedb52a9b74dc5b6954a9e2ba62b24c1f8c01e0", null ],
       [ "kSettings", "editor_8h.html#a9bc6b53d6c4013c15c0dd5c838dedb52ac935a934100d15241aefe3f7081e7767", null ]
     ] ],
+    [ "DrawEditor", "editor_8h.html#a0901dadb737acfb8045771489c3d4793", null ],
     [ "kEditorNames", "editor_8h.html#a884f13b927c02e225d89c81df3212c01", null ]
 ];

@@ -1,5 +1,9 @@
 var classyaze_1_1app_1_1editor_1_1ScreenEditor =
 [
+    [ "EditingMode", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ab745d85310fca43b8533751bf97e041b", [
+      [ "DRAW", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ab745d85310fca43b8533751bf97e041ba2b4807f24940ca2fe73284bc6e864d66", null ],
+      [ "EDIT", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ab745d85310fca43b8533751bf97e041ba93762d802eed04b3e1c59d1d46b35248", null ]
+    ] ],
     [ "ScreenEditor", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a57e1846d63486b8115f219d85f3c25f0", null ],
     [ "Update", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a565a4af81f8980eb86101f381e8a55f2", null ],
     [ "Undo", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#abb059ba9e72d47f54a2a21bf8c290054", null ],
@@ -21,11 +25,13 @@ var classyaze_1_1app_1_1editor_1_1ScreenEditor =
     [ "DrawDungeonMapsTabs", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#abcc115ac33f92c971fa197820e2cc517", null ],
     [ "DrawDungeonMapsEditor", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a9dcd046f7d190f067d3720f520b0328a", null ],
     [ "LoadBinaryGfx", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a0ea6ebe073c26f86b22eb73ce764329f", null ],
+    [ "current_mode_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ab8d5e05318516c32ef01ae7eb1eee7fa", null ],
     [ "dungeon_maps_loaded_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a54cd7324648ecd704eada38906eb8b8f", null ],
     [ "binary_gfx_loaded_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a500781ec6a83f8566a61f5f42f149ae0", null ],
     [ "selected_room", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a8184b64b976ab4d39d4d3e20108153d2", null ],
     [ "boss_room", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#afd90209d6c64318cb85e6ee7899c6b9e", null ],
     [ "selected_tile16_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a4c235f20e875b33450dd8c9bd6cc2e98", null ],
+    [ "selected_tile8_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ae647aacf58f7169e588f89ca0a8a976f", null ],
     [ "selected_dungeon", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a3e9843fbe3694bc47a27de1f13a0b3b4", null ],
     [ "floor_number", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a5085b792c58db9657440783d875f07a8", null ],
     [ "copy_button_pressed", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa093b0830089978f3b4e6e6732fd3bf5", null ],

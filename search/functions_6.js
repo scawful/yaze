@@ -65,7 +65,7 @@ var searchData=
   ['getsample_62',['GetSample',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a883b5a69efbd9e1a6c80752a6dfdae57',1,'yaze::app::emu::audio::Dsp']]],
   ['getsamples_63',['GetSamples',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#af503d7987b4928da38fd9072f862dfc5',1,'yaze::app::emu::audio::Dsp']]],
   ['getsnespixelformat_64',['GetSnesPixelFormat',['../namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#ae7f2ff7c05fc2ee1712a7c71dc95a37a',1,'yaze::app::gfx::anonymous_namespace{bitmap.cc}']]],
-  ['getspcaddr_65',['GetSPCAddr',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a7fe5a6e628d17d6468ffe79ac422c97b',1,'yaze::app::zelda3::music::Tracker']]],
+  ['getspcaddr_65',['GetSpcAddr',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a27c142809b78c336e36b86f1ce558e40',1,'yaze::app::zelda3::music::Tracker']]],
   ['getsubdirectoriesinfolder_66',['GetSubdirectoriesInFolder',['../classyaze_1_1app_1_1core_1_1FileDialogWrapper.html#a4cac3ead6cdfdf641d324211cc9a90d4',1,'yaze::app::core::FileDialogWrapper']]],
   ['gettile_67',['GetTile',['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html#acd099c85a36170ed6df6d1b6f1016748',1,'yaze::app::gfx::Tilesheet']]],
   ['gettile16_68',['GetTile16',['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a6dcb1b373c60e1b65e55ce70f3e7daa5',1,'yaze::app::gfx::Tilesheet']]],

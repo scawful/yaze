@@ -10,7 +10,7 @@ var searchData=
   ['nbr_5fof_5fbasement_7',['nbr_of_basement',['../structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a83b87932812883175733be35ac1be729',1,'yaze::app::zelda3::screen::DungeonMap']]],
   ['nbr_5fof_5ffloor_8',['nbr_of_floor',['../structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a869c6f5679814521a2d05bf6fbb2d2bb',1,'yaze::app::zelda3::screen::DungeonMap']]],
   ['new_5fcolor_9',['new_color',['../structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html#af74249fe652d2c8cab3ff2148c0f9f85',1,'yaze::app::editor::palette_internal::PaletteChange']]],
-  ['next_10',['next',['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a45a290ab1cc359c527b923b854601ccf',1,'yaze::app::gfx::lc_lz2::CompressionPiece::next'],['../structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a7801492e0f97172fb81475b324920f35',1,'yaze::app::zelda3::music::SPCCommand::next']]],
+  ['next_10',['next',['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a45a290ab1cc359c527b923b854601ccf',1,'yaze::app::gfx::lc_lz2::CompressionPiece::next'],['../structyaze_1_1app_1_1zelda3_1_1music_1_1SpcCommand.html#afe89b0bafd343106a7f19f08c55a710f',1,'yaze::app::zelda3::music::SpcCommand::next']]],
   ['next_5fhoriz_5fevent_11',['next_horiz_event',['../classyaze_1_1app_1_1emu_1_1SNES.html#ac48a2aab8f015b498a70470c10b7d3f4',1,'yaze::app::emu::SNES']]],
   ['nextaction_12',['nextAction',['../classyaze_1_1app_1_1zelda3_1_1SpriteAction.html#ac19bf57775e62009080af01cd8442f2d',1,'yaze::app::zelda3::SpriteAction']]],
   ['nextitemid_13',['NextItemId',['../structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a0795f5236ac1c495df600671014cb46e',1,'yaze::app::gui::GfxSheetAssetBrowser']]],

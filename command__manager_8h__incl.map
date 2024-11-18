@@ -1,9 +1,15 @@
 <map id="src/app/editor/system/command_manager.h" name="src/app/editor/system/command_manager.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="35,5,184,46"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,94,59,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,48,57,84,53,81,88,45"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="83,94,136,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="112,46,112,78,107,78,107,46"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="160,94,270,120"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="137,44,188,82,185,86,134,49"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="164,5,313,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,94,83,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,49,89,90,87,85,189,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="107,94,160,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="214,49,163,86,160,82,211,44"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="184,94,294,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="241,46,241,78,236,78,236,46"/>
+<area shape="rect" id="Node000005" href="$editor_8h.html" title=" " alt="" coords="318,94,442,120"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="275,44,346,84,344,88,273,49"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="466,94,563,120"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="308,44,458,87,457,92,307,49"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="312,168,448,193"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="383,120,383,152,377,152,377,120"/>
 </map>

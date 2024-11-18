@@ -26,6 +26,7 @@ var namespaceyaze_1_1app_1_1editor =
     [ "DictionaryEntry", "structyaze_1_1app_1_1editor_1_1DictionaryEntry.html", "structyaze_1_1app_1_1editor_1_1DictionaryEntry" ],
     [ "DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", "classyaze_1_1app_1_1editor_1_1DungeonEditor" ],
     [ "Editor", "classyaze_1_1app_1_1editor_1_1Editor.html", "classyaze_1_1app_1_1editor_1_1Editor" ],
+    [ "EditorLayoutParams", "structyaze_1_1app_1_1editor_1_1EditorLayoutParams.html", "structyaze_1_1app_1_1editor_1_1EditorLayoutParams" ],
     [ "EditorManager", "classyaze_1_1app_1_1editor_1_1EditorManager.html", "classyaze_1_1app_1_1editor_1_1EditorManager" ],
     [ "EntranceContext", "classyaze_1_1app_1_1editor_1_1EntranceContext.html", "classyaze_1_1app_1_1editor_1_1EntranceContext" ],
     [ "ExampleAppPropertyEditor", "structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html", "structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor" ],
@@ -48,13 +49,7 @@ var namespaceyaze_1_1app_1_1editor =
     [ "SpriteItem", "structyaze_1_1app_1_1editor_1_1SpriteItem.html", "structyaze_1_1app_1_1editor_1_1SpriteItem" ],
     [ "TextElement", "structyaze_1_1app_1_1editor_1_1TextElement.html", "structyaze_1_1app_1_1editor_1_1TextElement" ],
     [ "Tile16Editor", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html", "classyaze_1_1app_1_1editor_1_1Tile16Editor" ],
-    [ "MyItemColumnID", "namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9", [
-      [ "MyItemColumnID_ID", "namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9a2289c3d3d4622c9558cb24ad8be37041", null ],
-      [ "MyItemColumnID_Name", "namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9af56bbdb3a93b5c290a87b6c2d5a6e01c", null ],
-      [ "MyItemColumnID_Action", "namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9ad6ecde031e114c4933d033be84600cfb", null ],
-      [ "MyItemColumnID_Quantity", "namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9ae174d554f93e36997c9267392b01d6da", null ],
-      [ "MyItemColumnID_Description", "namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9a2c8a5284a6fd0fa69f3df471bf7f6cb0", null ]
-    ] ],
+    [ "EditorLayoutParams", "namespaceyaze_1_1app_1_1editor.html#aa090e01adaa87843423a18a2b867808b", null ],
     [ "EditorType", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52", [
       [ "kAssembly", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52ab686a008a9fc3fe70222034bef987ced", null ],
       [ "kDungeon", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52a773324726da2f589c757da4c39336156", null ],
@@ -67,6 +62,14 @@ var namespaceyaze_1_1app_1_1editor =
       [ "kMessage", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52a9b74dc5b6954a9e2ba62b24c1f8c01e0", null ],
       [ "kSettings", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52ac935a934100d15241aefe3f7081e7767", null ]
     ] ],
+    [ "MyItemColumnID", "namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9", [
+      [ "MyItemColumnID_ID", "namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9a2289c3d3d4622c9558cb24ad8be37041", null ],
+      [ "MyItemColumnID_Name", "namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9af56bbdb3a93b5c290a87b6c2d5a6e01c", null ],
+      [ "MyItemColumnID_Action", "namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9ad6ecde031e114c4933d033be84600cfb", null ],
+      [ "MyItemColumnID_Quantity", "namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9ae174d554f93e36997c9267392b01d6da", null ],
+      [ "MyItemColumnID_Description", "namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9a2c8a5284a6fd0fa69f3df471bf7f6cb0", null ]
+    ] ],
+    [ "DrawEditor", "namespaceyaze_1_1app_1_1editor.html#a0901dadb737acfb8045771489c3d4793", null ],
     [ "DisplayPalette", "namespaceyaze_1_1app_1_1editor.html#af2891f5f91ee57327ed884b879cac364", null ],
     [ "FindMatchingCharacter", "namespaceyaze_1_1app_1_1editor.html#a903cdfb934c048134f9cd12283b60f32", null ],
     [ "FindDictionaryEntry", "namespaceyaze_1_1app_1_1editor.html#a3099ee5f96067379b03d477c1fdd1016", null ],
@@ -93,10 +96,12 @@ var namespaceyaze_1_1app_1_1editor =
     [ "kCurrentGfxCanvasSize", "namespaceyaze_1_1app_1_1editor.html#abe54ac18066dae66d86d7902a4bea05b", null ],
     [ "kBlocksetCanvasSize", "namespaceyaze_1_1app_1_1editor.html#a90dbf48c49e24028c6251e071a2a46f5", null ],
     [ "kGraphicsBinCanvasSize", "namespaceyaze_1_1app_1_1editor.html#a695b5fbb41418bdbd903cdeaec0796af", null ],
+    [ "MapKeyToImGuiKey", "namespaceyaze_1_1app_1_1editor.html#a44248280a43edbe07a0885246f075e79", null ],
     [ "kDungeonObjectTableFlags", "namespaceyaze_1_1app_1_1editor.html#a759334407b9c50f79df5b99931356832", null ],
     [ "kDungeonTabFlags", "namespaceyaze_1_1app_1_1editor.html#ae940471e79391cb6b9753359bb18870b", null ],
     [ "kDungeonTabBarFlags", "namespaceyaze_1_1app_1_1editor.html#a90b47303e5a0364d74f646617dbcd2e8", null ],
     [ "kDungeonTableFlags", "namespaceyaze_1_1app_1_1editor.html#a607cc1d6a18d503ac31793087f6b177f", null ],
+    [ "kEditorNames", "namespaceyaze_1_1app_1_1editor.html#a884f13b927c02e225d89c81df3212c01", null ],
     [ "kGfxEditTableFlags", "namespaceyaze_1_1app_1_1editor.html#a4e2fdc967f4f1af218c03efeadbb4e7b", null ],
     [ "kSuperDonkeyTiles", "namespaceyaze_1_1app_1_1editor.html#a3719536e1885a648a2dd2338df5c57ac", null ],
     [ "kSuperDonkeySprites", "namespaceyaze_1_1app_1_1editor.html#a734a588c68d753b67fddf5b7bcac517b", null ],
@@ -154,6 +159,5 @@ var namespaceyaze_1_1app_1_1editor =
     [ "kNumEntranceTileTypes", "namespaceyaze_1_1app_1_1editor.html#ac0fec45f7cbaf38c9fda2a6c9bc6e9c2", null ],
     [ "kSpriteTabFlags", "namespaceyaze_1_1app_1_1editor.html#aaf264499bf4cb9570f8f7661d0146051", null ],
     [ "kSpriteTabBarFlags", "namespaceyaze_1_1app_1_1editor.html#a3deb5fa796785a483928050617a76edc", null ],
-    [ "kSpriteTableFlags", "namespaceyaze_1_1app_1_1editor.html#ad13ab0b69174d18b3d5dedde3f28e97e", null ],
-    [ "kEditorNames", "namespaceyaze_1_1app_1_1editor.html#a884f13b927c02e225d89c81df3212c01", null ]
+    [ "kSpriteTableFlags", "namespaceyaze_1_1app_1_1editor.html#ad13ab0b69174d18b3d5dedde3f28e97e", null ]
 ];

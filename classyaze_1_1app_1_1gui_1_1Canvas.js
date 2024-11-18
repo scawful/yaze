@@ -4,6 +4,8 @@ var classyaze_1_1app_1_1gui_1_1Canvas =
     [ "Canvas", "classyaze_1_1app_1_1gui_1_1Canvas.html#a305b181e679b959f5182101b8c89bc6b", null ],
     [ "Canvas", "classyaze_1_1app_1_1gui_1_1Canvas.html#a58f5f610b78dfa312b2c52455909dd6b", null ],
     [ "Canvas", "classyaze_1_1app_1_1gui_1_1Canvas.html#a20a73ef4a6a6205e4c1a65828bc6c014", null ],
+    [ "Canvas", "classyaze_1_1app_1_1gui_1_1Canvas.html#ab3e715395503dcb0223a691213c1e663", null ],
+    [ "SetCanvasGridSize", "classyaze_1_1app_1_1gui_1_1Canvas.html#ad15512262ed42b53e77e871f4cf1fba8", null ],
     [ "UpdateColorPainter", "classyaze_1_1app_1_1gui_1_1Canvas.html#ab3fc6d261c425bd93ccec94da3a72cca", null ],
     [ "UpdateInfoGrid", "classyaze_1_1app_1_1gui_1_1Canvas.html#a20aba6755245124ba776f05797eca510", null ],
     [ "DrawBackground", "classyaze_1_1app_1_1gui_1_1Canvas.html#a1068606a5a066f19a39932e05d71da1e", null ],

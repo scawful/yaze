@@ -80,7 +80,7 @@ var searchData=
   ['loadscr_77',['LoadScr',['../namespaceyaze_1_1app_1_1gfx_1_1scad__format.html#abbaf0d3bc11b96aee6681513c0128d26',1,'yaze::app::gfx::scad_format']]],
   ['loadshieldpalettes_78',['LoadShieldPalettes',['../namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a0ce563b505afbd73bad15cdd86b5e67b',1,'yaze::app::gfx::palette_group_internal']]],
   ['loadsongs_79',['LoadSongs',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#adf6e464d475742efff6c95e8546848d8',1,'yaze::app::zelda3::music::Tracker']]],
-  ['loadspccommand_80',['LoadSPCCommand',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a8fd5047b9b35bf027f42d68764b4330b',1,'yaze::app::zelda3::music::Tracker']]],
+  ['loadspccommand_80',['LoadSpcCommand',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a3695695620db29d176c86c2693c74276',1,'yaze::app::zelda3::music::Tracker']]],
   ['loadspriteaux1palettes_81',['LoadSpriteAux1Palettes',['../namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a65f405d5925ed46e672e6e66fb683a4a',1,'yaze::app::gfx::palette_group_internal']]],
   ['loadspriteaux2palettes_82',['LoadSpriteAux2Palettes',['../namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a93ef5cb13b0af6bafdb9b84cb4666094',1,'yaze::app::gfx::palette_group_internal']]],
   ['loadspriteaux3palettes_83',['LoadSpriteAux3Palettes',['../namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#aa3e1c7c7c8f89dd171d37133cf57c61a',1,'yaze::app::gfx::palette_group_internal']]],

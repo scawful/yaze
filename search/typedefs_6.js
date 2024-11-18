@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['layer_0',['Layer',['../namespaceyaze_1_1app_1_1emu_1_1video.html#a306a02cc51601ad0f21efa7a4cecbdb5',1,'yaze::app::emu::video']]]
+  ['itemlabelflags_0',['ItemLabelFlags',['../namespaceyaze_1_1app_1_1gui.html#aa273fd9331a34be04e40b1929ff34958',1,'yaze::app::gui']]]
 ];

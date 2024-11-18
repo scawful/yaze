@@ -1,9 +1,9 @@
 var searchData=
 [
   ['p_0',['P',['../structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#a133af349da92267a864af13cbaab87d3',1,'yaze::app::emu::audio::Spc700::Flags']]],
-  ['p1_1',['p1',['../structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#aeb3dbd7339a52df8fb4132ec505c6a46',1,'yaze::app::zelda3::music::SPCCommand']]],
-  ['p2_2',['p2',['../structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#aab548fa80c1b7817ae200d0d1b5d835b',1,'yaze::app::zelda3::music::SPCCommand']]],
-  ['p3_3',['p3',['../structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a7afcc7f869544a88de42a95b0d971a08',1,'yaze::app::zelda3::music::SPCCommand']]],
+  ['p1_1',['p1',['../structyaze_1_1app_1_1zelda3_1_1music_1_1SpcCommand.html#af6aa7572fe9bbea30e42802b0970a6a6',1,'yaze::app::zelda3::music::SpcCommand']]],
+  ['p2_2',['p2',['../structyaze_1_1app_1_1zelda3_1_1music_1_1SpcCommand.html#a90d8d26f24953cb19be55f23e0440eb4',1,'yaze::app::zelda3::music::SpcCommand']]],
+  ['p3_3',['p3',['../structyaze_1_1app_1_1zelda3_1_1music_1_1SpcCommand.html#a6b49870348930ef2ac874f7e09b5b74e',1,'yaze::app::zelda3::music::SpcCommand']]],
   ['page_4',['page',['../structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a94dd2b3cdef5af3c038c271a861506fd',1,'yaze::app::zelda3::music::SampleEdit']]],
   ['pageh_5',['pageh',['../structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#aa6cde3b5cffee90b4ecbf802e4476aff',1,'yaze::app::zelda3::music::SampleEdit']]],
   ['pagev_6',['pagev',['../structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a2933cbbb803118109df7c738815ade22',1,'yaze::app::zelda3::music::SampleEdit']]],
@@ -57,7 +57,7 @@ var searchData=
   ['ppu_5flatch_5f_54',['ppu_latch_',['../classyaze_1_1app_1_1emu_1_1SNES.html#ac5107a5af77dff800d22b3a7dfbb8ce3',1,'yaze::app::emu::SNES']]],
   ['ppu_5ftexture_5f_55',['ppu_texture_',['../classyaze_1_1app_1_1emu_1_1Emulator.html#aba8cfa17f73c297631194e4bc66fceb4',1,'yaze::app::emu::Emulator']]],
   ['preclampgain_56',['preclampGain',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a50fd8568dc14b1cd56d0ad228213ab40',1,'yaze::app::emu::audio::DspChannel']]],
-  ['prev_57',['prev',['../structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a0b5b79ae496a23e3727b7b8ab8f57718',1,'yaze::app::zelda3::music::SPCCommand']]],
+  ['prev_57',['prev',['../structyaze_1_1app_1_1zelda3_1_1music_1_1SpcCommand.html#a5e0e91a6bf26de8c52842294e885f69b',1,'yaze::app::zelda3::music::SpcCommand']]],
   ['prevent_5fmath_5fmode_5f_58',['prevent_math_mode_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a4a6e6e5a5e5ef05175e7ad07a02c6046',1,'yaze::app::emu::video::Ppu']]],
   ['preview_5fgfx_5f_59',['preview_gfx_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#ad0d3e3fd3be37275160484ef51525d75',1,'yaze::app::zelda3::Sprite']]],
   ['preview_5fobject_5fdata_5f_60',['preview_object_data_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a4d9921e7e83156d9ca44cd61f278eb09',1,'yaze::app::zelda3::dungeon::RoomObject']]],

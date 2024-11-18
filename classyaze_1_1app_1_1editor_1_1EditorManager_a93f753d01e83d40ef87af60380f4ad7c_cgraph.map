@@ -1,0 +1,7 @@
+<map id="yaze::app::editor::EditorManager::InitializeCommands" name="yaze::app::editor::EditorManager::InitializeCommands">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,229,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1CommandManager.html#a9399b33054572f97914b7ed76d5e79cd" title=" " alt="" coords="301,5,517,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="229,44,285,37,286,42,230,49"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1CommandManager.html#a172f4df0c5e2efc2fbdf2ccb4739297a" title=" " alt="" coords="277,71,541,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="230,69,261,72,261,77,229,74"/>
+</map>

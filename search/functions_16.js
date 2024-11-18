@@ -16,7 +16,7 @@ var searchData=
   ['writelong_13',['WriteLong',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a27f382e5cab3f3a9fdd40ccfbb2733e4',1,'yaze::app::emu::Cpu::WriteLong()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a1233d122f27e85f5decf925b560dfd65',1,'yaze::app::emu::memory::Memory::WriteLong()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a17da21b3ebc14c7561835497c351d43b',1,'yaze::app::emu::memory::MemoryImpl::WriteLong()'],['../classyaze_1_1app_1_1Rom.html#a1dc9f6b0f774b6deec84663fea3add80',1,'yaze::app::Rom::WriteLong()']]],
   ['writereg_14',['WriteReg',['../classyaze_1_1app_1_1emu_1_1SNES.html#adead4de2b3da4d81edb7113191e81fac',1,'yaze::app::emu::SNES']]],
   ['writeshort_15',['WriteShort',['../classyaze_1_1app_1_1Rom.html#a85ea52c315f6f5c8445bad7885e42d23',1,'yaze::app::Rom']]],
-  ['writespcdata_16',['WriteSPCData',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a91678682fc653894a94c95968f566025',1,'yaze::app::zelda3::music::Tracker']]],
+  ['writespcdata_16',['WriteSpcData',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a4a1a180e9bc3ca0e5eb215b8825621bd',1,'yaze::app::zelda3::music::Tracker']]],
   ['writetile_17',['WriteTile',['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a61bcc0eed32b7bb87cd82bb2a99b4af7',1,'yaze::app::gfx::Tilesheet']]],
   ['writetile16_18',['WriteTile16',['../classyaze_1_1app_1_1Rom.html#a6da6c886a28136780cbf47c1cdbd87f1',1,'yaze::app::Rom']]],
   ['writetopixel_19',['WriteToPixel',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a968fb5a195cd65700f66b82b839e3d4a',1,'yaze::app::gfx::Bitmap']]],

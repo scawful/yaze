@@ -1,19 +1,19 @@
 <map id="src/app/editor/system/settings_editor.cc" name="src/app/editor/system/settings_editor.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="161,5,307,46"/>
-<area shape="rect" id="Node000002" href="$settings__editor_8h.html" title=" " alt="" coords="86,94,260,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="222,48,198,83,193,80,218,45"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="248,183,346,208"/>
-<area shape="poly" id="edge10_Node000001_Node000003" title=" " alt="" coords="249,45,274,93,286,131,295,166,289,168,281,133,269,95,244,47"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="29,256,165,282"/>
-<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="167,49,120,69,76,96,52,116,35,134,23,155,11,183,8,196,11,207,30,230,54,247,51,251,26,234,7,210,3,196,6,182,18,152,31,131,48,112,73,92,118,64,165,44"/>
-<area shape="rect" id="Node000006" href="$flags_8h.html" title=" " alt="" coords="334,102,481,127"/>
-<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="275,44,371,92,369,97,272,49"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="205,133,266,172,264,176,202,137"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="184,135,193,170,193,190,187,210,168,234,143,251,140,247,164,230,183,207,188,190,188,171,179,136"/>
-<area shape="rect" id="Node000005" href="$editor_8h.html" title=" " alt="" coords="21,183,173,208"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="156,137,121,173,117,169,152,133"/>
-<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="100,209,100,241,94,241,94,209"/>
-<area shape="poly" id="edge9_Node000006_Node000003" title=" " alt="" coords="392,130,328,175,325,171,389,125"/>
-<area shape="rect" id="Node000007" href="$core_2common_8h.html" title=" " alt="" coords="370,183,480,208"/>
-<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="413,127,422,167,416,168,408,128"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="140,5,287,46"/>
+<area shape="rect" id="Node000002" href="$settings__editor_8h.html" title=" " alt="" coords="65,94,239,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,48,177,83,173,80,198,45"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="228,183,325,208"/>
+<area shape="poly" id="edge10_Node000001_Node000003" title=" " alt="" coords="228,45,253,93,266,131,274,166,269,168,261,133,248,95,224,47"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="22,256,157,282"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="141,47,96,67,55,96,30,123,14,148,8,175,17,207,33,229,54,246,50,250,29,232,13,209,3,175,9,146,26,119,52,92,93,62,139,42"/>
+<area shape="rect" id="Node000006" href="$flags_8h.html" title=" " alt="" coords="313,102,461,127"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="254,44,350,92,348,97,252,49"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="184,133,246,172,243,176,181,137"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="163,134,172,170,172,190,167,209,150,232,129,250,126,246,146,229,162,207,167,189,167,171,158,136"/>
+<area shape="rect" id="Node000005" href="$editor_8h.html" title=" " alt="" coords="27,183,152,208"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="139,137,111,172,106,169,135,133"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="92,209,92,241,87,241,87,209"/>
+<area shape="poly" id="edge9_Node000006_Node000003" title=" " alt="" coords="372,130,307,175,304,171,369,125"/>
+<area shape="rect" id="Node000007" href="$core_2common_8h.html" title=" " alt="" coords="349,183,459,208"/>
+<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="392,127,401,167,396,168,387,128"/>
 </map>

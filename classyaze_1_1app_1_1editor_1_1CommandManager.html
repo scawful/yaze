@@ -122,6 +122,8 @@ $(function(){initNavTree('classyaze_1_1app_1_1editor_1_1CommandManager.html','')
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1editor_1_1CommandManager_1_1CommandInfo.html">CommandInfo</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html">CommandInfoOrPrefix</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
@@ -130,12 +132,16 @@ Public Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:a9399b33054572f97914b7ed76d5e79cd" id="r_a9399b33054572f97914b7ed76d5e79cd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9399b33054572f97914b7ed76d5e79cd">RegisterPrefix</a> (const std::string &amp;group_name, const char prefix, const std::string &amp;name, const std::string &amp;desc)</td></tr>
+<tr class="separator:a9399b33054572f97914b7ed76d5e79cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a172f4df0c5e2efc2fbdf2ccb4739297a" id="r_a172f4df0c5e2efc2fbdf2ccb4739297a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a172f4df0c5e2efc2fbdf2ccb4739297a">RegisterSubcommand</a> (const std::string &amp;group_name, const std::string &amp;shortcut, const char mnemonic, const std::string &amp;name, const std::string &amp;desc, <a class="el" href="#a93ba73d98048b47cbf89dcf28b7db5c6">Command</a> command)</td></tr>
+<tr class="separator:a172f4df0c5e2efc2fbdf2ccb4739297a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a961fdd7858ad537bd392c50155e88b86" id="r_a961fdd7858ad537bd392c50155e88b86"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a961fdd7858ad537bd392c50155e88b86">RegisterCommand</a> (const std::string &amp;shortcut, <a class="el" href="#a93ba73d98048b47cbf89dcf28b7db5c6">Command</a> command, char mnemonic, const std::string &amp;name, const std::string &amp;desc)</td></tr>
 <tr class="separator:a961fdd7858ad537bd392c50155e88b86"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af766b50fe53dfb566970a7a6f0108e50" id="r_af766b50fe53dfb566970a7a6f0108e50"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af766b50fe53dfb566970a7a6f0108e50">ExecuteCommand</a> (const std::string &amp;shortcut)</td></tr>
 <tr class="separator:af766b50fe53dfb566970a7a6f0108e50"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a447c6b445d56dcf2d9b96bf40e5d9ce3" id="r_a447c6b445d56dcf2d9b96bf40e5d9ce3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a447c6b445d56dcf2d9b96bf40e5d9ce3">ShowWhichKey</a> ()</td></tr>
-<tr class="separator:a447c6b445d56dcf2d9b96bf40e5d9ce3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1937c44496584ed841de064e60eb2f3e" id="r_a1937c44496584ed841de064e60eb2f3e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1937c44496584ed841de064e60eb2f3e">ShowWhichKey</a> (<a class="el" href="structyaze_1_1app_1_1editor_1_1EditorLayoutParams.html">EditorLayoutParams</a> *editor_layout=nullptr)</td></tr>
+<tr class="separator:a1937c44496584ed841de064e60eb2f3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a098d93eb0b0c8cfa3e4055f3f2f085d3" id="r_a098d93eb0b0c8cfa3e4055f3f2f085d3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a098d93eb0b0c8cfa3e4055f3f2f085d3">InitializeDefaults</a> ()</td></tr>
 <tr class="separator:a098d93eb0b0c8cfa3e4055f3f2f085d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a759e772088ab091fdb459500a7a5e046" id="r_a759e772088ab091fdb459500a7a5e046"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a759e772088ab091fdb459500a7a5e046">SaveKeybindings</a> (const std::string &amp;filepath)</td></tr>
@@ -145,12 +151,12 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
-<tr class="memitem:aa8d2b892279cc281f38f96e97745c805" id="r_aa8d2b892279cc281f38f96e97745c805"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; std::string, <a class="el" href="structyaze_1_1app_1_1editor_1_1CommandManager_1_1CommandInfo.html">CommandInfo</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa8d2b892279cc281f38f96e97745c805">commands_</a></td></tr>
-<tr class="separator:aa8d2b892279cc281f38f96e97745c805"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a86b8c94a3f3ceaecf7d9fcf6a446c07f" id="r_a86b8c94a3f3ceaecf7d9fcf6a446c07f"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; std::string, <a class="el" href="structyaze_1_1app_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html">CommandInfoOrPrefix</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a86b8c94a3f3ceaecf7d9fcf6a446c07f">commands_</a></td></tr>
+<tr class="separator:a86b8c94a3f3ceaecf7d9fcf6a446c07f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="command__manager_8h_source.html#l00012">12</a> of file <a class="el" href="command__manager_8h_source.html">command_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="command__manager_8h_source.html#l00017">17</a> of file <a class="el" href="command__manager_8h_source.html">command_manager.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a93ba73d98048b47cbf89dcf28b7db5c6" name="a93ba73d98048b47cbf89dcf28b7db5c6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a93ba73d98048b47cbf89dcf28b7db5c6">&#9670;&#160;</a></span>Command</h2>
@@ -164,11 +170,111 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="command__manager_8h_source.html#l00014">14</a> of file <a class="el" href="command__manager_8h_source.html">command_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="command__manager_8h_source.html#l00019">19</a> of file <a class="el" href="command__manager_8h_source.html">command_manager.h</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a9399b33054572f97914b7ed76d5e79cd" name="a9399b33054572f97914b7ed76d5e79cd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9399b33054572f97914b7ed76d5e79cd">&#9670;&#160;</a></span>RegisterPrefix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::editor::CommandManager::RegisterPrefix </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>group_name</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char</td>          <td class="paramname"><span class="paramname"><em>prefix</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>name</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>desc</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="command__manager_8h_source.html#l00042">42</a> of file <a class="el" href="command__manager_8h_source.html">command_manager.h</a>.</p>
+
+<p class="reference">References <a class="el" href="command__manager_8h_source.html#l00076">commands_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00312">yaze::app::editor::EditorManager::InitializeCommands()</a>.</p>
+
+</div>
+</div>
+<a id="a172f4df0c5e2efc2fbdf2ccb4739297a" name="a172f4df0c5e2efc2fbdf2ccb4739297a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a172f4df0c5e2efc2fbdf2ccb4739297a">&#9670;&#160;</a></span>RegisterSubcommand()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::editor::CommandManager::RegisterSubcommand </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>group_name</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>shortcut</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char</td>          <td class="paramname"><span class="paramname"><em>mnemonic</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>name</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>desc</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="#a93ba73d98048b47cbf89dcf28b7db5c6">Command</a></td>          <td class="paramname"><span class="paramname"><em>command</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="command__manager_8h_source.html#l00047">47</a> of file <a class="el" href="command__manager_8h_source.html">command_manager.h</a>.</p>
+
+<p class="reference">References <a class="el" href="command__manager_8h_source.html#l00076">commands_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00312">yaze::app::editor::EditorManager::InitializeCommands()</a>.</p>
+
+</div>
+</div>
 <a id="a961fdd7858ad537bd392c50155e88b86" name="a961fdd7858ad537bd392c50155e88b86"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a961fdd7858ad537bd392c50155e88b86">&#9670;&#160;</a></span>RegisterCommand()</h2>
 
@@ -211,9 +317,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="command__manager_8h_source.html#l00030">30</a> of file <a class="el" href="command__manager_8h_source.html">command_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="command__manager_8h_source.html#l00055">55</a> of file <a class="el" href="command__manager_8h_source.html">command_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="command__manager_8h_source.html#l00050">commands_</a>.</p>
+<p class="reference">References <a class="el" href="command__manager_8h_source.html#l00076">commands_</a>.</p>
 
 </div>
 </div>
@@ -240,14 +346,14 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="command__manager_8h_source.html#l00036">36</a> of file <a class="el" href="command__manager_8h_source.html">command_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="command__manager_8h_source.html#l00062">62</a> of file <a class="el" href="command__manager_8h_source.html">command_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="command__manager_8h_source.html#l00050">commands_</a>.</p>
+<p class="reference">References <a class="el" href="command__manager_8h_source.html#l00076">commands_</a>.</p>
 
 </div>
 </div>
-<a id="a447c6b445d56dcf2d9b96bf40e5d9ce3" name="a447c6b445d56dcf2d9b96bf40e5d9ce3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a447c6b445d56dcf2d9b96bf40e5d9ce3">&#9670;&#160;</a></span>ShowWhichKey()</h2>
+<a id="a1937c44496584ed841de064e60eb2f3e" name="a1937c44496584ed841de064e60eb2f3e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1937c44496584ed841de064e60eb2f3e">&#9670;&#160;</a></span>ShowWhichKey()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -255,25 +361,27 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="memname">void yaze::app::editor::CommandManager::ShowWhichKey </td>
           <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="structyaze_1_1app_1_1editor_1_1EditorLayoutParams.html">EditorLayoutParams</a> *</td>          <td class="paramname"><span class="paramname"><em>editor_layout</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="command__manager_8cc_source.html#l00013">13</a> of file <a class="el" href="command__manager_8cc_source.html">command_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="command__manager_8cc_source.html#l00077">77</a> of file <a class="el" href="command__manager_8cc_source.html">command_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="command__manager_8h_source.html#l00050">commands_</a>, and <a class="el" href="command__manager_8cc_source.html#l00057">InitializeDefaults()</a>.</p>
+<p class="reference">References <a class="el" href="command__manager_8h_source.html#l00076">commands_</a>, <a class="el" href="command__manager_8cc_source.html#l00132">InitializeDefaults()</a>, and <a class="el" href="command__manager_8cc_source.html#l00012">yaze::app::editor::MapKeyToImGuiKey()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00242">yaze::app::editor::EditorManager::ManageKeyboardShortcuts()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00253">yaze::app::editor::EditorManager::ManageKeyboardShortcuts()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1editor_1_1CommandManager_a447c6b445d56dcf2d9b96bf40e5d9ce3_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1CommandManager_a447c6b445d56dcf2d9b96bf40e5d9ce3_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1editor_1_1CommandManager_a447c6b445d56dcf2d9b96bf40e5d9ce3_cgraph" id="aclassyaze_1_1app_1_1editor_1_1CommandManager_a447c6b445d56dcf2d9b96bf40e5d9ce3_cgraph">
-<area shape="rect" title=" " alt="" coords="5,13,233,54"/>
+<div class="center"><img src="classyaze_1_1app_1_1editor_1_1CommandManager_a1937c44496584ed841de064e60eb2f3e_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1CommandManager_a1937c44496584ed841de064e60eb2f3e_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1editor_1_1CommandManager_a1937c44496584ed841de064e60eb2f3e_cgraph" id="aclassyaze_1_1app_1_1editor_1_1CommandManager_a1937c44496584ed841de064e60eb2f3e_cgraph">
+<area shape="rect" title=" " alt="" coords="5,49,233,90"/>
 <area shape="rect" href="classyaze_1_1app_1_1editor_1_1CommandManager.html#a098d93eb0b0c8cfa3e4055f3f2f085d3" title=" " alt="" coords="281,5,464,61"/>
-<area shape="poly" title=" " alt="" coords="233,30,265,30,265,36,233,36"/>
+<area shape="poly" title=" " alt="" coords="233,50,265,46,266,51,234,56"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1editor.html#a44248280a43edbe07a0885246f075e79" title=" " alt="" coords="302,85,442,126"/>
+<area shape="poly" title=" " alt="" coords="234,83,287,90,287,96,233,88"/>
 </map>
 </div>
 
@@ -294,11 +402,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="command__manager_8cc_source.html#l00057">57</a> of file <a class="el" href="command__manager_8cc_source.html">command_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="command__manager_8cc_source.html#l00132">132</a> of file <a class="el" href="command__manager_8cc_source.html">command_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="command__manager_8h_source.html#l00050">commands_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="command__manager_8cc_source.html#l00013">ShowWhichKey()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="command__manager_8cc_source.html#l00077">ShowWhichKey()</a>.</p>
 
 </div>
 </div>
@@ -317,9 +423,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="command__manager_8cc_source.html#l00084">84</a> of file <a class="el" href="command__manager_8cc_source.html">command_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="command__manager_8cc_source.html#l00134">134</a> of file <a class="el" href="command__manager_8cc_source.html">command_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="command__manager_8h_source.html#l00050">commands_</a>.</p>
+<p class="reference">References <a class="el" href="command__manager_8h_source.html#l00076">commands_</a>.</p>
 
 </div>
 </div>
@@ -338,15 +444,15 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="command__manager_8cc_source.html#l00095">95</a> of file <a class="el" href="command__manager_8cc_source.html">command_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="command__manager_8cc_source.html#l00145">145</a> of file <a class="el" href="command__manager_8cc_source.html">command_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="command__manager_8h_source.html#l00050">commands_</a>.</p>
+<p class="reference">References <a class="el" href="command__manager_8h_source.html#l00076">commands_</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="aa8d2b892279cc281f38f96e97745c805" name="aa8d2b892279cc281f38f96e97745c805"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa8d2b892279cc281f38f96e97745c805">&#9670;&#160;</a></span>commands_</h2>
+<a id="a86b8c94a3f3ceaecf7d9fcf6a446c07f" name="a86b8c94a3f3ceaecf7d9fcf6a446c07f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a86b8c94a3f3ceaecf7d9fcf6a446c07f">&#9670;&#160;</a></span>commands_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -355,7 +461,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::unordered_map&lt;std::string, <a class="el" href="structyaze_1_1app_1_1editor_1_1CommandManager_1_1CommandInfo.html">CommandInfo</a>&gt; yaze::app::editor::CommandManager::commands_</td>
+          <td class="memname">std::unordered_map&lt;std::string, <a class="el" href="structyaze_1_1app_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html">CommandInfoOrPrefix</a>&gt; yaze::app::editor::CommandManager::commands_</td>
         </tr>
       </table>
   </td>
@@ -365,9 +471,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="command__manager_8h_source.html#l00050">50</a> of file <a class="el" href="command__manager_8h_source.html">command_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="command__manager_8h_source.html#l00076">76</a> of file <a class="el" href="command__manager_8h_source.html">command_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="command__manager_8h_source.html#l00036">ExecuteCommand()</a>, <a class="el" href="command__manager_8cc_source.html#l00057">InitializeDefaults()</a>, <a class="el" href="command__manager_8cc_source.html#l00095">LoadKeybindings()</a>, <a class="el" href="command__manager_8h_source.html#l00030">RegisterCommand()</a>, <a class="el" href="command__manager_8cc_source.html#l00084">SaveKeybindings()</a>, and <a class="el" href="command__manager_8cc_source.html#l00013">ShowWhichKey()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="command__manager_8h_source.html#l00062">ExecuteCommand()</a>, <a class="el" href="command__manager_8cc_source.html#l00145">LoadKeybindings()</a>, <a class="el" href="command__manager_8h_source.html#l00055">RegisterCommand()</a>, <a class="el" href="command__manager_8h_source.html#l00042">RegisterPrefix()</a>, <a class="el" href="command__manager_8h_source.html#l00047">RegisterSubcommand()</a>, <a class="el" href="command__manager_8cc_source.html#l00134">SaveKeybindings()</a>, and <a class="el" href="command__manager_8cc_source.html#l00077">ShowWhichKey()</a>.</p>
 
 </div>
 </div>

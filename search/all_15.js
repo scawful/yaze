@@ -13,7 +13,7 @@ var searchData=
   ['newframe_10',['NewFrame',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a50bc6784048f64b765f8026f7c67099e',1,'yaze::app::emu::audio::Dsp']]],
   ['newmasterframe_11',['NewMasterFrame',['../namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#aaffe64ca7a9a2b85375f661ca0a50824',1,'yaze::app::core::anonymous_namespace{controller.cc}']]],
   ['newsr_12',['NewSR',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#aa665abe6a912720085f051b40f170dde',1,'yaze::app::zelda3::music::Tracker']]],
-  ['next_13',['next',['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a45a290ab1cc359c527b923b854601ccf',1,'yaze::app::gfx::lc_lz2::CompressionPiece::next'],['../structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html#a7801492e0f97172fb81475b324920f35',1,'yaze::app::zelda3::music::SPCCommand::next']]],
+  ['next_13',['next',['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a45a290ab1cc359c527b923b854601ccf',1,'yaze::app::gfx::lc_lz2::CompressionPiece::next'],['../structyaze_1_1app_1_1zelda3_1_1music_1_1SpcCommand.html#afe89b0bafd343106a7f19f08c55a710f',1,'yaze::app::zelda3::music::SpcCommand::next']]],
   ['next_5fcolumn_14',['NEXT_COLUMN',['../constants_8h.html#a90be36f2e92f476b5bb13517da51afbe',1,'constants.h']]],
   ['next_5fhoriz_5fevent_15',['next_horiz_event',['../classyaze_1_1app_1_1emu_1_1SNES.html#ac48a2aab8f015b498a70470c10b7d3f4',1,'yaze::app::emu::SNES']]],
   ['nextaction_16',['nextAction',['../classyaze_1_1app_1_1zelda3_1_1SpriteAction.html#ac19bf57775e62009080af01cd8442f2d',1,'yaze::app::zelda3::SpriteAction']]],

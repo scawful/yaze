@@ -1,6 +1,6 @@
 var tracker_8h =
 [
-    [ "yaze::app::zelda3::music::SongSPCBlock", "structyaze_1_1app_1_1zelda3_1_1music_1_1SongSPCBlock.html", "structyaze_1_1app_1_1zelda3_1_1music_1_1SongSPCBlock" ],
+    [ "yaze::app::zelda3::music::SongSpcBlock", "structyaze_1_1app_1_1zelda3_1_1music_1_1SongSpcBlock.html", "structyaze_1_1app_1_1zelda3_1_1music_1_1SongSpcBlock" ],
     [ "yaze::app::zelda3::music::SongRange", "structyaze_1_1app_1_1zelda3_1_1music_1_1SongRange.html", "structyaze_1_1app_1_1zelda3_1_1music_1_1SongRange" ],
     [ "yaze::app::zelda3::music::SongPart", "structyaze_1_1app_1_1zelda3_1_1music_1_1SongPart.html", "structyaze_1_1app_1_1zelda3_1_1music_1_1SongPart" ],
     [ "yaze::app::zelda3::music::Song", "structyaze_1_1app_1_1zelda3_1_1music_1_1Song.html", "structyaze_1_1app_1_1zelda3_1_1music_1_1Song" ],
@@ -8,7 +8,7 @@ var tracker_8h =
     [ "yaze::app::zelda3::music::SampleEdit", "structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html", "structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit" ],
     [ "yaze::app::zelda3::music::ZeldaInstrument", "structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaInstrument.html", "structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaInstrument" ],
     [ "yaze::app::zelda3::music::ZeldaSfxInstrument", "structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html", "structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaSfxInstrument" ],
-    [ "yaze::app::zelda3::music::SPCCommand", "structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand.html", "structyaze_1_1app_1_1zelda3_1_1music_1_1SPCCommand" ],
+    [ "yaze::app::zelda3::music::SpcCommand", "structyaze_1_1app_1_1zelda3_1_1music_1_1SpcCommand.html", "structyaze_1_1app_1_1zelda3_1_1music_1_1SpcCommand" ],
     [ "yaze::app::zelda3::music::Tracker", "classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html", "classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker" ],
     [ "text_buf_ty", "tracker_8h.html#ab66ec996d4cbc3cabec1adbb6d6a76de", null ],
     [ "op_len", "tracker_8h.html#af474276ff049f20df44cde7b0cd6c155", null ],
