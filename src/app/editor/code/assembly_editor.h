@@ -5,7 +5,7 @@
 
 #include "ImGuiColorTextEdit/TextEditor.h"
 #include "app/core/common.h"
-#include "app/editor/utils/editor.h"
+#include "app/editor/editor.h"
 #include "app/gui/style.h"
 
 namespace yaze {

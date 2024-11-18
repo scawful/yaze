@@ -22,7 +22,6 @@
 #include "app/emu/emulator.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
-#include "imgui/imgui.h"
 #include "yaze.h"
 
 namespace yaze {
@@ -57,6 +56,7 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
     active_editors_.push_back(&palette_editor_);
     active_editors_.push_back(&sprite_editor_);
     active_editors_.push_back(&message_editor_);
+    active_editors_.push_back(&screen_editor_);
   }
 
   void SetupScreen(std::string filename = "");

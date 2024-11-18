@@ -12,7 +12,7 @@
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/graphics/tile16_editor.h"
 #include "app/editor/overworld/entity.h"
-#include "app/editor/utils/editor.h"
+#include "app/editor/editor.h"
 #include "app/editor/utils/gfx_context.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"

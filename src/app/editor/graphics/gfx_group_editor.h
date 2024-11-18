@@ -1,20 +1,10 @@
 #ifndef YAZE_APP_EDITOR_GFX_GROUP_EDITOR_H
 #define YAZE_APP_EDITOR_GFX_GROUP_EDITOR_H
 
-#include <cmath>
-
 #include "absl/status/status.h"
-#include "absl/status/statusor.h"
-#include "app/editor/utils/editor.h"
-#include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
-#include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
-#include "app/gui/icons.h"
-#include "app/gui/style.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld/overworld.h"
-#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {

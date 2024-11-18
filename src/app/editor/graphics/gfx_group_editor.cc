@@ -1,7 +1,6 @@
 #include "gfx_group_editor.h"
 
 #include "absl/status/status.h"
-#include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"

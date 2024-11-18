@@ -3,7 +3,7 @@
 
 #include "absl/status/status.h"
 #include "app/editor/graphics/palette_editor.h"
-#include "app/editor/utils/editor.h"
+#include "app/editor/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/modules/asset_browser.h"

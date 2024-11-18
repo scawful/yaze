@@ -5,7 +5,7 @@
 #include <cmath>
 
 #include "app/editor/graphics/palette_editor.h"
-#include "app/editor/utils/editor.h"
+#include "app/editor/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"

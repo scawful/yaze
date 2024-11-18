@@ -4,7 +4,7 @@
 #include <array>
 
 #include "absl/status/status.h"
-#include "app/editor/utils/editor.h"
+#include "app/editor/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/tilesheet.h"
@@ -33,7 +33,7 @@ namespace editor {
  * The class inherits from the SharedRom class.
  */
 class ScreenEditor : public SharedRom, public Editor {
- public:
+public:
   ScreenEditor() {
     screen_canvas_.SetCanvasSize(ImVec2(512, 512));
     type_ = EditorType::kScreen;
@@ -50,7 +50,7 @@ class ScreenEditor : public SharedRom, public Editor {
 
   absl::Status SaveDungeonMaps();
 
- private:
+private:
   void DrawTitleScreenEditor();
   void DrawNamingScreenEditor();
   void DrawOverworldMapEditor();
@@ -60,13 +60,17 @@ class ScreenEditor : public SharedRom, public Editor {
   void DrawInventoryToolset();
 
   absl::Status LoadDungeonMaps();
-  absl::Status LoadDungeonMapTile16(const std::vector<uint8_t>& gfx_data,
+  absl::Status LoadDungeonMapTile16(const std::vector<uint8_t> &gfx_data,
                                     bool bin_mode = false);
   absl::Status SaveDungeonMapTile16();
   void DrawDungeonMapsTabs();
   void DrawDungeonMapsEditor();
 
   void LoadBinaryGfx();
+
+  enum class EditingMode { DRAW, EDIT };
+
+  EditingMode current_mode_ = EditingMode::DRAW;
 
   bool dungeon_maps_loaded_ = false;
   bool binary_gfx_loaded_ = false;
@@ -75,6 +79,7 @@ class ScreenEditor : public SharedRom, public Editor {
   uint8_t boss_room = 0;
 
   int selected_tile16_ = 0;
+  int selected_tile8_ = 0;
   int selected_dungeon = 0;
   int floor_number = 1;
 
@@ -98,13 +103,15 @@ class ScreenEditor : public SharedRom, public Editor {
   gui::Canvas current_tile_canvas_{"##CurrentTileCanvas"};
   gui::Canvas screen_canvas_;
   gui::Canvas tilesheet_canvas_;
-  gui::Canvas tilemap_canvas_;
+  gui::Canvas tilemap_canvas_{"##TilemapCanvas",
+                              ImVec2(128 + 2, (192) + 4),
+                              gui::CanvasGridSize::k8x8, 2.f};
 
   zelda3::screen::Inventory inventory_;
 };
 
-}  // namespace editor
-}  // namespace app
-}  // namespace yaze
+} // namespace editor
+} // namespace app
+} // namespace yaze
 
 #endif
