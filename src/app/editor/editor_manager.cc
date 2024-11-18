@@ -19,6 +19,7 @@
 #include "app/gui/input.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
+#include "editor/editor.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 
@@ -71,7 +72,10 @@ absl::Status EditorManager::Update() {
     rom_assets_loaded_ = true;
   }
 
-  ManageActiveEditors();
+  if (dynamic_layout_)
+    RETURN_IF_ERROR(DrawDynamicLayout())
+  else
+    ManageActiveEditors();
 
   return absl::OkStatus();
 }
@@ -239,6 +243,13 @@ void EditorManager::ManageActiveEditors() {
   }
 }
 
+absl::Status EditorManager::DrawDynamicLayout() {
+  // Dynamic layout for multiple editors to be open at once
+  // Allows for tiling and resizing of editors using ImGui
+
+  return DrawEditor(&root_layout_);
+}
+
 void EditorManager::ManageKeyboardShortcuts() {
   bool ctrl_or_super = (GetIO().KeyCtrl || GetIO().KeySuper);
 
@@ -296,6 +307,80 @@ void EditorManager::ManageKeyboardShortcuts() {
   if (IsKeyDown(ImGuiKey_F) && ctrl_or_super) {
     status_ = current_editor_->Find();
   }
+}
+
+void EditorManager::InitializeCommands() {
+  if (root_layout_.editor == nullptr) {
+    root_layout_.editor = &overworld_editor_;
+  }
+  
+  // New editor popup for window management commands
+  static EditorLayoutParams new_layout;
+  if (ImGui::BeginPopup("NewEditor")) {
+    ImGui::Text("New Editor");
+    ImGui::Separator();
+    if (ImGui::Button("Overworld")) {
+      new_layout.editor = &overworld_editor_;
+      ImGui::CloseCurrentPopup();
+    }
+    if (ImGui::Button("Dungeon")) {
+      new_layout.editor = &dungeon_editor_;
+      ImGui::CloseCurrentPopup();
+    }
+    if (ImGui::Button("Graphics")) {
+      new_layout.editor = &graphics_editor_;
+      ImGui::CloseCurrentPopup();
+    }
+    if (ImGui::Button("Music")) {
+      new_layout.editor = &music_editor_;
+      ImGui::CloseCurrentPopup();
+    }
+    if (ImGui::Button("Palette")) {
+      new_layout.editor = &palette_editor_;
+      ImGui::CloseCurrentPopup();
+    }
+    if (ImGui::Button("Screen")) {
+      new_layout.editor = &screen_editor_;
+      ImGui::CloseCurrentPopup();
+    }
+    if (ImGui::Button("Sprite")) {
+      new_layout.editor = &sprite_editor_;
+      ImGui::CloseCurrentPopup();
+    }
+    if (ImGui::Button("Code")) {
+      new_layout.editor = &assembly_editor_;
+      ImGui::CloseCurrentPopup();
+    }
+    if (ImGui::Button("Settings")) {
+      new_layout.editor = &settings_editor_;
+      ImGui::CloseCurrentPopup();
+    }
+    if (ImGui::Button("Message")) {
+      new_layout.editor = &message_editor_;
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+
+  command_manager_.RegisterPrefix("window", 'w', "window management", "");
+  command_manager_.RegisterSubcommand(
+      "window", "vsplit", '/', "vertical split",
+      "split windows vertically and place editor in new window", [this]() {
+        ImGui::OpenPopup("NewEditor");
+        root_layout_.v_split = true;
+      });
+  command_manager_.RegisterSubcommand(
+      "window", "hsplit", '-', "horizontal split",
+      "split windows horizontally and place editor in new window", [this]() {
+        ImGui::OpenPopup("NewEditor");
+        root_layout_.h_split = true;
+      });
+  command_manager_.RegisterSubcommand("window", "close", 'd', "close",
+                                      "close the current editor", [this]() {
+                                        if (root_layout_.editor != nullptr) {
+                                          root_layout_.editor = nullptr;
+                                        }
+                                      });
 }
 
 void EditorManager::DrawStatusPopup() {
@@ -557,6 +642,7 @@ void EditorManager::DrawYazeMenuBar() {
   }
 
   if (BeginMenu("View")) {
+    MenuItem("Dynamic Layout", nullptr, &dynamic_layout_);
     MenuItem("Emulator", nullptr, &show_emulator);
     Separator();
     MenuItem("Memory Editor", nullptr, &show_memory_editor);
@@ -572,7 +658,6 @@ void EditorManager::DrawYazeMenuBar() {
 
   static bool show_resource_label_manager = false;
   if (current_project_.project_opened_) {
-    // Project Menu
     if (BeginMenu("Project")) {
       Text("Name: %s", current_project_.name.c_str());
       Text("ROM: %s", current_project_.rom_filename_.c_str());
