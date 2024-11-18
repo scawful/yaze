@@ -48,7 +48,7 @@ IMGUI_API bool SnesColorEdit4(absl::string_view label, SnesColor* color,
       ImGui::ColorEdit4(label.data(), (float*)&displayColor.x, flags);
 
   color->set_rgb(displayColor);
-  color->set_snes(gfx::ConvertRGBtoSNES(displayColor));
+  color->set_snes(gfx::ConvertRgbToSnes(displayColor));
 
   return pressed;
 }
