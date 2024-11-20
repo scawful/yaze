@@ -351,5 +351,6 @@ absl::Status LoadAllPalettes(const std::vector<uint8_t> &rom_data,
 }
 
 }  // namespace gfx
+std::unordered_map<uint8_t, gfx::Paletteset> GfxContext::palettesets_;
 }  // namespace app
 }  // namespace yaze

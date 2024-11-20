@@ -15,14 +15,10 @@
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
-#include "app/editor/system/command_manager.h"
-#include "app/editor/system/constant_manager.h"
-#include "app/editor/system/extension_manager.h"
 #include "app/editor/system/settings_editor.h"
 #include "app/emu/emulator.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
-#include "yaze.h"
 
 namespace yaze {
 namespace app {
@@ -33,18 +29,11 @@ namespace editor {
  * @brief The EditorManager controls the main editor window and manages the
  * various editor classes.
  *
- * This class inherits from SharedRom and ExperimentFlags, and
- * provides functionality for setting up the screen, updating the editor, and
- * shutting down the editor. It also includes methods for drawing various menus
- * and popups, saving the Rom, and managing editor-specific flags.
- *
  * The EditorManager class contains instances of various editor classes such as
  * AssemblyEditor, DungeonEditor, GraphicsEditor, MusicEditor, OverworldEditor,
  * PaletteEditor, ScreenEditor, and SpriteEditor. The current_editor_ member
  * variable points to the currently active editor in the tab view.
  *
- * @note This class assumes the presence of an SDL_Renderer object for rendering
- * graphics.
  */
 class EditorManager : public SharedRom, public core::ExperimentFlags {
  public:
@@ -101,13 +90,12 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
   std::vector<Editor *> active_editors_;
   std::vector<EditorLayoutParams> active_layouts_;
 
+  EditorLayoutParams root_layout_;
+
   Project current_project_;
-  CommandManager command_manager_;
-  ConstantManager constant_manager_;
-  ExtensionManager extension_manager_;
+  EditorContext editor_context_;
 
   Editor *current_editor_ = nullptr;
-  EditorLayoutParams root_layout_;
   AssemblyEditor assembly_editor_;
   DungeonEditor dungeon_editor_;
   GraphicsEditor graphics_editor_;
@@ -119,8 +107,6 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
   SettingsEditor settings_editor_;
   MessageEditor message_editor_;
   MemoryEditorWithDiffChecker memory_editor_;
-
-  yaze_editor_context editor_context_;
 };
 
 }  // namespace editor

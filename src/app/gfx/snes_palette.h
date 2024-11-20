@@ -405,7 +405,17 @@ struct Paletteset {
   gfx::SnesPalette composite; /**< The composite palette. */
 };
 
-}  // namespace gfx
+} // namespace gfx
+/**
+ * @brief Shared graphical context across editors.
+ */
+class GfxContext {
+protected:
+  // Palettesets for the tile16 individual tiles
+  static std::unordered_map<uint8_t, gfx::Paletteset> palettesets_;
+};
+
+
 }  // namespace app
 }  // namespace yaze
 

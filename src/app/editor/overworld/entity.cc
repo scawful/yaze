@@ -1,5 +1,6 @@
 #include "app/editor/overworld/entity.h"
 
+#include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/style.h"
 

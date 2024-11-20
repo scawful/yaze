@@ -13,6 +13,7 @@
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
+#include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/modules/asset_browser.h"
 #include "app/gui/style.h"

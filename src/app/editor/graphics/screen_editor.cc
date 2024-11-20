@@ -398,6 +398,23 @@ void ScreenEditor::DrawDungeonMapsEditor() {
     }
   }
 
+  if (ImGui::BeginTable("##DungeonMapToolset", 2, ImGuiTableFlags_SizingFixedFit)) {
+    ImGui::TableSetupColumn("Draw Mode");
+    ImGui::TableSetupColumn("Edit Mode");
+
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_DRAW)) {
+      current_mode_ = EditingMode::DRAW;
+    }
+
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_EDIT)) {
+      current_mode_ = EditingMode::EDIT;
+    }
+
+    ImGui::EndTable();
+  }
+
   static std::vector<std::string> dungeon_names = {
       "Sewers/Sanctuary",   "Hyrule Castle", "Eastern Palace",
       "Desert Palace",      "Tower of Hera", "Agahnim's Tower",
@@ -483,13 +500,20 @@ void ScreenEditor::DrawDungeonMapsEditor() {
     ImGui::EndChild();
 
     ImGui::TableNextColumn();
-    tilemap_canvas_.DrawBackground(ImVec2(128 * 2 + 2, (192 * 2) + 4));
+    tilemap_canvas_.DrawBackground();
     tilemap_canvas_.DrawContextMenu();
-    tilemap_canvas_.DrawTileSelector(8.f);
+    if (tilemap_canvas_.DrawTileSelector(16.f)) {
+      // Get the tile8 ID to use for the tile16 drawing above
+      selected_tile8_ = tilemap_canvas_.GetTileIdFromMousePos();
+    }
     tilemap_canvas_.DrawBitmapTable(sheets_);
     tilemap_canvas_.DrawGrid();
     tilemap_canvas_.DrawOverlay();
+
+    ImGui::Text("Selected tile8: %d", selected_tile8_);
+
     ImGui::Separator();
+    ImGui::Text("For use with custom inserted graphics assembly patches.");
     if (ImGui::Button("Load GFX from BIN file")) LoadBinaryGfx();
 
     ImGui::EndTable();

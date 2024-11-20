@@ -8,12 +8,11 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/graphics/tile16_editor.h"
 #include "app/editor/overworld/entity.h"
-#include "app/editor/editor.h"
-#include "app/editor/utils/gfx_context.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -111,7 +110,7 @@ class EntranceContext {
 class OverworldEditor : public Editor,
                         public SharedRom,
                         public EntranceContext,
-                        public context::GfxContext,
+                        public GfxContext,
                         public core::ExperimentFlags {
  public:
   OverworldEditor() { type_ = EditorType::kOverworld; }
