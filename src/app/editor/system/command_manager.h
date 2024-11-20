@@ -15,6 +15,9 @@ ImGuiKey MapKeyToImGuiKey(char key);
 
 class CommandManager {
 public:
+  CommandManager() = default;
+  ~CommandManager() = default;
+  
   using Command = std::function<void()>;
 
   struct CommandInfo {

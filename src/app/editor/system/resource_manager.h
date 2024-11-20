@@ -10,8 +10,8 @@ namespace editor {
 // System resource manager.
 class ResourceManager {
  public:
-  ResourceManager();
-  ~ResourceManager();
+  ResourceManager() : count_(0) {}
+  ~ResourceManager() = default;
 
   void Load(const char* path);
   void Unload(const char* path);
