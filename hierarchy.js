@@ -83,6 +83,7 @@ var hierarchy =
       [ "yaze::app::editor::SpriteEditor", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html", null ],
       [ "yaze::test::integration::TestEditor", "classyaze_1_1test_1_1integration_1_1TestEditor.html", null ]
     ] ],
+    [ "yaze::app::editor::EditorContext", "structyaze_1_1app_1_1editor_1_1EditorContext.html", null ],
     [ "yaze::app::editor::EditorLayoutParams", "structyaze_1_1app_1_1editor_1_1EditorLayoutParams.html", null ],
     [ "yaze::app::emu::EmulatorKeybindings", "structyaze_1_1app_1_1emu_1_1EmulatorKeybindings.html", null ],
     [ "yaze::app::editor::EntranceContext", "classyaze_1_1app_1_1editor_1_1EntranceContext.html", [
@@ -115,13 +116,14 @@ var hierarchy =
       [ "yaze::app::zelda3::overworld::OverworldExit", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html", null ],
       [ "yaze::app::zelda3::overworld::OverworldItem", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldItem.html", null ]
     ] ],
-    [ "yaze::app::editor::context::GfxContext", "classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html", [
+    [ "yaze::app::GfxContext", "classyaze_1_1app_1_1GfxContext.html", [
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ],
       [ "yaze::app::editor::Tile16Editor", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html", null ],
       [ "yaze::app::zelda3::overworld::OverworldMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html", null ]
     ] ],
     [ "yaze::app::gui::GfxSheetAssetBrowser", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html", null ],
     [ "yaze::app::gfx::GraphicsBuffer", "classyaze_1_1app_1_1gfx_1_1GraphicsBuffer.html", null ],
+    [ "yaze::app::editor::HistoryManager", "classyaze_1_1app_1_1editor_1_1HistoryManager.html", null ],
     [ "ImGuiSelectionBasicStorage", null, [
       [ "yaze::app::gui::ExampleSelectionWithDeletion", "structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html", null ]
     ] ],
@@ -177,6 +179,7 @@ var hierarchy =
     [ "yaze::app::gfx::PaletteGroupMap", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html", null ],
     [ "yaze::app::gfx::Paletteset", "structyaze_1_1app_1_1gfx_1_1Paletteset.html", null ],
     [ "yaze::app::editor::ParsedElement", "structyaze_1_1app_1_1editor_1_1ParsedElement.html", null ],
+    [ "yaze::app::editor::PopupManager", "classyaze_1_1app_1_1editor_1_1PopupManager.html", null ],
     [ "yaze::app::emu::video::PpuInterface", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html", [
       [ "yaze::test::emu::MockPpu", "classyaze_1_1test_1_1emu_1_1MockPpu.html", null ]
     ] ],
@@ -184,6 +187,7 @@ var hierarchy =
     [ "yaze::app::RecentFilesManager", "classyaze_1_1app_1_1RecentFilesManager.html", null ],
     [ "yaze::app::core::Renderer", "classyaze_1_1app_1_1core_1_1Renderer.html", null ],
     [ "yaze::app::ResourceLabelManager", "structyaze_1_1app_1_1ResourceLabelManager.html", null ],
+    [ "yaze::app::editor::ResourceManager", "classyaze_1_1app_1_1editor_1_1ResourceManager.html", null ],
     [ "yaze::app::ResourceLabelManager::ResourceType", "structyaze_1_1app_1_1ResourceLabelManager_1_1ResourceType.html", null ],
     [ "yaze::app::zelda3::dungeon::RoomEntrance", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html", null ],
     [ "yaze::app::zelda3::music::SampleEdit", "structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html", null ],

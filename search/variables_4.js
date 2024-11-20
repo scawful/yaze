@@ -18,7 +18,7 @@ var searchData=
   ['editedfromeditor_15',['editedFromEditor',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#acd8b4977f977916542cc3acb0a09de49',1,'yaze::app::zelda3::screen::TitleScreen']]],
   ['editinst_16',['editinst',['../structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a03a77adaaeeb9bb626c9cb345aef15ba',1,'yaze::app::zelda3::music::SampleEdit']]],
   ['editor_17',['editor',['../structyaze_1_1app_1_1editor_1_1EditorLayoutParams.html#a6ae6a4fe1061f3891f102f61db08a46f',1,'yaze::app::editor::EditorLayoutParams::editor'],['../structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#acc342b1cba0b94980db3ccdde423c197',1,'yaze::app::editor::zsprite::ZSprite::editor'],['../structyaze_1_1app_1_1zelda3_1_1music_1_1SongRange.html#ac5e22bf5db971a805602326e85a3979f',1,'yaze::app::zelda3::music::SongRange::editor']]],
-  ['editor_5fcontext_5f_18',['editor_context_',['../classyaze_1_1app_1_1editor_1_1EditorManager.html#a96eef7e316c643bb0182df65a8bbda39',1,'yaze::app::editor::EditorManager']]],
+  ['editor_5fcontext_5f_18',['editor_context_',['../classyaze_1_1app_1_1editor_1_1EditorManager.html#abde02f398768a1a6db987411edf963a4',1,'yaze::app::editor::EditorManager']]],
   ['editor_5fmanager_5f_19',['editor_manager_',['../classyaze_1_1app_1_1core_1_1Controller.html#a246b251b2662cf167c9bef44447b031c',1,'yaze::app::core::Controller']]],
   ['editsamp_20',['editsamp',['../structyaze_1_1app_1_1zelda3_1_1music_1_1SampleEdit.html#a41909930a89fd120c517dee41bfc515a',1,'yaze::app::zelda3::music::SampleEdit']]],
   ['emulator_5f_21',['emulator_',['../classyaze_1_1app_1_1editor_1_1EditorManager.html#a6d9c86076813e1db3874e59826591ee9',1,'yaze::app::editor::EditorManager']]],
@@ -63,7 +63,7 @@ var searchData=
   ['expanded_5ftile32_5f_60',['expanded_tile32_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a09e3bc5bdc63b31b32b4b6074c7b9196',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['extbg_61',['extbg',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a759800c7b68e91f0289bc899fd02064b',1,'yaze::app::emu::video::PpuRegisters::SETINI']]],
   ['extend_5fui_62',['extend_ui',['../structyaze__extension.html#ae2c69e105138b9f02fdc2c79a3b7e1bf',1,'yaze_extension']]],
-  ['extension_5fmanager_5f_63',['extension_manager_',['../classyaze_1_1app_1_1editor_1_1EditorManager.html#a0dc4e071ef63fe80f44265c07bff4ac7',1,'yaze::app::editor::EditorManager']]],
+  ['extension_5fmanager_63',['extension_manager',['../structyaze_1_1app_1_1editor_1_1EditorContext.html#a0ff8d63a83a191c49eea293450ce00d0',1,'yaze::app::editor::EditorContext']]],
   ['extensions_5f_64',['extensions_',['../classyaze_1_1app_1_1editor_1_1ExtensionManager.html#a891ca5865b92f05b23befd30b2c8652f',1,'yaze::app::editor::ExtensionManager']]],
   ['external_5fsync_65',['external_sync',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a20dee2003c9c0ad373582fd62bd0fbea',1,'yaze::app::emu::video::PpuRegisters::SETINI']]],
   ['extra_5fcgx_5fdata_5f_66',['extra_cgx_data_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a748446fa56fa4560d5c9a30647f5fd7c',1,'yaze::app::editor::GraphicsEditor']]]

@@ -15,9 +15,6 @@ var annotated_dup =
           [ "SDL_Texture_Deleter", "structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter.html", "structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter" ]
         ] ],
         [ "editor", "namespaceyaze_1_1app_1_1editor.html", [
-          [ "context", "namespaceyaze_1_1app_1_1editor_1_1context.html", [
-            [ "GfxContext", "classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html", null ]
-          ] ],
           [ "palette_internal", "namespaceyaze_1_1app_1_1editor_1_1palette__internal.html", [
             [ "PaletteChange", "structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html", "structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange" ],
             [ "PaletteEditorHistory", "classyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html", "classyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteEditorHistory" ]
@@ -36,6 +33,7 @@ var annotated_dup =
           [ "DictionaryEntry", "structyaze_1_1app_1_1editor_1_1DictionaryEntry.html", "structyaze_1_1app_1_1editor_1_1DictionaryEntry" ],
           [ "DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", "classyaze_1_1app_1_1editor_1_1DungeonEditor" ],
           [ "Editor", "classyaze_1_1app_1_1editor_1_1Editor.html", "classyaze_1_1app_1_1editor_1_1Editor" ],
+          [ "EditorContext", "structyaze_1_1app_1_1editor_1_1EditorContext.html", null ],
           [ "EditorLayoutParams", "structyaze_1_1app_1_1editor_1_1EditorLayoutParams.html", "structyaze_1_1app_1_1editor_1_1EditorLayoutParams" ],
           [ "EditorManager", "classyaze_1_1app_1_1editor_1_1EditorManager.html", "classyaze_1_1app_1_1editor_1_1EditorManager" ],
           [ "EntranceContext", "classyaze_1_1app_1_1editor_1_1EntranceContext.html", "classyaze_1_1app_1_1editor_1_1EntranceContext" ],
@@ -46,6 +44,7 @@ var annotated_dup =
           [ "FlagsMenu", "structyaze_1_1app_1_1editor_1_1FlagsMenu.html", "structyaze_1_1app_1_1editor_1_1FlagsMenu" ],
           [ "GfxGroupEditor", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor" ],
           [ "GraphicsEditor", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html", "classyaze_1_1app_1_1editor_1_1GraphicsEditor" ],
+          [ "HistoryManager", "classyaze_1_1app_1_1editor_1_1HistoryManager.html", "classyaze_1_1app_1_1editor_1_1HistoryManager" ],
           [ "MemoryEditorWithDiffChecker", "structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html", "structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker" ],
           [ "MessageData", "structyaze_1_1app_1_1editor_1_1MessageData.html", "structyaze_1_1app_1_1editor_1_1MessageData" ],
           [ "MessageEditor", "classyaze_1_1app_1_1editor_1_1MessageEditor.html", "classyaze_1_1app_1_1editor_1_1MessageEditor" ],
@@ -53,6 +52,8 @@ var annotated_dup =
           [ "OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", "classyaze_1_1app_1_1editor_1_1OverworldEditor" ],
           [ "PaletteEditor", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html", "classyaze_1_1app_1_1editor_1_1PaletteEditor" ],
           [ "ParsedElement", "structyaze_1_1app_1_1editor_1_1ParsedElement.html", "structyaze_1_1app_1_1editor_1_1ParsedElement" ],
+          [ "PopupManager", "classyaze_1_1app_1_1editor_1_1PopupManager.html", "classyaze_1_1app_1_1editor_1_1PopupManager" ],
+          [ "ResourceManager", "classyaze_1_1app_1_1editor_1_1ResourceManager.html", "classyaze_1_1app_1_1editor_1_1ResourceManager" ],
           [ "ScreenEditor", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html", "classyaze_1_1app_1_1editor_1_1ScreenEditor" ],
           [ "SettingsEditor", "classyaze_1_1app_1_1editor_1_1SettingsEditor.html", "classyaze_1_1app_1_1editor_1_1SettingsEditor" ],
           [ "SpriteEditor", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html", "classyaze_1_1app_1_1editor_1_1SpriteEditor" ],
@@ -259,6 +260,7 @@ var annotated_dup =
           [ "SpriteBuilder", "classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html", "classyaze_1_1app_1_1zelda3_1_1SpriteBuilder" ],
           [ "SpriteInstruction", "classyaze_1_1app_1_1zelda3_1_1SpriteInstruction.html", "classyaze_1_1app_1_1zelda3_1_1SpriteInstruction" ]
         ] ],
+        [ "GfxContext", "classyaze_1_1app_1_1GfxContext.html", null ],
         [ "Project", "structyaze_1_1app_1_1Project.html", "structyaze_1_1app_1_1Project" ],
         [ "RecentFilesManager", "classyaze_1_1app_1_1RecentFilesManager.html", "classyaze_1_1app_1_1RecentFilesManager" ],
         [ "ResourceLabelManager", "structyaze_1_1app_1_1ResourceLabelManager.html", "structyaze_1_1app_1_1ResourceLabelManager" ],

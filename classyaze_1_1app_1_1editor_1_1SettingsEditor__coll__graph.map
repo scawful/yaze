@@ -1,5 +1,7 @@
 <map id="yaze::app::editor::SettingsEditor" name="yaze::app::editor::SettingsEditor">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,94,124,135"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="5,5,124,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="67,62,67,94,62,94,62,62"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,199,124,240"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="5,109,124,150"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="67,165,67,199,62,199,62,165"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1app_1_1editor_1_1EditorContext.html" title=" " alt="" coords="5,5,124,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="67,62,67,109,62,109,62,62"/>
 </map>

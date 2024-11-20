@@ -9,6 +9,7 @@ var namespaceyaze_1_1app =
     [ "gfx", "namespaceyaze_1_1app_1_1gfx.html", "namespaceyaze_1_1app_1_1gfx" ],
     [ "gui", "namespaceyaze_1_1app_1_1gui.html", "namespaceyaze_1_1app_1_1gui" ],
     [ "zelda3", "namespaceyaze_1_1app_1_1zelda3.html", "namespaceyaze_1_1app_1_1zelda3" ],
+    [ "GfxContext", "classyaze_1_1app_1_1GfxContext.html", null ],
     [ "Project", "structyaze_1_1app_1_1Project.html", "structyaze_1_1app_1_1Project" ],
     [ "RecentFilesManager", "classyaze_1_1app_1_1RecentFilesManager.html", "classyaze_1_1app_1_1RecentFilesManager" ],
     [ "ResourceLabelManager", "structyaze_1_1app_1_1ResourceLabelManager.html", "structyaze_1_1app_1_1ResourceLabelManager" ],

@@ -10,5 +10,6 @@ var classyaze_1_1app_1_1editor_1_1Editor =
     [ "Update", "classyaze_1_1app_1_1editor_1_1Editor.html#a6221b25a61099137266cede698ecbfd7", null ],
     [ "Find", "classyaze_1_1app_1_1editor_1_1Editor.html#aa3e4e4a595aeea6ff984d916e50f711b", null ],
     [ "type", "classyaze_1_1app_1_1editor_1_1Editor.html#ad64a4e6d3447ecaa2dce1f08684d364c", null ],
-    [ "type_", "classyaze_1_1app_1_1editor_1_1Editor.html#ab20ed881e86575206b5294a9fc8a9c6f", null ]
+    [ "type_", "classyaze_1_1app_1_1editor_1_1Editor.html#ab20ed881e86575206b5294a9fc8a9c6f", null ],
+    [ "context_", "classyaze_1_1app_1_1editor_1_1Editor.html#afb5ee6db56bbe024d4a6520dfc156d17", null ]
 ];

@@ -3,7 +3,7 @@
 <area shape="rect" id="Node000001" href="$classyaze_1_1app_1_1editor_1_1AssemblyEditor.html" title="Text editor for modifying assembly code." alt="" coords="278,5,396,46"/>
 <area shape="poly" id="edge2_Node000000_Node000001" title=" " alt="" coords="95,381,106,313,128,226,145,180,167,136,194,94,227,57,251,41,277,31,279,36,253,46,230,61,198,97,172,138,150,182,133,228,111,314,100,382"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1DungeonEditor.html" title="DungeonEditor class for editing dungeons." alt="" coords="278,1199,396,1239"/>
-<area shape="poly" id="edge3_Node000000_Node000002" title=" " alt="" coords="113,451,150,538,168,592,183,646,190,700,192,767,189,925,190,1005,196,1078,209,1140,218,1164,231,1184,252,1201,278,1211,277,1216,249,1206,227,1187,214,1167,203,1141,190,1079,185,1005,184,925,186,767,185,700,178,648,163,593,145,540,108,453"/>
+<area shape="poly" id="edge3_Node000000_Node000002" title=" " alt="" coords="113,451,149,541,168,597,183,653,190,706,191,773,189,928,190,1007,196,1080,209,1140,218,1165,231,1184,252,1201,278,1211,277,1216,249,1206,227,1187,214,1167,204,1142,191,1080,185,1007,184,928,186,773,184,706,178,654,163,598,144,543,108,453"/>
 <area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1editor_1_1GraphicsEditor.html" title="Allows the user to edit graphics sheets from the game or view prototype graphics." alt="" coords="278,593,396,634"/>
 <area shape="poly" id="edge4_Node000000_Node000011" title=" " alt="" coords="116,450,163,515,194,549,230,578,253,591,278,600,277,605,251,595,227,583,191,553,159,519,112,453"/>
 <area shape="rect" id="Node000013" href="$classyaze_1_1app_1_1editor_1_1MessageEditor.html" title=" " alt="" coords="278,528,396,569"/>
@@ -43,12 +43,12 @@
 <area shape="poly" id="edge23_Node000003_Node000032" title=" " alt="" coords="195,1970,265,1953,266,1958,197,1975"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1test_1_1MockRom.html" title=" " alt="" coords="494,2082,634,2108"/>
 <area shape="poly" id="edge16_Node000005_Node000006" title=" " alt="" coords="406,2092,494,2092,494,2098,406,2098"/>
-<area shape="rect" id="Node000017" href="$classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html" title="Shared graphical context across editors." alt="" coords="26,659,160,699"/>
-<area shape="poly" id="edge24_Node000017_Node000015" title=" " alt="" coords="175,698,278,726,277,731,174,703"/>
+<area shape="rect" id="Node000017" href="$classyaze_1_1app_1_1GfxContext.html" title="Shared graphical context across editors." alt="" coords="21,666,165,692"/>
+<area shape="poly" id="edge24_Node000017_Node000015" title=" " alt="" coords="159,694,278,726,277,731,158,699"/>
 <area shape="rect" id="Node000018" href="$classyaze_1_1app_1_1editor_1_1Tile16Editor.html" title="Popup window to edit Tile16 data." alt="" coords="278,659,396,699"/>
-<area shape="poly" id="edge25_Node000017_Node000018" title=" " alt="" coords="175,676,278,676,278,682,175,682"/>
+<area shape="poly" id="edge25_Node000017_Node000018" title=" " alt="" coords="181,676,278,676,278,682,181,682"/>
 <area shape="rect" id="Node000019" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html" title="Represents a single Overworld map screen." alt="" coords="254,267,421,307"/>
-<area shape="poly" id="edge26_Node000017_Node000019" title=" " alt="" coords="105,643,178,449,188,411,193,379,203,349,227,318,252,302,255,306,230,322,208,352,199,380,194,412,183,450,110,645"/>
+<area shape="poly" id="edge26_Node000017_Node000019" title=" " alt="" coords="102,650,178,449,188,411,193,379,203,349,227,318,252,302,255,306,230,322,208,352,199,380,194,412,183,450,107,652"/>
 <area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="19,985,167,1010"/>
 <area shape="poly" id="edge27_Node000009_Node000002" title=" " alt="" coords="109,1023,128,1060,155,1103,189,1146,230,1184,253,1197,279,1206,277,1211,251,1201,227,1188,185,1150,151,1106,123,1062,104,1026"/>
 <area shape="poly" id="edge30_Node000009_Node000011" title=" " alt="" coords="103,969,178,775,188,737,194,705,203,676,227,645,251,629,277,619,279,624,253,634,230,649,208,678,199,707,194,738,183,777,108,971"/>

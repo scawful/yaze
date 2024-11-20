@@ -1,24 +1,7 @@
 var searchData=
 [
-  ['oamaddh_0',['OAMADDH',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['oamaddl_1',['OAMADDL',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDL.html',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['oamaddress_2',['OAMAddress',['../structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html',1,'yaze::app::emu::video']]],
-  ['oamconfig_3',['OAMConfig',['../structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html',1,'yaze::app::editor::SpriteEditor']]],
-  ['oamdata_4',['OAMDATA',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMDATA.html',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['oamdataread_5',['OAMDATAREAD',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMDATAREAD.html',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['oamsize_6',['OAMSize',['../structyaze_1_1app_1_1emu_1_1video_1_1OAMSize.html',1,'yaze::app::emu::video']]],
-  ['oamtile_7',['OamTile',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html',1,'yaze::app::editor::zsprite::OamTile'],['../classyaze_1_1app_1_1gfx_1_1OamTile.html',1,'yaze::app::gfx::OamTile']]],
-  ['objsel_8',['OBJSEL',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OBJSEL.html',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['open_9',['Open',['../classyaze_1_1cli_1_1Open.html',1,'yaze::cli']]],
-  ['ophct_10',['OPHCT',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OPHCT.html',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['opvct_11',['OPVCT',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OPVCT.html',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['overworld_12',['Overworld',['../structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html',1,'yaze::app::core::ExperimentFlags::Flags::Overworld'],['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html',1,'yaze::app::zelda3::overworld::Overworld']]],
-  ['overworldasset_13',['OverworldAsset',['../structyaze_1_1app_1_1gui_1_1OverworldAsset.html',1,'yaze::app::gui']]],
-  ['overworldeditor_14',['OverworldEditor',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html',1,'yaze::app::editor']]],
-  ['overworldentrance_15',['OverworldEntrance',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance.html',1,'yaze::app::zelda3::overworld']]],
-  ['overworldexit_16',['OverworldExit',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html',1,'yaze::app::zelda3::overworld']]],
-  ['overworlditem_17',['OverworldItem',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldItem.html',1,'yaze::app::zelda3::overworld']]],
-  ['overworldmap_18',['OverworldMap',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html',1,'yaze::app::zelda3::overworld']]],
-  ['overworldtest_19',['OverworldTest',['../classyaze_1_1test_1_1zelda3_1_1OverworldTest.html',1,'yaze::test::zelda3']]],
-  ['owmaptiles_20',['OWMapTiles',['../structyaze_1_1app_1_1zelda3_1_1OWMapTiles.html',1,'yaze::app::zelda3']]]
+  ['node_0',['Node',['../structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html',1,'yaze::app::gui::zeml']]],
+  ['notifyvalue_1',['NotifyValue',['../classyaze_1_1app_1_1core_1_1NotifyValue.html',1,'yaze::app::core']]],
+  ['notifyvalue_3c_20uint32_5ft_20_3e_2',['NotifyValue&lt; uint32_t &gt;',['../classyaze_1_1app_1_1core_1_1NotifyValue.html',1,'yaze::app::core']]],
+  ['notifyvalue_3c_20uint8_5ft_20_3e_3',['NotifyValue&lt; uint8_t &gt;',['../classyaze_1_1app_1_1core_1_1NotifyValue.html',1,'yaze::app::core']]]
 ];

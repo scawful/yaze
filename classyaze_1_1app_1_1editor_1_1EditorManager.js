@@ -30,12 +30,10 @@ var classyaze_1_1app_1_1editor_1_1EditorManager =
     [ "emulator_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a6d9c86076813e1db3874e59826591ee9", null ],
     [ "active_editors_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#af734af1372e9d34f76bc1ce1b9c7625b", null ],
     [ "active_layouts_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#aaeed0daf90ff9a51f619f99c739ee16f", null ],
-    [ "current_project_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a910841c4251150731903413688f87871", null ],
-    [ "command_manager_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a711937e26c890d83e8bbc8f1cba5dad2", null ],
-    [ "constant_manager_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a5f0c8aae871d92b5f23ab4268f5773a9", null ],
-    [ "extension_manager_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a0dc4e071ef63fe80f44265c07bff4ac7", null ],
-    [ "current_editor_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a56e26759d69d39c8cc69bf1f0c86a3a0", null ],
     [ "root_layout_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a60a213ed43c50a4865a80200ff9f82f9", null ],
+    [ "current_project_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a910841c4251150731903413688f87871", null ],
+    [ "editor_context_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#abde02f398768a1a6db987411edf963a4", null ],
+    [ "current_editor_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a56e26759d69d39c8cc69bf1f0c86a3a0", null ],
     [ "assembly_editor_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a137c0c38e891f5b0d0af9ed3b4b708d2", null ],
     [ "dungeon_editor_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#ac93802a4002d5181ad12ec326c473666", null ],
     [ "graphics_editor_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a1e23450815af793f55767edc76bf16f7", null ],
@@ -46,6 +44,5 @@ var classyaze_1_1app_1_1editor_1_1EditorManager =
     [ "sprite_editor_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a065e1f8da032854e49e6860e35886994", null ],
     [ "settings_editor_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a2d8ec234fa376cb22f11b3cc51a4c7c6", null ],
     [ "message_editor_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#abd5a763bac833dd2b521b2d2e152b5dc", null ],
-    [ "memory_editor_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#ab1085fc55e4f07e6eb01d37b609b6d61", null ],
-    [ "editor_context_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#a96eef7e316c643bb0182df65a8bbda39", null ]
+    [ "memory_editor_", "classyaze_1_1app_1_1editor_1_1EditorManager.html#ab1085fc55e4f07e6eb01d37b609b6d61", null ]
 ];

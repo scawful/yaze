@@ -1,5 +1,5 @@
 <map id="yaze::app::zelda3::overworld::OverworldMap" name="yaze::app::zelda3::overworld::OverworldMap">
-<area shape="rect" id="Node000001" title="Represents a single Overworld map screen." alt="" coords="5,94,173,135"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html" title="Shared graphical context across editors." alt="" coords="22,5,156,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,62,92,94,86,94,86,62"/>
+<area shape="rect" id="Node000001" title="Represents a single Overworld map screen." alt="" coords="5,79,173,120"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1GfxContext.html" title="Shared graphical context across editors." alt="" coords="17,5,161,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,46,92,79,86,79,86,46"/>
 </map>

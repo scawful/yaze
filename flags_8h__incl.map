@@ -1,5 +1,5 @@
-<map id="src/app/editor/utils/flags.h" name="src/app/editor/utils/flags.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="307,5,436,46"/>
+<map id="src/app/editor/system/flags.h" name="src/app/editor/system/flags.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="298,5,445,46"/>
 <area shape="rect" id="Node000002" href="$core_2common_8h.html" title=" " alt="" coords="252,94,363,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="358,48,329,83,325,80,354,45"/>
 <area shape="rect" id="Node000010" title=" " alt="" coords="387,94,484,120"/>
