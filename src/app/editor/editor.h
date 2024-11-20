@@ -20,11 +20,11 @@ namespace app {
 namespace editor {
 
 struct EditorContext {
-  static ConstantManager constant_manager;
-  static CommandManager command_manager;
-  static ExtensionManager extension_manager;
-  static HistoryManager history_manager;
-  static ResourceManager resource_manager;
+  ConstantManager constant_manager;
+  CommandManager command_manager;
+  ExtensionManager extension_manager;
+  HistoryManager history_manager;
+  ResourceManager resource_manager;
 };
 
 enum class EditorType {
@@ -52,7 +52,7 @@ constexpr std::array<const char *, 10> kEditorNames = {
  * Provides basic editing operations that each editor should implement.
  */
 class Editor {
-public:
+ public:
   Editor() = default;
   virtual ~Editor() = default;
 
@@ -69,7 +69,7 @@ public:
 
   EditorType type() const { return type_; }
 
-protected:
+ protected:
   EditorType type_;
   EditorContext context_;
 };
@@ -98,8 +98,8 @@ typedef struct EditorLayoutParams {
 
 absl::Status DrawEditor(EditorLayoutParams *params);
 
-} // namespace editor
-} // namespace app
-} // namespace yaze
+}  // namespace editor
+}  // namespace app
+}  // namespace yaze
 
-#endif // YAZE_APP_CORE_EDITOR_H
+#endif  // YAZE_APP_CORE_EDITOR_H
