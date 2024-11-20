@@ -9,6 +9,7 @@
 
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
+#include "absl/container/flat_hash_map.h"
 
 namespace yaze {
 namespace app {
@@ -18,8 +19,6 @@ namespace app {
  * @brief Core application logic and utilities.
  */
 namespace core {
-
-constexpr std::string_view kYazeVersion = "0.2.1";
 
 std::string UppercaseHexByte(uint8_t byte, bool leading = false);
 std::string UppercaseHexWord(uint16_t word, bool leading = false);
@@ -34,7 +33,7 @@ bool StringReplace(std::string &str, const std::string &from,
  * @brief A class to manage experimental feature flags.
  */
 class ExperimentFlags {
- public:
+public:
   struct Flags {
     // Log instructions to the GUI debugger.
     bool kLogInstructions = true;
@@ -150,7 +149,7 @@ class ExperimentFlags {
     return result;
   }
 
- private:
+private:
   static std::shared_ptr<Flags> flags_;
 };
 
@@ -159,9 +158,8 @@ class ExperimentFlags {
  * @brief A class to manage a value that can be modified and notify when it
  * changes.
  */
-template <typename T>
-class NotifyValue {
- public:
+template <typename T> class NotifyValue {
+public:
   NotifyValue() : value_(), modified_(false), temp_value_() {}
   NotifyValue(const T &value)
       : value_(value), modified_(false), temp_value_() {}
@@ -194,7 +192,7 @@ class NotifyValue {
 
   bool modified() const { return modified_; }
 
- private:
+private:
   T value_;
   bool modified_;
   T temp_value_;
@@ -213,8 +211,29 @@ static void logf(const absl::FormatSpec<Args...> &format, const Args &...args) {
   fout << message << std::endl;
 }
 
+struct StructuredLog {
+  std::string raw_message;
+  std::string category;
+};
+
+static absl::flat_hash_map<std::string, std::vector<std::string>> log_categories;
+
+template <typename... Args>
+static void logm(const std::string &category,
+                 const absl::FormatSpec<Args...> &format, const Args &...args) {
+  std::string message = absl::StrFormat(format, args...);
+  if (log_to_console) {
+    std::cout << category << ": " << message << std::endl;
+  }
+  if (log_categories.contains(category)) {
+    log_categories[category].push_back(message);
+  } else {
+    log_categories[category] = {message};
+  }
+}
+
 class Logger {
- public:
+public:
   static void log(std::string message) {
     static std::ofstream fout(log_file_out, std::ios::out | std::ios::app);
     fout << message << std::endl;
@@ -291,10 +310,12 @@ void ApplyBpsPatch(const std::vector<uint8_t> &source,
                    const std::vector<uint8_t> &patch,
                    std::vector<uint8_t> &target);
 
+constexpr std::string_view kYazeVersion = "0.2.1";
+
 absl::StatusOr<std::string> CheckVersion(const char *version);
 
-}  // namespace core
-}  // namespace app
-}  // namespace yaze
+} // namespace core
+} // namespace app
+} // namespace yaze
 
 #endif
