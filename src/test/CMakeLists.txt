@@ -11,7 +11,6 @@ add_executable(
   test/zelda3/sprite_builder_test.cc
   app/rom.cc
   app/core/common.cc
-  app/editor/utils/gfx_context.cc
   ${ASAR_STATIC_SRC}
   ${YAZE_APP_CORE_SRC}
   ${YAZE_APP_EMU_SRC}

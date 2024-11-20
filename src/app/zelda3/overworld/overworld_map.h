@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/editor/utils/gfx_context.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
@@ -60,7 +59,7 @@ constexpr int OverworldCustomTileGFXGroupEnabled = 0x140148;
 /**
  * @brief Represents a single Overworld map screen.
  */
-class OverworldMap : public editor::context::GfxContext {
+class OverworldMap : public GfxContext {
  public:
   OverworldMap() = default;
   OverworldMap(int index, Rom& rom, bool load_custom_data = false);

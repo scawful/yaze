@@ -2,7 +2,6 @@
 
 #include <fstream>
 
-#include "app/editor/editor.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -74,11 +73,7 @@ ImGuiKey MapKeyToImGuiKey(char key) {
 
 // When the player presses Space, a popup will appear fixed to the bottom of the
 // ImGui window with a list of the available key commands which can be used.
-void CommandManager::ShowWhichKey(EditorLayoutParams *editor_layout) {
-  if (commands_.empty()) {
-    InitializeDefaults();
-  }
-
+void CommandManager::ShowWhichKey() {
   if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
     ImGui::OpenPopup("WhichKey");
   }
@@ -117,19 +112,7 @@ void CommandManager::ShowWhichKey(EditorLayoutParams *editor_layout) {
     }
     ImGui::EndPopup();
   }
-
-  // if the user presses the shortcut key, execute the command
-  // or if it is a subcommand prefix, wait for the next key
-  // to determine the subcommand
-  static bool subcommand_section = false;
-  for (const auto &[shortcut, info] : commands_) {
-    if (ImGui::IsKeyPressed(MapKeyToImGuiKey(shortcut[0]))) {
-      info.command_info.command();
-    }
-  }
 }
-
-void CommandManager::InitializeDefaults() {}
 
 void CommandManager::SaveKeybindings(const std::string &filepath) {
   std::ofstream out(filepath);

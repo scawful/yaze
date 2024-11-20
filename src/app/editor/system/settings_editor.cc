@@ -2,7 +2,7 @@
 #include "app/editor/system/settings_editor.h"
 
 #include "absl/status/status.h"
-#include "app/editor/utils/flags.h"
+#include "app/editor/system/flags.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

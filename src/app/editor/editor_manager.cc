@@ -13,7 +13,7 @@
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
-#include "app/editor/utils/flags.h"
+#include "app/editor/system/flags.h"
 #include "app/emu/emulator.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
@@ -54,6 +54,7 @@ void EditorManager::SetupScreen(std::string filename) {
     PRINT_IF_ERROR(rom()->LoadFromFile(filename));
   }
   overworld_editor_.InitializeZeml();
+  InitializeCommands();
 }
 
 absl::Status EditorManager::Update() {
@@ -246,14 +247,13 @@ void EditorManager::ManageActiveEditors() {
 absl::Status EditorManager::DrawDynamicLayout() {
   // Dynamic layout for multiple editors to be open at once
   // Allows for tiling and resizing of editors using ImGui
-
   return DrawEditor(&root_layout_);
 }
 
 void EditorManager::ManageKeyboardShortcuts() {
   bool ctrl_or_super = (GetIO().KeyCtrl || GetIO().KeySuper);
 
-  command_manager_.ShowWhichKey();
+  editor_context_.command_manager.ShowWhichKey();
 
   // If CMD + R is pressed, reload the top result of recent files
   if (IsKeyDown(ImGuiKey_R) && ctrl_or_super) {
@@ -313,7 +313,7 @@ void EditorManager::InitializeCommands() {
   if (root_layout_.editor == nullptr) {
     root_layout_.editor = &overworld_editor_;
   }
-  
+
   // New editor popup for window management commands
   static EditorLayoutParams new_layout;
   if (ImGui::BeginPopup("NewEditor")) {
@@ -362,25 +362,26 @@ void EditorManager::InitializeCommands() {
     ImGui::EndPopup();
   }
 
-  command_manager_.RegisterPrefix("window", 'w', "window management", "");
-  command_manager_.RegisterSubcommand(
+  editor_context_.command_manager.RegisterPrefix("window", 'w',
+                                                 "window management", "");
+  editor_context_.command_manager.RegisterSubcommand(
       "window", "vsplit", '/', "vertical split",
       "split windows vertically and place editor in new window", [this]() {
         ImGui::OpenPopup("NewEditor");
         root_layout_.v_split = true;
       });
-  command_manager_.RegisterSubcommand(
+  editor_context_.command_manager.RegisterSubcommand(
       "window", "hsplit", '-', "horizontal split",
       "split windows horizontally and place editor in new window", [this]() {
         ImGui::OpenPopup("NewEditor");
         root_layout_.h_split = true;
       });
-  command_manager_.RegisterSubcommand("window", "close", 'd', "close",
-                                      "close the current editor", [this]() {
-                                        if (root_layout_.editor != nullptr) {
-                                          root_layout_.editor = nullptr;
-                                        }
-                                      });
+  editor_context_.command_manager.RegisterSubcommand(
+      "window", "close", 'd', "close", "close the current editor", [this]() {
+        if (root_layout_.editor != nullptr) {
+          root_layout_.editor = nullptr;
+        }
+      });
 }
 
 void EditorManager::DrawStatusPopup() {

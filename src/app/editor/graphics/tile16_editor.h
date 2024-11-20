@@ -4,7 +4,6 @@
 #include "absl/status/status.h"
 #include "app/core/common.h"
 #include "app/editor/graphics/palette_editor.h"
-#include "app/editor/utils/gfx_context.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -20,7 +19,7 @@ namespace editor {
 /**
  * @brief Popup window to edit Tile16 data
  */
-class Tile16Editor : public context::GfxContext, public SharedRom {
+class Tile16Editor : public GfxContext, public SharedRom {
  public:
   absl::Status InitBlockset(const gfx::Bitmap& tile16_blockset_bmp,
                             const gfx::Bitmap& current_gfx_bmp,

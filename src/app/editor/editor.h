@@ -1,7 +1,14 @@
 #ifndef YAZE_APP_CORE_EDITOR_H
 #define YAZE_APP_CORE_EDITOR_H
 
+#include <array>
+
 #include "absl/status/status.h"
+#include "app/editor/system/command_manager.h"
+#include "app/editor/system/constant_manager.h"
+#include "app/editor/system/extension_manager.h"
+#include "app/editor/system/history_manager.h"
+#include "app/editor/system/resource_manager.h"
 
 namespace yaze {
 namespace app {
@@ -11,6 +18,14 @@ namespace app {
  * @brief Editors are the view controllers for the application.
  */
 namespace editor {
+
+struct EditorContext {
+  static ConstantManager constant_manager;
+  static CommandManager command_manager;
+  static ExtensionManager extension_manager;
+  static HistoryManager history_manager;
+  static ResourceManager resource_manager;
+};
 
 enum class EditorType {
   kAssembly,
@@ -25,7 +40,7 @@ enum class EditorType {
   kSettings,
 };
 
-constexpr std::array<const char*, 10> kEditorNames = {
+constexpr std::array<const char *, 10> kEditorNames = {
     "Assembly", "Dungeon", "Graphics", "Music",   "Overworld",
     "Palette",  "Screen",  "Sprite",   "Message", "Settings",
 };
@@ -37,7 +52,7 @@ constexpr std::array<const char*, 10> kEditorNames = {
  * Provides basic editing operations that each editor should implement.
  */
 class Editor {
- public:
+public:
   Editor() = default;
   virtual ~Editor() = default;
 
@@ -54,8 +69,9 @@ class Editor {
 
   EditorType type() const { return type_; }
 
- protected:
+protected:
   EditorType type_;
+  EditorContext context_;
 };
 
 /**
@@ -82,8 +98,8 @@ typedef struct EditorLayoutParams {
 
 absl::Status DrawEditor(EditorLayoutParams *params);
 
-}  // namespace editor
-}  // namespace app
-}  // namespace yaze
+} // namespace editor
+} // namespace app
+} // namespace yaze
 
-#endif  // YAZE_APP_CORE_EDITOR_H
+#endif // YAZE_APP_CORE_EDITOR_H

@@ -2,19 +2,7 @@
 #define YAZE_APP_EDITOR_SYSTEM_CONSTANT_MANAGER_H
 
 #include <cstddef>
-#include <cstdint>
-#include <memory>
-#include <unordered_map>
-#include <vector>
 
-#include "absl/status/status.h"
-#include "app/editor/utils/gfx_context.h"
-#include "app/gfx/bitmap.h"
-#include "app/gfx/snes_palette.h"
-#include "app/gfx/snes_tile.h"
-#include "app/rom.h"
-#include "app/zelda3/common.h"
-#include "app/zelda3/overworld/overworld.h"
 #include "app/zelda3/overworld/overworld_map.h"
 #include "imgui/imgui.h"
 

@@ -5,7 +5,6 @@
 #include <string>
 #include <unordered_map>
 
-#include "app/editor/editor.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -65,9 +64,7 @@ public:
     }
   }
 
-  void ShowWhichKey(EditorLayoutParams *editor_layout = nullptr);
-
-  void InitializeDefaults();
+  void ShowWhichKey();
 
   void SaveKeybindings(const std::string &filepath);
   void LoadKeybindings(const std::string &filepath);

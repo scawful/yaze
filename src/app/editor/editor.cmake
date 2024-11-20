@@ -14,7 +14,6 @@ set(
   app/editor/graphics/palette_editor.cc
   app/editor/graphics/tile16_editor.cc
   app/editor/graphics/gfx_group_editor.cc
-  app/editor/utils/gfx_context.cc
   app/editor/overworld/entity.cc
   app/editor/system/settings_editor.cc
   app/editor/system/command_manager.cc
