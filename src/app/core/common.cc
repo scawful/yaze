@@ -4,20 +4,13 @@
 
 #include <cstdint>
 #include <cstring>
-#include <fstream>
 #include <memory>
-#include <sstream>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
-#include "app/core/constants.h"
-#include "app/gui/icons.h"
-#include "imgui/imgui.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
 
 namespace yaze {
 namespace app {
