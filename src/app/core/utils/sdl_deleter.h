@@ -20,7 +20,7 @@ struct SDL_Deleter {
  */
 struct SDL_Texture_Deleter {
   void operator()(SDL_Texture *p) const {
-    if (p == nullptr) SDL_DestroyTexture(p);
+    SDL_DestroyTexture(p);
   }
 };
 
@@ -29,8 +29,7 @@ struct SDL_Texture_Deleter {
  */
 struct SDL_Surface_Deleter {
   void operator()(SDL_Surface *p) const {
-    // Check if the surface is not null
-    if (p == nullptr) SDL_FreeSurface(p);
+    SDL_FreeSurface(p);
   }
 };
 
