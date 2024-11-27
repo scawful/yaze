@@ -2,17 +2,12 @@
 #define YAZE_APP_EMU_SNES_H
 
 #include <cstdint>
-#include <memory>
-#include <string>
-#include <thread>
 
 #include "app/emu/audio/apu.h"
-#include "app/emu/audio/spc700.h"
 #include "app/emu/cpu/clock.h"
 #include "app/emu/cpu/cpu.h"
 #include "app/emu/memory/memory.h"
 #include "app/emu/video/ppu.h"
-#include "app/rom.h"
 
 namespace yaze {
 namespace app {

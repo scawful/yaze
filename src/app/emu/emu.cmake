@@ -11,6 +11,11 @@ add_executable(
   ${IMGUI_SRC}
 )
 
+if (APPLE)
+  list(APPEND YAZE_APP_CORE_SRC
+  app/core/platform/app_delegate.mm)
+endif()
+
 target_include_directories(
   yaze_emu PUBLIC
   lib/
