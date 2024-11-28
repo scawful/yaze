@@ -9,24 +9,24 @@ namespace emu {
 namespace memory {
 
 typedef struct DmaChannel {
-  uint8_t bAdr;
-  uint16_t aAdr;
-  uint8_t aBank;
-  uint16_t size;      // also indirect hdma adr
-  uint8_t indBank;    // hdma
-  uint16_t tableAdr;  // hdma
-  uint8_t repCount;   // hdma
+  uint8_t b_addr;
+  uint16_t a_addr;
+  uint8_t a_bank;
+  uint16_t size;        // also indirect hdma adr
+  uint8_t ind_bank;     // hdma
+  uint16_t table_addr;  // hdma
+  uint8_t rep_count;    // hdma
   uint8_t unusedByte;
-  bool dmaActive;
-  bool hdmaActive;
+  bool dma_active;
+  bool hdma_active;
   uint8_t mode;
   bool fixed;
   bool decrement;
   bool indirect;  // hdma
-  bool fromB;
+  bool from_b;
   bool unusedBit;
-  bool doTransfer;  // hdma
-  bool terminated;  // hdma
+  bool do_transfer;  // hdma
+  bool terminated;   // hdma
 } DmaChannel;
 
 }  // namespace memory

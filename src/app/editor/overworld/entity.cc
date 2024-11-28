@@ -1,5 +1,6 @@
 #include "app/editor/overworld/entity.h"
 
+#include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/style.h"
 
@@ -8,7 +9,6 @@ namespace app {
 namespace editor {
 
 using ImGui::BeginChild;
-using ImGui::BeginGroup;
 using ImGui::Button;
 using ImGui::Checkbox;
 using ImGui::EndChild;
@@ -16,7 +16,9 @@ using ImGui::SameLine;
 using ImGui::Selectable;
 using ImGui::Text;
 
-bool IsMouseHoveringOverEntity(const zelda3::OverworldEntity &entity,
+constexpr float kInputFieldSize = 30.f;
+
+bool IsMouseHoveringOverEntity(const zelda3::GameEntity &entity,
                                ImVec2 canvas_p0, ImVec2 scrolling) {
   // Get the mouse position relative to the canvas
   const ImGuiIO &io = ImGui::GetIO();
@@ -31,7 +33,7 @@ bool IsMouseHoveringOverEntity(const zelda3::OverworldEntity &entity,
   return false;
 }
 
-void MoveEntityOnGrid(zelda3::OverworldEntity *entity, ImVec2 canvas_p0,
+void MoveEntityOnGrid(zelda3::GameEntity *entity, ImVec2 canvas_p0,
                       ImVec2 scrolling, bool free_movement) {
   // Get the mouse position relative to the canvas
   const ImGuiIO &io = ImGui::GetIO();
@@ -51,19 +53,20 @@ void MoveEntityOnGrid(zelda3::OverworldEntity *entity, ImVec2 canvas_p0,
   entity->set_y(new_y);
 }
 
-void HandleEntityDragging(zelda3::OverworldEntity *entity, ImVec2 canvas_p0,
+void HandleEntityDragging(zelda3::GameEntity *entity, ImVec2 canvas_p0,
                           ImVec2 scrolling, bool &is_dragging_entity,
-                          zelda3::OverworldEntity *&dragged_entity,
-                          zelda3::OverworldEntity *&current_entity,
+                          zelda3::GameEntity *&dragged_entity,
+                          zelda3::GameEntity *&current_entity,
                           bool free_movement) {
   std::string entity_type = "Entity";
-  if (entity->type_ == zelda3::OverworldEntity::EntityType::kExit) {
+  if (entity->entity_type_ == zelda3::GameEntity::EntityType::kExit) {
     entity_type = "Exit";
-  } else if (entity->type_ == zelda3::OverworldEntity::EntityType::kEntrance) {
+  } else if (entity->entity_type_ ==
+             zelda3::GameEntity::EntityType::kEntrance) {
     entity_type = "Entrance";
-  } else if (entity->type_ == zelda3::OverworldEntity::EntityType::kSprite) {
+  } else if (entity->entity_type_ == zelda3::GameEntity::EntityType::kSprite) {
     entity_type = "Sprite";
-  } else if (entity->type_ == zelda3::OverworldEntity::EntityType::kItem) {
+  } else if (entity->entity_type_ == zelda3::GameEntity::EntityType::kItem) {
     entity_type = "Item";
   }
   const auto is_hovering =
@@ -87,7 +90,7 @@ void HandleEntityDragging(zelda3::OverworldEntity *entity, ImVec2 canvas_p0,
   } else if (is_dragging_entity && dragged_entity == entity) {
     if (ImGui::BeginDragDropSource()) {
       ImGui::SetDragDropPayload("ENTITY_PAYLOAD", &entity,
-                                sizeof(zelda3::OverworldEntity));
+                                sizeof(zelda3::GameEntity));
       Text("Moving %s ID: %s", entity_type.c_str(),
            core::UppercaseHexByte(entity->entity_id_).c_str());
       ImGui::EndDragDropSource();
@@ -132,7 +135,7 @@ bool DrawOverworldEntrancePopup(
   }
   if (ImGui::BeginPopupModal("Entrance editor", NULL,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    gui::InputHex("Map ID", &entrance.map_id_);
+    gui::InputHexWord("Map ID", &entrance.map_id_);
     gui::InputHexByte("Entrance ID", &entrance.entrance_id_,
                       kInputFieldSize + 20);
     gui::InputHex("X", &entrance.x_);
@@ -209,7 +212,7 @@ bool DrawExitEditorPopup(zelda3::overworld::OverworldExit &exit) {
     gui::InputHexWord("Room", &exit.room_id_);
     SameLine();
     gui::InputHex("Entity ID", &exit.entity_id_, 4);
-    gui::InputHex("Map", &exit.map_id_);
+    gui::InputHexWord("Map", &exit.map_id_);
     SameLine();
     Checkbox("Automatic", &exit.is_automatic_);
 
@@ -310,11 +313,11 @@ bool DrawExitEditorPopup(zelda3::overworld::OverworldExit &exit) {
 void DrawItemInsertPopup() {
   // Contents of the Context Menu
   if (ImGui::BeginPopup("Item Inserter")) {
-    static int new_item_id = 0;
+    static size_t new_item_id = 0;
     Text("Add Item");
     BeginChild("ScrollRegion", ImVec2(150, 150), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
-    for (int i = 0; i < zelda3::overworld::kSecretItemNames.size(); i++) {
+    for (size_t i = 0; i < zelda3::overworld::kSecretItemNames.size(); i++) {
       if (Selectable(zelda3::overworld::kSecretItemNames[i].c_str(),
                      i == new_item_id)) {
         new_item_id = i;
@@ -348,10 +351,10 @@ bool DrawItemEditorPopup(zelda3::overworld::OverworldItem &item) {
     BeginChild("ScrollRegion", ImVec2(150, 150), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
     ImGui::BeginGroup();
-    for (int i = 0; i < zelda3::overworld::kSecretItemNames.size(); i++) {
+    for (size_t i = 0; i < zelda3::overworld::kSecretItemNames.size(); i++) {
       if (Selectable(zelda3::overworld::kSecretItemNames[i].c_str(),
-                     item.id == i)) {
-        item.id = i;
+                     item.id_ == i)) {
+        item.id_ = i;
       }
     }
     ImGui::EndGroup();
@@ -384,7 +387,7 @@ void DrawSpriteTable(std::function<void(int)> onSpriteSelect) {
   // Initialize items if empty
   if (items.empty()) {
     for (int i = 0; i < 256; ++i) {
-      items.push_back(SpriteItem{i, core::kSpriteDefaultNames[i].data()});
+      items.push_back(SpriteItem{i, zelda3::kSpriteDefaultNames[i].data()});
     }
   }
 

@@ -1,29 +1,32 @@
 #include "graphics_editor.h"
 
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
-#include "imgui/imgui.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
-#include "imgui_memory_editor.h"
-
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/core/platform/clipboard.h"
+#include "app/core/platform/renderer.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/compression.h"
 #include "app/gfx/scad_format.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
-#include "app/gui/asset_browser.h"
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
+#include "app/gui/icons.h"
 #include "app/gui/input.h"
+#include "app/gui/modules/asset_browser.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
+#include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+#include "imgui_memory_editor.h"
 
 namespace yaze {
 namespace app {
 namespace editor {
+
+using core::Renderer;
 
 using gfx::kPaletteGroupAddressesKeys;
 using ImGui::Button;
@@ -32,70 +35,56 @@ using ImGui::InputText;
 using ImGui::SameLine;
 using ImGui::TableNextColumn;
 
-static constexpr absl::string_view kGfxToolsetColumnNames[] = {
-    "#memoryEditor",
-    "##separator_gfx1",
-};
-
 constexpr ImGuiTableFlags kGfxEditTableFlags =
     ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable |
     ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable |
     ImGuiTableFlags_SizingFixedFit;
 
-constexpr ImGuiTabBarFlags kGfxEditTabBarFlags =
-    ImGuiTabBarFlags_AutoSelectNewTabs | ImGuiTabBarFlags_Reorderable |
-    ImGuiTabBarFlags_FittingPolicyResizeDown |
-    ImGuiTabBarFlags_TabListPopupButton;
-
-constexpr ImGuiTableFlags kGfxEditFlags = ImGuiTableFlags_Reorderable |
-                                          ImGuiTableFlags_Resizable |
-                                          ImGuiTableFlags_SizingStretchSame;
-
 absl::Status GraphicsEditor::Update() {
-  TAB_BAR("##TabBar")
-  status_ = UpdateGfxEdit();
-  TAB_ITEM("Sheet Browser")
-  if (asset_browser_.Initialized == false) {
-    asset_browser_.Initialize(rom()->mutable_bitmap_manager());
+  if (ImGui::BeginTabBar("##TabBar")) {
+    status_ = UpdateGfxEdit();
+    TAB_ITEM("Sheet Browser")
+    if (asset_browser_.Initialized == false) {
+      asset_browser_.Initialize(rom()->gfx_sheets());
+    }
+    asset_browser_.Draw(rom()->gfx_sheets());
+    END_TAB_ITEM()
+    status_ = UpdateScadView();
+    status_ = UpdateLinkGfxView();
+    ImGui::EndTabBar();
   }
-  asset_browser_.Draw(rom()->mutable_bitmap_manager());
-
-  END_TAB_ITEM()
-  status_ = UpdateScadView();
-  status_ = UpdateLinkGfxView();
-  END_TAB_BAR()
   CLEAR_AND_RETURN_STATUS(status_)
   return absl::OkStatus();
 }
 
 absl::Status GraphicsEditor::UpdateGfxEdit() {
-  TAB_ITEM("Sheet Editor")
+  if (ImGui::BeginTabItem("Sheet Editor")) {
+    if (ImGui::BeginTable("##GfxEditTable", 3, kGfxEditTableFlags,
+                          ImVec2(0, 0))) {
+      for (const auto& name :
+           {"Tilesheets", "Current Graphics", "Palette Controls"})
+        ImGui::TableSetupColumn(name);
 
-  if (ImGui::BeginTable("##GfxEditTable", 3, kGfxEditTableFlags,
-                        ImVec2(0, 0))) {
-    for (const auto& name :
-         {"Tilesheets", "Current Graphics", "Palette Controls"})
-      ImGui::TableSetupColumn(name);
+      ImGui::TableHeadersRow();
 
-    ImGui::TableHeadersRow();
+      NEXT_COLUMN();
+      status_ = UpdateGfxSheetList();
 
-    NEXT_COLUMN();
-    status_ = UpdateGfxSheetList();
+      NEXT_COLUMN();
+      if (rom()->is_loaded()) {
+        DrawGfxEditToolset();
+        status_ = UpdateGfxTabView();
+      }
 
-    NEXT_COLUMN();
-    if (rom()->is_loaded()) {
-      DrawGfxEditToolset();
-      status_ = UpdateGfxTabView();
+      NEXT_COLUMN();
+      if (rom()->is_loaded()) {
+        status_ = UpdatePaletteColumn();
+      }
     }
+    ImGui::EndTable();
 
-    NEXT_COLUMN();
-    if (rom()->is_loaded()) {
-      status_ = UpdatePaletteColumn();
-    }
+    ImGui::EndTabItem();
   }
-  ImGui::EndTable();
-
-  END_TAB_ITEM()
   return absl::OkStatus();
 }
 
@@ -127,8 +116,8 @@ void GraphicsEditor::DrawGfxEditToolset() {
     TableNextColumn();
     if (Button(ICON_MD_CONTENT_COPY)) {
       std::vector<uint8_t> png_data =
-          rom()->bitmap_manager().shared_bitmap(current_sheet_).GetPngData();
-      CopyImageToClipboard(png_data);
+          rom()->gfx_sheets().at(current_sheet_).GetPngData();
+      core::CopyImageToClipboard(png_data);
     }
     HOVER_HINT("Copy to Clipboard");
 
@@ -136,14 +125,14 @@ void GraphicsEditor::DrawGfxEditToolset() {
     if (Button(ICON_MD_CONTENT_PASTE)) {
       std::vector<uint8_t> png_data;
       int width, height;
-      GetImageFromClipboard(png_data, width, height);
+      core::GetImageFromClipboard(png_data, width, height);
       if (png_data.size() > 0) {
         rom()
-            ->mutable_bitmap_manager()
-            ->mutable_bitmap(current_sheet_)
-            ->Create(width, height, 8, png_data);
-        rom()->UpdateBitmap(
-            rom()->mutable_bitmap_manager()->mutable_bitmap(current_sheet_));
+            ->mutable_gfx_sheets()
+            ->at(current_sheet_)
+            .Create(width, height, 8, png_data);
+        Renderer::GetInstance().UpdateBitmap(
+            &rom()->mutable_gfx_sheets()->at(current_sheet_));
       }
     }
     HOVER_HINT("Paste from Clipboard");
@@ -163,7 +152,7 @@ void GraphicsEditor::DrawGfxEditToolset() {
     }
 
     TableNextColumn();
-    auto bitmap = rom()->bitmap_manager()[current_sheet_];
+    auto bitmap = rom()->gfx_sheets()[current_sheet_];
     auto palette = bitmap.palette();
     for (int i = 0; i < 8; i++) {
       ImGui::SameLine();
@@ -192,28 +181,28 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
   static ImGuiSelectionBasicStorage selection;
   ImGuiMultiSelectFlags flags =
       ImGuiMultiSelectFlags_ClearOnEscape | ImGuiMultiSelectFlags_BoxSelect1d;
-  ImGuiMultiSelectIO* ms_io = ImGui::BeginMultiSelect(
-      flags, selection.Size, rom()->bitmap_manager().size());
+  ImGuiMultiSelectIO* ms_io =
+      ImGui::BeginMultiSelect(flags, selection.Size, kNumGfxSheets);
   selection.ApplyRequests(ms_io);
   ImGuiListClipper clipper;
-  clipper.Begin(rom()->bitmap_manager().size());
+  clipper.Begin(kNumGfxSheets);
   if (ms_io->RangeSrcItem != -1)
     clipper.IncludeItemByIndex(
         (int)ms_io->RangeSrcItem);  // Ensure RangeSrc item is not clipped.
 
-  for (auto& [key, value] : rom()->bitmap_manager()) {
+  int key = 0;
+  for (auto& value : rom()->gfx_sheets()) {
     ImGui::BeginChild(absl::StrFormat("##GfxSheet%02X", key).c_str(),
                       ImVec2(0x100 + 1, 0x40 + 1), true,
                       ImGuiWindowFlags_NoDecoration);
     ImGui::PopStyleVar();
-    gui::Canvas graphics_bin_canvas_;
 
     graphics_bin_canvas_.DrawBackground(ImVec2(0x100 + 1, 0x40 + 1));
     graphics_bin_canvas_.DrawContextMenu();
     if (value.is_active()) {
       auto texture = value.texture();
       graphics_bin_canvas_.draw_list()->AddImage(
-          (void*)texture,
+          (ImTextureID)(intptr_t)texture,
           ImVec2(graphics_bin_canvas_.zero_point().x + 2,
                  graphics_bin_canvas_.zero_point().y + 2),
           ImVec2(graphics_bin_canvas_.zero_point().x +
@@ -240,6 +229,8 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
       graphics_bin_canvas_.draw_list()->AddText(
           text_pos, IM_COL32(125, 255, 125, 255),
           absl::StrFormat("%02X", key).c_str());
+
+      key++;
     }
     graphics_bin_canvas_.DrawGrid(16.0f);
     graphics_bin_canvas_.DrawOverlay();
@@ -256,6 +247,10 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
 
 absl::Status GraphicsEditor::UpdateGfxTabView() {
   static int next_tab_id = 0;
+  constexpr ImGuiTabBarFlags kGfxEditTabBarFlags =
+      ImGuiTabBarFlags_AutoSelectNewTabs | ImGuiTabBarFlags_Reorderable |
+      ImGuiTabBarFlags_FittingPolicyResizeDown |
+      ImGuiTabBarFlags_TabListPopupButton;
 
   if (ImGui::BeginTabBar("##GfxEditTabBar", kGfxEditTabBarFlags)) {
     if (ImGui::TabItemButton(ICON_MD_ADD, ImGuiTabItemFlags_Trailing |
@@ -285,18 +280,17 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
                               ImGuiWindowFlags_AlwaysVerticalScrollbar |
                               ImGuiWindowFlags_AlwaysHorizontalScrollbar);
 
-        gfx::Bitmap& current_bitmap =
-            *rom()->mutable_bitmap_manager()->mutable_bitmap(sheet_id);
+        gfx::Bitmap& current_bitmap = rom()->mutable_gfx_sheets()->at(sheet_id);
 
         auto draw_tile_event = [&]() {
           current_sheet_canvas_.DrawTileOnBitmap(tile_size_, &current_bitmap,
                                                  current_color_);
-          rom()->UpdateBitmap(&current_bitmap, true);
+          Renderer::GetInstance().UpdateBitmap(&current_bitmap);
         };
 
         current_sheet_canvas_.UpdateColorPainter(
-            rom()->bitmap_manager()[sheet_id], current_color_, draw_tile_event,
-            tile_size_, current_scale_);
+            rom()->mutable_gfx_sheets()->at(sheet_id), current_color_,
+            draw_tile_event, tile_size_, current_scale_);
 
         ImGui::EndChild();
         ImGui::EndTabItem();
@@ -328,7 +322,7 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
       current_sheet_ = id;
       //  ImVec2(0x100, 0x40),
       current_sheet_canvas_.UpdateColorPainter(
-          rom()->bitmap_manager()[id], current_color_,
+          rom()->mutable_gfx_sheets()->at(id), current_color_,
           [&]() {
 
           },
@@ -365,11 +359,12 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
 
     if (refresh_graphics_ && !open_sheets_.empty()) {
       RETURN_IF_ERROR(
-          rom()->bitmap_manager()[current_sheet_].ApplyPaletteWithTransparent(
-              palette, edit_palette_sub_index_));
-      rom()->UpdateBitmap(
-          rom()->mutable_bitmap_manager()->mutable_bitmap(current_sheet_),
-          true);
+          rom()
+              ->mutable_gfx_sheets()
+              ->data()[current_sheet_]
+              .ApplyPaletteWithTransparent(palette, edit_palette_sub_index_));
+      Renderer::GetInstance().UpdateBitmap(
+          &rom()->mutable_gfx_sheets()->data()[current_sheet_]);
       refresh_graphics_ = false;
     }
   }
@@ -391,9 +386,9 @@ absl::Status GraphicsEditor::UpdateLinkGfxView() {
     link_canvas_.DrawGrid(16.0f);
 
     int i = 0;
-    for (auto [key, link_sheet] : *rom()->mutable_link_graphics()) {
+    for (auto link_sheet : *rom()->mutable_link_graphics()) {
       int x_offset = 0;
-      int y_offset = core::kTilesheetHeight * i * 4;
+      int y_offset = gfx::kTilesheetHeight * i * 4;
       link_canvas_.DrawContextMenu(&link_sheet);
       link_canvas_.DrawBitmap(link_sheet, x_offset, y_offset, 4);
       i++;
@@ -435,6 +430,10 @@ absl::Status GraphicsEditor::UpdateScadView() {
     ImGui::End();
   }
 
+  constexpr ImGuiTableFlags kGfxEditFlags = ImGuiTableFlags_Reorderable |
+                                            ImGuiTableFlags_Resizable |
+                                            ImGuiTableFlags_SizingStretchSame;
+
   BEGIN_TABLE("#gfxEditTable", 4, kGfxEditFlags)
   SETUP_COLUMN("File Import (BIN, CGX, ROM)")
   SETUP_COLUMN("Palette (COL)")
@@ -458,17 +457,18 @@ absl::Status GraphicsEditor::UpdateScadView() {
 
   NEXT_COLUMN()
   if (super_donkey_) {
-    if (refresh_graphics_) {
-      for (int i = 0; i < graphics_bin_.size(); i++) {
-        status_ = graphics_bin_[i].ApplyPalette(
-            col_file_palette_group_[current_palette_index_]);
-        rom()->UpdateBitmap(&graphics_bin_[i]);
-      }
-      refresh_graphics_ = false;
-    }
+    // TODO: Implement the Super Donkey 1 graphics decompression
+    // if (refresh_graphics_) {
+    //   for (int i = 0; i < kNumGfxSheets; i++) {
+    //     status_ = graphics_bin_[i].ApplyPalette(
+    //         col_file_palette_group_[current_palette_index_]);
+    //     Renderer::GetInstance().UpdateBitmap(&graphics_bin_[i]);
+    //   }
+    //   refresh_graphics_ = false;
+    // }
     // Load the full graphics space from `super_donkey_1.bin`
-    gui::GraphicsBinCanvasPipeline(0x100, 0x40, 0x20, num_sheets_to_load_, 3,
-                                   super_donkey_, graphics_bin_);
+    // gui::GraphicsBinCanvasPipeline(0x100, 0x40, 0x20, num_sheets_to_load_, 3,
+    //                                super_donkey_, graphics_bin_);
   } else if (cgx_loaded_ && col_file_) {
     // Load the CGX graphics
     gui::BitmapCanvasPipeline(import_canvas_, cgx_bitmap_, 0x100, 16384, 0x20,
@@ -485,6 +485,11 @@ absl::Status GraphicsEditor::UpdateScadView() {
 }
 
 absl::Status GraphicsEditor::DrawToolset() {
+  static constexpr absl::string_view kGfxToolsetColumnNames[] = {
+      "#memoryEditor",
+      "##separator_gfx1",
+  };
+
   if (ImGui::BeginTable("GraphicsToolset", 2, ImGuiTableFlags_SizingFixedFit,
                         ImVec2(0, 0))) {
     for (const auto& name : kGfxToolsetColumnNames)
@@ -535,7 +540,7 @@ absl::Status GraphicsEditor::DrawCgxImport() {
     cgx_bitmap_.Create(0x80, 0x200, 8, decoded_cgx_);
     if (col_file_) {
       cgx_bitmap_.ApplyPalette(decoded_col_);
-      rom()->RenderBitmap(&cgx_bitmap_);
+      Renderer::GetInstance().RenderBitmap(&cgx_bitmap_);
     }
   }
 
@@ -570,7 +575,7 @@ absl::Status GraphicsEditor::DrawScrImport() {
     scr_bitmap_.Create(0x100, 0x100, 8, decoded_scr_data_);
     if (scr_loaded_) {
       scr_bitmap_.ApplyPalette(decoded_col_);
-      rom()->RenderBitmap(&scr_bitmap_);
+      Renderer::GetInstance().RenderBitmap(&scr_bitmap_);
     }
   }
 
@@ -594,7 +599,7 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
                                          /*z3_load=*/false);
         auto col_data_ = gfx::GetColFileData(temp_rom_.data());
         if (col_file_palette_group_.size() != 0) {
-          col_file_palette_group_.Clear();
+          col_file_palette_group_.clear();
         }
         auto col_file_palette_group_status =
             gfx::CreatePaletteGroupFromColFile(col_data_);
@@ -707,7 +712,8 @@ absl::Status GraphicsEditor::DrawClipboardImport() {
   if (Button("Paste From Clipboard")) {
     const char* text = ImGui::GetClipboardText();
     if (text) {
-      const auto clipboard_data = Bytes(text, text + strlen(text));
+      const auto clipboard_data =
+          std::vector<uint8_t>(text, text + strlen(text));
       ImGui::MemFree((void*)text);
       status_ = temp_rom_.LoadFromBytes(clipboard_data);
       is_open_ = true;
@@ -762,7 +768,7 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
                                      temp_rom_.data(), current_offset_, size))
 
   auto converted_sheet = gfx::SnesTo8bppSheet(import_data_, 3);
-  bin_bitmap_.Create(core::kTilesheetWidth, 0x2000, core::kTilesheetDepth,
+  bin_bitmap_.Create(gfx::kTilesheetWidth, 0x2000, gfx::kTilesheetDepth,
                      converted_sheet);
 
   if (rom()->is_loaded()) {
@@ -775,7 +781,7 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
     }
   }
 
-  rom()->RenderBitmap(&bin_bitmap_);
+  Renderer::GetInstance().RenderBitmap(&bin_bitmap_);
   gfx_loaded_ = true;
 
   return absl::OkStatus();
@@ -790,11 +796,10 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
         auto decompressed_data,
         gfx::lc_lz2::DecompressV2(temp_rom_.data(), offset_value, 0x1000))
     auto converted_sheet = gfx::SnesTo8bppSheet(decompressed_data, 3);
-    graphics_bin_[i] =
-        gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
-                    core::kTilesheetDepth, converted_sheet);
+    gfx_sheets_[i] = gfx::Bitmap(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+                                 gfx::kTilesheetDepth, converted_sheet);
     if (col_file_) {
-      status_ = graphics_bin_[i].ApplyPalette(
+      status_ = gfx_sheets_[i].ApplyPalette(
           col_file_palette_group_[current_palette_index_]);
     } else {
       // ROM palette
@@ -802,10 +807,10 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
       auto palette_group = rom()->palette_group().get_group(
           kPaletteGroupAddressesKeys[current_palette_]);
       z3_rom_palette_ = *palette_group->mutable_palette(current_palette_index_);
-      status_ = graphics_bin_[i].ApplyPalette(z3_rom_palette_);
+      status_ = gfx_sheets_[i].ApplyPalette(z3_rom_palette_);
     }
 
-    rom()->RenderBitmap(&graphics_bin_[i]);
+    Renderer::GetInstance().RenderBitmap(&gfx_sheets_[i]);
     i++;
   }
 
@@ -816,21 +821,20 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
         auto decompressed_data,
         gfx::lc_lz2::DecompressV2(temp_rom_.data(), offset_value, 0x1000))
     auto converted_sheet = gfx::SnesTo8bppSheet(decompressed_data, 3);
-    graphics_bin_[i] =
-        gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
-                    core::kTilesheetDepth, converted_sheet);
+    gfx_sheets_[i] = gfx::Bitmap(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+                                 gfx::kTilesheetDepth, converted_sheet);
     if (col_file_) {
-      status_ = graphics_bin_[i].ApplyPalette(
+      status_ = gfx_sheets_[i].ApplyPalette(
           col_file_palette_group_[current_palette_index_]);
     } else {
       // ROM palette
       auto palette_group = rom()->palette_group().get_group(
           kPaletteGroupAddressesKeys[current_palette_]);
       z3_rom_palette_ = *palette_group->mutable_palette(current_palette_index_);
-      status_ = graphics_bin_[i].ApplyPalette(z3_rom_palette_);
+      status_ = gfx_sheets_[i].ApplyPalette(z3_rom_palette_);
     }
 
-    rom()->RenderBitmap(&graphics_bin_[i]);
+    Renderer::GetInstance().RenderBitmap(&gfx_sheets_[i]);
     i++;
   }
   super_donkey_ = true;

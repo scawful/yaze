@@ -1,4 +1,4 @@
-Copyright (C) 2022 Justin Scofield
+Copyright (C) 2024 Justin Scofield
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -13,3 +13,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+Dependencies:
+- SDL2 <https://www.libsdl.org/license.php>
+- ImGui <https://github.com/ocornut/imgui/blob/master/LICENSE.txt>
+- Abseil <https://github.com/abseil/abseil-cpp/blob/master/LICENSE>

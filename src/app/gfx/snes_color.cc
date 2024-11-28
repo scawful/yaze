@@ -1,10 +1,10 @@
 
 #include "app/gfx/snes_color.h"
 
-#include "imgui/imgui.h"
-
 #include <cstdint>
 #include <vector>
+
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {
@@ -17,7 +17,7 @@ constexpr uint16_t SNES_BLUE_MASK = 32;
 constexpr uint16_t SNES_GREEN_SHIFT = 32;
 constexpr uint16_t SNES_BLUE_SHIFT = 1024;
 
-snes_color ConvertSNEStoRGB(uint16_t color_snes) {
+snes_color ConvertSnesToRgb(uint16_t color_snes) {
   snes_color result;
 
   result.red = (color_snes % SNES_RED_MASK) * 8;
@@ -31,19 +31,19 @@ snes_color ConvertSNEStoRGB(uint16_t color_snes) {
   return result;
 }
 
-uint16_t ConvertRGBtoSNES(const snes_color& color) {
+uint16_t ConvertRgbToSnes(const snes_color& color) {
   uint16_t red = color.red / 8;
   uint16_t green = color.green / 8;
   uint16_t blue = color.blue / 8;
   return (blue * SNES_BLUE_SHIFT) + (green * SNES_GREEN_SHIFT) + red;
 }
 
-uint16_t ConvertRGBtoSNES(const ImVec4& color) {
+uint16_t ConvertRgbToSnes(const ImVec4& color) {
   snes_color new_color;
-  new_color.red = color.x * 255;
-  new_color.green = color.y * 255;
-  new_color.blue = color.z * 255;
-  return ConvertRGBtoSNES(new_color);
+  new_color.red = color.x * kColorByteMax;
+  new_color.green = color.y * kColorByteMax;
+  new_color.blue = color.z * kColorByteMax;
+  return ConvertRgbToSnes(new_color);
 }
 
 SnesColor ReadColorFromRom(int offset, const uint8_t* rom) {
@@ -62,7 +62,7 @@ std::vector<snes_color> Extract(const char* data, unsigned int offset,
   for (unsigned int i = 0; i < palette_size * 2; i += 2) {
     uint16_t snes_color = (static_cast<uint8_t>(data[offset + i + 1]) << 8) |
                           static_cast<uint8_t>(data[offset + i]);
-    palette[i / 2] = ConvertSNEStoRGB(snes_color);
+    palette[i / 2] = ConvertSnesToRgb(snes_color);
   }
   return palette;
 }
@@ -70,7 +70,7 @@ std::vector<snes_color> Extract(const char* data, unsigned int offset,
 std::vector<char> Convert(const std::vector<snes_color>& palette) {
   std::vector<char> data(palette.size() * 2);
   for (unsigned int i = 0; i < palette.size(); i++) {
-    uint16_t snes_data = ConvertRGBtoSNES(palette[i]);
+    uint16_t snes_data = ConvertRgbToSnes(palette[i]);
     data[i * 2] = snes_data & 0xFF;
     data[i * 2 + 1] = snes_data >> 8;
   }

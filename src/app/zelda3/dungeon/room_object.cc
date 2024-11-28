@@ -5,7 +5,52 @@ namespace app {
 namespace zelda3 {
 namespace dungeon {
 
-void RoomObject::DrawTile(Tile t, int xx, int yy,
+ObjectOption operator|(ObjectOption lhs, ObjectOption rhs) {
+  return static_cast<ObjectOption>(static_cast<int>(lhs) |
+                                   static_cast<int>(rhs));
+}
+
+ObjectOption operator&(ObjectOption lhs, ObjectOption rhs) {
+  return static_cast<ObjectOption>(static_cast<int>(lhs) &
+                                   static_cast<int>(rhs));
+}
+
+ObjectOption operator^(ObjectOption lhs, ObjectOption rhs) {
+  return static_cast<ObjectOption>(static_cast<int>(lhs) ^
+                                   static_cast<int>(rhs));
+}
+
+ObjectOption operator~(ObjectOption option) {
+  return static_cast<ObjectOption>(~static_cast<int>(option));
+}
+
+SubtypeInfo FetchSubtypeInfo(uint16_t object_id) {
+  SubtypeInfo info;
+
+  // TODO: Determine the subtype based on object_id
+  uint8_t subtype = 1;
+
+  switch (subtype) {
+    case 1:  // Subtype 1
+      info.subtype_ptr = kRoomObjectSubtype1 + (object_id & 0xFF) * 2;
+      info.routine_ptr = kRoomObjectSubtype1 + 0x200 + (object_id & 0xFF) * 2;
+      break;
+    case 2:  // Subtype 2
+      info.subtype_ptr = kRoomObjectSubtype2 + (object_id & 0x7F) * 2;
+      info.routine_ptr = kRoomObjectSubtype2 + 0x80 + (object_id & 0x7F) * 2;
+      break;
+    case 3:  // Subtype 3
+      info.subtype_ptr = kRoomObjectSubtype3 + (object_id & 0xFF) * 2;
+      info.routine_ptr = kRoomObjectSubtype3 + 0x100 + (object_id & 0xFF) * 2;
+      break;
+    default:
+      throw std::runtime_error("Invalid object subtype");
+  }
+
+  return info;
+}
+
+void RoomObject::DrawTile(gfx::Tile16 t, int xx, int yy,
                           std::vector<uint8_t>& current_gfx16,
                           std::vector<uint8_t>& tiles_bg1_buffer,
                           std::vector<uint8_t>& tiles_bg2_buffer,
@@ -56,7 +101,7 @@ void RoomObject::DrawTile(Tile t, int xx, int yy,
             0x1000 &&
         ((xx / 8) + nx_ + offset_x_) + ((ny_ + offset_y_ + (yy / 8)) * 0x40) >=
             0) {
-      ushort td = 0;  // gfx::GetTilesInfo();  // TODO t.GetTileInfo()
+      ushort td = 0;  // gfx::GetTilesInfo();
 
       // collisionPoint.Add(
       //     new Point(xx + ((nx + offsetX) * 8), yy + ((ny + +offsetY) * 8)));

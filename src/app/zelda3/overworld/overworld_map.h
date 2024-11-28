@@ -1,21 +1,15 @@
 #ifndef YAZE_APP_ZELDA3_OVERWORLD_MAP_H
 #define YAZE_APP_ZELDA3_OVERWORLD_MAP_H
 
-#include "imgui/imgui.h"
-
 #include <cstddef>
 #include <cstdint>
-#include <memory>
-#include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/core/common.h"
-#include "app/editor/utils/gfx_context.h"
-#include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
+#include "app/zelda3/common.h"
 
 namespace yaze {
 namespace app {
@@ -24,21 +18,60 @@ namespace overworld {
 
 static constexpr int kTileOffsets[] = {0, 8, 4096, 4104};
 
+// 1 byte, not 0 if enabled
+constexpr int OverworldCustomASMHasBeenApplied = 0x140145;
+
+// 2 bytes for each overworld area (0x140)
+constexpr int OverworldCustomAreaSpecificBGPalette = 0x140000;
+
+// 1 byte, not 0 if enabled
+constexpr int OverworldCustomAreaSpecificBGEnabled = 0x140140;
+
+// 1 byte for each overworld area (0xA0)
+constexpr int OverworldCustomMainPaletteArray = 0x140160;
+// 1 byte, not 0 if enabled
+constexpr int OverworldCustomMainPaletteEnabled = 0x140141;
+
+// 1 byte for each overworld area (0xA0)
+constexpr int OverworldCustomMosaicArray = 0x140200;
+
+// 1 byte, not 0 if enabled
+constexpr int OverworldCustomMosaicEnabled = 0x140142;
+
+// 1 byte for each overworld area (0xA0)
+constexpr int OverworldCustomAnimatedGFXArray = 0x1402A0;
+
+// 1 byte, not 0 if enabled
+constexpr int OverworldCustomAnimatedGFXEnabled = 0x140143;
+
+// 2 bytes for each overworld area (0x140)
+constexpr int OverworldCustomSubscreenOverlayArray = 0x140340;
+
+// 1 byte, not 0 if enabled
+constexpr int OverworldCustomSubscreenOverlayEnabled = 0x140144;
+
+// 8 bytes for each overworld area (0x500)
+constexpr int OverworldCustomTileGFXGroupArray = 0x140480;
+
+// 1 byte, not 0 if enabled
+constexpr int OverworldCustomTileGFXGroupEnabled = 0x140148;
+
 /**
  * @brief Represents a single Overworld map screen.
  */
-class OverworldMap : public editor::context::GfxContext {
+class OverworldMap : public GfxContext {
  public:
   OverworldMap() = default;
-  OverworldMap(int index, Rom& rom, std::vector<gfx::Tile16>& tiles16);
+  OverworldMap(int index, Rom& rom, bool load_custom_data = false);
 
   absl::Status BuildMap(int count, int game_state, int world,
+                        std::vector<gfx::Tile16>& tiles16,
                         OWBlockset& world_blockset);
 
   void LoadAreaGraphics();
   absl::Status LoadPalette();
   absl::Status BuildTileset();
-  absl::Status BuildTiles16Gfx(int count);
+  absl::Status BuildTiles16Gfx(std::vector<gfx::Tile16>& tiles16, int count);
   absl::Status BuildBitmap(OWBlockset& world_blockset);
 
   void DrawAnimatedTiles();
@@ -50,9 +83,7 @@ class OverworldMap : public editor::context::GfxContext {
   auto is_large_map() const { return large_map_; }
   auto is_initialized() const { return initialized_; }
   auto parent() const { return parent_; }
-
   auto mutable_mosaic() { return &mosaic_; }
-
   auto mutable_current_palette() { return &current_palette_; }
 
   auto area_graphics() const { return area_graphics_; }
@@ -80,6 +111,8 @@ class OverworldMap : public editor::context::GfxContext {
   auto set_sprite_palette(int i, uint8_t value) { sprite_palette_[i] = value; }
   auto set_message_id(uint16_t value) { message_id_ = value; }
 
+  uint8_t* mutable_custom_tileset(int index) { return &custom_gfx_ids_[index]; }
+
   void SetAsLargeMap(int parent_index, int quadrant) {
     parent_ = parent_index;
     large_index_ = quadrant;
@@ -99,11 +132,12 @@ class OverworldMap : public editor::context::GfxContext {
     current_blockset_.clear();
     current_gfx_.clear();
     bitmap_data_.clear();
-    tiles16_.clear();
   }
 
  private:
   void LoadAreaInfo();
+  void LoadCustomOverworldData();
+  void SetupCustomTileset(uint8_t asm_version);
 
   void LoadMainBlocksetId();
   void LoadSpritesBlocksets();
@@ -132,21 +166,23 @@ class OverworldMap : public editor::context::GfxContext {
   uint16_t message_id_ = 0;
   uint8_t area_graphics_ = 0;
   uint8_t area_palette_ = 0;
+  uint8_t animated_gfx_ = 0;        // Custom Overworld Animated ID
+  uint16_t subscreen_overlay_ = 0;  // Custom Overworld Subscreen Overlay ID
 
+  uint8_t custom_gfx_ids_[8];
   uchar sprite_graphics_[3];
   uchar sprite_palette_[3];
   uchar area_music_[4];
   uchar static_graphics_[16];
 
   Rom rom_;
-  Bytes all_gfx_;
-  Bytes current_blockset_;
-  Bytes current_gfx_;
-  Bytes bitmap_data_;
+  std::vector<uint8_t> all_gfx_;
+  std::vector<uint8_t> current_blockset_;
+  std::vector<uint8_t> current_gfx_;
+  std::vector<uint8_t> bitmap_data_;
   OWMapTiles map_tiles_;
 
   gfx::SnesPalette current_palette_;
-  std::vector<gfx::Tile16> tiles16_;
 };
 
 }  // namespace overworld

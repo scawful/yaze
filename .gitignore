@@ -1,6 +1,9 @@
+.favorites.json
 build/
 .cache/
 .vscode/
+disasm/
+src/etc
 src/lib/SDL2
 src/lib/cmake
 src/lib/GL
@@ -17,3 +20,13 @@ src/lib/libSDL2main.a
 checks.json
 assets/lib/libasar.dll
 cmake/yaze.plist.in
+etc/
+latex/
+html/
+docs/zarby_algos.md
+docs/overworld-expansion.md
+assets/asm/EditorCore.asm
+src/app/emu/cpu/internal/old_cpu.cc
+build-windows
+src/lib/libpng
+src/lib/zlib

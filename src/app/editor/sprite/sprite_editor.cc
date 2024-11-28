@@ -4,6 +4,7 @@
 #include "app/editor/sprite/zsprite.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
+#include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace app {
@@ -71,13 +72,13 @@ void SpriteEditor::DrawVanillaSpriteEditor() {
       for (int n = 0; n < active_sprites_.Size;) {
         bool open = true;
 
-        if (active_sprites_[n] > sizeof(core::kSpriteDefaultNames) / 4) {
+        if (active_sprites_[n] > sizeof(zelda3::kSpriteDefaultNames) / 4) {
           active_sprites_.erase(active_sprites_.Data + n);
           continue;
         }
 
         if (ImGui::BeginTabItem(
-                core::kSpriteDefaultNames[active_sprites_[n]].data(), &open,
+                zelda3::kSpriteDefaultNames[active_sprites_[n]].data(), &open,
                 ImGuiTabItemFlags_None)) {
           DrawSpriteCanvas();
           ImGui::EndTabItem();
@@ -175,7 +176,7 @@ void SpriteEditor::DrawCurrentSheets() {
     graphics_sheet_canvas_.DrawTileSelector(32);
     for (int i = 0; i < 8; i++) {
       graphics_sheet_canvas_.DrawBitmap(
-          rom()->bitmap_manager()[current_sheets_[i]], 1, (i * 0x40) + 1, 2);
+          rom()->gfx_sheets().at(current_sheets_[i]), 1, (i * 0x40) + 1, 2);
     }
     graphics_sheet_canvas_.DrawGrid();
     graphics_sheet_canvas_.DrawOverlay();
@@ -188,10 +189,10 @@ void SpriteEditor::DrawSpritesList() {
                         ImVec2(ImGui::GetContentRegionAvail().x, 0), true,
                         ImGuiWindowFlags_NoDecoration)) {
     int i = 0;
-    for (const auto each_sprite_name : core::kSpriteDefaultNames) {
+    for (const auto each_sprite_name : zelda3::kSpriteDefaultNames) {
       rom()->resource_label()->SelectableLabelWithNameEdit(
           current_sprite_id_ == i, "Sprite Names", core::UppercaseHexByte(i),
-          core::kSpriteDefaultNames[i].data());
+          zelda3::kSpriteDefaultNames[i].data());
       if (ImGui::IsItemClicked()) {
         current_sprite_id_ = i;
         if (!active_sprites_.contains(i)) {
@@ -243,7 +244,7 @@ void SpriteEditor::DrawCustomSpritesMetadata() {
   // ZSprite Maker format open file dialog
   if (ImGui::Button("Open ZSprite")) {
     // Open ZSprite file
-    std::string file_path = FileDialogWrapper::ShowOpenFileDialog();
+    std::string file_path = core::FileDialogWrapper::ShowOpenFileDialog();
     if (!file_path.empty()) {
       zsprite::ZSprite zsprite;
       status_ = zsprite.Load(file_path);

@@ -3,42 +3,35 @@
 
 #include <SDL.h>
 
-#include <algorithm>
-#include <chrono>
-#include <cstddef>  // for size_t
-#include <cstdint>  // for uint32_t, uint8_t, uint16_t
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
 #include <ctime>
-#include <filesystem>
-#include <fstream>
-#include <functional>     // for function
-#include <iostream>       // for string, operator<<, basic_...
-#include <map>            // for map
-#include <memory>         // for shared_ptr, make_shared
-#include <stack>          // for stack
-#include <string>         // for hash, operator==
-#include <unordered_map>  // for unordered_map
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
 #include <variant>
-#include <vector>  // for vector
+#include <vector>
 
-#include "absl/container/flat_hash_map.h"  // for flat_hash_map
-#include "absl/status/status.h"            // for Status
-#include "absl/status/statusor.h"          // for StatusOr
-#include "absl/strings/str_cat.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
-#include "absl/strings/string_view.h"  // for string_view
+#include "absl/strings/string_view.h"
 #include "app/core/common.h"
-#include "app/core/constants.h"  // for Bytes, uchar, armorPalettes
-#include "app/core/labeling.h"
-#include "app/gfx/bitmap.h"  // for Bitmap, BitmapTable
-#include "app/gfx/compression.h"
-#include "app/gfx/snes_palette.h"  // for PaletteGroup, SNESColor
+#include "app/core/constants.h"
+#include "app/core/project.h"
+#include "app/gfx/bitmap.h"
+#include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 
 namespace yaze {
 namespace app {
 
-// Define an enum class for the different versions of the game
+/**
+ * @brief Different versions of the game supported by the Rom class.
+ */
 enum class Z3_Version {
   US = 1,     // US version
   JP = 2,     // JP version
@@ -47,7 +40,7 @@ enum class Z3_Version {
 };
 
 /**
- * @brief A struct to hold version constants for each version of the game.
+ * @brief Constants for each version of the game.
  */
 struct VersionConstants {
   uint32_t kGfxAnimatedPointer;
@@ -115,12 +108,27 @@ static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
          0x233C0,  // kMap32TileBR
          0x5B97,   // kSpriteBlocksetPointer
          0x67DD0,  // kDungeonPalettesGroups
-     }}};
+     }},
+    {Z3_Version::SD, {}},
+    {Z3_Version::RANDO, {}},
+};
 
+constexpr uint32_t kNumGfxSheets = 223;
+constexpr uint32_t kNumLinkSheets = 14;
+constexpr uint32_t kTile16Ptr = 0x78000;
 constexpr uint32_t kNormalGfxSpaceStart = 0x87000;
 constexpr uint32_t kNormalGfxSpaceEnd = 0xC4200;
 constexpr uint32_t kFontSpriteLocation = 0x70000;
 constexpr uint32_t kGfxGroupsPointer = 0x6237;
+constexpr uint32_t kUncompressedSheetSize = 0x0800;
+constexpr uint32_t kNumMainBlocksets = 37;
+constexpr uint32_t kNumRoomBlocksets = 82;
+constexpr uint32_t kNumSpritesets = 144;
+constexpr uint32_t kNumPalettesets = 72;
+constexpr uint32_t kEntranceGfxGroup = 0x5D97;
+
+// TODO: Verify what this was used for in ZS
+constexpr uint32_t kMaxGraphics = 0xC3FB5;
 
 /**
  * @brief The Rom class is used to load, save, and modify Rom data.
@@ -135,7 +143,7 @@ class Rom : public core::ExperimentFlags {
    * appending the converted sheet data to a byte vector.
    *
    */
-  absl::StatusOr<Bytes> Load2BppGraphics();
+  absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics();
 
   /**
    * @brief Loads the players 4bpp graphics sheet from Rom data.
@@ -160,7 +168,7 @@ class Rom : public core::ExperimentFlags {
    * | 218-222 | Compressed 2bpp | 0x800 chars | Decompressed each |
    *
    */
-  absl::Status LoadAllGraphicsData();
+  absl::Status LoadAllGraphicsData(bool defer_render = false);
 
   /**
    * Load Rom data from a file.
@@ -170,8 +178,8 @@ class Rom : public core::ExperimentFlags {
    *
    */
   absl::Status LoadFromFile(const std::string& filename, bool z3_load = true);
-  absl::Status LoadFromPointer(uchar* data, size_t length);
-  absl::Status LoadFromBytes(const Bytes& data);
+  absl::Status LoadFromPointer(uchar* data, size_t length, bool z3_load = true);
+  absl::Status LoadFromBytes(const std::vector<uint8_t>& data);
 
   /**
    * @brief Saves the Rom data to a file
@@ -184,6 +192,8 @@ class Rom : public core::ExperimentFlags {
    */
   absl::Status SaveToFile(bool backup, bool save_new = false,
                           std::string filename = "");
+
+  absl::Status SaveAllGraphicsData();
 
   /**
    * Saves the given palette to the Rom if any of its colors have been modified.
@@ -204,37 +214,50 @@ class Rom : public core::ExperimentFlags {
   absl::Status SaveAllPalettes();
 
   /**
-   * @brief Updates a color in a specified palette group.
-   *
-   * This function updates the color at the specified `colorIndex` in the
-   * palette at `palette_index` within the palette group with the given
-   * `group_name`. If the group, palette, or color indices are invalid, an error
-   * is returned.
-   *
-   * @param group_name The name of the palette group to update.
-   * @param palette_index The index of the palette within the group to update.
-   * @param colorIndex The index of the color within the palette to update.
-   * @param newColor The new color value to set.
-   *
-   * @return An `absl::Status` indicating whether the update was successful.
-   *         Returns `absl::OkStatus()` if successful, or an error status if the
-   *         group, palette, or color indices are invalid.
+   * @brief Expand the Rom data to a specified size.
    */
-  absl::Status UpdatePaletteColor(const std::string& group_name,
-                                  size_t palette_index, size_t colorIndex,
-                                  const gfx::SnesColor& newColor);
+  void Expand(int size) {
+    rom_data_.resize(size);
+    size_ = size;
+  }
+
+  /**
+   *  @brief Close the Rom file.
+   */
+  absl::Status Close() {
+    rom_data_.clear();
+    size_ = 0;
+    is_loaded_ = false;
+    return absl::OkStatus();
+  }
+
+  /**
+   * @brief Precondition check for reading and writing to the Rom.
+   */
+  absl::Status ReadWritePreconditions() {
+    if (!is_loaded_) {
+      return absl::FailedPreconditionError("ROM file not loaded");
+    }
+    if (rom_data_.empty() || size_ == 0) {
+      return absl::FailedPreconditionError(
+          "File was loaded, but ROM data was empty.");
+    }
+    return absl::OkStatus();
+  }
 
   // Read functions
   absl::StatusOr<uint8_t> ReadByte(int offset) {
-    if (offset >= rom_data_.size()) {
-      return absl::InvalidArgumentError("Offset out of range");
+    RETURN_IF_ERROR(ReadWritePreconditions());
+    if (offset >= static_cast<int>(rom_data_.size())) {
+      return absl::FailedPreconditionError("Offset out of range");
     }
     return rom_data_[offset];
   }
 
   absl::StatusOr<uint16_t> ReadWord(int offset) {
-    if (offset + 1 >= rom_data_.size()) {
-      return absl::InvalidArgumentError("Offset out of range");
+    RETURN_IF_ERROR(ReadWritePreconditions());
+    if (offset + 1 >= static_cast<int>(rom_data_.size())) {
+      return absl::FailedPreconditionError("Offset out of range");
     }
     auto result = (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
     return result;
@@ -245,8 +268,9 @@ class Rom : public core::ExperimentFlags {
   }
 
   absl::StatusOr<uint32_t> ReadLong(int offset) {
-    if (offset + 2 >= rom_data_.size()) {
-      return absl::InvalidArgumentError("Offset out of range");
+    RETURN_IF_ERROR(ReadWritePreconditions());
+    if (offset + 2 >= static_cast<int>(rom_data_.size())) {
+      return absl::OutOfRangeError("Offset out of range");
     }
     auto result = (uint32_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8) |
                              (rom_data_[offset + 2] << 16));
@@ -255,11 +279,12 @@ class Rom : public core::ExperimentFlags {
 
   absl::StatusOr<std::vector<uint8_t>> ReadByteVector(uint32_t offset,
                                                       uint32_t length) {
-    if (offset + length > rom_data_.size()) {
-      return absl::InvalidArgumentError("Offset and length out of range");
+    RETURN_IF_ERROR(ReadWritePreconditions());
+    if (offset + length > static_cast<uint32_t>(rom_data_.size())) {
+      return absl::OutOfRangeError("Offset and length out of range");
     }
     std::vector<uint8_t> result;
-    for (int i = offset; i < offset + length; i++) {
+    for (uint32_t i = offset; i < offset + length; i++) {
       result.push_back(rom_data_[i]);
     }
     return result;
@@ -267,7 +292,7 @@ class Rom : public core::ExperimentFlags {
 
   absl::StatusOr<gfx::Tile16> ReadTile16(uint32_t tile16_id) {
     // Skip 8 bytes per tile.
-    auto tpos = 0x78000 + (tile16_id * 0x08);
+    auto tpos = kTile16Ptr + (tile16_id * 0x08);
     gfx::Tile16 tile16;
     ASSIGN_OR_RETURN(auto new_tile0, ReadWord(tpos))
     tile16.tile0_ = gfx::WordToTileInfo(new_tile0);
@@ -285,7 +310,7 @@ class Rom : public core::ExperimentFlags {
 
   absl::Status WriteTile16(int tile16_id, const gfx::Tile16& tile) {
     // Skip 8 bytes per tile.
-    auto tpos = 0x78000 + (tile16_id * 0x08);
+    auto tpos = kTile16Ptr + (tile16_id * 0x08);
     RETURN_IF_ERROR(WriteShort(tpos, gfx::TileInfoToWord(tile.tile0_)));
     tpos += 2;
     RETURN_IF_ERROR(WriteShort(tpos, gfx::TileInfoToWord(tile.tile1_)));
@@ -298,7 +323,7 @@ class Rom : public core::ExperimentFlags {
 
   // Write functions
   absl::Status Write(int addr, int value) {
-    if (addr >= rom_data_.size()) {
+    if (addr >= static_cast<int>(rom_data_.size())) {
       return absl::InvalidArgumentError(absl::StrFormat(
           "Attempt to write %d value failed, address %d out of range", value,
           addr));
@@ -308,8 +333,9 @@ class Rom : public core::ExperimentFlags {
   }
 
   absl::Status WriteByte(int addr, uint8_t value) {
-    if (addr >= rom_data_.size()) {
-      return absl::InvalidArgumentError(absl::StrFormat(
+    RETURN_IF_ERROR(ReadWritePreconditions());
+    if (addr >= static_cast<int>(rom_data_.size())) {
+      return absl::OutOfRangeError(absl::StrFormat(
           "Attempt to write byte %#02x value failed, address %d out of range",
           value, addr));
     }
@@ -321,8 +347,9 @@ class Rom : public core::ExperimentFlags {
   }
 
   absl::Status WriteWord(int addr, uint16_t value) {
-    if (addr + 1 >= rom_data_.size()) {
-      return absl::InvalidArgumentError(absl::StrFormat(
+    RETURN_IF_ERROR(ReadWritePreconditions());
+    if (addr + 1 >= static_cast<int>(rom_data_.size())) {
+      return absl::OutOfRangeError(absl::StrFormat(
           "Attempt to write word %#04x value failed, address %d out of range",
           value, addr));
     }
@@ -334,8 +361,9 @@ class Rom : public core::ExperimentFlags {
   }
 
   absl::Status WriteShort(int addr, uint16_t value) {
-    if (addr + 1 >= rom_data_.size()) {
-      return absl::InvalidArgumentError(absl::StrFormat(
+    RETURN_IF_ERROR(ReadWritePreconditions());
+    if (addr + 1 >= static_cast<int>(rom_data_.size())) {
+      return absl::OutOfRangeError(absl::StrFormat(
           "Attempt to write short %#04x value failed, address %d out of range",
           value, addr));
     }
@@ -347,8 +375,9 @@ class Rom : public core::ExperimentFlags {
   }
 
   absl::Status WriteLong(uint32_t addr, uint32_t value) {
-    if (addr + 2 >= rom_data_.size()) {
-      return absl::InvalidArgumentError(absl::StrFormat(
+    RETURN_IF_ERROR(ReadWritePreconditions());
+    if (addr + 2 >= static_cast<uint32_t>(rom_data_.size())) {
+      return absl::OutOfRangeError(absl::StrFormat(
           "Attempt to write long %#06x value failed, address %d out of range",
           value, addr));
     }
@@ -361,12 +390,13 @@ class Rom : public core::ExperimentFlags {
   }
 
   absl::Status WriteVector(int addr, std::vector<uint8_t> data) {
-    if (addr + data.size() > rom_data_.size()) {
+    if (addr + static_cast<int>(data.size()) >
+        static_cast<int>(rom_data_.size())) {
       return absl::InvalidArgumentError(absl::StrFormat(
           "Attempt to write vector value failed, address %d out of range",
           addr));
     }
-    for (int i = 0; i < data.size(); i++) {
+    for (int i = 0; i < static_cast<int>(data.size()); i++) {
       rom_data_[addr + i] = data[i];
     }
     core::Logger::log(absl::StrFormat("WriteVector: %#06X: %s", addr,
@@ -406,40 +436,40 @@ class Rom : public core::ExperimentFlags {
     return status;
   }
 
-  void Expand(int size) {
-    rom_data_.resize(size);
-    size_ = size;
-  }
-
-  absl::Status Reload() {
-    if (filename_.empty()) {
-      return absl::InvalidArgumentError("No filename specified");
+  uint8_t& operator[](unsigned long i) {
+    if (i > size_) {
+      std::cout << "ROM: Index " << i << " out of bounds, size: " << size_
+                << std::endl;
+      return rom_data_[0];
     }
-    return LoadFromFile(filename_);
+    return rom_data_[i];
   }
 
-  absl::Status Close() {
-    rom_data_.clear();
-    size_ = 0;
-    is_loaded_ = false;
-    return absl::OkStatus();
+  bool is_loaded() const {
+    if (!absl::StrContains(filename_, ".sfc") &&
+        !absl::StrContains(filename_, ".smc")) {
+      return false;
+    }
+    return is_loaded_;
   }
 
-  void QueueChanges(std::function<void()> const& function) {
-    changes_.push(function);
-  }
+  // Full graphical data for the game
+  std::vector<uint8_t> graphics_buffer() const { return graphics_buffer_; }
 
-  VersionConstants version_constants() const {
-    return kVersionConstantsMap.at(version_);
-  }
+  auto title() const { return title_; }
+  auto size() const { return size_; }
+  auto begin() { return rom_data_.begin(); }
+  auto end() { return rom_data_.end(); }
+  auto data() { return rom_data_.data(); }
+  auto vector() const { return rom_data_; }
+  auto version() const { return version_; }
+  auto filename() const { return filename_; }
+  auto set_filename(std::string name) { filename_ = name; }
 
-  int GetGraphicsAddress(const uchar* data, uint8_t addr) const {
-    auto part_one = data[version_constants().kOverworldGfxPtr1 + addr] << 16;
-    auto part_two = data[version_constants().kOverworldGfxPtr2 + addr] << 8;
-    auto part_three = data[version_constants().kOverworldGfxPtr3 + addr];
-    auto snes_addr = (part_one | part_two | part_three);
-    return core::SnesToPc(snes_addr);
-  }
+  auto link_graphics() { return link_graphics_; }
+  auto mutable_link_graphics() { return &link_graphics_; }
+  auto gfx_sheets() { return graphics_sheets_; }
+  auto mutable_gfx_sheets() { return &graphics_sheets_; }
 
   auto palette_group() { return palette_groups_; }
   auto mutable_palette_group() { return &palette_groups_; }
@@ -448,96 +478,16 @@ class Rom : public core::ExperimentFlags {
     return palette_groups_.dungeon_main.mutable_palette(i);
   }
 
-  // Full graphical data for the game
-  Bytes graphics_buffer() const { return graphics_buffer_; }
-
-  gfx::BitmapTable graphics_bin() const { return graphics_bin_; }
-
-  gfx::Bitmap* mutable_graphics_sheet(int index) {
-    return &graphics_bin_.at(index);
-  }
-  auto bitmap_manager() { return graphics_manager_; }
-  auto mutable_bitmap_manager() { return &graphics_manager_; }
-  auto link_graphics() { return link_graphics_; }
-  auto mutable_link_graphics() { return &link_graphics_; }
-
-  auto title() const { return title_; }
-  auto size() const { return size_; }
-  auto begin() { return rom_data_.begin(); }
-  auto end() { return rom_data_.end(); }
-  auto data() { return rom_data_.data(); }
-  auto push_back(uint8_t byte) { rom_data_.push_back(byte); }
-  auto vector() const { return rom_data_; }
-  auto filename() const { return filename_; }
-  auto is_loaded() const { return is_loaded_; }
-  auto version() const { return version_; }
-  auto renderer() const { return renderer_; }
-
-  uint8_t& operator[](int i) {
-    if (i > size_) {
-      std::cout << "ROM: Index " << i << " out of bounds, size: " << size_
-                << std::endl;
-      return rom_data_[0];
-    }
-    return rom_data_[i];
-  }
-  uint8_t& operator+(int i) {
-    if (i > size_) {
-      std::cout << "ROM: Index " << i << " out of bounds, size: " << size_
-                << std::endl;
-      return rom_data_[0];
-    }
-    return rom_data_[i];
-  }
-  const uint8_t* operator&() { return rom_data_.data(); }
-
-  void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer) {
-    renderer_ = renderer;
+  ResourceLabelManager* resource_label() { return &resource_label_manager_; }
+  VersionConstants version_constants() const {
+    return kVersionConstantsMap.at(version_);
   }
 
-  absl::Status CreateAndRenderBitmap(int width, int height, int depth,
-                                     const Bytes& data, gfx::Bitmap& bitmap,
-                                     gfx::SnesPalette& palette) {
-    bitmap.Create(width, height, depth, data);
-    RETURN_IF_ERROR(bitmap.ApplyPalette(palette));
-    RenderBitmap(&bitmap);
-    return absl::OkStatus();
-  }
+  std::array<std::array<uint8_t, 8>, kNumMainBlocksets> main_blockset_ids;
+  std::array<std::array<uint8_t, 4>, kNumRoomBlocksets> room_blockset_ids;
+  std::array<std::array<uint8_t, 4>, kNumSpritesets> spriteset_ids;
+  std::array<std::array<uint8_t, 4>, kNumPalettesets> paletteset_ids;
 
-  /**
-   * @brief Used to render a bitmap to the screen.
-   */
-  void RenderBitmap(gfx::Bitmap* bitmap) {
-    if (flags()->kLoadTexturesAsStreaming) {
-      bitmap->CreateTexture(renderer_.get());
-    } else {
-      bitmap->CreateTexture(renderer_);
-    }
-  }
-
-  /**
-   * @brief Used to update a bitmap on the screen.
-   */
-  void UpdateBitmap(gfx::Bitmap* bitmap, bool use_sdl_update = false) {
-    if (flags()->kLoadTexturesAsStreaming) {
-      bitmap->UpdateTexture(renderer_.get(), use_sdl_update);
-    } else {
-      bitmap->UpdateTexture(renderer_);
-    }
-  }
-
-  std::vector<std::vector<uint8_t>> main_blockset_ids;
-  std::vector<std::vector<uint8_t>> room_blockset_ids;
-  std::vector<std::vector<uint8_t>> spriteset_ids;
-  std::vector<std::vector<uint8_t>> paletteset_ids;
-
-  void LoadGfxGroups();
-  void SaveGroupsToRom();
-
-  auto resource_label() { return &resource_label_manager_; }
-  auto font_gfx_data() { return font_gfx_data_; }
-
- private:
   struct WriteAction {
     int address;
     std::variant<int, uint8_t, uint16_t, short, std::vector<uint8_t>,
@@ -545,7 +495,8 @@ class Rom : public core::ExperimentFlags {
         value;
   };
 
-  absl::Status WriteHelper(const WriteAction& action) {
+ private:
+  virtual absl::Status WriteHelper(const WriteAction& action) {
     if (std::holds_alternative<uint8_t>(action.value)) {
       return Write(action.address, std::get<uint8_t>(action.value));
     } else if (std::holds_alternative<uint16_t>(action.value) ||
@@ -563,7 +514,6 @@ class Rom : public core::ExperimentFlags {
     }
     auto error_message = absl::StrFormat("Invalid write argument type: %s",
                                          typeid(action.value).name());
-    throw std::runtime_error(error_message);
     return absl::InvalidArgumentError(error_message);
   }
 
@@ -582,26 +532,42 @@ class Rom : public core::ExperimentFlags {
     return absl::OkStatus();
   }
 
-  long size_ = 0;
+  absl::Status LoadZelda3();
+  absl::Status LoadGfxGroups();
+  absl::Status SaveGroupsToRom();
+
+  // ROM file loaded flag
   bool is_loaded_ = false;
-  bool has_header_ = false;
-  uchar title_[21] = "ROM Not Loaded";
-  std::string filename_;
 
-  Bytes rom_data_;
-  Bytes graphics_buffer_;
-  Bytes font_gfx_data_;
+  // Size of the ROM data.
+  unsigned long size_ = 0;
 
-  Z3_Version version_ = Z3_Version::US;
-  gfx::BitmapTable graphics_bin_;
-  gfx::BitmapManager graphics_manager_;
-  gfx::BitmapTable link_graphics_;
-  gfx::SnesPalette link_palette_;
+  // Title of the ROM loaded from the header
+  std::string title_ = "ROM not loaded";
+
+  // Filename of the ROM
+  std::string filename_ = "";
+
+  // Full contiguous rom space
+  std::vector<uint8_t> rom_data_;
+
+  // Full contiguous graphics space
+  std::vector<uint8_t> graphics_buffer_;
+
+  // All graphics sheets in the game
+  std::array<gfx::Bitmap, kNumGfxSheets> graphics_sheets_;
+
+  // All graphics sheets for Link
+  std::array<gfx::Bitmap, kNumLinkSheets> link_graphics_;
+
+  // Label manager for unique resource names.
+  ResourceLabelManager resource_label_manager_;
+
+  // All palette groups in the game
   gfx::PaletteGroupMap palette_groups_;
-  core::ResourceLabelManager resource_label_manager_;
 
-  std::stack<std::function<void()>> changes_;
-  std::shared_ptr<SDL_Renderer> renderer_;
+  // Version of the game
+  Z3_Version version_ = Z3_Version::US;
 };
 
 /**

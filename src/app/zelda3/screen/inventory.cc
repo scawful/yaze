@@ -1,5 +1,6 @@
 #include "inventory.h"
 
+#include "app/core/platform/renderer.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
@@ -9,6 +10,8 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 namespace screen {
+
+using core::Renderer;
 
 absl::Status Inventory::Create() {
   data_.reserve(256 * 256);
@@ -65,7 +68,7 @@ absl::Status Inventory::Create() {
 
   bitmap_.Create(256, 256, 8, data_);
   RETURN_IF_ERROR(bitmap_.ApplyPalette(palette_));
-  rom()->RenderBitmap(&bitmap_);
+  Renderer::GetInstance().RenderBitmap(&bitmap_);
   return absl::OkStatus();
 }
 
@@ -73,7 +76,7 @@ absl::Status Inventory::BuildTileset() {
   tilesheets_.reserve(6 * 0x2000);
   for (int i = 0; i < 6 * 0x2000; i++) tilesheets_.push_back(0xFF);
   ASSIGN_OR_RETURN(tilesheets_, rom()->Load2BppGraphics())
-  Bytes test;
+  std::vector<uint8_t> test;
   for (int i = 0; i < 0x4000; i++) {
     test_.push_back(tilesheets_[i]);
   }
@@ -84,7 +87,7 @@ absl::Status Inventory::BuildTileset() {
   auto hud_pal_group = rom()->palette_group().hud;
   palette_ = hud_pal_group[0];
   RETURN_IF_ERROR(tilesheets_bmp_.ApplyPalette(palette_))
-  rom()->RenderBitmap(&tilesheets_bmp_);
+  Renderer::GetInstance().RenderBitmap(&tilesheets_bmp_);
   return absl::OkStatus();
 }
 

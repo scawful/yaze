@@ -1,14 +1,13 @@
 #ifndef YAZE_APP_CORE_EMULATOR_H
 #define YAZE_APP_CORE_EMULATOR_H
 
-#include "imgui/imgui.h"
-
 #include <cstdint>
 #include <vector>
 
 #include "app/emu/snes.h"
 #include "app/gui/zeml.h"
 #include "app/rom.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {
@@ -18,6 +17,46 @@ namespace app {
  * @brief SNES Emulation and debugging tools.
  */
 namespace emu {
+
+//   case SDLK_z:
+//     editor.emulator().snes().SetButtonState(1, 0, false);
+//   case SDLK_a:
+//     editor.emulator().snes().SetButtonState(1, 1, false);
+//   case SDLK_RSHIFT:
+//     editor.emulator().snes().SetButtonState(1, 2, false);
+//   case SDLK_RETURN:
+//     editor.emulator().snes().SetButtonState(1, 3, false);
+//   case SDLK_UP:
+//     editor.emulator().snes().SetButtonState(1, 4, false);
+//   case SDLK_DOWN:
+//     editor.emulator().snes().SetButtonState(1, 5, false);
+//   case SDLK_LEFT:
+//     editor.emulator().snes().SetButtonState(1, 6, false);
+//   case SDLK_RIGHT:
+//     editor.emulator().snes().SetButtonState(1, 7, false);
+//   case SDLK_x:
+//     editor.emulator().snes().SetButtonState(1, 8, false);
+//   case SDLK_s:
+//     editor.emulator().snes().SetButtonState(1, 9, false);
+//   case SDLK_d:
+//     editor.emulator().snes().SetButtonState(1, 10, false);
+//   case SDLK_c:
+//     editor.emulator().snes().SetButtonState(1, 11, false);
+
+struct EmulatorKeybindings {
+  ImGuiKey a_button = ImGuiKey_Z;
+  ImGuiKey b_button = ImGuiKey_A;
+  ImGuiKey x_button = ImGuiKey_S;
+  ImGuiKey y_button = ImGuiKey_X;
+  ImGuiKey l_button = ImGuiKey_Q;
+  ImGuiKey r_button = ImGuiKey_W;
+  ImGuiKey start_button = ImGuiKey_Enter;
+  ImGuiKey select_button = ImGuiKey_Backspace;
+  ImGuiKey up_button = ImGuiKey_UpArrow;
+  ImGuiKey down_button = ImGuiKey_DownArrow;
+  ImGuiKey left_button = ImGuiKey_LeftArrow;
+  ImGuiKey right_button = ImGuiKey_RightArrow;
+};
 
 /**
  * @class Emulator
@@ -144,6 +183,8 @@ class Emulator : public SharedRom {
   SDL_Texture* ppu_texture_;
 
   std::vector<uint8_t> rom_data_;
+
+  EmulatorKeybindings keybindings_;
 
   gui::zeml::Node emulator_node_;
 };

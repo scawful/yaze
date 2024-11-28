@@ -1,26 +1,20 @@
 #ifndef YAZE_APP_CORE_PROJECT_H
 #define YAZE_APP_CORE_PROJECT_H
 
-#include "absl/strings/match.h"
-
+#include <algorithm>
 #include <fstream>
 #include <string>
-#include <string_view>
 #include <vector>
 
 #include "absl/status/status.h"
-#include "absl/strings/string_view.h"
 #include "app/core/common.h"
+#include "app/core/utils/file_util.h"
 
 namespace yaze {
 namespace app {
 
-constexpr absl::string_view kProjectFileExtension = ".yaze";
-constexpr absl::string_view kProjectFileFilter =
-    "Yaze Project Files (*.yaze)\0*.yaze\0";
-constexpr absl::string_view kPreviousRomFilenameDelimiter =
-    "PreviousRomFilename";
-constexpr absl::string_view kEndOfProjectFile = "EndOfProjectFile";
+const std::string kRecentFilesFilename = "recent_files.txt";
+constexpr char kEndOfProjectFile[] = "EndOfProjectFile";
 
 /**
  * @struct Project
@@ -31,81 +25,12 @@ constexpr absl::string_view kEndOfProjectFile = "EndOfProjectFile";
  * user can have different rom file names for a single project and keep track of
  * backups.
  */
-
 struct Project : public core::ExperimentFlags {
-  /**
-   * @brief Creates a new project.
-   *
-   * @param project_name The name of the project.
-   * @param project_path The path to the project.
-   * @return An absl::Status indicating the success or failure of the project
-   * creation.
-   */
-  absl::Status Create(const std::string &project_name) {
+  absl::Status Create(const std::string& project_name) {
     name = project_name;
     project_opened_ = true;
     return absl::OkStatus();
   }
-
-  absl::Status Open(const std::string &project_path) {
-    filepath = project_path;
-    name = project_path.substr(project_path.find_last_of("/") + 1);
-
-    std::ifstream in(project_path);
-
-    if (!in.good()) {
-      return absl::InternalError("Could not open project file.");
-    }
-
-    std::string line;
-    std::getline(in, name);
-    std::getline(in, filepath);
-    std::getline(in, rom_filename_);
-    std::getline(in, code_folder_);
-    std::getline(in, labels_filename_);
-
-    while (std::getline(in, line)) {
-      if (line == kEndOfProjectFile) {
-        break;
-      }
-
-      if (absl::StrContains(line, kPreviousRomFilenameDelimiter)) {
-        previous_rom_filenames_.push_back(
-            line.substr(line.find(kPreviousRomFilenameDelimiter) +
-                        kPreviousRomFilenameDelimiter.size() + 1));
-      }
-    }
-
-    in.close();
-
-    return absl::OkStatus();
-  }
-
-  absl::Status Save() {
-    RETURN_IF_ERROR(CheckForEmptyFields());
-
-    std::ofstream out(filepath + "/" + name + ".yaze");
-    if (!out.good()) {
-      return absl::InternalError("Could not open project file.");
-    }
-
-    out << name << std::endl;
-    out << filepath << std::endl;
-    out << rom_filename_ << std::endl;
-    out << code_folder_ << std::endl;
-    out << labels_filename_ << std::endl;
-
-    for (const auto &filename : previous_rom_filenames_) {
-      out << kPreviousRomFilenameDelimiter << " " << filename << std::endl;
-    }
-
-    out << kEndOfProjectFile << std::endl;
-
-    out.close();
-
-    return absl::OkStatus();
-  }
-
   absl::Status CheckForEmptyFields() {
     if (name.empty() || filepath.empty() || rom_filename_.empty() ||
         code_folder_.empty() || labels_filename_.empty()) {
@@ -116,20 +41,93 @@ struct Project : public core::ExperimentFlags {
 
     return absl::OkStatus();
   }
-
-  absl::Status SerializeExperimentFlags() {
-    auto flags = mutable_flags();
-    // TODO: Serialize flags
-    return absl::OkStatus();
-  }
+  absl::Status Open(const std::string &project_path);
+  absl::Status Save();
 
   bool project_opened_ = false;
   std::string name;
+  std::string flags = "";
   std::string filepath;
   std::string rom_filename_ = "";
   std::string code_folder_ = "";
   std::string labels_filename_ = "";
-  std::vector<std::string> previous_rom_filenames_;
+  std::string keybindings_file = "";
+};
+
+// Default types
+static constexpr absl::string_view kDefaultTypes[] = {
+    "Dungeon Names", "Dungeon Room Names", "Overworld Map Names"};
+
+struct ResourceLabelManager {
+  bool LoadLabels(const std::string& filename);
+  bool SaveLabels();
+  void DisplayLabels(bool* p_open);
+  void EditLabel(const std::string& type, const std::string& key,
+                 const std::string& newValue);
+  void SelectableLabelWithNameEdit(bool selected, const std::string& type,
+                                   const std::string& key,
+                                   const std::string& defaultValue);
+  std::string GetLabel(const std::string& type, const std::string& key);
+  std::string CreateOrGetLabel(const std::string& type, const std::string& key,
+                               const std::string& defaultValue);
+
+  bool labels_loaded_ = false;
+  std::string filename_;
+  struct ResourceType {
+    std::string key_name;
+    std::string display_description;
+  };
+
+  std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
+      labels_;
+};
+
+class RecentFilesManager {
+ public:
+  RecentFilesManager() : RecentFilesManager(kRecentFilesFilename) {}
+  RecentFilesManager(const std::string& filename) : filename_(filename) {}
+
+  void AddFile(const std::string& file_path) {
+    // Add a file to the list, avoiding duplicates
+    auto it = std::find(recent_files_.begin(), recent_files_.end(), file_path);
+    if (it == recent_files_.end()) {
+      recent_files_.push_back(file_path);
+    }
+  }
+
+  void Save() {
+    std::ofstream file(filename_);
+    if (!file.is_open()) {
+      return;  // Handle the error appropriately
+    }
+
+    for (const auto& file_path : recent_files_) {
+      file << file_path << std::endl;
+    }
+  }
+
+  void Load() {
+    std::ifstream file(filename_);
+    if (!file.is_open()) {
+      return;
+    }
+
+    recent_files_.clear();
+    std::string line;
+    while (std::getline(file, line)) {
+      if (!line.empty()) {
+        recent_files_.push_back(line);
+      }
+    }
+  }
+
+  const std::vector<std::string>& GetRecentFiles() const {
+    return recent_files_;
+  }
+
+ private:
+  std::string filename_;
+  std::vector<std::string> recent_files_;
 };
 
 }  // namespace app

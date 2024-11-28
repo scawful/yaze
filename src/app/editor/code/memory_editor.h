@@ -1,27 +1,20 @@
 #ifndef YAZE_APP_EDITOR_CODE_MEMORY_EDITOR_H
 #define YAZE_APP_EDITOR_CODE_MEMORY_EDITOR_H
 
-#include "imgui/imgui.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
-#include "imgui_memory_editor.h"
-
 #include "absl/status/status.h"
-#include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/code/memory_editor.h"
 #include "app/editor/dungeon/dungeon_editor.h"
+#include "app/editor/editor.h"
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/music/music_editor.h"
-#include "app/editor/overworld_editor.h"
+#include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
-#include "app/editor/utils/editor.h"
-#include "app/editor/utils/gfx_context.h"
-#include "app/editor/utils/recent_files.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -30,6 +23,9 @@
 #include "app/gui/input.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
+#include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+#include "imgui_memory_editor.h"
 
 namespace yaze {
 namespace app {
@@ -46,7 +42,7 @@ struct MemoryEditorWithDiffChecker : public SharedRom {
     static Rom comparison_rom;
     ImGui::Begin("Hex Editor", &show_memory_editor);
     if (ImGui::Button("Compare Rom")) {
-      auto file_name = FileDialogWrapper::ShowOpenFileDialog();
+      auto file_name = core::FileDialogWrapper::ShowOpenFileDialog();
       PRINT_IF_ERROR(comparison_rom.LoadFromFile(file_name));
       show_compare_rom = true;
     }

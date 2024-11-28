@@ -1,27 +1,18 @@
 #ifndef YAZE_APP_CORE_PLATFORM_CLIPBOARD_H
 #define YAZE_APP_CORE_PLATFORM_CLIPBOARD_H
 
-#ifdef _WIN32
-
-void CopyImageToClipboard(const std::vector<uint8_t>& data);
-void GetImageFromClipboard(std::vector<uint8_t>& data, int& width, int& height);
-
-#elif defined(__APPLE__)
-
 #include <cstdint>
 #include <vector>
 
-void CopyImageToClipboard(const std::vector<uint8_t>& data);
-void GetImageFromClipboard(std::vector<uint8_t>& data, int& width, int& height);
+namespace yaze {
+namespace app {
+namespace core {
 
-#elif defined(__linux__)
+void CopyImageToClipboard(const std::vector<uint8_t> &data);
+void GetImageFromClipboard(std::vector<uint8_t> &data, int &width, int &height);
 
-#include <cstdint>
-#include <vector>
-
-void CopyImageToClipboard(const std::vector<uint8_t>& data);
-void GetImageFromClipboard(std::vector<uint8_t>& data, int& width, int& height);
-
-#endif
+}  // namespace core
+}  // namespace app
+}  // namespace yaze
 
 #endif  // YAZE_APP_CORE_PLATFORM_CLIPBOARD_H

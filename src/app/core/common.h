@@ -1,16 +1,15 @@
 #ifndef YAZE_CORE_COMMON_H
 #define YAZE_CORE_COMMON_H
 
-#include "imgui/imgui.h"
-
-#include <chrono>
 #include <cstdint>
 #include <fstream>
-#include <functional>
 #include <iostream>
 #include <memory>
-#include <stack>
 #include <string>
+
+#include "absl/status/statusor.h"
+#include "absl/strings/str_format.h"
+#include "absl/container/flat_hash_map.h"
 
 namespace yaze {
 namespace app {
@@ -21,16 +20,21 @@ namespace app {
  */
 namespace core {
 
+std::string UppercaseHexByte(uint8_t byte, bool leading = false);
+std::string UppercaseHexWord(uint16_t word, bool leading = false);
+std::string UppercaseHexLong(uint32_t dword);
+std::string UppercaseHexLongLong(uint64_t qword);
+
+bool StringReplace(std::string &str, const std::string &from,
+                   const std::string &to);
+
 /**
  * @class ExperimentFlags
  * @brief A class to manage experimental feature flags.
  */
 class ExperimentFlags {
- public:
+public:
   struct Flags {
-    // Bitmap manager abstraction to manage graphics bin of Rom.
-    bool kUseBitmapManager = true;
-
     // Log instructions to the GUI debugger.
     bool kLogInstructions = true;
 
@@ -56,21 +60,17 @@ class ExperimentFlags {
     // Use the new platform specific file dialog wrappers.
     bool kNewFileDialogWrapper = true;
 
-    // Platform specific loading of fonts from the system. Currently
-    // only supports macOS.
-    bool kLoadSystemFonts = true;
-
     // Uses texture streaming from SDL for my dynamic updates.
     bool kLoadTexturesAsStreaming = true;
 
     // Save dungeon map edits to the Rom.
     bool kSaveDungeonMaps = false;
 
+    // Save graphics sheet to the Rom.
+    bool kSaveGraphicsSheet = false;
+
     // Log to the console.
     bool kLogToConsole = false;
-
-    // Load audio device for emulator
-    bool kLoadAudioDevice = false;
 
     // Overworld flags
     struct Overworld {
@@ -91,6 +91,9 @@ class ExperimentFlags {
 
       // Save overworld properties to the Rom.
       bool kSaveOverworldProperties = true;
+
+      // Load custom overworld data from the ROM and enable UI.
+      bool kLoadCustomOverworld = false;
     } overworld;
   };
 
@@ -109,8 +112,44 @@ class ExperimentFlags {
     }
     return flags_.get();
   }
+  std::string Serialize() const {
+    std::string result;
+    result +=
+        "kLogInstructions: " + std::to_string(flags_->kLogInstructions) + "\n";
+    result +=
+        "kUseNewImGuiInput: " + std::to_string(flags_->kUseNewImGuiInput) +
+        "\n";
+    result +=
+        "kSaveAllPalettes: " + std::to_string(flags_->kSaveAllPalettes) + "\n";
+    result +=
+        "kSaveGfxGroups: " + std::to_string(flags_->kSaveGfxGroups) + "\n";
+    result += "kSaveWithChangeQueue: " +
+              std::to_string(flags_->kSaveWithChangeQueue) + "\n";
+    result += "kDrawDungeonRoomGraphics: " +
+              std::to_string(flags_->kDrawDungeonRoomGraphics) + "\n";
+    result += "kNewFileDialogWrapper: " +
+              std::to_string(flags_->kNewFileDialogWrapper) + "\n";
+    result += "kLoadTexturesAsStreaming: " +
+              std::to_string(flags_->kLoadTexturesAsStreaming) + "\n";
+    result +=
+        "kSaveDungeonMaps: " + std::to_string(flags_->kSaveDungeonMaps) + "\n";
+    result += "kLogToConsole: " + std::to_string(flags_->kLogToConsole) + "\n";
+    result += "kDrawOverworldSprites: " +
+              std::to_string(flags_->overworld.kDrawOverworldSprites) + "\n";
+    result += "kSaveOverworldMaps: " +
+              std::to_string(flags_->overworld.kSaveOverworldMaps) + "\n";
+    result += "kSaveOverworldEntrances: " +
+              std::to_string(flags_->overworld.kSaveOverworldEntrances) + "\n";
+    result += "kSaveOverworldExits: " +
+              std::to_string(flags_->overworld.kSaveOverworldExits) + "\n";
+    result += "kSaveOverworldItems: " +
+              std::to_string(flags_->overworld.kSaveOverworldItems) + "\n";
+    result += "kSaveOverworldProperties: " +
+              std::to_string(flags_->overworld.kSaveOverworldProperties) + "\n";
+    return result;
+  }
 
- private:
+private:
   static std::shared_ptr<Flags> flags_;
 };
 
@@ -119,9 +158,8 @@ class ExperimentFlags {
  * @brief A class to manage a value that can be modified and notify when it
  * changes.
  */
-template <typename T>
-class NotifyValue {
- public:
+template <typename T> class NotifyValue {
+public:
   NotifyValue() : value_(), modified_(false), temp_value_() {}
   NotifyValue(const T &value)
       : value_(value), modified_(false), temp_value_() {}
@@ -154,68 +192,107 @@ class NotifyValue {
 
   bool modified() const { return modified_; }
 
- private:
+private:
   T value_;
   bool modified_;
   T temp_value_;
 };
 
-class ImGuiIdIssuer {
- private:
-  static std::stack<ImGuiID> idStack;
+static bool log_to_console = false;
+static std::string log_file_out = "log.txt";
 
- public:
-  // Generate and push a new ID onto the stack
-  static ImGuiID GetNewID() {
-    static int counter = 1;  // Start from 1 to ensure uniqueness
-    ImGuiID child_id = ImGui::GetID((void *)(intptr_t)counter++);
-    idStack.push(child_id);
-    return child_id;
+template <typename... Args>
+static void logf(const absl::FormatSpec<Args...> &format, const Args &...args) {
+  std::string message = absl::StrFormat(format, args...);
+  if (log_to_console) {
+    std::cout << message << std::endl;
   }
+  static std::ofstream fout(log_file_out, std::ios::out | std::ios::app);
+  fout << message << std::endl;
+}
 
-  // Pop all IDs from the stack (can be called explicitly or upon program exit)
-  static void Cleanup() {
-    while (!idStack.empty()) {
-      idStack.pop();
-    }
-  }
+struct StructuredLog {
+  std::string raw_message;
+  std::string category;
 };
+
+static absl::flat_hash_map<std::string, std::vector<std::string>> log_categories;
+
+template <typename... Args>
+static void logm(const std::string &category,
+                 const absl::FormatSpec<Args...> &format, const Args &...args) {
+  std::string message = absl::StrFormat(format, args...);
+  if (log_to_console) {
+    std::cout << category << ": " << message << std::endl;
+  }
+  if (log_categories.contains(category)) {
+    log_categories[category].push_back(message);
+  } else {
+    log_categories[category] = {message};
+  }
+}
 
 class Logger {
- public:
+public:
   static void log(std::string message) {
-    static std::ofstream fout("log.txt", std::ios::out | std::ios::app);
+    static std::ofstream fout(log_file_out, std::ios::out | std::ios::app);
     fout << message << std::endl;
   }
-
-  // log to console
-  static void logc(std::string message) { logs.emplace_back(message); }
-
-  static std::vector<std::string> logs;
 };
 
-std::string UppercaseHexByte(uint8_t byte, bool leading = false);
-std::string UppercaseHexWord(uint16_t word);
-std::string UppercaseHexLong(uint32_t dword);
+constexpr uint32_t kFastRomRegion = 0x808000;
 
-uint32_t SnesToPc(uint32_t addr);
-uint32_t PcToSnes(uint32_t addr);
+inline uint32_t SnesToPc(uint32_t addr) noexcept {
+  if (addr >= kFastRomRegion) {
+    addr -= kFastRomRegion;
+  }
+  uint32_t temp = (addr & 0x7FFF) + ((addr / 2) & 0xFF8000);
+  return (temp + 0x0);
+}
 
-uint32_t MapBankToWordAddress(uint8_t bank, uint16_t addr);
+inline uint32_t PcToSnes(uint32_t addr) {
+  uint8_t *b = reinterpret_cast<uint8_t *>(&addr);
+  b[2] = static_cast<uint8_t>(b[2] * 2);
 
-int AddressFromBytes(uint8_t addr1, uint8_t addr2, uint8_t addr3);
-int HexToDec(char *input, int length);
+  if (b[1] >= 0x80) {
+    b[2] += 1;
+  } else {
+    b[1] += 0x80;
+  }
 
-bool StringReplace(std::string &str, const std::string &from,
-                   const std::string &to);
+  return addr;
+}
 
+inline int AddressFromBytes(uint8_t bank, uint8_t high, uint8_t low) noexcept {
+  return (bank << 16) | (high << 8) | low;
+}
+
+inline uint32_t MapBankToWordAddress(uint8_t bank, uint16_t addr) noexcept {
+  uint32_t result = 0;
+  result = (bank << 16) | addr;
+  return result;
+}
+
+uint32_t Get24LocalFromPC(uint8_t *data, int addr, bool pc = true);
+
+/**
+ * @brief Store little endian 16-bit value using a byte pointer, offset by an
+ * index before dereferencing
+ */
 void stle16b_i(uint8_t *const p_arr, size_t const p_index,
                uint16_t const p_val);
-uint16_t ldle16b_i(uint8_t const *const p_arr, size_t const p_index);
-
-uint16_t ldle16b(uint8_t const *const p_arr);
 
 void stle16b(uint8_t *const p_arr, uint16_t const p_val);
+
+/**
+ * @brief Load little endian halfword (16-bit) dereferenced from an arrays of
+ * bytes. This version provides an index that will be multiplied by 2 and added
+ * to the base address.
+ */
+uint16_t ldle16b_i(uint8_t const *const p_arr, size_t const p_index);
+
+// Load little endian halfword (16-bit) dereferenced from
+uint16_t ldle16b(uint8_t const *const p_arr);
 
 struct FolderItem {
   std::string name;
@@ -225,10 +302,20 @@ struct FolderItem {
 
 typedef struct FolderItem FolderItem;
 
-uint32_t Get24LocalFromPC(uint8_t *data, int addr, bool pc = true);
+void CreateBpsPatch(const std::vector<uint8_t> &source,
+                    const std::vector<uint8_t> &target,
+                    std::vector<uint8_t> &patch);
 
-}  // namespace core
-}  // namespace app
-}  // namespace yaze
+void ApplyBpsPatch(const std::vector<uint8_t> &source,
+                   const std::vector<uint8_t> &patch,
+                   std::vector<uint8_t> &target);
+
+constexpr std::string_view kYazeVersion = "0.2.1";
+
+absl::StatusOr<std::string> CheckVersion(const char *version);
+
+} // namespace core
+} // namespace app
+} // namespace yaze
 
 #endif

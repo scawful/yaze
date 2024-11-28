@@ -1,16 +1,16 @@
 #ifndef YAZE_APP_EDITOR_SPRITE_ZSPRITE_H
 #define YAZE_APP_EDITOR_SPRITE_ZSPRITE_H
 
-#include "imgui/imgui.h"
-
 #include <algorithm>
 #include <cstdint>
 #include <fstream>
 #include <string>
 #include <vector>
 
+#include "app/core/constants.h"
 #include "absl/status/status.h"
 #include "app/gfx/snes_tile.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {
@@ -46,7 +46,7 @@ struct OamTile {
 struct AnimationGroup {
   AnimationGroup() = default;
   AnimationGroup(uint8_t fs, uint8_t fe, uint8_t fsp, std::string fn)
-      : frame_start(fs), frame_end(fe), frame_speed(fsp), frame_name(fn) {}
+      : frame_name(fn), frame_start(fs), frame_end(fe), frame_speed(fsp) {}
 
   std::string frame_name;
   uint8_t frame_start;

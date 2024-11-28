@@ -1,16 +1,14 @@
 #ifndef YAZE_APP_EDITOR_DUNGEONEDITOR_H
 #define YAZE_APP_EDITOR_DUNGEONEDITOR_H
 
-#include "imgui/imgui.h"
-
 #include "app/core/common.h"
-#include "app/core/labeling.h"
+#include "absl/container/flat_hash_map.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/graphics/palette_editor.h"
-#include "app/editor/utils/editor.h"
+#include "app/editor/editor.h"
 #include "app/gui/canvas.h"
-#include "app/gui/icons.h"
 #include "app/rom.h"
+#include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_object.h"
@@ -100,7 +98,6 @@ class DungeonEditor : public Editor,
   bool object_loaded_ = false;
   bool palette_showing_ = false;
   bool refresh_graphics_ = false;
-  bool show_object_render_ = false;
 
   uint16_t current_entrance_id_ = 0;
   uint16_t current_room_id_ = 0;
@@ -120,12 +117,11 @@ class DungeonEditor : public Editor,
   gui::Canvas object_canvas_;
 
   gfx::Bitmap room_gfx_bmp_;
-  gfx::BitmapManager graphics_bin_;
+  std::array<gfx::Bitmap, kNumGfxSheets> graphics_bin_;
 
   std::vector<gfx::Bitmap*> room_gfx_sheets_;
   std::vector<zelda3::dungeon::Room> rooms_;
   std::vector<zelda3::dungeon::RoomEntrance> entrances_;
-  std::vector<gfx::BitmapManager> room_graphics_;
   zelda3::dungeon::DungeonObjectRenderer object_renderer_;
 
   absl::flat_hash_map<uint16_t, int> spriteset_usage_;

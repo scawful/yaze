@@ -1,22 +1,19 @@
 #ifndef YAZE_APP_EDITOR_GRAPHICS_EDITOR_H
 #define YAZE_APP_EDITOR_GRAPHICS_EDITOR_H
 
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
-#include "imgui/imgui.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
-#include "imgui_memory_editor.h"
+#include <stack>
 
 #include "absl/status/status.h"
-#include "absl/status/statusor.h"
 #include "app/editor/graphics/palette_editor.h"
-#include "app/editor/utils/editor.h"
+#include "app/editor/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
-#include "app/gui/asset_browser.h"
+#include "app/gui/modules/asset_browser.h"
 #include "app/gui/canvas.h"
-#include "app/gui/input.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
+#include "imgui/imgui.h"
+#include "imgui_memory_editor.h"
 
 namespace yaze {
 namespace app {
@@ -167,8 +164,8 @@ class GraphicsEditor : public SharedRom, public Editor {
   MemoryEditor cgx_memory_editor_;
   MemoryEditor col_memory_editor_;
   PaletteEditor palette_editor_;
-  Bytes import_data_;
-  Bytes graphics_buffer_;
+  std::vector<uint8_t> import_data_;
+  std::vector<uint8_t> graphics_buffer_;
   std::vector<uint8_t> decoded_cgx_;
   std::vector<uint8_t> cgx_data_;
   std::vector<uint8_t> extra_cgx_data_;
@@ -179,9 +176,8 @@ class GraphicsEditor : public SharedRom, public Editor {
   gfx::Bitmap scr_bitmap_;
   gfx::Bitmap bin_bitmap_;
   gfx::Bitmap link_full_sheet_;
-  gfx::BitmapTable graphics_bin_;
-  gfx::BitmapTable clipboard_graphics_bin_;
-  gfx::BitmapTable link_graphics_;
+  std::array<gfx::Bitmap, kNumGfxSheets> gfx_sheets_;
+
   gfx::PaletteGroup col_file_palette_group_;
   gfx::SnesPalette z3_rom_palette_;
   gfx::SnesPalette col_file_palette_;
@@ -189,11 +185,12 @@ class GraphicsEditor : public SharedRom, public Editor {
   gui::Canvas import_canvas_;
   gui::Canvas scr_canvas_;
   gui::Canvas super_donkey_canvas_;
+  gui::Canvas graphics_bin_canvas_;
   gui::Canvas current_sheet_canvas_{"CurrentSheetCanvas", ImVec2(0x80, 0x20),
                                     gui::CanvasGridSize::k8x8};
   gui::Canvas link_canvas_{
       "LinkCanvas",
-      ImVec2(core::kTilesheetWidth * 4, core::kTilesheetHeight * 0x10 * 4),
+      ImVec2(gfx::kTilesheetWidth * 4, gfx::kTilesheetHeight * 0x10 * 4),
       gui::CanvasGridSize::k16x16};
   absl::Status status_;
 };

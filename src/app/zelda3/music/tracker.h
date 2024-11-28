@@ -1,16 +1,9 @@
 #ifndef YAZE_APP_ZELDA3_TRACKER_H
 #define YAZE_APP_ZELDA3_TRACKER_H
 
-#include <cstdint>
-#include <memory>
-#include <string>
 #include <vector>
 
-#include "absl/status/status.h"
-#include "app/core/common.h"
 #include "app/core/constants.h"
-#include "app/gfx/bitmap.h"
-#include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -45,7 +38,7 @@ constexpr int kDungeonMusicBank = 0x0D8000;
 using text_buf_ty = char[512];
 // ============================================================================
 
-using SongSPCBlock = struct {
+struct SongSpcBlock {
   unsigned short start;
   unsigned short len;
   unsigned short relnum;
@@ -59,7 +52,7 @@ using SongSPCBlock = struct {
 
 // =============================================================================
 
-using SongRange = struct {
+struct SongRange {
   unsigned short start;
   unsigned short end;
 
@@ -75,7 +68,7 @@ using SongRange = struct {
 
 // =============================================================================
 
-using SongPart = struct {
+struct SongPart {
   uchar flag;
   uchar inst;
   short tbl[8];
@@ -84,7 +77,7 @@ using SongPart = struct {
 
 // =============================================================================
 
-using Song = struct {
+struct Song {
   unsigned char flag;
   unsigned char inst;
   SongPart **tbl;
@@ -95,7 +88,7 @@ using Song = struct {
 };
 // =============================================================================
 
-using ZeldaWave = struct {
+struct ZeldaWave {
   int lopst;
   int end;
   short lflag;
@@ -105,7 +98,7 @@ using ZeldaWave = struct {
 
 // ============================================================================
 
-using SampleEdit = struct {
+struct SampleEdit {
   unsigned short flag;
   unsigned short init;
   unsigned short editsamp;
@@ -130,7 +123,7 @@ using SampleEdit = struct {
 
 // =============================================================================
 
-using ZeldaInstrument = struct {
+struct ZeldaInstrument {
   unsigned char samp;
   unsigned char ad;
   unsigned char sr;
@@ -141,7 +134,7 @@ using ZeldaInstrument = struct {
 
 // =============================================================================
 
-using ZeldaSfxInstrument = struct {
+struct ZeldaSfxInstrument {
   unsigned char voll;
   unsigned char volr;
   short freq;
@@ -154,7 +147,7 @@ using ZeldaSfxInstrument = struct {
 
 // =============================================================================
 
-using SPCCommand = struct {
+struct SpcCommand {
   unsigned short addr;
   short next;
   short prev;
@@ -173,22 +166,22 @@ using SPCCommand = struct {
 
 class Tracker {
  public:
-  SongSPCBlock *AllocSPCBlock(int len, int bank);
+  SongSpcBlock *AllocSpcBlock(int len, int bank);
 
-  unsigned char *GetSPCAddr(Rom &rom, unsigned short addr, short bank);
+  unsigned char *GetSpcAddr(Rom &rom, unsigned short addr, short bank);
 
-  short AllocSPCCommand();
+  short AllocSpcCommand();
 
   short GetBlockTime(Rom &rom, short num, short prevtime);
 
-  short SaveSPCCommand(Rom &rom, short num, short songtime, short endtr);
-  short LoadSPCCommand(Rom &rom, unsigned short addr, short bank, int t);
+  short SaveSpcCommand(Rom &rom, short num, short songtime, short endtr);
+  short LoadSpcCommand(Rom &rom, unsigned short addr, short bank, int t);
 
   void SaveSongs(Rom &rom);
 
   void LoadSongs(Rom &rom);
 
-  int WriteSPCData(Rom &rom, void *buf, int len, int addr, int spc, int limit);
+  int WriteSpcData(Rom &rom, void *buf, int len, int addr, int spc, int limit);
 
   void EditTrack(Rom &rom, short i);
 
@@ -248,9 +241,9 @@ class Tracker {
   std::vector<Song> songs;
   SongPart *sp_mark;
   SongRange *song_range_;
-  SPCCommand *current_spc_command_;
+  SpcCommand *current_spc_command_;
 
-  SongSPCBlock **ssblt;
+  SongSpcBlock **ssblt;
 
   ZeldaWave *waves;
   ZeldaInstrument *insts;

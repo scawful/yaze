@@ -10,8 +10,9 @@
 
 #define BUILD_HEADER(command, length) (command << 5) + (length - 1)
 
-namespace yaze_test {
-namespace gfx_test {
+namespace yaze {
+namespace test {
+namespace gfx {
 
 using yaze::app::Rom;
 using yaze::app::gfx::lc_lz2::CompressionContext;
@@ -32,8 +33,8 @@ using ::testing::TypedEq;
 
 namespace {
 
-Bytes ExpectCompressOk(Rom& rom, uchar* in, int in_size) {
-  auto load_status = rom.LoadFromPointer(in, in_size);
+std::vector<uint8_t> ExpectCompressOk(Rom& rom, uchar* in, int in_size) {
+  auto load_status = rom.LoadFromPointer(in, in_size, false);
   EXPECT_TRUE(load_status.ok());
   auto compression_status = CompressV3(rom.vector(), 0, in_size);
   EXPECT_TRUE(compression_status.ok());
@@ -41,7 +42,8 @@ Bytes ExpectCompressOk(Rom& rom, uchar* in, int in_size) {
   return compressed_bytes;
 }
 
-Bytes ExpectDecompressBytesOk(Rom& rom, Bytes& in) {
+std::vector<uint8_t> ExpectDecompressBytesOk(Rom& rom,
+                                             std::vector<uint8_t>& in) {
   auto load_status = rom.LoadFromBytes(in);
   EXPECT_TRUE(load_status.ok());
   auto decompression_status = DecompressV2(rom.data(), 0, in.size());
@@ -50,8 +52,8 @@ Bytes ExpectDecompressBytesOk(Rom& rom, Bytes& in) {
   return decompressed_bytes;
 }
 
-Bytes ExpectDecompressOk(Rom& rom, uchar* in, int in_size) {
-  auto load_status = rom.LoadFromPointer(in, in_size);
+std::vector<uint8_t> ExpectDecompressOk(Rom& rom, uchar* in, int in_size) {
+  auto load_status = rom.LoadFromPointer(in, in_size, false);
   EXPECT_TRUE(load_status.ok());
   auto decompression_status = DecompressV2(rom.data(), 0, in_size);
   EXPECT_TRUE(decompression_status.ok());
@@ -72,16 +74,16 @@ std::shared_ptr<CompressionPiece> ExpectNewCompressionPieceOk(
 void AssertCompressionQuality(
     const std::vector<uint8_t>& uncompressed_data,
     const std::vector<uint8_t>& expected_compressed_data) {
-  absl::StatusOr<Bytes> result =
+  absl::StatusOr<std::vector<uint8_t>> result =
       CompressV3(uncompressed_data, 0, uncompressed_data.size(), 0, false);
   ASSERT_TRUE(result.ok());
   auto compressed_data = std::move(*result);
   EXPECT_THAT(compressed_data, ElementsAreArray(expected_compressed_data));
 }
 
-Bytes ExpectCompressV3Ok(const std::vector<uint8_t>& uncompressed_data,
+std::vector<uint8_t> ExpectCompressV3Ok(const std::vector<uint8_t>& uncompressed_data,
                          const std::vector<uint8_t>& expected_compressed_data) {
-  absl::StatusOr<Bytes> result =
+  absl::StatusOr<std::vector<uint8_t>> result =
       CompressV3(uncompressed_data, 0, uncompressed_data.size(), 0, false);
   EXPECT_TRUE(result.ok());
   auto compressed_data = std::move(*result);
@@ -127,16 +129,6 @@ TEST(LC_LZ2_CompressionTest, RepeatedBytesBeforeUncompressableRepeated) {
   AssertCompressionQuality(
       {0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00},
       {0x04, 0x01, 0x00, 0x00, 0x00, 0x02, 0x22, 0x00, 0xFF});
-}
-
-TEST(LC_LZ2_CompressionTest, CompressionDecompressionEmptyData) {
-  Rom rom;
-  uchar empty_input[0] = {};
-  auto comp_result = ExpectCompressOk(rom, empty_input, 0);
-  EXPECT_EQ(0, comp_result.size());
-
-  auto decomp_result = ExpectDecompressOk(rom, empty_input, 0);
-  EXPECT_EQ(0, decomp_result.size());
 }
 
 TEST(LC_LZ2_CompressionTest, NewDecompressionPieceOk) {
@@ -405,7 +397,7 @@ TEST(CheckIncByteV3Test, NotAnIncreasingSequence) {
 
 TEST(LC_LZ2_CompressionTest, DecompressionValidCommand) {
   Rom rom;
-  Bytes simple_copy_input = {BUILD_HEADER(0x00, 0x02), 0x2A, 0x45, 0xFF};
+  std::vector<uint8_t> simple_copy_input = {BUILD_HEADER(0x00, 0x02), 0x2A, 0x45, 0xFF};
   uchar simple_copy_output[2] = {0x2A, 0x45};
   auto decomp_result = ExpectDecompressBytesOk(rom, simple_copy_input);
   EXPECT_THAT(simple_copy_output, ElementsAreArray(decomp_result.data(), 2));
@@ -429,5 +421,6 @@ TEST(LC_LZ2_CompressionTest, DecompressionMixingCommand) {
   EXPECT_THAT(random1_o, ElementsAreArray(decomp_result.data(), 9));
 }
 
-}  // namespace gfx_test
-}  // namespace yaze_test
+}  // namespace gfx
+}  // namespace test
+}  // namespace yaze

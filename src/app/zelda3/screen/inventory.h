@@ -26,11 +26,11 @@ class Inventory : public SharedRom {
  private:
   absl::Status BuildTileset();
 
-  Bytes data_;
+  std::vector<uint8_t> data_;
   gfx::Bitmap bitmap_;
 
-  Bytes tilesheets_;
-  Bytes test_;
+  std::vector<uint8_t> tilesheets_;
+  std::vector<uint8_t> test_;
   gfx::Bitmap tilesheets_bmp_;
   gfx::SnesPalette palette_;
 

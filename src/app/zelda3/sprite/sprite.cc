@@ -6,71 +6,27 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
-void Sprite::InitSprite(const Bytes& src, uchar mapid, uchar id, uchar x,
-                        uchar y, int map_x, int map_y) {
-  current_gfx_ = src;
-  overworld_ = true;
-  map_id_ = static_cast<int>(mapid);
-  id_ = id;
-  this->type_ = zelda3::OverworldEntity::EntityType::kSprite;
-  this->entity_id_ = id;
-  this->x_ = map_x_;
-  this->y_ = map_y_;
-  nx_ = x;
-  ny_ = y;
-  name_ = core::kSpriteDefaultNames[id];
-  map_x_ = map_x;
-  map_y_ = map_y;
-  preview_gfx_.reserve(64 * 64);
-  for (int i = 0; i < 64 * 64; i++) {
-    preview_gfx_.push_back(0xFF);
-  }
-}
-
-Sprite::Sprite(Bytes src, uchar mapid, uchar id, uchar x, uchar y, int map_x,
-               int map_y)
-    : current_gfx_(src),
-      map_id_(static_cast<int>(mapid)),
-      id_(id),
-      nx_(x),
-      ny_(y),
-      map_x_(map_x),
-      map_y_(map_y) {
-  this->type_ = zelda3::OverworldEntity::EntityType::kSprite;
-  this->entity_id_ = id;
-  this->x_ = map_x_;
-  this->y_ = map_y_;
-  current_gfx_ = src;
-  overworld_ = true;
-
-  name_ = core::kSpriteDefaultNames[id];
-  preview_gfx_.reserve(64 * 64);
-  for (int i = 0; i < 64 * 64; i++) {
-    preview_gfx_.push_back(0xFF);
-  }
-}
-
-void Sprite::UpdateMapProperties(short map_id) {
+void Sprite::UpdateMapProperties(uint16_t map_id) {
   map_x_ = x_;
   map_y_ = y_;
-  name_ = core::kSpriteDefaultNames[id_];
+  name_ = kSpriteDefaultNames[id_];
 }
 
-void Sprite::updateCoordinates(int map_x, int map_y) {
+void Sprite::UpdateCoordinates(int map_x, int map_y) {
   map_x_ = map_x;
   map_y_ = map_y;
 }
 
-void Sprite::updateBBox() {
-  lowerX_ = 1;
-  lowerY_ = 1;
-  higherX_ = 15;
-  higherY_ = 15;
+void Sprite::UpdateBoundaryBox() {
+  lower_x_ = 1;
+  lower_y_ = 1;
+  higher_x_ = 15;
+  higher_x_ = 15;
 }
 
 void Sprite::Draw() {
-  uchar x = nx_;
-  uchar y = ny_;
+  uint8_t x = nx_;
+  uint8_t y = ny_;
 
   if (overlord_ == 0x07) {
     if (id_ == 0x1A) {
@@ -101,13 +57,13 @@ void Sprite::Draw() {
     }
 
     if (nx_ != x || ny_ != y) {
-      bounding_box_.x = (lowerX_ + (nx_ * 16));
-      bounding_box_.y = (lowerY_ + (ny_ * 16));
+      bounding_box_.x = (lower_x_ + (nx_ * 16));
+      bounding_box_.y = (lower_y_ + (ny_ * 16));
       bounding_box_.w = width_;
       bounding_box_.h = height_;
     } else {
-      bounding_box_.x = (lowerX_ + (x * 16));
-      bounding_box_.y = (lowerY_ + (y * 16));
+      bounding_box_.x = (lower_x_ + (x * 16));
+      bounding_box_.y = (lower_y_ + (y * 16));
       bounding_box_.w = width_;
       bounding_box_.h = height_;
     }
@@ -123,22 +79,22 @@ void Sprite::Draw() {
   } else if (id_ == 0x02) {
     DrawSpriteTile((x * 16), (y * 16), 0, 16, 10);
   } else if (id_ == 0x04) {
-    uchar p = 3;
+    uint8_t p = 3;
 
     DrawSpriteTile((x * 16), (y * 16), 14, 28, p);
     DrawSpriteTile((x * 16), (y * 16), 14, 30, p);
   } else if (id_ == 0x05) {
-    uchar p = 3;
+    uint8_t p = 3;
 
     DrawSpriteTile((x * 16), (y * 16), 14, 28, p);
     DrawSpriteTile((x * 16), (y * 16), 14, 30, p);
   } else if (id_ == 0x06) {
-    uchar p = 3;
+    uint8_t p = 3;
 
     DrawSpriteTile((x * 16), (y * 16), 14, 28, p);
     DrawSpriteTile((x * 16), (y * 16), 14, 30, p);
   } else if (id_ == 0x07) {
-    uchar p = 3;
+    uint8_t p = 3;
 
     DrawSpriteTile((x * 16), (y * 16), 14, 28, p);
     DrawSpriteTile((x * 16), (y * 16), 14, 30, p);
@@ -908,8 +864,8 @@ void Sprite::Draw() {
     DrawSpriteTile((x * 16), (y * 16), 4, 4, 5);
   }
 
-  bounding_box_.x = (lowerX_ + (x * 16));
-  bounding_box_.y = (lowerY_ + (y * 16));
+  bounding_box_.x = (lower_x_ + (x * 16));
+  bounding_box_.y = (lower_y_ + (y * 16));
   bounding_box_.w = width_;
   bounding_box_.h = height_;
 }
@@ -948,7 +904,7 @@ void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
       int index = (x) + (y * 64) + (mx + (my * 0x80));
 
       if (index >= 0 && index <= 4096) {
-        preview_gfx_[index] = (uchar)((pixel & 0x0F) + 112 + (pal * 8));
+        preview_gfx_[index] = (uint8_t)((pixel & 0x0F) + 112 + (pal * 8));
       }
     }
   }

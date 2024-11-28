@@ -1,44 +1,54 @@
 #include "rom.h"
 
-#include <algorithm>      // for remove
-#include <chrono>         // for system_clock
-#include <cstddef>        // for size_t
-#include <cstdint>        // for uint32_t, uint8_t
-#include <cstring>        // for memcpy
-#include <ctime>          // for ctime
-#include <filesystem>     // for copy_options, copy_options...
-#include <fstream>        // for string, fstream, ifstream
-#include <stack>          // for stack
-#include <string>         // for hash, operator==, char_traits
-#include <unordered_map>  // for unordered_map, operator!=
-#include <utility>        // for tuple_element<>::type
-#include <vector>         // for vector, vector<>::value_type
+#include <algorithm>
+#include <chrono>
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <ctime>
+#include <filesystem>
+#include <fstream>
+#include <string>
+#include <vector>
 
-#include "absl/container/flat_hash_map.h"  // for flat_hash_map, BitMask
-#include "absl/status/status.h"            // for OkStatus, InternalError
-#include "absl/status/statusor.h"          // for StatusOr
-#include "absl/strings/str_cat.h"          // for StrCat
-#include "absl/strings/string_view.h"      // for string_view, operator==
-#include "app/core/constants.h"            // for Bytes, ASSIGN_OR_RETURN
-#include "app/gfx/bitmap.h"                // for Bitmap, BitmapTable
-#include "app/gfx/compression.h"           // for DecompressV2
-#include "app/gfx/snes_color.h"            // for SNESColor
-#include "app/gfx/snes_palette.h"          // for PaletteGroup
-#include "app/gfx/snes_tile.h"             // for SnesTo8bppSheet
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
+#include "absl/strings/string_view.h"
+#include "app/core/constants.h"
+#include "app/core/platform/renderer.h"
+#include "app/gfx/compression.h"
+#include "app/gfx/snes_color.h"
+#include "app/gfx/snes_palette.h"
+#include "app/gfx/snes_tile.h"
 
 namespace yaze {
 namespace app {
 
-absl::StatusOr<Bytes> Rom::Load2BppGraphics() {
-  Bytes sheet;
+using core::Renderer;
+constexpr int Uncompressed3BPPSize = 0x0600;
+
+namespace {
+int GetGraphicsAddress(const uchar *data, uint8_t addr, uint32_t ptr1,
+                       uint32_t ptr2, uint32_t ptr3) {
+  return core::SnesToPc(core::AddressFromBytes(
+      data[ptr1 + addr], data[ptr2 + addr], data[ptr3 + addr]));
+}
+}  // namespace
+
+absl::StatusOr<std::vector<uint8_t>> Rom::Load2BppGraphics() {
+  std::vector<uint8_t> sheet;
   const uint8_t sheets[] = {113, 114, 218, 219, 220, 221};
 
-  for (const auto& sheet_id : sheets) {
-    auto offset = GetGraphicsAddress(data(), sheet_id);
+  for (const auto &sheet_id : sheets) {
+    auto offset = GetGraphicsAddress(data(), sheet_id,
+                                     version_constants().kOverworldGfxPtr1,
+                                     version_constants().kOverworldGfxPtr2,
+                                     version_constants().kOverworldGfxPtr3);
     ASSIGN_OR_RETURN(auto decomp_sheet,
                      gfx::lc_lz2::DecompressV2(data(), offset))
     auto converted_sheet = gfx::SnesTo8bppSheet(decomp_sheet, 2);
-    for (const auto& each_pixel : converted_sheet) {
+    for (const auto &each_pixel : converted_sheet) {
       sheet.push_back(each_pixel);
     }
   }
@@ -46,79 +56,76 @@ absl::StatusOr<Bytes> Rom::Load2BppGraphics() {
 }
 
 absl::Status Rom::LoadLinkGraphics() {
-  const auto link_gfx_offset = 0x80000;  // $10:8000
-  const auto link_gfx_length = 0x800;    // 0x4000 or 0x7000?
-  link_palette_ = palette_groups_.armors[0];
+  const uint32_t kLinkGfxOffset = 0x80000;  // $10:8000
+  const uint16_t kLinkGfxLength = 0x800;    // 0x4000 or 0x7000?
 
   // Load Links graphics from the ROM
-  for (int i = 0; i < 14; i++) {
+  for (uint32_t i = 0; i < kNumLinkSheets; i++) {
     ASSIGN_OR_RETURN(
         auto link_sheet_data,
-        ReadByteVector(/*offset=*/link_gfx_offset + (i * link_gfx_length),
-                       /*length=*/link_gfx_length))
-    // auto link_sheet_8bpp = gfx::SnesTo8bppSheet(link_sheet_data, /*bpp=*/4);
-    // Convert to 3bpp, then from 3bpp to 8bpp before creating bitmap.
-    auto link_sheet_3bpp = gfx::Convert4bppTo3bpp(link_sheet_data);
-    auto link_sheet_8bpp = gfx::SnesTo8bppSheet(link_sheet_3bpp, /*bpp=*/3);
-    link_graphics_[i].Create(core::kTilesheetWidth, core::kTilesheetHeight,
-                             core::kTilesheetDepth, link_sheet_8bpp);
-    RETURN_IF_ERROR(
-        link_graphics_[i].ApplyPaletteWithTransparent(link_palette_, 0));
-    RenderBitmap(&link_graphics_[i]);
+        ReadByteVector(/*offset=*/kLinkGfxOffset + (i * kLinkGfxLength),
+                       /*length=*/kLinkGfxLength))
+    auto link_sheet_8bpp = gfx::SnesTo8bppSheet(link_sheet_data, /*bpp=*/4);
+    link_graphics_[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+                             gfx::kTilesheetDepth, link_sheet_8bpp);
+    RETURN_IF_ERROR(link_graphics_[i].ApplyPalette(palette_groups_.armors[0]);)
+    Renderer::GetInstance().RenderBitmap(&link_graphics_[i]);
   }
-
   return absl::OkStatus();
 }
 
-absl::Status Rom::LoadAllGraphicsData() {
-  constexpr uint32_t kNumGfxSheets = 223;
-  Bytes sheet;
+absl::Status Rom::LoadAllGraphicsData(bool defer_render) {
+  std::vector<uint8_t> sheet;
   bool bpp3 = false;
 
-  for (int i = 0; i < kNumGfxSheets; i++) {
+  for (uint32_t i = 0; i < kNumGfxSheets; i++) {
     if (i >= 115 && i <= 126) {  // uncompressed sheets
-      sheet.resize(core::Uncompressed3BPPSize);
-      auto offset = GetGraphicsAddress(data(), i);
-      for (int j = 0; j < core::Uncompressed3BPPSize; j++) {
+      sheet.resize(Uncompressed3BPPSize);
+      auto offset =
+          GetGraphicsAddress(data(), i, version_constants().kOverworldGfxPtr1,
+                             version_constants().kOverworldGfxPtr2,
+                             version_constants().kOverworldGfxPtr3);
+      for (int j = 0; j < Uncompressed3BPPSize; j++) {
         sheet[j] = rom_data_[j + offset];
       }
       bpp3 = true;
     } else if (i == 113 || i == 114 || i >= 218) {
       bpp3 = false;
     } else {
-      auto offset = GetGraphicsAddress(data(), i);
-      ASSIGN_OR_RETURN(sheet, gfx::lc_lz2::DecompressV2(data(), offset))
+      auto offset =
+          GetGraphicsAddress(data(), i, version_constants().kOverworldGfxPtr1,
+                             version_constants().kOverworldGfxPtr2,
+                             version_constants().kOverworldGfxPtr3);
+      ASSIGN_OR_RETURN(sheet,
+                       gfx::lc_lz2::DecompressV2(rom_data_.data(), offset))
       bpp3 = true;
     }
 
     if (bpp3) {
       auto converted_sheet = gfx::SnesTo8bppSheet(sheet, 3);
-      if (flags()->kUseBitmapManager) {
-        graphics_manager_.LoadBitmap(i, converted_sheet, core::kTilesheetWidth,
-                                     core::kTilesheetHeight,
-                                     core::kTilesheetDepth);
+      graphics_sheets_[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+                                 gfx::kTilesheetDepth, converted_sheet);
+      if (graphics_sheets_[i].is_active()) {
         if (i > 115) {
           // Apply sprites palette
-          RETURN_IF_ERROR(graphics_manager_[i].ApplyPaletteWithTransparent(
+          RETURN_IF_ERROR(graphics_sheets_[i].ApplyPaletteWithTransparent(
               palette_groups_.global_sprites[0], 0));
         } else {
-          RETURN_IF_ERROR(graphics_manager_[i].ApplyPaletteWithTransparent(
+          RETURN_IF_ERROR(graphics_sheets_[i].ApplyPaletteWithTransparent(
               palette_groups_.dungeon_main[0], 0));
         }
-        graphics_manager_[i].CreateTexture(renderer_);
       }
-      graphics_bin_[i] =
-          gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
-                      core::kTilesheetDepth, converted_sheet);
-      graphics_bin_.at(i).CreateTexture(renderer_);
 
-      if (flags()->kUseBitmapManager) {
-        for (int j = 0; j < graphics_manager_[i].size(); ++j) {
-          graphics_buffer_.push_back(graphics_manager_[i].at(j));
-        }
+      if (!defer_render) {
+        graphics_sheets_[i].CreateTexture(Renderer::GetInstance().renderer());
       }
+
+      for (int j = 0; j < graphics_sheets_[i].size(); ++j) {
+        graphics_buffer_.push_back(graphics_sheets_[i].at(j));
+      }
+
     } else {
-      for (int j = 0; j < graphics_bin_[0].size(); ++j) {
+      for (int j = 0; j < graphics_sheets_[0].size(); ++j) {
         graphics_buffer_.push_back(0xFF);
       }
     }
@@ -126,92 +133,137 @@ absl::Status Rom::LoadAllGraphicsData() {
   return absl::OkStatus();
 }
 
-absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
-  std::string full_filename = std::filesystem::absolute(filename).string();
-  if (full_filename.empty()) {
+absl::Status Rom::SaveAllGraphicsData() {
+  for (int i = 0; i < kNumGfxSheets; i++) {
+    if (graphics_sheets_[i].is_active()) {
+      int from_bpp = 8;
+      int to_bpp = 3;
+      std::vector<uint8_t> final_data;
+      bool compressed = true;
+      if (i >= 115 && i <= 126) {
+        to_bpp = 3;
+        compressed = false;
+      } else if (i == 113 || i == 114 || i >= 218) {
+        to_bpp = 2;
+      }
+
+      auto sheet_data = graphics_sheets_[i].vector();
+      final_data = gfx::ConvertBpp(sheet_data, from_bpp, to_bpp);
+      if (compressed) {
+        ASSIGN_OR_RETURN(
+            final_data,
+            gfx::lc_lz2::CompressV2(final_data.data(), 0, final_data.size()));
+      }
+      auto offset =
+          GetGraphicsAddress(data(), i, version_constants().kOverworldGfxPtr1,
+                             version_constants().kOverworldGfxPtr2,
+                             version_constants().kOverworldGfxPtr3);
+      std::copy(final_data.begin(), final_data.end(),
+                rom_data_.begin() + offset);
+    }
+  }
+  return absl::OkStatus();
+}
+
+absl::Status Rom::LoadFromFile(const std::string &filename, bool z3_load) {
+  if (filename.empty()) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `filename` is empty.");
   }
-  // Set filename
+  std::string full_filename = std::filesystem::absolute(filename).string();
   filename_ = full_filename;
 
-  // Open file
   std::ifstream file(filename_, std::ios::binary);
   if (!file.is_open()) {
-    return absl::InternalError(
+    return absl::NotFoundError(
         absl::StrCat("Could not open ROM file: ", filename_));
   }
 
   // Get file size and resize rom_data_
   try {
     size_ = std::filesystem::file_size(filename_);
-  } catch (const std::filesystem::filesystem_error& e) {
-    return absl::InternalError(
-        absl::StrCat("Could not get file size: ", filename_, " - ", e.what()));
+  } catch (const std::filesystem::filesystem_error &e) {
+    // Try to get the file size from the open file stream
+    file.seekg(0, std::ios::end);
+    if (!file) {
+      return absl::InternalError(absl::StrCat(
+          "Could not get file size: ", filename_, " - ", e.what()));
+    }
+    size_ = file.tellg();
   }
   rom_data_.resize(size_);
 
   // Read file into rom_data_
-  file.read(reinterpret_cast<char*>(rom_data_.data()), size_);
-
-  // Check if the sROM has a header
-  constexpr size_t baseROMSize = 1048576;  // 1MB
-  constexpr size_t headerSize = 0x200;     // 512 bytes
-  if (size_ % baseROMSize == headerSize) {
-    std::cout << "ROM has a header" << std::endl;
-    has_header_ = true;
-  }
-
-  // Remove header if present
-  if (has_header_) {
-    auto header =
-        std::vector<uchar>(rom_data_.begin(), rom_data_.begin() + 0x200);
-    rom_data_.erase(rom_data_.begin(), rom_data_.begin() + 0x200);
-    size_ -= 0x200;
-  }
-
-  // Close file
+  file.read(reinterpret_cast<char *>(rom_data_.data()), size_);
   file.close();
 
-  // Load Zelda 3 specific data if requested
-  if (z3_load) {
-    // Copy ROM title
-    constexpr uint32_t kTitleStringOffset = 0x7FC0;
-    constexpr uint32_t kTitleStringLength = 20;
-    memcpy(title_, rom_data_.data() + kTitleStringOffset, kTitleStringLength);
-    if (rom_data_[kTitleStringOffset + 0x19] == 0) {
-      version_ = Z3_Version::JP;
-    } else {
-      version_ = Z3_Version::US;
-    }
-    RETURN_IF_ERROR(gfx::LoadAllPalettes(rom_data_, palette_groups_));
-    LoadGfxGroups();
-  }
+  // Set is_loaded_ flag and return success
+  is_loaded_ = true;
 
-  // Expand the ROM data to 2MB without changing the data in the first 1MB
-  rom_data_.resize(baseROMSize * 2);
-  size_ = baseROMSize * 2;
+  if (z3_load) {
+    RETURN_IF_ERROR(LoadZelda3());
+  }
 
   // Set up the resource labels
   std::string resource_label_filename = absl::StrFormat("%s.labels", filename);
   resource_label_manager_.LoadLabels(resource_label_filename);
-
-  // Set is_loaded_ flag and return success
-  is_loaded_ = true;
   return absl::OkStatus();
 }
 
-absl::Status Rom::LoadFromPointer(uchar* data, size_t length) {
-  if (!data)
+absl::Status Rom::LoadFromPointer(uchar *data, size_t length, bool z3_load) {
+  if (!data || length == 0)
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `data` is empty.");
 
-  for (int i = 0; i < length; ++i) rom_data_.push_back(data[i]);
+  if (!palette_groups_.empty()) palette_groups_.clear();
+  if (rom_data_.size() < length) rom_data_.resize(length);
+
+  std::copy(data, data + length, rom_data_.begin());
+  size_ = length;
+  is_loaded_ = true;
+
+  if (z3_load) {
+    RETURN_IF_ERROR(LoadZelda3());
+  }
+  return absl::OkStatus();
+}
+
+absl::Status Rom::LoadZelda3() {
+  // Check if the ROM has a header
+  constexpr size_t kBaseRomSize = 1048576;  // 1MB
+  constexpr size_t kHeaderSize = 0x200;     // 512 bytes
+  if (size_ % kBaseRomSize == kHeaderSize) {
+    auto header =
+        std::vector<uchar>(rom_data_.begin(), rom_data_.begin() + kHeaderSize);
+    rom_data_.erase(rom_data_.begin(), rom_data_.begin() + kHeaderSize);
+    size_ -= 0x200;
+  }
+
+  // Copy ROM title
+  constexpr uint32_t kTitleStringOffset = 0x7FC0;
+  constexpr uint32_t kTitleStringLength = 20;
+  std::copy(rom_data_.begin() + kTitleStringOffset,
+            rom_data_.begin() + kTitleStringOffset + kTitleStringLength,
+            title_.begin());
+  if (rom_data_[kTitleStringOffset + 0x19] == 0) {
+    version_ = Z3_Version::JP;
+  } else {
+    version_ = Z3_Version::US;
+  }
+
+  // Load additional resources
+  RETURN_IF_ERROR(gfx::LoadAllPalettes(rom_data_, palette_groups_));
+  // TODO Load gfx groups or expanded ZS values
+  RETURN_IF_ERROR(LoadGfxGroups());
+
+  // Expand the ROM data to 2MB without changing the data in the first 1MB
+  rom_data_.resize(kBaseRomSize * 2);
+  size_ = kBaseRomSize * 2;
 
   return absl::OkStatus();
 }
 
-absl::Status Rom::LoadFromBytes(const Bytes& data) {
+absl::Status Rom::LoadFromBytes(const std::vector<uint8_t> &data) {
   if (data.empty()) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `data` is empty.");
@@ -253,20 +305,16 @@ absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
     try {
       std::filesystem::copy(filename_, backup_filename,
                             std::filesystem::copy_options::overwrite_existing);
-    } catch (const std::filesystem::filesystem_error& e) {
+    } catch (const std::filesystem::filesystem_error &e) {
       non_firing_status = absl::InternalError(absl::StrCat(
           "Could not create backup file: ", backup_filename, " - ", e.what()));
     }
   }
 
   // Run the other save functions
-  if (flags()->kSaveAllPalettes) {
-    RETURN_IF_ERROR(SaveAllPalettes());
-  }
-
-  if (flags()->kSaveGfxGroups) {
-    SaveGroupsToRom();
-  }
+  if (flags()->kSaveAllPalettes) RETURN_IF_ERROR(SaveAllPalettes());
+  if (flags()->kSaveGfxGroups) RETURN_IF_ERROR(SaveGroupsToRom());
+  if (flags()->kSaveGraphicsSheet) RETURN_IF_ERROR(SaveAllGraphicsData());
 
   if (save_new) {
     // Create a file of the same name and append the date between the filename
@@ -301,9 +349,9 @@ absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
   // Save the data to the file
   try {
     file.write(
-        static_cast<const char*>(static_cast<const void*>(rom_data_.data())),
+        static_cast<const char *>(static_cast<const void *>(rom_data_.data())),
         rom_data_.size());
-  } catch (const std::ofstream::failure& e) {
+  } catch (const std::ofstream::failure &e) {
     return absl::InternalError(absl::StrCat(
         "Error while writing to ROM file: ", filename, " - ", e.what()));
   }
@@ -321,9 +369,8 @@ absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
   return absl::OkStatus();
 }
 
-absl::Status Rom::SavePalette(int index, const std::string& group_name,
-                              gfx::SnesPalette& palette) {
-  // Iterate through all colors in the palette
+absl::Status Rom::SavePalette(int index, const std::string &group_name,
+                              gfx::SnesPalette &palette) {
   for (size_t j = 0; j < palette.size(); ++j) {
     gfx::SnesColor color = palette[j];
     // If the color is modified, save the color to the ROM
@@ -338,7 +385,7 @@ absl::Status Rom::SavePalette(int index, const std::string& group_name,
 
 absl::Status Rom::SaveAllPalettes() {
   RETURN_IF_ERROR(
-      palette_groups_.for_each([&](gfx::PaletteGroup& group) -> absl::Status {
+      palette_groups_.for_each([&](gfx::PaletteGroup &group) -> absl::Status {
         for (size_t i = 0; i < group.size(); ++i) {
           RETURN_IF_ERROR(
               SavePalette(i, group.name(), *group.mutable_palette(i)));
@@ -349,75 +396,70 @@ absl::Status Rom::SaveAllPalettes() {
   return absl::OkStatus();
 }
 
-void Rom::LoadGfxGroups() {
-  main_blockset_ids.resize(37, std::vector<uint8_t>(8));
-  room_blockset_ids.resize(82, std::vector<uint8_t>(4));
-  spriteset_ids.resize(144, std::vector<uint8_t>(4));
-  paletteset_ids.resize(72, std::vector<uint8_t>(4));
+absl::Status Rom::LoadGfxGroups() {
+  ASSIGN_OR_RETURN(auto main_blockset_ptr, ReadWord(kGfxGroupsPointer));
+  main_blockset_ptr = core::SnesToPc(main_blockset_ptr);
 
-  int gfxPointer =
-      (rom_data_[kGfxGroupsPointer + 1] << 8) + rom_data_[kGfxGroupsPointer];
-  gfxPointer = core::SnesToPc(gfxPointer);
-
-  for (int i = 0; i < 37; i++) {
+  for (uint32_t i = 0; i < kNumMainBlocksets; i++) {
     for (int j = 0; j < 8; j++) {
-      main_blockset_ids[i][j] = rom_data_[gfxPointer + (i * 8) + j];
+      main_blockset_ids[i][j] = rom_data_[main_blockset_ptr + (i * 8) + j];
     }
   }
 
-  for (int i = 0; i < 82; i++) {
+  for (uint32_t i = 0; i < kNumRoomBlocksets; i++) {
     for (int j = 0; j < 4; j++) {
-      room_blockset_ids[i][j] =
-          rom_data_[core::entrance_gfx_group + (i * 4) + j];
+      room_blockset_ids[i][j] = rom_data_[kEntranceGfxGroup + (i * 4) + j];
     }
   }
 
-  for (int i = 0; i < 144; i++) {
+  for (uint32_t i = 0; i < kNumSpritesets; i++) {
     for (int j = 0; j < 4; j++) {
       spriteset_ids[i][j] =
           rom_data_[version_constants().kSpriteBlocksetPointer + (i * 4) + j];
     }
   }
 
-  for (int i = 0; i < 72; i++) {
+  for (uint32_t i = 0; i < kNumPalettesets; i++) {
     for (int j = 0; j < 4; j++) {
       paletteset_ids[i][j] =
           rom_data_[version_constants().kDungeonPalettesGroups + (i * 4) + j];
     }
   }
+
+  return absl::OkStatus();
 }
 
-void Rom::SaveGroupsToRom() {
-  int gfxPointer =
-      (rom_data_[kGfxGroupsPointer + 1] << 8) + rom_data_[kGfxGroupsPointer];
-  gfxPointer = core::SnesToPc(gfxPointer);
+absl::Status Rom::SaveGroupsToRom() {
+  ASSIGN_OR_RETURN(auto main_blockset_ptr, ReadWord(kGfxGroupsPointer));
+  main_blockset_ptr = core::SnesToPc(main_blockset_ptr);
 
-  for (int i = 0; i < 37; i++) {
+  for (uint32_t i = 0; i < kNumMainBlocksets; i++) {
     for (int j = 0; j < 8; j++) {
-      rom_data_[gfxPointer + (i * 8) + j] = main_blockset_ids[i][j];
+      rom_data_[main_blockset_ptr + (i * 8) + j] = main_blockset_ids[i][j];
     }
   }
 
-  for (int i = 0; i < 82; i++) {
+  for (uint32_t i = 0; i < kNumRoomBlocksets; i++) {
     for (int j = 0; j < 4; j++) {
-      rom_data_[core::entrance_gfx_group + (i * 4) + j] =
-          room_blockset_ids[i][j];
+      rom_data_[kEntranceGfxGroup + (i * 4) + j] = room_blockset_ids[i][j];
     }
   }
 
-  for (int i = 0; i < 144; i++) {
+  for (uint32_t i = 0; i < kNumSpritesets; i++) {
     for (int j = 0; j < 4; j++) {
       rom_data_[version_constants().kSpriteBlocksetPointer + (i * 4) + j] =
           spriteset_ids[i][j];
     }
   }
 
-  for (int i = 0; i < 72; i++) {
+  for (uint32_t i = 0; i < kNumPalettesets; i++) {
     for (int j = 0; j < 4; j++) {
       rom_data_[version_constants().kDungeonPalettesGroups + (i * 4) + j] =
           paletteset_ids[i][j];
     }
   }
+
+  return absl::OkStatus();
 }
 
 std::shared_ptr<Rom> SharedRom::shared_rom_ = nullptr;

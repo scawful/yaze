@@ -1,0 +1,63 @@
+#+TITLE: yaze todo
+#+SUBTITLE: yet another zelda3 editor todo list
+#+AUTHOR: @scawful
+#+TODO: TODO ACTIVE FEEDBACK VERIFY | DONE
+
+* Daily Log
+
+<2024-11-14 Thu>
+Been making lots of adjustments and cleaning up old code. Primarily improving the dungeon map editor and supporting bin graphics for my Oracle of Secrets dungeon maps. Additionally, working to support saving for resources like graphics sheets and expanded the project file system.
+
+<2024-09-07 Sat>
+Various header cleanup using the LSP in emacs to detect unused includes.
+Making adjustments to font loading so the editor can be opened from terminal/emacs.
+Currently the font files and the zeml files require the binary to be relative to `assets/layouts` and `assets/fonts`
+I've set it up so that the macOS app bundles the resources into the `yaze.app` so that the binary can be run from anywhere. This will need to be adjusted for other platforms.
+
+<2024-09-02 Mon>
+Extracted the DisplayPalette function out of the PaletteEditor and into its own standalone function.
+
+<2024-09-01 Sun>
+Started learning spacemacs and org-mode.
+
+* Editors
+** Overworld
+*** TODO ZSCustomOverworld implementation.
+**** DONE Custom Overworld Map Settings Inputs
+**** DONE Load ZSCOW data from ROM in OverworldMap
+**** TODO Add Main Palette support
+**** TODO Add Custom Area BG Color support
+
+*** TODO Fix sprite icon draw positions
+*** TODO Fix exit icon draw positions
+
+** Dungeon
+*** TODO Draw dungeon objects
+
+** Graphics
+*** TODO Tile16 Editor
+- [ ] Draw tile8 to tile16 quadrant.
+
+*** TODO Fix graphics sheet pencil drawing
+
+** Message
+*** TODO Fix Message Parsing
+
+** Palette
+*** TODO Persist color changes for saving to ROM.
+
+** Screens
+*** ACTIVE Dungeon Maps
+*** ACTIVE Inventory Menu
+*** TODO Overworld Map
+*** TODO Title Screen
+*** TODO Naming Screen
+
+* Infrastructure
+** File Handling
+*** TODO Update recent files manager to bundle the recent files list with the application
+*** DONE Create a util for handling file operations from the bundled resources.
+** Font Loading
+*** TODO Make font sizes variables so they can be reloaded by the user.
+** ZEML
+*** DONE Package layout files with the executable to avoid relative file lookup

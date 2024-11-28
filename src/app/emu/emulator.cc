@@ -1,18 +1,18 @@
 #include "app/emu/emulator.h"
 
-#include "imgui/imgui.h"
-#include "imgui_memory_editor.h"
-
 #include <cstdint>
 #include <vector>
 
 #include "app/core/constants.h"
 #include "app/core/platform/file_dialog.h"
+#include "app/core/platform/renderer.h"
 #include "app/emu/snes.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/zeml.h"
 #include "app/rom.h"
+#include "imgui/imgui.h"
+#include "imgui_memory_editor.h"
 
 namespace yaze {
 namespace app {
@@ -52,9 +52,9 @@ using ImGui::Text;
 void Emulator::Run() {
   static bool loaded = false;
   if (!snes_.running() && rom()->is_loaded()) {
-    ppu_texture_ =
-        SDL_CreateTexture(rom()->renderer().get(), SDL_PIXELFORMAT_ARGB8888,
-                          SDL_TEXTUREACCESS_STREAMING, 512, 480);
+    ppu_texture_ = SDL_CreateTexture(core::Renderer::GetInstance().renderer(),
+                                     SDL_PIXELFORMAT_ARGB8888,
+                                     SDL_TEXTUREACCESS_STREAMING, 512, 480);
     if (ppu_texture_ == NULL) {
       printf("Failed to create texture: %s\n", SDL_GetError());
       return;
@@ -118,7 +118,8 @@ void Emulator::RenderSnesPpu() {
                       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x - size.x) * 0.5f);
     ImGui::SetCursorPosY((ImGui::GetWindowSize().y - size.y) * 0.5f);
-    ImGui::Image((void*)ppu_texture_, size, ImVec2(0, 0), ImVec2(1, 1));
+    ImGui::Image((ImTextureID)(intptr_t)ppu_texture_, size, ImVec2(0, 0),
+                 ImVec2(1, 1));
     ImGui::EndChild();
 
   } else {
@@ -246,7 +247,7 @@ void Emulator::RenderNavBar() {
   }
 
   if (open_file) {
-    auto file_name = FileDialogWrapper::ShowOpenFileDialog();
+    auto file_name = core::FileDialogWrapper::ShowOpenFileDialog();
     if (!file_name.empty()) {
       std::ifstream file(file_name, std::ios::binary);
       // Load the data directly into rom_data
@@ -260,7 +261,101 @@ void Emulator::RenderNavBar() {
 
 void Emulator::HandleEvents() {
   // Handle user input events
-  // ...
+  if (ImGui::IsKeyPressed(keybindings_.a_button)) {
+    snes_.SetButtonState(1, 0, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.b_button)) {
+    snes_.SetButtonState(1, 1, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.select_button)) {
+    snes_.SetButtonState(1, 2, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.start_button)) {
+    snes_.SetButtonState(1, 3, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.up_button)) {
+    snes_.SetButtonState(1, 4, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.down_button)) {
+    snes_.SetButtonState(1, 5, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.left_button)) {
+    snes_.SetButtonState(1, 6, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.right_button)) {
+    snes_.SetButtonState(1, 7, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.x_button)) {
+    snes_.SetButtonState(1, 8, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.y_button)) {
+    snes_.SetButtonState(1, 9, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.l_button)) {
+    snes_.SetButtonState(1, 10, true);
+  }
+
+  if (ImGui::IsKeyPressed(keybindings_.r_button)) {
+    snes_.SetButtonState(1, 11, true);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.a_button)) {
+    snes_.SetButtonState(1, 0, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.b_button)) {
+    snes_.SetButtonState(1, 1, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.select_button)) {
+    snes_.SetButtonState(1, 2, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.start_button)) {
+    snes_.SetButtonState(1, 3, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.up_button)) {
+    snes_.SetButtonState(1, 4, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.down_button)) {
+    snes_.SetButtonState(1, 5, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.left_button)) {
+    snes_.SetButtonState(1, 6, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.right_button)) {
+    snes_.SetButtonState(1, 7, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.x_button)) {
+    snes_.SetButtonState(1, 8, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.y_button)) {
+    snes_.SetButtonState(1, 9, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.l_button)) {
+    snes_.SetButtonState(1, 10, false);
+  }
+
+  if (ImGui::IsKeyReleased(keybindings_.r_button)) {
+    snes_.SetButtonState(1, 11, false);
+  }
 }
 
 void Emulator::RenderBreakpointList() {

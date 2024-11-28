@@ -23,36 +23,32 @@ struct PseudoVram {
   std::vector<gfx::SnesPalette> palettes;
 };
 
-struct SubtypeInfo {
-  uint32_t subtype_ptr;
-  uint32_t routine_ptr;
-};
-
 class DungeonObjectRenderer : public SharedRom {
  public:
   DungeonObjectRenderer() = default;
 
-  void LoadObject(uint16_t objectId, std::array<uint8_t, 16>& sheet_ids);
+  void LoadObject(uint32_t routine_ptr, std::array<uint8_t, 16>& sheet_ids);
+  void ConfigureObject();
+  void RenderObject(uint32_t routine_ptr);
+  void UpdateObjectBitmap();
+
   gfx::Bitmap* bitmap() { return &bitmap_; }
   auto memory() { return memory_; }
   auto mutable_memory() { return &memory_; }
 
  private:
-  SubtypeInfo FetchSubtypeInfo(uint16_t object_id);
-  void ConfigureObject(const SubtypeInfo& info);
-  void RenderObject(const SubtypeInfo& info);
-  void UpdateObjectBitmap();
-
   std::vector<uint8_t> tilemap_;
-  uint16_t pc_with_rts_;
   std::vector<uint8_t> rom_data_;
-  emu::memory::MemoryImpl memory_;
-  emu::ClockImpl clock_;
-  emu::memory::CpuCallbacks cpu_callbacks_;
-  emu::Cpu cpu{memory_, clock_, cpu_callbacks_};
-  emu::video::Ppu ppu{memory_, clock_};
-  gfx::Bitmap bitmap_;
+
   PseudoVram vram_;
+
+  emu::ClockImpl clock_;
+  emu::memory::MemoryImpl memory_;
+  emu::memory::CpuCallbacks cpu_callbacks_;
+  emu::video::Ppu ppu{memory_, clock_};
+  emu::Cpu cpu{memory_, clock_, cpu_callbacks_};
+
+  gfx::Bitmap bitmap_;
 };
 
 }  // namespace dungeon

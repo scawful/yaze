@@ -2,7 +2,7 @@
 #import "app/core/platform/app_delegate.h"
 #import "app/core/controller.h"
 #import "app/core/platform/file_dialog.h"
-#import "app/editor/utils/editor.h"
+#import "app/editor/editor.h"
 #import "app/rom.h"
 
 #if defined(__APPLE__) && defined(__MACH__)
@@ -11,11 +11,8 @@
 
 #import <CoreText/CoreText.h>
 
-#if TARGET_IPHONE_SIMULATOR == 1
+#if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1
 /* iOS in Xcode simulator */
-
-#elif TARGET_OS_IPHONE == 1
-/* iOS */
 
 #elif TARGET_OS_MAC == 1
 /* macOS */
@@ -209,7 +206,8 @@
 }
 
 - (void)openFileAction:(id)sender {
-  if (!yaze::app::SharedRom::shared_rom_->LoadFromFile(FileDialogWrapper::ShowOpenFileDialog())
+  if (!yaze::app::SharedRom::shared_rom_
+           ->LoadFromFile(yaze::app::core::FileDialogWrapper::ShowOpenFileDialog())
            .ok()) {
     NSAlert *alert = [[NSAlert alloc] init];
     [alert setMessageText:@"Error"];
@@ -227,7 +225,9 @@
   NSLog(@"Open Recent File action triggered");
 }
 
-extern "C" void InitializeCocoa() {
+@end
+
+extern "C" void yaze_initialize_cococa() {
   @autoreleasepool {
     AppDelegate *delegate = [[AppDelegate alloc] init];
     [NSApplication sharedApplication];
@@ -236,7 +236,21 @@ extern "C" void InitializeCocoa() {
   }
 }
 
-@end
+extern "C" void yaze_run_cocoa_app_delegate(const char *filename) {
+  yaze_initialize_cococa();
+  yaze::app::core::Controller controller;
+  RETURN_VOID_IF_ERROR(controller.OnEntry(filename));
+  while (controller.IsActive()) {
+    @autoreleasepool {
+      controller.OnInput();
+      if (auto status = controller.OnLoad(); !status.ok()) {
+        break;
+      }
+      controller.DoRender();
+    }
+  }
+  controller.OnExit();
+}
 
 #endif
 

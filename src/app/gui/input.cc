@@ -1,20 +1,19 @@
 #include "input.h"
 
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
-#include "imgui/imgui.h"
-#include "imgui/imgui_internal.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
-
 #include <functional>
 #include <optional>
 #include <string>
 
+#include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "absl/strings/string_view.h"
-#include "app/core/common.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
+#include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
 
 namespace ImGui {
 
@@ -46,7 +45,7 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
                                    ImGuiInputTextFlags_CharsHexadecimal |
                                    ImGuiInputTextFlags_CharsScientific)) == 0)
     flags |= InputScalar_DefaultCharsFilter(data_type, format);
-  flags |= ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_NoMarkEdited;
+  flags |= ImGuiInputTextFlags_AutoSelectAll;
 
   bool value_changed = false;
   // if (p_step == NULL) {
@@ -104,8 +103,7 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
   if (!no_step) {
     const ImVec2 backup_frame_padding = style.FramePadding;
     style.FramePadding.x = style.FramePadding.y;
-    ImGuiButtonFlags button_flags =
-        ImGuiButtonFlags_Repeat | ImGuiButtonFlags_DontClosePopups;
+    ImGuiButtonFlags button_flags = ImGuiButtonFlags_PressedOnClick;
     if (flags & ImGuiInputTextFlags_ReadOnly) BeginDisabled();
     SameLine(0, style.ItemInnerSpacing.x);
     if (ButtonEx("-", ImVec2(button_size, button_size), button_flags)) {
@@ -247,6 +245,20 @@ bool ListBox(const char* label, int* current_item,
   int items_count = static_cast<int>(items.size());
   return ImGui::ListBox(label, current_item, items_ptr.data(), items_count,
                         height_in_items);
+}
+
+bool InputTileInfo(const char* label, gfx::TileInfo* tile_info) {
+  ImGui::PushID(label);
+  ImGui::BeginGroup();
+  bool changed = false;
+  changed |= InputHexWord(label, &tile_info->id_);
+  changed |= InputHexByte("Palette", &tile_info->palette_);
+  changed |= ImGui::Checkbox("Priority", &tile_info->over_);
+  changed |= ImGui::Checkbox("Vertical Flip", &tile_info->vertical_mirror_);
+  changed |= ImGui::Checkbox("Horizontal Flip", &tile_info->horizontal_mirror_);
+  ImGui::EndGroup();
+  ImGui::PopID();
+  return changed;
 }
 
 ImGuiID GetID(const std::string& id) { return ImGui::GetID(id.c_str()); }

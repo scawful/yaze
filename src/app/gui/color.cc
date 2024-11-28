@@ -13,7 +13,7 @@ namespace yaze {
 namespace app {
 namespace gui {
 
-ImVec4 ConvertSNESColorToImVec4(const SnesColor& color) {
+ImVec4 ConvertSnesColorToImVec4(const SnesColor& color) {
   return ImVec4(static_cast<float>(color.rgb().x) / 255.0f,
                 static_cast<float>(color.rgb().y) / 255.0f,
                 static_cast<float>(color.rgb().z) / 255.0f,
@@ -26,7 +26,7 @@ IMGUI_API bool SnesColorButton(absl::string_view id, SnesColor& color,
                                ImGuiColorEditFlags flags,
                                const ImVec2& size_arg) {
   // Convert the SNES color values to ImGui color values
-  ImVec4 displayColor = ConvertSNESColorToImVec4(color);
+  ImVec4 displayColor = ConvertSnesColorToImVec4(color);
 
   // Call the original ImGui::ColorButton with the converted color
   bool pressed = ImGui::ColorButton(id.data(), displayColor, flags, size_arg);
@@ -41,14 +41,14 @@ IMGUI_API bool SnesColorButton(absl::string_view id, SnesColor& color,
 
 IMGUI_API bool SnesColorEdit4(absl::string_view label, SnesColor* color,
                               ImGuiColorEditFlags flags) {
-  ImVec4 displayColor = ConvertSNESColorToImVec4(*color);
+  ImVec4 displayColor = ConvertSnesColorToImVec4(*color);
 
   // Call the original ImGui::ColorEdit4 with the converted color
   bool pressed =
       ImGui::ColorEdit4(label.data(), (float*)&displayColor.x, flags);
 
   color->set_rgb(displayColor);
-  color->set_snes(gfx::ConvertRGBtoSNES(displayColor));
+  color->set_snes(gfx::ConvertRgbToSnes(displayColor));
 
   return pressed;
 }

@@ -1,15 +1,16 @@
 #include "assembly_editor.h"
 
 #include "ImGuiColorTextEdit/TextEditor.h"
-
+#include "ImGuiFileDialog/ImGuiFileDialog.h"
+#include "absl/strings/str_cat.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/gui/icons.h"
-#include "app/gui/input.h"
-#include "core/constants.h"
 
 namespace yaze {
 namespace app {
 namespace editor {
+
+using core::FileDialogWrapper;
 
 namespace {
 
@@ -57,11 +58,11 @@ core::FolderItem LoadFolder(const std::string& folder) {
   auto root_files = FileDialogWrapper::GetFilesInFolder(current_folder.name);
   current_folder.files = RemoveIgnoredFiles(root_files, ignored_files);
 
-  for (const auto& folder :
+  for (const auto& subfolder :
        FileDialogWrapper::GetSubdirectoriesInFolder(current_folder.name)) {
     core::FolderItem folder_item;
-    folder_item.name = folder;
-    std::string full_folder = current_folder.name + "/" + folder;
+    folder_item.name = subfolder;
+    std::string full_folder = current_folder.name + "/" + subfolder;
     auto folder_files = FileDialogWrapper::GetFilesInFolder(full_folder);
     for (const auto& files : folder_files) {
       // Remove subdirectory files

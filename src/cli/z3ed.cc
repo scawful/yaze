@@ -1,19 +1,16 @@
-#include <cstdint>
 #include <cstring>
 #include <iostream>
 #include <memory>
-#include <sstream>
 #include <string>
-#include <string_view>
 #include <unordered_map>
 #include <vector>
 
-#include "absl/status/status.h"
-#include "app/core/common.h"
+#include "absl/flags/flag.h"
 #include "app/core/constants.h"
-#include "app/rom.h"
-#include "cli/command_handler.h"
-#include "cli/patch.h"
+#include "cli/command.h"
+
+ABSL_FLAG(bool, verbose, false, "Enable verbose output");
+ABSL_FLAG(bool, debug, false, "Enable debug output");
 
 namespace yaze {
 
@@ -25,11 +22,11 @@ namespace cli {
 namespace {
 
 void HelpCommand() {
-  Color::Modifier ylw(Color::FG_YELLOW);
-  Color::Modifier mag(Color::FG_MAGENTA);
-  Color::Modifier red(Color::FG_RED);
-  Color::Modifier reset(Color::FG_RESET);
-  Color::Modifier underline(Color::FG_UNDERLINE);
+  ColorModifier ylw(ColorCode::FG_YELLOW);
+  ColorModifier mag(ColorCode::FG_MAGENTA);
+  ColorModifier red(ColorCode::FG_RED);
+  ColorModifier reset(ColorCode::FG_RESET);
+  ColorModifier underline(ColorCode::FG_UNDERLINE);
   std::cout << "\n";
   std::cout << ylw << " ▲  " << reset << "    z3ed\n";
   std::cout << ylw << "▲ ▲ " << reset << "    by " << mag << "scawful\n\n"
@@ -61,7 +58,12 @@ void HelpCommand() {
 }
 
 int RunCommandHandler(int argc, char* argv[]) {
-  if (argv[1] == "-h" || argc == 1) {
+  if (argc == 1) {
+    HelpCommand();
+    return EXIT_SUCCESS;
+  }
+
+  if (std::strcmp(argv[1], "-h") == 0 || argc == 1) {
     HelpCommand();
     return EXIT_SUCCESS;
   }

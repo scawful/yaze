@@ -1,17 +1,12 @@
 #ifndef YAZE_APP_DATA_OVERWORLD_H
 #define YAZE_APP_DATA_OVERWORLD_H
 
-#include <SDL.h>
-
-#include <future>
-#include <memory>
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
-#include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 #include "app/zelda3/common.h"
@@ -27,6 +22,18 @@ namespace zelda3 {
  * @brief Represents the Overworld data.
  */
 namespace overworld {
+
+constexpr int GravesYTilePos = 0x49968;    // short (0x0F entries)
+constexpr int GravesXTilePos = 0x49986;    // short (0x0F entries)
+constexpr int GravesTilemapPos = 0x499A4;  // short (0x0F entries)
+constexpr int GravesGFX = 0x499C2;         // short (0x0F entries)
+
+constexpr int GravesXPos = 0x4994A;      // short (0x0F entries)
+constexpr int GravesYLine = 0x4993A;     // short (0x08 entries)
+constexpr int GravesCountOnY = 0x499E0;  // Byte 0x09 entries
+
+constexpr int GraveLinkSpecialHole = 0x46DD9;    // short
+constexpr int GraveLinkSpecialStairs = 0x46DE0;  // short
 
 // List of secret item names
 const std::vector<std::string> kSecretItemNames = {
@@ -65,56 +72,52 @@ constexpr int kOverworldItemsAddress = 0xDC8B9;  // 1BC2F9
 constexpr int overworldItemsBank = 0xDC8BF;
 constexpr int overworldItemsEndData = 0xDC89C;  // 0DC89E
 
-class OverworldItem : public OverworldEntity {
+class OverworldItem : public GameEntity {
  public:
-  bool bg2 = false;
-  uint8_t game_x;
-  uint8_t game_y;
-  uint8_t id;
-  uint16_t room_map_id;
+  bool bg2_ = false;
+  uint8_t id_;
+  uint8_t game_x_;
+  uint8_t game_y_;
+  uint16_t room_map_id_;
   int unique_id = 0;
   bool deleted = false;
   OverworldItem() = default;
 
   OverworldItem(uint8_t id, uint16_t room_map_id, int x, int y, bool bg2) {
-    this->id = id;
+    this->id_ = id;
     this->x_ = x;
     this->y_ = y;
-    this->bg2 = bg2;
-    this->room_map_id = room_map_id;
+    this->bg2_ = bg2;
+    this->room_map_id_ = room_map_id;
     this->map_id_ = room_map_id;
     this->entity_id_ = id;
-    this->type_ = kItem;
+    this->entity_type_ = kItem;
 
     int map_x = room_map_id - ((room_map_id / 8) * 8);
     int map_y = room_map_id / 8;
 
-    this->game_x = static_cast<uint8_t>(std::abs(x - (map_x * 512)) / 16);
-    this->game_y = static_cast<uint8_t>(std::abs(y - (map_y * 512)) / 16);
-    // this->unique_id = ROM.unique_item_id++;
+    game_x_ = static_cast<uint8_t>(std::abs(x - (map_x * 512)) / 16);
+    game_y_ = static_cast<uint8_t>(std::abs(y - (map_y * 512)) / 16);
   }
 
-  void UpdateMapProperties(int16_t room_map_id) override {
-    this->room_map_id = static_cast<uint16_t>(room_map_id);
+  void UpdateMapProperties(uint16_t room_map_id) override {
+    room_map_id_ = room_map_id;
 
-    if (room_map_id >= 64) {
-      room_map_id -= 64;
+    if (room_map_id_ >= 64) {
+      room_map_id_ -= 64;
     }
 
-    int map_x = room_map_id - ((room_map_id / 8) * 8);
-    int map_y = room_map_id / 8;
+    int map_x = room_map_id_ - ((room_map_id_ / 8) * 8);
+    int map_y = room_map_id_ / 8;
 
-    this->game_x =
-        static_cast<uint8_t>(std::abs(this->x_ - (map_x * 512)) / 16);
-    this->game_y =
-        static_cast<uint8_t>(std::abs(this->y_ - (map_y * 512)) / 16);
+    game_x_ = static_cast<uint8_t>(std::abs(x_ - (map_x * 512)) / 16);
+    game_y_ = static_cast<uint8_t>(std::abs(y_ - (map_y * 512)) / 16);
 
     std::cout << "Item:      " << std::hex << std::setw(2) << std::setfill('0')
-              << static_cast<int>(this->id) << " MapId: " << std::hex
-              << std::setw(2) << std::setfill('0')
-              << static_cast<int>(this->room_map_id)
-              << " X: " << static_cast<int>(this->game_x)
-              << " Y: " << static_cast<int>(this->game_y) << std::endl;
+              << static_cast<int>(id_) << " MapId: " << std::hex << std::setw(2)
+              << std::setfill('0') << static_cast<int>(room_map_id_)
+              << " X: " << static_cast<int>(game_x_)
+              << " Y: " << static_cast<int>(game_y_) << std::endl;
   }
 };
 
@@ -147,7 +150,7 @@ constexpr int OWExitUnk1Whirlpool = 0x16BF5;     //    JP = ;016E91
 constexpr int OWExitUnk2Whirlpool = 0x16C17;     //    JP = ;016EB3
 constexpr int OWWhirlpoolPosition = 0x16CF8;     //    JP = ;016F94
 
-class OverworldExit : public OverworldEntity {
+class OverworldExit : public GameEntity {
  public:
   uint16_t y_scroll_;
   uint16_t x_scroll_;
@@ -179,7 +182,6 @@ class OverworldExit : public OverworldEntity {
         entrance_id_(0),
         area_x_(0),
         area_y_(0),
-        is_hole_(false),
         room_id_(room_id),
         y_scroll_(y_scroll),
         x_scroll_(x_scroll),
@@ -191,12 +193,13 @@ class OverworldExit : public OverworldEntity {
         scroll_mod_x_(scroll_mod_x),
         door_type_1_(door_type_1),
         door_type_2_(door_type_2),
+        is_hole_(false),
         deleted_(deleted) {
     // Initialize entity variables
-    this->x_ = player_x;
-    this->y_ = player_y;
-    this->map_id_ = map_id;
-    this->type_ = kExit;
+    x_ = player_x;
+    y_ = player_y;
+    map_id_ = map_id;
+    entity_type_ = kExit;
 
     int mapX = (map_id_ - ((map_id_ / 8) * 8));
     int mapY = (map_id_ / 8);
@@ -230,7 +233,7 @@ class OverworldExit : public OverworldEntity {
   }
 
   // Overworld overworld
-  void UpdateMapProperties(short map_id) override {
+  void UpdateMapProperties(uint16_t map_id) override {
     map_id_ = map_id;
 
     int large = 256;
@@ -323,7 +326,21 @@ constexpr int OWHoleArea = 0xDB826;
 //(0x13 entries, 1 byte each)  corresponding entrance numbers
 constexpr int OWHoleEntrance = 0xDB84C;
 
-class OverworldEntrance : public OverworldEntity {
+// OWEntrances Expansion
+
+// Instructions for editors
+// if byte at (PC) address 0xDB895 == B8 then it is vanilla
+// Load normal overworld entrances data
+// Otherwise load from the expanded space
+// When saving just save in expanded space 256 values for each
+// (PC Addresses) - you can find snes address at the orgs below
+// 0x0DB35F = (short) Map16 tile address (mapPos in ZS)
+// 0x0DB55F = (short) Screen ID (MapID in ZS)
+// 0x0DB75F = (byte)  Entrance leading to (EntranceID in ZS)
+
+// *Important* the Screen ID now also require bit 0x8000 (15) being set to tell
+// entrance is a hole
+class OverworldEntrance : public GameEntity {
  public:
   uint16_t map_pos_;
   uchar entrance_id_;
@@ -340,7 +357,7 @@ class OverworldEntrance : public OverworldEntity {
     y_ = y;
     map_id_ = map_id;
     entity_id_ = entrance_id;
-    type_ = kEntrance;
+    entity_type_ = kEntrance;
 
     int mapX = (map_id_ - ((map_id_ / 8) * 8));
     int mapY = (map_id_ / 8);
@@ -348,12 +365,7 @@ class OverworldEntrance : public OverworldEntity {
     area_y_ = (uchar)((std::abs(y - (mapY * 512)) / 16));
   }
 
-  auto Copy() {
-    return new OverworldEntrance(x_, y_, entrance_id_, map_id_, map_pos_,
-                                 is_hole_);
-  }
-
-  void UpdateMapProperties(short map_id) override {
+  void UpdateMapProperties(uint16_t map_id) override {
     map_id_ = map_id;
 
     if (map_id_ >= 64) {
@@ -370,13 +382,8 @@ class OverworldEntrance : public OverworldEntity {
   }
 };
 
-constexpr int kCompressedAllMap32PointersHigh = 0x1794D;
-constexpr int kCompressedAllMap32PointersLow = 0x17B2D;
-constexpr int overworldPalGroup1 = 0xDE6C8;
-constexpr int overworldPalGroup2 = 0xDE86C;
-constexpr int overworldPalGroup3 = 0xDE604;
-constexpr int overworldMapPalette = 0x7D1C;
-constexpr int overworldSpritePalette = 0x7B41;
+constexpr int kOverworldMapPaletteIds = 0x7D1C;
+constexpr int kOverworldSpritePaletteIds = 0x7B41;
 constexpr int overworldMapPaletteGroup = 0x75504;
 constexpr int overworldSpritePaletteGroup = 0x75580;
 constexpr int overworldSpriteset = 0x7A41;
@@ -386,12 +393,8 @@ constexpr int overworldSpritesBegining = 0x4C881;
 constexpr int overworldSpritesAgahnim = 0x4CA21;
 constexpr int overworldSpritesZelda = 0x4C901;
 
-constexpr int mapGfx = 0x7C9C;
-constexpr int overlayPointers = 0x77664;
-constexpr int overlayPointersBank = 0x0E;
-
-constexpr int overworldTilesType = 0x71459;
-constexpr int overworldMessages = 0x3F51D;
+constexpr int kAreaGfxIdPtr = 0x7C9C;
+constexpr int kOverworldMessageIds = 0x3F51D;
 
 constexpr int overworldMusicBegining = 0x14303;
 constexpr int overworldMusicZelda = 0x14303 + 0x40;
@@ -432,50 +435,22 @@ constexpr int transition_target_west = 0x13F62;
 constexpr int overworldCustomMosaicASM = 0x1301D0;
 constexpr int overworldCustomMosaicArray = 0x1301F0;
 
-// 1 byte, not 0 if enabled
-constexpr int OverworldCustomASMHasBeenApplied = 0x140145;
-
-// 2 bytes for each overworld area (0x140)
-constexpr int OverworldCustomAreaSpecificBGPalette = 0x140000;
-
-// 1 byte, not 0 if enabled
-constexpr int OverworldCustomAreaSpecificBGEnabled = 0x140140;
-
-// 1 byte for each overworld area (0xA0)
-constexpr int OverworldCustomMainPaletteArray = 0x140160;
-// 1 byte, not 0 if enabled
-constexpr int OverworldCustomMainPaletteEnabled = 0x140141;
-
-// 1 byte for each overworld area (0xA0)
-constexpr int OverworldCustomMosaicArray = 0x140200;
-
-// 1 byte, not 0 if enabled
-constexpr int OverworldCustomMosaicEnabled = 0x140142;
-
-// 1 byte for each overworld area (0xA0)
-constexpr int OverworldCustomAnimatedGFXArray = 0x1402A0;
-
-// 1 byte, not 0 if enabled
-constexpr int OverworldCustomAnimatedGFXEnabled = 0x140143;
-
-// 2 bytes for each overworld area (0x140)
-constexpr int OverworldCustomSubscreenOverlayArray = 0x140340;
-
-// 1 byte, not 0 if enabled
-constexpr int OverworldCustomSubscreenOverlayEnabled = 0x140144;
+// Expanded tile16 and tile32
+constexpr int kMap16TilesExpanded = 0x1E8000;
+constexpr int kMap32TileTRExpanded = 0x020000;
+constexpr int kMap32TileBLExpanded = 0x1F0000;
+constexpr int kMap32TileBRExpanded = 0x1F8000;
+constexpr int kMap32TileCountExpanded = 0x0067E0;
 
 constexpr int kMap16Tiles = 0x78000;
 constexpr int kNumOverworldMaps = 160;
+constexpr int kNumTile16Individual = 4096;
 constexpr int Map32PerScreen = 256;
-constexpr int NumberOfMap16 = 3752;  // 4096
+constexpr int NumberOfMap16 = 3752;    // 4096
+constexpr int NumberOfMap16Ex = 4096;  // 4096
 constexpr int LimitOfMap32 = 8864;
 constexpr int NumberOfOWSprites = 352;
 constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
-
-struct MapData {
-  std::vector<uint8_t> highData;
-  std::vector<uint8_t> lowData;
-};
 
 /**
  * @brief Represents the full Overworld data, light and dark world.
@@ -485,7 +460,6 @@ struct MapData {
  */
 class Overworld : public SharedRom, public core::ExperimentFlags {
  public:
-  OWBlockset &GetMapTiles(int world_type);
   absl::Status Load(Rom &rom);
   absl::Status LoadOverworldMaps();
   void LoadTileTypes();
@@ -505,11 +479,12 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
   absl::Status SaveItems();
 
   absl::Status CreateTile32Tilemap();
+  absl::Status SaveMap16Expanded();
   absl::Status SaveMap16Tiles();
+  absl::Status SaveMap32Expanded();
   absl::Status SaveMap32Tiles();
 
   absl::Status SaveMapProperties();
-  absl::Status LoadPrototype(Rom &rom_, const std::string &tilemap_filename);
 
   void Destroy() {
     for (auto &map : overworld_maps_) {
@@ -523,7 +498,6 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
     is_loaded_ = false;
   }
 
-  int current_world_ = 0;
   int GetTileFromPosition(ImVec2 position) const {
     if (current_world_ == 0) {
       return map_tiles_.light_world[position.x][position.y];
@@ -534,14 +508,27 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
     }
   }
 
+  OWBlockset &GetMapTiles(int world_type) {
+    switch (world_type) {
+      case 0:
+        return map_tiles_.light_world;
+      case 1:
+        return map_tiles_.dark_world;
+      case 2:
+        return map_tiles_.special_world;
+      default:
+        return map_tiles_.light_world;
+    }
+  }
+
   auto overworld_maps() const { return overworld_maps_; }
   auto overworld_map(int i) const { return &overworld_maps_[i]; }
   auto mutable_overworld_map(int i) { return &overworld_maps_[i]; }
   auto exits() const { return &all_exits_; }
   auto mutable_exits() { return &all_exits_; }
   std::vector<gfx::Tile16> tiles16() const { return tiles16_; }
-
-  auto Sprites(int state) const { return all_sprites_[state]; }
+  auto mutable_tiles16() { return &tiles16_; }
+  auto sprites(int state) const { return all_sprites_[state]; }
   auto mutable_sprites(int state) { return &all_sprites_[state]; }
   auto current_graphics() const {
     return overworld_maps_[current_map_].current_graphics();
@@ -552,26 +539,21 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
   auto mutable_holes() { return &all_holes_; }
   auto deleted_entrances() const { return deleted_entrances_; }
   auto mutable_deleted_entrances() { return &deleted_entrances_; }
-  auto AreaPalette() const {
+  auto current_area_palette() const {
     return overworld_maps_[current_map_].current_palette();
   }
-  auto AreaPaletteById(int id) const {
-    return overworld_maps_[id].current_palette();
-  }
-  auto BitmapData() const {
+  auto current_map_bitmap_data() const {
     return overworld_maps_[current_map_].bitmap_data();
   }
-  auto Tile16Blockset() const {
+  auto tile16_blockset_data() const {
     return overworld_maps_[current_map_].current_tile16_blockset();
   }
   auto is_loaded() const { return is_loaded_; }
   void set_current_map(int i) { current_map_ = i; }
-
   auto map_tiles() const { return map_tiles_; }
   auto mutable_map_tiles() { return &map_tiles_; }
   auto all_items() const { return all_items_; }
   auto mutable_all_items() { return &all_items_; }
-  auto &ref_all_items() { return all_items_; }
   auto all_tiles_types() const { return all_tiles_types_; }
   auto mutable_all_tiles_types() { return &all_tiles_types_; }
 
@@ -584,20 +566,26 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
   };
 
   void FetchLargeMaps();
-  void AssembleMap32Tiles();
+  absl::StatusOr<uint16_t> GetTile16ForTile32(int index, int quadrant,
+                                              int dimension,
+                                              const uint32_t *map32address);
+  absl::Status AssembleMap32Tiles();
   void AssembleMap16Tiles();
   void AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
                         OWBlockset &world);
-  void OrganizeMapTiles(Bytes &bytes, Bytes &bytes2, int i, int sx, int sy,
+  void OrganizeMapTiles(std::vector<uint8_t> &bytes,
+                        std::vector<uint8_t> &bytes2, int i, int sx, int sy,
                         int &ttpos);
   absl::Status DecompressAllMapTiles();
 
-  absl::Status DecompressProtoMapTiles(const std::string &filename);
-
   bool is_loaded_ = false;
+  bool expanded_tile16_ = false;
+  bool expanded_tile32_ = false;
+  bool expanded_entrances_ = false;
 
   int game_state_ = 0;
   int current_map_ = 0;
+  int current_world_ = 0;
   uchar map_parent_[160];
 
   Rom rom_;
@@ -630,7 +618,6 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
   std::vector<int> map_pointers2 = std::vector<int>(kNumOverworldMaps);
 
   std::vector<absl::flat_hash_map<uint16_t, int>> usage_stats_;
-  absl::flat_hash_map<int, MapData> proto_map_data_;
 };
 
 }  // namespace overworld

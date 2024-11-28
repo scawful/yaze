@@ -1,9 +1,11 @@
 #include "room.h"
 
+#include <dungeon.h>
+
 #include <cstdint>
 #include <vector>
 
-#include "app/core/common.h"
+#include "absl/strings/str_cat.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -31,12 +33,12 @@ void Room::LoadHeader() {
 
   auto header_location = core::SnesToPc(address);
 
-  bg2_ = (Background2)((rom()->data()[header_location] >> 5) & 0x07);
+  bg2_ = (z3_dungeon_background2)((rom()->data()[header_location] >> 5) & 0x07);
   // collision = (CollisionKey)((rom()->data()[header_location] >> 2) & 0x07);
   is_light_ = ((rom()->data()[header_location]) & 0x01) == 1;
 
   if (is_light_) {
-    bg2_ = Background2::DarkRoom;
+    bg2_ = z3_dungeon_background2::DarkRoom;
   }
 
   palette = ((rom()->data()[header_location + 1] & 0x3F));
@@ -72,9 +74,8 @@ void Room::LoadHeader() {
     // Existing room size address calculation...
     auto room_size_address = 0xF8000 + (room_id_ * 3);
 
-    if (flags()->kLogToConsole)
-      std::cout << "Room #" << room_id_ << " Address: " << std::hex
-                << room_size_address << std::endl;
+    std::cout << "Room #" << room_id_ << " Address: " << std::hex
+              << room_size_address << std::endl;
 
     // Reading bytes for long address construction
     uint8_t low = rom()->data()[room_size_address];
@@ -83,15 +84,13 @@ void Room::LoadHeader() {
 
     // Constructing the long address
     int long_address = (bank << 16) | (high << 8) | low;
-    if (flags()->kLogToConsole)
-      std::cout << std::hex << std::setfill('0') << std::setw(6) << long_address
-                << std::endl;
+    std::cout << std::hex << std::setfill('0') << std::setw(6) << long_address
+              << std::endl;
     room_size_pointer_ = long_address;
 
     if (long_address == 0x0A8000) {
       // Blank room disregard in size calculation
-      if (flags()->kLogToConsole)
-        std::cout << "Size of Room #" << room_id_ << ": 0 bytes" << std::endl;
+      std::cout << "Size of Room #" << room_id_ << ": 0 bytes" << std::endl;
       room_size_ = 0;
     } else {
       // use the long address to calculate the size of the room
@@ -100,9 +99,8 @@ void Room::LoadHeader() {
 
       int next_room_address = 0xF8000 + ((room_id_ + 1) * 3);
 
-      if (flags()->kLogToConsole)
-        std::cout << "Next Room Address: " << std::hex << next_room_address
-                  << std::endl;
+      std::cout << "Next Room Address: " << std::hex << next_room_address
+                << std::endl;
 
       // Reading bytes for long address construction
       uint8_t next_low = rom()->data()[next_room_address];
@@ -112,19 +110,17 @@ void Room::LoadHeader() {
       // Constructing the long address
       int next_long_address = (next_bank << 16) | (next_high << 8) | next_low;
 
-      if (flags()->kLogToConsole)
-        std::cout << std::hex << std::setfill('0') << std::setw(6)
-                  << next_long_address << std::endl;
+      std::cout << std::hex << std::setfill('0') << std::setw(6)
+                << next_long_address << std::endl;
 
       // Calculate the size of the room
       int room_size = next_long_address - long_address;
       room_size_ = room_size;
-      if (flags()->kLogToConsole)
-        std::cout << "Size of Room #" << room_id_ << ": " << std::dec
-                  << room_size << " bytes" << std::endl;
+      std::cout << "Size of Room #" << room_id_ << ": " << std::dec << room_size
+                << " bytes" << std::endl;
     }
-  } catch (const std::exception& e) {
-    if (flags()->kLogToConsole) std::cout << "Error: " << e.what() << std::endl;
+  } catch (const std::exception &e) {
+    std::cout << "Error: " << e.what() << std::endl;
   }
 }
 
@@ -170,28 +166,28 @@ void Room::LoadRoomFromROM() {
 
   b = rom_data[hpos];
 
-  pits_.TargetLayer = (uchar)(b & 0x03);
-  stair1_.TargetLayer = (uchar)((b >> 2) & 0x03);
-  stair2_.TargetLayer = (uchar)((b >> 4) & 0x03);
-  stair3_.TargetLayer = (uchar)((b >> 6) & 0x03);
+  pits_.target_layer = (uchar)(b & 0x03);
+  stair1_.target_layer = (uchar)((b >> 2) & 0x03);
+  stair2_.target_layer = (uchar)((b >> 4) & 0x03);
+  stair3_.target_layer = (uchar)((b >> 6) & 0x03);
   hpos++;
-  stair4_.TargetLayer = (uchar)(rom_data[hpos] & 0x03);
+  stair4_.target_layer = (uchar)(rom_data[hpos] & 0x03);
   hpos++;
 
-  pits_.Target = rom_data[hpos];
+  pits_.target = rom_data[hpos];
   hpos++;
-  stair1_.Target = rom_data[hpos];
+  stair1_.target = rom_data[hpos];
   hpos++;
-  stair2_.Target = rom_data[hpos];
+  stair2_.target = rom_data[hpos];
   hpos++;
-  stair3_.Target = rom_data[hpos];
+  stair3_.target = rom_data[hpos];
   hpos++;
-  stair4_.Target = rom_data[hpos];
+  stair4_.target = rom_data[hpos];
   hpos++;
 
   // Load room objects
-  int objectPointer = core::SnesToPc(room_object_pointer);
-  int room_address = objectPointer + (room_id_ * 3);
+  int object_pointer = core::SnesToPc(room_object_pointer);
+  int room_address = object_pointer + (room_id_ * 3);
   int objects_location = core::SnesToPc(room_address);
 
   // Load sprites
@@ -201,18 +197,18 @@ void Room::LoadRoomFromROM() {
 }
 
 void Room::LoadRoomGraphics(uchar entrance_blockset) {
-  const auto& mainGfx = rom()->main_blockset_ids;
-  const auto& roomGfx = rom()->room_blockset_ids;
-  const auto& spriteGfx = rom()->spriteset_ids;
+  const auto &main_gfx = rom()->main_blockset_ids;
+  const auto &room_gfx = rom()->room_blockset_ids;
+  const auto &sprite_gfx = rom()->spriteset_ids;
   current_gfx16_.reserve(0x4000);
 
   for (int i = 0; i < 8; i++) {
-    blocks_[i] = mainGfx[blockset][i];
+    blocks_[i] = main_gfx[blockset][i];
     if (i >= 6 && i <= 6) {
       // 3-6
       if (entrance_blockset != 0xFF) {
-        if (roomGfx[entrance_blockset][i - 3] != 0) {
-          blocks_[i] = roomGfx[entrance_blockset][i - 3];
+        if (room_gfx[entrance_blockset][i - 3] != 0) {
+          blocks_[i] = room_gfx[entrance_blockset][i - 3];
         }
       }
     }
@@ -223,7 +219,7 @@ void Room::LoadRoomGraphics(uchar entrance_blockset) {
   blocks_[10] = 115 + 6;
   blocks_[11] = 115 + 7;
   for (int i = 0; i < 4; i++) {
-    blocks_[12 + i] = (uchar)(spriteGfx[spriteset + 64][i] + 115);
+    blocks_[12 + i] = (uchar)(sprite_gfx[spriteset + 64][i] + 115);
   }  // 12-16 sprites
 }
 
@@ -282,11 +278,11 @@ void Room::LoadAnimatedGraphics() {
 
 void Room::LoadObjects() {
   auto rom_data = rom()->vector();
-  int objectPointer = (rom_data[room_object_pointer + 2] << 16) +
-                      (rom_data[room_object_pointer + 1] << 8) +
-                      (rom_data[room_object_pointer]);
-  objectPointer = core::SnesToPc(objectPointer);
-  int room_address = objectPointer + (room_id_ * 3);
+  int object_pointer = (rom_data[room_object_pointer + 2] << 16) +
+                       (rom_data[room_object_pointer + 1] << 8) +
+                       (rom_data[room_object_pointer]);
+  object_pointer = core::SnesToPc(object_pointer);
+  int room_address = object_pointer + (room_id_ * 3);
 
   int tile_address = (rom_data[room_address + 2] << 16) +
                      (rom_data[room_address + 1] << 8) + rom_data[room_address];
@@ -307,7 +303,7 @@ void Room::LoadObjects() {
 
   LoadChests();
 
-  staircase_rooms_vec_.clear();
+  z3_staircases_.clear();
   int nbr_of_staircase = 0;
 
   int pos = objects_location + 2;
@@ -373,50 +369,48 @@ void Room::LoadObjects() {
         sizeXY = 0;
       }
 
-      RoomObject r =
-          AddObject(oid, posX, posY, sizeXY, static_cast<uint8_t>(layer));
-
-      /**
-      if (r != nullptr) {
-        tilesObjects.push_back(r);
-      }
-
+      RoomObject r(oid, posX, posY, sizeXY, static_cast<uint8_t>(layer));
+      tile_objects_.push_back(r);
 
       for (short stair : stairsObjects) {
         if (stair == oid) {
           if (nbr_of_staircase < 4) {
-            tilesObjects.back().options |= ObjectOption::Stairs;
-            staircaseRooms.push_back(StaircaseRoom(
-                posX, posY, "To " + staircase_rooms_[nbr_of_staircase]));
+            tile_objects_.back().set_options(ObjectOption::Stairs |
+                                             tile_objects_.back().options());
+            z3_staircases_.push_back(z3_staircase(
+                posX, posY,
+                absl::StrCat("To ", staircase_rooms_[nbr_of_staircase])
+                    .data()));
             nbr_of_staircase++;
           } else {
-            tilesObjects.back().options |= ObjectOption::Stairs;
-            staircaseRooms.push_back(StaircaseRoom(posX, posY, "To ???"));
+            tile_objects_.back().set_options(ObjectOption::Stairs |
+                                             tile_objects_.back().options());
+            z3_staircases_.push_back(z3_staircase(posX, posY, "To ???"));
           }
         }
       }
 
       if (oid == 0xF99) {
-        if (chests_in_room.size() > 0) {
-          tilesObjects.back().options |= ObjectOption::Chest;
-          chest_list.push_back(
-              Chest(posX, posY, chests_in_room.front().itemIn, false));
-          chests_in_room.erase(chests_in_room.begin());
+        if (chests_in_room_.size() > 0) {
+          tile_objects_.back().set_options(ObjectOption::Chest |
+                                           tile_objects_.back().options());
+          // chest_list_.push_back(
+          //     Chest(posX, posY, chests_in_room_.front().itemIn, false));
+          chests_in_room_.erase(chests_in_room_.begin());
         }
       } else if (oid == 0xFB1) {
-        if (chests_in_room.size() > 0) {
-          tilesObjects.back().options |= ObjectOption::Chest;
-          chest_list.push_back(
-              Chest(posX + 1, posY, chests_in_room.front().itemIn, true));
-          chests_in_room.erase(chests_in_room.begin());
+        if (chests_in_room_.size() > 0) {
+          tile_objects_.back().set_options(ObjectOption::Chest |
+                                           tile_objects_.back().options());
+          // chest_list_.push_back(
+          //     Chest(posX + 1, posY, chests_in_room_.front().item_in, true));
+          chests_in_room_.erase(chests_in_room_.begin());
         }
       }
     } else {
-      tilesObjects.push_back(object_door(static_cast<short>((b2 << 8) + b1), 0,
-                                         0, 0, static_cast<uint8_t>(layer)));
-    }
-
-    **/
+      // tile_objects_.push_back(object_door(static_cast<short>((b2 << 8) + b1),
+      // 0,
+      //                                   0, 0, static_cast<uint8_t>(layer)));
     }
   }
 }
@@ -443,23 +437,23 @@ void Room::LoadSprites() {
       break;
     }
 
-    // sprites_.emplace_back(this, b3, (b2 & 0x1F), (b1 & 0x1F),
-    //                       ((b2 & 0xE0) >> 5) + ((b1 & 0x60) >> 2),
-    //                       (b1 & 0x80) >> 7);
+    sprites_.emplace_back(b3, (b2 & 0x1F), (b1 & 0x1F),
+                          ((b2 & 0xE0) >> 5) + ((b1 & 0x60) >> 2),
+                          (b1 & 0x80) >> 7);
 
     if (sprites_.size() > 1) {
-      Sprite& spr = sprites_.back();
-      Sprite& prevSprite = sprites_[sprites_.size() - 2];
+      Sprite &spr = sprites_.back();
+      Sprite &prevSprite = sprites_[sprites_.size() - 2];
 
       if (spr.id() == 0xE4 && spr.x() == 0x00 && spr.y() == 0x1E &&
           spr.layer() == 1 && spr.subtype() == 0x18) {
-        // prevSprite.keyDrop() = 1;
+        prevSprite.set_key_drop(1);
         sprites_.pop_back();
       }
 
       if (spr.id() == 0xE4 && spr.x() == 0x00 && spr.y() == 0x1D &&
           spr.layer() == 1 && spr.subtype() == 0x18) {
-        // prevSprite.keyDrop() = 2;
+        prevSprite.set_key_drop(2);
         sprites_.pop_back();
       }
     }
@@ -470,12 +464,11 @@ void Room::LoadSprites() {
 
 void Room::LoadChests() {
   auto rom_data = rom()->vector();
-  int cpos = (rom_data[chests_data_pointer1 + 2] << 16) +
-             (rom_data[chests_data_pointer1 + 1] << 8) +
-             (rom_data[chests_data_pointer1]);
-  cpos = core::SnesToPc(cpos);
-  int clength = (rom_data[chests_length_pointer + 1] << 8) +
-                (rom_data[chests_length_pointer]);
+  uint32_t cpos = core::SnesToPc((rom_data[chests_data_pointer1 + 2] << 16) +
+                                 (rom_data[chests_data_pointer1 + 1] << 8) +
+                                 (rom_data[chests_data_pointer1]));
+  size_t clength = (rom_data[chests_length_pointer + 1] << 8) +
+                   (rom_data[chests_length_pointer]);
 
   for (int i = 0; i < clength; i++) {
     if ((((rom_data[cpos + (i * 3) + 1] << 8) + (rom_data[cpos + (i * 3)])) &
@@ -483,13 +476,12 @@ void Room::LoadChests() {
       // There's a chest in that room !
       bool big = false;
       if ((((rom_data[cpos + (i * 3) + 1] << 8) + (rom_data[cpos + (i * 3)])) &
-           0x8000) == 0x8000)  // ?????
-      {
+           0x8000) == 0x8000) {
         big = true;
       }
 
       chests_in_room_.emplace_back(
-          ChestData(rom_data[cpos + (i * 3) + 2], big));
+          z3_chest_data(rom_data[cpos + (i * 3) + 2], big));
     }
   }
 }

@@ -1,8 +1,8 @@
+#include "app/core/platform/file_dialog.h"
 
 #include <string>
 #include <vector>
-
-#include "app/core/platform/file_dialog.h"
+#include "imgui/imgui.h"
 
 #if defined(__APPLE__) && defined(__MACH__)
 /* Apple OSX and iOS (Darwin). */
@@ -10,32 +10,48 @@
 
 #import <CoreText/CoreText.h>
 
-#if TARGET_IPHONE_SIMULATOR == 1
+#if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1
 /* iOS in Xcode simulator */
-std::string FileDialogWrapper::ShowOpenFileDialog() { return ""; }
+#import <UIKit/UIKit.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
-std::string FileDialogWrapper::ShowOpenFolderDialog() { return ""; }
+#include "app/core/platform/app_delegate.h"
 
-std::vector<std::string> FileDialogWrapper::GetFilesInFolder(const std::string& folder) {
+namespace {
+static std::string selectedFile;
+
+void ShowOpenFileDialogImpl(void (^completionHandler)(std::string)) {
+  AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+  [appDelegate PresentDocumentPickerWithCompletionHandler:^(NSString *filePath) {
+    selectedFile = std::string([filePath UTF8String]);
+    completionHandler(selectedFile);
+  }];
+}
+
+std::string ShowOpenFileDialogSync() {
+  __block std::string result;
+
+  ShowOpenFileDialogImpl(^(std::string filePath) {
+    result = filePath;
+  });
+
+  return result;
+}
+}
+
+std::string yaze::app::core::FileDialogWrapper::ShowOpenFileDialog() {
+  return ShowOpenFileDialogSync();
+}
+
+std::string yaze::app::core::FileDialogWrapper::ShowOpenFolderDialog() { return ""; }
+
+std::vector<std::string> yaze::app::core::FileDialogWrapper::GetFilesInFolder(
+    const std::string &folder) {
   return {};
 }
 
-std::vector<std::string> FileDialogWrapper::GetSubdirectoriesInFolder(const std::string& folder) {
-  return {};
-}
-
-#elif TARGET_OS_IPHONE == 1
-/* iOS */
-
-std::string FileDialogWrapper::ShowOpenFileDialog() { return ""; }
-
-std::string FileDialogWrapper::ShowOpenFolderDialog() { return ""; }
-
-std::vector<std::string> FileDialogWrapper::GetFilesInFolder(const std::string& folder) {
-  return {};
-}
-
-std::vector<std::string> FileDialogWrapper::GetSubdirectoriesInFolder(const std::string& folder) {
+std::vector<std::string> yaze::app::core::FileDialogWrapper::GetSubdirectoriesInFolder(
+    const std::string &folder) {
   return {};
 }
 
@@ -44,7 +60,7 @@ std::vector<std::string> FileDialogWrapper::GetSubdirectoriesInFolder(const std:
 
 #import <Cocoa/Cocoa.h>
 
-std::string FileDialogWrapper::ShowOpenFileDialog() {
+std::string yaze::app::core::FileDialogWrapper::ShowOpenFileDialog() {
   NSOpenPanel* openPanel = [NSOpenPanel openPanel];
   [openPanel setCanChooseFiles:YES];
   [openPanel setCanChooseDirectories:NO];
@@ -59,7 +75,7 @@ std::string FileDialogWrapper::ShowOpenFileDialog() {
   return "";
 }
 
-std::string FileDialogWrapper::ShowOpenFolderDialog() {
+std::string yaze::app::core::FileDialogWrapper::ShowOpenFolderDialog() {
   NSOpenPanel* openPanel = [NSOpenPanel openPanel];
   [openPanel setCanChooseFiles:NO];
   [openPanel setCanChooseDirectories:YES];
@@ -74,7 +90,8 @@ std::string FileDialogWrapper::ShowOpenFolderDialog() {
   return "";
 }
 
-std::vector<std::string> FileDialogWrapper::GetFilesInFolder(const std::string& folder) {
+std::vector<std::string> yaze::app::core::FileDialogWrapper::GetFilesInFolder(
+    const std::string& folder) {
   std::vector<std::string> filenames;
   NSFileManager* fileManager = [NSFileManager defaultManager];
   NSDirectoryEnumerator* enumerator =
@@ -89,7 +106,8 @@ std::vector<std::string> FileDialogWrapper::GetFilesInFolder(const std::string& 
   return filenames;
 }
 
-std::vector<std::string> FileDialogWrapper::GetSubdirectoriesInFolder(const std::string& folder) {
+std::vector<std::string> yaze::app::core::FileDialogWrapper::GetSubdirectoriesInFolder(
+    const std::string& folder) {
   std::vector<std::string> subdirectories;
   NSFileManager* fileManager = [NSFileManager defaultManager];
   NSDirectoryEnumerator* enumerator =

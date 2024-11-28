@@ -1,3 +1,5 @@
+#include "file_path.h"
+
 #include <iostream>
 #include <string>
 
@@ -5,17 +7,15 @@
 #include <Foundation/Foundation.h>
 #include <TargetConditionals.h>
 
-#if TARGET_IPHONE_SIMULATOR == 1
-std::string GetBundleResourcePath() {}
-#elif TARGET_OS_IPHONE == 1
-std::string GetBundleResourcePath() {
+#if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1
+std::string yaze::app::core::GetBundleResourcePath() {
   NSBundle* bundle = [NSBundle mainBundle];
   NSString* resourceDirectoryPath = [bundle bundlePath];
   NSString* path = [resourceDirectoryPath stringByAppendingString:@"/"];
   return [path UTF8String];
 }
 #elif TARGET_OS_MAC == 1
-std::string GetBundleResourcePath() {
+std::string yaze::app::core::GetBundleResourcePath() {
   NSBundle* bundle = [NSBundle mainBundle];
   NSString* resourceDirectoryPath = [bundle bundlePath];
   NSString* path = [resourceDirectoryPath stringByAppendingString:@"/"];

@@ -1,15 +1,17 @@
 #ifndef YAZE_APP_EDITOR_PALETTE_EDITOR_H
 #define YAZE_APP_EDITOR_PALETTE_EDITOR_H
 
-#include "imgui/imgui.h"
+#include <deque>
+#include <string>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "app/editor/graphics/gfx_group_editor.h"
-#include "app/editor/utils/editor.h"
+#include "app/editor/editor.h"
 #include "app/gfx/snes_palette.h"
-#include "app/gui/canvas.h"
-#include "app/gui/icons.h"
+#include "app/gfx/snes_color.h"
 #include "app/rom.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {
@@ -26,55 +28,50 @@ struct PaletteChange {
 
 class PaletteEditorHistory {
  public:
-  // Record a change in the palette editor
-  void RecordChange(const std::string& groupName, size_t paletteIndex,
-                    size_t colorIndex, const gfx::SnesColor& originalColor,
-                    const gfx::SnesColor& newColor) {
-    // Check size and remove the oldest if necessary
-    if (recentChanges.size() >= maxHistorySize) {
-      recentChanges.pop_front();
+  void RecordChange(const std::string& group_name, size_t palette_index,
+                    size_t color_index, const gfx::SnesColor& original_color,
+                    const gfx::SnesColor& new_color) {
+    if (recent_changes_.size() >= kMaxHistorySize) {
+      recent_changes_.pop_front();
     }
 
-    // Push the new change
-    recentChanges.push_back(
-        {groupName, paletteIndex, colorIndex, originalColor, newColor});
+    recent_changes_.push_back(
+        {group_name, palette_index, color_index, original_color, new_color});
   }
 
-  // Get recent changes for display in the palette editor
-  const std::deque<PaletteChange>& GetRecentChanges() const {
-    return recentChanges;
-  }
-
-  // Restore the original color
-  gfx::SnesColor RestoreOriginalColor(const std::string& groupName,
-                                      size_t paletteIndex,
-                                      size_t colorIndex) const {
-    for (const auto& change : recentChanges) {
-      if (change.group_name == groupName &&
-          change.palette_index == paletteIndex &&
-          change.color_index == colorIndex) {
+  gfx::SnesColor RestoreOriginalColor(const std::string& group_name,
+                                      size_t palette_index,
+                                      size_t color_index) const {
+    for (const auto& change : recent_changes_) {
+      if (change.group_name == group_name &&
+          change.palette_index == palette_index &&
+          change.color_index == color_index) {
         return change.original_color;
       }
     }
-    // Handle error or return default (this is just an example,
-    // handle as appropriate for your application)
     return gfx::SnesColor();
   }
 
-  auto size() const { return recentChanges.size(); }
+  auto size() const { return recent_changes_.size(); }
 
   gfx::SnesColor& GetModifiedColor(size_t index) {
-    return recentChanges[index].new_color;
+    return recent_changes_[index].new_color;
   }
   gfx::SnesColor& GetOriginalColor(size_t index) {
-    return recentChanges[index].original_color;
+    return recent_changes_[index].original_color;
+  }
+
+  const std::deque<PaletteChange>& GetRecentChanges() const {
+    return recent_changes_;
   }
 
  private:
-  std::deque<PaletteChange> recentChanges;
-  static const size_t maxHistorySize = 50;  // or any other number you deem fit
+  std::deque<PaletteChange> recent_changes_;
+  static const size_t kMaxHistorySize = 50;
 };
 }  // namespace palette_internal
+
+absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded);
 
 /**
  * @class PaletteEditor
@@ -101,7 +98,6 @@ class PaletteEditor : public SharedRom, public Editor {
   absl::Status EditColorInPalette(gfx::SnesPalette& palette, int index);
   absl::Status ResetColorToOriginal(gfx::SnesPalette& palette, int index,
                                     const gfx::SnesPalette& originalPalette);
-  void DisplayPalette(gfx::SnesPalette& palette, bool loaded);
   absl::Status DrawPaletteGroup(int category, bool right_side = false);
 
   void DrawCustomPalette();
@@ -110,16 +106,6 @@ class PaletteEditor : public SharedRom, public Editor {
 
  private:
   absl::Status HandleColorPopup(gfx::SnesPalette& palette, int i, int j, int n);
-  absl::Status InitializeSavedPalette(const gfx::SnesPalette& palette) {
-    for (int n = 0; n < palette.size(); n++) {
-      ASSIGN_OR_RETURN(auto color, palette.GetColor(n));
-      saved_palette_[n].x = color.rgb().x / 255;
-      saved_palette_[n].y = color.rgb().y / 255;
-      saved_palette_[n].z = color.rgb().z / 255;
-      saved_palette_[n].w = 255;  // Alpha
-    }
-    return absl::OkStatus();
-  }
 
   absl::Status status_;
   gfx::SnesColor current_color_;

@@ -1,9 +1,7 @@
 #include "dungeon_editor.h"
 
-#include "imgui/imgui.h"
-
-#include "app/core/common.h"
-#include "app/core/labeling.h"
+#include "absl/container/flat_hash_map.h"
+#include "app/core/platform/renderer.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
@@ -11,12 +9,14 @@
 #include "app/gui/input.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/object_names.h"
-#include "app/zelda3/dungeon/room_names.h"
+#include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze {
 namespace app {
 namespace editor {
+
+using core::Renderer;
 
 using ImGui::BeginChild;
 using ImGui::BeginTabBar;
@@ -50,21 +50,22 @@ absl::Status DungeonEditor::Update() {
     refresh_graphics_ = false;
   }
 
-  TAB_BAR("##DungeonEditorTabBar")
-  TAB_ITEM("Room Editor")
-  status_ = UpdateDungeonRoomView();
-  END_TAB_ITEM()
-  TAB_ITEM("Usage Statistics")
-  if (is_loaded_) {
-    static bool calc_stats = false;
-    if (!calc_stats) {
-      CalculateUsageStats();
-      calc_stats = true;
+  if (ImGui::BeginTabBar("##DungeonEditorTabBar")) {
+    TAB_ITEM("Room Editor")
+    status_ = UpdateDungeonRoomView();
+    END_TAB_ITEM()
+    TAB_ITEM("Usage Statistics")
+    if (is_loaded_) {
+      static bool calc_stats = false;
+      if (!calc_stats) {
+        CalculateUsageStats();
+        calc_stats = true;
+      }
+      DrawUsageStats();
     }
-    DrawUsageStats();
+    END_TAB_ITEM()
+    ImGui::EndTabBar();
   }
-  END_TAB_ITEM()
-  END_TAB_BAR()
 
   return absl::OkStatus();
 }
@@ -72,7 +73,7 @@ absl::Status DungeonEditor::Update() {
 absl::Status DungeonEditor::Initialize() {
   auto dungeon_man_pal_group = rom()->palette_group().dungeon_main;
   for (int i = 0; i < 0x100 + 40; i++) {
-    rooms_.emplace_back(zelda3::dungeon::Room(i));
+    rooms_.emplace_back(zelda3::dungeon::Room(/*room_id=*/i));
     rooms_[i].LoadHeader();
     rooms_[i].LoadRoomFromROM();
     if (flags()->kDrawDungeonRoomGraphics) {
@@ -107,7 +108,7 @@ absl::Status DungeonEditor::Initialize() {
   ASSIGN_OR_RETURN(current_palette_group_,
                    gfx::CreatePaletteGroupFromLargePalette(full_palette_));
 
-  graphics_bin_ = *rom()->mutable_bitmap_manager();
+  graphics_bin_ = rom()->gfx_sheets();
   // Create a vector of pointers to the current block bitmaps
   for (int block : rooms_[current_room_id_].blocks()) {
     room_gfx_sheets_.emplace_back(&graphics_bin_[block]);
@@ -120,14 +121,14 @@ absl::Status DungeonEditor::RefreshGraphics() {
     int block = rooms_[current_room_id_].blocks()[i];
     RETURN_IF_ERROR(graphics_bin_[block].ApplyPaletteWithTransparent(
         current_palette_group_[current_palette_id_], 0));
-    rom()->UpdateBitmap(&graphics_bin_[block], true);
+    Renderer::GetInstance().UpdateBitmap(&graphics_bin_[block]);
   }
   auto sprites_aux1_pal_group = rom()->palette_group().sprites_aux1;
   for (int i = 9; i < 16; i++) {
     int block = rooms_[current_room_id_].blocks()[i];
     RETURN_IF_ERROR(graphics_bin_[block].ApplyPaletteWithTransparent(
         sprites_aux1_pal_group[current_palette_id_], 0));
-    rom()->UpdateBitmap(&graphics_bin_[block], true);
+    Renderer::GetInstance().UpdateBitmap(&graphics_bin_[block]);
   }
   return absl::OkStatus();
 }
@@ -195,14 +196,15 @@ absl::Status DungeonEditor::UpdateDungeonRoomView() {
     TableNextRow();
 
     TableNextColumn();
-    TAB_BAR("##DungeonRoomTabBar");
-    TAB_ITEM("Rooms");
-    DrawRoomSelector();
-    END_TAB_ITEM();
-    TAB_ITEM("Entrances");
-    DrawEntranceSelector();
-    END_TAB_ITEM();
-    END_TAB_BAR();
+    if (ImGui::BeginTabBar("##DungeonRoomTabBar")) {
+      TAB_ITEM("Rooms");
+      DrawRoomSelector();
+      END_TAB_ITEM();
+      TAB_ITEM("Entrances");
+      DrawEntranceSelector();
+      END_TAB_ITEM();
+      ImGui::EndTabBar();
+    }
 
     TableNextColumn();
     DrawDungeonTabView();
@@ -320,7 +322,7 @@ void DungeonEditor::DrawRoomSelector() {
       for (const auto each_room_name : zelda3::dungeon::kRoomNames) {
         rom()->resource_label()->SelectableLabelWithNameEdit(
             current_room_id_ == i, "Dungeon Room Names",
-            core::UppercaseHexByte(i), zelda3::dungeon::kRoomNames[i].data());
+            core::UppercaseHexByte(i), each_room_name.data());
         if (ImGui::IsItemClicked()) {
           // TODO: Jump to tab if room is already open
           current_room_id_ = i;
@@ -498,7 +500,7 @@ void DungeonEditor::DrawRoomGraphics() {
         top_left_y = room_gfx_canvas_.zero_point().y + height * current_block;
       }
       room_gfx_canvas_.draw_list()->AddImage(
-          (void*)graphics_bin_[block].texture(),
+          (ImTextureID)(intptr_t)graphics_bin_[block].texture(),
           ImVec2(room_gfx_canvas_.zero_point().x + 2, top_left_y),
           ImVec2(room_gfx_canvas_.zero_point().x + 0x100,
                  room_gfx_canvas_.zero_point().y + offset));
@@ -547,7 +549,7 @@ void DungeonEditor::DrawObjectRenderer() {
         current_object_ = i;
         object_renderer_.LoadObject(i,
                                     rooms_[current_room_id_].mutable_blocks());
-        rom()->RenderBitmap(object_renderer_.bitmap());
+        Renderer::GetInstance().RenderBitmap(object_renderer_.bitmap());
         object_loaded_ = true;
       }
       i += 1;

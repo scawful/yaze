@@ -1,50 +1,35 @@
-# GoogleTest ------------------------------------------------------------------
-include(FetchContent)
-FetchContent_Declare(
-  googletest
-  URL https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip
-)
-
-# For Windows: Prevent overriding the parent project's compiler/linker settings
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
-enable_testing()
-
-# Append the ../ prefix to the include directories
-list(TRANSFORM YAZE_APP_GFX_SRC PREPEND "../")
-list(TRANSFORM YAZE_APP_EMU_SRC PREPEND "../")
-list(TRANSFORM YAZE_APP_CORE_SRC PREPEND "../")
-list(TRANSFORM YAZE_GUI_SRC PREPEND "../")
+include(../cmake/gtest.cmake)
 
 add_executable(
   yaze_test
-  yaze_test.cc
-  emu/cpu_test.cc
-  # emu/spc700_test.cc
-  # emu/ppu_test.cc
-  gfx/compression_test.cc
-  gfx/snes_palette_test.cc
-  zelda3/room_object_test.cc
-  ../cli/patch.cc
-  ../cli/command_handler.cc
-  ../app/rom.cc
-  ../app/rom_test.cc
-  ../app/core/common.cc
-  ../app/core/labeling.cc
-  ../app/editor/utils/gfx_context.cc
+  test/yaze_test.cc
+  test/rom_test.cc
+  test/gfx/compression_test.cc
+  test/gfx/snes_palette_test.cc
+  test/integration/test_editor.cc
+  test/zelda3/overworld_test.cc
+  test/zelda3/sprite_builder_test.cc
+  app/rom.cc
+  app/core/common.cc
+  ${ASAR_STATIC_SRC}
+  ${YAZE_APP_CORE_SRC}
   ${YAZE_APP_EMU_SRC}
   ${YAZE_APP_GFX_SRC}
+  ${YAZE_APP_ZELDA3_SRC}
+  ${YAZE_APP_EDITOR_SRC}
   ${YAZE_GUI_SRC}
-  ${IMGUI_FILE_DLG_PATH}/ImGuiFileDialog.cpp
-  ../lib/imgui/misc/cpp/imgui_stdlib.cpp
-  # ${ASAR_STATIC_SRC}
+  ${IMGUI_SRC}
+  ${IMGUI_TEST_ENGINE_SOURCES}
 )
 
 target_include_directories(
   yaze_test PUBLIC
-  ../
-  ../app/
-  ../lib/
+  app/
+  lib/
+  ${CMAKE_SOURCE_DIR}/incl/
+  ${CMAKE_SOURCE_DIR}/src/
+  ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
+  ${ASAR_INCLUDE_DIR}
   ${SDL2_INCLUDE_DIR}
   ${PNG_INCLUDE_DIRS}
 )
@@ -52,11 +37,12 @@ target_include_directories(
 target_link_libraries(
   yaze_test
   SDL2::SDL2
+  asar-static
   ${ABSL_TARGETS}
   ${PNG_LIBRARIES}
-  ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
+  yaze_c
   ImGuiTestEngine
   ImGui
   gmock_main
@@ -66,6 +52,7 @@ target_link_libraries(
 )
 target_compile_definitions(yaze_test PRIVATE "linux")
 target_compile_definitions(yaze_test PRIVATE "stricmp=strcasecmp")
+target_compile_definitions(yaze_test PRIVATE "IMGUI_ENABLE_TEST_ENGINE")
 
 include(GoogleTest)
 gtest_discover_tests(yaze_test)

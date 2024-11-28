@@ -1,19 +1,15 @@
 #ifndef YAZE_APP_EDITOR_MUSIC_EDITOR_H
 #define YAZE_APP_EDITOR_MUSIC_EDITOR_H
 
-#include "imgui/imgui.h"
-
 #include "absl/strings/str_format.h"
 #include "app/editor/code/assembly_editor.h"
-#include "app/editor/utils/editor.h"
+#include "app/editor/editor.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
 #include "app/zelda3/music/tracker.h"
-// #include "snes_spc/demo/demo_util.h"
-// #include "snes_spc/demo/wave_writer.h"
-// #include "snes_spc/snes_spc/spc.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {
@@ -81,20 +77,11 @@ class MusicEditor : public SharedRom, public Editor {
 
   zelda3::music::Tracker music_tracker_;
 
-  // Mix_Music* current_song_ = NULL;
-
   AssemblyEditor assembly_editor_;
   ImGuiTableFlags toolset_table_flags_ = ImGuiTableFlags_SizingFixedFit;
   ImGuiTableFlags music_editor_flags_ = ImGuiTableFlags_SizingFixedFit |
                                         ImGuiTableFlags_Resizable |
                                         ImGuiTableFlags_Reorderable;
-
-  ImGuiTableFlags channel_table_flags_ =
-      ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
-      ImGuiTableFlags_Hideable | ImGuiTableFlags_Sortable |
-      ImGuiTableFlags_SortMulti | ImGuiTableFlags_RowBg |
-      ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV |
-      ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_ScrollY;
 };
 
 }  // namespace editor

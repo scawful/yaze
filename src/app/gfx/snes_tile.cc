@@ -1,6 +1,8 @@
 #include "snes_tile.h"
 
+#include <cassert>
 #include <cstdint>
+#include <stdexcept>
 #include <vector>
 
 #include "app/core/constants.h"
@@ -9,9 +11,21 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
-tile8 UnpackBppTile(const Bytes& data, const uint32_t offset,
+// Bit set for object priority
+constexpr ushort TilePriorityBit = 0x2000;
+
+// Bit set for object hflip
+constexpr ushort TileHFlipBit = 0x4000;
+
+// Bit set for object vflip
+constexpr ushort TileVFlipBit = 0x8000;
+
+// Bits used for tile name
+constexpr ushort TileNameMask = 0x03FF;
+
+snes_tile8 UnpackBppTile(const std::vector<uint8_t>& data, const uint32_t offset,
                     const uint32_t bpp) {
-  tile8 tile;
+  snes_tile8 tile;
   assert(bpp >= 1 && bpp <= 8);
   unsigned int bpp_pos[8];  // More for conveniance and readibility
   for (int col = 0; col < 8; col++) {
@@ -66,7 +80,7 @@ tile8 UnpackBppTile(const Bytes& data, const uint32_t offset,
   return tile;
 }
 
-Bytes PackBppTile(const tile8& tile, const uint32_t bpp) {
+std::vector<uint8_t> PackBppTile(const snes_tile8& tile, const uint32_t bpp) {
   // Allocate memory for output data
   std::vector<uint8_t> output(bpp * 8, 0);  // initialized with 0
   unsigned maxcolor = 2 << bpp;
@@ -119,7 +133,7 @@ std::vector<uint8_t> ConvertBpp(const std::vector<uint8_t>& tiles,
   std::vector<uint8_t> converted(nb_tile * to_bpp * 8);
 
   for (unsigned int i = 0; i < nb_tile; i++) {
-    tile8 tile = UnpackBppTile(tiles, i * from_bpp * 8, from_bpp);
+    snes_tile8 tile = UnpackBppTile(tiles, i * from_bpp * 8, from_bpp);
     std::vector<uint8_t> packed_tile = PackBppTile(tile, to_bpp);
     std::memcpy(converted.data() + i * to_bpp * 8, packed_tile.data(),
                 to_bpp * 8);
@@ -135,13 +149,15 @@ std::vector<uint8_t> Convert4bppTo3bpp(const std::vector<uint8_t>& tiles) {
   return ConvertBpp(tiles, 4, 3);
 }
 
-Bytes SnesTo8bppSheet(const Bytes& sheet, int bpp) {
+std::vector<uint8_t> SnesTo8bppSheet(const std::vector<uint8_t>& sheet, int bpp,
+                                     int num_sheets) {
   int xx = 0;  // positions where we are at on the sheet
   int yy = 0;
   int pos = 0;
   int ypos = 0;
   int num_tiles = 64;
   int buffer_size = 0x1000;
+
   if (bpp == 2) {
     bpp = 16;
     num_tiles = 128;
@@ -154,7 +170,13 @@ Bytes SnesTo8bppSheet(const Bytes& sheet, int bpp) {
   } else if (bpp == 8) {
     bpp = 64;
   }
-  Bytes sheet_buffer_out(buffer_size);
+
+  if (num_sheets != 1) {
+    num_tiles *= num_sheets;
+    buffer_size *= num_sheets;
+  }
+
+  std::vector<uint8_t> sheet_buffer_out(buffer_size);
 
   for (int i = 0; i < num_tiles; i++) {  // for each tiles, 16 per line
     for (int y = 0; y < 8; y++) {        // for each line
@@ -187,7 +209,8 @@ Bytes SnesTo8bppSheet(const Bytes& sheet, int bpp) {
   return sheet_buffer_out;
 }
 
-Bytes Bpp8SnesToIndexed(Bytes data, uint64_t bpp) {
+std::vector<uint8_t> Bpp8SnesToIndexed(std::vector<uint8_t> data,
+                                       uint64_t bpp) {
   // 3BPP
   // [r0,bp1],[r0,bp2],[r1,bp1],[r1,bp2],[r2,bp1],[r2,bp2],[r3,bp1],[r3,bp2]
   // [r4,bp1],[r4,bp2],[r5,bp1],[r5,bp2],[r6,bp1],[r6,bp2],[r7,bp1],[r7,bp2]
@@ -199,7 +222,7 @@ Bytes Bpp8SnesToIndexed(Bytes data, uint64_t bpp) {
   // [r4,bp7],[r4,bp8],[r5,bp7],[r5,bp8],[r6,bp7],[r6,bp8],[r7,bp7],[r7,bp8]
 
   // 16 tiles = 1024 bytes
-  auto buffer = Bytes(data.size());
+  auto buffer = std::vector<uint8_t>(data.size());
   std::vector<std::vector<uint8_t>> bitmap_data;
   bitmap_data.resize(0x80);
   for (auto& each : bitmap_data) {
@@ -323,44 +346,57 @@ TileInfo WordToTileInfo(uint16_t word) {
 uint16_t TileInfoToShort(TileInfo tile_info) {
   // uint16_t result = 0;
 
-  // // Copy the id_ value
+  // Copy the id_ value
   // result |= tile_info.id_ & 0x3FF;  // ids are 10 bits
 
-  // // Set the vertical_mirror_, horizontal_mirror_, and over_ flags
+  // Set the vertical_mirror_, horizontal_mirror_, and over_ flags
   // result |= (tile_info.vertical_mirror_ ? 1 : 0) << 10;
   // result |= (tile_info.horizontal_mirror_ ? 1 : 0) << 11;
   // result |= (tile_info.over_ ? 1 : 0) << 12;
 
-  // // Set the palette_
+  // Set the palette_
   // result |= (tile_info.palette_ & 0x07) << 13;  // palettes are 3 bits
 
   uint16_t value = 0;
   // vhopppcc cccccccc
   if (tile_info.over_) {
-    value |= core::TilePriorityBit;
+    value |= TilePriorityBit;
   }
   if (tile_info.horizontal_mirror_) {
-    value |= core::TileHFlipBit;
+    value |= TileHFlipBit;
   }
   if (tile_info.vertical_mirror_) {
-    value |= core::TileVFlipBit;
+    value |= TileVFlipBit;
   }
   value |= (uint16_t)((tile_info.palette_ << 10) & 0x1C00);
-  value |= (uint16_t)(tile_info.id_ & core::TileNameMask);
+  value |= (uint16_t)(tile_info.id_ & TileNameMask);
 
   return value;
 }
 
 TileInfo GetTilesInfo(uint16_t tile) {
   // vhopppcc cccccccc
-  uint16_t tid = (uint16_t)(tile & core::TileNameMask);
+  uint16_t tid = (uint16_t)(tile & TileNameMask);
   uint8_t p = (uint8_t)((tile >> 10) & 0x07);
 
-  bool o = ((tile & core::TilePriorityBit) == core::TilePriorityBit);
-  bool h = ((tile & core::TileHFlipBit) == core::TileHFlipBit);
-  bool v = ((tile & core::TileVFlipBit) == core::TileVFlipBit);
+  bool o = ((tile & TilePriorityBit) == TilePriorityBit);
+  bool h = ((tile & TileHFlipBit) == TileHFlipBit);
+  bool v = ((tile & TileVFlipBit) == TileVFlipBit);
 
   return TileInfo(tid, p, v, h, o);
+}
+
+void CopyTile8bpp16(int x, int y, int tile, std::vector<uint8_t>& bitmap,
+                    std::vector<uint8_t>& blockset) {
+  int src_pos =
+      ((tile - ((tile / 0x08) * 0x08)) * 0x10) + ((tile / 0x08) * 2048);
+  int dest_pos = (x + (y * 0x200));
+  for (int yy = 0; yy < 0x10; yy++) {
+    for (int xx = 0; xx < 0x10; xx++) {
+      bitmap[dest_pos + xx + (yy * 0x200)] =
+          blockset[src_pos + xx + (yy * 0x80)];
+    }
+  }
 }
 
 }  // namespace gfx
