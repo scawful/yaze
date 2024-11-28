@@ -29,6 +29,7 @@ var namespaceyaze_1_1app_1_1core =
     [ "SDL_Deleter", "structyaze_1_1app_1_1core_1_1SDL__Deleter.html", "structyaze_1_1app_1_1core_1_1SDL__Deleter" ],
     [ "SDL_Surface_Deleter", "structyaze_1_1app_1_1core_1_1SDL__Surface__Deleter.html", "structyaze_1_1app_1_1core_1_1SDL__Surface__Deleter" ],
     [ "SDL_Texture_Deleter", "structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter.html", "structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter" ],
+    [ "StructuredLog", "structyaze_1_1app_1_1core_1_1StructuredLog.html", "structyaze_1_1app_1_1core_1_1StructuredLog" ],
     [ "FolderItem", "namespaceyaze_1_1app_1_1core.html#ae3d315799cc5396556e7b023473121dd", null ],
     [ "Platform", "namespaceyaze_1_1app_1_1core.html#a4e61b0cd86cff55adee7c5b20c7dc700", [
       [ "kUnknown", "namespaceyaze_1_1app_1_1core.html#a4e61b0cd86cff55adee7c5b20c7dc700a25c2dc47991b3df171ed5192bcf70390", null ],
@@ -64,6 +65,6 @@ var namespaceyaze_1_1app_1_1core =
     [ "LoadFile", "namespaceyaze_1_1app_1_1core.html#a3321ea16855cf829721b4747fea79674", null ],
     [ "SaveFile", "namespaceyaze_1_1app_1_1core.html#aefd3fbf112fab10a195209aee3986532", null ],
     [ "GetConfigDirectory", "namespaceyaze_1_1app_1_1core.html#a77b5fa05538c937fff7d7a6517a56537", null ],
-    [ "kYazeVersion", "namespaceyaze_1_1app_1_1core.html#aeb4d11eb76af13a125dd20d79bc2bce3", null ],
-    [ "kFastRomRegion", "namespaceyaze_1_1app_1_1core.html#ab62c06b7266ecc1577fb9da5d8f7401c", null ]
+    [ "kFastRomRegion", "namespaceyaze_1_1app_1_1core.html#ab62c06b7266ecc1577fb9da5d8f7401c", null ],
+    [ "kYazeVersion", "namespaceyaze_1_1app_1_1core.html#aeb4d11eb76af13a125dd20d79bc2bce3", null ]
 ];

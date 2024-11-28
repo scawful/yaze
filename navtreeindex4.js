@@ -1,5 +1,9 @@
 var NAVTREEINDEX4 =
 {
+"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ac5a5e5c6768534267ddf3cbbca719feb":[11,0,0,0,1,18,94],
+"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ad291e31009ca5a66035bba7c4e6ef806":[10,0,1,0,2,23,47],
+"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ad291e31009ca5a66035bba7c4e6ef806":[11,0,0,0,1,18,47],
+"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ad31613224395625e17f56a2dd102b4b0":[10,0,1,0,2,23,29],
 "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ad31613224395625e17f56a2dd102b4b0":[11,0,0,0,1,18,29],
 "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ad41f4f73d94aee39941c453172f59281":[10,0,1,0,2,23,34],
 "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ad41f4f73d94aee39941c453172f59281":[11,0,0,0,1,18,34],
@@ -245,9 +249,5 @@ var NAVTREEINDEX4 =
 "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0ca7cecfc86b37c75e0baa007f5f0e681fe":[11,0,0,0,1,24,1,11],
 "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0caaca409c630a7c3d887cbafbaa8182e8d":[10,0,1,0,2,29,1,9],
 "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0caaca409c630a7c3d887cbafbaa8182e8d":[11,0,0,0,1,24,1,9],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0cabd3a3159a87bf56f58bf4f1c95075f3f":[10,0,1,0,2,29,1,3],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0cabd3a3159a87bf56f58bf4f1c95075f3f":[11,0,0,0,1,24,1,3],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0cabd527d50338026c819691835ba03bfd1":[10,0,1,0,2,29,1,2],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0cabd527d50338026c819691835ba03bfd1":[11,0,0,0,1,24,1,2],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0cafc1aefcba9dca2c0e25e567785ed1626":[10,0,1,0,2,29,1,4]
+"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a5d999ec6d0abbb730b1cc8743665de0cabd3a3159a87bf56f58bf4f1c95075f3f":[10,0,1,0,2,29,1,3]
 };

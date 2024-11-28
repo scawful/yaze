@@ -1,6 +1,6 @@
 var editor_8h =
 [
-    [ "yaze::app::editor::EditorContext", "structyaze_1_1app_1_1editor_1_1EditorContext.html", null ],
+    [ "yaze::app::editor::EditorContext", "structyaze_1_1app_1_1editor_1_1EditorContext.html", "structyaze_1_1app_1_1editor_1_1EditorContext" ],
     [ "yaze::app::editor::Editor", "classyaze_1_1app_1_1editor_1_1Editor.html", "classyaze_1_1app_1_1editor_1_1Editor" ],
     [ "yaze::app::editor::EditorLayoutParams", "structyaze_1_1app_1_1editor_1_1EditorLayoutParams.html", "structyaze_1_1app_1_1editor_1_1EditorLayoutParams" ],
     [ "EditorLayoutParams", "editor_8h.html#aa090e01adaa87843423a18a2b867808b", null ],

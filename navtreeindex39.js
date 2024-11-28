@@ -1,5 +1,9 @@
 var NAVTREEINDEX39 =
 {
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#affbc39a30f892cc49273d187f7d618d9":[10,0,1,0,6,1,69],
+"namespaceyaze_1_1app_1_1zelda3_1_1music.html":[10,0,1,0,6,2],
+"namespaceyaze_1_1app_1_1zelda3_1_1music.html#a25bedc591c14056dde9badebe62964ee":[10,0,1,0,6,2,16],
+"namespaceyaze_1_1app_1_1zelda3_1_1music.html#a28df42cbcd47f22dbf5ef91fcb6c73b1":[10,0,1,0,6,2,15],
 "namespaceyaze_1_1app_1_1zelda3_1_1music.html#a3407566be0a556a2ebecf32b78d7dab9":[10,0,1,0,6,2,14],
 "namespaceyaze_1_1app_1_1zelda3_1_1music.html#aa76a3e96c7ad81d30e389fcb5634ed8c":[10,0,1,0,6,2,13],
 "namespaceyaze_1_1app_1_1zelda3_1_1music.html#ab66ec996d4cbc3cabec1adbb6d6a76de":[10,0,1,0,6,2,10],
@@ -245,9 +249,5 @@ var NAVTREEINDEX39 =
 "namespaceyaze_1_1test_1_1emu.html#a363e0322d4d7db373812bbf4678d8672":[10,0,1,2,0,281],
 "namespaceyaze_1_1test_1_1emu.html#a36f786ccbdb848640fe7633ca0221333":[10,0,1,2,0,19],
 "namespaceyaze_1_1test_1_1emu.html#a377de27121bd62d5c0b7577a1f518ea2":[10,0,1,2,0,309],
-"namespaceyaze_1_1test_1_1emu.html#a37d2fce6483cc04fe6142731988e68d3":[10,0,1,2,0,157],
-"namespaceyaze_1_1test_1_1emu.html#a3879886f3f515d6c65dabbcf9c833da1":[10,0,1,2,0,221],
-"namespaceyaze_1_1test_1_1emu.html#a388d78e3012c0ebb0f62a77237f6e540":[10,0,1,2,0,140],
-"namespaceyaze_1_1test_1_1emu.html#a38b43682453e106f0e2984bc2c4f563c":[10,0,1,2,0,325],
-"namespaceyaze_1_1test_1_1emu.html#a3c21cb06f8cc656e34a7ef6c80e40b1b":[10,0,1,2,0,45]
+"namespaceyaze_1_1test_1_1emu.html#a37d2fce6483cc04fe6142731988e68d3":[10,0,1,2,0,157]
 };

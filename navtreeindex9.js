@@ -1,5 +1,9 @@
 var NAVTREEINDEX9 =
 {
+"classyaze_1_1app_1_1emu_1_1Cpu.html#ae6bd445503eaf0beab1c4512ad47451c":[11,0,0,0,2,6,83],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#ae93df22975121fd0d902a2c22dc5b137":[10,0,1,0,3,8,193],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#ae93df22975121fd0d902a2c22dc5b137":[11,0,0,0,2,6,193],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#ae9b61f01ebca0530a50e5dc52b995ffb":[10,0,1,0,3,8,103],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#ae9b61f01ebca0530a50e5dc52b995ffb":[11,0,0,0,2,6,103],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#aea9d18905569583bddad06838a3c86d2":[10,0,1,0,3,8,187],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#aea9d18905569583bddad06838a3c86d2":[11,0,0,0,2,6,187],
@@ -245,9 +249,5 @@ var NAVTREEINDEX9 =
 "classyaze_1_1app_1_1emu_1_1SNES.html#adead4de2b3da4d81edb7113191e81fac":[11,0,0,0,2,13,15],
 "classyaze_1_1app_1_1emu_1_1SNES.html#ae64f449564d9174c85588673295004ad":[10,0,1,0,3,15,59],
 "classyaze_1_1app_1_1emu_1_1SNES.html#ae64f449564d9174c85588673295004ad":[11,0,0,0,2,13,59],
-"classyaze_1_1app_1_1emu_1_1SNES.html#ae7aa1b39b4da039a2223a0d11a544444":[10,0,1,0,3,15,39],
-"classyaze_1_1app_1_1emu_1_1SNES.html#ae7aa1b39b4da039a2223a0d11a544444":[11,0,0,0,2,13,39],
-"classyaze_1_1app_1_1emu_1_1SNES.html#aec031a73b0980b31d69fac3963f06d1e":[10,0,1,0,3,15,37],
-"classyaze_1_1app_1_1emu_1_1SNES.html#aec031a73b0980b31d69fac3963f06d1e":[11,0,0,0,2,13,37],
-"classyaze_1_1app_1_1emu_1_1SNES.html#aef94854c9b17a57a9c49f84fea0bf808":[10,0,1,0,3,15,40]
+"classyaze_1_1app_1_1emu_1_1SNES.html#ae7aa1b39b4da039a2223a0d11a544444":[10,0,1,0,3,15,39]
 };

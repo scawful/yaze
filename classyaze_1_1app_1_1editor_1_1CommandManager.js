@@ -3,6 +3,8 @@ var classyaze_1_1app_1_1editor_1_1CommandManager =
     [ "CommandInfo", "structyaze_1_1app_1_1editor_1_1CommandManager_1_1CommandInfo.html", "structyaze_1_1app_1_1editor_1_1CommandManager_1_1CommandInfo" ],
     [ "CommandInfoOrPrefix", "structyaze_1_1app_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html", "structyaze_1_1app_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix" ],
     [ "Command", "classyaze_1_1app_1_1editor_1_1CommandManager.html#a93ba73d98048b47cbf89dcf28b7db5c6", null ],
+    [ "CommandManager", "classyaze_1_1app_1_1editor_1_1CommandManager.html#ae0cf95f492819c37584d3b1e3c76a9af", null ],
+    [ "~CommandManager", "classyaze_1_1app_1_1editor_1_1CommandManager.html#a337c035d64ab538872d2960c3973127a", null ],
     [ "RegisterPrefix", "classyaze_1_1app_1_1editor_1_1CommandManager.html#a9399b33054572f97914b7ed76d5e79cd", null ],
     [ "RegisterSubcommand", "classyaze_1_1app_1_1editor_1_1CommandManager.html#a172f4df0c5e2efc2fbdf2ccb4739297a", null ],
     [ "RegisterCommand", "classyaze_1_1app_1_1editor_1_1CommandManager.html#a961fdd7858ad537bd392c50155e88b86", null ],

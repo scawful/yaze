@@ -1,5 +1,9 @@
 var NAVTREEINDEX25 =
 {
+"editor__manager_8h.html#adf4d73301961430d50d7edd96f92ce38":[12,0,2,0,1,11,1],
+"editor__manager_8h_source.html":[12,0,2,0,1,11],
+"emu_8cc.html":[12,0,2,0,2,4],
+"emu_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627":[12,0,2,0,2,4,0],
 "emu_8cc_source.html":[12,0,2,0,2,4],
 "emulator_8cc.html":[12,0,2,0,2,5],
 "emulator_8cc.html#a8661d56df6530eb9b492271d63b262ac":[12,0,2,0,2,5,0],
@@ -245,9 +249,5 @@ var NAVTREEINDEX25 =
 "icons_8h.html":[12,0,2,0,4,5],
 "icons_8h.html#a00461479997fc24161e5aef9c2c9cf06":[12,0,2,0,4,5,1551],
 "icons_8h.html#a005556c3bf9f26389a7ba1c73f04434a":[12,0,2,0,4,5,1104],
-"icons_8h.html#a006a253ef03d2d6b9b4e66e204dad28d":[12,0,2,0,4,5,1448],
-"icons_8h.html#a0072996e4e2f3586242ebebd6a756b6f":[12,0,2,0,4,5,500],
-"icons_8h.html#a00b64e5c626ed2ffa3d86e7c71369543":[12,0,2,0,4,5,1259],
-"icons_8h.html#a014ec237480036745ef3c568fce3f4e4":[12,0,2,0,4,5,1684],
-"icons_8h.html#a016835c11db0f38553add0e3eae22ac0":[12,0,2,0,4,5,92]
+"icons_8h.html#a006a253ef03d2d6b9b4e66e204dad28d":[12,0,2,0,4,5,1448]
 };

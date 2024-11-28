@@ -25,7 +25,7 @@ var namespaceyaze_1_1app_1_1editor =
     [ "DictionaryEntry", "structyaze_1_1app_1_1editor_1_1DictionaryEntry.html", "structyaze_1_1app_1_1editor_1_1DictionaryEntry" ],
     [ "DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", "classyaze_1_1app_1_1editor_1_1DungeonEditor" ],
     [ "Editor", "classyaze_1_1app_1_1editor_1_1Editor.html", "classyaze_1_1app_1_1editor_1_1Editor" ],
-    [ "EditorContext", "structyaze_1_1app_1_1editor_1_1EditorContext.html", null ],
+    [ "EditorContext", "structyaze_1_1app_1_1editor_1_1EditorContext.html", "structyaze_1_1app_1_1editor_1_1EditorContext" ],
     [ "EditorLayoutParams", "structyaze_1_1app_1_1editor_1_1EditorLayoutParams.html", "structyaze_1_1app_1_1editor_1_1EditorLayoutParams" ],
     [ "EditorManager", "classyaze_1_1app_1_1editor_1_1EditorManager.html", "classyaze_1_1app_1_1editor_1_1EditorManager" ],
     [ "EntranceContext", "classyaze_1_1app_1_1editor_1_1EntranceContext.html", "classyaze_1_1app_1_1editor_1_1EntranceContext" ],

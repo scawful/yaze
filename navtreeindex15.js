@@ -1,5 +1,9 @@
 var NAVTREEINDEX15 =
 {
+"classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a76531895525d33ae8c447225172c38ac":[11,0,0,0,3,10,18],
+"classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a85ee18604b72eea4c6d7a5833463b4a6":[10,0,1,0,4,12,2],
+"classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a85ee18604b72eea4c6d7a5833463b4a6":[11,0,0,0,3,10,2],
+"classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a8f054e42c039c2695bad325899ca47f6":[10,0,1,0,4,12,9],
 "classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a8f054e42c039c2695bad325899ca47f6":[11,0,0,0,3,10,9],
 "classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a973d2093118ecfef39b46c98f118d8ee":[10,0,1,0,4,12,16],
 "classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a973d2093118ecfef39b46c98f118d8ee":[11,0,0,0,3,10,16],
@@ -245,9 +249,5 @@ var NAVTREEINDEX15 =
 "classyaze_1_1app_1_1gui_1_1Canvas.html#a829750c17577f6d2ddb33d3fd5c6e11a":[11,0,0,0,4,2,58],
 "classyaze_1_1app_1_1gui_1_1Canvas.html#a8540f6602c32ce8d64db7ecacbf93a8f":[10,0,1,0,5,3,36],
 "classyaze_1_1app_1_1gui_1_1Canvas.html#a8540f6602c32ce8d64db7ecacbf93a8f":[11,0,0,0,4,2,36],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#a87c23e5d076b897658471874b2129457":[10,0,1,0,5,3,74],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#a87c23e5d076b897658471874b2129457":[11,0,0,0,4,2,74],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#a8b45ea0c49744d0398c3f031e907f235":[10,0,1,0,5,3,45],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#a8b45ea0c49744d0398c3f031e907f235":[11,0,0,0,4,2,45],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#a93cfd6923d614c2cf8ab79e9dc4127b7":[10,0,1,0,5,3,48]
+"classyaze_1_1app_1_1gui_1_1Canvas.html#a87c23e5d076b897658471874b2129457":[10,0,1,0,5,3,74]
 };

@@ -1,5 +1,9 @@
 var NAVTREEINDEX44 =
 {
+"src_2app_2zelda3_2overworld_2overworld_8h.html#ad266b472b4a925acb73a3f8cd6aa946f":[12,0,2,0,5,2,1,57],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#add8c14d645de65226eee243b8e7de800":[12,0,2,0,5,2,1,75],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#adf1ffc73e9e35405a28d6193eaac29db":[12,0,2,0,5,2,1,30],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#adf48643603a9b12466ce44b8510f96f6":[12,0,2,0,5,2,1,14],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#ae06c87953068f15dc12428c4617ca7ea":[12,0,2,0,5,2,1,11],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#aeca921b090ae0383c917e9d2ee054756":[12,0,2,0,5,2,1,33],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#af238c3102b938d90024047658e064bd4":[12,0,2,0,5,2,1,5],
@@ -197,6 +201,12 @@ var NAVTREEINDEX44 =
 "structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter.html":[11,0,0,0,0,9],
 "structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter.html#a280039dc5fd4d44d811cf18ab0a3c67d":[10,0,1,0,1,11,0],
 "structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter.html#a280039dc5fd4d44d811cf18ab0a3c67d":[11,0,0,0,0,9,0],
+"structyaze_1_1app_1_1core_1_1StructuredLog.html":[10,0,1,0,1,12],
+"structyaze_1_1app_1_1core_1_1StructuredLog.html":[11,0,0,0,0,10],
+"structyaze_1_1app_1_1core_1_1StructuredLog.html#a46bb43f4ee33fcec1a9297a3f73fd855":[10,0,1,0,1,12,0],
+"structyaze_1_1app_1_1core_1_1StructuredLog.html#a46bb43f4ee33fcec1a9297a3f73fd855":[11,0,0,0,0,10,0],
+"structyaze_1_1app_1_1core_1_1StructuredLog.html#a7dc0422ffe1aac0518f46ab8c7be3b6f":[10,0,1,0,1,12,1],
+"structyaze_1_1app_1_1core_1_1StructuredLog.html#a7dc0422ffe1aac0518f46ab8c7be3b6f":[11,0,0,0,0,10,1],
 "structyaze_1_1app_1_1editor_1_1CommandManager_1_1CommandInfo.html":[10,0,1,0,2,8,0],
 "structyaze_1_1app_1_1editor_1_1CommandManager_1_1CommandInfo.html":[11,0,0,0,1,3,0],
 "structyaze_1_1app_1_1editor_1_1CommandManager_1_1CommandInfo.html#a209d67719c1d0ddd54511729d90ea1d7":[10,0,1,0,2,8,0,5],
@@ -239,15 +249,5 @@ var NAVTREEINDEX44 =
 "structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#ac6029a8837e532ae09176122cca4e2e2":[11,0,0,0,1,5,8],
 "structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#ae3e6da297bf4183bc126451cce6b5ee4":[10,0,1,0,2,10,2],
 "structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#ae3e6da297bf4183bc126451cce6b5ee4":[11,0,0,0,1,5,2],
-"structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#af3836ac45f6a7c3e7cb98c3576223911":[10,0,1,0,2,10,1],
-"structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#af3836ac45f6a7c3e7cb98c3576223911":[11,0,0,0,1,5,1],
-"structyaze_1_1app_1_1editor_1_1EditorContext.html":[10,0,1,0,2,13],
-"structyaze_1_1app_1_1editor_1_1EditorContext.html":[11,0,0,0,1,8],
-"structyaze_1_1app_1_1editor_1_1EditorLayoutParams.html":[10,0,1,0,2,14],
-"structyaze_1_1app_1_1editor_1_1EditorLayoutParams.html":[11,0,0,0,1,9],
-"structyaze_1_1app_1_1editor_1_1EditorLayoutParams.html#a003711e7de0e8e00b2ffb1ba0bb686aa":[10,0,1,0,2,14,7],
-"structyaze_1_1app_1_1editor_1_1EditorLayoutParams.html#a003711e7de0e8e00b2ffb1ba0bb686aa":[11,0,0,0,1,9,7],
-"structyaze_1_1app_1_1editor_1_1EditorLayoutParams.html#a06a1003fe5b75010f03d1e30c1df9ec5":[10,0,1,0,2,14,0],
-"structyaze_1_1app_1_1editor_1_1EditorLayoutParams.html#a06a1003fe5b75010f03d1e30c1df9ec5":[11,0,0,0,1,9,0],
-"structyaze_1_1app_1_1editor_1_1EditorLayoutParams.html#a13e299db2f9c621f2d87e39ffadb5a1c":[10,0,1,0,2,14,1]
+"structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#af3836ac45f6a7c3e7cb98c3576223911":[10,0,1,0,2,10,1]
 };
