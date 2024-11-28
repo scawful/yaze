@@ -136,6 +136,7 @@ public:
     int num_columns = (canvas_sz_.x / global_scale_) / custom_step_;
     int num_rows = (canvas_sz_.y / global_scale_) / custom_step_;
     int tile_id = (x / custom_step_) + (y / custom_step_) * num_columns;
+    tile_id = tile_id / global_scale_;
     if (tile_id >= num_columns * num_rows) {
       tile_id = -1; // Invalid tile ID
     }
