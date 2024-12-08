@@ -45,8 +45,8 @@ class Tilesheet {
                      int sheet_offset = 0);
   void ModifyTile16(const std::vector<uint8_t>& graphics_buffer,
                     const TileInfo& top_left, const TileInfo& top_right,
-                    const TileInfo& bottom_left, const TileInfo& bottom_right, int tile_id,
-                    int sheet_offset = 0);
+                    const TileInfo& bottom_left, const TileInfo& bottom_right,
+                    int tile_id, int sheet_offset = 0);
 
   void ComposeAndPlaceTilePart(const std::vector<uint8_t>& graphics_buffer,
                                const TileInfo& tile_info, int baseX, int baseY);
@@ -61,16 +61,12 @@ class Tilesheet {
   }
 
   Bitmap GetTile16(int tile_id) {
-    std::cout << "GetTile16: " << tile_id << std::endl;
     int tiles_per_row = bitmap_->width() / tile_width_;
     int tile_x = (tile_id % tiles_per_row) * tile_width_;
     int tile_y = (tile_id / tiles_per_row) * tile_height_;
-    std::cout << "Tile X: " << tile_x << " Tile Y: " << tile_y << std::endl;
-
     std::vector<uint8_t> tile_data(tile_width_ * tile_height_, 0x00);
     int tile_data_offset = 0;
     bitmap_->Get16x16Tile(tile_x, tile_y, tile_data, tile_data_offset);
-
     return Bitmap(16, 16, bitmap_->depth(), tile_data);
   }
 

@@ -437,9 +437,8 @@ void Bitmap::Get8x8Tile(int tile_index, int x, int y,
   int tile_x = (x * 8) % width_;
   int tile_y = (y * 8) % height_;
   for (int i = 0; i < 8; i++) {
-    int row_offset = tile_offset + ((tile_y + i) * width_);
     for (int j = 0; j < 8; j++) {
-      int pixel_offset = row_offset + (tile_x + j);
+      int pixel_offset = tile_offset + (tile_y + i) * width_ + tile_x + j;
       int pixel_value = data_[pixel_offset];
       tile_data[tile_data_offset] = pixel_value;
       tile_data_offset++;
@@ -478,6 +477,8 @@ void Bitmap::WriteColor(int position, const ImVec4 &color) {
 
   // Write the color index to the pixel data
   pixel_data_[position] = index;
+  data_[position] = ConvertRgbToSnes(color);
+
   modified_ = true;
 }
 
