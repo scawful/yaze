@@ -222,9 +222,7 @@ template <typename... Args>
 static void logm(const std::string &category,
                  const absl::FormatSpec<Args...> &format, const Args &...args) {
   std::string message = absl::StrFormat(format, args...);
-  if (log_to_console) {
-    std::cout << category << ": " << message << std::endl;
-  }
+  std::cout << category << ": " << message << std::endl;
   if (log_categories.contains(category)) {
     log_categories[category].push_back(message);
   } else {
