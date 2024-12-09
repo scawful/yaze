@@ -1,9 +1,9 @@
 #include "app/core/platform/font_loader.h"
 
+#include <filesystem>
 #include <string>
 #include <unordered_set>
 #include <vector>
-#include <filesystem>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
@@ -86,8 +86,11 @@ absl::Status LoadPackageFonts() {
 #else
     actual_icon_font_path = std::filesystem::absolute(icon_font_path).string();
 #endif
-    io.Fonts->AddFontFromFileTTF(actual_icon_font_path.data(), ICON_FONT_SIZE,
-                                 &icons_config, icons_ranges);
+    if (!io.Fonts->AddFontFromFileTTF(actual_icon_font_path.data(),
+                                      ICON_FONT_SIZE, &icons_config,
+                                      icons_ranges)) {
+      return absl::InternalError("Failed to load icon fonts");
+    }
 
     // Merge Japanese font
     std::string actual_japanese_font_path = "";
