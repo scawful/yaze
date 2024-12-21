@@ -54,6 +54,7 @@ class Controller : public ExperimentFlags {
   auto window() -> SDL_Window * { return window_.get(); }
   void init_test_editor(editor::Editor *editor) { test_editor_ = editor; }
   void set_active(bool active) { active_ = active; }
+  auto active() { return active_; }
 
  private:
   friend int ::main(int argc, char **argv);
