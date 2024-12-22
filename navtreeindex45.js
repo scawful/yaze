@@ -1,5 +1,7 @@
 var NAVTREEINDEX45 =
 {
+"structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#ae3e6da297bf4183bc126451cce6b5ee4":[11,0,0,0,1,5,2],
+"structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#af3836ac45f6a7c3e7cb98c3576223911":[10,0,1,0,2,10,1],
 "structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#af3836ac45f6a7c3e7cb98c3576223911":[11,0,0,0,1,5,1],
 "structyaze_1_1app_1_1editor_1_1EditorContext.html":[10,0,1,0,2,13],
 "structyaze_1_1app_1_1editor_1_1EditorContext.html":[11,0,0,0,1,8],
@@ -247,7 +249,5 @@ var NAVTREEINDEX45 =
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a5ac36d6730066af39775e638fbbfa4fa":[11,0,0,0,1,1,1,0],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a6809a42c2a00385b1505a5c8d895e9b3":[10,0,1,0,2,6,1,6],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a6809a42c2a00385b1505a5c8d895e9b3":[11,0,0,0,1,1,1,6],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#aa5ed1f032144f3dc87c9df90c3072f05":[10,0,1,0,2,6,1,5],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#aa5ed1f032144f3dc87c9df90c3072f05":[11,0,0,0,1,1,1,5],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#aacfc410659b92938ba62ef9b7fd1af0a":[10,0,1,0,2,6,1,2]
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#aa5ed1f032144f3dc87c9df90c3072f05":[10,0,1,0,2,6,1,5]
 };

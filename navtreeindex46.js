@@ -1,5 +1,7 @@
 var NAVTREEINDEX46 =
 {
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#aa5ed1f032144f3dc87c9df90c3072f05":[11,0,0,0,1,1,1,5],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#aacfc410659b92938ba62ef9b7fd1af0a":[10,0,1,0,2,6,1,2],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#aacfc410659b92938ba62ef9b7fd1af0a":[11,0,0,0,1,1,1,2],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#ad49bad9b74ff6aa9a08c0d8a0036a6fc":[10,0,1,0,2,6,1,1],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#ad49bad9b74ff6aa9a08c0d8a0036a6fc":[11,0,0,0,1,1,1,1],
@@ -247,7 +249,5 @@ var NAVTREEINDEX46 =
 "structyaze_1_1app_1_1emu_1_1audio_1_1Timer.html#ad09e604fec6202416e3d91e078738746":[11,0,0,0,2,0,7,0],
 "structyaze_1_1app_1_1emu_1_1audio_1_1Timer.html#afd729858867f3244ae3b40d9f7b41526":[10,0,1,0,3,2,7,4],
 "structyaze_1_1app_1_1emu_1_1audio_1_1Timer.html#afd729858867f3244ae3b40d9f7b41526":[11,0,0,0,2,0,7,4],
-"structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html":[10,0,1,0,3,3,1],
-"structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html":[11,0,0,0,2,1,0],
-"structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html#a65bffac8e1772de3b097db957e71b58b":[10,0,1,0,3,3,1,0]
+"structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html":[10,0,1,0,3,3,1]
 };
