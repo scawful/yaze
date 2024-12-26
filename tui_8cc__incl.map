@@ -1,0 +1,14 @@
+<map id="src/cli/tui.cc" name="src/cli/tui.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="265,5,356,31"/>
+<area shape="rect" id="Node000002" href="$tui_8h.html" title=" " alt="" coords="259,79,304,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="308,32,295,65,290,63,303,30"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,153,211,178"/>
+<area shape="poly" id="edge5_Node000001_Node000003" title=" " alt="" coords="295,34,138,146,135,141,292,29"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="234,153,390,178"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="315,31,319,79,317,137,312,137,313,79,309,32"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="414,153,570,178"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="327,29,467,141,463,145,324,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="259,105,153,149,151,144,257,100"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="289,104,303,137,298,139,284,106"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="305,98,443,145,441,150,303,103"/>
+</map>

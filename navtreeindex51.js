@@ -1,5 +1,7 @@
 var NAVTREEINDEX51 =
 {
+"structyaze_1_1app_1_1gui_1_1SpriteAsset.html":[11,0,0,0,4,8],
+"structyaze_1_1app_1_1gui_1_1SpriteAsset.html#af70d3df6cb37ccd62481512b134cf2c6":[10,0,1,0,5,9,0],
 "structyaze_1_1app_1_1gui_1_1SpriteAsset.html#af70d3df6cb37ccd62481512b134cf2c6":[11,0,0,0,4,8,0],
 "structyaze_1_1app_1_1gui_1_1UnsortedAsset.html":[10,0,1,0,5,10],
 "structyaze_1_1app_1_1gui_1_1UnsortedAsset.html":[11,0,0,0,4,9],
@@ -247,7 +249,5 @@ var NAVTREEINDEX51 =
 "structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a3f3b7570510506caa504d50d0d0807c6":[11,0,0,0,5,3,0,4],
 "structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a7c96083d9cd7ad2d88d192b32d6f6373":[10,0,1,0,6,4,0,1],
 "structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a7c96083d9cd7ad2d88d192b32d6f6373":[11,0,0,0,5,3,0,1],
-"structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a83b87932812883175733be35ac1be729":[10,0,1,0,6,4,0,3],
-"structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a83b87932812883175733be35ac1be729":[11,0,0,0,5,3,0,3],
-"structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a869c6f5679814521a2d05bf6fbb2d2bb":[10,0,1,0,6,4,0,2]
+"structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a83b87932812883175733be35ac1be729":[10,0,1,0,6,4,0,3]
 };

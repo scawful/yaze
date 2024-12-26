@@ -4,6 +4,9 @@ var namespaceyaze_1_1cli =
       [ "HelpCommand", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a2ce01552171fe2c443f90b424ffdd398", null ],
       [ "RunCommandHandler", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a1c411f9b56b338d661c91c0dbdfac795", null ]
     ] ],
+    [ "tui", "namespaceyaze_1_1cli_1_1tui.html", [
+      [ "ShowMain", "namespaceyaze_1_1cli_1_1tui.html#a0ec597071caf3021b2714c12df77af89", null ]
+    ] ],
     [ "ApplyPatch", "classyaze_1_1cli_1_1ApplyPatch.html", "classyaze_1_1cli_1_1ApplyPatch" ],
     [ "AsarPatch", "classyaze_1_1cli_1_1AsarPatch.html", "classyaze_1_1cli_1_1AsarPatch" ],
     [ "Backup", "classyaze_1_1cli_1_1Backup.html", "classyaze_1_1cli_1_1Backup" ],

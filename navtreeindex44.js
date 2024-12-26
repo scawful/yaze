@@ -1,5 +1,7 @@
 var NAVTREEINDEX44 =
 {
+"src_2app_2zelda3_2overworld_2overworld_8h.html#ac52373fcd48385f6c9ff3a0cbd74ca5f":[12,0,2,0,5,2,1,55],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#ac87f871217e6add9e0b1d7610167037a":[12,0,2,0,5,2,1,20],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#ac91eae6de42e3df4dbb724966015667f":[12,0,2,0,5,2,1,72],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#acc88e87fcf3a9cb23c1fe5e914225cc2":[12,0,2,0,5,2,1,4],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#ad266b472b4a925acb73a3f8cd6aa946f":[12,0,2,0,5,2,1,57],
@@ -247,7 +249,5 @@ var NAVTREEINDEX44 =
 "structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#a67a9dec363756bf1c24b829c4fe2573c":[11,0,0,0,1,5,5],
 "structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#aa7d7bd452ad3c1113e1b898f29a79c15":[10,0,1,0,2,10,6],
 "structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#aa7d7bd452ad3c1113e1b898f29a79c15":[11,0,0,0,1,5,6],
-"structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#ac6029a8837e532ae09176122cca4e2e2":[10,0,1,0,2,10,8],
-"structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#ac6029a8837e532ae09176122cca4e2e2":[11,0,0,0,1,5,8],
-"structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#ae3e6da297bf4183bc126451cce6b5ee4":[10,0,1,0,2,10,2]
+"structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#ac6029a8837e532ae09176122cca4e2e2":[10,0,1,0,2,10,8]
 };

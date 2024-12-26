@@ -40,11 +40,12 @@ var searchData=
   ['yaze_3a_3aapp_3a_3azelda3_3a_3ascreen_37',['screen',['../namespaceyaze_1_1app_1_1zelda3_1_1screen.html',1,'yaze::app::zelda3']]],
   ['yaze_3a_3acli_38',['cli',['../namespaceyaze_1_1cli.html',1,'yaze']]],
   ['yaze_3a_3acli_3a_3aanonymous_5fnamespace_7bz3ed_2ecc_7d_39',['anonymous_namespace{z3ed.cc}',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html',1,'yaze::cli']]],
-  ['yaze_3a_3atest_40',['test',['../namespaceyaze_1_1test.html',1,'yaze']]],
-  ['yaze_3a_3atest_3a_3aemu_41',['emu',['../namespaceyaze_1_1test_1_1emu.html',1,'yaze::test']]],
-  ['yaze_3a_3atest_3a_3agfx_42',['gfx',['../namespaceyaze_1_1test_1_1gfx.html',1,'yaze::test']]],
-  ['yaze_3a_3atest_3a_3agfx_3a_3aanonymous_5fnamespace_7bcompression_5ftest_2ecc_7d_43',['anonymous_namespace{compression_test.cc}',['../namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html',1,'yaze::test::gfx']]],
-  ['yaze_3a_3atest_3a_3agfx_3a_3aanonymous_5fnamespace_7bsnes_5fpalette_5ftest_2ecc_7d_44',['anonymous_namespace{snes_palette_test.cc}',['../namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02snes__palette__test_8cc_03.html',1,'yaze::test::gfx']]],
-  ['yaze_3a_3atest_3a_3aintegration_45',['integration',['../namespaceyaze_1_1test_1_1integration.html',1,'yaze::test']]],
-  ['yaze_3a_3atest_3a_3azelda3_46',['zelda3',['../namespaceyaze_1_1test_1_1zelda3.html',1,'yaze::test']]]
+  ['yaze_3a_3acli_3a_3atui_40',['tui',['../namespaceyaze_1_1cli_1_1tui.html',1,'yaze::cli']]],
+  ['yaze_3a_3atest_41',['test',['../namespaceyaze_1_1test.html',1,'yaze']]],
+  ['yaze_3a_3atest_3a_3aemu_42',['emu',['../namespaceyaze_1_1test_1_1emu.html',1,'yaze::test']]],
+  ['yaze_3a_3atest_3a_3agfx_43',['gfx',['../namespaceyaze_1_1test_1_1gfx.html',1,'yaze::test']]],
+  ['yaze_3a_3atest_3a_3agfx_3a_3aanonymous_5fnamespace_7bcompression_5ftest_2ecc_7d_44',['anonymous_namespace{compression_test.cc}',['../namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html',1,'yaze::test::gfx']]],
+  ['yaze_3a_3atest_3a_3agfx_3a_3aanonymous_5fnamespace_7bsnes_5fpalette_5ftest_2ecc_7d_45',['anonymous_namespace{snes_palette_test.cc}',['../namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02snes__palette__test_8cc_03.html',1,'yaze::test::gfx']]],
+  ['yaze_3a_3atest_3a_3aintegration_46',['integration',['../namespaceyaze_1_1test_1_1integration.html',1,'yaze::test']]],
+  ['yaze_3a_3atest_3a_3azelda3_47',['zelda3',['../namespaceyaze_1_1test_1_1zelda3.html',1,'yaze::test']]]
 ];
