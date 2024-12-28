@@ -1,16 +1,12 @@
 #ifndef YAZE_APP_CORE_STYLE_H
 #define YAZE_APP_CORE_STYLE_H
 
-#include <functional>
 #include <vector>
 
 #include "ImGuiColorTextEdit/TextEditor.h"
-#include "absl/status/status.h"
 #include "absl/strings/string_view.h"
-#include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
 #include "imgui/imgui.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
 
 namespace yaze {
 namespace app {
