@@ -1,5 +1,11 @@
 var NAVTREEINDEX47 =
 {
+"structyaze_1_1app_1_1emu_1_1audio_1_1Timer.html#a5f3ab6b7149415279d7308e5b0e7ece4":[11,0,0,0,2,0,7,3],
+"structyaze_1_1app_1_1emu_1_1audio_1_1Timer.html#a8ebed68c60bac458b200c028ca591625":[10,0,1,0,3,2,7,1],
+"structyaze_1_1app_1_1emu_1_1audio_1_1Timer.html#a8ebed68c60bac458b200c028ca591625":[11,0,0,0,2,0,7,1],
+"structyaze_1_1app_1_1emu_1_1audio_1_1Timer.html#ad09e604fec6202416e3d91e078738746":[10,0,1,0,3,2,7,0],
+"structyaze_1_1app_1_1emu_1_1audio_1_1Timer.html#ad09e604fec6202416e3d91e078738746":[11,0,0,0,2,0,7,0],
+"structyaze_1_1app_1_1emu_1_1audio_1_1Timer.html#afd729858867f3244ae3b40d9f7b41526":[10,0,1,0,3,2,7,4],
 "structyaze_1_1app_1_1emu_1_1audio_1_1Timer.html#afd729858867f3244ae3b40d9f7b41526":[11,0,0,0,2,0,7,4],
 "structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html":[10,0,1,0,3,3,1],
 "structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html":[11,0,0,0,2,1,0],
@@ -243,11 +249,5 @@ var NAVTREEINDEX47 =
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGNBA.html#a599d6ea205dccdaef65a6d59051c587b":[11,0,0,0,2,2,0,2,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGNBA.html#ac1410b2312becbb9971a7228931e884a":[10,0,1,0,3,4,0,2,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGNBA.html#ac1410b2312becbb9971a7228931e884a":[11,0,0,0,2,2,0,2,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html":[10,0,1,0,3,4,0,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html":[11,0,0,0,2,2,0,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html#a075c907cb2a44942ea081b9790f17a6b":[10,0,1,0,3,4,0,3,5],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html#a075c907cb2a44942ea081b9790f17a6b":[11,0,0,0,2,2,0,3,5],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html#a0e4bce9b49944a90587e68c990972ad7":[10,0,1,0,3,4,0,3,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html#a0e4bce9b49944a90587e68c990972ad7":[11,0,0,0,2,2,0,3,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html#a36c852e4873ca6f3ffd07feee533eac4":[10,0,1,0,3,4,0,3,2]
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html":[10,0,1,0,3,4,0,3]
 };

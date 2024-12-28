@@ -1,5 +1,11 @@
 var NAVTREEINDEX51 =
 {
+"structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a8798a4cd12e16e002630a412f49b953d":[11,0,0,0,4,6,0],
+"structyaze_1_1app_1_1gui_1_1OverworldAsset.html":[10,0,1,0,5,8],
+"structyaze_1_1app_1_1gui_1_1OverworldAsset.html":[11,0,0,0,4,7],
+"structyaze_1_1app_1_1gui_1_1OverworldAsset.html#abbe32c85cceeb985b4abc9ce0909ab1b":[10,0,1,0,5,8,0],
+"structyaze_1_1app_1_1gui_1_1OverworldAsset.html#abbe32c85cceeb985b4abc9ce0909ab1b":[11,0,0,0,4,7,0],
+"structyaze_1_1app_1_1gui_1_1SpriteAsset.html":[10,0,1,0,5,9],
 "structyaze_1_1app_1_1gui_1_1SpriteAsset.html":[11,0,0,0,4,8],
 "structyaze_1_1app_1_1gui_1_1SpriteAsset.html#af70d3df6cb37ccd62481512b134cf2c6":[10,0,1,0,5,9,0],
 "structyaze_1_1app_1_1gui_1_1SpriteAsset.html#af70d3df6cb37ccd62481512b134cf2c6":[11,0,0,0,4,8,0],
@@ -243,11 +249,5 @@ var NAVTREEINDEX51 =
 "structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaWave.html#aafd7bc7661125d2d5a83e9a6a5c8529d":[11,0,0,0,5,1,9,3],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaWave.html#afba130b28474eaa991a00c9356017912":[10,0,1,0,6,2,9,2],
 "structyaze_1_1app_1_1zelda3_1_1music_1_1ZeldaWave.html#afba130b28474eaa991a00c9356017912":[11,0,0,0,5,1,9,2],
-"structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html":[10,0,1,0,6,4,0],
-"structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html":[11,0,0,0,5,3,0],
-"structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a3f3b7570510506caa504d50d0d0807c6":[10,0,1,0,6,4,0,4],
-"structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a3f3b7570510506caa504d50d0d0807c6":[11,0,0,0,5,3,0,4],
-"structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a7c96083d9cd7ad2d88d192b32d6f6373":[10,0,1,0,6,4,0,1],
-"structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a7c96083d9cd7ad2d88d192b32d6f6373":[11,0,0,0,5,3,0,1],
-"structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a83b87932812883175733be35ac1be729":[10,0,1,0,6,4,0,3]
+"structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html":[10,0,1,0,6,4,0]
 };

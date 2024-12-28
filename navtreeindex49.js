@@ -1,5 +1,11 @@
 var NAVTREEINDEX49 =
 {
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#a3e3871c7c22bda5f6ad0e5a15d7dd483":[11,0,0,0,2,2,0,40,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#a73be6b1c3c0b345c0e54b5d828a4563a":[10,0,1,0,3,4,0,40,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#a73be6b1c3c0b345c0e54b5d828a4563a":[11,0,0,0,2,2,0,40,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#a955dc5ba0a5983180c523d81a5fd0243":[10,0,1,0,3,4,0,40,3],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#a955dc5ba0a5983180c523d81a5fd0243":[11,0,0,0,2,2,0,40,3],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#aefe451e6ca6c1ed01d19d4c1f1a77f03":[10,0,1,0,3,4,0,40,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#aefe451e6ca6c1ed01d19d4c1f1a77f03":[11,0,0,0,2,2,0,40,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMDATA.html":[10,0,1,0,3,4,0,41],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMDATA.html":[11,0,0,0,2,2,0,41],
@@ -243,11 +249,5 @@ var NAVTREEINDEX49 =
 "structyaze_1_1app_1_1emu_1_1video_1_1WramAccessRegisters.html":[11,0,0,0,2,2,28],
 "structyaze_1_1app_1_1emu_1_1video_1_1WramAccessRegisters.html#a0f1cf0111f7b63058d5c4332765aea3c":[10,0,1,0,3,4,28,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1WramAccessRegisters.html#a0f1cf0111f7b63058d5c4332765aea3c":[11,0,0,0,2,2,28,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1WramAccessRegisters.html#a75bddc21e55c0b57f3649bf319ca64dc":[10,0,1,0,3,4,28,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1WramAccessRegisters.html#a75bddc21e55c0b57f3649bf319ca64dc":[11,0,0,0,2,2,28,0],
-"structyaze_1_1app_1_1gfx_1_1InternalTile16.html":[10,0,1,0,4,6],
-"structyaze_1_1app_1_1gfx_1_1InternalTile16.html":[11,0,0,0,3,4],
-"structyaze_1_1app_1_1gfx_1_1InternalTile16.html#a24cb9138786f9c50f27d141cef205000":[10,0,1,0,4,6,0],
-"structyaze_1_1app_1_1gfx_1_1InternalTile16.html#a24cb9138786f9c50f27d141cef205000":[11,0,0,0,3,4,0],
-"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html":[10,0,1,0,4,8]
+"structyaze_1_1app_1_1emu_1_1video_1_1WramAccessRegisters.html#a75bddc21e55c0b57f3649bf319ca64dc":[10,0,1,0,3,4,28,0]
 };

@@ -112,111 +112,106 @@ $(function(){initNavTree('style_8h_source.html',''); initResizable(true); });
 <a href="style_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef YAZE_APP_CORE_STYLE_H</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define YAZE_APP_CORE_STYLE_H</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;functional&gt;</span></div>
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;ImGuiColorTextEdit/TextEditor.h&quot;</span></div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;absl/status/status.h&quot;</span></div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;absl/strings/string_view.h&quot;</span></div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="constants_8h.html">app/core/constants.h</a>&quot;</span></div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;<a class="code" href="bitmap_8h.html">app/gfx/bitmap.h</a>&quot;</span></div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &quot;imgui/imgui.h&quot;</span></div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;imgui/misc/cpp/imgui_stdlib.h&quot;</span></div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;ImGuiColorTextEdit/TextEditor.h&quot;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;absl/strings/string_view.h&quot;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;<a class="code" href="bitmap_8h.html">app/gfx/bitmap.h</a>&quot;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;imgui/imgui.h&quot;</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keyword">namespace </span>app {</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="keyword">namespace </span>gui {</div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="keyword">namespace </span>app {</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="keyword">namespace </span>gui {</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a69040af6cbf02bd16c9e22e4bff2b99e">BeginWindowWithDisplaySettings</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>, <span class="keywordtype">bool</span> *active,</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>                                    <span class="keyword">const</span> ImVec2 &amp;size = ImVec2(0, 0),</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>                                    ImGuiWindowFlags flags = 0);</div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a69040af6cbf02bd16c9e22e4bff2b99e">BeginWindowWithDisplaySettings</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>, <span class="keywordtype">bool</span> *active,</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>                                    <span class="keyword">const</span> ImVec2 &amp;size = ImVec2(0, 0),</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>                                    ImGuiWindowFlags flags = 0);</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#afa54cc8c1238cb1d0bef794cbd947b7d">EndWindowWithDisplaySettings</a>();</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a65f49225270284b6353e95334659788c">BeginPadding</a>(<span class="keywordtype">int</span> i);</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a4e98334d8cfb28352cebdd857eb52530">EndPadding</a>();</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#aee42933abcb7b6e0718502229a20d060">BeginNoPadding</a>();</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#aa6e68e729a3c4a16fda2ff2409097188">EndNoPadding</a>();</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#afa54cc8c1238cb1d0bef794cbd947b7d">EndWindowWithDisplaySettings</a>();</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a65f49225270284b6353e95334659788c">BeginPadding</a>(<span class="keywordtype">int</span> i);</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a4e98334d8cfb28352cebdd857eb52530">EndPadding</a>();</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#aee42933abcb7b6e0718502229a20d060">BeginNoPadding</a>();</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#aa6e68e729a3c4a16fda2ff2409097188">EndNoPadding</a>();</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a607720b784682d3ef9edce3bc2801a0f">BeginChildWithScrollbar</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *str_id);</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a6b927b57b8d59997654118efa468b53e">BeginChildBothScrollbars</a>(<span class="keywordtype">int</span> <span class="keywordtype">id</span>);</div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a607720b784682d3ef9edce3bc2801a0f">BeginChildWithScrollbar</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *str_id);</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a1ea1d6c7891279ea571030df8a323fd6">DrawDisplaySettings</a>(ImGuiStyle *ref = <span class="keyword">nullptr</span>);</div>
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a6b927b57b8d59997654118efa468b53e">BeginChildBothScrollbars</a>(<span class="keywordtype">int</span> <span class="keywordtype">id</span>);</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#ab6367acf830417f141068389444b7173">TextWithSeparators</a>(<span class="keyword">const</span> absl::string_view &amp;text);</div>
 <div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a1ea1d6c7891279ea571030df8a323fd6">DrawDisplaySettings</a>(ImGuiStyle *ref = <span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a977a7571691d73f9f4ab817427cae497">ColorsYaze</a>();</div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#ab6367acf830417f141068389444b7173">TextWithSeparators</a>(<span class="keyword">const</span> absl::string_view &amp;text);</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>TextEditor::LanguageDefinition <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a374f2b642919cc9fed20c7fa82c5fab7">GetAssemblyLanguageDef</a>();</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a977a7571691d73f9f4ab817427cae497">ColorsYaze</a>();</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>TextEditor::LanguageDefinition <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a374f2b642919cc9fed20c7fa82c5fab7">GetAssemblyLanguageDef</a>();</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#ab5e6726bd58190e8313425f17e4fb051">DrawBitmapViewer</a>(<span class="keyword">const</span> std::vector&lt;gfx::Bitmap&gt; &amp;bitmaps, <span class="keywordtype">float</span> scale,</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>                      <span class="keywordtype">int</span> &amp;current_bitmap);</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span> </div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span><span class="comment">// ============================================================================</span></div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span><span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span> *ExampleNames[] = {</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    <span class="stringliteral">&quot;Artichoke&quot;</span>,      <span class="stringliteral">&quot;Arugula&quot;</span>,          <span class="stringliteral">&quot;Asparagus&quot;</span>,    <span class="stringliteral">&quot;Avocado&quot;</span>,</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    <span class="stringliteral">&quot;Bamboo Shoots&quot;</span>,  <span class="stringliteral">&quot;Bean Sprouts&quot;</span>,     <span class="stringliteral">&quot;Beans&quot;</span>,        <span class="stringliteral">&quot;Beet&quot;</span>,</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    <span class="stringliteral">&quot;Belgian Endive&quot;</span>, <span class="stringliteral">&quot;Bell Pepper&quot;</span>,      <span class="stringliteral">&quot;Bitter Gourd&quot;</span>, <span class="stringliteral">&quot;Bok Choy&quot;</span>,</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="stringliteral">&quot;Broccoli&quot;</span>,       <span class="stringliteral">&quot;Brussels Sprouts&quot;</span>, <span class="stringliteral">&quot;Burdock Root&quot;</span>, <span class="stringliteral">&quot;Cabbage&quot;</span>,</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <span class="stringliteral">&quot;Calabash&quot;</span>,       <span class="stringliteral">&quot;Capers&quot;</span>,           <span class="stringliteral">&quot;Carrot&quot;</span>,       <span class="stringliteral">&quot;Cassava&quot;</span>,</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <span class="stringliteral">&quot;Cauliflower&quot;</span>,    <span class="stringliteral">&quot;Celery&quot;</span>,           <span class="stringliteral">&quot;Celery Root&quot;</span>,  <span class="stringliteral">&quot;Celcuce&quot;</span>,</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <span class="stringliteral">&quot;Chayote&quot;</span>,        <span class="stringliteral">&quot;Chinese Broccoli&quot;</span>, <span class="stringliteral">&quot;Corn&quot;</span>,         <span class="stringliteral">&quot;Cucumber&quot;</span>};</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
-<div class="foldopen" id="foldopen00057" data-start="{" data-end="};">
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno"><a class="line" href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html">   57</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html">MultiSelectWithClipper</a> {</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno"><a class="line" href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a0d93ece3c6a3cf5efcf601a410ee9aec">   58</a></span>  <span class="keyword">const</span> <span class="keywordtype">int</span> <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a0d93ece3c6a3cf5efcf601a410ee9aec">ITEMS_COUNT</a> = 10000;</div>
-<div class="foldopen" id="foldopen00059" data-start="{" data-end="}">
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno"><a class="line" href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a8798a4cd12e16e002630a412f49b953d">   59</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a8798a4cd12e16e002630a412f49b953d">Update</a>() {</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    <span class="comment">// Use default selection.Adapter: Pass index to</span></div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    <span class="comment">// SetNextItemSelectionUserData(), store index in Selection</span></div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    <span class="keyword">static</span> ImGuiSelectionBasicStorage selection;</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span> </div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    ImGui::Text(<span class="stringliteral">&quot;Selection: %d/%d&quot;</span>, selection.Size, <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a0d93ece3c6a3cf5efcf601a410ee9aec">ITEMS_COUNT</a>);</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    <span class="keywordflow">if</span> (ImGui::BeginChild(</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>            <span class="stringliteral">&quot;##Basket&quot;</span>, ImVec2(-FLT_MIN, ImGui::GetFontSize() * 20),</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>            ImGuiChildFlags_FrameStyle | ImGuiChildFlags_ResizeY)) {</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>      ImGuiMultiSelectFlags flags = ImGuiMultiSelectFlags_ClearOnEscape |</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>                                    ImGuiMultiSelectFlags_BoxSelect1d;</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>      ImGuiMultiSelectIO *ms_io =</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>          ImGui::BeginMultiSelect(flags, selection.Size, <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a0d93ece3c6a3cf5efcf601a410ee9aec">ITEMS_COUNT</a>);</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>      selection.ApplyRequests(ms_io);</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>      ImGuiListClipper clipper;</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>      clipper.Begin(<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a0d93ece3c6a3cf5efcf601a410ee9aec">ITEMS_COUNT</a>);</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>      <span class="keywordflow">if</span> (ms_io-&gt;RangeSrcItem != -1)</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>        clipper.IncludeItemByIndex(</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>            (<span class="keywordtype">int</span>)ms_io-&gt;RangeSrcItem); <span class="comment">// Ensure RangeSrc item is not clipped.</span></div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>      <span class="keywordflow">while</span> (clipper.Step()) {</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> n = clipper.DisplayStart; n &lt; clipper.DisplayEnd; n++) {</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>          <span class="keywordtype">char</span> label[64];</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>          <span class="comment">// sprintf(label, &quot;Object %05d: %s&quot;, n,</span></div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>          <span class="comment">//         ExampleNames[n % IM_ARRAYSIZE(ExampleNames)]);</span></div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>          <span class="keywordtype">bool</span> item_is_selected = selection.Contains((ImGuiID)n);</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>          ImGui::SetNextItemSelectionUserData(n);</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>          ImGui::Selectable(label, item_is_selected);</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>        }</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>      }</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span> </div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>      ms_io = ImGui::EndMultiSelect();</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>      selection.ApplyRequests(ms_io);</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    }</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    ImGui::EndChild();</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    ImGui::TreePop();</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>  }</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#ab5e6726bd58190e8313425f17e4fb051">DrawBitmapViewer</a>(<span class="keyword">const</span> std::vector&lt;gfx::Bitmap&gt; &amp;bitmaps, <span class="keywordtype">float</span> scale,</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>                      <span class="keywordtype">int</span> &amp;current_bitmap);</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> </div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span><span class="comment">// ============================================================================</span></div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span> *ExampleNames[] = {</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    <span class="stringliteral">&quot;Artichoke&quot;</span>,      <span class="stringliteral">&quot;Arugula&quot;</span>,          <span class="stringliteral">&quot;Asparagus&quot;</span>,    <span class="stringliteral">&quot;Avocado&quot;</span>,</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <span class="stringliteral">&quot;Bamboo Shoots&quot;</span>,  <span class="stringliteral">&quot;Bean Sprouts&quot;</span>,     <span class="stringliteral">&quot;Beans&quot;</span>,        <span class="stringliteral">&quot;Beet&quot;</span>,</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="stringliteral">&quot;Belgian Endive&quot;</span>, <span class="stringliteral">&quot;Bell Pepper&quot;</span>,      <span class="stringliteral">&quot;Bitter Gourd&quot;</span>, <span class="stringliteral">&quot;Bok Choy&quot;</span>,</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <span class="stringliteral">&quot;Broccoli&quot;</span>,       <span class="stringliteral">&quot;Brussels Sprouts&quot;</span>, <span class="stringliteral">&quot;Burdock Root&quot;</span>, <span class="stringliteral">&quot;Cabbage&quot;</span>,</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    <span class="stringliteral">&quot;Calabash&quot;</span>,       <span class="stringliteral">&quot;Capers&quot;</span>,           <span class="stringliteral">&quot;Carrot&quot;</span>,       <span class="stringliteral">&quot;Cassava&quot;</span>,</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    <span class="stringliteral">&quot;Cauliflower&quot;</span>,    <span class="stringliteral">&quot;Celery&quot;</span>,           <span class="stringliteral">&quot;Celery Root&quot;</span>,  <span class="stringliteral">&quot;Celcuce&quot;</span>,</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    <span class="stringliteral">&quot;Chayote&quot;</span>,        <span class="stringliteral">&quot;Chinese Broccoli&quot;</span>, <span class="stringliteral">&quot;Corn&quot;</span>,         <span class="stringliteral">&quot;Cucumber&quot;</span>};</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> </div>
+<div class="foldopen" id="foldopen00053" data-start="{" data-end="};">
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno"><a class="line" href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html">   53</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html">MultiSelectWithClipper</a> {</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno"><a class="line" href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a0d93ece3c6a3cf5efcf601a410ee9aec">   54</a></span>  <span class="keyword">const</span> <span class="keywordtype">int</span> <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a0d93ece3c6a3cf5efcf601a410ee9aec">ITEMS_COUNT</a> = 10000;</div>
+<div class="foldopen" id="foldopen00055" data-start="{" data-end="}">
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno"><a class="line" href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a8798a4cd12e16e002630a412f49b953d">   55</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a8798a4cd12e16e002630a412f49b953d">Update</a>() {</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    <span class="comment">// Use default selection.Adapter: Pass index to</span></div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <span class="comment">// SetNextItemSelectionUserData(), store index in Selection</span></div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    <span class="keyword">static</span> ImGuiSelectionBasicStorage selection;</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span> </div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    ImGui::Text(<span class="stringliteral">&quot;Selection: %d/%d&quot;</span>, selection.Size, <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a0d93ece3c6a3cf5efcf601a410ee9aec">ITEMS_COUNT</a>);</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    <span class="keywordflow">if</span> (ImGui::BeginChild(</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>            <span class="stringliteral">&quot;##Basket&quot;</span>, ImVec2(-FLT_MIN, ImGui::GetFontSize() * 20),</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>            ImGuiChildFlags_FrameStyle | ImGuiChildFlags_ResizeY)) {</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>      ImGuiMultiSelectFlags flags = ImGuiMultiSelectFlags_ClearOnEscape |</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>                                    ImGuiMultiSelectFlags_BoxSelect1d;</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>      ImGuiMultiSelectIO *ms_io =</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>          ImGui::BeginMultiSelect(flags, selection.Size, <a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a0d93ece3c6a3cf5efcf601a410ee9aec">ITEMS_COUNT</a>);</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>      selection.ApplyRequests(ms_io);</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span> </div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>      ImGuiListClipper clipper;</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>      clipper.Begin(<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a0d93ece3c6a3cf5efcf601a410ee9aec">ITEMS_COUNT</a>);</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>      <span class="keywordflow">if</span> (ms_io-&gt;RangeSrcItem != -1)</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>        clipper.IncludeItemByIndex(</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>            (<span class="keywordtype">int</span>)ms_io-&gt;RangeSrcItem); <span class="comment">// Ensure RangeSrc item is not clipped.</span></div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>      <span class="keywordflow">while</span> (clipper.Step()) {</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> n = clipper.DisplayStart; n &lt; clipper.DisplayEnd; n++) {</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>          <span class="keywordtype">char</span> label[64];</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>          <span class="comment">// sprintf(label, &quot;Object %05d: %s&quot;, n,</span></div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>          <span class="comment">//         ExampleNames[n % IM_ARRAYSIZE(ExampleNames)]);</span></div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>          <span class="keywordtype">bool</span> item_is_selected = selection.Contains((ImGuiID)n);</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>          ImGui::SetNextItemSelectionUserData(n);</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>          ImGui::Selectable(label, item_is_selected);</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>        }</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>      }</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span> </div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>      ms_io = ImGui::EndMultiSelect();</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>      selection.ApplyRequests(ms_io);</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    }</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    ImGui::EndChild();</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    ImGui::TreePop();</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>  }</div>
 </div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>};</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>};</div>
 </div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span> </div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>} <span class="comment">// namespace gui</span></div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>} <span class="comment">// namespace app</span></div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>} <span class="comment">// namespace yaze</span></div>
 <div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span> </div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>} <span class="comment">// namespace gui</span></div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>} <span class="comment">// namespace app</span></div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>} <span class="comment">// namespace yaze</span></div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span> </div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="abitmap_8h_html"><div class="ttname"><a href="bitmap_8h.html">bitmap.h</a></div></div>
-<div class="ttc" id="aconstants_8h_html"><div class="ttname"><a href="constants_8h.html">constants.h</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_a1ea1d6c7891279ea571030df8a323fd6"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#a1ea1d6c7891279ea571030df8a323fd6">yaze::app::gui::DrawDisplaySettings</a></div><div class="ttdeci">void DrawDisplaySettings(ImGuiStyle *ref)</div><div class="ttdef"><b>Definition</b> <a href="style_8cc_source.html#l00060">style.cc:60</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_a374f2b642919cc9fed20c7fa82c5fab7"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#a374f2b642919cc9fed20c7fa82c5fab7">yaze::app::gui::GetAssemblyLanguageDef</a></div><div class="ttdeci">TextEditor::LanguageDefinition GetAssemblyLanguageDef()</div><div class="ttdef"><b>Definition</b> <a href="style_8cc_source.html#l00596">style.cc:596</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_a4e98334d8cfb28352cebdd857eb52530"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#a4e98334d8cfb28352cebdd857eb52530">yaze::app::gui::EndPadding</a></div><div class="ttdeci">void EndPadding()</div><div class="ttdef"><b>Definition</b> <a href="style_8cc_source.html#l00040">style.cc:40</a></div></div>
@@ -231,9 +226,9 @@ $(function(){initNavTree('style_8h_source.html',''); initResizable(true); });
 <div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_aee42933abcb7b6e0718502229a20d060"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#aee42933abcb7b6e0718502229a20d060">yaze::app::gui::BeginNoPadding</a></div><div class="ttdeci">void BeginNoPadding()</div><div class="ttdef"><b>Definition</b> <a href="style_8cc_source.html#l00042">style.cc:42</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_afa54cc8c1238cb1d0bef794cbd947b7d"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#afa54cc8c1238cb1d0bef794cbd947b7d">yaze::app::gui::EndWindowWithDisplaySettings</a></div><div class="ttdeci">void EndWindowWithDisplaySettings()</div><div class="ttdef"><b>Definition</b> <a href="style_8cc_source.html#l00031">style.cc:31</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdef"><b>Definition</b> <a href="common_8cc_source.html#l00015">common.cc:15</a></div></div>
-<div class="ttc" id="astructyaze_1_1app_1_1gui_1_1MultiSelectWithClipper_html"><div class="ttname"><a href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html">yaze::app::gui::MultiSelectWithClipper</a></div><div class="ttdef"><b>Definition</b> <a href="#l00057">style.h:57</a></div></div>
-<div class="ttc" id="astructyaze_1_1app_1_1gui_1_1MultiSelectWithClipper_html_a0d93ece3c6a3cf5efcf601a410ee9aec"><div class="ttname"><a href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a0d93ece3c6a3cf5efcf601a410ee9aec">yaze::app::gui::MultiSelectWithClipper::ITEMS_COUNT</a></div><div class="ttdeci">const int ITEMS_COUNT</div><div class="ttdef"><b>Definition</b> <a href="#l00058">style.h:58</a></div></div>
-<div class="ttc" id="astructyaze_1_1app_1_1gui_1_1MultiSelectWithClipper_html_a8798a4cd12e16e002630a412f49b953d"><div class="ttname"><a href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a8798a4cd12e16e002630a412f49b953d">yaze::app::gui::MultiSelectWithClipper::Update</a></div><div class="ttdeci">void Update()</div><div class="ttdef"><b>Definition</b> <a href="#l00059">style.h:59</a></div></div>
+<div class="ttc" id="astructyaze_1_1app_1_1gui_1_1MultiSelectWithClipper_html"><div class="ttname"><a href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html">yaze::app::gui::MultiSelectWithClipper</a></div><div class="ttdef"><b>Definition</b> <a href="#l00053">style.h:53</a></div></div>
+<div class="ttc" id="astructyaze_1_1app_1_1gui_1_1MultiSelectWithClipper_html_a0d93ece3c6a3cf5efcf601a410ee9aec"><div class="ttname"><a href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a0d93ece3c6a3cf5efcf601a410ee9aec">yaze::app::gui::MultiSelectWithClipper::ITEMS_COUNT</a></div><div class="ttdeci">const int ITEMS_COUNT</div><div class="ttdef"><b>Definition</b> <a href="#l00054">style.h:54</a></div></div>
+<div class="ttc" id="astructyaze_1_1app_1_1gui_1_1MultiSelectWithClipper_html_a8798a4cd12e16e002630a412f49b953d"><div class="ttname"><a href="structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a8798a4cd12e16e002630a412f49b953d">yaze::app::gui::MultiSelectWithClipper::Update</a></div><div class="ttdeci">void Update()</div><div class="ttdef"><b>Definition</b> <a href="#l00055">style.h:55</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

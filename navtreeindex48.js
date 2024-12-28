@@ -1,5 +1,11 @@
 var NAVTREEINDEX48 =
 {
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html":[11,0,0,0,2,2,0,3],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html#a075c907cb2a44942ea081b9790f17a6b":[10,0,1,0,3,4,0,3,5],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html#a075c907cb2a44942ea081b9790f17a6b":[11,0,0,0,2,2,0,3,5],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html#a0e4bce9b49944a90587e68c990972ad7":[10,0,1,0,3,4,0,3,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html#a0e4bce9b49944a90587e68c990972ad7":[11,0,0,0,2,2,0,3,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html#a36c852e4873ca6f3ffd07feee533eac4":[10,0,1,0,3,4,0,3,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html#a36c852e4873ca6f3ffd07feee533eac4":[11,0,0,0,2,2,0,3,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html#a4ed41b9502029f158224c70f153f0780":[10,0,1,0,3,4,0,3,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html#a4ed41b9502029f158224c70f153f0780":[11,0,0,0,2,2,0,3,0],
@@ -243,11 +249,5 @@ var NAVTREEINDEX48 =
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMADDL.html#a11be6a11821cc56569037e2ffc58bf43":[11,0,0,0,2,2,0,39,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html":[10,0,1,0,3,4,0,40],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html":[11,0,0,0,2,2,0,40],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#a3e3871c7c22bda5f6ad0e5a15d7dd483":[10,0,1,0,3,4,0,40,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#a3e3871c7c22bda5f6ad0e5a15d7dd483":[11,0,0,0,2,2,0,40,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#a73be6b1c3c0b345c0e54b5d828a4563a":[10,0,1,0,3,4,0,40,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#a73be6b1c3c0b345c0e54b5d828a4563a":[11,0,0,0,2,2,0,40,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#a955dc5ba0a5983180c523d81a5fd0243":[10,0,1,0,3,4,0,40,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#a955dc5ba0a5983180c523d81a5fd0243":[11,0,0,0,2,2,0,40,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#aefe451e6ca6c1ed01d19d4c1f1a77f03":[10,0,1,0,3,4,0,40,1]
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#a3e3871c7c22bda5f6ad0e5a15d7dd483":[10,0,1,0,3,4,0,40,0]
 };

@@ -1,5 +1,11 @@
 var NAVTREEINDEX52 =
 {
+"structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html":[11,0,0,0,5,3,0],
+"structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a3f3b7570510506caa504d50d0d0807c6":[10,0,1,0,6,4,0,4],
+"structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a3f3b7570510506caa504d50d0d0807c6":[11,0,0,0,5,3,0,4],
+"structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a7c96083d9cd7ad2d88d192b32d6f6373":[10,0,1,0,6,4,0,1],
+"structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a7c96083d9cd7ad2d88d192b32d6f6373":[11,0,0,0,5,3,0,1],
+"structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a83b87932812883175733be35ac1be729":[10,0,1,0,6,4,0,3],
 "structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a83b87932812883175733be35ac1be729":[11,0,0,0,5,3,0,3],
 "structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a869c6f5679814521a2d05bf6fbb2d2bb":[10,0,1,0,6,4,0,2],
 "structyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a869c6f5679814521a2d05bf6fbb2d2bb":[11,0,0,0,5,3,0,2],
@@ -243,11 +249,5 @@ var NAVTREEINDEX52 =
 "zeml_8h.html#a04d9f20f3406cf47d73f3868c9af4824a04b2e4188d4ef8051e4699da8af01335":[12,0,2,0,4,11,5,19],
 "zeml_8h.html#a04d9f20f3406cf47d73f3868c9af4824a0b890b1926b90387673882e6ccae7fdc":[12,0,2,0,4,11,5,23],
 "zeml_8h.html#a04d9f20f3406cf47d73f3868c9af4824a168b82d33f8073018c50a4f658a02559":[12,0,2,0,4,11,5,9],
-"zeml_8h.html#a04d9f20f3406cf47d73f3868c9af4824a2d9b9a764fb0be4be10e1b2fce63f561":[12,0,2,0,4,11,5,2],
-"zeml_8h.html#a04d9f20f3406cf47d73f3868c9af4824a3363b69ee0e0e3fba37ebd39557a2fa7":[12,0,2,0,4,11,5,7],
-"zeml_8h.html#a04d9f20f3406cf47d73f3868c9af4824a39fd0fc98cc838a96dce6647bc44c909":[12,0,2,0,4,11,5,20],
-"zeml_8h.html#a04d9f20f3406cf47d73f3868c9af4824a4f8222964f9a317cef99dddc23a121bd":[12,0,2,0,4,11,5,10],
-"zeml_8h.html#a04d9f20f3406cf47d73f3868c9af4824a51c45b795d5d18a3e4e0c37e8b20a141":[12,0,2,0,4,11,5,4],
-"zeml_8h.html#a04d9f20f3406cf47d73f3868c9af4824a62763d51488ae2f20570ce8d062e4106":[12,0,2,0,4,11,5,21],
-"zeml_8h.html#a04d9f20f3406cf47d73f3868c9af4824a63b3d4874f4470e23ef51081bf01c136":[12,0,2,0,4,11,5,14]
+"zeml_8h.html#a04d9f20f3406cf47d73f3868c9af4824a2d9b9a764fb0be4be10e1b2fce63f561":[12,0,2,0,4,11,5,2]
 };

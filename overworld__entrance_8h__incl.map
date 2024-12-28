@@ -1,0 +1,14 @@
+<map id="src/app/zelda3/overworld/overworld_entrance.h" name="src/app/zelda3/overworld/overworld_entrance.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="9,5,174,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="51,168,111,193"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="57,49,31,69,12,95,9,112,16,129,30,144,47,157,43,161,26,148,11,131,4,113,7,93,27,65,53,44"/>
+<area shape="rect" id="Node000003" href="$constants_8h.html" title=" " alt="" coords="21,94,163,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="94,46,94,78,89,78,89,46"/>
+<area shape="rect" id="Node000004" href="$zelda3_2common_8h.html" title=" " alt="" coords="187,94,335,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="135,44,223,85,220,90,133,49"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="232,123,127,164,125,159,230,118"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="192,168,250,193"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="257,121,237,155,233,153,252,119"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="274,168,328,193"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="270,119,289,153,285,155,265,121"/>
+</map>

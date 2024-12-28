@@ -1,5 +1,11 @@
 var NAVTREEINDEX45 =
 {
+"structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#a49198830b0aa58dd972bddf97d70b1b4":[11,0,0,0,1,5,3],
+"structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#a67a9dec363756bf1c24b829c4fe2573c":[10,0,1,0,2,10,5],
+"structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#a67a9dec363756bf1c24b829c4fe2573c":[11,0,0,0,1,5,5],
+"structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#aa7d7bd452ad3c1113e1b898f29a79c15":[10,0,1,0,2,10,6],
+"structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#aa7d7bd452ad3c1113e1b898f29a79c15":[11,0,0,0,1,5,6],
+"structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#ac6029a8837e532ae09176122cca4e2e2":[10,0,1,0,2,10,8],
 "structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#ac6029a8837e532ae09176122cca4e2e2":[11,0,0,0,1,5,8],
 "structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#ae3e6da297bf4183bc126451cce6b5ee4":[10,0,1,0,2,10,2],
 "structyaze_1_1app_1_1editor_1_1DictionaryEntry.html#ae3e6da297bf4183bc126451cce6b5ee4":[11,0,0,0,1,5,2],
@@ -243,11 +249,5 @@ var NAVTREEINDEX45 =
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html":[11,0,0,0,1,1,1],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a2f827349481e112b292f919f4076bae5":[10,0,1,0,2,6,1,4],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a2f827349481e112b292f919f4076bae5":[11,0,0,0,1,1,1,4],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a31bf3f1491369f12fba719a7e379b4cb":[10,0,1,0,2,6,1,8],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a31bf3f1491369f12fba719a7e379b4cb":[11,0,0,0,1,1,1,8],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a400b506f1640f7770dd5d3c424430870":[10,0,1,0,2,6,1,3],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a400b506f1640f7770dd5d3c424430870":[11,0,0,0,1,1,1,3],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a5ac36d6730066af39775e638fbbfa4fa":[10,0,1,0,2,6,1,0],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a5ac36d6730066af39775e638fbbfa4fa":[11,0,0,0,1,1,1,0],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a6809a42c2a00385b1505a5c8d895e9b3":[10,0,1,0,2,6,1,6]
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a31bf3f1491369f12fba719a7e379b4cb":[10,0,1,0,2,6,1,8]
 };
