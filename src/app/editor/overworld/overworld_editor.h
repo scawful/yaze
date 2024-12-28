@@ -1,23 +1,14 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLDEDITOR_H
 #define YAZE_APP_EDITOR_OVERWORLDEDITOR_H
 
-#include <cmath>
-#include <unordered_map>
-
-#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
-#include "absl/status/statusor.h"
-#include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/graphics/tile16_editor.h"
-#include "app/editor/overworld/entity.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
-#include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
-#include "app/gui/icons.h"
 #include "app/gui/zeml.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
@@ -130,9 +121,6 @@ class OverworldEditor : public Editor,
 
   auto overworld() { return &overworld_; }
 
-  /**
-   * @brief
-   */
   int jump_to_tab() { return jump_to_tab_; }
   int jump_to_tab_ = -1;
 
