@@ -15,6 +15,7 @@
 #include "app/gui/style.h"
 #include "app/rom.h"
 #include "imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
 
 namespace yaze {
 namespace app {
@@ -162,10 +163,6 @@ absl::Status MessageEditor::Update() {
 }
 
 void MessageEditor::DrawMessageList() {
-  if (InputText("Search", &search_text_)) {
-    // TODO: ImGui style text filtering
-  }
-
   if (BeginChild("##MessagesList", ImVec2(0, 0), true,
                  ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
     if (BeginTable("##MessagesTable", 3, kMessageTableFlags)) {
