@@ -11,7 +11,6 @@
 #include "app/gfx/snes_palette.h"
 
 namespace yaze {
-namespace app {
 namespace gui {
 
 using gfx::SnesColor;
@@ -28,13 +27,13 @@ IMGUI_API bool SnesColorButton(absl::string_view id, SnesColor& color,
 IMGUI_API bool SnesColorEdit4(absl::string_view label, SnesColor* color,
                               ImGuiColorEditFlags flags = 0);
 
-absl::Status DisplayPalette(app::gfx::SnesPalette& palette, bool loaded);
+absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded);
 
 void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
                                gfx::SnesPalette& palette);
 
 }  // namespace gui
-}  // namespace app
+
 }  // namespace yaze
 
 #endif

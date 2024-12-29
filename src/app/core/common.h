@@ -12,10 +12,9 @@
 #include "absl/container/flat_hash_map.h"
 
 namespace yaze {
-namespace app {
 
 /**
- * @namespace yaze::app::core
+ * @namespace yaze::core
  * @brief Core application logic and utilities.
  */
 namespace core {
@@ -313,7 +312,7 @@ constexpr std::string_view kYazeVersion = "0.2.1";
 absl::StatusOr<std::string> CheckVersion(const char *version);
 
 } // namespace core
-} // namespace app
+
 } // namespace yaze
 
 #endif

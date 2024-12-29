@@ -12,7 +12,6 @@
 #include "app/zelda3/common.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 namespace overworld {
 
@@ -187,7 +186,7 @@ class OverworldMap : public GfxContext {
 
 }  // namespace overworld
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze
 
 #endif

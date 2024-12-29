@@ -17,7 +17,6 @@
 #include "app/rom.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 
 namespace {
@@ -1337,5 +1336,5 @@ void Tracker::NewSR(Rom &rom, int bank) {
 
 }  // namespace music
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze

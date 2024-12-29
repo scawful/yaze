@@ -12,7 +12,6 @@
 #include "app/rom.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 constexpr int kGfxFont = 0x70000;  // 2bpp format
@@ -163,7 +162,6 @@ class MessageEditor : public Editor, public SharedRom {
 };
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_MESSAGE_EDITOR_H

@@ -21,7 +21,6 @@
 #include "imgui_memory_editor.h"
 
 namespace yaze {
-namespace app {
 namespace gui {
 
 constexpr ImVec2 kDefaultModalSize = ImVec2(200, 0);
@@ -64,7 +63,7 @@ void FileDialogPipeline(absl::string_view display_key,
                         std::function<void()> callback);
 
 }  // namespace gui
-}  // namespace app
+
 }  // namespace yaze
 
 #endif

@@ -10,7 +10,6 @@
 #include "app/zelda3/overworld/overworld.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 namespace overworld {
 
@@ -745,5 +744,5 @@ absl::Status OverworldMap::BuildBitmap(OWBlockset& world_blockset) {
 
 }  // namespace overworld
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze

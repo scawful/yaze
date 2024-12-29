@@ -6,7 +6,6 @@
 #include <vector>
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 // System history manager, undo and redo.
@@ -26,7 +25,6 @@ class HistoryManager {
 };
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_SYSTEM_HISTORY_MANAGER_H

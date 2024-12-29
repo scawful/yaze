@@ -4,7 +4,6 @@
 #include <cstdint>
 
 namespace yaze {
-namespace app {
 namespace emu {
 
 class Clock {
@@ -57,7 +56,7 @@ class ClockImpl : public Clock {
 };
 
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_EMU_CLOCK_H_

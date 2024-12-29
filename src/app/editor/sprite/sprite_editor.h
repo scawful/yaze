@@ -8,7 +8,6 @@
 #include "app/rom.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 constexpr ImGuiTabItemFlags kSpriteTabFlags =
@@ -111,7 +110,6 @@ class SpriteEditor : public SharedRom, public Editor {
 };
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_SPRITE_EDITOR_H

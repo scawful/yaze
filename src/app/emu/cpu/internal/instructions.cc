@@ -5,7 +5,6 @@
 #include "app/emu/cpu/cpu.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 
 /**
@@ -398,5 +397,5 @@ void Cpu::ORA(uint32_t low, uint32_t high) {
 }
 
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze

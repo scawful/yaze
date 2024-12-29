@@ -11,7 +11,6 @@
 #include "app/core/utils/file_util.h"
 
 namespace yaze {
-namespace app {
 
 const std::string kRecentFilesFilename = "recent_files.txt";
 constexpr char kEndOfProjectFile[] = "EndOfProjectFile";
@@ -130,7 +129,7 @@ class RecentFilesManager {
   std::vector<std::string> recent_files_;
 };
 
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_CORE_PROJECT_H

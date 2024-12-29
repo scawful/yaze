@@ -15,7 +15,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 constexpr uint k4BPP = 4;
@@ -309,7 +308,6 @@ class OverworldEditor : public Editor,
   absl::Status status_;
 };
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif

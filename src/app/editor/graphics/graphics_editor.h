@@ -16,7 +16,6 @@
 #include "imgui_memory_editor.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 // "99973","A3D80",
@@ -196,7 +195,6 @@ class GraphicsEditor : public SharedRom, public Editor {
 };
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_GRAPHICS_EDITOR_H

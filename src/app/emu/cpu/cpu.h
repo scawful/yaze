@@ -13,7 +13,6 @@
 #include "app/emu/memory/memory.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 
 class InstructionEntry {
@@ -799,7 +798,7 @@ class Cpu : public core::ExperimentFlags {
 };
 
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_EMU_CPU_H_

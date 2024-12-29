@@ -4,8 +4,11 @@
 #include <array>
 #include <vector>
 
+#include "absl/status/status.h"
+#include "app/gfx/tilesheet.h"
+#include "app/rom.h"
+
 namespace yaze {
-namespace app {
 namespace zelda3 {
 namespace screen {
 
@@ -38,8 +41,8 @@ struct DungeonMap {
 
   DungeonMap(unsigned short boss_room, unsigned char nbr_of_floor,
              unsigned char nbr_of_basement,
-             const std::vector<std::array<uint8_t, 25>>& floor_rooms,
-             const std::vector<std::array<uint8_t, 25>>& floor_gfx)
+             const std::vector<std::array<uint8_t, 25>> &floor_rooms,
+             const std::vector<std::array<uint8_t, 25>> &floor_gfx)
       : boss_room(boss_room),
         nbr_of_floor(nbr_of_floor),
         nbr_of_basement(nbr_of_basement),
@@ -47,9 +50,17 @@ struct DungeonMap {
         floor_gfx(floor_gfx) {}
 };
 
+absl::Status LoadDungeonMapTile16(const std::vector<uint8_t> &gfx_data,
+                                  bool bin_mode);
+
+absl::Status LoadDungeonMapGfxFromBinary(Rom &rom,
+                                         std::array<gfx::Bitmap, 4> &sheets,
+                                         gfx::Tilesheet &tile16_sheet,
+                                         std::vector<uint8_t> &gfx_bin_data);
+
 }  // namespace screen
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_SCREEN_DUNGEON_MAP_H

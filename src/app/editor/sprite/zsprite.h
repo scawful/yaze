@@ -13,7 +13,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 /**
  * @brief Namespace for the ZSprite format from Zarby's ZSpriteMaker.
@@ -390,7 +389,6 @@ struct ZSprite {
 
 }  // namespace zsprite
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_SPRITE_ZSPRITE_H

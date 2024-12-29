@@ -12,7 +12,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 static const char* kGameSongs[] = {"Title",
@@ -85,7 +84,6 @@ class MusicEditor : public SharedRom, public Editor {
 };
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif

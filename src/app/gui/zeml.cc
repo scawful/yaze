@@ -15,7 +15,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace gui {
 namespace zeml {
 
@@ -618,5 +617,5 @@ std::string LoadFile(const std::string& filename) {
 
 }  // namespace zeml
 }  // namespace gui
-}  // namespace app
+
 }  // namespace yaze

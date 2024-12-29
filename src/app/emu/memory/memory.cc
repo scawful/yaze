@@ -8,7 +8,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 namespace memory {
 
@@ -167,5 +166,5 @@ uint32_t MemoryImpl::GetMappedAddress(uint32_t address) const {
 
 }  // namespace memory
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze

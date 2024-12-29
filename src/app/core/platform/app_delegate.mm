@@ -206,8 +206,8 @@
 }
 
 - (void)openFileAction:(id)sender {
-  if (!yaze::app::SharedRom::shared_rom_
-           ->LoadFromFile(yaze::app::core::FileDialogWrapper::ShowOpenFileDialog())
+  if (!yaze::SharedRom::shared_rom_
+           ->LoadFromFile(yaze::core::FileDialogWrapper::ShowOpenFileDialog())
            .ok()) {
     NSAlert *alert = [[NSAlert alloc] init];
     [alert setMessageText:@"Error"];
@@ -238,7 +238,7 @@ extern "C" void yaze_initialize_cococa() {
 
 extern "C" void yaze_run_cocoa_app_delegate(const char *filename) {
   yaze_initialize_cococa();
-  yaze::app::core::Controller controller;
+  yaze::core::Controller controller;
   RETURN_VOID_IF_ERROR(controller.OnEntry(filename));
   while (controller.IsActive()) {
     @autoreleasepool {

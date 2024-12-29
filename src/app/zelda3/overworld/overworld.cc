@@ -1,23 +1,17 @@
 #include "overworld.h"
 
 #include <algorithm>
-#include <fstream>
 #include <future>
-#include <memory>
 #include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "app/core/constants.h"
-#include "app/gfx/bitmap.h"
 #include "app/gfx/compression.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld/overworld_map.h"
-#include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 namespace overworld {
 
@@ -1594,5 +1588,5 @@ absl::Status Overworld::SaveMapProperties() {
 
 }  // namespace overworld
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze

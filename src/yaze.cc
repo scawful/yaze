@@ -7,7 +7,7 @@
 
 void yaze_check_version(const char* version) {
   printf("Yaze version: %s\n", version);
-  auto version_check = yaze::app::core::CheckVersion(version);
+  auto version_check = yaze::core::CheckVersion(version);
   if (!version_check.ok()) {
     printf("%s\n", version_check.status().message().data());
     exit(1);
@@ -41,8 +41,8 @@ yaze_project yaze_load_project(const char* filename) {
 }
 
 z3_rom* yaze_load_rom(const char* filename) {
-  yaze::app::Rom* internal_rom;
-  internal_rom = new yaze::app::Rom();
+  yaze::Rom* internal_rom;
+  internal_rom = new yaze::Rom();
   if (!internal_rom->LoadFromFile(filename).ok()) {
     delete internal_rom;
     return nullptr;
@@ -58,7 +58,7 @@ z3_rom* yaze_load_rom(const char* filename) {
 
 void yaze_unload_rom(z3_rom* rom) {
   if (rom->impl) {
-    delete static_cast<yaze::app::Rom*>(rom->impl);
+    delete static_cast<yaze::Rom*>(rom->impl);
   }
 
   if (rom) {
@@ -83,10 +83,10 @@ snes_color yaze_get_color_from_paletteset(const z3_rom* rom, int palette_set,
   color_struct.blue = 0;
 
   if (rom->impl) {
-    yaze::app::Rom* internal_rom = static_cast<yaze::app::Rom*>(rom->impl);
+    yaze::Rom* internal_rom = static_cast<yaze::Rom*>(rom->impl);
     auto get_color =
         internal_rom->palette_group()
-            .get_group(yaze::app::gfx::kPaletteGroupAddressesKeys[palette_set])
+            .get_group(yaze::gfx::kPaletteGroupAddressesKeys[palette_set])
             ->palette(palette)
             .GetColor(color);
     if (!get_color.ok()) {
@@ -105,8 +105,8 @@ z3_overworld* yaze_load_overworld(const z3_rom* rom) {
     return nullptr;
   }
 
-  yaze::app::Rom* internal_rom = static_cast<yaze::app::Rom*>(rom->impl);
-  auto internal_overworld = new yaze::app::zelda3::overworld::Overworld();
+  yaze::Rom* internal_rom = static_cast<yaze::Rom*>(rom->impl);
+  auto internal_overworld = new yaze::zelda3::overworld::Overworld();
   if (!internal_overworld->Load(*internal_rom).ok()) {
     return nullptr;
   }

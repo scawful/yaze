@@ -9,7 +9,6 @@
 #include "app/gui/input.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 absl::Status MusicEditor::Update() {
@@ -218,5 +217,4 @@ void MusicEditor::DrawToolset() {
 }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

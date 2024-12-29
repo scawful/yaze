@@ -8,13 +8,13 @@
 
 #if TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1
 /* iOS */
-void yaze::app::core::LoadSystemFonts() {}
+void yaze::core::LoadSystemFonts() {}
 
 #elif TARGET_OS_MAC == 1
 /* macOS */
 #import <Cocoa/Cocoa.h>
 
-void yaze::app::core::LoadSystemFonts() {
+void yaze::core::LoadSystemFonts() {
   NSArray *fontNames = @[ @"Helvetica", @"Times New Roman", @"Courier", @"Arial", @"Verdana" ];
 
   for (NSString *fontName in fontNames) {

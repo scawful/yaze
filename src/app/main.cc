@@ -9,10 +9,10 @@
 #include "app/core/controller.h"
 
 /**
- * @namespace yaze::app
- * @brief Main namespace for the ImGui application.
+ * @namespace yaze
+ * @brief Main namespace for the application.
  */
-using namespace yaze::app;
+using namespace yaze;
 
 /**
  * @brief Main entry point for the application.

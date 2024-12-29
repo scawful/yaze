@@ -5,7 +5,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 using ImGui::BeginMenu;
@@ -58,7 +57,6 @@ struct FlagsMenu : public core::ExperimentFlags {
 };
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_UTILS_FLAGS_H_

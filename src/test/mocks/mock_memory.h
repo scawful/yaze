@@ -9,7 +9,6 @@
 #include "app/emu/memory/memory.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 namespace memory {
 
@@ -223,7 +222,6 @@ class MockMemory : public Memory {
 
 }  // namespace memory
 }  // namespace emu
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_TEST_MOCK_MOCK_MEMORY_H

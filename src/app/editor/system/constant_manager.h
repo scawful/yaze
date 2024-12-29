@@ -7,7 +7,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 class ConstantManager {
@@ -71,7 +70,6 @@ class ConstantManager {
 };
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_SYSTEM_CONSTANT_MANAGER_H

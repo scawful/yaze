@@ -1,7 +1,6 @@
 #include "app/emu/cpu/cpu.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 
 void Cpu::AdrImp() {
@@ -186,5 +185,5 @@ uint16_t Cpu::StackRelative() {
 }
 
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze

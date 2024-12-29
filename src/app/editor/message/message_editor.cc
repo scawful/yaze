@@ -18,7 +18,6 @@
 #include "imgui/misc/cpp/imgui_stdlib.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 using core::Renderer;
@@ -700,5 +699,4 @@ void MessageEditor::SelectAll() {
 }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

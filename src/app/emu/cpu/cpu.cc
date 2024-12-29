@@ -9,7 +9,6 @@
 #include "app/emu/cpu/internal/opcodes.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 
 void Cpu::Reset(bool hard) {
@@ -2260,5 +2259,5 @@ uint8_t Cpu::GetInstructionLength(uint8_t opcode) {
 */
 
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze

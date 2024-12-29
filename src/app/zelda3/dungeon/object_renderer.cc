@@ -1,7 +1,6 @@
 #include "app/zelda3/dungeon/object_renderer.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 namespace dungeon {
 
@@ -114,5 +113,5 @@ void DungeonObjectRenderer::UpdateObjectBitmap() {
 
 }  // namespace dungeon
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze

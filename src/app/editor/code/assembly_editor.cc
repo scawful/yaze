@@ -7,7 +7,6 @@
 #include "app/gui/icons.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 using core::FileDialogWrapper;
@@ -364,5 +363,4 @@ absl::Status AssemblyEditor::Redo() {
 absl::Status AssemblyEditor::Update() { return absl::OkStatus(); }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

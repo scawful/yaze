@@ -13,7 +13,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace core {
 
 absl::Status LoadPackageFonts() {
@@ -240,5 +239,4 @@ void LoadSystemFonts() {
 #endif
 
 }  // namespace core
-}  // namespace app
 }  // namespace yaze

@@ -5,17 +5,11 @@
 #include <string>
 #include <vector>
 
-#include "app/emu/cpu/cpu.h"
-#include "app/emu/memory/memory.h"
-#include "app/emu/video/ppu.h"
-#include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
-#include "app/zelda3/dungeon/object_names.h"
 #include "app/zelda3/dungeon/object_renderer.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 namespace dungeon {
 
@@ -209,7 +203,7 @@ class Subtype3 : public RoomObject {
 
 }  // namespace dungeon
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_DUNGEON_ROOM_OBJECT_H

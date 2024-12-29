@@ -10,7 +10,6 @@
 #include "app/emu/video/ppu.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 
 struct Input {
@@ -131,7 +130,7 @@ class SNES {
 };
 
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_EMU_SNES_H

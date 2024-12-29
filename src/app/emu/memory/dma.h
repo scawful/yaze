@@ -7,7 +7,6 @@
 #include "app/emu/snes.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 namespace memory {
 namespace dma {
@@ -31,7 +30,7 @@ void DoDma(SNES* snes, MemoryImpl* memory, int cycles);
 }  // namespace dma
 }  // namespace memory
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_EMU_MEMORY_DMA_H

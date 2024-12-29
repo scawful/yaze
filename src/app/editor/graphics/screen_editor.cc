@@ -18,7 +18,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 using core::Renderer;
@@ -392,6 +391,22 @@ void ScreenEditor::DrawDungeonMapsEditor() {
       sheets_.emplace(1, rom()->gfx_sheets()[213]);
       sheets_.emplace(2, rom()->gfx_sheets()[214]);
       sheets_.emplace(3, rom()->gfx_sheets()[215]);
+      int current_tile8 = 0;
+      int tile_data_offset = 0;
+      for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 32; j++) {
+          std::vector<uint8_t> tile_data(64, 0);  // 8x8 tile (64 bytes
+          int tile_index = current_tile8 + j;
+          int x = (j % 8) * 8;
+          int y = (j / 8) * 8;
+          sheets_[i].Get8x8Tile(tile_index, 0, 0, tile_data, tile_data_offset);
+          tile8_individual_.emplace_back(gfx::Bitmap(8, 8, 4, tile_data));
+          RETURN_VOID_IF_ERROR(tile8_individual_.back().ApplyPalette(
+              *rom()->mutable_dungeon_palette(3)));
+          Renderer::GetInstance().RenderBitmap(&tile8_individual_.back());
+        }
+        tile_data_offset = 0;
+      }
       dungeon_maps_loaded_ = true;
     } else {
       ImGui::Text("Failed to load dungeon map tile16");
@@ -470,8 +485,12 @@ void ScreenEditor::DrawDungeonMapsEditor() {
       }
 
       ImGui::Separator();
-      current_tile_canvas_.DrawBackground(ImVec2(64 * 2 + 2, 64 * 2 + 4));
+      current_tile_canvas_.DrawBackground(); // ImVec2(64 * 2 + 2, 64 * 2 + 4));
       current_tile_canvas_.DrawContextMenu();
+      if (current_tile_canvas_.DrawTilePainter(
+              tile8_individual_[selected_tile8_], 16)) {
+        // Modify the tile16 based on the selected tile and current_tile16_info
+      }
       current_tile_canvas_.DrawBitmap(tile16_individual_[selected_tile16_], 2,
                                       4.0f);
       current_tile_canvas_.DrawGrid(16.f);
@@ -589,5 +608,4 @@ void ScreenEditor::DrawToolset() {
 }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

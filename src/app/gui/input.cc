@@ -133,7 +133,6 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
 }  // namespace ImGui
 
 namespace yaze {
-namespace app {
 namespace gui {
 
 const int kStepOneHex = 0x01;
@@ -282,5 +281,5 @@ void FileDialogPipeline(absl::string_view display_key,
 }
 
 }  // namespace gui
-}  // namespace app
+
 }  // namespace yaze

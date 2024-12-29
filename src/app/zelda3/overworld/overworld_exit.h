@@ -8,7 +8,6 @@
 #include "app/zelda3/common.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 namespace overworld {
 
@@ -204,7 +203,7 @@ class OverworldExit : public GameEntity {
 
 }  // namespace overworld
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_OVERWORLD_EXIT_H_

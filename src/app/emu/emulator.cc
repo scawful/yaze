@@ -15,7 +15,6 @@
 #include "imgui_memory_editor.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 
 namespace {
@@ -540,5 +539,5 @@ void Emulator::RenderCpuInstructionLog(
 }
 
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze

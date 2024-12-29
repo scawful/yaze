@@ -4,7 +4,6 @@
 #include "imgui/imgui_internal.h"
 
 namespace yaze {
-namespace app {
 namespace gui {
 
 // TODO: Add more display settings to popup windows.
@@ -649,5 +648,5 @@ TextEditor::LanguageDefinition GetAssemblyLanguageDef() {
 }
 
 } // namespace gui
-} // namespace app
+
 } // namespace yaze

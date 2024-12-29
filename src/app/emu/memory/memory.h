@@ -27,7 +27,6 @@
 // 7F      0000-FFFF     System RAM
 
 namespace yaze {
-namespace app {
 namespace emu {
 namespace memory {
 
@@ -309,7 +308,7 @@ class MemoryImpl : public Memory {
 
 }  // namespace memory
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // MEM_H

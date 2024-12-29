@@ -11,11 +11,10 @@
 #define BUILD_HEADER(command, length) (command << 5) + (length - 1)
 
 namespace yaze {
-namespace app {
 namespace gfx {
 
 /**
- * @namespace yaze::app::gfx::lc_lz2
+ * @namespace yaze::gfx::lc_lz2
  * @brief Contains the LC_LZ2 compression algorithm.
  */
 namespace lc_lz2 {
@@ -245,7 +244,7 @@ absl::StatusOr<std::vector<uint8_t>> DecompressOverworld(const std::vector<uint8
 }  // namespace lc_lz2
 
 }  // namespace gfx
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_GFX_COMPRESSION_H

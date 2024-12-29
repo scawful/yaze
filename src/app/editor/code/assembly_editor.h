@@ -9,7 +9,6 @@
 #include "app/gui/style.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 /**
@@ -69,7 +68,6 @@ class AssemblyEditor : public Editor {
 };
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif

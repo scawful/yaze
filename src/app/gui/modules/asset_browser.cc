@@ -3,7 +3,6 @@
 #include "absl/strings/str_format.h"
 
 namespace yaze {
-namespace app {
 namespace gui {
 
 using namespace ImGui;
@@ -342,5 +341,5 @@ void GfxSheetAssetBrowser::Draw(
 }
 
 }  // namespace gui
-}  // namespace app
+
 }  // namespace yaze

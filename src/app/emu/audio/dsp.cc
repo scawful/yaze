@@ -5,7 +5,6 @@
 #include "app/emu/memory/memory.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 namespace audio {
 
@@ -633,5 +632,5 @@ void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
 
 }  // namespace audio
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze

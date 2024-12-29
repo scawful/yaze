@@ -9,7 +9,6 @@
 #include "imgui/misc/cpp/imgui_stdlib.h"
 
 namespace yaze {
-namespace app {
 
 absl::Status Project::Open(const std::string& project_path) {
   filepath = project_path;
@@ -185,5 +184,5 @@ std::string ResourceLabelManager::CreateOrGetLabel(
   return labels_[type][key];
 }
 
-}  // namespace app
+
 }  // namespace yaze

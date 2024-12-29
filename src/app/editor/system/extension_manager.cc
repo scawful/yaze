@@ -5,13 +5,12 @@
 #include <dlfcn.h>
 #endif
 
-#include <system/extension.h>
+#include <yaze.h>
 
 #include <iostream>
 #include <vector>
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 void ExtensionManager::LoadExtension(const std::string& filename,
@@ -81,5 +80,4 @@ void ExtensionManager::ExecuteExtensionUI(yaze_editor_context* context) {
 }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

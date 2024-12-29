@@ -9,7 +9,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace gui {
 
 void BeginWindowWithDisplaySettings(const char *id, bool *active,
@@ -92,7 +91,7 @@ struct MultiSelectWithClipper {
 };
 
 } // namespace gui
-} // namespace app
+
 } // namespace yaze
 
 #endif

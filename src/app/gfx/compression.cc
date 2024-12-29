@@ -13,7 +13,6 @@
 #define DEBUG_LOG(msg) std::cout << msg << std::endl
 
 namespace yaze {
-namespace app {
 namespace gfx {
 
 namespace lc_lz2 {
@@ -1473,5 +1472,5 @@ absl::StatusOr<std::vector<uint8_t>> DecompressOverworld(
 
 }  // namespace lc_lz2
 }  // namespace gfx
-}  // namespace app
+
 }  // namespace yaze

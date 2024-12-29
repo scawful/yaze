@@ -7,7 +7,6 @@
 #include "app/editor/editor.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 // Simple representation for a tree
@@ -226,7 +225,6 @@ class SettingsEditor : public Editor {
 };
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_SETTINGS_EDITOR_H_

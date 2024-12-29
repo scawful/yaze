@@ -4,7 +4,6 @@
 #include <string>
 
 namespace yaze {
-namespace app {
 namespace core {
 
 enum class Platform { kUnknown, kMacOS, kiOS, kWindows, kLinux };
@@ -17,8 +16,7 @@ std::string GetConfigDirectory(Platform platform);
 void SaveFile(const std::string &filename, const std::string &data,
               Platform platform);
 
-} // namespace core
-} // namespace app
-} // namespace yaze
+}  // namespace core
+}  // namespace yaze
 
-#endif // YAZE_APP_CORE_UTILS_FILE_UTIL_H
+#endif  // YAZE_APP_CORE_UTILS_FILE_UTIL_H

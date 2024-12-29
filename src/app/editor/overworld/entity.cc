@@ -5,7 +5,6 @@
 #include "app/gui/style.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 using ImGui::BeginChild;
@@ -489,5 +488,4 @@ bool DrawSpriteEditorPopup(zelda3::Sprite &sprite) {
 }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

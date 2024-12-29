@@ -10,7 +10,7 @@
 @end
 #else
 @interface AppViewController : UIViewController <MTKViewDelegate>
-@property(nonatomic) yaze::app::core::Controller *controller;
+@property(nonatomic) yaze::core::Controller *controller;
 @property(nonatomic) UIHoverGestureRecognizer *hoverGestureRecognizer;
 @property(nonatomic) UIPinchGestureRecognizer *pinchRecognizer;
 @property(nonatomic) UISwipeGestureRecognizer *swipeRecognizer;

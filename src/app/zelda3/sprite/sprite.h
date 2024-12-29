@@ -11,7 +11,6 @@
 #include "app/zelda3/sprite/overlord.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 
 static const std::string kSpriteDefaultNames[]{
@@ -391,7 +390,7 @@ class Sprite : public GameEntity {
 };
 
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze
 
 #endif

@@ -10,7 +10,6 @@
 #include <vector>
 
 namespace yaze {
-namespace app {
 namespace gfx {
 
 constexpr int kTilesheetWidth = 128;
@@ -222,7 +221,7 @@ class GraphicsBuffer {
 };
 
 }  // namespace gfx
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_GFX_SNES_TILE_H

@@ -23,7 +23,6 @@
 #include "imgui_memory_editor.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 using core::Renderer;
@@ -844,5 +843,4 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
 }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

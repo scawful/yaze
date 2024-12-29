@@ -15,7 +15,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 /**
@@ -86,12 +85,13 @@ private:
   bool copy_button_pressed = false;
   bool paste_button_pressed = false;
 
-  std::vector<uint8_t> all_gfx_;
+  std::array<uint16_t, 4> current_tile16_data_;
   std::unordered_map<int, gfx::Bitmap> tile16_individual_;
+  std::vector<gfx::Bitmap> tile8_individual_;
+  std::vector<uint8_t> all_gfx_;
+  std::vector<uint8_t> gfx_bin_data_;
   std::vector<zelda3::screen::DungeonMap> dungeon_maps_;
   std::vector<std::vector<std::array<std::string, 25>>> dungeon_map_labels_;
-  std::array<uint16_t, 4> current_tile16_data_;
-  std::vector<uint8_t> gfx_bin_data_;
 
   absl::Status status_;
 
@@ -100,18 +100,18 @@ private:
   gfx::Tilesheet tile16_sheet_;
   gfx::InternalTile16 current_tile16_info;
 
-  gui::Canvas current_tile_canvas_{"##CurrentTileCanvas"};
+  gui::Canvas current_tile_canvas_{"##CurrentTileCanvas", ImVec2(32, 32),
+                                   gui::CanvasGridSize::k16x16, 2.0f};
   gui::Canvas screen_canvas_;
   gui::Canvas tilesheet_canvas_;
-  gui::Canvas tilemap_canvas_{"##TilemapCanvas",
-                              ImVec2(128 + 2, (192) + 4),
+  gui::Canvas tilemap_canvas_{"##TilemapCanvas", ImVec2(128 + 2, (192) + 4),
                               gui::CanvasGridSize::k8x8, 2.f};
 
   zelda3::screen::Inventory inventory_;
 };
 
 } // namespace editor
-} // namespace app
+
 } // namespace yaze
 
 #endif

@@ -4,7 +4,6 @@
 #include <string>
 
 namespace yaze {
-namespace app {
 namespace core {
 
 /**
@@ -14,7 +13,6 @@ namespace core {
 std::string GetBundleResourcePath();
 
 }  // namespace core
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_CORE_PLATFORM_FILE_PATH_H

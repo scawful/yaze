@@ -9,7 +9,6 @@
 #include "app/rom.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 namespace screen {
 
@@ -77,7 +76,7 @@ class TitleScreen {
 
 }  // namespace screen
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_SCREEN_H

@@ -10,7 +10,7 @@ namespace yaze {
 namespace test {
 namespace integration {
 
-class TestEditor : public yaze::app::editor::Editor {
+class TestEditor : public yaze::editor::Editor {
  public:
   TestEditor() = default;
   ~TestEditor() = default;

@@ -31,7 +31,7 @@ typedef struct z3_overworld_map {
  * @brief Primitive of the overworld.
  */
 typedef struct z3_overworld {
-  void *impl; // yaze::app::Overworld*
+  void *impl; // yaze::Overworld*
 
   uint8_t *tile32_data; /**< Pointer to the 32x32 tile data. */
   uint8_t *tile16_data; /**< Pointer to the 16x16 tile data. */

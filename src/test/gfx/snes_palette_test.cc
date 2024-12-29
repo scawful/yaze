@@ -10,10 +10,10 @@ namespace test {
 namespace gfx {
 
 using ::testing::ElementsAreArray;
-using yaze::app::gfx::ConvertRgbToSnes;
-using yaze::app::gfx::ConvertSnestoRGB;
-using yaze::app::gfx::Extract;
-using yaze::app::gfx::SnesPalette;
+using yaze::gfx::ConvertRgbToSnes;
+using yaze::gfx::ConvertSnestoRGB;
+using yaze::gfx::Extract;
+using yaze::gfx::SnesPalette;
 
 namespace {
 unsigned int test_convert(snes_color col) {
@@ -26,8 +26,8 @@ unsigned int test_convert(snes_color col) {
 }  // namespace
 
 TEST(SnesPaletteTest, AddColor) {
-  yaze::app::gfx::SnesPalette palette;
-  yaze::app::gfx::SnesColor color;
+  yaze::gfx::SnesPalette palette;
+  yaze::gfx::SnesColor color;
   palette.AddColor(color);
   ASSERT_EQ(palette.size(), 1);
 }
@@ -88,7 +88,7 @@ TEST(SnesColorTest, Convert) {
                    static_cast<char>(0xFF),
                    0x1F};
   auto pal = Extract(data, 0, 5);
-  auto snes_string = yaze::app::gfx::Convert(pal);
+  auto snes_string = yaze::gfx::Convert(pal);
   EXPECT_EQ(10, snes_string.size());
   EXPECT_THAT(data, ElementsAreArray(snes_string.data(), 10));
 }

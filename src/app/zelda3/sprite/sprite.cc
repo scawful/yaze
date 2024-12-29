@@ -3,7 +3,6 @@
 #include "app/zelda3/overworld/overworld.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 
 void Sprite::UpdateMapProperties(uint16_t map_id) {
@@ -911,5 +910,5 @@ void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
 }
 
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze

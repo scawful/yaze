@@ -11,7 +11,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 using ImGui::BeginChild;
@@ -297,5 +296,4 @@ void GfxGroupEditor::DrawPaletteViewer() {
 }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

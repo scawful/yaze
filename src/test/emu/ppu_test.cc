@@ -10,14 +10,14 @@ namespace yaze {
 namespace test {
 namespace emu {
 
-using yaze::app::emu::Clock;
-using yaze::app::emu::memory::MockClock;
-using yaze::app::emu::memory::MockMemory;
-using yaze::app::emu::video::BackgroundMode;
-using yaze::app::emu::video::PpuInterface;
-using yaze::app::emu::video::SpriteAttributes;
-using yaze::app::emu::video::Tilemap;
-using yaze::app::gfx::Bitmap;
+using yaze::emu::Clock;
+using yaze::emu::memory::MockClock;
+using yaze::emu::memory::MockMemory;
+using yaze::emu::video::BackgroundMode;
+using yaze::emu::video::PpuInterface;
+using yaze::emu::video::SpriteAttributes;
+using yaze::emu::video::Tilemap;
+using yaze::gfx::Bitmap;
 
 /**
  * @brief Mock Ppu class for testing

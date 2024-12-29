@@ -27,8 +27,8 @@
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
 
-using namespace yaze::app;
-using yaze::app::core::SDL_Deleter;
+using namespace yaze;
+using yaze::core::SDL_Deleter;
 
 int main(int argc, char **argv) {
   absl::InitializeSymbolizer(argv[0]);

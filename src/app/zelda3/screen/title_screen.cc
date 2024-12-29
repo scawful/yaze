@@ -7,7 +7,6 @@
 #include "app/rom.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 namespace screen {
 
@@ -124,5 +123,5 @@ void TitleScreen::LoadTitleScreen() {
 
 }  // namespace screen
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze
