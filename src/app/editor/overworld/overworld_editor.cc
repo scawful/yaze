@@ -15,6 +15,7 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
+#include "app/gui/color.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/style.h"
@@ -22,6 +23,7 @@
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
+#include "imgui_memory_editor.h"
 
 namespace yaze {
 namespace editor {
@@ -95,121 +97,103 @@ void OverworldEditor::DrawToolset() {
   static bool show_gfx_group = false;
   static bool show_properties = false;
 
-  if (BeginTable("OWToolset", 22, kToolsetTableFlags, ImVec2(0, 0))) {
-    for (const auto &name : kToolsetColumnNames)
-      ImGui::TableSetupColumn(name.data());
-
-    NEXT_COLUMN()
-    if (Button(ICON_MD_UNDO)) {
-      status_ = Undo();
-    }
-
-    NEXT_COLUMN()
-    if (Button(ICON_MD_REDO)) {
-      status_ = Redo();
-    }
-
-    TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
-
-    NEXT_COLUMN()
-    if (Button(ICON_MD_ZOOM_OUT)) {
-      ow_map_canvas_.ZoomOut();
-    }
-
-    NEXT_COLUMN()
-    if (Button(ICON_MD_ZOOM_IN)) {
-      ow_map_canvas_.ZoomIn();
-    }
-
-    NEXT_COLUMN()
-    if (Button(ICON_MD_OPEN_IN_FULL)) {
-      overworld_canvas_fullscreen_ = !overworld_canvas_fullscreen_;
-    }
-    HOVER_HINT("Fullscreen Canvas")
-
-    TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
-
-    NEXT_COLUMN()
-    if (Selectable(ICON_MD_PAN_TOOL_ALT, current_mode == EditingMode::PAN)) {
-      current_mode = EditingMode::PAN;
-      ow_map_canvas_.set_draggable(true);
-    }
-    HOVER_HINT("Pan (Right click and drag)")
-
-    NEXT_COLUMN()
-    if (Selectable(ICON_MD_DRAW, current_mode == EditingMode::DRAW_TILE)) {
-      current_mode = EditingMode::DRAW_TILE;
-    }
-    HOVER_HINT("Draw Tile")
-
-    NEXT_COLUMN()
-    if (Selectable(ICON_MD_DOOR_FRONT, current_mode == EditingMode::ENTRANCES))
-      current_mode = EditingMode::ENTRANCES;
-    HOVER_HINT("Entrances")
-
-    NEXT_COLUMN()
-    if (Selectable(ICON_MD_DOOR_BACK, current_mode == EditingMode::EXITS))
-      current_mode = EditingMode::EXITS;
-    HOVER_HINT("Exits")
-
-    NEXT_COLUMN()
-    if (Selectable(ICON_MD_GRASS, current_mode == EditingMode::ITEMS))
-      current_mode = EditingMode::ITEMS;
-    HOVER_HINT("Items")
-
-    NEXT_COLUMN()
-    if (Selectable(ICON_MD_PEST_CONTROL_RODENT,
-                   current_mode == EditingMode::SPRITES))
-      current_mode = EditingMode::SPRITES;
-    HOVER_HINT("Sprites")
-
-    NEXT_COLUMN()
-    if (Selectable(ICON_MD_ADD_LOCATION,
-                   current_mode == EditingMode::TRANSPORTS))
-      current_mode = EditingMode::TRANSPORTS;
-    HOVER_HINT("Transports")
-
-    NEXT_COLUMN()
-    if (Selectable(ICON_MD_MUSIC_NOTE, current_mode == EditingMode::MUSIC))
-      current_mode = EditingMode::MUSIC;
-    HOVER_HINT("Music")
-
-    TableNextColumn();
-    if (Button(ICON_MD_GRID_VIEW)) {
-      show_tile16_editor_ = !show_tile16_editor_;
-    }
-    HOVER_HINT("Tile16 Editor")
-
-    TableNextColumn();
-    if (Button(ICON_MD_TABLE_CHART)) {
-      show_gfx_group = !show_gfx_group;
-    }
-    HOVER_HINT("Gfx Group Editor")
-
-    TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
-
-    TableNextColumn();
-    if (Button(ICON_MD_CONTENT_COPY)) {
-      std::vector<uint8_t> png_data;
-      if (gfx::ConvertSurfaceToPNG(maps_bmp_[current_map_].surface(),
-                                   png_data)) {
-        core::CopyImageToClipboard(png_data);
-      } else {
-        status_ = absl::InternalError(
-            "Failed to convert overworld map surface to PNG");
+  if (toolset_table_.column_contents.empty()) {
+    gui::AddTableColumn(toolset_table_, "##Undo", [&]() {
+      if (Button(ICON_MD_UNDO)) status_ = Undo();
+    });
+    gui::AddTableColumn(toolset_table_, "##Redo", [&]() {
+      if (Button(ICON_MD_REDO)) status_ = Redo();
+    });
+    gui::AddTableColumn(toolset_table_, "##Sep1", ICON_MD_MORE_VERT);
+    gui::AddTableColumn(toolset_table_, "##ZoomOut", [&]() {
+      if (Button(ICON_MD_ZOOM_OUT)) ow_map_canvas_.ZoomOut();
+    });
+    gui::AddTableColumn(toolset_table_, "##ZoomIn", [&]() {
+      if (Button(ICON_MD_ZOOM_IN)) ow_map_canvas_.ZoomIn();
+    });
+    gui::AddTableColumn(toolset_table_, "##Fullscreen", [&]() {
+      if (Button(ICON_MD_OPEN_IN_FULL))
+        overworld_canvas_fullscreen_ = !overworld_canvas_fullscreen_;
+      HOVER_HINT("Fullscreen Canvas")
+    });
+    gui::AddTableColumn(toolset_table_, "##Sep2", ICON_MD_MORE_VERT);
+    gui::AddTableColumn(toolset_table_, "##Pan", [&]() {
+      if (Selectable(ICON_MD_PAN_TOOL_ALT, current_mode == EditingMode::PAN)) {
+        current_mode = EditingMode::PAN;
+        ow_map_canvas_.set_draggable(true);
       }
-    }
-    HOVER_HINT("Copy Map to Clipboard");
+      HOVER_HINT("Pan (Right click and drag)");
+    });
+    gui::AddTableColumn(toolset_table_, "##DrawTile", [&]() {
+      if (Selectable(ICON_MD_DRAW, current_mode == EditingMode::DRAW_TILE)) {
+        current_mode = EditingMode::DRAW_TILE;
+      }
+      HOVER_HINT("Draw Tile");
+    });
+    gui::AddTableColumn(toolset_table_, "##Entrances", [&]() {
+      if (Selectable(ICON_MD_DOOR_FRONT,
+                     current_mode == EditingMode::ENTRANCES))
+        current_mode = EditingMode::ENTRANCES;
+      HOVER_HINT("Entrances");
+    });
+    gui::AddTableColumn(toolset_table_, "##Exits", [&]() {
+      if (Selectable(ICON_MD_DOOR_BACK, current_mode == EditingMode::EXITS))
+        current_mode = EditingMode::EXITS;
+      HOVER_HINT("Exits");
+    });
+    gui::AddTableColumn(toolset_table_, "##Items", [&]() {
+      if (Selectable(ICON_MD_GRASS, current_mode == EditingMode::ITEMS))
+        current_mode = EditingMode::ITEMS;
+      HOVER_HINT("Items");
+    });
+    gui::AddTableColumn(toolset_table_, "##Sprites", [&]() {
+      if (Selectable(ICON_MD_PEST_CONTROL_RODENT,
+                     current_mode == EditingMode::SPRITES))
+        current_mode = EditingMode::SPRITES;
+      HOVER_HINT("Sprites");
+    });
+    gui::AddTableColumn(toolset_table_, "##Transports", [&]() {
+      if (Selectable(ICON_MD_ADD_LOCATION,
+                     current_mode == EditingMode::TRANSPORTS))
+        current_mode = EditingMode::TRANSPORTS;
+      HOVER_HINT("Transports");
+    });
+    gui::AddTableColumn(toolset_table_, "##Music", [&]() {
+      if (Selectable(ICON_MD_MUSIC_NOTE, current_mode == EditingMode::MUSIC))
+        current_mode = EditingMode::MUSIC;
+      HOVER_HINT("Music");
+    });
+    gui::AddTableColumn(toolset_table_, "##Tile16Editor", [&]() {
+      if (Button(ICON_MD_GRID_VIEW)) show_tile16_editor_ = !show_tile16_editor_;
+      HOVER_HINT("Tile16 Editor");
+    });
+    gui::AddTableColumn(toolset_table_, "##GfxGroupEditor", [&]() {
+      if (Button(ICON_MD_TABLE_CHART)) show_gfx_group = !show_gfx_group;
+      HOVER_HINT("Gfx Group Editor");
+    });
+    gui::AddTableColumn(toolset_table_, "##sep3", ICON_MD_MORE_VERT);
+    gui::AddTableColumn(toolset_table_, "##Properties", [&]() {
+      if (Button(ICON_MD_CONTENT_COPY)) {
+        std::vector<uint8_t> png_data;
+        if (gfx::ConvertSurfaceToPNG(maps_bmp_[current_map_].surface(),
+                                     png_data)) {
+          core::CopyImageToClipboard(png_data);
+        } else {
+          status_ = absl::InternalError(
+              "Failed to convert overworld map surface to PNG");
+        }
+      }
+      HOVER_HINT("Copy Map to Clipboard");
+    });
+    gui::AddTableColumn(toolset_table_, "##Palette", [&]() {
+      status_ = DisplayPalette(palette_, overworld_.is_loaded());
+    });
+    gui::AddTableColumn(toolset_table_, "##Sep4", ICON_MD_MORE_VERT);
+    gui::AddTableColumn(toolset_table_, "##Properties",
+                        [&]() { Checkbox("Properties", &show_properties); });
 
-    TableNextColumn();  // Palette
-    status_ = DisplayPalette(palette_, overworld_.is_loaded());
-
-    TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
-
-    TableNextColumn();
-    Checkbox("Properties", &show_properties);
-
-    ImGui::EndTable();
+  } else {
+    gui::DrawTable(toolset_table_);
   }
 
   if (show_tile16_editor_) {

@@ -10,6 +10,7 @@
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
 #include "app/gui/zeml.h"
+#include "app/gui/input.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
@@ -304,6 +305,9 @@ class OverworldEditor : public Editor,
   gui::Canvas graphics_bin_canvas_{"GraphicsBin", kGraphicsBinCanvasSize,
                                    gui::CanvasGridSize::k16x16};
   gui::Canvas properties_canvas_;
+
+  gui::Table toolset_table_{"##ToolsetTable0", 22, kToolsetTableFlags};
+
   gui::zeml::Node layout_node_;
   absl::Status status_;
 };
