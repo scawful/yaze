@@ -65,6 +65,8 @@ snes_color yaze_get_color_from_paletteset(const z3_rom* rom, int palette_set,
 
 z3_overworld* yaze_load_overworld(const z3_rom* rom);
 
+z3_dungeon_room* yaze_load_all_rooms(const z3_rom* rom);
+
 struct yaze_command_registry {
   void (*register_command)(const char* name, void (*command)(void));
 };
