@@ -73,30 +73,6 @@ class Editor {
   EditorContext context_;
 };
 
-/**
- * @brief Dynamic Editor Layout Parameters
- */
-typedef struct EditorLayoutParams {
-  bool v_split;
-  bool h_split;
-  int v_split_pos;
-  int h_split_pos;
-  Editor *editor = nullptr;
-  EditorLayoutParams *left = nullptr;
-  EditorLayoutParams *right = nullptr;
-  EditorLayoutParams *top = nullptr;
-  EditorLayoutParams *bottom = nullptr;
-
-  EditorLayoutParams() {
-    v_split = false;
-    h_split = false;
-    v_split_pos = 0;
-    h_split_pos = 0;
-  }
-} EditorLayoutParams;
-
-absl::Status DrawEditor(EditorLayoutParams *params);
-
 }  // namespace editor
 }  // namespace yaze
 
