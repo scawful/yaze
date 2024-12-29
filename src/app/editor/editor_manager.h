@@ -55,8 +55,6 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
 
  private:
   void ManageActiveEditors();
-  absl::Status DrawDynamicLayout();
-
   void ManageKeyboardShortcuts();
   void InitializeCommands();
 
@@ -80,16 +78,10 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
   bool save_new_auto_ = true;
   bool show_status_ = false;
   bool rom_assets_loaded_ = false;
-  bool dynamic_layout_ = false;
 
   absl::Status status_;
-
   emu::Emulator emulator_;
-
   std::vector<Editor *> active_editors_;
-  std::vector<EditorLayoutParams> active_layouts_;
-
-  EditorLayoutParams root_layout_;
 
   Project current_project_;
   EditorContext editor_context_;
