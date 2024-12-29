@@ -1,5 +1,0 @@
-<map id="yaze::app::emu::SNES::SetPixels" name="yaze::app::emu::SNES::SetPixels">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,153,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#abfae099f8f3ce10b2e043cc6adf4e7f5" title=" " alt="" coords="201,5,343,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,23,186,23,186,28,153,28"/>
-</map>

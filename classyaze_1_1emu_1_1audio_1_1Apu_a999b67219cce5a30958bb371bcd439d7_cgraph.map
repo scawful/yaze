@@ -1,0 +1,9 @@
+<map id="yaze::emu::audio::Apu::Reset" name="yaze::emu::audio::Apu::Reset">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,150,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1audio_1_1Dsp.html#a3a11867f1a4f747b0804fc808c5b4c5c" title=" " alt="" coords="208,5,352,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,45,193,37,193,43,150,50"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1audio_1_1Spc700.html#a662f531da13772b24f570b0d9f35a520" title=" " alt="" coords="198,71,363,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="150,68,183,73,182,78,150,73"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1audio_1_1Spc700.html#afefdd3fa995c36007c40a37b673dd7f6" title=" " alt="" coords="411,71,576,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="363,88,395,88,395,94,363,94"/>
+</map>

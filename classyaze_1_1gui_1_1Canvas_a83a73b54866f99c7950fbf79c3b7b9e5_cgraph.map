@@ -1,0 +1,9 @@
+<map id="yaze::gui::Canvas::DrawTileOnBitmap" name="yaze::gui::Canvas::DrawTileOnBitmap">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,136,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="184,5,307,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,44,168,38,169,43,136,49"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a748139853655afc687cf9668eeb01443" title=" " alt="" coords="184,71,307,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="136,68,169,74,168,80,135,74"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d" title=" " alt="" coords="355,78,544,104"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="307,88,340,88,340,94,307,94"/>
+</map>

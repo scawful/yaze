@@ -1,0 +1,9 @@
+<map id="yaze::gfx::Bitmap::ApplyPaletteWithTransparent" name="yaze::gfx::Bitmap::ApplyPaletteWithTransparent">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,195,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#ab2230a9d39012a835f250c3be0899829" title=" " alt="" coords="255,5,378,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,42,239,35,240,40,195,47"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1SnesPalette.html#a8172ae7725a9fe1c23df412b2632a484" title=" " alt="" coords="243,71,390,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="195,70,228,75,227,81,195,76"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1SnesPalette.html#a6854313e2b0f605315523b2185efdea2" title=" " alt="" coords="438,71,585,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="391,88,422,88,422,94,391,94"/>
+</map>

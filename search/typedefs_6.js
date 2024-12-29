@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['itemlabelflags_0',['ItemLabelFlags',['../namespaceyaze_1_1app_1_1gui.html#aa273fd9331a34be04e40b1929ff34958',1,'yaze::app::gui']]]
+  ['itemlabelflags_0',['ItemLabelFlags',['../namespaceyaze_1_1gui.html#a5099466527c2ee2b4d9013b4eb50f12f',1,'yaze::gui']]]
 ];

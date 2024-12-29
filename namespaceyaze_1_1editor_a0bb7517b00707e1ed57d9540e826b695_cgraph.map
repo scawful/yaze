@@ -1,0 +1,8 @@
+<map id="yaze::editor::DrawEditor" name="yaze::editor::DrawEditor">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,46,160,72"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="51,47,45,38,49,28,61,22,83,20,105,22,117,29,114,33,104,27,82,25,63,27,52,31,50,37,55,44"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Editor.html#a65af614b04a79925a1a4c702597521b0" title=" " alt="" coords="208,5,332,46"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="158,43,192,37,193,42,159,48"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1Editor.html#aed50bffbba9a0d98f8f3d24ad753f887" title=" " alt="" coords="208,71,332,111"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="160,70,193,75,192,80,160,75"/>
+</map>

@@ -1,7 +1,9 @@
 <map id="src/app/zelda3/screen/dungeon_map.h" name="src/app/zelda3/screen/dungeon_map.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="151,5,299,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="237,5,386,46"/>
 <area shape="rect" id="Node000002" href="$screen__editor_8h.html" title=" " alt="" coords="148,94,302,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="228,62,228,94,222,94,222,62"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="283,59,246,95,243,92,279,55"/>
+<area shape="rect" id="Node000013" href="$dungeon__map_8cc.html" title=" " alt="" coords="325,94,474,135"/>
+<area shape="poly" id="edge9_Node000001_Node000013" title=" " alt="" coords="344,55,381,92,378,95,340,59"/>
 <area shape="rect" id="Node000003" href="$memory__editor_8h.html" title=" " alt="" coords="5,183,138,223"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="178,145,107,185,105,180,176,140"/>
 <area shape="rect" id="Node000004" href="$editor__manager_8h.html" title=" " alt="" coords="77,271,213,312"/>

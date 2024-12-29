@@ -1,0 +1,16 @@
+<map id="yaze::editor::Tile16Editor::LoadTile8" name="yaze::editor::Tile16Editor::LoadTile8">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,120,165,161"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#aceb05ea27e2f1a75c24af5e291956af2" title=" " alt="" coords="213,5,362,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,118,153,80,211,41,224,35,227,40,214,46,156,84,110,122"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="219,55,356,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="149,117,207,99,208,104,151,123"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Used to render a bitmap to the screen." alt="" coords="219,120,356,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="165,138,203,138,203,144,165,144"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="213,209,362,235"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="139,159,240,200,238,205,137,164"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="226,259,349,300"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="109,160,155,202,214,245,221,249,218,254,211,250,152,206,105,164"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="410,120,533,161"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="356,138,394,138,394,144,356,144"/>
+<area shape="poly" id="edge6_Node000006_Node000006" title=" " alt="" coords="256,210,250,201,254,191,267,185,287,183,310,185,321,192,319,196,308,190,287,188,268,190,258,195,256,200,261,207"/>
+</map>

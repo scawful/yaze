@@ -1,0 +1,5 @@
+<map id="yaze::zelda3::dungeon::DungeonObjectRenderer" name="yaze::zelda3::dungeon::DungeonObjectRenderer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,174,120"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="29,5,150,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,46,92,79,87,79,87,46"/>
+</map>

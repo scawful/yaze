@@ -1,7 +1,0 @@
-<map id="yaze::app::editor::MoveEntityOnGrid" name="yaze::app::editor::MoveEntityOnGrid">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,132,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1GameEntity.html#a94d6dae58b7ceca789f8fb5a14c50a9c" title=" " alt="" coords="180,5,305,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,44,164,38,165,43,133,49"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1GameEntity.html#aac843541ccd30f426aa0d9714ec740a4" title=" " alt="" coords="180,71,305,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="133,68,165,74,164,79,132,73"/>
-</map>

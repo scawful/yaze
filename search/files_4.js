@@ -9,7 +9,6 @@ var searchData=
   ['emulator_2eh_6',['emulator.h',['../emulator_8h.html',1,'']]],
   ['entity_2ecc_7',['entity.cc',['../entity_8cc.html',1,'']]],
   ['entity_2eh_8',['entity.h',['../entity_8h.html',1,'']]],
-  ['extension_2eh_9',['extension.h',['../extension_8h.html',1,'']]],
-  ['extension_5fmanager_2ecc_10',['extension_manager.cc',['../extension__manager_8cc.html',1,'']]],
-  ['extension_5fmanager_2eh_11',['extension_manager.h',['../extension__manager_8h.html',1,'']]]
+  ['extension_5fmanager_2ecc_9',['extension_manager.cc',['../extension__manager_8cc.html',1,'']]],
+  ['extension_5fmanager_2eh_10',['extension_manager.h',['../extension__manager_8h.html',1,'']]]
 ];

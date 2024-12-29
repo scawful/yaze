@@ -1,5 +1,5 @@
 var font__loader_8h =
 [
-    [ "LoadSystemFonts", "font__loader_8h.html#ad8fc7c9242dc7232c703c11dcedb742b", null ],
-    [ "LoadPackageFonts", "font__loader_8h.html#ae980ff4b8fc1cbb9ea5e990eb9567f16", null ]
+    [ "LoadSystemFonts", "font__loader_8h.html#aa408d383ff33494e29ea06e0e6774f4c", null ],
+    [ "LoadPackageFonts", "font__loader_8h.html#a1ebfa2ff985b2a41c726bfbaa9a868dd", null ]
 ];

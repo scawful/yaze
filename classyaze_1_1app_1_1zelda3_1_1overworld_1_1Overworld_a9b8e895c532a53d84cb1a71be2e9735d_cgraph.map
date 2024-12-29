@@ -1,8 +1,0 @@
-<map id="yaze::app::zelda3::overworld::Overworld::SaveMap32Expanded" name="yaze::app::zelda3::overworld::Overworld::SaveMap32Expanded">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,28,158,83"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1core.html#a43bceda6fbaf66c02016c87c83adec48" title=" " alt="" coords="208,5,380,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,40,201,32,202,37,158,45"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="206,79,382,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="158,66,200,73,199,78,157,71"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="258,80,251,70,256,60,270,54,294,52,320,55,333,62,331,66,318,60,294,57,271,59,259,64,257,69,263,77"/>
-</map>

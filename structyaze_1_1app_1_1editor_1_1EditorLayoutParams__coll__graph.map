@@ -1,8 +1,0 @@
-<map id="yaze::app::editor::EditorLayoutParams" name="yaze::app::editor::EditorLayoutParams">
-<area shape="rect" id="Node000001" title="Dynamic Editor Layout Parameters." alt="" coords="5,222,144,263"/>
-<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="161,233,170,243,162,252,145,256,143,251,160,248,165,243,157,236"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="15,109,134,150"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="77,165,77,222,72,222,72,165"/>
-<area shape="rect" id="Node000003" href="$structyaze_1_1app_1_1editor_1_1EditorContext.html" title=" " alt="" coords="15,5,134,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="77,62,77,109,72,109,72,62"/>
-</map>

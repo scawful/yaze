@@ -1,0 +1,25 @@
+var classyaze_1_1zelda3_1_1overworld_1_1OverworldExit =
+[
+    [ "OverworldExit", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#acfe2457f59f38ccb2641f3ec1d01e5fa", null ],
+    [ "OverworldExit", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#add365922a35da80b62db9eb258682b6c", null ],
+    [ "UpdateMapProperties", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#a5cb91dba4ab54fd57dc84640443be852", null ],
+    [ "y_scroll_", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#a1a211a5199182d0ab8c55cb3acaf557a", null ],
+    [ "x_scroll_", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#a17122bd0e0f5e3a678a84b2162455ed9", null ],
+    [ "y_player_", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#a25f1d4ab86d8eb7f6a371abbafe2fd87", null ],
+    [ "x_player_", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#afe79ef2f32d0f76d0c9a5bc895203655", null ],
+    [ "y_camera_", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#a9839b00031b9a67ff8c725d3f9c869c7", null ],
+    [ "x_camera_", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#a3868685a79475c8620999afae6313f88", null ],
+    [ "scroll_mod_y_", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#a00404413bf2c733f402825315d74b71e", null ],
+    [ "scroll_mod_x_", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#a8f649bf1fa7725af71669c983bd9ed7f", null ],
+    [ "door_type_1_", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#a621203b132fd451e548be05c921ffe0b", null ],
+    [ "door_type_2_", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#a62cbfc399ff2b82423f751e211daf32e", null ],
+    [ "room_id_", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#a0c38655d38ec77c9f826a8e890d1f2e9", null ],
+    [ "map_pos_", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#ac3790ac2afcf74409eb186389d29e5df", null ],
+    [ "entrance_id_", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#a2cab1a087d5bbacdbb23308d2a237f85", null ],
+    [ "area_x_", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#adb5c842d4236da25d9c59cbc45bd4aa9", null ],
+    [ "area_y_", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#aa2acd2743ce022126882458e1ea7d1a1", null ],
+    [ "is_hole_", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#a6bb0725a5e04e256254be058f48c03f6", null ],
+    [ "deleted_", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#ad58488fa5ef63864f7f8e4237d86734c", null ],
+    [ "is_automatic_", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#a0c5dfd3436b48fc61db4e0383f2e7e1e", null ],
+    [ "large_map_", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html#aafd809a298fa9c158820152a73c740fa", null ]
+];

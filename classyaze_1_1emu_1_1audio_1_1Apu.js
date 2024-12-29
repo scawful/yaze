@@ -1,0 +1,26 @@
+var classyaze_1_1emu_1_1audio_1_1Apu =
+[
+    [ "Apu", "classyaze_1_1emu_1_1audio_1_1Apu.html#a3d06982b55ede97eb7039fcf6b2fa8c3", null ],
+    [ "Init", "classyaze_1_1emu_1_1audio_1_1Apu.html#ad1a9f361a71fad2c43345759e81de52e", null ],
+    [ "Reset", "classyaze_1_1emu_1_1audio_1_1Apu.html#a999b67219cce5a30958bb371bcd439d7", null ],
+    [ "RunCycles", "classyaze_1_1emu_1_1audio_1_1Apu.html#ac9de5f3200295bc596120bcc5e6f404d", null ],
+    [ "SpcRead", "classyaze_1_1emu_1_1audio_1_1Apu.html#a6a54789102c343fca4f9e4ce49876bce", null ],
+    [ "SpcWrite", "classyaze_1_1emu_1_1audio_1_1Apu.html#aa1ff067e4ae45d8f953f746ad8fac9bd", null ],
+    [ "SpcIdle", "classyaze_1_1emu_1_1audio_1_1Apu.html#a39cdd0a995a7bca6d503479d4749744e", null ],
+    [ "Cycle", "classyaze_1_1emu_1_1audio_1_1Apu.html#aa93fe4e262c18023374b15512bf6dc03", null ],
+    [ "Read", "classyaze_1_1emu_1_1audio_1_1Apu.html#ac79d4cd6fc8d3e96f001dbdbb29d10c6", null ],
+    [ "Write", "classyaze_1_1emu_1_1audio_1_1Apu.html#a2bf370696bcfda1d6626de7b9151548a", null ],
+    [ "dsp", "classyaze_1_1emu_1_1audio_1_1Apu.html#a7591bebbc788bca323d8d98703057899", null ],
+    [ "spc700", "classyaze_1_1emu_1_1audio_1_1Apu.html#a99ffe907c82ca45c52a57f8a2f205d2c", null ],
+    [ "in_ports_", "classyaze_1_1emu_1_1audio_1_1Apu.html#a650213dac7b3596510614745c1a82263", null ],
+    [ "out_ports_", "classyaze_1_1emu_1_1audio_1_1Apu.html#a102900311f292c0b8ee6f27d8876c029", null ],
+    [ "ram", "classyaze_1_1emu_1_1audio_1_1Apu.html#aa184c6aabd6852e00fcdcd49e2602796", null ],
+    [ "rom_readable_", "classyaze_1_1emu_1_1audio_1_1Apu.html#af2413f30222e6387232f6b912a3518c7", null ],
+    [ "dsp_adr_", "classyaze_1_1emu_1_1audio_1_1Apu.html#ad5c94ac3360617015cc4153660f2630b", null ],
+    [ "cycles_", "classyaze_1_1emu_1_1audio_1_1Apu.html#ada6553f903d900bd574e037214dd95af", null ],
+    [ "memory_", "classyaze_1_1emu_1_1audio_1_1Apu.html#ad193ad5fb283215dc6d6fd1aec95c2e0", null ],
+    [ "timer_", "classyaze_1_1emu_1_1audio_1_1Apu.html#af064e0dea052cfc5efc9f29fdcf9edf2", null ],
+    [ "callbacks_", "classyaze_1_1emu_1_1audio_1_1Apu.html#ac896761086955174a09a95cdc9931c72", null ],
+    [ "dsp_", "classyaze_1_1emu_1_1audio_1_1Apu.html#a5ccd512dfe77d4d13a65b8f7a3a02172", null ],
+    [ "spc700_", "classyaze_1_1emu_1_1audio_1_1Apu.html#a4a68942c80956343dcbf60b019ce197a", null ]
+];

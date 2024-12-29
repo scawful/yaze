@@ -1,8 +1,8 @@
 var room__object_8cc =
 [
-    [ "operator|", "room__object_8cc.html#a6a9452416d917ccb246fbc455e485900", null ],
-    [ "operator&", "room__object_8cc.html#a0e0b5f02a8db99844bc754410f93f02f", null ],
-    [ "operator^", "room__object_8cc.html#acbe6d60cd1693a56f4aab97bdac2f3fb", null ],
-    [ "operator~", "room__object_8cc.html#a86644c3f8bc3f03fd330b2c3b4f0ba00", null ],
-    [ "FetchSubtypeInfo", "room__object_8cc.html#afa1d894d9706beec670641597b714396", null ]
+    [ "operator|", "room__object_8cc.html#afa4bed4be75875ac458bf7b34cebd51b", null ],
+    [ "operator&", "room__object_8cc.html#a3c9515c06cfc1c4dfacab6881e818a56", null ],
+    [ "operator^", "room__object_8cc.html#a223ebbb6bacc2148192a78fc40da1c55", null ],
+    [ "operator~", "room__object_8cc.html#a07e49c227ed475fa69ff75eff6cb20dc", null ],
+    [ "FetchSubtypeInfo", "room__object_8cc.html#a8f0e5fae1a68cc3a3152f06bcf4570a8", null ]
 ];

@@ -1,0 +1,15 @@
+<map id="yaze::editor::Editor" name="yaze::editor::Editor">
+<area shape="rect" id="Node000001" title="Interface for editor classes." alt="" coords="639,104,763,130"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1editor_1_1EditorContext.html" title=" " alt="" coords="371,104,539,130"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="554,114,639,114,639,120,554,120"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1ConstantManager.html" title=" " alt="" coords="9,5,202,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="218,28,283,40,348,58,395,79,434,101,431,106,392,84,346,63,281,45,217,33"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1CommandManager.html" title=" " alt="" coords="5,55,206,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="222,77,347,94,386,101,385,106,346,99,221,83"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1editor_1_1ExtensionManager.html" title=" " alt="" coords="7,104,204,130"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="220,114,370,114,370,120,220,120"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1editor_1_1HistoryManager.html" title=" " alt="" coords="14,153,197,179"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="212,152,346,135,386,128,387,133,347,140,212,158"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1editor_1_1ResourceManager.html" title=" " alt="" coords="7,203,204,228"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="219,200,282,188,346,171,392,150,431,128,434,133,395,155,348,176,284,194,220,206"/>
+</map>

@@ -1,9 +1,0 @@
-<map id="yaze::app::gfx::palette_group_internal::LoadGlobalSpritePalettes" name="yaze::app::gfx::palette_group_internal::LoadGlobalSpritePalettes">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,221,87"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a8fa2347dd7c201ffd8189cab6177798a" title=" " alt="" coords="269,5,448,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="221,42,253,37,254,43,221,47"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx.html#a770b616b1a09b80f72fdd549ec6a7f34" title=" " alt="" coords="271,71,446,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="221,70,256,75,255,80,221,76"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx.html#ada8bbf979fa3b08cc19504b83e4f304f" title=" " alt="" coords="496,71,667,111"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="446,88,480,88,480,94,446,94"/>
-</map>

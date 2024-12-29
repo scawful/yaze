@@ -1,16 +1,16 @@
 var snes__color_8cc =
 [
-    [ "ConvertSnesToRgb", "snes__color_8cc.html#ace8561cae82eacd977d77f14fe86ae2e", null ],
-    [ "ConvertRgbToSnes", "snes__color_8cc.html#ada8bbf979fa3b08cc19504b83e4f304f", null ],
-    [ "ConvertRgbToSnes", "snes__color_8cc.html#a00db465a778cd18f2df2da45974b0cbb", null ],
-    [ "ReadColorFromRom", "snes__color_8cc.html#a276da0ce346e9b3837ef0483e04eedd4", null ],
-    [ "Extract", "snes__color_8cc.html#af350b17d01f5a0bc15edc46e05fedcaa", null ],
-    [ "Convert", "snes__color_8cc.html#ad373c73aedd572d880fc5c49e0b4782e", null ],
-    [ "GetCgxColor", "snes__color_8cc.html#a1b60824abe89dea75cf945b0e77f1b8d", null ],
-    [ "GetColFileData", "snes__color_8cc.html#a9cae2d3018552dc353ffe8c1ef77cc63", null ],
-    [ "SNES_RED_MASK", "snes__color_8cc.html#a2c96a51c2e83a6e133720c10d10ebd17", null ],
-    [ "SNES_GREEN_MASK", "snes__color_8cc.html#ad23eb7c59ab96c08179a6d6625ad0fdd", null ],
-    [ "SNES_BLUE_MASK", "snes__color_8cc.html#a9f93560824621862a7e4889d592cb2df", null ],
-    [ "SNES_GREEN_SHIFT", "snes__color_8cc.html#a0912d77a56151905de5232b2a90cb5f8", null ],
-    [ "SNES_BLUE_SHIFT", "snes__color_8cc.html#aefdc5379d7c7907c0b2cf786b9e5d166", null ]
+    [ "ConvertSnesToRgb", "snes__color_8cc.html#a893d31b6aeb9a3df9754b9def778b458", null ],
+    [ "ConvertRgbToSnes", "snes__color_8cc.html#a4e83a052d42017612243c3f81b538b7d", null ],
+    [ "ConvertRgbToSnes", "snes__color_8cc.html#a78da9ee9b2de37e218f0152a1ecc4e36", null ],
+    [ "ReadColorFromRom", "snes__color_8cc.html#a68d9e4162aa4c03b5061b60c3da6947a", null ],
+    [ "Extract", "snes__color_8cc.html#a10d06c5c03e3faef4b05f4183024650e", null ],
+    [ "Convert", "snes__color_8cc.html#a58538e81c6b1b5c0d28310f84eced8b7", null ],
+    [ "GetCgxColor", "snes__color_8cc.html#ae3e101d19e3d8139f0d0aac4e9e53827", null ],
+    [ "GetColFileData", "snes__color_8cc.html#af8fed1cb0f0baca7110e27e8594da601", null ],
+    [ "SNES_RED_MASK", "snes__color_8cc.html#a9b4b6071aaee6f4570491682261ea5df", null ],
+    [ "SNES_GREEN_MASK", "snes__color_8cc.html#a16bca2c689cfce1349f2d1f0790dbe96", null ],
+    [ "SNES_BLUE_MASK", "snes__color_8cc.html#aa7968f1891adda4d3f224100ed006a76", null ],
+    [ "SNES_GREEN_SHIFT", "snes__color_8cc.html#a730c9e2c123b82fbe90f003c72a6b4af", null ],
+    [ "SNES_BLUE_SHIFT", "snes__color_8cc.html#a6f318f42cd06cb5344977f66ecec8491", null ]
 ];

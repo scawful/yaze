@@ -1,0 +1,8 @@
+<map id="yaze::editor::MessageEditor::Save" name="yaze::editor::MessageEditor::Save">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,183,87"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1MessageEditor.html#a6230eee2580dc1e9156ed934039e4970" title=" " alt="" coords="231,5,408,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,48,215,42,216,47,183,53"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="245,94,394,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="183,80,230,88,229,94,182,85"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="282,95,275,86,279,76,294,70,319,68,347,70,361,77,359,82,345,75,319,73,295,75,283,80,280,85,286,92"/>
+</map>

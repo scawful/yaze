@@ -1,0 +1,32 @@
+<map id="yaze::emu::SNES::Rread" name="yaze::emu::SNES::Rread">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,278,166,304"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1memory_1_1MemoryImpl.html#a0bc248a2fe401321261389d20407b460" title=" " alt="" coords="232,104,384,145"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,276,265,152,269,156,106,280"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1emu_1_1memory_1_1MemoryImpl.html#aa47fbc5c180651713f213a136197d749" title=" " alt="" coords="474,267,628,307"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="166,288,458,285,458,290,166,293"/>
+<area shape="rect" id="Node000007" href="$namespaceyaze_1_1emu_1_1memory_1_1dma.html#a729737183d09cef6e9bd42dce75c3f02" title=" " alt="" coords="240,213,376,254"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="138,275,224,253,225,258,139,280"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1emu_1_1SNES.html#aa6708b0e7fa178ffa61b8dd4ed759728" title=" " alt="" coords="214,336,402,361"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="139,302,241,329,240,334,138,307"/>
+<area shape="rect" id="Node000077" href="$classyaze_1_1emu_1_1SNES.html#a7752ccf0900001836af3518fb9d2d750" title=" " alt="" coords="218,413,398,438"/>
+<area shape="poly" id="edge13_Node000001_Node000077" title=" " alt="" coords="108,302,215,371,269,403,267,407,212,376,105,307"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1memory_1_1MemoryImpl.html#adac5f94cad8d9d173352db67aaa61ac2" title=" " alt="" coords="450,5,651,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="350,101,449,57,468,49,470,54,451,61,352,106"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1memory_1_1MemoryImpl.html#aad28ffe57e5d95ebd54c6544bcb70756" title=" " alt="" coords="457,71,644,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="384,111,441,103,442,109,385,117"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1emu_1_1memory_1_1MemoryImpl.html#a954b93279ae46b4027b7b46851f1878e" title=" " alt="" coords="456,136,645,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="385,132,441,139,440,144,384,137"/>
+<area shape="poly" id="edge8_Node000007_Node000006" title=" " alt="" coords="377,246,459,264,458,269,375,251"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1emu_1_1memory_1_1MemoryImpl.html#a955b252d3e0743614447e7bc858d7714" title=" " alt="" coords="460,201,642,242"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="376,228,444,224,444,230,376,233"/>
+<area shape="poly" id="edge11_Node000009_Node000006" title=" " alt="" coords="361,332,458,308,459,313,363,337"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1emu_1_1SNES.html#a7d9372953fe1e30e50bd95d7c80756e5" title=" " alt="" coords="450,397,651,422"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="362,359,451,382,483,390,481,395,449,387,361,364"/>
+<area shape="rect" id="Node000070" href="$classyaze_1_1emu_1_1video_1_1Ppu.html#a7edcbd38aecd6d3d55463762564289d2" title=" " alt="" coords="478,332,623,373"/>
+<area shape="poly" id="edge12_Node000009_Node000070" title=" " alt="" coords="402,347,463,348,463,354,402,353"/>
+<area shape="poly" id="edge15_Node000077_Node000006" title=" " alt="" coords="337,410,369,393,400,372,414,358,423,345,433,331,448,318,458,312,461,317,452,323,437,335,428,348,418,361,404,376,372,398,340,415"/>
+<area shape="rect" id="Node000078" href="$classyaze_1_1emu_1_1memory_1_1MemoryImpl.html#a13c36882d79cd3eeffbfdc9c68296cb2" title=" " alt="" coords="482,496,619,537"/>
+<area shape="poly" id="edge14_Node000077_Node000078" title=" " alt="" coords="340,437,451,482,469,488,467,493,449,487,338,441"/>
+<area shape="rect" id="Node000079" href="$classyaze_1_1emu_1_1Cpu.html#a32670c90122daf9129f8935cb0c23c8f" title=" " alt="" coords="476,446,625,472"/>
+<area shape="poly" id="edge16_Node000077_Node000079" title=" " alt="" coords="398,435,462,444,461,449,398,441"/>
+</map>

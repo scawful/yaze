@@ -1,0 +1,5 @@
+<map id="yaze::gui::InputHex" name="yaze::gui::InputHex">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,134,31"/>
+<area shape="rect" id="Node000002" href="$namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="182,5,333,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,16,166,16,166,21,134,21"/>
+</map>

@@ -1,5 +1,0 @@
-<map id="yaze::app::emu::Cpu" name="yaze::app::emu::Cpu">
-<area shape="rect" id="Node000001" title=" " alt="" coords="26,94,160,120"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="5,5,181,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="96,62,96,93,90,93,90,62"/>
-</map>

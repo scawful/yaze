@@ -1,7 +1,0 @@
-<map id="yaze::app::editor::SettingsEditor::DrawGeneralSettings" name="yaze::app::editor::SettingsEditor::DrawGeneralSettings">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,189,61"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1editor_1_1FlagsMenu.html#a7e05e45f0d1e8918fbf1d34b966e3d7e" title=" " alt="" coords="237,13,358,54"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,30,221,30,221,36,189,36"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7" title=" " alt="" coords="406,13,581,54"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="358,30,390,30,390,36,358,36"/>
-</map>

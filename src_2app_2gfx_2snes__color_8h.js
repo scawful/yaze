@@ -1,15 +1,15 @@
 var src_2app_2gfx_2snes__color_8h =
 [
-    [ "yaze::app::gfx::SnesColor", "classyaze_1_1app_1_1gfx_1_1SnesColor.html", "classyaze_1_1app_1_1gfx_1_1SnesColor" ],
-    [ "ConvertSnesToRgb", "src_2app_2gfx_2snes__color_8h.html#ace8561cae82eacd977d77f14fe86ae2e", null ],
-    [ "ConvertRgbToSnes", "src_2app_2gfx_2snes__color_8h.html#ada8bbf979fa3b08cc19504b83e4f304f", null ],
-    [ "ConvertRgbToSnes", "src_2app_2gfx_2snes__color_8h.html#a00db465a778cd18f2df2da45974b0cbb", null ],
-    [ "Extract", "src_2app_2gfx_2snes__color_8h.html#af350b17d01f5a0bc15edc46e05fedcaa", null ],
-    [ "Convert", "src_2app_2gfx_2snes__color_8h.html#ad373c73aedd572d880fc5c49e0b4782e", null ],
-    [ "ReadColorFromRom", "src_2app_2gfx_2snes__color_8h.html#a276da0ce346e9b3837ef0483e04eedd4", null ],
-    [ "GetCgxColor", "src_2app_2gfx_2snes__color_8h.html#a1b60824abe89dea75cf945b0e77f1b8d", null ],
-    [ "GetColFileData", "src_2app_2gfx_2snes__color_8h.html#a9cae2d3018552dc353ffe8c1ef77cc63", null ],
-    [ "NumberOfColors", "src_2app_2gfx_2snes__color_8h.html#a9a60aa10f33af4e1bec6b786cf73c149", null ],
-    [ "kColorByteMax", "src_2app_2gfx_2snes__color_8h.html#ae2123f33a8fb5b50ff714b9994aab899", null ],
-    [ "kColorByteMaxF", "src_2app_2gfx_2snes__color_8h.html#a1981d5f88428f048841f93bad2cc5ec3", null ]
+    [ "yaze::gfx::SnesColor", "classyaze_1_1gfx_1_1SnesColor.html", "classyaze_1_1gfx_1_1SnesColor" ],
+    [ "ConvertSnesToRgb", "src_2app_2gfx_2snes__color_8h.html#a893d31b6aeb9a3df9754b9def778b458", null ],
+    [ "ConvertRgbToSnes", "src_2app_2gfx_2snes__color_8h.html#a4e83a052d42017612243c3f81b538b7d", null ],
+    [ "ConvertRgbToSnes", "src_2app_2gfx_2snes__color_8h.html#a78da9ee9b2de37e218f0152a1ecc4e36", null ],
+    [ "Extract", "src_2app_2gfx_2snes__color_8h.html#a10d06c5c03e3faef4b05f4183024650e", null ],
+    [ "Convert", "src_2app_2gfx_2snes__color_8h.html#a58538e81c6b1b5c0d28310f84eced8b7", null ],
+    [ "ReadColorFromRom", "src_2app_2gfx_2snes__color_8h.html#a68d9e4162aa4c03b5061b60c3da6947a", null ],
+    [ "GetCgxColor", "src_2app_2gfx_2snes__color_8h.html#ae3e101d19e3d8139f0d0aac4e9e53827", null ],
+    [ "GetColFileData", "src_2app_2gfx_2snes__color_8h.html#af8fed1cb0f0baca7110e27e8594da601", null ],
+    [ "NumberOfColors", "src_2app_2gfx_2snes__color_8h.html#aa1d23b10c7b9b5b6d51eb35ab3df9765", null ],
+    [ "kColorByteMax", "src_2app_2gfx_2snes__color_8h.html#ac7f1a1c381048672e273ebdb96a677e0", null ],
+    [ "kColorByteMaxF", "src_2app_2gfx_2snes__color_8h.html#abe440d09c939b2fa8b579c452893b657", null ]
 ];

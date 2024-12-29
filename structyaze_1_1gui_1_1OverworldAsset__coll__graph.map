@@ -1,0 +1,5 @@
+<map id="yaze::gui::OverworldAsset" name="yaze::gui::OverworldAsset">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,175,105"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1gui_1_1AssetObject.html" title=" " alt="" coords="16,5,164,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,46,93,79,87,79,87,46"/>
+</map>

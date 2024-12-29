@@ -1,0 +1,9 @@
+<map id="yaze::gfx::CreateTilesheetFromGraphicsBuffer" name="yaze::gfx::CreateTilesheetFromGraphicsBuffer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,173,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Tilesheet.html#ab6b8563b96cbcb4ab65d009edf3086fc" title=" " alt="" coords="221,5,350,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,42,205,37,206,42,173,47"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Tilesheet.html#aa0896f4f20dc7f09b054aa1d5e7e87a6" title=" " alt="" coords="221,71,350,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="173,70,206,75,205,81,173,75"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Tilesheet.html#a7e5c282f85377a4c1682f86d0e5d56ad" title=" " alt="" coords="398,5,527,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="350,23,382,23,382,28,350,28"/>
+</map>

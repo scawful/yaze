@@ -1,7 +1,0 @@
-<map id="yaze::app::zelda3::dungeon::Subtype1" name="yaze::app::zelda3::dungeon::Subtype1">
-<area shape="rect" id="Node000001" title=" " alt="" coords="14,168,145,208"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html" title=" " alt="" coords="5,79,154,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="82,135,82,167,77,167,77,135"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="5,5,154,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="82,46,82,79,77,79,77,46"/>
-</map>

@@ -1,13 +1,13 @@
 <map id="yaze::test::RomTest" name="yaze::test::RomTest">
-<area shape="rect" id="Node000001" title=" " alt="" coords="596,53,730,78"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="416,29,508,54"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="524,46,596,55,595,60,524,52"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="409,78,516,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="531,80,595,72,596,77,531,85"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="20,5,195,46"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="211,37,385,68,413,75,412,80,384,74,210,43"/>
-<area shape="rect" id="Node000005" href="$structyaze_1_1app_1_1ResourceLabelManager.html" title=" " alt="" coords="24,71,191,111"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="207,88,408,88,408,94,207,94"/>
-<area shape="rect" id="Node000006" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="5,136,210,161"/>
-<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="225,133,384,109,414,102,415,107,385,114,226,139"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="148,183,283,208"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="148,94,240,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,134,215,182,210,183,198,136"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="265,94,345,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="283,132,230,184,226,180,280,129"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="5,5,186,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="140,35,276,91,274,96,138,40"/>
+<area shape="rect" id="Node000005" href="$structyaze_1_1ResourceLabelManager.html" title=" " alt="" coords="210,5,400,31"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="308,47,308,94,302,94,302,47"/>
+<area shape="rect" id="Node000006" href="$structyaze_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="424,5,602,31"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="496,45,462,72,433,85,403,95,346,105,345,100,401,89,431,80,459,68,492,41"/>
 </map>

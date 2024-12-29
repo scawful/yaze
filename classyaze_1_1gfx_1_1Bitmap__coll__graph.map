@@ -1,0 +1,5 @@
+<map id="yaze::gfx::Bitmap" name="yaze::gfx::Bitmap">
+<area shape="rect" id="Node000001" title="Represents a bitmap image." alt="" coords="20,94,138,120"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="5,5,153,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="82,47,82,94,76,94,76,47"/>
+</map>

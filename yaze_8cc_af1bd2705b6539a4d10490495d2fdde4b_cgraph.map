@@ -1,11 +1,11 @@
 <map id="yaze_init" name="yaze_init">
-<area shape="rect" id="Node000001" title="Initialize the Yaze library." alt="" coords="5,55,77,80"/>
-<area shape="rect" id="Node000002" href="$yaze_8cc.html#adfaf105df03accd07b94f1e60c6ed8bf" title="Load a Zelda3 ROM from a file." alt="" coords="125,55,232,80"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,77,80"/>
+<area shape="rect" id="Node000002" href="$yaze_8cc.html#adfaf105df03accd07b94f1e60c6ed8bf" title=" " alt="" coords="125,55,232,80"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="77,65,109,65,109,70,77,70"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="308,5,446,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="232,52,279,40,307,33,308,38,281,45,233,57"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197" title=" " alt="" coords="280,55,473,80"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="233,65,264,65,264,70,233,70"/>
-<area shape="rect" id="Node000030" href="$classyaze_1_1app_1_1Rom.html#a648c0cee09095aad6aa881fc114a9f5f" title=" " alt="" coords="308,104,445,130"/>
-<area shape="poly" id="edge4_Node000002_Node000030" title=" " alt="" coords="233,78,281,90,308,97,307,102,279,95,232,83"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a236fc04c8575b9913db77b8cd5dea273" title=" " alt="" coords="308,5,419,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="229,51,297,33,298,38,230,57"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="280,55,446,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="232,65,264,65,264,70,232,70"/>
+<area shape="rect" id="Node000030" href="$classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="308,104,418,130"/>
+<area shape="poly" id="edge4_Node000002_Node000030" title=" " alt="" coords="230,78,298,97,297,102,229,84"/>
 </map>

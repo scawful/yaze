@@ -1,15 +1,15 @@
 var bitmap_8h =
 [
-    [ "yaze::app::gfx::Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html", "classyaze_1_1app_1_1gfx_1_1Bitmap" ],
-    [ "BitmapTable", "bitmap_8h.html#a858420796068f9283ed3cb7dd88f9138", null ],
-    [ "BitmapFormat", "bitmap_8h.html#a9a4f97a4dc623c7581bf43f61a19f5ff", [
-      [ "kIndexed", "bitmap_8h.html#a9a4f97a4dc623c7581bf43f61a19f5ffa4c73c14797db718d5133dc97c2d617e2", null ],
-      [ "k2bpp", "bitmap_8h.html#a9a4f97a4dc623c7581bf43f61a19f5ffa0bb8835602af5ac322025d4a616fee99", null ],
-      [ "k4bpp", "bitmap_8h.html#a9a4f97a4dc623c7581bf43f61a19f5ffa8bfe24506d59df1a4476cd0a35a0e787", null ],
-      [ "k8bpp", "bitmap_8h.html#a9a4f97a4dc623c7581bf43f61a19f5ffae27e66cb9bf5a5fa97b12936990b150b", null ]
+    [ "yaze::gfx::Bitmap", "classyaze_1_1gfx_1_1Bitmap.html", "classyaze_1_1gfx_1_1Bitmap" ],
+    [ "BitmapTable", "bitmap_8h.html#ac70b35914f079891436c2442779b9113", null ],
+    [ "BitmapFormat", "bitmap_8h.html#a2dbad3152b14109b6d797128f9c2c3ba", [
+      [ "kIndexed", "bitmap_8h.html#a2dbad3152b14109b6d797128f9c2c3baa5172f5b5640d9778d46551616f815c63", null ],
+      [ "k2bpp", "bitmap_8h.html#a2dbad3152b14109b6d797128f9c2c3baa77b51a5492c5c30ff2e0d363e7076f1b", null ],
+      [ "k4bpp", "bitmap_8h.html#a2dbad3152b14109b6d797128f9c2c3baae51d9a2bf06ec9c737a060897ea2b165", null ],
+      [ "k8bpp", "bitmap_8h.html#a2dbad3152b14109b6d797128f9c2c3baa826db0251f792f5763b484b7abb96fbb", null ]
     ] ],
-    [ "SNES_PIXELFORMAT_INDEXED", "bitmap_8h.html#abd8392f2567021f0b26d5f7a184329fa", null ],
-    [ "SNES_PIXELFORMAT_2BPP", "bitmap_8h.html#a801752cb921f7e16a55028f76bdb1837", null ],
-    [ "SNES_PIXELFORMAT_4BPP", "bitmap_8h.html#a192c4cda963b17f9be296f9ae193b501", null ],
-    [ "SNES_PIXELFORMAT_8BPP", "bitmap_8h.html#ab1ea2f7bd64b3a175c493b5da918e2ca", null ]
+    [ "SNES_PIXELFORMAT_INDEXED", "bitmap_8h.html#a59d25f0a8a35bda5f27d6b8314970616", null ],
+    [ "SNES_PIXELFORMAT_2BPP", "bitmap_8h.html#a91535d87ffc80f2931d88d0292a9afaf", null ],
+    [ "SNES_PIXELFORMAT_4BPP", "bitmap_8h.html#a773d8b8d1871caffc5115a1e8a2090bb", null ],
+    [ "SNES_PIXELFORMAT_8BPP", "bitmap_8h.html#a526b13f553a3d35517d0538e61e69987", null ]
 ];

@@ -1,5 +1,0 @@
-<map id="yaze::app::Rom::ReadWord" name="yaze::app::Rom::ReadWord">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,179,38"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#af1f19dccd552a9eceee8f07ad0485fbb" title="Precondition check for reading and writing to the Rom." alt="" coords="227,5,400,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,23,211,23,211,28,179,28"/>
-</map>

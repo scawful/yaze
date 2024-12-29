@@ -1,5 +1,0 @@
-<map id="yaze::app::gfx::PaletteGroupMap" name="yaze::app::gfx::PaletteGroupMap">
-<area shape="rect" id="Node000001" title="Represents a mapping of palette groups." alt="" coords="5,259,210,285"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html" title="Represents a group of palettes." alt="" coords="18,5,197,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,47,110,259,105,259,105,47"/>
-</map>

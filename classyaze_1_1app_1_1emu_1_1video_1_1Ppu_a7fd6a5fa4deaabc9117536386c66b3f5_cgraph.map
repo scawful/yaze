@@ -1,7 +1,0 @@
-<map id="yaze::app::emu::video::Ppu::Write" name="yaze::app::emu::video::Ppu::Write">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,148,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a88ab8ef055956e1cfaacd2cd8ca060d7" title=" " alt="" coords="200,5,349,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,44,184,38,185,43,149,50"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a4c74763b9244d4d2af6bfdee4b2e129e" title=" " alt="" coords="196,71,353,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="149,68,181,73,180,78,148,73"/>
-</map>

@@ -1,0 +1,5 @@
+<map id="yaze::gfx::Tilesheet::GetTile" name="yaze::gfx::Tilesheet::GetTile">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,135,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Tilesheet.html#aecf6f58fbf1982872ca968110d482e59" title=" " alt="" coords="183,5,316,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,23,167,23,167,28,135,28"/>
+</map>

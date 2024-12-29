@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['x_0',['x',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#abe061ca7c20a0ff2f50fb0d717d089df',1,'yaze::app::zelda3::Sprite']]],
-  ['xba_1',['XBA',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a4108a2232db8cea982065b02c9f1edd0',1,'yaze::app::emu::Cpu']]],
-  ['xce_2',['XCE',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a03b4b61f534c16bafad8d3bff1cdae3c',1,'yaze::app::emu::Cpu']]],
-  ['xcn_3',['XCN',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a530df97d094b0a206d7b54e1c8c6a693',1,'yaze::app::emu::audio::Spc700']]],
-  ['xf_4',['xf',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a2c7354bc54134b0a47b9f1167e133913',1,'yaze::app::emu::Cpu']]]
+  ['x_0',['x',['../classyaze_1_1zelda3_1_1Sprite.html#ae640a5c086d36e3611788acd66cb75f4',1,'yaze::zelda3::Sprite']]],
+  ['xba_1',['XBA',['../classyaze_1_1emu_1_1Cpu.html#a04225ab4c15f1d00f18c4230c53789d4',1,'yaze::emu::Cpu']]],
+  ['xce_2',['XCE',['../classyaze_1_1emu_1_1Cpu.html#a878ffdf6ad172a0316f2f9ea8090cb2e',1,'yaze::emu::Cpu']]],
+  ['xcn_3',['XCN',['../classyaze_1_1emu_1_1audio_1_1Spc700.html#a9e707d0b55e525b7cb125911d6f51d85',1,'yaze::emu::audio::Spc700']]],
+  ['xf_4',['xf',['../classyaze_1_1emu_1_1Cpu.html#afe08a20ba751b038e5a5ff16407efaa4',1,'yaze::emu::Cpu']]]
 ];

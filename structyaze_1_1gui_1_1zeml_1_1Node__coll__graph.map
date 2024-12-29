@@ -1,0 +1,6 @@
+<map id="yaze::gui::zeml::Node" name="yaze::gui::zeml::Node">
+<area shape="rect" id="Node000001" title="Node for a zeml tree." alt="" coords="38,94,178,120"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="195,99,205,107,197,115,179,117,178,112,194,110,200,107,192,103"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1gui_1_1zeml_1_1WidgetAttributes.html" title="Attributes for a widget." alt="" coords="5,5,211,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,47,111,94,105,94,105,47"/>
+</map>

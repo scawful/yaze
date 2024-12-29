@@ -1,0 +1,11 @@
+<map id="yaze::emu::audio::Dsp::CycleChannel" name="yaze::emu::audio::Dsp::CycleChannel">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,150,111"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1audio_1_1Dsp.html#ae1c1c199482d77aac98d78a39c52892e" title=" " alt="" coords="198,5,342,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,68,193,49,195,54,140,73"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1audio_1_1Dsp.html#ab48e61a5e243549977f11fa50af618f4" title=" " alt="" coords="198,71,342,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="150,88,182,88,182,94,150,94"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1audio_1_1Dsp.html#a4c42ec422c24d71c8c0c7fe77c6decb7" title=" " alt="" coords="198,136,342,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="140,109,195,128,193,133,138,114"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1emu_1_1audio_1_1Dsp.html#a532684ad7cab2790ccee509117d453bd" title=" " alt="" coords="390,136,534,177"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="342,154,375,154,375,159,342,159"/>
+</map>

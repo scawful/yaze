@@ -1,0 +1,5 @@
+<map id="yaze::editor::FlagsMenu::Draw" name="yaze::editor::FlagsMenu::Draw">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,161,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1ExperimentFlags.html#ab62a2206ef60e525c241f0dc0111044f" title=" " alt="" coords="209,5,389,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,23,193,23,193,28,161,28"/>
+</map>

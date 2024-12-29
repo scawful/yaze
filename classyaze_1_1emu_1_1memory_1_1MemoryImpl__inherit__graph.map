@@ -1,0 +1,5 @@
+<map id="yaze::emu::memory::MemoryImpl" name="yaze::emu::memory::MemoryImpl">
+<area shape="rect" id="Node000001" title="Implementation of the Memory interface for emulating memory in a SNES system." alt="" coords="5,94,142,135"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1memory_1_1Memory.html" title="Memory interface." alt="" coords="5,5,142,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="76,62,76,94,71,94,71,62"/>
+</map>

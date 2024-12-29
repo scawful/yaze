@@ -1,0 +1,6 @@
+<map id="yaze::zelda3::overworld::Overworld::LoadEntrances" name="yaze::zelda3::overworld::Overworld::LoadEntrances">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,22,185,62"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="233,29,382,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,40,217,40,217,45,185,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="272,31,265,21,269,11,284,5,307,3,333,5,347,12,344,17,332,10,307,8,285,10,273,15,270,20,276,27"/>
+</map>

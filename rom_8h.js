@@ -1,27 +1,27 @@
 var rom_8h =
 [
-    [ "yaze::app::VersionConstants", "structyaze_1_1app_1_1VersionConstants.html", "structyaze_1_1app_1_1VersionConstants" ],
-    [ "yaze::app::Rom", "classyaze_1_1app_1_1Rom.html", "classyaze_1_1app_1_1Rom" ],
-    [ "yaze::app::Rom::WriteAction", "structyaze_1_1app_1_1Rom_1_1WriteAction.html", "structyaze_1_1app_1_1Rom_1_1WriteAction" ],
-    [ "yaze::app::SharedRom", "classyaze_1_1app_1_1SharedRom.html", "classyaze_1_1app_1_1SharedRom" ],
-    [ "Z3_Version", "rom_8h.html#a24bebdceeb59d0f451c59123c0a38d47", [
-      [ "US", "rom_8h.html#a24bebdceeb59d0f451c59123c0a38d47a7516fd43adaa5e0b8a65a672c39845d2", null ],
-      [ "JP", "rom_8h.html#a24bebdceeb59d0f451c59123c0a38d47a24d22e03afb23edb45c6c8cfa16a280e", null ],
-      [ "SD", "rom_8h.html#a24bebdceeb59d0f451c59123c0a38d47a38f99abbc1d339c277c0669e7bc373c0", null ],
-      [ "RANDO", "rom_8h.html#a24bebdceeb59d0f451c59123c0a38d47a9cffbad7f42a5a6e18e4a9431187b051", null ]
+    [ "yaze::VersionConstants", "structyaze_1_1VersionConstants.html", "structyaze_1_1VersionConstants" ],
+    [ "yaze::Rom", "classyaze_1_1Rom.html", "classyaze_1_1Rom" ],
+    [ "yaze::Rom::WriteAction", "structyaze_1_1Rom_1_1WriteAction.html", "structyaze_1_1Rom_1_1WriteAction" ],
+    [ "yaze::SharedRom", "classyaze_1_1SharedRom.html", "classyaze_1_1SharedRom" ],
+    [ "Z3_Version", "rom_8h.html#a74d8c95a7cc3ccb2b53a1902bbd1c3ec", [
+      [ "US", "rom_8h.html#a74d8c95a7cc3ccb2b53a1902bbd1c3eca7516fd43adaa5e0b8a65a672c39845d2", null ],
+      [ "JP", "rom_8h.html#a74d8c95a7cc3ccb2b53a1902bbd1c3eca24d22e03afb23edb45c6c8cfa16a280e", null ],
+      [ "SD", "rom_8h.html#a74d8c95a7cc3ccb2b53a1902bbd1c3eca38f99abbc1d339c277c0669e7bc373c0", null ],
+      [ "RANDO", "rom_8h.html#a74d8c95a7cc3ccb2b53a1902bbd1c3eca9cffbad7f42a5a6e18e4a9431187b051", null ]
     ] ],
-    [ "kNumGfxSheets", "rom_8h.html#a9bbafa7d5f1809f3d216b5082f65d1b2", null ],
-    [ "kNumLinkSheets", "rom_8h.html#a4c7fab5470426166f7fcba0162f75387", null ],
-    [ "kTile16Ptr", "rom_8h.html#a11bc2d853f5f345a8225759635e64aac", null ],
-    [ "kNormalGfxSpaceStart", "rom_8h.html#a3ef17b1c481a3e73d2d97a92e3995b04", null ],
-    [ "kNormalGfxSpaceEnd", "rom_8h.html#a3ef7d1df5d323905102b5a1cef9d447d", null ],
-    [ "kFontSpriteLocation", "rom_8h.html#a6cba51ea80792c0f6a876549882f3778", null ],
-    [ "kGfxGroupsPointer", "rom_8h.html#aad75d3fb5bdf3b72aa19e3af3209082f", null ],
-    [ "kUncompressedSheetSize", "rom_8h.html#a64f8fa5b345e7d72292e7ce15e882331", null ],
-    [ "kNumMainBlocksets", "rom_8h.html#aab7ae1c6c1f53dc67967ef446b6f1454", null ],
-    [ "kNumRoomBlocksets", "rom_8h.html#a223d942fccf2b7b125c99611d5aafb2f", null ],
-    [ "kNumSpritesets", "rom_8h.html#a451077027ec769e34627daf9b66f67c0", null ],
-    [ "kNumPalettesets", "rom_8h.html#ac53a28cbb330029d4c5267572cdf87f2", null ],
-    [ "kEntranceGfxGroup", "rom_8h.html#aaa409a78e37fccfdba60b0e16d61a238", null ],
-    [ "kMaxGraphics", "rom_8h.html#a5f8a196cdfa37e480edbac75506b30ce", null ]
+    [ "kNumGfxSheets", "rom_8h.html#ac71d5970d234195c079f64f1a56e4522", null ],
+    [ "kNumLinkSheets", "rom_8h.html#a51ca5df538b7f54c045a80783c02b102", null ],
+    [ "kTile16Ptr", "rom_8h.html#a928bdc81237834754dbac3f20bde2dca", null ],
+    [ "kNormalGfxSpaceStart", "rom_8h.html#a55790eacbcbbde02e71f7cb230f1b044", null ],
+    [ "kNormalGfxSpaceEnd", "rom_8h.html#ae7f4d060a7da8c9ae259ac78937ff0f5", null ],
+    [ "kFontSpriteLocation", "rom_8h.html#a7f1d429e106ef643d8ead4c650743feb", null ],
+    [ "kGfxGroupsPointer", "rom_8h.html#a2c1b8ba6ad52ecf45a54a2513d02da64", null ],
+    [ "kUncompressedSheetSize", "rom_8h.html#a30653b94f9a3bf78bee51a203e141dd4", null ],
+    [ "kNumMainBlocksets", "rom_8h.html#a992222fdde7c53740e5f3cc542881b3a", null ],
+    [ "kNumRoomBlocksets", "rom_8h.html#ac2b08cb603f8f019b669df53fbe14f2a", null ],
+    [ "kNumSpritesets", "rom_8h.html#a8ec2f2f56a0053f8169ecb919412cba6", null ],
+    [ "kNumPalettesets", "rom_8h.html#ae3027bef139fcf788bb8a0d3f6f1a3ed", null ],
+    [ "kEntranceGfxGroup", "rom_8h.html#a70210423b80d30a75edab49bddef04d0", null ],
+    [ "kMaxGraphics", "rom_8h.html#a1811556fa67024bbd32667c731c21036", null ]
 ];

@@ -1,7 +1,0 @@
-<map id="yaze::app::emu::memory::MemoryImpl::cart_write" name="yaze::app::emu::memory::MemoryImpl::cart_write">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,167,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ae0baebf0f0c203c7888cec15a7b7d617" title=" " alt="" coords="216,5,412,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,45,200,40,201,45,167,50"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a50a859e729ae3fda4dd5a100121bdc20" title=" " alt="" coords="215,71,413,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="167,68,200,72,199,78,166,73"/>
-</map>

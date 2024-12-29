@@ -1,4 +1,4 @@
 var overworld__map_8cc =
 [
-    [ "SetColorsPalette", "overworld__map_8cc.html#ac0260bcfd3c55dfe7d7155123619445d", null ]
+    [ "SetColorsPalette", "overworld__map_8cc.html#a4c13af2e5e10eee82c68353b78f0c52c", null ]
 ];

@@ -1,0 +1,5 @@
+<map id="yaze::zelda3::overworld::OverworldMap::SetupCustomTileset" name="yaze::zelda3::overworld::OverworldMap::SetupCustomTileset">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,241,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a76f67b131d3e1a18357ab82ec362e766" title=" " alt="" coords="289,5,417,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="241,23,273,23,273,28,241,28"/>
+</map>

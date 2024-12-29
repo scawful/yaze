@@ -1,7 +1,0 @@
-<map id="yaze::app::editor::palette_internal::PaletteChange" name="yaze::app::editor::palette_internal::PaletteChange">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,198,206,238"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1SnesColor.html" title="SNES Color container." alt="" coords="24,94,187,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,135,108,197,103,197,103,135"/>
-<area shape="rect" id="Node000003" href="$structsnes__color.html" title="Primitive of 16&#45;bit RGB SNES color." alt="" coords="63,5,148,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="108,47,108,94,103,94,103,47"/>
-</map>

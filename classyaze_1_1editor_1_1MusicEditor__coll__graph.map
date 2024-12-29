@@ -1,0 +1,28 @@
+<map id="yaze::editor::MusicEditor" name="yaze::editor::MusicEditor">
+<area shape="rect" id="Node000001" title="A class for editing music data in a Rom." alt="" coords="937,73,1097,99"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="634,5,755,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="771,23,841,33,914,48,983,70,982,75,913,53,840,38,770,28"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="282,59,406,84"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="421,71,937,82,937,87,421,76"/>
+<area shape="rect" id="Node000018" href="$classyaze_1_1editor_1_1AssemblyEditor.html" title="Text editor for modifying assembly code." alt="" coords="604,107,785,132"/>
+<area shape="poly" id="edge13_Node000018_Node000003" title=" " alt="" coords="422,79,604,105,603,110,421,85"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1editor_1_1EditorContext.html" title=" " alt="" coords="5,59,174,84"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="189,69,281,69,281,74,189,74"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1zelda3_1_1music_1_1Tracker.html" title=" " alt="" coords="629,276,760,317"/>
+<area shape="poly" id="edge4_Node000001_Node000010" title=" " alt="" coords="739,265,994,97,997,102,742,270"/>
+<area shape="rect" id="Node000011" href="$structyaze_1_1zelda3_1_1music_1_1SongPart.html" title=" " alt="" coords="278,114,410,154"/>
+<area shape="poly" id="edge5_Node000010_Node000011" title=" " alt="" coords="425,144,503,164,543,178,581,196,609,214,636,234,677,274,673,278,632,238,606,218,579,201,541,183,501,169,424,149"/>
+<area shape="rect" id="Node000012" href="$structyaze_1_1zelda3_1_1music_1_1SongRange.html" title=" " alt="" coords="278,179,410,220"/>
+<area shape="poly" id="edge6_Node000010_Node000012" title=" " alt="" coords="426,212,501,229,581,250,645,273,643,278,579,255,500,234,425,217"/>
+<area shape="rect" id="Node000013" href="$structyaze_1_1zelda3_1_1music_1_1SpcCommand.html" title=" " alt="" coords="278,244,410,285"/>
+<area shape="poly" id="edge7_Node000010_Node000013" title=" " alt="" coords="425,270,629,288,628,294,425,275"/>
+<area shape="rect" id="Node000014" href="$structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html" title=" " alt="" coords="278,310,410,350"/>
+<area shape="poly" id="edge8_Node000010_Node000014" title=" " alt="" coords="425,320,628,300,629,306,425,325"/>
+<area shape="rect" id="Node000015" href="$structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html" title=" " alt="" coords="278,375,410,416"/>
+<area shape="poly" id="edge9_Node000010_Node000015" title=" " alt="" coords="425,377,500,360,579,339,644,315,646,320,581,344,501,365,426,383"/>
+<area shape="rect" id="Node000016" href="$structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html" title=" " alt="" coords="278,440,410,481"/>
+<area shape="poly" id="edge10_Node000010_Node000016" title=" " alt="" coords="424,446,501,427,541,412,579,395,607,377,633,356,674,316,677,320,636,360,610,381,581,400,543,417,503,432,425,451"/>
+<area shape="rect" id="Node000017" href="$structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html" title=" " alt="" coords="274,506,414,546"/>
+<area shape="poly" id="edge11_Node000010_Node000017" title=" " alt="" coords="429,517,505,500,543,485,578,464,615,430,645,390,668,350,683,317,688,319,673,352,650,393,619,434,582,469,546,489,507,505,430,522"/>
+<area shape="poly" id="edge12_Node000001_Node000018" title=" " alt="" coords="800,110,913,100,937,97,937,102,914,105,801,116"/>
+</map>

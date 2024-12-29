@@ -1,0 +1,9 @@
+<map id="yaze::gfx::Convert4bppTo3bpp" name="yaze::gfx::Convert4bppTo3bpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,198,56"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx.html#a801e13a355e10203fa354ca04529ac94" title=" " alt="" coords="246,31,390,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,41,231,41,231,46,198,46"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gfx.html#a7260886a737941c53866529577b27e13" title=" " alt="" coords="446,5,596,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="390,32,430,27,430,32,391,37"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1gfx.html#aca63ef185d9f075d91c1515a5ccfc4a8" title=" " alt="" coords="438,55,603,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="391,49,423,53,422,59,390,55"/>
+</map>

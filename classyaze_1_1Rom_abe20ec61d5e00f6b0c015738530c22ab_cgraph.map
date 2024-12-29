@@ -1,0 +1,15 @@
+<map id="yaze::Rom::LoadAllGraphicsData" name="yaze::Rom::LoadAllGraphicsData">
+<area shape="rect" id="Node000001" title="This function iterates over all graphics sheets in the Rom and loads them into memory...." alt="" coords="5,128,215,154"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a236fc04c8575b9913db77b8cd5dea273" title=" " alt="" coords="299,5,410,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,125,184,84,262,41,283,33,285,38,264,46,187,89,130,130"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#a4e2e79a02c9bbff8d9720d6384296218" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="297,55,412,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="160,125,281,92,283,97,162,130"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="286,120,422,161"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="215,138,270,138,270,144,215,144"/>
+<area shape="rect" id="Node000006" href="$namespaceyaze_1_1gfx.html#af98fbf03d09d9d365f64202db1ecba15" title=" " alt="" coords="263,185,446,211"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="169,152,282,179,281,184,167,157"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1Rom.html#a76f67b131d3e1a18357ab82ec362e766" title=" " alt="" coords="290,235,418,276"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="135,152,192,185,264,221,277,227,275,231,262,226,190,190,132,157"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#a6da64d071c48c1b33962ff496877567e" title=" " alt="" coords="494,55,609,96"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="412,73,479,73,479,78,412,78"/>
+</map>

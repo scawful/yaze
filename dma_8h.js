@@ -1,13 +1,13 @@
 var dma_8h =
 [
-    [ "Reset", "dma_8h.html#a666ce88f7c70d9de1b75f043fea20287", null ],
-    [ "HandleDma", "dma_8h.html#ab5c19814c33eb509a14ba19c813371a2", null ],
-    [ "WaitCycle", "dma_8h.html#a5c9bf03212f6c4f8ea1e0153d80dc0a1", null ],
-    [ "InitHdma", "dma_8h.html#a13816b2a60e51fb6132db6d68938f9ac", null ],
-    [ "DoHdma", "dma_8h.html#a33a58e186c22ce300ab3753f1fee3b04", null ],
-    [ "TransferByte", "dma_8h.html#a1c8983aa73f3b43c99ef7b8b19978ebe", null ],
-    [ "Read", "dma_8h.html#afa24e8e2a9befbb3775e9521bb925623", null ],
-    [ "Write", "dma_8h.html#abbc688ba1ec96ed247f16a3cc1647083", null ],
-    [ "StartDma", "dma_8h.html#afd0ff1f7ddf0403b29a9ae7e39e85bc5", null ],
-    [ "DoDma", "dma_8h.html#a4d0117f3f937848d6a137c4eb4ca1649", null ]
+    [ "Reset", "dma_8h.html#a39eec60214cabe9aaafd5b05604a8cf1", null ],
+    [ "HandleDma", "dma_8h.html#a3493066f2f2907ba2ee9f98a79bb809f", null ],
+    [ "WaitCycle", "dma_8h.html#a087869eb0fdb36265e64b8662bb4f7af", null ],
+    [ "InitHdma", "dma_8h.html#a662c4cf1fb0b4272226b588d2addc328", null ],
+    [ "DoHdma", "dma_8h.html#a304dcf7c61d2713a9b92e50a809868ec", null ],
+    [ "TransferByte", "dma_8h.html#ac3ea6d322763d03bef2b7365036bf525", null ],
+    [ "Read", "dma_8h.html#a729737183d09cef6e9bd42dce75c3f02", null ],
+    [ "Write", "dma_8h.html#a19840f7262c69e2c2930d098a2e08c13", null ],
+    [ "StartDma", "dma_8h.html#af24a55daacc8090d19f0d58a79cc6c7d", null ],
+    [ "DoDma", "dma_8h.html#afb9991b55dcd086c3a0b4d3fae03e8ea", null ]
 ];

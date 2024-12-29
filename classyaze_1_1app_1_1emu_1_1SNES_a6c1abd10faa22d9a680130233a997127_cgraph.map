@@ -1,9 +1,0 @@
-<map id="yaze::app::emu::SNES::CatchUpApu" name="yaze::app::emu::SNES::CatchUpApu">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,153,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#afa010dcc9577f2afd47d7fa622036b1b" title=" " alt="" coords="201,39,343,79"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,56,186,56,186,62,153,62"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ad1c2080e714a5543f6aff7c2c1ae1f63" title=" " alt="" coords="391,5,554,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="343,45,375,39,376,44,344,50"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a8be7cee31f3e9ff7a82686b42298b219" title=" " alt="" coords="400,71,545,111"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="344,68,385,74,384,80,343,73"/>
-</map>

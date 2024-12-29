@@ -1,21 +1,21 @@
 <map id="BOOST_PYTHON_MODULE" name="BOOST_PYTHON_MODULE">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,92,199,118"/>
-<area shape="rect" id="Node000002" href="$yaze_8cc.html#a9fff64bba6ed578ae091960204b84648" title="Check the version of the Yaze library." alt="" coords="248,5,386,31"/>
+<area shape="rect" id="Node000002" href="$yaze_8cc.html#a9fff64bba6ed578ae091960204b84648" title=" " alt="" coords="248,5,386,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,89,246,41,263,34,265,39,248,46,134,94"/>
-<area shape="rect" id="Node000004" href="$yaze_8cc.html#adfb236b5541502ced4544a6678e79d0e" title="Get a color from a palette set." alt="" coords="247,55,387,96"/>
+<area shape="rect" id="Node000004" href="$yaze_8cc.html#adfb236b5541502ced4544a6678e79d0e" title=" " alt="" coords="247,55,387,96"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="199,89,231,84,232,90,199,94"/>
-<area shape="rect" id="Node000006" href="$yaze_8cc.html#adfaf105df03accd07b94f1e60c6ed8bf" title="Load a Zelda3 ROM from a file." alt="" coords="263,120,370,146"/>
+<area shape="rect" id="Node000006" href="$yaze_8cc.html#adfaf105df03accd07b94f1e60c6ed8bf" title=" " alt="" coords="263,120,370,146"/>
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="199,115,248,121,247,127,199,120"/>
-<area shape="rect" id="Node000035" href="$yaze_8cc.html#a883ab5865f5e61a639dc3dafcd45e8c7" title="Unload a Zelda3 ROM." alt="" coords="256,169,378,195"/>
+<area shape="rect" id="Node000035" href="$yaze_8cc.html#a883ab5865f5e61a639dc3dafcd45e8c7" title=" " alt="" coords="256,169,378,195"/>
 <area shape="poly" id="edge9_Node000001_Node000035" title=" " alt="" coords="140,116,248,156,263,161,262,166,246,161,138,121"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1core.html#a733400a6fb45f8737465befded39c773" title=" " alt="" coords="436,5,628,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="386,16,420,16,420,21,386,21"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1Rom.html#a0855ec3a63a82723541f870bdd00f53d" title=" " alt="" coords="456,55,608,96"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1core.html#a056bdafe2cc4104f6201289f44898047" title=" " alt="" coords="436,5,601,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="387,16,420,16,420,21,387,21"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1Rom.html#a680a6411982dec90abaae64ff288589a" title=" " alt="" coords="456,55,581,96"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="388,73,440,73,440,78,388,78"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="462,120,601,146"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1Rom.html#a236fc04c8575b9913db77b8cd5dea273" title=" " alt="" coords="462,120,574,146"/>
 <area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="371,130,447,130,447,136,371,136"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197" title=" " alt="" coords="435,169,628,195"/>
-<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="372,143,458,163,457,168,371,148"/>
-<area shape="rect" id="Node000034" href="$classyaze_1_1app_1_1Rom.html#a648c0cee09095aad6aa881fc114a9f5f" title=" " alt="" coords="464,219,600,244"/>
-<area shape="poly" id="edge8_Node000006_Node000034" title=" " alt="" coords="367,144,388,155,404,168,413,181,422,194,436,205,450,212,448,217,434,210,418,197,409,184,400,171,386,159,365,149"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="435,169,601,195"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="372,143,448,162,447,168,370,149"/>
+<area shape="rect" id="Node000034" href="$classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="464,219,573,244"/>
+<area shape="poly" id="edge8_Node000006_Node000034" title=" " alt="" coords="367,144,388,155,404,168,413,181,422,193,436,205,450,212,448,217,434,210,418,197,409,184,400,171,386,159,365,149"/>
 </map>

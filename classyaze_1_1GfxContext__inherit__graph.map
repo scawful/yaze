@@ -1,0 +1,9 @@
+<map id="yaze::GfxContext" name="yaze::GfxContext">
+<area shape="rect" id="Node000001" title="Shared graphical context across editors." alt="" coords="5,55,123,80"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1OverworldEditor.html" title="Manipulates the Overworld and OverworldMap data in a Rom." alt="" coords="171,5,354,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,48,207,29,208,34,134,53"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1Tile16Editor.html" title="Popup window to edit Tile16 data." alt="" coords="183,55,342,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="138,65,182,65,182,70,138,70"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html" title="Represents a single Overworld map screen." alt="" coords="186,104,338,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="126,83,190,101,189,106,125,88"/>
+</map>

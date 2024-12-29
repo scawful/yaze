@@ -1,0 +1,10 @@
+<map id="yaze::emu::Cpu::DirectPageIndirectLong" name="yaze::emu::Cpu::DirectPageIndirectLong">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,183,64"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1Cpu.html#a44ce3b48fcbd8e3c100a649bf1372177" title=" " alt="" coords="238,5,426,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,31,222,27,222,33,184,37"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1Cpu.html#ab0a1da5f723404c6af2e9bf5f5a0e646" title=" " alt="" coords="231,55,433,80"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="184,50,215,53,215,58,183,55"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1Cpu.html#a2ef3e26830cc01fa5401e964e933547a" title=" " alt="" coords="481,31,650,56"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="427,26,466,30,465,35,426,31"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="433,54,465,51,466,56,434,60"/>
+</map>

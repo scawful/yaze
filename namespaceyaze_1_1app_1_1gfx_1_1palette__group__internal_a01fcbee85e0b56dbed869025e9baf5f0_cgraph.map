@@ -1,9 +1,0 @@
-<map id="yaze::app::gfx::palette_group_internal::Load3DObjectPalettes" name="yaze::app::gfx::palette_group_internal::Load3DObjectPalettes">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,204,87"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a8fa2347dd7c201ffd8189cab6177798a" title=" " alt="" coords="252,5,431,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,42,236,38,237,43,204,48"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx.html#a770b616b1a09b80f72fdd549ec6a7f34" title=" " alt="" coords="254,71,428,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="204,70,239,75,239,80,204,75"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx.html#ada8bbf979fa3b08cc19504b83e4f304f" title=" " alt="" coords="479,71,650,111"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="429,88,463,88,463,94,429,94"/>
-</map>

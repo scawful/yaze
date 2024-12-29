@@ -1,7 +1,7 @@
 <map id="yaze::test::MockRom" name="yaze::test::MockRom">
-<area shape="rect" id="Node000001" title=" " alt="" coords="23,168,163,193"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="39,94,147,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="96,135,96,167,90,167,90,135"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="5,5,181,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="96,62,96,93,90,93,90,62"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="25,153,166,178"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="55,79,136,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,120,98,152,93,152,93,120"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="5,5,186,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="98,46,98,79,93,79,93,46"/>
 </map>

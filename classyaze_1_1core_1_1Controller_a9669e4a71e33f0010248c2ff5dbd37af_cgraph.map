@@ -1,0 +1,10 @@
+<map id="yaze::core::Controller::DoRender" name="yaze::core::Controller::DoRender">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,145,75"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="380,5,516,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,47,365,30,365,35,145,52"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1Controller.html#ab5862c085ec09def1c651a394d50d776" title=" " alt="" coords="193,63,332,103"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="145,63,178,68,177,73,145,68"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="330,60,364,49,366,54,331,65"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1Renderer.html#ab9486fe9b2a29dae3f97a585da5fb036" title=" " alt="" coords="380,71,516,111"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="333,83,365,85,364,90,332,89"/>
+</map>

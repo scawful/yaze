@@ -1,7 +1,0 @@
-<map id="yaze::app::emu::Clock" name="yaze::app::emu::Clock">
-<area shape="rect" id="Node000001" title=" " alt="" coords="111,5,256,31"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1ClockImpl.html" title=" " alt="" coords="5,86,175,112"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,43,106,88,103,84,156,39"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MockClock.html" title="Mock CPU class for testing." alt="" coords="199,79,357,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="211,39,256,77,253,81,207,43"/>
-</map>

@@ -1,0 +1,26 @@
+<map id="yaze::zelda3::music::Tracker::SaveSongs" name="yaze::zelda3::music::Tracker::SaveSongs">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,189,150,230"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1music_1_1Tracker.html#a28311b92f0aa840f6745cc4a16c95450" title=" " alt="" coords="435,7,597,47"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="84,188,99,154,122,111,155,70,174,52,196,37,251,15,309,5,366,3,420,7,419,12,366,8,309,10,252,20,199,42,178,56,159,73,127,114,103,156,88,190"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a236fc04c8575b9913db77b8cd5dea273" title=" " alt="" coords="460,226,572,252"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="145,228,198,239,263,245,329,247,445,243,445,248,329,252,263,250,197,244,144,233"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1music_1_1Tracker.html#a50fb8184fcc4ea30383988f55e39b9aa" title=" " alt="" coords="436,120,596,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="149,186,197,175,313,157,420,145,421,151,313,162,198,180,151,191"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze_1_1core.html#ac9d631f94259376fac0f193ba98bd9b2" title="Load little endian halfword (16&#45;bit) dereferenced from an arrays of bytes. This version provides an i..." alt="" coords="225,305,360,331"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="108,228,150,256,199,283,231,297,229,302,197,288,147,261,106,233"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1zelda3_1_1music_1_1Tracker.html#a9e8c49eed084c7790daf07995f5d4c08" title=" " alt="" coords="198,75,387,115"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="107,187,196,131,221,120,223,124,199,136,110,191"/>
+<area shape="rect" id="Node000008" href="$namespaceyaze_1_1core.html#a611a51e1035d450eef5c06263128ce92" title="Store little endian 16&#45;bit value using a byte pointer, offset by an index before dereferencing." alt="" coords="224,354,360,380"/>
+<area shape="poly" id="edge11_Node000001_Node000008" title=" " alt="" coords="94,229,136,285,165,315,199,341,211,347,209,352,196,345,162,319,132,289,89,232"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1zelda3_1_1music_1_1Tracker.html#a6e425cf578c8769ae95e3b8e85f808a1" title=" " alt="" coords="214,189,371,230"/>
+<area shape="poly" id="edge13_Node000001_Node000010" title=" " alt="" coords="150,207,198,207,198,212,150,212"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="474,120,472,110,479,101,494,95,516,93,540,96,555,102,553,107,539,101,516,99,495,101,482,105,477,111,479,119"/>
+<area shape="rect" id="Node000006" href="$namespaceyaze_1_1core.html#ae36970b562677c5876e1ee584a051530" title=" " alt="" coords="454,305,579,331"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="361,315,438,315,438,320,361,320"/>
+<area shape="poly" id="edge8_Node000007_Node000002" title=" " alt="" coords="361,72,432,50,433,55,363,77"/>
+<area shape="poly" id="edge9_Node000007_Node000004" title=" " alt="" coords="388,112,421,119,420,124,387,117"/>
+<area shape="poly" id="edge10_Node000007_Node000007" title=" " alt="" coords="252,75,250,65,256,56,271,50,292,48,316,51,329,57,327,62,314,56,292,53,272,55,260,60,255,66,257,74"/>
+<area shape="rect" id="Node000009" href="$namespaceyaze_1_1core.html#a2cb2c0bf50bac2324d970587cc1b0233" title=" " alt="" coords="453,354,579,380"/>
+<area shape="poly" id="edge12_Node000008_Node000009" title=" " alt="" coords="361,364,437,364,437,370,361,370"/>
+<area shape="poly" id="edge14_Node000010_Node000003" title=" " alt="" coords="372,218,446,227,445,233,371,223"/>
+</map>

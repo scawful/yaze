@@ -115,15 +115,10 @@ $(function(){initNavTree('room_8h.html',''); initResizable(true); });
 <div class="contents">
 <div class="textblock"><code>#include &lt;<a class="el" href="dungeon_8h_source.html">dungeon.h</a>&gt;</code><br />
 <code>#include &lt;cstdint&gt;</code><br />
-<code>#include &lt;fstream&gt;</code><br />
-<code>#include &lt;string&gt;</code><br />
 <code>#include &lt;string_view&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;<a class="el" href="constants_8h_source.html">app/core/constants.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="bitmap_8h_source.html">app/gfx/bitmap.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="snes__palette_8h_source.html">app/gfx/snes_palette.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="src_2app_2gfx_2snes__tile_8h_source.html">app/gfx/snes_tile.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="canvas_8h_source.html">app/gui/canvas.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="rom_8h_source.html">app/rom.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="room__object_8h_source.html">app/zelda3/dungeon/room_object.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="src_2app_2zelda3_2sprite_2sprite_8h_source.html">app/zelda3/sprite/sprite.h</a>&quot;</code><br />
@@ -132,92 +127,81 @@ Include dependency graph for room.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="room_8h__incl.png" border="0" usemap="#asrc_2app_2zelda3_2dungeon_2room_8h" alt=""/></div>
 <map name="asrc_2app_2zelda3_2dungeon_2room_8h" id="asrc_2app_2zelda3_2dungeon_2room_8h">
-<area shape="rect" title=" " alt="" coords="887,5,1046,46"/>
+<area shape="rect" title=" " alt="" coords="902,5,1060,46"/>
 <area shape="rect" href="dungeon_8h.html" title=" " alt="" coords="88,102,168,127"/>
-<area shape="poly" title=" " alt="" coords="887,31,753,35,578,46,383,65,187,97,175,99,174,94,186,91,382,60,578,40,753,30,887,25"/>
-<area shape="rect" title=" " alt="" coords="1143,419,1203,444"/>
-<area shape="poly" title=" " alt="" coords="1027,44,1076,67,1124,99,1145,119,1161,141,1172,166,1176,194,1176,270,1176,403,1170,403,1170,270,1170,194,1167,168,1156,144,1141,122,1121,103,1074,71,1025,49"/>
-<area shape="rect" title=" " alt="" coords="532,102,598,127"/>
-<area shape="poly" title=" " alt="" coords="887,39,756,61,682,77,610,97,605,98,603,93,608,91,681,72,755,56,886,34"/>
-<area shape="rect" title=" " alt="" coords="1541,256,1594,282"/>
-<area shape="poly" title=" " alt="" coords="1046,31,1237,54,1329,71,1394,92,1445,125,1490,166,1527,207,1553,242,1549,245,1523,211,1486,170,1442,129,1392,96,1328,76,1237,59,1045,36"/>
-<area shape="rect" title=" " alt="" coords="765,102,853,127"/>
-<area shape="poly" title=" " alt="" coords="932,49,846,96,843,91,929,44"/>
-<area shape="rect" title=" " alt="" coords="1650,419,1707,444"/>
-<area shape="poly" title=" " alt="" coords="1046,28,1370,50,1539,69,1609,79,1662,91,1731,105,1794,115,1820,125,1840,140,1854,162,1858,194,1858,271,1855,303,1844,328,1826,349,1801,373,1763,400,1723,419,1720,414,1760,395,1798,369,1822,346,1839,325,1850,302,1853,270,1853,194,1849,164,1836,143,1817,129,1793,120,1730,110,1660,97,1608,85,1539,74,1370,56,1046,34"/>
+<area shape="poly" title=" " alt="" coords="901,30,765,35,587,45,387,65,286,79,187,97,175,99,174,94,186,91,285,74,386,59,586,40,765,29,901,25"/>
+<area shape="rect" title=" " alt="" coords="1312,419,1372,444"/>
+<area shape="poly" title=" " alt="" coords="1061,25,1157,35,1208,45,1258,61,1302,82,1338,111,1351,129,1362,148,1368,170,1370,194,1370,271,1364,343,1352,404,1347,403,1359,343,1365,270,1365,194,1363,171,1357,150,1347,131,1334,115,1299,87,1256,66,1207,50,1156,40,1060,30"/>
+<area shape="rect" title=" " alt="" coords="780,102,867,127"/>
+<area shape="poly" title=" " alt="" coords="947,49,860,96,858,91,944,44"/>
+<area shape="rect" title=" " alt="" coords="1670,419,1727,444"/>
+<area shape="poly" title=" " alt="" coords="1061,24,1264,29,1387,37,1511,51,1625,72,1675,86,1719,102,1755,120,1783,142,1801,166,1808,194,1808,271,1805,292,1799,313,1779,352,1753,385,1727,410,1723,407,1749,381,1775,349,1794,311,1800,291,1802,270,1802,194,1796,169,1780,146,1753,125,1717,107,1673,91,1623,78,1510,57,1387,43,1264,34,1061,29"/>
 <area shape="rect" href="constants_8h.html" title=" " alt="" coords="210,419,352,444"/>
-<area shape="poly" title=" " alt="" coords="887,30,698,39,585,48,473,63,370,84,285,113,253,130,228,149,213,171,208,194,208,270,213,309,227,346,245,378,264,405,259,408,241,381,222,348,208,310,202,271,202,194,208,168,224,146,250,126,283,108,369,79,472,58,585,43,698,33,887,25"/>
-<area shape="rect" href="bitmap_8h.html" title=" " alt="" coords="611,256,727,282"/>
-<area shape="poly" title=" " alt="" coords="952,48,915,90,867,137,780,202,704,250,701,246,777,197,863,133,911,87,948,45"/>
-<area shape="rect" href="snes__palette_8h.html" title=" " alt="" coords="832,338,983,363"/>
-<area shape="poly" title=" " alt="" coords="965,47,915,323,910,322,960,46"/>
-<area shape="rect" href="src_2app_2gfx_2snes__tile_8h.html" title=" " alt="" coords="1363,256,1492,282"/>
-<area shape="poly" title=" " alt="" coords="1046,29,1131,36,1223,49,1305,67,1337,78,1360,92,1389,126,1409,166,1421,206,1428,240,1422,241,1416,207,1404,168,1385,129,1357,96,1334,83,1303,72,1222,54,1130,42,1046,34"/>
-<area shape="rect" href="canvas_8h.html" title=" " alt="" coords="621,102,741,127"/>
-<area shape="poly" title=" " alt="" coords="902,49,736,99,735,94,900,44"/>
-<area shape="rect" href="rom_8h.html" title=" " alt="" coords="979,183,1058,208"/>
-<area shape="poly" title=" " alt="" coords="975,45,1013,167,1008,169,970,47"/>
-<area shape="rect" href="room__object_8h.html" title=" " alt="" coords="1210,94,1346,135"/>
-<area shape="poly" title=" " alt="" coords="1038,44,1196,88,1195,93,1037,49"/>
-<area shape="rect" href="src_2app_2zelda3_2sprite_2sprite_8h.html" title=" " alt="" coords="1634,183,1800,208"/>
-<area shape="poly" title=" " alt="" coords="1046,26,1185,31,1350,43,1506,62,1570,75,1617,92,1643,108,1667,128,1702,168,1698,172,1663,131,1640,112,1615,96,1568,80,1506,67,1350,48,1184,37,1046,31"/>
+<area shape="poly" title=" " alt="" coords="901,30,709,38,594,47,479,62,374,83,287,111,254,129,229,148,213,170,208,194,208,270,213,309,227,346,245,378,264,405,259,408,241,381,222,348,208,310,202,271,202,194,208,168,225,145,251,124,285,106,372,78,478,56,594,42,709,32,901,25"/>
+<area shape="rect" href="bitmap_8h.html" title=" " alt="" coords="539,256,655,282"/>
+<area shape="poly" title=" " alt="" coords="968,48,931,92,881,137,822,175,759,207,648,253,646,248,757,202,819,170,878,133,927,88,964,45"/>
+<area shape="rect" href="rom_8h.html" title=" " alt="" coords="942,183,1020,208"/>
+<area shape="poly" title=" " alt="" coords="984,46,984,167,978,167,978,46"/>
+<area shape="rect" href="room__object_8h.html" title=" " alt="" coords="1405,94,1541,135"/>
+<area shape="poly" title=" " alt="" coords="1061,36,1387,91,1390,92,1389,97,1386,97,1060,42"/>
+<area shape="rect" href="src_2app_2zelda3_2sprite_2sprite_8h.html" title=" " alt="" coords="1552,183,1717,208"/>
+<area shape="poly" title=" " alt="" coords="1061,26,1184,32,1327,43,1461,63,1514,76,1554,92,1577,107,1596,127,1623,167,1619,170,1592,131,1573,112,1552,96,1513,81,1460,68,1327,49,1183,37,1060,32"/>
 <area shape="rect" title=" " alt="" coords="92,183,166,208"/>
 <area shape="poly" title=" " alt="" coords="131,128,131,167,126,167,125,128"/>
 <area shape="rect" title=" " alt="" coords="5,183,69,208"/>
 <area shape="poly" title=" " alt="" coords="116,130,64,174,60,170,112,126"/>
-<area shape="poly" title=" " alt="" coords="668,283,664,326,668,349,680,369,695,380,714,390,762,403,821,410,886,413,1015,412,1071,413,1115,416,1128,418,1127,424,1114,421,1071,418,1015,417,886,418,821,415,761,408,712,395,692,385,676,372,663,351,659,326,663,282"/>
-<area shape="poly" title=" " alt="" coords="611,280,518,298,467,313,418,332,356,370,306,410,303,406,353,366,416,328,465,308,517,293,610,275"/>
-<area shape="rect" title=" " alt="" coords="694,419,751,444"/>
-<area shape="poly" title=" " alt="" coords="611,277,540,287,471,305,445,317,429,332,425,348,435,369,446,376,468,383,533,398,679,422,678,427,532,403,466,388,444,380,431,372,420,349,425,329,442,313,469,300,539,282,610,272"/>
-<area shape="rect" title=" " alt="" coords="690,338,757,363"/>
-<area shape="poly" title=" " alt="" coords="679,281,709,323,705,326,675,284"/>
-<area shape="rect" title=" " alt="" coords="840,419,975,444"/>
-<area shape="poly" title=" " alt="" coords="660,284,647,302,634,325,629,348,631,359,636,369,648,379,665,388,712,403,768,413,825,421,824,426,768,419,711,408,663,393,645,383,632,372,626,361,624,348,629,323,642,299,656,281"/>
-<area shape="rect" href="sdl__deleter_8h.html" title=" " alt="" coords="445,330,565,371"/>
-<area shape="poly" title=" " alt="" coords="645,285,561,325,558,321,643,280"/>
-<area shape="poly" title=" " alt="" coords="707,280,857,330,855,335,705,285"/>
-<area shape="poly" title=" " alt="" coords="560,369,680,412,678,417,558,374"/>
-<area shape="poly" title=" " alt="" coords="949,361,1129,414,1127,419,948,366"/>
-<area shape="poly" title=" " alt="" coords="984,357,1634,423,1634,428,983,362"/>
-<area shape="poly" title=" " alt="" coords="832,365,769,373,368,423,367,417,769,368,831,360"/>
-<area shape="poly" title=" " alt="" coords="910,364,910,403,905,403,905,364"/>
-<area shape="rect" title=" " alt="" coords="1042,419,1102,444"/>
-<area shape="poly" title=" " alt="" coords="934,361,1034,409,1032,414,932,366"/>
-<area shape="rect" title=" " alt="" coords="507,419,604,444"/>
-<area shape="poly" title=" " alt="" coords="854,366,620,418,619,413,853,361"/>
-<area shape="poly" title=" " alt="" coords="1415,285,1363,326,1294,373,1216,414,1213,409,1292,368,1360,321,1412,280"/>
-<area shape="poly" title=" " alt="" coords="1471,280,1524,299,1578,328,1625,366,1661,405,1657,408,1621,370,1576,332,1522,304,1469,285"/>
-<area shape="poly" title=" " alt="" coords="1400,285,1289,332,1111,414,1109,409,1287,328,1398,280"/>
-<area shape="poly" title=" " alt="" coords="1474,253,1504,255,1515,260,1519,269,1510,281,1490,285,1489,280,1507,276,1514,269,1511,264,1503,260,1474,258"/>
-<area shape="rect" title=" " alt="" coords="1515,338,1564,363"/>
-<area shape="poly" title=" " alt="" coords="1446,280,1512,326,1509,331,1443,285"/>
-<area shape="rect" title=" " alt="" coords="1413,338,1490,363"/>
-<area shape="poly" title=" " alt="" coords="1434,282,1446,322,1441,323,1429,283"/>
-<area shape="poly" title=" " alt="" coords="724,125,754,132,911,159,1069,180,1297,211,1398,227,1527,253,1525,259,1397,232,1296,217,1069,185,910,164,752,137,723,130"/>
-<area shape="poly" title=" " alt="" coords="683,128,674,241,668,241,677,127"/>
-<area shape="poly" title=" " alt="" coords="655,130,601,158,534,202,501,229,469,260,441,294,419,331,413,351,419,369,434,386,452,399,493,417,491,421,449,404,430,390,415,372,408,351,415,329,437,291,465,256,497,225,531,197,599,153,653,125"/>
-<area shape="poly" title=" " alt="" coords="727,125,754,132,964,180,963,185,752,137,725,130"/>
-<area shape="poly" title=" " alt="" coords="1029,207,1063,255,1160,404,1155,407,1059,258,1025,210"/>
-<area shape="poly" title=" " alt="" coords="1058,196,1256,213,1388,230,1526,253,1525,259,1388,235,1255,219,1058,202"/>
-<area shape="poly" title=" " alt="" coords="1042,207,1190,281,1294,327,1402,368,1527,401,1634,421,1633,426,1526,406,1400,373,1292,332,1188,286,1039,211"/>
-<area shape="poly" title=" " alt="" coords="979,203,841,218,655,244,560,262,473,282,401,306,351,332,332,349,317,368,294,406,290,404,313,365,329,345,347,328,399,301,472,277,559,257,654,239,841,212,979,198"/>
-<area shape="poly" title=" " alt="" coords="979,208,743,256,742,250,978,202"/>
-<area shape="poly" title=" " alt="" coords="1003,211,897,284,858,307,821,332,779,371,744,409,740,405,775,367,818,328,855,303,894,280,1000,207"/>
-<area shape="poly" title=" " alt="" coords="996,211,902,259,761,332,759,327,900,254,993,206"/>
-<area shape="poly" title=" " alt="" coords="1023,209,1025,239,1024,281,1016,328,998,372,977,396,952,413,949,409,973,392,993,369,1011,327,1019,281,1019,239,1017,209"/>
-<area shape="poly" title=" " alt="" coords="1012,210,927,327,923,323,1007,207"/>
-<area shape="poly" title=" " alt="" coords="1026,208,1042,256,1060,336,1071,403,1065,404,1055,337,1037,257,1021,210"/>
-<area shape="poly" title=" " alt="" coords="1058,201,1348,251,1348,257,1057,206"/>
-<area shape="poly" title=" " alt="" coords="1274,136,1184,405,1179,403,1269,134"/>
-<area shape="poly" title=" " alt="" coords="1317,133,1532,246,1530,251,1314,138"/>
-<area shape="poly" title=" " alt="" coords="1348,126,1410,143,1479,169,1548,205,1580,228,1608,255,1635,291,1655,331,1676,403,1671,404,1650,333,1630,293,1604,258,1576,232,1545,210,1477,174,1408,148,1346,131"/>
-<area shape="poly" title=" " alt="" coords="1249,137,941,331,938,327,1246,133"/>
-<area shape="poly" title=" " alt="" coords="1299,133,1407,243,1403,247,1295,137"/>
-<area shape="poly" title=" " alt="" coords="1214,138,1073,180,1071,175,1213,133"/>
-<area shape="poly" title=" " alt="" coords="1717,209,1707,243,1689,288,1662,334,1644,355,1622,373,1590,388,1545,401,1433,418,1315,428,1218,432,1218,427,1314,422,1433,413,1544,396,1588,383,1620,368,1640,352,1657,331,1685,285,1702,241,1712,208"/>
-<area shape="poly" title=" " alt="" coords="1693,211,1608,252,1606,247,1691,206"/>
-<area shape="poly" title=" " alt="" coords="1736,207,1758,227,1775,255,1787,287,1792,314,1789,341,1775,372,1752,399,1722,417,1720,412,1748,395,1771,369,1783,340,1787,315,1782,289,1771,258,1753,231,1732,211"/>
-<area shape="poly" title=" " alt="" coords="1711,210,1650,298,1612,344,1578,373,1547,386,1510,397,1421,411,1319,418,1209,421,994,419,902,418,828,421,767,428,766,422,827,416,901,413,994,413,1209,415,1319,413,1420,406,1509,392,1545,381,1576,368,1608,341,1646,295,1707,207"/>
+<area shape="poly" title=" " alt="" coords="656,272,832,290,940,306,1047,327,1187,368,1300,410,1298,415,1185,373,1046,333,939,311,831,295,656,277"/>
+<area shape="poly" title=" " alt="" coords="539,281,462,299,422,314,384,332,359,349,337,369,301,408,297,405,333,365,356,345,381,328,420,309,461,294,538,276"/>
+<area shape="rect" title=" " alt="" coords="474,419,531,444"/>
+<area shape="poly" title=" " alt="" coords="592,284,520,406,515,404,588,281"/>
+<area shape="rect" title=" " alt="" coords="639,338,707,363"/>
+<area shape="poly" title=" " alt="" coords="610,281,653,324,649,328,607,284"/>
+<area shape="rect" title=" " alt="" coords="676,419,811,444"/>
+<area shape="poly" title=" " alt="" coords="600,282,608,324,616,348,630,369,657,393,690,410,687,415,654,397,626,372,612,350,603,325,595,283"/>
+<area shape="rect" href="sdl__deleter_8h.html" title=" " alt="" coords="394,330,514,371"/>
+<area shape="poly" title=" " alt="" coords="577,285,504,325,501,320,574,280"/>
+<area shape="rect" href="snes__palette_8h.html" title=" " alt="" coords="883,338,1034,363"/>
+<area shape="poly" title=" " alt="" coords="653,280,888,331,887,336,652,285"/>
+<area shape="poly" title=" " alt="" coords="468,370,489,404,485,407,464,372"/>
+<area shape="poly" title=" " alt="" coords="1018,361,1298,418,1297,424,1017,366"/>
+<area shape="poly" title=" " alt="" coords="1035,357,1654,423,1654,428,1034,362"/>
+<area shape="poly" title=" " alt="" coords="883,363,368,423,367,417,882,358"/>
+<area shape="poly" title=" " alt="" coords="926,366,792,415,790,410,924,361"/>
+<area shape="rect" title=" " alt="" coords="1024,419,1084,444"/>
+<area shape="poly" title=" " alt="" coords="975,362,1029,406,1026,411,971,366"/>
+<area shape="rect" title=" " alt="" coords="1123,419,1194,444"/>
+<area shape="poly" title=" " alt="" coords="990,361,1115,410,1113,415,988,366"/>
+<area shape="rect" title=" " alt="" coords="845,419,992,444"/>
+<area shape="poly" title=" " alt="" coords="955,365,934,406,929,403,950,362"/>
+<area shape="poly" title=" " alt="" coords="1021,197,1089,203,1170,214,1244,231,1273,241,1293,254,1319,289,1335,329,1343,369,1345,403,1340,403,1337,370,1330,330,1315,291,1290,258,1271,246,1242,236,1169,219,1088,208,1020,202"/>
+<area shape="poly" title=" " alt="" coords="1021,198,1155,216,1238,232,1320,254,1421,290,1518,333,1665,408,1663,413,1516,338,1419,295,1319,259,1237,237,1154,221,1020,203"/>
+<area shape="poly" title=" " alt="" coords="942,202,690,221,550,238,493,248,450,259,412,272,383,285,358,304,330,332,306,368,291,405,286,403,301,366,326,328,354,299,380,281,410,267,448,254,491,243,549,232,689,216,941,196"/>
+<area shape="poly" title=" " alt="" coords="942,207,924,211,671,257,670,252,923,206,941,202"/>
+<area shape="poly" title=" " alt="" coords="942,201,810,211,638,233,553,250,478,272,420,299,399,315,385,331,378,350,385,369,399,387,418,400,460,418,457,423,415,405,396,391,380,372,373,350,380,329,395,311,417,295,476,267,552,245,637,228,810,206,941,196"/>
+<area shape="poly" title=" " alt="" coords="942,208,811,236,726,259,712,273,700,289,683,324,679,322,695,287,708,269,724,254,810,231,941,203"/>
+<area shape="poly" title=" " alt="" coords="942,211,897,230,853,258,820,294,793,334,756,406,751,403,788,331,816,291,850,254,895,225,940,206"/>
+<area shape="poly" title=" " alt="" coords="943,211,907,229,892,242,879,257,876,277,884,295,901,313,922,327,919,332,898,317,880,298,870,277,875,255,888,238,904,224,940,206"/>
+<area shape="poly" title=" " alt="" coords="966,211,949,226,934,243,926,263,926,272,930,281,942,294,956,300,987,304,1019,307,1034,315,1048,328,1058,346,1062,366,1062,404,1057,404,1057,367,1053,348,1044,332,1031,319,1017,312,986,309,954,306,939,298,925,283,921,273,920,262,929,241,945,222,962,207"/>
+<area shape="poly" title=" " alt="" coords="978,210,968,244,968,263,974,281,984,293,994,301,1017,308,1044,313,1073,328,1113,366,1144,404,1140,408,1110,370,1070,332,1042,318,1016,313,992,305,980,297,969,283,963,264,963,243,973,208"/>
+<area shape="poly" title=" " alt="" coords="943,209,902,227,884,240,870,258,863,271,858,292,860,323,873,370,883,389,896,406,892,409,878,392,868,372,855,324,853,291,858,269,865,255,880,237,900,222,941,204"/>
+<area shape="rect" title=" " alt="" coords="984,256,1048,282"/>
+<area shape="poly" title=" " alt="" coords="989,207,1005,241,1001,243,984,210"/>
+<area shape="rect" title=" " alt="" coords="1072,256,1125,282"/>
+<area shape="poly" title=" " alt="" coords="1002,207,1067,246,1064,250,1000,211"/>
+<area shape="rect" title=" " alt="" coords="1148,256,1195,282"/>
+<area shape="poly" title=" " alt="" coords="1014,206,1135,251,1133,256,1012,211"/>
+<area shape="rect" title=" " alt="" coords="1506,256,1560,282"/>
+<area shape="poly" title=" " alt="" coords="1021,199,1491,260,1490,265,1020,205"/>
+<area shape="rect" title=" " alt="" coords="1219,256,1279,282"/>
+<area shape="poly" title=" " alt="" coords="1021,205,1205,253,1203,258,1020,210"/>
+<area shape="poly" title=" " alt="" coords="1471,136,1442,239,1418,306,1389,372,1365,408,1360,405,1384,369,1414,304,1437,237,1466,134"/>
+<area shape="poly" title=" " alt="" coords="1542,122,1653,143,1701,160,1719,170,1731,181,1746,208,1754,238,1755,270,1751,301,1735,360,1714,406,1709,404,1730,359,1746,300,1750,269,1749,239,1742,210,1727,184,1716,174,1699,165,1651,149,1541,127"/>
+<area shape="poly" title=" " alt="" coords="1405,129,1035,188,1035,183,1404,124"/>
+<area shape="poly" title=" " alt="" coords="1483,134,1525,241,1520,243,1478,136"/>
+<area shape="poly" title=" " alt="" coords="1637,209,1633,244,1627,264,1618,283,1595,312,1568,337,1506,377,1443,405,1389,422,1387,417,1441,400,1504,372,1565,333,1591,308,1613,281,1622,263,1628,243,1632,209"/>
+<area shape="poly" title=" " alt="" coords="1644,207,1669,255,1689,335,1699,402,1693,403,1684,336,1664,257,1640,210"/>
+<area shape="poly" title=" " alt="" coords="1632,210,1611,248,1594,268,1573,284,1544,297,1509,307,1426,320,1330,326,1227,327,1026,325,939,326,871,333,547,421,545,416,870,327,939,321,1026,319,1227,322,1330,321,1426,315,1508,302,1542,292,1570,280,1590,264,1606,245,1627,207"/>
+<area shape="poly" title=" " alt="" coords="1619,211,1564,249,1561,245,1616,207"/>
 </map>
 </div>
 </div><div class="textblock"><div class="dynheader">
@@ -251,104 +235,102 @@ This graph shows which files directly or indirectly include this file:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html">yaze::app::zelda3::dungeon::Room</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1zelda3_1_1dungeon_1_1Room.html">yaze::zelda3::dungeon::Room</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze.html">yaze</a></td></tr>
+<tr class="memdesc:namespaceyaze"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main namespace for the application. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app.html">yaze::app</a></td></tr>
-<tr class="memdesc:namespaceyaze_1_1app"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main namespace for the <a class="el" href="namespaceImGui.html">ImGui</a> application. <br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html">yaze::zelda3</a></td></tr>
+<tr class="memdesc:namespaceyaze_1_1zelda3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Zelda 3 specific classes and functions. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3.html">yaze::app::zelda3</a></td></tr>
-<tr class="memdesc:namespaceyaze_1_1app_1_1zelda3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Zelda 3 specific classes and functions. <br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html">yaze::app::zelda3::dungeon</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html">yaze::zelda3::dungeon</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:af2a9c1d8ea8f75b878f0a1ee6828a2b0" id="r_af2a9c1d8ea8f75b878f0a1ee6828a2b0"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#af2a9c1d8ea8f75b878f0a1ee6828a2b0">yaze::app::zelda3::dungeon::room_object_layout_pointer</a> = 0x882D</td></tr>
-<tr class="separator:af2a9c1d8ea8f75b878f0a1ee6828a2b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acfe86b007d2c7319eebca0c0efabca87" id="r_acfe86b007d2c7319eebca0c0efabca87"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#acfe86b007d2c7319eebca0c0efabca87">yaze::app::zelda3::dungeon::room_object_pointer</a> = 0x874C</td></tr>
-<tr class="separator:acfe86b007d2c7319eebca0c0efabca87"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a797db1c43527a918035a9662c3c0f88a" id="r_a797db1c43527a918035a9662c3c0f88a"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a797db1c43527a918035a9662c3c0f88a">yaze::app::zelda3::dungeon::dungeons_main_bg_palette_pointers</a> = 0xDEC4B</td></tr>
-<tr class="separator:a797db1c43527a918035a9662c3c0f88a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa1a97e196edeeb0623079d954a112f8a" id="r_aa1a97e196edeeb0623079d954a112f8a"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#aa1a97e196edeeb0623079d954a112f8a">yaze::app::zelda3::dungeon::dungeons_palettes</a> = 0xDD734</td></tr>
-<tr class="separator:aa1a97e196edeeb0623079d954a112f8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a92961faef96f988395fecb2104b5ce79" id="r_a92961faef96f988395fecb2104b5ce79"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a92961faef96f988395fecb2104b5ce79">yaze::app::zelda3::dungeon::room_items_pointers</a> = 0xDB69</td></tr>
-<tr class="separator:a92961faef96f988395fecb2104b5ce79"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a21aa3281b0882e27ecf96551fd127057" id="r_a21aa3281b0882e27ecf96551fd127057"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a21aa3281b0882e27ecf96551fd127057">yaze::app::zelda3::dungeon::rooms_sprite_pointer</a> = 0x4C298</td></tr>
-<tr class="separator:a21aa3281b0882e27ecf96551fd127057"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab5122358cbc3f1e1b3af618090861eb9" id="r_ab5122358cbc3f1e1b3af618090861eb9"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ab5122358cbc3f1e1b3af618090861eb9">yaze::app::zelda3::dungeon::kRoomHeaderPointer</a> = 0xB5DD</td></tr>
-<tr class="separator:ab5122358cbc3f1e1b3af618090861eb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a205a593a9e04cd8fff2dd217cb74ea65" id="r_a205a593a9e04cd8fff2dd217cb74ea65"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a205a593a9e04cd8fff2dd217cb74ea65">yaze::app::zelda3::dungeon::kRoomHeaderPointerBank</a> = 0xB5E7</td></tr>
-<tr class="separator:a205a593a9e04cd8fff2dd217cb74ea65"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae2b78fba376901c25011563cddea9952" id="r_ae2b78fba376901c25011563cddea9952"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ae2b78fba376901c25011563cddea9952">yaze::app::zelda3::dungeon::gfx_groups_pointer</a> = 0x6237</td></tr>
-<tr class="separator:ae2b78fba376901c25011563cddea9952"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a430ff7fcb3c6d57294340c2d749c778b" id="r_a430ff7fcb3c6d57294340c2d749c778b"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a430ff7fcb3c6d57294340c2d749c778b">yaze::app::zelda3::dungeon::chests_length_pointer</a> = 0xEBF6</td></tr>
-<tr class="separator:a430ff7fcb3c6d57294340c2d749c778b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7232b6bc92b83dd879896a7dc5dde212" id="r_a7232b6bc92b83dd879896a7dc5dde212"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a7232b6bc92b83dd879896a7dc5dde212">yaze::app::zelda3::dungeon::chests_data_pointer1</a> = 0xEBFB</td></tr>
-<tr class="separator:a7232b6bc92b83dd879896a7dc5dde212"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad8deb9484017abae6ab72c2f576231b3" id="r_ad8deb9484017abae6ab72c2f576231b3"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ad8deb9484017abae6ab72c2f576231b3">yaze::app::zelda3::dungeon::messages_id_dungeon</a> = 0x3F61D</td></tr>
-<tr class="separator:ad8deb9484017abae6ab72c2f576231b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a23e14f92cbee2d45e7a316ae645bd210" id="r_a23e14f92cbee2d45e7a316ae645bd210"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a23e14f92cbee2d45e7a316ae645bd210">yaze::app::zelda3::dungeon::blocks_length</a> = 0x8896</td></tr>
-<tr class="separator:a23e14f92cbee2d45e7a316ae645bd210"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac6aa590edb0bc82e72c2068a532aae75" id="r_ac6aa590edb0bc82e72c2068a532aae75"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ac6aa590edb0bc82e72c2068a532aae75">yaze::app::zelda3::dungeon::blocks_pointer1</a> = 0x15AFA</td></tr>
-<tr class="separator:ac6aa590edb0bc82e72c2068a532aae75"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abfa68779d3f1aeb4f9e630c2a47b839c" id="r_abfa68779d3f1aeb4f9e630c2a47b839c"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abfa68779d3f1aeb4f9e630c2a47b839c">yaze::app::zelda3::dungeon::blocks_pointer2</a> = 0x15B01</td></tr>
-<tr class="separator:abfa68779d3f1aeb4f9e630c2a47b839c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac683172825deaeb9b2d5c9d974e2eea3" id="r_ac683172825deaeb9b2d5c9d974e2eea3"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ac683172825deaeb9b2d5c9d974e2eea3">yaze::app::zelda3::dungeon::blocks_pointer3</a> = 0x15B08</td></tr>
-<tr class="separator:ac683172825deaeb9b2d5c9d974e2eea3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a372a72f106b5ead75843e39bdc212cb3" id="r_a372a72f106b5ead75843e39bdc212cb3"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a372a72f106b5ead75843e39bdc212cb3">yaze::app::zelda3::dungeon::blocks_pointer4</a> = 0x15B0F</td></tr>
-<tr class="separator:a372a72f106b5ead75843e39bdc212cb3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa7fc2bb3bbe78c431f4bd9611c5cb7e5" id="r_aa7fc2bb3bbe78c431f4bd9611c5cb7e5"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#aa7fc2bb3bbe78c431f4bd9611c5cb7e5">yaze::app::zelda3::dungeon::torch_data</a> = 0x2736A</td></tr>
-<tr class="separator:aa7fc2bb3bbe78c431f4bd9611c5cb7e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8242eeb1b4c1f09cf12a0e1a8f0ef893" id="r_a8242eeb1b4c1f09cf12a0e1a8f0ef893"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a8242eeb1b4c1f09cf12a0e1a8f0ef893">yaze::app::zelda3::dungeon::torches_length_pointer</a> = 0x88C1</td></tr>
-<tr class="separator:a8242eeb1b4c1f09cf12a0e1a8f0ef893"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad44ec6adb4caa35c23be8e075a71b935" id="r_ad44ec6adb4caa35c23be8e075a71b935"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ad44ec6adb4caa35c23be8e075a71b935">yaze::app::zelda3::dungeon::sprite_blockset_pointer</a> = 0x5B57</td></tr>
-<tr class="separator:ad44ec6adb4caa35c23be8e075a71b935"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af32040e631725b73f0e3bb0acb1a6d2e" id="r_af32040e631725b73f0e3bb0acb1a6d2e"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#af32040e631725b73f0e3bb0acb1a6d2e">yaze::app::zelda3::dungeon::sprites_data</a> = 0x4D8B0</td></tr>
-<tr class="separator:af32040e631725b73f0e3bb0acb1a6d2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a24492c71309519c4303e049e3c2e9e47" id="r_a24492c71309519c4303e049e3c2e9e47"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a24492c71309519c4303e049e3c2e9e47">yaze::app::zelda3::dungeon::sprites_data_empty_room</a> = 0x4D8AE</td></tr>
-<tr class="separator:a24492c71309519c4303e049e3c2e9e47"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aebf6c4f3d57e2ed86f1c80fca2267461" id="r_aebf6c4f3d57e2ed86f1c80fca2267461"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#aebf6c4f3d57e2ed86f1c80fca2267461">yaze::app::zelda3::dungeon::sprites_end_data</a> = 0x4EC9E</td></tr>
-<tr class="separator:aebf6c4f3d57e2ed86f1c80fca2267461"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a12f723ea2f6c2cf6841b5574d76bbb93" id="r_a12f723ea2f6c2cf6841b5574d76bbb93"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a12f723ea2f6c2cf6841b5574d76bbb93">yaze::app::zelda3::dungeon::pit_pointer</a> = 0x394AB</td></tr>
-<tr class="separator:a12f723ea2f6c2cf6841b5574d76bbb93"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab53a2d255e2359d8f4e6c083cc41688d" id="r_ab53a2d255e2359d8f4e6c083cc41688d"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ab53a2d255e2359d8f4e6c083cc41688d">yaze::app::zelda3::dungeon::pit_count</a> = 0x394A6</td></tr>
-<tr class="separator:ab53a2d255e2359d8f4e6c083cc41688d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a775eb4040d26d77d574d45a7e600e401" id="r_a775eb4040d26d77d574d45a7e600e401"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a775eb4040d26d77d574d45a7e600e401">yaze::app::zelda3::dungeon::doorPointers</a> = 0xF83C0</td></tr>
-<tr class="separator:a775eb4040d26d77d574d45a7e600e401"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a955f794c3927d8a67c7a4e20cfbebbb8" id="r_a955f794c3927d8a67c7a4e20cfbebbb8"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a955f794c3927d8a67c7a4e20cfbebbb8">yaze::app::zelda3::dungeon::door_gfx_up</a> = 0x4D9E</td></tr>
-<tr class="separator:a955f794c3927d8a67c7a4e20cfbebbb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a718834e3a8460df6d34b622b2601df9b" id="r_a718834e3a8460df6d34b622b2601df9b"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a718834e3a8460df6d34b622b2601df9b">yaze::app::zelda3::dungeon::door_gfx_down</a> = 0x4E06</td></tr>
-<tr class="separator:a718834e3a8460df6d34b622b2601df9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2e7f0d93bc2ed2cdd4b0a5e97307ad7b" id="r_a2e7f0d93bc2ed2cdd4b0a5e97307ad7b"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a2e7f0d93bc2ed2cdd4b0a5e97307ad7b">yaze::app::zelda3::dungeon::door_gfx_cavexit_down</a> = 0x4E06</td></tr>
-<tr class="separator:a2e7f0d93bc2ed2cdd4b0a5e97307ad7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8778ed49ecb276b45f13fbcca37c5386" id="r_a8778ed49ecb276b45f13fbcca37c5386"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a8778ed49ecb276b45f13fbcca37c5386">yaze::app::zelda3::dungeon::door_gfx_left</a> = 0x4E66</td></tr>
-<tr class="separator:a8778ed49ecb276b45f13fbcca37c5386"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a330349f9e520ae661a4839cc25586eb4" id="r_a330349f9e520ae661a4839cc25586eb4"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a330349f9e520ae661a4839cc25586eb4">yaze::app::zelda3::dungeon::door_gfx_right</a> = 0x4EC6</td></tr>
-<tr class="separator:a330349f9e520ae661a4839cc25586eb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a201fb7d3caabcc52f1f2073734ce6dfe" id="r_a201fb7d3caabcc52f1f2073734ce6dfe"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a201fb7d3caabcc52f1f2073734ce6dfe">yaze::app::zelda3::dungeon::door_pos_up</a> = 0x197E</td></tr>
-<tr class="separator:a201fb7d3caabcc52f1f2073734ce6dfe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adbd68daa37e81d005b6bdba66be37837" id="r_adbd68daa37e81d005b6bdba66be37837"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#adbd68daa37e81d005b6bdba66be37837">yaze::app::zelda3::dungeon::door_pos_down</a> = 0x1996</td></tr>
-<tr class="separator:adbd68daa37e81d005b6bdba66be37837"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8e407314faaa0e60903d0dcec25cac77" id="r_a8e407314faaa0e60903d0dcec25cac77"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a8e407314faaa0e60903d0dcec25cac77">yaze::app::zelda3::dungeon::door_pos_left</a> = 0x19AE</td></tr>
-<tr class="separator:a8e407314faaa0e60903d0dcec25cac77"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af1424eb7b499dacebbcd29f8c46fcf1a" id="r_af1424eb7b499dacebbcd29f8c46fcf1a"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#af1424eb7b499dacebbcd29f8c46fcf1a">yaze::app::zelda3::dungeon::door_pos_right</a> = 0x19C6</td></tr>
-<tr class="separator:af1424eb7b499dacebbcd29f8c46fcf1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af3b336bda353741f109a7ecec96ce2b5" id="r_af3b336bda353741f109a7ecec96ce2b5"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#af3b336bda353741f109a7ecec96ce2b5">yaze::app::zelda3::dungeon::dungeon_spr_ptrs</a> = 0x090000</td></tr>
-<tr class="separator:af3b336bda353741f109a7ecec96ce2b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa66ebd23138577105b6a458ee86cbc7d" id="r_aa66ebd23138577105b6a458ee86cbc7d"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#aa66ebd23138577105b6a458ee86cbc7d">yaze::app::zelda3::dungeon::NumberOfRooms</a> = 296</td></tr>
-<tr class="separator:aa66ebd23138577105b6a458ee86cbc7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a89e8d245bac0bb52d9310af054df7b1f" id="r_a89e8d245bac0bb52d9310af054df7b1f"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a89e8d245bac0bb52d9310af054df7b1f">yaze::app::zelda3::dungeon::stairsObjects</a> [] = {0x139, 0x138, 0x13B, 0x12E, 0x12D}</td></tr>
-<tr class="separator:a89e8d245bac0bb52d9310af054df7b1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad762809d12104cb30876fa97b1bc8f27" id="r_ad762809d12104cb30876fa97b1bc8f27"><td class="memItemLeft" align="right" valign="top">constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ad762809d12104cb30876fa97b1bc8f27">yaze::app::zelda3::dungeon::kRoomNames</a> []</td></tr>
-<tr class="separator:ad762809d12104cb30876fa97b1bc8f27"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abc3a2e7da3f410c59fa73b7adac975c8" id="r_abc3a2e7da3f410c59fa73b7adac975c8"><td class="memItemLeft" align="right" valign="top">constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abc3a2e7da3f410c59fa73b7adac975c8">yaze::app::zelda3::dungeon::kEntranceNames</a> []</td></tr>
-<tr class="separator:abc3a2e7da3f410c59fa73b7adac975c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a189cb6196ddafcc18c1096f7f429d8af" id="r_a189cb6196ddafcc18c1096f7f429d8af"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a189cb6196ddafcc18c1096f7f429d8af">yaze::zelda3::dungeon::room_object_layout_pointer</a> = 0x882D</td></tr>
+<tr class="separator:a189cb6196ddafcc18c1096f7f429d8af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aebce51b42489678dcdb912eeec6ce267" id="r_aebce51b42489678dcdb912eeec6ce267"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#aebce51b42489678dcdb912eeec6ce267">yaze::zelda3::dungeon::room_object_pointer</a> = 0x874C</td></tr>
+<tr class="separator:aebce51b42489678dcdb912eeec6ce267"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a52ba7fcd5894ee0f61a64a9aa844dc12" id="r_a52ba7fcd5894ee0f61a64a9aa844dc12"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a52ba7fcd5894ee0f61a64a9aa844dc12">yaze::zelda3::dungeon::dungeons_main_bg_palette_pointers</a> = 0xDEC4B</td></tr>
+<tr class="separator:a52ba7fcd5894ee0f61a64a9aa844dc12"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03f2ec401a1592ed664c5fa4d03cad1d" id="r_a03f2ec401a1592ed664c5fa4d03cad1d"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a03f2ec401a1592ed664c5fa4d03cad1d">yaze::zelda3::dungeon::dungeons_palettes</a> = 0xDD734</td></tr>
+<tr class="separator:a03f2ec401a1592ed664c5fa4d03cad1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2934b588c2368cc488ad2383128bfd2b" id="r_a2934b588c2368cc488ad2383128bfd2b"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a2934b588c2368cc488ad2383128bfd2b">yaze::zelda3::dungeon::room_items_pointers</a> = 0xDB69</td></tr>
+<tr class="separator:a2934b588c2368cc488ad2383128bfd2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae18965dd72e7be1fcf73fb7b940dd125" id="r_ae18965dd72e7be1fcf73fb7b940dd125"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#ae18965dd72e7be1fcf73fb7b940dd125">yaze::zelda3::dungeon::rooms_sprite_pointer</a> = 0x4C298</td></tr>
+<tr class="separator:ae18965dd72e7be1fcf73fb7b940dd125"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6f8a5a479625620466fdd4f9732db646" id="r_a6f8a5a479625620466fdd4f9732db646"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a6f8a5a479625620466fdd4f9732db646">yaze::zelda3::dungeon::kRoomHeaderPointer</a> = 0xB5DD</td></tr>
+<tr class="separator:a6f8a5a479625620466fdd4f9732db646"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a100619d7d23cddddcdce5bc8ea181a86" id="r_a100619d7d23cddddcdce5bc8ea181a86"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a100619d7d23cddddcdce5bc8ea181a86">yaze::zelda3::dungeon::kRoomHeaderPointerBank</a> = 0xB5E7</td></tr>
+<tr class="separator:a100619d7d23cddddcdce5bc8ea181a86"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abae750b8cf1a9b79766625bc390d03b8" id="r_abae750b8cf1a9b79766625bc390d03b8"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#abae750b8cf1a9b79766625bc390d03b8">yaze::zelda3::dungeon::gfx_groups_pointer</a> = 0x6237</td></tr>
+<tr class="separator:abae750b8cf1a9b79766625bc390d03b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a638f9a6cb51f817ad9fde97cf3952dfc" id="r_a638f9a6cb51f817ad9fde97cf3952dfc"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a638f9a6cb51f817ad9fde97cf3952dfc">yaze::zelda3::dungeon::chests_length_pointer</a> = 0xEBF6</td></tr>
+<tr class="separator:a638f9a6cb51f817ad9fde97cf3952dfc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5107684688344de915646cb522241f9f" id="r_a5107684688344de915646cb522241f9f"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a5107684688344de915646cb522241f9f">yaze::zelda3::dungeon::chests_data_pointer1</a> = 0xEBFB</td></tr>
+<tr class="separator:a5107684688344de915646cb522241f9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff27a64e24e6a5da2a7a99e99c1912f1" id="r_aff27a64e24e6a5da2a7a99e99c1912f1"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#aff27a64e24e6a5da2a7a99e99c1912f1">yaze::zelda3::dungeon::messages_id_dungeon</a> = 0x3F61D</td></tr>
+<tr class="separator:aff27a64e24e6a5da2a7a99e99c1912f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab41ceb4fd93714b944e91945a32f469d" id="r_ab41ceb4fd93714b944e91945a32f469d"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#ab41ceb4fd93714b944e91945a32f469d">yaze::zelda3::dungeon::blocks_length</a> = 0x8896</td></tr>
+<tr class="separator:ab41ceb4fd93714b944e91945a32f469d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad8504776dbbb27a9a256cf79ed60228e" id="r_ad8504776dbbb27a9a256cf79ed60228e"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#ad8504776dbbb27a9a256cf79ed60228e">yaze::zelda3::dungeon::blocks_pointer1</a> = 0x15AFA</td></tr>
+<tr class="separator:ad8504776dbbb27a9a256cf79ed60228e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac880c52133e647e37b075c6fbd83b07b" id="r_ac880c52133e647e37b075c6fbd83b07b"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#ac880c52133e647e37b075c6fbd83b07b">yaze::zelda3::dungeon::blocks_pointer2</a> = 0x15B01</td></tr>
+<tr class="separator:ac880c52133e647e37b075c6fbd83b07b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a683a524a4a9de638e1df29ba486a8f17" id="r_a683a524a4a9de638e1df29ba486a8f17"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a683a524a4a9de638e1df29ba486a8f17">yaze::zelda3::dungeon::blocks_pointer3</a> = 0x15B08</td></tr>
+<tr class="separator:a683a524a4a9de638e1df29ba486a8f17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f029b62c5f0c357d8875af2f23a8555" id="r_a9f029b62c5f0c357d8875af2f23a8555"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a9f029b62c5f0c357d8875af2f23a8555">yaze::zelda3::dungeon::blocks_pointer4</a> = 0x15B0F</td></tr>
+<tr class="separator:a9f029b62c5f0c357d8875af2f23a8555"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a13cd84e092fe2bbedbe863e363ced2d5" id="r_a13cd84e092fe2bbedbe863e363ced2d5"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a13cd84e092fe2bbedbe863e363ced2d5">yaze::zelda3::dungeon::torch_data</a> = 0x2736A</td></tr>
+<tr class="separator:a13cd84e092fe2bbedbe863e363ced2d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a13bee88f9dd42c613d8a09b6fa703fba" id="r_a13bee88f9dd42c613d8a09b6fa703fba"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a13bee88f9dd42c613d8a09b6fa703fba">yaze::zelda3::dungeon::torches_length_pointer</a> = 0x88C1</td></tr>
+<tr class="separator:a13bee88f9dd42c613d8a09b6fa703fba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9718d093f96e9c305aeb6bcb69353113" id="r_a9718d093f96e9c305aeb6bcb69353113"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a9718d093f96e9c305aeb6bcb69353113">yaze::zelda3::dungeon::sprite_blockset_pointer</a> = 0x5B57</td></tr>
+<tr class="separator:a9718d093f96e9c305aeb6bcb69353113"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a88a8fa4a37f291feed597586e7f03c06" id="r_a88a8fa4a37f291feed597586e7f03c06"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a88a8fa4a37f291feed597586e7f03c06">yaze::zelda3::dungeon::sprites_data</a> = 0x4D8B0</td></tr>
+<tr class="separator:a88a8fa4a37f291feed597586e7f03c06"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a986bcde3d5b0d75dc2a4e9582cda3a83" id="r_a986bcde3d5b0d75dc2a4e9582cda3a83"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a986bcde3d5b0d75dc2a4e9582cda3a83">yaze::zelda3::dungeon::sprites_data_empty_room</a> = 0x4D8AE</td></tr>
+<tr class="separator:a986bcde3d5b0d75dc2a4e9582cda3a83"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77a847c5949b732055a921488d0ff71b" id="r_a77a847c5949b732055a921488d0ff71b"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a77a847c5949b732055a921488d0ff71b">yaze::zelda3::dungeon::sprites_end_data</a> = 0x4EC9E</td></tr>
+<tr class="separator:a77a847c5949b732055a921488d0ff71b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc0ca37b38d47ad5cf86b35901e7ed6b" id="r_abc0ca37b38d47ad5cf86b35901e7ed6b"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#abc0ca37b38d47ad5cf86b35901e7ed6b">yaze::zelda3::dungeon::pit_pointer</a> = 0x394AB</td></tr>
+<tr class="separator:abc0ca37b38d47ad5cf86b35901e7ed6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a70aaaae424ecfd2bbaad908b4daa77af" id="r_a70aaaae424ecfd2bbaad908b4daa77af"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a70aaaae424ecfd2bbaad908b4daa77af">yaze::zelda3::dungeon::pit_count</a> = 0x394A6</td></tr>
+<tr class="separator:a70aaaae424ecfd2bbaad908b4daa77af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae72c780822181b3d5109982eb5f57ebe" id="r_ae72c780822181b3d5109982eb5f57ebe"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#ae72c780822181b3d5109982eb5f57ebe">yaze::zelda3::dungeon::doorPointers</a> = 0xF83C0</td></tr>
+<tr class="separator:ae72c780822181b3d5109982eb5f57ebe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afa11017701a48e05dda21b4b5baa387d" id="r_afa11017701a48e05dda21b4b5baa387d"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#afa11017701a48e05dda21b4b5baa387d">yaze::zelda3::dungeon::door_gfx_up</a> = 0x4D9E</td></tr>
+<tr class="separator:afa11017701a48e05dda21b4b5baa387d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af53e909ac9fcf207eb1b6baa833aa9ad" id="r_af53e909ac9fcf207eb1b6baa833aa9ad"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#af53e909ac9fcf207eb1b6baa833aa9ad">yaze::zelda3::dungeon::door_gfx_down</a> = 0x4E06</td></tr>
+<tr class="separator:af53e909ac9fcf207eb1b6baa833aa9ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad08782e83719d2c99e94e9f0e5c96950" id="r_ad08782e83719d2c99e94e9f0e5c96950"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#ad08782e83719d2c99e94e9f0e5c96950">yaze::zelda3::dungeon::door_gfx_cavexit_down</a> = 0x4E06</td></tr>
+<tr class="separator:ad08782e83719d2c99e94e9f0e5c96950"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7696f2243636bbe6f1abcfed77e6b159" id="r_a7696f2243636bbe6f1abcfed77e6b159"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a7696f2243636bbe6f1abcfed77e6b159">yaze::zelda3::dungeon::door_gfx_left</a> = 0x4E66</td></tr>
+<tr class="separator:a7696f2243636bbe6f1abcfed77e6b159"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a11021ecfa098c481f890d20764e966c1" id="r_a11021ecfa098c481f890d20764e966c1"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a11021ecfa098c481f890d20764e966c1">yaze::zelda3::dungeon::door_gfx_right</a> = 0x4EC6</td></tr>
+<tr class="separator:a11021ecfa098c481f890d20764e966c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad232cf3b80304dd7b06d6dae1514b378" id="r_ad232cf3b80304dd7b06d6dae1514b378"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#ad232cf3b80304dd7b06d6dae1514b378">yaze::zelda3::dungeon::door_pos_up</a> = 0x197E</td></tr>
+<tr class="separator:ad232cf3b80304dd7b06d6dae1514b378"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad70b51c748cdaaa437ef6873c7c0760c" id="r_ad70b51c748cdaaa437ef6873c7c0760c"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#ad70b51c748cdaaa437ef6873c7c0760c">yaze::zelda3::dungeon::door_pos_down</a> = 0x1996</td></tr>
+<tr class="separator:ad70b51c748cdaaa437ef6873c7c0760c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a23ca800e76b3ae03fee436fed86acaa7" id="r_a23ca800e76b3ae03fee436fed86acaa7"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a23ca800e76b3ae03fee436fed86acaa7">yaze::zelda3::dungeon::door_pos_left</a> = 0x19AE</td></tr>
+<tr class="separator:a23ca800e76b3ae03fee436fed86acaa7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa0749ee536687ccc53ce2816438f79de" id="r_aa0749ee536687ccc53ce2816438f79de"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#aa0749ee536687ccc53ce2816438f79de">yaze::zelda3::dungeon::door_pos_right</a> = 0x19C6</td></tr>
+<tr class="separator:aa0749ee536687ccc53ce2816438f79de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae5a1973f0a1e12b325e74aed36ddd0ff" id="r_ae5a1973f0a1e12b325e74aed36ddd0ff"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#ae5a1973f0a1e12b325e74aed36ddd0ff">yaze::zelda3::dungeon::dungeon_spr_ptrs</a> = 0x090000</td></tr>
+<tr class="separator:ae5a1973f0a1e12b325e74aed36ddd0ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d824e26b8d4efdf03a7cd3ca08438e3" id="r_a7d824e26b8d4efdf03a7cd3ca08438e3"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a7d824e26b8d4efdf03a7cd3ca08438e3">yaze::zelda3::dungeon::NumberOfRooms</a> = 296</td></tr>
+<tr class="separator:a7d824e26b8d4efdf03a7cd3ca08438e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a48e555256a2be44d58a9a4d5021daa05" id="r_a48e555256a2be44d58a9a4d5021daa05"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a48e555256a2be44d58a9a4d5021daa05">yaze::zelda3::dungeon::stairsObjects</a> [] = {0x139, 0x138, 0x13B, 0x12E, 0x12D}</td></tr>
+<tr class="separator:a48e555256a2be44d58a9a4d5021daa05"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a176b595e2d5791e510f2dd60effb746d" id="r_a176b595e2d5791e510f2dd60effb746d"><td class="memItemLeft" align="right" valign="top">constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a176b595e2d5791e510f2dd60effb746d">yaze::zelda3::dungeon::kRoomNames</a> []</td></tr>
+<tr class="separator:a176b595e2d5791e510f2dd60effb746d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e2179182eb1ecb42cdcc4e392084a22" id="r_a3e2179182eb1ecb42cdcc4e392084a22"><td class="memItemLeft" align="right" valign="top">constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1dungeon.html#a3e2179182eb1ecb42cdcc4e392084a22">yaze::zelda3::dungeon::kEntranceNames</a> []</td></tr>
+<tr class="separator:a3e2179182eb1ecb42cdcc4e392084a22"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

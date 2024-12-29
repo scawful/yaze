@@ -1,29 +1,28 @@
 <map id="src/app/emu/video/ppu.h" name="src/app/emu/video/ppu.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="579,5,742,31"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="470,5,633,31"/>
 <area shape="rect" id="Node000002" href="$snes_8cc.html" title=" " alt="" coords="5,256,148,282"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="564,31,432,50,360,64,289,82,222,95,168,105,144,112,121,124,100,142,79,169,70,191,68,214,75,256,70,257,63,215,65,190,74,166,96,139,118,120,142,107,166,99,221,90,288,76,359,59,431,45,563,26"/>
-<area shape="rect" id="Node000003" href="$snes_8h.html" title=" " alt="" coords="301,86,436,112"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="602,38,414,88,413,83,600,33"/>
-<area shape="rect" id="Node000018" href="$ppu_8cc.html" title=" " alt="" coords="482,86,652,112"/>
-<area shape="poly" id="edge10_Node000001_Node000018" title=" " alt="" coords="637,43,583,88,580,84,633,39"/>
-<area shape="rect" id="Node000019" href="$object__renderer_8h.html" title=" " alt="" coords="676,79,834,120"/>
-<area shape="poly" id="edge11_Node000001_Node000019" title=" " alt="" coords="688,39,734,77,730,81,685,43"/>
-<area shape="rect" id="Node000021" href="$room__object_8h.html" title=" " alt="" coords="859,168,1017,208"/>
-<area shape="poly" id="edge14_Node000001_Node000021" title=" " alt="" coords="743,33,796,50,847,77,873,97,895,121,928,165,924,169,891,124,869,101,844,81,794,55,741,38"/>
-<area shape="rect" id="Node000028" href="$ppu__test_8cc.html" title=" " alt="" coords="908,86,1074,112"/>
-<area shape="poly" id="edge15_Node000001_Node000028" title=" " alt="" coords="727,33,941,83,940,88,726,38"/>
-<area shape="poly" id="edge9_Node000003_Node000002" title=" " alt="" coords="286,115,178,137,133,152,104,170,90,190,82,214,79,256,73,256,77,213,85,188,100,166,131,147,177,132,285,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="459,37,352,58,237,88,184,105,137,125,101,146,79,169,70,191,68,215,75,256,70,257,63,215,65,190,74,166,98,142,135,120,182,100,235,82,351,53,458,32"/>
+<area shape="rect" id="Node000003" href="$snes_8h.html" title=" " alt="" coords="286,86,422,112"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="508,40,385,88,383,84,506,35"/>
+<area shape="rect" id="Node000018" href="$ppu_8cc.html" title=" " alt="" coords="466,86,636,112"/>
+<area shape="poly" id="edge10_Node000001_Node000018" title=" " alt="" coords="554,47,554,86,548,86,548,47"/>
+<area shape="rect" id="Node000019" href="$object__renderer_8h.html" title=" " alt="" coords="671,79,829,120"/>
+<area shape="poly" id="edge11_Node000001_Node000019" title=" " alt="" coords="597,35,701,76,699,81,595,40"/>
+<area shape="rect" id="Node000028" href="$ppu__test_8cc.html" title=" " alt="" coords="852,86,1018,112"/>
+<area shape="poly" id="edge14_Node000001_Node000028" title=" " alt="" coords="626,32,876,83,875,89,625,37"/>
+<area shape="poly" id="edge9_Node000003_Node000002" title=" " alt="" coords="271,105,228,111,183,123,140,142,104,169,90,190,82,214,79,256,73,256,77,213,85,188,100,166,138,137,181,118,227,106,270,99"/>
 <area shape="rect" id="Node000004" href="$emu_8cc.html" title=" " alt="" coords="114,175,253,201"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="330,121,210,177,208,172,328,117"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="318,122,208,177,206,172,315,117"/>
 <area shape="rect" id="Node000005" href="$emulator_8cc.html" title=" " alt="" coords="433,256,597,282"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="393,122,434,166,508,254,504,258,431,169,389,125"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="383,120,434,166,477,214,509,255,505,258,473,218,431,170,380,124"/>
 <area shape="rect" id="Node000006" href="$emulator_8h.html" title=" " alt="" coords="495,175,652,201"/>
-<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="412,116,546,172,544,177,410,121"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="400,116,544,172,542,177,398,121"/>
 <area shape="rect" id="Node000016" href="$dma_8h.html" title=" " alt="" coords="277,168,420,208"/>
-<area shape="poly" id="edge7_Node000003_Node000016" title=" " alt="" coords="365,128,356,168,350,167,360,127"/>
+<area shape="poly" id="edge7_Node000003_Node000016" title=" " alt="" coords="355,128,352,168,347,167,349,128"/>
 <area shape="poly" id="edge6_Node000006_Node000005" title=" " alt="" coords="558,215,526,257,522,254,554,212"/>
 <area shape="poly" id="edge8_Node000016_Node000002" title=" " alt="" coords="267,216,119,258,118,253,265,211"/>
 <area shape="rect" id="Node000020" href="$object__renderer_8cc.html" title=" " alt="" coords="676,168,834,208"/>
-<area shape="poly" id="edge12_Node000019_Node000020" title=" " alt="" coords="758,135,758,167,752,167,752,135"/>
-<area shape="poly" id="edge13_Node000019_Node000021" title=" " alt="" coords="811,124,898,165,895,170,809,129"/>
+<area shape="poly" id="edge12_Node000019_Node000020" title=" " alt="" coords="755,135,757,167,751,167,749,135"/>
+<area shape="rect" id="Node000021" href="$room__object_8h.html" title=" " alt="" coords="859,168,1017,208"/>
+<area shape="poly" id="edge13_Node000019_Node000021" title=" " alt="" coords="808,124,896,165,894,170,805,129"/>
 </map>

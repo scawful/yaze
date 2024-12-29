@@ -1,7 +1,0 @@
-<map id="yaze::app::gfx::lc_lz2::Uncompress" name="yaze::app::gfx::lc_lz2::Uncompress">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,130,64"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1core.html#a65eee6b161b17a7cd555ae70cf65717a" title=" " alt="" coords="178,5,330,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,32,162,28,163,33,131,38"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1core.html#a58dc78cb3c691e3d7fa277549bc9bed3" title=" " alt="" coords="178,55,331,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="131,49,162,53,162,58,130,54"/>
-</map>

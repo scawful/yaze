@@ -157,7 +157,7 @@ $(function(){initNavTree('main_8mm_source.html',''); initResizable(true); });
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    abort();</div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  }</div>
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span> </div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  _controller = <span class="keyword">new</span> <a class="code hl_class" href="classyaze_1_1app_1_1core_1_1Controller.html">yaze::app::core::Controller</a>();</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  _controller = <span class="keyword">new</span> yaze::app::core::Controller();</div>
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  SDL_SetMainReady();</div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  SDL_iOSSetEventPump(SDL_TRUE);</div>
@@ -195,7 +195,7 @@ $(function(){initNavTree('main_8mm_source.html',''); initResizable(true); });
 <div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  <span class="comment">// Enable Keyboard Controls</span></div>
 <div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   <span class="comment">// Enable Gamepad Controls</span></div>
 <div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span> </div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>  <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a977a7571691d73f9f4ab817427cae497">yaze::app::gui::ColorsYaze</a>();</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>  yaze::app::gui::ColorsYaze();</div>
 <div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span> </div>
 <div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>  ImGui_ImplSDL2_InitForSDLRenderer(_controller-&gt;window(), _controller-&gt;renderer());</div>
 <div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>  ImGui_ImplSDLRenderer2_Init(_controller-&gt;renderer());</div>
@@ -463,9 +463,9 @@ $(function(){initNavTree('main_8mm_source.html',''); initResizable(true); });
 <div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>      <span class="comment">// Size of the data</span></div>
 <div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>      <span class="keywordtype">size_t</span> size = [data length];</div>
 <div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span> </div>
-<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>      <a class="code hl_define" href="constants_8h.html#a5cb25b198dc5695c2269aa5cb3b8698d">PRINT_IF_ERROR</a>(<a class="code hl_variable" href="classyaze_1_1app_1_1SharedRom.html#a309d5dc79f612e1387732f46597dbd84">yaze::app::SharedRom::shared_rom_</a>-&gt;LoadFromPointer(bytes, size));</div>
+<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>      <a class="code hl_define" href="constants_8h.html#a5cb25b198dc5695c2269aa5cb3b8698d">PRINT_IF_ERROR</a>(<a class="code hl_variable" href="classyaze_1_1SharedRom.html#a64665d290e4c842948b006142edb482b">yaze::SharedRom::shared_rom_</a>-&gt;LoadFromPointer(bytes, size));</div>
 <div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span>      std::string filename = std::string([selectedFileURL.path UTF8String]);</div>
-<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span>      <a class="code hl_variable" href="classyaze_1_1app_1_1SharedRom.html#a309d5dc79f612e1387732f46597dbd84">yaze::app::SharedRom::shared_rom_</a>-&gt;set_filename(filename);</div>
+<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span>      <a class="code hl_variable" href="classyaze_1_1SharedRom.html#a64665d290e4c842948b006142edb482b">yaze::SharedRom::shared_rom_</a>-&gt;set_filename(filename);</div>
 <div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>      [selectedFileURL stopAccessingSecurityScopedResource];</div>
 <div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span> </div>
 <div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>    } <span class="keywordflow">else</span> {</div>
@@ -508,13 +508,11 @@ $(function(){initNavTree('main_8mm_source.html',''); initResizable(true); });
 <div class="ttc" id="aapp__delegate_8h_html"><div class="ttname"><a href="app__delegate_8h.html">app_delegate.h</a></div></div>
 <div class="ttc" id="aclassAppDelegate_html"><div class="ttname"><a href="classAppDelegate.html">AppDelegate</a></div><div class="ttdef"><b>Definition</b> <a href="#l00305">main.mm:305</a></div></div>
 <div class="ttc" id="aclassAppViewController_html"><div class="ttname"><a href="classAppViewController.html">AppViewController</a></div><div class="ttdef"><b>Definition</b> <a href="#l00035">main.mm:35</a></div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1SharedRom_html_a309d5dc79f612e1387732f46597dbd84"><div class="ttname"><a href="classyaze_1_1app_1_1SharedRom.html#a309d5dc79f612e1387732f46597dbd84">yaze::app::SharedRom::shared_rom_</a></div><div class="ttdeci">static std::shared_ptr&lt; Rom &gt; shared_rom_</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00597">rom.h:597</a></div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1core_1_1Controller_html"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1Controller.html">yaze::app::core::Controller</a></div><div class="ttdoc">Main controller for the application.</div><div class="ttdef"><b>Definition</b> <a href="controller_8h_source.html#l00030">controller.h:30</a></div></div>
+<div class="ttc" id="aclassyaze_1_1SharedRom_html_a64665d290e4c842948b006142edb482b"><div class="ttname"><a href="classyaze_1_1SharedRom.html#a64665d290e4c842948b006142edb482b">yaze::SharedRom::shared_rom_</a></div><div class="ttdeci">static std::shared_ptr&lt; Rom &gt; shared_rom_</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00595">rom.h:595</a></div></div>
 <div class="ttc" id="aconstants_8h_html_a5cb25b198dc5695c2269aa5cb3b8698d"><div class="ttname"><a href="constants_8h.html#a5cb25b198dc5695c2269aa5cb3b8698d">PRINT_IF_ERROR</a></div><div class="ttdeci">#define PRINT_IF_ERROR(expression)</div><div class="ttdef"><b>Definition</b> <a href="constants_8h_source.html#l00036">constants.h:36</a></div></div>
 <div class="ttc" id="aconstants_8h_html_ae48ac2456c5ad6c956fef86e7bef3a21"><div class="ttname"><a href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a></div><div class="ttdeci">unsigned char uchar</div><div class="ttdef"><b>Definition</b> <a href="constants_8h_source.html#l00114">constants.h:114</a></div></div>
 <div class="ttc" id="acontroller_8h_html"><div class="ttname"><a href="controller_8h.html">controller.h</a></div></div>
 <div class="ttc" id="acontroller_8h_html_a3c04138a5bfe5d72780bb7e82a18e627"><div class="ttname"><a href="controller_8h.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a></div><div class="ttdeci">int main(int argc, char **argv)</div><div class="ttdoc">Main entry point for the application.</div><div class="ttdef"><b>Definition</b> <a href="emu_8cc_source.html#l00033">emu.cc:33</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_a977a7571691d73f9f4ab817427cae497"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#a977a7571691d73f9f4ab817427cae497">yaze::app::gui::ColorsYaze</a></div><div class="ttdeci">void ColorsYaze()</div><div class="ttdef"><b>Definition</b> <a href="style_8cc_source.html#l00431">style.cc:431</a></div></div>
 <div class="ttc" id="aview__controller_8h_html"><div class="ttname"><a href="view__controller_8h.html">view_controller.h</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

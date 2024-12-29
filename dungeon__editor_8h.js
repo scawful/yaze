@@ -1,7 +1,7 @@
 var dungeon__editor_8h =
 [
-    [ "yaze::app::editor::DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", "classyaze_1_1app_1_1editor_1_1DungeonEditor" ],
-    [ "kDungeonTabFlags", "dungeon__editor_8h.html#ae940471e79391cb6b9753359bb18870b", null ],
-    [ "kDungeonTabBarFlags", "dungeon__editor_8h.html#a90b47303e5a0364d74f646617dbcd2e8", null ],
-    [ "kDungeonTableFlags", "dungeon__editor_8h.html#a607cc1d6a18d503ac31793087f6b177f", null ]
+    [ "yaze::editor::DungeonEditor", "classyaze_1_1editor_1_1DungeonEditor.html", "classyaze_1_1editor_1_1DungeonEditor" ],
+    [ "kDungeonTabFlags", "dungeon__editor_8h.html#a618e4e59f9ee17b7a31362d6a425b722", null ],
+    [ "kDungeonTabBarFlags", "dungeon__editor_8h.html#aef9fc3aa4b7cf20402d52bb6e88b644c", null ],
+    [ "kDungeonTableFlags", "dungeon__editor_8h.html#a5fbf9b9f005187d191c8378e6364072c", null ]
 ];

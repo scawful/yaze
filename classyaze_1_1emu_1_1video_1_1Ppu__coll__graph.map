@@ -1,0 +1,23 @@
+<map id="yaze::emu::video::Ppu" name="yaze::emu::video::Ppu">
+<area shape="rect" id="Node000001" title=" " alt="" coords="341,256,485,282"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="44,5,166,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,18,252,33,287,48,318,68,340,89,358,114,386,167,403,218,412,255,407,256,398,220,381,170,354,117,336,93,315,72,284,52,250,38,180,24"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1emu_1_1video_1_1Layer.html" title=" " alt="" coords="28,55,182,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="198,79,260,98,290,113,318,131,350,161,376,195,408,254,403,257,371,198,346,164,315,135,288,117,258,103,196,84"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1emu_1_1video_1_1WindowLayer.html" title=" " alt="" coords="21,104,189,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="204,142,262,160,318,185,366,220,402,254,398,258,363,224,315,190,260,165,202,147"/>
+<area shape="rect" id="Node000005" href="$structyaze_1_1emu_1_1video_1_1BgLayer.html" title=" " alt="" coords="20,169,190,195"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="190,196,317,229,382,253,380,258,316,234,189,201"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1emu_1_1memory_1_1Memory.html" title="Memory interface." alt="" coords="37,219,173,260"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="189,245,340,259,340,265,188,250"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1emu_1_1Clock.html" title=" " alt="" coords="46,284,164,310"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="179,291,316,281,340,278,340,284,317,286,179,297"/>
+<area shape="rect" id="Node000008" href="$structyaze_1_1emu_1_1video_1_1Tilemap.html" title=" " alt="" coords="21,333,189,359"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="203,333,260,323,316,309,353,295,386,280,388,285,355,300,317,314,261,328,204,338"/>
+<area shape="rect" id="Node000009" href="$structyaze_1_1emu_1_1video_1_1OAMSize.html" title=" " alt="" coords="17,383,193,408"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="208,382,263,370,315,349,341,334,364,315,399,280,403,284,368,319,344,338,318,354,264,375,209,388"/>
+<area shape="rect" id="Node000010" href="$structyaze_1_1emu_1_1video_1_1OAMAddress.html" title=" " alt="" coords="5,432,205,458"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="220,433,269,420,315,398,346,371,372,338,404,281,408,283,376,341,350,374,318,402,271,425,221,439"/>
+<area shape="rect" id="Node000011" href="$structyaze_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html" title=" " alt="" coords="5,482,205,522"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="219,492,270,478,315,452,335,434,353,412,379,363,397,316,406,281,411,283,402,318,384,365,357,415,339,437,318,457,272,483,221,497"/>
+</map>

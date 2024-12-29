@@ -1,15 +1,15 @@
 var searchData=
 [
-  ['name_0',['name',['../structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a8dcaf29b0aa5d5202f20cfd7408aae5c',1,'yaze::app::gfx::PaletteGroup::name()'],['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a5aec436b8c78a4ed1a3a289c5b94a755',1,'yaze::app::zelda3::Sprite::name()']]],
-  ['newframe_1',['NewFrame',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a50bc6784048f64b765f8026f7c67099e',1,'yaze::app::emu::audio::Dsp']]],
-  ['newmasterframe_2',['NewMasterFrame',['../namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#aaffe64ca7a9a2b85375f661ca0a50824',1,'yaze::app::core::anonymous_namespace{controller.cc}']]],
-  ['newsr_3',['NewSR',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#aa665abe6a912720085f051b40f170dde',1,'yaze::app::zelda3::music::Tracker']]],
-  ['nmi_4',['Nmi',['../classyaze_1_1app_1_1emu_1_1Cpu.html#ad399989027f3767eb2ddf74d991d4a5a',1,'yaze::app::emu::Cpu']]],
-  ['nop_5',['NOP',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a08491a73e714c14e55a219459106063e',1,'yaze::app::emu::audio::Spc700::NOP()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a9637cbd326e98eca30f2797035851e65',1,'yaze::app::emu::Cpu::NOP()']]],
-  ['not1_6',['NOT1',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ac1cce66d63f5225e0fa76ec279e02280',1,'yaze::app::emu::audio::Spc700']]],
-  ['notc_7',['NOTC',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#aca963717f13985bd0b8988b89333dcd8',1,'yaze::app::emu::audio::Spc700']]],
-  ['notifyvalue_8',['NotifyValue',['../classyaze_1_1app_1_1core_1_1NotifyValue.html#a9e237459e1ec31bb6a7a75b5ebf90734',1,'yaze::app::core::NotifyValue::NotifyValue()'],['../classyaze_1_1app_1_1core_1_1NotifyValue.html#a21d574dee5d1a560da33cfccfaa0439b',1,'yaze::app::core::NotifyValue::NotifyValue(const T &amp;value)']]],
-  ['num_5ftiles_9',['num_tiles',['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a8baef78ba58fc7933571de5931735d57',1,'yaze::app::gfx::Tilesheet']]],
-  ['nx_10',['nx',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a7c4de3701d0d56a9b4361da242352b6c',1,'yaze::app::zelda3::Sprite']]],
-  ['ny_11',['ny',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#ae391c6d54a338f4d2acdc383f39324da',1,'yaze::app::zelda3::Sprite']]]
+  ['name_0',['name',['../structyaze_1_1gfx_1_1PaletteGroup.html#ad806aadfe8753d3e926852829f96d5be',1,'yaze::gfx::PaletteGroup::name()'],['../classyaze_1_1zelda3_1_1Sprite.html#a6acd5c8ee4f5ddbb6fed7e565e8e9c2d',1,'yaze::zelda3::Sprite::name()']]],
+  ['newframe_1',['NewFrame',['../classyaze_1_1emu_1_1audio_1_1Dsp.html#acc8f5f5a356cecb883aec332e0b46b0c',1,'yaze::emu::audio::Dsp']]],
+  ['newmasterframe_2',['NewMasterFrame',['../namespaceyaze_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#aaf52a3cf38ceb5200311471e0c760fca',1,'yaze::core::anonymous_namespace{controller.cc}']]],
+  ['newsr_3',['NewSR',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html#abe403497078acd2c084a4c506a850c9d',1,'yaze::zelda3::music::Tracker']]],
+  ['nmi_4',['Nmi',['../classyaze_1_1emu_1_1Cpu.html#a411e83ff4742e76beb22403cf8e50f79',1,'yaze::emu::Cpu']]],
+  ['nop_5',['NOP',['../classyaze_1_1emu_1_1audio_1_1Spc700.html#ae200778bacdd94717ad8ad8dfab2ae67',1,'yaze::emu::audio::Spc700::NOP()'],['../classyaze_1_1emu_1_1Cpu.html#a1eac3c2018da93be574296583e94dcfa',1,'yaze::emu::Cpu::NOP()']]],
+  ['not1_6',['NOT1',['../classyaze_1_1emu_1_1audio_1_1Spc700.html#a8f86c2666f8ec31a97191f76ebb22e76',1,'yaze::emu::audio::Spc700']]],
+  ['notc_7',['NOTC',['../classyaze_1_1emu_1_1audio_1_1Spc700.html#aab4ca36e7a693f801d60be3ef70bdaab',1,'yaze::emu::audio::Spc700']]],
+  ['notifyvalue_8',['NotifyValue',['../classyaze_1_1core_1_1NotifyValue.html#a10f0ef5712607df35a45dbbaa8cfbb96',1,'yaze::core::NotifyValue::NotifyValue()'],['../classyaze_1_1core_1_1NotifyValue.html#abd551eabd9b1720e2bf6862e183c9316',1,'yaze::core::NotifyValue::NotifyValue(const T &amp;value)']]],
+  ['num_5ftiles_9',['num_tiles',['../classyaze_1_1gfx_1_1Tilesheet.html#ac53e1aec32dc30b280f1c3502b77a5dd',1,'yaze::gfx::Tilesheet']]],
+  ['nx_10',['nx',['../classyaze_1_1zelda3_1_1Sprite.html#adbbc2669926bc228ccb2d0a20e01bc6a',1,'yaze::zelda3::Sprite']]],
+  ['ny_11',['ny',['../classyaze_1_1zelda3_1_1Sprite.html#af2bd1685f01fc3cfe9c164793855461f',1,'yaze::zelda3::Sprite']]]
 ];

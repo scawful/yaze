@@ -1,0 +1,7 @@
+<map id="yaze::editor::SettingsEditor::Update" name="yaze::editor::SettingsEditor::Update">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,178,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1SettingsEditor.html#a1f4ad9210d7bfaebf191b98e752f8a0b" title=" " alt="" coords="226,5,398,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,23,210,23,210,28,178,28"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1editor_1_1FlagsMenu.html#a9ec7705691303d073f59115ebc802126" title=" " alt="" coords="446,5,601,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="398,23,430,23,430,28,398,28"/>
+</map>

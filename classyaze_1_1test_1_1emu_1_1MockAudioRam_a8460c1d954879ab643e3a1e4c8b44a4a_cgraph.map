@@ -1,11 +1,11 @@
 <map id="yaze::test::emu::MockAudioRam::SetUp" name="yaze::test::emu::MockAudioRam::SetUp">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,104,183,145"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a3a54c05966bf0ff2cdf022224aaf5a0a" title=" " alt="" coords="231,5,402,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,101,230,57,245,50,247,55,232,61,138,106"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a76190c7cd6dd60be18f60576f007cb46" title=" " alt="" coords="245,71,388,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="182,108,229,101,230,107,183,114"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#aba918304c71c8f4f5619ed20da96ed0d" title=" " alt="" coords="245,136,388,177"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="183,134,230,141,229,147,182,140"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a48aa23112a613be3af4fa5e38d83084f" title=" " alt="" coords="245,201,388,242"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="139,143,232,186,247,192,245,197,230,191,137,148"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1audio_1_1AudioRam.html#a8548cc5981bd0355830c8b0607ca22a7" title=" " alt="" coords="231,5,412,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,101,230,57,246,50,248,55,232,61,137,106"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1audio_1_1AudioRam.html#a147671142dac0e6407146a1a93b016ed" title=" " alt="" coords="231,71,412,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="182,109,215,104,215,109,183,114"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1audio_1_1AudioRam.html#a2c452ed0d9a141a732ce5b9b3677b336" title=" " alt="" coords="231,136,412,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="183,134,215,139,215,144,182,139"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1emu_1_1audio_1_1AudioRam.html#af17fe83b1053d5b11c105f68c241333f" title=" " alt="" coords="231,201,412,242"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="138,143,232,186,248,193,246,198,230,191,136,148"/>
 </map>

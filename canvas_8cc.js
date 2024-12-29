@@ -1,11 +1,11 @@
 var canvas_8cc =
 [
-    [ "AlignPosToGrid", "canvas_8cc.html#a6739cf66e8926a0ff5db236971ab9eaf", null ],
-    [ "GraphicsBinCanvasPipeline", "canvas_8cc.html#af3842eaca5095da067d7248aeda9d006", null ],
-    [ "BitmapCanvasPipeline", "canvas_8cc.html#ac8855b43699a5fdc16812db22be8cc43", null ],
-    [ "kBlackColor", "canvas_8cc.html#aee217a18ea62a7b03fe42c841e8e9ad6", null ],
-    [ "kRectangleColor", "canvas_8cc.html#a5c3bc66feb8dec0e9d06a5d65411f0cd", null ],
-    [ "kWhiteColor", "canvas_8cc.html#a5c89eb2fbf4f89aa23f9741189bc86aa", null ],
-    [ "kOutlineRect", "canvas_8cc.html#aeb9ba08d29404d3ebcc54f7c14b91146", null ],
-    [ "kMouseFlags", "canvas_8cc.html#a6cabd77ab7f3d8a700dd83a1cd893752", null ]
+    [ "AlignPosToGrid", "canvas_8cc.html#af4dff81b2ea92c55430eef4844079a96", null ],
+    [ "GraphicsBinCanvasPipeline", "canvas_8cc.html#a359973f01787648b92a53d2aa84120a9", null ],
+    [ "BitmapCanvasPipeline", "canvas_8cc.html#a134c6e6817a4a8332e3842e4b2cd01f6", null ],
+    [ "kBlackColor", "canvas_8cc.html#ac795552df5b144846631c846b65a7b6f", null ],
+    [ "kRectangleColor", "canvas_8cc.html#a074b2ff8f8c07459d6dbdc5cac6b68cb", null ],
+    [ "kWhiteColor", "canvas_8cc.html#a052158d35957768a382590f5af89e34e", null ],
+    [ "kOutlineRect", "canvas_8cc.html#a5b902cf759ec2b5ea194439194b3764c", null ],
+    [ "kMouseFlags", "canvas_8cc.html#ac8d8a407cf4b76e12a012f326008d58a", null ]
 ];

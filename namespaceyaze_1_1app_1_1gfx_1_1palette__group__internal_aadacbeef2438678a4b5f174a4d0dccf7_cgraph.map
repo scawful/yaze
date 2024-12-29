@@ -1,9 +1,0 @@
-<map id="yaze::app::gfx::palette_group_internal::LoadOverworldAnimatedPalettes" name="yaze::app::gfx::palette_group_internal::LoadOverworldAnimatedPalettes">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,209,87"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a8fa2347dd7c201ffd8189cab6177798a" title=" " alt="" coords="257,5,436,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="209,42,241,38,242,43,209,47"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx.html#a770b616b1a09b80f72fdd549ec6a7f34" title=" " alt="" coords="259,71,434,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="209,70,244,75,243,80,209,75"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx.html#ada8bbf979fa3b08cc19504b83e4f304f" title=" " alt="" coords="484,71,655,111"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="434,88,468,88,468,94,434,94"/>
-</map>

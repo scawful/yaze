@@ -1,0 +1,19 @@
+<map id="yaze::gfx::lc_lz2::CompressOverworld" name="yaze::gfx::lc_lz2::CompressOverworld">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,201,145,242"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#a143e848d987c6b04f56308f2ef6953ae" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="193,201,308,242"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,219,177,219,177,224,145,224"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#aaaeeee9ebc06559e9f816a0d4b9fb3c0" title=" " alt="" coords="398,5,567,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="257,200,270,168,291,130,319,90,354,57,382,41,385,46,358,61,323,94,296,132,275,171,262,202"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#a811f14da55752f836220fa108858424b" title=" " alt="" coords="356,71,609,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="266,199,304,160,328,139,355,122,368,115,371,120,357,127,331,144,308,164,270,203"/>
+<area shape="rect" id="Node000009" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#aeab3533c41cb40119b84e3cdeaf095af" title=" " alt="" coords="391,136,574,177"/>
+<area shape="poly" id="edge4_Node000002_Node000009" title=" " alt="" coords="308,201,355,187,385,179,387,184,357,192,309,206"/>
+<area shape="rect" id="Node000010" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#a1eddb91cde2953096c2302e082d8c3b2" title=" " alt="" coords="412,201,553,242"/>
+<area shape="poly" id="edge5_Node000002_Node000010" title=" " alt="" coords="308,219,397,219,397,224,308,224"/>
+<area shape="rect" id="Node000012" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#a6b900390ba207a54f5669a4ce4fc5055" title=" " alt="" coords="420,267,545,307"/>
+<area shape="poly" id="edge6_Node000002_Node000012" title=" " alt="" coords="309,237,357,251,406,265,404,270,355,256,308,242"/>
+<area shape="rect" id="Node000013" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#a32ff40d7c0cee688d9eb2d808ef4cb98" title=" " alt="" coords="410,332,555,373"/>
+<area shape="poly" id="edge7_Node000002_Node000013" title=" " alt="" coords="270,240,308,280,331,300,357,317,396,333,394,338,355,321,328,304,304,284,266,244"/>
+<area shape="rect" id="Node000014" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#a4891117728978a92b253a51ce8406060" title=" " alt="" coords="384,397,581,438"/>
+<area shape="poly" id="edge8_Node000002_Node000014" title=" " alt="" coords="262,241,275,273,296,311,323,350,358,382,372,391,369,395,354,386,319,353,291,314,270,275,257,243"/>
+</map>

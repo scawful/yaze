@@ -1,0 +1,11 @@
+<map id="yaze::editor::AssemblyEditor::UpdateCodeView" name="yaze::editor::AssemblyEditor::UpdateCodeView">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,187,111"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1AssemblyEditor.html#a496879dc827f1e8a9dac88a5cd0e915e" title=" " alt="" coords="239,5,420,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,68,239,48,240,53,172,73"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1AssemblyEditor.html#ae05d2701e4bd69ee07fff43b5136b51b" title=" " alt="" coords="239,71,420,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="187,88,223,88,223,94,187,94"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1core_1_1FileDialogWrapper.html#ae9e6b685fe8521a6aa1830edd63e4ce0" title="ShowOpenFolderDialog opens a file dialog and returns the selected folder path." alt="" coords="235,136,424,177"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="172,109,240,129,239,134,170,114"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1AssemblyEditor.html#a4b745650f8142af416a263bfee0b24c9" title=" " alt="" coords="472,5,653,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="421,23,456,23,456,28,421,28"/>
+</map>

@@ -1,0 +1,12 @@
+<map id="yaze::editor::DungeonEditor::RefreshGraphics" name="yaze::editor::DungeonEditor::RefreshGraphics">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,87,181,127"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="235,5,372,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,84,233,50,235,55,149,89"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="229,94,378,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="181,104,214,104,214,110,181,110"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="235,144,372,185"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="171,125,221,139,220,144,169,130"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="272,95,266,86,270,76,283,70,303,68,326,70,337,77,335,81,324,75,303,73,284,75,274,79,272,85,277,92"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="426,144,549,185"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="372,162,410,162,410,167,372,167"/>
+</map>

@@ -1,5 +1,0 @@
-<map id="yaze::app::emu::audio::Dsp" name="yaze::app::emu::audio::Dsp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,109,177,135"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html" title=" " alt="" coords="20,5,162,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,61,94,109,88,109,88,61"/>
-</map>

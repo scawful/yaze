@@ -1,0 +1,5 @@
+<map id="yaze::zelda3::screen::TitleScreen::BuildTileset" name="yaze::zelda3::screen::TitleScreen::BuildTileset">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,173,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a9f96f54bf229f5c20f8470de37200707" title=" " alt="" coords="221,5,344,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,23,205,23,205,28,173,28"/>
+</map>

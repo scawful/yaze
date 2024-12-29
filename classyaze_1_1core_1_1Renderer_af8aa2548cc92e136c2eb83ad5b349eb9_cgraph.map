@@ -1,0 +1,5 @@
+<map id="yaze::core::Renderer::RenderBitmap" name="yaze::core::Renderer::RenderBitmap">
+<area shape="rect" id="Node000001" title="Used to render a bitmap to the screen." alt="" coords="5,5,142,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="190,5,313,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,23,175,23,175,28,142,28"/>
+</map>

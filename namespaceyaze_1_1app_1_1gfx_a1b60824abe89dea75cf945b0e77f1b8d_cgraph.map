@@ -1,7 +1,0 @@
-<map id="yaze::app::gfx::GetCgxColor" name="yaze::app::gfx::GetCgxColor">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,182,38"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1SnesColor.html#a477d2e3ceed1711ad288ba2b1448f5c6" title=" " alt="" coords="230,5,393,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,23,214,23,214,28,182,28"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx.html#ada8bbf979fa3b08cc19504b83e4f304f" title=" " alt="" coords="441,5,612,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="393,23,425,23,425,28,393,28"/>
-</map>

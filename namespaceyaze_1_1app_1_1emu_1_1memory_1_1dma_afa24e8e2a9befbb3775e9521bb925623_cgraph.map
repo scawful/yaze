@@ -1,7 +1,0 @@
-<map id="yaze::app::emu::memory::dma::Read" name="yaze::app::emu::memory::dma::Read">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,163,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a27824db4c395c5a49017d5651947a531" title=" " alt="" coords="211,5,399,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,45,195,40,196,45,163,50"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ab165116658b41810ae84c455e4759e3d" title=" " alt="" coords="225,71,385,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="163,68,209,74,208,80,162,73"/>
-</map>

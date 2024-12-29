@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['y_0',['y',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#ab63d0ebfbaf09520434422d51ad24449',1,'yaze::app::zelda3::Sprite']]],
+  ['y_0',['y',['../classyaze_1_1zelda3_1_1Sprite.html#ae019782d3eb9d0552f39307dfacdb5e6',1,'yaze::zelda3::Sprite']]],
   ['yaze_5fcheck_5fversion_1',['yaze_check_version',['../yaze_8h.html#a9fff64bba6ed578ae091960204b84648',1,'yaze_check_version(const char *version):&#160;yaze.cc'],['../yaze_8cc.html#a9fff64bba6ed578ae091960204b84648',1,'yaze_check_version(const char *version):&#160;yaze.cc']]],
   ['yaze_5fcleanup_2',['yaze_cleanup',['../yaze_8h.html#ac6ab34b2015d370dc6b7be5728b163f5',1,'yaze_cleanup(yaze_editor_context *):&#160;yaze.cc'],['../yaze_8cc.html#a0a0de1f1ac633141312ab7e267fff4c4',1,'yaze_cleanup(yaze_editor_context *yaze_ctx):&#160;yaze.cc']]],
   ['yaze_5fget_5fcolor_5ffrom_5fpaletteset_3',['yaze_get_color_from_paletteset',['../yaze_8h.html#adfb236b5541502ced4544a6678e79d0e',1,'yaze_get_color_from_paletteset(const z3_rom *rom, int palette_set, int palette, int color):&#160;yaze.cc'],['../yaze_8cc.html#adfb236b5541502ced4544a6678e79d0e',1,'yaze_get_color_from_paletteset(const z3_rom *rom, int palette_set, int palette, int color):&#160;yaze.cc']]],

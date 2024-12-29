@@ -1,0 +1,5 @@
+<map id="yaze::emu::audio::Apu::Read" name="yaze::emu::audio::Apu::Read">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,150,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1audio_1_1Dsp.html#ae81335dc43b95cbf5bcb57f352b2344d" title=" " alt="" coords="198,5,342,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,23,182,23,182,28,150,28"/>
+</map>

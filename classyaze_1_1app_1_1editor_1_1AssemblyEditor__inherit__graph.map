@@ -1,5 +1,0 @@
-<map id="yaze::app::editor::AssemblyEditor" name="yaze::app::editor::AssemblyEditor">
-<area shape="rect" id="Node000001" title="Text editor for modifying assembly code." alt="" coords="5,94,124,135"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="5,5,124,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="67,62,67,94,62,94,62,62"/>
-</map>

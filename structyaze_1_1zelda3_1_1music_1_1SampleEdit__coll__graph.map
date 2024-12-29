@@ -1,0 +1,5 @@
+<map id="yaze::zelda3::music::SampleEdit" name="yaze::zelda3::music::SampleEdit">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,109,137,150"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html" title=" " alt="" coords="5,5,137,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="74,62,74,109,68,109,68,62"/>
+</map>

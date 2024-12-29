@@ -116,73 +116,71 @@ $(function(){initNavTree('flags_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &quot;imgui/imgui.h&quot;</span></div>
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="keyword">namespace </span>app {</div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="keyword">namespace </span>editor {</div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="keyword">using </span>ImGui::BeginMenu;</div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keyword">using </span>ImGui::Checkbox;</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="keyword">using </span>ImGui::EndMenu;</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="keyword">using </span>ImGui::MenuItem;</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="keyword">using </span>ImGui::Separator;</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
-<div class="foldopen" id="foldopen00017" data-start="{" data-end="};">
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="structyaze_1_1app_1_1editor_1_1FlagsMenu.html">   17</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structyaze_1_1app_1_1editor_1_1FlagsMenu.html">FlagsMenu</a> : <span class="keyword">public</span> <a class="code hl_class" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html">core::ExperimentFlags</a> {</div>
-<div class="foldopen" id="foldopen00018" data-start="{" data-end="}">
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno"><a class="line" href="structyaze_1_1app_1_1editor_1_1FlagsMenu.html#a7e05e45f0d1e8918fbf1d34b966e3d7e">   18</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="structyaze_1_1app_1_1editor_1_1FlagsMenu.html#a7e05e45f0d1e8918fbf1d34b966e3d7e">Draw</a>() {</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    <span class="keywordflow">if</span> (BeginMenu(<span class="stringliteral">&quot;Overworld Flags&quot;</span>)) {</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>      Checkbox(<span class="stringliteral">&quot;Enable Overworld Sprites&quot;</span>,</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>               &amp;<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7">mutable_flags</a>()-&gt;overworld.kDrawOverworldSprites);</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>      Separator();</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>      Checkbox(<span class="stringliteral">&quot;Save Overworld Maps&quot;</span>,</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>               &amp;<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7">mutable_flags</a>()-&gt;overworld.kSaveOverworldMaps);</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>      Checkbox(<span class="stringliteral">&quot;Save Overworld Entrances&quot;</span>,</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>               &amp;<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7">mutable_flags</a>()-&gt;overworld.kSaveOverworldEntrances);</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>      Checkbox(<span class="stringliteral">&quot;Save Overworld Exits&quot;</span>,</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>               &amp;<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7">mutable_flags</a>()-&gt;overworld.kSaveOverworldExits);</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>      Checkbox(<span class="stringliteral">&quot;Save Overworld Items&quot;</span>,</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>               &amp;<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7">mutable_flags</a>()-&gt;overworld.kSaveOverworldItems);</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>      Checkbox(<span class="stringliteral">&quot;Save Overworld Properties&quot;</span>,</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>               &amp;<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7">mutable_flags</a>()-&gt;overworld.kSaveOverworldProperties);</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>      Checkbox(<span class="stringliteral">&quot;Load Custom Overworld&quot;</span>,</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>               &amp;<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7">mutable_flags</a>()-&gt;overworld.kLoadCustomOverworld);</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>      ImGui::EndMenu();</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    }</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="keywordflow">if</span> (BeginMenu(<span class="stringliteral">&quot;Dungeon Flags&quot;</span>)) {</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>      Checkbox(<span class="stringliteral">&quot;Draw Dungeon Room Graphics&quot;</span>,</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>               &amp;<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7">mutable_flags</a>()-&gt;kDrawDungeonRoomGraphics);</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>      Separator();</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>      Checkbox(<span class="stringliteral">&quot;Save Dungeon Maps&quot;</span>, &amp;<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7">mutable_flags</a>()-&gt;kSaveDungeonMaps);</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>      ImGui::EndMenu();</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    }</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span> </div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    Checkbox(<span class="stringliteral">&quot;Use built-in file dialog&quot;</span>,</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>             &amp;<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7">mutable_flags</a>()-&gt;kNewFileDialogWrapper);</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    Checkbox(<span class="stringliteral">&quot;Enable Console Logging&quot;</span>, &amp;<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7">mutable_flags</a>()-&gt;kLogToConsole);</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    Checkbox(<span class="stringliteral">&quot;Enable Texture Streaming&quot;</span>,</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>             &amp;<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7">mutable_flags</a>()-&gt;kLoadTexturesAsStreaming);</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    Checkbox(<span class="stringliteral">&quot;Log Instructions to Debugger&quot;</span>,</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>             &amp;<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7">mutable_flags</a>()-&gt;kLogInstructions);</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    Checkbox(<span class="stringliteral">&quot;Save All Palettes&quot;</span>, &amp;<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7">mutable_flags</a>()-&gt;kSaveAllPalettes);</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    Checkbox(<span class="stringliteral">&quot;Save Gfx Groups&quot;</span>, &amp;<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7">mutable_flags</a>()-&gt;kSaveGfxGroups);</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    Checkbox(<span class="stringliteral">&quot;Save Graphics Sheets&quot;</span>, &amp;<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7">mutable_flags</a>()-&gt;kSaveGraphicsSheet);</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    Checkbox(<span class="stringliteral">&quot;Use New ImGui Input&quot;</span>, &amp;<a class="code hl_function" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7">mutable_flags</a>()-&gt;kUseNewImGuiInput);</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>  }</div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="keyword">namespace </span>editor {</div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keyword">using </span>ImGui::BeginMenu;</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="keyword">using </span>ImGui::Checkbox;</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keyword">using </span>ImGui::EndMenu;</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="keyword">using </span>ImGui::MenuItem;</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="keyword">using </span>ImGui::Separator;</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
+<div class="foldopen" id="foldopen00016" data-start="{" data-end="};">
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="structyaze_1_1editor_1_1FlagsMenu.html">   16</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structyaze_1_1editor_1_1FlagsMenu.html">FlagsMenu</a> : <span class="keyword">public</span> <a class="code hl_class" href="classyaze_1_1core_1_1ExperimentFlags.html">core::ExperimentFlags</a> {</div>
+<div class="foldopen" id="foldopen00017" data-start="{" data-end="}">
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="structyaze_1_1editor_1_1FlagsMenu.html#a9ec7705691303d073f59115ebc802126">   17</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="structyaze_1_1editor_1_1FlagsMenu.html#a9ec7705691303d073f59115ebc802126">Draw</a>() {</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>    <span class="keywordflow">if</span> (BeginMenu(<span class="stringliteral">&quot;Overworld Flags&quot;</span>)) {</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>      Checkbox(<span class="stringliteral">&quot;Enable Overworld Sprites&quot;</span>,</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>               &amp;<a class="code hl_function" href="classyaze_1_1core_1_1ExperimentFlags.html#ab62a2206ef60e525c241f0dc0111044f">mutable_flags</a>()-&gt;overworld.kDrawOverworldSprites);</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>      Separator();</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>      Checkbox(<span class="stringliteral">&quot;Save Overworld Maps&quot;</span>,</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>               &amp;<a class="code hl_function" href="classyaze_1_1core_1_1ExperimentFlags.html#ab62a2206ef60e525c241f0dc0111044f">mutable_flags</a>()-&gt;overworld.kSaveOverworldMaps);</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>      Checkbox(<span class="stringliteral">&quot;Save Overworld Entrances&quot;</span>,</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>               &amp;<a class="code hl_function" href="classyaze_1_1core_1_1ExperimentFlags.html#ab62a2206ef60e525c241f0dc0111044f">mutable_flags</a>()-&gt;overworld.kSaveOverworldEntrances);</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>      Checkbox(<span class="stringliteral">&quot;Save Overworld Exits&quot;</span>,</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>               &amp;<a class="code hl_function" href="classyaze_1_1core_1_1ExperimentFlags.html#ab62a2206ef60e525c241f0dc0111044f">mutable_flags</a>()-&gt;overworld.kSaveOverworldExits);</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>      Checkbox(<span class="stringliteral">&quot;Save Overworld Items&quot;</span>,</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>               &amp;<a class="code hl_function" href="classyaze_1_1core_1_1ExperimentFlags.html#ab62a2206ef60e525c241f0dc0111044f">mutable_flags</a>()-&gt;overworld.kSaveOverworldItems);</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>      Checkbox(<span class="stringliteral">&quot;Save Overworld Properties&quot;</span>,</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>               &amp;<a class="code hl_function" href="classyaze_1_1core_1_1ExperimentFlags.html#ab62a2206ef60e525c241f0dc0111044f">mutable_flags</a>()-&gt;overworld.kSaveOverworldProperties);</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>      Checkbox(<span class="stringliteral">&quot;Load Custom Overworld&quot;</span>,</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>               &amp;<a class="code hl_function" href="classyaze_1_1core_1_1ExperimentFlags.html#ab62a2206ef60e525c241f0dc0111044f">mutable_flags</a>()-&gt;overworld.kLoadCustomOverworld);</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>      ImGui::EndMenu();</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    }</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <span class="keywordflow">if</span> (BeginMenu(<span class="stringliteral">&quot;Dungeon Flags&quot;</span>)) {</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>      Checkbox(<span class="stringliteral">&quot;Draw Dungeon Room Graphics&quot;</span>,</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>               &amp;<a class="code hl_function" href="classyaze_1_1core_1_1ExperimentFlags.html#ab62a2206ef60e525c241f0dc0111044f">mutable_flags</a>()-&gt;kDrawDungeonRoomGraphics);</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>      Separator();</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>      Checkbox(<span class="stringliteral">&quot;Save Dungeon Maps&quot;</span>, &amp;<a class="code hl_function" href="classyaze_1_1core_1_1ExperimentFlags.html#ab62a2206ef60e525c241f0dc0111044f">mutable_flags</a>()-&gt;kSaveDungeonMaps);</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>      ImGui::EndMenu();</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    }</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    Checkbox(<span class="stringliteral">&quot;Use built-in file dialog&quot;</span>,</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>             &amp;<a class="code hl_function" href="classyaze_1_1core_1_1ExperimentFlags.html#ab62a2206ef60e525c241f0dc0111044f">mutable_flags</a>()-&gt;kNewFileDialogWrapper);</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    Checkbox(<span class="stringliteral">&quot;Enable Console Logging&quot;</span>, &amp;<a class="code hl_function" href="classyaze_1_1core_1_1ExperimentFlags.html#ab62a2206ef60e525c241f0dc0111044f">mutable_flags</a>()-&gt;kLogToConsole);</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    Checkbox(<span class="stringliteral">&quot;Enable Texture Streaming&quot;</span>,</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>             &amp;<a class="code hl_function" href="classyaze_1_1core_1_1ExperimentFlags.html#ab62a2206ef60e525c241f0dc0111044f">mutable_flags</a>()-&gt;kLoadTexturesAsStreaming);</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    Checkbox(<span class="stringliteral">&quot;Log Instructions to Debugger&quot;</span>,</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>             &amp;<a class="code hl_function" href="classyaze_1_1core_1_1ExperimentFlags.html#ab62a2206ef60e525c241f0dc0111044f">mutable_flags</a>()-&gt;kLogInstructions);</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    Checkbox(<span class="stringliteral">&quot;Save All Palettes&quot;</span>, &amp;<a class="code hl_function" href="classyaze_1_1core_1_1ExperimentFlags.html#ab62a2206ef60e525c241f0dc0111044f">mutable_flags</a>()-&gt;kSaveAllPalettes);</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    Checkbox(<span class="stringliteral">&quot;Save Gfx Groups&quot;</span>, &amp;<a class="code hl_function" href="classyaze_1_1core_1_1ExperimentFlags.html#ab62a2206ef60e525c241f0dc0111044f">mutable_flags</a>()-&gt;kSaveGfxGroups);</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    Checkbox(<span class="stringliteral">&quot;Save Graphics Sheets&quot;</span>, &amp;<a class="code hl_function" href="classyaze_1_1core_1_1ExperimentFlags.html#ab62a2206ef60e525c241f0dc0111044f">mutable_flags</a>()-&gt;kSaveGraphicsSheet);</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    Checkbox(<span class="stringliteral">&quot;Use New ImGui Input&quot;</span>, &amp;<a class="code hl_function" href="classyaze_1_1core_1_1ExperimentFlags.html#ab62a2206ef60e525c241f0dc0111044f">mutable_flags</a>()-&gt;kUseNewImGuiInput);</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  }</div>
 </div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>};</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>};</div>
 </div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span> </div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>}  <span class="comment">// namespace editor</span></div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>}  <span class="comment">// namespace app</span></div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>}  <span class="comment">// namespace yaze</span></div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span> </div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_EDITOR_UTILS_FLAGS_H_</span></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1core_1_1ExperimentFlags_html"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html">yaze::app::core::ExperimentFlags</a></div><div class="ttdoc">A class to manage experimental feature flags.</div><div class="ttdef"><b>Definition</b> <a href="core_2common_8h_source.html#l00035">common.h:35</a></div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1core_1_1ExperimentFlags_html_aceb78c3bf9ad001f9d111f50fe731ab7"><div class="ttname"><a href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7">yaze::app::core::ExperimentFlags::mutable_flags</a></div><div class="ttdeci">Flags * mutable_flags()</div><div class="ttdef"><b>Definition</b> <a href="core_2common_8h_source.html#l00109">common.h:109</a></div></div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>}  <span class="comment">// namespace editor</span></div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_EDITOR_UTILS_FLAGS_H_</span></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1ExperimentFlags_html"><div class="ttname"><a href="classyaze_1_1core_1_1ExperimentFlags.html">yaze::core::ExperimentFlags</a></div><div class="ttdoc">A class to manage experimental feature flags.</div><div class="ttdef"><b>Definition</b> <a href="core_2common_8h_source.html#l00034">common.h:34</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1ExperimentFlags_html_ab62a2206ef60e525c241f0dc0111044f"><div class="ttname"><a href="classyaze_1_1core_1_1ExperimentFlags.html#ab62a2206ef60e525c241f0dc0111044f">yaze::core::ExperimentFlags::mutable_flags</a></div><div class="ttdeci">Flags * mutable_flags()</div><div class="ttdef"><b>Definition</b> <a href="core_2common_8h_source.html#l00108">common.h:108</a></div></div>
 <div class="ttc" id="acore_2common_8h_html"><div class="ttname"><a href="core_2common_8h.html">common.h</a></div></div>
-<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdef"><b>Definition</b> <a href="common_8cc_source.html#l00015">common.cc:15</a></div></div>
-<div class="ttc" id="astructyaze_1_1app_1_1editor_1_1FlagsMenu_html"><div class="ttname"><a href="structyaze_1_1app_1_1editor_1_1FlagsMenu.html">yaze::app::editor::FlagsMenu</a></div><div class="ttdef"><b>Definition</b> <a href="#l00017">flags.h:17</a></div></div>
-<div class="ttc" id="astructyaze_1_1app_1_1editor_1_1FlagsMenu_html_a7e05e45f0d1e8918fbf1d34b966e3d7e"><div class="ttname"><a href="structyaze_1_1app_1_1editor_1_1FlagsMenu.html#a7e05e45f0d1e8918fbf1d34b966e3d7e">yaze::app::editor::FlagsMenu::Draw</a></div><div class="ttdeci">void Draw()</div><div class="ttdef"><b>Definition</b> <a href="#l00018">flags.h:18</a></div></div>
+<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="common_8cc_source.html#l00015">common.cc:15</a></div></div>
+<div class="ttc" id="astructyaze_1_1editor_1_1FlagsMenu_html"><div class="ttname"><a href="structyaze_1_1editor_1_1FlagsMenu.html">yaze::editor::FlagsMenu</a></div><div class="ttdef"><b>Definition</b> <a href="#l00016">flags.h:16</a></div></div>
+<div class="ttc" id="astructyaze_1_1editor_1_1FlagsMenu_html_a9ec7705691303d073f59115ebc802126"><div class="ttname"><a href="structyaze_1_1editor_1_1FlagsMenu.html#a9ec7705691303d073f59115ebc802126">yaze::editor::FlagsMenu::Draw</a></div><div class="ttdeci">void Draw()</div><div class="ttdef"><b>Definition</b> <a href="#l00017">flags.h:17</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

@@ -1,0 +1,10 @@
+<map id="yaze::editor::GfxGroupEditor::DrawPaletteViewer" name="yaze::editor::GfxGroupEditor::DrawPaletteViewer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,185,76"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="233,5,387,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,37,217,32,218,37,186,43"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="235,79,384,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="186,68,220,74,219,79,185,73"/>
+<area shape="rect" id="Node000003" href="$namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="435,5,586,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="387,16,419,16,419,21,387,21"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="276,80,270,70,274,60,287,54,310,52,335,55,347,62,345,66,333,60,310,57,289,59,277,64,275,69,281,77"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="yaze::gfx::Bitmap::UpdateTexture" name="yaze::gfx::Bitmap::UpdateTexture">
+<area shape="rect" id="Node000001" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="5,5,129,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a4fb0f6bbb8c0a99e5335e4e5191fbac6" title=" " alt="" coords="177,5,305,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,23,161,23,161,28,129,28"/>
+</map>

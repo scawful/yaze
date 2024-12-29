@@ -1,0 +1,28 @@
+<map id="yaze::core::Controller::OnLoad" name="yaze::core::Controller::OnLoad">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,219,145,259"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1EditorManager.html#a040d44da3b2c905715d377940f89a3d0" title=" " alt="" coords="193,185,367,226"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,225,177,220,178,225,145,230"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1EditorManager.html#ab1925444bb0903c0375991ee96692c21" title=" " alt="" coords="193,251,367,291"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="145,247,178,252,177,258,144,252"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1EditorManager.html#a9aa9002c6666431b8c47964ddc5f29c5" title=" " alt="" coords="420,5,594,46"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="351,248,365,236,380,214,387,192,388,148,389,103,397,80,413,57,417,54,420,57,417,61,402,83,394,104,393,148,393,193,385,216,369,239,354,252"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1editor_1_1EditorManager.html#ab4292de97026fd804a409ee96b779879" title=" " alt="" coords="420,71,594,111"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="349,248,365,236,376,222,383,208,388,180,394,152,401,137,413,122,418,118,421,122,417,126,405,140,399,153,393,181,388,210,381,225,369,240,352,252"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1editor_1_1EditorManager.html#a566369fd52201751846c44e3ab42bee1" title=" " alt="" coords="420,136,594,177"/>
+<area shape="poly" id="edge5_Node000003_Node000009" title=" " alt="" coords="342,248,365,235,389,214,413,193,434,181,437,186,417,197,393,218,369,240,344,252"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="646,201,796,226"/>
+<area shape="poly" id="edge14_Node000003_Node000010" title=" " alt="" coords="360,247,415,236,527,223,631,215,631,220,527,228,415,242,361,253"/>
+<area shape="rect" id="Node000012" href="$classyaze_1_1editor_1_1EditorManager.html#a014c6454e7877381f584839afc8be860" title=" " alt="" coords="420,251,594,291"/>
+<area shape="poly" id="edge8_Node000003_Node000012" title=" " alt="" coords="367,268,404,268,404,274,367,274"/>
+<area shape="rect" id="Node000013" href="$classyaze_1_1editor_1_1EditorManager.html#a48bdaa48cd8e3f4990e429a70da3df65" title=" " alt="" coords="420,316,594,357"/>
+<area shape="poly" id="edge9_Node000003_Node000013" title=" " alt="" coords="353,289,420,309,418,314,352,294"/>
+<area shape="rect" id="Node000269" href="$classyaze_1_1editor_1_1OverworldEditor.html#ad8777e42d3b62d08401b380cce94230b" title="Load the Bitmap objects for each OverworldMap." alt="" coords="415,381,598,422"/>
+<area shape="poly" id="edge10_Node000003_Node000269" title=" " alt="" coords="307,290,356,328,416,366,429,372,426,377,414,371,353,332,304,294"/>
+<area shape="rect" id="Node000303" href="$classyaze_1_1editor_1_1EditorManager.html#aa008ceaf8b00a93af6c8c46084692035" title=" " alt="" coords="420,447,594,487"/>
+<area shape="poly" id="edge12_Node000003_Node000303" title=" " alt="" coords="295,290,343,359,377,398,417,432,425,437,422,441,413,436,374,402,339,363,291,294"/>
+<area shape="rect" id="Node000604" href="$classyaze_1_1editor_1_1EditorManager.html#a28674c9bc541bbe90159026d32cbe429" title=" " alt="" coords="415,512,598,553"/>
+<area shape="poly" id="edge13_Node000003_Node000604" title=" " alt="" coords="290,291,307,334,333,389,370,447,392,473,417,497,423,502,420,506,413,501,388,477,366,450,329,391,302,336,285,293"/>
+<area shape="poly" id="edge6_Node000009_Node000010" title=" " alt="" coords="586,175,656,194,655,199,584,180"/>
+<area shape="poly" id="edge7_Node000010_Node000010" title=" " alt="" coords="685,202,678,192,683,182,697,176,721,174,747,177,761,184,758,188,746,182,721,179,698,182,686,186,684,192,690,199"/>
+<area shape="poly" id="edge11_Node000269_Node000010" title=" " alt="" coords="576,378,597,366,631,336,660,302,703,239,707,242,664,306,634,340,600,370,579,383"/>
+</map>

@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['accesstype_0',['AccessType',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a324ba56e42b5f4c60bae35729e8b0f1d',1,'yaze::app::emu::Cpu']]],
-  ['actiontype_1',['ActionType',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a8012c292c03901c7a7f2aa7a0d82fee5',1,'yaze::app::gui::zeml']]],
-  ['addressingmode_2',['AddressingMode',['../namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111be',1,'yaze::app::emu']]]
+  ['accesstype_0',['AccessType',['../classyaze_1_1emu_1_1Cpu.html#afdec6b6a7b1a5e7eba910f389715f4c6',1,'yaze::emu::Cpu']]],
+  ['actiontype_1',['ActionType',['../namespaceyaze_1_1gui_1_1zeml.html#ad9746eb1ca28a26c12e4a1d6b0be24bd',1,'yaze::gui::zeml']]],
+  ['addressingmode_2',['AddressingMode',['../namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836',1,'yaze::emu']]]
 ];

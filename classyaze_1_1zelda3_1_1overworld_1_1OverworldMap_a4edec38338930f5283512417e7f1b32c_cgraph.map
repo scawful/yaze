@@ -1,0 +1,5 @@
+<map id="yaze::zelda3::overworld::OverworldMap::BuildBitmap" name="yaze::zelda3::overworld::OverworldMap::BuildBitmap">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,193,46"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx.html#a3d42dbaf6fa57c5ad4da5b02154ce7c9" title=" " alt="" coords="241,13,409,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,23,225,23,225,28,193,28"/>
+</map>

@@ -1,5 +1,0 @@
-<map id="yaze::app::core::ldle16b_i" name="yaze::app::core::ldle16b_i">
-<area shape="rect" id="Node000001" title="Load little endian halfword (16&#45;bit) dereferenced from an arrays of bytes. This version provides an i..." alt="" coords="5,5,168,31"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1core.html#a65eee6b161b17a7cd555ae70cf65717a" title=" " alt="" coords="216,5,368,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,16,200,16,200,21,168,21"/>
-</map>

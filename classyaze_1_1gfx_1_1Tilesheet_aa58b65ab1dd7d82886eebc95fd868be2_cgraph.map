@@ -1,0 +1,13 @@
+<map id="yaze::gfx::Tilesheet::ModifyTile16" name="yaze::gfx::Tilesheet::ModifyTile16">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,118,135,159"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Tilesheet.html#a9246e1a8bd91306bc0fc09b7cb544b4e" title=" " alt="" coords="183,118,366,159"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,136,167,136,167,141,135,141"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Tilesheet.html#a55c4b2160f2e98e77586f57eadadb9db" title=" " alt="" coords="414,5,604,61"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="317,115,413,71,426,65,428,70,415,76,320,120"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1gfx_1_1Tilesheet.html#aa12d614c105cbb92aec3366fe98593c1" title=" " alt="" coords="422,85,597,126"/>
+<area shape="poly" id="edge3_Node000002_Node000006" title=" " alt="" coords="366,123,406,117,407,122,366,128"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1gfx_1_1Tilesheet.html#a526353a29170ce540ce01c65c1cc0882" title=" " alt="" coords="428,150,590,191"/>
+<area shape="poly" id="edge4_Node000002_Node000007" title=" " alt="" coords="366,148,413,155,412,160,366,154"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1gfx_1_1Tilesheet.html#af9cdd569b47ee2c2d12cd663a1670586" title=" " alt="" coords="444,216,574,256"/>
+<area shape="poly" id="edge5_Node000002_Node000008" title=" " alt="" coords="319,157,415,200,433,207,431,212,413,205,317,162"/>
+</map>

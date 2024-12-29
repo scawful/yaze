@@ -1,0 +1,5 @@
+<map id="yaze::gfx::ReadPaletteFromRom" name="yaze::gfx::ReadPaletteFromRom">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,210,31"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d" title=" " alt="" coords="258,5,447,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,16,242,16,242,21,210,21"/>
+</map>
