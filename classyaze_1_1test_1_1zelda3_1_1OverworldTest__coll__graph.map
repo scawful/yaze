@@ -1,17 +1,17 @@
 <map id="yaze::test::zelda3::OverworldTest" name="yaze::test::zelda3::OverworldTest">
-<area shape="rect" id="Node000001" title=" " alt="" coords="76,273,195,313"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,176,98,202"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="73,212,121,270,117,274,69,216"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="76,258,195,298"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,169,98,195"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="74,205,120,255,116,259,70,208"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="75,80,196,106"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="138,121,138,272,133,272,133,121"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1overworld_1_1Overworld.html" title="Represents the full Overworld data, light and dark world." alt="" coords="173,169,325,210"/>
-<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="163,114,227,166,223,171,160,118"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="218,222,159,274,156,270,214,218"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="138,122,138,258,133,258,133,122"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1Overworld.html" title="Represents the full Overworld data, light and dark world." alt="" coords="172,169,328,195"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="165,113,236,166,232,170,162,118"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="226,207,161,259,158,255,222,202"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="160,5,340,31"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="253,47,252,168,246,168,247,47"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="253,47,253,169,248,169,248,47"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="271,80,352,106"/>
 <area shape="poly" id="edge7_Node000006_Node000005" title=" " alt="" coords="272,41,304,78,300,82,268,45"/>
-<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="297,121,264,170,260,167,293,118"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="296,120,261,170,256,167,292,117"/>
 <area shape="rect" id="Node000010" href="$structyaze_1_1zelda3_1_1OWMapTiles.html" title="Overworld map tile32 data." alt="" coords="375,80,546,106"/>
-<area shape="poly" id="edge8_Node000004_Node000010" title=" " alt="" coords="421,115,294,171,292,166,418,110"/>
+<area shape="poly" id="edge8_Node000004_Node000010" title=" " alt="" coords="418,115,281,171,279,166,416,110"/>
 </map>

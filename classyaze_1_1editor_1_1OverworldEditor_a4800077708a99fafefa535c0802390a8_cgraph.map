@@ -1,6 +1,6 @@
 <map id="yaze::editor::OverworldEditor::DrawOverworldExits" name="yaze::editor::OverworldEditor::DrawOverworldExits">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,288,189,329"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1editor.html#a8ad1a51bea63bf53257c712f7322982b" title=" " alt="" coords="242,71,418,111"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1editor.html#ae9a0ab08792cfaea7cdf09af13738643" title=" " alt="" coords="242,71,418,111"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,286,126,251,155,207,192,162,235,122,243,117,246,121,238,126,196,166,159,210,131,254,111,289"/>
 <area shape="rect" id="Node000008" href="$namespaceyaze_1_1editor.html#a068e18c7e1f5b249c88204686e8bfafe" title=" " alt="" coords="237,5,423,46"/>
 <area shape="poly" id="edge6_Node000001_Node000008" title=" " alt="" coords="102,286,118,240,145,178,184,114,208,84,235,57,240,53,244,57,238,61,212,87,188,117,150,181,123,242,107,288"/>
@@ -14,7 +14,7 @@
 <area shape="poly" id="edge15_Node000001_Node000012" title=" " alt="" coords="189,295,457,262,457,267,189,300"/>
 <area shape="rect" id="Node000017" href="$namespaceyaze_1_1core.html#a1976cfc905277d7951db38e5bd1b000a" title=" " alt="" coords="471,426,667,452"/>
 <area shape="poly" id="edge18_Node000001_Node000017" title=" " alt="" coords="141,327,238,366,356,398,467,420,466,425,355,403,236,371,139,332"/>
-<area shape="rect" id="Node000018" href="$classyaze_1_1zelda3_1_1overworld_1_1Overworld.html#aae3e0f063ffc24ae345cab763efb620f" title=" " alt="" coords="244,431,416,471"/>
+<area shape="rect" id="Node000018" href="$classyaze_1_1zelda3_1_1Overworld.html#aae4d02e72e6d57c24bfe3172f44cf781" title=" " alt="" coords="252,431,408,471"/>
 <area shape="poly" id="edge16_Node000001_Node000018" title=" " alt="" coords="124,327,175,368,238,410,260,421,258,426,235,415,172,372,120,331"/>
 <area shape="rect" id="Node000019" href="$classyaze_1_1gui_1_1Canvas.html#ad4cb29e99fcf29856f6eeedc5a79384f" title=" " alt="" coords="267,496,393,537"/>
 <area shape="poly" id="edge17_Node000001_Node000019" title=" " alt="" coords="112,328,161,402,197,444,238,481,254,491,251,495,235,485,193,448,156,405,107,331"/>

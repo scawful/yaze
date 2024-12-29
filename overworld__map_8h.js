@@ -1,17 +1,17 @@
 var overworld__map_8h =
 [
-    [ "yaze::zelda3::overworld::OverworldMap", "classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html", "classyaze_1_1zelda3_1_1overworld_1_1OverworldMap" ],
-    [ "OverworldCustomASMHasBeenApplied", "overworld__map_8h.html#abb9c0041f3f7c4af75615f31ace7cbdb", null ],
-    [ "OverworldCustomAreaSpecificBGPalette", "overworld__map_8h.html#a3b8710e3562fa4f193b27501e2a099ff", null ],
-    [ "OverworldCustomAreaSpecificBGEnabled", "overworld__map_8h.html#a9d183387d7d9f982ba9522bea57d489e", null ],
-    [ "OverworldCustomMainPaletteArray", "overworld__map_8h.html#ae4f6a4855425cf88566dbd0a3251d67b", null ],
-    [ "OverworldCustomMainPaletteEnabled", "overworld__map_8h.html#adca47b5dd20a067fd265ac4ad61cbe14", null ],
-    [ "OverworldCustomMosaicArray", "overworld__map_8h.html#a9da9ea64a9b3f8d8ee61b4111780e5d8", null ],
-    [ "OverworldCustomMosaicEnabled", "overworld__map_8h.html#a0896d65a9947fa5f35ceffb72fc27ecc", null ],
-    [ "OverworldCustomAnimatedGFXArray", "overworld__map_8h.html#ad351bb4da3244b85df1f528bcd41262b", null ],
-    [ "OverworldCustomAnimatedGFXEnabled", "overworld__map_8h.html#a70d5f53b4eb9d8ad088f1bc980d3eb48", null ],
-    [ "OverworldCustomSubscreenOverlayArray", "overworld__map_8h.html#a1fe8527b925a4160ea7652555fd449f8", null ],
-    [ "OverworldCustomSubscreenOverlayEnabled", "overworld__map_8h.html#ac18098f794d48cf58b01999663c886f4", null ],
-    [ "OverworldCustomTileGFXGroupArray", "overworld__map_8h.html#a26acc5db7b183df9e3255aba0a7cc13f", null ],
-    [ "OverworldCustomTileGFXGroupEnabled", "overworld__map_8h.html#aa2f6fd5fbaf6a1106c756cfbdf6dfe5c", null ]
+    [ "yaze::zelda3::OverworldMap", "classyaze_1_1zelda3_1_1OverworldMap.html", "classyaze_1_1zelda3_1_1OverworldMap" ],
+    [ "OverworldCustomASMHasBeenApplied", "overworld__map_8h.html#a859fd8285a275e2b12b420134989df83", null ],
+    [ "OverworldCustomAreaSpecificBGPalette", "overworld__map_8h.html#ade708d08b08c9e5c8ab3b7b90ec5fb1f", null ],
+    [ "OverworldCustomAreaSpecificBGEnabled", "overworld__map_8h.html#a07a36ed6cd6a56b566efbd2f7e2bb32a", null ],
+    [ "OverworldCustomMainPaletteArray", "overworld__map_8h.html#a498ef6ecbadf2254f0aa60cb5cdbb607", null ],
+    [ "OverworldCustomMainPaletteEnabled", "overworld__map_8h.html#a448dfd07e83c376a58e4b5a407872ff8", null ],
+    [ "OverworldCustomMosaicArray", "overworld__map_8h.html#a3a3f4340783c04d5e1e3fbda2e0f3d68", null ],
+    [ "OverworldCustomMosaicEnabled", "overworld__map_8h.html#ac04d90d39cb3a2bfa0af2d6d487b1295", null ],
+    [ "OverworldCustomAnimatedGFXArray", "overworld__map_8h.html#ab8abd76b840f4adcc0f9e30a17d6833f", null ],
+    [ "OverworldCustomAnimatedGFXEnabled", "overworld__map_8h.html#a438bec149fb275a3d1edc0fa64921c8b", null ],
+    [ "OverworldCustomSubscreenOverlayArray", "overworld__map_8h.html#afd372e976fa18637ea5e8572119541d4", null ],
+    [ "OverworldCustomSubscreenOverlayEnabled", "overworld__map_8h.html#adc513472e47065de3e94600aceb86b69", null ],
+    [ "OverworldCustomTileGFXGroupArray", "overworld__map_8h.html#ad0e606b79448b8024de15621dedb6db2", null ],
+    [ "OverworldCustomTileGFXGroupEnabled", "overworld__map_8h.html#a05b7dc8cfd72fe3c1ca32e0081462b7b", null ]
 ];

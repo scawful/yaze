@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['vertical_0',['Vertical',['../namespaceyaze_1_1zelda3_1_1dungeon.html#a490d8b3dfa1b999935e9c1f84e103e68abc3dcfac1bbb5d319eea58533837da46',1,'yaze::zelda3::dungeon']]]
+  ['vertical_0',['Vertical',['../namespaceyaze_1_1zelda3.html#a9490ecf2dca104bfd1d4d40b44f5e747a2c1d66c39504bf46d0675a151c3c0ffb',1,'yaze::zelda3']]]
 ];

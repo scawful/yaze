@@ -8,7 +8,7 @@ var searchData=
   ['resourcetype_5',['ResourceType',['../structyaze_1_1ResourceLabelManager_1_1ResourceType.html',1,'yaze::ResourceLabelManager']]],
   ['rom_6',['Rom',['../classyaze_1_1Rom.html',1,'yaze']]],
   ['romtest_7',['RomTest',['../classyaze_1_1test_1_1RomTest.html',1,'yaze::test']]],
-  ['room_8',['Room',['../classyaze_1_1zelda3_1_1dungeon_1_1Room.html',1,'yaze::zelda3::dungeon']]],
-  ['roomentrance_9',['RoomEntrance',['../classyaze_1_1zelda3_1_1dungeon_1_1RoomEntrance.html',1,'yaze::zelda3::dungeon']]],
-  ['roomobject_10',['RoomObject',['../classyaze_1_1zelda3_1_1dungeon_1_1RoomObject.html',1,'yaze::zelda3::dungeon']]]
+  ['room_8',['Room',['../classyaze_1_1zelda3_1_1Room.html',1,'yaze::zelda3']]],
+  ['roomentrance_9',['RoomEntrance',['../classyaze_1_1zelda3_1_1RoomEntrance.html',1,'yaze::zelda3']]],
+  ['roomobject_10',['RoomObject',['../classyaze_1_1zelda3_1_1RoomObject.html',1,'yaze::zelda3']]]
 ];

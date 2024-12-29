@@ -37,7 +37,7 @@ var classyaze_1_1editor_1_1Tile16Editor =
     [ "current_gfx_individual_", "classyaze_1_1editor_1_1Tile16Editor.html#acb44562358c920567893e4e696850039", null ],
     [ "palette_editor_", "classyaze_1_1editor_1_1Tile16Editor.html#a39858d7f26a5bcf4589035d82b2e91c8", null ],
     [ "palette_", "classyaze_1_1editor_1_1Tile16Editor.html#a61adc8f98eb325913960254df65a8545", null ],
-    [ "transfer_overworld_", "classyaze_1_1editor_1_1Tile16Editor.html#ad73c9985591e66472a1bab412bf8c6e7", null ],
+    [ "transfer_overworld_", "classyaze_1_1editor_1_1Tile16Editor.html#ac309b551aff8196b14fc3ff3a5827c3e", null ],
     [ "status_", "classyaze_1_1editor_1_1Tile16Editor.html#a58ad362d4e7e090f25abeeb5cb3bed96", null ],
     [ "transfer_rom_", "classyaze_1_1editor_1_1Tile16Editor.html#af1515d7f46a859544e2278196190710b", null ],
     [ "transfer_status_", "classyaze_1_1editor_1_1Tile16Editor.html#abf80f2d4061eb5dd8e622ef357e54679", null ]

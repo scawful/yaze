@@ -13,7 +13,7 @@ var searchData=
   ['wh2_10',['WH2',['../namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a9620835187b7804f18915155c87621e2',1,'yaze::emu::video::PpuRegisters']]],
   ['wh3_11',['WH3',['../namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#aeb2d1025ccdfa06b9f3ddd2ecebedb45',1,'yaze::emu::video::PpuRegisters']]],
   ['width_12',['width',['../structyaze__bitmap.html#adeb02ea72387c99bf2ba441aaece1760',1,'yaze_bitmap::width'],['../structyaze_1_1gui_1_1zeml_1_1WidgetAttributes.html#a8b1057f33c73db85e47137ba6a092b0d',1,'yaze::gui::zeml::WidgetAttributes::width'],['../structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#a533bc927ee74561b25afffafa728b0ba',1,'yaze::zelda3::music::SampleEdit::width']]],
-  ['width_5f_13',['width_',['../classyaze_1_1gfx_1_1Bitmap.html#a9e80c481091f60d20edbe2ccf62f6016',1,'yaze::gfx::Bitmap::width_'],['../classyaze_1_1zelda3_1_1dungeon_1_1RoomObject.html#a92e67af75bf65bbf3e586835ba65b918',1,'yaze::zelda3::dungeon::RoomObject::width_'],['../classyaze_1_1zelda3_1_1Sprite.html#a8847ad5b785f43bb062c1d7f2a544906',1,'yaze::zelda3::Sprite::width_']]],
+  ['width_5f_13',['width_',['../classyaze_1_1gfx_1_1Bitmap.html#a9e80c481091f60d20edbe2ccf62f6016',1,'yaze::gfx::Bitmap::width_'],['../classyaze_1_1zelda3_1_1RoomObject.html#ad67c3b5b79aed7f963c8118e3ea4b281',1,'yaze::zelda3::RoomObject::width_'],['../classyaze_1_1zelda3_1_1Sprite.html#a8847ad5b785f43bb062c1d7f2a544906',1,'yaze::zelda3::Sprite::width_']]],
   ['width_5farray_14',['width_array',['../classyaze_1_1editor_1_1MessageEditor.html#a17fc6b8cedaee976f538fd7e236a7818',1,'yaze::editor::MessageEditor']]],
   ['window1enabled_15',['window1enabled',['../structyaze_1_1emu_1_1video_1_1WindowLayer.html#aded73f51b3dddb898bf563d2625ae829',1,'yaze::emu::video::WindowLayer']]],
   ['window1inversed_16',['window1inversed',['../structyaze_1_1emu_1_1video_1_1WindowLayer.html#a812825c23706368f0eaa01920233ef53',1,'yaze::emu::video::WindowLayer']]],
@@ -28,7 +28,7 @@ var searchData=
   ['withhead_25',['withhead',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html#a245d5ba4ce1506500e67171ba88b59fc',1,'yaze::zelda3::music::Tracker']]],
   ['wobjlog_26',['WOBJLOG',['../namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a9e33f54beb6bb679f2f4ddc620121502',1,'yaze::emu::video::PpuRegisters']]],
   ['wobjsel_27',['WOBJSEL',['../namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a5ed538103b7adfd1ea86d981fb0679cb',1,'yaze::emu::video::PpuRegisters']]],
-  ['world_5f_28',['world_',['../classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html#a1c66656829853c32221deca2aa2ceaa6',1,'yaze::zelda3::overworld::OverworldMap']]],
+  ['world_5f_28',['world_',['../classyaze_1_1zelda3_1_1OverworldMap.html#a724801a58970d61afbd23b60111d3592',1,'yaze::zelda3::OverworldMap']]],
   ['world_5fid_29',['world_id',['../structz3__overworld__map.html#a7d01ce087b7925710e074ca7a59805a3',1,'z3_overworld_map']]],
   ['write_30',['write',['../structyaze_1_1emu_1_1audio_1_1ApuCallbacks.html#a03f1f9c3aa5c5323f912136449f96a41',1,'yaze::emu::audio::ApuCallbacks']]],
   ['write_5fbyte_31',['write_byte',['../structyaze_1_1emu_1_1memory_1_1CpuCallbacks.html#a63271b3c3cff81e917a1e1dc2ab59b85',1,'yaze::emu::memory::CpuCallbacks']]]

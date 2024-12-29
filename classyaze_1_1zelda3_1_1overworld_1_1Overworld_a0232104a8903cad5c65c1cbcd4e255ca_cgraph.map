@@ -1,5 +1,0 @@
-<map id="yaze::zelda3::overworld::Overworld::OrganizeMapTiles" name="yaze::zelda3::overworld::Overworld::OrganizeMapTiles">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,202,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1overworld_1_1Overworld.html#a25289debdd65f458c6182a235db28700" title=" " alt="" coords="250,5,443,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,23,234,23,234,28,202,28"/>
-</map>

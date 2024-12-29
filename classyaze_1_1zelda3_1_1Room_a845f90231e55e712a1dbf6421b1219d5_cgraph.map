@@ -1,0 +1,10 @@
+<map id="yaze::zelda3::Room::LoadHeader" name="yaze::zelda3::Room::LoadHeader">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,136,120"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="184,29,333,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,77,199,57,200,62,137,82"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1Room.html#ab02a36650d2fb342ff2e3731ddbce6b4" title=" " alt="" coords="193,79,324,120"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="136,97,178,97,178,102,136,102"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1core.html#a772a2d0d104498cb8100f0b2e717b6a2" title=" " alt="" coords="186,144,331,170"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="137,117,200,137,199,142,135,122"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="227,30,221,21,224,11,237,5,258,3,281,5,293,12,290,16,279,10,258,8,239,10,228,15,226,20,231,27"/>
+</map>

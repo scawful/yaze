@@ -1,0 +1,6 @@
+<map id="yaze::zelda3::RoomObject::AddTiles" name="yaze::zelda3::RoomObject::AddTiles">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,22,174,62"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="222,29,371,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,40,206,40,206,45,174,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="262,31,255,21,259,11,273,5,296,3,322,5,335,12,332,17,320,10,296,8,275,10,263,15,260,20,266,27"/>
+</map>

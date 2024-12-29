@@ -1,5 +1,0 @@
-<map id="yaze::zelda3::dungeon::Subtype3::Draw" name="yaze::zelda3::dungeon::Subtype3::Draw">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,151,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1dungeon_1_1RoomObject.html#aeeaed48eb4ecd407bc6fca231257b25c" title=" " alt="" coords="199,5,355,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,23,183,23,183,28,151,28"/>
-</map>

@@ -104,7 +104,7 @@ var hierarchy =
       [ "yaze::editor::FlagsMenu", "structyaze_1_1editor_1_1FlagsMenu.html", null ],
       [ "yaze::editor::OverworldEditor", "classyaze_1_1editor_1_1OverworldEditor.html", null ],
       [ "yaze::emu::Cpu", "classyaze_1_1emu_1_1Cpu.html", null ],
-      [ "yaze::zelda3::overworld::Overworld", "classyaze_1_1zelda3_1_1overworld_1_1Overworld.html", null ]
+      [ "yaze::zelda3::Overworld", "classyaze_1_1zelda3_1_1Overworld.html", null ]
     ] ],
     [ "yaze::editor::ExtensionManager", "classyaze_1_1editor_1_1ExtensionManager.html", null ],
     [ "yaze::core::FileDialogWrapper", "classyaze_1_1core_1_1FileDialogWrapper.html", null ],
@@ -112,15 +112,15 @@ var hierarchy =
     [ "yaze::emu::audio::Spc700::Flags", "structyaze_1_1emu_1_1audio_1_1Spc700_1_1Flags.html", null ],
     [ "yaze::core::FolderItem", "structyaze_1_1core_1_1FolderItem.html", null ],
     [ "yaze::zelda3::GameEntity", "classyaze_1_1zelda3_1_1GameEntity.html", [
-      [ "yaze::zelda3::Sprite", "classyaze_1_1zelda3_1_1Sprite.html", null ],
-      [ "yaze::zelda3::overworld::OverworldEntrance", "classyaze_1_1zelda3_1_1overworld_1_1OverworldEntrance.html", null ],
-      [ "yaze::zelda3::overworld::OverworldExit", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html", null ],
-      [ "yaze::zelda3::overworld::OverworldItem", "classyaze_1_1zelda3_1_1overworld_1_1OverworldItem.html", null ]
+      [ "yaze::zelda3::OverworldEntrance", "classyaze_1_1zelda3_1_1OverworldEntrance.html", null ],
+      [ "yaze::zelda3::OverworldExit", "classyaze_1_1zelda3_1_1OverworldExit.html", null ],
+      [ "yaze::zelda3::OverworldItem", "classyaze_1_1zelda3_1_1OverworldItem.html", null ],
+      [ "yaze::zelda3::Sprite", "classyaze_1_1zelda3_1_1Sprite.html", null ]
     ] ],
     [ "yaze::GfxContext", "classyaze_1_1GfxContext.html", [
       [ "yaze::editor::OverworldEditor", "classyaze_1_1editor_1_1OverworldEditor.html", null ],
       [ "yaze::editor::Tile16Editor", "classyaze_1_1editor_1_1Tile16Editor.html", null ],
-      [ "yaze::zelda3::overworld::OverworldMap", "classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html", null ]
+      [ "yaze::zelda3::OverworldMap", "classyaze_1_1zelda3_1_1OverworldMap.html", null ]
     ] ],
     [ "yaze::gui::GfxSheetAssetBrowser", "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html", null ],
     [ "yaze::gfx::GraphicsBuffer", "classyaze_1_1gfx_1_1GraphicsBuffer.html", null ],
@@ -184,13 +184,13 @@ var hierarchy =
     [ "yaze::emu::video::PpuInterface", "classyaze_1_1emu_1_1video_1_1PpuInterface.html", [
       [ "yaze::test::emu::MockPpu", "classyaze_1_1test_1_1emu_1_1MockPpu.html", null ]
     ] ],
-    [ "yaze::zelda3::dungeon::PseudoVram", "structyaze_1_1zelda3_1_1dungeon_1_1PseudoVram.html", null ],
+    [ "yaze::zelda3::PseudoVram", "structyaze_1_1zelda3_1_1PseudoVram.html", null ],
     [ "yaze::RecentFilesManager", "classyaze_1_1RecentFilesManager.html", null ],
     [ "yaze::core::Renderer", "classyaze_1_1core_1_1Renderer.html", null ],
     [ "yaze::ResourceLabelManager", "structyaze_1_1ResourceLabelManager.html", null ],
     [ "yaze::editor::ResourceManager", "classyaze_1_1editor_1_1ResourceManager.html", null ],
     [ "yaze::ResourceLabelManager::ResourceType", "structyaze_1_1ResourceLabelManager_1_1ResourceType.html", null ],
-    [ "yaze::zelda3::dungeon::RoomEntrance", "classyaze_1_1zelda3_1_1dungeon_1_1RoomEntrance.html", null ],
+    [ "yaze::zelda3::RoomEntrance", "classyaze_1_1zelda3_1_1RoomEntrance.html", null ],
     [ "yaze::zelda3::music::SampleEdit", "structyaze_1_1zelda3_1_1music_1_1SampleEdit.html", null ],
     [ "yaze::emu::video::ScreenDisplay", "structyaze_1_1emu_1_1video_1_1ScreenDisplay.html", null ],
     [ "yaze::emu::video::ScreenMode", "structyaze_1_1emu_1_1video_1_1ScreenMode.html", null ],
@@ -218,14 +218,14 @@ var hierarchy =
       [ "yaze::test::zelda3::DungeonRoomTest", "classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest.html", null ],
       [ "yaze::test::zelda3::MessageTest", "classyaze_1_1test_1_1zelda3_1_1MessageTest.html", null ],
       [ "yaze::test::zelda3::OverworldTest", "classyaze_1_1test_1_1zelda3_1_1OverworldTest.html", null ],
-      [ "yaze::zelda3::dungeon::DungeonObjectRenderer", "classyaze_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html", null ],
-      [ "yaze::zelda3::dungeon::Room", "classyaze_1_1zelda3_1_1dungeon_1_1Room.html", null ],
-      [ "yaze::zelda3::dungeon::RoomObject", "classyaze_1_1zelda3_1_1dungeon_1_1RoomObject.html", [
-        [ "yaze::zelda3::dungeon::Subtype1", "classyaze_1_1zelda3_1_1dungeon_1_1Subtype1.html", null ],
-        [ "yaze::zelda3::dungeon::Subtype2", "classyaze_1_1zelda3_1_1dungeon_1_1Subtype2.html", null ],
-        [ "yaze::zelda3::dungeon::Subtype3", "classyaze_1_1zelda3_1_1dungeon_1_1Subtype3.html", null ]
+      [ "yaze::zelda3::DungeonObjectRenderer", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html", null ],
+      [ "yaze::zelda3::Overworld", "classyaze_1_1zelda3_1_1Overworld.html", null ],
+      [ "yaze::zelda3::Room", "classyaze_1_1zelda3_1_1Room.html", null ],
+      [ "yaze::zelda3::RoomObject", "classyaze_1_1zelda3_1_1RoomObject.html", [
+        [ "yaze::zelda3::Subtype1", "classyaze_1_1zelda3_1_1Subtype1.html", null ],
+        [ "yaze::zelda3::Subtype2", "classyaze_1_1zelda3_1_1Subtype2.html", null ],
+        [ "yaze::zelda3::Subtype3", "classyaze_1_1zelda3_1_1Subtype3.html", null ]
       ] ],
-      [ "yaze::zelda3::overworld::Overworld", "classyaze_1_1zelda3_1_1overworld_1_1Overworld.html", null ],
       [ "yaze::zelda3::screen::Inventory", "classyaze_1_1zelda3_1_1screen_1_1Inventory.html", null ]
     ] ],
     [ "yaze::emu::video::PpuRegisters::SLHV", "structyaze_1_1emu_1_1video_1_1PpuRegisters_1_1SLHV.html", null ],
@@ -254,7 +254,7 @@ var hierarchy =
     [ "yaze::emu::video::PpuRegisters::STAT78", "structyaze_1_1emu_1_1video_1_1PpuRegisters_1_1STAT78.html", null ],
     [ "yaze::core::StructuredLog", "structyaze_1_1core_1_1StructuredLog.html", null ],
     [ "yaze::editor::zsprite::SubEditor", "structyaze_1_1editor_1_1zsprite_1_1SubEditor.html", null ],
-    [ "yaze::zelda3::dungeon::SubtypeInfo", "structyaze_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html", null ],
+    [ "yaze::zelda3::SubtypeInfo", "structyaze_1_1zelda3_1_1SubtypeInfo.html", null ],
     [ "yaze::gui::Table", "structyaze_1_1gui_1_1Table.html", null ],
     [ "testing::Test", null, [
       [ "yaze::test::RomTest", "classyaze_1_1test_1_1RomTest.html", null ],

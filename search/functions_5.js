@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['fetchlargemaps_0',['FetchLargeMaps',['../classyaze_1_1zelda3_1_1overworld_1_1Overworld.html#ab98de4b2aa77188e7f8524e870a6064b',1,'yaze::zelda3::overworld::Overworld']]],
-  ['fetchsubtypeinfo_1',['FetchSubtypeInfo',['../namespaceyaze_1_1zelda3_1_1dungeon.html#a8f0e5fae1a68cc3a3152f06bcf4570a8',1,'yaze::zelda3::dungeon']]],
+  ['fetchlargemaps_0',['FetchLargeMaps',['../classyaze_1_1zelda3_1_1Overworld.html#a0b91d3efb0ae226fe000ff953882ae0a',1,'yaze::zelda3::Overworld']]],
+  ['fetchsubtypeinfo_1',['FetchSubtypeInfo',['../namespaceyaze_1_1zelda3.html#abfbe2444d2fac0e5cce5c8368a329835',1,'yaze::zelda3']]],
   ['fetchtiledatafromgraphicsbuffer_2',['FetchTileDataFromGraphicsBuffer',['../classyaze_1_1gfx_1_1Tilesheet.html#a55c4b2160f2e98e77586f57eadadb9db',1,'yaze::gfx::Tilesheet']]],
   ['filedialogpipeline_3',['FileDialogPipeline',['../namespaceyaze_1_1gui.html#a5adf4bc60b0deb6b8681e8f60ae2972f',1,'yaze::gui']]],
   ['filename_4',['filename',['../classyaze_1_1Rom.html#a35886abe051b67913a804e4cbfdc4207',1,'yaze::Rom']]],

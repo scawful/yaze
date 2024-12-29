@@ -1,6 +1,0 @@
-<map id="yaze::zelda3::overworld::Overworld::LoadTileTypes" name="yaze::zelda3::overworld::Overworld::LoadTileTypes">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,22,183,62"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="231,29,380,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,40,215,40,215,45,183,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="270,31,263,21,267,11,282,5,305,3,331,5,344,12,342,17,330,10,305,8,283,10,271,15,268,20,274,27"/>
-</map>

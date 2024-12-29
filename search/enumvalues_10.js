@@ -12,8 +12,8 @@ var searchData=
   ['size_5f64x32_9',['SIZE_64x32',['../structyaze_1_1emu_1_1video_1_1BackgroundLayer.html#a80d958e1c3c32b252378a9fecbab85caa7915383cc2c1fff7ccfb328167cde9bf',1,'yaze::emu::video::BackgroundLayer']]],
   ['size_5f64x64_10',['SIZE_64x64',['../structyaze_1_1emu_1_1video_1_1BackgroundLayer.html#a80d958e1c3c32b252378a9fecbab85caa32397e7b452045b821e5c7be9d5df1e1',1,'yaze::emu::video::BackgroundLayer']]],
   ['slider_11',['Slider',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a2d9b9a764fb0be4be10e1b2fce63f561',1,'yaze::gui::zeml']]],
-  ['sortstairs_12',['SortStairs',['../namespaceyaze_1_1zelda3_1_1dungeon.html#a490d8b3dfa1b999935e9c1f84e103e68a0534ba8682d8157b9384ae2f22eea1eb',1,'yaze::zelda3::dungeon']]],
+  ['sortstairs_12',['SortStairs',['../namespaceyaze_1_1zelda3.html#a9490ecf2dca104bfd1d4d40b44f5e747a3b3d4dde7f8529d93bbc8e3d7bf17073',1,'yaze::zelda3']]],
   ['sprites_13',['SPRITES',['../classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8ea05a245c75cdf9b6a708bad83456be7be',1,'yaze::editor::OverworldEditor']]],
-  ['stairs_14',['Stairs',['../namespaceyaze_1_1zelda3_1_1dungeon.html#a1fa51aa02b50541a22cfe701dea3bee6a0b01cc688e1e0b5f6b70f858a1b389ae',1,'yaze::zelda3::dungeon']]],
+  ['stairs_14',['Stairs',['../namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8a0b01cc688e1e0b5f6b70f858a1b389ae',1,'yaze::zelda3']]],
   ['string_15',['String',['../namespaceyaze_1_1gui_1_1zeml.html#ab789223ff6fb457facc22ec1800678f1a27118326006d3829667a400ad23d5d98',1,'yaze::gui::zeml']]]
 ];

@@ -1,5 +1,7 @@
 var NAVTREEINDEX37 =
 {
+"namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a194a3cea460c53c81042d65ca351206b":[10,0,1,4,4,0,56],
+"namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a21b339503fa21a76ba5fa2c75488d25e":[10,0,1,4,4,0,113],
 "namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a2597dc435dc3212b45e985dafc9932b3":[10,0,1,4,4,0,54],
 "namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a2bd0c05ac88dcb5c741ccc0d989f4771":[10,0,1,4,4,0,91],
 "namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a2c12f4055fcb76b16913cd9c60829559":[10,0,1,4,4,0,95],
@@ -247,7 +249,5 @@ var NAVTREEINDEX37 =
 "namespaceyaze_1_1gfx_1_1palette__group__internal.html#a74c13a0430b4a38eb7c964fef26d5663":[10,0,1,5,2,4],
 "namespaceyaze_1_1gfx_1_1palette__group__internal.html#a801bac1695e532e582be91b783a21768":[10,0,1,5,2,2],
 "namespaceyaze_1_1gfx_1_1palette__group__internal.html#a9d94efc6b483a0cdf6633d948208a3d1":[10,0,1,5,2,5],
-"namespaceyaze_1_1gfx_1_1palette__group__internal.html#aa11a9c0e701d4fa356fb150cd4c679d0":[10,0,1,5,2,12],
-"namespaceyaze_1_1gfx_1_1palette__group__internal.html#aa6d8f21770dfe5135212eb672b224a98":[10,0,1,5,2,10],
-"namespaceyaze_1_1gfx_1_1palette__group__internal.html#aa854f9a3ed8aadf3263c9bf94366ea97":[10,0,1,5,2,3]
+"namespaceyaze_1_1gfx_1_1palette__group__internal.html#aa11a9c0e701d4fa356fb150cd4c679d0":[10,0,1,5,2,12]
 };

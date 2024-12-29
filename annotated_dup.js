@@ -258,17 +258,6 @@ var annotated_dup =
         [ "RomTest", "classyaze_1_1test_1_1RomTest.html", "classyaze_1_1test_1_1RomTest" ]
       ] ],
       [ "zelda3", "namespaceyaze_1_1zelda3.html", [
-        [ "dungeon", "namespaceyaze_1_1zelda3_1_1dungeon.html", [
-          [ "DungeonObjectRenderer", "classyaze_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html", "classyaze_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer" ],
-          [ "PseudoVram", "structyaze_1_1zelda3_1_1dungeon_1_1PseudoVram.html", "structyaze_1_1zelda3_1_1dungeon_1_1PseudoVram" ],
-          [ "Room", "classyaze_1_1zelda3_1_1dungeon_1_1Room.html", "classyaze_1_1zelda3_1_1dungeon_1_1Room" ],
-          [ "RoomEntrance", "classyaze_1_1zelda3_1_1dungeon_1_1RoomEntrance.html", "classyaze_1_1zelda3_1_1dungeon_1_1RoomEntrance" ],
-          [ "RoomObject", "classyaze_1_1zelda3_1_1dungeon_1_1RoomObject.html", "classyaze_1_1zelda3_1_1dungeon_1_1RoomObject" ],
-          [ "Subtype1", "classyaze_1_1zelda3_1_1dungeon_1_1Subtype1.html", "classyaze_1_1zelda3_1_1dungeon_1_1Subtype1" ],
-          [ "Subtype2", "classyaze_1_1zelda3_1_1dungeon_1_1Subtype2.html", "classyaze_1_1zelda3_1_1dungeon_1_1Subtype2" ],
-          [ "Subtype3", "classyaze_1_1zelda3_1_1dungeon_1_1Subtype3.html", "classyaze_1_1zelda3_1_1dungeon_1_1Subtype3" ],
-          [ "SubtypeInfo", "structyaze_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html", "structyaze_1_1zelda3_1_1dungeon_1_1SubtypeInfo" ]
-        ] ],
         [ "music", "namespaceyaze_1_1zelda3_1_1music.html", [
           [ "SampleEdit", "structyaze_1_1zelda3_1_1music_1_1SampleEdit.html", "structyaze_1_1zelda3_1_1music_1_1SampleEdit" ],
           [ "Song", "structyaze_1_1zelda3_1_1music_1_1Song.html", "structyaze_1_1zelda3_1_1music_1_1Song" ],
@@ -281,24 +270,31 @@ var annotated_dup =
           [ "ZeldaSfxInstrument", "structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html", "structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument" ],
           [ "ZeldaWave", "structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html", "structyaze_1_1zelda3_1_1music_1_1ZeldaWave" ]
         ] ],
-        [ "overworld", "namespaceyaze_1_1zelda3_1_1overworld.html", [
-          [ "Overworld", "classyaze_1_1zelda3_1_1overworld_1_1Overworld.html", "classyaze_1_1zelda3_1_1overworld_1_1Overworld" ],
-          [ "OverworldEntrance", "classyaze_1_1zelda3_1_1overworld_1_1OverworldEntrance.html", "classyaze_1_1zelda3_1_1overworld_1_1OverworldEntrance" ],
-          [ "OverworldExit", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html", "classyaze_1_1zelda3_1_1overworld_1_1OverworldExit" ],
-          [ "OverworldItem", "classyaze_1_1zelda3_1_1overworld_1_1OverworldItem.html", "classyaze_1_1zelda3_1_1overworld_1_1OverworldItem" ],
-          [ "OverworldMap", "classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html", "classyaze_1_1zelda3_1_1overworld_1_1OverworldMap" ]
-        ] ],
         [ "screen", "namespaceyaze_1_1zelda3_1_1screen.html", [
           [ "DungeonMap", "structyaze_1_1zelda3_1_1screen_1_1DungeonMap.html", "structyaze_1_1zelda3_1_1screen_1_1DungeonMap" ],
           [ "Inventory", "classyaze_1_1zelda3_1_1screen_1_1Inventory.html", "classyaze_1_1zelda3_1_1screen_1_1Inventory" ],
           [ "TitleScreen", "classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html", "classyaze_1_1zelda3_1_1screen_1_1TitleScreen" ]
         ] ],
+        [ "DungeonObjectRenderer", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html", "classyaze_1_1zelda3_1_1DungeonObjectRenderer" ],
         [ "GameEntity", "classyaze_1_1zelda3_1_1GameEntity.html", "classyaze_1_1zelda3_1_1GameEntity" ],
+        [ "Overworld", "classyaze_1_1zelda3_1_1Overworld.html", "classyaze_1_1zelda3_1_1Overworld" ],
+        [ "OverworldEntrance", "classyaze_1_1zelda3_1_1OverworldEntrance.html", "classyaze_1_1zelda3_1_1OverworldEntrance" ],
+        [ "OverworldExit", "classyaze_1_1zelda3_1_1OverworldExit.html", "classyaze_1_1zelda3_1_1OverworldExit" ],
+        [ "OverworldItem", "classyaze_1_1zelda3_1_1OverworldItem.html", "classyaze_1_1zelda3_1_1OverworldItem" ],
+        [ "OverworldMap", "classyaze_1_1zelda3_1_1OverworldMap.html", "classyaze_1_1zelda3_1_1OverworldMap" ],
         [ "OWMapTiles", "structyaze_1_1zelda3_1_1OWMapTiles.html", "structyaze_1_1zelda3_1_1OWMapTiles" ],
+        [ "PseudoVram", "structyaze_1_1zelda3_1_1PseudoVram.html", "structyaze_1_1zelda3_1_1PseudoVram" ],
+        [ "Room", "classyaze_1_1zelda3_1_1Room.html", "classyaze_1_1zelda3_1_1Room" ],
+        [ "RoomEntrance", "classyaze_1_1zelda3_1_1RoomEntrance.html", "classyaze_1_1zelda3_1_1RoomEntrance" ],
+        [ "RoomObject", "classyaze_1_1zelda3_1_1RoomObject.html", "classyaze_1_1zelda3_1_1RoomObject" ],
         [ "Sprite", "classyaze_1_1zelda3_1_1Sprite.html", "classyaze_1_1zelda3_1_1Sprite" ],
         [ "SpriteAction", "classyaze_1_1zelda3_1_1SpriteAction.html", "classyaze_1_1zelda3_1_1SpriteAction" ],
         [ "SpriteBuilder", "classyaze_1_1zelda3_1_1SpriteBuilder.html", "classyaze_1_1zelda3_1_1SpriteBuilder" ],
-        [ "SpriteInstruction", "classyaze_1_1zelda3_1_1SpriteInstruction.html", "classyaze_1_1zelda3_1_1SpriteInstruction" ]
+        [ "SpriteInstruction", "classyaze_1_1zelda3_1_1SpriteInstruction.html", "classyaze_1_1zelda3_1_1SpriteInstruction" ],
+        [ "Subtype1", "classyaze_1_1zelda3_1_1Subtype1.html", "classyaze_1_1zelda3_1_1Subtype1" ],
+        [ "Subtype2", "classyaze_1_1zelda3_1_1Subtype2.html", "classyaze_1_1zelda3_1_1Subtype2" ],
+        [ "Subtype3", "classyaze_1_1zelda3_1_1Subtype3.html", "classyaze_1_1zelda3_1_1Subtype3" ],
+        [ "SubtypeInfo", "structyaze_1_1zelda3_1_1SubtypeInfo.html", "structyaze_1_1zelda3_1_1SubtypeInfo" ]
       ] ],
       [ "GfxContext", "classyaze_1_1GfxContext.html", null ],
       [ "Project", "structyaze_1_1Project.html", "structyaze_1_1Project" ],

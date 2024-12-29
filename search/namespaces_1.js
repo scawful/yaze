@@ -41,11 +41,9 @@ var searchData=
   ['yaze_3a_3atest_3a_3aintegration_38',['integration',['../namespaceyaze_1_1test_1_1integration.html',1,'yaze::test']]],
   ['yaze_3a_3atest_3a_3azelda3_39',['zelda3',['../namespaceyaze_1_1test_1_1zelda3.html',1,'yaze::test']]],
   ['yaze_3a_3azelda3_40',['zelda3',['../namespaceyaze_1_1zelda3.html',1,'yaze']]],
-  ['yaze_3a_3azelda3_3a_3aanonymous_5fnamespace_7btracker_2ecc_7d_41',['anonymous_namespace{tracker.cc}',['../namespaceyaze_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html',1,'yaze::zelda3']]],
-  ['yaze_3a_3azelda3_3a_3adungeon_42',['dungeon',['../namespaceyaze_1_1zelda3_1_1dungeon.html',1,'yaze::zelda3']]],
+  ['yaze_3a_3azelda3_3a_3aanonymous_5fnamespace_7boverworld_2ecc_7d_41',['anonymous_namespace{overworld.cc}',['../namespaceyaze_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html',1,'yaze::zelda3']]],
+  ['yaze_3a_3azelda3_3a_3aanonymous_5fnamespace_7btracker_2ecc_7d_42',['anonymous_namespace{tracker.cc}',['../namespaceyaze_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html',1,'yaze::zelda3']]],
   ['yaze_3a_3azelda3_3a_3amusic_43',['music',['../namespaceyaze_1_1zelda3_1_1music.html',1,'yaze::zelda3']]],
-  ['yaze_3a_3azelda3_3a_3aoverworld_44',['overworld',['../namespaceyaze_1_1zelda3_1_1overworld.html',1,'yaze::zelda3']]],
-  ['yaze_3a_3azelda3_3a_3aoverworld_3a_3aanonymous_5fnamespace_7boverworld_2ecc_7d_45',['anonymous_namespace{overworld.cc}',['../namespaceyaze_1_1zelda3_1_1overworld_1_1anonymous__namespace_02overworld_8cc_03.html',1,'yaze::zelda3::overworld']]],
-  ['yaze_3a_3azelda3_3a_3aoverworld_3a_3apalette_5finternal_46',['palette_internal',['../namespaceyaze_1_1zelda3_1_1overworld_1_1palette__internal.html',1,'yaze::zelda3::overworld']]],
-  ['yaze_3a_3azelda3_3a_3ascreen_47',['screen',['../namespaceyaze_1_1zelda3_1_1screen.html',1,'yaze::zelda3']]]
+  ['yaze_3a_3azelda3_3a_3apalette_5finternal_44',['palette_internal',['../namespaceyaze_1_1zelda3_1_1palette__internal.html',1,'yaze::zelda3']]],
+  ['yaze_3a_3azelda3_3a_3ascreen_45',['screen',['../namespaceyaze_1_1zelda3_1_1screen.html',1,'yaze::zelda3']]]
 ];

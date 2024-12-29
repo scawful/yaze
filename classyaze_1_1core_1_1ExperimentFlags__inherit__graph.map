@@ -16,8 +16,8 @@
 <area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="132,234,180,262,235,288,266,298,264,303,233,293,177,266,129,239"/>
 <area shape="rect" id="Node000010" href="$classyaze_1_1emu_1_1Cpu.html" title=" " alt="" coords="272,351,379,376"/>
 <area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="120,239,169,289,201,315,235,337,272,352,270,356,232,342,198,319,166,293,116,242"/>
-<area shape="rect" id="Node000011" href="$classyaze_1_1zelda3_1_1overworld_1_1Overworld.html" title="Represents the full Overworld data, light and dark world." alt="" coords="249,400,402,441"/>
-<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="114,241,162,313,196,352,235,387,254,398,251,402,232,391,192,356,158,316,109,244"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1zelda3_1_1Overworld.html" title="Represents the full Overworld data, light and dark world." alt="" coords="248,400,403,426"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="113,241,133,275,161,314,195,353,235,387,256,397,253,402,232,391,191,357,156,317,128,277,108,244"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1test_1_1MockRom.html" title=" " alt="" coords="465,55,605,80"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="381,65,465,65,465,70,381,70"/>
 </map>

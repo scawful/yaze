@@ -1,11 +1,3 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classyaze_1_1zelda3_1_1GameEntity.html" title="Base class for all overworld and dungeon entities." alt="" coords="5,96,169,122"/>
-<area shape="rect" id="Node000001" href="$classyaze_1_1zelda3_1_1Sprite.html" title="A class for managing sprites in the overworld and underworld." alt="" coords="228,5,358,31"/>
-<area shape="poly" id="edge84_Node000000_Node000001" title=" " alt="" coords="124,86,216,41,247,29,249,34,218,46,127,91"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1overworld_1_1OverworldEntrance.html" title=" " alt="" coords="217,55,369,96"/>
-<area shape="poly" id="edge85_Node000000_Node000002" title=" " alt="" coords="184,90,216,85,217,90,185,96"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1overworld_1_1OverworldExit.html" title=" " alt="" coords="217,120,369,161"/>
-<area shape="poly" id="edge86_Node000000_Node000003" title=" " alt="" coords="185,121,217,126,216,132,184,127"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1overworld_1_1OverworldItem.html" title=" " alt="" coords="217,186,369,226"/>
-<area shape="poly" id="edge87_Node000000_Node000004" title=" " alt="" coords="129,127,218,170,245,183,243,188,216,175,127,131"/>
+<area shape="rect" id="Node000000" href="$structyaze_1_1zelda3_1_1music_1_1SongPart.html" title=" " alt="" coords="5,5,137,46"/>
 </map>

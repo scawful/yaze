@@ -43,8 +43,8 @@ var searchData=
   ['stat78_40',['STAT78',['../structyaze_1_1emu_1_1video_1_1PpuRegisters_1_1STAT78.html',1,'yaze::emu::video::PpuRegisters']]],
   ['structuredlog_41',['StructuredLog',['../structyaze_1_1core_1_1StructuredLog.html',1,'yaze::core']]],
   ['subeditor_42',['SubEditor',['../structyaze_1_1editor_1_1zsprite_1_1SubEditor.html',1,'yaze::editor::zsprite']]],
-  ['subtype1_43',['Subtype1',['../classyaze_1_1zelda3_1_1dungeon_1_1Subtype1.html',1,'yaze::zelda3::dungeon']]],
-  ['subtype2_44',['Subtype2',['../classyaze_1_1zelda3_1_1dungeon_1_1Subtype2.html',1,'yaze::zelda3::dungeon']]],
-  ['subtype3_45',['Subtype3',['../classyaze_1_1zelda3_1_1dungeon_1_1Subtype3.html',1,'yaze::zelda3::dungeon']]],
-  ['subtypeinfo_46',['SubtypeInfo',['../structyaze_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html',1,'yaze::zelda3::dungeon']]]
+  ['subtype1_43',['Subtype1',['../classyaze_1_1zelda3_1_1Subtype1.html',1,'yaze::zelda3']]],
+  ['subtype2_44',['Subtype2',['../classyaze_1_1zelda3_1_1Subtype2.html',1,'yaze::zelda3']]],
+  ['subtype3_45',['Subtype3',['../classyaze_1_1zelda3_1_1Subtype3.html',1,'yaze::zelda3']]],
+  ['subtypeinfo_46',['SubtypeInfo',['../structyaze_1_1zelda3_1_1SubtypeInfo.html',1,'yaze::zelda3']]]
 ];

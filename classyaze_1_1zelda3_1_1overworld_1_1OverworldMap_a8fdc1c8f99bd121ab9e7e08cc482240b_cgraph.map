@@ -1,5 +1,0 @@
-<map id="yaze::zelda3::overworld::OverworldMap::LoadMainBlocksets" name="yaze::zelda3::overworld::OverworldMap::LoadMainBlocksets">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,238,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a76f67b131d3e1a18357ab82ec362e766" title=" " alt="" coords="286,5,414,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="238,23,270,23,270,28,238,28"/>
-</map>

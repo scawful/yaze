@@ -20,6 +20,6 @@ var searchData=
   ['height_17',['height',['../classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3',1,'yaze::gfx::Bitmap::height()'],['../classyaze_1_1gui_1_1Canvas.html#a138ae62c6eb5f771385aa7e6b2f8ebbd',1,'yaze::gui::Canvas::height()'],['../classyaze_1_1zelda3_1_1Sprite.html#aec8a5fc8d13ed9331e3ced8173efc7fc',1,'yaze::zelda3::Sprite::height()']]],
   ['helpcommand_18',['HelpCommand',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a2ce01552171fe2c443f90b424ffdd398',1,'yaze::cli::anonymous_namespace{z3ed.cc}']]],
   ['historymanager_19',['HistoryManager',['../classyaze_1_1editor_1_1HistoryManager.html#a99d3b579aaba1310a5ce798cf4df7fa1',1,'yaze::editor::HistoryManager']]],
-  ['holes_20',['holes',['../classyaze_1_1zelda3_1_1overworld_1_1Overworld.html#a1b5706b99ea3772ede85ea77fbd527c9',1,'yaze::zelda3::overworld::Overworld']]],
+  ['holes_20',['holes',['../classyaze_1_1zelda3_1_1Overworld.html#a0a0512a664bd6cd08f0d5244b1f35a07',1,'yaze::zelda3::Overworld']]],
   ['hover_5fmouse_5fpos_21',['hover_mouse_pos',['../classyaze_1_1gui_1_1Canvas.html#a3cea4228bbc82ef162fa28b9a88cbfb8',1,'yaze::gui::Canvas']]]
 ];

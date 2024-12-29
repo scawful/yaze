@@ -34,7 +34,7 @@ var searchData=
   ['volumel_31',['volumeL',['../structyaze_1_1emu_1_1audio_1_1DspChannel.html#a331da004c7b8a3723987165030375115',1,'yaze::emu::audio::DspChannel']]],
   ['volumer_32',['volumeR',['../structyaze_1_1emu_1_1audio_1_1DspChannel.html#a48eae03dae3c90dffd8a48e429ed0c4f',1,'yaze::emu::audio::DspChannel']]],
   ['vram_33',['vram',['../classyaze_1_1emu_1_1video_1_1Ppu.html#ac6243eef06d617fe33dd7a92b24b134f',1,'yaze::emu::video::Ppu::vram'],['../classyaze_1_1test_1_1emu_1_1MockPpu.html#a4843d08a171ca5b4fb3e86b3449fbdc6',1,'yaze::test::emu::MockPpu::vram']]],
-  ['vram_5f_34',['vram_',['../classyaze_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#acaa7390f8a1ec784a4411df1b3131a2c',1,'yaze::zelda3::dungeon::DungeonObjectRenderer']]],
+  ['vram_5f_34',['vram_',['../classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a362fcebebede6eb1a7ec8cd2e8d87f51',1,'yaze::zelda3::DungeonObjectRenderer']]],
   ['vram_5faddress_35',['vram_address',['../structyaze_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html#a7a1f369b52069cc6d0316afe200888eb',1,'yaze::emu::video::PpuRegisters::BGSC']]],
   ['vram_5fbase_5faddress_5f_36',['vram_base_address_',['../classyaze_1_1emu_1_1video_1_1Ppu.html#ad59303cc5aba72c2223d81d639b9c97d',1,'yaze::emu::video::Ppu']]],
   ['vram_5fdata_5fread_5fhigh_37',['vram_data_read_high',['../structyaze_1_1emu_1_1video_1_1PpuRegisters_1_1VMDATAHREAD.html#a4908377c3ed21117250e83e45ac104c9',1,'yaze::emu::video::PpuRegisters::VMDATAHREAD']]],

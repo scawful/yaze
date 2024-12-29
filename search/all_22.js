@@ -14,7 +14,7 @@ var searchData=
   ['_7epopupmanager_11',['~PopupManager',['../classyaze_1_1editor_1_1PopupManager.html#ae914947572ba7d49efbca036d371bc94',1,'yaze::editor::PopupManager']]],
   ['_7eppuinterface_12',['~PpuInterface',['../classyaze_1_1emu_1_1video_1_1PpuInterface.html#a1753044198c2a4960bebbbe24ac12f55',1,'yaze::emu::video::PpuInterface']]],
   ['_7eresourcemanager_13',['~ResourceManager',['../classyaze_1_1editor_1_1ResourceManager.html#af80c0b99fc72a591bb6dadfef83fd0c5',1,'yaze::editor::ResourceManager']]],
-  ['_7eroom_14',['~Room',['../classyaze_1_1zelda3_1_1dungeon_1_1Room.html#ae8949cc4ce3c80d41e1fdb1edb164ed3',1,'yaze::zelda3::dungeon::Room']]],
+  ['_7eroom_14',['~Room',['../classyaze_1_1zelda3_1_1Room.html#ae5af738c56052e54295451af201a0e4a',1,'yaze::zelda3::Room']]],
   ['_7esharedrom_15',['~SharedRom',['../classyaze_1_1SharedRom.html#a05ecd0d699123dea3478c1b05f6f1281',1,'yaze::SharedRom']]],
   ['_7esnes_16',['~SNES',['../classyaze_1_1emu_1_1SNES.html#aee3ced1ee34734d45722cf969ad47d5d',1,'yaze::emu::SNES']]],
   ['_7etesteditor_17',['~TestEditor',['../classyaze_1_1test_1_1integration_1_1TestEditor.html#ab11731347892486c3d73cc1755a2cbb1',1,'yaze::test::integration::TestEditor']]]

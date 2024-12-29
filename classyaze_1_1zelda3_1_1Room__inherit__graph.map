@@ -1,0 +1,5 @@
+<map id="yaze::zelda3::Room" name="yaze::zelda3::Room">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,136,105"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="10,5,131,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="73,46,73,79,68,79,68,46"/>
+</map>

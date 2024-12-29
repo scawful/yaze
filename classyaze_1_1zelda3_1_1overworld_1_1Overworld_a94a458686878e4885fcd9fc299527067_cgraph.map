@@ -1,8 +1,0 @@
-<map id="yaze::zelda3::overworld::Overworld::LoadSpritesFromMap" name="yaze::zelda3::overworld::Overworld::LoadSpritesFromMap">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,223,88"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="271,29,420,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,53,255,49,256,55,224,58"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1core.html#a772a2d0d104498cb8100f0b2e717b6a2" title=" " alt="" coords="273,79,418,104"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="224,76,258,80,257,85,223,81"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="307,31,299,21,304,11,320,5,345,3,374,5,388,12,386,17,372,10,345,8,321,10,308,15,305,20,311,27"/>
-</map>
