@@ -32,7 +32,7 @@ namespace editor {
  * The class inherits from the SharedRom class.
  */
 class ScreenEditor : public SharedRom, public Editor {
-public:
+ public:
   ScreenEditor() {
     screen_canvas_.SetCanvasSize(ImVec2(512, 512));
     type_ = EditorType::kScreen;
@@ -49,7 +49,7 @@ public:
 
   absl::Status SaveDungeonMaps();
 
-private:
+ private:
   void DrawTitleScreenEditor();
   void DrawNamingScreenEditor();
   void DrawOverworldMapEditor();
@@ -110,8 +110,7 @@ private:
   zelda3::screen::Inventory inventory_;
 };
 
-} // namespace editor
-
-} // namespace yaze
+}  // namespace editor
+}  // namespace yaze
 
 #endif

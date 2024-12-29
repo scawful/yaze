@@ -29,7 +29,6 @@ namespace yaze {
 namespace editor {
 
 using core::Renderer;
-
 using ImGui::BeginChild;
 using ImGui::BeginTabBar;
 using ImGui::BeginTabItem;
@@ -197,7 +196,6 @@ void OverworldEditor::DrawToolset() {
   }
 
   if (show_tile16_editor_) {
-    // Create a table in ImGui for the Tile16 Editor
     ImGui::Begin("Tile16 Editor", &show_tile16_editor_,
                  ImGuiWindowFlags_MenuBar);
     status_ = tile16_editor_.Update();
