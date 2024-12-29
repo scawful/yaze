@@ -13,6 +13,7 @@
 #include "app/gfx/snes_tile.h"
 #include "app/gfx/tilesheet.h"
 #include "app/gui/canvas.h"
+#include "app/gui/color.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "imgui/imgui.h"
@@ -413,7 +414,8 @@ void ScreenEditor::DrawDungeonMapsEditor() {
     }
   }
 
-  if (ImGui::BeginTable("##DungeonMapToolset", 2, ImGuiTableFlags_SizingFixedFit)) {
+  if (ImGui::BeginTable("##DungeonMapToolset", 2,
+                        ImGuiTableFlags_SizingFixedFit)) {
     ImGui::TableSetupColumn("Draw Mode");
     ImGui::TableSetupColumn("Edit Mode");
 
@@ -485,7 +487,8 @@ void ScreenEditor::DrawDungeonMapsEditor() {
       }
 
       ImGui::Separator();
-      current_tile_canvas_.DrawBackground(); // ImVec2(64 * 2 + 2, 64 * 2 + 4));
+      current_tile_canvas_
+          .DrawBackground();  // ImVec2(64 * 2 + 2, 64 * 2 + 4));
       current_tile_canvas_.DrawContextMenu();
       if (current_tile_canvas_.DrawTilePainter(
               tile8_individual_[selected_tile8_], 16)) {

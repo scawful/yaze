@@ -90,7 +90,7 @@ class Tile16Editor : public GfxContext, public SharedRom {
   PaletteEditor palette_editor_;
 
   gfx::SnesPalette palette_;
-  zelda3::overworld::Overworld transfer_overworld_;
+  zelda3::Overworld transfer_overworld_;
 
   absl::Status status_;
 

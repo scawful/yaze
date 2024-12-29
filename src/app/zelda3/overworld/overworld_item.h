@@ -11,7 +11,6 @@
 
 namespace yaze {
 namespace zelda3 {
-namespace overworld {
 
 // List of secret item names
 const std::vector<std::string> kSecretItemNames = {
@@ -99,9 +98,7 @@ public:
   }
 };
 
-} // namespace overworld
 } // namespace zelda3
-
 } // namespace yaze
 
 #endif // YAZE_APP_ZELDA3_OVERWORLD_ITEM_H_

@@ -284,14 +284,14 @@ class OverworldEditor : public Editor,
   gfx::BitmapTable current_graphics_set_;
   gfx::BitmapTable sprite_previews_;
 
-  zelda3::overworld::Overworld overworld_;
+  zelda3::Overworld overworld_;
   zelda3::OWBlockset refresh_blockset_;
 
   zelda3::Sprite current_sprite_;
 
-  zelda3::overworld::OverworldEntrance current_entrance_;
-  zelda3::overworld::OverworldExit current_exit_;
-  zelda3::overworld::OverworldItem current_item_;
+  zelda3::OverworldEntrance current_entrance_;
+  zelda3::OverworldExit current_exit_;
+  zelda3::OverworldItem current_item_;
 
   zelda3::GameEntity* current_entity_;
   zelda3::GameEntity* dragged_entity_;
@@ -307,6 +307,7 @@ class OverworldEditor : public Editor,
   gui::Canvas properties_canvas_;
 
   gui::Table toolset_table_{"##ToolsetTable0", 22, kToolsetTableFlags};
+  gui::Table map_settings_table_{kOWMapTable.data(), 8, kOWMapFlags, ImVec2(0,0)};
 
   gui::zeml::Node layout_node_;
   absl::Status status_;
