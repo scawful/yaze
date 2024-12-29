@@ -10,7 +10,8 @@ enum class Platform { kUnknown, kMacOS, kiOS, kWindows, kLinux };
 
 std::string GetFileExtension(const std::string &filename);
 std::string GetFileName(const std::string &filename);
-std::string LoadFile(const std::string &filename, Platform platform);
+std::string LoadFile(const std::string &filename);
+std::string LoadConfigFile(const std::string &filename);
 std::string GetConfigDirectory(Platform platform);
 
 void SaveFile(const std::string &filename, const std::string &data,
