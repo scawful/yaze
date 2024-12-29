@@ -64,7 +64,7 @@ unsigned char *Tracker::GetSpcAddr(Rom &rom, unsigned short addr, short bank) {
   spcbank = bank + 1;
 
 again:
-  rom_ptr = rom.data() + sbank_ofs[spcbank];
+  rom_ptr = rom.mutable_data() + sbank_ofs[spcbank];
 
   for (;;) {
     a = *(unsigned short *)rom_ptr;
@@ -424,7 +424,7 @@ void Tracker::LoadSongs(Rom &rom) {
   srsize = 0;
   song_range_ = 0;
   sp_mark = 0;
-  b = rom.data();
+  b = rom.mutable_data();
 
   sbank_ofs[1] = (b[0x91c] << 15) + ((b[0x918] & 127) << 8) + b[0x914];
   sbank_ofs[3] = (b[0x93a] << 15) + ((b[0x936] & 127) << 8) + b[0x932];
@@ -550,7 +550,7 @@ void Tracker::LoadSongs(Rom &rom) {
   numinst = spclen / 6;
 
   b = GetSpcAddr(rom, 0x3e00, 0);
-  m_ofs = b - rom.data() + spclen;
+  m_ofs = b - rom.mutable_data() + spclen;
   sndinsts = (ZeldaSfxInstrument *)malloc(spclen);
   memcpy(sndinsts, b, spclen);
   numsndinst = spclen / 9;
@@ -784,7 +784,7 @@ short Tracker::SaveSpcCommand(Rom &rom, short num, short songtime,
 
 int Tracker::WriteSpcData(Rom &rom, void *buf, int len, int addr, int spc,
                           int limit) {
-  unsigned char *rom_data = rom.data();
+  unsigned char *rom_data = rom.mutable_data();
 
   if (!len) return addr;
 
@@ -872,7 +872,7 @@ void Tracker::SaveSongs(Rom &rom) {
 
   // set it so the music has not been modified. (reset the status)
   m_modf = 0;
-  rom_data = rom.data();
+  rom_data = rom.mutable_data();
 
   // SetCursor(wait_cursor);
 
@@ -1240,7 +1240,7 @@ void Tracker::SaveSongs(Rom &rom) {
           m_modf = 1;
           return;
         }
-        memcpy(rom.data() + n, stbl->buf, stbl->len);
+        memcpy(rom.mutable_data() + n, stbl->buf, stbl->len);
         n += stbl->len;
         free(stbl->relocs);
         free(stbl->buf);
@@ -1248,13 +1248,13 @@ void Tracker::SaveSongs(Rom &rom) {
         ssblt[i] = 0;
       }
       if (n > l + 4) {
-        *(short *)(rom.data() + l) = n - l - 4;
-        *(short *)(rom.data() + l + 2) = o ? bank_lwr[k] : 0xd000;
+        *(short *)(rom.mutable_data() + l) = n - l - 4;
+        *(short *)(rom.mutable_data() + l + 2) = o ? bank_lwr[k] : 0xd000;
         l = n;
       }
     }
-    *(short *)(rom.data() + l) = 0;
-    *(short *)(rom.data() + l + 2) = 0x800;
+    *(short *)(rom.mutable_data() + l) = 0;
+    *(short *)(rom.mutable_data() + l + 2) = 0x800;
     if (k == 1) m = l + 4;
   }
   free(ssblt);

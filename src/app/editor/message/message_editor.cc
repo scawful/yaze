@@ -336,9 +336,10 @@ void MessageEditor::ReadAllTextDataV2() {
       current_raw_message.append("]");
 
       uint32_t address = core::Get24LocalFromPC(
-          rom()->data(), kPointersDictionaries + (dictionary * 2));
+          rom()->mutable_data(), kPointersDictionaries + (dictionary * 2));
       uint32_t address_end = core::Get24LocalFromPC(
-          rom()->data(), kPointersDictionaries + ((dictionary + 1) * 2));
+          rom()->mutable_data(),
+          kPointersDictionaries + ((dictionary + 1) * 2));
 
       for (uint32_t i = address; i < address_end; i++) {
         parsed_message.push_back(rom()->data()[i]);
@@ -435,9 +436,9 @@ void MessageEditor::ReadAllTextData() {
       current_message_raw.append("]");
 
       uint32_t address = core::Get24LocalFromPC(
-          rom()->data(), kPointersDictionaries + (dictionary * 2));
+          rom()->mutable_data(), kPointersDictionaries + (dictionary * 2));
       uint32_t address_end = core::Get24LocalFromPC(
-          rom()->data(), kPointersDictionaries + ((dictionary + 1) * 2));
+          rom()->mutable_data(), kPointersDictionaries + ((dictionary + 1) * 2));
 
       for (uint32_t i = address; i < address_end; i++) {
         temp_bytes_parsed.push_back(rom()->data()[i]);
