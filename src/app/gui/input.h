@@ -8,6 +8,7 @@
 #include <functional>
 #include <optional>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include "absl/strings/string_view.h"
@@ -71,7 +72,7 @@ void AddTableColumn(Table &table, const std::string &label, GuiElement element);
 
 void DrawTable(Table &params);
 
-}  // namespace gui
-}  // namespace yaze
+} // namespace gui
+} // namespace yaze
 
 #endif
