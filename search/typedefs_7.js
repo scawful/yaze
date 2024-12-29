@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['layer_0',['Layer',['../namespaceyaze_1_1emu_1_1video.html#a0e0f3bfea693c2350f1d8386a91a453c',1,'yaze::emu::video']]]
+  ['owblockset_0',['OWBlockset',['../namespaceyaze_1_1zelda3.html#a3768a32d1806f245dd27c14d78ebb909',1,'yaze::zelda3']]],
+  ['owmaptiles_1',['OWMapTiles',['../namespaceyaze_1_1zelda3.html#aac5e8e1c232e14d46351dbbc1c2660d2',1,'yaze::zelda3']]]
 ];

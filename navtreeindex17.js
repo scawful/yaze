@@ -1,13 +1,5 @@
 var NAVTREEINDEX17 =
 {
-"classyaze_1_1test_1_1emu_1_1Spc700Test.html#a93bc7a7972e563f86548418147ba5010":[11,0,0,6,0,4,3],
-"classyaze_1_1test_1_1emu_1_1Spc700Test.html#ad35645b23843e2d9533d3fc32f7b55b8":[10,0,1,7,0,4,4],
-"classyaze_1_1test_1_1emu_1_1Spc700Test.html#ad35645b23843e2d9533d3fc32f7b55b8":[11,0,0,6,0,4,4],
-"classyaze_1_1test_1_1emu_1_1Spc700Test.html#ad547047c861efca32c6a713b5e02644e":[10,0,1,7,0,4,0],
-"classyaze_1_1test_1_1emu_1_1Spc700Test.html#ad547047c861efca32c6a713b5e02644e":[11,0,0,6,0,4,0],
-"classyaze_1_1test_1_1integration_1_1TestEditor.html":[10,0,1,7,2,0],
-"classyaze_1_1test_1_1integration_1_1TestEditor.html":[11,0,0,6,1,0],
-"classyaze_1_1test_1_1integration_1_1TestEditor.html#a2e91f3868380f94c734eb1ac6b005e9a":[10,0,1,7,2,0,0],
 "classyaze_1_1test_1_1integration_1_1TestEditor.html#a2e91f3868380f94c734eb1ac6b005e9a":[11,0,0,6,1,0,0],
 "classyaze_1_1test_1_1integration_1_1TestEditor.html#a517231d77b30888622af03dafca7ad0a":[10,0,1,7,2,0,10],
 "classyaze_1_1test_1_1integration_1_1TestEditor.html#a517231d77b30888622af03dafca7ad0a":[11,0,0,6,1,0,10],
@@ -249,5 +241,13 @@ var NAVTREEINDEX17 =
 "classyaze_1_1zelda3_1_1SpriteBuilder.html#a649d2cd2d0cdd4cbe40448305c163b03":[11,0,0,7,8,4],
 "classyaze_1_1zelda3_1_1SpriteBuilder.html#a79a8cfe38f4f463e05fb0e9e9da3e293":[10,0,1,8,9,0],
 "classyaze_1_1zelda3_1_1SpriteBuilder.html#a79a8cfe38f4f463e05fb0e9e9da3e293":[11,0,0,7,8,0],
-"classyaze_1_1zelda3_1_1SpriteBuilder.html#aaad069abe935e76ecad0c1b4d75351c3":[10,0,1,8,9,6]
+"classyaze_1_1zelda3_1_1SpriteBuilder.html#aaad069abe935e76ecad0c1b4d75351c3":[10,0,1,8,9,6],
+"classyaze_1_1zelda3_1_1SpriteBuilder.html#aaad069abe935e76ecad0c1b4d75351c3":[11,0,0,7,8,6],
+"classyaze_1_1zelda3_1_1SpriteBuilder.html#aca5b9586b4716ae505185113b702c269":[10,0,1,8,9,5],
+"classyaze_1_1zelda3_1_1SpriteBuilder.html#aca5b9586b4716ae505185113b702c269":[11,0,0,7,8,5],
+"classyaze_1_1zelda3_1_1SpriteBuilder.html#acf250a61a4b1e7f6bf4793892085aa28":[10,0,1,8,9,13],
+"classyaze_1_1zelda3_1_1SpriteBuilder.html#acf250a61a4b1e7f6bf4793892085aa28":[11,0,0,7,8,13],
+"classyaze_1_1zelda3_1_1SpriteInstruction.html":[10,0,1,8,10],
+"classyaze_1_1zelda3_1_1SpriteInstruction.html":[11,0,0,7,9],
+"classyaze_1_1zelda3_1_1SpriteInstruction.html#a63832a9df6b05117140bb05d8abc3c63":[10,0,1,8,10,2]
 };

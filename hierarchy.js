@@ -39,6 +39,7 @@ var hierarchy =
     ] ],
     [ "yaze::emu::video::PpuRegisters::COLDATA", "structyaze_1_1emu_1_1video_1_1PpuRegisters_1_1COLDATA.html", null ],
     [ "yaze::emu::video::Color", "structyaze_1_1emu_1_1video_1_1Color.html", null ],
+    [ "yaze::gui::Color", "structyaze_1_1gui_1_1Color.html", null ],
     [ "yaze::cli::ColorModifier", "classyaze_1_1cli_1_1ColorModifier.html", null ],
     [ "yaze::cli::CommandHandler", "classyaze_1_1cli_1_1CommandHandler.html", [
       [ "yaze::cli::ApplyPatch", "classyaze_1_1cli_1_1ApplyPatch.html", null ],
@@ -85,7 +86,6 @@ var hierarchy =
       [ "yaze::test::integration::TestEditor", "classyaze_1_1test_1_1integration_1_1TestEditor.html", null ]
     ] ],
     [ "yaze::editor::EditorContext", "structyaze_1_1editor_1_1EditorContext.html", null ],
-    [ "yaze::editor::EditorLayoutParams", "structyaze_1_1editor_1_1EditorLayoutParams.html", null ],
     [ "yaze::emu::EmulatorKeybindings", "structyaze_1_1emu_1_1EmulatorKeybindings.html", null ],
     [ "yaze::editor::EntranceContext", "classyaze_1_1editor_1_1EntranceContext.html", [
       [ "yaze::editor::OverworldEditor", "classyaze_1_1editor_1_1OverworldEditor.html", null ]
@@ -317,6 +317,7 @@ var hierarchy =
     [ "z3_chest", "structz3__chest.html", null ],
     [ "z3_chest_data", "structz3__chest__data.html", null ],
     [ "z3_dungeon_destination", "structz3__dungeon__destination.html", null ],
+    [ "z3_dungeon_room", "structz3__dungeon__room.html", null ],
     [ "z3_object_door", "structz3__object__door.html", null ],
     [ "z3_overworld", "structz3__overworld.html", null ],
     [ "z3_overworld_map", "structz3__overworld__map.html", null ],

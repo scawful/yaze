@@ -1,13 +1,5 @@
 var NAVTREEINDEX18 =
 {
-"classyaze_1_1zelda3_1_1SpriteBuilder.html#aaad069abe935e76ecad0c1b4d75351c3":[11,0,0,7,8,6],
-"classyaze_1_1zelda3_1_1SpriteBuilder.html#aca5b9586b4716ae505185113b702c269":[10,0,1,8,9,5],
-"classyaze_1_1zelda3_1_1SpriteBuilder.html#aca5b9586b4716ae505185113b702c269":[11,0,0,7,8,5],
-"classyaze_1_1zelda3_1_1SpriteBuilder.html#acf250a61a4b1e7f6bf4793892085aa28":[10,0,1,8,9,13],
-"classyaze_1_1zelda3_1_1SpriteBuilder.html#acf250a61a4b1e7f6bf4793892085aa28":[11,0,0,7,8,13],
-"classyaze_1_1zelda3_1_1SpriteInstruction.html":[10,0,1,8,10],
-"classyaze_1_1zelda3_1_1SpriteInstruction.html":[11,0,0,7,9],
-"classyaze_1_1zelda3_1_1SpriteInstruction.html#a63832a9df6b05117140bb05d8abc3c63":[10,0,1,8,10,2],
 "classyaze_1_1zelda3_1_1SpriteInstruction.html#a63832a9df6b05117140bb05d8abc3c63":[11,0,0,7,9,2],
 "classyaze_1_1zelda3_1_1SpriteInstruction.html#a9206d062ee82eab689117d2d268a3357":[10,0,1,8,10,1],
 "classyaze_1_1zelda3_1_1SpriteInstruction.html#a9206d062ee82eab689117d2d268a3357":[11,0,0,7,9,1],
@@ -249,5 +241,13 @@ var NAVTREEINDEX18 =
 "classyaze_1_1zelda3_1_1dungeon_1_1RoomObject.html#a47619158f852c00f77bd4a76da77f6ff":[11,0,0,7,0,4,11],
 "classyaze_1_1zelda3_1_1dungeon_1_1RoomObject.html#a491ba02f8275e42e62a86b165dcf2655":[10,0,1,8,1,4,10],
 "classyaze_1_1zelda3_1_1dungeon_1_1RoomObject.html#a491ba02f8275e42e62a86b165dcf2655":[11,0,0,7,0,4,10],
-"classyaze_1_1zelda3_1_1dungeon_1_1RoomObject.html#a51226e047ffb365f6893b87605322cb8":[10,0,1,8,1,4,17]
+"classyaze_1_1zelda3_1_1dungeon_1_1RoomObject.html#a51226e047ffb365f6893b87605322cb8":[10,0,1,8,1,4,17],
+"classyaze_1_1zelda3_1_1dungeon_1_1RoomObject.html#a51226e047ffb365f6893b87605322cb8":[11,0,0,7,0,4,17],
+"classyaze_1_1zelda3_1_1dungeon_1_1RoomObject.html#a5bb6c60021e357aa228e21c797d8be1d":[10,0,1,8,1,4,7],
+"classyaze_1_1zelda3_1_1dungeon_1_1RoomObject.html#a5bb6c60021e357aa228e21c797d8be1d":[11,0,0,7,0,4,7],
+"classyaze_1_1zelda3_1_1dungeon_1_1RoomObject.html#a63fa4321a59928204949fbe806cd4c98":[10,0,1,8,1,4,5],
+"classyaze_1_1zelda3_1_1dungeon_1_1RoomObject.html#a63fa4321a59928204949fbe806cd4c98":[11,0,0,7,0,4,5],
+"classyaze_1_1zelda3_1_1dungeon_1_1RoomObject.html#a6a1facf5781c2342bbd3c28d0b4da10f":[10,0,1,8,1,4,14],
+"classyaze_1_1zelda3_1_1dungeon_1_1RoomObject.html#a6a1facf5781c2342bbd3c28d0b4da10f":[11,0,0,7,0,4,14],
+"classyaze_1_1zelda3_1_1dungeon_1_1RoomObject.html#a6ff75a44f658605943d01c4b54262d9d":[10,0,1,8,1,4,0]
 };

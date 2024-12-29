@@ -56,7 +56,7 @@ var searchData=
   ['mutable_5fcurrent_5fpalette_53',['mutable_current_palette',['../classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html#aec6a5ee896acfecc746db45be55e6fd4',1,'yaze::zelda3::overworld::OverworldMap']]],
   ['mutable_5fcustom_5ftileset_54',['mutable_custom_tileset',['../classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html#a922a9873dfc47f579e094698d100efe4',1,'yaze::zelda3::overworld::OverworldMap']]],
   ['mutable_5fcycles_55',['mutable_cycles',['../classyaze_1_1emu_1_1SNES.html#a4743703cd275415620ae4e5fd5f0bf8d',1,'yaze::emu::SNES']]],
-  ['mutable_5fdata_56',['mutable_data',['../classyaze_1_1gfx_1_1Bitmap.html#a9f96f54bf229f5c20f8470de37200707',1,'yaze::gfx::Bitmap']]],
+  ['mutable_5fdata_56',['mutable_data',['../classyaze_1_1gfx_1_1Bitmap.html#a9f96f54bf229f5c20f8470de37200707',1,'yaze::gfx::Bitmap::mutable_data()'],['../classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6',1,'yaze::Rom::mutable_data()']]],
   ['mutable_5fdeleted_5fentrances_57',['mutable_deleted_entrances',['../classyaze_1_1zelda3_1_1overworld_1_1Overworld.html#a1c5623b534b796a0b4b714fe73179424',1,'yaze::zelda3::overworld::Overworld']]],
   ['mutable_5fdungeon_5fpalette_58',['mutable_dungeon_palette',['../classyaze_1_1Rom.html#a6a005b3b2e4ceeee4328c6815b955880',1,'yaze::Rom']]],
   ['mutable_5fentrances_59',['mutable_entrances',['../classyaze_1_1zelda3_1_1overworld_1_1Overworld.html#ac7a98c4af5c0080a78d31ab3ac82c11f',1,'yaze::zelda3::overworld::Overworld']]],

@@ -15,7 +15,7 @@
 <area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="287,145,279,135,284,125,299,119,325,117,353,120,367,126,365,131,352,125,325,122,300,124,287,129,284,134,291,141"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1gfx_1_1SnesPalette.html#a504a42d10f3d95135b77bb13ef3ec923" title=" " alt="" coords="482,165,629,206"/>
 <area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="414,200,466,194,467,199,415,205"/>
-<area shape="rect" id="Node000007" href="$namespaceyaze_1_1gui.html#a856042a2733b59a0752f18f446344a64" title=" " alt="" coords="468,230,642,256"/>
+<area shape="rect" id="Node000007" href="$namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb" title=" " alt="" coords="468,230,642,256"/>
 <area shape="poly" id="edge7_Node000005_Node000007" title=" " alt="" coords="415,222,453,227,452,233,414,228"/>
 <area shape="rect" id="Node000013" href="$classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="494,308,617,349"/>
 <area shape="poly" id="edge10_Node000012_Node000013" title=" " alt="" coords="393,326,478,326,478,331,393,331"/>

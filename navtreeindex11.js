@@ -1,13 +1,5 @@
 var NAVTREEINDEX11 =
 {
-"classyaze_1_1emu_1_1audio_1_1Dsp.html#ae1c1c199482d77aac98d78a39c52892e":[11,0,0,3,0,4,9],
-"classyaze_1_1emu_1_1audio_1_1Dsp.html#ae2fb697fa7980c7aaecc777928924864":[10,0,1,4,2,4,36],
-"classyaze_1_1emu_1_1audio_1_1Dsp.html#ae2fb697fa7980c7aaecc777928924864":[11,0,0,3,0,4,36],
-"classyaze_1_1emu_1_1audio_1_1Dsp.html#ae81335dc43b95cbf5bcb57f352b2344d":[10,0,1,4,2,4,10],
-"classyaze_1_1emu_1_1audio_1_1Dsp.html#ae81335dc43b95cbf5bcb57f352b2344d":[11,0,0,3,0,4,10],
-"classyaze_1_1emu_1_1audio_1_1Spc700.html":[10,0,1,4,2,6],
-"classyaze_1_1emu_1_1audio_1_1Spc700.html":[11,0,0,3,0,6],
-"classyaze_1_1emu_1_1audio_1_1Spc700.html#a02338974435f7fe6b30a38609085b180":[10,0,1,4,2,6,98],
 "classyaze_1_1emu_1_1audio_1_1Spc700.html#a02338974435f7fe6b30a38609085b180":[11,0,0,3,0,6,98],
 "classyaze_1_1emu_1_1audio_1_1Spc700.html#a06d0c3b4e079a9466d995c8b400dbb85":[10,0,1,4,2,6,43],
 "classyaze_1_1emu_1_1audio_1_1Spc700.html#a06d0c3b4e079a9466d995c8b400dbb85":[11,0,0,3,0,6,43],
@@ -249,5 +241,13 @@ var NAVTREEINDEX11 =
 "classyaze_1_1emu_1_1audio_1_1Spc700.html#ad8a3a409b9032ed85d7f735590db1b55":[11,0,0,3,0,6,35],
 "classyaze_1_1emu_1_1audio_1_1Spc700.html#ae200778bacdd94717ad8ad8dfab2ae67":[10,0,1,4,2,6,117],
 "classyaze_1_1emu_1_1audio_1_1Spc700.html#ae200778bacdd94717ad8ad8dfab2ae67":[11,0,0,3,0,6,117],
-"classyaze_1_1emu_1_1audio_1_1Spc700.html#ae265752d6e19b2ea12d243a3c9d3694b":[10,0,1,4,2,6,48]
+"classyaze_1_1emu_1_1audio_1_1Spc700.html#ae265752d6e19b2ea12d243a3c9d3694b":[10,0,1,4,2,6,48],
+"classyaze_1_1emu_1_1audio_1_1Spc700.html#ae265752d6e19b2ea12d243a3c9d3694b":[11,0,0,3,0,6,48],
+"classyaze_1_1emu_1_1audio_1_1Spc700.html#ae3f3faac74d89af6d4c0a58ca369e05b":[10,0,1,4,2,6,70],
+"classyaze_1_1emu_1_1audio_1_1Spc700.html#ae3f3faac74d89af6d4c0a58ca369e05b":[11,0,0,3,0,6,70],
+"classyaze_1_1emu_1_1audio_1_1Spc700.html#ae744a0d5100500b06880f5232dbf54b4":[10,0,1,4,2,6,113],
+"classyaze_1_1emu_1_1audio_1_1Spc700.html#ae744a0d5100500b06880f5232dbf54b4":[11,0,0,3,0,6,113],
+"classyaze_1_1emu_1_1audio_1_1Spc700.html#ae7703877124fcb77fdafe2e1b6cb1636":[10,0,1,4,2,6,12],
+"classyaze_1_1emu_1_1audio_1_1Spc700.html#ae7703877124fcb77fdafe2e1b6cb1636":[11,0,0,3,0,6,12],
+"classyaze_1_1emu_1_1audio_1_1Spc700.html#ae8564f212764c1c952b1cffc2e1b617f":[10,0,1,4,2,6,100]
 };

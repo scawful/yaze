@@ -11,7 +11,7 @@ var searchData=
   ['clock_8',['Clock',['../classyaze_1_1emu_1_1Clock.html',1,'yaze::emu']]],
   ['clockimpl_9',['ClockImpl',['../classyaze_1_1emu_1_1ClockImpl.html',1,'yaze::emu']]],
   ['coldata_10',['COLDATA',['../structyaze_1_1emu_1_1video_1_1PpuRegisters_1_1COLDATA.html',1,'yaze::emu::video::PpuRegisters']]],
-  ['color_11',['Color',['../structyaze_1_1emu_1_1video_1_1Color.html',1,'yaze::emu::video']]],
+  ['color_11',['Color',['../structyaze_1_1emu_1_1video_1_1Color.html',1,'yaze::emu::video::Color'],['../structyaze_1_1gui_1_1Color.html',1,'yaze::gui::Color']]],
   ['colormodifier_12',['ColorModifier',['../classyaze_1_1cli_1_1ColorModifier.html',1,'yaze::cli']]],
   ['commandhandler_13',['CommandHandler',['../classyaze_1_1cli_1_1CommandHandler.html',1,'yaze::cli']]],
   ['commandinfo_14',['CommandInfo',['../structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html',1,'yaze::editor::CommandManager']]],

@@ -1,6 +1,6 @@
 <map id="yaze::Rom::LoadAllGraphicsData" name="yaze::Rom::LoadAllGraphicsData">
 <area shape="rect" id="Node000001" title="This function iterates over all graphics sheets in the Rom and loads them into memory...." alt="" coords="5,128,215,154"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a236fc04c8575b9913db77b8cd5dea273" title=" " alt="" coords="299,5,410,31"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="299,5,410,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,125,184,84,262,41,283,33,285,38,264,46,187,89,130,130"/>
 <area shape="rect" id="Node000003" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#a4e2e79a02c9bbff8d9720d6384296218" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="297,55,412,96"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="160,125,281,92,283,97,162,130"/>

@@ -36,6 +36,6 @@ var searchData=
   ['gravesxtilepos_33',['GravesXTilePos',['../namespaceyaze_1_1zelda3_1_1overworld.html#a2ac085ecc8a4122a3ea730b4222a029d',1,'yaze::zelda3::overworld']]],
   ['gravesyline_34',['GravesYLine',['../namespaceyaze_1_1zelda3_1_1overworld.html#ae5e1dff877e88f63c3cc58fe195a83e6',1,'yaze::zelda3::overworld']]],
   ['gravesytilepos_35',['GravesYTilePos',['../namespaceyaze_1_1zelda3_1_1overworld.html#a9d534990f4705d5f79b04419f07101c5',1,'yaze::zelda3::overworld']]],
-  ['green_36',['green',['../structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4',1,'snes_color']]],
+  ['green_36',['green',['../structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4',1,'snes_color::green'],['../structyaze_1_1gui_1_1Color.html#afff6ec23c27d488cfb0ed0a59b19fde5',1,'yaze::gui::Color::green']]],
   ['group_5fname_37',['group_name',['../structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a320ea66f9d77d77ad1397920fe67e0c2',1,'yaze::editor::palette_internal::PaletteChange']]]
 ];

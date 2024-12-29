@@ -460,434 +460,435 @@ $(function(){initNavTree('message__editor_8cc_source.html',''); initResizable(tr
 <div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span>      current_raw_message.append(<span class="stringliteral">&quot;]&quot;</span>);</div>
 <div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span> </div>
 <div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>      uint32_t address = <a class="code hl_function" href="namespaceyaze_1_1core.html#aa2886304092e4c8f1cbd33eeb0d7d980">core::Get24LocalFromPC</a>(</div>
-<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span>          <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;data(), <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + (dictionary * 2));</div>
+<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span>          <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;mutable_data(), <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + (dictionary * 2));</div>
 <div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span>      uint32_t address_end = <a class="code hl_function" href="namespaceyaze_1_1core.html#aa2886304092e4c8f1cbd33eeb0d7d980">core::Get24LocalFromPC</a>(</div>
-<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span>          <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;data(), <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + ((dictionary + 1) * 2));</div>
-<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span> </div>
-<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span>      <span class="keywordflow">for</span> (uint32_t i = address; i &lt; address_end; i++) {</div>
-<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>        parsed_message.push_back(<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;data()[i]);</div>
-<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>        current_parsed_message.append(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">ParseTextDataByte</a>(<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;data()[i]));</div>
-<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>      }</div>
-<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span> </div>
-<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span>      <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>    }</div>
-<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span> </div>
-<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>    <span class="comment">// Everything else.</span></div>
-<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>    <span class="keywordflow">if</span> (CharEncoder.contains(current_byte)) {</div>
-<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>      std::string str = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>      str.push_back(CharEncoder.at(current_byte));</div>
-<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>      current_raw_message.append(str);</div>
-<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span>      current_parsed_message.append(str);</div>
-<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span>      parsed_message.push_back(current_byte);</div>
-<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>    }</div>
-<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>  }</div>
-<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>}</div>
+<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span>          <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;mutable_data(),</div>
+<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span>          <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + ((dictionary + 1) * 2));</div>
+<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span> </div>
+<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>      <span class="keywordflow">for</span> (uint32_t i = address; i &lt; address_end; i++) {</div>
+<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>        parsed_message.push_back(<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;data()[i]);</div>
+<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>        current_parsed_message.append(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">ParseTextDataByte</a>(<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;data()[i]));</div>
+<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span>      }</div>
+<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span> </div>
+<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>      <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>    }</div>
+<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span> </div>
+<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>    <span class="comment">// Everything else.</span></div>
+<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>    <span class="keywordflow">if</span> (CharEncoder.contains(current_byte)) {</div>
+<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>      std::string str = <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>      str.push_back(CharEncoder.at(current_byte));</div>
+<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span>      current_raw_message.append(str);</div>
+<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span>      current_parsed_message.append(str);</div>
+<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>      parsed_message.push_back(current_byte);</div>
+<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>    }</div>
+<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>  }</div>
+<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>}</div>
 </div>
-<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span> </div>
-<div class="foldopen" id="foldopen00362" data-start="{" data-end="}">
-<div class="line"><a id="l00362" name="l00362"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#ab253e252af6472d0bbea15957a02d265">  362</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#ab253e252af6472d0bbea15957a02d265">MessageEditor::ReadAllTextData</a>() {</div>
-<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>  <span class="keywordtype">int</span> pos = <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a473fd190fc829bc2a054131640c2f620">kTextData</a>;</div>
-<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>  <span class="keywordtype">int</span> message_id = 0;</div>
-<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>  uint8_t current_byte;</div>
-<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>  std::vector&lt;uint8_t&gt; temp_bytes_raw;</div>
-<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span>  std::vector&lt;uint8_t&gt; temp_bytes_parsed;</div>
-<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span> </div>
-<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>  std::string current_message_raw;</div>
-<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>  std::string current_message_parsed;</div>
-<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span>  <a class="code hl_struct" href="structyaze_1_1editor_1_1TextElement.html">TextElement</a> text_element;</div>
-<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span> </div>
-<div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span>  <span class="keywordflow">while</span> (<span class="keyword">true</span>) {</div>
-<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span>    current_byte = <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;data()[pos++];</div>
-<div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span> </div>
-<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span>    <span class="keywordflow">if</span> (current_byte == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a0d4a3ab38797b034b311b39a037a293a">kMessageTerminator</a>) {</div>
-<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>      <span class="keyword">auto</span> message =</div>
-<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>          <a class="code hl_struct" href="structyaze_1_1editor_1_1MessageData.html">MessageData</a>(message_id++, pos, current_message_raw, temp_bytes_raw,</div>
-<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>                      current_message_parsed, temp_bytes_parsed);</div>
-<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span> </div>
-<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#abfd9f8d6a94a14cbbd9d7196a9aa8438">list_of_texts_</a>.push_back(message);</div>
-<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span> </div>
-<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span>      temp_bytes_raw.clear();</div>
-<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>      temp_bytes_parsed.clear();</div>
-<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span>      current_message_raw.clear();</div>
-<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>      current_message_parsed.clear();</div>
-<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span> </div>
-<div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span>      <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (current_byte == 0xFF) {</div>
-<div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span>    }</div>
-<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span> </div>
-<div class="line"><a id="l00393" name="l00393"></a><span class="lineno">  393</span>    temp_bytes_raw.push_back(current_byte);</div>
-<div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span> </div>
-<div class="line"><a id="l00395" name="l00395"></a><span class="lineno">  395</span>    <span class="comment">// Check for command.</span></div>
-<div class="line"><a id="l00396" name="l00396"></a><span class="lineno">  396</span>    text_element = <a class="code hl_function" href="namespaceyaze_1_1editor.html#ae8f8f9d081adc15c016bfda1b2cd1efe">FindMatchingCommand</a>(current_byte);</div>
-<div class="line"><a id="l00397" name="l00397"></a><span class="lineno">  397</span> </div>
-<div class="line"><a id="l00398" name="l00398"></a><span class="lineno">  398</span>    <span class="keywordflow">if</span> (!text_element.<a class="code hl_function" href="structyaze_1_1editor_1_1TextElement.html#a13431c3a5b46024a999d86bd877579bc">Empty</a>()) {</div>
-<div class="line"><a id="l00399" name="l00399"></a><span class="lineno">  399</span>      temp_bytes_parsed.push_back(current_byte);</div>
-<div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span>      <span class="keywordflow">if</span> (text_element.<a class="code hl_variable" href="structyaze_1_1editor_1_1TextElement.html#a4ab6b7eff1865bcf5d26c4ccc4e4437b">HasArgument</a>) {</div>
-<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span>        current_byte = <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;data()[pos++];</div>
-<div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span>        temp_bytes_raw.push_back(current_byte);</div>
-<div class="line"><a id="l00403" name="l00403"></a><span class="lineno">  403</span>        temp_bytes_parsed.push_back(current_byte);</div>
-<div class="line"><a id="l00404" name="l00404"></a><span class="lineno">  404</span>      }</div>
-<div class="line"><a id="l00405" name="l00405"></a><span class="lineno">  405</span> </div>
-<div class="line"><a id="l00406" name="l00406"></a><span class="lineno">  406</span>      current_message_raw.append(</div>
-<div class="line"><a id="l00407" name="l00407"></a><span class="lineno">  407</span>          text_element.<a class="code hl_function" href="structyaze_1_1editor_1_1TextElement.html#afd76f4799c847829dd5393e93508a1e4">GetParameterizedToken</a>(current_byte));</div>
-<div class="line"><a id="l00408" name="l00408"></a><span class="lineno">  408</span>      current_message_parsed.append(</div>
-<div class="line"><a id="l00409" name="l00409"></a><span class="lineno">  409</span>          text_element.<a class="code hl_function" href="structyaze_1_1editor_1_1TextElement.html#afd76f4799c847829dd5393e93508a1e4">GetParameterizedToken</a>(current_byte));</div>
-<div class="line"><a id="l00410" name="l00410"></a><span class="lineno">  410</span> </div>
-<div class="line"><a id="l00411" name="l00411"></a><span class="lineno">  411</span>      <span class="keywordflow">if</span> (text_element.<a class="code hl_variable" href="structyaze_1_1editor_1_1TextElement.html#a917c0bff8598acfdf7727b1cdffa28eb">Token</a> == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a38abfc689f0d81f4917a7af0fd15fac3">BANKToken</a>) {</div>
-<div class="line"><a id="l00412" name="l00412"></a><span class="lineno">  412</span>        pos = <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a59d4c715a567f35b7d9423174b899067">kTextData2</a>;</div>
-<div class="line"><a id="l00413" name="l00413"></a><span class="lineno">  413</span>      }</div>
-<div class="line"><a id="l00414" name="l00414"></a><span class="lineno">  414</span> </div>
-<div class="line"><a id="l00415" name="l00415"></a><span class="lineno">  415</span>      <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00416" name="l00416"></a><span class="lineno">  416</span>    }</div>
-<div class="line"><a id="l00417" name="l00417"></a><span class="lineno">  417</span> </div>
-<div class="line"><a id="l00418" name="l00418"></a><span class="lineno">  418</span>    <span class="comment">// Check for special characters.</span></div>
-<div class="line"><a id="l00419" name="l00419"></a><span class="lineno">  419</span>    text_element = <a class="code hl_function" href="namespaceyaze_1_1editor.html#ab527313554c1184f4658aefe1f7f055a">FindMatchingSpecial</a>(current_byte);</div>
-<div class="line"><a id="l00420" name="l00420"></a><span class="lineno">  420</span>    <span class="keywordflow">if</span> (!text_element.<a class="code hl_function" href="structyaze_1_1editor_1_1TextElement.html#a13431c3a5b46024a999d86bd877579bc">Empty</a>()) {</div>
-<div class="line"><a id="l00421" name="l00421"></a><span class="lineno">  421</span>      current_message_raw.append(text_element.<a class="code hl_function" href="structyaze_1_1editor_1_1TextElement.html#afd76f4799c847829dd5393e93508a1e4">GetParameterizedToken</a>());</div>
-<div class="line"><a id="l00422" name="l00422"></a><span class="lineno">  422</span>      current_message_parsed.append(text_element.<a class="code hl_function" href="structyaze_1_1editor_1_1TextElement.html#afd76f4799c847829dd5393e93508a1e4">GetParameterizedToken</a>());</div>
-<div class="line"><a id="l00423" name="l00423"></a><span class="lineno">  423</span>      temp_bytes_parsed.push_back(current_byte);</div>
-<div class="line"><a id="l00424" name="l00424"></a><span class="lineno">  424</span>      <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00425" name="l00425"></a><span class="lineno">  425</span>    }</div>
-<div class="line"><a id="l00426" name="l00426"></a><span class="lineno">  426</span> </div>
-<div class="line"><a id="l00427" name="l00427"></a><span class="lineno">  427</span>    <span class="comment">// Check for dictionary.</span></div>
-<div class="line"><a id="l00428" name="l00428"></a><span class="lineno">  428</span>    <span class="keywordtype">int</span> dictionary = <a class="code hl_function" href="namespaceyaze_1_1editor.html#a5f97797d62d6b1878a3b80aac1be3781">FindDictionaryEntry</a>(current_byte);</div>
-<div class="line"><a id="l00429" name="l00429"></a><span class="lineno">  429</span> </div>
-<div class="line"><a id="l00430" name="l00430"></a><span class="lineno">  430</span>    <span class="keywordflow">if</span> (dictionary &gt;= 0) {</div>
-<div class="line"><a id="l00431" name="l00431"></a><span class="lineno">  431</span>      current_message_raw.append(<span class="stringliteral">&quot;[&quot;</span>);</div>
-<div class="line"><a id="l00432" name="l00432"></a><span class="lineno">  432</span>      current_message_raw.append(<a class="code hl_variable" href="namespaceyaze_1_1editor.html#a180364fa630f1bbd2b029efa9277f342">DICTIONARYTOKEN</a>);</div>
-<div class="line"><a id="l00433" name="l00433"></a><span class="lineno">  433</span>      current_message_raw.append(<span class="stringliteral">&quot;:&quot;</span>);</div>
-<div class="line"><a id="l00434" name="l00434"></a><span class="lineno">  434</span>      current_message_raw.append(<a class="code hl_function" href="namespaceyaze_1_1core.html#a15eb6da70143253b66cd9602ce98b2bc">core::UppercaseHexWord</a>(dictionary));</div>
-<div class="line"><a id="l00435" name="l00435"></a><span class="lineno">  435</span>      current_message_raw.append(<span class="stringliteral">&quot;]&quot;</span>);</div>
-<div class="line"><a id="l00436" name="l00436"></a><span class="lineno">  436</span> </div>
-<div class="line"><a id="l00437" name="l00437"></a><span class="lineno">  437</span>      uint32_t address = <a class="code hl_function" href="namespaceyaze_1_1core.html#aa2886304092e4c8f1cbd33eeb0d7d980">core::Get24LocalFromPC</a>(</div>
-<div class="line"><a id="l00438" name="l00438"></a><span class="lineno">  438</span>          <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;data(), <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + (dictionary * 2));</div>
-<div class="line"><a id="l00439" name="l00439"></a><span class="lineno">  439</span>      uint32_t address_end = <a class="code hl_function" href="namespaceyaze_1_1core.html#aa2886304092e4c8f1cbd33eeb0d7d980">core::Get24LocalFromPC</a>(</div>
-<div class="line"><a id="l00440" name="l00440"></a><span class="lineno">  440</span>          <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;data(), <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + ((dictionary + 1) * 2));</div>
-<div class="line"><a id="l00441" name="l00441"></a><span class="lineno">  441</span> </div>
-<div class="line"><a id="l00442" name="l00442"></a><span class="lineno">  442</span>      <span class="keywordflow">for</span> (uint32_t i = address; i &lt; address_end; i++) {</div>
-<div class="line"><a id="l00443" name="l00443"></a><span class="lineno">  443</span>        temp_bytes_parsed.push_back(<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;data()[i]);</div>
-<div class="line"><a id="l00444" name="l00444"></a><span class="lineno">  444</span>        current_message_parsed.append(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">ParseTextDataByte</a>(<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;data()[i]));</div>
-<div class="line"><a id="l00445" name="l00445"></a><span class="lineno">  445</span>      }</div>
-<div class="line"><a id="l00446" name="l00446"></a><span class="lineno">  446</span> </div>
-<div class="line"><a id="l00447" name="l00447"></a><span class="lineno">  447</span>      <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00448" name="l00448"></a><span class="lineno">  448</span>    }</div>
-<div class="line"><a id="l00449" name="l00449"></a><span class="lineno">  449</span> </div>
-<div class="line"><a id="l00450" name="l00450"></a><span class="lineno">  450</span>    <span class="comment">// Everything else.</span></div>
-<div class="line"><a id="l00451" name="l00451"></a><span class="lineno">  451</span>    <span class="keywordflow">if</span> (CharEncoder.contains(current_byte)) {</div>
-<div class="line"><a id="l00452" name="l00452"></a><span class="lineno">  452</span>      std::string str = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00453" name="l00453"></a><span class="lineno">  453</span>      str.push_back(CharEncoder.at(current_byte));</div>
-<div class="line"><a id="l00454" name="l00454"></a><span class="lineno">  454</span>      current_message_raw.append(str);</div>
-<div class="line"><a id="l00455" name="l00455"></a><span class="lineno">  455</span>      current_message_parsed.append(str);</div>
-<div class="line"><a id="l00456" name="l00456"></a><span class="lineno">  456</span>      temp_bytes_parsed.push_back(current_byte);</div>
-<div class="line"><a id="l00457" name="l00457"></a><span class="lineno">  457</span>    }</div>
-<div class="line"><a id="l00458" name="l00458"></a><span class="lineno">  458</span>  }</div>
-<div class="line"><a id="l00459" name="l00459"></a><span class="lineno">  459</span>}</div>
+<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span> </div>
+<div class="foldopen" id="foldopen00363" data-start="{" data-end="}">
+<div class="line"><a id="l00363" name="l00363"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#ab253e252af6472d0bbea15957a02d265">  363</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#ab253e252af6472d0bbea15957a02d265">MessageEditor::ReadAllTextData</a>() {</div>
+<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>  <span class="keywordtype">int</span> pos = <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a473fd190fc829bc2a054131640c2f620">kTextData</a>;</div>
+<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>  <span class="keywordtype">int</span> message_id = 0;</div>
+<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>  uint8_t current_byte;</div>
+<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span>  std::vector&lt;uint8_t&gt; temp_bytes_raw;</div>
+<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span>  std::vector&lt;uint8_t&gt; temp_bytes_parsed;</div>
+<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span> </div>
+<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>  std::string current_message_raw;</div>
+<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span>  std::string current_message_parsed;</div>
+<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span>  <a class="code hl_struct" href="structyaze_1_1editor_1_1TextElement.html">TextElement</a> text_element;</div>
+<div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span> </div>
+<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span>  <span class="keywordflow">while</span> (<span class="keyword">true</span>) {</div>
+<div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span>    current_byte = <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;data()[pos++];</div>
+<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span> </div>
+<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>    <span class="keywordflow">if</span> (current_byte == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a0d4a3ab38797b034b311b39a037a293a">kMessageTerminator</a>) {</div>
+<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>      <span class="keyword">auto</span> message =</div>
+<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>          <a class="code hl_struct" href="structyaze_1_1editor_1_1MessageData.html">MessageData</a>(message_id++, pos, current_message_raw, temp_bytes_raw,</div>
+<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>                      current_message_parsed, temp_bytes_parsed);</div>
+<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span> </div>
+<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#abfd9f8d6a94a14cbbd9d7196a9aa8438">list_of_texts_</a>.push_back(message);</div>
+<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span> </div>
+<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>      temp_bytes_raw.clear();</div>
+<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span>      temp_bytes_parsed.clear();</div>
+<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>      current_message_raw.clear();</div>
+<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span>      current_message_parsed.clear();</div>
+<div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span> </div>
+<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>      <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (current_byte == 0xFF) {</div>
+<div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span>      <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span>    }</div>
+<div class="line"><a id="l00393" name="l00393"></a><span class="lineno">  393</span> </div>
+<div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span>    temp_bytes_raw.push_back(current_byte);</div>
+<div class="line"><a id="l00395" name="l00395"></a><span class="lineno">  395</span> </div>
+<div class="line"><a id="l00396" name="l00396"></a><span class="lineno">  396</span>    <span class="comment">// Check for command.</span></div>
+<div class="line"><a id="l00397" name="l00397"></a><span class="lineno">  397</span>    text_element = <a class="code hl_function" href="namespaceyaze_1_1editor.html#ae8f8f9d081adc15c016bfda1b2cd1efe">FindMatchingCommand</a>(current_byte);</div>
+<div class="line"><a id="l00398" name="l00398"></a><span class="lineno">  398</span> </div>
+<div class="line"><a id="l00399" name="l00399"></a><span class="lineno">  399</span>    <span class="keywordflow">if</span> (!text_element.<a class="code hl_function" href="structyaze_1_1editor_1_1TextElement.html#a13431c3a5b46024a999d86bd877579bc">Empty</a>()) {</div>
+<div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span>      temp_bytes_parsed.push_back(current_byte);</div>
+<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span>      <span class="keywordflow">if</span> (text_element.<a class="code hl_variable" href="structyaze_1_1editor_1_1TextElement.html#a4ab6b7eff1865bcf5d26c4ccc4e4437b">HasArgument</a>) {</div>
+<div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span>        current_byte = <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;data()[pos++];</div>
+<div class="line"><a id="l00403" name="l00403"></a><span class="lineno">  403</span>        temp_bytes_raw.push_back(current_byte);</div>
+<div class="line"><a id="l00404" name="l00404"></a><span class="lineno">  404</span>        temp_bytes_parsed.push_back(current_byte);</div>
+<div class="line"><a id="l00405" name="l00405"></a><span class="lineno">  405</span>      }</div>
+<div class="line"><a id="l00406" name="l00406"></a><span class="lineno">  406</span> </div>
+<div class="line"><a id="l00407" name="l00407"></a><span class="lineno">  407</span>      current_message_raw.append(</div>
+<div class="line"><a id="l00408" name="l00408"></a><span class="lineno">  408</span>          text_element.<a class="code hl_function" href="structyaze_1_1editor_1_1TextElement.html#afd76f4799c847829dd5393e93508a1e4">GetParameterizedToken</a>(current_byte));</div>
+<div class="line"><a id="l00409" name="l00409"></a><span class="lineno">  409</span>      current_message_parsed.append(</div>
+<div class="line"><a id="l00410" name="l00410"></a><span class="lineno">  410</span>          text_element.<a class="code hl_function" href="structyaze_1_1editor_1_1TextElement.html#afd76f4799c847829dd5393e93508a1e4">GetParameterizedToken</a>(current_byte));</div>
+<div class="line"><a id="l00411" name="l00411"></a><span class="lineno">  411</span> </div>
+<div class="line"><a id="l00412" name="l00412"></a><span class="lineno">  412</span>      <span class="keywordflow">if</span> (text_element.<a class="code hl_variable" href="structyaze_1_1editor_1_1TextElement.html#a917c0bff8598acfdf7727b1cdffa28eb">Token</a> == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a38abfc689f0d81f4917a7af0fd15fac3">BANKToken</a>) {</div>
+<div class="line"><a id="l00413" name="l00413"></a><span class="lineno">  413</span>        pos = <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a59d4c715a567f35b7d9423174b899067">kTextData2</a>;</div>
+<div class="line"><a id="l00414" name="l00414"></a><span class="lineno">  414</span>      }</div>
+<div class="line"><a id="l00415" name="l00415"></a><span class="lineno">  415</span> </div>
+<div class="line"><a id="l00416" name="l00416"></a><span class="lineno">  416</span>      <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00417" name="l00417"></a><span class="lineno">  417</span>    }</div>
+<div class="line"><a id="l00418" name="l00418"></a><span class="lineno">  418</span> </div>
+<div class="line"><a id="l00419" name="l00419"></a><span class="lineno">  419</span>    <span class="comment">// Check for special characters.</span></div>
+<div class="line"><a id="l00420" name="l00420"></a><span class="lineno">  420</span>    text_element = <a class="code hl_function" href="namespaceyaze_1_1editor.html#ab527313554c1184f4658aefe1f7f055a">FindMatchingSpecial</a>(current_byte);</div>
+<div class="line"><a id="l00421" name="l00421"></a><span class="lineno">  421</span>    <span class="keywordflow">if</span> (!text_element.<a class="code hl_function" href="structyaze_1_1editor_1_1TextElement.html#a13431c3a5b46024a999d86bd877579bc">Empty</a>()) {</div>
+<div class="line"><a id="l00422" name="l00422"></a><span class="lineno">  422</span>      current_message_raw.append(text_element.<a class="code hl_function" href="structyaze_1_1editor_1_1TextElement.html#afd76f4799c847829dd5393e93508a1e4">GetParameterizedToken</a>());</div>
+<div class="line"><a id="l00423" name="l00423"></a><span class="lineno">  423</span>      current_message_parsed.append(text_element.<a class="code hl_function" href="structyaze_1_1editor_1_1TextElement.html#afd76f4799c847829dd5393e93508a1e4">GetParameterizedToken</a>());</div>
+<div class="line"><a id="l00424" name="l00424"></a><span class="lineno">  424</span>      temp_bytes_parsed.push_back(current_byte);</div>
+<div class="line"><a id="l00425" name="l00425"></a><span class="lineno">  425</span>      <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00426" name="l00426"></a><span class="lineno">  426</span>    }</div>
+<div class="line"><a id="l00427" name="l00427"></a><span class="lineno">  427</span> </div>
+<div class="line"><a id="l00428" name="l00428"></a><span class="lineno">  428</span>    <span class="comment">// Check for dictionary.</span></div>
+<div class="line"><a id="l00429" name="l00429"></a><span class="lineno">  429</span>    <span class="keywordtype">int</span> dictionary = <a class="code hl_function" href="namespaceyaze_1_1editor.html#a5f97797d62d6b1878a3b80aac1be3781">FindDictionaryEntry</a>(current_byte);</div>
+<div class="line"><a id="l00430" name="l00430"></a><span class="lineno">  430</span> </div>
+<div class="line"><a id="l00431" name="l00431"></a><span class="lineno">  431</span>    <span class="keywordflow">if</span> (dictionary &gt;= 0) {</div>
+<div class="line"><a id="l00432" name="l00432"></a><span class="lineno">  432</span>      current_message_raw.append(<span class="stringliteral">&quot;[&quot;</span>);</div>
+<div class="line"><a id="l00433" name="l00433"></a><span class="lineno">  433</span>      current_message_raw.append(<a class="code hl_variable" href="namespaceyaze_1_1editor.html#a180364fa630f1bbd2b029efa9277f342">DICTIONARYTOKEN</a>);</div>
+<div class="line"><a id="l00434" name="l00434"></a><span class="lineno">  434</span>      current_message_raw.append(<span class="stringliteral">&quot;:&quot;</span>);</div>
+<div class="line"><a id="l00435" name="l00435"></a><span class="lineno">  435</span>      current_message_raw.append(<a class="code hl_function" href="namespaceyaze_1_1core.html#a15eb6da70143253b66cd9602ce98b2bc">core::UppercaseHexWord</a>(dictionary));</div>
+<div class="line"><a id="l00436" name="l00436"></a><span class="lineno">  436</span>      current_message_raw.append(<span class="stringliteral">&quot;]&quot;</span>);</div>
+<div class="line"><a id="l00437" name="l00437"></a><span class="lineno">  437</span> </div>
+<div class="line"><a id="l00438" name="l00438"></a><span class="lineno">  438</span>      uint32_t address = <a class="code hl_function" href="namespaceyaze_1_1core.html#aa2886304092e4c8f1cbd33eeb0d7d980">core::Get24LocalFromPC</a>(</div>
+<div class="line"><a id="l00439" name="l00439"></a><span class="lineno">  439</span>          <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;mutable_data(), <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + (dictionary * 2));</div>
+<div class="line"><a id="l00440" name="l00440"></a><span class="lineno">  440</span>      uint32_t address_end = <a class="code hl_function" href="namespaceyaze_1_1core.html#aa2886304092e4c8f1cbd33eeb0d7d980">core::Get24LocalFromPC</a>(</div>
+<div class="line"><a id="l00441" name="l00441"></a><span class="lineno">  441</span>          <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;mutable_data(), <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + ((dictionary + 1) * 2));</div>
+<div class="line"><a id="l00442" name="l00442"></a><span class="lineno">  442</span> </div>
+<div class="line"><a id="l00443" name="l00443"></a><span class="lineno">  443</span>      <span class="keywordflow">for</span> (uint32_t i = address; i &lt; address_end; i++) {</div>
+<div class="line"><a id="l00444" name="l00444"></a><span class="lineno">  444</span>        temp_bytes_parsed.push_back(<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;data()[i]);</div>
+<div class="line"><a id="l00445" name="l00445"></a><span class="lineno">  445</span>        current_message_parsed.append(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">ParseTextDataByte</a>(<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;data()[i]));</div>
+<div class="line"><a id="l00446" name="l00446"></a><span class="lineno">  446</span>      }</div>
+<div class="line"><a id="l00447" name="l00447"></a><span class="lineno">  447</span> </div>
+<div class="line"><a id="l00448" name="l00448"></a><span class="lineno">  448</span>      <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00449" name="l00449"></a><span class="lineno">  449</span>    }</div>
+<div class="line"><a id="l00450" name="l00450"></a><span class="lineno">  450</span> </div>
+<div class="line"><a id="l00451" name="l00451"></a><span class="lineno">  451</span>    <span class="comment">// Everything else.</span></div>
+<div class="line"><a id="l00452" name="l00452"></a><span class="lineno">  452</span>    <span class="keywordflow">if</span> (CharEncoder.contains(current_byte)) {</div>
+<div class="line"><a id="l00453" name="l00453"></a><span class="lineno">  453</span>      std::string str = <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a id="l00454" name="l00454"></a><span class="lineno">  454</span>      str.push_back(CharEncoder.at(current_byte));</div>
+<div class="line"><a id="l00455" name="l00455"></a><span class="lineno">  455</span>      current_message_raw.append(str);</div>
+<div class="line"><a id="l00456" name="l00456"></a><span class="lineno">  456</span>      current_message_parsed.append(str);</div>
+<div class="line"><a id="l00457" name="l00457"></a><span class="lineno">  457</span>      temp_bytes_parsed.push_back(current_byte);</div>
+<div class="line"><a id="l00458" name="l00458"></a><span class="lineno">  458</span>    }</div>
+<div class="line"><a id="l00459" name="l00459"></a><span class="lineno">  459</span>  }</div>
+<div class="line"><a id="l00460" name="l00460"></a><span class="lineno">  460</span>}</div>
 </div>
-<div class="line"><a id="l00460" name="l00460"></a><span class="lineno">  460</span> </div>
-<div class="foldopen" id="foldopen00461" data-start="{" data-end="}">
-<div class="line"><a id="l00461" name="l00461"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor.html#a7075dfdde53bf6bb5ec8a4a5a5123c1f">  461</a></span>std::string <a class="code hl_function" href="namespaceyaze_1_1editor.html#a7075dfdde53bf6bb5ec8a4a5a5123c1f">ReplaceAllDictionaryWords</a>(std::string str,</div>
-<div class="line"><a id="l00462" name="l00462"></a><span class="lineno">  462</span>                                      std::vector&lt;DictionaryEntry&gt; dictionary) {</div>
-<div class="line"><a id="l00463" name="l00463"></a><span class="lineno">  463</span>  std::string temp = str;</div>
-<div class="line"><a id="l00464" name="l00464"></a><span class="lineno">  464</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; entry : dictionary) {</div>
-<div class="line"><a id="l00465" name="l00465"></a><span class="lineno">  465</span>    <span class="keywordflow">if</span> (absl::StrContains(temp, entry.Contents)) {</div>
-<div class="line"><a id="l00466" name="l00466"></a><span class="lineno">  466</span>      temp = absl::StrReplaceAll(temp, {{entry.Contents, entry.Contents}});</div>
-<div class="line"><a id="l00467" name="l00467"></a><span class="lineno">  467</span>    }</div>
-<div class="line"><a id="l00468" name="l00468"></a><span class="lineno">  468</span>  }</div>
-<div class="line"><a id="l00469" name="l00469"></a><span class="lineno">  469</span>  <span class="keywordflow">return</span> temp;</div>
-<div class="line"><a id="l00470" name="l00470"></a><span class="lineno">  470</span>}</div>
+<div class="line"><a id="l00461" name="l00461"></a><span class="lineno">  461</span> </div>
+<div class="foldopen" id="foldopen00462" data-start="{" data-end="}">
+<div class="line"><a id="l00462" name="l00462"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor.html#a7075dfdde53bf6bb5ec8a4a5a5123c1f">  462</a></span>std::string <a class="code hl_function" href="namespaceyaze_1_1editor.html#a7075dfdde53bf6bb5ec8a4a5a5123c1f">ReplaceAllDictionaryWords</a>(std::string str,</div>
+<div class="line"><a id="l00463" name="l00463"></a><span class="lineno">  463</span>                                      std::vector&lt;DictionaryEntry&gt; dictionary) {</div>
+<div class="line"><a id="l00464" name="l00464"></a><span class="lineno">  464</span>  std::string temp = str;</div>
+<div class="line"><a id="l00465" name="l00465"></a><span class="lineno">  465</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; entry : dictionary) {</div>
+<div class="line"><a id="l00466" name="l00466"></a><span class="lineno">  466</span>    <span class="keywordflow">if</span> (absl::StrContains(temp, entry.Contents)) {</div>
+<div class="line"><a id="l00467" name="l00467"></a><span class="lineno">  467</span>      temp = absl::StrReplaceAll(temp, {{entry.Contents, entry.Contents}});</div>
+<div class="line"><a id="l00468" name="l00468"></a><span class="lineno">  468</span>    }</div>
+<div class="line"><a id="l00469" name="l00469"></a><span class="lineno">  469</span>  }</div>
+<div class="line"><a id="l00470" name="l00470"></a><span class="lineno">  470</span>  <span class="keywordflow">return</span> temp;</div>
+<div class="line"><a id="l00471" name="l00471"></a><span class="lineno">  471</span>}</div>
 </div>
-<div class="line"><a id="l00471" name="l00471"></a><span class="lineno">  471</span> </div>
-<div class="foldopen" id="foldopen00472" data-start="{" data-end="}">
-<div class="line"><a id="l00472" name="l00472"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#ae7f9d3c567cfaf5316d194860825b05c">  472</a></span><a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#ae7f9d3c567cfaf5316d194860825b05c">MessageEditor::GetDictionaryFromID</a>(uint8_t value) {</div>
-<div class="line"><a id="l00473" name="l00473"></a><span class="lineno">  473</span>  <span class="keywordflow">if</span> (value &lt; 0 || value &gt;= <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#ae8b5601a7b7f0e20149e99bc5056a161">all_dictionaries_</a>.size()) {</div>
-<div class="line"><a id="l00474" name="l00474"></a><span class="lineno">  474</span>    <span class="keywordflow">return</span> <a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a>();</div>
-<div class="line"><a id="l00475" name="l00475"></a><span class="lineno">  475</span>  }</div>
-<div class="line"><a id="l00476" name="l00476"></a><span class="lineno">  476</span>  <span class="keywordflow">return</span> <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#ae8b5601a7b7f0e20149e99bc5056a161">all_dictionaries_</a>[value];</div>
-<div class="line"><a id="l00477" name="l00477"></a><span class="lineno">  477</span>}</div>
+<div class="line"><a id="l00472" name="l00472"></a><span class="lineno">  472</span> </div>
+<div class="foldopen" id="foldopen00473" data-start="{" data-end="}">
+<div class="line"><a id="l00473" name="l00473"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#ae7f9d3c567cfaf5316d194860825b05c">  473</a></span><a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#ae7f9d3c567cfaf5316d194860825b05c">MessageEditor::GetDictionaryFromID</a>(uint8_t value) {</div>
+<div class="line"><a id="l00474" name="l00474"></a><span class="lineno">  474</span>  <span class="keywordflow">if</span> (value &lt; 0 || value &gt;= <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#ae8b5601a7b7f0e20149e99bc5056a161">all_dictionaries_</a>.size()) {</div>
+<div class="line"><a id="l00475" name="l00475"></a><span class="lineno">  475</span>    <span class="keywordflow">return</span> <a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a>();</div>
+<div class="line"><a id="l00476" name="l00476"></a><span class="lineno">  476</span>  }</div>
+<div class="line"><a id="l00477" name="l00477"></a><span class="lineno">  477</span>  <span class="keywordflow">return</span> <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#ae8b5601a7b7f0e20149e99bc5056a161">all_dictionaries_</a>[value];</div>
+<div class="line"><a id="l00478" name="l00478"></a><span class="lineno">  478</span>}</div>
 </div>
-<div class="line"><a id="l00478" name="l00478"></a><span class="lineno">  478</span> </div>
-<div class="foldopen" id="foldopen00479" data-start="{" data-end="}">
-<div class="line"><a id="l00479" name="l00479"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#a817979a564218dcea95a4c6bd8d3717c">  479</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a817979a564218dcea95a4c6bd8d3717c">MessageEditor::DrawTileToPreview</a>(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, <span class="keywordtype">int</span> srcx, <span class="keywordtype">int</span> srcy, <span class="keywordtype">int</span> pal,</div>
-<div class="line"><a id="l00480" name="l00480"></a><span class="lineno">  480</span>                                      <span class="keywordtype">int</span> sizex, <span class="keywordtype">int</span> sizey) {</div>
-<div class="line"><a id="l00481" name="l00481"></a><span class="lineno">  481</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> num_x_tiles = 16;</div>
-<div class="line"><a id="l00482" name="l00482"></a><span class="lineno">  482</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> img_width = 512;  <span class="comment">// (imgwidth/2)</span></div>
-<div class="line"><a id="l00483" name="l00483"></a><span class="lineno">  483</span>  <span class="keywordtype">int</span> draw_id = srcx + (srcy * 32);</div>
-<div class="line"><a id="l00484" name="l00484"></a><span class="lineno">  484</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> yl = 0; yl &lt; sizey * 8; yl++) {</div>
-<div class="line"><a id="l00485" name="l00485"></a><span class="lineno">  485</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> xl = 0; xl &lt; 4; xl++) {</div>
-<div class="line"><a id="l00486" name="l00486"></a><span class="lineno">  486</span>      <span class="keywordtype">int</span> mx = xl;</div>
-<div class="line"><a id="l00487" name="l00487"></a><span class="lineno">  487</span>      <span class="keywordtype">int</span> my = yl;</div>
-<div class="line"><a id="l00488" name="l00488"></a><span class="lineno">  488</span> </div>
-<div class="line"><a id="l00489" name="l00489"></a><span class="lineno">  489</span>      <span class="comment">// Formula information to get tile index position in the array.</span></div>
-<div class="line"><a id="l00490" name="l00490"></a><span class="lineno">  490</span>      <span class="comment">// ((ID / nbrofXtiles) * (imgwidth/2) + (ID - ((ID/16)*16) ))</span></div>
-<div class="line"><a id="l00491" name="l00491"></a><span class="lineno">  491</span>      <span class="keywordtype">int</span> tx = ((draw_id / num_x_tiles) * img_width) +</div>
-<div class="line"><a id="l00492" name="l00492"></a><span class="lineno">  492</span>               ((draw_id - ((draw_id / 16) * 16)) * 4);</div>
-<div class="line"><a id="l00493" name="l00493"></a><span class="lineno">  493</span>      uint8_t pixel = <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#ac226102c807cdfcf51e650b7813447d5">font_gfx16_data_</a>[tx + (yl * 64) + xl];</div>
-<div class="line"><a id="l00494" name="l00494"></a><span class="lineno">  494</span> </div>
-<div class="line"><a id="l00495" name="l00495"></a><span class="lineno">  495</span>      <span class="comment">// nx,ny = object position, xx,yy = tile position, xl,yl = pixel</span></div>
-<div class="line"><a id="l00496" name="l00496"></a><span class="lineno">  496</span>      <span class="comment">// position</span></div>
-<div class="line"><a id="l00497" name="l00497"></a><span class="lineno">  497</span>      <span class="keywordtype">int</span> index = x + (y * 172) + (mx * 2) + (my * 172);</div>
-<div class="line"><a id="l00498" name="l00498"></a><span class="lineno">  498</span>      <span class="keywordflow">if</span> ((pixel &amp; 0x0F) != 0) {</div>
-<div class="line"><a id="l00499" name="l00499"></a><span class="lineno">  499</span>        <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#ac2564f3ce5f03ff67e6f820f5e13ab3d">current_font_gfx16_data_</a>[index + 1] =</div>
-<div class="line"><a id="l00500" name="l00500"></a><span class="lineno">  500</span>            (uint8_t)((pixel &amp; 0x0F) + (0 * 4));</div>
-<div class="line"><a id="l00501" name="l00501"></a><span class="lineno">  501</span>      }</div>
-<div class="line"><a id="l00502" name="l00502"></a><span class="lineno">  502</span> </div>
-<div class="line"><a id="l00503" name="l00503"></a><span class="lineno">  503</span>      <span class="keywordflow">if</span> (((pixel &gt;&gt; 4) &amp; 0x0F) != 0) {</div>
-<div class="line"><a id="l00504" name="l00504"></a><span class="lineno">  504</span>        <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#ac2564f3ce5f03ff67e6f820f5e13ab3d">current_font_gfx16_data_</a>[index + 0] =</div>
-<div class="line"><a id="l00505" name="l00505"></a><span class="lineno">  505</span>            (uint8_t)(((pixel &gt;&gt; 4) &amp; 0x0F) + (0 * 4));</div>
-<div class="line"><a id="l00506" name="l00506"></a><span class="lineno">  506</span>      }</div>
-<div class="line"><a id="l00507" name="l00507"></a><span class="lineno">  507</span>    }</div>
-<div class="line"><a id="l00508" name="l00508"></a><span class="lineno">  508</span>  }</div>
-<div class="line"><a id="l00509" name="l00509"></a><span class="lineno">  509</span>}</div>
+<div class="line"><a id="l00479" name="l00479"></a><span class="lineno">  479</span> </div>
+<div class="foldopen" id="foldopen00480" data-start="{" data-end="}">
+<div class="line"><a id="l00480" name="l00480"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#a817979a564218dcea95a4c6bd8d3717c">  480</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a817979a564218dcea95a4c6bd8d3717c">MessageEditor::DrawTileToPreview</a>(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, <span class="keywordtype">int</span> srcx, <span class="keywordtype">int</span> srcy, <span class="keywordtype">int</span> pal,</div>
+<div class="line"><a id="l00481" name="l00481"></a><span class="lineno">  481</span>                                      <span class="keywordtype">int</span> sizex, <span class="keywordtype">int</span> sizey) {</div>
+<div class="line"><a id="l00482" name="l00482"></a><span class="lineno">  482</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> num_x_tiles = 16;</div>
+<div class="line"><a id="l00483" name="l00483"></a><span class="lineno">  483</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> img_width = 512;  <span class="comment">// (imgwidth/2)</span></div>
+<div class="line"><a id="l00484" name="l00484"></a><span class="lineno">  484</span>  <span class="keywordtype">int</span> draw_id = srcx + (srcy * 32);</div>
+<div class="line"><a id="l00485" name="l00485"></a><span class="lineno">  485</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> yl = 0; yl &lt; sizey * 8; yl++) {</div>
+<div class="line"><a id="l00486" name="l00486"></a><span class="lineno">  486</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> xl = 0; xl &lt; 4; xl++) {</div>
+<div class="line"><a id="l00487" name="l00487"></a><span class="lineno">  487</span>      <span class="keywordtype">int</span> mx = xl;</div>
+<div class="line"><a id="l00488" name="l00488"></a><span class="lineno">  488</span>      <span class="keywordtype">int</span> my = yl;</div>
+<div class="line"><a id="l00489" name="l00489"></a><span class="lineno">  489</span> </div>
+<div class="line"><a id="l00490" name="l00490"></a><span class="lineno">  490</span>      <span class="comment">// Formula information to get tile index position in the array.</span></div>
+<div class="line"><a id="l00491" name="l00491"></a><span class="lineno">  491</span>      <span class="comment">// ((ID / nbrofXtiles) * (imgwidth/2) + (ID - ((ID/16)*16) ))</span></div>
+<div class="line"><a id="l00492" name="l00492"></a><span class="lineno">  492</span>      <span class="keywordtype">int</span> tx = ((draw_id / num_x_tiles) * img_width) +</div>
+<div class="line"><a id="l00493" name="l00493"></a><span class="lineno">  493</span>               ((draw_id - ((draw_id / 16) * 16)) * 4);</div>
+<div class="line"><a id="l00494" name="l00494"></a><span class="lineno">  494</span>      uint8_t pixel = <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#ac226102c807cdfcf51e650b7813447d5">font_gfx16_data_</a>[tx + (yl * 64) + xl];</div>
+<div class="line"><a id="l00495" name="l00495"></a><span class="lineno">  495</span> </div>
+<div class="line"><a id="l00496" name="l00496"></a><span class="lineno">  496</span>      <span class="comment">// nx,ny = object position, xx,yy = tile position, xl,yl = pixel</span></div>
+<div class="line"><a id="l00497" name="l00497"></a><span class="lineno">  497</span>      <span class="comment">// position</span></div>
+<div class="line"><a id="l00498" name="l00498"></a><span class="lineno">  498</span>      <span class="keywordtype">int</span> index = x + (y * 172) + (mx * 2) + (my * 172);</div>
+<div class="line"><a id="l00499" name="l00499"></a><span class="lineno">  499</span>      <span class="keywordflow">if</span> ((pixel &amp; 0x0F) != 0) {</div>
+<div class="line"><a id="l00500" name="l00500"></a><span class="lineno">  500</span>        <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#ac2564f3ce5f03ff67e6f820f5e13ab3d">current_font_gfx16_data_</a>[index + 1] =</div>
+<div class="line"><a id="l00501" name="l00501"></a><span class="lineno">  501</span>            (uint8_t)((pixel &amp; 0x0F) + (0 * 4));</div>
+<div class="line"><a id="l00502" name="l00502"></a><span class="lineno">  502</span>      }</div>
+<div class="line"><a id="l00503" name="l00503"></a><span class="lineno">  503</span> </div>
+<div class="line"><a id="l00504" name="l00504"></a><span class="lineno">  504</span>      <span class="keywordflow">if</span> (((pixel &gt;&gt; 4) &amp; 0x0F) != 0) {</div>
+<div class="line"><a id="l00505" name="l00505"></a><span class="lineno">  505</span>        <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#ac2564f3ce5f03ff67e6f820f5e13ab3d">current_font_gfx16_data_</a>[index + 0] =</div>
+<div class="line"><a id="l00506" name="l00506"></a><span class="lineno">  506</span>            (uint8_t)(((pixel &gt;&gt; 4) &amp; 0x0F) + (0 * 4));</div>
+<div class="line"><a id="l00507" name="l00507"></a><span class="lineno">  507</span>      }</div>
+<div class="line"><a id="l00508" name="l00508"></a><span class="lineno">  508</span>    }</div>
+<div class="line"><a id="l00509" name="l00509"></a><span class="lineno">  509</span>  }</div>
+<div class="line"><a id="l00510" name="l00510"></a><span class="lineno">  510</span>}</div>
 </div>
-<div class="line"><a id="l00510" name="l00510"></a><span class="lineno">  510</span> </div>
-<div class="foldopen" id="foldopen00511" data-start="{" data-end="}">
-<div class="line"><a id="l00511" name="l00511"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#a6b6747f3937ccb5e419a8229454ce098">  511</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a6b6747f3937ccb5e419a8229454ce098">MessageEditor::DrawStringToPreview</a>(std::string str) {</div>
-<div class="line"><a id="l00512" name="l00512"></a><span class="lineno">  512</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> c : str) {</div>
-<div class="line"><a id="l00513" name="l00513"></a><span class="lineno">  513</span>    <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a68a466b0cd92deafab40f7bd3507c926">DrawCharacterToPreview</a>(c);</div>
-<div class="line"><a id="l00514" name="l00514"></a><span class="lineno">  514</span>  }</div>
-<div class="line"><a id="l00515" name="l00515"></a><span class="lineno">  515</span>}</div>
+<div class="line"><a id="l00511" name="l00511"></a><span class="lineno">  511</span> </div>
+<div class="foldopen" id="foldopen00512" data-start="{" data-end="}">
+<div class="line"><a id="l00512" name="l00512"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#a6b6747f3937ccb5e419a8229454ce098">  512</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a6b6747f3937ccb5e419a8229454ce098">MessageEditor::DrawStringToPreview</a>(std::string str) {</div>
+<div class="line"><a id="l00513" name="l00513"></a><span class="lineno">  513</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> c : str) {</div>
+<div class="line"><a id="l00514" name="l00514"></a><span class="lineno">  514</span>    <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a68a466b0cd92deafab40f7bd3507c926">DrawCharacterToPreview</a>(c);</div>
+<div class="line"><a id="l00515" name="l00515"></a><span class="lineno">  515</span>  }</div>
+<div class="line"><a id="l00516" name="l00516"></a><span class="lineno">  516</span>}</div>
 </div>
-<div class="line"><a id="l00516" name="l00516"></a><span class="lineno">  516</span> </div>
-<div class="foldopen" id="foldopen00517" data-start="{" data-end="}">
-<div class="line"><a id="l00517" name="l00517"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#a68a466b0cd92deafab40f7bd3507c926">  517</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a68a466b0cd92deafab40f7bd3507c926">MessageEditor::DrawCharacterToPreview</a>(<span class="keywordtype">char</span> c) {</div>
-<div class="line"><a id="l00518" name="l00518"></a><span class="lineno">  518</span>  <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a68a466b0cd92deafab40f7bd3507c926">DrawCharacterToPreview</a>(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c">FindMatchingCharacter</a>(c));</div>
-<div class="line"><a id="l00519" name="l00519"></a><span class="lineno">  519</span>}</div>
+<div class="line"><a id="l00517" name="l00517"></a><span class="lineno">  517</span> </div>
+<div class="foldopen" id="foldopen00518" data-start="{" data-end="}">
+<div class="line"><a id="l00518" name="l00518"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#a68a466b0cd92deafab40f7bd3507c926">  518</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a68a466b0cd92deafab40f7bd3507c926">MessageEditor::DrawCharacterToPreview</a>(<span class="keywordtype">char</span> c) {</div>
+<div class="line"><a id="l00519" name="l00519"></a><span class="lineno">  519</span>  <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a68a466b0cd92deafab40f7bd3507c926">DrawCharacterToPreview</a>(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c">FindMatchingCharacter</a>(c));</div>
+<div class="line"><a id="l00520" name="l00520"></a><span class="lineno">  520</span>}</div>
 </div>
-<div class="line"><a id="l00520" name="l00520"></a><span class="lineno">  520</span> </div>
-<div class="foldopen" id="foldopen00521" data-start="{" data-end="}">
-<div class="line"><a id="l00521" name="l00521"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#ae4024cef3c4752f3ae67bd8dee7ea120">  521</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a68a466b0cd92deafab40f7bd3507c926">MessageEditor::DrawCharacterToPreview</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; text) {</div>
-<div class="line"><a id="l00522" name="l00522"></a><span class="lineno">  522</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> uint8_t&amp; value : text) {</div>
-<div class="line"><a id="l00523" name="l00523"></a><span class="lineno">  523</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aca5e0ac7e66349059baaa837840554ad">skip_next</a>) {</div>
-<div class="line"><a id="l00524" name="l00524"></a><span class="lineno">  524</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aca5e0ac7e66349059baaa837840554ad">skip_next</a> = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00525" name="l00525"></a><span class="lineno">  525</span>      <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00526" name="l00526"></a><span class="lineno">  526</span>    }</div>
-<div class="line"><a id="l00527" name="l00527"></a><span class="lineno">  527</span> </div>
-<div class="line"><a id="l00528" name="l00528"></a><span class="lineno">  528</span>    <span class="keywordflow">if</span> (value &lt; 100) {</div>
-<div class="line"><a id="l00529" name="l00529"></a><span class="lineno">  529</span>      <span class="keywordtype">int</span> srcy = value / 16;</div>
-<div class="line"><a id="l00530" name="l00530"></a><span class="lineno">  530</span>      <span class="keywordtype">int</span> srcx = value - (value &amp; (~0xF));</div>
-<div class="line"><a id="l00531" name="l00531"></a><span class="lineno">  531</span> </div>
-<div class="line"><a id="l00532" name="l00532"></a><span class="lineno">  532</span>      <span class="keywordflow">if</span> (<a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a98d43bca4c7d1f78f198e74c923be3be">text_position_</a> &gt;= 170) {</div>
-<div class="line"><a id="l00533" name="l00533"></a><span class="lineno">  533</span>        <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a98d43bca4c7d1f78f198e74c923be3be">text_position_</a> = 0;</div>
-<div class="line"><a id="l00534" name="l00534"></a><span class="lineno">  534</span>        <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a17dc1a6262dda9138eee4b4f28d47e27">text_line_</a>++;</div>
-<div class="line"><a id="l00535" name="l00535"></a><span class="lineno">  535</span>      }</div>
-<div class="line"><a id="l00536" name="l00536"></a><span class="lineno">  536</span> </div>
-<div class="line"><a id="l00537" name="l00537"></a><span class="lineno">  537</span>      <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a817979a564218dcea95a4c6bd8d3717c">DrawTileToPreview</a>(<a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a98d43bca4c7d1f78f198e74c923be3be">text_position_</a>, <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a17dc1a6262dda9138eee4b4f28d47e27">text_line_</a> * 16, srcx, srcy, 0, 1, 2);</div>
-<div class="line"><a id="l00538" name="l00538"></a><span class="lineno">  538</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a98d43bca4c7d1f78f198e74c923be3be">text_position_</a> += <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a17fc6b8cedaee976f538fd7e236a7818">width_array</a>[value];</div>
-<div class="line"><a id="l00539" name="l00539"></a><span class="lineno">  539</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (value == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a2a9280f99a655869ec92b6a112f4893c">kLine1</a>) {</div>
-<div class="line"><a id="l00540" name="l00540"></a><span class="lineno">  540</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a98d43bca4c7d1f78f198e74c923be3be">text_position_</a> = 0;</div>
-<div class="line"><a id="l00541" name="l00541"></a><span class="lineno">  541</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a17dc1a6262dda9138eee4b4f28d47e27">text_line_</a> = 0;</div>
-<div class="line"><a id="l00542" name="l00542"></a><span class="lineno">  542</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (value == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a189336bde381ff1453e2be128c0e213b">kScrollVertical</a>) {</div>
-<div class="line"><a id="l00543" name="l00543"></a><span class="lineno">  543</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a98d43bca4c7d1f78f198e74c923be3be">text_position_</a> = 0;</div>
-<div class="line"><a id="l00544" name="l00544"></a><span class="lineno">  544</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a17dc1a6262dda9138eee4b4f28d47e27">text_line_</a> += 1;</div>
-<div class="line"><a id="l00545" name="l00545"></a><span class="lineno">  545</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (value == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a6e03f0e92717101837c29f9cc3bf172f">kLine2</a>) {</div>
-<div class="line"><a id="l00546" name="l00546"></a><span class="lineno">  546</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a98d43bca4c7d1f78f198e74c923be3be">text_position_</a> = 0;</div>
-<div class="line"><a id="l00547" name="l00547"></a><span class="lineno">  547</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a17dc1a6262dda9138eee4b4f28d47e27">text_line_</a> = 1;</div>
-<div class="line"><a id="l00548" name="l00548"></a><span class="lineno">  548</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (value == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#af1744a66e1114136092a2f6527d4af6a">kLine3</a>) {</div>
-<div class="line"><a id="l00549" name="l00549"></a><span class="lineno">  549</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a98d43bca4c7d1f78f198e74c923be3be">text_position_</a> = 0;</div>
-<div class="line"><a id="l00550" name="l00550"></a><span class="lineno">  550</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a17dc1a6262dda9138eee4b4f28d47e27">text_line_</a> = 2;</div>
-<div class="line"><a id="l00551" name="l00551"></a><span class="lineno">  551</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (value == 0x6B || value == 0x6D || value == 0x6E ||</div>
-<div class="line"><a id="l00552" name="l00552"></a><span class="lineno">  552</span>               value == 0x77 || value == 0x78 || value == 0x79 ||</div>
-<div class="line"><a id="l00553" name="l00553"></a><span class="lineno">  553</span>               value == 0x7A) {</div>
-<div class="line"><a id="l00554" name="l00554"></a><span class="lineno">  554</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aca5e0ac7e66349059baaa837840554ad">skip_next</a> = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00555" name="l00555"></a><span class="lineno">  555</span> </div>
-<div class="line"><a id="l00556" name="l00556"></a><span class="lineno">  556</span>      <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00557" name="l00557"></a><span class="lineno">  557</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (value == 0x6C)  <span class="comment">// BCD numbers.</span></div>
-<div class="line"><a id="l00558" name="l00558"></a><span class="lineno">  558</span>    {</div>
-<div class="line"><a id="l00559" name="l00559"></a><span class="lineno">  559</span>      <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a68a466b0cd92deafab40f7bd3507c926">DrawCharacterToPreview</a>(<span class="charliteral">&#39;0&#39;</span>);</div>
-<div class="line"><a id="l00560" name="l00560"></a><span class="lineno">  560</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aca5e0ac7e66349059baaa837840554ad">skip_next</a> = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00561" name="l00561"></a><span class="lineno">  561</span> </div>
-<div class="line"><a id="l00562" name="l00562"></a><span class="lineno">  562</span>      <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00563" name="l00563"></a><span class="lineno">  563</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (value == 0x6A) {</div>
-<div class="line"><a id="l00564" name="l00564"></a><span class="lineno">  564</span>      <span class="comment">// Includes parentheses to be longer, since player names can be up to 6</span></div>
-<div class="line"><a id="l00565" name="l00565"></a><span class="lineno">  565</span>      <span class="comment">// characters.</span></div>
-<div class="line"><a id="l00566" name="l00566"></a><span class="lineno">  566</span>      <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a6b6747f3937ccb5e419a8229454ce098">DrawStringToPreview</a>(<span class="stringliteral">&quot;(NAME)&quot;</span>);</div>
-<div class="line"><a id="l00567" name="l00567"></a><span class="lineno">  567</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (value &gt;= <a class="code hl_variable" href="namespaceyaze_1_1editor.html#abb2b75ac1fb7f044b8c0305ce0abf927">DICTOFF</a> &amp;&amp; value &lt; (<a class="code hl_variable" href="namespaceyaze_1_1editor.html#abb2b75ac1fb7f044b8c0305ce0abf927">DICTOFF</a> + 97)) {</div>
-<div class="line"><a id="l00568" name="l00568"></a><span class="lineno">  568</span>      <span class="keyword">auto</span> dictionaryEntry = <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#ae7f9d3c567cfaf5316d194860825b05c">GetDictionaryFromID</a>(value - <a class="code hl_variable" href="namespaceyaze_1_1editor.html#abb2b75ac1fb7f044b8c0305ce0abf927">DICTOFF</a>);</div>
-<div class="line"><a id="l00569" name="l00569"></a><span class="lineno">  569</span>      <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a68a466b0cd92deafab40f7bd3507c926">DrawCharacterToPreview</a>(dictionaryEntry.Data);</div>
-<div class="line"><a id="l00570" name="l00570"></a><span class="lineno">  570</span>    }</div>
-<div class="line"><a id="l00571" name="l00571"></a><span class="lineno">  571</span>  }</div>
-<div class="line"><a id="l00572" name="l00572"></a><span class="lineno">  572</span>}</div>
+<div class="line"><a id="l00521" name="l00521"></a><span class="lineno">  521</span> </div>
+<div class="foldopen" id="foldopen00522" data-start="{" data-end="}">
+<div class="line"><a id="l00522" name="l00522"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#ae4024cef3c4752f3ae67bd8dee7ea120">  522</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a68a466b0cd92deafab40f7bd3507c926">MessageEditor::DrawCharacterToPreview</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; text) {</div>
+<div class="line"><a id="l00523" name="l00523"></a><span class="lineno">  523</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> uint8_t&amp; value : text) {</div>
+<div class="line"><a id="l00524" name="l00524"></a><span class="lineno">  524</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aca5e0ac7e66349059baaa837840554ad">skip_next</a>) {</div>
+<div class="line"><a id="l00525" name="l00525"></a><span class="lineno">  525</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aca5e0ac7e66349059baaa837840554ad">skip_next</a> = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00526" name="l00526"></a><span class="lineno">  526</span>      <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00527" name="l00527"></a><span class="lineno">  527</span>    }</div>
+<div class="line"><a id="l00528" name="l00528"></a><span class="lineno">  528</span> </div>
+<div class="line"><a id="l00529" name="l00529"></a><span class="lineno">  529</span>    <span class="keywordflow">if</span> (value &lt; 100) {</div>
+<div class="line"><a id="l00530" name="l00530"></a><span class="lineno">  530</span>      <span class="keywordtype">int</span> srcy = value / 16;</div>
+<div class="line"><a id="l00531" name="l00531"></a><span class="lineno">  531</span>      <span class="keywordtype">int</span> srcx = value - (value &amp; (~0xF));</div>
+<div class="line"><a id="l00532" name="l00532"></a><span class="lineno">  532</span> </div>
+<div class="line"><a id="l00533" name="l00533"></a><span class="lineno">  533</span>      <span class="keywordflow">if</span> (<a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a98d43bca4c7d1f78f198e74c923be3be">text_position_</a> &gt;= 170) {</div>
+<div class="line"><a id="l00534" name="l00534"></a><span class="lineno">  534</span>        <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a98d43bca4c7d1f78f198e74c923be3be">text_position_</a> = 0;</div>
+<div class="line"><a id="l00535" name="l00535"></a><span class="lineno">  535</span>        <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a17dc1a6262dda9138eee4b4f28d47e27">text_line_</a>++;</div>
+<div class="line"><a id="l00536" name="l00536"></a><span class="lineno">  536</span>      }</div>
+<div class="line"><a id="l00537" name="l00537"></a><span class="lineno">  537</span> </div>
+<div class="line"><a id="l00538" name="l00538"></a><span class="lineno">  538</span>      <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a817979a564218dcea95a4c6bd8d3717c">DrawTileToPreview</a>(<a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a98d43bca4c7d1f78f198e74c923be3be">text_position_</a>, <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a17dc1a6262dda9138eee4b4f28d47e27">text_line_</a> * 16, srcx, srcy, 0, 1, 2);</div>
+<div class="line"><a id="l00539" name="l00539"></a><span class="lineno">  539</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a98d43bca4c7d1f78f198e74c923be3be">text_position_</a> += <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a17fc6b8cedaee976f538fd7e236a7818">width_array</a>[value];</div>
+<div class="line"><a id="l00540" name="l00540"></a><span class="lineno">  540</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (value == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a2a9280f99a655869ec92b6a112f4893c">kLine1</a>) {</div>
+<div class="line"><a id="l00541" name="l00541"></a><span class="lineno">  541</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a98d43bca4c7d1f78f198e74c923be3be">text_position_</a> = 0;</div>
+<div class="line"><a id="l00542" name="l00542"></a><span class="lineno">  542</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a17dc1a6262dda9138eee4b4f28d47e27">text_line_</a> = 0;</div>
+<div class="line"><a id="l00543" name="l00543"></a><span class="lineno">  543</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (value == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a189336bde381ff1453e2be128c0e213b">kScrollVertical</a>) {</div>
+<div class="line"><a id="l00544" name="l00544"></a><span class="lineno">  544</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a98d43bca4c7d1f78f198e74c923be3be">text_position_</a> = 0;</div>
+<div class="line"><a id="l00545" name="l00545"></a><span class="lineno">  545</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a17dc1a6262dda9138eee4b4f28d47e27">text_line_</a> += 1;</div>
+<div class="line"><a id="l00546" name="l00546"></a><span class="lineno">  546</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (value == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a6e03f0e92717101837c29f9cc3bf172f">kLine2</a>) {</div>
+<div class="line"><a id="l00547" name="l00547"></a><span class="lineno">  547</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a98d43bca4c7d1f78f198e74c923be3be">text_position_</a> = 0;</div>
+<div class="line"><a id="l00548" name="l00548"></a><span class="lineno">  548</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a17dc1a6262dda9138eee4b4f28d47e27">text_line_</a> = 1;</div>
+<div class="line"><a id="l00549" name="l00549"></a><span class="lineno">  549</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (value == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#af1744a66e1114136092a2f6527d4af6a">kLine3</a>) {</div>
+<div class="line"><a id="l00550" name="l00550"></a><span class="lineno">  550</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a98d43bca4c7d1f78f198e74c923be3be">text_position_</a> = 0;</div>
+<div class="line"><a id="l00551" name="l00551"></a><span class="lineno">  551</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a17dc1a6262dda9138eee4b4f28d47e27">text_line_</a> = 2;</div>
+<div class="line"><a id="l00552" name="l00552"></a><span class="lineno">  552</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (value == 0x6B || value == 0x6D || value == 0x6E ||</div>
+<div class="line"><a id="l00553" name="l00553"></a><span class="lineno">  553</span>               value == 0x77 || value == 0x78 || value == 0x79 ||</div>
+<div class="line"><a id="l00554" name="l00554"></a><span class="lineno">  554</span>               value == 0x7A) {</div>
+<div class="line"><a id="l00555" name="l00555"></a><span class="lineno">  555</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aca5e0ac7e66349059baaa837840554ad">skip_next</a> = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00556" name="l00556"></a><span class="lineno">  556</span> </div>
+<div class="line"><a id="l00557" name="l00557"></a><span class="lineno">  557</span>      <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00558" name="l00558"></a><span class="lineno">  558</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (value == 0x6C)  <span class="comment">// BCD numbers.</span></div>
+<div class="line"><a id="l00559" name="l00559"></a><span class="lineno">  559</span>    {</div>
+<div class="line"><a id="l00560" name="l00560"></a><span class="lineno">  560</span>      <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a68a466b0cd92deafab40f7bd3507c926">DrawCharacterToPreview</a>(<span class="charliteral">&#39;0&#39;</span>);</div>
+<div class="line"><a id="l00561" name="l00561"></a><span class="lineno">  561</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aca5e0ac7e66349059baaa837840554ad">skip_next</a> = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00562" name="l00562"></a><span class="lineno">  562</span> </div>
+<div class="line"><a id="l00563" name="l00563"></a><span class="lineno">  563</span>      <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00564" name="l00564"></a><span class="lineno">  564</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (value == 0x6A) {</div>
+<div class="line"><a id="l00565" name="l00565"></a><span class="lineno">  565</span>      <span class="comment">// Includes parentheses to be longer, since player names can be up to 6</span></div>
+<div class="line"><a id="l00566" name="l00566"></a><span class="lineno">  566</span>      <span class="comment">// characters.</span></div>
+<div class="line"><a id="l00567" name="l00567"></a><span class="lineno">  567</span>      <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a6b6747f3937ccb5e419a8229454ce098">DrawStringToPreview</a>(<span class="stringliteral">&quot;(NAME)&quot;</span>);</div>
+<div class="line"><a id="l00568" name="l00568"></a><span class="lineno">  568</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (value &gt;= <a class="code hl_variable" href="namespaceyaze_1_1editor.html#abb2b75ac1fb7f044b8c0305ce0abf927">DICTOFF</a> &amp;&amp; value &lt; (<a class="code hl_variable" href="namespaceyaze_1_1editor.html#abb2b75ac1fb7f044b8c0305ce0abf927">DICTOFF</a> + 97)) {</div>
+<div class="line"><a id="l00569" name="l00569"></a><span class="lineno">  569</span>      <span class="keyword">auto</span> dictionaryEntry = <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#ae7f9d3c567cfaf5316d194860825b05c">GetDictionaryFromID</a>(value - <a class="code hl_variable" href="namespaceyaze_1_1editor.html#abb2b75ac1fb7f044b8c0305ce0abf927">DICTOFF</a>);</div>
+<div class="line"><a id="l00570" name="l00570"></a><span class="lineno">  570</span>      <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a68a466b0cd92deafab40f7bd3507c926">DrawCharacterToPreview</a>(dictionaryEntry.Data);</div>
+<div class="line"><a id="l00571" name="l00571"></a><span class="lineno">  571</span>    }</div>
+<div class="line"><a id="l00572" name="l00572"></a><span class="lineno">  572</span>  }</div>
+<div class="line"><a id="l00573" name="l00573"></a><span class="lineno">  573</span>}</div>
 </div>
-<div class="line"><a id="l00573" name="l00573"></a><span class="lineno">  573</span> </div>
-<div class="foldopen" id="foldopen00574" data-start="{" data-end="}">
-<div class="line"><a id="l00574" name="l00574"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#aab49ccce5a51c274b885c816ff0d6ac4">  574</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#aab49ccce5a51c274b885c816ff0d6ac4">MessageEditor::DrawMessagePreview</a>() {</div>
-<div class="line"><a id="l00575" name="l00575"></a><span class="lineno">  575</span>  <span class="comment">// From Parsing.</span></div>
-<div class="line"><a id="l00576" name="l00576"></a><span class="lineno">  576</span>  <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a17dc1a6262dda9138eee4b4f28d47e27">text_line_</a> = 0;</div>
-<div class="line"><a id="l00577" name="l00577"></a><span class="lineno">  577</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; (172 * 4096); i++) {</div>
-<div class="line"><a id="l00578" name="l00578"></a><span class="lineno">  578</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#ac2564f3ce5f03ff67e6f820f5e13ab3d">current_font_gfx16_data_</a>[i] = 0;</div>
-<div class="line"><a id="l00579" name="l00579"></a><span class="lineno">  579</span>  }</div>
-<div class="line"><a id="l00580" name="l00580"></a><span class="lineno">  580</span>  <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a98d43bca4c7d1f78f198e74c923be3be">text_position_</a> = 0;</div>
-<div class="line"><a id="l00581" name="l00581"></a><span class="lineno">  581</span>  <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a68a466b0cd92deafab40f7bd3507c926">DrawCharacterToPreview</a>(<a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#acd21220b42f482d84bb3cc36b2164ae7">current_message_</a>.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageData.html#a2ebee010cbc75c331b31e761d90f6628">Data</a>);</div>
-<div class="line"><a id="l00582" name="l00582"></a><span class="lineno">  582</span>  <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a32f71fa3d17a0132e319af9fa13199e1">shown_lines_</a> = 0;</div>
-<div class="line"><a id="l00583" name="l00583"></a><span class="lineno">  583</span>}</div>
+<div class="line"><a id="l00574" name="l00574"></a><span class="lineno">  574</span> </div>
+<div class="foldopen" id="foldopen00575" data-start="{" data-end="}">
+<div class="line"><a id="l00575" name="l00575"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#aab49ccce5a51c274b885c816ff0d6ac4">  575</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#aab49ccce5a51c274b885c816ff0d6ac4">MessageEditor::DrawMessagePreview</a>() {</div>
+<div class="line"><a id="l00576" name="l00576"></a><span class="lineno">  576</span>  <span class="comment">// From Parsing.</span></div>
+<div class="line"><a id="l00577" name="l00577"></a><span class="lineno">  577</span>  <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a17dc1a6262dda9138eee4b4f28d47e27">text_line_</a> = 0;</div>
+<div class="line"><a id="l00578" name="l00578"></a><span class="lineno">  578</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; (172 * 4096); i++) {</div>
+<div class="line"><a id="l00579" name="l00579"></a><span class="lineno">  579</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#ac2564f3ce5f03ff67e6f820f5e13ab3d">current_font_gfx16_data_</a>[i] = 0;</div>
+<div class="line"><a id="l00580" name="l00580"></a><span class="lineno">  580</span>  }</div>
+<div class="line"><a id="l00581" name="l00581"></a><span class="lineno">  581</span>  <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a98d43bca4c7d1f78f198e74c923be3be">text_position_</a> = 0;</div>
+<div class="line"><a id="l00582" name="l00582"></a><span class="lineno">  582</span>  <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a68a466b0cd92deafab40f7bd3507c926">DrawCharacterToPreview</a>(<a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#acd21220b42f482d84bb3cc36b2164ae7">current_message_</a>.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageData.html#a2ebee010cbc75c331b31e761d90f6628">Data</a>);</div>
+<div class="line"><a id="l00583" name="l00583"></a><span class="lineno">  583</span>  <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a32f71fa3d17a0132e319af9fa13199e1">shown_lines_</a> = 0;</div>
+<div class="line"><a id="l00584" name="l00584"></a><span class="lineno">  584</span>}</div>
 </div>
-<div class="line"><a id="l00584" name="l00584"></a><span class="lineno">  584</span> </div>
-<div class="foldopen" id="foldopen00585" data-start="{" data-end="}">
-<div class="line"><a id="l00585" name="l00585"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#aa55c574c7c57aec5adbe67c121851a07">  585</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#aa55c574c7c57aec5adbe67c121851a07">MessageEditor::Cut</a>() {</div>
-<div class="line"><a id="l00586" name="l00586"></a><span class="lineno">  586</span>  <span class="comment">// Ensure that text is currently selected in the text box.</span></div>
-<div class="line"><a id="l00587" name="l00587"></a><span class="lineno">  587</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a4d65675272707d5a60e19dea3f17ab36">text</a>.empty()) {</div>
-<div class="line"><a id="l00588" name="l00588"></a><span class="lineno">  588</span>    <span class="comment">// Cut the selected text in the control and paste it into the Clipboard.</span></div>
-<div class="line"><a id="l00589" name="l00589"></a><span class="lineno">  589</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_function" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a578c8bb99ea822d97a5e6bc57d57177b">Cut</a>();</div>
-<div class="line"><a id="l00590" name="l00590"></a><span class="lineno">  590</span>  }</div>
-<div class="line"><a id="l00591" name="l00591"></a><span class="lineno">  591</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00592" name="l00592"></a><span class="lineno">  592</span>}</div>
+<div class="line"><a id="l00585" name="l00585"></a><span class="lineno">  585</span> </div>
+<div class="foldopen" id="foldopen00586" data-start="{" data-end="}">
+<div class="line"><a id="l00586" name="l00586"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#aa55c574c7c57aec5adbe67c121851a07">  586</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#aa55c574c7c57aec5adbe67c121851a07">MessageEditor::Cut</a>() {</div>
+<div class="line"><a id="l00587" name="l00587"></a><span class="lineno">  587</span>  <span class="comment">// Ensure that text is currently selected in the text box.</span></div>
+<div class="line"><a id="l00588" name="l00588"></a><span class="lineno">  588</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a4d65675272707d5a60e19dea3f17ab36">text</a>.empty()) {</div>
+<div class="line"><a id="l00589" name="l00589"></a><span class="lineno">  589</span>    <span class="comment">// Cut the selected text in the control and paste it into the Clipboard.</span></div>
+<div class="line"><a id="l00590" name="l00590"></a><span class="lineno">  590</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_function" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a578c8bb99ea822d97a5e6bc57d57177b">Cut</a>();</div>
+<div class="line"><a id="l00591" name="l00591"></a><span class="lineno">  591</span>  }</div>
+<div class="line"><a id="l00592" name="l00592"></a><span class="lineno">  592</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00593" name="l00593"></a><span class="lineno">  593</span>}</div>
 </div>
-<div class="line"><a id="l00593" name="l00593"></a><span class="lineno">  593</span> </div>
-<div class="foldopen" id="foldopen00594" data-start="{" data-end="}">
-<div class="line"><a id="l00594" name="l00594"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#a47c0c7b6301cb046d98acc2463f9afa0">  594</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a47c0c7b6301cb046d98acc2463f9afa0">MessageEditor::Paste</a>() {</div>
-<div class="line"><a id="l00595" name="l00595"></a><span class="lineno">  595</span>  <span class="comment">// Determine if there is any text in the Clipboard to paste into the</span></div>
-<div class="line"><a id="l00596" name="l00596"></a><span class="lineno">  596</span>  <span class="keywordflow">if</span> (ImGui::GetClipboardText() != <span class="keyword">nullptr</span>) {</div>
-<div class="line"><a id="l00597" name="l00597"></a><span class="lineno">  597</span>    <span class="comment">// Paste the text from the Clipboard into the text box.</span></div>
-<div class="line"><a id="l00598" name="l00598"></a><span class="lineno">  598</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_function" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a57d3f26b19eb16c4b7b55187b557bf8b">Paste</a>();</div>
-<div class="line"><a id="l00599" name="l00599"></a><span class="lineno">  599</span>  }</div>
-<div class="line"><a id="l00600" name="l00600"></a><span class="lineno">  600</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00601" name="l00601"></a><span class="lineno">  601</span>}</div>
+<div class="line"><a id="l00594" name="l00594"></a><span class="lineno">  594</span> </div>
+<div class="foldopen" id="foldopen00595" data-start="{" data-end="}">
+<div class="line"><a id="l00595" name="l00595"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#a47c0c7b6301cb046d98acc2463f9afa0">  595</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a47c0c7b6301cb046d98acc2463f9afa0">MessageEditor::Paste</a>() {</div>
+<div class="line"><a id="l00596" name="l00596"></a><span class="lineno">  596</span>  <span class="comment">// Determine if there is any text in the Clipboard to paste into the</span></div>
+<div class="line"><a id="l00597" name="l00597"></a><span class="lineno">  597</span>  <span class="keywordflow">if</span> (ImGui::GetClipboardText() != <span class="keyword">nullptr</span>) {</div>
+<div class="line"><a id="l00598" name="l00598"></a><span class="lineno">  598</span>    <span class="comment">// Paste the text from the Clipboard into the text box.</span></div>
+<div class="line"><a id="l00599" name="l00599"></a><span class="lineno">  599</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_function" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a57d3f26b19eb16c4b7b55187b557bf8b">Paste</a>();</div>
+<div class="line"><a id="l00600" name="l00600"></a><span class="lineno">  600</span>  }</div>
+<div class="line"><a id="l00601" name="l00601"></a><span class="lineno">  601</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00602" name="l00602"></a><span class="lineno">  602</span>}</div>
 </div>
-<div class="line"><a id="l00602" name="l00602"></a><span class="lineno">  602</span> </div>
-<div class="foldopen" id="foldopen00603" data-start="{" data-end="}">
-<div class="line"><a id="l00603" name="l00603"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#a12e2b9a72d58beeab27e0d6668f52746">  603</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a12e2b9a72d58beeab27e0d6668f52746">MessageEditor::Copy</a>() {</div>
-<div class="line"><a id="l00604" name="l00604"></a><span class="lineno">  604</span>  <span class="comment">// Ensure that text is selected in the text box.</span></div>
-<div class="line"><a id="l00605" name="l00605"></a><span class="lineno">  605</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a8c81a5d76f26d45fe12346d1860f62d6">selection_length</a> &gt; 0) {</div>
-<div class="line"><a id="l00606" name="l00606"></a><span class="lineno">  606</span>    <span class="comment">// Copy the selected text to the Clipboard.</span></div>
-<div class="line"><a id="l00607" name="l00607"></a><span class="lineno">  607</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_function" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a3a92128e6470e5b62a8fbd459f656532">Copy</a>();</div>
-<div class="line"><a id="l00608" name="l00608"></a><span class="lineno">  608</span>  }</div>
-<div class="line"><a id="l00609" name="l00609"></a><span class="lineno">  609</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00610" name="l00610"></a><span class="lineno">  610</span>}</div>
+<div class="line"><a id="l00603" name="l00603"></a><span class="lineno">  603</span> </div>
+<div class="foldopen" id="foldopen00604" data-start="{" data-end="}">
+<div class="line"><a id="l00604" name="l00604"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#a12e2b9a72d58beeab27e0d6668f52746">  604</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a12e2b9a72d58beeab27e0d6668f52746">MessageEditor::Copy</a>() {</div>
+<div class="line"><a id="l00605" name="l00605"></a><span class="lineno">  605</span>  <span class="comment">// Ensure that text is selected in the text box.</span></div>
+<div class="line"><a id="l00606" name="l00606"></a><span class="lineno">  606</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a8c81a5d76f26d45fe12346d1860f62d6">selection_length</a> &gt; 0) {</div>
+<div class="line"><a id="l00607" name="l00607"></a><span class="lineno">  607</span>    <span class="comment">// Copy the selected text to the Clipboard.</span></div>
+<div class="line"><a id="l00608" name="l00608"></a><span class="lineno">  608</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_function" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a3a92128e6470e5b62a8fbd459f656532">Copy</a>();</div>
+<div class="line"><a id="l00609" name="l00609"></a><span class="lineno">  609</span>  }</div>
+<div class="line"><a id="l00610" name="l00610"></a><span class="lineno">  610</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00611" name="l00611"></a><span class="lineno">  611</span>}</div>
 </div>
-<div class="line"><a id="l00611" name="l00611"></a><span class="lineno">  611</span> </div>
-<div class="foldopen" id="foldopen00612" data-start="{" data-end="}">
-<div class="line"><a id="l00612" name="l00612"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#a769d6f1ee603665e95a6b1864eced36b">  612</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a769d6f1ee603665e95a6b1864eced36b">MessageEditor::Undo</a>() {</div>
-<div class="line"><a id="l00613" name="l00613"></a><span class="lineno">  613</span>  <span class="comment">// Determine if last operation can be undone in text box.</span></div>
-<div class="line"><a id="l00614" name="l00614"></a><span class="lineno">  614</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a993c25b42951cd99a1224e631cd16a7b">can_undo</a>) {</div>
-<div class="line"><a id="l00615" name="l00615"></a><span class="lineno">  615</span>    <span class="comment">// Undo the last operation.</span></div>
-<div class="line"><a id="l00616" name="l00616"></a><span class="lineno">  616</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_function" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a8d02c6777221bf27921c6cc8eb145712">Undo</a>();</div>
-<div class="line"><a id="l00617" name="l00617"></a><span class="lineno">  617</span> </div>
-<div class="line"><a id="l00618" name="l00618"></a><span class="lineno">  618</span>    <span class="comment">// clear the undo buffer to prevent last action from being redone.</span></div>
-<div class="line"><a id="l00619" name="l00619"></a><span class="lineno">  619</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_function" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#ae03ae988d5b5548a486cd74e91ef7b31">clearUndo</a>();</div>
-<div class="line"><a id="l00620" name="l00620"></a><span class="lineno">  620</span>  }</div>
-<div class="line"><a id="l00621" name="l00621"></a><span class="lineno">  621</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00622" name="l00622"></a><span class="lineno">  622</span>}</div>
+<div class="line"><a id="l00612" name="l00612"></a><span class="lineno">  612</span> </div>
+<div class="foldopen" id="foldopen00613" data-start="{" data-end="}">
+<div class="line"><a id="l00613" name="l00613"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#a769d6f1ee603665e95a6b1864eced36b">  613</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a769d6f1ee603665e95a6b1864eced36b">MessageEditor::Undo</a>() {</div>
+<div class="line"><a id="l00614" name="l00614"></a><span class="lineno">  614</span>  <span class="comment">// Determine if last operation can be undone in text box.</span></div>
+<div class="line"><a id="l00615" name="l00615"></a><span class="lineno">  615</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a993c25b42951cd99a1224e631cd16a7b">can_undo</a>) {</div>
+<div class="line"><a id="l00616" name="l00616"></a><span class="lineno">  616</span>    <span class="comment">// Undo the last operation.</span></div>
+<div class="line"><a id="l00617" name="l00617"></a><span class="lineno">  617</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_function" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a8d02c6777221bf27921c6cc8eb145712">Undo</a>();</div>
+<div class="line"><a id="l00618" name="l00618"></a><span class="lineno">  618</span> </div>
+<div class="line"><a id="l00619" name="l00619"></a><span class="lineno">  619</span>    <span class="comment">// clear the undo buffer to prevent last action from being redone.</span></div>
+<div class="line"><a id="l00620" name="l00620"></a><span class="lineno">  620</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_function" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#ae03ae988d5b5548a486cd74e91ef7b31">clearUndo</a>();</div>
+<div class="line"><a id="l00621" name="l00621"></a><span class="lineno">  621</span>  }</div>
+<div class="line"><a id="l00622" name="l00622"></a><span class="lineno">  622</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00623" name="l00623"></a><span class="lineno">  623</span>}</div>
 </div>
-<div class="line"><a id="l00623" name="l00623"></a><span class="lineno">  623</span> </div>
-<div class="foldopen" id="foldopen00624" data-start="{" data-end="}">
-<div class="line"><a id="l00624" name="l00624"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#ab9824d1cb4b342ae94bb6bcc51bc1d5e">  624</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#ab9824d1cb4b342ae94bb6bcc51bc1d5e">MessageEditor::Save</a>() {</div>
-<div class="line"><a id="l00625" name="l00625"></a><span class="lineno">  625</span>  std::vector&lt;uint8_t&gt; backup = <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;vector();</div>
-<div class="line"><a id="l00626" name="l00626"></a><span class="lineno">  626</span> </div>
-<div class="line"><a id="l00627" name="l00627"></a><span class="lineno">  627</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 100; i++) {</div>
-<div class="line"><a id="l00628" name="l00628"></a><span class="lineno">  628</span>    <a class="code hl_define" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;Write(<a class="code hl_variable" href="namespaceyaze_1_1editor.html#a00c4d23b26706fde3a72cdc112aef45b">kCharactersWidth</a> + i, <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a17fc6b8cedaee976f538fd7e236a7818">width_array</a>[i]));</div>
-<div class="line"><a id="l00629" name="l00629"></a><span class="lineno">  629</span>  }</div>
-<div class="line"><a id="l00630" name="l00630"></a><span class="lineno">  630</span> </div>
-<div class="line"><a id="l00631" name="l00631"></a><span class="lineno">  631</span>  <span class="keywordtype">int</span> pos = <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a473fd190fc829bc2a054131640c2f620">kTextData</a>;</div>
-<div class="line"><a id="l00632" name="l00632"></a><span class="lineno">  632</span>  <span class="keywordtype">bool</span> in_second_bank = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00633" name="l00633"></a><span class="lineno">  633</span> </div>
-<div class="line"><a id="l00634" name="l00634"></a><span class="lineno">  634</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; message : <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#abfd9f8d6a94a14cbbd9d7196a9aa8438">list_of_texts_</a>) {</div>
-<div class="line"><a id="l00635" name="l00635"></a><span class="lineno">  635</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> value : message.Data) {</div>
-<div class="line"><a id="l00636" name="l00636"></a><span class="lineno">  636</span>      <a class="code hl_define" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;Write(pos, value));</div>
-<div class="line"><a id="l00637" name="l00637"></a><span class="lineno">  637</span> </div>
-<div class="line"><a id="l00638" name="l00638"></a><span class="lineno">  638</span>      <span class="keywordflow">if</span> (value == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a6dd6b1e09112cd79303b3a45479db4d8">kBlockTerminator</a>) {</div>
-<div class="line"><a id="l00639" name="l00639"></a><span class="lineno">  639</span>        <span class="comment">// Make sure we didn&#39;t go over the space available in the first block.</span></div>
-<div class="line"><a id="l00640" name="l00640"></a><span class="lineno">  640</span>        <span class="comment">// 0x7FFF available.</span></div>
-<div class="line"><a id="l00641" name="l00641"></a><span class="lineno">  641</span>        <span class="keywordflow">if</span> ((!in_second_bank &amp; pos) &gt; <a class="code hl_variable" href="namespaceyaze_1_1editor.html#afa2bb58012ea2e36ff07daad1c52f812">kTextDataEnd</a>) {</div>
-<div class="line"><a id="l00642" name="l00642"></a><span class="lineno">  642</span>          <span class="keywordflow">return</span> absl::InternalError(<a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a6230eee2580dc1e9156ed934039e4970">DisplayTextOverflowError</a>(pos, <span class="keyword">true</span>));</div>
-<div class="line"><a id="l00643" name="l00643"></a><span class="lineno">  643</span>        }</div>
-<div class="line"><a id="l00644" name="l00644"></a><span class="lineno">  644</span> </div>
-<div class="line"><a id="l00645" name="l00645"></a><span class="lineno">  645</span>        <span class="comment">// Switch to the second block.</span></div>
-<div class="line"><a id="l00646" name="l00646"></a><span class="lineno">  646</span>        pos = <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a59d4c715a567f35b7d9423174b899067">kTextData2</a> - 1;</div>
-<div class="line"><a id="l00647" name="l00647"></a><span class="lineno">  647</span>        in_second_bank = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00648" name="l00648"></a><span class="lineno">  648</span>      }</div>
-<div class="line"><a id="l00649" name="l00649"></a><span class="lineno">  649</span> </div>
-<div class="line"><a id="l00650" name="l00650"></a><span class="lineno">  650</span>      pos++;</div>
-<div class="line"><a id="l00651" name="l00651"></a><span class="lineno">  651</span>    }</div>
-<div class="line"><a id="l00652" name="l00652"></a><span class="lineno">  652</span> </div>
-<div class="line"><a id="l00653" name="l00653"></a><span class="lineno">  653</span>    <a class="code hl_define" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(</div>
-<div class="line"><a id="l00654" name="l00654"></a><span class="lineno">  654</span>        <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;Write(pos++, <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a0d4a3ab38797b034b311b39a037a293a">kMessageTerminator</a>));  <span class="comment">// , true, &quot;Terminator text&quot;</span></div>
-<div class="line"><a id="l00655" name="l00655"></a><span class="lineno">  655</span>  }</div>
-<div class="line"><a id="l00656" name="l00656"></a><span class="lineno">  656</span> </div>
-<div class="line"><a id="l00657" name="l00657"></a><span class="lineno">  657</span>  <span class="comment">// Verify that we didn&#39;t go over the space available for the second block.</span></div>
-<div class="line"><a id="l00658" name="l00658"></a><span class="lineno">  658</span>  <span class="comment">// 0x14BF available.</span></div>
-<div class="line"><a id="l00659" name="l00659"></a><span class="lineno">  659</span>  <span class="keywordflow">if</span> ((in_second_bank &amp; pos) &gt; <a class="code hl_variable" href="namespaceyaze_1_1editor.html#aa1be5ac0e95732fd100052c1e380608f">kTextData2End</a>) {</div>
-<div class="line"><a id="l00660" name="l00660"></a><span class="lineno">  660</span>    <span class="comment">// rom()-&gt;data() = backup;</span></div>
-<div class="line"><a id="l00661" name="l00661"></a><span class="lineno">  661</span>    <span class="keywordflow">return</span> absl::InternalError(<a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a6230eee2580dc1e9156ed934039e4970">DisplayTextOverflowError</a>(pos, <span class="keyword">false</span>));</div>
-<div class="line"><a id="l00662" name="l00662"></a><span class="lineno">  662</span>  }</div>
-<div class="line"><a id="l00663" name="l00663"></a><span class="lineno">  663</span> </div>
-<div class="line"><a id="l00664" name="l00664"></a><span class="lineno">  664</span>  <a class="code hl_define" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;Write(pos, 0xFF));  <span class="comment">// , true, &quot;End of text&quot;</span></div>
-<div class="line"><a id="l00665" name="l00665"></a><span class="lineno">  665</span> </div>
-<div class="line"><a id="l00666" name="l00666"></a><span class="lineno">  666</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00667" name="l00667"></a><span class="lineno">  667</span>}</div>
+<div class="line"><a id="l00624" name="l00624"></a><span class="lineno">  624</span> </div>
+<div class="foldopen" id="foldopen00625" data-start="{" data-end="}">
+<div class="line"><a id="l00625" name="l00625"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#ab9824d1cb4b342ae94bb6bcc51bc1d5e">  625</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#ab9824d1cb4b342ae94bb6bcc51bc1d5e">MessageEditor::Save</a>() {</div>
+<div class="line"><a id="l00626" name="l00626"></a><span class="lineno">  626</span>  std::vector&lt;uint8_t&gt; backup = <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;vector();</div>
+<div class="line"><a id="l00627" name="l00627"></a><span class="lineno">  627</span> </div>
+<div class="line"><a id="l00628" name="l00628"></a><span class="lineno">  628</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 100; i++) {</div>
+<div class="line"><a id="l00629" name="l00629"></a><span class="lineno">  629</span>    <a class="code hl_define" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;Write(<a class="code hl_variable" href="namespaceyaze_1_1editor.html#a00c4d23b26706fde3a72cdc112aef45b">kCharactersWidth</a> + i, <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#a17fc6b8cedaee976f538fd7e236a7818">width_array</a>[i]));</div>
+<div class="line"><a id="l00630" name="l00630"></a><span class="lineno">  630</span>  }</div>
+<div class="line"><a id="l00631" name="l00631"></a><span class="lineno">  631</span> </div>
+<div class="line"><a id="l00632" name="l00632"></a><span class="lineno">  632</span>  <span class="keywordtype">int</span> pos = <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a473fd190fc829bc2a054131640c2f620">kTextData</a>;</div>
+<div class="line"><a id="l00633" name="l00633"></a><span class="lineno">  633</span>  <span class="keywordtype">bool</span> in_second_bank = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00634" name="l00634"></a><span class="lineno">  634</span> </div>
+<div class="line"><a id="l00635" name="l00635"></a><span class="lineno">  635</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; message : <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#abfd9f8d6a94a14cbbd9d7196a9aa8438">list_of_texts_</a>) {</div>
+<div class="line"><a id="l00636" name="l00636"></a><span class="lineno">  636</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> value : message.Data) {</div>
+<div class="line"><a id="l00637" name="l00637"></a><span class="lineno">  637</span>      <a class="code hl_define" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;Write(pos, value));</div>
+<div class="line"><a id="l00638" name="l00638"></a><span class="lineno">  638</span> </div>
+<div class="line"><a id="l00639" name="l00639"></a><span class="lineno">  639</span>      <span class="keywordflow">if</span> (value == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a6dd6b1e09112cd79303b3a45479db4d8">kBlockTerminator</a>) {</div>
+<div class="line"><a id="l00640" name="l00640"></a><span class="lineno">  640</span>        <span class="comment">// Make sure we didn&#39;t go over the space available in the first block.</span></div>
+<div class="line"><a id="l00641" name="l00641"></a><span class="lineno">  641</span>        <span class="comment">// 0x7FFF available.</span></div>
+<div class="line"><a id="l00642" name="l00642"></a><span class="lineno">  642</span>        <span class="keywordflow">if</span> ((!in_second_bank &amp; pos) &gt; <a class="code hl_variable" href="namespaceyaze_1_1editor.html#afa2bb58012ea2e36ff07daad1c52f812">kTextDataEnd</a>) {</div>
+<div class="line"><a id="l00643" name="l00643"></a><span class="lineno">  643</span>          <span class="keywordflow">return</span> absl::InternalError(<a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a6230eee2580dc1e9156ed934039e4970">DisplayTextOverflowError</a>(pos, <span class="keyword">true</span>));</div>
+<div class="line"><a id="l00644" name="l00644"></a><span class="lineno">  644</span>        }</div>
+<div class="line"><a id="l00645" name="l00645"></a><span class="lineno">  645</span> </div>
+<div class="line"><a id="l00646" name="l00646"></a><span class="lineno">  646</span>        <span class="comment">// Switch to the second block.</span></div>
+<div class="line"><a id="l00647" name="l00647"></a><span class="lineno">  647</span>        pos = <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a59d4c715a567f35b7d9423174b899067">kTextData2</a> - 1;</div>
+<div class="line"><a id="l00648" name="l00648"></a><span class="lineno">  648</span>        in_second_bank = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00649" name="l00649"></a><span class="lineno">  649</span>      }</div>
+<div class="line"><a id="l00650" name="l00650"></a><span class="lineno">  650</span> </div>
+<div class="line"><a id="l00651" name="l00651"></a><span class="lineno">  651</span>      pos++;</div>
+<div class="line"><a id="l00652" name="l00652"></a><span class="lineno">  652</span>    }</div>
+<div class="line"><a id="l00653" name="l00653"></a><span class="lineno">  653</span> </div>
+<div class="line"><a id="l00654" name="l00654"></a><span class="lineno">  654</span>    <a class="code hl_define" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(</div>
+<div class="line"><a id="l00655" name="l00655"></a><span class="lineno">  655</span>        <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;Write(pos++, <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a0d4a3ab38797b034b311b39a037a293a">kMessageTerminator</a>));  <span class="comment">// , true, &quot;Terminator text&quot;</span></div>
+<div class="line"><a id="l00656" name="l00656"></a><span class="lineno">  656</span>  }</div>
+<div class="line"><a id="l00657" name="l00657"></a><span class="lineno">  657</span> </div>
+<div class="line"><a id="l00658" name="l00658"></a><span class="lineno">  658</span>  <span class="comment">// Verify that we didn&#39;t go over the space available for the second block.</span></div>
+<div class="line"><a id="l00659" name="l00659"></a><span class="lineno">  659</span>  <span class="comment">// 0x14BF available.</span></div>
+<div class="line"><a id="l00660" name="l00660"></a><span class="lineno">  660</span>  <span class="keywordflow">if</span> ((in_second_bank &amp; pos) &gt; <a class="code hl_variable" href="namespaceyaze_1_1editor.html#aa1be5ac0e95732fd100052c1e380608f">kTextData2End</a>) {</div>
+<div class="line"><a id="l00661" name="l00661"></a><span class="lineno">  661</span>    <span class="comment">// rom()-&gt;data() = backup;</span></div>
+<div class="line"><a id="l00662" name="l00662"></a><span class="lineno">  662</span>    <span class="keywordflow">return</span> absl::InternalError(<a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a6230eee2580dc1e9156ed934039e4970">DisplayTextOverflowError</a>(pos, <span class="keyword">false</span>));</div>
+<div class="line"><a id="l00663" name="l00663"></a><span class="lineno">  663</span>  }</div>
+<div class="line"><a id="l00664" name="l00664"></a><span class="lineno">  664</span> </div>
+<div class="line"><a id="l00665" name="l00665"></a><span class="lineno">  665</span>  <a class="code hl_define" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;Write(pos, 0xFF));  <span class="comment">// , true, &quot;End of text&quot;</span></div>
+<div class="line"><a id="l00666" name="l00666"></a><span class="lineno">  666</span> </div>
+<div class="line"><a id="l00667" name="l00667"></a><span class="lineno">  667</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00668" name="l00668"></a><span class="lineno">  668</span>}</div>
 </div>
-<div class="line"><a id="l00668" name="l00668"></a><span class="lineno">  668</span> </div>
-<div class="foldopen" id="foldopen00669" data-start="{" data-end="}">
-<div class="line"><a id="l00669" name="l00669"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#a6230eee2580dc1e9156ed934039e4970">  669</a></span>std::string <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a6230eee2580dc1e9156ed934039e4970">MessageEditor::DisplayTextOverflowError</a>(<span class="keywordtype">int</span> pos, <span class="keywordtype">bool</span> bank) {</div>
-<div class="line"><a id="l00670" name="l00670"></a><span class="lineno">  670</span>  <span class="keywordtype">int</span> space = bank ? <a class="code hl_variable" href="namespaceyaze_1_1editor.html#afa2bb58012ea2e36ff07daad1c52f812">kTextDataEnd</a> - <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a473fd190fc829bc2a054131640c2f620">kTextData</a> : <a class="code hl_variable" href="namespaceyaze_1_1editor.html#aa1be5ac0e95732fd100052c1e380608f">kTextData2End</a> - <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a59d4c715a567f35b7d9423174b899067">kTextData2</a>;</div>
-<div class="line"><a id="l00671" name="l00671"></a><span class="lineno">  671</span>  std::string bankSTR = bank ? <span class="stringliteral">&quot;1st&quot;</span> : <span class="stringliteral">&quot;2nd&quot;</span>;</div>
-<div class="line"><a id="l00672" name="l00672"></a><span class="lineno">  672</span>  std::string posSTR =</div>
-<div class="line"><a id="l00673" name="l00673"></a><span class="lineno">  673</span>      bank ? absl::StrFormat(<span class="stringliteral">&quot;%X4&quot;</span>, pos &amp; 0xFFFF)</div>
-<div class="line"><a id="l00674" name="l00674"></a><span class="lineno">  674</span>           : absl::StrFormat(<span class="stringliteral">&quot;%X4&quot;</span>, (pos - <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a59d4c715a567f35b7d9423174b899067">kTextData2</a>) &amp; 0xFFFF);</div>
-<div class="line"><a id="l00675" name="l00675"></a><span class="lineno">  675</span>  std::string message = absl::StrFormat(</div>
-<div class="line"><a id="l00676" name="l00676"></a><span class="lineno">  676</span>      <span class="stringliteral">&quot;There is too much text data in the %s block to save.\n&quot;</span></div>
-<div class="line"><a id="l00677" name="l00677"></a><span class="lineno">  677</span>      <span class="stringliteral">&quot;Available: %X4 | Used: %s&quot;</span>,</div>
-<div class="line"><a id="l00678" name="l00678"></a><span class="lineno">  678</span>      bankSTR, space, posSTR);</div>
-<div class="line"><a id="l00679" name="l00679"></a><span class="lineno">  679</span>  <span class="keywordflow">return</span> message;</div>
-<div class="line"><a id="l00680" name="l00680"></a><span class="lineno">  680</span>}</div>
+<div class="line"><a id="l00669" name="l00669"></a><span class="lineno">  669</span> </div>
+<div class="foldopen" id="foldopen00670" data-start="{" data-end="}">
+<div class="line"><a id="l00670" name="l00670"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#a6230eee2580dc1e9156ed934039e4970">  670</a></span>std::string <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a6230eee2580dc1e9156ed934039e4970">MessageEditor::DisplayTextOverflowError</a>(<span class="keywordtype">int</span> pos, <span class="keywordtype">bool</span> bank) {</div>
+<div class="line"><a id="l00671" name="l00671"></a><span class="lineno">  671</span>  <span class="keywordtype">int</span> space = bank ? <a class="code hl_variable" href="namespaceyaze_1_1editor.html#afa2bb58012ea2e36ff07daad1c52f812">kTextDataEnd</a> - <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a473fd190fc829bc2a054131640c2f620">kTextData</a> : <a class="code hl_variable" href="namespaceyaze_1_1editor.html#aa1be5ac0e95732fd100052c1e380608f">kTextData2End</a> - <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a59d4c715a567f35b7d9423174b899067">kTextData2</a>;</div>
+<div class="line"><a id="l00672" name="l00672"></a><span class="lineno">  672</span>  std::string bankSTR = bank ? <span class="stringliteral">&quot;1st&quot;</span> : <span class="stringliteral">&quot;2nd&quot;</span>;</div>
+<div class="line"><a id="l00673" name="l00673"></a><span class="lineno">  673</span>  std::string posSTR =</div>
+<div class="line"><a id="l00674" name="l00674"></a><span class="lineno">  674</span>      bank ? absl::StrFormat(<span class="stringliteral">&quot;%X4&quot;</span>, pos &amp; 0xFFFF)</div>
+<div class="line"><a id="l00675" name="l00675"></a><span class="lineno">  675</span>           : absl::StrFormat(<span class="stringliteral">&quot;%X4&quot;</span>, (pos - <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a59d4c715a567f35b7d9423174b899067">kTextData2</a>) &amp; 0xFFFF);</div>
+<div class="line"><a id="l00676" name="l00676"></a><span class="lineno">  676</span>  std::string message = absl::StrFormat(</div>
+<div class="line"><a id="l00677" name="l00677"></a><span class="lineno">  677</span>      <span class="stringliteral">&quot;There is too much text data in the %s block to save.\n&quot;</span></div>
+<div class="line"><a id="l00678" name="l00678"></a><span class="lineno">  678</span>      <span class="stringliteral">&quot;Available: %X4 | Used: %s&quot;</span>,</div>
+<div class="line"><a id="l00679" name="l00679"></a><span class="lineno">  679</span>      bankSTR, space, posSTR);</div>
+<div class="line"><a id="l00680" name="l00680"></a><span class="lineno">  680</span>  <span class="keywordflow">return</span> message;</div>
+<div class="line"><a id="l00681" name="l00681"></a><span class="lineno">  681</span>}</div>
 </div>
-<div class="line"><a id="l00681" name="l00681"></a><span class="lineno">  681</span> </div>
-<div class="foldopen" id="foldopen00682" data-start="{" data-end="}">
-<div class="line"><a id="l00682" name="l00682"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#a90d85cb6fc78a9bb717e13352fdc5f61">  682</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a90d85cb6fc78a9bb717e13352fdc5f61">MessageEditor::Delete</a>() {</div>
-<div class="line"><a id="l00683" name="l00683"></a><span class="lineno">  683</span>  <span class="comment">// Determine if any text is selected in the TextBox control.</span></div>
-<div class="line"><a id="l00684" name="l00684"></a><span class="lineno">  684</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a8c81a5d76f26d45fe12346d1860f62d6">selection_length</a> == 0) {</div>
-<div class="line"><a id="l00685" name="l00685"></a><span class="lineno">  685</span>    <span class="comment">// clear all of the text in the textbox.</span></div>
-<div class="line"><a id="l00686" name="l00686"></a><span class="lineno">  686</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_function" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a7047a5f99c2e0013b04de777373e9b27">clear</a>();</div>
-<div class="line"><a id="l00687" name="l00687"></a><span class="lineno">  687</span>  }</div>
-<div class="line"><a id="l00688" name="l00688"></a><span class="lineno">  688</span>}</div>
+<div class="line"><a id="l00682" name="l00682"></a><span class="lineno">  682</span> </div>
+<div class="foldopen" id="foldopen00683" data-start="{" data-end="}">
+<div class="line"><a id="l00683" name="l00683"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#a90d85cb6fc78a9bb717e13352fdc5f61">  683</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a90d85cb6fc78a9bb717e13352fdc5f61">MessageEditor::Delete</a>() {</div>
+<div class="line"><a id="l00684" name="l00684"></a><span class="lineno">  684</span>  <span class="comment">// Determine if any text is selected in the TextBox control.</span></div>
+<div class="line"><a id="l00685" name="l00685"></a><span class="lineno">  685</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a8c81a5d76f26d45fe12346d1860f62d6">selection_length</a> == 0) {</div>
+<div class="line"><a id="l00686" name="l00686"></a><span class="lineno">  686</span>    <span class="comment">// clear all of the text in the textbox.</span></div>
+<div class="line"><a id="l00687" name="l00687"></a><span class="lineno">  687</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_function" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a7047a5f99c2e0013b04de777373e9b27">clear</a>();</div>
+<div class="line"><a id="l00688" name="l00688"></a><span class="lineno">  688</span>  }</div>
+<div class="line"><a id="l00689" name="l00689"></a><span class="lineno">  689</span>}</div>
 </div>
-<div class="line"><a id="l00689" name="l00689"></a><span class="lineno">  689</span> </div>
-<div class="foldopen" id="foldopen00690" data-start="{" data-end="}">
-<div class="line"><a id="l00690" name="l00690"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#a843644c8883ad12bbc74cd550a42616a">  690</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a843644c8883ad12bbc74cd550a42616a">MessageEditor::SelectAll</a>() {</div>
-<div class="line"><a id="l00691" name="l00691"></a><span class="lineno">  691</span>  <span class="comment">// Determine if any text is selected in the TextBox control.</span></div>
-<div class="line"><a id="l00692" name="l00692"></a><span class="lineno">  692</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a8c81a5d76f26d45fe12346d1860f62d6">selection_length</a> == 0) {</div>
-<div class="line"><a id="l00693" name="l00693"></a><span class="lineno">  693</span>    <span class="comment">// Select all text in the text box.</span></div>
-<div class="line"><a id="l00694" name="l00694"></a><span class="lineno">  694</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_function" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a5e62f2ca66752ebb6b93ed83b1842d66">SelectAll</a>();</div>
-<div class="line"><a id="l00695" name="l00695"></a><span class="lineno">  695</span> </div>
-<div class="line"><a id="l00696" name="l00696"></a><span class="lineno">  696</span>    <span class="comment">// Move the cursor to the text box.</span></div>
-<div class="line"><a id="l00697" name="l00697"></a><span class="lineno">  697</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_function" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#abbf264aeb63f189f83b2fc3ef1faa231">Focus</a>();</div>
-<div class="line"><a id="l00698" name="l00698"></a><span class="lineno">  698</span>  }</div>
-<div class="line"><a id="l00699" name="l00699"></a><span class="lineno">  699</span>}</div>
+<div class="line"><a id="l00690" name="l00690"></a><span class="lineno">  690</span> </div>
+<div class="foldopen" id="foldopen00691" data-start="{" data-end="}">
+<div class="line"><a id="l00691" name="l00691"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1MessageEditor.html#a843644c8883ad12bbc74cd550a42616a">  691</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1MessageEditor.html#a843644c8883ad12bbc74cd550a42616a">MessageEditor::SelectAll</a>() {</div>
+<div class="line"><a id="l00692" name="l00692"></a><span class="lineno">  692</span>  <span class="comment">// Determine if any text is selected in the TextBox control.</span></div>
+<div class="line"><a id="l00693" name="l00693"></a><span class="lineno">  693</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a8c81a5d76f26d45fe12346d1860f62d6">selection_length</a> == 0) {</div>
+<div class="line"><a id="l00694" name="l00694"></a><span class="lineno">  694</span>    <span class="comment">// Select all text in the text box.</span></div>
+<div class="line"><a id="l00695" name="l00695"></a><span class="lineno">  695</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_function" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a5e62f2ca66752ebb6b93ed83b1842d66">SelectAll</a>();</div>
+<div class="line"><a id="l00696" name="l00696"></a><span class="lineno">  696</span> </div>
+<div class="line"><a id="l00697" name="l00697"></a><span class="lineno">  697</span>    <span class="comment">// Move the cursor to the text box.</span></div>
+<div class="line"><a id="l00698" name="l00698"></a><span class="lineno">  698</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">message_text_box_</a>.<a class="code hl_function" href="structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#abbf264aeb63f189f83b2fc3ef1faa231">Focus</a>();</div>
+<div class="line"><a id="l00699" name="l00699"></a><span class="lineno">  699</span>  }</div>
+<div class="line"><a id="l00700" name="l00700"></a><span class="lineno">  700</span>}</div>
 </div>
-<div class="line"><a id="l00700" name="l00700"></a><span class="lineno">  700</span> </div>
-<div class="line"><a id="l00701" name="l00701"></a><span class="lineno">  701</span>}  <span class="comment">// namespace editor</span></div>
-<div class="line"><a id="l00702" name="l00702"></a><span class="lineno">  702</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00701" name="l00701"></a><span class="lineno">  701</span> </div>
+<div class="line"><a id="l00702" name="l00702"></a><span class="lineno">  702</span>}  <span class="comment">// namespace editor</span></div>
+<div class="line"><a id="l00703" name="l00703"></a><span class="lineno">  703</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="abitmap_8h_html"><div class="ttname"><a href="bitmap_8h.html">bitmap.h</a></div></div>
 <div class="ttc" id="acanvas_8h_html"><div class="ttname"><a href="canvas_8h.html">canvas.h</a></div></div>
-<div class="ttc" id="aclassyaze_1_1SharedRom_html_a7e5e36ba40d87c0c81b9056bd00beedc"><div class="ttname"><a href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">yaze::SharedRom::rom</a></div><div class="ttdeci">auto rom()</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00586">rom.h:586</a></div></div>
+<div class="ttc" id="aclassyaze_1_1SharedRom_html_a7e5e36ba40d87c0c81b9056bd00beedc"><div class="ttname"><a href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">yaze::SharedRom::rom</a></div><div class="ttdeci">auto rom()</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00589">rom.h:589</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1Renderer_html_a571c9b2494fb642abf7c8ddfe809334a"><div class="ttname"><a href="classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a">yaze::core::Renderer::UpdateBitmap</a></div><div class="ttdeci">void UpdateBitmap(gfx::Bitmap *bitmap)</div><div class="ttdoc">Used to update a bitmap on the screen.</div><div class="ttdef"><b>Definition</b> <a href="renderer_8h_source.html#l00055">renderer.h:55</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1Renderer_html_a8fbf175181e6800faaaecaf7034f8a9a"><div class="ttname"><a href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a">yaze::core::Renderer::GetInstance</a></div><div class="ttdeci">static Renderer &amp; GetInstance()</div><div class="ttdef"><b>Definition</b> <a href="renderer_8h_source.html#l00026">renderer.h:26</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a1145de6a088d7372def27b7a10488eeb"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a1145de6a088d7372def27b7a10488eeb">yaze::editor::MessageEditor::parsed_messages_</a></div><div class="ttdeci">std::vector&lt; std::string &gt; parsed_messages_</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00090">message_editor.h:90</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a12e2b9a72d58beeab27e0d6668f52746"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a12e2b9a72d58beeab27e0d6668f52746">yaze::editor::MessageEditor::Copy</a></div><div class="ttdeci">absl::Status Copy() override</div><div class="ttdef"><b>Definition</b> <a href="#l00603">message_editor.cc:603</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a12e2b9a72d58beeab27e0d6668f52746"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a12e2b9a72d58beeab27e0d6668f52746">yaze::editor::MessageEditor::Copy</a></div><div class="ttdeci">absl::Status Copy() override</div><div class="ttdef"><b>Definition</b> <a href="#l00604">message_editor.cc:604</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a17dc1a6262dda9138eee4b4f28d47e27"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a17dc1a6262dda9138eee4b4f28d47e27">yaze::editor::MessageEditor::text_line_</a></div><div class="ttdeci">int text_line_</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00080">message_editor.h:80</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a17fc6b8cedaee976f538fd7e236a7818"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a17fc6b8cedaee976f538fd7e236a7818">yaze::editor::MessageEditor::width_array</a></div><div class="ttdeci">uint8_t width_array[kWidthArraySize]</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00084">message_editor.h:84</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a2f5f5e06d2cfccb794089587dd619bf7"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a2f5f5e06d2cfccb794089587dd619bf7">yaze::editor::MessageEditor::ReadAllTextDataV2</a></div><div class="ttdeci">void ReadAllTextDataV2()</div><div class="ttdef"><b>Definition</b> <a href="#l00267">message_editor.cc:267</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a304ea5c627aa7044cd6221eaba59fa25"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a304ea5c627aa7044cd6221eaba59fa25">yaze::editor::MessageEditor::Update</a></div><div class="ttdeci">absl::Status Update() override</div><div class="ttdef"><b>Definition</b> <a href="#l00131">message_editor.cc:131</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a32f71fa3d17a0132e319af9fa13199e1"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a32f71fa3d17a0132e319af9fa13199e1">yaze::editor::MessageEditor::shown_lines_</a></div><div class="ttdeci">int shown_lines_</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00082">message_editor.h:82</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a47c0c7b6301cb046d98acc2463f9afa0"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a47c0c7b6301cb046d98acc2463f9afa0">yaze::editor::MessageEditor::Paste</a></div><div class="ttdeci">absl::Status Paste() override</div><div class="ttdef"><b>Definition</b> <a href="#l00594">message_editor.cc:594</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a6230eee2580dc1e9156ed934039e4970"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a6230eee2580dc1e9156ed934039e4970">yaze::editor::MessageEditor::DisplayTextOverflowError</a></div><div class="ttdeci">std::string DisplayTextOverflowError(int pos, bool bank)</div><div class="ttdef"><b>Definition</b> <a href="#l00669">message_editor.cc:669</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a47c0c7b6301cb046d98acc2463f9afa0"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a47c0c7b6301cb046d98acc2463f9afa0">yaze::editor::MessageEditor::Paste</a></div><div class="ttdeci">absl::Status Paste() override</div><div class="ttdef"><b>Definition</b> <a href="#l00595">message_editor.cc:595</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a6230eee2580dc1e9156ed934039e4970"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a6230eee2580dc1e9156ed934039e4970">yaze::editor::MessageEditor::DisplayTextOverflowError</a></div><div class="ttdeci">std::string DisplayTextOverflowError(int pos, bool bank)</div><div class="ttdef"><b>Definition</b> <a href="#l00670">message_editor.cc:670</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a65344708b40f7a237196c635a25844a0"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a65344708b40f7a237196c635a25844a0">yaze::editor::MessageEditor::current_font_gfx16_canvas_</a></div><div class="ttdeci">gui::Canvas current_font_gfx16_canvas_</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00103">message_editor.h:103</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a6636672d3a3afd53a90059491ea9ba4e"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a6636672d3a3afd53a90059491ea9ba4e">yaze::editor::MessageEditor::font_gfx_canvas_</a></div><div class="ttdeci">gui::Canvas font_gfx_canvas_</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00102">message_editor.h:102</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a68a466b0cd92deafab40f7bd3507c926"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a68a466b0cd92deafab40f7bd3507c926">yaze::editor::MessageEditor::DrawCharacterToPreview</a></div><div class="ttdeci">void DrawCharacterToPreview(char c)</div><div class="ttdef"><b>Definition</b> <a href="#l00517">message_editor.cc:517</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a6b6747f3937ccb5e419a8229454ce098"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a6b6747f3937ccb5e419a8229454ce098">yaze::editor::MessageEditor::DrawStringToPreview</a></div><div class="ttdeci">void DrawStringToPreview(std::string str)</div><div class="ttdef"><b>Definition</b> <a href="#l00511">message_editor.cc:511</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a769d6f1ee603665e95a6b1864eced36b"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a769d6f1ee603665e95a6b1864eced36b">yaze::editor::MessageEditor::Undo</a></div><div class="ttdeci">absl::Status Undo() override</div><div class="ttdef"><b>Definition</b> <a href="#l00612">message_editor.cc:612</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a68a466b0cd92deafab40f7bd3507c926"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a68a466b0cd92deafab40f7bd3507c926">yaze::editor::MessageEditor::DrawCharacterToPreview</a></div><div class="ttdeci">void DrawCharacterToPreview(char c)</div><div class="ttdef"><b>Definition</b> <a href="#l00518">message_editor.cc:518</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a6b6747f3937ccb5e419a8229454ce098"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a6b6747f3937ccb5e419a8229454ce098">yaze::editor::MessageEditor::DrawStringToPreview</a></div><div class="ttdeci">void DrawStringToPreview(std::string str)</div><div class="ttdef"><b>Definition</b> <a href="#l00512">message_editor.cc:512</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a769d6f1ee603665e95a6b1864eced36b"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a769d6f1ee603665e95a6b1864eced36b">yaze::editor::MessageEditor::Undo</a></div><div class="ttdeci">absl::Status Undo() override</div><div class="ttdef"><b>Definition</b> <a href="#l00613">message_editor.cc:613</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a7c57b31fc61d0a6512ab1264142e70cb"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a7c57b31fc61d0a6512ab1264142e70cb">yaze::editor::MessageEditor::DrawTextCommands</a></div><div class="ttdeci">void DrawTextCommands()</div><div class="ttdef"><b>Definition</b> <a href="#l00232">message_editor.cc:232</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a817979a564218dcea95a4c6bd8d3717c"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a817979a564218dcea95a4c6bd8d3717c">yaze::editor::MessageEditor::DrawTileToPreview</a></div><div class="ttdeci">void DrawTileToPreview(int x, int y, int srcx, int srcy, int pal, int sizex=1, int sizey=1)</div><div class="ttdef"><b>Definition</b> <a href="#l00479">message_editor.cc:479</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a817979a564218dcea95a4c6bd8d3717c"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a817979a564218dcea95a4c6bd8d3717c">yaze::editor::MessageEditor::DrawTileToPreview</a></div><div class="ttdeci">void DrawTileToPreview(int x, int y, int srcx, int srcy, int pal, int sizex=1, int sizey=1)</div><div class="ttdef"><b>Definition</b> <a href="#l00480">message_editor.cc:480</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a825725b1f6cb4ac791b3215edf6c9ca4"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a825725b1f6cb4ac791b3215edf6c9ca4">yaze::editor::MessageEditor::data_loaded_</a></div><div class="ttdeci">bool data_loaded_</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00078">message_editor.h:78</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a843644c8883ad12bbc74cd550a42616a"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a843644c8883ad12bbc74cd550a42616a">yaze::editor::MessageEditor::SelectAll</a></div><div class="ttdeci">void SelectAll()</div><div class="ttdef"><b>Definition</b> <a href="#l00690">message_editor.cc:690</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a90d85cb6fc78a9bb717e13352fdc5f61"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a90d85cb6fc78a9bb717e13352fdc5f61">yaze::editor::MessageEditor::Delete</a></div><div class="ttdeci">void Delete()</div><div class="ttdef"><b>Definition</b> <a href="#l00682">message_editor.cc:682</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a843644c8883ad12bbc74cd550a42616a"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a843644c8883ad12bbc74cd550a42616a">yaze::editor::MessageEditor::SelectAll</a></div><div class="ttdeci">void SelectAll()</div><div class="ttdef"><b>Definition</b> <a href="#l00691">message_editor.cc:691</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a90d85cb6fc78a9bb717e13352fdc5f61"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a90d85cb6fc78a9bb717e13352fdc5f61">yaze::editor::MessageEditor::Delete</a></div><div class="ttdeci">void Delete()</div><div class="ttdef"><b>Definition</b> <a href="#l00683">message_editor.cc:683</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a98d43bca4c7d1f78f198e74c923be3be"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a98d43bca4c7d1f78f198e74c923be3be">yaze::editor::MessageEditor::text_position_</a></div><div class="ttdeci">int text_position_</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00081">message_editor.h:81</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_a9a05ddca2c83e0fe11366512c8955d47"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#a9a05ddca2c83e0fe11366512c8955d47">yaze::editor::MessageEditor::DrawDictionary</a></div><div class="ttdeci">void DrawDictionary()</div><div class="ttdef"><b>Definition</b> <a href="#l00246">message_editor.cc:246</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_aa55c574c7c57aec5adbe67c121851a07"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#aa55c574c7c57aec5adbe67c121851a07">yaze::editor::MessageEditor::Cut</a></div><div class="ttdeci">absl::Status Cut() override</div><div class="ttdef"><b>Definition</b> <a href="#l00585">message_editor.cc:585</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_aab49ccce5a51c274b885c816ff0d6ac4"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#aab49ccce5a51c274b885c816ff0d6ac4">yaze::editor::MessageEditor::DrawMessagePreview</a></div><div class="ttdeci">void DrawMessagePreview()</div><div class="ttdef"><b>Definition</b> <a href="#l00574">message_editor.cc:574</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_aa55c574c7c57aec5adbe67c121851a07"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#aa55c574c7c57aec5adbe67c121851a07">yaze::editor::MessageEditor::Cut</a></div><div class="ttdeci">absl::Status Cut() override</div><div class="ttdef"><b>Definition</b> <a href="#l00586">message_editor.cc:586</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_aab49ccce5a51c274b885c816ff0d6ac4"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#aab49ccce5a51c274b885c816ff0d6ac4">yaze::editor::MessageEditor::DrawMessagePreview</a></div><div class="ttdeci">void DrawMessagePreview()</div><div class="ttdef"><b>Definition</b> <a href="#l00575">message_editor.cc:575</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_aadd3f4534fa5d805938c59819e3c300d"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d">yaze::editor::MessageEditor::message_text_box_</a></div><div class="ttdeci">TextBox message_text_box_</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00161">message_editor.h:161</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_ab253e252af6472d0bbea15957a02d265"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#ab253e252af6472d0bbea15957a02d265">yaze::editor::MessageEditor::ReadAllTextData</a></div><div class="ttdeci">void ReadAllTextData()</div><div class="ttdef"><b>Definition</b> <a href="#l00362">message_editor.cc:362</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_ab9824d1cb4b342ae94bb6bcc51bc1d5e"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#ab9824d1cb4b342ae94bb6bcc51bc1d5e">yaze::editor::MessageEditor::Save</a></div><div class="ttdeci">absl::Status Save()</div><div class="ttdef"><b>Definition</b> <a href="#l00624">message_editor.cc:624</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_ab253e252af6472d0bbea15957a02d265"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#ab253e252af6472d0bbea15957a02d265">yaze::editor::MessageEditor::ReadAllTextData</a></div><div class="ttdeci">void ReadAllTextData()</div><div class="ttdef"><b>Definition</b> <a href="#l00363">message_editor.cc:363</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_ab9824d1cb4b342ae94bb6bcc51bc1d5e"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#ab9824d1cb4b342ae94bb6bcc51bc1d5e">yaze::editor::MessageEditor::Save</a></div><div class="ttdeci">absl::Status Save()</div><div class="ttdef"><b>Definition</b> <a href="#l00625">message_editor.cc:625</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_abfd9f8d6a94a14cbbd9d7196a9aa8438"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#abfd9f8d6a94a14cbbd9d7196a9aa8438">yaze::editor::MessageEditor::list_of_texts_</a></div><div class="ttdeci">std::vector&lt; MessageData &gt; list_of_texts_</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00092">message_editor.h:92</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_ac226102c807cdfcf51e650b7813447d5"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#ac226102c807cdfcf51e650b7813447d5">yaze::editor::MessageEditor::font_gfx16_data_</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; font_gfx16_data_</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00088">message_editor.h:88</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_ac2564f3ce5f03ff67e6f820f5e13ab3d"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#ac2564f3ce5f03ff67e6f820f5e13ab3d">yaze::editor::MessageEditor::current_font_gfx16_data_</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; current_font_gfx16_data_</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00089">message_editor.h:89</a></div></div>
@@ -897,7 +898,7 @@ $(function(){initNavTree('message__editor_8cc_source.html',''); initResizable(tr
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_acd21220b42f482d84bb3cc36b2164ae7"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#acd21220b42f482d84bb3cc36b2164ae7">yaze::editor::MessageEditor::current_message_</a></div><div class="ttdeci">MessageData current_message_</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00096">message_editor.h:96</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_ad3bdf172b01a514ec30cb9ef518068f8"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#ad3bdf172b01a514ec30cb9ef518068f8">yaze::editor::MessageEditor::Initialize</a></div><div class="ttdeci">absl::Status Initialize()</div><div class="ttdef"><b>Definition</b> <a href="#l00047">message_editor.cc:47</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_ada2a647c348dc20860b6cec0bc812d38"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#ada2a647c348dc20860b6cec0bc812d38">yaze::editor::MessageEditor::DrawCurrentMessage</a></div><div class="ttdeci">void DrawCurrentMessage()</div><div class="ttdef"><b>Definition</b> <a href="#l00194">message_editor.cc:194</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_ae7f9d3c567cfaf5316d194860825b05c"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#ae7f9d3c567cfaf5316d194860825b05c">yaze::editor::MessageEditor::GetDictionaryFromID</a></div><div class="ttdeci">DictionaryEntry GetDictionaryFromID(uint8_t value)</div><div class="ttdef"><b>Definition</b> <a href="#l00472">message_editor.cc:472</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_ae7f9d3c567cfaf5316d194860825b05c"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#ae7f9d3c567cfaf5316d194860825b05c">yaze::editor::MessageEditor::GetDictionaryFromID</a></div><div class="ttdeci">DictionaryEntry GetDictionaryFromID(uint8_t value)</div><div class="ttdef"><b>Definition</b> <a href="#l00473">message_editor.cc:473</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_ae8b5601a7b7f0e20149e99bc5056a161"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#ae8b5601a7b7f0e20149e99bc5056a161">yaze::editor::MessageEditor::all_dictionaries_</a></div><div class="ttdeci">std::vector&lt; DictionaryEntry &gt; all_dictionaries_</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00094">message_editor.h:94</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_aecec7e264040f31ad7089c98dec2730b"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#aecec7e264040f31ad7089c98dec2730b">yaze::editor::MessageEditor::current_font_gfx16_bitmap_</a></div><div class="ttdeci">gfx::Bitmap current_font_gfx16_bitmap_</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00099">message_editor.h:99</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html_afbcfeb9882d9dbb25675874a2a41a799"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html#afbcfeb9882d9dbb25675874a2a41a799">yaze::editor::MessageEditor::font_gfx_bitmap_</a></div><div class="ttdeci">gfx::Bitmap font_gfx_bitmap_</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00098">message_editor.h:98</a></div></div>
@@ -932,7 +933,7 @@ $(function(){initNavTree('message__editor_8cc_source.html',''); initResizable(tr
 <div class="ttc" id="anamespaceyaze_1_1editor_html_a6046df06ec51f812f3c1d365b7c6045a"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a6046df06ec51f812f3c1d365b7c6045a">yaze::editor::kCurrentMessageHeight</a></div><div class="ttdeci">constexpr int kCurrentMessageHeight</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00023">message_editor.h:23</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1editor_html_a6dd6b1e09112cd79303b3a45479db4d8"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a6dd6b1e09112cd79303b3a45479db4d8">yaze::editor::kBlockTerminator</a></div><div class="ttdeci">constexpr uint8_t kBlockTerminator</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00028">message_editor.h:28</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1editor_html_a6e03f0e92717101837c29f9cc3bf172f"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a6e03f0e92717101837c29f9cc3bf172f">yaze::editor::kLine2</a></div><div class="ttdeci">constexpr uint8_t kLine2</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00032">message_editor.h:32</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1editor_html_a7075dfdde53bf6bb5ec8a4a5a5123c1f"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a7075dfdde53bf6bb5ec8a4a5a5123c1f">yaze::editor::ReplaceAllDictionaryWords</a></div><div class="ttdeci">std::string ReplaceAllDictionaryWords(std::string str, std::vector&lt; DictionaryEntry &gt; dictionary)</div><div class="ttdef"><b>Definition</b> <a href="#l00461">message_editor.cc:461</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_a7075dfdde53bf6bb5ec8a4a5a5123c1f"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a7075dfdde53bf6bb5ec8a4a5a5123c1f">yaze::editor::ReplaceAllDictionaryWords</a></div><div class="ttdeci">std::string ReplaceAllDictionaryWords(std::string str, std::vector&lt; DictionaryEntry &gt; dictionary)</div><div class="ttdef"><b>Definition</b> <a href="#l00462">message_editor.cc:462</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1editor_html_a70cc399beb413359a70ca254b143d6ec"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">yaze::editor::kPointersDictionaries</a></div><div class="ttdeci">constexpr int kPointersDictionaries</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00078">message_data.h:78</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1editor_html_a7125035a631647e03e5efc55b88c4e77"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a7125035a631647e03e5efc55b88c4e77">yaze::editor::kGfxFont</a></div><div class="ttdeci">constexpr int kGfxFont</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00017">message_editor.h:17</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1editor_html_a85b80708dfa68796ed65ecd200901852"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a85b80708dfa68796ed65ecd200901852">yaze::editor::kFontGfxMessageSize</a></div><div class="ttdeci">constexpr int kFontGfxMessageSize</div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00024">message_editor.h:24</a></div></div>

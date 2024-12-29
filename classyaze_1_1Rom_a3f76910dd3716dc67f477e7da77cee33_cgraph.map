@@ -1,6 +1,6 @@
 <map id="yaze::Rom::WriteByte" name="yaze::Rom::WriteByte">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,80,148,106"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a236fc04c8575b9913db77b8cd5dea273" title=" " alt="" coords="253,5,364,31"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="253,5,364,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,77,146,58,195,40,237,28,238,34,196,45,148,63,106,82"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1Logger.html#ab58aa88790e96142272311cf1dcb84b5" title=" " alt="" coords="235,55,382,80"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="148,82,219,75,219,80,148,88"/>

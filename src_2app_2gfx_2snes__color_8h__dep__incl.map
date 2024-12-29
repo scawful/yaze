@@ -15,8 +15,8 @@
 <area shape="poly" id="edge59_Node000001_Node000034" title=" " alt="" coords="1324,38,1386,76,1438,103,1518,125,1583,133,1649,138,1732,151,1759,158,1758,163,1731,156,1648,143,1582,138,1517,131,1436,108,1383,81,1321,43"/>
 <area shape="rect" id="Node000109" href="$snes__palette__test_8cc.html" title=" " alt="" coords="1876,154,2040,194"/>
 <area shape="poly" id="edge60_Node000001_Node000109" title=" " alt="" coords="1336,36,1433,78,1458,92,1483,103,1539,118,1587,128,1671,135,1756,139,1864,151,1876,153,1875,158,1863,156,1756,144,1671,141,1587,133,1538,123,1481,108,1455,96,1430,82,1334,41"/>
-<area shape="rect" id="Node000108" href="$rom__test_8cc.html" title=" " alt="" coords="1494,80,1631,106"/>
-<area shape="poly" id="edge61_Node000001_Node000108" title=" " alt="" coords="1353,34,1517,77,1515,82,1351,39"/>
+<area shape="rect" id="Node000107" href="$rom__test_8cc.html" title=" " alt="" coords="1494,80,1631,106"/>
+<area shape="poly" id="edge61_Node000001_Node000107" title=" " alt="" coords="1353,34,1517,77,1515,82,1351,39"/>
 <area shape="rect" id="Node000003" href="$memory__editor_8h.html" title=" " alt="" coords="971,508,1103,549"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="826,288,867,311,912,341,956,377,995,418,1009,440,1021,464,1035,507,1030,508,1016,466,1005,443,991,421,952,381,909,346,864,316,823,293"/>
 <area shape="rect" id="Node000004" href="$editor__manager_8h.html" title=" " alt="" coords="919,597,1056,638"/>

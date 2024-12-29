@@ -111,151 +111,164 @@ $(function(){initNavTree('yaze_8cc_source.html',''); initResizable(true); });
 <div class="contents">
 <a href="yaze_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="yaze_8h.html">yaze.h</a>&quot;</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
-<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;cstdio&gt;</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;iostream&gt;</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span> </div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &quot;<a class="code" href="rom_8h.html">app/rom.h</a>&quot;</span></div>
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;<a class="code" href="src_2app_2zelda3_2overworld_2overworld_8h.html">app/zelda3/overworld/overworld.h</a>&quot;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span> </div>
-<div class="foldopen" id="foldopen00008" data-start="{" data-end="}">
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno"><a class="line" href="yaze_8h.html#a9fff64bba6ed578ae091960204b84648">    8</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="yaze_8cc.html#a9fff64bba6ed578ae091960204b84648">yaze_check_version</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* version) {</div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span>  printf(<span class="stringliteral">&quot;Yaze version: %s\n&quot;</span>, version);</div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span>  <span class="keyword">auto</span> version_check = <a class="code hl_function" href="namespaceyaze_1_1core.html#a056bdafe2cc4104f6201289f44898047">yaze::core::CheckVersion</a>(version);</div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>  <span class="keywordflow">if</span> (!version_check.ok()) {</div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>    printf(<span class="stringliteral">&quot;%s\n&quot;</span>, version_check.status().message().data());</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>    exit(1);</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>  }</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>  <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>}</div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;<a class="code" href="dungeon_8h.html">dungeon.h</a>&quot;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
+<div class="foldopen" id="foldopen00009" data-start="{" data-end="}">
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno"><a class="line" href="yaze_8h.html#a9fff64bba6ed578ae091960204b84648">    9</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="yaze_8cc.html#a9fff64bba6ed578ae091960204b84648">yaze_check_version</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *version) {</div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;Yaze version: &quot;</span> &lt;&lt; version &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>  <span class="keyword">auto</span> version_check = <a class="code hl_function" href="namespaceyaze_1_1core.html#a056bdafe2cc4104f6201289f44898047">yaze::core::CheckVersion</a>(version);</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>  <span class="keywordflow">if</span> (!version_check.ok()) {</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>    std::cout &lt;&lt; version_check.status().message() &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>    exit(1);</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>  }</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>  <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>}</div>
 </div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
-<div class="foldopen" id="foldopen00018" data-start="{" data-end="}">
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno"><a class="line" href="yaze_8h.html#a7ab82f4fb7c455c56c01400dd7948805">   18</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="yaze_8cc.html#af1bd2705b6539a4d10490495d2fdde4b">yaze_init</a>(<a class="code hl_struct" href="structyaze__editor__context.html">yaze_editor_context</a>* yaze_ctx) {</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  <span class="keywordflow">if</span> (yaze_ctx-&gt;<a class="code hl_variable" href="structyaze__editor__context.html#a3e747d7d0638142be1b42e0fb5f0bf60">project</a>-&gt;<a class="code hl_variable" href="structyaze__project.html#ab66490373523b4ddeaf85881857022f2">rom_filename</a> == <span class="keyword">nullptr</span>) {</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    <span class="keywordflow">return</span> -1;</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  }</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  yaze_ctx-&gt;<a class="code hl_variable" href="structyaze__editor__context.html#accf9a0e86b9abfd1a17483a3a5906816">rom</a> = <a class="code hl_function" href="yaze_8cc.html#adfaf105df03accd07b94f1e60c6ed8bf">yaze_load_rom</a>(yaze_ctx-&gt;<a class="code hl_variable" href="structyaze__editor__context.html#a3e747d7d0638142be1b42e0fb5f0bf60">project</a>-&gt;<a class="code hl_variable" href="structyaze__project.html#ab66490373523b4ddeaf85881857022f2">rom_filename</a>);</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  <span class="keywordflow">if</span> (yaze_ctx-&gt;<a class="code hl_variable" href="structyaze__editor__context.html#accf9a0e86b9abfd1a17483a3a5906816">rom</a> == <span class="keyword">nullptr</span>) {</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    <span class="keywordflow">return</span> -1;</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  }</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  <span class="keywordflow">return</span> 0;</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>}</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
+<div class="foldopen" id="foldopen00019" data-start="{" data-end="}">
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="yaze_8h.html#a7ab82f4fb7c455c56c01400dd7948805">   19</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="yaze_8cc.html#af1bd2705b6539a4d10490495d2fdde4b">yaze_init</a>(<a class="code hl_struct" href="structyaze__editor__context.html">yaze_editor_context</a> *yaze_ctx) {</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  <span class="keywordflow">if</span> (yaze_ctx-&gt;<a class="code hl_variable" href="structyaze__editor__context.html#a3e747d7d0638142be1b42e0fb5f0bf60">project</a>-&gt;<a class="code hl_variable" href="structyaze__project.html#ab66490373523b4ddeaf85881857022f2">rom_filename</a> == <span class="keyword">nullptr</span>) {</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    <span class="keywordflow">return</span> -1;</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  }</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  yaze_ctx-&gt;<a class="code hl_variable" href="structyaze__editor__context.html#accf9a0e86b9abfd1a17483a3a5906816">rom</a> = <a class="code hl_function" href="yaze_8cc.html#adfaf105df03accd07b94f1e60c6ed8bf">yaze_load_rom</a>(yaze_ctx-&gt;<a class="code hl_variable" href="structyaze__editor__context.html#a3e747d7d0638142be1b42e0fb5f0bf60">project</a>-&gt;<a class="code hl_variable" href="structyaze__project.html#ab66490373523b4ddeaf85881857022f2">rom_filename</a>);</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <span class="keywordflow">if</span> (yaze_ctx-&gt;<a class="code hl_variable" href="structyaze__editor__context.html#accf9a0e86b9abfd1a17483a3a5906816">rom</a> == <span class="keyword">nullptr</span>) {</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    <span class="keywordflow">return</span> -1;</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  }</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  <span class="keywordflow">return</span> 0;</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>}</div>
 </div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
-<div class="foldopen" id="foldopen00031" data-start="{" data-end="}">
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="yaze_8h.html#ac6ab34b2015d370dc6b7be5728b163f5">   31</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="yaze_8cc.html#a0a0de1f1ac633141312ab7e267fff4c4">yaze_cleanup</a>(<a class="code hl_struct" href="structyaze__editor__context.html">yaze_editor_context</a>* yaze_ctx) {</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  <span class="keywordflow">if</span> (yaze_ctx-&gt;<a class="code hl_variable" href="structyaze__editor__context.html#accf9a0e86b9abfd1a17483a3a5906816">rom</a>) {</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    <a class="code hl_function" href="yaze_8cc.html#a883ab5865f5e61a639dc3dafcd45e8c7">yaze_unload_rom</a>(yaze_ctx-&gt;<a class="code hl_variable" href="structyaze__editor__context.html#accf9a0e86b9abfd1a17483a3a5906816">rom</a>);</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  }</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>}</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
+<div class="foldopen" id="foldopen00032" data-start="{" data-end="}">
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno"><a class="line" href="yaze_8h.html#ac6ab34b2015d370dc6b7be5728b163f5">   32</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="yaze_8cc.html#a0a0de1f1ac633141312ab7e267fff4c4">yaze_cleanup</a>(<a class="code hl_struct" href="structyaze__editor__context.html">yaze_editor_context</a> *yaze_ctx) {</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>  <span class="keywordflow">if</span> (yaze_ctx-&gt;<a class="code hl_variable" href="structyaze__editor__context.html#accf9a0e86b9abfd1a17483a3a5906816">rom</a>) {</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    <a class="code hl_function" href="yaze_8cc.html#a883ab5865f5e61a639dc3dafcd45e8c7">yaze_unload_rom</a>(yaze_ctx-&gt;<a class="code hl_variable" href="structyaze__editor__context.html#accf9a0e86b9abfd1a17483a3a5906816">rom</a>);</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  }</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>}</div>
 </div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
-<div class="foldopen" id="foldopen00037" data-start="{" data-end="}">
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="yaze_8h.html#ac6958144cc1209550c0f77e8dce0b8d3">   37</a></span><a class="code hl_struct" href="structyaze__project.html">yaze_project</a> <a class="code hl_function" href="yaze_8cc.html#ac6958144cc1209550c0f77e8dce0b8d3">yaze_load_project</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* filename) {</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  <a class="code hl_struct" href="structyaze__project.html">yaze_project</a> project;</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>  project.<a class="code hl_variable" href="structyaze__project.html#aece42ca37a5482a6207c8dd6cb5956b4">filepath</a> = filename;</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <span class="keywordflow">return</span> project;</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>}</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
+<div class="foldopen" id="foldopen00038" data-start="{" data-end="}">
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="yaze_8h.html#ac6958144cc1209550c0f77e8dce0b8d3">   38</a></span><a class="code hl_struct" href="structyaze__project.html">yaze_project</a> <a class="code hl_function" href="yaze_8cc.html#ac6958144cc1209550c0f77e8dce0b8d3">yaze_load_project</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *filename) {</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>  <a class="code hl_struct" href="structyaze__project.html">yaze_project</a> project;</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  project.<a class="code hl_variable" href="structyaze__project.html#aece42ca37a5482a6207c8dd6cb5956b4">filepath</a> = filename;</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  <span class="keywordflow">return</span> project;</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>}</div>
 </div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
-<div class="foldopen" id="foldopen00043" data-start="{" data-end="}">
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno"><a class="line" href="yaze_8h.html#adfaf105df03accd07b94f1e60c6ed8bf">   43</a></span><a class="code hl_struct" href="structz3__rom.html">z3_rom</a>* <a class="code hl_function" href="yaze_8cc.html#adfaf105df03accd07b94f1e60c6ed8bf">yaze_load_rom</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* filename) {</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  <a class="code hl_class" href="classyaze_1_1Rom.html">yaze::Rom</a>* internal_rom;</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  internal_rom = <span class="keyword">new</span> <a class="code hl_class" href="classyaze_1_1Rom.html">yaze::Rom</a>();</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  <span class="keywordflow">if</span> (!internal_rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f">LoadFromFile</a>(filename).ok()) {</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keyword">delete</span> internal_rom;</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  }</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  <a class="code hl_struct" href="structz3__rom.html">z3_rom</a>* rom = <span class="keyword">new</span> <a class="code hl_typedef" href="yaze_8h.html#ac77c4e371c3965f72bf4ac3321600f54">z3_rom</a>();</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  rom-&gt;<a class="code hl_variable" href="structz3__rom.html#a2a47dd5739f2c3b3218f1760c7d54ede">filename</a> = filename;</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>  rom-&gt;<a class="code hl_variable" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">impl</a> = internal_rom;</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>  rom-&gt;<a class="code hl_variable" href="structz3__rom.html#aebb69d9d2a7965247b86f454c54d4fa4">data</a> = internal_rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a236fc04c8575b9913db77b8cd5dea273">data</a>();</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>  rom-&gt;<a class="code hl_variable" href="structz3__rom.html#a5f9ea7b175b6c9c43a2a5efec5a1fd5c">size</a> = internal_rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777">size</a>();</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  <span class="keywordflow">return</span> rom;</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>}</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
+<div class="foldopen" id="foldopen00044" data-start="{" data-end="}">
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno"><a class="line" href="yaze_8h.html#adfaf105df03accd07b94f1e60c6ed8bf">   44</a></span><a class="code hl_struct" href="structz3__rom.html">z3_rom</a> *<a class="code hl_function" href="yaze_8cc.html#adfaf105df03accd07b94f1e60c6ed8bf">yaze_load_rom</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *filename) {</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  <a class="code hl_class" href="classyaze_1_1Rom.html">yaze::Rom</a> *internal_rom;</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  internal_rom = <span class="keyword">new</span> <a class="code hl_class" href="classyaze_1_1Rom.html">yaze::Rom</a>();</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  <span class="keywordflow">if</span> (!internal_rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f">LoadFromFile</a>(filename).ok()) {</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <span class="keyword">delete</span> internal_rom;</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  }</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  <a class="code hl_struct" href="structz3__rom.html">z3_rom</a> *rom = <span class="keyword">new</span> <a class="code hl_typedef" href="yaze_8h.html#ac77c4e371c3965f72bf4ac3321600f54">z3_rom</a>();</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>  rom-&gt;<a class="code hl_variable" href="structz3__rom.html#a2a47dd5739f2c3b3218f1760c7d54ede">filename</a> = filename;</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>  rom-&gt;<a class="code hl_variable" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">impl</a> = internal_rom;</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>  rom-&gt;<a class="code hl_variable" href="structz3__rom.html#aebb69d9d2a7965247b86f454c54d4fa4">data</a> = internal_rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>();</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  rom-&gt;<a class="code hl_variable" href="structz3__rom.html#a5f9ea7b175b6c9c43a2a5efec5a1fd5c">size</a> = internal_rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777">size</a>();</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>  <span class="keywordflow">return</span> rom;</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>}</div>
 </div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
-<div class="foldopen" id="foldopen00059" data-start="{" data-end="}">
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno"><a class="line" href="yaze_8h.html#a883ab5865f5e61a639dc3dafcd45e8c7">   59</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="yaze_8cc.html#a883ab5865f5e61a639dc3dafcd45e8c7">yaze_unload_rom</a>(<a class="code hl_struct" href="structz3__rom.html">z3_rom</a>* rom) {</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>  <span class="keywordflow">if</span> (rom-&gt;<a class="code hl_variable" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">impl</a>) {</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    <span class="keyword">delete</span> <span class="keyword">static_cast&lt;</span><a class="code hl_class" href="classyaze_1_1Rom.html">yaze::Rom</a>*<span class="keyword">&gt;</span>(rom-&gt;<a class="code hl_variable" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">impl</a>);</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>  }</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span> </div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>  <span class="keywordflow">if</span> (rom) {</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    <span class="keyword">delete</span> rom;</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>  }</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>}</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span> </div>
+<div class="foldopen" id="foldopen00060" data-start="{" data-end="}">
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno"><a class="line" href="yaze_8h.html#a883ab5865f5e61a639dc3dafcd45e8c7">   60</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="yaze_8cc.html#a883ab5865f5e61a639dc3dafcd45e8c7">yaze_unload_rom</a>(<a class="code hl_struct" href="structz3__rom.html">z3_rom</a> *rom) {</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>  <span class="keywordflow">if</span> (rom-&gt;<a class="code hl_variable" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">impl</a>) {</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    <span class="keyword">delete</span> <span class="keyword">static_cast&lt;</span><a class="code hl_class" href="classyaze_1_1Rom.html">yaze::Rom</a> *<span class="keyword">&gt;</span>(rom-&gt;<a class="code hl_variable" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">impl</a>);</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>  }</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span> </div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>  <span class="keywordflow">if</span> (rom) {</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    <span class="keyword">delete</span> rom;</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>  }</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>}</div>
 </div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
-<div class="foldopen" id="foldopen00069" data-start="{" data-end="}">
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno"><a class="line" href="yaze_8h.html#a25bf6669809ad5e1ae299014a5f6fd0a">   69</a></span><a class="code hl_struct" href="structyaze__bitmap.html">yaze_bitmap</a> <a class="code hl_function" href="yaze_8cc.html#a25bf6669809ad5e1ae299014a5f6fd0a">yaze_load_bitmap</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* filename) {</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>  <a class="code hl_struct" href="structyaze__bitmap.html">yaze_bitmap</a> bitmap;</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>  bitmap.<a class="code hl_variable" href="structyaze__bitmap.html#adeb02ea72387c99bf2ba441aaece1760">width</a> = 0;</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>  bitmap.<a class="code hl_variable" href="structyaze__bitmap.html#a75f53afcb7b087d543288400730d3297">height</a> = 0;</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  bitmap.<a class="code hl_variable" href="structyaze__bitmap.html#ab4ab5935eae3fb291b328c25e0c53cc0">bpp</a> = 0;</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>  bitmap.<a class="code hl_variable" href="structyaze__bitmap.html#a28738a795224b50cdc2d721125850760">data</a> = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  <span class="keywordflow">return</span> bitmap;</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>}</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span> </div>
+<div class="foldopen" id="foldopen00070" data-start="{" data-end="}">
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno"><a class="line" href="yaze_8h.html#a25bf6669809ad5e1ae299014a5f6fd0a">   70</a></span><a class="code hl_struct" href="structyaze__bitmap.html">yaze_bitmap</a> <a class="code hl_function" href="yaze_8cc.html#a25bf6669809ad5e1ae299014a5f6fd0a">yaze_load_bitmap</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *filename) {</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>  <a class="code hl_struct" href="structyaze__bitmap.html">yaze_bitmap</a> bitmap;</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>  bitmap.<a class="code hl_variable" href="structyaze__bitmap.html#adeb02ea72387c99bf2ba441aaece1760">width</a> = 0;</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  bitmap.<a class="code hl_variable" href="structyaze__bitmap.html#a75f53afcb7b087d543288400730d3297">height</a> = 0;</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>  bitmap.<a class="code hl_variable" href="structyaze__bitmap.html#ab4ab5935eae3fb291b328c25e0c53cc0">bpp</a> = 0;</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  bitmap.<a class="code hl_variable" href="structyaze__bitmap.html#a28738a795224b50cdc2d721125850760">data</a> = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>  <span class="keywordflow">return</span> bitmap;</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>}</div>
 </div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span> </div>
-<div class="foldopen" id="foldopen00078" data-start="{" data-end="}">
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno"><a class="line" href="yaze_8h.html#adfb236b5541502ced4544a6678e79d0e">   78</a></span><a class="code hl_struct" href="structsnes__color.html">snes_color</a> <a class="code hl_function" href="yaze_8cc.html#adfb236b5541502ced4544a6678e79d0e">yaze_get_color_from_paletteset</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structz3__rom.html">z3_rom</a>* rom, <span class="keywordtype">int</span> palette_set,</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>                                          <span class="keywordtype">int</span> palette, <span class="keywordtype">int</span> color) {</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>  <a class="code hl_struct" href="structsnes__color.html">snes_color</a> color_struct;</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>  color_struct.<a class="code hl_variable" href="structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58">red</a> = 0;</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>  color_struct.<a class="code hl_variable" href="structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4">green</a> = 0;</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>  color_struct.<a class="code hl_variable" href="structsnes__color.html#abe07ebebd2f735f932b7a7a065506f9f">blue</a> = 0;</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span> </div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>  <span class="keywordflow">if</span> (rom-&gt;<a class="code hl_variable" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">impl</a>) {</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    <a class="code hl_class" href="classyaze_1_1Rom.html">yaze::Rom</a>* internal_rom = <span class="keyword">static_cast&lt;</span><a class="code hl_class" href="classyaze_1_1Rom.html">yaze::Rom</a>*<span class="keyword">&gt;</span>(rom-&gt;<a class="code hl_variable" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">impl</a>);</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    <span class="keyword">auto</span> get_color =</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>        internal_rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a680a6411982dec90abaae64ff288589a">palette_group</a>()</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>            .get_group(<a class="code hl_variable" href="namespaceyaze_1_1gfx.html#a56ca525964a966ffda0388092ee28f6f">yaze::gfx::kPaletteGroupAddressesKeys</a>[palette_set])</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>            -&gt;palette(palette)</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>            .GetColor(color);</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    <span class="keywordflow">if</span> (!get_color.ok()) {</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>      <span class="keywordflow">return</span> color_struct;</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    }</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    color_struct = get_color.value().rom_color();</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span> </div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    <span class="keywordflow">return</span> color_struct;</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>  }</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span> </div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>  <span class="keywordflow">return</span> color_struct;</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>}</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span> </div>
+<div class="foldopen" id="foldopen00079" data-start="{" data-end="}">
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno"><a class="line" href="yaze_8h.html#adfb236b5541502ced4544a6678e79d0e">   79</a></span><a class="code hl_struct" href="structsnes__color.html">snes_color</a> <a class="code hl_function" href="yaze_8cc.html#adfb236b5541502ced4544a6678e79d0e">yaze_get_color_from_paletteset</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structz3__rom.html">z3_rom</a> *rom, <span class="keywordtype">int</span> palette_set,</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>                                          <span class="keywordtype">int</span> palette, <span class="keywordtype">int</span> color) {</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>  <a class="code hl_struct" href="structsnes__color.html">snes_color</a> color_struct;</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>  color_struct.<a class="code hl_variable" href="structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58">red</a> = 0;</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>  color_struct.<a class="code hl_variable" href="structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4">green</a> = 0;</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>  color_struct.<a class="code hl_variable" href="structsnes__color.html#abe07ebebd2f735f932b7a7a065506f9f">blue</a> = 0;</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span> </div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>  <span class="keywordflow">if</span> (rom-&gt;<a class="code hl_variable" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">impl</a>) {</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    <a class="code hl_class" href="classyaze_1_1Rom.html">yaze::Rom</a> *internal_rom = <span class="keyword">static_cast&lt;</span><a class="code hl_class" href="classyaze_1_1Rom.html">yaze::Rom</a> *<span class="keyword">&gt;</span>(rom-&gt;<a class="code hl_variable" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">impl</a>);</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    <span class="keyword">auto</span> get_color =</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>        internal_rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a680a6411982dec90abaae64ff288589a">palette_group</a>()</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>            .get_group(<a class="code hl_variable" href="namespaceyaze_1_1gfx.html#a56ca525964a966ffda0388092ee28f6f">yaze::gfx::kPaletteGroupAddressesKeys</a>[palette_set])</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>            -&gt;palette(palette)</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>            .GetColor(color);</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    <span class="keywordflow">if</span> (!get_color.ok()) {</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>      <span class="keywordflow">return</span> color_struct;</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    }</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    color_struct = get_color.value().rom_color();</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span> </div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    <span class="keywordflow">return</span> color_struct;</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>  }</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span> </div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>  <span class="keywordflow">return</span> color_struct;</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>}</div>
 </div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span> </div>
-<div class="foldopen" id="foldopen00103" data-start="{" data-end="}">
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno"><a class="line" href="yaze_8h.html#ac1b3f6a8db6317860537e91d20a2c7f5">  103</a></span><a class="code hl_struct" href="structz3__overworld.html">z3_overworld</a>* <a class="code hl_function" href="yaze_8cc.html#ac1b3f6a8db6317860537e91d20a2c7f5">yaze_load_overworld</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structz3__rom.html">z3_rom</a>* rom) {</div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>  <span class="keywordflow">if</span> (rom-&gt;<a class="code hl_variable" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">impl</a> == <span class="keyword">nullptr</span>) {</div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>  }</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span> </div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>  <a class="code hl_class" href="classyaze_1_1Rom.html">yaze::Rom</a>* internal_rom = <span class="keyword">static_cast&lt;</span><a class="code hl_class" href="classyaze_1_1Rom.html">yaze::Rom</a>*<span class="keyword">&gt;</span>(rom-&gt;<a class="code hl_variable" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">impl</a>);</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>  <span class="keyword">auto</span> internal_overworld = <span class="keyword">new</span> <a class="code hl_class" href="classyaze_1_1zelda3_1_1overworld_1_1Overworld.html">yaze::zelda3::overworld::Overworld</a>();</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>  <span class="keywordflow">if</span> (!internal_overworld-&gt;Load(*internal_rom).ok()) {</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>    <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>  }</div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span> </div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>  <a class="code hl_struct" href="structz3__overworld.html">z3_overworld</a>* overworld = <span class="keyword">new</span> <a class="code hl_typedef" href="incl_2overworld_8h.html#abdc52e81d57a1315f85ad3a9faa486d9">z3_overworld</a>();</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>  overworld-&gt;<a class="code hl_variable" href="structz3__overworld.html#a13da5630932291eaed93b6a173359f74">impl</a> = internal_overworld;</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>  <span class="keywordtype">int</span> map_id = 0;</div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; ow_map : internal_overworld-&gt;overworld_maps()) {</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>    overworld-&gt;<a class="code hl_variable" href="structz3__overworld.html#a623e0b2387aa861e1db639b56c42b3d2">maps</a>[map_id] = <span class="keyword">new</span> <a class="code hl_typedef" href="incl_2overworld_8h.html#aecefc7cd1d556e95bb7a2d5fe8a2255a">z3_overworld_map</a>();</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>    overworld-&gt;<a class="code hl_variable" href="structz3__overworld.html#a623e0b2387aa861e1db639b56c42b3d2">maps</a>[map_id]-&gt;<a class="code hl_variable" href="structz3__overworld__map.html#a2cf3a34c1089178933e2f8e46ef938c3">id</a> = map_id;</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>    map_id++;</div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>  }</div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>  <span class="keywordflow">return</span> overworld;</div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>}</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span> </div>
+<div class="foldopen" id="foldopen00104" data-start="{" data-end="}">
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno"><a class="line" href="yaze_8h.html#ac1b3f6a8db6317860537e91d20a2c7f5">  104</a></span><a class="code hl_struct" href="structz3__overworld.html">z3_overworld</a> *<a class="code hl_function" href="yaze_8cc.html#ac1b3f6a8db6317860537e91d20a2c7f5">yaze_load_overworld</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structz3__rom.html">z3_rom</a> *rom) {</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>  <span class="keywordflow">if</span> (rom-&gt;<a class="code hl_variable" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">impl</a> == <span class="keyword">nullptr</span>) {</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>    <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>  }</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span> </div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>  <a class="code hl_class" href="classyaze_1_1Rom.html">yaze::Rom</a> *internal_rom = <span class="keyword">static_cast&lt;</span><a class="code hl_class" href="classyaze_1_1Rom.html">yaze::Rom</a> *<span class="keyword">&gt;</span>(rom-&gt;<a class="code hl_variable" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">impl</a>);</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>  <span class="keyword">auto</span> internal_overworld = <span class="keyword">new</span> <a class="code hl_class" href="classyaze_1_1zelda3_1_1overworld_1_1Overworld.html">yaze::zelda3::overworld::Overworld</a>();</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>  <span class="keywordflow">if</span> (!internal_overworld-&gt;Load(*internal_rom).ok()) {</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>    <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>  }</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span> </div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>  <a class="code hl_struct" href="structz3__overworld.html">z3_overworld</a> *overworld = <span class="keyword">new</span> <a class="code hl_typedef" href="incl_2overworld_8h.html#abdc52e81d57a1315f85ad3a9faa486d9">z3_overworld</a>();</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>  overworld-&gt;<a class="code hl_variable" href="structz3__overworld.html#a13da5630932291eaed93b6a173359f74">impl</a> = internal_overworld;</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>  <span class="keywordtype">int</span> map_id = 0;</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;ow_map : internal_overworld-&gt;overworld_maps()) {</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>    overworld-&gt;<a class="code hl_variable" href="structz3__overworld.html#a623e0b2387aa861e1db639b56c42b3d2">maps</a>[map_id] = <span class="keyword">new</span> <a class="code hl_typedef" href="incl_2overworld_8h.html#aecefc7cd1d556e95bb7a2d5fe8a2255a">z3_overworld_map</a>();</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>    overworld-&gt;<a class="code hl_variable" href="structz3__overworld.html#a623e0b2387aa861e1db639b56c42b3d2">maps</a>[map_id]-&gt;<a class="code hl_variable" href="structz3__overworld__map.html#a2cf3a34c1089178933e2f8e46ef938c3">id</a> = map_id;</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>    map_id++;</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>  }</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>  <span class="keywordflow">return</span> overworld;</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>}</div>
+</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span> </div>
+<div class="foldopen" id="foldopen00126" data-start="{" data-end="}">
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno"><a class="line" href="yaze_8h.html#a8d29474bdfecb254378a3a188c516d37">  126</a></span><a class="code hl_struct" href="structz3__dungeon__room.html">z3_dungeon_room</a> *<a class="code hl_function" href="yaze_8cc.html#a8d29474bdfecb254378a3a188c516d37">yaze_load_all_rooms</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structz3__rom.html">z3_rom</a> *rom) {</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>  <span class="keywordflow">if</span> (rom-&gt;<a class="code hl_variable" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">impl</a> == <span class="keyword">nullptr</span>) {</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>    <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>  }</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>  <a class="code hl_class" href="classyaze_1_1Rom.html">yaze::Rom</a> *internal_rom = <span class="keyword">static_cast&lt;</span><a class="code hl_class" href="classyaze_1_1Rom.html">yaze::Rom</a> *<span class="keyword">&gt;</span>(rom-&gt;<a class="code hl_variable" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">impl</a>);</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>  <a class="code hl_struct" href="structz3__dungeon__room.html">z3_dungeon_room</a> *rooms = <span class="keyword">new</span> <a class="code hl_struct" href="structz3__dungeon__room.html">z3_dungeon_room</a>[256];</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>  <span class="keywordflow">return</span> rooms;</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>}</div>
 </div>
 <div class="ttc" id="aclassyaze_1_1Rom_html"><div class="ttname"><a href="classyaze_1_1Rom.html">yaze::Rom</a></div><div class="ttdoc">The Rom class is used to load, save, and modify Rom data.</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00134">rom.h:134</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html_a109e86fd24dca5861a67f22f78d53d3f"><div class="ttname"><a href="classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f">yaze::Rom::LoadFromFile</a></div><div class="ttdeci">absl::Status LoadFromFile(const std::string &amp;filename, bool z3_load=true)</div><div class="ttdef"><b>Definition</b> <a href="rom_8cc_source.html#l00170">rom.cc:170</a></div></div>
-<div class="ttc" id="aclassyaze_1_1Rom_html_a236fc04c8575b9913db77b8cd5dea273"><div class="ttname"><a href="classyaze_1_1Rom.html#a236fc04c8575b9913db77b8cd5dea273">yaze::Rom::data</a></div><div class="ttdeci">auto data()</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00461">rom.h:461</a></div></div>
-<div class="ttc" id="aclassyaze_1_1Rom_html_a680a6411982dec90abaae64ff288589a"><div class="ttname"><a href="classyaze_1_1Rom.html#a680a6411982dec90abaae64ff288589a">yaze::Rom::palette_group</a></div><div class="ttdeci">auto palette_group()</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00472">rom.h:472</a></div></div>
-<div class="ttc" id="aclassyaze_1_1Rom_html_a971379ba00f55ab9c367abf20c8a9777"><div class="ttname"><a href="classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777">yaze::Rom::size</a></div><div class="ttdeci">auto size() const</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00458">rom.h:458</a></div></div>
+<div class="ttc" id="aclassyaze_1_1Rom_html_a680a6411982dec90abaae64ff288589a"><div class="ttname"><a href="classyaze_1_1Rom.html#a680a6411982dec90abaae64ff288589a">yaze::Rom::palette_group</a></div><div class="ttdeci">auto palette_group()</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00465">rom.h:465</a></div></div>
+<div class="ttc" id="aclassyaze_1_1Rom_html_a93944ed80bd748997b06d82f9b8b050d"><div class="ttname"><a href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">yaze::Rom::data</a></div><div class="ttdeci">auto data() const</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00449">rom.h:449</a></div></div>
+<div class="ttc" id="aclassyaze_1_1Rom_html_a971379ba00f55ab9c367abf20c8a9777"><div class="ttname"><a href="classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777">yaze::Rom::size</a></div><div class="ttdeci">auto size() const</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00448">rom.h:448</a></div></div>
 <div class="ttc" id="aclassyaze_1_1zelda3_1_1overworld_1_1Overworld_html"><div class="ttname"><a href="classyaze_1_1zelda3_1_1overworld_1_1Overworld.html">yaze::zelda3::overworld::Overworld</a></div><div class="ttdoc">Represents the full Overworld data, light and dark world.</div><div class="ttdef"><b>Definition</b> <a href="src_2app_2zelda3_2overworld_2overworld_8h_source.html#l00115">overworld.h:115</a></div></div>
+<div class="ttc" id="adungeon_8h_html"><div class="ttname"><a href="dungeon_8h.html">dungeon.h</a></div></div>
 <div class="ttc" id="aincl_2overworld_8h_html_abdc52e81d57a1315f85ad3a9faa486d9"><div class="ttname"><a href="incl_2overworld_8h.html#abdc52e81d57a1315f85ad3a9faa486d9">z3_overworld</a></div><div class="ttdeci">struct z3_overworld z3_overworld</div><div class="ttdoc">Primitive of the overworld.</div></div>
 <div class="ttc" id="aincl_2overworld_8h_html_aecefc7cd1d556e95bb7a2d5fe8a2255a"><div class="ttname"><a href="incl_2overworld_8h.html#aecefc7cd1d556e95bb7a2d5fe8a2255a">z3_overworld_map</a></div><div class="ttdeci">struct z3_overworld_map z3_overworld_map</div><div class="ttdoc">Primitive of an overworld map.</div></div>
 <div class="ttc" id="anamespaceyaze_1_1core_html_a056bdafe2cc4104f6201289f44898047"><div class="ttname"><a href="namespaceyaze_1_1core.html#a056bdafe2cc4104f6201289f44898047">yaze::core::CheckVersion</a></div><div class="ttdeci">absl::StatusOr&lt; std::string &gt; CheckVersion(const char *version)</div><div class="ttdef"><b>Definition</b> <a href="common_8cc_source.html#l00319">common.cc:319</a></div></div>
@@ -277,6 +290,7 @@ $(function(){initNavTree('yaze_8cc_source.html',''); initResizable(true); });
 <div class="ttc" id="astructyaze__project_html"><div class="ttname"><a href="structyaze__project.html">yaze_project</a></div><div class="ttdef"><b>Definition</b> <a href="yaze_8h_source.html#l00034">yaze.h:34</a></div></div>
 <div class="ttc" id="astructyaze__project_html_ab66490373523b4ddeaf85881857022f2"><div class="ttname"><a href="structyaze__project.html#ab66490373523b4ddeaf85881857022f2">yaze_project::rom_filename</a></div><div class="ttdeci">const char * rom_filename</div><div class="ttdef"><b>Definition</b> <a href="yaze_8h_source.html#l00037">yaze.h:37</a></div></div>
 <div class="ttc" id="astructyaze__project_html_aece42ca37a5482a6207c8dd6cb5956b4"><div class="ttname"><a href="structyaze__project.html#aece42ca37a5482a6207c8dd6cb5956b4">yaze_project::filepath</a></div><div class="ttdeci">const char * filepath</div><div class="ttdef"><b>Definition</b> <a href="yaze_8h_source.html#l00036">yaze.h:36</a></div></div>
+<div class="ttc" id="astructz3__dungeon__room_html"><div class="ttname"><a href="structz3__dungeon__room.html">z3_dungeon_room</a></div><div class="ttdef"><b>Definition</b> <a href="dungeon_8h_source.html#l00057">dungeon.h:57</a></div></div>
 <div class="ttc" id="astructz3__overworld__map_html_a2cf3a34c1089178933e2f8e46ef938c3"><div class="ttname"><a href="structz3__overworld__map.html#a2cf3a34c1089178933e2f8e46ef938c3">z3_overworld_map::id</a></div><div class="ttdeci">uint8_t id</div><div class="ttdef"><b>Definition</b> <a href="incl_2overworld_8h_source.html#l00016">overworld.h:16</a></div></div>
 <div class="ttc" id="astructz3__overworld_html"><div class="ttname"><a href="structz3__overworld.html">z3_overworld</a></div><div class="ttdoc">Primitive of the overworld.</div><div class="ttdef"><b>Definition</b> <a href="incl_2overworld_8h_source.html#l00033">overworld.h:33</a></div></div>
 <div class="ttc" id="astructz3__overworld_html_a13da5630932291eaed93b6a173359f74"><div class="ttname"><a href="structz3__overworld.html#a13da5630932291eaed93b6a173359f74">z3_overworld::impl</a></div><div class="ttdeci">void * impl</div><div class="ttdef"><b>Definition</b> <a href="incl_2overworld_8h_source.html#l00034">overworld.h:34</a></div></div>
@@ -286,15 +300,16 @@ $(function(){initNavTree('yaze_8cc_source.html',''); initResizable(true); });
 <div class="ttc" id="astructz3__rom_html_a45e40fd103967152330133b0f3c803d2"><div class="ttname"><a href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">z3_rom::impl</a></div><div class="ttdeci">void * impl</div><div class="ttdef"><b>Definition</b> <a href="yaze_8h_source.html#l00048">yaze.h:48</a></div></div>
 <div class="ttc" id="astructz3__rom_html_a5f9ea7b175b6c9c43a2a5efec5a1fd5c"><div class="ttname"><a href="structz3__rom.html#a5f9ea7b175b6c9c43a2a5efec5a1fd5c">z3_rom::size</a></div><div class="ttdeci">size_t size</div><div class="ttdef"><b>Definition</b> <a href="yaze_8h_source.html#l00047">yaze.h:47</a></div></div>
 <div class="ttc" id="astructz3__rom_html_aebb69d9d2a7965247b86f454c54d4fa4"><div class="ttname"><a href="structz3__rom.html#aebb69d9d2a7965247b86f454c54d4fa4">z3_rom::data</a></div><div class="ttdeci">const uint8_t * data</div><div class="ttdef"><b>Definition</b> <a href="yaze_8h_source.html#l00046">yaze.h:46</a></div></div>
-<div class="ttc" id="ayaze_8cc_html_a0a0de1f1ac633141312ab7e267fff4c4"><div class="ttname"><a href="yaze_8cc.html#a0a0de1f1ac633141312ab7e267fff4c4">yaze_cleanup</a></div><div class="ttdeci">void yaze_cleanup(yaze_editor_context *yaze_ctx)</div><div class="ttdef"><b>Definition</b> <a href="#l00031">yaze.cc:31</a></div></div>
-<div class="ttc" id="ayaze_8cc_html_a25bf6669809ad5e1ae299014a5f6fd0a"><div class="ttname"><a href="yaze_8cc.html#a25bf6669809ad5e1ae299014a5f6fd0a">yaze_load_bitmap</a></div><div class="ttdeci">yaze_bitmap yaze_load_bitmap(const char *filename)</div><div class="ttdef"><b>Definition</b> <a href="#l00069">yaze.cc:69</a></div></div>
-<div class="ttc" id="ayaze_8cc_html_a883ab5865f5e61a639dc3dafcd45e8c7"><div class="ttname"><a href="yaze_8cc.html#a883ab5865f5e61a639dc3dafcd45e8c7">yaze_unload_rom</a></div><div class="ttdeci">void yaze_unload_rom(z3_rom *rom)</div><div class="ttdef"><b>Definition</b> <a href="#l00059">yaze.cc:59</a></div></div>
-<div class="ttc" id="ayaze_8cc_html_a9fff64bba6ed578ae091960204b84648"><div class="ttname"><a href="yaze_8cc.html#a9fff64bba6ed578ae091960204b84648">yaze_check_version</a></div><div class="ttdeci">void yaze_check_version(const char *version)</div><div class="ttdef"><b>Definition</b> <a href="#l00008">yaze.cc:8</a></div></div>
-<div class="ttc" id="ayaze_8cc_html_ac1b3f6a8db6317860537e91d20a2c7f5"><div class="ttname"><a href="yaze_8cc.html#ac1b3f6a8db6317860537e91d20a2c7f5">yaze_load_overworld</a></div><div class="ttdeci">z3_overworld * yaze_load_overworld(const z3_rom *rom)</div><div class="ttdef"><b>Definition</b> <a href="#l00103">yaze.cc:103</a></div></div>
-<div class="ttc" id="ayaze_8cc_html_ac6958144cc1209550c0f77e8dce0b8d3"><div class="ttname"><a href="yaze_8cc.html#ac6958144cc1209550c0f77e8dce0b8d3">yaze_load_project</a></div><div class="ttdeci">yaze_project yaze_load_project(const char *filename)</div><div class="ttdef"><b>Definition</b> <a href="#l00037">yaze.cc:37</a></div></div>
-<div class="ttc" id="ayaze_8cc_html_adfaf105df03accd07b94f1e60c6ed8bf"><div class="ttname"><a href="yaze_8cc.html#adfaf105df03accd07b94f1e60c6ed8bf">yaze_load_rom</a></div><div class="ttdeci">z3_rom * yaze_load_rom(const char *filename)</div><div class="ttdef"><b>Definition</b> <a href="#l00043">yaze.cc:43</a></div></div>
-<div class="ttc" id="ayaze_8cc_html_adfb236b5541502ced4544a6678e79d0e"><div class="ttname"><a href="yaze_8cc.html#adfb236b5541502ced4544a6678e79d0e">yaze_get_color_from_paletteset</a></div><div class="ttdeci">snes_color yaze_get_color_from_paletteset(const z3_rom *rom, int palette_set, int palette, int color)</div><div class="ttdef"><b>Definition</b> <a href="#l00078">yaze.cc:78</a></div></div>
-<div class="ttc" id="ayaze_8cc_html_af1bd2705b6539a4d10490495d2fdde4b"><div class="ttname"><a href="yaze_8cc.html#af1bd2705b6539a4d10490495d2fdde4b">yaze_init</a></div><div class="ttdeci">int yaze_init(yaze_editor_context *yaze_ctx)</div><div class="ttdef"><b>Definition</b> <a href="#l00018">yaze.cc:18</a></div></div>
+<div class="ttc" id="ayaze_8cc_html_a0a0de1f1ac633141312ab7e267fff4c4"><div class="ttname"><a href="yaze_8cc.html#a0a0de1f1ac633141312ab7e267fff4c4">yaze_cleanup</a></div><div class="ttdeci">void yaze_cleanup(yaze_editor_context *yaze_ctx)</div><div class="ttdef"><b>Definition</b> <a href="#l00032">yaze.cc:32</a></div></div>
+<div class="ttc" id="ayaze_8cc_html_a25bf6669809ad5e1ae299014a5f6fd0a"><div class="ttname"><a href="yaze_8cc.html#a25bf6669809ad5e1ae299014a5f6fd0a">yaze_load_bitmap</a></div><div class="ttdeci">yaze_bitmap yaze_load_bitmap(const char *filename)</div><div class="ttdef"><b>Definition</b> <a href="#l00070">yaze.cc:70</a></div></div>
+<div class="ttc" id="ayaze_8cc_html_a883ab5865f5e61a639dc3dafcd45e8c7"><div class="ttname"><a href="yaze_8cc.html#a883ab5865f5e61a639dc3dafcd45e8c7">yaze_unload_rom</a></div><div class="ttdeci">void yaze_unload_rom(z3_rom *rom)</div><div class="ttdef"><b>Definition</b> <a href="#l00060">yaze.cc:60</a></div></div>
+<div class="ttc" id="ayaze_8cc_html_a8d29474bdfecb254378a3a188c516d37"><div class="ttname"><a href="yaze_8cc.html#a8d29474bdfecb254378a3a188c516d37">yaze_load_all_rooms</a></div><div class="ttdeci">z3_dungeon_room * yaze_load_all_rooms(const z3_rom *rom)</div><div class="ttdef"><b>Definition</b> <a href="#l00126">yaze.cc:126</a></div></div>
+<div class="ttc" id="ayaze_8cc_html_a9fff64bba6ed578ae091960204b84648"><div class="ttname"><a href="yaze_8cc.html#a9fff64bba6ed578ae091960204b84648">yaze_check_version</a></div><div class="ttdeci">void yaze_check_version(const char *version)</div><div class="ttdef"><b>Definition</b> <a href="#l00009">yaze.cc:9</a></div></div>
+<div class="ttc" id="ayaze_8cc_html_ac1b3f6a8db6317860537e91d20a2c7f5"><div class="ttname"><a href="yaze_8cc.html#ac1b3f6a8db6317860537e91d20a2c7f5">yaze_load_overworld</a></div><div class="ttdeci">z3_overworld * yaze_load_overworld(const z3_rom *rom)</div><div class="ttdef"><b>Definition</b> <a href="#l00104">yaze.cc:104</a></div></div>
+<div class="ttc" id="ayaze_8cc_html_ac6958144cc1209550c0f77e8dce0b8d3"><div class="ttname"><a href="yaze_8cc.html#ac6958144cc1209550c0f77e8dce0b8d3">yaze_load_project</a></div><div class="ttdeci">yaze_project yaze_load_project(const char *filename)</div><div class="ttdef"><b>Definition</b> <a href="#l00038">yaze.cc:38</a></div></div>
+<div class="ttc" id="ayaze_8cc_html_adfaf105df03accd07b94f1e60c6ed8bf"><div class="ttname"><a href="yaze_8cc.html#adfaf105df03accd07b94f1e60c6ed8bf">yaze_load_rom</a></div><div class="ttdeci">z3_rom * yaze_load_rom(const char *filename)</div><div class="ttdef"><b>Definition</b> <a href="#l00044">yaze.cc:44</a></div></div>
+<div class="ttc" id="ayaze_8cc_html_adfb236b5541502ced4544a6678e79d0e"><div class="ttname"><a href="yaze_8cc.html#adfb236b5541502ced4544a6678e79d0e">yaze_get_color_from_paletteset</a></div><div class="ttdeci">snes_color yaze_get_color_from_paletteset(const z3_rom *rom, int palette_set, int palette, int color)</div><div class="ttdef"><b>Definition</b> <a href="#l00079">yaze.cc:79</a></div></div>
+<div class="ttc" id="ayaze_8cc_html_af1bd2705b6539a4d10490495d2fdde4b"><div class="ttname"><a href="yaze_8cc.html#af1bd2705b6539a4d10490495d2fdde4b">yaze_init</a></div><div class="ttdeci">int yaze_init(yaze_editor_context *yaze_ctx)</div><div class="ttdef"><b>Definition</b> <a href="#l00019">yaze.cc:19</a></div></div>
 <div class="ttc" id="ayaze_8h_html"><div class="ttname"><a href="yaze_8h.html">yaze.h</a></div></div>
 <div class="ttc" id="ayaze_8h_html_ac77c4e371c3965f72bf4ac3321600f54"><div class="ttname"><a href="yaze_8h.html#ac77c4e371c3965f72bf4ac3321600f54">z3_rom</a></div><div class="ttdeci">struct z3_rom z3_rom</div><div class="ttdef"><b>Definition</b> <a href="yaze_8h_source.html#l00016">yaze.h:16</a></div></div>
 </div><!-- fragment --></div><!-- contents -->

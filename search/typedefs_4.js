@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['editorlayoutparams_0',['EditorLayoutParams',['../namespaceyaze_1_1editor.html#a7ebb16ec49e31436aea93da04fb5f4d8',1,'yaze::editor']]]
+  ['folderitem_0',['FolderItem',['../namespaceyaze_1_1core.html#a778013ae3dbd2be64704b0eb01769d91',1,'yaze::core']]]
 ];

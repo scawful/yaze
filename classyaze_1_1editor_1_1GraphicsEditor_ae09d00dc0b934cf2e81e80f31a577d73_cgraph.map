@@ -14,7 +14,7 @@
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="330,289,347,242,375,180,414,115,439,84,466,57,482,46,486,50,470,61,443,88,419,118,379,182,352,244,335,291"/>
 <area shape="rect" id="Node000007" href="$classyaze_1_1gfx_1_1Bitmap.html#aa23cce9444734c2f59a1b35defabe716" title="Creates a bitmap object with the provided graphical data." alt="" coords="498,95,621,135"/>
 <area shape="poly" id="edge3_Node000002_Node000007" title=" " alt="" coords="337,288,389,219,425,180,466,146,482,137,485,141,470,151,429,184,393,223,341,292"/>
-<area shape="rect" id="Node000012" href="$classyaze_1_1Rom.html#a236fc04c8575b9913db77b8cd5dea273" title=" " alt="" coords="504,478,615,504"/>
+<area shape="rect" id="Node000012" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="504,478,615,504"/>
 <area shape="poly" id="edge5_Node000002_Node000012" title=" " alt="" coords="389,330,422,353,433,368,440,383,445,412,451,439,458,452,470,465,491,478,488,482,466,469,454,455,446,441,440,413,435,385,429,371,418,357,386,334"/>
 <area shape="rect" id="Node000013" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#a4e2e79a02c9bbff8d9720d6384296218" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="502,160,617,201"/>
 <area shape="poly" id="edge6_Node000002_Node000013" title=" " alt="" coords="351,288,403,250,467,211,487,202,489,207,469,216,406,255,354,292"/>

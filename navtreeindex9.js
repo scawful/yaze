@@ -1,13 +1,5 @@
 var NAVTREEINDEX9 =
 {
-"classyaze_1_1emu_1_1Cpu.html#ac7a781be2cd56fdb27bb1eca09d8bbdc":[11,0,0,3,6,203],
-"classyaze_1_1emu_1_1Cpu.html#ac7afc34d31e69fa063ddf4c854031cc7":[10,0,1,4,8,61],
-"classyaze_1_1emu_1_1Cpu.html#ac7afc34d31e69fa063ddf4c854031cc7":[11,0,0,3,6,61],
-"classyaze_1_1emu_1_1Cpu.html#ac86865e509992c77195e34581eb14a4f":[10,0,1,4,8,88],
-"classyaze_1_1emu_1_1Cpu.html#ac86865e509992c77195e34581eb14a4f":[11,0,0,3,6,88],
-"classyaze_1_1emu_1_1Cpu.html#acaea1eee9868075c35fc6fc30472dd76":[10,0,1,4,8,110],
-"classyaze_1_1emu_1_1Cpu.html#acaea1eee9868075c35fc6fc30472dd76":[11,0,0,3,6,110],
-"classyaze_1_1emu_1_1Cpu.html#acbdbeaa61ec026582d69a2558c9b14dd":[10,0,1,4,8,101],
 "classyaze_1_1emu_1_1Cpu.html#acbdbeaa61ec026582d69a2558c9b14dd":[11,0,0,3,6,101],
 "classyaze_1_1emu_1_1Cpu.html#acc444d43210855857a03f377679e3df2":[10,0,1,4,8,232],
 "classyaze_1_1emu_1_1Cpu.html#acc444d43210855857a03f377679e3df2":[11,0,0,3,6,232],
@@ -249,5 +241,13 @@ var NAVTREEINDEX9 =
 "classyaze_1_1emu_1_1SNES.html#a5a035b1abc2c08d4eb7122560844e3cd":[11,0,0,3,13,59],
 "classyaze_1_1emu_1_1SNES.html#a5a69a232050cfcfeeccc894fc9954b2c":[10,0,1,4,15,19],
 "classyaze_1_1emu_1_1SNES.html#a5a69a232050cfcfeeccc894fc9954b2c":[11,0,0,3,13,19],
-"classyaze_1_1emu_1_1SNES.html#a5b37d45a0ee9691770167415d36f5332":[10,0,1,4,15,6]
+"classyaze_1_1emu_1_1SNES.html#a5b37d45a0ee9691770167415d36f5332":[10,0,1,4,15,6],
+"classyaze_1_1emu_1_1SNES.html#a5b37d45a0ee9691770167415d36f5332":[11,0,0,3,13,6],
+"classyaze_1_1emu_1_1SNES.html#a5ed06393084d4bd5ea4f322f8f891057":[10,0,1,4,15,13],
+"classyaze_1_1emu_1_1SNES.html#a5ed06393084d4bd5ea4f322f8f891057":[11,0,0,3,13,13],
+"classyaze_1_1emu_1_1SNES.html#a6a2046d0d870ab3084857b7d2a8cdf66":[10,0,1,4,15,24],
+"classyaze_1_1emu_1_1SNES.html#a6a2046d0d870ab3084857b7d2a8cdf66":[11,0,0,3,13,24],
+"classyaze_1_1emu_1_1SNES.html#a744f1f174ee7a11542106d7316549b87":[10,0,1,4,15,12],
+"classyaze_1_1emu_1_1SNES.html#a744f1f174ee7a11542106d7316549b87":[11,0,0,3,13,12],
+"classyaze_1_1emu_1_1SNES.html#a75f2f039a77d118a971242a97f709803":[10,0,1,4,15,7]
 };

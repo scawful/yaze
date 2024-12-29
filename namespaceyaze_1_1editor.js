@@ -26,7 +26,6 @@ var namespaceyaze_1_1editor =
     [ "DungeonEditor", "classyaze_1_1editor_1_1DungeonEditor.html", "classyaze_1_1editor_1_1DungeonEditor" ],
     [ "Editor", "classyaze_1_1editor_1_1Editor.html", "classyaze_1_1editor_1_1Editor" ],
     [ "EditorContext", "structyaze_1_1editor_1_1EditorContext.html", "structyaze_1_1editor_1_1EditorContext" ],
-    [ "EditorLayoutParams", "structyaze_1_1editor_1_1EditorLayoutParams.html", "structyaze_1_1editor_1_1EditorLayoutParams" ],
     [ "EditorManager", "classyaze_1_1editor_1_1EditorManager.html", "classyaze_1_1editor_1_1EditorManager" ],
     [ "EntranceContext", "classyaze_1_1editor_1_1EntranceContext.html", "classyaze_1_1editor_1_1EntranceContext" ],
     [ "ExampleAppPropertyEditor", "structyaze_1_1editor_1_1ExampleAppPropertyEditor.html", "structyaze_1_1editor_1_1ExampleAppPropertyEditor" ],
@@ -52,7 +51,6 @@ var namespaceyaze_1_1editor =
     [ "SpriteItem", "structyaze_1_1editor_1_1SpriteItem.html", "structyaze_1_1editor_1_1SpriteItem" ],
     [ "TextElement", "structyaze_1_1editor_1_1TextElement.html", "structyaze_1_1editor_1_1TextElement" ],
     [ "Tile16Editor", "classyaze_1_1editor_1_1Tile16Editor.html", "classyaze_1_1editor_1_1Tile16Editor" ],
-    [ "EditorLayoutParams", "namespaceyaze_1_1editor.html#a7ebb16ec49e31436aea93da04fb5f4d8", null ],
     [ "EditorType", "namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622a", [
       [ "kAssembly", "namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aab686a008a9fc3fe70222034bef987ced", null ],
       [ "kDungeon", "namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa773324726da2f589c757da4c39336156", null ],
@@ -72,7 +70,6 @@ var namespaceyaze_1_1editor =
       [ "MyItemColumnID_Quantity", "namespaceyaze_1_1editor.html#ae140ba674954cd458242f15e846c1756abba025e8b1647f3e5b4c3e78429e3e3f", null ],
       [ "MyItemColumnID_Description", "namespaceyaze_1_1editor.html#ae140ba674954cd458242f15e846c1756a65853caa51a38e7a70378dd42bce4ad5", null ]
     ] ],
-    [ "DrawEditor", "namespaceyaze_1_1editor.html#a0bb7517b00707e1ed57d9540e826b695", null ],
     [ "DisplayPalette", "namespaceyaze_1_1editor.html#a8657cfd46f4a80e164e0b2331c98ad98", null ],
     [ "FindMatchingCharacter", "namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c", null ],
     [ "FindDictionaryEntry", "namespaceyaze_1_1editor.html#a5f97797d62d6b1878a3b80aac1be3781", null ],

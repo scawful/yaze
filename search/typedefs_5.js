@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['folderitem_0',['FolderItem',['../namespaceyaze_1_1core.html#a778013ae3dbd2be64704b0eb01769d91',1,'yaze::core']]]
+  ['itemlabelflags_0',['ItemLabelFlags',['../namespaceyaze_1_1gui.html#a5099466527c2ee2b4d9013b4eb50f12f',1,'yaze::gui']]]
 ];

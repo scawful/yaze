@@ -1,12 +1,5 @@
 var NAVTREEINDEX39 =
 {
-"namespaceyaze_1_1test_1_1emu.html#a4d9f0c87b76e14acdf1f929931de9385":[10,0,1,7,0,211],
-"namespaceyaze_1_1test_1_1emu.html#a5096f680abe420f269732e71bd84233a":[10,0,1,7,0,21],
-"namespaceyaze_1_1test_1_1emu.html#a510fac6a0f390db560e0e7a91149da25":[10,0,1,7,0,241],
-"namespaceyaze_1_1test_1_1emu.html#a5118e84aac78322c99a306247f22180b":[10,0,1,7,0,120],
-"namespaceyaze_1_1test_1_1emu.html#a5136eb45156663aa3491d19a52ea2f13":[10,0,1,7,0,66],
-"namespaceyaze_1_1test_1_1emu.html#a51c50173859c93fa9a378f1eeaadf955":[10,0,1,7,0,193],
-"namespaceyaze_1_1test_1_1emu.html#a53bf24bbac6a3f7717af710ca2fec567":[10,0,1,7,0,84],
 "namespaceyaze_1_1test_1_1emu.html#a544badfc775589ed3c94e706290eaec8":[10,0,1,7,0,257],
 "namespaceyaze_1_1test_1_1emu.html#a553d87a1b49f277bd197388972e3c54d":[10,0,1,7,0,205],
 "namespaceyaze_1_1test_1_1emu.html#a55a94a1b20bfa274e58a7c4fe7f861cb":[10,0,1,7,0,149],
@@ -249,5 +242,12 @@ var NAVTREEINDEX39 =
 "namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#a019743e9ff4f1e4dba0d326b1b9a233b":[10,0,1,7,1,0,6],
 "namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#a06283a3f6164333bb7526f5eb6715af1":[10,0,1,7,1,0,1],
 "namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#a7e61b801ab6ab1acffe01cbed90902ed":[10,0,1,7,1,0,0],
-"namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#a804c98e5473ed6d7a93336ec135f4051":[10,0,1,7,1,0,4]
+"namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#a804c98e5473ed6d7a93336ec135f4051":[10,0,1,7,1,0,4],
+"namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#ab9aca8e4864b366e1f45a11590a5a525":[10,0,1,7,1,0,5],
+"namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#ac45cf5dbe79ff7777896b2ca53a7dfd9":[10,0,1,7,1,0,3],
+"namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#ad3649d55dea19b8ed440734fbb79bdba":[10,0,1,7,1,0,2],
+"namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02snes__palette__test_8cc_03.html":[10,0,1,7,1,1],
+"namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02snes__palette__test_8cc_03.html#acea8b03c2b4a110b7e0f628117da3806":[10,0,1,7,1,1,0],
+"namespaceyaze_1_1test_1_1integration.html":[10,0,1,7,2],
+"namespaceyaze_1_1test_1_1integration.html#a5a0d488d0d7c641874f7b8664f5f60d3":[10,0,1,7,2,1]
 };

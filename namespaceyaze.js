@@ -24,6 +24,7 @@ var namespaceyaze =
       [ "SD", "namespaceyaze.html#a74d8c95a7cc3ccb2b53a1902bbd1c3eca38f99abbc1d339c277c0669e7bc373c0", null ],
       [ "RANDO", "namespaceyaze.html#a74d8c95a7cc3ccb2b53a1902bbd1c3eca9cffbad7f42a5a6e18e4a9431187b051", null ]
     ] ],
+    [ "Load2BppGraphics", "namespaceyaze.html#a3167c1c857f5e405cb39a492529d6557", null ],
     [ "kRecentFilesFilename", "namespaceyaze.html#adc07abaabd36d08f9073b9229ddc5f57", null ],
     [ "kEndOfProjectFile", "namespaceyaze.html#a12ad99b5f6533ab824bad2e024695895", null ],
     [ "Uncompressed3BPPSize", "namespaceyaze.html#a4bbce00b63ec6bcfb30ea0630e4f8893", null ],

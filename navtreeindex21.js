@@ -1,13 +1,5 @@
 var NAVTREEINDEX21 =
 {
-"classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html#a2f289ad457651a9fd9c1cfe06e1fc7df":[11,0,0,7,2,4,11],
-"classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32c24790302f1c591c611cdde30f8946":[10,0,1,8,3,6,24],
-"classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32c24790302f1c591c611cdde30f8946":[11,0,0,7,2,4,24],
-"classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html#a40d1d4806822c0a886415f4d33a5ffce":[10,0,1,8,3,6,36],
-"classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html#a40d1d4806822c0a886415f4d33a5ffce":[11,0,0,7,2,4,36],
-"classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html#a47de8dbfd26f1c1dc3b7e589406dd520":[10,0,1,8,3,6,32],
-"classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html#a47de8dbfd26f1c1dc3b7e589406dd520":[11,0,0,7,2,4,32],
-"classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html#a48b5c9a789f11624031216f235d5fac2":[10,0,1,8,3,6,28],
 "classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html#a48b5c9a789f11624031216f235d5fac2":[11,0,0,7,2,4,28],
 "classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html#a4edec38338930f5283512417e7f1b32c":[10,0,1,8,3,6,7],
 "classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html#a4edec38338930f5283512417e7f1b32c":[11,0,0,7,2,4,7],
@@ -249,5 +241,13 @@ var NAVTREEINDEX21 =
 "classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#ae130d53a27114ae9b9ddd047326527fc":[11,0,0,7,3,2,34],
 "classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#ae86a04d9de15706c8061402050e79892":[10,0,1,8,4,2,39],
 "classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#ae86a04d9de15706c8061402050e79892":[11,0,0,7,3,2,39],
-"classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#af2320722cfa758c75c24dd9359a9a5f8":[10,0,1,8,4,2,35]
+"classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#af2320722cfa758c75c24dd9359a9a5f8":[10,0,1,8,4,2,35],
+"classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#af2320722cfa758c75c24dd9359a9a5f8":[11,0,0,7,3,2,35],
+"classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#af731a5e1858feda21ceac5635b98fa36":[10,0,1,8,4,2,1],
+"classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#af731a5e1858feda21ceac5635b98fa36":[11,0,0,7,3,2,1],
+"classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#af8c60ea11ae03ec0cfeceb14fd40dc2c":[10,0,1,8,4,2,3],
+"classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#af8c60ea11ae03ec0cfeceb14fd40dc2c":[11,0,0,7,3,2,3],
+"clipboard_8cc.html":[12,0,2,0,0,0,2],
+"clipboard_8cc.html#a224033814dd0a65e514ab48d90bcc550":[12,0,2,0,0,0,2,1],
+"clipboard_8cc.html#a421cc759aa63272bf0079eddf0d32eac":[12,0,2,0,0,0,2,0]
 };

@@ -8,7 +8,7 @@ var dir_767a2d6ce89f966c317c25dc7e3aed5d =
     [ "overworld", "dir_2a6e74d3eed253325bbc2e3058622b3c.html", "dir_2a6e74d3eed253325bbc2e3058622b3c" ],
     [ "sprite", "dir_d61788e60caad948d761f6bd7dfa638e.html", "dir_d61788e60caad948d761f6bd7dfa638e" ],
     [ "system", "dir_6786299e5fb540707e8551af9d97f855.html", "dir_6786299e5fb540707e8551af9d97f855" ],
-    [ "editor.cc", "editor_8cc.html", "editor_8cc" ],
+    [ "editor.cc", "editor_8cc.html", null ],
     [ "editor.h", "editor_8h.html", "editor_8h" ],
     [ "editor_manager.cc", "editor__manager_8cc.html", "editor__manager_8cc" ],
     [ "editor_manager.h", "editor__manager_8h.html", "editor__manager_8h" ]

@@ -1,13 +1,5 @@
 var NAVTREEINDEX15 =
 {
-"classyaze_1_1gfx_1_1OamTile.html#a9bcd9f22e517cb53e23d84b192c9549f":[11,0,0,4,5,6],
-"classyaze_1_1gfx_1_1OamTile.html#aae2b4b8cc136583c9f882356ac719a2e":[10,0,1,5,7,5],
-"classyaze_1_1gfx_1_1OamTile.html#aae2b4b8cc136583c9f882356ac719a2e":[11,0,0,4,5,5],
-"classyaze_1_1gfx_1_1OamTile.html#ad442d65a82e6cfd884c6b42821cfdf05":[10,0,1,5,7,1],
-"classyaze_1_1gfx_1_1OamTile.html#ad442d65a82e6cfd884c6b42821cfdf05":[11,0,0,4,5,1],
-"classyaze_1_1gfx_1_1OamTile.html#aeb7206bd44dd582356ac36a473f2ff49":[10,0,1,5,7,0],
-"classyaze_1_1gfx_1_1OamTile.html#aeb7206bd44dd582356ac36a473f2ff49":[11,0,0,4,5,0],
-"classyaze_1_1gfx_1_1OamTile.html#af278ecefff462d75dea92bce9f30d0a1":[10,0,1,5,7,2],
 "classyaze_1_1gfx_1_1OamTile.html#af278ecefff462d75dea92bce9f30d0a1":[11,0,0,4,5,2],
 "classyaze_1_1gfx_1_1OamTile.html#afcd5a1447cf2a01155852181adba4ab9":[10,0,1,5,7,7],
 "classyaze_1_1gfx_1_1OamTile.html#afcd5a1447cf2a01155852181adba4ab9":[11,0,0,4,5,7],
@@ -249,5 +241,13 @@ var NAVTREEINDEX15 =
 "classyaze_1_1gui_1_1Canvas.html#a1221d849ae979959f6286af950ea68cd":[11,0,0,5,2,51],
 "classyaze_1_1gui_1_1Canvas.html#a138ae62c6eb5f771385aa7e6b2f8ebbd":[10,0,1,6,3,49],
 "classyaze_1_1gui_1_1Canvas.html#a138ae62c6eb5f771385aa7e6b2f8ebbd":[11,0,0,5,2,49],
-"classyaze_1_1gui_1_1Canvas.html#a138da043a8552c3c599baff50cf9842f":[10,0,1,6,3,47]
+"classyaze_1_1gui_1_1Canvas.html#a138da043a8552c3c599baff50cf9842f":[10,0,1,6,3,47],
+"classyaze_1_1gui_1_1Canvas.html#a138da043a8552c3c599baff50cf9842f":[11,0,0,5,2,47],
+"classyaze_1_1gui_1_1Canvas.html#a18c23ae6c77304ccf244e8dfc7f382f6":[10,0,1,6,3,64],
+"classyaze_1_1gui_1_1Canvas.html#a18c23ae6c77304ccf244e8dfc7f382f6":[11,0,0,5,2,64],
+"classyaze_1_1gui_1_1Canvas.html#a191f7e8fa4df5626e84c941eaf32da2a":[10,0,1,6,3,53],
+"classyaze_1_1gui_1_1Canvas.html#a191f7e8fa4df5626e84c941eaf32da2a":[11,0,0,5,2,53],
+"classyaze_1_1gui_1_1Canvas.html#a20b494ea3673042cdb4b7100c2515b83":[10,0,1,6,3,35],
+"classyaze_1_1gui_1_1Canvas.html#a20b494ea3673042cdb4b7100c2515b83":[11,0,0,5,2,35],
+"classyaze_1_1gui_1_1Canvas.html#a264e8936d5fbfced7cae5fa971608e67":[10,0,1,6,3,89]
 };

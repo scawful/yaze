@@ -1,6 +1,6 @@
 <map id="yaze::editor::GraphicsEditor::DrawTilemapImport" name="yaze::editor::GraphicsEditor::DrawTilemapImport">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,112,182,153"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a236fc04c8575b9913db77b8cd5dea273" title=" " alt="" coords="269,5,380,31"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="269,5,380,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,110,168,75,229,41,254,32,256,37,231,46,171,79,122,114"/>
 <area shape="rect" id="Node000003" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#a4e2e79a02c9bbff8d9720d6384296218" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="267,55,382,96"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="177,109,252,91,253,96,179,115"/>

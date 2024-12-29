@@ -10,6 +10,7 @@ var rom_8h =
       [ "SD", "rom_8h.html#a74d8c95a7cc3ccb2b53a1902bbd1c3eca38f99abbc1d339c277c0669e7bc373c0", null ],
       [ "RANDO", "rom_8h.html#a74d8c95a7cc3ccb2b53a1902bbd1c3eca9cffbad7f42a5a6e18e4a9431187b051", null ]
     ] ],
+    [ "Load2BppGraphics", "rom_8h.html#a3167c1c857f5e405cb39a492529d6557", null ],
     [ "kNumGfxSheets", "rom_8h.html#ac71d5970d234195c079f64f1a56e4522", null ],
     [ "kNumLinkSheets", "rom_8h.html#a51ca5df538b7f54c045a80783c02b102", null ],
     [ "kTile16Ptr", "rom_8h.html#a928bdc81237834754dbac3f20bde2dca", null ],

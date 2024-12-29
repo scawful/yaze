@@ -1,23 +1,21 @@
 <map id="yaze::editor::EditorManager::SetupScreen" name="yaze::editor::EditorManager::SetupScreen">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,209,180,250"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1EditorManager.html#ab8567f3803a45b7844cf0dd84ac5171a" title=" " alt="" coords="232,71,406,111"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,207,270,117,273,122,129,211"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1editor_1_1OverworldEditor.html#a386afb0584d9be9f55c6729605dbb02c" title=" " alt="" coords="228,209,411,250"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="180,227,212,227,212,232,180,232"/>
-<area shape="rect" id="Node000016" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="245,298,394,324"/>
-<area shape="poly" id="edge10_Node000001_Node000016" title=" " alt="" coords="152,248,268,290,266,295,151,253"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,144,180,185"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1EditorManager.html#ab8567f3803a45b7844cf0dd84ac5171a" title=" " alt="" coords="232,43,406,83"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,141,257,88,259,93,141,146"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1OverworldEditor.html#a386afb0584d9be9f55c6729605dbb02c" title=" " alt="" coords="228,144,411,185"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="180,162,212,162,212,167,180,167"/>
+<area shape="rect" id="Node000015" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="245,233,394,258"/>
+<area shape="poly" id="edge9_Node000001_Node000015" title=" " alt="" coords="152,183,268,225,266,230,151,188"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1CommandManager.html#af5247ae93da62616f4cfd919cf4807b6" title=" " alt="" coords="459,5,659,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="396,68,467,48,468,53,397,73"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1CommandManager.html#a25e8989c2bafc7b9c6689fb1984cad00" title=" " alt="" coords="459,71,659,111"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="407,88,444,88,444,94,407,94"/>
-<area shape="rect" id="Node000006" href="$namespaceyaze_1_1gui_1_1zeml.html#a9a1ab3a01c40a1afa16a2c456ca7b282" title="Bind a callback to a node." alt="" coords="492,136,627,161"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="367,206,458,171,484,163,486,168,460,176,368,211"/>
-<area shape="rect" id="Node000007" href="$structyaze_1_1gui_1_1zeml_1_1Node.html#a24675ce0db014a96980005ed77a9cbd5" title=" " alt="" coords="489,209,629,250"/>
-<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="411,227,474,227,474,232,411,232"/>
-<area shape="rect" id="Node000008" href="$namespaceyaze_1_1gui_1_1zeml.html#a970f74b3460aaf645f0a45e0a4f561aa" title=" " alt="" coords="480,274,639,300"/>
-<area shape="poly" id="edge8_Node000005_Node000008" title=" " alt="" coords="408,248,488,267,487,273,407,253"/>
-<area shape="rect" id="Node000010" href="$namespaceyaze_1_1gui_1_1zeml.html#aab61ea1476dc33d027a135004378e434" title="Parse a zeml string." alt="" coords="488,324,631,349"/>
-<area shape="poly" id="edge9_Node000005_Node000010" title=" " alt="" coords="392,248,413,259,428,273,437,286,446,298,460,310,474,317,472,322,458,315,442,302,433,289,424,276,409,264,389,253"/>
-<area shape="poly" id="edge7_Node000007_Node000007" title=" " alt="" coords="514,209,512,199,519,190,535,185,559,183,585,185,600,191,598,196,584,190,559,188,536,190,522,195,517,201,519,208"/>
-<area shape="poly" id="edge11_Node000016_Node000016" title=" " alt="" coords="282,299,274,290,279,280,294,274,319,272,347,274,361,281,359,286,346,279,319,277,295,279,282,284,280,289,286,296"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="407,47,443,41,444,46,407,52"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze_1_1gui_1_1zeml.html#a9a1ab3a01c40a1afa16a2c456ca7b282" title="Bind a callback to a node." alt="" coords="492,70,627,96"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="367,141,458,106,484,98,486,103,460,111,368,146"/>
+<area shape="rect" id="Node000006" href="$structyaze_1_1gui_1_1zeml_1_1Node.html#a24675ce0db014a96980005ed77a9cbd5" title=" " alt="" coords="489,144,629,185"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="411,162,474,162,474,167,411,167"/>
+<area shape="rect" id="Node000007" href="$namespaceyaze_1_1gui_1_1zeml.html#a970f74b3460aaf645f0a45e0a4f561aa" title=" " alt="" coords="480,209,639,234"/>
+<area shape="poly" id="edge7_Node000004_Node000007" title=" " alt="" coords="408,183,488,202,487,207,407,188"/>
+<area shape="rect" id="Node000009" href="$namespaceyaze_1_1gui_1_1zeml.html#aab61ea1476dc33d027a135004378e434" title="Parse a zeml string." alt="" coords="488,258,631,284"/>
+<area shape="poly" id="edge8_Node000004_Node000009" title=" " alt="" coords="392,183,413,194,428,207,437,221,446,233,460,245,474,252,472,256,458,249,442,237,433,224,424,211,409,199,389,188"/>
+<area shape="poly" id="edge6_Node000006_Node000006" title=" " alt="" coords="514,144,512,134,519,125,535,119,559,117,585,120,600,126,598,131,584,125,559,123,536,125,522,129,517,135,519,143"/>
+<area shape="poly" id="edge10_Node000015_Node000015" title=" " alt="" coords="282,234,274,224,279,214,294,208,319,206,347,209,361,216,359,220,346,214,319,211,295,214,282,218,280,224,286,231"/>
 </map>

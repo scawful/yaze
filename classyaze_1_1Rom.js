@@ -1,7 +1,6 @@
 var classyaze_1_1Rom =
 [
     [ "WriteAction", "structyaze_1_1Rom_1_1WriteAction.html", "structyaze_1_1Rom_1_1WriteAction" ],
-    [ "Load2BppGraphics", "classyaze_1_1Rom.html#a559bf01c97a2f806d5eefc22cf513818", null ],
     [ "LoadLinkGraphics", "classyaze_1_1Rom.html#a4e3853486ae87a090dfcab7f7c9b4861", null ],
     [ "LoadAllGraphicsData", "classyaze_1_1Rom.html#abe20ec61d5e00f6b0c015738530c22ab", null ],
     [ "LoadFromFile", "classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f", null ],
@@ -35,9 +34,10 @@ var classyaze_1_1Rom =
     [ "graphics_buffer", "classyaze_1_1Rom.html#a29d16ebe60373eea971fb9f0379217b9", null ],
     [ "title", "classyaze_1_1Rom.html#af5e08233e024cd447098ebdf21c76418", null ],
     [ "size", "classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777", null ],
+    [ "data", "classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d", null ],
+    [ "mutable_data", "classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6", null ],
     [ "begin", "classyaze_1_1Rom.html#a19913f4fd3c3cec9cd9d81794e53fa8d", null ],
     [ "end", "classyaze_1_1Rom.html#a3bb9d5c0738e212354b766df6d652b50", null ],
-    [ "data", "classyaze_1_1Rom.html#a236fc04c8575b9913db77b8cd5dea273", null ],
     [ "vector", "classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba", null ],
     [ "version", "classyaze_1_1Rom.html#a48f55ef3ea71d1982c2e8d8ae04d90d1", null ],
     [ "filename", "classyaze_1_1Rom.html#a35886abe051b67913a804e4cbfdc4207", null ],

@@ -135,6 +135,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1gui_1_1Canvas.html">Canvas</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents a canvas for drawing and manipulating graphics.  <a href="classyaze_1_1gui_1_1Canvas.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1gui_1_1Color.html">Color</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1gui_1_1DungeonAsset.html">DungeonAsset</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html">ExampleSelectionWithDeletion</a></td></tr>
@@ -179,16 +181,20 @@ Functions</h2></td></tr>
 <tr class="separator:a359973f01787648b92a53d2aa84120a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a134c6e6817a4a8332e3842e4b2cd01f6" id="r_a134c6e6817a4a8332e3842e4b2cd01f6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a134c6e6817a4a8332e3842e4b2cd01f6">BitmapCanvasPipeline</a> (<a class="el" href="classyaze_1_1gui_1_1Canvas.html">gui::Canvas</a> &amp;canvas, const <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &amp;bitmap, int width, int height, int tile_size, bool is_loaded, bool scrollbar, int canvas_id)</td></tr>
 <tr class="separator:a134c6e6817a4a8332e3842e4b2cd01f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5701723c5b90b6a84ae5125461e003b7" id="r_a5701723c5b90b6a84ae5125461e003b7"><td class="memItemLeft" align="right" valign="top">ImVec4&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5701723c5b90b6a84ae5125461e003b7">ConvertSnesColorToImVec4</a> (const <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &amp;color)</td></tr>
-<tr class="separator:a5701723c5b90b6a84ae5125461e003b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a856042a2733b59a0752f18f446344a64" id="r_a856042a2733b59a0752f18f446344a64"><td class="memItemLeft" align="right" valign="top">IMGUI_API bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a856042a2733b59a0752f18f446344a64">SnesColorButton</a> (absl::string_view id, <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &amp;color, ImGuiColorEditFlags flags, const ImVec2 &amp;size_arg)</td></tr>
-<tr class="separator:a856042a2733b59a0752f18f446344a64"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9994a20de7a55f2864dfaeb2167ed2dc" id="r_a9994a20de7a55f2864dfaeb2167ed2dc"><td class="memItemLeft" align="right" valign="top">IMGUI_API bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9994a20de7a55f2864dfaeb2167ed2dc">SnesColorEdit4</a> (absl::string_view label, <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> *color, ImGuiColorEditFlags flags)</td></tr>
-<tr class="separator:a9994a20de7a55f2864dfaeb2167ed2dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7133468eeb96ba6d81b2c91bc7118d1d" id="r_a7133468eeb96ba6d81b2c91bc7118d1d"><td class="memItemLeft" align="right" valign="top">ImVec4&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7133468eeb96ba6d81b2c91bc7118d1d">ConvertSnesColorToImVec4</a> (const <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a> &amp;color)</td></tr>
+<tr class="separator:a7133468eeb96ba6d81b2c91bc7118d1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1136a9ab95fd67e2ab97a00f59818ddb" id="r_a1136a9ab95fd67e2ab97a00f59818ddb"><td class="memItemLeft" align="right" valign="top">IMGUI_API bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1136a9ab95fd67e2ab97a00f59818ddb">SnesColorButton</a> (absl::string_view id, <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a> &amp;color, ImGuiColorEditFlags flags, const ImVec2 &amp;size_arg)</td></tr>
+<tr class="separator:a1136a9ab95fd67e2ab97a00f59818ddb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa32511a1a3eadf62366b193da8b5f3da" id="r_aa32511a1a3eadf62366b193da8b5f3da"><td class="memItemLeft" align="right" valign="top">IMGUI_API bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa32511a1a3eadf62366b193da8b5f3da">SnesColorEdit4</a> (absl::string_view label, <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a> *color, ImGuiColorEditFlags flags)</td></tr>
+<tr class="separator:aa32511a1a3eadf62366b193da8b5f3da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad259f657c6796cb84b6fa1ccb2fb6b7e" id="r_ad259f657c6796cb84b6fa1ccb2fb6b7e"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad259f657c6796cb84b6fa1ccb2fb6b7e">DisplayPalette</a> (<a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette, bool loaded)</td></tr>
 <tr class="separator:ad259f657c6796cb84b6fa1ccb2fb6b7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9f7caa95981f846c2eac84bff36b952d" id="r_a9f7caa95981f846c2eac84bff36b952d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9f7caa95981f846c2eac84bff36b952d">SelectablePalettePipeline</a> (uint64_t &amp;palette_id, bool &amp;refresh_graphics, <a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette)</td></tr>
 <tr class="separator:a9f7caa95981f846c2eac84bff36b952d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a2f4e28780bd8cf64f9d6e7b67be924" id="r_a0a2f4e28780bd8cf64f9d6e7b67be924"><td class="memItemLeft" align="right" valign="top">ImVec4&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0a2f4e28780bd8cf64f9d6e7b67be924">ConvertColorToImVec4</a> (const <a class="el" href="structyaze_1_1gui_1_1Color.html">Color</a> &amp;color)</td></tr>
+<tr class="separator:a0a2f4e28780bd8cf64f9d6e7b67be924"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab124e6bc45ea2b052653f4c9e2eeec42" id="r_ab124e6bc45ea2b052653f4c9e2eeec42"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab124e6bc45ea2b052653f4c9e2eeec42">ColorToHexString</a> (const <a class="el" href="structyaze_1_1gui_1_1Color.html">Color</a> &amp;color)</td></tr>
+<tr class="separator:ab124e6bc45ea2b052653f4c9e2eeec42"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a85c0af649d4fdc913fcabb1634667602" id="r_a85c0af649d4fdc913fcabb1634667602"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a85c0af649d4fdc913fcabb1634667602">InputHex</a> (const char *label, uint64_t *data)</td></tr>
 <tr class="separator:a85c0af649d4fdc913fcabb1634667602"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab950f3133e3cb956c3c76733c0e16909" id="r_ab950f3133e3cb956c3c76733c0e16909"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab950f3133e3cb956c3c76733c0e16909">InputHex</a> (const char *label, int *data, int num_digits, float input_width)</td></tr>
@@ -579,8 +585,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a5701723c5b90b6a84ae5125461e003b7" name="a5701723c5b90b6a84ae5125461e003b7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5701723c5b90b6a84ae5125461e003b7">&#9670;&#160;</a></span>ConvertSnesColorToImVec4()</h2>
+<a id="a7133468eeb96ba6d81b2c91bc7118d1d" name="a7133468eeb96ba6d81b2c91bc7118d1d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7133468eeb96ba6d81b2c91bc7118d1d">&#9670;&#160;</a></span>ConvertSnesColorToImVec4()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -588,22 +594,22 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">ImVec4 yaze::gui::ConvertSnesColorToImVec4 </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>color</em></span></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>color</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="color_8cc_source.html#l00015">15</a> of file <a class="el" href="color_8cc_source.html">color.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="color_8cc_source.html#l00014">14</a> of file <a class="el" href="color_8cc_source.html">color.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="src_2app_2gfx_2snes__color_8h_source.html#l00067">yaze::gfx::SnesColor::rgb()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="color_8cc_source.html#l00024">SnesColorButton()</a>, and <a class="el" href="color_8cc_source.html#l00041">SnesColorEdit4()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="color_8cc_source.html#l00023">SnesColorButton()</a>, and <a class="el" href="color_8cc_source.html#l00040">SnesColorEdit4()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1gui_a5701723c5b90b6a84ae5125461e003b7_cgraph.png" border="0" usemap="#anamespaceyaze_1_1gui_a5701723c5b90b6a84ae5125461e003b7_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1gui_a5701723c5b90b6a84ae5125461e003b7_cgraph" id="anamespaceyaze_1_1gui_a5701723c5b90b6a84ae5125461e003b7_cgraph">
+<div class="center"><img src="namespaceyaze_1_1gui_a7133468eeb96ba6d81b2c91bc7118d1d_cgraph.png" border="0" usemap="#anamespaceyaze_1_1gui_a7133468eeb96ba6d81b2c91bc7118d1d_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1gui_a7133468eeb96ba6d81b2c91bc7118d1d_cgraph" id="anamespaceyaze_1_1gui_a7133468eeb96ba6d81b2c91bc7118d1d_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,187,46"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1SnesColor.html#a8b85c212174ccf19a470e220ee77fe1f" title=" " alt="" coords="235,13,395,38"/>
 <area shape="poly" title=" " alt="" coords="187,23,219,23,219,28,187,28"/>
@@ -612,8 +618,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a856042a2733b59a0752f18f446344a64" name="a856042a2733b59a0752f18f446344a64"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a856042a2733b59a0752f18f446344a64">&#9670;&#160;</a></span>SnesColorButton()</h2>
+<a id="a1136a9ab95fd67e2ab97a00f59818ddb" name="a1136a9ab95fd67e2ab97a00f59818ddb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1136a9ab95fd67e2ab97a00f59818ddb">&#9670;&#160;</a></span>SnesColorButton()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -626,7 +632,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>color</em></span>, </td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>color</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -641,18 +647,18 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="color_8cc_source.html#l00024">24</a> of file <a class="el" href="color_8cc_source.html">color.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="color_8cc_source.html#l00023">23</a> of file <a class="el" href="color_8cc_source.html">color.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="color_8cc_source.html#l00015">ConvertSnesColorToImVec4()</a>, and <a class="el" href="src_2app_2gfx_2snes__color_8h_source.html#l00090">yaze::gfx::SnesColor::snes()</a>.</p>
+<p class="reference">References <a class="el" href="color_8cc_source.html#l00014">ConvertSnesColorToImVec4()</a>, and <a class="el" href="src_2app_2gfx_2snes__color_8h_source.html#l00090">yaze::gfx::SnesColor::snes()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="gfx__group__editor_8cc_source.html#l00217">yaze::editor::anonymous_namespace{gfx_group_editor.cc}::DrawPaletteFromPaletteGroup()</a>, <a class="el" href="palette__editor_8cc_source.html#l00343">yaze::editor::PaletteEditor::DrawPaletteGroup()</a>, and <a class="el" href="color_8cc_source.html#l00128">SelectablePalettePipeline()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="gfx__group__editor_8cc_source.html#l00217">yaze::editor::anonymous_namespace{gfx_group_editor.cc}::DrawPaletteFromPaletteGroup()</a>, <a class="el" href="palette__editor_8cc_source.html#l00343">yaze::editor::PaletteEditor::DrawPaletteGroup()</a>, and <a class="el" href="color_8cc_source.html#l00127">SelectablePalettePipeline()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1gui_a856042a2733b59a0752f18f446344a64_cgraph.png" border="0" usemap="#anamespaceyaze_1_1gui_a856042a2733b59a0752f18f446344a64_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1gui_a856042a2733b59a0752f18f446344a64_cgraph" id="anamespaceyaze_1_1gui_a856042a2733b59a0752f18f446344a64_cgraph">
+<div class="center"><img src="namespaceyaze_1_1gui_a1136a9ab95fd67e2ab97a00f59818ddb_cgraph.png" border="0" usemap="#anamespaceyaze_1_1gui_a1136a9ab95fd67e2ab97a00f59818ddb_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1gui_a1136a9ab95fd67e2ab97a00f59818ddb_cgraph" id="anamespaceyaze_1_1gui_a1136a9ab95fd67e2ab97a00f59818ddb_cgraph">
 <area shape="rect" title=" " alt="" coords="5,46,180,72"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#a5701723c5b90b6a84ae5125461e003b7" title=" " alt="" coords="228,5,409,46"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#a7133468eeb96ba6d81b2c91bc7118d1d" title=" " alt="" coords="228,5,409,46"/>
 <area shape="poly" title=" " alt="" coords="180,43,212,39,213,44,181,49"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1SnesColor.html#aef9fc51dbd235362f6c0b5200e976303" title=" " alt="" coords="250,71,386,111"/>
 <area shape="poly" title=" " alt="" coords="180,69,235,77,235,82,180,74"/>
@@ -663,8 +669,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a9994a20de7a55f2864dfaeb2167ed2dc" name="a9994a20de7a55f2864dfaeb2167ed2dc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9994a20de7a55f2864dfaeb2167ed2dc">&#9670;&#160;</a></span>SnesColorEdit4()</h2>
+<a id="aa32511a1a3eadf62366b193da8b5f3da" name="aa32511a1a3eadf62366b193da8b5f3da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa32511a1a3eadf62366b193da8b5f3da">&#9670;&#160;</a></span>SnesColorEdit4()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -677,7 +683,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> *</td>          <td class="paramname"><span class="paramname"><em>color</em></span>, </td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a> *</td>          <td class="paramname"><span class="paramname"><em>color</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -687,20 +693,20 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="color_8cc_source.html#l00041">41</a> of file <a class="el" href="color_8cc_source.html">color.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="color_8cc_source.html#l00040">40</a> of file <a class="el" href="color_8cc_source.html">color.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__color_8cc_source.html#l00033">yaze::gfx::ConvertRgbToSnes()</a>, <a class="el" href="color_8cc_source.html#l00015">ConvertSnesColorToImVec4()</a>, <a class="el" href="src_2app_2gfx_2snes__color_8h_source.html#l00069">yaze::gfx::SnesColor::set_rgb()</a>, and <a class="el" href="src_2app_2gfx_2snes__color_8h_source.html#l00082">yaze::gfx::SnesColor::set_snes()</a>.</p>
+<p class="reference">References <a class="el" href="snes__color_8cc_source.html#l00033">yaze::gfx::ConvertRgbToSnes()</a>, <a class="el" href="color_8cc_source.html#l00014">ConvertSnesColorToImVec4()</a>, <a class="el" href="src_2app_2gfx_2snes__color_8h_source.html#l00069">yaze::gfx::SnesColor::set_rgb()</a>, and <a class="el" href="src_2app_2gfx_2snes__color_8h_source.html#l00082">yaze::gfx::SnesColor::set_snes()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00222">yaze::editor::PaletteEditor::DrawCustomPalette()</a>, <a class="el" href="palette__editor_8cc_source.html#l00389">yaze::editor::PaletteEditor::DrawModifiedColors()</a>, <a class="el" href="palette__editor_8cc_source.html#l00405">yaze::editor::PaletteEditor::HandleColorPopup()</a>, and <a class="el" href="palette__editor_8cc_source.html#l00173">yaze::editor::PaletteEditor::Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1gui_a9994a20de7a55f2864dfaeb2167ed2dc_cgraph.png" border="0" usemap="#anamespaceyaze_1_1gui_a9994a20de7a55f2864dfaeb2167ed2dc_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1gui_a9994a20de7a55f2864dfaeb2167ed2dc_cgraph" id="anamespaceyaze_1_1gui_a9994a20de7a55f2864dfaeb2167ed2dc_cgraph">
+<div class="center"><img src="namespaceyaze_1_1gui_aa32511a1a3eadf62366b193da8b5f3da_cgraph.png" border="0" usemap="#anamespaceyaze_1_1gui_aa32511a1a3eadf62366b193da8b5f3da_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1gui_aa32511a1a3eadf62366b193da8b5f3da_cgraph" id="anamespaceyaze_1_1gui_aa32511a1a3eadf62366b193da8b5f3da_cgraph">
 <area shape="rect" title=" " alt="" coords="5,72,171,98"/>
 <area shape="rect" href="namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d" title=" " alt="" coords="448,11,637,37"/>
 <area shape="poly" title=" " alt="" coords="107,70,156,41,186,28,218,17,272,8,328,4,432,7,432,12,328,9,273,13,219,23,188,33,158,46,110,74"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#a5701723c5b90b6a84ae5125461e003b7" title=" " alt="" coords="219,97,400,138"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#a7133468eeb96ba6d81b2c91bc7118d1d" title=" " alt="" coords="219,97,400,138"/>
 <area shape="poly" title=" " alt="" coords="171,95,203,99,202,105,170,100"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1SnesColor.html#aea6308f5abbe766e900fb8baeb71b257" title=" " alt="" coords="241,32,378,72"/>
 <area shape="poly" title=" " alt="" coords="170,70,226,62,226,67,171,75"/>
@@ -735,7 +741,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="color_8cc_source.html#l00055">55</a> of file <a class="el" href="color_8cc_source.html">color.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="color_8cc_source.html#l00054">54</a> of file <a class="el" href="color_8cc_source.html">color.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="snes__palette_8h_source.html#l00132">yaze::gfx::SnesPalette::GetColor()</a>, and <a class="el" href="snes__palette_8h_source.html#l00142">yaze::gfx::SnesPalette::size()</a>.</p>
 
@@ -779,9 +785,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="color_8cc_source.html#l00128">128</a> of file <a class="el" href="color_8cc_source.html">color.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="color_8cc_source.html#l00127">127</a> of file <a class="el" href="color_8cc_source.html">color.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00142">yaze::gfx::SnesPalette::size()</a>, and <a class="el" href="color_8cc_source.html#l00024">SnesColorButton()</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00142">yaze::gfx::SnesPalette::size()</a>, and <a class="el" href="color_8cc_source.html#l00023">SnesColorButton()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00100">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00584">yaze::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00195">yaze::editor::DungeonEditor::UpdateDungeonRoomView()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00343">yaze::editor::GraphicsEditor::UpdatePaletteColumn()</a>.</p>
 <div class="dynheader">
@@ -792,14 +798,72 @@ Here is the call graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="5,35,184,75"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1SnesPalette.html#a504a42d10f3d95135b77bb13ef3ec923" title=" " alt="" coords="245,5,392,46"/>
 <area shape="poly" title=" " alt="" coords="184,41,229,35,230,40,184,46"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#a856042a2733b59a0752f18f446344a64" title=" " alt="" coords="232,70,406,96"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb" title=" " alt="" coords="232,70,406,96"/>
 <area shape="poly" title=" " alt="" coords="184,64,216,68,216,73,184,69"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#a5701723c5b90b6a84ae5125461e003b7" title=" " alt="" coords="454,29,635,70"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#a7133468eeb96ba6d81b2c91bc7118d1d" title=" " alt="" coords="454,29,635,70"/>
 <area shape="poly" title=" " alt="" coords="406,67,438,63,439,68,407,73"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1SnesColor.html#aef9fc51dbd235362f6c0b5200e976303" title=" " alt="" coords="476,95,613,135"/>
 <area shape="poly" title=" " alt="" coords="407,93,462,101,461,106,406,98"/>
 </map>
 </div>
+
+</div>
+</div>
+<a id="a0a2f4e28780bd8cf64f9d6e7b67be924" name="a0a2f4e28780bd8cf64f9d6e7b67be924"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0a2f4e28780bd8cf64f9d6e7b67be924">&#9670;&#160;</a></span>ConvertColorToImVec4()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">ImVec4 yaze::gui::ConvertColorToImVec4 </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structyaze_1_1gui_1_1Color.html">Color</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>color</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="color_8h_source.html#l00022">22</a> of file <a class="el" href="color_8h_source.html">color.h</a>.</p>
+
+<p class="reference">References <a class="el" href="color_8h_source.html#l00019">yaze::gui::Color::alpha</a>, <a class="el" href="color_8h_source.html#l00017">yaze::gui::Color::blue</a>, <a class="el" href="color_8h_source.html#l00018">yaze::gui::Color::green</a>, and <a class="el" href="color_8h_source.html#l00016">yaze::gui::Color::red</a>.</p>
+
+</div>
+</div>
+<a id="ab124e6bc45ea2b052653f4c9e2eeec42" name="ab124e6bc45ea2b052653f4c9e2eeec42"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab124e6bc45ea2b052653f4c9e2eeec42">&#9670;&#160;</a></span>ColorToHexString()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string yaze::gui::ColorToHexString </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structyaze_1_1gui_1_1Color.html">Color</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>color</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="color_8h_source.html#l00026">26</a> of file <a class="el" href="color_8h_source.html">color.h</a>.</p>
+
+<p class="reference">References <a class="el" href="color_8h_source.html#l00019">yaze::gui::Color::alpha</a>, <a class="el" href="color_8h_source.html#l00017">yaze::gui::Color::blue</a>, <a class="el" href="color_8h_source.html#l00018">yaze::gui::Color::green</a>, and <a class="el" href="color_8h_source.html#l00016">yaze::gui::Color::red</a>.</p>
 
 </div>
 </div>
@@ -1457,7 +1521,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="style_8cc_source.html#l00059">59</a> of file <a class="el" href="style_8cc_source.html">style.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00447">yaze::editor::EditorManager::DrawYazeMenu()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00369">yaze::editor::EditorManager::DrawYazeMenu()</a>.</p>
 
 </div>
 </div>
@@ -1760,7 +1824,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="input_8h_source.html#l00026">26</a> of file <a class="el" href="input_8h_source.html">input.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00414">yaze::editor::EditorManager::DrawAboutPopup()</a>, <a class="el" href="editor__manager_8cc_source.html#l00431">yaze::editor::EditorManager::DrawInfoPopup()</a>, <a class="el" href="editor__manager_8cc_source.html#l00386">yaze::editor::EditorManager::DrawStatusPopup()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00470">yaze::editor::EditorManager::DrawYazeMenuBar()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00334">yaze::editor::EditorManager::DrawAboutPopup()</a>, <a class="el" href="editor__manager_8cc_source.html#l00352">yaze::editor::EditorManager::DrawInfoPopup()</a>, <a class="el" href="editor__manager_8cc_source.html#l00306">yaze::editor::EditorManager::DrawStatusPopup()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00392">yaze::editor::EditorManager::DrawYazeMenuBar()</a>.</p>
 
 </div>
 </div>

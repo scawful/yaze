@@ -1,12 +1,5 @@
 var NAVTREEINDEX40 =
 {
-"namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#ab9aca8e4864b366e1f45a11590a5a525":[10,0,1,7,1,0,5],
-"namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#ac45cf5dbe79ff7777896b2ca53a7dfd9":[10,0,1,7,1,0,3],
-"namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#ad3649d55dea19b8ed440734fbb79bdba":[10,0,1,7,1,0,2],
-"namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02snes__palette__test_8cc_03.html":[10,0,1,7,1,1],
-"namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02snes__palette__test_8cc_03.html#acea8b03c2b4a110b7e0f628117da3806":[10,0,1,7,1,1,0],
-"namespaceyaze_1_1test_1_1integration.html":[10,0,1,7,2],
-"namespaceyaze_1_1test_1_1integration.html#a5a0d488d0d7c641874f7b8664f5f60d3":[10,0,1,7,2,1],
 "namespaceyaze_1_1test_1_1zelda3.html":[10,0,1,7,3],
 "namespaceyaze_1_1test_1_1zelda3.html#a3480b8ab1c82c34fd896d2cbf765bf16":[10,0,1,7,3,8],
 "namespaceyaze_1_1test_1_1zelda3.html#a654b8ca13dc35081cce801247fbf2b7e":[10,0,1,7,3,9],
@@ -249,5 +242,12 @@ var NAVTREEINDEX40 =
 "namespaceyaze_1_1zelda3_1_1overworld.html#ac28068aa19bc192407c1ce461524a8b9":[10,0,1,8,3,81],
 "namespaceyaze_1_1zelda3_1_1overworld.html#ac3a99600d068ded70538756300e6b750":[10,0,1,8,3,77],
 "namespaceyaze_1_1zelda3_1_1overworld.html#acbe0c84ea3a2d82e8735675bc95d84e1":[10,0,1,8,3,21],
-"namespaceyaze_1_1zelda3_1_1overworld.html#acde454d91f804586090d3ca0d6c38bff":[10,0,1,8,3,51]
+"namespaceyaze_1_1zelda3_1_1overworld.html#acde454d91f804586090d3ca0d6c38bff":[10,0,1,8,3,51],
+"namespaceyaze_1_1zelda3_1_1overworld.html#ace406e9408055171464f632e332f3866":[10,0,1,8,3,75],
+"namespaceyaze_1_1zelda3_1_1overworld.html#ad24460c34158ea07cd171bbfac45a5be":[10,0,1,8,3,62],
+"namespaceyaze_1_1zelda3_1_1overworld.html#ad351bb4da3244b85df1f528bcd41262b":[10,0,1,8,3,109],
+"namespaceyaze_1_1zelda3_1_1overworld.html#ad37e0d93130e46eb061cab15e7cba759":[10,0,1,8,3,63],
+"namespaceyaze_1_1zelda3_1_1overworld.html#ad86ce800d0dfe5823cfce681b4594f13":[10,0,1,8,3,52],
+"namespaceyaze_1_1zelda3_1_1overworld.html#ad9a494d792864eff5120ad58d869b319":[10,0,1,8,3,67],
+"namespaceyaze_1_1zelda3_1_1overworld.html#adb5d607fbcdf58956adf94173a8a4677":[10,0,1,8,3,15]
 };

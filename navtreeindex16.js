@@ -1,13 +1,5 @@
 var NAVTREEINDEX16 =
 {
-"classyaze_1_1gui_1_1Canvas.html#a138da043a8552c3c599baff50cf9842f":[11,0,0,5,2,47],
-"classyaze_1_1gui_1_1Canvas.html#a18c23ae6c77304ccf244e8dfc7f382f6":[10,0,1,6,3,64],
-"classyaze_1_1gui_1_1Canvas.html#a18c23ae6c77304ccf244e8dfc7f382f6":[11,0,0,5,2,64],
-"classyaze_1_1gui_1_1Canvas.html#a191f7e8fa4df5626e84c941eaf32da2a":[10,0,1,6,3,53],
-"classyaze_1_1gui_1_1Canvas.html#a191f7e8fa4df5626e84c941eaf32da2a":[11,0,0,5,2,53],
-"classyaze_1_1gui_1_1Canvas.html#a20b494ea3673042cdb4b7100c2515b83":[10,0,1,6,3,35],
-"classyaze_1_1gui_1_1Canvas.html#a20b494ea3673042cdb4b7100c2515b83":[11,0,0,5,2,35],
-"classyaze_1_1gui_1_1Canvas.html#a264e8936d5fbfced7cae5fa971608e67":[10,0,1,6,3,89],
 "classyaze_1_1gui_1_1Canvas.html#a264e8936d5fbfced7cae5fa971608e67":[11,0,0,5,2,89],
 "classyaze_1_1gui_1_1Canvas.html#a26794e293b9d996abc70409d6aebfd8e":[10,0,1,6,3,45],
 "classyaze_1_1gui_1_1Canvas.html#a26794e293b9d996abc70409d6aebfd8e":[11,0,0,5,2,45],
@@ -249,5 +241,13 @@ var NAVTREEINDEX16 =
 "classyaze_1_1test_1_1emu_1_1Spc700Test.html#a6afb658208f2b615304cc7b350bfadbc":[11,0,0,6,0,4,1],
 "classyaze_1_1test_1_1emu_1_1Spc700Test.html#a7ff873808aba23421ee93dd9a07205a0":[10,0,1,7,0,4,2],
 "classyaze_1_1test_1_1emu_1_1Spc700Test.html#a7ff873808aba23421ee93dd9a07205a0":[11,0,0,6,0,4,2],
-"classyaze_1_1test_1_1emu_1_1Spc700Test.html#a93bc7a7972e563f86548418147ba5010":[10,0,1,7,0,4,3]
+"classyaze_1_1test_1_1emu_1_1Spc700Test.html#a93bc7a7972e563f86548418147ba5010":[10,0,1,7,0,4,3],
+"classyaze_1_1test_1_1emu_1_1Spc700Test.html#a93bc7a7972e563f86548418147ba5010":[11,0,0,6,0,4,3],
+"classyaze_1_1test_1_1emu_1_1Spc700Test.html#ad35645b23843e2d9533d3fc32f7b55b8":[10,0,1,7,0,4,4],
+"classyaze_1_1test_1_1emu_1_1Spc700Test.html#ad35645b23843e2d9533d3fc32f7b55b8":[11,0,0,6,0,4,4],
+"classyaze_1_1test_1_1emu_1_1Spc700Test.html#ad547047c861efca32c6a713b5e02644e":[10,0,1,7,0,4,0],
+"classyaze_1_1test_1_1emu_1_1Spc700Test.html#ad547047c861efca32c6a713b5e02644e":[11,0,0,6,0,4,0],
+"classyaze_1_1test_1_1integration_1_1TestEditor.html":[10,0,1,7,2,0],
+"classyaze_1_1test_1_1integration_1_1TestEditor.html":[11,0,0,6,1,0],
+"classyaze_1_1test_1_1integration_1_1TestEditor.html#a2e91f3868380f94c734eb1ac6b005e9a":[10,0,1,7,2,0,0]
 };
