@@ -1,15 +1,50 @@
 #ifndef YAZE_APP_CORE_STYLE_H
 #define YAZE_APP_CORE_STYLE_H
 
+#include <string>
 #include <vector>
 
 #include "ImGuiColorTextEdit/TextEditor.h"
 #include "absl/strings/string_view.h"
 #include "app/gfx/bitmap.h"
+#include "app/gui/color.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
 namespace gui {
+
+struct Theme {
+  std::string name;
+
+  Color menu_bar_bg;
+  Color title_bar_bg;
+
+  Color header;
+  Color header_hovered;
+  Color header_active;
+
+  Color title_bg_active;
+  Color title_bg_collapsed;
+
+  Color tab;
+  Color tab_hovered;
+  Color tab_active;
+
+  Color button;
+  Color button_hovered;
+  Color button_active;
+};
+
+absl::StatusOr<Theme> LoadTheme(const std::string &filename);
+absl::Status SaveTheme(const Theme &theme);
+void ApplyTheme(const Theme &theme);
+
+void ColorsYaze();
+
+TextEditor::LanguageDefinition GetAssemblyLanguageDef();
+
+void DrawBitmapViewer(const std::vector<gfx::Bitmap> &bitmaps, float scale,
+                      int &current_bitmap);
 
 void BeginWindowWithDisplaySettings(const char *id, bool *active,
                                     const ImVec2 &size = ImVec2(0, 0),
@@ -30,15 +65,6 @@ void BeginChildBothScrollbars(int id);
 void DrawDisplaySettings(ImGuiStyle *ref = nullptr);
 
 void TextWithSeparators(const absl::string_view &text);
-
-void ColorsYaze();
-
-TextEditor::LanguageDefinition GetAssemblyLanguageDef();
-
-void DrawBitmapViewer(const std::vector<gfx::Bitmap> &bitmaps, float scale,
-                      int &current_bitmap);
-
-// ============================================================================
 
 static const char *ExampleNames[] = {
     "Artichoke",      "Arugula",          "Asparagus",    "Avocado",
@@ -91,7 +117,6 @@ struct MultiSelectWithClipper {
 };
 
 } // namespace gui
-
 } // namespace yaze
 
 #endif
