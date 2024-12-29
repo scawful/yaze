@@ -7,7 +7,8 @@
 
 #include "imgui/imgui.h"
 
-namespace yaze {namespace editor {
+namespace yaze {
+namespace editor {
 
 ImGuiKey MapKeyToImGuiKey(char key);
 
@@ -76,6 +77,7 @@ class CommandManager {
   std::unordered_map<std::string, CommandInfoOrPrefix> commands_;
 };
 
-}  // namespace editor}  // namespace yaze
+}  // namespace editor
+}  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_SYSTEM_COMMAND_MANAGER_H
