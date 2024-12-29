@@ -6,14 +6,9 @@
 
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "absl/strings/string_view.h"
-#include "app/gfx/bitmap.h"
-#include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
-#include "app/gui/canvas.h"
-#include "app/gui/color.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
 
 namespace ImGui {
 
@@ -279,7 +274,30 @@ void FileDialogPipeline(absl::string_view display_key,
     ImGuiFileDialog::Instance()->Close();
   }
 }
+void AddTableColumn(Table &table, const std::string &label, GuiElement element) {
+  table.column_labels.push_back(label);
+  table.column_contents.push_back(element);
+}
+
+void DrawTable(Table& params) {
+  if (ImGui::BeginTable(params.id, params.num_columns, params.flags, params.size)) {
+    for (int i = 0; i < params.num_columns; ++i)
+      ImGui::TableSetupColumn(params.column_labels[i].c_str());
+
+    for (int i = 0; i < params.num_columns; ++i) {
+      ImGui::TableNextColumn();
+      switch (params.column_contents[i].index()) {
+        case 0:
+          std::get<0>(params.column_contents[i])();
+          break;
+        case 1:
+          ImGui::Text("%s", std::get<1>(params.column_contents[i]).c_str());
+          break;
+      }
+    }
+    ImGui::EndTable();
+  }
+}
 
 }  // namespace gui
-
 }  // namespace yaze
