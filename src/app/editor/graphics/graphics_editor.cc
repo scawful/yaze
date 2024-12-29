@@ -596,7 +596,7 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
                 sizeof(col_file_name_));
         status_ = temp_rom_.LoadFromFile(col_file_path_,
                                          /*z3_load=*/false);
-        auto col_data_ = gfx::GetColFileData(temp_rom_.data());
+        auto col_data_ = gfx::GetColFileData(temp_rom_.mutable_data());
         if (col_file_palette_group_.size() != 0) {
           col_file_palette_group_.clear();
         }
@@ -757,7 +757,8 @@ absl::Status GraphicsEditor::DrawMemoryEditor() {
   std::string title = "Memory Editor";
   if (is_open_) {
     static MemoryEditor mem_edit;
-    mem_edit.DrawWindow(title.c_str(), temp_rom_.data(), temp_rom_.size());
+    mem_edit.DrawWindow(title.c_str(), temp_rom_.mutable_data(),
+                        temp_rom_.size());
   }
   return absl::OkStatus();
 }

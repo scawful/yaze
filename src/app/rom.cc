@@ -34,17 +34,17 @@ int GetGraphicsAddress(const uchar *data, uint8_t addr, uint32_t ptr1,
 }
 }  // namespace
 
-absl::StatusOr<std::vector<uint8_t>> Rom::Load2BppGraphics() {
+absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom &rom) {
   std::vector<uint8_t> sheet;
   const uint8_t sheets[] = {113, 114, 218, 219, 220, 221};
 
   for (const auto &sheet_id : sheets) {
-    auto offset = GetGraphicsAddress(data(), sheet_id,
-                                     version_constants().kOverworldGfxPtr1,
-                                     version_constants().kOverworldGfxPtr2,
-                                     version_constants().kOverworldGfxPtr3);
+    auto offset = GetGraphicsAddress(rom.data(), sheet_id,
+                                     rom.version_constants().kOverworldGfxPtr1,
+                                     rom.version_constants().kOverworldGfxPtr2,
+                                     rom.version_constants().kOverworldGfxPtr3);
     ASSIGN_OR_RETURN(auto decomp_sheet,
-                     gfx::lc_lz2::DecompressV2(data(), offset))
+                     gfx::lc_lz2::DecompressV2(rom.data(), offset))
     auto converted_sheet = gfx::SnesTo8bppSheet(decomp_sheet, 2);
     for (const auto &each_pixel : converted_sheet) {
       sheet.push_back(each_pixel);

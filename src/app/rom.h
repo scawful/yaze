@@ -134,16 +134,6 @@ constexpr uint32_t kMaxGraphics = 0xC3FB5;
 class Rom : public core::ExperimentFlags {
  public:
   /**
-   * @brief Loads 2bpp graphics from Rom data.
-   *
-   * This function loads 2bpp graphics from Rom data by iterating over a list of
-   * sheet IDs, decompressing the sheet data, converting it to 8bpp format, and
-   * appending the converted sheet data to a byte vector.
-   *
-   */
-  absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics();
-
-  /**
    * @brief Loads the players 4bpp graphics sheet from Rom data.
    */
   absl::Status LoadLinkGraphics();
@@ -456,9 +446,12 @@ class Rom : public core::ExperimentFlags {
 
   auto title() const { return title_; }
   auto size() const { return size_; }
+  auto data() const { return rom_data_.data(); }
+  auto mutable_data() { return rom_data_.data(); }
+
   auto begin() { return rom_data_.begin(); }
   auto end() { return rom_data_.end(); }
-  auto data() { return rom_data_.data(); }
+
   auto vector() const { return rom_data_; }
   auto version() const { return version_; }
   auto filename() const { return filename_; }
@@ -567,6 +560,16 @@ class Rom : public core::ExperimentFlags {
   // Version of the game
   Z3_Version version_ = Z3_Version::US;
 };
+
+/**
+ * @brief Loads 2bpp graphics from Rom data.
+ *
+ * This function loads 2bpp graphics from Rom data by iterating over a list of
+ * sheet IDs, decompressing the sheet data, converting it to 8bpp format, and
+ * appending the converted sheet data to a byte vector.
+ *
+ */
+absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom& rom);
 
 /**
  * @brief A class to hold a shared pointer to a Rom object.
