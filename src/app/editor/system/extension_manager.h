@@ -6,7 +6,8 @@
 #include <string>
 #include <vector>
 
-namespace yaze {namespace editor {
+namespace yaze {
+namespace editor {
 
 class ExtensionManager {
  public:
@@ -20,6 +21,7 @@ class ExtensionManager {
   std::vector<yaze_extension*> extensions_;
 };
 
-}  // namespace editor}  // namespace yaze
+}  // namespace editor
+}  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_SYSTEM_EXTENSION_MANAGER_H
