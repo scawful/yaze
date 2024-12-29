@@ -22,7 +22,7 @@ class OverworldTest : public ::testing::Test, public SharedRom {
   }
   void TearDown() override {}
 
-  zelda3::overworld::Overworld overworld_;
+  zelda3::Overworld overworld_;
 };
 
 TEST_F(OverworldTest, OverworldLoadNoRomDataError) {
@@ -48,9 +48,9 @@ TEST_F(OverworldTest, OverworldLoadRomDataOk) {
   // Assert
   EXPECT_TRUE(status.ok());
   EXPECT_EQ(overworld_.overworld_maps().size(),
-            zelda3::overworld::kNumOverworldMaps);
+            zelda3::kNumOverworldMaps);
   EXPECT_EQ(overworld_.tiles16().size(),
-            zelda3::overworld::kNumTile16Individual);
+            zelda3::kNumTile16Individual);
 }
 
 }  // namespace zelda3

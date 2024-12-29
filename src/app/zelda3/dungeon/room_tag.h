@@ -5,7 +5,7 @@
 
 namespace yaze {
 namespace zelda3 {
-namespace dungeon {
+
 
 static const std::string RoomEffect[] = {"Nothing",
                                          "Nothing",
@@ -85,7 +85,8 @@ static const std::string RoomTag[] = {"Nothing",
                                       "Light Torches for Chest",
                                       "Kill Boss Again"};
 
-}  // namespace dungeon
+
+
 }  // namespace zelda3
 
 }  // namespace yaze

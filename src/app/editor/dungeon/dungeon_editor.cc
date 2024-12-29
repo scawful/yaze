@@ -74,7 +74,7 @@ absl::Status DungeonEditor::Initialize() {
   auto dungeon_man_pal_group = rom()->palette_group().dungeon_main;
 
   for (int i = 0; i < 0x100 + 40; i++) {
-    rooms_.emplace_back(zelda3::dungeon::Room(/*room_id=*/i));
+    rooms_.emplace_back(zelda3::Room(/*room_id=*/i));
     rooms_[i].LoadHeader();
     rooms_[i].LoadRoomFromROM();
     if (flags()->kDrawDungeonRoomGraphics) {
@@ -97,11 +97,11 @@ absl::Status DungeonEditor::Initialize() {
   LoadDungeonRoomSize();
   // LoadRoomEntrances
   for (int i = 0; i < 0x07; ++i) {
-    entrances_.emplace_back(zelda3::dungeon::RoomEntrance(*rom(), i, true));
+    entrances_.emplace_back(zelda3::RoomEntrance(*rom(), i, true));
   }
 
   for (int i = 0; i < 0x85; ++i) {
-    entrances_.emplace_back(zelda3::dungeon::RoomEntrance(*rom(), i, false));
+    entrances_.emplace_back(zelda3::RoomEntrance(*rom(), i, false));
   }
 
   // Load the palette group and palette for the dungeon
@@ -325,7 +325,7 @@ void DungeonEditor::DrawRoomSelector() {
         BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
                    ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
       int i = 0;
-      for (const auto each_room_name : zelda3::dungeon::kRoomNames) {
+      for (const auto each_room_name : zelda3::kRoomNames) {
         rom()->resource_label()->SelectableLabelWithNameEdit(
             current_room_id_ == i, "Dungeon Room Names",
             core::UppercaseHexByte(i), each_room_name.data());
@@ -403,7 +403,7 @@ void DungeonEditor::DrawEntranceSelector() {
         rom()->resource_label()->SelectableLabelWithNameEdit(
             current_entrance_id_ == i, "Dungeon Entrance Names",
             core::UppercaseHexByte(i),
-            zelda3::dungeon::kEntranceNames[i].data());
+            zelda3::kEntranceNames[i].data());
 
         if (ImGui::IsItemClicked()) {
           current_entrance_id_ = i;
@@ -434,12 +434,12 @@ void DungeonEditor::DrawDungeonTabView() {
     for (int n = 0; n < active_rooms_.Size;) {
       bool open = true;
 
-      if (active_rooms_[n] > sizeof(zelda3::dungeon::kRoomNames) / 4) {
+      if (active_rooms_[n] > sizeof(zelda3::kRoomNames) / 4) {
         active_rooms_.erase(active_rooms_.Data + n);
         continue;
       }
 
-      if (BeginTabItem(zelda3::dungeon::kRoomNames[active_rooms_[n]].data(),
+      if (BeginTabItem(zelda3::kRoomNames[active_rooms_[n]].data(),
                        &open, ImGuiTabItemFlags_None)) {
         DrawDungeonCanvas(active_rooms_[n]);
         EndTabItem();
@@ -549,7 +549,7 @@ void DungeonEditor::DrawObjectRenderer() {
 
     int selected_object = 0;
     int i = 0;
-    for (const auto object_name : zelda3::dungeon::Type1RoomObjectNames) {
+    for (const auto object_name : zelda3::Type1RoomObjectNames) {
       if (ImGui::Selectable(object_name.data(), selected_object == i)) {
         selected_object = i;
         current_object_ = i;

@@ -25,7 +25,7 @@ class DungeonRoomTest : public ::testing::Test, public SharedRom {
 };
 
 TEST_F(DungeonRoomTest, SingleRoomLoadOk) {
-  zelda3::dungeon::Room test_room(/*room_id=*/0);
+  zelda3::Room test_room(/*room_id=*/0);
   test_room.LoadHeader();
   // Do some assertions based on the output in ZS
   test_room.LoadRoomFromROM();

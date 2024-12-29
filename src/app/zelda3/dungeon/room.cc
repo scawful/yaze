@@ -17,7 +17,7 @@
 
 namespace yaze {
 namespace zelda3 {
-namespace dungeon {
+
 
 void Room::LoadHeader() {
   // Address of the room header
@@ -485,7 +485,8 @@ void Room::LoadChests() {
   }
 }
 
-}  // namespace dungeon
+
+
 }  // namespace zelda3
 
 }  // namespace yaze
