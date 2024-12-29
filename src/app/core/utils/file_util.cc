@@ -11,7 +11,6 @@
 #include <sstream>
 
 namespace yaze {
-namespace app {
 namespace core {
 
 std::string GetFileExtension(const std::string &filename) {
@@ -70,5 +69,4 @@ std::string GetConfigDirectory(Platform platform) {
 }
 
 }  // namespace core
-}  // namespace app
 }  // namespace yaze

@@ -15,7 +15,6 @@
 #include "snes_color.h"
 
 namespace yaze {
-namespace app {
 namespace gfx {
 
 constexpr int kNumPalettes = 14;
@@ -384,7 +383,7 @@ struct Paletteset {
              gfx::SnesPalette aux1, gfx::SnesPalette aux2,
              gfx::SnesColor background, gfx::SnesPalette hud,
              gfx::SnesPalette spr, gfx::SnesPalette spr2, gfx::SnesPalette comp)
-      : main(main),
+      : main_(main),
         animated(animated),
         aux1(aux1),
         aux2(aux2),
@@ -394,7 +393,7 @@ struct Paletteset {
         spr2(spr2),
         composite(comp) {}
 
-  gfx::SnesPalette main;      /**< The main palette. */
+  gfx::SnesPalette main_;      /**< The main palette. */
   gfx::SnesPalette animated;  /**< The animated palette. */
   gfx::SnesPalette aux1;      /**< The first auxiliary palette. */
   gfx::SnesPalette aux2;      /**< The second auxiliary palette. */
@@ -416,7 +415,7 @@ protected:
 };
 
 
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_GFX_PALETTE_H

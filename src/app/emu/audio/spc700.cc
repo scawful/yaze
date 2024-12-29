@@ -9,7 +9,6 @@
 #include "app/emu/audio/internal/opcodes.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 namespace audio {
 
@@ -1326,5 +1325,5 @@ void Spc700::LogInstruction(uint16_t initial_pc, uint8_t opcode) {
 
 }  // namespace audio
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze

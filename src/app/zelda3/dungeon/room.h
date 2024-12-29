@@ -4,22 +4,16 @@
 #include <dungeon.h>
 
 #include <cstdint>
-#include <fstream>
-#include <string>
 #include <string_view>
 #include <vector>
 
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
-#include "app/gfx/snes_palette.h"
-#include "app/gfx/snes_tile.h"
-#include "app/gui/canvas.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 namespace dungeon {
 
@@ -112,11 +106,6 @@ class Room : public SharedRom {
   auto room_size() const { return room_size_; }
   auto room_size_ptr() const { return room_size_pointer_; }
   auto set_room_size(uint64_t size) { room_size_ = size; }
-
-  RoomObject AddObject(short oid, uint8_t x, uint8_t y, uint8_t size,
-                       uint8_t layer) {
-    return RoomObject(oid, x, y, size, layer);
-  }
 
   uint8_t blockset = 0;
   uint8_t spriteset = 0;
@@ -613,7 +602,7 @@ constexpr std::string_view kEntranceNames[] = {
 
 }  // namespace dungeon
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze
 
 #endif

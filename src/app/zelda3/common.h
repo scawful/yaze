@@ -6,9 +6,8 @@
 #include <string>
 
 namespace yaze {
-namespace app {
 /**
- * @namespace yaze::app::zelda3
+ * @namespace yaze::zelda3
  * @brief Zelda 3 specific classes and functions.
  */
 namespace zelda3 {
@@ -319,7 +318,7 @@ static const std::string TileTypeNames[] = {
     "$FF Door X top? (unused?)"};
 
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_COMMON_H

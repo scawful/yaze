@@ -4,7 +4,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 absl::Status DrawEditor(EditorLayoutParams *params) {
@@ -48,5 +47,5 @@ absl::Status DrawEditor(EditorLayoutParams *params) {
 }
 
 } // namespace editor
-} // namespace app
+
 } // namespace yaze

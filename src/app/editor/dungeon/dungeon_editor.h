@@ -14,7 +14,6 @@
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 constexpr ImGuiTabItemFlags kDungeonTabFlags =
@@ -143,7 +142,6 @@ class DungeonEditor : public Editor,
 };
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif

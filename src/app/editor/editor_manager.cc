@@ -24,7 +24,6 @@
 #include "imgui/misc/cpp/imgui_stdlib.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 using namespace ImGui;
@@ -816,5 +815,4 @@ absl::Status EditorManager::OpenProject() {
 }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

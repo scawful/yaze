@@ -13,7 +13,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 /**
@@ -100,6 +99,5 @@ class Tile16Editor : public GfxContext, public SharedRom {
 };
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 #endif  // YAZE_APP_EDITOR_TILE16EDITOR_H

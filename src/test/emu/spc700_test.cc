@@ -10,9 +10,9 @@ namespace emu {
 
 using testing::_;
 using testing::Return;
-using yaze::app::emu::audio::ApuCallbacks;
-using yaze::app::emu::audio::AudioRam;
-using yaze::app::emu::audio::Spc700;
+using yaze::emu::audio::ApuCallbacks;
+using yaze::emu::audio::AudioRam;
+using yaze::emu::audio::Spc700;
 
 /**
  * @brief MockAudioRam is a mock class for the AudioRam class.

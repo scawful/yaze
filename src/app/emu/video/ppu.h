@@ -11,7 +11,6 @@
 #include "app/rom.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 namespace video {
 
@@ -458,7 +457,7 @@ class Ppu : public SharedRom {
 
 }  // namespace video
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_EMU_PPU_H

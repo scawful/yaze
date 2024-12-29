@@ -18,7 +18,6 @@
   }
 
 namespace yaze {
-namespace app {
 namespace gfx {
 
 using core::SDL_Surface_Deleter;
@@ -483,5 +482,5 @@ void Bitmap::WriteColor(int position, const ImVec4 &color) {
 }
 
 }  // namespace gfx
-}  // namespace app
+
 }  // namespace yaze

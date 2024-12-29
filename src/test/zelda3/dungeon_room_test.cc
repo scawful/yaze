@@ -1,17 +1,16 @@
-#include "app/zelda3/dungeon/room.h"
-
-#include "gtest/gtest.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "app/rom.h"
+#include "app/zelda3/dungeon/room.h"
+#include "gtest/gtest.h"
 
 namespace yaze {
 namespace test {
 namespace zelda3 {
 
-class DungeonRoomTest : public ::testing::Test, public app::SharedRom {
-protected:
+class DungeonRoomTest : public ::testing::Test, public SharedRom {
+ protected:
   void SetUp() override {
     // Skip tests on Linux for automated github builds
 #if defined(__linux__)
@@ -26,12 +25,12 @@ protected:
 };
 
 TEST_F(DungeonRoomTest, SingleRoomLoadOk) {
-  app::zelda3::dungeon::Room test_room(/*room_id=*/0);
+  zelda3::dungeon::Room test_room(/*room_id=*/0);
   test_room.LoadHeader();
   // Do some assertions based on the output in ZS
   test_room.LoadRoomFromROM();
 }
 
-} // namespace zelda3
-} // namespace test
-} // namespace yaze
+}  // namespace zelda3
+}  // namespace test
+}  // namespace yaze

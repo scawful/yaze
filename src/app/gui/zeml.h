@@ -11,11 +11,10 @@
 #include <vector>
 
 namespace yaze {
-namespace app {
 namespace gui {
 
 /**
- * @namespace yaze::app::gui::zeml
+ * @namespace yaze::gui::zeml
  * @brief Zelda Editor Markup Language Functions
  */
 namespace zeml {
@@ -207,7 +206,7 @@ std::string LoadFile(const std::string& filename);
 
 }  // namespace zeml
 }  // namespace gui
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_GUI_YAZON_H_

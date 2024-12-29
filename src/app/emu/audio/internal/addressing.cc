@@ -1,7 +1,6 @@
 #include "app/emu/audio/spc700.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 namespace audio {
 
@@ -148,5 +147,5 @@ uint16_t Spc700::addr_plus_i_indexed() {
 
 }  // namespace audio
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze

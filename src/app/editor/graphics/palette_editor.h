@@ -14,7 +14,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 namespace palette_internal {
@@ -120,7 +119,6 @@ class PaletteEditor : public SharedRom, public Editor {
 };
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif

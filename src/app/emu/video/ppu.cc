@@ -7,7 +7,6 @@
 #include "app/emu/memory/memory.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 namespace video {
 
@@ -1056,5 +1055,5 @@ void Ppu::PutPixels(uint8_t* pixels) {
 
 }  // namespace video
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze

@@ -6,7 +6,6 @@
 #include "app/rom.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 namespace dungeon {
 
@@ -352,7 +351,7 @@ class RoomEntrance {
 
 }  // namespace dungeon
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_DUNGEON_ROOM_ENTRANCE_H

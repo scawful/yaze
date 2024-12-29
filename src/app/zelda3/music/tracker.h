@@ -7,11 +7,10 @@
 #include "app/rom.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 
 /**
- * @namespace yaze::app::zelda3::music
+ * @namespace yaze::zelda3::music
  * @brief Contains classes and functions for handling music data in Zelda 3.
  *
  * Based off of the HyruleMagic tracker code.
@@ -254,7 +253,7 @@ class Tracker {
 
 }  // namespace music
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze
 
 #endif

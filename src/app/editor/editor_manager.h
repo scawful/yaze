@@ -21,7 +21,6 @@
 #include "app/rom.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 /**
@@ -110,7 +109,6 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
 };
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_EDITOR_MANAGER_H

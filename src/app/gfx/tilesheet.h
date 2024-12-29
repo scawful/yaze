@@ -5,12 +5,10 @@
 #include <vector>
 
 #include "app/gfx/bitmap.h"
-#include "app/gfx/snes_color.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 
 namespace yaze {
-namespace app {
 namespace gfx {
 
 enum class TileType { Tile8, Tile16 };
@@ -134,7 +132,7 @@ absl::StatusOr<Tilesheet> CreateTilesheetFromGraphicsBuffer(
     int sheet_id);
 
 }  // namespace gfx
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_GFX_TILESHEET_H

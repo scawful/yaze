@@ -16,7 +16,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace core {
 
 namespace {
@@ -278,5 +277,5 @@ absl::Status Controller::LoadConfigFiles() {
 }
 
 }  // namespace core
-}  // namespace app
+
 }  // namespace yaze

@@ -9,9 +9,7 @@
 #include "test/integration/test_editor.h"
 
 namespace yaze {
-namespace test {
-
-}  // namespace test
+namespace test {}  // namespace test
 }  // namespace yaze
 
 int main(int argc, char* argv[]) {

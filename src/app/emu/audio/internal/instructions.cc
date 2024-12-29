@@ -1,7 +1,6 @@
 #include "app/emu/audio/spc700.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 namespace audio {
 
@@ -483,5 +482,5 @@ void Spc700::STOP() {}
 
 }  // namespace audio
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze

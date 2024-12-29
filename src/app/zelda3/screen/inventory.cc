@@ -7,7 +7,6 @@
 #include "app/rom.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 namespace screen {
 
@@ -93,5 +92,5 @@ absl::Status Inventory::BuildTileset() {
 
 }  // namespace screen
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze

@@ -4,7 +4,6 @@
 #include <string>
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 namespace dungeon {
 
@@ -88,7 +87,7 @@ static const std::string RoomTag[] = {"Nothing",
 
 }  // namespace dungeon
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_DUNGEON_ROOM_TAG_H

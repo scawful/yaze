@@ -15,7 +15,6 @@
 #include "app/rom.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 
 namespace {
@@ -574,5 +573,5 @@ void SNES::InitAccessTime(bool recalc) {
 }
 
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze

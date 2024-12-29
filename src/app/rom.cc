@@ -23,8 +23,6 @@
 #include "app/gfx/snes_tile.h"
 
 namespace yaze {
-namespace app {
-
 using core::Renderer;
 constexpr int Uncompressed3BPPSize = 0x0600;
 
@@ -136,23 +134,27 @@ absl::Status Rom::LoadAllGraphicsData(bool defer_render) {
 absl::Status Rom::SaveAllGraphicsData() {
   for (int i = 0; i < kNumGfxSheets; i++) {
     if (graphics_sheets_[i].is_active()) {
-      int from_bpp = 8;
       int to_bpp = 3;
       std::vector<uint8_t> final_data;
       bool compressed = true;
       if (i >= 115 && i <= 126) {
-        to_bpp = 3;
         compressed = false;
       } else if (i == 113 || i == 114 || i >= 218) {
         to_bpp = 2;
+        continue;
       }
 
+      std::cout << "Sheet ID " << i << " BPP: " << to_bpp << std::endl;
       auto sheet_data = graphics_sheets_[i].vector();
-      final_data = gfx::ConvertBpp(sheet_data, from_bpp, to_bpp);
+      std::cout << "Sheet data size: " << sheet_data.size() << std::endl;
+      final_data = gfx::Bpp8SnesToIndexed(sheet_data, 8);
+      int size = 0;
       if (compressed) {
-        ASSIGN_OR_RETURN(
-            final_data,
-            gfx::lc_lz2::CompressV2(final_data.data(), 0, final_data.size()));
+        auto compressed_data = gfx::lc_lz2::Compress(
+            final_data.data(), final_data.size(), &size, 1);
+        for (int j = 0; j < size; j++) {
+          sheet_data[j] = compressed_data[j];
+        }
       }
       auto offset =
           GetGraphicsAddress(data(), i, version_constants().kOverworldGfxPtr1,
@@ -464,5 +466,4 @@ absl::Status Rom::SaveGroupsToRom() {
 
 std::shared_ptr<Rom> SharedRom::shared_rom_ = nullptr;
 
-}  // namespace app
 }  // namespace yaze

@@ -13,7 +13,6 @@
 #include "app/emu/cpu/internal/opcodes.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 
 enum class AddressingMode {
@@ -444,5 +443,5 @@ class AsmParser {
 };
 
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze

@@ -21,7 +21,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 using core::Renderer;
@@ -251,7 +250,7 @@ absl::Status Tile16Editor::DrawTileEditControls() {
   gui::InputHexByte("Palette", &notify_palette.mutable_get());
   notify_palette.apply_changes();
   if (notify_palette.modified()) {
-    auto palette = palettesets_[current_palette_].main;
+    auto palette = palettesets_[current_palette_].main_;
     auto value = notify_palette.get();
     if (notify_palette.get() > 0x04 && notify_palette.get() < 0x06) {
       palette = palettesets_[current_palette_].aux1;
@@ -400,5 +399,4 @@ absl::Status Tile16Editor::UpdateTransferTileCanvas() {
 }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

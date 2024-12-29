@@ -7,7 +7,6 @@
 #include "app/zelda3/overworld/overworld.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 bool IsMouseHoveringOverEntity(const zelda3::GameEntity &entity,
@@ -81,7 +80,6 @@ void DrawSpriteInserterPopup();
 bool DrawSpriteEditorPopup(zelda3::Sprite &sprite);
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_OVERWORLD_ENTITY_H

@@ -10,10 +10,9 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 
 /**
- * @namespace yaze::app::emu
+ * @namespace yaze::emu
  * @brief SNES Emulation and debugging tools.
  */
 namespace emu {
@@ -190,7 +189,7 @@ class Emulator : public SharedRom {
 };
 
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_CORE_EMULATOR_H

@@ -13,7 +13,6 @@
 #include "app/emu/memory/memory.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 namespace audio {
 
@@ -203,5 +202,5 @@ void Apu::SpcIdle(bool waiting) { Cycle(); }
 
 }  // namespace audio
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze

@@ -14,7 +14,6 @@
 #include "app/zelda3/dungeon/object_names.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 namespace dungeon {
 
@@ -53,5 +52,5 @@ class DungeonObjectRenderer : public SharedRom {
 
 }  // namespace dungeon
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze

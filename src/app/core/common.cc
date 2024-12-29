@@ -13,7 +13,6 @@
 #include "absl/strings/string_view.h"
 
 namespace yaze {
-namespace app {
 namespace core {
 
 namespace {
@@ -329,5 +328,5 @@ absl::StatusOr<std::string> CheckVersion(const char *version) {
 }
 
 }  // namespace core
-}  // namespace app
+
 }  // namespace yaze

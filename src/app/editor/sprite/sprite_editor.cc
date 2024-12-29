@@ -7,7 +7,6 @@
 #include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 using ImGui::BeginTable;
@@ -275,5 +274,4 @@ void SpriteEditor::DrawCustomSpritesMetadata() {
 }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

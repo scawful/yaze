@@ -12,10 +12,9 @@
 #include "app/gfx/snes_palette.h"
 
 namespace yaze {
-namespace app {
 
 /**
- * @namespace yaze::app::gfx
+ * @namespace yaze::gfx
  * @brief Contains classes for handling graphical data.
  */
 namespace gfx {
@@ -214,7 +213,7 @@ class Bitmap {
 using BitmapTable = std::unordered_map<int, gfx::Bitmap>;
 
 }  // namespace gfx
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_GFX_BITMAP_H

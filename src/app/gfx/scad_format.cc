@@ -13,7 +13,6 @@
 #include "app/gfx/snes_tile.h"
 
 namespace yaze {
-namespace app {
 namespace gfx {
 namespace scad_format {
 
@@ -279,5 +278,5 @@ absl::Status DecodeObjFile(
 
 }  // namespace scad_format
 }  // namespace gfx
-}  // namespace app
+
 }  // namespace yaze

@@ -16,7 +16,6 @@
 #include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 namespace dungeon {
 
@@ -488,5 +487,5 @@ void Room::LoadChests() {
 
 }  // namespace dungeon
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze

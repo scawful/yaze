@@ -1,7 +1,6 @@
 #include "room_object.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 namespace dungeon {
 
@@ -133,5 +132,5 @@ void RoomObject::DrawTile(gfx::Tile16 t, int xx, int yy,
 
 }  // namespace dungeon
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze

@@ -18,7 +18,6 @@
 int main(int argc, char **argv);
 
 namespace yaze {
-namespace app {
 namespace core {
 
 /**
@@ -71,7 +70,7 @@ class Controller : public ExperimentFlags {
 };
 
 }  // namespace core
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_CORE_CONTROLLER_H

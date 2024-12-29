@@ -4,7 +4,6 @@
 #include <cstdint>
 
 namespace yaze {
-namespace app {
 namespace emu {
 namespace memory {
 
@@ -31,7 +30,7 @@ typedef struct DmaChannel {
 
 }  // namespace memory
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_EMU_MEMORY_DMA_CHANNEL_H

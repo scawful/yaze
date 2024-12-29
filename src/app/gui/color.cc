@@ -10,7 +10,6 @@
 #include "app/gfx/snes_color.h"
 
 namespace yaze {
-namespace app {
 namespace gui {
 
 ImVec4 ConvertSnesColorToImVec4(const SnesColor& color) {
@@ -53,7 +52,7 @@ IMGUI_API bool SnesColorEdit4(absl::string_view label, SnesColor* color,
   return pressed;
 }
 
-absl::Status DisplayPalette(app::gfx::SnesPalette& palette, bool loaded) {
+absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
   static ImVec4 color = ImVec4(0, 0, 0, 255.f);
   ImGuiColorEditFlags misc_flags = ImGuiColorEditFlags_AlphaPreview |
                                    ImGuiColorEditFlags_NoDragDrop |
@@ -170,5 +169,5 @@ void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
 }
 
 }  // namespace gui
-}  // namespace app
+
 }  // namespace yaze

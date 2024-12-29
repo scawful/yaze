@@ -11,10 +11,9 @@
 #include "app/editor/system/resource_manager.h"
 
 namespace yaze {
-namespace app {
 
 /**
- * @namespace yaze::app::editor
+ * @namespace yaze::editor
  * @brief Editors are the view controllers for the application.
  */
 namespace editor {
@@ -99,7 +98,6 @@ typedef struct EditorLayoutParams {
 absl::Status DrawEditor(EditorLayoutParams *params);
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_CORE_EDITOR_H

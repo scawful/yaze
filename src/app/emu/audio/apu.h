@@ -11,7 +11,6 @@
 #include "app/emu/memory/memory.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 namespace audio {
 
@@ -95,7 +94,7 @@ class Apu {
 
 }  // namespace audio
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze
 
 #endif

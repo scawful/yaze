@@ -27,8 +27,6 @@
 #include "app/gfx/snes_tile.h"
 
 namespace yaze {
-namespace app {
-
 /**
  * @brief Different versions of the game supported by the Rom class.
  */
@@ -597,7 +595,6 @@ class SharedRom {
   static std::shared_ptr<Rom> shared_rom_;
 };
 
-}  // namespace app
 }  // namespace yaze
 
 #endif

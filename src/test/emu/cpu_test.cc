@@ -13,11 +13,11 @@ namespace yaze {
 namespace test {
 namespace emu {
 
-using yaze::app::emu::AsmParser;
-using yaze::app::emu::Cpu;
-using yaze::app::emu::memory::CpuCallbacks;
-using yaze::app::emu::memory::MockClock;
-using yaze::app::emu::memory::MockMemory;
+using yaze::emu::AsmParser;
+using yaze::emu::Cpu;
+using yaze::emu::memory::CpuCallbacks;
+using yaze::emu::memory::MockClock;
+using yaze::emu::memory::MockMemory;
 
 /**
  * \test Test fixture for CPU unit tests

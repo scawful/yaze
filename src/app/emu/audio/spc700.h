@@ -8,7 +8,6 @@
 #include <vector>
 
 namespace yaze {
-namespace app {
 namespace emu {
 namespace audio {
 
@@ -339,6 +338,6 @@ class Spc700 {
 
 }  // namespace audio
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze
 #endif  // YAZE_APP_EMU_SPC700_H

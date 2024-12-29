@@ -3,7 +3,6 @@
 #include <iostream>
 
 namespace yaze {
-namespace app {
 namespace emu {
 namespace memory {
 namespace dma {
@@ -372,5 +371,5 @@ void StartDma(MemoryImpl* memory, uint8_t val, bool hdma) {
 }  // namespace dma
 }  // namespace memory
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze

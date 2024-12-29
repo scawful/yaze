@@ -17,11 +17,10 @@
 #include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 
 /**
- * @namespace yaze::app::zelda3::overworld
+ * @namespace yaze::zelda3::overworld
  * @brief Represents the Overworld data.
  */
 namespace overworld {
@@ -277,7 +276,7 @@ private:
 
 } // namespace overworld
 } // namespace zelda3
-} // namespace app
+
 } // namespace yaze
 
 #endif
