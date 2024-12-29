@@ -1,18 +1,17 @@
 #include "color.h"
 
-#include "imgui/imgui.h"
-
 #include <cmath>
 #include <string>
 
 #include "app/gfx/bitmap.h"
-#include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_color.h"
+#include "app/gfx/snes_palette.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace gui {
 
-ImVec4 ConvertSnesColorToImVec4(const SnesColor& color) {
+ImVec4 ConvertSnesColorToImVec4(const gfx::SnesColor& color) {
   return ImVec4(static_cast<float>(color.rgb().x) / 255.0f,
                 static_cast<float>(color.rgb().y) / 255.0f,
                 static_cast<float>(color.rgb().z) / 255.0f,
@@ -21,7 +20,7 @@ ImVec4 ConvertSnesColorToImVec4(const SnesColor& color) {
   );
 }
 
-IMGUI_API bool SnesColorButton(absl::string_view id, SnesColor& color,
+IMGUI_API bool SnesColorButton(absl::string_view id, gfx::SnesColor& color,
                                ImGuiColorEditFlags flags,
                                const ImVec2& size_arg) {
   // Convert the SNES color values to ImGui color values
@@ -38,7 +37,7 @@ IMGUI_API bool SnesColorButton(absl::string_view id, SnesColor& color,
   return pressed;
 }
 
-IMGUI_API bool SnesColorEdit4(absl::string_view label, SnesColor* color,
+IMGUI_API bool SnesColorEdit4(absl::string_view label, gfx::SnesColor* color,
                               ImGuiColorEditFlags flags) {
   ImVec4 displayColor = ConvertSnesColorToImVec4(*color);
 
