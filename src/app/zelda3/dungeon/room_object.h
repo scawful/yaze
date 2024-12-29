@@ -11,7 +11,7 @@
 
 namespace yaze {
 namespace zelda3 {
-namespace dungeon {
+
 
 struct SubtypeInfo {
   uint32_t subtype_ptr;
@@ -201,7 +201,8 @@ class Subtype3 : public RoomObject {
   }
 };
 
-}  // namespace dungeon
+
+
 }  // namespace zelda3
 
 }  // namespace yaze

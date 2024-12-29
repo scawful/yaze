@@ -107,7 +107,7 @@ z3_overworld *yaze_load_overworld(const z3_rom *rom) {
   }
 
   yaze::Rom *internal_rom = static_cast<yaze::Rom *>(rom->impl);
-  auto internal_overworld = new yaze::zelda3::overworld::Overworld();
+  auto internal_overworld = new yaze::zelda3::Overworld();
   if (!internal_overworld->Load(*internal_rom).ok()) {
     return nullptr;
   }

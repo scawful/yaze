@@ -5,7 +5,7 @@
 
 namespace yaze {
 namespace zelda3 {
-namespace dungeon {
+
 
 constexpr static inline absl::string_view Type1RoomObjectNames[] = {
     "Ceiling ↔",
@@ -456,7 +456,8 @@ constexpr static inline absl::string_view Type3RoomObjectNames[] = {
     "Nothing",
 };
 
-}  // namespace dungeon
+
+
 }  // namespace zelda3
 
 }  // namespace yaze

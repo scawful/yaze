@@ -7,7 +7,7 @@
 
 namespace yaze {
 namespace zelda3 {
-namespace dungeon {
+
 
 // ============================================================================
 // Dungeon Entrances Related Variables
@@ -349,7 +349,8 @@ class RoomEntrance {
   uint8_t camera_boundary_fe_;
 };
 
-}  // namespace dungeon
+
+
 }  // namespace zelda3
 
 }  // namespace yaze

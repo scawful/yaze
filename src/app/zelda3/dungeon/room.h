@@ -15,7 +15,7 @@
 
 namespace yaze {
 namespace zelda3 {
-namespace dungeon {
+
 
 // room_object_layout_pointer   0x882D
 // room_object_pointer          0x874C
@@ -600,7 +600,8 @@ constexpr std::string_view kEntranceNames[] = {
     "Heart Piece Cave 3 (Drop In)",
     "Ice Rod Cave"};
 
-}  // namespace dungeon
+
+
 }  // namespace zelda3
 
 }  // namespace yaze
