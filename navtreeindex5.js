@@ -95,8 +95,8 @@ var NAVTREEINDEX5 =
 "classyaze_1_1editor_1_1OverworldEditor.html#a9225be6edc7498bcf055bc646b10c9ca":[11,0,0,2,23,17],
 "classyaze_1_1editor_1_1OverworldEditor.html#a92ceb324bb2b537690e2fee94ac3f863":[10,0,1,3,28,35],
 "classyaze_1_1editor_1_1OverworldEditor.html#a92ceb324bb2b537690e2fee94ac3f863":[11,0,0,2,23,35],
-"classyaze_1_1editor_1_1OverworldEditor.html#a92f496396b365517e10fab89f317ea60":[10,0,1,3,28,97],
-"classyaze_1_1editor_1_1OverworldEditor.html#a92f496396b365517e10fab89f317ea60":[11,0,0,2,23,97],
+"classyaze_1_1editor_1_1OverworldEditor.html#a92f496396b365517e10fab89f317ea60":[10,0,1,3,28,98],
+"classyaze_1_1editor_1_1OverworldEditor.html#a92f496396b365517e10fab89f317ea60":[11,0,0,2,23,98],
 "classyaze_1_1editor_1_1OverworldEditor.html#a939d684939198a152ac3fa753276e4ce":[10,0,1,3,28,93],
 "classyaze_1_1editor_1_1OverworldEditor.html#a939d684939198a152ac3fa753276e4ce":[11,0,0,2,23,93],
 "classyaze_1_1editor_1_1OverworldEditor.html#a994a32bbe8a7793fedbb5ff1f27ea7f7":[10,0,1,3,28,12],
@@ -145,6 +145,8 @@ var NAVTREEINDEX5 =
 "classyaze_1_1editor_1_1OverworldEditor.html#ace50d203cb202e7509ec9af3eb7ad566":[11,0,0,2,23,47],
 "classyaze_1_1editor_1_1OverworldEditor.html#ad126df6fb85fc75ae58859c142046710":[10,0,1,3,28,52],
 "classyaze_1_1editor_1_1OverworldEditor.html#ad126df6fb85fc75ae58859c142046710":[11,0,0,2,23,52],
+"classyaze_1_1editor_1_1OverworldEditor.html#ad2b1bd4d108482ecbc6d451e81b9c502":[10,0,1,3,28,96],
+"classyaze_1_1editor_1_1OverworldEditor.html#ad2b1bd4d108482ecbc6d451e81b9c502":[11,0,0,2,23,96],
 "classyaze_1_1editor_1_1OverworldEditor.html#ad4fae8e544e12c7471bceb8a2fe8a242":[10,0,1,3,28,84],
 "classyaze_1_1editor_1_1OverworldEditor.html#ad4fae8e544e12c7471bceb8a2fe8a242":[11,0,0,2,23,84],
 "classyaze_1_1editor_1_1OverworldEditor.html#ad50b76ad7d4a49ac8f5ea1ce940e6b74":[10,0,1,3,28,94],
@@ -247,7 +249,5 @@ var NAVTREEINDEX5 =
 "classyaze_1_1editor_1_1PaletteEditor.html#abc98f1f83b39e0663a732f33e7a50a0c":[11,0,0,2,24,2],
 "classyaze_1_1editor_1_1PaletteEditor.html#ac079cef27c2bba7100184ca6e2272ba9":[10,0,1,3,29,15],
 "classyaze_1_1editor_1_1PaletteEditor.html#ac079cef27c2bba7100184ca6e2272ba9":[11,0,0,2,24,15],
-"classyaze_1_1editor_1_1PaletteEditor.html#ac8a778416d295453b0ca0ee7e11ffa0a":[10,0,1,3,29,17],
-"classyaze_1_1editor_1_1PaletteEditor.html#ac8a778416d295453b0ca0ee7e11ffa0a":[11,0,0,2,24,17],
-"classyaze_1_1editor_1_1PaletteEditor.html#adff0ccac83563b4b24ab28f88e9d7c01":[10,0,1,3,29,0]
+"classyaze_1_1editor_1_1PaletteEditor.html#ac8a778416d295453b0ca0ee7e11ffa0a":[10,0,1,3,29,17]
 };

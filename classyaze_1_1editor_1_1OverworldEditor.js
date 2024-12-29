@@ -118,6 +118,7 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "blockset_canvas_", "classyaze_1_1editor_1_1OverworldEditor.html#a939d684939198a152ac3fa753276e4ce", null ],
     [ "graphics_bin_canvas_", "classyaze_1_1editor_1_1OverworldEditor.html#ad50b76ad7d4a49ac8f5ea1ce940e6b74", null ],
     [ "properties_canvas_", "classyaze_1_1editor_1_1OverworldEditor.html#af15b9838fc18496532d3664c90db811f", null ],
+    [ "toolset_table_", "classyaze_1_1editor_1_1OverworldEditor.html#ad2b1bd4d108482ecbc6d451e81b9c502", null ],
     [ "layout_node_", "classyaze_1_1editor_1_1OverworldEditor.html#a09caa2d092a58b701ef487d87b47d12f", null ],
     [ "status_", "classyaze_1_1editor_1_1OverworldEditor.html#a92f496396b365517e10fab89f317ea60", null ]
 ];

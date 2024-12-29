@@ -109,5 +109,8 @@ var searchData=
   ['buffer_106',['buffer',['../structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#abf64a3b7756c907e04ea99a097761883',1,'yaze::editor::MessageEditor::TextBox']]],
   ['bufferoffset_107',['bufferOffset',['../structyaze_1_1emu_1_1audio_1_1DspChannel.html#a014a3b5d87223780ac643b44a51db9a8',1,'yaze::emu::audio::DspChannel']]],
   ['built_5f_108',['built_',['../classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html#a6802d1ab23a30e7a623d8d502089f587',1,'yaze::zelda3::overworld::OverworldMap']]],
-  ['bytestotransfer_109',['bytesToTransfer',['../structyaze_1_1emu_1_1video_1_1DmaRegisters.html#a38cf08e9c33ba3491f9f176d6fd8ec44',1,'yaze::emu::video::DmaRegisters']]]
+  ['button_109',['button',['../structyaze_1_1gui_1_1Theme.html#ad91de3e94439e6f53641d462f1d8e4f5',1,'yaze::gui::Theme']]],
+  ['button_5factive_110',['button_active',['../structyaze_1_1gui_1_1Theme.html#a07b0430f0cc98a52a5dc1ba7d499c378',1,'yaze::gui::Theme']]],
+  ['button_5fhovered_111',['button_hovered',['../structyaze_1_1gui_1_1Theme.html#ae012899eb166eb8023398b60593a9733',1,'yaze::gui::Theme']]],
+  ['bytestotransfer_112',['bytesToTransfer',['../structyaze_1_1emu_1_1video_1_1DmaRegisters.html#a38cf08e9c33ba3491f9f176d6fd8ec44',1,'yaze::emu::video::DmaRegisters']]]
 ];

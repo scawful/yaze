@@ -190,9 +190,12 @@ var searchData=
   ['buildtileset_187',['BuildTileset',['../classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html#a0ece6645a2d4545c211d2c39acb526a7',1,'yaze::zelda3::overworld::OverworldMap::BuildTileset()'],['../classyaze_1_1zelda3_1_1screen_1_1Inventory.html#a247ec9772aba287fe6cf2e941764d8b0',1,'yaze::zelda3::screen::Inventory::BuildTileset()'],['../classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#af731a5e1858feda21ceac5635b98fa36',1,'yaze::zelda3::screen::TitleScreen::BuildTileset()']]],
   ['built_5f_188',['built_',['../classyaze_1_1zelda3_1_1overworld_1_1OverworldMap.html#a6802d1ab23a30e7a623d8d502089f587',1,'yaze::zelda3::overworld::OverworldMap']]],
   ['button_189',['Button',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a87b7760f14fbff78d8819291f36ab9a0',1,'yaze::gui::zeml']]],
-  ['button_5fcolumn_190',['BUTTON_COLUMN',['../constants_8h.html#ae7499c3a615a8657bdf2d38994f0d231',1,'constants.h']]],
-  ['bvc_191',['BVC',['../classyaze_1_1emu_1_1audio_1_1Spc700.html#a3c1e3111f101ba63d234cd2dab50a232',1,'yaze::emu::audio::Spc700::BVC()'],['../classyaze_1_1emu_1_1Cpu.html#a102883f5080f5082e0054d7bd7d78b5e',1,'yaze::emu::Cpu::BVC()']]],
-  ['bvs_192',['BVS',['../classyaze_1_1emu_1_1audio_1_1Spc700.html#aa9da558d94f656524d6546ac833af47d',1,'yaze::emu::audio::Spc700::BVS()'],['../classyaze_1_1emu_1_1Cpu.html#acbdbeaa61ec026582d69a2558c9b14dd',1,'yaze::emu::Cpu::BVS()']]],
-  ['bytestotransfer_193',['bytesToTransfer',['../structyaze_1_1emu_1_1video_1_1DmaRegisters.html#a38cf08e9c33ba3491f9f176d6fd8ec44',1,'yaze::emu::video::DmaRegisters']]],
-  ['bytetoflags_194',['ByteToFlags',['../classyaze_1_1emu_1_1audio_1_1Spc700.html#afefdd3fa995c36007c40a37b673dd7f6',1,'yaze::emu::audio::Spc700']]]
+  ['button_190',['button',['../structyaze_1_1gui_1_1Theme.html#ad91de3e94439e6f53641d462f1d8e4f5',1,'yaze::gui::Theme']]],
+  ['button_5factive_191',['button_active',['../structyaze_1_1gui_1_1Theme.html#a07b0430f0cc98a52a5dc1ba7d499c378',1,'yaze::gui::Theme']]],
+  ['button_5fcolumn_192',['BUTTON_COLUMN',['../constants_8h.html#ae7499c3a615a8657bdf2d38994f0d231',1,'constants.h']]],
+  ['button_5fhovered_193',['button_hovered',['../structyaze_1_1gui_1_1Theme.html#ae012899eb166eb8023398b60593a9733',1,'yaze::gui::Theme']]],
+  ['bvc_194',['BVC',['../classyaze_1_1emu_1_1audio_1_1Spc700.html#a3c1e3111f101ba63d234cd2dab50a232',1,'yaze::emu::audio::Spc700::BVC()'],['../classyaze_1_1emu_1_1Cpu.html#a102883f5080f5082e0054d7bd7d78b5e',1,'yaze::emu::Cpu::BVC()']]],
+  ['bvs_195',['BVS',['../classyaze_1_1emu_1_1audio_1_1Spc700.html#aa9da558d94f656524d6546ac833af47d',1,'yaze::emu::audio::Spc700::BVS()'],['../classyaze_1_1emu_1_1Cpu.html#acbdbeaa61ec026582d69a2558c9b14dd',1,'yaze::emu::Cpu::BVS()']]],
+  ['bytestotransfer_196',['bytesToTransfer',['../structyaze_1_1emu_1_1video_1_1DmaRegisters.html#a38cf08e9c33ba3491f9f176d6fd8ec44',1,'yaze::emu::video::DmaRegisters']]],
+  ['bytetoflags_197',['ByteToFlags',['../classyaze_1_1emu_1_1audio_1_1Spc700.html#afefdd3fa995c36007c40a37b673dd7f6',1,'yaze::emu::audio::Spc700']]]
 ];

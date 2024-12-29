@@ -13,6 +13,8 @@ var input_8cc =
     [ "InputTileInfo", "input_8cc.html#a8c341f6de6c4838b636534e76c1747f6", null ],
     [ "GetID", "input_8cc.html#ac4604ede79aa224793b522b22034e68b", null ],
     [ "FileDialogPipeline", "input_8cc.html#a5adf4bc60b0deb6b8681e8f60ae2972f", null ],
+    [ "AddTableColumn", "input_8cc.html#a4869c3a07239efb126450a3a4a121841", null ],
+    [ "DrawTable", "input_8cc.html#a63cf2c84b704f70ba84ef7a1691e1b85", null ],
     [ "kStepOneHex", "input_8cc.html#a6029f8bda82fb5f101e9ddd63d85e856", null ],
     [ "kStepFastHex", "input_8cc.html#ac0d0508a4ca0643d60c606788b50e17d", null ]
 ];

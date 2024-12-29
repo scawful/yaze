@@ -1,5 +1,7 @@
 var NAVTREEINDEX22 =
 {
+"clipboard_8cc.html#a224033814dd0a65e514ab48d90bcc550":[12,0,2,0,0,0,2,1],
+"clipboard_8cc.html#a421cc759aa63272bf0079eddf0d32eac":[12,0,2,0,0,0,2,0],
 "clipboard_8cc_source.html":[12,0,2,0,0,0,2],
 "clipboard_8h.html":[12,0,2,0,0,0,3],
 "clipboard_8h.html#a224033814dd0a65e514ab48d90bcc550":[12,0,2,0,0,0,3,1],
@@ -247,7 +249,5 @@ var NAVTREEINDEX22 =
 "constants_8h.html#a5cb25b198dc5695c2269aa5cb3b8698d":[12,0,2,0,0,4,12],
 "constants_8h.html#a69aa29b598b851b0640aa225a9e5d61d":[12,0,2,0,0,4,26],
 "constants_8h.html#a6e9350746df40af9eff68f6fe9aff386":[12,0,2,0,0,4,20],
-"constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce":[12,0,2,0,0,4,15],
-"constants_8h.html#a76ecc345f3680496c1de21f6d7d39f02":[12,0,2,0,0,4,22],
-"constants_8h.html#a7ce4f33830c140b9d5c668fbcf0998ec":[12,0,2,0,0,4,21]
+"constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce":[12,0,2,0,0,4,15]
 };

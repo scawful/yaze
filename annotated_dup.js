@@ -233,6 +233,8 @@ var annotated_dup =
         [ "MultiSelectWithClipper", "structyaze_1_1gui_1_1MultiSelectWithClipper.html", "structyaze_1_1gui_1_1MultiSelectWithClipper" ],
         [ "OverworldAsset", "structyaze_1_1gui_1_1OverworldAsset.html", "structyaze_1_1gui_1_1OverworldAsset" ],
         [ "SpriteAsset", "structyaze_1_1gui_1_1SpriteAsset.html", "structyaze_1_1gui_1_1SpriteAsset" ],
+        [ "Table", "structyaze_1_1gui_1_1Table.html", "structyaze_1_1gui_1_1Table" ],
+        [ "Theme", "structyaze_1_1gui_1_1Theme.html", "structyaze_1_1gui_1_1Theme" ],
         [ "UnsortedAsset", "structyaze_1_1gui_1_1UnsortedAsset.html", "structyaze_1_1gui_1_1UnsortedAsset" ]
       ] ],
       [ "test", "namespaceyaze_1_1test.html", [

@@ -132,5 +132,6 @@ var searchData=
   ['grayscalepalette_129',['GrayscalePalette',['../namespaceyaze_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#accceb00d75541ce0324d7f8d2626d34b',1,'yaze::gfx::anonymous_namespace{bitmap.cc}']]],
   ['green_130',['green',['../structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4',1,'snes_color::green'],['../structyaze_1_1gui_1_1Color.html#afff6ec23c27d488cfb0ed0a59b19fde5',1,'yaze::gui::Color::green']]],
   ['group_5fname_131',['group_name',['../structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a320ea66f9d77d77ad1397920fe67e0c2',1,'yaze::editor::palette_internal::PaletteChange']]],
-  ['guide_132',['Guide',['../md_docs_2asm-style-guide.html',1,'Asm Style Guide'],['../md_docs_2contributing.html#autotoc_md27',1,'Style Guide']]]
+  ['guide_132',['Guide',['../md_docs_2asm-style-guide.html',1,'Asm Style Guide'],['../md_docs_2contributing.html#autotoc_md27',1,'Style Guide']]],
+  ['guielement_133',['GuiElement',['../namespaceyaze_1_1gui.html#a96a8aa8ae9d402de34a59d1457cfc721',1,'yaze::gui']]]
 ];

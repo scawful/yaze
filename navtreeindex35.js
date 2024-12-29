@@ -1,5 +1,14 @@
 var NAVTREEINDEX35 =
 {
+"md_README.html#autotoc_md56":[6,3],
+"md_README.html#autotoc_md57":[6,4],
+"md_docs_2asm-style-guide.html":[1],
+"md_docs_2asm-style-guide.html#autotoc_md1":[1,0],
+"md_docs_2asm-style-guide.html#autotoc_md10":[1,9],
+"md_docs_2asm-style-guide.html#autotoc_md11":[1,10],
+"md_docs_2asm-style-guide.html#autotoc_md2":[1,1],
+"md_docs_2asm-style-guide.html#autotoc_md3":[1,2],
+"md_docs_2asm-style-guide.html#autotoc_md4":[1,3],
 "md_docs_2asm-style-guide.html#autotoc_md5":[1,4],
 "md_docs_2asm-style-guide.html#autotoc_md6":[1,5],
 "md_docs_2asm-style-guide.html#autotoc_md7":[1,6],
@@ -236,18 +245,9 @@ var NAVTREEINDEX35 =
 "namespaceyaze_1_1core.html#a0547d11cc90393910935ab1271f713a4":[10,0,1,2,26],
 "namespaceyaze_1_1core.html#a056bdafe2cc4104f6201289f44898047":[10,0,1,2,27],
 "namespaceyaze_1_1core.html#a134be6f5a039339a4a40c50152820e28":[10,0,1,2,29],
-"namespaceyaze_1_1core.html#a147dd50027b3bc7f7f7dbf3600c7d79d":[10,0,1,2,42],
+"namespaceyaze_1_1core.html#a147dd50027b3bc7f7f7dbf3600c7d79d":[10,0,1,2,43],
 "namespaceyaze_1_1core.html#a15eb6da70143253b66cd9602ce98b2bc":[10,0,1,2,16],
 "namespaceyaze_1_1core.html#a1976cfc905277d7951db38e5bd1b000a":[10,0,1,2,15],
 "namespaceyaze_1_1core.html#a1d6fb7654b6d82c76cf2e31fd4f11a5f":[10,0,1,2,25],
-"namespaceyaze_1_1core.html#a1ebfa2ff985b2a41c726bfbaa9a868dd":[10,0,1,2,35],
-"namespaceyaze_1_1core.html#a224033814dd0a65e514ab48d90bcc550":[10,0,1,2,33],
-"namespaceyaze_1_1core.html#a2cb2c0bf50bac2324d970587cc1b0233":[10,0,1,2,22],
-"namespaceyaze_1_1core.html#a2efa2fdd38e8bf23d8f3cf7ce03679fc":[10,0,1,2,19],
-"namespaceyaze_1_1core.html#a3b002d05a3b1c3254beed024d7092721":[10,0,1,2,31],
-"namespaceyaze_1_1core.html#a421cc759aa63272bf0079eddf0d32eac":[10,0,1,2,32],
-"namespaceyaze_1_1core.html#a611a51e1035d450eef5c06263128ce92":[10,0,1,2,21],
-"namespaceyaze_1_1core.html#a6ce28d9949b2dd0f6b6f6ae922700ae2":[10,0,1,2,41],
-"namespaceyaze_1_1core.html#a6ce88f9f428f027466401bd0f29af006":[10,0,1,2,30],
-"namespaceyaze_1_1core.html#a772a2d0d104498cb8100f0b2e717b6a2":[10,0,1,2,28]
+"namespaceyaze_1_1core.html#a1ebfa2ff985b2a41c726bfbaa9a868dd":[10,0,1,2,35]
 };

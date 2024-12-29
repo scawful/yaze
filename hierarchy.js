@@ -255,6 +255,7 @@ var hierarchy =
     [ "yaze::core::StructuredLog", "structyaze_1_1core_1_1StructuredLog.html", null ],
     [ "yaze::editor::zsprite::SubEditor", "structyaze_1_1editor_1_1zsprite_1_1SubEditor.html", null ],
     [ "yaze::zelda3::dungeon::SubtypeInfo", "structyaze_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html", null ],
+    [ "yaze::gui::Table", "structyaze_1_1gui_1_1Table.html", null ],
     [ "testing::Test", null, [
       [ "yaze::test::RomTest", "classyaze_1_1test_1_1RomTest.html", null ],
       [ "yaze::test::emu::CpuTest", "classyaze_1_1test_1_1emu_1_1CpuTest.html", null ],
@@ -267,6 +268,7 @@ var hierarchy =
     ] ],
     [ "yaze::editor::MessageEditor::TextBox", "structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html", null ],
     [ "yaze::editor::TextElement", "structyaze_1_1editor_1_1TextElement.html", null ],
+    [ "yaze::gui::Theme", "structyaze_1_1gui_1_1Theme.html", null ],
     [ "yaze::emu::video::Tile", "structyaze_1_1emu_1_1video_1_1Tile.html", null ],
     [ "yaze::gfx::Tile16", "classyaze_1_1gfx_1_1Tile16.html", null ],
     [ "yaze::gfx::Tile32", "classyaze_1_1gfx_1_1Tile32.html", null ],

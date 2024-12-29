@@ -1,6 +1,13 @@
 var style_8h =
 [
+    [ "yaze::gui::Theme", "structyaze_1_1gui_1_1Theme.html", "structyaze_1_1gui_1_1Theme" ],
     [ "yaze::gui::MultiSelectWithClipper", "structyaze_1_1gui_1_1MultiSelectWithClipper.html", "structyaze_1_1gui_1_1MultiSelectWithClipper" ],
+    [ "LoadTheme", "style_8h.html#a216f2984ca7cc50dd872c9605352c95e", null ],
+    [ "SaveTheme", "style_8h.html#a7f5085854df78a52ad2598b0448850ed", null ],
+    [ "ApplyTheme", "style_8h.html#ae9a47f0d85166d6363717c61056b83a3", null ],
+    [ "ColorsYaze", "style_8h.html#abd9a49ec6350e33700334b783e0c9cad", null ],
+    [ "GetAssemblyLanguageDef", "style_8h.html#a662ce2afc1c96ab4df4f8f645e837981", null ],
+    [ "DrawBitmapViewer", "style_8h.html#a003e28a61099ac2e0a2563005c681efc", null ],
     [ "BeginWindowWithDisplaySettings", "style_8h.html#acffe7391ebbf95b3313a697bcb629ab3", null ],
     [ "EndWindowWithDisplaySettings", "style_8h.html#a9c7ada455779c5dd4b0ce5a4c5d39fda", null ],
     [ "BeginPadding", "style_8h.html#a25424ecc8f2e33914dbac1c45aaaedbb", null ],
@@ -10,8 +17,5 @@ var style_8h =
     [ "BeginChildWithScrollbar", "style_8h.html#ade93c7dcd1ffbb9d83002534f950c8bc", null ],
     [ "BeginChildBothScrollbars", "style_8h.html#a28dd8b4161ca3d4103b8285519a4871a", null ],
     [ "DrawDisplaySettings", "style_8h.html#a6fe06700256942a0b651ee6086ef590d", null ],
-    [ "TextWithSeparators", "style_8h.html#addaa747c1d46d2433b56c2386260d979", null ],
-    [ "ColorsYaze", "style_8h.html#abd9a49ec6350e33700334b783e0c9cad", null ],
-    [ "GetAssemblyLanguageDef", "style_8h.html#a662ce2afc1c96ab4df4f8f645e837981", null ],
-    [ "DrawBitmapViewer", "style_8h.html#a003e28a61099ac2e0a2563005c681efc", null ]
+    [ "TextWithSeparators", "style_8h.html#addaa747c1d46d2433b56c2386260d979", null ]
 ];
