@@ -4,7 +4,7 @@ file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp)
 add_library("ImGui" STATIC ${IMGUI_SOURCES})
 target_include_directories("ImGui" PUBLIC ${IMGUI_PATH})
 target_include_directories(ImGui PUBLIC ${SDL2_INCLUDE_DIR})
-target_compile_definitions(ImGui PUBLIC 
+target_compile_definitions(ImGui PUBLIC
   IMGUI_IMPL_OPENGL_LOADER_CUSTOM=<SDL2/SDL_opengl.h>  GL_GLEXT_PROTOTYPES=1)
 
 set(IMGUI_FILE_DLG_PATH ${CMAKE_SOURCE_DIR}/src/lib/ImGuiFileDialog)
@@ -25,12 +25,12 @@ target_link_libraries(ImGuiTestEngine PUBLIC ImGui)
 
 set(
   IMGUI_SRC
-  ${IMGUI_PATH}/imgui.cpp 
+  ${IMGUI_PATH}/imgui.cpp
   ${IMGUI_PATH}/imgui_demo.cpp
-  ${IMGUI_PATH}/imgui_draw.cpp 
+  ${IMGUI_PATH}/imgui_draw.cpp
   ${IMGUI_PATH}/imgui_widgets.cpp
   ${IMGUI_PATH}/backends/imgui_impl_sdl2.cpp
-  ${IMGUI_PATH}/backends/imgui_impl_sdlrenderer2.cpp 
+  ${IMGUI_PATH}/backends/imgui_impl_sdlrenderer2.cpp
   ${IMGUI_PATH}/misc/cpp/imgui_stdlib.cpp
   ${IMGUI_FILE_DLG_PATH}/ImGuiFileDialog.cpp
   ${IMGUI_COLOR_TEXT_EDIT_PATH}/TextEditor.cpp
