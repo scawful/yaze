@@ -10,8 +10,6 @@
 namespace yaze {
 namespace cli {
 
-using namespace app;
-
 absl::Status Tile16Transfer::handle(const std::vector<std::string>& arg_vec) {
   // Load the source rom
   RETURN_IF_ERROR(rom_.LoadFromFile(arg_vec[0]))
