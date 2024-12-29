@@ -5,14 +5,20 @@
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/screen.hpp>
 
+#include "app/rom.h"
+
 namespace yaze {
 namespace cli {
-namespace tui {
+
+struct Context {
+  bool is_loaded = false;
+};
 
 void ShowMain();
 
-}
-} // namespace cli
-} // namespace yaze
+void DrawPaletteEditor(Rom *rom);
 
-#endif // YAZE_CLI_TUI_H
+}  // namespace cli
+}  // namespace yaze
+
+#endif  // YAZE_CLI_TUI_H
