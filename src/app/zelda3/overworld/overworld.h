@@ -19,12 +19,6 @@
 namespace yaze {
 namespace zelda3 {
 
-/**
- * @namespace yaze::zelda3::overworld
- * @brief Represents the Overworld data.
- */
-namespace overworld {
-
 constexpr int GravesYTilePos = 0x49968;   // short (0x0F entries)
 constexpr int GravesXTilePos = 0x49986;   // short (0x0F entries)
 constexpr int GravesTilemapPos = 0x499A4; // short (0x0F entries)
@@ -274,9 +268,7 @@ private:
   std::vector<absl::flat_hash_map<uint16_t, int>> usage_stats_;
 };
 
-} // namespace overworld
 } // namespace zelda3
-
 } // namespace yaze
 
 #endif

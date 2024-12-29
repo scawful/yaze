@@ -9,7 +9,6 @@
 
 namespace yaze {
 namespace zelda3 {
-namespace overworld {
 
 constexpr int OWExitRoomId = 0x15D8A;  // 0x15E07 Credits sequences
 // 105C2 Ending maps
@@ -201,9 +200,7 @@ class OverworldExit : public GameEntity {
   }
 };
 
-}  // namespace overworld
 }  // namespace zelda3
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_OVERWORLD_EXIT_H_

@@ -13,7 +13,6 @@
 
 namespace yaze {
 namespace zelda3 {
-namespace overworld {
 
 static constexpr int kTileOffsets[] = {0, 8, 4096, 4104};
 
@@ -184,9 +183,7 @@ class OverworldMap : public GfxContext {
   gfx::SnesPalette current_palette_;
 };
 
-}  // namespace overworld
 }  // namespace zelda3
-
 }  // namespace yaze
 
 #endif

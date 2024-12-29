@@ -11,7 +11,6 @@
 
 namespace yaze {
 namespace zelda3 {
-namespace overworld {
 
 OverworldMap::OverworldMap(int index, Rom& rom, bool load_custom_data)
     : index_(index), parent_(index), rom_(rom) {
@@ -742,7 +741,5 @@ absl::Status OverworldMap::BuildBitmap(OWBlockset& world_blockset) {
   return absl::OkStatus();
 }
 
-}  // namespace overworld
 }  // namespace zelda3
-
 }  // namespace yaze

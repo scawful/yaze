@@ -920,8 +920,8 @@ void OverworldEditor::DrawOverworldItems() {
         }
       }
       std::string item_name = "";
-      if (item.id_ < zelda3::overworld::kSecretItemNames.size()) {
-        item_name = zelda3::overworld::kSecretItemNames[item.id_];
+      if (item.id_ < zelda3::kSecretItemNames.size()) {
+        item_name = zelda3::kSecretItemNames[item.id_];
       } else {
         item_name = absl::StrFormat("0x%02X", item.id_);
       }
@@ -1049,10 +1049,10 @@ absl::Status OverworldEditor::LoadGraphics() {
 
   // Copy the tile16 data into individual tiles.
   auto tile16_data = overworld_.tile16_blockset_data();
-  tile16_individual_.reserve(zelda3::overworld::kNumTile16Individual);
+  tile16_individual_.reserve(zelda3::kNumTile16Individual);
 
   // Loop through the tiles and copy their pixel data into separate vectors
-  for (uint i = 0; i < zelda3::overworld::kNumTile16Individual; i++) {
+  for (uint i = 0; i < zelda3::kNumTile16Individual; i++) {
     std::vector<uint8_t> tile_data(kTile16Size * kTile16Size, 0x00);
 
     // Copy the pixel data for the current tile into the vector
@@ -1075,7 +1075,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   }
 
   // Render the overworld maps loaded from the ROM.
-  for (int i = 0; i < zelda3::overworld::kNumOverworldMaps; ++i) {
+  for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
     overworld_.set_current_map(i);
     auto palette = overworld_.current_area_palette();
     RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
@@ -1218,7 +1218,7 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
 
   std::vector<std::future<void>> futures;
   // Loop through the tiles and copy their pixel data into separate vectors
-  for (uint i = 0; i < zelda3::overworld::kNumTile16Individual; i++) {
+  for (uint i = 0; i < zelda3::kNumTile16Individual; i++) {
     futures.push_back(std::async(
         std::launch::async,
         [&](int index) {
@@ -1242,7 +1242,7 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
   }
 
   // Render the bitmaps of each tile.
-  for (uint id = 0; id < zelda3::overworld::kNumTile16Individual; id++) {
+  for (uint id = 0; id < zelda3::kNumTile16Individual; id++) {
     RETURN_IF_ERROR(tile16_individual_[id].ApplyPalette(palette_));
     Renderer::GetInstance().UpdateBitmap(&tile16_individual_[id]);
   }

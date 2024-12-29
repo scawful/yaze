@@ -26,23 +26,23 @@ class ConstantManager {
         ImGui::Text("Overworld constants");
         ImGui::Separator();
         ImGui::Text("OverworldCustomASMHasBeenApplied: %d",
-                    zelda3::overworld::OverworldCustomASMHasBeenApplied);
+                    zelda3::OverworldCustomASMHasBeenApplied);
         ImGui::Text("OverworldCustomAreaSpecificBGPalette: %d",
-                    zelda3::overworld::OverworldCustomAreaSpecificBGPalette);
+                    zelda3::OverworldCustomAreaSpecificBGPalette);
         ImGui::Text("OverworldCustomAreaSpecificBGEnabled: %d",
-                    zelda3::overworld::OverworldCustomAreaSpecificBGEnabled);
+                    zelda3::OverworldCustomAreaSpecificBGEnabled);
         ImGui::Text("OverworldCustomMainPaletteArray: %d",
-                    zelda3::overworld::OverworldCustomMainPaletteArray);
+                    zelda3::OverworldCustomMainPaletteArray);
         ImGui::Text("OverworldCustomMainPaletteEnabled: %d",
-                    zelda3::overworld::OverworldCustomMainPaletteEnabled);
+                    zelda3::OverworldCustomMainPaletteEnabled);
         ImGui::Text("OverworldCustomMosaicArray: %d",
-                    zelda3::overworld::OverworldCustomMosaicArray);
+                    zelda3::OverworldCustomMosaicArray);
         ImGui::Text("OverworldCustomMosaicEnabled: %d",
-                    zelda3::overworld::OverworldCustomMosaicEnabled);
+                    zelda3::OverworldCustomMosaicEnabled);
         ImGui::Text("OverworldCustomAnimatedGFXArray: %d",
-                    zelda3::overworld::OverworldCustomAnimatedGFXArray);
+                    zelda3::OverworldCustomAnimatedGFXArray);
         ImGui::Text("OverworldCustomAnimatedGFXEnabled: %d",
-                    zelda3::overworld::OverworldCustomAnimatedGFXEnabled);
+                    zelda3::OverworldCustomAnimatedGFXEnabled);
 
         ImGui::EndTabItem();
       }

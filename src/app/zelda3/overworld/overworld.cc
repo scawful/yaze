@@ -13,7 +13,6 @@
 
 namespace yaze {
 namespace zelda3 {
-namespace overworld {
 
 absl::Status Overworld::Load(Rom &rom) {
   rom_ = rom;
@@ -407,7 +406,7 @@ absl::Status Overworld::LoadExits() {
 
 absl::Status Overworld::LoadItems() {
   ASSIGN_OR_RETURN(uint32_t pointer,
-                   rom()->ReadLong(zelda3::overworld::kOverworldItemsAddress));
+                   rom()->ReadLong(zelda3::kOverworldItemsAddress));
   uint32_t pointer_pc = core::SnesToPc(pointer);  // 1BC2F9 -> 0DC2F9
   for (int i = 0; i < 128; i++) {
     ASSIGN_OR_RETURN(uint16_t word_address,
@@ -1586,7 +1585,5 @@ absl::Status Overworld::SaveMapProperties() {
   return absl::OkStatus();
 }
 
-}  // namespace overworld
 }  // namespace zelda3
-
 }  // namespace yaze

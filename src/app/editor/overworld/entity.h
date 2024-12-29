@@ -22,14 +22,14 @@ void HandleEntityDragging(zelda3::GameEntity *entity, ImVec2 canvas_p0,
                           bool free_movement = false);
 
 bool DrawEntranceInserterPopup();
-bool DrawOverworldEntrancePopup(zelda3::overworld::OverworldEntrance &entrance);
+bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance &entrance);
 
 void DrawExitInserterPopup();
-bool DrawExitEditorPopup(zelda3::overworld::OverworldExit &exit);
+bool DrawExitEditorPopup(zelda3::OverworldExit &exit);
 
 void DrawItemInsertPopup();
 
-bool DrawItemEditorPopup(zelda3::overworld::OverworldItem &item);
+bool DrawItemEditorPopup(zelda3::OverworldItem &item);
 
 enum MyItemColumnID {
   MyItemColumnID_ID,

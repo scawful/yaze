@@ -8,7 +8,6 @@
 
 namespace yaze {
 namespace zelda3 {
-namespace overworld {
 
 constexpr int OWEntranceMap = 0xDB96F;
 constexpr int OWEntrancePos = 0xDBA71;
@@ -81,9 +80,7 @@ public:
   }
 };
 
-} // namespace overworld
 } // namespace zelda3
-
 } // namespace yaze
 
 #endif
