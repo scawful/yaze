@@ -4,10 +4,9 @@
 #include <format>
 #include <string>
 
-#include "imgui/imgui.h"
-
 #include "absl/status/status.h"
 #include "app/gfx/snes_palette.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace gui {
@@ -47,7 +46,7 @@ absl::Status DisplayPalette(gfx::SnesPalette &palette, bool loaded);
 void SelectablePalettePipeline(uint64_t &palette_id, bool &refresh_graphics,
                                gfx::SnesPalette &palette);
 
-} // namespace gui
-} // namespace yaze
+}  // namespace gui
+}  // namespace yaze
 
 #endif
