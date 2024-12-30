@@ -35,18 +35,18 @@ int main(int argc, char** argv) {
   SDL_SetMainReady();
 #endif
 
-  core::Controller controller;
-  EXIT_IF_ERROR(controller.OnEntry(rom_filename))
+  auto controller = std::make_unique<core::Controller>();
+  EXIT_IF_ERROR(controller->OnEntry(rom_filename))
 
-  while (controller.IsActive()) {
-    controller.OnInput();
-    if (auto status = controller.OnLoad(); !status.ok()) {
+  while (controller->IsActive()) {
+    controller->OnInput();
+    if (auto status = controller->OnLoad(); !status.ok()) {
       std::cerr << status.message() << std::endl;
       break;
     }
-    controller.DoRender();
+    controller->DoRender();
   }
-  controller.OnExit();
+  controller->OnExit();
 
   return EXIT_SUCCESS;
 }
