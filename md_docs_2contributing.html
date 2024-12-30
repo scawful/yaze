@@ -109,10 +109,10 @@ $(function(){initNavTree('md_docs_2contributing.html',''); initResizable(true); 
   <div class="headertitle"><div class="title">Contributing</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md26"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md27"></a></p>
 <p>This project is looking for contributors to help improve the software and enhance the user experience. If you are interested in contributing, please read the following guidelines and suggestions for areas where you can make a difference.</p>
 <p>Discussion on the editor and its development can be found on the <a href="https://discord.gg/MBFkMTPEmk">Oracle of Secrets Discord</a> server.</p>
-<h1><a class="anchor" id="autotoc_md27"></a>
+<h1><a class="anchor" id="autotoc_md28"></a>
 Style Guide</h1>
 <p>When contributing to the project, please follow these guidelines to ensure consistency and readability across the codebase:</p>
 <p>C++ Code should follow the <a href="https://google.github.io/styleguide/cppguide.html">Google C++ Style Guide</a> with the following exceptions:</p>
@@ -122,13 +122,13 @@ Style Guide</h1>
 <p>Objective-C Code should follow the <a href="https://google.github.io/styleguide/objcguide.html">Google Objective-C Style Guide</a>.</p>
 <p>Python Code should follow the <a href="https://pep8.org/">PEP 8 Style Guide</a>.</p>
 <p>Assembly code should follow the <a class="el" href="md_docs_2asm-style-guide.html">65816 Style Guide</a>.</p>
-<h1><a class="anchor" id="autotoc_md28"></a>
-Testing Facilities</h1>
-<p>The project includes the <code>yaze_test</code> target which defines unit tests and an integration test window. The unit tests make use of GoogleTest and GoogleMock. The integration test window is an <a class="el" href="namespaceImGui.html">ImGui</a> window build out of the yaze::app::core::Controller and <a class="el" href="classyaze_1_1test_1_1integration_1_1TestEditor.html">yaze::test::integration::TestEditor</a>. The integration test window can be accessed by passing the argument <code>integration</code> to the target.</p>
-<p>New modules should define unit tests in the <code>src/test</code> directory and integration tests in the <code>src/test/integration</code> directory. The <code>yaze_test</code> target will automatically include all tests in these directories.</p>
 <h1><a class="anchor" id="autotoc_md29"></a>
+Testing Facilities</h1>
+<p>The project includes the <code>yaze_test</code> target which defines unit tests and an integration test window. The unit tests make use of GoogleTest and GoogleMock. The integration test window is an <a class="el" href="namespaceImGui.html">ImGui</a> window build out of the <a class="el" href="classyaze_1_1core_1_1Controller.html" title="Main controller for the application.">yaze::core::Controller</a> and <a class="el" href="classyaze_1_1test_1_1integration_1_1TestEditor.html">yaze::test::integration::TestEditor</a>. The integration test window can be accessed by passing the argument <code>integration</code> to the target.</p>
+<p>New modules should define unit tests in the <code>src/test</code> directory and integration tests in the <code>src/test/integration</code> directory. The <code>yaze_test</code> target will automatically include all tests in these directories.</p>
+<h1><a class="anchor" id="autotoc_md30"></a>
 Key Areas of Contribution</h1>
-<h2><a class="anchor" id="autotoc_md30"></a>
+<h2><a class="anchor" id="autotoc_md31"></a>
 1. Extensions System</h2>
 <p>Yaze <em>(stylized as yaze)</em> emphasizes extensibility. The <code>yaze_ext</code> library allows developers to build and integrate extensions using C, C++, or Python. This system is central to yaze's modular design, enabling new features, custom editors, or tools to be added without modifying the core codebase.</p>
 <ul>
@@ -141,14 +141,14 @@ Key Areas of Contribution</h1>
 <li>Rom manipulation tools for editing data structures, such as the overworld maps or dungeon objects.</li>
 <li>Custom editors for specific tasks, like file format conversion, data visualization, or event scripting.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md31"></a>
+<h2><a class="anchor" id="autotoc_md32"></a>
 2. Sprite Builder System</h2>
 <p>The sprite builder system in yaze is based on the <a href="https://github.com/Zarby89/ZSpriteMaker/">ZSpriteMaker</a> project and allows users to create custom sprites for use in ROM hacks. The goal is to support ZSM files and provide an intuitive interface for editing sprites without the need for writing assembly code. Contributions to the sprite builder system might include:</p>
 <ul>
 <li>Implementing new features for sprite editing, such as palette management, animation preview, or tileset manipulation.</li>
 <li>Extending the sprite builder interface by writing assembly code for sprite behavior.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md32"></a>
+<h2><a class="anchor" id="autotoc_md33"></a>
 3. Emulator Subsystem</h2>
 <p>yaze includes an emulator subsystem that allows developers to test their modifications directly within the editor. The emulator can currently run certain test ROMs but lacks the ability to play any complex games with audio because of timing issues with the APU and Spc700. Contributions to the emulator subsystem might include:</p>
 <ul>
@@ -156,41 +156,10 @@ Key Areas of Contribution</h1>
 <li>Implementing new debugging tools, such as memory viewers, breakpoints, or trace logs.</li>
 <li>Extending the emulator to support additional features, such as save states, cheat codes, or multiplayer modes.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md33"></a>
-4. Editor Management</h2>
-<p>The <code>EditorManager</code> class manages the core functionalities of YAZE, including rendering the UI, handling user input, and managing multiple editors. While this class is central to yaze's operations, it has many responsibilities. You can help by:</p>
-<ul>
-<li>Refactoring <code>EditorManager</code> to delegate responsibilities to specialized managers (e.g., <code>MenuManager</code>, <code>TabManager</code>, <code>StatusManager</code>).</li>
-<li>Optimizing the rendering and update loop to improve performance, especially when handling large textures or complex editors.</li>
-<li>Implementing new features that streamline the editing process, such as better keyboard shortcuts, command palette integration, or project management tools.</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md34"></a>
-5. User Interface and UX</h2>
-<p>yaze's UI is built with <a class="el" href="namespaceImGui.html">ImGui</a>, offering a flexible and customizable interface. Contributions to the UI might include:</p>
-<ul>
-<li>Designing and implementing new themes or layouts to improve the user experience.</li>
-<li>Adding new UI components, such as toolbars, context menus, or customizable panels.</li>
-<li>Improving the accessibility of the editor, ensuring it is usable by a wide range of users, including those with disabilities.</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md35"></a>
-6. ROM Manipulation</h2>
-<p>The <code>Rom</code> class is at the heart of yaze's ability to modify and interact with ROM data. Contributions here might involve:</p>
-<ul>
-<li>Optimizing the loading and saving processes to handle larger ROMs or more complex modifications efficiently.</li>
-<li>Extensions should be able to change the way the <code>Rom</code> class interacts with the ROM data with custom pointers to expanded data structures.</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md36"></a>
-7. Testing and Documentation</h2>
-<p>Quality assurance and documentation are critical to yaze's success. Contributions in this area include:</p>
-<ul>
-<li>Writing unit tests for new and existing features to ensure they work correctly and remain stable over time.</li>
-<li>Contributing to the documentation, both for end-users and developers, to make yaze easier to use and extend.</li>
-<li>Creating tutorials or guides that help new developers get started with building extensions or contributing to the project.</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md37"></a>
+<h1><a class="anchor" id="autotoc_md34"></a>
 Building the Project</h1>
 <p>For detailed instructions on building YAZE, including its dependencies and supported platforms, refer to <a class="el" href="md_docs_2build-instructions.html">build-instructions.md</a>.</p>
-<h1><a class="anchor" id="autotoc_md38"></a>
+<h1><a class="anchor" id="autotoc_md35"></a>
 Getting Started</h1>
 <ol type="1">
 <li>Clone the Repository:</li>
@@ -209,7 +178,7 @@ Getting Started</h1>
 <li>Run the Application:</li>
 </ol>
 <p>After building, you can run the application on your chosen platform and start exploring the existing features.</p>
-<h1><a class="anchor" id="autotoc_md39"></a>
+<h1><a class="anchor" id="autotoc_md36"></a>
 Contributing your Changes</h1>
 <ol type="1">
 <li>Fork the Repository:</li>

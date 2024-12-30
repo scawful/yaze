@@ -1,8 +1,5 @@
 var NAVTREEINDEX44 =
 {
-"src_2app_2zelda3_2overworld_2overworld_8h.html#ad2461fedd5973acbdde680660a75540b":[12,0,2,0,5,2,1,41],
-"src_2app_2zelda3_2overworld_2overworld_8h.html#ad49ade67fd12950d9ebe4cc9f0a9ecb3":[12,0,2,0,5,2,1,40],
-"src_2app_2zelda3_2overworld_2overworld_8h.html#ad58b3a6c51485f0b88e6a99a6d60ce83":[12,0,2,0,5,2,1,45],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#ae5955d36b0ba30b861767f2b900e407b":[12,0,2,0,5,2,1,16],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#aeb09d65e6d783e975d4547268403c092":[12,0,2,0,5,2,1,36],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#aeb1d1905adc848ab69a769e094b2ef2d":[12,0,2,0,5,2,1,1],
@@ -249,5 +246,8 @@ var NAVTREEINDEX44 =
 "structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html#ab369e3e0e9820f9cd6241ceb5f7a2523":[10,0,1,3,8,0,3],
 "structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html#ab369e3e0e9820f9cd6241ceb5f7a2523":[11,0,0,2,3,0,3],
 "structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html#afc53b66ef901a5ea5e9749937c8fcf0a":[10,0,1,3,8,0,4],
-"structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html#afc53b66ef901a5ea5e9749937c8fcf0a":[11,0,0,2,3,0,4]
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html#afc53b66ef901a5ea5e9749937c8fcf0a":[11,0,0,2,3,0,4],
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html":[10,0,1,3,8,1],
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html":[11,0,0,2,3,1],
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html#a112b33285d7ad430d67f61846df42114":[10,0,1,3,8,1,1]
 };

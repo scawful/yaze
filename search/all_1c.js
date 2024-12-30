@@ -48,10 +48,8 @@ var searchData=
   ['usage_5fstats_5f_45',['usage_stats_',['../classyaze_1_1zelda3_1_1Overworld.html#ac4caf660d6332ce4b12809202e7646a2',1,'yaze::zelda3::Overworld']]],
   ['usegain_46',['useGain',['../structyaze_1_1emu_1_1DspChannel.html#a0e85f4e4b96346138f7ec6673d5e8705',1,'yaze::emu::DspChannel']]],
   ['usenoise_47',['useNoise',['../structyaze_1_1emu_1_1DspChannel.html#a0f3d545cf2c196e73dc3c8da4e19ab74',1,'yaze::emu::DspChannel']]],
-  ['user_20interface_20and_20ux_48',['5. User Interface and UX',['../md_docs_2contributing.html#autotoc_md34',1,'']]],
-  ['user_5froutines_49',['user_routines',['../structyaze_1_1editor_1_1zsprite_1_1SubEditor.html#adac6b0ec7050337b2951c14dff0b45c7',1,'yaze::editor::zsprite::SubEditor']]],
-  ['userroutine_50',['UserRoutine',['../structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html',1,'yaze::editor::zsprite::UserRoutine'],['../structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html#a1bab4ea9f52dc3661efea0b3db41eef8',1,'yaze::editor::zsprite::UserRoutine::UserRoutine()']]],
-  ['userroutines_51',['userRoutines',['../structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a0fe51a591960bea89589f318b8a4ebe2',1,'yaze::editor::zsprite::ZSprite']]],
-  ['ushort_52',['ushort',['../constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0',1,'constants.h']]],
-  ['ux_53',['5. User Interface and UX',['../md_docs_2contributing.html#autotoc_md34',1,'']]]
+  ['user_5froutines_48',['user_routines',['../structyaze_1_1editor_1_1zsprite_1_1SubEditor.html#adac6b0ec7050337b2951c14dff0b45c7',1,'yaze::editor::zsprite::SubEditor']]],
+  ['userroutine_49',['UserRoutine',['../structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html',1,'yaze::editor::zsprite::UserRoutine'],['../structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html#a1bab4ea9f52dc3661efea0b3db41eef8',1,'yaze::editor::zsprite::UserRoutine::UserRoutine()']]],
+  ['userroutines_50',['userRoutines',['../structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a0fe51a591960bea89589f318b8a4ebe2',1,'yaze::editor::zsprite::ZSprite']]],
+  ['ushort_51',['ushort',['../constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0',1,'constants.h']]]
 ];

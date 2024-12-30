@@ -1,8 +1,5 @@
 var NAVTREEINDEX51 =
 {
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#af710f1381245f03fcc75a54d7d8a053d":[10,0,1,6,8,6],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#af710f1381245f03fcc75a54d7d8a053d":[11,0,0,5,6,6],
-"structyaze_1_1gui_1_1MultiSelectWithClipper.html":[10,0,1,6,9],
 "structyaze_1_1gui_1_1MultiSelectWithClipper.html":[11,0,0,5,7],
 "structyaze_1_1gui_1_1MultiSelectWithClipper.html#a8ac1b4d1e97e502c2a349cc513171a62":[10,0,1,6,9,1],
 "structyaze_1_1gui_1_1MultiSelectWithClipper.html#a8ac1b4d1e97e502c2a349cc513171a62":[11,0,0,5,7,1],
@@ -249,5 +246,8 @@ var NAVTREEINDEX51 =
 "structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abcf8ec71d5b830fef6d59ae449c52fde":[10,0,1,8,2,5,4],
 "structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abcf8ec71d5b830fef6d59ae449c52fde":[11,0,0,7,0,5,4],
 "structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abd2c6d8cd99d0510524ee3e1ab3a8fdd":[10,0,1,8,2,5,7],
-"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abd2c6d8cd99d0510524ee3e1ab3a8fdd":[11,0,0,7,0,5,7]
+"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abd2c6d8cd99d0510524ee3e1ab3a8fdd":[11,0,0,7,0,5,7],
+"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#ac4b191d5ade6f487037dbbc884122dc3":[10,0,1,8,2,5,0],
+"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#ac4b191d5ade6f487037dbbc884122dc3":[11,0,0,7,0,5,0],
+"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#ac68a57b9e3b1359935c1cc6bf92d513b":[10,0,1,8,2,5,2]
 };

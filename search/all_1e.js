@@ -38,7 +38,7 @@ var searchData=
   ['windowmasksettings_35',['WindowMaskSettings',['../structyaze_1_1emu_1_1WindowMaskSettings.html',1,'yaze::emu']]],
   ['windowmasksettings2_36',['WindowMaskSettings2',['../structyaze_1_1emu_1_1WindowMaskSettings2.html',1,'yaze::emu']]],
   ['windowposition_37',['WindowPosition',['../structyaze_1_1emu_1_1WindowPosition.html',1,'yaze::emu']]],
-  ['windows_38',['Windows',['../md_docs_2build-instructions.html#autotoc_md13',1,'']]],
+  ['windows_38',['Windows',['../md_docs_2build-instructions.html#autotoc_md12',1,'']]],
   ['withhead_39',['withhead',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html#a245d5ba4ce1506500e67171ba88b59fc',1,'yaze::zelda3::music::Tracker']]],
   ['wobjlog_40',['WOBJLOG',['../structyaze_1_1emu_1_1WOBJLOG.html',1,'yaze::emu::WOBJLOG'],['../namespaceyaze_1_1emu.html#acd44a920c5f6d46bfeb5eb928916c7ff',1,'yaze::emu::WOBJLOG']]],
   ['wobjsel_41',['WOBJSEL',['../structyaze_1_1emu_1_1WOBJSEL.html',1,'yaze::emu::WOBJSEL'],['../namespaceyaze_1_1emu.html#ae7e6ab4f47a32ba36476535032a8e109',1,'yaze::emu::WOBJSEL']]],

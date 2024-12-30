@@ -119,7 +119,7 @@ var searchData=
   ['kexit_116',['kExit',['../classyaze_1_1zelda3_1_1GameEntity.html#a04318cae2fac826a7a06bdbb6e7948b2a6a204134384605565d443b575009eb79',1,'yaze::zelda3::GameEntity']]],
   ['kexpandedlengthmod_117',['kExpandedLengthMod',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a14f2f8eef96eb308864c834cb7ad3a4f',1,'yaze::gfx::lc_lz2']]],
   ['kexpandedmod_118',['kExpandedMod',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a9f9585e104565c6688541c1454569d85',1,'yaze::gfx::lc_lz2']]],
-  ['key_20areas_20of_20contribution_119',['Key Areas of Contribution',['../md_docs_2contributing.html#autotoc_md29',1,'']]],
+  ['key_20areas_20of_20contribution_119',['Key Areas of Contribution',['../md_docs_2contributing.html#autotoc_md30',1,'']]],
   ['key_5fdrop_5f_120',['key_drop_',['../classyaze_1_1zelda3_1_1Sprite.html#a705628d0c24a7ea4fc2ad863daa33cc9',1,'yaze::zelda3::Sprite']]],
   ['key_5fname_121',['key_name',['../structyaze_1_1ResourceLabelManager_1_1ResourceType.html#a4f413863d830fa0ac05739c083138adc',1,'yaze::ResourceLabelManager::ResourceType']]],
   ['keybindings_5f_122',['keybindings_',['../classyaze_1_1emu_1_1Emulator.html#a4559b9d5fd7974f6244c16717a10c392',1,'yaze::emu::Emulator']]],

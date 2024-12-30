@@ -1,8 +1,5 @@
 var NAVTREEINDEX42 =
 {
-"ppu__registers_8h.html#afed9dfd506ad3d7247efc5ef53017459":[12,0,2,0,2,3,2,75],
-"ppu__registers_8h_source.html":[12,0,2,0,2,3,2],
-"ppu__test_8cc.html":[12,0,2,3,1,1],
 "ppu__test_8cc_source.html":[12,0,2,3,1,1],
 "project_8cc.html":[12,0,2,0,0,7],
 "project_8cc_source.html":[12,0,2,0,0,7],
@@ -249,5 +246,8 @@ var NAVTREEINDEX42 =
 "settings__editor_8cc_source.html":[12,0,2,0,1,7,10],
 "settings__editor_8h.html":[12,0,2,0,1,7,11],
 "settings__editor_8h_source.html":[12,0,2,0,1,7,11],
-"snes_8cc.html":[12,0,2,0,2,7]
+"snes_8cc.html":[12,0,2,0,2,7],
+"snes_8cc.html#a34f0bcbc0fe70ab704bb3d117f3a73b1":[12,0,2,0,2,7,0],
+"snes_8cc.html#ac647c716cf7e74b51fd5993fa6ff70fa":[12,0,2,0,2,7,1],
+"snes_8cc_source.html":[12,0,2,0,2,7]
 };

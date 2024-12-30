@@ -109,7 +109,7 @@ $(function(){initNavTree('md_docs_2build-instructions.html',''); initResizable(t
   <div class="headertitle"><div class="title">Build Instructions</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md12"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md11"></a></p>
 <p>For VSCode users, use the following CMake extensions</p>
 <ul>
 <li><a href="https://marketplace.visualstudio.com/items?itemName=twxs.cmake">https://marketplace.visualstudio.com/items?itemName=twxs.cmake</a></li>
@@ -118,9 +118,36 @@ $(function(){initNavTree('md_docs_2build-instructions.html',''); initResizable(t
 <p>Yaze uses CMake to build the project. If you are unexperienced with CMake, please refer to the <a href="https://cmake.org/documentation/">CMake documentation</a>.</p>
 <p>The gui editor is built using SDL2 and <a class="el" href="namespaceImGui.html">ImGui</a>. For reference on how to use <a class="el" href="namespaceImGui.html">ImGui</a>, see the <a href="https://github.com/ocornut/imgui/wiki/Getting-Started">Getting Started</a> guide. For SDL2, see the <a href="https://wiki.libsdl.org/">SDL2 documentation</a>.</p>
 <p>For those who want to reduce compile times, consider installing the dependencies on your system.</p>
-<h1><a class="anchor" id="autotoc_md13"></a>
+<h1><a class="anchor" id="autotoc_md12"></a>
 Windows</h1>
-<p>Recommended to use <a href="https://www.msys2.org/">msys2</a> for a Unix-like environment on Windows.</p>
+<h2><a class="anchor" id="autotoc_md13"></a>
+vcpkg</h2>
+<p>For Visual Studio users, follow the <a href="https://learn.microsoft.com/en-us/vcpkg/get_started/get-started">Install and use packages with CMake</a> tutorial from Microsoft.</p>
+<p>Define the following dependencies in <code>vcpkg.json</code></p>
+<div class="fragment"><div class="line">{</div>
+<div class="line">  &quot;dependencies&quot;: [</div>
+<div class="line">    &quot;abseil&quot;,</div>
+<div class="line">    &quot;sdl2&quot;,</div>
+<div class="line">    &quot;libpng&quot;</div>
+<div class="line">  ]</div>
+<div class="line">}</div>
+</div><!-- fragment --><p>Target the architecture in <code>CMakePresets.json</code></p>
+<div class="fragment"><div class="line">{</div>
+<div class="line">  &quot;name&quot;: &quot;vcpkg&quot;,</div>
+<div class="line">  &quot;generator&quot;: &quot;Ninja&quot;,</div>
+<div class="line">  &quot;binaryDir&quot;: &quot;${sourceDir}/build&quot;,</div>
+<div class="line">  &quot;architecture&quot;: {</div>
+<div class="line">    &quot;value&quot;: &quot;arm64/x64&quot;,</div>
+<div class="line">    &quot;strategy&quot;: &quot;external&quot;</div>
+<div class="line">  },</div>
+<div class="line">  &quot;cacheVariables&quot;: {</div>
+<div class="line">    &quot;CMAKE_TOOLCHAIN_FILE&quot;: &quot;$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake&quot;,</div>
+<div class="line">    &quot;CMAKE_SYSTEM_PROCESSOR&quot;: &quot;arm64/x64&quot;</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md14"></a>
+msys2</h2>
+<p><a href="https://www.msys2.org/">msys2</a> is an alternative you may use for a Unix-like environment on Windows. Beware that this is for more experienced developers who know how to manage their system PATH.</p>
 <p>Add to environment variables <code>C:\msys64\mingw64\bin</code></p>
 <p>Install the following packages using <code>pacman -S &lt;package-name&gt;</code></p>
 <ul>
@@ -135,7 +162,7 @@ Windows</h1>
 <ul>
 <li><code>mingw-w64-x86_64-boost</code></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md14"></a>
+<h1><a class="anchor" id="autotoc_md15"></a>
 macOS</h1>
 <p>Prefer to use clang provided with XCode command line tools over gcc.</p>
 <p>Install the following packages using <code>brew install &lt;package-name&gt;</code></p>
@@ -147,12 +174,12 @@ macOS</h1>
 <li><code>abseil</code></li>
 <li><code>boost-python3</code></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md15"></a>
+<h1><a class="anchor" id="autotoc_md16"></a>
 iOS</h1>
 <p>Xcode is required to build for iOS. Currently testing with iOS 18 on iPad Pro.</p>
 <p>The xcodeproject file is located in the <code>ios</code> directory.</p>
 <p>You will need to link <code>SDL2.framework</code> and <code>libpng.a</code> to the project.</p>
-<h1><a class="anchor" id="autotoc_md16"></a>
+<h1><a class="anchor" id="autotoc_md17"></a>
 GNU/Linux</h1>
 <p>You can use your package manager to install the same dependencies as macOS.</p>
 <p>I trust you know how to use your package manager. </p>

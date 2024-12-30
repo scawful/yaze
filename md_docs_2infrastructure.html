@@ -109,10 +109,10 @@ $(function(){initNavTree('md_docs_2infrastructure.html',''); initResizable(true)
   <div class="headertitle"><div class="title">Infrastructure Overview</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md45"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md42"></a></p>
 <p>For developers to reference.</p>
 <p>The goal of yaze is to build a cross platform editor for the Legend of Zelda: A Link to the Past. The project is built using C++20, SDL2, and <a class="el" href="namespaceImGui.html">ImGui</a>. The project is built using CMake and is designed to be modular and extensible. The project is designed to be built on Windows, macOS, iOS, and Linux.</p>
-<h1><a class="anchor" id="autotoc_md46"></a>
+<h1><a class="anchor" id="autotoc_md43"></a>
 Targets</h1>
 <ul>
 <li><b>yaze</b>: Desktop application for Windows/macOS/Linux</li>
@@ -122,26 +122,26 @@ Targets</h1>
 <li><b>yaze_test</b>: Unit test executable</li>
 <li><b>yaze_ios</b>: iOS application</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md47"></a>
+<h1><a class="anchor" id="autotoc_md44"></a>
 Directory Structure</h1>
 <ul>
 <li><b>assets</b>: Hosts assets like fonts, icons, assembly source, etc.</li>
 <li><b>cmake</b>: Contains CMake configurations.</li>
 <li><b>docs</b>: Contains documentation for users and developers.</li>
+<li><b>incl</b>: Contains the public headers for <code>yaze_c</code></li>
 <li><b>src</b>: Contains source files.<ul>
 <li><b>app</b>: Contains the GUI editor <code>yaze</code></li>
 <li><b>app/emu</b>: Contains a standalone Snes emulator application <code>yaze_emu</code></li>
 <li><b>cli</b>: Contains the command line interface <code>z3ed</code></li>
-<li><b>incl</b>: Contains the data headers for <code>yaze_c</code></li>
+<li><b>cli/python</b>: Contains the Python module <code>yaze_py</code></li>
 <li><b>ios</b>: Contains the iOS application <code>yaze_ios</code></li>
 <li><b>lib</b>: Contains the dependencies as git submodules</li>
-<li><b>py</b>: Contains the Python module <code>yaze_py</code></li>
 <li><b>test</b>: Contains testing interface <code>yaze_test</code></li>
 <li><b>win32</b>: Contains Windows resource file and icon</li>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md48"></a>
+<h1><a class="anchor" id="autotoc_md45"></a>
 Dependencies</h1>
 <p>See <a class="el" href="md_docs_2build-instructions.html">build-instructions.md</a> for more information.</p>
 <ul>
@@ -151,7 +151,7 @@ Dependencies</h1>
 <li><b>libpng</b>: Image library</li>
 <li><b>Boost</b>: Python library</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md49"></a>
+<h1><a class="anchor" id="autotoc_md46"></a>
 Flow of Control</h1>
 <ul>
 <li>app/yaze.cc<ul>
@@ -189,7 +189,7 @@ Flow of Control</h1>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md50"></a>
+<h1><a class="anchor" id="autotoc_md47"></a>
 Rom</h1>
 <ul>
 <li><a class="el" href="rom_8cc.html">app/rom.cc</a></li>
@@ -197,7 +197,7 @@ Rom</h1>
 </ul>
 <p>The Rom class provides methods to manipulate and access data from a ROM.</p>
 <p>Currently implemented as a singleton with SharedRom which is not great but has helped with development velocity. Potential room for improvement is to refactor the editors to take the ROM as a parameter.</p>
-<h1><a class="anchor" id="autotoc_md51"></a>
+<h1><a class="anchor" id="autotoc_md48"></a>
 Bitmap</h1>
 <ul>
 <li><a class="el" href="bitmap_8cc.html">app/gfx/bitmap.cc</a></li>

@@ -138,7 +138,7 @@ var searchData=
   ['priority_5frotation_135',['priority_rotation',['../structyaze_1_1emu_1_1OAMADDH.html#a39f05de1ea23df4495f3172b78555b6e',1,'yaze::emu::OAMADDH']]],
   ['priority_5ftile_136',['priority_tile',['../classyaze_1_1editor_1_1Tile16Editor.html#a45a639f1ec4a9ebf71b0c5d2f08febb4',1,'yaze::editor::Tile16Editor']]],
   ['processgraphicsbuffer_137',['ProcessGraphicsBuffer',['../classyaze_1_1zelda3_1_1OverworldMap.html#ac9473645ab1da55339f5329613268a06',1,'yaze::zelda3::OverworldMap']]],
-  ['project_138',['Project',['../md_docs_2contributing.html#autotoc_md37',1,'Building the Project'],['../structyaze_1_1Project.html',1,'yaze::Project']]],
+  ['project_138',['Project',['../md_docs_2contributing.html#autotoc_md34',1,'Building the Project'],['../structyaze_1_1Project.html',1,'yaze::Project']]],
   ['project_139',['project',['../structyaze__editor__context.html#a3e747d7d0638142be1b42e0fb5f0bf60',1,'yaze_editor_context']]],
   ['project_2ecc_140',['project.cc',['../project_8cc.html',1,'']]],
   ['project_2eh_141',['project.h',['../project_8h.html',1,'']]],

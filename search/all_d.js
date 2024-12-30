@@ -1,9 +1,9 @@
 var searchData=
 [
   ['f32_5fto_5fint8_5fsat_0',['F32_TO_INT8_SAT',['../palette__editor_8cc.html#ad2559c98ebd96ce5373e91ebc28f455a',1,'palette_editor.cc']]],
-  ['facilities_1',['Testing Facilities',['../md_docs_2contributing.html#autotoc_md28',1,'']]],
+  ['facilities_1',['Testing Facilities',['../md_docs_2contributing.html#autotoc_md29',1,'']]],
   ['fast_5fmem_5f_2',['fast_mem_',['../classyaze_1_1emu_1_1Snes.html#a50d446c5bd1c6e37dca9f6d6573729fa',1,'yaze::emu::Snes']]],
-  ['features_3',['Supported Features',['../index.html#autotoc_md43',1,'']]],
+  ['features_3',['Supported Features',['../index.html#autotoc_md40',1,'']]],
   ['feedbackvolume_4',['feedbackVolume',['../classyaze_1_1emu_1_1Dsp.html#a2eff19774c6cdc0c4836076428942897',1,'yaze::emu::Dsp']]],
   ['fetchlargemaps_5',['FetchLargeMaps',['../classyaze_1_1zelda3_1_1Overworld.html#a0b91d3efb0ae226fe000ff953882ae0a',1,'yaze::zelda3::Overworld']]],
   ['fetchsubtypeinfo_6',['FetchSubtypeInfo',['../namespaceyaze_1_1zelda3.html#abfbe2444d2fac0e5cce5c8368a329835',1,'yaze::zelda3']]],
@@ -78,7 +78,7 @@ var searchData=
   ['floor_5fnumber_75',['floor_number',['../classyaze_1_1editor_1_1ScreenEditor.html#ae68807719638477551a2e10d00244112',1,'yaze::editor::ScreenEditor']]],
   ['floor_5frooms_76',['floor_rooms',['../structyaze_1_1zelda3_1_1screen_1_1DungeonMap.html#a8ae5b6668b4a3a90a58be8780d9794d7',1,'yaze::zelda3::screen::DungeonMap']]],
   ['floors_77',['Floors',['../namespaceyaze_1_1zelda3.html#a9490ecf2dca104bfd1d4d40b44f5e747ad57c678319b4dbc801c759910f417fdc',1,'yaze::zelda3']]],
-  ['flow_20of_20control_78',['Flow of Control',['../md_docs_2infrastructure.html#autotoc_md49',1,'']]],
+  ['flow_20of_20control_78',['Flow of Control',['../md_docs_2infrastructure.html#autotoc_md46',1,'']]],
   ['focus_79',['Focus',['../structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#abbf264aeb63f189f83b2fc3ef1faa231',1,'yaze::editor::MessageEditor::TextBox']]],
   ['folderitem_80',['FolderItem',['../structyaze_1_1core_1_1FolderItem.html',1,'yaze::core::FolderItem'],['../namespaceyaze_1_1core.html#a778013ae3dbd2be64704b0eb01769d91',1,'yaze::core::FolderItem']]],
   ['font_5fgfx16_5fdata_5f_81',['font_gfx16_data_',['../classyaze_1_1editor_1_1MessageEditor.html#ac226102c807cdfcf51e650b7813447d5',1,'yaze::editor::MessageEditor']]],
@@ -107,6 +107,6 @@ var searchData=
   ['full_5fgraphic_104',['full_graphic',['../structyaze_1_1emu_1_1VideoPortControl.html#a0dd5f71b096b82780b19a002a6ef4c48',1,'yaze::emu::VideoPortControl']]],
   ['full_5fpalette_5f_105',['full_palette_',['../classyaze_1_1editor_1_1DungeonEditor.html#a92881a7497f26c4a0974b528182cf01c',1,'yaze::editor::DungeonEditor']]],
   ['function_106',['Function',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a86408593c34af77fdd90df932f8b5261',1,'yaze::gui::zeml']]],
-  ['functionality_107',['Extending Functionality',['../index.html#autotoc_md42',1,'']]],
+  ['functionality_107',['Extending Functionality',['../index.html#autotoc_md39',1,'']]],
   ['functions_108',['functions',['../classyaze_1_1zelda3_1_1SpriteBuilder.html#acf250a61a4b1e7f6bf4793892085aa28',1,'yaze::zelda3::SpriteBuilder']]]
 ];

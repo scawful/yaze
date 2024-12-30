@@ -135,7 +135,6 @@ File Structure</h1>
 </ul>
 <p>Example:</p>
 <div class="fragment"><div class="line">; =========================================================</div>
-<div class="line">; File: my_file.asm</div>
 <div class="line">; Purpose: [Brief description of the file’s functionality]</div>
 <div class="line">; Author: [Your Name]</div>
 <div class="line">; =========================================================</div>
@@ -182,19 +181,6 @@ Comments</h1>
 <p>Example:</p>
 <div class="fragment"><div class="line">LDA $22 : SEC : SBC $3F : STA $31   ; Adjust X position for camera movement</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md5"></a>
-Directives</h1>
-<ul>
-<li><b>Organization</b>: Use <code>macro</code>, <code>include</code>, and other Asar directives in a structured manner, keeping related directives grouped together.</li>
-<li><b>Usage</b>: Ensure all directives are used consistently throughout the codebase, following the naming conventions and formatting rules established.</li>
-</ul>
-<p>Example:</p>
-<div class="fragment"><div class="line">%macro InitMovement</div>
-<div class="line">    LDA.b $22 : STA.b $3F</div>
-<div class="line">    LDA.b $23 : STA.b $41</div>
-<div class="line">    LDA.b $20 : STA.b $3E</div>
-<div class="line">    LDA.b $21 : STA.b $40</div>
-<div class="line">endmacro</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md6"></a>
 Instructions</h1>
 <ul>
 <li><b>Single Line Instructions</b>: Combine multiple instructions on a single line using colons (<code>:</code>) where appropriate for related operations.</li>
@@ -203,7 +189,7 @@ Instructions</h1>
 </ul>
 <p>Example:</p>
 <div class="fragment"><div class="line">LDA #$01 : STA !LinkInCart  ; Set Link in cart flag</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md7"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md6"></a>
 Macros</h1>
 <ul>
 <li><b>Naming</b>: Use <code>PascalCase</code> for macro names, with the first letter of each word capitalized (e.g., <code>InitMovement</code>, <code>MoveCart</code>).</li>
@@ -212,13 +198,13 @@ Macros</h1>
 </ul>
 <p>Example:</p>
 <div class="fragment"><div class="line">%macro HandlePlayerCamera</div>
-<div class="line">    LDA $22 : SEC : SBC $3F : STA $31</div>
-<div class="line">    LDA $20 : SEC : SBC $3E : STA $30</div>
-<div class="line">    JSL Link_HandleMovingAnimation_FullLongEntry</div>
-<div class="line">    JSL HandleIndoorCameraAndDoors</div>
-<div class="line">    RTS</div>
+<div class="line">  LDA $22 : SEC : SBC $3F : STA $31</div>
+<div class="line">  LDA $20 : SEC : SBC $3E : STA $30</div>
+<div class="line">  JSL Link_HandleMovingAnimation_FullLongEntry</div>
+<div class="line">  JSL HandleIndoorCameraAndDoors</div>
+<div class="line">  RTS</div>
 <div class="line">endmacro</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md8"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md7"></a>
 Loops and Branching</h1>
 <ul>
 <li><b>Branch Labels</b>: Use meaningful names for branch labels, prefixed with a dot (<code>.</code>) for local branches.</li>
@@ -226,12 +212,12 @@ Loops and Branching</h1>
 </ul>
 <p>Example:</p>
 <div class="fragment"><div class="line">.loop_start</div>
-<div class="line">    LDA $00 : CMP #$10 : BEQ .end_loop</div>
-<div class="line">    INC $00</div>
-<div class="line">    BRA .loop_start</div>
+<div class="line">LDA $00 : CMP #$10 : BEQ .end_loop</div>
+<div class="line">  INC $00</div>
+<div class="line">  BRA .loop_start</div>
 <div class="line">.end_loop</div>
-<div class="line">    RTS</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md9"></a>
+<div class="line">RTS</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md8"></a>
 Data Structures</h1>
 <ul>
 <li><b>Alignment</b>: Align data tables and structures clearly, and use comments to describe the purpose and layout of each.</li>
@@ -240,10 +226,10 @@ Data Structures</h1>
 <p>Example:</p>
 <div class="fragment"><div class="line">.DirectionTileLookup</div>
 <div class="line">{</div>
-<div class="line">    db $02, $00, $04, $00 ; North</div>
-<div class="line">    db $00, $00, $03, $01 ; East</div>
-<div class="line">    db $00, $02, $00, $04 ; South</div>
-<div class="line">    db $03, $01, $00, $00 ; West</div>
+<div class="line">  db $02, $00, $04, $00 ; North</div>
+<div class="line">  db $00, $00, $03, $01 ; East</div>
+<div class="line">  db $00, $02, $00, $04 ; South</div>
+<div class="line">  db $03, $01, $00, $00 ; West</div>
 <div class="line">}</div>
 </div><!-- fragment --><ul>
 <li><b>Structs</b>: Use structs to group related data together, improving readability and maintainability.</li>
@@ -281,13 +267,12 @@ Data Structures</h1>
 <div class="line">  dw   0 ; down</div>
 <div class="line">  dw  -4 ; left</div>
 <div class="line">  dw  11 ; right</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md10"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md9"></a>
 Code Organization</h1>
 <ul>
 <li><b>Logical Grouping</b>: Organize code into logical sections, with related routines and macros grouped together.</li>
 <li><b>Separation of Concerns</b>: Ensure that each section of code is responsible for a specific task or set of related tasks, avoiding tightly coupled code.</li>
 <li><b>Modularity</b>: Write code in a modular way, making it easier to reuse and maintain.</li>
-<li><b>Status Registers and Stack Operations</b>: Indent code blocks when using status register operations (REP, SEP, PHX, PLX, etc.) to improve readability.</li>
 </ul>
 <p>Example:</p>
 <div class="fragment"><div class="line">; =========================================================</div>
@@ -295,18 +280,16 @@ Code Organization</h1>
 <div class="line">; =========================================================</div>
 <div class="line">Sprite_Minecart_Main:</div>
 <div class="line">{</div>
-<div class="line">    JSR HandleTileDirections</div>
-<div class="line">    JSR HandleDynamicSwitchTileDirections</div>
-<div class="line">    PHX</div>
-<div class="line">      JSR HandleMinecartMovement</div>
-<div class="line">    PLX</div>
+<div class="line">  PHX</div>
+<div class="line">  JSR HandleMinecartMovement</div>
+<div class="line">  PLX</div>
 <div class="line"> </div>
-<div class="line">    REP #$20</div>
-<div class="line">      LDA !SpriteDirection : STA $00</div>
-<div class="line">    SEP #$20</div>
-<div class="line">    RTS</div>
+<div class="line">  REP #$20</div>
+<div class="line">  LDA !SpriteDirection : STA $00</div>
+<div class="line">  SEP #$20</div>
+<div class="line">  RTS</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md11"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md10"></a>
 Custom Code</h1>
 <ul>
 <li><b>Integration</b>: Include custom assembly code in the <code>yaze.asm</code> file to ensure it is applied correctly to the ROM. The module should include a define and conditional statement to allow users to disable the module if needed.</li>
