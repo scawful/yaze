@@ -1,19 +1,5 @@
 <map id="yaze::emu::SNES::ReadBBus" name="yaze::emu::SNES::ReadBBus">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,74,194,100"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1SNES.html#a7d9372953fe1e30e50bd95d7c80756e5" title=" " alt="" coords="242,16,442,41"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,71,270,43,271,48,156,76"/>
-<area shape="rect" id="Node000062" href="$classyaze_1_1emu_1_1memory_1_1MemoryImpl.html#aa47fbc5c180651713f213a136197d749" title=" " alt="" coords="265,67,419,107"/>
-<area shape="poly" id="edge3_Node000001_Node000062" title=" " alt="" coords="194,84,249,84,249,90,194,90"/>
-<area shape="rect" id="Node000063" href="$classyaze_1_1emu_1_1video_1_1Ppu.html#a7edcbd38aecd6d3d55463762564289d2" title=" " alt="" coords="270,136,414,177"/>
-<area shape="poly" id="edge4_Node000001_Node000063" title=" " alt="" coords="148,98,255,129,254,134,146,103"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1audio_1_1Apu.html#ac9de5f3200295bc596120bcc5e6f404d" title=" " alt="" coords="490,5,634,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="442,24,474,24,475,29,442,30"/>
-<area shape="rect" id="Node000064" href="$classyaze_1_1emu_1_1video_1_1Ppu.html#a4ba2025ec1f0ac8b336b3fd0271f68d7" title=" " alt="" coords="490,71,634,111"/>
-<area shape="poly" id="edge5_Node000063_Node000064" title=" " alt="" coords="412,133,476,114,477,119,413,138"/>
-<area shape="rect" id="Node000065" href="$classyaze_1_1emu_1_1video_1_1Ppu.html#a503bd5228aacf0cb75c79ea192acfaa3" title=" " alt="" coords="490,136,634,177"/>
-<area shape="poly" id="edge6_Node000063_Node000065" title=" " alt="" coords="414,154,474,154,474,159,414,159"/>
-<area shape="rect" id="Node000068" href="$classyaze_1_1emu_1_1memory_1_1Memory.html#a6576880992ff85ffab2192d0c56fca43" title=" " alt="" coords="494,201,630,242"/>
-<area shape="poly" id="edge7_Node000063_Node000068" title=" " alt="" coords="413,175,480,195,479,200,412,180"/>
-<area shape="rect" id="Node000069" href="$classyaze_1_1emu_1_1memory_1_1Memory.html#a3408a2517d57cd5f9ddea407d623599a" title=" " alt="" coords="494,267,630,307"/>
-<area shape="poly" id="edge8_Node000063_Node000069" title=" " alt="" coords="373,175,427,212,491,251,502,257,499,262,489,256,424,216,370,179"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,194,31"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1SNES.html#a7d9372953fe1e30e50bd95d7c80756e5" title=" " alt="" coords="242,5,442,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,16,226,16,226,21,194,21"/>
 </map>

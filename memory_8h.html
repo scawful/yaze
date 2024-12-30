@@ -117,28 +117,21 @@ $(function(){initNavTree('memory_8h.html',''); initResizable(true); });
 <div class="textblock"><code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;functional&gt;</code><br />
 <code>#include &lt;iostream&gt;</code><br />
-<code>#include &lt;string&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
-<code>#include &quot;<a class="el" href="dma__channel_8h_source.html">app/emu/memory/dma_channel.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for memory.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="memory_8h__incl.png" border="0" usemap="#asrc_2app_2emu_2memory_2memory_8h" alt=""/></div>
 <map name="asrc_2app_2emu_2memory_2memory_8h" id="asrc_2app_2emu_2memory_2memory_8h">
-<area shape="rect" title=" " alt="" coords="135,5,279,46"/>
-<area shape="rect" title=" " alt="" coords="194,183,254,208"/>
-<area shape="poly" title=" " alt="" coords="136,42,83,56,36,76,20,89,11,102,9,116,17,133,42,150,84,165,179,185,178,190,83,170,40,155,13,136,4,117,6,100,16,85,34,72,81,51,134,37"/>
-<area shape="rect" title=" " alt="" coords="27,102,104,127"/>
-<area shape="poly" title=" " alt="" coords="176,49,99,96,96,91,173,44"/>
-<area shape="rect" title=" " alt="" coords="129,102,200,127"/>
-<area shape="poly" title=" " alt="" coords="200,48,179,89,174,87,195,45"/>
-<area shape="rect" title=" " alt="" coords="224,102,278,127"/>
-<area shape="poly" title=" " alt="" coords="219,45,240,87,236,89,214,48"/>
-<area shape="rect" title=" " alt="" coords="302,102,360,127"/>
-<area shape="poly" title=" " alt="" coords="237,44,303,90,300,95,233,49"/>
-<area shape="rect" href="dma__channel_8h.html" title=" " alt="" coords="384,94,534,135"/>
-<area shape="poly" title=" " alt="" coords="265,44,388,86,386,91,263,49"/>
-<area shape="poly" title=" " alt="" coords="401,138,270,182,268,177,399,133"/>
+<area shape="rect" title=" " alt="" coords="106,5,250,46"/>
+<area shape="rect" title=" " alt="" coords="5,94,66,120"/>
+<area shape="poly" title=" " alt="" coords="144,49,72,88,69,84,141,44"/>
+<area shape="rect" title=" " alt="" coords="90,94,168,120"/>
+<area shape="poly" title=" " alt="" coords="168,48,147,82,142,79,164,45"/>
+<area shape="rect" title=" " alt="" coords="192,94,263,120"/>
+<area shape="poly" title=" " alt="" coords="193,45,214,79,210,82,188,48"/>
+<area shape="rect" title=" " alt="" coords="287,94,344,120"/>
+<area shape="poly" title=" " alt="" coords="214,44,283,84,280,88,211,49"/>
 </map>
 </div>
 </div><div class="textblock"><div class="dynheader">
@@ -211,13 +204,15 @@ This graph shows which files directly or indirectly include this file:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1emu_1_1memory_1_1CpuCallbacks.html">yaze::emu::memory::CpuCallbacks</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1emu_1_1DmaChannel.html">yaze::emu::DmaChannel</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1emu_1_1memory_1_1Memory.html">yaze::emu::memory::Memory</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classyaze_1_1emu_1_1memory_1_1Memory.html" title="Memory interface.">Memory</a> interface.  <a href="classyaze_1_1emu_1_1memory_1_1Memory.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1emu_1_1CpuCallbacks.html">yaze::emu::CpuCallbacks</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1emu_1_1memory_1_1MemoryImpl.html">yaze::emu::memory::MemoryImpl</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of the <a class="el" href="classyaze_1_1emu_1_1memory_1_1Memory.html" title="Memory interface.">Memory</a> interface for emulating memory in a <a class="el" href="classyaze_1_1emu_1_1SNES.html">SNES</a> system.  <a href="classyaze_1_1emu_1_1memory_1_1MemoryImpl.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1emu_1_1Memory.html">yaze::emu::Memory</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classyaze_1_1emu_1_1Memory.html" title="Memory interface.">Memory</a> interface.  <a href="classyaze_1_1emu_1_1Memory.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1emu_1_1MemoryImpl.html">yaze::emu::MemoryImpl</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of the <a class="el" href="classyaze_1_1emu_1_1Memory.html" title="Memory interface.">Memory</a> interface for emulating memory in a <a class="el" href="classyaze_1_1emu_1_1SNES.html">SNES</a> system.  <a href="classyaze_1_1emu_1_1MemoryImpl.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -228,24 +223,24 @@ Namespaces</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1emu.html">yaze::emu</a></td></tr>
 <tr class="memdesc:namespaceyaze_1_1emu"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classyaze_1_1emu_1_1SNES.html">SNES</a> Emulation and debugging tools. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1emu_1_1memory.html">yaze::emu::memory</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:a08fd3bf29dc9bae521e02ba5c47de8b6" id="r_a08fd3bf29dc9bae521e02ba5c47de8b6"><td class="memItemLeft" align="right" valign="top">typedef struct yaze::emu::memory::CpuCallbacks&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1emu_1_1memory.html#a08fd3bf29dc9bae521e02ba5c47de8b6">yaze::emu::memory::CpuCallbacks</a></td></tr>
-<tr class="separator:a08fd3bf29dc9bae521e02ba5c47de8b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f01814a7397cf54fc968775de7d2c96" id="r_a2f01814a7397cf54fc968775de7d2c96"><td class="memItemLeft" align="right" valign="top">typedef struct yaze::emu::DmaChannel&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1emu.html#a2f01814a7397cf54fc968775de7d2c96">yaze::emu::DmaChannel</a></td></tr>
+<tr class="separator:a2f01814a7397cf54fc968775de7d2c96"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab4485d53b785a237309663ba9f72437" id="r_aab4485d53b785a237309663ba9f72437"><td class="memItemLeft" align="right" valign="top">typedef struct yaze::emu::CpuCallbacks&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1emu.html#aab4485d53b785a237309663ba9f72437">yaze::emu::CpuCallbacks</a></td></tr>
+<tr class="separator:aab4485d53b785a237309663ba9f72437"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a6be07d4f6cd04c5f176dbb1af52a9777" id="r_a6be07d4f6cd04c5f176dbb1af52a9777"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1emu_1_1memory.html#a6be07d4f6cd04c5f176dbb1af52a9777">yaze::emu::memory::kROMStart</a> = 0x008000</td></tr>
-<tr class="separator:a6be07d4f6cd04c5f176dbb1af52a9777"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af82c545b122c6affeaa90526fe3ff7a9" id="r_af82c545b122c6affeaa90526fe3ff7a9"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1emu_1_1memory.html#af82c545b122c6affeaa90526fe3ff7a9">yaze::emu::memory::kROMSize</a> = 0x200000</td></tr>
-<tr class="separator:af82c545b122c6affeaa90526fe3ff7a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac4e781297983bb0919d1ced08e0a7735" id="r_ac4e781297983bb0919d1ced08e0a7735"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1emu_1_1memory.html#ac4e781297983bb0919d1ced08e0a7735">yaze::emu::memory::kRAMStart</a> = 0x7E0000</td></tr>
-<tr class="separator:ac4e781297983bb0919d1ced08e0a7735"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8869edcc3962e4cbf0955741bfdd2df4" id="r_a8869edcc3962e4cbf0955741bfdd2df4"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1emu_1_1memory.html#a8869edcc3962e4cbf0955741bfdd2df4">yaze::emu::memory::kRAMSize</a> = 0x20000</td></tr>
-<tr class="separator:a8869edcc3962e4cbf0955741bfdd2df4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3748887d6ee098a391b1fb72920b0e69" id="r_a3748887d6ee098a391b1fb72920b0e69"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1emu.html#a3748887d6ee098a391b1fb72920b0e69">yaze::emu::kROMStart</a> = 0x008000</td></tr>
+<tr class="separator:a3748887d6ee098a391b1fb72920b0e69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a258cfa96b07e1c84ebdae64d2ca28e2d" id="r_a258cfa96b07e1c84ebdae64d2ca28e2d"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1emu.html#a258cfa96b07e1c84ebdae64d2ca28e2d">yaze::emu::kROMSize</a> = 0x200000</td></tr>
+<tr class="separator:a258cfa96b07e1c84ebdae64d2ca28e2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a781b5a449ccc0c56efdb0a262d492202" id="r_a781b5a449ccc0c56efdb0a262d492202"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1emu.html#a781b5a449ccc0c56efdb0a262d492202">yaze::emu::kRAMStart</a> = 0x7E0000</td></tr>
+<tr class="separator:a781b5a449ccc0c56efdb0a262d492202"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa140edb4ad529998a6c5eddd1bb2a2a0" id="r_aa140edb4ad529998a6c5eddd1bb2a2a0"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1emu.html#aa140edb4ad529998a6c5eddd1bb2a2a0">yaze::emu::kRAMSize</a> = 0x20000</td></tr>
+<tr class="separator:aa140edb4ad529998a6c5eddd1bb2a2a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

@@ -10,10 +10,10 @@
 <area shape="poly" id="edge23_Node000001_Node000007" title=" " alt="" coords="701,24,533,32,433,41,330,53,231,70,143,92,73,120,47,137,28,154,18,173,22,189,37,203,60,215,122,234,184,245,183,250,121,239,58,220,34,207,18,191,13,172,23,151,44,132,71,116,142,87,230,65,329,48,432,36,533,27,701,19"/>
 <area shape="rect" id="Node000016" href="$cpu_2internal_2opcodes_8h.html" title=" " alt="" coords="869,153,1011,193"/>
 <area shape="poly" id="edge24_Node000001_Node000016" title=" " alt="" coords="793,30,859,103,904,141,900,145,856,107,789,33"/>
-<area shape="rect" id="Node000020" title=" " alt="" coords="870,79,936,105"/>
-<area shape="poly" id="edge20_Node000001_Node000020" title=" " alt="" coords="803,29,870,68,868,73,801,34"/>
-<area shape="rect" id="Node000021" title=" " alt="" coords="961,79,1029,105"/>
-<area shape="poly" id="edge22_Node000001_Node000021" title=" " alt="" coords="819,29,947,72,945,77,817,34"/>
+<area shape="rect" id="Node000019" title=" " alt="" coords="870,79,936,105"/>
+<area shape="poly" id="edge20_Node000001_Node000019" title=" " alt="" coords="803,29,870,68,868,73,801,34"/>
+<area shape="rect" id="Node000020" title=" " alt="" coords="961,79,1029,105"/>
+<area shape="poly" id="edge22_Node000001_Node000020" title=" " alt="" coords="819,29,947,72,945,77,817,34"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="38,160,112,186"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="487,98,332,115,229,132,125,155,118,157,117,152,123,150,228,127,332,110,487,93"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="524,104,605,227,600,229,519,107"/>

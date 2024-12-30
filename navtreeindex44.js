@@ -1,11 +1,5 @@
 var NAVTREEINDEX44 =
 {
-"src_2app_2zelda3_2overworld_2overworld_8h.html#aa83813e72b6c1e5691c65745de37aee7":[12,0,2,0,5,2,1,43],
-"src_2app_2zelda3_2overworld_2overworld_8h.html#ab12277550d7aea2b576b2f9688ae60e4":[12,0,2,0,5,2,1,21],
-"src_2app_2zelda3_2overworld_2overworld_8h.html#ab21df1ce59f6da425661a1c3eed98a93":[12,0,2,0,5,2,1,37],
-"src_2app_2zelda3_2overworld_2overworld_8h.html#ab407b24f6ffe9ba32e12284d16ccb82d":[12,0,2,0,5,2,1,54],
-"src_2app_2zelda3_2overworld_2overworld_8h.html#abf668fe9312a29896f0a20a186899549":[12,0,2,0,5,2,1,27],
-"src_2app_2zelda3_2overworld_2overworld_8h.html#ac400204de9ced3051457e6f1d9a97115":[12,0,2,0,5,2,1,44],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#ac6509c959156adb6e33af7f54356af11":[12,0,2,0,5,2,1,39],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#ac71ba580a1198fd08d7bef17aefc6189":[12,0,2,0,5,2,1,26],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#ad2461fedd5973acbdde680660a75540b":[12,0,2,0,5,2,1,41],
@@ -249,5 +243,11 @@ var NAVTREEINDEX44 =
 "structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html#a19db5aa9d2ba2f6e049c95eeb81cd5f1":[10,0,1,3,8,1,3],
 "structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html#a19db5aa9d2ba2f6e049c95eeb81cd5f1":[11,0,0,2,3,1,3],
 "structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html#a9a1e6953e563fc2f2f5de11e136c77b8":[10,0,1,3,8,1,2],
-"structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html#a9a1e6953e563fc2f2f5de11e136c77b8":[11,0,0,2,3,1,2]
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html#a9a1e6953e563fc2f2f5de11e136c77b8":[11,0,0,2,3,1,2],
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html#aa2eccb9a4db616ddd238fc6e73175246":[10,0,1,3,8,1,0],
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html#aa2eccb9a4db616ddd238fc6e73175246":[11,0,0,2,3,1,0],
+"structyaze_1_1editor_1_1DictionaryEntry.html":[10,0,1,3,10],
+"structyaze_1_1editor_1_1DictionaryEntry.html":[11,0,0,2,5],
+"structyaze_1_1editor_1_1DictionaryEntry.html#a1f000333e6521f503db6802364c23fb0":[10,0,1,3,10,4],
+"structyaze_1_1editor_1_1DictionaryEntry.html#a1f000333e6521f503db6802364c23fb0":[11,0,0,2,5,4]
 };

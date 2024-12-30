@@ -4,7 +4,7 @@ var classyaze_1_1emu_1_1Cpu =
       [ "Control", "classyaze_1_1emu_1_1Cpu.html#afdec6b6a7b1a5e7eba910f389715f4c6aa1595abbb4c3a326636dd178757cd6c1", null ],
       [ "Data", "classyaze_1_1emu_1_1Cpu.html#afdec6b6a7b1a5e7eba910f389715f4c6af6068daa29dbb05a7ead1e3b5a48bbee", null ]
     ] ],
-    [ "Cpu", "classyaze_1_1emu_1_1Cpu.html#a17088fa70b9d24d661b67c562ace3f05", null ],
+    [ "Cpu", "classyaze_1_1emu_1_1Cpu.html#a1bcde25647e62ab20e6fe8697ceb62c1", null ],
     [ "Reset", "classyaze_1_1emu_1_1Cpu.html#ab56a4324924b850a5081f0670dd7552c", null ],
     [ "RunOpcode", "classyaze_1_1emu_1_1Cpu.html#ac2502ad3b5a93d7c3306745da7a50b2e", null ],
     [ "ExecuteInstruction", "classyaze_1_1emu_1_1Cpu.html#aad8a065fd52e121ae96c0149489f62ee", null ],
@@ -236,7 +236,7 @@ var classyaze_1_1emu_1_1Cpu =
     [ "reset_wanted_", "classyaze_1_1emu_1_1Cpu.html#a5e00905f9011a222a5140e5d0f39a22c", null ],
     [ "int_wanted_", "classyaze_1_1emu_1_1Cpu.html#ae5b378938e850ccbfe208f420338f1b4", null ],
     [ "int_delay_", "classyaze_1_1emu_1_1Cpu.html#acc444d43210855857a03f377679e3df2", null ],
-    [ "callbacks_", "classyaze_1_1emu_1_1Cpu.html#a99cc66988687443c6bcf725f4f218bd0", null ],
-    [ "memory", "classyaze_1_1emu_1_1Cpu.html#a6ec04f60f71e7a319e6ea2e400aa10af", null ],
+    [ "callbacks_", "classyaze_1_1emu_1_1Cpu.html#ac26554b300f70f64b7479284a987fb94", null ],
+    [ "memory", "classyaze_1_1emu_1_1Cpu.html#a5671d42ce5614150e078202dbbd5ad45", null ],
     [ "clock", "classyaze_1_1emu_1_1Cpu.html#a0261b535df2d2f5b7a4348168b675031", null ]
 ];

@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['_7eaudioram_0',['~AudioRam',['../classyaze_1_1emu_1_1audio_1_1AudioRam.html#ac87723a76ca662c51caf06080c714b39',1,'yaze::emu::audio::AudioRam']]],
-  ['_7ebgnba_1',['~BGNBA',['../structyaze_1_1emu_1_1video_1_1PpuRegisters_1_1BGNBA.html#a41419c1efad5ba2b0c77e79c124e8734',1,'yaze::emu::video::PpuRegisters::BGNBA']]],
-  ['_7ebgsc_2',['~BGSC',['../structyaze_1_1emu_1_1video_1_1PpuRegisters_1_1BGSC.html#ac64546139373cf4437af5808b474a748',1,'yaze::emu::video::PpuRegisters::BGSC']]],
+  ['_7eaudioram_0',['~AudioRam',['../classyaze_1_1emu_1_1AudioRam.html#af839827fe2d3c9caffa31198eb4d3f73',1,'yaze::emu::AudioRam']]],
+  ['_7ebgnba_1',['~BGNBA',['../structyaze_1_1emu_1_1BGNBA.html#a747481461b1cab2e79c3ae46099797d4',1,'yaze::emu::BGNBA']]],
+  ['_7ebgsc_2',['~BGSC',['../structyaze_1_1emu_1_1BGSC.html#a12bdf8e8f258fe6ef9ae75581e16e912',1,'yaze::emu::BGSC']]],
   ['_7eclock_3',['~Clock',['../classyaze_1_1emu_1_1Clock.html#ac83832f7089a05b841232a7cf4284b88',1,'yaze::emu::Clock']]],
   ['_7eclockimpl_4',['~ClockImpl',['../classyaze_1_1emu_1_1ClockImpl.html#abf755f80608ee74620b7d4325fce8e1e',1,'yaze::emu::ClockImpl']]],
   ['_7ecommandhandler_5',['~CommandHandler',['../classyaze_1_1cli_1_1CommandHandler.html#a99057b6c5780d96e56c6be9c9e109eb0',1,'yaze::cli::CommandHandler']]],
@@ -10,9 +10,9 @@ var searchData=
   ['_7eeditor_7',['~Editor',['../classyaze_1_1editor_1_1Editor.html#a78070dc194ac0104406bc2ff4dd07b1f',1,'yaze::editor::Editor']]],
   ['_7eexperimentflags_8',['~ExperimentFlags',['../classyaze_1_1core_1_1ExperimentFlags.html#ad43cf80324822b5a16e94ca919aa5cd8',1,'yaze::core::ExperimentFlags']]],
   ['_7ehistorymanager_9',['~HistoryManager',['../classyaze_1_1editor_1_1HistoryManager.html#a58f042bd6d242ee85256832a7782e345',1,'yaze::editor::HistoryManager']]],
-  ['_7ememory_10',['~Memory',['../classyaze_1_1emu_1_1memory_1_1Memory.html#a1de32292e9e7957a38ffc7b1e4f6992b',1,'yaze::emu::memory::Memory']]],
+  ['_7ememory_10',['~Memory',['../classyaze_1_1emu_1_1Memory.html#a486b96a3917775bda2f96a0d38b23c76',1,'yaze::emu::Memory']]],
   ['_7epopupmanager_11',['~PopupManager',['../classyaze_1_1editor_1_1PopupManager.html#ae914947572ba7d49efbca036d371bc94',1,'yaze::editor::PopupManager']]],
-  ['_7eppuinterface_12',['~PpuInterface',['../classyaze_1_1emu_1_1video_1_1PpuInterface.html#a1753044198c2a4960bebbbe24ac12f55',1,'yaze::emu::video::PpuInterface']]],
+  ['_7eppuinterface_12',['~PpuInterface',['../classyaze_1_1emu_1_1PpuInterface.html#ad72156d555df5ac5842cd83193dce464',1,'yaze::emu::PpuInterface']]],
   ['_7eresourcemanager_13',['~ResourceManager',['../classyaze_1_1editor_1_1ResourceManager.html#af80c0b99fc72a591bb6dadfef83fd0c5',1,'yaze::editor::ResourceManager']]],
   ['_7eroom_14',['~Room',['../classyaze_1_1zelda3_1_1Room.html#ae5af738c56052e54295451af201a0e4a',1,'yaze::zelda3::Room']]],
   ['_7esharedrom_15',['~SharedRom',['../classyaze_1_1SharedRom.html#a05ecd0d699123dea3478c1b05f6f1281',1,'yaze::SharedRom']]],

@@ -1,11 +1,5 @@
 var NAVTREEINDEX43 =
 {
-"screen__editor_8h_source.html":[12,0,2,0,1,2,7],
-"sdl__deleter_8h.html":[12,0,2,0,0,1,2],
-"sdl__deleter_8h_source.html":[12,0,2,0,0,1,2],
-"settings__editor_8cc.html":[12,0,2,0,1,7,10],
-"settings__editor_8cc_source.html":[12,0,2,0,1,7,10],
-"settings__editor_8h.html":[12,0,2,0,1,7,11],
 "settings__editor_8h_source.html":[12,0,2,0,1,7,11],
 "snes_8cc.html":[12,0,2,0,2,7],
 "snes_8cc.html#a34f0bcbc0fe70ab704bb3d117f3a73b1":[12,0,2,0,2,7,0],
@@ -132,7 +126,7 @@ var NAVTREEINDEX43 =
 "spc700_8cc.html":[12,0,2,0,2,0,5],
 "spc700_8cc_source.html":[12,0,2,0,2,0,5],
 "spc700_8h.html":[12,0,2,0,2,0,6],
-"spc700_8h.html#a045103254193f65f3def0ef87a574fdb":[12,0,2,0,2,0,6,5],
+"spc700_8h.html#aebe45a6f7255501f85ca42f741d48a11":[12,0,2,0,2,0,6,5],
 "spc700_8h_source.html":[12,0,2,0,2,0,6],
 "spc700__test_8cc.html":[12,0,2,3,1,2],
 "spc700__test_8cc.html#a089ba283c92edc9a203f7a92c5f0a74e":[12,0,2,3,1,2,14],
@@ -249,5 +243,11 @@ var NAVTREEINDEX43 =
 "src_2app_2zelda3_2overworld_2overworld_8h.html#a983a46759f61bc10c22666455013d166":[12,0,2,0,5,2,1,8],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#a989c343a868d7dadaebe677d108a9e7a":[12,0,2,0,5,2,1,53],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#a9a85ab0f31e656ea08ceaa8a317d75e1":[12,0,2,0,5,2,1,5],
-"src_2app_2zelda3_2overworld_2overworld_8h.html#aa71438e02500c628e6b1502e8b2f3293":[12,0,2,0,5,2,1,35]
+"src_2app_2zelda3_2overworld_2overworld_8h.html#aa71438e02500c628e6b1502e8b2f3293":[12,0,2,0,5,2,1,35],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#aa83813e72b6c1e5691c65745de37aee7":[12,0,2,0,5,2,1,43],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#ab12277550d7aea2b576b2f9688ae60e4":[12,0,2,0,5,2,1,21],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#ab21df1ce59f6da425661a1c3eed98a93":[12,0,2,0,5,2,1,37],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#ab407b24f6ffe9ba32e12284d16ccb82d":[12,0,2,0,5,2,1,54],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#abf668fe9312a29896f0a20a186899549":[12,0,2,0,5,2,1,27],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#ac400204de9ced3051457e6f1d9a97115":[12,0,2,0,5,2,1,44]
 };

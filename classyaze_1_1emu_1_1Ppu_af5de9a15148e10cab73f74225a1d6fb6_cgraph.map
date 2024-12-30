@@ -1,0 +1,14 @@
+<map id="yaze::emu::Ppu::RunLine" name="yaze::emu::Ppu::RunLine">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,78,167,104"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1Ppu.html#a3e52c59a1de46f834eb8df2d6ee3ad2a" title=" " alt="" coords="222,5,390,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,75,220,48,221,54,133,80"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1Ppu.html#a103cb68f436444a281f274dcdd2ade8f" title=" " alt="" coords="224,71,388,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="167,88,209,88,209,94,167,94"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1Ppu.html#a0f7dc2daaf65918bc6b57560b80fb489" title=" " alt="" coords="215,136,397,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="139,102,239,128,238,134,138,107"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1emu_1_1Ppu.html#a1e86e02a5cea2110ecc6ed87c58f7d2d" title=" " alt="" coords="445,110,607,136"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="397,135,429,131,430,137,398,140"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1emu_1_1Ppu.html#a3beac535c74a280313a2c120d15877c6" title=" " alt="" coords="655,128,836,169"/>
+<area shape="poly" id="edge6_Node000004_Node000008" title=" " alt="" coords="397,146,640,146,640,151,397,151"/>
+<area shape="poly" id="edge5_Node000005_Node000008" title=" " alt="" coords="608,130,640,133,639,139,607,135"/>
+</map>

@@ -5,5 +5,5 @@ var searchData=
   ['commandsizearray_2',['CommandSizeArray',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#ae46fc2024538918c373a89ad89c948c2',1,'yaze::gfx::lc_lz2']]],
   ['compressionpiece_3',['CompressionPiece',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a3581a06eced4ef6b19b3a4eb2c539f5f',1,'yaze::gfx::lc_lz2']]],
   ['compressionpiecepointer_4',['CompressionPiecePointer',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a43b6b38e17a2651b146f97df756d81b2',1,'yaze::gfx::lc_lz2']]],
-  ['cpucallbacks_5',['CpuCallbacks',['../namespaceyaze_1_1emu_1_1memory.html#a08fd3bf29dc9bae521e02ba5c47de8b6',1,'yaze::emu::memory']]]
+  ['cpucallbacks_5',['CpuCallbacks',['../namespaceyaze_1_1emu.html#aab4485d53b785a237309663ba9f72437',1,'yaze::emu']]]
 ];

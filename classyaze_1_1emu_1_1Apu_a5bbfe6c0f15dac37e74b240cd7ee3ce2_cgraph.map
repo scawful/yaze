@@ -1,0 +1,9 @@
+<map id="yaze::emu::Apu::Reset" name="yaze::emu::Apu::Reset">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,153,60"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1Dsp.html#a856a28e8bab7146e4c0fef5ed5bfd9c4" title=" " alt="" coords="201,5,348,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,34,185,29,186,34,154,39"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1Spc700.html#a55e122e7b548c7109442da9f364f1325" title=" " alt="" coords="207,55,342,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="154,55,192,61,192,66,153,61"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1Spc700.html#af7bbb7b6fd9373cb4ae8d21596ab7932" title=" " alt="" coords="396,55,530,96"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="342,73,381,73,381,78,342,78"/>
+</map>

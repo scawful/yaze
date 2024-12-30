@@ -1,7 +1,0 @@
-<map id="yaze::emu::audio::AudioRam" name="yaze::emu::audio::AudioRam">
-<area shape="rect" id="Node000001" title="AudioRam is an interface for the Audio RAM used by the SPC700." alt="" coords="132,5,314,31"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1audio_1_1AudioRamImpl.html" title="AudioRamImpl is an implementation of the AudioRam interface." alt="" coords="5,79,212,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,42,129,81,127,76,189,37"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1test_1_1emu_1_1MockAudioRam.html" title="MockAudioRam is a mock class for the AudioRam class." alt="" coords="236,79,440,105"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="257,37,320,76,317,81,254,42"/>
-</map>

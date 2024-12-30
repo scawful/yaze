@@ -1,0 +1,5 @@
+<map id="yaze::emu::Dsp" name="yaze::emu::Dsp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="29,94,136,120"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1emu_1_1DspChannel.html" title=" " alt="" coords="5,5,160,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,47,85,94,80,94,80,47"/>
+</map>

@@ -1,7 +1,0 @@
-<map id="yaze::emu::video::Ppu::LatchHV" name="yaze::emu::video::Ppu::LatchHV">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,150,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1memory_1_1Memory.html#afcd7ccce200dbcaf7f80ac30b3491f93" title=" " alt="" coords="198,5,334,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,44,182,38,183,43,151,49"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1memory_1_1Memory.html#a399671b2278628f197f4747c3a417688" title=" " alt="" coords="198,71,334,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="151,69,183,74,182,79,150,74"/>
-</map>

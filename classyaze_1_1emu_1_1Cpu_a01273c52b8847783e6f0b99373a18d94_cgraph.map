@@ -1,5 +1,5 @@
 <map id="yaze::emu::Cpu::SP" name="yaze::emu::Cpu::SP">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,137,38"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1memory_1_1Memory.html#abe46fbfc655d601c63286d96efac9982" title=" " alt="" coords="185,5,321,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,23,169,23,169,28,137,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,137,31"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1Memory.html#a7887fb31650737fb1302f55547b9e4ac" title=" " alt="" coords="185,5,339,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,16,169,16,169,21,137,21"/>
 </map>

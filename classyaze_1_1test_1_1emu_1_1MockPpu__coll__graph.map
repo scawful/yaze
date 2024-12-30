@@ -1,5 +1,7 @@
 <map id="yaze::test::emu::MockPpu" name="yaze::test::emu::MockPpu">
-<area shape="rect" id="Node000001" title="Mock Ppu class for testing." alt="" coords="19,79,187,105"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1video_1_1PpuInterface.html" title=" " alt="" coords="5,5,201,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,46,106,79,100,79,100,46"/>
+<area shape="rect" id="Node000001" title="Mock Ppu class for testing." alt="" coords="36,94,203,120"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,101,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="74,42,113,92,108,95,69,45"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="125,5,248,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="170,45,131,95,127,92,166,42"/>
 </map>

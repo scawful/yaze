@@ -1,7 +1,0 @@
-<map id="yaze::emu::SNES::SetSamples" name="yaze::emu::SNES::SetSamples">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,203,60"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1audio_1_1Apu.html#a7591bebbc788bca323d8d98703057899" title=" " alt="" coords="251,5,422,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,32,235,28,235,34,203,38"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1memory_1_1MemoryImpl.html#a18dd6ac230ef2969dedc4f5ac911b9c8" title=" " alt="" coords="258,55,415,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="203,57,243,62,242,67,202,62"/>
-</map>

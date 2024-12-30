@@ -1,11 +1,5 @@
 var NAVTREEINDEX39 =
 {
-"namespaceyaze_1_1test_1_1emu.html#a4ab8d2654517015b42912e047faa08f1":[10,0,1,7,0,132],
-"namespaceyaze_1_1test_1_1emu.html#a4b7d350b287a0a069fcdb72acd6d5072":[10,0,1,7,0,44],
-"namespaceyaze_1_1test_1_1emu.html#a4bd1779228801001059c22b3ec174c1c":[10,0,1,7,0,77],
-"namespaceyaze_1_1test_1_1emu.html#a4bd699a93614714f7046565a284a3715":[10,0,1,7,0,310],
-"namespaceyaze_1_1test_1_1emu.html#a4becfcb54080c220e5995fad669455d3":[10,0,1,7,0,170],
-"namespaceyaze_1_1test_1_1emu.html#a4c6a44102e1ab5e788cea7a19aecbf1d":[10,0,1,7,0,244],
 "namespaceyaze_1_1test_1_1emu.html#a4d9f0c87b76e14acdf1f929931de9385":[10,0,1,7,0,211],
 "namespaceyaze_1_1test_1_1emu.html#a5096f680abe420f269732e71bd84233a":[10,0,1,7,0,21],
 "namespaceyaze_1_1test_1_1emu.html#a510fac6a0f390db560e0e7a91149da25":[10,0,1,7,0,241],
@@ -249,5 +243,11 @@ var NAVTREEINDEX39 =
 "namespaceyaze_1_1test_1_1gfx.html#add59f6a3dacf8f2cffe2df733c135319":[10,0,1,7,1,5],
 "namespaceyaze_1_1test_1_1gfx.html#adf63ab4683bd135f7d125ab489d50857":[10,0,1,7,1,15],
 "namespaceyaze_1_1test_1_1gfx.html#adfef14709c0e0e675e10a65ad8c4ba4f":[10,0,1,7,1,16],
-"namespaceyaze_1_1test_1_1gfx.html#aef113581724bd7ab4239dc2531c57cad":[10,0,1,7,1,10]
+"namespaceyaze_1_1test_1_1gfx.html#aef113581724bd7ab4239dc2531c57cad":[10,0,1,7,1,10],
+"namespaceyaze_1_1test_1_1gfx.html#afc11233f201f4b54f6f93105c25d2386":[10,0,1,7,1,3],
+"namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html":[10,0,1,7,1,0],
+"namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#a019743e9ff4f1e4dba0d326b1b9a233b":[10,0,1,7,1,0,6],
+"namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#a06283a3f6164333bb7526f5eb6715af1":[10,0,1,7,1,0,1],
+"namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#a7e61b801ab6ab1acffe01cbed90902ed":[10,0,1,7,1,0,0],
+"namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#a804c98e5473ed6d7a93336ec135f4051":[10,0,1,7,1,0,4]
 };

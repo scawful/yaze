@@ -2,7 +2,7 @@ var searchData=
 [
   ['labels_0',['labels',['../classyaze_1_1gui_1_1Canvas.html#a1221d849ae979959f6286af950ea68cd',1,'yaze::gui::Canvas']]],
   ['large_5findex_1',['large_index',['../classyaze_1_1zelda3_1_1OverworldMap.html#ad10f08d79666a01007925368658e9ba5',1,'yaze::zelda3::OverworldMap']]],
-  ['latchhv_2',['LatchHV',['../classyaze_1_1emu_1_1video_1_1Ppu.html#a503bd5228aacf0cb75c79ea192acfaa3',1,'yaze::emu::video::Ppu']]],
+  ['latchhv_2',['LatchHV',['../classyaze_1_1emu_1_1Ppu.html#a07b1d26c4db5fc9aeecce4748da9834f',1,'yaze::emu::Ppu']]],
   ['layer_3',['layer',['../classyaze_1_1zelda3_1_1Sprite.html#a7ac9905d2694e7ee289f3451f7dacf2b',1,'yaze::zelda3::Sprite']]],
   ['layer1_4',['layer1',['../classyaze_1_1zelda3_1_1Room.html#a1aa7cda465ad11040f4ce64644fdf7cd',1,'yaze::zelda3::Room']]],
   ['layer2_5',['layer2',['../classyaze_1_1zelda3_1_1Room.html#a4217f93dee62c9ac60587338731a2c6f',1,'yaze::zelda3::Room']]],
@@ -98,8 +98,8 @@ var searchData=
   ['loadtitlescreen_95',['LoadTitleScreen',['../classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#a934f9101ffde6b959807fe642f6db1fc',1,'yaze::zelda3::screen::TitleScreen']]],
   ['loadzelda3_96',['LoadZelda3',['../classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9',1,'yaze::Rom']]],
   ['log_97',['log',['../classyaze_1_1core_1_1Logger.html#ab58aa88790e96142272311cf1dcb84b5',1,'yaze::core::Logger']]],
-  ['loginstruction_98',['LogInstruction',['../classyaze_1_1emu_1_1audio_1_1Spc700.html#a7eeb3ac6fa7a31ce6bc6682743453700',1,'yaze::emu::audio::Spc700']]],
+  ['loginstruction_98',['LogInstruction',['../classyaze_1_1emu_1_1Spc700.html#a70129acc7947101c67895c01e1bf0647',1,'yaze::emu::Spc700']]],
   ['loginstructions_99',['LogInstructions',['../classyaze_1_1emu_1_1Cpu.html#aac0b846abec30dc25411f8d9a19763f5',1,'yaze::emu::Cpu']]],
-  ['lsr_100',['LSR',['../classyaze_1_1emu_1_1audio_1_1Spc700.html#a830f338f345a2ac499c727772b16a10f',1,'yaze::emu::audio::Spc700::LSR()'],['../classyaze_1_1emu_1_1Cpu.html#a29faed6bbc611bce0ed5cd23dba77500',1,'yaze::emu::Cpu::LSR(uint16_t address, bool accumulator=false)']]],
+  ['lsr_100',['LSR',['../classyaze_1_1emu_1_1Spc700.html#a5933e96d79fd8cacf3373140d9132309',1,'yaze::emu::Spc700::LSR()'],['../classyaze_1_1emu_1_1Cpu.html#a29faed6bbc611bce0ed5cd23dba77500',1,'yaze::emu::Cpu::LSR(uint16_t address, bool accumulator=false)']]],
   ['lsr_101',['Lsr',['../classyaze_1_1emu_1_1Cpu.html#aeef69e95d01044f54452510c045c8880',1,'yaze::emu::Cpu']]]
 ];

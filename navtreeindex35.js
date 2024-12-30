@@ -1,8 +1,5 @@
 var NAVTREEINDEX35 =
 {
-"md_docs_2asm-style-guide.html#autotoc_md9":[1,8],
-"md_docs_2build-instructions.html":[2],
-"md_docs_2build-instructions.html#autotoc_md13":[2,0],
 "md_docs_2build-instructions.html#autotoc_md14":[2,1],
 "md_docs_2build-instructions.html#autotoc_md15":[2,2],
 "md_docs_2build-instructions.html#autotoc_md16":[2,3],
@@ -36,15 +33,16 @@ var NAVTREEINDEX35 =
 "md_docs_2infrastructure.html#autotoc_md49":[5,3],
 "md_docs_2infrastructure.html#autotoc_md50":[5,4],
 "md_docs_2infrastructure.html#autotoc_md51":[5,5],
-"memory_8cc.html":[12,0,2,0,2,2,4],
-"memory_8cc_source.html":[12,0,2,0,2,2,4],
-"memory_8h.html":[12,0,2,0,2,2,5],
-"memory_8h.html#a08fd3bf29dc9bae521e02ba5c47de8b6":[12,0,2,0,2,2,5,3],
-"memory_8h.html#a6be07d4f6cd04c5f176dbb1af52a9777":[12,0,2,0,2,2,5,4],
-"memory_8h.html#a8869edcc3962e4cbf0955741bfdd2df4":[12,0,2,0,2,2,5,7],
-"memory_8h.html#ac4e781297983bb0919d1ced08e0a7735":[12,0,2,0,2,2,5,6],
-"memory_8h.html#af82c545b122c6affeaa90526fe3ff7a9":[12,0,2,0,2,2,5,5],
-"memory_8h_source.html":[12,0,2,0,2,2,5],
+"memory_8cc.html":[12,0,2,0,2,2,3],
+"memory_8cc_source.html":[12,0,2,0,2,2,3],
+"memory_8h.html":[12,0,2,0,2,2,4],
+"memory_8h.html#a258cfa96b07e1c84ebdae64d2ca28e2d":[12,0,2,0,2,2,4,7],
+"memory_8h.html#a2f01814a7397cf54fc968775de7d2c96":[12,0,2,0,2,2,4,4],
+"memory_8h.html#a3748887d6ee098a391b1fb72920b0e69":[12,0,2,0,2,2,4,6],
+"memory_8h.html#a781b5a449ccc0c56efdb0a262d492202":[12,0,2,0,2,2,4,8],
+"memory_8h.html#aa140edb4ad529998a6c5eddd1bb2a2a0":[12,0,2,0,2,2,4,9],
+"memory_8h.html#aab4485d53b785a237309663ba9f72437":[12,0,2,0,2,2,4,5],
+"memory_8h_source.html":[12,0,2,0,2,2,4],
 "memory__editor_8h.html":[12,0,2,0,1,0,2],
 "memory__editor_8h_source.html":[12,0,2,0,1,0,2],
 "message__data_8cc.html":[12,0,2,0,1,3,0],
@@ -249,5 +247,7 @@ var NAVTREEINDEX35 =
 "namespaceyaze_1_1core.html#a2efa2fdd38e8bf23d8f3cf7ce03679fc":[10,0,1,2,19],
 "namespaceyaze_1_1core.html#a3b002d05a3b1c3254beed024d7092721":[10,0,1,2,31],
 "namespaceyaze_1_1core.html#a421cc759aa63272bf0079eddf0d32eac":[10,0,1,2,32],
-"namespaceyaze_1_1core.html#a52189778cda85a731116f50ab603ca6c":[10,0,1,2,39]
+"namespaceyaze_1_1core.html#a52189778cda85a731116f50ab603ca6c":[10,0,1,2,39],
+"namespaceyaze_1_1core.html#a611a51e1035d450eef5c06263128ce92":[10,0,1,2,21],
+"namespaceyaze_1_1core.html#a6ce28d9949b2dd0f6b6f6ae922700ae2":[10,0,1,2,42]
 };

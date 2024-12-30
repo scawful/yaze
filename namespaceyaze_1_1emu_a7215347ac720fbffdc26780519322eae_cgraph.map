@@ -1,0 +1,30 @@
+<map id="yaze::emu::HandleDma" name="yaze::emu::HandleDma">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,222,158,248"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1MemoryImpl.html#a1b251a5f824803c3c7d97a696e7adafb" title=" " alt="" coords="206,5,361,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,220,130,148,164,103,204,62,218,52,221,56,207,66,168,107,135,151,92,223"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1emu.html#a9386b47070b3c3bfd4c13defdccf60cb" title=" " alt="" coords="220,222,347,248"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="158,232,205,232,205,238,158,238"/>
+<area shape="rect" id="Node000008" href="$namespaceyaze_1_1emu.html#ae78ced4d510e6ab890ac1e877f43f20f" title=" " alt="" coords="609,172,745,197"/>
+<area shape="poly" id="edge13_Node000001_Node000008" title=" " alt="" coords="138,219,205,207,310,196,415,189,594,182,594,188,415,194,310,201,206,212,139,224"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1emu_1_1MemoryImpl.html#a6674049499f94f7bf925333169cf500d" title=" " alt="" coords="599,221,755,262"/>
+<area shape="poly" id="edge14_Node000001_Node000010" title=" " alt="" coords="137,246,206,258,303,266,378,268,551,258,584,254,584,260,552,263,378,273,302,271,205,263,136,251"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1emu_1_1MemoryImpl.html#aee42c803ab884f48aed70728cbad01e5" title=" " alt="" coords="599,287,755,327"/>
+<area shape="poly" id="edge15_Node000001_Node000011" title=" " alt="" coords="116,246,158,261,206,274,306,289,408,299,584,305,584,311,407,304,306,295,205,279,157,266,114,251"/>
+<area shape="rect" id="Node000012" href="$namespaceyaze_1_1emu.html#aa2c804845876ebee011545b1f873b01f" title=" " alt="" coords="608,70,746,96"/>
+<area shape="poly" id="edge16_Node000001_Node000012" title=" " alt="" coords="110,219,205,182,308,153,413,128,593,94,594,99,414,133,310,158,207,187,112,224"/>
+<area shape="rect" id="Node000014" href="$classyaze_1_1emu_1_1MemoryImpl.html#a11899a4b48ba8ab298e48c12cd2000b2" title=" " alt="" coords="206,424,361,465"/>
+<area shape="poly" id="edge17_Node000001_Node000014" title=" " alt="" coords="92,247,135,319,168,363,207,404,221,414,218,418,204,408,164,367,130,322,87,250"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1MemoryImpl.html#a4423903e4da3f0e0f4acef1e3db06de6" title=" " alt="" coords="804,113,960,154"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="330,219,451,187,599,156,697,144,788,136,789,141,697,149,600,162,452,192,331,224"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze_1_1emu.html#a2a0e8761d0bd636441df9347f8e29584" title=" " alt="" coords="803,265,961,290"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="311,246,386,281,496,319,558,334,624,344,690,345,754,336,804,319,847,296,849,301,806,324,755,342,690,350,623,349,557,340,494,325,384,286,309,251"/>
+<area shape="rect" id="Node000007" href="$namespaceyaze_1_1emu.html#a89efc0a3726b6b538001ccf65b125181" title=" " alt="" coords="409,222,551,248"/>
+<area shape="poly" id="edge5_Node000003_Node000007" title=" " alt="" coords="347,232,393,232,393,238,347,238"/>
+<area shape="poly" id="edge6_Node000007_Node000008" title=" " alt="" coords="532,219,609,199,610,204,534,224"/>
+<area shape="poly" id="edge9_Node000007_Node000010" title=" " alt="" coords="552,235,584,236,584,241,552,240"/>
+<area shape="poly" id="edge10_Node000007_Node000011" title=" " alt="" coords="518,246,606,278,604,283,517,251"/>
+<area shape="poly" id="edge11_Node000007_Node000012" title=" " alt="" coords="497,219,645,104,648,108,500,224"/>
+<area shape="poly" id="edge7_Node000008_Node000004" title=" " alt="" coords="731,168,788,154,790,159,733,173"/>
+<area shape="poly" id="edge8_Node000008_Node000005" title=" " alt="" coords="724,195,756,207,847,254,845,259,754,212,722,200"/>
+<area shape="poly" id="edge12_Node000012_Node000004" title=" " alt="" coords="733,94,790,108,788,113,731,99"/>
+</map>

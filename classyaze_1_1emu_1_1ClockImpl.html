@@ -142,8 +142,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a1f201a7a2a2c15e788eab605c008ff3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abf755f80608ee74620b7d4325fce8e1e" id="r_abf755f80608ee74620b7d4325fce8e1e"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abf755f80608ee74620b7d4325fce8e1e">~ClockImpl</a> ()=default</td></tr>
 <tr class="separator:abf755f80608ee74620b7d4325fce8e1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a61777ce5384836d717364aa934cf7753" id="r_a61777ce5384836d717364aa934cf7753"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a61777ce5384836d717364aa934cf7753">UpdateCycleCount</a> (double deltaTime)</td></tr>
-<tr class="separator:a61777ce5384836d717364aa934cf7753"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9eef0ae16c3b4540495330dc07c05520" id="r_a9eef0ae16c3b4540495330dc07c05520"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9eef0ae16c3b4540495330dc07c05520">UpdateCycleCount</a> (double delta_time)</td></tr>
+<tr class="separator:a9eef0ae16c3b4540495330dc07c05520"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad12f635a256b79df5804659b7de41276" id="r_ad12f635a256b79df5804659b7de41276"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad12f635a256b79df5804659b7de41276">Cycle</a> ()</td></tr>
 <tr class="separator:ad12f635a256b79df5804659b7de41276"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a395623f585f07d94fd778c688ce582ad" id="r_a395623f585f07d94fd778c688ce582ad"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a395623f585f07d94fd778c688ce582ad">UpdateClock</a> (double delta) override</td></tr>
@@ -166,10 +166,10 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a188ede90826a5d03511570f87d474477"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa0b4b3589c8cb35d5b8f3622b1516313" id="r_aa0b4b3589c8cb35d5b8f3622b1516313"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa0b4b3589c8cb35d5b8f3622b1516313">frequency</a> = 0.0</td></tr>
 <tr class="separator:aa0b4b3589c8cb35d5b8f3622b1516313"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a376412b8ed213df1e107432f69daefa3" id="r_a376412b8ed213df1e107432f69daefa3"><td class="memItemLeft" align="right" valign="top">unsigned long long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a376412b8ed213df1e107432f69daefa3">cycleCount</a> = 0</td></tr>
-<tr class="separator:a376412b8ed213df1e107432f69daefa3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a662f92e8e2d453891d4c93a508be00ec" id="r_a662f92e8e2d453891d4c93a508be00ec"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a662f92e8e2d453891d4c93a508be00ec">accumulatedTime</a> = 0.0</td></tr>
-<tr class="separator:a662f92e8e2d453891d4c93a508be00ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab381daa077d197dd4ead7089a702a119" id="r_ab381daa077d197dd4ead7089a702a119"><td class="memItemLeft" align="right" valign="top">unsigned long long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab381daa077d197dd4ead7089a702a119">cycle_count</a> = 0</td></tr>
+<tr class="separator:ab381daa077d197dd4ead7089a702a119"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a9c8ce7ed367e207da5b3304eddc383" id="r_a9a9c8ce7ed367e207da5b3304eddc383"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9a9c8ce7ed367e207da5b3304eddc383">accumulated_time</a> = 0.0</td></tr>
+<tr class="separator:a9a9c8ce7ed367e207da5b3304eddc383"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
@@ -226,8 +226,8 @@ Private Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a61777ce5384836d717364aa934cf7753" name="a61777ce5384836d717364aa934cf7753"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a61777ce5384836d717364aa934cf7753">&#9670;&#160;</a></span>UpdateCycleCount()</h2>
+<a id="a9eef0ae16c3b4540495330dc07c05520" name="a9eef0ae16c3b4540495330dc07c05520"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9eef0ae16c3b4540495330dc07c05520">&#9670;&#160;</a></span>UpdateCycleCount()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -238,7 +238,7 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="memname">void yaze::emu::ClockImpl::UpdateCycleCount </td>
           <td>(</td>
-          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>deltaTime</em></span></td><td>)</td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>delta_time</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -251,14 +251,14 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="clock_8h_source.html#l00024">24</a> of file <a class="el" href="clock_8h_source.html">clock.h</a>.</p>
 
-<p class="reference">References <a class="el" href="clock_8h_source.html#l00055">accumulatedTime</a>, <a class="el" href="clock_8h_source.html#l00034">Cycle()</a>, and <a class="el" href="clock_8h_source.html#l00053">frequency</a>.</p>
+<p class="reference">References <a class="el" href="clock_8h_source.html#l00055">accumulated_time</a>, <a class="el" href="clock_8h_source.html#l00034">Cycle()</a>, and <a class="el" href="clock_8h_source.html#l00053">frequency</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="clock_8h_source.html#l00039">UpdateClock()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1emu_1_1ClockImpl_a61777ce5384836d717364aa934cf7753_cgraph.png" border="0" usemap="#aclassyaze_1_1emu_1_1ClockImpl_a61777ce5384836d717364aa934cf7753_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1emu_1_1ClockImpl_a61777ce5384836d717364aa934cf7753_cgraph" id="aclassyaze_1_1emu_1_1ClockImpl_a61777ce5384836d717364aa934cf7753_cgraph">
+<div class="center"><img src="classyaze_1_1emu_1_1ClockImpl_a9eef0ae16c3b4540495330dc07c05520_cgraph.png" border="0" usemap="#aclassyaze_1_1emu_1_1ClockImpl_a9eef0ae16c3b4540495330dc07c05520_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1emu_1_1ClockImpl_a9eef0ae16c3b4540495330dc07c05520_cgraph" id="aclassyaze_1_1emu_1_1ClockImpl_a9eef0ae16c3b4540495330dc07c05520_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,148,46"/>
 <area shape="rect" href="classyaze_1_1emu_1_1ClockImpl.html#ad12f635a256b79df5804659b7de41276" title=" " alt="" coords="196,5,338,46"/>
 <area shape="poly" title=" " alt="" coords="148,23,180,23,180,28,148,28"/>
@@ -292,7 +292,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="clock_8h_source.html#l00034">34</a> of file <a class="el" href="clock_8h_source.html">clock.h</a>.</p>
 
-<p class="reference">References <a class="el" href="clock_8h_source.html#l00052">cycle</a>, and <a class="el" href="clock_8h_source.html#l00054">cycleCount</a>.</p>
+<p class="reference">References <a class="el" href="clock_8h_source.html#l00052">cycle</a>, and <a class="el" href="clock_8h_source.html#l00054">cycle_count</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="clock_8h_source.html#l00024">UpdateCycleCount()</a>.</p>
 
@@ -334,7 +334,7 @@ Here is the call graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="5,39,148,79"/>
 <area shape="rect" href="classyaze_1_1emu_1_1ClockImpl.html#af9e0974a7765c83bc7b53c53b53d6a39" title=" " alt="" coords="196,5,362,46"/>
 <area shape="poly" title=" " alt="" coords="148,45,180,39,180,45,149,50"/>
-<area shape="rect" href="classyaze_1_1emu_1_1ClockImpl.html#a61777ce5384836d717364aa934cf7753" title=" " alt="" coords="208,71,350,111"/>
+<area shape="rect" href="classyaze_1_1emu_1_1ClockImpl.html#a9eef0ae16c3b4540495330dc07c05520" title=" " alt="" coords="208,71,350,111"/>
 <area shape="poly" title=" " alt="" coords="149,68,192,75,192,80,148,73"/>
 <area shape="rect" href="classyaze_1_1emu_1_1ClockImpl.html#ad12f635a256b79df5804659b7de41276" title=" " alt="" coords="410,71,552,111"/>
 <area shape="poly" title=" " alt="" coords="351,88,394,88,394,94,351,94"/>
@@ -370,7 +370,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="clock_8h_source.html#l00044">44</a> of file <a class="el" href="clock_8h_source.html">clock.h</a>.</p>
 
-<p class="reference">References <a class="el" href="clock_8h_source.html#l00055">accumulatedTime</a>.</p>
+<p class="reference">References <a class="el" href="clock_8h_source.html#l00055">accumulated_time</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="clock_8h_source.html#l00039">UpdateClock()</a>.</p>
 
@@ -403,7 +403,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="clock_8h_source.html#l00045">45</a> of file <a class="el" href="clock_8h_source.html">clock.h</a>.</p>
 
-<p class="reference">References <a class="el" href="clock_8h_source.html#l00054">cycleCount</a>.</p>
+<p class="reference">References <a class="el" href="clock_8h_source.html#l00054">cycle_count</a>.</p>
 
 </div>
 </div>
@@ -522,8 +522,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a376412b8ed213df1e107432f69daefa3" name="a376412b8ed213df1e107432f69daefa3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a376412b8ed213df1e107432f69daefa3">&#9670;&#160;</a></span>cycleCount</h2>
+<a id="ab381daa077d197dd4ead7089a702a119" name="ab381daa077d197dd4ead7089a702a119"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab381daa077d197dd4ead7089a702a119">&#9670;&#160;</a></span>cycle_count</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -532,7 +532,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">unsigned long long yaze::emu::ClockImpl::cycleCount = 0</td>
+          <td class="memname">unsigned long long yaze::emu::ClockImpl::cycle_count = 0</td>
         </tr>
       </table>
   </td>
@@ -548,8 +548,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a662f92e8e2d453891d4c93a508be00ec" name="a662f92e8e2d453891d4c93a508be00ec"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a662f92e8e2d453891d4c93a508be00ec">&#9670;&#160;</a></span>accumulatedTime</h2>
+<a id="a9a9c8ce7ed367e207da5b3304eddc383" name="a9a9c8ce7ed367e207da5b3304eddc383"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9a9c8ce7ed367e207da5b3304eddc383">&#9670;&#160;</a></span>accumulated_time</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -558,7 +558,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">double yaze::emu::ClockImpl::accumulatedTime = 0.0</td>
+          <td class="memname">double yaze::emu::ClockImpl::accumulated_time = 0.0</td>
         </tr>
       </table>
   </td>

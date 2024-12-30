@@ -1,0 +1,7 @@
+<map id="yaze::emu::Spc700" name="yaze::emu::Spc700">
+<area shape="rect" id="Node000001" title="The Spc700 class represents the SPC700 processor." alt="" coords="110,109,238,135"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1emu_1_1ApuCallbacks.html" title=" " alt="" coords="5,13,170,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,48,165,107,161,110,107,52"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1emu_1_1Spc700_1_1Flags.html" title=" " alt="" coords="194,5,328,46"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="238,60,213,87,189,110,186,106,210,83,234,56"/>
+</map>

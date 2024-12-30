@@ -1,9 +1,5 @@
 <map id="yaze::emu::SNES::ReadReg" name="yaze::emu::SNES::ReadReg">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,78,185,104"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1memory_1_1MemoryImpl.html#a13c36882d79cd3eeffbfdc9c68296cb2" title=" " alt="" coords="242,5,378,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,75,226,48,228,53,141,80"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1memory_1_1MemoryImpl.html#aa47fbc5c180651713f213a136197d749" title=" " alt="" coords="233,71,387,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="185,88,217,88,217,94,185,94"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1Cpu.html#a32670c90122daf9129f8935cb0c23c8f" title=" " alt="" coords="236,136,384,161"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="147,102,245,128,244,134,145,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,185,31"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1Cpu.html#a32670c90122daf9129f8935cb0c23c8f" title=" " alt="" coords="233,5,381,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,16,217,16,217,21,185,21"/>
 </map>
