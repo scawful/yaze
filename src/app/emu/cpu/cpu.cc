@@ -2259,5 +2259,4 @@ uint8_t Cpu::GetInstructionLength(uint8_t opcode) {
 */
 
 }  // namespace emu
-
 }  // namespace yaze
