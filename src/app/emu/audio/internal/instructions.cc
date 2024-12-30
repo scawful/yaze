@@ -2,7 +2,6 @@
 
 namespace yaze {
 namespace emu {
-namespace audio {
 
 // opcode functions
 
@@ -480,7 +479,5 @@ void Spc700::SLEEP() {}
 
 void Spc700::STOP() {}
 
-}  // namespace audio
 }  // namespace emu
-
 }  // namespace yaze

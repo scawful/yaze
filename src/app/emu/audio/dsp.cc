@@ -6,7 +6,6 @@
 
 namespace yaze {
 namespace emu {
-namespace audio {
 
 static const int rateValues[32] = {0,   2048, 1536, 1280, 1024, 768, 640, 512,
                                    384, 320,  256,  192,  160,  128, 96,  80,
@@ -630,7 +629,5 @@ void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
   }
 }
 
-}  // namespace audio
 }  // namespace emu
-
 }  // namespace yaze

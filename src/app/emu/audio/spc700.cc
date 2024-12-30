@@ -4,13 +4,11 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <vector>
 
 #include "app/emu/audio/internal/opcodes.h"
 
 namespace yaze {
 namespace emu {
-namespace audio {
 
 void Spc700::Reset(bool hard) {
   if (hard) {
@@ -1323,7 +1321,5 @@ void Spc700::LogInstruction(uint16_t initial_pc, uint8_t opcode) {
   // log_.push_back(log_entry);
 }
 
-}  // namespace audio
 }  // namespace emu
-
 }  // namespace yaze
