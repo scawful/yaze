@@ -707,7 +707,7 @@ void Sprite::Draw() {
   } else if (id_ == 0x8E)  // Terrorpin
   {
     DrawSpriteTile((x * 16), (y * 16), 14, 24, 12);
-  } else if (id_ == 0x8F)  // Slime
+  } 
   {
     DrawSpriteTile((x * 16), (y * 16), 0, 20, 12);
   } else if (id_ == 0x90)  // Wall master
