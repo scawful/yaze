@@ -28,9 +28,17 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_FIND_FRAMEWORK LAST)
 set(CMAKE_SHARED_MODULE_PREFIX "")
+
+if (UNIX)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dlinux -Dstricmp=strcasecmp")
+endif()
+
 if (MACOS)
   set(CMAKE_INSTALL_PREFIX /usr/local)
+endif()
+
+if (WIN32)
+  include(cmake/vcpkg.cmake)
 endif()
 
 # Abseil Standard Specifications
