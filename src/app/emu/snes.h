@@ -14,17 +14,16 @@ namespace emu {
 
 struct Input {
   uint8_t type;
-  // latchline
   bool latch_line_;
   // for controller
   uint16_t current_state_;  // actual state
   uint16_t latched_state_;
 };
 
-class SNES {
+class Snes {
  public:
-  SNES() = default;
-  ~SNES() = default;
+  Snes() = default;
+  ~Snes() = default;
 
   // Initialization
   void Init(std::vector<uint8_t>& rom_data);
@@ -61,9 +60,9 @@ class SNES {
   void SetButtonState(int player, int button, bool pressed);
   bool running() const { return running_; }
   auto cpu() -> Cpu& { return cpu_; }
-  auto ppu() -> video::Ppu& { return ppu_; }
-  auto apu() -> audio::Apu& { return apu_; }
-  auto Memory() -> memory::MemoryImpl& { return memory_; }
+  auto ppu() -> Ppu& { return ppu_; }
+  auto apu() -> Apu& { return apu_; }
+  auto Memory() -> MemoryImpl& { return memory_; }
   auto get_ram() -> uint8_t* { return ram; }
   auto mutable_cycles() -> uint64_t& { return cycles_; }
   void InitAccessTime(bool recalc);
@@ -73,16 +72,16 @@ class SNES {
  private:
   // Components of the SNES
   ClockImpl clock_;
-  memory::MemoryImpl memory_;
+  MemoryImpl memory_;
 
-  memory::CpuCallbacks cpu_callbacks_ = {
+  CpuCallbacks cpu_callbacks_ = {
       [&](uint32_t adr) { return CpuRead(adr); },
       [&](uint32_t adr, uint8_t val) { CpuWrite(adr, val); },
       [&](bool waiting) { CpuIdle(waiting); },
   };
   Cpu cpu_{memory_, clock_, cpu_callbacks_};
-  video::Ppu ppu_{memory_, clock_};
-  audio::Apu apu_{memory_};
+  Ppu ppu_{memory_, clock_};
+  Apu apu_{memory_};
 
   // Currently loaded ROM
   std::vector<uint8_t> rom_data;
