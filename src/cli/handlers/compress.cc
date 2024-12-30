@@ -1,4 +1,4 @@
-#include "cli/command.h"
+#include "cli/z3ed.h"
 
 namespace yaze {
 namespace cli {
