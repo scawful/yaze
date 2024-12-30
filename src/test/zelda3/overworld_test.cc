@@ -10,7 +10,6 @@
 
 namespace yaze {
 namespace test {
-namespace zelda3 {
 
 class OverworldTest : public ::testing::Test, public SharedRom {
  protected:
@@ -53,6 +52,5 @@ TEST_F(OverworldTest, OverworldLoadRomDataOk) {
             zelda3::kNumTile16Individual);
 }
 
-}  // namespace zelda3
 }  // namespace test
 }  // namespace yaze

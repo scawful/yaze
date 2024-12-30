@@ -5,14 +5,12 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/gfx/snes_color.h"
 #include "test/core/testing.h"
 
 namespace yaze {
 namespace test {
 
 using ::testing::_;
-using ::testing::DoAll;
 using ::testing::Return;
 
 const static std::vector<uint8_t> kMockRomData = {

@@ -10,7 +10,6 @@
 
 namespace yaze {
 namespace emu {
-namespace memory {
 
 /**
  * @brief Mock CPU class for testing
@@ -220,7 +219,6 @@ class MockMemory : public Memory {
   uint16_t SP_ = 0x01FF;
 };
 
-}  // namespace memory
 }  // namespace emu
 }  // namespace yaze
 

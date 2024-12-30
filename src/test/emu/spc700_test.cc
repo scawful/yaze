@@ -6,13 +6,12 @@
 
 namespace yaze {
 namespace test {
-namespace emu {
 
 using testing::_;
 using testing::Return;
-using yaze::emu::audio::ApuCallbacks;
-using yaze::emu::audio::AudioRam;
-using yaze::emu::audio::Spc700;
+using yaze::emu::ApuCallbacks;
+using yaze::emu::AudioRam;
+using yaze::emu::Spc700;
 
 /**
  * @brief MockAudioRam is a mock class for the AudioRam class.
@@ -471,6 +470,5 @@ TEST_F(Spc700Test, BootIplRomOk) {
   // EXPECT_EQ(spc700.PC, 0xFFC1 + 0x3F);
 }
 
-}  // namespace emu
 }  // namespace test
 }  // namespace yaze
