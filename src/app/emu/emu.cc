@@ -1,6 +1,4 @@
-#if defined(_WIN32)
-#define main SDL_main
-#elif __APPLE__
+#if __APPLE__
 #include "app/core/platform/app_delegate.h"
 #endif
 
@@ -10,24 +8,13 @@
 #include <string>
 #include <vector>
 
-#include "absl/base/internal/raw_logging.h"
-#include "absl/base/macros.h"
-#include "absl/container/flat_hash_map.h"
 #include "absl/debugging/failure_signal_handler.h"
-#include "absl/debugging/leak_check.h"
-#include "absl/debugging/stacktrace.h"
 #include "absl/debugging/symbolize.h"
-#include "absl/flags/flag.h"
 #include "absl/status/status.h"
-#include "absl/status/statusor.h"
-#include "absl/strings/str_format.h"
 #include "app/core/utils/sdl_deleter.h"
 #include "app/emu/snes.h"
 #include "app/rom.h"
-#include "imgui/imgui.h"
-#include "imgui_memory_editor.h"
 
-using namespace yaze;
 using yaze::core::SDL_Deleter;
 
 int main(int argc, char **argv) {
@@ -37,6 +24,8 @@ int main(int argc, char **argv) {
   options.symbolize_stacktrace = true;
   options.alarm_on_failure_secs = true;
   absl::InstallFailureSignalHandler(options);
+
+  SDL_SetMainReady();
 
   std::unique_ptr<SDL_Window, SDL_Deleter> window_;
   std::unique_ptr<SDL_Renderer, SDL_Deleter> renderer_;
@@ -96,8 +85,8 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  Rom rom_;
-  emu::SNES snes_;
+  yaze::Rom rom_;
+  yaze::emu::Snes snes_;
   std::vector<uint8_t> rom_data_;
 
   bool running = true;
@@ -191,10 +180,10 @@ int main(int argc, char **argv) {
 
   SDL_PauseAudioDevice(audio_device_, 1);
   SDL_CloseAudioDevice(audio_device_);
-  delete audio_buffer_;
-  // ImGui_ImplSDLRenderer2_Shutdown();
-  // ImGui_ImplSDL2_Shutdown();
-  // ImGui::DestroyContext();
+  delete[] audio_buffer_;
+  //ImGui_ImplSDLRenderer2_Shutdown();
+  //ImGui_ImplSDL2_Shutdown();
+  //ImGui::DestroyContext();
   SDL_Quit();
 
   return EXIT_SUCCESS;
