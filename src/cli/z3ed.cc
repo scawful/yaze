@@ -7,13 +7,13 @@
 
 #include "absl/flags/flag.h"
 #include "app/core/constants.h"
-#include "cli/command.h"
+#include "cli/z3ed.h"
+#include "tui.h"
 
 ABSL_FLAG(bool, verbose, false, "Enable verbose output");
 ABSL_FLAG(bool, debug, false, "Enable debug output");
 
 namespace yaze {
-
 /**
  * @namespace yaze::cli
  * @brief Namespace for the command line interface.
@@ -21,12 +21,13 @@ namespace yaze {
 namespace cli {
 namespace {
 
+ColorModifier ylw(ColorCode::FG_YELLOW);
+ColorModifier mag(ColorCode::FG_MAGENTA);
+ColorModifier red(ColorCode::FG_RED);
+ColorModifier reset(ColorCode::FG_RESET);
+ColorModifier underline(ColorCode::FG_UNDERLINE);
+
 void HelpCommand() {
-  ColorModifier ylw(ColorCode::FG_YELLOW);
-  ColorModifier mag(ColorCode::FG_MAGENTA);
-  ColorModifier red(ColorCode::FG_RED);
-  ColorModifier reset(ColorCode::FG_RESET);
-  ColorModifier underline(ColorCode::FG_UNDERLINE);
   std::cout << "\n";
   std::cout << ylw << " ▲  " << reset << "    z3ed\n";
   std::cout << ylw << "▲ ▲ " << reset << "    by " << mag << "scawful\n\n"
@@ -57,7 +58,7 @@ void HelpCommand() {
   std::cout << "\n";
 }
 
-int RunCommandHandler(int argc, char* argv[]) {
+int RunCommandHandler(int argc, char *argv[]) {
   if (argc == 1) {
     HelpCommand();
     return EXIT_SUCCESS;
@@ -88,6 +89,8 @@ int RunCommandHandler(int argc, char* argv[]) {
 }  // namespace cli
 }  // namespace yaze
 
-int main(int argc, char* argv[]) {
-  return yaze::cli::RunCommandHandler(argc, argv);
+int main(int argc, char *argv[]) {
+  yaze::cli::ShowMain();
+  return EXIT_SUCCESS;
+  // return yaze::cli::RunCommandHandler(argc, argv);
 }

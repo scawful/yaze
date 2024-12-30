@@ -1,5 +1,5 @@
-#ifndef YAZE_CLI_COMMAND_HANDLER_H
-#define YAZE_CLI_COMMAND_HANDLER_H
+#ifndef YAZE_CLI_Z3ED_H
+#define YAZE_CLI_Z3ED_H
 
 #include <cstdint>
 #include <iostream>
@@ -13,7 +13,6 @@
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/rom.h"
-#include "asar-dll-bindings/c/asar.h"
 
 namespace yaze {
 namespace cli {
