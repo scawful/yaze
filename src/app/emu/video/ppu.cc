@@ -8,9 +8,6 @@
 
 namespace yaze {
 namespace emu {
-namespace video {
-
-using namespace PpuRegisters;
 
 // array for layer definitions per mode:
 //   0-7: mode 0-7; 8: mode 1 + l3prio; 9: mode 7 + extbg
@@ -1053,7 +1050,5 @@ void Ppu::PutPixels(uint8_t* pixels) {
   }
 }
 
-}  // namespace video
 }  // namespace emu
-
 }  // namespace yaze

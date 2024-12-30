@@ -1,14 +1,10 @@
 #ifndef YAZE_APP_EMU_VIDEO_PPU_REGISTERS_H
 #define YAZE_APP_EMU_VIDEO_PPU_REGISTERS_H
 
-#include <array>
 #include <cstdint>
-#include <vector>
 
 namespace yaze {
 namespace emu {
-namespace video {
-namespace PpuRegisters {
 
 constexpr uint16_t INIDISP = 0x2100;
 
@@ -412,10 +408,7 @@ struct STAT78 {
   uint8_t unused : 1;
 };
 
-}  // namespace PpuRegisters
-}  // namespace video
 }  // namespace emu
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_EMU_VIDEO_PPU_REGISTERS_H
