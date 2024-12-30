@@ -5,7 +5,7 @@
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/rom.h"
-#include "cli/command.h"
+#include "cli/z3ed.h"
 
 namespace yaze {
 namespace cli {
