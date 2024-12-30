@@ -63,11 +63,3 @@ if (APPLE)
   target_link_libraries(yaze PUBLIC ${COCOA_LIBRARY})
 endif()
 
-if (WIN32 OR MINGW)
-  target_link_libraries(
-    yaze PUBLIC
-    ${CMAKE_SOURCE_DIR}/build/build-windows/bin/libpng16.dll
-    zlib
-    mingw32
-    ws2_32)
-endif()
