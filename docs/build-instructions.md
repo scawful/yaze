@@ -9,11 +9,47 @@ Yaze uses CMake to build the project. If you are unexperienced with CMake, pleas
 
 The gui editor is built using SDL2 and ImGui. For reference on how to use ImGui, see the [Getting Started](https://github.com/ocornut/imgui/wiki/Getting-Started) guide. For SDL2, see the [SDL2 documentation](https://wiki.libsdl.org/).
 
-For those who want to reduce compile times, consider installing the dependencies on your system. 
+For those who want to reduce compile times, consider installing the dependencies on your system.
 
 ## Windows
 
-Recommended to use [msys2](https://www.msys2.org/) for a Unix-like environment on Windows.
+### vcpkg
+
+For Visual Studio users, follow the [Install and use packages with CMake](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started) tutorial from Microsoft.
+
+Define the following dependencies in `vcpkg.json`
+
+```
+{
+  "dependencies": [
+    "abseil",
+    "sdl2",
+    "libpng"
+  ]
+}
+```
+
+Target the architecture in `CMakePresets.json`
+
+```
+{
+  "name": "vcpkg",
+  "generator": "Ninja",
+  "binaryDir": "${sourceDir}/build",
+  "architecture": {
+    "value": "arm64/x64",
+    "strategy": "external"
+  },
+  "cacheVariables": {
+    "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+    "CMAKE_SYSTEM_PROCESSOR": "arm64/x64"
+  }
+}
+```
+
+### msys2
+
+[msys2](https://www.msys2.org/) is an alternative you may use for a Unix-like environment on Windows. Beware that this is for more experienced developers who know how to manage their system PATH.
 
 Add to environment variables `C:\msys64\mingw64\bin`
 
