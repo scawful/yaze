@@ -36,8 +36,7 @@ class InstructionEntry {
 
 class Cpu : public core::ExperimentFlags {
  public:
-  explicit Cpu(memory::Memory& mem, Clock& vclock,
-               memory::CpuCallbacks& callbacks)
+  explicit Cpu(Memory& mem, Clock& vclock, CpuCallbacks& callbacks)
       : memory(mem), clock(vclock), callbacks_(callbacks) {}
   void Reset(bool hard = false);
 
@@ -792,8 +791,8 @@ class Cpu : public core::ExperimentFlags {
   bool int_wanted_ = false;
   bool int_delay_ = false;
 
-  memory::CpuCallbacks callbacks_;
-  memory::Memory& memory;
+  CpuCallbacks callbacks_;
+  Memory& memory;
   Clock& clock;
 };
 
