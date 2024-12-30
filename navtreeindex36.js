@@ -1,13 +1,5 @@
 var NAVTREEINDEX36 =
 {
-"namespaceyaze_1_1core.html#a1d6fb7654b6d82c76cf2e31fd4f11a5f":[10,0,1,2,25],
-"namespaceyaze_1_1core.html#a1ebfa2ff985b2a41c726bfbaa9a868dd":[10,0,1,2,35],
-"namespaceyaze_1_1core.html#a224033814dd0a65e514ab48d90bcc550":[10,0,1,2,33],
-"namespaceyaze_1_1core.html#a2cb2c0bf50bac2324d970587cc1b0233":[10,0,1,2,22],
-"namespaceyaze_1_1core.html#a2efa2fdd38e8bf23d8f3cf7ce03679fc":[10,0,1,2,19],
-"namespaceyaze_1_1core.html#a3b002d05a3b1c3254beed024d7092721":[10,0,1,2,31],
-"namespaceyaze_1_1core.html#a421cc759aa63272bf0079eddf0d32eac":[10,0,1,2,32],
-"namespaceyaze_1_1core.html#a52189778cda85a731116f50ab603ca6c":[10,0,1,2,39],
 "namespaceyaze_1_1core.html#a611a51e1035d450eef5c06263128ce92":[10,0,1,2,21],
 "namespaceyaze_1_1core.html#a6ce28d9949b2dd0f6b6f6ae922700ae2":[10,0,1,2,42],
 "namespaceyaze_1_1core.html#a6ce88f9f428f027466401bd0f29af006":[10,0,1,2,30],
@@ -249,5 +241,13 @@ var NAVTREEINDEX36 =
 "namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a04750c3f7b03c631fdc1a3cc6bccb536":[10,0,1,4,4,0,69],
 "namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a14b1f0d53d5e066e19fad3b0cdf2974c":[10,0,1,4,4,0,60],
 "namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a14d659996ed7502871c99c53aa70cbad":[10,0,1,4,4,0,89],
-"namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a17b602aa47a219439f469e16a2264894":[10,0,1,4,4,0,84]
+"namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a17b602aa47a219439f469e16a2264894":[10,0,1,4,4,0,84],
+"namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a194a3cea460c53c81042d65ca351206b":[10,0,1,4,4,0,56],
+"namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a21b339503fa21a76ba5fa2c75488d25e":[10,0,1,4,4,0,113],
+"namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a2597dc435dc3212b45e985dafc9932b3":[10,0,1,4,4,0,54],
+"namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a2bd0c05ac88dcb5c741ccc0d989f4771":[10,0,1,4,4,0,91],
+"namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a2c12f4055fcb76b16913cd9c60829559":[10,0,1,4,4,0,95],
+"namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a364e8f9d86c7c7933ab2babb000d6dc3":[10,0,1,4,4,0,92],
+"namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a366aac202684b492cac3a0e85d6687f9":[10,0,1,4,4,0,105],
+"namespaceyaze_1_1emu_1_1video_1_1PpuRegisters.html#a38ffc557b1a0f9bd6a55aec3c23b4866":[10,0,1,4,4,0,103]
 };

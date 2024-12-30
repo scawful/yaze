@@ -31,7 +31,7 @@ var searchData=
   ['layer3_28',['layer3',['../classyaze_1_1zelda3_1_1Room.html#a5cdd16646a07883bbf22eefda29be3d9',1,'yaze::zelda3::Room']]],
   ['layer_5f_29',['layer_',['../classyaze_1_1emu_1_1video_1_1Ppu.html#a19c7efc21d6cd70e8958c5825d743569',1,'yaze::emu::video::Ppu::layer_'],['../classyaze_1_1zelda3_1_1RoomObject.html#a0b96cbdcf912d54adb20eb5b3880a668',1,'yaze::zelda3::RoomObject::layer_'],['../classyaze_1_1zelda3_1_1Sprite.html#a1673df95435b20c8479b5d4f28977326',1,'yaze::zelda3::Sprite::layer_']]],
   ['layertype_30',['LayerType',['../classyaze_1_1zelda3_1_1RoomObject.html#a9271f3a50b053b6f15f5c2b4733dde6d',1,'yaze::zelda3::RoomObject']]],
-  ['layout_31',['layout',['../classyaze_1_1zelda3_1_1Room.html#a8ed702d4f1c19e1c88b77563b8ce2031',1,'yaze::zelda3::Room']]],
+  ['layout_31',['layout',['../classyaze_1_1zelda3_1_1Room.html#a8ed702d4f1c19e1c88b77563b8ce2031',1,'yaze::zelda3::Room::layout'],['../structyaze_1_1cli_1_1Context.html#aad24cee732fed20fc6f6984c13f3dc57',1,'yaze::cli::Context::layout']]],
   ['layout_5fnode_5f_32',['layout_node_',['../classyaze_1_1editor_1_1OverworldEditor.html#a09caa2d092a58b701ef487d87b47d12f',1,'yaze::editor::OverworldEditor']]],
   ['layoutcolumncount_33',['LayoutColumnCount',['../structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#af3747402ec83279dc6f926c9a3740109',1,'yaze::gui::GfxSheetAssetBrowser']]],
   ['layoutitemsize_34',['LayoutItemSize',['../structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a0481665c6fc7d7f7c004a70400a6d715',1,'yaze::gui::GfxSheetAssetBrowser']]],

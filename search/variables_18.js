@@ -10,5 +10,6 @@ var searchData=
   ['y_5fplayer_5f_7',['y_player_',['../classyaze_1_1zelda3_1_1OverworldExit.html#a68b967e046d2e5f9ff2c92d824c6c608',1,'yaze::zelda3::OverworldExit']]],
   ['y_5fposition_5f_8',['y_position_',['../classyaze_1_1zelda3_1_1RoomEntrance.html#a4cfcd4b6843cccb5f109045f9b4726c8',1,'yaze::zelda3::RoomEntrance']]],
   ['y_5fscroll_5f_9',['y_scroll_',['../classyaze_1_1zelda3_1_1OverworldExit.html#acb73f703e9748d95d1bdae60d31c2cf8',1,'yaze::zelda3::OverworldExit']]],
-  ['ya_10',['YA',['../classyaze_1_1emu_1_1audio_1_1Spc700.html#a67fe65048e83d864fab39decbb8169df',1,'yaze::emu::audio::Spc700']]]
+  ['ya_10',['YA',['../classyaze_1_1emu_1_1audio_1_1Spc700.html#a67fe65048e83d864fab39decbb8169df',1,'yaze::emu::audio::Spc700']]],
+  ['ylw_11',['ylw',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#ac7a261707554c6e048c413356600dc45',1,'yaze::cli::anonymous_namespace{z3ed.cc}']]]
 ];

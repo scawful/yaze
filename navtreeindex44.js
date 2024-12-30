@@ -1,13 +1,5 @@
 var NAVTREEINDEX44 =
 {
-"src_2app_2zelda3_2overworld_2overworld_8h.html#a7d300e24313ab04f10cff25a2a5f3dfa":[12,0,2,0,5,2,1,49],
-"src_2app_2zelda3_2overworld_2overworld_8h.html#a89eb1e20040d10504c7eb1cf1b5217f9":[12,0,2,0,5,2,1,42],
-"src_2app_2zelda3_2overworld_2overworld_8h.html#a9189588a049d1bb5a62d96e8f8dc7a25":[12,0,2,0,5,2,1,14],
-"src_2app_2zelda3_2overworld_2overworld_8h.html#a918d47cd62a30ea96bb37a01914f6aaa":[12,0,2,0,5,2,1,32],
-"src_2app_2zelda3_2overworld_2overworld_8h.html#a983a46759f61bc10c22666455013d166":[12,0,2,0,5,2,1,8],
-"src_2app_2zelda3_2overworld_2overworld_8h.html#a989c343a868d7dadaebe677d108a9e7a":[12,0,2,0,5,2,1,53],
-"src_2app_2zelda3_2overworld_2overworld_8h.html#a9a85ab0f31e656ea08ceaa8a317d75e1":[12,0,2,0,5,2,1,5],
-"src_2app_2zelda3_2overworld_2overworld_8h.html#aa71438e02500c628e6b1502e8b2f3293":[12,0,2,0,5,2,1,35],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#aa83813e72b6c1e5691c65745de37aee7":[12,0,2,0,5,2,1,43],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#ab12277550d7aea2b576b2f9688ae60e4":[12,0,2,0,5,2,1,21],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#ab21df1ce59f6da425661a1c3eed98a93":[12,0,2,0,5,2,1,37],
@@ -160,6 +152,10 @@ var NAVTREEINDEX44 =
 "structyaze_1_1cli_1_1Commands.html#a564941340fe0299473dafc0bb1a1d8a6":[11,0,0,0,5,0],
 "structyaze_1_1cli_1_1Context.html":[10,0,1,1,9],
 "structyaze_1_1cli_1_1Context.html":[11,0,0,0,7],
+"structyaze_1_1cli_1_1Context.html#aad24cee732fed20fc6f6984c13f3dc57":[10,0,1,1,9,1],
+"structyaze_1_1cli_1_1Context.html#aad24cee732fed20fc6f6984c13f3dc57":[11,0,0,0,7,1],
+"structyaze_1_1cli_1_1Context.html#ad67bff941d5ef3006cb751886fe4c98a":[10,0,1,1,9,2],
+"structyaze_1_1cli_1_1Context.html#ad67bff941d5ef3006cb751886fe4c98a":[11,0,0,0,7,2],
 "structyaze_1_1cli_1_1Context.html#af6660f922a4fba0bb62e6507e47ed032":[10,0,1,1,9,0],
 "structyaze_1_1cli_1_1Context.html#af6660f922a4fba0bb62e6507e47ed032":[11,0,0,0,7,0],
 "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html":[10,0,1,2,3,0],
@@ -249,5 +245,9 @@ var NAVTREEINDEX44 =
 "structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html":[10,0,1,3,8,1],
 "structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html":[11,0,0,2,3,1],
 "structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html#a112b33285d7ad430d67f61846df42114":[10,0,1,3,8,1,1],
-"structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html#a112b33285d7ad430d67f61846df42114":[11,0,0,2,3,1,1]
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html#a112b33285d7ad430d67f61846df42114":[11,0,0,2,3,1,1],
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html#a19db5aa9d2ba2f6e049c95eeb81cd5f1":[10,0,1,3,8,1,3],
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html#a19db5aa9d2ba2f6e049c95eeb81cd5f1":[11,0,0,2,3,1,3],
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html#a9a1e6953e563fc2f2f5de11e136c77b8":[10,0,1,3,8,1,2],
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html#a9a1e6953e563fc2f2f5de11e136c77b8":[11,0,0,2,3,1,2]
 };

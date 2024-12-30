@@ -5,7 +5,12 @@ var namespaceyaze_1_1cli =
     ] ],
     [ "anonymous_namespace{z3ed.cc}", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html", [
       [ "HelpCommand", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a2ce01552171fe2c443f90b424ffdd398", null ],
-      [ "RunCommandHandler", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a1c411f9b56b338d661c91c0dbdfac795", null ]
+      [ "RunCommandHandler", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a1c411f9b56b338d661c91c0dbdfac795", null ],
+      [ "ylw", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#ac7a261707554c6e048c413356600dc45", null ],
+      [ "mag", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#aeaf75f18edc75b57f0e8acde19ab944f", null ],
+      [ "red", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a9e25f4412caa3abe0e9980a12d3079f5", null ],
+      [ "reset", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a8078785135a58092912453d6eb98cf16", null ],
+      [ "underline", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a84debb58d67b1d118f79bd2f409e4240", null ]
     ] ],
     [ "ApplyPatch", "classyaze_1_1cli_1_1ApplyPatch.html", "classyaze_1_1cli_1_1ApplyPatch" ],
     [ "AsarPatch", "classyaze_1_1cli_1_1AsarPatch.html", "classyaze_1_1cli_1_1AsarPatch" ],

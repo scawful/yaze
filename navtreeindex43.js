@@ -1,13 +1,5 @@
 var NAVTREEINDEX43 =
 {
-"scad__format_8h.html#aa5f6ec50040cca7fa90618e288aec19c":[12,0,2,0,3,5,5],
-"scad__format_8h.html#aa9a8ffcc8f36cf265988d58c8a5d3810":[12,0,2,0,3,5,1],
-"scad__format_8h.html#ae70315e061d80f6328f35c209b4f8e58":[12,0,2,0,3,5,7],
-"scad__format_8h_source.html":[12,0,2,0,3,5],
-"screen__editor_8cc.html":[12,0,2,0,1,2,6],
-"screen__editor_8cc.html#a1a9ea88f79f3bb8c07a0f1439347bfc2":[12,0,2,0,1,2,6,0],
-"screen__editor_8cc_source.html":[12,0,2,0,1,2,6],
-"screen__editor_8h.html":[12,0,2,0,1,2,7],
 "screen__editor_8h_source.html":[12,0,2,0,1,2,7],
 "sdl__deleter_8h.html":[12,0,2,0,0,1,2],
 "sdl__deleter_8h_source.html":[12,0,2,0,0,1,2],
@@ -249,5 +241,13 @@ var NAVTREEINDEX43 =
 "src_2app_2zelda3_2overworld_2overworld_8h.html#a59999d246438f6406ed1c0ddd0d4cd67":[12,0,2,0,5,2,1,19],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#a5fed47e695c5c4b5ca8f849d873fcca8":[12,0,2,0,5,2,1,47],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#a70c6666dde2ca529f626d335716d2e7e":[12,0,2,0,5,2,1,11],
-"src_2app_2zelda3_2overworld_2overworld_8h.html#a7b3fef27d6130dc2c34910603eeaa9f8":[12,0,2,0,5,2,1,48]
+"src_2app_2zelda3_2overworld_2overworld_8h.html#a7b3fef27d6130dc2c34910603eeaa9f8":[12,0,2,0,5,2,1,48],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#a7d300e24313ab04f10cff25a2a5f3dfa":[12,0,2,0,5,2,1,49],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#a89eb1e20040d10504c7eb1cf1b5217f9":[12,0,2,0,5,2,1,42],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#a9189588a049d1bb5a62d96e8f8dc7a25":[12,0,2,0,5,2,1,14],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#a918d47cd62a30ea96bb37a01914f6aaa":[12,0,2,0,5,2,1,32],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#a983a46759f61bc10c22666455013d166":[12,0,2,0,5,2,1,8],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#a989c343a868d7dadaebe677d108a9e7a":[12,0,2,0,5,2,1,53],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#a9a85ab0f31e656ea08ceaa8a317d75e1":[12,0,2,0,5,2,1,5],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#aa71438e02500c628e6b1502e8b2f3293":[12,0,2,0,5,2,1,35]
 };
