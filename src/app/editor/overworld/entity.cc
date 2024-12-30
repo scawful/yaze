@@ -91,7 +91,7 @@ void HandleEntityDragging(zelda3::GameEntity *entity, ImVec2 canvas_p0,
       ImGui::SetDragDropPayload("ENTITY_PAYLOAD", &entity,
                                 sizeof(zelda3::GameEntity));
       Text("Moving %s ID: %s", entity_type.c_str(),
-           core::UppercaseHexByte(entity->entity_id_).c_str());
+           core::HexByte(entity->entity_id_).c_str());
       ImGui::EndDragDropSource();
     }
     MoveEntityOnGrid(dragged_entity, canvas_p0, scrolling, free_movement);

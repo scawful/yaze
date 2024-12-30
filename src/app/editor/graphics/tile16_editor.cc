@@ -59,7 +59,7 @@ absl::Status Tile16Editor::InitBlockset(
   RETURN_IF_ERROR(LoadTile8());
   ImVector<std::string> tile16_names;
   for (int i = 0; i < 0x200; ++i) {
-    std::string str = core::UppercaseHexByte(all_tiles_types_[i]);
+    std::string str = core::HexByte(all_tiles_types_[i]);
     tile16_names.push_back(str);
   }
 

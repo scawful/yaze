@@ -88,7 +88,7 @@ absl::Status MessageEditor::Initialize() {
 
   for (const auto& each_message : list_of_texts_) {
     std::cout << "Message #" << each_message.ID << " at address "
-              << core::UppercaseHexLong(each_message.Address) << std::endl;
+              << core::HexLong(each_message.Address) << std::endl;
     std::cout << "  " << each_message.RawString << std::endl;
 
     // Each string has a [:XX] char encoded
@@ -173,7 +173,7 @@ void MessageEditor::DrawMessageList() {
 
       for (const auto& message : list_of_texts_) {
         TableNextColumn();
-        if (Button(core::UppercaseHexWord(message.ID).c_str())) {
+        if (Button(core::HexWord(message.ID).c_str())) {
           current_message_ = message;
           DrawMessagePreview();
         }
@@ -182,7 +182,7 @@ void MessageEditor::DrawMessageList() {
         TableNextColumn();
         TextWrapped(
             "%s",
-            core::UppercaseHexLong(list_of_texts_[message.ID].Address).c_str());
+            core::HexLong(list_of_texts_[message.ID].Address).c_str());
       }
 
       EndTable();
@@ -252,7 +252,7 @@ void MessageEditor::DrawDictionary() {
 
       for (const auto& dictionary : all_dictionaries_) {
         TableNextColumn();
-        Text("%s", core::UppercaseHexWord(dictionary.ID).c_str());
+        Text("%s", core::HexWord(dictionary.ID).c_str());
         TableNextColumn();
         Text("%s", dictionary.Contents.c_str());
       }
@@ -332,7 +332,7 @@ void MessageEditor::ReadAllTextDataV2() {
       current_raw_message.append("[");
       current_raw_message.append(DICTIONARYTOKEN);
       current_raw_message.append(":");
-      current_raw_message.append(core::UppercaseHexWord(dictionary));
+      current_raw_message.append(core::HexWord(dictionary));
       current_raw_message.append("]");
 
       uint32_t address = core::Get24LocalFromPC(
@@ -432,7 +432,7 @@ void MessageEditor::ReadAllTextData() {
       current_message_raw.append("[");
       current_message_raw.append(DICTIONARYTOKEN);
       current_message_raw.append(":");
-      current_message_raw.append(core::UppercaseHexWord(dictionary));
+      current_message_raw.append(core::HexWord(dictionary));
       current_message_raw.append("]");
 
       uint32_t address = core::Get24LocalFromPC(

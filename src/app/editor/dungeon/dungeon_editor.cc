@@ -328,7 +328,7 @@ void DungeonEditor::DrawRoomSelector() {
       for (const auto each_room_name : zelda3::kRoomNames) {
         rom()->resource_label()->SelectableLabelWithNameEdit(
             current_room_id_ == i, "Dungeon Room Names",
-            core::UppercaseHexByte(i), each_room_name.data());
+            core::HexByte(i), each_room_name.data());
         if (ImGui::IsItemClicked()) {
           // TODO: Jump to tab if room is already open
           current_room_id_ = i;
@@ -402,7 +402,7 @@ void DungeonEditor::DrawEntranceSelector() {
       for (int i = 0; i < 0x85 + 7; i++) {
         rom()->resource_label()->SelectableLabelWithNameEdit(
             current_entrance_id_ == i, "Dungeon Entrance Names",
-            core::UppercaseHexByte(i),
+            core::HexByte(i),
             zelda3::kEntranceNames[i].data());
 
         if (ImGui::IsItemClicked()) {

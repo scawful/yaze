@@ -573,7 +573,7 @@ absl::Status Overworld::SaveOverworldMaps() {
     if ((pos + size_a) >= 0x6411F && (pos + size_a) <= 0x70000) {
       core::Logger::log("Pos set to overflow region for map " +
                         std::to_string(i) + " at " +
-                        core::UppercaseHexLong(pos));
+                        core::HexLong(pos));
       pos = OverworldMapDataOverflow;  // 0x0F8780;
     }
 
@@ -610,8 +610,8 @@ absl::Status Overworld::SaveOverworldMaps() {
       int snes_pos = core::PcToSnes(pos);
       map_pointers1[i] = snes_pos;
       core::Logger::log("Saving map pointers1 and compressed data for map " +
-                        core::UppercaseHexByte(i) + " at " +
-                        core::UppercaseHexLong(snes_pos));
+                        core::HexByte(i) + " at " +
+                        core::HexLong(snes_pos));
       RETURN_IF_ERROR(rom()->WriteLong(
           rom()->version_constants().kCompressedAllMap32PointersLow + (3 * i),
           snes_pos));
@@ -621,8 +621,8 @@ absl::Status Overworld::SaveOverworldMaps() {
       // Save pointer for map1
       int snes_pos = map_pointers1[map_pointers1_id[i]];
       core::Logger::log("Saving map pointers1 for map " +
-                        core::UppercaseHexByte(i) + " at " +
-                        core::UppercaseHexLong(snes_pos));
+                        core::HexByte(i) + " at " +
+                        core::HexLong(snes_pos));
       RETURN_IF_ERROR(rom()->WriteLong(
           rom()->version_constants().kCompressedAllMap32PointersLow + (3 * i),
           snes_pos));
@@ -634,8 +634,8 @@ absl::Status Overworld::SaveOverworldMaps() {
 
     if ((pos + b.size()) >= 0x6411F && (pos + b.size()) <= 0x70000) {
       core::Logger::log("Pos set to overflow region for map " +
-                        core::UppercaseHexByte(i) + " at " +
-                        core::UppercaseHexLong(pos));
+                        core::HexByte(i) + " at " +
+                        core::HexLong(pos));
       pos = OverworldMapDataOverflow;
     }
 
@@ -645,8 +645,8 @@ absl::Status Overworld::SaveOverworldMaps() {
       int snes_pos = core::PcToSnes(pos);
       map_pointers2[i] = snes_pos;
       core::Logger::log("Saving map pointers2 and compressed data for map " +
-                        core::UppercaseHexByte(i) + " at " +
-                        core::UppercaseHexLong(snes_pos));
+                        core::HexByte(i) + " at " +
+                        core::HexLong(snes_pos));
       RETURN_IF_ERROR(rom()->WriteLong(
           rom()->version_constants().kCompressedAllMap32PointersHigh + (3 * i),
           snes_pos));
@@ -656,8 +656,8 @@ absl::Status Overworld::SaveOverworldMaps() {
       // Save pointer for map2
       int snes_pos = map_pointers2[map_pointers2_id[i]];
       core::Logger::log("Saving map pointers2 for map " +
-                        core::UppercaseHexByte(i) + " at " +
-                        core::UppercaseHexLong(snes_pos));
+                        core::HexByte(i) + " at " +
+                        core::HexLong(snes_pos));
       RETURN_IF_ERROR(rom()->WriteLong(
           rom()->version_constants().kCompressedAllMap32PointersHigh + (3 * i),
           snes_pos));

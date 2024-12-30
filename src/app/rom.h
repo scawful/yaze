@@ -329,7 +329,7 @@ class Rom : public core::ExperimentFlags {
     }
     rom_data_[addr] = value;
     std::string log_str = absl::StrFormat("WriteByte: %#06X: %s", addr,
-                                          core::UppercaseHexByte(value).data());
+                                          core::HexByte(value).data());
     core::Logger::log(log_str);
     return absl::OkStatus();
   }
@@ -344,7 +344,7 @@ class Rom : public core::ExperimentFlags {
     rom_data_[addr] = (uint8_t)(value & 0xFF);
     rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
     core::Logger::log(absl::StrFormat("WriteWord: %#06X: %s", addr,
-                                      core::UppercaseHexWord(value)));
+                                      core::HexWord(value)));
     return absl::OkStatus();
   }
 
@@ -358,7 +358,7 @@ class Rom : public core::ExperimentFlags {
     rom_data_[addr] = (uint8_t)(value & 0xFF);
     rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
     core::Logger::log(absl::StrFormat("WriteShort: %#06X: %s", addr,
-                                      core::UppercaseHexWord(value)));
+                                      core::HexWord(value)));
     return absl::OkStatus();
   }
 
@@ -373,7 +373,7 @@ class Rom : public core::ExperimentFlags {
     rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
     rom_data_[addr + 2] = (uint8_t)((value >> 16) & 0xFF);
     core::Logger::log(absl::StrFormat("WriteLong: %#06X: %s", addr,
-                                      core::UppercaseHexLong(value)));
+                                      core::HexLong(value)));
     return absl::OkStatus();
   }
 
@@ -388,7 +388,7 @@ class Rom : public core::ExperimentFlags {
       rom_data_[addr + i] = data[i];
     }
     core::Logger::log(absl::StrFormat("WriteVector: %#06X: %s", addr,
-                                      core::UppercaseHexByte(data[0])));
+                                      core::HexByte(data[0])));
     return absl::OkStatus();
   }
 
@@ -398,7 +398,7 @@ class Rom : public core::ExperimentFlags {
 
     // Write the 16-bit color value to the ROM at the specified address
     core::Logger::log(absl::StrFormat("WriteColor: %#06X: %s", address,
-                                      core::UppercaseHexWord(bgr)));
+                                      core::HexWord(bgr)));
     return WriteShort(address, bgr);
   }
 
