@@ -190,7 +190,7 @@ void SpriteEditor::DrawSpritesList() {
     int i = 0;
     for (const auto each_sprite_name : zelda3::kSpriteDefaultNames) {
       rom()->resource_label()->SelectableLabelWithNameEdit(
-          current_sprite_id_ == i, "Sprite Names", core::UppercaseHexByte(i),
+          current_sprite_id_ == i, "Sprite Names", core::HexByte(i),
           zelda3::kSpriteDefaultNames[i].data());
       if (ImGui::IsItemClicked()) {
         current_sprite_id_ = i;

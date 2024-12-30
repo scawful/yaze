@@ -789,7 +789,7 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
         color = ImVec4(255, 255, 255, 200);
       }
       ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16, color);
-      std::string str = core::UppercaseHexByte(each.entrance_id_);
+      std::string str = core::HexByte(each.entrance_id_);
 
       if (current_mode == EditingMode::ENTRANCES) {
         HandleEntityDragging(&each, canvas_p0, scrolling, is_dragging_entity_,
@@ -872,7 +872,7 @@ void OverworldEditor::DrawOverworldExits(ImVec2 canvas_p0, ImVec2 scrolling) {
         }
       }
 
-      std::string str = core::UppercaseHexByte(i);
+      std::string str = core::HexByte(i);
       ow_map_canvas_.DrawText(str, each.x_, each.y_);
     }
     i++;
@@ -1367,7 +1367,7 @@ absl::Status OverworldEditor::UpdateUsageStats() {
                    ImGuiWindowFlags_HorizontalScrollbar)) {
       for (int i = 0; i < 0x81; i++) {
         auto entrance_name = rom()->resource_label()->GetLabel(
-            "Dungeon Entrance Names", core::UppercaseHexByte(i));
+            "Dungeon Entrance Names", core::HexByte(i));
         std::string str = absl::StrFormat("%#x - %s", i, entrance_name);
         if (Selectable(str.c_str(), selected_entrance_ == i,
                        overworld_.entrances().at(i).deleted

@@ -167,7 +167,7 @@ absl::Status ScreenEditor::LoadDungeonMaps() {
           gdata[j] = rom()->data()[pc_ptr_gfx++];
         }
 
-        std::string label = core::UppercaseHexByte(rdata[j]);
+        std::string label = core::HexByte(rdata[j]);
         dungeon_map_labels_[d][i][j] = label;
       }
 
@@ -318,7 +318,7 @@ void ScreenEditor::DrawDungeonMapsTabs() {
             std::string label =
                 dungeon_map_labels_[selected_dungeon][floor_number][j];
             screen_canvas_.DrawText(label, (posX * 2), (posY * 2));
-            std::string gfx_id = core::UppercaseHexByte(tile16_id);
+            std::string gfx_id = core::HexByte(tile16_id);
             screen_canvas_.DrawText(gfx_id, (posX * 2), (posY * 2) + 16);
           }
         }
