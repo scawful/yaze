@@ -1,6 +1,4 @@
-#if defined(_WIN32)
-#define main SDL_main
-#elif __APPLE__
+#if __APPLE__
 #include "app/core/platform/app_delegate.h"
 #endif
 
@@ -14,9 +12,6 @@
  */
 using namespace yaze;
 
-/**
- * @brief Main entry point for the application.
- */
 int main(int argc, char** argv) {
   absl::InitializeSymbolizer(argv[0]);
 
@@ -35,6 +30,9 @@ int main(int argc, char** argv) {
 #ifdef __APPLE__
   yaze_run_cocoa_app_delegate(rom_filename.c_str());
   return EXIT_SUCCESS;
+#elif defined(_WIN32)
+  // We set SDL_MAIN_HANDLED for Win32 to avoid SDL hijacking main()
+  SDL_SetMainReady();
 #endif
 
   core::Controller controller;
