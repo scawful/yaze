@@ -1,0 +1,6 @@
+<map id="yaze::test::DungeonRoomTest::SetUp" name="yaze::test::DungeonRoomTest::SetUp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,22,198,62"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="246,29,395,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,40,230,40,230,45,198,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="284,31,277,21,281,11,296,5,320,3,347,5,361,12,358,17,346,10,320,8,297,10,285,15,282,20,288,27"/>
+</map>

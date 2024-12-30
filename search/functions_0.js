@@ -82,7 +82,7 @@ var searchData=
   ['assemblemap16tiles_79',['AssembleMap16Tiles',['../classyaze_1_1zelda3_1_1Overworld.html#ae59ee22d837ba7014b1ae99b9b9b1e1e',1,'yaze::zelda3::Overworld']]],
   ['assemblemap32tiles_80',['AssembleMap32Tiles',['../classyaze_1_1zelda3_1_1Overworld.html#ae35643496d5fc1c0418088dd24215376',1,'yaze::zelda3::Overworld']]],
   ['assemblyeditor_81',['AssemblyEditor',['../classyaze_1_1editor_1_1AssemblyEditor.html#a18b7735ffbfc7a0dcb92662f481fee8b',1,'yaze::editor::AssemblyEditor']]],
-  ['assertcompressionquality_82',['AssertCompressionQuality',['../namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#a804c98e5473ed6d7a93336ec135f4051',1,'yaze::test::gfx::anonymous_namespace{compression_test.cc}']]],
+  ['assertcompressionquality_82',['AssertCompressionQuality',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#adf116b63a46b6698d5d5fe40373a9089',1,'yaze::test::anonymous_namespace{compression_test.cc}']]],
   ['assetobject_83',['AssetObject',['../structyaze_1_1gui_1_1AssetObject.html#a87ca7304e6ddd870b881396817f56340',1,'yaze::gui::AssetObject']]],
   ['assignworldtiles_84',['AssignWorldTiles',['../classyaze_1_1zelda3_1_1Overworld.html#ae33b2ca8460cee1916377bb32676ea58',1,'yaze::zelda3::Overworld']]],
   ['at_85',['at',['../classyaze_1_1emu_1_1Memory.html#ae6a7fe05ca17fbed99579cfb9a79ba2c',1,'yaze::emu::Memory::at()'],['../classyaze_1_1emu_1_1MemoryImpl.html#a09fc0829ad63d6bff53d0c93d3111ec7',1,'yaze::emu::MemoryImpl::at()'],['../classyaze_1_1gfx_1_1Bitmap.html#a0c938e3c3f656555b3b8c6ef86adb265',1,'yaze::gfx::Bitmap::at()']]],

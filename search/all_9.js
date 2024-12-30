@@ -103,7 +103,7 @@ var searchData=
   ['bghofs_5f_100',['bghofs_',['../classyaze_1_1emu_1_1Ppu.html#a57bf1b38e4c40bf0acda9c45a9be12bb',1,'yaze::emu::Ppu']]],
   ['bglayer_101',['BgLayer',['../structyaze_1_1emu_1_1BgLayer.html',1,'yaze::emu::BgLayer'],['../namespaceyaze_1_1emu.html#a24a01fe899efeaf09ae0ddbeae88a218',1,'yaze::emu::BgLayer']]],
   ['bgmode_102',['BGMODE',['../structyaze_1_1emu_1_1BGMODE.html',1,'yaze::emu::BGMODE'],['../namespaceyaze_1_1emu.html#aaa27643e56c9546c09d625282f69c2b9',1,'yaze::emu::BGMODE']]],
-  ['bgmode_103',['bgMode',['../classyaze_1_1test_1_1emu_1_1MockPpu.html#a4ebcfd47c482bcba5c1201825dcbe173',1,'yaze::test::emu::MockPpu']]],
+  ['bgmode_103',['bgMode',['../classyaze_1_1test_1_1MockPpu.html#a4639c58cfcdcf2915412e7a79295def7',1,'yaze::test::MockPpu']]],
   ['bgnba_104',['BGNBA',['../structyaze_1_1emu_1_1BGNBA.html',1,'yaze::emu::BGNBA'],['../structyaze_1_1emu_1_1BGNBA.html#ac61ee063c4c4835205486499ba2d6aed',1,'yaze::emu::BGNBA::BGNBA()=default'],['../structyaze_1_1emu_1_1BGNBA.html#a6522f22a5b27b751db6a733d9a024e29',1,'yaze::emu::BGNBA::BGNBA(uint8_t value)']]],
   ['bgnba_5f_105',['bgnba_',['../classyaze_1_1emu_1_1Ppu.html#a5820fd533df27cdbb1cc38eaeccc0c0d',1,'yaze::emu::Ppu']]],
   ['bgr_106',['Bgr',['../namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8a103b58155b4c5cc09249629e7ccd5dc2',1,'yaze::zelda3']]],

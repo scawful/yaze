@@ -40,7 +40,7 @@ var searchData=
   ['depth_5f_37',['depth_',['../classyaze_1_1gfx_1_1Bitmap.html#aa6c562f517f83f39c47c6d2292a9afe0',1,'yaze::gfx::Bitmap']]],
   ['desc_38',['desc',['../structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html#a40125ece089c77d4de4e93cec83bf400',1,'yaze::editor::CommandManager::CommandInfo']]],
   ['description_39',['Description',['../structyaze_1_1editor_1_1TextElement.html#a0a3a517b28528a10a53248c1a03cb62e',1,'yaze::editor::TextElement']]],
-  ['dictionary_5f_40',['dictionary_',['../classyaze_1_1test_1_1zelda3_1_1MessageTest.html#a70368798807f7c241d62673dc691b2a1',1,'yaze::test::zelda3::MessageTest']]],
+  ['dictionary_5f_40',['dictionary_',['../classyaze_1_1test_1_1MessageTest.html#a4f5ac26f21093c17b45805abf27c89f8',1,'yaze::test::MessageTest']]],
   ['dictionarytoken_41',['DICTIONARYTOKEN',['../namespaceyaze_1_1editor.html#a180364fa630f1bbd2b029efa9277f342',1,'yaze::editor']]],
   ['dictoff_42',['DICTOFF',['../namespaceyaze_1_1editor.html#abb2b75ac1fb7f044b8c0305ce0abf927',1,'yaze::editor']]],
   ['direct_5fcolor_43',['direct_color',['../structyaze_1_1emu_1_1CGWSEL.html#a1d3e18856cc1dc8d0adb221a9d103c93',1,'yaze::emu::CGWSEL']]],

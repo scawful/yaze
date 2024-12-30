@@ -114,54 +114,50 @@ $(function(){initNavTree('ppu__test_8cc.html',''); initResizable(true); });
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="ppu_8h_source.html">app/emu/video/ppu.h</a>&quot;</code><br />
 <code>#include &lt;gmock/gmock.h&gt;</code><br />
-<code>#include &quot;<a class="el" href="clock_8h_source.html">app/emu/cpu/clock.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="memory_8h_source.html">app/emu/memory/memory.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="mock__memory_8h_source.html">test/mocks/mock_memory.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for ppu_test.cc:</div>
 <div class="dyncontent">
 <div class="center"><img src="ppu__test_8cc__incl.png" border="0" usemap="#asrc_2test_2emu_2ppu__test_8cc" alt=""/></div>
 <map name="asrc_2test_2emu_2ppu__test_8cc" id="asrc_2test_2emu_2ppu__test_8cc">
-<area shape="rect" title=" " alt="" coords="435,5,600,31"/>
-<area shape="rect" href="ppu_8h.html" title=" " alt="" coords="244,153,386,178"/>
-<area shape="poly" title=" " alt="" coords="491,34,450,54,406,81,369,112,338,143,334,139,365,108,403,77,447,50,488,29"/>
-<area shape="rect" href="clock_8h.html" title=" " alt="" coords="504,226,646,252"/>
-<area shape="poly" title=" " alt="" coords="507,33,483,60,458,97,449,117,444,138,444,158,452,177,476,201,506,218,504,223,472,206,448,180,439,159,438,137,443,116,453,95,478,57,503,29"/>
-<area shape="rect" href="memory_8h.html" title=" " alt="" coords="720,226,902,252"/>
-<area shape="poly" title=" " alt="" coords="592,29,686,48,790,75,838,91,880,109,912,129,933,151,938,163,938,175,925,195,901,211,873,223,871,218,899,206,921,191,933,174,933,164,929,154,909,134,877,114,836,96,788,80,685,53,591,34"/>
-<area shape="rect" title=" " alt="" coords="461,153,574,178"/>
-<area shape="poly" title=" " alt="" coords="520,31,520,137,515,137,515,31"/>
-<area shape="rect" href="mock__memory_8h.html" title=" " alt="" coords="589,79,774,105"/>
-<area shape="poly" title=" " alt="" coords="547,29,641,70,639,75,545,34"/>
-<area shape="rect" title=" " alt="" coords="228,226,277,252"/>
-<area shape="poly" title=" " alt="" coords="307,180,275,216,271,213,303,177"/>
-<area shape="rect" title=" " alt="" coords="453,300,513,326"/>
-<area shape="poly" title=" " alt="" coords="318,178,324,214,331,233,343,250,364,269,388,283,439,301,437,306,386,288,360,273,338,254,326,236,319,215,313,179"/>
-<area shape="rect" title=" " alt="" coords="660,300,717,326"/>
-<area shape="poly" title=" " alt="" coords="343,177,443,224,494,250,573,277,645,298,644,303,572,282,491,254,441,229,340,181"/>
-<area shape="poly" title=" " alt="" coords="360,176,517,219,515,224,359,181"/>
-<area shape="poly" title=" " alt="" coords="387,174,712,221,711,226,386,180"/>
-<area shape="rect" href="ppu__registers_8h.html" title=" " alt="" coords="5,226,204,252"/>
-<area shape="poly" title=" " alt="" coords="280,181,156,223,154,218,279,176"/>
-<area shape="rect" href="rom_8h.html" title=" " alt="" coords="352,226,430,252"/>
-<area shape="poly" title=" " alt="" coords="330,177,369,214,366,218,326,181"/>
-<area shape="poly" title=" " alt="" coords="561,255,512,293,509,288,558,250"/>
-<area shape="poly" title=" " alt="" coords="756,255,529,304,528,299,755,250"/>
-<area shape="poly" title=" " alt="" coords="792,255,723,294,721,290,789,250"/>
-<area shape="poly" title=" " alt="" coords="170,250,438,300,437,306,169,255"/>
-<area shape="poly" title=" " alt="" coords="408,250,458,288,454,293,405,255"/>
-<area shape="poly" title=" " alt="" coords="431,247,645,298,644,304,430,253"/>
-<area shape="poly" title=" " alt="" coords="675,107,640,154,595,215,591,212,636,151,671,103"/>
-<area shape="poly" title=" " alt="" coords="773,103,856,122,890,135,912,151,918,162,918,173,907,192,886,209,860,222,858,217,883,204,903,189,913,172,912,163,908,154,888,140,855,127,772,108"/>
-<area shape="poly" title=" " alt="" coords="655,108,561,149,558,144,653,103"/>
-<area shape="rect" title=" " alt="" coords="804,153,898,178"/>
-<area shape="poly" title=" " alt="" coords="712,103,809,144,807,149,710,108"/>
-<area shape="rect" href="cpu_8h.html" title=" " alt="" coords="650,153,781,178"/>
-<area shape="poly" title=" " alt="" coords="690,104,705,137,701,140,685,106"/>
-<area shape="poly" title=" " alt="" coords="713,180,693,216,678,236,659,254,628,274,594,289,529,307,528,302,592,284,626,269,656,250,674,233,689,213,708,177"/>
-<area shape="poly" title=" " alt="" coords="782,175,862,195,895,209,916,225,922,239,916,254,904,264,886,274,838,289,733,309,732,304,837,284,884,269,901,260,912,250,916,239,912,228,892,213,860,200,781,181"/>
-<area shape="poly" title=" " alt="" coords="693,181,614,221,611,217,690,176"/>
-<area shape="poly" title=" " alt="" coords="733,177,785,215,782,219,730,181"/>
+<area shape="rect" title=" " alt="" coords="177,5,342,31"/>
+<area shape="rect" href="ppu_8h.html" title=" " alt="" coords="517,153,658,178"/>
+<area shape="poly" title=" " alt="" coords="288,29,547,143,545,148,286,34"/>
+<area shape="rect" title=" " alt="" coords="5,153,119,178"/>
+<area shape="poly" title=" " alt="" coords="235,34,197,55,156,81,118,113,85,143,82,140,114,109,152,77,194,50,233,29"/>
+<area shape="rect" href="mock__memory_8h.html" title=" " alt="" coords="167,79,352,105"/>
+<area shape="poly" title=" " alt="" coords="262,31,262,63,257,63,257,31"/>
+<area shape="rect" title=" " alt="" coords="912,226,961,252"/>
+<area shape="poly" title=" " alt="" coords="659,175,767,195,897,223,896,229,766,200,658,181"/>
+<area shape="rect" title=" " alt="" coords="454,300,515,326"/>
+<area shape="poly" title=" " alt="" coords="603,177,616,193,629,212,635,233,630,253,609,275,584,291,557,302,531,308,530,303,556,297,582,286,606,271,625,251,630,233,624,214,612,196,599,181"/>
+<area shape="rect" title=" " alt="" coords="297,300,355,326"/>
+<area shape="poly" title=" " alt="" coords="576,181,533,216,477,254,422,280,371,300,369,295,420,276,474,250,530,212,572,177"/>
+<area shape="rect" href="clock_8h.html" title=" " alt="" coords="322,226,463,252"/>
+<area shape="poly" title=" " alt="" coords="555,181,441,223,439,218,553,176"/>
+<area shape="rect" href="memory_8h.html" title=" " alt="" coords="66,226,247,252"/>
+<area shape="poly" title=" " alt="" coords="517,181,246,226,245,221,516,176"/>
+<area shape="rect" href="ppu__registers_8h.html" title=" " alt="" coords="690,226,888,252"/>
+<area shape="poly" title=" " alt="" coords="622,176,741,218,739,223,621,181"/>
+<area shape="rect" href="rom_8h.html" title=" " alt="" coords="538,226,616,252"/>
+<area shape="poly" title=" " alt="" coords="588,179,583,211,578,211,583,178"/>
+<area shape="poly" title=" " alt="" coords="410,250,459,288,456,293,407,255"/>
+<area shape="poly" title=" " alt="" coords="213,250,440,299,439,304,212,255"/>
+<area shape="poly" title=" " alt="" coords="186,250,284,291,282,296,184,255"/>
+<area shape="poly" title=" " alt="" coords="737,255,531,303,530,298,736,250"/>
+<area shape="poly" title=" " alt="" coords="563,255,514,293,510,288,559,250"/>
+<area shape="poly" title=" " alt="" coords="538,254,370,302,369,297,536,249"/>
+<area shape="poly" title=" " alt="" coords="280,103,309,124,339,151,363,181,381,211,377,214,358,184,335,154,306,128,277,107"/>
+<area shape="poly" title=" " alt="" coords="238,107,210,127,184,154,170,183,163,211,158,210,165,181,180,151,206,123,235,103"/>
+<area shape="poly" title=" " alt="" coords="227,108,111,150,109,144,225,103"/>
+<area shape="rect" title=" " alt="" coords="399,153,493,178"/>
+<area shape="poly" title=" " alt="" coords="292,103,401,144,399,149,290,108"/>
+<area shape="rect" href="cpu_8h.html" title=" " alt="" coords="194,153,325,178"/>
+<area shape="poly" title=" " alt="" coords="262,105,262,137,257,137,257,105"/>
+<area shape="poly" title=" " alt="" coords="266,177,282,213,295,233,312,250,342,270,376,285,440,303,439,308,374,290,340,274,308,254,291,236,278,216,261,180"/>
+<area shape="poly" title=" " alt="" coords="194,174,135,183,81,198,62,208,50,220,48,234,56,250,70,262,93,272,153,288,221,299,282,306,282,311,221,305,152,294,91,277,68,266,52,254,42,234,45,218,59,204,79,193,134,178,193,169"/>
+<area shape="poly" title=" " alt="" coords="283,177,358,216,355,221,281,181"/>
+<area shape="poly" title=" " alt="" coords="243,181,188,219,185,215,240,177"/>
 </map>
 </div>
 </div>
@@ -169,10 +165,10 @@ Include dependency graph for ppu_test.cc:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1test_1_1emu_1_1MockPpu.html">yaze::test::emu::MockPpu</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mock Ppu class for testing.  <a href="classyaze_1_1test_1_1emu_1_1MockPpu.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1test_1_1MockPpu.html">yaze::test::MockPpu</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mock Ppu class for testing.  <a href="classyaze_1_1test_1_1MockPpu.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1test_1_1emu_1_1PpuTest.html">yaze::test::emu::PpuTest</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1test_1_1PpuTest.html">yaze::test::PpuTest</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -181,8 +177,6 @@ Namespaces</h2></td></tr>
 <tr class="memdesc:namespaceyaze"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main namespace for the application. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1test.html">yaze::test</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1test_1_1emu.html">yaze::test::emu</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->

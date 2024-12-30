@@ -1,0 +1,7 @@
+<map id="yaze::test::TEST_F" name="yaze::test::TEST_F">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,46,135,72"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1Memory.html#a9d1439d9f862b1f2129671aed6dc380e" title=" " alt="" coords="196,5,332,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,45,180,37,181,43,135,51"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1MockMemory.html#a0d4dd84479c3a3057c01327b58579160" title=" " alt="" coords="183,71,345,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="135,67,168,72,167,78,135,72"/>
+</map>

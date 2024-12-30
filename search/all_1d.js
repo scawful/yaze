@@ -45,7 +45,7 @@ var searchData=
   ['volr_42',['volr',['../structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#aaf86250ef9f46f8886cce14d6595ad6b',1,'yaze::zelda3::music::ZeldaSfxInstrument']]],
   ['volumel_43',['volumeL',['../structyaze_1_1emu_1_1DspChannel.html#af37368558dd3474eca2cd12bc4e1efc1',1,'yaze::emu::DspChannel']]],
   ['volumer_44',['volumeR',['../structyaze_1_1emu_1_1DspChannel.html#a4acbf03e6fa3a0cb92b2c80ff1d3fd53',1,'yaze::emu::DspChannel']]],
-  ['vram_45',['vram',['../classyaze_1_1emu_1_1Ppu.html#aa6b74bdbc79dccf3f758e21e9b03e037',1,'yaze::emu::Ppu::vram'],['../classyaze_1_1test_1_1emu_1_1MockPpu.html#a4843d08a171ca5b4fb3e86b3449fbdc6',1,'yaze::test::emu::MockPpu::vram']]],
+  ['vram_45',['vram',['../classyaze_1_1emu_1_1Ppu.html#aa6b74bdbc79dccf3f758e21e9b03e037',1,'yaze::emu::Ppu::vram'],['../classyaze_1_1test_1_1MockPpu.html#a89bb0aa1873f122438651ca1b9d54942',1,'yaze::test::MockPpu::vram']]],
   ['vram_5f_46',['vram_',['../classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a362fcebebede6eb1a7ec8cd2e8d87f51',1,'yaze::zelda3::DungeonObjectRenderer']]],
   ['vram_5faddress_47',['vram_address',['../structyaze_1_1emu_1_1BGSC.html#ae26e278755e90160760df53ba5dd430b',1,'yaze::emu::BGSC']]],
   ['vram_5fbase_5faddress_5f_48',['vram_base_address_',['../classyaze_1_1emu_1_1Ppu.html#a51abe4b4562e2608a214c337496edbd1',1,'yaze::emu::Ppu']]],

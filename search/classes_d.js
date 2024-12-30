@@ -19,6 +19,6 @@ var searchData=
   ['overworldexit_16',['OverworldExit',['../classyaze_1_1zelda3_1_1OverworldExit.html',1,'yaze::zelda3']]],
   ['overworlditem_17',['OverworldItem',['../classyaze_1_1zelda3_1_1OverworldItem.html',1,'yaze::zelda3']]],
   ['overworldmap_18',['OverworldMap',['../classyaze_1_1zelda3_1_1OverworldMap.html',1,'yaze::zelda3']]],
-  ['overworldtest_19',['OverworldTest',['../classyaze_1_1test_1_1zelda3_1_1OverworldTest.html',1,'yaze::test::zelda3']]],
+  ['overworldtest_19',['OverworldTest',['../classyaze_1_1test_1_1OverworldTest.html',1,'yaze::test']]],
   ['owmaptiles_20',['OWMapTiles',['../structyaze_1_1zelda3_1_1OWMapTiles.html',1,'yaze::zelda3']]]
 ];

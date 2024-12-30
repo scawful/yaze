@@ -14,7 +14,8 @@ var hierarchy =
       [ "yaze::gui::UnsortedAsset", "structyaze_1_1gui_1_1UnsortedAsset.html", null ]
     ] ],
     [ "yaze::emu::AudioRam", "classyaze_1_1emu_1_1AudioRam.html", [
-      [ "yaze::emu::AudioRamImpl", "classyaze_1_1emu_1_1AudioRamImpl.html", null ]
+      [ "yaze::emu::AudioRamImpl", "classyaze_1_1emu_1_1AudioRamImpl.html", null ],
+      [ "yaze::test::MockAudioRam", "classyaze_1_1test_1_1MockAudioRam.html", null ]
     ] ],
     [ "yaze::emu::BackgroundLayer", "structyaze_1_1emu_1_1BackgroundLayer.html", null ],
     [ "yaze::emu::BGHOFS", "structyaze_1_1emu_1_1BGHOFS.html", null ],
@@ -34,7 +35,7 @@ var hierarchy =
     [ "yaze::emu::CharacterLocation", "structyaze_1_1emu_1_1CharacterLocation.html", null ],
     [ "yaze::emu::Clock", "classyaze_1_1emu_1_1Clock.html", [
       [ "yaze::emu::ClockImpl", "classyaze_1_1emu_1_1ClockImpl.html", null ],
-      [ "yaze::emu::memory::MockClock", "classyaze_1_1emu_1_1memory_1_1MockClock.html", null ]
+      [ "yaze::emu::MockClock", "classyaze_1_1emu_1_1MockClock.html", null ]
     ] ],
     [ "yaze::emu::COLDATA", "structyaze_1_1emu_1_1COLDATA.html", null ],
     [ "yaze::emu::Color", "structyaze_1_1emu_1_1Color.html", null ],
@@ -145,7 +146,7 @@ var hierarchy =
     [ "yaze::emu::MaskLogicSettings", "structyaze_1_1emu_1_1MaskLogicSettings.html", null ],
     [ "yaze::emu::Memory", "classyaze_1_1emu_1_1Memory.html", [
       [ "yaze::emu::MemoryImpl", "classyaze_1_1emu_1_1MemoryImpl.html", null ],
-      [ "yaze::emu::memory::MockMemory", "classyaze_1_1emu_1_1memory_1_1MockMemory.html", null ]
+      [ "yaze::emu::MockMemory", "classyaze_1_1emu_1_1MockMemory.html", null ]
     ] ],
     [ "yaze::editor::MessageData", "structyaze_1_1editor_1_1MessageData.html", null ],
     [ "yaze::emu::MnemonicMode", "structyaze_1_1emu_1_1MnemonicMode.html", null ],
@@ -180,7 +181,9 @@ var hierarchy =
     [ "yaze::gfx::Paletteset", "structyaze_1_1gfx_1_1Paletteset.html", null ],
     [ "yaze::editor::ParsedElement", "structyaze_1_1editor_1_1ParsedElement.html", null ],
     [ "yaze::editor::PopupManager", "classyaze_1_1editor_1_1PopupManager.html", null ],
-    [ "yaze::emu::PpuInterface", "classyaze_1_1emu_1_1PpuInterface.html", null ],
+    [ "yaze::emu::PpuInterface", "classyaze_1_1emu_1_1PpuInterface.html", [
+      [ "yaze::test::MockPpu", "classyaze_1_1test_1_1MockPpu.html", null ]
+    ] ],
     [ "yaze::zelda3::PseudoVram", "structyaze_1_1zelda3_1_1PseudoVram.html", null ],
     [ "yaze::RecentFilesManager", "classyaze_1_1RecentFilesManager.html", null ],
     [ "yaze::core::Renderer", "classyaze_1_1core_1_1Renderer.html", null ],
@@ -212,9 +215,9 @@ var hierarchy =
       [ "yaze::emu::Emulator", "classyaze_1_1emu_1_1Emulator.html", null ],
       [ "yaze::emu::Ppu", "classyaze_1_1emu_1_1Ppu.html", null ],
       [ "yaze::gui::Canvas", "classyaze_1_1gui_1_1Canvas.html", null ],
-      [ "yaze::test::zelda3::DungeonRoomTest", "classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest.html", null ],
-      [ "yaze::test::zelda3::MessageTest", "classyaze_1_1test_1_1zelda3_1_1MessageTest.html", null ],
-      [ "yaze::test::zelda3::OverworldTest", "classyaze_1_1test_1_1zelda3_1_1OverworldTest.html", null ],
+      [ "yaze::test::DungeonRoomTest", "classyaze_1_1test_1_1DungeonRoomTest.html", null ],
+      [ "yaze::test::MessageTest", "classyaze_1_1test_1_1MessageTest.html", null ],
+      [ "yaze::test::OverworldTest", "classyaze_1_1test_1_1OverworldTest.html", null ],
       [ "yaze::zelda3::DungeonObjectRenderer", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html", null ],
       [ "yaze::zelda3::Overworld", "classyaze_1_1zelda3_1_1Overworld.html", null ],
       [ "yaze::zelda3::Room", "classyaze_1_1zelda3_1_1Room.html", null ],
@@ -254,14 +257,14 @@ var hierarchy =
     [ "yaze::zelda3::SubtypeInfo", "structyaze_1_1zelda3_1_1SubtypeInfo.html", null ],
     [ "yaze::gui::Table", "structyaze_1_1gui_1_1Table.html", null ],
     [ "testing::Test", null, [
+      [ "yaze::test::CpuTest", "classyaze_1_1test_1_1CpuTest.html", null ],
+      [ "yaze::test::DungeonRoomTest", "classyaze_1_1test_1_1DungeonRoomTest.html", null ],
+      [ "yaze::test::MessageTest", "classyaze_1_1test_1_1MessageTest.html", null ],
+      [ "yaze::test::OverworldTest", "classyaze_1_1test_1_1OverworldTest.html", null ],
+      [ "yaze::test::PpuTest", "classyaze_1_1test_1_1PpuTest.html", null ],
       [ "yaze::test::RomTest", "classyaze_1_1test_1_1RomTest.html", null ],
-      [ "yaze::test::emu::CpuTest", "classyaze_1_1test_1_1emu_1_1CpuTest.html", null ],
-      [ "yaze::test::emu::PpuTest", "classyaze_1_1test_1_1emu_1_1PpuTest.html", null ],
-      [ "yaze::test::emu::Spc700Test", "classyaze_1_1test_1_1emu_1_1Spc700Test.html", null ],
-      [ "yaze::test::zelda3::DungeonRoomTest", "classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest.html", null ],
-      [ "yaze::test::zelda3::MessageTest", "classyaze_1_1test_1_1zelda3_1_1MessageTest.html", null ],
-      [ "yaze::test::zelda3::OverworldTest", "classyaze_1_1test_1_1zelda3_1_1OverworldTest.html", null ],
-      [ "yaze::test::zelda3::SpriteBuilderTest", "classyaze_1_1test_1_1zelda3_1_1SpriteBuilderTest.html", null ]
+      [ "yaze::test::Spc700Test", "classyaze_1_1test_1_1Spc700Test.html", null ],
+      [ "yaze::test::SpriteBuilderTest", "classyaze_1_1test_1_1SpriteBuilderTest.html", null ]
     ] ],
     [ "yaze::editor::MessageEditor::TextBox", "structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html", null ],
     [ "yaze::editor::TextElement", "structyaze_1_1editor_1_1TextElement.html", null ],
@@ -326,11 +329,5 @@ var hierarchy =
     [ "yaze::zelda3::music::ZeldaInstrument", "structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html", null ],
     [ "yaze::zelda3::music::ZeldaSfxInstrument", "structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html", null ],
     [ "yaze::zelda3::music::ZeldaWave", "structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html", null ],
-    [ "yaze::editor::zsprite::ZSprite", "structyaze_1_1editor_1_1zsprite_1_1ZSprite.html", null ],
-    [ "AudioRam", null, [
-      [ "yaze::test::emu::MockAudioRam", "classyaze_1_1test_1_1emu_1_1MockAudioRam.html", null ]
-    ] ],
-    [ "PpuInterface", null, [
-      [ "yaze::test::emu::MockPpu", "classyaze_1_1test_1_1emu_1_1MockPpu.html", null ]
-    ] ]
+    [ "yaze::editor::zsprite::ZSprite", "structyaze_1_1editor_1_1zsprite_1_1ZSprite.html", null ]
 ];

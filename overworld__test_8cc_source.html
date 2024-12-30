@@ -121,68 +121,66 @@ $(function(){initNavTree('overworld__test_8cc_source.html',''); initResizable(tr
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keyword">namespace </span>test {</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="keyword">namespace </span>zelda3 {</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
-<div class="foldopen" id="foldopen00015" data-start="{" data-end="};">
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1zelda3_1_1OverworldTest.html">   15</a></span><span class="keyword">class </span><a class="code hl_class" href="classyaze_1_1test_1_1zelda3_1_1OverworldTest.html">OverworldTest</a> : <span class="keyword">public</span> ::testing::Test, <span class="keyword">public</span> <a class="code hl_class" href="classyaze_1_1SharedRom.html">SharedRom</a> {</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> <span class="keyword">protected</span>:</div>
-<div class="foldopen" id="foldopen00017" data-start="{" data-end="}">
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1zelda3_1_1OverworldTest.html#af276ed558476cede4eb3cc82ce237b84">   17</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1test_1_1zelda3_1_1OverworldTest.html#af276ed558476cede4eb3cc82ce237b84">SetUp</a>()<span class="keyword"> override </span>{</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>    <span class="comment">// Skip tests on Linux for automated github builds</span></div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#if defined(__linux__)</span></div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    GTEST_SKIP();</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  }</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
+<div class="foldopen" id="foldopen00014" data-start="{" data-end="};">
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1OverworldTest.html">   14</a></span><span class="keyword">class </span><a class="code hl_class" href="classyaze_1_1test_1_1OverworldTest.html">OverworldTest</a> : <span class="keyword">public</span> ::testing::Test, <span class="keyword">public</span> <a class="code hl_class" href="classyaze_1_1SharedRom.html">SharedRom</a> {</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> <span class="keyword">protected</span>:</div>
+<div class="foldopen" id="foldopen00016" data-start="{" data-end="}">
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1OverworldTest.html#a2fad2d7af0b796219c34a1ee50befa8b">   16</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1test_1_1OverworldTest.html#a2fad2d7af0b796219c34a1ee50befa8b">SetUp</a>()<span class="keyword"> override </span>{</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>    <span class="comment">// Skip tests on Linux for automated github builds</span></div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#if defined(__linux__)</span></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    GTEST_SKIP();</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  }</div>
 </div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1zelda3_1_1OverworldTest.html#ad9400d6669ed5f2b34dd4aab5b26a5b0">   23</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1test_1_1zelda3_1_1OverworldTest.html#ad9400d6669ed5f2b34dd4aab5b26a5b0">TearDown</a>()<span class="keyword"> override </span>{}</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1zelda3_1_1OverworldTest.html#ab4d3abd9ed9775dabfc09ab5a94b08d4">   25</a></span>  <a class="code hl_class" href="classyaze_1_1zelda3_1_1Overworld.html">zelda3::Overworld</a> <a class="code hl_variable" href="classyaze_1_1test_1_1zelda3_1_1OverworldTest.html#ab4d3abd9ed9775dabfc09ab5a94b08d4">overworld_</a>;</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>};</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1OverworldTest.html#a63e704ed3dd7301888c02e18cf50fa00">   22</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1test_1_1OverworldTest.html#a63e704ed3dd7301888c02e18cf50fa00">TearDown</a>()<span class="keyword"> override </span>{}</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1OverworldTest.html#ade0a4d429c7a61d0be9019a42846c3ed">   24</a></span>  <a class="code hl_class" href="classyaze_1_1zelda3_1_1Overworld.html">zelda3::Overworld</a> <a class="code hl_variable" href="classyaze_1_1test_1_1OverworldTest.html#ade0a4d429c7a61d0be9019a42846c3ed">overworld_</a>;</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>};</div>
 </div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
-<div class="foldopen" id="foldopen00028" data-start="{" data-end="}">
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test_1_1zelda3.html#aba87e1fc2dea89eb4261a8cc22906262">   28</a></span><a class="code hl_function" href="namespaceyaze_1_1test_1_1zelda3.html#ab63ec60d8525cd6a7fdd2cc174896344">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1zelda3_1_1OverworldTest.html">OverworldTest</a>, OverworldLoadNoRomDataError) {</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  <span class="comment">// Arrange</span></div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <a class="code hl_class" href="classyaze_1_1Rom.html">Rom</a> rom;</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  <span class="comment">// Act</span></div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>  <span class="keyword">auto</span> status = overworld_.Load(rom);</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  <span class="comment">// Assert</span></div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  EXPECT_FALSE(status.ok());</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  EXPECT_THAT(status.message(), testing::HasSubstr(<span class="stringliteral">&quot;ROM file not loaded&quot;</span>));</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>}</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
+<div class="foldopen" id="foldopen00027" data-start="{" data-end="}">
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a6b1472393441acf4db147bca14e72c71">   27</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1OverworldTest.html">OverworldTest</a>, OverworldLoadNoRomDataError) {</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  <span class="comment">// Arrange</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  <a class="code hl_class" href="classyaze_1_1Rom.html">Rom</a> rom;</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>  <span class="comment">// Act</span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  <span class="keyword">auto</span> status = overworld_.Load(rom);</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  <span class="comment">// Assert</span></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  EXPECT_FALSE(status.ok());</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  EXPECT_THAT(status.message(), testing::HasSubstr(<span class="stringliteral">&quot;ROM file not loaded&quot;</span>));</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>}</div>
 </div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
-<div class="foldopen" id="foldopen00040" data-start="{" data-end="}">
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test_1_1zelda3.html#a3480b8ab1c82c34fd896d2cbf765bf16">   40</a></span><a class="code hl_function" href="namespaceyaze_1_1test_1_1zelda3.html#ab63ec60d8525cd6a7fdd2cc174896344">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1zelda3_1_1OverworldTest.html">OverworldTest</a>, OverworldLoadRomDataOk) {</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  <span class="comment">// Arrange</span></div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  <a class="code hl_define" href="testing_8h.html#a78b51c162425db9db9990f17fbf61bf1">EXPECT_OK</a>(rom()-&gt;LoadFromFile(<span class="stringliteral">&quot;zelda3.sfc&quot;</span>));</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  <a class="code hl_define" href="testing_8h.html#a78b51c162425db9db9990f17fbf61bf1">EXPECT_OK</a>(rom()-&gt;LoadAllGraphicsData(<span class="comment">/*defer_render=*/</span><span class="keyword">true</span>));</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  <span class="comment">// Act</span></div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  <span class="keyword">auto</span> status = overworld_.Load(*rom());</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  <span class="comment">// Assert</span></div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  EXPECT_TRUE(status.ok());</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  EXPECT_EQ(overworld_.overworld_maps().size(),</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>            <a class="code hl_variable" href="namespaceyaze_1_1zelda3.html#a4700b7264866b963a05e2f48dc7797c0">zelda3::kNumOverworldMaps</a>);</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  EXPECT_EQ(overworld_.tiles16().size(),</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>            <a class="code hl_variable" href="namespaceyaze_1_1zelda3.html#a310aac1b2a03f577a12376b08d0075d6">zelda3::kNumTile16Individual</a>);</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>}</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
+<div class="foldopen" id="foldopen00039" data-start="{" data-end="}">
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a0487c575f1901df589f85a3f64e655d1">   39</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1OverworldTest.html">OverworldTest</a>, OverworldLoadRomDataOk) {</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <span class="comment">// Arrange</span></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  <a class="code hl_define" href="testing_8h.html#a78b51c162425db9db9990f17fbf61bf1">EXPECT_OK</a>(rom()-&gt;LoadFromFile(<span class="stringliteral">&quot;zelda3.sfc&quot;</span>));</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  <a class="code hl_define" href="testing_8h.html#a78b51c162425db9db9990f17fbf61bf1">EXPECT_OK</a>(rom()-&gt;LoadAllGraphicsData(<span class="comment">/*defer_render=*/</span><span class="keyword">true</span>));</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  <span class="comment">// Act</span></div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  <span class="keyword">auto</span> status = overworld_.Load(*rom());</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  <span class="comment">// Assert</span></div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  EXPECT_TRUE(status.ok());</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  EXPECT_EQ(overworld_.overworld_maps().size(),</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>            <a class="code hl_variable" href="namespaceyaze_1_1zelda3.html#a4700b7264866b963a05e2f48dc7797c0">zelda3::kNumOverworldMaps</a>);</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  EXPECT_EQ(overworld_.tiles16().size(),</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>            <a class="code hl_variable" href="namespaceyaze_1_1zelda3.html#a310aac1b2a03f577a12376b08d0075d6">zelda3::kNumTile16Individual</a>);</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>}</div>
 </div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span> </div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>}  <span class="comment">// namespace zelda3</span></div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>}  <span class="comment">// namespace test</span></div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>}  <span class="comment">// namespace test</span></div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html"><div class="ttname"><a href="classyaze_1_1Rom.html">yaze::Rom</a></div><div class="ttdoc">The Rom class is used to load, save, and modify Rom data.</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00134">rom.h:134</a></div></div>
 <div class="ttc" id="aclassyaze_1_1SharedRom_html"><div class="ttname"><a href="classyaze_1_1SharedRom.html">yaze::SharedRom</a></div><div class="ttdoc">A class to hold a shared pointer to a Rom object.</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00577">rom.h:577</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1zelda3_1_1OverworldTest_html"><div class="ttname"><a href="classyaze_1_1test_1_1zelda3_1_1OverworldTest.html">yaze::test::zelda3::OverworldTest</a></div><div class="ttdef"><b>Definition</b> <a href="#l00015">overworld_test.cc:15</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1zelda3_1_1OverworldTest_html_ab4d3abd9ed9775dabfc09ab5a94b08d4"><div class="ttname"><a href="classyaze_1_1test_1_1zelda3_1_1OverworldTest.html#ab4d3abd9ed9775dabfc09ab5a94b08d4">yaze::test::zelda3::OverworldTest::overworld_</a></div><div class="ttdeci">zelda3::Overworld overworld_</div><div class="ttdef"><b>Definition</b> <a href="#l00025">overworld_test.cc:25</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1zelda3_1_1OverworldTest_html_ad9400d6669ed5f2b34dd4aab5b26a5b0"><div class="ttname"><a href="classyaze_1_1test_1_1zelda3_1_1OverworldTest.html#ad9400d6669ed5f2b34dd4aab5b26a5b0">yaze::test::zelda3::OverworldTest::TearDown</a></div><div class="ttdeci">void TearDown() override</div><div class="ttdef"><b>Definition</b> <a href="#l00023">overworld_test.cc:23</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1zelda3_1_1OverworldTest_html_af276ed558476cede4eb3cc82ce237b84"><div class="ttname"><a href="classyaze_1_1test_1_1zelda3_1_1OverworldTest.html#af276ed558476cede4eb3cc82ce237b84">yaze::test::zelda3::OverworldTest::SetUp</a></div><div class="ttdeci">void SetUp() override</div><div class="ttdef"><b>Definition</b> <a href="#l00017">overworld_test.cc:17</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1OverworldTest_html"><div class="ttname"><a href="classyaze_1_1test_1_1OverworldTest.html">yaze::test::OverworldTest</a></div><div class="ttdef"><b>Definition</b> <a href="#l00014">overworld_test.cc:14</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1OverworldTest_html_a2fad2d7af0b796219c34a1ee50befa8b"><div class="ttname"><a href="classyaze_1_1test_1_1OverworldTest.html#a2fad2d7af0b796219c34a1ee50befa8b">yaze::test::OverworldTest::SetUp</a></div><div class="ttdeci">void SetUp() override</div><div class="ttdef"><b>Definition</b> <a href="#l00016">overworld_test.cc:16</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1OverworldTest_html_a63e704ed3dd7301888c02e18cf50fa00"><div class="ttname"><a href="classyaze_1_1test_1_1OverworldTest.html#a63e704ed3dd7301888c02e18cf50fa00">yaze::test::OverworldTest::TearDown</a></div><div class="ttdeci">void TearDown() override</div><div class="ttdef"><b>Definition</b> <a href="#l00022">overworld_test.cc:22</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1OverworldTest_html_ade0a4d429c7a61d0be9019a42846c3ed"><div class="ttname"><a href="classyaze_1_1test_1_1OverworldTest.html#ade0a4d429c7a61d0be9019a42846c3ed">yaze::test::OverworldTest::overworld_</a></div><div class="ttdeci">zelda3::Overworld overworld_</div><div class="ttdef"><b>Definition</b> <a href="#l00024">overworld_test.cc:24</a></div></div>
 <div class="ttc" id="aclassyaze_1_1zelda3_1_1Overworld_html"><div class="ttname"><a href="classyaze_1_1zelda3_1_1Overworld.html">yaze::zelda3::Overworld</a></div><div class="ttdoc">Represents the full Overworld data, light and dark world.</div><div class="ttdef"><b>Definition</b> <a href="src_2app_2zelda3_2overworld_2overworld_8h_source.html#l00109">overworld.h:109</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1test_1_1zelda3_html_ab63ec60d8525cd6a7fdd2cc174896344"><div class="ttname"><a href="namespaceyaze_1_1test_1_1zelda3.html#ab63ec60d8525cd6a7fdd2cc174896344">yaze::test::zelda3::TEST_F</a></div><div class="ttdeci">TEST_F(DungeonRoomTest, SingleRoomLoadOk)</div><div class="ttdef"><b>Definition</b> <a href="dungeon__room__test_8cc_source.html#l00027">dungeon_room_test.cc:27</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1test_html_a17ff38f6a0d5d4b21e1776fff896ee07"><div class="ttname"><a href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">yaze::test::TEST_F</a></div><div class="ttdeci">TEST_F(CpuTest, AsmParserTokenizerOk)</div><div class="ttdef"><b>Definition</b> <a href="cpu__test_8cc_source.html#l00044">cpu_test.cc:44</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1zelda3_html_a310aac1b2a03f577a12376b08d0075d6"><div class="ttname"><a href="namespaceyaze_1_1zelda3.html#a310aac1b2a03f577a12376b08d0075d6">yaze::zelda3::kNumTile16Individual</a></div><div class="ttdeci">constexpr int kNumTile16Individual</div><div class="ttdef"><b>Definition</b> <a href="src_2app_2zelda3_2overworld_2overworld_8h_source.html#l00095">overworld.h:95</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1zelda3_html_a4700b7264866b963a05e2f48dc7797c0"><div class="ttname"><a href="namespaceyaze_1_1zelda3.html#a4700b7264866b963a05e2f48dc7797c0">yaze::zelda3::kNumOverworldMaps</a></div><div class="ttdeci">constexpr int kNumOverworldMaps</div><div class="ttdef"><b>Definition</b> <a href="src_2app_2zelda3_2overworld_2overworld_8h_source.html#l00094">overworld.h:94</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="common_8cc_source.html#l00015">common.cc:15</a></div></div>

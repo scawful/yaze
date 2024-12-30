@@ -1,9 +1,0 @@
-<map id="yaze::test::emu::Spc700Test" name="yaze::test::emu::Spc700Test">
-<area shape="rect" id="Node000001" title=" " alt="" coords="82,94,264,120"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,98,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="82,38,157,91,154,96,79,42"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="122,5,224,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="176,47,176,94,170,94,170,47"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="248,5,314,31"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="268,46,245,72,206,96,203,91,242,68,264,43"/>
-</map>

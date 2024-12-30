@@ -120,7 +120,7 @@ var searchData=
   ['ppu_5ftest_2ecc_117',['ppu_test.cc',['../ppu__test_8cc.html',1,'']]],
   ['ppu_5ftexture_5f_118',['ppu_texture_',['../classyaze_1_1emu_1_1Emulator.html#a1fe1362e01040f8ccd7bd3914641dcf8',1,'yaze::emu::Emulator']]],
   ['ppuinterface_119',['PpuInterface',['../classyaze_1_1emu_1_1PpuInterface.html',1,'yaze::emu']]],
-  ['pputest_120',['PpuTest',['../classyaze_1_1test_1_1emu_1_1PpuTest.html',1,'yaze::test::emu::PpuTest'],['../classyaze_1_1test_1_1emu_1_1PpuTest.html#a7c8064c7c0593894551271947a5d0b56',1,'yaze::test::emu::PpuTest::PpuTest()']]],
+  ['pputest_120',['PpuTest',['../classyaze_1_1test_1_1PpuTest.html',1,'yaze::test::PpuTest'],['../classyaze_1_1test_1_1PpuTest.html#a2d6de97f3c5aeeb85e4837befacf8707',1,'yaze::test::PpuTest::PpuTest()']]],
   ['preclampgain_121',['preclampGain',['../structyaze_1_1emu_1_1DspChannel.html#af5037d3c3084f970a6cccd158a19c095',1,'yaze::emu::DspChannel']]],
   ['prev_122',['prev',['../structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#ac68a57b9e3b1359935c1cc6bf92d513b',1,'yaze::zelda3::music::SpcCommand']]],
   ['prevent_5fmath_5fmode_5f_123',['prevent_math_mode_',['../classyaze_1_1emu_1_1Ppu.html#a3887f11169b87118cffea95e37f514d1',1,'yaze::emu::Ppu']]],

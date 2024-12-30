@@ -71,7 +71,7 @@ var searchData=
   ['bg_5fobj_5fflag_68',['bg_obj_flag',['../structyaze_1_1gfx_1_1scad__format_1_1CgxHeader.html#a068ca7b77208e93d0df15ff9c7df8551',1,'yaze::gfx::scad_format::CgxHeader']]],
   ['bghofs_5f_69',['bghofs_',['../classyaze_1_1emu_1_1Ppu.html#a57bf1b38e4c40bf0acda9c45a9be12bb',1,'yaze::emu::Ppu']]],
   ['bgmode_70',['BGMODE',['../namespaceyaze_1_1emu.html#aaa27643e56c9546c09d625282f69c2b9',1,'yaze::emu']]],
-  ['bgmode_71',['bgMode',['../classyaze_1_1test_1_1emu_1_1MockPpu.html#a4ebcfd47c482bcba5c1201825dcbe173',1,'yaze::test::emu::MockPpu']]],
+  ['bgmode_71',['bgMode',['../classyaze_1_1test_1_1MockPpu.html#a4639c58cfcdcf2915412e7a79295def7',1,'yaze::test::MockPpu']]],
   ['bgnba_5f_72',['bgnba_',['../classyaze_1_1emu_1_1Ppu.html#a5820fd533df27cdbb1cc38eaeccc0c0d',1,'yaze::emu::Ppu']]],
   ['bgsc_5f_73',['bgsc_',['../classyaze_1_1emu_1_1Ppu.html#ac5993a8229cdc5182cf3c760f722773f',1,'yaze::emu::Ppu']]],
   ['bgvofs_5f_74',['bgvofs_',['../classyaze_1_1emu_1_1Ppu.html#a368d39a3ab37d6679ab6882c0ff62b4a',1,'yaze::emu::Ppu']]],

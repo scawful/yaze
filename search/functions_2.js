@@ -120,7 +120,7 @@ var searchData=
   ['createpalettegroupfromcolfile_117',['CreatePaletteGroupFromColFile',['../namespaceyaze_1_1gfx.html#af530065a154701f94a0a96f72d05c057',1,'yaze::gfx']]],
   ['createpalettegroupfromlargepalette_118',['CreatePaletteGroupFromLargePalette',['../namespaceyaze_1_1gfx.html#aeccc5ded5a311afcdf70cb43e466c220',1,'yaze::gfx']]],
   ['createrenderer_119',['CreateRenderer',['../classyaze_1_1core_1_1Controller.html#ae191a94a55900590a8d6456d06eee08b',1,'yaze::core::Controller::CreateRenderer()'],['../classyaze_1_1core_1_1Renderer.html#ad9822300e9d48fac8aaa30c481966b58',1,'yaze::core::Renderer::CreateRenderer()']]],
-  ['createrepeatedbetweenuncompressable_120',['CreateRepeatedBetweenUncompressable',['../namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#a019743e9ff4f1e4dba0d326b1b9a233b',1,'yaze::test::gfx::anonymous_namespace{compression_test.cc}']]],
+  ['createrepeatedbetweenuncompressable_120',['CreateRepeatedBetweenUncompressable',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a42fad52e57b19e451335e64fec8771ec',1,'yaze::test::anonymous_namespace{compression_test.cc}']]],
   ['createtexture_121',['CreateTexture',['../classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a',1,'yaze::gfx::Bitmap']]],
   ['createtile32tilemap_122',['CreateTile32Tilemap',['../classyaze_1_1zelda3_1_1Overworld.html#a6db37a7e29db43a7ccd9a17a566d3b9c',1,'yaze::zelda3::Overworld']]],
   ['createtilesheetfromgraphicsbuffer_123',['CreateTilesheetFromGraphicsBuffer',['../namespaceyaze_1_1gfx.html#a3f767446d2678762961318489ff37450',1,'yaze::gfx']]],

@@ -114,54 +114,49 @@ $(function(){initNavTree('dungeon__room__test_8cc_source.html',''); initResizabl
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &quot;<a class="code" href="rom_8h.html">app/rom.h</a>&quot;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &quot;<a class="code" href="room_8h.html">app/zelda3/dungeon/room.h</a>&quot;</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;gtest/gtest.h&quot;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span> </div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="keyword">namespace </span>test {</div>
-<div class="foldopen" id="foldopen00010" data-start="{" data-end="}">
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test_1_1zelda3.html">   10</a></span><span class="keyword">namespace </span>zelda3 {</div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
-<div class="foldopen" id="foldopen00012" data-start="{" data-end="};">
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest.html">   12</a></span><span class="keyword">class </span><a class="code hl_class" href="classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest.html">DungeonRoomTest</a> : <span class="keyword">public</span> ::testing::Test, <span class="keyword">public</span> <a class="code hl_class" href="classyaze_1_1SharedRom.html">SharedRom</a> {</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> <span class="keyword">protected</span>:</div>
-<div class="foldopen" id="foldopen00014" data-start="{" data-end="}">
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest.html#acd028c82a378d8ce9006bb6393832dd5">   14</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest.html#acd028c82a378d8ce9006bb6393832dd5">SetUp</a>()<span class="keyword"> override </span>{</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>    <span class="comment">// Skip tests on Linux for automated github builds</span></div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#if defined(__linux__)</span></div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>    GTEST_SKIP();</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    <span class="keywordflow">if</span> (!<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;LoadFromFile(<span class="stringliteral">&quot;./zelda3.sfc&quot;</span>).ok()) {</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>      GTEST_SKIP_(<span class="stringliteral">&quot;Failed to load test ROM&quot;</span>);</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    }</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  }</div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="keyword">namespace </span>test {</div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
+<div class="foldopen" id="foldopen00010" data-start="{" data-end="};">
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1DungeonRoomTest.html">   10</a></span><span class="keyword">class </span><a class="code hl_class" href="classyaze_1_1test_1_1DungeonRoomTest.html">DungeonRoomTest</a> : <span class="keyword">public</span> ::testing::Test, <span class="keyword">public</span> <a class="code hl_class" href="classyaze_1_1SharedRom.html">SharedRom</a> {</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> <span class="keyword">protected</span>:</div>
+<div class="foldopen" id="foldopen00012" data-start="{" data-end="}">
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1DungeonRoomTest.html#afe610a74d6d4537f10c1cbf266e77928">   12</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1test_1_1DungeonRoomTest.html#afe610a74d6d4537f10c1cbf266e77928">SetUp</a>()<span class="keyword"> override </span>{</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>    <span class="comment">// Skip tests on Linux for automated github builds</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#if defined(__linux__)</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>    GTEST_SKIP();</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>    <span class="keywordflow">if</span> (!<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;LoadFromFile(<span class="stringliteral">&quot;./zelda3.sfc&quot;</span>).ok()) {</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>      GTEST_SKIP_(<span class="stringliteral">&quot;Failed to load test ROM&quot;</span>);</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    }</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  }</div>
 </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest.html#afadc2f279b521d6a379fc355ad8cb883">   24</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest.html#afadc2f279b521d6a379fc355ad8cb883">TearDown</a>()<span class="keyword"> override </span>{}</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>};</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1DungeonRoomTest.html#a5be6445a4f4ea1649862b7257a06d468">   22</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1test_1_1DungeonRoomTest.html#a5be6445a4f4ea1649862b7257a06d468">TearDown</a>()<span class="keyword"> override </span>{}</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>};</div>
 </div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
-<div class="foldopen" id="foldopen00027" data-start="{" data-end="}">
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test_1_1zelda3.html#ab63ec60d8525cd6a7fdd2cc174896344">   27</a></span><a class="code hl_function" href="namespaceyaze_1_1test_1_1zelda3.html#ab63ec60d8525cd6a7fdd2cc174896344">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest.html">DungeonRoomTest</a>, SingleRoomLoadOk) {</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  <a class="code hl_class" href="classyaze_1_1zelda3_1_1Room.html">zelda3::Room</a> test_room(<span class="comment">/*room_id=*/</span>0);</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  test_room.<a class="code hl_function" href="classyaze_1_1zelda3_1_1Room.html#a845f90231e55e712a1dbf6421b1219d5">LoadHeader</a>();</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="comment">// Do some assertions based on the output in ZS</span></div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>  test_room.<a class="code hl_function" href="classyaze_1_1zelda3_1_1Room.html#aaeea127cb11925e69bf0ee5fef07de19">LoadRoomFromROM</a>();</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>}</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
+<div class="foldopen" id="foldopen00025" data-start="{" data-end="}">
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#ae64f85e19d1b9b2de7ad8d9a897523c8">   25</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1DungeonRoomTest.html">DungeonRoomTest</a>, SingleRoomLoadOk) {</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  <a class="code hl_class" href="classyaze_1_1zelda3_1_1Room.html">zelda3::Room</a> test_room(<span class="comment">/*room_id=*/</span>0);</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  test_room.<a class="code hl_function" href="classyaze_1_1zelda3_1_1Room.html#a845f90231e55e712a1dbf6421b1219d5">LoadHeader</a>();</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  <span class="comment">// Do some assertions based on the output in ZS</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  test_room.<a class="code hl_function" href="classyaze_1_1zelda3_1_1Room.html#aaeea127cb11925e69bf0ee5fef07de19">LoadRoomFromROM</a>();</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>}</div>
 </div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>}  <span class="comment">// namespace zelda3</span></div>
-</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>}  <span class="comment">// namespace test</span></div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>}  <span class="comment">// namespace test</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aclassyaze_1_1SharedRom_html"><div class="ttname"><a href="classyaze_1_1SharedRom.html">yaze::SharedRom</a></div><div class="ttdoc">A class to hold a shared pointer to a Rom object.</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00577">rom.h:577</a></div></div>
 <div class="ttc" id="aclassyaze_1_1SharedRom_html_a7e5e36ba40d87c0c81b9056bd00beedc"><div class="ttname"><a href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">yaze::SharedRom::rom</a></div><div class="ttdeci">auto rom()</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00589">rom.h:589</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1zelda3_1_1DungeonRoomTest_html"><div class="ttname"><a href="classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest.html">yaze::test::zelda3::DungeonRoomTest</a></div><div class="ttdef"><b>Definition</b> <a href="#l00012">dungeon_room_test.cc:12</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1zelda3_1_1DungeonRoomTest_html_acd028c82a378d8ce9006bb6393832dd5"><div class="ttname"><a href="classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest.html#acd028c82a378d8ce9006bb6393832dd5">yaze::test::zelda3::DungeonRoomTest::SetUp</a></div><div class="ttdeci">void SetUp() override</div><div class="ttdef"><b>Definition</b> <a href="#l00014">dungeon_room_test.cc:14</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1zelda3_1_1DungeonRoomTest_html_afadc2f279b521d6a379fc355ad8cb883"><div class="ttname"><a href="classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest.html#afadc2f279b521d6a379fc355ad8cb883">yaze::test::zelda3::DungeonRoomTest::TearDown</a></div><div class="ttdeci">void TearDown() override</div><div class="ttdef"><b>Definition</b> <a href="#l00024">dungeon_room_test.cc:24</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1DungeonRoomTest_html"><div class="ttname"><a href="classyaze_1_1test_1_1DungeonRoomTest.html">yaze::test::DungeonRoomTest</a></div><div class="ttdef"><b>Definition</b> <a href="#l00010">dungeon_room_test.cc:10</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1DungeonRoomTest_html_a5be6445a4f4ea1649862b7257a06d468"><div class="ttname"><a href="classyaze_1_1test_1_1DungeonRoomTest.html#a5be6445a4f4ea1649862b7257a06d468">yaze::test::DungeonRoomTest::TearDown</a></div><div class="ttdeci">void TearDown() override</div><div class="ttdef"><b>Definition</b> <a href="#l00022">dungeon_room_test.cc:22</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1DungeonRoomTest_html_afe610a74d6d4537f10c1cbf266e77928"><div class="ttname"><a href="classyaze_1_1test_1_1DungeonRoomTest.html#afe610a74d6d4537f10c1cbf266e77928">yaze::test::DungeonRoomTest::SetUp</a></div><div class="ttdeci">void SetUp() override</div><div class="ttdef"><b>Definition</b> <a href="#l00012">dungeon_room_test.cc:12</a></div></div>
 <div class="ttc" id="aclassyaze_1_1zelda3_1_1Room_html"><div class="ttname"><a href="classyaze_1_1zelda3_1_1Room.html">yaze::zelda3::Room</a></div><div class="ttdef"><b>Definition</b> <a href="room_8h_source.html#l00084">room.h:84</a></div></div>
 <div class="ttc" id="aclassyaze_1_1zelda3_1_1Room_html_a845f90231e55e712a1dbf6421b1219d5"><div class="ttname"><a href="classyaze_1_1zelda3_1_1Room.html#a845f90231e55e712a1dbf6421b1219d5">yaze::zelda3::Room::LoadHeader</a></div><div class="ttdeci">void LoadHeader()</div><div class="ttdef"><b>Definition</b> <a href="room_8cc_source.html#l00022">room.cc:22</a></div></div>
 <div class="ttc" id="aclassyaze_1_1zelda3_1_1Room_html_aaeea127cb11925e69bf0ee5fef07de19"><div class="ttname"><a href="classyaze_1_1zelda3_1_1Room.html#aaeea127cb11925e69bf0ee5fef07de19">yaze::zelda3::Room::LoadRoomFromROM</a></div><div class="ttdeci">void LoadRoomFromROM()</div><div class="ttdef"><b>Definition</b> <a href="room_8cc_source.html#l00126">room.cc:126</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1test_1_1zelda3_html_ab63ec60d8525cd6a7fdd2cc174896344"><div class="ttname"><a href="namespaceyaze_1_1test_1_1zelda3.html#ab63ec60d8525cd6a7fdd2cc174896344">yaze::test::zelda3::TEST_F</a></div><div class="ttdeci">TEST_F(DungeonRoomTest, SingleRoomLoadOk)</div><div class="ttdef"><b>Definition</b> <a href="#l00027">dungeon_room_test.cc:27</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1test_html_a17ff38f6a0d5d4b21e1776fff896ee07"><div class="ttname"><a href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">yaze::test::TEST_F</a></div><div class="ttdeci">TEST_F(CpuTest, AsmParserTokenizerOk)</div><div class="ttdef"><b>Definition</b> <a href="cpu__test_8cc_source.html#l00044">cpu_test.cc:44</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="common_8cc_source.html#l00015">common.cc:15</a></div></div>
 <div class="ttc" id="arom_8h_html"><div class="ttname"><a href="rom_8h.html">rom.h</a></div></div>
 <div class="ttc" id="aroom_8h_html"><div class="ttname"><a href="room_8h.html">room.h</a></div></div>

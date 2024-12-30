@@ -1,0 +1,7 @@
+<map id="yaze::test::OverworldTest" name="yaze::test::OverworldTest">
+<area shape="rect" id="Node000001" title=" " alt="" coords="34,79,200,105"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,98,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="74,40,108,77,104,80,70,44"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="122,5,243,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="163,44,130,80,126,77,159,40"/>
+</map>

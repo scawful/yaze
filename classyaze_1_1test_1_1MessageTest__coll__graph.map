@@ -1,0 +1,24 @@
+<map id="yaze::test::MessageTest" name="yaze::test::MessageTest">
+<area shape="rect" id="Node000001" title=" " alt="" coords="920,56,1081,82"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="636,5,728,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="744,24,897,48,927,53,926,58,896,53,743,29"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="18,107,140,132"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="126,98,176,85,280,70,386,60,594,51,780,54,920,60,920,66,780,59,594,57,386,65,280,75,177,90,128,104"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1MessageEditor.html" title=" " alt="" coords="593,236,770,262"/>
+<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="154,104,242,96,348,94,404,98,461,106,517,119,570,138,604,159,634,185,674,234,670,237,630,189,601,163,568,143,515,124,460,111,404,103,348,99,242,101,155,110"/>
+<area shape="rect" id="Node000015" href="$classyaze_1_1gui_1_1Canvas.html" title="Represents a canvas for drawing and manipulating graphics." alt="" coords="278,157,398,183"/>
+<area shape="poly" id="edge11_Node000015_Node000003" title=" " alt="" coords="155,132,278,156,277,161,154,137"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="718,226,974,80,977,85,721,230"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="276,207,400,232"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="416,223,593,239,592,244,416,229"/>
+<area shape="rect" id="Node000012" href="$structyaze_1_1editor_1_1MessageData.html" title=" " alt="" coords="253,256,424,282"/>
+<area shape="poly" id="edge6_Node000004_Node000012" title=" " alt="" coords="439,265,569,260,593,258,593,263,569,265,439,271"/>
+<area shape="rect" id="Node000013" href="$classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="280,369,397,395"/>
+<area shape="poly" id="edge7_Node000004_Node000013" title=" " alt="" coords="410,396,447,400,488,400,529,395,568,382,605,357,635,323,658,288,672,261,677,263,662,291,639,326,608,360,570,387,530,400,488,406,447,405,409,401"/>
+<area shape="rect" id="Node000014" href="$classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="5,325,153,351"/>
+<area shape="poly" id="edge9_Node000004_Node000014" title=" " alt="" coords="168,332,291,323,427,307,538,284,632,260,634,265,539,289,427,312,291,328,168,337"/>
+<area shape="poly" id="edge8_Node000013_Node000014" title=" " alt="" coords="168,351,279,370,279,375,168,356"/>
+<area shape="poly" id="edge10_Node000004_Node000015" title=" " alt="" coords="414,180,570,213,640,233,638,238,568,218,413,186"/>
+<area shape="rect" id="Node000016" href="$structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html" title=" " alt="" coords="250,419,427,460"/>
+<area shape="poly" id="edge12_Node000004_Node000016" title=" " alt="" coords="442,449,507,444,538,435,568,422,590,405,609,386,640,340,662,295,674,261,679,263,667,297,645,343,613,389,593,409,570,426,540,440,508,449,443,455"/>
+</map>

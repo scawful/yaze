@@ -29,11 +29,11 @@ var searchData=
   ['executeinstructions_26',['ExecuteInstructions',['../classyaze_1_1emu_1_1Spc700.html#af04b816a9c301cbd6f79ad3c1f66804d',1,'yaze::emu::Spc700']]],
   ['exits_27',['exits',['../classyaze_1_1zelda3_1_1Overworld.html#a330da22ceacac461718bb46435bf02d8',1,'yaze::zelda3::Overworld']]],
   ['expand_28',['Expand',['../classyaze_1_1Rom.html#a784e5cc628d64f3d058b8fdd74c26047',1,'yaze::Rom']]],
-  ['expectcompressok_29',['ExpectCompressOk',['../namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#a7e61b801ab6ab1acffe01cbed90902ed',1,'yaze::test::gfx::anonymous_namespace{compression_test.cc}']]],
-  ['expectcompressv3ok_30',['ExpectCompressV3Ok',['../namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#ab9aca8e4864b366e1f45a11590a5a525',1,'yaze::test::gfx::anonymous_namespace{compression_test.cc}']]],
-  ['expectdecompressbytesok_31',['ExpectDecompressBytesOk',['../namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#a06283a3f6164333bb7526f5eb6715af1',1,'yaze::test::gfx::anonymous_namespace{compression_test.cc}']]],
-  ['expectdecompressok_32',['ExpectDecompressOk',['../namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#ad3649d55dea19b8ed440734fbb79bdba',1,'yaze::test::gfx::anonymous_namespace{compression_test.cc}']]],
-  ['expectnewcompressionpieceok_33',['ExpectNewCompressionPieceOk',['../namespaceyaze_1_1test_1_1gfx_1_1anonymous__namespace_02compression__test_8cc_03.html#ac45cf5dbe79ff7777896b2ca53a7dfd9',1,'yaze::test::gfx::anonymous_namespace{compression_test.cc}']]],
+  ['expectcompressok_29',['ExpectCompressOk',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a8dd3d3b66e0f8c6c3f419f7e0af8da9b',1,'yaze::test::anonymous_namespace{compression_test.cc}']]],
+  ['expectcompressv3ok_30',['ExpectCompressV3Ok',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a58140b62f6d943673ace32dabb62fc3c',1,'yaze::test::anonymous_namespace{compression_test.cc}']]],
+  ['expectdecompressbytesok_31',['ExpectDecompressBytesOk',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#aea2a498a83c2d824402e1632a4c0c14b',1,'yaze::test::anonymous_namespace{compression_test.cc}']]],
+  ['expectdecompressok_32',['ExpectDecompressOk',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a39c906d372ef594237c65bc20d310711',1,'yaze::test::anonymous_namespace{compression_test.cc}']]],
+  ['expectnewcompressionpieceok_33',['ExpectNewCompressionPieceOk',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#abe193c4681aff31e3d2c3b9a07797f51',1,'yaze::test::anonymous_namespace{compression_test.cc}']]],
   ['experimentflags_34',['ExperimentFlags',['../classyaze_1_1core_1_1ExperimentFlags.html#a641c666fe848a8d2e9a9f5e4d1aefd3a',1,'yaze::core::ExperimentFlags']]],
   ['extract_35',['Extract',['../namespaceyaze_1_1gfx.html#a10d06c5c03e3faef4b05f4183024650e',1,'yaze::gfx']]]
 ];

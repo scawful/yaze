@@ -79,10 +79,6 @@ var annotated_dup =
         [ "Tile16Editor", "classyaze_1_1editor_1_1Tile16Editor.html", "classyaze_1_1editor_1_1Tile16Editor" ]
       ] ],
       [ "emu", "namespaceyaze_1_1emu.html", [
-        [ "memory", "namespaceyaze_1_1emu_1_1memory.html", [
-          [ "MockClock", "classyaze_1_1emu_1_1memory_1_1MockClock.html", "classyaze_1_1emu_1_1memory_1_1MockClock" ],
-          [ "MockMemory", "classyaze_1_1emu_1_1memory_1_1MockMemory.html", "classyaze_1_1emu_1_1memory_1_1MockMemory" ]
-        ] ],
         [ "Apu", "classyaze_1_1emu_1_1Apu.html", "classyaze_1_1emu_1_1Apu" ],
         [ "ApuCallbacks", "structyaze_1_1emu_1_1ApuCallbacks.html", "structyaze_1_1emu_1_1ApuCallbacks" ],
         [ "AsmParser", "classyaze_1_1emu_1_1AsmParser.html", "classyaze_1_1emu_1_1AsmParser" ],
@@ -132,6 +128,8 @@ var annotated_dup =
         [ "MemoryImpl", "classyaze_1_1emu_1_1MemoryImpl.html", "classyaze_1_1emu_1_1MemoryImpl" ],
         [ "MnemonicMode", "structyaze_1_1emu_1_1MnemonicMode.html", "structyaze_1_1emu_1_1MnemonicMode" ],
         [ "MnemonicModeHash", "structyaze_1_1emu_1_1MnemonicModeHash.html", "structyaze_1_1emu_1_1MnemonicModeHash" ],
+        [ "MockClock", "classyaze_1_1emu_1_1MockClock.html", "classyaze_1_1emu_1_1MockClock" ],
+        [ "MockMemory", "classyaze_1_1emu_1_1MockMemory.html", "classyaze_1_1emu_1_1MockMemory" ],
         [ "Mosaic", "structyaze_1_1emu_1_1Mosaic.html", "structyaze_1_1emu_1_1Mosaic" ],
         [ "MPYH", "structyaze_1_1emu_1_1MPYH.html", "structyaze_1_1emu_1_1MPYH" ],
         [ "MPYL", "structyaze_1_1emu_1_1MPYL.html", "structyaze_1_1emu_1_1MPYL" ],
@@ -232,24 +230,20 @@ var annotated_dup =
         [ "UnsortedAsset", "structyaze_1_1gui_1_1UnsortedAsset.html", "structyaze_1_1gui_1_1UnsortedAsset" ]
       ] ],
       [ "test", "namespaceyaze_1_1test.html", [
-        [ "emu", "namespaceyaze_1_1test_1_1emu.html", [
-          [ "CpuTest", "classyaze_1_1test_1_1emu_1_1CpuTest.html", "classyaze_1_1test_1_1emu_1_1CpuTest" ],
-          [ "MockAudioRam", "classyaze_1_1test_1_1emu_1_1MockAudioRam.html", "classyaze_1_1test_1_1emu_1_1MockAudioRam" ],
-          [ "MockPpu", "classyaze_1_1test_1_1emu_1_1MockPpu.html", "classyaze_1_1test_1_1emu_1_1MockPpu" ],
-          [ "PpuTest", "classyaze_1_1test_1_1emu_1_1PpuTest.html", "classyaze_1_1test_1_1emu_1_1PpuTest" ],
-          [ "Spc700Test", "classyaze_1_1test_1_1emu_1_1Spc700Test.html", "classyaze_1_1test_1_1emu_1_1Spc700Test" ]
-        ] ],
         [ "integration", "namespaceyaze_1_1test_1_1integration.html", [
           [ "TestEditor", "classyaze_1_1test_1_1integration_1_1TestEditor.html", "classyaze_1_1test_1_1integration_1_1TestEditor" ]
         ] ],
-        [ "zelda3", "namespaceyaze_1_1test_1_1zelda3.html", [
-          [ "DungeonRoomTest", "classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest.html", "classyaze_1_1test_1_1zelda3_1_1DungeonRoomTest" ],
-          [ "MessageTest", "classyaze_1_1test_1_1zelda3_1_1MessageTest.html", "classyaze_1_1test_1_1zelda3_1_1MessageTest" ],
-          [ "OverworldTest", "classyaze_1_1test_1_1zelda3_1_1OverworldTest.html", "classyaze_1_1test_1_1zelda3_1_1OverworldTest" ],
-          [ "SpriteBuilderTest", "classyaze_1_1test_1_1zelda3_1_1SpriteBuilderTest.html", "classyaze_1_1test_1_1zelda3_1_1SpriteBuilderTest" ]
-        ] ],
+        [ "CpuTest", "classyaze_1_1test_1_1CpuTest.html", "classyaze_1_1test_1_1CpuTest" ],
+        [ "DungeonRoomTest", "classyaze_1_1test_1_1DungeonRoomTest.html", "classyaze_1_1test_1_1DungeonRoomTest" ],
+        [ "MessageTest", "classyaze_1_1test_1_1MessageTest.html", "classyaze_1_1test_1_1MessageTest" ],
+        [ "MockAudioRam", "classyaze_1_1test_1_1MockAudioRam.html", "classyaze_1_1test_1_1MockAudioRam" ],
+        [ "MockPpu", "classyaze_1_1test_1_1MockPpu.html", "classyaze_1_1test_1_1MockPpu" ],
         [ "MockRom", "classyaze_1_1test_1_1MockRom.html", "classyaze_1_1test_1_1MockRom" ],
-        [ "RomTest", "classyaze_1_1test_1_1RomTest.html", "classyaze_1_1test_1_1RomTest" ]
+        [ "OverworldTest", "classyaze_1_1test_1_1OverworldTest.html", "classyaze_1_1test_1_1OverworldTest" ],
+        [ "PpuTest", "classyaze_1_1test_1_1PpuTest.html", "classyaze_1_1test_1_1PpuTest" ],
+        [ "RomTest", "classyaze_1_1test_1_1RomTest.html", "classyaze_1_1test_1_1RomTest" ],
+        [ "Spc700Test", "classyaze_1_1test_1_1Spc700Test.html", "classyaze_1_1test_1_1Spc700Test" ],
+        [ "SpriteBuilderTest", "classyaze_1_1test_1_1SpriteBuilderTest.html", "classyaze_1_1test_1_1SpriteBuilderTest" ]
       ] ],
       [ "zelda3", "namespaceyaze_1_1zelda3.html", [
         [ "music", "namespaceyaze_1_1zelda3_1_1music.html", [
