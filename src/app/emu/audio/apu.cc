@@ -3,18 +3,14 @@
 #include <SDL.h>
 
 #include <cstdint>
-#include <functional>
-#include <iostream>
 #include <vector>
 
 #include "app/emu/audio/dsp.h"
 #include "app/emu/audio/spc700.h"
-#include "app/emu/cpu/clock.h"
 #include "app/emu/memory/memory.h"
 
 namespace yaze {
 namespace emu {
-namespace audio {
 
 static const double apuCyclesPerMaster = (32040 * 32) / (1364 * 262 * 60.0);
 static const double apuCyclesPerMasterPal = (32040 * 32) / (1364 * 312 * 50.0);
@@ -200,7 +196,5 @@ void Apu::SpcWrite(uint16_t adr, uint8_t val) {
 
 void Apu::SpcIdle(bool waiting) { Cycle(); }
 
-}  // namespace audio
 }  // namespace emu
-
 }  // namespace yaze

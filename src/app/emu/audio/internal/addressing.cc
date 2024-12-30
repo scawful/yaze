@@ -2,7 +2,6 @@
 
 namespace yaze {
 namespace emu {
-namespace audio {
 
 // adressing modes
 
@@ -145,7 +144,5 @@ uint16_t Spc700::addr_plus_i_indexed() {
   return read(addr) | (read(addr + 1) << 8);
 }
 
-}  // namespace audio
 }  // namespace emu
-
 }  // namespace yaze

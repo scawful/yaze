@@ -10,7 +10,6 @@
 
 namespace yaze {
 namespace emu {
-namespace audio {
 
 typedef struct DspChannel {
   // pitch
@@ -154,9 +153,7 @@ class Dsp {
   uint32_t lastFrameBoundary;
 };
 
-}  // namespace audio
 }  // namespace emu
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_EMU_AUDIO_S_DSP_H
