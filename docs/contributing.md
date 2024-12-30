@@ -20,7 +20,7 @@ Assembly code should follow the [65816 Style Guide](docs/asm-style-guide.md).
 
 ## Testing Facilities
 
-The project includes the `yaze_test` target which defines unit tests and an integration test window. The unit tests make use of GoogleTest and GoogleMock. The integration test window is an ImGui window build out of the yaze::app::core::Controller and yaze::test::integration::TestEditor. The integration test window can be accessed by passing the argument `integration` to the target.
+The project includes the `yaze_test` target which defines unit tests and an integration test window. The unit tests make use of GoogleTest and GoogleMock. The integration test window is an ImGui window build out of the yaze::core::Controller and yaze::test::integration::TestEditor. The integration test window can be accessed by passing the argument `integration` to the target.
 
 New modules should define unit tests in the `src/test` directory and integration tests in the `src/test/integration` directory. The `yaze_test` target will automatically include all tests in these directories.
 
@@ -53,37 +53,6 @@ yaze includes an emulator subsystem that allows developers to test their modific
 - Improving the accuracy and performance of the emulator to support more games and features.
 - Implementing new debugging tools, such as memory viewers, breakpoints, or trace logs.
 - Extending the emulator to support additional features, such as save states, cheat codes, or multiplayer modes.
-
-### 4. Editor Management
-
-The `EditorManager` class manages the core functionalities of YAZE, including rendering the UI, handling user input, and managing multiple editors. While this class is central to yaze's operations, it has many responsibilities. You can help by:
-
-- Refactoring `EditorManager` to delegate responsibilities to specialized managers (e.g., `MenuManager`, `TabManager`, `StatusManager`).
-- Optimizing the rendering and update loop to improve performance, especially when handling large textures or complex editors.
-- Implementing new features that streamline the editing process, such as better keyboard shortcuts, command palette integration, or project management tools.
-
-### 5. User Interface and UX
-
-yaze's UI is built with ImGui, offering a flexible and customizable interface. Contributions to the UI might include:
-
-- Designing and implementing new themes or layouts to improve the user experience.
-- Adding new UI components, such as toolbars, context menus, or customizable panels.
-- Improving the accessibility of the editor, ensuring it is usable by a wide range of users, including those with disabilities.
-
-### 6. ROM Manipulation
-
-The `Rom` class is at the heart of yaze's ability to modify and interact with ROM data. Contributions here might involve:
-
-- Optimizing the loading and saving processes to handle larger ROMs or more complex modifications efficiently. 
-- Extensions should be able to change the way the `Rom` class interacts with the ROM data with custom pointers to expanded data structures.
-
-### 7. Testing and Documentation
-
-Quality assurance and documentation are critical to yaze's success. Contributions in this area include:
-
-- Writing unit tests for new and existing features to ensure they work correctly and remain stable over time.
-- Contributing to the documentation, both for end-users and developers, to make yaze easier to use and extend.
-- Creating tutorials or guides that help new developers get started with building extensions or contributing to the project.
 
 ## Building the Project
 
