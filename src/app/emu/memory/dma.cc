@@ -1,11 +1,7 @@
 #include "app/emu/memory/dma.h"
 
-#include <iostream>
-
 namespace yaze {
 namespace emu {
-namespace memory {
-namespace dma {
 
 static const int bAdrOffsets[8][4] = {{0, 0, 0, 0}, {0, 1, 0, 1}, {0, 0, 0, 0},
                                       {0, 0, 1, 1}, {0, 1, 2, 3}, {0, 1, 0, 1},
@@ -13,7 +9,7 @@ static const int bAdrOffsets[8][4] = {{0, 0, 0, 0}, {0, 1, 0, 1}, {0, 0, 0, 0},
 
 static const int transferLength[8] = {1, 2, 2, 4, 4, 4, 2, 4};
 
-void Reset(MemoryImpl* memory) {
+void ResetDma(MemoryImpl* memory) {
   auto channel = memory->dma_channels();
   for (int i = 0; i < 8; i++) {
     channel[i].b_addr = 0xff;
@@ -40,7 +36,7 @@ void Reset(MemoryImpl* memory) {
   memory->set_hdma_run_requested(false);
 }
 
-uint8_t Read(MemoryImpl* memory, uint16_t adr) {
+uint8_t ReadDma(MemoryImpl* memory, uint16_t adr) {
   auto channel = memory->dma_channels();
   uint8_t c = (adr & 0x70) >> 4;
   switch (adr & 0xf) {
@@ -93,7 +89,7 @@ uint8_t Read(MemoryImpl* memory, uint16_t adr) {
   }
 }
 
-void Write(MemoryImpl* memory, uint16_t adr, uint8_t val) {
+void WriteDma(MemoryImpl* memory, uint16_t adr, uint8_t val) {
   auto channel = memory->dma_channels();
   uint8_t c = (adr & 0x70) >> 4;
   switch (adr & 0xf) {
@@ -157,7 +153,7 @@ void Write(MemoryImpl* memory, uint16_t adr, uint8_t val) {
   }
 }
 
-void DoDma(SNES* snes, MemoryImpl* memory, int cpuCycles) {
+void DoDma(Snes* snes, MemoryImpl* memory, int cpuCycles) {
   auto channel = memory->dma_channels();
   snes->cpu().set_int_delay(true);
 
@@ -191,7 +187,7 @@ void DoDma(SNES* snes, MemoryImpl* memory, int cpuCycles) {
   snes->SyncCycles(false, cpuCycles);
 }
 
-void HandleDma(SNES* snes, MemoryImpl* memory, int cpu_cycles) {
+void HandleDma(Snes* snes, MemoryImpl* memory, int cpu_cycles) {
   // if hdma triggered, do it, except if dmastate indicates dma will be done now
   // (it will be done as part of the dma in that case)
   if (memory->hdma_init_requested() && memory->dma_state() != 2)
@@ -209,7 +205,7 @@ void HandleDma(SNES* snes, MemoryImpl* memory, int cpu_cycles) {
   }
 }
 
-void WaitCycle(SNES* snes, MemoryImpl* memory) {
+void WaitCycle(Snes* snes, MemoryImpl* memory) {
   // run hdma if requested, no sync (already sycned due to dma)
   if (memory->hdma_init_requested()) InitHdma(snes, memory, false, 0);
   if (memory->hdma_run_requested()) DoHdma(snes, memory, false, 0);
@@ -217,7 +213,7 @@ void WaitCycle(SNES* snes, MemoryImpl* memory) {
   snes->RunCycles(8);
 }
 
-void InitHdma(SNES* snes, MemoryImpl* memory, bool do_sync, int cpu_cycles) {
+void InitHdma(Snes* snes, MemoryImpl* memory, bool do_sync, int cpu_cycles) {
   auto channel = memory->dma_channels();
   memory->set_hdma_init_requested(false);
   bool hdmaEnabled = false;
@@ -257,7 +253,7 @@ void InitHdma(SNES* snes, MemoryImpl* memory, bool do_sync, int cpu_cycles) {
   if (do_sync) snes->SyncCycles(false, cpu_cycles);
 }
 
-void DoHdma(SNES* snes, MemoryImpl* memory, bool do_sync, int cycles) {
+void DoHdma(Snes* snes, MemoryImpl* memory, bool do_sync, int cycles) {
   auto channel = memory->dma_channels();
   memory->set_hdma_run_requested(false);
   bool hdmaActive = false;
@@ -332,7 +328,7 @@ void DoHdma(SNES* snes, MemoryImpl* memory, bool do_sync, int cycles) {
   if (do_sync) snes->SyncCycles(false, cycles);
 }
 
-void TransferByte(SNES* snes, MemoryImpl* memory, uint16_t aAdr, uint8_t aBank,
+void TransferByte(Snes* snes, MemoryImpl* memory, uint16_t aAdr, uint8_t aBank,
                   uint8_t bAdr, bool fromB) {
   // accessing 0x2180 via b-bus while a-bus accesses ram gives open bus
   bool validB =
@@ -368,8 +364,5 @@ void StartDma(MemoryImpl* memory, uint8_t val, bool hdma) {
   }
 }
 
-}  // namespace dma
-}  // namespace memory
 }  // namespace emu
-
 }  // namespace yaze

@@ -1,13 +1,10 @@
-#ifndef MEM_H
-#define MEM_H
+#ifndef YAZE_APP_EMU_MEMORY_H
+#define YAZE_APP_EMU_MEMORY_H
 
 #include <cstdint>
 #include <functional>
 #include <iostream>
-#include <string>
 #include <vector>
-
-#include "app/emu/memory/dma_channel.h"
 
 // LoROM (Mode 20):
 
@@ -28,7 +25,27 @@
 
 namespace yaze {
 namespace emu {
-namespace memory {
+
+typedef struct DmaChannel {
+  uint8_t b_addr;
+  uint16_t a_addr;
+  uint8_t a_bank;
+  uint16_t size;       // also indirect hdma adr
+  uint8_t ind_bank;    // hdma
+  uint16_t table_addr; // hdma
+  uint8_t rep_count;   // hdma
+  uint8_t unusedByte;
+  bool dma_active;
+  bool hdma_active;
+  uint8_t mode;
+  bool fixed;
+  bool decrement;
+  bool indirect; // hdma
+  bool from_b;
+  bool unusedBit;
+  bool do_transfer; // hdma
+  bool terminated;  // hdma
+} DmaChannel;
 
 typedef struct CpuCallbacks {
   std::function<uint8_t(uint32_t)> read_byte;
@@ -45,7 +62,7 @@ constexpr uint32_t kRAMSize = 0x20000;
  * @brief Memory interface
  */
 class Memory {
- public:
+public:
   virtual ~Memory() = default;
   virtual uint8_t ReadByte(uint32_t address) const = 0;
   virtual uint16_t ReadWord(uint32_t address) const = 0;
@@ -99,25 +116,25 @@ class Memory {
  *
  */
 class MemoryImpl : public Memory {
- public:
-  void Initialize(const std::vector<uint8_t>& romData, bool verbose = false);
+public:
+  void Initialize(const std::vector<uint8_t> &romData, bool verbose = false);
 
   uint16_t GetHeaderOffset() {
     uint16_t offset;
     switch (memory_[(0x00 << 16) + 0xFFD5] & 0x07) {
-      case 0:  // LoROM
-        offset = 0x7FC0;
-        break;
-      case 1:  // HiROM
-        offset = 0xFFC0;
-        break;
-      case 5:  // ExHiROM
-        offset = 0x40;
-        break;
-      default:
-        throw std::invalid_argument(
-            "Unable to locate supported ROM mapping mode in the provided ROM "
-            "file. Please try another ROM file.");
+    case 0: // LoROM
+      offset = 0x7FC0;
+      break;
+    case 1: // HiROM
+      offset = 0xFFC0;
+      break;
+    case 5: // ExHiROM
+      offset = 0x40;
+      break;
+    default:
+      throw std::invalid_argument(
+          "Unable to locate supported ROM mapping mode in the provided ROM "
+          "file. Please try another ROM file.");
     }
 
     return offset;
@@ -220,7 +237,7 @@ class MemoryImpl : public Memory {
 
   // Stack Pointer access.
   uint16_t SP() const override { return SP_; }
-  auto mutable_sp() -> uint16_t& { return SP_; }
+  auto mutable_sp() -> uint16_t & { return SP_; }
   void SetSP(uint16_t value) override { SP_ = value; }
   void ClearMemory() override { std::fill(memory_.begin(), memory_.end(), 0); }
 
@@ -260,15 +277,15 @@ class MemoryImpl : public Memory {
   auto v_pos() const -> uint16_t override { return v_pos_; }
   auto pal_timing() const -> bool override { return pal_timing_; }
 
-  auto dma_state() -> uint8_t& { return dma_state_; }
+  auto dma_state() -> uint8_t & { return dma_state_; }
   void set_dma_state(uint8_t value) { dma_state_ = value; }
-  auto dma_channels() -> DmaChannel* { return channel; }
+  auto dma_channels() -> DmaChannel * { return channel; }
 
   // Define memory regions
   std::vector<uint8_t> rom_;
   std::vector<uint8_t> ram_;
 
- private:
+private:
   uint32_t GetMappedAddress(uint32_t address) const;
 
   bool verbose_ = false;
@@ -306,9 +323,7 @@ class MemoryImpl : public Memory {
   std::vector<uint8_t> memory_;
 };
 
-}  // namespace memory
-}  // namespace emu
+} // namespace emu
+} // namespace yaze
 
-}  // namespace yaze
-
-#endif  // MEM_H
+#endif // YAZE_APP_EMU_MEMORY_H
