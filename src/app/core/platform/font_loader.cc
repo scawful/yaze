@@ -62,7 +62,8 @@ absl::Status LoadPackageFonts() {
                                     "Contents/Resources/font/", font_path);
 #endif
 #else
-    actual_font_path = std::filesystem::absolute(font_path).string();
+	actual_font_path = absl::StrCat("assets/font/", font_path);
+    actual_font_path = std::filesystem::absolute(actual_font_path).string();
 #endif
 
     if (!io.Fonts->AddFontFromFileTTF(actual_font_path.data(), font_size)) {
@@ -104,8 +105,9 @@ absl::Status LoadPackageFonts() {
                      japanese_font_path);
 #endif
 #else
+	actual_japanese_font_path = absl::StrCat("assets/font/", japanese_font_path);
     actual_japanese_font_path =
-        std::filesystem::absolute(japanese_font_path).string();
+        std::filesystem::absolute(actual_japanese_font_path).string();
 #endif
     io.Fonts->AddFontFromFileTTF(actual_japanese_font_path.data(), 18.0f,
                                  &japanese_font_config,
