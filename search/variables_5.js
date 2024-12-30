@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['fast_5fmem_5f_0',['fast_mem_',['../classyaze_1_1emu_1_1SNES.html#a8719beb93467999e5325cb892a7d7438',1,'yaze::emu::SNES']]],
+  ['fast_5fmem_5f_0',['fast_mem_',['../classyaze_1_1emu_1_1Snes.html#a50d446c5bd1c6e37dca9f6d6573729fa',1,'yaze::emu::Snes']]],
   ['feedbackvolume_1',['feedbackVolume',['../classyaze_1_1emu_1_1Dsp.html#a2eff19774c6cdc0c4836076428942897',1,'yaze::emu::Dsp']]],
   ['fil1_2',['fil1',['../namespaceyaze_1_1zelda3_1_1music.html#a14cb98e5f9eacb05f5e56c05cab7ba8c',1,'yaze::zelda3::music']]],
   ['fil2_3',['fil2',['../namespaceyaze_1_1zelda3_1_1music.html#a763e28f8ac2058f8fca36a359e5751ee',1,'yaze::zelda3::music']]],
@@ -55,7 +55,7 @@ var searchData=
   ['frame_5fspeed_52',['frame_speed',['../structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html#a805eba5f9dcb459d17ff4b1b9ee4b17d',1,'yaze::editor::zsprite::AnimationGroup']]],
   ['frame_5fstart_53',['frame_start',['../structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html#a890ae576b46e098309075888052f3727',1,'yaze::editor::zsprite::AnimationGroup']]],
   ['frames_54',['Frames',['../structyaze_1_1editor_1_1zsprite_1_1SubEditor.html#a21b0692979d4e6e5df7c833c57962ec6',1,'yaze::editor::zsprite::SubEditor']]],
-  ['frames_5f_55',['frames_',['../classyaze_1_1emu_1_1SNES.html#a9bf4a2804b1a538fac07ff86f48d8645',1,'yaze::emu::SNES']]],
+  ['frames_5f_55',['frames_',['../classyaze_1_1emu_1_1Snes.html#a03bedcd31638400a5f1f0be8131b1ecb',1,'yaze::emu::Snes']]],
   ['freq_56',['freq',['../structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#a8429da2f7cea8517256de196dcccee63',1,'yaze::zelda3::music::ZeldaSfxInstrument']]],
   ['frequency_57',['frequency',['../classyaze_1_1emu_1_1ClockImpl.html#aa0b4b3589c8cb35d5b8f3622b1516313',1,'yaze::emu::ClockImpl']]],
   ['from_5fb_58',['from_b',['../structyaze_1_1emu_1_1DmaChannel.html#a512d78862c904374842ccf71f53e6589',1,'yaze::emu::DmaChannel']]],

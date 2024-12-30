@@ -116,7 +116,7 @@ $(function(){initNavTree('classyaze_1_1emu_1_1MemoryImpl.html',''); initResizabl
 </div><!--header-->
 <div class="contents">
 
-<p>Implementation of the <a class="el" href="classyaze_1_1emu_1_1Memory.html" title="Memory interface.">Memory</a> interface for emulating memory in a <a class="el" href="classyaze_1_1emu_1_1SNES.html">SNES</a> system.  
+<p>Implementation of the <a class="el" href="classyaze_1_1emu_1_1Memory.html" title="Memory interface.">Memory</a> interface for emulating memory in a SNES system.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="memory_8h_source.html">memory.h</a>&gt;</code></p>
@@ -291,7 +291,7 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a989713ec62b7014b00da0cb4fc5149b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Implementation of the <a class="el" href="classyaze_1_1emu_1_1Memory.html" title="Memory interface.">Memory</a> interface for emulating memory in a <a class="el" href="classyaze_1_1emu_1_1SNES.html">SNES</a> system. </p>
+<div class="textblock"><p>Implementation of the <a class="el" href="classyaze_1_1emu_1_1Memory.html" title="Memory interface.">Memory</a> interface for emulating memory in a SNES system. </p>
 
 <p class="definition">Definition at line <a class="el" href="memory_8h_source.html#l00118">118</a> of file <a class="el" href="memory_8h_source.html">memory.h</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
@@ -317,6 +317,8 @@ Private Attributes</h2></td></tr>
 <p class="definition">Definition at line <a class="el" href="memory_8cc_source.html#l00009">9</a> of file <a class="el" href="memory_8cc_source.html">memory.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="memory_8h_source.html#l00323">memory_</a>, <a class="el" href="memory_8h_source.html#l00286">ram_</a>, <a class="el" href="memory_8h_source.html#l00285">rom_</a>, <a class="el" href="memory_8h_source.html#l00300">rom_size_</a>, <a class="el" href="memory_8h_source.html#l00301">sram_size_</a>, <a class="el" href="memory_8h_source.html#l00317">type_</a>, and <a class="el" href="memory_8h_source.html#l00291">verbose_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="snes_8cc_source.html#l00028">yaze::emu::Snes::Init()</a>, and <a class="el" href="object__renderer_8cc_source.html#l00007">yaze::zelda3::DungeonObjectRenderer::LoadObject()</a>.</p>
 
 </div>
 </div>
@@ -369,6 +371,8 @@ Private Attributes</h2></td></tr>
 <p class="definition">Definition at line <a class="el" href="memory_8cc_source.html#l00044">44</a> of file <a class="el" href="memory_8cc_source.html">memory.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="memory_8cc_source.html#l00109">cart_readExHirom()</a>, <a class="el" href="memory_8cc_source.html#l00096">cart_readHirom()</a>, <a class="el" href="memory_8cc_source.html#l00074">cart_readLorom()</a>, <a class="el" href="memory_8h_source.html#l00311">open_bus_</a>, and <a class="el" href="memory_8h_source.html#l00317">type_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="snes_8cc_source.html#l00314">yaze::emu::Snes::Rread()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -413,6 +417,8 @@ Here is the call graph for this function:</div>
 <p class="definition">Definition at line <a class="el" href="memory_8cc_source.html#l00058">58</a> of file <a class="el" href="memory_8cc_source.html">memory.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="memory_8cc_source.html#l00124">cart_writeHirom()</a>, <a class="el" href="memory_8cc_source.html#l00088">cart_writeLorom()</a>, and <a class="el" href="memory_8h_source.html#l00317">type_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="snes_8cc_source.html#l00468">yaze::emu::Snes::Write()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -628,6 +634,8 @@ Here is the call graph for this function:</div>
 <p>Implements <a class="el" href="classyaze_1_1emu_1_1Memory.html#ade9b2caad926a43a74ceee46afd38244">yaze::emu::Memory</a>.</p>
 
 <p class="definition">Definition at line <a class="el" href="memory_8h_source.html#l00158">158</a> of file <a class="el" href="memory_8h_source.html">memory.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="object__renderer_8cc_source.html#l00083">yaze::zelda3::DungeonObjectRenderer::UpdateObjectBitmap()</a>.</p>
 
 </div>
 </div>
@@ -1321,6 +1329,8 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="memory_8h_source.html#l00257">257</a> of file <a class="el" href="memory_8h_source.html">memory.h</a>.</p>
 
+<p class="reference">Referenced by <a class="el" href="snes_8cc_source.html#l00344">yaze::emu::Snes::Read()</a>, <a class="el" href="snes_8cc_source.html#l00040">yaze::emu::Snes::Reset()</a>, and <a class="el" href="snes_8cc_source.html#l00468">yaze::emu::Snes::Write()</a>.</p>
+
 </div>
 </div>
 <a id="a0e1947d5642b0a24b83ec980238a6bc1" name="a0e1947d5642b0a24b83ec980238a6bc1"></a>
@@ -1350,7 +1360,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="memory_8h_source.html#l00258">258</a> of file <a class="el" href="memory_8h_source.html">memory.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="dma_8cc_source.html#l00039">yaze::emu::ReadDma()</a>, and <a class="el" href="dma_8cc_source.html#l00331">yaze::emu::TransferByte()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="snes_8cc_source.html#l00245">yaze::emu::Snes::ReadBBus()</a>, <a class="el" href="dma_8cc_source.html#l00039">yaze::emu::ReadDma()</a>, <a class="el" href="snes_8cc_source.html#l00261">yaze::emu::Snes::ReadReg()</a>, <a class="el" href="snes_8cc_source.html#l00314">yaze::emu::Snes::Rread()</a>, and <a class="el" href="dma_8cc_source.html#l00331">yaze::emu::TransferByte()</a>.</p>
 
 </div>
 </div>
@@ -1443,6 +1453,8 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="memory_8h_source.html#l00265">265</a> of file <a class="el" href="memory_8h_source.html">memory.h</a>.</p>
 
+<p class="reference">Referenced by <a class="el" href="snes_8cc_source.html#l00109">yaze::emu::Snes::RunCycle()</a>.</p>
+
 </div>
 </div>
 <a id="ab4a17b6d58d68c027721e8c0f22c8340" name="ab4a17b6d58d68c027721e8c0f22c8340"></a>
@@ -1471,6 +1483,8 @@ Here is the call graph for this function:</div>
 <p>Implements <a class="el" href="classyaze_1_1emu_1_1Memory.html#ab016dce84177c883f6465fad2949bc03">yaze::emu::Memory</a>.</p>
 
 <p class="definition">Definition at line <a class="el" href="memory_8h_source.html#l00266">266</a> of file <a class="el" href="memory_8h_source.html">memory.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="snes_8cc_source.html#l00109">yaze::emu::Snes::RunCycle()</a>.</p>
 
 </div>
 </div>
@@ -1592,6 +1606,8 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="memory_8h_source.html#l00274">274</a> of file <a class="el" href="memory_8h_source.html">memory.h</a>.</p>
 
+<p class="reference">Referenced by <a class="el" href="snes_8cc_source.html#l00040">yaze::emu::Snes::Reset()</a>, and <a class="el" href="snes_8cc_source.html#l00109">yaze::emu::Snes::RunCycle()</a>.</p>
+
 </div>
 </div>
 <a id="a45329d4205e2f7cac9656d072613848f" name="a45329d4205e2f7cac9656d072613848f"></a>
@@ -1620,6 +1636,8 @@ Here is the call graph for this function:</div>
 <p>Implements <a class="el" href="classyaze_1_1emu_1_1Memory.html#a4de051dd6298e74353cab01771006340">yaze::emu::Memory</a>.</p>
 
 <p class="definition">Definition at line <a class="el" href="memory_8h_source.html#l00275">275</a> of file <a class="el" href="memory_8h_source.html">memory.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="snes_8cc_source.html#l00040">yaze::emu::Snes::Reset()</a>, and <a class="el" href="snes_8cc_source.html#l00109">yaze::emu::Snes::RunCycle()</a>.</p>
 
 </div>
 </div>
@@ -1650,6 +1668,8 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="memory_8h_source.html#l00276">276</a> of file <a class="el" href="memory_8h_source.html">memory.h</a>.</p>
 
+<p class="reference">Referenced by <a class="el" href="snes_8cc_source.html#l00261">yaze::emu::Snes::ReadReg()</a>, <a class="el" href="snes_8cc_source.html#l00109">yaze::emu::Snes::RunCycle()</a>, and <a class="el" href="snes_8cc_source.html#l00224">yaze::emu::Snes::RunCycles()</a>.</p>
+
 </div>
 </div>
 <a id="a45ffcfde7453f96a93e8e5ae4414cba9" name="a45ffcfde7453f96a93e8e5ae4414cba9"></a>
@@ -1678,6 +1698,8 @@ Here is the call graph for this function:</div>
 <p>Implements <a class="el" href="classyaze_1_1emu_1_1Memory.html#a8822e658b05dd7df7edc9c36d2038310">yaze::emu::Memory</a>.</p>
 
 <p class="definition">Definition at line <a class="el" href="memory_8h_source.html#l00277">277</a> of file <a class="el" href="memory_8h_source.html">memory.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="snes_8cc_source.html#l00109">yaze::emu::Snes::RunCycle()</a>.</p>
 
 </div>
 </div>
@@ -1708,7 +1730,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="memory_8h_source.html#l00278">278</a> of file <a class="el" href="memory_8h_source.html">memory.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00061">yaze::emu::Apu::RunCycles()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="snes_8cc_source.html#l00109">yaze::emu::Snes::RunCycle()</a>, <a class="el" href="apu_8cc_source.html#l00061">yaze::emu::Apu::RunCycles()</a>, and <a class="el" href="snes_8cc_source.html#l00537">yaze::emu::Snes::SetSamples()</a>.</p>
 
 </div>
 </div>

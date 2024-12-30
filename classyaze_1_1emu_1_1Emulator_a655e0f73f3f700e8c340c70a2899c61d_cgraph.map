@@ -1,11 +1,11 @@
 <map id="yaze::emu::Emulator::RenderMemoryViewer" name="yaze::emu::Emulator::RenderMemoryViewer">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,72,160,113"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1SNES.html#a843145d67294cb575b42ad61d576fcc3" title=" " alt="" coords="221,5,368,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,70,207,40,226,33,228,38,209,45,132,75"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1SNES.html#a77202ca7e206121682fca828f173fd92" title=" " alt="" coords="208,55,381,80"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1Snes.html#a5f4b8b830b46e8b590319bd24dec91fd" title=" " alt="" coords="221,5,362,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,69,207,40,225,33,227,39,209,45,133,74"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1Snes.html#a5f804ce15176736facc90658d926509a" title=" " alt="" coords="208,55,375,80"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="160,81,192,77,192,82,160,86"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1gui.html#a85c0af649d4fdc913fcabb1634667602" title=" " alt="" coords="230,104,358,130"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="160,99,215,105,215,111,160,104"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1emu_1_1SNES.html#a0c27b429908f9c2d69a3636b606a8c8e" title=" " alt="" coords="208,153,380,179"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="134,111,209,140,228,146,226,151,207,145,132,116"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1gui.html#a85c0af649d4fdc913fcabb1634667602" title=" " alt="" coords="227,104,356,130"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="160,99,212,105,211,110,160,104"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1emu_1_1Snes.html#aa51ede9b776c0f14095fff7554d7b9d9" title=" " alt="" coords="208,153,374,179"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="134,111,209,140,227,146,225,151,207,145,132,116"/>
 </map>

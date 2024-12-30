@@ -1,9 +1,0 @@
-<map id="yaze::emu::SNES::CpuIdle" name="yaze::emu::SNES::CpuIdle">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,176,60"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1SNES.html#a79ddcd966a33486998aa872be5231572" title=" " alt="" coords="224,5,412,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,34,208,30,208,35,176,39"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1emu_1_1Cpu.html#a50035ffb781ab92696205c9c04c25af1" title=" " alt="" coords="252,55,384,96"/>
-<area shape="poly" id="edge3_Node000001_Node000008" title=" " alt="" coords="176,55,237,63,237,68,176,61"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1SNES.html#a75f2f039a77d118a971242a97f709803" title=" " alt="" coords="460,5,641,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="412,16,444,16,444,21,412,21"/>
-</map>

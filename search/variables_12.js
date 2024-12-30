@@ -86,7 +86,7 @@ var searchData=
   ['sndinsts_83',['sndinsts',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html#ab10df3eb977949505a6aa463662066c3',1,'yaze::zelda3::music::Tracker']]],
   ['sndlen1_84',['sndlen1',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html#a05b3919cf07737c61990969931fce73d',1,'yaze::zelda3::music::Tracker']]],
   ['sndlen2_85',['sndlen2',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html#ad873bf3329d36099ad3f69c06c4cf82a',1,'yaze::zelda3::music::Tracker']]],
-  ['snes_5f_86',['snes_',['../classyaze_1_1emu_1_1Emulator.html#abc2df8989549013542f7b66386af57af',1,'yaze::emu::Emulator::snes_'],['../classyaze_1_1gfx_1_1SnesColor.html#a0abbae9b26b066a00a98afb18175623b',1,'yaze::gfx::SnesColor::snes_']]],
+  ['snes_5f_86',['snes_',['../classyaze_1_1emu_1_1Emulator.html#a123fbe1bb0092c69bbd461cbd6314565',1,'yaze::emu::Emulator::snes_'],['../classyaze_1_1gfx_1_1SnesColor.html#a0abbae9b26b066a00a98afb18175623b',1,'yaze::gfx::SnesColor::snes_']]],
   ['snes_5fblue_5fmask_87',['SNES_BLUE_MASK',['../namespaceyaze_1_1gfx.html#aa7968f1891adda4d3f224100ed006a76',1,'yaze::gfx']]],
   ['snes_5fblue_5fshift_88',['SNES_BLUE_SHIFT',['../namespaceyaze_1_1gfx.html#a6f318f42cd06cb5344977f66ecec8491',1,'yaze::gfx']]],
   ['snes_5fgreen_5fmask_89',['SNES_GREEN_MASK',['../namespaceyaze_1_1gfx.html#a16bca2c689cfce1349f2d1f0790dbe96',1,'yaze::gfx']]],
@@ -192,5 +192,5 @@ var searchData=
   ['sword_5fx_5f_189',['sword_x_',['../classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#af8c60ea11ae03ec0cfeceb14fd40dc2c',1,'yaze::zelda3::screen::TitleScreen']]],
   ['swords_190',['swords',['../structyaze_1_1gfx_1_1PaletteGroupMap.html#a635ac3738f0d152113bd1cd994314b7a',1,'yaze::gfx::PaletteGroupMap']]],
   ['swordselected_191',['swordSelected',['../classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#ae130d53a27114ae9b9ddd047326527fc',1,'yaze::zelda3::screen::TitleScreen']]],
-  ['sync_5fcycle_5f_192',['sync_cycle_',['../classyaze_1_1emu_1_1SNES.html#a3bd90baddf49ca2ed8fa896e99a6daaa',1,'yaze::emu::SNES']]]
+  ['sync_5fcycle_5f_192',['sync_cycle_',['../classyaze_1_1emu_1_1Snes.html#a98eb3874e72896e6bfb619fcbcead59c',1,'yaze::emu::Snes']]]
 ];

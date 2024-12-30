@@ -226,7 +226,7 @@ var hierarchy =
       [ "yaze::zelda3::screen::Inventory", "classyaze_1_1zelda3_1_1screen_1_1Inventory.html", null ]
     ] ],
     [ "yaze::emu::SLHV", "structyaze_1_1emu_1_1SLHV.html", null ],
-    [ "yaze::emu::SNES", "classyaze_1_1emu_1_1SNES.html", null ],
+    [ "yaze::emu::Snes", "classyaze_1_1emu_1_1Snes.html", null ],
     [ "snes_color", "structsnes__color.html", null ],
     [ "snes_palette", "structsnes__palette.html", null ],
     [ "snes_tile16", "structsnes__tile16.html", null ],

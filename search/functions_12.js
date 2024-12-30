@@ -89,7 +89,7 @@ var searchData=
   ['setbreakflag_86',['SetBreakFlag',['../classyaze_1_1emu_1_1Cpu.html#ae4c95d0a931fe4ec351805a5f628f80d',1,'yaze::emu::Cpu']]],
   ['setbreakpoint_87',['SetBreakpoint',['../classyaze_1_1emu_1_1Cpu.html#abf08c511e299714b01dc6fe4708079e9',1,'yaze::emu::Cpu']]],
   ['setbuffer_88',['SetBuffer',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a3d9743e4b80f69fe96112adeebb04a31',1,'yaze::gfx::lc_lz2::SetBuffer(const uchar *data, int src_pos, int comp_accumulator)'],['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a31d4914cc6f5a2d6cc4c5a06baf7336e',1,'yaze::gfx::lc_lz2::SetBuffer(const std::vector&lt; uint8_t &gt; &amp;data, int src_pos, int comp_accumulator)']]],
-  ['setbuttonstate_89',['SetButtonState',['../classyaze_1_1emu_1_1SNES.html#ad6e6239439c3e3585e9ed52c96eaac1e',1,'yaze::emu::SNES']]],
+  ['setbuttonstate_89',['SetButtonState',['../classyaze_1_1emu_1_1Snes.html#a36610fdc93a127c79dc5ffc5e772dee4',1,'yaze::emu::Snes']]],
   ['setc_90',['SETC',['../classyaze_1_1emu_1_1Spc700.html#a09d3ab727abcd3f7de69c7e11d099b98',1,'yaze::emu::Spc700']]],
   ['setcanvasgridsize_91',['SetCanvasGridSize',['../classyaze_1_1gui_1_1Canvas.html#a8a674f0b4bc418c55a1b9baee459ed70',1,'yaze::gui::Canvas']]],
   ['setcanvassize_92',['SetCanvasSize',['../classyaze_1_1gui_1_1Canvas.html#a821b944bf8476a4f0f69b70e1174d69c',1,'yaze::gui::Canvas']]],
@@ -113,9 +113,9 @@ var searchData=
   ['setnextaction_110',['SetNextAction',['../classyaze_1_1zelda3_1_1SpriteAction.html#af57bf0474b9da4d5bbdbb1461e2d2090',1,'yaze::zelda3::SpriteAction']]],
   ['setoverflowflag_111',['SetOverflowFlag',['../classyaze_1_1emu_1_1Cpu.html#aad7df7574682156aea5cd8da5c2896a9',1,'yaze::emu::Cpu']]],
   ['setp_112',['SETP',['../classyaze_1_1emu_1_1Spc700.html#a644820116d504af3756431c5368796fb',1,'yaze::emu::Spc700']]],
-  ['setpixels_113',['SetPixels',['../classyaze_1_1emu_1_1SNES.html#aa49c006cac0a4bb7bd84b20dab1309b8',1,'yaze::emu::SNES']]],
+  ['setpixels_113',['SetPixels',['../classyaze_1_1emu_1_1Snes.html#ae9938c9f8448dd65dba24d06fe2b5d57',1,'yaze::emu::Snes']]],
   ['setproperty_114',['SetProperty',['../classyaze_1_1zelda3_1_1SpriteBuilder.html#a79a8cfe38f4f463e05fb0e9e9da3e293',1,'yaze::zelda3::SpriteBuilder::SetProperty(const std::string &amp;propertyName, const std::string &amp;value)'],['../classyaze_1_1zelda3_1_1SpriteBuilder.html#a3f92ed94753a37fb4429a07078b196ba',1,'yaze::zelda3::SpriteBuilder::SetProperty(const std::string &amp;propertyName, int value)'],['../classyaze_1_1zelda3_1_1SpriteBuilder.html#a314945ccc19ba8ce21468f0ccc531de1',1,'yaze::zelda3::SpriteBuilder::SetProperty(const std::string &amp;propertyName, bool value)']]],
-  ['setsamples_115',['SetSamples',['../classyaze_1_1emu_1_1SNES.html#a24be67f69158a8953c65bc9c5a8769ed',1,'yaze::emu::SNES']]],
+  ['setsamples_115',['SetSamples',['../classyaze_1_1emu_1_1Snes.html#a121b2492106d84f9fffcd8b60308328c',1,'yaze::emu::Snes']]],
   ['setselectedblockset_116',['SetSelectedBlockset',['../classyaze_1_1editor_1_1GfxGroupEditor.html#abf1aec1c434d69ff06c6771a59c1c031',1,'yaze::editor::GfxGroupEditor']]],
   ['setselectedroomset_117',['SetSelectedRoomset',['../classyaze_1_1editor_1_1GfxGroupEditor.html#a289e66bd1838103eaa2a8316f0dd0f71',1,'yaze::editor::GfxGroupEditor']]],
   ['setselectedspriteset_118',['SetSelectedSpriteset',['../classyaze_1_1editor_1_1GfxGroupEditor.html#a19742215b61d7598ef7ac95494107001',1,'yaze::editor::GfxGroupEditor']]],
@@ -140,8 +140,8 @@ var searchData=
   ['shutdownextensions_137',['ShutdownExtensions',['../classyaze_1_1editor_1_1ExtensionManager.html#aceda1323591da652d454a06c22c9303d',1,'yaze::editor::ExtensionManager']]],
   ['size_138',['size',['../classyaze_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html#a96db62ef03edd7b3a9bb6f6f00d28621',1,'yaze::editor::palette_internal::PaletteEditorHistory::size()'],['../classyaze_1_1emu_1_1MemoryImpl.html#a33074c377e67e45f883cf8c436284bfc',1,'yaze::emu::MemoryImpl::size()'],['../classyaze_1_1gfx_1_1Bitmap.html#a2bb925db328fd0eda93b660fad899446',1,'yaze::gfx::Bitmap::size()'],['../classyaze_1_1gfx_1_1SnesPalette.html#a504a42d10f3d95135b77bb13ef3ec923',1,'yaze::gfx::SnesPalette::size()'],['../structyaze_1_1gfx_1_1PaletteGroup.html#a39c315f86a3b6e9d256ff42ea500ad7b',1,'yaze::gfx::PaletteGroup::size()'],['../classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777',1,'yaze::Rom::size()']]],
   ['sleep_139',['SLEEP',['../classyaze_1_1emu_1_1Spc700.html#aef842ee5bef5a8eaa821fd515b178c52',1,'yaze::emu::Spc700']]],
-  ['snes_140',['SNES',['../classyaze_1_1emu_1_1SNES.html#ae910d593d1679367eda4fdd620670f16',1,'yaze::emu::SNES']]],
-  ['snes_141',['snes',['../classyaze_1_1emu_1_1Emulator.html#af74a20a60e9377150c2aa935bafd689c',1,'yaze::emu::Emulator::snes()'],['../classyaze_1_1gfx_1_1SnesColor.html#aef9fc51dbd235362f6c0b5200e976303',1,'yaze::gfx::SnesColor::snes() const']]],
+  ['snes_140',['Snes',['../classyaze_1_1emu_1_1Snes.html#ad1be2bb75e641f1c9992932c8b19f49b',1,'yaze::emu::Snes']]],
+  ['snes_141',['snes',['../classyaze_1_1emu_1_1Emulator.html#ae7676db1e19dc323e578195bc5699297',1,'yaze::emu::Emulator::snes()'],['../classyaze_1_1gfx_1_1SnesColor.html#aef9fc51dbd235362f6c0b5200e976303',1,'yaze::gfx::SnesColor::snes() const']]],
   ['snescolor_142',['SnesColor',['../classyaze_1_1gfx_1_1SnesColor.html#af8d473c16c60972e7ba7651e2789b931',1,'yaze::gfx::SnesColor::SnesColor()'],['../classyaze_1_1gfx_1_1SnesColor.html#a3a7d7a2f40b1f50be0b0c38d8974beb9',1,'yaze::gfx::SnesColor::SnesColor(const ImVec4 val)'],['../classyaze_1_1gfx_1_1SnesColor.html#ab398761d01d4f2a930023b8159f86009',1,'yaze::gfx::SnesColor::SnesColor(const uint16_t val)'],['../classyaze_1_1gfx_1_1SnesColor.html#a996766ae028cc0f05ad7d6663d952195',1,'yaze::gfx::SnesColor::SnesColor(const snes_color val)'],['../classyaze_1_1gfx_1_1SnesColor.html#aa3c67dff6ac0a9a3fd79d85636b3d694',1,'yaze::gfx::SnesColor::SnesColor(uint8_t r, uint8_t g, uint8_t b)']]],
   ['snescolorbutton_143',['SnesColorButton',['../namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb',1,'yaze::gui']]],
   ['snescoloredit4_144',['SnesColorEdit4',['../namespaceyaze_1_1gui.html#aa32511a1a3eadf62366b193da8b5f3da',1,'yaze::gui']]],
@@ -193,5 +193,5 @@ var searchData=
   ['subtype3_190',['Subtype3',['../classyaze_1_1zelda3_1_1Subtype3.html#a511e3a730a216870af65e6266d84b033',1,'yaze::zelda3::Subtype3']]],
   ['subw_191',['SUBW',['../classyaze_1_1emu_1_1Spc700.html#a03850ed428978f1b25b3500a822fa27b',1,'yaze::emu::Spc700']]],
   ['surface_192',['surface',['../classyaze_1_1gfx_1_1Bitmap.html#aba6afeb2e94ce15eb378c7258596a758',1,'yaze::gfx::Bitmap']]],
-  ['synccycles_193',['SyncCycles',['../classyaze_1_1emu_1_1SNES.html#a4bae695ff8904cd17e03c930b8fe0a92',1,'yaze::emu::SNES']]]
+  ['synccycles_193',['SyncCycles',['../classyaze_1_1emu_1_1Snes.html#ac622beb60f2d1547cb40e3a3b9c3ff53',1,'yaze::emu::Snes']]]
 ];

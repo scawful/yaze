@@ -12,9 +12,9 @@ var classyaze_1_1zelda3_1_1DungeonObjectRenderer =
     [ "rom_data_", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a62f4148a7637bba98ddb4824e812ed15", null ],
     [ "vram_", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a362fcebebede6eb1a7ec8cd2e8d87f51", null ],
     [ "clock_", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6972fc79216840fd601135e932b31109", null ],
-    [ "memory_", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a95bf84de59da6e29ed06eb833f55863c", null ],
-    [ "cpu_callbacks_", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#adad9e8e165f0a8a6dccd2eb1a4b510e4", null ],
-    [ "ppu", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#aace94313737afd61bbf532cdd095259d", null ],
+    [ "memory_", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#ad2c7b05d88a7ddb3e96ed28eb2b7ec28", null ],
+    [ "cpu_callbacks_", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a9e7af0a3196be5ad3033fcda084cfcee", null ],
+    [ "ppu", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#af3727759474e4f774be0f383c84a609d", null ],
     [ "cpu", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6f1f09d154ca5bd916ff5e977508735a", null ],
     [ "bitmap_", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a5b75c6f248f58db7c6141d64c22497a1", null ]
 ];

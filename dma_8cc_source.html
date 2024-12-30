@@ -271,12 +271,12 @@ $(function(){initNavTree('dma_8cc_source.html',''); initResizable(true); });
 </div>
 <div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span> </div>
 <div class="foldopen" id="foldopen00156" data-start="{" data-end="}">
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1emu.html#a9386b47070b3c3bfd4c13defdccf60cb">  156</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1emu.html#a9386b47070b3c3bfd4c13defdccf60cb">DoDma</a>(Snes* snes, <a class="code hl_class" href="classyaze_1_1emu_1_1MemoryImpl.html">MemoryImpl</a>* memory, <span class="keywordtype">int</span> cpuCycles) {</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1emu.html#a9386b47070b3c3bfd4c13defdccf60cb">  156</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1emu.html#a9386b47070b3c3bfd4c13defdccf60cb">DoDma</a>(<a class="code hl_class" href="classyaze_1_1emu_1_1Snes.html">Snes</a>* snes, <a class="code hl_class" href="classyaze_1_1emu_1_1MemoryImpl.html">MemoryImpl</a>* memory, <span class="keywordtype">int</span> cpuCycles) {</div>
 <div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>  <span class="keyword">auto</span> channel = memory-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1MemoryImpl.html#a4423903e4da3f0e0f4acef1e3db06de6">dma_channels</a>();</div>
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>  snes-&gt;cpu().set_int_delay(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>  snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a8dd716e4ae561f358d40be65f9cc9847">cpu</a>().set_int_delay(<span class="keyword">true</span>);</div>
 <div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span> </div>
 <div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>  <span class="comment">// align to multiple of 8</span></div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>  snes-&gt;SyncCycles(<span class="keyword">true</span>, 8);</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>  snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#ac622beb60f2d1547cb40e3a3b9c3ff53">SyncCycles</a>(<span class="keyword">true</span>, 8);</div>
 <div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span> </div>
 <div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>  <span class="comment">// full transfer overhead</span></div>
 <div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>  <a class="code hl_function" href="namespaceyaze_1_1emu.html#a89efc0a3726b6b538001ccf65b125181">WaitCycle</a>(snes, memory);</div>
@@ -302,12 +302,12 @@ $(function(){initNavTree('dma_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>  }</div>
 <div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span> </div>
 <div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>  <span class="comment">// re-align to cpu cycles</span></div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>  snes-&gt;SyncCycles(<span class="keyword">false</span>, cpuCycles);</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>  snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#ac622beb60f2d1547cb40e3a3b9c3ff53">SyncCycles</a>(<span class="keyword">false</span>, cpuCycles);</div>
 <div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>}</div>
 </div>
 <div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span> </div>
 <div class="foldopen" id="foldopen00190" data-start="{" data-end="}">
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1emu.html#a7215347ac720fbffdc26780519322eae">  190</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1emu.html#a7215347ac720fbffdc26780519322eae">HandleDma</a>(Snes* snes, <a class="code hl_class" href="classyaze_1_1emu_1_1MemoryImpl.html">MemoryImpl</a>* memory, <span class="keywordtype">int</span> cpu_cycles) {</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1emu.html#a7215347ac720fbffdc26780519322eae">  190</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1emu.html#a7215347ac720fbffdc26780519322eae">HandleDma</a>(<a class="code hl_class" href="classyaze_1_1emu_1_1Snes.html">Snes</a>* snes, <a class="code hl_class" href="classyaze_1_1emu_1_1MemoryImpl.html">MemoryImpl</a>* memory, <span class="keywordtype">int</span> cpu_cycles) {</div>
 <div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>  <span class="comment">// if hdma triggered, do it, except if dmastate indicates dma will be done now</span></div>
 <div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>  <span class="comment">// (it will be done as part of the dma in that case)</span></div>
 <div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>  <span class="keywordflow">if</span> (memory-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1MemoryImpl.html#a6674049499f94f7bf925333169cf500d">hdma_init_requested</a>() &amp;&amp; memory-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1MemoryImpl.html#a1b251a5f824803c3c7d97a696e7adafb">dma_state</a>() != 2)</div>
@@ -327,17 +327,17 @@ $(function(){initNavTree('dma_8cc_source.html',''); initResizable(true); });
 </div>
 <div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span> </div>
 <div class="foldopen" id="foldopen00208" data-start="{" data-end="}">
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1emu.html#a89efc0a3726b6b538001ccf65b125181">  208</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1emu.html#a89efc0a3726b6b538001ccf65b125181">WaitCycle</a>(Snes* snes, <a class="code hl_class" href="classyaze_1_1emu_1_1MemoryImpl.html">MemoryImpl</a>* memory) {</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1emu.html#a89efc0a3726b6b538001ccf65b125181">  208</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1emu.html#a89efc0a3726b6b538001ccf65b125181">WaitCycle</a>(<a class="code hl_class" href="classyaze_1_1emu_1_1Snes.html">Snes</a>* snes, <a class="code hl_class" href="classyaze_1_1emu_1_1MemoryImpl.html">MemoryImpl</a>* memory) {</div>
 <div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>  <span class="comment">// run hdma if requested, no sync (already sycned due to dma)</span></div>
 <div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>  <span class="keywordflow">if</span> (memory-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1MemoryImpl.html#a6674049499f94f7bf925333169cf500d">hdma_init_requested</a>()) <a class="code hl_function" href="namespaceyaze_1_1emu.html#aa2c804845876ebee011545b1f873b01f">InitHdma</a>(snes, memory, <span class="keyword">false</span>, 0);</div>
 <div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>  <span class="keywordflow">if</span> (memory-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1MemoryImpl.html#aee42c803ab884f48aed70728cbad01e5">hdma_run_requested</a>()) <a class="code hl_function" href="namespaceyaze_1_1emu.html#ae78ced4d510e6ab890ac1e877f43f20f">DoHdma</a>(snes, memory, <span class="keyword">false</span>, 0);</div>
 <div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span> </div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>  snes-&gt;RunCycles(8);</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>  snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a20e9a804b60fa527dd6447a5c8d61796">RunCycles</a>(8);</div>
 <div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>}</div>
 </div>
 <div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span> </div>
 <div class="foldopen" id="foldopen00216" data-start="{" data-end="}">
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1emu.html#aa2c804845876ebee011545b1f873b01f">  216</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1emu.html#aa2c804845876ebee011545b1f873b01f">InitHdma</a>(Snes* snes, <a class="code hl_class" href="classyaze_1_1emu_1_1MemoryImpl.html">MemoryImpl</a>* memory, <span class="keywordtype">bool</span> do_sync, <span class="keywordtype">int</span> cpu_cycles) {</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1emu.html#aa2c804845876ebee011545b1f873b01f">  216</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1emu.html#aa2c804845876ebee011545b1f873b01f">InitHdma</a>(<a class="code hl_class" href="classyaze_1_1emu_1_1Snes.html">Snes</a>* snes, <a class="code hl_class" href="classyaze_1_1emu_1_1MemoryImpl.html">MemoryImpl</a>* memory, <span class="keywordtype">bool</span> do_sync, <span class="keywordtype">int</span> cpu_cycles) {</div>
 <div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>  <span class="keyword">auto</span> channel = memory-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1MemoryImpl.html#a4423903e4da3f0e0f4acef1e3db06de6">dma_channels</a>();</div>
 <div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>  memory-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1MemoryImpl.html#ae286a6c904922ce9f44c7996a51e71b3">set_hdma_init_requested</a>(<span class="keyword">false</span>);</div>
 <div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>  <span class="keywordtype">bool</span> hdmaEnabled = <span class="keyword">false</span>;</div>
@@ -348,38 +348,38 @@ $(function(){initNavTree('dma_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>    channel[i].terminated = <span class="keyword">false</span>;</div>
 <div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>  }</div>
 <div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>  <span class="keywordflow">if</span> (!hdmaEnabled) <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>  snes-&gt;cpu().set_int_delay(<span class="keyword">true</span>);</div>
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>  <span class="keywordflow">if</span> (do_sync) snes-&gt;SyncCycles(<span class="keyword">true</span>, 8);</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>  snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a8dd716e4ae561f358d40be65f9cc9847">cpu</a>().set_int_delay(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>  <span class="keywordflow">if</span> (do_sync) snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#ac622beb60f2d1547cb40e3a3b9c3ff53">SyncCycles</a>(<span class="keyword">true</span>, 8);</div>
 <div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span> </div>
 <div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>  <span class="comment">// full transfer overhead</span></div>
-<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>  snes-&gt;RunCycles(8);</div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>  snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a20e9a804b60fa527dd6447a5c8d61796">RunCycles</a>(8);</div>
 <div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 8; i++) {</div>
 <div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>    <span class="keywordflow">if</span> (channel[i].hdma_active) {</div>
 <div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>      <span class="comment">// terminate any dma</span></div>
 <div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>      channel[i].dma_active = <span class="keyword">false</span>;</div>
 <div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>      <span class="comment">// load address, repCount, and indirect address if needed</span></div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>      snes-&gt;RunCycles(8);</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>      snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a20e9a804b60fa527dd6447a5c8d61796">RunCycles</a>(8);</div>
 <div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>      channel[i].table_addr = channel[i].a_addr;</div>
 <div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>      channel[i].rep_count =</div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>          snes-&gt;Read((channel[i].a_bank &lt;&lt; 16) | channel[i].table_addr++);</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>          snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a36907e71ee05cb559898bc340d8c148b">Read</a>((channel[i].a_bank &lt;&lt; 16) | channel[i].table_addr++);</div>
 <div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>      <span class="keywordflow">if</span> (channel[i].rep_count == 0) channel[i].terminated = <span class="keyword">true</span>;</div>
 <div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>      <span class="keywordflow">if</span> (channel[i].indirect) {</div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>        snes-&gt;RunCycles(8);</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>        snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a20e9a804b60fa527dd6447a5c8d61796">RunCycles</a>(8);</div>
 <div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>        channel[i].size =</div>
-<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>            snes-&gt;Read((channel[i].a_bank &lt;&lt; 16) | channel[i].table_addr++);</div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>        snes-&gt;RunCycles(8);</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>            snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a36907e71ee05cb559898bc340d8c148b">Read</a>((channel[i].a_bank &lt;&lt; 16) | channel[i].table_addr++);</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>        snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a20e9a804b60fa527dd6447a5c8d61796">RunCycles</a>(8);</div>
 <div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>        channel[i].size |=</div>
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>            snes-&gt;Read((channel[i].a_bank &lt;&lt; 16) | channel[i].table_addr++) &lt;&lt; 8;</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>            snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a36907e71ee05cb559898bc340d8c148b">Read</a>((channel[i].a_bank &lt;&lt; 16) | channel[i].table_addr++) &lt;&lt; 8;</div>
 <div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>      }</div>
 <div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>      channel[i].do_transfer = <span class="keyword">true</span>;</div>
 <div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>    }</div>
 <div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>  }</div>
-<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>  <span class="keywordflow">if</span> (do_sync) snes-&gt;SyncCycles(<span class="keyword">false</span>, cpu_cycles);</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>  <span class="keywordflow">if</span> (do_sync) snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#ac622beb60f2d1547cb40e3a3b9c3ff53">SyncCycles</a>(<span class="keyword">false</span>, cpu_cycles);</div>
 <div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>}</div>
 </div>
 <div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span> </div>
 <div class="foldopen" id="foldopen00256" data-start="{" data-end="}">
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1emu.html#ae78ced4d510e6ab890ac1e877f43f20f">  256</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1emu.html#ae78ced4d510e6ab890ac1e877f43f20f">DoHdma</a>(Snes* snes, <a class="code hl_class" href="classyaze_1_1emu_1_1MemoryImpl.html">MemoryImpl</a>* memory, <span class="keywordtype">bool</span> do_sync, <span class="keywordtype">int</span> cycles) {</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1emu.html#ae78ced4d510e6ab890ac1e877f43f20f">  256</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1emu.html#ae78ced4d510e6ab890ac1e877f43f20f">DoHdma</a>(<a class="code hl_class" href="classyaze_1_1emu_1_1Snes.html">Snes</a>* snes, <a class="code hl_class" href="classyaze_1_1emu_1_1MemoryImpl.html">MemoryImpl</a>* memory, <span class="keywordtype">bool</span> do_sync, <span class="keywordtype">int</span> cycles) {</div>
 <div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>  <span class="keyword">auto</span> channel = memory-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1MemoryImpl.html#a4423903e4da3f0e0f4acef1e3db06de6">dma_channels</a>();</div>
 <div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>  memory-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1MemoryImpl.html#a52702d71239294b71aa303158a30bca9">set_hdma_run_requested</a>(<span class="keyword">false</span>);</div>
 <div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>  <span class="keywordtype">bool</span> hdmaActive = <span class="keyword">false</span>;</div>
@@ -392,12 +392,12 @@ $(function(){initNavTree('dma_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>  }</div>
 <div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span> </div>
 <div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>  <span class="keywordflow">if</span> (!hdmaActive) <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>  snes-&gt;cpu().set_int_delay(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>  snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a8dd716e4ae561f358d40be65f9cc9847">cpu</a>().set_int_delay(<span class="keyword">true</span>);</div>
 <div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span> </div>
-<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>  <span class="keywordflow">if</span> (do_sync) snes-&gt;SyncCycles(<span class="keyword">true</span>, 8);</div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>  <span class="keywordflow">if</span> (do_sync) snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#ac622beb60f2d1547cb40e3a3b9c3ff53">SyncCycles</a>(<span class="keyword">true</span>, 8);</div>
 <div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span> </div>
 <div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>  <span class="comment">// full transfer overhead</span></div>
-<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>  snes-&gt;RunCycles(8);</div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>  snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a20e9a804b60fa527dd6447a5c8d61796">RunCycles</a>(8);</div>
 <div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>  <span class="comment">// do all copies</span></div>
 <div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 8; i++) {</div>
 <div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>    <span class="comment">// terminate any dma</span></div>
@@ -406,7 +406,7 @@ $(function(){initNavTree('dma_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>      <span class="comment">// do the hdma</span></div>
 <div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>      <span class="keywordflow">if</span> (channel[i].do_transfer) {</div>
 <div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> j = 0; j &lt; transferLength[channel[i].mode]; j++) {</div>
-<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>          snes-&gt;RunCycles(8);</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>          snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a20e9a804b60fa527dd6447a5c8d61796">RunCycles</a>(8);</div>
 <div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>          <span class="keywordflow">if</span> (channel[i].indirect) {</div>
 <div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>            <a class="code hl_function" href="namespaceyaze_1_1emu.html#a2a0e8761d0bd636441df9347f8e29584">TransferByte</a>(snes, memory, channel[i].size++, channel[i].ind_bank,</div>
 <div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>                         channel[i].b_addr + bAdrOffsets[channel[i].mode][j],</div>
@@ -425,9 +425,9 @@ $(function(){initNavTree('dma_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>    <span class="keywordflow">if</span> (channel[i].hdma_active &amp;&amp; !channel[i].terminated) {</div>
 <div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>      channel[i].rep_count--;</div>
 <div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>      channel[i].do_transfer = channel[i].rep_count &amp; 0x80;</div>
-<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>      snes-&gt;RunCycles(8);</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>      snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a20e9a804b60fa527dd6447a5c8d61796">RunCycles</a>(8);</div>
 <div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>      uint8_t newRepCount =</div>
-<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>          snes-&gt;Read((channel[i].a_bank &lt;&lt; 16) | channel[i].table_addr);</div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>          snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a36907e71ee05cb559898bc340d8c148b">Read</a>((channel[i].a_bank &lt;&lt; 16) | channel[i].table_addr);</div>
 <div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>      <span class="keywordflow">if</span> ((channel[i].rep_count &amp; 0x7f) == 0) {</div>
 <div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>        channel[i].rep_count = newRepCount;</div>
 <div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>        channel[i].table_addr++;</div>
@@ -437,13 +437,13 @@ $(function(){initNavTree('dma_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>            <span class="comment">// for low</span></div>
 <div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>            channel[i].size = 0;</div>
 <div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>          } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>            snes-&gt;RunCycles(8);</div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>            snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a20e9a804b60fa527dd6447a5c8d61796">RunCycles</a>(8);</div>
 <div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>            channel[i].size =</div>
-<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>                snes-&gt;Read((channel[i].a_bank &lt;&lt; 16) | channel[i].table_addr++);</div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>                snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a36907e71ee05cb559898bc340d8c148b">Read</a>((channel[i].a_bank &lt;&lt; 16) | channel[i].table_addr++);</div>
 <div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>          }</div>
-<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>          snes-&gt;RunCycles(8);</div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>          snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a20e9a804b60fa527dd6447a5c8d61796">RunCycles</a>(8);</div>
 <div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>          channel[i].size |=</div>
-<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>              snes-&gt;Read((channel[i].a_bank &lt;&lt; 16) | channel[i].table_addr++) &lt;&lt; 8;</div>
+<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>              snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a36907e71ee05cb559898bc340d8c148b">Read</a>((channel[i].a_bank &lt;&lt; 16) | channel[i].table_addr++) &lt;&lt; 8;</div>
 <div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>        }</div>
 <div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span>        <span class="keywordflow">if</span> (channel[i].rep_count == 0) channel[i].terminated = <span class="keyword">true</span>;</div>
 <div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span>        channel[i].do_transfer = <span class="keyword">true</span>;</div>
@@ -451,12 +451,12 @@ $(function(){initNavTree('dma_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>    }</div>
 <div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>  }</div>
 <div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span> </div>
-<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>  <span class="keywordflow">if</span> (do_sync) snes-&gt;SyncCycles(<span class="keyword">false</span>, cycles);</div>
+<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>  <span class="keywordflow">if</span> (do_sync) snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#ac622beb60f2d1547cb40e3a3b9c3ff53">SyncCycles</a>(<span class="keyword">false</span>, cycles);</div>
 <div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>}</div>
 </div>
 <div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span> </div>
 <div class="foldopen" id="foldopen00331" data-start="{" data-end="}">
-<div class="line"><a id="l00331" name="l00331"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1emu.html#a2a0e8761d0bd636441df9347f8e29584">  331</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1emu.html#a2a0e8761d0bd636441df9347f8e29584">TransferByte</a>(Snes* snes, <a class="code hl_class" href="classyaze_1_1emu_1_1MemoryImpl.html">MemoryImpl</a>* memory, uint16_t aAdr, uint8_t aBank,</div>
+<div class="line"><a id="l00331" name="l00331"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1emu.html#a2a0e8761d0bd636441df9347f8e29584">  331</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1emu.html#a2a0e8761d0bd636441df9347f8e29584">TransferByte</a>(<a class="code hl_class" href="classyaze_1_1emu_1_1Snes.html">Snes</a>* snes, <a class="code hl_class" href="classyaze_1_1emu_1_1MemoryImpl.html">MemoryImpl</a>* memory, uint16_t aAdr, uint8_t aBank,</div>
 <div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span>                  uint8_t bAdr, <span class="keywordtype">bool</span> fromB) {</div>
 <div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span>  <span class="comment">// accessing 0x2180 via b-bus while a-bus accesses ram gives open bus</span></div>
 <div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>  <span class="keywordtype">bool</span> validB =</div>
@@ -469,12 +469,12 @@ $(function(){initNavTree('dma_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span>                   (aAdr &gt;= 0x4300 &amp;&amp; aAdr &lt; 0x4380) ||</div>
 <div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span>                   (aAdr &gt;= 0x2100 &amp;&amp; aAdr &lt; 0x2200)));</div>
 <div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span>  <span class="keywordflow">if</span> (fromB) {</div>
-<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>    uint8_t val = validB ? snes-&gt;ReadBBus(bAdr) : memory-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1MemoryImpl.html#a0e1947d5642b0a24b83ec980238a6bc1">open_bus</a>();</div>
-<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>    <span class="keywordflow">if</span> (validA) snes-&gt;Write((aBank &lt;&lt; 16) | aAdr, val);</div>
+<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>    uint8_t val = validB ? snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a847b06b0754fc2e691770bfc57186a55">ReadBBus</a>(bAdr) : memory-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1MemoryImpl.html#a0e1947d5642b0a24b83ec980238a6bc1">open_bus</a>();</div>
+<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>    <span class="keywordflow">if</span> (validA) snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a8b7d6d33a6bb4e38e32b170255557ee5">Write</a>((aBank &lt;&lt; 16) | aAdr, val);</div>
 <div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>  } <span class="keywordflow">else</span> {</div>
 <div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span>    uint8_t val =</div>
-<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span>        validA ? snes-&gt;Read((aBank &lt;&lt; 16) | aAdr) : memory-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1MemoryImpl.html#a0e1947d5642b0a24b83ec980238a6bc1">open_bus</a>();</div>
-<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>    <span class="keywordflow">if</span> (validB) snes-&gt;WriteBBus(bAdr, val);</div>
+<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span>        validA ? snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a36907e71ee05cb559898bc340d8c148b">Read</a>((aBank &lt;&lt; 16) | aAdr) : memory-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1MemoryImpl.html#a0e1947d5642b0a24b83ec980238a6bc1">open_bus</a>();</div>
+<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>    <span class="keywordflow">if</span> (validB) snes-&gt;<a class="code hl_function" href="classyaze_1_1emu_1_1Snes.html#a2d4915620bd2d0c4d391cf832b995baa">WriteBBus</a>(bAdr, val);</div>
 <div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>  }</div>
 <div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>}</div>
 </div>
@@ -506,6 +506,14 @@ $(function(){initNavTree('dma_8cc_source.html',''); initResizable(true); });
 <div class="ttc" id="aclassyaze_1_1emu_1_1MemoryImpl_html_a6674049499f94f7bf925333169cf500d"><div class="ttname"><a href="classyaze_1_1emu_1_1MemoryImpl.html#a6674049499f94f7bf925333169cf500d">yaze::emu::MemoryImpl::hdma_init_requested</a></div><div class="ttdeci">auto hdma_init_requested() const -&gt; bool override</div><div class="ttdef"><b>Definition</b> <a href="memory_8h_source.html#l00259">memory.h:259</a></div></div>
 <div class="ttc" id="aclassyaze_1_1emu_1_1MemoryImpl_html_ae286a6c904922ce9f44c7996a51e71b3"><div class="ttname"><a href="classyaze_1_1emu_1_1MemoryImpl.html#ae286a6c904922ce9f44c7996a51e71b3">yaze::emu::MemoryImpl::set_hdma_init_requested</a></div><div class="ttdeci">void set_hdma_init_requested(bool value) override</div><div class="ttdef"><b>Definition</b> <a href="memory_8h_source.html#l00270">memory.h:270</a></div></div>
 <div class="ttc" id="aclassyaze_1_1emu_1_1MemoryImpl_html_aee42c803ab884f48aed70728cbad01e5"><div class="ttname"><a href="classyaze_1_1emu_1_1MemoryImpl.html#aee42c803ab884f48aed70728cbad01e5">yaze::emu::MemoryImpl::hdma_run_requested</a></div><div class="ttdeci">auto hdma_run_requested() const -&gt; bool override</div><div class="ttdef"><b>Definition</b> <a href="memory_8h_source.html#l00262">memory.h:262</a></div></div>
+<div class="ttc" id="aclassyaze_1_1emu_1_1Snes_html"><div class="ttname"><a href="classyaze_1_1emu_1_1Snes.html">yaze::emu::Snes</a></div><div class="ttdef"><b>Definition</b> <a href="snes_8h_source.html#l00023">snes.h:23</a></div></div>
+<div class="ttc" id="aclassyaze_1_1emu_1_1Snes_html_a20e9a804b60fa527dd6447a5c8d61796"><div class="ttname"><a href="classyaze_1_1emu_1_1Snes.html#a20e9a804b60fa527dd6447a5c8d61796">yaze::emu::Snes::RunCycles</a></div><div class="ttdeci">void RunCycles(int cycles)</div><div class="ttdef"><b>Definition</b> <a href="snes_8cc_source.html#l00224">snes.cc:224</a></div></div>
+<div class="ttc" id="aclassyaze_1_1emu_1_1Snes_html_a2d4915620bd2d0c4d391cf832b995baa"><div class="ttname"><a href="classyaze_1_1emu_1_1Snes.html#a2d4915620bd2d0c4d391cf832b995baa">yaze::emu::Snes::WriteBBus</a></div><div class="ttdeci">void WriteBBus(uint8_t adr, uint8_t val)</div><div class="ttdef"><b>Definition</b> <a href="snes_8cc_source.html#l00350">snes.cc:350</a></div></div>
+<div class="ttc" id="aclassyaze_1_1emu_1_1Snes_html_a36907e71ee05cb559898bc340d8c148b"><div class="ttname"><a href="classyaze_1_1emu_1_1Snes.html#a36907e71ee05cb559898bc340d8c148b">yaze::emu::Snes::Read</a></div><div class="ttdeci">uint8_t Read(uint32_t adr)</div><div class="ttdef"><b>Definition</b> <a href="snes_8cc_source.html#l00344">snes.cc:344</a></div></div>
+<div class="ttc" id="aclassyaze_1_1emu_1_1Snes_html_a847b06b0754fc2e691770bfc57186a55"><div class="ttname"><a href="classyaze_1_1emu_1_1Snes.html#a847b06b0754fc2e691770bfc57186a55">yaze::emu::Snes::ReadBBus</a></div><div class="ttdeci">uint8_t ReadBBus(uint8_t adr)</div><div class="ttdef"><b>Definition</b> <a href="snes_8cc_source.html#l00245">snes.cc:245</a></div></div>
+<div class="ttc" id="aclassyaze_1_1emu_1_1Snes_html_a8b7d6d33a6bb4e38e32b170255557ee5"><div class="ttname"><a href="classyaze_1_1emu_1_1Snes.html#a8b7d6d33a6bb4e38e32b170255557ee5">yaze::emu::Snes::Write</a></div><div class="ttdeci">void Write(uint32_t adr, uint8_t val)</div><div class="ttdef"><b>Definition</b> <a href="snes_8cc_source.html#l00468">snes.cc:468</a></div></div>
+<div class="ttc" id="aclassyaze_1_1emu_1_1Snes_html_a8dd716e4ae561f358d40be65f9cc9847"><div class="ttname"><a href="classyaze_1_1emu_1_1Snes.html#a8dd716e4ae561f358d40be65f9cc9847">yaze::emu::Snes::cpu</a></div><div class="ttdeci">auto cpu() -&gt; Cpu &amp;</div><div class="ttdef"><b>Definition</b> <a href="snes_8h_source.html#l00062">snes.h:62</a></div></div>
+<div class="ttc" id="aclassyaze_1_1emu_1_1Snes_html_ac622beb60f2d1547cb40e3a3b9c3ff53"><div class="ttname"><a href="classyaze_1_1emu_1_1Snes.html#ac622beb60f2d1547cb40e3a3b9c3ff53">yaze::emu::Snes::SyncCycles</a></div><div class="ttdeci">void SyncCycles(bool start, int sync_cycles)</div><div class="ttdef"><b>Definition</b> <a href="snes_8cc_source.html#l00234">snes.cc:234</a></div></div>
 <div class="ttc" id="adma_8h_html"><div class="ttname"><a href="dma_8h.html">dma.h</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1emu_html_a2a0e8761d0bd636441df9347f8e29584"><div class="ttname"><a href="namespaceyaze_1_1emu.html#a2a0e8761d0bd636441df9347f8e29584">yaze::emu::TransferByte</a></div><div class="ttdeci">void TransferByte(Snes *snes, MemoryImpl *memory, uint16_t aAdr, uint8_t aBank, uint8_t bAdr, bool fromB)</div><div class="ttdef"><b>Definition</b> <a href="#l00331">dma.cc:331</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1emu_html_a2f5e5518d3fd67ea11625388d6d6c60c"><div class="ttname"><a href="namespaceyaze_1_1emu.html#a2f5e5518d3fd67ea11625388d6d6c60c">yaze::emu::ResetDma</a></div><div class="ttdeci">void ResetDma(MemoryImpl *memory)</div><div class="ttdef"><b>Definition</b> <a href="#l00012">dma.cc:12</a></div></div>

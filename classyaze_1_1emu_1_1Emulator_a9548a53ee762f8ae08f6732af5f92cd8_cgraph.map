@@ -1,9 +1,9 @@
 <map id="yaze::emu::Emulator::RenderBreakpointList" name="yaze::emu::Emulator::RenderBreakpointList">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,72,158,113"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1SNES.html#a843145d67294cb575b42ad61d576fcc3" title=" " alt="" coords="211,5,358,31"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1Snes.html#a5f4b8b830b46e8b590319bd24dec91fd" title=" " alt="" coords="214,5,356,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,70,205,40,222,34,224,39,207,45,131,75"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1SNES.html#a79188dfc2feb21b02fe8e04c2bf2b934" title=" " alt="" coords="211,55,358,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="158,81,196,76,196,81,158,86"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1Snes.html#a8dd716e4ae561f358d40be65f9cc9847" title=" " alt="" coords="214,55,356,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="158,81,198,76,199,81,158,86"/>
 <area shape="rect" id="Node000004" href="$namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="208,104,362,130"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="158,99,193,103,192,109,158,104"/>
 <area shape="rect" id="Node000006" href="$namespaceyaze_1_1gui.html#a2be4bdb4d48912825342ba9df3da5237" title=" " alt="" coords="206,153,364,179"/>

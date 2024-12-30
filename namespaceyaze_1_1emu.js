@@ -77,7 +77,7 @@ var namespaceyaze_1_1emu =
     [ "ScrollRegister", "structyaze_1_1emu_1_1ScrollRegister.html", "structyaze_1_1emu_1_1ScrollRegister" ],
     [ "SETINI", "structyaze_1_1emu_1_1SETINI.html", "structyaze_1_1emu_1_1SETINI" ],
     [ "SLHV", "structyaze_1_1emu_1_1SLHV.html", "structyaze_1_1emu_1_1SLHV" ],
-    [ "SNES", "classyaze_1_1emu_1_1SNES.html", "classyaze_1_1emu_1_1SNES" ],
+    [ "Snes", "classyaze_1_1emu_1_1Snes.html", "classyaze_1_1emu_1_1Snes" ],
     [ "Spc700", "classyaze_1_1emu_1_1Spc700.html", "classyaze_1_1emu_1_1Spc700" ],
     [ "SpriteAttributes", "structyaze_1_1emu_1_1SpriteAttributes.html", "structyaze_1_1emu_1_1SpriteAttributes" ],
     [ "STAT77", "structyaze_1_1emu_1_1STAT77.html", "structyaze_1_1emu_1_1STAT77" ],

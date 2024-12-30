@@ -1,9 +1,0 @@
-<map id="yaze::emu::SNES::WriteReg" name="yaze::emu::SNES::WriteReg">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,185,88"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1Cpu.html#a411e83ff4742e76beb22403cf8e50f79" title=" " alt="" coords="238,5,376,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,59,241,33,242,38,146,65"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1Cpu.html#a50035ffb781ab92696205c9c04c25af1" title=" " alt="" coords="241,55,372,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="185,73,226,73,226,78,185,78"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1Cpu.html#a32670c90122daf9129f8935cb0c23c8f" title=" " alt="" coords="233,120,381,146"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="146,86,242,113,241,118,145,92"/>
-</map>

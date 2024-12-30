@@ -1,0 +1,29 @@
+<map id="yaze::emu::Snes::CpuRead" name="yaze::emu::Snes::CpuRead">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,350,179,376"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1emu.html#a7215347ac720fbffdc26780519322eae" title=" " alt="" coords="227,224,379,249"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,348,266,255,268,260,117,352"/>
+<area shape="rect" id="Node000095" href="$classyaze_1_1emu_1_1Snes.html#a36907e71ee05cb559898bc340d8c148b" title=" " alt="" coords="646,84,797,109"/>
+<area shape="poly" id="edge13_Node000001_Node000095" title=" " alt="" coords="98,348,138,284,209,189,255,139,307,92,364,51,426,19,468,6,504,3,539,8,583,19,613,29,643,43,692,72,689,77,640,48,611,34,582,24,538,14,504,9,469,11,428,24,367,55,310,96,259,143,213,193,143,287,103,351"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1emu_1_1Snes.html#a20e9a804b60fa527dd6447a5c8d61796" title=" " alt="" coords="630,133,813,159"/>
+<area shape="poly" id="edge14_Node000001_Node000008" title=" " alt="" coords="118,374,201,413,257,434,320,453,387,464,455,467,520,456,551,445,581,429,612,404,639,373,660,339,678,303,702,231,714,174,719,175,707,232,683,305,665,342,643,377,616,408,584,433,554,449,522,461,455,472,387,470,319,458,256,440,199,418,116,379"/>
+<area shape="rect" id="Node000120" href="$classyaze_1_1emu_1_1Cpu.html#a50035ffb781ab92696205c9c04c25af1" title=" " alt="" coords="237,493,368,534"/>
+<area shape="poly" id="edge15_Node000001_Node000120" title=" " alt="" coords="109,374,160,420,228,473,245,483,243,488,225,477,156,424,105,378"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1MemoryImpl.html#a1b251a5f824803c3c7d97a696e7adafb" title=" " alt="" coords="427,379,582,419"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="316,248,361,303,393,335,429,364,437,369,434,373,425,368,390,339,357,306,312,252"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1emu.html#a9386b47070b3c3bfd4c13defdccf60cb" title=" " alt="" coords="441,34,568,60"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="308,222,350,150,384,106,425,69,431,65,434,70,429,73,388,110,355,153,313,224"/>
+<area shape="rect" id="Node000124" href="$namespaceyaze_1_1emu.html#ae78ced4d510e6ab890ac1e877f43f20f" title=" " alt="" coords="437,133,572,159"/>
+<area shape="poly" id="edge4_Node000002_Node000124" title=" " alt="" coords="325,221,371,195,426,169,443,162,445,167,428,174,374,200,328,225"/>
+<area shape="rect" id="Node000126" href="$classyaze_1_1emu_1_1MemoryImpl.html#a6674049499f94f7bf925333169cf500d" title=" " alt="" coords="427,183,582,223"/>
+<area shape="poly" id="edge7_Node000002_Node000126" title=" " alt="" coords="379,221,411,216,412,221,380,226"/>
+<area shape="rect" id="Node000127" href="$classyaze_1_1emu_1_1MemoryImpl.html#aee42c803ab884f48aed70728cbad01e5" title=" " alt="" coords="427,248,582,289"/>
+<area shape="poly" id="edge8_Node000002_Node000127" title=" " alt="" coords="380,246,412,251,411,256,379,251"/>
+<area shape="rect" id="Node000128" href="$namespaceyaze_1_1emu.html#aa2c804845876ebee011545b1f873b01f" title=" " alt="" coords="436,84,573,109"/>
+<area shape="poly" id="edge9_Node000002_Node000128" title=" " alt="" coords="313,222,358,172,390,143,426,118,435,113,437,118,428,123,393,147,362,175,317,225"/>
+<area shape="rect" id="Node000122" href="$classyaze_1_1emu_1_1MemoryImpl.html#a11899a4b48ba8ab298e48c12cd2000b2" title=" " alt="" coords="427,313,582,354"/>
+<area shape="poly" id="edge12_Node000002_Node000122" title=" " alt="" coords="330,248,428,298,442,304,439,309,426,303,328,252"/>
+<area shape="poly" id="edge5_Node000124_Node000095" title=" " alt="" coords="564,130,647,111,648,116,565,135"/>
+<area shape="poly" id="edge6_Node000124_Node000008" title=" " alt="" coords="573,143,615,143,615,148,573,148"/>
+<area shape="poly" id="edge10_Node000128_Node000095" title=" " alt="" coords="574,94,631,94,631,99,574,99"/>
+<area shape="poly" id="edge11_Node000128_Node000008" title=" " alt="" coords="565,107,648,126,647,132,564,113"/>
+</map>

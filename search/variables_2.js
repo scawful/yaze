@@ -67,7 +67,7 @@ var searchData=
   ['clipboard_5foffset_5f_64',['clipboard_offset_',['../classyaze_1_1editor_1_1GraphicsEditor.html#a1c0416332231830a9ebba7c867e29d7d',1,'yaze::editor::GraphicsEditor']]],
   ['clipboard_5fsize_5f_65',['clipboard_size_',['../classyaze_1_1editor_1_1GraphicsEditor.html#aacccffe3fdf780a008a8118996974551',1,'yaze::editor::GraphicsEditor']]],
   ['clock_66',['clock',['../classyaze_1_1emu_1_1Cpu.html#a0261b535df2d2f5b7a4348168b675031',1,'yaze::emu::Cpu']]],
-  ['clock_5f_67',['clock_',['../classyaze_1_1emu_1_1SNES.html#a7a4eede10aa72ebbb5fd514edad5a3de',1,'yaze::emu::SNES::clock_'],['../classyaze_1_1emu_1_1Ppu.html#a32e9afbe67c93dcaf994c13ef1fad71d',1,'yaze::emu::Ppu::clock_'],['../classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6972fc79216840fd601135e932b31109',1,'yaze::zelda3::DungeonObjectRenderer::clock_']]],
+  ['clock_5f_67',['clock_',['../classyaze_1_1emu_1_1Snes.html#a1caa9a4f811f6a1a20d525dcfadb09e3',1,'yaze::emu::Snes::clock_'],['../classyaze_1_1emu_1_1Ppu.html#a32e9afbe67c93dcaf994c13ef1fad71d',1,'yaze::emu::Ppu::clock_'],['../classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6972fc79216840fd601135e932b31109',1,'yaze::zelda3::DungeonObjectRenderer::clock_']]],
   ['cmd_68',['cmd',['../structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abcf8ec71d5b830fef6d59ae449c52fde',1,'yaze::zelda3::music::SpcCommand']]],
   ['cmd_5fsize_69',['cmd_size',['../structyaze_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#a31c5e32622fec1ca9100de4ec625f96a',1,'yaze::gfx::lc_lz2::CompressionCommand']]],
   ['cmd_5fwith_5fmax_70',['cmd_with_max',['../structyaze_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a80eec349365382f5229e319dc8de49be',1,'yaze::gfx::lc_lz2::CompressionContext']]],
@@ -119,9 +119,9 @@ var searchData=
   ['counterenable_116',['counterEnable',['../structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#a3c49a3079228c1b6eacdfc4b15de0608',1,'yaze::emu::CounterIrqNmiRegisters']]],
   ['counters_5flatched_5f_117',['counters_latched_',['../classyaze_1_1emu_1_1Ppu.html#a2a75edd204822dfc5db45bfb1d38396e',1,'yaze::emu::Ppu']]],
   ['cpu_118',['cpu',['../classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6f1f09d154ca5bd916ff5e977508735a',1,'yaze::zelda3::DungeonObjectRenderer::cpu'],['../classyaze_1_1test_1_1emu_1_1CpuTest.html#ab2da67e1a6cd526ae5479df85d394380',1,'yaze::test::emu::CpuTest::cpu']]],
-  ['cpu_5f_119',['cpu_',['../classyaze_1_1emu_1_1SNES.html#a1633863d79ca780b94524d0869fdb9ca',1,'yaze::emu::SNES']]],
+  ['cpu_5f_119',['cpu_',['../classyaze_1_1emu_1_1Snes.html#aee7a85cbf294342b9110a6708db17200',1,'yaze::emu::Snes']]],
   ['cpu_5fcallbacks_120',['cpu_callbacks',['../classyaze_1_1test_1_1emu_1_1CpuTest.html#a1f2019cd170f10dfc15fbb2f2a038377',1,'yaze::test::emu::CpuTest']]],
-  ['cpu_5fcallbacks_5f_121',['cpu_callbacks_',['../classyaze_1_1emu_1_1SNES.html#a0ffed5a8c36f80dd284e9d0b1cfe870a',1,'yaze::emu::SNES::cpu_callbacks_'],['../classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#adad9e8e165f0a8a6dccd2eb1a4b510e4',1,'yaze::zelda3::DungeonObjectRenderer::cpu_callbacks_']]],
+  ['cpu_5fcallbacks_5f_121',['cpu_callbacks_',['../classyaze_1_1emu_1_1Snes.html#a85058c55656b989ef1633961da96d93d',1,'yaze::emu::Snes::cpu_callbacks_'],['../classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a9e7af0a3196be5ad3033fcda084cfcee',1,'yaze::zelda3::DungeonObjectRenderer::cpu_callbacks_']]],
   ['current_5fblockset_5f_122',['current_blockset_',['../classyaze_1_1editor_1_1OverworldEditor.html#aabf607ad68656e7739386ed3132c73b2',1,'yaze::editor::OverworldEditor::current_blockset_'],['../classyaze_1_1zelda3_1_1OverworldMap.html#a20cde22bd5f4d8dd04269f7b3205ebd8',1,'yaze::zelda3::OverworldMap::current_blockset_']]],
   ['current_5fbpp_5f_123',['current_bpp_',['../classyaze_1_1editor_1_1GraphicsEditor.html#a1f35f4b0df79437e129e00d7909e9aaa',1,'yaze::editor::GraphicsEditor']]],
   ['current_5fcmd_124',['current_cmd',['../structyaze_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a1f7cd5bb3a4ba1b143d4f2bfa1d3c6d4',1,'yaze::gfx::lc_lz2::CompressionContext']]],
@@ -195,6 +195,6 @@ var searchData=
   ['cycle_5fcount_192',['cycle_count',['../classyaze_1_1emu_1_1ClockImpl.html#ab381daa077d197dd4ead7089a702a119',1,'yaze::emu::ClockImpl']]],
   ['cycle_5fcount_5f_193',['cycle_count_',['../classyaze_1_1emu_1_1Ppu.html#a97079b9ed7736fb3a7ca309e87cc9181',1,'yaze::emu::Ppu']]],
   ['cycles_194',['cycles',['../structyaze_1_1emu_1_1Timer.html#a99ea1bd4de1c98930903b11aa43d3a6b',1,'yaze::emu::Timer']]],
-  ['cycles_5f_195',['cycles_',['../classyaze_1_1emu_1_1Apu.html#a1cdd7fdb4dcb5b4af1db60c849726f5a',1,'yaze::emu::Apu::cycles_'],['../classyaze_1_1emu_1_1SNES.html#a5400a399727bf153990535c05bcea7d0',1,'yaze::emu::SNES::cycles_']]],
+  ['cycles_5f_195',['cycles_',['../classyaze_1_1emu_1_1Apu.html#a1cdd7fdb4dcb5b4af1db60c849726f5a',1,'yaze::emu::Apu::cycles_'],['../classyaze_1_1emu_1_1Snes.html#a1ee718be3314410191988709cdf619e0',1,'yaze::emu::Snes::cycles_']]],
   ['cyclesperscanline_196',['cyclesPerScanline',['../classyaze_1_1emu_1_1Ppu.html#ab943c7a3052dbe8ea5a015ce6937b84d',1,'yaze::emu::Ppu']]]
 ];

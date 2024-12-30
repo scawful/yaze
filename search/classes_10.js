@@ -12,7 +12,7 @@ var searchData=
   ['settingseditor_9',['SettingsEditor',['../classyaze_1_1editor_1_1SettingsEditor.html',1,'yaze::editor']]],
   ['sharedrom_10',['SharedRom',['../classyaze_1_1SharedRom.html',1,'yaze']]],
   ['slhv_11',['SLHV',['../structyaze_1_1emu_1_1SLHV.html',1,'yaze::emu']]],
-  ['snes_12',['SNES',['../classyaze_1_1emu_1_1SNES.html',1,'yaze::emu']]],
+  ['snes_12',['Snes',['../classyaze_1_1emu_1_1Snes.html',1,'yaze::emu']]],
   ['snes_5fcolor_13',['snes_color',['../structsnes__color.html',1,'']]],
   ['snes_5fpalette_14',['snes_palette',['../structsnes__palette.html',1,'']]],
   ['snes_5ftile16_15',['snes_tile16',['../structsnes__tile16.html',1,'']]],

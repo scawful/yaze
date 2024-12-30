@@ -2,9 +2,9 @@ var searchData=
 [
   ['r_0',['r',['../structyaze_1_1emu_1_1Color.html#acb77bbb6c2afc58480b5c75b9e3bd76e',1,'yaze::emu::Color']]],
   ['r_5fbutton_1',['r_button',['../structyaze_1_1emu_1_1EmulatorKeybindings.html#a6276d2284e3ced2a2193774e866c24d4',1,'yaze::emu::EmulatorKeybindings']]],
-  ['ram_2',['ram',['../classyaze_1_1emu_1_1Apu.html#ab4f438f330fbac46eb9da733cc506175',1,'yaze::emu::Apu::ram'],['../classyaze_1_1emu_1_1Dsp.html#adcb22d36956e13a9dd6d55bcae540bc8',1,'yaze::emu::Dsp::ram'],['../classyaze_1_1emu_1_1AudioRamImpl.html#a69d1420e0bf9f1c9a97f1e8d255c6b16',1,'yaze::emu::AudioRamImpl::ram'],['../classyaze_1_1emu_1_1SNES.html#a2a1cf658d7fe94536b8978e5769bddf2',1,'yaze::emu::SNES::ram']]],
+  ['ram_2',['ram',['../classyaze_1_1emu_1_1Apu.html#ab4f438f330fbac46eb9da733cc506175',1,'yaze::emu::Apu::ram'],['../classyaze_1_1emu_1_1Dsp.html#adcb22d36956e13a9dd6d55bcae540bc8',1,'yaze::emu::Dsp::ram'],['../classyaze_1_1emu_1_1AudioRamImpl.html#a69d1420e0bf9f1c9a97f1e8d255c6b16',1,'yaze::emu::AudioRamImpl::ram'],['../classyaze_1_1emu_1_1Snes.html#aeaaad0c9605917bf76b9ee0ce4ad5526',1,'yaze::emu::Snes::ram']]],
   ['ram_5f_3',['ram_',['../classyaze_1_1emu_1_1MemoryImpl.html#a498e4cff3d573443c9293ae8a5431633',1,'yaze::emu::MemoryImpl']]],
-  ['ram_5fadr_5f_4',['ram_adr_',['../classyaze_1_1emu_1_1SNES.html#ad2aae25a6e0e2861662bd5ab571a2ac8',1,'yaze::emu::SNES']]],
+  ['ram_5fadr_5f_4',['ram_adr_',['../classyaze_1_1emu_1_1Snes.html#afd14885e51e3a5a490ecb819bb622479',1,'yaze::emu::Snes']]],
   ['range_5fover_5f_5',['range_over_',['../classyaze_1_1emu_1_1Ppu.html#ac0634d05945f7757d5dbd63f70a2e12a',1,'yaze::emu::Ppu']]],
   ['raw_5fmessage_6',['raw_message',['../structyaze_1_1core_1_1StructuredLog.html#ab26c0b3eb625dd11fd6ba7698e6d09f9',1,'yaze::core::StructuredLog']]],
   ['rawstring_7',['RawString',['../structyaze_1_1editor_1_1MessageData.html#aa9c436a0d715955159df69060e04aa32',1,'yaze::editor::MessageData']]],
@@ -42,7 +42,7 @@ var searchData=
   ['rom_5f_39',['rom_',['../classyaze_1_1emu_1_1MemoryImpl.html#a2ffc5aed469902475cdca6763c4ff119',1,'yaze::emu::MemoryImpl::rom_'],['../classyaze_1_1zelda3_1_1Overworld.html#aadb23209f1c031e732b40c454cdcde93',1,'yaze::zelda3::Overworld::rom_'],['../classyaze_1_1zelda3_1_1OverworldMap.html#a4340cadae54389915835fde2bd967bcf',1,'yaze::zelda3::OverworldMap::rom_'],['../classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#abe8d7dc1745a32acff17f7d4f2d8a266',1,'yaze::zelda3::screen::TitleScreen::rom_'],['../classyaze_1_1cli_1_1CommandHandler.html#aa379924610d041d4d87ed115551adb21',1,'yaze::cli::CommandHandler::rom_'],['../classyaze_1_1test_1_1RomTest.html#a03d655d845f6e5e3579f8eec8f632b76',1,'yaze::test::RomTest::rom_']]],
   ['rom_5fassets_5floaded_5f_40',['rom_assets_loaded_',['../classyaze_1_1editor_1_1EditorManager.html#a334e88fc9c866a3c036fad1dc192680a',1,'yaze::editor::EditorManager']]],
   ['rom_5fcolor_5f_41',['rom_color_',['../classyaze_1_1gfx_1_1SnesColor.html#a3e5f7f54d7fc7238fdb848f602637c0c',1,'yaze::gfx::SnesColor']]],
-  ['rom_5fdata_42',['rom_data',['../classyaze_1_1emu_1_1SNES.html#abddb901e36ec152ae39b72ae14d186e6',1,'yaze::emu::SNES']]],
+  ['rom_5fdata_42',['rom_data',['../classyaze_1_1emu_1_1Snes.html#acf20ee93654e9242e0ff84095a2c08f1',1,'yaze::emu::Snes']]],
   ['rom_5fdata_5f_43',['rom_data_',['../classyaze_1_1emu_1_1Emulator.html#a8532516d071862efe4ad42f9e6eca403',1,'yaze::emu::Emulator::rom_data_'],['../classyaze_1_1Rom.html#a25988f8127d85751e13e15a97a16c181',1,'yaze::Rom::rom_data_'],['../classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a62f4148a7637bba98ddb4824e812ed15',1,'yaze::zelda3::DungeonObjectRenderer::rom_data_']]],
   ['rom_5ffilename_44',['rom_filename',['../structyaze__project.html#ab66490373523b4ddeaf85881857022f2',1,'yaze_project']]],
   ['rom_5ffilename_5f_45',['rom_filename_',['../structyaze_1_1Project.html#a98244b71739f152077b2cffc7a864b25',1,'yaze::Project']]],
@@ -69,5 +69,5 @@ var searchData=
   ['rooms_5fsprite_5fpointer_66',['rooms_sprite_pointer',['../namespaceyaze_1_1zelda3.html#a5de81bc04b33ac9b922d17605aca2422',1,'yaze::zelda3']]],
   ['roomset_5fcanvas_5f_67',['roomset_canvas_',['../classyaze_1_1editor_1_1GfxGroupEditor.html#a7e59f0ea3a8dc4ec93164d1cc9ed71e1',1,'yaze::editor::GfxGroupEditor']]],
   ['routine_5fptr_68',['routine_ptr',['../structyaze_1_1zelda3_1_1SubtypeInfo.html#a588af3eaa775e0044e09658a40575b29',1,'yaze::zelda3::SubtypeInfo']]],
-  ['running_5f_69',['running_',['../classyaze_1_1emu_1_1Emulator.html#aaabb1ccbc8ff73f055fd428bc21a5467',1,'yaze::emu::Emulator::running_'],['../classyaze_1_1emu_1_1SNES.html#a9478bcbc573c3f97d775b5ec7979ba07',1,'yaze::emu::SNES::running_']]]
+  ['running_5f_69',['running_',['../classyaze_1_1emu_1_1Emulator.html#aaabb1ccbc8ff73f055fd428bc21a5467',1,'yaze::emu::Emulator::running_'],['../classyaze_1_1emu_1_1Snes.html#a8aebe9ad45fe5796732b320b7c96ff8e',1,'yaze::emu::Snes::running_']]]
 ];

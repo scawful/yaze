@@ -73,7 +73,7 @@ var searchData=
   ['applyspeedtowardsplayer_70',['ApplySpeedTowardsPlayer',['../classyaze_1_1zelda3_1_1SpriteInstruction.html#a79208c1f345b4590a1d9dcde382ce722',1,'yaze::zelda3::SpriteInstruction']]],
   ['applytheme_71',['ApplyTheme',['../namespaceyaze_1_1gui.html#ae9a47f0d85166d6363717c61056b83a3',1,'yaze::gui']]],
   ['apu_72',['Apu',['../classyaze_1_1emu_1_1Apu.html#ae8628974cd4e63169d4d5a7d81b34de6',1,'yaze::emu::Apu']]],
-  ['apu_73',['apu',['../classyaze_1_1emu_1_1SNES.html#a843145d67294cb575b42ad61d576fcc3',1,'yaze::emu::SNES']]],
+  ['apu_73',['apu',['../classyaze_1_1emu_1_1Snes.html#a5f4b8b830b46e8b590319bd24dec91fd',1,'yaze::emu::Snes']]],
   ['area_5fgraphics_74',['area_graphics',['../classyaze_1_1zelda3_1_1OverworldMap.html#a4896812c223749b7ea5d56337afb43de',1,'yaze::zelda3::OverworldMap']]],
   ['area_5fmusic_75',['area_music',['../classyaze_1_1zelda3_1_1OverworldMap.html#a8c5a9543369c94aa0279abba1432c061',1,'yaze::zelda3::OverworldMap']]],
   ['area_5fpalette_76',['area_palette',['../classyaze_1_1zelda3_1_1OverworldMap.html#a85444f5c0c5caaedd1543308b33e3999',1,'yaze::zelda3::OverworldMap']]],

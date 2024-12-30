@@ -1,9 +1,0 @@
-<map id="yaze::emu::SNES::Init" name="yaze::emu::SNES::Init">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,150,56"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1SNES.html#abe062785be0327e27862632343a77355" title=" " alt="" coords="198,31,358,56"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,41,182,41,182,46,150,46"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1SNES.html#a05d7129df76313d3f4a5de237fd0caec" title=" " alt="" coords="406,5,623,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="358,32,390,29,391,34,359,38"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1emu_1_1Cpu.html#ab56a4324924b850a5081f0670dd7552c" title=" " alt="" coords="441,55,588,80"/>
-<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="359,49,426,56,425,61,358,54"/>
-</map>
