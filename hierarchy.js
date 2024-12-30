@@ -124,6 +124,7 @@ var hierarchy =
     ] ],
     [ "yaze::gui::GfxSheetAssetBrowser", "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html", null ],
     [ "yaze::gfx::GraphicsBuffer", "classyaze_1_1gfx_1_1GraphicsBuffer.html", null ],
+    [ "yaze::core::HexStringParams", "structyaze_1_1core_1_1HexStringParams.html", null ],
     [ "yaze::editor::HistoryManager", "classyaze_1_1editor_1_1HistoryManager.html", null ],
     [ "ImGuiSelectionBasicStorage", null, [
       [ "yaze::gui::ExampleSelectionWithDeletion", "structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html", null ]

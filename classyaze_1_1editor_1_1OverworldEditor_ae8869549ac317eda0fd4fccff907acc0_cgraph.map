@@ -14,25 +14,25 @@
 <area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="189,350,236,350,236,355,189,355"/>
 <area shape="rect" id="Node000012" href="$namespaceyaze_1_1editor.html#a6b13948b033b60fa0dc966717fc52a82" title=" " alt="" coords="248,447,412,487"/>
 <area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="135,371,238,426,264,438,261,443,235,431,132,375"/>
-<area shape="rect" id="Node000013" href="$namespaceyaze_1_1editor.html#a71d65cf584d77dc9d9ccb1446d7870f6" title=" " alt="" coords="472,349,666,390"/>
-<area shape="poly" id="edge17_Node000001_Node000013" title=" " alt="" coords="175,371,237,382,350,386,457,381,457,386,350,392,236,387,175,376"/>
-<area shape="rect" id="Node000018" href="$namespaceyaze_1_1core.html#a1976cfc905277d7951db38e5bd1b000a" title=" " alt="" coords="471,545,667,570"/>
-<area shape="poly" id="edge19_Node000001_Node000018" title=" " alt="" coords="113,371,163,435,198,469,238,497,276,511,330,523,456,543,455,548,329,529,274,516,235,501,194,473,159,438,109,374"/>
+<area shape="rect" id="Node000013" href="$namespaceyaze_1_1core.html#a1f2441e9967fc5718d30608cccc7f74c" title=" " alt="" coords="501,365,634,390"/>
+<area shape="poly" id="edge16_Node000001_Node000013" title=" " alt="" coords="175,371,237,382,302,387,368,388,485,383,485,388,368,393,302,392,236,387,175,376"/>
+<area shape="rect" id="Node000014" href="$namespaceyaze_1_1editor.html#a71d65cf584d77dc9d9ccb1446d7870f6" title=" " alt="" coords="471,545,664,586"/>
+<area shape="poly" id="edge18_Node000001_Node000014" title=" " alt="" coords="114,372,163,435,198,469,238,497,276,511,330,525,456,548,455,553,329,531,274,517,235,501,195,473,159,438,110,375"/>
 <area shape="rect" id="Node000019" href="$classyaze_1_1gui_1_1Canvas.html#a3cea4228bbc82ef162fa28b9a88cbfb8" title=" " alt="" coords="266,561,394,602"/>
-<area shape="poly" id="edge16_Node000001_Node000019" title=" " alt="" coords="111,372,159,453,195,499,238,541,254,552,251,556,235,545,191,503,155,456,106,374"/>
+<area shape="poly" id="edge17_Node000001_Node000019" title=" " alt="" coords="111,372,159,453,195,499,238,541,254,552,251,556,235,545,191,503,155,456,106,374"/>
 <area shape="rect" id="Node000020" href="$classyaze_1_1zelda3_1_1Overworld.html#a0cb4ee0bc2ed6cb95855c227207a10d5" title=" " alt="" coords="237,627,423,667"/>
-<area shape="poly" id="edge18_Node000001_Node000020" title=" " alt="" coords="106,372,122,421,148,485,187,553,211,584,238,612,244,616,240,620,235,616,207,588,183,556,144,487,117,423,101,374"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1gui.html#a85c0af649d4fdc913fcabb1634667602" title=" " alt="" coords="505,82,633,108"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="417,90,489,91,489,96,417,95"/>
-<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="411,133,500,110,502,115,413,138"/>
-<area shape="rect" id="Node000006" href="$namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="492,140,646,165"/>
-<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="421,152,476,151,476,157,421,157"/>
-<area shape="rect" id="Node000008" href="$namespaceyaze_1_1gui.html#a2be4bdb4d48912825342ba9df3da5237" title=" " alt="" coords="490,189,648,214"/>
-<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="421,171,483,183,482,188,420,176"/>
-<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="382,444,422,426,470,401,488,393,490,398,472,405,424,431,384,449"/>
-<area shape="rect" id="Node000014" href="$namespaceyaze_1_1editor.html#a06ac44536e73112b10156d6ea830d66c" title=" " alt="" coords="492,415,647,455"/>
-<area shape="poly" id="edge13_Node000012_Node000014" title=" " alt="" coords="412,453,476,445,476,450,413,459"/>
-<area shape="rect" id="Node000017" href="$classyaze_1_1zelda3_1_1GameEntity.html#ae6fb12db3dc4ea2f15b02ea0ab56ac86" title=" " alt="" coords="488,480,651,521"/>
-<area shape="poly" id="edge14_Node000012_Node000017" title=" " alt="" coords="413,476,473,484,472,489,412,481"/>
-<area shape="poly" id="edge15_Node000012_Node000018" title=" " alt="" coords="385,485,424,503,448,517,472,530,494,538,492,543,470,535,445,522,422,508,382,490"/>
+<area shape="poly" id="edge19_Node000001_Node000020" title=" " alt="" coords="106,372,122,421,148,485,187,553,211,584,238,612,244,616,240,620,235,616,207,588,183,556,144,487,117,423,101,374"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1gui.html#a85c0af649d4fdc913fcabb1634667602" title=" " alt="" coords="504,82,632,108"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="416,90,488,91,488,96,416,95"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="411,133,499,110,501,115,412,138"/>
+<area shape="rect" id="Node000006" href="$namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="490,140,645,165"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="420,152,475,151,475,157,420,157"/>
+<area shape="rect" id="Node000008" href="$namespaceyaze_1_1gui.html#a2be4bdb4d48912825342ba9df3da5237" title=" " alt="" coords="488,189,647,214"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="421,171,482,183,481,188,420,176"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="382,444,422,426,446,413,470,401,492,393,494,398,472,405,448,417,424,431,384,449"/>
+<area shape="poly" id="edge13_Node000012_Node000014" title=" " alt="" coords="385,485,424,503,472,530,489,537,487,542,470,535,422,508,382,490"/>
+<area shape="rect" id="Node000015" href="$namespaceyaze_1_1editor.html#a06ac44536e73112b10156d6ea830d66c" title=" " alt="" coords="490,415,645,455"/>
+<area shape="poly" id="edge14_Node000012_Node000015" title=" " alt="" coords="412,453,474,445,475,450,412,459"/>
+<area shape="rect" id="Node000018" href="$classyaze_1_1zelda3_1_1GameEntity.html#ae6fb12db3dc4ea2f15b02ea0ab56ac86" title=" " alt="" coords="486,480,649,521"/>
+<area shape="poly" id="edge15_Node000012_Node000018" title=" " alt="" coords="412,476,471,484,471,489,412,481"/>
 </map>

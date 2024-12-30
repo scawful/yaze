@@ -1,5 +1,6 @@
 var core_2common_8h =
 [
+    [ "yaze::core::HexStringParams", "structyaze_1_1core_1_1HexStringParams.html", "structyaze_1_1core_1_1HexStringParams" ],
     [ "yaze::core::ExperimentFlags", "classyaze_1_1core_1_1ExperimentFlags.html", "classyaze_1_1core_1_1ExperimentFlags" ],
     [ "yaze::core::ExperimentFlags::Flags", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags" ],
     [ "yaze::core::ExperimentFlags::Flags::Overworld", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld" ],
@@ -8,10 +9,10 @@ var core_2common_8h =
     [ "yaze::core::Logger", "classyaze_1_1core_1_1Logger.html", null ],
     [ "yaze::core::FolderItem", "structyaze_1_1core_1_1FolderItem.html", "structyaze_1_1core_1_1FolderItem" ],
     [ "FolderItem", "core_2common_8h.html#a778013ae3dbd2be64704b0eb01769d91", null ],
-    [ "UppercaseHexByte", "core_2common_8h.html#a1976cfc905277d7951db38e5bd1b000a", null ],
-    [ "UppercaseHexWord", "core_2common_8h.html#a15eb6da70143253b66cd9602ce98b2bc", null ],
-    [ "UppercaseHexLong", "core_2common_8h.html#ae800a6b0d949ad8cada6336a986490d6", null ],
-    [ "UppercaseHexLongLong", "core_2common_8h.html#af718f139262a8a7d756dcfe999f67930", null ],
+    [ "HexByte", "core_2common_8h.html#a1f2441e9967fc5718d30608cccc7f74c", null ],
+    [ "HexWord", "core_2common_8h.html#a57150d42af734375f63f98bc6d752bda", null ],
+    [ "HexLong", "core_2common_8h.html#a0de2c3f1f2dba2f5581d9d1e3018135f", null ],
+    [ "HexLongLong", "core_2common_8h.html#a18ea1e86d2ecdd880587545a3de97e51", null ],
     [ "StringReplace", "core_2common_8h.html#a2efa2fdd38e8bf23d8f3cf7ce03679fc", null ],
     [ "SnesToPc", "core_2common_8h.html#a772a2d0d104498cb8100f0b2e717b6a2", null ],
     [ "PcToSnes", "core_2common_8h.html#a134be6f5a039339a4a40c50152820e28", null ],

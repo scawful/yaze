@@ -32,9 +32,5 @@ var searchData=
   ['updatetile16transfer_29',['UpdateTile16Transfer',['../classyaze_1_1editor_1_1Tile16Editor.html#a6c007460f179722fac22249526e7bb39',1,'yaze::editor::Tile16Editor']]],
   ['updatetransfertilecanvas_30',['UpdateTransferTileCanvas',['../classyaze_1_1editor_1_1Tile16Editor.html#a277c8c075ae907886686d6d17e8f3028',1,'yaze::editor::Tile16Editor']]],
   ['updateusagestats_31',['UpdateUsageStats',['../classyaze_1_1editor_1_1OverworldEditor.html#a14ae026e75243f19defc01df2f7523f2',1,'yaze::editor::OverworldEditor']]],
-  ['uppercasehexbyte_32',['UppercaseHexByte',['../namespaceyaze_1_1core.html#a1976cfc905277d7951db38e5bd1b000a',1,'yaze::core']]],
-  ['uppercasehexlong_33',['UppercaseHexLong',['../namespaceyaze_1_1core.html#ae800a6b0d949ad8cada6336a986490d6',1,'yaze::core']]],
-  ['uppercasehexlonglong_34',['UppercaseHexLongLong',['../namespaceyaze_1_1core.html#af718f139262a8a7d756dcfe999f67930',1,'yaze::core']]],
-  ['uppercasehexword_35',['UppercaseHexWord',['../namespaceyaze_1_1core.html#a15eb6da70143253b66cd9602ce98b2bc',1,'yaze::core']]],
-  ['userroutine_36',['UserRoutine',['../structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html#a1bab4ea9f52dc3661efea0b3db41eef8',1,'yaze::editor::zsprite::UserRoutine']]]
+  ['userroutine_32',['UserRoutine',['../structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html#a1bab4ea9f52dc3661efea0b3db41eef8',1,'yaze::editor::zsprite::UserRoutine']]]
 ];

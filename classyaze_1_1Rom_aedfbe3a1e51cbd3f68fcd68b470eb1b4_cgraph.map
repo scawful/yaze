@@ -1,9 +1,9 @@
 <map id="yaze::Rom::WriteLong" name="yaze::Rom::WriteLong">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,55,151,80"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1Logger.html#ab58aa88790e96142272311cf1dcb84b5" title=" " alt="" coords="238,5,385,31"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1core.html#a0de2c3f1f2dba2f5581d9d1e3018135f" title=" " alt="" coords="243,5,380,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,51,232,32,233,37,143,57"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a4f206b5fc4e64680dccee58086eb879a" title="Precondition check for reading and writing to the Rom." alt="" coords="199,55,424,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="151,65,183,65,183,70,151,70"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1core.html#ae800a6b0d949ad8cada6336a986490d6" title=" " alt="" coords="212,104,411,130"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1Logger.html#ab58aa88790e96142272311cf1dcb84b5" title=" " alt="" coords="238,55,385,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="151,65,222,65,222,70,151,70"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1Rom.html#a4f206b5fc4e64680dccee58086eb879a" title="Precondition check for reading and writing to the Rom." alt="" coords="199,104,424,130"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="143,78,233,98,232,103,142,84"/>
 </map>

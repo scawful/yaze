@@ -1,10 +1,10 @@
 <map id="yaze::editor::ScreenEditor::LoadDungeonMaps" name="yaze::editor::ScreenEditor::LoadDungeonMaps">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,71,171,112"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="242,29,392,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,71,238,56,240,61,172,76"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1core.html#a772a2d0d104498cb8100f0b2e717b6a2" title=" " alt="" coords="244,79,390,104"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="171,89,229,89,229,94,171,94"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1core.html#a1976cfc905277d7951db38e5bd1b000a" title=" " alt="" coords="219,128,415,154"/>
-<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="172,107,240,122,238,127,170,112"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="279,31,271,21,276,11,291,5,317,3,345,5,359,12,357,17,343,10,317,8,293,10,280,15,277,20,283,27"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1core.html#a1f2441e9967fc5718d30608cccc7f74c" title=" " alt="" coords="227,5,360,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,68,218,40,235,34,236,39,220,45,144,73"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="219,79,368,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="171,89,203,89,203,94,171,94"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1core.html#a772a2d0d104498cb8100f0b2e717b6a2" title=" " alt="" coords="221,128,366,154"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="172,109,223,121,221,126,171,114"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="259,80,252,70,256,60,270,54,293,52,319,55,331,62,329,66,317,60,293,57,272,59,260,64,258,69,263,77"/>
 </map>

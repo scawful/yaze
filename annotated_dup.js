@@ -24,6 +24,7 @@ var annotated_dup =
         [ "ExperimentFlags", "classyaze_1_1core_1_1ExperimentFlags.html", "classyaze_1_1core_1_1ExperimentFlags" ],
         [ "FileDialogWrapper", "classyaze_1_1core_1_1FileDialogWrapper.html", null ],
         [ "FolderItem", "structyaze_1_1core_1_1FolderItem.html", "structyaze_1_1core_1_1FolderItem" ],
+        [ "HexStringParams", "structyaze_1_1core_1_1HexStringParams.html", "structyaze_1_1core_1_1HexStringParams" ],
         [ "Logger", "classyaze_1_1core_1_1Logger.html", null ],
         [ "NotifyValue", "classyaze_1_1core_1_1NotifyValue.html", "classyaze_1_1core_1_1NotifyValue" ],
         [ "Renderer", "classyaze_1_1core_1_1Renderer.html", "classyaze_1_1core_1_1Renderer" ],

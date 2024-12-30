@@ -13,7 +13,8 @@ var namespaceyaze_1_1core =
       [ "ldle0", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#ab398058c34f949af56d2214c1f052abb", null ],
       [ "ldle1", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a42feaae235cf462ca0171cb490459f7a", null ],
       [ "ldle2", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#ae45c534800b9d5a30f1647ac5013baea", null ],
-      [ "ldle3", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#ae6064f68a5f5ea3d74189dd5e4a5dea8", null ]
+      [ "ldle3", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#ae6064f68a5f5ea3d74189dd5e4a5dea8", null ],
+      [ "HandleHexStringParams", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a5bee52f0340097913cdf52b6f646b3c5", null ]
     ] ],
     [ "anonymous_namespace{controller.cc}", "namespaceyaze_1_1core_1_1anonymous__namespace_02controller_8cc_03.html", [
       [ "NewMasterFrame", "namespaceyaze_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#aaf52a3cf38ceb5200311471e0c760fca", null ],
@@ -23,6 +24,7 @@ var namespaceyaze_1_1core =
     [ "ExperimentFlags", "classyaze_1_1core_1_1ExperimentFlags.html", "classyaze_1_1core_1_1ExperimentFlags" ],
     [ "FileDialogWrapper", "classyaze_1_1core_1_1FileDialogWrapper.html", null ],
     [ "FolderItem", "structyaze_1_1core_1_1FolderItem.html", "structyaze_1_1core_1_1FolderItem" ],
+    [ "HexStringParams", "structyaze_1_1core_1_1HexStringParams.html", "structyaze_1_1core_1_1HexStringParams" ],
     [ "Logger", "classyaze_1_1core_1_1Logger.html", null ],
     [ "NotifyValue", "classyaze_1_1core_1_1NotifyValue.html", "classyaze_1_1core_1_1NotifyValue" ],
     [ "Renderer", "classyaze_1_1core_1_1Renderer.html", "classyaze_1_1core_1_1Renderer" ],
@@ -38,10 +40,10 @@ var namespaceyaze_1_1core =
       [ "kWindows", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648aad547616982f990862d4e1213452c089", null ],
       [ "kLinux", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648ae3f917d82e495f1c002357925ca3047e", null ]
     ] ],
-    [ "UppercaseHexByte", "namespaceyaze_1_1core.html#a1976cfc905277d7951db38e5bd1b000a", null ],
-    [ "UppercaseHexWord", "namespaceyaze_1_1core.html#a15eb6da70143253b66cd9602ce98b2bc", null ],
-    [ "UppercaseHexLong", "namespaceyaze_1_1core.html#ae800a6b0d949ad8cada6336a986490d6", null ],
-    [ "UppercaseHexLongLong", "namespaceyaze_1_1core.html#af718f139262a8a7d756dcfe999f67930", null ],
+    [ "HexByte", "namespaceyaze_1_1core.html#a1f2441e9967fc5718d30608cccc7f74c", null ],
+    [ "HexWord", "namespaceyaze_1_1core.html#a57150d42af734375f63f98bc6d752bda", null ],
+    [ "HexLong", "namespaceyaze_1_1core.html#a0de2c3f1f2dba2f5581d9d1e3018135f", null ],
+    [ "HexLongLong", "namespaceyaze_1_1core.html#a18ea1e86d2ecdd880587545a3de97e51", null ],
     [ "StringReplace", "namespaceyaze_1_1core.html#a2efa2fdd38e8bf23d8f3cf7ce03679fc", null ],
     [ "Get24LocalFromPC", "namespaceyaze_1_1core.html#aa2886304092e4c8f1cbd33eeb0d7d980", null ],
     [ "stle16b_i", "namespaceyaze_1_1core.html#a611a51e1035d450eef5c06263128ce92", null ],

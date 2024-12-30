@@ -1,9 +1,9 @@
 <map id="yaze::Rom::WriteVector" name="yaze::Rom::WriteVector">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,55,160,80"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="250,5,362,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,51,234,31,235,36,145,57"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1Logger.html#ab58aa88790e96142272311cf1dcb84b5" title=" " alt="" coords="232,55,380,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="160,65,217,65,217,70,160,70"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1core.html#a1976cfc905277d7951db38e5bd1b000a" title=" " alt="" coords="208,104,404,130"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="145,78,230,97,229,103,144,84"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="226,5,337,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,51,211,33,212,38,138,57"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1core.html#a1f2441e9967fc5718d30608cccc7f74c" title=" " alt="" coords="215,55,348,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="160,65,199,65,199,70,160,70"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1Logger.html#ab58aa88790e96142272311cf1dcb84b5" title=" " alt="" coords="208,104,355,130"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="138,78,212,97,211,102,137,84"/>
 </map>
