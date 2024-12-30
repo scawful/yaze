@@ -3,11 +3,9 @@
 
 #include "app/rom.h"
 #include "app/zelda3/dungeon/room.h"
-#include "gtest/gtest.h"
 
 namespace yaze {
 namespace test {
-namespace zelda3 {
 
 class DungeonRoomTest : public ::testing::Test, public SharedRom {
  protected:
@@ -31,6 +29,5 @@ TEST_F(DungeonRoomTest, SingleRoomLoadOk) {
   test_room.LoadRoomFromROM();
 }
 
-}  // namespace zelda3
 }  // namespace test
 }  // namespace yaze

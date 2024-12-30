@@ -5,7 +5,6 @@
 
 namespace yaze {
 namespace test {
-namespace zelda3 {
 
 using namespace yaze::zelda3;
 
@@ -61,6 +60,5 @@ TEST_F(SpriteBuilderTest, BuildSpritePropertiesOk) {
 )"));
 }
 
-}  // namespace zelda3
 }  // namespace test
 }  // namespace yaze

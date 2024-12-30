@@ -12,7 +12,6 @@
 
 namespace yaze {
 namespace test {
-namespace gfx {
 
 using yaze::Rom;
 using yaze::gfx::lc_lz2::CompressionContext;
@@ -423,6 +422,5 @@ TEST(LC_LZ2_CompressionTest, DecompressionMixingCommand) {
   EXPECT_THAT(random1_o, ElementsAreArray(decomp_result.data(), 9));
 }
 
-}  // namespace gfx
 }  // namespace test
 }  // namespace yaze

@@ -6,7 +6,6 @@
 
 namespace yaze {
 namespace test {
-namespace zelda3 {
 
 class MessageTest : public ::testing::Test, public SharedRom {
  protected:
@@ -44,6 +43,5 @@ TEST_F(MessageTest, VerifySingleMessageFromRomOk) {
   // TODO - Implement this test
 }
 
-}  // namespace zelda3
 }  // namespace test
 }  // namespace yaze
