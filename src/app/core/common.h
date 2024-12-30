@@ -19,10 +19,16 @@ namespace yaze {
  */
 namespace core {
 
-std::string UppercaseHexByte(uint8_t byte, bool leading = false);
-std::string UppercaseHexWord(uint16_t word, bool leading = false);
-std::string UppercaseHexLong(uint32_t dword);
-std::string UppercaseHexLongLong(uint64_t qword);
+
+struct HexStringParams {
+  enum class Prefix { kNone, kDollar, kHash, k0x } prefix = Prefix::kDollar;
+  bool uppercase = true;
+};
+
+std::string HexByte(uint8_t byte, HexStringParams params = {});
+std::string HexWord(uint16_t word, HexStringParams params = {});
+std::string HexLong(uint32_t dword, HexStringParams params = {});
+std::string HexLongLong(uint64_t qword, HexStringParams params = {});
 
 bool StringReplace(std::string &str, const std::string &from,
                    const std::string &to);

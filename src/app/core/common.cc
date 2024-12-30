@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 
@@ -58,7 +59,6 @@ unsigned ldle(uint8_t const *const p_arr, unsigned const p_index) {
 
 void stle(uint8_t *const p_arr, size_t const p_index, unsigned const p_val) {
   uint8_t v = (p_val >> (8 * p_index)) & 0xff;
-
   p_arr[p_index] = v;
 }
 
@@ -90,30 +90,75 @@ uint32_t ldle2(uint8_t const *const p_arr) { return ldle(p_arr, 2); }
 // Helper function to get the third byte in a little endian number
 uint32_t ldle3(uint8_t const *const p_arr) { return ldle(p_arr, 3); }
 
+void HandleHexStringParams(const std::string &hex,
+                           const HexStringParams &params) {
+  std::string result = hex;
+  switch (params.prefix) {
+    case HexStringParams::Prefix::kDollar:
+      result = absl::StrCat("$", result);
+      break;
+    case HexStringParams::Prefix::kHash:
+      result = absl::StrCat("#", result);
+      break;
+    case HexStringParams::Prefix::k0x:
+      result = absl::StrCat("0x", result);
+    case HexStringParams::Prefix::kNone:
+    default:
+      break;
+  }
+}
+
 }  // namespace
 
-std::string UppercaseHexByte(uint8_t byte, bool leading) {
-  if (leading) {
-    std::string result = absl::StrFormat("0x%02X", byte);
-    return result;
+std::string HexByte(uint8_t byte, HexStringParams params) {
+  std::string result;
+  constexpr std::string kLowerFormat = "%02x";
+  constexpr std::string kUpperFormat = "%02X";
+  if (params.uppercase) {
+    result = absl::StrFormat(kUpperFormat.c_str(), byte);
+  } else {
+    result = absl::StrFormat(kLowerFormat.c_str(), byte);
   }
-  std::string result = absl::StrFormat("%02X", byte);
+  HandleHexStringParams(result, params);
   return result;
 }
-std::string UppercaseHexWord(uint16_t word, bool leading) {
-  if (leading) {
-    std::string result = absl::StrFormat("0x%04X", word);
-    return result;
+
+std::string HexWord(uint16_t word, HexStringParams params) {
+  std::string result;
+  constexpr std::string kLowerFormat = "%04x";
+  constexpr std::string kUpperFormat = "%04X";
+  if (params.uppercase) {
+    result = absl::StrFormat(kUpperFormat.c_str(), word);
+  } else {
+    result = absl::StrFormat(kLowerFormat.c_str(), word);
   }
-  std::string result = absl::StrFormat("%04X", word);
+  HandleHexStringParams(result, params);
   return result;
 }
-std::string UppercaseHexLong(uint32_t dword) {
-  std::string result = absl::StrFormat("0x%06X", dword);
+
+std::string HexLong(uint32_t dword, HexStringParams params) {
+  std::string result;
+  constexpr std::string kLowerFormat = "%06x";
+  constexpr std::string kUpperFormat = "%06X";
+  if (params.uppercase) {
+    result = absl::StrFormat(kUpperFormat.c_str(), dword);
+  } else {
+    result = absl::StrFormat(kLowerFormat.c_str(), dword);
+  }
+  HandleHexStringParams(result, params);
   return result;
 }
-std::string UppercaseHexLongLong(uint64_t qword) {
-  std::string result = absl::StrFormat("0x%08X", qword);
+
+std::string HexLongLong(uint64_t qword, HexStringParams params) {
+  std::string result;
+  constexpr std::string kLowerFormat = "%08x";
+  constexpr std::string kUpperFormat = "%08X";
+  if (params.uppercase) {
+    result = absl::StrFormat(kUpperFormat.c_str(), qword);
+  } else {
+    result = absl::StrFormat(kLowerFormat.c_str(), qword);
+  }
+  HandleHexStringParams(result, params);
   return result;
 }
 
