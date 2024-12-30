@@ -12,6 +12,9 @@ namespace cli {
 
 struct Context {
   bool is_loaded = false;
+
+  ftxui::Component layout;
+  ftxui::Component main_component;
 };
 
 void ShowMain();

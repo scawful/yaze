@@ -8,23 +8,24 @@
 namespace yaze {
 namespace cli {
 
+using namespace ftxui;
+
 namespace {
 bool HandleInput(ftxui::Event &event, int &selected) {
-  using namespace ftxui;
   if (event == Event::ArrowDown || event == Event::Character('j')) {
     selected++;
     return true;
   }
   if (event == Event::ArrowUp || event == Event::Character('k')) {
-    if (selected != 0) selected--;
+    if (selected != 0)
+      selected--;
     return true;
   }
   return false;
 }
-}  // namespace
+} // namespace
 
 void ShowMain() {
-  using namespace ftxui;
   Context context;
 
   std::vector<std::string> entries = {
@@ -34,14 +35,18 @@ void ShowMain() {
 
   MenuOption option;
   auto menu = Menu(&entries, &selected, option);
+  menu = CatchEvent(
+      menu, [&selected](Event event) { return HandleInput(event, selected); });
 
-  Element main_document = gridbox({
-      {text("z3ed: The Legend of Zelda: A Link to the Past") | bold | flex},
-      {menu->Render() | border | flex},
+  auto layout = Container::Vertical({
+      menu,
   });
-
-  auto main_component = Renderer([&] { return main_document; });
-  auto screen = ScreenInteractive::TerminalOutput();
+  auto main_component = Renderer(layout, [&] {
+    return vbox({
+        menu->Render(),
+    });
+  });
+  auto screen = ScreenInteractive::FitComponent();
 
   // Exit the loop when "Exit" is selected
   main_component = CatchEvent(main_component, [&](Event event) {
@@ -53,17 +58,13 @@ void ShowMain() {
       screen.ExitLoopClosure()();
       return true;
     }
-    return HandleInput(event, selected);
+    return false;
   });
 
   screen.Loop(main_component);
 }
 
-void DrawPaletteEditor(Rom *rom) {
-  using namespace ftxui;
+void DrawPaletteEditor(Rom *rom) { auto palette_groups = rom->palette_group(); }
 
-  auto palette_groups = rom->palette_group();
-}
-
-}  // namespace cli
-}  // namespace yaze
+} // namespace cli
+} // namespace yaze
