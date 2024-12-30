@@ -23,13 +23,12 @@ Custom assembly code applied to the game should be included through the `yaze.as
 ## File Structure
 
 - **File Extension**: Use `.asm` as the file extension for 65816 assembly files.
-- **Header Comments**: Include a header comment at the beginning of each file describing its purpose and the author. 
+- **Header Comments**: Include a header comment at the beginning of each file describing its purpose and the author.
 
 Example:
 
 ```asm
 ; =========================================================
-; File: my_file.asm
 ; Purpose: [Brief description of the file’s functionality]
 ; Author: [Your Name]
 ; =========================================================
@@ -68,11 +67,10 @@ Sprite_Minecart_Main:
 }
 ```
 
-
 ## Comments
 
 - **Purpose**: Comments should explain why the code exists and what it is intended to do, especially for complex logic.
-- **Placement**: 
+- **Placement**:
   - Comments can be placed above the code block they describe for longer explanations.
   - Inline comments can be used for single lines of code where the purpose might not be immediately clear.
 - **Clarity**: Avoid stating the obvious. Focus on explaining the logic rather than restating the code.
@@ -81,22 +79,6 @@ Example:
 
 ```asm
 LDA $22 : SEC : SBC $3F : STA $31   ; Adjust X position for camera movement
-```
-
-## Directives
-
-- **Organization**: Use `%macro`, `include`, and other Asar directives in a structured manner, keeping related directives grouped together.
-- **Usage**: Ensure all directives are used consistently throughout the codebase, following the naming conventions and formatting rules established.
-
-Example:
-
-```asm
-%macro InitMovement
-    LDA.b $22 : STA.b $3F
-    LDA.b $23 : STA.b $41
-    LDA.b $20 : STA.b $3E
-    LDA.b $21 : STA.b $40
-endmacro
 ```
 
 ## Instructions
@@ -121,11 +103,11 @@ Example:
 
 ```asm
 %macro HandlePlayerCamera
-    LDA $22 : SEC : SBC $3F : STA $31
-    LDA $20 : SEC : SBC $3E : STA $30
-    JSL Link_HandleMovingAnimation_FullLongEntry
-    JSL HandleIndoorCameraAndDoors
-    RTS
+  LDA $22 : SEC : SBC $3F : STA $31
+  LDA $20 : SEC : SBC $3E : STA $30
+  JSL Link_HandleMovingAnimation_FullLongEntry
+  JSL HandleIndoorCameraAndDoors
+  RTS
 endmacro
 ```
 
@@ -137,12 +119,12 @@ endmacro
 Example:
 
 ```asm
-.loop_start
-    LDA $00 : CMP #$10 : BEQ .end_loop
+  .loop_start
+  LDA $00 : CMP #$10 : BEQ .end_loop
     INC $00
     BRA .loop_start
-.end_loop
-    RTS
+  .end_loop
+  RTS
 ```
 
 ## Data Structures
@@ -155,10 +137,10 @@ Example:
 ```asm
 .DirectionTileLookup
 {
-    db $02, $00, $04, $00 ; North
-    db $00, $00, $03, $01 ; East
-    db $00, $02, $00, $04 ; South
-    db $03, $01, $00, $00 ; West
+  db $02, $00, $04, $00 ; North
+  db $00, $00, $03, $01 ; East
+  db $00, $02, $00, $04 ; South
+  db $03, $01, $00, $00 ; West
 }
 ```
 
@@ -206,7 +188,6 @@ AncillaAdd_Hookshot:
 - **Logical Grouping**: Organize code into logical sections, with related routines and macros grouped together.
 - **Separation of Concerns**: Ensure that each section of code is responsible for a specific task or set of related tasks, avoiding tightly coupled code.
 - **Modularity**: Write code in a modular way, making it easier to reuse and maintain.
-- **Status Registers and Stack Operations**: Indent code blocks when using status register operations (REP, SEP, PHX, PLX, etc.) to improve readability.
 
 Example:
 
@@ -216,22 +197,20 @@ Example:
 ; =========================================================
 Sprite_Minecart_Main:
 {
-    JSR HandleTileDirections
-    JSR HandleDynamicSwitchTileDirections
-    PHX
-      JSR HandleMinecartMovement
-    PLX
+  PHX
+  JSR HandleMinecartMovement
+  PLX
 
-    REP #$20
-      LDA !SpriteDirection : STA $00
-    SEP #$20
-    RTS
+  REP #$20
+  LDA !SpriteDirection : STA $00
+  SEP #$20
+  RTS
 }
 ```
 
 ## Custom Code
 
-- **Integration**: Include custom assembly code in the `yaze.asm` file to ensure it is applied correctly to the ROM. The module should include a define and conditional statement to allow users to disable the module if needed. 
+- **Integration**: Include custom assembly code in the `yaze.asm` file to ensure it is applied correctly to the ROM. The module should include a define and conditional statement to allow users to disable the module if needed.
 
 Example:
 
