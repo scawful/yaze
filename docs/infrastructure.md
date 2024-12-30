@@ -18,14 +18,14 @@ The goal of yaze is to build a cross platform editor for the Legend of Zelda: A 
 - **assets**: Hosts assets like fonts, icons, assembly source, etc.
 - **cmake**: Contains CMake configurations.
 - **docs**: Contains documentation for users and developers.
-- **src**: Contains source files. 
+- **incl**: Contains the public headers for `yaze_c`
+- **src**: Contains source files.
   - **app**:  Contains the GUI editor `yaze`
   - **app/emu**:  Contains a standalone Snes emulator application `yaze_emu`
   - **cli**:  Contains the command line interface `z3ed`
-  - **incl**: Contains the data headers for `yaze_c`
+  - **cli/python**:   Contains the Python module `yaze_py`
   - **ios**:  Contains the iOS application `yaze_ios`
   - **lib**:  Contains the dependencies as git submodules
-  - **py**:   Contains the Python module `yaze_py`
   - **test**: Contains testing interface `yaze_test`
   - **win32**: Contains Windows resource file and icon
 
@@ -83,4 +83,3 @@ Currently implemented as a singleton with SharedRom which is not great but has h
 - app/gfx/bitmap.h
 
 This class is responsible for creating, managing, and manipulating bitmap data, which can be displayed on the screen using SDL2 Textures and the ImGui draw list. It also provides functions for exporting these bitmaps to the clipboard in PNG format using libpng.
-
