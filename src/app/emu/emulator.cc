@@ -3,14 +3,11 @@
 #include <cstdint>
 #include <vector>
 
-#include "app/core/constants.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/platform/renderer.h"
-#include "app/emu/snes.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/zeml.h"
-#include "app/rom.h"
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
 

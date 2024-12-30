@@ -17,31 +17,6 @@ namespace yaze {
  */
 namespace emu {
 
-//   case SDLK_z:
-//     editor.emulator().snes().SetButtonState(1, 0, false);
-//   case SDLK_a:
-//     editor.emulator().snes().SetButtonState(1, 1, false);
-//   case SDLK_RSHIFT:
-//     editor.emulator().snes().SetButtonState(1, 2, false);
-//   case SDLK_RETURN:
-//     editor.emulator().snes().SetButtonState(1, 3, false);
-//   case SDLK_UP:
-//     editor.emulator().snes().SetButtonState(1, 4, false);
-//   case SDLK_DOWN:
-//     editor.emulator().snes().SetButtonState(1, 5, false);
-//   case SDLK_LEFT:
-//     editor.emulator().snes().SetButtonState(1, 6, false);
-//   case SDLK_RIGHT:
-//     editor.emulator().snes().SetButtonState(1, 7, false);
-//   case SDLK_x:
-//     editor.emulator().snes().SetButtonState(1, 8, false);
-//   case SDLK_s:
-//     editor.emulator().snes().SetButtonState(1, 9, false);
-//   case SDLK_d:
-//     editor.emulator().snes().SetButtonState(1, 10, false);
-//   case SDLK_c:
-//     editor.emulator().snes().SetButtonState(1, 11, false);
-
 struct EmulatorKeybindings {
   ImGuiKey a_button = ImGuiKey_Z;
   ImGuiKey b_button = ImGuiKey_A;
@@ -133,7 +108,7 @@ class Emulator : public SharedRom {
   }
   void Run();
 
-  auto snes() -> SNES& { return snes_; }
+  auto snes() -> Snes& { return snes_; }
   auto running() const -> bool { return running_; }
   void set_audio_buffer(int16_t* audio_buffer) { audio_buffer_ = audio_buffer; }
   auto set_audio_device_id(SDL_AudioDeviceID audio_device) {
@@ -178,7 +153,7 @@ class Emulator : public SharedRom {
   int16_t* audio_buffer_;
   SDL_AudioDeviceID audio_device_;
 
-  SNES snes_;
+  Snes snes_;
   SDL_Texture* ppu_texture_;
 
   std::vector<uint8_t> rom_data_;
@@ -189,7 +164,6 @@ class Emulator : public SharedRom {
 };
 
 }  // namespace emu
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_CORE_EMULATOR_H
