@@ -46,7 +46,7 @@ bool IsEditorActive(Editor *editor, std::vector<Editor *> &active_editors) {
          active_editors.end();
 }
 
-} // namespace
+}  // namespace
 
 void EditorManager::Initialize(std::string filename) {
   if (!filename.empty()) {
@@ -77,8 +77,7 @@ absl::Status EditorManager::Update() {
 void EditorManager::ManageActiveEditors() {
   // Show popup pane to select an editor to add
   static bool show_add_editor = false;
-  if (show_add_editor)
-    OpenPopup("AddEditor");
+  if (show_add_editor) OpenPopup("AddEditor");
 
   if (BeginPopup("AddEditor", ImGuiWindowFlags_AlwaysAutoResize)) {
     if (MenuItem("Overworld", nullptr, false,
@@ -143,85 +142,85 @@ void EditorManager::ManageActiveEditors() {
     for (auto editor : active_editors_) {
       bool open = true;
       switch (editor->type()) {
-      case EditorType::kOverworld:
-        if (overworld_editor_.jump_to_tab() == -1) {
-          if (BeginTabItem("Overworld", &open)) {
-            current_editor_ = &overworld_editor_;
-            status_ = overworld_editor_.Update();
+        case EditorType::kOverworld:
+          if (overworld_editor_.jump_to_tab() == -1) {
+            if (BeginTabItem("Overworld", &open)) {
+              current_editor_ = &overworld_editor_;
+              status_ = overworld_editor_.Update();
+              EndTabItem();
+            }
+          }
+          break;
+        case EditorType::kDungeon:
+          if (BeginTabItem("Dungeon", &open)) {
+            current_editor_ = &dungeon_editor_;
+            status_ = dungeon_editor_.Update();
+            if (overworld_editor_.jump_to_tab() != -1) {
+              dungeon_editor_.add_room(overworld_editor_.jump_to_tab());
+              overworld_editor_.jump_to_tab_ = -1;
+            }
             EndTabItem();
           }
-        }
-        break;
-      case EditorType::kDungeon:
-        if (BeginTabItem("Dungeon", &open)) {
-          current_editor_ = &dungeon_editor_;
-          status_ = dungeon_editor_.Update();
-          if (overworld_editor_.jump_to_tab() != -1) {
-            dungeon_editor_.add_room(overworld_editor_.jump_to_tab());
-            overworld_editor_.jump_to_tab_ = -1;
+          break;
+        case EditorType::kGraphics:
+          if (BeginTabItem("Graphics", &open)) {
+            current_editor_ = &graphics_editor_;
+            status_ = graphics_editor_.Update();
+            EndTabItem();
           }
-          EndTabItem();
-        }
-        break;
-      case EditorType::kGraphics:
-        if (BeginTabItem("Graphics", &open)) {
-          current_editor_ = &graphics_editor_;
-          status_ = graphics_editor_.Update();
-          EndTabItem();
-        }
-        break;
-      case EditorType::kMusic:
-        if (BeginTabItem("Music", &open)) {
-          current_editor_ = &music_editor_;
+          break;
+        case EditorType::kMusic:
+          if (BeginTabItem("Music", &open)) {
+            current_editor_ = &music_editor_;
 
-          status_ = music_editor_.Update();
-          EndTabItem();
-        }
-        break;
-      case EditorType::kPalette:
-        if (BeginTabItem("Palette", &open)) {
-          current_editor_ = &palette_editor_;
-          status_ = palette_editor_.Update();
-          EndTabItem();
-        }
-        break;
-      case EditorType::kScreen:
-        if (BeginTabItem("Screen", &open)) {
-          current_editor_ = &screen_editor_;
-          status_ = screen_editor_.Update();
-          EndTabItem();
-        }
-        break;
-      case EditorType::kSprite:
-        if (BeginTabItem("Sprite", &open)) {
-          current_editor_ = &sprite_editor_;
-          status_ = sprite_editor_.Update();
-          EndTabItem();
-        }
-        break;
-      case EditorType::kAssembly:
-        if (BeginTabItem("Code", &open)) {
-          current_editor_ = &assembly_editor_;
-          assembly_editor_.UpdateCodeView();
-          EndTabItem();
-        }
-        break;
-      case EditorType::kSettings:
-        if (BeginTabItem("Settings", &open)) {
-          current_editor_ = &settings_editor_;
-          status_ = settings_editor_.Update();
-          EndTabItem();
-        }
-        break;
-      case EditorType::kMessage:
-        if (BeginTabItem("Message", &open)) {
-          current_editor_ = &message_editor_;
-          status_ = message_editor_.Update();
-          EndTabItem();
-        }
-        break;
-      default:
-        break;
+            status_ = music_editor_.Update();
+            EndTabItem();
+          }
+          break;
+        case EditorType::kPalette:
+          if (BeginTabItem("Palette", &open)) {
+            current_editor_ = &palette_editor_;
+            status_ = palette_editor_.Update();
+            EndTabItem();
+          }
+          break;
+        case EditorType::kScreen:
+          if (BeginTabItem("Screen", &open)) {
+            current_editor_ = &screen_editor_;
+            status_ = screen_editor_.Update();
+            EndTabItem();
+          }
+          break;
+        case EditorType::kSprite:
+          if (BeginTabItem("Sprite", &open)) {
+            current_editor_ = &sprite_editor_;
+            status_ = sprite_editor_.Update();
+            EndTabItem();
+          }
+          break;
+        case EditorType::kAssembly:
+          if (BeginTabItem("Code", &open)) {
+            current_editor_ = &assembly_editor_;
+            assembly_editor_.UpdateCodeView();
+            EndTabItem();
+          }
+          break;
+        case EditorType::kSettings:
+          if (BeginTabItem("Settings", &open)) {
+            current_editor_ = &settings_editor_;
+            status_ = settings_editor_.Update();
+            EndTabItem();
+          }
+          break;
+        case EditorType::kMessage:
+          if (BeginTabItem("Message", &open)) {
+            current_editor_ = &message_editor_;
+            status_ = message_editor_.Update();
+            EndTabItem();
+          }
+          break;
+        default:
+          break;
       }
       if (!open) {
         active_editors_.erase(
@@ -326,10 +325,9 @@ void EditorManager::DrawStatusPopup() {
 }
 
 void EditorManager::DrawAboutPopup() {
-  if (about_)
-    OpenPopup("About");
+  if (about_) OpenPopup("About");
   if (BeginPopupModal("About", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-    Text("Yet Another Zelda3 Editor - v%s", core::kYazeVersion.data());
+    Text("Yet Another Zelda3 Editor - v%s", version_.c_str());
     Text("Written by: scawful");
     Spacing();
     Text("Special Thanks: Zarby89, JaredBrian");
@@ -344,8 +342,7 @@ void EditorManager::DrawAboutPopup() {
 }
 
 void EditorManager::DrawInfoPopup() {
-  if (rom_info_)
-    OpenPopup("ROM Information");
+  if (rom_info_) OpenPopup("ROM Information");
   if (BeginPopupModal("ROM Information", nullptr,
                       ImGuiWindowFlags_AlwaysAutoResize)) {
     Text("Title: %s", rom()->title().c_str());
@@ -372,7 +369,7 @@ void EditorManager::DrawYazeMenu() {
       show_display_settings = !show_display_settings;
     }
     PopStyleColor();
-    Text("yaze v%s", core::kYazeVersion.data());
+    Text("yaze v%s", version_.c_str());
     EndMenuBar();
   }
 
@@ -540,14 +537,10 @@ void EditorManager::DrawYazeMenuBar() {
   static bool show_palette_editor = false;
   static bool show_emulator = false;
 
-  if (show_imgui_demo)
-    ShowDemoWindow();
-  if (show_imgui_metrics)
-    ShowMetricsWindow(&show_imgui_metrics);
-  if (show_memory_editor)
-    memory_editor_.Update(show_memory_editor);
-  if (show_asm_editor)
-    assembly_editor_.Update(show_asm_editor);
+  if (show_imgui_demo) ShowDemoWindow();
+  if (show_imgui_metrics) ShowMetricsWindow(&show_imgui_metrics);
+  if (show_memory_editor) memory_editor_.Update(show_memory_editor);
+  if (show_asm_editor) assembly_editor_.Update(show_asm_editor);
 
   if (show_emulator) {
     Begin("Emulator", &show_emulator, ImGuiWindowFlags_MenuBar);
@@ -592,20 +585,15 @@ void EditorManager::DrawYazeMenuBar() {
   static bool open_supported_features = false;
   static bool open_manage_project = false;
   if (BeginMenu("Help")) {
-    if (MenuItem("How to open a ROM"))
-      open_rom_help = true;
-    if (MenuItem("Supported Features"))
-      open_supported_features = true;
-    if (MenuItem("How to manage a project"))
-      open_manage_project = true;
+    if (MenuItem("How to open a ROM")) open_rom_help = true;
+    if (MenuItem("Supported Features")) open_supported_features = true;
+    if (MenuItem("How to manage a project")) open_manage_project = true;
 
-    if (MenuItem("About", "F1"))
-      about_ = true;
+    if (MenuItem("About", "F1")) about_ = true;
     EndMenu();
   }
 
-  if (open_supported_features)
-    OpenPopup("Supported Features");
+  if (open_supported_features) OpenPopup("Supported Features");
   if (BeginPopupModal("Supported Features", nullptr,
                       ImGuiWindowFlags_AlwaysAutoResize)) {
     Text("Overworld");
@@ -638,8 +626,7 @@ void EditorManager::DrawYazeMenuBar() {
     EndPopup();
   }
 
-  if (open_rom_help)
-    OpenPopup("Open a ROM");
+  if (open_rom_help) OpenPopup("Open a ROM");
   if (BeginPopupModal("Open a ROM", nullptr,
                       ImGuiWindowFlags_AlwaysAutoResize)) {
     Text("File -> Open");
@@ -656,8 +643,7 @@ void EditorManager::DrawYazeMenuBar() {
     EndPopup();
   }
 
-  if (open_manage_project)
-    OpenPopup("Manage Project");
+  if (open_manage_project) OpenPopup("Manage Project");
   if (BeginPopupModal("Manage Project", nullptr,
                       ImGuiWindowFlags_AlwaysAutoResize)) {
     Text("Project Menu");
@@ -740,5 +726,5 @@ absl::Status EditorManager::OpenProject() {
   return absl::OkStatus();
 }
 
-} // namespace editor
-} // namespace yaze
+}  // namespace editor
+}  // namespace yaze

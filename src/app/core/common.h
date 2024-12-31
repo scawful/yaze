@@ -313,12 +313,7 @@ void ApplyBpsPatch(const std::vector<uint8_t> &source,
                    const std::vector<uint8_t> &patch,
                    std::vector<uint8_t> &target);
 
-constexpr std::string_view kYazeVersion = "0.2.1";
-
-absl::StatusOr<std::string> CheckVersion(const char *version);
-
-} // namespace core
-
-} // namespace yaze
+}  // namespace core
+}  // namespace yaze
 
 #endif
