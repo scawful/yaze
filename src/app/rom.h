@@ -328,9 +328,7 @@ class Rom : public core::ExperimentFlags {
           value, addr));
     }
     rom_data_[addr] = value;
-    std::string log_str = absl::StrFormat("WriteByte: %#06X: %s", addr,
-                                          core::HexByte(value).data());
-    core::Logger::log(log_str);
+    core::logf("WriteByte: %#06X: %s", addr, core::HexByte(value).data());
     return absl::OkStatus();
   }
 
@@ -343,8 +341,7 @@ class Rom : public core::ExperimentFlags {
     }
     rom_data_[addr] = (uint8_t)(value & 0xFF);
     rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
-    core::Logger::log(absl::StrFormat("WriteWord: %#06X: %s", addr,
-                                      core::HexWord(value)));
+    core::logf("WriteWord: %#06X: %s", addr, core::HexWord(value).data());
     return absl::OkStatus();
   }
 
@@ -357,8 +354,7 @@ class Rom : public core::ExperimentFlags {
     }
     rom_data_[addr] = (uint8_t)(value & 0xFF);
     rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
-    core::Logger::log(absl::StrFormat("WriteShort: %#06X: %s", addr,
-                                      core::HexWord(value)));
+    core::logf("WriteShort: %#06X: %s", addr, core::HexWord(value).data());
     return absl::OkStatus();
   }
 
@@ -372,8 +368,7 @@ class Rom : public core::ExperimentFlags {
     rom_data_[addr] = (uint8_t)(value & 0xFF);
     rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
     rom_data_[addr + 2] = (uint8_t)((value >> 16) & 0xFF);
-    core::Logger::log(absl::StrFormat("WriteLong: %#06X: %s", addr,
-                                      core::HexLong(value)));
+    core::logf("WriteLong: %#06X: %s", addr, core::HexLong(value).data());
     return absl::OkStatus();
   }
 
@@ -387,8 +382,7 @@ class Rom : public core::ExperimentFlags {
     for (int i = 0; i < static_cast<int>(data.size()); i++) {
       rom_data_[addr + i] = data[i];
     }
-    core::Logger::log(absl::StrFormat("WriteVector: %#06X: %s", addr,
-                                      core::HexByte(data[0])));
+    core::logf("WriteVector: %#06X: %s", addr, core::HexByte(data[0]).data());
     return absl::OkStatus();
   }
 
@@ -397,8 +391,7 @@ class Rom : public core::ExperimentFlags {
                    ((color.snes() & 0x1F) << 10) | (color.snes() & 0x7C00);
 
     // Write the 16-bit color value to the ROM at the specified address
-    core::Logger::log(absl::StrFormat("WriteColor: %#06X: %s", address,
-                                      core::HexWord(bgr)));
+    core::logf("WriteColor: %#06X: %s", address, core::HexWord(bgr).data());
     return WriteShort(address, bgr);
   }
 
