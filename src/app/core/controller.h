@@ -44,7 +44,7 @@ class Controller : public ExperimentFlags {
   absl::Status LoadConfigFiles();
 
   void SetupScreen(std::string filename = "") {
-    editor_manager_.SetupScreen(filename);
+    editor_manager_.Initialize(filename);
   }
   auto editor_manager() -> editor::EditorManager & { return editor_manager_; }
   auto renderer() -> SDL_Renderer * {
