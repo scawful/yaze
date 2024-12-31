@@ -173,7 +173,7 @@ var NAVTREEINDEX =
 "icons_8h.html#af7d42328406a8ec4ff62223f08466597",
 "message__editor_8h.html#a00c4d23b26706fde3a72cdc112aef45b",
 "namespaceyaze_1_1editor.html#a6b13948b033b60fa0dc966717fc52a82",
-"namespaceyaze_1_1gfx.html#a732d10e2e67a897be5ccd5ffe76b1dfb",
+"namespaceyaze_1_1gfx.html#a773d8b8d1871caffc5115a1e8a2090bb",
 "namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a87b7760f14fbff78d8819291f36ab9a0",
 "namespaceyaze_1_1test.html#a9853b0265931c2e3346e991d89ad8e5d",
 "namespaceyaze_1_1zelda3.html#a5005f9513f85928b431a1be4ba06479f",

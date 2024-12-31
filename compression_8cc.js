@@ -1,8 +1,8 @@
 var compression_8cc =
 [
     [ "DEBUG_LOG", "compression_8cc.html#a5d2f30bd1cbcf49f829a7e8eb6173c06", null ],
-    [ "HyruleMagicCompress", "compression_8cc.html#a6ee33c076f15c89ca7ab32f4707f5ad5", null ],
-    [ "HyruleMagicDecompress", "compression_8cc.html#a274f0039252e9c63a24bb18d52301b6e", null ],
+    [ "HyruleMagicCompress", "compression_8cc.html#ac740e607dcc76bf2c18076778ee5b4ef", null ],
+    [ "HyruleMagicDecompress", "compression_8cc.html#a21be514360ade54dad0e52c660a3ced6", null ],
     [ "PrintCompressionPiece", "compression_8cc.html#a79e586563008984b912926a967592418", null ],
     [ "PrintCompressionChain", "compression_8cc.html#a9eb4d71893f3ec5673e1f6d75599098c", null ],
     [ "CheckByteRepeat", "compression_8cc.html#abc33807b569ecada56acf3abaa5acdd4", null ],

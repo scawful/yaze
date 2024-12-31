@@ -118,6 +118,7 @@ $(function(){initNavTree('compression_8h.html',''); initResizable(true); });
 <div class="contents">
 <div class="textblock"><code>#include &lt;memory&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;absl/status/status.h&quot;</code><br />
 <code>#include &quot;absl/status/statusor.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="constants_8h_source.html">app/core/constants.h</a>&quot;</code><br />
@@ -126,17 +127,19 @@ Include dependency graph for compression.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="compression_8h__incl.png" border="0" usemap="#asrc_2app_2gfx_2compression_8h" alt=""/></div>
 <map name="asrc_2app_2gfx_2compression_8h" id="asrc_2app_2gfx_2compression_8h">
-<area shape="rect" title=" " alt="" coords="155,5,328,31"/>
+<area shape="rect" title=" " alt="" coords="176,5,350,31"/>
 <area shape="rect" title=" " alt="" coords="5,79,73,105"/>
-<area shape="poly" title=" " alt="" coords="208,34,89,76,87,71,206,29"/>
+<area shape="poly" title=" " alt="" coords="226,34,88,78,87,73,224,29"/>
 <area shape="rect" title=" " alt="" coords="96,79,150,105"/>
-<area shape="poly" title=" " alt="" coords="223,34,157,73,155,68,220,29"/>
-<area shape="rect" title=" " alt="" coords="174,79,309,105"/>
-<area shape="poly" title=" " alt="" coords="244,31,244,63,239,63,239,31"/>
-<area shape="rect" title=" " alt="" coords="334,79,480,105"/>
-<area shape="poly" title=" " alt="" coords="271,29,366,70,364,75,269,34"/>
-<area shape="rect" href="constants_8h.html" title=" " alt="" coords="504,79,646,105"/>
-<area shape="poly" title=" " alt="" coords="299,29,504,73,503,78,298,34"/>
+<area shape="poly" title=" " alt="" coords="240,34,161,74,159,69,238,29"/>
+<area shape="rect" title=" " alt="" coords="174,79,232,105"/>
+<area shape="poly" title=" " alt="" coords="255,33,225,69,221,65,251,30"/>
+<area shape="rect" title=" " alt="" coords="255,79,391,105"/>
+<area shape="poly" title=" " alt="" coords="275,30,305,65,301,69,271,33"/>
+<area shape="rect" title=" " alt="" coords="415,79,562,105"/>
+<area shape="poly" title=" " alt="" coords="302,29,436,71,435,76,300,34"/>
+<area shape="rect" href="constants_8h.html" title=" " alt="" coords="585,79,728,105"/>
+<area shape="poly" title=" " alt="" coords="331,29,575,73,574,78,330,34"/>
 </map>
 </div>
 </div><div class="textblock"><div class="dynheader">
@@ -201,10 +204,10 @@ Typedefs</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a6ee33c076f15c89ca7ab32f4707f5ad5" id="r_a6ee33c076f15c89ca7ab32f4707f5ad5"><td class="memItemLeft" align="right" valign="top">uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a6ee33c076f15c89ca7ab32f4707f5ad5">yaze::gfx::HyruleMagicCompress</a> (uint8_t const *const src, int const oldsize, int *const size, int const flag)</td></tr>
-<tr class="separator:a6ee33c076f15c89ca7ab32f4707f5ad5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a274f0039252e9c63a24bb18d52301b6e" id="r_a274f0039252e9c63a24bb18d52301b6e"><td class="memItemLeft" align="right" valign="top">uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a274f0039252e9c63a24bb18d52301b6e">yaze::gfx::HyruleMagicDecompress</a> (uint8_t const *src, int *const size, int const p_big_endian)</td></tr>
-<tr class="separator:a274f0039252e9c63a24bb18d52301b6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac740e607dcc76bf2c18076778ee5b4ef" id="r_ac740e607dcc76bf2c18076778ee5b4ef"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#ac740e607dcc76bf2c18076778ee5b4ef">yaze::gfx::HyruleMagicCompress</a> (uint8_t const *const src, int const oldsize, int *const size, int const flag)</td></tr>
+<tr class="separator:ac740e607dcc76bf2c18076778ee5b4ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21be514360ade54dad0e52c660a3ced6" id="r_a21be514360ade54dad0e52c660a3ced6"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a21be514360ade54dad0e52c660a3ced6">yaze::gfx::HyruleMagicDecompress</a> (uint8_t const *src, int *const size, int const p_big_endian)</td></tr>
+<tr class="separator:a21be514360ade54dad0e52c660a3ced6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a79e586563008984b912926a967592418" id="r_a79e586563008984b912926a967592418"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx_1_1lc__lz2.html#a79e586563008984b912926a967592418">yaze::gfx::lc_lz2::PrintCompressionPiece</a> (const <a class="el" href="namespaceyaze_1_1gfx_1_1lc__lz2.html#a43b6b38e17a2651b146f97df756d81b2">CompressionPiecePointer</a> &amp;piece)</td></tr>
 <tr class="separator:a79e586563008984b912926a967592418"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9eb4d71893f3ec5673e1f6d75599098c" id="r_a9eb4d71893f3ec5673e1f6d75599098c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx_1_1lc__lz2.html#a9eb4d71893f3ec5673e1f6d75599098c">yaze::gfx::lc_lz2::PrintCompressionChain</a> (const <a class="el" href="namespaceyaze_1_1gfx_1_1lc__lz2.html#a43b6b38e17a2651b146f97df756d81b2">CompressionPiecePointer</a> &amp;chain_head)</td></tr>
@@ -369,9 +372,9 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line">(command &lt;&lt; 5) + (length - 1)</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="compression_8h_source.html#l00011">11</a> of file <a class="el" href="compression_8h_source.html">compression.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8h_source.html#l00012">12</a> of file <a class="el" href="compression_8h_source.html">compression.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01129">yaze::gfx::lc_lz2::AddCompressionToChain()</a>, <a class="el" href="compression_8cc_source.html#l00691">yaze::gfx::lc_lz2::CreateCompressionString()</a>, <a class="el" href="compression_8cc_source.html#l01240">yaze::gfx::lc_lz2::FinalizeCompression()</a>, <a class="el" href="compression_8cc_source.html#l01077">yaze::gfx::lc_lz2::HandleDirectCopy()</a>, <a class="el" href="compression__test_8cc_source.html#l00184">yaze::test::TEST()</a>, <a class="el" href="compression__test_8cc_source.html#l00176">yaze::test::TEST()</a>, <a class="el" href="compression__test_8cc_source.html#l00193">yaze::test::TEST()</a>, <a class="el" href="compression__test_8cc_source.html#l00158">yaze::test::TEST()</a>, <a class="el" href="compression__test_8cc_source.html#l00167">yaze::test::TEST()</a>, <a class="el" href="compression__test_8cc_source.html#l00407">yaze::test::TEST()</a>, and <a class="el" href="compression__test_8cc_source.html#l00398">yaze::test::TEST()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l01133">yaze::gfx::lc_lz2::AddCompressionToChain()</a>, <a class="el" href="compression_8cc_source.html#l00695">yaze::gfx::lc_lz2::CreateCompressionString()</a>, <a class="el" href="compression_8cc_source.html#l01244">yaze::gfx::lc_lz2::FinalizeCompression()</a>, <a class="el" href="compression_8cc_source.html#l01081">yaze::gfx::lc_lz2::HandleDirectCopy()</a>, <a class="el" href="compression__test_8cc_source.html#l00184">yaze::test::TEST()</a>, <a class="el" href="compression__test_8cc_source.html#l00176">yaze::test::TEST()</a>, <a class="el" href="compression__test_8cc_source.html#l00193">yaze::test::TEST()</a>, <a class="el" href="compression__test_8cc_source.html#l00158">yaze::test::TEST()</a>, <a class="el" href="compression__test_8cc_source.html#l00167">yaze::test::TEST()</a>, <a class="el" href="compression__test_8cc_source.html#l00407">yaze::test::TEST()</a>, and <a class="el" href="compression__test_8cc_source.html#l00398">yaze::test::TEST()</a>.</p>
 
 </div>
 </div>

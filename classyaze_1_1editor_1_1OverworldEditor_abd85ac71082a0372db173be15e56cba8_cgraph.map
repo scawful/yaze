@@ -26,10 +26,10 @@
 <area shape="poly" id="edge19_Node000001_Node000058" title=" " alt="" coords="108,448,125,489,153,543,191,599,213,624,238,646,245,651,242,656,235,650,209,628,186,602,148,546,120,492,103,450"/>
 <area shape="rect" id="Node000059" href="$classyaze_1_1editor_1_1Tile16Editor.html#af5248200d63e17797a0e46c5a887289d" title=" " alt="" coords="266,727,426,767"/>
 <area shape="poly" id="edge21_Node000001_Node000059" title=" " alt="" coords="105,448,119,501,144,572,162,610,183,647,209,682,238,712,254,722,251,727,235,716,205,685,179,650,157,613,139,574,114,503,100,450"/>
-<area shape="rect" id="Node000143" href="$classyaze_1_1gui_1_1Canvas.html#ab3f87f3c953dbbe9a8afc68a3723faf2" title=" " alt="" coords="283,792,409,833"/>
-<area shape="poly" id="edge25_Node000001_Node000143" title=" " alt="" coords="103,449,113,512,136,601,154,648,176,695,204,739,238,777,270,796,267,801,235,781,200,742,172,698,149,651,131,602,108,514,98,450"/>
-<area shape="rect" id="Node000144" href="$classyaze_1_1gui_1_1Canvas.html#a20b494ea3673042cdb4b7100c2515b83" title=" " alt="" coords="283,857,409,898"/>
-<area shape="poly" id="edge26_Node000001_Node000144" title=" " alt="" coords="102,449,108,523,128,629,145,686,169,743,200,796,238,842,269,862,266,866,235,846,195,799,164,745,140,688,123,630,103,524,96,449"/>
+<area shape="rect" id="Node000146" href="$classyaze_1_1gui_1_1Canvas.html#ab3f87f3c953dbbe9a8afc68a3723faf2" title=" " alt="" coords="283,792,409,833"/>
+<area shape="poly" id="edge25_Node000001_Node000146" title=" " alt="" coords="103,449,113,512,136,601,154,648,176,695,204,739,238,777,270,796,267,801,235,781,200,742,172,698,149,651,131,602,108,514,98,450"/>
+<area shape="rect" id="Node000147" href="$classyaze_1_1gui_1_1Canvas.html#a20b494ea3673042cdb4b7100c2515b83" title=" " alt="" coords="283,857,409,898"/>
+<area shape="poly" id="edge26_Node000001_Node000147" title=" " alt="" coords="102,449,108,523,128,629,145,686,169,743,200,796,238,842,269,862,266,866,235,846,195,799,164,745,140,688,123,630,103,524,96,449"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1gfx_1_1SnesPalette.html#a526b8c0d069fd26b5dd6970c81666d0d" title=" " alt="" coords="520,463,667,503"/>
 <area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="431,390,456,401,472,412,481,424,490,436,505,447,514,453,512,458,501,452,487,439,477,427,468,416,454,405,429,395"/>
 <area shape="rect" id="Node000007" href="$classyaze_1_1gfx_1_1SnesPalette.html#a504a42d10f3d95135b77bb13ef3ec923" title=" " alt="" coords="520,397,667,438"/>

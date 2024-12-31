@@ -80,6 +80,6 @@ var searchData=
   ['hover_5fmouse_5fpos_77',['hover_mouse_pos',['../classyaze_1_1gui_1_1Canvas.html#a3cea4228bbc82ef162fa28b9a88cbfb8',1,'yaze::gui::Canvas']]],
   ['hscroll_78',['hScroll',['../structyaze_1_1emu_1_1BgLayer.html#a822da8bd7639b9e1cbf4170c4edcda9e',1,'yaze::emu::BgLayer']]],
   ['hud_79',['hud',['../structyaze_1_1gfx_1_1PaletteGroupMap.html#abf3c25ebba26b691bdd08f5b8ca2c90d',1,'yaze::gfx::PaletteGroupMap::hud'],['../structyaze_1_1gfx_1_1Paletteset.html#a4e691551109932639735b4390f69c98d',1,'yaze::gfx::Paletteset::hud']]],
-  ['hyrulemagiccompress_80',['HyruleMagicCompress',['../namespaceyaze_1_1gfx.html#a6ee33c076f15c89ca7ab32f4707f5ad5',1,'yaze::gfx']]],
-  ['hyrulemagicdecompress_81',['HyruleMagicDecompress',['../namespaceyaze_1_1gfx.html#a274f0039252e9c63a24bb18d52301b6e',1,'yaze::gfx']]]
+  ['hyrulemagiccompress_80',['HyruleMagicCompress',['../namespaceyaze_1_1gfx.html#ac740e607dcc76bf2c18076778ee5b4ef',1,'yaze::gfx']]],
+  ['hyrulemagicdecompress_81',['HyruleMagicDecompress',['../namespaceyaze_1_1gfx.html#a21be514360ade54dad0e52c660a3ced6',1,'yaze::gfx']]]
 ];

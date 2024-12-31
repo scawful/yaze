@@ -218,10 +218,10 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a6ee33c076f15c89ca7ab32f4707f5ad5" id="r_a6ee33c076f15c89ca7ab32f4707f5ad5"><td class="memItemLeft" align="right" valign="top">uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6ee33c076f15c89ca7ab32f4707f5ad5">HyruleMagicCompress</a> (uint8_t const *const src, int const oldsize, int *const size, int const flag)</td></tr>
-<tr class="separator:a6ee33c076f15c89ca7ab32f4707f5ad5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a274f0039252e9c63a24bb18d52301b6e" id="r_a274f0039252e9c63a24bb18d52301b6e"><td class="memItemLeft" align="right" valign="top">uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a274f0039252e9c63a24bb18d52301b6e">HyruleMagicDecompress</a> (uint8_t const *src, int *const size, int const p_big_endian)</td></tr>
-<tr class="separator:a274f0039252e9c63a24bb18d52301b6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac740e607dcc76bf2c18076778ee5b4ef" id="r_ac740e607dcc76bf2c18076778ee5b4ef"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac740e607dcc76bf2c18076778ee5b4ef">HyruleMagicCompress</a> (uint8_t const *const src, int const oldsize, int *const size, int const flag)</td></tr>
+<tr class="separator:ac740e607dcc76bf2c18076778ee5b4ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21be514360ade54dad0e52c660a3ced6" id="r_a21be514360ade54dad0e52c660a3ced6"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a21be514360ade54dad0e52c660a3ced6">HyruleMagicDecompress</a> (uint8_t const *src, int *const size, int const p_big_endian)</td></tr>
+<tr class="separator:a21be514360ade54dad0e52c660a3ced6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a893d31b6aeb9a3df9754b9def778b458" id="r_a893d31b6aeb9a3df9754b9def778b458"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structsnes__color.html">snes_color</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a893d31b6aeb9a3df9754b9def778b458">ConvertSnesToRgb</a> (uint16_t color_snes)</td></tr>
 <tr class="separator:a893d31b6aeb9a3df9754b9def778b458"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4e83a052d42017612243c3f81b538b7d" id="r_a4e83a052d42017612243c3f81b538b7d"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4e83a052d42017612243c3f81b538b7d">ConvertRgbToSnes</a> (const <a class="el" href="structsnes__color.html">snes_color</a> &amp;color)</td></tr>
@@ -481,14 +481,14 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a6ee33c076f15c89ca7ab32f4707f5ad5" name="a6ee33c076f15c89ca7ab32f4707f5ad5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6ee33c076f15c89ca7ab32f4707f5ad5">&#9670;&#160;</a></span>HyruleMagicCompress()</h2>
+<a id="ac740e607dcc76bf2c18076778ee5b4ef" name="ac740e607dcc76bf2c18076778ee5b4ef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac740e607dcc76bf2c18076778ee5b4ef">&#9670;&#160;</a></span>HyruleMagicCompress()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">uint8_t * yaze::gfx::HyruleMagicCompress </td>
+          <td class="memname">std::vector&lt; uint8_t &gt; yaze::gfx::HyruleMagicCompress </td>
           <td>(</td>
           <td class="paramtype">uint8_t const *const</td>          <td class="paramname"><span class="paramname"><em>src</em></span>, </td>
         </tr>
@@ -510,20 +510,20 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00018">18</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00017">17</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00134">yaze::Rom::SaveAllGraphicsData()</a>, and <a class="el" href="overworld_8cc_source.html#l00518">yaze::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00134">yaze::Rom::SaveAllGraphicsData()</a>, and <a class="el" href="overworld_8cc_source.html#l00509">yaze::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
 
 </div>
 </div>
-<a id="a274f0039252e9c63a24bb18d52301b6e" name="a274f0039252e9c63a24bb18d52301b6e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a274f0039252e9c63a24bb18d52301b6e">&#9670;&#160;</a></span>HyruleMagicDecompress()</h2>
+<a id="a21be514360ade54dad0e52c660a3ced6" name="a21be514360ade54dad0e52c660a3ced6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a21be514360ade54dad0e52c660a3ced6">&#9670;&#160;</a></span>HyruleMagicDecompress()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">uint8_t * yaze::gfx::HyruleMagicDecompress </td>
+          <td class="memname">std::vector&lt; uint8_t &gt; yaze::gfx::HyruleMagicDecompress </td>
           <td>(</td>
           <td class="paramtype">uint8_t const *</td>          <td class="paramname"><span class="paramname"><em>src</em></span>, </td>
         </tr>
@@ -540,14 +540,16 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00164">164</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00166">166</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="common_8cc_source.html#l00193">yaze::core::ldle16b()</a>, and <a class="el" href="common_8cc_source.html#l00188">yaze::core::stle16b()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00210">yaze::zelda3::Overworld::DecompressAllMapTiles()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1gfx_a274f0039252e9c63a24bb18d52301b6e_cgraph.png" border="0" usemap="#anamespaceyaze_1_1gfx_a274f0039252e9c63a24bb18d52301b6e_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1gfx_a274f0039252e9c63a24bb18d52301b6e_cgraph" id="anamespaceyaze_1_1gfx_a274f0039252e9c63a24bb18d52301b6e_cgraph">
+<div class="center"><img src="namespaceyaze_1_1gfx_a21be514360ade54dad0e52c660a3ced6_cgraph.png" border="0" usemap="#anamespaceyaze_1_1gfx_a21be514360ade54dad0e52c660a3ced6_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1gfx_a21be514360ade54dad0e52c660a3ced6_cgraph" id="anamespaceyaze_1_1gfx_a21be514360ade54dad0e52c660a3ced6_cgraph">
 <area shape="rect" title=" " alt="" coords="5,31,227,56"/>
 <area shape="rect" href="namespaceyaze_1_1core.html#ae36970b562677c5876e1ee584a051530" title=" " alt="" coords="275,5,400,31"/>
 <area shape="poly" title=" " alt="" coords="227,28,259,24,260,30,227,33"/>
