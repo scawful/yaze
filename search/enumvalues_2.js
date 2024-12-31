@@ -2,12 +2,18 @@ var searchData=
 [
   ['canvas_0',['Canvas',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a6ea5359e01a41842884943125518289b',1,'yaze::gui::zeml']]],
   ['change_1',['Change',['../namespaceyaze_1_1gui_1_1zeml.html#ad9746eb1ca28a26c12e4a1d6b0be24bdaf4ec5f57bd4d31b803312d873be40da9',1,'yaze::gui::zeml']]],
-  ['checkbox_2',['Checkbox',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a4f8222964f9a317cef99dddc23a121bd',1,'yaze::gui::zeml']]],
-  ['chest_3',['Chest',['../namespaceyaze_1_1zelda3.html#a479da514040cddc99b5da1235244c421a080a546abcbea74459f27ba33313993d',1,'yaze::zelda3::Chest'],['../namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8a080a546abcbea74459f27ba33313993d',1,'yaze::zelda3::Chest']]],
-  ['click_4',['Click',['../namespaceyaze_1_1gui_1_1zeml.html#ad9746eb1ca28a26c12e4a1d6b0be24bda316853cc3718335f11c048e33b9be98a',1,'yaze::gui::zeml']]],
-  ['closebrace_5',['CloseBrace',['../namespaceyaze_1_1gui_1_1zeml.html#ab789223ff6fb457facc22ec1800678f1a00c1c78f29526ca823b26a7fa69bcb81',1,'yaze::gui::zeml']]],
-  ['collapsingheader_6',['CollapsingHeader',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43afd974b19acafec5dc7e542582c3a87cc',1,'yaze::gui::zeml']]],
-  ['columns_7',['Columns',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a168b82d33f8073018c50a4f658a02559',1,'yaze::gui::zeml']]],
-  ['comma_8',['Comma',['../namespaceyaze_1_1gui_1_1zeml.html#ab789223ff6fb457facc22ec1800678f1a58be47db9455679e6a44df2eff9c9fa6',1,'yaze::gui::zeml']]],
-  ['control_9',['Control',['../classyaze_1_1emu_1_1Cpu.html#afdec6b6a7b1a5e7eba910f389715f4c6aa1595abbb4c3a326636dd178757cd6c1',1,'yaze::emu::Cpu']]]
+  ['charliteral_2',['CharLiteral',['../classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a616b859bc3920670a4509686f20de06e',1,'TextEditor']]],
+  ['checkbox_3',['Checkbox',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a4f8222964f9a317cef99dddc23a121bd',1,'yaze::gui::zeml']]],
+  ['chest_4',['Chest',['../namespaceyaze_1_1zelda3.html#a479da514040cddc99b5da1235244c421a080a546abcbea74459f27ba33313993d',1,'yaze::zelda3::Chest'],['../namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8a080a546abcbea74459f27ba33313993d',1,'yaze::zelda3::Chest']]],
+  ['click_5',['Click',['../namespaceyaze_1_1gui_1_1zeml.html#ad9746eb1ca28a26c12e4a1d6b0be24bda316853cc3718335f11c048e33b9be98a',1,'yaze::gui::zeml']]],
+  ['closebrace_6',['CloseBrace',['../namespaceyaze_1_1gui_1_1zeml.html#ab789223ff6fb457facc22ec1800678f1a00c1c78f29526ca823b26a7fa69bcb81',1,'yaze::gui::zeml']]],
+  ['collapsingheader_7',['CollapsingHeader',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43afd974b19acafec5dc7e542582c3a87cc',1,'yaze::gui::zeml']]],
+  ['columns_8',['Columns',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a168b82d33f8073018c50a4f658a02559',1,'yaze::gui::zeml']]],
+  ['comma_9',['Comma',['../namespaceyaze_1_1gui_1_1zeml.html#ab789223ff6fb457facc22ec1800678f1a58be47db9455679e6a44df2eff9c9fa6',1,'yaze::gui::zeml']]],
+  ['comment_10',['Comment',['../classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a0be8406951cdfda82f00f79328cf4efc',1,'TextEditor']]],
+  ['control_11',['Control',['../classyaze_1_1emu_1_1Cpu.html#afdec6b6a7b1a5e7eba910f389715f4c6aa1595abbb4c3a326636dd178757cd6c1',1,'yaze::emu::Cpu']]],
+  ['currentlineedge_12',['CurrentLineEdge',['../classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a1e1c9698023b75321413607285347f7c',1,'TextEditor']]],
+  ['currentlinefill_13',['CurrentLineFill',['../classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9ad08df88464b784729c83c7f2cadbc573',1,'TextEditor']]],
+  ['currentlinefillinactive_14',['CurrentLineFillInactive',['../classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a28e997aa0a7c4236cdf250c8b64084eb',1,'TextEditor']]],
+  ['cursor_15',['Cursor',['../classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a9abdae4fa5d93330363a88ed8a5e7946',1,'TextEditor']]]
 ];

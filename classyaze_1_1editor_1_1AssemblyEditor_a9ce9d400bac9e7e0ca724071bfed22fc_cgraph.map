@@ -1,0 +1,20 @@
+<map id="yaze::editor::AssemblyEditor::Paste" name="yaze::editor::AssemblyEditor::Paste">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,162,187,202"/>
+<area shape="rect" id="Node000002" href="$classTextEditor.html#a55c18a394c0264054dcc3be9e794186c" title=" " alt="" coords="235,169,354,195"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,180,219,180,219,185,187,185"/>
+<area shape="rect" id="Node000003" href="$classTextEditor.html#a77f34ca0960c40edd515a8367920409f" title=" " alt="" coords="424,5,563,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="300,168,336,106,365,70,400,40,408,35,411,40,404,44,369,74,340,109,304,170"/>
+<area shape="rect" id="Node000004" href="$classTextEditor.html#a857a7e2625ce4882c448813ce5bb5649" title=" " alt="" coords="405,55,581,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="306,167,345,129,372,109,401,90,415,84,417,89,403,95,375,113,349,133,309,171"/>
+<area shape="rect" id="Node000012" href="$classTextEditor.html#adc502d0e9e3ad42f78182f495ec25307" title=" " alt="" coords="402,104,584,145"/>
+<area shape="poly" id="edge4_Node000002_Node000012" title=" " alt="" coords="341,166,405,147,406,153,342,171"/>
+<area shape="rect" id="Node000020" href="$classTextEditor.html#ae65cee8d0412c79c93af5b1fd53ccc66" title=" " alt="" coords="402,169,584,195"/>
+<area shape="poly" id="edge5_Node000002_Node000020" title=" " alt="" coords="355,180,386,180,386,185,355,185"/>
+<area shape="rect" id="Node000022" href="$classTextEditor.html#a5097fdb7707db742bbfdfb36333c43ce" title=" " alt="" coords="412,219,575,244"/>
+<area shape="poly" id="edge6_Node000002_Node000022" title=" " alt="" coords="350,193,424,212,423,217,349,198"/>
+<area shape="rect" id="Node000023" href="$classTextEditor.html#a07ac26fc2d44b7affb5390cf03685d69" title=" " alt="" coords="422,292,565,318"/>
+<area shape="poly" id="edge7_Node000002_Node000023" title=" " alt="" coords="315,193,403,255,452,282,450,287,401,259,312,198"/>
+<area shape="rect" id="Node000024" href="$classTextEditor.html#a591376b6fcb865396b50d22e593380cd" title=" " alt="" coords="417,341,569,367"/>
+<area shape="poly" id="edge9_Node000002_Node000024" title=" " alt="" coords="304,194,339,259,368,296,404,328,410,332,407,337,400,332,364,300,335,262,299,197"/>
+<area shape="poly" id="edge8_Node000023_Node000023" title=" " alt="" coords="460,293,453,283,457,274,471,267,493,265,518,268,530,275,528,280,516,273,493,271,472,273,461,277,459,283,464,290"/>
+</map>

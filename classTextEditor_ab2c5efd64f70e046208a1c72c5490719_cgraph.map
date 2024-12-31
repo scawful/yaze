@@ -1,0 +1,16 @@
+<map id="TextEditor::SelectAll" name="TextEditor::SelectAll">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,105,143,131"/>
+<area shape="rect" id="Node000002" href="$classTextEditor.html#af4de0071d66058fdf453af53e346fb36" title=" " alt="" coords="191,105,350,131"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,116,175,116,175,121,143,121"/>
+<area shape="rect" id="Node000003" href="$classTextEditor.html#a8171a76adf4e1fc6a699f60b60eb7902" title=" " alt="" coords="417,5,579,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="289,102,336,71,397,40,414,33,416,38,399,45,339,76,291,107"/>
+<area shape="rect" id="Node000006" href="$classTextEditor.html#a5111c6334e494708b38cabd576f42b71" title=" " alt="" coords="414,55,582,80"/>
+<area shape="poly" id="edge3_Node000002_Node000006" title=" " alt="" coords="331,102,422,82,423,87,332,107"/>
+<area shape="rect" id="Node000007" href="$classTextEditor.html#a2f58e5c49dc1f572c798f2ec848a8433" title=" " alt="" coords="646,156,846,182"/>
+<area shape="poly" id="edge4_Node000002_Node000007" title=" " alt="" coords="351,120,468,128,599,141,660,150,659,155,598,146,467,133,350,125"/>
+<area shape="rect" id="Node000008" href="$classTextEditor.html#ad90c2fb1589c18e492295823408ed9a1" title=" " alt="" coords="400,156,597,182"/>
+<area shape="poly" id="edge5_Node000002_Node000008" title=" " alt="" coords="332,129,423,150,422,155,331,134"/>
+<area shape="rect" id="Node000009" href="$classTextEditor.html#aa9c843e6371660744b9a064b90b2ef38" title=" " alt="" coords="398,205,598,231"/>
+<area shape="poly" id="edge6_Node000002_Node000009" title=" " alt="" coords="291,129,339,161,399,192,416,198,414,203,397,197,336,165,289,134"/>
+<area shape="poly" id="edge7_Node000009_Node000007" title=" " alt="" coords="566,202,662,183,663,188,567,207"/>
+</map>

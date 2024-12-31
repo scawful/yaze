@@ -301,6 +301,7 @@ var annotated_dup =
     [ "snes_tile32", "structsnes__tile32.html", "structsnes__tile32" ],
     [ "snes_tile8", "structsnes__tile8.html", "structsnes__tile8" ],
     [ "snes_tile_info", "structsnes__tile__info.html", "structsnes__tile__info" ],
+    [ "TextEditor", "classTextEditor.html", "classTextEditor" ],
     [ "yaze_bitmap", "structyaze__bitmap.html", "structyaze__bitmap" ],
     [ "yaze_command_registry", "structyaze__command__registry.html", "structyaze__command__registry" ],
     [ "yaze_editor_context", "structyaze__editor__context.html", "structyaze__editor__context" ],

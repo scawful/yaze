@@ -1,0 +1,8 @@
+<map id="TextEditor::GetCurrentLineText" name="TextEditor::GetCurrentLineText">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,43,204,68"/>
+<area shape="rect" id="Node000002" href="$classTextEditor.html#a2f58e5c49dc1f572c798f2ec848a8433" title=" " alt="" coords="252,5,451,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,39,247,31,248,37,194,45"/>
+<area shape="rect" id="Node000003" href="$classTextEditor.html#a581e92e7aff81a99dcd1ab8dcc95e909" title=" " alt="" coords="286,79,417,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="197,66,271,77,270,82,197,72"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="311,80,303,70,307,60,324,54,351,52,382,55,397,62,395,67,381,60,351,57,325,59,311,64,308,69,315,77"/>
+</map>

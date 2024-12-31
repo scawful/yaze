@@ -25,6 +25,5 @@ var common_8cc =
     [ "ldle16b", "common_8cc.html#ae36970b562677c5876e1ee584a051530", null ],
     [ "ldle16b_i", "common_8cc.html#ac9d631f94259376fac0f193ba98bd9b2", null ],
     [ "CreateBpsPatch", "common_8cc.html#a1d6fb7654b6d82c76cf2e31fd4f11a5f", null ],
-    [ "ApplyBpsPatch", "common_8cc.html#a0547d11cc90393910935ab1271f713a4", null ],
-    [ "CheckVersion", "common_8cc.html#a056bdafe2cc4104f6201289f44898047", null ]
+    [ "ApplyBpsPatch", "common_8cc.html#a0547d11cc90393910935ab1271f713a4", null ]
 ];

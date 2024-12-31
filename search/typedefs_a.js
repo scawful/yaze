@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['text_5fbuf_5fty_0',['text_buf_ty',['../namespaceyaze_1_1zelda3_1_1music.html#aebf12437e767920e3173dbe2ea46ddf1',1,'yaze::zelda3::music']]],
-  ['timer_1',['Timer',['../namespaceyaze_1_1emu.html#a6fbcdae90e5fdeccfd5c260d828e4c56',1,'yaze::emu']]]
+  ['owblockset_0',['OWBlockset',['../namespaceyaze_1_1zelda3.html#a3768a32d1806f245dd27c14d78ebb909',1,'yaze::zelda3']]],
+  ['owmaptiles_1',['OWMapTiles',['../namespaceyaze_1_1zelda3.html#aac5e8e1c232e14d46351dbbc1c2660d2',1,'yaze::zelda3']]]
 ];

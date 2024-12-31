@@ -25,9 +25,10 @@ var searchData=
   ['constantmanager_22',['ConstantManager',['../classyaze_1_1editor_1_1ConstantManager.html',1,'yaze::editor']]],
   ['context_23',['Context',['../structyaze_1_1cli_1_1Context.html',1,'yaze::cli']]],
   ['controller_24',['Controller',['../classyaze_1_1core_1_1Controller.html',1,'yaze::core']]],
-  ['counterirqnmiregisters_25',['CounterIrqNmiRegisters',['../structyaze_1_1emu_1_1CounterIrqNmiRegisters.html',1,'yaze::emu']]],
-  ['cpu_26',['Cpu',['../classyaze_1_1emu_1_1Cpu.html',1,'yaze::emu']]],
-  ['cpucallbacks_27',['CpuCallbacks',['../structyaze_1_1emu_1_1CpuCallbacks.html',1,'yaze::emu']]],
-  ['cputest_28',['CpuTest',['../classyaze_1_1test_1_1CpuTest.html',1,'yaze::test']]],
-  ['createpatch_29',['CreatePatch',['../classyaze_1_1cli_1_1CreatePatch.html',1,'yaze::cli']]]
+  ['coordinates_25',['Coordinates',['../structTextEditor_1_1Coordinates.html',1,'TextEditor']]],
+  ['counterirqnmiregisters_26',['CounterIrqNmiRegisters',['../structyaze_1_1emu_1_1CounterIrqNmiRegisters.html',1,'yaze::emu']]],
+  ['cpu_27',['Cpu',['../classyaze_1_1emu_1_1Cpu.html',1,'yaze::emu']]],
+  ['cpucallbacks_28',['CpuCallbacks',['../structyaze_1_1emu_1_1CpuCallbacks.html',1,'yaze::emu']]],
+  ['cputest_29',['CpuTest',['../classyaze_1_1test_1_1CpuTest.html',1,'yaze::test']]],
+  ['createpatch_30',['CreatePatch',['../classyaze_1_1cli_1_1CreatePatch.html',1,'yaze::cli']]]
 ];

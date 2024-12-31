@@ -26,6 +26,7 @@ var hierarchy =
     [ "yaze::emu::BGVOFS", "structyaze_1_1emu_1_1BGVOFS.html", null ],
     [ "yaze::gfx::Bitmap", "classyaze_1_1gfx_1_1Bitmap.html", null ],
     [ "yaze::emu::Emulator::Bookmark", "structyaze_1_1emu_1_1Emulator_1_1Bookmark.html", null ],
+    [ "TextEditor::Breakpoint", "structTextEditor_1_1Breakpoint.html", null ],
     [ "yaze::emu::CGADD", "structyaze_1_1emu_1_1CGADD.html", null ],
     [ "yaze::emu::CGADSUB", "structyaze_1_1emu_1_1CGADSUB.html", null ],
     [ "yaze::emu::CGDATA", "structyaze_1_1emu_1_1CGDATA.html", null ],
@@ -64,6 +65,7 @@ var hierarchy =
     [ "yaze::gfx::lc_lz2::CompressionPiece", "structyaze_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html", null ],
     [ "yaze::editor::ConstantManager", "classyaze_1_1editor_1_1ConstantManager.html", null ],
     [ "yaze::cli::Context", "structyaze_1_1cli_1_1Context.html", null ],
+    [ "TextEditor::Coordinates", "structTextEditor_1_1Coordinates.html", null ],
     [ "yaze::emu::CounterIrqNmiRegisters", "structyaze_1_1emu_1_1CounterIrqNmiRegisters.html", null ],
     [ "yaze::emu::CpuCallbacks", "structyaze_1_1emu_1_1CpuCallbacks.html", null ],
     [ "yaze::editor::DictionaryEntry", "structyaze_1_1editor_1_1DictionaryEntry.html", null ],
@@ -86,6 +88,7 @@ var hierarchy =
       [ "yaze::test::integration::TestEditor", "classyaze_1_1test_1_1integration_1_1TestEditor.html", null ]
     ] ],
     [ "yaze::editor::EditorContext", "structyaze_1_1editor_1_1EditorContext.html", null ],
+    [ "TextEditor::EditorState", "structTextEditor_1_1EditorState.html", null ],
     [ "yaze::emu::EmulatorKeybindings", "structyaze_1_1emu_1_1EmulatorKeybindings.html", null ],
     [ "yaze::editor::ExampleAppPropertyEditor", "structyaze_1_1editor_1_1ExampleAppPropertyEditor.html", null ],
     [ "yaze::editor::ExampleMemberInfo", "structyaze_1_1editor_1_1ExampleMemberInfo.html", null ],
@@ -120,9 +123,11 @@ var hierarchy =
       [ "yaze::zelda3::OverworldMap", "classyaze_1_1zelda3_1_1OverworldMap.html", null ]
     ] ],
     [ "yaze::gui::GfxSheetAssetBrowser", "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html", null ],
+    [ "TextEditor::Glyph", "structTextEditor_1_1Glyph.html", null ],
     [ "yaze::gfx::GraphicsBuffer", "classyaze_1_1gfx_1_1GraphicsBuffer.html", null ],
     [ "yaze::core::HexStringParams", "structyaze_1_1core_1_1HexStringParams.html", null ],
     [ "yaze::editor::HistoryManager", "classyaze_1_1editor_1_1HistoryManager.html", null ],
+    [ "TextEditor::Identifier", "structTextEditor_1_1Identifier.html", null ],
     [ "ImGuiSelectionBasicStorage", null, [
       [ "yaze::gui::ExampleSelectionWithDeletion", "structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html", null ]
     ] ],
@@ -131,6 +136,7 @@ var hierarchy =
     [ "yaze::emu::InstructionEntry", "classyaze_1_1emu_1_1InstructionEntry.html", null ],
     [ "yaze::gfx::InternalTile16", "structyaze_1_1gfx_1_1InternalTile16.html", null ],
     [ "yaze::emu::JoypadRegisters", "structyaze_1_1emu_1_1JoypadRegisters.html", null ],
+    [ "TextEditor::LanguageDefinition", "structTextEditor_1_1LanguageDefinition.html", null ],
     [ "yaze::emu::Layer", "structyaze_1_1emu_1_1Layer.html", null ],
     [ "yaze::core::Logger", "classyaze_1_1core_1_1Logger.html", null ],
     [ "yaze::emu::M7A", "structyaze_1_1emu_1_1M7A.html", null ],
@@ -265,6 +271,7 @@ var hierarchy =
       [ "yaze::test::SpriteBuilderTest", "classyaze_1_1test_1_1SpriteBuilderTest.html", null ]
     ] ],
     [ "yaze::editor::MessageEditor::TextBox", "structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html", null ],
+    [ "TextEditor", "classTextEditor.html", null ],
     [ "yaze::editor::TextElement", "structyaze_1_1editor_1_1TextElement.html", null ],
     [ "yaze::gui::Theme", "structyaze_1_1gui_1_1Theme.html", null ],
     [ "yaze::emu::Tile", "structyaze_1_1emu_1_1Tile.html", null ],
@@ -283,6 +290,7 @@ var hierarchy =
     [ "yaze::zelda3::music::Tracker", "classyaze_1_1zelda3_1_1music_1_1Tracker.html", null ],
     [ "yaze::emu::TS", "structyaze_1_1emu_1_1TS.html", null ],
     [ "yaze::emu::TSW", "structyaze_1_1emu_1_1TSW.html", null ],
+    [ "TextEditor::UndoRecord", "classTextEditor_1_1UndoRecord.html", null ],
     [ "yaze::editor::zsprite::UserRoutine", "structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html", null ],
     [ "yaze::VersionConstants", "structyaze_1_1VersionConstants.html", null ],
     [ "yaze::emu::VideoPortControl", "structyaze_1_1emu_1_1VideoPortControl.html", null ],

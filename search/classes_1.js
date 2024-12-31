@@ -9,5 +9,6 @@ var searchData=
   ['bgsc_6',['BGSC',['../structyaze_1_1emu_1_1BGSC.html',1,'yaze::emu']]],
   ['bgvofs_7',['BGVOFS',['../structyaze_1_1emu_1_1BGVOFS.html',1,'yaze::emu']]],
   ['bitmap_8',['Bitmap',['../classyaze_1_1gfx_1_1Bitmap.html',1,'yaze::gfx']]],
-  ['bookmark_9',['Bookmark',['../structyaze_1_1emu_1_1Emulator_1_1Bookmark.html',1,'yaze::emu::Emulator']]]
+  ['bookmark_9',['Bookmark',['../structyaze_1_1emu_1_1Emulator_1_1Bookmark.html',1,'yaze::emu::Emulator']]],
+  ['breakpoint_10',['Breakpoint',['../structTextEditor_1_1Breakpoint.html',1,'TextEditor']]]
 ];

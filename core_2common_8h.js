@@ -25,7 +25,5 @@ var core_2common_8h =
     [ "ldle16b", "core_2common_8h.html#ae36970b562677c5876e1ee584a051530", null ],
     [ "CreateBpsPatch", "core_2common_8h.html#a1d6fb7654b6d82c76cf2e31fd4f11a5f", null ],
     [ "ApplyBpsPatch", "core_2common_8h.html#a0547d11cc90393910935ab1271f713a4", null ],
-    [ "CheckVersion", "core_2common_8h.html#a056bdafe2cc4104f6201289f44898047", null ],
-    [ "kFastRomRegion", "core_2common_8h.html#a147dd50027b3bc7f7f7dbf3600c7d79d", null ],
-    [ "kYazeVersion", "core_2common_8h.html#a8869c19c7f9ef052cdb5b166387819dd", null ]
+    [ "kFastRomRegion", "core_2common_8h.html#a147dd50027b3bc7f7f7dbf3600c7d79d", null ]
 ];

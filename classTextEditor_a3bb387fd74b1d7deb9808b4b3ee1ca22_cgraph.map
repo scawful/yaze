@@ -1,0 +1,17 @@
+<map id="TextEditor::GetWordUnderCursor" name="TextEditor::GetWordUnderCursor">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,64,177,105"/>
+<area shape="rect" id="Node000002" href="$classTextEditor.html#a4a612fee7deb8e2f0d27408846e94905" title=" " alt="" coords="225,30,416,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,66,230,56,231,62,177,72"/>
+<area shape="rect" id="Node000006" href="$classTextEditor.html#a527d0a4b850de02053e608a212a7fc85" title=" " alt="" coords="246,96,395,121"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="177,91,230,96,230,102,176,96"/>
+<area shape="rect" id="Node000003" href="$classTextEditor.html#adc502d0e9e3ad42f78182f495ec25307" title=" " alt="" coords="464,5,645,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="416,33,448,31,448,36,417,39"/>
+<area shape="rect" id="Node000007" href="$classTextEditor.html#a8171a76adf4e1fc6a699f60b60eb7902" title=" " alt="" coords="474,70,636,96"/>
+<area shape="poly" id="edge4_Node000006_Node000007" title=" " alt="" coords="395,98,458,91,458,96,396,103"/>
+<area shape="rect" id="Node000009" href="$classTextEditor.html#a4549652ac52a9936e695614ed588c445" title=" " alt="" coords="693,113,856,154"/>
+<area shape="poly" id="edge8_Node000006_Node000009" title=" " alt="" coords="395,110,678,126,677,131,395,115"/>
+<area shape="rect" id="Node000010" href="$classTextEditor.html#a5111c6334e494708b38cabd576f42b71" title=" " alt="" coords="470,172,639,197"/>
+<area shape="poly" id="edge6_Node000006_Node000010" title=" " alt="" coords="363,119,499,164,498,169,362,124"/>
+<area shape="poly" id="edge5_Node000007_Node000009" title=" " alt="" coords="614,94,679,109,678,114,613,99"/>
+<area shape="poly" id="edge7_Node000010_Node000009" title=" " alt="" coords="613,168,678,153,679,158,614,173"/>
+</map>

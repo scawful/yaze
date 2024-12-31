@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['layer_0',['Layer',['../namespaceyaze_1_1emu.html#aa137d3787515b802157d6b1af1c83ef7',1,'yaze::emu']]]
+  ['identifiers_0',['Identifiers',['../classTextEditor.html#a8ec7070e75e08fe92311b271dab20629',1,'TextEditor']]],
+  ['itemlabelflags_1',['ItemLabelFlags',['../namespaceyaze_1_1gui.html#a5099466527c2ee2b4d9013b4eb50f12f',1,'yaze::gui']]]
 ];

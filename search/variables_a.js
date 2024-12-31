@@ -261,6 +261,5 @@ var searchData=
   ['kwhitecolor_258',['kWhiteColor',['../namespaceyaze_1_1gui.html#a052158d35957768a382590f5af89e34e',1,'yaze::gui']]],
   ['kwidtharraysize_259',['kWidthArraySize',['../namespaceyaze_1_1editor.html#ab8dad615541a554df4446d604e0bc187',1,'yaze::editor']]],
   ['kworldlist_260',['kWorldList',['../namespaceyaze_1_1editor.html#a509c76430fe7bd64995ca4c2a0004443',1,'yaze::editor']]],
-  ['kyazeversion_261',['kYazeVersion',['../namespaceyaze_1_1core.html#a8869c19c7f9ef052cdb5b166387819dd',1,'yaze::core']]],
-  ['kzeropos_262',['kZeroPos',['../namespaceyaze_1_1gui.html#ab500bfa55478470e1f7cd45806c3728e',1,'yaze::gui']]]
+  ['kzeropos_261',['kZeroPos',['../namespaceyaze_1_1gui.html#ab500bfa55478470e1f7cd45806c3728e',1,'yaze::gui']]]
 ];

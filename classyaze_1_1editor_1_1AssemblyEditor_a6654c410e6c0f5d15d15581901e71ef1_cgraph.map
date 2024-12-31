@@ -1,0 +1,11 @@
+<map id="yaze::editor::AssemblyEditor::Copy" name="yaze::editor::AssemblyEditor::Copy">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,187,103"/>
+<area shape="rect" id="Node000002" href="$classTextEditor.html#ad71b4195221a533bdeea571b64357bf3" title=" " alt="" coords="235,70,349,96"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,80,219,80,219,86,187,86"/>
+<area shape="rect" id="Node000003" href="$classTextEditor.html#adc502d0e9e3ad42f78182f495ec25307" title=" " alt="" coords="398,5,579,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="338,67,401,48,403,53,339,72"/>
+<area shape="rect" id="Node000006" href="$classTextEditor.html#ae65cee8d0412c79c93af5b1fd53ccc66" title=" " alt="" coords="397,70,579,96"/>
+<area shape="poly" id="edge3_Node000002_Node000006" title=" " alt="" coords="349,80,381,80,381,86,349,86"/>
+<area shape="rect" id="Node000008" href="$classTextEditor.html#a5097fdb7707db742bbfdfb36333c43ce" title=" " alt="" coords="406,120,570,145"/>
+<area shape="poly" id="edge4_Node000002_Node000008" title=" " alt="" coords="347,94,420,113,419,118,345,99"/>
+</map>

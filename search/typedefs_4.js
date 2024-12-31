@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['folderitem_0',['FolderItem',['../namespaceyaze_1_1core.html#a778013ae3dbd2be64704b0eb01769d91',1,'yaze::core']]]
+  ['errormarkers_0',['ErrorMarkers',['../classTextEditor.html#ac8878ef6eb7a95d17fcaae8176859440',1,'TextEditor']]]
 ];

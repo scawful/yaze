@@ -205,8 +205,6 @@ Functions</h2></td></tr>
 <tr class="separator:a1d6fb7654b6d82c76cf2e31fd4f11a5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0547d11cc90393910935ab1271f713a4" id="r_a0547d11cc90393910935ab1271f713a4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0547d11cc90393910935ab1271f713a4">ApplyBpsPatch</a> (const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;patch, std::vector&lt; uint8_t &gt; &amp;target)</td></tr>
 <tr class="separator:a0547d11cc90393910935ab1271f713a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a056bdafe2cc4104f6201289f44898047" id="r_a056bdafe2cc4104f6201289f44898047"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a056bdafe2cc4104f6201289f44898047">CheckVersion</a> (const char *version)</td></tr>
-<tr class="separator:a056bdafe2cc4104f6201289f44898047"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a772a2d0d104498cb8100f0b2e717b6a2" id="r_a772a2d0d104498cb8100f0b2e717b6a2"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a772a2d0d104498cb8100f0b2e717b6a2">SnesToPc</a> (uint32_t addr) noexcept</td></tr>
 <tr class="separator:a772a2d0d104498cb8100f0b2e717b6a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a134be6f5a039339a4a40c50152820e28" id="r_a134be6f5a039339a4a40c50152820e28"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a134be6f5a039339a4a40c50152820e28">PcToSnes</a> (uint32_t addr)</td></tr>
@@ -243,8 +241,6 @@ Functions</h2></td></tr>
 Variables</h2></td></tr>
 <tr class="memitem:a147dd50027b3bc7f7f7dbf3600c7d79d" id="r_a147dd50027b3bc7f7f7dbf3600c7d79d"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a147dd50027b3bc7f7f7dbf3600c7d79d">kFastRomRegion</a> = 0x808000</td></tr>
 <tr class="separator:a147dd50027b3bc7f7f7dbf3600c7d79d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8869c19c7f9ef052cdb5b166387819dd" id="r_a8869c19c7f9ef052cdb5b166387819dd"><td class="memItemLeft" align="right" valign="top">constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8869c19c7f9ef052cdb5b166387819dd">kYazeVersion</a> = &quot;0.2.1&quot;</td></tr>
-<tr class="separator:a8869c19c7f9ef052cdb5b166387819dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Core application logic and utilities. </p>
@@ -402,7 +398,7 @@ Variables</h2></td></tr>
 
 <p class="reference">References <a class="el" href="core_2common_8h_source.html#l00025">yaze::core::HexStringParams::uppercase</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00346">yaze::editor::EditorManager::DrawInfoPopup()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00344">yaze::editor::EditorManager::DrawInfoPopup()</a>.</p>
 
 </div>
 </div>
@@ -664,29 +660,6 @@ Here is the call graph for this function:</div>
 <p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00294">294</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="patch_8cc_source.html#l00008">yaze::cli::ApplyPatch::handle()</a>.</p>
-
-</div>
-</div>
-<a id="a056bdafe2cc4104f6201289f44898047" name="a056bdafe2cc4104f6201289f44898047"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a056bdafe2cc4104f6201289f44898047">&#9670;&#160;</a></span>CheckVersion()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">absl::StatusOr&lt; std::string &gt; yaze::core::CheckVersion </td>
-          <td>(</td>
-          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>version</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00364">364</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00316">kYazeVersion</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00009">yaze_check_version()</a>.</p>
 
 </div>
 </div>
@@ -1118,32 +1091,6 @@ Here is the call graph for this function:</div>
 <p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00246">246</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="core_2common_8h_source.html#l00248">SnesToPc()</a>.</p>
-
-</div>
-</div>
-<a id="a8869c19c7f9ef052cdb5b166387819dd" name="a8869c19c7f9ef052cdb5b166387819dd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8869c19c7f9ef052cdb5b166387819dd">&#9670;&#160;</a></span>kYazeVersion</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::string_view yaze::core::kYazeVersion = &quot;0.2.1&quot;</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00316">316</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="common_8cc_source.html#l00364">CheckVersion()</a>, <a class="el" href="editor__manager_8cc_source.html#l00328">yaze::editor::EditorManager::DrawAboutPopup()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00363">yaze::editor::EditorManager::DrawYazeMenu()</a>.</p>
 
 </div>
 </div>

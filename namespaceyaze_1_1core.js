@@ -48,7 +48,6 @@ var namespaceyaze_1_1core =
     [ "ldle16b_i", "namespaceyaze_1_1core.html#ac9d631f94259376fac0f193ba98bd9b2", null ],
     [ "CreateBpsPatch", "namespaceyaze_1_1core.html#a1d6fb7654b6d82c76cf2e31fd4f11a5f", null ],
     [ "ApplyBpsPatch", "namespaceyaze_1_1core.html#a0547d11cc90393910935ab1271f713a4", null ],
-    [ "CheckVersion", "namespaceyaze_1_1core.html#a056bdafe2cc4104f6201289f44898047", null ],
     [ "SnesToPc", "namespaceyaze_1_1core.html#a772a2d0d104498cb8100f0b2e717b6a2", null ],
     [ "PcToSnes", "namespaceyaze_1_1core.html#a134be6f5a039339a4a40c50152820e28", null ],
     [ "AddressFromBytes", "namespaceyaze_1_1core.html#a6ce88f9f428f027466401bd0f29af006", null ],
@@ -64,6 +63,5 @@ var namespaceyaze_1_1core =
     [ "LoadConfigFile", "namespaceyaze_1_1core.html#a7345775b8c056bb6c1b6f663eb7e25a8", null ],
     [ "SaveFile", "namespaceyaze_1_1core.html#a8a725e8e7dff6b06826090040ea3c2ba", null ],
     [ "GetConfigDirectory", "namespaceyaze_1_1core.html#a6ce28d9949b2dd0f6b6f6ae922700ae2", null ],
-    [ "kFastRomRegion", "namespaceyaze_1_1core.html#a147dd50027b3bc7f7f7dbf3600c7d79d", null ],
-    [ "kYazeVersion", "namespaceyaze_1_1core.html#a8869c19c7f9ef052cdb5b166387819dd", null ]
+    [ "kFastRomRegion", "namespaceyaze_1_1core.html#a147dd50027b3bc7f7f7dbf3600c7d79d", null ]
 ];

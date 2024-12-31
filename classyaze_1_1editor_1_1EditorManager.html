@@ -291,6 +291,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:abd8b10b8effa17fa71f6be9ce4b140ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a334e88fc9c866a3c036fad1dc192680a" id="r_a334e88fc9c866a3c036fad1dc192680a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a334e88fc9c866a3c036fad1dc192680a">rom_assets_loaded_</a> = false</td></tr>
 <tr class="separator:a334e88fc9c866a3c036fad1dc192680a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:affe73c6625559f736677e476796f02a1" id="r_affe73c6625559f736677e476796f02a1"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#affe73c6625559f736677e476796f02a1">version_</a> = &quot;&quot;</td></tr>
+<tr class="separator:affe73c6625559f736677e476796f02a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6dc2ae273f19652bf1f85f7b3da695c8" id="r_a6dc2ae273f19652bf1f85f7b3da695c8"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6dc2ae273f19652bf1f85f7b3da695c8">status_</a></td></tr>
 <tr class="separator:a6dc2ae273f19652bf1f85f7b3da695c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad03b5939f208d855ebffc5aeed05c26d" id="r_ad03b5939f208d855ebffc5aeed05c26d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1emu_1_1Emulator.html">emu::Emulator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad03b5939f208d855ebffc5aeed05c26d">emulator_</a></td></tr>
@@ -336,7 +338,7 @@ Additional Inherited Members</h2></td></tr>
 <div class="textblock"><p>The <a class="el" href="classyaze_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes.">EditorManager</a> controls the main editor window and manages the various editor classes. </p>
 <p>The <a class="el" href="classyaze_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes.">EditorManager</a> class contains instances of various editor classes such as <a class="el" href="classyaze_1_1editor_1_1AssemblyEditor.html" title="Text editor for modifying assembly code.">AssemblyEditor</a>, <a class="el" href="classyaze_1_1editor_1_1DungeonEditor.html" title="DungeonEditor class for editing dungeons.">DungeonEditor</a>, <a class="el" href="classyaze_1_1editor_1_1GraphicsEditor.html" title="Allows the user to edit graphics sheets from the game or view prototype graphics.">GraphicsEditor</a>, <a class="el" href="classyaze_1_1editor_1_1MusicEditor.html" title="A class for editing music data in a Rom.">MusicEditor</a>, <a class="el" href="classyaze_1_1editor_1_1OverworldEditor.html" title="Manipulates the Overworld and OverworldMap data in a Rom.">OverworldEditor</a>, <a class="el" href="classyaze_1_1editor_1_1PaletteEditor.html" title="Allows the user to view and edit in game palettes.">PaletteEditor</a>, <a class="el" href="classyaze_1_1editor_1_1ScreenEditor.html" title="The ScreenEditor class allows the user to edit a variety of screens in the game or create a custom me...">ScreenEditor</a>, and <a class="el" href="classyaze_1_1editor_1_1SpriteEditor.html" title="Allows the user to edit sprites.">SpriteEditor</a>. The current_editor_ member variable points to the currently active editor in the tab view. </p>
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00037">37</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00038">38</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a5e1bc7f274b01593c207c0cd72cc17c3" name="a5e1bc7f274b01593c207c0cd72cc17c3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5e1bc7f274b01593c207c0cd72cc17c3">&#9670;&#160;</a></span>EditorManager()</h2>
@@ -361,9 +363,9 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00039">39</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00040">40</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00083">active_editors_</a>, <a class="el" href="editor__manager_8h_source.html#l00088">current_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00090">dungeon_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00091">graphics_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00098">message_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00093">overworld_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00094">palette_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00095">screen_editor_</a>, and <a class="el" href="editor__manager_8h_source.html#l00096">sprite_editor_</a>.</p>
+<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00090">active_editors_</a>, <a class="el" href="editor__manager_8h_source.html#l00095">current_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00097">dungeon_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00098">graphics_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00105">message_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00100">overworld_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00101">palette_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00102">screen_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00103">sprite_editor_</a>, and <a class="el" href="editor__manager_8h_source.html#l00086">version_</a>.</p>
 
 </div>
 </div>
@@ -385,7 +387,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00051">51</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8cc_source.html#l01484">yaze::editor::OverworldEditor::Initialize()</a>, <a class="el" href="editor__manager_8h_source.html#l00093">overworld_editor_</a>, <a class="el" href="constants_8h_source.html#l00036">PRINT_IF_ERROR</a>, and <a class="el" href="rom_8h_source.html#l00589">yaze::SharedRom::rom()</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8cc_source.html#l01484">yaze::editor::OverworldEditor::Initialize()</a>, <a class="el" href="editor__manager_8h_source.html#l00100">overworld_editor_</a>, <a class="el" href="constants_8h_source.html#l00036">PRINT_IF_ERROR</a>, and <a class="el" href="rom_8h_source.html#l00589">yaze::SharedRom::rom()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00021">yaze::core::Controller::OnEntry()</a>, and <a class="el" href="controller_8h_source.html#l00046">yaze::core::Controller::SetupScreen()</a>.</p>
 <div class="dynheader">
@@ -430,7 +432,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00058">58</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="editor__manager_8cc_source.html#l00328">DrawAboutPopup()</a>, <a class="el" href="editor__manager_8cc_source.html#l00346">DrawInfoPopup()</a>, <a class="el" href="editor__manager_8cc_source.html#l00300">DrawStatusPopup()</a>, <a class="el" href="editor__manager_8cc_source.html#l00363">DrawYazeMenu()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01032">yaze::editor::OverworldEditor::LoadGraphics()</a>, <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>, <a class="el" href="editor__manager_8cc_source.html#l00241">ManageKeyboardShortcuts()</a>, <a class="el" href="editor__manager_8h_source.html#l00093">overworld_editor_</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00589">yaze::SharedRom::rom()</a>, and <a class="el" href="editor__manager_8h_source.html#l00079">rom_assets_loaded_</a>.</p>
+<p class="reference">References <a class="el" href="editor__manager_8cc_source.html#l00327">DrawAboutPopup()</a>, <a class="el" href="editor__manager_8cc_source.html#l00344">DrawInfoPopup()</a>, <a class="el" href="editor__manager_8cc_source.html#l00299">DrawStatusPopup()</a>, <a class="el" href="editor__manager_8cc_source.html#l00360">DrawYazeMenu()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01032">yaze::editor::OverworldEditor::LoadGraphics()</a>, <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>, <a class="el" href="editor__manager_8cc_source.html#l00240">ManageKeyboardShortcuts()</a>, <a class="el" href="editor__manager_8h_source.html#l00100">overworld_editor_</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00589">yaze::SharedRom::rom()</a>, and <a class="el" href="editor__manager_8h_source.html#l00084">rom_assets_loaded_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00091">yaze::core::Controller::OnLoad()</a>.</p>
 <div class="dynheader">
@@ -523,9 +525,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00053">53</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00058">58</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00082">emulator_</a>.</p>
+<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00089">emulator_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00210">yaze::core::Controller::LoadAudioDevice()</a>.</p>
 
@@ -554,9 +556,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00054">54</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00059">59</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00073">quit_</a>.</p>
+<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00078">quit_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00091">yaze::core::Controller::OnLoad()</a>.</p>
 
@@ -587,7 +589,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00077">77</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00083">active_editors_</a>, <a class="el" href="dungeon__editor_8h_source.html#l00056">yaze::editor::DungeonEditor::add_room()</a>, <a class="el" href="editor__manager_8h_source.html#l00089">assembly_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00088">current_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00090">dungeon_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00091">graphics_editor_</a>, <a class="el" href="icons_8h_source.html#l00084">ICON_MD_ADD</a>, <a class="el" href="overworld__editor_8h_source.html#l00096">yaze::editor::OverworldEditor::jump_to_tab()</a>, <a class="el" href="overworld__editor_8h_source.html#l00097">yaze::editor::OverworldEditor::jump_to_tab_</a>, <a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aab686a008a9fc3fe70222034bef987ced">yaze::editor::kAssembly</a>, <a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa773324726da2f589c757da4c39336156">yaze::editor::kDungeon</a>, <a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa3e1c9b3724e1f17fea630f35337bc792">yaze::editor::kGraphics</a>, <a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa9b74dc5b6954a9e2ba62b24c1f8c01e0">yaze::editor::kMessage</a>, <a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa8949888d2b573f893130a7e12d8676f4">yaze::editor::kMusic</a>, <a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa29f266fe9c0da014314bf7c6a9b2a7a6">yaze::editor::kOverworld</a>, <a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aab7016fa0536d3c2f14454c2bb0b203cb">yaze::editor::kPalette</a>, <a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa999e1b181ff36a65c7fd5a32e4e627d8">yaze::editor::kScreen</a>, <a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aac935a934100d15241aefe3f7081e7767">yaze::editor::kSettings</a>, <a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa7c10e40e40c6c0519ea3066c5c66733a">yaze::editor::kSprite</a>, <a class="el" href="editor__manager_8h_source.html#l00098">message_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00092">music_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00093">overworld_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00094">palette_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00095">screen_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00097">settings_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00096">sprite_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00081">status_</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00042">yaze::editor::DungeonEditor::Update()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00042">yaze::editor::GraphicsEditor::Update()</a>, <a class="el" href="message__editor_8cc_source.html#l00131">yaze::editor::MessageEditor::Update()</a>, <a class="el" href="music__editor_8cc_source.html#l00014">yaze::editor::MusicEditor::Update()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00059">yaze::editor::OverworldEditor::Update()</a>, <a class="el" href="palette__editor_8cc_source.html#l00173">yaze::editor::PaletteEditor::Update()</a>, <a class="el" href="screen__editor_8cc_source.html#l00028">yaze::editor::ScreenEditor::Update()</a>, <a class="el" href="settings__editor_8cc_source.html#l00031">yaze::editor::SettingsEditor::Update()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00023">yaze::editor::SpriteEditor::Update()</a>, and <a class="el" href="assembly__editor_8cc_source.html#l00136">yaze::editor::AssemblyEditor::UpdateCodeView()</a>.</p>
+<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00090">active_editors_</a>, <a class="el" href="dungeon__editor_8h_source.html#l00056">yaze::editor::DungeonEditor::add_room()</a>, <a class="el" href="editor__manager_8h_source.html#l00096">assembly_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00095">current_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00097">dungeon_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00098">graphics_editor_</a>, <a class="el" href="icons_8h_source.html#l00084">ICON_MD_ADD</a>, <a class="el" href="overworld__editor_8h_source.html#l00096">yaze::editor::OverworldEditor::jump_to_tab()</a>, <a class="el" href="overworld__editor_8h_source.html#l00097">yaze::editor::OverworldEditor::jump_to_tab_</a>, <a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aab686a008a9fc3fe70222034bef987ced">yaze::editor::kAssembly</a>, <a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa773324726da2f589c757da4c39336156">yaze::editor::kDungeon</a>, <a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa3e1c9b3724e1f17fea630f35337bc792">yaze::editor::kGraphics</a>, <a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa9b74dc5b6954a9e2ba62b24c1f8c01e0">yaze::editor::kMessage</a>, <a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa8949888d2b573f893130a7e12d8676f4">yaze::editor::kMusic</a>, <a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa29f266fe9c0da014314bf7c6a9b2a7a6">yaze::editor::kOverworld</a>, <a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aab7016fa0536d3c2f14454c2bb0b203cb">yaze::editor::kPalette</a>, <a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa999e1b181ff36a65c7fd5a32e4e627d8">yaze::editor::kScreen</a>, <a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aac935a934100d15241aefe3f7081e7767">yaze::editor::kSettings</a>, <a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa7c10e40e40c6c0519ea3066c5c66733a">yaze::editor::kSprite</a>, <a class="el" href="editor__manager_8h_source.html#l00105">message_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00099">music_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00100">overworld_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00101">palette_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00102">screen_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00104">settings_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00103">sprite_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00088">status_</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00042">yaze::editor::DungeonEditor::Update()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00042">yaze::editor::GraphicsEditor::Update()</a>, <a class="el" href="message__editor_8cc_source.html#l00131">yaze::editor::MessageEditor::Update()</a>, <a class="el" href="music__editor_8cc_source.html#l00014">yaze::editor::MusicEditor::Update()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00059">yaze::editor::OverworldEditor::Update()</a>, <a class="el" href="palette__editor_8cc_source.html#l00173">yaze::editor::PaletteEditor::Update()</a>, <a class="el" href="screen__editor_8cc_source.html#l00028">yaze::editor::ScreenEditor::Update()</a>, <a class="el" href="settings__editor_8cc_source.html#l00031">yaze::editor::SettingsEditor::Update()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00023">yaze::editor::SpriteEditor::Update()</a>, and <a class="el" href="assembly__editor_8cc_source.html#l00136">yaze::editor::AssemblyEditor::UpdateCodeView()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00058">Update()</a>.</p>
 <div class="dynheader">
@@ -684,9 +686,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00241">241</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00240">240</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00074">about_</a>, <a class="el" href="editor_8h_source.html#l00023">yaze::editor::EditorContext::command_manager</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#a0d1cad7dc7377bcf699c76dc1da4bd2f">yaze::editor::Editor::Copy()</a>, <a class="el" href="editor__manager_8h_source.html#l00088">current_editor_</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#a0c8c0eae68a91298050a709c146a9472">yaze::editor::Editor::Cut()</a>, <a class="el" href="editor__manager_8h_source.html#l00086">editor_context_</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#aac357035ff66579bbad4181c5aa47e56">yaze::editor::Editor::Find()</a>, <a class="el" href="project_8h_source.html#l00123">yaze::RecentFilesManager::GetRecentFiles()</a>, <a class="el" href="project_8h_source.html#l00108">yaze::RecentFilesManager::Load()</a>, <a class="el" href="editor__manager_8cc_source.html#l00688">LoadRom()</a>, <a class="el" href="editor__manager_8cc_source.html#l00711">OpenRomOrProject()</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#adcc475a4870b75a9db44e78244c6fc4e">yaze::editor::Editor::Paste()</a>, <a class="el" href="editor__manager_8h_source.html#l00073">quit_</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#a127b4d84d1a76c5af2998a1a30f45e95">yaze::editor::Editor::Redo()</a>, <a class="el" href="editor__manager_8cc_source.html#l00699">SaveRom()</a>, <a class="el" href="command__manager_8cc_source.html#l00075">yaze::editor::CommandManager::ShowWhichKey()</a>, <a class="el" href="editor__manager_8h_source.html#l00081">status_</a>, and <a class="el" href="classyaze_1_1editor_1_1Editor.html#af70b26886a360613f59e8f45b4bfcdec">yaze::editor::Editor::Undo()</a>.</p>
+<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00079">about_</a>, <a class="el" href="editor_8h_source.html#l00023">yaze::editor::EditorContext::command_manager</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#a0d1cad7dc7377bcf699c76dc1da4bd2f">yaze::editor::Editor::Copy()</a>, <a class="el" href="editor__manager_8h_source.html#l00095">current_editor_</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#a0c8c0eae68a91298050a709c146a9472">yaze::editor::Editor::Cut()</a>, <a class="el" href="editor__manager_8h_source.html#l00093">editor_context_</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#aac357035ff66579bbad4181c5aa47e56">yaze::editor::Editor::Find()</a>, <a class="el" href="project_8h_source.html#l00123">yaze::RecentFilesManager::GetRecentFiles()</a>, <a class="el" href="project_8h_source.html#l00108">yaze::RecentFilesManager::Load()</a>, <a class="el" href="editor__manager_8cc_source.html#l00674">LoadRom()</a>, <a class="el" href="editor__manager_8cc_source.html#l00697">OpenRomOrProject()</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#adcc475a4870b75a9db44e78244c6fc4e">yaze::editor::Editor::Paste()</a>, <a class="el" href="editor__manager_8h_source.html#l00078">quit_</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#a127b4d84d1a76c5af2998a1a30f45e95">yaze::editor::Editor::Redo()</a>, <a class="el" href="editor__manager_8cc_source.html#l00685">SaveRom()</a>, <a class="el" href="command__manager_8cc_source.html#l00075">yaze::editor::CommandManager::ShowWhichKey()</a>, <a class="el" href="editor__manager_8h_source.html#l00088">status_</a>, and <a class="el" href="classyaze_1_1editor_1_1Editor.html#af70b26886a360613f59e8f45b4bfcdec">yaze::editor::Editor::Undo()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00058">Update()</a>.</p>
 <div class="dynheader">
@@ -776,9 +778,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00300">300</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00299">299</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="icons_8h_source.html#l00463">ICON_MD_CONTENT_COPY</a>, <a class="el" href="icons_8h_source.html#l00684">ICON_MD_ERROR</a>, <a class="el" href="input_8h_source.html#l00021">yaze::gui::kDefaultModalSize</a>, <a class="el" href="editor__manager_8h_source.html#l00078">show_status_</a>, and <a class="el" href="editor__manager_8h_source.html#l00081">status_</a>.</p>
+<p class="reference">References <a class="el" href="icons_8h_source.html#l00463">ICON_MD_CONTENT_COPY</a>, <a class="el" href="icons_8h_source.html#l00684">ICON_MD_ERROR</a>, <a class="el" href="input_8h_source.html#l00021">yaze::gui::kDefaultModalSize</a>, <a class="el" href="editor__manager_8h_source.html#l00083">show_status_</a>, and <a class="el" href="editor__manager_8h_source.html#l00088">status_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00058">Update()</a>.</p>
 
@@ -807,9 +809,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00328">328</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00327">327</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00074">about_</a>, <a class="el" href="input_8h_source.html#l00021">yaze::gui::kDefaultModalSize</a>, and <a class="el" href="core_2common_8h_source.html#l00316">yaze::core::kYazeVersion</a>.</p>
+<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00079">about_</a>, <a class="el" href="input_8h_source.html#l00021">yaze::gui::kDefaultModalSize</a>, and <a class="el" href="editor__manager_8h_source.html#l00086">version_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00058">Update()</a>.</p>
 
@@ -838,9 +840,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00346">346</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00344">344</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="common_8cc_source.html#l00152">yaze::core::HexLongLong()</a>, <a class="el" href="input_8h_source.html#l00021">yaze::gui::kDefaultModalSize</a>, <a class="el" href="rom_8h_source.html#l00589">yaze::SharedRom::rom()</a>, and <a class="el" href="editor__manager_8h_source.html#l00075">rom_info_</a>.</p>
+<p class="reference">References <a class="el" href="common_8cc_source.html#l00152">yaze::core::HexLongLong()</a>, <a class="el" href="input_8h_source.html#l00021">yaze::gui::kDefaultModalSize</a>, <a class="el" href="rom_8h_source.html#l00589">yaze::SharedRom::rom()</a>, and <a class="el" href="editor__manager_8h_source.html#l00080">rom_info_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00058">Update()</a>.</p>
 <div class="dynheader">
@@ -882,9 +884,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00363">363</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00360">360</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="style_8cc_source.html#l00382">yaze::gui::DrawDisplaySettings()</a>, <a class="el" href="editor__manager_8cc_source.html#l00386">DrawYazeMenuBar()</a>, <a class="el" href="icons_8h_source.html#l00585">ICON_MD_DISPLAY_SETTINGS</a>, and <a class="el" href="core_2common_8h_source.html#l00316">yaze::core::kYazeVersion</a>.</p>
+<p class="reference">References <a class="el" href="style_8cc_source.html#l00382">yaze::gui::DrawDisplaySettings()</a>, <a class="el" href="editor__manager_8cc_source.html#l00383">DrawYazeMenuBar()</a>, <a class="el" href="icons_8h_source.html#l00585">ICON_MD_DISPLAY_SETTINGS</a>, and <a class="el" href="editor__manager_8h_source.html#l00086">version_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00058">Update()</a>.</p>
 <div class="dynheader">
@@ -982,11 +984,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00386">386</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00383">383</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00074">about_</a>, <a class="el" href="editor__manager_8h_source.html#l00089">assembly_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00076">backup_rom_</a>, <a class="el" href="project_8h_source.html#l00051">yaze::Project::code_folder_</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#a0d1cad7dc7377bcf699c76dc1da4bd2f">yaze::editor::Editor::Copy()</a>, <a class="el" href="project_8h_source.html#l00028">yaze::Project::Create()</a>, <a class="el" href="editor__manager_8h_source.html#l00088">current_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00085">current_project_</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#a0c8c0eae68a91298050a709c146a9472">yaze::editor::Editor::Cut()</a>, <a class="el" href="flags_8h_source.html#l00017">yaze::editor::FlagsMenu::Draw()</a>, <a class="el" href="editor__manager_8h_source.html#l00082">emulator_</a>, <a class="el" href="project_8h_source.html#l00049">yaze::Project::filepath</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#aac357035ff66579bbad4181c5aa47e56">yaze::editor::Editor::Find()</a>, <a class="el" href="project_8h_source.html#l00123">yaze::RecentFilesManager::GetRecentFiles()</a>, <a class="el" href="input_8h_source.html#l00021">yaze::gui::kDefaultModalSize</a>, <a class="el" href="project_8h_source.html#l00052">yaze::Project::labels_filename_</a>, <a class="el" href="project_8h_source.html#l00108">yaze::RecentFilesManager::Load()</a>, <a class="el" href="editor__manager_8cc_source.html#l00688">LoadRom()</a>, <a class="el" href="editor__manager_8h_source.html#l00099">memory_editor_</a>, <a class="el" href="constants_8h_source.html#l00009">MENU_ITEM</a>, <a class="el" href="constants_8h_source.html#l00010">MENU_ITEM2</a>, <a class="el" href="project_8h_source.html#l00047">yaze::Project::name</a>, <a class="el" href="project_8cc_source.html#l00013">yaze::Project::Open()</a>, <a class="el" href="editor__manager_8cc_source.html#l00722">OpenProject()</a>, <a class="el" href="editor__manager_8cc_source.html#l00711">OpenRomOrProject()</a>, <a class="el" href="editor__manager_8h_source.html#l00094">palette_editor_</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#adcc475a4870b75a9db44e78244c6fc4e">yaze::editor::Editor::Paste()</a>, <a class="el" href="project_8h_source.html#l00046">yaze::Project::project_opened_</a>, <a class="el" href="editor__manager_8h_source.html#l00073">quit_</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#a127b4d84d1a76c5af2998a1a30f45e95">yaze::editor::Editor::Redo()</a>, <a class="el" href="rom_8h_source.html#l00589">yaze::SharedRom::rom()</a>, <a class="el" href="editor__manager_8h_source.html#l00079">rom_assets_loaded_</a>, <a class="el" href="project_8h_source.html#l00050">yaze::Project::rom_filename_</a>, <a class="el" href="editor__manager_8h_source.html#l00075">rom_info_</a>, <a class="el" href="emulator_8cc_source.html#l00048">yaze::emu::Emulator::Run()</a>, <a class="el" href="project_8cc_source.html#l00042">yaze::Project::Save()</a>, <a class="el" href="editor__manager_8h_source.html#l00077">save_new_auto_</a>, <a class="el" href="editor__manager_8cc_source.html#l00699">SaveRom()</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#ae9e6b685fe8521a6aa1830edd63e4ce0">yaze::core::FileDialogWrapper::ShowOpenFolderDialog()</a>, <a class="el" href="editor__manager_8h_source.html#l00081">status_</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#af70b26886a360613f59e8f45b4bfcdec">yaze::editor::Editor::Undo()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00101">yaze::editor::AssemblyEditor::Update()</a>, <a class="el" href="memory__editor_8h_source.html#l00037">yaze::editor::MemoryEditorWithDiffChecker::Update()</a>, and <a class="el" href="palette__editor_8cc_source.html#l00173">yaze::editor::PaletteEditor::Update()</a>.</p>
+<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00079">about_</a>, <a class="el" href="editor__manager_8h_source.html#l00096">assembly_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00081">backup_rom_</a>, <a class="el" href="project_8h_source.html#l00051">yaze::Project::code_folder_</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#a0d1cad7dc7377bcf699c76dc1da4bd2f">yaze::editor::Editor::Copy()</a>, <a class="el" href="project_8h_source.html#l00028">yaze::Project::Create()</a>, <a class="el" href="editor__manager_8h_source.html#l00095">current_editor_</a>, <a class="el" href="editor__manager_8h_source.html#l00092">current_project_</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#a0c8c0eae68a91298050a709c146a9472">yaze::editor::Editor::Cut()</a>, <a class="el" href="flags_8h_source.html#l00017">yaze::editor::FlagsMenu::Draw()</a>, <a class="el" href="editor__manager_8h_source.html#l00089">emulator_</a>, <a class="el" href="project_8h_source.html#l00049">yaze::Project::filepath</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#aac357035ff66579bbad4181c5aa47e56">yaze::editor::Editor::Find()</a>, <a class="el" href="project_8h_source.html#l00123">yaze::RecentFilesManager::GetRecentFiles()</a>, <a class="el" href="input_8h_source.html#l00021">yaze::gui::kDefaultModalSize</a>, <a class="el" href="project_8h_source.html#l00052">yaze::Project::labels_filename_</a>, <a class="el" href="project_8h_source.html#l00108">yaze::RecentFilesManager::Load()</a>, <a class="el" href="editor__manager_8cc_source.html#l00674">LoadRom()</a>, <a class="el" href="editor__manager_8h_source.html#l00106">memory_editor_</a>, <a class="el" href="constants_8h_source.html#l00009">MENU_ITEM</a>, <a class="el" href="constants_8h_source.html#l00010">MENU_ITEM2</a>, <a class="el" href="project_8h_source.html#l00047">yaze::Project::name</a>, <a class="el" href="project_8cc_source.html#l00013">yaze::Project::Open()</a>, <a class="el" href="editor__manager_8cc_source.html#l00708">OpenProject()</a>, <a class="el" href="editor__manager_8cc_source.html#l00697">OpenRomOrProject()</a>, <a class="el" href="editor__manager_8h_source.html#l00101">palette_editor_</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#adcc475a4870b75a9db44e78244c6fc4e">yaze::editor::Editor::Paste()</a>, <a class="el" href="project_8h_source.html#l00046">yaze::Project::project_opened_</a>, <a class="el" href="editor__manager_8h_source.html#l00078">quit_</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#a127b4d84d1a76c5af2998a1a30f45e95">yaze::editor::Editor::Redo()</a>, <a class="el" href="rom_8h_source.html#l00589">yaze::SharedRom::rom()</a>, <a class="el" href="editor__manager_8h_source.html#l00084">rom_assets_loaded_</a>, <a class="el" href="project_8h_source.html#l00050">yaze::Project::rom_filename_</a>, <a class="el" href="editor__manager_8h_source.html#l00080">rom_info_</a>, <a class="el" href="emulator_8cc_source.html#l00048">yaze::emu::Emulator::Run()</a>, <a class="el" href="project_8cc_source.html#l00042">yaze::Project::Save()</a>, <a class="el" href="editor__manager_8h_source.html#l00082">save_new_auto_</a>, <a class="el" href="editor__manager_8cc_source.html#l00685">SaveRom()</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#ae9e6b685fe8521a6aa1830edd63e4ce0">yaze::core::FileDialogWrapper::ShowOpenFolderDialog()</a>, <a class="el" href="editor__manager_8h_source.html#l00088">status_</a>, <a class="el" href="classyaze_1_1editor_1_1Editor.html#af70b26886a360613f59e8f45b4bfcdec">yaze::editor::Editor::Undo()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00101">yaze::editor::AssemblyEditor::Update()</a>, <a class="el" href="memory__editor_8h_source.html#l00037">yaze::editor::MemoryEditorWithDiffChecker::Update()</a>, and <a class="el" href="palette__editor_8cc_source.html#l00173">yaze::editor::PaletteEditor::Update()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00363">DrawYazeMenu()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00360">DrawYazeMenu()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1083,11 +1085,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00688">688</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00674">674</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="project_8h_source.html#l00089">yaze::RecentFilesManager::AddFile()</a>, <a class="el" href="project_8h_source.html#l00108">yaze::RecentFilesManager::Load()</a>, <a class="el" href="rom_8h_source.html#l00589">yaze::SharedRom::rom()</a>, <a class="el" href="project_8h_source.html#l00097">yaze::RecentFilesManager::Save()</a>, and <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00386">DrawYazeMenuBar()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00241">ManageKeyboardShortcuts()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00383">DrawYazeMenuBar()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00240">ManageKeyboardShortcuts()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1133,11 +1135,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00699">699</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00685">685</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00076">backup_rom_</a>, <a class="el" href="core_2common_8h_source.html#l00107">yaze::core::ExperimentFlags::flags()</a>, <a class="el" href="editor__manager_8h_source.html#l00093">overworld_editor_</a>, <a class="el" href="constants_8h_source.html#l00053">RETURN_VOID_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00589">yaze::SharedRom::rom()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01010">yaze::editor::OverworldEditor::Save()</a>, <a class="el" href="editor__manager_8h_source.html#l00077">save_new_auto_</a>, <a class="el" href="screen__editor_8cc_source.html#l00185">yaze::editor::ScreenEditor::SaveDungeonMaps()</a>, <a class="el" href="editor__manager_8h_source.html#l00095">screen_editor_</a>, and <a class="el" href="editor__manager_8h_source.html#l00081">status_</a>.</p>
+<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00081">backup_rom_</a>, <a class="el" href="core_2common_8h_source.html#l00107">yaze::core::ExperimentFlags::flags()</a>, <a class="el" href="editor__manager_8h_source.html#l00100">overworld_editor_</a>, <a class="el" href="constants_8h_source.html#l00053">RETURN_VOID_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00589">yaze::SharedRom::rom()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01010">yaze::editor::OverworldEditor::Save()</a>, <a class="el" href="editor__manager_8h_source.html#l00082">save_new_auto_</a>, <a class="el" href="screen__editor_8cc_source.html#l00185">yaze::editor::ScreenEditor::SaveDungeonMaps()</a>, <a class="el" href="editor__manager_8h_source.html#l00102">screen_editor_</a>, and <a class="el" href="editor__manager_8h_source.html#l00088">status_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00386">DrawYazeMenuBar()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00241">ManageKeyboardShortcuts()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00383">DrawYazeMenuBar()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00240">ManageKeyboardShortcuts()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1213,11 +1215,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00711">711</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00697">697</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00085">current_project_</a>, <a class="el" href="project_8cc_source.html#l00013">yaze::Project::Open()</a>, <a class="el" href="editor__manager_8cc_source.html#l00722">OpenProject()</a>, <a class="el" href="rom_8h_source.html#l00589">yaze::SharedRom::rom()</a>, and <a class="el" href="editor__manager_8h_source.html#l00081">status_</a>.</p>
+<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00092">current_project_</a>, <a class="el" href="project_8cc_source.html#l00013">yaze::Project::Open()</a>, <a class="el" href="editor__manager_8cc_source.html#l00708">OpenProject()</a>, <a class="el" href="rom_8h_source.html#l00589">yaze::SharedRom::rom()</a>, and <a class="el" href="editor__manager_8h_source.html#l00088">status_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00386">DrawYazeMenuBar()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00241">ManageKeyboardShortcuts()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00383">DrawYazeMenuBar()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00240">ManageKeyboardShortcuts()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1268,11 +1270,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00722">722</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8cc_source.html#l00708">708</a> of file <a class="el" href="editor__manager_8cc_source.html">editor_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="project_8h_source.html#l00089">yaze::RecentFilesManager::AddFile()</a>, <a class="el" href="editor__manager_8h_source.html#l00089">assembly_editor_</a>, <a class="el" href="project_8h_source.html#l00051">yaze::Project::code_folder_</a>, <a class="el" href="editor__manager_8h_source.html#l00085">current_project_</a>, <a class="el" href="project_8h_source.html#l00049">yaze::Project::filepath</a>, <a class="el" href="project_8h_source.html#l00052">yaze::Project::labels_filename_</a>, <a class="el" href="project_8h_source.html#l00108">yaze::RecentFilesManager::Load()</a>, <a class="el" href="project_8h_source.html#l00047">yaze::Project::name</a>, <a class="el" href="assembly__editor_8cc_source.html#l00097">yaze::editor::AssemblyEditor::OpenFolder()</a>, <a class="el" href="project_8h_source.html#l00046">yaze::Project::project_opened_</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00589">yaze::SharedRom::rom()</a>, <a class="el" href="project_8h_source.html#l00050">yaze::Project::rom_filename_</a>, and <a class="el" href="project_8h_source.html#l00097">yaze::RecentFilesManager::Save()</a>.</p>
+<p class="reference">References <a class="el" href="project_8h_source.html#l00089">yaze::RecentFilesManager::AddFile()</a>, <a class="el" href="editor__manager_8h_source.html#l00096">assembly_editor_</a>, <a class="el" href="project_8h_source.html#l00051">yaze::Project::code_folder_</a>, <a class="el" href="editor__manager_8h_source.html#l00092">current_project_</a>, <a class="el" href="project_8h_source.html#l00049">yaze::Project::filepath</a>, <a class="el" href="project_8h_source.html#l00052">yaze::Project::labels_filename_</a>, <a class="el" href="project_8h_source.html#l00108">yaze::RecentFilesManager::Load()</a>, <a class="el" href="project_8h_source.html#l00047">yaze::Project::name</a>, <a class="el" href="assembly__editor_8cc_source.html#l00097">yaze::editor::AssemblyEditor::OpenFolder()</a>, <a class="el" href="project_8h_source.html#l00046">yaze::Project::project_opened_</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00589">yaze::SharedRom::rom()</a>, <a class="el" href="project_8h_source.html#l00050">yaze::Project::rom_filename_</a>, and <a class="el" href="project_8h_source.html#l00097">yaze::RecentFilesManager::Save()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00386">DrawYazeMenuBar()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00711">OpenRomOrProject()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00383">DrawYazeMenuBar()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00697">OpenRomOrProject()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1316,9 +1318,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00073">73</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00078">78</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00386">DrawYazeMenuBar()</a>, <a class="el" href="editor__manager_8cc_source.html#l00241">ManageKeyboardShortcuts()</a>, and <a class="el" href="editor__manager_8h_source.html#l00054">quit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00383">DrawYazeMenuBar()</a>, <a class="el" href="editor__manager_8cc_source.html#l00240">ManageKeyboardShortcuts()</a>, and <a class="el" href="editor__manager_8h_source.html#l00059">quit()</a>.</p>
 
 </div>
 </div>
@@ -1342,9 +1344,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00074">74</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00079">79</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00328">DrawAboutPopup()</a>, <a class="el" href="editor__manager_8cc_source.html#l00386">DrawYazeMenuBar()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00241">ManageKeyboardShortcuts()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00327">DrawAboutPopup()</a>, <a class="el" href="editor__manager_8cc_source.html#l00383">DrawYazeMenuBar()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00240">ManageKeyboardShortcuts()</a>.</p>
 
 </div>
 </div>
@@ -1368,9 +1370,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00075">75</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00080">80</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00346">DrawInfoPopup()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00386">DrawYazeMenuBar()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00344">DrawInfoPopup()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00383">DrawYazeMenuBar()</a>.</p>
 
 </div>
 </div>
@@ -1394,9 +1396,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00076">76</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00081">81</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00386">DrawYazeMenuBar()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00699">SaveRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00383">DrawYazeMenuBar()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00685">SaveRom()</a>.</p>
 
 </div>
 </div>
@@ -1420,9 +1422,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00077">77</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00082">82</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00386">DrawYazeMenuBar()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00699">SaveRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00383">DrawYazeMenuBar()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00685">SaveRom()</a>.</p>
 
 </div>
 </div>
@@ -1446,9 +1448,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00078">78</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00083">83</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00300">DrawStatusPopup()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00299">DrawStatusPopup()</a>.</p>
 
 </div>
 </div>
@@ -1472,9 +1474,35 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00079">79</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00084">84</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00386">DrawYazeMenuBar()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00058">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00383">DrawYazeMenuBar()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00058">Update()</a>.</p>
+
+</div>
+</div>
+<a id="affe73c6625559f736677e476796f02a1" name="affe73c6625559f736677e476796f02a1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#affe73c6625559f736677e476796f02a1">&#9670;&#160;</a></span>version_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string yaze::editor::EditorManager::version_ = &quot;&quot;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00086">86</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00327">DrawAboutPopup()</a>, <a class="el" href="editor__manager_8cc_source.html#l00360">DrawYazeMenu()</a>, and <a class="el" href="editor__manager_8h_source.html#l00040">EditorManager()</a>.</p>
 
 </div>
 </div>
@@ -1498,9 +1526,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00081">81</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00088">88</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00300">DrawStatusPopup()</a>, <a class="el" href="editor__manager_8cc_source.html#l00386">DrawYazeMenuBar()</a>, <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>, <a class="el" href="editor__manager_8cc_source.html#l00241">ManageKeyboardShortcuts()</a>, <a class="el" href="editor__manager_8cc_source.html#l00711">OpenRomOrProject()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00699">SaveRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00299">DrawStatusPopup()</a>, <a class="el" href="editor__manager_8cc_source.html#l00383">DrawYazeMenuBar()</a>, <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>, <a class="el" href="editor__manager_8cc_source.html#l00240">ManageKeyboardShortcuts()</a>, <a class="el" href="editor__manager_8cc_source.html#l00697">OpenRomOrProject()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00685">SaveRom()</a>.</p>
 
 </div>
 </div>
@@ -1524,9 +1552,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00082">82</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00089">89</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00386">DrawYazeMenuBar()</a>, and <a class="el" href="editor__manager_8h_source.html#l00053">emulator()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00383">DrawYazeMenuBar()</a>, and <a class="el" href="editor__manager_8h_source.html#l00058">emulator()</a>.</p>
 
 </div>
 </div>
@@ -1550,9 +1578,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00083">83</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00090">90</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8h_source.html#l00039">EditorManager()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8h_source.html#l00040">EditorManager()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>.</p>
 
 </div>
 </div>
@@ -1576,9 +1604,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00085">85</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00092">92</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00386">DrawYazeMenuBar()</a>, <a class="el" href="editor__manager_8cc_source.html#l00722">OpenProject()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00711">OpenRomOrProject()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00383">DrawYazeMenuBar()</a>, <a class="el" href="editor__manager_8cc_source.html#l00708">OpenProject()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00697">OpenRomOrProject()</a>.</p>
 
 </div>
 </div>
@@ -1602,9 +1630,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00086">86</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00093">93</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00241">ManageKeyboardShortcuts()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00240">ManageKeyboardShortcuts()</a>.</p>
 
 </div>
 </div>
@@ -1628,9 +1656,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00088">88</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00095">95</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00386">DrawYazeMenuBar()</a>, <a class="el" href="editor__manager_8h_source.html#l00039">EditorManager()</a>, <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00241">ManageKeyboardShortcuts()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00383">DrawYazeMenuBar()</a>, <a class="el" href="editor__manager_8h_source.html#l00040">EditorManager()</a>, <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00240">ManageKeyboardShortcuts()</a>.</p>
 
 </div>
 </div>
@@ -1654,9 +1682,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00089">89</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00096">96</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00386">DrawYazeMenuBar()</a>, <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00722">OpenProject()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00383">DrawYazeMenuBar()</a>, <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00708">OpenProject()</a>.</p>
 
 </div>
 </div>
@@ -1680,9 +1708,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00090">90</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00097">97</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8h_source.html#l00039">EditorManager()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8h_source.html#l00040">EditorManager()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>.</p>
 
 </div>
 </div>
@@ -1706,9 +1734,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00091">91</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00098">98</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8h_source.html#l00039">EditorManager()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8h_source.html#l00040">EditorManager()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>.</p>
 
 </div>
 </div>
@@ -1732,7 +1760,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00092">92</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00099">99</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>.</p>
 
@@ -1758,9 +1786,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00093">93</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00100">100</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8h_source.html#l00039">EditorManager()</a>, <a class="el" href="editor__manager_8cc_source.html#l00051">Initialize()</a>, <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>, <a class="el" href="editor__manager_8cc_source.html#l00699">SaveRom()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00058">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8h_source.html#l00040">EditorManager()</a>, <a class="el" href="editor__manager_8cc_source.html#l00051">Initialize()</a>, <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>, <a class="el" href="editor__manager_8cc_source.html#l00685">SaveRom()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00058">Update()</a>.</p>
 
 </div>
 </div>
@@ -1784,9 +1812,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00094">94</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00101">101</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00386">DrawYazeMenuBar()</a>, <a class="el" href="editor__manager_8h_source.html#l00039">EditorManager()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00383">DrawYazeMenuBar()</a>, <a class="el" href="editor__manager_8h_source.html#l00040">EditorManager()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>.</p>
 
 </div>
 </div>
@@ -1810,9 +1838,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00095">95</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00102">102</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8h_source.html#l00039">EditorManager()</a>, <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00699">SaveRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8h_source.html#l00040">EditorManager()</a>, <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00685">SaveRom()</a>.</p>
 
 </div>
 </div>
@@ -1836,9 +1864,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00096">96</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00103">103</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8h_source.html#l00039">EditorManager()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8h_source.html#l00040">EditorManager()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>.</p>
 
 </div>
 </div>
@@ -1862,7 +1890,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00097">97</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00104">104</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>.</p>
 
@@ -1888,9 +1916,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00098">98</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00105">105</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8h_source.html#l00039">EditorManager()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8h_source.html#l00040">EditorManager()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00077">ManageActiveEditors()</a>.</p>
 
 </div>
 </div>
@@ -1914,9 +1942,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00099">99</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00106">106</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00386">DrawYazeMenuBar()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00383">DrawYazeMenuBar()</a>.</p>
 
 </div>
 </div>

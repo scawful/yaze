@@ -11,7 +11,7 @@ var searchData=
   ['value_5f_8',['value_',['../classyaze_1_1core_1_1NotifyValue.html#a9c55856ffda4857d4e028f39a14a58e4',1,'yaze::core::NotifyValue']]],
   ['verbose_5f_9',['verbose_',['../classyaze_1_1emu_1_1MemoryImpl.html#a8023d2ee521d60c70d786c3bf0b0b701',1,'yaze::emu::MemoryImpl']]],
   ['version_10',['version',['../structyaze__extension.html#a78827a2290a2eea969ded6fec5fcc4e9',1,'yaze_extension']]],
-  ['version_5f_11',['version_',['../classyaze_1_1Rom.html#a10ab505349748675f9a37037a5a23359',1,'yaze::Rom']]],
+  ['version_5f_11',['version_',['../classyaze_1_1editor_1_1EditorManager.html#affe73c6625559f736677e476796f02a1',1,'yaze::editor::EditorManager::version_'],['../classyaze_1_1Rom.html#a10ab505349748675f9a37037a5a23359',1,'yaze::Rom::version_']]],
   ['version_5fnumber_12',['version_number',['../structyaze_1_1gfx_1_1scad__format_1_1CgxHeader.html#a34e896cd0ceb93e4bbc01df1f1ec027e',1,'yaze::gfx::scad_format::CgxHeader']]],
   ['vertical_5fcounter_5foutput_13',['vertical_counter_output',['../structyaze_1_1emu_1_1OPVCT.html#ac5e39c129d017a3beff6eace51e9e323',1,'yaze::emu::OPVCT']]],
   ['vertical_5fmirror_14',['vertical_mirror',['../structsnes__tile__info.html#a9ab328fac3bf6ecfb388748e33a4d826',1,'snes_tile_info']]],
