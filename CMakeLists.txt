@@ -1,7 +1,7 @@
 # Yet Another Zelda3 Editor
 # by scawful
 cmake_minimum_required(VERSION 3.10)
-project(yaze VERSION 0.2.0
+project(yaze VERSION 0.2.2
              DESCRIPTION "Yet Another Zelda3 Editor"
              LANGUAGES CXX)
 configure_file(src/yaze_config.h.in yaze_config.h)
