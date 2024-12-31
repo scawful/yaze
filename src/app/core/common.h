@@ -7,9 +7,9 @@
 #include <memory>
 #include <string>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
-#include "absl/container/flat_hash_map.h"
 
 namespace yaze {
 
@@ -18,7 +18,6 @@ namespace yaze {
  * @brief Core application logic and utilities.
  */
 namespace core {
-
 
 struct HexStringParams {
   enum class Prefix { kNone, kDollar, kHash, k0x } prefix = Prefix::kDollar;
@@ -38,15 +37,10 @@ bool StringReplace(std::string &str, const std::string &from,
  * @brief A class to manage experimental feature flags.
  */
 class ExperimentFlags {
-public:
+ public:
   struct Flags {
     // Log instructions to the GUI debugger.
     bool kLogInstructions = true;
-
-    // Flag to enable ImGui input config flags. Currently is
-    // handled manually by controller class but should be
-    // ported away from that eventually.
-    bool kUseNewImGuiInput = false;
 
     // Flag to enable the saving of all palettes to the Rom.
     bool kSaveAllPalettes = false;
@@ -122,9 +116,6 @@ public:
     result +=
         "kLogInstructions: " + std::to_string(flags_->kLogInstructions) + "\n";
     result +=
-        "kUseNewImGuiInput: " + std::to_string(flags_->kUseNewImGuiInput) +
-        "\n";
-    result +=
         "kSaveAllPalettes: " + std::to_string(flags_->kSaveAllPalettes) + "\n";
     result +=
         "kSaveGfxGroups: " + std::to_string(flags_->kSaveGfxGroups) + "\n";
@@ -154,7 +145,7 @@ public:
     return result;
   }
 
-private:
+ private:
   static std::shared_ptr<Flags> flags_;
 };
 
@@ -163,8 +154,9 @@ private:
  * @brief A class to manage a value that can be modified and notify when it
  * changes.
  */
-template <typename T> class NotifyValue {
-public:
+template <typename T>
+class NotifyValue {
+ public:
   NotifyValue() : value_(), modified_(false), temp_value_() {}
   NotifyValue(const T &value)
       : value_(value), modified_(false), temp_value_() {}
@@ -197,7 +189,7 @@ public:
 
   bool modified() const { return modified_; }
 
-private:
+ private:
   T value_;
   bool modified_;
   T temp_value_;
@@ -221,7 +213,8 @@ struct StructuredLog {
   std::string category;
 };
 
-static absl::flat_hash_map<std::string, std::vector<std::string>> log_categories;
+static absl::flat_hash_map<std::string, std::vector<std::string>>
+    log_categories;
 
 template <typename... Args>
 static void logm(const std::string &category,
@@ -236,7 +229,7 @@ static void logm(const std::string &category,
 }
 
 class Logger {
-public:
+ public:
   static void log(std::string message) {
     static std::ofstream fout(log_file_out, std::ios::out | std::ios::app);
     fout << message << std::endl;
