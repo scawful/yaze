@@ -52,11 +52,6 @@ IMGUI_API void ItemLabel(absl::string_view title, ItemLabelFlags flags);
 
 IMGUI_API ImGuiID GetID(const std::string &id);
 
-void FileDialogPipeline(absl::string_view display_key,
-                        absl::string_view file_extensions,
-                        std::optional<absl::string_view> button_text,
-                        std::function<void()> callback);
-
 using GuiElement = std::variant<std::function<void()>, std::string>;
 
 struct Table {
