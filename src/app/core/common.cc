@@ -112,8 +112,8 @@ void HandleHexStringParams(const std::string &hex,
 
 std::string HexByte(uint8_t byte, HexStringParams params) {
   std::string result;
-  constexpr std::string kLowerFormat = "%02x";
-  constexpr std::string kUpperFormat = "%02X";
+  const static std::string kLowerFormat = "%02x";
+  const static std::string kUpperFormat = "%02X";
   if (params.uppercase) {
     result = absl::StrFormat(kUpperFormat.c_str(), byte);
   } else {
@@ -125,8 +125,8 @@ std::string HexByte(uint8_t byte, HexStringParams params) {
 
 std::string HexWord(uint16_t word, HexStringParams params) {
   std::string result;
-  constexpr std::string kLowerFormat = "%04x";
-  constexpr std::string kUpperFormat = "%04X";
+  const static std::string kLowerFormat = "%04x";
+  const static std::string kUpperFormat = "%04X";
   if (params.uppercase) {
     result = absl::StrFormat(kUpperFormat.c_str(), word);
   } else {
@@ -138,8 +138,8 @@ std::string HexWord(uint16_t word, HexStringParams params) {
 
 std::string HexLong(uint32_t dword, HexStringParams params) {
   std::string result;
-  constexpr std::string kLowerFormat = "%06x";
-  constexpr std::string kUpperFormat = "%06X";
+  const static std::string kLowerFormat = "%06x";
+  const static std::string kUpperFormat = "%06X";
   if (params.uppercase) {
     result = absl::StrFormat(kUpperFormat.c_str(), dword);
   } else {
@@ -151,8 +151,8 @@ std::string HexLong(uint32_t dword, HexStringParams params) {
 
 std::string HexLongLong(uint64_t qword, HexStringParams params) {
   std::string result;
-  constexpr std::string kLowerFormat = "%08x";
-  constexpr std::string kUpperFormat = "%08X";
+  const static std::string kLowerFormat = "%08x";
+  const static std::string kUpperFormat = "%08X";
   if (params.uppercase) {
     result = absl::StrFormat(kUpperFormat.c_str(), qword);
   } else {
