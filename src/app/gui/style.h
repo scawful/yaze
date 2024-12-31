@@ -4,10 +4,10 @@
 #include <string>
 #include <vector>
 
-#include "ImGuiColorTextEdit/TextEditor.h"
 #include "absl/strings/string_view.h"
 #include "app/gfx/bitmap.h"
 #include "app/gui/color.h"
+#include "app/gui/modules/text_editor.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -96,7 +96,7 @@ struct MultiSelectWithClipper {
       clipper.Begin(ITEMS_COUNT);
       if (ms_io->RangeSrcItem != -1)
         clipper.IncludeItemByIndex(
-            (int)ms_io->RangeSrcItem); // Ensure RangeSrc item is not clipped.
+            (int)ms_io->RangeSrcItem);  // Ensure RangeSrc item is not clipped.
       while (clipper.Step()) {
         for (int n = clipper.DisplayStart; n < clipper.DisplayEnd; n++) {
           char label[64];
@@ -116,7 +116,7 @@ struct MultiSelectWithClipper {
   }
 };
 
-} // namespace gui
-} // namespace yaze
+}  // namespace gui
+}  // namespace yaze
 
 #endif
