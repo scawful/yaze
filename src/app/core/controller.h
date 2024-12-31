@@ -8,8 +8,8 @@
 #include "absl/status/status.h"
 #include "app/core/platform/renderer.h"
 #include "app/core/utils/file_util.h"
-#include "app/editor/editor_manager.h"
 #include "app/editor/editor.h"
+#include "app/editor/editor_manager.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imconfig.h"
@@ -58,9 +58,9 @@ class Controller : public ExperimentFlags {
  private:
   friend int ::main(int argc, char **argv);
 
-  bool active_;
+  bool active_ = false;
   Platform platform_;
-  editor::Editor *test_editor_;
+  editor::Editor *test_editor_ = nullptr;
   editor::EditorManager editor_manager_;
 
   int audio_frequency_ = 48000;
@@ -70,7 +70,6 @@ class Controller : public ExperimentFlags {
 };
 
 }  // namespace core
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_CORE_CONTROLLER_H
