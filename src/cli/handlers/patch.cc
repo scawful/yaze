@@ -1,5 +1,7 @@
 #include "cli/z3ed.h"
 
+#include "asar-dll-bindings/c/asar.h"
+
 namespace yaze {
 namespace cli {
 
