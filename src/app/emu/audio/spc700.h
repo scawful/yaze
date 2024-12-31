@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <functional>
 #include <vector>
+#include <string>
 
 namespace yaze {
 namespace emu {
