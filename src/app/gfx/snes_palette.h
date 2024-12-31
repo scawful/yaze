@@ -60,8 +60,9 @@ constexpr int kOverworldPaletteAux = 0xDE86C;
 constexpr int kOverworldPaletteAnimated = 0xDE604;
 constexpr int kGlobalSpritesLW = 0xDD218;
 constexpr int kGlobalSpritePalettesDW = 0xDD290;
-constexpr int kArmorPalettes =
-    0xDD308; /** < Green, Blue, Red, Bunny, Electrocuted (15 colors each) */
+
+/** < Green, Blue, Red, Bunny, Electrocuted (15 colors each) */
+constexpr int kArmorPalettes = 0xDD308;
 constexpr int kSpritesPalettesAux1 = 0xDD39E;  // 7 colors each
 constexpr int kSpritesPalettesAux2 = 0xDD446;  // 7 colors each
 constexpr int kSpritesPalettesAux3 = 0xDD4E0;  // 7 colors each
@@ -69,8 +70,9 @@ constexpr int kSwordPalettes = 0xDD630;        // 3 colors each - 4 entries
 constexpr int kShieldPalettes = 0xDD648;       // 4 colors each - 3 entries
 constexpr int kHudPalettes = 0xDD660;
 constexpr int kDungeonMapPalettes = 0xDD70A;  // 21 colors
-constexpr int kDungeonMainPalettes =
-    0xDD734;  // (15*6) colors each - 20 entries
+
+// (15*6) colors each - 20 entries
+constexpr int kDungeonMainPalettes = 0xDD734;
 constexpr int kDungeonMapBgPalettes = 0xDE544;  // 16*6
 
 // Mirrored Value at 0x75645 : 0x75625
@@ -80,9 +82,9 @@ constexpr int kHardcodedGrassSpecial = 0x75640;
 constexpr int kOverworldMiniMapPalettes = 0x55B27;
 constexpr int kTriforcePalette = 0x64425;
 constexpr int kCrystalPalette = 0xF4CD3;
-constexpr int CustomAreaSpecificBGPalette =
-    0x140000; /** < 2 bytes for each overworld area (320) */
 
+/** < 2 bytes for each overworld area (320) */
+constexpr int CustomAreaSpecificBGPalette = 0x140000;
 constexpr int CustomAreaSpecificBGASM = 0x140150;
 
 // 1 byte, not 0 if enabled
@@ -123,6 +125,10 @@ class SnesPalette {
     for (const auto &each : cols) {
       colors.emplace_back(each);
     }
+  }
+
+  void Create(std::ranges::range auto &&cols) {
+    std::copy(cols.begin(), cols.end(), std::back_inserter(colors));
   }
 
   void AddColor(const SnesColor &color) { colors.emplace_back(color); }
@@ -190,6 +196,7 @@ std::array<float, 4> ToFloatArray(const SnesColor &color);
  */
 struct PaletteGroup {
   PaletteGroup() = default;
+  PaletteGroup(const std::string &name) : name_(name) {}
 
   void AddPalette(SnesPalette pal) { palettes.emplace_back(pal); }
 
@@ -201,11 +208,10 @@ struct PaletteGroup {
   }
 
   void clear() { palettes.clear(); }
-  void SetName(const std::string &name) { name_ = name; }
   auto name() const { return name_; }
   auto size() const { return palettes.size(); }
-  auto mutable_palette(int i) { return &palettes[i]; }
   auto palette(int i) const { return palettes[i]; }
+  auto mutable_palette(int i) { return &palettes[i]; }
 
   SnesPalette operator[](int i) {
     if (i > palettes.size()) {
@@ -236,21 +242,21 @@ struct PaletteGroup {
  * get the group by name.
  */
 struct PaletteGroupMap {
-  PaletteGroup overworld_main;
-  PaletteGroup overworld_aux;
-  PaletteGroup overworld_animated;
-  PaletteGroup hud;
-  PaletteGroup global_sprites;
-  PaletteGroup armors;
-  PaletteGroup swords;
-  PaletteGroup shields;
-  PaletteGroup sprites_aux1;
-  PaletteGroup sprites_aux2;
-  PaletteGroup sprites_aux3;
-  PaletteGroup dungeon_main;
-  PaletteGroup grass;
-  PaletteGroup object_3d;
-  PaletteGroup overworld_mini_map;
+  PaletteGroup overworld_main = {kPaletteGroupAddressesKeys[0]};
+  PaletteGroup overworld_aux = {kPaletteGroupAddressesKeys[1]};
+  PaletteGroup overworld_animated = {kPaletteGroupAddressesKeys[2]};
+  PaletteGroup hud = {kPaletteGroupAddressesKeys[3]};
+  PaletteGroup global_sprites = {kPaletteGroupAddressesKeys[4]};
+  PaletteGroup armors = {kPaletteGroupAddressesKeys[5]};
+  PaletteGroup swords = {kPaletteGroupAddressesKeys[6]};
+  PaletteGroup shields = {kPaletteGroupAddressesKeys[7]};
+  PaletteGroup sprites_aux1 = {kPaletteGroupAddressesKeys[8]};
+  PaletteGroup sprites_aux2 = {kPaletteGroupAddressesKeys[9]};
+  PaletteGroup sprites_aux3 = {kPaletteGroupAddressesKeys[10]};
+  PaletteGroup dungeon_main = {kPaletteGroupAddressesKeys[11]};
+  PaletteGroup grass = {kPaletteGroupAddressesKeys[12]};
+  PaletteGroup object_3d = {kPaletteGroupAddressesKeys[13]};
+  PaletteGroup overworld_mini_map = {kPaletteGroupAddressesKeys[14]};
 
   auto get_group(const std::string &group_name) {
     if (group_name == "ow_main") {
@@ -393,7 +399,7 @@ struct Paletteset {
         spr2(spr2),
         composite(comp) {}
 
-  gfx::SnesPalette main_;      /**< The main palette. */
+  gfx::SnesPalette main_;     /**< The main palette. */
   gfx::SnesPalette animated;  /**< The animated palette. */
   gfx::SnesPalette aux1;      /**< The first auxiliary palette. */
   gfx::SnesPalette aux2;      /**< The second auxiliary palette. */
@@ -408,12 +414,12 @@ struct Paletteset {
  * @brief Shared graphical context across editors.
  */
 class GfxContext {
-protected:
+ protected:
   // Palettesets for the tile16 individual tiles
   static std::unordered_map<uint8_t, gfx::Paletteset> palettesets_;
 };
 
-} // namespace gfx
+}  // namespace gfx
 }  // namespace yaze
 
 #endif  // YAZE_APP_GFX_PALETTE_H
