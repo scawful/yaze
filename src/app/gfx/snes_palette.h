@@ -404,7 +404,6 @@ struct Paletteset {
   gfx::SnesPalette composite; /**< The composite palette. */
 };
 
-} // namespace gfx
 /**
  * @brief Shared graphical context across editors.
  */
@@ -414,8 +413,7 @@ protected:
   static std::unordered_map<uint8_t, gfx::Paletteset> palettesets_;
 };
 
-
-
+} // namespace gfx
 }  // namespace yaze
 
 #endif  // YAZE_APP_GFX_PALETTE_H

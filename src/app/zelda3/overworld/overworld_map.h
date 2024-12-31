@@ -57,7 +57,7 @@ constexpr int OverworldCustomTileGFXGroupEnabled = 0x140148;
 /**
  * @brief Represents a single Overworld map screen.
  */
-class OverworldMap : public GfxContext {
+class OverworldMap : public gfx::GfxContext {
  public:
   OverworldMap() = default;
   OverworldMap(int index, Rom& rom, bool load_custom_data = false);
