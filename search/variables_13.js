@@ -121,13 +121,11 @@ var searchData=
   ['transfer_5from_5f_118',['transfer_rom_',['../classyaze_1_1editor_1_1Tile16Editor.html#af1515d7f46a859544e2278196190710b',1,'yaze::editor::Tile16Editor']]],
   ['transfer_5fstarted_5f_119',['transfer_started_',['../classyaze_1_1editor_1_1Tile16Editor.html#a02c61898f51e7670eb72c4eeb2247195',1,'yaze::editor::Tile16Editor']]],
   ['transfer_5fstatus_5f_120',['transfer_status_',['../classyaze_1_1editor_1_1Tile16Editor.html#abf80f2d4061eb5dd8e622ef357e54679',1,'yaze::editor::Tile16Editor']]],
-  ['transition_5ftarget_5fnorth_121',['transition_target_north',['../namespaceyaze_1_1zelda3.html#ad2461fedd5973acbdde680660a75540b',1,'yaze::zelda3']]],
-  ['transition_5ftarget_5fwest_122',['transition_target_west',['../namespaceyaze_1_1zelda3.html#a89eb1e20040d10504c7eb1cf1b5217f9',1,'yaze::zelda3']]],
-  ['transparent_123',['transparent',['../classyaze_1_1gfx_1_1SnesColor.html#ae54e3550f2cacbb4bd7eba5b1c7ec09d',1,'yaze::gfx::SnesColor']]],
-  ['ts_124',['TS',['../namespaceyaze_1_1emu.html#a77a08eed064fb779b108b1874a136f0f',1,'yaze::emu']]],
-  ['tsw_125',['TSW',['../namespaceyaze_1_1emu.html#a50331c27c6c0f047cf8ba4f61aeca94d',1,'yaze::emu']]],
-  ['turbo_5fmode_5f_126',['turbo_mode_',['../classyaze_1_1emu_1_1Emulator.html#a0dec3e42fe398a7275373df8a38384fb',1,'yaze::emu::Emulator']]],
-  ['type_127',['Type',['../structyaze_1_1gui_1_1AssetObject.html#a17a4ac7233ca97494d69fa581292d6c6',1,'yaze::gui::AssetObject']]],
-  ['type_128',['type',['../structz3__object__door.html#a0b0e1ea5889874b525d64263a8ae8f7a',1,'z3_object_door::type'],['../structyaze_1_1emu_1_1Input.html#a6266b3d0433e50188db60e41b1ff5c33',1,'yaze::emu::Input::type'],['../structyaze_1_1gui_1_1zeml_1_1Token.html#ab57ae7ca88664ca1b01674ae18fd87f8',1,'yaze::gui::zeml::Token::type'],['../structyaze_1_1gui_1_1zeml_1_1Action.html#a8c3ed63d924a3375b2823c1a4882a1df',1,'yaze::gui::zeml::Action::type'],['../structyaze_1_1gui_1_1zeml_1_1Node.html#af89c32e83a9f2aa2eb055525ba04bf14',1,'yaze::gui::zeml::Node::type']]],
-  ['type_5f_129',['type_',['../classyaze_1_1editor_1_1Editor.html#a84126d69916364100eece497a4ced26e',1,'yaze::editor::Editor::type_'],['../classyaze_1_1emu_1_1MemoryImpl.html#afc2938889beeae99884ea9209fe4cbe5',1,'yaze::emu::MemoryImpl::type_']]]
+  ['transparent_121',['transparent',['../classyaze_1_1gfx_1_1SnesColor.html#ae54e3550f2cacbb4bd7eba5b1c7ec09d',1,'yaze::gfx::SnesColor']]],
+  ['ts_122',['TS',['../namespaceyaze_1_1emu.html#a77a08eed064fb779b108b1874a136f0f',1,'yaze::emu']]],
+  ['tsw_123',['TSW',['../namespaceyaze_1_1emu.html#a50331c27c6c0f047cf8ba4f61aeca94d',1,'yaze::emu']]],
+  ['turbo_5fmode_5f_124',['turbo_mode_',['../classyaze_1_1emu_1_1Emulator.html#a0dec3e42fe398a7275373df8a38384fb',1,'yaze::emu::Emulator']]],
+  ['type_125',['Type',['../structyaze_1_1gui_1_1AssetObject.html#a17a4ac7233ca97494d69fa581292d6c6',1,'yaze::gui::AssetObject']]],
+  ['type_126',['type',['../structz3__object__door.html#a0b0e1ea5889874b525d64263a8ae8f7a',1,'z3_object_door::type'],['../structyaze_1_1emu_1_1Input.html#a6266b3d0433e50188db60e41b1ff5c33',1,'yaze::emu::Input::type'],['../structyaze_1_1gui_1_1zeml_1_1Token.html#ab57ae7ca88664ca1b01674ae18fd87f8',1,'yaze::gui::zeml::Token::type'],['../structyaze_1_1gui_1_1zeml_1_1Action.html#a8c3ed63d924a3375b2823c1a4882a1df',1,'yaze::gui::zeml::Action::type'],['../structyaze_1_1gui_1_1zeml_1_1Node.html#af89c32e83a9f2aa2eb055525ba04bf14',1,'yaze::gui::zeml::Node::type']]],
+  ['type_5f_127',['type_',['../classyaze_1_1editor_1_1Editor.html#a84126d69916364100eece497a4ced26e',1,'yaze::editor::Editor::type_'],['../classyaze_1_1emu_1_1MemoryImpl.html#afc2938889beeae99884ea9209fe4cbe5',1,'yaze::emu::MemoryImpl::type_']]]
 ];
