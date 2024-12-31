@@ -19,6 +19,7 @@
 #include "app/emu/emulator.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
+#include "yaze_config.h"
 
 namespace yaze {
 namespace editor {
@@ -45,6 +46,10 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
     active_editors_.push_back(&sprite_editor_);
     active_editors_.push_back(&message_editor_);
     active_editors_.push_back(&screen_editor_);
+    std::stringstream ss;
+    ss << YAZE_VERSION_MAJOR << "." << YAZE_VERSION_MINOR << "."
+       << YAZE_VERSION_PATCH;
+    ss >> version_;
   }
 
   void Initialize(std::string filename = "");
@@ -77,6 +82,8 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
   bool save_new_auto_ = true;
   bool show_status_ = false;
   bool rom_assets_loaded_ = false;
+
+  std::string version_ = "";
 
   absl::Status status_;
   emu::Emulator emulator_;

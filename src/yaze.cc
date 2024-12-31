@@ -1,19 +1,25 @@
 #include "yaze.h"
 
 #include <iostream>
+#include <sstream>
 
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "dungeon.h"
+#include "yaze_config.h"
 
 void yaze_check_version(const char *version) {
-  std::cout << "Yaze version: " << version << std::endl;
-  auto version_check = yaze::core::CheckVersion(version);
-  if (!version_check.ok()) {
-    std::cout << version_check.status().message() << std::endl;
+  std::string current_version;
+  std::stringstream ss;
+  ss << YAZE_VERSION_MAJOR << "." << YAZE_VERSION_MINOR << "."
+     << YAZE_VERSION_PATCH;
+  ss >> current_version;
+
+  if (version != current_version) {
+    std::cout << "Yaze version mismatch: expected " << current_version
+              << ", got " << version << std::endl;
     exit(1);
   }
-  return;
 }
 
 int yaze_init(yaze_editor_context *yaze_ctx) {
