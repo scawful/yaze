@@ -377,12 +377,12 @@ void OverworldMap::LoadMainBlocksets() {
 // of the 5A sheet, so this will need some special manipulation to make work
 // during the BuildBitmap step (or a new one specifically for animating).
 void OverworldMap::DrawAnimatedTiles() {
-  std::cout << "static_graphics_[6] = "
-            << core::HexByte(static_graphics_[6]) << std::endl;
-  std::cout << "static_graphics_[7] = "
-            << core::HexByte(static_graphics_[7]) << std::endl;
-  std::cout << "static_graphics_[8] = "
-            << core::HexByte(static_graphics_[8]) << std::endl;
+  std::cout << "static_graphics_[6] = " << core::HexByte(static_graphics_[6])
+            << std::endl;
+  std::cout << "static_graphics_[7] = " << core::HexByte(static_graphics_[7])
+            << std::endl;
+  std::cout << "static_graphics_[8] = " << core::HexByte(static_graphics_[8])
+            << std::endl;
   if (static_graphics_[7] == 0x5B) {
     static_graphics_[7] = 0x5A;
   } else {
@@ -436,7 +436,7 @@ absl::Status SetColorsPalette(Rom& rom, int index, gfx::SnesPalette& current,
   // contains 7 colors width wide) There is 16 color per line so 16*Y
 
   // Left side of the palette - Main, Animated
-  std::vector<gfx::SnesColor> new_palette(256);
+  std::array<gfx::SnesColor, 256> new_palette = {};
 
   // Main Palette, Location 0,2 : 35 colors [7x5]
   int k = 0;
@@ -487,8 +487,7 @@ absl::Status SetColorsPalette(Rom& rom, int index, gfx::SnesPalette& current,
   k = 0;
   for (int y = 8; y < 9; y++) {
     for (int x = 1; x < 8; x++) {
-      auto pal_group = rom.palette_group().sprites_aux1;
-      new_palette[x + (16 * y)] = pal_group[1][k];
+      new_palette[x + (16 * y)] = rom.palette_group().sprites_aux1[1][k];
       k++;
     }
   }
@@ -497,8 +496,7 @@ absl::Status SetColorsPalette(Rom& rom, int index, gfx::SnesPalette& current,
   k = 0;
   for (int y = 8; y < 9; y++) {
     for (int x = 9; x < 16; x++) {
-      auto pal_group = rom.palette_group().sprites_aux3;
-      new_palette[x + (16 * y)] = pal_group[0][k];
+      new_palette[x + (16 * y)] = rom.palette_group().sprites_aux3[0][k];
       k++;
     }
   }
@@ -507,8 +505,7 @@ absl::Status SetColorsPalette(Rom& rom, int index, gfx::SnesPalette& current,
   k = 0;
   for (int y = 9; y < 13; y++) {
     for (int x = 1; x < 16; x++) {
-      auto pal_group = rom.palette_group().global_sprites;
-      new_palette[x + (16 * y)] = pal_group[0][k];
+      new_palette[x + (16 * y)] = rom.palette_group().global_sprites[0][k];
       k++;
     }
   }
@@ -535,8 +532,7 @@ absl::Status SetColorsPalette(Rom& rom, int index, gfx::SnesPalette& current,
   k = 0;
   for (int y = 15; y < 16; y++) {
     for (int x = 1; x < 16; x++) {
-      auto pal_group = rom.palette_group().armors;
-      new_palette[x + (16 * y)] = pal_group[0][k];
+      new_palette[x + (16 * y)] = rom.palette_group().armors[0][k];
       k++;
     }
   }

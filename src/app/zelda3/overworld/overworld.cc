@@ -291,9 +291,9 @@ absl::Status Overworld::LoadOverworldMaps() {
 }
 
 void Overworld::LoadTileTypes() {
-  for (int i = 0; i < 0x200; i++) {
+  for (int i = 0; i < kNumTileTypes; ++i) {
     all_tiles_types_[i] =
-        rom()->data()[rom()->version_constants().overworldTilesType + i];
+        rom()->data()[rom()->version_constants().kOverworldTilesType + i];
   }
 }
 

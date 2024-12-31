@@ -46,10 +46,10 @@ struct VersionConstants {
   uint32_t kOverworldGfxGroups2;
   uint32_t kCompressedAllMap32PointersHigh;
   uint32_t kCompressedAllMap32PointersLow;
-  uint32_t overworldMapPaletteGroup;
-  uint32_t overlayPointers;
-  uint32_t overlayPointersBank;
-  uint32_t overworldTilesType;
+  uint32_t kOverworldMapPaletteGroup;
+  uint32_t kOverlayPointers;
+  uint32_t kOverlayPointersBank;
+  uint32_t kOverworldTilesType;
   uint32_t kOverworldGfxPtr1;
   uint32_t kOverworldGfxPtr2;
   uint32_t kOverworldGfxPtr3;
@@ -72,10 +72,10 @@ static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
          0x6073,   // kOverworldGfxGroups2
          0x1794D,  // kCompressedAllMap32PointersHigh
          0x17B2D,  // kCompressedAllMap32PointersLow
-         0x75504,  // overworldMapPaletteGroup
-         0x77664,  // overlayPointers
-         0x0E,     // overlayPointersBank
-         0x71459,  // overworldTilesType
+         0x75504,  // kOverworldMapPaletteGroup
+         0x77664,  // kOverlayPointers
+         0x0E,     // kOverlayPointersBank
+         0x71459,  // kOverworldTilesType
          0x4F80,   // kOverworldGfxPtr1
          0x505F,   // kOverworldGfxPtr2
          0x513E,   // kOverworldGfxPtr3
@@ -93,10 +93,10 @@ static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
          0x60B3,   // kOverworldGfxGroups2
          0x176B1,  // kCompressedAllMap32PointersHigh
          0x17891,  // kCompressedAllMap32PointersLow
-         0x67E74,  // overworldMapPaletteGroup
-         0x3FAF4,  // overlayPointers
-         0x07,     // overlayPointersBank
-         0x7FD94,  // overworldTilesType
+         0x67E74,  // kOverworldMapPaletteGroup
+         0x3FAF4,  // kOverlayPointers
+         0x07,     // kOverlayPointersBank
+         0x7FD94,  // kOverworldTilesType
          0x4FC0,   // kOverworldGfxPtr1
          0x509F,   // kOverworldGfxPtr2
          0x517E,   // kOverworldGfxPtr3

@@ -93,6 +93,7 @@ constexpr int kOverworldEntranceExpandedFlagPos = 0x0DB895;  // 0xB8
 constexpr int kOverworldCompressedMapPos = 0x058000;
 constexpr int kOverworldCompressedOverflowPos = 0x137FFF;
 
+constexpr int kNumTileTypes = 0x200;
 constexpr int kMap16Tiles = 0x78000;
 constexpr int kNumOverworldMaps = 160;
 constexpr int kNumTile16Individual = 4096;
@@ -242,8 +243,8 @@ class Overworld : public SharedRom, public core::ExperimentFlags {
 
   OverworldMapTiles map_tiles_;
 
-  std::array<uint8_t, 160> map_parent_;
-  std::array<uint8_t, 0x200> all_tiles_types_;
+  std::array<uint8_t, kNumOverworldMaps> map_parent_;
+  std::array<uint8_t, kNumTileTypes> all_tiles_types_;
   std::vector<gfx::Tile16> tiles16_;
   std::vector<gfx::Tile32> tiles32_;
   std::vector<uint16_t> tiles32_list_;
