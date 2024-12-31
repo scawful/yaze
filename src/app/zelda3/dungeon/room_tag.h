@@ -6,7 +6,6 @@
 namespace yaze {
 namespace zelda3 {
 
-
 static const std::string RoomEffect[] = {"Nothing",
                                          "Nothing",
                                          "Moving Floor",
@@ -88,7 +87,6 @@ static const std::string RoomTag[] = {"Nothing",
 
 
 }  // namespace zelda3
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_DUNGEON_ROOM_TAG_H

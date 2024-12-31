@@ -16,7 +16,6 @@
 namespace yaze {
 namespace zelda3 {
 
-
 struct PseudoVram {
   std::array<uint8_t, 16> sheets;
   std::vector<gfx::SnesPalette> palettes;
@@ -50,8 +49,5 @@ class DungeonObjectRenderer : public SharedRom {
   gfx::Bitmap bitmap_;
 };
 
-
-
 }  // namespace zelda3
-
 }  // namespace yaze
