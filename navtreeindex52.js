@@ -1,8 +1,5 @@
 var NAVTREEINDEX52 =
 {
-"structyaze_1_1gui_1_1Theme.html":[10,0,1,6,13],
-"structyaze_1_1gui_1_1Theme.html":[11,0,0,5,11],
-"structyaze_1_1gui_1_1Theme.html#a07b0430f0cc98a52a5dc1ba7d499c378":[10,0,1,6,13,13],
 "structyaze_1_1gui_1_1Theme.html#a07b0430f0cc98a52a5dc1ba7d499c378":[11,0,0,5,11,13],
 "structyaze_1_1gui_1_1Theme.html#a0d24d6e75a9db3691e5c1a946dc68825":[10,0,1,6,13,9],
 "structyaze_1_1gui_1_1Theme.html#a0d24d6e75a9db3691e5c1a946dc68825":[11,0,0,5,11,9],
@@ -249,5 +246,8 @@ var NAVTREEINDEX52 =
 "structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html":[10,0,1,8,2,8],
 "structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html":[11,0,0,7,0,8],
 "structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#a2c54d41d68c749b177871d19b395f2ee":[10,0,1,8,2,8,5],
-"structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#a2c54d41d68c749b177871d19b395f2ee":[11,0,0,7,0,8,5]
+"structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#a2c54d41d68c749b177871d19b395f2ee":[11,0,0,7,0,8,5],
+"structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#a348a6b9733f8aef29620bdc0fa6315ab":[10,0,1,8,2,8,7],
+"structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#a348a6b9733f8aef29620bdc0fa6315ab":[11,0,0,7,0,8,7],
+"structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#a5df363149763da3950cd9f7316d42a16":[10,0,1,8,2,8,0]
 };

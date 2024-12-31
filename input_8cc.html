@@ -117,7 +117,6 @@ $(function(){initNavTree('input_8cc.html',''); initResizable(true); });
 <code>#include &lt;functional&gt;</code><br />
 <code>#include &lt;optional&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
-<code>#include &quot;ImGuiFileDialog/ImGuiFileDialog.h&quot;</code><br />
 <code>#include &quot;absl/strings/string_view.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="src_2app_2gfx_2snes__tile_8h_source.html">app/gfx/snes_tile.h</a>&quot;</code><br />
 <code>#include &quot;imgui/imgui.h&quot;</code><br />
@@ -127,42 +126,40 @@ Include dependency graph for input.cc:</div>
 <div class="dyncontent">
 <div class="center"><img src="input_8cc__incl.png" border="0" usemap="#asrc_2app_2gui_2input_8cc" alt=""/></div>
 <map name="asrc_2app_2gui_2input_8cc" id="asrc_2app_2gui_2input_8cc">
-<area shape="rect" title=" " alt="" coords="408,5,542,31"/>
-<area shape="rect" href="input_8h.html" title=" " alt="" coords="378,86,438,112"/>
-<area shape="poly" title=" " alt="" coords="467,33,430,76,426,73,463,30"/>
-<area shape="rect" title=" " alt="" coords="5,175,83,201"/>
-<area shape="poly" title=" " alt="" coords="408,33,322,52,230,81,144,125,75,168,72,164,141,120,228,77,320,47,406,28"/>
-<area shape="rect" title=" " alt="" coords="107,175,173,201"/>
-<area shape="poly" title=" " alt="" coords="432,34,372,54,307,81,231,125,169,168,166,163,228,121,304,77,370,49,431,29"/>
-<area shape="rect" title=" " alt="" coords="197,175,251,201"/>
-<area shape="poly" title=" " alt="" coords="452,34,368,81,305,126,252,167,249,163,302,122,365,77,449,29"/>
-<area shape="rect" title=" " alt="" coords="727,168,852,208"/>
-<area shape="poly" title=" " alt="" coords="483,30,512,73,534,97,559,117,713,163,711,168,556,122,530,101,508,76,479,33"/>
-<area shape="rect" href="src_2app_2gfx_2snes__tile_8h.html" title=" " alt="" coords="550,175,679,201"/>
-<area shape="poly" title=" " alt="" coords="478,31,487,72,496,96,509,118,538,145,572,166,569,170,535,150,505,121,491,98,482,74,473,32"/>
-<area shape="rect" title=" " alt="" coords="875,175,973,201"/>
-<area shape="poly" title=" " alt="" coords="493,29,556,77,578,99,603,117,639,133,672,142,730,150,790,153,865,165,875,168,873,173,863,170,789,158,729,155,671,147,638,138,600,122,575,103,553,81,490,34"/>
-<area shape="rect" title=" " alt="" coords="613,79,787,120"/>
-<area shape="poly" title=" " alt="" coords="510,29,630,71,629,76,509,34"/>
-<area shape="rect" title=" " alt="" coords="811,86,957,112"/>
-<area shape="poly" title=" " alt="" coords="543,29,799,76,817,80,816,85,798,82,542,34"/>
-<area shape="rect" title=" " alt="" coords="410,175,475,201"/>
-<area shape="poly" title=" " alt="" coords="415,112,435,160,430,162,410,114"/>
-<area shape="rect" title=" " alt="" coords="532,256,593,282"/>
-<area shape="poly" title=" " alt="" coords="426,111,456,135,489,166,522,205,549,242,545,245,518,209,485,170,452,139,422,115"/>
-<area shape="poly" title=" " alt="" coords="378,108,254,132,95,170,89,172,87,167,94,165,253,126,377,103"/>
-<area shape="poly" title=" " alt="" coords="379,111,292,136,186,170,182,172,181,167,184,165,290,131,377,106"/>
-<area shape="poly" title=" " alt="" coords="382,115,264,170,263,170,261,165,262,165,380,110"/>
-<area shape="rect" title=" " alt="" coords="275,175,336,201"/>
-<area shape="poly" title=" " alt="" coords="395,115,332,167,329,163,392,111"/>
-<area shape="rect" title=" " alt="" coords="423,256,481,282"/>
-<area shape="poly" title=" " alt="" coords="406,113,397,156,396,182,401,207,412,227,427,244,423,248,408,230,396,209,391,183,391,155,401,112"/>
-<area shape="poly" title=" " alt="" coords="439,104,713,164,712,169,438,109"/>
-<area shape="poly" title=" " alt="" coords="438,110,573,166,571,171,436,115"/>
-<area shape="poly" title=" " alt="" coords="439,102,654,131,776,149,865,165,875,168,874,173,863,170,775,154,653,136,438,107"/>
-<area shape="poly" title=" " alt="" coords="609,203,581,245,577,242,605,200"/>
-<area shape="poly" title=" " alt="" coords="591,204,492,252,489,247,588,199"/>
-<area shape="poly" title=" " alt="" coords="650,172,687,172,701,178,706,188,702,197,693,203,665,206,665,200,691,198,698,193,701,188,697,181,686,177,650,177"/>
+<area shape="rect" title=" " alt="" coords="374,5,508,31"/>
+<area shape="rect" href="input_8h.html" title=" " alt="" coords="378,79,438,105"/>
+<area shape="poly" title=" " alt="" coords="438,32,423,66,418,64,433,30"/>
+<area shape="rect" title=" " alt="" coords="5,160,83,186"/>
+<area shape="poly" title=" " alt="" coords="404,34,268,81,86,156,84,151,266,77,403,29"/>
+<area shape="rect" title=" " alt="" coords="107,160,173,186"/>
+<area shape="poly" title=" " alt="" coords="418,34,323,81,178,155,176,150,320,77,416,29"/>
+<area shape="rect" title=" " alt="" coords="197,160,251,186"/>
+<area shape="poly" title=" " alt="" coords="426,34,255,153,252,149,423,29"/>
+<area shape="rect" title=" " alt="" coords="727,153,852,193"/>
+<area shape="poly" title=" " alt="" coords="456,29,500,65,558,102,713,148,712,153,556,107,497,69,453,33"/>
+<area shape="rect" href="src_2app_2gfx_2snes__tile_8h.html" title=" " alt="" coords="550,160,679,186"/>
+<area shape="poly" title=" " alt="" coords="451,30,475,65,508,103,543,129,578,150,575,155,540,133,505,107,470,68,446,33"/>
+<area shape="rect" title=" " alt="" coords="875,160,973,186"/>
+<area shape="poly" title=" " alt="" coords="466,29,557,77,579,91,602,102,674,123,732,130,790,136,865,150,875,153,873,158,863,155,790,141,731,136,673,128,600,107,577,95,555,81,464,34"/>
+<area shape="rect" title=" " alt="" coords="614,79,760,105"/>
+<area shape="poly" title=" " alt="" coords="484,29,631,72,630,77,482,34"/>
+<area shape="rect" title=" " alt="" coords="410,160,475,186"/>
+<area shape="poly" title=" " alt="" coords="416,104,434,145,429,147,411,106"/>
+<area shape="rect" title=" " alt="" coords="532,241,593,267"/>
+<area shape="poly" title=" " alt="" coords="428,103,458,124,489,151,522,190,549,227,545,230,518,193,485,155,454,128,425,107"/>
+<area shape="poly" title=" " alt="" coords="378,100,254,120,175,136,95,155,89,157,87,152,94,150,173,130,253,114,377,95"/>
+<area shape="poly" title=" " alt="" coords="378,102,291,124,186,155,182,157,180,152,185,150,290,119,377,97"/>
+<area shape="poly" title=" " alt="" coords="379,107,264,155,263,156,261,151,262,150,377,102"/>
+<area shape="rect" title=" " alt="" coords="275,160,336,186"/>
+<area shape="poly" title=" " alt="" coords="394,107,335,152,332,148,391,103"/>
+<area shape="rect" title=" " alt="" coords="423,241,481,267"/>
+<area shape="poly" title=" " alt="" coords="406,105,397,145,396,169,401,192,412,212,427,229,423,233,408,215,396,194,391,170,392,144,401,104"/>
+<area shape="poly" title=" " alt="" coords="439,96,555,117,713,149,712,155,554,122,438,101"/>
+<area shape="poly" title=" " alt="" coords="439,102,570,152,568,157,437,107"/>
+<area shape="poly" title=" " alt="" coords="438,93,620,110,741,127,865,150,875,153,874,158,863,155,741,132,619,116,438,98"/>
+<area shape="poly" title=" " alt="" coords="609,188,581,230,577,227,605,185"/>
+<area shape="poly" title=" " alt="" coords="591,189,492,237,489,232,588,184"/>
+<area shape="poly" title=" " alt="" coords="650,157,687,157,701,163,706,173,702,182,693,188,665,191,665,185,691,183,698,178,701,173,697,166,686,162,650,162"/>
 </map>
 </div>
 </div>
@@ -205,8 +202,6 @@ Functions</h2></td></tr>
 <tr class="separator:a8c341f6de6c4838b636534e76c1747f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac4604ede79aa224793b522b22034e68b" id="r_ac4604ede79aa224793b522b22034e68b"><td class="memItemLeft" align="right" valign="top">ImGuiID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#ac4604ede79aa224793b522b22034e68b">yaze::gui::GetID</a> (const std::string &amp;id)</td></tr>
 <tr class="separator:ac4604ede79aa224793b522b22034e68b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5adf4bc60b0deb6b8681e8f60ae2972f" id="r_a5adf4bc60b0deb6b8681e8f60ae2972f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#a5adf4bc60b0deb6b8681e8f60ae2972f">yaze::gui::FileDialogPipeline</a> (absl::string_view display_key, absl::string_view file_extensions, std::optional&lt; absl::string_view &gt; button_text, std::function&lt; void()&gt; callback)</td></tr>
-<tr class="separator:a5adf4bc60b0deb6b8681e8f60ae2972f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4869c3a07239efb126450a3a4a121841" id="r_a4869c3a07239efb126450a3a4a121841"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#a4869c3a07239efb126450a3a4a121841">yaze::gui::AddTableColumn</a> (<a class="el" href="structyaze_1_1gui_1_1Table.html">Table</a> &amp;table, const std::string &amp;label, <a class="el" href="namespaceyaze_1_1gui.html#a96a8aa8ae9d402de34a59d1457cfc721">GuiElement</a> element)</td></tr>
 <tr class="separator:a4869c3a07239efb126450a3a4a121841"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a63cf2c84b704f70ba84ef7a1691e1b85" id="r_a63cf2c84b704f70ba84ef7a1691e1b85"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#a63cf2c84b704f70ba84ef7a1691e1b85">yaze::gui::DrawTable</a> (<a class="el" href="structyaze_1_1gui_1_1Table.html">Table</a> &amp;params)</td></tr>

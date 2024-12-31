@@ -1,15 +1,15 @@
 <map id="yaze::editor::GraphicsEditor::DrawObjImport" name="yaze::editor::GraphicsEditor::DrawObjImport">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,182,96"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gui.html#a5adf4bc60b0deb6b8681e8f60ae2972f" title=" " alt="" coords="235,13,414,39"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,54,246,40,247,45,182,59"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="242,63,408,88"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="182,73,226,73,226,78,182,78"/>
-<area shape="rect" id="Node000029" href="$namespaceyaze_1_1gui.html#addaa747c1d46d2433b56c2386260d979" title=" " alt="" coords="230,112,420,138"/>
-<area shape="poly" id="edge6_Node000001_Node000029" title=" " alt="" coords="182,92,247,106,246,111,181,97"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1Rom.html#a35886abe051b67913a804e4cbfdc4207" title=" " alt="" coords="496,5,630,31"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="381,59,491,33,492,38,382,65"/>
-<area shape="rect" id="Node000005" href="$structyaze_1_1ResourceLabelManager.html#a33208b26108d4ace4b006e1899d82abe" title=" " alt="" coords="468,55,658,96"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="409,73,452,73,452,78,409,78"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9" title=" " alt="" coords="486,120,640,146"/>
-<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="382,86,492,113,491,118,381,92"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,112,182,153"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="242,63,408,88"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="177,109,255,90,256,95,179,115"/>
+<area shape="rect" id="Node000028" href="$classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath." alt="" coords="230,112,420,153"/>
+<area shape="poly" id="edge5_Node000001_Node000028" title=" " alt="" coords="182,130,214,130,214,136,182,136"/>
+<area shape="rect" id="Node000029" href="$namespaceyaze_1_1gui.html#addaa747c1d46d2433b56c2386260d979" title=" " alt="" coords="230,177,420,203"/>
+<area shape="poly" id="edge6_Node000001_Node000029" title=" " alt="" coords="179,151,256,170,255,176,177,156"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a35886abe051b67913a804e4cbfdc4207" title=" " alt="" coords="496,5,630,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="381,59,491,33,492,38,382,65"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1ResourceLabelManager.html#a33208b26108d4ace4b006e1899d82abe" title=" " alt="" coords="468,55,658,96"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="409,73,452,73,452,78,409,78"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9" title=" " alt="" coords="486,120,640,146"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="382,86,492,113,491,118,381,92"/>
 </map>

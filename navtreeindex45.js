@@ -1,8 +1,5 @@
 var NAVTREEINDEX45 =
 {
-"structsnes__tile8.html":[11,0,7],
-"structsnes__tile8.html#a31238a531373c34f184472d718ec33e8":[11,0,7,0],
-"structsnes__tile8.html#ab4471447241bf1409ab7d127473e99bf":[11,0,7,2],
 "structsnes__tile8.html#afc5deb54b6f6b59dda0dea55d477348b":[11,0,7,1],
 "structsnes__tile__info.html":[11,0,8],
 "structsnes__tile__info.html#a24f26fc9d167ee3dcfa66eb5e84debcc":[11,0,8,1],
@@ -249,5 +246,8 @@ var NAVTREEINDEX45 =
 "structyaze_1_1editor_1_1DictionaryEntry.html#ab5edb1bb548b0a34f9f45232009a7159":[10,0,1,3,10,0],
 "structyaze_1_1editor_1_1DictionaryEntry.html#ab5edb1bb548b0a34f9f45232009a7159":[11,0,0,2,5,0],
 "structyaze_1_1editor_1_1DictionaryEntry.html#ad93dc47f6d61ea289992af7c34f1910d":[10,0,1,3,10,3],
-"structyaze_1_1editor_1_1DictionaryEntry.html#ad93dc47f6d61ea289992af7c34f1910d":[11,0,0,2,5,3]
+"structyaze_1_1editor_1_1DictionaryEntry.html#ad93dc47f6d61ea289992af7c34f1910d":[11,0,0,2,5,3],
+"structyaze_1_1editor_1_1EditorContext.html":[10,0,1,3,13],
+"structyaze_1_1editor_1_1EditorContext.html":[11,0,0,2,8],
+"structyaze_1_1editor_1_1EditorContext.html#a65cc3d53d2411546c0db652c6aea6a66":[10,0,1,3,13,1]
 };
