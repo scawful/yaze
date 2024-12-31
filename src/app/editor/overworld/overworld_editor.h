@@ -56,31 +56,7 @@ constexpr absl::string_view kTileSelectorTab = "##TileSelectorTabBar";
 constexpr absl::string_view kOWEditTable = "##OWEditTable";
 constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
 
-constexpr int kEntranceTileTypePtrLow = 0xDB8BF;
-constexpr int kEntranceTileTypePtrHigh = 0xDB917;
-constexpr int kNumEntranceTileTypes = 0x2C;
 
-class EntranceContext {
- public:
-  absl::Status LoadEntranceTileTypes(Rom& rom) {
-    int offset_low = kEntranceTileTypePtrLow;
-    int offset_high = kEntranceTileTypePtrHigh;
-
-    for (int i = 0; i < kNumEntranceTileTypes; i++) {
-      // Load entrance tile types
-      ASSIGN_OR_RETURN(auto value_low, rom.ReadWord(offset_low + i));
-      entrance_tile_types_low_.push_back(value_low);
-      ASSIGN_OR_RETURN(auto value_high, rom.ReadWord(offset_high + i));
-      entrance_tile_types_low_.push_back(value_high);
-    }
-
-    return absl::OkStatus();
-  }
-
- private:
-  std::vector<uint16_t> entrance_tile_types_low_;
-  std::vector<uint16_t> entrance_tile_types_high_;
-};
 
 /**
  * @class OverworldEditor
@@ -100,8 +76,7 @@ class EntranceContext {
  */
 class OverworldEditor : public Editor,
                         public SharedRom,
-                        public EntranceContext,
-                        public GfxContext,
+                        public gfx::GfxContext,
                         public core::ExperimentFlags {
  public:
   OverworldEditor() { type_ = EditorType::kOverworld; }
@@ -292,6 +267,7 @@ class OverworldEditor : public Editor,
   zelda3::OverworldEntrance current_entrance_;
   zelda3::OverworldExit current_exit_;
   zelda3::OverworldItem current_item_;
+  zelda3::OverworldEntranceTileTypes entrance_tiletypes_;
 
   zelda3::GameEntity* current_entity_;
   zelda3::GameEntity* dragged_entity_;

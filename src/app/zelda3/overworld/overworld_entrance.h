@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "app/core/constants.h"
+#include "app/rom.h"
 #include "app/zelda3/common.h"
 
 namespace yaze {
@@ -79,6 +80,27 @@ public:
     map_pos_ = (uint16_t)((((area_y_) << 6) | (area_x_ & 0x3F)) << 1);
   }
 };
+constexpr int kEntranceTileTypePtrLow = 0xDB8BF;
+constexpr int kEntranceTileTypePtrHigh = 0xDB917;
+constexpr int kNumEntranceTileTypes = 0x2C;
+
+struct OverworldEntranceTileTypes {
+  std::array<uint16_t, kNumEntranceTileTypes> low;
+  std::array<uint16_t, kNumEntranceTileTypes> high;
+};
+
+inline absl::StatusOr<OverworldEntranceTileTypes>
+LoadEntranceTileTypes(Rom &rom) {
+  OverworldEntranceTileTypes tiletypes;
+  for (int i = 0; i < kNumEntranceTileTypes; i++) {
+    ASSIGN_OR_RETURN(auto value_low, rom.ReadWord(kEntranceTileTypePtrLow + i));
+    tiletypes.low[i] = value_low;
+    ASSIGN_OR_RETURN(auto value_high,
+                     rom.ReadWord(kEntranceTileTypePtrHigh + i));
+    tiletypes.high[i] = value_high;
+  }
+  return tiletypes;
+}
 
 } // namespace zelda3
 } // namespace yaze

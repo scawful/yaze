@@ -62,7 +62,8 @@ absl::Status OverworldEditor::Update() {
     RETURN_IF_ERROR(tile16_editor_.InitBlockset(
         tile16_blockset_bmp_, current_gfx_bmp_, tile16_individual_,
         *overworld_.mutable_all_tiles_types()));
-    RETURN_IF_ERROR(LoadEntranceTileTypes(*rom()));
+    ASSIGN_OR_RETURN(entrance_tiletypes_,
+                     zelda3::LoadEntranceTileTypes(*rom()));
     all_gfx_loaded_ = true;
   }
 
@@ -98,17 +99,21 @@ void OverworldEditor::DrawToolset() {
 
   if (toolset_table_.column_contents.empty()) {
     gui::AddTableColumn(toolset_table_, "##Undo", [&]() {
-      if (Button(ICON_MD_UNDO)) status_ = Undo();
+      if (Button(ICON_MD_UNDO))
+        status_ = Undo();
     });
     gui::AddTableColumn(toolset_table_, "##Redo", [&]() {
-      if (Button(ICON_MD_REDO)) status_ = Redo();
+      if (Button(ICON_MD_REDO))
+        status_ = Redo();
     });
     gui::AddTableColumn(toolset_table_, "##Sep1", ICON_MD_MORE_VERT);
     gui::AddTableColumn(toolset_table_, "##ZoomOut", [&]() {
-      if (Button(ICON_MD_ZOOM_OUT)) ow_map_canvas_.ZoomOut();
+      if (Button(ICON_MD_ZOOM_OUT))
+        ow_map_canvas_.ZoomOut();
     });
     gui::AddTableColumn(toolset_table_, "##ZoomIn", [&]() {
-      if (Button(ICON_MD_ZOOM_IN)) ow_map_canvas_.ZoomIn();
+      if (Button(ICON_MD_ZOOM_IN))
+        ow_map_canvas_.ZoomIn();
     });
     gui::AddTableColumn(toolset_table_, "##Fullscreen", [&]() {
       if (Button(ICON_MD_OPEN_IN_FULL))
@@ -163,11 +168,13 @@ void OverworldEditor::DrawToolset() {
       HOVER_HINT("Music");
     });
     gui::AddTableColumn(toolset_table_, "##Tile16Editor", [&]() {
-      if (Button(ICON_MD_GRID_VIEW)) show_tile16_editor_ = !show_tile16_editor_;
+      if (Button(ICON_MD_GRID_VIEW))
+        show_tile16_editor_ = !show_tile16_editor_;
       HOVER_HINT("Tile16 Editor");
     });
     gui::AddTableColumn(toolset_table_, "##GfxGroupEditor", [&]() {
-      if (Button(ICON_MD_TABLE_CHART)) show_gfx_group = !show_gfx_group;
+      if (Button(ICON_MD_TABLE_CHART))
+        show_gfx_group = !show_gfx_group;
       HOVER_HINT("Gfx Group Editor");
     });
     gui::AddTableColumn(toolset_table_, "##sep3", ICON_MD_MORE_VERT);
@@ -496,10 +503,12 @@ void OverworldEditor::CheckForOverworldEdits() {
       int end_x = std::floor(end.x / kTile16Size) * kTile16Size;
       int end_y = std::floor(end.y / kTile16Size) * kTile16Size;
 
-      if (start_x > end_x) std::swap(start_x, end_x);
-      if (start_y > end_y) std::swap(start_y, end_y);
+      if (start_x > end_x)
+        std::swap(start_x, end_x);
+      if (start_y > end_y)
+        std::swap(start_y, end_y);
 
-      constexpr int local_map_size = 512;  // Size of each local map
+      constexpr int local_map_size = 512; // Size of each local map
       // Number of tiles per local map (since each tile is 16x16)
       constexpr int tiles_per_local_map = local_map_size / kTile16Size;
 
@@ -650,7 +659,8 @@ void OverworldEditor::DrawOverworldCanvas() {
     if (current_mode == EditingMode::DRAW_TILE) {
       CheckForOverworldEdits();
     }
-    if (IsItemHovered()) status_ = CheckForCurrentMap();
+    if (IsItemHovered())
+      status_ = CheckForCurrentMap();
   }
 
   ow_map_canvas_.DrawGrid();
@@ -1136,7 +1146,8 @@ void OverworldEditor::RefreshOverworldMap() {
     // We need to update the map and its siblings if it's a large map
     for (int i = 1; i < 4; i++) {
       int sibling_index = overworld_.overworld_map(source_map_id)->parent() + i;
-      if (i >= 2) sibling_index += 6;
+      if (i >= 2)
+        sibling_index += 6;
       futures.push_back(
           std::async(std::launch::async, refresh_map_async, sibling_index));
       indices[i] = sibling_index;
@@ -1165,7 +1176,8 @@ absl::Status OverworldEditor::RefreshMapPalette() {
     // We need to update the map and its siblings if it's a large map
     for (int i = 1; i < 4; i++) {
       int sibling_index = overworld_.overworld_map(current_map_)->parent() + i;
-      if (i >= 2) sibling_index += 6;
+      if (i >= 2)
+        sibling_index += 6;
       RETURN_IF_ERROR(
           overworld_.mutable_overworld_map(sibling_index)->LoadPalette());
       RETURN_IF_ERROR(
@@ -1408,7 +1420,7 @@ void OverworldEditor::DrawUsageGrid() {
   int totalSquares = 128;
   int squaresWide = 8;
   int squaresTall = (totalSquares + squaresWide - 1) /
-                    squaresWide;  // Ceiling of totalSquares/squaresWide
+                    squaresWide; // Ceiling of totalSquares/squaresWide
 
   // Loop through each row
   for (int row = 0; row < squaresTall; ++row) {
@@ -1423,9 +1435,8 @@ void OverworldEditor::DrawUsageGrid() {
 
       // Set highlight color if needed
       if (highlight) {
-        PushStyleColor(ImGuiCol_Button,
-                       ImVec4(1.0f, 0.5f, 0.0f,
-                              1.0f));  // Or any highlight color
+        PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 0.5f, 0.0f,
+                                               1.0f)); // Or any highlight color
       }
 
       // Create a button or selectable for each square
@@ -1510,5 +1521,5 @@ void OverworldEditor::InitializeZeml() {
   });
 }
 
-}  // namespace editor
-}  // namespace yaze
+} // namespace editor
+} // namespace yaze
