@@ -141,9 +141,6 @@ void Controller::OnExit() {
 
 absl::Status Controller::CreateWindow() {
   auto sdl_flags = SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER;
-  if (flags()->kUseNewImGuiInput) {
-    sdl_flags |= SDL_INIT_GAMECONTROLLER;
-  }
 
   if (SDL_Init(sdl_flags) != 0) {
     return absl::InternalError(
@@ -181,9 +178,6 @@ absl::Status Controller::CreateGuiContext() {
 
   ImGuiIO &io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-  if (flags()->kUseNewImGuiInput) {
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-  }
 
   // Initialize ImGui based on the backend
   ImGui_ImplSDL2_InitForSDLRenderer(window_.get(),
