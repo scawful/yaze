@@ -115,10 +115,10 @@ $(function(){initNavTree('style_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;string&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;ImGuiColorTextEdit/TextEditor.h&quot;</span></div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;absl/strings/string_view.h&quot;</span></div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;<a class="code" href="bitmap_8h.html">app/gfx/bitmap.h</a>&quot;</span></div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="color_8h.html">app/gui/color.h</a>&quot;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;absl/strings/string_view.h&quot;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;<a class="code" href="bitmap_8h.html">app/gfx/bitmap.h</a>&quot;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;<a class="code" href="color_8h.html">app/gui/color.h</a>&quot;</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="text__editor_8h.html">app/gui/modules/text_editor.h</a>&quot;</span></div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;imgui/imgui.h&quot;</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
@@ -211,7 +211,7 @@ $(function(){initNavTree('style_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>      clipper.Begin(<a class="code hl_variable" href="structyaze_1_1gui_1_1MultiSelectWithClipper.html#a8ac1b4d1e97e502c2a349cc513171a62">ITEMS_COUNT</a>);</div>
 <div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>      <span class="keywordflow">if</span> (ms_io-&gt;RangeSrcItem != -1)</div>
 <div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>        clipper.IncludeItemByIndex(</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>            (<span class="keywordtype">int</span>)ms_io-&gt;RangeSrcItem); <span class="comment">// Ensure RangeSrc item is not clipped.</span></div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>            (<span class="keywordtype">int</span>)ms_io-&gt;RangeSrcItem);  <span class="comment">// Ensure RangeSrc item is not clipped.</span></div>
 <div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>      <span class="keywordflow">while</span> (clipper.Step()) {</div>
 <div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> n = clipper.DisplayStart; n &lt; clipper.DisplayEnd; n++) {</div>
 <div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>          <span class="keywordtype">char</span> label[64];</div>
@@ -233,8 +233,8 @@ $(function(){initNavTree('style_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>};</div>
 </div>
 <div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span> </div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>} <span class="comment">// namespace gui</span></div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>} <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>}  <span class="comment">// namespace gui</span></div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span> </div>
 <div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="abitmap_8h_html"><div class="ttname"><a href="bitmap_8h.html">bitmap.h</a></div></div>
@@ -276,6 +276,7 @@ $(function(){initNavTree('style_8h_source.html',''); initResizable(true); });
 <div class="ttc" id="astructyaze_1_1gui_1_1Theme_html_ac806c9e6ff46343dea7d331d94ad7a78"><div class="ttname"><a href="structyaze_1_1gui_1_1Theme.html#ac806c9e6ff46343dea7d331d94ad7a78">yaze::gui::Theme::tab</a></div><div class="ttdeci">Color tab</div><div class="ttdef"><b>Definition</b> <a href="#l00029">style.h:29</a></div></div>
 <div class="ttc" id="astructyaze_1_1gui_1_1Theme_html_ad91de3e94439e6f53641d462f1d8e4f5"><div class="ttname"><a href="structyaze_1_1gui_1_1Theme.html#ad91de3e94439e6f53641d462f1d8e4f5">yaze::gui::Theme::button</a></div><div class="ttdeci">Color button</div><div class="ttdef"><b>Definition</b> <a href="#l00033">style.h:33</a></div></div>
 <div class="ttc" id="astructyaze_1_1gui_1_1Theme_html_ae012899eb166eb8023398b60593a9733"><div class="ttname"><a href="structyaze_1_1gui_1_1Theme.html#ae012899eb166eb8023398b60593a9733">yaze::gui::Theme::button_hovered</a></div><div class="ttdeci">Color button_hovered</div><div class="ttdef"><b>Definition</b> <a href="#l00034">style.h:34</a></div></div>
+<div class="ttc" id="atext__editor_8h_html"><div class="ttname"><a href="text__editor_8h.html">text_editor.h</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
