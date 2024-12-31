@@ -21,6 +21,7 @@
 #include "app/gui/style.h"
 #include "app/gui/zeml.h"
 #include "app/rom.h"
+#include "app/zelda3/common.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
@@ -1366,8 +1367,9 @@ absl::Status OverworldEditor::UpdateUsageStats() {
     if (BeginChild("UnusedSpritesetScroll", ImVec2(0, 0), true,
                    ImGuiWindowFlags_HorizontalScrollbar)) {
       for (int i = 0; i < 0x81; i++) {
-        auto entrance_name = rom_.resource_label()->GetLabel(
-            "Dungeon Entrance Names", core::HexByte(i));
+        auto entrance_name = rom_.resource_label()->CreateOrGetLabel(
+            "Dungeon Entrance Names", core::HexByte(i),
+            zelda3::kEntranceNames[i].data());
         std::string str = absl::StrFormat("%#x - %s", i, entrance_name);
         if (Selectable(str.c_str(), selected_entrance_ == i,
                        overworld_.entrances().at(i).deleted

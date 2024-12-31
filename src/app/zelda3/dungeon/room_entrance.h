@@ -8,11 +8,6 @@
 namespace yaze {
 namespace zelda3 {
 
-
-// ============================================================================
-// Dungeon Entrances Related Variables
-// ============================================================================
-
 // 0x14577 word value for each room
 constexpr int kEntranceRoom = 0x14813;
 
@@ -349,10 +344,7 @@ class RoomEntrance {
   uint8_t camera_boundary_fe_;
 };
 
-
-
 }  // namespace zelda3
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_DUNGEON_ROOM_ENTRANCE_H
