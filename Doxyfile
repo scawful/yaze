@@ -48,7 +48,7 @@ PROJECT_NAME           = "yaze"
 # could be handy for archiving the generated documentation or if some version
 # control system is used.
 
-PROJECT_NUMBER         = "0.2.0"
+PROJECT_NUMBER         = "0.2.2"
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer a
@@ -1284,7 +1284,7 @@ ALPHABETICAL_INDEX     = YES
 # after removing the prefix.
 # This tag requires that the tag ALPHABETICAL_INDEX is set to YES.
 
-IGNORE_PREFIX          =
+IGNORE_PREFIX          = googletest
 
 #---------------------------------------------------------------------------
 # Configuration options related to the HTML output
