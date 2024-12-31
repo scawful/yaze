@@ -196,7 +196,7 @@ class NotifyValue {
 };
 
 static bool log_to_console = false;
-static std::string log_file_out = "log.txt";
+constexpr std::string kLogFileOut = "yaze_log.txt";
 
 template <typename... Args>
 static void logf(const absl::FormatSpec<Args...> &format, const Args &...args) {
@@ -204,37 +204,9 @@ static void logf(const absl::FormatSpec<Args...> &format, const Args &...args) {
   if (log_to_console) {
     std::cout << message << std::endl;
   }
-  static std::ofstream fout(log_file_out, std::ios::out | std::ios::app);
+  static std::ofstream fout(kLogFileOut, std::ios::out | std::ios::app);
   fout << message << std::endl;
 }
-
-struct StructuredLog {
-  std::string raw_message;
-  std::string category;
-};
-
-static absl::flat_hash_map<std::string, std::vector<std::string>>
-    log_categories;
-
-template <typename... Args>
-static void logm(const std::string &category,
-                 const absl::FormatSpec<Args...> &format, const Args &...args) {
-  std::string message = absl::StrFormat(format, args...);
-  std::cout << category << ": " << message << std::endl;
-  if (log_categories.contains(category)) {
-    log_categories[category].push_back(message);
-  } else {
-    log_categories[category] = {message};
-  }
-}
-
-class Logger {
- public:
-  static void log(std::string message) {
-    static std::ofstream fout(log_file_out, std::ios::out | std::ios::app);
-    fout << message << std::endl;
-  }
-};
 
 constexpr uint32_t kFastRomRegion = 0x808000;
 
