@@ -30,7 +30,7 @@ OverworldMap::OverworldMap(int index, Rom& rom, bool load_custom_data)
 
 absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
                                     std::vector<gfx::Tile16>& tiles16,
-                                    OWBlockset& world_blockset) {
+                                    OverworldBlockset& world_blockset) {
   game_state_ = game_state;
   world_ = world;
   if (large_map_) {
@@ -718,7 +718,7 @@ absl::Status OverworldMap::BuildTiles16Gfx(std::vector<gfx::Tile16>& tiles16,
   return absl::OkStatus();
 }
 
-absl::Status OverworldMap::BuildBitmap(OWBlockset& world_blockset) {
+absl::Status OverworldMap::BuildBitmap(OverworldBlockset& world_blockset) {
   if (bitmap_data_.size() != 0) {
     bitmap_data_.clear();
   }

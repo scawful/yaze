@@ -124,18 +124,18 @@ absl::Status Overworld::AssembleMap32Tiles() {
     for (int k = 0; k < 4; k++) {
       // Generate the 16-bit tile for the current quadrant of the current
       // 32x32 pixel tile.
-      ASSIGN_OR_RETURN(uint16_t tl,
-                        GetTile16ForTile32(i, k, (int)Dimension::map32TilesTL,
-                                          map32address));
-      ASSIGN_OR_RETURN(uint16_t tr,
-                        GetTile16ForTile32(i, k, (int)Dimension::map32TilesTR,
-                                          map32address));
-      ASSIGN_OR_RETURN(uint16_t bl,
-                        GetTile16ForTile32(i, k, (int)Dimension::map32TilesBL,
-                                          map32address));
-      ASSIGN_OR_RETURN(uint16_t br,
-                        GetTile16ForTile32(i, k, (int)Dimension::map32TilesBR,
-                                          map32address));
+      ASSIGN_OR_RETURN(
+          uint16_t tl,
+          GetTile16ForTile32(i, k, (int)Dimension::map32TilesTL, map32address));
+      ASSIGN_OR_RETURN(
+          uint16_t tr,
+          GetTile16ForTile32(i, k, (int)Dimension::map32TilesTR, map32address));
+      ASSIGN_OR_RETURN(
+          uint16_t bl,
+          GetTile16ForTile32(i, k, (int)Dimension::map32TilesBL, map32address));
+      ASSIGN_OR_RETURN(
+          uint16_t br,
+          GetTile16ForTile32(i, k, (int)Dimension::map32TilesBR, map32address));
 
       // Add the generated 16-bit tiles to the tiles32 vector.
       tiles32_unique_.emplace_back(gfx::Tile32(tl, tr, bl, br));
@@ -177,7 +177,7 @@ void Overworld::AssembleMap16Tiles() {
 }
 
 void Overworld::AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
-                                 OWBlockset &world) {
+                                 OverworldBlockset &world) {
   int position_x1 = (x * 2) + (sx * 32);
   int position_y1 = (y * 2) + (sy * 32);
   int position_x2 = (x * 2) + 1 + (sx * 32);
@@ -572,8 +572,7 @@ absl::Status Overworld::SaveOverworldMaps() {
 
     if ((pos + size_a) >= 0x6411F && (pos + size_a) <= 0x70000) {
       core::Logger::log("Pos set to overflow region for map " +
-                        std::to_string(i) + " at " +
-                        core::HexLong(pos));
+                        std::to_string(i) + " at " + core::HexLong(pos));
       pos = OverworldMapDataOverflow;  // 0x0F8780;
     }
 
@@ -610,8 +609,7 @@ absl::Status Overworld::SaveOverworldMaps() {
       int snes_pos = core::PcToSnes(pos);
       map_pointers1[i] = snes_pos;
       core::Logger::log("Saving map pointers1 and compressed data for map " +
-                        core::HexByte(i) + " at " +
-                        core::HexLong(snes_pos));
+                        core::HexByte(i) + " at " + core::HexLong(snes_pos));
       RETURN_IF_ERROR(rom()->WriteLong(
           rom()->version_constants().kCompressedAllMap32PointersLow + (3 * i),
           snes_pos));
@@ -620,9 +618,8 @@ absl::Status Overworld::SaveOverworldMaps() {
     } else {
       // Save pointer for map1
       int snes_pos = map_pointers1[map_pointers1_id[i]];
-      core::Logger::log("Saving map pointers1 for map " +
-                        core::HexByte(i) + " at " +
-                        core::HexLong(snes_pos));
+      core::Logger::log("Saving map pointers1 for map " + core::HexByte(i) +
+                        " at " + core::HexLong(snes_pos));
       RETURN_IF_ERROR(rom()->WriteLong(
           rom()->version_constants().kCompressedAllMap32PointersLow + (3 * i),
           snes_pos));
@@ -634,8 +631,7 @@ absl::Status Overworld::SaveOverworldMaps() {
 
     if ((pos + b.size()) >= 0x6411F && (pos + b.size()) <= 0x70000) {
       core::Logger::log("Pos set to overflow region for map " +
-                        core::HexByte(i) + " at " +
-                        core::HexLong(pos));
+                        core::HexByte(i) + " at " + core::HexLong(pos));
       pos = OverworldMapDataOverflow;
     }
 
@@ -645,8 +641,7 @@ absl::Status Overworld::SaveOverworldMaps() {
       int snes_pos = core::PcToSnes(pos);
       map_pointers2[i] = snes_pos;
       core::Logger::log("Saving map pointers2 and compressed data for map " +
-                        core::HexByte(i) + " at " +
-                        core::HexLong(snes_pos));
+                        core::HexByte(i) + " at " + core::HexLong(snes_pos));
       RETURN_IF_ERROR(rom()->WriteLong(
           rom()->version_constants().kCompressedAllMap32PointersHigh + (3 * i),
           snes_pos));
@@ -655,9 +650,8 @@ absl::Status Overworld::SaveOverworldMaps() {
     } else {
       // Save pointer for map2
       int snes_pos = map_pointers2[map_pointers2_id[i]];
-      core::Logger::log("Saving map pointers2 for map " +
-                        core::HexByte(i) + " at " +
-                        core::HexLong(snes_pos));
+      core::Logger::log("Saving map pointers2 for map " + core::HexByte(i) +
+                        " at " + core::HexLong(snes_pos));
       RETURN_IF_ERROR(rom()->WriteLong(
           rom()->version_constants().kCompressedAllMap32PointersHigh + (3 * i),
           snes_pos));
@@ -989,13 +983,13 @@ absl::Status Overworld::SaveLargeMaps() {
 }
 
 namespace {
-std::vector<uint64_t> GetAllTile16(OWMapTiles &map_tiles_) {
+std::vector<uint64_t> GetAllTile16(OverworldMapTiles &map_tiles_) {
   std::vector<uint64_t> all_tile_16;  // Ensure it's 64 bits
 
   int sx = 0;
   int sy = 0;
   int c = 0;
-  OWBlockset tiles_used;
+  OverworldBlockset tiles_used;
   for (int i = 0; i < kNumOverworldMaps; i++) {
     if (i < 64) {
       tiles_used = map_tiles_.light_world;

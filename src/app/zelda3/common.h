@@ -1,31 +1,17 @@
 #ifndef YAZE_APP_ZELDA3_COMMON_H
 #define YAZE_APP_ZELDA3_COMMON_H
 
-#include <vector>
 #include <cstdint>
 #include <string>
+#include <string_view>
 
 namespace yaze {
+
 /**
  * @namespace yaze::zelda3
  * @brief Zelda 3 specific classes and functions.
  */
 namespace zelda3 {
-
-/**
- * @brief Represents tile32 data for the overworld.
- */
-using OWBlockset = std::vector<std::vector<uint16_t>>;
-
-/**
- * @brief Overworld map tile32 data.
- */
-struct OWMapTiles {
-  OWBlockset light_world;    // 64 maps
-  OWBlockset dark_world;     // 64 maps
-  OWBlockset special_world;  // 32 maps
-};
-using OWMapTiles = struct OWMapTiles;
 
 /**
  * @class GameEntity
