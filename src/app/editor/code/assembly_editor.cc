@@ -1,10 +1,10 @@
 #include "assembly_editor.h"
 
-#include "ImGuiColorTextEdit/TextEditor.h"
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "absl/strings/str_cat.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/gui/icons.h"
+#include "app/gui/modules/text_editor.h"
 
 namespace yaze {
 namespace editor {

@@ -1,6 +1,7 @@
 set(
   YAZE_GUI_SRC
   app/gui/modules/asset_browser.cc
+  app/gui/modules/text_editor.cc
   app/gui/canvas.cc
   app/gui/input.cc
   app/gui/style.cc

@@ -834,5 +834,4 @@ void DungeonEditor::DrawUsageGrid() {
 }
 
 }  // namespace editor
-
 }  // namespace yaze
