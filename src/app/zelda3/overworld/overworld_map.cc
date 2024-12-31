@@ -36,8 +36,8 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
   if (large_map_) {
     if (parent_ != index_ && !initialized_) {
       if (index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) {
-        area_graphics_ = rom_[overworldSpecialGFXGroup + (parent_ - 0x80)];
-        area_palette_ = rom_[overworldSpecialPALGroup + 1];
+        area_graphics_ = rom_[kOverworldSpecialGfxGroup + (parent_ - 0x80)];
+        area_palette_ = rom_[kOverworldSpecialPalGroup + 1];
       } else if (index_ == 0x88) {
         area_graphics_ = 0x51;
         area_palette_ = 0x00;
@@ -62,7 +62,7 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
 void OverworldMap::LoadAreaInfo() {
   if (index_ != 0x80) {
     if (index_ <= 128)
-      large_map_ = (rom_[overworldMapSize + (index_ & 0x3F)] != 0);
+      large_map_ = (rom_[kOverworldMapSize + (index_ & 0x3F)] != 0);
     else {
       large_map_ =
           index_ == 129 || index_ == 130 || index_ == 137 || index_ == 138;
@@ -75,14 +75,14 @@ void OverworldMap::LoadAreaInfo() {
     area_graphics_ = rom_[kAreaGfxIdPtr + parent_];
     area_palette_ = rom_[kOverworldMapPaletteIds + parent_];
 
-    area_music_[0] = rom_[overworldMusicBegining + parent_];
-    area_music_[1] = rom_[overworldMusicZelda + parent_];
-    area_music_[2] = rom_[overworldMusicMasterSword + parent_];
-    area_music_[3] = rom_[overworldMusicAgahim + parent_];
+    area_music_[0] = rom_[kOverworldMusicBeginning + parent_];
+    area_music_[1] = rom_[kOverworldMusicZelda + parent_];
+    area_music_[2] = rom_[kOverworldMusicMasterSword + parent_];
+    area_music_[3] = rom_[kOverworldMusicAgahnim + parent_];
 
-    sprite_graphics_[0] = rom_[overworldSpriteset + parent_];
-    sprite_graphics_[1] = rom_[overworldSpriteset + parent_ + 0x40];
-    sprite_graphics_[2] = rom_[overworldSpriteset + parent_ + 0x80];
+    sprite_graphics_[0] = rom_[kOverworldSpriteset + parent_];
+    sprite_graphics_[1] = rom_[kOverworldSpriteset + parent_ + 0x40];
+    sprite_graphics_[2] = rom_[kOverworldSpriteset + parent_ + 0x80];
 
     sprite_palette_[0] = rom_[kOverworldSpritePaletteIds + parent_];
     sprite_palette_[1] = rom_[kOverworldSpritePaletteIds + parent_ + 0x40];
@@ -90,11 +90,11 @@ void OverworldMap::LoadAreaInfo() {
   } else if (index_ < 0x80) {
     area_graphics_ = rom_[kAreaGfxIdPtr + parent_];
     area_palette_ = rom_[kOverworldMapPaletteIds + parent_];
-    area_music_[0] = rom_[overworldMusicDW + (parent_ - 64)];
+    area_music_[0] = rom_[kOverworldMusicDarkWorld + (parent_ - 64)];
 
-    sprite_graphics_[0] = rom_[overworldSpriteset + parent_ + 0x80];
-    sprite_graphics_[1] = rom_[overworldSpriteset + parent_ + 0x80];
-    sprite_graphics_[2] = rom_[overworldSpriteset + parent_ + 0x80];
+    sprite_graphics_[0] = rom_[kOverworldSpriteset + parent_ + 0x80];
+    sprite_graphics_[1] = rom_[kOverworldSpriteset + parent_ + 0x80];
+    sprite_graphics_[2] = rom_[kOverworldSpriteset + parent_ + 0x80];
 
     sprite_palette_[0] = rom_[kOverworldSpritePaletteIds + parent_ + 0x80];
     sprite_palette_[1] = rom_[kOverworldSpritePaletteIds + parent_ + 0x80];
@@ -123,11 +123,11 @@ void OverworldMap::LoadAreaInfo() {
       parent_ = 129;
     }
 
-    area_palette_ = rom_[overworldSpecialPALGroup + parent_ - 0x80];
+    area_palette_ = rom_[kOverworldSpecialPalGroup + parent_ - 0x80];
     if ((index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) ||
         index_ == 0x94) {
-      area_graphics_ = rom_[overworldSpecialGFXGroup + (parent_ - 0x80)];
-      area_palette_ = rom_[overworldSpecialPALGroup + 1];
+      area_graphics_ = rom_[kOverworldSpecialGfxGroup + (parent_ - 0x80)];
+      area_palette_ = rom_[kOverworldSpecialPalGroup + 1];
     } else if (index_ == 0x88) {
       area_graphics_ = 0x51;
       area_palette_ = 0x00;
@@ -137,9 +137,9 @@ void OverworldMap::LoadAreaInfo() {
       area_palette_ = rom_[kOverworldMapPaletteIds + parent_];
     }
 
-    sprite_graphics_[0] = rom_[overworldSpriteset + parent_ + 0x80];
-    sprite_graphics_[1] = rom_[overworldSpriteset + parent_ + 0x80];
-    sprite_graphics_[2] = rom_[overworldSpriteset + parent_ + 0x80];
+    sprite_graphics_[0] = rom_[kOverworldSpriteset + parent_ + 0x80];
+    sprite_graphics_[1] = rom_[kOverworldSpriteset + parent_ + 0x80];
+    sprite_graphics_[2] = rom_[kOverworldSpriteset + parent_ + 0x80];
 
     sprite_palette_[0] = rom_[kOverworldSpritePaletteIds + parent_ + 0x80];
     sprite_palette_[1] = rom_[kOverworldSpritePaletteIds + parent_ + 0x80];
@@ -555,7 +555,7 @@ absl::StatusOr<gfx::SnesPalette> OverworldMap::GetPalette(
     const gfx::PaletteGroup& palette_group, int index, int previous_index,
     int limit) {
   if (index == 255) {
-    index = rom_[rom_.version_constants().overworldMapPaletteGroup +
+    index = rom_[rom_.version_constants().kOverworldMapPaletteGroup +
                  (previous_index * 4)];
   }
   if (index >= limit) {
@@ -573,15 +573,15 @@ absl::Status OverworldMap::LoadPalette() {
   area_palette_ = std::min((int)area_palette_, 0xA3);
 
   uchar pal0 = 0;
-  uchar pal1 = rom_[rom_.version_constants().overworldMapPaletteGroup +
+  uchar pal1 = rom_[rom_.version_constants().kOverworldMapPaletteGroup +
                     (area_palette_ * 4)];
-  uchar pal2 = rom_[rom_.version_constants().overworldMapPaletteGroup +
+  uchar pal2 = rom_[rom_.version_constants().kOverworldMapPaletteGroup +
                     (area_palette_ * 4) + 1];
-  uchar pal3 = rom_[rom_.version_constants().overworldMapPaletteGroup +
+  uchar pal3 = rom_[rom_.version_constants().kOverworldMapPaletteGroup +
                     (area_palette_ * 4) + 2];
   uchar pal4 =
-      rom_[overworldSpritePaletteGroup + (sprite_palette_[game_state_] * 2)];
-  uchar pal5 = rom_[overworldSpritePaletteGroup +
+      rom_[kOverworldSpritePaletteGroup + (sprite_palette_[game_state_] * 2)];
+  uchar pal5 = rom_[kOverworldSpritePaletteGroup +
                     (sprite_palette_[game_state_] * 2) + 1];
 
   auto grass_pal_group = rom_.palette_group().grass;
@@ -595,7 +595,7 @@ absl::Status OverworldMap::LoadPalette() {
 
   // Additional handling of `pal3` and `parent_`
   if (pal3 == 255) {
-    pal3 = rom_[rom_.version_constants().overworldMapPaletteGroup +
+    pal3 = rom_[rom_.version_constants().kOverworldMapPaletteGroup +
                 (previousPalId * 4) + 2];
   }
 
