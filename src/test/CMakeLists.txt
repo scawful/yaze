@@ -32,6 +32,7 @@ target_include_directories(
   ${ASAR_INCLUDE_DIR}
   ${SDL2_INCLUDE_DIR}
   ${PNG_INCLUDE_DIRS}
+  ${PROJECT_BINARY_DIR}
 )
 
 target_link_libraries(

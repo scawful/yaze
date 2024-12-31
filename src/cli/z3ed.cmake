@@ -41,6 +41,7 @@ target_include_directories(
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
   ${GLEW_INCLUDE_DIRS}
+  ${PROJECT_BINARY_DIR}
 )
 
 target_link_libraries(
