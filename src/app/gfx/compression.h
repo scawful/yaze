@@ -74,7 +74,7 @@ struct CompressionPiece {
   std::string argument;
   std::shared_ptr<CompressionPiece> next = nullptr;
   CompressionPiece() = default;
-  CompressionPiece(int cmd, int len, std::string args, int arg_len)
+  CompressionPiece(int cmd, int len, std::string& args, int arg_len)
       : command(cmd), length(len), argument_length(arg_len), argument(args) {}
 };
 using CompressionPiece = struct CompressionPiece;

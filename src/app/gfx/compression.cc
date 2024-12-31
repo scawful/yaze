@@ -178,9 +178,6 @@ void CompressionCommandAlternative(const uchar* rom_data,
   comp_accumulator = 0;
 }
 
-// ============================================================================
-// Compression V2
-
 void CheckByteRepeatV2(const uchar* data, uint& src_pos, const uint last_pos,
                        CompressionCommand& cmd) {
   uint i = 0;
@@ -379,15 +376,17 @@ absl::StatusOr<CompressionPiecePointer> SplitCompressionPiece(
       new_piece->argument[0] =
           (char)(piece->argument[0] + kMaxLengthCompression);
       break;
-    case kCommandDirectCopy:
+    case kCommandDirectCopy: {
+      std::string empty;
       piece->argument_length = kMaxLengthCompression;
       new_piece = std::make_shared<CompressionPiece>(
-          piece->command, length_left, nullptr, length_left);
+          piece->command, length_left, empty, length_left);
       // MEMCPY
       for (int i = 0; i < length_left; ++i) {
         new_piece->argument[i] = piece->argument[i + kMaxLengthCompression];
       }
       break;
+    }
     case kCommandRepeatingBytes: {
       piece->argument_length = kMaxLengthCompression;
       uint offset = piece->argument[0] + (piece->argument[1] << 8);
@@ -525,7 +524,9 @@ absl::StatusOr<std::vector<uint8_t>> CompressV2(const uchar* data,
   }
 
   // Worst case should be a copy of the string with extended header
-  auto compressed_chain = std::make_shared<CompressionPiece>(1, 1, "aaa", 2);
+  std::string worst_case = "aaa";
+  auto compressed_chain =
+      std::make_shared<CompressionPiece>(1, 1, worst_case, 2);
   auto compressed_chain_start = compressed_chain;
 
   CompressionCommand current_cmd = {/*argument*/ {{}},
@@ -1208,15 +1209,17 @@ absl::StatusOr<CompressionPiece> SplitCompressionPieceV3(
                                    piece.argument_length);
       new_piece.argument[0] = (char)(piece.argument[0] + kMaxLengthCompression);
       break;
-    case kCommandDirectCopy:
+    case kCommandDirectCopy: {
       piece.argument_length = kMaxLengthCompression;
-      new_piece =
-          CompressionPiece(piece.command, length_left, nullptr, length_left);
+      std::string empty_string = "";
+      new_piece = CompressionPiece(piece.command, length_left, empty_string,
+                                   length_left);
       // MEMCPY
       for (int i = 0; i < length_left; ++i) {
         new_piece.argument[i] = piece.argument[i + kMaxLengthCompression];
       }
       break;
+    }
     case kCommandRepeatingBytes: {
       piece.argument_length = kMaxLengthCompression;
       uint offset = piece.argument[0] + (piece.argument[1] << 8);
@@ -1338,8 +1341,6 @@ absl::StatusOr<std::vector<uint8_t>> CompressV3(
   return std::vector<uint8_t>(context.compressed_data.begin(),
                               context.compressed_data.end());
 }
-
-// Decompression
 
 std::string SetBuffer(const uchar* data, int src_pos, int comp_accumulator) {
   std::string buffer;
@@ -1472,5 +1473,4 @@ absl::StatusOr<std::vector<uint8_t>> DecompressOverworld(
 
 }  // namespace lc_lz2
 }  // namespace gfx
-
 }  // namespace yaze
