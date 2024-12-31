@@ -1,13 +1,5 @@
 var NAVTREEINDEX45 =
 {
-"structTextEditor_1_1LanguageDefinition.html#ac40f4cc01836db6f18dbf21f25121f2d":[11,0,9,5,3],
-"structsnes__color.html":[11,0,3],
-"structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4":[11,0,3,2],
-"structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58":[11,0,3,0],
-"structsnes__color.html#abe07ebebd2f735f932b7a7a065506f9f":[11,0,3,1],
-"structsnes__palette.html":[11,0,4],
-"structsnes__palette.html#aa3f32ff0f52e7ada19fb5afdd477258f":[11,0,4,0],
-"structsnes__palette.html#ad4057af514d8aab3c6a429b693bb9ac6":[11,0,4,2],
 "structsnes__palette.html#af78e1764df4b15340c56da97b8e2c965":[11,0,4,1],
 "structsnes__tile16.html":[11,0,5],
 "structsnes__tile16.html#ac600abfadbc79e7265b2086c99e322cc":[11,0,5,0],
@@ -249,5 +241,13 @@ var NAVTREEINDEX45 =
 "structyaze_1_1editor_1_1DictionaryEntry.html#a67842f0377a9619c45f95f785b2933c2":[10,0,1,3,10,2],
 "structyaze_1_1editor_1_1DictionaryEntry.html#a67842f0377a9619c45f95f785b2933c2":[11,0,0,2,5,2],
 "structyaze_1_1editor_1_1DictionaryEntry.html#a6b2beaa9312716f63e1b5ad0cea3d685":[10,0,1,3,10,5],
-"structyaze_1_1editor_1_1DictionaryEntry.html#a6b2beaa9312716f63e1b5ad0cea3d685":[11,0,0,2,5,5]
+"structyaze_1_1editor_1_1DictionaryEntry.html#a6b2beaa9312716f63e1b5ad0cea3d685":[11,0,0,2,5,5],
+"structyaze_1_1editor_1_1DictionaryEntry.html#a71f4012ddd4815fad5648ef47c5df5b3":[10,0,1,3,10,1],
+"structyaze_1_1editor_1_1DictionaryEntry.html#a71f4012ddd4815fad5648ef47c5df5b3":[11,0,0,2,5,1],
+"structyaze_1_1editor_1_1DictionaryEntry.html#a84511c3a0cacbd7494a14d5f70dca212":[10,0,1,3,10,6],
+"structyaze_1_1editor_1_1DictionaryEntry.html#a84511c3a0cacbd7494a14d5f70dca212":[11,0,0,2,5,6],
+"structyaze_1_1editor_1_1DictionaryEntry.html#ab5edb1bb548b0a34f9f45232009a7159":[10,0,1,3,10,0],
+"structyaze_1_1editor_1_1DictionaryEntry.html#ab5edb1bb548b0a34f9f45232009a7159":[11,0,0,2,5,0],
+"structyaze_1_1editor_1_1DictionaryEntry.html#ad93dc47f6d61ea289992af7c34f1910d":[10,0,1,3,10,3],
+"structyaze_1_1editor_1_1DictionaryEntry.html#ad93dc47f6d61ea289992af7c34f1910d":[11,0,0,2,5,3]
 };

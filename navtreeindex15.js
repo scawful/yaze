@@ -1,13 +1,5 @@
 var NAVTREEINDEX15 =
 {
-"classyaze_1_1emu_1_1Spc700.html#af54cb31d6f6542a73d63ba035a8ed748":[10,0,1,4,74,62],
-"classyaze_1_1emu_1_1Spc700.html#af54cb31d6f6542a73d63ba035a8ed748":[11,0,0,3,72,62],
-"classyaze_1_1emu_1_1Spc700.html#af5d426d6a9e9e90a29c475b5fe487330":[10,0,1,4,74,34],
-"classyaze_1_1emu_1_1Spc700.html#af5d426d6a9e9e90a29c475b5fe487330":[11,0,0,3,72,34],
-"classyaze_1_1emu_1_1Spc700.html#af5e8217ac6bbcbc8487a48a35627a462":[10,0,1,4,74,24],
-"classyaze_1_1emu_1_1Spc700.html#af5e8217ac6bbcbc8487a48a35627a462":[11,0,0,3,72,24],
-"classyaze_1_1emu_1_1Spc700.html#af670db1f76ee0dfd845cf49f1d63d907":[10,0,1,4,74,10],
-"classyaze_1_1emu_1_1Spc700.html#af670db1f76ee0dfd845cf49f1d63d907":[11,0,0,3,72,10],
 "classyaze_1_1emu_1_1Spc700.html#af7bbb7b6fd9373cb4ae8d21596ab7932":[10,0,1,4,74,3],
 "classyaze_1_1emu_1_1Spc700.html#af7bbb7b6fd9373cb4ae8d21596ab7932":[11,0,0,3,72,3],
 "classyaze_1_1emu_1_1Spc700.html#afa6a12b6bca12df4589abad6c333b5f8":[10,0,1,4,74,5],
@@ -249,5 +241,13 @@ var NAVTREEINDEX15 =
 "classyaze_1_1gfx_1_1SnesPalette.html#a6333d0223ee96c449cd6c4637ffe9646":[10,0,1,5,13,0],
 "classyaze_1_1gfx_1_1SnesPalette.html#a6333d0223ee96c449cd6c4637ffe9646":[11,0,0,4,11,0],
 "classyaze_1_1gfx_1_1SnesPalette.html#a666e0d7190b52b8f47dc78e8a9db71b3":[10,0,1,5,13,8],
-"classyaze_1_1gfx_1_1SnesPalette.html#a666e0d7190b52b8f47dc78e8a9db71b3":[11,0,0,4,11,8]
+"classyaze_1_1gfx_1_1SnesPalette.html#a666e0d7190b52b8f47dc78e8a9db71b3":[11,0,0,4,11,8],
+"classyaze_1_1gfx_1_1SnesPalette.html#a6854313e2b0f605315523b2185efdea2":[10,0,1,5,13,9],
+"classyaze_1_1gfx_1_1SnesPalette.html#a6854313e2b0f605315523b2185efdea2":[11,0,0,4,11,9],
+"classyaze_1_1gfx_1_1SnesPalette.html#a8172ae7725a9fe1c23df412b2632a484":[10,0,1,5,13,20],
+"classyaze_1_1gfx_1_1SnesPalette.html#a8172ae7725a9fe1c23df412b2632a484":[11,0,0,4,11,20],
+"classyaze_1_1gfx_1_1SnesPalette.html#a837443013432f47923f16a4d671f1563":[10,0,1,5,13,3],
+"classyaze_1_1gfx_1_1SnesPalette.html#a837443013432f47923f16a4d671f1563":[11,0,0,4,11,3],
+"classyaze_1_1gfx_1_1SnesPalette.html#a9027ac7339965b6ada64b0d46d9d1b27":[10,0,1,5,13,10],
+"classyaze_1_1gfx_1_1SnesPalette.html#a9027ac7339965b6ada64b0d46d9d1b27":[11,0,0,4,11,10]
 };

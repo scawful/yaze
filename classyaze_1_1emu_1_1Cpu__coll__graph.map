@@ -1,11 +1,9 @@
 <map id="yaze::emu::Cpu" name="yaze::emu::Cpu">
-<area shape="rect" id="Node000001" title=" " alt="" coords="299,80,406,106"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="5,5,186,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,32,276,57,325,77,323,82,274,62,182,37"/>
-<area shape="rect" id="Node000003" href="$structyaze_1_1emu_1_1CpuCallbacks.html" title=" " alt="" coords="13,55,178,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="194,74,298,85,298,90,193,80"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1Memory.html" title="Memory interface." alt="" coords="30,104,161,130"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="176,116,274,109,303,104,304,109,275,114,177,121"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1emu_1_1Clock.html" title=" " alt="" coords="37,153,154,179"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="169,158,221,149,274,135,305,120,331,104,334,108,307,125,276,140,223,154,170,163"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="206,94,313,120"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1emu_1_1CpuCallbacks.html" title=" " alt="" coords="5,5,170,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,36,237,91,234,96,124,41"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1Memory.html" title="Memory interface." alt="" coords="194,5,325,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="262,47,262,94,257,94,257,47"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1Clock.html" title=" " alt="" coords="349,5,466,31"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="375,41,282,96,279,91,373,37"/>
 </map>

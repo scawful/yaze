@@ -1,11 +1,9 @@
 <map id="yaze::Rom" name="yaze::Rom">
-<area shape="rect" id="Node000001" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="265,348,345,373"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="5,259,186,285"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,289,276,345,274,350,138,294"/>
-<area shape="rect" id="Node000003" href="$structyaze_1_1ResourceLabelManager.html" title=" " alt="" coords="210,259,400,285"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="308,300,308,347,302,347,302,300"/>
-<area shape="rect" id="Node000004" href="$structyaze_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="424,259,602,285"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="496,299,462,326,433,339,403,348,346,359,345,353,401,343,431,334,459,321,492,295"/>
-<area shape="rect" id="Node000005" href="$structyaze_1_1gfx_1_1PaletteGroup.html" title="Represents a group of palettes." alt="" coords="437,5,589,31"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="516,47,516,259,510,259,510,47"/>
+<area shape="rect" id="Node000001" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="151,348,231,373"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1ResourceLabelManager.html" title=" " alt="" coords="5,259,196,285"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,299,117,322,133,336,152,345,149,350,130,340,113,325,101,301"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="220,259,397,285"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="293,299,267,326,225,349,223,345,264,322,289,296"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1gfx_1_1PaletteGroup.html" title="Represents a group of palettes." alt="" coords="232,5,385,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="311,47,311,259,306,259,306,47"/>
 </map>

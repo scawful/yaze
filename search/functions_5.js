@@ -15,8 +15,7 @@ var searchData=
   ['findnextword_12',['FindNextWord',['../classTextEditor.html#a53bf9593d3a939c1527880fd9056783e',1,'TextEditor']]],
   ['findwordend_13',['FindWordEnd',['../classTextEditor.html#a8171a76adf4e1fc6a699f60b60eb7902',1,'TextEditor']]],
   ['findwordstart_14',['FindWordStart',['../classTextEditor.html#a5111c6334e494708b38cabd576f42b71',1,'TextEditor']]],
-  ['flags_15',['flags',['../classyaze_1_1core_1_1ExperimentFlags.html#aa3f7c67845f6dfa36e0858130517023c',1,'yaze::core::ExperimentFlags']]],
-  ['flagstobyte_16',['FlagsToByte',['../classyaze_1_1emu_1_1Spc700.html#a6ba480f69b668f222134b5dd71f619a3',1,'yaze::emu::Spc700']]],
-  ['focus_17',['Focus',['../structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#abbf264aeb63f189f83b2fc3ef1faa231',1,'yaze::editor::MessageEditor::TextBox']]],
-  ['for_5feach_18',['for_each',['../structyaze_1_1gfx_1_1PaletteGroupMap.html#a40a66b477eec40339a17508a0e3c1160',1,'yaze::gfx::PaletteGroupMap']]]
+  ['flagstobyte_15',['FlagsToByte',['../classyaze_1_1emu_1_1Spc700.html#a6ba480f69b668f222134b5dd71f619a3',1,'yaze::emu::Spc700']]],
+  ['focus_16',['Focus',['../structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#abbf264aeb63f189f83b2fc3ef1faa231',1,'yaze::editor::MessageEditor::TextBox']]],
+  ['for_5feach_17',['for_each',['../structyaze_1_1gfx_1_1PaletteGroupMap.html#a40a66b477eec40339a17508a0e3c1160',1,'yaze::gfx::PaletteGroupMap']]]
 ];

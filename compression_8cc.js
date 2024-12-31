@@ -1,6 +1,8 @@
 var compression_8cc =
 [
     [ "DEBUG_LOG", "compression_8cc.html#a5d2f30bd1cbcf49f829a7e8eb6173c06", null ],
+    [ "HyruleMagicCompress", "compression_8cc.html#a6ee33c076f15c89ca7ab32f4707f5ad5", null ],
+    [ "HyruleMagicDecompress", "compression_8cc.html#a274f0039252e9c63a24bb18d52301b6e", null ],
     [ "PrintCompressionPiece", "compression_8cc.html#a79e586563008984b912926a967592418", null ],
     [ "PrintCompressionChain", "compression_8cc.html#a9eb4d71893f3ec5673e1f6d75599098c", null ],
     [ "CheckByteRepeat", "compression_8cc.html#abc33807b569ecada56acf3abaa5acdd4", null ],
@@ -21,8 +23,6 @@ var compression_8cc =
     [ "ValidateCompressionResult", "compression_8cc.html#afd4f301bf9cc31c188986af0db90ab75", null ],
     [ "MergeCopy", "compression_8cc.html#ae172bb38e1561dad50c293d4f4dc6b54", null ],
     [ "CompressV2", "compression_8cc.html#a0e96f372d460c5b4e9f11e61aefbf9db", null ],
-    [ "Compress", "compression_8cc.html#ad4c6a4a371b4651cbc4b2dbe9e17960d", null ],
-    [ "Uncompress", "compression_8cc.html#ae34766f2c51c2e6f2d0dd13d7c5ea46c", null ],
     [ "CompressGraphics", "compression_8cc.html#a6e89cbe746bf8cd47152fa23d4c0e888", null ],
     [ "CompressOverworld", "compression_8cc.html#a064ad57f23c04a46d605f57820a4bb9d", null ],
     [ "CompressOverworld", "compression_8cc.html#a4052e31abfb4c3aeb1e7c576ad5ba640", null ],

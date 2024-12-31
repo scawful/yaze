@@ -1,13 +1,5 @@
 var NAVTREEINDEX52 =
 {
-"structyaze_1_1gui_1_1Table.html#a51695607351d44f0e47bcf914cd2c7f1":[10,0,1,6,12,3],
-"structyaze_1_1gui_1_1Table.html#a51695607351d44f0e47bcf914cd2c7f1":[11,0,0,5,10,3],
-"structyaze_1_1gui_1_1Table.html#a7b1e3581d14e389af7217d45ee62ab69":[10,0,1,6,12,1],
-"structyaze_1_1gui_1_1Table.html#a7b1e3581d14e389af7217d45ee62ab69":[11,0,0,5,10,1],
-"structyaze_1_1gui_1_1Table.html#ab244d03ebbbab4b7f7464b0820f56013":[10,0,1,6,12,0],
-"structyaze_1_1gui_1_1Table.html#ab244d03ebbbab4b7f7464b0820f56013":[11,0,0,5,10,0],
-"structyaze_1_1gui_1_1Table.html#ae597667984aa2c235c5aecf1811cdae8":[10,0,1,6,12,2],
-"structyaze_1_1gui_1_1Table.html#ae597667984aa2c235c5aecf1811cdae8":[11,0,0,5,10,2],
 "structyaze_1_1gui_1_1Theme.html":[10,0,1,6,13],
 "structyaze_1_1gui_1_1Theme.html":[11,0,0,5,11],
 "structyaze_1_1gui_1_1Theme.html#a07b0430f0cc98a52a5dc1ba7d499c378":[10,0,1,6,13,13],
@@ -249,5 +241,13 @@ var NAVTREEINDEX52 =
 "structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#a626b8dbaf4d8c3c51eee8f358c70dff6":[10,0,1,8,2,7,4],
 "structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#a626b8dbaf4d8c3c51eee8f358c70dff6":[11,0,0,7,0,7,4],
 "structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#a7d854a930f079ad18ef4c44a216b3f6c":[10,0,1,8,2,7,2],
-"structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#a7d854a930f079ad18ef4c44a216b3f6c":[11,0,0,7,0,7,2]
+"structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#a7d854a930f079ad18ef4c44a216b3f6c":[11,0,0,7,0,7,2],
+"structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#aa3032c2a22dcfb0517fb6213eecdb6e4":[10,0,1,8,2,7,5],
+"structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#aa3032c2a22dcfb0517fb6213eecdb6e4":[11,0,0,7,0,7,5],
+"structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#aa4af301988bfb597c0b145eaebb6a7c8":[10,0,1,8,2,7,3],
+"structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#aa4af301988bfb597c0b145eaebb6a7c8":[11,0,0,7,0,7,3],
+"structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html":[10,0,1,8,2,8],
+"structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html":[11,0,0,7,0,8],
+"structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#a2c54d41d68c749b177871d19b395f2ee":[10,0,1,8,2,8,5],
+"structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#a2c54d41d68c749b177871d19b395f2ee":[11,0,0,7,0,8,5]
 };

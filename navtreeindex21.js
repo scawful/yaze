@@ -1,13 +1,5 @@
 var NAVTREEINDEX21 =
 {
-"classyaze_1_1zelda3_1_1Sprite.html#a0ba913a4ff6dbdc3f7700aa997a58451":[10,0,1,8,18,48],
-"classyaze_1_1zelda3_1_1Sprite.html#a0ba913a4ff6dbdc3f7700aa997a58451":[11,0,0,7,15,48],
-"classyaze_1_1zelda3_1_1Sprite.html#a12825a0f19deeee6cfd7fbb9622759d4":[10,0,1,8,18,10],
-"classyaze_1_1zelda3_1_1Sprite.html#a12825a0f19deeee6cfd7fbb9622759d4":[11,0,0,7,15,10],
-"classyaze_1_1zelda3_1_1Sprite.html#a13104bc60eb62488d427b77e7295d0fd":[10,0,1,8,18,34],
-"classyaze_1_1zelda3_1_1Sprite.html#a13104bc60eb62488d427b77e7295d0fd":[11,0,0,7,15,34],
-"classyaze_1_1zelda3_1_1Sprite.html#a1673df95435b20c8479b5d4f28977326":[10,0,1,8,18,42],
-"classyaze_1_1zelda3_1_1Sprite.html#a1673df95435b20c8479b5d4f28977326":[11,0,0,7,15,42],
 "classyaze_1_1zelda3_1_1Sprite.html#a1ca9227c4814481dcb20c743e1bf6363":[10,0,1,8,18,31],
 "classyaze_1_1zelda3_1_1Sprite.html#a1ca9227c4814481dcb20c743e1bf6363":[11,0,0,7,15,31],
 "classyaze_1_1zelda3_1_1Sprite.html#a1deb0dd4e8f9a1a0ad197599293845bf":[10,0,1,8,18,9],
@@ -249,5 +241,13 @@ var NAVTREEINDEX21 =
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#a95124598e7d42121420ca2acafa62c94":[10,0,1,8,2,6,17],
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#a95124598e7d42121420ca2acafa62c94":[11,0,0,7,0,6,17],
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#a9e8c49eed084c7790daf07995f5d4c08":[10,0,1,8,2,6,4],
-"classyaze_1_1zelda3_1_1music_1_1Tracker.html#a9e8c49eed084c7790daf07995f5d4c08":[11,0,0,7,0,6,4]
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#a9e8c49eed084c7790daf07995f5d4c08":[11,0,0,7,0,6,4],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#aa1740826fc7090f10766b6146170ade7":[10,0,1,8,2,6,26],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#aa1740826fc7090f10766b6146170ade7":[11,0,0,7,0,6,26],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#aa7ad59b3ff9293ecef604f7069972a8e":[10,0,1,8,2,6,40],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#aa7ad59b3ff9293ecef604f7069972a8e":[11,0,0,7,0,6,40],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#aaeab97f71db095ac92ee724033381064":[10,0,1,8,2,6,41],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#aaeab97f71db095ac92ee724033381064":[11,0,0,7,0,6,41],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#ab10df3eb977949505a6aa463662066c3":[10,0,1,8,2,6,54],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#ab10df3eb977949505a6aa463662066c3":[11,0,0,7,0,6,54]
 };

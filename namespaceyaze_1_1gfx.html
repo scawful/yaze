@@ -218,6 +218,10 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a6ee33c076f15c89ca7ab32f4707f5ad5" id="r_a6ee33c076f15c89ca7ab32f4707f5ad5"><td class="memItemLeft" align="right" valign="top">uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6ee33c076f15c89ca7ab32f4707f5ad5">HyruleMagicCompress</a> (uint8_t const *const src, int const oldsize, int *const size, int const flag)</td></tr>
+<tr class="separator:a6ee33c076f15c89ca7ab32f4707f5ad5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a274f0039252e9c63a24bb18d52301b6e" id="r_a274f0039252e9c63a24bb18d52301b6e"><td class="memItemLeft" align="right" valign="top">uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a274f0039252e9c63a24bb18d52301b6e">HyruleMagicDecompress</a> (uint8_t const *src, int *const size, int const p_big_endian)</td></tr>
+<tr class="separator:a274f0039252e9c63a24bb18d52301b6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a893d31b6aeb9a3df9754b9def778b458" id="r_a893d31b6aeb9a3df9754b9def778b458"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structsnes__color.html">snes_color</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a893d31b6aeb9a3df9754b9def778b458">ConvertSnesToRgb</a> (uint16_t color_snes)</td></tr>
 <tr class="separator:a893d31b6aeb9a3df9754b9def778b458"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4e83a052d42017612243c3f81b538b7d" id="r_a4e83a052d42017612243c3f81b538b7d"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4e83a052d42017612243c3f81b538b7d">ConvertRgbToSnes</a> (const <a class="el" href="structsnes__color.html">snes_color</a> &amp;color)</td></tr>
@@ -477,6 +481,83 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a6ee33c076f15c89ca7ab32f4707f5ad5" name="a6ee33c076f15c89ca7ab32f4707f5ad5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6ee33c076f15c89ca7ab32f4707f5ad5">&#9670;&#160;</a></span>HyruleMagicCompress()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t * yaze::gfx::HyruleMagicCompress </td>
+          <td>(</td>
+          <td class="paramtype">uint8_t const *const</td>          <td class="paramname"><span class="paramname"><em>src</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int const</td>          <td class="paramname"><span class="paramname"><em>oldsize</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *const</td>          <td class="paramname"><span class="paramname"><em>size</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int const</td>          <td class="paramname"><span class="paramname"><em>flag</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00018">18</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00134">yaze::Rom::SaveAllGraphicsData()</a>, and <a class="el" href="overworld_8cc_source.html#l00518">yaze::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
+
+</div>
+</div>
+<a id="a274f0039252e9c63a24bb18d52301b6e" name="a274f0039252e9c63a24bb18d52301b6e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a274f0039252e9c63a24bb18d52301b6e">&#9670;&#160;</a></span>HyruleMagicDecompress()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t * yaze::gfx::HyruleMagicDecompress </td>
+          <td>(</td>
+          <td class="paramtype">uint8_t const *</td>          <td class="paramname"><span class="paramname"><em>src</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *const</td>          <td class="paramname"><span class="paramname"><em>size</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int const</td>          <td class="paramname"><span class="paramname"><em>p_big_endian</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00164">164</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="common_8cc_source.html#l00193">yaze::core::ldle16b()</a>, and <a class="el" href="common_8cc_source.html#l00188">yaze::core::stle16b()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="namespaceyaze_1_1gfx_a274f0039252e9c63a24bb18d52301b6e_cgraph.png" border="0" usemap="#anamespaceyaze_1_1gfx_a274f0039252e9c63a24bb18d52301b6e_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1gfx_a274f0039252e9c63a24bb18d52301b6e_cgraph" id="anamespaceyaze_1_1gfx_a274f0039252e9c63a24bb18d52301b6e_cgraph">
+<area shape="rect" title=" " alt="" coords="5,31,227,56"/>
+<area shape="rect" href="namespaceyaze_1_1core.html#ae36970b562677c5876e1ee584a051530" title=" " alt="" coords="275,5,400,31"/>
+<area shape="poly" title=" " alt="" coords="227,28,259,24,260,30,227,33"/>
+<area shape="rect" href="namespaceyaze_1_1core.html#a2cb2c0bf50bac2324d970587cc1b0233" title=" " alt="" coords="275,55,401,80"/>
+<area shape="poly" title=" " alt="" coords="227,53,260,56,259,62,227,58"/>
+</map>
+</div>
+
+</div>
+</div>
 <a id="a893d31b6aeb9a3df9754b9def778b458" name="a893d31b6aeb9a3df9754b9def778b458"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a893d31b6aeb9a3df9754b9def778b458">&#9670;&#160;</a></span>ConvertSnesToRgb()</h2>
 
@@ -752,7 +833,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="snes__palette_8cc_source.html#l00184">kPaletteGroupAddressMap</a>, and <a class="el" href="snes__palette_8cc_source.html#l00202">kPaletteGroupColorCounts</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00374">yaze::Rom::SavePalette()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00377">yaze::Rom::SavePalette()</a>.</p>
 
 </div>
 </div>
@@ -1328,7 +1409,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="snes__tile_8cc_source.html#l00017">TileHFlipBit</a>, <a class="el" href="snes__tile_8cc_source.html#l00023">TileNameMask</a>, <a class="el" href="snes__tile_8cc_source.html#l00014">TilePriorityBit</a>, and <a class="el" href="snes__tile_8cc_source.html#l00020">TileVFlipBit</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00155">yaze::zelda3::Overworld::AssembleMap16Tiles()</a>, <a class="el" href="inventory_8cc_source.html#l00015">yaze::zelda3::screen::Inventory::Create()</a>, <a class="el" href="scad__format_8cc_source.html#l00120">yaze::gfx::scad_format::DrawScrWithCgx()</a>, and <a class="el" href="scad__format_8cc_source.html#l00068">yaze::gfx::scad_format::LoadScr()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00156">yaze::zelda3::Overworld::AssembleMap16Tiles()</a>, <a class="el" href="inventory_8cc_source.html#l00015">yaze::zelda3::screen::Inventory::Create()</a>, <a class="el" href="scad__format_8cc_source.html#l00120">yaze::gfx::scad_format::DrawScrWithCgx()</a>, and <a class="el" href="scad__format_8cc_source.html#l00068">yaze::gfx::scad_format::LoadScr()</a>.</p>
 
 </div>
 </div>

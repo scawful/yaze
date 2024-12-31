@@ -1,13 +1,5 @@
 var NAVTREEINDEX17 =
 {
-"classyaze_1_1gui_1_1Canvas.html#a821b944bf8476a4f0f69b70e1174d69c":[10,0,1,6,4,31],
-"classyaze_1_1gui_1_1Canvas.html#a821b944bf8476a4f0f69b70e1174d69c":[11,0,0,5,2,31],
-"classyaze_1_1gui_1_1Canvas.html#a83a73b54866f99c7950fbf79c3b7b9e5":[10,0,1,6,4,12],
-"classyaze_1_1gui_1_1Canvas.html#a83a73b54866f99c7950fbf79c3b7b9e5":[11,0,0,5,2,12],
-"classyaze_1_1gui_1_1Canvas.html#a856a6868e0137cea8d710fea2a2592bf":[10,0,1,6,4,32],
-"classyaze_1_1gui_1_1Canvas.html#a856a6868e0137cea8d710fea2a2592bf":[11,0,0,5,2,32],
-"classyaze_1_1gui_1_1Canvas.html#a85e0d584077ee567f57be6ebf8661f8c":[10,0,1,6,4,69],
-"classyaze_1_1gui_1_1Canvas.html#a85e0d584077ee567f57be6ebf8661f8c":[11,0,0,5,2,69],
 "classyaze_1_1gui_1_1Canvas.html#a8683cc672871779c9dc28f564528a32f":[10,0,1,6,4,56],
 "classyaze_1_1gui_1_1Canvas.html#a8683cc672871779c9dc28f564528a32f":[11,0,0,5,2,56],
 "classyaze_1_1gui_1_1Canvas.html#a86871e0ce37c27eb9186265e2e28a408":[10,0,1,6,4,52],
@@ -249,5 +241,13 @@ var NAVTREEINDEX17 =
 "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a4dac73e88a86e0159959407fb13ebfa0":[10,0,1,8,5,4],
 "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a4dac73e88a86e0159959407fb13ebfa0":[11,0,0,7,2,4],
 "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a5b75c6f248f58db7c6141d64c22497a1":[10,0,1,8,5,16],
-"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a5b75c6f248f58db7c6141d64c22497a1":[11,0,0,7,2,16]
+"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a5b75c6f248f58db7c6141d64c22497a1":[11,0,0,7,2,16],
+"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a62f4148a7637bba98ddb4824e812ed15":[10,0,1,8,5,9],
+"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a62f4148a7637bba98ddb4824e812ed15":[11,0,0,7,2,9],
+"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6854e9626ddccf657b77cd740f13f1f9":[10,0,1,8,5,3],
+"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6854e9626ddccf657b77cd740f13f1f9":[11,0,0,7,2,3],
+"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6972fc79216840fd601135e932b31109":[10,0,1,8,5,11],
+"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6972fc79216840fd601135e932b31109":[11,0,0,7,2,11],
+"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6f1f09d154ca5bd916ff5e977508735a":[10,0,1,8,5,15],
+"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6f1f09d154ca5bd916ff5e977508735a":[11,0,0,7,2,15]
 };

@@ -1,24 +1,22 @@
 <map id="yaze::test::CpuTest" name="yaze::test::CpuTest">
-<area shape="rect" id="Node000001" title=" " alt="" coords="597,128,727,154"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="334,5,426,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="442,23,507,38,574,64,618,95,651,126,647,130,615,99,572,69,506,43,441,29"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1AsmParser.html" title=" " alt="" coords="305,55,454,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="470,79,574,104,632,125,630,130,572,109,469,85"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1MockMemory.html" title="A mock implementation of the Memory class." alt="" coords="299,153,461,179"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="477,158,573,151,596,148,597,153,573,156,477,164"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1emu_1_1Memory.html" title="Memory interface." alt="" coords="30,163,161,188"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="176,170,298,166,298,171,176,176"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1emu_1_1Cpu.html" title=" " alt="" coords="326,203,434,228"/>
-<area shape="poly" id="edge11_Node000009_Node000005" title=" " alt="" coords="177,184,210,189,326,206,325,211,209,194,176,190"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1emu_1_1MockClock.html" title="Mock CPU class for testing." alt="" coords="305,104,454,130"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="470,122,597,133,596,138,470,127"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1emu_1_1Clock.html" title=" " alt="" coords="37,101,154,127"/>
-<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="170,105,275,104,305,106,305,111,275,109,170,110"/>
-<area shape="poly" id="edge12_Node000009_Node000007" title=" " alt="" coords="170,128,223,145,276,169,288,179,300,189,327,200,325,205,297,194,285,184,273,174,221,150,169,133"/>
-<area shape="rect" id="Node000008" href="$structyaze_1_1emu_1_1CpuCallbacks.html" title=" " alt="" coords="13,296,178,322"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="193,299,321,283,392,270,460,253,518,233,572,204,611,177,644,152,647,156,614,182,574,208,520,238,462,258,393,275,322,289,193,305"/>
-<area shape="poly" id="edge10_Node000009_Node000008" title=" " alt="" coords="155,289,274,251,342,226,343,231,276,256,157,294"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="448,205,509,195,572,179,635,152,637,157,574,184,510,200,449,210"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="5,232,186,258"/>
-<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="200,231,325,218,326,224,201,237"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="581,128,711,154"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="318,5,410,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="426,23,491,38,558,64,602,95,635,126,631,130,599,99,556,69,490,43,425,29"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1AsmParser.html" title=" " alt="" coords="289,55,438,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="454,79,558,104,616,125,614,130,556,109,453,85"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1MockMemory.html" title="A mock implementation of the Memory class." alt="" coords="283,104,445,130"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="460,122,581,133,580,138,460,128"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1emu_1_1Memory.html" title="Memory interface." alt="" coords="22,93,153,119"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="168,103,259,105,282,106,282,112,259,110,168,108"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1emu_1_1Cpu.html" title=" " alt="" coords="310,153,418,179"/>
+<area shape="poly" id="edge10_Node000009_Node000005" title=" " alt="" coords="165,120,310,152,309,157,164,125"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1emu_1_1MockClock.html" title="Mock CPU class for testing." alt="" coords="289,203,438,228"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="453,202,505,192,556,179,619,152,621,157,558,184,506,197,454,207"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1emu_1_1Clock.html" title=" " alt="" coords="29,185,146,211"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="161,200,289,208,288,213,161,205"/>
+<area shape="poly" id="edge11_Node000009_Node000007" title=" " alt="" coords="161,187,310,170,310,175,161,192"/>
+<area shape="rect" id="Node000008" href="$structyaze_1_1emu_1_1CpuCallbacks.html" title=" " alt="" coords="5,249,170,275"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="185,268,310,269,378,264,444,253,501,234,553,206,597,177,628,152,631,156,600,181,556,211,503,239,446,258,378,269,310,275,185,273"/>
+<area shape="poly" id="edge9_Node000009_Node000008" title=" " alt="" coords="153,242,205,225,257,203,281,188,310,177,312,182,284,193,260,208,206,230,154,247"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="433,160,557,151,580,148,581,153,557,156,433,165"/>
 </map>

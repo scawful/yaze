@@ -67,6 +67,7 @@ var hierarchy =
     [ "yaze::cli::Context", "structyaze_1_1cli_1_1Context.html", null ],
     [ "TextEditor::Coordinates", "structTextEditor_1_1Coordinates.html", null ],
     [ "yaze::emu::CounterIrqNmiRegisters", "structyaze_1_1emu_1_1CounterIrqNmiRegisters.html", null ],
+    [ "yaze::emu::Cpu", "classyaze_1_1emu_1_1Cpu.html", null ],
     [ "yaze::emu::CpuCallbacks", "structyaze_1_1emu_1_1CpuCallbacks.html", null ],
     [ "yaze::editor::DictionaryEntry", "structyaze_1_1editor_1_1DictionaryEntry.html", null ],
     [ "yaze::emu::DmaChannel", "structyaze_1_1emu_1_1DmaChannel.html", null ],
@@ -94,22 +95,13 @@ var hierarchy =
     [ "yaze::editor::ExampleMemberInfo", "structyaze_1_1editor_1_1ExampleMemberInfo.html", null ],
     [ "yaze::editor::ExampleTreeNode", "structyaze_1_1editor_1_1ExampleTreeNode.html", null ],
     [ "yaze::core::ExperimentFlags", "classyaze_1_1core_1_1ExperimentFlags.html", [
-      [ "yaze::Project", "structyaze_1_1Project.html", null ],
-      [ "yaze::Rom", "classyaze_1_1Rom.html", [
-        [ "yaze::test::MockRom", "classyaze_1_1test_1_1MockRom.html", null ]
-      ] ],
-      [ "yaze::core::Controller", "classyaze_1_1core_1_1Controller.html", null ],
-      [ "yaze::editor::DungeonEditor", "classyaze_1_1editor_1_1DungeonEditor.html", null ],
-      [ "yaze::editor::EditorManager", "classyaze_1_1editor_1_1EditorManager.html", null ],
-      [ "yaze::editor::FlagsMenu", "structyaze_1_1editor_1_1FlagsMenu.html", null ],
-      [ "yaze::editor::OverworldEditor", "classyaze_1_1editor_1_1OverworldEditor.html", null ],
-      [ "yaze::emu::Cpu", "classyaze_1_1emu_1_1Cpu.html", null ],
-      [ "yaze::zelda3::Overworld", "classyaze_1_1zelda3_1_1Overworld.html", null ]
+      [ "yaze::core::Controller", "classyaze_1_1core_1_1Controller.html", null ]
     ] ],
     [ "yaze::editor::ExtensionManager", "classyaze_1_1editor_1_1ExtensionManager.html", null ],
     [ "yaze::core::FileDialogWrapper", "classyaze_1_1core_1_1FileDialogWrapper.html", null ],
     [ "yaze::core::ExperimentFlags::Flags", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html", null ],
     [ "yaze::emu::Spc700::Flags", "structyaze_1_1emu_1_1Spc700_1_1Flags.html", null ],
+    [ "yaze::editor::FlagsMenu", "structyaze_1_1editor_1_1FlagsMenu.html", null ],
     [ "yaze::core::FolderItem", "structyaze_1_1core_1_1FolderItem.html", null ],
     [ "yaze::zelda3::GameEntity", "classyaze_1_1zelda3_1_1GameEntity.html", [
       [ "yaze::zelda3::OverworldEntrance", "classyaze_1_1zelda3_1_1OverworldEntrance.html", null ],
@@ -188,12 +180,16 @@ var hierarchy =
     [ "yaze::emu::PpuInterface", "classyaze_1_1emu_1_1PpuInterface.html", [
       [ "yaze::test::MockPpu", "classyaze_1_1test_1_1MockPpu.html", null ]
     ] ],
+    [ "yaze::Project", "structyaze_1_1Project.html", null ],
     [ "yaze::zelda3::PseudoVram", "structyaze_1_1zelda3_1_1PseudoVram.html", null ],
     [ "yaze::RecentFilesManager", "classyaze_1_1RecentFilesManager.html", null ],
     [ "yaze::core::Renderer", "classyaze_1_1core_1_1Renderer.html", null ],
     [ "yaze::ResourceLabelManager", "structyaze_1_1ResourceLabelManager.html", null ],
     [ "yaze::editor::ResourceManager", "classyaze_1_1editor_1_1ResourceManager.html", null ],
     [ "yaze::ResourceLabelManager::ResourceType", "structyaze_1_1ResourceLabelManager_1_1ResourceType.html", null ],
+    [ "yaze::Rom", "classyaze_1_1Rom.html", [
+      [ "yaze::test::MockRom", "classyaze_1_1test_1_1MockRom.html", null ]
+    ] ],
     [ "yaze::zelda3::RoomEntrance", "classyaze_1_1zelda3_1_1RoomEntrance.html", null ],
     [ "yaze::zelda3::music::SampleEdit", "structyaze_1_1zelda3_1_1music_1_1SampleEdit.html", null ],
     [ "yaze::emu::ScreenDisplay", "structyaze_1_1emu_1_1ScreenDisplay.html", null ],

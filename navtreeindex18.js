@@ -1,13 +1,5 @@
 var NAVTREEINDEX18 =
 {
-"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a62f4148a7637bba98ddb4824e812ed15":[10,0,1,8,5,9],
-"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a62f4148a7637bba98ddb4824e812ed15":[11,0,0,7,2,9],
-"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6854e9626ddccf657b77cd740f13f1f9":[10,0,1,8,5,3],
-"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6854e9626ddccf657b77cd740f13f1f9":[11,0,0,7,2,3],
-"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6972fc79216840fd601135e932b31109":[10,0,1,8,5,11],
-"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6972fc79216840fd601135e932b31109":[11,0,0,7,2,11],
-"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6f1f09d154ca5bd916ff5e977508735a":[10,0,1,8,5,15],
-"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6f1f09d154ca5bd916ff5e977508735a":[11,0,0,7,2,15],
 "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a7e93151f394637c698279ceca36c6327":[10,0,1,8,5,5],
 "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a7e93151f394637c698279ceca36c6327":[11,0,0,7,2,5],
 "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a9b84e2aad4f890c741ae479907808c59":[10,0,1,8,5,0],
@@ -249,5 +241,13 @@ var NAVTREEINDEX18 =
 "classyaze_1_1zelda3_1_1Overworld.html#af57c5a4b4afad92783c63b4987d799b9":[10,0,1,8,7,62],
 "classyaze_1_1zelda3_1_1Overworld.html#af57c5a4b4afad92783c63b4987d799b9":[11,0,0,7,4,62],
 "classyaze_1_1zelda3_1_1Overworld.html#af5e22b0d28e94857306d433ec807badf":[10,0,1,8,7,75],
-"classyaze_1_1zelda3_1_1Overworld.html#af5e22b0d28e94857306d433ec807badf":[11,0,0,7,4,75]
+"classyaze_1_1zelda3_1_1Overworld.html#af5e22b0d28e94857306d433ec807badf":[11,0,0,7,4,75],
+"classyaze_1_1zelda3_1_1OverworldEntrance.html":[10,0,1,8,8],
+"classyaze_1_1zelda3_1_1OverworldEntrance.html":[11,0,0,7,5],
+"classyaze_1_1zelda3_1_1OverworldEntrance.html#a2f55067f8b4685abd96f537fdce692b2":[10,0,1,8,8,6],
+"classyaze_1_1zelda3_1_1OverworldEntrance.html#a2f55067f8b4685abd96f537fdce692b2":[11,0,0,7,5,6],
+"classyaze_1_1zelda3_1_1OverworldEntrance.html#a367361a94662bc75220f93d34fd94bde":[10,0,1,8,8,5],
+"classyaze_1_1zelda3_1_1OverworldEntrance.html#a367361a94662bc75220f93d34fd94bde":[11,0,0,7,5,5],
+"classyaze_1_1zelda3_1_1OverworldEntrance.html#a3ee64775846d5b7342112eda3831ae5a":[10,0,1,8,8,0],
+"classyaze_1_1zelda3_1_1OverworldEntrance.html#a3ee64775846d5b7342112eda3831ae5a":[11,0,0,7,5,0]
 };

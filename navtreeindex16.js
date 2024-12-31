@@ -1,13 +1,5 @@
 var NAVTREEINDEX16 =
 {
-"classyaze_1_1gfx_1_1SnesPalette.html#a6854313e2b0f605315523b2185efdea2":[10,0,1,5,13,9],
-"classyaze_1_1gfx_1_1SnesPalette.html#a6854313e2b0f605315523b2185efdea2":[11,0,0,4,11,9],
-"classyaze_1_1gfx_1_1SnesPalette.html#a8172ae7725a9fe1c23df412b2632a484":[10,0,1,5,13,20],
-"classyaze_1_1gfx_1_1SnesPalette.html#a8172ae7725a9fe1c23df412b2632a484":[11,0,0,4,11,20],
-"classyaze_1_1gfx_1_1SnesPalette.html#a837443013432f47923f16a4d671f1563":[10,0,1,5,13,3],
-"classyaze_1_1gfx_1_1SnesPalette.html#a837443013432f47923f16a4d671f1563":[11,0,0,4,11,3],
-"classyaze_1_1gfx_1_1SnesPalette.html#a9027ac7339965b6ada64b0d46d9d1b27":[10,0,1,5,13,10],
-"classyaze_1_1gfx_1_1SnesPalette.html#a9027ac7339965b6ada64b0d46d9d1b27":[11,0,0,4,11,10],
 "classyaze_1_1gfx_1_1SnesPalette.html#a92e2f7ca01bfe81ba51f85919f728857":[10,0,1,5,13,4],
 "classyaze_1_1gfx_1_1SnesPalette.html#a92e2f7ca01bfe81ba51f85919f728857":[11,0,0,4,11,4],
 "classyaze_1_1gfx_1_1SnesPalette.html#a9ff13ab32f1521085b531d2a3b450f4d":[10,0,1,5,13,1],
@@ -249,5 +241,13 @@ var NAVTREEINDEX16 =
 "classyaze_1_1gui_1_1Canvas.html#a7ee53f1e3c8b07da50e8016a82762fa5":[10,0,1,6,4,46],
 "classyaze_1_1gui_1_1Canvas.html#a7ee53f1e3c8b07da50e8016a82762fa5":[11,0,0,5,2,46],
 "classyaze_1_1gui_1_1Canvas.html#a80eb92149acc255c04a0b508dccf695f":[10,0,1,6,4,90],
-"classyaze_1_1gui_1_1Canvas.html#a80eb92149acc255c04a0b508dccf695f":[11,0,0,5,2,90]
+"classyaze_1_1gui_1_1Canvas.html#a80eb92149acc255c04a0b508dccf695f":[11,0,0,5,2,90],
+"classyaze_1_1gui_1_1Canvas.html#a821b944bf8476a4f0f69b70e1174d69c":[10,0,1,6,4,31],
+"classyaze_1_1gui_1_1Canvas.html#a821b944bf8476a4f0f69b70e1174d69c":[11,0,0,5,2,31],
+"classyaze_1_1gui_1_1Canvas.html#a83a73b54866f99c7950fbf79c3b7b9e5":[10,0,1,6,4,12],
+"classyaze_1_1gui_1_1Canvas.html#a83a73b54866f99c7950fbf79c3b7b9e5":[11,0,0,5,2,12],
+"classyaze_1_1gui_1_1Canvas.html#a856a6868e0137cea8d710fea2a2592bf":[10,0,1,6,4,32],
+"classyaze_1_1gui_1_1Canvas.html#a856a6868e0137cea8d710fea2a2592bf":[11,0,0,5,2,32],
+"classyaze_1_1gui_1_1Canvas.html#a85e0d584077ee567f57be6ebf8661f8c":[10,0,1,6,4,69],
+"classyaze_1_1gui_1_1Canvas.html#a85e0d584077ee567f57be6ebf8661f8c":[11,0,0,5,2,69]
 };

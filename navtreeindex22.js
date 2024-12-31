@@ -1,13 +1,5 @@
 var NAVTREEINDEX22 =
 {
-"classyaze_1_1zelda3_1_1music_1_1Tracker.html#aa1740826fc7090f10766b6146170ade7":[10,0,1,8,2,6,26],
-"classyaze_1_1zelda3_1_1music_1_1Tracker.html#aa1740826fc7090f10766b6146170ade7":[11,0,0,7,0,6,26],
-"classyaze_1_1zelda3_1_1music_1_1Tracker.html#aa7ad59b3ff9293ecef604f7069972a8e":[10,0,1,8,2,6,40],
-"classyaze_1_1zelda3_1_1music_1_1Tracker.html#aa7ad59b3ff9293ecef604f7069972a8e":[11,0,0,7,0,6,40],
-"classyaze_1_1zelda3_1_1music_1_1Tracker.html#aaeab97f71db095ac92ee724033381064":[10,0,1,8,2,6,41],
-"classyaze_1_1zelda3_1_1music_1_1Tracker.html#aaeab97f71db095ac92ee724033381064":[11,0,0,7,0,6,41],
-"classyaze_1_1zelda3_1_1music_1_1Tracker.html#ab10df3eb977949505a6aa463662066c3":[10,0,1,8,2,6,54],
-"classyaze_1_1zelda3_1_1music_1_1Tracker.html#ab10df3eb977949505a6aa463662066c3":[11,0,0,7,0,6,54],
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#ab38a9c22dc870e872368ef7d05763350":[10,0,1,8,2,6,29],
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#ab38a9c22dc870e872368ef7d05763350":[11,0,0,7,0,6,29],
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#ab772da37567b9724de46dbf7f8ad5d76":[10,0,1,8,2,6,39],
@@ -247,7 +239,15 @@ var NAVTREEINDEX22 =
 "compression_8cc.html":[12,0,2,0,3,2],
 "compression_8cc.html#a064ad57f23c04a46d605f57820a4bb9d":[12,0,2,0,3,2,24],
 "compression_8cc.html#a0882444317fe9f49790acb8ad38c7a77":[12,0,2,0,3,2,29],
-"compression_8cc.html#a0e96f372d460c5b4e9f11e61aefbf9db":[12,0,2,0,3,2,20],
+"compression_8cc.html#a0e96f372d460c5b4e9f11e61aefbf9db":[12,0,2,0,3,2,22],
 "compression_8cc.html#a143e848d987c6b04f56308f2ef6953ae":[12,0,2,0,3,2,38],
-"compression_8cc.html#a1eddb91cde2953096c2302e082d8c3b2":[12,0,2,0,3,2,37]
+"compression_8cc.html#a1eddb91cde2953096c2302e082d8c3b2":[12,0,2,0,3,2,37],
+"compression_8cc.html#a230d2230a27bbc2fde27c96fc23b03ac":[12,0,2,0,3,2,12],
+"compression_8cc.html#a233dcd9720a55c9df8389d570934bbfe":[12,0,2,0,3,2,8],
+"compression_8cc.html#a274f0039252e9c63a24bb18d52301b6e":[12,0,2,0,3,2,2],
+"compression_8cc.html#a2b73af3cc05a9dd2124e053b515e0ed7":[12,0,2,0,3,2,13],
+"compression_8cc.html#a31d4914cc6f5a2d6cc4c5a06baf7336e":[12,0,2,0,3,2,40],
+"compression_8cc.html#a32ff40d7c0cee688d9eb2d808ef4cb98":[12,0,2,0,3,2,30],
+"compression_8cc.html#a35a3fbb0f6702efaf00ca00b3874dd9f":[12,0,2,0,3,2,44],
+"compression_8cc.html#a3d9743e4b80f69fe96112adeebb04a31":[12,0,2,0,3,2,39]
 };

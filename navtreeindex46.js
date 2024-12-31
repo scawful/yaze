@@ -1,13 +1,5 @@
 var NAVTREEINDEX46 =
 {
-"structyaze_1_1editor_1_1DictionaryEntry.html#a71f4012ddd4815fad5648ef47c5df5b3":[10,0,1,3,10,1],
-"structyaze_1_1editor_1_1DictionaryEntry.html#a71f4012ddd4815fad5648ef47c5df5b3":[11,0,0,2,5,1],
-"structyaze_1_1editor_1_1DictionaryEntry.html#a84511c3a0cacbd7494a14d5f70dca212":[10,0,1,3,10,6],
-"structyaze_1_1editor_1_1DictionaryEntry.html#a84511c3a0cacbd7494a14d5f70dca212":[11,0,0,2,5,6],
-"structyaze_1_1editor_1_1DictionaryEntry.html#ab5edb1bb548b0a34f9f45232009a7159":[10,0,1,3,10,0],
-"structyaze_1_1editor_1_1DictionaryEntry.html#ab5edb1bb548b0a34f9f45232009a7159":[11,0,0,2,5,0],
-"structyaze_1_1editor_1_1DictionaryEntry.html#ad93dc47f6d61ea289992af7c34f1910d":[10,0,1,3,10,3],
-"structyaze_1_1editor_1_1DictionaryEntry.html#ad93dc47f6d61ea289992af7c34f1910d":[11,0,0,2,5,3],
 "structyaze_1_1editor_1_1EditorContext.html":[10,0,1,3,13],
 "structyaze_1_1editor_1_1EditorContext.html":[11,0,0,2,8],
 "structyaze_1_1editor_1_1EditorContext.html#a65cc3d53d2411546c0db652c6aea6a66":[10,0,1,3,13,1],
@@ -249,5 +241,13 @@ var NAVTREEINDEX46 =
 "structyaze_1_1editor_1_1zsprite_1_1SpriteProperty.html#ac6b2e42c6ba7607e93924cc74e9a665b":[10,0,1,3,6,2,0],
 "structyaze_1_1editor_1_1zsprite_1_1SpriteProperty.html#ac6b2e42c6ba7607e93924cc74e9a665b":[11,0,0,2,1,2,0],
 "structyaze_1_1editor_1_1zsprite_1_1SubEditor.html":[10,0,1,3,6,3],
-"structyaze_1_1editor_1_1zsprite_1_1SubEditor.html":[11,0,0,2,1,3]
+"structyaze_1_1editor_1_1zsprite_1_1SubEditor.html":[11,0,0,2,1,3],
+"structyaze_1_1editor_1_1zsprite_1_1SubEditor.html#a21b0692979d4e6e5df7c833c57962ec6":[10,0,1,3,6,3,0],
+"structyaze_1_1editor_1_1zsprite_1_1SubEditor.html#a21b0692979d4e6e5df7c833c57962ec6":[11,0,0,2,1,3,0],
+"structyaze_1_1editor_1_1zsprite_1_1SubEditor.html#adac6b0ec7050337b2951c14dff0b45c7":[10,0,1,3,6,3,1],
+"structyaze_1_1editor_1_1zsprite_1_1SubEditor.html#adac6b0ec7050337b2951c14dff0b45c7":[11,0,0,2,1,3,1],
+"structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html":[10,0,1,3,6,4],
+"structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html":[11,0,0,2,1,4],
+"structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html#a0e443d00b35140a1e186f0cd30329fbe":[10,0,1,3,6,4,3],
+"structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html#a0e443d00b35140a1e186f0cd30329fbe":[11,0,0,2,1,4,3]
 };

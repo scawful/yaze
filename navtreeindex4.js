@@ -1,13 +1,5 @@
 var NAVTREEINDEX4 =
 {
-"classyaze_1_1editor_1_1ExtensionManager.html#ac09726f4ac7698d0d0df68c331fd74ed":[10,0,1,3,18,2],
-"classyaze_1_1editor_1_1ExtensionManager.html#ac09726f4ac7698d0d0df68c331fd74ed":[11,0,0,2,13,2],
-"classyaze_1_1editor_1_1ExtensionManager.html#aceda1323591da652d454a06c22c9303d":[10,0,1,3,18,3],
-"classyaze_1_1editor_1_1ExtensionManager.html#aceda1323591da652d454a06c22c9303d":[11,0,0,2,13,3],
-"classyaze_1_1editor_1_1GfxGroupEditor.html":[10,0,1,3,20],
-"classyaze_1_1editor_1_1GfxGroupEditor.html":[11,0,0,2,15],
-"classyaze_1_1editor_1_1GfxGroupEditor.html#a04921f522f9cb698c3f67d2ac6b6b345":[10,0,1,3,20,4],
-"classyaze_1_1editor_1_1GfxGroupEditor.html#a04921f522f9cb698c3f67d2ac6b6b345":[11,0,0,2,15,4],
 "classyaze_1_1editor_1_1GfxGroupEditor.html#a19742215b61d7598ef7ac95494107001":[10,0,1,3,20,7],
 "classyaze_1_1editor_1_1GfxGroupEditor.html#a19742215b61d7598ef7ac95494107001":[11,0,0,2,15,7],
 "classyaze_1_1editor_1_1GfxGroupEditor.html#a1df34b64589a8c02487aa0f6c76e19e9":[10,0,1,3,20,8],
@@ -249,5 +241,13 @@ var NAVTREEINDEX4 =
 "classyaze_1_1editor_1_1GraphicsEditor.html#afbdc42d4f3bfd69646e73b44b13bcc12":[10,0,1,3,21,66],
 "classyaze_1_1editor_1_1GraphicsEditor.html#afbdc42d4f3bfd69646e73b44b13bcc12":[11,0,0,2,16,66],
 "classyaze_1_1editor_1_1GraphicsEditor.html#afdd92e4b7330a4b9013502a0e7a26cce":[10,0,1,3,21,56],
-"classyaze_1_1editor_1_1GraphicsEditor.html#afdd92e4b7330a4b9013502a0e7a26cce":[11,0,0,2,16,56]
+"classyaze_1_1editor_1_1GraphicsEditor.html#afdd92e4b7330a4b9013502a0e7a26cce":[11,0,0,2,16,56],
+"classyaze_1_1editor_1_1HistoryManager.html":[10,0,1,3,22],
+"classyaze_1_1editor_1_1HistoryManager.html":[11,0,0,2,17],
+"classyaze_1_1editor_1_1HistoryManager.html#a2a273490bcf95b621573efb7cbb45e83":[10,0,1,3,22,5],
+"classyaze_1_1editor_1_1HistoryManager.html#a2a273490bcf95b621573efb7cbb45e83":[11,0,0,2,17,5],
+"classyaze_1_1editor_1_1HistoryManager.html#a58f042bd6d242ee85256832a7782e345":[10,0,1,3,22,1],
+"classyaze_1_1editor_1_1HistoryManager.html#a58f042bd6d242ee85256832a7782e345":[11,0,0,2,17,1],
+"classyaze_1_1editor_1_1HistoryManager.html#a7981b574d533195d0e16ce4210562534":[10,0,1,3,22,7],
+"classyaze_1_1editor_1_1HistoryManager.html#a7981b574d533195d0e16ce4210562534":[11,0,0,2,17,7]
 };

@@ -1,7 +1,5 @@
 <map id="yaze::editor::EditorManager" name="yaze::editor::EditorManager">
-<area shape="rect" id="Node000001" title="The EditorManager controls the main editor window and manages the various editor classes." alt="" coords="66,79,240,105"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="5,5,127,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,39,140,77,136,81,91,43"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="150,5,331,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="216,43,169,81,166,77,212,39"/>
+<area shape="rect" id="Node000001" title="The EditorManager controls the main editor window and manages the various editor classes." alt="" coords="5,79,180,105"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="32,5,153,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,46,95,79,90,79,90,46"/>
 </map>

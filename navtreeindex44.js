@@ -1,13 +1,5 @@
 var NAVTREEINDEX44 =
 {
-"snes__palette_8h.html#a82a8956476ffc04750bcfc4120c8b8dba209403e94e5ae3fecb2e65f298d46370":[12,0,2,0,3,9,5,0],
-"snes__palette_8h.html#a82a8956476ffc04750bcfc4120c8b8dba2f71fb69e2115f386b5f356665f8eadc":[12,0,2,0,3,9,5,7],
-"snes__palette_8h.html#a82a8956476ffc04750bcfc4120c8b8dba36796835a2cffb6218b1755600160d2b":[12,0,2,0,3,9,5,8],
-"snes__palette_8h.html#a82a8956476ffc04750bcfc4120c8b8dba44b225210525a1b9ad60c50d0b712c16":[12,0,2,0,3,9,5,2],
-"snes__palette_8h.html#a82a8956476ffc04750bcfc4120c8b8dba69e677e331f6bd566413f27d9fe64f09":[12,0,2,0,3,9,5,11],
-"snes__palette_8h.html#a82a8956476ffc04750bcfc4120c8b8dba763760ff92c842ba0fba2b7916605884":[12,0,2,0,3,9,5,3],
-"snes__palette_8h.html#a82a8956476ffc04750bcfc4120c8b8dba88add653e236b3d50a59a49dc984f7f1":[12,0,2,0,3,9,5,4],
-"snes__palette_8h.html#a82a8956476ffc04750bcfc4120c8b8dba88eb78a13c2d02166e0cf9c2fdd458c4":[12,0,2,0,3,9,5,13],
 "snes__palette_8h.html#a82a8956476ffc04750bcfc4120c8b8dba9f56642cd3258629b69bd8a501b90343":[12,0,2,0,3,9,5,1],
 "snes__palette_8h.html#a82a8956476ffc04750bcfc4120c8b8dbac4ed7facba5bc499470417f80fccfd30":[12,0,2,0,3,9,5,10],
 "snes__palette_8h.html#a82a8956476ffc04750bcfc4120c8b8dbad2d78692099223ba9f44829c75a6cbf9":[12,0,2,0,3,9,5,9],
@@ -249,5 +241,13 @@ var NAVTREEINDEX44 =
 "structTextEditor_1_1LanguageDefinition.html#a77668454aaac7f3aa9358d01acda0376":[11,0,9,5,15],
 "structTextEditor_1_1LanguageDefinition.html#ab0c6722298c1d597ae4f3e266935b318":[11,0,9,5,12],
 "structTextEditor_1_1LanguageDefinition.html#ab20fd47814140fc2b070e81f3a2f7fca":[11,0,9,5,2],
-"structTextEditor_1_1LanguageDefinition.html#abf9ed270616ed79eb80c5f97805b184b":[11,0,9,5,9]
+"structTextEditor_1_1LanguageDefinition.html#abf9ed270616ed79eb80c5f97805b184b":[11,0,9,5,9],
+"structTextEditor_1_1LanguageDefinition.html#ac40f4cc01836db6f18dbf21f25121f2d":[11,0,9,5,3],
+"structsnes__color.html":[11,0,3],
+"structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4":[11,0,3,2],
+"structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58":[11,0,3,0],
+"structsnes__color.html#abe07ebebd2f735f932b7a7a065506f9f":[11,0,3,1],
+"structsnes__palette.html":[11,0,4],
+"structsnes__palette.html#aa3f32ff0f52e7ada19fb5afdd477258f":[11,0,4,0],
+"structsnes__palette.html#ad4057af514d8aab3c6a429b693bb9ac6":[11,0,4,2]
 };

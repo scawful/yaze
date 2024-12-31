@@ -64,6 +64,8 @@ var namespaceyaze_1_1gfx =
       [ "Tile8", "namespaceyaze_1_1gfx.html#a54c082e1b81bacbccd15286f5e07a8b0af741ccc3c4a5d5202699b366e0b822a5", null ],
       [ "Tile16", "namespaceyaze_1_1gfx.html#a54c082e1b81bacbccd15286f5e07a8b0a0136ed56bdc945f798e3b2ff271ba011", null ]
     ] ],
+    [ "HyruleMagicCompress", "namespaceyaze_1_1gfx.html#a6ee33c076f15c89ca7ab32f4707f5ad5", null ],
+    [ "HyruleMagicDecompress", "namespaceyaze_1_1gfx.html#a274f0039252e9c63a24bb18d52301b6e", null ],
     [ "ConvertSnesToRgb", "namespaceyaze_1_1gfx.html#a893d31b6aeb9a3df9754b9def778b458", null ],
     [ "ConvertRgbToSnes", "namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d", null ],
     [ "ConvertRgbToSnes", "namespaceyaze_1_1gfx.html#a78da9ee9b2de37e218f0152a1ecc4e36", null ],

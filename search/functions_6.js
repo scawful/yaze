@@ -2,7 +2,7 @@ var searchData=
 [
   ['game_5fstate_0',['game_state',['../classyaze_1_1zelda3_1_1Sprite.html#a986a640402b62b103a0355b1f615585c',1,'yaze::zelda3::Sprite']]],
   ['gameentity_1',['GameEntity',['../classyaze_1_1zelda3_1_1GameEntity.html#a6bb1a2cdae1be1ad21fc1b637727eb68',1,'yaze::zelda3::GameEntity']]],
-  ['get_2',['get',['../classyaze_1_1core_1_1NotifyValue.html#ac5a2dda1b0c727cfef73ac1919de360d',1,'yaze::core::NotifyValue']]],
+  ['get_2',['get',['../classyaze_1_1core_1_1ExperimentFlags.html#a98e30d2636e67e3d74a45094733101e9',1,'yaze::core::ExperimentFlags::get()'],['../classyaze_1_1core_1_1NotifyValue.html#ac5a2dda1b0c727cfef73ac1919de360d',1,'yaze::core::NotifyValue::get()']]],
   ['get16x16tile_3',['Get16x16Tile',['../classyaze_1_1gfx_1_1Bitmap.html#adab34aa5b35c696b6b5831263c6dfc6a',1,'yaze::gfx::Bitmap']]],
   ['get24localfrompc_4',['Get24LocalFromPC',['../namespaceyaze_1_1core.html#aa2886304092e4c8f1cbd33eeb0d7d980',1,'yaze::core']]],
   ['get8x8tile_5',['Get8x8Tile',['../classyaze_1_1gfx_1_1Bitmap.html#a581b5605ae5a812935b31354019a15be',1,'yaze::gfx::Bitmap']]],

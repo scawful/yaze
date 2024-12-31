@@ -126,7 +126,7 @@ var searchData=
   ['expectdecompressbytesok_123',['ExpectDecompressBytesOk',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#aea2a498a83c2d824402e1632a4c0c14b',1,'yaze::test::anonymous_namespace{compression_test.cc}']]],
   ['expectdecompressok_124',['ExpectDecompressOk',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a39c906d372ef594237c65bc20d310711',1,'yaze::test::anonymous_namespace{compression_test.cc}']]],
   ['expectnewcompressionpieceok_125',['ExpectNewCompressionPieceOk',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#abe193c4681aff31e3d2c3b9a07797f51',1,'yaze::test::anonymous_namespace{compression_test.cc}']]],
-  ['experimentflags_126',['ExperimentFlags',['../classyaze_1_1core_1_1ExperimentFlags.html',1,'yaze::core::ExperimentFlags'],['../classyaze_1_1core_1_1ExperimentFlags.html#a641c666fe848a8d2e9a9f5e4d1aefd3a',1,'yaze::core::ExperimentFlags::ExperimentFlags()']]],
+  ['experimentflags_126',['ExperimentFlags',['../classyaze_1_1core_1_1ExperimentFlags.html',1,'yaze::core']]],
   ['extbg_127',['extbg',['../structyaze_1_1emu_1_1SETINI.html#aeae7814985112b15e2be798893e5f841',1,'yaze::emu::SETINI']]],
   ['extend_5fui_128',['extend_ui',['../structyaze__extension.html#ae2c69e105138b9f02fdc2c79a3b7e1bf',1,'yaze_extension']]],
   ['extending_20functionality_129',['Extending Functionality',['../index.html#autotoc_md45',1,'']]],

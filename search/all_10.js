@@ -13,7 +13,7 @@ var searchData=
   ['general_20tips_10',['General Tips',['../index.html#autotoc_md44',1,'']]],
   ['general_5fscreen_5fmode_11',['general_screen_mode',['../structyaze_1_1emu_1_1ScreenMode.html#a0e22ddeb2bcf8ec3365f91729c1afe1c',1,'yaze::emu::ScreenMode']]],
   ['generictoken_12',['GenericToken',['../structyaze_1_1editor_1_1TextElement.html#afd21c96d0028950a61de3e8442808652',1,'yaze::editor::TextElement']]],
-  ['get_13',['get',['../classyaze_1_1core_1_1NotifyValue.html#ac5a2dda1b0c727cfef73ac1919de360d',1,'yaze::core::NotifyValue']]],
+  ['get_13',['get',['../classyaze_1_1core_1_1ExperimentFlags.html#a98e30d2636e67e3d74a45094733101e9',1,'yaze::core::ExperimentFlags::get()'],['../classyaze_1_1core_1_1NotifyValue.html#ac5a2dda1b0c727cfef73ac1919de360d',1,'yaze::core::NotifyValue::get()']]],
   ['get16x16tile_14',['Get16x16Tile',['../classyaze_1_1gfx_1_1Bitmap.html#adab34aa5b35c696b6b5831263c6dfc6a',1,'yaze::gfx::Bitmap']]],
   ['get24localfrompc_15',['Get24LocalFromPC',['../namespaceyaze_1_1core.html#aa2886304092e4c8f1cbd33eeb0d7d980',1,'yaze::core']]],
   ['get8x8tile_16',['Get8x8Tile',['../classyaze_1_1gfx_1_1Bitmap.html#a581b5605ae5a812935b31354019a15be',1,'yaze::gfx::Bitmap']]],

@@ -28,8 +28,6 @@ var namespaceyaze_1_1gfx_1_1lc__lz2 =
     [ "ValidateCompressionResult", "namespaceyaze_1_1gfx_1_1lc__lz2.html#afd4f301bf9cc31c188986af0db90ab75", null ],
     [ "MergeCopy", "namespaceyaze_1_1gfx_1_1lc__lz2.html#ae172bb38e1561dad50c293d4f4dc6b54", null ],
     [ "CompressV2", "namespaceyaze_1_1gfx_1_1lc__lz2.html#a0e96f372d460c5b4e9f11e61aefbf9db", null ],
-    [ "Compress", "namespaceyaze_1_1gfx_1_1lc__lz2.html#ad4c6a4a371b4651cbc4b2dbe9e17960d", null ],
-    [ "Uncompress", "namespaceyaze_1_1gfx_1_1lc__lz2.html#ae34766f2c51c2e6f2d0dd13d7c5ea46c", null ],
     [ "CompressGraphics", "namespaceyaze_1_1gfx_1_1lc__lz2.html#a6e89cbe746bf8cd47152fa23d4c0e888", null ],
     [ "CompressOverworld", "namespaceyaze_1_1gfx_1_1lc__lz2.html#a064ad57f23c04a46d605f57820a4bb9d", null ],
     [ "CompressOverworld", "namespaceyaze_1_1gfx_1_1lc__lz2.html#a4052e31abfb4c3aeb1e7c576ad5ba640", null ],
