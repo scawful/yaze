@@ -24,6 +24,7 @@ target_include_directories(
   ${CMAKE_SOURCE_DIR}/src/
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
+  ${PROJECT_BINARY_DIR}
 )
 
 target_link_libraries(
