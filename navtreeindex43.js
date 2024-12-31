@@ -1,11 +1,5 @@
 var NAVTREEINDEX43 =
 {
-"snes__color_8cc.html#a16bca2c689cfce1349f2d1f0790dbe96":[12,0,2,0,3,6,9],
-"snes__color_8cc.html#a4e83a052d42017612243c3f81b538b7d":[12,0,2,0,3,6,1],
-"snes__color_8cc.html#a58538e81c6b1b5c0d28310f84eced8b7":[12,0,2,0,3,6,5],
-"snes__color_8cc.html#a68d9e4162aa4c03b5061b60c3da6947a":[12,0,2,0,3,6,3],
-"snes__color_8cc.html#a6f318f42cd06cb5344977f66ecec8491":[12,0,2,0,3,6,12],
-"snes__color_8cc.html#a730c9e2c123b82fbe90f003c72a6b4af":[12,0,2,0,3,6,11],
 "snes__color_8cc.html#a78da9ee9b2de37e218f0152a1ecc4e36":[12,0,2,0,3,6,2],
 "snes__color_8cc.html#a893d31b6aeb9a3df9754b9def778b458":[12,0,2,0,3,6,0],
 "snes__color_8cc.html#a9b4b6071aaee6f4570491682261ea5df":[12,0,2,0,3,6,8],
@@ -249,5 +243,11 @@ var NAVTREEINDEX43 =
 "src_2app_2zelda3_2overworld_2overworld_8h.html#ae5955d36b0ba30b861767f2b900e407b":[12,0,2,0,5,2,1,16],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#aeb09d65e6d783e975d4547268403c092":[12,0,2,0,5,2,1,36],
 "src_2app_2zelda3_2overworld_2overworld_8h.html#aeb1d1905adc848ab69a769e094b2ef2d":[12,0,2,0,5,2,1,1],
-"src_2app_2zelda3_2overworld_2overworld_8h.html#aebdd836608337fa635a795f5ae00536a":[12,0,2,0,5,2,1,57]
+"src_2app_2zelda3_2overworld_2overworld_8h.html#aebdd836608337fa635a795f5ae00536a":[12,0,2,0,5,2,1,57],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#aec97ad6a549220899cef484237a75247":[12,0,2,0,5,2,1,46],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#aed38131f806616a2152123e8cb5cc090":[12,0,2,0,5,2,1,15],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#af2dc32a6554416090637ef571345e19c":[12,0,2,0,5,2,1,10],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#af3c43e70a155cfab24f3d00e5422d97a":[12,0,2,0,5,2,1,38],
+"src_2app_2zelda3_2overworld_2overworld_8h.html#afadca5ab4c613870ade817abe2b4970d":[12,0,2,0,5,2,1,9],
+"src_2app_2zelda3_2overworld_2overworld_8h_source.html":[12,0,2,0,5,2,1]
 };

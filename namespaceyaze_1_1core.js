@@ -16,10 +16,6 @@ var namespaceyaze_1_1core =
       [ "ldle3", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#ae6064f68a5f5ea3d74189dd5e4a5dea8", null ],
       [ "HandleHexStringParams", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a5bee52f0340097913cdf52b6f646b3c5", null ]
     ] ],
-    [ "anonymous_namespace{controller.cc}", "namespaceyaze_1_1core_1_1anonymous__namespace_02controller_8cc_03.html", [
-      [ "NewMasterFrame", "namespaceyaze_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#aaf52a3cf38ceb5200311471e0c760fca", null ],
-      [ "kMainEditorFlags", "namespaceyaze_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a3a3728f59553fd48223100f0a96c73f4", null ]
-    ] ],
     [ "Controller", "classyaze_1_1core_1_1Controller.html", "classyaze_1_1core_1_1Controller" ],
     [ "ExperimentFlags", "classyaze_1_1core_1_1ExperimentFlags.html", "classyaze_1_1core_1_1ExperimentFlags" ],
     [ "FileDialogWrapper", "classyaze_1_1core_1_1FileDialogWrapper.html", null ],

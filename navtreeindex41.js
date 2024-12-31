@@ -1,11 +1,5 @@
 var NAVTREEINDEX41 =
 {
-"namespaceyaze_1_1zelda3.html#afdf2250278d020192f73be4bb002952c":[10,0,1,8,121],
-"namespaceyaze_1_1zelda3.html#afef6ec391a32987c1966d1f3750e0e03":[10,0,1,8,142],
-"namespaceyaze_1_1zelda3.html#aff45f31b9cbd526c488300f30c3b3b24":[10,0,1,8,89],
-"namespaceyaze_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html":[10,0,1,8,0],
-"namespaceyaze_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html#a5ffb6636e8c7f6595b7d6f15fda63c78":[10,0,1,8,0,0],
-"namespaceyaze_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html#aada423b3f85f8fd351dc189573a93bd0":[10,0,1,8,0,1],
 "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html":[10,0,1,8,1],
 "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html#ab1400747aa5706c8b340e3dd8d57002c":[10,0,1,8,1,0],
 "namespaceyaze_1_1zelda3_1_1music.html":[10,0,1,8,2],
@@ -249,5 +243,11 @@ var NAVTREEINDEX41 =
 "ppu__test_8cc_source.html":[12,0,2,3,1,1],
 "project_8cc.html":[12,0,2,0,0,7],
 "project_8cc_source.html":[12,0,2,0,0,7],
-"project_8h.html":[12,0,2,0,0,8]
+"project_8h.html":[12,0,2,0,0,8],
+"project_8h.html#a12ad99b5f6533ab824bad2e024695895":[12,0,2,0,0,8,5],
+"project_8h.html#adc07abaabd36d08f9073b9229ddc5f57":[12,0,2,0,0,8,4],
+"project_8h_source.html":[12,0,2,0,0,8],
+"renderer_8h.html":[12,0,2,0,0,0,13],
+"renderer_8h_source.html":[12,0,2,0,0,0,13],
+"resource__manager_8h.html":[12,0,2,0,1,7,9]
 };
