@@ -1,20 +1,20 @@
 <map id="yaze::editor::GraphicsEditor" name="yaze::editor::GraphicsEditor">
 <area shape="rect" id="Node000001" title="Allows the user to edit graphics sheets from the game or view prototype graphics." alt="" coords="1395,426,1571,452"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="21,596,142,621"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,585,205,536,262,511,321,491,434,463,532,446,618,436,700,432,869,432,1086,430,1228,426,1371,430,1395,431,1394,436,1371,435,1228,432,1086,435,869,437,700,437,619,441,532,451,436,469,322,496,264,516,208,541,117,590"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="117,586,208,541,264,518,321,499,435,472,532,453,618,442,700,436,869,433,1086,430,1228,427,1371,430,1395,431,1394,436,1371,435,1228,432,1086,435,869,438,700,441,619,447,533,458,436,477,322,504,265,523,210,545,120,590"/>
 <area shape="rect" id="Node000018" href="$classyaze_1_1zelda3_1_1Overworld.html" title="Represents the full Overworld data, light and dark world." alt="" coords="1091,330,1247,356"/>
-<area shape="poly" id="edge12_Node000018_Node000002" title=" " alt="" coords="87,580,98,543,117,500,144,458,161,439,180,423,213,406,254,391,357,367,480,351,615,341,752,335,883,334,1091,337,1091,343,883,339,752,341,615,346,480,356,358,372,256,396,215,411,183,428,164,443,148,461,122,502,103,545,92,581"/>
-<area shape="rect" id="Node000020" href="$classyaze_1_1editor_1_1PaletteEditor.html" title="Allows the user to view and edit in game palettes." alt="" coords="1086,684,1252,709"/>
-<area shape="poly" id="edge17_Node000020_Node000002" title=" " alt="" coords="158,617,403,650,711,682,819,688,926,690,1086,693,1086,698,926,695,818,693,711,687,403,655,157,622"/>
+<area shape="poly" id="edge12_Node000018_Node000002" title=" " alt="" coords="88,580,101,546,120,506,146,468,180,437,213,419,254,404,357,379,480,361,615,349,883,339,1091,339,1091,344,883,344,615,355,481,367,358,384,256,409,215,424,183,441,150,472,124,509,105,548,93,581"/>
+<area shape="rect" id="Node000020" href="$classyaze_1_1editor_1_1PaletteEditor.html" title="Allows the user to view and edit in game palettes." alt="" coords="1086,678,1252,704"/>
+<area shape="poly" id="edge17_Node000020_Node000002" title=" " alt="" coords="158,617,403,650,557,668,711,682,819,686,926,687,1086,688,1086,694,926,692,819,692,711,687,556,673,403,656,157,622"/>
 <area shape="rect" id="Node000023" href="$classyaze_1_1editor_1_1GfxGroupEditor.html" title="Manage graphics group configurations in a Rom." alt="" coords="717,797,896,822"/>
 <area shape="poly" id="edge21_Node000023_Node000002" title=" " alt="" coords="102,632,136,674,158,695,183,711,250,743,321,767,394,785,467,798,604,811,717,812,717,817,604,816,466,803,393,790,319,772,248,748,180,716,155,699,132,678,98,636"/>
 <area shape="rect" id="Node000024" href="$classyaze_1_1gui_1_1Canvas.html" title="Represents a canvas for drawing and manipulating graphics." alt="" coords="357,596,477,621"/>
 <area shape="poly" id="edge23_Node000024_Node000002" title=" " alt="" coords="158,606,356,606,356,611,158,611"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="744,506,869,532"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="849,497,886,483,926,471,1052,450,1180,439,1297,434,1394,434,1394,439,1298,439,1180,444,1053,455,927,476,887,488,851,502"/>
-<area shape="poly" id="edge18_Node000020_Node000003" title=" " alt="" coords="832,541,874,581,928,618,963,633,993,640,1024,645,1063,655,1134,680,1132,685,1062,660,1023,651,992,645,962,638,925,623,871,585,828,545"/>
-<area shape="rect" id="Node000004" href="$structyaze_1_1editor_1_1EditorContext.html" title=" " alt="" coords="333,506,501,532"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="516,516,744,516,744,522,516,522"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="744,514,869,540"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="843,504,882,486,926,471,1052,448,1179,435,1297,431,1394,432,1394,438,1297,437,1180,441,1053,453,927,476,884,491,845,509"/>
+<area shape="poly" id="edge18_Node000020_Node000003" title=" " alt="" coords="833,548,875,584,928,618,964,633,993,640,1063,655,1128,675,1126,680,1062,660,992,646,962,638,925,623,872,588,830,552"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1editor_1_1EditorContext.html" title=" " alt="" coords="333,514,501,540"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="516,524,744,524,744,530,516,530"/>
 <area shape="rect" id="Node000010" href="$structyaze_1_1gui_1_1GfxSheetAssetBrowser.html" title=" " alt="" coords="1087,120,1251,161"/>
 <area shape="poly" id="edge4_Node000001_Node000010" title=" " alt="" coords="1267,147,1322,164,1349,177,1372,194,1399,221,1420,252,1453,319,1473,381,1482,425,1477,426,1467,382,1448,321,1416,255,1394,225,1369,198,1346,182,1320,169,1265,152"/>
 <area shape="rect" id="Node000011" href="$structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html" title=" " alt="" coords="717,120,896,161"/>
@@ -33,20 +33,20 @@
 <area shape="poly" id="edge28_Node000001_Node000017" title=" " alt="" coords="102,94,137,63,181,37,244,17,296,12,416,18,1170,18,1236,24,1262,33,1285,45,1328,80,1373,131,1400,168,1423,210,1455,296,1474,373,1483,425,1477,426,1469,374,1450,298,1418,212,1396,171,1369,134,1324,84,1283,49,1260,38,1235,30,1170,23,415,23,296,18,245,22,183,41,140,67,106,98"/>
 <area shape="poly" id="edge10_Node000016_Node000017" title=" " alt="" coords="102,145,136,184,158,203,183,217,214,228,240,232,266,228,296,217,304,211,308,204,312,196,320,189,343,178,345,183,323,193,316,200,312,207,308,215,299,221,267,233,240,237,213,233,181,221,155,207,132,188,98,148"/>
 <area shape="poly" id="edge11_Node000001_Node000018" title=" " alt="" coords="1245,357,1372,392,1452,423,1450,428,1370,398,1244,363"/>
-<area shape="rect" id="Node000019" href="$structyaze_1_1zelda3_1_1OWMapTiles.html" title="Overworld map tile32 data." alt="" coords="721,381,892,406"/>
-<area shape="poly" id="edge15_Node000018_Node000019" title=" " alt="" coords="908,390,984,385,1062,374,1132,354,1134,359,1063,379,984,390,908,395"/>
-<area shape="poly" id="edge16_Node000001_Node000020" title=" " alt="" coords="1265,677,1319,657,1345,643,1369,627,1409,583,1440,533,1462,486,1475,451,1480,453,1467,488,1445,536,1414,587,1372,631,1348,648,1321,662,1266,682"/>
+<area shape="rect" id="Node000019" href="$structyaze_1_1zelda3_1_1OverworldMapTiles.html" title="Overworld map tile32 data." alt="" coords="716,380,897,421"/>
+<area shape="poly" id="edge15_Node000018_Node000019" title=" " alt="" coords="911,393,986,386,1062,374,1131,354,1133,359,1063,379,986,391,912,398"/>
+<area shape="poly" id="edge16_Node000001_Node000020" title=" " alt="" coords="1266,674,1320,655,1345,643,1369,627,1391,607,1410,584,1441,534,1462,486,1475,451,1480,453,1467,489,1445,536,1414,587,1394,610,1372,631,1348,647,1322,660,1267,679"/>
 <area shape="rect" id="Node000021" href="$classyaze_1_1gfx_1_1SnesColor.html" title="SNES Color container." alt="" coords="738,748,875,773"/>
-<area shape="poly" id="edge19_Node000020_Node000021" title=" " alt="" coords="890,764,974,762,1018,758,1062,749,1099,732,1144,707,1146,712,1101,737,1063,754,1019,763,974,768,890,769"/>
-<area shape="poly" id="edge20_Node000020_Node000023" title=" " alt="" coords="912,820,950,819,989,814,1026,803,1061,785,1070,776,1073,765,1076,753,1084,740,1108,721,1133,707,1135,712,1111,726,1088,743,1081,755,1078,767,1074,778,1064,789,1028,808,990,819,950,824,912,825"/>
+<area shape="poly" id="edge19_Node000020_Node000021" title=" " alt="" coords="890,765,974,763,1019,758,1061,749,1101,730,1146,702,1149,707,1103,734,1063,754,1019,763,975,769,890,770"/>
+<area shape="poly" id="edge20_Node000020_Node000023" title=" " alt="" coords="912,821,950,820,989,815,1026,804,1061,787,1070,777,1073,766,1076,753,1084,740,1110,718,1137,702,1140,707,1113,723,1088,743,1081,755,1078,767,1074,780,1064,791,1028,809,990,820,950,825,912,826"/>
 <area shape="poly" id="edge30_Node000001_Node000024" title=" " alt="" coords="492,608,792,611,948,607,1062,596,1180,566,1293,524,1388,483,1455,450,1457,455,1390,487,1295,529,1181,571,1063,602,949,613,792,617,492,613"/>
 <area shape="poly" id="edge22_Node000023_Node000024" title=" " alt="" coords="449,628,562,704,635,746,712,783,742,794,741,799,710,788,633,751,559,708,446,633"/>
 <area shape="rect" id="Node000025" href="$classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="343,872,490,897"/>
-<area shape="poly" id="edge29_Node000001_Node000025" title=" " alt="" coords="490,898,601,919,744,936,823,941,903,941,983,937,1062,925,1117,912,1159,896,1251,850,1316,824,1342,809,1369,783,1398,740,1421,693,1440,644,1454,596,1471,509,1478,452,1483,452,1477,510,1459,597,1445,646,1426,695,1402,743,1373,786,1345,813,1319,829,1253,855,1161,901,1119,917,1063,931,984,942,903,947,823,946,744,941,600,924,489,904"/>
+<area shape="poly" id="edge29_Node000001_Node000025" title=" " alt="" coords="490,898,601,919,744,936,822,941,903,942,983,937,1062,925,1117,912,1159,896,1251,849,1316,820,1342,805,1369,777,1397,735,1420,689,1439,641,1453,593,1471,509,1478,452,1483,453,1476,509,1458,595,1444,643,1425,691,1402,738,1373,781,1345,809,1319,825,1253,853,1161,901,1119,917,1063,931,984,942,903,947,822,947,743,942,600,924,489,904"/>
 <area shape="poly" id="edge24_Node000023_Node000025" title=" " alt="" coords="506,868,686,835,752,820,753,826,688,841,506,873"/>
 <area shape="rect" id="Node000027" href="$classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="936,845,1053,870"/>
 <area shape="poly" id="edge27_Node000027_Node000025" title=" " alt="" coords="506,882,536,882,612,883,687,882,820,873,935,862,935,867,821,878,687,887,612,888,536,887,506,887"/>
 <area shape="rect" id="Node000026" href="$classyaze_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html" title=" " alt="" coords="711,632,902,673"/>
-<area shape="poly" id="edge25_Node000020_Node000026" title=" " alt="" coords="918,669,927,670,1086,687,1086,692,926,675,918,674"/>
-<area shape="poly" id="edge26_Node000001_Node000027" title=" " alt="" coords="1068,848,1158,830,1206,815,1250,794,1300,759,1343,716,1380,666,1410,614,1454,517,1475,452,1480,453,1459,519,1415,617,1384,669,1347,719,1304,764,1253,799,1207,820,1159,835,1069,853"/>
+<area shape="poly" id="edge25_Node000020_Node000026" title=" " alt="" coords="918,669,927,670,1086,684,1086,689,926,675,918,674"/>
+<area shape="poly" id="edge26_Node000001_Node000027" title=" " alt="" coords="1067,846,1158,826,1205,810,1250,789,1300,754,1342,711,1379,662,1409,611,1453,516,1475,451,1480,453,1458,518,1414,614,1383,665,1346,715,1303,758,1253,794,1207,815,1159,831,1069,852"/>
 </map>

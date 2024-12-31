@@ -1,17 +1,17 @@
 <map id="yaze::zelda3::OverworldMap" name="yaze::zelda3::OverworldMap">
-<area shape="rect" id="Node000001" title="Represents a single Overworld map screen." alt="" coords="327,183,507,208"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1GfxContext.html" title="Shared graphical context across editors." alt="" coords="100,94,240,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,123,383,180,381,185,218,128"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="265,94,345,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="334,127,403,180,399,184,330,131"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="5,5,186,31"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="140,35,276,91,274,96,138,40"/>
-<area shape="rect" id="Node000005" href="$structyaze_1_1ResourceLabelManager.html" title=" " alt="" coords="210,5,400,31"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="308,47,308,94,302,94,302,47"/>
-<area shape="rect" id="Node000006" href="$structyaze_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="424,5,602,31"/>
-<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="496,45,462,72,346,99,345,94,460,68,492,41"/>
-<area shape="rect" id="Node000008" href="$structyaze_1_1zelda3_1_1OWMapTiles.html" title="Overworld map tile32 data." alt="" coords="368,94,540,120"/>
-<area shape="poly" id="edge6_Node000001_Node000008" title=" " alt="" coords="445,135,424,183,420,181,441,133"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="564,94,712,120"/>
-<area shape="poly" id="edge7_Node000001_Node000009" title=" " alt="" coords="594,128,510,161,449,185,447,180,508,156,592,123"/>
+<area shape="rect" id="Node000001" title="Represents a single Overworld map screen." alt="" coords="719,84,899,110"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1GfxContext.html" title="Shared graphical context across editors." alt="" coords="415,5,555,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="571,28,696,54,775,81,773,86,694,59,570,33"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="445,55,525,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="541,70,719,86,719,91,540,75"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="10,5,191,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="206,25,371,45,445,57,444,63,370,50,206,31"/>
+<area shape="rect" id="Node000005" href="$structyaze_1_1ResourceLabelManager.html" title=" " alt="" coords="5,55,196,80"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="211,65,444,65,444,70,211,70"/>
+<area shape="rect" id="Node000006" href="$structyaze_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="12,104,189,130"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="205,105,370,85,444,73,445,78,371,90,205,110"/>
+<area shape="rect" id="Node000008" href="$structyaze_1_1zelda3_1_1OverworldMapTiles.html" title="Overworld map tile32 data." alt="" coords="395,104,575,145"/>
+<area shape="poly" id="edge6_Node000001_Node000008" title=" " alt="" coords="590,121,695,115,742,108,743,113,695,120,591,127"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="411,169,558,195"/>
+<area shape="poly" id="edge7_Node000001_Node000009" title=" " alt="" coords="574,168,634,156,694,141,739,125,779,108,781,113,741,130,696,146,635,162,575,173"/>
 </map>

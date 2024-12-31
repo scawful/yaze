@@ -29,7 +29,7 @@ var searchData=
   ['palettechange_26',['PaletteChange',['../structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html',1,'yaze::editor::palette_internal']]],
   ['paletteeditor_27',['PaletteEditor',['../classyaze_1_1editor_1_1PaletteEditor.html',1,'yaze::editor::PaletteEditor'],['../classyaze_1_1editor_1_1PaletteEditor.html#adff0ccac83563b4b24ab28f88e9d7c01',1,'yaze::editor::PaletteEditor::PaletteEditor()']]],
   ['paletteeditorhistory_28',['PaletteEditorHistory',['../classyaze_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html',1,'yaze::editor::palette_internal']]],
-  ['palettegroup_29',['PaletteGroup',['../structyaze_1_1gfx_1_1PaletteGroup.html',1,'yaze::gfx::PaletteGroup'],['../structyaze_1_1gfx_1_1PaletteGroup.html#acd869e164d1dbee6bdd27c8c99e65991',1,'yaze::gfx::PaletteGroup::PaletteGroup()']]],
+  ['palettegroup_29',['PaletteGroup',['../structyaze_1_1gfx_1_1PaletteGroup.html',1,'yaze::gfx::PaletteGroup'],['../structyaze_1_1gfx_1_1PaletteGroup.html#acd869e164d1dbee6bdd27c8c99e65991',1,'yaze::gfx::PaletteGroup::PaletteGroup()=default'],['../structyaze_1_1gfx_1_1PaletteGroup.html#afa676ebbdcba9304ec77b572a2a218c4',1,'yaze::gfx::PaletteGroup::PaletteGroup(const std::string &amp;name)']]],
   ['palettegroupmap_30',['PaletteGroupMap',['../structyaze_1_1gfx_1_1PaletteGroupMap.html',1,'yaze::gfx']]],
   ['paletteindex_31',['PaletteIndex',['../classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9',1,'TextEditor']]],
   ['palettes_32',['palettes',['../structyaze_1_1gfx_1_1PaletteGroup.html#a89a8b74dff4a450feb2fe360832d13d1',1,'yaze::gfx::PaletteGroup::palettes'],['../structyaze_1_1zelda3_1_1PseudoVram.html#a842a7598712f00905454b37b1dd18154',1,'yaze::zelda3::PseudoVram::palettes']]],

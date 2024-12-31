@@ -107,7 +107,7 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "current_graphics_set_", "classyaze_1_1editor_1_1OverworldEditor.html#ad5d7700e6c6261b10da947b32538b043", null ],
     [ "sprite_previews_", "classyaze_1_1editor_1_1OverworldEditor.html#ac4ab100dd9cc47647211811fb08f7645", null ],
     [ "overworld_", "classyaze_1_1editor_1_1OverworldEditor.html#ad7ab4bb78250192917437afcc1ebb995", null ],
-    [ "refresh_blockset_", "classyaze_1_1editor_1_1OverworldEditor.html#ad4fae8e544e12c7471bceb8a2fe8a242", null ],
+    [ "refresh_blockset_", "classyaze_1_1editor_1_1OverworldEditor.html#a385e357969576cdc91a11389b34d2a00", null ],
     [ "current_sprite_", "classyaze_1_1editor_1_1OverworldEditor.html#a1da0f4e0c03b14a5bfabcc993f4680b2", null ],
     [ "current_entrance_", "classyaze_1_1editor_1_1OverworldEditor.html#a1827cc7ac76dcd45d3fc4ebeb2442bff", null ],
     [ "current_exit_", "classyaze_1_1editor_1_1OverworldEditor.html#a5b81556632edff7b417e1c61efee4759", null ],

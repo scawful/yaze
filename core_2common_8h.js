@@ -5,8 +5,6 @@ var core_2common_8h =
     [ "yaze::core::ExperimentFlags::Flags", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags" ],
     [ "yaze::core::ExperimentFlags::Flags::Overworld", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld" ],
     [ "yaze::core::NotifyValue< T >", "classyaze_1_1core_1_1NotifyValue.html", "classyaze_1_1core_1_1NotifyValue" ],
-    [ "yaze::core::StructuredLog", "structyaze_1_1core_1_1StructuredLog.html", "structyaze_1_1core_1_1StructuredLog" ],
-    [ "yaze::core::Logger", "classyaze_1_1core_1_1Logger.html", null ],
     [ "yaze::core::FolderItem", "structyaze_1_1core_1_1FolderItem.html", "structyaze_1_1core_1_1FolderItem" ],
     [ "FolderItem", "core_2common_8h.html#a778013ae3dbd2be64704b0eb01769d91", null ],
     [ "HexByte", "core_2common_8h.html#a1f2441e9967fc5718d30608cccc7f74c", null ],
@@ -25,5 +23,6 @@ var core_2common_8h =
     [ "ldle16b", "core_2common_8h.html#ae36970b562677c5876e1ee584a051530", null ],
     [ "CreateBpsPatch", "core_2common_8h.html#a1d6fb7654b6d82c76cf2e31fd4f11a5f", null ],
     [ "ApplyBpsPatch", "core_2common_8h.html#a0547d11cc90393910935ab1271f713a4", null ],
+    [ "kLogFileOut", "core_2common_8h.html#a6d982c9860d5c734d2f4df813a1cad8d", null ],
     [ "kFastRomRegion", "core_2common_8h.html#a147dd50027b3bc7f7f7dbf3600c7d79d", null ]
 ];

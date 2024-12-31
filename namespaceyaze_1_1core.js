@@ -21,13 +21,11 @@ var namespaceyaze_1_1core =
     [ "FileDialogWrapper", "classyaze_1_1core_1_1FileDialogWrapper.html", null ],
     [ "FolderItem", "structyaze_1_1core_1_1FolderItem.html", "structyaze_1_1core_1_1FolderItem" ],
     [ "HexStringParams", "structyaze_1_1core_1_1HexStringParams.html", "structyaze_1_1core_1_1HexStringParams" ],
-    [ "Logger", "classyaze_1_1core_1_1Logger.html", null ],
     [ "NotifyValue", "classyaze_1_1core_1_1NotifyValue.html", "classyaze_1_1core_1_1NotifyValue" ],
     [ "Renderer", "classyaze_1_1core_1_1Renderer.html", "classyaze_1_1core_1_1Renderer" ],
     [ "SDL_Deleter", "structyaze_1_1core_1_1SDL__Deleter.html", "structyaze_1_1core_1_1SDL__Deleter" ],
     [ "SDL_Surface_Deleter", "structyaze_1_1core_1_1SDL__Surface__Deleter.html", "structyaze_1_1core_1_1SDL__Surface__Deleter" ],
     [ "SDL_Texture_Deleter", "structyaze_1_1core_1_1SDL__Texture__Deleter.html", "structyaze_1_1core_1_1SDL__Texture__Deleter" ],
-    [ "StructuredLog", "structyaze_1_1core_1_1StructuredLog.html", "structyaze_1_1core_1_1StructuredLog" ],
     [ "FolderItem", "namespaceyaze_1_1core.html#a778013ae3dbd2be64704b0eb01769d91", null ],
     [ "Platform", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648", [
       [ "kUnknown", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648a25c2dc47991b3df171ed5192bcf70390", null ],
@@ -63,5 +61,6 @@ var namespaceyaze_1_1core =
     [ "LoadConfigFile", "namespaceyaze_1_1core.html#a7345775b8c056bb6c1b6f663eb7e25a8", null ],
     [ "SaveFile", "namespaceyaze_1_1core.html#a8a725e8e7dff6b06826090040ea3c2ba", null ],
     [ "GetConfigDirectory", "namespaceyaze_1_1core.html#a6ce28d9949b2dd0f6b6f6ae922700ae2", null ],
+    [ "kLogFileOut", "namespaceyaze_1_1core.html#a6d982c9860d5c734d2f4df813a1cad8d", null ],
     [ "kFastRomRegion", "namespaceyaze_1_1core.html#a147dd50027b3bc7f7f7dbf3600c7d79d", null ]
 ];

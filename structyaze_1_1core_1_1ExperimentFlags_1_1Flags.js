@@ -2,7 +2,6 @@ var structyaze_1_1core_1_1ExperimentFlags_1_1Flags =
 [
     [ "Overworld", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld" ],
     [ "kLogInstructions", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html#adff4b61c1b49f2a235e48f039661678d", null ],
-    [ "kUseNewImGuiInput", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html#a0f301aa84506abfb7227d237518d23fb", null ],
     [ "kSaveAllPalettes", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html#a0400929ed31f9b6bf8c8e549fbf9af97", null ],
     [ "kSaveGfxGroups", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html#a26fbe62bb23a612419bd01d0a41f6c20", null ],
     [ "kSaveWithChangeQueue", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html#a1d7872b391f6db3319d0367cfde788cb", null ],

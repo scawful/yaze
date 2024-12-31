@@ -98,10 +98,9 @@ var searchData=
   ['loadtiletypes_95',['LoadTileTypes',['../classyaze_1_1zelda3_1_1Overworld.html#a6b9e9841d16c98a3fbab7d6b5a170944',1,'yaze::zelda3::Overworld']]],
   ['loadtitlescreen_96',['LoadTitleScreen',['../classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#a934f9101ffde6b959807fe642f6db1fc',1,'yaze::zelda3::screen::TitleScreen']]],
   ['loadzelda3_97',['LoadZelda3',['../classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9',1,'yaze::Rom']]],
-  ['log_98',['log',['../classyaze_1_1core_1_1Logger.html#ab58aa88790e96142272311cf1dcb84b5',1,'yaze::core::Logger']]],
-  ['loginstruction_99',['LogInstruction',['../classyaze_1_1emu_1_1Spc700.html#a70129acc7947101c67895c01e1bf0647',1,'yaze::emu::Spc700']]],
-  ['loginstructions_100',['LogInstructions',['../classyaze_1_1emu_1_1Cpu.html#aac0b846abec30dc25411f8d9a19763f5',1,'yaze::emu::Cpu']]],
-  ['lsr_101',['LSR',['../classyaze_1_1emu_1_1Spc700.html#a5933e96d79fd8cacf3373140d9132309',1,'yaze::emu::Spc700::LSR()'],['../classyaze_1_1emu_1_1Cpu.html#a29faed6bbc611bce0ed5cd23dba77500',1,'yaze::emu::Cpu::LSR(uint16_t address, bool accumulator=false)']]],
-  ['lsr_102',['Lsr',['../classyaze_1_1emu_1_1Cpu.html#aeef69e95d01044f54452510c045c8880',1,'yaze::emu::Cpu']]],
-  ['lua_103',['Lua',['../structTextEditor_1_1LanguageDefinition.html#a4e811b43370cba9ec8b8869ae2bfc4ff',1,'TextEditor::LanguageDefinition']]]
+  ['loginstruction_98',['LogInstruction',['../classyaze_1_1emu_1_1Spc700.html#a70129acc7947101c67895c01e1bf0647',1,'yaze::emu::Spc700']]],
+  ['loginstructions_99',['LogInstructions',['../classyaze_1_1emu_1_1Cpu.html#aac0b846abec30dc25411f8d9a19763f5',1,'yaze::emu::Cpu']]],
+  ['lsr_100',['LSR',['../classyaze_1_1emu_1_1Spc700.html#a5933e96d79fd8cacf3373140d9132309',1,'yaze::emu::Spc700::LSR()'],['../classyaze_1_1emu_1_1Cpu.html#a29faed6bbc611bce0ed5cd23dba77500',1,'yaze::emu::Cpu::LSR(uint16_t address, bool accumulator=false)']]],
+  ['lsr_101',['Lsr',['../classyaze_1_1emu_1_1Cpu.html#aeef69e95d01044f54452510c045c8880',1,'yaze::emu::Cpu']]],
+  ['lua_102',['Lua',['../structTextEditor_1_1LanguageDefinition.html#a4e811b43370cba9ec8b8869ae2bfc4ff',1,'TextEditor::LanguageDefinition']]]
 ];

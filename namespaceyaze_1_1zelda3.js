@@ -1,7 +1,7 @@
 var namespaceyaze_1_1zelda3 =
 [
     [ "anonymous_namespace{overworld.cc}", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html", [
-      [ "GetAllTile16", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html#a5ffb6636e8c7f6595b7d6f15fda63c78", null ],
+      [ "GetAllTile16", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html#a7f1673e0c824b4cf30a284499cea45ad", null ],
       [ "compareItemsArrays", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html#aada423b3f85f8fd351dc189573a93bd0", null ]
     ] ],
     [ "anonymous_namespace{tracker.cc}", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html", [
@@ -20,7 +20,7 @@ var namespaceyaze_1_1zelda3 =
     [ "OverworldExit", "classyaze_1_1zelda3_1_1OverworldExit.html", "classyaze_1_1zelda3_1_1OverworldExit" ],
     [ "OverworldItem", "classyaze_1_1zelda3_1_1OverworldItem.html", "classyaze_1_1zelda3_1_1OverworldItem" ],
     [ "OverworldMap", "classyaze_1_1zelda3_1_1OverworldMap.html", "classyaze_1_1zelda3_1_1OverworldMap" ],
-    [ "OWMapTiles", "structyaze_1_1zelda3_1_1OWMapTiles.html", "structyaze_1_1zelda3_1_1OWMapTiles" ],
+    [ "OverworldMapTiles", "structyaze_1_1zelda3_1_1OverworldMapTiles.html", "structyaze_1_1zelda3_1_1OverworldMapTiles" ],
     [ "PseudoVram", "structyaze_1_1zelda3_1_1PseudoVram.html", "structyaze_1_1zelda3_1_1PseudoVram" ],
     [ "Room", "classyaze_1_1zelda3_1_1Room.html", "classyaze_1_1zelda3_1_1Room" ],
     [ "RoomEntrance", "classyaze_1_1zelda3_1_1RoomEntrance.html", "classyaze_1_1zelda3_1_1RoomEntrance" ],
@@ -33,8 +33,8 @@ var namespaceyaze_1_1zelda3 =
     [ "Subtype2", "classyaze_1_1zelda3_1_1Subtype2.html", "classyaze_1_1zelda3_1_1Subtype2" ],
     [ "Subtype3", "classyaze_1_1zelda3_1_1Subtype3.html", "classyaze_1_1zelda3_1_1Subtype3" ],
     [ "SubtypeInfo", "structyaze_1_1zelda3_1_1SubtypeInfo.html", "structyaze_1_1zelda3_1_1SubtypeInfo" ],
-    [ "OWBlockset", "namespaceyaze_1_1zelda3.html#a3768a32d1806f245dd27c14d78ebb909", null ],
-    [ "OWMapTiles", "namespaceyaze_1_1zelda3.html#aac5e8e1c232e14d46351dbbc1c2660d2", null ],
+    [ "OverworldBlockset", "namespaceyaze_1_1zelda3.html#a5da171f331133be09fc9e5a7d466f3bc", null ],
+    [ "OverworldMapTiles", "namespaceyaze_1_1zelda3.html#a96678ef2cc89582d5d8a7f2b74c5f69b", null ],
     [ "SpecialObjectType", "namespaceyaze_1_1zelda3.html#a479da514040cddc99b5da1235244c421", [
       [ "Chest", "namespaceyaze_1_1zelda3.html#a479da514040cddc99b5da1235244c421a080a546abcbea74459f27ba33313993d", null ],
       [ "BigChest", "namespaceyaze_1_1zelda3.html#a479da514040cddc99b5da1235244c421a52a3e405eb69e72cd81af3c5e1f93065", null ],
@@ -65,6 +65,7 @@ var namespaceyaze_1_1zelda3 =
     [ "operator~", "namespaceyaze_1_1zelda3.html#ab057669c20d13c04f18b529d882e5bd7", null ],
     [ "FetchSubtypeInfo", "namespaceyaze_1_1zelda3.html#abfbe2444d2fac0e5cce5c8368a329835", null ],
     [ "LoadEntranceTileTypes", "namespaceyaze_1_1zelda3.html#a0afd16e24367ef62bfa4a2e4c7ad1554", null ],
+    [ "kEntranceNames", "namespaceyaze_1_1zelda3.html#a11f897c391430c3e4e14c91b9606721a", null ],
     [ "kGfxBufferOffset", "namespaceyaze_1_1zelda3.html#afbcf95f0000387646abc0306914ec5fd", null ],
     [ "kGfxBufferStride", "namespaceyaze_1_1zelda3.html#ad4150202e700fdd531d83924bc702860", null ],
     [ "kGfxBufferAnimatedFrameOffset", "namespaceyaze_1_1zelda3.html#a1757051a7fff37b8c2df0206cf5ac0cb", null ],
@@ -112,7 +113,6 @@ var namespaceyaze_1_1zelda3 =
     [ "NumberOfRooms", "namespaceyaze_1_1zelda3.html#a4b6a864121df7d5c8aeeb4b142efe90d", null ],
     [ "stairsObjects", "namespaceyaze_1_1zelda3.html#a103656680d1929d852ba5286b01d5dd0", null ],
     [ "kRoomNames", "namespaceyaze_1_1zelda3.html#a6b3f5be6f1403c5b4c4d4f04b74858ba", null ],
-    [ "kEntranceNames", "namespaceyaze_1_1zelda3.html#a11f897c391430c3e4e14c91b9606721a", null ],
     [ "kEntranceRoom", "namespaceyaze_1_1zelda3.html#a26495cd86a21e1780a9f4483b5049575", null ],
     [ "kEntranceScrollEdge", "namespaceyaze_1_1zelda3.html#aca2ddf66c6a403ee202b1d5390b3b6b2", null ],
     [ "kEntranceYScroll", "namespaceyaze_1_1zelda3.html#aed972113454dfe06755a6f07ea80e084", null ],

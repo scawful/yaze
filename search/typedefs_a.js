@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['owblockset_0',['OWBlockset',['../namespaceyaze_1_1zelda3.html#a3768a32d1806f245dd27c14d78ebb909',1,'yaze::zelda3']]],
-  ['owmaptiles_1',['OWMapTiles',['../namespaceyaze_1_1zelda3.html#aac5e8e1c232e14d46351dbbc1c2660d2',1,'yaze::zelda3']]]
+  ['overworldblockset_0',['OverworldBlockset',['../namespaceyaze_1_1zelda3.html#a5da171f331133be09fc9e5a7d466f3bc',1,'yaze::zelda3']]],
+  ['overworldmaptiles_1',['OverworldMapTiles',['../namespaceyaze_1_1zelda3.html#a96678ef2cc89582d5d8a7f2b74c5f69b',1,'yaze::zelda3']]]
 ];

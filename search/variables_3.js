@@ -10,7 +10,7 @@ var searchData=
   ['d_5fmax_5fnormal_5flength_7',['D_MAX_NORMAL_LENGTH',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a830bb90a0852c498419f824c312d24bf',1,'yaze::gfx::lc_lz2']]],
   ['d_5fnintendo_5fc_5fmode1_8',['D_NINTENDO_C_MODE1',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#af7ea76e3f7fe3e688583c8e208c7c666',1,'yaze::gfx::lc_lz2']]],
   ['d_5fnintendo_5fc_5fmode2_9',['D_NINTENDO_C_MODE2',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a3d867c10133c72fe1a436b1403eb7245',1,'yaze::gfx::lc_lz2']]],
-  ['dark_5fworld_10',['dark_world',['../structyaze_1_1zelda3_1_1OWMapTiles.html#aafeeab2082ff08d09e6056ec47926974',1,'yaze::zelda3::OWMapTiles']]],
+  ['dark_5fworld_10',['dark_world',['../structyaze_1_1zelda3_1_1OverworldMapTiles.html#a24021eda0471996e9868d00345bc205b',1,'yaze::zelda3::OverworldMapTiles']]],
   ['darkworld_11',['darkWorld',['../classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#af2320722cfa758c75c24dd9359a9a5f8',1,'yaze::zelda3::screen::TitleScreen']]],
   ['dat_12',['dat',['../classyaze_1_1emu_1_1Spc700.html#a36906cf8b28f4d959e00ff5df65f488e',1,'yaze::emu::Spc700']]],
   ['dat16_13',['dat16',['../classyaze_1_1emu_1_1Spc700.html#a3165e23c6917b89d547e139d037bdbe2',1,'yaze::emu::Spc700']]],

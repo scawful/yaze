@@ -38,10 +38,10 @@
 <area shape="poly" id="edge21_Node000001_Node000022" title=" " alt="" coords="980,796,1072,709,1126,651,1175,588,1209,531,1237,472,1272,384,1277,386,1242,474,1214,533,1179,591,1130,654,1076,713,984,800"/>
 <area shape="rect" id="Node000023" href="$classyaze_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="176,824,356,850"/>
 <area shape="poly" id="edge23_Node000022_Node000023" title=" " alt="" coords="372,832,875,820,875,825,372,837"/>
-<area shape="rect" id="Node000024" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="568,908,648,934"/>
-<area shape="poly" id="edge25_Node000024_Node000023" title=" " alt="" coords="337,851,568,909,567,914,336,857"/>
-<area shape="poly" id="edge27_Node000001_Node000024" title=" " alt="" coords="664,923,750,925,846,918,902,910,945,900,986,885,1035,859,1082,830,1116,804,1144,772,1175,726,1200,679,1220,629,1250,529,1268,442,1275,384,1281,385,1273,443,1255,530,1225,631,1204,682,1179,729,1149,775,1119,808,1085,834,1037,863,988,890,946,905,903,915,847,923,750,931,663,928"/>
-<area shape="poly" id="edge24_Node000022_Node000024" title=" " alt="" coords="664,918,751,910,799,901,846,887,896,861,935,832,938,836,899,865,848,892,800,906,752,915,664,923"/>
-<area shape="rect" id="Node000028" href="$structyaze_1_1zelda3_1_1OWMapTiles.html" title="Overworld map tile32 data." alt="" coords="522,859,694,884"/>
-<area shape="poly" id="edge26_Node000022_Node000028" title=" " alt="" coords="709,867,777,862,846,852,917,832,918,837,847,857,777,867,709,872"/>
+<area shape="rect" id="Node000024" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="568,923,648,948"/>
+<area shape="poly" id="edge25_Node000024_Node000023" title=" " alt="" coords="327,852,513,908,568,923,567,928,512,913,325,857"/>
+<area shape="poly" id="edge27_Node000001_Node000024" title=" " alt="" coords="664,935,750,934,846,924,945,902,985,886,1035,859,1081,830,1116,803,1144,772,1175,726,1200,679,1220,629,1250,529,1268,442,1275,384,1281,385,1273,443,1255,530,1225,631,1204,682,1179,729,1149,775,1119,807,1084,834,1037,863,988,891,946,907,847,929,750,939,664,940"/>
+<area shape="poly" id="edge24_Node000022_Node000024" title=" " alt="" coords="663,929,751,917,799,905,846,889,896,861,935,832,938,836,899,866,848,894,800,910,752,922,664,935"/>
+<area shape="rect" id="Node000028" href="$structyaze_1_1zelda3_1_1OverworldMapTiles.html" title="Overworld map tile32 data." alt="" coords="518,858,698,898"/>
+<area shape="poly" id="edge26_Node000022_Node000028" title=" " alt="" coords="713,870,779,863,846,852,916,832,917,837,847,857,780,868,714,875"/>
 </map>

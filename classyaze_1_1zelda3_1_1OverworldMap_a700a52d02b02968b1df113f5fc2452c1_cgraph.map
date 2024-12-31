@@ -1,6 +1,6 @@
 <map id="yaze::zelda3::OverworldMap::BuildMap" name="yaze::zelda3::OverworldMap::BuildMap">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,136,186,177"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1OverworldMap.html#a3f9a1245c72f514af9be53129e01884e" title=" " alt="" coords="234,5,414,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1OverworldMap.html#a92b0a236a225d9de58f6f0b60ca1b8bd" title=" " alt="" coords="234,5,414,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,133,170,95,232,57,245,50,248,55,235,61,174,100,123,138"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1OverworldMap.html#a6acf9a0239cbc5d0aa4834ace9a0f159" title=" " alt="" coords="234,71,414,111"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="168,133,235,114,236,119,170,138"/>

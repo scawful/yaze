@@ -1,7 +1,5 @@
 var NAVTREEINDEX11 =
 {
-"classyaze_1_1emu_1_1Emulator.html#ab5dacd9d0b9b7b55557e2acc48d3f670":[10,0,1,4,31,14],
-"classyaze_1_1emu_1_1Emulator.html#ab5dacd9d0b9b7b55557e2acc48d3f670":[11,0,0,3,29,14],
 "classyaze_1_1emu_1_1Emulator.html#ab75a03f1975467c8952752de41e7cf4f":[10,0,1,4,31,26],
 "classyaze_1_1emu_1_1Emulator.html#ab75a03f1975467c8952752de41e7cf4f":[11,0,0,3,29,26],
 "classyaze_1_1emu_1_1Emulator.html#aba2308ec2e51f84ad54254ff847b6ea8":[10,0,1,4,31,15],
@@ -249,5 +247,7 @@ var NAVTREEINDEX11 =
 "classyaze_1_1emu_1_1MockClock.html#a09c9df4d6a7c77bb8f268897afff0da4":[10,0,1,4,51,4],
 "classyaze_1_1emu_1_1MockClock.html#a09c9df4d6a7c77bb8f268897afff0da4":[11,0,0,3,49,4],
 "classyaze_1_1emu_1_1MockClock.html#a206cd1a041f80f8f01b4117bde91be7e":[10,0,1,4,51,3],
-"classyaze_1_1emu_1_1MockClock.html#a206cd1a041f80f8f01b4117bde91be7e":[11,0,0,3,49,3]
+"classyaze_1_1emu_1_1MockClock.html#a206cd1a041f80f8f01b4117bde91be7e":[11,0,0,3,49,3],
+"classyaze_1_1emu_1_1MockClock.html#abfd42d82f6bdc3101b1018f84c871cf1":[10,0,1,4,51,2],
+"classyaze_1_1emu_1_1MockClock.html#abfd42d82f6bdc3101b1018f84c871cf1":[11,0,0,3,49,2]
 };

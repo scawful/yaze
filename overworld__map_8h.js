@@ -1,6 +1,9 @@
 var overworld__map_8h =
 [
+    [ "yaze::zelda3::OverworldMapTiles", "structyaze_1_1zelda3_1_1OverworldMapTiles.html", "structyaze_1_1zelda3_1_1OverworldMapTiles" ],
     [ "yaze::zelda3::OverworldMap", "classyaze_1_1zelda3_1_1OverworldMap.html", "classyaze_1_1zelda3_1_1OverworldMap" ],
+    [ "OverworldBlockset", "overworld__map_8h.html#a5da171f331133be09fc9e5a7d466f3bc", null ],
+    [ "OverworldMapTiles", "overworld__map_8h.html#a96678ef2cc89582d5d8a7f2b74c5f69b", null ],
     [ "OverworldCustomASMHasBeenApplied", "overworld__map_8h.html#a859fd8285a275e2b12b420134989df83", null ],
     [ "OverworldCustomAreaSpecificBGPalette", "overworld__map_8h.html#ade708d08b08c9e5c8ab3b7b90ec5fb1f", null ],
     [ "OverworldCustomAreaSpecificBGEnabled", "overworld__map_8h.html#a07a36ed6cd6a56b566efbd2f7e2bb32a", null ],

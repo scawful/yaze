@@ -120,9 +120,9 @@ $(function(){initNavTree('core_2common_8h.html',''); initResizable(true); });
 <code>#include &lt;iostream&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
+<code>#include &quot;absl/container/flat_hash_map.h&quot;</code><br />
 <code>#include &quot;absl/status/statusor.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_format.h&quot;</code><br />
-<code>#include &quot;absl/container/flat_hash_map.h&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for common.h:</div>
 <div class="dyncontent">
@@ -139,12 +139,12 @@ Include dependency graph for common.h:</div>
 <area shape="poly" title=" " alt="" coords="345,33,323,74,319,71,340,30"/>
 <area shape="rect" title=" " alt="" coords="365,86,418,112"/>
 <area shape="poly" title=" " alt="" coords="358,30,380,72,375,74,353,33"/>
-<area shape="rect" title=" " alt="" coords="442,86,589,112"/>
-<area shape="poly" title=" " alt="" coords="376,29,478,77,475,82,373,34"/>
-<area shape="rect" title=" " alt="" coords="612,86,774,112"/>
-<area shape="poly" title=" " alt="" coords="402,29,626,80,625,85,401,34"/>
-<area shape="rect" title=" " alt="" coords="798,79,921,120"/>
-<area shape="poly" title=" " alt="" coords="428,25,588,44,783,76,782,81,587,50,428,30"/>
+<area shape="rect" title=" " alt="" coords="442,79,565,120"/>
+<area shape="poly" title=" " alt="" coords="374,29,453,69,450,74,371,34"/>
+<area shape="rect" title=" " alt="" coords="589,86,735,112"/>
+<area shape="poly" title=" " alt="" coords="398,29,600,80,598,85,396,34"/>
+<area shape="rect" title=" " alt="" coords="759,86,920,112"/>
+<area shape="poly" title=" " alt="" coords="428,27,748,76,769,80,768,86,747,82,428,33"/>
 </map>
 </div>
 </div><div class="textblock"><div class="dynheader">
@@ -243,10 +243,6 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1core_1_1NotifyValue.html">yaze::core::NotifyValue&lt; T &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A class to manage a value that can be modified and notify when it changes.  <a href="classyaze_1_1core_1_1NotifyValue.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1core_1_1StructuredLog.html">yaze::core::StructuredLog</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1core_1_1Logger.html">yaze::core::Logger</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1core_1_1FolderItem.html">yaze::core::FolderItem</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -303,6 +299,8 @@ Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
+<tr class="memitem:a6d982c9860d5c734d2f4df813a1cad8d" id="r_a6d982c9860d5c734d2f4df813a1cad8d"><td class="memItemLeft" align="right" valign="top">constexpr std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core.html#a6d982c9860d5c734d2f4df813a1cad8d">yaze::core::kLogFileOut</a> = &quot;yaze_log.txt&quot;</td></tr>
+<tr class="separator:a6d982c9860d5c734d2f4df813a1cad8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a147dd50027b3bc7f7f7dbf3600c7d79d" id="r_a147dd50027b3bc7f7f7dbf3600c7d79d"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core.html#a147dd50027b3bc7f7f7dbf3600c7d79d">yaze::core::kFastRomRegion</a> = 0x808000</td></tr>
 <tr class="separator:a147dd50027b3bc7f7f7dbf3600c7d79d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>

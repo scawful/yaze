@@ -25,13 +25,11 @@ var annotated_dup =
         [ "FileDialogWrapper", "classyaze_1_1core_1_1FileDialogWrapper.html", null ],
         [ "FolderItem", "structyaze_1_1core_1_1FolderItem.html", "structyaze_1_1core_1_1FolderItem" ],
         [ "HexStringParams", "structyaze_1_1core_1_1HexStringParams.html", "structyaze_1_1core_1_1HexStringParams" ],
-        [ "Logger", "classyaze_1_1core_1_1Logger.html", null ],
         [ "NotifyValue", "classyaze_1_1core_1_1NotifyValue.html", "classyaze_1_1core_1_1NotifyValue" ],
         [ "Renderer", "classyaze_1_1core_1_1Renderer.html", "classyaze_1_1core_1_1Renderer" ],
         [ "SDL_Deleter", "structyaze_1_1core_1_1SDL__Deleter.html", "structyaze_1_1core_1_1SDL__Deleter" ],
         [ "SDL_Surface_Deleter", "structyaze_1_1core_1_1SDL__Surface__Deleter.html", "structyaze_1_1core_1_1SDL__Surface__Deleter" ],
-        [ "SDL_Texture_Deleter", "structyaze_1_1core_1_1SDL__Texture__Deleter.html", "structyaze_1_1core_1_1SDL__Texture__Deleter" ],
-        [ "StructuredLog", "structyaze_1_1core_1_1StructuredLog.html", "structyaze_1_1core_1_1StructuredLog" ]
+        [ "SDL_Texture_Deleter", "structyaze_1_1core_1_1SDL__Texture__Deleter.html", "structyaze_1_1core_1_1SDL__Texture__Deleter" ]
       ] ],
       [ "editor", "namespaceyaze_1_1editor.html", [
         [ "palette_internal", "namespaceyaze_1_1editor_1_1palette__internal.html", [
@@ -272,7 +270,7 @@ var annotated_dup =
         [ "OverworldExit", "classyaze_1_1zelda3_1_1OverworldExit.html", "classyaze_1_1zelda3_1_1OverworldExit" ],
         [ "OverworldItem", "classyaze_1_1zelda3_1_1OverworldItem.html", "classyaze_1_1zelda3_1_1OverworldItem" ],
         [ "OverworldMap", "classyaze_1_1zelda3_1_1OverworldMap.html", "classyaze_1_1zelda3_1_1OverworldMap" ],
-        [ "OWMapTiles", "structyaze_1_1zelda3_1_1OWMapTiles.html", "structyaze_1_1zelda3_1_1OWMapTiles" ],
+        [ "OverworldMapTiles", "structyaze_1_1zelda3_1_1OverworldMapTiles.html", "structyaze_1_1zelda3_1_1OverworldMapTiles" ],
         [ "PseudoVram", "structyaze_1_1zelda3_1_1PseudoVram.html", "structyaze_1_1zelda3_1_1PseudoVram" ],
         [ "Room", "classyaze_1_1zelda3_1_1Room.html", "classyaze_1_1zelda3_1_1Room" ],
         [ "RoomEntrance", "classyaze_1_1zelda3_1_1RoomEntrance.html", "classyaze_1_1zelda3_1_1RoomEntrance" ],

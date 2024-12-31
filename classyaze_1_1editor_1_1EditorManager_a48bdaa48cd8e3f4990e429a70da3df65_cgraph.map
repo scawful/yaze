@@ -40,14 +40,14 @@
 <area shape="poly" id="edge28_Node000003_Node000180" title=" " alt="" coords="335,656,350,709,377,779,418,854,444,888,474,918,492,930,489,935,470,922,440,892,414,857,372,782,345,711,329,658"/>
 <area shape="rect" id="Node000182" href="$classyaze_1_1editor_1_1EditorManager.html#a213b676d9936473bcc8ffb80513dbae5" title=" " alt="" coords="717,948,891,989"/>
 <area shape="poly" id="edge29_Node000003_Node000182" title=" " alt="" coords="331,657,340,723,362,812,381,859,405,903,435,943,473,975,503,991,535,1001,568,1007,601,1009,668,1003,727,991,729,996,669,1009,602,1014,567,1012,533,1007,501,996,471,980,432,947,400,906,376,861,357,813,335,724,326,658"/>
-<area shape="rect" id="Node000202" href="$classyaze_1_1core_1_1FileDialogWrapper.html#ae9e6b685fe8521a6aa1830edd63e4ce0" title="ShowOpenFolderDialog opens a file dialog and returns the selected folder path." alt="" coords="472,1040,661,1081"/>
-<area shape="poly" id="edge32_Node000003_Node000202" title=" " alt="" coords="332,657,342,725,366,821,385,874,409,926,438,976,474,1020,485,1029,481,1033,470,1024,434,979,404,929,380,876,361,823,337,726,327,657"/>
-<area shape="rect" id="Node000203" href="$classyaze_1_1editor_1_1Editor.html#af70b26886a360613f59e8f45b4bfcdec" title=" " alt="" coords="504,1105,629,1146"/>
-<area shape="poly" id="edge33_Node000003_Node000203" title=" " alt="" coords="330,657,336,737,344,792,357,853,375,916,400,979,432,1038,474,1090,492,1104,489,1109,470,1094,428,1041,395,981,370,918,352,854,339,793,331,737,325,657"/>
-<area shape="rect" id="Node000204" href="$classyaze_1_1editor_1_1AssemblyEditor.html#ab193c7227d5c1acc100a2df54964931d" title=" " alt="" coords="476,1171,657,1211"/>
-<area shape="poly" id="edge34_Node000003_Node000204" title=" " alt="" coords="329,657,332,746,338,809,349,879,367,953,393,1026,428,1095,474,1156,477,1159,474,1163,470,1159,423,1098,388,1028,362,954,344,880,333,810,327,747,324,657"/>
-<area shape="rect" id="Node000269" href="$structyaze_1_1editor_1_1MemoryEditorWithDiffChecker.html#a20c951734e50db6ae78678f87a9c00ba" title=" " alt="" coords="482,529,652,570"/>
-<area shape="poly" id="edge35_Node000003_Node000269" title=" " alt="" coords="391,613,423,602,498,574,500,579,425,607,393,618"/>
+<area shape="rect" id="Node000201" href="$classyaze_1_1core_1_1FileDialogWrapper.html#ae9e6b685fe8521a6aa1830edd63e4ce0" title="ShowOpenFolderDialog opens a file dialog and returns the selected folder path." alt="" coords="472,1040,661,1081"/>
+<area shape="poly" id="edge32_Node000003_Node000201" title=" " alt="" coords="332,657,342,725,366,821,385,874,409,926,438,976,474,1020,485,1029,481,1033,470,1024,434,979,404,929,380,876,361,823,337,726,327,657"/>
+<area shape="rect" id="Node000202" href="$classyaze_1_1editor_1_1Editor.html#af70b26886a360613f59e8f45b4bfcdec" title=" " alt="" coords="504,1105,629,1146"/>
+<area shape="poly" id="edge33_Node000003_Node000202" title=" " alt="" coords="330,657,336,737,344,792,357,853,375,916,400,979,432,1038,474,1090,492,1104,489,1109,470,1094,428,1041,395,981,370,918,352,854,339,793,331,737,325,657"/>
+<area shape="rect" id="Node000203" href="$classyaze_1_1editor_1_1AssemblyEditor.html#ab193c7227d5c1acc100a2df54964931d" title=" " alt="" coords="476,1171,657,1211"/>
+<area shape="poly" id="edge34_Node000003_Node000203" title=" " alt="" coords="329,657,332,746,338,809,349,879,367,953,393,1026,428,1095,474,1156,477,1159,474,1163,470,1159,423,1098,388,1028,362,954,344,880,333,810,327,747,324,657"/>
+<area shape="rect" id="Node000268" href="$structyaze_1_1editor_1_1MemoryEditorWithDiffChecker.html#a20c951734e50db6ae78678f87a9c00ba" title=" " alt="" coords="482,529,652,570"/>
+<area shape="poly" id="edge35_Node000003_Node000268" title=" " alt="" coords="391,613,423,602,498,574,500,579,425,607,393,618"/>
 <area shape="poly" id="edge11_Node000012_Node000011" title=" " alt="" coords="654,431,931,427,931,432,654,436"/>
 <area shape="poly" id="edge12_Node000012_Node000014" title=" " alt="" coords="655,433,713,438,777,450,841,471,900,502,924,521,945,543,980,591,1007,640,1024,680,1019,682,1002,642,976,594,941,546,920,525,897,507,839,476,775,455,712,444,654,438"/>
 <area shape="poly" id="edge14_Node000012_Node000016" title=" " alt="" coords="621,453,662,471,710,495,738,507,736,512,708,500,660,476,619,458"/>
@@ -59,6 +59,6 @@
 <area shape="poly" id="edge21_Node000020_Node000018" title=" " alt="" coords="654,657,701,654,701,659,654,662"/>
 <area shape="poly" id="edge27_Node000023_Node000014" title=" " alt="" coords="826,827,995,727,998,732,829,832"/>
 <area shape="poly" id="edge30_Node000182_Node000014" title=" " alt="" coords="823,946,897,867,1009,732,1013,735,901,870,827,949"/>
-<area shape="poly" id="edge36_Node000269_Node000014" title=" " alt="" coords="653,561,791,587,854,602,900,617,958,649,1006,683,1003,688,955,653,898,621,853,607,790,592,652,566"/>
-<area shape="poly" id="edge37_Node000269_Node000016" title=" " alt="" coords="652,542,694,540,694,545,652,548"/>
+<area shape="poly" id="edge36_Node000268_Node000014" title=" " alt="" coords="653,561,791,587,854,602,900,617,958,649,1006,683,1003,688,955,653,898,621,853,607,790,592,652,566"/>
+<area shape="poly" id="edge37_Node000268_Node000016" title=" " alt="" coords="652,542,694,540,694,545,652,548"/>
 </map>

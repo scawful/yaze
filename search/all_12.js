@@ -2235,7 +2235,7 @@ var searchData=
   ['init_5fhdma_5frequest_2232',['init_hdma_request',['../classyaze_1_1emu_1_1Memory.html#a364930ad9a36946548aeddbd117d5ca5',1,'yaze::emu::Memory::init_hdma_request()'],['../classyaze_1_1emu_1_1MemoryImpl.html#a40c7a88e5046b0808c372055cc2ce6ff',1,'yaze::emu::MemoryImpl::init_hdma_request()']]],
   ['init_5ftest_5feditor_2233',['init_test_editor',['../classyaze_1_1core_1_1Controller.html#adfd47ed2b8369d8b9c840e79d97b1850',1,'yaze::core::Controller']]],
   ['initaccesstime_2234',['InitAccessTime',['../classyaze_1_1emu_1_1Snes.html#aa0ccc728dd752fe4f7c9c0c1547b6af1',1,'yaze::emu::Snes']]],
-  ['initblockset_2235',['InitBlockset',['../classyaze_1_1editor_1_1Tile16Editor.html#a4315e42784ef01e08724a8630892943c',1,'yaze::editor::Tile16Editor']]],
+  ['initblockset_2235',['InitBlockset',['../classyaze_1_1editor_1_1Tile16Editor.html#a2a82406a489adbc4f52f740a2959e948',1,'yaze::editor::Tile16Editor']]],
   ['inithdma_2236',['InitHdma',['../namespaceyaze_1_1emu.html#aa2c804845876ebee011545b1f873b01f',1,'yaze::emu']]],
   ['initial_5falloc_5fsize_2237',['INITIAL_ALLOC_SIZE',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a63191ed368b1df91ed66a4e323423e93',1,'yaze::gfx::lc_lz2']]],
   ['initial_5fequipement_2238',['initial_equipement',['../namespaceyaze_1_1zelda3.html#a65a4abc3c3128bb2a0bb0c534e1520e2',1,'yaze::zelda3']]],
