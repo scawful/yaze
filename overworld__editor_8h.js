@@ -1,6 +1,5 @@
 var overworld__editor_8h =
 [
-    [ "yaze::editor::EntranceContext", "classyaze_1_1editor_1_1EntranceContext.html", "classyaze_1_1editor_1_1EntranceContext" ],
     [ "yaze::editor::OverworldEditor", "classyaze_1_1editor_1_1OverworldEditor.html", "classyaze_1_1editor_1_1OverworldEditor" ],
     [ "kOverworldCanvasSize", "overworld__editor_8h.html#a090fa407d64c5928169ffda52eaa3829", null ],
     [ "kCurrentGfxCanvasSize", "overworld__editor_8h.html#a6c5b2de380ffaaff96b0f397b6530509", null ],
@@ -19,8 +18,5 @@ var overworld__editor_8h =
     [ "kGamePartComboString", "overworld__editor_8h.html#a547f59f67b587aa557ea5c83a29ca4f9", null ],
     [ "kTileSelectorTab", "overworld__editor_8h.html#add4e4fce8dc72655325d8a50581404dd", null ],
     [ "kOWEditTable", "overworld__editor_8h.html#aa7eb073b2dec436454b35ff273655642", null ],
-    [ "kOWMapTable", "overworld__editor_8h.html#a1d8e24b671e1338c02fbe726de12a0a3", null ],
-    [ "kEntranceTileTypePtrLow", "overworld__editor_8h.html#adf6abfd03b0d8de5d7b44b755e5cc89a", null ],
-    [ "kEntranceTileTypePtrHigh", "overworld__editor_8h.html#a6e6c5ba0f6d11341aeabe1a05fe16855", null ],
-    [ "kNumEntranceTileTypes", "overworld__editor_8h.html#a54790dbf29909272890b690fccc3ad10", null ]
+    [ "kOWMapTable", "overworld__editor_8h.html#a1d8e24b671e1338c02fbe726de12a0a3", null ]
 ];

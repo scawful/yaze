@@ -1,14 +1,5 @@
 var NAVTREEINDEX39 =
 {
-"namespaceyaze_1_1test.html#a5f766545dc67c7fd76faac22bdc2c8c9":[10,0,1,7,31],
-"namespaceyaze_1_1test.html#a5fe9f53af17f753cf64a4cb0371ca028":[10,0,1,7,48],
-"namespaceyaze_1_1test.html#a602856b99a0707573a449cb9a2677ba2":[10,0,1,7,146],
-"namespaceyaze_1_1test.html#a6057c2353050e626384e04b7773b70b9":[10,0,1,7,26],
-"namespaceyaze_1_1test.html#a607c42abfd813be55ac41de5231247a5":[10,0,1,7,213],
-"namespaceyaze_1_1test.html#a60b04d0401b4a8dfcabca0424d7b4719":[10,0,1,7,222],
-"namespaceyaze_1_1test.html#a60c9d93fa7e79eb33490f16dfd4d634e":[10,0,1,7,297],
-"namespaceyaze_1_1test.html#a60d4b10684c4da9581f7b6ea2f14d16d":[10,0,1,7,180],
-"namespaceyaze_1_1test.html#a610ee9955d63b454975b43ae49bb5b72":[10,0,1,7,168],
 "namespaceyaze_1_1test.html#a6214fd496ebfa0358a3346ff7d4c4557":[10,0,1,7,384],
 "namespaceyaze_1_1test.html#a621e6aeb3352dd56699a147bd191c537":[10,0,1,7,229],
 "namespaceyaze_1_1test.html#a6221e14b045aa0328dbd778e11c545c3":[10,0,1,7,66],
@@ -249,5 +240,14 @@ var NAVTREEINDEX39 =
 "namespaceyaze_1_1test.html#affb29fae6a1dba38fca5602d56deda74":[10,0,1,7,267],
 "namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html":[10,0,1,7,0],
 "namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a39c906d372ef594237c65bc20d310711":[10,0,1,7,0,2],
-"namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a42fad52e57b19e451335e64fec8771ec":[10,0,1,7,0,6]
+"namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a42fad52e57b19e451335e64fec8771ec":[10,0,1,7,0,6],
+"namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a58140b62f6d943673ace32dabb62fc3c":[10,0,1,7,0,5],
+"namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a8dd3d3b66e0f8c6c3f419f7e0af8da9b":[10,0,1,7,0,0],
+"namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#abe193c4681aff31e3d2c3b9a07797f51":[10,0,1,7,0,3],
+"namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#adf116b63a46b6698d5d5fe40373a9089":[10,0,1,7,0,4],
+"namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#aea2a498a83c2d824402e1632a4c0c14b":[10,0,1,7,0,1],
+"namespaceyaze_1_1test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html":[10,0,1,7,1],
+"namespaceyaze_1_1test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html#a0492926f27e09c79e929ad1165ae19a5":[10,0,1,7,1,0],
+"namespaceyaze_1_1test_1_1integration.html":[10,0,1,7,2],
+"namespaceyaze_1_1test_1_1integration.html#a5a0d488d0d7c641874f7b8664f5f60d3":[10,0,1,7,2,1]
 };

@@ -27,7 +27,6 @@ var namespaceyaze_1_1editor =
     [ "Editor", "classyaze_1_1editor_1_1Editor.html", "classyaze_1_1editor_1_1Editor" ],
     [ "EditorContext", "structyaze_1_1editor_1_1EditorContext.html", "structyaze_1_1editor_1_1EditorContext" ],
     [ "EditorManager", "classyaze_1_1editor_1_1EditorManager.html", "classyaze_1_1editor_1_1EditorManager" ],
-    [ "EntranceContext", "classyaze_1_1editor_1_1EntranceContext.html", "classyaze_1_1editor_1_1EntranceContext" ],
     [ "ExampleAppPropertyEditor", "structyaze_1_1editor_1_1ExampleAppPropertyEditor.html", "structyaze_1_1editor_1_1ExampleAppPropertyEditor" ],
     [ "ExampleMemberInfo", "structyaze_1_1editor_1_1ExampleMemberInfo.html", "structyaze_1_1editor_1_1ExampleMemberInfo" ],
     [ "ExampleTreeNode", "structyaze_1_1editor_1_1ExampleTreeNode.html", "structyaze_1_1editor_1_1ExampleTreeNode" ],
@@ -154,9 +153,6 @@ var namespaceyaze_1_1editor =
     [ "kTileSelectorTab", "namespaceyaze_1_1editor.html#add4e4fce8dc72655325d8a50581404dd", null ],
     [ "kOWEditTable", "namespaceyaze_1_1editor.html#aa7eb073b2dec436454b35ff273655642", null ],
     [ "kOWMapTable", "namespaceyaze_1_1editor.html#a1d8e24b671e1338c02fbe726de12a0a3", null ],
-    [ "kEntranceTileTypePtrLow", "namespaceyaze_1_1editor.html#adf6abfd03b0d8de5d7b44b755e5cc89a", null ],
-    [ "kEntranceTileTypePtrHigh", "namespaceyaze_1_1editor.html#a6e6c5ba0f6d11341aeabe1a05fe16855", null ],
-    [ "kNumEntranceTileTypes", "namespaceyaze_1_1editor.html#a54790dbf29909272890b690fccc3ad10", null ],
     [ "kSpriteTabFlags", "namespaceyaze_1_1editor.html#a861a117f36af4cfe2abaaeb25a2bbc88", null ],
     [ "kSpriteTabBarFlags", "namespaceyaze_1_1editor.html#ae80653744ecd4402e10c58d26015bdd5", null ],
     [ "kSpriteTableFlags", "namespaceyaze_1_1editor.html#a6d91eaa164b4529e047ae78ef99c47a0", null ]

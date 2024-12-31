@@ -4,7 +4,7 @@ var snes__palette_8h =
     [ "yaze::gfx::PaletteGroup", "structyaze_1_1gfx_1_1PaletteGroup.html", "structyaze_1_1gfx_1_1PaletteGroup" ],
     [ "yaze::gfx::PaletteGroupMap", "structyaze_1_1gfx_1_1PaletteGroupMap.html", "structyaze_1_1gfx_1_1PaletteGroupMap" ],
     [ "yaze::gfx::Paletteset", "structyaze_1_1gfx_1_1Paletteset.html", "structyaze_1_1gfx_1_1Paletteset" ],
-    [ "yaze::GfxContext", "classyaze_1_1GfxContext.html", null ],
+    [ "yaze::gfx::GfxContext", "classyaze_1_1gfx_1_1GfxContext.html", null ],
     [ "PaletteCategory", "snes__palette_8h.html#a82a8956476ffc04750bcfc4120c8b8db", [
       [ "kSword", "snes__palette_8h.html#a82a8956476ffc04750bcfc4120c8b8dba209403e94e5ae3fecb2e65f298d46370", null ],
       [ "kShield", "snes__palette_8h.html#a82a8956476ffc04750bcfc4120c8b8dba9f56642cd3258629b69bd8a501b90343", null ],

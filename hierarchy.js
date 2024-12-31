@@ -87,9 +87,6 @@ var hierarchy =
     ] ],
     [ "yaze::editor::EditorContext", "structyaze_1_1editor_1_1EditorContext.html", null ],
     [ "yaze::emu::EmulatorKeybindings", "structyaze_1_1emu_1_1EmulatorKeybindings.html", null ],
-    [ "yaze::editor::EntranceContext", "classyaze_1_1editor_1_1EntranceContext.html", [
-      [ "yaze::editor::OverworldEditor", "classyaze_1_1editor_1_1OverworldEditor.html", null ]
-    ] ],
     [ "yaze::editor::ExampleAppPropertyEditor", "structyaze_1_1editor_1_1ExampleAppPropertyEditor.html", null ],
     [ "yaze::editor::ExampleMemberInfo", "structyaze_1_1editor_1_1ExampleMemberInfo.html", null ],
     [ "yaze::editor::ExampleTreeNode", "structyaze_1_1editor_1_1ExampleTreeNode.html", null ],
@@ -117,7 +114,7 @@ var hierarchy =
       [ "yaze::zelda3::OverworldItem", "classyaze_1_1zelda3_1_1OverworldItem.html", null ],
       [ "yaze::zelda3::Sprite", "classyaze_1_1zelda3_1_1Sprite.html", null ]
     ] ],
-    [ "yaze::GfxContext", "classyaze_1_1GfxContext.html", [
+    [ "yaze::gfx::GfxContext", "classyaze_1_1gfx_1_1GfxContext.html", [
       [ "yaze::editor::OverworldEditor", "classyaze_1_1editor_1_1OverworldEditor.html", null ],
       [ "yaze::editor::Tile16Editor", "classyaze_1_1editor_1_1Tile16Editor.html", null ],
       [ "yaze::zelda3::OverworldMap", "classyaze_1_1zelda3_1_1OverworldMap.html", null ]
@@ -174,6 +171,7 @@ var hierarchy =
     [ "yaze::emu::OPHCT", "structyaze_1_1emu_1_1OPHCT.html", null ],
     [ "yaze::emu::OPVCT", "structyaze_1_1emu_1_1OPVCT.html", null ],
     [ "yaze::core::ExperimentFlags::Flags::Overworld", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html", null ],
+    [ "yaze::zelda3::OverworldEntranceTileTypes", "structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html", null ],
     [ "yaze::zelda3::OWMapTiles", "structyaze_1_1zelda3_1_1OWMapTiles.html", null ],
     [ "yaze::editor::palette_internal::PaletteChange", "structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html", null ],
     [ "yaze::editor::palette_internal::PaletteEditorHistory", "classyaze_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html", null ],

@@ -1,11 +1,5 @@
 var NAVTREEINDEX34 =
 {
-"icons_8h.html#aee1ed9653e8bbae9c0721a0084784c1c":[12,0,2,0,4,5,438],
-"icons_8h.html#aee70e45575ecd7c4b9904fffec0393bf":[12,0,2,0,4,5,2082],
-"icons_8h.html#aeea34a80bc64a5b5a48cb6266072d3eb":[12,0,2,0,4,5,1644],
-"icons_8h.html#aeef9280ac5bbe5501dd8288324014474":[12,0,2,0,4,5,1785],
-"icons_8h.html#aef205a60cb9bfd153197298de40bddbc":[12,0,2,0,4,5,397],
-"icons_8h.html#aef2c2687397e9a9f67ecd0f8722e1213":[12,0,2,0,4,5,1505],
 "icons_8h.html#aef393b93553d526d3e0f0b86c5a02af2":[12,0,2,0,4,5,1165],
 "icons_8h.html#aef5e5e37c58122b5067ef6ccbed905e0":[12,0,2,0,4,5,2182],
 "icons_8h.html#aef6221f5a09f3f2603d4c2325593aaf1":[12,0,2,0,4,5,109],
@@ -249,5 +243,11 @@ var NAVTREEINDEX34 =
 "md_docs_2asm-style-guide.html#autotoc_md8":[1,7],
 "md_docs_2asm-style-guide.html#autotoc_md9":[1,8],
 "md_docs_2build-instructions.html":[2],
-"md_docs_2build-instructions.html#autotoc_md12":[2,0]
+"md_docs_2build-instructions.html#autotoc_md12":[2,0],
+"md_docs_2build-instructions.html#autotoc_md13":[2,0,0],
+"md_docs_2build-instructions.html#autotoc_md14":[2,0,1],
+"md_docs_2build-instructions.html#autotoc_md15":[2,1],
+"md_docs_2build-instructions.html#autotoc_md16":[2,2],
+"md_docs_2build-instructions.html#autotoc_md17":[2,3],
+"md_docs_2changelog.html":[3]
 };

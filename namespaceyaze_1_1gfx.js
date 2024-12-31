@@ -24,6 +24,7 @@ var namespaceyaze_1_1gfx =
     ] ],
     [ "scad_format", "namespaceyaze_1_1gfx_1_1scad__format.html", "namespaceyaze_1_1gfx_1_1scad__format" ],
     [ "Bitmap", "classyaze_1_1gfx_1_1Bitmap.html", "classyaze_1_1gfx_1_1Bitmap" ],
+    [ "GfxContext", "classyaze_1_1gfx_1_1GfxContext.html", null ],
     [ "GraphicsBuffer", "classyaze_1_1gfx_1_1GraphicsBuffer.html", "classyaze_1_1gfx_1_1GraphicsBuffer" ],
     [ "InternalTile16", "structyaze_1_1gfx_1_1InternalTile16.html", "structyaze_1_1gfx_1_1InternalTile16" ],
     [ "OamTile", "classyaze_1_1gfx_1_1OamTile.html", "classyaze_1_1gfx_1_1OamTile" ],

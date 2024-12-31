@@ -1,13 +1,5 @@
 var NAVTREEINDEX12 =
 {
-"classyaze_1_1emu_1_1Ppu.html#a4be10340972bf09cc27faa564bf28f0a":[11,0,0,3,64,95],
-"classyaze_1_1emu_1_1Ppu.html#a4e15a24482720673d3e10a9a6a72f79b":[10,0,1,4,66,68],
-"classyaze_1_1emu_1_1Ppu.html#a4e15a24482720673d3e10a9a6a72f79b":[11,0,0,3,64,68],
-"classyaze_1_1emu_1_1Ppu.html#a4e31b1c4e583682381d0a7266955075a":[10,0,1,4,66,52],
-"classyaze_1_1emu_1_1Ppu.html#a4e31b1c4e583682381d0a7266955075a":[11,0,0,3,64,52],
-"classyaze_1_1emu_1_1Ppu.html#a51abe4b4562e2608a214c337496edbd1":[10,0,1,4,66,108],
-"classyaze_1_1emu_1_1Ppu.html#a51abe4b4562e2608a214c337496edbd1":[11,0,0,3,64,108],
-"classyaze_1_1emu_1_1Ppu.html#a529b0b0394b8264d1c435cf7cc299add":[10,0,1,4,66,120],
 "classyaze_1_1emu_1_1Ppu.html#a529b0b0394b8264d1c435cf7cc299add":[11,0,0,3,64,120],
 "classyaze_1_1emu_1_1Ppu.html#a5428ab6c2b746c3465eb9e127658a4be":[10,0,1,4,66,5],
 "classyaze_1_1emu_1_1Ppu.html#a5428ab6c2b746c3465eb9e127658a4be":[11,0,0,3,64,5],
@@ -249,5 +241,13 @@ var NAVTREEINDEX12 =
 "classyaze_1_1emu_1_1Snes.html#a74560459d3bde6f82b3dadd985620bf2":[11,0,0,3,71,58],
 "classyaze_1_1emu_1_1Snes.html#a7798b35c1cad8e211caee9b4635bc206":[10,0,1,4,73,47],
 "classyaze_1_1emu_1_1Snes.html#a7798b35c1cad8e211caee9b4635bc206":[11,0,0,3,71,47],
-"classyaze_1_1emu_1_1Snes.html#a80ea225e584de754ed1341b01bddb74c":[10,0,1,4,73,55]
+"classyaze_1_1emu_1_1Snes.html#a80ea225e584de754ed1341b01bddb74c":[10,0,1,4,73,55],
+"classyaze_1_1emu_1_1Snes.html#a80ea225e584de754ed1341b01bddb74c":[11,0,0,3,71,55],
+"classyaze_1_1emu_1_1Snes.html#a847b06b0754fc2e691770bfc57186a55":[10,0,1,4,73,10],
+"classyaze_1_1emu_1_1Snes.html#a847b06b0754fc2e691770bfc57186a55":[11,0,0,3,71,10],
+"classyaze_1_1emu_1_1Snes.html#a85058c55656b989ef1633961da96d93d":[10,0,1,4,73,35],
+"classyaze_1_1emu_1_1Snes.html#a85058c55656b989ef1633961da96d93d":[11,0,0,3,71,35],
+"classyaze_1_1emu_1_1Snes.html#a8aebe9ad45fe5796732b320b7c96ff8e":[10,0,1,4,73,40],
+"classyaze_1_1emu_1_1Snes.html#a8aebe9ad45fe5796732b320b7c96ff8e":[11,0,0,3,71,40],
+"classyaze_1_1emu_1_1Snes.html#a8b7d6d33a6bb4e38e32b170255557ee5":[10,0,1,4,73,16]
 };

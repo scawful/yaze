@@ -49,6 +49,7 @@ var searchData=
   ['log_5f_46',['log_',['../classyaze_1_1emu_1_1Spc700.html#a0a8367227a4a386e171981cafcc5e717',1,'yaze::emu::Spc700']]],
   ['log_5finstructions_5f_47',['log_instructions_',['../classyaze_1_1emu_1_1Cpu.html#a479d8ab64e077c1668ed724ae52b51db',1,'yaze::emu::Cpu']]],
   ['lopst_48',['lopst',['../structyaze_1_1zelda3_1_1music_1_1Song.html#a18eb0584ad68f63525ac96a6bf9d752e',1,'yaze::zelda3::music::Song::lopst'],['../structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a7a5514ad6bb962060a0f354a258bc072',1,'yaze::zelda3::music::ZeldaWave::lopst']]],
-  ['lower_5fx_5f_49',['lower_x_',['../classyaze_1_1zelda3_1_1Sprite.html#a13104bc60eb62488d427b77e7295d0fd',1,'yaze::zelda3::Sprite']]],
-  ['lower_5fy_5f_50',['lower_y_',['../classyaze_1_1zelda3_1_1Sprite.html#aabb4093f4869708cb74d1fb2d6d7176e',1,'yaze::zelda3::Sprite']]]
+  ['low_49',['low',['../structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#aefea936272105776bc0165dc35c91935',1,'yaze::zelda3::OverworldEntranceTileTypes']]],
+  ['lower_5fx_5f_50',['lower_x_',['../classyaze_1_1zelda3_1_1Sprite.html#a13104bc60eb62488d427b77e7295d0fd',1,'yaze::zelda3::Sprite']]],
+  ['lower_5fy_5f_51',['lower_y_',['../classyaze_1_1zelda3_1_1Sprite.html#aabb4093f4869708cb74d1fb2d6d7176e',1,'yaze::zelda3::Sprite']]]
 ];

@@ -16,9 +16,10 @@ var searchData=
   ['overworldasset_13',['OverworldAsset',['../structyaze_1_1gui_1_1OverworldAsset.html',1,'yaze::gui']]],
   ['overworldeditor_14',['OverworldEditor',['../classyaze_1_1editor_1_1OverworldEditor.html',1,'yaze::editor']]],
   ['overworldentrance_15',['OverworldEntrance',['../classyaze_1_1zelda3_1_1OverworldEntrance.html',1,'yaze::zelda3']]],
-  ['overworldexit_16',['OverworldExit',['../classyaze_1_1zelda3_1_1OverworldExit.html',1,'yaze::zelda3']]],
-  ['overworlditem_17',['OverworldItem',['../classyaze_1_1zelda3_1_1OverworldItem.html',1,'yaze::zelda3']]],
-  ['overworldmap_18',['OverworldMap',['../classyaze_1_1zelda3_1_1OverworldMap.html',1,'yaze::zelda3']]],
-  ['overworldtest_19',['OverworldTest',['../classyaze_1_1test_1_1OverworldTest.html',1,'yaze::test']]],
-  ['owmaptiles_20',['OWMapTiles',['../structyaze_1_1zelda3_1_1OWMapTiles.html',1,'yaze::zelda3']]]
+  ['overworldentrancetiletypes_16',['OverworldEntranceTileTypes',['../structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html',1,'yaze::zelda3']]],
+  ['overworldexit_17',['OverworldExit',['../classyaze_1_1zelda3_1_1OverworldExit.html',1,'yaze::zelda3']]],
+  ['overworlditem_18',['OverworldItem',['../classyaze_1_1zelda3_1_1OverworldItem.html',1,'yaze::zelda3']]],
+  ['overworldmap_19',['OverworldMap',['../classyaze_1_1zelda3_1_1OverworldMap.html',1,'yaze::zelda3']]],
+  ['overworldtest_20',['OverworldTest',['../classyaze_1_1test_1_1OverworldTest.html',1,'yaze::test']]],
+  ['owmaptiles_21',['OWMapTiles',['../structyaze_1_1zelda3_1_1OWMapTiles.html',1,'yaze::zelda3']]]
 ];

@@ -34,7 +34,7 @@ var searchData=
   ['palettes_31',['palettes',['../structyaze_1_1gfx_1_1PaletteGroup.html#a89a8b74dff4a450feb2fe360832d13d1',1,'yaze::gfx::PaletteGroup::palettes'],['../structyaze_1_1zelda3_1_1PseudoVram.html#a842a7598712f00905454b37b1dd18154',1,'yaze::zelda3::PseudoVram::palettes']]],
   ['paletteset_32',['Paletteset',['../structyaze_1_1gfx_1_1Paletteset.html',1,'yaze::gfx::Paletteset'],['../structyaze_1_1gfx_1_1Paletteset.html#abf0729ec3cba7683d6a537284b1a7948',1,'yaze::gfx::Paletteset::Paletteset()=default'],['../structyaze_1_1gfx_1_1Paletteset.html#a8ee23d9b7639970f850920a9eb007d1c',1,'yaze::gfx::Paletteset::Paletteset(gfx::SnesPalette main, gfx::SnesPalette animated, gfx::SnesPalette aux1, gfx::SnesPalette aux2, gfx::SnesColor background, gfx::SnesPalette hud, gfx::SnesPalette spr, gfx::SnesPalette spr2, gfx::SnesPalette comp)']]],
   ['paletteset_5fids_33',['paletteset_ids',['../classyaze_1_1Rom.html#a68851333f172b0958ea6a27e46534260',1,'yaze::Rom']]],
-  ['palettesets_5f_34',['palettesets_',['../classyaze_1_1GfxContext.html#ac9c5439db22107a6155f172d044f3c62',1,'yaze::GfxContext']]],
+  ['palettesets_5f_34',['palettesets_',['../classyaze_1_1gfx_1_1GfxContext.html#ae24e76ea7ffe59a4a0eba4aea90ef832',1,'yaze::gfx::GfxContext']]],
   ['pan_35',['PAN',['../classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8ead74461db15255d85a44ffd72419646b3',1,'yaze::editor::OverworldEditor']]],
   ['parallax_36',['Parallax',['../dungeon_8h.html#a86a9ab609ee1ad1b7d6740218b5738dea2326dd539f0d41c8e4b71a3aae3edb96',1,'dungeon.h']]],
   ['param_37',['param',['../classyaze_1_1emu_1_1Spc700.html#a8ca94e9c1e15f744a9dd7a22f885c82a',1,'yaze::emu::Spc700']]],

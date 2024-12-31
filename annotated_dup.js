@@ -54,7 +54,6 @@ var annotated_dup =
         [ "Editor", "classyaze_1_1editor_1_1Editor.html", "classyaze_1_1editor_1_1Editor" ],
         [ "EditorContext", "structyaze_1_1editor_1_1EditorContext.html", "structyaze_1_1editor_1_1EditorContext" ],
         [ "EditorManager", "classyaze_1_1editor_1_1EditorManager.html", "classyaze_1_1editor_1_1EditorManager" ],
-        [ "EntranceContext", "classyaze_1_1editor_1_1EntranceContext.html", "classyaze_1_1editor_1_1EntranceContext" ],
         [ "ExampleAppPropertyEditor", "structyaze_1_1editor_1_1ExampleAppPropertyEditor.html", "structyaze_1_1editor_1_1ExampleAppPropertyEditor" ],
         [ "ExampleMemberInfo", "structyaze_1_1editor_1_1ExampleMemberInfo.html", "structyaze_1_1editor_1_1ExampleMemberInfo" ],
         [ "ExampleTreeNode", "structyaze_1_1editor_1_1ExampleTreeNode.html", "structyaze_1_1editor_1_1ExampleTreeNode" ],
@@ -197,6 +196,7 @@ var annotated_dup =
           [ "CgxHeader", "structyaze_1_1gfx_1_1scad__format_1_1CgxHeader.html", "structyaze_1_1gfx_1_1scad__format_1_1CgxHeader" ]
         ] ],
         [ "Bitmap", "classyaze_1_1gfx_1_1Bitmap.html", "classyaze_1_1gfx_1_1Bitmap" ],
+        [ "GfxContext", "classyaze_1_1gfx_1_1GfxContext.html", null ],
         [ "GraphicsBuffer", "classyaze_1_1gfx_1_1GraphicsBuffer.html", "classyaze_1_1gfx_1_1GraphicsBuffer" ],
         [ "InternalTile16", "structyaze_1_1gfx_1_1InternalTile16.html", "structyaze_1_1gfx_1_1InternalTile16" ],
         [ "OamTile", "classyaze_1_1gfx_1_1OamTile.html", "classyaze_1_1gfx_1_1OamTile" ],
@@ -268,6 +268,7 @@ var annotated_dup =
         [ "GameEntity", "classyaze_1_1zelda3_1_1GameEntity.html", "classyaze_1_1zelda3_1_1GameEntity" ],
         [ "Overworld", "classyaze_1_1zelda3_1_1Overworld.html", "classyaze_1_1zelda3_1_1Overworld" ],
         [ "OverworldEntrance", "classyaze_1_1zelda3_1_1OverworldEntrance.html", "classyaze_1_1zelda3_1_1OverworldEntrance" ],
+        [ "OverworldEntranceTileTypes", "structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html", "structyaze_1_1zelda3_1_1OverworldEntranceTileTypes" ],
         [ "OverworldExit", "classyaze_1_1zelda3_1_1OverworldExit.html", "classyaze_1_1zelda3_1_1OverworldExit" ],
         [ "OverworldItem", "classyaze_1_1zelda3_1_1OverworldItem.html", "classyaze_1_1zelda3_1_1OverworldItem" ],
         [ "OverworldMap", "classyaze_1_1zelda3_1_1OverworldMap.html", "classyaze_1_1zelda3_1_1OverworldMap" ],
@@ -285,7 +286,6 @@ var annotated_dup =
         [ "Subtype3", "classyaze_1_1zelda3_1_1Subtype3.html", "classyaze_1_1zelda3_1_1Subtype3" ],
         [ "SubtypeInfo", "structyaze_1_1zelda3_1_1SubtypeInfo.html", "structyaze_1_1zelda3_1_1SubtypeInfo" ]
       ] ],
-      [ "GfxContext", "classyaze_1_1GfxContext.html", null ],
       [ "Project", "structyaze_1_1Project.html", "structyaze_1_1Project" ],
       [ "RecentFilesManager", "classyaze_1_1RecentFilesManager.html", "classyaze_1_1RecentFilesManager" ],
       [ "ResourceLabelManager", "structyaze_1_1ResourceLabelManager.html", "structyaze_1_1ResourceLabelManager" ],

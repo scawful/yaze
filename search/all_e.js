@@ -98,7 +98,7 @@ var searchData=
   ['gfx_5floaded_5f_95',['gfx_loaded_',['../classyaze_1_1editor_1_1GraphicsEditor.html#a35627faf8f67e566966ba92e0a7a0f60',1,'yaze::editor::GraphicsEditor']]],
   ['gfx_5fsheets_96',['gfx_sheets',['../classyaze_1_1Rom.html#ac03de084394d8ef15c0d821ec3538206',1,'yaze::Rom']]],
   ['gfx_5fsheets_5f_97',['gfx_sheets_',['../classyaze_1_1editor_1_1GraphicsEditor.html#a617c3b92e108478e9aa6deaa3d7e0e5b',1,'yaze::editor::GraphicsEditor']]],
-  ['gfxcontext_98',['GfxContext',['../classyaze_1_1GfxContext.html',1,'yaze']]],
+  ['gfxcontext_98',['GfxContext',['../classyaze_1_1gfx_1_1GfxContext.html',1,'yaze::gfx']]],
   ['gfxeditmode_99',['GfxEditMode',['../classyaze_1_1editor_1_1GraphicsEditor.html#ad451d580c9c4ebb48f636b4c6d40c1ef',1,'yaze::editor::GraphicsEditor']]],
   ['gfxgroupeditor_100',['GfxGroupEditor',['../classyaze_1_1editor_1_1GfxGroupEditor.html',1,'yaze::editor']]],
   ['gfxsheetassetbrowser_101',['GfxSheetAssetBrowser',['../structyaze_1_1gui_1_1GfxSheetAssetBrowser.html',1,'yaze::gui']]],

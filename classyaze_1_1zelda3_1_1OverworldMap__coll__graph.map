@@ -1,7 +1,7 @@
 <map id="yaze::zelda3::OverworldMap" name="yaze::zelda3::OverworldMap">
 <area shape="rect" id="Node000001" title="Represents a single Overworld map screen." alt="" coords="327,183,507,208"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1GfxContext.html" title="Shared graphical context across editors." alt="" coords="124,94,241,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="230,123,385,180,383,185,228,128"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1GfxContext.html" title="Shared graphical context across editors." alt="" coords="100,94,240,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,123,383,180,381,185,218,128"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="265,94,345,120"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="334,127,403,180,399,184,330,131"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="5,5,186,31"/>

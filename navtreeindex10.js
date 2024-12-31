@@ -1,13 +1,5 @@
 var NAVTREEINDEX10 =
 {
-"classyaze_1_1emu_1_1Dsp.html#ab1f11b2e3ad1beae3b7cbfef7b62e3b9":[11,0,0,3,27,28],
-"classyaze_1_1emu_1_1Dsp.html#ab4047a456dcac7aac24a93597a91adba":[10,0,1,4,29,42],
-"classyaze_1_1emu_1_1Dsp.html#ab4047a456dcac7aac24a93597a91adba":[11,0,0,3,27,42],
-"classyaze_1_1emu_1_1Dsp.html#ab7ba60c16312d88ed95c0a030dd65530":[10,0,1,4,29,38],
-"classyaze_1_1emu_1_1Dsp.html#ab7ba60c16312d88ed95c0a030dd65530":[11,0,0,3,27,38],
-"classyaze_1_1emu_1_1Dsp.html#ac290b0ed7c7ac5d6a91d90e9418b5174":[10,0,1,4,29,34],
-"classyaze_1_1emu_1_1Dsp.html#ac290b0ed7c7ac5d6a91d90e9418b5174":[11,0,0,3,27,34],
-"classyaze_1_1emu_1_1Dsp.html#ac5e4f3cce1d1864ce48da9aa99e2fc03":[10,0,1,4,29,32],
 "classyaze_1_1emu_1_1Dsp.html#ac5e4f3cce1d1864ce48da9aa99e2fc03":[11,0,0,3,27,32],
 "classyaze_1_1emu_1_1Dsp.html#acefac7d2380c59d058eb4bf640591c18":[10,0,1,4,29,33],
 "classyaze_1_1emu_1_1Dsp.html#acefac7d2380c59d058eb4bf640591c18":[11,0,0,3,27,33],
@@ -249,5 +241,13 @@ var NAVTREEINDEX10 =
 "classyaze_1_1emu_1_1MemoryImpl.html#a7773a98542b601b2a2eb71c109d7b329":[11,0,0,3,46,43],
 "classyaze_1_1emu_1_1MemoryImpl.html#a7c1e2ddd553cd006f29a0ba6fae63c7e":[10,0,1,4,48,64],
 "classyaze_1_1emu_1_1MemoryImpl.html#a7c1e2ddd553cd006f29a0ba6fae63c7e":[11,0,0,3,46,64],
-"classyaze_1_1emu_1_1MemoryImpl.html#a7c34609c9e0adab9d1a9f71c2241efcf":[10,0,1,4,48,15]
+"classyaze_1_1emu_1_1MemoryImpl.html#a7c34609c9e0adab9d1a9f71c2241efcf":[10,0,1,4,48,15],
+"classyaze_1_1emu_1_1MemoryImpl.html#a7c34609c9e0adab9d1a9f71c2241efcf":[11,0,0,3,46,15],
+"classyaze_1_1emu_1_1MemoryImpl.html#a8023d2ee521d60c70d786c3bf0b0b701":[10,0,1,4,48,52],
+"classyaze_1_1emu_1_1MemoryImpl.html#a8023d2ee521d60c70d786c3bf0b0b701":[11,0,0,3,46,52],
+"classyaze_1_1emu_1_1MemoryImpl.html#a80cc6145d28f82fae451e8b2ae13983a":[10,0,1,4,48,49],
+"classyaze_1_1emu_1_1MemoryImpl.html#a80cc6145d28f82fae451e8b2ae13983a":[11,0,0,3,46,49],
+"classyaze_1_1emu_1_1MemoryImpl.html#a83a781afdbac5d7e1bd750435f6a9132":[10,0,1,4,48,24],
+"classyaze_1_1emu_1_1MemoryImpl.html#a83a781afdbac5d7e1bd750435f6a9132":[11,0,0,3,46,24],
+"classyaze_1_1emu_1_1MemoryImpl.html#a86ab3bf451d7c462e104e246bd99c7c8":[10,0,1,4,48,56]
 };

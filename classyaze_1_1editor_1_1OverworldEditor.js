@@ -111,6 +111,7 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "current_entrance_", "classyaze_1_1editor_1_1OverworldEditor.html#a1827cc7ac76dcd45d3fc4ebeb2442bff", null ],
     [ "current_exit_", "classyaze_1_1editor_1_1OverworldEditor.html#a5b81556632edff7b417e1c61efee4759", null ],
     [ "current_item_", "classyaze_1_1editor_1_1OverworldEditor.html#a0b6167feba98d64a924b3d946ad2d217", null ],
+    [ "entrance_tiletypes_", "classyaze_1_1editor_1_1OverworldEditor.html#a177e1a50f06c6c3b26e8f362eba561c6", null ],
     [ "current_entity_", "classyaze_1_1editor_1_1OverworldEditor.html#ae92daa6ce01246b804d6c5bbd257807f", null ],
     [ "dragged_entity_", "classyaze_1_1editor_1_1OverworldEditor.html#a4de23737163e817668329f6edb844286", null ],
     [ "ow_map_canvas_", "classyaze_1_1editor_1_1OverworldEditor.html#a42d558b87c70e5c3b035cb950dd8ff57", null ],
