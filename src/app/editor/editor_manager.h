@@ -47,7 +47,7 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
     active_editors_.push_back(&screen_editor_);
   }
 
-  void SetupScreen(std::string filename = "");
+  void Initialize(std::string filename = "");
   absl::Status Update();
 
   auto emulator() -> emu::Emulator & { return emulator_; }
@@ -56,7 +56,6 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
  private:
   void ManageActiveEditors();
   void ManageKeyboardShortcuts();
-  void InitializeCommands();
 
   void DrawStatusPopup();
   void DrawAboutPopup();
@@ -91,7 +90,7 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
   DungeonEditor dungeon_editor_;
   GraphicsEditor graphics_editor_;
   MusicEditor music_editor_;
-  OverworldEditor overworld_editor_;
+  OverworldEditor overworld_editor_{*rom()};
   PaletteEditor palette_editor_;
   ScreenEditor screen_editor_;
   SpriteEditor sprite_editor_;

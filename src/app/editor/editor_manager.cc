@@ -48,12 +48,11 @@ bool IsEditorActive(Editor *editor, std::vector<Editor *> &active_editors) {
 
 } // namespace
 
-void EditorManager::SetupScreen(std::string filename) {
+void EditorManager::Initialize(std::string filename) {
   if (!filename.empty()) {
     PRINT_IF_ERROR(rom()->LoadFromFile(filename));
   }
-  overworld_editor_.InitializeZeml();
-  InitializeCommands();
+  overworld_editor_.Initialize();
 }
 
 absl::Status EditorManager::Update() {
@@ -296,11 +295,6 @@ void EditorManager::ManageKeyboardShortcuts() {
   if (IsKeyDown(ImGuiKey_F) && ctrl_or_super) {
     status_ = current_editor_->Find();
   }
-}
-
-void EditorManager::InitializeCommands() {
-  editor_context_.command_manager.RegisterPrefix("window", 'w',
-                                                 "window management", "");
 }
 
 void EditorManager::DrawStatusPopup() {
