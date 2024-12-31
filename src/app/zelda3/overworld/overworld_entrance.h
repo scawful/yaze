@@ -10,20 +10,24 @@
 namespace yaze {
 namespace zelda3 {
 
-constexpr int OWEntranceMap = 0xDB96F;
-constexpr int OWEntrancePos = 0xDBA71;
-constexpr int OWEntranceEntranceId = 0xDBB73;
+constexpr int kOverworldEntranceMap = 0xDB96F;
+constexpr int kOverworldEntrancePos = 0xDBA71;
+constexpr int kOverworldEntranceEntranceId = 0xDBB73;
+
+constexpr int kOverworldEntranceMapExpanded = 0x0DB55F;
+constexpr int kOverworldEntrancePosExpanded = 0x0DB35F;
+constexpr int kOverworldEntranceEntranceIdExpanded = 0x0DB75F;
 
 // (0x13 entries, 2 bytes each) modified(less 0x400)
 // map16 coordinates for each hole
-constexpr int OWHolePos = 0xDB800;
+constexpr int kOverworldHolePos = 0xDB800;
 
 // (0x13 entries, 2 bytes each) corresponding
 // area numbers for each hole
-constexpr int OWHoleArea = 0xDB826;
+constexpr int kOverworldHoleArea = 0xDB826;
 
 //(0x13 entries, 1 byte each)  corresponding entrance numbers
-constexpr int OWHoleEntrance = 0xDB84C;
+constexpr int kOverworldHoleEntrance = 0xDB84C;
 
 // OWEntrances Expansion
 
@@ -40,7 +44,7 @@ constexpr int OWHoleEntrance = 0xDB84C;
 // *Important* the Screen ID now also require bit 0x8000 (15) being set to tell
 // entrance is a hole
 class OverworldEntrance : public GameEntity {
-public:
+ public:
   uint16_t map_pos_;
   uchar entrance_id_;
   uchar area_x_;
@@ -89,8 +93,8 @@ struct OverworldEntranceTileTypes {
   std::array<uint16_t, kNumEntranceTileTypes> high;
 };
 
-inline absl::StatusOr<OverworldEntranceTileTypes>
-LoadEntranceTileTypes(Rom &rom) {
+inline absl::StatusOr<OverworldEntranceTileTypes> LoadEntranceTileTypes(
+    Rom &rom) {
   OverworldEntranceTileTypes tiletypes;
   for (int i = 0; i < kNumEntranceTileTypes; i++) {
     ASSIGN_OR_RETURN(auto value_low, rom.ReadWord(kEntranceTileTypePtrLow + i));
@@ -102,7 +106,7 @@ LoadEntranceTileTypes(Rom &rom) {
   return tiletypes;
 }
 
-} // namespace zelda3
-} // namespace yaze
+}  // namespace zelda3
+}  // namespace yaze
 
 #endif
