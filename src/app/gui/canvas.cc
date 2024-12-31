@@ -855,5 +855,4 @@ void BitmapCanvasPipeline(gui::Canvas &canvas, const gfx::Bitmap &bitmap,
 }
 
 }  // namespace gui
-
 }  // namespace yaze

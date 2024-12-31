@@ -23,7 +23,6 @@ class ResourceManager {
 };
 
 } // namespace editor
-
 } // namespace yaze
 
 #endif // YAZE_APP_EDITOR_SYSTEM_RESOURCE_MANAGER_H

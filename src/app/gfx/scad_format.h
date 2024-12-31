@@ -3,20 +3,14 @@
 
 #include <SDL.h>
 
-#include <cmath>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
-#include <fstream>
-#include <iostream>
-#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
-#include "absl/status/statusor.h"
-#include "app/core/constants.h"
 
 namespace yaze {
 namespace gfx {
@@ -99,7 +93,6 @@ absl::Status DecodeObjFile(
 
 }  // namespace scad_format
 }  // namespace gfx
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_GFX_scad_format_H

@@ -107,7 +107,6 @@ SnesColor GetCgxColor(uint16_t color);
 std::vector<SnesColor> GetColFileData(uint8_t* data);
 
 }  // namespace gfx
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_GFX_SNES_COLOR_H_
