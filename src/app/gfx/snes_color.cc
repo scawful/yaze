@@ -99,5 +99,4 @@ std::vector<SnesColor> GetColFileData(uint8_t* data) {
 }
 
 }  // namespace gfx
-
 }  // namespace yaze

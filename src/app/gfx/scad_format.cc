@@ -5,7 +5,6 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
-#include <memory>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -278,5 +277,4 @@ absl::Status DecodeObjFile(
 
 }  // namespace scad_format
 }  // namespace gfx
-
 }  // namespace yaze
