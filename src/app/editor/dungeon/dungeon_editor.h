@@ -1,11 +1,11 @@
 #ifndef YAZE_APP_EDITOR_DUNGEONEDITOR_H
 #define YAZE_APP_EDITOR_DUNGEONEDITOR_H
 
-#include "app/core/common.h"
 #include "absl/container/flat_hash_map.h"
+#include "app/core/common.h"
+#include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/graphics/palette_editor.h"
-#include "app/editor/editor.h"
 #include "app/gui/canvas.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
@@ -39,9 +39,7 @@ constexpr ImGuiTableFlags kDungeonTableFlags =
  * tile selector, and object renderer. Additionally, it handles loading room
  * entrances, calculating usage statistics, and rendering set usage.
  */
-class DungeonEditor : public Editor,
-                      public SharedRom,
-                      public core::ExperimentFlags {
+class DungeonEditor : public Editor, public SharedRom {
  public:
   DungeonEditor() { type_ = EditorType::kDungeon; }
 

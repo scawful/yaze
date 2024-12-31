@@ -96,57 +96,44 @@ class ExperimentFlags {
     } overworld;
   };
 
-  ExperimentFlags() = default;
-  virtual ~ExperimentFlags() = default;
-  auto flags() const {
-    if (!flags_) {
-      flags_ = std::make_shared<Flags>();
-    }
-    Flags *flags = flags_.get();
-    return flags;
+  static Flags &get() {
+    static Flags instance;
+    return instance;
   }
-  Flags *mutable_flags() {
-    if (!flags_) {
-      flags_ = std::make_shared<Flags>();
-    }
-    return flags_.get();
-  }
+
   std::string Serialize() const {
     std::string result;
     result +=
-        "kLogInstructions: " + std::to_string(flags_->kLogInstructions) + "\n";
+        "kLogInstructions: " + std::to_string(get().kLogInstructions) + "\n";
     result +=
-        "kSaveAllPalettes: " + std::to_string(flags_->kSaveAllPalettes) + "\n";
+        "kSaveAllPalettes: " + std::to_string(get().kSaveAllPalettes) + "\n";
+    result += "kSaveGfxGroups: " + std::to_string(get().kSaveGfxGroups) + "\n";
     result +=
-        "kSaveGfxGroups: " + std::to_string(flags_->kSaveGfxGroups) + "\n";
-    result += "kSaveWithChangeQueue: " +
-              std::to_string(flags_->kSaveWithChangeQueue) + "\n";
+        "kSaveWithChangeQueue: " + std::to_string(get().kSaveWithChangeQueue) +
+        "\n";
     result += "kDrawDungeonRoomGraphics: " +
-              std::to_string(flags_->kDrawDungeonRoomGraphics) + "\n";
+              std::to_string(get().kDrawDungeonRoomGraphics) + "\n";
     result += "kNewFileDialogWrapper: " +
-              std::to_string(flags_->kNewFileDialogWrapper) + "\n";
+              std::to_string(get().kNewFileDialogWrapper) + "\n";
     result += "kLoadTexturesAsStreaming: " +
-              std::to_string(flags_->kLoadTexturesAsStreaming) + "\n";
+              std::to_string(get().kLoadTexturesAsStreaming) + "\n";
     result +=
-        "kSaveDungeonMaps: " + std::to_string(flags_->kSaveDungeonMaps) + "\n";
-    result += "kLogToConsole: " + std::to_string(flags_->kLogToConsole) + "\n";
+        "kSaveDungeonMaps: " + std::to_string(get().kSaveDungeonMaps) + "\n";
+    result += "kLogToConsole: " + std::to_string(get().kLogToConsole) + "\n";
     result += "kDrawOverworldSprites: " +
-              std::to_string(flags_->overworld.kDrawOverworldSprites) + "\n";
+              std::to_string(get().overworld.kDrawOverworldSprites) + "\n";
     result += "kSaveOverworldMaps: " +
-              std::to_string(flags_->overworld.kSaveOverworldMaps) + "\n";
+              std::to_string(get().overworld.kSaveOverworldMaps) + "\n";
     result += "kSaveOverworldEntrances: " +
-              std::to_string(flags_->overworld.kSaveOverworldEntrances) + "\n";
+              std::to_string(get().overworld.kSaveOverworldEntrances) + "\n";
     result += "kSaveOverworldExits: " +
-              std::to_string(flags_->overworld.kSaveOverworldExits) + "\n";
+              std::to_string(get().overworld.kSaveOverworldExits) + "\n";
     result += "kSaveOverworldItems: " +
-              std::to_string(flags_->overworld.kSaveOverworldItems) + "\n";
+              std::to_string(get().overworld.kSaveOverworldItems) + "\n";
     result += "kSaveOverworldProperties: " +
-              std::to_string(flags_->overworld.kSaveOverworldProperties) + "\n";
+              std::to_string(get().overworld.kSaveOverworldProperties) + "\n";
     return result;
   }
-
- private:
-  static std::shared_ptr<Flags> flags_;
 };
 
 /**

@@ -21,7 +21,8 @@ absl::Status Overworld::Load(Rom &rom) {
   AssembleMap16Tiles();
   RETURN_IF_ERROR(DecompressAllMapTiles())
 
-  const bool load_custom_overworld = flags()->overworld.kLoadCustomOverworld;
+  const bool load_custom_overworld =
+      core::ExperimentFlags::get().overworld.kLoadCustomOverworld;
   for (int map_index = 0; map_index < kNumOverworldMaps; ++map_index)
     overworld_maps_.emplace_back(map_index, rom_, load_custom_overworld);
 
@@ -377,7 +378,7 @@ absl::Status Overworld::LoadExits() {
     uint16_t px = (uint16_t)((rom_data[OWExitXPlayer + (i * 2) + 1] << 8) +
                              rom_data[OWExitXPlayer + (i * 2)]);
 
-    if (rom()->flags()->kLogToConsole) {
+    if (core::ExperimentFlags::get().kLogToConsole) {
       std::cout << "Exit: " << i << " RoomID: " << exit_room_id
                 << " MapID: " << exit_map_id << " VRAM: " << exit_vram
                 << " YScroll: " << exit_y_scroll
@@ -1075,7 +1076,7 @@ absl::Status Overworld::CreateTile32Tilemap() {
         unique_tiles.size(), LimitOfMap32));
   }
 
-  if (flags()->kLogToConsole) {
+  if (core::ExperimentFlags::get().kLogToConsole) {
     std::cout << "Number of unique Tiles32: " << tiles32_unique_.size()
               << " Saved:" << tiles32_unique_.size()
               << " Out of: " << LimitOfMap32 << std::endl;
@@ -1528,7 +1529,7 @@ absl::Status Overworld::SaveItems() {
     return absl::AbortedError("Too many items");
   }
 
-  if (flags()->kLogToConsole) {
+  if (core::ExperimentFlags::get().kLogToConsole) {
     std::cout << "End of Items : " << data_pos << std::endl;
   }
 
