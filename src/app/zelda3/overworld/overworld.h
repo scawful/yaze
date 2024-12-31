@@ -19,44 +19,42 @@
 namespace yaze {
 namespace zelda3 {
 
-constexpr int GravesYTilePos = 0x49968;    // short (0x0F entries)
-constexpr int GravesXTilePos = 0x49986;    // short (0x0F entries)
-constexpr int GravesTilemapPos = 0x499A4;  // short (0x0F entries)
-constexpr int GravesGFX = 0x499C2;         // short (0x0F entries)
-
-constexpr int GravesXPos = 0x4994A;      // short (0x0F entries)
-constexpr int GravesYLine = 0x4993A;     // short (0x08 entries)
-constexpr int GravesCountOnY = 0x499E0;  // Byte 0x09 entries
-
+constexpr int GravesYTilePos = 0x49968;          // short (0x0F entries)
+constexpr int GravesXTilePos = 0x49986;          // short (0x0F entries)
+constexpr int GravesTilemapPos = 0x499A4;        // short (0x0F entries)
+constexpr int GravesGFX = 0x499C2;               // short (0x0F entries)
+constexpr int GravesXPos = 0x4994A;              // short (0x0F entries)
+constexpr int GravesYLine = 0x4993A;             // short (0x08 entries)
+constexpr int GravesCountOnY = 0x499E0;          // Byte 0x09 entries
 constexpr int GraveLinkSpecialHole = 0x46DD9;    // short
 constexpr int GraveLinkSpecialStairs = 0x46DE0;  // short
+
 constexpr int kOverworldMapPaletteIds = 0x7D1C;
 constexpr int kOverworldSpritePaletteIds = 0x7B41;
-constexpr int overworldMapPaletteGroup = 0x75504;
-constexpr int overworldSpritePaletteGroup = 0x75580;
-constexpr int overworldSpriteset = 0x7A41;
-constexpr int overworldSpecialGFXGroup = 0x16821;
-constexpr int overworldSpecialPALGroup = 0x16831;
-constexpr int overworldSpritesBegining = 0x4C881;
-constexpr int overworldSpritesAgahnim = 0x4CA21;
-constexpr int overworldSpritesZelda = 0x4C901;
+constexpr int kOverworldSpritePaletteGroup = 0x75580;
+constexpr int kOverworldSpriteset = 0x7A41;
+constexpr int kOverworldSpecialGfxGroup = 0x16821;
+constexpr int kOverworldSpecialPalGroup = 0x16831;
+constexpr int kOverworldSpritesBeginning = 0x4C881;
+constexpr int kOverworldSpritesAgahnim = 0x4CA21;
+constexpr int kOverworldSpritesZelda = 0x4C901;
 
 constexpr int kAreaGfxIdPtr = 0x7C9C;
 constexpr int kOverworldMessageIds = 0x3F51D;
 
-constexpr int overworldMusicBegining = 0x14303;
-constexpr int overworldMusicZelda = 0x14303 + 0x40;
-constexpr int overworldMusicMasterSword = 0x14303 + 0x80;
-constexpr int overworldMusicAgahim = 0x14303 + 0xC0;
-constexpr int overworldMusicDW = 0x14403;
-constexpr int overworldEntranceAllowedTilesLeft = 0xDB8C1;
-constexpr int overworldEntranceAllowedTilesRight = 0xDB917;
+constexpr int kOverworldMusicBeginning = 0x14303;
+constexpr int kOverworldMusicZelda = 0x14303 + 0x40;
+constexpr int kOverworldMusicMasterSword = 0x14303 + 0x80;
+constexpr int kOverworldMusicAgahnim = 0x14303 + 0xC0;
+constexpr int kOverworldMusicDarkWorld = 0x14403;
+constexpr int kOverworldEntranceAllowedTilesLeft = 0xDB8C1;
+constexpr int kOverworldEntranceAllowedTilesRight = 0xDB917;
 
 // 0x00 = small maps, 0x20 = large maps
-constexpr int overworldMapSize = 0x12844;
+constexpr int kOverworldMapSize = 0x12844;
 
 // 0x01 = small maps, 0x03 = large maps
-constexpr int overworldMapSizeHighByte = 0x12884;
+constexpr int kOverworldMapSizeHighByte = 0x12884;
 
 // relative to the WORLD + 0x200 per map
 // large map that are not == parent id = same position as their parent!
@@ -64,22 +62,21 @@ constexpr int overworldMapSizeHighByte = 0x12884;
 // 0000, 0200, 0400, 0600, 0800, 0A00, 0C00, 0E00
 // all Large map would be :
 // 0000, 0000, 0400, 0400, 0800, 0800, 0C00, 0C00
-constexpr int overworldMapParentId = 0x125EC;
-constexpr int overworldTransitionPositionY = 0x128C4;
-constexpr int overworldTransitionPositionX = 0x12944;
-constexpr int overworldScreenSize = 0x1788D;
-constexpr int OverworldScreenSizeForLoading = 0x4C635;
+constexpr int kOverworldMapParentId = 0x125EC;
+constexpr int kOverworldTransitionPositionY = 0x128C4;
+constexpr int kOverworldTransitionPositionX = 0x12944;
+constexpr int kOverworldScreenSize = 0x1788D;
+constexpr int kOverworldScreenSizeForLoading = 0x4C635;
 
-// constexpr int OverworldScreenTileMapChangeByScreen = 0x12634;
-constexpr int OverworldScreenTileMapChangeByScreen1 = 0x12634;
-constexpr int OverworldScreenTileMapChangeByScreen2 = 0x126B4;
-constexpr int OverworldScreenTileMapChangeByScreen3 = 0x12734;
-constexpr int OverworldScreenTileMapChangeByScreen4 = 0x127B4;
+constexpr int kOverworldScreenTileMapChangeByScreen1 = 0x12634;
+constexpr int kOverworldScreenTileMapChangeByScreen2 = 0x126B4;
+constexpr int kOverworldScreenTileMapChangeByScreen3 = 0x12734;
+constexpr int kOverworldScreenTileMapChangeByScreen4 = 0x127B4;
 
-constexpr int OverworldMapDataOverflow = 0x130000;
+constexpr int kOverworldMapDataOverflow = 0x130000;
 
-constexpr int transition_target_north = 0x13EE2;
-constexpr int transition_target_west = 0x13F62;
+constexpr int kTransitionTargetNorth = 0x13EE2;
+constexpr int kTransitionTargetWest = 0x13F62;
 constexpr int overworldCustomMosaicASM = 0x1301D0;
 constexpr int overworldCustomMosaicArray = 0x1301F0;
 
@@ -89,6 +86,12 @@ constexpr int kMap32TileTRExpanded = 0x020000;
 constexpr int kMap32TileBLExpanded = 0x1F0000;
 constexpr int kMap32TileBRExpanded = 0x1F8000;
 constexpr int kMap32TileCountExpanded = 0x0067E0;
+constexpr int kMap32ExpandedFlagPos = 0x01772E;              // 0x04
+constexpr int kMap16ExpandedFlagPos = 0x02FD28;              // 0x0F
+constexpr int kOverworldEntranceExpandedFlagPos = 0x0DB895;  // 0xB8
+
+constexpr int kOverworldCompressedMapPos = 0x058000;
+constexpr int kOverworldCompressedOverflowPos = 0x137FFF;
 
 constexpr int kMap16Tiles = 0x78000;
 constexpr int kNumOverworldMaps = 160;
