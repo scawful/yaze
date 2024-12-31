@@ -215,8 +215,11 @@ absl::Status Overworld::DecompressAllMapTiles() {
     return core::SnesToPc(p);
   };
 
-  uint32_t lowest = 0x0FFFFF;
-  uint32_t highest = 0x0F8000;
+  constexpr uint32_t kBaseLowest = 0x0FFFFF;
+  constexpr uint32_t kBaseHighest = 0x0F8000;
+
+  uint32_t lowest = kBaseLowest;
+  uint32_t highest = kBaseHighest;
   int sx = 0;
   int sy = 0;
   int c = 0;
@@ -231,24 +234,12 @@ absl::Status Overworld::DecompressAllMapTiles() {
     if (p1 >= highest) highest = p1;
     if (p2 >= highest) highest = p2;
 
-    if (p1 <= lowest && p1 > 0x0F8000) lowest = p1;
-    if (p2 <= lowest && p2 > 0x0F8000) lowest = p2;
+    if (p1 <= lowest && p1 > kBaseHighest) lowest = p1;
+    if (p2 <= lowest && p2 > kBaseHighest) lowest = p2;
 
-    std::vector<uint8_t> bytes, bytes2;
     int size1, size2;
-    auto decomp = gfx::lc_lz2::Uncompress(rom()->data() + p2, &size1, 1);
-    bytes.resize(size1);
-    for (int j = 0; j < size1; j++) {
-      bytes[j] = decomp[j];
-    }
-    free(decomp);
-    decomp = gfx::lc_lz2::Uncompress(rom()->data() + p1, &size2, 1);
-    bytes2.resize(size2);
-    for (int j = 0; j < size2; j++) {
-      bytes2[j] = decomp[j];
-    }
-    free(decomp);
-
+    auto bytes = gfx::HyruleMagicDecompress(rom()->data() + p2, &size1, 1);
+    auto bytes2 = gfx::HyruleMagicDecompress(rom()->data() + p1, &size2, 1);
     OrganizeMapTiles(bytes, bytes2, i, sx, sy, ttpos);
 
     sx++;
@@ -539,25 +530,12 @@ absl::Status Overworld::SaveOverworldMaps() {
       }
     }
 
-    std::vector<uint8_t> a, b;
     int size_a, size_b;
     // Compress single_map_1 and single_map_2
-    auto a_char =
-        gfx::HyruleMagicCompress(single_map_1.data(), 256, &size_a, 1);
-    auto b_char =
-        gfx::HyruleMagicCompress(single_map_2.data(), 256, &size_b, 1);
-    if (a_char == nullptr || b_char == nullptr) {
+    auto a = gfx::HyruleMagicCompress(single_map_1.data(), 256, &size_a, 1);
+    auto b = gfx::HyruleMagicCompress(single_map_2.data(), 256, &size_b, 1);
+    if (a.empty() || b.empty()) {
       return absl::AbortedError("Error compressing map gfx.");
-    }
-    // Copy the compressed data to a and b
-    a.resize(size_a);
-    b.resize(size_b);
-    // Copy the arrays manually
-    for (int k = 0; k < size_a; k++) {
-      a[k] = a_char[k];
-    }
-    for (int k = 0; k < size_b; k++) {
-      b[k] = b_char[k];
     }
 
     // Save compressed data and pointers
@@ -574,8 +552,8 @@ absl::Status Overworld::SaveOverworldMaps() {
       pos = kOverworldMapDataOverflow;  // 0x0F8780;
     }
 
-    auto compare_array = [](const std::vector<uint8_t> &array1,
-                            const std::vector<uint8_t> &array2) -> bool {
+    const auto compare_array = [](const std::vector<uint8_t> &array1,
+                                  const std::vector<uint8_t> &array2) -> bool {
       if (array1.size() != array2.size()) {
         return false;
       }

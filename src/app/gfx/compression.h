@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -13,12 +14,12 @@
 namespace yaze {
 namespace gfx {
 
-// Hyrule Magic
-uint8_t* HyruleMagicCompress(uint8_t const* const src, int const oldsize,
-                             int* const size, int const flag);
+std::vector<uint8_t> HyruleMagicCompress(uint8_t const* const src,
+                                         int const oldsize, int* const size,
+                                         int const flag);
 
-uint8_t* HyruleMagicDecompress(uint8_t const* src, int* const size,
-                               int const p_big_endian);
+std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
+                                           int const p_big_endian);
 
 /**
  * @namespace yaze::gfx::lc_lz2
