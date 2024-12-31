@@ -9,8 +9,8 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
-#include "app/gui/zeml.h"
 #include "app/gui/input.h"
+#include "app/gui/zeml.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
@@ -56,8 +56,6 @@ constexpr absl::string_view kTileSelectorTab = "##TileSelectorTabBar";
 constexpr absl::string_view kOWEditTable = "##OWEditTable";
 constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
 
-
-
 /**
  * @class OverworldEditor
  * @brief Manipulates the Overworld and OverworldMap data in a Rom.
@@ -75,13 +73,12 @@ constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
  *
  */
 class OverworldEditor : public Editor,
-                        public SharedRom,
                         public gfx::GfxContext,
                         public core::ExperimentFlags {
  public:
-  OverworldEditor() { type_ = EditorType::kOverworld; }
+  OverworldEditor(Rom& rom) : rom_(rom) { type_ = EditorType::kOverworld; }
 
-  void InitializeZeml();
+  void Initialize();
 
   absl::Status Update() final;
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
@@ -244,6 +241,8 @@ class OverworldEditor : public Editor,
   std::vector<std::vector<uint8_t>> tile8_individual_data_;
   std::vector<gfx::Bitmap> tile8_individual_;
 
+  Rom& rom_;
+
   Tile16Editor tile16_editor_;
   GfxGroupEditor gfx_group_editor_;
   PaletteEditor palette_editor_;
@@ -283,7 +282,8 @@ class OverworldEditor : public Editor,
   gui::Canvas properties_canvas_;
 
   gui::Table toolset_table_{"##ToolsetTable0", 22, kToolsetTableFlags};
-  gui::Table map_settings_table_{kOWMapTable.data(), 8, kOWMapFlags, ImVec2(0,0)};
+  gui::Table map_settings_table_{kOWMapTable.data(), 8, kOWMapFlags,
+                                 ImVec2(0, 0)};
 
   gui::zeml::Node layout_node_;
   absl::Status status_;
