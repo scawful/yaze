@@ -18,7 +18,7 @@ namespace editor {
 /**
  * @brief Popup window to edit Tile16 data
  */
-class Tile16Editor : public GfxContext, public SharedRom {
+class Tile16Editor : public gfx::GfxContext, public SharedRom {
  public:
   absl::Status InitBlockset(const gfx::Bitmap& tile16_blockset_bmp,
                             const gfx::Bitmap& current_gfx_bmp,
