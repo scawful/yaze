@@ -244,6 +244,7 @@ absl::Status Rom::LoadZelda3() {
   // Copy ROM title
   constexpr uint32_t kTitleStringOffset = 0x7FC0;
   constexpr uint32_t kTitleStringLength = 20;
+  title_.resize(kTitleStringLength);
   std::copy(rom_data_.begin() + kTitleStringOffset,
             rom_data_.begin() + kTitleStringOffset + kTitleStringLength,
             title_.begin());
