@@ -4,7 +4,6 @@
 #include <optional>
 #include <string>
 
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "absl/strings/string_view.h"
 #include "app/gfx/snes_tile.h"
 #include "imgui/imgui.h"
@@ -257,23 +256,6 @@ bool InputTileInfo(const char* label, gfx::TileInfo* tile_info) {
 
 ImGuiID GetID(const std::string& id) { return ImGui::GetID(id.c_str()); }
 
-void FileDialogPipeline(absl::string_view display_key,
-                        absl::string_view file_extensions,
-                        std::optional<absl::string_view> button_text,
-                        std::function<void()> callback) {
-  if (button_text.has_value() && ImGui::Button(button_text->data())) {
-    ImGuiFileDialog::Instance()->OpenDialog(display_key.data(), "Choose File",
-                                            file_extensions.data(), ".");
-  }
-
-  if (ImGuiFileDialog::Instance()->Display(
-          display_key.data(), ImGuiWindowFlags_NoCollapse, ImVec2(600, 400))) {
-    if (ImGuiFileDialog::Instance()->IsOk()) {
-      callback();
-    }
-    ImGuiFileDialog::Instance()->Close();
-  }
-}
 void AddTableColumn(Table &table, const std::string &label, GuiElement element) {
   table.column_labels.push_back(label);
   table.column_contents.push_back(element);

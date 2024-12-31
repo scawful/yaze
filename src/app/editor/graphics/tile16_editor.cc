@@ -2,12 +2,12 @@
 
 #include <cmath>
 
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/core/platform/file_dialog.h"
 #include "app/core/platform/renderer.h"
-#include "app/editor/graphics/palette_editor.h"
 #include "app/editor/editor.h"
+#include "app/editor/graphics/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -363,16 +363,10 @@ absl::Status Tile16Editor::UpdateTile16Transfer() {
 absl::Status Tile16Editor::UpdateTransferTileCanvas() {
   // Create a button for loading another ROM
   if (Button("Load ROM")) {
-    ImGuiFileDialog::Instance()->OpenDialog(
-        "ChooseTransferFileDlgKey", "Open Transfer ROM", ".sfc,.smc", ".");
+    auto file_name = core::FileDialogWrapper::ShowOpenFileDialog();
+    transfer_status_ = transfer_rom_.LoadFromFile(file_name);
+    transfer_started_ = true;
   }
-  gui::FileDialogPipeline(
-      "ChooseTransferFileDlgKey", ".sfc,.smc", std::nullopt, [&]() {
-        std::string filePathName =
-            ImGuiFileDialog::Instance()->GetFilePathName();
-        transfer_status_ = transfer_rom_.LoadFromFile(filePathName);
-        transfer_started_ = true;
-      });
 
   // TODO: Implement tile16 transfer
   if (transfer_started_ && !transfer_blockset_loaded_) {
