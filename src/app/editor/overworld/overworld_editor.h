@@ -72,9 +72,7 @@ constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
  * Provides access to the GfxGroupEditor and Tile16Editor through popup windows.
  *
  */
-class OverworldEditor : public Editor,
-                        public gfx::GfxContext,
-                        public core::ExperimentFlags {
+class OverworldEditor : public Editor, public gfx::GfxContext {
  public:
   OverworldEditor(Rom& rom) : rom_(rom) { type_ = EditorType::kOverworld; }
 

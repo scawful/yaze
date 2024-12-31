@@ -24,7 +24,7 @@ constexpr char kEndOfProjectFile[] = "EndOfProjectFile";
  * user can have different rom file names for a single project and keep track of
  * backups.
  */
-struct Project : public core::ExperimentFlags {
+struct Project {
   absl::Status Create(const std::string& project_name) {
     name = project_name;
     project_opened_ = true;
