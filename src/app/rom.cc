@@ -150,7 +150,7 @@ absl::Status Rom::SaveAllGraphicsData() {
       final_data = gfx::Bpp8SnesToIndexed(sheet_data, 8);
       int size = 0;
       if (compressed) {
-        auto compressed_data = gfx::lc_lz2::Compress(
+        auto compressed_data = gfx::HyruleMagicCompress(
             final_data.data(), final_data.size(), &size, 1);
         for (int j = 0; j < size; j++) {
           sheet_data[j] = compressed_data[j];
