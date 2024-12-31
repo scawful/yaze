@@ -14,9 +14,9 @@
 namespace yaze {
 namespace gfx {
 
-// Hyrule Magic
-uint8_t* HyruleMagicCompress(uint8_t const* const src, int const oldsize,
-                             int* const size, int const flag) {
+std::vector<uint8_t> HyruleMagicCompress(uint8_t const* const src,
+                                         int const oldsize, int* const size,
+                                         int const flag) {
   unsigned char* b2 =
       (unsigned char*)malloc(0x1000);  // allocate a 2^12 sized buffer
 
@@ -158,11 +158,13 @@ uint8_t* HyruleMagicCompress(uint8_t const* const src, int const oldsize,
   b2 = (unsigned char*)realloc(b2, bd);
   *size = bd;
 
-  return b2;
+  std::vector<uint8_t> compressed_data(b2, b2 + bd);
+  free(b2);
+  return compressed_data;
 }
 
-uint8_t* HyruleMagicDecompress(uint8_t const* src, int* const size,
-                               int const p_big_endian) {
+std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
+                                           int const p_big_endian) {
   unsigned char* b2 = (unsigned char*)malloc(1024);
 
   int bd = 0, bs = 1024;
@@ -291,7 +293,9 @@ uint8_t* HyruleMagicDecompress(uint8_t const* src, int* const size,
   if (size) (*size) = bd;
 
   // return the unsigned char* buffer b2, which contains the uncompressed data.
-  return b2;
+  std::vector<uint8_t> decompressed_data(b2, b2 + bd);
+  free(b2);
+  return decompressed_data;
 }
 
 namespace lc_lz2 {
