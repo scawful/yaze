@@ -133,7 +133,7 @@ var NAVTREEINDEX =
 "classyaze_1_1Rom.html#ac66ee910fc7602a9e87750e6214fe117",
 "classyaze_1_1editor_1_1AssemblyEditor.html#a9ce9d400bac9e7e0ca724071bfed22fc",
 "classyaze_1_1editor_1_1EditorManager.html#a48bdaa48cd8e3f4990e429a70da3df65",
-"classyaze_1_1editor_1_1GraphicsEditor.html#aad2635b5815fbaf69cc83d3adc1a06f2",
+"classyaze_1_1editor_1_1GraphicsEditor.html#aae947ccf6647fbcd2f92fe4e3ba86fd3",
 "classyaze_1_1editor_1_1OverworldEditor.html#a230fcc1c4b6c563fac42b0093f2ba920",
 "classyaze_1_1editor_1_1PaletteEditor.html#af33bcbc1e8f1627ccbbf2abad17eafca",
 "classyaze_1_1editor_1_1Tile16Editor.html#aa87fa9056cc7301d689c3b1e829db760",

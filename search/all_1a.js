@@ -211,7 +211,7 @@ var searchData=
   ['setup_5fcolumn_208',['SETUP_COLUMN',['../constants_8h.html#a0400ff495867d2b1173e970e6d9c478a',1,'constants.h']]],
   ['setupcustomtileset_209',['SetupCustomTileset',['../classyaze_1_1zelda3_1_1OverworldMap.html#a646ebf9a810e6edeec5e0d7d0f1372b8',1,'yaze::zelda3::OverworldMap']]],
   ['setupmemory_210',['SetupMemory',['../classyaze_1_1test_1_1MockAudioRam.html#ad281e406099eacb38f80b797715c117f',1,'yaze::test::MockAudioRam']]],
-  ['setupscreen_211',['SetupScreen',['../classyaze_1_1core_1_1Controller.html#ac377e8be9deb968b7c0065f8011701ff',1,'yaze::core::Controller::SetupScreen()'],['../classyaze_1_1editor_1_1EditorManager.html#aadb68abcc3c0f715a032af7164c8812f',1,'yaze::editor::EditorManager::SetupScreen()']]],
+  ['setupscreen_211',['SetupScreen',['../classyaze_1_1core_1_1Controller.html#ac377e8be9deb968b7c0065f8011701ff',1,'yaze::core::Controller']]],
   ['setzeroflag_212',['SetZeroFlag',['../classyaze_1_1emu_1_1Cpu.html#a5765d7be546bde8375e6004b5915251f',1,'yaze::emu::Cpu']]],
   ['setzn_213',['SetZN',['../classyaze_1_1emu_1_1Cpu.html#a28fa06d025c96e9a86d3bcd7b06ec800',1,'yaze::emu::Cpu']]],
   ['shared_5from_214',['shared_rom',['../classyaze_1_1SharedRom.html#ad069fe05239c16d01cbda29280bc8d39',1,'yaze::SharedRom']]],

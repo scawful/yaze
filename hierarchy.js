@@ -206,7 +206,6 @@ var hierarchy =
       [ "yaze::editor::MemoryEditorWithDiffChecker", "structyaze_1_1editor_1_1MemoryEditorWithDiffChecker.html", null ],
       [ "yaze::editor::MessageEditor", "classyaze_1_1editor_1_1MessageEditor.html", null ],
       [ "yaze::editor::MusicEditor", "classyaze_1_1editor_1_1MusicEditor.html", null ],
-      [ "yaze::editor::OverworldEditor", "classyaze_1_1editor_1_1OverworldEditor.html", null ],
       [ "yaze::editor::PaletteEditor", "classyaze_1_1editor_1_1PaletteEditor.html", null ],
       [ "yaze::editor::ScreenEditor", "classyaze_1_1editor_1_1ScreenEditor.html", null ],
       [ "yaze::editor::SpriteEditor", "classyaze_1_1editor_1_1SpriteEditor.html", null ],

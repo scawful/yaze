@@ -1,4 +1,4 @@
-<map id="yaze::editor::OverworldEditor::InitializeZeml" name="yaze::editor::OverworldEditor::InitializeZeml">
+<map id="yaze::editor::OverworldEditor::Initialize" name="yaze::editor::OverworldEditor::Initialize">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,108,189,149"/>
 <area shape="rect" id="Node000002" href="$namespaceyaze_1_1gui_1_1zeml.html#a9a1ab3a01c40a1afa16a2c456ca7b282" title="Bind a callback to a node." alt="" coords="249,5,384,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,106,176,73,236,41,252,34,254,39,238,46,179,78,129,110"/>

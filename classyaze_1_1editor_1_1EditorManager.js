@@ -1,13 +1,12 @@
 var classyaze_1_1editor_1_1EditorManager =
 [
     [ "EditorManager", "classyaze_1_1editor_1_1EditorManager.html#a5e1bc7f274b01593c207c0cd72cc17c3", null ],
-    [ "SetupScreen", "classyaze_1_1editor_1_1EditorManager.html#aadb68abcc3c0f715a032af7164c8812f", null ],
+    [ "Initialize", "classyaze_1_1editor_1_1EditorManager.html#a4d1c0006726b919c97b15afb5529e62d", null ],
     [ "Update", "classyaze_1_1editor_1_1EditorManager.html#ab1925444bb0903c0375991ee96692c21", null ],
     [ "emulator", "classyaze_1_1editor_1_1EditorManager.html#acb71e69070ce5a0a4aba6c874f1353e3", null ],
     [ "quit", "classyaze_1_1editor_1_1EditorManager.html#a040d44da3b2c905715d377940f89a3d0", null ],
     [ "ManageActiveEditors", "classyaze_1_1editor_1_1EditorManager.html#aa008ceaf8b00a93af6c8c46084692035", null ],
     [ "ManageKeyboardShortcuts", "classyaze_1_1editor_1_1EditorManager.html#a28674c9bc541bbe90159026d32cbe429", null ],
-    [ "InitializeCommands", "classyaze_1_1editor_1_1EditorManager.html#ab8567f3803a45b7844cf0dd84ac5171a", null ],
     [ "DrawStatusPopup", "classyaze_1_1editor_1_1EditorManager.html#a014c6454e7877381f584839afc8be860", null ],
     [ "DrawAboutPopup", "classyaze_1_1editor_1_1EditorManager.html#a9aa9002c6666431b8c47964ddc5f29c5", null ],
     [ "DrawInfoPopup", "classyaze_1_1editor_1_1EditorManager.html#a566369fd52201751846c44e3ab42bee1", null ],

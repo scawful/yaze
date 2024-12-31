@@ -1,0 +1,17 @@
+<map id="yaze::editor::EditorManager::Initialize" name="yaze::editor::EditorManager::Initialize">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,148,180,189"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1OverworldEditor.html#a452841175e7776fcceec43fe8af478ff" title=" " alt="" coords="228,107,411,148"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,150,212,144,213,150,180,156"/>
+<area shape="rect" id="Node000013" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="245,196,394,222"/>
+<area shape="poly" id="edge7_Node000001_Node000013" title=" " alt="" coords="180,182,230,190,229,196,179,187"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gui_1_1zeml.html#a9a1ab3a01c40a1afa16a2c456ca7b282" title="Bind a callback to a node." alt="" coords="471,5,606,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="349,104,399,73,458,41,475,34,477,39,460,46,401,77,352,109"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1gui_1_1zeml_1_1Node.html#a24675ce0db014a96980005ed77a9cbd5" title=" " alt="" coords="468,79,609,120"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="411,113,453,108,453,113,412,118"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze_1_1gui_1_1zeml.html#a970f74b3460aaf645f0a45e0a4f561aa" title=" " alt="" coords="459,144,618,170"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="412,137,444,141,443,147,411,142"/>
+<area shape="rect" id="Node000007" href="$namespaceyaze_1_1gui_1_1zeml.html#aab61ea1476dc33d027a135004378e434" title="Parse a zeml string." alt="" coords="467,193,610,219"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="383,146,412,157,460,180,476,186,474,191,458,185,410,162,381,151"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="497,79,495,69,502,60,517,55,539,53,562,55,577,61,574,66,561,60,539,58,518,60,505,64,500,70,502,78"/>
+<area shape="poly" id="edge8_Node000013_Node000013" title=" " alt="" coords="283,197,276,187,280,178,295,171,319,169,346,172,360,179,357,184,345,177,319,175,296,177,284,181,281,187,287,194"/>
+</map>
