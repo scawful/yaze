@@ -259,7 +259,7 @@ class OverworldEditor : public Editor,
   gfx::BitmapTable sprite_previews_;
 
   zelda3::Overworld overworld_;
-  zelda3::OWBlockset refresh_blockset_;
+  zelda3::OverworldBlockset refresh_blockset_;
 
   zelda3::Sprite current_sprite_;
 

@@ -23,7 +23,7 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
   absl::Status InitBlockset(const gfx::Bitmap& tile16_blockset_bmp,
                             const gfx::Bitmap& current_gfx_bmp,
                             const std::vector<gfx::Bitmap>& tile16_individual,
-                            uint8_t all_tiles_types[0x200]);
+                            std::array<uint8_t, 0x200>& all_tiles_types);
 
   absl::Status Update();
   absl::Status DrawMenu();
@@ -62,7 +62,7 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
   bool priority_tile;
   int tile_size;
 
-  uint8_t* all_tiles_types_;
+  std::array<uint8_t, 0x200> all_tiles_types_;
 
   // Tile16 blockset for selecting the tile to edit
   gui::Canvas blockset_canvas_{"blocksetCanvas", ImVec2(0x100, 0x4000),

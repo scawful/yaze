@@ -19,17 +19,17 @@
 namespace yaze {
 namespace zelda3 {
 
-constexpr int GravesYTilePos = 0x49968;   // short (0x0F entries)
-constexpr int GravesXTilePos = 0x49986;   // short (0x0F entries)
-constexpr int GravesTilemapPos = 0x499A4; // short (0x0F entries)
-constexpr int GravesGFX = 0x499C2;        // short (0x0F entries)
+constexpr int GravesYTilePos = 0x49968;    // short (0x0F entries)
+constexpr int GravesXTilePos = 0x49986;    // short (0x0F entries)
+constexpr int GravesTilemapPos = 0x499A4;  // short (0x0F entries)
+constexpr int GravesGFX = 0x499C2;         // short (0x0F entries)
 
-constexpr int GravesXPos = 0x4994A;     // short (0x0F entries)
-constexpr int GravesYLine = 0x4993A;    // short (0x08 entries)
-constexpr int GravesCountOnY = 0x499E0; // Byte 0x09 entries
+constexpr int GravesXPos = 0x4994A;      // short (0x0F entries)
+constexpr int GravesYLine = 0x4993A;     // short (0x08 entries)
+constexpr int GravesCountOnY = 0x499E0;  // Byte 0x09 entries
 
-constexpr int GraveLinkSpecialHole = 0x46DD9;   // short
-constexpr int GraveLinkSpecialStairs = 0x46DE0; // short
+constexpr int GraveLinkSpecialHole = 0x46DD9;    // short
+constexpr int GraveLinkSpecialStairs = 0x46DE0;  // short
 constexpr int kOverworldMapPaletteIds = 0x7D1C;
 constexpr int kOverworldSpritePaletteIds = 0x7B41;
 constexpr int overworldMapPaletteGroup = 0x75504;
@@ -94,8 +94,8 @@ constexpr int kMap16Tiles = 0x78000;
 constexpr int kNumOverworldMaps = 160;
 constexpr int kNumTile16Individual = 4096;
 constexpr int Map32PerScreen = 256;
-constexpr int NumberOfMap16 = 3752;   // 4096
-constexpr int NumberOfMap16Ex = 4096; // 4096
+constexpr int NumberOfMap16 = 3752;    // 4096
+constexpr int NumberOfMap16Ex = 4096;  // 4096
 constexpr int LimitOfMap32 = 8864;
 constexpr int NumberOfOWSprites = 352;
 constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
@@ -107,7 +107,7 @@ constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
  * as well as creating the tilesets and tilemaps for the overworld.
  */
 class Overworld : public SharedRom, public core::ExperimentFlags {
-public:
+ public:
   absl::Status Load(Rom &rom);
   absl::Status LoadOverworldMaps();
   void LoadTileTypes();
@@ -156,16 +156,16 @@ public:
     }
   }
 
-  OWBlockset &GetMapTiles(int world_type) {
+  OverworldBlockset &GetMapTiles(int world_type) {
     switch (world_type) {
-    case 0:
-      return map_tiles_.light_world;
-    case 1:
-      return map_tiles_.dark_world;
-    case 2:
-      return map_tiles_.special_world;
-    default:
-      return map_tiles_.light_world;
+      case 0:
+        return map_tiles_.light_world;
+      case 1:
+        return map_tiles_.dark_world;
+      case 2:
+        return map_tiles_.special_world;
+      default:
+        return map_tiles_.light_world;
     }
   }
 
@@ -205,7 +205,7 @@ public:
   auto all_tiles_types() const { return all_tiles_types_; }
   auto mutable_all_tiles_types() { return &all_tiles_types_; }
 
-private:
+ private:
   enum Dimension {
     map32TilesTL = 0,
     map32TilesTR = 1,
@@ -220,11 +220,13 @@ private:
   absl::Status AssembleMap32Tiles();
   void AssembleMap16Tiles();
   void AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
-                        OWBlockset &world);
+                        OverworldBlockset &world);
   void OrganizeMapTiles(std::vector<uint8_t> &bytes,
                         std::vector<uint8_t> &bytes2, int i, int sx, int sy,
                         int &ttpos);
   absl::Status DecompressAllMapTiles();
+
+  Rom rom_;
 
   bool is_loaded_ = false;
   bool expanded_tile16_ = false;
@@ -234,13 +236,11 @@ private:
   int game_state_ = 0;
   int current_map_ = 0;
   int current_world_ = 0;
-  uchar map_parent_[160];
 
-  Rom rom_;
-  OWMapTiles map_tiles_;
+  OverworldMapTiles map_tiles_;
 
-  uint8_t all_tiles_types_[0x200];
-
+  std::array<uint8_t, 160> map_parent_;
+  std::array<uint8_t, 0x200> all_tiles_types_;
   std::vector<gfx::Tile16> tiles16_;
   std::vector<gfx::Tile32> tiles32_;
   std::vector<uint16_t> tiles32_list_;
@@ -251,7 +251,6 @@ private:
   std::vector<OverworldExit> all_exits_;
   std::vector<OverworldItem> all_items_;
   std::vector<std::vector<Sprite>> all_sprites_;
-
   std::vector<uint64_t> deleted_entrances_;
 
   std::vector<std::vector<uint8_t>> map_data_p1 =
@@ -268,7 +267,7 @@ private:
   std::vector<absl::flat_hash_map<uint16_t, int>> usage_stats_;
 };
 
-} // namespace zelda3
-} // namespace yaze
+}  // namespace zelda3
+}  // namespace yaze
 
 #endif

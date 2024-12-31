@@ -51,7 +51,7 @@ using ImGui::Text;
 absl::Status Tile16Editor::InitBlockset(
     const gfx::Bitmap& tile16_blockset_bmp, const gfx::Bitmap& current_gfx_bmp,
     const std::vector<gfx::Bitmap>& tile16_individual,
-    uint8_t all_tiles_types[0x200]) {
+    std::array<uint8_t, 0x200>& all_tiles_types) {
   all_tiles_types_ = all_tiles_types;
   tile16_blockset_bmp_ = tile16_blockset_bmp;
   tile16_individual_ = tile16_individual;
