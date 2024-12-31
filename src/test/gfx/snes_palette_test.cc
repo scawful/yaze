@@ -10,7 +10,7 @@ namespace test {
 
 using ::testing::ElementsAreArray;
 using yaze::gfx::ConvertRgbToSnes;
-using yaze::gfx::ConvertSnestoRgb;
+using yaze::gfx::ConvertSnesToRgb;
 using yaze::gfx::Extract;
 using yaze::gfx::SnesPalette;
 
@@ -39,7 +39,7 @@ TEST(SnesColorTest, ConvertRgbToSnes) {
 
 TEST(SnesColorTest, ConvertSnestoRGB) {
   uint16_t snes = 0x4210;
-  snes_color color = ConvertSnestoRgb(snes);
+  snes_color color = ConvertSnesToRgb(snes);
   ASSERT_EQ(color.red, 132);
   ASSERT_EQ(color.green, 132);
   ASSERT_EQ(color.blue, 132);
@@ -52,13 +52,13 @@ TEST(SnesColorTest, ConvertSnesToRGB_Binary) {
   uint16_t purple = 0b0111110000011111;
   snes_color testcolor;
 
-  testcolor = ConvertSnestoRgb(red);
+  testcolor = ConvertSnesToRgb(red);
   ASSERT_EQ(0xFF0000, test_convert(testcolor));
-  testcolor = ConvertSnestoRgb(green);
+  testcolor = ConvertSnesToRgb(green);
   ASSERT_EQ(0x00FF00, test_convert(testcolor));
-  testcolor = ConvertSnestoRgb(blue);
+  testcolor = ConvertSnesToRgb(blue);
   ASSERT_EQ(0x0000FF, test_convert(testcolor));
-  testcolor = ConvertSnestoRgb(purple);
+  testcolor = ConvertSnesToRgb(purple);
   ASSERT_EQ(0xFF00FF, test_convert(testcolor));
 }
 
