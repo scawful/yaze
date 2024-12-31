@@ -542,8 +542,10 @@ absl::Status Overworld::SaveOverworldMaps() {
     std::vector<uint8_t> a, b;
     int size_a, size_b;
     // Compress single_map_1 and single_map_2
-    auto a_char = gfx::lc_lz2::Compress(single_map_1.data(), 256, &size_a, 1);
-    auto b_char = gfx::lc_lz2::Compress(single_map_2.data(), 256, &size_b, 1);
+    auto a_char =
+        gfx::HyruleMagicCompress(single_map_1.data(), 256, &size_a, 1);
+    auto b_char =
+        gfx::HyruleMagicCompress(single_map_2.data(), 256, &size_b, 1);
     if (a_char == nullptr || b_char == nullptr) {
       return absl::AbortedError("Error compressing map gfx.");
     }
