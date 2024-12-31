@@ -1,9 +1,6 @@
 [submodule "src/lib/imgui"]
 	path = src/lib/imgui
 	url = https://github.com/ocornut/imgui.git
-[submodule "src/lib/ImGuiFileDialog"]
-	path = src/lib/ImGuiFileDialog
-	url = https://github.com/aiekick/ImGuiFileDialog.git
 [submodule "assets/asm/alttp-hacker-workspace"]
 	path = assets/asm/alttp-hacker-workspace
 	url = https://github.com/scawful/alttp-hacker-workspace.git
