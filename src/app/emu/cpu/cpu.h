@@ -34,7 +34,7 @@ class InstructionEntry {
   std::string instruction;  // Human-readable instruction text
 };
 
-class Cpu : public core::ExperimentFlags {
+class Cpu {
  public:
   explicit Cpu(Memory& mem, Clock& vclock, CpuCallbacks& callbacks)
       : memory(mem), clock(vclock), callbacks_(callbacks) {}

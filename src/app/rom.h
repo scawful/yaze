@@ -131,7 +131,7 @@ constexpr uint32_t kMaxGraphics = 0xC3FB5;
 /**
  * @brief The Rom class is used to load, save, and modify Rom data.
  */
-class Rom : public core::ExperimentFlags {
+class Rom {
  public:
   /**
    * @brief Loads the players 4bpp graphics sheet from Rom data.

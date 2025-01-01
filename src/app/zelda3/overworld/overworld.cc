@@ -21,7 +21,8 @@ absl::Status Overworld::Load(Rom &rom) {
   AssembleMap16Tiles();
   RETURN_IF_ERROR(DecompressAllMapTiles())
 
-  const bool load_custom_overworld = flags()->overworld.kLoadCustomOverworld;
+  const bool load_custom_overworld =
+      core::ExperimentFlags::get().overworld.kLoadCustomOverworld;
   for (int map_index = 0; map_index < kNumOverworldMaps; ++map_index)
     overworld_maps_.emplace_back(map_index, rom_, load_custom_overworld);
 
@@ -107,7 +108,8 @@ absl::Status Overworld::AssembleMap32Tiles() {
                               rom_.version_constants().kMap32TileTR,
                               rom_.version_constants().kMap32TileBL,
                               rom_.version_constants().kMap32TileBR};
-  if (rom()->data()[kMap32ExpandedFlagPos] != 0x04) {
+  if (rom()->data()[kMap32ExpandedFlagPos] != 0x04 &&
+      core::ExperimentFlags::get().overworld.kLoadCustomOverworld) {
     map32address[0] = rom_.version_constants().kMap32TileTL;
     map32address[1] = kMap32TileTRExpanded;
     map32address[2] = kMap32TileBLExpanded;
@@ -155,7 +157,8 @@ absl::Status Overworld::AssembleMap32Tiles() {
 void Overworld::AssembleMap16Tiles() {
   int tpos = kMap16Tiles;
   int num_tile16 = kNumTile16Individual;
-  if (rom()->data()[kMap16ExpandedFlagPos] != 0x0F) {
+  if (rom()->data()[kMap16ExpandedFlagPos] != 0x0F &&
+      core::ExperimentFlags::get().overworld.kLoadCustomOverworld) {
     tpos = kMap16TilesExpanded;
     num_tile16 = NumberOfMap16Ex;
     expanded_tile16_ = true;
@@ -214,8 +217,11 @@ absl::Status Overworld::DecompressAllMapTiles() {
     return core::SnesToPc(p);
   };
 
-  uint32_t lowest = 0x0FFFFF;
-  uint32_t highest = 0x0F8000;
+  constexpr uint32_t kBaseLowest = 0x0FFFFF;
+  constexpr uint32_t kBaseHighest = 0x0F8000;
+
+  uint32_t lowest = kBaseLowest;
+  uint32_t highest = kBaseHighest;
   int sx = 0;
   int sy = 0;
   int c = 0;
@@ -230,24 +236,12 @@ absl::Status Overworld::DecompressAllMapTiles() {
     if (p1 >= highest) highest = p1;
     if (p2 >= highest) highest = p2;
 
-    if (p1 <= lowest && p1 > 0x0F8000) lowest = p1;
-    if (p2 <= lowest && p2 > 0x0F8000) lowest = p2;
+    if (p1 <= lowest && p1 > kBaseHighest) lowest = p1;
+    if (p2 <= lowest && p2 > kBaseHighest) lowest = p2;
 
-    std::vector<uint8_t> bytes, bytes2;
     int size1, size2;
-    auto decomp = gfx::lc_lz2::Uncompress(rom()->data() + p2, &size1, 1);
-    bytes.resize(size1);
-    for (int j = 0; j < size1; j++) {
-      bytes[j] = decomp[j];
-    }
-    free(decomp);
-    decomp = gfx::lc_lz2::Uncompress(rom()->data() + p1, &size2, 1);
-    bytes2.resize(size2);
-    for (int j = 0; j < size2; j++) {
-      bytes2[j] = decomp[j];
-    }
-    free(decomp);
-
+    auto bytes = gfx::HyruleMagicDecompress(rom()->data() + p2, &size1, 1);
+    auto bytes2 = gfx::HyruleMagicDecompress(rom()->data() + p1, &size2, 1);
     OrganizeMapTiles(bytes, bytes2, i, sx, sy, ttpos);
 
     sx++;
@@ -302,7 +296,8 @@ void Overworld::LoadEntrances() {
   int ow_entrance_pos_ptr = kOverworldEntrancePos;
   int ow_entrance_id_ptr = kOverworldEntranceEntranceId;
   int num_entrances = 129;
-  if (rom()->data()[kOverworldEntranceExpandedFlagPos] != 0xB8) {
+  if (rom()->data()[kOverworldEntranceExpandedFlagPos] != 0xB8 &&
+      core::ExperimentFlags::get().overworld.kLoadCustomOverworld) {
     ow_entrance_map_ptr = kOverworldEntranceMapExpanded;
     ow_entrance_pos_ptr = kOverworldEntrancePosExpanded;
     ow_entrance_id_ptr = kOverworldEntranceEntranceIdExpanded;
@@ -377,7 +372,7 @@ absl::Status Overworld::LoadExits() {
     uint16_t px = (uint16_t)((rom_data[OWExitXPlayer + (i * 2) + 1] << 8) +
                              rom_data[OWExitXPlayer + (i * 2)]);
 
-    if (rom()->flags()->kLogToConsole) {
+    if (core::ExperimentFlags::get().kLogToConsole) {
       std::cout << "Exit: " << i << " RoomID: " << exit_room_id
                 << " MapID: " << exit_map_id << " VRAM: " << exit_vram
                 << " YScroll: " << exit_y_scroll
@@ -538,23 +533,12 @@ absl::Status Overworld::SaveOverworldMaps() {
       }
     }
 
-    std::vector<uint8_t> a, b;
     int size_a, size_b;
     // Compress single_map_1 and single_map_2
-    auto a_char = gfx::lc_lz2::Compress(single_map_1.data(), 256, &size_a, 1);
-    auto b_char = gfx::lc_lz2::Compress(single_map_2.data(), 256, &size_b, 1);
-    if (a_char == nullptr || b_char == nullptr) {
+    auto a = gfx::HyruleMagicCompress(single_map_1.data(), 256, &size_a, 1);
+    auto b = gfx::HyruleMagicCompress(single_map_2.data(), 256, &size_b, 1);
+    if (a.empty() || b.empty()) {
       return absl::AbortedError("Error compressing map gfx.");
-    }
-    // Copy the compressed data to a and b
-    a.resize(size_a);
-    b.resize(size_b);
-    // Copy the arrays manually
-    for (int k = 0; k < size_a; k++) {
-      a[k] = a_char[k];
-    }
-    for (int k = 0; k < size_b; k++) {
-      b[k] = b_char[k];
     }
 
     // Save compressed data and pointers
@@ -571,8 +555,8 @@ absl::Status Overworld::SaveOverworldMaps() {
       pos = kOverworldMapDataOverflow;  // 0x0F8780;
     }
 
-    auto compare_array = [](const std::vector<uint8_t> &array1,
-                            const std::vector<uint8_t> &array2) -> bool {
+    const auto compare_array = [](const std::vector<uint8_t> &array1,
+                                  const std::vector<uint8_t> &array2) -> bool {
       if (array1.size() != array2.size()) {
         return false;
       }
@@ -1075,7 +1059,7 @@ absl::Status Overworld::CreateTile32Tilemap() {
         unique_tiles.size(), LimitOfMap32));
   }
 
-  if (flags()->kLogToConsole) {
+  if (core::ExperimentFlags::get().kLogToConsole) {
     std::cout << "Number of unique Tiles32: " << tiles32_unique_.size()
               << " Saved:" << tiles32_unique_.size()
               << " Out of: " << LimitOfMap32 << std::endl;
@@ -1528,7 +1512,7 @@ absl::Status Overworld::SaveItems() {
     return absl::AbortedError("Too many items");
   }
 
-  if (flags()->kLogToConsole) {
+  if (core::ExperimentFlags::get().kLogToConsole) {
     std::cout << "End of Items : " << data_pos << std::endl;
   }
 

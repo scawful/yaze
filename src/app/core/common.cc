@@ -171,8 +171,6 @@ bool StringReplace(std::string &str, const std::string &from,
   return true;
 }
 
-std::shared_ptr<ExperimentFlags::Flags> ExperimentFlags::flags_;
-
 uint32_t Get24LocalFromPC(uint8_t *data, int addr, bool pc) {
   uint32_t ret =
       (PcToSnes(addr) & 0xFF0000) | (data[addr + 1] << 8) | data[addr];

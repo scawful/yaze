@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -12,6 +13,13 @@
 
 namespace yaze {
 namespace gfx {
+
+std::vector<uint8_t> HyruleMagicCompress(uint8_t const* const src,
+                                         int const oldsize, int* const size,
+                                         int const flag);
+
+std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
+                                           int const p_big_endian);
 
 /**
  * @namespace yaze::gfx::lc_lz2
@@ -74,7 +82,7 @@ struct CompressionPiece {
   std::string argument;
   std::shared_ptr<CompressionPiece> next = nullptr;
   CompressionPiece() = default;
-  CompressionPiece(int cmd, int len, std::string args, int arg_len)
+  CompressionPiece(int cmd, int len, std::string& args, int arg_len)
       : command(cmd), length(len), argument_length(arg_len), argument(args) {}
 };
 using CompressionPiece = struct CompressionPiece;
@@ -138,30 +146,32 @@ void CompressionCommandAlternativeV2(const uchar* data,
 
 /**
  * @brief Compresses a buffer of data using the LC_LZ2 algorithm.
- * \deprecated Use Compress and Uncompress instead.
+ * \deprecated Use HyruleMagicDecompress instead.
  */
-absl::StatusOr<std::vector<uint8_t>> CompressV2(const uchar* data, const int start,
-                                 const int length, int mode = 1,
-                                 bool check = false);
+absl::StatusOr<std::vector<uint8_t>> CompressV2(const uchar* data,
+                                                const int start,
+                                                const int length, int mode = 1,
+                                                bool check = false);
 
-absl::StatusOr<std::vector<uint8_t>> CompressGraphics(const uchar* data, const int pos,
-                                       const int length);
-absl::StatusOr<std::vector<uint8_t>> CompressOverworld(const uchar* data, const int pos,
-                                        const int length);
-absl::StatusOr<std::vector<uint8_t>> CompressOverworld(const std::vector<uint8_t> data,
-                                        const int pos, const int length);
+absl::StatusOr<std::vector<uint8_t>> CompressGraphics(const uchar* data,
+                                                      const int pos,
+                                                      const int length);
+absl::StatusOr<std::vector<uint8_t>> CompressOverworld(const uchar* data,
+                                                       const int pos,
+                                                       const int length);
+absl::StatusOr<std::vector<uint8_t>> CompressOverworld(
+    const std::vector<uint8_t> data, const int pos, const int length);
 
 absl::StatusOr<CompressionPiecePointer> SplitCompressionPiece(
     CompressionPiecePointer& piece, int mode);
 
-std::vector<uint8_t> CreateCompressionString(CompressionPiecePointer& start, int mode);
+std::vector<uint8_t> CreateCompressionString(CompressionPiecePointer& start,
+                                             int mode);
 
 absl::Status ValidateCompressionResult(CompressionPiecePointer& chain_head,
                                        int mode, int start, int src_data_pos);
 
 CompressionPiecePointer MergeCopy(CompressionPiecePointer& start);
-
-// Compression V3
 
 struct CompressionContext {
   std::vector<uint8_t> data;
@@ -209,42 +219,35 @@ void FinalizeCompression(CompressionContext& context);
 
 /**
  * @brief Compresses a buffer of data using the LC_LZ2 algorithm.
- * \deprecated Use Compress and Uncompress instead.
+ * \deprecated Use HyruleMagicCompress
  */
-absl::StatusOr<std::vector<uint8_t>> CompressV3(const std::vector<uint8_t>& data,
-                                 const int start, const int length,
-                                 int mode = 1, bool check = false);
-
-// Hyrule Magic
-uint8_t* Compress(uint8_t const* const src, int const oldsize, int* const size,
-                  int const flag);
-
-uint8_t* Uncompress(uint8_t const* src, int* const size,
-                    int const p_big_endian);
-
-// Decompression
+absl::StatusOr<std::vector<uint8_t>> CompressV3(
+    const std::vector<uint8_t>& data, const int start, const int length,
+    int mode = 1, bool check = false);
 
 std::string SetBuffer(const std::vector<uint8_t>& data, int src_pos,
                       int comp_accumulator);
 std::string SetBuffer(const uchar* data, int src_pos, int comp_accumulator);
-void memfill(const uchar* data, std::vector<uint8_t>& buffer, int buffer_pos, int offset,
-             int length);
+void memfill(const uchar* data, std::vector<uint8_t>& buffer, int buffer_pos,
+             int offset, int length);
 
 /**
  * @brief Decompresses a buffer of data using the LC_LZ2 algorithm.
- * \deprecated Use Compress and Uncompress instead.
+ * @note Works well for graphics but not overworld data. Prefer Hyrule Magic
+ * routines for overworld data.
  */
 absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uchar* data, int offset,
-                                   int size = 0x800, int mode = 1);
-absl::StatusOr<std::vector<uint8_t>> DecompressGraphics(const uchar* data, int pos, int size);
-absl::StatusOr<std::vector<uint8_t>> DecompressOverworld(const uchar* data, int pos, int size);
-absl::StatusOr<std::vector<uint8_t>> DecompressOverworld(const std::vector<uint8_t> data,
-                                          int pos, int size);
+                                                  int size = 0x800,
+                                                  int mode = 1);
+absl::StatusOr<std::vector<uint8_t>> DecompressGraphics(const uchar* data,
+                                                        int pos, int size);
+absl::StatusOr<std::vector<uint8_t>> DecompressOverworld(const uchar* data,
+                                                         int pos, int size);
+absl::StatusOr<std::vector<uint8_t>> DecompressOverworld(
+    const std::vector<uint8_t> data, int pos, int size);
 
 }  // namespace lc_lz2
-
 }  // namespace gfx
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_GFX_COMPRESSION_H
