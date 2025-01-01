@@ -132,7 +132,6 @@ absl::StatusOr<Tilesheet> CreateTilesheetFromGraphicsBuffer(
     int sheet_id);
 
 }  // namespace gfx
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_GFX_TILESHEET_H
