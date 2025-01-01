@@ -244,7 +244,6 @@ void BitmapCanvasPipeline(gui::Canvas &canvas, const gfx::Bitmap &bitmap,
                           bool scrollbar, int canvas_id);
 
 } // namespace gui
-
 } // namespace yaze
 
 #endif
