@@ -1,8 +1,10 @@
 <map id="yaze::zelda3::Overworld::AssembleMap16Tiles" name="yaze::zelda3::Overworld::AssembleMap16Tiles">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,161,76"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx.html#aa5ae49b02472150a2ad972abf1f7d35a" title=" " alt="" coords="210,5,357,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,38,195,32,196,37,162,44"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="209,79,358,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="162,67,194,73,193,78,161,72"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="250,80,243,70,247,60,261,54,283,52,308,55,321,62,318,66,306,60,283,57,262,59,251,64,249,69,254,77"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,161,88"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1ExperimentFlags.html#a98e30d2636e67e3d74a45094733101e9" title=" " alt="" coords="209,5,413,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,48,233,32,234,37,162,53"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gfx.html#aa5ae49b02472150a2ad972abf1f7d35a" title=" " alt="" coords="237,55,384,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="161,65,222,65,222,70,161,70"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="236,128,386,154"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="149,86,254,120,253,125,147,91"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="273,129,266,119,270,110,285,103,311,101,339,104,353,111,351,116,337,109,311,107,287,109,274,113,271,119,277,126"/>
 </map>
