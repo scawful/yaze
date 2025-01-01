@@ -35,7 +35,7 @@ namespace editor {
  * variable points to the currently active editor in the tab view.
  *
  */
-class EditorManager : public SharedRom, public core::ExperimentFlags {
+class EditorManager : public SharedRom {
  public:
   EditorManager() {
     current_editor_ = &overworld_editor_;

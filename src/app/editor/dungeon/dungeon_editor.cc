@@ -77,7 +77,7 @@ absl::Status DungeonEditor::Initialize() {
     rooms_.emplace_back(zelda3::Room(/*room_id=*/i));
     rooms_[i].LoadHeader();
     rooms_[i].LoadRoomFromROM();
-    if (flags()->kDrawDungeonRoomGraphics) {
+    if (core::ExperimentFlags::get().kDrawDungeonRoomGraphics) {
       rooms_[i].LoadRoomGraphics();
     }
 

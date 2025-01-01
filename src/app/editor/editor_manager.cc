@@ -683,7 +683,7 @@ void EditorManager::LoadRom() {
 }
 
 void EditorManager::SaveRom() {
-  if (flags()->kSaveDungeonMaps) {
+  if (core::ExperimentFlags::get().kSaveDungeonMaps) {
     status_ = screen_editor_.SaveDungeonMaps();
     RETURN_VOID_IF_ERROR(status_);
   }

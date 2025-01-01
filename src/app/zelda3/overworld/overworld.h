@@ -110,7 +110,7 @@ constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
  * This class is responsible for loading and saving the overworld data,
  * as well as creating the tilesets and tilemaps for the overworld.
  */
-class Overworld : public SharedRom, public core::ExperimentFlags {
+class Overworld : public SharedRom {
  public:
   absl::Status Load(Rom &rom);
   absl::Status LoadOverworldMaps();

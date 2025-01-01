@@ -1803,7 +1803,7 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
 
 void Cpu::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
                           bool immediate, bool accumulator_mode) {
-  if (flags()->kLogInstructions) {
+  if (core::ExperimentFlags::get().kLogInstructions) {
     std::ostringstream oss;
     oss << "$" << std::uppercase << std::setw(2) << std::setfill('0')
         << static_cast<int>(PB) << ":" << std::hex << PC << ": 0x"

@@ -150,7 +150,7 @@ absl::Status Rom::SaveAllGraphicsData() {
       final_data = gfx::Bpp8SnesToIndexed(sheet_data, 8);
       int size = 0;
       if (compressed) {
-        auto compressed_data = gfx::lc_lz2::Compress(
+        auto compressed_data = gfx::HyruleMagicCompress(
             final_data.data(), final_data.size(), &size, 1);
         for (int j = 0; j < size; j++) {
           sheet_data[j] = compressed_data[j];
@@ -315,9 +315,12 @@ absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
   }
 
   // Run the other save functions
-  if (flags()->kSaveAllPalettes) RETURN_IF_ERROR(SaveAllPalettes());
-  if (flags()->kSaveGfxGroups) RETURN_IF_ERROR(SaveGroupsToRom());
-  if (flags()->kSaveGraphicsSheet) RETURN_IF_ERROR(SaveAllGraphicsData());
+  if (core::ExperimentFlags::get().kSaveAllPalettes)
+    RETURN_IF_ERROR(SaveAllPalettes());
+  if (core::ExperimentFlags::get().kSaveGfxGroups)
+    RETURN_IF_ERROR(SaveGroupsToRom());
+  if (core::ExperimentFlags::get().kSaveGraphicsSheet)
+    RETURN_IF_ERROR(SaveAllGraphicsData());
 
   if (save_new) {
     // Create a file of the same name and append the date between the filename

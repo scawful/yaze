@@ -621,7 +621,7 @@ void OverworldEditor::CheckForMousePan() {
 
 void OverworldEditor::DrawOverworldCanvas() {
   if (all_gfx_loaded_) {
-    if (flags()->overworld.kLoadCustomOverworld) {
+    if (core::ExperimentFlags::get().overworld.kLoadCustomOverworld) {
       DrawCustomOverworldMapSettings();
     } else {
       DrawOverworldMapSettings();
@@ -1009,22 +1009,22 @@ void OverworldEditor::DrawOverworldSprites() {
 }
 
 absl::Status OverworldEditor::Save() {
-  if (flags()->overworld.kSaveOverworldMaps) {
+  if (core::ExperimentFlags::get().overworld.kSaveOverworldMaps) {
     RETURN_IF_ERROR(overworld_.CreateTile32Tilemap());
     RETURN_IF_ERROR(overworld_.SaveMap32Tiles());
     RETURN_IF_ERROR(overworld_.SaveMap16Tiles());
     RETURN_IF_ERROR(overworld_.SaveOverworldMaps());
   }
-  if (flags()->overworld.kSaveOverworldEntrances) {
+  if (core::ExperimentFlags::get().overworld.kSaveOverworldEntrances) {
     RETURN_IF_ERROR(overworld_.SaveEntrances());
   }
-  if (flags()->overworld.kSaveOverworldExits) {
+  if (core::ExperimentFlags::get().overworld.kSaveOverworldExits) {
     RETURN_IF_ERROR(overworld_.SaveExits());
   }
-  if (flags()->overworld.kSaveOverworldItems) {
+  if (core::ExperimentFlags::get().overworld.kSaveOverworldItems) {
     RETURN_IF_ERROR(overworld_.SaveItems());
   }
-  if (flags()->overworld.kSaveOverworldProperties) {
+  if (core::ExperimentFlags::get().overworld.kSaveOverworldProperties) {
     RETURN_IF_ERROR(overworld_.SaveMapProperties());
   }
   return absl::OkStatus();
@@ -1082,7 +1082,7 @@ absl::Status OverworldEditor::LoadGraphics() {
         overworld_.current_map_bitmap_data(), maps_bmp_[i], palette));
   }
 
-  if (flags()->overworld.kDrawOverworldSprites) {
+  if (core::ExperimentFlags::get().overworld.kDrawOverworldSprites) {
     RETURN_IF_ERROR(LoadSpriteGraphics());
   }
 
