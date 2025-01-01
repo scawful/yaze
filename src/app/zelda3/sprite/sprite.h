@@ -390,7 +390,6 @@ class Sprite : public GameEntity {
 };
 
 }  // namespace zelda3
-
 }  // namespace yaze
 
 #endif

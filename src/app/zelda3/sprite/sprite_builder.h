@@ -124,7 +124,6 @@ class SpriteBuilder {
 };
 
 }  // namespace zelda3
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_SPRITE_SPRITE_BUILDER_H_

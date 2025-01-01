@@ -256,7 +256,6 @@ class Overworld : public SharedRom {
   std::vector<OverworldItem> all_items_;
   std::vector<std::vector<Sprite>> all_sprites_;
   std::vector<uint64_t> deleted_entrances_;
-
   std::vector<std::vector<uint8_t>> map_data_p1 =
       std::vector<std::vector<uint8_t>>(kNumOverworldMaps);
   std::vector<std::vector<uint8_t>> map_data_p2 =
@@ -264,7 +263,6 @@ class Overworld : public SharedRom {
 
   std::vector<int> map_pointers1_id = std::vector<int>(kNumOverworldMaps);
   std::vector<int> map_pointers2_id = std::vector<int>(kNumOverworldMaps);
-
   std::vector<int> map_pointers1 = std::vector<int>(kNumOverworldMaps);
   std::vector<int> map_pointers2 = std::vector<int>(kNumOverworldMaps);
 

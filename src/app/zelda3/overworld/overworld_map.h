@@ -168,7 +168,6 @@ class OverworldMap : public gfx::GfxContext {
   bool built_ = false;
   bool large_map_ = false;
   bool initialized_ = false;
-
   bool mosaic_ = false;
 
   int index_ = 0;        // Map index

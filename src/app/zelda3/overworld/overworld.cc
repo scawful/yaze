@@ -495,8 +495,6 @@ absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,
   return absl::OkStatus();
 }
 
-// ---------------------------------------------------------------------------
-
 absl::Status Overworld::Save(Rom &rom) {
   rom_ = rom;
   if (expanded_tile16_) RETURN_IF_ERROR(SaveMap16Expanded())

@@ -36,7 +36,6 @@ static const std::string kOverlordNames[] = {
 };
 
 }
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_SPRITE_OVERLORD_H

@@ -336,8 +336,6 @@ void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
       rom_[OverworldCustomSubscreenOverlayArray + (index_ * 2)];
 }
 
-// ============================================================================
-
 void OverworldMap::LoadMainBlocksetId() {
   if (parent_ < 0x40) {
     main_gfx_id_ = 0x20;
