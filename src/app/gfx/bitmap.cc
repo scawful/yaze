@@ -51,7 +51,7 @@ void PngReadCallback(png_structp png_ptr, png_bytep outBytes,
 
 }  // namespace png_internal
 
-bool ConvertSurfaceToPNG(SDL_Surface *surface, std::vector<uint8_t> &buffer) {
+bool ConvertSurfaceToPng(SDL_Surface *surface, std::vector<uint8_t> &buffer) {
   png_structp png_ptr = png_create_write_struct("1.6.40", NULL, NULL, NULL);
   if (!png_ptr) {
     SDL_Log("Failed to create PNG write struct");
@@ -187,22 +187,14 @@ void ConvertPngToSurface(const std::vector<uint8_t> &png_data,
 }
 
 std::vector<uint8_t> Bitmap::GetPngData() {
-  ConvertSurfaceToPNG(surface_.get(), png_data_);
-  return png_data_;
+  std::vector<uint8_t> png_data;
+  ConvertSurfaceToPng(surface_.get(), png_data);
+  return png_data;
 }
 
 #endif  // YAZE_LIB_PNG
 
 namespace {
-
-void GrayscalePalette(SDL_Palette *palette) {
-  for (int i = 0; i < 8; i++) {
-    palette->colors[i].r = i * 31;
-    palette->colors[i].g = i * 31;
-    palette->colors[i].b = i * 31;
-  }
-}
-
 Uint32 GetSnesPixelFormat(int format) {
   switch (format) {
     case 0:
@@ -224,6 +216,11 @@ void Bitmap::SaveSurfaceToFile(std::string_view filename) {
 
 Bitmap::Bitmap(int width, int height, int depth, int data_size) {
   Create(width, height, depth, std::vector<uint8_t>(data_size, 0));
+}
+
+void Bitmap::Create(int width, int height, int depth, std::span<uint8_t> data) {
+  data_ = std::vector<uint8_t>(data.begin(), data.end());
+  Create(width, height, depth, data_);
 }
 
 void Bitmap::Create(int width, int height, int depth,
@@ -482,5 +479,4 @@ void Bitmap::WriteColor(int position, const ImVec4 &color) {
 }
 
 }  // namespace gfx
-
 }  // namespace yaze
