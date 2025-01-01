@@ -94,6 +94,7 @@ class Bitmap {
   /**
    * @brief Creates a bitmap object with the provided graphical data.
    */
+  void Create(int width, int height, int depth, std::span<uint8_t> data);
   void Create(int width, int height, int depth,
               const std::vector<uint8_t> &data);
   void Create(int width, int height, int depth, int format,
@@ -138,15 +139,6 @@ class Bitmap {
     modified_ = true;
   }
 
-  void WriteWordToPixel(int position, uint16_t value) {
-    if (pixel_data_ == nullptr) {
-      pixel_data_ = data_.data();
-    }
-    pixel_data_[position] = value & 0xFF;
-    pixel_data_[position + 1] = (value >> 8) & 0xFF;
-    modified_ = true;
-  }
-
   void WriteColor(int position, const ImVec4 &color);
 
   void Cleanup() {
@@ -174,7 +166,6 @@ class Bitmap {
   auto size() const { return data_size_; }
   auto data() const { return data_.data(); }
   auto &mutable_data() { return data_; }
-  auto mutable_pixel_data() { return pixel_data_; }
   auto surface() const { return surface_.get(); }
   auto mutable_surface() { return surface_.get(); }
   auto converted_surface() const { return converted_surface_.get(); }
@@ -202,8 +193,6 @@ class Bitmap {
   uint8_t *pixel_data_ = nullptr;
   std::vector<uint8_t> data_;
 
-  std::vector<uint8_t> png_data_;
-
   gfx::SnesPalette palette_;
   std::shared_ptr<SDL_Texture> texture_ = nullptr;
   std::shared_ptr<SDL_Surface> surface_ = nullptr;
@@ -213,7 +202,6 @@ class Bitmap {
 using BitmapTable = std::unordered_map<int, gfx::Bitmap>;
 
 }  // namespace gfx
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_GFX_BITMAP_H
