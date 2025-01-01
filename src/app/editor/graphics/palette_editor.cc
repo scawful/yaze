@@ -8,7 +8,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 using ImGui::AcceptDragDropPayload;
@@ -472,5 +471,4 @@ absl::Status PaletteEditor::ResetColorToOriginal(
 }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

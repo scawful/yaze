@@ -1,16 +1,10 @@
 #include "app/emu/memory/memory.h"
 
 #include <cstdint>
-#include <iostream>
-#include <string>
 #include <vector>
 
-#include "imgui/imgui.h"
-
 namespace yaze {
-namespace app {
 namespace emu {
-namespace memory {
 
 void MemoryImpl::Initialize(const std::vector<uint8_t>& rom_data,
                             bool verbose) {
@@ -23,13 +17,9 @@ void MemoryImpl::Initialize(const std::vector<uint8_t>& rom_data,
   rom_.resize(rom_size_);
 
   // Copy memory into rom_
-  for (size_t i = 0; i < rom_size_; i++) {
-    rom_[i] = rom_data[i];
-  }
+  std::copy(rom_data.begin(), rom_data.begin() + rom_size_, rom_.begin());
   ram_.resize(sram_size_);
-  for (size_t i = 0; i < sram_size_; i++) {
-    ram_[i] = 0;
-  }
+  std::fill(ram_.begin(), ram_.end(), 0);
 
   // Clear memory
   memory_.resize(0x1000000);  // 16 MB
@@ -165,7 +155,5 @@ uint32_t MemoryImpl::GetMappedAddress(uint32_t address) const {
   return address;  // Return the original address if no mapping is defined
 }
 
-}  // namespace memory
 }  // namespace emu
-}  // namespace app
 }  // namespace yaze

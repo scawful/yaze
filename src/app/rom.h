@@ -27,8 +27,6 @@
 #include "app/gfx/snes_tile.h"
 
 namespace yaze {
-namespace app {
-
 /**
  * @brief Different versions of the game supported by the Rom class.
  */
@@ -48,10 +46,10 @@ struct VersionConstants {
   uint32_t kOverworldGfxGroups2;
   uint32_t kCompressedAllMap32PointersHigh;
   uint32_t kCompressedAllMap32PointersLow;
-  uint32_t overworldMapPaletteGroup;
-  uint32_t overlayPointers;
-  uint32_t overlayPointersBank;
-  uint32_t overworldTilesType;
+  uint32_t kOverworldMapPaletteGroup;
+  uint32_t kOverlayPointers;
+  uint32_t kOverlayPointersBank;
+  uint32_t kOverworldTilesType;
   uint32_t kOverworldGfxPtr1;
   uint32_t kOverworldGfxPtr2;
   uint32_t kOverworldGfxPtr3;
@@ -74,10 +72,10 @@ static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
          0x6073,   // kOverworldGfxGroups2
          0x1794D,  // kCompressedAllMap32PointersHigh
          0x17B2D,  // kCompressedAllMap32PointersLow
-         0x75504,  // overworldMapPaletteGroup
-         0x77664,  // overlayPointers
-         0x0E,     // overlayPointersBank
-         0x71459,  // overworldTilesType
+         0x75504,  // kOverworldMapPaletteGroup
+         0x77664,  // kOverlayPointers
+         0x0E,     // kOverlayPointersBank
+         0x71459,  // kOverworldTilesType
          0x4F80,   // kOverworldGfxPtr1
          0x505F,   // kOverworldGfxPtr2
          0x513E,   // kOverworldGfxPtr3
@@ -95,10 +93,10 @@ static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
          0x60B3,   // kOverworldGfxGroups2
          0x176B1,  // kCompressedAllMap32PointersHigh
          0x17891,  // kCompressedAllMap32PointersLow
-         0x67E74,  // overworldMapPaletteGroup
-         0x3FAF4,  // overlayPointers
-         0x07,     // overlayPointersBank
-         0x7FD94,  // overworldTilesType
+         0x67E74,  // kOverworldMapPaletteGroup
+         0x3FAF4,  // kOverlayPointers
+         0x07,     // kOverlayPointersBank
+         0x7FD94,  // kOverworldTilesType
          0x4FC0,   // kOverworldGfxPtr1
          0x509F,   // kOverworldGfxPtr2
          0x517E,   // kOverworldGfxPtr3
@@ -133,18 +131,8 @@ constexpr uint32_t kMaxGraphics = 0xC3FB5;
 /**
  * @brief The Rom class is used to load, save, and modify Rom data.
  */
-class Rom : public core::ExperimentFlags {
+class Rom {
  public:
-  /**
-   * @brief Loads 2bpp graphics from Rom data.
-   *
-   * This function loads 2bpp graphics from Rom data by iterating over a list of
-   * sheet IDs, decompressing the sheet data, converting it to 8bpp format, and
-   * appending the converted sheet data to a byte vector.
-   *
-   */
-  absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics();
-
   /**
    * @brief Loads the players 4bpp graphics sheet from Rom data.
    */
@@ -340,9 +328,7 @@ class Rom : public core::ExperimentFlags {
           value, addr));
     }
     rom_data_[addr] = value;
-    std::string log_str = absl::StrFormat("WriteByte: %#06X: %s", addr,
-                                          core::UppercaseHexByte(value).data());
-    core::Logger::log(log_str);
+    core::logf("WriteByte: %#06X: %s", addr, core::HexByte(value).data());
     return absl::OkStatus();
   }
 
@@ -355,8 +341,7 @@ class Rom : public core::ExperimentFlags {
     }
     rom_data_[addr] = (uint8_t)(value & 0xFF);
     rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
-    core::Logger::log(absl::StrFormat("WriteWord: %#06X: %s", addr,
-                                      core::UppercaseHexWord(value)));
+    core::logf("WriteWord: %#06X: %s", addr, core::HexWord(value).data());
     return absl::OkStatus();
   }
 
@@ -369,8 +354,7 @@ class Rom : public core::ExperimentFlags {
     }
     rom_data_[addr] = (uint8_t)(value & 0xFF);
     rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
-    core::Logger::log(absl::StrFormat("WriteShort: %#06X: %s", addr,
-                                      core::UppercaseHexWord(value)));
+    core::logf("WriteShort: %#06X: %s", addr, core::HexWord(value).data());
     return absl::OkStatus();
   }
 
@@ -384,8 +368,7 @@ class Rom : public core::ExperimentFlags {
     rom_data_[addr] = (uint8_t)(value & 0xFF);
     rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
     rom_data_[addr + 2] = (uint8_t)((value >> 16) & 0xFF);
-    core::Logger::log(absl::StrFormat("WriteLong: %#06X: %s", addr,
-                                      core::UppercaseHexLong(value)));
+    core::logf("WriteLong: %#06X: %s", addr, core::HexLong(value).data());
     return absl::OkStatus();
   }
 
@@ -399,8 +382,7 @@ class Rom : public core::ExperimentFlags {
     for (int i = 0; i < static_cast<int>(data.size()); i++) {
       rom_data_[addr + i] = data[i];
     }
-    core::Logger::log(absl::StrFormat("WriteVector: %#06X: %s", addr,
-                                      core::UppercaseHexByte(data[0])));
+    core::logf("WriteVector: %#06X: %s", addr, core::HexByte(data[0]).data());
     return absl::OkStatus();
   }
 
@@ -409,8 +391,7 @@ class Rom : public core::ExperimentFlags {
                    ((color.snes() & 0x1F) << 10) | (color.snes() & 0x7C00);
 
     // Write the 16-bit color value to the ROM at the specified address
-    core::Logger::log(absl::StrFormat("WriteColor: %#06X: %s", address,
-                                      core::UppercaseHexWord(bgr)));
+    core::logf("WriteColor: %#06X: %s", address, core::HexWord(bgr).data());
     return WriteShort(address, bgr);
   }
 
@@ -458,9 +439,12 @@ class Rom : public core::ExperimentFlags {
 
   auto title() const { return title_; }
   auto size() const { return size_; }
+  auto data() const { return rom_data_.data(); }
+  auto mutable_data() { return rom_data_.data(); }
+
   auto begin() { return rom_data_.begin(); }
   auto end() { return rom_data_.end(); }
-  auto data() { return rom_data_.data(); }
+
   auto vector() const { return rom_data_; }
   auto version() const { return version_; }
   auto filename() const { return filename_; }
@@ -571,6 +555,16 @@ class Rom : public core::ExperimentFlags {
 };
 
 /**
+ * @brief Loads 2bpp graphics from Rom data.
+ *
+ * This function loads 2bpp graphics from Rom data by iterating over a list of
+ * sheet IDs, decompressing the sheet data, converting it to 8bpp format, and
+ * appending the converted sheet data to a byte vector.
+ *
+ */
+absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom& rom);
+
+/**
  * @brief A class to hold a shared pointer to a Rom object.
  */
 class SharedRom {
@@ -597,7 +591,6 @@ class SharedRom {
   static std::shared_ptr<Rom> shared_rom_;
 };
 
-}  // namespace app
 }  // namespace yaze
 
 #endif

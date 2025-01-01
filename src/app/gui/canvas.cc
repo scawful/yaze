@@ -12,7 +12,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace gui {
 
 using core::Renderer;
@@ -856,5 +855,4 @@ void BitmapCanvasPipeline(gui::Canvas &canvas, const gfx::Bitmap &bitmap,
 }
 
 }  // namespace gui
-}  // namespace app
 }  // namespace yaze

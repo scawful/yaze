@@ -3,13 +3,12 @@
 
 #include <string>
 
-#include "ImGuiColorTextEdit/TextEditor.h"
 #include "app/core/common.h"
 #include "app/editor/editor.h"
+#include "app/gui/modules/text_editor.h"
 #include "app/gui/style.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 /**
@@ -69,7 +68,6 @@ class AssemblyEditor : public Editor {
 };
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif

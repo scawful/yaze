@@ -1,9 +1,8 @@
 #include "app/zelda3/dungeon/object_renderer.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
-namespace dungeon {
+
 
 void DungeonObjectRenderer::LoadObject(uint32_t routine_ptr,
                                        std::array<uint8_t, 16>& sheet_ids) {
@@ -112,7 +111,8 @@ void DungeonObjectRenderer::UpdateObjectBitmap() {
   bitmap_.Create(256, 256, 8, tilemap_);
 }
 
-}  // namespace dungeon
+
+
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze

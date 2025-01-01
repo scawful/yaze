@@ -1,18 +1,10 @@
 #define SDL_MAIN_HANDLED
 
-#include "yaze.h"
-
 #include <gtest/gtest.h>
 
 #include "absl/debugging/failure_signal_handler.h"
 #include "absl/debugging/symbolize.h"
 #include "test/integration/test_editor.h"
-
-namespace yaze {
-namespace test {
-
-}  // namespace test
-}  // namespace yaze
 
 int main(int argc, char* argv[]) {
   absl::InitializeSymbolizer(argv[0]);

@@ -4,7 +4,6 @@
 #include <string>
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 
 static const std::string kOverlordNames[] = {
@@ -37,7 +36,6 @@ static const std::string kOverlordNames[] = {
 };
 
 }
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_SPRITE_OVERLORD_H

@@ -2,22 +2,17 @@
 
 #include <gmock/gmock.h>
 
-#include "app/emu/cpu/clock.h"
-#include "app/emu/memory/memory.h"
 #include "test/mocks/mock_memory.h"
 
 namespace yaze {
 namespace test {
-namespace emu {
 
-using yaze::app::emu::Clock;
-using yaze::app::emu::memory::MockClock;
-using yaze::app::emu::memory::MockMemory;
-using yaze::app::emu::video::BackgroundMode;
-using yaze::app::emu::video::PpuInterface;
-using yaze::app::emu::video::SpriteAttributes;
-using yaze::app::emu::video::Tilemap;
-using yaze::app::gfx::Bitmap;
+using yaze::emu::MockClock;
+using yaze::emu::MockMemory;
+using yaze::emu::BackgroundMode;
+using yaze::emu::PpuInterface;
+using yaze::emu::SpriteAttributes;
+using yaze::emu::Tilemap;
 
 /**
  * @brief Mock Ppu class for testing
@@ -57,6 +52,5 @@ class PpuTest : public ::testing::Test {
   }
 };
 
-}  // namespace emu
 }  // namespace test
 }  // namespace yaze

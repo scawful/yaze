@@ -1,11 +1,11 @@
 #ifndef YAZE_APP_EDITOR_DUNGEONEDITOR_H
 #define YAZE_APP_EDITOR_DUNGEONEDITOR_H
 
-#include "app/core/common.h"
 #include "absl/container/flat_hash_map.h"
+#include "app/core/common.h"
+#include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/graphics/palette_editor.h"
-#include "app/editor/editor.h"
 #include "app/gui/canvas.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
@@ -14,7 +14,6 @@
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 constexpr ImGuiTabItemFlags kDungeonTabFlags =
@@ -40,9 +39,7 @@ constexpr ImGuiTableFlags kDungeonTableFlags =
  * tile selector, and object renderer. Additionally, it handles loading room
  * entrances, calculating usage statistics, and rendering set usage.
  */
-class DungeonEditor : public Editor,
-                      public SharedRom,
-                      public core::ExperimentFlags {
+class DungeonEditor : public Editor, public SharedRom {
  public:
   DungeonEditor() { type_ = EditorType::kDungeon; }
 
@@ -120,9 +117,9 @@ class DungeonEditor : public Editor,
   std::array<gfx::Bitmap, kNumGfxSheets> graphics_bin_;
 
   std::vector<gfx::Bitmap*> room_gfx_sheets_;
-  std::vector<zelda3::dungeon::Room> rooms_;
-  std::vector<zelda3::dungeon::RoomEntrance> entrances_;
-  zelda3::dungeon::DungeonObjectRenderer object_renderer_;
+  std::vector<zelda3::Room> rooms_;
+  std::vector<zelda3::RoomEntrance> entrances_;
+  zelda3::DungeonObjectRenderer object_renderer_;
 
   absl::flat_hash_map<uint16_t, int> spriteset_usage_;
   absl::flat_hash_map<uint16_t, int> blockset_usage_;
@@ -143,7 +140,6 @@ class DungeonEditor : public Editor,
 };
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif

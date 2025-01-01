@@ -1,30 +1,21 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLDEDITOR_H
 #define YAZE_APP_EDITOR_OVERWORLDEDITOR_H
 
-#include <cmath>
-#include <unordered_map>
-
-#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
-#include "absl/status/statusor.h"
-#include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/graphics/tile16_editor.h"
-#include "app/editor/overworld/entity.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
-#include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
-#include "app/gui/icons.h"
+#include "app/gui/input.h"
 #include "app/gui/zeml.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 constexpr uint k4BPP = 4;
@@ -65,32 +56,6 @@ constexpr absl::string_view kTileSelectorTab = "##TileSelectorTabBar";
 constexpr absl::string_view kOWEditTable = "##OWEditTable";
 constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
 
-constexpr int kEntranceTileTypePtrLow = 0xDB8BF;
-constexpr int kEntranceTileTypePtrHigh = 0xDB917;
-constexpr int kNumEntranceTileTypes = 0x2C;
-
-class EntranceContext {
- public:
-  absl::Status LoadEntranceTileTypes(Rom& rom) {
-    int offset_low = kEntranceTileTypePtrLow;
-    int offset_high = kEntranceTileTypePtrHigh;
-
-    for (int i = 0; i < kNumEntranceTileTypes; i++) {
-      // Load entrance tile types
-      ASSIGN_OR_RETURN(auto value_low, rom.ReadWord(offset_low + i));
-      entrance_tile_types_low_.push_back(value_low);
-      ASSIGN_OR_RETURN(auto value_high, rom.ReadWord(offset_high + i));
-      entrance_tile_types_low_.push_back(value_high);
-    }
-
-    return absl::OkStatus();
-  }
-
- private:
-  std::vector<uint16_t> entrance_tile_types_low_;
-  std::vector<uint16_t> entrance_tile_types_high_;
-};
-
 /**
  * @class OverworldEditor
  * @brief Manipulates the Overworld and OverworldMap data in a Rom.
@@ -107,15 +72,11 @@ class EntranceContext {
  * Provides access to the GfxGroupEditor and Tile16Editor through popup windows.
  *
  */
-class OverworldEditor : public Editor,
-                        public SharedRom,
-                        public EntranceContext,
-                        public GfxContext,
-                        public core::ExperimentFlags {
+class OverworldEditor : public Editor, public gfx::GfxContext {
  public:
-  OverworldEditor() { type_ = EditorType::kOverworld; }
+  OverworldEditor(Rom& rom) : rom_(rom) { type_ = EditorType::kOverworld; }
 
-  void InitializeZeml();
+  void Initialize();
 
   absl::Status Update() final;
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
@@ -130,9 +91,6 @@ class OverworldEditor : public Editor,
 
   auto overworld() { return &overworld_; }
 
-  /**
-   * @brief
-   */
   int jump_to_tab() { return jump_to_tab_; }
   int jump_to_tab_ = -1;
 
@@ -281,6 +239,8 @@ class OverworldEditor : public Editor,
   std::vector<std::vector<uint8_t>> tile8_individual_data_;
   std::vector<gfx::Bitmap> tile8_individual_;
 
+  Rom& rom_;
+
   Tile16Editor tile16_editor_;
   GfxGroupEditor gfx_group_editor_;
   PaletteEditor palette_editor_;
@@ -296,14 +256,15 @@ class OverworldEditor : public Editor,
   gfx::BitmapTable current_graphics_set_;
   gfx::BitmapTable sprite_previews_;
 
-  zelda3::overworld::Overworld overworld_;
-  zelda3::OWBlockset refresh_blockset_;
+  zelda3::Overworld overworld_;
+  zelda3::OverworldBlockset refresh_blockset_;
 
   zelda3::Sprite current_sprite_;
 
-  zelda3::overworld::OverworldEntrance current_entrance_;
-  zelda3::overworld::OverworldExit current_exit_;
-  zelda3::overworld::OverworldItem current_item_;
+  zelda3::OverworldEntrance current_entrance_;
+  zelda3::OverworldExit current_exit_;
+  zelda3::OverworldItem current_item_;
+  zelda3::OverworldEntranceTileTypes entrance_tiletypes_;
 
   zelda3::GameEntity* current_entity_;
   zelda3::GameEntity* dragged_entity_;
@@ -317,11 +278,15 @@ class OverworldEditor : public Editor,
   gui::Canvas graphics_bin_canvas_{"GraphicsBin", kGraphicsBinCanvasSize,
                                    gui::CanvasGridSize::k16x16};
   gui::Canvas properties_canvas_;
+
+  gui::Table toolset_table_{"##ToolsetTable0", 22, kToolsetTableFlags};
+  gui::Table map_settings_table_{kOWMapTable.data(), 8, kOWMapFlags,
+                                 ImVec2(0, 0)};
+
   gui::zeml::Node layout_node_;
   absl::Status status_;
 };
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif

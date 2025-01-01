@@ -2,12 +2,12 @@
 
 #include <cmath>
 
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/core/platform/file_dialog.h"
 #include "app/core/platform/renderer.h"
-#include "app/editor/graphics/palette_editor.h"
 #include "app/editor/editor.h"
+#include "app/editor/graphics/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -21,7 +21,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 using core::Renderer;
@@ -52,7 +51,7 @@ using ImGui::Text;
 absl::Status Tile16Editor::InitBlockset(
     const gfx::Bitmap& tile16_blockset_bmp, const gfx::Bitmap& current_gfx_bmp,
     const std::vector<gfx::Bitmap>& tile16_individual,
-    uint8_t all_tiles_types[0x200]) {
+    std::array<uint8_t, 0x200>& all_tiles_types) {
   all_tiles_types_ = all_tiles_types;
   tile16_blockset_bmp_ = tile16_blockset_bmp;
   tile16_individual_ = tile16_individual;
@@ -60,7 +59,7 @@ absl::Status Tile16Editor::InitBlockset(
   RETURN_IF_ERROR(LoadTile8());
   ImVector<std::string> tile16_names;
   for (int i = 0; i < 0x200; ++i) {
-    std::string str = core::UppercaseHexByte(all_tiles_types_[i]);
+    std::string str = core::HexByte(all_tiles_types_[i]);
     tile16_names.push_back(str);
   }
 
@@ -251,7 +250,7 @@ absl::Status Tile16Editor::DrawTileEditControls() {
   gui::InputHexByte("Palette", &notify_palette.mutable_get());
   notify_palette.apply_changes();
   if (notify_palette.modified()) {
-    auto palette = palettesets_[current_palette_].main;
+    auto palette = palettesets_[current_palette_].main_;
     auto value = notify_palette.get();
     if (notify_palette.get() > 0x04 && notify_palette.get() < 0x06) {
       palette = palettesets_[current_palette_].aux1;
@@ -364,16 +363,10 @@ absl::Status Tile16Editor::UpdateTile16Transfer() {
 absl::Status Tile16Editor::UpdateTransferTileCanvas() {
   // Create a button for loading another ROM
   if (Button("Load ROM")) {
-    ImGuiFileDialog::Instance()->OpenDialog(
-        "ChooseTransferFileDlgKey", "Open Transfer ROM", ".sfc,.smc", ".");
+    auto file_name = core::FileDialogWrapper::ShowOpenFileDialog();
+    transfer_status_ = transfer_rom_.LoadFromFile(file_name);
+    transfer_started_ = true;
   }
-  gui::FileDialogPipeline(
-      "ChooseTransferFileDlgKey", ".sfc,.smc", std::nullopt, [&]() {
-        std::string filePathName =
-            ImGuiFileDialog::Instance()->GetFilePathName();
-        transfer_status_ = transfer_rom_.LoadFromFile(filePathName);
-        transfer_started_ = true;
-      });
 
   // TODO: Implement tile16 transfer
   if (transfer_started_ && !transfer_blockset_loaded_) {
@@ -400,5 +393,4 @@ absl::Status Tile16Editor::UpdateTransferTileCanvas() {
 }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

@@ -5,7 +5,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 ImGuiKey MapKeyToImGuiKey(char key) {
@@ -139,5 +138,4 @@ void CommandManager::LoadKeybindings(const std::string &filepath) {
 }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

@@ -1,13 +1,12 @@
 #ifndef YAZE_APP_EDITOR_SYSTEM_EXTENSION_MANAGER_H
 #define YAZE_APP_EDITOR_SYSTEM_EXTENSION_MANAGER_H
 
-#include <system/extension.h>
+#include <yaze.h>
 
 #include <string>
 #include <vector>
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 class ExtensionManager {
@@ -23,7 +22,6 @@ class ExtensionManager {
 };
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_SYSTEM_EXTENSION_MANAGER_H

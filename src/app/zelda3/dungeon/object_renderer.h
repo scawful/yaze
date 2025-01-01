@@ -14,9 +14,7 @@
 #include "app/zelda3/dungeon/object_names.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
-namespace dungeon {
 
 struct PseudoVram {
   std::array<uint8_t, 16> sheets;
@@ -43,15 +41,13 @@ class DungeonObjectRenderer : public SharedRom {
   PseudoVram vram_;
 
   emu::ClockImpl clock_;
-  emu::memory::MemoryImpl memory_;
-  emu::memory::CpuCallbacks cpu_callbacks_;
-  emu::video::Ppu ppu{memory_, clock_};
+  emu::MemoryImpl memory_;
+  emu::CpuCallbacks cpu_callbacks_;
+  emu::Ppu ppu{memory_, clock_};
   emu::Cpu cpu{memory_, clock_, cpu_callbacks_};
 
   gfx::Bitmap bitmap_;
 };
 
-}  // namespace dungeon
 }  // namespace zelda3
-}  // namespace app
 }  // namespace yaze

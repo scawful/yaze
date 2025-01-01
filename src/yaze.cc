@@ -1,21 +1,28 @@
 #include "yaze.h"
 
-#include <cstdio>
+#include <iostream>
+#include <sstream>
 
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
+#include "dungeon.h"
+#include "yaze_config.h"
 
-void yaze_check_version(const char* version) {
-  printf("Yaze version: %s\n", version);
-  auto version_check = yaze::app::core::CheckVersion(version);
-  if (!version_check.ok()) {
-    printf("%s\n", version_check.status().message().data());
+void yaze_check_version(const char *version) {
+  std::string current_version;
+  std::stringstream ss;
+  ss << YAZE_VERSION_MAJOR << "." << YAZE_VERSION_MINOR << "."
+     << YAZE_VERSION_PATCH;
+  ss >> current_version;
+
+  if (version != current_version) {
+    std::cout << "Yaze version mismatch: expected " << current_version
+              << ", got " << version << std::endl;
     exit(1);
   }
-  return;
 }
 
-int yaze_init(yaze_editor_context* yaze_ctx) {
+int yaze_init(yaze_editor_context *yaze_ctx) {
   if (yaze_ctx->project->rom_filename == nullptr) {
     return -1;
   }
@@ -28,27 +35,27 @@ int yaze_init(yaze_editor_context* yaze_ctx) {
   return 0;
 }
 
-void yaze_cleanup(yaze_editor_context* yaze_ctx) {
+void yaze_cleanup(yaze_editor_context *yaze_ctx) {
   if (yaze_ctx->rom) {
     yaze_unload_rom(yaze_ctx->rom);
   }
 }
 
-yaze_project yaze_load_project(const char* filename) {
+yaze_project yaze_load_project(const char *filename) {
   yaze_project project;
   project.filepath = filename;
   return project;
 }
 
-z3_rom* yaze_load_rom(const char* filename) {
-  yaze::app::Rom* internal_rom;
-  internal_rom = new yaze::app::Rom();
+z3_rom *yaze_load_rom(const char *filename) {
+  yaze::Rom *internal_rom;
+  internal_rom = new yaze::Rom();
   if (!internal_rom->LoadFromFile(filename).ok()) {
     delete internal_rom;
     return nullptr;
   }
 
-  z3_rom* rom = new z3_rom();
+  z3_rom *rom = new z3_rom();
   rom->filename = filename;
   rom->impl = internal_rom;
   rom->data = internal_rom->data();
@@ -56,9 +63,9 @@ z3_rom* yaze_load_rom(const char* filename) {
   return rom;
 }
 
-void yaze_unload_rom(z3_rom* rom) {
+void yaze_unload_rom(z3_rom *rom) {
   if (rom->impl) {
-    delete static_cast<yaze::app::Rom*>(rom->impl);
+    delete static_cast<yaze::Rom *>(rom->impl);
   }
 
   if (rom) {
@@ -66,7 +73,7 @@ void yaze_unload_rom(z3_rom* rom) {
   }
 }
 
-yaze_bitmap yaze_load_bitmap(const char* filename) {
+yaze_bitmap yaze_load_bitmap(const char *filename) {
   yaze_bitmap bitmap;
   bitmap.width = 0;
   bitmap.height = 0;
@@ -75,7 +82,7 @@ yaze_bitmap yaze_load_bitmap(const char* filename) {
   return bitmap;
 }
 
-snes_color yaze_get_color_from_paletteset(const z3_rom* rom, int palette_set,
+snes_color yaze_get_color_from_paletteset(const z3_rom *rom, int palette_set,
                                           int palette, int color) {
   snes_color color_struct;
   color_struct.red = 0;
@@ -83,10 +90,10 @@ snes_color yaze_get_color_from_paletteset(const z3_rom* rom, int palette_set,
   color_struct.blue = 0;
 
   if (rom->impl) {
-    yaze::app::Rom* internal_rom = static_cast<yaze::app::Rom*>(rom->impl);
+    yaze::Rom *internal_rom = static_cast<yaze::Rom *>(rom->impl);
     auto get_color =
         internal_rom->palette_group()
-            .get_group(yaze::app::gfx::kPaletteGroupAddressesKeys[palette_set])
+            .get_group(yaze::gfx::kPaletteGroupAddressesKeys[palette_set])
             ->palette(palette)
             .GetColor(color);
     if (!get_color.ok()) {
@@ -100,24 +107,33 @@ snes_color yaze_get_color_from_paletteset(const z3_rom* rom, int palette_set,
   return color_struct;
 }
 
-z3_overworld* yaze_load_overworld(const z3_rom* rom) {
+z3_overworld *yaze_load_overworld(const z3_rom *rom) {
   if (rom->impl == nullptr) {
     return nullptr;
   }
 
-  yaze::app::Rom* internal_rom = static_cast<yaze::app::Rom*>(rom->impl);
-  auto internal_overworld = new yaze::app::zelda3::overworld::Overworld();
+  yaze::Rom *internal_rom = static_cast<yaze::Rom *>(rom->impl);
+  auto internal_overworld = new yaze::zelda3::Overworld();
   if (!internal_overworld->Load(*internal_rom).ok()) {
     return nullptr;
   }
 
-  z3_overworld* overworld = new z3_overworld();
+  z3_overworld *overworld = new z3_overworld();
   overworld->impl = internal_overworld;
   int map_id = 0;
-  for (const auto& ow_map : internal_overworld->overworld_maps()) {
+  for (const auto &ow_map : internal_overworld->overworld_maps()) {
     overworld->maps[map_id] = new z3_overworld_map();
     overworld->maps[map_id]->id = map_id;
     map_id++;
   }
   return overworld;
+}
+
+z3_dungeon_room *yaze_load_all_rooms(const z3_rom *rom) {
+  if (rom->impl == nullptr) {
+    return nullptr;
+  }
+  yaze::Rom *internal_rom = static_cast<yaze::Rom *>(rom->impl);
+  z3_dungeon_room *rooms = new z3_dungeon_room[256];
+  return rooms;
 }

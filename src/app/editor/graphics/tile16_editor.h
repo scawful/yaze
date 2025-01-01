@@ -13,18 +13,17 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 /**
  * @brief Popup window to edit Tile16 data
  */
-class Tile16Editor : public GfxContext, public SharedRom {
+class Tile16Editor : public gfx::GfxContext, public SharedRom {
  public:
   absl::Status InitBlockset(const gfx::Bitmap& tile16_blockset_bmp,
                             const gfx::Bitmap& current_gfx_bmp,
                             const std::vector<gfx::Bitmap>& tile16_individual,
-                            uint8_t all_tiles_types[0x200]);
+                            std::array<uint8_t, 0x200>& all_tiles_types);
 
   absl::Status Update();
   absl::Status DrawMenu();
@@ -63,7 +62,7 @@ class Tile16Editor : public GfxContext, public SharedRom {
   bool priority_tile;
   int tile_size;
 
-  uint8_t* all_tiles_types_;
+  std::array<uint8_t, 0x200> all_tiles_types_;
 
   // Tile16 blockset for selecting the tile to edit
   gui::Canvas blockset_canvas_{"blocksetCanvas", ImVec2(0x100, 0x4000),
@@ -91,7 +90,7 @@ class Tile16Editor : public GfxContext, public SharedRom {
   PaletteEditor palette_editor_;
 
   gfx::SnesPalette palette_;
-  zelda3::overworld::Overworld transfer_overworld_;
+  zelda3::Overworld transfer_overworld_;
 
   absl::Status status_;
 
@@ -100,6 +99,5 @@ class Tile16Editor : public GfxContext, public SharedRom {
 };
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 #endif  // YAZE_APP_EDITOR_TILE16EDITOR_H

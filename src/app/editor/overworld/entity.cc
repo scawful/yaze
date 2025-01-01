@@ -5,7 +5,6 @@
 #include "app/gui/style.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 using ImGui::BeginChild;
@@ -92,7 +91,7 @@ void HandleEntityDragging(zelda3::GameEntity *entity, ImVec2 canvas_p0,
       ImGui::SetDragDropPayload("ENTITY_PAYLOAD", &entity,
                                 sizeof(zelda3::GameEntity));
       Text("Moving %s ID: %s", entity_type.c_str(),
-           core::UppercaseHexByte(entity->entity_id_).c_str());
+           core::HexByte(entity->entity_id_).c_str());
       ImGui::EndDragDropSource();
     }
     MoveEntityOnGrid(dragged_entity, canvas_p0, scrolling, free_movement);
@@ -128,7 +127,7 @@ bool DrawEntranceInserterPopup() {
 
 // TODO: Implement deleting OverworldEntrance objects, currently only hides them
 bool DrawOverworldEntrancePopup(
-    zelda3::overworld::OverworldEntrance &entrance) {
+    zelda3::OverworldEntrance &entrance) {
   static bool set_done = false;
   if (set_done) {
     set_done = false;
@@ -178,7 +177,7 @@ void DrawExitInserterPopup() {
   }
 }
 
-bool DrawExitEditorPopup(zelda3::overworld::OverworldExit &exit) {
+bool DrawExitEditorPopup(zelda3::OverworldExit &exit) {
   static bool set_done = false;
   if (set_done) {
     set_done = false;
@@ -317,8 +316,8 @@ void DrawItemInsertPopup() {
     Text("Add Item");
     BeginChild("ScrollRegion", ImVec2(150, 150), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
-    for (size_t i = 0; i < zelda3::overworld::kSecretItemNames.size(); i++) {
-      if (Selectable(zelda3::overworld::kSecretItemNames[i].c_str(),
+    for (size_t i = 0; i < zelda3::kSecretItemNames.size(); i++) {
+      if (Selectable(zelda3::kSecretItemNames[i].c_str(),
                      i == new_item_id)) {
         new_item_id = i;
       }
@@ -341,7 +340,7 @@ void DrawItemInsertPopup() {
 }
 
 // TODO: Implement deleting OverworldItem objects, currently only hides them
-bool DrawItemEditorPopup(zelda3::overworld::OverworldItem &item) {
+bool DrawItemEditorPopup(zelda3::OverworldItem &item) {
   static bool set_done = false;
   if (set_done) {
     set_done = false;
@@ -351,8 +350,8 @@ bool DrawItemEditorPopup(zelda3::overworld::OverworldItem &item) {
     BeginChild("ScrollRegion", ImVec2(150, 150), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
     ImGui::BeginGroup();
-    for (size_t i = 0; i < zelda3::overworld::kSecretItemNames.size(); i++) {
-      if (Selectable(zelda3::overworld::kSecretItemNames[i].c_str(),
+    for (size_t i = 0; i < zelda3::kSecretItemNames.size(); i++) {
+      if (Selectable(zelda3::kSecretItemNames[i].c_str(),
                      item.id_ == i)) {
         item.id_ = i;
       }
@@ -489,5 +488,4 @@ bool DrawSpriteEditorPopup(zelda3::Sprite &sprite) {
 }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

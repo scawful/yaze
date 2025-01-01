@@ -4,16 +4,10 @@
 #include <optional>
 #include <string>
 
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "absl/strings/string_view.h"
-#include "app/gfx/bitmap.h"
-#include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
-#include "app/gui/canvas.h"
-#include "app/gui/color.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
 
 namespace ImGui {
 
@@ -133,7 +127,6 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
 }  // namespace ImGui
 
 namespace yaze {
-namespace app {
 namespace gui {
 
 const int kStepOneHex = 0x01;
@@ -263,24 +256,30 @@ bool InputTileInfo(const char* label, gfx::TileInfo* tile_info) {
 
 ImGuiID GetID(const std::string& id) { return ImGui::GetID(id.c_str()); }
 
-void FileDialogPipeline(absl::string_view display_key,
-                        absl::string_view file_extensions,
-                        std::optional<absl::string_view> button_text,
-                        std::function<void()> callback) {
-  if (button_text.has_value() && ImGui::Button(button_text->data())) {
-    ImGuiFileDialog::Instance()->OpenDialog(display_key.data(), "Choose File",
-                                            file_extensions.data(), ".");
-  }
+void AddTableColumn(Table &table, const std::string &label, GuiElement element) {
+  table.column_labels.push_back(label);
+  table.column_contents.push_back(element);
+}
 
-  if (ImGuiFileDialog::Instance()->Display(
-          display_key.data(), ImGuiWindowFlags_NoCollapse, ImVec2(600, 400))) {
-    if (ImGuiFileDialog::Instance()->IsOk()) {
-      callback();
+void DrawTable(Table& params) {
+  if (ImGui::BeginTable(params.id, params.num_columns, params.flags, params.size)) {
+    for (int i = 0; i < params.num_columns; ++i)
+      ImGui::TableSetupColumn(params.column_labels[i].c_str());
+
+    for (int i = 0; i < params.num_columns; ++i) {
+      ImGui::TableNextColumn();
+      switch (params.column_contents[i].index()) {
+        case 0:
+          std::get<0>(params.column_contents[i])();
+          break;
+        case 1:
+          ImGui::Text("%s", std::get<1>(params.column_contents[i]).c_str());
+          break;
+      }
     }
-    ImGuiFileDialog::Instance()->Close();
+    ImGui::EndTable();
   }
 }
 
 }  // namespace gui
-}  // namespace app
 }  // namespace yaze

@@ -6,7 +6,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 using ImGui::BeginChild;
@@ -79,5 +78,4 @@ absl::Status SettingsEditor::DrawKeyboardShortcuts() {
 }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

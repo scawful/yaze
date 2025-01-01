@@ -11,12 +11,7 @@
 #include "app/rom.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
-namespace video {
-
-using namespace PpuRegisters;
-using namespace memory;
 
 class PpuInterface {
  public:
@@ -259,7 +254,7 @@ struct BackgroundLayer {
 class Ppu : public SharedRom {
  public:
   // Initializes the PPU with the necessary resources and dependencies
-  Ppu(memory::Memory& memory, Clock& clock) : memory_(memory), clock_(clock) {}
+  Ppu(Memory& memory, Clock& clock) : memory_(memory), clock_(clock) {}
 
   // Initialize the frame buffer
   void Init() {
@@ -456,9 +451,7 @@ class Ppu : public SharedRom {
   std::array<BGVOFS, 4> bgvofs_;
 };
 
-}  // namespace video
 }  // namespace emu
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_EMU_PPU_H

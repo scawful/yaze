@@ -1,9 +1,11 @@
 #include "graphics_editor.h"
 
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
+#include <filesystem>
+
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/core/platform/clipboard.h"
+#include "app/core/platform/file_dialog.h"
 #include "app/core/platform/renderer.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/gfx/bitmap.h"
@@ -23,7 +25,6 @@
 #include "imgui_memory_editor.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 using core::Renderer;
@@ -515,22 +516,19 @@ absl::Status GraphicsEditor::DrawCgxImport() {
   gui::TextWithSeparators("Cgx Import");
   InputInt("BPP", &current_bpp_);
 
-  InputText("##CGXFile", cgx_file_name_, sizeof(cgx_file_name_));
+  InputText("##CGXFile", &cgx_file_name_);
   SameLine();
 
-  gui::FileDialogPipeline("ImportCgxKey", ".CGX,.cgx\0", "Open CGX", [this]() {
-    strncpy(cgx_file_path_,
-            ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
-            sizeof(cgx_file_path_));
-    strncpy(cgx_file_name_,
-            ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
-            sizeof(cgx_file_name_));
+  if (ImGui::Button("Open CGX")) {
+    auto filename = core::FileDialogWrapper::ShowOpenFileDialog();
+    cgx_file_name_ = filename;
+    cgx_file_path_ = std::filesystem::absolute(filename).string();
     is_open_ = true;
     cgx_loaded_ = true;
-  });
+  }
 
   if (ImGui::Button("Copy CGX Path")) {
-    ImGui::SetClipboardText(cgx_file_path_);
+    ImGui::SetClipboardText(cgx_file_path_.c_str());
   }
 
   if (ImGui::Button("Load CGX Data")) {
@@ -548,19 +546,15 @@ absl::Status GraphicsEditor::DrawCgxImport() {
 }
 
 absl::Status GraphicsEditor::DrawScrImport() {
-  InputText("##ScrFile", scr_file_name_, sizeof(scr_file_name_));
+  InputText("##ScrFile", &scr_file_name_);
 
-  gui::FileDialogPipeline(
-      "ImportScrKey", ".SCR,.scr,.BAK\0", "Open SCR", [this]() {
-        strncpy(scr_file_path_,
-                ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
-                sizeof(scr_file_path_));
-        strncpy(scr_file_name_,
-                ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
-                sizeof(scr_file_name_));
-        is_open_ = true;
-        scr_loaded_ = true;
-      });
+  if (ImGui::Button("Open SCR")) {
+    auto filename = core::FileDialogWrapper::ShowOpenFileDialog();
+    scr_file_name_ = filename;
+    scr_file_path_ = std::filesystem::absolute(filename).string();
+    is_open_ = true;
+    scr_loaded_ = true;
+  }
 
   InputInt("SCR Mod", &scr_mod_value_);
 
@@ -584,38 +578,35 @@ absl::Status GraphicsEditor::DrawScrImport() {
 
 absl::Status GraphicsEditor::DrawPaletteControls() {
   gui::TextWithSeparators("COL Import");
-  InputText("##ColFile", col_file_name_, sizeof(col_file_name_));
+  InputText("##ColFile", &col_file_name_);
   SameLine();
 
-  gui::FileDialogPipeline(
-      "ImportColKey", ".COL,.col,.BAK,.bak\0", "Open COL", [this]() {
-        strncpy(col_file_path_,
-                ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
-                sizeof(col_file_path_));
-        strncpy(col_file_name_,
-                ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
-                sizeof(col_file_name_));
-        status_ = temp_rom_.LoadFromFile(col_file_path_,
-                                         /*z3_load=*/false);
-        auto col_data_ = gfx::GetColFileData(temp_rom_.data());
-        if (col_file_palette_group_.size() != 0) {
-          col_file_palette_group_.clear();
-        }
-        auto col_file_palette_group_status =
-            gfx::CreatePaletteGroupFromColFile(col_data_);
-        if (col_file_palette_group_status.ok()) {
-          col_file_palette_group_ = col_file_palette_group_status.value();
-        }
-        col_file_palette_ = gfx::SnesPalette(col_data_);
+  if (ImGui::Button("Open COL")) {
+    auto filename = core::FileDialogWrapper::ShowOpenFileDialog();
+    col_file_name_ = filename;
+    col_file_path_ = std::filesystem::absolute(filename).string();
+    status_ = temp_rom_.LoadFromFile(col_file_path_,
+                                     /*z3_load=*/false);
+    auto col_data_ = gfx::GetColFileData(temp_rom_.mutable_data());
+    if (col_file_palette_group_.size() != 0) {
+      col_file_palette_group_.clear();
+    }
+    auto col_file_palette_group_status =
+        gfx::CreatePaletteGroupFromColFile(col_data_);
+    if (col_file_palette_group_status.ok()) {
+      col_file_palette_group_ = col_file_palette_group_status.value();
+    }
+    col_file_palette_ = gfx::SnesPalette(col_data_);
 
-        // gigaleak dev format based code
-        decoded_col_ = gfx::scad_format::DecodeColFile(col_file_path_);
-        col_file_ = true;
-        is_open_ = true;
-      });
+    // gigaleak dev format based code
+    decoded_col_ = gfx::scad_format::DecodeColFile(col_file_path_);
+    col_file_ = true;
+    is_open_ = true;
+  }
+  HOVER_HINT(".COL, .BAK");
 
   if (ImGui::Button("Copy Col Path")) {
-    ImGui::SetClipboardText(col_file_path_);
+    ImGui::SetClipboardText(col_file_path_.c_str());
   }
 
   if (rom()->is_loaded()) {
@@ -636,17 +627,17 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
 absl::Status GraphicsEditor::DrawObjImport() {
   gui::TextWithSeparators("OBJ Import");
 
-  InputText("##ObjFile", obj_file_path_, sizeof(obj_file_path_));
+  InputText("##ObjFile", &obj_file_path_);
   SameLine();
 
-  gui::FileDialogPipeline(
-      "ImportObjKey", ".obj,.OBJ,.bak,.BAK\0", "Open OBJ", [this]() {
-        strncpy(file_path_,
-                ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
-                sizeof(file_path_));
-        status_ = temp_rom_.LoadFromFile(file_path_);
-        is_open_ = true;
-      });
+  if (ImGui::Button("Open OBJ")) {
+    auto filename = core::FileDialogWrapper::ShowOpenFileDialog();
+    obj_file_path_ = std::filesystem::absolute(filename).string();
+    status_ = temp_rom_.LoadFromFile(obj_file_path_);
+    is_open_ = true;
+    obj_loaded_ = true;
+  }
+  HOVER_HINT(".OBJ, .BAK");
 
   return absl::OkStatus();
 }
@@ -654,23 +645,22 @@ absl::Status GraphicsEditor::DrawObjImport() {
 absl::Status GraphicsEditor::DrawTilemapImport() {
   gui::TextWithSeparators("Tilemap Import");
 
-  InputText("##TMapFile", tilemap_file_path_, sizeof(tilemap_file_path_));
+  InputText("##TMapFile", &tilemap_file_path_);
   SameLine();
 
-  gui::FileDialogPipeline(
-      "ImportTilemapKey", ".DAT,.dat,.BIN,.bin,.hex,.HEX\0", "Open Tilemap",
-      [this]() {
-        strncpy(tilemap_file_path_,
-                ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
-                sizeof(tilemap_file_path_));
-        status_ = tilemap_rom_.LoadFromFile(tilemap_file_path_);
+  if (ImGui::Button("Open Tilemap")) {
+    auto filename = core::FileDialogWrapper::ShowOpenFileDialog();
+    tilemap_file_path_ = std::filesystem::absolute(filename).string();
+    status_ = tilemap_rom_.LoadFromFile(tilemap_file_path_);
+    status_ = tilemap_rom_.LoadFromFile(tilemap_file_path_);
 
-        // Extract the high and low bytes from the file.
-        auto decomp_sheet = gfx::lc_lz2::DecompressV2(
-            tilemap_rom_.data(), gfx::lc_lz2::kNintendoMode1);
-        tilemap_loaded_ = true;
-        is_open_ = true;
-      });
+    // Extract the high and low bytes from the file.
+    auto decomp_sheet = gfx::lc_lz2::DecompressV2(tilemap_rom_.data(),
+                                                  gfx::lc_lz2::kNintendoMode1);
+    tilemap_loaded_ = true;
+    is_open_ = true;
+  }
+  HOVER_HINT(".DAT, .BIN, .HEX");
 
   return absl::OkStatus();
 }
@@ -678,30 +668,30 @@ absl::Status GraphicsEditor::DrawTilemapImport() {
 absl::Status GraphicsEditor::DrawFileImport() {
   gui::TextWithSeparators("BIN Import");
 
-  InputText("##ROMFile", file_path_, sizeof(file_path_));
+  InputText("##ROMFile", &file_path_);
   SameLine();
 
-  gui::FileDialogPipeline("ImportDlgKey", ".bin,.hex\0", "Open BIN", [this]() {
-    strncpy(file_path_, ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
-            sizeof(file_path_));
+  if (ImGui::Button("Open BIN")) {
+    auto filename = core::FileDialogWrapper::ShowOpenFileDialog();
+    file_path_ = filename;
     status_ = temp_rom_.LoadFromFile(file_path_);
     is_open_ = true;
-  });
+  }
+  HOVER_HINT(".BIN, .HEX");
 
   if (Button("Copy File Path")) {
-    ImGui::SetClipboardText(file_path_);
+    ImGui::SetClipboardText(file_path_.c_str());
   }
 
   gui::InputHex("BIN Offset", &current_offset_);
   gui::InputHex("BIN Size", &bin_size_);
 
   if (Button("Decompress BIN")) {
-    if (strlen(file_path_) > 0) {
-      RETURN_IF_ERROR(DecompressImportData(bin_size_))
-    } else {
+    if (file_path_.empty()) {
       return absl::InvalidArgumentError(
-          "Please select a file before importing.");
+          "Please select a file before decompressing.");
     }
+    RETURN_IF_ERROR(DecompressImportData(bin_size_))
   }
 
   return absl::OkStatus();
@@ -740,13 +730,12 @@ absl::Status GraphicsEditor::DrawClipboardImport() {
 absl::Status GraphicsEditor::DrawExperimentalFeatures() {
   gui::TextWithSeparators("Experimental");
   if (Button("Decompress Super Donkey Full")) {
-    if (strlen(file_path_) > 0) {
-      RETURN_IF_ERROR(DecompressSuperDonkey())
-    } else {
+    if (file_path_.empty()) {
       return absl::InvalidArgumentError(
           "Please select `super_donkey_1.bin` before "
           "importing.");
     }
+    RETURN_IF_ERROR(DecompressSuperDonkey())
   }
   ImGui::SetItemTooltip(
       "Requires `super_donkey_1.bin` to be imported under the "
@@ -758,7 +747,8 @@ absl::Status GraphicsEditor::DrawMemoryEditor() {
   std::string title = "Memory Editor";
   if (is_open_) {
     static MemoryEditor mem_edit;
-    mem_edit.DrawWindow(title.c_str(), temp_rom_.data(), temp_rom_.size());
+    mem_edit.DrawWindow(title.c_str(), temp_rom_.mutable_data(),
+                        temp_rom_.size());
   }
   return absl::OkStatus();
 }
@@ -844,5 +834,4 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
 }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

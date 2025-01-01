@@ -5,7 +5,6 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
-#include <memory>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -13,7 +12,6 @@
 #include "app/gfx/snes_tile.h"
 
 namespace yaze {
-namespace app {
 namespace gfx {
 namespace scad_format {
 
@@ -279,5 +277,4 @@ absl::Status DecodeObjFile(
 
 }  // namespace scad_format
 }  // namespace gfx
-}  // namespace app
 }  // namespace yaze

@@ -5,7 +5,6 @@
 #include <vector>
 
 namespace yaze {
-namespace app {
 namespace core {
 
 class FileDialogWrapper {
@@ -28,7 +27,6 @@ class FileDialogWrapper {
 };
 
 }  // namespace core
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_CORE_PLATFORM_FILE_DIALOG_H

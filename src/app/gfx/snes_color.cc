@@ -7,7 +7,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace gfx {
 
 constexpr uint16_t SNES_RED_MASK = 32;
@@ -100,5 +99,4 @@ std::vector<SnesColor> GetColFileData(uint8_t* data) {
 }
 
 }  // namespace gfx
-}  // namespace app
 }  // namespace yaze

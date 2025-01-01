@@ -5,12 +5,10 @@
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/rom.h"
-#include "cli/command.h"
+#include "cli/z3ed.h"
 
 namespace yaze {
 namespace cli {
-
-using namespace app;
 
 absl::Status Tile16Transfer::handle(const std::vector<std::string>& arg_vec) {
   // Load the source rom

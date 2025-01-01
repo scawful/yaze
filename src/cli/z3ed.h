@@ -1,5 +1,5 @@
-#ifndef YAZE_CLI_COMMAND_HANDLER_H
-#define YAZE_CLI_COMMAND_HANDLER_H
+#ifndef YAZE_CLI_Z3ED_H
+#define YAZE_CLI_Z3ED_H
 
 #include <cstdint>
 #include <iostream>
@@ -13,7 +13,6 @@
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/rom.h"
-#include "asar-dll-bindings/c/asar.h"
 
 namespace yaze {
 namespace cli {
@@ -48,7 +47,7 @@ class CommandHandler {
   virtual ~CommandHandler() = default;
   virtual absl::Status handle(const std::vector<std::string>& arg_vec) = 0;
 
-  app::Rom rom_;
+  Rom rom_;
 };
 
 class ApplyPatch : public CommandHandler {
@@ -130,7 +129,7 @@ class SnesToPc : public CommandHandler {
     std::stringstream ss(arg.data());
     uint32_t snes_address;
     ss >> std::hex >> snes_address;
-    uint32_t pc_address = app::core::SnesToPc(snes_address);
+    uint32_t pc_address = core::SnesToPc(snes_address);
     std::cout << std::hex << pc_address << std::endl;
     return absl::OkStatus();
   }
@@ -149,7 +148,7 @@ class PcToSnes : public CommandHandler {
     std::stringstream ss(arg.data());
     uint32_t pc_address;
     ss >> std::hex >> pc_address;
-    uint32_t snes_address = app::core::PcToSnes(pc_address);
+    uint32_t snes_address = core::PcToSnes(pc_address);
     ColorModifier blue(ColorCode::FG_BLUE);
     std::cout << "SNES LoROM Address: ";
     std::cout << blue << "$" << std::uppercase << std::hex << snes_address

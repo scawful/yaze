@@ -7,7 +7,6 @@
 #include "app/rom.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 namespace screen {
 
@@ -75,7 +74,7 @@ absl::Status Inventory::Create() {
 absl::Status Inventory::BuildTileset() {
   tilesheets_.reserve(6 * 0x2000);
   for (int i = 0; i < 6 * 0x2000; i++) tilesheets_.push_back(0xFF);
-  ASSIGN_OR_RETURN(tilesheets_, rom()->Load2BppGraphics())
+  ASSIGN_OR_RETURN(tilesheets_, Load2BppGraphics(*rom()))
   std::vector<uint8_t> test;
   for (int i = 0; i < 0x4000; i++) {
     test_.push_back(tilesheets_[i]);
@@ -93,5 +92,5 @@ absl::Status Inventory::BuildTileset() {
 
 }  // namespace screen
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze

@@ -7,7 +7,6 @@
 #include "app/zelda3/overworld/overworld.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 bool IsMouseHoveringOverEntity(const zelda3::GameEntity &entity,
@@ -23,14 +22,14 @@ void HandleEntityDragging(zelda3::GameEntity *entity, ImVec2 canvas_p0,
                           bool free_movement = false);
 
 bool DrawEntranceInserterPopup();
-bool DrawOverworldEntrancePopup(zelda3::overworld::OverworldEntrance &entrance);
+bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance &entrance);
 
 void DrawExitInserterPopup();
-bool DrawExitEditorPopup(zelda3::overworld::OverworldExit &exit);
+bool DrawExitEditorPopup(zelda3::OverworldExit &exit);
 
 void DrawItemInsertPopup();
 
-bool DrawItemEditorPopup(zelda3::overworld::OverworldItem &item);
+bool DrawItemEditorPopup(zelda3::OverworldItem &item);
 
 enum MyItemColumnID {
   MyItemColumnID_ID,
@@ -81,7 +80,6 @@ void DrawSpriteInserterPopup();
 bool DrawSpriteEditorPopup(zelda3::Sprite &sprite);
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_OVERWORLD_ENTITY_H

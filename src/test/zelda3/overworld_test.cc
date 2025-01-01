@@ -10,9 +10,8 @@
 
 namespace yaze {
 namespace test {
-namespace zelda3 {
 
-class OverworldTest : public ::testing::Test, public app::SharedRom {
+class OverworldTest : public ::testing::Test, public SharedRom {
  protected:
   void SetUp() override {
     // Skip tests on Linux for automated github builds
@@ -22,12 +21,12 @@ class OverworldTest : public ::testing::Test, public app::SharedRom {
   }
   void TearDown() override {}
 
-  app::zelda3::overworld::Overworld overworld_;
+  zelda3::Overworld overworld_;
 };
 
 TEST_F(OverworldTest, OverworldLoadNoRomDataError) {
   // Arrange
-  app::Rom rom;
+  Rom rom;
 
   // Act
   auto status = overworld_.Load(rom);
@@ -48,11 +47,10 @@ TEST_F(OverworldTest, OverworldLoadRomDataOk) {
   // Assert
   EXPECT_TRUE(status.ok());
   EXPECT_EQ(overworld_.overworld_maps().size(),
-            app::zelda3::overworld::kNumOverworldMaps);
+            zelda3::kNumOverworldMaps);
   EXPECT_EQ(overworld_.tiles16().size(),
-            app::zelda3::overworld::kNumTile16Individual);
+            zelda3::kNumTile16Individual);
 }
 
-}  // namespace zelda3
 }  // namespace test
 }  // namespace yaze

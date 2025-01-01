@@ -4,19 +4,7 @@ build/
 .vscode/
 disasm/
 src/etc
-src/lib/SDL2
-src/lib/cmake
-src/lib/GL
-src/lib/abseil-cpp
-src/lib/libGLEW.2.2.0.dylib
-src/lib/libGLEW.2.2.dylib
-src/lib/libGLEW.a
-src/lib/libGLEW.dylib
-src/lib/libSDL2_test.a
-src/lib/libSDL2-2.0.0.dylib
-src/lib/libSDL2.a
-src/lib/libSDL2.dylib
-src/lib/libSDL2main.a
+src/lib/
 checks.json
 assets/lib/libasar.dll
 cmake/yaze.plist.in
@@ -30,3 +18,4 @@ src/app/emu/cpu/internal/old_cpu.cc
 build-windows
 src/lib/libpng
 src/lib/zlib
+assets/layouts/ow_toolset.zeml

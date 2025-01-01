@@ -11,7 +11,6 @@
 #include "app/rom.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 const uint8_t kMessageTerminator = 0x7F;
@@ -78,7 +77,7 @@ constexpr int kTextDataEnd = 0xE7FFF;
 constexpr int kNumDictionaryEntries = 97;
 constexpr int kPointersDictionaries = 0x74703;
 
-std::vector<DictionaryEntry> BuildDictionaryEntries(app::Rom* rom);
+std::vector<DictionaryEntry> BuildDictionaryEntries(Rom* rom);
 
 std::string ReplaceAllDictionaryWords(std::string str,
                                       std::vector<DictionaryEntry> dictionary);
@@ -278,7 +277,6 @@ ParsedElement FindMatchingElement(const std::string& str);
 std::string ParseTextDataByte(uint8_t value);
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_MESSAGE_MESSAGE_DATA_H

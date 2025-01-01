@@ -17,11 +17,10 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace gfx {
 
 /**
- * @namespace yaze::app::gfx::palette_group_internal
+ * @namespace yaze::gfx::palette_group_internal
  * @brief Internal functions for loading palettes by group.
  */
 namespace palette_group_internal {
@@ -350,7 +349,7 @@ absl::Status LoadAllPalettes(const std::vector<uint8_t> &rom_data,
   return absl::OkStatus();
 }
 
-}  // namespace gfx
 std::unordered_map<uint8_t, gfx::Paletteset> GfxContext::palettesets_;
-}  // namespace app
+
+}  // namespace gfx
 }  // namespace yaze

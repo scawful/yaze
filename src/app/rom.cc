@@ -23,8 +23,6 @@
 #include "app/gfx/snes_tile.h"
 
 namespace yaze {
-namespace app {
-
 using core::Renderer;
 constexpr int Uncompressed3BPPSize = 0x0600;
 
@@ -36,17 +34,17 @@ int GetGraphicsAddress(const uchar *data, uint8_t addr, uint32_t ptr1,
 }
 }  // namespace
 
-absl::StatusOr<std::vector<uint8_t>> Rom::Load2BppGraphics() {
+absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom &rom) {
   std::vector<uint8_t> sheet;
   const uint8_t sheets[] = {113, 114, 218, 219, 220, 221};
 
   for (const auto &sheet_id : sheets) {
-    auto offset = GetGraphicsAddress(data(), sheet_id,
-                                     version_constants().kOverworldGfxPtr1,
-                                     version_constants().kOverworldGfxPtr2,
-                                     version_constants().kOverworldGfxPtr3);
+    auto offset = GetGraphicsAddress(rom.data(), sheet_id,
+                                     rom.version_constants().kOverworldGfxPtr1,
+                                     rom.version_constants().kOverworldGfxPtr2,
+                                     rom.version_constants().kOverworldGfxPtr3);
     ASSIGN_OR_RETURN(auto decomp_sheet,
-                     gfx::lc_lz2::DecompressV2(data(), offset))
+                     gfx::lc_lz2::DecompressV2(rom.data(), offset))
     auto converted_sheet = gfx::SnesTo8bppSheet(decomp_sheet, 2);
     for (const auto &each_pixel : converted_sheet) {
       sheet.push_back(each_pixel);
@@ -136,23 +134,27 @@ absl::Status Rom::LoadAllGraphicsData(bool defer_render) {
 absl::Status Rom::SaveAllGraphicsData() {
   for (int i = 0; i < kNumGfxSheets; i++) {
     if (graphics_sheets_[i].is_active()) {
-      int from_bpp = 8;
       int to_bpp = 3;
       std::vector<uint8_t> final_data;
       bool compressed = true;
       if (i >= 115 && i <= 126) {
-        to_bpp = 3;
         compressed = false;
       } else if (i == 113 || i == 114 || i >= 218) {
         to_bpp = 2;
+        continue;
       }
 
+      std::cout << "Sheet ID " << i << " BPP: " << to_bpp << std::endl;
       auto sheet_data = graphics_sheets_[i].vector();
-      final_data = gfx::ConvertBpp(sheet_data, from_bpp, to_bpp);
+      std::cout << "Sheet data size: " << sheet_data.size() << std::endl;
+      final_data = gfx::Bpp8SnesToIndexed(sheet_data, 8);
+      int size = 0;
       if (compressed) {
-        ASSIGN_OR_RETURN(
-            final_data,
-            gfx::lc_lz2::CompressV2(final_data.data(), 0, final_data.size()));
+        auto compressed_data = gfx::HyruleMagicCompress(
+            final_data.data(), final_data.size(), &size, 1);
+        for (int j = 0; j < size; j++) {
+          sheet_data[j] = compressed_data[j];
+        }
       }
       auto offset =
           GetGraphicsAddress(data(), i, version_constants().kOverworldGfxPtr1,
@@ -242,6 +244,7 @@ absl::Status Rom::LoadZelda3() {
   // Copy ROM title
   constexpr uint32_t kTitleStringOffset = 0x7FC0;
   constexpr uint32_t kTitleStringLength = 20;
+  title_.resize(kTitleStringLength);
   std::copy(rom_data_.begin() + kTitleStringOffset,
             rom_data_.begin() + kTitleStringOffset + kTitleStringLength,
             title_.begin());
@@ -312,9 +315,12 @@ absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
   }
 
   // Run the other save functions
-  if (flags()->kSaveAllPalettes) RETURN_IF_ERROR(SaveAllPalettes());
-  if (flags()->kSaveGfxGroups) RETURN_IF_ERROR(SaveGroupsToRom());
-  if (flags()->kSaveGraphicsSheet) RETURN_IF_ERROR(SaveAllGraphicsData());
+  if (core::ExperimentFlags::get().kSaveAllPalettes)
+    RETURN_IF_ERROR(SaveAllPalettes());
+  if (core::ExperimentFlags::get().kSaveGfxGroups)
+    RETURN_IF_ERROR(SaveGroupsToRom());
+  if (core::ExperimentFlags::get().kSaveGraphicsSheet)
+    RETURN_IF_ERROR(SaveAllGraphicsData());
 
   if (save_new) {
     // Create a file of the same name and append the date between the filename
@@ -464,5 +470,4 @@ absl::Status Rom::SaveGroupsToRom() {
 
 std::shared_ptr<Rom> SharedRom::shared_rom_ = nullptr;
 
-}  // namespace app
 }  // namespace yaze

@@ -3,7 +3,6 @@
 #include "app/zelda3/overworld/overworld.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 
 void Sprite::UpdateMapProperties(uint16_t map_id) {
@@ -708,7 +707,9 @@ void Sprite::Draw() {
   } else if (id_ == 0x8E)  // Terrorpin
   {
     DrawSpriteTile((x * 16), (y * 16), 14, 24, 12);
-  } else if (id_ == 0x8F)  // Slime
+  } 
+  
+  if (id_ == 0x8F)  // Slime
   {
     DrawSpriteTile((x * 16), (y * 16), 0, 20, 12);
   } else if (id_ == 0x90)  // Wall master
@@ -911,5 +912,4 @@ void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
 }
 
 }  // namespace zelda3
-}  // namespace app
 }  // namespace yaze

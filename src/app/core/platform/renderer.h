@@ -11,7 +11,6 @@
 #include "app/gfx/bitmap.h"
 
 namespace yaze {
-namespace app {
 namespace core {
 
 /**
@@ -77,7 +76,6 @@ class Renderer {
 };
 
 }  // namespace core
-}  // namespace app
 }  // namespace yaze
 
 #endif

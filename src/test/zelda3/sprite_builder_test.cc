@@ -5,9 +5,8 @@
 
 namespace yaze {
 namespace test {
-namespace zelda3 {
 
-using namespace yaze::app::zelda3;
+using namespace yaze::zelda3;
 
 class SpriteBuilderTest : public ::testing::Test {
  protected:
@@ -61,6 +60,5 @@ TEST_F(SpriteBuilderTest, BuildSpritePropertiesOk) {
 )"));
 }
 
-}  // namespace zelda3_test
 }  // namespace test
 }  // namespace yaze

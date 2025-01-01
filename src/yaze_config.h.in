@@ -1,0 +1,4 @@
+// yaze config file
+#define YAZE_VERSION_MAJOR @yaze_VERSION_MAJOR@
+#define YAZE_VERSION_MINOR @yaze_VERSION_MINOR@
+#define YAZE_VERSION_PATCH @yaze_VERSION_PATCH@

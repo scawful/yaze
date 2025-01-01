@@ -13,7 +13,6 @@
 #define IM_CLAMP(V, MN, MX) ((V) < (MN) ? (MN) : (V) > (MX) ? (MX) : (V))
 
 namespace yaze {
-namespace app {
 namespace gui {
 
 // Extra functions to add deletion support to ImGuiSelectionBasicStorage
@@ -243,7 +242,7 @@ struct GfxSheetAssetBrowser {
 };
 
 }  // namespace gui
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_GUI_ASSET_BROWSER_H

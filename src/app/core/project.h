@@ -11,7 +11,6 @@
 #include "app/core/utils/file_util.h"
 
 namespace yaze {
-namespace app {
 
 const std::string kRecentFilesFilename = "recent_files.txt";
 constexpr char kEndOfProjectFile[] = "EndOfProjectFile";
@@ -25,7 +24,7 @@ constexpr char kEndOfProjectFile[] = "EndOfProjectFile";
  * user can have different rom file names for a single project and keep track of
  * backups.
  */
-struct Project : public core::ExperimentFlags {
+struct Project {
   absl::Status Create(const std::string& project_name) {
     name = project_name;
     project_opened_ = true;
@@ -130,7 +129,7 @@ class RecentFilesManager {
   std::vector<std::string> recent_files_;
 };
 
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_CORE_PROJECT_H

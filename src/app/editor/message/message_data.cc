@@ -3,7 +3,6 @@
 #include "app/core/common.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 uint8_t FindMatchingCharacter(char value) {
@@ -145,7 +144,7 @@ std::vector<uint8_t> ParseMessageToData(std::string str) {
   return bytes;
 }
 
-std::vector<DictionaryEntry> BuildDictionaryEntries(app::Rom* rom) {
+std::vector<DictionaryEntry> BuildDictionaryEntries(Rom* rom) {
   std::vector<DictionaryEntry> AllDictionaries;
   for (int i = 0; i < kNumDictionaryEntries; i++) {
     std::vector<uint8_t> bytes;
@@ -178,5 +177,4 @@ std::vector<DictionaryEntry> BuildDictionaryEntries(app::Rom* rom) {
 }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

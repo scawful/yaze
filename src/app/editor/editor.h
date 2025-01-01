@@ -11,10 +11,9 @@
 #include "app/editor/system/resource_manager.h"
 
 namespace yaze {
-namespace app {
 
 /**
- * @namespace yaze::app::editor
+ * @namespace yaze::editor
  * @brief Editors are the view controllers for the application.
  */
 namespace editor {
@@ -74,32 +73,7 @@ class Editor {
   EditorContext context_;
 };
 
-/**
- * @brief Dynamic Editor Layout Parameters
- */
-typedef struct EditorLayoutParams {
-  bool v_split;
-  bool h_split;
-  int v_split_pos;
-  int h_split_pos;
-  Editor *editor = nullptr;
-  EditorLayoutParams *left = nullptr;
-  EditorLayoutParams *right = nullptr;
-  EditorLayoutParams *top = nullptr;
-  EditorLayoutParams *bottom = nullptr;
-
-  EditorLayoutParams() {
-    v_split = false;
-    h_split = false;
-    v_split_pos = 0;
-    h_split_pos = 0;
-  }
-} EditorLayoutParams;
-
-absl::Status DrawEditor(EditorLayoutParams *params);
-
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_CORE_EDITOR_H

@@ -6,13 +6,11 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "test/core/testing.h"
-#include "app/gfx/snes_color.h"
 
 namespace yaze {
 namespace test {
 
 using ::testing::_;
-using ::testing::DoAll;
 using ::testing::Return;
 
 const static std::vector<uint8_t> kMockRomData = {
@@ -21,7 +19,7 @@ const static std::vector<uint8_t> kMockRomData = {
     0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
 };
 
-class MockRom : public app::Rom {
+class MockRom : public Rom {
  public:
   MOCK_METHOD(absl::Status, WriteHelper, (const WriteAction&), (override));
 
@@ -36,7 +34,7 @@ class MockRom : public app::Rom {
 
 class RomTest : public ::testing::Test {
  protected:
-  app::Rom rom_;
+  Rom rom_;
 };
 
 TEST_F(RomTest, Uninitialized) {
@@ -202,9 +200,9 @@ TEST_F(RomTest, WriteTransactionSuccess) {
       .WillRepeatedly(Return(absl::OkStatus()));
 
   EXPECT_OK(mock_rom.WriteTransaction(
-      app::Rom::WriteAction{0x1000, uint8_t{0xFF}},
-      app::Rom::WriteAction{0x1001, uint16_t{0xABCD}},
-      app::Rom::WriteAction{0x1002, std::vector<uint8_t>{0x12, 0x34}}));
+      Rom::WriteAction{0x1000, uint8_t{0xFF}},
+      Rom::WriteAction{0x1001, uint16_t{0xABCD}},
+      Rom::WriteAction{0x1002, std::vector<uint8_t>{0x12, 0x34}}));
 }
 
 TEST_F(RomTest, WriteTransactionFailure) {
@@ -215,10 +213,10 @@ TEST_F(RomTest, WriteTransactionFailure) {
       .WillOnce(Return(absl::OkStatus()))
       .WillOnce(Return(absl::InternalError("Write failed")));
 
-  EXPECT_EQ(mock_rom.WriteTransaction(
-                app::Rom::WriteAction{0x1000, uint8_t{0xFF}},
-                app::Rom::WriteAction{0x1001, uint16_t{0xABCD}}),
-            absl::InternalError("Write failed"));
+  EXPECT_EQ(
+      mock_rom.WriteTransaction(Rom::WriteAction{0x1000, uint8_t{0xFF}},
+                                Rom::WriteAction{0x1001, uint16_t{0xABCD}}),
+      absl::InternalError("Write failed"));
 }
 
 TEST_F(RomTest, ReadTransactionSuccess) {

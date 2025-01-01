@@ -8,8 +8,8 @@
 #include "absl/status/status.h"
 #include "app/core/platform/renderer.h"
 #include "app/core/utils/file_util.h"
-#include "app/editor/editor_manager.h"
 #include "app/editor/editor.h"
+#include "app/editor/editor_manager.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imconfig.h"
@@ -18,7 +18,6 @@
 int main(int argc, char **argv);
 
 namespace yaze {
-namespace app {
 namespace core {
 
 /**
@@ -45,7 +44,7 @@ class Controller : public ExperimentFlags {
   absl::Status LoadConfigFiles();
 
   void SetupScreen(std::string filename = "") {
-    editor_manager_.SetupScreen(filename);
+    editor_manager_.Initialize(filename);
   }
   auto editor_manager() -> editor::EditorManager & { return editor_manager_; }
   auto renderer() -> SDL_Renderer * {
@@ -54,13 +53,14 @@ class Controller : public ExperimentFlags {
   auto window() -> SDL_Window * { return window_.get(); }
   void init_test_editor(editor::Editor *editor) { test_editor_ = editor; }
   void set_active(bool active) { active_ = active; }
+  auto active() { return active_; }
 
  private:
   friend int ::main(int argc, char **argv);
 
-  bool active_;
+  bool active_ = false;
   Platform platform_;
-  editor::Editor *test_editor_;
+  editor::Editor *test_editor_ = nullptr;
   editor::EditorManager editor_manager_;
 
   int audio_frequency_ = 48000;
@@ -70,7 +70,6 @@ class Controller : public ExperimentFlags {
 };
 
 }  // namespace core
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_CORE_CONTROLLER_H

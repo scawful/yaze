@@ -6,9 +6,8 @@
 
 namespace yaze {
 namespace test {
-namespace zelda3 {
 
-class MessageTest : public ::testing::Test, public app::SharedRom {
+class MessageTest : public ::testing::Test, public SharedRom {
  protected:
   void SetUp() override {
 #if defined(__linux__)
@@ -17,8 +16,8 @@ class MessageTest : public ::testing::Test, public app::SharedRom {
   }
   void TearDown() override {}
 
-  app::editor::MessageEditor message_editor_;
-  std::vector<app::editor::DictionaryEntry> dictionary_;
+  editor::MessageEditor message_editor_;
+  std::vector<editor::DictionaryEntry> dictionary_;
 };
 
 TEST_F(MessageTest, LoadMessagesFromRomOk) {
@@ -44,6 +43,5 @@ TEST_F(MessageTest, VerifySingleMessageFromRomOk) {
   // TODO - Implement this test
 }
 
-}  // namespace zelda3
 }  // namespace test
 }  // namespace yaze

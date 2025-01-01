@@ -1,13 +1,11 @@
 #include "assembly_editor.h"
 
-#include "ImGuiColorTextEdit/TextEditor.h"
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "absl/strings/str_cat.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/gui/icons.h"
+#include "app/gui/modules/text_editor.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 using core::FileDialogWrapper;
@@ -278,20 +276,13 @@ void AssemblyEditor::DrawFileTabView() {
 void AssemblyEditor::DrawFileMenu() {
   if (ImGui::BeginMenu("File")) {
     if (ImGui::MenuItem("Open", "Ctrl+O")) {
-      ImGuiFileDialog::Instance()->OpenDialog(
-          "ChooseASMFileDlg", "Open ASM file", ".asm,.txt", ".");
+      auto filename = core::FileDialogWrapper::ShowOpenFileDialog();
+      ChangeActiveFile(filename);
     }
     if (ImGui::MenuItem("Save", "Ctrl+S")) {
       // TODO: Implement this
     }
     ImGui::EndMenu();
-  }
-
-  if (ImGuiFileDialog::Instance()->Display("ChooseASMFileDlg")) {
-    if (ImGuiFileDialog::Instance()->IsOk()) {
-      ChangeActiveFile(ImGuiFileDialog::Instance()->GetFilePathName());
-    }
-    ImGuiFileDialog::Instance()->Close();
   }
 }
 
@@ -364,5 +355,4 @@ absl::Status AssemblyEditor::Redo() {
 absl::Status AssemblyEditor::Update() { return absl::OkStatus(); }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

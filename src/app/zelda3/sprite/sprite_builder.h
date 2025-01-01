@@ -6,7 +6,6 @@
 #include <vector>
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 
 class SpriteInstruction {
@@ -125,7 +124,6 @@ class SpriteBuilder {
 };
 
 }  // namespace zelda3
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_SPRITE_SPRITE_BUILDER_H_

@@ -2,7 +2,6 @@
 #define YAZE_APP_EMU_APU_H_
 
 #include <cstdint>
-#include <iostream>
 #include <vector>
 #include <array>
 
@@ -11,11 +10,7 @@
 #include "app/emu/memory/memory.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
-namespace audio {
-
-using namespace memory;
 
 typedef struct Timer {
   uint8_t cycles;
@@ -93,9 +88,7 @@ class Apu {
   Spc700 spc700_{callbacks_};
 };
 
-}  // namespace audio
 }  // namespace emu
-}  // namespace app
 }  // namespace yaze
 
 #endif

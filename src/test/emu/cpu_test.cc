@@ -3,21 +3,18 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "app/emu/cpu/clock.h"
-#include "app/emu/cpu/internal/opcodes.h"
 #include "app/emu/memory/asm_parser.h"
 #include "app/emu/memory/memory.h"
 #include "test/mocks/mock_memory.h"
 
 namespace yaze {
 namespace test {
-namespace emu {
 
-using yaze::app::emu::AsmParser;
-using yaze::app::emu::Cpu;
-using yaze::app::emu::memory::CpuCallbacks;
-using yaze::app::emu::memory::MockClock;
-using yaze::app::emu::memory::MockMemory;
+using yaze::emu::AsmParser;
+using yaze::emu::Cpu;
+using yaze::emu::CpuCallbacks;
+using yaze::emu::MockClock;
+using yaze::emu::MockMemory;
 
 /**
  * \test Test fixture for CPU unit tests
@@ -4198,6 +4195,5 @@ TEST_F(CpuTest, XCESwitchBackAndForth) {
   EXPECT_FALSE(cpu.E);           // Emulation mode flag should be cleared
 }
 
-}  // namespace emu
 }  // namespace test
 }  // namespace yaze

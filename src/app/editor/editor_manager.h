@@ -19,9 +19,9 @@
 #include "app/emu/emulator.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
+#include "yaze_config.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 /**
@@ -35,7 +35,7 @@ namespace editor {
  * variable points to the currently active editor in the tab view.
  *
  */
-class EditorManager : public SharedRom, public core::ExperimentFlags {
+class EditorManager : public SharedRom {
  public:
   EditorManager() {
     current_editor_ = &overworld_editor_;
@@ -46,9 +46,13 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
     active_editors_.push_back(&sprite_editor_);
     active_editors_.push_back(&message_editor_);
     active_editors_.push_back(&screen_editor_);
+    std::stringstream ss;
+    ss << YAZE_VERSION_MAJOR << "." << YAZE_VERSION_MINOR << "."
+       << YAZE_VERSION_PATCH;
+    ss >> version_;
   }
 
-  void SetupScreen(std::string filename = "");
+  void Initialize(std::string filename = "");
   absl::Status Update();
 
   auto emulator() -> emu::Emulator & { return emulator_; }
@@ -56,10 +60,7 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
 
  private:
   void ManageActiveEditors();
-  absl::Status DrawDynamicLayout();
-
   void ManageKeyboardShortcuts();
-  void InitializeCommands();
 
   void DrawStatusPopup();
   void DrawAboutPopup();
@@ -81,16 +82,12 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
   bool save_new_auto_ = true;
   bool show_status_ = false;
   bool rom_assets_loaded_ = false;
-  bool dynamic_layout_ = false;
+
+  std::string version_ = "";
 
   absl::Status status_;
-
   emu::Emulator emulator_;
-
   std::vector<Editor *> active_editors_;
-  std::vector<EditorLayoutParams> active_layouts_;
-
-  EditorLayoutParams root_layout_;
 
   Project current_project_;
   EditorContext editor_context_;
@@ -100,7 +97,7 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
   DungeonEditor dungeon_editor_;
   GraphicsEditor graphics_editor_;
   MusicEditor music_editor_;
-  OverworldEditor overworld_editor_;
+  OverworldEditor overworld_editor_{*rom()};
   PaletteEditor palette_editor_;
   ScreenEditor screen_editor_;
   SpriteEditor sprite_editor_;
@@ -110,7 +107,6 @@ class EditorManager : public SharedRom, public core::ExperimentFlags {
 };
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_EDITOR_MANAGER_H

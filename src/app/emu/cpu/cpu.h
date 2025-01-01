@@ -13,7 +13,6 @@
 #include "app/emu/memory/memory.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 
 class InstructionEntry {
@@ -35,10 +34,9 @@ class InstructionEntry {
   std::string instruction;  // Human-readable instruction text
 };
 
-class Cpu : public core::ExperimentFlags {
+class Cpu {
  public:
-  explicit Cpu(memory::Memory& mem, Clock& vclock,
-               memory::CpuCallbacks& callbacks)
+  explicit Cpu(Memory& mem, Clock& vclock, CpuCallbacks& callbacks)
       : memory(mem), clock(vclock), callbacks_(callbacks) {}
   void Reset(bool hard = false);
 
@@ -793,13 +791,13 @@ class Cpu : public core::ExperimentFlags {
   bool int_wanted_ = false;
   bool int_delay_ = false;
 
-  memory::CpuCallbacks callbacks_;
-  memory::Memory& memory;
+  CpuCallbacks callbacks_;
+  Memory& memory;
   Clock& clock;
 };
 
 }  // namespace emu
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_EMU_CPU_H_

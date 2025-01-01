@@ -1,9 +1,8 @@
 #include "room_object.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
-namespace dungeon {
+
 
 ObjectOption operator|(ObjectOption lhs, ObjectOption rhs) {
   return static_cast<ObjectOption>(static_cast<int>(lhs) |
@@ -131,7 +130,8 @@ void RoomObject::DrawTile(gfx::Tile16 t, int xx, int yy,
   }
 }
 
-}  // namespace dungeon
+
+
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze

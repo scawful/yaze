@@ -15,20 +15,21 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
+#include "app/gui/color.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/style.h"
 #include "app/gui/zeml.h"
 #include "app/rom.h"
+#include "app/zelda3/common.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
+#include "imgui_memory_editor.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 using core::Renderer;
-
 using ImGui::BeginChild;
 using ImGui::BeginTabBar;
 using ImGui::BeginTabItem;
@@ -58,11 +59,11 @@ constexpr int kTile16Size = 0x10;
 
 absl::Status OverworldEditor::Update() {
   status_ = absl::OkStatus();
-  if (rom()->is_loaded() && !all_gfx_loaded_) {
+  if (rom_.is_loaded() && !all_gfx_loaded_) {
     RETURN_IF_ERROR(tile16_editor_.InitBlockset(
         tile16_blockset_bmp_, current_gfx_bmp_, tile16_individual_,
         *overworld_.mutable_all_tiles_types()));
-    RETURN_IF_ERROR(LoadEntranceTileTypes(*rom()));
+    ASSIGN_OR_RETURN(entrance_tiletypes_, zelda3::LoadEntranceTileTypes(rom_));
     all_gfx_loaded_ = true;
   }
 
@@ -96,125 +97,106 @@ void OverworldEditor::DrawToolset() {
   static bool show_gfx_group = false;
   static bool show_properties = false;
 
-  if (BeginTable("OWToolset", 22, kToolsetTableFlags, ImVec2(0, 0))) {
-    for (const auto &name : kToolsetColumnNames)
-      ImGui::TableSetupColumn(name.data());
-
-    NEXT_COLUMN()
-    if (Button(ICON_MD_UNDO)) {
-      status_ = Undo();
-    }
-
-    NEXT_COLUMN()
-    if (Button(ICON_MD_REDO)) {
-      status_ = Redo();
-    }
-
-    TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
-
-    NEXT_COLUMN()
-    if (Button(ICON_MD_ZOOM_OUT)) {
-      ow_map_canvas_.ZoomOut();
-    }
-
-    NEXT_COLUMN()
-    if (Button(ICON_MD_ZOOM_IN)) {
-      ow_map_canvas_.ZoomIn();
-    }
-
-    NEXT_COLUMN()
-    if (Button(ICON_MD_OPEN_IN_FULL)) {
-      overworld_canvas_fullscreen_ = !overworld_canvas_fullscreen_;
-    }
-    HOVER_HINT("Fullscreen Canvas")
-
-    TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
-
-    NEXT_COLUMN()
-    if (Selectable(ICON_MD_PAN_TOOL_ALT, current_mode == EditingMode::PAN)) {
-      current_mode = EditingMode::PAN;
-      ow_map_canvas_.set_draggable(true);
-    }
-    HOVER_HINT("Pan (Right click and drag)")
-
-    NEXT_COLUMN()
-    if (Selectable(ICON_MD_DRAW, current_mode == EditingMode::DRAW_TILE)) {
-      current_mode = EditingMode::DRAW_TILE;
-    }
-    HOVER_HINT("Draw Tile")
-
-    NEXT_COLUMN()
-    if (Selectable(ICON_MD_DOOR_FRONT, current_mode == EditingMode::ENTRANCES))
-      current_mode = EditingMode::ENTRANCES;
-    HOVER_HINT("Entrances")
-
-    NEXT_COLUMN()
-    if (Selectable(ICON_MD_DOOR_BACK, current_mode == EditingMode::EXITS))
-      current_mode = EditingMode::EXITS;
-    HOVER_HINT("Exits")
-
-    NEXT_COLUMN()
-    if (Selectable(ICON_MD_GRASS, current_mode == EditingMode::ITEMS))
-      current_mode = EditingMode::ITEMS;
-    HOVER_HINT("Items")
-
-    NEXT_COLUMN()
-    if (Selectable(ICON_MD_PEST_CONTROL_RODENT,
-                   current_mode == EditingMode::SPRITES))
-      current_mode = EditingMode::SPRITES;
-    HOVER_HINT("Sprites")
-
-    NEXT_COLUMN()
-    if (Selectable(ICON_MD_ADD_LOCATION,
-                   current_mode == EditingMode::TRANSPORTS))
-      current_mode = EditingMode::TRANSPORTS;
-    HOVER_HINT("Transports")
-
-    NEXT_COLUMN()
-    if (Selectable(ICON_MD_MUSIC_NOTE, current_mode == EditingMode::MUSIC))
-      current_mode = EditingMode::MUSIC;
-    HOVER_HINT("Music")
-
-    TableNextColumn();
-    if (Button(ICON_MD_GRID_VIEW)) {
-      show_tile16_editor_ = !show_tile16_editor_;
-    }
-    HOVER_HINT("Tile16 Editor")
-
-    TableNextColumn();
-    if (Button(ICON_MD_TABLE_CHART)) {
-      show_gfx_group = !show_gfx_group;
-    }
-    HOVER_HINT("Gfx Group Editor")
-
-    TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
-
-    TableNextColumn();
-    if (Button(ICON_MD_CONTENT_COPY)) {
-      std::vector<uint8_t> png_data;
-      if (gfx::ConvertSurfaceToPNG(maps_bmp_[current_map_].surface(),
-                                   png_data)) {
-        core::CopyImageToClipboard(png_data);
-      } else {
-        status_ = absl::InternalError(
-            "Failed to convert overworld map surface to PNG");
+  if (toolset_table_.column_contents.empty()) {
+    gui::AddTableColumn(toolset_table_, "##Undo", [&]() {
+      if (Button(ICON_MD_UNDO)) status_ = Undo();
+    });
+    gui::AddTableColumn(toolset_table_, "##Redo", [&]() {
+      if (Button(ICON_MD_REDO)) status_ = Redo();
+    });
+    gui::AddTableColumn(toolset_table_, "##Sep1", ICON_MD_MORE_VERT);
+    gui::AddTableColumn(toolset_table_, "##ZoomOut", [&]() {
+      if (Button(ICON_MD_ZOOM_OUT)) ow_map_canvas_.ZoomOut();
+    });
+    gui::AddTableColumn(toolset_table_, "##ZoomIn", [&]() {
+      if (Button(ICON_MD_ZOOM_IN)) ow_map_canvas_.ZoomIn();
+    });
+    gui::AddTableColumn(toolset_table_, "##Fullscreen", [&]() {
+      if (Button(ICON_MD_OPEN_IN_FULL))
+        overworld_canvas_fullscreen_ = !overworld_canvas_fullscreen_;
+      HOVER_HINT("Fullscreen Canvas")
+    });
+    gui::AddTableColumn(toolset_table_, "##Sep2", ICON_MD_MORE_VERT);
+    gui::AddTableColumn(toolset_table_, "##Pan", [&]() {
+      if (Selectable(ICON_MD_PAN_TOOL_ALT, current_mode == EditingMode::PAN)) {
+        current_mode = EditingMode::PAN;
+        ow_map_canvas_.set_draggable(true);
       }
-    }
-    HOVER_HINT("Copy Map to Clipboard");
+      HOVER_HINT("Pan (Right click and drag)");
+    });
+    gui::AddTableColumn(toolset_table_, "##DrawTile", [&]() {
+      if (Selectable(ICON_MD_DRAW, current_mode == EditingMode::DRAW_TILE)) {
+        current_mode = EditingMode::DRAW_TILE;
+      }
+      HOVER_HINT("Draw Tile");
+    });
+    gui::AddTableColumn(toolset_table_, "##Entrances", [&]() {
+      if (Selectable(ICON_MD_DOOR_FRONT,
+                     current_mode == EditingMode::ENTRANCES))
+        current_mode = EditingMode::ENTRANCES;
+      HOVER_HINT("Entrances");
+    });
+    gui::AddTableColumn(toolset_table_, "##Exits", [&]() {
+      if (Selectable(ICON_MD_DOOR_BACK, current_mode == EditingMode::EXITS))
+        current_mode = EditingMode::EXITS;
+      HOVER_HINT("Exits");
+    });
+    gui::AddTableColumn(toolset_table_, "##Items", [&]() {
+      if (Selectable(ICON_MD_GRASS, current_mode == EditingMode::ITEMS))
+        current_mode = EditingMode::ITEMS;
+      HOVER_HINT("Items");
+    });
+    gui::AddTableColumn(toolset_table_, "##Sprites", [&]() {
+      if (Selectable(ICON_MD_PEST_CONTROL_RODENT,
+                     current_mode == EditingMode::SPRITES))
+        current_mode = EditingMode::SPRITES;
+      HOVER_HINT("Sprites");
+    });
+    gui::AddTableColumn(toolset_table_, "##Transports", [&]() {
+      if (Selectable(ICON_MD_ADD_LOCATION,
+                     current_mode == EditingMode::TRANSPORTS))
+        current_mode = EditingMode::TRANSPORTS;
+      HOVER_HINT("Transports");
+    });
+    gui::AddTableColumn(toolset_table_, "##Music", [&]() {
+      if (Selectable(ICON_MD_MUSIC_NOTE, current_mode == EditingMode::MUSIC))
+        current_mode = EditingMode::MUSIC;
+      HOVER_HINT("Music");
+    });
+    gui::AddTableColumn(toolset_table_, "##Tile16Editor", [&]() {
+      if (Button(ICON_MD_GRID_VIEW)) show_tile16_editor_ = !show_tile16_editor_;
+      HOVER_HINT("Tile16 Editor");
+    });
+    gui::AddTableColumn(toolset_table_, "##GfxGroupEditor", [&]() {
+      if (Button(ICON_MD_TABLE_CHART)) show_gfx_group = !show_gfx_group;
+      HOVER_HINT("Gfx Group Editor");
+    });
+    gui::AddTableColumn(toolset_table_, "##sep3", ICON_MD_MORE_VERT);
+    gui::AddTableColumn(toolset_table_, "##Properties", [&]() {
+      if (Button(ICON_MD_CONTENT_COPY)) {
+        std::vector<uint8_t> png_data;
+        if (gfx::ConvertSurfaceToPNG(maps_bmp_[current_map_].surface(),
+                                     png_data)) {
+          core::CopyImageToClipboard(png_data);
+        } else {
+          status_ = absl::InternalError(
+              "Failed to convert overworld map surface to PNG");
+        }
+      }
+      HOVER_HINT("Copy Map to Clipboard");
+    });
+    gui::AddTableColumn(toolset_table_, "##Palette", [&]() {
+      status_ = DisplayPalette(palette_, overworld_.is_loaded());
+    });
+    gui::AddTableColumn(toolset_table_, "##Sep4", ICON_MD_MORE_VERT);
+    gui::AddTableColumn(toolset_table_, "##Properties",
+                        [&]() { Checkbox("Properties", &show_properties); });
 
-    TableNextColumn();  // Palette
-    status_ = DisplayPalette(palette_, overworld_.is_loaded());
-
-    TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
-
-    TableNextColumn();
-    Checkbox("Properties", &show_properties);
-
-    ImGui::EndTable();
+  } else {
+    gui::DrawTable(toolset_table_);
   }
 
   if (show_tile16_editor_) {
-    // Create a table in ImGui for the Tile16 Editor
     ImGui::Begin("Tile16 Editor", &show_tile16_editor_,
                  ImGuiWindowFlags_MenuBar);
     status_ = tile16_editor_.Update();
@@ -639,7 +621,7 @@ void OverworldEditor::CheckForMousePan() {
 
 void OverworldEditor::DrawOverworldCanvas() {
   if (all_gfx_loaded_) {
-    if (flags()->overworld.kLoadCustomOverworld) {
+    if (core::ExperimentFlags::get().overworld.kLoadCustomOverworld) {
       DrawCustomOverworldMapSettings();
     } else {
       DrawOverworldMapSettings();
@@ -724,7 +706,7 @@ void OverworldEditor::DrawTile8Selector() {
   graphics_bin_canvas_.DrawContextMenu();
   if (all_gfx_loaded_) {
     int key = 0;
-    for (auto &value : rom()->gfx_sheets()) {
+    for (auto &value : rom_.gfx_sheets()) {
       int offset = 0x40 * (key + 1);
       int top_left_y = graphics_bin_canvas_.zero_point().y + 2;
       if (key >= 1) {
@@ -808,7 +790,7 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
         color = ImVec4(255, 255, 255, 200);
       }
       ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16, color);
-      std::string str = core::UppercaseHexByte(each.entrance_id_);
+      std::string str = core::HexByte(each.entrance_id_);
 
       if (current_mode == EditingMode::ENTRANCES) {
         HandleEntityDragging(&each, canvas_p0, scrolling, is_dragging_entity_,
@@ -891,7 +873,7 @@ void OverworldEditor::DrawOverworldExits(ImVec2 canvas_p0, ImVec2 scrolling) {
         }
       }
 
-      std::string str = core::UppercaseHexByte(i);
+      std::string str = core::HexByte(i);
       ow_map_canvas_.DrawText(str, each.x_, each.y_);
     }
     i++;
@@ -937,8 +919,8 @@ void OverworldEditor::DrawOverworldItems() {
         }
       }
       std::string item_name = "";
-      if (item.id_ < zelda3::overworld::kSecretItemNames.size()) {
-        item_name = zelda3::overworld::kSecretItemNames[item.id_];
+      if (item.id_ < zelda3::kSecretItemNames.size()) {
+        item_name = zelda3::kSecretItemNames[item.id_];
       } else {
         item_name = absl::StrFormat("0x%02X", item.id_);
       }
@@ -1027,22 +1009,22 @@ void OverworldEditor::DrawOverworldSprites() {
 }
 
 absl::Status OverworldEditor::Save() {
-  if (flags()->overworld.kSaveOverworldMaps) {
+  if (core::ExperimentFlags::get().overworld.kSaveOverworldMaps) {
     RETURN_IF_ERROR(overworld_.CreateTile32Tilemap());
     RETURN_IF_ERROR(overworld_.SaveMap32Tiles());
     RETURN_IF_ERROR(overworld_.SaveMap16Tiles());
     RETURN_IF_ERROR(overworld_.SaveOverworldMaps());
   }
-  if (flags()->overworld.kSaveOverworldEntrances) {
+  if (core::ExperimentFlags::get().overworld.kSaveOverworldEntrances) {
     RETURN_IF_ERROR(overworld_.SaveEntrances());
   }
-  if (flags()->overworld.kSaveOverworldExits) {
+  if (core::ExperimentFlags::get().overworld.kSaveOverworldExits) {
     RETURN_IF_ERROR(overworld_.SaveExits());
   }
-  if (flags()->overworld.kSaveOverworldItems) {
+  if (core::ExperimentFlags::get().overworld.kSaveOverworldItems) {
     RETURN_IF_ERROR(overworld_.SaveItems());
   }
-  if (flags()->overworld.kSaveOverworldProperties) {
+  if (core::ExperimentFlags::get().overworld.kSaveOverworldProperties) {
     RETURN_IF_ERROR(overworld_.SaveMapProperties());
   }
   return absl::OkStatus();
@@ -1050,7 +1032,7 @@ absl::Status OverworldEditor::Save() {
 
 absl::Status OverworldEditor::LoadGraphics() {
   // Load the Link to the Past overworld.
-  RETURN_IF_ERROR(overworld_.Load(*rom()))
+  RETURN_IF_ERROR(overworld_.Load(rom_))
   palette_ = overworld_.current_area_palette();
 
   // Create the area graphics image
@@ -1066,10 +1048,10 @@ absl::Status OverworldEditor::LoadGraphics() {
 
   // Copy the tile16 data into individual tiles.
   auto tile16_data = overworld_.tile16_blockset_data();
-  tile16_individual_.reserve(zelda3::overworld::kNumTile16Individual);
+  tile16_individual_.reserve(zelda3::kNumTile16Individual);
 
   // Loop through the tiles and copy their pixel data into separate vectors
-  for (uint i = 0; i < zelda3::overworld::kNumTile16Individual; i++) {
+  for (uint i = 0; i < zelda3::kNumTile16Individual; i++) {
     std::vector<uint8_t> tile_data(kTile16Size * kTile16Size, 0x00);
 
     // Copy the pixel data for the current tile into the vector
@@ -1092,7 +1074,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   }
 
   // Render the overworld maps loaded from the ROM.
-  for (int i = 0; i < zelda3::overworld::kNumOverworldMaps; ++i) {
+  for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
     overworld_.set_current_map(i);
     auto palette = overworld_.current_area_palette();
     RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
@@ -1100,7 +1082,7 @@ absl::Status OverworldEditor::LoadGraphics() {
         overworld_.current_map_bitmap_data(), maps_bmp_[i], palette));
   }
 
-  if (flags()->overworld.kDrawOverworldSprites) {
+  if (core::ExperimentFlags::get().overworld.kDrawOverworldSprites) {
     RETURN_IF_ERROR(LoadSpriteGraphics());
   }
 
@@ -1235,7 +1217,7 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
 
   std::vector<std::future<void>> futures;
   // Loop through the tiles and copy their pixel data into separate vectors
-  for (uint i = 0; i < zelda3::overworld::kNumTile16Individual; i++) {
+  for (uint i = 0; i < zelda3::kNumTile16Individual; i++) {
     futures.push_back(std::async(
         std::launch::async,
         [&](int index) {
@@ -1259,7 +1241,7 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
   }
 
   // Render the bitmaps of each tile.
-  for (uint id = 0; id < zelda3::overworld::kNumTile16Individual; id++) {
+  for (uint id = 0; id < zelda3::kNumTile16Individual; id++) {
     RETURN_IF_ERROR(tile16_individual_[id].ApplyPalette(palette_));
     Renderer::GetInstance().UpdateBitmap(&tile16_individual_[id]);
   }
@@ -1385,8 +1367,9 @@ absl::Status OverworldEditor::UpdateUsageStats() {
     if (BeginChild("UnusedSpritesetScroll", ImVec2(0, 0), true,
                    ImGuiWindowFlags_HorizontalScrollbar)) {
       for (int i = 0; i < 0x81; i++) {
-        auto entrance_name = rom()->resource_label()->GetLabel(
-            "Dungeon Entrance Names", core::UppercaseHexByte(i));
+        auto entrance_name = rom_.resource_label()->CreateOrGetLabel(
+            "Dungeon Entrance Names", core::HexByte(i),
+            zelda3::kEntranceNames[i].data());
         std::string str = absl::StrFormat("%#x - %s", i, entrance_name);
         if (Selectable(str.c_str(), selected_entrance_ == i,
                        overworld_.entrances().at(i).deleted
@@ -1500,7 +1483,7 @@ void OverworldEditor::DrawDebugWindow() {
   }
 }
 
-void OverworldEditor::InitializeZeml() {
+void OverworldEditor::Initialize() {
   // Load zeml string from layouts/overworld.zeml
   std::string layout = gui::zeml::LoadFile("overworld.zeml");
   // Parse the zeml string into a Node object
@@ -1511,24 +1494,23 @@ void OverworldEditor::InitializeZeml() {
   gui::zeml::Bind(&*layout_node_.GetNode("OverworldTileSelector"),
                   [this]() { status_ = DrawTileSelector(); });
   gui::zeml::Bind(&*layout_node_.GetNode("OwUsageStats"), [this]() {
-    if (rom()->is_loaded()) {
+    if (rom_.is_loaded()) {
       status_ = UpdateUsageStats();
     }
   });
   gui::zeml::Bind(&*layout_node_.GetNode("owToolset"),
                   [this]() { DrawToolset(); });
   gui::zeml::Bind(&*layout_node_.GetNode("OwTile16Editor"), [this]() {
-    if (rom()->is_loaded()) {
+    if (rom_.is_loaded()) {
       status_ = tile16_editor_.Update();
     }
   });
   gui::zeml::Bind(&*layout_node_.GetNode("OwGfxGroupEditor"), [this]() {
-    if (rom()->is_loaded()) {
+    if (rom_.is_loaded()) {
       status_ = gfx_group_editor_.Update();
     }
   });
 }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

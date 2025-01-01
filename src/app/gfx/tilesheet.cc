@@ -4,12 +4,9 @@
 #include <vector>
 
 #include "app/gfx/bitmap.h"
-#include "app/gfx/snes_color.h"
-#include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 
 namespace yaze {
-namespace app {
 namespace gfx {
 
 absl::StatusOr<Tilesheet> CreateTilesheetFromGraphicsBuffer(
@@ -210,5 +207,4 @@ void Tilesheet::MirrorTileData(std::vector<uint8_t>& tile_data, bool mirrorX,
 }
 
 }  // namespace gfx
-}  // namespace app
 }  // namespace yaze

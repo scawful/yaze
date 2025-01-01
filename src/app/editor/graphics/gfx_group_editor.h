@@ -7,7 +7,6 @@
 #include "app/rom.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 /**
@@ -43,6 +42,5 @@ class GfxGroupEditor : public SharedRom {
 };
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 #endif  // YAZE_APP_EDITOR_GFX_GROUP_EDITOR_H

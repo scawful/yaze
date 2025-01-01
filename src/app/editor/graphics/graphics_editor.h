@@ -4,19 +4,18 @@
 #include <stack>
 
 #include "absl/status/status.h"
-#include "app/editor/graphics/palette_editor.h"
 #include "app/editor/editor.h"
+#include "app/editor/graphics/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
-#include "app/gui/modules/asset_browser.h"
 #include "app/gui/canvas.h"
+#include "app/gui/modules/asset_browser.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 // "99973","A3D80",
@@ -143,16 +142,16 @@ class GraphicsEditor : public SharedRom, public Editor {
   bool obj_loaded_ = false;
   bool tilemap_loaded_ = false;
 
-  char file_path_[256] = "";
-  char col_file_path_[256] = "";
-  char col_file_name_[256] = "";
-  char cgx_file_path_[256] = "";
-  char cgx_file_name_[256] = "";
-  char scr_file_path_[256] = "";
-  char scr_file_name_[256] = "";
-  char obj_file_path_[256] = "";
-  char tilemap_file_path_[256] = "";
-  char tilemap_file_name_[256] = "";
+  std::string file_path_ = "";
+  std::string col_file_path_ = "";
+  std::string col_file_name_ = "";
+  std::string cgx_file_path_ = "";
+  std::string cgx_file_name_ = "";
+  std::string scr_file_path_ = "";
+  std::string scr_file_name_ = "";
+  std::string obj_file_path_ = "";
+  std::string tilemap_file_path_ = "";
+  std::string tilemap_file_name_ = "";
 
   gui::GfxSheetAssetBrowser asset_browser_;
 
@@ -160,7 +159,7 @@ class GraphicsEditor : public SharedRom, public Editor {
 
   Rom temp_rom_;
   Rom tilemap_rom_;
-  zelda3::overworld::Overworld overworld_;
+  zelda3::Overworld overworld_;
   MemoryEditor cgx_memory_editor_;
   MemoryEditor col_memory_editor_;
   PaletteEditor palette_editor_;
@@ -196,7 +195,6 @@ class GraphicsEditor : public SharedRom, public Editor {
 };
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_GRAPHICS_EDITOR_H

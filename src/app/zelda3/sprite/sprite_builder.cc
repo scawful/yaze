@@ -4,7 +4,6 @@
 #include <string>
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
 
 SpriteBuilder SpriteBuilder::Create(const std::string& spriteName) {
@@ -149,5 +148,4 @@ SpriteInstruction SpriteInstruction::JumpToFunction(
 }
 
 }  // namespace zelda3
-}  // namespace app
 }  // namespace yaze

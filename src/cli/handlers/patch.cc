@@ -1,4 +1,6 @@
-#include "cli/command.h"
+#include "cli/z3ed.h"
+
+#include "asar-dll-bindings/c/asar.h"
 
 namespace yaze {
 namespace cli {
@@ -15,7 +17,7 @@ absl::Status ApplyPatch::handle(const std::vector<std::string>& arg_vec) {
 
   // Apply patch
   std::vector<uint8_t> patched;
-  app::core::ApplyBpsPatch(source, patch, patched);
+  core::ApplyBpsPatch(source, patch, patched);
 
   // Save patched file
   std::ofstream patched_rom("patched.sfc", std::ios::binary);
@@ -48,7 +50,7 @@ absl::Status CreatePatch::handle(const std::vector<std::string>& arg_vec) {
   std::vector<uint8_t> target;
   std::vector<uint8_t> patch;
   // Create patch
-  app::core::CreateBpsPatch(source, target, patch);
+  core::CreateBpsPatch(source, target, patch);
 
   // Save patch to file
   // std::ofstream patchFile("patch.bps", ios::binary);

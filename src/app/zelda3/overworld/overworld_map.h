@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_ZELDA3_OVERWORLD_MAP_H
 #define YAZE_APP_ZELDA3_OVERWORLD_MAP_H
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <vector>
@@ -12,9 +13,7 @@
 #include "app/zelda3/common.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
-namespace overworld {
 
 static constexpr int kTileOffsets[] = {0, 8, 4096, 4104};
 
@@ -57,22 +56,36 @@ constexpr int OverworldCustomTileGFXGroupArray = 0x140480;
 constexpr int OverworldCustomTileGFXGroupEnabled = 0x140148;
 
 /**
+ * @brief Represents tile32 data for the overworld.
+ */
+using OverworldBlockset = std::vector<std::vector<uint16_t>>;
+
+/**
+ * @brief Overworld map tile32 data.
+ */
+typedef struct OverworldMapTiles {
+  OverworldBlockset light_world;    // 64 maps
+  OverworldBlockset dark_world;     // 64 maps
+  OverworldBlockset special_world;  // 32 maps
+} OverworldMapTiles;
+
+/**
  * @brief Represents a single Overworld map screen.
  */
-class OverworldMap : public GfxContext {
+class OverworldMap : public gfx::GfxContext {
  public:
   OverworldMap() = default;
   OverworldMap(int index, Rom& rom, bool load_custom_data = false);
 
   absl::Status BuildMap(int count, int game_state, int world,
                         std::vector<gfx::Tile16>& tiles16,
-                        OWBlockset& world_blockset);
+                        OverworldBlockset& world_blockset);
 
   void LoadAreaGraphics();
   absl::Status LoadPalette();
   absl::Status BuildTileset();
   absl::Status BuildTiles16Gfx(std::vector<gfx::Tile16>& tiles16, int count);
-  absl::Status BuildBitmap(OWBlockset& world_blockset);
+  absl::Status BuildBitmap(OverworldBlockset& world_blockset);
 
   void DrawAnimatedTiles();
 
@@ -150,10 +163,11 @@ class OverworldMap : public GfxContext {
                                               int index, int previous_index,
                                               int limit);
 
+  Rom rom_;
+
   bool built_ = false;
   bool large_map_ = false;
   bool initialized_ = false;
-
   bool mosaic_ = false;
 
   int index_ = 0;        // Map index
@@ -169,25 +183,22 @@ class OverworldMap : public GfxContext {
   uint8_t animated_gfx_ = 0;        // Custom Overworld Animated ID
   uint16_t subscreen_overlay_ = 0;  // Custom Overworld Subscreen Overlay ID
 
-  uint8_t custom_gfx_ids_[8];
-  uchar sprite_graphics_[3];
-  uchar sprite_palette_[3];
-  uchar area_music_[4];
-  uchar static_graphics_[16];
+  std::array<uint8_t, 8> custom_gfx_ids_;
+  std::array<uint8_t, 3> sprite_graphics_;
+  std::array<uint8_t, 3> sprite_palette_;
+  std::array<uint8_t, 4> area_music_;
+  std::array<uint8_t, 16> static_graphics_;
 
-  Rom rom_;
   std::vector<uint8_t> all_gfx_;
   std::vector<uint8_t> current_blockset_;
   std::vector<uint8_t> current_gfx_;
   std::vector<uint8_t> bitmap_data_;
-  OWMapTiles map_tiles_;
 
+  OverworldMapTiles map_tiles_;
   gfx::SnesPalette current_palette_;
 };
 
-}  // namespace overworld
 }  // namespace zelda3
-}  // namespace app
 }  // namespace yaze
 
 #endif

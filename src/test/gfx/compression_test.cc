@@ -12,20 +12,19 @@
 
 namespace yaze {
 namespace test {
-namespace gfx {
 
-using yaze::app::Rom;
-using yaze::app::gfx::lc_lz2::CompressionContext;
-using yaze::app::gfx::lc_lz2::CompressionPiece;
-using yaze::app::gfx::lc_lz2::CompressV2;
-using yaze::app::gfx::lc_lz2::CompressV3;
-using yaze::app::gfx::lc_lz2::DecompressV2;
-using yaze::app::gfx::lc_lz2::kCommandByteFill;
-using yaze::app::gfx::lc_lz2::kCommandDirectCopy;
-using yaze::app::gfx::lc_lz2::kCommandIncreasingFill;
-using yaze::app::gfx::lc_lz2::kCommandLongLength;
-using yaze::app::gfx::lc_lz2::kCommandRepeatingBytes;
-using yaze::app::gfx::lc_lz2::kCommandWordFill;
+using yaze::Rom;
+using yaze::gfx::lc_lz2::CompressionContext;
+using yaze::gfx::lc_lz2::CompressionPiece;
+using yaze::gfx::lc_lz2::CompressV2;
+using yaze::gfx::lc_lz2::CompressV3;
+using yaze::gfx::lc_lz2::DecompressV2;
+using yaze::gfx::lc_lz2::kCommandByteFill;
+using yaze::gfx::lc_lz2::kCommandDirectCopy;
+using yaze::gfx::lc_lz2::kCommandIncreasingFill;
+using yaze::gfx::lc_lz2::kCommandLongLength;
+using yaze::gfx::lc_lz2::kCommandRepeatingBytes;
+using yaze::gfx::lc_lz2::kCommandWordFill;
 
 using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
@@ -81,8 +80,9 @@ void AssertCompressionQuality(
   EXPECT_THAT(compressed_data, ElementsAreArray(expected_compressed_data));
 }
 
-std::vector<uint8_t> ExpectCompressV3Ok(const std::vector<uint8_t>& uncompressed_data,
-                         const std::vector<uint8_t>& expected_compressed_data) {
+std::vector<uint8_t> ExpectCompressV3Ok(
+    const std::vector<uint8_t>& uncompressed_data,
+    const std::vector<uint8_t>& expected_compressed_data) {
   absl::StatusOr<std::vector<uint8_t>> result =
       CompressV3(uncompressed_data, 0, uncompressed_data.size(), 0, false);
   EXPECT_TRUE(result.ok());
@@ -397,7 +397,8 @@ TEST(CheckIncByteV3Test, NotAnIncreasingSequence) {
 
 TEST(LC_LZ2_CompressionTest, DecompressionValidCommand) {
   Rom rom;
-  std::vector<uint8_t> simple_copy_input = {BUILD_HEADER(0x00, 0x02), 0x2A, 0x45, 0xFF};
+  std::vector<uint8_t> simple_copy_input = {BUILD_HEADER(0x00, 0x02), 0x2A,
+                                            0x45, 0xFF};
   uchar simple_copy_output[2] = {0x2A, 0x45};
   auto decomp_result = ExpectDecompressBytesOk(rom, simple_copy_input);
   EXPECT_THAT(simple_copy_output, ElementsAreArray(decomp_result.data(), 2));
@@ -421,6 +422,5 @@ TEST(LC_LZ2_CompressionTest, DecompressionMixingCommand) {
   EXPECT_THAT(random1_o, ElementsAreArray(decomp_result.data(), 9));
 }
 
-}  // namespace gfx
 }  // namespace test
 }  // namespace yaze

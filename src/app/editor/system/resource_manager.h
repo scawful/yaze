@@ -4,7 +4,6 @@
 #include <cstddef>
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 // System resource manager.
@@ -24,7 +23,6 @@ class ResourceManager {
 };
 
 } // namespace editor
-} // namespace app
 } // namespace yaze
 
 #endif // YAZE_APP_EDITOR_SYSTEM_RESOURCE_MANAGER_H

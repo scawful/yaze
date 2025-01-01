@@ -7,13 +7,12 @@
 
 namespace yaze {
 namespace test {
-namespace gfx {
 
 using ::testing::ElementsAreArray;
-using yaze::app::gfx::ConvertRgbToSnes;
-using yaze::app::gfx::ConvertSnestoRGB;
-using yaze::app::gfx::Extract;
-using yaze::app::gfx::SnesPalette;
+using yaze::gfx::ConvertRgbToSnes;
+using yaze::gfx::ConvertSnesToRgb;
+using yaze::gfx::Extract;
+using yaze::gfx::SnesPalette;
 
 namespace {
 unsigned int test_convert(snes_color col) {
@@ -26,8 +25,8 @@ unsigned int test_convert(snes_color col) {
 }  // namespace
 
 TEST(SnesPaletteTest, AddColor) {
-  yaze::app::gfx::SnesPalette palette;
-  yaze::app::gfx::SnesColor color;
+  yaze::gfx::SnesPalette palette;
+  yaze::gfx::SnesColor color;
   palette.AddColor(color);
   ASSERT_EQ(palette.size(), 1);
 }
@@ -40,7 +39,7 @@ TEST(SnesColorTest, ConvertRgbToSnes) {
 
 TEST(SnesColorTest, ConvertSnestoRGB) {
   uint16_t snes = 0x4210;
-  snes_color color = ConvertSnestoRGB(snes);
+  snes_color color = ConvertSnesToRgb(snes);
   ASSERT_EQ(color.red, 132);
   ASSERT_EQ(color.green, 132);
   ASSERT_EQ(color.blue, 132);
@@ -53,13 +52,13 @@ TEST(SnesColorTest, ConvertSnesToRGB_Binary) {
   uint16_t purple = 0b0111110000011111;
   snes_color testcolor;
 
-  testcolor = ConvertSnestoRGB(red);
+  testcolor = ConvertSnesToRgb(red);
   ASSERT_EQ(0xFF0000, test_convert(testcolor));
-  testcolor = ConvertSnestoRGB(green);
+  testcolor = ConvertSnesToRgb(green);
   ASSERT_EQ(0x00FF00, test_convert(testcolor));
-  testcolor = ConvertSnestoRGB(blue);
+  testcolor = ConvertSnesToRgb(blue);
   ASSERT_EQ(0x0000FF, test_convert(testcolor));
-  testcolor = ConvertSnestoRGB(purple);
+  testcolor = ConvertSnesToRgb(purple);
   ASSERT_EQ(0xFF00FF, test_convert(testcolor));
 }
 
@@ -88,11 +87,10 @@ TEST(SnesColorTest, Convert) {
                    static_cast<char>(0xFF),
                    0x1F};
   auto pal = Extract(data, 0, 5);
-  auto snes_string = yaze::app::gfx::Convert(pal);
+  auto snes_string = yaze::gfx::Convert(pal);
   EXPECT_EQ(10, snes_string.size());
   EXPECT_THAT(data, ElementsAreArray(snes_string.data(), 10));
 }
 
-}  // namespace gfx
 }  // namespace test
 }  // namespace yaze

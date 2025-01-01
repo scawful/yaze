@@ -7,23 +7,27 @@
 #include <memory>
 #include <string>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
-#include "absl/container/flat_hash_map.h"
 
 namespace yaze {
-namespace app {
 
 /**
- * @namespace yaze::app::core
+ * @namespace yaze::core
  * @brief Core application logic and utilities.
  */
 namespace core {
 
-std::string UppercaseHexByte(uint8_t byte, bool leading = false);
-std::string UppercaseHexWord(uint16_t word, bool leading = false);
-std::string UppercaseHexLong(uint32_t dword);
-std::string UppercaseHexLongLong(uint64_t qword);
+struct HexStringParams {
+  enum class Prefix { kNone, kDollar, kHash, k0x } prefix = Prefix::kDollar;
+  bool uppercase = true;
+};
+
+std::string HexByte(uint8_t byte, HexStringParams params = {});
+std::string HexWord(uint16_t word, HexStringParams params = {});
+std::string HexLong(uint32_t dword, HexStringParams params = {});
+std::string HexLongLong(uint64_t qword, HexStringParams params = {});
 
 bool StringReplace(std::string &str, const std::string &from,
                    const std::string &to);
@@ -33,15 +37,10 @@ bool StringReplace(std::string &str, const std::string &from,
  * @brief A class to manage experimental feature flags.
  */
 class ExperimentFlags {
-public:
+ public:
   struct Flags {
     // Log instructions to the GUI debugger.
     bool kLogInstructions = true;
-
-    // Flag to enable ImGui input config flags. Currently is
-    // handled manually by controller class but should be
-    // ported away from that eventually.
-    bool kUseNewImGuiInput = false;
 
     // Flag to enable the saving of all palettes to the Rom.
     bool kSaveAllPalettes = false;
@@ -97,60 +96,44 @@ public:
     } overworld;
   };
 
-  ExperimentFlags() = default;
-  virtual ~ExperimentFlags() = default;
-  auto flags() const {
-    if (!flags_) {
-      flags_ = std::make_shared<Flags>();
-    }
-    Flags *flags = flags_.get();
-    return flags;
+  static Flags &get() {
+    static Flags instance;
+    return instance;
   }
-  Flags *mutable_flags() {
-    if (!flags_) {
-      flags_ = std::make_shared<Flags>();
-    }
-    return flags_.get();
-  }
+
   std::string Serialize() const {
     std::string result;
     result +=
-        "kLogInstructions: " + std::to_string(flags_->kLogInstructions) + "\n";
+        "kLogInstructions: " + std::to_string(get().kLogInstructions) + "\n";
     result +=
-        "kUseNewImGuiInput: " + std::to_string(flags_->kUseNewImGuiInput) +
+        "kSaveAllPalettes: " + std::to_string(get().kSaveAllPalettes) + "\n";
+    result += "kSaveGfxGroups: " + std::to_string(get().kSaveGfxGroups) + "\n";
+    result +=
+        "kSaveWithChangeQueue: " + std::to_string(get().kSaveWithChangeQueue) +
         "\n";
-    result +=
-        "kSaveAllPalettes: " + std::to_string(flags_->kSaveAllPalettes) + "\n";
-    result +=
-        "kSaveGfxGroups: " + std::to_string(flags_->kSaveGfxGroups) + "\n";
-    result += "kSaveWithChangeQueue: " +
-              std::to_string(flags_->kSaveWithChangeQueue) + "\n";
     result += "kDrawDungeonRoomGraphics: " +
-              std::to_string(flags_->kDrawDungeonRoomGraphics) + "\n";
+              std::to_string(get().kDrawDungeonRoomGraphics) + "\n";
     result += "kNewFileDialogWrapper: " +
-              std::to_string(flags_->kNewFileDialogWrapper) + "\n";
+              std::to_string(get().kNewFileDialogWrapper) + "\n";
     result += "kLoadTexturesAsStreaming: " +
-              std::to_string(flags_->kLoadTexturesAsStreaming) + "\n";
+              std::to_string(get().kLoadTexturesAsStreaming) + "\n";
     result +=
-        "kSaveDungeonMaps: " + std::to_string(flags_->kSaveDungeonMaps) + "\n";
-    result += "kLogToConsole: " + std::to_string(flags_->kLogToConsole) + "\n";
+        "kSaveDungeonMaps: " + std::to_string(get().kSaveDungeonMaps) + "\n";
+    result += "kLogToConsole: " + std::to_string(get().kLogToConsole) + "\n";
     result += "kDrawOverworldSprites: " +
-              std::to_string(flags_->overworld.kDrawOverworldSprites) + "\n";
+              std::to_string(get().overworld.kDrawOverworldSprites) + "\n";
     result += "kSaveOverworldMaps: " +
-              std::to_string(flags_->overworld.kSaveOverworldMaps) + "\n";
+              std::to_string(get().overworld.kSaveOverworldMaps) + "\n";
     result += "kSaveOverworldEntrances: " +
-              std::to_string(flags_->overworld.kSaveOverworldEntrances) + "\n";
+              std::to_string(get().overworld.kSaveOverworldEntrances) + "\n";
     result += "kSaveOverworldExits: " +
-              std::to_string(flags_->overworld.kSaveOverworldExits) + "\n";
+              std::to_string(get().overworld.kSaveOverworldExits) + "\n";
     result += "kSaveOverworldItems: " +
-              std::to_string(flags_->overworld.kSaveOverworldItems) + "\n";
+              std::to_string(get().overworld.kSaveOverworldItems) + "\n";
     result += "kSaveOverworldProperties: " +
-              std::to_string(flags_->overworld.kSaveOverworldProperties) + "\n";
+              std::to_string(get().overworld.kSaveOverworldProperties) + "\n";
     return result;
   }
-
-private:
-  static std::shared_ptr<Flags> flags_;
 };
 
 /**
@@ -158,8 +141,9 @@ private:
  * @brief A class to manage a value that can be modified and notify when it
  * changes.
  */
-template <typename T> class NotifyValue {
-public:
+template <typename T>
+class NotifyValue {
+ public:
   NotifyValue() : value_(), modified_(false), temp_value_() {}
   NotifyValue(const T &value)
       : value_(value), modified_(false), temp_value_() {}
@@ -192,14 +176,14 @@ public:
 
   bool modified() const { return modified_; }
 
-private:
+ private:
   T value_;
   bool modified_;
   T temp_value_;
 };
 
 static bool log_to_console = false;
-static std::string log_file_out = "log.txt";
+static const std::string kLogFileOut = "yaze_log.txt";
 
 template <typename... Args>
 static void logf(const absl::FormatSpec<Args...> &format, const Args &...args) {
@@ -207,38 +191,9 @@ static void logf(const absl::FormatSpec<Args...> &format, const Args &...args) {
   if (log_to_console) {
     std::cout << message << std::endl;
   }
-  static std::ofstream fout(log_file_out, std::ios::out | std::ios::app);
+  static std::ofstream fout(kLogFileOut, std::ios::out | std::ios::app);
   fout << message << std::endl;
 }
-
-struct StructuredLog {
-  std::string raw_message;
-  std::string category;
-};
-
-static absl::flat_hash_map<std::string, std::vector<std::string>> log_categories;
-
-template <typename... Args>
-static void logm(const std::string &category,
-                 const absl::FormatSpec<Args...> &format, const Args &...args) {
-  std::string message = absl::StrFormat(format, args...);
-  if (log_to_console) {
-    std::cout << category << ": " << message << std::endl;
-  }
-  if (log_categories.contains(category)) {
-    log_categories[category].push_back(message);
-  } else {
-    log_categories[category] = {message};
-  }
-}
-
-class Logger {
-public:
-  static void log(std::string message) {
-    static std::ofstream fout(log_file_out, std::ios::out | std::ios::app);
-    fout << message << std::endl;
-  }
-};
 
 constexpr uint32_t kFastRomRegion = 0x808000;
 
@@ -310,12 +265,7 @@ void ApplyBpsPatch(const std::vector<uint8_t> &source,
                    const std::vector<uint8_t> &patch,
                    std::vector<uint8_t> &target);
 
-constexpr std::string_view kYazeVersion = "0.2.1";
-
-absl::StatusOr<std::string> CheckVersion(const char *version);
-
-} // namespace core
-} // namespace app
-} // namespace yaze
+}  // namespace core
+}  // namespace yaze
 
 #endif

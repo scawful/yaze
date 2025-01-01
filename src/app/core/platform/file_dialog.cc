@@ -7,12 +7,11 @@
 #endif  // _WIN32
 
 namespace yaze {
-namespace app {
 namespace core {
 
 #ifdef _WIN32
 
- std::string FileDialogWrapper::ShowOpenFileDialog() {
+std::string FileDialogWrapper::ShowOpenFileDialog() {
   CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
   IFileDialog *pfd = NULL;
@@ -44,7 +43,7 @@ namespace core {
   return file_path_windows;
 }
 
- std::string FileDialogWrapper::ShowOpenFolderDialog() {
+std::string FileDialogWrapper::ShowOpenFolderDialog() {
   CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
   IFileDialog *pfd = NULL;
@@ -141,5 +140,4 @@ std::vector<std::string> FileDialogWrapper::GetFilesInFolder(
 #endif
 
 }  // namespace core
-}  // namespace app
 }  // namespace yaze

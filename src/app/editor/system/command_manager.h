@@ -8,16 +8,15 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 ImGuiKey MapKeyToImGuiKey(char key);
 
 class CommandManager {
-public:
+ public:
   CommandManager() = default;
   ~CommandManager() = default;
-  
+
   using Command = std::function<void()>;
 
   struct CommandInfo {
@@ -27,7 +26,9 @@ public:
     std::string desc;
     CommandInfo(Command command, char mnemonic, const std::string &name,
                 const std::string &desc)
-        : command(std::move(command)), mnemonic(mnemonic), name(name),
+        : command(std::move(command)),
+          mnemonic(mnemonic),
+          name(name),
           desc(desc) {}
     CommandInfo() = default;
   };
@@ -72,12 +73,11 @@ public:
   void SaveKeybindings(const std::string &filepath);
   void LoadKeybindings(const std::string &filepath);
 
-private:
+ private:
   std::unordered_map<std::string, CommandInfoOrPrefix> commands_;
 };
 
-} // namespace editor
-} // namespace app
-} // namespace yaze
+}  // namespace editor
+}  // namespace yaze
 
-#endif // YAZE_APP_EDITOR_SYSTEM_COMMAND_MANAGER_H
+#endif  // YAZE_APP_EDITOR_SYSTEM_COMMAND_MANAGER_H

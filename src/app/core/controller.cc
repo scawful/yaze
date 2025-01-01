@@ -16,39 +16,7 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace core {
-
-namespace {
-
-constexpr ImGuiWindowFlags kMainEditorFlags =
-    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
-    ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar |
-    ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar;
-
-using ImGui::Begin;
-using ImGui::End;
-using ImGui::GetIO;
-using ImGui::NewFrame;
-using ImGui::SetNextWindowPos;
-using ImGui::SetNextWindowSize;
-
-void NewMasterFrame() {
-  const ImGuiIO &io = GetIO();
-  ImGui_ImplSDLRenderer2_NewFrame();
-  ImGui_ImplSDL2_NewFrame();
-  NewFrame();
-  SetNextWindowPos(gui::kZeroPos);
-  ImVec2 dimensions(io.DisplaySize.x, io.DisplaySize.y);
-  SetNextWindowSize(dimensions, ImGuiCond_Always);
-
-  if (!Begin("##YazeMain", nullptr, kMainEditorFlags)) {
-    End();
-    return;
-  }
-}
-
-}  // namespace
 
 absl::Status Controller::OnEntry(std::string filename) {
 #if defined(__APPLE__) && defined(__MACH__)
@@ -68,7 +36,7 @@ absl::Status Controller::OnEntry(std::string filename) {
   RETURN_IF_ERROR(CreateRenderer())
   RETURN_IF_ERROR(CreateGuiContext())
   RETURN_IF_ERROR(LoadAudioDevice())
-  editor_manager_.SetupScreen(filename);
+  editor_manager_.Initialize(filename);
   active_ = true;
   return absl::OkStatus();
 }
@@ -81,30 +49,30 @@ void Controller::OnInput() {
   while (SDL_PollEvent(&event)) {
     ImGui_ImplSDL2_ProcessEvent(&event);
     switch (event.type) {
-      case SDL_KEYDOWN:
-      case SDL_KEYUP: {
-        ImGuiIO &io = ImGui::GetIO();
-        io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
-        io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
-        io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
-        io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
+    case SDL_KEYDOWN:
+    case SDL_KEYUP: {
+      ImGuiIO &io = ImGui::GetIO();
+      io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
+      io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
+      io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
+      io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
+      break;
+    }
+    case SDL_WINDOWEVENT:
+      switch (event.window.event) {
+      case SDL_WINDOWEVENT_CLOSE:
+        active_ = false;
         break;
-      }
-      case SDL_WINDOWEVENT:
-        switch (event.window.event) {
-          case SDL_WINDOWEVENT_CLOSE:
-            active_ = false;
-            break;
-          case SDL_WINDOWEVENT_SIZE_CHANGED:
-            io.DisplaySize.x = static_cast<float>(event.window.data1);
-            io.DisplaySize.y = static_cast<float>(event.window.data2);
-            break;
-          default:
-            break;
-        }
+      case SDL_WINDOWEVENT_SIZE_CHANGED:
+        io.DisplaySize.x = static_cast<float>(event.window.data1);
+        io.DisplaySize.y = static_cast<float>(event.window.data2);
         break;
       default:
         break;
+      }
+      break;
+    default:
+      break;
     }
   }
 
@@ -125,15 +93,26 @@ absl::Status Controller::OnLoad() {
     active_ = false;
   }
 #if TARGET_OS_IPHONE != 1
-  if (platform_ != Platform::kiOS) {
-    NewMasterFrame();
+  constexpr ImGuiWindowFlags kMainEditorFlags =
+      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
+      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar |
+      ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar;
+
+  const ImGuiIO &io = ImGui::GetIO();
+  ImGui_ImplSDLRenderer2_NewFrame();
+  ImGui_ImplSDL2_NewFrame();
+  ImGui::NewFrame();
+  ImGui::SetNextWindowPos(gui::kZeroPos);
+  ImVec2 dimensions(io.DisplaySize.x, io.DisplaySize.y);
+  ImGui::SetNextWindowSize(dimensions, ImGuiCond_Always);
+
+  if (!ImGui::Begin("##YazeMain", nullptr, kMainEditorFlags)) {
+    ImGui::End();
   }
 #endif
   RETURN_IF_ERROR(editor_manager_.Update());
 #if TARGET_OS_IPHONE != 1
-  if (platform_ != Platform::kiOS) {
-    End();
-  }
+  ImGui::End();
 #endif
   return absl::OkStatus();
 }
@@ -162,9 +141,6 @@ void Controller::OnExit() {
 
 absl::Status Controller::CreateWindow() {
   auto sdl_flags = SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER;
-  if (flags()->kUseNewImGuiInput) {
-    sdl_flags |= SDL_INIT_GAMECONTROLLER;
-  }
 
   if (SDL_Init(sdl_flags) != 0) {
     return absl::InternalError(
@@ -177,11 +153,11 @@ absl::Status Controller::CreateWindow() {
   int screen_height = display_mode.h * 0.8;
 
   window_ = std::unique_ptr<SDL_Window, core::SDL_Deleter>(
-      SDL_CreateWindow("Yet Another Zelda3 Editor",  // window title
-                       SDL_WINDOWPOS_UNDEFINED,      // initial x position
-                       SDL_WINDOWPOS_UNDEFINED,      // initial y position
-                       screen_width,                 // width, in pixels
-                       screen_height,                // height, in pixels
+      SDL_CreateWindow("Yet Another Zelda3 Editor", // window title
+                       SDL_WINDOWPOS_UNDEFINED,     // initial x position
+                       SDL_WINDOWPOS_UNDEFINED,     // initial y position
+                       screen_width,                // width, in pixels
+                       screen_height,               // height, in pixels
                        SDL_WINDOW_RESIZABLE),
       core::SDL_Deleter());
   if (window_ == nullptr) {
@@ -202,9 +178,6 @@ absl::Status Controller::CreateGuiContext() {
 
   ImGuiIO &io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-  if (flags()->kUseNewImGuiInput) {
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-  }
 
   // Initialize ImGui based on the backend
   ImGui_ImplSDL2_InitForSDLRenderer(window_.get(),
@@ -235,7 +208,7 @@ absl::Status Controller::LoadAudioDevice() {
   want.format = AUDIO_S16;
   want.channels = 2;
   want.samples = 2048;
-  want.callback = NULL;  // Uses the queue
+  want.callback = NULL; // Uses the queue
   audio_device_ = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
   if (audio_device_ == 0) {
     return absl::InternalError(
@@ -277,6 +250,5 @@ absl::Status Controller::LoadConfigFiles() {
   return absl::OkStatus();
 }
 
-}  // namespace core
-}  // namespace app
-}  // namespace yaze
+} // namespace core
+} // namespace yaze

@@ -8,16 +8,15 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 
 /**
- * @namespace yaze::app::gui
+ * @namespace yaze::gui
  * @brief Graphical User Interface (GUI) components for the application.
  */
 namespace gui {
 
-using app::gfx::Bitmap;
-using app::gfx::BitmapTable;
+using gfx::Bitmap;
+using gfx::BitmapTable;
 
 enum class CanvasType { kTile, kBlock, kMap };
 enum class CanvasMode { kPaint, kSelect };
@@ -245,7 +244,6 @@ void BitmapCanvasPipeline(gui::Canvas &canvas, const gfx::Bitmap &bitmap,
                           bool scrollbar, int canvas_id);
 
 } // namespace gui
-} // namespace app
 } // namespace yaze
 
 #endif

@@ -24,7 +24,6 @@
 #include "imgui/misc/cpp/imgui_stdlib.h"
 
 namespace yaze {
-namespace app {
 namespace editor {
 
 using namespace ImGui;
@@ -32,8 +31,8 @@ using core::FileDialogWrapper;
 
 namespace {
 
-bool BeginCentered(const char* name) {
-  ImGuiIO const& io = GetIO();
+bool BeginCentered(const char *name) {
+  ImGuiIO const &io = GetIO();
   ImVec2 pos(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);
   SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   ImGuiWindowFlags flags =
@@ -42,19 +41,18 @@ bool BeginCentered(const char* name) {
   return Begin(name, nullptr, flags);
 }
 
-bool IsEditorActive(Editor* editor, std::vector<Editor*>& active_editors) {
+bool IsEditorActive(Editor *editor, std::vector<Editor *> &active_editors) {
   return std::find(active_editors.begin(), active_editors.end(), editor) !=
          active_editors.end();
 }
 
 }  // namespace
 
-void EditorManager::SetupScreen(std::string filename) {
+void EditorManager::Initialize(std::string filename) {
   if (!filename.empty()) {
     PRINT_IF_ERROR(rom()->LoadFromFile(filename));
   }
-  overworld_editor_.InitializeZeml();
-  InitializeCommands();
+  overworld_editor_.Initialize();
 }
 
 absl::Status EditorManager::Update() {
@@ -66,17 +64,12 @@ absl::Status EditorManager::Update() {
   DrawInfoPopup();
 
   if (rom()->is_loaded() && !rom_assets_loaded_) {
-    // Load all of the graphics data from the game.
     RETURN_IF_ERROR(rom()->LoadAllGraphicsData())
-    // Initialize overworld graphics, maps, and palettes
     RETURN_IF_ERROR(overworld_editor_.LoadGraphics());
     rom_assets_loaded_ = true;
   }
 
-  if (dynamic_layout_)
-    RETURN_IF_ERROR(DrawDynamicLayout())
-  else
-    ManageActiveEditors();
+  ManageActiveEditors();
 
   return absl::OkStatus();
 }
@@ -244,12 +237,6 @@ void EditorManager::ManageActiveEditors() {
   }
 }
 
-absl::Status EditorManager::DrawDynamicLayout() {
-  // Dynamic layout for multiple editors to be open at once
-  // Allows for tiling and resizing of editors using ImGui
-  return DrawEditor(&root_layout_);
-}
-
 void EditorManager::ManageKeyboardShortcuts() {
   bool ctrl_or_super = (GetIO().KeyCtrl || GetIO().KeySuper);
 
@@ -309,81 +296,6 @@ void EditorManager::ManageKeyboardShortcuts() {
   }
 }
 
-void EditorManager::InitializeCommands() {
-  if (root_layout_.editor == nullptr) {
-    root_layout_.editor = &overworld_editor_;
-  }
-
-  // New editor popup for window management commands
-  static EditorLayoutParams new_layout;
-  if (ImGui::BeginPopup("NewEditor")) {
-    ImGui::Text("New Editor");
-    ImGui::Separator();
-    if (ImGui::Button("Overworld")) {
-      new_layout.editor = &overworld_editor_;
-      ImGui::CloseCurrentPopup();
-    }
-    if (ImGui::Button("Dungeon")) {
-      new_layout.editor = &dungeon_editor_;
-      ImGui::CloseCurrentPopup();
-    }
-    if (ImGui::Button("Graphics")) {
-      new_layout.editor = &graphics_editor_;
-      ImGui::CloseCurrentPopup();
-    }
-    if (ImGui::Button("Music")) {
-      new_layout.editor = &music_editor_;
-      ImGui::CloseCurrentPopup();
-    }
-    if (ImGui::Button("Palette")) {
-      new_layout.editor = &palette_editor_;
-      ImGui::CloseCurrentPopup();
-    }
-    if (ImGui::Button("Screen")) {
-      new_layout.editor = &screen_editor_;
-      ImGui::CloseCurrentPopup();
-    }
-    if (ImGui::Button("Sprite")) {
-      new_layout.editor = &sprite_editor_;
-      ImGui::CloseCurrentPopup();
-    }
-    if (ImGui::Button("Code")) {
-      new_layout.editor = &assembly_editor_;
-      ImGui::CloseCurrentPopup();
-    }
-    if (ImGui::Button("Settings")) {
-      new_layout.editor = &settings_editor_;
-      ImGui::CloseCurrentPopup();
-    }
-    if (ImGui::Button("Message")) {
-      new_layout.editor = &message_editor_;
-      ImGui::CloseCurrentPopup();
-    }
-    ImGui::EndPopup();
-  }
-
-  editor_context_.command_manager.RegisterPrefix("window", 'w',
-                                                 "window management", "");
-  editor_context_.command_manager.RegisterSubcommand(
-      "window", "vsplit", '/', "vertical split",
-      "split windows vertically and place editor in new window", [this]() {
-        ImGui::OpenPopup("NewEditor");
-        root_layout_.v_split = true;
-      });
-  editor_context_.command_manager.RegisterSubcommand(
-      "window", "hsplit", '-', "horizontal split",
-      "split windows horizontally and place editor in new window", [this]() {
-        ImGui::OpenPopup("NewEditor");
-        root_layout_.h_split = true;
-      });
-  editor_context_.command_manager.RegisterSubcommand(
-      "window", "close", 'd', "close", "close the current editor", [this]() {
-        if (root_layout_.editor != nullptr) {
-          root_layout_.editor = nullptr;
-        }
-      });
-}
-
 void EditorManager::DrawStatusPopup() {
   static absl::Status prev_status;
   if (!status_.ok()) {
@@ -415,7 +327,7 @@ void EditorManager::DrawStatusPopup() {
 void EditorManager::DrawAboutPopup() {
   if (about_) OpenPopup("About");
   if (BeginPopupModal("About", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-    Text("Yet Another Zelda3 Editor - v%s", core::kYazeVersion.data());
+    Text("Yet Another Zelda3 Editor - v%s", version_.c_str());
     Text("Written by: scawful");
     Spacing();
     Text("Special Thanks: Zarby89, JaredBrian");
@@ -434,7 +346,7 @@ void EditorManager::DrawInfoPopup() {
   if (BeginPopupModal("ROM Information", nullptr,
                       ImGuiWindowFlags_AlwaysAutoResize)) {
     Text("Title: %s", rom()->title().c_str());
-    Text("ROM Size: %s", core::UppercaseHexLongLong(rom()->size()).c_str());
+    Text("ROM Size: %s", core::HexLongLong(rom()->size()).c_str());
 
     if (Button("Close", gui::kDefaultModalSize) ||
         IsKeyPressed(ImGuiKey_Escape)) {
@@ -457,7 +369,7 @@ void EditorManager::DrawYazeMenu() {
       show_display_settings = !show_display_settings;
     }
     PopStyleColor();
-    Text("yaze v%s", core::kYazeVersion.data());
+    Text("yaze v%s", version_.c_str());
     EndMenuBar();
   }
 
@@ -483,7 +395,7 @@ void EditorManager::DrawYazeMenuBar() {
       if (manager.GetRecentFiles().empty()) {
         MenuItem("No Recent Files", nullptr, false, false);
       } else {
-        for (const auto& filePath : manager.GetRecentFiles()) {
+        for (const auto &filePath : manager.GetRecentFiles()) {
           if (MenuItem(filePath.c_str())) {
             OpenRomOrProject(filePath);
           }
@@ -643,7 +555,6 @@ void EditorManager::DrawYazeMenuBar() {
   }
 
   if (BeginMenu("View")) {
-    MenuItem("Dynamic Layout", nullptr, &dynamic_layout_);
     MenuItem("Emulator", nullptr, &show_emulator);
     Separator();
     MenuItem("Memory Editor", nullptr, &show_memory_editor);
@@ -772,7 +683,7 @@ void EditorManager::LoadRom() {
 }
 
 void EditorManager::SaveRom() {
-  if (flags()->kSaveDungeonMaps) {
+  if (core::ExperimentFlags::get().kSaveDungeonMaps) {
     status_ = screen_editor_.SaveDungeonMaps();
     RETURN_VOID_IF_ERROR(status_);
   }
@@ -783,7 +694,7 @@ void EditorManager::SaveRom() {
   status_ = rom()->SaveToFile(backup_rom_, save_new_auto_);
 }
 
-void EditorManager::OpenRomOrProject(const std::string& filename) {
+void EditorManager::OpenRomOrProject(const std::string &filename) {
   if (absl::StrContains(filename, ".yaze")) {
     status_ = current_project_.Open(filename);
     if (status_.ok()) {
@@ -816,5 +727,4 @@ absl::Status EditorManager::OpenProject() {
 }
 
 }  // namespace editor
-}  // namespace app
 }  // namespace yaze

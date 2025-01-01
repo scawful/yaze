@@ -19,9 +19,6 @@ typedef struct yaze_project yaze_project;
 typedef struct yaze_command_registry yaze_command_registry;
 typedef struct yaze_event_dispatcher yaze_event_dispatcher;
 
-/**
- * @brief Extension editor context.
- */
 typedef struct yaze_editor_context {
   z3_rom* rom;
   yaze_project* project;
@@ -30,19 +27,10 @@ typedef struct yaze_editor_context {
   yaze_event_dispatcher* event_dispatcher;
 } yaze_editor_context;
 
-/**
- * @brief Initialize the Yaze library.
- */
+void yaze_check_version(const char* version);
 int yaze_init(yaze_editor_context*);
-
-/**
- * @brief Clean up the Yaze library.
- */
 void yaze_cleanup(yaze_editor_context*);
 
-/**
- * @brief Primitive of a Yaze project.
- */
 struct yaze_project {
   const char* name;
   const char* filepath;
@@ -53,29 +41,16 @@ struct yaze_project {
 
 yaze_project yaze_load_project(const char* filename);
 
-/**
- * @brief Primitive of a Zelda3 ROM.
- */
 struct z3_rom {
   const char* filename;
   const uint8_t* data;
   size_t size;
-  void* impl;  // yaze::app::Rom*
+  void* impl;  // yaze::Rom*
 };
 
-/**
- * @brief Load a Zelda3 ROM from a file.
- */
 z3_rom* yaze_load_rom(const char* filename);
-
-/**
- * @brief Unload a Zelda3 ROM.
- */
 void yaze_unload_rom(z3_rom* rom);
 
-/**
- * @brief Primitive of a Bitmap
- */
 typedef struct yaze_bitmap {
   int width;
   int height;
@@ -83,40 +58,99 @@ typedef struct yaze_bitmap {
   uint8_t* data;
 } yaze_bitmap;
 
-/**
- * @brief Load a bitmap from a file.
- */
 yaze_bitmap yaze_load_bitmap(const char* filename);
 
-/**
- * @brief Get a color from a palette set.
- */
 snes_color yaze_get_color_from_paletteset(const z3_rom* rom, int palette_set,
                                           int palette, int color);
 
-/**
- * @brief Load the overworld from a Zelda3 ROM.
- */
 z3_overworld* yaze_load_overworld(const z3_rom* rom);
 
-/**
- * @brief Check the version of the Yaze library.
- */
-void yaze_check_version(const char* version);
+z3_dungeon_room* yaze_load_all_rooms(const z3_rom* rom);
 
-/**
- * @brief Command registry.
- */
 struct yaze_command_registry {
   void (*register_command)(const char* name, void (*command)(void));
 };
 
-/**
- * @brief Event dispatcher.
- */
 struct yaze_event_dispatcher {
   void (*register_event_hook)(void (*event_hook)(void));
 };
+
+typedef void (*yaze_initialize_func)(yaze_editor_context* context);
+typedef void (*yaze_cleanup_func)(void);
+typedef void (*yaze_extend_ui_func)(yaze_editor_context* context);
+typedef void (*yaze_manipulate_rom_func)(z3_rom* rom);
+typedef void (*yaze_command_func)(void);
+typedef void (*yaze_event_hook_func)(void);
+
+typedef enum {
+  YAZE_EVENT_ROM_LOADED,
+  YAZE_EVENT_ROM_SAVED,
+  YAZE_EVENT_SPRITE_MODIFIED,
+  YAZE_EVENT_PALETTE_CHANGED,
+} yaze_event_type;
+
+/**
+ * @brief Extension interface for Yaze.
+ *
+ * @details Yaze extensions can be written in C or Python.
+ */
+typedef struct yaze_extension {
+  const char* name;
+  const char* version;
+
+  /**
+   * @brief Function to initialize the extension.
+   *
+   * @details This function is called when the extension is loaded. It can be
+   * used to set up any resources or state needed by the extension.
+   */
+  yaze_initialize_func initialize;
+
+  /**
+   * @brief Function to clean up the extension.
+   *
+   * @details This function is called when the extension is unloaded. It can be
+   * used to clean up any resources or state used by the extension.
+   */
+  yaze_cleanup_func cleanup;
+
+  /**
+   * @brief Function to manipulate the ROM.
+   *
+   * @param rom The ROM to manipulate.
+   *
+   */
+  yaze_manipulate_rom_func manipulate_rom;
+
+  /**
+   * @brief Function to extend the UI.
+   *
+   * @param context The editor context.
+   *
+   * @details This function is called when the extension is loaded. It can be
+   * used to add custom UI elements to the editor. The context parameter
+   * provides access to the project, command registry, event dispatcher, and
+   * ImGui context.
+   */
+  yaze_extend_ui_func extend_ui;
+
+  /**
+   * @brief Register commands in the yaze_command_registry.
+   */
+  yaze_command_func register_commands;
+
+  /**
+   * @brief Register custom tools in the yaze_command_registry.
+   */
+  yaze_command_func register_custom_tools;
+
+  /**
+   * @brief Register event hooks in the yaze_event_dispatcher.
+   */
+  void (*register_event_hooks)(yaze_event_type event,
+                               yaze_event_hook_func hook);
+
+} yaze_extension;
 
 #ifdef __cplusplus
 }

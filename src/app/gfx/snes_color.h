@@ -9,7 +9,6 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
 namespace gfx {
 
 constexpr int NumberOfColors = 3143;
@@ -108,7 +107,6 @@ SnesColor GetCgxColor(uint16_t color);
 std::vector<SnesColor> GetColFileData(uint8_t* data);
 
 }  // namespace gfx
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_GFX_SNES_COLOR_H_

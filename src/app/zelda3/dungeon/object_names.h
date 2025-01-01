@@ -4,9 +4,8 @@
 #include "absl/strings/string_view.h"
 
 namespace yaze {
-namespace app {
 namespace zelda3 {
-namespace dungeon {
+
 
 constexpr static inline absl::string_view Type1RoomObjectNames[] = {
     "Ceiling ↔",
@@ -457,9 +456,10 @@ constexpr static inline absl::string_view Type3RoomObjectNames[] = {
     "Nothing",
 };
 
-}  // namespace dungeon
+
+
 }  // namespace zelda3
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_DUNGEON_OBJECT_NAMES_H

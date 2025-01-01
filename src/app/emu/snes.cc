@@ -1,21 +1,13 @@
 #include "app/emu/snes.h"
 
 #include <cstdint>
-#include <memory>
-#include <string>
-#include <thread>
 
 #include "app/emu/audio/apu.h"
-#include "app/emu/audio/spc700.h"
-#include "app/emu/cpu/clock.h"
-#include "app/emu/cpu/cpu.h"
 #include "app/emu/memory/dma.h"
 #include "app/emu/memory/memory.h"
 #include "app/emu/video/ppu.h"
-#include "app/rom.h"
 
 namespace yaze {
-namespace app {
 namespace emu {
 
 namespace {
@@ -33,7 +25,7 @@ uint8_t input_read(Input* input) {
 }
 }  // namespace
 
-void SNES::Init(std::vector<uint8_t>& rom_data) {
+void Snes::Init(std::vector<uint8_t>& rom_data) {
   // Initialize the CPU, PPU, and APU
   ppu_.Init();
   apu_.Init();
@@ -45,11 +37,11 @@ void SNES::Init(std::vector<uint8_t>& rom_data) {
   running_ = true;
 }
 
-void SNES::Reset(bool hard) {
+void Snes::Reset(bool hard) {
   cpu_.Reset(hard);
   apu_.Reset();
   ppu_.Reset();
-  memory::dma::Reset(&memory_);
+  ResetDma(&memory_);
   input1.latch_line_ = false;
   input2.latch_line_ = false;
   input1.latched_state_ = 0;
@@ -85,7 +77,7 @@ void SNES::Reset(bool hard) {
   InitAccessTime(false);
 }
 
-void SNES::RunFrame() {
+void Snes::RunFrame() {
   while (in_vblank_) {
     cpu_.RunOpcode();
   }
@@ -95,9 +87,9 @@ void SNES::RunFrame() {
   }
 }
 
-void SNES::CatchUpApu() { apu_.RunCycles(cycles_); }
+void Snes::CatchUpApu() { apu_.RunCycles(cycles_); }
 
-void SNES::HandleInput() {
+void Snes::HandleInput() {
   memset(port_auto_read_, 0, sizeof(port_auto_read_));
   // latch controllers
   input_latch(&input1, true);
@@ -114,7 +106,7 @@ void SNES::HandleInput() {
   }
 }
 
-void SNES::RunCycle() {
+void Snes::RunCycle() {
   cycles_ += 2;
 
   // check for h/v timer irq's
@@ -229,7 +221,7 @@ void SNES::RunCycle() {
   if (auto_joy_timer_ > 0) auto_joy_timer_ -= 2;
 }
 
-void SNES::RunCycles(int cycles) {
+void Snes::RunCycles(int cycles) {
   if (memory_.h_pos() + cycles >= 536 && memory_.h_pos() < 536) {
     // if we go past 536, add 40 cycles for dram refersh
     cycles += 40;
@@ -239,7 +231,7 @@ void SNES::RunCycles(int cycles) {
   }
 }
 
-void SNES::SyncCycles(bool start, int sync_cycles) {
+void Snes::SyncCycles(bool start, int sync_cycles) {
   int count = 0;
   if (start) {
     sync_cycle_ = cycles_;
@@ -250,7 +242,7 @@ void SNES::SyncCycles(bool start, int sync_cycles) {
   RunCycles(count);
 }
 
-uint8_t SNES::ReadBBus(uint8_t adr) {
+uint8_t Snes::ReadBBus(uint8_t adr) {
   if (adr < 0x40) {
     return ppu_.Read(adr, ppu_latch_);
   }
@@ -266,7 +258,7 @@ uint8_t SNES::ReadBBus(uint8_t adr) {
   return memory_.open_bus();
 }
 
-uint8_t SNES::ReadReg(uint16_t adr) {
+uint8_t Snes::ReadReg(uint16_t adr) {
   switch (adr) {
     case 0x4210: {
       uint8_t val = 0x2;  // CPU version (4 bit)
@@ -319,7 +311,7 @@ uint8_t SNES::ReadReg(uint16_t adr) {
   }
 }
 
-uint8_t SNES::Rread(uint32_t adr) {
+uint8_t Snes::Rread(uint32_t adr) {
   uint8_t bank = adr >> 16;
   adr &= 0xffff;
   if (bank == 0x7e || bank == 0x7f) {
@@ -342,20 +334,20 @@ uint8_t SNES::Rread(uint32_t adr) {
       return ReadReg(adr);  // internal registers
     }
     if (adr >= 0x4300 && adr < 0x4380) {
-      return memory::dma::Read(&memory_, adr);  // dma registers
+      return ReadDma(&memory_, adr);  // dma registers
     }
   }
   // read from cart
   return memory_.cart_read(bank, adr);
 }
 
-uint8_t SNES::Read(uint32_t adr) {
+uint8_t Snes::Read(uint32_t adr) {
   uint8_t val = Rread(adr);
   memory_.set_open_bus(val);
   return val;
 }
 
-void SNES::WriteBBus(uint8_t adr, uint8_t val) {
+void Snes::WriteBBus(uint8_t adr, uint8_t val) {
   if (adr < 0x40) {
     ppu_.Write(adr, val);
     return;
@@ -386,7 +378,7 @@ void SNES::WriteBBus(uint8_t adr, uint8_t val) {
   }
 }
 
-void SNES::WriteReg(uint16_t adr, uint8_t val) {
+void Snes::WriteReg(uint16_t adr, uint8_t val) {
   switch (adr) {
     case 0x4200: {
       auto_joy_read_ = val & 0x1;
@@ -456,11 +448,11 @@ void SNES::WriteReg(uint16_t adr, uint8_t val) {
       break;
     }
     case 0x420b: {
-      memory::dma::StartDma(&memory_, val, false);
+      StartDma(&memory_, val, false);
       break;
     }
     case 0x420c: {
-      memory::dma::StartDma(&memory_, val, true);
+      StartDma(&memory_, val, true);
       break;
     }
     case 0x420d: {
@@ -473,7 +465,7 @@ void SNES::WriteReg(uint16_t adr, uint8_t val) {
   }
 }
 
-void SNES::Write(uint32_t adr, uint8_t val) {
+void Snes::Write(uint32_t adr, uint8_t val) {
   memory_.set_open_bus(val);
   uint8_t bank = adr >> 16;
   adr &= 0xffff;
@@ -495,7 +487,7 @@ void SNES::Write(uint32_t adr, uint8_t val) {
       WriteReg(adr, val);  // internal registers
     }
     if (adr >= 0x4300 && adr < 0x4380) {
-      memory::dma::Write(&memory_, adr, val);  // dma registers
+      WriteDma(&memory_, adr, val);  // dma registers
     }
   }
 
@@ -503,7 +495,7 @@ void SNES::Write(uint32_t adr, uint8_t val) {
   memory_.cart_write(bank, adr, val);
 }
 
-int SNES::GetAccessTime(uint32_t adr) {
+int Snes::GetAccessTime(uint32_t adr) {
   uint8_t bank = adr >> 16;
   adr &= 0xffff;
   if ((bank < 0x40 || (bank >= 0x80 && bank < 0xc0)) && adr < 0x8000) {
@@ -517,38 +509,38 @@ int SNES::GetAccessTime(uint32_t adr) {
                                      : 8;  // depends on setting in banks 80+
 }
 
-uint8_t SNES::CpuRead(uint32_t adr) {
+uint8_t Snes::CpuRead(uint32_t adr) {
   cpu_.set_int_delay(false);
   const int cycles = access_time[adr] - 4;
-  memory::dma::HandleDma(this, &memory_, cycles);
+  HandleDma(this, &memory_, cycles);
   RunCycles(cycles);
   uint8_t rv = Read(adr);
-  memory::dma::HandleDma(this, &memory_, 4);
+  HandleDma(this, &memory_, 4);
   RunCycles(4);
   return rv;
 }
 
-void SNES::CpuWrite(uint32_t adr, uint8_t val) {
+void Snes::CpuWrite(uint32_t adr, uint8_t val) {
   cpu_.set_int_delay(false);
   const int cycles = access_time[adr];
-  memory::dma::HandleDma(this, &memory_, cycles);
+  HandleDma(this, &memory_, cycles);
   RunCycles(cycles);
   Write(adr, val);
 }
 
-void SNES::CpuIdle(bool waiting) {
+void Snes::CpuIdle(bool waiting) {
   cpu_.set_int_delay(false);
-  memory::dma::HandleDma(this, &memory_, 6);
+  HandleDma(this, &memory_, 6);
   RunCycles(6);
 }
 
-void SNES::SetSamples(int16_t* sample_data, int wanted_samples) {
+void Snes::SetSamples(int16_t* sample_data, int wanted_samples) {
   apu_.dsp().GetSamples(sample_data, wanted_samples, memory_.pal_timing());
 }
 
-void SNES::SetPixels(uint8_t* pixel_data) { ppu_.PutPixels(pixel_data); }
+void Snes::SetPixels(uint8_t* pixel_data) { ppu_.PutPixels(pixel_data); }
 
-void SNES::SetButtonState(int player, int button, bool pressed) {
+void Snes::SetButtonState(int player, int button, bool pressed) {
   // set key in controller
   if (player == 1) {
     if (pressed) {
@@ -565,7 +557,7 @@ void SNES::SetButtonState(int player, int button, bool pressed) {
   }
 }
 
-void SNES::InitAccessTime(bool recalc) {
+void Snes::InitAccessTime(bool recalc) {
   int start = (recalc) ? 0x800000 : 0;  // recalc only updates fast rom
   access_time.resize(0x1000000);
   for (int i = start; i < 0x1000000; i++) {
@@ -574,5 +566,4 @@ void SNES::InitAccessTime(bool recalc) {
 }
 
 }  // namespace emu
-}  // namespace app
 }  // namespace yaze

@@ -45,7 +45,7 @@ void TestEditor::RegisterTests(ImGuiTestEngine* engine) {
 
 int RunIntegrationTest() {
   yaze::test::integration::TestEditor test_editor;
-  yaze::app::core::Controller controller;
+  yaze::core::Controller controller;
   controller.init_test_editor(&test_editor);
 
   if (!controller.CreateWindow().ok()) {
@@ -68,16 +68,15 @@ int RunIntegrationTest() {
 
   // Initialize ImGui for SDL
   ImGui_ImplSDL2_InitForSDLRenderer(
-      controller.window(), yaze::app::core::Renderer::GetInstance().renderer());
-  ImGui_ImplSDLRenderer2_Init(
-      yaze::app::core::Renderer::GetInstance().renderer());
+      controller.window(), yaze::core::Renderer::GetInstance().renderer());
+  ImGui_ImplSDLRenderer2_Init(yaze::core::Renderer::GetInstance().renderer());
 
   test_editor.RegisterTests(engine);
   ImGuiTestEngine_Start(engine, ImGui::GetCurrentContext());
   controller.set_active(true);
 
   // Set the default style
-  yaze::app::gui::ColorsYaze();
+  yaze::gui::ColorsYaze();
 
   // Build a new ImGui frame
   ImGui_ImplSDLRenderer2_NewFrame();
