@@ -288,7 +288,7 @@ void Bitmap::CreateTexture(SDL_Renderer *renderer) {
     SDL_Log("SDL_CreateTextureFromSurface failed: %s\n", SDL_GetError());
   }
 
-  converted_surface_ = std::shared_ptr<SDL_Surface>{
+  auto converted_surface_ = std::shared_ptr<SDL_Surface>{
       SDL_ConvertSurfaceFormat(surface_.get(), SDL_PIXELFORMAT_ARGB8888, 0),
       SDL_Surface_Deleter{}};
   if (converted_surface_ == nullptr) {
@@ -304,19 +304,17 @@ void Bitmap::CreateTexture(SDL_Renderer *renderer) {
 }
 
 void Bitmap::UpdateTexture(SDL_Renderer *renderer) {
-  SDL_Surface *converted_surface =
-      SDL_ConvertSurfaceFormat(surface_.get(), SDL_PIXELFORMAT_ARGB8888, 0);
-  if (converted_surface) {
-    converted_surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
-        converted_surface, SDL_Surface_Deleter());
-  } else {
+  auto converted_surface = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
+      SDL_ConvertSurfaceFormat(surface_.get(), SDL_PIXELFORMAT_ARGB8888, 0),
+      SDL_Surface_Deleter());
+  if (converted_surface == nullptr) {
     SDL_Log("SDL_ConvertSurfaceFormat failed: %s\n", SDL_GetError());
   }
 
   SDL_LockTexture(texture_.get(), nullptr, (void **)&texture_pixels,
-                  &converted_surface_->pitch);
-  memcpy(texture_pixels, converted_surface_->pixels,
-         converted_surface_->h * converted_surface_->pitch);
+                  &converted_surface->pitch);
+  memcpy(texture_pixels, converted_surface->pixels,
+         converted_surface->h * converted_surface->pitch);
   SDL_UnlockTexture(texture_.get());
 }
 

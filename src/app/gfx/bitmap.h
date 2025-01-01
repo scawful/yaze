@@ -150,12 +150,6 @@ class Bitmap {
     palette_.clear();
   }
 
-  auto sdl_palette() {
-    if (surface_ == nullptr) {
-      throw std::runtime_error("Surface is null.");
-    }
-    return surface_->format->palette;
-  }
   auto palette() const { return palette_; }
   auto mutable_palette() { return &palette_; }
   auto palette_size() const { return palette_.size(); }
@@ -168,8 +162,6 @@ class Bitmap {
   auto &mutable_data() { return data_; }
   auto surface() const { return surface_.get(); }
   auto mutable_surface() { return surface_.get(); }
-  auto converted_surface() const { return converted_surface_.get(); }
-  auto mutable_converted_surface() { return converted_surface_.get(); }
 
   auto vector() const { return data_; }
   auto at(int i) const { return data_[i]; }
@@ -196,7 +188,6 @@ class Bitmap {
   gfx::SnesPalette palette_;
   std::shared_ptr<SDL_Texture> texture_ = nullptr;
   std::shared_ptr<SDL_Surface> surface_ = nullptr;
-  std::shared_ptr<SDL_Surface> converted_surface_ = nullptr;
 };
 
 using BitmapTable = std::unordered_map<int, gfx::Bitmap>;
