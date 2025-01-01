@@ -148,5 +148,4 @@ SpriteInstruction SpriteInstruction::JumpToFunction(
 }
 
 }  // namespace zelda3
-
 }  // namespace yaze

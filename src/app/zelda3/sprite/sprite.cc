@@ -912,5 +912,4 @@ void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
 }
 
 }  // namespace zelda3
-
 }  // namespace yaze
