@@ -108,7 +108,8 @@ absl::Status Overworld::AssembleMap32Tiles() {
                               rom_.version_constants().kMap32TileTR,
                               rom_.version_constants().kMap32TileBL,
                               rom_.version_constants().kMap32TileBR};
-  if (rom()->data()[kMap32ExpandedFlagPos] != 0x04) {
+  if (rom()->data()[kMap32ExpandedFlagPos] != 0x04 &&
+      core::ExperimentFlags::get().overworld.kLoadCustomOverworld) {
     map32address[0] = rom_.version_constants().kMap32TileTL;
     map32address[1] = kMap32TileTRExpanded;
     map32address[2] = kMap32TileBLExpanded;
@@ -156,7 +157,8 @@ absl::Status Overworld::AssembleMap32Tiles() {
 void Overworld::AssembleMap16Tiles() {
   int tpos = kMap16Tiles;
   int num_tile16 = kNumTile16Individual;
-  if (rom()->data()[kMap16ExpandedFlagPos] != 0x0F) {
+  if (rom()->data()[kMap16ExpandedFlagPos] != 0x0F &&
+      core::ExperimentFlags::get().overworld.kLoadCustomOverworld) {
     tpos = kMap16TilesExpanded;
     num_tile16 = NumberOfMap16Ex;
     expanded_tile16_ = true;
@@ -294,7 +296,8 @@ void Overworld::LoadEntrances() {
   int ow_entrance_pos_ptr = kOverworldEntrancePos;
   int ow_entrance_id_ptr = kOverworldEntranceEntranceId;
   int num_entrances = 129;
-  if (rom()->data()[kOverworldEntranceExpandedFlagPos] != 0xB8) {
+  if (rom()->data()[kOverworldEntranceExpandedFlagPos] != 0xB8 &&
+      core::ExperimentFlags::get().overworld.kLoadCustomOverworld) {
     ow_entrance_map_ptr = kOverworldEntranceMapExpanded;
     ow_entrance_pos_ptr = kOverworldEntrancePosExpanded;
     ow_entrance_id_ptr = kOverworldEntranceEntranceIdExpanded;
