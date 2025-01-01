@@ -1,19 +1,13 @@
 #include "tile16_editor.h"
 
-#include <cmath>
+#include <future>
 
 #include "absl/status/status.h"
-#include "absl/status/statusor.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/platform/renderer.h"
-#include "app/editor/editor.h"
-#include "app/editor/graphics/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
-#include "app/gfx/snes_tile.h"
-#include "app/gfx/tilesheet.h"
 #include "app/gui/canvas.h"
-#include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
@@ -33,7 +27,6 @@ using ImGui::BeginTabItem;
 using ImGui::BeginTable;
 using ImGui::Button;
 using ImGui::Checkbox;
-using ImGui::Combo;
 using ImGui::EndChild;
 using ImGui::EndMenu;
 using ImGui::EndMenuBar;
@@ -49,9 +42,9 @@ using ImGui::TableSetupColumn;
 using ImGui::Text;
 
 absl::Status Tile16Editor::InitBlockset(
-    const gfx::Bitmap& tile16_blockset_bmp, const gfx::Bitmap& current_gfx_bmp,
-    const std::vector<gfx::Bitmap>& tile16_individual,
-    std::array<uint8_t, 0x200>& all_tiles_types) {
+    const gfx::Bitmap &tile16_blockset_bmp, const gfx::Bitmap &current_gfx_bmp,
+    const std::vector<gfx::Bitmap> &tile16_individual,
+    std::array<uint8_t, 0x200> &all_tiles_types) {
   all_tiles_types_ = all_tiles_types;
   tile16_blockset_bmp_ = tile16_blockset_bmp;
   tile16_individual_ = tile16_individual;
@@ -280,42 +273,52 @@ absl::Status Tile16Editor::DrawTileEditControls() {
 
 absl::Status Tile16Editor::LoadTile8() {
   auto ow_main_pal_group = rom()->palette_group().overworld_main;
-
   current_gfx_individual_.reserve(1024);
 
+  std::vector<std::future<std::array<uint8_t, 0x40>>> futures;
+
   for (int index = 0; index < 1024; index++) {
-    std::vector<uint8_t> tile_data(0x40, 0x00);
+    auto task_function = [&]() {
+      std::array<uint8_t, 0x40> tile_data;
+      // Copy the pixel data for the current tile into the vector
+      for (int ty = 0; ty < 8; ty++) {
+        for (int tx = 0; tx < 8; tx++) {
+          // Current Gfx Data is 16 sheets of 8x8 tiles ordered 16 wide by 4
+          // tall
 
-    // Copy the pixel data for the current tile into the vector
-    for (int ty = 0; ty < 8; ty++) {
-      for (int tx = 0; tx < 8; tx++) {
-        // Current Gfx Data is 16 sheets of 8x8 tiles ordered 16 wide by 4 tall
+          // Calculate the position in the tile data vector
+          int position = tx + (ty * 0x08);
 
-        // Calculate the position in the tile data vector
-        int position = tx + (ty * 0x08);
+          // Calculate the position in the current gfx data
+          int num_columns = current_gfx_bmp_.width() / 8;
+          int x = (index % num_columns) * 8 + tx;
+          int y = (index / num_columns) * 8 + ty;
+          int gfx_position = x + (y * 0x100);
 
-        // Calculate the position in the current gfx data
-        int num_columns = current_gfx_bmp_.width() / 8;
-        int x = (index % num_columns) * 8 + tx;
-        int y = (index / num_columns) * 8 + ty;
-        int gfx_position = x + (y * 0x100);
+          // Get the pixel value from the current gfx data
+          uint8_t value = current_gfx_bmp_.data()[gfx_position];
 
-        // Get the pixel value from the current gfx data
-        uint8_t value = current_gfx_bmp_.data()[gfx_position];
+          if (value & 0x80) {
+            value -= 0x88;
+          }
 
-        if (value & 0x80) {
-          value -= 0x88;
+          tile_data[position] = value;
         }
-
-        tile_data[position] = value;
       }
-    }
+      return tile_data;
+    };
+    futures.emplace_back(std::async(std::launch::async, task_function));
+  }
 
+  for (auto &future : futures) {
+    future.wait();
+    auto tile_data = future.get();
     current_gfx_individual_.emplace_back();
-    current_gfx_individual_[index].Create(0x08, 0x08, 0x08, tile_data);
-    RETURN_IF_ERROR(current_gfx_individual_[index].ApplyPaletteWithTransparent(
+    auto &tile_bitmap = current_gfx_individual_.back();
+    tile_bitmap.Create(0x08, 0x08, 0x08, tile_data);
+    RETURN_IF_ERROR(tile_bitmap.ApplyPaletteWithTransparent(
         ow_main_pal_group[0], current_palette_));
-    Renderer::GetInstance().RenderBitmap(&current_gfx_individual_[index]);
+    Renderer::GetInstance().RenderBitmap(&tile_bitmap);
   }
 
   map_blockset_loaded_ = true;
