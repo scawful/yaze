@@ -175,8 +175,8 @@ void OverworldEditor::DrawToolset() {
     gui::AddTableColumn(toolset_table_, "##Properties", [&]() {
       if (Button(ICON_MD_CONTENT_COPY)) {
         std::vector<uint8_t> png_data;
-        if (gfx::ConvertSurfaceToPNG(maps_bmp_[current_map_].surface(),
-                                     png_data)) {
+        png_data = maps_bmp_[current_map_].GetPngData();
+        if (png_data.size() > 0) {
           core::CopyImageToClipboard(png_data);
         } else {
           status_ = absl::InternalError(
