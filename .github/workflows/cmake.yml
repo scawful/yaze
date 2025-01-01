@@ -27,6 +27,12 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
+        
+    - name: Add Universe
+      run: sudo add-apt-repository universe
+ 
+    - name: Update GCC
+      run: sudo apt install gcc-14   
     
     - name: Install Video Libs
       run: sudo apt install libglew-dev 
