@@ -1,7 +1,7 @@
 #ifndef YAZE_GUI_COLOR_H
 #define YAZE_GUI_COLOR_H
 
-#include <format>
+// #include <format>
 #include <string>
 
 #include "absl/status/status.h"
@@ -23,10 +23,11 @@ inline ImVec4 ConvertColorToImVec4(const Color &color) {
 }
 
 inline std::string ColorToHexString(const Color &color) {
-  return std::format(
+  return "";
+/* std::format(
       "{:02X}{:02X}{:02X}{:02X}", static_cast<int>(color.red * 255),
       static_cast<int>(color.green * 255), static_cast<int>(color.blue * 255),
-      static_cast<int>(color.alpha * 255));
+      static_cast<int>(color.alpha * 255)); */
 }
 
 // A utility function to convert an SnesColor object to an ImVec4 with
