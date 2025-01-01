@@ -20,10 +20,10 @@ namespace editor {
  */
 class Tile16Editor : public gfx::GfxContext, public SharedRom {
  public:
-  absl::Status InitBlockset(const gfx::Bitmap& tile16_blockset_bmp,
-                            const gfx::Bitmap& current_gfx_bmp,
-                            const std::vector<gfx::Bitmap>& tile16_individual,
-                            std::array<uint8_t, 0x200>& all_tiles_types);
+  absl::Status InitBlockset(const gfx::Bitmap &tile16_blockset_bmp,
+                            const gfx::Bitmap &current_gfx_bmp,
+                            const std::vector<gfx::Bitmap> &tile16_individual,
+                            std::array<uint8_t, 0x200> &all_tiles_types);
 
   absl::Status Update();
   absl::Status DrawMenu();
@@ -48,19 +48,17 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
   bool map_blockset_loaded_ = false;
   bool transfer_started_ = false;
   bool transfer_blockset_loaded_ = false;
+  bool x_flip = false;
+  bool y_flip = false;
+  bool priority_tile = false;
 
+  int tile_size;
   int current_tile16_ = 0;
   int current_tile8_ = 0;
   uint8_t current_palette_ = 0;
 
   core::NotifyValue<uint32_t> notify_tile16;
   core::NotifyValue<uint8_t> notify_palette;
-
-  // Various options for the Tile16 Editor
-  bool x_flip;
-  bool y_flip;
-  bool priority_tile;
-  int tile_size;
 
   std::array<uint8_t, 0x200> all_tiles_types_;
 
@@ -100,4 +98,5 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
 
 }  // namespace editor
 }  // namespace yaze
+
 #endif  // YAZE_APP_EDITOR_TILE16EDITOR_H
