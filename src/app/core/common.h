@@ -183,7 +183,7 @@ class NotifyValue {
 };
 
 static bool log_to_console = false;
-constexpr std::string kLogFileOut = "yaze_log.txt";
+static const std::string kLogFileOut = "yaze_log.txt";
 
 template <typename... Args>
 static void logf(const absl::FormatSpec<Args...> &format, const Args &...args) {
