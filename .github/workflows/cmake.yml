@@ -32,7 +32,7 @@ jobs:
       run: sudo add-apt-repository universe
  
     - name: Update GCC
-      run: sudo apt update gcc
+      run: sudo apt install gcc-14.2
     
     - name: Install Video Libs
       run: sudo apt install libglew-dev 
