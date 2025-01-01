@@ -207,5 +207,4 @@ void Tilesheet::MirrorTileData(std::vector<uint8_t>& tile_data, bool mirrorX,
 }
 
 }  // namespace gfx
-
 }  // namespace yaze
