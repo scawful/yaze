@@ -1407,21 +1407,21 @@ absl::Status OverworldEditor::UpdateUsageStats() {
 
 void OverworldEditor::DrawUsageGrid() {
   // Create a grid of 8x8 squares
-  int totalSquares = 128;
-  int squaresWide = 8;
-  int squaresTall = (totalSquares + squaresWide - 1) /
-                    squaresWide;  // Ceiling of totalSquares/squaresWide
+  int total_squares = 128;
+  int squares_wide = 8;
+  int squares_tall = (total_squares + squares_wide - 1) /
+                    squares_wide;  // Ceiling of total_squares/squares_wide
 
   // Loop through each row
-  for (int row = 0; row < squaresTall; ++row) {
+  for (int row = 0; row < squares_tall; ++row) {
     NewLine();
 
-    for (int col = 0; col < squaresWide; ++col) {
-      if (row * squaresWide + col >= totalSquares) {
+    for (int col = 0; col < squares_wide; ++col) {
+      if (row * squares_wide + col >= total_squares) {
         break;
       }
       // Determine if this square should be highlighted
-      bool highlight = selected_usage_map_ == (row * squaresWide + col);
+      bool highlight = selected_usage_map_ == (row * squares_wide + col);
 
       // Set highlight color if needed
       if (highlight) {
