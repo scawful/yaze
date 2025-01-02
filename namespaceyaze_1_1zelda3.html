@@ -141,6 +141,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1zelda3_1_1GameEntity.html">GameEntity</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Base class for all overworld and dungeon entities.  <a href="classyaze_1_1zelda3_1_1GameEntity.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1zelda3_1_1LayerMergeType.html">LayerMergeType</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1zelda3_1_1Overworld.html">Overworld</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents the full <a class="el" href="classyaze_1_1zelda3_1_1Overworld.html" title="Represents the full Overworld data, light and dark world.">Overworld</a> data, light and dark world.  <a href="classyaze_1_1zelda3_1_1Overworld.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -226,6 +228,112 @@ Enumerations</h2></td></tr>
 <br />
  }</td></tr>
 <tr class="separator:aacf2dac35353426c864a8a4cefe412a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb47ec71853bc72be86c1b0c481a3496" id="r_afb47ec71853bc72be86c1b0c481a3496"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afb47ec71853bc72be86c1b0c481a3496">CollisionKey</a> { <br />
+&#160;&#160;<a class="el" href="#afb47ec71853bc72be86c1b0c481a3496a7261003fdcf5b2687b10e1c8d8760bef">One_Collision</a>
+, <a class="el" href="#afb47ec71853bc72be86c1b0c481a3496a2a4319d5ee5621ed86d66df859d32370">Both</a>
+, <a class="el" href="#afb47ec71853bc72be86c1b0c481a3496ae9da81d0d4f9ee6d7f82e15372617c52">Both_With_Scroll</a>
+, <a class="el" href="#afb47ec71853bc72be86c1b0c481a3496ada191a8e4e07f076cb9ea3fd43b43445">Moving_Floor_Collision</a>
+, <br />
+&#160;&#160;<a class="el" href="#afb47ec71853bc72be86c1b0c481a3496a58a15dcd8225b3b354d3696f1f713a77">Moving_Water_Collision</a>
+<br />
+ }</td></tr>
+<tr class="separator:afb47ec71853bc72be86c1b0c481a3496"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a44b1e31e5857baaa00dc88ae724003c3" id="r_a44b1e31e5857baaa00dc88ae724003c3"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a44b1e31e5857baaa00dc88ae724003c3">EffectKey</a> { <br />
+&#160;&#160;<a class="el" href="#a44b1e31e5857baaa00dc88ae724003c3a340e02929be4aadf9e4bc2ffe1db2bf0">Effect_Nothing</a>
+, <a class="el" href="#a44b1e31e5857baaa00dc88ae724003c3a36a708c2065cf7a6eb2a082cd79cf51d">One</a>
+, <a class="el" href="#a44b1e31e5857baaa00dc88ae724003c3a204ca752002971506a5caa7f80226c20">Moving_Floor</a>
+, <a class="el" href="#a44b1e31e5857baaa00dc88ae724003c3aa71256a38ca8d558e47fbb7463fef422">Moving_Water</a>
+, <br />
+&#160;&#160;<a class="el" href="#a44b1e31e5857baaa00dc88ae724003c3a6fc4335f414e64a079526c84e5ec6218">Four</a>
+, <a class="el" href="#a44b1e31e5857baaa00dc88ae724003c3a5e9014f55e554ba28f979d6b6cdd8898">Red_Flashes</a>
+, <a class="el" href="#a44b1e31e5857baaa00dc88ae724003c3afca1c11ad25e05774aca02bc1f61068a">Torch_Show_Floor</a>
+, <a class="el" href="#a44b1e31e5857baaa00dc88ae724003c3a0f69086acb8b67500b77f1762487222c">Ganon_Room</a>
+<br />
+ }</td></tr>
+<tr class="separator:a44b1e31e5857baaa00dc88ae724003c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a693df677b1b2754452c8b8b4c4a98468" id="r_a693df677b1b2754452c8b8b4c4a98468"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a693df677b1b2754452c8b8b4c4a98468">TagKey</a> { <br />
+&#160;&#160;<a class="el" href="#a693df677b1b2754452c8b8b4c4a98468ac87d5992d6bc96c5f44239d9ec324db1">Nothing</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468ada24c387898e858cb179df810b04154f">NW_Kill_Enemy_to_Open</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a0a79eaa676a7668fa8d9b6453d3e73d4">NE_Kill_Enemy_to_Open</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468ac70933e5b9d0dbe898c6764aebdab3e0">SW_Kill_Enemy_to_Open</a>
+, <br />
+&#160;&#160;<a class="el" href="#a693df677b1b2754452c8b8b4c4a98468aece942a35487c5967337f87c5d4760a3">SE_Kill_Enemy_to_Open</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468ab553174973329fe8265f063296ee699a">W_Kill_Enemy_to_Open</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a1d05dbcdb37ab994c548ff476e79c0a5">E_Kill_Enemy_to_Open</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a292230f014190eb3b923cd0440bdd140">N_Kill_Enemy_to_Open</a>
+, <br />
+&#160;&#160;<a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a6fd56fda727cfa5970e3a0d16f6dea5e">S_Kill_Enemy_to_Open</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468af31f5c897b35e529a0581ebe7099c261">Clear_Quadrant_to_Open</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468abf3bef71311fbea6a7fda44090b85971">Clear_Room_to_Open</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468ac2675bd91992ef84a73fd16069a3e55d">NW_Push_Block_to_Open</a>
+, <br />
+&#160;&#160;<a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a682dd7931b825bc66a4a8807163a3b90">NE_Push_Block_to_Open</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468ab3bd809672191b35e4a2ecd5d213648e">SW_Push_Block_to_Open</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468aa5bcfd8fcaafc0272893dabf2e4abcd4">SE_Push_Block_to_Open</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468aaa014ddb4fb91b991037a01d8c76b986">W_Push_Block_to_Open</a>
+, <br />
+&#160;&#160;<a class="el" href="#a693df677b1b2754452c8b8b4c4a98468aae6e4f7d9319ac3102130bdc19a99a56">E_Push_Block_to_Open</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a1618773816aceeeb8452d286974a5111">N_Push_Block_to_Open</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a6ffefb519234f2055b9a5c946d0d2fac">S_Push_Block_to_Open</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a3c35117a981e12749e5f663e8c0f9dcb">Push_Block_to_Open</a>
+, <br />
+&#160;&#160;<a class="el" href="#a693df677b1b2754452c8b8b4c4a98468aa6100cf205a45e5cff26c7d59b6c4aa6">Pull_Lever_to_Open</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a382fc72aaa2ac4c921dcb2b7e6ca625e">Clear_Level_to_Open</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468ae643a5479d4acd17194a33018b20fae2">Switch_Open_Door_Hold</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468ac2ecf68c998deaabf707f5a0d906bc80">Switch_Open_Door_Toggle</a>
+, <br />
+&#160;&#160;<a class="el" href="#a693df677b1b2754452c8b8b4c4a98468aee4e18c1a967e6a70c4519a9d1ce9d47">Turn_off_Water</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468ab3c4b887b9e119066e00de5a163249f8">Turn_on_Water</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a899f4c184ae17011d1dede37de23d09d">Water_Gate</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a2d745a47567cd5d54eb480f3caaca77c">Water_Twin</a>
+, <br />
+&#160;&#160;<a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a091363ea0d1c6fd45f9913f8757a0581">Secret_Wall_Right</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a54975a1b06797944e76dd0bb1a625f43">Secret_Wall_Left</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a820b2346128e4a40177a1f993b8d52b6">Crash1</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a766ec8e12d24c885845b9beabaaf69f0">Crash2</a>
+, <br />
+&#160;&#160;<a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a8599b09fca21111e661da95b4f3b3ee1">Pull_Switch_to_bomb_Wall</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a82936f94ba9e69a0b8e6cb0d1a9d983d">Holes_0</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468abd98c5dc44078eae24a1f1a8ad7bf0ce">Open_Chest_Activate_Holes_0</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468aff583d031f8c8ad7857373db2e4928c5">Holes_1</a>
+, <br />
+&#160;&#160;<a class="el" href="#a693df677b1b2754452c8b8b4c4a98468aade33d5e79273f86acd829cde8ff53a7">Holes_2</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a09be56922301e46e8561f2b35b14fb62">Kill_Enemy_to_clear_level</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a9024dfd424600f401cba474d615fbfe6">SE_Kill_Enemy_to_Move_Block</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a7b45d215a1d2c1a243c2f7f81d444f71">Trigger_activated_Chest</a>
+, <br />
+&#160;&#160;<a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a80618ea1aaf009004b19662ada8e4236">Pull_lever_to_Bomb_Wall</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468af521805de3b0ec5e99692bbab72c7057">NW_Kill_Enemy_for_Chest</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a9d680fe9298d30a5947b62d691e44ab4">NE_Kill_Enemy_for_Chest</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a7e8d9bcb571b69f4f2cf9842e2e29f96">SW_Kill_Enemy_for_Chest</a>
+, <br />
+&#160;&#160;<a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a7f12bb1903474044d236287fe37ce2fe">SE_Kill_Enemy_for_Chest</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a2ac03834c8caa52067e487570aa14df8">W_Kill_Enemy_for_Chest</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a4b78b3fcf55d766c98c9ef2cccc10f39">E_Kill_Enemy_for_Chest</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a358311deb926a6bd38b8bc05d5989f76">N_Kill_Enemy_for_Chest</a>
+, <br />
+&#160;&#160;<a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a126e28827ef1590b842f7d7fe141a1d4">S_Kill_Enemy_for_Chest</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468accdf21d7c867e09c22eaea42d3d13653">Clear_Quadrant_for_Chest</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468abe14219a6a2360a2abdd9cd2d03ba8a2">Clear_Room_for_Chest</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a204dc45d0e4e7452337d40fc8d1c3da8">Light_Torches_to_Open</a>
+, <br />
+&#160;&#160;<a class="el" href="#a693df677b1b2754452c8b8b4c4a98468ab8e6bc6b7107d01264c838d2279b6fd6">Holes_3</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a81650074c0baca8d14035c360a72beb8">Holes_4</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a65ecc6bb8c038327b3d25cca07575c8f">Holes_5</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468abace4837abeacf9fcbc84410da4a8dfd">Holes_6</a>
+, <br />
+&#160;&#160;<a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a86c0b404b73e05b64929149e2dc56506">Agahnim_Room</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468ac94b7dce770747ef7dc2c4001e4462be">Holes_7</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a7fe16f9c2a46ae665867fc85f5eb9304">Holes_8</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a6cf01a7ce16ce722bdbcab01ad85f4c9">Open_Chest_for_Holes_8</a>
+, <br />
+&#160;&#160;<a class="el" href="#a693df677b1b2754452c8b8b4c4a98468af3cba258bf89286ce2067121c55e3651">Push_Block_for_Chest</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468ab25fe7b1e4c827d205d03a6701465ba6">Kill_to_open_Ganon_Door</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468af7edf4aa720007546d7e1e76cda507f5">Light_Torches_to_get_Chest</a>
+, <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468a067a2c9dbc2ed811337777b3e1f29369">Kill_boss_Again</a>
+<br />
+ }</td></tr>
+<tr class="separator:a693df677b1b2754452c8b8b4c4a98468"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -845,6 +953,137 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="afb47ec71853bc72be86c1b0c481a3496" name="afb47ec71853bc72be86c1b0c481a3496"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afb47ec71853bc72be86c1b0c481a3496">&#9670;&#160;</a></span>CollisionKey</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="#afb47ec71853bc72be86c1b0c481a3496">yaze::zelda3::CollisionKey</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="afb47ec71853bc72be86c1b0c481a3496a7261003fdcf5b2687b10e1c8d8760bef" name="afb47ec71853bc72be86c1b0c481a3496a7261003fdcf5b2687b10e1c8d8760bef"></a>One_Collision&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="afb47ec71853bc72be86c1b0c481a3496a2a4319d5ee5621ed86d66df859d32370" name="afb47ec71853bc72be86c1b0c481a3496a2a4319d5ee5621ed86d66df859d32370"></a>Both&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="afb47ec71853bc72be86c1b0c481a3496ae9da81d0d4f9ee6d7f82e15372617c52" name="afb47ec71853bc72be86c1b0c481a3496ae9da81d0d4f9ee6d7f82e15372617c52"></a>Both_With_Scroll&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="afb47ec71853bc72be86c1b0c481a3496ada191a8e4e07f076cb9ea3fd43b43445" name="afb47ec71853bc72be86c1b0c481a3496ada191a8e4e07f076cb9ea3fd43b43445"></a>Moving_Floor_Collision&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="afb47ec71853bc72be86c1b0c481a3496a58a15dcd8225b3b354d3696f1f713a77" name="afb47ec71853bc72be86c1b0c481a3496a58a15dcd8225b3b354d3696f1f713a77"></a>Moving_Water_Collision&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+<p class="definition">Definition at line <a class="el" href="room__tag_8h_source.html#l00009">9</a> of file <a class="el" href="room__tag_8h_source.html">room_tag.h</a>.</p>
+
+</div>
+</div>
+<a id="a44b1e31e5857baaa00dc88ae724003c3" name="a44b1e31e5857baaa00dc88ae724003c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a44b1e31e5857baaa00dc88ae724003c3">&#9670;&#160;</a></span>EffectKey</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="#a44b1e31e5857baaa00dc88ae724003c3">yaze::zelda3::EffectKey</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a44b1e31e5857baaa00dc88ae724003c3a340e02929be4aadf9e4bc2ffe1db2bf0" name="a44b1e31e5857baaa00dc88ae724003c3a340e02929be4aadf9e4bc2ffe1db2bf0"></a>Effect_Nothing&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a44b1e31e5857baaa00dc88ae724003c3a36a708c2065cf7a6eb2a082cd79cf51d" name="a44b1e31e5857baaa00dc88ae724003c3a36a708c2065cf7a6eb2a082cd79cf51d"></a>One&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a44b1e31e5857baaa00dc88ae724003c3a204ca752002971506a5caa7f80226c20" name="a44b1e31e5857baaa00dc88ae724003c3a204ca752002971506a5caa7f80226c20"></a>Moving_Floor&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a44b1e31e5857baaa00dc88ae724003c3aa71256a38ca8d558e47fbb7463fef422" name="a44b1e31e5857baaa00dc88ae724003c3aa71256a38ca8d558e47fbb7463fef422"></a>Moving_Water&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a44b1e31e5857baaa00dc88ae724003c3a6fc4335f414e64a079526c84e5ec6218" name="a44b1e31e5857baaa00dc88ae724003c3a6fc4335f414e64a079526c84e5ec6218"></a>Four&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a44b1e31e5857baaa00dc88ae724003c3a5e9014f55e554ba28f979d6b6cdd8898" name="a44b1e31e5857baaa00dc88ae724003c3a5e9014f55e554ba28f979d6b6cdd8898"></a>Red_Flashes&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a44b1e31e5857baaa00dc88ae724003c3afca1c11ad25e05774aca02bc1f61068a" name="a44b1e31e5857baaa00dc88ae724003c3afca1c11ad25e05774aca02bc1f61068a"></a>Torch_Show_Floor&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a44b1e31e5857baaa00dc88ae724003c3a0f69086acb8b67500b77f1762487222c" name="a44b1e31e5857baaa00dc88ae724003c3a0f69086acb8b67500b77f1762487222c"></a>Ganon_Room&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+<p class="definition">Definition at line <a class="el" href="room__tag_8h_source.html#l00017">17</a> of file <a class="el" href="room__tag_8h_source.html">room_tag.h</a>.</p>
+
+</div>
+</div>
+<a id="a693df677b1b2754452c8b8b4c4a98468" name="a693df677b1b2754452c8b8b4c4a98468"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a693df677b1b2754452c8b8b4c4a98468">&#9670;&#160;</a></span>TagKey</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="#a693df677b1b2754452c8b8b4c4a98468">yaze::zelda3::TagKey</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468ac87d5992d6bc96c5f44239d9ec324db1" name="a693df677b1b2754452c8b8b4c4a98468ac87d5992d6bc96c5f44239d9ec324db1"></a>Nothing&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468ada24c387898e858cb179df810b04154f" name="a693df677b1b2754452c8b8b4c4a98468ada24c387898e858cb179df810b04154f"></a>NW_Kill_Enemy_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a0a79eaa676a7668fa8d9b6453d3e73d4" name="a693df677b1b2754452c8b8b4c4a98468a0a79eaa676a7668fa8d9b6453d3e73d4"></a>NE_Kill_Enemy_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468ac70933e5b9d0dbe898c6764aebdab3e0" name="a693df677b1b2754452c8b8b4c4a98468ac70933e5b9d0dbe898c6764aebdab3e0"></a>SW_Kill_Enemy_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468aece942a35487c5967337f87c5d4760a3" name="a693df677b1b2754452c8b8b4c4a98468aece942a35487c5967337f87c5d4760a3"></a>SE_Kill_Enemy_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468ab553174973329fe8265f063296ee699a" name="a693df677b1b2754452c8b8b4c4a98468ab553174973329fe8265f063296ee699a"></a>W_Kill_Enemy_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a1d05dbcdb37ab994c548ff476e79c0a5" name="a693df677b1b2754452c8b8b4c4a98468a1d05dbcdb37ab994c548ff476e79c0a5"></a>E_Kill_Enemy_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a292230f014190eb3b923cd0440bdd140" name="a693df677b1b2754452c8b8b4c4a98468a292230f014190eb3b923cd0440bdd140"></a>N_Kill_Enemy_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a6fd56fda727cfa5970e3a0d16f6dea5e" name="a693df677b1b2754452c8b8b4c4a98468a6fd56fda727cfa5970e3a0d16f6dea5e"></a>S_Kill_Enemy_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468af31f5c897b35e529a0581ebe7099c261" name="a693df677b1b2754452c8b8b4c4a98468af31f5c897b35e529a0581ebe7099c261"></a>Clear_Quadrant_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468abf3bef71311fbea6a7fda44090b85971" name="a693df677b1b2754452c8b8b4c4a98468abf3bef71311fbea6a7fda44090b85971"></a>Clear_Room_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468ac2675bd91992ef84a73fd16069a3e55d" name="a693df677b1b2754452c8b8b4c4a98468ac2675bd91992ef84a73fd16069a3e55d"></a>NW_Push_Block_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a682dd7931b825bc66a4a8807163a3b90" name="a693df677b1b2754452c8b8b4c4a98468a682dd7931b825bc66a4a8807163a3b90"></a>NE_Push_Block_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468ab3bd809672191b35e4a2ecd5d213648e" name="a693df677b1b2754452c8b8b4c4a98468ab3bd809672191b35e4a2ecd5d213648e"></a>SW_Push_Block_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468aa5bcfd8fcaafc0272893dabf2e4abcd4" name="a693df677b1b2754452c8b8b4c4a98468aa5bcfd8fcaafc0272893dabf2e4abcd4"></a>SE_Push_Block_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468aaa014ddb4fb91b991037a01d8c76b986" name="a693df677b1b2754452c8b8b4c4a98468aaa014ddb4fb91b991037a01d8c76b986"></a>W_Push_Block_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468aae6e4f7d9319ac3102130bdc19a99a56" name="a693df677b1b2754452c8b8b4c4a98468aae6e4f7d9319ac3102130bdc19a99a56"></a>E_Push_Block_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a1618773816aceeeb8452d286974a5111" name="a693df677b1b2754452c8b8b4c4a98468a1618773816aceeeb8452d286974a5111"></a>N_Push_Block_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a6ffefb519234f2055b9a5c946d0d2fac" name="a693df677b1b2754452c8b8b4c4a98468a6ffefb519234f2055b9a5c946d0d2fac"></a>S_Push_Block_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a3c35117a981e12749e5f663e8c0f9dcb" name="a693df677b1b2754452c8b8b4c4a98468a3c35117a981e12749e5f663e8c0f9dcb"></a>Push_Block_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468aa6100cf205a45e5cff26c7d59b6c4aa6" name="a693df677b1b2754452c8b8b4c4a98468aa6100cf205a45e5cff26c7d59b6c4aa6"></a>Pull_Lever_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a382fc72aaa2ac4c921dcb2b7e6ca625e" name="a693df677b1b2754452c8b8b4c4a98468a382fc72aaa2ac4c921dcb2b7e6ca625e"></a>Clear_Level_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468ae643a5479d4acd17194a33018b20fae2" name="a693df677b1b2754452c8b8b4c4a98468ae643a5479d4acd17194a33018b20fae2"></a>Switch_Open_Door_Hold&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468ac2ecf68c998deaabf707f5a0d906bc80" name="a693df677b1b2754452c8b8b4c4a98468ac2ecf68c998deaabf707f5a0d906bc80"></a>Switch_Open_Door_Toggle&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468aee4e18c1a967e6a70c4519a9d1ce9d47" name="a693df677b1b2754452c8b8b4c4a98468aee4e18c1a967e6a70c4519a9d1ce9d47"></a>Turn_off_Water&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468ab3c4b887b9e119066e00de5a163249f8" name="a693df677b1b2754452c8b8b4c4a98468ab3c4b887b9e119066e00de5a163249f8"></a>Turn_on_Water&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a899f4c184ae17011d1dede37de23d09d" name="a693df677b1b2754452c8b8b4c4a98468a899f4c184ae17011d1dede37de23d09d"></a>Water_Gate&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a2d745a47567cd5d54eb480f3caaca77c" name="a693df677b1b2754452c8b8b4c4a98468a2d745a47567cd5d54eb480f3caaca77c"></a>Water_Twin&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a091363ea0d1c6fd45f9913f8757a0581" name="a693df677b1b2754452c8b8b4c4a98468a091363ea0d1c6fd45f9913f8757a0581"></a>Secret_Wall_Right&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a54975a1b06797944e76dd0bb1a625f43" name="a693df677b1b2754452c8b8b4c4a98468a54975a1b06797944e76dd0bb1a625f43"></a>Secret_Wall_Left&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a820b2346128e4a40177a1f993b8d52b6" name="a693df677b1b2754452c8b8b4c4a98468a820b2346128e4a40177a1f993b8d52b6"></a>Crash1&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a766ec8e12d24c885845b9beabaaf69f0" name="a693df677b1b2754452c8b8b4c4a98468a766ec8e12d24c885845b9beabaaf69f0"></a>Crash2&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a8599b09fca21111e661da95b4f3b3ee1" name="a693df677b1b2754452c8b8b4c4a98468a8599b09fca21111e661da95b4f3b3ee1"></a>Pull_Switch_to_bomb_Wall&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a82936f94ba9e69a0b8e6cb0d1a9d983d" name="a693df677b1b2754452c8b8b4c4a98468a82936f94ba9e69a0b8e6cb0d1a9d983d"></a>Holes_0&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468abd98c5dc44078eae24a1f1a8ad7bf0ce" name="a693df677b1b2754452c8b8b4c4a98468abd98c5dc44078eae24a1f1a8ad7bf0ce"></a>Open_Chest_Activate_Holes_0&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468aff583d031f8c8ad7857373db2e4928c5" name="a693df677b1b2754452c8b8b4c4a98468aff583d031f8c8ad7857373db2e4928c5"></a>Holes_1&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468aade33d5e79273f86acd829cde8ff53a7" name="a693df677b1b2754452c8b8b4c4a98468aade33d5e79273f86acd829cde8ff53a7"></a>Holes_2&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a09be56922301e46e8561f2b35b14fb62" name="a693df677b1b2754452c8b8b4c4a98468a09be56922301e46e8561f2b35b14fb62"></a>Kill_Enemy_to_clear_level&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a9024dfd424600f401cba474d615fbfe6" name="a693df677b1b2754452c8b8b4c4a98468a9024dfd424600f401cba474d615fbfe6"></a>SE_Kill_Enemy_to_Move_Block&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a7b45d215a1d2c1a243c2f7f81d444f71" name="a693df677b1b2754452c8b8b4c4a98468a7b45d215a1d2c1a243c2f7f81d444f71"></a>Trigger_activated_Chest&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a80618ea1aaf009004b19662ada8e4236" name="a693df677b1b2754452c8b8b4c4a98468a80618ea1aaf009004b19662ada8e4236"></a>Pull_lever_to_Bomb_Wall&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468af521805de3b0ec5e99692bbab72c7057" name="a693df677b1b2754452c8b8b4c4a98468af521805de3b0ec5e99692bbab72c7057"></a>NW_Kill_Enemy_for_Chest&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a9d680fe9298d30a5947b62d691e44ab4" name="a693df677b1b2754452c8b8b4c4a98468a9d680fe9298d30a5947b62d691e44ab4"></a>NE_Kill_Enemy_for_Chest&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a7e8d9bcb571b69f4f2cf9842e2e29f96" name="a693df677b1b2754452c8b8b4c4a98468a7e8d9bcb571b69f4f2cf9842e2e29f96"></a>SW_Kill_Enemy_for_Chest&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a7f12bb1903474044d236287fe37ce2fe" name="a693df677b1b2754452c8b8b4c4a98468a7f12bb1903474044d236287fe37ce2fe"></a>SE_Kill_Enemy_for_Chest&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a2ac03834c8caa52067e487570aa14df8" name="a693df677b1b2754452c8b8b4c4a98468a2ac03834c8caa52067e487570aa14df8"></a>W_Kill_Enemy_for_Chest&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a4b78b3fcf55d766c98c9ef2cccc10f39" name="a693df677b1b2754452c8b8b4c4a98468a4b78b3fcf55d766c98c9ef2cccc10f39"></a>E_Kill_Enemy_for_Chest&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a358311deb926a6bd38b8bc05d5989f76" name="a693df677b1b2754452c8b8b4c4a98468a358311deb926a6bd38b8bc05d5989f76"></a>N_Kill_Enemy_for_Chest&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a126e28827ef1590b842f7d7fe141a1d4" name="a693df677b1b2754452c8b8b4c4a98468a126e28827ef1590b842f7d7fe141a1d4"></a>S_Kill_Enemy_for_Chest&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468accdf21d7c867e09c22eaea42d3d13653" name="a693df677b1b2754452c8b8b4c4a98468accdf21d7c867e09c22eaea42d3d13653"></a>Clear_Quadrant_for_Chest&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468abe14219a6a2360a2abdd9cd2d03ba8a2" name="a693df677b1b2754452c8b8b4c4a98468abe14219a6a2360a2abdd9cd2d03ba8a2"></a>Clear_Room_for_Chest&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a204dc45d0e4e7452337d40fc8d1c3da8" name="a693df677b1b2754452c8b8b4c4a98468a204dc45d0e4e7452337d40fc8d1c3da8"></a>Light_Torches_to_Open&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468ab8e6bc6b7107d01264c838d2279b6fd6" name="a693df677b1b2754452c8b8b4c4a98468ab8e6bc6b7107d01264c838d2279b6fd6"></a>Holes_3&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a81650074c0baca8d14035c360a72beb8" name="a693df677b1b2754452c8b8b4c4a98468a81650074c0baca8d14035c360a72beb8"></a>Holes_4&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a65ecc6bb8c038327b3d25cca07575c8f" name="a693df677b1b2754452c8b8b4c4a98468a65ecc6bb8c038327b3d25cca07575c8f"></a>Holes_5&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468abace4837abeacf9fcbc84410da4a8dfd" name="a693df677b1b2754452c8b8b4c4a98468abace4837abeacf9fcbc84410da4a8dfd"></a>Holes_6&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a86c0b404b73e05b64929149e2dc56506" name="a693df677b1b2754452c8b8b4c4a98468a86c0b404b73e05b64929149e2dc56506"></a>Agahnim_Room&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468ac94b7dce770747ef7dc2c4001e4462be" name="a693df677b1b2754452c8b8b4c4a98468ac94b7dce770747ef7dc2c4001e4462be"></a>Holes_7&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a7fe16f9c2a46ae665867fc85f5eb9304" name="a693df677b1b2754452c8b8b4c4a98468a7fe16f9c2a46ae665867fc85f5eb9304"></a>Holes_8&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a6cf01a7ce16ce722bdbcab01ad85f4c9" name="a693df677b1b2754452c8b8b4c4a98468a6cf01a7ce16ce722bdbcab01ad85f4c9"></a>Open_Chest_for_Holes_8&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468af3cba258bf89286ce2067121c55e3651" name="a693df677b1b2754452c8b8b4c4a98468af3cba258bf89286ce2067121c55e3651"></a>Push_Block_for_Chest&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468ab25fe7b1e4c827d205d03a6701465ba6" name="a693df677b1b2754452c8b8b4c4a98468ab25fe7b1e4c827d205d03a6701465ba6"></a>Kill_to_open_Ganon_Door&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468af7edf4aa720007546d7e1e76cda507f5" name="a693df677b1b2754452c8b8b4c4a98468af7edf4aa720007546d7e1e76cda507f5"></a>Light_Torches_to_get_Chest&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a693df677b1b2754452c8b8b4c4a98468a067a2c9dbc2ed811337777b3e1f29369" name="a693df677b1b2754452c8b8b4c4a98468a067a2c9dbc2ed811337777b3e1f29369"></a>Kill_boss_Again&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+<p class="definition">Definition at line <a class="el" href="room__tag_8h_source.html#l00036">36</a> of file <a class="el" href="room__tag_8h_source.html">room_tag.h</a>.</p>
+
+</div>
+</div>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="a599b7198a7dd0ec9da754a83f9a7e5f9" name="a599b7198a7dd0ec9da754a83f9a7e5f9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a599b7198a7dd0ec9da754a83f9a7e5f9">&#9670;&#160;</a></span>operator|()</h2>
@@ -1046,7 +1285,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00225">225</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00222">222</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
 
 </div>
 </div>
@@ -1070,7 +1309,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00226">226</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00223">223</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
 
 </div>
 </div>
@@ -1094,7 +1333,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00227">227</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00224">224</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
 
 </div>
 </div>
@@ -1118,7 +1357,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00228">228</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00225">225</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
 
 </div>
 </div>
@@ -1142,9 +1381,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00229">229</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00226">226</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00234">yaze::zelda3::Room::CopyRoomGraphicsToBuffer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00231">yaze::zelda3::Room::CopyRoomGraphicsToBuffer()</a>.</p>
 
 </div>
 </div>
@@ -1168,7 +1407,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00230">230</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00227">227</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
 
 </div>
 </div>
@@ -1192,7 +1431,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00231">231</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00228">228</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
 
 </div>
 </div>
@@ -1216,9 +1455,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00232">232</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00229">229</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00234">yaze::zelda3::Room::CopyRoomGraphicsToBuffer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00231">yaze::zelda3::Room::CopyRoomGraphicsToBuffer()</a>.</p>
 
 </div>
 </div>
@@ -1242,7 +1481,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00035">35</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00036">36</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1266,9 +1505,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00036">36</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00037">37</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00278">yaze::zelda3::Room::LoadObjects()</a>, and <a class="el" href="room_8cc_source.html#l00126">yaze::zelda3::Room::LoadRoomFromROM()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00275">yaze::zelda3::Room::LoadObjects()</a>, and <a class="el" href="room_8cc_source.html#l00125">yaze::zelda3::Room::LoadRoomFromROM()</a>.</p>
 
 </div>
 </div>
@@ -1292,7 +1531,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00038">38</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00039">39</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1316,7 +1555,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00039">39</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00040">40</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1340,7 +1579,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00040">40</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00041">41</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1364,9 +1603,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00041">41</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00042">42</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00417">yaze::zelda3::Room::LoadSprites()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00414">yaze::zelda3::Room::LoadSprites()</a>.</p>
 
 </div>
 </div>
@@ -1390,9 +1629,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00042">42</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00043">43</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00022">yaze::zelda3::Room::LoadHeader()</a>, and <a class="el" href="room_8cc_source.html#l00126">yaze::zelda3::Room::LoadRoomFromROM()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00018">yaze::zelda3::Room::LoadHeader()</a>, and <a class="el" href="room_8cc_source.html#l00125">yaze::zelda3::Room::LoadRoomFromROM()</a>.</p>
 
 </div>
 </div>
@@ -1416,9 +1655,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00043">43</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00044">44</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00022">yaze::zelda3::Room::LoadHeader()</a>, and <a class="el" href="room_8cc_source.html#l00126">yaze::zelda3::Room::LoadRoomFromROM()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00018">yaze::zelda3::Room::LoadHeader()</a>, and <a class="el" href="room_8cc_source.html#l00125">yaze::zelda3::Room::LoadRoomFromROM()</a>.</p>
 
 </div>
 </div>
@@ -1442,7 +1681,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00044">44</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00045">45</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1466,9 +1705,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00045">45</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00046">46</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00464">yaze::zelda3::Room::LoadChests()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00461">yaze::zelda3::Room::LoadChests()</a>.</p>
 
 </div>
 </div>
@@ -1492,9 +1731,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00046">46</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00047">47</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00464">yaze::zelda3::Room::LoadChests()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00461">yaze::zelda3::Room::LoadChests()</a>.</p>
 
 </div>
 </div>
@@ -1518,9 +1757,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00048">48</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00049">49</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00126">yaze::zelda3::Room::LoadRoomFromROM()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00125">yaze::zelda3::Room::LoadRoomFromROM()</a>.</p>
 
 </div>
 </div>
@@ -1544,7 +1783,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00050">50</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00051">51</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1568,7 +1807,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00051">51</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00052">52</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1592,7 +1831,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00052">52</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00053">53</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1616,7 +1855,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00053">53</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00054">54</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1640,7 +1879,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00054">54</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00055">55</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1664,7 +1903,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00055">55</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00056">56</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1688,7 +1927,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00056">56</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00057">57</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1712,7 +1951,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00057">57</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00058">58</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1736,7 +1975,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00059">59</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00060">60</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1760,7 +1999,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00060">60</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00061">61</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1784,7 +2023,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00061">61</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00062">62</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1808,7 +2047,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00062">62</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00063">63</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1832,7 +2071,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00063">63</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00064">64</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1856,7 +2095,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00064">64</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00065">65</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1880,7 +2119,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00067">67</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00068">68</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1904,7 +2143,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00068">68</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00069">69</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1928,7 +2167,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00069">69</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00070">70</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1952,7 +2191,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00070">70</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00071">71</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -1976,7 +2215,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00071">71</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00072">72</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -2000,7 +2239,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00072">72</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00073">73</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -2024,7 +2263,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00073">73</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00074">74</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -2048,7 +2287,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00074">74</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00075">75</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -2072,7 +2311,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00075">75</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00076">76</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -2096,7 +2335,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00077">77</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00078">78</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -2120,7 +2359,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00079">79</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00080">80</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -2144,9 +2383,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00081">81</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00082">82</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00278">yaze::zelda3::Room::LoadObjects()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00275">yaze::zelda3::Room::LoadObjects()</a>.</p>
 
 </div>
 </div>
@@ -2170,7 +2409,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00167">167</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00202">202</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="dungeon__editor_8cc_source.html#l00420">yaze::editor::DungeonEditor::DrawDungeonTabView()</a>, and <a class="el" href="dungeon__editor_8cc_source.html#l00319">yaze::editor::DungeonEditor::DrawRoomSelector()</a>.</p>
 

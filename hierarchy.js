@@ -130,6 +130,7 @@ var hierarchy =
     [ "yaze::emu::JoypadRegisters", "structyaze_1_1emu_1_1JoypadRegisters.html", null ],
     [ "TextEditor::LanguageDefinition", "structTextEditor_1_1LanguageDefinition.html", null ],
     [ "yaze::emu::Layer", "structyaze_1_1emu_1_1Layer.html", null ],
+    [ "yaze::zelda3::LayerMergeType", "structyaze_1_1zelda3_1_1LayerMergeType.html", null ],
     [ "yaze::emu::M7A", "structyaze_1_1emu_1_1M7A.html", null ],
     [ "yaze::emu::M7B", "structyaze_1_1emu_1_1M7B.html", null ],
     [ "yaze::emu::M7C", "structyaze_1_1emu_1_1M7C.html", null ],

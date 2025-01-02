@@ -264,6 +264,7 @@ var annotated_dup =
         ] ],
         [ "DungeonObjectRenderer", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html", "classyaze_1_1zelda3_1_1DungeonObjectRenderer" ],
         [ "GameEntity", "classyaze_1_1zelda3_1_1GameEntity.html", "classyaze_1_1zelda3_1_1GameEntity" ],
+        [ "LayerMergeType", "structyaze_1_1zelda3_1_1LayerMergeType.html", "structyaze_1_1zelda3_1_1LayerMergeType" ],
         [ "Overworld", "classyaze_1_1zelda3_1_1Overworld.html", "classyaze_1_1zelda3_1_1Overworld" ],
         [ "OverworldEntrance", "classyaze_1_1zelda3_1_1OverworldEntrance.html", "classyaze_1_1zelda3_1_1OverworldEntrance" ],
         [ "OverworldEntranceTileTypes", "structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html", "structyaze_1_1zelda3_1_1OverworldEntranceTileTypes" ],

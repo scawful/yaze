@@ -1,5 +1,6 @@
 var room_8h =
 [
+    [ "yaze::zelda3::LayerMergeType", "structyaze_1_1zelda3_1_1LayerMergeType.html", "structyaze_1_1zelda3_1_1LayerMergeType" ],
     [ "yaze::zelda3::Room", "classyaze_1_1zelda3_1_1Room.html", "classyaze_1_1zelda3_1_1Room" ],
     [ "room_object_layout_pointer", "room_8h.html#a16a549dbe81fe1cb9d30e7df88fed890", null ],
     [ "room_object_pointer", "room_8h.html#adbf17106eb31068575ea3fdd30188d0b", null ],

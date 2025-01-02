@@ -16,9 +16,11 @@ var searchData=
   ['bgr_13',['Bgr',['../namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8a103b58155b4c5cc09249629e7ccd5dc2',1,'yaze::zelda3']]],
   ['bigchest_14',['BigChest',['../namespaceyaze_1_1zelda3.html#a479da514040cddc99b5da1235244c421a52a3e405eb69e72cd81af3c5e1f93065',1,'yaze::zelda3']]],
   ['block_15',['Block',['../namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8ae1e4c8c9ccd9fc39c391da4bcd093fb2',1,'yaze::zelda3']]],
-  ['bpp_5f2_16',['BPP_2',['../structyaze_1_1emu_1_1BackgroundLayer.html#a00318bf18c95c9d9000e3d6f1cac2782a6e24c2fba60bf0169b9d27e24d696c06',1,'yaze::emu::BackgroundLayer']]],
-  ['bpp_5f4_17',['BPP_4',['../structyaze_1_1emu_1_1BackgroundLayer.html#a00318bf18c95c9d9000e3d6f1cac2782a4d6c2ba87154df13303a36d2df9d0603',1,'yaze::emu::BackgroundLayer']]],
-  ['bpp_5f8_18',['BPP_8',['../structyaze_1_1emu_1_1BackgroundLayer.html#a00318bf18c95c9d9000e3d6f1cac2782a4f648e52e4b46e97723a662b69282c08',1,'yaze::emu::BackgroundLayer']]],
-  ['breakpoint_19',['Breakpoint',['../classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a7129472c5eb598faf47e4e877f2618fd',1,'TextEditor']]],
-  ['button_20',['Button',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a87b7760f14fbff78d8819291f36ab9a0',1,'yaze::gui::zeml']]]
+  ['both_16',['Both',['../namespaceyaze_1_1zelda3.html#afb47ec71853bc72be86c1b0c481a3496a2a4319d5ee5621ed86d66df859d32370',1,'yaze::zelda3']]],
+  ['both_5fwith_5fscroll_17',['Both_With_Scroll',['../namespaceyaze_1_1zelda3.html#afb47ec71853bc72be86c1b0c481a3496ae9da81d0d4f9ee6d7f82e15372617c52',1,'yaze::zelda3']]],
+  ['bpp_5f2_18',['BPP_2',['../structyaze_1_1emu_1_1BackgroundLayer.html#a00318bf18c95c9d9000e3d6f1cac2782a6e24c2fba60bf0169b9d27e24d696c06',1,'yaze::emu::BackgroundLayer']]],
+  ['bpp_5f4_19',['BPP_4',['../structyaze_1_1emu_1_1BackgroundLayer.html#a00318bf18c95c9d9000e3d6f1cac2782a4d6c2ba87154df13303a36d2df9d0603',1,'yaze::emu::BackgroundLayer']]],
+  ['bpp_5f8_20',['BPP_8',['../structyaze_1_1emu_1_1BackgroundLayer.html#a00318bf18c95c9d9000e3d6f1cac2782a4f648e52e4b46e97723a662b69282c08',1,'yaze::emu::BackgroundLayer']]],
+  ['breakpoint_21',['Breakpoint',['../classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a7129472c5eb598faf47e4e877f2618fd',1,'TextEditor']]],
+  ['button_22',['Button',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a87b7760f14fbff78d8819291f36ab9a0',1,'yaze::gui::zeml']]]
 ];

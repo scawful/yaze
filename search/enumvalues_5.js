@@ -9,5 +9,6 @@ var searchData=
   ['fg_5funderline_6',['FG_UNDERLINE',['../namespaceyaze_1_1cli.html#a926a1f01429821b946fbc7bf6a0e1c13abd432d1329e89b03bfdace04f4bb63c7',1,'yaze::cli']]],
   ['fg_5fyellow_7',['FG_YELLOW',['../namespaceyaze_1_1cli.html#a926a1f01429821b946fbc7bf6a0e1c13ac5082de4ed3909d3e748c7e3a65c4eac',1,'yaze::cli']]],
   ['floors_8',['Floors',['../namespaceyaze_1_1zelda3.html#a9490ecf2dca104bfd1d4d40b44f5e747ad57c678319b4dbc801c759910f417fdc',1,'yaze::zelda3']]],
-  ['function_9',['Function',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a86408593c34af77fdd90df932f8b5261',1,'yaze::gui::zeml']]]
+  ['four_9',['Four',['../namespaceyaze_1_1zelda3.html#a44b1e31e5857baaa00dc88ae724003c3a6fc4335f414e64a079526c84e5ec6218',1,'yaze::zelda3']]],
+  ['function_10',['Function',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a86408593c34af77fdd90df932f8b5261',1,'yaze::gui::zeml']]]
 ];

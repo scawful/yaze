@@ -1,5 +1,13 @@
 var NAVTREEINDEX22 =
 {
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#ab9b07fb505c9c24d92666cf1ab316ca9":[11,0,0,7,0,6,47],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#abe403497078acd2c084a4c506a850c9d":[10,0,1,8,2,6,10],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#abe403497078acd2c084a4c506a850c9d":[11,0,0,7,0,6,10],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#ac0af97cd174a13fc865911c95d77d188":[10,0,1,8,2,6,50],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#ac0af97cd174a13fc865911c95d77d188":[11,0,0,7,0,6,50],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#ac3c91c8f49743af9f6df4b148aa17609":[10,0,1,8,2,6,7],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#ac3c91c8f49743af9f6df4b148aa17609":[11,0,0,7,0,6,7],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#ac8448945a030c5ed8cb7f0d9fff1dbd3":[10,0,1,8,2,6,33],
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#ac8448945a030c5ed8cb7f0d9fff1dbd3":[11,0,0,7,0,6,33],
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#ac9a3af83ebdc1fae78165aea89ac7510":[10,0,1,8,2,6,20],
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#ac9a3af83ebdc1fae78165aea89ac7510":[11,0,0,7,0,6,20],
@@ -241,13 +249,5 @@ var NAVTREEINDEX22 =
 "compression_8cc.html#a47fd97f5c33aa1279f26a7c0ad7c1e3b":[12,0,2,0,3,2,28],
 "compression_8cc.html#a4891117728978a92b253a51ce8406060":[12,0,2,0,3,2,35],
 "compression_8cc.html#a4e2e79a02c9bbff8d9720d6384296218":[12,0,2,0,3,2,42],
-"compression_8cc.html#a5d2f30bd1cbcf49f829a7e8eb6173c06":[12,0,2,0,3,2,0],
-"compression_8cc.html#a69e549a86501b37d6df799c19c8d82ce":[12,0,2,0,3,2,14],
-"compression_8cc.html#a6b900390ba207a54f5669a4ce4fc5055":[12,0,2,0,3,2,33],
-"compression_8cc.html#a6da64d071c48c1b33962ff496877567e":[12,0,2,0,3,2,41],
-"compression_8cc.html#a6e89cbe746bf8cd47152fa23d4c0e888":[12,0,2,0,3,2,23],
-"compression_8cc.html#a79e586563008984b912926a967592418":[12,0,2,0,3,2,3],
-"compression_8cc.html#a811f14da55752f836220fa108858424b":[12,0,2,0,3,2,31],
-"compression_8cc.html#a835c13fe4e97f78c57e10ac7ad2428b5":[12,0,2,0,3,2,43],
-"compression_8cc.html#a882fb9e94048c0ae7e1b3fd9428ed2b1":[12,0,2,0,3,2,16]
+"compression_8cc.html#a5d2f30bd1cbcf49f829a7e8eb6173c06":[12,0,2,0,3,2,0]
 };
