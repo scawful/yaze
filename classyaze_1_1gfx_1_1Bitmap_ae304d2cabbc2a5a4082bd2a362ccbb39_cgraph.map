@@ -1,6 +1,6 @@
 <map id="yaze::gfx::Bitmap::Bitmap" name="yaze::gfx::Bitmap::Bitmap">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,111,129,151"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#aa23cce9444734c2f59a1b35defabe716" title="Creates a bitmap object with the provided graphical data." alt="" coords="177,81,300,122"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a1725878c64e66f79cecade531d14d384" title="Creates a bitmap object with the provided graphical data." alt="" coords="177,81,300,122"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,118,161,112,162,117,130,123"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Bitmap.html#af61a1ba34918511ffaf6464a5253a889" title=" " alt="" coords="360,5,484,46"/>
 <area shape="poly" id="edge7_Node000001_Node000004" title=" " alt="" coords="85,108,124,74,149,57,176,43,218,30,262,22,345,18,345,23,263,28,219,35,178,48,152,61,128,78,89,112"/>

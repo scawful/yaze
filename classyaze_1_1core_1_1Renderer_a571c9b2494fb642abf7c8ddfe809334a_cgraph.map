@@ -2,6 +2,4 @@
 <area shape="rect" id="Node000001" title="Used to update a bitmap on the screen." alt="" coords="5,5,142,46"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="190,5,313,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,23,175,23,175,28,142,28"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a4fb0f6bbb8c0a99e5335e4e5191fbac6" title=" " alt="" coords="361,5,489,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="313,23,346,23,346,28,313,28"/>
 </map>

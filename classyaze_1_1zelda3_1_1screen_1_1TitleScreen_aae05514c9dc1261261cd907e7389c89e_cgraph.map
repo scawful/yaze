@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,163,143,203"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#af731a5e1858feda21ceac5635b98fa36" title=" " alt="" coords="204,28,372,69"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,160,239,75,242,80,109,165"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Bitmap.html#aa23cce9444734c2f59a1b35defabe716" title="Creates a bitmap object with the provided graphical data." alt="" coords="226,163,350,203"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Bitmap.html#a1725878c64e66f79cecade531d14d384" title="Creates a bitmap object with the provided graphical data." alt="" coords="226,163,350,203"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="143,180,211,180,211,186,143,186"/>
 <area shape="rect" id="Node000009" href="$classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#a934f9101ffde6b959807fe642f6db1fc" title=" " alt="" coords="191,256,385,297"/>
 <area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="124,202,226,247,224,252,122,206"/>

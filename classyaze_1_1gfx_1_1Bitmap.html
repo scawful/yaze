@@ -141,8 +141,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a23788e804babb9cbf0a087eb1fd79d99"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a541e0dc36996ded2134de2ea39f9f417" id="r_a541e0dc36996ded2134de2ea39f9f417"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a541e0dc36996ded2134de2ea39f9f417">SaveSurfaceToFile</a> (std::string_view filename)</td></tr>
 <tr class="separator:a541e0dc36996ded2134de2ea39f9f417"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1725878c64e66f79cecade531d14d384" id="r_a1725878c64e66f79cecade531d14d384"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1725878c64e66f79cecade531d14d384">Create</a> (int <a class="el" href="#a8bf88ae41aef8eee49c560b96cf4d050">width</a>, int <a class="el" href="#a7729f6c60dee1836a303ce39448febc3">height</a>, int <a class="el" href="#af61a1ba34918511ffaf6464a5253a889">depth</a>, std::span&lt; uint8_t &gt; <a class="el" href="#aceb05ea27e2f1a75c24af5e291956af2">data</a>)</td></tr>
+<tr class="memdesc:a1725878c64e66f79cecade531d14d384"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a bitmap object with the provided graphical data.  <br /></td></tr>
+<tr class="separator:a1725878c64e66f79cecade531d14d384"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa23cce9444734c2f59a1b35defabe716" id="r_aa23cce9444734c2f59a1b35defabe716"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa23cce9444734c2f59a1b35defabe716">Create</a> (int <a class="el" href="#a8bf88ae41aef8eee49c560b96cf4d050">width</a>, int <a class="el" href="#a7729f6c60dee1836a303ce39448febc3">height</a>, int <a class="el" href="#af61a1ba34918511ffaf6464a5253a889">depth</a>, const std::vector&lt; uint8_t &gt; &amp;<a class="el" href="#aceb05ea27e2f1a75c24af5e291956af2">data</a>)</td></tr>
-<tr class="memdesc:aa23cce9444734c2f59a1b35defabe716"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a bitmap object with the provided graphical data.  <br /></td></tr>
 <tr class="separator:aa23cce9444734c2f59a1b35defabe716"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a077d82f2218f1ddcd63922e7187e53e0" id="r_a077d82f2218f1ddcd63922e7187e53e0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a077d82f2218f1ddcd63922e7187e53e0">Create</a> (int <a class="el" href="#a8bf88ae41aef8eee49c560b96cf4d050">width</a>, int <a class="el" href="#a7729f6c60dee1836a303ce39448febc3">height</a>, int <a class="el" href="#af61a1ba34918511ffaf6464a5253a889">depth</a>, int format, const std::vector&lt; uint8_t &gt; &amp;<a class="el" href="#aceb05ea27e2f1a75c24af5e291956af2">data</a>)</td></tr>
 <tr class="separator:a077d82f2218f1ddcd63922e7187e53e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -169,14 +171,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:adab34aa5b35c696b6b5831263c6dfc6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aefd1651f2d68b9890ece70c68355a34e" id="r_aefd1651f2d68b9890ece70c68355a34e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aefd1651f2d68b9890ece70c68355a34e">WriteToPixel</a> (int position, <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> value)</td></tr>
 <tr class="separator:aefd1651f2d68b9890ece70c68355a34e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a62ed8ed61cb919d785cc57aa78847550" id="r_a62ed8ed61cb919d785cc57aa78847550"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a62ed8ed61cb919d785cc57aa78847550">WriteWordToPixel</a> (int position, uint16_t value)</td></tr>
-<tr class="separator:a62ed8ed61cb919d785cc57aa78847550"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a748139853655afc687cf9668eeb01443" id="r_a748139853655afc687cf9668eeb01443"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a748139853655afc687cf9668eeb01443">WriteColor</a> (int position, const ImVec4 &amp;color)</td></tr>
 <tr class="separator:a748139853655afc687cf9668eeb01443"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa4b3060bdbe692c4de2f5f26aef82ce7" id="r_aa4b3060bdbe692c4de2f5f26aef82ce7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa4b3060bdbe692c4de2f5f26aef82ce7">Cleanup</a> ()</td></tr>
 <tr class="separator:aa4b3060bdbe692c4de2f5f26aef82ce7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9bbb510c2f25628119b534eecc5947c0" id="r_a9bbb510c2f25628119b534eecc5947c0"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9bbb510c2f25628119b534eecc5947c0">sdl_palette</a> ()</td></tr>
-<tr class="separator:a9bbb510c2f25628119b534eecc5947c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab2230a9d39012a835f250c3be0899829" id="r_ab2230a9d39012a835f250c3be0899829"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab2230a9d39012a835f250c3be0899829">palette</a> () const</td></tr>
 <tr class="separator:ab2230a9d39012a835f250c3be0899829"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6f858326527e7871044cc605e4239042" id="r_a6f858326527e7871044cc605e4239042"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6f858326527e7871044cc605e4239042">mutable_palette</a> ()</td></tr>
@@ -195,16 +193,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aceb05ea27e2f1a75c24af5e291956af2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9f96f54bf229f5c20f8470de37200707" id="r_a9f96f54bf229f5c20f8470de37200707"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9f96f54bf229f5c20f8470de37200707">mutable_data</a> ()</td></tr>
 <tr class="separator:a9f96f54bf229f5c20f8470de37200707"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad6ef6cf20b30c178321e7a514623bf78" id="r_ad6ef6cf20b30c178321e7a514623bf78"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad6ef6cf20b30c178321e7a514623bf78">mutable_pixel_data</a> ()</td></tr>
-<tr class="separator:ad6ef6cf20b30c178321e7a514623bf78"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aba6afeb2e94ce15eb378c7258596a758" id="r_aba6afeb2e94ce15eb378c7258596a758"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aba6afeb2e94ce15eb378c7258596a758">surface</a> () const</td></tr>
 <tr class="separator:aba6afeb2e94ce15eb378c7258596a758"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abb0633168f7956e9cab95a76380dc027" id="r_abb0633168f7956e9cab95a76380dc027"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abb0633168f7956e9cab95a76380dc027">mutable_surface</a> ()</td></tr>
 <tr class="separator:abb0633168f7956e9cab95a76380dc027"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4fb0f6bbb8c0a99e5335e4e5191fbac6" id="r_a4fb0f6bbb8c0a99e5335e4e5191fbac6"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4fb0f6bbb8c0a99e5335e4e5191fbac6">converted_surface</a> () const</td></tr>
-<tr class="separator:a4fb0f6bbb8c0a99e5335e4e5191fbac6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8f7c7d6223880b970bbd96a6626b59df" id="r_a8f7c7d6223880b970bbd96a6626b59df"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8f7c7d6223880b970bbd96a6626b59df">mutable_converted_surface</a> ()</td></tr>
-<tr class="separator:a8f7c7d6223880b970bbd96a6626b59df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a68dd3eca8782add2520cadb469a0dce9" id="r_a68dd3eca8782add2520cadb469a0dce9"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a68dd3eca8782add2520cadb469a0dce9">vector</a> () const</td></tr>
 <tr class="separator:a68dd3eca8782add2520cadb469a0dce9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0c938e3c3f656555b3b8c6ef86adb265" id="r_a0c938e3c3f656555b3b8c6ef86adb265"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0c938e3c3f656555b3b8c6ef86adb265">at</a> (int i) const</td></tr>
@@ -242,16 +234,12 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a412edae11ee0612cad4a6691211df16c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a94bb9a034aef85db52ad56dd59ca5c5e" id="r_a94bb9a034aef85db52ad56dd59ca5c5e"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a94bb9a034aef85db52ad56dd59ca5c5e">data_</a></td></tr>
 <tr class="separator:a94bb9a034aef85db52ad56dd59ca5c5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a36872c56aa8d6de846ea1648c226b369" id="r_a36872c56aa8d6de846ea1648c226b369"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a36872c56aa8d6de846ea1648c226b369">png_data_</a></td></tr>
-<tr class="separator:a36872c56aa8d6de846ea1648c226b369"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae3d7a292bdf5c64aa11b34efa13fa38c" id="r_ae3d7a292bdf5c64aa11b34efa13fa38c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae3d7a292bdf5c64aa11b34efa13fa38c">palette_</a></td></tr>
 <tr class="separator:ae3d7a292bdf5c64aa11b34efa13fa38c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8796d77c9ee386b28ec0f42d31b0140a" id="r_a8796d77c9ee386b28ec0f42d31b0140a"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; SDL_Texture &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8796d77c9ee386b28ec0f42d31b0140a">texture_</a> = nullptr</td></tr>
 <tr class="separator:a8796d77c9ee386b28ec0f42d31b0140a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa27f00b847a01ee31966e570ffd2b696" id="r_aa27f00b847a01ee31966e570ffd2b696"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; SDL_Surface &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa27f00b847a01ee31966e570ffd2b696">surface_</a> = nullptr</td></tr>
 <tr class="separator:aa27f00b847a01ee31966e570ffd2b696"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0059d8ca2f553ed4a51ba0566ee48229" id="r_a0059d8ca2f553ed4a51ba0566ee48229"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; SDL_Surface &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0059d8ca2f553ed4a51ba0566ee48229">converted_surface_</a> = nullptr</td></tr>
-<tr class="separator:a0059d8ca2f553ed4a51ba0566ee48229"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Represents a bitmap image. </p>
@@ -313,16 +301,16 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00225">225</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00217">217</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00229">Create()</a>, <a class="el" href="bitmap_8h_source.html#l00173">depth()</a>, <a class="el" href="bitmap_8h_source.html#l00172">height()</a>, and <a class="el" href="bitmap_8h_source.html#l00171">width()</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00221">Create()</a>, <a class="el" href="bitmap_8h_source.html#l00159">depth()</a>, <a class="el" href="bitmap_8h_source.html#l00158">height()</a>, and <a class="el" href="bitmap_8h_source.html#l00157">width()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1gfx_1_1Bitmap_ae304d2cabbc2a5a4082bd2a362ccbb39_cgraph.png" border="0" usemap="#aclassyaze_1_1gfx_1_1Bitmap_ae304d2cabbc2a5a4082bd2a362ccbb39_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1gfx_1_1Bitmap_ae304d2cabbc2a5a4082bd2a362ccbb39_cgraph" id="aclassyaze_1_1gfx_1_1Bitmap_ae304d2cabbc2a5a4082bd2a362ccbb39_cgraph">
 <area shape="rect" title=" " alt="" coords="5,111,129,151"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aa23cce9444734c2f59a1b35defabe716" title="Creates a bitmap object with the provided graphical data." alt="" coords="177,81,300,122"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a1725878c64e66f79cecade531d14d384" title="Creates a bitmap object with the provided graphical data." alt="" coords="177,81,300,122"/>
 <area shape="poly" title=" " alt="" coords="129,118,161,112,162,117,130,123"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#af61a1ba34918511ffaf6464a5253a889" title=" " alt="" coords="360,5,484,46"/>
 <area shape="poly" title=" " alt="" coords="85,108,124,74,149,57,176,43,218,30,262,22,345,18,345,23,263,28,219,35,178,48,152,61,128,78,89,112"/>
@@ -380,14 +368,14 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00071">71</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00229">Create()</a>, <a class="el" href="bitmap_8h_source.html#l00175">data()</a>, <a class="el" href="bitmap_8h_source.html#l00173">depth()</a>, <a class="el" href="bitmap_8h_source.html#l00172">height()</a>, and <a class="el" href="bitmap_8h_source.html#l00171">width()</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00221">Create()</a>, <a class="el" href="bitmap_8h_source.html#l00161">data()</a>, <a class="el" href="bitmap_8h_source.html#l00159">depth()</a>, <a class="el" href="bitmap_8h_source.html#l00158">height()</a>, and <a class="el" href="bitmap_8h_source.html#l00157">width()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1gfx_1_1Bitmap_abfcc8b8d5411f0e1332b695fd446cc61_cgraph.png" border="0" usemap="#aclassyaze_1_1gfx_1_1Bitmap_abfcc8b8d5411f0e1332b695fd446cc61_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1gfx_1_1Bitmap_abfcc8b8d5411f0e1332b695fd446cc61_cgraph" id="aclassyaze_1_1gfx_1_1Bitmap_abfcc8b8d5411f0e1332b695fd446cc61_cgraph">
 <area shape="rect" title=" " alt="" coords="5,124,129,165"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aa23cce9444734c2f59a1b35defabe716" title="Creates a bitmap object with the provided graphical data." alt="" coords="177,124,300,165"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a1725878c64e66f79cecade531d14d384" title="Creates a bitmap object with the provided graphical data." alt="" coords="177,124,300,165"/>
 <area shape="poly" title=" " alt="" coords="129,142,161,142,161,148,129,148"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aceb05ea27e2f1a75c24af5e291956af2" title=" " alt="" coords="348,5,496,31"/>
 <area shape="poly" title=" " alt="" coords="88,122,127,90,176,61,214,47,255,36,332,22,333,27,256,41,216,52,178,66,130,94,91,126"/>
@@ -451,37 +439,35 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00075">75</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00326">ApplyPalette()</a>, <a class="el" href="bitmap_8cc_source.html#l00229">Create()</a>, <a class="el" href="bitmap_8h_source.html#l00175">data()</a>, <a class="el" href="bitmap_8h_source.html#l00173">depth()</a>, <a class="el" href="bitmap_8h_source.html#l00172">height()</a>, <a class="el" href="bitmap_8h_source.html#l00167">palette()</a>, and <a class="el" href="bitmap_8h_source.html#l00171">width()</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00321">ApplyPalette()</a>, <a class="el" href="bitmap_8cc_source.html#l00221">Create()</a>, <a class="el" href="bitmap_8h_source.html#l00161">data()</a>, <a class="el" href="bitmap_8h_source.html#l00159">depth()</a>, <a class="el" href="bitmap_8h_source.html#l00158">height()</a>, <a class="el" href="bitmap_8h_source.html#l00153">palette()</a>, and <a class="el" href="bitmap_8h_source.html#l00157">width()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1gfx_1_1Bitmap_a23788e804babb9cbf0a087eb1fd79d99_cgraph.png" border="0" usemap="#aclassyaze_1_1gfx_1_1Bitmap_a23788e804babb9cbf0a087eb1fd79d99_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1gfx_1_1Bitmap_a23788e804babb9cbf0a087eb1fd79d99_cgraph" id="aclassyaze_1_1gfx_1_1Bitmap_a23788e804babb9cbf0a087eb1fd79d99_cgraph">
-<area shape="rect" title=" " alt="" coords="5,177,129,218"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#ac579f9e03ea4cce248b1ff3d76d082a9" title="Copy color data from the SnesPalette into the SDL_Palette." alt="" coords="177,69,300,110"/>
-<area shape="poly" title=" " alt="" coords="99,175,191,116,193,121,102,179"/>
+<area shape="rect" title=" " alt="" coords="5,171,129,211"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#ac579f9e03ea4cce248b1ff3d76d082a9" title="Copy color data from the SnesPalette into the SDL_Palette." alt="" coords="177,63,300,103"/>
+<area shape="poly" title=" " alt="" coords="99,168,191,110,193,114,102,172"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#ab2230a9d39012a835f250c3be0899829" title=" " alt="" coords="366,5,490,46"/>
-<area shape="poly" title=" " alt="" coords="76,175,113,114,141,82,175,55,218,37,264,25,309,20,351,18,351,23,309,25,264,30,220,42,178,60,145,86,117,117,80,178"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aa23cce9444734c2f59a1b35defabe716" title="Creates a bitmap object with the provided graphical data." alt="" coords="177,259,300,299"/>
-<area shape="poly" title=" " alt="" coords="113,216,181,249,179,254,111,221"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aceb05ea27e2f1a75c24af5e291956af2" title=" " alt="" coords="354,185,502,210"/>
-<area shape="poly" title=" " alt="" coords="128,183,176,176,238,173,300,176,339,180,338,186,300,182,238,178,177,182,129,188"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#af61a1ba34918511ffaf6464a5253a889" title=" " alt="" coords="366,235,490,275"/>
-<area shape="poly" title=" " alt="" coords="129,199,211,207,300,220,352,232,351,237,300,226,210,213,129,205"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="366,300,490,341"/>
-<area shape="poly" title=" " alt="" coords="83,217,121,266,147,290,178,309,221,323,266,330,310,331,351,329,352,335,310,337,265,335,219,328,176,313,144,294,117,269,79,220"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="366,365,490,406"/>
-<area shape="poly" title=" " alt="" coords="80,217,117,278,145,310,178,337,220,357,264,370,309,379,351,383,350,388,308,384,263,376,218,362,175,341,141,314,113,281,76,220"/>
-<area shape="poly" title=" " alt="" coords="300,66,351,49,353,54,301,71"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1SnesColor.html#a8b85c212174ccf19a470e220ee77fe1f" title=" " alt="" coords="348,136,508,161"/>
-<area shape="poly" title=" " alt="" coords="301,106,370,128,369,133,300,111"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a9bbb510c2f25628119b534eecc5947c0" title=" " alt="" coords="366,71,490,111"/>
-<area shape="poly" title=" " alt="" coords="300,87,351,88,351,93,300,93"/>
-<area shape="poly" title=" " alt="" coords="205,258,204,249,209,240,221,234,238,232,257,234,268,241,266,245,256,240,238,237,222,239,213,244,209,250,211,258"/>
-<area shape="poly" title=" " alt="" coords="275,256,347,221,365,214,367,219,349,225,277,261"/>
-<area shape="poly" title=" " alt="" coords="300,269,351,262,352,267,301,274"/>
-<area shape="poly" title=" " alt="" coords="301,290,352,301,351,306,300,295"/>
-<area shape="poly" title=" " alt="" coords="269,298,349,350,361,356,359,361,347,355,266,302"/>
+<area shape="poly" title=" " alt="" coords="75,169,90,141,112,108,141,75,175,49,218,31,264,20,309,16,351,16,351,21,309,21,265,26,220,36,178,53,144,79,116,111,95,144,80,172"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a1725878c64e66f79cecade531d14d384" title="Creates a bitmap object with the provided graphical data." alt="" coords="177,252,300,293"/>
+<area shape="poly" title=" " alt="" coords="113,210,181,243,179,247,111,214"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aceb05ea27e2f1a75c24af5e291956af2" title=" " alt="" coords="354,132,502,157"/>
+<area shape="poly" title=" " alt="" coords="129,180,338,153,339,158,129,186"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#af61a1ba34918511ffaf6464a5253a889" title=" " alt="" coords="366,184,490,225"/>
+<area shape="poly" title=" " alt="" coords="129,191,351,199,351,204,129,196"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="366,263,490,303"/>
+<area shape="poly" title=" " alt="" coords="83,210,121,259,147,284,178,302,221,314,266,317,310,313,351,305,352,310,311,318,266,322,220,319,176,307,144,288,117,263,78,213"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="366,349,490,390"/>
+<area shape="poly" title=" " alt="" coords="81,210,119,267,146,297,178,322,220,342,265,355,309,363,351,367,351,372,309,368,263,360,218,347,175,327,142,301,114,271,77,213"/>
+<area shape="poly" title=" " alt="" coords="300,62,351,46,353,51,301,67"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1SnesColor.html#a8b85c212174ccf19a470e220ee77fe1f" title=" " alt="" coords="348,70,508,96"/>
+<area shape="poly" title=" " alt="" coords="300,80,332,80,332,86,300,86"/>
+<area shape="poly" title=" " alt="" coords="205,252,204,242,209,233,221,227,238,225,257,228,268,234,266,239,256,233,238,231,222,233,213,237,209,243,211,251"/>
+<area shape="poly" title=" " alt="" coords="255,250,295,210,347,170,364,161,366,166,349,175,298,214,259,254"/>
+<area shape="poly" title=" " alt="" coords="296,249,354,228,356,233,298,254"/>
+<area shape="poly" title=" " alt="" coords="301,273,351,276,351,281,300,278"/>
+<area shape="poly" title=" " alt="" coords="281,291,374,339,372,344,279,296"/>
 </map>
 </div>
 
@@ -503,14 +489,70 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00213">213</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00190">surface_</a>.</p>
+
+</div>
+</div>
+<a id="a1725878c64e66f79cecade531d14d384" name="a1725878c64e66f79cecade531d14d384"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1725878c64e66f79cecade531d14d384">&#9670;&#160;</a></span>Create() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::gfx::Bitmap::Create </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>width</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>height</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>depth</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::span&lt; uint8_t &gt;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Creates a bitmap object with the provided graphical data. </p>
+
 <p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00221">221</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00209">surface_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00221">Create()</a>, <a class="el" href="bitmap_8h_source.html#l00161">data()</a>, <a class="el" href="bitmap_8h_source.html#l00186">data_</a>, <a class="el" href="bitmap_8h_source.html#l00159">depth()</a>, <a class="el" href="bitmap_8h_source.html#l00158">height()</a>, and <a class="el" href="bitmap_8h_source.html#l00157">width()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00071">Bitmap()</a>, <a class="el" href="bitmap_8h_source.html#l00075">Bitmap()</a>, <a class="el" href="bitmap_8cc_source.html#l00217">Bitmap()</a>, <a class="el" href="inventory_8cc_source.html#l00074">yaze::zelda3::screen::Inventory::BuildTileset()</a>, <a class="el" href="bitmap_8cc_source.html#l00226">Create()</a>, <a class="el" href="bitmap_8cc_source.html#l00221">Create()</a>, <a class="el" href="inventory_8cc_source.html#l00015">yaze::zelda3::screen::Inventory::Create()</a>, <a class="el" href="title__screen_8cc_source.html#l00013">yaze::zelda3::screen::TitleScreen::Create()</a>, <a class="el" href="renderer_8h_source.html#l00059">yaze::core::Renderer::CreateAndRenderBitmap()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00756">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00515">yaze::editor::GraphicsEditor::DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00548">yaze::editor::GraphicsEditor::DrawScrImport()</a>, and <a class="el" href="object__renderer_8cc_source.html#l00083">yaze::zelda3::DungeonObjectRenderer::UpdateObjectBitmap()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1gfx_1_1Bitmap_a1725878c64e66f79cecade531d14d384_cgraph.png" border="0" usemap="#aclassyaze_1_1gfx_1_1Bitmap_a1725878c64e66f79cecade531d14d384_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1gfx_1_1Bitmap_a1725878c64e66f79cecade531d14d384_cgraph" id="aclassyaze_1_1gfx_1_1Bitmap_a1725878c64e66f79cecade531d14d384_cgraph">
+<area shape="rect" title="Creates a bitmap object with the provided graphical data." alt="" coords="5,88,129,129"/>
+<area shape="poly" title=" " alt="" coords="32,88,30,79,36,70,48,64,67,62,87,64,99,71,97,75,86,69,67,67,50,69,39,74,35,80,37,87"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aceb05ea27e2f1a75c24af5e291956af2" title=" " alt="" coords="177,5,325,31"/>
+<area shape="poly" title=" " alt="" coords="98,86,175,41,191,34,193,39,178,46,100,90"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#af61a1ba34918511ffaf6464a5253a889" title=" " alt="" coords="189,55,312,96"/>
+<area shape="poly" title=" " alt="" coords="129,95,173,87,174,92,130,100"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="189,120,312,161"/>
+<area shape="poly" title=" " alt="" coords="130,117,174,125,173,130,129,122"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="189,186,312,226"/>
+<area shape="poly" title=" " alt="" coords="103,127,178,170,189,176,187,181,175,175,100,132"/>
+</map>
+</div>
 
 </div>
 </div>
 <a id="aa23cce9444734c2f59a1b35defabe716" name="aa23cce9444734c2f59a1b35defabe716"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa23cce9444734c2f59a1b35defabe716">&#9670;&#160;</a></span>Create() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aa23cce9444734c2f59a1b35defabe716">&#9670;&#160;</a></span>Create() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -538,35 +580,37 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Creates a bitmap object with the provided graphical data. </p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00226">226</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00229">229</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00229">Create()</a>, <a class="el" href="bitmap_8h_source.html#l00175">data()</a>, <a class="el" href="bitmap_8h_source.html#l00173">depth()</a>, <a class="el" href="bitmap_8h_source.html#l00172">height()</a>, <a class="el" href="bitmap_8h_source.html#l00039">yaze::gfx::kIndexed</a>, and <a class="el" href="bitmap_8h_source.html#l00171">width()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00071">Bitmap()</a>, <a class="el" href="bitmap_8h_source.html#l00075">Bitmap()</a>, <a class="el" href="bitmap_8cc_source.html#l00225">Bitmap()</a>, <a class="el" href="inventory_8cc_source.html#l00074">yaze::zelda3::screen::Inventory::BuildTileset()</a>, <a class="el" href="bitmap_8cc_source.html#l00229">Create()</a>, <a class="el" href="inventory_8cc_source.html#l00015">yaze::zelda3::screen::Inventory::Create()</a>, <a class="el" href="title__screen_8cc_source.html#l00013">yaze::zelda3::screen::TitleScreen::Create()</a>, <a class="el" href="renderer_8h_source.html#l00059">yaze::core::Renderer::CreateAndRenderBitmap()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00756">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00515">yaze::editor::GraphicsEditor::DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00548">yaze::editor::GraphicsEditor::DrawScrImport()</a>, and <a class="el" href="object__renderer_8cc_source.html#l00083">yaze::zelda3::DungeonObjectRenderer::UpdateObjectBitmap()</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00221">Create()</a>, <a class="el" href="bitmap_8h_source.html#l00161">data()</a>, <a class="el" href="bitmap_8h_source.html#l00159">depth()</a>, <a class="el" href="bitmap_8h_source.html#l00158">height()</a>, <a class="el" href="bitmap_8h_source.html#l00039">yaze::gfx::kIndexed</a>, and <a class="el" href="bitmap_8h_source.html#l00157">width()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1gfx_1_1Bitmap_aa23cce9444734c2f59a1b35defabe716_cgraph.png" border="0" usemap="#aclassyaze_1_1gfx_1_1Bitmap_aa23cce9444734c2f59a1b35defabe716_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1gfx_1_1Bitmap_aa23cce9444734c2f59a1b35defabe716_cgraph" id="aclassyaze_1_1gfx_1_1Bitmap_aa23cce9444734c2f59a1b35defabe716_cgraph">
-<area shape="rect" title="Creates a bitmap object with the provided graphical data." alt="" coords="5,88,129,129"/>
-<area shape="poly" title=" " alt="" coords="32,88,30,79,36,70,48,64,67,62,87,64,99,71,97,75,86,69,67,67,50,69,39,74,35,80,37,87"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aceb05ea27e2f1a75c24af5e291956af2" title=" " alt="" coords="177,5,325,31"/>
-<area shape="poly" title=" " alt="" coords="98,86,175,41,191,34,193,39,178,46,100,90"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#af61a1ba34918511ffaf6464a5253a889" title=" " alt="" coords="189,55,312,96"/>
-<area shape="poly" title=" " alt="" coords="129,95,173,87,174,92,130,100"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="189,120,312,161"/>
-<area shape="poly" title=" " alt="" coords="130,117,174,125,173,130,129,122"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="189,186,312,226"/>
-<area shape="poly" title=" " alt="" coords="103,127,178,170,189,176,187,181,175,175,100,132"/>
+<area shape="rect" title=" " alt="" coords="5,124,129,165"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a1725878c64e66f79cecade531d14d384" title="Creates a bitmap object with the provided graphical data." alt="" coords="177,124,300,165"/>
+<area shape="poly" title=" " alt="" coords="129,142,161,142,161,148,129,148"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aceb05ea27e2f1a75c24af5e291956af2" title=" " alt="" coords="348,5,496,31"/>
+<area shape="poly" title=" " alt="" coords="88,122,127,90,176,61,214,47,255,36,332,22,333,27,256,41,216,52,178,66,130,94,91,126"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#af61a1ba34918511ffaf6464a5253a889" title=" " alt="" coords="360,60,484,101"/>
+<area shape="poly" title=" " alt="" coords="98,122,134,102,176,86,219,78,263,73,345,72,345,77,263,78,220,83,177,91,137,107,101,126"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="360,135,484,176"/>
+<area shape="poly" title=" " alt="" coords="128,163,177,174,220,178,263,177,345,168,345,174,264,183,220,183,176,179,127,168"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="360,211,484,252"/>
+<area shape="poly" title=" " alt="" coords="118,163,177,184,264,204,346,218,345,224,263,209,176,189,116,168"/>
+<area shape="poly" title=" " alt="" coords="205,124,204,115,209,106,221,100,238,98,257,100,268,107,266,111,256,105,238,103,222,105,213,110,209,116,211,123"/>
+<area shape="poly" title=" " alt="" coords="257,122,297,85,347,47,368,35,370,40,349,51,300,89,261,126"/>
+<area shape="poly" title=" " alt="" coords="298,121,347,104,349,109,300,126"/>
+<area shape="poly" title=" " alt="" coords="301,146,345,148,345,154,300,151"/>
+<area shape="poly" title=" " alt="" coords="285,163,365,202,363,207,282,168"/>
 </map>
 </div>
 
 </div>
 </div>
 <a id="a077d82f2218f1ddcd63922e7187e53e0" name="a077d82f2218f1ddcd63922e7187e53e0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a077d82f2218f1ddcd63922e7187e53e0">&#9670;&#160;</a></span>Create() <span class="overload">[2/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a077d82f2218f1ddcd63922e7187e53e0">&#9670;&#160;</a></span>Create() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -599,9 +643,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00234">234</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00231">231</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00198">active_</a>, <a class="el" href="bitmap_8h_source.html#l00175">data()</a>, <a class="el" href="bitmap_8h_source.html#l00203">data_</a>, <a class="el" href="bitmap_8h_source.html#l00196">data_size_</a>, <a class="el" href="bitmap_8h_source.html#l00173">depth()</a>, <a class="el" href="bitmap_8h_source.html#l00195">depth_</a>, <a class="el" href="bitmap_8h_source.html#l00172">height()</a>, <a class="el" href="bitmap_8h_source.html#l00194">height_</a>, <a class="el" href="bitmap_8h_source.html#l00202">pixel_data_</a>, <a class="el" href="bitmap_8h_source.html#l00209">surface_</a>, <a class="el" href="bitmap_8h_source.html#l00171">width()</a>, and <a class="el" href="bitmap_8h_source.html#l00193">width_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00181">active_</a>, <a class="el" href="bitmap_8h_source.html#l00161">data()</a>, <a class="el" href="bitmap_8h_source.html#l00186">data_</a>, <a class="el" href="bitmap_8h_source.html#l00179">data_size_</a>, <a class="el" href="bitmap_8h_source.html#l00159">depth()</a>, <a class="el" href="bitmap_8h_source.html#l00178">depth_</a>, <a class="el" href="bitmap_8h_source.html#l00158">height()</a>, <a class="el" href="bitmap_8h_source.html#l00177">height_</a>, <a class="el" href="bitmap_8h_source.html#l00185">pixel_data_</a>, <a class="el" href="bitmap_8h_source.html#l00190">surface_</a>, <a class="el" href="bitmap_8h_source.html#l00157">width()</a>, and <a class="el" href="bitmap_8h_source.html#l00176">width_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -636,9 +680,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00265">265</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00262">262</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00198">active_</a>, <a class="el" href="bitmap_8cc_source.html#l00326">ApplyPalette()</a>, <a class="el" href="bitmap_8h_source.html#l00195">depth_</a>, <a class="el" href="bitmap_8h_source.html#l00194">height_</a>, <a class="el" href="bitmap_8h_source.html#l00207">palette_</a>, <a class="el" href="bitmap_8h_source.html#l00202">pixel_data_</a>, <a class="el" href="bitmap_8h_source.html#l00209">surface_</a>, and <a class="el" href="bitmap_8h_source.html#l00193">width_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00181">active_</a>, <a class="el" href="bitmap_8cc_source.html#l00321">ApplyPalette()</a>, <a class="el" href="bitmap_8h_source.html#l00178">depth_</a>, <a class="el" href="bitmap_8h_source.html#l00177">height_</a>, <a class="el" href="bitmap_8h_source.html#l00188">palette_</a>, <a class="el" href="bitmap_8h_source.html#l00185">pixel_data_</a>, <a class="el" href="bitmap_8h_source.html#l00190">surface_</a>, and <a class="el" href="bitmap_8h_source.html#l00176">width_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00100">yaze::gui::Canvas::DrawContextMenu()</a>.</p>
 <div class="dynheader">
@@ -646,15 +690,13 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1gfx_1_1Bitmap_a3414a5687f87794130674fdd657320d0_cgraph.png" border="0" usemap="#aclassyaze_1_1gfx_1_1Bitmap_a3414a5687f87794130674fdd657320d0_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1gfx_1_1Bitmap_a3414a5687f87794130674fdd657320d0_cgraph" id="aclassyaze_1_1gfx_1_1Bitmap_a3414a5687f87794130674fdd657320d0_cgraph">
-<area shape="rect" title=" " alt="" coords="5,63,129,103"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#ac579f9e03ea4cce248b1ff3d76d082a9" title="Copy color data from the SnesPalette into the SDL_Palette." alt="" coords="177,63,300,103"/>
-<area shape="poly" title=" " alt="" coords="129,80,161,80,161,86,129,86"/>
+<area shape="rect" title=" " alt="" coords="5,35,129,75"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#ac579f9e03ea4cce248b1ff3d76d082a9" title="Copy color data from the SnesPalette into the SDL_Palette." alt="" coords="177,35,300,75"/>
+<area shape="poly" title=" " alt="" coords="129,52,161,52,161,58,129,58"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#ab2230a9d39012a835f250c3be0899829" title=" " alt="" coords="366,5,490,46"/>
-<area shape="poly" title=" " alt="" coords="300,62,351,46,353,51,301,67"/>
+<area shape="poly" title=" " alt="" coords="300,43,351,35,352,40,301,48"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1SnesColor.html#a8b85c212174ccf19a470e220ee77fe1f" title=" " alt="" coords="348,70,508,96"/>
-<area shape="poly" title=" " alt="" coords="300,80,332,80,332,86,300,86"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a9bbb510c2f25628119b534eecc5947c0" title=" " alt="" coords="366,120,490,161"/>
-<area shape="poly" title=" " alt="" coords="301,99,353,115,351,120,300,104"/>
+<area shape="poly" title=" " alt="" coords="301,61,333,66,332,72,300,67"/>
 </map>
 </div>
 
@@ -678,9 +720,9 @@ Here is the call graph for this function:</div>
 <p>Creates the underlying SDL_Texture to be displayed. </p>
 <p>Converts the surface from a RGB to ARGB format. Uses SDL_TEXTUREACCESS_STREAMING to allow for live updates. </p>
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00279">279</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00276">276</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00210">converted_surface_</a>, <a class="el" href="bitmap_8h_source.html#l00194">height_</a>, <a class="el" href="bitmap_8h_source.html#l00209">surface_</a>, <a class="el" href="bitmap_8h_source.html#l00208">texture_</a>, <a class="el" href="bitmap_8h_source.html#l00200">texture_pixels</a>, and <a class="el" href="bitmap_8h_source.html#l00193">width_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00177">height_</a>, <a class="el" href="bitmap_8h_source.html#l00190">surface_</a>, <a class="el" href="bitmap_8h_source.html#l00189">texture_</a>, <a class="el" href="bitmap_8h_source.html#l00183">texture_pixels</a>, and <a class="el" href="bitmap_8h_source.html#l00176">width_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>.</p>
 
@@ -703,21 +745,11 @@ Here is the call graph for this function:</div>
 
 <p>Updates the underlying SDL_Texture when it already exists. </p>
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00309">309</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00306">306</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00180">converted_surface()</a>, <a class="el" href="bitmap_8h_source.html#l00210">converted_surface_</a>, <a class="el" href="bitmap_8h_source.html#l00209">surface_</a>, <a class="el" href="bitmap_8h_source.html#l00208">texture_</a>, and <a class="el" href="bitmap_8h_source.html#l00200">texture_pixels</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00190">surface_</a>, <a class="el" href="bitmap_8h_source.html#l00189">texture_</a>, and <a class="el" href="bitmap_8h_source.html#l00183">texture_pixels</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="renderer_8h_source.html#l00055">yaze::core::Renderer::UpdateBitmap()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1gfx_1_1Bitmap_a172f5edf2451ecc596cdb73758029c98_cgraph.png" border="0" usemap="#aclassyaze_1_1gfx_1_1Bitmap_a172f5edf2451ecc596cdb73758029c98_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1gfx_1_1Bitmap_a172f5edf2451ecc596cdb73758029c98_cgraph" id="aclassyaze_1_1gfx_1_1Bitmap_a172f5edf2451ecc596cdb73758029c98_cgraph">
-<area shape="rect" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="5,5,129,46"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a4fb0f6bbb8c0a99e5335e4e5191fbac6" title=" " alt="" coords="177,5,305,46"/>
-<area shape="poly" title=" " alt="" coords="129,23,161,23,161,28,129,28"/>
-</map>
-</div>
 
 </div>
 </div>
@@ -738,23 +770,21 @@ Here is the call graph for this function:</div>
 
 <p>Copy color data from the <a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES).">SnesPalette</a> into the SDL_Palette. </p>
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00326">326</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00321">321</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="bitmap_8h_source.html#l00167">palette()</a>, <a class="el" href="bitmap_8h_source.html#l00207">palette_</a>, <a class="el" href="src_2app_2gfx_2snes__color_8h_source.html#l00067">yaze::gfx::SnesColor::rgb()</a>, <a class="el" href="bitmap_8h_source.html#l00161">sdl_palette()</a>, and <a class="el" href="bitmap_8h_source.html#l00209">surface_</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="bitmap_8h_source.html#l00153">palette()</a>, <a class="el" href="bitmap_8h_source.html#l00188">palette_</a>, <a class="el" href="src_2app_2gfx_2snes__color_8h_source.html#l00067">yaze::gfx::SnesColor::rgb()</a>, and <a class="el" href="bitmap_8h_source.html#l00190">surface_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00075">Bitmap()</a>, <a class="el" href="inventory_8cc_source.html#l00074">yaze::zelda3::screen::Inventory::BuildTileset()</a>, <a class="el" href="inventory_8cc_source.html#l00015">yaze::zelda3::screen::Inventory::Create()</a>, <a class="el" href="renderer_8h_source.html#l00059">yaze::core::Renderer::CreateAndRenderBitmap()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00756">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00515">yaze::editor::GraphicsEditor::DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00548">yaze::editor::GraphicsEditor::DrawScrImport()</a>, <a class="el" href="bitmap_8cc_source.html#l00265">Reformat()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01202">yaze::editor::OverworldEditor::RefreshTile16Blockset()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00326">yaze::editor::Tile16Editor::SetCurrentTile()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00130">yaze::editor::Tile16Editor::UpdateBlockset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00075">Bitmap()</a>, <a class="el" href="inventory_8cc_source.html#l00074">yaze::zelda3::screen::Inventory::BuildTileset()</a>, <a class="el" href="inventory_8cc_source.html#l00015">yaze::zelda3::screen::Inventory::Create()</a>, <a class="el" href="renderer_8h_source.html#l00059">yaze::core::Renderer::CreateAndRenderBitmap()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00756">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00515">yaze::editor::GraphicsEditor::DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00548">yaze::editor::GraphicsEditor::DrawScrImport()</a>, <a class="el" href="bitmap_8cc_source.html#l00262">Reformat()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01202">yaze::editor::OverworldEditor::RefreshTile16Blockset()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00329">yaze::editor::Tile16Editor::SetCurrentTile()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00123">yaze::editor::Tile16Editor::UpdateBlockset()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1gfx_1_1Bitmap_ac579f9e03ea4cce248b1ff3d76d082a9_cgraph.png" border="0" usemap="#aclassyaze_1_1gfx_1_1Bitmap_ac579f9e03ea4cce248b1ff3d76d082a9_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1gfx_1_1Bitmap_ac579f9e03ea4cce248b1ff3d76d082a9_cgraph" id="aclassyaze_1_1gfx_1_1Bitmap_ac579f9e03ea4cce248b1ff3d76d082a9_cgraph">
-<area shape="rect" title="Copy color data from the SnesPalette into the SDL_Palette." alt="" coords="5,63,129,103"/>
+<area shape="rect" title="Copy color data from the SnesPalette into the SDL_Palette." alt="" coords="5,35,129,75"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#ab2230a9d39012a835f250c3be0899829" title=" " alt="" coords="195,5,318,46"/>
-<area shape="poly" title=" " alt="" coords="128,62,180,46,182,51,130,67"/>
+<area shape="poly" title=" " alt="" coords="129,43,180,35,181,40,130,48"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1SnesColor.html#a8b85c212174ccf19a470e220ee77fe1f" title=" " alt="" coords="177,70,337,96"/>
-<area shape="poly" title=" " alt="" coords="129,80,161,80,161,86,129,86"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a9bbb510c2f25628119b534eecc5947c0" title=" " alt="" coords="195,120,318,161"/>
-<area shape="poly" title=" " alt="" coords="130,99,182,115,180,120,128,104"/>
+<area shape="poly" title=" " alt="" coords="129,61,162,66,161,72,129,67"/>
 </map>
 </div>
 
@@ -784,11 +814,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00379">379</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00374">374</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="bitmap_8h_source.html#l00167">palette()</a>, <a class="el" href="bitmap_8h_source.html#l00207">palette_</a>, <a class="el" href="snes__palette_8h_source.html#l00175">yaze::gfx::SnesPalette::sub_palette()</a>, and <a class="el" href="bitmap_8h_source.html#l00209">surface_</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="bitmap_8h_source.html#l00153">palette()</a>, <a class="el" href="bitmap_8h_source.html#l00188">palette_</a>, <a class="el" href="snes__palette_8h_source.html#l00175">yaze::gfx::SnesPalette::sub_palette()</a>, and <a class="el" href="bitmap_8h_source.html#l00190">surface_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00100">yaze::gui::Canvas::DrawContextMenu()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00245">yaze::editor::Tile16Editor::DrawTileEditControls()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00100">yaze::gui::Canvas::DrawContextMenu()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00238">yaze::editor::Tile16Editor::DrawTileEditControls()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -821,9 +851,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00421">421</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00416">416</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00167">palette()</a>, and <a class="el" href="bitmap_8h_source.html#l00209">surface_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00153">palette()</a>, and <a class="el" href="bitmap_8h_source.html#l00190">surface_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -856,9 +886,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00355">355</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00350">350</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="snes__palette_8h_source.html#l00138">yaze::gfx::SnesPalette::GetColor()</a>, <a class="el" href="bitmap_8h_source.html#l00167">palette()</a>, <a class="el" href="bitmap_8h_source.html#l00207">palette_</a>, <a class="el" href="snes__palette_8h_source.html#l00148">yaze::gfx::SnesPalette::size()</a>, <a class="el" href="snes__palette_8h_source.html#l00175">yaze::gfx::SnesPalette::sub_palette()</a>, and <a class="el" href="bitmap_8h_source.html#l00209">surface_</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="snes__palette_8h_source.html#l00138">yaze::gfx::SnesPalette::GetColor()</a>, <a class="el" href="bitmap_8h_source.html#l00153">palette()</a>, <a class="el" href="bitmap_8h_source.html#l00188">palette_</a>, <a class="el" href="snes__palette_8h_source.html#l00148">yaze::gfx::SnesPalette::size()</a>, <a class="el" href="snes__palette_8h_source.html#l00175">yaze::gfx::SnesPalette::sub_palette()</a>, and <a class="el" href="bitmap_8h_source.html#l00190">surface_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -914,9 +944,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00432">432</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00427">427</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00203">data_</a>, <a class="el" href="bitmap_8h_source.html#l00194">height_</a>, and <a class="el" href="bitmap_8h_source.html#l00193">width_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00186">data_</a>, <a class="el" href="bitmap_8h_source.html#l00177">height_</a>, and <a class="el" href="bitmap_8h_source.html#l00176">width_</a>.</p>
 
 </div>
 </div>
@@ -949,9 +979,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00448">448</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00443">443</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00203">data_</a>, and <a class="el" href="bitmap_8h_source.html#l00193">width_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00186">data_</a>, and <a class="el" href="bitmap_8h_source.html#l00176">width_</a>.</p>
 
 </div>
 </div>
@@ -982,44 +1012,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00133">133</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00134">134</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00203">data_</a>, <a class="el" href="bitmap_8h_source.html#l00199">modified_</a>, and <a class="el" href="bitmap_8h_source.html#l00202">pixel_data_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00186">data_</a>, <a class="el" href="bitmap_8h_source.html#l00182">modified_</a>, and <a class="el" href="bitmap_8h_source.html#l00185">pixel_data_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00159">yaze::editor::Tile16Editor::DrawToCurrentTile16()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00443">yaze::editor::OverworldEditor::RenderUpdatedMapBitmap()</a>.</p>
-
-</div>
-</div>
-<a id="a62ed8ed61cb919d785cc57aa78847550" name="a62ed8ed61cb919d785cc57aa78847550"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a62ed8ed61cb919d785cc57aa78847550">&#9670;&#160;</a></span>WriteWordToPixel()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::gfx::Bitmap::WriteWordToPixel </td>
-          <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>position</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>value</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00141">141</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
-
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00203">data_</a>, <a class="el" href="bitmap_8h_source.html#l00199">modified_</a>, and <a class="el" href="bitmap_8h_source.html#l00202">pixel_data_</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00152">yaze::editor::Tile16Editor::DrawToCurrentTile16()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00443">yaze::editor::OverworldEditor::RenderUpdatedMapBitmap()</a>.</p>
 
 </div>
 </div>
@@ -1042,9 +1039,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00465">465</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00460">460</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__color_8cc_source.html#l00033">yaze::gfx::ConvertRgbToSnes()</a>, <a class="el" href="bitmap_8h_source.html#l00203">data_</a>, <a class="el" href="bitmap_8h_source.html#l00199">modified_</a>, <a class="el" href="bitmap_8h_source.html#l00202">pixel_data_</a>, and <a class="el" href="bitmap_8h_source.html#l00209">surface_</a>.</p>
+<p class="reference">References <a class="el" href="snes__color_8cc_source.html#l00033">yaze::gfx::ConvertRgbToSnes()</a>, <a class="el" href="bitmap_8h_source.html#l00186">data_</a>, <a class="el" href="bitmap_8h_source.html#l00182">modified_</a>, <a class="el" href="bitmap_8h_source.html#l00185">pixel_data_</a>, and <a class="el" href="bitmap_8h_source.html#l00190">surface_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00318">yaze::gui::Canvas::DrawTileOnBitmap()</a>.</p>
 <div class="dynheader">
@@ -1083,9 +1080,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00152">152</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00144">144</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00198">active_</a>, <a class="el" href="snes__palette_8h_source.html#l00147">yaze::gfx::SnesPalette::clear()</a>, <a class="el" href="bitmap_8h_source.html#l00196">data_size_</a>, <a class="el" href="bitmap_8h_source.html#l00195">depth_</a>, <a class="el" href="bitmap_8h_source.html#l00194">height_</a>, <a class="el" href="bitmap_8h_source.html#l00207">palette_</a>, and <a class="el" href="bitmap_8h_source.html#l00193">width_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00181">active_</a>, <a class="el" href="snes__palette_8h_source.html#l00147">yaze::gfx::SnesPalette::clear()</a>, <a class="el" href="bitmap_8h_source.html#l00179">data_size_</a>, <a class="el" href="bitmap_8h_source.html#l00178">depth_</a>, <a class="el" href="bitmap_8h_source.html#l00177">height_</a>, <a class="el" href="bitmap_8h_source.html#l00188">palette_</a>, and <a class="el" href="bitmap_8h_source.html#l00176">width_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1096,37 +1093,6 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="129,23,161,23,161,28,129,28"/>
 </map>
 </div>
-
-</div>
-</div>
-<a id="a9bbb510c2f25628119b534eecc5947c0" name="a9bbb510c2f25628119b534eecc5947c0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9bbb510c2f25628119b534eecc5947c0">&#9670;&#160;</a></span>sdl_palette()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto yaze::gfx::Bitmap::sdl_palette </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00161">161</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
-
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00209">surface_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00326">ApplyPalette()</a>.</p>
 
 </div>
 </div>
@@ -1153,11 +1119,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00167">167</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00153">153</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00207">palette_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00188">palette_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00326">ApplyPalette()</a>, <a class="el" href="bitmap_8cc_source.html#l00421">ApplyPalette()</a>, <a class="el" href="bitmap_8cc_source.html#l00355">ApplyPaletteFromPaletteGroup()</a>, <a class="el" href="bitmap_8cc_source.html#l00379">ApplyPaletteWithTransparent()</a>, <a class="el" href="bitmap_8h_source.html#l00075">Bitmap()</a>, and <a class="el" href="message__editor_8cc_source.html#l00047">yaze::editor::MessageEditor::Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00321">ApplyPalette()</a>, <a class="el" href="bitmap_8cc_source.html#l00416">ApplyPalette()</a>, <a class="el" href="bitmap_8cc_source.html#l00350">ApplyPaletteFromPaletteGroup()</a>, <a class="el" href="bitmap_8cc_source.html#l00374">ApplyPaletteWithTransparent()</a>, <a class="el" href="bitmap_8h_source.html#l00075">Bitmap()</a>, and <a class="el" href="message__editor_8cc_source.html#l00047">yaze::editor::MessageEditor::Initialize()</a>.</p>
 
 </div>
 </div>
@@ -1184,9 +1150,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00168">168</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00154">154</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00207">palette_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00188">palette_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00047">yaze::editor::MessageEditor::Initialize()</a>.</p>
 
@@ -1215,9 +1181,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00169">169</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00155">155</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00207">palette_</a>, and <a class="el" href="snes__palette_8h_source.html#l00148">yaze::gfx::SnesPalette::size()</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00188">palette_</a>, and <a class="el" href="snes__palette_8h_source.html#l00148">yaze::gfx::SnesPalette::size()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1254,11 +1220,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00171">171</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00157">157</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00193">width_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00176">width_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00071">Bitmap()</a>, <a class="el" href="bitmap_8h_source.html#l00075">Bitmap()</a>, <a class="el" href="bitmap_8cc_source.html#l00225">Bitmap()</a>, <a class="el" href="bitmap_8cc_source.html#l00229">Create()</a>, <a class="el" href="bitmap_8cc_source.html#l00234">Create()</a>, <a class="el" href="canvas_8cc_source.html#l00470">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00460">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00481">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="style_8cc_source.html#l00216">yaze::gui::DrawBitmapViewer()</a>, <a class="el" href="canvas_8cc_source.html#l00318">yaze::gui::Canvas::DrawTileOnBitmap()</a>, <a class="el" href="tilesheet_8h_source.html#l00061">yaze::gfx::Tilesheet::GetTile16()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00281">yaze::editor::Tile16Editor::LoadTile8()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00071">Bitmap()</a>, <a class="el" href="bitmap_8h_source.html#l00075">Bitmap()</a>, <a class="el" href="bitmap_8cc_source.html#l00217">Bitmap()</a>, <a class="el" href="bitmap_8cc_source.html#l00226">Create()</a>, <a class="el" href="bitmap_8cc_source.html#l00231">Create()</a>, <a class="el" href="bitmap_8cc_source.html#l00221">Create()</a>, <a class="el" href="canvas_8cc_source.html#l00470">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00460">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00481">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="style_8cc_source.html#l00216">yaze::gui::DrawBitmapViewer()</a>, <a class="el" href="canvas_8cc_source.html#l00318">yaze::gui::Canvas::DrawTileOnBitmap()</a>, <a class="el" href="tilesheet_8h_source.html#l00061">yaze::gfx::Tilesheet::GetTile16()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00274">yaze::editor::Tile16Editor::LoadTile8()</a>.</p>
 
 </div>
 </div>
@@ -1285,11 +1251,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00172">172</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00158">158</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00194">height_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00177">height_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00071">Bitmap()</a>, <a class="el" href="bitmap_8h_source.html#l00075">Bitmap()</a>, <a class="el" href="bitmap_8cc_source.html#l00225">Bitmap()</a>, <a class="el" href="bitmap_8cc_source.html#l00229">Create()</a>, <a class="el" href="bitmap_8cc_source.html#l00234">Create()</a>, <a class="el" href="canvas_8cc_source.html#l00470">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00460">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00481">yaze::gui::Canvas::DrawBitmap()</a>, and <a class="el" href="style_8cc_source.html#l00216">yaze::gui::DrawBitmapViewer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00071">Bitmap()</a>, <a class="el" href="bitmap_8h_source.html#l00075">Bitmap()</a>, <a class="el" href="bitmap_8cc_source.html#l00217">Bitmap()</a>, <a class="el" href="bitmap_8cc_source.html#l00226">Create()</a>, <a class="el" href="bitmap_8cc_source.html#l00231">Create()</a>, <a class="el" href="bitmap_8cc_source.html#l00221">Create()</a>, <a class="el" href="canvas_8cc_source.html#l00470">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00460">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00481">yaze::gui::Canvas::DrawBitmap()</a>, and <a class="el" href="style_8cc_source.html#l00216">yaze::gui::DrawBitmapViewer()</a>.</p>
 
 </div>
 </div>
@@ -1316,11 +1282,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00173">173</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00159">159</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00195">depth_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00178">depth_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00071">Bitmap()</a>, <a class="el" href="bitmap_8h_source.html#l00075">Bitmap()</a>, <a class="el" href="bitmap_8cc_source.html#l00225">Bitmap()</a>, <a class="el" href="bitmap_8cc_source.html#l00229">Create()</a>, and <a class="el" href="bitmap_8cc_source.html#l00234">Create()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00071">Bitmap()</a>, <a class="el" href="bitmap_8h_source.html#l00075">Bitmap()</a>, <a class="el" href="bitmap_8cc_source.html#l00217">Bitmap()</a>, <a class="el" href="bitmap_8cc_source.html#l00226">Create()</a>, <a class="el" href="bitmap_8cc_source.html#l00231">Create()</a>, and <a class="el" href="bitmap_8cc_source.html#l00221">Create()</a>.</p>
 
 </div>
 </div>
@@ -1347,9 +1313,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00174">174</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00160">160</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00196">data_size_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00179">data_size_</a>.</p>
 
 </div>
 </div>
@@ -1376,11 +1342,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00175">175</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00161">161</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00203">data_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00186">data_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00071">Bitmap()</a>, <a class="el" href="bitmap_8h_source.html#l00075">Bitmap()</a>, <a class="el" href="bitmap_8cc_source.html#l00229">Create()</a>, <a class="el" href="bitmap_8cc_source.html#l00234">Create()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00281">yaze::editor::Tile16Editor::LoadTile8()</a>, and <a class="el" href="bitmap_8h_source.html#l00189">set_data()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00071">Bitmap()</a>, <a class="el" href="bitmap_8h_source.html#l00075">Bitmap()</a>, <a class="el" href="bitmap_8cc_source.html#l00226">Create()</a>, <a class="el" href="bitmap_8cc_source.html#l00231">Create()</a>, <a class="el" href="bitmap_8cc_source.html#l00221">Create()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00274">yaze::editor::Tile16Editor::LoadTile8()</a>, and <a class="el" href="bitmap_8h_source.html#l00172">set_data()</a>.</p>
 
 </div>
 </div>
@@ -1407,40 +1373,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00176">176</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00162">162</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00203">data_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00186">data_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="title__screen_8cc_source.html#l00022">yaze::zelda3::screen::TitleScreen::BuildTileset()</a>.</p>
-
-</div>
-</div>
-<a id="ad6ef6cf20b30c178321e7a514623bf78" name="ad6ef6cf20b30c178321e7a514623bf78"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad6ef6cf20b30c178321e7a514623bf78">&#9670;&#160;</a></span>mutable_pixel_data()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto yaze::gfx::Bitmap::mutable_pixel_data </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00177">177</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
-
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00202">pixel_data_</a>.</p>
 
 </div>
 </div>
@@ -1467,9 +1404,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00178">178</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00163">163</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00209">surface_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00190">surface_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00100">yaze::gui::Canvas::DrawContextMenu()</a>.</p>
 
@@ -1498,69 +1435,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00179">179</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00164">164</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00209">surface_</a>.</p>
-
-</div>
-</div>
-<a id="a4fb0f6bbb8c0a99e5335e4e5191fbac6" name="a4fb0f6bbb8c0a99e5335e4e5191fbac6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4fb0f6bbb8c0a99e5335e4e5191fbac6">&#9670;&#160;</a></span>converted_surface()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto yaze::gfx::Bitmap::converted_surface </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00180">180</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
-
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00210">converted_surface_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00309">UpdateTexture()</a>.</p>
-
-</div>
-</div>
-<a id="a8f7c7d6223880b970bbd96a6626b59df" name="a8f7c7d6223880b970bbd96a6626b59df"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8f7c7d6223880b970bbd96a6626b59df">&#9670;&#160;</a></span>mutable_converted_surface()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto yaze::gfx::Bitmap::mutable_converted_surface </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00181">181</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
-
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00210">converted_surface_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00190">surface_</a>.</p>
 
 </div>
 </div>
@@ -1587,9 +1464,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00183">183</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00166">166</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00203">data_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00186">data_</a>.</p>
 
 </div>
 </div>
@@ -1616,9 +1493,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00184">184</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00167">167</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00203">data_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00186">data_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00249">yaze::editor::GraphicsEditor::UpdateGfxTabView()</a>.</p>
 
@@ -1647,9 +1524,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00185">185</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00168">168</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00208">texture_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00189">texture_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00470">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00460">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00481">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="style_8cc_source.html#l00216">yaze::gui::DrawBitmapViewer()</a>, and <a class="el" href="canvas_8cc_source.html#l00205">yaze::gui::Canvas::DrawTilePainter()</a>.</p>
 
@@ -1678,11 +1555,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00186">186</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00169">169</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00199">modified_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00182">modified_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00190">set_modified()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00173">set_modified()</a>.</p>
 
 </div>
 </div>
@@ -1709,9 +1586,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00187">187</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00170">170</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00198">active_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00181">active_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00470">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00481">yaze::gui::Canvas::DrawBitmap()</a>, and <a class="el" href="canvas_8cc_source.html#l00205">yaze::gui::Canvas::DrawTilePainter()</a>.</p>
 
@@ -1740,9 +1617,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00188">188</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00171">171</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00198">active_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00181">active_</a>.</p>
 
 </div>
 </div>
@@ -1769,9 +1646,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00189">189</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00172">172</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00175">data()</a>, and <a class="el" href="bitmap_8h_source.html#l00203">data_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00161">data()</a>, and <a class="el" href="bitmap_8h_source.html#l00186">data_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1808,9 +1685,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00190">190</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00173">173</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00186">modified()</a>, and <a class="el" href="bitmap_8h_source.html#l00199">modified_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00169">modified()</a>, and <a class="el" href="bitmap_8h_source.html#l00182">modified_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00443">yaze::editor::OverworldEditor::RenderUpdatedMapBitmap()</a>.</p>
 <div class="dynheader">
@@ -1847,9 +1724,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00193">193</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00176">176</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00152">Cleanup()</a>, <a class="el" href="bitmap_8cc_source.html#l00234">Create()</a>, <a class="el" href="bitmap_8cc_source.html#l00279">CreateTexture()</a>, <a class="el" href="bitmap_8cc_source.html#l00448">Get16x16Tile()</a>, <a class="el" href="bitmap_8cc_source.html#l00432">Get8x8Tile()</a>, <a class="el" href="bitmap_8cc_source.html#l00265">Reformat()</a>, and <a class="el" href="bitmap_8h_source.html#l00171">width()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00144">Cleanup()</a>, <a class="el" href="bitmap_8cc_source.html#l00231">Create()</a>, <a class="el" href="bitmap_8cc_source.html#l00276">CreateTexture()</a>, <a class="el" href="bitmap_8cc_source.html#l00443">Get16x16Tile()</a>, <a class="el" href="bitmap_8cc_source.html#l00427">Get8x8Tile()</a>, <a class="el" href="bitmap_8cc_source.html#l00262">Reformat()</a>, and <a class="el" href="bitmap_8h_source.html#l00157">width()</a>.</p>
 
 </div>
 </div>
@@ -1873,9 +1750,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00194">194</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00177">177</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00152">Cleanup()</a>, <a class="el" href="bitmap_8cc_source.html#l00234">Create()</a>, <a class="el" href="bitmap_8cc_source.html#l00279">CreateTexture()</a>, <a class="el" href="bitmap_8cc_source.html#l00432">Get8x8Tile()</a>, <a class="el" href="bitmap_8h_source.html#l00172">height()</a>, and <a class="el" href="bitmap_8cc_source.html#l00265">Reformat()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00144">Cleanup()</a>, <a class="el" href="bitmap_8cc_source.html#l00231">Create()</a>, <a class="el" href="bitmap_8cc_source.html#l00276">CreateTexture()</a>, <a class="el" href="bitmap_8cc_source.html#l00427">Get8x8Tile()</a>, <a class="el" href="bitmap_8h_source.html#l00158">height()</a>, and <a class="el" href="bitmap_8cc_source.html#l00262">Reformat()</a>.</p>
 
 </div>
 </div>
@@ -1899,9 +1776,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00195">195</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00178">178</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00152">Cleanup()</a>, <a class="el" href="bitmap_8cc_source.html#l00234">Create()</a>, <a class="el" href="bitmap_8h_source.html#l00173">depth()</a>, and <a class="el" href="bitmap_8cc_source.html#l00265">Reformat()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00144">Cleanup()</a>, <a class="el" href="bitmap_8cc_source.html#l00231">Create()</a>, <a class="el" href="bitmap_8h_source.html#l00159">depth()</a>, and <a class="el" href="bitmap_8cc_source.html#l00262">Reformat()</a>.</p>
 
 </div>
 </div>
@@ -1925,9 +1802,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00196">196</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00179">179</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00152">Cleanup()</a>, <a class="el" href="bitmap_8cc_source.html#l00234">Create()</a>, and <a class="el" href="bitmap_8h_source.html#l00174">size()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00144">Cleanup()</a>, <a class="el" href="bitmap_8cc_source.html#l00231">Create()</a>, and <a class="el" href="bitmap_8h_source.html#l00160">size()</a>.</p>
 
 </div>
 </div>
@@ -1951,9 +1828,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00198">198</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00181">181</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00152">Cleanup()</a>, <a class="el" href="bitmap_8cc_source.html#l00234">Create()</a>, <a class="el" href="bitmap_8h_source.html#l00187">is_active()</a>, <a class="el" href="bitmap_8cc_source.html#l00265">Reformat()</a>, and <a class="el" href="bitmap_8h_source.html#l00188">set_active()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00144">Cleanup()</a>, <a class="el" href="bitmap_8cc_source.html#l00231">Create()</a>, <a class="el" href="bitmap_8h_source.html#l00170">is_active()</a>, <a class="el" href="bitmap_8cc_source.html#l00262">Reformat()</a>, and <a class="el" href="bitmap_8h_source.html#l00171">set_active()</a>.</p>
 
 </div>
 </div>
@@ -1977,9 +1854,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00199">199</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00182">182</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00186">modified()</a>, <a class="el" href="bitmap_8h_source.html#l00190">set_modified()</a>, <a class="el" href="bitmap_8cc_source.html#l00465">WriteColor()</a>, <a class="el" href="bitmap_8h_source.html#l00133">WriteToPixel()</a>, and <a class="el" href="bitmap_8h_source.html#l00141">WriteWordToPixel()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00169">modified()</a>, <a class="el" href="bitmap_8h_source.html#l00173">set_modified()</a>, <a class="el" href="bitmap_8cc_source.html#l00460">WriteColor()</a>, and <a class="el" href="bitmap_8h_source.html#l00134">WriteToPixel()</a>.</p>
 
 </div>
 </div>
@@ -2003,9 +1880,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00200">200</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00183">183</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00279">CreateTexture()</a>, and <a class="el" href="bitmap_8cc_source.html#l00309">UpdateTexture()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00276">CreateTexture()</a>, and <a class="el" href="bitmap_8cc_source.html#l00306">UpdateTexture()</a>.</p>
 
 </div>
 </div>
@@ -2029,9 +1906,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00202">202</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00185">185</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00234">Create()</a>, <a class="el" href="bitmap_8h_source.html#l00177">mutable_pixel_data()</a>, <a class="el" href="bitmap_8cc_source.html#l00265">Reformat()</a>, <a class="el" href="bitmap_8cc_source.html#l00465">WriteColor()</a>, <a class="el" href="bitmap_8h_source.html#l00133">WriteToPixel()</a>, and <a class="el" href="bitmap_8h_source.html#l00141">WriteWordToPixel()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00231">Create()</a>, <a class="el" href="bitmap_8cc_source.html#l00262">Reformat()</a>, <a class="el" href="bitmap_8cc_source.html#l00460">WriteColor()</a>, and <a class="el" href="bitmap_8h_source.html#l00134">WriteToPixel()</a>.</p>
 
 </div>
 </div>
@@ -2055,33 +1932,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00203">203</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00186">186</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00184">at()</a>, <a class="el" href="bitmap_8cc_source.html#l00234">Create()</a>, <a class="el" href="bitmap_8h_source.html#l00175">data()</a>, <a class="el" href="bitmap_8cc_source.html#l00448">Get16x16Tile()</a>, <a class="el" href="bitmap_8cc_source.html#l00432">Get8x8Tile()</a>, <a class="el" href="bitmap_8h_source.html#l00176">mutable_data()</a>, <a class="el" href="bitmap_8h_source.html#l00189">set_data()</a>, <a class="el" href="bitmap_8h_source.html#l00183">vector()</a>, <a class="el" href="bitmap_8cc_source.html#l00465">WriteColor()</a>, <a class="el" href="bitmap_8h_source.html#l00133">WriteToPixel()</a>, and <a class="el" href="bitmap_8h_source.html#l00141">WriteWordToPixel()</a>.</p>
-
-</div>
-</div>
-<a id="a36872c56aa8d6de846ea1648c226b369" name="a36872c56aa8d6de846ea1648c226b369"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a36872c56aa8d6de846ea1648c226b369">&#9670;&#160;</a></span>png_data_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt;uint8_t&gt; yaze::gfx::Bitmap::png_data_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00205">205</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00167">at()</a>, <a class="el" href="bitmap_8cc_source.html#l00231">Create()</a>, <a class="el" href="bitmap_8cc_source.html#l00221">Create()</a>, <a class="el" href="bitmap_8h_source.html#l00161">data()</a>, <a class="el" href="bitmap_8cc_source.html#l00443">Get16x16Tile()</a>, <a class="el" href="bitmap_8cc_source.html#l00427">Get8x8Tile()</a>, <a class="el" href="bitmap_8h_source.html#l00162">mutable_data()</a>, <a class="el" href="bitmap_8h_source.html#l00172">set_data()</a>, <a class="el" href="bitmap_8h_source.html#l00166">vector()</a>, <a class="el" href="bitmap_8cc_source.html#l00460">WriteColor()</a>, and <a class="el" href="bitmap_8h_source.html#l00134">WriteToPixel()</a>.</p>
 
 </div>
 </div>
@@ -2105,9 +1958,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00207">207</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00188">188</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00326">ApplyPalette()</a>, <a class="el" href="bitmap_8cc_source.html#l00355">ApplyPaletteFromPaletteGroup()</a>, <a class="el" href="bitmap_8cc_source.html#l00379">ApplyPaletteWithTransparent()</a>, <a class="el" href="bitmap_8h_source.html#l00152">Cleanup()</a>, <a class="el" href="bitmap_8h_source.html#l00168">mutable_palette()</a>, <a class="el" href="bitmap_8h_source.html#l00167">palette()</a>, <a class="el" href="bitmap_8h_source.html#l00169">palette_size()</a>, and <a class="el" href="bitmap_8cc_source.html#l00265">Reformat()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00321">ApplyPalette()</a>, <a class="el" href="bitmap_8cc_source.html#l00350">ApplyPaletteFromPaletteGroup()</a>, <a class="el" href="bitmap_8cc_source.html#l00374">ApplyPaletteWithTransparent()</a>, <a class="el" href="bitmap_8h_source.html#l00144">Cleanup()</a>, <a class="el" href="bitmap_8h_source.html#l00154">mutable_palette()</a>, <a class="el" href="bitmap_8h_source.html#l00153">palette()</a>, <a class="el" href="bitmap_8h_source.html#l00155">palette_size()</a>, and <a class="el" href="bitmap_8cc_source.html#l00262">Reformat()</a>.</p>
 
 </div>
 </div>
@@ -2131,9 +1984,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00208">208</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00189">189</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00279">CreateTexture()</a>, <a class="el" href="bitmap_8h_source.html#l00185">texture()</a>, and <a class="el" href="bitmap_8cc_source.html#l00309">UpdateTexture()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00276">CreateTexture()</a>, <a class="el" href="bitmap_8h_source.html#l00168">texture()</a>, and <a class="el" href="bitmap_8cc_source.html#l00306">UpdateTexture()</a>.</p>
 
 </div>
 </div>
@@ -2157,35 +2010,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00209">209</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00190">190</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00326">ApplyPalette()</a>, <a class="el" href="bitmap_8cc_source.html#l00421">ApplyPalette()</a>, <a class="el" href="bitmap_8cc_source.html#l00355">ApplyPaletteFromPaletteGroup()</a>, <a class="el" href="bitmap_8cc_source.html#l00379">ApplyPaletteWithTransparent()</a>, <a class="el" href="bitmap_8cc_source.html#l00234">Create()</a>, <a class="el" href="bitmap_8cc_source.html#l00279">CreateTexture()</a>, <a class="el" href="bitmap_8h_source.html#l00179">mutable_surface()</a>, <a class="el" href="bitmap_8cc_source.html#l00265">Reformat()</a>, <a class="el" href="bitmap_8cc_source.html#l00221">SaveSurfaceToFile()</a>, <a class="el" href="bitmap_8h_source.html#l00161">sdl_palette()</a>, <a class="el" href="bitmap_8h_source.html#l00178">surface()</a>, <a class="el" href="bitmap_8cc_source.html#l00309">UpdateTexture()</a>, and <a class="el" href="bitmap_8cc_source.html#l00465">WriteColor()</a>.</p>
-
-</div>
-</div>
-<a id="a0059d8ca2f553ed4a51ba0566ee48229" name="a0059d8ca2f553ed4a51ba0566ee48229"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0059d8ca2f553ed4a51ba0566ee48229">&#9670;&#160;</a></span>converted_surface_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::shared_ptr&lt;SDL_Surface&gt; yaze::gfx::Bitmap::converted_surface_ = nullptr</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00210">210</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="bitmap_8h_source.html#l00180">converted_surface()</a>, <a class="el" href="bitmap_8cc_source.html#l00279">CreateTexture()</a>, <a class="el" href="bitmap_8h_source.html#l00181">mutable_converted_surface()</a>, and <a class="el" href="bitmap_8cc_source.html#l00309">UpdateTexture()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00321">ApplyPalette()</a>, <a class="el" href="bitmap_8cc_source.html#l00416">ApplyPalette()</a>, <a class="el" href="bitmap_8cc_source.html#l00350">ApplyPaletteFromPaletteGroup()</a>, <a class="el" href="bitmap_8cc_source.html#l00374">ApplyPaletteWithTransparent()</a>, <a class="el" href="bitmap_8cc_source.html#l00231">Create()</a>, <a class="el" href="bitmap_8cc_source.html#l00276">CreateTexture()</a>, <a class="el" href="bitmap_8h_source.html#l00164">mutable_surface()</a>, <a class="el" href="bitmap_8cc_source.html#l00262">Reformat()</a>, <a class="el" href="bitmap_8cc_source.html#l00213">SaveSurfaceToFile()</a>, <a class="el" href="bitmap_8h_source.html#l00163">surface()</a>, <a class="el" href="bitmap_8cc_source.html#l00306">UpdateTexture()</a>, and <a class="el" href="bitmap_8cc_source.html#l00460">WriteColor()</a>.</p>
 
 </div>
 </div>

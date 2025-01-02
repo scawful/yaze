@@ -65,6 +65,5 @@ var searchData=
   ['writetopixel_62',['WriteToPixel',['../classyaze_1_1gfx_1_1Bitmap.html#aefd1651f2d68b9890ece70c68355a34e',1,'yaze::gfx::Bitmap']]],
   ['writetransaction_63',['WriteTransaction',['../classyaze_1_1Rom.html#a7bdc727db5fbd5eb40cfe62f9eb30afb',1,'yaze::Rom']]],
   ['writevector_64',['WriteVector',['../classyaze_1_1Rom.html#a6db96c6615d73dcfe76f31b480ff89b0',1,'yaze::Rom']]],
-  ['writeword_65',['WriteWord',['../classyaze_1_1emu_1_1Cpu.html#a0bfb82933619fe13fb8f8e51c86dd9e7',1,'yaze::emu::Cpu::WriteWord()'],['../classyaze_1_1emu_1_1Memory.html#a7070e98eb342d3891d2fdaa0e2645b7d',1,'yaze::emu::Memory::WriteWord()'],['../classyaze_1_1emu_1_1MemoryImpl.html#a1e184855520e4274f0179e39c5244c0f',1,'yaze::emu::MemoryImpl::WriteWord()'],['../classyaze_1_1Rom.html#ae438d6ea3e62c91dda4c6134fbc2a0c6',1,'yaze::Rom::WriteWord()']]],
-  ['writewordtopixel_66',['WriteWordToPixel',['../classyaze_1_1gfx_1_1Bitmap.html#a62ed8ed61cb919d785cc57aa78847550',1,'yaze::gfx::Bitmap']]]
+  ['writeword_65',['WriteWord',['../classyaze_1_1emu_1_1Cpu.html#a0bfb82933619fe13fb8f8e51c86dd9e7',1,'yaze::emu::Cpu::WriteWord()'],['../classyaze_1_1emu_1_1Memory.html#a7070e98eb342d3891d2fdaa0e2645b7d',1,'yaze::emu::Memory::WriteWord()'],['../classyaze_1_1emu_1_1MemoryImpl.html#a1e184855520e4274f0179e39c5244c0f',1,'yaze::emu::MemoryImpl::WriteWord()'],['../classyaze_1_1Rom.html#ae438d6ea3e62c91dda4c6134fbc2a0c6',1,'yaze::Rom::WriteWord()']]]
 ];

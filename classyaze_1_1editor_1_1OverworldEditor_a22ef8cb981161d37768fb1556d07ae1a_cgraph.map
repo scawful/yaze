@@ -10,24 +10,24 @@
 <area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="181,174,228,162,229,168,182,179"/>
 <area shape="rect" id="Node000011" href="$classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="492,235,628,275"/>
 <area shape="poly" id="edge17_Node000001_Node000011" title=" " alt="" coords="190,206,476,242,476,247,189,212"/>
-<area shape="rect" id="Node000014" href="$classyaze_1_1editor_1_1OverworldEditor.html#a99a739f0d39071aa7f6987eeb264b3e1" title=" " alt="" coords="237,285,420,326"/>
-<area shape="poly" id="edge9_Node000001_Node000014" title=" " alt="" coords="140,216,238,265,264,276,262,281,236,269,137,221"/>
-<area shape="rect" id="Node000022" href="$classyaze_1_1gui_1_1Canvas.html#ab3664ce0fdd6afa2113d10dd55fa9d80" title=" " alt="" coords="265,351,392,391"/>
-<area shape="poly" id="edge18_Node000001_Node000022" title=" " alt="" coords="116,217,167,275,201,307,238,335,252,343,249,348,235,340,197,311,163,279,112,220"/>
+<area shape="rect" id="Node000013" href="$classyaze_1_1editor_1_1OverworldEditor.html#a99a739f0d39071aa7f6987eeb264b3e1" title=" " alt="" coords="237,285,420,326"/>
+<area shape="poly" id="edge9_Node000001_Node000013" title=" " alt="" coords="140,216,238,265,264,276,262,281,236,269,137,221"/>
+<area shape="rect" id="Node000020" href="$classyaze_1_1gui_1_1Canvas.html#ab3664ce0fdd6afa2113d10dd55fa9d80" title=" " alt="" coords="265,351,392,391"/>
+<area shape="poly" id="edge18_Node000001_Node000020" title=" " alt="" coords="116,217,167,275,201,307,238,335,252,343,249,348,235,340,197,311,163,279,112,220"/>
 <area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="421,157,477,169,476,175,419,162"/>
 <area shape="poly" id="edge6_Node000005_Node000004" title=" " alt="" coords="388,117,484,82,486,88,389,122"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1editor_1_1OverworldEditor.html#aa39da036dde898607eb6dadb93523560" title=" " alt="" coords="468,104,651,145"/>
 <area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="420,131,452,129,453,134,420,137"/>
 <area shape="poly" id="edge8_Node000005_Node000011" title=" " alt="" coords="363,159,412,189,469,219,484,226,482,231,467,224,409,194,360,163"/>
-<area shape="poly" id="edge12_Node000014_Node000003" title=" " alt="" coords="359,283,409,252,467,221,482,214,484,219,469,225,412,256,362,287"/>
-<area shape="poly" id="edge13_Node000014_Node000004" title=" " alt="" coords="342,284,418,171,438,128,448,110,466,90,473,85,476,90,470,94,452,113,443,130,422,174,346,287"/>
-<area shape="poly" id="edge16_Node000014_Node000011" title=" " alt="" coords="419,283,476,271,477,276,421,288"/>
-<area shape="rect" id="Node000015" href="$classyaze_1_1gfx_1_1Bitmap.html#ac579f9e03ea4cce248b1ff3d76d082a9" title="Copy color data from the SnesPalette into the SDL_Palette." alt="" coords="498,300,621,341"/>
-<area shape="poly" id="edge10_Node000014_Node000015" title=" " alt="" coords="420,309,483,313,482,318,420,314"/>
-<area shape="rect" id="Node000019" href="$classyaze_1_1zelda3_1_1Overworld.html#a02bcff47c67812030c284952bbb60491" title=" " alt="" coords="482,365,637,406"/>
-<area shape="poly" id="edge11_Node000014_Node000019" title=" " alt="" coords="390,324,485,357,483,362,388,329"/>
-<area shape="rect" id="Node000020" href="$classyaze_1_1zelda3_1_1Overworld.html#a85b380c53cfe4769b4ba05cda14b3cd8" title=" " alt="" coords="482,431,637,471"/>
-<area shape="poly" id="edge14_Node000014_Node000020" title=" " alt="" coords="402,324,422,337,439,357,446,377,454,397,470,416,476,420,473,424,466,420,449,399,442,379,434,360,418,341,399,329"/>
-<area shape="rect" id="Node000021" href="$classyaze_1_1zelda3_1_1Overworld.html#a02783586da6044df85cbd56519575e6a" title=" " alt="" coords="482,496,637,537"/>
-<area shape="poly" id="edge15_Node000014_Node000021" title=" " alt="" coords="406,324,422,337,436,356,443,375,447,411,450,446,457,464,470,481,473,485,470,488,466,485,452,466,445,447,441,411,438,376,431,358,418,341,402,329"/>
+<area shape="poly" id="edge12_Node000013_Node000003" title=" " alt="" coords="359,283,409,252,467,221,482,214,484,219,469,225,412,256,362,287"/>
+<area shape="poly" id="edge13_Node000013_Node000004" title=" " alt="" coords="342,284,418,171,438,128,448,110,466,90,473,85,476,90,470,94,452,113,443,130,422,174,346,287"/>
+<area shape="poly" id="edge16_Node000013_Node000011" title=" " alt="" coords="419,283,476,271,477,276,421,288"/>
+<area shape="rect" id="Node000014" href="$classyaze_1_1gfx_1_1Bitmap.html#ac579f9e03ea4cce248b1ff3d76d082a9" title="Copy color data from the SnesPalette into the SDL_Palette." alt="" coords="498,300,621,341"/>
+<area shape="poly" id="edge10_Node000013_Node000014" title=" " alt="" coords="420,309,483,313,482,318,420,314"/>
+<area shape="rect" id="Node000017" href="$classyaze_1_1zelda3_1_1Overworld.html#a02bcff47c67812030c284952bbb60491" title=" " alt="" coords="482,365,637,406"/>
+<area shape="poly" id="edge11_Node000013_Node000017" title=" " alt="" coords="390,324,485,357,483,362,388,329"/>
+<area shape="rect" id="Node000018" href="$classyaze_1_1zelda3_1_1Overworld.html#a85b380c53cfe4769b4ba05cda14b3cd8" title=" " alt="" coords="482,431,637,471"/>
+<area shape="poly" id="edge14_Node000013_Node000018" title=" " alt="" coords="402,324,422,337,439,357,446,377,454,397,470,416,476,420,473,424,466,420,449,399,442,379,434,360,418,341,399,329"/>
+<area shape="rect" id="Node000019" href="$classyaze_1_1zelda3_1_1Overworld.html#a02783586da6044df85cbd56519575e6a" title=" " alt="" coords="482,496,637,537"/>
+<area shape="poly" id="edge15_Node000013_Node000019" title=" " alt="" coords="406,324,422,337,436,356,443,375,447,411,450,446,457,464,470,481,473,485,470,488,466,485,452,466,445,447,441,411,438,376,431,358,418,341,402,329"/>
 </map>

@@ -3,6 +3,8 @@ var overworld__entrance_8h =
     [ "yaze::zelda3::OverworldEntrance", "classyaze_1_1zelda3_1_1OverworldEntrance.html", "classyaze_1_1zelda3_1_1OverworldEntrance" ],
     [ "yaze::zelda3::OverworldEntranceTileTypes", "structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html", "structyaze_1_1zelda3_1_1OverworldEntranceTileTypes" ],
     [ "LoadEntranceTileTypes", "overworld__entrance_8h.html#a0afd16e24367ef62bfa4a2e4c7ad1554", null ],
+    [ "kNumOverworldEntrances", "overworld__entrance_8h.html#adc7a44403a309bba04259cd65b181719", null ],
+    [ "kNumOverworldHoles", "overworld__entrance_8h.html#a31e5c4ca32c0fb45812b92ea7252540e", null ],
     [ "kOverworldEntranceMap", "overworld__entrance_8h.html#a4e561e2b049765cf7ae2b321a7d6a45a", null ],
     [ "kOverworldEntrancePos", "overworld__entrance_8h.html#a0b16d6719abc9aad2fd71d18915ea5ea", null ],
     [ "kOverworldEntranceEntranceId", "overworld__entrance_8h.html#a3993966b93392af9275fc50e1aba9328", null ],

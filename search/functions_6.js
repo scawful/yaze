@@ -103,6 +103,5 @@ var searchData=
   ['graphics_5fbuffer_100',['graphics_buffer',['../classyaze_1_1Rom.html#a29d16ebe60373eea971fb9f0379217b9',1,'yaze::Rom']]],
   ['graphicsbincanvaspipeline_101',['GraphicsBinCanvasPipeline',['../namespaceyaze_1_1gui.html#a359973f01787648b92a53d2aa84120a9',1,'yaze::gui']]],
   ['graphicsbuffer_102',['GraphicsBuffer',['../classyaze_1_1gfx_1_1GraphicsBuffer.html#aaba37539f6cb375a99a514f1b223d394',1,'yaze::gfx::GraphicsBuffer::GraphicsBuffer()=default'],['../classyaze_1_1gfx_1_1GraphicsBuffer.html#a29c6bb09f4ee75e3f5b03763c6d5fa4f',1,'yaze::gfx::GraphicsBuffer::GraphicsBuffer(uint8_t bpp, const std::vector&lt; uint8_t &gt; &amp;data)'],['../classyaze_1_1gfx_1_1GraphicsBuffer.html#a5406828129f931e756d2ec7c533111bf',1,'yaze::gfx::GraphicsBuffer::GraphicsBuffer(uint8_t bpp, std::vector&lt; uint8_t &gt; &amp;&amp;data)']]],
-  ['graphicseditor_103',['GraphicsEditor',['../classyaze_1_1editor_1_1GraphicsEditor.html#a962c3dd0edd54427dc0fc089c53cbe6c',1,'yaze::editor::GraphicsEditor']]],
-  ['grayscalepalette_104',['GrayscalePalette',['../namespaceyaze_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#accceb00d75541ce0324d7f8d2626d34b',1,'yaze::gfx::anonymous_namespace{bitmap.cc}']]]
+  ['graphicseditor_103',['GraphicsEditor',['../classyaze_1_1editor_1_1GraphicsEditor.html#a962c3dd0edd54427dc0fc089c53cbe6c',1,'yaze::editor::GraphicsEditor']]]
 ];

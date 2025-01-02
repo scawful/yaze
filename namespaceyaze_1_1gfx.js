@@ -1,7 +1,6 @@
 var namespaceyaze_1_1gfx =
 [
     [ "anonymous_namespace{bitmap.cc}", "namespaceyaze_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html", [
-      [ "GrayscalePalette", "namespaceyaze_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#accceb00d75541ce0324d7f8d2626d34b", null ],
       [ "GetSnesPixelFormat", "namespaceyaze_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#ab86b8c83503ac2af4970abf58fededad", null ]
     ] ],
     [ "lc_lz2", "namespaceyaze_1_1gfx_1_1lc__lz2.html", "namespaceyaze_1_1gfx_1_1lc__lz2" ],

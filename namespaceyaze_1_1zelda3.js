@@ -240,6 +240,8 @@ var namespaceyaze_1_1zelda3 =
     [ "LimitOfMap32", "namespaceyaze_1_1zelda3.html#a1461a0d9bad1391697e1bee0afc79d17", null ],
     [ "NumberOfOWSprites", "namespaceyaze_1_1zelda3.html#aebdd836608337fa635a795f5ae00536a", null ],
     [ "NumberOfMap32", "namespaceyaze_1_1zelda3.html#a2d37bd587336f1ddef75a3f812ba5f66", null ],
+    [ "kNumOverworldEntrances", "namespaceyaze_1_1zelda3.html#adc7a44403a309bba04259cd65b181719", null ],
+    [ "kNumOverworldHoles", "namespaceyaze_1_1zelda3.html#a31e5c4ca32c0fb45812b92ea7252540e", null ],
     [ "kOverworldEntranceMap", "namespaceyaze_1_1zelda3.html#a4e561e2b049765cf7ae2b321a7d6a45a", null ],
     [ "kOverworldEntrancePos", "namespaceyaze_1_1zelda3.html#a0b16d6719abc9aad2fd71d18915ea5ea", null ],
     [ "kOverworldEntranceEntranceId", "namespaceyaze_1_1zelda3.html#a3993966b93392af9275fc50e1aba9328", null ],
@@ -252,6 +254,7 @@ var namespaceyaze_1_1zelda3 =
     [ "kEntranceTileTypePtrLow", "namespaceyaze_1_1zelda3.html#abbb89208f91e4ee4592b2486be98de7b", null ],
     [ "kEntranceTileTypePtrHigh", "namespaceyaze_1_1zelda3.html#aad0f93c8898aa9960c49f0925535f057", null ],
     [ "kNumEntranceTileTypes", "namespaceyaze_1_1zelda3.html#a619256c4d4c99314410810075c2451d0", null ],
+    [ "kNumOverworldExits", "namespaceyaze_1_1zelda3.html#ab0cc7741feb75be66d2f690674713feb", null ],
     [ "OWExitRoomId", "namespaceyaze_1_1zelda3.html#a69b033a77664eebc25f980d5d1c26d77", null ],
     [ "OWExitMapId", "namespaceyaze_1_1zelda3.html#a7d6dd55b37251e4cadbe4d4db5549760", null ],
     [ "OWExitVram", "namespaceyaze_1_1zelda3.html#af16e8a67efb2e606ff90d5f90cfed554", null ],
@@ -277,6 +280,7 @@ var namespaceyaze_1_1zelda3 =
     [ "OWExitUnk1Whirlpool", "namespaceyaze_1_1zelda3.html#a9333632aaab476fae6ef62883dff235e", null ],
     [ "OWExitUnk2Whirlpool", "namespaceyaze_1_1zelda3.html#ac0ef12936001b8daaf166ca667a105af", null ],
     [ "OWWhirlpoolPosition", "namespaceyaze_1_1zelda3.html#a1d93663612a63d4143f633b2e89af338", null ],
+    [ "kNumOverworldMapItemPointers", "namespaceyaze_1_1zelda3.html#a2dac3412687aae92877592cb0099d1d7", null ],
     [ "kOverworldItemsPointers", "namespaceyaze_1_1zelda3.html#aa975b441a998b3056797b46d38aacc31", null ],
     [ "kOverworldItemsAddress", "namespaceyaze_1_1zelda3.html#a3ce9d39d0e0dbd350a61318cdf603d34", null ],
     [ "kOverworldItemsBank", "namespaceyaze_1_1zelda3.html#a00fb217f42ff0da37d87a8ea292dfff9", null ],
@@ -295,5 +299,7 @@ var namespaceyaze_1_1zelda3 =
     [ "OverworldCustomSubscreenOverlayEnabled", "namespaceyaze_1_1zelda3.html#adc513472e47065de3e94600aceb86b69", null ],
     [ "OverworldCustomTileGFXGroupArray", "namespaceyaze_1_1zelda3.html#ad0e606b79448b8024de15621dedb6db2", null ],
     [ "OverworldCustomTileGFXGroupEnabled", "namespaceyaze_1_1zelda3.html#a05b7dc8cfd72fe3c1ca32e0081462b7b", null ],
+    [ "kDarkWorldMapIdStart", "namespaceyaze_1_1zelda3.html#ab8d30c5b41fed3b580fde3311f584a31", null ],
+    [ "kSpecialWorldMapIdStart", "namespaceyaze_1_1zelda3.html#a367cb50c76df42b3ac6350e00800e31c", null ],
     [ "kSpriteProperties", "namespaceyaze_1_1zelda3.html#ad0817d230f1c2475d2af06e6105a5ef0", null ]
 ];

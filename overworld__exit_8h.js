@@ -1,6 +1,7 @@
 var overworld__exit_8h =
 [
     [ "yaze::zelda3::OverworldExit", "classyaze_1_1zelda3_1_1OverworldExit.html", "classyaze_1_1zelda3_1_1OverworldExit" ],
+    [ "kNumOverworldExits", "overworld__exit_8h.html#ab0cc7741feb75be66d2f690674713feb", null ],
     [ "OWExitRoomId", "overworld__exit_8h.html#a69b033a77664eebc25f980d5d1c26d77", null ],
     [ "OWExitMapId", "overworld__exit_8h.html#a7d6dd55b37251e4cadbe4d4db5549760", null ],
     [ "OWExitVram", "overworld__exit_8h.html#af16e8a67efb2e606ff90d5f90cfed554", null ],

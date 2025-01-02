@@ -16,5 +16,7 @@ var overworld__map_8h =
     [ "OverworldCustomSubscreenOverlayArray", "overworld__map_8h.html#afd372e976fa18637ea5e8572119541d4", null ],
     [ "OverworldCustomSubscreenOverlayEnabled", "overworld__map_8h.html#adc513472e47065de3e94600aceb86b69", null ],
     [ "OverworldCustomTileGFXGroupArray", "overworld__map_8h.html#ad0e606b79448b8024de15621dedb6db2", null ],
-    [ "OverworldCustomTileGFXGroupEnabled", "overworld__map_8h.html#a05b7dc8cfd72fe3c1ca32e0081462b7b", null ]
+    [ "OverworldCustomTileGFXGroupEnabled", "overworld__map_8h.html#a05b7dc8cfd72fe3c1ca32e0081462b7b", null ],
+    [ "kDarkWorldMapIdStart", "overworld__map_8h.html#ab8d30c5b41fed3b580fde3311f584a31", null ],
+    [ "kSpecialWorldMapIdStart", "overworld__map_8h.html#a367cb50c76df42b3ac6350e00800e31c", null ]
 ];

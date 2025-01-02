@@ -1,9 +1,7 @@
 <map id="yaze::gfx::Bitmap::ApplyPalette" name="yaze::gfx::Bitmap::ApplyPalette">
-<area shape="rect" id="Node000001" title="Copy color data from the SnesPalette into the SDL_Palette." alt="" coords="5,63,129,103"/>
+<area shape="rect" id="Node000001" title="Copy color data from the SnesPalette into the SDL_Palette." alt="" coords="5,35,129,75"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#ab2230a9d39012a835f250c3be0899829" title=" " alt="" coords="195,5,318,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,62,180,46,182,51,130,67"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,43,180,35,181,40,130,48"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1SnesColor.html#a8b85c212174ccf19a470e220ee77fe1f" title=" " alt="" coords="177,70,337,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="129,80,161,80,161,86,129,86"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Bitmap.html#a9bbb510c2f25628119b534eecc5947c0" title=" " alt="" coords="195,120,318,161"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="130,99,182,115,180,120,128,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="129,61,162,66,161,72,129,67"/>
 </map>

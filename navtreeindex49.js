@@ -1,7 +1,5 @@
 var NAVTREEINDEX49 =
 {
-"structyaze_1_1emu_1_1MPYM.html":[10,0,1,4,56],
-"structyaze_1_1emu_1_1MPYM.html":[11,0,0,3,54],
 "structyaze_1_1emu_1_1MPYM.html#a6cbbc4050de408042d3556e3e6e7e5f7":[10,0,1,4,56,0],
 "structyaze_1_1emu_1_1MPYM.html#a6cbbc4050de408042d3556e3e6e7e5f7":[11,0,0,3,54,0],
 "structyaze_1_1emu_1_1MainSubScreenDesignation.html":[10,0,1,4,45],
@@ -249,5 +247,7 @@ var NAVTREEINDEX49 =
 "structyaze_1_1emu_1_1Tile.html#a840cf5a5a1e90afe259174502e2f17ca":[10,0,1,4,78,1],
 "structyaze_1_1emu_1_1Tile.html#a840cf5a5a1e90afe259174502e2f17ca":[11,0,0,3,76,1],
 "structyaze_1_1emu_1_1Tile.html#abfd633cbe5b68f88d52b4884cb87aa0f":[10,0,1,4,78,4],
-"structyaze_1_1emu_1_1Tile.html#abfd633cbe5b68f88d52b4884cb87aa0f":[11,0,0,3,76,4]
+"structyaze_1_1emu_1_1Tile.html#abfd633cbe5b68f88d52b4884cb87aa0f":[11,0,0,3,76,4],
+"structyaze_1_1emu_1_1TileMapLocation.html":[10,0,1,4,81],
+"structyaze_1_1emu_1_1TileMapLocation.html":[11,0,0,3,79]
 };

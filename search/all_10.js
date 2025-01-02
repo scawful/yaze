@@ -151,9 +151,8 @@ var searchData=
   ['gravesxtilepos_148',['GravesXTilePos',['../namespaceyaze_1_1zelda3.html#a554d0eb204588c14ad301e2958adf3cb',1,'yaze::zelda3']]],
   ['gravesyline_149',['GravesYLine',['../namespaceyaze_1_1zelda3.html#a45fdc1e0186598f0b52125907fbb1e2f',1,'yaze::zelda3']]],
   ['gravesytilepos_150',['GravesYTilePos',['../namespaceyaze_1_1zelda3.html#aeb1d1905adc848ab69a769e094b2ef2d',1,'yaze::zelda3']]],
-  ['grayscalepalette_151',['GrayscalePalette',['../namespaceyaze_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#accceb00d75541ce0324d7f8d2626d34b',1,'yaze::gfx::anonymous_namespace{bitmap.cc}']]],
-  ['green_152',['green',['../structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4',1,'snes_color::green'],['../structyaze_1_1gui_1_1Color.html#afff6ec23c27d488cfb0ed0a59b19fde5',1,'yaze::gui::Color::green']]],
-  ['group_5fname_153',['group_name',['../structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a320ea66f9d77d77ad1397920fe67e0c2',1,'yaze::editor::palette_internal::PaletteChange']]],
-  ['guide_154',['Guide',['../md_docs_2asm-style-guide.html',1,'Asm Style Guide'],['../md_docs_2contributing.html#autotoc_md34',1,'Style Guide']]],
-  ['guielement_155',['GuiElement',['../namespaceyaze_1_1gui.html#a96a8aa8ae9d402de34a59d1457cfc721',1,'yaze::gui']]]
+  ['green_151',['green',['../structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4',1,'snes_color::green'],['../structyaze_1_1gui_1_1Color.html#afff6ec23c27d488cfb0ed0a59b19fde5',1,'yaze::gui::Color::green']]],
+  ['group_5fname_152',['group_name',['../structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a320ea66f9d77d77ad1397920fe67e0c2',1,'yaze::editor::palette_internal::PaletteChange']]],
+  ['guide_153',['Guide',['../md_docs_2asm-style-guide.html',1,'Asm Style Guide'],['../md_docs_2contributing.html#autotoc_md34',1,'Style Guide']]],
+  ['guielement_154',['GuiElement',['../namespaceyaze_1_1gui.html#a96a8aa8ae9d402de34a59d1457cfc721',1,'yaze::gui']]]
 ];
