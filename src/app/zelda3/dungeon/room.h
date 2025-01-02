@@ -118,6 +118,7 @@ class Room : public SharedRom {
   ~Room() = default;
 
   void LoadHeader();
+  void CalculateRoomSize();
   void LoadRoomFromROM();
 
   void LoadRoomGraphics(uchar entrance_blockset = 0xFF);
@@ -160,9 +161,6 @@ class Room : public SharedRom {
 
   int room_id_;
   int animated_frame_;
-
-  uchar tag1_;
-  uchar tag2_;
 
   uint8_t staircase_plane_[4];
   uint8_t staircase_rooms_[4];
