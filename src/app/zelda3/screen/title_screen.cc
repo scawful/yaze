@@ -3,12 +3,10 @@
 #include <cstdint>
 
 #include "app/gfx/bitmap.h"
-#include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 
 namespace yaze {
 namespace zelda3 {
-namespace screen {
 
 void TitleScreen::Create() {
   tiles8Bitmap.Create(128, 512, 8, std::vector<uint8_t>(0x20000));
@@ -121,7 +119,5 @@ void TitleScreen::LoadTitleScreen() {
   pal_selected_ = 2;
 }
 
-}  // namespace screen
 }  // namespace zelda3
-
 }  // namespace yaze

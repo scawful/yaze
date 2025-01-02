@@ -10,7 +10,6 @@
 
 namespace yaze {
 namespace zelda3 {
-namespace screen {
 
 absl::Status LoadDungeonMapGfxFromBinary(Rom &rom,
                                          std::array<gfx::Bitmap, 4> &sheets,
@@ -35,7 +34,8 @@ absl::Status LoadDungeonMapGfxFromBinary(Rom &rom,
         gfx_sheets.emplace_back(converted_bin.begin() + (i * 0x1000),
                                 converted_bin.begin() + ((i + 1) * 0x1000));
         sheets[i] = gfx::Bitmap(128, 32, 8, gfx_sheets[i]);
-        sheets[i].ApplyPalette(*rom.mutable_dungeon_palette(3));
+        RETURN_IF_ERROR(
+            sheets[i].ApplyPalette(*rom.mutable_dungeon_palette(3)));
         core::Renderer::GetInstance().RenderBitmap(&sheets[i]);
       }
     } else {
@@ -47,7 +47,5 @@ absl::Status LoadDungeonMapGfxFromBinary(Rom &rom,
   return absl::OkStatus();
 }
 
-} // namespace screen
 } // namespace zelda3
-
 } // namespace yaze

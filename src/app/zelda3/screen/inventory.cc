@@ -3,12 +3,10 @@
 #include "app/core/platform/renderer.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
-#include "app/gui/canvas.h"
 #include "app/rom.h"
 
 namespace yaze {
 namespace zelda3 {
-namespace screen {
 
 using core::Renderer;
 
@@ -90,7 +88,5 @@ absl::Status Inventory::BuildTileset() {
   return absl::OkStatus();
 }
 
-}  // namespace screen
 }  // namespace zelda3
-
 }  // namespace yaze
