@@ -201,10 +201,7 @@ class Subtype3 : public RoomObject {
   }
 };
 
-
-
 }  // namespace zelda3
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_DUNGEON_ROOM_OBJECT_H

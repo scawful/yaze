@@ -1,6 +1,7 @@
 #include "sprite.h"
 
-#include "app/zelda3/overworld/overworld.h"
+#include <cstdint>
+#include <iostream>
 
 namespace yaze {
 namespace zelda3 {
@@ -14,13 +15,6 @@ void Sprite::UpdateMapProperties(uint16_t map_id) {
 void Sprite::UpdateCoordinates(int map_x, int map_y) {
   map_x_ = map_x;
   map_y_ = map_y;
-}
-
-void Sprite::UpdateBoundaryBox() {
-  lower_x_ = 1;
-  lower_y_ = 1;
-  higher_x_ = 15;
-  higher_x_ = 15;
 }
 
 void Sprite::Draw() {
