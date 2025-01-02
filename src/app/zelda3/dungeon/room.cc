@@ -53,6 +53,10 @@ void Room::LoadHeader() {
   staircase_rooms_[2] = (rom()->data()[header_location + 12]);
   staircase_rooms_[3] = (rom()->data()[header_location + 13]);
 
+  CalculateRoomSize();
+}
+
+void Room::CalculateRoomSize() {
   // Calculate the size of the room based on how many objects are used per room
   // Some notes from hacker Zarby89
   // vanilla rooms are using in average ~0x80 bytes
@@ -119,7 +123,6 @@ void Room::LoadHeader() {
 }
 
 void Room::LoadRoomFromROM() {
-  // Load dungeon header
   auto rom_data = rom()->vector();
   int header_pointer = core::SnesToPc(kRoomHeaderPointer);
 
