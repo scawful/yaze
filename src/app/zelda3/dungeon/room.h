@@ -11,6 +11,7 @@
 #include "app/gfx/bitmap.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/room_object.h"
+#include "app/zelda3/dungeon/room_tag.h"
 #include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
@@ -79,6 +80,36 @@ constexpr int dungeon_spr_ptrs = 0x090000;
 constexpr int NumberOfRooms = 296;
 
 constexpr ushort stairsObjects[] = {0x139, 0x138, 0x13B, 0x12E, 0x12D};
+
+struct LayerMergeType {
+  uint8_t ID;
+  std::string Name;
+  bool Layer2OnTop;
+  bool Layer2Translucent;
+  bool Layer2Visible;
+  LayerMergeType() = default;
+  LayerMergeType(uint8_t id, std::string name, bool see, bool top, bool trans) {
+    ID = id;
+    Name = name;
+    Layer2OnTop = top;
+    Layer2Translucent = trans;
+    Layer2Visible = see;
+  }
+};
+
+const static LayerMergeType LayerMerge00{0x00, "Off", true, false, false};
+const static LayerMergeType LayerMerge01{0x01, "Parallax", true, false, false};
+const static LayerMergeType LayerMerge02{0x02, "Dark", true, true, true};
+const static LayerMergeType LayerMerge03{0x03, "On top", true, true, false};
+const static LayerMergeType LayerMerge04{0x04, "Translucent", true, true, true};
+const static LayerMergeType LayerMerge05{0x05, "Addition", true, true, true};
+const static LayerMergeType LayerMerge06{0x06, "Normal", true, false, false};
+const static LayerMergeType LayerMerge07{0x07, "Transparent", true, true, true};
+const static LayerMergeType LayerMerge08{0x08, "Dark room", true, true, true};
+
+const static LayerMergeType kLayerMergeTypeList[] = {
+    LayerMerge00, LayerMerge01, LayerMerge02, LayerMerge03, LayerMerge04,
+    LayerMerge05, LayerMerge06, LayerMerge07, LayerMerge08};
 
 class Room : public SharedRom {
  public:
@@ -155,6 +186,12 @@ class Room : public SharedRom {
   std::vector<zelda3::Sprite> sprites_;
   std::vector<z3_staircase> z3_staircases_;
   std::vector<z3_chest_data> chests_in_room_;
+
+  LayerMergeType layer_merging_;
+  CollisionKey collision_;
+  EffectKey effect_;
+  TagKey tag1_;
+  TagKey tag2_;
 
   z3_dungeon_background2 bg2_;
   z3_dungeon_destination pits_;

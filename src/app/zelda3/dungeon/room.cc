@@ -7,20 +7,15 @@
 
 #include "absl/strings/str_cat.h"
 #include "app/core/constants.h"
-#include "app/gfx/bitmap.h"
-#include "app/gfx/snes_palette.h"
-#include "app/gfx/snes_tile.h"
-#include "app/gui/canvas.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/room_object.h"
+#include "app/zelda3/dungeon/room_tag.h"
 #include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace zelda3 {
 
-
 void Room::LoadHeader() {
-  // Address of the room header
   int header_pointer = (rom()->data()[kRoomHeaderPointer + 2] << 16) +
                        (rom()->data()[kRoomHeaderPointer + 1] << 8) +
                        (rom()->data()[kRoomHeaderPointer]);
@@ -33,7 +28,7 @@ void Room::LoadHeader() {
   auto header_location = core::SnesToPc(address);
 
   bg2_ = (z3_dungeon_background2)((rom()->data()[header_location] >> 5) & 0x07);
-  // collision = (CollisionKey)((rom()->data()[header_location] >> 2) & 0x07);
+  collision_ = (CollisionKey)((rom()->data()[header_location] >> 2) & 0x07);
   is_light_ = ((rom()->data()[header_location]) & 0x01) == 1;
 
   if (is_light_) {
@@ -43,9 +38,9 @@ void Room::LoadHeader() {
   palette = ((rom()->data()[header_location + 1] & 0x3F));
   blockset = (rom()->data()[header_location + 2]);
   spriteset = (rom()->data()[header_location + 3]);
-  // effect = (EffectKey)((rom()->data()[header_location + 4]));
-  // tag1 = (TagKey)((rom()->data()[header_location + 5]));
-  // tag2 = (TagKey)((rom()->data()[header_location + 6]));
+  effect_ = (EffectKey)((rom()->data()[header_location + 4]));
+  tag1_ = (TagKey)((rom()->data()[header_location + 5]));
+  tag2_ = (TagKey)((rom()->data()[header_location + 6]));
 
   staircase_plane_[0] = ((rom()->data()[header_location + 7] >> 2) & 0x03);
   staircase_plane_[1] = ((rom()->data()[header_location + 7] >> 4) & 0x03);
@@ -139,8 +134,7 @@ void Room::LoadRoomFromROM() {
   uint8_t b = rom_data[hpos];
 
   layer2_mode_ = (b >> 5);
-  // TODO(@scawful): Make LayerMerging object.
-  // LayerMerging = LayerMergeType.ListOf[(b & 0x0C) >> 2];
+  layer_merging_ = kLayerMergeTypeList[(b & 0x0C) >> 2];
 
   is_dark_ = (b & 0x01) == 0x01;
   hpos++;
@@ -157,10 +151,10 @@ void Room::LoadRoomFromROM() {
   layer2_behavior_ = rom_data[hpos];
   hpos++;
 
-  tag1_ = rom_data[hpos];
+  tag1_ = (TagKey)rom_data[hpos];
   hpos++;
 
-  tag2_ = rom_data[hpos];
+  tag2_ = (TagKey)rom_data[hpos];
   hpos++;
 
   b = rom_data[hpos];
@@ -485,8 +479,5 @@ void Room::LoadChests() {
   }
 }
 
-
-
 }  // namespace zelda3
-
 }  // namespace yaze
