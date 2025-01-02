@@ -10,6 +10,9 @@
 namespace yaze {
 namespace zelda3 {
 
+constexpr int kNumOverworldEntrances = 129;
+constexpr int kNumOverworldHoles = 0x13;
+
 constexpr int kOverworldEntranceMap = 0xDB96F;
 constexpr int kOverworldEntrancePos = 0xDBA71;
 constexpr int kOverworldEntranceEntranceId = 0xDBB73;

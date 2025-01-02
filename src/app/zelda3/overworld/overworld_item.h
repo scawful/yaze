@@ -12,6 +12,7 @@
 namespace yaze {
 namespace zelda3 {
 
+constexpr int kNumOverworldMapItemPointers = 0x80;
 constexpr int kOverworldItemsPointers = 0xDC2F9;
 constexpr int kOverworldItemsAddress = 0xDC8B9;  // 1BC2F9
 constexpr int kOverworldItemsBank = 0xDC8BF;

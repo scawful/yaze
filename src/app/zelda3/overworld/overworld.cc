@@ -18,20 +18,18 @@ absl::Status Overworld::Load(Rom &rom) {
   rom_ = rom;
 
   RETURN_IF_ERROR(AssembleMap32Tiles());
-  AssembleMap16Tiles();
-  RETURN_IF_ERROR(DecompressAllMapTiles())
+  RETURN_IF_ERROR(AssembleMap16Tiles());
+  DecompressAllMapTiles();
 
-  const bool load_custom_overworld =
-      core::ExperimentFlags::get().overworld.kLoadCustomOverworld;
   for (int map_index = 0; map_index < kNumOverworldMaps; ++map_index)
-    overworld_maps_.emplace_back(map_index, rom_, load_custom_overworld);
+    overworld_maps_.emplace_back(map_index, rom_);
 
   FetchLargeMaps();
   LoadEntrances();
   RETURN_IF_ERROR(LoadExits());
   RETURN_IF_ERROR(LoadItems());
   RETURN_IF_ERROR(LoadSprites());
-  RETURN_IF_ERROR(LoadOverworldMaps())
+  RETURN_IF_ERROR(LoadOverworldMaps());
 
   is_loaded_ = true;
   return absl::OkStatus();
@@ -154,7 +152,7 @@ absl::Status Overworld::AssembleMap32Tiles() {
   return absl::OkStatus();
 }
 
-void Overworld::AssembleMap16Tiles() {
+absl::Status Overworld::AssembleMap16Tiles() {
   int tpos = kMap16Tiles;
   int num_tile16 = kNumTile16Individual;
   if (rom()->data()[kMap16ExpandedFlagPos] != 0x0F &&
@@ -165,16 +163,21 @@ void Overworld::AssembleMap16Tiles() {
   }
 
   for (int i = 0; i < num_tile16; i += 1) {
-    gfx::TileInfo t0 = gfx::GetTilesInfo(rom()->toint16(tpos));
+    ASSIGN_OR_RETURN(auto t0_data, rom()->ReadWord(tpos));
+    gfx::TileInfo t0 = gfx::GetTilesInfo(t0_data);
     tpos += 2;
-    gfx::TileInfo t1 = gfx::GetTilesInfo(rom()->toint16(tpos));
+    ASSIGN_OR_RETURN(auto t1_data, rom()->ReadWord(tpos));
+    gfx::TileInfo t1 = gfx::GetTilesInfo(t1_data);
     tpos += 2;
-    gfx::TileInfo t2 = gfx::GetTilesInfo(rom()->toint16(tpos));
+    ASSIGN_OR_RETURN(auto t2_data, rom()->ReadWord(tpos));
+    gfx::TileInfo t2 = gfx::GetTilesInfo(t2_data);
     tpos += 2;
-    gfx::TileInfo t3 = gfx::GetTilesInfo(rom()->toint16(tpos));
+    ASSIGN_OR_RETURN(auto t3_data, rom()->ReadWord(tpos));
+    gfx::TileInfo t3 = gfx::GetTilesInfo(t3_data);
     tpos += 2;
     tiles16_.emplace_back(t0, t1, t2, t3);
   }
+  return absl::OkStatus();
 }
 
 void Overworld::AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
@@ -196,9 +199,9 @@ void Overworld::OrganizeMapTiles(std::vector<uint8_t> &bytes,
     for (int x = 0; x < 16; x++) {
       auto tidD = (uint16_t)((bytes2[ttpos] << 8) + bytes[ttpos]);
       if (int tpos = tidD; tpos < tiles32_unique_.size()) {
-        if (i < 64) {
+        if (i < kDarkWorldMapIdStart) {
           AssignWorldTiles(x, y, sx, sy, tpos, map_tiles_.light_world);
-        } else if (i < 128 && i >= 64) {
+        } else if (i < kSpecialWorldMapIdStart && i >= kDarkWorldMapIdStart) {
           AssignWorldTiles(x, y, sx, sy, tpos, map_tiles_.dark_world);
         } else {
           AssignWorldTiles(x, y, sx, sy, tpos, map_tiles_.special_world);
@@ -209,7 +212,7 @@ void Overworld::OrganizeMapTiles(std::vector<uint8_t> &bytes,
   }
 }
 
-absl::Status Overworld::DecompressAllMapTiles() {
+void Overworld::DecompressAllMapTiles() {
   const auto get_ow_map_gfx_ptr = [this](int index, uint32_t map_ptr) {
     int p = (rom()->data()[map_ptr + 2 + (3 * index)] << 16) +
             (rom()->data()[map_ptr + 1 + (3 * index)] << 8) +
@@ -257,7 +260,6 @@ absl::Status Overworld::DecompressAllMapTiles() {
       c = 0;
     }
   }
-  return absl::OkStatus();
 }
 
 absl::Status Overworld::LoadOverworldMaps() {
@@ -265,9 +267,9 @@ absl::Status Overworld::LoadOverworldMaps() {
   std::vector<std::future<absl::Status>> futures;
   for (int i = 0; i < kNumOverworldMaps; ++i) {
     int world_type = 0;
-    if (i >= 64 && i < 0x80) {
+    if (i >= kDarkWorldMapIdStart && i < kSpecialWorldMapIdStart) {
       world_type = 1;
-    } else if (i >= 0x80) {
+    } else if (i >= kSpecialWorldMapIdStart) {
       world_type = 2;
     }
     auto task_function = [this, i, size, world_type]() {
@@ -641,9 +643,7 @@ absl::Status Overworld::SaveOverworldMaps() {
     return absl::AbortedError("Too many maps data " + std::to_string(pos));
   }
 
-  // Save large maps
   RETURN_IF_ERROR(SaveLargeMaps())
-
   return absl::OkStatus();
 }
 
@@ -685,9 +685,11 @@ absl::Status Overworld::SaveLargeMaps() {
         RETURN_IF_ERROR(rom()->WriteByte(
             kOverworldScreenSizeForLoading + i + offset, 0x04));
         RETURN_IF_ERROR(rom()->WriteByte(
-            kOverworldScreenSizeForLoading + i + offset + 64, 0x04));
-        RETURN_IF_ERROR(rom()->WriteByte(
-            kOverworldScreenSizeForLoading + i + offset + 128, 0x04));
+            kOverworldScreenSizeForLoading + i + offset + kDarkWorldMapIdStart,
+            0x04));
+        RETURN_IF_ERROR(rom()->WriteByte(kOverworldScreenSizeForLoading + i +
+                                             offset + kSpecialWorldMapIdStart,
+                                         0x04));
       }
 
       // Check 5 and 6
@@ -871,10 +873,10 @@ absl::Status Overworld::SaveLargeMaps() {
 
       RETURN_IF_ERROR(
           rom()->WriteByte(kOverworldScreenSizeForLoading + i, 0x02));
-      RETURN_IF_ERROR(
-          rom()->WriteByte(kOverworldScreenSizeForLoading + i + 64, 0x02));
-      RETURN_IF_ERROR(
-          rom()->WriteByte(kOverworldScreenSizeForLoading + i + 128, 0x02));
+      RETURN_IF_ERROR(rom()->WriteByte(
+          kOverworldScreenSizeForLoading + i + kDarkWorldMapIdStart, 0x02));
+      RETURN_IF_ERROR(rom()->WriteByte(
+          kOverworldScreenSizeForLoading + i + kSpecialWorldMapIdStart, 0x02));
 
       RETURN_IF_ERROR(rom()->WriteShort(
           kOverworldScreenTileMapChangeByScreen1 + (i * 2), 0x0060));
@@ -974,9 +976,9 @@ std::vector<uint64_t> GetAllTile16(OverworldMapTiles &map_tiles_) {
   int c = 0;
   OverworldBlockset tiles_used;
   for (int i = 0; i < kNumOverworldMaps; i++) {
-    if (i < 64) {
+    if (i < kDarkWorldMapIdStart) {
       tiles_used = map_tiles_.light_world;
-    } else if (i < 128 && i >= 64) {
+    } else if (i < kSpecialWorldMapIdStart && i >= kDarkWorldMapIdStart) {
       tiles_used = map_tiles_.dark_world;
     } else {
       tiles_used = map_tiles_.special_world;
@@ -1353,7 +1355,18 @@ absl::Status Overworld::SaveMap16Tiles() {
 
 absl::Status Overworld::SaveEntrances() {
   core::logf("Saving Entrances");
-  for (int i = 0; i < 129; i++) {
+  int ow_entrance_map_ptr = kOverworldEntranceMap;
+  int ow_entrance_pos_ptr = kOverworldEntrancePos;
+  int ow_entrance_id_ptr = kOverworldEntranceEntranceId;
+  int num_entrances = kNumOverworldEntrances;
+  if (expanded_entrances_) {
+    ow_entrance_map_ptr = kOverworldEntranceMapExpanded;
+    ow_entrance_pos_ptr = kOverworldEntrancePosExpanded;
+    ow_entrance_id_ptr = kOverworldEntranceEntranceIdExpanded;
+    expanded_entrances_ = true;
+  }
+
+  for (int i = 0; i < kNumOverworldEntrances; i++) {
     RETURN_IF_ERROR(rom()->WriteShort(kOverworldEntranceMap + (i * 2),
                                       all_entrances_[i].map_id_))
     RETURN_IF_ERROR(rom()->WriteShort(kOverworldEntrancePos + (i * 2),
@@ -1362,7 +1375,7 @@ absl::Status Overworld::SaveEntrances() {
                                      all_entrances_[i].entrance_id_))
   }
 
-  for (int i = 0; i < 0x13; i++) {
+  for (int i = 0; i < kNumOverworldHoles; i++) {
     RETURN_IF_ERROR(
         rom()->WriteShort(kOverworldHoleArea + (i * 2), all_holes_[i].map_id_))
     RETURN_IF_ERROR(
@@ -1376,7 +1389,7 @@ absl::Status Overworld::SaveEntrances() {
 
 absl::Status Overworld::SaveExits() {
   core::logf("Saving Exits");
-  for (int i = 0; i < 0x4F; i++) {
+  for (int i = 0; i < kNumOverworldExits; i++) {
     RETURN_IF_ERROR(
         rom()->WriteShort(OWExitRoomId + (i * 2), all_exits_[i].room_id_));
     RETURN_IF_ERROR(rom()->Write(OWExitMapId + i, all_exits_[i].map_id_));
@@ -1408,7 +1421,6 @@ absl::Status Overworld::SaveExits() {
 }
 
 namespace {
-
 bool CompareItemsArrays(std::vector<OverworldItem> item_array1,
                         std::vector<OverworldItem> item_array2) {
   if (item_array1.size() != item_array2.size()) {
@@ -1435,13 +1447,13 @@ bool CompareItemsArrays(std::vector<OverworldItem> item_array1,
 
   return true;
 }
-
 }  // namespace
 
 absl::Status Overworld::SaveItems() {
-  std::vector<std::vector<OverworldItem>> room_items(128);
+  std::vector<std::vector<OverworldItem>> room_items(
+      kNumOverworldMapItemPointers);
 
-  for (int i = 0; i < 128; i++) {
+  for (int i = 0; i < kNumOverworldMapItemPointers; i++) {
     room_items[i] = std::vector<OverworldItem>();
     for (const OverworldItem &item : all_items_) {
       if (item.room_map_id_ == i) {
@@ -1455,10 +1467,10 @@ absl::Status Overworld::SaveItems() {
   }
 
   int data_pos = kOverworldItemsPointers + 0x100;
-  int item_pointers[128];
-  int item_pointers_reuse[128];
+  int item_pointers[kNumOverworldMapItemPointers];
+  int item_pointers_reuse[kNumOverworldMapItemPointers];
   int empty_pointer = 0;
-  for (int i = 0; i < 128; i++) {
+  for (int i = 0; i < kNumOverworldMapItemPointers; i++) {
     item_pointers_reuse[i] = -1;
     for (int ci = 0; ci < i; ci++) {
       if (room_items[i].empty()) {
@@ -1478,7 +1490,7 @@ absl::Status Overworld::SaveItems() {
     }
   }
 
-  for (int i = 0; i < 128; i++) {
+  for (int i = 0; i < kNumOverworldMapItemPointers; i++) {
     if (item_pointers_reuse[i] == -1) {
       item_pointers[i] = data_pos;
       for (const OverworldItem &item : room_items[i]) {
@@ -1519,40 +1531,48 @@ absl::Status Overworld::SaveItems() {
 
 absl::Status Overworld::SaveMapProperties() {
   core::logf("Saving Map Properties");
-  for (int i = 0; i < 64; i++) {
+  for (int i = 0; i < kDarkWorldMapIdStart; i++) {
     RETURN_IF_ERROR(rom()->WriteByte(kAreaGfxIdPtr + i,
                                      overworld_maps_[i].area_graphics()));
     RETURN_IF_ERROR(rom()->WriteByte(kOverworldMapPaletteIds + i,
                                      overworld_maps_[i].area_palette()));
     RETURN_IF_ERROR(rom()->WriteByte(kOverworldSpriteset + i,
                                      overworld_maps_[i].sprite_graphics(0)));
-    RETURN_IF_ERROR(rom()->WriteByte(kOverworldSpriteset + 64 + i,
-                                     overworld_maps_[i].sprite_graphics(1)));
-    RETURN_IF_ERROR(rom()->WriteByte(kOverworldSpriteset + 128 + i,
-                                     overworld_maps_[i].sprite_graphics(2)));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(kOverworldSpriteset + kDarkWorldMapIdStart + i,
+                         overworld_maps_[i].sprite_graphics(1)));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(kOverworldSpriteset + kSpecialWorldMapIdStart + i,
+                         overworld_maps_[i].sprite_graphics(2)));
     RETURN_IF_ERROR(rom()->WriteByte(kOverworldSpritePaletteIds + i,
                                      overworld_maps_[i].sprite_palette(0)));
-    RETURN_IF_ERROR(rom()->WriteByte(kOverworldSpritePaletteIds + 64 + i,
-                                     overworld_maps_[i].sprite_palette(1)));
-    RETURN_IF_ERROR(rom()->WriteByte(kOverworldSpritePaletteIds + 128 + i,
-                                     overworld_maps_[i].sprite_palette(2)));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(kOverworldSpritePaletteIds + kDarkWorldMapIdStart + i,
+                         overworld_maps_[i].sprite_palette(1)));
+    RETURN_IF_ERROR(rom()->WriteByte(
+        kOverworldSpritePaletteIds + kSpecialWorldMapIdStart + i,
+        overworld_maps_[i].sprite_palette(2)));
   }
 
-  for (int i = 64; i < 128; i++) {
+  for (int i = kDarkWorldMapIdStart; i < kSpecialWorldMapIdStart; i++) {
     RETURN_IF_ERROR(rom()->WriteByte(kAreaGfxIdPtr + i,
                                      overworld_maps_[i].area_graphics()));
     RETURN_IF_ERROR(rom()->WriteByte(kOverworldSpriteset + i,
                                      overworld_maps_[i].sprite_graphics(0)));
-    RETURN_IF_ERROR(rom()->WriteByte(kOverworldSpriteset + 64 + i,
-                                     overworld_maps_[i].sprite_graphics(1)));
-    RETURN_IF_ERROR(rom()->WriteByte(kOverworldSpriteset + 128 + i,
-                                     overworld_maps_[i].sprite_graphics(2)));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(kOverworldSpriteset + kDarkWorldMapIdStart + i,
+                         overworld_maps_[i].sprite_graphics(1)));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(kOverworldSpriteset + kSpecialWorldMapIdStart + i,
+                         overworld_maps_[i].sprite_graphics(2)));
     RETURN_IF_ERROR(rom()->WriteByte(kOverworldMapPaletteIds + i,
                                      overworld_maps_[i].area_palette()));
-    RETURN_IF_ERROR(rom()->WriteByte(kOverworldSpritePaletteIds + 64 + i,
-                                     overworld_maps_[i].sprite_palette(0)));
-    RETURN_IF_ERROR(rom()->WriteByte(kOverworldSpritePaletteIds + 128 + i,
-                                     overworld_maps_[i].sprite_palette(1)));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(kOverworldSpritePaletteIds + kDarkWorldMapIdStart + i,
+                         overworld_maps_[i].sprite_palette(0)));
+    RETURN_IF_ERROR(rom()->WriteByte(
+        kOverworldSpritePaletteIds + kSpecialWorldMapIdStart + i,
+        overworld_maps_[i].sprite_palette(1)));
     RETURN_IF_ERROR(rom()->WriteByte(kOverworldSpritePaletteIds + 192 + i,
                                      overworld_maps_[i].sprite_palette(2)));
   }

@@ -10,7 +10,6 @@
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
-#include "app/zelda3/common.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -55,6 +54,9 @@ constexpr int OverworldCustomTileGFXGroupArray = 0x140480;
 // 1 byte, not 0 if enabled
 constexpr int OverworldCustomTileGFXGroupEnabled = 0x140148;
 
+constexpr int kDarkWorldMapIdStart = 0x40;
+constexpr int kSpecialWorldMapIdStart = 0x80;
+
 /**
  * @brief Represents tile32 data for the overworld.
  */
@@ -75,7 +77,7 @@ typedef struct OverworldMapTiles {
 class OverworldMap : public gfx::GfxContext {
  public:
   OverworldMap() = default;
-  OverworldMap(int index, Rom& rom, bool load_custom_data = false);
+  OverworldMap(int index, Rom& rom);
 
   absl::Status BuildMap(int count, int game_state, int world,
                         std::vector<gfx::Tile16>& tiles16,

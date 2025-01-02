@@ -5,11 +5,8 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
-#include "app/core/common.h"
-#include "app/core/constants.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
-#include "app/zelda3/common.h"
 #include "app/zelda3/overworld/overworld_entrance.h"
 #include "app/zelda3/overworld/overworld_exit.h"
 #include "app/zelda3/overworld/overworld_item.h"
@@ -222,13 +219,13 @@ class Overworld : public SharedRom {
                                               int dimension,
                                               const uint32_t *map32address);
   absl::Status AssembleMap32Tiles();
-  void AssembleMap16Tiles();
+  absl::Status AssembleMap16Tiles();
   void AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
                         OverworldBlockset &world);
   void OrganizeMapTiles(std::vector<uint8_t> &bytes,
                         std::vector<uint8_t> &bytes2, int i, int sx, int sy,
                         int &ttpos);
-  absl::Status DecompressAllMapTiles();
+  void DecompressAllMapTiles();
 
   Rom rom_;
 
