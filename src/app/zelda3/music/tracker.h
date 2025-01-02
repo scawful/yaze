@@ -23,8 +23,6 @@ namespace music {
 constexpr char op_len[32] = {1, 1, 2, 3, 0, 1, 2, 1, 2, 1, 1, 3, 0, 1, 2, 3,
                              1, 3, 3, 0, 1, 3, 0, 3, 3, 3, 1, 2, 0, 0, 0, 0};
 
-// =============================================================================
-
 static int sbank_ofs[] = {0xc8000, 0, 0xd8000, 0};
 
 constexpr char fil1[4] = {0, 15, 61, 115};
@@ -35,7 +33,6 @@ constexpr int kOverworldMusicBank = 0x0D0000;
 constexpr int kDungeonMusicBank = 0x0D8000;
 
 using text_buf_ty = char[512];
-// ============================================================================
 
 struct SongSpcBlock {
   unsigned short start;
@@ -48,8 +45,6 @@ struct SongSpcBlock {
   unsigned char *buf;
   int flag;
 };
-
-// =============================================================================
 
 struct SongRange {
   unsigned short start;
@@ -65,16 +60,12 @@ struct SongRange {
   int editor;
 };
 
-// =============================================================================
-
 struct SongPart {
   uchar flag;
   uchar inst;
   short tbl[8];
   unsigned short addr;
 };
-
-// =============================================================================
 
 struct Song {
   unsigned char flag;
@@ -85,7 +76,6 @@ struct Song {
   unsigned short addr;
   bool in_use;  // true
 };
-// =============================================================================
 
 struct ZeldaWave {
   int lopst;
@@ -94,8 +84,6 @@ struct ZeldaWave {
   short copy;
   short *buf;
 };
-
-// ============================================================================
 
 struct SampleEdit {
   unsigned short flag;
@@ -120,8 +108,6 @@ struct SampleEdit {
   ZeldaWave *zw;
 };
 
-// =============================================================================
-
 struct ZeldaInstrument {
   unsigned char samp;
   unsigned char ad;
@@ -130,8 +116,6 @@ struct ZeldaInstrument {
   unsigned char multhi;
   unsigned char multlo;
 };
-
-// =============================================================================
 
 struct ZeldaSfxInstrument {
   unsigned char voll;
@@ -143,8 +127,6 @@ struct ZeldaSfxInstrument {
   unsigned char gain;
   unsigned char multhi;
 };
-
-// =============================================================================
 
 struct SpcCommand {
   unsigned short addr;
@@ -160,8 +142,6 @@ struct SpcCommand {
   unsigned char tim2;
   unsigned short tim;
 };
-
-// =============================================================================
 
 class Tracker {
  public:
@@ -249,11 +229,8 @@ class Tracker {
   ZeldaSfxInstrument *sndinsts;
 };
 
-// =============================================================================
-
 }  // namespace music
 }  // namespace zelda3
-
 }  // namespace yaze
 
 #endif
