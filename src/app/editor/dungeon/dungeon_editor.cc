@@ -327,8 +327,8 @@ void DungeonEditor::DrawRoomSelector() {
       int i = 0;
       for (const auto each_room_name : zelda3::kRoomNames) {
         rom()->resource_label()->SelectableLabelWithNameEdit(
-            current_room_id_ == i, "Dungeon Room Names",
-            core::HexByte(i), each_room_name.data());
+            current_room_id_ == i, "Dungeon Room Names", core::HexByte(i),
+            each_room_name.data());
         if (ImGui::IsItemClicked()) {
           // TODO: Jump to tab if room is already open
           current_room_id_ = i;
@@ -402,8 +402,7 @@ void DungeonEditor::DrawEntranceSelector() {
       for (int i = 0; i < 0x85 + 7; i++) {
         rom()->resource_label()->SelectableLabelWithNameEdit(
             current_entrance_id_ == i, "Dungeon Entrance Names",
-            core::HexByte(i),
-            zelda3::kEntranceNames[i].data());
+            core::HexByte(i), zelda3::kEntranceNames[i].data());
 
         if (ImGui::IsItemClicked()) {
           current_entrance_id_ = i;
@@ -439,8 +438,8 @@ void DungeonEditor::DrawDungeonTabView() {
         continue;
       }
 
-      if (BeginTabItem(zelda3::kRoomNames[active_rooms_[n]].data(),
-                       &open, ImGuiTabItemFlags_None)) {
+      if (BeginTabItem(zelda3::kRoomNames[active_rooms_[n]].data(), &open,
+                       ImGuiTabItemFlags_None)) {
         DrawDungeonCanvas(active_rooms_[n]);
         EndTabItem();
       }
@@ -588,8 +587,6 @@ void DungeonEditor::DrawObjectRenderer() {
     ImGui::End();
   }
 }
-
-// ============================================================================
 
 void DungeonEditor::CalculateUsageStats() {
   for (const auto &room : rooms_) {
