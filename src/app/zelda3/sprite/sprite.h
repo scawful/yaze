@@ -325,7 +325,6 @@ class Sprite : public GameEntity {
     map_y_ = map_y;
     preview_gfx_.resize(64 * 64, 0xFF);
   }
-  void UpdateBoundaryBox();
 
   void Draw();
   void DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
@@ -333,8 +332,6 @@ class Sprite : public GameEntity {
                       int sizex = 2, int sizey = 2);
 
   void UpdateMapProperties(uint16_t map_id) override;
-
-  // New methods
   void UpdateCoordinates(int map_x, int map_y);
 
   auto PreviewGraphics() const { return preview_gfx_; }

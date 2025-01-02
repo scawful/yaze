@@ -3,7 +3,6 @@
 namespace yaze {
 namespace zelda3 {
 
-
 ObjectOption operator|(ObjectOption lhs, ObjectOption rhs) {
   return static_cast<ObjectOption>(static_cast<int>(lhs) |
                                    static_cast<int>(rhs));
@@ -130,8 +129,5 @@ void RoomObject::DrawTile(gfx::Tile16 t, int xx, int yy,
   }
 }
 
-
-
 }  // namespace zelda3
-
 }  // namespace yaze
