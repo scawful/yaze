@@ -10,6 +10,7 @@
 namespace yaze {
 namespace zelda3 {
 
+constexpr int kNumOverworldExits = 0x4F;
 constexpr int OWExitRoomId = 0x15D8A;  // 0x15E07 Credits sequences
 // 105C2 Ending maps
 // 105E2 Sprite Group Table for Ending
