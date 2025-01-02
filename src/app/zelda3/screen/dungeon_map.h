@@ -10,7 +10,6 @@
 
 namespace yaze {
 namespace zelda3 {
-namespace screen {
 
 constexpr int kDungeonMapRoomsPtr = 0x57605;  // 14 pointers of map data
 constexpr int kDungeonMapFloors = 0x575D9;    // 14 words values
@@ -58,9 +57,7 @@ absl::Status LoadDungeonMapGfxFromBinary(Rom &rom,
                                          gfx::Tilesheet &tile16_sheet,
                                          std::vector<uint8_t> &gfx_bin_data);
 
-}  // namespace screen
 }  // namespace zelda3
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_SCREEN_DUNGEON_MAP_H

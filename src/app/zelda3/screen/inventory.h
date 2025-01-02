@@ -9,7 +9,6 @@
 
 namespace yaze {
 namespace zelda3 {
-namespace screen {
 
 constexpr int kInventoryStart = 0x6564A;
 constexpr int kBowItemPos = 0x6F631;
@@ -37,9 +36,7 @@ class Inventory : public SharedRom {
   std::vector<gfx::TileInfo> tiles_;
 };
 
-}  // namespace screen
 }  // namespace zelda3
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_INVENTORY_H
