@@ -18,10 +18,10 @@
 <area shape="poly" id="edge22_Node000001_Node000034" title=" " alt="" coords="120,551,169,589,230,627,245,635,243,639,227,632,166,593,117,555"/>
 <area shape="rect" id="Node000035" href="$classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#af60e781ae54ba837ee5e49780b416aac" title=" " alt="" coords="229,512,414,553"/>
 <area shape="poly" id="edge24_Node000001_Node000035" title=" " alt="" coords="181,530,213,530,213,535,181,535"/>
-<area shape="rect" id="Node000126" href="$classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a02a4bb0985c37eecc3cab6c8427da97b" title=" " alt="" coords="229,773,414,814"/>
-<area shape="poly" id="edge26_Node000001_Node000126" title=" " alt="" coords="104,552,120,595,147,650,184,708,206,735,230,758,236,763,233,767,227,762,202,738,179,711,142,653,115,597,99,554"/>
-<area shape="rect" id="Node000127" href="$classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Used to render a bitmap to the screen." alt="" coords="253,839,390,879"/>
-<area shape="poly" id="edge27_Node000001_Node000127" title=" " alt="" coords="101,552,114,606,138,679,176,756,201,792,230,824,241,832,238,836,227,828,197,795,172,759,133,681,109,608,95,554"/>
+<area shape="rect" id="Node000128" href="$classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a02a4bb0985c37eecc3cab6c8427da97b" title=" " alt="" coords="229,773,414,814"/>
+<area shape="poly" id="edge26_Node000001_Node000128" title=" " alt="" coords="104,552,120,595,147,650,184,708,206,735,230,758,236,763,233,767,227,762,202,738,179,711,142,653,115,597,99,554"/>
+<area shape="rect" id="Node000129" href="$classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Used to render a bitmap to the screen." alt="" coords="253,839,390,879"/>
+<area shape="poly" id="edge27_Node000001_Node000129" title=" " alt="" coords="101,552,114,606,138,679,176,756,201,792,230,824,241,832,238,836,227,828,197,795,172,759,133,681,109,608,95,554"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1gui_1_1Canvas.html#a96755cc4cc8e256b44751c6ab4c50c36" title=" " alt="" coords="494,5,620,46"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="384,137,412,121,427,105,436,90,444,73,460,57,478,46,481,51,464,61,449,76,440,92,432,109,416,125,386,141"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="496,201,619,242"/>

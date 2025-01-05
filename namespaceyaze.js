@@ -11,6 +11,7 @@ var namespaceyaze =
     [ "gui", "namespaceyaze_1_1gui.html", "namespaceyaze_1_1gui" ],
     [ "test", "namespaceyaze_1_1test.html", "namespaceyaze_1_1test" ],
     [ "zelda3", "namespaceyaze_1_1zelda3.html", "namespaceyaze_1_1zelda3" ],
+    [ "GraphicsSheetManager", "classyaze_1_1GraphicsSheetManager.html", "classyaze_1_1GraphicsSheetManager" ],
     [ "Project", "structyaze_1_1Project.html", "structyaze_1_1Project" ],
     [ "RecentFilesManager", "classyaze_1_1RecentFilesManager.html", "classyaze_1_1RecentFilesManager" ],
     [ "ResourceLabelManager", "structyaze_1_1ResourceLabelManager.html", "structyaze_1_1ResourceLabelManager" ],
@@ -24,6 +25,9 @@ var namespaceyaze =
       [ "RANDO", "namespaceyaze.html#a74d8c95a7cc3ccb2b53a1902bbd1c3eca9cffbad7f42a5a6e18e4a9431187b051", null ]
     ] ],
     [ "Load2BppGraphics", "namespaceyaze.html#a3167c1c857f5e405cb39a492529d6557", null ],
+    [ "LoadLinkGraphics", "namespaceyaze.html#a3dde9364829e66bec50d5da15df53b6a", null ],
+    [ "LoadAllGraphicsData", "namespaceyaze.html#acd38081a0d3a77b20abfb9375574d1b9", null ],
+    [ "SaveAllGraphicsData", "namespaceyaze.html#aeb8ae3fba1064ff2cf19393b113fac1c", null ],
     [ "kRecentFilesFilename", "namespaceyaze.html#adc07abaabd36d08f9073b9229ddc5f57", null ],
     [ "kEndOfProjectFile", "namespaceyaze.html#a12ad99b5f6533ab824bad2e024695895", null ],
     [ "Uncompressed3BPPSize", "namespaceyaze.html#a4bbce00b63ec6bcfb30ea0630e4f8893", null ],

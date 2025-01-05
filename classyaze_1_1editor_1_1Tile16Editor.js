@@ -40,5 +40,6 @@ var classyaze_1_1editor_1_1Tile16Editor =
     [ "transfer_overworld_", "classyaze_1_1editor_1_1Tile16Editor.html#ac309b551aff8196b14fc3ff3a5827c3e", null ],
     [ "status_", "classyaze_1_1editor_1_1Tile16Editor.html#a58ad362d4e7e090f25abeeb5cb3bed96", null ],
     [ "transfer_rom_", "classyaze_1_1editor_1_1Tile16Editor.html#af1515d7f46a859544e2278196190710b", null ],
+    [ "transfer_gfx_", "classyaze_1_1editor_1_1Tile16Editor.html#ae02ba7f4a73e310fde091e709fc24ef8", null ],
     [ "transfer_status_", "classyaze_1_1editor_1_1Tile16Editor.html#abf80f2d4061eb5dd8e622ef357e54679", null ]
 ];

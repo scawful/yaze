@@ -399,6 +399,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a1a5791825052e50494da22e67f17b803"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a617c3b92e108478e9aa6deaa3d7e0e5b" id="r_a617c3b92e108478e9aa6deaa3d7e0e5b"><td class="memItemLeft" align="right" valign="top">std::array&lt; <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>, <a class="el" href="namespaceyaze.html#ac71d5970d234195c079f64f1a56e4522">kNumGfxSheets</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a617c3b92e108478e9aa6deaa3d7e0e5b">gfx_sheets_</a></td></tr>
 <tr class="separator:a617c3b92e108478e9aa6deaa3d7e0e5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1949f589ad8b04be9f84572a64f2f482" id="r_a1949f589ad8b04be9f84572a64f2f482"><td class="memItemLeft" align="right" valign="top">std::array&lt; <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>, <a class="el" href="namespaceyaze.html#a51ca5df538b7f54c045a80783c02b102">kNumLinkSheets</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1949f589ad8b04be9f84572a64f2f482">link_sheets_</a></td></tr>
+<tr class="separator:a1949f589ad8b04be9f84572a64f2f482"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2932ca16d3103763115803817648949a" id="r_a2932ca16d3103763115803817648949a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1gfx_1_1PaletteGroup.html">gfx::PaletteGroup</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2932ca16d3103763115803817648949a">col_file_palette_group_</a></td></tr>
 <tr class="separator:a2932ca16d3103763115803817648949a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a957769c1d2dddfe413ec84c2eed50d08" id="r_a957769c1d2dddfe413ec84c2eed50d08"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a957769c1d2dddfe413ec84c2eed50d08">z3_rom_palette_</a></td></tr>
@@ -526,27 +528,27 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00044">44</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00156">asset_browser_</a>, <a class="el" href="constants_8h_source.html#l00105">CLEAR_AND_RETURN_STATUS</a>, <a class="el" href="asset__browser_8cc_source.html#l00012">yaze::gui::GfxSheetAssetBrowser::Draw()</a>, <a class="el" href="constants_8h_source.html#l00005">END_TAB_ITEM</a>, <a class="el" href="asset__browser_8h_source.html#l00190">yaze::gui::GfxSheetAssetBrowser::Initialize()</a>, <a class="el" href="asset__browser_8h_source.html#l00188">yaze::gui::GfxSheetAssetBrowser::Initialized</a>, <a class="el" href="rom_8h_source.html#l00582">yaze::SharedRom::rom()</a>, <a class="el" href="graphics__editor_8h_source.html#l00194">status_</a>, <a class="el" href="constants_8h_source.html#l00004">TAB_ITEM</a>, <a class="el" href="graphics__editor_8cc_source.html#l00061">UpdateGfxEdit()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00375">UpdateLinkGfxView()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00156">asset_browser_</a>, <a class="el" href="constants_8h_source.html#l00105">CLEAR_AND_RETURN_STATUS</a>, <a class="el" href="asset__browser_8cc_source.html#l00012">yaze::gui::GfxSheetAssetBrowser::Draw()</a>, <a class="el" href="constants_8h_source.html#l00005">END_TAB_ITEM</a>, <a class="el" href="rom_8h_source.html#l00522">yaze::GraphicsSheetManager::GetInstance()</a>, <a class="el" href="asset__browser_8h_source.html#l00190">yaze::gui::GfxSheetAssetBrowser::Initialize()</a>, <a class="el" href="asset__browser_8h_source.html#l00188">yaze::gui::GfxSheetAssetBrowser::Initialized</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, <a class="el" href="constants_8h_source.html#l00004">TAB_ITEM</a>, <a class="el" href="graphics__editor_8cc_source.html#l00061">UpdateGfxEdit()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00373">UpdateLinkGfxView()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00077">yaze::editor::EditorManager::ManageActiveEditors()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00079">yaze::editor::EditorManager::ManageActiveEditors()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1GraphicsEditor_a98e0b834d9e207f1de749b2d6aa72ae8_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1GraphicsEditor_a98e0b834d9e207f1de749b2d6aa72ae8_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1GraphicsEditor_a98e0b834d9e207f1de749b2d6aa72ae8_cgraph" id="aclassyaze_1_1editor_1_1GraphicsEditor_a98e0b834d9e207f1de749b2d6aa72ae8_cgraph">
-<area shape="rect" title=" " alt="" coords="5,315,182,355"/>
+<area shape="rect" title=" " alt="" coords="5,535,182,575"/>
 <area shape="rect" href="structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a556c8205f0054e5aaaa9791afcb37a0a" title=" " alt="" coords="236,136,400,177"/>
-<area shape="poly" title=" " alt="" coords="107,313,156,252,190,218,228,187,237,182,240,186,231,192,194,222,160,255,111,316"/>
-<area shape="rect" href="structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#af5abd1d59b2f0a0fb1249fd5d37ccffc" title=" " alt="" coords="236,201,400,242"/>
-<area shape="poly" title=" " alt="" coords="129,312,228,258,253,246,255,251,231,263,132,317"/>
-<area shape="rect" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="962,472,1111,497"/>
-<area shape="poly" title=" " alt="" coords="182,318,356,295,570,275,676,270,773,272,855,282,888,291,915,302,937,316,957,334,989,376,1013,419,1028,456,1024,458,1008,421,985,379,953,338,934,321,912,307,886,296,854,288,773,278,676,276,570,280,357,300,182,324"/>
-<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#a02020669ab4b81286b4949c756829771" title=" " alt="" coords="230,400,406,441"/>
-<area shape="poly" title=" " alt="" coords="150,353,249,391,247,396,148,358"/>
-<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#a3a3c12949bca7085d7cd6ec0cc53ccf2" title=" " alt="" coords="484,741,660,782"/>
-<area shape="poly" title=" " alt="" coords="110,354,158,426,235,527,283,582,337,635,394,685,455,727,470,735,468,740,453,732,391,689,333,639,279,585,231,530,153,429,105,357"/>
-<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#ab4d25d9b1d89b8fdeacde5ab989a4923" title=" " alt="" coords="230,839,406,879"/>
-<area shape="poly" title=" " alt="" coords="106,355,304,823,299,825,101,357"/>
+<area shape="poly" title=" " alt="" coords="100,533,147,414,184,335,227,259,255,220,284,186,288,190,259,224,232,262,189,338,152,416,105,535"/>
+<area shape="rect" href="classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6" title=" " alt="" coords="737,381,927,422"/>
+<area shape="poly" title=" " alt="" coords="113,532,166,481,246,415,293,382,344,350,398,323,453,302,518,284,572,278,625,284,690,302,721,314,751,331,800,368,797,373,748,336,719,319,688,307,624,289,572,284,519,289,455,307,400,328,347,355,296,386,249,420,170,485,116,536"/>
+<area shape="rect" href="structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#af5abd1d59b2f0a0fb1249fd5d37ccffc" title=" " alt="" coords="236,689,400,730"/>
+<area shape="poly" title=" " alt="" coords="115,574,165,623,197,650,231,674,242,680,239,685,228,679,194,654,161,627,111,577"/>
+<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#a02020669ab4b81286b4949c756829771" title=" " alt="" coords="230,476,406,517"/>
+<area shape="poly" title=" " alt="" coords="173,532,222,519,223,524,174,537"/>
+<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#a3a3c12949bca7085d7cd6ec0cc53ccf2" title=" " alt="" coords="484,681,660,722"/>
+<area shape="poly" title=" " alt="" coords="182,553,236,558,294,568,352,585,407,610,424,624,433,639,441,654,456,668,471,676,468,681,452,672,437,657,428,642,420,628,405,615,350,590,292,573,235,563,182,558"/>
+<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#ab4d25d9b1d89b8fdeacde5ab989a4923" title=" " alt="" coords="230,624,406,665"/>
+<area shape="poly" title=" " alt="" coords="148,573,251,615,249,620,146,578"/>
 <area shape="rect" href="structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html#afc719c78a285e4f75f6777137401c4a5" title=" " alt="" coords="454,5,689,46"/>
 <area shape="poly" title=" " alt="" coords="341,134,390,95,453,57,469,49,471,54,455,61,393,99,344,138"/>
 <area shape="rect" href="structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html#a8f73909e9131bbcade2154e4bc733161" title=" " alt="" coords="458,71,686,111"/>
@@ -555,51 +557,51 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="400,154,482,154,482,159,400,159"/>
 <area shape="rect" href="structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#aa372832c91cf979db3cc1c487145c93e" title=" " alt="" coords="478,201,666,242"/>
 <area shape="poly" title=" " alt="" coords="400,175,476,194,474,199,399,180"/>
-<area shape="poly" title=" " alt="" coords="1001,473,994,463,998,453,1013,447,1036,445,1062,448,1075,454,1073,459,1061,453,1036,450,1014,452,1002,457,1000,462,1005,470"/>
-<area shape="poly" title=" " alt="" coords="406,404,510,393,638,387,777,393,847,402,914,416,964,436,1006,460,1003,465,961,441,913,422,846,407,777,398,638,393,511,398,407,409"/>
-<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#a7dcb91247930d067ab22b921f8f57bd6" title=" " alt="" coords="737,431,914,471"/>
-<area shape="poly" title=" " alt="" coords="407,423,722,442,722,447,406,428"/>
-<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#a50dfe7911a1504dfc01de5d05771e4d3" title=" " alt="" coords="484,619,660,659"/>
-<area shape="poly" title=" " alt="" coords="345,439,537,607,534,611,341,443"/>
-<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#ae93cad6eb6670dd071fb47bf347a7fde" title=" " alt="" coords="737,496,914,537"/>
-<area shape="poly" title=" " alt="" coords="407,436,455,446,722,496,721,501,453,451,406,441"/>
-<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#a1d9cb046293a6e98eee05b7ed556d058" title=" " alt="" coords="737,316,914,357"/>
-<area shape="poly" title=" " alt="" coords="371,397,453,372,593,350,722,338,722,344,594,355,455,378,373,402"/>
-<area shape="poly" title=" " alt="" coords="914,462,947,468,946,473,913,468"/>
-<area shape="poly" title=" " alt="" coords="660,616,801,580,913,546,958,525,999,503,1001,508,961,530,915,551,802,585,661,621"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ab4152394d6f4a6537844371d1651c5f9" title=" " alt="" coords="762,676,889,717"/>
-<area shape="poly" title=" " alt="" coords="661,656,748,676,746,681,660,662"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ad3aca0f468507ba04f769889d5e4293a" title=" " alt="" coords="762,741,889,782"/>
-<area shape="poly" title=" " alt="" coords="652,658,691,677,706,689,716,702,725,714,739,726,749,732,746,737,736,730,721,718,711,705,702,693,688,681,649,662"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#aecc92f45938fcabafd8f9ef09ab8de93" title=" " alt="" coords="762,807,889,847"/>
-<area shape="poly" title=" " alt="" coords="662,657,691,677,704,692,711,707,716,736,721,764,728,778,739,792,751,801,747,805,735,796,723,781,716,766,711,737,706,708,699,695,688,681,659,662"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a3849de72628476b91c0ee7d2711aacb9" title=" " alt="" coords="762,611,889,651"/>
-<area shape="poly" title=" " alt="" coords="660,634,747,631,747,636,661,639"/>
-<area shape="poly" title=" " alt="" coords="888,742,912,726,935,702,956,675,989,615,1012,558,1026,511,1031,513,1017,559,993,617,960,677,939,705,915,730,891,746"/>
-<area shape="poly" title=" " alt="" coords="914,500,946,495,947,501,914,506"/>
-<area shape="poly" title=" " alt="" coords="882,355,915,373,971,416,1015,459,1011,462,967,420,912,377,880,360"/>
-<area shape="poly" title=" " alt="" coords="662,775,691,793,705,810,711,827,714,862,717,894,725,909,739,922,784,947,806,954,826,956,847,954,868,948,912,922,935,894,956,850,975,794,991,732,1015,606,1029,512,1034,513,1021,607,996,733,980,795,961,852,940,897,915,926,870,953,848,960,826,962,804,959,782,952,736,926,721,912,712,896,709,862,706,828,700,812,688,797,659,779"/>
-<area shape="poly" title=" " alt="" coords="653,738,747,714,748,719,654,743"/>
-<area shape="poly" title=" " alt="" coords="660,759,746,759,746,764,660,764"/>
-<area shape="poly" title=" " alt="" coords="654,780,748,804,747,810,653,785"/>
-<area shape="poly" title=" " alt="" coords="659,742,688,728,703,712,711,696,720,679,736,662,747,654,750,659,739,666,724,682,716,699,707,715,691,732,662,747"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a5cbb6f051b1fb48f85474ce40f12f32d" title=" " alt="" coords="762,872,889,913"/>
-<area shape="poly" title=" " alt="" coords="662,778,691,793,707,809,716,825,724,841,739,857,750,864,747,869,736,861,720,844,711,828,703,812,688,797,659,782"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#a134c6e6817a4a8332e3842e4b2cd01f6" title=" " alt="" coords="468,692,675,717"/>
-<area shape="poly" title=" " alt="" coords="333,837,382,781,415,752,453,727,468,720,470,725,455,732,419,756,385,785,337,840"/>
-<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#a744ebc4830db2dc2fd639de6a2a343de" title=" " alt="" coords="484,872,660,913"/>
-<area shape="poly" title=" " alt="" coords="407,868,469,876,468,881,406,873"/>
-<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#ae09d00dc0b934cf2e81e80f31a577d73" title=" " alt="" coords="484,937,660,978"/>
-<area shape="poly" title=" " alt="" coords="359,878,455,922,477,930,475,935,453,927,357,882"/>
-<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#af26bc6bdb74d5e4594bcb0fe8012a8f4" title=" " alt="" coords="480,1003,663,1043"/>
-<area shape="poly" title=" " alt="" coords="337,878,386,933,419,962,455,987,468,994,465,998,453,992,416,966,382,937,333,882"/>
-<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#a8729bc29bdea9a6e5d3222cca114b53e" title=" " alt="" coords="484,807,660,847"/>
-<area shape="poly" title=" " alt="" coords="406,845,468,837,469,843,407,850"/>
-<area shape="poly" title=" " alt="" coords="676,698,747,696,747,701,676,704"/>
-<area shape="poly" title=" " alt="" coords="636,715,690,727,747,740,746,746,689,732,635,720"/>
-<area shape="poly" title=" " alt="" coords="666,715,691,727,708,743,716,760,724,776,739,792,750,799,747,804,736,796,720,779,712,762,703,746,688,732,664,720"/>
-<area shape="poly" title=" " alt="" coords="619,688,689,668,747,651,748,656,690,674,621,694"/>
-<area shape="poly" title=" " alt="" coords="673,716,691,728,705,744,713,760,717,793,721,825,727,841,739,857,750,866,747,871,735,861,722,844,716,827,712,793,708,761,701,746,688,732,670,720"/>
+<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#a7dcb91247930d067ab22b921f8f57bd6" title=" " alt="" coords="484,316,660,357"/>
+<area shape="poly" title=" " alt="" coords="334,474,383,421,416,392,453,367,468,360,470,364,455,372,420,396,387,425,338,477"/>
+<area shape="rect" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="975,562,1124,588"/>
+<area shape="poly" title=" " alt="" coords="407,497,684,513,825,524,927,536,997,554,996,560,926,542,824,529,684,518,406,503"/>
+<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#a50dfe7911a1504dfc01de5d05771e4d3" title=" " alt="" coords="484,561,660,602"/>
+<area shape="poly" title=" " alt="" coords="380,515,455,540,493,553,492,558,453,546,378,520"/>
+<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#ae93cad6eb6670dd071fb47bf347a7fde" title=" " alt="" coords="484,381,660,422"/>
+<area shape="poly" title=" " alt="" coords="360,473,453,433,476,424,478,430,455,437,362,478"/>
+<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#a1d9cb046293a6e98eee05b7ed556d058" title=" " alt="" coords="484,447,660,487"/>
+<area shape="poly" title=" " alt="" coords="406,483,468,476,469,482,407,489"/>
+<area shape="poly" title=" " alt="" coords="656,355,734,374,733,380,655,360"/>
+<area shape="poly" title=" " alt="" coords="1013,563,1006,554,1010,544,1025,538,1049,536,1076,538,1090,545,1087,550,1074,543,1049,541,1026,543,1014,548,1011,553,1017,560"/>
+<area shape="poly" title=" " alt="" coords="601,559,787,429,790,434,604,563"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ab4152394d6f4a6537844371d1651c5f9" title=" " alt="" coords="769,681,895,722"/>
+<area shape="poly" title=" " alt="" coords="657,600,691,617,706,629,716,642,725,654,739,666,756,676,754,680,736,671,721,658,711,645,702,633,688,621,654,605"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ad3aca0f468507ba04f769889d5e4293a" title=" " alt="" coords="768,616,896,657"/>
+<area shape="poly" title=" " alt="" coords="661,598,754,617,753,622,660,603"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#aecc92f45938fcabafd8f9ef09ab8de93" title=" " alt="" coords="769,747,895,787"/>
+<area shape="poly" title=" " alt="" coords="662,598,691,617,704,632,711,647,716,676,721,704,728,718,739,732,756,744,753,749,736,736,723,721,716,706,711,677,706,648,699,635,688,621,659,602"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a3849de72628476b91c0ee7d2711aacb9" title=" " alt="" coords="769,551,895,591"/>
+<area shape="poly" title=" " alt="" coords="660,575,753,572,753,577,660,581"/>
+<area shape="poly" title=" " alt="" coords="895,616,986,590,987,595,897,621"/>
+<area shape="poly" title=" " alt="" coords="660,399,722,399,722,404,660,404"/>
+<area shape="poly" title=" " alt="" coords="655,443,733,424,734,429,656,449"/>
+<area shape="poly" title=" " alt="" coords="660,459,721,460,789,464,859,474,928,493,980,519,1023,550,1020,554,978,523,926,497,858,480,788,469,721,465,660,465"/>
+<area shape="poly" title=" " alt="" coords="662,715,691,733,705,750,711,767,714,802,717,834,725,849,739,862,787,889,810,895,832,897,854,895,876,888,925,862,956,836,980,805,1000,770,1015,733,1035,660,1043,602,1049,603,1040,661,1020,735,1005,772,985,808,959,840,928,867,878,893,855,900,832,902,809,900,785,894,736,866,721,852,712,836,709,802,706,768,700,752,688,737,659,719"/>
+<area shape="poly" title=" " alt="" coords="660,699,753,699,753,704,660,704"/>
+<area shape="poly" title=" " alt="" coords="655,678,752,653,754,659,656,683"/>
+<area shape="poly" title=" " alt="" coords="656,720,754,745,753,750,655,725"/>
+<area shape="poly" title=" " alt="" coords="659,682,688,668,703,652,711,636,720,619,736,602,753,591,756,596,739,606,724,622,716,639,707,655,691,672,662,687"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a5cbb6f051b1fb48f85474ce40f12f32d" title=" " alt="" coords="769,812,895,853"/>
+<area shape="poly" title=" " alt="" coords="662,718,691,733,707,749,716,765,724,781,739,797,756,807,753,812,736,801,720,784,711,768,703,752,688,737,659,722"/>
+<area shape="rect" href="namespaceyaze.html#a3dde9364829e66bec50d5da15df53b6a" title="Loads the players 4bpp graphics sheet from Rom data." alt="" coords="752,928,912,953"/>
+<area shape="poly" title=" " alt="" coords="662,714,691,733,708,755,715,777,717,821,717,864,724,885,739,907,753,918,750,922,735,910,719,888,712,865,711,821,710,778,703,758,688,737,659,718"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#a134c6e6817a4a8332e3842e4b2cd01f6" title=" " alt="" coords="468,632,675,657"/>
+<area shape="poly" title=" " alt="" coords="407,642,452,642,452,647,407,647"/>
+<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#a744ebc4830db2dc2fd639de6a2a343de" title=" " alt="" coords="484,747,660,787"/>
+<area shape="poly" title=" " alt="" coords="386,663,408,676,423,690,432,705,441,718,456,731,471,740,468,745,452,736,437,722,427,708,419,694,404,680,383,668"/>
+<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#ae09d00dc0b934cf2e81e80f31a577d73" title=" " alt="" coords="484,812,660,853"/>
+<area shape="poly" title=" " alt="" coords="391,663,408,676,420,692,427,708,432,739,437,769,444,783,456,797,471,808,468,812,452,801,439,786,432,770,427,739,422,709,416,694,404,680,388,667"/>
+<area shape="poly" title=" " alt="" coords="636,655,690,667,754,681,753,687,689,672,635,660"/>
+<area shape="poly" title=" " alt="" coords="676,638,753,636,753,641,676,644"/>
+<area shape="poly" title=" " alt="" coords="666,655,691,667,708,683,716,700,724,716,739,732,756,742,753,747,736,736,720,719,711,702,703,686,688,672,664,660"/>
+<area shape="poly" title=" " alt="" coords="625,628,689,611,753,592,755,597,690,616,627,633"/>
+<area shape="poly" title=" " alt="" coords="673,656,691,668,705,684,713,700,717,733,721,766,727,781,739,797,756,810,753,814,735,801,722,784,715,767,712,734,708,702,701,686,688,672,670,660"/>
 </map>
 </div>
 
@@ -804,7 +806,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00061">61</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="graphics__editor_8cc_source.html#l00092">DrawGfxEditToolset()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00039">yaze::editor::kGfxEditTableFlags</a>, <a class="el" href="constants_8h_source.html#l00027">NEXT_COLUMN</a>, <a class="el" href="rom_8h_source.html#l00582">yaze::SharedRom::rom()</a>, <a class="el" href="graphics__editor_8h_source.html#l00194">status_</a>, <a class="el" href="graphics__editor_8cc_source.html#l00176">UpdateGfxSheetList()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00249">UpdateGfxTabView()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00345">UpdatePaletteColumn()</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8cc_source.html#l00092">DrawGfxEditToolset()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00039">yaze::editor::kGfxEditTableFlags</a>, <a class="el" href="constants_8h_source.html#l00027">NEXT_COLUMN</a>, <a class="el" href="rom_8h_source.html#l00588">yaze::SharedRom::rom()</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, <a class="el" href="graphics__editor_8cc_source.html#l00175">UpdateGfxSheetList()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00248">UpdateGfxTabView()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00344">UpdatePaletteColumn()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00044">Update()</a>.</p>
 <div class="dynheader">
@@ -812,69 +814,74 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1GraphicsEditor_a02020669ab4b81286b4949c756829771_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1GraphicsEditor_a02020669ab4b81286b4949c756829771_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1GraphicsEditor_a02020669ab4b81286b4949c756829771_cgraph" id="aclassyaze_1_1editor_1_1GraphicsEditor_a02020669ab4b81286b4949c756829771_cgraph">
-<area shape="rect" title=" " alt="" coords="5,431,182,472"/>
-<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#a7dcb91247930d067ab22b921f8f57bd6" title=" " alt="" coords="678,70,855,111"/>
-<area shape="poly" title=" " alt="" coords="106,429,155,362,190,323,228,287,279,249,334,217,391,189,450,165,564,128,663,105,664,110,565,133,452,170,394,194,336,222,282,254,231,291,194,326,160,365,110,432"/>
-<area shape="rect" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="937,692,1086,718"/>
-<area shape="poly" title=" " alt="" coords="123,470,211,532,344,614,422,656,505,694,591,727,679,752,728,760,766,762,854,752,911,738,963,721,965,726,913,744,855,757,766,768,727,766,678,757,590,732,503,699,419,660,341,619,208,536,120,474"/>
-<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#a50dfe7911a1504dfc01de5d05771e4d3" title=" " alt="" coords="454,431,630,472"/>
-<area shape="poly" title=" " alt="" coords="182,449,438,449,438,454,182,454"/>
-<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#ae93cad6eb6670dd071fb47bf347a7fde" title=" " alt="" coords="230,301,406,341"/>
-<area shape="poly" title=" " alt="" coords="129,428,267,347,270,352,132,433"/>
-<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#a1d9cb046293a6e98eee05b7ed556d058" title=" " alt="" coords="678,627,855,668"/>
-<area shape="poly" title=" " alt="" coords="167,470,680,620,678,625,166,475"/>
+<area shape="rect" title=" " alt="" coords="5,603,182,644"/>
+<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#a7dcb91247930d067ab22b921f8f57bd6" title=" " alt="" coords="678,148,855,189"/>
+<area shape="poly" title=" " alt="" coords="97,602,111,545,137,465,175,376,200,334,228,294,279,234,325,192,379,161,453,134,514,123,576,122,636,130,689,141,688,147,635,135,576,128,514,128,455,139,382,166,328,196,282,237,232,297,204,336,180,379,142,467,116,546,102,603"/>
+<area shape="rect" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="937,892,1086,918"/>
+<area shape="poly" title=" " alt="" coords="115,642,165,692,197,719,231,743,348,809,445,852,546,881,679,906,741,914,805,917,921,912,922,917,805,922,741,919,678,911,545,886,443,857,346,814,228,747,193,723,161,696,111,646"/>
+<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#a50dfe7911a1504dfc01de5d05771e4d3" title=" " alt="" coords="454,603,630,644"/>
+<area shape="poly" title=" " alt="" coords="182,621,438,621,438,626,182,626"/>
+<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#ae93cad6eb6670dd071fb47bf347a7fde" title=" " alt="" coords="230,307,406,348"/>
+<area shape="poly" title=" " alt="" coords="108,601,290,359,294,362,113,604"/>
+<area shape="rect" href="classyaze_1_1editor_1_1GraphicsEditor.html#a1d9cb046293a6e98eee05b7ed556d058" title=" " alt="" coords="678,856,855,897"/>
+<area shape="poly" title=" " alt="" coords="151,642,697,848,695,853,149,647"/>
 <area shape="rect" href="namespaceyaze_1_1core.html#a421cc759aa63272bf0079eddf0d32eac" title=" " alt="" coords="903,5,1121,31"/>
-<area shape="poly" title=" " alt="" coords="823,67,902,41,933,33,935,38,903,46,825,72"/>
+<area shape="poly" title=" " alt="" coords="782,146,832,93,865,65,901,41,916,34,918,39,904,46,868,69,835,97,786,150"/>
 <area shape="rect" href="namespaceyaze_1_1core.html#a224033814dd0a65e514ab48d90bcc550" title=" " alt="" coords="926,55,1098,96"/>
-<area shape="poly" title=" " alt="" coords="855,82,910,79,911,84,855,88"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="944,170,1080,211"/>
-<area shape="poly" title=" " alt="" coords="819,109,856,127,880,142,904,156,930,166,928,171,902,161,877,146,853,131,817,114"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="935,120,1089,146"/>
-<area shape="poly" title=" " alt="" coords="856,103,920,114,919,119,855,108"/>
-<area shape="poly" title=" " alt="" coords="788,110,824,159,843,190,857,223,866,265,871,319,872,445,874,509,878,569,888,619,905,655,921,671,940,683,937,688,917,675,900,658,883,620,873,569,868,510,867,445,865,319,861,265,852,224,838,192,820,162,784,113"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="944,235,1080,276"/>
-<area shape="poly" title=" " alt="" coords="790,109,855,175,904,220,931,233,928,238,901,224,851,179,786,113"/>
-<area shape="poly" title=" " alt="" coords="971,693,963,683,968,673,985,667,1012,665,1042,668,1057,675,1055,680,1041,673,1012,671,986,673,972,678,969,683,975,690"/>
-<area shape="poly" title=" " alt="" coords="551,472,566,517,592,574,629,632,653,657,680,677,708,692,738,703,801,716,864,720,921,717,921,722,864,725,800,722,736,708,706,697,677,682,649,661,625,635,587,577,561,519,546,473"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a532038da57a64fa8f26c0a14bba26b11" title=" " alt="" coords="703,562,830,602"/>
-<area shape="poly" title=" " alt="" coords="570,470,619,508,680,547,692,553,690,557,677,551,616,512,566,474"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ab4152394d6f4a6537844371d1651c5f9" title=" " alt="" coords="703,301,830,341"/>
-<area shape="poly" title=" " alt="" coords="608,428,629,416,644,401,652,385,661,369,677,352,688,344,691,349,680,356,665,372,657,387,648,404,632,420,611,433"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ad3aca0f468507ba04f769889d5e4293a" title=" " alt="" coords="703,235,830,276"/>
-<area shape="poly" title=" " alt="" coords="612,429,628,416,641,401,647,385,652,353,656,321,663,304,676,287,688,278,691,282,680,291,668,306,661,322,657,354,653,386,645,403,632,420,616,433"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#aecc92f45938fcabafd8f9ef09ab8de93" title=" " alt="" coords="703,366,830,407"/>
-<area shape="poly" title=" " alt="" coords="613,428,688,406,689,411,615,433"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a3849de72628476b91c0ee7d2711aacb9" title=" " alt="" coords="703,431,830,472"/>
-<area shape="poly" title=" " alt="" coords="630,449,688,449,688,454,630,454"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ab3664ce0fdd6afa2113d10dd55fa9d80" title=" " alt="" coords="703,497,830,537"/>
-<area shape="poly" title=" " alt="" coords="615,470,689,492,688,497,613,475"/>
-<area shape="poly" title=" " alt="" coords="830,236,928,210,929,215,831,241"/>
-<area shape="poly" title=" " alt="" coords="832,268,857,287,873,312,885,336,894,382,891,428,883,472,874,517,871,562,879,608,889,631,905,655,921,671,940,683,937,688,917,675,901,659,885,634,874,609,865,562,868,516,877,471,886,427,889,383,879,337,869,314,853,291,829,272"/>
-<area shape="poly" title=" " alt="" coords="830,253,928,253,928,258,830,258"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#a9f7caa95981f846c2eac84bff36b952d" title=" " alt="" coords="923,502,1101,542"/>
-<area shape="poly" title=" " alt="" coords="832,271,856,287,876,311,885,335,892,359,905,387,944,442,983,488,979,491,940,445,900,390,887,361,880,337,871,314,853,291,829,275"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#addaa747c1d46d2433b56c2386260d979" title=" " alt="" coords="917,351,1107,376"/>
-<area shape="poly" title=" " alt="" coords="825,274,856,286,972,341,970,346,854,291,823,279"/>
-<area shape="poly" title=" " alt="" coords="333,298,382,248,416,222,453,202,515,183,579,169,644,161,709,158,829,162,929,173,928,178,829,167,709,163,645,167,580,174,516,188,455,207,419,226,386,252,337,302"/>
-<area shape="poly" title=" " alt="" coords="331,340,375,419,408,472,449,529,497,586,552,641,613,688,679,725,715,737,752,744,828,745,899,735,958,720,959,725,900,740,828,750,751,749,713,742,677,730,610,693,548,645,493,590,445,532,404,475,370,422,327,343"/>
-<area shape="poly" title=" " alt="" coords="343,298,392,264,422,248,453,236,516,220,581,210,646,206,711,207,831,217,929,234,928,239,830,223,710,212,646,212,581,216,517,225,455,241,424,253,395,269,346,302"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a0c938e3c3f656555b3b8c6ef86adb265" title=" " alt="" coords="475,251,609,276"/>
-<area shape="poly" title=" " alt="" coords="399,297,473,278,475,283,400,303"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a83a73b54866f99c7950fbf79c3b7b9e5" title=" " alt="" coords="477,366,607,407"/>
-<area shape="poly" title=" " alt="" coords="391,339,463,360,461,366,389,344"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a6a76e5e986ddb0cf0aae847da13edfae" title=" " alt="" coords="475,301,609,341"/>
-<area shape="poly" title=" " alt="" coords="406,318,459,318,459,324,406,324"/>
-<area shape="poly" title=" " alt="" coords="609,318,688,318,688,324,609,324"/>
-<area shape="poly" title=" " alt="" coords="609,299,687,276,688,281,610,304"/>
-<area shape="poly" title=" " alt="" coords="610,338,689,361,688,366,609,343"/>
-<area shape="poly" title=" " alt="" coords="611,339,632,352,648,369,657,385,665,401,680,416,691,424,688,428,677,420,661,404,652,387,644,372,629,356,608,344"/>
-<area shape="poly" title=" " alt="" coords="839,625,853,612,869,587,881,562,887,538,889,514,885,466,874,418,864,370,860,322,863,297,870,272,883,247,901,222,927,202,931,206,905,225,887,250,875,274,868,298,866,322,869,369,880,417,890,465,894,514,892,539,886,564,874,590,857,616,843,629"/>
-<area shape="poly" title=" " alt="" coords="856,666,940,685,938,691,854,671"/>
-<area shape="poly" title=" " alt="" coords="839,625,853,612,874,578,884,545,885,513,881,480,877,447,876,413,883,376,900,337,926,306,956,282,959,286,929,310,905,340,888,377,882,413,883,447,887,480,890,513,889,546,879,580,857,616,842,629"/>
-<area shape="poly" title=" " alt="" coords="825,624,854,612,912,580,965,549,968,553,915,585,856,617,827,629"/>
-<area shape="poly" title=" " alt="" coords="837,624,853,612,873,583,880,555,886,524,900,489,942,431,984,385,988,389,946,435,905,491,891,526,886,556,878,585,857,616,840,629"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#a85c0af649d4fdc913fcabb1634667602" title=" " alt="" coords="948,619,1076,644"/>
-<area shape="poly" title=" " alt="" coords="855,639,932,634,932,639,855,644"/>
+<area shape="poly" title=" " alt="" coords="810,146,902,106,924,99,925,104,904,111,812,150"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="944,632,1080,673"/>
+<area shape="poly" title=" " alt="" coords="781,188,818,262,857,359,871,419,874,468,880,514,890,539,905,567,931,597,961,622,958,626,927,601,900,570,885,542,875,516,868,468,865,419,852,360,813,264,777,191"/>
+<area shape="rect" href="classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6" title=" " alt="" coords="917,351,1106,392"/>
+<area shape="poly" title=" " alt="" coords="792,187,904,285,972,339,969,343,901,290,789,191"/>
+<area shape="rect" href="classyaze_1_1GraphicsSheetManager.html#abeb20d3188de25a5bab782a6feb12c27" title=" " alt="" coords="917,120,1106,161"/>
+<area shape="poly" title=" " alt="" coords="855,156,901,151,902,156,855,161"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="935,185,1089,211"/>
+<area shape="poly" title=" " alt="" coords="855,177,919,184,919,190,855,182"/>
+<area shape="rect" href="classyaze_1_1GraphicsSheetManager.html#a4871bff3db392ae5107ec5db39fcf1f2" title=" " alt="" coords="917,235,1106,276"/>
+<area shape="poly" title=" " alt="" coords="817,187,904,221,923,227,921,233,902,226,815,192"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="944,516,1080,557"/>
+<area shape="poly" title=" " alt="" coords="784,188,857,308,880,356,905,402,944,456,983,503,979,506,940,460,900,405,875,358,852,310,779,191"/>
+<area shape="poly" title=" " alt="" coords="971,893,963,883,968,873,985,867,1012,865,1042,868,1057,875,1055,880,1041,873,1012,871,986,873,972,878,969,883,975,890"/>
+<area shape="poly" title=" " alt="" coords="631,635,685,638,743,634,801,621,828,610,853,596,873,577,881,556,887,531,900,503,940,449,979,402,983,405,944,452,905,506,892,533,886,557,877,580,856,600,830,615,802,626,744,639,685,643,631,641"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a532038da57a64fa8f26c0a14bba26b11" title=" " alt="" coords="703,791,830,832"/>
+<area shape="poly" title=" " alt="" coords="559,643,608,708,642,744,680,776,691,783,688,787,677,780,638,748,603,711,555,646"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ab4152394d6f4a6537844371d1651c5f9" title=" " alt="" coords="703,415,830,456"/>
+<area shape="poly" title=" " alt="" coords="563,601,628,531,650,497,660,482,677,467,688,459,691,463,680,471,664,486,655,500,632,534,567,604"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ad3aca0f468507ba04f769889d5e4293a" title=" " alt="" coords="703,660,830,701"/>
+<area shape="poly" title=" " alt="" coords="625,642,688,658,687,663,623,647"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#aecc92f45938fcabafd8f9ef09ab8de93" title=" " alt="" coords="703,546,830,586"/>
+<area shape="poly" title=" " alt="" coords="623,600,688,583,689,589,625,605"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a3849de72628476b91c0ee7d2711aacb9" title=" " alt="" coords="703,480,830,521"/>
+<area shape="poly" title=" " alt="" coords="569,601,618,567,677,532,691,525,693,530,680,537,621,571,572,605"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ab3664ce0fdd6afa2113d10dd55fa9d80" title=" " alt="" coords="703,726,830,766"/>
+<area shape="poly" title=" " alt="" coords="572,642,621,676,680,710,693,717,691,722,677,715,618,680,569,646"/>
+<area shape="poly" title=" " alt="" coords="830,671,928,660,929,665,831,676"/>
+<area shape="poly" title=" " alt="" coords="817,658,853,640,915,602,969,565,972,569,918,607,856,645,820,662"/>
+<area shape="poly" title=" " alt="" coords="832,695,857,712,870,731,878,749,882,785,885,820,892,837,905,855,924,871,946,883,943,888,921,875,901,859,887,840,880,821,876,785,873,751,866,733,853,716,829,699"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#a9f7caa95981f846c2eac84bff36b952d" title=" " alt="" coords="923,750,1101,790"/>
+<area shape="poly" title=" " alt="" coords="825,699,856,712,904,734,925,742,923,747,902,739,854,717,823,704"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#addaa747c1d46d2433b56c2386260d979" title=" " alt="" coords="917,699,1107,724"/>
+<area shape="poly" title=" " alt="" coords="831,686,901,695,901,700,830,691"/>
+<area shape="poly" title=" " alt="" coords="407,332,672,360,791,380,833,390,856,401,874,421,883,441,887,481,888,523,893,545,905,567,931,597,962,622,959,626,928,601,900,570,888,547,883,524,882,481,878,442,869,424,853,406,831,395,790,385,671,366,406,337"/>
+<area shape="poly" title=" " alt="" coords="406,310,499,299,612,291,734,292,795,297,855,306,909,321,958,342,956,347,907,326,854,311,795,302,734,297,612,296,500,304,407,315"/>
+<area shape="poly" title=" " alt="" coords="367,304,409,290,453,278,573,261,693,252,806,248,902,249,902,254,806,253,693,257,573,266,455,283,410,295,369,309"/>
+<area shape="poly" title=" " alt="" coords="406,322,521,321,651,324,771,335,819,345,856,357,878,377,913,415,986,503,982,506,909,419,875,381,853,362,818,350,770,341,651,330,521,326,406,327"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a83a73b54866f99c7950fbf79c3b7b9e5" title=" " alt="" coords="477,148,607,189"/>
+<area shape="poly" title=" " alt="" coords="337,305,387,256,453,205,473,194,475,198,455,210,390,260,340,309"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a6a76e5e986ddb0cf0aae847da13edfae" title=" " alt="" coords="475,480,609,521"/>
+<area shape="poly" title=" " alt="" coords="348,346,504,468,501,473,344,351"/>
+<area shape="poly" title=" " alt="" coords="609,479,688,456,689,461,610,484"/>
+<area shape="poly" title=" " alt="" coords="571,519,729,648,726,652,567,524"/>
+<area shape="poly" title=" " alt="" coords="610,518,689,541,688,546,609,523"/>
+<area shape="poly" title=" " alt="" coords="609,498,688,498,688,504,609,504"/>
+<area shape="poly" title=" " alt="" coords="837,854,853,842,867,822,873,803,875,764,878,725,886,704,901,684,928,666,931,670,904,688,890,707,883,726,881,764,879,804,871,825,857,845,841,858"/>
+<area shape="poly" title=" " alt="" coords="839,854,853,842,879,799,891,760,893,721,889,682,883,642,880,600,884,554,900,504,916,474,935,447,975,401,979,404,939,450,920,477,905,506,890,555,886,600,888,642,894,682,898,721,896,760,884,802,857,845,843,858"/>
+<area shape="poly" title=" " alt="" coords="839,854,853,842,871,814,880,788,882,762,881,736,879,681,885,651,900,619,927,588,958,564,961,568,930,592,905,622,890,653,884,681,886,735,887,762,885,789,876,817,857,845,842,858"/>
+<area shape="poly" title=" " alt="" coords="855,884,922,892,922,897,855,890"/>
+<area shape="poly" title=" " alt="" coords="828,854,853,841,877,823,901,804,921,794,924,799,904,808,880,827,856,846,830,858"/>
+<area shape="poly" title=" " alt="" coords="836,854,853,842,864,829,870,816,875,789,881,763,889,749,901,736,909,730,913,734,904,740,893,752,886,764,880,790,875,818,868,832,856,845,839,858"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#a85c0af649d4fdc913fcabb1634667602" title=" " alt="" coords="948,819,1076,844"/>
+<area shape="poly" title=" " alt="" coords="855,858,932,843,933,849,856,863"/>
 </map>
 </div>
 
@@ -904,9 +911,9 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <dl class="todo"><dt><b><a class="el" href="todo.html#_todo000004">Todo</a></b></dt><dd>Update the interaction for multi select on sheets </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00176">176</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00175">175</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00109">current_sheet_</a>, <a class="el" href="canvas_8h_source.html#l00156">yaze::gui::Canvas::draw_list()</a>, <a class="el" href="canvas_8cc_source.html#l00065">yaze::gui::Canvas::DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00100">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00685">yaze::gui::Canvas::DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00736">yaze::gui::Canvas::DrawOverlay()</a>, <a class="el" href="graphics__editor_8h_source.html#l00187">graphics_bin_canvas_</a>, <a class="el" href="rom_8h_source.html#l00114">yaze::kNumGfxSheets</a>, <a class="el" href="graphics__editor_8h_source.html#l00111">open_sheets_</a>, <a class="el" href="rom_8h_source.html#l00582">yaze::SharedRom::rom()</a>, <a class="el" href="graphics__editor_8h_source.html#l00118">sheet_scale_</a>, and <a class="el" href="canvas_8h_source.html#l00157">yaze::gui::Canvas::zero_point()</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00109">current_sheet_</a>, <a class="el" href="canvas_8h_source.html#l00157">yaze::gui::Canvas::draw_list()</a>, <a class="el" href="canvas_8cc_source.html#l00065">yaze::gui::Canvas::DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00100">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00685">yaze::gui::Canvas::DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00736">yaze::gui::Canvas::DrawOverlay()</a>, <a class="el" href="rom_8h_source.html#l00522">yaze::GraphicsSheetManager::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00188">graphics_bin_canvas_</a>, <a class="el" href="rom_8h_source.html#l00114">yaze::kNumGfxSheets</a>, <a class="el" href="graphics__editor_8h_source.html#l00111">open_sheets_</a>, <a class="el" href="graphics__editor_8h_source.html#l00118">sheet_scale_</a>, and <a class="el" href="canvas_8h_source.html#l00158">yaze::gui::Canvas::zero_point()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00061">UpdateGfxEdit()</a>.</p>
 <div class="dynheader">
@@ -914,45 +921,46 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1GraphicsEditor_a50dfe7911a1504dfc01de5d05771e4d3_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1GraphicsEditor_a50dfe7911a1504dfc01de5d05771e4d3_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1GraphicsEditor_a50dfe7911a1504dfc01de5d05771e4d3_cgraph" id="aclassyaze_1_1editor_1_1GraphicsEditor_a50dfe7911a1504dfc01de5d05771e4d3_cgraph">
-<area shape="rect" title=" " alt="" coords="5,508,182,549"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a532038da57a64fa8f26c0a14bba26b11" title=" " alt="" coords="230,251,356,291"/>
-<area shape="poly" title=" " alt="" coords="100,507,118,466,146,412,183,355,228,302,232,299,235,303,232,306,187,358,151,415,123,468,105,509"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ab4152394d6f4a6537844371d1651c5f9" title=" " alt="" coords="230,316,356,357"/>
-<area shape="poly" title=" " alt="" coords="106,506,156,440,190,402,228,368,233,363,237,368,231,372,194,406,160,444,111,509"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ad3aca0f468507ba04f769889d5e4293a" title=" " alt="" coords="230,381,357,422"/>
-<area shape="poly" title=" " alt="" coords="126,505,245,429,248,433,129,510"/>
-<area shape="rect" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="426,585,575,610"/>
-<area shape="poly" title=" " alt="" coords="183,530,268,537,358,551,449,577,447,582,356,556,267,543,182,535"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#aecc92f45938fcabafd8f9ef09ab8de93" title=" " alt="" coords="230,565,356,606"/>
-<area shape="poly" title=" " alt="" coords="167,547,216,561,215,566,166,552"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a3849de72628476b91c0ee7d2711aacb9" title=" " alt="" coords="230,631,356,671"/>
-<area shape="poly" title=" " alt="" coords="126,547,231,615,240,620,237,625,228,620,123,551"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ab3664ce0fdd6afa2113d10dd55fa9d80" title=" " alt="" coords="230,696,356,737"/>
-<area shape="poly" title=" " alt="" coords="111,547,161,611,194,648,231,681,237,685,234,690,228,685,191,651,157,614,107,551"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a96755cc4cc8e256b44751c6ab4c50c36" title=" " alt="" coords="437,5,563,46"/>
-<area shape="poly" title=" " alt="" coords="342,314,355,301,372,269,379,239,379,209,376,179,373,150,374,120,382,89,403,57,421,42,425,46,407,61,387,91,379,120,378,149,381,179,385,209,385,239,377,271,359,305,346,317"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a4685d30e7deb17970b2cf5d7566de460" title=" " alt="" coords="406,71,595,111"/>
-<area shape="poly" title=" " alt="" coords="342,379,355,367,372,335,379,304,379,274,376,245,373,215,374,185,382,154,403,123,406,119,410,123,407,126,387,156,379,186,378,215,381,244,385,274,385,305,377,337,359,370,346,383"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="432,136,568,177"/>
-<area shape="poly" title=" " alt="" coords="342,379,355,367,369,343,376,321,376,277,378,232,386,210,403,187,416,175,420,179,407,190,391,212,384,233,382,277,381,322,374,346,359,370,345,383"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#a2be4bdb4d48912825342ba9df3da5237" title=" " alt="" coords="421,201,579,226"/>
-<area shape="poly" title=" " alt="" coords="341,379,355,367,366,350,373,334,376,301,382,269,389,253,403,237,408,233,412,237,407,241,394,256,387,271,382,302,378,335,371,352,359,370,344,383"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a3414a5687f87794130674fdd657320d0" title=" " alt="" coords="438,251,562,291"/>
-<area shape="poly" title=" " alt="" coords="338,379,355,366,370,350,378,334,387,318,403,302,423,290,426,295,407,306,391,322,383,337,374,353,359,370,341,383"/>
-<area shape="poly" title=" " alt="" coords="308,421,348,481,376,515,407,546,453,576,450,580,403,550,372,519,344,484,304,424"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#a9f7caa95981f846c2eac84bff36b952d" title=" " alt="" coords="411,316,589,357"/>
-<area shape="poly" title=" " alt="" coords="357,379,418,359,420,364,358,384"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aba6afeb2e94ce15eb378c7258596a758" title=" " alt="" coords="438,381,562,422"/>
-<area shape="poly" title=" " alt="" coords="358,399,423,399,423,404,358,404"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#addaa747c1d46d2433b56c2386260d979" title=" " alt="" coords="405,446,595,472"/>
-<area shape="poly" title=" " alt="" coords="358,418,406,431,435,439,433,444,404,436,357,423"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="432,496,568,537"/>
-<area shape="poly" title=" " alt="" coords="319,420,359,452,406,482,419,488,416,493,404,487,356,456,316,424"/>
-<area shape="poly" title=" " alt="" coords="466,586,459,576,463,566,477,560,500,558,526,561,539,568,536,572,524,566,500,563,478,565,467,570,464,576,470,583"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a856a6868e0137cea8d710fea2a2592bf" title=" " alt="" coords="426,635,574,675"/>
-<area shape="poly" title=" " alt="" coords="357,604,424,627,422,632,356,609"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a6d1500b9057ff6ce49a091be184180bc" title=" " alt="" coords="437,700,563,741"/>
-<area shape="poly" title=" " alt="" coords="341,604,359,617,374,635,383,653,391,669,407,685,424,696,421,700,403,689,387,672,378,655,370,638,355,621,338,609"/>
+<area shape="rect" title=" " alt="" coords="5,427,182,467"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a532038da57a64fa8f26c0a14bba26b11" title=" " alt="" coords="261,231,388,271"/>
+<area shape="poly" title=" " alt="" coords="105,425,153,356,188,316,228,282,246,272,249,276,231,287,192,320,157,359,109,428"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ab4152394d6f4a6537844371d1651c5f9" title=" " alt="" coords="261,296,388,337"/>
+<area shape="poly" title=" " alt="" coords="118,424,167,386,228,347,246,339,248,344,231,352,170,390,121,428"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ad3aca0f468507ba04f769889d5e4293a" title=" " alt="" coords="261,361,388,402"/>
+<area shape="poly" title=" " alt="" coords="167,424,245,401,246,406,168,429"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#aecc92f45938fcabafd8f9ef09ab8de93" title=" " alt="" coords="261,427,388,467"/>
+<area shape="poly" title=" " alt="" coords="182,444,246,444,246,450,182,450"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a3849de72628476b91c0ee7d2711aacb9" title=" " alt="" coords="261,492,388,533"/>
+<area shape="poly" title=" " alt="" coords="168,465,247,488,246,493,167,470"/>
+<area shape="rect" href="classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6" title=" " alt="" coords="230,557,419,598"/>
+<area shape="poly" title=" " alt="" coords="121,466,170,504,231,542,244,548,242,553,228,547,167,508,118,470"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ab3664ce0fdd6afa2113d10dd55fa9d80" title=" " alt="" coords="261,623,388,663"/>
+<area shape="poly" title=" " alt="" coords="109,466,157,535,192,574,231,607,249,618,246,622,228,612,188,578,153,538,105,469"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a96755cc4cc8e256b44751c6ab4c50c36" title=" " alt="" coords="499,5,625,46"/>
+<area shape="poly" title=" " alt="" coords="387,302,403,293,417,281,435,253,443,226,443,199,440,171,437,143,438,115,446,86,465,57,484,42,487,46,469,61,451,89,443,116,443,143,446,171,449,199,448,227,440,256,421,285,406,297,389,306"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a4685d30e7deb17970b2cf5d7566de460" title=" " alt="" coords="468,71,657,111"/>
+<area shape="poly" title=" " alt="" coords="387,367,403,358,417,347,435,319,443,291,443,264,440,237,437,209,438,180,446,152,465,123,468,119,472,123,469,126,451,154,443,181,443,209,446,236,449,264,448,292,440,321,421,350,406,363,390,372"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="494,136,630,177"/>
+<area shape="poly" title=" " alt="" coords="387,366,403,358,417,347,431,327,438,308,440,268,442,228,450,207,465,186,479,176,482,180,469,190,455,210,448,229,446,268,443,309,436,329,421,350,406,362,389,371"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#a2be4bdb4d48912825342ba9df3da5237" title=" " alt="" coords="483,201,641,226"/>
+<area shape="poly" title=" " alt="" coords="387,365,417,346,428,333,435,320,440,293,445,265,453,251,465,237,471,232,475,236,469,241,457,254,451,266,445,294,440,322,433,336,421,350,390,370"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a3414a5687f87794130674fdd657320d0" title=" " alt="" coords="500,251,624,291"/>
+<area shape="poly" title=" " alt="" coords="387,361,418,346,432,335,441,324,451,312,466,301,485,291,487,295,468,305,454,316,445,327,435,339,420,351,390,366"/>
+<area shape="rect" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="488,340,637,365"/>
+<area shape="poly" title=" " alt="" coords="388,371,471,361,472,366,388,377"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#a9f7caa95981f846c2eac84bff36b952d" title=" " alt="" coords="473,389,651,430"/>
+<area shape="poly" title=" " alt="" coords="388,386,458,395,457,400,388,392"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aba6afeb2e94ce15eb378c7258596a758" title=" " alt="" coords="500,455,624,495"/>
+<area shape="poly" title=" " alt="" coords="389,400,420,413,468,439,487,447,485,452,466,444,418,417,387,405"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#addaa747c1d46d2433b56c2386260d979" title=" " alt="" coords="467,520,657,545"/>
+<area shape="poly" title=" " alt="" coords="390,394,421,413,439,437,445,461,452,483,469,505,476,510,473,514,465,509,447,486,440,462,434,439,417,417,387,399"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="494,569,630,610"/>
+<area shape="poly" title=" " alt="" coords="390,393,421,413,435,432,442,450,446,486,449,521,456,539,469,556,482,566,478,570,465,560,451,541,444,523,440,487,437,451,430,434,417,417,387,398"/>
+<area shape="poly" title=" " alt="" coords="523,341,515,331,520,321,536,315,562,313,592,316,606,323,604,328,590,321,562,318,537,320,523,325,520,330,527,337"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a856a6868e0137cea8d710fea2a2592bf" title=" " alt="" coords="488,635,636,675"/>
+<area shape="poly" title=" " alt="" coords="389,458,406,467,421,478,435,497,442,515,446,551,449,586,456,603,469,620,477,627,474,631,465,623,451,605,444,587,440,551,437,516,430,499,417,482,403,471,387,463"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a6d1500b9057ff6ce49a091be184180bc" title=" " alt="" coords="499,700,625,741"/>
+<area shape="poly" title=" " alt="" coords="389,457,406,466,421,479,439,505,447,532,448,558,446,584,443,609,444,634,452,660,469,685,487,699,483,703,465,689,447,662,439,635,438,609,440,583,443,558,442,533,434,508,417,482,403,470,387,462"/>
 </map>
 </div>
 
@@ -981,9 +989,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00249">249</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00248">248</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00167">yaze::gfx::Bitmap::at()</a>, <a class="el" href="graphics__editor_8h_source.html#l00112">child_window_sheets_</a>, <a class="el" href="graphics__editor_8h_source.html#l00108">current_color_</a>, <a class="el" href="graphics__editor_8h_source.html#l00119">current_scale_</a>, <a class="el" href="graphics__editor_8h_source.html#l00109">current_sheet_</a>, <a class="el" href="graphics__editor_8h_source.html#l00188">current_sheet_canvas_</a>, <a class="el" href="canvas_8cc_source.html#l00318">yaze::gui::Canvas::DrawTileOnBitmap()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="icons_8h_source.html#l00084">ICON_MD_ADD</a>, <a class="el" href="graphics__editor_8h_source.html#l00111">open_sheets_</a>, <a class="el" href="graphics__editor_8h_source.html#l00113">release_queue_</a>, <a class="el" href="rom_8h_source.html#l00582">yaze::SharedRom::rom()</a>, <a class="el" href="graphics__editor_8h_source.html#l00110">tile_size_</a>, <a class="el" href="renderer_8h_source.html#l00055">yaze::core::Renderer::UpdateBitmap()</a>, and <a class="el" href="canvas_8cc_source.html#l00043">yaze::gui::Canvas::UpdateColorPainter()</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00112">child_window_sheets_</a>, <a class="el" href="graphics__editor_8h_source.html#l00108">current_color_</a>, <a class="el" href="graphics__editor_8h_source.html#l00119">current_scale_</a>, <a class="el" href="graphics__editor_8h_source.html#l00109">current_sheet_</a>, <a class="el" href="graphics__editor_8h_source.html#l00189">current_sheet_canvas_</a>, <a class="el" href="canvas_8cc_source.html#l00318">yaze::gui::Canvas::DrawTileOnBitmap()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="rom_8h_source.html#l00522">yaze::GraphicsSheetManager::GetInstance()</a>, <a class="el" href="icons_8h_source.html#l00084">ICON_MD_ADD</a>, <a class="el" href="rom_8h_source.html#l00531">yaze::GraphicsSheetManager::mutable_gfx_sheets()</a>, <a class="el" href="graphics__editor_8h_source.html#l00111">open_sheets_</a>, <a class="el" href="graphics__editor_8h_source.html#l00113">release_queue_</a>, <a class="el" href="graphics__editor_8h_source.html#l00110">tile_size_</a>, <a class="el" href="renderer_8h_source.html#l00055">yaze::core::Renderer::UpdateBitmap()</a>, and <a class="el" href="canvas_8cc_source.html#l00043">yaze::gui::Canvas::UpdateColorPainter()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00061">UpdateGfxEdit()</a>.</p>
 <div class="dynheader">
@@ -991,42 +999,40 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1GraphicsEditor_ae93cad6eb6670dd071fb47bf347a7fde_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1GraphicsEditor_ae93cad6eb6670dd071fb47bf347a7fde_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1GraphicsEditor_ae93cad6eb6670dd071fb47bf347a7fde_cgraph" id="aclassyaze_1_1editor_1_1GraphicsEditor_ae93cad6eb6670dd071fb47bf347a7fde_cgraph">
-<area shape="rect" title=" " alt="" coords="5,366,182,407"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a0c938e3c3f656555b3b8c6ef86adb265" title=" " alt="" coords="230,92,364,118"/>
-<area shape="poly" title=" " alt="" coords="98,365,113,317,139,254,177,187,201,156,228,129,233,124,237,128,231,133,205,160,182,190,144,257,118,319,103,367"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a83a73b54866f99c7950fbf79c3b7b9e5" title=" " alt="" coords="232,142,362,183"/>
-<area shape="poly" title=" " alt="" coords="111,364,265,192,269,196,115,368"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="609,433,745,474"/>
-<area shape="poly" title=" " alt="" coords="182,394,594,441,593,446,181,399"/>
-<area shape="rect" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="602,526,752,551"/>
-<area shape="poly" title=" " alt="" coords="128,405,180,437,249,473,329,509,413,535,457,542,502,546,587,545,587,550,502,551,456,547,411,540,327,514,247,478,177,441,125,410"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="609,585,745,626"/>
-<area shape="poly" title=" " alt="" coords="110,406,158,467,192,499,231,526,276,546,323,563,420,587,514,599,593,603,593,609,513,604,419,592,321,568,274,551,228,530,189,503,154,470,106,409"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a6a76e5e986ddb0cf0aae847da13edfae" title=" " alt="" coords="230,305,364,346"/>
-<area shape="poly" title=" " alt="" coords="163,363,214,347,215,353,164,368"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="615,365,739,406"/>
-<area shape="poly" title=" " alt="" coords="348,140,362,129,372,116,378,103,383,77,389,52,398,40,411,30,449,10,484,3,519,9,556,30,591,62,619,101,641,145,656,190,673,279,679,349,673,350,668,279,651,191,636,147,615,104,587,66,553,34,517,14,484,8,451,15,413,34,401,44,394,54,388,79,383,105,377,119,366,132,352,144"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a748139853655afc687cf9668eeb01443" title=" " alt="" coords="422,44,545,84"/>
-<area shape="poly" title=" " alt="" coords="342,139,363,128,411,95,421,89,423,94,413,99,365,133,345,144"/>
-<area shape="poly" title=" " alt="" coords="646,527,640,517,644,507,656,501,677,499,699,502,711,508,708,513,698,507,677,504,658,506,647,511,645,517,650,524"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="800,585,923,626"/>
-<area shape="poly" title=" " alt="" coords="745,603,784,603,784,608,745,608"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ab4152394d6f4a6537844371d1651c5f9" title=" " alt="" coords="420,109,546,150"/>
-<area shape="poly" title=" " alt="" coords="306,303,346,235,376,196,410,161,416,156,419,160,414,165,380,199,350,238,310,306"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a5cbb6f051b1fb48f85474ce40f12f32d" title=" " alt="" coords="420,370,546,411"/>
-<area shape="poly" title=" " alt="" coords="358,344,410,362,408,367,356,349"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ad3aca0f468507ba04f769889d5e4293a" title=" " alt="" coords="420,485,547,526"/>
-<area shape="poly" title=" " alt="" coords="321,344,451,472,448,476,317,348"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#aecc92f45938fcabafd8f9ef09ab8de93" title=" " alt="" coords="420,174,546,215"/>
-<area shape="poly" title=" " alt="" coords="317,302,359,265,410,226,419,221,422,225,414,230,362,269,321,306"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a3849de72628476b91c0ee7d2711aacb9" title=" " alt="" coords="420,240,546,280"/>
-<area shape="poly" title=" " alt="" coords="356,302,408,283,410,288,358,307"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a4e859171161c1ef5364b1f13238400c9" title=" " alt="" coords="412,305,554,346"/>
-<area shape="poly" title=" " alt="" coords="364,323,397,323,397,328,364,328"/>
-<area shape="poly" title=" " alt="" coords="546,386,600,385,600,390,547,391"/>
-<area shape="poly" title=" " alt="" coords="546,486,593,473,594,478,548,491"/>
-<area shape="poly" title=" " alt="" coords="548,514,587,520,586,526,547,519"/>
-<area shape="poly" title=" " alt="" coords="526,524,624,575,621,580,523,529"/>
+<area shape="rect" title=" " alt="" coords="5,429,182,470"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a83a73b54866f99c7950fbf79c3b7b9e5" title=" " alt="" coords="259,24,390,64"/>
+<area shape="poly" title=" " alt="" coords="99,427,146,305,183,225,227,146,257,107,288,73,292,77,261,111,232,149,188,227,151,307,104,429"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="657,212,794,252"/>
+<area shape="poly" title=" " alt="" coords="112,427,166,373,249,303,298,268,351,236,408,209,466,189,506,181,538,179,610,189,662,203,661,208,609,194,538,185,507,186,468,194,410,214,354,241,301,273,252,307,170,377,115,430"/>
+<area shape="rect" href="classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6" title=" " alt="" coords="230,580,419,620"/>
+<area shape="poly" title=" " alt="" coords="117,468,167,513,231,559,253,570,250,575,228,563,164,517,114,472"/>
+<area shape="rect" href="classyaze_1_1GraphicsSheetManager.html#a4871bff3db392ae5107ec5db39fcf1f2" title=" " alt="" coords="230,645,419,686"/>
+<area shape="poly" title=" " alt="" coords="107,469,126,503,154,547,189,591,231,630,239,635,236,639,228,634,185,595,150,550,122,506,102,471"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="657,370,794,411"/>
+<area shape="poly" title=" " alt="" coords="140,468,229,502,286,519,348,533,414,542,480,543,546,535,608,515,638,497,664,473,703,423,707,426,668,477,641,501,610,520,547,540,481,548,413,547,347,538,285,524,228,507,138,473"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a6a76e5e986ddb0cf0aae847da13edfae" title=" " alt="" coords="257,334,392,375"/>
+<area shape="poly" title=" " alt="" coords="144,426,258,379,260,384,146,431"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="664,28,787,68"/>
+<area shape="poly" title=" " alt="" coords="389,24,467,9,538,3,610,9,656,20,654,25,609,15,538,8,467,15,390,29"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a748139853655afc687cf9668eeb01443" title=" " alt="" coords="476,24,600,64"/>
+<area shape="poly" title=" " alt="" coords="390,41,461,41,461,47,390,47"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="842,370,965,411"/>
+<area shape="poly" title=" " alt="" coords="794,388,827,388,827,393,794,393"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ab4152394d6f4a6537844371d1651c5f9" title=" " alt="" coords="475,204,601,244"/>
+<area shape="poly" title=" " alt="" coords="351,332,403,294,466,255,476,249,478,254,468,260,406,299,355,336"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a5cbb6f051b1fb48f85474ce40f12f32d" title=" " alt="" coords="475,89,601,130"/>
+<area shape="poly" title=" " alt="" coords="342,332,507,140,511,143,346,335"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ad3aca0f468507ba04f769889d5e4293a" title=" " alt="" coords="474,269,602,310"/>
+<area shape="poly" title=" " alt="" coords="391,332,459,311,461,316,393,337"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#aecc92f45938fcabafd8f9ef09ab8de93" title=" " alt="" coords="475,334,601,375"/>
+<area shape="poly" title=" " alt="" coords="392,352,459,352,459,357,392,357"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a3849de72628476b91c0ee7d2711aacb9" title=" " alt="" coords="475,400,601,440"/>
+<area shape="poly" title=" " alt="" coords="393,372,461,394,459,399,391,378"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a4e859171161c1ef5364b1f13238400c9" title=" " alt="" coords="467,465,609,506"/>
+<area shape="poly" title=" " alt="" coords="355,373,406,410,468,450,478,455,476,460,466,454,403,415,351,377"/>
+<area shape="poly" title=" " alt="" coords="601,86,648,70,650,75,602,91"/>
+<area shape="poly" title=" " alt="" coords="601,267,642,255,643,260,603,272"/>
+<area shape="poly" title=" " alt="" coords="586,308,611,320,679,360,677,364,608,325,584,313"/>
 </map>
 </div>
 
@@ -1055,9 +1061,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00345">345</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00344">344</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00109">current_sheet_</a>, <a class="el" href="graphics__editor_8h_source.html#l00114">edit_palette_group_name_index_</a>, <a class="el" href="graphics__editor_8h_source.html#l00116">edit_palette_index_</a>, <a class="el" href="graphics__editor_8h_source.html#l00117">edit_palette_sub_index_</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="input_8cc_source.html#l00135">yaze::gui::InputHex()</a>, <a class="el" href="graphics__editor_8h_source.html#l00111">open_sheets_</a>, <a class="el" href="graphics__editor_8h_source.html#l00134">refresh_graphics_</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00582">yaze::SharedRom::rom()</a>, <a class="el" href="color_8cc_source.html#l00127">yaze::gui::SelectablePalettePipeline()</a>, <a class="el" href="style_8cc_source.html#l00746">yaze::gui::TextWithSeparators()</a>, and <a class="el" href="renderer_8h_source.html#l00055">yaze::core::Renderer::UpdateBitmap()</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00109">current_sheet_</a>, <a class="el" href="graphics__editor_8h_source.html#l00114">edit_palette_group_name_index_</a>, <a class="el" href="graphics__editor_8h_source.html#l00116">edit_palette_index_</a>, <a class="el" href="graphics__editor_8h_source.html#l00117">edit_palette_sub_index_</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="rom_8h_source.html#l00522">yaze::GraphicsSheetManager::GetInstance()</a>, <a class="el" href="input_8cc_source.html#l00135">yaze::gui::InputHex()</a>, <a class="el" href="graphics__editor_8h_source.html#l00111">open_sheets_</a>, <a class="el" href="graphics__editor_8h_source.html#l00134">refresh_graphics_</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00588">yaze::SharedRom::rom()</a>, <a class="el" href="color_8cc_source.html#l00127">yaze::gui::SelectablePalettePipeline()</a>, <a class="el" href="style_8cc_source.html#l00746">yaze::gui::TextWithSeparators()</a>, and <a class="el" href="renderer_8h_source.html#l00055">yaze::core::Renderer::UpdateBitmap()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00061">UpdateGfxEdit()</a>.</p>
 <div class="dynheader">
@@ -1065,26 +1071,28 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1GraphicsEditor_a1d9cb046293a6e98eee05b7ed556d058_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1GraphicsEditor_a1d9cb046293a6e98eee05b7ed556d058_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1GraphicsEditor_a1d9cb046293a6e98eee05b7ed556d058_cgraph" id="aclassyaze_1_1editor_1_1GraphicsEditor_a1d9cb046293a6e98eee05b7ed556d058_cgraph">
-<area shape="rect" title=" " alt="" coords="5,165,182,206"/>
+<area shape="rect" title=" " alt="" coords="5,201,182,242"/>
 <area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="257,5,393,46"/>
-<area shape="poly" title=" " alt="" coords="110,163,159,110,192,81,228,55,241,48,244,53,231,60,196,85,163,114,113,167"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#a85c0af649d4fdc913fcabb1634667602" title=" " alt="" coords="261,70,389,96"/>
-<area shape="poly" title=" " alt="" coords="123,163,172,133,229,105,245,98,247,103,231,109,174,138,126,167"/>
-<area shape="rect" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="250,144,400,169"/>
-<area shape="poly" title=" " alt="" coords="182,172,234,165,235,170,182,177"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#a9f7caa95981f846c2eac84bff36b952d" title=" " alt="" coords="236,193,414,234"/>
-<area shape="poly" title=" " alt="" coords="182,194,221,198,220,204,182,199"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#addaa747c1d46d2433b56c2386260d979" title=" " alt="" coords="230,258,420,284"/>
-<area shape="poly" title=" " alt="" coords="138,204,231,243,254,251,253,256,229,248,136,209"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="257,308,393,349"/>
-<area shape="poly" title=" " alt="" coords="117,204,166,249,231,294,243,300,241,305,228,299,163,253,113,208"/>
-<area shape="poly" title=" " alt="" coords="287,145,279,135,284,125,299,119,325,117,353,120,367,126,365,131,352,125,325,122,300,124,287,129,284,134,291,141"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1SnesPalette.html#a504a42d10f3d95135b77bb13ef3ec923" title=" " alt="" coords="482,165,629,206"/>
-<area shape="poly" title=" " alt="" coords="414,200,466,194,467,199,415,205"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb" title=" " alt="" coords="468,230,642,256"/>
-<area shape="poly" title=" " alt="" coords="415,222,453,227,452,233,414,228"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="494,308,617,349"/>
-<area shape="poly" title=" " alt="" coords="393,326,478,326,478,331,393,331"/>
+<area shape="poly" title=" " alt="" coords="104,200,153,130,188,91,228,57,241,49,244,53,231,61,192,95,157,134,109,203"/>
+<area shape="rect" href="classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6" title=" " alt="" coords="230,71,420,111"/>
+<area shape="poly" title=" " alt="" coords="117,199,167,160,228,121,239,115,241,120,231,125,170,164,120,203"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#a85c0af649d4fdc913fcabb1634667602" title=" " alt="" coords="261,136,389,161"/>
+<area shape="poly" title=" " alt="" coords="147,198,229,170,252,163,253,168,230,175,149,203"/>
+<area shape="rect" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="250,209,400,234"/>
+<area shape="poly" title=" " alt="" coords="182,219,235,219,235,224,182,224"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#a9f7caa95981f846c2eac84bff36b952d" title=" " alt="" coords="236,259,414,299"/>
+<area shape="poly" title=" " alt="" coords="179,240,226,252,224,257,177,245"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#addaa747c1d46d2433b56c2386260d979" title=" " alt="" coords="230,324,420,349"/>
+<area shape="poly" title=" " alt="" coords="122,240,171,275,231,309,249,316,247,321,229,313,168,280,119,245"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="257,373,393,414"/>
+<area shape="poly" title=" " alt="" coords="112,241,161,299,194,331,231,359,244,367,241,371,228,364,191,335,157,303,107,244"/>
+<area shape="poly" title=" " alt="" coords="287,210,279,200,284,190,299,184,325,182,353,185,367,192,365,196,352,190,325,187,300,190,287,194,284,200,291,207"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1SnesPalette.html#a504a42d10f3d95135b77bb13ef3ec923" title=" " alt="" coords="482,231,629,271"/>
+<area shape="poly" title=" " alt="" coords="414,266,466,259,467,264,415,271"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb" title=" " alt="" coords="468,296,642,321"/>
+<area shape="poly" title=" " alt="" coords="415,288,453,293,452,298,414,293"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="494,373,617,414"/>
+<area shape="poly" title=" " alt="" coords="393,391,478,391,478,396,393,396"/>
 </map>
 </div>
 
@@ -1115,7 +1123,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00092">92</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="clipboard_8cc_source.html#l00009">yaze::core::CopyImageToClipboard()</a>, <a class="el" href="graphics__editor_8h_source.html#l00108">current_color_</a>, <a class="el" href="graphics__editor_8h_source.html#l00119">current_scale_</a>, <a class="el" href="graphics__editor_8h_source.html#l00109">current_sheet_</a>, <a class="el" href="clipboard_8cc_source.html#l00010">yaze::core::GetImageFromClipboard()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00158">gfx_edit_mode_</a>, <a class="el" href="constants_8h_source.html#l00033">HOVER_HINT</a>, <a class="el" href="icons_8h_source.html#l00463">ICON_MD_CONTENT_COPY</a>, <a class="el" href="icons_8h_source.html#l00465">ICON_MD_CONTENT_PASTE</a>, <a class="el" href="icons_8h_source.html#l00623">ICON_MD_DRAW</a>, <a class="el" href="icons_8h_source.html#l00828">ICON_MD_FORMAT_COLOR_FILL</a>, <a class="el" href="icons_8h_source.html#l01678">ICON_MD_SELECT_ALL</a>, <a class="el" href="icons_8h_source.html#l02189">ICON_MD_ZOOM_IN</a>, <a class="el" href="icons_8h_source.html#l02191">ICON_MD_ZOOM_OUT</a>, <a class="el" href="input_8cc_source.html#l00168">yaze::gui::InputHexByte()</a>, <a class="el" href="#ad451d580c9c4ebb48f636b4c6d40c1efae22acaa6e4e9a5118b4cf5b81f8fbe1e">kFill</a>, <a class="el" href="#ad451d580c9c4ebb48f636b4c6d40c1efa0833de46bd19decd0a9ce1541b6181ab">kPencil</a>, <a class="el" href="#ad451d580c9c4ebb48f636b4c6d40c1efa0f74d4695fd4cccbe4380a5fcf6f8cc0">kSelect</a>, <a class="el" href="rom_8h_source.html#l00582">yaze::SharedRom::rom()</a>, <a class="el" href="graphics__editor_8h_source.html#l00110">tile_size_</a>, and <a class="el" href="renderer_8h_source.html#l00055">yaze::core::Renderer::UpdateBitmap()</a>.</p>
+<p class="reference">References <a class="el" href="clipboard_8cc_source.html#l00009">yaze::core::CopyImageToClipboard()</a>, <a class="el" href="graphics__editor_8h_source.html#l00108">current_color_</a>, <a class="el" href="graphics__editor_8h_source.html#l00119">current_scale_</a>, <a class="el" href="graphics__editor_8h_source.html#l00109">current_sheet_</a>, <a class="el" href="clipboard_8cc_source.html#l00010">yaze::core::GetImageFromClipboard()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="rom_8h_source.html#l00522">yaze::GraphicsSheetManager::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00158">gfx_edit_mode_</a>, <a class="el" href="rom_8h_source.html#l00528">yaze::GraphicsSheetManager::gfx_sheets()</a>, <a class="el" href="constants_8h_source.html#l00033">HOVER_HINT</a>, <a class="el" href="icons_8h_source.html#l00463">ICON_MD_CONTENT_COPY</a>, <a class="el" href="icons_8h_source.html#l00465">ICON_MD_CONTENT_PASTE</a>, <a class="el" href="icons_8h_source.html#l00623">ICON_MD_DRAW</a>, <a class="el" href="icons_8h_source.html#l00828">ICON_MD_FORMAT_COLOR_FILL</a>, <a class="el" href="icons_8h_source.html#l01678">ICON_MD_SELECT_ALL</a>, <a class="el" href="icons_8h_source.html#l02189">ICON_MD_ZOOM_IN</a>, <a class="el" href="icons_8h_source.html#l02191">ICON_MD_ZOOM_OUT</a>, <a class="el" href="input_8cc_source.html#l00168">yaze::gui::InputHexByte()</a>, <a class="el" href="#ad451d580c9c4ebb48f636b4c6d40c1efae22acaa6e4e9a5118b4cf5b81f8fbe1e">kFill</a>, <a class="el" href="#ad451d580c9c4ebb48f636b4c6d40c1efa0833de46bd19decd0a9ce1541b6181ab">kPencil</a>, <a class="el" href="#ad451d580c9c4ebb48f636b4c6d40c1efa0f74d4695fd4cccbe4380a5fcf6f8cc0">kSelect</a>, <a class="el" href="rom_8h_source.html#l00531">yaze::GraphicsSheetManager::mutable_gfx_sheets()</a>, <a class="el" href="graphics__editor_8h_source.html#l00110">tile_size_</a>, and <a class="el" href="renderer_8h_source.html#l00055">yaze::core::Renderer::UpdateBitmap()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00061">UpdateGfxEdit()</a>.</p>
 <div class="dynheader">
@@ -1123,24 +1131,27 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1GraphicsEditor_a7dcb91247930d067ab22b921f8f57bd6_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1GraphicsEditor_a7dcb91247930d067ab22b921f8f57bd6_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1GraphicsEditor_a7dcb91247930d067ab22b921f8f57bd6_cgraph" id="aclassyaze_1_1editor_1_1GraphicsEditor_a7dcb91247930d067ab22b921f8f57bd6_cgraph">
-<area shape="rect" title=" " alt="" coords="5,150,182,190"/>
+<area shape="rect" title=" " alt="" coords="5,219,182,260"/>
 <area shape="rect" href="namespaceyaze_1_1core.html#a421cc759aa63272bf0079eddf0d32eac" title=" " alt="" coords="230,5,448,31"/>
-<area shape="poly" title=" " alt="" coords="109,148,158,94,191,65,228,41,243,34,245,39,231,46,195,70,162,98,113,151"/>
+<area shape="poly" title=" " alt="" coords="101,217,118,179,146,131,182,82,228,41,238,36,240,40,231,46,186,86,150,134,123,182,106,220"/>
 <area shape="rect" href="namespaceyaze_1_1core.html#a224033814dd0a65e514ab48d90bcc550" title=" " alt="" coords="253,55,424,96"/>
-<area shape="poly" title=" " alt="" coords="136,147,229,106,250,99,252,104,231,111,138,152"/>
+<area shape="poly" title=" " alt="" coords="109,217,158,162,192,132,228,107,240,100,242,105,231,111,195,137,162,166,113,221"/>
 <area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="271,120,407,161"/>
-<area shape="poly" title=" " alt="" coords="182,157,255,148,255,153,182,162"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="262,185,416,211"/>
-<area shape="poly" title=" " alt="" coords="182,178,246,185,246,190,182,183"/>
-<area shape="rect" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="264,259,414,284"/>
-<area shape="poly" title=" " alt="" coords="146,189,293,250,291,255,144,194"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="271,308,407,349"/>
-<area shape="poly" title=" " alt="" coords="113,189,163,242,195,270,231,295,257,307,255,312,228,299,192,274,159,246,109,193"/>
-<area shape="rect" href="namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="496,185,647,211"/>
-<area shape="poly" title=" " alt="" coords="416,196,480,196,480,201,416,201"/>
-<area shape="poly" title=" " alt="" coords="300,260,293,250,297,240,313,234,339,232,367,235,382,242,379,246,366,240,339,237,314,239,301,244,298,249,304,257"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="510,308,633,349"/>
-<area shape="poly" title=" " alt="" coords="407,326,494,326,494,332,407,332"/>
+<area shape="poly" title=" " alt="" coords="133,216,229,172,255,162,257,167,231,177,135,221"/>
+<area shape="rect" href="classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6" title=" " alt="" coords="244,186,434,226"/>
+<area shape="poly" title=" " alt="" coords="182,225,228,218,229,224,182,230"/>
+<area shape="rect" href="classyaze_1_1GraphicsSheetManager.html#abeb20d3188de25a5bab782a6feb12c27" title=" " alt="" coords="244,251,434,292"/>
+<area shape="poly" title=" " alt="" coords="182,248,229,255,228,260,182,254"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="262,316,416,342"/>
+<area shape="poly" title=" " alt="" coords="134,258,180,280,231,301,256,309,255,314,229,306,177,285,132,263"/>
+<area shape="rect" href="classyaze_1_1GraphicsSheetManager.html#a4871bff3db392ae5107ec5db39fcf1f2" title=" " alt="" coords="244,366,434,406"/>
+<area shape="poly" title=" " alt="" coords="116,258,165,305,197,330,231,352,241,357,239,362,228,356,194,335,162,309,112,262"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="271,431,407,472"/>
+<area shape="poly" title=" " alt="" coords="107,259,126,293,154,335,189,379,231,416,257,430,255,435,228,420,185,383,149,339,121,296,102,261"/>
+<area shape="rect" href="namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="496,316,647,342"/>
+<area shape="poly" title=" " alt="" coords="416,326,480,326,480,332,416,332"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="510,431,633,472"/>
+<area shape="poly" title=" " alt="" coords="407,449,494,449,494,454,407,454"/>
 </map>
 </div>
 
@@ -1169,9 +1180,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00375">375</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00373">373</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8cc_source.html#l00065">yaze::gui::Canvas::DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00460">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00100">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00685">yaze::gui::Canvas::DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00736">yaze::gui::Canvas::DrawOverlay()</a>, <a class="el" href="constants_8h_source.html#l00005">END_TAB_ITEM</a>, <a class="el" href="graphics__editor_8cc_source.html#l00039">yaze::editor::kGfxEditTableFlags</a>, <a class="el" href="src_2app_2gfx_2snes__tile_8h_source.html#l00016">yaze::gfx::kTilesheetHeight</a>, <a class="el" href="graphics__editor_8h_source.html#l00190">link_canvas_</a>, <a class="el" href="constants_8h_source.html#l00027">NEXT_COLUMN</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00582">yaze::SharedRom::rom()</a>, and <a class="el" href="constants_8h_source.html#l00004">TAB_ITEM</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="canvas_8cc_source.html#l00065">yaze::gui::Canvas::DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00460">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00100">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00685">yaze::gui::Canvas::DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00736">yaze::gui::Canvas::DrawOverlay()</a>, <a class="el" href="constants_8h_source.html#l00005">END_TAB_ITEM</a>, <a class="el" href="graphics__editor_8cc_source.html#l00039">yaze::editor::kGfxEditTableFlags</a>, <a class="el" href="src_2app_2gfx_2snes__tile_8h_source.html#l00016">yaze::gfx::kTilesheetHeight</a>, <a class="el" href="graphics__editor_8h_source.html#l00191">link_canvas_</a>, <a class="el" href="graphics__editor_8h_source.html#l00179">link_sheets_</a>, <a class="el" href="rom_8cc_source.html#l00057">yaze::LoadLinkGraphics()</a>, <a class="el" href="constants_8h_source.html#l00027">NEXT_COLUMN</a>, <a class="el" href="rom_8h_source.html#l00588">yaze::SharedRom::rom()</a>, and <a class="el" href="constants_8h_source.html#l00004">TAB_ITEM</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00044">Update()</a>.</p>
 <div class="dynheader">
@@ -1179,49 +1190,58 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1GraphicsEditor_a3a3c12949bca7085d7cd6ec0cc53ccf2_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1GraphicsEditor_a3a3c12949bca7085d7cd6ec0cc53ccf2_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1GraphicsEditor_a3a3c12949bca7085d7cd6ec0cc53ccf2_cgraph" id="aclassyaze_1_1editor_1_1GraphicsEditor_a3a3c12949bca7085d7cd6ec0cc53ccf2_cgraph">
-<area shape="rect" title=" " alt="" coords="5,603,182,643"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ab4152394d6f4a6537844371d1651c5f9" title=" " alt="" coords="230,39,356,79"/>
-<area shape="poly" title=" " alt="" coords="96,602,112,527,139,416,177,286,227,157,265,91,270,94,232,159,182,288,144,417,117,528,101,603"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a5cbb6f051b1fb48f85474ce40f12f32d" title=" " alt="" coords="230,169,356,210"/>
-<area shape="poly" title=" " alt="" coords="102,601,274,223,279,225,107,603"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ad3aca0f468507ba04f769889d5e4293a" title=" " alt="" coords="230,545,357,586"/>
-<area shape="poly" title=" " alt="" coords="166,600,214,586,216,591,167,605"/>
-<area shape="rect" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="426,781,575,806"/>
-<area shape="poly" title=" " alt="" coords="145,641,454,772,452,777,143,646"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#aecc92f45938fcabafd8f9ef09ab8de93" title=" " alt="" coords="230,807,356,847"/>
-<area shape="poly" title=" " alt="" coords="117,642,263,793,259,797,113,646"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a3849de72628476b91c0ee7d2711aacb9" title=" " alt="" coords="230,872,356,913"/>
-<area shape="poly" title=" " alt="" coords="105,643,122,686,149,742,186,803,232,857,235,860,232,864,228,861,182,806,145,745,117,688,100,645"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a96755cc4cc8e256b44751c6ab4c50c36" title=" " alt="" coords="437,5,563,46"/>
-<area shape="poly" title=" " alt="" coords="357,46,422,36,422,41,357,51"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="438,71,562,111"/>
-<area shape="poly" title=" " alt="" coords="325,167,404,122,423,114,425,119,406,127,327,171"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aecb99062dd45882d7b92dfff0bfbf13d" title=" " alt="" coords="438,136,562,177"/>
-<area shape="poly" title=" " alt="" coords="357,177,423,166,424,171,357,182"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="438,201,562,242"/>
-<area shape="poly" title=" " alt="" coords="357,197,424,207,423,212,357,202"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a4685d30e7deb17970b2cf5d7566de460" title=" " alt="" coords="406,267,595,307"/>
-<area shape="poly" title=" " alt="" coords="296,544,307,498,327,438,358,374,379,345,403,318,408,314,412,318,407,322,383,348,363,377,332,440,312,499,301,545"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="432,332,568,373"/>
-<area shape="poly" title=" " alt="" coords="299,544,314,509,336,466,366,421,403,382,417,373,420,378,407,386,370,424,340,469,318,511,304,546"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#a2be4bdb4d48912825342ba9df3da5237" title=" " alt="" coords="421,397,579,422"/>
-<area shape="poly" title=" " alt="" coords="304,544,343,488,371,458,404,433,414,427,417,431,406,437,375,462,348,492,309,547"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a3414a5687f87794130674fdd657320d0" title=" " alt="" coords="438,447,562,487"/>
-<area shape="poly" title=" " alt="" coords="325,543,404,498,423,490,425,495,406,503,327,547"/>
-<area shape="poly" title=" " alt="" coords="305,585,343,660,372,703,407,742,428,758,451,771,448,776,425,763,403,746,368,707,339,663,301,588"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#a9f7caa95981f846c2eac84bff36b952d" title=" " alt="" coords="411,512,589,553"/>
-<area shape="poly" title=" " alt="" coords="357,553,395,547,396,552,358,558"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aba6afeb2e94ce15eb378c7258596a758" title=" " alt="" coords="438,577,562,618"/>
-<area shape="poly" title=" " alt="" coords="358,573,424,583,423,588,357,578"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#addaa747c1d46d2433b56c2386260d979" title=" " alt="" coords="405,642,595,668"/>
-<area shape="poly" title=" " alt="" coords="327,584,364,606,406,627,426,635,424,640,404,632,361,611,324,589"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="432,692,568,733"/>
-<area shape="poly" title=" " alt="" coords="312,585,351,632,378,656,406,678,419,685,416,690,404,683,374,661,348,635,308,588"/>
-<area shape="poly" title=" " alt="" coords="466,782,459,772,463,762,477,756,500,754,526,757,539,764,536,768,524,762,500,759,478,761,467,766,464,772,470,779"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a856a6868e0137cea8d710fea2a2592bf" title=" " alt="" coords="426,831,574,871"/>
-<area shape="poly" title=" " alt="" coords="357,832,411,838,411,843,357,837"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a6d1500b9057ff6ce49a091be184180bc" title=" " alt="" coords="437,896,563,937"/>
-<area shape="poly" title=" " alt="" coords="336,846,406,881,424,888,422,893,404,885,334,850"/>
+<area shape="rect" title=" " alt="" coords="5,692,182,733"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ab4152394d6f4a6537844371d1651c5f9" title=" " alt="" coords="246,39,372,79"/>
+<area shape="poly" title=" " alt="" coords="94,691,105,603,128,468,145,391,167,311,195,232,227,156,249,120,275,89,279,93,254,123,232,159,200,234,173,313,150,392,133,470,110,604,99,692"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a5cbb6f051b1fb48f85474ce40f12f32d" title=" " alt="" coords="246,169,372,210"/>
+<area shape="poly" title=" " alt="" coords="101,690,227,375,291,223,296,225,232,377,106,692"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ad3aca0f468507ba04f769889d5e4293a" title=" " alt="" coords="246,692,373,733"/>
+<area shape="poly" title=" " alt="" coords="182,710,230,710,230,715,182,715"/>
+<area shape="rect" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="458,961,607,986"/>
+<area shape="poly" title=" " alt="" coords="128,731,262,816,438,922,492,951,490,956,436,927,260,821,125,736"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#aecc92f45938fcabafd8f9ef09ab8de93" title=" " alt="" coords="246,959,372,999"/>
+<area shape="poly" title=" " alt="" coords="114,732,284,945,280,948,109,735"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a3849de72628476b91c0ee7d2711aacb9" title=" " alt="" coords="246,1024,372,1065"/>
+<area shape="poly" title=" " alt="" coords="101,732,115,787,139,860,178,939,203,976,232,1009,236,1013,232,1017,228,1013,198,979,173,942,135,862,110,788,96,734"/>
+<area shape="rect" href="namespaceyaze.html#a3dde9364829e66bec50d5da15df53b6a" title="Loads the players 4bpp graphics sheet from Rom data." alt="" coords="230,389,389,414"/>
+<area shape="poly" title=" " alt="" coords="107,690,288,426,293,429,111,693"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a96755cc4cc8e256b44751c6ab4c50c36" title=" " alt="" coords="469,5,595,46"/>
+<area shape="poly" title=" " alt="" coords="372,47,453,35,454,40,373,52"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="470,71,594,111"/>
+<area shape="poly" title=" " alt="" coords="346,166,436,122,455,114,457,119,438,127,349,171"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aecb99062dd45882d7b92dfff0bfbf13d" title=" " alt="" coords="470,136,594,177"/>
+<area shape="poly" title=" " alt="" coords="372,178,455,165,456,170,373,183"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="470,201,594,242"/>
+<area shape="poly" title=" " alt="" coords="373,196,456,208,455,213,372,201"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a4685d30e7deb17970b2cf5d7566de460" title=" " alt="" coords="438,512,627,553"/>
+<area shape="poly" title=" " alt="" coords="321,690,366,627,399,592,435,562,442,558,445,562,439,566,402,596,371,631,325,693"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="464,447,600,487"/>
+<area shape="poly" title=" " alt="" coords="315,691,331,650,356,599,391,545,435,498,449,489,452,493,439,502,395,548,361,602,336,653,320,693"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#a2be4bdb4d48912825342ba9df3da5237" title=" " alt="" coords="453,577,611,602"/>
+<area shape="poly" title=" " alt="" coords="330,689,377,650,436,613,452,605,454,610,438,617,380,655,334,694"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a3414a5687f87794130674fdd657320d0" title=" " alt="" coords="470,627,594,667"/>
+<area shape="poly" title=" " alt="" coords="372,691,455,667,456,672,374,696"/>
+<area shape="poly" title=" " alt="" coords="335,731,363,762,391,800,406,835,412,865,420,893,439,923,457,939,479,951,476,956,454,943,435,926,415,895,407,866,401,837,387,803,359,766,331,735"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#a9f7caa95981f846c2eac84bff36b952d" title=" " alt="" coords="443,692,621,733"/>
+<area shape="poly" title=" " alt="" coords="373,710,428,710,428,715,373,715"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aba6afeb2e94ce15eb378c7258596a758" title=" " alt="" coords="470,757,594,798"/>
+<area shape="poly" title=" " alt="" coords="374,728,456,753,455,758,372,733"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#addaa747c1d46d2433b56c2386260d979" title=" " alt="" coords="437,822,627,848"/>
+<area shape="poly" title=" " alt="" coords="334,731,380,770,438,807,454,814,452,819,436,812,377,774,330,735"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="464,872,600,913"/>
+<area shape="poly" title=" " alt="" coords="331,731,391,800,413,832,423,845,439,858,451,866,448,870,435,862,419,849,409,835,387,803,327,735"/>
+<area shape="poly" title=" " alt="" coords="495,962,488,952,492,942,507,936,532,934,559,937,573,944,571,948,558,942,532,939,509,942,496,946,493,952,499,959"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a856a6868e0137cea8d710fea2a2592bf" title=" " alt="" coords="458,1011,606,1051"/>
+<area shape="poly" title=" " alt="" coords="373,991,444,1008,443,1013,372,996"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a6d1500b9057ff6ce49a091be184180bc" title=" " alt="" coords="469,1076,595,1117"/>
+<area shape="poly" title=" " alt="" coords="369,997,391,1010,406,1024,415,1036,424,1049,439,1061,456,1071,454,1075,435,1065,420,1052,411,1040,402,1027,387,1014,366,1002"/>
+<area shape="poly" title=" " alt="" coords="357,412,450,440,448,445,355,418"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7" title=" " alt="" coords="470,267,595,307"/>
+<area shape="poly" title=" " alt="" coords="326,386,374,352,436,317,454,309,456,314,438,321,377,357,329,391"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a0241f94c39962115e9602cc5c3c46796" title=" " alt="" coords="442,332,622,357"/>
+<area shape="poly" title=" " alt="" coords="362,386,464,359,465,364,363,391"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Used to render a bitmap to the screen." alt="" coords="464,381,600,422"/>
+<area shape="poly" title=" " alt="" coords="390,399,448,399,448,404,390,404"/>
 </map>
 </div>
 
@@ -1251,9 +1271,9 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <dl class="todo"><dt><b><a class="el" href="todo.html#_todo000005">Todo</a></b></dt><dd>Implement the Super Donkey 1 graphics decompression </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00423">423</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00421">421</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="constants_8h_source.html#l00020">BEGIN_TABLE</a>, <a class="el" href="graphics__editor_8h_source.html#l00176">bin_bitmap_</a>, <a class="el" href="canvas_8cc_source.html#l00831">yaze::gui::BitmapCanvasPipeline()</a>, <a class="el" href="graphics__editor_8h_source.html#l00174">cgx_bitmap_</a>, <a class="el" href="graphics__editor_8h_source.html#l00140">cgx_loaded_</a>, <a class="el" href="graphics__editor_8h_source.html#l00139">col_file_</a>, <a class="el" href="graphics__editor_8cc_source.html#l00515">DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00700">DrawClipboardImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00730">DrawExperimentalFeatures()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00668">DrawFileImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00746">DrawMemoryEditor()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00579">DrawPaletteControls()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00548">DrawScrImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00488">DrawToolset()</a>, <a class="el" href="constants_8h_source.html#l00005">END_TAB_ITEM</a>, <a class="el" href="constants_8h_source.html#l00029">END_TABLE</a>, <a class="el" href="graphics__editor_8h_source.html#l00136">gfx_loaded_</a>, <a class="el" href="graphics__editor_8h_source.html#l00184">import_canvas_</a>, <a class="el" href="constants_8h_source.html#l00027">NEXT_COLUMN</a>, <a class="el" href="graphics__editor_8h_source.html#l00135">open_memory_editor_</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="graphics__editor_8h_source.html#l00175">scr_bitmap_</a>, <a class="el" href="graphics__editor_8h_source.html#l00185">scr_canvas_</a>, <a class="el" href="graphics__editor_8h_source.html#l00141">scr_loaded_</a>, <a class="el" href="constants_8h_source.html#l00021">SETUP_COLUMN</a>, <a class="el" href="graphics__editor_8h_source.html#l00194">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00138">super_donkey_</a>, <a class="el" href="constants_8h_source.html#l00004">TAB_ITEM</a>, and <a class="el" href="constants_8h_source.html#l00023">TABLE_HEADERS</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00020">BEGIN_TABLE</a>, <a class="el" href="graphics__editor_8h_source.html#l00176">bin_bitmap_</a>, <a class="el" href="canvas_8cc_source.html#l00831">yaze::gui::BitmapCanvasPipeline()</a>, <a class="el" href="graphics__editor_8h_source.html#l00174">cgx_bitmap_</a>, <a class="el" href="graphics__editor_8h_source.html#l00140">cgx_loaded_</a>, <a class="el" href="graphics__editor_8h_source.html#l00139">col_file_</a>, <a class="el" href="graphics__editor_8cc_source.html#l00513">DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00698">DrawClipboardImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00728">DrawExperimentalFeatures()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00666">DrawFileImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00744">DrawMemoryEditor()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00577">DrawPaletteControls()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00546">DrawScrImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00486">DrawToolset()</a>, <a class="el" href="constants_8h_source.html#l00005">END_TAB_ITEM</a>, <a class="el" href="constants_8h_source.html#l00029">END_TABLE</a>, <a class="el" href="graphics__editor_8h_source.html#l00136">gfx_loaded_</a>, <a class="el" href="graphics__editor_8h_source.html#l00185">import_canvas_</a>, <a class="el" href="constants_8h_source.html#l00027">NEXT_COLUMN</a>, <a class="el" href="graphics__editor_8h_source.html#l00135">open_memory_editor_</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="graphics__editor_8h_source.html#l00175">scr_bitmap_</a>, <a class="el" href="graphics__editor_8h_source.html#l00186">scr_canvas_</a>, <a class="el" href="graphics__editor_8h_source.html#l00141">scr_loaded_</a>, <a class="el" href="constants_8h_source.html#l00021">SETUP_COLUMN</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00138">super_donkey_</a>, <a class="el" href="constants_8h_source.html#l00004">TAB_ITEM</a>, and <a class="el" href="constants_8h_source.html#l00023">TABLE_HEADERS</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00044">Update()</a>.</p>
 <div class="dynheader">
@@ -1359,11 +1379,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00515">515</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00513">513</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00321">yaze::gfx::Bitmap::ApplyPalette()</a>, <a class="el" href="graphics__editor_8h_source.html#l00174">cgx_bitmap_</a>, <a class="el" href="graphics__editor_8h_source.html#l00169">cgx_data_</a>, <a class="el" href="graphics__editor_8h_source.html#l00149">cgx_file_name_</a>, <a class="el" href="graphics__editor_8h_source.html#l00148">cgx_file_path_</a>, <a class="el" href="graphics__editor_8h_source.html#l00140">cgx_loaded_</a>, <a class="el" href="graphics__editor_8h_source.html#l00139">col_file_</a>, <a class="el" href="bitmap_8cc_source.html#l00221">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="graphics__editor_8h_source.html#l00126">current_bpp_</a>, <a class="el" href="graphics__editor_8h_source.html#l00168">decoded_cgx_</a>, <a class="el" href="graphics__editor_8h_source.html#l00171">decoded_col_</a>, <a class="el" href="graphics__editor_8h_source.html#l00170">extra_cgx_data_</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="scad__format_8cc_source.html#l00043">yaze::gfx::scad_format::LoadCgx()</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="graphics__editor_8h_source.html#l00194">status_</a>, and <a class="el" href="style_8cc_source.html#l00746">yaze::gui::TextWithSeparators()</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00321">yaze::gfx::Bitmap::ApplyPalette()</a>, <a class="el" href="graphics__editor_8h_source.html#l00174">cgx_bitmap_</a>, <a class="el" href="graphics__editor_8h_source.html#l00169">cgx_data_</a>, <a class="el" href="graphics__editor_8h_source.html#l00149">cgx_file_name_</a>, <a class="el" href="graphics__editor_8h_source.html#l00148">cgx_file_path_</a>, <a class="el" href="graphics__editor_8h_source.html#l00140">cgx_loaded_</a>, <a class="el" href="graphics__editor_8h_source.html#l00139">col_file_</a>, <a class="el" href="bitmap_8cc_source.html#l00221">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="graphics__editor_8h_source.html#l00126">current_bpp_</a>, <a class="el" href="graphics__editor_8h_source.html#l00168">decoded_cgx_</a>, <a class="el" href="graphics__editor_8h_source.html#l00171">decoded_col_</a>, <a class="el" href="graphics__editor_8h_source.html#l00170">extra_cgx_data_</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="scad__format_8cc_source.html#l00043">yaze::gfx::scad_format::LoadCgx()</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, and <a class="el" href="style_8cc_source.html#l00746">yaze::gui::TextWithSeparators()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1429,11 +1449,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00548">548</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00546">546</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00321">yaze::gfx::Bitmap::ApplyPalette()</a>, <a class="el" href="bitmap_8cc_source.html#l00221">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="graphics__editor_8h_source.html#l00126">current_bpp_</a>, <a class="el" href="graphics__editor_8h_source.html#l00168">decoded_cgx_</a>, <a class="el" href="graphics__editor_8h_source.html#l00171">decoded_col_</a>, <a class="el" href="graphics__editor_8h_source.html#l00173">decoded_scr_data_</a>, <a class="el" href="scad__format_8cc_source.html#l00120">yaze::gfx::scad_format::DrawScrWithCgx()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="scad__format_8cc_source.html#l00068">yaze::gfx::scad_format::LoadScr()</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="graphics__editor_8h_source.html#l00175">scr_bitmap_</a>, <a class="el" href="graphics__editor_8h_source.html#l00172">scr_data_</a>, <a class="el" href="graphics__editor_8h_source.html#l00151">scr_file_name_</a>, <a class="el" href="graphics__editor_8h_source.html#l00150">scr_file_path_</a>, <a class="el" href="graphics__editor_8h_source.html#l00141">scr_loaded_</a>, <a class="el" href="graphics__editor_8h_source.html#l00127">scr_mod_value_</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, and <a class="el" href="graphics__editor_8h_source.html#l00194">status_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00321">yaze::gfx::Bitmap::ApplyPalette()</a>, <a class="el" href="bitmap_8cc_source.html#l00221">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="graphics__editor_8h_source.html#l00126">current_bpp_</a>, <a class="el" href="graphics__editor_8h_source.html#l00168">decoded_cgx_</a>, <a class="el" href="graphics__editor_8h_source.html#l00171">decoded_col_</a>, <a class="el" href="graphics__editor_8h_source.html#l00173">decoded_scr_data_</a>, <a class="el" href="scad__format_8cc_source.html#l00120">yaze::gfx::scad_format::DrawScrWithCgx()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="scad__format_8cc_source.html#l00068">yaze::gfx::scad_format::LoadScr()</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="graphics__editor_8h_source.html#l00175">scr_bitmap_</a>, <a class="el" href="graphics__editor_8h_source.html#l00172">scr_data_</a>, <a class="el" href="graphics__editor_8h_source.html#l00151">scr_file_name_</a>, <a class="el" href="graphics__editor_8h_source.html#l00150">scr_file_path_</a>, <a class="el" href="graphics__editor_8h_source.html#l00141">scr_loaded_</a>, <a class="el" href="graphics__editor_8h_source.html#l00127">scr_mod_value_</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, and <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1502,11 +1522,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00668">668</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00666">666</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00130">bin_size_</a>, <a class="el" href="graphics__editor_8h_source.html#l00123">current_offset_</a>, <a class="el" href="graphics__editor_8cc_source.html#l00756">DecompressImportData()</a>, <a class="el" href="graphics__editor_8h_source.html#l00145">file_path_</a>, <a class="el" href="constants_8h_source.html#l00033">HOVER_HINT</a>, <a class="el" href="input_8cc_source.html#l00135">yaze::gui::InputHex()</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="rom_8cc_source.html#l00170">yaze::Rom::LoadFromFile()</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="graphics__editor_8h_source.html#l00194">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>, and <a class="el" href="style_8cc_source.html#l00746">yaze::gui::TextWithSeparators()</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00130">bin_size_</a>, <a class="el" href="graphics__editor_8h_source.html#l00123">current_offset_</a>, <a class="el" href="graphics__editor_8cc_source.html#l00754">DecompressImportData()</a>, <a class="el" href="graphics__editor_8h_source.html#l00145">file_path_</a>, <a class="el" href="constants_8h_source.html#l00033">HOVER_HINT</a>, <a class="el" href="input_8cc_source.html#l00135">yaze::gui::InputHex()</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="rom_8cc_source.html#l00171">yaze::Rom::LoadFromFile()</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>, and <a class="el" href="style_8cc_source.html#l00746">yaze::gui::TextWithSeparators()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1575,9 +1595,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00627">627</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00625">625</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="constants_8h_source.html#l00033">HOVER_HINT</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="rom_8cc_source.html#l00170">yaze::Rom::LoadFromFile()</a>, <a class="el" href="graphics__editor_8h_source.html#l00152">obj_file_path_</a>, <a class="el" href="graphics__editor_8h_source.html#l00142">obj_loaded_</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="graphics__editor_8h_source.html#l00194">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>, and <a class="el" href="style_8cc_source.html#l00746">yaze::gui::TextWithSeparators()</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00033">HOVER_HINT</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="rom_8cc_source.html#l00171">yaze::Rom::LoadFromFile()</a>, <a class="el" href="graphics__editor_8h_source.html#l00152">obj_file_path_</a>, <a class="el" href="graphics__editor_8h_source.html#l00142">obj_loaded_</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>, and <a class="el" href="style_8cc_source.html#l00746">yaze::gui::TextWithSeparators()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1624,9 +1644,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00645">645</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00643">643</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00442">yaze::Rom::data()</a>, <a class="el" href="compression_8cc_source.html#l01370">yaze::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="constants_8h_source.html#l00033">HOVER_HINT</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="compression_8h_source.html#l00052">yaze::gfx::lc_lz2::kNintendoMode1</a>, <a class="el" href="rom_8cc_source.html#l00170">yaze::Rom::LoadFromFile()</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="graphics__editor_8h_source.html#l00194">status_</a>, <a class="el" href="style_8cc_source.html#l00746">yaze::gui::TextWithSeparators()</a>, <a class="el" href="graphics__editor_8h_source.html#l00153">tilemap_file_path_</a>, <a class="el" href="graphics__editor_8h_source.html#l00143">tilemap_loaded_</a>, and <a class="el" href="graphics__editor_8h_source.html#l00161">tilemap_rom_</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00416">yaze::Rom::data()</a>, <a class="el" href="compression_8cc_source.html#l01370">yaze::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="constants_8h_source.html#l00033">HOVER_HINT</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="compression_8h_source.html#l00052">yaze::gfx::lc_lz2::kNintendoMode1</a>, <a class="el" href="rom_8cc_source.html#l00171">yaze::Rom::LoadFromFile()</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, <a class="el" href="style_8cc_source.html#l00746">yaze::gui::TextWithSeparators()</a>, <a class="el" href="graphics__editor_8h_source.html#l00153">tilemap_file_path_</a>, <a class="el" href="graphics__editor_8h_source.html#l00143">tilemap_loaded_</a>, and <a class="el" href="graphics__editor_8h_source.html#l00161">tilemap_rom_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1679,11 +1699,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00488">488</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00486">486</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="icons_8h_source.html#l01193">ICON_MD_MEMORY</a>, <a class="el" href="graphics__editor_8h_source.html#l00135">open_memory_editor_</a>, and <a class="el" href="constants_8h_source.html#l00016">TEXT_COLUMN</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -1710,11 +1730,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00579">579</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00577">577</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00210">yaze::gfx::PaletteGroup::clear()</a>, <a class="el" href="graphics__editor_8h_source.html#l00139">col_file_</a>, <a class="el" href="graphics__editor_8h_source.html#l00147">col_file_name_</a>, <a class="el" href="graphics__editor_8h_source.html#l00182">col_file_palette_</a>, <a class="el" href="graphics__editor_8h_source.html#l00180">col_file_palette_group_</a>, <a class="el" href="graphics__editor_8h_source.html#l00146">col_file_path_</a>, <a class="el" href="snes__palette_8cc_source.html#l00301">yaze::gfx::CreatePaletteGroupFromColFile()</a>, <a class="el" href="graphics__editor_8h_source.html#l00122">current_palette_</a>, <a class="el" href="graphics__editor_8h_source.html#l00125">current_palette_index_</a>, <a class="el" href="scad__format_8cc_source.html#l00159">yaze::gfx::scad_format::DecodeColFile()</a>, <a class="el" href="graphics__editor_8h_source.html#l00171">decoded_col_</a>, <a class="el" href="snes__color_8cc_source.html#l00089">yaze::gfx::GetColFileData()</a>, <a class="el" href="constants_8h_source.html#l00033">HOVER_HINT</a>, <a class="el" href="input_8cc_source.html#l00135">yaze::gui::InputHex()</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="rom_8cc_source.html#l00170">yaze::Rom::LoadFromFile()</a>, <a class="el" href="rom_8h_source.html#l00443">yaze::Rom::mutable_data()</a>, <a class="el" href="graphics__editor_8h_source.html#l00134">refresh_graphics_</a>, <a class="el" href="rom_8h_source.html#l00582">yaze::SharedRom::rom()</a>, <a class="el" href="color_8cc_source.html#l00127">yaze::gui::SelectablePalettePipeline()</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="snes__palette_8h_source.html#l00212">yaze::gfx::PaletteGroup::size()</a>, <a class="el" href="snes__palette_8h_source.html#l00148">yaze::gfx::SnesPalette::size()</a>, <a class="el" href="graphics__editor_8h_source.html#l00194">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>, and <a class="el" href="style_8cc_source.html#l00746">yaze::gui::TextWithSeparators()</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00210">yaze::gfx::PaletteGroup::clear()</a>, <a class="el" href="graphics__editor_8h_source.html#l00139">col_file_</a>, <a class="el" href="graphics__editor_8h_source.html#l00147">col_file_name_</a>, <a class="el" href="graphics__editor_8h_source.html#l00183">col_file_palette_</a>, <a class="el" href="graphics__editor_8h_source.html#l00181">col_file_palette_group_</a>, <a class="el" href="graphics__editor_8h_source.html#l00146">col_file_path_</a>, <a class="el" href="snes__palette_8cc_source.html#l00301">yaze::gfx::CreatePaletteGroupFromColFile()</a>, <a class="el" href="graphics__editor_8h_source.html#l00122">current_palette_</a>, <a class="el" href="graphics__editor_8h_source.html#l00125">current_palette_index_</a>, <a class="el" href="scad__format_8cc_source.html#l00159">yaze::gfx::scad_format::DecodeColFile()</a>, <a class="el" href="graphics__editor_8h_source.html#l00171">decoded_col_</a>, <a class="el" href="snes__color_8cc_source.html#l00089">yaze::gfx::GetColFileData()</a>, <a class="el" href="constants_8h_source.html#l00033">HOVER_HINT</a>, <a class="el" href="input_8cc_source.html#l00135">yaze::gui::InputHex()</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="rom_8cc_source.html#l00171">yaze::Rom::LoadFromFile()</a>, <a class="el" href="rom_8h_source.html#l00417">yaze::Rom::mutable_data()</a>, <a class="el" href="graphics__editor_8h_source.html#l00134">refresh_graphics_</a>, <a class="el" href="rom_8h_source.html#l00588">yaze::SharedRom::rom()</a>, <a class="el" href="color_8cc_source.html#l00127">yaze::gui::SelectablePalettePipeline()</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="snes__palette_8h_source.html#l00212">yaze::gfx::PaletteGroup::size()</a>, <a class="el" href="snes__palette_8h_source.html#l00148">yaze::gfx::SnesPalette::size()</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>, and <a class="el" href="style_8cc_source.html#l00746">yaze::gui::TextWithSeparators()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1791,11 +1811,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00700">700</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00698">698</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00131">clipboard_offset_</a>, <a class="el" href="graphics__editor_8h_source.html#l00132">clipboard_size_</a>, <a class="el" href="graphics__editor_8cc_source.html#l00756">DecompressImportData()</a>, <a class="el" href="input_8cc_source.html#l00135">yaze::gui::InputHex()</a>, <a class="el" href="rom_8h_source.html#l00429">yaze::Rom::is_loaded()</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="rom_8cc_source.html#l00269">yaze::Rom::LoadFromBytes()</a>, <a class="el" href="graphics__editor_8h_source.html#l00129">num_sheets_to_load_</a>, <a class="el" href="graphics__editor_8h_source.html#l00135">open_memory_editor_</a>, <a class="el" href="graphics__editor_8h_source.html#l00194">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>, and <a class="el" href="style_8cc_source.html#l00746">yaze::gui::TextWithSeparators()</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00131">clipboard_offset_</a>, <a class="el" href="graphics__editor_8h_source.html#l00132">clipboard_size_</a>, <a class="el" href="graphics__editor_8cc_source.html#l00754">DecompressImportData()</a>, <a class="el" href="input_8cc_source.html#l00135">yaze::gui::InputHex()</a>, <a class="el" href="rom_8h_source.html#l00402">yaze::Rom::is_loaded()</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="rom_8cc_source.html#l00270">yaze::Rom::LoadFromBytes()</a>, <a class="el" href="graphics__editor_8h_source.html#l00129">num_sheets_to_load_</a>, <a class="el" href="graphics__editor_8h_source.html#l00135">open_memory_editor_</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>, and <a class="el" href="style_8cc_source.html#l00746">yaze::gui::TextWithSeparators()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1859,11 +1879,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00730">730</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00728">728</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="graphics__editor_8cc_source.html#l00780">DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8h_source.html#l00145">file_path_</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, and <a class="el" href="style_8cc_source.html#l00746">yaze::gui::TextWithSeparators()</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8cc_source.html#l00778">DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8h_source.html#l00145">file_path_</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, and <a class="el" href="style_8cc_source.html#l00746">yaze::gui::TextWithSeparators()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1915,11 +1935,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00746">746</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00744">744</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="rom_8h_source.html#l00443">yaze::Rom::mutable_data()</a>, <a class="el" href="rom_8h_source.html#l00441">yaze::Rom::size()</a>, and <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="rom_8h_source.html#l00417">yaze::Rom::mutable_data()</a>, <a class="el" href="rom_8h_source.html#l00415">yaze::Rom::size()</a>, and <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1958,11 +1978,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00756">756</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00754">754</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00321">yaze::gfx::Bitmap::ApplyPalette()</a>, <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="graphics__editor_8h_source.html#l00176">bin_bitmap_</a>, <a class="el" href="graphics__editor_8h_source.html#l00139">col_file_</a>, <a class="el" href="graphics__editor_8h_source.html#l00182">col_file_palette_</a>, <a class="el" href="bitmap_8cc_source.html#l00221">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="graphics__editor_8h_source.html#l00123">current_offset_</a>, <a class="el" href="graphics__editor_8h_source.html#l00122">current_palette_</a>, <a class="el" href="rom_8h_source.html#l00442">yaze::Rom::data()</a>, <a class="el" href="compression_8cc_source.html#l01370">yaze::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00136">gfx_loaded_</a>, <a class="el" href="graphics__editor_8h_source.html#l00166">import_data_</a>, <a class="el" href="src_2app_2gfx_2snes__tile_8h_source.html#l00017">yaze::gfx::kTilesheetDepth</a>, <a class="el" href="src_2app_2gfx_2snes__tile_8h_source.html#l00015">yaze::gfx::kTilesheetWidth</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="rom_8h_source.html#l00582">yaze::SharedRom::rom()</a>, <a class="el" href="snes__tile_8cc_source.html#l00151">yaze::gfx::SnesTo8bppSheet()</a>, <a class="el" href="graphics__editor_8h_source.html#l00194">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>, and <a class="el" href="graphics__editor_8h_source.html#l00181">z3_rom_palette_</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00321">yaze::gfx::Bitmap::ApplyPalette()</a>, <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="graphics__editor_8h_source.html#l00176">bin_bitmap_</a>, <a class="el" href="graphics__editor_8h_source.html#l00139">col_file_</a>, <a class="el" href="graphics__editor_8h_source.html#l00183">col_file_palette_</a>, <a class="el" href="bitmap_8cc_source.html#l00221">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="graphics__editor_8h_source.html#l00123">current_offset_</a>, <a class="el" href="graphics__editor_8h_source.html#l00122">current_palette_</a>, <a class="el" href="rom_8h_source.html#l00416">yaze::Rom::data()</a>, <a class="el" href="compression_8cc_source.html#l01370">yaze::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00136">gfx_loaded_</a>, <a class="el" href="graphics__editor_8h_source.html#l00166">import_data_</a>, <a class="el" href="src_2app_2gfx_2snes__tile_8h_source.html#l00017">yaze::gfx::kTilesheetDepth</a>, <a class="el" href="src_2app_2gfx_2snes__tile_8h_source.html#l00015">yaze::gfx::kTilesheetWidth</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="rom_8h_source.html#l00588">yaze::SharedRom::rom()</a>, <a class="el" href="snes__tile_8cc_source.html#l00151">yaze::gfx::SnesTo8bppSheet()</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>, and <a class="el" href="graphics__editor_8h_source.html#l00182">z3_rom_palette_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00700">DrawClipboardImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00668">DrawFileImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00698">DrawClipboardImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00666">DrawFileImport()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2031,11 +2051,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00780">780</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00778">778</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="graphics__editor_8h_source.html#l00139">col_file_</a>, <a class="el" href="graphics__editor_8h_source.html#l00180">col_file_palette_group_</a>, <a class="el" href="graphics__editor_8h_source.html#l00122">current_palette_</a>, <a class="el" href="graphics__editor_8h_source.html#l00125">current_palette_index_</a>, <a class="el" href="rom_8h_source.html#l00442">yaze::Rom::data()</a>, <a class="el" href="compression_8cc_source.html#l01370">yaze::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00178">gfx_sheets_</a>, <a class="el" href="graphics__editor_8h_source.html#l00031">yaze::editor::kSuperDonkeySprites</a>, <a class="el" href="graphics__editor_8h_source.html#l00023">yaze::editor::kSuperDonkeyTiles</a>, <a class="el" href="src_2app_2gfx_2snes__tile_8h_source.html#l00017">yaze::gfx::kTilesheetDepth</a>, <a class="el" href="src_2app_2gfx_2snes__tile_8h_source.html#l00016">yaze::gfx::kTilesheetHeight</a>, <a class="el" href="src_2app_2gfx_2snes__tile_8h_source.html#l00015">yaze::gfx::kTilesheetWidth</a>, <a class="el" href="graphics__editor_8h_source.html#l00129">num_sheets_to_load_</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="rom_8h_source.html#l00582">yaze::SharedRom::rom()</a>, <a class="el" href="snes__tile_8cc_source.html#l00151">yaze::gfx::SnesTo8bppSheet()</a>, <a class="el" href="graphics__editor_8h_source.html#l00194">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00138">super_donkey_</a>, <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>, and <a class="el" href="graphics__editor_8h_source.html#l00181">z3_rom_palette_</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="graphics__editor_8h_source.html#l00139">col_file_</a>, <a class="el" href="graphics__editor_8h_source.html#l00181">col_file_palette_group_</a>, <a class="el" href="graphics__editor_8h_source.html#l00122">current_palette_</a>, <a class="el" href="graphics__editor_8h_source.html#l00125">current_palette_index_</a>, <a class="el" href="rom_8h_source.html#l00416">yaze::Rom::data()</a>, <a class="el" href="compression_8cc_source.html#l01370">yaze::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00178">gfx_sheets_</a>, <a class="el" href="graphics__editor_8h_source.html#l00031">yaze::editor::kSuperDonkeySprites</a>, <a class="el" href="graphics__editor_8h_source.html#l00023">yaze::editor::kSuperDonkeyTiles</a>, <a class="el" href="src_2app_2gfx_2snes__tile_8h_source.html#l00017">yaze::gfx::kTilesheetDepth</a>, <a class="el" href="src_2app_2gfx_2snes__tile_8h_source.html#l00016">yaze::gfx::kTilesheetHeight</a>, <a class="el" href="src_2app_2gfx_2snes__tile_8h_source.html#l00015">yaze::gfx::kTilesheetWidth</a>, <a class="el" href="graphics__editor_8h_source.html#l00129">num_sheets_to_load_</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="rom_8h_source.html#l00588">yaze::SharedRom::rom()</a>, <a class="el" href="snes__tile_8cc_source.html#l00151">yaze::gfx::SnesTo8bppSheet()</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00138">super_donkey_</a>, <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>, and <a class="el" href="graphics__editor_8h_source.html#l00182">z3_rom_palette_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00730">DrawExperimentalFeatures()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00728">DrawExperimentalFeatures()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2087,7 +2107,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00108">108</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00092">DrawGfxEditToolset()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00249">UpdateGfxTabView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00092">DrawGfxEditToolset()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00248">UpdateGfxTabView()</a>.</p>
 
 </div>
 </div>
@@ -2113,7 +2133,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00109">109</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00092">DrawGfxEditToolset()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00176">UpdateGfxSheetList()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00249">UpdateGfxTabView()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00345">UpdatePaletteColumn()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00092">DrawGfxEditToolset()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00175">UpdateGfxSheetList()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00248">UpdateGfxTabView()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00344">UpdatePaletteColumn()</a>.</p>
 
 </div>
 </div>
@@ -2139,7 +2159,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00110">110</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00092">DrawGfxEditToolset()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00249">UpdateGfxTabView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00092">DrawGfxEditToolset()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00248">UpdateGfxTabView()</a>.</p>
 
 </div>
 </div>
@@ -2165,7 +2185,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00111">111</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00176">UpdateGfxSheetList()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00249">UpdateGfxTabView()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00345">UpdatePaletteColumn()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00175">UpdateGfxSheetList()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00248">UpdateGfxTabView()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00344">UpdatePaletteColumn()</a>.</p>
 
 </div>
 </div>
@@ -2191,7 +2211,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00112">112</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00249">UpdateGfxTabView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00248">UpdateGfxTabView()</a>.</p>
 
 </div>
 </div>
@@ -2217,7 +2237,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00113">113</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00249">UpdateGfxTabView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00248">UpdateGfxTabView()</a>.</p>
 
 </div>
 </div>
@@ -2243,7 +2263,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00114">114</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00345">UpdatePaletteColumn()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00344">UpdatePaletteColumn()</a>.</p>
 
 </div>
 </div>
@@ -2293,7 +2313,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00116">116</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00345">UpdatePaletteColumn()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00344">UpdatePaletteColumn()</a>.</p>
 
 </div>
 </div>
@@ -2319,7 +2339,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00117">117</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00345">UpdatePaletteColumn()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00344">UpdatePaletteColumn()</a>.</p>
 
 </div>
 </div>
@@ -2345,7 +2365,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00118">118</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00176">UpdateGfxSheetList()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00175">UpdateGfxSheetList()</a>.</p>
 
 </div>
 </div>
@@ -2371,7 +2391,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00119">119</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00092">DrawGfxEditToolset()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00249">UpdateGfxTabView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00092">DrawGfxEditToolset()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00248">UpdateGfxTabView()</a>.</p>
 
 </div>
 </div>
@@ -2397,7 +2417,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00122">122</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00756">DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00780">DecompressSuperDonkey()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00579">DrawPaletteControls()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00754">DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00778">DecompressSuperDonkey()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00577">DrawPaletteControls()</a>.</p>
 
 </div>
 </div>
@@ -2423,7 +2443,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00123">123</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00756">DecompressImportData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00668">DrawFileImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00754">DecompressImportData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00666">DrawFileImport()</a>.</p>
 
 </div>
 </div>
@@ -2473,7 +2493,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00125">125</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00780">DecompressSuperDonkey()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00579">DrawPaletteControls()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00778">DecompressSuperDonkey()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00577">DrawPaletteControls()</a>.</p>
 
 </div>
 </div>
@@ -2499,7 +2519,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00126">126</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00515">DrawCgxImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00548">DrawScrImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00513">DrawCgxImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00546">DrawScrImport()</a>.</p>
 
 </div>
 </div>
@@ -2525,7 +2545,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00127">127</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00548">DrawScrImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00546">DrawScrImport()</a>.</p>
 
 </div>
 </div>
@@ -2551,7 +2571,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00129">129</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00780">DecompressSuperDonkey()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00700">DrawClipboardImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00778">DecompressSuperDonkey()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00698">DrawClipboardImport()</a>.</p>
 
 </div>
 </div>
@@ -2577,7 +2597,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00130">130</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00668">DrawFileImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00666">DrawFileImport()</a>.</p>
 
 </div>
 </div>
@@ -2603,7 +2623,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00131">131</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00700">DrawClipboardImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00698">DrawClipboardImport()</a>.</p>
 
 </div>
 </div>
@@ -2629,7 +2649,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00132">132</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00700">DrawClipboardImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00698">DrawClipboardImport()</a>.</p>
 
 </div>
 </div>
@@ -2655,7 +2675,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00134">134</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00579">DrawPaletteControls()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00345">UpdatePaletteColumn()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00577">DrawPaletteControls()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00344">UpdatePaletteColumn()</a>.</p>
 
 </div>
 </div>
@@ -2681,7 +2701,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00135">135</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00700">DrawClipboardImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00488">DrawToolset()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00698">DrawClipboardImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00486">DrawToolset()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -2707,7 +2727,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00136">136</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00756">DecompressImportData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00754">DecompressImportData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -2733,7 +2753,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00137">137</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00515">DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00700">DrawClipboardImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00668">DrawFileImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00746">DrawMemoryEditor()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00627">DrawObjImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00579">DrawPaletteControls()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00548">DrawScrImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00645">DrawTilemapImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00513">DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00698">DrawClipboardImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00666">DrawFileImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00744">DrawMemoryEditor()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00625">DrawObjImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00577">DrawPaletteControls()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00546">DrawScrImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00643">DrawTilemapImport()</a>.</p>
 
 </div>
 </div>
@@ -2759,7 +2779,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00138">138</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00780">DecompressSuperDonkey()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00778">DecompressSuperDonkey()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -2785,7 +2805,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00139">139</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00756">DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00780">DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00515">DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00579">DrawPaletteControls()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00754">DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00778">DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00513">DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00577">DrawPaletteControls()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -2811,7 +2831,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00140">140</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00515">DrawCgxImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00513">DrawCgxImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -2837,7 +2857,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00141">141</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00548">DrawScrImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00546">DrawScrImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -2863,7 +2883,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00142">142</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00627">DrawObjImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00625">DrawObjImport()</a>.</p>
 
 </div>
 </div>
@@ -2889,7 +2909,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00143">143</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00645">DrawTilemapImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00643">DrawTilemapImport()</a>.</p>
 
 </div>
 </div>
@@ -2915,7 +2935,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00145">145</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00730">DrawExperimentalFeatures()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00668">DrawFileImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00728">DrawExperimentalFeatures()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00666">DrawFileImport()</a>.</p>
 
 </div>
 </div>
@@ -2941,7 +2961,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00146">146</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00579">DrawPaletteControls()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00577">DrawPaletteControls()</a>.</p>
 
 </div>
 </div>
@@ -2967,7 +2987,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00147">147</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00579">DrawPaletteControls()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00577">DrawPaletteControls()</a>.</p>
 
 </div>
 </div>
@@ -2993,7 +3013,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00148">148</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00515">DrawCgxImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00513">DrawCgxImport()</a>.</p>
 
 </div>
 </div>
@@ -3019,7 +3039,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00149">149</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00515">DrawCgxImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00513">DrawCgxImport()</a>.</p>
 
 </div>
 </div>
@@ -3045,7 +3065,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00150">150</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00548">DrawScrImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00546">DrawScrImport()</a>.</p>
 
 </div>
 </div>
@@ -3071,7 +3091,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00151">151</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00548">DrawScrImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00546">DrawScrImport()</a>.</p>
 
 </div>
 </div>
@@ -3097,7 +3117,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00152">152</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00627">DrawObjImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00625">DrawObjImport()</a>.</p>
 
 </div>
 </div>
@@ -3123,7 +3143,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00153">153</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00645">DrawTilemapImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00643">DrawTilemapImport()</a>.</p>
 
 </div>
 </div>
@@ -3225,7 +3245,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00160">160</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00756">DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00780">DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00700">DrawClipboardImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00668">DrawFileImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00746">DrawMemoryEditor()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00627">DrawObjImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00579">DrawPaletteControls()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00754">DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00778">DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00698">DrawClipboardImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00666">DrawFileImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00744">DrawMemoryEditor()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00625">DrawObjImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00577">DrawPaletteControls()</a>.</p>
 
 </div>
 </div>
@@ -3251,7 +3271,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00161">161</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00645">DrawTilemapImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00643">DrawTilemapImport()</a>.</p>
 
 </div>
 </div>
@@ -3373,7 +3393,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00166">166</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00756">DecompressImportData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00754">DecompressImportData()</a>.</p>
 
 </div>
 </div>
@@ -3423,7 +3443,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00168">168</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00515">DrawCgxImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00548">DrawScrImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00513">DrawCgxImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00546">DrawScrImport()</a>.</p>
 
 </div>
 </div>
@@ -3449,7 +3469,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00169">169</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00515">DrawCgxImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00513">DrawCgxImport()</a>.</p>
 
 </div>
 </div>
@@ -3475,7 +3495,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00170">170</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00515">DrawCgxImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00513">DrawCgxImport()</a>.</p>
 
 </div>
 </div>
@@ -3501,7 +3521,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00171">171</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00515">DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00579">DrawPaletteControls()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00548">DrawScrImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00513">DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00577">DrawPaletteControls()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00546">DrawScrImport()</a>.</p>
 
 </div>
 </div>
@@ -3527,7 +3547,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00172">172</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00548">DrawScrImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00546">DrawScrImport()</a>.</p>
 
 </div>
 </div>
@@ -3553,7 +3573,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00173">173</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00548">DrawScrImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00546">DrawScrImport()</a>.</p>
 
 </div>
 </div>
@@ -3579,7 +3599,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00174">174</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00515">DrawCgxImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00513">DrawCgxImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -3605,7 +3625,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00175">175</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00548">DrawScrImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00546">DrawScrImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -3631,7 +3651,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00176">176</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00756">DecompressImportData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00754">DecompressImportData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -3681,7 +3701,33 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00178">178</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00780">DecompressSuperDonkey()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00778">DecompressSuperDonkey()</a>.</p>
+
+</div>
+</div>
+<a id="a1949f589ad8b04be9f84572a64f2f482" name="a1949f589ad8b04be9f84572a64f2f482"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1949f589ad8b04be9f84572a64f2f482">&#9670;&#160;</a></span>link_sheets_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::array&lt;<a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>, <a class="el" href="namespaceyaze.html#a51ca5df538b7f54c045a80783c02b102">kNumLinkSheets</a>&gt; yaze::editor::GraphicsEditor::link_sheets_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00179">179</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00373">UpdateLinkGfxView()</a>.</p>
 
 </div>
 </div>
@@ -3705,9 +3751,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00180">180</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00181">181</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00780">DecompressSuperDonkey()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00579">DrawPaletteControls()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00778">DecompressSuperDonkey()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00577">DrawPaletteControls()</a>.</p>
 
 </div>
 </div>
@@ -3731,9 +3777,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00181">181</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00182">182</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00756">DecompressImportData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00780">DecompressSuperDonkey()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00754">DecompressImportData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00778">DecompressSuperDonkey()</a>.</p>
 
 </div>
 </div>
@@ -3757,9 +3803,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00182">182</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00183">183</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00756">DecompressImportData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00579">DrawPaletteControls()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00754">DecompressImportData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00577">DrawPaletteControls()</a>.</p>
 
 </div>
 </div>
@@ -3783,7 +3829,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00183">183</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00184">184</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
 </div>
 </div>
@@ -3807,9 +3853,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00184">184</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00185">185</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -3833,9 +3879,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00185">185</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00186">186</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -3859,7 +3905,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00186">186</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00187">187</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
 </div>
 </div>
@@ -3883,9 +3929,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00187">187</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00188">188</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00176">UpdateGfxSheetList()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00175">UpdateGfxSheetList()</a>.</p>
 
 </div>
 </div>
@@ -3912,9 +3958,9 @@ Here is the call graph for this function:</div>
 <div class="line">                                    <a class="code hl_enumvalue" href="namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a11a498cf7cb38eb25f54cb73197524f9">gui::CanvasGridSize::k8x8</a>}</div>
 <div class="ttc" id="anamespaceyaze_1_1gui_html_aa7b9cc1741455bb4ffc5ba758912a465a11a498cf7cb38eb25f54cb73197524f9"><div class="ttname"><a href="namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a11a498cf7cb38eb25f54cb73197524f9">yaze::gui::CanvasGridSize::k8x8</a></div><div class="ttdeci">@ k8x8</div></div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00188">188</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00189">189</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00249">UpdateGfxTabView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00248">UpdateGfxTabView()</a>.</p>
 
 </div>
 </div>
@@ -3945,9 +3991,9 @@ Here is the call graph for this function:</div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_a33c61ec68c83c1679ac87d9711d7c0b0"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#a33c61ec68c83c1679ac87d9711d7c0b0">yaze::gfx::kTilesheetWidth</a></div><div class="ttdeci">constexpr int kTilesheetWidth</div><div class="ttdef"><b>Definition</b> <a href="src_2app_2gfx_2snes__tile_8h_source.html#l00015">snes_tile.h:15</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gui_html_aa7b9cc1741455bb4ffc5ba758912a465a10ba45e967f3108e10ed4e3288e6208a"><div class="ttname"><a href="namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a10ba45e967f3108e10ed4e3288e6208a">yaze::gui::CanvasGridSize::k16x16</a></div><div class="ttdeci">@ k16x16</div></div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00190">190</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00191">191</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00375">UpdateLinkGfxView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00373">UpdateLinkGfxView()</a>.</p>
 
 </div>
 </div>
@@ -3971,9 +4017,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00194">194</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00195">195</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00756">DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00780">DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00515">DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00700">DrawClipboardImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00668">DrawFileImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00627">DrawObjImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00579">DrawPaletteControls()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00548">DrawScrImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00645">DrawTilemapImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00044">Update()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00061">UpdateGfxEdit()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00423">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00754">DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00778">DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00513">DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00698">DrawClipboardImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00666">DrawFileImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00625">DrawObjImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00577">DrawPaletteControls()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00546">DrawScrImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00643">DrawTilemapImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00044">Update()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00061">UpdateGfxEdit()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00421">UpdateScadView()</a>.</p>
 
 </div>
 </div>

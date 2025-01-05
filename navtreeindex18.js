@@ -1,5 +1,9 @@
 var NAVTREEINDEX18 =
 {
+"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#af3727759474e4f774be0f383c84a609d":[11,0,0,7,2,14],
+"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#af60e781ae54ba837ee5e49780b416aac":[10,0,1,8,5,1],
+"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#af60e781ae54ba837ee5e49780b416aac":[11,0,0,7,2,1],
+"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#afee3308c7846f91798b3add9b90518dc":[10,0,1,8,5,2],
 "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#afee3308c7846f91798b3add9b90518dc":[11,0,0,7,2,2],
 "classyaze_1_1zelda3_1_1GameEntity.html":[10,0,1,8,6],
 "classyaze_1_1zelda3_1_1GameEntity.html":[11,0,0,7,3],
@@ -245,9 +249,5 @@ var NAVTREEINDEX18 =
 "classyaze_1_1zelda3_1_1OverworldEntrance.html#a935168fb6a8ab3b913be4b06c25e74bc":[11,0,0,7,6,8],
 "classyaze_1_1zelda3_1_1OverworldEntrance.html#a98a6b2fc8f8017dcb489de35dd284eb5":[10,0,1,8,9,4],
 "classyaze_1_1zelda3_1_1OverworldEntrance.html#a98a6b2fc8f8017dcb489de35dd284eb5":[11,0,0,7,6,4],
-"classyaze_1_1zelda3_1_1OverworldEntrance.html#ac1c1f3483dda9fed8dc9ae1487635e5d":[10,0,1,8,9,1],
-"classyaze_1_1zelda3_1_1OverworldEntrance.html#ac1c1f3483dda9fed8dc9ae1487635e5d":[11,0,0,7,6,1],
-"classyaze_1_1zelda3_1_1OverworldEntrance.html#adb0923cfeb46eb7ee6d571f46e054fdd":[10,0,1,8,9,3],
-"classyaze_1_1zelda3_1_1OverworldEntrance.html#adb0923cfeb46eb7ee6d571f46e054fdd":[11,0,0,7,6,3],
-"classyaze_1_1zelda3_1_1OverworldExit.html":[10,0,1,8,11]
+"classyaze_1_1zelda3_1_1OverworldEntrance.html#ac1c1f3483dda9fed8dc9ae1487635e5d":[10,0,1,8,9,1]
 };

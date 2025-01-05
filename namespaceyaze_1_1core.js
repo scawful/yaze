@@ -16,10 +16,17 @@ var namespaceyaze_1_1core =
       [ "ldle3", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#ae6064f68a5f5ea3d74189dd5e4a5dea8", null ],
       [ "HandleHexStringParams", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a5bee52f0340097913cdf52b6f646b3c5", null ]
     ] ],
+    [ "anonymous_namespace{font_loader.cc}", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html", [
+      [ "SetFontPath", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a0d62353b28e596070a67929b63594ce1", null ],
+      [ "LoadFont", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#aeb026c1f2d88cd2c2d4ac9a283861bbe", null ],
+      [ "AddIconFont", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a82cea28d20aa5940139649ecb62852da", null ],
+      [ "AddJapaneseFont", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a9986c5e862a6cfc14588a1b618d29f15", null ]
+    ] ],
     [ "Controller", "classyaze_1_1core_1_1Controller.html", "classyaze_1_1core_1_1Controller" ],
     [ "ExperimentFlags", "classyaze_1_1core_1_1ExperimentFlags.html", "classyaze_1_1core_1_1ExperimentFlags" ],
     [ "FileDialogWrapper", "classyaze_1_1core_1_1FileDialogWrapper.html", null ],
     [ "FolderItem", "structyaze_1_1core_1_1FolderItem.html", "structyaze_1_1core_1_1FolderItem" ],
+    [ "FontConfig", "structyaze_1_1core_1_1FontConfig.html", "structyaze_1_1core_1_1FontConfig" ],
     [ "HexStringParams", "structyaze_1_1core_1_1HexStringParams.html", "structyaze_1_1core_1_1HexStringParams" ],
     [ "NotifyValue", "classyaze_1_1core_1_1NotifyValue.html", "classyaze_1_1core_1_1NotifyValue" ],
     [ "Renderer", "classyaze_1_1core_1_1Renderer.html", "classyaze_1_1core_1_1Renderer" ],

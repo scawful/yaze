@@ -1,0 +1,9 @@
+<map id="yaze::core::anonymous_namespace{font_loader::cc}::AddJapaneseFont" name="yaze::core::anonymous_namespace{font_loader::cc}::AddJapaneseFont">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,169,85"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="45,29,46,19,53,10,67,5,87,3,109,5,123,12,121,17,108,10,87,8,68,10,56,15,51,21,51,29"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a0d62353b28e596070a67929b63594ce1" title=" " alt="" coords="217,29,380,85"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="169,54,201,54,201,60,169,60"/>
+<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="257,29,257,19,265,10,279,5,298,3,321,5,334,12,332,17,319,10,298,8,280,10,268,15,262,21,262,29"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1core.html#a00e77355a028aee0d2e98d928c4931f5" title="GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS." alt="" coords="428,44,655,70"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="380,54,412,54,412,60,380,60"/>
+</map>

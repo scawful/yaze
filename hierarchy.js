@@ -103,6 +103,7 @@ var hierarchy =
     [ "yaze::emu::Spc700::Flags", "structyaze_1_1emu_1_1Spc700_1_1Flags.html", null ],
     [ "yaze::editor::FlagsMenu", "structyaze_1_1editor_1_1FlagsMenu.html", null ],
     [ "yaze::core::FolderItem", "structyaze_1_1core_1_1FolderItem.html", null ],
+    [ "yaze::core::FontConfig", "structyaze_1_1core_1_1FontConfig.html", null ],
     [ "yaze::zelda3::GameEntity", "classyaze_1_1zelda3_1_1GameEntity.html", [
       [ "yaze::zelda3::OverworldEntrance", "classyaze_1_1zelda3_1_1OverworldEntrance.html", null ],
       [ "yaze::zelda3::OverworldExit", "classyaze_1_1zelda3_1_1OverworldExit.html", null ],
@@ -117,6 +118,7 @@ var hierarchy =
     [ "yaze::gui::GfxSheetAssetBrowser", "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html", null ],
     [ "TextEditor::Glyph", "structTextEditor_1_1Glyph.html", null ],
     [ "yaze::gfx::GraphicsBuffer", "classyaze_1_1gfx_1_1GraphicsBuffer.html", null ],
+    [ "yaze::GraphicsSheetManager", "classyaze_1_1GraphicsSheetManager.html", null ],
     [ "yaze::core::HexStringParams", "structyaze_1_1core_1_1HexStringParams.html", null ],
     [ "yaze::editor::HistoryManager", "classyaze_1_1editor_1_1HistoryManager.html", null ],
     [ "TextEditor::Identifier", "structTextEditor_1_1Identifier.html", null ],

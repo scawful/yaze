@@ -1,5 +1,5 @@
 <map id="yaze::Rom::ReadLong" name="yaze::Rom::ReadLong">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,5,151,31"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a4f206b5fc4e64680dccee58086eb879a" title="Precondition check for reading and writing to the Rom." alt="" coords="199,5,424,31"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a407b08f0239ae3a7082b96f65450da42" title="Precondition check for reading and writing to the Rom." alt="" coords="199,5,424,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,16,183,16,183,21,151,21"/>
 </map>

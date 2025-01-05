@@ -95,6 +95,7 @@ var classyaze_1_1editor_1_1GraphicsEditor =
     [ "bin_bitmap_", "classyaze_1_1editor_1_1GraphicsEditor.html#af7dbc2fafbb6cd9fe38d7b0f51ca0f0e", null ],
     [ "link_full_sheet_", "classyaze_1_1editor_1_1GraphicsEditor.html#a1a5791825052e50494da22e67f17b803", null ],
     [ "gfx_sheets_", "classyaze_1_1editor_1_1GraphicsEditor.html#a617c3b92e108478e9aa6deaa3d7e0e5b", null ],
+    [ "link_sheets_", "classyaze_1_1editor_1_1GraphicsEditor.html#a1949f589ad8b04be9f84572a64f2f482", null ],
     [ "col_file_palette_group_", "classyaze_1_1editor_1_1GraphicsEditor.html#a2932ca16d3103763115803817648949a", null ],
     [ "z3_rom_palette_", "classyaze_1_1editor_1_1GraphicsEditor.html#a957769c1d2dddfe413ec84c2eed50d08", null ],
     [ "col_file_palette_", "classyaze_1_1editor_1_1GraphicsEditor.html#a6df417c71b3d310543f5bf5ba808ac1f", null ],

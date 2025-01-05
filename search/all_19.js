@@ -18,7 +18,7 @@ var searchData=
   ['palette_5feditor_2ecc_15',['palette_editor.cc',['../palette__editor_8cc.html',1,'']]],
   ['palette_5feditor_2eh_16',['palette_editor.h',['../palette__editor_8h.html',1,'']]],
   ['palette_5feditor_5f_17',['palette_editor_',['../classyaze_1_1editor_1_1DungeonEditor.html#a5de723ee65db47a365cde68bd8718e78',1,'yaze::editor::DungeonEditor::palette_editor_'],['../classyaze_1_1editor_1_1EditorManager.html#a827074c6efdbeaab83afd86b6fcef2a9',1,'yaze::editor::EditorManager::palette_editor_'],['../classyaze_1_1editor_1_1GraphicsEditor.html#a8d5f81226d41788619193d533de4e52d',1,'yaze::editor::GraphicsEditor::palette_editor_'],['../classyaze_1_1editor_1_1Tile16Editor.html#a39858d7f26a5bcf4589035d82b2e91c8',1,'yaze::editor::Tile16Editor::palette_editor_'],['../classyaze_1_1editor_1_1OverworldEditor.html#abe030f61b009dc95da7c734156e42e7b',1,'yaze::editor::OverworldEditor::palette_editor_']]],
-  ['palette_5fgroup_18',['palette_group',['../classyaze_1_1Rom.html#a680a6411982dec90abaae64ff288589a',1,'yaze::Rom']]],
+  ['palette_5fgroup_18',['palette_group',['../classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7',1,'yaze::Rom']]],
   ['palette_5fgroups_5f_19',['palette_groups_',['../classyaze_1_1Rom.html#a2a4ba7137dfced685cd4b6432c5fe047',1,'yaze::Rom']]],
   ['palette_5fid_20',['palette_id',['../structsnes__tile8.html#afc5deb54b6f6b59dda0dea55d477348b',1,'snes_tile8']]],
   ['palette_5findex_21',['palette_index',['../structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a166b67d21301fa43249565ec56148f22',1,'yaze::editor::palette_internal::PaletteChange']]],

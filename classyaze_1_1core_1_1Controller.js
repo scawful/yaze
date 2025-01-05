@@ -19,7 +19,7 @@ var classyaze_1_1core_1_1Controller =
     [ "window", "classyaze_1_1core_1_1Controller.html#a2ba347d9eb4f1efb9b7d2fd2578610b5", null ],
     [ "init_test_editor", "classyaze_1_1core_1_1Controller.html#adfd47ed2b8369d8b9c840e79d97b1850", null ],
     [ "set_active", "classyaze_1_1core_1_1Controller.html#a913205e423c0305c7fdcd0846b0a9542", null ],
-    [ "active", "classyaze_1_1core_1_1Controller.html#aff65e05a6a75c5bd26f07c946e6f77ed", null ],
+    [ "active", "classyaze_1_1core_1_1Controller.html#a3b8d4516aea70ac4d233d56a8b9ade4b", null ],
     [ "int::main", "classyaze_1_1core_1_1Controller.html#a0053aa2ca13c662cf8119dee322c81de", null ],
     [ "active_", "classyaze_1_1core_1_1Controller.html#aa976b011db5eebd07468b52c53500d47", null ],
     [ "platform_", "classyaze_1_1core_1_1Controller.html#aaf4cdec7293747287b1413d458661543", null ],

@@ -1,20 +1,23 @@
 <map id="yaze::editor::GraphicsEditor::DrawGfxEditToolset" name="yaze::editor::GraphicsEditor::DrawGfxEditToolset">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,150,182,190"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,219,182,260"/>
 <area shape="rect" id="Node000002" href="$namespaceyaze_1_1core.html#a421cc759aa63272bf0079eddf0d32eac" title=" " alt="" coords="230,5,448,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,148,158,94,191,65,228,41,243,34,245,39,231,46,195,70,162,98,113,151"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,217,118,179,146,131,182,82,228,41,238,36,240,40,231,46,186,86,150,134,123,182,106,220"/>
 <area shape="rect" id="Node000003" href="$namespaceyaze_1_1core.html#a224033814dd0a65e514ab48d90bcc550" title=" " alt="" coords="253,55,424,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="136,147,229,106,250,99,252,104,231,111,138,152"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="109,217,158,162,192,132,228,107,240,100,242,105,231,111,195,137,162,166,113,221"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="271,120,407,161"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="182,157,255,148,255,153,182,162"/>
-<area shape="rect" id="Node000005" href="$namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="262,185,416,211"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="182,178,246,185,246,190,182,183"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="264,259,414,284"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="146,189,293,250,291,255,144,194"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="271,308,407,349"/>
-<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="113,189,163,242,195,270,231,295,257,307,255,312,228,299,192,274,159,246,109,193"/>
-<area shape="rect" id="Node000006" href="$namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="496,185,647,211"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="416,196,480,196,480,201,416,201"/>
-<area shape="poly" id="edge7_Node000007_Node000007" title=" " alt="" coords="300,260,293,250,297,240,313,234,339,232,367,235,382,242,379,246,366,240,339,237,314,239,301,244,298,249,304,257"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="510,308,633,349"/>
-<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="407,326,494,326,494,332,407,332"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="133,216,229,172,255,162,257,167,231,177,135,221"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6" title=" " alt="" coords="244,186,434,226"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="182,225,228,218,229,224,182,230"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1GraphicsSheetManager.html#abeb20d3188de25a5bab782a6feb12c27" title=" " alt="" coords="244,251,434,292"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="182,248,229,255,228,260,182,254"/>
+<area shape="rect" id="Node000007" href="$namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="262,316,416,342"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="134,258,180,280,231,301,256,309,255,314,229,306,177,285,132,263"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1GraphicsSheetManager.html#a4871bff3db392ae5107ec5db39fcf1f2" title=" " alt="" coords="244,366,434,406"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="116,258,165,305,197,330,231,352,241,357,239,362,228,356,194,335,162,309,112,262"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="271,431,407,472"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="107,259,126,293,154,335,189,379,231,416,257,430,255,435,228,420,185,383,149,339,121,296,102,261"/>
+<area shape="rect" id="Node000008" href="$namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="496,316,647,342"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="416,326,480,326,480,332,416,332"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="510,431,633,472"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="407,449,494,449,494,454,407,454"/>
 </map>

@@ -43,7 +43,7 @@ var searchData=
   ['effect_5fnothing_40',['Effect_Nothing',['../namespaceyaze_1_1zelda3.html#a44b1e31e5857baaa00dc88ae724003c3a340e02929be4aadf9e4bc2ffe1db2bf0',1,'yaze::zelda3']]],
   ['effectkey_41',['EffectKey',['../namespaceyaze_1_1zelda3.html#a44b1e31e5857baaa00dc88ae724003c3',1,'yaze::zelda3']]],
   ['ei_42',['EI',['../classyaze_1_1emu_1_1Spc700.html#a817739121246d3fbdade4be80458ccdf',1,'yaze::emu::Spc700']]],
-  ['empty_43',['Empty',['../structyaze_1_1editor_1_1TextElement.html#a13431c3a5b46024a999d86bd877579bc',1,'yaze::editor::TextElement']]],
+  ['empty_43',['Empty',['../structyaze_1_1editor_1_1TextElement.html#ac9eae253ebc3721b18d40c50724fc870',1,'yaze::editor::TextElement']]],
   ['empty_44',['empty',['../classyaze_1_1gfx_1_1SnesPalette.html#aac8e91cfdca9827c7b7220adeccb7eb2',1,'yaze::gfx::SnesPalette::empty()'],['../structyaze_1_1gfx_1_1PaletteGroupMap.html#a91a5d448a2489e2a38c5b0c65e9702a3',1,'yaze::gfx::PaletteGroupMap::empty()']]],
   ['emu_2ecc_45',['emu.cc',['../emu_8cc.html',1,'']]],
   ['emulator_46',['Emulator',['../classyaze_1_1emu_1_1Emulator.html',1,'yaze::emu::Emulator'],['../classyaze_1_1emu_1_1Emulator.html#a9d42da55a4a6e519e18de44de236f3c2',1,'yaze::emu::Emulator::Emulator()']]],

@@ -149,6 +149,8 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1GraphicsSheetManager.html">GraphicsSheetManager</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1Project.html">Project</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents a project in the application.  <a href="structyaze_1_1Project.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -181,6 +183,14 @@ Functions</h2></td></tr>
 <tr class="memitem:a3167c1c857f5e405cb39a492529d6557" id="r_a3167c1c857f5e405cb39a492529d6557"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3167c1c857f5e405cb39a492529d6557">Load2BppGraphics</a> (const <a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
 <tr class="memdesc:a3167c1c857f5e405cb39a492529d6557"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads 2bpp graphics from <a class="el" href="classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data.  <br /></td></tr>
 <tr class="separator:a3167c1c857f5e405cb39a492529d6557"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3dde9364829e66bec50d5da15df53b6a" id="r_a3dde9364829e66bec50d5da15df53b6a"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::array&lt; <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>, <a class="el" href="#a51ca5df538b7f54c045a80783c02b102">kNumLinkSheets</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3dde9364829e66bec50d5da15df53b6a">LoadLinkGraphics</a> (const <a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
+<tr class="memdesc:a3dde9364829e66bec50d5da15df53b6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads the players 4bpp graphics sheet from <a class="el" href="classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data.  <br /></td></tr>
+<tr class="separator:a3dde9364829e66bec50d5da15df53b6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acd38081a0d3a77b20abfb9375574d1b9" id="r_acd38081a0d3a77b20abfb9375574d1b9"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::array&lt; <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>, <a class="el" href="#ac71d5970d234195c079f64f1a56e4522">kNumGfxSheets</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acd38081a0d3a77b20abfb9375574d1b9">LoadAllGraphicsData</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;rom, bool defer_render=false)</td></tr>
+<tr class="memdesc:acd38081a0d3a77b20abfb9375574d1b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function iterates over all graphics sheets in the <a class="el" href="classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> and loads them into memory. Depending on the sheet's index, it may be uncompressed or compressed using the LC-LZ2 algorithm. The uncompressed sheets are 3 bits per pixel (BPP), while the compressed sheets are 4 BPP. The loaded graphics data is converted to 8 BPP and stored in a bitmap.  <br /></td></tr>
+<tr class="separator:acd38081a0d3a77b20abfb9375574d1b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb8ae3fba1064ff2cf19393b113fac1c" id="r_aeb8ae3fba1064ff2cf19393b113fac1c"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeb8ae3fba1064ff2cf19393b113fac1c">SaveAllGraphicsData</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;rom, std::array&lt; <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>, <a class="el" href="#ac71d5970d234195c079f64f1a56e4522">kNumGfxSheets</a> &gt; &amp;gfx_sheets)</td></tr>
+<tr class="separator:aeb8ae3fba1064ff2cf19393b113fac1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -273,9 +283,9 @@ Variables</h2></td></tr>
 <p>Loads 2bpp graphics from <a class="el" href="classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data. </p>
 <p>This function loads 2bpp graphics from <a class="el" href="classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data by iterating over a list of sheet IDs, decompressing the sheet data, converting it to 8bpp format, and appending the converted sheet data to a byte vector. </p>
 
-<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00037">37</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00038">38</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00442">yaze::Rom::data()</a>, <a class="el" href="compression_8cc_source.html#l01370">yaze::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="rom_8h_source.html#l00053">yaze::VersionConstants::kOverworldGfxPtr1</a>, <a class="el" href="rom_8h_source.html#l00054">yaze::VersionConstants::kOverworldGfxPtr2</a>, <a class="el" href="rom_8h_source.html#l00055">yaze::VersionConstants::kOverworldGfxPtr3</a>, <a class="el" href="snes__tile_8cc_source.html#l00151">yaze::gfx::SnesTo8bppSheet()</a>, and <a class="el" href="rom_8h_source.html#l00466">yaze::Rom::version_constants()</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00416">yaze::Rom::data()</a>, <a class="el" href="compression_8cc_source.html#l01370">yaze::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="rom_8h_source.html#l00053">yaze::VersionConstants::kOverworldGfxPtr1</a>, <a class="el" href="rom_8h_source.html#l00054">yaze::VersionConstants::kOverworldGfxPtr2</a>, <a class="el" href="rom_8h_source.html#l00055">yaze::VersionConstants::kOverworldGfxPtr3</a>, <a class="el" href="snes__tile_8cc_source.html#l00151">yaze::gfx::SnesTo8bppSheet()</a>, and <a class="el" href="rom_8h_source.html#l00435">yaze::Rom::version_constants()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="inventory_8cc_source.html#l00074">yaze::zelda3::screen::Inventory::BuildTileset()</a>.</p>
 <div class="dynheader">
@@ -294,6 +304,166 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="121,116,219,156,234,162,232,167,217,161,119,121"/>
 <area shape="rect" href="namespaceyaze_1_1gfx_1_1lc__lz2.html#a6da64d071c48c1b33962ff496877567e" title=" " alt="" coords="449,55,564,96"/>
 <area shape="poly" title=" " alt="" coords="367,73,434,73,434,78,367,78"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a3dde9364829e66bec50d5da15df53b6a" name="a3dde9364829e66bec50d5da15df53b6a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3dde9364829e66bec50d5da15df53b6a">&#9670;&#160;</a></span>LoadLinkGraphics()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::StatusOr&lt; std::array&lt; <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>, <a class="el" href="#a51ca5df538b7f54c045a80783c02b102">kNumLinkSheets</a> &gt; &gt; yaze::LoadLinkGraphics </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>rom</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Loads the players 4bpp graphics sheet from <a class="el" href="classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data. </p>
+
+<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00057">57</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="rom_8h_source.html#l00115">kNumLinkSheets</a>, <a class="el" href="src_2app_2gfx_2snes__tile_8h_source.html#l00017">yaze::gfx::kTilesheetDepth</a>, <a class="el" href="src_2app_2gfx_2snes__tile_8h_source.html#l00016">yaze::gfx::kTilesheetHeight</a>, <a class="el" href="src_2app_2gfx_2snes__tile_8h_source.html#l00015">yaze::gfx::kTilesheetWidth</a>, <a class="el" href="rom_8h_source.html#l00427">yaze::Rom::palette_group()</a>, <a class="el" href="rom_8h_source.html#l00241">yaze::Rom::ReadByteVector()</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, and <a class="el" href="snes__tile_8cc_source.html#l00151">yaze::gfx::SnesTo8bppSheet()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00373">yaze::editor::GraphicsEditor::UpdateLinkGfxView()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="namespaceyaze_a3dde9364829e66bec50d5da15df53b6a_cgraph.png" border="0" usemap="#anamespaceyaze_a3dde9364829e66bec50d5da15df53b6a_cgraph" alt=""/></div>
+<map name="anamespaceyaze_a3dde9364829e66bec50d5da15df53b6a_cgraph" id="anamespaceyaze_a3dde9364829e66bec50d5da15df53b6a_cgraph">
+<area shape="rect" title="Loads the players 4bpp graphics sheet from Rom data." alt="" coords="5,136,165,161"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="236,5,372,46"/>
+<area shape="poly" title=" " alt="" coords="101,133,149,96,211,57,225,50,227,55,214,61,152,101,104,137"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7" title=" " alt="" coords="242,71,367,111"/>
+<area shape="poly" title=" " alt="" coords="136,132,226,109,227,114,138,137"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a0241f94c39962115e9602cc5c3c46796" title=" " alt="" coords="214,136,394,161"/>
+<area shape="poly" title=" " alt="" coords="165,146,198,146,198,151,165,151"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Used to render a bitmap to the screen." alt="" coords="236,185,372,226"/>
+<area shape="poly" title=" " alt="" coords="138,159,222,181,221,187,136,164"/>
+<area shape="rect" href="namespaceyaze_1_1gfx.html#af98fbf03d09d9d365f64202db1ecba15" title=" " alt="" coords="213,250,396,276"/>
+<area shape="poly" title=" " alt="" coords="103,160,151,197,214,235,231,242,229,247,211,240,148,201,100,164"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a407b08f0239ae3a7082b96f65450da42" title="Precondition check for reading and writing to the Rom." alt="" coords="444,136,669,161"/>
+<area shape="poly" title=" " alt="" coords="395,146,428,146,428,151,395,151"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="495,185,618,226"/>
+<area shape="poly" title=" " alt="" coords="373,203,479,203,479,208,373,208"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="acd38081a0d3a77b20abfb9375574d1b9" name="acd38081a0d3a77b20abfb9375574d1b9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acd38081a0d3a77b20abfb9375574d1b9">&#9670;&#160;</a></span>LoadAllGraphicsData()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::StatusOr&lt; std::array&lt; <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>, <a class="el" href="#ac71d5970d234195c079f64f1a56e4522">kNumGfxSheets</a> &gt; &gt; yaze::LoadAllGraphicsData </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>rom</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>defer_render</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This function iterates over all graphics sheets in the <a class="el" href="classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> and loads them into memory. Depending on the sheet's index, it may be uncompressed or compressed using the LC-LZ2 algorithm. The uncompressed sheets are 3 bits per pixel (BPP), while the compressed sheets are 4 BPP. The loaded graphics data is converted to 8 BPP and stored in a bitmap. </p>
+<p>The graphics sheets are divided into the following ranges:</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Range   </th><th class="markdownTableHeadNone">Compression Type   </th><th class="markdownTableHeadNone">Decompressed Size   </th><th class="markdownTableHeadNone">Number of Chars    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">0-112   </td><td class="markdownTableBodyNone">Compressed 3bpp BGR   </td><td class="markdownTableBodyNone">0x600 chars   </td><td class="markdownTableBodyNone">Decompressed each    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">113-114   </td><td class="markdownTableBodyNone">Compressed 2bpp   </td><td class="markdownTableBodyNone">0x800 chars   </td><td class="markdownTableBodyNone">Decompressed each    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">115-126   </td><td class="markdownTableBodyNone">Uncompressed 3bpp sprites   </td><td class="markdownTableBodyNone">0x600 chars   </td><td class="markdownTableBodyNone">Each    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">127-217   </td><td class="markdownTableBodyNone">Compressed 3bpp sprites   </td><td class="markdownTableBodyNone">0x600 chars   </td><td class="markdownTableBodyNone">Decompressed each    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">218-222   </td><td class="markdownTableBodyNone">Compressed 2bpp   </td><td class="markdownTableBodyNone">0x800 chars   </td><td class="markdownTableBodyNone">Decompressed each   </td></tr>
+</table>
+
+<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00076">76</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00416">yaze::Rom::data()</a>, <a class="el" href="compression_8cc_source.html#l01370">yaze::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="rom_8h_source.html#l00114">kNumGfxSheets</a>, <a class="el" href="rom_8h_source.html#l00053">yaze::VersionConstants::kOverworldGfxPtr1</a>, <a class="el" href="rom_8h_source.html#l00054">yaze::VersionConstants::kOverworldGfxPtr2</a>, <a class="el" href="rom_8h_source.html#l00055">yaze::VersionConstants::kOverworldGfxPtr3</a>, <a class="el" href="src_2app_2gfx_2snes__tile_8h_source.html#l00017">yaze::gfx::kTilesheetDepth</a>, <a class="el" href="src_2app_2gfx_2snes__tile_8h_source.html#l00016">yaze::gfx::kTilesheetHeight</a>, <a class="el" href="src_2app_2gfx_2snes__tile_8h_source.html#l00015">yaze::gfx::kTilesheetWidth</a>, <a class="el" href="rom_8h_source.html#l00412">yaze::Rom::mutable_graphics_buffer()</a>, <a class="el" href="rom_8h_source.html#l00427">yaze::Rom::palette_group()</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="snes__tile_8cc_source.html#l00151">yaze::gfx::SnesTo8bppSheet()</a>, <a class="el" href="rom_8cc_source.html#l00028">Uncompressed3BPPSize</a>, and <a class="el" href="rom_8h_source.html#l00435">yaze::Rom::version_constants()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00039">yaze::test::TEST_F()</a>, <a class="el" href="editor__manager_8cc_source.html#l00058">yaze::editor::EditorManager::Update()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00368">yaze::editor::Tile16Editor::UpdateTransferTileCanvas()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="namespaceyaze_acd38081a0d3a77b20abfb9375574d1b9_cgraph.png" border="0" usemap="#anamespaceyaze_acd38081a0d3a77b20abfb9375574d1b9_cgraph" alt=""/></div>
+<map name="anamespaceyaze_acd38081a0d3a77b20abfb9375574d1b9_cgraph" id="anamespaceyaze_acd38081a0d3a77b20abfb9375574d1b9_cgraph">
+<area shape="rect" title="This function iterates over all graphics sheets in the Rom and loads them into memory...." alt="" coords="5,193,182,219"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="266,5,377,31"/>
+<area shape="poly" title=" " alt="" coords="100,191,147,120,184,78,228,41,250,30,252,35,231,46,188,81,151,123,104,194"/>
+<area shape="rect" href="namespaceyaze_1_1gfx_1_1lc__lz2.html#a4e2e79a02c9bbff8d9720d6384296218" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="264,55,379,96"/>
+<area shape="poly" title=" " alt="" coords="108,191,160,150,228,107,248,97,250,102,231,111,163,155,112,195"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="253,120,390,161"/>
+<area shape="poly" title=" " alt="" coords="140,190,237,162,239,167,142,195"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a13a1dcdedd508ace2a5c6c998573736e" title=" " alt="" coords="255,186,388,226"/>
+<area shape="poly" title=" " alt="" coords="182,204,239,204,239,209,182,209"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7" title=" " alt="" coords="259,251,384,292"/>
+<area shape="poly" title=" " alt="" coords="142,217,245,247,243,252,140,222"/>
+<area shape="rect" href="namespaceyaze_1_1gfx.html#af98fbf03d09d9d365f64202db1ecba15" title=" " alt="" coords="230,316,413,342"/>
+<area shape="poly" title=" " alt="" coords="111,217,162,258,195,281,231,301,247,308,245,313,228,306,193,286,159,263,108,222"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a76f67b131d3e1a18357ab82ec362e766" title=" " alt="" coords="257,366,386,406"/>
+<area shape="poly" title=" " alt="" coords="106,218,154,282,190,319,231,352,245,360,242,364,228,356,187,323,150,285,102,221"/>
+<area shape="rect" href="namespaceyaze_1_1gfx_1_1lc__lz2.html#a6da64d071c48c1b33962ff496877567e" title=" " alt="" coords="461,55,576,96"/>
+<area shape="poly" title=" " alt="" coords="379,73,446,73,446,78,379,78"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="aeb8ae3fba1064ff2cf19393b113fac1c" name="aeb8ae3fba1064ff2cf19393b113fac1c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb8ae3fba1064ff2cf19393b113fac1c">&#9670;&#160;</a></span>SaveAllGraphicsData()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::SaveAllGraphicsData </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>rom</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::array&lt; <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>, <a class="el" href="#ac71d5970d234195c079f64f1a56e4522">kNumGfxSheets</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>gfx_sheets</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00136">136</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00419">yaze::Rom::begin()</a>, <a class="el" href="snes__tile_8cc_source.html#l00211">yaze::gfx::Bpp8SnesToIndexed()</a>, <a class="el" href="rom_8h_source.html#l00416">yaze::Rom::data()</a>, <a class="el" href="compression_8cc_source.html#l00017">yaze::gfx::HyruleMagicCompress()</a>, <a class="el" href="rom_8h_source.html#l00114">kNumGfxSheets</a>, <a class="el" href="rom_8h_source.html#l00053">yaze::VersionConstants::kOverworldGfxPtr1</a>, <a class="el" href="rom_8h_source.html#l00054">yaze::VersionConstants::kOverworldGfxPtr2</a>, <a class="el" href="rom_8h_source.html#l00055">yaze::VersionConstants::kOverworldGfxPtr3</a>, and <a class="el" href="rom_8h_source.html#l00435">yaze::Rom::version_constants()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00687">yaze::editor::EditorManager::SaveRom()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="namespaceyaze_aeb8ae3fba1064ff2cf19393b113fac1c_cgraph.png" border="0" usemap="#anamespaceyaze_aeb8ae3fba1064ff2cf19393b113fac1c_cgraph" alt=""/></div>
+<map name="anamespaceyaze_aeb8ae3fba1064ff2cf19393b113fac1c_cgraph" id="anamespaceyaze_aeb8ae3fba1064ff2cf19393b113fac1c_cgraph">
+<area shape="rect" title=" " alt="" coords="5,104,183,130"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a19913f4fd3c3cec9cd9d81794e53fa8d" title=" " alt="" coords="276,5,393,31"/>
+<area shape="poly" title=" " alt="" coords="114,101,165,70,230,40,260,30,261,35,232,45,168,75,117,106"/>
+<area shape="rect" href="namespaceyaze_1_1gfx.html#a7defcba4175eb8d38335943a94fc81e3" title=" " alt="" coords="236,55,432,80"/>
+<area shape="poly" title=" " alt="" coords="160,101,253,81,254,87,161,106"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="279,104,390,130"/>
+<area shape="poly" title=" " alt="" coords="183,114,263,114,263,120,183,120"/>
+<area shape="rect" href="namespaceyaze_1_1gfx.html#ac740e607dcc76bf2c18076778ee5b4ef" title=" " alt="" coords="231,153,438,179"/>
+<area shape="poly" title=" " alt="" coords="161,128,254,147,253,152,160,133"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a76f67b131d3e1a18357ab82ec362e766" title=" " alt="" coords="270,203,398,244"/>
+<area shape="poly" title=" " alt="" coords="118,128,169,158,232,189,257,199,255,204,230,194,166,162,115,132"/>
 </map>
 </div>
 
@@ -362,9 +532,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00027">27</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00028">28</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00075">yaze::Rom::LoadAllGraphicsData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00076">LoadAllGraphicsData()</a>.</p>
 
 </div>
 </div>
@@ -390,7 +560,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00114">114</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="asset__browser_8h_source.html#l00190">yaze::gui::GfxSheetAssetBrowser::Initialize()</a>, <a class="el" href="rom_8cc_source.html#l00075">yaze::Rom::LoadAllGraphicsData()</a>, <a class="el" href="rom_8cc_source.html#l00134">yaze::Rom::SaveAllGraphicsData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00176">yaze::editor::GraphicsEditor::UpdateGfxSheetList()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="asset__browser_8h_source.html#l00190">yaze::gui::GfxSheetAssetBrowser::Initialize()</a>, <a class="el" href="rom_8cc_source.html#l00076">LoadAllGraphicsData()</a>, <a class="el" href="rom_8cc_source.html#l00136">SaveAllGraphicsData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00175">yaze::editor::GraphicsEditor::UpdateGfxSheetList()</a>.</p>
 
 </div>
 </div>
@@ -416,7 +586,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00115">115</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00056">yaze::Rom::LoadLinkGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00057">LoadLinkGraphics()</a>.</p>
 
 </div>
 </div>
@@ -442,7 +612,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00116">116</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00281">yaze::Rom::ReadTile16()</a>, and <a class="el" href="rom_8h_source.html#l00299">yaze::Rom::WriteTile16()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8h_source.html#l00254">yaze::Rom::ReadTile16()</a>, and <a class="el" href="rom_8h_source.html#l00272">yaze::Rom::WriteTile16()</a>.</p>
 
 </div>
 </div>
@@ -540,7 +710,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00120">120</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00405">yaze::Rom::LoadGfxGroups()</a>, and <a class="el" href="rom_8cc_source.html#l00438">yaze::Rom::SaveGroupsToRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00404">yaze::Rom::LoadGfxGroups()</a>, and <a class="el" href="rom_8cc_source.html#l00437">yaze::Rom::SaveGroupsToRom()</a>.</p>
 
 </div>
 </div>
@@ -590,7 +760,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00122">122</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00405">yaze::Rom::LoadGfxGroups()</a>, and <a class="el" href="rom_8cc_source.html#l00438">yaze::Rom::SaveGroupsToRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00404">yaze::Rom::LoadGfxGroups()</a>, and <a class="el" href="rom_8cc_source.html#l00437">yaze::Rom::SaveGroupsToRom()</a>.</p>
 
 </div>
 </div>
@@ -616,7 +786,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00123">123</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00405">yaze::Rom::LoadGfxGroups()</a>, and <a class="el" href="rom_8cc_source.html#l00438">yaze::Rom::SaveGroupsToRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00404">yaze::Rom::LoadGfxGroups()</a>, and <a class="el" href="rom_8cc_source.html#l00437">yaze::Rom::SaveGroupsToRom()</a>.</p>
 
 </div>
 </div>
@@ -642,7 +812,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00124">124</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00405">yaze::Rom::LoadGfxGroups()</a>, and <a class="el" href="rom_8cc_source.html#l00438">yaze::Rom::SaveGroupsToRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00404">yaze::Rom::LoadGfxGroups()</a>, and <a class="el" href="rom_8cc_source.html#l00437">yaze::Rom::SaveGroupsToRom()</a>.</p>
 
 </div>
 </div>
@@ -668,7 +838,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00125">125</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00405">yaze::Rom::LoadGfxGroups()</a>, and <a class="el" href="rom_8cc_source.html#l00438">yaze::Rom::SaveGroupsToRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00404">yaze::Rom::LoadGfxGroups()</a>, and <a class="el" href="rom_8cc_source.html#l00437">yaze::Rom::SaveGroupsToRom()</a>.</p>
 
 </div>
 </div>
@@ -694,7 +864,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00126">126</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00405">yaze::Rom::LoadGfxGroups()</a>, and <a class="el" href="rom_8cc_source.html#l00438">yaze::Rom::SaveGroupsToRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00404">yaze::Rom::LoadGfxGroups()</a>, and <a class="el" href="rom_8cc_source.html#l00437">yaze::Rom::SaveGroupsToRom()</a>.</p>
 
 </div>
 </div>
