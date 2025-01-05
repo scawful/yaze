@@ -240,8 +240,8 @@ class Overworld : public SharedRom {
 
   OverworldMapTiles map_tiles_;
 
-  std::array<uint8_t, kNumOverworldMaps> map_parent_;
-  std::array<uint8_t, kNumTileTypes> all_tiles_types_;
+	std::array<uint8_t, kNumOverworldMaps> map_parent_ = { 0 };
+	std::array<uint8_t, kNumTileTypes> all_tiles_types_ = { 0 };
   std::vector<gfx::Tile16> tiles16_;
   std::vector<gfx::Tile32> tiles32_;
   std::vector<uint16_t> tiles32_list_;

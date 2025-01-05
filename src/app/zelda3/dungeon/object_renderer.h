@@ -17,7 +17,7 @@ namespace yaze {
 namespace zelda3 {
 
 struct PseudoVram {
-  std::array<uint8_t, 16> sheets;
+	std::array<uint8_t, 16> sheets = { 0 };
   std::vector<gfx::SnesPalette> palettes;
 };
 
