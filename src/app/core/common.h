@@ -56,12 +56,6 @@ class ExperimentFlags {
     // Attempt to run the dungeon room draw routine when opening a room.
     bool kDrawDungeonRoomGraphics = true;
 
-    // Use the new platform specific file dialog wrappers.
-    bool kNewFileDialogWrapper = true;
-
-    // Uses texture streaming from SDL for my dynamic updates.
-    bool kLoadTexturesAsStreaming = true;
-
     // Save dungeon map edits to the Rom.
     bool kSaveDungeonMaps = false;
 
@@ -113,10 +107,6 @@ class ExperimentFlags {
         "\n";
     result += "kDrawDungeonRoomGraphics: " +
               std::to_string(get().kDrawDungeonRoomGraphics) + "\n";
-    result += "kNewFileDialogWrapper: " +
-              std::to_string(get().kNewFileDialogWrapper) + "\n";
-    result += "kLoadTexturesAsStreaming: " +
-              std::to_string(get().kLoadTexturesAsStreaming) + "\n";
     result +=
         "kSaveDungeonMaps: " + std::to_string(get().kSaveDungeonMaps) + "\n";
     result += "kLogToConsole: " + std::to_string(get().kLogToConsole) + "\n";

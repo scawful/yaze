@@ -749,5 +749,34 @@ void TextWithSeparators(const absl::string_view &text) {
   ImGui::Separator();
 }
 
+void DrawFontManager() {
+  ImGuiIO& io = ImGui::GetIO();
+  ImFontAtlas* atlas = io.Fonts;
+  static ImFont* current_font = atlas->Fonts[0];
+  static int current_font_index = 0;
+  static int font_size = 16;
+  static bool font_selected = false;
+  ImGui::Text("Current Font: %s", current_font->GetDebugName());
+  ImGui::Text("Font Size: %d", font_size);
+  if (ImGui::BeginCombo("Fonts", current_font->GetDebugName())) {
+    for (int i = 0; i < atlas->Fonts.Size; i++) {
+      bool is_selected = (current_font == atlas->Fonts[i]);
+      if (ImGui::Selectable(atlas->Fonts[i]->GetDebugName(), is_selected)) {
+        current_font = atlas->Fonts[i];
+        current_font_index = i;
+        font_selected = true;
+      }
+      if (is_selected) {
+        ImGui::SetItemDefaultFocus();
+      }
+    }
+    ImGui::EndCombo();
+  }
+  ImGui::Separator();
+  if (ImGui::SliderInt("Font Size", &font_size, 8, 32)) {
+    current_font->Scale = font_size / 16.0f;
+  }
+}
+
 } // namespace gui
 } // namespace yaze

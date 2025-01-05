@@ -26,7 +26,7 @@ namespace core {
  * This class is responsible for managing the main window and the
  * main editor. It is the main entry point for the application.
  */
-class Controller : public ExperimentFlags {
+class Controller {
  public:
   bool IsActive() const { return active_; }
   absl::Status OnEntry(std::string filename = "");
