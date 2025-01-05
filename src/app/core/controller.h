@@ -53,13 +53,13 @@ class Controller : public ExperimentFlags {
   auto window() -> SDL_Window * { return window_.get(); }
   void init_test_editor(editor::Editor *editor) { test_editor_ = editor; }
   void set_active(bool active) { active_ = active; }
-  auto active() { return active_; }
+  auto active() const { return active_; }
 
  private:
   friend int ::main(int argc, char **argv);
 
   bool active_ = false;
-  Platform platform_;
+  Platform platform_ = Platform::kUnknown;
   editor::Editor *test_editor_ = nullptr;
   editor::EditorManager editor_manager_;
 

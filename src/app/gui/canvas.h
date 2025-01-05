@@ -1,6 +1,7 @@
 #ifndef YAZE_GUI_CANVAS_H
 #define YAZE_GUI_CANVAS_H
 
+#include <cstdint>
 #include <string>
 
 #include "app/gfx/bitmap.h"
@@ -130,8 +131,8 @@ public:
   void DrawLayeredElements();
 
   int GetTileIdFromMousePos() {
-    int x = mouse_pos_in_canvas_.x;
-    int y = mouse_pos_in_canvas_.y;
+    float x = mouse_pos_in_canvas_.x;
+    float y = mouse_pos_in_canvas_.y;
     int num_columns = (canvas_sz_.x / global_scale_) / custom_step_;
     int num_rows = (canvas_sz_.y / global_scale_) / custom_step_;
     int tile_id = (x / custom_step_) + (y / custom_step_) * num_columns;
@@ -206,6 +207,7 @@ private:
   bool enable_context_menu_ = true;
   bool custom_canvas_size_ = false;
   bool select_rect_active_ = false;
+  bool refresh_graphics_ = false;
 
   float custom_step_ = 0.0f;
   float global_scale_ = 1.0f;
@@ -216,14 +218,11 @@ private:
   uint16_t edit_palette_index_ = 0;
   uint64_t edit_palette_group_name_index_ = 0;
   uint64_t edit_palette_sub_index_ = 0;
-  bool refresh_graphics_ = false;
 
-  std::string canvas_id_ = "Canvas";
-  std::string context_id_ = "CanvasContext";
 
-  ImDrawList *draw_list_;
-  ImVector<ImVec2> points_;
-  ImVector<ImVector<std::string>> labels_;
+
+	ImDrawList* draw_list_ = nullptr;
+
   ImVec2 scrolling_;
   ImVec2 canvas_sz_;
   ImVec2 canvas_p0_;
@@ -231,7 +230,13 @@ private:
   ImVec2 drawn_tile_pos_;
   ImVec2 mouse_pos_in_canvas_;
   ImVec2 selected_tile_pos_ = ImVec2(-1, -1);
+
+  ImVector<ImVec2> points_;
   ImVector<ImVec2> selected_points_;
+  ImVector<ImVector<std::string>> labels_;
+
+  std::string canvas_id_ = "Canvas";
+  std::string context_id_ = "CanvasContext";
   std::vector<ImVec2> selected_tiles_;
 };
 
