@@ -44,11 +44,11 @@ uint8_t FindDictionaryEntry(uint8_t value);
 std::vector<uint8_t> ParseMessageToData(std::string str);
 
 struct DictionaryEntry {
-  uint8_t ID;
-  std::string Contents;
+  uint8_t ID = 0;
+  std::string Contents = "";
   std::vector<uint8_t> Data;
-  int Length;
-  std::string Token;
+  int Length = 0;
+  std::string Token = "";
 
   DictionaryEntry() = default;
   DictionaryEntry(uint8_t i, std::string s)
@@ -57,11 +57,11 @@ struct DictionaryEntry {
     Data = ParseMessageToData(Contents);
   }
 
-  bool ContainedInString(std::string s) {
+  bool ContainedInString(std::string s) const {
     return s.find(Contents) != std::string::npos;
   }
 
-  std::string ReplaceInstancesOfIn(std::string s) {
+  std::string ReplaceInstancesOfIn(std::string s) const {
     std::string replacedString = s;
     size_t pos = replacedString.find(Contents);
     while (pos != std::string::npos) {
@@ -86,8 +86,8 @@ std::string ReplaceAllDictionaryWords(std::string str,
 const std::string CHEESE = "\uBEBE";
 
 struct MessageData {
-  int ID;
-  int Address;
+  int ID = 0;
+  int Address = 0;
   std::string RawString;
   std::string ContentsParsed;
   std::vector<uint8_t> Data;
@@ -115,7 +115,7 @@ struct MessageData {
     ContentsParsed = other.ContentsParsed;
   }
 
-  std::string ToString() {
+  std::string ToString() const {
     return absl::StrFormat("%0X - %s", ID, ContentsParsed);
   }
 
@@ -163,8 +163,8 @@ struct TextElement {
   bool HasArgument;
 
   TextElement() = default;
-  TextElement(uint8_t id, std::string token, bool arg,
-              std::string description) {
+  TextElement(uint8_t id, const std::string& token, bool arg,
+              const std::string& description) {
     ID = id;
     Token = token;
     if (arg) {
@@ -181,7 +181,7 @@ struct TextElement {
     StrictPattern = "^" + Pattern + "$";
   }
 
-  std::string GetParameterizedToken(uint8_t value = 0) {
+  std::string GetParameterizedToken(uint8_t value = 0) const {
     if (HasArgument) {
       return absl::StrFormat("[%s:%02X]", Token, value);
     } else {
@@ -189,7 +189,7 @@ struct TextElement {
     }
   }
 
-  std::string ToString() {
+  std::string ToString() const {
     return absl::StrFormat("%s %s", GenericToken, Description);
   }
 
@@ -200,36 +200,60 @@ struct TextElement {
     return match;
   }
 
-  bool Empty() { return ID == 0; }
+  bool Empty() const { return ID == 0; }
 
   // Comparison operator
   bool operator==(const TextElement& other) const { return ID == other.ID; }
 };
 
+const static std::string kWindowBorder = "Window border";
+const static std::string kWindowPosition = "Window position";
+const static std::string kScrollSpeed = "Scroll speed";
+const static std::string kTextDrawSpeed = "Text draw speed";
+const static std::string kTextColor = "Text color";
+const static std::string kPlayerName = "Player name";
+const static std::string kLine1Str = "Line 1";
+const static std::string kLine2Str = "Line 2";
+const static std::string kLine3Str = "Line 3";
+const static std::string kWaitForKey = "Wait for key";
+const static std::string kScrollText = "Scroll text";
+const static std::string kDelayX = "Delay X";
+const static std::string kBCDNumber = "BCD number";
+const static std::string kSoundEffect = "Sound effect";
+const static std::string kChoose3 = "Choose 3";
+const static std::string kChoose2High = "Choose 2 high";
+const static std::string kChoose2Low = "Choose 2 low";
+const static std::string kChoose2Indented = "Choose 2 indented";
+const static std::string kChooseItem = "Choose item";
+const static std::string kNextAttractImage = "Next attract image";
+const static std::string kBankMarker = "Bank marker (automatic)";
+const static std::string kCrash = "Crash";
+
 static const std::vector<TextElement> TextCommands = {
-    TextElement(0x6B, "W", true, "Window border"),
-    TextElement(0x6D, "P", true, "Window position"),
-    TextElement(0x6E, "SPD", true, "Scroll speed"),
-    TextElement(0x7A, "S", true, "Text draw speed"),
-    TextElement(0x77, "C", true, "Text color"),
-    TextElement(0x6A, "L", false, "Player name"),
-    TextElement(0x74, "1", false, "Line 1"),
-    TextElement(0x75, "2", false, "Line 2"),
-    TextElement(0x76, "3", false, "Line 3"),
-    TextElement(0x7E, "K", false, "Wait for key"),
-    TextElement(0x73, "V", false, "Scroll text"),
-    TextElement(0x78, "WT", true, "Delay X"),
-    TextElement(0x6C, "N", true, "BCD number"),
-    TextElement(0x79, "SFX", true, "Sound effect"),
-    TextElement(0x71, "CH3", false, "Choose 3"),
-    TextElement(0x72, "CH2", false, "Choose 2 high"),
-    TextElement(0x6F, "CH2L", false, "Choose 2 low"),
-    TextElement(0x68, "CH2I", false, "Choose 2 indented"),
-    TextElement(0x69, "CHI", false, "Choose item"),
-    TextElement(0x67, "IMG", false, "Next attract image"),
-    TextElement(0x80, BANKToken, false, "Bank marker (automatic)"),
-    TextElement(0x70, "NONO", false, "Crash"),
+    TextElement(0x6B, "W", true, kWindowBorder),
+    TextElement(0x6D, "P", true, kWindowPosition),
+    TextElement(0x6E, "SPD", true, kScrollSpeed),
+    TextElement(0x7A, "S", true, kTextDrawSpeed),
+    TextElement(0x77, "C", true, kTextColor),
+    TextElement(0x6A, "L", false, kPlayerName),
+    TextElement(0x74, "1", false, kLine1Str),
+    TextElement(0x75, "2", false, kLine2Str),
+    TextElement(0x76, "3", false, kLine3Str),
+    TextElement(0x7E, "K", false, kWaitForKey),
+    TextElement(0x73, "V", false, kScrollText),
+    TextElement(0x78, "WT", true, kDelayX),
+    TextElement(0x6C, "N", true, kBCDNumber),
+    TextElement(0x79, "SFX", true, kSoundEffect),
+    TextElement(0x71, "CH3", false, kChoose3),
+    TextElement(0x72, "CH2", false, kChoose2High),
+    TextElement(0x6F, "CH2L", false, kChoose2Low),
+    TextElement(0x68, "CH2I", false, kChoose2Indented),
+    TextElement(0x69, "CHI", false, kChooseItem),
+    TextElement(0x67, "IMG", false, kNextAttractImage),
+    TextElement(0x80, BANKToken, false, kBankMarker),
+    TextElement(0x70, "NONO", false, kCrash),
 };
+
 
 TextElement FindMatchingCommand(uint8_t b);
 
