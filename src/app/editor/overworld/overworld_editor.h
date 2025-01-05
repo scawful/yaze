@@ -252,7 +252,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   gfx::Bitmap current_gfx_bmp_;
   gfx::Bitmap all_gfx_bmp;
 
-  gfx::BitmapTable maps_bmp_;
+  std::array<gfx::Bitmap, zelda3::kNumOverworldMaps> maps_bmp_;
   gfx::BitmapTable current_graphics_set_;
   gfx::BitmapTable sprite_previews_;
 

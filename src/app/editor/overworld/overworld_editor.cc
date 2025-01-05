@@ -706,7 +706,7 @@ void OverworldEditor::DrawTile8Selector() {
   graphics_bin_canvas_.DrawContextMenu();
   if (all_gfx_loaded_) {
     int key = 0;
-    for (auto &value : rom_.gfx_sheets()) {
+    for (auto &value : GraphicsSheetManager::GetInstance().gfx_sheets()) {
       int offset = 0x40 * (key + 1);
       int top_left_y = graphics_bin_canvas_.zero_point().y + 2;
       if (key >= 1) {
@@ -1077,9 +1077,15 @@ absl::Status OverworldEditor::LoadGraphics() {
   for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
     overworld_.set_current_map(i);
     auto palette = overworld_.current_area_palette();
-    RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
-        kOverworldMapSize, kOverworldMapSize, 0x200,
+    try {
+      RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
+        kOverworldMapSize, kOverworldMapSize, 0x80,
         overworld_.current_map_bitmap_data(), maps_bmp_[i], palette));
+    }
+    catch (const std::bad_alloc& e) {
+			std::cout << "Error: " << e.what() << std::endl;
+      continue;
+    }
   }
 
   if (core::ExperimentFlags::get().overworld.kDrawOverworldSprites) {
