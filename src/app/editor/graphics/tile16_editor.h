@@ -93,6 +93,7 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
   absl::Status status_;
 
   Rom transfer_rom_;
+	std::array<gfx::Bitmap, kNumGfxSheets> transfer_gfx_;
   absl::Status transfer_status_;
 };
 

@@ -176,6 +176,7 @@ class GraphicsEditor : public SharedRom, public Editor {
   gfx::Bitmap bin_bitmap_;
   gfx::Bitmap link_full_sheet_;
   std::array<gfx::Bitmap, kNumGfxSheets> gfx_sheets_;
+	std::array<gfx::Bitmap, kNumLinkSheets> link_sheets_;
 
   gfx::PaletteGroup col_file_palette_group_;
   gfx::SnesPalette z3_rom_palette_;

@@ -64,7 +64,9 @@ absl::Status EditorManager::Update() {
   DrawInfoPopup();
 
   if (rom()->is_loaded() && !rom_assets_loaded_) {
-    RETURN_IF_ERROR(rom()->LoadAllGraphicsData())
+		auto& sheet_manager = GraphicsSheetManager::GetInstance();
+    ASSIGN_OR_RETURN(*sheet_manager.mutable_gfx_sheets(),
+                     LoadAllGraphicsData(*rom()))
     RETURN_IF_ERROR(overworld_editor_.LoadGraphics());
     rom_assets_loaded_ = true;
   }
@@ -690,6 +692,10 @@ void EditorManager::SaveRom() {
 
   status_ = overworld_editor_.Save();
   RETURN_VOID_IF_ERROR(status_);
+
+  if (core::ExperimentFlags::get().kSaveGraphicsSheet)
+    PRINT_IF_ERROR(SaveAllGraphicsData(*rom(), 
+      GraphicsSheetManager::GetInstance().gfx_sheets()));
 
   status_ = rom()->SaveToFile(backup_rom_, save_new_auto_);
 }
