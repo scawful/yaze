@@ -1,6 +1,7 @@
 
 #include "app/editor/system/settings_editor.h"
 
+#include "app/gui/style.h"
 #include "absl/status/status.h"
 #include "app/editor/system/flags.h"
 #include "imgui/imgui.h"
@@ -34,6 +35,10 @@ absl::Status SettingsEditor::Update() {
       DrawGeneralSettings();
       EndTabItem();
     }
+    if (BeginTabItem("Font Manager")) {
+      gui::DrawFontManager();
+      EndTabItem();
+    }
     if (BeginTabItem("Keyboard Shortcuts")) {
       EndTabItem();
     }
@@ -44,28 +49,44 @@ absl::Status SettingsEditor::Update() {
 }
 
 void SettingsEditor::DrawGeneralSettings() {
-  if (BeginTable("##SettingsTable", 2,
+  static FlagsMenu flags;
+
+  if (BeginTable("##SettingsTable", 4,
                  ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable |
                      ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable)) {
-    TableSetupColumn("Experiment Flags", ImGuiTableColumnFlags_WidthFixed,
-                     250.0f);
-    TableSetupColumn("General Setting", ImGuiTableColumnFlags_WidthStretch,
+    TableSetupColumn("System Flags", ImGuiTableColumnFlags_WidthStretch);
+    TableSetupColumn("Overworld Flags", ImGuiTableColumnFlags_WidthStretch);
+		TableSetupColumn("Dungeon Flags", ImGuiTableColumnFlags_WidthStretch);
+    TableSetupColumn("Resource Flags", ImGuiTableColumnFlags_WidthStretch,
                      0.0f);
 
     TableHeadersRow();
 
     TableNextColumn();
-    if (BeginChild("##GeneralSettingsStyleWrapper", ImVec2(0, 0),
+    if (BeginChild("##SystemFlags", ImVec2(0, 0),
                    ImGuiChildFlags_FrameStyle)) {
-      static FlagsMenu flags;
-      flags.Draw();
+      flags.DrawSystemFlags();
       EndChild();
     }
 
     TableNextColumn();
-    if (BeginChild("##GeneralSettingsWrapper", ImVec2(0, 0),
-                   ImGuiChildFlags_FrameStyle)) {
-      Text("TODO: Add some settings here");
+		if (BeginChild("##OverworldFlags", ImVec2(0, 0),
+			ImGuiChildFlags_FrameStyle)) {
+			flags.DrawOverworldFlags();
+			EndChild();
+		}
+
+    TableNextColumn();
+		if (BeginChild("##DungeonFlags", ImVec2(0, 0),
+			ImGuiChildFlags_FrameStyle)) {
+			flags.DrawDungeonFlags();
+			EndChild();
+		}
+
+    TableNextColumn();
+    if (BeginChild("##ResourceFlags", ImVec2(0, 0),
+      ImGuiChildFlags_FrameStyle)) {
+      flags.DrawResourceFlags();
       EndChild();
     }
 

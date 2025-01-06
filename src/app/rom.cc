@@ -1,5 +1,6 @@
 #include "rom.h"
 
+#include <array>
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
@@ -53,26 +54,27 @@ absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom &rom) {
   return sheet;
 }
 
-absl::Status Rom::LoadLinkGraphics() {
+absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(const Rom& rom) {
   const uint32_t kLinkGfxOffset = 0x80000;  // $10:8000
   const uint16_t kLinkGfxLength = 0x800;    // 0x4000 or 0x7000?
-
-  // Load Links graphics from the ROM
+	std::array<gfx::Bitmap, kNumLinkSheets> link_graphics;
   for (uint32_t i = 0; i < kNumLinkSheets; i++) {
     ASSIGN_OR_RETURN(
         auto link_sheet_data,
-        ReadByteVector(/*offset=*/kLinkGfxOffset + (i * kLinkGfxLength),
-                       /*length=*/kLinkGfxLength))
+        rom.ReadByteVector(/*offset=*/kLinkGfxOffset + (i * kLinkGfxLength),
+                           /*length=*/kLinkGfxLength))
     auto link_sheet_8bpp = gfx::SnesTo8bppSheet(link_sheet_data, /*bpp=*/4);
-    link_graphics_[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+    link_graphics[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                              gfx::kTilesheetDepth, link_sheet_8bpp);
-    RETURN_IF_ERROR(link_graphics_[i].ApplyPalette(palette_groups_.armors[0]);)
-    Renderer::GetInstance().RenderBitmap(&link_graphics_[i]);
+    RETURN_IF_ERROR(link_graphics[i].ApplyPalette(rom.palette_group().armors[0]);)
+    Renderer::GetInstance().RenderBitmap(&link_graphics[i]);
   }
-  return absl::OkStatus();
+  return link_graphics;
 }
 
-absl::Status Rom::LoadAllGraphicsData(bool defer_render) {
+absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> 
+LoadAllGraphicsData(Rom& rom, bool defer_render) {
+	std::array<gfx::Bitmap, kNumGfxSheets> graphics_sheets;
   std::vector<uint8_t> sheet;
   bool bpp3 = false;
 
@@ -80,60 +82,60 @@ absl::Status Rom::LoadAllGraphicsData(bool defer_render) {
     if (i >= 115 && i <= 126) {  // uncompressed sheets
       sheet.resize(Uncompressed3BPPSize);
       auto offset =
-          GetGraphicsAddress(data(), i, version_constants().kOverworldGfxPtr1,
-                             version_constants().kOverworldGfxPtr2,
-                             version_constants().kOverworldGfxPtr3);
-      for (int j = 0; j < Uncompressed3BPPSize; j++) {
-        sheet[j] = rom_data_[j + offset];
-      }
+          GetGraphicsAddress(rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
+                             rom.version_constants().kOverworldGfxPtr2,
+                             rom.version_constants().kOverworldGfxPtr3);
+			std::copy(rom.data() + offset, rom.data() + offset + Uncompressed3BPPSize,
+				sheet.begin());
       bpp3 = true;
     } else if (i == 113 || i == 114 || i >= 218) {
       bpp3 = false;
     } else {
       auto offset =
-          GetGraphicsAddress(data(), i, version_constants().kOverworldGfxPtr1,
-                             version_constants().kOverworldGfxPtr2,
-                             version_constants().kOverworldGfxPtr3);
+          GetGraphicsAddress(rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
+                             rom.version_constants().kOverworldGfxPtr2,
+                             rom.version_constants().kOverworldGfxPtr3);
       ASSIGN_OR_RETURN(sheet,
-                       gfx::lc_lz2::DecompressV2(rom_data_.data(), offset))
+                       gfx::lc_lz2::DecompressV2(rom.data(), offset))
       bpp3 = true;
     }
 
     if (bpp3) {
       auto converted_sheet = gfx::SnesTo8bppSheet(sheet, 3);
-      graphics_sheets_[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+      graphics_sheets[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                                  gfx::kTilesheetDepth, converted_sheet);
-      if (graphics_sheets_[i].is_active()) {
+      if (graphics_sheets[i].is_active()) {
         if (i > 115) {
           // Apply sprites palette
-          RETURN_IF_ERROR(graphics_sheets_[i].ApplyPaletteWithTransparent(
-              palette_groups_.global_sprites[0], 0));
+          RETURN_IF_ERROR(graphics_sheets[i].ApplyPaletteWithTransparent(
+              rom.palette_group().global_sprites[0], 0));
         } else {
-          RETURN_IF_ERROR(graphics_sheets_[i].ApplyPaletteWithTransparent(
-              palette_groups_.dungeon_main[0], 0));
+          RETURN_IF_ERROR(graphics_sheets[i].ApplyPaletteWithTransparent(
+              rom.palette_group().dungeon_main[0], 0));
         }
       }
 
       if (!defer_render) {
-        graphics_sheets_[i].CreateTexture(Renderer::GetInstance().renderer());
+        graphics_sheets[i].CreateTexture(Renderer::GetInstance().renderer());
       }
 
-      for (int j = 0; j < graphics_sheets_[i].size(); ++j) {
-        graphics_buffer_.push_back(graphics_sheets_[i].at(j));
+      for (int j = 0; j < graphics_sheets[i].size(); ++j) {
+        rom.mutable_graphics_buffer()->push_back(graphics_sheets[i].at(j));
       }
 
     } else {
-      for (int j = 0; j < graphics_sheets_[0].size(); ++j) {
-        graphics_buffer_.push_back(0xFF);
+      for (int j = 0; j < graphics_sheets[0].size(); ++j) {
+        rom.mutable_graphics_buffer()->push_back(0xFF);
       }
     }
   }
-  return absl::OkStatus();
+  return graphics_sheets;
 }
 
-absl::Status Rom::SaveAllGraphicsData() {
+absl::Status 
+SaveAllGraphicsData(Rom& rom, std::array<gfx::Bitmap, kNumGfxSheets>& gfx_sheets) {
   for (int i = 0; i < kNumGfxSheets; i++) {
-    if (graphics_sheets_[i].is_active()) {
+    if (gfx_sheets[i].is_active()) {
       int to_bpp = 3;
       std::vector<uint8_t> final_data;
       bool compressed = true;
@@ -145,7 +147,7 @@ absl::Status Rom::SaveAllGraphicsData() {
       }
 
       std::cout << "Sheet ID " << i << " BPP: " << to_bpp << std::endl;
-      auto sheet_data = graphics_sheets_[i].vector();
+      auto sheet_data = gfx_sheets[i].vector();
       std::cout << "Sheet data size: " << sheet_data.size() << std::endl;
       final_data = gfx::Bpp8SnesToIndexed(sheet_data, 8);
       int size = 0;
@@ -157,11 +159,10 @@ absl::Status Rom::SaveAllGraphicsData() {
         }
       }
       auto offset =
-          GetGraphicsAddress(data(), i, version_constants().kOverworldGfxPtr1,
-                             version_constants().kOverworldGfxPtr2,
-                             version_constants().kOverworldGfxPtr3);
-      std::copy(final_data.begin(), final_data.end(),
-                rom_data_.begin() + offset);
+          GetGraphicsAddress(rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
+            rom.version_constants().kOverworldGfxPtr2,
+            rom.version_constants().kOverworldGfxPtr3);
+      std::copy(final_data.begin(), final_data.end(), rom.begin() + offset);
     }
   }
   return absl::OkStatus();
@@ -230,6 +231,17 @@ absl::Status Rom::LoadFromPointer(uchar *data, size_t length, bool z3_load) {
   return absl::OkStatus();
 }
 
+absl::Status Rom::LoadFromBytes(const std::vector<uint8_t>& data) {
+  if (data.empty()) {
+    return absl::InvalidArgumentError(
+      "Could not load ROM: parameter `data` is empty.");
+  }
+  rom_data_ = data;
+  size_ = data.size();
+  is_loaded_ = true;
+  return absl::OkStatus();
+}
+
 absl::Status Rom::LoadZelda3() {
   // Check if the ROM has a header
   constexpr size_t kBaseRomSize = 1048576;  // 1MB
@@ -263,17 +275,6 @@ absl::Status Rom::LoadZelda3() {
   rom_data_.resize(kBaseRomSize * 2);
   size_ = kBaseRomSize * 2;
 
-  return absl::OkStatus();
-}
-
-absl::Status Rom::LoadFromBytes(const std::vector<uint8_t> &data) {
-  if (data.empty()) {
-    return absl::InvalidArgumentError(
-        "Could not load ROM: parameter `data` is empty.");
-  }
-  rom_data_ = data;
-  size_ = data.size();
-  is_loaded_ = true;
   return absl::OkStatus();
 }
 
@@ -319,8 +320,6 @@ absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
     RETURN_IF_ERROR(SaveAllPalettes());
   if (core::ExperimentFlags::get().kSaveGfxGroups)
     RETURN_IF_ERROR(SaveGroupsToRom());
-  if (core::ExperimentFlags::get().kSaveGraphicsSheet)
-    RETURN_IF_ERROR(SaveAllGraphicsData());
 
   if (save_new) {
     // Create a file of the same name and append the date between the filename

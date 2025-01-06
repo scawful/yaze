@@ -1,6 +1,9 @@
 #ifndef YAZE_APP_EDITOR_TILE16EDITOR_H
 #define YAZE_APP_EDITOR_TILE16EDITOR_H
 
+#include <array>
+#include <vector>
+
 #include "absl/status/status.h"
 #include "app/core/common.h"
 #include "app/editor/graphics/palette_editor.h"
@@ -20,9 +23,9 @@ namespace editor {
  */
 class Tile16Editor : public gfx::GfxContext, public SharedRom {
  public:
+	 Tile16Editor(std::array<gfx::Bitmap, zelda3::kNumTile16Individual>& tile16_individual) : tile16_individual_(tile16_individual) {}
   absl::Status InitBlockset(const gfx::Bitmap &tile16_blockset_bmp,
                             const gfx::Bitmap &current_gfx_bmp,
-                            const std::vector<gfx::Bitmap> &tile16_individual,
                             std::array<uint8_t, 0x200> &all_tiles_types);
 
   absl::Status Update();
@@ -82,17 +85,17 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
   gui::Canvas transfer_canvas_;
   gfx::Bitmap transfer_blockset_bmp_;
 
-  std::vector<gfx::Bitmap> tile16_individual_;
+  std::array<gfx::Bitmap, zelda3::kNumTile16Individual>& tile16_individual_;
   std::vector<gfx::Bitmap> current_gfx_individual_;
 
   PaletteEditor palette_editor_;
-
   gfx::SnesPalette palette_;
-  zelda3::Overworld transfer_overworld_;
 
   absl::Status status_;
 
   Rom transfer_rom_;
+  zelda3::Overworld transfer_overworld_{ transfer_rom_ };
+	std::array<gfx::Bitmap, kNumGfxSheets> transfer_gfx_;
   absl::Status transfer_status_;
 };
 

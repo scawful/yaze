@@ -218,6 +218,13 @@ Bitmap::Bitmap(int width, int height, int depth, int data_size) {
   Create(width, height, depth, std::vector<uint8_t>(data_size, 0));
 }
 
+void Bitmap::Initialize(int width, int height, int depth, std::span<uint8_t>& data) {
+  width_ = width;
+  height_ = height;
+  depth_ = depth;
+  data_ = std::vector<uint8_t>(data.begin(), data.end());
+}
+
 void Bitmap::Create(int width, int height, int depth, std::span<uint8_t> data) {
   data_ = std::vector<uint8_t>(data.begin(), data.end());
   Create(width, height, depth, data_);
@@ -239,19 +246,20 @@ void Bitmap::Create(int width, int height, int depth, int format,
   width_ = width;
   height_ = height;
   depth_ = depth;
-  data_ = data;
   data_size_ = data.size();
   if (data_size_ == 0) {
     SDL_Log("Data provided to Bitmap is empty.\n");
     return;
   }
+  data_.reserve(data_size_);
+  data_ = data;
   pixel_data_ = data_.data();
   surface_ = std::shared_ptr<SDL_Surface>{
       SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
                                      GetSnesPixelFormat(format)),
       SDL_Surface_Deleter{}};
   if (surface_ == nullptr) {
-    SDL_Log("SDL_CreateRGBSurfaceWithFormat failed: %s\n", SDL_GetError());
+    SDL_Log("Bitmap::Create.SDL_CreateRGBSurfaceWithFormat failed: %s\n", SDL_GetError());
     active_ = false;
     return;
   }
@@ -285,14 +293,15 @@ void Bitmap::CreateTexture(SDL_Renderer *renderer) {
                         SDL_TEXTUREACCESS_STREAMING, width_, height_),
       SDL_Texture_Deleter{}};
   if (texture_ == nullptr) {
-    SDL_Log("SDL_CreateTextureFromSurface failed: %s\n", SDL_GetError());
+    SDL_Log("Bitmap::CreateTexture.SDL_CreateTextureFromSurface failed: %s\n", SDL_GetError());
   }
+  texture_pixels = data_.data();
 
   auto converted_surface_ = std::shared_ptr<SDL_Surface>{
       SDL_ConvertSurfaceFormat(surface_.get(), SDL_PIXELFORMAT_ARGB8888, 0),
       SDL_Surface_Deleter{}};
   if (converted_surface_ == nullptr) {
-    SDL_Log("SDL_ConvertSurfaceFormat failed: %s\n", SDL_GetError());
+    SDL_Log("Bitmap::CreateTexture.SDL_ConvertSurfaceFormat failed: %s\n", SDL_GetError());
     return;
   }
 

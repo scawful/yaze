@@ -279,7 +279,7 @@ static const std::string kSpriteDefaultNames[]{
 class Sprite : public GameEntity {
  public:
   Sprite() = default;
-  Sprite(std::vector<uint8_t> src, uint8_t overworld_map_id, uint8_t id,
+  Sprite(const std::vector<uint8_t>& src, uint8_t overworld_map_id, uint8_t id,
          uint8_t x, uint8_t y, int map_x, int map_y)
       : map_id_(static_cast<int>(overworld_map_id)),
         id_(id),

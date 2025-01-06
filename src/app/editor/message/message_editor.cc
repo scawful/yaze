@@ -626,7 +626,7 @@ absl::Status MessageEditor::Save() {
   std::vector<uint8_t> backup = rom()->vector();
 
   for (int i = 0; i < 100; i++) {
-    RETURN_IF_ERROR(rom()->Write(kCharactersWidth + i, width_array[i]));
+    RETURN_IF_ERROR(rom()->WriteByte(kCharactersWidth + i, width_array[i]));
   }
 
   int pos = kTextData;
@@ -634,7 +634,7 @@ absl::Status MessageEditor::Save() {
 
   for (const auto& message : list_of_texts_) {
     for (const auto value : message.Data) {
-      RETURN_IF_ERROR(rom()->Write(pos, value));
+      RETURN_IF_ERROR(rom()->WriteByte(pos, value));
 
       if (value == kBlockTerminator) {
         // Make sure we didn't go over the space available in the first block.
@@ -652,7 +652,7 @@ absl::Status MessageEditor::Save() {
     }
 
     RETURN_IF_ERROR(
-        rom()->Write(pos++, kMessageTerminator));  // , true, "Terminator text"
+        rom()->WriteByte(pos++, kMessageTerminator));  // , true, "Terminator text"
   }
 
   // Verify that we didn't go over the space available for the second block.
@@ -662,7 +662,7 @@ absl::Status MessageEditor::Save() {
     return absl::InternalError(DisplayTextOverflowError(pos, false));
   }
 
-  RETURN_IF_ERROR(rom()->Write(pos, 0xFF));  // , true, "End of text"
+  RETURN_IF_ERROR(rom()->WriteByte(pos, 0xFF));  // , true, "End of text"
 
   return absl::OkStatus();
 }

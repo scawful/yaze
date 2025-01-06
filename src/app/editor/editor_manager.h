@@ -46,6 +46,7 @@ class EditorManager : public SharedRom {
     active_editors_.push_back(&sprite_editor_);
     active_editors_.push_back(&message_editor_);
     active_editors_.push_back(&screen_editor_);
+    active_editors_.push_back(&settings_editor_);
     std::stringstream ss;
     ss << YAZE_VERSION_MAJOR << "." << YAZE_VERSION_MINOR << "."
        << YAZE_VERSION_PATCH;
@@ -56,18 +57,18 @@ class EditorManager : public SharedRom {
   absl::Status Update();
 
   auto emulator() -> emu::Emulator & { return emulator_; }
-  auto quit() { return quit_; }
+  auto quit() const { return quit_; }
 
  private:
   void ManageActiveEditors();
   void ManageKeyboardShortcuts();
 
-  void DrawStatusPopup();
-  void DrawAboutPopup();
-  void DrawInfoPopup();
+  void DrawPopups();
+  void DrawHomepage();
 
-  void DrawYazeMenu();
-  void DrawYazeMenuBar();
+  void DrawMenuBar();
+  void DrawMenuContent();
+	void DrawRomMenu();
 
   void LoadRom();
   void SaveRom();
@@ -88,6 +89,8 @@ class EditorManager : public SharedRom {
   absl::Status status_;
   emu::Emulator emulator_;
   std::vector<Editor *> active_editors_;
+  std::vector<std::unique_ptr<Rom>> roms_;
+	Rom* current_rom_ = nullptr;
 
   Project current_project_;
   EditorContext editor_context_;
