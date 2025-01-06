@@ -1,6 +1,7 @@
 #ifndef YAZE_CORE_COMMON_H
 #define YAZE_CORE_COMMON_H
 
+#include <chrono>
 #include <cstdint>
 #include <fstream>
 #include <iostream>
@@ -10,6 +11,7 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_cat.h"
 
 namespace yaze {
 
@@ -172,17 +174,23 @@ class NotifyValue {
   T temp_value_;
 };
 
-static bool log_to_console = false;
 static const std::string kLogFileOut = "yaze_log.txt";
 
 template <typename... Args>
 static void logf(const absl::FormatSpec<Args...> &format, const Args &...args) {
   std::string message = absl::StrFormat(format, args...);
-  if (log_to_console) {
-    std::cout << message << std::endl;
+  auto timestamp = std::chrono::system_clock::now();
+
+  std::time_t now_tt = std::chrono::system_clock::to_time_t(timestamp);
+  std::tm tm = *std::localtime(&now_tt);
+	message = absl::StrCat("[", tm.tm_hour, ":", tm.tm_min, ":", tm.tm_sec, "] ",
+		message, "\n");
+  
+  if (ExperimentFlags::get().kLogToConsole) {
+    std::cout << message;
   }
   static std::ofstream fout(kLogFileOut, std::ios::out | std::ios::app);
-  fout << message << std::endl;
+  fout << message;
 }
 
 constexpr uint32_t kFastRomRegion = 0x808000;
