@@ -39,11 +39,12 @@ var searchData=
   ['spriteinstruction_36',['SpriteInstruction',['../classyaze_1_1zelda3_1_1SpriteInstruction.html',1,'yaze::zelda3']]],
   ['spriteitem_37',['SpriteItem',['../structyaze_1_1editor_1_1SpriteItem.html',1,'yaze::editor']]],
   ['spriteproperty_38',['SpriteProperty',['../structyaze_1_1editor_1_1zsprite_1_1SpriteProperty.html',1,'yaze::editor::zsprite']]],
-  ['stat77_39',['STAT77',['../structyaze_1_1emu_1_1STAT77.html',1,'yaze::emu']]],
-  ['stat78_40',['STAT78',['../structyaze_1_1emu_1_1STAT78.html',1,'yaze::emu']]],
-  ['subeditor_41',['SubEditor',['../structyaze_1_1editor_1_1zsprite_1_1SubEditor.html',1,'yaze::editor::zsprite']]],
-  ['subtype1_42',['Subtype1',['../classyaze_1_1zelda3_1_1Subtype1.html',1,'yaze::zelda3']]],
-  ['subtype2_43',['Subtype2',['../classyaze_1_1zelda3_1_1Subtype2.html',1,'yaze::zelda3']]],
-  ['subtype3_44',['Subtype3',['../classyaze_1_1zelda3_1_1Subtype3.html',1,'yaze::zelda3']]],
-  ['subtypeinfo_45',['SubtypeInfo',['../structyaze_1_1zelda3_1_1SubtypeInfo.html',1,'yaze::zelda3']]]
+  ['staircase_39',['staircase',['../structz3__dungeon__room_1_1staircase.html',1,'z3_dungeon_room']]],
+  ['stat77_40',['STAT77',['../structyaze_1_1emu_1_1STAT77.html',1,'yaze::emu']]],
+  ['stat78_41',['STAT78',['../structyaze_1_1emu_1_1STAT78.html',1,'yaze::emu']]],
+  ['subeditor_42',['SubEditor',['../structyaze_1_1editor_1_1zsprite_1_1SubEditor.html',1,'yaze::editor::zsprite']]],
+  ['subtype1_43',['Subtype1',['../classyaze_1_1zelda3_1_1Subtype1.html',1,'yaze::zelda3']]],
+  ['subtype2_44',['Subtype2',['../classyaze_1_1zelda3_1_1Subtype2.html',1,'yaze::zelda3']]],
+  ['subtype3_45',['Subtype3',['../classyaze_1_1zelda3_1_1Subtype3.html',1,'yaze::zelda3']]],
+  ['subtypeinfo_46',['SubtypeInfo',['../structyaze_1_1zelda3_1_1SubtypeInfo.html',1,'yaze::zelda3']]]
 ];

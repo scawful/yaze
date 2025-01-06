@@ -332,14 +332,9 @@ var annotated_dup =
     [ "yaze_event_dispatcher", "structyaze__event__dispatcher.html", "structyaze__event__dispatcher" ],
     [ "yaze_extension", "structyaze__extension.html", "structyaze__extension" ],
     [ "yaze_project", "structyaze__project.html", "structyaze__project" ],
-    [ "z3_chest", "structz3__chest.html", "structz3__chest" ],
-    [ "z3_chest_data", "structz3__chest__data.html", "structz3__chest__data" ],
-    [ "z3_dungeon_destination", "structz3__dungeon__destination.html", "structz3__dungeon__destination" ],
     [ "z3_dungeon_room", "structz3__dungeon__room.html", "structz3__dungeon__room" ],
-    [ "z3_object_door", "structz3__object__door.html", "structz3__object__door" ],
     [ "z3_overworld", "structz3__overworld.html", "structz3__overworld" ],
     [ "z3_overworld_map", "structz3__overworld__map.html", "structz3__overworld__map" ],
     [ "z3_rom", "structz3__rom.html", "structz3__rom" ],
-    [ "z3_sprite", "structz3__sprite.html", "structz3__sprite" ],
-    [ "z3_staircase", "structz3__staircase.html", "structz3__staircase" ]
+    [ "z3_sprite", "structz3__sprite.html", "structz3__sprite" ]
 ];

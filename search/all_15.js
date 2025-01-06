@@ -1,7 +1,7 @@
 var searchData=
 [
   ['l_5fbutton_0',['l_button',['../structyaze_1_1emu_1_1EmulatorKeybindings.html#abaa47b8a06dfd6a25cbe6963b0518525',1,'yaze::emu::EmulatorKeybindings']]],
-  ['label_1',['label',['../structz3__staircase.html#a66a8b70b58ea54d4f3976f5c1e580e4c',1,'z3_staircase']]],
+  ['label_1',['label',['../structz3__dungeon__room_1_1staircase.html#a3f85c70c20147e4d440fc306152df547',1,'z3_dungeon_room::staircase']]],
   ['labels_2',['labels',['../classyaze_1_1gui_1_1Canvas.html#a1221d849ae979959f6286af950ea68cd',1,'yaze::gui::Canvas']]],
   ['labels_20and_20symbols_3',['Labels and Symbols',['../md_docs_2asm-style-guide.html#autotoc_md3',1,'']]],
   ['labels_5f_4',['labels_',['../structyaze_1_1ResourceLabelManager.html#a125a1036183bcb6c99cb2e3df6e5aea1',1,'yaze::ResourceLabelManager::labels_'],['../classyaze_1_1gui_1_1Canvas.html#a9a3abdc32c4acbb4619e4ab6a388ff60',1,'yaze::gui::Canvas::labels_']]],
@@ -24,7 +24,7 @@ var searchData=
   ['latched_5fstate_5f_21',['latched_state_',['../structyaze_1_1emu_1_1Input.html#aea449ae46f450eb827c7dcf1181017b5',1,'yaze::emu::Input']]],
   ['latchhv_22',['LatchHV',['../classyaze_1_1emu_1_1Ppu.html#a07b1d26c4db5fc9aeecce4748da9834f',1,'yaze::emu::Ppu']]],
   ['layer_23',['Layer',['../structyaze_1_1emu_1_1Layer.html',1,'yaze::emu::Layer'],['../namespaceyaze_1_1emu.html#aa137d3787515b802157d6b1af1c83ef7',1,'yaze::emu::Layer']]],
-  ['layer_24',['layer',['../structz3__object__door.html#a6969552dcacacde4299df9fa156dccf2',1,'z3_object_door::layer'],['../classyaze_1_1zelda3_1_1Sprite.html#a7ac9905d2694e7ee289f3451f7dacf2b',1,'yaze::zelda3::Sprite::layer()']]],
+  ['layer_24',['layer',['../structz3__dungeon__room_1_1object__door.html#acb059abd02e267f984ef05e58810e3f6',1,'z3_dungeon_room::object_door::layer'],['../classyaze_1_1zelda3_1_1Sprite.html#a7ac9905d2694e7ee289f3451f7dacf2b',1,'yaze::zelda3::Sprite::layer()']]],
   ['layer1_25',['layer1',['../classyaze_1_1zelda3_1_1Room.html#a1aa7cda465ad11040f4ce64644fdf7cd',1,'yaze::zelda3::Room']]],
   ['layer2_26',['layer2',['../classyaze_1_1zelda3_1_1Room.html#a4217f93dee62c9ac60587338731a2c6f',1,'yaze::zelda3::Room']]],
   ['layer2_5fbehavior_5f_27',['layer2_behavior_',['../classyaze_1_1zelda3_1_1Room.html#a4f1515d6a5f49d8f5d1029c2a1df5ffb',1,'yaze::zelda3::Room']]],

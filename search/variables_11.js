@@ -49,7 +49,7 @@ var searchData=
   ['rom_5freadable_5f_46',['rom_readable_',['../classyaze_1_1emu_1_1Apu.html#af442e153f924430fdf8a9aa5651b65be',1,'yaze::emu::Apu']]],
   ['rom_5fsize_5f_47',['rom_size_',['../classyaze_1_1emu_1_1MemoryImpl.html#a86ab3bf451d7c462e104e246bd99c7c8',1,'yaze::emu::MemoryImpl']]],
   ['roms_5f_48',['roms_',['../classyaze_1_1editor_1_1EditorManager.html#a3c1b91cf67e523c0d885be652c2a0ce9',1,'yaze::editor::EditorManager']]],
-  ['room_49',['room',['../structz3__staircase.html#aa7d92afe00f97bb9b8afec4b80f192f1',1,'z3_staircase']]],
+  ['room_49',['room',['../structz3__dungeon__room_1_1staircase.html#a46e087b4a3ab132b038ebc27ef03b929',1,'z3_dungeon_room::staircase']]],
   ['room_5f_50',['room_',['../classyaze_1_1zelda3_1_1RoomEntrance.html#af1bf0374c1c58de35e87acfebc44cf42',1,'yaze::zelda3::RoomEntrance']]],
   ['room_5fblockset_5fids_51',['room_blockset_ids',['../classyaze_1_1Rom.html#a88ec2d03d01e7d4aec9c03e7b2ed78a9',1,'yaze::Rom::room_blockset_ids'],['../classyaze_1_1test_1_1Rom.html#a88ec2d03d01e7d4aec9c03e7b2ed78a9',1,'yaze::test::Rom::room_blockset_ids']]],
   ['room_5fgfx_5fbmp_5f_52',['room_gfx_bmp_',['../classyaze_1_1editor_1_1DungeonEditor.html#a286b228f902924f9735a0510ac82099c',1,'yaze::editor::DungeonEditor']]],

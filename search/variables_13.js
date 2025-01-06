@@ -13,8 +13,8 @@ var searchData=
   ['table_5faddr_10',['table_addr',['../structyaze_1_1emu_1_1DmaChannel.html#ae5bc51db058cb6ca494e9e4bdd93950c',1,'yaze::emu::DmaChannel']]],
   ['tag1_5f_11',['tag1_',['../classyaze_1_1zelda3_1_1Room.html#a395788339cd3b480bbc18deaf32f1989',1,'yaze::zelda3::Room']]],
   ['tag2_5f_12',['tag2_',['../classyaze_1_1zelda3_1_1Room.html#a18435570337fd27610a6f65f2e1ca3c8',1,'yaze::zelda3::Room']]],
-  ['target_13',['target',['../structz3__dungeon__destination.html#ac37f00dd2c68e56541c77bd3ca32b284',1,'z3_dungeon_destination::target'],['../structyaze_1_1emu_1_1Timer.html#a7cfb8b601e2b7679ea93002471464202',1,'yaze::emu::Timer::target']]],
-  ['target_5flayer_14',['target_layer',['../structz3__dungeon__destination.html#ae0e71ea04e84295641c5593e87880555',1,'z3_dungeon_destination']]],
+  ['target_13',['target',['../structz3__dungeon__room_1_1destination.html#a61f79a2bf8f58b2a0fe4e362fb36e004',1,'z3_dungeon_room::destination::target'],['../structyaze_1_1emu_1_1Timer.html#a7cfb8b601e2b7679ea93002471464202',1,'yaze::emu::Timer::target']]],
+  ['target_5flayer_14',['target_layer',['../structz3__dungeon__room_1_1destination.html#a422b15e796be34491efcf793792f716f',1,'z3_dungeon_room::destination']]],
   ['tbl_15',['tbl',['../structyaze_1_1zelda3_1_1music_1_1SongPart.html#a9014e4a87581bfd015b4bce2c200d2de',1,'yaze::zelda3::music::SongPart::tbl'],['../structyaze_1_1zelda3_1_1music_1_1Song.html#a3a728711fb900ba3f404b6a37cdf1484',1,'yaze::zelda3::music::Song::tbl']]],
   ['temp_5from_5f_16',['temp_rom_',['../classyaze_1_1editor_1_1GraphicsEditor.html#a24845974c632522f7298818b49160c1f',1,'yaze::editor::GraphicsEditor']]],
   ['temp_5fvalue_5f_17',['temp_value_',['../classyaze_1_1core_1_1NotifyValue.html#a471411b08d77c5c3bd8dc12e9636bf7b',1,'yaze::core::NotifyValue']]],
@@ -126,6 +126,6 @@ var searchData=
   ['tsw_123',['TSW',['../namespaceyaze_1_1emu.html#a50331c27c6c0f047cf8ba4f61aeca94d',1,'yaze::emu']]],
   ['turbo_5fmode_5f_124',['turbo_mode_',['../classyaze_1_1emu_1_1Emulator.html#a0dec3e42fe398a7275373df8a38384fb',1,'yaze::emu::Emulator']]],
   ['type_125',['Type',['../structyaze_1_1gui_1_1AssetObject.html#a17a4ac7233ca97494d69fa581292d6c6',1,'yaze::gui::AssetObject']]],
-  ['type_126',['type',['../structz3__object__door.html#a0b0e1ea5889874b525d64263a8ae8f7a',1,'z3_object_door::type'],['../structyaze_1_1emu_1_1Input.html#a6266b3d0433e50188db60e41b1ff5c33',1,'yaze::emu::Input::type'],['../structyaze_1_1gui_1_1zeml_1_1Token.html#ab57ae7ca88664ca1b01674ae18fd87f8',1,'yaze::gui::zeml::Token::type'],['../structyaze_1_1gui_1_1zeml_1_1Action.html#a8c3ed63d924a3375b2823c1a4882a1df',1,'yaze::gui::zeml::Action::type'],['../structyaze_1_1gui_1_1zeml_1_1Node.html#af89c32e83a9f2aa2eb055525ba04bf14',1,'yaze::gui::zeml::Node::type']]],
+  ['type_126',['type',['../structz3__dungeon__room_1_1object__door.html#a150d561caaba5dd8e7a87d78dca25d29',1,'z3_dungeon_room::object_door::type'],['../structyaze_1_1emu_1_1Input.html#a6266b3d0433e50188db60e41b1ff5c33',1,'yaze::emu::Input::type'],['../structyaze_1_1gui_1_1zeml_1_1Token.html#ab57ae7ca88664ca1b01674ae18fd87f8',1,'yaze::gui::zeml::Token::type'],['../structyaze_1_1gui_1_1zeml_1_1Action.html#a8c3ed63d924a3375b2823c1a4882a1df',1,'yaze::gui::zeml::Action::type'],['../structyaze_1_1gui_1_1zeml_1_1Node.html#af89c32e83a9f2aa2eb055525ba04bf14',1,'yaze::gui::zeml::Node::type']]],
   ['type_5f_127',['type_',['../classyaze_1_1editor_1_1Editor.html#a84126d69916364100eece497a4ced26e',1,'yaze::editor::Editor::type_'],['../classyaze_1_1emu_1_1MemoryImpl.html#afc2938889beeae99884ea9209fe4cbe5',1,'yaze::emu::MemoryImpl::type_']]]
 ];

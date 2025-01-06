@@ -134,7 +134,7 @@ var searchData=
   ['roms_5f_131',['roms_',['../classyaze_1_1editor_1_1EditorManager.html#a3c1b91cf67e523c0d885be652c2a0ce9',1,'yaze::editor::EditorManager']]],
   ['romtest_132',['RomTest',['../classyaze_1_1test_1_1RomTest.html',1,'yaze::test']]],
   ['room_133',['Room',['../classyaze_1_1zelda3_1_1Room.html',1,'yaze::zelda3::Room'],['../classyaze_1_1zelda3_1_1Room.html#aeac23ed98bd83514857de8d752cb6ce0',1,'yaze::zelda3::Room::Room()=default'],['../classyaze_1_1zelda3_1_1Room.html#a18df0f589ff502f60748fcc048d1e8ec',1,'yaze::zelda3::Room::Room(int room_id)']]],
-  ['room_134',['room',['../structz3__staircase.html#aa7d92afe00f97bb9b8afec4b80f192f1',1,'z3_staircase']]],
+  ['room_134',['room',['../structz3__dungeon__room_1_1staircase.html#a46e087b4a3ab132b038ebc27ef03b929',1,'z3_dungeon_room::staircase']]],
   ['room_2ecc_135',['room.cc',['../room_8cc.html',1,'']]],
   ['room_2eh_136',['room.h',['../room_8h.html',1,'']]],
   ['room_5f_137',['room_',['../classyaze_1_1zelda3_1_1RoomEntrance.html#af1bf0374c1c58de35e87acfebc44cf42',1,'yaze::zelda3::RoomEntrance']]],

@@ -1,11 +1,11 @@
-<map id="src/app/core/utils/sdl_deleter.h" name="src/app/core/utils/sdl_deleter.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="1257,5,1379,46"/>
+<map id="src/app/core/platform/sdl_deleter.h" name="src/app/core/platform/sdl_deleter.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="1246,5,1390,46"/>
 <area shape="rect" id="Node000002" href="$renderer_8h.html" title=" " alt="" coords="796,168,941,208"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1249,54,925,170,923,165,1248,49"/>
 <area shape="rect" id="Node000020" href="$emu_8cc.html" title=" " alt="" coords="1248,94,1388,120"/>
 <area shape="poly" id="edge16_Node000001_Node000020" title=" " alt="" coords="1321,62,1321,93,1315,93,1315,62"/>
 <area shape="rect" id="Node000021" href="$bitmap_8h.html" title=" " alt="" coords="1496,94,1634,120"/>
-<area shape="poly" id="edge17_Node000001_Node000021" title=" " alt="" coords="1394,48,1527,91,1526,96,1393,54"/>
+<area shape="poly" id="edge17_Node000001_Node000021" title=" " alt="" coords="1395,49,1527,91,1526,96,1393,54"/>
 <area shape="rect" id="Node000003" href="$controller_8h.html" title=" " alt="" coords="48,264,209,290"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="781,198,529,221,375,238,221,259,183,266,183,261,220,254,374,233,528,215,781,193"/>
 <area shape="rect" id="Node000008" href="$test__editor_8cc.html" title=" " alt="" coords="5,345,135,386"/>

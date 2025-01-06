@@ -1,8 +1,8 @@
 <map id="src/app/editor/system" name="src/app/editor/system">
 <area shape="rect" id="node1" href="dir_6786299e5fb540707e8551af9d97f855.html" title="system" alt="" coords="107,52,170,78"/>
 <area shape="rect" id="node2" href="dir_3692ec13241b192189de912e0a54f355.html" title="zelda3" alt="" coords="5,126,64,152"/>
-<area shape="poly" id="edge1" href="dir_000037_000041.html" alt="" coords="122,81,66,119,63,115,119,76"/>
-<area shape="rect" id="edge1-headlabel" href="dir_000037_000041.html" title="1" alt="" coords="68,115,75,130"/>
+<area shape="poly" id="edge1" href="dir_000037_000040.html" alt="" coords="122,81,66,119,63,115,119,76"/>
+<area shape="rect" id="edge1-headlabel" href="dir_000037_000040.html" title="1" alt="" coords="68,115,75,130"/>
 <area shape="rect" id="node3" href="dir_8fca90320bcc7393a52982c8dc104a2a.html" title="gui" alt="" coords="87,126,126,152"/>
 <area shape="poly" id="edge2" href="dir_000037_000016.html" alt="" coords="136,79,121,113,116,111,131,77"/>
 <area shape="rect" id="edge2-headlabel" href="dir_000037_000016.html" title="1" alt="" coords="124,105,131,120"/>

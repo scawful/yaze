@@ -107,23 +107,36 @@ $(function(){initNavTree('file__dialog_8cc.html',''); initResizable(true); });
 
 <div class="header">
   <div class="summary">
-<a href="#namespaces">Namespaces</a>  </div>
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">file_dialog.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="file__dialog_8h_source.html">file_dialog.h</a>&quot;</code><br />
+<code>#include &lt;dirent.h&gt;</code><br />
+<code>#include &lt;sys/stat.h&gt;</code><br />
+<code>#include &lt;fstream&gt;</code><br />
+<code>#include &lt;sstream&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for file_dialog.cc:</div>
 <div class="dyncontent">
 <div class="center"><img src="file__dialog_8cc__incl.png" border="0" usemap="#asrc_2app_2core_2platform_2file__dialog_8cc" alt=""/></div>
 <map name="asrc_2app_2core_2platform_2file__dialog_8cc" id="asrc_2app_2core_2platform_2file__dialog_8cc">
-<area shape="rect" title=" " alt="" coords="5,5,150,46"/>
-<area shape="rect" href="file__dialog_8h.html" title=" " alt="" coords="33,94,122,120"/>
-<area shape="poly" title=" " alt="" coords="80,46,80,78,75,78,75,46"/>
-<area shape="rect" title=" " alt="" coords="11,168,64,193"/>
-<area shape="poly" title=" " alt="" coords="73,121,54,155,49,153,69,119"/>
-<area shape="rect" title=" " alt="" coords="89,168,146,193"/>
-<area shape="poly" title=" " alt="" coords="86,119,106,153,101,155,82,121"/>
+<area shape="rect" title=" " alt="" coords="194,5,339,46"/>
+<area shape="rect" href="file__dialog_8h.html" title=" " alt="" coords="28,94,116,120"/>
+<area shape="poly" title=" " alt="" coords="219,49,117,90,115,85,217,44"/>
+<area shape="rect" title=" " alt="" coords="140,94,204,120"/>
+<area shape="poly" title=" " alt="" coords="245,48,200,86,196,82,242,44"/>
+<area shape="rect" title=" " alt="" coords="228,94,305,120"/>
+<area shape="poly" title=" " alt="" coords="269,46,269,78,264,78,264,46"/>
+<area shape="rect" title=" " alt="" coords="330,94,395,120"/>
+<area shape="poly" title=" " alt="" coords="292,44,338,82,335,86,289,48"/>
+<area shape="rect" title=" " alt="" coords="419,94,488,120"/>
+<area shape="poly" title=" " alt="" coords="314,44,412,85,410,90,312,49"/>
+<area shape="rect" title=" " alt="" coords="5,168,59,193"/>
+<area shape="poly" title=" " alt="" coords="68,121,48,155,44,153,63,119"/>
+<area shape="rect" title=" " alt="" coords="83,168,141,193"/>
+<area shape="poly" title=" " alt="" coords="81,119,100,153,96,155,76,121"/>
 </map>
 </div>
 </div>
@@ -137,6 +150,21 @@ Namespaces</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core.html">yaze::core</a></td></tr>
 <tr class="memdesc:namespaceyaze_1_1core"><td class="mdescLeft">&#160;</td><td class="mdescRight">Core application logic and utilities. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:abc62834eb5824227302b2f2e7f5b375d" id="r_abc62834eb5824227302b2f2e7f5b375d"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core.html#abc62834eb5824227302b2f2e7f5b375d">yaze::core::GetFileExtension</a> (const std::string &amp;filename)</td></tr>
+<tr class="separator:abc62834eb5824227302b2f2e7f5b375d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a91b15ab541fc413b5208c32d750b87c8" id="r_a91b15ab541fc413b5208c32d750b87c8"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core.html#a91b15ab541fc413b5208c32d750b87c8">yaze::core::GetFileName</a> (const std::string &amp;filename)</td></tr>
+<tr class="separator:a91b15ab541fc413b5208c32d750b87c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a52189778cda85a731116f50ab603ca6c" id="r_a52189778cda85a731116f50ab603ca6c"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core.html#a52189778cda85a731116f50ab603ca6c">yaze::core::LoadFile</a> (const std::string &amp;filename)</td></tr>
+<tr class="separator:a52189778cda85a731116f50ab603ca6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7345775b8c056bb6c1b6f663eb7e25a8" id="r_a7345775b8c056bb6c1b6f663eb7e25a8"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core.html#a7345775b8c056bb6c1b6f663eb7e25a8">yaze::core::LoadConfigFile</a> (const std::string &amp;filename)</td></tr>
+<tr class="separator:a7345775b8c056bb6c1b6f663eb7e25a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a725e8e7dff6b06826090040ea3c2ba" id="r_a8a725e8e7dff6b06826090040ea3c2ba"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core.html#a8a725e8e7dff6b06826090040ea3c2ba">yaze::core::SaveFile</a> (const std::string &amp;filename, const std::string &amp;contents, <a class="el" href="namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648">Platform</a> platform)</td></tr>
+<tr class="separator:a8a725e8e7dff6b06826090040ea3c2ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ce28d9949b2dd0f6b6f6ae922700ae2" id="r_a6ce28d9949b2dd0f6b6f6ae922700ae2"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core.html#a6ce28d9949b2dd0f6b6f6ae922700ae2">yaze::core::GetConfigDirectory</a> (<a class="el" href="namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648">Platform</a> platform)</td></tr>
+<tr class="separator:a6ce28d9949b2dd0f6b6f6ae922700ae2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

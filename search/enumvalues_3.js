@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['dark_0',['Dark',['../dungeon_8h.html#a86a9ab609ee1ad1b7d6740218b5738deab881c2fca9941a632de2b4af173a7906',1,'dungeon.h']]],
-  ['darkroom_1',['DarkRoom',['../dungeon_8h.html#a86a9ab609ee1ad1b7d6740218b5738deabd4ed2edf2b1c880c6568252e7cc7275',1,'dungeon.h']]],
+  ['dark_0',['Dark',['../structz3__dungeon__room.html#afcfad9e8b78531ea42593ce836189702a04886d4b90b1eae147a1fa05090d10f6',1,'z3_dungeon_room']]],
+  ['darkroom_1',['DarkRoom',['../structz3__dungeon__room.html#afcfad9e8b78531ea42593ce836189702afdb7b27856e29be5d9bd63b8807ad011',1,'z3_dungeon_room']]],
   ['data_2',['Data',['../classyaze_1_1emu_1_1Cpu.html#afdec6b6a7b1a5e7eba910f389715f4c6af6068daa29dbb05a7ead1e3b5a48bbee',1,'yaze::emu::Cpu']]],
   ['default_3',['Default',['../classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a7a1920d61156abc05a60135aefe8bc67',1,'TextEditor']]],
   ['definition_4',['Definition',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a0b890b1926b90387673882e6ccae7fdc',1,'yaze::gui::zeml']]],

@@ -1,7 +1,7 @@
 var searchData=
 [
   ['l_5fbutton_0',['l_button',['../structyaze_1_1emu_1_1EmulatorKeybindings.html#abaa47b8a06dfd6a25cbe6963b0518525',1,'yaze::emu::EmulatorKeybindings']]],
-  ['label_1',['label',['../structz3__staircase.html#a66a8b70b58ea54d4f3976f5c1e580e4c',1,'z3_staircase']]],
+  ['label_1',['label',['../structz3__dungeon__room_1_1staircase.html#a3f85c70c20147e4d440fc306152df547',1,'z3_dungeon_room::staircase']]],
   ['labels_5f_2',['labels_',['../structyaze_1_1ResourceLabelManager.html#a125a1036183bcb6c99cb2e3df6e5aea1',1,'yaze::ResourceLabelManager::labels_'],['../classyaze_1_1gui_1_1Canvas.html#a9a3abdc32c4acbb4619e4ab6a388ff60',1,'yaze::gui::Canvas::labels_']]],
   ['labels_5ffilename_3',['labels_filename',['../structyaze__project.html#aa9deca5d69c0a57db8d0f093a9aeb2e2',1,'yaze_project']]],
   ['labels_5ffilename_5f_4',['labels_filename_',['../structyaze_1_1Project.html#ad3afa355da51c95e9d6e32a5d2036595',1,'yaze::Project']]],
@@ -18,7 +18,7 @@ var searchData=
   ['lastsr_15',['lastsr',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html#a6a37ec86d53d6760ab1d27eb2620445c',1,'yaze::zelda3::music::Tracker']]],
   ['latch_5fline_5f_16',['latch_line_',['../structyaze_1_1emu_1_1Input.html#a2d282c67099bf3874f451c1ad1a89110',1,'yaze::emu::Input']]],
   ['latched_5fstate_5f_17',['latched_state_',['../structyaze_1_1emu_1_1Input.html#aea449ae46f450eb827c7dcf1181017b5',1,'yaze::emu::Input']]],
-  ['layer_18',['layer',['../structz3__object__door.html#a6969552dcacacde4299df9fa156dccf2',1,'z3_object_door']]],
+  ['layer_18',['layer',['../structz3__dungeon__room_1_1object__door.html#acb059abd02e267f984ef05e58810e3f6',1,'z3_dungeon_room::object_door']]],
   ['layer2_5fbehavior_5f_19',['layer2_behavior_',['../classyaze_1_1zelda3_1_1Room.html#a4f1515d6a5f49d8f5d1029c2a1df5ffb',1,'yaze::zelda3::Room']]],
   ['layer2_5fmode_5f_20',['layer2_mode_',['../classyaze_1_1zelda3_1_1Room.html#a5bc53acf14a313bab1bce257f6a261ce',1,'yaze::zelda3::Room']]],
   ['layer2ontop_21',['Layer2OnTop',['../structyaze_1_1zelda3_1_1LayerMergeType.html#a33e933d236c5ac3e79e3119bdeb4025c',1,'yaze::zelda3::LayerMergeType']]],
