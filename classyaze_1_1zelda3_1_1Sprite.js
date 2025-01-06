@@ -1,7 +1,7 @@
 var classyaze_1_1zelda3_1_1Sprite =
 [
     [ "Sprite", "classyaze_1_1zelda3_1_1Sprite.html#a33986d6ba1e05add5a0df1902791119a", null ],
-    [ "Sprite", "classyaze_1_1zelda3_1_1Sprite.html#ac1c5e6830004fd7db656085cad46e05f", null ],
+    [ "Sprite", "classyaze_1_1zelda3_1_1Sprite.html#a35e1e5667fc9a525b12ad5619d1c9c3e", null ],
     [ "Sprite", "classyaze_1_1zelda3_1_1Sprite.html#ad6c542d7bda1fc40d37a8134e69f81ab", null ],
     [ "InitSprite", "classyaze_1_1zelda3_1_1Sprite.html#a58581c13311e5b3ed50d1c8b71efda13", null ],
     [ "UpdateBoundaryBox", "classyaze_1_1zelda3_1_1Sprite.html#a8ac44fb90f5d662aadb70ea33ffd8045", null ],

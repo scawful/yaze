@@ -1,9 +1,5 @@
 var NAVTREEINDEX53 =
 {
-"structyaze_1_1zelda3_1_1LayerMergeType.html#a5cc43e491dc64309089c86482f34c8a8":[10,0,1,8,7,1],
-"structyaze_1_1zelda3_1_1LayerMergeType.html#a5cc43e491dc64309089c86482f34c8a8":[11,0,0,7,4,1],
-"structyaze_1_1zelda3_1_1LayerMergeType.html#aadcc6ef40e230faee5584e3617ada514":[10,0,1,8,7,3],
-"structyaze_1_1zelda3_1_1LayerMergeType.html#aadcc6ef40e230faee5584e3617ada514":[11,0,0,7,4,3],
 "structyaze_1_1zelda3_1_1LayerMergeType.html#ad5a31463ab37f4bbc2ceb4a20d169c13":[10,0,1,8,7,0],
 "structyaze_1_1zelda3_1_1LayerMergeType.html#ad5a31463ab37f4bbc2ceb4a20d169c13":[11,0,0,7,4,0],
 "structyaze_1_1zelda3_1_1LayerMergeType.html#af82b727b5503ea104c90d28db2b9f65d":[10,0,1,8,7,6],
@@ -249,5 +245,9 @@ var NAVTREEINDEX53 =
 "structz3__chest.html#ab994b0492f46b3f4ccd58990f7ed1cea":[11,0,17,3],
 "structz3__chest.html#aedd774ac6b85b65059b1c351a6ae0bc0":[11,0,17,0],
 "structz3__chest__data.html":[11,0,18],
-"structz3__chest__data.html#a52ecf40db045d082abd95f7929f8374c":[11,0,18,0]
+"structz3__chest__data.html#a52ecf40db045d082abd95f7929f8374c":[11,0,18,0],
+"structz3__chest__data.html#a68da1a282161daa55727dd55885369c5":[11,0,18,1],
+"structz3__dungeon__destination.html":[11,0,19],
+"structz3__dungeon__destination.html#a232458b3c66b02646f5820d149b56be1":[11,0,19,0],
+"structz3__dungeon__destination.html#ac37f00dd2c68e56541c77bd3ca32b284":[11,0,19,1]
 };

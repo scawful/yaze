@@ -1,9 +1,5 @@
 var NAVTREEINDEX44 =
 {
-"namespaceyaze_1_1zelda3.html#ae6cd3b84406ea0d63138846e2e6eff29":[10,0,1,8,192],
-"namespaceyaze_1_1zelda3.html#ae743dd23bb238d5aa19fc3a8ac1aabbb":[10,0,1,8,81],
-"namespaceyaze_1_1zelda3.html#ae951cf53c23877c9e91f0ca1c089921d":[10,0,1,8,205],
-"namespaceyaze_1_1zelda3.html#ae9e347d90839ccbaeff8d377c9ca7e2a":[10,0,1,8,121],
 "namespaceyaze_1_1zelda3.html#aeb1d1905adc848ab69a769e094b2ef2d":[10,0,1,8,153],
 "namespaceyaze_1_1zelda3.html#aeb8fe4646067b83eb7f89a09d15e5fc1":[10,0,1,8,84],
 "namespaceyaze_1_1zelda3.html#aebdd836608337fa635a795f5ae00536a":[10,0,1,8,214],
@@ -249,5 +245,9 @@ var NAVTREEINDEX44 =
 "structsnes__palette.html#aa3f32ff0f52e7ada19fb5afdd477258f":[11,0,5,0],
 "structsnes__palette.html#ad4057af514d8aab3c6a429b693bb9ac6":[11,0,5,2],
 "structsnes__palette.html#af78e1764df4b15340c56da97b8e2c965":[11,0,5,1],
-"structsnes__tile16.html":[11,0,6]
+"structsnes__tile16.html":[11,0,6],
+"structsnes__tile16.html#ac600abfadbc79e7265b2086c99e322cc":[11,0,6,0],
+"structsnes__tile32.html":[11,0,7],
+"structsnes__tile32.html#a08487be5866c564ee0cb38fb2d73da79":[11,0,7,1],
+"structsnes__tile32.html#a31336d8e72c7ca6ea6c4d2d1fa552e9c":[11,0,7,0]
 };

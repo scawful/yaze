@@ -1,9 +1,5 @@
 var NAVTREEINDEX54 =
 {
-"structz3__chest__data.html#a68da1a282161daa55727dd55885369c5":[11,0,18,1],
-"structz3__dungeon__destination.html":[11,0,19],
-"structz3__dungeon__destination.html#a232458b3c66b02646f5820d149b56be1":[11,0,19,0],
-"structz3__dungeon__destination.html#ac37f00dd2c68e56541c77bd3ca32b284":[11,0,19,1],
 "structz3__dungeon__destination.html#ae0e71ea04e84295641c5593e87880555":[11,0,19,2],
 "structz3__dungeon__room.html":[11,0,20],
 "structz3__dungeon__room.html#a0ae57a352d3b4daddeefb4b800414ff9":[11,0,20,0],

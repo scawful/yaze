@@ -1,9 +1,5 @@
 var NAVTREEINDEX18 =
 {
-"classyaze_1_1test_1_1Cpu.html#a102883f5080f5082e0054d7bd7d78b5e":[10,0,1,7,8,100],
-"classyaze_1_1test_1_1Cpu.html#a102883f5080f5082e0054d7bd7d78b5e":[11,0,0,6,6,100],
-"classyaze_1_1test_1_1Cpu.html#a1147c955ec591550cf3ef6bed317fcb0":[10,0,1,7,8,31],
-"classyaze_1_1test_1_1Cpu.html#a1147c955ec591550cf3ef6bed317fcb0":[11,0,0,6,6,31],
 "classyaze_1_1test_1_1Cpu.html#a1537b95dc0121cb4ef31ab12576b0ee7":[10,0,1,7,8,68],
 "classyaze_1_1test_1_1Cpu.html#a1537b95dc0121cb4ef31ab12576b0ee7":[11,0,0,6,6,68],
 "classyaze_1_1test_1_1Cpu.html#a16fe87970c5888a2a21a04ec83784701":[10,0,1,7,8,119],
@@ -249,5 +245,9 @@ var NAVTREEINDEX18 =
 "classyaze_1_1test_1_1Cpu.html#aa1175dca86ecb147b15750c6d0094346":[10,0,1,7,8,174],
 "classyaze_1_1test_1_1Cpu.html#aa1175dca86ecb147b15750c6d0094346":[11,0,0,6,6,174],
 "classyaze_1_1test_1_1Cpu.html#aa17a371df4ac8b5838f6b5f5d45a35b6":[10,0,1,7,8,43],
-"classyaze_1_1test_1_1Cpu.html#aa17a371df4ac8b5838f6b5f5d45a35b6":[11,0,0,6,6,43]
+"classyaze_1_1test_1_1Cpu.html#aa17a371df4ac8b5838f6b5f5d45a35b6":[11,0,0,6,6,43],
+"classyaze_1_1test_1_1Cpu.html#aa29de288edbd0b39be64218f402af4c4":[10,0,1,7,8,16],
+"classyaze_1_1test_1_1Cpu.html#aa29de288edbd0b39be64218f402af4c4":[11,0,0,6,6,16],
+"classyaze_1_1test_1_1Cpu.html#aa45be4fc8fce02f4fda9ee581c12474a":[10,0,1,7,8,55],
+"classyaze_1_1test_1_1Cpu.html#aa45be4fc8fce02f4fda9ee581c12474a":[11,0,0,6,6,55]
 };

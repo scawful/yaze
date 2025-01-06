@@ -26,6 +26,7 @@ var classyaze_1_1zelda3_1_1OverworldMap =
     [ "area_music", "classyaze_1_1zelda3_1_1OverworldMap.html#a8c5a9543369c94aa0279abba1432c061", null ],
     [ "static_graphics", "classyaze_1_1zelda3_1_1OverworldMap.html#a813d2eef87a1f2ae73a1651777acdece", null ],
     [ "large_index", "classyaze_1_1zelda3_1_1OverworldMap.html#ad10f08d79666a01007925368658e9ba5", null ],
+    [ "mutable_current_graphics", "classyaze_1_1zelda3_1_1OverworldMap.html#ac2e492cac975f018fe6c5fc31299fb60", null ],
     [ "mutable_area_graphics", "classyaze_1_1zelda3_1_1OverworldMap.html#af231e7ec0fa1d45d018a2aba3c41c37f", null ],
     [ "mutable_area_palette", "classyaze_1_1zelda3_1_1OverworldMap.html#aa08d56743cec6094b3a9109445e95125", null ],
     [ "mutable_sprite_graphics", "classyaze_1_1zelda3_1_1OverworldMap.html#a856ac8e6bc32ce7a5ae072cd90d48862", null ],

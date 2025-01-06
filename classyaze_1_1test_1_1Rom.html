@@ -180,8 +180,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:abfad5beaef8b6648f43c1ee018d1b6ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6bd8ce3b192c32b2ed6c58f7b154787e" id="r_a6bd8ce3b192c32b2ed6c58f7b154787e"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; uint16_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6bd8ce3b192c32b2ed6c58f7b154787e">ReadWord</a> (int offset)</td></tr>
 <tr class="separator:a6bd8ce3b192c32b2ed6c58f7b154787e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abac2178fa8d0330622cd81bdb434d7a2" id="r_abac2178fa8d0330622cd81bdb434d7a2"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abac2178fa8d0330622cd81bdb434d7a2">toint16</a> (int offset)</td></tr>
-<tr class="separator:abac2178fa8d0330622cd81bdb434d7a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8c48d143c9e137f8bd0d5983e3ce2a35" id="r_a8c48d143c9e137f8bd0d5983e3ce2a35"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; uint32_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8c48d143c9e137f8bd0d5983e3ce2a35">ReadLong</a> (int offset)</td></tr>
 <tr class="separator:a8c48d143c9e137f8bd0d5983e3ce2a35"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0241f94c39962115e9602cc5c3c46796" id="r_a0241f94c39962115e9602cc5c3c46796"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0241f94c39962115e9602cc5c3c46796">ReadByteVector</a> (uint32_t offset, uint32_t length) const</td></tr>
@@ -190,8 +188,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a30f8894fdffdecfde25c13cd39882861"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7113e4e4db134e18b9693a0065ed16ae" id="r_a7113e4e4db134e18b9693a0065ed16ae"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7113e4e4db134e18b9693a0065ed16ae">WriteTile16</a> (int tile16_id, const <a class="el" href="classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &amp;tile)</td></tr>
 <tr class="separator:a7113e4e4db134e18b9693a0065ed16ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9e5914b857028db4d1bbe7ec867e5902" id="r_a9e5914b857028db4d1bbe7ec867e5902"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9e5914b857028db4d1bbe7ec867e5902">Write</a> (int addr, int value)</td></tr>
-<tr class="separator:a9e5914b857028db4d1bbe7ec867e5902"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3f76910dd3716dc67f477e7da77cee33" id="r_a3f76910dd3716dc67f477e7da77cee33"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3f76910dd3716dc67f477e7da77cee33">WriteByte</a> (int addr, uint8_t value)</td></tr>
 <tr class="separator:a3f76910dd3716dc67f477e7da77cee33"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae438d6ea3e62c91dda4c6134fbc2a0c6" id="r_ae438d6ea3e62c91dda4c6134fbc2a0c6"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae438d6ea3e62c91dda4c6134fbc2a0c6">WriteWord</a> (int addr, uint16_t value)</td></tr>
@@ -214,10 +210,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:acdcd28c581c25d7be40dc0c3816ae46d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae35b7dfe4f08ce24c7ee566ed5d3100d" id="r_ae35b7dfe4f08ce24c7ee566ed5d3100d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae35b7dfe4f08ce24c7ee566ed5d3100d">is_loaded</a> () const</td></tr>
 <tr class="separator:ae35b7dfe4f08ce24c7ee566ed5d3100d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a29d16ebe60373eea971fb9f0379217b9" id="r_a29d16ebe60373eea971fb9f0379217b9"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a29d16ebe60373eea971fb9f0379217b9">graphics_buffer</a> () const</td></tr>
-<tr class="separator:a29d16ebe60373eea971fb9f0379217b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a13a1dcdedd508ace2a5c6c998573736e" id="r_a13a1dcdedd508ace2a5c6c998573736e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a13a1dcdedd508ace2a5c6c998573736e">mutable_graphics_buffer</a> ()</td></tr>
-<tr class="separator:a13a1dcdedd508ace2a5c6c998573736e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af5e08233e024cd447098ebdf21c76418" id="r_af5e08233e024cd447098ebdf21c76418"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af5e08233e024cd447098ebdf21c76418">title</a> () const</td></tr>
 <tr class="separator:af5e08233e024cd447098ebdf21c76418"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a971379ba00f55ab9c367abf20c8a9777" id="r_a971379ba00f55ab9c367abf20c8a9777"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a971379ba00f55ab9c367abf20c8a9777">size</a> () const</td></tr>
@@ -238,6 +230,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a35886abe051b67913a804e4cbfdc4207"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7f4dfb964c1c36ffb9ace5b4f5838524" id="r_a7f4dfb964c1c36ffb9ace5b4f5838524"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7f4dfb964c1c36ffb9ace5b4f5838524">set_filename</a> (std::string name)</td></tr>
 <tr class="separator:a7f4dfb964c1c36ffb9ace5b4f5838524"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a29d16ebe60373eea971fb9f0379217b9" id="r_a29d16ebe60373eea971fb9f0379217b9"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a29d16ebe60373eea971fb9f0379217b9">graphics_buffer</a> () const</td></tr>
+<tr class="separator:a29d16ebe60373eea971fb9f0379217b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a13a1dcdedd508ace2a5c6c998573736e" id="r_a13a1dcdedd508ace2a5c6c998573736e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a13a1dcdedd508ace2a5c6c998573736e">mutable_graphics_buffer</a> ()</td></tr>
+<tr class="separator:a13a1dcdedd508ace2a5c6c998573736e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a30ec716ea7eafc1fff75856ab67e27f7" id="r_a30ec716ea7eafc1fff75856ab67e27f7"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a30ec716ea7eafc1fff75856ab67e27f7">palette_group</a> () const</td></tr>
 <tr class="separator:a30ec716ea7eafc1fff75856ab67e27f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a35e5778c114edd659015f76c6d067cd8" id="r_a35e5778c114edd659015f76c6d067cd8"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a35e5778c114edd659015f76c6d067cd8">mutable_palette_group</a> ()</td></tr>
@@ -374,7 +370,7 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00270">270</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00234">234</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
 
 </div>
 </div>
@@ -500,7 +496,7 @@ Private Attributes</h2></td></tr>
 
 <p>Expand the <a class="el" href="classyaze_1_1test_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data to a specified size. </p>
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00180">180</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00182">182</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -529,7 +525,7 @@ Private Attributes</h2></td></tr>
 
 <p>Close the <a class="el" href="classyaze_1_1test_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> file. </p>
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00188">188</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00190">190</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -558,7 +554,7 @@ Private Attributes</h2></td></tr>
 
 <p>Precondition check for reading and writing to the <a class="el" href="classyaze_1_1test_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00198">198</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00200">200</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -585,7 +581,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00210">210</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00211">211</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -612,34 +608,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00218">218</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
-
-</div>
-</div>
-<a id="abac2178fa8d0330622cd81bdb434d7a2" name="abac2178fa8d0330622cd81bdb434d7a2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abac2178fa8d0330622cd81bdb434d7a2">&#9670;&#160;</a></span>toint16()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint16_t yaze::Rom::toint16 </td>
-          <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>offset</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00227">227</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00219">219</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -666,7 +635,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00231">231</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00228">228</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -697,7 +666,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00241">241</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00238">238</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -724,7 +693,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00254">254</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00251">251</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -755,38 +724,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00272">272</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
-
-</div>
-</div>
-<a id="a9e5914b857028db4d1bbe7ec867e5902" name="a9e5914b857028db4d1bbe7ec867e5902"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9e5914b857028db4d1bbe7ec867e5902">&#9670;&#160;</a></span>Write()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">absl::Status yaze::Rom::Write </td>
-          <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>addr</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>value</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00286">286</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00269">269</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -817,7 +755,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00296">296</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00282">282</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -848,7 +786,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00308">308</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00294">294</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -879,7 +817,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00321">321</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00307">307</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -910,7 +848,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00334">334</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00320">320</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -941,7 +879,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00348">348</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00334">334</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -972,7 +910,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00362">362</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00348">348</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1001,7 +939,7 @@ template&lt;typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00372">372</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00358">358</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1039,7 +977,7 @@ template&lt;typename T, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00380">380</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00366">366</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1066,7 +1004,7 @@ template&lt;typename T, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00393">393</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00379">379</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1093,61 +1031,7 @@ template&lt;typename T, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00402">402</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
-
-</div>
-</div>
-<a id="a29d16ebe60373eea971fb9f0379217b9" name="a29d16ebe60373eea971fb9f0379217b9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a29d16ebe60373eea971fb9f0379217b9">&#9670;&#160;</a></span>graphics_buffer()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt; uint8_t &gt; yaze::Rom::graphics_buffer </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00411">411</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
-
-</div>
-</div>
-<a id="a13a1dcdedd508ace2a5c6c998573736e" name="a13a1dcdedd508ace2a5c6c998573736e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a13a1dcdedd508ace2a5c6c998573736e">&#9670;&#160;</a></span>mutable_graphics_buffer()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto yaze::Rom::mutable_graphics_buffer </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00412">412</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00386">386</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1174,7 +1058,7 @@ template&lt;typename T, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00414">414</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00394">394</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1201,7 +1085,7 @@ template&lt;typename T, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00415">415</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00395">395</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1228,7 +1112,7 @@ template&lt;typename T, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00416">416</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00396">396</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1255,7 +1139,7 @@ template&lt;typename T, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00417">417</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00397">397</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1282,7 +1166,7 @@ template&lt;typename T, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00419">419</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00398">398</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1309,7 +1193,7 @@ template&lt;typename T, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00420">420</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00399">399</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1336,7 +1220,7 @@ template&lt;typename T, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00422">422</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00401">401</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1363,7 +1247,7 @@ template&lt;typename T, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00423">423</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00402">402</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1390,7 +1274,7 @@ template&lt;typename T, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00424">424</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00403">403</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1417,7 +1301,61 @@ template&lt;typename T, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00425">425</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00404">404</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+
+</div>
+</div>
+<a id="a29d16ebe60373eea971fb9f0379217b9" name="a29d16ebe60373eea971fb9f0379217b9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a29d16ebe60373eea971fb9f0379217b9">&#9670;&#160;</a></span>graphics_buffer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; uint8_t &gt; yaze::Rom::graphics_buffer </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00406">406</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+
+</div>
+</div>
+<a id="a13a1dcdedd508ace2a5c6c998573736e" name="a13a1dcdedd508ace2a5c6c998573736e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a13a1dcdedd508ace2a5c6c998573736e">&#9670;&#160;</a></span>mutable_graphics_buffer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto yaze::Rom::mutable_graphics_buffer </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00407">407</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1444,7 +1382,7 @@ template&lt;typename T, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00427">427</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00408">408</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1471,7 +1409,7 @@ template&lt;typename T, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00428">428</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00409">409</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1498,7 +1436,7 @@ template&lt;typename T, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00429">429</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00410">410</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1525,7 +1463,7 @@ template&lt;typename T, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00430">430</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00411">411</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1552,7 +1490,7 @@ template&lt;typename T, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00434">434</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00415">415</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1579,7 +1517,7 @@ template&lt;typename T, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00435">435</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00416">416</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1606,7 +1544,7 @@ template&lt;typename T, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00452">452</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00433">433</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1639,7 +1577,7 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00474">474</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00455">455</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1666,7 +1604,7 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00234">234</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00245">245</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
 
 </div>
 </div>
@@ -1737,7 +1675,7 @@ template&lt;typename T&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00439">439</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00420">420</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1753,7 +1691,7 @@ template&lt;typename T&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00440">440</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00421">421</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1769,7 +1707,7 @@ template&lt;typename T&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00441">441</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00422">422</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1785,7 +1723,7 @@ template&lt;typename T&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00442">442</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00423">423</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1809,7 +1747,7 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00493">493</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00474">474</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1833,7 +1771,7 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00496">496</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00477">477</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1857,7 +1795,7 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00499">499</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00480">480</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1881,7 +1819,7 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00502">502</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00483">483</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1905,7 +1843,7 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00505">505</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00486">486</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1929,7 +1867,7 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00508">508</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00489">489</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1953,7 +1891,7 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00511">511</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00492">492</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -1977,7 +1915,7 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00514">514</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00495">495</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
@@ -2001,7 +1939,7 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00517">517</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="rom_8h_source.html#l00498">498</a> of file <a class="el" href="rom_8h_source.html">rom.h</a>.</p>
 
 </div>
 </div>
