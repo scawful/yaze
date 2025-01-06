@@ -12,7 +12,6 @@
 namespace yaze {
 namespace zelda3 {
 
-
 struct SubtypeInfo {
   uint32_t subtype_ptr;
   uint32_t routine_ptr;

@@ -1,7 +1,7 @@
 #include "rom.h"
 
-#include <array>
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
@@ -54,10 +54,11 @@ absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom &rom) {
   return sheet;
 }
 
-absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(const Rom& rom) {
+absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(
+    const Rom &rom) {
   const uint32_t kLinkGfxOffset = 0x80000;  // $10:8000
   const uint16_t kLinkGfxLength = 0x800;    // 0x4000 or 0x7000?
-	std::array<gfx::Bitmap, kNumLinkSheets> link_graphics;
+  std::array<gfx::Bitmap, kNumLinkSheets> link_graphics;
   for (uint32_t i = 0; i < kNumLinkSheets; i++) {
     ASSIGN_OR_RETURN(
         auto link_sheet_data,
@@ -65,45 +66,45 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(const R
                            /*length=*/kLinkGfxLength))
     auto link_sheet_8bpp = gfx::SnesTo8bppSheet(link_sheet_data, /*bpp=*/4);
     link_graphics[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
-                             gfx::kTilesheetDepth, link_sheet_8bpp);
-    RETURN_IF_ERROR(link_graphics[i].ApplyPalette(rom.palette_group().armors[0]);)
+                            gfx::kTilesheetDepth, link_sheet_8bpp);
+    RETURN_IF_ERROR(
+        link_graphics[i].ApplyPalette(rom.palette_group().armors[0]);)
     Renderer::GetInstance().RenderBitmap(&link_graphics[i]);
   }
   return link_graphics;
 }
 
-absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> 
-LoadAllGraphicsData(Rom& rom, bool defer_render) {
-	std::array<gfx::Bitmap, kNumGfxSheets> graphics_sheets;
+absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
+    Rom &rom, bool defer_render) {
+  std::array<gfx::Bitmap, kNumGfxSheets> graphics_sheets;
   std::vector<uint8_t> sheet;
   bool bpp3 = false;
 
   for (uint32_t i = 0; i < kNumGfxSheets; i++) {
     if (i >= 115 && i <= 126) {  // uncompressed sheets
       sheet.resize(Uncompressed3BPPSize);
-      auto offset =
-          GetGraphicsAddress(rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
-                             rom.version_constants().kOverworldGfxPtr2,
-                             rom.version_constants().kOverworldGfxPtr3);
-			std::copy(rom.data() + offset, rom.data() + offset + Uncompressed3BPPSize,
-				sheet.begin());
+      auto offset = GetGraphicsAddress(
+          rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
+          rom.version_constants().kOverworldGfxPtr2,
+          rom.version_constants().kOverworldGfxPtr3);
+      std::copy(rom.data() + offset, rom.data() + offset + Uncompressed3BPPSize,
+                sheet.begin());
       bpp3 = true;
     } else if (i == 113 || i == 114 || i >= 218) {
       bpp3 = false;
     } else {
-      auto offset =
-          GetGraphicsAddress(rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
-                             rom.version_constants().kOverworldGfxPtr2,
-                             rom.version_constants().kOverworldGfxPtr3);
-      ASSIGN_OR_RETURN(sheet,
-                       gfx::lc_lz2::DecompressV2(rom.data(), offset))
+      auto offset = GetGraphicsAddress(
+          rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
+          rom.version_constants().kOverworldGfxPtr2,
+          rom.version_constants().kOverworldGfxPtr3);
+      ASSIGN_OR_RETURN(sheet, gfx::lc_lz2::DecompressV2(rom.data(), offset))
       bpp3 = true;
     }
 
     if (bpp3) {
       auto converted_sheet = gfx::SnesTo8bppSheet(sheet, 3);
       graphics_sheets[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
-                                 gfx::kTilesheetDepth, converted_sheet);
+                                gfx::kTilesheetDepth, converted_sheet);
       if (graphics_sheets[i].is_active()) {
         if (i > 115) {
           // Apply sprites palette
@@ -132,8 +133,8 @@ LoadAllGraphicsData(Rom& rom, bool defer_render) {
   return graphics_sheets;
 }
 
-absl::Status 
-SaveAllGraphicsData(Rom& rom, std::array<gfx::Bitmap, kNumGfxSheets>& gfx_sheets) {
+absl::Status SaveAllGraphicsData(
+    Rom &rom, std::array<gfx::Bitmap, kNumGfxSheets> &gfx_sheets) {
   for (int i = 0; i < kNumGfxSheets; i++) {
     if (gfx_sheets[i].is_active()) {
       int to_bpp = 3;
@@ -158,10 +159,10 @@ SaveAllGraphicsData(Rom& rom, std::array<gfx::Bitmap, kNumGfxSheets>& gfx_sheets
           sheet_data[j] = compressed_data[j];
         }
       }
-      auto offset =
-          GetGraphicsAddress(rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
-            rom.version_constants().kOverworldGfxPtr2,
-            rom.version_constants().kOverworldGfxPtr3);
+      auto offset = GetGraphicsAddress(
+          rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
+          rom.version_constants().kOverworldGfxPtr2,
+          rom.version_constants().kOverworldGfxPtr3);
       std::copy(final_data.begin(), final_data.end(), rom.begin() + offset);
     }
   }
@@ -231,10 +232,10 @@ absl::Status Rom::LoadFromPointer(uchar *data, size_t length, bool z3_load) {
   return absl::OkStatus();
 }
 
-absl::Status Rom::LoadFromBytes(const std::vector<uint8_t>& data) {
+absl::Status Rom::LoadFromBytes(const std::vector<uint8_t> &data) {
   if (data.empty()) {
     return absl::InvalidArgumentError(
-      "Could not load ROM: parameter `data` is empty.");
+        "Could not load ROM: parameter `data` is empty.");
   }
   rom_data_ = data;
   size_ = data.size();

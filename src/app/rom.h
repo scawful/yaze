@@ -129,7 +129,6 @@ static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
     {Z3_Version::RANDO, {}},
 };
 
-
 /**
  * @brief The Rom class is used to load, save, and modify Rom data.
  */
@@ -251,7 +250,7 @@ class Rom {
   absl::StatusOr<gfx::Tile16> ReadTile16(uint32_t tile16_id) {
     // Skip 8 bytes per tile.
     auto tpos = kTile16Ptr + (tile16_id * 0x08);
-		gfx::Tile16 tile16 = {};
+    gfx::Tile16 tile16 = {};
     ASSIGN_OR_RETURN(auto new_tile0, ReadWord(tpos))
     tile16.tile0_ = gfx::WordToTileInfo(new_tile0);
     tpos += 2;
@@ -378,7 +377,7 @@ class Rom {
 
   uint8_t& operator[](unsigned long i) {
     if (i > size_) {
-			throw std::out_of_range("Rom index out of range");
+      throw std::out_of_range("Rom index out of range");
     }
     return rom_data_[i];
   }
@@ -499,18 +498,19 @@ class Rom {
 };
 
 class GraphicsSheetManager {
-public:
-	static GraphicsSheetManager& GetInstance() {
-		static GraphicsSheetManager instance;
-		return instance;
-	}
+ public:
+  static GraphicsSheetManager& GetInstance() {
+    static GraphicsSheetManager instance;
+    return instance;
+  }
   GraphicsSheetManager() = default;
   virtual ~GraphicsSheetManager() = default;
   std::array<gfx::Bitmap, kNumGfxSheets>& gfx_sheets() { return gfx_sheets_; }
   auto gfx_sheet(int i) { return gfx_sheets_[i]; }
   auto mutable_gfx_sheet(int i) { return &gfx_sheets_[i]; }
-	auto mutable_gfx_sheets() { return &gfx_sheets_; }
-private:
+  auto mutable_gfx_sheets() { return &gfx_sheets_; }
+
+ private:
   std::array<gfx::Bitmap, kNumGfxSheets> gfx_sheets_;
 };
 
@@ -532,9 +532,11 @@ private:
  * | 218-222 | Compressed 2bpp | 0x800 chars | Decompressed each |
  *
  */
-absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(Rom& rom, bool defer_render = false);
+absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
+    Rom& rom, bool defer_render = false);
 
-absl::Status SaveAllGraphicsData(Rom& rom, std::array<gfx::Bitmap, kNumGfxSheets>& gfx_sheets);
+absl::Status SaveAllGraphicsData(
+    Rom& rom, std::array<gfx::Bitmap, kNumGfxSheets>& gfx_sheets);
 
 /**
  * @brief Loads 2bpp graphics from Rom data.
@@ -549,7 +551,8 @@ absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom& rom);
 /**
  * @brief Loads the players 4bpp graphics sheet from Rom data.
  */
-absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(const Rom& rom);
+absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(
+    const Rom& rom);
 
 /**
  * @brief A class to hold a shared pointer to a Rom object.
