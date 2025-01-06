@@ -46,7 +46,7 @@ enum BitmapFormat {
 /**
  * @brief Convert SDL_Surface to PNG image data.
  */
-bool ConvertSurfaceToPNG(SDL_Surface *surface, std::vector<uint8_t> &buffer);
+bool ConvertSurfaceToPng(SDL_Surface *surface, std::vector<uint8_t> &buffer);
 
 /**
  * @brief Convert PNG image data to SDL_Surface.
@@ -91,9 +91,11 @@ class Bitmap {
 
   void SaveSurfaceToFile(std::string_view filename);
 
-  /**
-   * @brief Creates a bitmap object with the provided graphical data.
-   */
+  void Initialize(int width, int height, int depth, std::span<uint8_t>& data);
+
+  void Create(int width, int height, int depth, int data_size) {
+		Create(width, height, depth, std::vector<uint8_t>(data_size, 0));
+  }
   void Create(int width, int height, int depth, std::span<uint8_t> data);
   void Create(int width, int height, int depth,
               const std::vector<uint8_t> &data);
@@ -152,7 +154,6 @@ class Bitmap {
 
   auto palette() const { return palette_; }
   auto mutable_palette() { return &palette_; }
-  auto palette_size() const { return palette_.size(); }
 
   int width() const { return width_; }
   int height() const { return height_; }
@@ -161,7 +162,6 @@ class Bitmap {
   auto data() const { return data_.data(); }
   auto &mutable_data() { return data_; }
   auto surface() const { return surface_.get(); }
-  auto mutable_surface() { return surface_.get(); }
 
   auto vector() const { return data_; }
   auto at(int i) const { return data_[i]; }
