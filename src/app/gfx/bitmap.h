@@ -8,7 +8,7 @@
 
 #include "absl/status/status.h"
 #include "app/core/constants.h"
-#include "app/core/utils/sdl_deleter.h"
+#include "app/core/platform/sdl_deleter.h"
 #include "app/gfx/snes_palette.h"
 
 namespace yaze {

@@ -11,7 +11,7 @@
 #include "absl/debugging/failure_signal_handler.h"
 #include "absl/debugging/symbolize.h"
 #include "absl/status/status.h"
-#include "app/core/utils/sdl_deleter.h"
+#include "app/core/platform/sdl_deleter.h"
 #include "app/emu/snes.h"
 #include "app/rom.h"
 
