@@ -3,7 +3,6 @@
 #include "incl/extension.h"
 #include "incl/overworld.h"
 #include "incl/snes_color.h"
-#include "incl/sprite.h"
 #include "yaze.h"
 
 BOOST_PYTHON_MODULE(yaze_py) {
@@ -25,10 +24,6 @@ BOOST_PYTHON_MODULE(yaze_py) {
       .def_readonly("size", &snes_palette::size)
       .def_readonly("colors", &snes_palette::colors);
 
-  class_<z3_sprite>("sprite")
-      .def_readonly("name", &z3_sprite::name)
-      .def_readonly("id", &z3_sprite::id);
-
   class_<yaze_flags>("yaze_flags")
       .def_readwrite("debug", &yaze_flags::debug)
       .def_readwrite("rom_filename", &yaze_flags::rom_filename)
@@ -39,12 +34,6 @@ BOOST_PYTHON_MODULE(yaze_py) {
 
   class_<yaze_editor_context>("yaze_editor_context")
       .def_readonly("project", &yaze_editor_context::project);
-
-  enum_<yaze_event_type>("yaze_event_type")
-      .value("YAZE_EVENT_ROM_LOADED", YAZE_EVENT_ROM_LOADED)
-      .value("YAZE_EVENT_ROM_SAVED", YAZE_EVENT_ROM_SAVED)
-      .value("YAZE_EVENT_SPRITE_MODIFIED", YAZE_EVENT_SPRITE_MODIFIED)
-      .value("YAZE_EVENT_PALETTE_CHANGED", YAZE_EVENT_PALETTE_CHANGED);
 
   class_<yaze_extension>("yaze_extension")
       .def_readonly("name", &yaze_extension::name)
