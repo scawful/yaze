@@ -58,10 +58,8 @@ void EditorManager::Initialize(std::string filename) {
 absl::Status EditorManager::Update() {
   ManageKeyboardShortcuts();
 
-  DrawYazeMenu();
-  DrawStatusPopup();
-  DrawAboutPopup();
-  DrawInfoPopup();
+  DrawMenuBar();
+  DrawPopups();
 
   if (rom()->is_loaded() && !rom_assets_loaded_) {
 		auto& sheet_manager = GraphicsSheetManager::GetInstance();
@@ -71,8 +69,11 @@ absl::Status EditorManager::Update() {
     rom_assets_loaded_ = true;
   }
 
-  ManageActiveEditors();
-
+  if (!current_rom_) {
+    DrawHomepage();
+  } else {
+    ManageActiveEditors();
+  }
   return absl::OkStatus();
 }
 
@@ -298,7 +299,7 @@ void EditorManager::ManageKeyboardShortcuts() {
   }
 }
 
-void EditorManager::DrawStatusPopup() {
+void EditorManager::DrawPopups() {
   static absl::Status prev_status;
   if (!status_.ok()) {
     show_status_ = true;
@@ -324,9 +325,7 @@ void EditorManager::DrawStatusPopup() {
     }
     End();
   }
-}
 
-void EditorManager::DrawAboutPopup() {
   if (about_) OpenPopup("About");
   if (BeginPopupModal("About", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
     Text("Yet Another Zelda3 Editor - v%s", version_.c_str());
@@ -341,9 +340,7 @@ void EditorManager::DrawAboutPopup() {
     }
     EndPopup();
   }
-}
 
-void EditorManager::DrawInfoPopup() {
   if (rom_info_) OpenPopup("ROM Information");
   if (BeginPopupModal("ROM Information", nullptr,
                       ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -359,11 +356,29 @@ void EditorManager::DrawInfoPopup() {
   }
 }
 
-void EditorManager::DrawYazeMenu() {
+void EditorManager::DrawHomepage() {
+	TextWrapped("Welcome to the Yet Another Zelda3 Editor (yaze)!");
+	TextWrapped("This editor is designed to be a comprehensive tool for editing the Legend of Zelda: A Link to the Past.");
+	TextWrapped("The editor is still in development, so please report any bugs or issues you encounter.");
+
+	static bool managed_startup = false;
+	
+	if (Button("Open ROM", ImVec2(200, 0))) {
+		LoadRom();
+	}
+  SameLine();
+  ImGui::Checkbox("Manage Startup", &managed_startup);
+  Separator();
+
+  settings_editor_.Update();
+}
+
+void EditorManager::DrawMenuBar() {
   static bool show_display_settings = false;
 
   if (BeginMenuBar()) {
-    DrawYazeMenuBar();
+    DrawMenuContent();
+
     SameLine(GetWindowWidth() - GetStyle().ItemSpacing.x -
              CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x - 110);
     PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
@@ -382,7 +397,7 @@ void EditorManager::DrawYazeMenu() {
   }
 }
 
-void EditorManager::DrawYazeMenuBar() {
+void EditorManager::DrawMenuContent() {
   static bool save_as_menu = false;
   static bool new_project_menu = false;
 
@@ -447,11 +462,23 @@ void EditorManager::DrawYazeMenuBar() {
       MenuItem("Backup ROM", "", &backup_rom_);
       MenuItem("Save New Auto", "", &save_new_auto_);
       Separator();
-      if (BeginMenu("Experiment Flags")) {
-        static FlagsMenu flags_menu;
-        flags_menu.Draw();
+      static FlagsMenu flags_menu;
+      if (BeginMenu("System Flags")) {
+        flags_menu.DrawSystemFlags();
         EndMenu();
       }
+			if (BeginMenu("Overworld Flags")) {
+				flags_menu.DrawOverworldFlags();
+				EndMenu();
+			}
+      if (BeginMenu("Dungeon Flags")) {
+        flags_menu.DrawDungeonFlags();
+        EndMenu();
+      }
+			if (BeginMenu("Resource Flags")) {
+				flags_menu.DrawResourceFlags();
+				EndMenu();
+			}
       EndMenu();
     }
 
@@ -673,10 +700,25 @@ void EditorManager::DrawYazeMenuBar() {
   }
 }
 
+void EditorManager::DrawRomMenu() {
+  if (roms_.empty()) return;
+
+  // Dropdown in the center of the menu bar with ROMs
+  if (BeginMenu("ROM")) {
+    for (size_t i = 0; i < roms_.size(); ++i) {
+      if (MenuItem(roms_[i]->title().c_str())) {
+        current_rom_ = roms_[i].get();
+      }
+    }
+    EndMenu();
+  }
+}
+
 void EditorManager::LoadRom() {
   auto file_name = FileDialogWrapper::ShowOpenFileDialog();
   auto load_rom = rom()->LoadFromFile(file_name);
   if (load_rom.ok()) {
+		current_rom_ = rom();
     static RecentFilesManager manager("recent_files.txt");
     manager.Load();
     manager.AddFile(file_name);
@@ -708,11 +750,13 @@ void EditorManager::OpenRomOrProject(const std::string &filename) {
     }
   } else {
     status_ = rom()->LoadFromFile(filename);
+		current_rom_ = rom();
   }
 }
 
 absl::Status EditorManager::OpenProject() {
   RETURN_IF_ERROR(rom()->LoadFromFile(current_project_.rom_filename_));
+	current_rom_ = rom();
 
   if (!rom()->resource_label()->LoadLabels(current_project_.labels_filename_)) {
     return absl::InternalError(
