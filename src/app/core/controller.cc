@@ -154,11 +154,11 @@ absl::Status Controller::CreateWindow() {
 
   window_ = std::unique_ptr<SDL_Window, core::SDL_Deleter>(
       SDL_CreateWindow("Yet Another Zelda3 Editor", // window title
-                       SDL_WINDOWPOS_UNDEFINED,     // initial x position
-                       SDL_WINDOWPOS_UNDEFINED,     // initial y position
-                       screen_width,                // width, in pixels
-                       screen_height,               // height, in pixels
-                       SDL_WINDOW_RESIZABLE),
+                        SDL_WINDOWPOS_UNDEFINED,     // initial x position
+                        SDL_WINDOWPOS_UNDEFINED,     // initial y position
+                        screen_width,                // width, in pixels
+                        screen_height,               // height, in pixels
+                        SDL_WINDOW_RESIZABLE),
       core::SDL_Deleter());
   if (window_ == nullptr) {
     return absl::InternalError(
