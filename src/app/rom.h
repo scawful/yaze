@@ -27,6 +27,24 @@
 #include "app/gfx/snes_tile.h"
 
 namespace yaze {
+
+constexpr uint32_t kNumGfxSheets = 223;
+constexpr uint32_t kNumLinkSheets = 14;
+constexpr uint32_t kTile16Ptr = 0x78000;
+constexpr uint32_t kNormalGfxSpaceStart = 0x87000;
+constexpr uint32_t kNormalGfxSpaceEnd = 0xC4200;
+constexpr uint32_t kFontSpriteLocation = 0x70000;
+constexpr uint32_t kGfxGroupsPointer = 0x6237;
+constexpr uint32_t kUncompressedSheetSize = 0x0800;
+constexpr uint32_t kNumMainBlocksets = 37;
+constexpr uint32_t kNumRoomBlocksets = 82;
+constexpr uint32_t kNumSpritesets = 144;
+constexpr uint32_t kNumPalettesets = 72;
+constexpr uint32_t kEntranceGfxGroup = 0x5D97;
+
+// TODO: Verify what this was used for in ZS
+constexpr uint32_t kMaxGraphics = 0xC3FB5;
+
 /**
  * @brief Different versions of the game supported by the Rom class.
  */
@@ -111,22 +129,6 @@ static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
     {Z3_Version::RANDO, {}},
 };
 
-constexpr uint32_t kNumGfxSheets = 223;
-constexpr uint32_t kNumLinkSheets = 14;
-constexpr uint32_t kTile16Ptr = 0x78000;
-constexpr uint32_t kNormalGfxSpaceStart = 0x87000;
-constexpr uint32_t kNormalGfxSpaceEnd = 0xC4200;
-constexpr uint32_t kFontSpriteLocation = 0x70000;
-constexpr uint32_t kGfxGroupsPointer = 0x6237;
-constexpr uint32_t kUncompressedSheetSize = 0x0800;
-constexpr uint32_t kNumMainBlocksets = 37;
-constexpr uint32_t kNumRoomBlocksets = 82;
-constexpr uint32_t kNumSpritesets = 144;
-constexpr uint32_t kNumPalettesets = 72;
-constexpr uint32_t kEntranceGfxGroup = 0x5D97;
-
-// TODO: Verify what this was used for in ZS
-constexpr uint32_t kMaxGraphics = 0xC3FB5;
 
 /**
  * @brief The Rom class is used to load, save, and modify Rom data.
@@ -206,7 +208,6 @@ class Rom {
     return absl::OkStatus();
   }
 
-  // Read functions
   absl::StatusOr<uint8_t> ReadByte(int offset) {
     RETURN_IF_ERROR(ReadWritePreconditions());
     if (offset >= static_cast<int>(rom_data_.size())) {
@@ -222,10 +223,6 @@ class Rom {
     }
     auto result = (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
     return result;
-  }
-
-  uint16_t toint16(int offset) {
-    return (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
   }
 
   absl::StatusOr<uint32_t> ReadLong(int offset) {
@@ -254,7 +251,7 @@ class Rom {
   absl::StatusOr<gfx::Tile16> ReadTile16(uint32_t tile16_id) {
     // Skip 8 bytes per tile.
     auto tpos = kTile16Ptr + (tile16_id * 0x08);
-    gfx::Tile16 tile16;
+		gfx::Tile16 tile16 = {};
     ASSIGN_OR_RETURN(auto new_tile0, ReadWord(tpos))
     tile16.tile0_ = gfx::WordToTileInfo(new_tile0);
     tpos += 2;
@@ -279,17 +276,6 @@ class Rom {
     RETURN_IF_ERROR(WriteShort(tpos, gfx::TileInfoToWord(tile.tile2_)));
     tpos += 2;
     RETURN_IF_ERROR(WriteShort(tpos, gfx::TileInfoToWord(tile.tile3_)));
-    return absl::OkStatus();
-  }
-
-  // Write functions
-  absl::Status Write(int addr, int value) {
-    if (addr >= static_cast<int>(rom_data_.size())) {
-      return absl::InvalidArgumentError(absl::StrFormat(
-          "Attempt to write %d value failed, address %d out of range", value,
-          addr));
-    }
-    rom_data_[addr] = value;
     return absl::OkStatus();
   }
 
@@ -392,9 +378,7 @@ class Rom {
 
   uint8_t& operator[](unsigned long i) {
     if (i > size_) {
-      std::cout << "ROM: Index " << i << " out of bounds, size: " << size_
-                << std::endl;
-      return rom_data_[0];
+			throw std::out_of_range("Rom index out of range");
     }
     return rom_data_[i];
   }
@@ -407,15 +391,10 @@ class Rom {
     return is_loaded_;
   }
 
-  // Full graphical data for the game
-  std::vector<uint8_t> graphics_buffer() const { return graphics_buffer_; }
-	auto mutable_graphics_buffer() { return &graphics_buffer_; }
-
   auto title() const { return title_; }
   auto size() const { return size_; }
   auto data() const { return rom_data_.data(); }
   auto mutable_data() { return rom_data_.data(); }
-
   auto begin() { return rom_data_.begin(); }
   auto end() { return rom_data_.end(); }
 
@@ -424,6 +403,8 @@ class Rom {
   auto filename() const { return filename_; }
   auto set_filename(std::string name) { filename_ = name; }
 
+  std::vector<uint8_t> graphics_buffer() const { return graphics_buffer_; }
+  auto mutable_graphics_buffer() { return &graphics_buffer_; }
   auto palette_group() const { return palette_groups_; }
   auto mutable_palette_group() { return &palette_groups_; }
   auto dungeon_palette(int i) { return palette_groups_.dungeon_main[i]; }
@@ -451,7 +432,7 @@ class Rom {
  private:
   virtual absl::Status WriteHelper(const WriteAction& action) {
     if (std::holds_alternative<uint8_t>(action.value)) {
-      return Write(action.address, std::get<uint8_t>(action.value));
+      return WriteByte(action.address, std::get<uint8_t>(action.value));
     } else if (std::holds_alternative<uint16_t>(action.value) ||
                std::holds_alternative<short>(action.value)) {
       return WriteShort(action.address, std::get<uint16_t>(action.value));

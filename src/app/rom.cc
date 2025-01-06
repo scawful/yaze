@@ -231,6 +231,17 @@ absl::Status Rom::LoadFromPointer(uchar *data, size_t length, bool z3_load) {
   return absl::OkStatus();
 }
 
+absl::Status Rom::LoadFromBytes(const std::vector<uint8_t>& data) {
+  if (data.empty()) {
+    return absl::InvalidArgumentError(
+      "Could not load ROM: parameter `data` is empty.");
+  }
+  rom_data_ = data;
+  size_ = data.size();
+  is_loaded_ = true;
+  return absl::OkStatus();
+}
+
 absl::Status Rom::LoadZelda3() {
   // Check if the ROM has a header
   constexpr size_t kBaseRomSize = 1048576;  // 1MB
@@ -264,17 +275,6 @@ absl::Status Rom::LoadZelda3() {
   rom_data_.resize(kBaseRomSize * 2);
   size_ = kBaseRomSize * 2;
 
-  return absl::OkStatus();
-}
-
-absl::Status Rom::LoadFromBytes(const std::vector<uint8_t> &data) {
-  if (data.empty()) {
-    return absl::InvalidArgumentError(
-        "Could not load ROM: parameter `data` is empty.");
-  }
-  rom_data_ = data;
-  size_ = data.size();
-  is_loaded_ = true;
   return absl::OkStatus();
 }
 
