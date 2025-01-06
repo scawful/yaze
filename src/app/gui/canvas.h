@@ -111,7 +111,7 @@ public:
   void DrawBitmapTable(const BitmapTable &gfx_bin);
 
   void DrawBitmapGroup(std::vector<int> &group,
-                       std::vector<gfx::Bitmap> &tile16_individual_,
+                       std::array<gfx::Bitmap, 4096>& tile16_individual_,
                        int tile_size, float scale = 1.0f);
 
   void DrawOutline(int x, int y, int w, int h);
@@ -218,8 +218,6 @@ private:
   uint16_t edit_palette_index_ = 0;
   uint64_t edit_palette_group_name_index_ = 0;
   uint64_t edit_palette_sub_index_ = 0;
-
-
 
 	ImDrawList* draw_list_ = nullptr;
 

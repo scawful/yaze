@@ -109,6 +109,8 @@ constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
  */
 class Overworld : public SharedRom {
  public:
+  Overworld(Rom& rom) : rom_(rom) {}
+
   absl::Status Load(Rom &rom);
   absl::Status LoadOverworldMaps();
   void LoadTileTypes();
@@ -227,7 +229,7 @@ class Overworld : public SharedRom {
                         int &ttpos);
   void DecompressAllMapTiles();
 
-  Rom rom_;
+  Rom& rom_;
 
   bool is_loaded_ = false;
   bool expanded_tile16_ = false;
@@ -251,7 +253,7 @@ class Overworld : public SharedRom {
   std::vector<OverworldEntrance> all_holes_;
   std::vector<OverworldExit> all_exits_;
   std::vector<OverworldItem> all_items_;
-  std::vector<std::vector<Sprite>> all_sprites_;
+  std::array<std::vector<Sprite>, 3> all_sprites_;
   std::vector<uint64_t> deleted_entrances_;
   std::vector<std::vector<uint8_t>> map_data_p1 =
       std::vector<std::vector<uint8_t>>(kNumOverworldMaps);
