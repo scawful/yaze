@@ -34,7 +34,7 @@ var searchData=
   ['addr_5fplus_5fi_31',['addr_plus_i',['../classyaze_1_1emu_1_1Spc700.html#a4bc6f8d09f82c6d2dd886bf789c357ca',1,'yaze::emu::Spc700::addr_plus_i()'],['../classyaze_1_1test_1_1Spc700.html#a4bc6f8d09f82c6d2dd886bf789c357ca',1,'yaze::test::Spc700::addr_plus_i()']]],
   ['addr_5fplus_5fi_5findexed_32',['addr_plus_i_indexed',['../classyaze_1_1emu_1_1Spc700.html#a3bb8efbe0a28effdc39f52fbd15f2dec',1,'yaze::emu::Spc700::addr_plus_i_indexed()'],['../classyaze_1_1test_1_1Spc700.html#a3bb8efbe0a28effdc39f52fbd15f2dec',1,'yaze::test::Spc700::addr_plus_i_indexed()']]],
   ['addressfrombytes_33',['AddressFromBytes',['../namespaceyaze_1_1core.html#a6ce88f9f428f027466401bd0f29af006',1,'yaze::core']]],
-  ['addspcreloc_34',['AddSPCReloc',['../namespaceyaze_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html#ab1400747aa5706c8b340e3dd8d57002c',1,'yaze::zelda3::anonymous_namespace{tracker.cc}']]],
+  ['addspcreloc_34',['AddSpcReloc',['../namespaceyaze_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html#a57c95bb79e56737d2e3e30296e409617',1,'yaze::zelda3::anonymous_namespace{tracker.cc}']]],
   ['addtablecolumn_35',['AddTableColumn',['../namespaceyaze_1_1gui.html#a4869c3a07239efb126450a3a4a121841',1,'yaze::gui']]],
   ['addtiles_36',['AddTiles',['../classyaze_1_1zelda3_1_1RoomObject.html#a4d44a317ea56cd659ddce9b650e07606',1,'yaze::zelda3::RoomObject']]],
   ['addundo_37',['AddUndo',['../classTextEditor.html#a77f34ca0960c40edd515a8367920409f',1,'TextEditor']]],

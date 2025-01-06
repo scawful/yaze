@@ -17,7 +17,7 @@ var searchData=
   ['tilemaplocation_14',['TileMapLocation',['../structyaze_1_1emu_1_1TileMapLocation.html',1,'yaze::emu']]],
   ['tilesheet_15',['Tilesheet',['../classyaze_1_1gfx_1_1Tilesheet.html',1,'yaze::gfx']]],
   ['timer_16',['Timer',['../structyaze_1_1emu_1_1Timer.html',1,'yaze::emu']]],
-  ['titlescreen_17',['TitleScreen',['../classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html',1,'yaze::zelda3::screen']]],
+  ['titlescreen_17',['TitleScreen',['../classyaze_1_1zelda3_1_1TitleScreen.html',1,'yaze::zelda3']]],
   ['tm_18',['TM',['../structyaze_1_1emu_1_1TM.html',1,'yaze::emu']]],
   ['tmw_19',['TMW',['../structyaze_1_1emu_1_1TMW.html',1,'yaze::emu']]],
   ['token_20',['Token',['../structyaze_1_1gui_1_1zeml_1_1Token.html',1,'yaze::gui::zeml']]],

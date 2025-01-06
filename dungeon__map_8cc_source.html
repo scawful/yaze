@@ -121,34 +121,33 @@ $(function(){initNavTree('dungeon__map_8cc_source.html',''); initResizable(true)
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze_1_1zelda3.html">zelda3</a> {</div>
-<div class="foldopen" id="foldopen00013" data-start="{" data-end="}">
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1zelda3_1_1screen.html">   13</a></span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze_1_1zelda3_1_1screen.html">screen</a> {</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
-<div class="foldopen" id="foldopen00015" data-start="{" data-end="}">
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1zelda3_1_1screen.html#acfae14194326f4ee49f9c31e8fe27173">   15</a></span>absl::Status <a class="code hl_function" href="namespaceyaze_1_1zelda3_1_1screen.html#acfae14194326f4ee49f9c31e8fe27173">LoadDungeonMapGfxFromBinary</a>(<a class="code hl_class" href="classyaze_1_1Rom.html">Rom</a> &amp;rom,</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>                                         std::array&lt;gfx::Bitmap, 4&gt; &amp;sheets,</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>                                         <a class="code hl_class" href="classyaze_1_1gfx_1_1Tilesheet.html">gfx::Tilesheet</a> &amp;tile16_sheet,</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>                                         std::vector&lt;uint8_t&gt; &amp;gfx_bin_data) {</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  std::string bin_file = <a class="code hl_function" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">core::FileDialogWrapper::ShowOpenFileDialog</a>();</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  <span class="keywordflow">if</span> (bin_file.empty()) {</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    <span class="keywordflow">return</span> absl::InternalError(<span class="stringliteral">&quot;No file selected&quot;</span>);</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  }</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  std::ifstream file(bin_file, std::ios::binary);</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <span class="keywordflow">if</span> (file.is_open()) {</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    <span class="comment">// Read the gfx data into a buffer</span></div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>    std::vector&lt;uint8_t&gt; bin_data((std::istreambuf_iterator&lt;char&gt;(file)),</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>                                  std::istreambuf_iterator&lt;char&gt;());</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    <span class="keyword">auto</span> converted_bin = <a class="code hl_function" href="namespaceyaze_1_1gfx.html#af98fbf03d09d9d365f64202db1ecba15">gfx::SnesTo8bppSheet</a>(bin_data, 4, 4);</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    gfx_bin_data = converted_bin;</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    tile16_sheet.<a class="code hl_function" href="classyaze_1_1gfx_1_1Tilesheet.html#a258335d2c454a2ac0a46781b9fb3769e">clear</a>();</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="namespaceyaze_1_1zelda3_1_1screen.html#a80a08b2ca44757520681ce56aa1fd1da">LoadDungeonMapTile16</a>(converted_bin, <span class="keyword">true</span>).ok()) {</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>      std::vector&lt;std::vector&lt;uint8_t&gt;&gt; gfx_sheets;</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>      <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 4; i++) {</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>        gfx_sheets.emplace_back(converted_bin.begin() + (i * 0x1000),</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>                                converted_bin.begin() + ((i + 1) * 0x1000));</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>        sheets[i] = <a class="code hl_class" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>(128, 32, 8, gfx_sheets[i]);</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>        sheets[i].ApplyPalette(*rom.<a class="code hl_function" href="classyaze_1_1Rom.html#a6a005b3b2e4ceeee4328c6815b955880">mutable_dungeon_palette</a>(3));</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
+<div class="foldopen" id="foldopen00014" data-start="{" data-end="}">
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1zelda3.html#a4159862346f04f2e18e6474c8d44df17">   14</a></span>absl::Status <a class="code hl_function" href="namespaceyaze_1_1zelda3.html#a4159862346f04f2e18e6474c8d44df17">LoadDungeonMapGfxFromBinary</a>(<a class="code hl_class" href="classyaze_1_1Rom.html">Rom</a> &amp;rom,</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>                                         std::array&lt;gfx::Bitmap, 4&gt; &amp;sheets,</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>                                         <a class="code hl_class" href="classyaze_1_1gfx_1_1Tilesheet.html">gfx::Tilesheet</a> &amp;tile16_sheet,</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>                                         std::vector&lt;uint8_t&gt; &amp;gfx_bin_data) {</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  std::string bin_file = <a class="code hl_function" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">core::FileDialogWrapper::ShowOpenFileDialog</a>();</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  <span class="keywordflow">if</span> (bin_file.empty()) {</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    <span class="keywordflow">return</span> absl::InternalError(<span class="stringliteral">&quot;No file selected&quot;</span>);</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  }</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  std::ifstream file(bin_file, std::ios::binary);</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  <span class="keywordflow">if</span> (file.is_open()) {</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    <span class="comment">// Read the gfx data into a buffer</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    std::vector&lt;uint8_t&gt; bin_data((std::istreambuf_iterator&lt;char&gt;(file)),</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>                                  std::istreambuf_iterator&lt;char&gt;());</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    <span class="keyword">auto</span> converted_bin = <a class="code hl_function" href="namespaceyaze_1_1gfx.html#af98fbf03d09d9d365f64202db1ecba15">gfx::SnesTo8bppSheet</a>(bin_data, 4, 4);</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    gfx_bin_data = converted_bin;</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    tile16_sheet.<a class="code hl_function" href="classyaze_1_1gfx_1_1Tilesheet.html#a258335d2c454a2ac0a46781b9fb3769e">clear</a>();</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="namespaceyaze_1_1zelda3.html#a3f2f6ec0638746ee96b507ea0295625c">LoadDungeonMapTile16</a>(converted_bin, <span class="keyword">true</span>).ok()) {</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>      std::vector&lt;std::vector&lt;uint8_t&gt;&gt; gfx_sheets;</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>      <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 4; i++) {</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>        gfx_sheets.emplace_back(converted_bin.begin() + (i * 0x1000),</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>                                converted_bin.begin() + ((i + 1) * 0x1000));</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>        sheets[i] = <a class="code hl_class" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>(128, 32, 8, gfx_sheets[i]);</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>        <a class="code hl_define" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>            sheets[i].ApplyPalette(*rom.<a class="code hl_function" href="classyaze_1_1Rom.html#a6a005b3b2e4ceeee4328c6815b955880">mutable_dungeon_palette</a>(3)));</div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>        <a class="code hl_function" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a">core::Renderer::GetInstance</a>().<a class="code hl_function" href="classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9">RenderBitmap</a>(&amp;sheets[i]);</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>      }</div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    } <span class="keywordflow">else</span> {</div>
@@ -161,11 +160,8 @@ $(function(){initNavTree('dungeon__map_8cc_source.html',''); initResizable(true)
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>}</div>
 </div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>} <span class="comment">// namespace screen</span></div>
-</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>} <span class="comment">// namespace zelda3</span></div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> </div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>} <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>} <span class="comment">// namespace zelda3</span></div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>} <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="abitmap_8h_html"><div class="ttname"><a href="bitmap_8h.html">bitmap.h</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html"><div class="ttname"><a href="classyaze_1_1Rom.html">yaze::Rom</a></div><div class="ttdoc">The Rom class is used to load, save, and modify Rom data.</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00136">rom.h:136</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html_a6a005b3b2e4ceeee4328c6815b955880"><div class="ttname"><a href="classyaze_1_1Rom.html#a6a005b3b2e4ceeee4328c6815b955880">yaze::Rom::mutable_dungeon_palette</a></div><div class="ttdeci">auto mutable_dungeon_palette(int i)</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00411">rom.h:411</a></div></div>
@@ -175,13 +171,13 @@ $(function(){initNavTree('dungeon__map_8cc_source.html',''); initResizable(true)
 <div class="ttc" id="aclassyaze_1_1gfx_1_1Bitmap_html"><div class="ttname"><a href="classyaze_1_1gfx_1_1Bitmap.html">yaze::gfx::Bitmap</a></div><div class="ttdoc">Represents a bitmap image.</div><div class="ttdef"><b>Definition</b> <a href="bitmap_8h_source.html#l00066">bitmap.h:66</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1Tilesheet_html"><div class="ttname"><a href="classyaze_1_1gfx_1_1Tilesheet.html">yaze::gfx::Tilesheet</a></div><div class="ttdoc">Represents a tilesheet, which is a collection of tiles stored in a bitmap.</div><div class="ttdef"><b>Definition</b> <a href="tilesheet_8h_source.html#l00028">tilesheet.h:28</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1Tilesheet_html_a258335d2c454a2ac0a46781b9fb3769e"><div class="ttname"><a href="classyaze_1_1gfx_1_1Tilesheet.html#a258335d2c454a2ac0a46781b9fb3769e">yaze::gfx::Tilesheet::clear</a></div><div class="ttdeci">void clear()</div><div class="ttdef"><b>Definition</b> <a href="tilesheet_8h_source.html#l00090">tilesheet.h:90</a></div></div>
+<div class="ttc" id="aconstants_8h_html_a755e0e0d964b4d81ae730d174c5fa3ce"><div class="ttname"><a href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a></div><div class="ttdeci">#define RETURN_IF_ERROR(expression)</div><div class="ttdef"><b>Definition</b> <a href="constants_8h_source.html#l00062">constants.h:62</a></div></div>
 <div class="ttc" id="adungeon__map_8h_html"><div class="ttname"><a href="dungeon__map_8h.html">dungeon_map.h</a></div></div>
 <div class="ttc" id="afile__dialog_8h_html"><div class="ttname"><a href="file__dialog_8h.html">file_dialog.h</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_af98fbf03d09d9d365f64202db1ecba15"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#af98fbf03d09d9d365f64202db1ecba15">yaze::gfx::SnesTo8bppSheet</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; SnesTo8bppSheet(const std::vector&lt; uint8_t &gt; &amp;sheet, int bpp, int num_sheets)</div><div class="ttdef"><b>Definition</b> <a href="snes__tile_8cc_source.html#l00151">snes_tile.cc:151</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1zelda3_1_1screen_html"><div class="ttname"><a href="namespaceyaze_1_1zelda3_1_1screen.html">yaze::zelda3::screen</a></div><div class="ttdef"><b>Definition</b> <a href="#l00013">dungeon_map.cc:13</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1zelda3_1_1screen_html_a80a08b2ca44757520681ce56aa1fd1da"><div class="ttname"><a href="namespaceyaze_1_1zelda3_1_1screen.html#a80a08b2ca44757520681ce56aa1fd1da">yaze::zelda3::screen::LoadDungeonMapTile16</a></div><div class="ttdeci">absl::Status LoadDungeonMapTile16(const std::vector&lt; uint8_t &gt; &amp;gfx_data, bool bin_mode)</div></div>
-<div class="ttc" id="anamespaceyaze_1_1zelda3_1_1screen_html_acfae14194326f4ee49f9c31e8fe27173"><div class="ttname"><a href="namespaceyaze_1_1zelda3_1_1screen.html#acfae14194326f4ee49f9c31e8fe27173">yaze::zelda3::screen::LoadDungeonMapGfxFromBinary</a></div><div class="ttdeci">absl::Status LoadDungeonMapGfxFromBinary(Rom &amp;rom, std::array&lt; gfx::Bitmap, 4 &gt; &amp;sheets, gfx::Tilesheet &amp;tile16_sheet, std::vector&lt; uint8_t &gt; &amp;gfx_bin_data)</div><div class="ttdef"><b>Definition</b> <a href="#l00015">dungeon_map.cc:15</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1zelda3_html"><div class="ttname"><a href="namespaceyaze_1_1zelda3.html">yaze::zelda3</a></div><div class="ttdoc">Zelda 3 specific classes and functions.</div></div>
+<div class="ttc" id="anamespaceyaze_1_1zelda3_html_a3f2f6ec0638746ee96b507ea0295625c"><div class="ttname"><a href="namespaceyaze_1_1zelda3.html#a3f2f6ec0638746ee96b507ea0295625c">yaze::zelda3::LoadDungeonMapTile16</a></div><div class="ttdeci">absl::Status LoadDungeonMapTile16(const std::vector&lt; uint8_t &gt; &amp;gfx_data, bool bin_mode)</div></div>
+<div class="ttc" id="anamespaceyaze_1_1zelda3_html_a4159862346f04f2e18e6474c8d44df17"><div class="ttname"><a href="namespaceyaze_1_1zelda3.html#a4159862346f04f2e18e6474c8d44df17">yaze::zelda3::LoadDungeonMapGfxFromBinary</a></div><div class="ttdeci">absl::Status LoadDungeonMapGfxFromBinary(Rom &amp;rom, std::array&lt; gfx::Bitmap, 4 &gt; &amp;sheets, gfx::Tilesheet &amp;tile16_sheet, std::vector&lt; uint8_t &gt; &amp;gfx_bin_data)</div><div class="ttdef"><b>Definition</b> <a href="#l00014">dungeon_map.cc:14</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="common_8cc_source.html#l00016">common.cc:16</a></div></div>
 <div class="ttc" id="arenderer_8h_html"><div class="ttname"><a href="renderer_8h.html">renderer.h</a></div></div>
 <div class="ttc" id="asrc_2app_2gfx_2snes__tile_8h_html"><div class="ttname"><a href="src_2app_2gfx_2snes__tile_8h.html">snes_tile.h</a></div></div>

@@ -10,8 +10,7 @@
 <area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="298,150,298,182,292,182,292,150"/>
 <area shape="rect" id="Node000018" href="$src_2app_2zelda3_2overworld_2overworld_8h.html" title=" " alt="" coords="398,183,563,223"/>
 <area shape="poly" id="edge6_Node000002_Node000018" title=" " alt="" coords="352,139,439,180,437,185,350,144"/>
-<area shape="rect" id="Node000029" href="$sprite_8cc.html" title=" " alt="" coords="470,271,611,312"/>
-<area shape="poly" id="edge8_Node000002_Node000029" title=" " alt="" coords="382,122,440,131,497,143,546,160,564,170,577,181,586,204,582,229,572,252,559,272,554,269,567,250,577,227,580,205,573,184,561,174,544,165,496,149,439,136,381,127"/>
+<area shape="rect" id="Node000031" href="$sprite_8cc.html" title=" " alt="" coords="587,183,728,223"/>
+<area shape="poly" id="edge7_Node000002_Node000031" title=" " alt="" coords="381,133,587,182,586,187,380,139"/>
 <area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="275,238,252,272,247,269,271,235"/>
-<area shape="poly" id="edge7_Node000018_Node000029" title=" " alt="" coords="505,235,529,269,524,272,500,238"/>
 </map>

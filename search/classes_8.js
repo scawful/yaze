@@ -5,5 +5,5 @@ var searchData=
   ['input_2',['Input',['../structyaze_1_1emu_1_1Input.html',1,'yaze::emu']]],
   ['instructionentry_3',['InstructionEntry',['../classyaze_1_1emu_1_1InstructionEntry.html',1,'yaze::emu']]],
   ['internaltile16_4',['InternalTile16',['../structyaze_1_1gfx_1_1InternalTile16.html',1,'yaze::gfx']]],
-  ['inventory_5',['Inventory',['../classyaze_1_1zelda3_1_1screen_1_1Inventory.html',1,'yaze::zelda3::screen']]]
+  ['inventory_5',['Inventory',['../classyaze_1_1zelda3_1_1Inventory.html',1,'yaze::zelda3']]]
 ];

@@ -8,7 +8,7 @@ var searchData=
   ['dspchannel_5',['DspChannel',['../structyaze_1_1emu_1_1DspChannel.html',1,'yaze::emu']]],
   ['dungeonasset_6',['DungeonAsset',['../structyaze_1_1gui_1_1DungeonAsset.html',1,'yaze::gui']]],
   ['dungeoneditor_7',['DungeonEditor',['../classyaze_1_1editor_1_1DungeonEditor.html',1,'yaze::editor']]],
-  ['dungeonmap_8',['DungeonMap',['../structyaze_1_1zelda3_1_1screen_1_1DungeonMap.html',1,'yaze::zelda3::screen']]],
+  ['dungeonmap_8',['DungeonMap',['../structyaze_1_1zelda3_1_1DungeonMap.html',1,'yaze::zelda3']]],
   ['dungeonobjectrenderer_9',['DungeonObjectRenderer',['../classyaze_1_1zelda3_1_1DungeonObjectRenderer.html',1,'yaze::zelda3']]],
   ['dungeonroomtest_10',['DungeonRoomTest',['../classyaze_1_1test_1_1DungeonRoomTest.html',1,'yaze::test']]]
 ];

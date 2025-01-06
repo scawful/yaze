@@ -41,7 +41,7 @@ var classyaze_1_1editor_1_1ScreenEditor =
     [ "tile8_individual_", "classyaze_1_1editor_1_1ScreenEditor.html#a0420253aac6967434bba527c226b3f9d", null ],
     [ "all_gfx_", "classyaze_1_1editor_1_1ScreenEditor.html#ac5200b62dd5d5c7c523d14af3c8ae3a3", null ],
     [ "gfx_bin_data_", "classyaze_1_1editor_1_1ScreenEditor.html#a70f94413397501ab6236631e0afefceb", null ],
-    [ "dungeon_maps_", "classyaze_1_1editor_1_1ScreenEditor.html#a773f9b61faa9f3f938fbbc49d0a4dfd2", null ],
+    [ "dungeon_maps_", "classyaze_1_1editor_1_1ScreenEditor.html#ae178dba565fc20a3a1edf4faa0372557", null ],
     [ "dungeon_map_labels_", "classyaze_1_1editor_1_1ScreenEditor.html#aae177a741c68d2a698e6bd9c27822b3d", null ],
     [ "status_", "classyaze_1_1editor_1_1ScreenEditor.html#ab6a946ebc0fdc91cad00ee2ebfa586b0", null ],
     [ "palette_", "classyaze_1_1editor_1_1ScreenEditor.html#a0b429b6071dd3b02f210c0273e6219cf", null ],
@@ -52,5 +52,5 @@ var classyaze_1_1editor_1_1ScreenEditor =
     [ "screen_canvas_", "classyaze_1_1editor_1_1ScreenEditor.html#a53c54422054692a19a25e13293e192d9", null ],
     [ "tilesheet_canvas_", "classyaze_1_1editor_1_1ScreenEditor.html#acd833f5357cb6681d7ba2461bd9fb7a4", null ],
     [ "tilemap_canvas_", "classyaze_1_1editor_1_1ScreenEditor.html#a47596b4b44957c672335fed0d35f0ab2", null ],
-    [ "inventory_", "classyaze_1_1editor_1_1ScreenEditor.html#af1f9c471ebe4f566cb4c580efc51b386", null ]
+    [ "inventory_", "classyaze_1_1editor_1_1ScreenEditor.html#ab7bc7583a9bae4528c4543928f19e799", null ]
 ];

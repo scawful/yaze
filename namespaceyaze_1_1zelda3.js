@@ -5,15 +5,16 @@ var namespaceyaze_1_1zelda3 =
       [ "CompareItemsArrays", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html#a5b374fda1bb2eb9781736fd765e1ef4b", null ]
     ] ],
     [ "anonymous_namespace{tracker.cc}", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html", [
-      [ "AddSPCReloc", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html#ab1400747aa5706c8b340e3dd8d57002c", null ]
+      [ "AddSpcReloc", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html#a57c95bb79e56737d2e3e30296e409617", null ]
     ] ],
     [ "music", "namespaceyaze_1_1zelda3_1_1music.html", "namespaceyaze_1_1zelda3_1_1music" ],
     [ "palette_internal", "namespaceyaze_1_1zelda3_1_1palette__internal.html", [
       [ "SetColorsPalette", "namespaceyaze_1_1zelda3_1_1palette__internal.html#a7f32e9b2fd815c57c56c9a2e878e8165", null ]
     ] ],
-    [ "screen", "namespaceyaze_1_1zelda3_1_1screen.html", "namespaceyaze_1_1zelda3_1_1screen" ],
+    [ "DungeonMap", "structyaze_1_1zelda3_1_1DungeonMap.html", "structyaze_1_1zelda3_1_1DungeonMap" ],
     [ "DungeonObjectRenderer", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html", "classyaze_1_1zelda3_1_1DungeonObjectRenderer" ],
     [ "GameEntity", "classyaze_1_1zelda3_1_1GameEntity.html", "classyaze_1_1zelda3_1_1GameEntity" ],
+    [ "Inventory", "classyaze_1_1zelda3_1_1Inventory.html", "classyaze_1_1zelda3_1_1Inventory" ],
     [ "LayerMergeType", "structyaze_1_1zelda3_1_1LayerMergeType.html", "structyaze_1_1zelda3_1_1LayerMergeType" ],
     [ "Overworld", "classyaze_1_1zelda3_1_1Overworld.html", "classyaze_1_1zelda3_1_1Overworld" ],
     [ "OverworldEntrance", "classyaze_1_1zelda3_1_1OverworldEntrance.html", "classyaze_1_1zelda3_1_1OverworldEntrance" ],
@@ -23,6 +24,7 @@ var namespaceyaze_1_1zelda3 =
     [ "OverworldMap", "classyaze_1_1zelda3_1_1OverworldMap.html", "classyaze_1_1zelda3_1_1OverworldMap" ],
     [ "OverworldMapTiles", "structyaze_1_1zelda3_1_1OverworldMapTiles.html", "structyaze_1_1zelda3_1_1OverworldMapTiles" ],
     [ "PseudoVram", "structyaze_1_1zelda3_1_1PseudoVram.html", "structyaze_1_1zelda3_1_1PseudoVram" ],
+    [ "Renderer", "classyaze_1_1zelda3_1_1Renderer.html", "classyaze_1_1zelda3_1_1Renderer" ],
     [ "Room", "classyaze_1_1zelda3_1_1Room.html", "classyaze_1_1zelda3_1_1Room" ],
     [ "RoomEntrance", "classyaze_1_1zelda3_1_1RoomEntrance.html", "classyaze_1_1zelda3_1_1RoomEntrance" ],
     [ "RoomObject", "classyaze_1_1zelda3_1_1RoomObject.html", "classyaze_1_1zelda3_1_1RoomObject" ],
@@ -34,6 +36,7 @@ var namespaceyaze_1_1zelda3 =
     [ "Subtype2", "classyaze_1_1zelda3_1_1Subtype2.html", "classyaze_1_1zelda3_1_1Subtype2" ],
     [ "Subtype3", "classyaze_1_1zelda3_1_1Subtype3.html", "classyaze_1_1zelda3_1_1Subtype3" ],
     [ "SubtypeInfo", "structyaze_1_1zelda3_1_1SubtypeInfo.html", "structyaze_1_1zelda3_1_1SubtypeInfo" ],
+    [ "TitleScreen", "classyaze_1_1zelda3_1_1TitleScreen.html", "classyaze_1_1zelda3_1_1TitleScreen" ],
     [ "OverworldBlockset", "namespaceyaze_1_1zelda3.html#a5da171f331133be09fc9e5a7d466f3bc", null ],
     [ "OverworldMapTiles", "namespaceyaze_1_1zelda3.html#a96678ef2cc89582d5d8a7f2b74c5f69b", null ],
     [ "SpecialObjectType", "namespaceyaze_1_1zelda3.html#a479da514040cddc99b5da1235244c421", [
@@ -149,6 +152,8 @@ var namespaceyaze_1_1zelda3 =
     [ "operator~", "namespaceyaze_1_1zelda3.html#ab057669c20d13c04f18b529d882e5bd7", null ],
     [ "FetchSubtypeInfo", "namespaceyaze_1_1zelda3.html#abfbe2444d2fac0e5cce5c8368a329835", null ],
     [ "LoadEntranceTileTypes", "namespaceyaze_1_1zelda3.html#a0afd16e24367ef62bfa4a2e4c7ad1554", null ],
+    [ "LoadDungeonMapGfxFromBinary", "namespaceyaze_1_1zelda3.html#a4159862346f04f2e18e6474c8d44df17", null ],
+    [ "LoadDungeonMapTile16", "namespaceyaze_1_1zelda3.html#a3f2f6ec0638746ee96b507ea0295625c", null ],
     [ "kEntranceNames", "namespaceyaze_1_1zelda3.html#a11f897c391430c3e4e14c91b9606721a", null ],
     [ "kGfxBufferOffset", "namespaceyaze_1_1zelda3.html#afbcf95f0000387646abc0306914ec5fd", null ],
     [ "kGfxBufferStride", "namespaceyaze_1_1zelda3.html#ad4150202e700fdd531d83924bc702860", null ],
@@ -385,5 +390,18 @@ var namespaceyaze_1_1zelda3 =
     [ "OverworldCustomTileGFXGroupEnabled", "namespaceyaze_1_1zelda3.html#a05b7dc8cfd72fe3c1ca32e0081462b7b", null ],
     [ "kDarkWorldMapIdStart", "namespaceyaze_1_1zelda3.html#ab8d30c5b41fed3b580fde3311f584a31", null ],
     [ "kSpecialWorldMapIdStart", "namespaceyaze_1_1zelda3.html#a367cb50c76df42b3ac6350e00800e31c", null ],
+    [ "kDungeonMapRoomsPtr", "namespaceyaze_1_1zelda3.html#a804c4df997f0f44becc0bfe057782907", null ],
+    [ "kDungeonMapFloors", "namespaceyaze_1_1zelda3.html#a4d63c2b2eaeab2e1ef40f02fb874455e", null ],
+    [ "kDungeonMapGfxPtr", "namespaceyaze_1_1zelda3.html#ada97ba977781a8d06fd59837a290f9b6", null ],
+    [ "kDungeonMapDataStart", "namespaceyaze_1_1zelda3.html#a176ebffb81d9193d6fd25a6c87365284", null ],
+    [ "kDungeonMapExpCheck", "namespaceyaze_1_1zelda3.html#a2a0a3e2344847b77ce74f4e9d36148d7", null ],
+    [ "kDungeonMapTile16", "namespaceyaze_1_1zelda3.html#a60e4f5d9134abb7831d85853529fa08b", null ],
+    [ "kDungeonMapTile16Expanded", "namespaceyaze_1_1zelda3.html#a667bebf9da1ffa893137ed0cb17e4386", null ],
+    [ "kDungeonMapBossRooms", "namespaceyaze_1_1zelda3.html#a7a48eac13151e1d97f3541eb802fd65c", null ],
+    [ "kTriforceVertices", "namespaceyaze_1_1zelda3.html#a9fd10e4e09b174fba3491653a67fec9f", null ],
+    [ "kTriforceFaces", "namespaceyaze_1_1zelda3.html#aa1b509dfa34f65698378507a40103bcd", null ],
+    [ "kCrystalVertices", "namespaceyaze_1_1zelda3.html#a0abca0cc171078bf217aac524303dbad", null ],
+    [ "kInventoryStart", "namespaceyaze_1_1zelda3.html#aa169c4a87d4b45c92c632597ccaf8b8b", null ],
+    [ "kBowItemPos", "namespaceyaze_1_1zelda3.html#ad29bc56db4a9f7ae93d0cee2d85ac13b", null ],
     [ "kSpriteProperties", "namespaceyaze_1_1zelda3.html#ad0817d230f1c2475d2af06e6105a5ef0", null ]
 ];

@@ -1,17 +1,17 @@
 var dungeon__map_8h =
 [
-    [ "yaze::zelda3::screen::DungeonMap", "structyaze_1_1zelda3_1_1screen_1_1DungeonMap.html", "structyaze_1_1zelda3_1_1screen_1_1DungeonMap" ],
-    [ "yaze::zelda3::screen::LoadDungeonMapTile16", "namespaceyaze_1_1zelda3_1_1screen.html#a80a08b2ca44757520681ce56aa1fd1da", null ],
-    [ "yaze::zelda3::screen::LoadDungeonMapGfxFromBinary", "namespaceyaze_1_1zelda3_1_1screen.html#acfae14194326f4ee49f9c31e8fe27173", null ],
-    [ "yaze::zelda3::screen::kDungeonMapRoomsPtr", "namespaceyaze_1_1zelda3_1_1screen.html#a74cdb60332e9edb60eee22b7495962f5", null ],
-    [ "yaze::zelda3::screen::kDungeonMapFloors", "namespaceyaze_1_1zelda3_1_1screen.html#a2f78f9f59284f0f36b57db2322577f50", null ],
-    [ "yaze::zelda3::screen::kDungeonMapGfxPtr", "namespaceyaze_1_1zelda3_1_1screen.html#aa702860e7a4379ffccb896dec2a4af95", null ],
-    [ "yaze::zelda3::screen::kDungeonMapDataStart", "namespaceyaze_1_1zelda3_1_1screen.html#a02a0df2b92a3c8c22c5abb125735861a", null ],
-    [ "yaze::zelda3::screen::kDungeonMapExpCheck", "namespaceyaze_1_1zelda3_1_1screen.html#a4c5174988b18eef439e15350aab1f1f7", null ],
-    [ "yaze::zelda3::screen::kDungeonMapTile16", "namespaceyaze_1_1zelda3_1_1screen.html#a9928c24b16dd2689ca9f6c42b19087db", null ],
-    [ "yaze::zelda3::screen::kDungeonMapTile16Expanded", "namespaceyaze_1_1zelda3_1_1screen.html#afbf734a4a8c60f12880dfcd9dd599bc7", null ],
-    [ "yaze::zelda3::screen::kDungeonMapBossRooms", "namespaceyaze_1_1zelda3_1_1screen.html#ab26bb0a95987f4bf8056b790c24c675a", null ],
-    [ "yaze::zelda3::screen::kTriforceVertices", "namespaceyaze_1_1zelda3_1_1screen.html#aa489f35925ddfb13b05baf84006bec6f", null ],
-    [ "yaze::zelda3::screen::kTriforceFaces", "namespaceyaze_1_1zelda3_1_1screen.html#a2aee6eb8b231726446279f8cd694ad4d", null ],
-    [ "yaze::zelda3::screen::kCrystalVertices", "namespaceyaze_1_1zelda3_1_1screen.html#ae3596dbee6ab6e78dae985f313968cd0", null ]
+    [ "yaze::zelda3::DungeonMap", "structyaze_1_1zelda3_1_1DungeonMap.html", "structyaze_1_1zelda3_1_1DungeonMap" ],
+    [ "yaze::zelda3::LoadDungeonMapTile16", "namespaceyaze_1_1zelda3.html#a3f2f6ec0638746ee96b507ea0295625c", null ],
+    [ "yaze::zelda3::LoadDungeonMapGfxFromBinary", "namespaceyaze_1_1zelda3.html#a4159862346f04f2e18e6474c8d44df17", null ],
+    [ "yaze::zelda3::kDungeonMapRoomsPtr", "namespaceyaze_1_1zelda3.html#a804c4df997f0f44becc0bfe057782907", null ],
+    [ "yaze::zelda3::kDungeonMapFloors", "namespaceyaze_1_1zelda3.html#a4d63c2b2eaeab2e1ef40f02fb874455e", null ],
+    [ "yaze::zelda3::kDungeonMapGfxPtr", "namespaceyaze_1_1zelda3.html#ada97ba977781a8d06fd59837a290f9b6", null ],
+    [ "yaze::zelda3::kDungeonMapDataStart", "namespaceyaze_1_1zelda3.html#a176ebffb81d9193d6fd25a6c87365284", null ],
+    [ "yaze::zelda3::kDungeonMapExpCheck", "namespaceyaze_1_1zelda3.html#a2a0a3e2344847b77ce74f4e9d36148d7", null ],
+    [ "yaze::zelda3::kDungeonMapTile16", "namespaceyaze_1_1zelda3.html#a60e4f5d9134abb7831d85853529fa08b", null ],
+    [ "yaze::zelda3::kDungeonMapTile16Expanded", "namespaceyaze_1_1zelda3.html#a667bebf9da1ffa893137ed0cb17e4386", null ],
+    [ "yaze::zelda3::kDungeonMapBossRooms", "namespaceyaze_1_1zelda3.html#a7a48eac13151e1d97f3541eb802fd65c", null ],
+    [ "yaze::zelda3::kTriforceVertices", "namespaceyaze_1_1zelda3.html#a9fd10e4e09b174fba3491653a67fec9f", null ],
+    [ "yaze::zelda3::kTriforceFaces", "namespaceyaze_1_1zelda3.html#aa1b509dfa34f65698378507a40103bcd", null ],
+    [ "yaze::zelda3::kCrystalVertices", "namespaceyaze_1_1zelda3.html#a0abca0cc171078bf217aac524303dbad", null ]
 ];

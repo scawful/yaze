@@ -1593,21 +1593,21 @@ $(function(){initNavTree('overworld__editor_8cc_source.html',''); initResizable(
 <div class="foldopen" id="foldopen01418" data-start="{" data-end="}">
 <div class="line"><a id="l01418" name="l01418"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1OverworldEditor.html#a374ed17f504a7503785b6af574f9ad32"> 1418</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1OverworldEditor.html#a374ed17f504a7503785b6af574f9ad32">OverworldEditor::DrawUsageGrid</a>() {</div>
 <div class="line"><a id="l01419" name="l01419"></a><span class="lineno"> 1419</span>  <span class="comment">// Create a grid of 8x8 squares</span></div>
-<div class="line"><a id="l01420" name="l01420"></a><span class="lineno"> 1420</span>  <span class="keywordtype">int</span> totalSquares = 128;</div>
-<div class="line"><a id="l01421" name="l01421"></a><span class="lineno"> 1421</span>  <span class="keywordtype">int</span> squaresWide = 8;</div>
-<div class="line"><a id="l01422" name="l01422"></a><span class="lineno"> 1422</span>  <span class="keywordtype">int</span> squaresTall = (totalSquares + squaresWide - 1) /</div>
-<div class="line"><a id="l01423" name="l01423"></a><span class="lineno"> 1423</span>                    squaresWide;  <span class="comment">// Ceiling of totalSquares/squaresWide</span></div>
+<div class="line"><a id="l01420" name="l01420"></a><span class="lineno"> 1420</span>  <span class="keywordtype">int</span> total_squares = 128;</div>
+<div class="line"><a id="l01421" name="l01421"></a><span class="lineno"> 1421</span>  <span class="keywordtype">int</span> squares_wide = 8;</div>
+<div class="line"><a id="l01422" name="l01422"></a><span class="lineno"> 1422</span>  <span class="keywordtype">int</span> squares_tall = (total_squares + squares_wide - 1) /</div>
+<div class="line"><a id="l01423" name="l01423"></a><span class="lineno"> 1423</span>                    squares_wide;  <span class="comment">// Ceiling of total_squares/squares_wide</span></div>
 <div class="line"><a id="l01424" name="l01424"></a><span class="lineno"> 1424</span> </div>
 <div class="line"><a id="l01425" name="l01425"></a><span class="lineno"> 1425</span>  <span class="comment">// Loop through each row</span></div>
-<div class="line"><a id="l01426" name="l01426"></a><span class="lineno"> 1426</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> row = 0; row &lt; squaresTall; ++row) {</div>
+<div class="line"><a id="l01426" name="l01426"></a><span class="lineno"> 1426</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> row = 0; row &lt; squares_tall; ++row) {</div>
 <div class="line"><a id="l01427" name="l01427"></a><span class="lineno"> 1427</span>    NewLine();</div>
 <div class="line"><a id="l01428" name="l01428"></a><span class="lineno"> 1428</span> </div>
-<div class="line"><a id="l01429" name="l01429"></a><span class="lineno"> 1429</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> col = 0; col &lt; squaresWide; ++col) {</div>
-<div class="line"><a id="l01430" name="l01430"></a><span class="lineno"> 1430</span>      <span class="keywordflow">if</span> (row * squaresWide + col &gt;= totalSquares) {</div>
+<div class="line"><a id="l01429" name="l01429"></a><span class="lineno"> 1429</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> col = 0; col &lt; squares_wide; ++col) {</div>
+<div class="line"><a id="l01430" name="l01430"></a><span class="lineno"> 1430</span>      <span class="keywordflow">if</span> (row * squares_wide + col &gt;= total_squares) {</div>
 <div class="line"><a id="l01431" name="l01431"></a><span class="lineno"> 1431</span>        <span class="keywordflow">break</span>;</div>
 <div class="line"><a id="l01432" name="l01432"></a><span class="lineno"> 1432</span>      }</div>
 <div class="line"><a id="l01433" name="l01433"></a><span class="lineno"> 1433</span>      <span class="comment">// Determine if this square should be highlighted</span></div>
-<div class="line"><a id="l01434" name="l01434"></a><span class="lineno"> 1434</span>      <span class="keywordtype">bool</span> highlight = <a class="code hl_variable" href="classyaze_1_1editor_1_1OverworldEditor.html#adf6df59f00bba32a2c66c09ae018ea70">selected_usage_map_</a> == (row * squaresWide + col);</div>
+<div class="line"><a id="l01434" name="l01434"></a><span class="lineno"> 1434</span>      <span class="keywordtype">bool</span> highlight = <a class="code hl_variable" href="classyaze_1_1editor_1_1OverworldEditor.html#adf6df59f00bba32a2c66c09ae018ea70">selected_usage_map_</a> == (row * squares_wide + col);</div>
 <div class="line"><a id="l01435" name="l01435"></a><span class="lineno"> 1435</span> </div>
 <div class="line"><a id="l01436" name="l01436"></a><span class="lineno"> 1436</span>      <span class="comment">// Set highlight color if needed</span></div>
 <div class="line"><a id="l01437" name="l01437"></a><span class="lineno"> 1437</span>      <span class="keywordflow">if</span> (highlight) {</div>

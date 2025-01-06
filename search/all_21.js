@@ -6,7 +6,7 @@ var searchData=
   ['x_5fbutton_3',['x_button',['../structyaze_1_1emu_1_1EmulatorKeybindings.html#a1191faba066f6e536c669a624ec4a510',1,'yaze::emu::EmulatorKeybindings']]],
   ['x_5fcamera_5f_4',['x_camera_',['../classyaze_1_1zelda3_1_1OverworldExit.html#acc61ee6b73e01a04f4fac79aa01ddb8a',1,'yaze::zelda3::OverworldExit']]],
   ['x_5fflip_5',['x_flip',['../classyaze_1_1editor_1_1Tile16Editor.html#a572f4bd7544c75082f7f3d80f99f0bec',1,'yaze::editor::Tile16Editor']]],
-  ['x_5fin_5f_6',['x_in_',['../classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#a04da554a86193e4e1512f9b57bcd96ec',1,'yaze::zelda3::screen::TitleScreen']]],
+  ['x_5fin_5f_6',['x_in_',['../classyaze_1_1zelda3_1_1TitleScreen.html#a1aac20179411d14c68d822f6243f36f3',1,'yaze::zelda3::TitleScreen']]],
   ['x_5fplayer_5f_7',['x_player_',['../classyaze_1_1zelda3_1_1OverworldExit.html#ad89d028e87280a6c2cf1f93b00a9e439',1,'yaze::zelda3::OverworldExit']]],
   ['x_5fposition_5f_8',['x_position_',['../classyaze_1_1zelda3_1_1RoomEntrance.html#ac8c5a8a13ec392ef1d24ca287626c86d',1,'yaze::zelda3::RoomEntrance']]],
   ['x_5fscroll_5f_9',['x_scroll_',['../classyaze_1_1zelda3_1_1OverworldExit.html#a4c5a03a86f3c3fbc332cbfcefac40210',1,'yaze::zelda3::OverworldExit']]],

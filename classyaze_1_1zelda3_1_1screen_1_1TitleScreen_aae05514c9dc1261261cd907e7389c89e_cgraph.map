@@ -1,9 +1,0 @@
-<map id="yaze::zelda3::screen::TitleScreen::Create" name="yaze::zelda3::screen::TitleScreen::Create">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,143,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#af731a5e1858feda21ceac5635b98fa36" title=" " alt="" coords="204,5,372,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,46,189,38,190,44,144,51"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#a934f9101ffde6b959807fe642f6db1fc" title=" " alt="" coords="191,71,385,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="144,67,176,72,175,77,143,72"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1core.html#a772a2d0d104498cb8100f0b2e717b6a2" title=" " alt="" coords="433,78,578,104"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="385,88,417,88,417,94,385,94"/>
-</map>

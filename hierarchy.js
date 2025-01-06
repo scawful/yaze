@@ -86,7 +86,7 @@ var hierarchy =
     [ "yaze::emu::DmaRegisters", "structyaze_1_1emu_1_1DmaRegisters.html", null ],
     [ "yaze::emu::Dsp", "classyaze_1_1emu_1_1Dsp.html", null ],
     [ "yaze::emu::DspChannel", "structyaze_1_1emu_1_1DspChannel.html", null ],
-    [ "yaze::zelda3::screen::DungeonMap", "structyaze_1_1zelda3_1_1screen_1_1DungeonMap.html", null ],
+    [ "yaze::zelda3::DungeonMap", "structyaze_1_1zelda3_1_1DungeonMap.html", null ],
     [ "yaze::editor::Editor", "classyaze_1_1editor_1_1Editor.html", [
       [ "yaze::editor::AssemblyEditor", "classyaze_1_1editor_1_1AssemblyEditor.html", null ],
       [ "yaze::editor::DungeonEditor", "classyaze_1_1editor_1_1DungeonEditor.html", null ],
@@ -208,7 +208,7 @@ var hierarchy =
     [ "yaze::editor::Renderer", "classyaze_1_1editor_1_1Renderer.html", null ],
     [ "yaze::gui::Renderer", "classyaze_1_1gui_1_1Renderer.html", null ],
     [ "yaze::Renderer", "classyaze_1_1Renderer.html", null ],
-    [ "yaze::zelda3::screen::Renderer", "classyaze_1_1zelda3_1_1screen_1_1Renderer.html", null ],
+    [ "yaze::zelda3::Renderer", "classyaze_1_1zelda3_1_1Renderer.html", null ],
     [ "yaze::ResourceLabelManager", "structyaze_1_1ResourceLabelManager.html", null ],
     [ "yaze::editor::ResourceManager", "classyaze_1_1editor_1_1ResourceManager.html", null ],
     [ "yaze::ResourceLabelManager::ResourceType", "structyaze_1_1ResourceLabelManager_1_1ResourceType.html", null ],
@@ -249,14 +249,14 @@ var hierarchy =
       [ "yaze::test::MessageTest", "classyaze_1_1test_1_1MessageTest.html", null ],
       [ "yaze::test::OverworldTest", "classyaze_1_1test_1_1OverworldTest.html", null ],
       [ "yaze::zelda3::DungeonObjectRenderer", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html", null ],
+      [ "yaze::zelda3::Inventory", "classyaze_1_1zelda3_1_1Inventory.html", null ],
       [ "yaze::zelda3::Overworld", "classyaze_1_1zelda3_1_1Overworld.html", null ],
       [ "yaze::zelda3::Room", "classyaze_1_1zelda3_1_1Room.html", null ],
       [ "yaze::zelda3::RoomObject", "classyaze_1_1zelda3_1_1RoomObject.html", [
         [ "yaze::zelda3::Subtype1", "classyaze_1_1zelda3_1_1Subtype1.html", null ],
         [ "yaze::zelda3::Subtype2", "classyaze_1_1zelda3_1_1Subtype2.html", null ],
         [ "yaze::zelda3::Subtype3", "classyaze_1_1zelda3_1_1Subtype3.html", null ]
-      ] ],
-      [ "yaze::zelda3::screen::Inventory", "classyaze_1_1zelda3_1_1screen_1_1Inventory.html", null ]
+      ] ]
     ] ],
     [ "yaze::emu::SLHV", "structyaze_1_1emu_1_1SLHV.html", null ],
     [ "yaze::emu::Snes", "classyaze_1_1emu_1_1Snes.html", null ],
@@ -312,7 +312,7 @@ var hierarchy =
     [ "yaze::emu::TileMapLocation", "structyaze_1_1emu_1_1TileMapLocation.html", null ],
     [ "yaze::gfx::Tilesheet", "classyaze_1_1gfx_1_1Tilesheet.html", null ],
     [ "yaze::emu::Timer", "structyaze_1_1emu_1_1Timer.html", null ],
-    [ "yaze::zelda3::screen::TitleScreen", "classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html", null ],
+    [ "yaze::zelda3::TitleScreen", "classyaze_1_1zelda3_1_1TitleScreen.html", null ],
     [ "yaze::emu::TM", "structyaze_1_1emu_1_1TM.html", null ],
     [ "yaze::emu::TMW", "structyaze_1_1emu_1_1TMW.html", null ],
     [ "yaze::gui::zeml::Token", "structyaze_1_1gui_1_1zeml_1_1Token.html", null ],

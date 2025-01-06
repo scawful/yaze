@@ -20,7 +20,7 @@ var searchData=
   ['edit_5fpalette_5findex_5f_17',['edit_palette_index_',['../classyaze_1_1editor_1_1GraphicsEditor.html#a86ceabbcde6cc1cd4ef2bf4f601b1f8a',1,'yaze::editor::GraphicsEditor::edit_palette_index_'],['../classyaze_1_1gui_1_1Canvas.html#a8da8e6e91dc044c90ec7d0b3bb8178eb',1,'yaze::gui::Canvas::edit_palette_index_']]],
   ['edit_5fpalette_5fsub_5findex_5f_18',['edit_palette_sub_index_',['../classyaze_1_1editor_1_1GraphicsEditor.html#aacd9ca3e2540a6bf633730a52173f648',1,'yaze::editor::GraphicsEditor::edit_palette_sub_index_'],['../classyaze_1_1gui_1_1Canvas.html#a7180a3b6be664e4b23841ef9f40bd1a9',1,'yaze::gui::Canvas::edit_palette_sub_index_']]],
   ['editcolorinpalette_19',['EditColorInPalette',['../classyaze_1_1editor_1_1PaletteEditor.html#af33bcbc1e8f1627ccbbf2abad17eafca',1,'yaze::editor::PaletteEditor']]],
-  ['editedfromeditor_20',['editedFromEditor',['../classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html#ad81390c626e13d4b8bf4990322680fda',1,'yaze::zelda3::screen::TitleScreen']]],
+  ['editedfromeditor_20',['editedFromEditor',['../classyaze_1_1zelda3_1_1TitleScreen.html#a590684a6d6fadb8d0daca86d1893ac93',1,'yaze::zelda3::TitleScreen']]],
   ['editingmode_21',['EditingMode',['../classyaze_1_1editor_1_1ScreenEditor.html#abec6d04064b261e8640910b2e07b9017',1,'yaze::editor::ScreenEditor::EditingMode'],['../classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8e',1,'yaze::editor::OverworldEditor::EditingMode']]],
   ['editinst_22',['editinst',['../structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#a067bebc95f001cc77e7d289411a36a04',1,'yaze::zelda3::music::SampleEdit']]],
   ['editlabel_23',['EditLabel',['../structyaze_1_1ResourceLabelManager.html#a3111a44065af307dffd87b22a8cd203a',1,'yaze::ResourceLabelManager']]],

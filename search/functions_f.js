@@ -2,7 +2,7 @@ var searchData=
 [
   ['packbpptile_0',['PackBppTile',['../namespaceyaze_1_1gfx.html#a7260886a737941c53866529577b27e13',1,'yaze::gfx']]],
   ['pal_5ftiming_1',['pal_timing',['../classyaze_1_1emu_1_1Memory.html#a784023bfb0c060029e1eb7d1be6fc9ad',1,'yaze::emu::Memory::pal_timing()'],['../classyaze_1_1emu_1_1MemoryImpl.html#ad0d8763e05227f90f95acc07406edcf8',1,'yaze::emu::MemoryImpl::pal_timing()']]],
-  ['palette_2',['Palette',['../classyaze_1_1zelda3_1_1screen_1_1Inventory.html#a255129117fe5dbe6d9dff7358e41c4d8',1,'yaze::zelda3::screen::Inventory']]],
+  ['palette_2',['Palette',['../classyaze_1_1zelda3_1_1Inventory.html#ad54be409eeedc26e96d134c653a30eb2',1,'yaze::zelda3::Inventory']]],
   ['palette_3',['palette',['../classyaze_1_1gfx_1_1Bitmap.html#ab2230a9d39012a835f250c3be0899829',1,'yaze::gfx::Bitmap::palette()'],['../structyaze_1_1gfx_1_1PaletteGroup.html#aabe0189dbbebd07ef2dc6128a2227007',1,'yaze::gfx::PaletteGroup::palette()'],['../classyaze_1_1gfx_1_1Tilesheet.html#a2f4babf585342099b411b584b9c36af5',1,'yaze::gfx::Tilesheet::palette()'],['../classyaze_1_1gui_1_1Bitmap.html#ab2230a9d39012a835f250c3be0899829',1,'yaze::gui::Bitmap::palette()']]],
   ['palette_5fgroup_4',['palette_group',['../classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7',1,'yaze::Rom::palette_group()'],['../classyaze_1_1test_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7',1,'yaze::test::Rom::palette_group()']]],
   ['paletteeditor_5',['PaletteEditor',['../classyaze_1_1editor_1_1PaletteEditor.html#adff0ccac83563b4b24ab28f88e9d7c01',1,'yaze::editor::PaletteEditor']]],

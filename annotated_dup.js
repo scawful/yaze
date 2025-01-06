@@ -280,14 +280,10 @@ var annotated_dup =
           [ "ZeldaSfxInstrument", "structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html", "structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument" ],
           [ "ZeldaWave", "structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html", "structyaze_1_1zelda3_1_1music_1_1ZeldaWave" ]
         ] ],
-        [ "screen", "namespaceyaze_1_1zelda3_1_1screen.html", [
-          [ "DungeonMap", "structyaze_1_1zelda3_1_1screen_1_1DungeonMap.html", "structyaze_1_1zelda3_1_1screen_1_1DungeonMap" ],
-          [ "Inventory", "classyaze_1_1zelda3_1_1screen_1_1Inventory.html", "classyaze_1_1zelda3_1_1screen_1_1Inventory" ],
-          [ "Renderer", "classyaze_1_1zelda3_1_1screen_1_1Renderer.html", "classyaze_1_1zelda3_1_1screen_1_1Renderer" ],
-          [ "TitleScreen", "classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html", "classyaze_1_1zelda3_1_1screen_1_1TitleScreen" ]
-        ] ],
+        [ "DungeonMap", "structyaze_1_1zelda3_1_1DungeonMap.html", "structyaze_1_1zelda3_1_1DungeonMap" ],
         [ "DungeonObjectRenderer", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html", "classyaze_1_1zelda3_1_1DungeonObjectRenderer" ],
         [ "GameEntity", "classyaze_1_1zelda3_1_1GameEntity.html", "classyaze_1_1zelda3_1_1GameEntity" ],
+        [ "Inventory", "classyaze_1_1zelda3_1_1Inventory.html", "classyaze_1_1zelda3_1_1Inventory" ],
         [ "LayerMergeType", "structyaze_1_1zelda3_1_1LayerMergeType.html", "structyaze_1_1zelda3_1_1LayerMergeType" ],
         [ "Overworld", "classyaze_1_1zelda3_1_1Overworld.html", "classyaze_1_1zelda3_1_1Overworld" ],
         [ "OverworldEntrance", "classyaze_1_1zelda3_1_1OverworldEntrance.html", "classyaze_1_1zelda3_1_1OverworldEntrance" ],
@@ -297,6 +293,7 @@ var annotated_dup =
         [ "OverworldMap", "classyaze_1_1zelda3_1_1OverworldMap.html", "classyaze_1_1zelda3_1_1OverworldMap" ],
         [ "OverworldMapTiles", "structyaze_1_1zelda3_1_1OverworldMapTiles.html", "structyaze_1_1zelda3_1_1OverworldMapTiles" ],
         [ "PseudoVram", "structyaze_1_1zelda3_1_1PseudoVram.html", "structyaze_1_1zelda3_1_1PseudoVram" ],
+        [ "Renderer", "classyaze_1_1zelda3_1_1Renderer.html", "classyaze_1_1zelda3_1_1Renderer" ],
         [ "Room", "classyaze_1_1zelda3_1_1Room.html", "classyaze_1_1zelda3_1_1Room" ],
         [ "RoomEntrance", "classyaze_1_1zelda3_1_1RoomEntrance.html", "classyaze_1_1zelda3_1_1RoomEntrance" ],
         [ "RoomObject", "classyaze_1_1zelda3_1_1RoomObject.html", "classyaze_1_1zelda3_1_1RoomObject" ],
@@ -307,7 +304,8 @@ var annotated_dup =
         [ "Subtype1", "classyaze_1_1zelda3_1_1Subtype1.html", "classyaze_1_1zelda3_1_1Subtype1" ],
         [ "Subtype2", "classyaze_1_1zelda3_1_1Subtype2.html", "classyaze_1_1zelda3_1_1Subtype2" ],
         [ "Subtype3", "classyaze_1_1zelda3_1_1Subtype3.html", "classyaze_1_1zelda3_1_1Subtype3" ],
-        [ "SubtypeInfo", "structyaze_1_1zelda3_1_1SubtypeInfo.html", "structyaze_1_1zelda3_1_1SubtypeInfo" ]
+        [ "SubtypeInfo", "structyaze_1_1zelda3_1_1SubtypeInfo.html", "structyaze_1_1zelda3_1_1SubtypeInfo" ],
+        [ "TitleScreen", "classyaze_1_1zelda3_1_1TitleScreen.html", "classyaze_1_1zelda3_1_1TitleScreen" ]
       ] ],
       [ "GraphicsSheetManager", "classyaze_1_1GraphicsSheetManager.html", "classyaze_1_1GraphicsSheetManager" ],
       [ "Project", "structyaze_1_1Project.html", "structyaze_1_1Project" ],
