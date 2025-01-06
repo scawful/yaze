@@ -43,11 +43,9 @@ using ImGui::Text;
 
 absl::Status Tile16Editor::InitBlockset(
     const gfx::Bitmap &tile16_blockset_bmp, const gfx::Bitmap &current_gfx_bmp,
-    const std::vector<gfx::Bitmap> &tile16_individual,
     std::array<uint8_t, 0x200> &all_tiles_types) {
   all_tiles_types_ = all_tiles_types;
   tile16_blockset_bmp_ = tile16_blockset_bmp;
-  tile16_individual_ = tile16_individual;
 	current_gfx_bmp_.Create(current_gfx_bmp.width(), current_gfx_bmp.height(),
 		                      current_gfx_bmp.depth(), current_gfx_bmp.vector());
 	core::Renderer::GetInstance().RenderBitmap(&tile16_blockset_bmp_);

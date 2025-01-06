@@ -154,7 +154,7 @@ void GraphicsEditor::DrawGfxEditToolset() {
     TableNextColumn();
     auto bitmap = GraphicsSheetManager::GetInstance().gfx_sheets()[current_sheet_];
     auto palette = bitmap.palette();
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < palette.size(); i++) {
       ImGui::SameLine();
       auto color =
           ImVec4(palette[i].rgb().x / 255.0f, palette[i].rgb().y / 255.0f,
