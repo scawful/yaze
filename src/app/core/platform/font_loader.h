@@ -13,6 +13,8 @@ struct FontConfig {
 
 absl::Status LoadPackageFonts();
 
+absl::Status ReloadPackageFont(const FontConfig& config);
+
 void LoadSystemFonts();
 
 }  // namespace core

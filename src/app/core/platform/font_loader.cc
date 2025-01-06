@@ -134,6 +134,18 @@ absl::Status LoadPackageFonts() {
   return absl::OkStatus();
 }
 
+absl::Status ReloadPackageFont(const FontConfig& config) {
+	ImGuiIO& io = ImGui::GetIO();
+	std::string actual_font_path = SetFontPath(config.font_path);
+	if (!io.Fonts->AddFontFromFileTTF(actual_font_path.data(), config.font_size)) {
+		return absl::InternalError(
+			absl::StrFormat("Failed to load font from %s", actual_font_path));
+	}
+	RETURN_IF_ERROR(AddIconFont());
+	RETURN_IF_ERROR(AddJapaneseFont());
+  return absl::OkStatus();
+}
+
 #ifdef _WIN32
 #include <Windows.h>
 
