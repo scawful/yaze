@@ -8,6 +8,12 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
+typedef struct dungeon_sprite {
+  const char* name;
+  uint8_t id;
+  uint8_t subtype;
+} dungeon_sprite;
+
 typedef enum background2 {
   Off,
   Parallax,
@@ -56,6 +62,7 @@ typedef struct destination {
 
 typedef struct z3_dungeon_room {
   background2 bg2;
+  dungeon_sprite* sprites;
   object_door* doors;
   staircase* staircases;
   chest* chests;

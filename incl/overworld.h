@@ -7,8 +7,6 @@ extern "C" {
 
 #include <stdint.h>
 
-#include "sprite.h"
-
 /**
  * @brief Primitive of an overworld map.
  */
@@ -32,11 +30,6 @@ typedef struct z3_overworld_map {
  */
 typedef struct z3_overworld {
   void *impl; // yaze::Overworld*
-
-  uint8_t *tile32_data; /**< Pointer to the 32x32 tile data. */
-  uint8_t *tile16_data; /**< Pointer to the 16x16 tile data. */
-
-  z3_sprite **sprites;     /**< Pointer to the sprites per map. */
   z3_overworld_map **maps; /**< Pointer to the overworld maps. */
 } z3_overworld;
 

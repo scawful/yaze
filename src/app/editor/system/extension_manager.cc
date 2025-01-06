@@ -71,13 +71,5 @@ void ExtensionManager::ShutdownExtensions() {
   // }
 }
 
-void ExtensionManager::ExecuteExtensionUI(yaze_editor_context* context) {
-  for (auto& extension : extensions_) {
-    if (extension->extend_ui) {
-      extension->extend_ui(context);
-    }
-  }
-}
-
 }  // namespace editor
 }  // namespace yaze

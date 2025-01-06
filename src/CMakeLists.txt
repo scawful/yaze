@@ -129,7 +129,6 @@ if (YAZE_BUILD_LIB)
     install(
       FILES
         yaze.h
-        incl/sprite.h
         incl/snes_tile.h
         incl/snes_color.h
         incl/overworld.h
