@@ -4,7 +4,7 @@
 // Include Windows-specific headers
 #include <shobjidl.h>
 #include <windows.h>
-#else // Linux and MacOS
+#else  // Linux and MacOS
 #include <dirent.h>
 #include <sys/stat.h>
 #endif
@@ -80,15 +80,15 @@ void SaveFile(const std::string &filename, const std::string &contents,
 std::string GetConfigDirectory(Platform platform) {
   std::string config_directory = ".yaze";
   switch (platform) {
-  case Platform::kWindows:
-    config_directory = "~/AppData/Roaming/yaze";
-    break;
-  case Platform::kMacOS:
-  case Platform::kLinux:
-    config_directory = "~/.config/yaze";
-    break;
-  default:
-    break;
+    case Platform::kWindows:
+      config_directory = "~/AppData/Roaming/yaze";
+      break;
+    case Platform::kMacOS:
+    case Platform::kLinux:
+      config_directory = "~/.config/yaze";
+      break;
+    default:
+      break;
   }
   return config_directory;
 }
@@ -208,8 +208,8 @@ std::vector<std::string> FileDialogWrapper::GetFilesInFolder(
 std::string FileDialogWrapper::ShowOpenFileDialog() {
   NFD_Init();
   nfdu8char_t *out_path = NULL;
-  nfdu8filter_item_t filters[1] = {{ "Rom File", "sfc,smc" } };
-  nfdopendialogu8args_t args = { 0 };
+  nfdu8filter_item_t filters[1] = {{"Rom File", "sfc,smc"}};
+  nfdopendialogu8args_t args = {0};
   args.filterList = filters;
   args.filterCount = 1;
   nfdresult_t result = NFD_OpenDialogU8_With(&out_path, &args);
@@ -221,23 +221,60 @@ std::string FileDialogWrapper::ShowOpenFileDialog() {
   } else if (result == NFD_CANCEL) {
     NFD_Quit();
     return "";
-  } 
+  }
   NFD_Quit();
   return "Error: NFD_OpenDialog";
 }
 
 std::string FileDialogWrapper::ShowOpenFolderDialog() {
-  return "Linux: Open folder dialog";
+  NFD_Init();
+  nfdu8char_t *out_path = NULL;
+  nfdresult_t result = NFD_PickFolderU8(&out_path);
+  if (result == NFD_OKAY) {
+    std::string folder_path_linux(out_path);
+    NFD_Free(out_path);
+    NFD_Quit();
+    return folder_path_linux;
+  } else if (result == NFD_CANCEL) {
+    NFD_Quit();
+    return "";
+  }
+  NFD_Quit();
+  return "Error: NFD_PickFolder";
 }
 
 std::vector<std::string> FileDialogWrapper::GetSubdirectoriesInFolder(
-    const std::string& folder_path) {
-  return {"Linux: Subdirectories in folder"};
+    const std::string &folder_path) {
+  std::vector<std::string> subdirectories;
+  DIR *dir;
+  struct dirent *ent;
+  if ((dir = opendir(folder_path.c_str())) != NULL) {
+    while ((ent = readdir(dir)) != NULL) {
+      if (ent->d_type == DT_DIR) {
+        if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0) {
+          subdirectories.push_back(ent->d_name);
+        }
+      }
+    }
+    closedir(dir);
+  }
+  return subdirectories;
 }
 
 std::vector<std::string> FileDialogWrapper::GetFilesInFolder(
-    const std::string& folder_path) {
-  return {"Linux: Files in folder"};
+    const std::string &folder_path) {
+  std::vector<std::string> files;
+  DIR *dir;
+  struct dirent *ent;
+  if ((dir = opendir(folder_path.c_str())) != NULL) {
+    while ((ent = readdir(dir)) != NULL) {
+      if (ent->d_type == DT_REG) {
+        files.push_back(ent->d_name);
+      }
+    }
+    closedir(dir);
+  }
+  return files;
 }
 
 #endif
