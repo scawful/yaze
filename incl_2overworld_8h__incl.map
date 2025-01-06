@@ -1,8 +1,5 @@
 <map id="incl/overworld.h" name="incl/overworld.h">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,5,117,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="29,153,93,178"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="61,32,54,79,55,109,58,137,53,138,49,109,49,79,56,31"/>
-<area shape="rect" id="Node000003" href="$incl_2sprite_8h.html" title=" " alt="" coords="64,79,127,105"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="69,30,85,64,81,66,64,32"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="92,106,76,140,71,137,88,104"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="29,79,93,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="64,31,64,63,58,63,58,31"/>
 </map>

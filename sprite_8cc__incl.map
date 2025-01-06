@@ -1,6 +1,6 @@
 <map id="src/app/zelda3/sprite/sprite.cc" name="src/app/zelda3/sprite/sprite.cc">
 <area shape="rect" id="Node000001" title=" " alt="" coords="158,5,300,46"/>
-<area shape="rect" id="Node000002" href="$src_2app_2zelda3_2sprite_2sprite_8h.html" title=" " alt="" coords="197,94,260,120"/>
+<area shape="rect" id="Node000002" href="$sprite_8h.html" title=" " alt="" coords="197,94,260,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,46,232,78,226,78,226,46"/>
 <area shape="rect" id="Node000004" title=" " alt="" coords="5,241,66,267"/>
 <area shape="poly" id="edge11_Node000001_Node000004" title=" " alt="" coords="185,49,149,69,109,96,72,129,43,169,35,197,34,226,29,226,30,197,38,166,68,126,106,92,146,64,183,44"/>

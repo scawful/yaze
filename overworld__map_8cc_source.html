@@ -872,8 +872,8 @@ $(function(){initNavTree('overworld__map_8cc_source.html',''); initResizable(tru
 <div class="line"><a id="l00724" name="l00724"></a><span class="lineno">  724</span>          <span class="keywordtype">int</span> ypos = (((info.<a class="code hl_variable" href="classyaze_1_1gfx_1_1TileInfo.html#a1f25958d86007fecd8c79ff7ce5f8dd5">id_</a> / 0x10)) * 0x400);</div>
 <div class="line"><a id="l00725" name="l00725"></a><span class="lineno">  725</span>          <span class="keywordtype">int</span> source = ypos + xpos + (x + (y * 0x80));</div>
 <div class="line"><a id="l00726" name="l00726"></a><span class="lineno">  726</span> </div>
-<div class="line"><a id="l00727" name="l00727"></a><span class="lineno">  727</span>          <span class="keyword">auto</span> destination = xx + yy + offset + (mx + (my * 0x80));</div>
-<div class="line"><a id="l00728" name="l00728"></a><span class="lineno">  728</span>          <a class="code hl_variable" href="classyaze_1_1zelda3_1_1OverworldMap.html#a20cde22bd5f4d8dd04269f7b3205ebd8">current_blockset_</a>[destination] =</div>
+<div class="line"><a id="l00727" name="l00727"></a><span class="lineno">  727</span>          <span class="keyword">auto</span> <a class="code hl_struct" href="structdestination.html">destination</a> = xx + yy + offset + (mx + (my * 0x80));</div>
+<div class="line"><a id="l00728" name="l00728"></a><span class="lineno">  728</span>          <a class="code hl_variable" href="classyaze_1_1zelda3_1_1OverworldMap.html#a20cde22bd5f4d8dd04269f7b3205ebd8">current_blockset_</a>[<a class="code hl_struct" href="structdestination.html">destination</a>] =</div>
 <div class="line"><a id="l00729" name="l00729"></a><span class="lineno">  729</span>              (<a class="code hl_variable" href="classyaze_1_1zelda3_1_1OverworldMap.html#a1dc1962259be87d729e4222f82fb202c">current_gfx_</a>[source] &amp; 0x0F) + (info.<a class="code hl_variable" href="classyaze_1_1gfx_1_1TileInfo.html#a3133db93fb276804d01a25bdc34b5df8">palette_</a> * 0x10);</div>
 <div class="line"><a id="l00730" name="l00730"></a><span class="lineno">  730</span>        }</div>
 <div class="line"><a id="l00731" name="l00731"></a><span class="lineno">  731</span>      }</div>
@@ -1011,6 +1011,7 @@ $(function(){initNavTree('overworld__map_8cc_source.html',''); initResizable(tru
 <div class="ttc" id="arom_8h_html"><div class="ttname"><a href="rom_8h.html">rom.h</a></div></div>
 <div class="ttc" id="asrc_2app_2gfx_2snes__tile_8h_html"><div class="ttname"><a href="src_2app_2gfx_2snes__tile_8h.html">snes_tile.h</a></div></div>
 <div class="ttc" id="asrc_2app_2zelda3_2overworld_2overworld_8h_html"><div class="ttname"><a href="src_2app_2zelda3_2overworld_2overworld_8h.html">overworld.h</a></div></div>
+<div class="ttc" id="astructdestination_html"><div class="ttname"><a href="structdestination.html">destination</a></div><div class="ttdef"><b>Definition</b> <a href="dungeon_8h_source.html#l00057">dungeon.h:57</a></div></div>
 <div class="ttc" id="astructyaze_1_1gfx_1_1PaletteGroup_html"><div class="ttname"><a href="structyaze_1_1gfx_1_1PaletteGroup.html">yaze::gfx::PaletteGroup</a></div><div class="ttdoc">Represents a group of palettes.</div><div class="ttdef"><b>Definition</b> <a href="snes__palette_8h_source.html#l00197">snes_palette.h:197</a></div></div>
 <div class="ttc" id="astructyaze_1_1gfx_1_1Paletteset_html"><div class="ttname"><a href="structyaze_1_1gfx_1_1Paletteset.html">yaze::gfx::Paletteset</a></div><div class="ttdoc">Represents a set of palettes used in a SNES graphics system.</div><div class="ttdef"><b>Definition</b> <a href="snes__palette_8h_source.html#l00370">snes_palette.h:370</a></div></div>
 </div><!-- fragment --></div><!-- contents -->

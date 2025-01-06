@@ -20,7 +20,7 @@ var searchData=
   ['spc700_2eh_17',['spc700.h',['../spc700_8h.html',1,'']]],
   ['spc700_5ftest_2ecc_18',['spc700_test.cc',['../spc700__test_8cc.html',1,'']]],
   ['sprite_2ecc_19',['sprite.cc',['../sprite_8cc.html',1,'']]],
-  ['sprite_2eh_20',['sprite.h',['../incl_2sprite_8h.html',1,'(Global Namespace)'],['../src_2app_2zelda3_2sprite_2sprite_8h.html',1,'(Global Namespace)']]],
+  ['sprite_2eh_20',['sprite.h',['../sprite_8h.html',1,'']]],
   ['sprite_5fbuilder_2ecc_21',['sprite_builder.cc',['../sprite__builder_8cc.html',1,'']]],
   ['sprite_5fbuilder_2eh_22',['sprite_builder.h',['../sprite__builder_8h.html',1,'']]],
   ['sprite_5fbuilder_5ftest_2ecc_23',['sprite_builder_test.cc',['../sprite__builder__test_8cc.html',1,'']]],

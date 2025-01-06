@@ -1,14 +1,9 @@
 <map id="yaze_extension" name="yaze_extension">
-<area shape="rect" id="Node000001" title="Extension interface for Yaze." alt="" coords="40,198,149,223"/>
-<area shape="rect" id="Node000002" href="$structyaze__editor__context.html" title=" " alt="" coords="156,94,291,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,131,111,199,108,195,195,127"/>
+<area shape="rect" id="Node000001" title="Extension interface for Yaze." alt="" coords="33,183,142,208"/>
+<area shape="rect" id="Node000002" href="$structyaze__editor__context.html" title=" " alt="" coords="20,94,155,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,135,90,182,85,182,85,135"/>
 <area shape="rect" id="Node000003" href="$structz3__rom.html" title=" " alt="" coords="5,5,69,31"/>
-<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="40,46,43,81,51,119,69,162,89,196,84,198,64,164,46,120,38,82,35,47"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="78,35,199,91,196,96,76,40"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="54,43,83,92,78,95,49,46"/>
 <area shape="rect" id="Node000004" href="$structyaze__project.html" title=" " alt="" coords="93,5,186,31"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="164,41,214,92,210,96,160,44"/>
-<area shape="rect" id="Node000005" href="$structyaze__command__registry.html" title=" " alt="" coords="210,5,370,31"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="274,45,235,95,231,92,270,42"/>
-<area shape="rect" id="Node000006" href="$structyaze__event__dispatcher.html" title=" " alt="" coords="395,5,548,31"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="441,41,377,72,292,96,291,91,375,68,439,37"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="127,46,97,95,93,92,122,43"/>
 </map>

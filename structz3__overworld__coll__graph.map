@@ -1,7 +1,5 @@
 <map id="z3_overworld" name="z3_overworld">
-<area shape="rect" id="Node000001" title="Primitive of the overworld." alt="" coords="56,94,153,120"/>
-<area shape="rect" id="Node000002" href="$structz3__sprite.html" title="Primitive of a sprite." alt="" coords="5,5,79,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="62,42,98,92,94,95,58,45"/>
-<area shape="rect" id="Node000003" href="$structz3__overworld__map.html" title="Primitive of an overworld map." alt="" coords="103,5,232,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="152,45,115,95,111,92,147,42"/>
+<area shape="rect" id="Node000001" title="Primitive of the overworld." alt="" coords="21,94,119,120"/>
+<area shape="rect" id="Node000002" href="$structz3__overworld__map.html" title="Primitive of an overworld map." alt="" coords="5,5,135,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="73,47,73,94,67,94,67,47"/>
 </map>

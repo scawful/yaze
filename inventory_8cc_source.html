@@ -162,8 +162,8 @@ $(function(){initNavTree('inventory_8cc_source.html',''); initResizable(true); }
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>        <span class="keywordtype">int</span> ypos = (((tile.id_ / 0x10)) * 0x400);</div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>        <span class="keywordtype">int</span> source = ypos + xpos + (x + (y * 0x80));</div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> </div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        <span class="keyword">auto</span> destination = xx + yy + offset + (mx + (my * 0x100));</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>        <a class="code hl_variable" href="classyaze_1_1zelda3_1_1Inventory.html#a46f359bdd6ab773784d802a9056f04dc">data_</a>[destination] = (<a class="code hl_variable" href="classyaze_1_1zelda3_1_1Inventory.html#a73f2e4d4f78052ad853866b488264af8">test_</a>[source] &amp; 0x0F) + tile.palette_ * 0x08;</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        <span class="keyword">auto</span> <a class="code hl_struct" href="structdestination.html">destination</a> = xx + yy + offset + (mx + (my * 0x100));</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>        <a class="code hl_variable" href="classyaze_1_1zelda3_1_1Inventory.html#a46f359bdd6ab773784d802a9056f04dc">data_</a>[<a class="code hl_struct" href="structdestination.html">destination</a>] = (<a class="code hl_variable" href="classyaze_1_1zelda3_1_1Inventory.html#a73f2e4d4f78052ad853866b488264af8">test_</a>[source] &amp; 0x0F) + tile.palette_ * 0x08;</div>
 <div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>      }</div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    }</div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span> </div>
@@ -234,6 +234,7 @@ $(function(){initNavTree('inventory_8cc_source.html',''); initResizable(true); }
 <div class="ttc" id="arenderer_8h_html"><div class="ttname"><a href="renderer_8h.html">renderer.h</a></div></div>
 <div class="ttc" id="arom_8h_html"><div class="ttname"><a href="rom_8h.html">rom.h</a></div></div>
 <div class="ttc" id="asrc_2app_2gfx_2snes__tile_8h_html"><div class="ttname"><a href="src_2app_2gfx_2snes__tile_8h.html">snes_tile.h</a></div></div>
+<div class="ttc" id="astructdestination_html"><div class="ttname"><a href="structdestination.html">destination</a></div><div class="ttdef"><b>Definition</b> <a href="dungeon_8h_source.html#l00057">dungeon.h:57</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

@@ -8,7 +8,7 @@ var searchData=
   ['oamdataread_5',['OAMDATAREAD',['../structyaze_1_1emu_1_1OAMDATAREAD.html',1,'yaze::emu']]],
   ['oamsize_6',['OAMSize',['../structyaze_1_1emu_1_1OAMSize.html',1,'yaze::emu']]],
   ['oamtile_7',['OamTile',['../structyaze_1_1editor_1_1zsprite_1_1OamTile.html',1,'yaze::editor::zsprite::OamTile'],['../classyaze_1_1gfx_1_1OamTile.html',1,'yaze::gfx::OamTile']]],
-  ['object_5fdoor_8',['object_door',['../structz3__dungeon__room_1_1object__door.html',1,'z3_dungeon_room']]],
+  ['object_5fdoor_8',['object_door',['../structobject__door.html',1,'']]],
   ['objsel_9',['OBJSEL',['../structyaze_1_1emu_1_1OBJSEL.html',1,'yaze::emu']]],
   ['open_10',['Open',['../classyaze_1_1cli_1_1Open.html',1,'yaze::cli']]],
   ['ophct_11',['OPHCT',['../structyaze_1_1emu_1_1OPHCT.html',1,'yaze::emu']]],

@@ -49,7 +49,7 @@ var searchData=
   ['addiconfont_46',['AddIconFont',['../namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a82cea28d20aa5940139649ecb62852da',1,'yaze::core::anonymous_namespace{font_loader.cc}']]],
   ['addinstruction_47',['AddInstruction',['../classyaze_1_1zelda3_1_1SpriteAction.html#a57aef31ec0675499d7cdce91f50cba3f',1,'yaze::zelda3::SpriteAction']]],
   ['additems_48',['AddItems',['../structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a9d5374ae929b57e12ac7134ad6f38f79',1,'yaze::gui::GfxSheetAssetBrowser']]],
-  ['addition_49',['Addition',['../structz3__dungeon__room.html#afcfad9e8b78531ea42593ce836189702abcbad46beafb828f2e6e620a95ab36a9',1,'z3_dungeon_room']]],
+  ['addition_49',['Addition',['../dungeon_8h.html#af206bedc320e56e6defeba3fa38d2c58a8c3920d5d545844176ad55189fc9d8dc',1,'dungeon.h']]],
   ['addjapanesefont_50',['AddJapaneseFont',['../namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a9986c5e862a6cfc14588a1b618d29f15',1,'yaze::core::anonymous_namespace{font_loader.cc}']]],
   ['addpalette_51',['AddPalette',['../structyaze_1_1gfx_1_1PaletteGroup.html#af4f545e507e3c3e793e871f04051e7eb',1,'yaze::gfx::PaletteGroup']]],
   ['addr_52',['addr',['../structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a5f07006af3730c2f934fae55d27021b2',1,'yaze::zelda3::music::SongSpcBlock::addr'],['../structyaze_1_1zelda3_1_1music_1_1SongPart.html#a059a2853417c6c91157bc09f87a1d43f',1,'yaze::zelda3::music::SongPart::addr'],['../structyaze_1_1zelda3_1_1music_1_1Song.html#af89989b0a00f480c0e43e6bb7dd5ad34',1,'yaze::zelda3::music::Song::addr'],['../structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#ac4b191d5ade6f487037dbbc884122dc3',1,'yaze::zelda3::music::SpcCommand::addr']]],
