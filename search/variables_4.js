@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['e_0',['E',['../classyaze_1_1emu_1_1Cpu.html#addb7e1eb0dd7a5dd9555469385156df1',1,'yaze::emu::Cpu']]],
+  ['e_0',['E',['../classyaze_1_1emu_1_1Cpu.html#addb7e1eb0dd7a5dd9555469385156df1',1,'yaze::emu::Cpu::E'],['../classyaze_1_1test_1_1Cpu.html#addb7e1eb0dd7a5dd9555469385156df1',1,'yaze::test::Cpu::E']]],
   ['echobufferadr_1',['echoBufferAdr',['../classyaze_1_1emu_1_1Dsp.html#a5d68717f7a27130cc943b4e15f1606be',1,'yaze::emu::Dsp']]],
   ['echobufferindex_2',['echoBufferIndex',['../classyaze_1_1emu_1_1Dsp.html#a0096143804eb584a2823a4835dce3106',1,'yaze::emu::Dsp']]],
   ['echodelay_3',['echoDelay',['../classyaze_1_1emu_1_1Dsp.html#a6e77a576005067c85b6752e71efb240f',1,'yaze::emu::Dsp']]],
@@ -53,7 +53,7 @@ var searchData=
   ['entrance_5fid_5f_50',['entrance_id_',['../classyaze_1_1zelda3_1_1RoomEntrance.html#ae53df0417b6a6885836cfd3987d96e73',1,'yaze::zelda3::RoomEntrance::entrance_id_'],['../classyaze_1_1zelda3_1_1OverworldEntrance.html#a98a6b2fc8f8017dcb489de35dd284eb5',1,'yaze::zelda3::OverworldEntrance::entrance_id_'],['../classyaze_1_1zelda3_1_1OverworldExit.html#a34694fcc5e606de497d2b22211787944',1,'yaze::zelda3::OverworldExit::entrance_id_']]],
   ['entrance_5ftiletypes_5f_51',['entrance_tiletypes_',['../classyaze_1_1editor_1_1OverworldEditor.html#a177e1a50f06c6c3b26e8f362eba561c6',1,'yaze::editor::OverworldEditor']]],
   ['entrances_5f_52',['entrances_',['../classyaze_1_1editor_1_1DungeonEditor.html#a249c44e52f82df4b06c94564f3afb333',1,'yaze::editor::DungeonEditor']]],
-  ['entries_53',['entries',['../structyaze_1_1emu_1_1Tilemap.html#a99df22d3822fec48f10edbaf60294d24',1,'yaze::emu::Tilemap']]],
+  ['entries_53',['entries',['../structyaze_1_1emu_1_1Tilemap.html#a99df22d3822fec48f10edbaf60294d24',1,'yaze::emu::Tilemap::entries'],['../structyaze_1_1test_1_1Tilemap.html#a99df22d3822fec48f10edbaf60294d24',1,'yaze::test::Tilemap::entries']]],
   ['even_5fframe_54',['even_frame',['../classyaze_1_1emu_1_1Ppu.html#a7efc9afaf7bc6356e074ef44f079b36e',1,'yaze::emu::Ppu']]],
   ['evencycle_55',['evenCycle',['../classyaze_1_1emu_1_1Dsp.html#aa1b67a41f387859d75f3df6d76e25f22',1,'yaze::emu::Dsp']]],
   ['event_5fdispatcher_56',['event_dispatcher',['../structyaze__editor__context.html#a42bd8a63b8e9d7d458b44587d9270dff',1,'yaze_editor_context']]],

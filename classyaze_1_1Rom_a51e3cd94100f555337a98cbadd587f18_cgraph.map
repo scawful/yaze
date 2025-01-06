@@ -6,8 +6,13 @@
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="158,82,190,78,191,83,158,87"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1Rom.html#afde2c40d5cb9eaf14b64dae1da43afd7" title="Saves all palettes in the Rom." alt="" coords="218,104,398,130"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="158,98,203,103,202,108,158,104"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1Rom.html#a221aba175da42c9237011a45bc9a19d4" title=" " alt="" coords="208,153,408,179"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="114,104,207,140,230,146,229,152,205,145,112,109"/>
-<area shape="rect" id="Node000005" href="$structyaze_1_1gfx_1_1PaletteGroupMap.html#a40a66b477eec40339a17508a0e3c1160" title=" " alt="" coords="458,96,635,137"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="398,114,442,114,442,120,398,120"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1Rom.html#a221aba175da42c9237011a45bc9a19d4" title=" " alt="" coords="208,177,408,203"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="115,104,263,168,260,173,112,109"/>
+<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="271,179,263,169,268,159,283,153,308,151,335,153,349,160,347,165,334,158,308,156,284,158,271,163,269,168,275,175"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1Rom.html#a6bd8ce3b192c32b2ed6c58f7b154787e" title=" " alt="" coords="458,128,604,154"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="369,174,454,155,456,160,370,179"/>
+<area shape="rect" id="Node000008" href="$namespaceyaze_1_1core.html#a772a2d0d104498cb8100f0b2e717b6a2" title=" " alt="" coords="458,177,604,203"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="409,188,443,188,443,193,409,193"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1Rom.html#a76f67b131d3e1a18357ab82ec362e766" title=" " alt="" coords="467,227,595,268"/>
+<area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="362,201,453,225,451,230,360,206"/>
 </map>

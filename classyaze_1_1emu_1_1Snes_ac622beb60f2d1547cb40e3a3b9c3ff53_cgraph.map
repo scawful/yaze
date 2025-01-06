@@ -1,10 +1,7 @@
 <map id="yaze::emu::Snes::SyncCycles" name="yaze::emu::Snes::SyncCycles">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,194,38"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1Snes.html#a20e9a804b60fa527dd6447a5c8d61796" title=" " alt="" coords="242,13,424,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,23,226,23,226,28,194,28"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1MemoryImpl.html#a7773a98542b601b2a2eb71c109d7b329" title=" " alt="" coords="695,5,851,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="424,23,680,23,680,28,424,28"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1Snes.html#af7584e6c050e654612f0dad1b36c5546" title=" " alt="" coords="472,38,647,64"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="424,33,457,37,456,42,424,38"/>
-<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="648,38,680,34,680,39,648,43"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,194,31"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1Snes.html#a20e9a804b60fa527dd6447a5c8d61796" title=" " alt="" coords="242,5,424,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,16,226,16,226,21,194,21"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1Snes.html#af7584e6c050e654612f0dad1b36c5546" title=" " alt="" coords="472,5,647,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="424,16,456,16,456,21,424,21"/>
 </map>

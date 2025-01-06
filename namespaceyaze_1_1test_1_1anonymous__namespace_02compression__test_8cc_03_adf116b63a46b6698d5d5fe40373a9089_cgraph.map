@@ -1,4 +1,6 @@
 <map id="yaze::test::anonymous_namespace{compression_test::cc}::AssertCompressionQuality" name="yaze::test::anonymous_namespace{compression_test::cc}::AssertCompressionQuality">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,29,240,85"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="77,29,77,19,86,10,101,5,123,3,147,5,162,12,160,17,146,10,122,8,102,10,88,15,82,21,82,29"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="75,29,76,19,84,10,100,5,123,3,148,5,164,12,161,17,147,10,122,8,101,10,87,15,80,21,80,29"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1test.html#a143e848d987c6b04f56308f2ef6953ae" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="288,44,444,70"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="240,54,272,54,272,60,240,60"/>
 </map>

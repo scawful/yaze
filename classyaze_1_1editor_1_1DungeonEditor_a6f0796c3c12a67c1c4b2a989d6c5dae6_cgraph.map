@@ -1,22 +1,24 @@
 <map id="yaze::editor::DungeonEditor::Initialize" name="yaze::editor::DungeonEditor::Initialize">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,219,181,259"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx.html#aeccc5ded5a311afcdf70cb43e466c220" title="Take a SNESPalette, divide it into palettes of 8 colors." alt="" coords="251,71,411,111"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,216,161,169,193,143,227,121,237,116,240,120,230,125,196,147,165,173,115,220"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1core_1_1ExperimentFlags.html#a98e30d2636e67e3d74a45094733101e9" title=" " alt="" coords="229,136,433,161"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="130,216,176,193,228,171,252,163,254,168,230,176,178,198,133,221"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6" title=" " alt="" coords="236,185,426,226"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="181,224,221,218,221,224,182,229"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1GraphicsSheetManager.html#abeb20d3188de25a5bab782a6feb12c27" title=" " alt="" coords="236,251,426,291"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="182,248,221,254,221,259,181,253"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1editor_1_1DungeonEditor.html#a04832bdf64d6e767d5a11317606b04e4" title=" " alt="" coords="243,316,418,357"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="136,258,230,301,249,308,247,313,228,305,134,262"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="256,405,406,430"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="114,258,164,310,230,366,284,396,281,401,227,371,160,314,110,262"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1SnesPalette.html#a6854313e2b0f605315523b2185efdea2" title=" " alt="" coords="484,5,631,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="403,68,469,48,471,53,404,73"/>
-<area shape="rect" id="Node000004" href="$structyaze_1_1gfx_1_1PaletteGroup.html#af4f545e507e3c3e793e871f04051e7eb" title=" " alt="" coords="481,71,633,111"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="412,88,465,88,465,94,412,94"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1SnesPalette.html#a504a42d10f3d95135b77bb13ef3ec923" title=" " alt="" coords="484,136,631,177"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="404,109,471,129,469,134,403,114"/>
-<area shape="poly" id="edge10_Node000010_Node000010" title=" " alt="" coords="293,406,286,396,290,386,306,380,331,378,358,381,373,388,370,392,357,386,331,383,307,386,294,390,291,396,297,403"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,231,181,271"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx.html#aeccc5ded5a311afcdf70cb43e466c220" title="Take a SNESPalette, divide it into palettes of 8 colors." alt="" coords="251,75,411,115"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,228,162,181,227,133,252,120,255,124,230,137,165,185,116,232"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1core_1_1ExperimentFlags.html#a98e30d2636e67e3d74a45094733101e9" title=" " alt="" coords="229,148,433,173"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="130,228,176,205,228,183,252,175,254,180,230,188,178,210,133,233"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6" title=" " alt="" coords="236,197,426,238"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="181,236,221,230,221,236,182,241"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1GraphicsSheetManager.html#abeb20d3188de25a5bab782a6feb12c27" title=" " alt="" coords="236,263,426,303"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="182,260,221,266,221,271,181,265"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1editor_1_1DungeonEditor.html#a04832bdf64d6e767d5a11317606b04e4" title=" " alt="" coords="243,328,418,369"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="136,270,230,313,249,320,247,325,228,317,134,274"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="256,417,406,442"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="114,270,164,322,230,378,284,408,281,413,227,383,160,326,110,274"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1SnesPalette.html#a6854313e2b0f605315523b2185efdea2" title=" " alt="" coords="502,5,649,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="405,71,486,48,488,53,406,77"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1gfx_1_1PaletteGroup.html#af4f545e507e3c3e793e871f04051e7eb" title=" " alt="" coords="500,71,652,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="411,91,484,90,484,95,412,96"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1SnesPalette.html#a504a42d10f3d95135b77bb13ef3ec923" title=" " alt="" coords="502,136,649,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="412,112,487,132,486,137,411,118"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1GraphicsSheetManager.html#a3d76016049dd542b831156171055b68b" title=" " alt="" coords="481,201,670,242"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="426,217,465,217,465,223,426,222"/>
+<area shape="poly" id="edge11_Node000011_Node000011" title=" " alt="" coords="292,418,284,408,288,398,304,392,331,390,360,393,375,400,373,405,359,398,331,395,306,398,292,402,289,408,296,415"/>
 </map>

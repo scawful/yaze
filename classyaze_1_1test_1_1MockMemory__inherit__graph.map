@@ -1,0 +1,5 @@
+<map id="yaze::test::MockMemory" name="yaze::test::MockMemory">
+<area shape="rect" id="Node000001" title="A mock implementation of the Memory class." alt="" coords="5,79,165,105"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1Memory.html" title="Memory interface." alt="" coords="20,5,150,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,46,88,79,82,79,82,46"/>
+</map>

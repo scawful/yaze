@@ -1,8 +1,8 @@
 var structTextEditor_1_1LanguageDefinition =
 [
-    [ "TokenRegexString", "structTextEditor_1_1LanguageDefinition.html#a454d4da1e0031d118e651a6a54c2f24f", null ],
-    [ "TokenRegexStrings", "structTextEditor_1_1LanguageDefinition.html#a0d847dc456a93a13aa048588f3a8823b", null ],
-    [ "TokenizeCallback", "structTextEditor_1_1LanguageDefinition.html#ab20fd47814140fc2b070e81f3a2f7fca", null ],
+    [ "TokenRegexString", "structTextEditor_1_1LanguageDefinition.html#abfb75894b7d636fc35af95b28127a418", null ],
+    [ "TokenRegexStrings", "structTextEditor_1_1LanguageDefinition.html#a8d9d3b1eff76ed1b7e8192626d1984ec", null ],
+    [ "TokenizeCallback", "structTextEditor_1_1LanguageDefinition.html#a8ab84264ac8f88f35c4de22102507399", null ],
     [ "LanguageDefinition", "structTextEditor_1_1LanguageDefinition.html#ac40f4cc01836db6f18dbf21f25121f2d", null ],
     [ "mName", "structTextEditor_1_1LanguageDefinition.html#a2854052aa0b3b789c128895538e0bbe2", null ],
     [ "mKeywords", "structTextEditor_1_1LanguageDefinition.html#a711208616bcfb7d671e268e8811bd64d", null ],

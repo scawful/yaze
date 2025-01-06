@@ -3,7 +3,7 @@ var searchData=
   ['w12sel_0',['W12SEL',['../namespaceyaze_1_1emu.html#a425ffc2c498ce4f776fca4ae6a2b759a',1,'yaze::emu']]],
   ['w34sel_1',['W34SEL',['../namespaceyaze_1_1emu.html#a01160051ea35134ba63fc7ba8ad2a1cb',1,'yaze::emu']]],
   ['w_5fmodf_2',['w_modf',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html#ad8c025ef207a8999d433e850b5237307',1,'yaze::zelda3::music::Tracker']]],
-  ['waiting_5f_3',['waiting_',['../classyaze_1_1emu_1_1Cpu.html#a53eb9bf32d4a92abf22d0992ec850190',1,'yaze::emu::Cpu']]],
+  ['waiting_5f_3',['waiting_',['../classyaze_1_1emu_1_1Cpu.html#a53eb9bf32d4a92abf22d0992ec850190',1,'yaze::emu::Cpu::waiting_'],['../classyaze_1_1test_1_1Cpu.html#a53eb9bf32d4a92abf22d0992ec850190',1,'yaze::test::Cpu::waiting_']]],
   ['wanted_5fframes_5f_4',['wanted_frames_',['../classyaze_1_1emu_1_1Emulator.html#a6ad0acaee1a1b3ebf810dd9533a4868f',1,'yaze::emu::Emulator']]],
   ['wanted_5fsamples_5f_5',['wanted_samples_',['../classyaze_1_1emu_1_1Emulator.html#a37182c65cc52ad1ad46e633cd7713606',1,'yaze::emu::Emulator']]],
   ['waves_6',['waves',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html#a8ba403fed74c4d702c988d3e3d1d31c5',1,'yaze::zelda3::music::Tracker']]],
@@ -13,7 +13,7 @@ var searchData=
   ['wh2_10',['WH2',['../namespaceyaze_1_1emu.html#ae889b45a67488c36a1df6707eaec6b4e',1,'yaze::emu']]],
   ['wh3_11',['WH3',['../namespaceyaze_1_1emu.html#a94d706c48c89c62f4e4e90800713efc7',1,'yaze::emu']]],
   ['width_12',['width',['../structyaze__bitmap.html#adeb02ea72387c99bf2ba441aaece1760',1,'yaze_bitmap::width'],['../structyaze_1_1gui_1_1zeml_1_1WidgetAttributes.html#a8b1057f33c73db85e47137ba6a092b0d',1,'yaze::gui::zeml::WidgetAttributes::width'],['../structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#a533bc927ee74561b25afffafa728b0ba',1,'yaze::zelda3::music::SampleEdit::width']]],
-  ['width_5f_13',['width_',['../classyaze_1_1gfx_1_1Bitmap.html#a9e80c481091f60d20edbe2ccf62f6016',1,'yaze::gfx::Bitmap::width_'],['../classyaze_1_1zelda3_1_1RoomObject.html#ad67c3b5b79aed7f963c8118e3ea4b281',1,'yaze::zelda3::RoomObject::width_'],['../classyaze_1_1zelda3_1_1Sprite.html#a8847ad5b785f43bb062c1d7f2a544906',1,'yaze::zelda3::Sprite::width_']]],
+  ['width_5f_13',['width_',['../classyaze_1_1gfx_1_1Bitmap.html#a9e80c481091f60d20edbe2ccf62f6016',1,'yaze::gfx::Bitmap::width_'],['../classyaze_1_1zelda3_1_1RoomObject.html#ad67c3b5b79aed7f963c8118e3ea4b281',1,'yaze::zelda3::RoomObject::width_'],['../classyaze_1_1zelda3_1_1Sprite.html#a8847ad5b785f43bb062c1d7f2a544906',1,'yaze::zelda3::Sprite::width_'],['../classyaze_1_1gui_1_1Bitmap.html#a9e80c481091f60d20edbe2ccf62f6016',1,'yaze::gui::Bitmap::width_']]],
   ['width_5farray_14',['width_array',['../classyaze_1_1editor_1_1MessageEditor.html#a449398ce0bda0096eba638ddbd1cdd0b',1,'yaze::editor::MessageEditor']]],
   ['window1enabled_15',['window1enabled',['../structyaze_1_1emu_1_1WindowLayer.html#abda5aeda08c6b8fa7596d987c2669ff0',1,'yaze::emu::WindowLayer']]],
   ['window1inversed_16',['window1inversed',['../structyaze_1_1emu_1_1WindowLayer.html#ac55ee8de38996ce66d6325c7944735f6',1,'yaze::emu::WindowLayer']]],
@@ -30,6 +30,6 @@ var searchData=
   ['wobjsel_27',['WOBJSEL',['../namespaceyaze_1_1emu.html#ae7e6ab4f47a32ba36476535032a8e109',1,'yaze::emu']]],
   ['world_5f_28',['world_',['../classyaze_1_1zelda3_1_1OverworldMap.html#a724801a58970d61afbd23b60111d3592',1,'yaze::zelda3::OverworldMap']]],
   ['world_5fid_29',['world_id',['../structz3__overworld__map.html#a7d01ce087b7925710e074ca7a59805a3',1,'z3_overworld_map']]],
-  ['write_30',['write',['../structyaze_1_1emu_1_1ApuCallbacks.html#a118835693d22ce17120819b07e97e529',1,'yaze::emu::ApuCallbacks']]],
-  ['write_5fbyte_31',['write_byte',['../structyaze_1_1emu_1_1CpuCallbacks.html#aebfa8ed4f10eece2dd163c8105aa7458',1,'yaze::emu::CpuCallbacks']]]
+  ['write_30',['write',['../structyaze_1_1emu_1_1ApuCallbacks.html#a118835693d22ce17120819b07e97e529',1,'yaze::emu::ApuCallbacks::write'],['../structyaze_1_1test_1_1ApuCallbacks.html#a118835693d22ce17120819b07e97e529',1,'yaze::test::ApuCallbacks::write']]],
+  ['write_5fbyte_31',['write_byte',['../structyaze_1_1emu_1_1CpuCallbacks.html#aebfa8ed4f10eece2dd163c8105aa7458',1,'yaze::emu::CpuCallbacks::write_byte'],['../structyaze_1_1test_1_1CpuCallbacks.html#aebfa8ed4f10eece2dd163c8105aa7458',1,'yaze::test::CpuCallbacks::write_byte']]]
 ];

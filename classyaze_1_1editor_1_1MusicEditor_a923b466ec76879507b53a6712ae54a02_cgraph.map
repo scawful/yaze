@@ -1,19 +1,8 @@
 <map id="yaze::editor::MusicEditor::DrawToolset" name="yaze::editor::MusicEditor::DrawToolset">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,165,96"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,165,76"/>
 <area shape="rect" id="Node000002" href="$namespaceyaze_1_1gui.html#a201299f3c61d29a272f11301c7f03265" title=" " alt="" coords="220,5,354,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,52,224,33,225,38,160,57"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1music_1_1Tracker.html#ac3c91c8f49743af9f6df4b148aa17609" title=" " alt="" coords="216,55,359,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="165,73,200,73,200,78,165,78"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="213,144,362,170"/>
-<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="139,94,240,135,238,140,137,99"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1music_1_1Tracker.html#a082dd97860256d819319dd3d0c59b1db" title=" " alt="" coords="646,55,795,96"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="337,52,361,41,384,27,409,17,462,6,504,3,546,7,599,17,637,29,672,45,670,50,635,34,598,22,546,12,504,8,463,11,411,22,387,32,363,46,339,57"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6" title=" " alt="" coords="843,92,1007,118"/>
-<area shape="poly" id="edge8_Node000003_Node000005" title=" " alt="" coords="356,94,410,105,522,115,634,117,827,110,827,116,634,123,521,120,410,110,355,99"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1zelda3_1_1music_1_1Tracker.html#a3442ece4250afed8f2818d275c7d0f6b" title=" " alt="" coords="410,55,598,96"/>
-<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="359,73,395,73,395,78,359,78"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="796,84,828,88,827,93,795,89"/>
-<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="599,73,631,73,631,78,599,78"/>
-<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="463,55,461,45,468,36,482,31,504,29,528,31,542,37,539,42,526,36,504,34,484,36,471,40,466,46,468,54"/>
-<area shape="poly" id="edge10_Node000008_Node000008" title=" " alt="" coords="253,145,247,135,251,126,265,119,287,117,312,120,325,127,322,132,311,125,287,123,266,125,255,129,252,135,258,142"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,38,204,31,205,36,166,43"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="213,79,362,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="166,67,198,73,197,78,165,72"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="253,80,247,70,251,60,265,54,287,52,312,55,325,62,322,66,311,60,287,57,266,59,255,64,252,69,258,77"/>
 </map>

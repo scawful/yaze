@@ -8,7 +8,7 @@ var searchData=
   ['bgnba_5',['BGNBA',['../structyaze_1_1emu_1_1BGNBA.html',1,'yaze::emu']]],
   ['bgsc_6',['BGSC',['../structyaze_1_1emu_1_1BGSC.html',1,'yaze::emu']]],
   ['bgvofs_7',['BGVOFS',['../structyaze_1_1emu_1_1BGVOFS.html',1,'yaze::emu']]],
-  ['bitmap_8',['Bitmap',['../classyaze_1_1gfx_1_1Bitmap.html',1,'yaze::gfx']]],
+  ['bitmap_8',['Bitmap',['../classyaze_1_1gfx_1_1Bitmap.html',1,'yaze::gfx::Bitmap'],['../classyaze_1_1gui_1_1Bitmap.html',1,'yaze::gui::Bitmap']]],
   ['bookmark_9',['Bookmark',['../structyaze_1_1emu_1_1Emulator_1_1Bookmark.html',1,'yaze::emu::Emulator']]],
   ['breakpoint_10',['Breakpoint',['../structTextEditor_1_1Breakpoint.html',1,'TextEditor']]]
 ];

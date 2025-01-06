@@ -1,6 +1,6 @@
 <map id="yaze::editor::DungeonEditor::RefreshGraphics" name="yaze::editor::DungeonEditor::RefreshGraphics">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,87,181,127"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="235,5,372,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="232,5,375,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,84,233,50,235,55,149,89"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="229,94,378,120"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="181,104,214,104,214,110,181,110"/>

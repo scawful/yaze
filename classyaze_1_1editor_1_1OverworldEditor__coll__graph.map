@@ -12,9 +12,9 @@
 <area shape="poly" id="edge8_Node000014_Node000009" title=" " alt="" coords="1080,192,1150,206,1186,218,1219,233,1258,260,1291,292,1337,348,1333,352,1288,295,1254,264,1217,238,1184,223,1149,211,1079,197"/>
 <area shape="rect" id="Node000010" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="615,64,695,90"/>
 <area shape="poly" id="edge4_Node000001_Node000010" title=" " alt="" coords="710,60,787,45,887,29,1004,19,1131,18,1196,23,1260,32,1324,46,1385,66,1443,91,1497,123,1547,163,1591,210,1617,258,1639,328,1658,411,1673,501,1694,671,1704,780,1699,781,1689,672,1668,502,1652,412,1634,329,1612,260,1586,213,1543,166,1494,128,1441,96,1383,71,1322,51,1259,38,1195,29,1131,24,1004,24,888,35,787,50,711,66"/>
-<area shape="poly" id="edge27_Node000014_Node000010" title=" " alt="" coords="711,73,813,78,944,95,1015,110,1086,132,1155,160,1220,196,1262,232,1297,276,1324,317,1340,349,1335,351,1319,320,1293,279,1258,236,1216,200,1153,165,1085,137,1014,116,943,100,812,83,711,79"/>
+<area shape="poly" id="edge24_Node000014_Node000010" title=" " alt="" coords="711,73,813,78,944,95,1015,110,1086,132,1155,160,1220,196,1262,232,1297,276,1324,317,1340,349,1335,351,1319,320,1293,279,1258,236,1216,200,1153,165,1085,137,1014,116,943,100,812,83,711,79"/>
 <area shape="rect" id="Node000027" href="$classyaze_1_1zelda3_1_1Overworld.html" title="Represents the full Overworld data, light and dark world." alt="" coords="917,225,1072,251"/>
-<area shape="poly" id="edge26_Node000027_Node000010" title=" " alt="" coords="692,96,789,152,850,183,913,212,943,222,941,227,911,217,848,188,787,157,689,100"/>
+<area shape="poly" id="edge27_Node000027_Node000010" title=" " alt="" coords="692,96,789,152,850,183,913,212,943,222,941,227,911,217,848,188,787,157,689,100"/>
 <area shape="rect" id="Node000011" href="$structyaze_1_1ResourceLabelManager.html" title=" " alt="" coords="176,101,366,127"/>
 <area shape="poly" id="edge5_Node000010_Node000011" title=" " alt="" coords="381,105,541,90,614,80,615,86,542,96,382,110"/>
 <area shape="rect" id="Node000012" href="$structyaze_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="182,52,360,78"/>
@@ -27,7 +27,7 @@
 <area shape="poly" id="edge17_Node000022_Node000015" title=" " alt="" coords="142,604,888,626,911,627,911,632,888,631,142,609"/>
 <area shape="rect" id="Node000025" href="$classyaze_1_1editor_1_1GfxGroupEditor.html" title="Manage graphics group configurations in a Rom." alt="" coords="565,671,745,696"/>
 <area shape="poly" id="edge20_Node000025_Node000015" title=" " alt="" coords="139,619,151,621,374,652,565,673,564,678,374,658,150,626,138,624"/>
-<area shape="poly" id="edge25_Node000027_Node000015" title=" " alt="" coords="67,576,77,503,93,410,116,323,131,290,149,268,175,252,208,238,293,219,395,208,507,205,623,207,735,212,916,227,916,232,734,218,623,212,507,210,395,214,293,224,210,243,178,256,152,272,136,293,121,325,98,411,82,503,73,577"/>
+<area shape="poly" id="edge26_Node000027_Node000015" title=" " alt="" coords="67,576,77,503,93,410,116,323,131,290,149,268,175,252,208,238,293,219,395,208,507,205,623,207,735,212,916,227,916,232,734,218,623,212,507,210,395,214,293,224,210,243,178,256,152,272,136,293,121,325,98,411,82,503,73,577"/>
 <area shape="rect" id="Node000016" href="$classyaze_1_1core_1_1NotifyValue.html" title=" " alt="" coords="919,376,1070,417"/>
 <area shape="poly" id="edge10_Node000014_Node000016" title=" " alt="" coords="1085,385,1265,368,1265,374,1086,391"/>
 <area shape="rect" id="Node000018" href="$classyaze_1_1core_1_1NotifyValue.html" title=" " alt="" coords="919,442,1070,482"/>
@@ -48,7 +48,7 @@
 <area shape="poly" id="edge28_Node000001_Node000025" title=" " alt="" coords="760,687,888,699,995,717,1101,734,1380,765,1612,785,1612,790,1380,770,1101,740,994,722,887,705,760,693"/>
 <area shape="poly" id="edge19_Node000022_Node000025" title=" " alt="" coords="760,665,911,642,912,648,760,670"/>
 <area shape="poly" id="edge32_Node000001_Node000027" title=" " alt="" coords="1088,224,1152,224,1218,231,1339,259,1388,274,1432,292,1473,316,1511,347,1550,387,1591,438,1619,484,1643,533,1662,584,1677,634,1696,722,1704,780,1699,781,1690,723,1671,635,1657,585,1638,535,1614,486,1586,441,1546,390,1508,351,1470,320,1430,297,1386,279,1337,264,1218,237,1152,229,1088,230"/>
-<area shape="poly" id="edge24_Node000014_Node000027" title=" " alt="" coords="1087,249,1163,263,1219,278,1282,313,1329,348,1326,352,1279,317,1217,283,1162,268,1086,254"/>
+<area shape="poly" id="edge25_Node000014_Node000027" title=" " alt="" coords="1087,249,1163,263,1219,278,1282,313,1329,348,1326,352,1279,317,1217,283,1162,268,1086,254"/>
 <area shape="rect" id="Node000029" href="$classyaze_1_1zelda3_1_1Sprite.html" title="A class for managing sprites in the overworld and underworld." alt="" coords="1280,1084,1410,1110"/>
 <area shape="poly" id="edge33_Node000001_Node000029" title=" " alt="" coords="1426,1108,1466,1110,1508,1106,1550,1096,1587,1076,1618,1047,1643,1012,1662,974,1676,934,1693,859,1699,807,1705,807,1699,860,1681,935,1667,976,1647,1015,1622,1051,1590,1081,1552,1101,1509,1112,1466,1115,1425,1113"/>
 <area shape="rect" id="Node000030" href="$classyaze_1_1zelda3_1_1GameEntity.html" title="Base class for all overworld and dungeon entities." alt="" coords="913,985,1076,1011"/>

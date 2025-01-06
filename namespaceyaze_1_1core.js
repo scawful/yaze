@@ -61,6 +61,7 @@ var namespaceyaze_1_1core =
     [ "GetImageFromClipboard", "namespaceyaze_1_1core.html#a224033814dd0a65e514ab48d90bcc550", null ],
     [ "GetBundleResourcePath", "namespaceyaze_1_1core.html#a00e77355a028aee0d2e98d928c4931f5", null ],
     [ "LoadPackageFonts", "namespaceyaze_1_1core.html#a1ebfa2ff985b2a41c726bfbaa9a868dd", null ],
+    [ "ReloadPackageFont", "namespaceyaze_1_1core.html#a171a8a94e8642f977ca04cf54245cd13", null ],
     [ "LoadSystemFonts", "namespaceyaze_1_1core.html#aa408d383ff33494e29ea06e0e6774f4c", null ],
     [ "GetFileExtension", "namespaceyaze_1_1core.html#abc62834eb5824227302b2f2e7f5b375d", null ],
     [ "GetFileName", "namespaceyaze_1_1core.html#a91b15ab541fc413b5208c32d750b87c8", null ],

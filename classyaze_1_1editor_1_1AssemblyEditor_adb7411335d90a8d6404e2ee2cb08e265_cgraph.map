@@ -1,7 +1,0 @@
-<map id="yaze::editor::AssemblyEditor::Undo" name="yaze::editor::AssemblyEditor::Undo">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,187,46"/>
-<area shape="rect" id="Node000002" href="$classTextEditor.html#a80976bc862188e508d6ecf34074e0769" title=" " alt="" coords="235,13,351,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,23,219,23,219,28,187,28"/>
-<area shape="rect" id="Node000003" href="$classTextEditor.html#af32748dc21529e571c2c8e872f3d7dbb" title=" " alt="" coords="399,13,538,38"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="351,23,383,23,383,28,351,28"/>
-</map>

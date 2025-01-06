@@ -28,23 +28,23 @@ var ppu_8h =
     [ "yaze::emu::WindowLayer", "structyaze_1_1emu_1_1WindowLayer.html", "structyaze_1_1emu_1_1WindowLayer" ],
     [ "yaze::emu::BackgroundLayer", "structyaze_1_1emu_1_1BackgroundLayer.html", "structyaze_1_1emu_1_1BackgroundLayer" ],
     [ "yaze::emu::Ppu", "classyaze_1_1emu_1_1Ppu.html", "classyaze_1_1emu_1_1Ppu" ],
-    [ "Layer", "ppu_8h.html#aa137d3787515b802157d6b1af1c83ef7", null ],
-    [ "BgLayer", "ppu_8h.html#a24a01fe899efeaf09ae0ddbeae88a218", null ],
-    [ "WindowLayer", "ppu_8h.html#a93ee05b57af8d2b02256b9467d725bce", null ],
-    [ "BackgroundMode", "ppu_8h.html#a5447aec0bc02ba1ff714b6c4c8df382b", [
-      [ "Mode0", "ppu_8h.html#a5447aec0bc02ba1ff714b6c4c8df382ba315436bae0e85636381fc939db06aee5", null ],
-      [ "Mode1", "ppu_8h.html#a5447aec0bc02ba1ff714b6c4c8df382ba7a2ea225a084605104f8c39b3ae9657c", null ],
-      [ "Mode2", "ppu_8h.html#a5447aec0bc02ba1ff714b6c4c8df382ba04c542f260d16590ec60c594f67a30e7", null ],
-      [ "Mode3", "ppu_8h.html#a5447aec0bc02ba1ff714b6c4c8df382bab68fa4884da8d22e83f37b4f209295f1", null ],
-      [ "Mode4", "ppu_8h.html#a5447aec0bc02ba1ff714b6c4c8df382baf84b2e944a3acf91240a6c08d9c32b5e", null ],
-      [ "Mode5", "ppu_8h.html#a5447aec0bc02ba1ff714b6c4c8df382bafb18b5da29e7e7098a82fe478934ce8b", null ],
-      [ "Mode6", "ppu_8h.html#a5447aec0bc02ba1ff714b6c4c8df382ba5baea5488eacdf0684fbad674206d40d", null ],
-      [ "Mode7", "ppu_8h.html#a5447aec0bc02ba1ff714b6c4c8df382ba8cfe262c5049539f1662dabd1a8e45ba", null ]
+    [ "yaze::emu::Layer", "namespaceyaze_1_1emu.html#aa137d3787515b802157d6b1af1c83ef7", null ],
+    [ "yaze::emu::BgLayer", "namespaceyaze_1_1emu.html#a24a01fe899efeaf09ae0ddbeae88a218", null ],
+    [ "yaze::emu::WindowLayer", "namespaceyaze_1_1emu.html#a93ee05b57af8d2b02256b9467d725bce", null ],
+    [ "yaze::emu::BackgroundMode", "namespaceyaze_1_1emu.html#a5447aec0bc02ba1ff714b6c4c8df382b", [
+      [ "yaze::emu::BackgroundMode::Mode0", "namespaceyaze_1_1emu.html#a5447aec0bc02ba1ff714b6c4c8df382ba315436bae0e85636381fc939db06aee5", null ],
+      [ "yaze::emu::BackgroundMode::Mode1", "namespaceyaze_1_1emu.html#a5447aec0bc02ba1ff714b6c4c8df382ba7a2ea225a084605104f8c39b3ae9657c", null ],
+      [ "yaze::emu::BackgroundMode::Mode2", "namespaceyaze_1_1emu.html#a5447aec0bc02ba1ff714b6c4c8df382ba04c542f260d16590ec60c594f67a30e7", null ],
+      [ "yaze::emu::BackgroundMode::Mode3", "namespaceyaze_1_1emu.html#a5447aec0bc02ba1ff714b6c4c8df382bab68fa4884da8d22e83f37b4f209295f1", null ],
+      [ "yaze::emu::BackgroundMode::Mode4", "namespaceyaze_1_1emu.html#a5447aec0bc02ba1ff714b6c4c8df382baf84b2e944a3acf91240a6c08d9c32b5e", null ],
+      [ "yaze::emu::BackgroundMode::Mode5", "namespaceyaze_1_1emu.html#a5447aec0bc02ba1ff714b6c4c8df382bafb18b5da29e7e7098a82fe478934ce8b", null ],
+      [ "yaze::emu::BackgroundMode::Mode6", "namespaceyaze_1_1emu.html#a5447aec0bc02ba1ff714b6c4c8df382ba5baea5488eacdf0684fbad674206d40d", null ],
+      [ "yaze::emu::BackgroundMode::Mode7", "namespaceyaze_1_1emu.html#a5447aec0bc02ba1ff714b6c4c8df382ba8cfe262c5049539f1662dabd1a8e45ba", null ]
     ] ],
-    [ "SpriteSize", "ppu_8h.html#ab2d8079bb5330aedfb062604d2a0168a", [
-      [ "Size8x8", "ppu_8h.html#ab2d8079bb5330aedfb062604d2a0168aaac337b90c27b4bfb1fef8c470fce8723", null ],
-      [ "Size16x16", "ppu_8h.html#ab2d8079bb5330aedfb062604d2a0168aa407a174c98babc11c9f5c5967857ee29", null ],
-      [ "Size32x32", "ppu_8h.html#ab2d8079bb5330aedfb062604d2a0168aaec579cbe3d24a02a93dad1682c20330d", null ],
-      [ "Size64x64", "ppu_8h.html#ab2d8079bb5330aedfb062604d2a0168aa8816d701dd08fb573f43ab49d6fc32e3", null ]
+    [ "yaze::emu::SpriteSize", "namespaceyaze_1_1emu.html#ab2d8079bb5330aedfb062604d2a0168a", [
+      [ "yaze::emu::SpriteSize::Size8x8", "namespaceyaze_1_1emu.html#ab2d8079bb5330aedfb062604d2a0168aaac337b90c27b4bfb1fef8c470fce8723", null ],
+      [ "yaze::emu::SpriteSize::Size16x16", "namespaceyaze_1_1emu.html#ab2d8079bb5330aedfb062604d2a0168aa407a174c98babc11c9f5c5967857ee29", null ],
+      [ "yaze::emu::SpriteSize::Size32x32", "namespaceyaze_1_1emu.html#ab2d8079bb5330aedfb062604d2a0168aaec579cbe3d24a02a93dad1682c20330d", null ],
+      [ "yaze::emu::SpriteSize::Size64x64", "namespaceyaze_1_1emu.html#ab2d8079bb5330aedfb062604d2a0168aa8816d701dd08fb573f43ab49d6fc32e3", null ]
     ] ]
 ];

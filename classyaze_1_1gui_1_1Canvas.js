@@ -19,7 +19,7 @@ var classyaze_1_1gui_1_1Canvas =
     [ "DrawBitmap", "classyaze_1_1gui_1_1Canvas.html#a8a2cf95d71bfed0dec9d7c1d91d3d138", null ],
     [ "DrawBitmap", "classyaze_1_1gui_1_1Canvas.html#abf00358b364d153532762b9c0789e37f", null ],
     [ "DrawBitmapTable", "classyaze_1_1gui_1_1Canvas.html#ad7081d52f5a736dde87a62caf2ce63dc", null ],
-    [ "DrawBitmapGroup", "classyaze_1_1gui_1_1Canvas.html#a0a80fed737e7935bbec36cc6d4b92e09", null ],
+    [ "DrawBitmapGroup", "classyaze_1_1gui_1_1Canvas.html#ad318621e3a45d3a90972c2a7245236a8", null ],
     [ "DrawOutline", "classyaze_1_1gui_1_1Canvas.html#ac43b436728dbc8fcef7b618f00345727", null ],
     [ "DrawOutlineWithColor", "classyaze_1_1gui_1_1Canvas.html#a2995122ee4e7d273cddb9bbc2b4bbade", null ],
     [ "DrawOutlineWithColor", "classyaze_1_1gui_1_1Canvas.html#ac6d2a15c340e837634f462b3311ad9a6", null ],

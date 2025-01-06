@@ -1,5 +1,13 @@
 <map id="yaze::zelda3::Sprite::Sprite" name="yaze::zelda3::Sprite::Sprite">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,136,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1Sprite.html#a12825a0f19deeee6cfd7fbb9622759d4" title=" " alt="" coords="184,13,330,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,23,168,23,168,28,136,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,120,136,161"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1Sprite.html#a12825a0f19deeee6cfd7fbb9622759d4" title=" " alt="" coords="184,5,330,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,118,130,79,182,41,194,35,197,40,185,46,133,84,93,122"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1Sprite.html#a492be700d2470dd6cb6cd845d4713564" title=" " alt="" coords="192,55,322,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="130,117,182,99,183,104,131,122"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1Sprite.html#aef6dc1c4a94891dc5f2080c3b0755fe3" title=" " alt="" coords="192,120,322,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="136,138,177,138,177,144,136,144"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1zelda3_1_1Sprite.html#ae640a5c086d36e3611788acd66cb75f4" title=" " alt="" coords="186,185,328,211"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="137,158,199,178,197,183,135,163"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1zelda3_1_1Sprite.html#ae019782d3eb9d0552f39307dfacdb5e6" title=" " alt="" coords="186,235,328,260"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="97,159,137,191,185,221,195,226,193,231,182,226,134,195,94,164"/>
 </map>

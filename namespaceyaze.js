@@ -14,6 +14,7 @@ var namespaceyaze =
     [ "GraphicsSheetManager", "classyaze_1_1GraphicsSheetManager.html", "classyaze_1_1GraphicsSheetManager" ],
     [ "Project", "structyaze_1_1Project.html", "structyaze_1_1Project" ],
     [ "RecentFilesManager", "classyaze_1_1RecentFilesManager.html", "classyaze_1_1RecentFilesManager" ],
+    [ "Renderer", "classyaze_1_1Renderer.html", "classyaze_1_1Renderer" ],
     [ "ResourceLabelManager", "structyaze_1_1ResourceLabelManager.html", "structyaze_1_1ResourceLabelManager" ],
     [ "Rom", "classyaze_1_1Rom.html", "classyaze_1_1Rom" ],
     [ "SharedRom", "classyaze_1_1SharedRom.html", "classyaze_1_1SharedRom" ],

@@ -1,0 +1,16 @@
+<map id="yaze::editor::EditorManager::DrawHomepage" name="yaze::editor::EditorManager::DrawHomepage">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,152,180,193"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1EditorManager.html#a946572cba19b94741ae2dab9b3fd289a" title=" " alt="" coords="228,152,402,193"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,170,212,170,212,175,180,175"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1RecentFilesManager.html#adbd4f1df10af5115874360106a030a1a" title=" " alt="" coords="462,5,634,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="334,150,383,104,415,79,449,57,461,50,464,55,451,61,418,83,387,108,337,154"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1RecentFilesManager.html#a85659384620411ead3859962d2390f41" title=" " alt="" coords="462,71,634,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="370,149,449,120,467,114,469,119,451,126,372,154"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="474,160,623,185"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="402,170,458,170,458,175,402,175"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1RecentFilesManager.html#a3c01c50b9874c0c004c9d4bfb9927eeb" title=" " alt="" coords="462,209,634,250"/>
+<area shape="poly" id="edge6_Node000002_Node000006" title=" " alt="" coords="401,191,449,203,447,208,399,196"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1editor_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath." alt="" coords="450,275,646,315"/>
+<area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="344,191,393,225,451,259,466,266,463,271,449,264,390,230,341,195"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="510,161,502,151,506,141,522,135,548,133,577,136,591,142,589,147,575,141,548,138,523,140,510,145,507,150,514,157"/>
+</map>

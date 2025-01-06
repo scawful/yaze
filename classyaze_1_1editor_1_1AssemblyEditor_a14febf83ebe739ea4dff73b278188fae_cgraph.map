@@ -1,31 +1,7 @@
 <map id="yaze::editor::AssemblyEditor::InlineUpdate" name="yaze::editor::AssemblyEditor::InlineUpdate">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,187,187,228"/>
-<area shape="rect" id="Node000002" href="$classTextEditor.html#af32748dc21529e571c2c8e872f3d7dbb" title=" " alt="" coords="273,5,412,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,185,126,153,155,114,191,74,233,41,257,30,260,35,236,46,195,78,159,117,131,156,111,188"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1AssemblyEditor.html#a4b745650f8142af416a263bfee0b24c9" title=" " alt="" coords="252,55,434,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="119,185,169,145,233,105,246,100,248,104,236,110,173,149,122,189"/>
-<area shape="rect" id="Node000004" href="$classTextEditor.html#a4a612fee7deb8e2f0d27408846e94905" title=" " alt="" coords="247,120,438,146"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="148,184,234,154,260,147,261,152,235,159,150,189"/>
-<area shape="rect" id="Node000008" href="$classTextEditor.html#ae2ea700634885f60679e52ac631892af" title=" " alt="" coords="235,169,451,195"/>
-<area shape="poly" id="edge5_Node000001_Node000008" title=" " alt="" coords="187,196,219,192,219,198,187,201"/>
-<area shape="rect" id="Node000009" href="$classTextEditor.html#a5f18c920c40b861c757d96ed78e95d57" title=" " alt="" coords="259,219,426,244"/>
-<area shape="poly" id="edge6_Node000001_Node000009" title=" " alt="" coords="187,214,244,219,244,225,187,219"/>
-<area shape="rect" id="Node000010" href="$classTextEditor.html#a6b64c4fe7b140847d55b51aba3bae672" title=" " alt="" coords="267,268,419,294"/>
-<area shape="poly" id="edge7_Node000001_Node000010" title=" " alt="" coords="151,226,235,254,261,261,260,266,234,259,149,231"/>
-<area shape="rect" id="Node000011" href="$classTextEditor.html#a7bbe3f9fc145306e38231bf19804b7a6" title=" " alt="" coords="280,317,406,343"/>
-<area shape="poly" id="edge8_Node000001_Node000011" title=" " alt="" coords="121,226,172,266,203,286,236,304,265,314,263,319,234,309,200,291,169,270,118,230"/>
-<area shape="rect" id="Node000062" href="$classyaze_1_1editor_1_1AssemblyEditor.html#ae05d2701e4bd69ee07fff43b5136b51b" title=" " alt="" coords="252,387,434,428"/>
-<area shape="poly" id="edge13_Node000001_Node000062" title=" " alt="" coords="115,227,165,288,199,322,236,353,276,378,274,382,233,358,196,326,161,291,111,230"/>
-<area shape="rect" id="Node000005" href="$classTextEditor.html#adc502d0e9e3ad42f78182f495ec25307" title=" " alt="" coords="509,112,690,153"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="439,130,494,130,494,136,439,136"/>
-<area shape="rect" id="Node000012" href="$classTextEditor.html#ac9ff75e6e996da553f60d4af2c5f0a3e" title=" " alt="" coords="512,203,687,228"/>
-<area shape="poly" id="edge9_Node000011_Node000012" title=" " alt="" coords="406,321,429,314,449,304,465,289,473,273,481,255,497,239,508,233,510,237,501,243,485,258,478,275,469,292,453,308,431,319,407,326"/>
-<area shape="rect" id="Node000015" href="$classTextEditor.html#a010f96f247602f0b29df66298ed7949f" title=" " alt="" coords="510,252,690,293"/>
-<area shape="poly" id="edge10_Node000011_Node000015" title=" " alt="" coords="403,314,450,304,494,294,495,299,452,309,405,319"/>
-<area shape="rect" id="Node000057" href="$classTextEditor.html#a250de3b89bb0da5b231d61ecae7afec1" title=" " alt="" coords="499,317,700,343"/>
-<area shape="poly" id="edge11_Node000011_Node000057" title=" " alt="" coords="406,328,484,328,484,333,406,333"/>
-<area shape="rect" id="Node000059" href="$classTextEditor.html#a5543846db2907edc74a7795426a1dd55" title=" " alt="" coords="536,367,663,392"/>
-<area shape="poly" id="edge12_Node000011_Node000059" title=" " alt="" coords="407,340,522,362,521,367,406,345"/>
-<area shape="rect" id="Node000063" href="$classTextEditor.html#a9f79c30bb4ef88d828271958b252c2f7" title=" " alt="" coords="534,416,665,442"/>
-<area shape="poly" id="edge14_Node000062_Node000063" title=" " alt="" coords="434,412,519,420,519,425,434,418"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,187,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1AssemblyEditor.html#a4b745650f8142af416a263bfee0b24c9" title=" " alt="" coords="235,5,416,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,43,219,38,220,44,187,48"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1AssemblyEditor.html#ae05d2701e4bd69ee07fff43b5136b51b" title=" " alt="" coords="235,71,416,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="187,69,220,74,219,79,187,74"/>
 </map>

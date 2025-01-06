@@ -1,35 +1,21 @@
 <map id="yaze::editor::ScreenEditor::LoadBinaryGfx" name="yaze::editor::ScreenEditor::LoadBinaryGfx">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,389,171,430"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Tilesheet.html#a258335d2c454a2ac0a46781b9fb3769e" title=" " alt="" coords="249,61,378,102"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="96,388,143,292,177,232,217,173,245,140,275,111,278,115,249,144,221,177,182,235,147,295,101,390"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="470,71,606,111"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="110,387,167,336,249,267,348,191,455,122,466,116,468,121,457,127,352,196,253,271,170,340,113,391"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1editor_1_1ScreenEditor.html#a020825a81755d371ca1664192c29286a" title=" " alt="" coords="230,332,397,373"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="170,386,216,374,217,380,171,391"/>
-<area shape="rect" id="Node000020" href="$classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Used to render a bitmap to the screen." alt="" coords="470,512,606,553"/>
-<area shape="poly" id="edge15_Node000001_Node000020" title=" " alt="" coords="171,399,226,398,288,403,350,416,409,439,426,453,435,468,443,483,458,498,463,502,460,506,454,502,439,487,431,471,422,457,407,444,349,421,287,408,226,403,171,404"/>
-<area shape="rect" id="Node000022" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="464,601,613,626"/>
-<area shape="poly" id="edge16_Node000001_Node000022" title=" " alt="" coords="172,427,219,439,274,447,319,450,361,458,384,468,410,484,428,503,436,522,443,542,458,562,496,591,493,595,454,566,439,544,431,524,423,505,406,488,382,472,360,463,318,455,274,453,218,444,170,433"/>
-<area shape="rect" id="Node000024" href="$classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath." alt="" coords="219,497,408,538"/>
-<area shape="poly" id="edge17_Node000001_Node000024" title=" " alt="" coords="127,428,220,477,246,488,244,493,218,481,124,433"/>
-<area shape="rect" id="Node000025" href="$namespaceyaze_1_1gfx.html#af98fbf03d09d9d365f64202db1ecba15" title=" " alt="" coords="222,562,405,588"/>
-<area shape="poly" id="edge18_Node000001_Node000025" title=" " alt="" coords="105,429,151,488,183,520,220,547,232,553,229,558,217,552,180,524,147,491,100,432"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1SnesPalette.html#aa3d5ad0a0ad19df994e243baf817f598" title=" " alt="" coords="464,5,612,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="378,63,449,45,450,50,379,68"/>
-<area shape="poly" id="edge6_Node000005_Node000004" title=" " alt="" coords="327,330,406,211,418,186,426,164,436,144,454,122,459,118,463,122,458,126,440,147,431,166,423,188,410,214,332,333"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1gfx_1_1Tilesheet.html#a191d0bcc0c8640d478bf0fb1d5030f66" title=" " alt="" coords="474,136,603,177"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="326,330,377,261,413,222,454,188,462,182,465,187,458,192,417,226,381,265,330,333"/>
-<area shape="rect" id="Node000014" href="$classyaze_1_1gfx_1_1Tilesheet.html#a42b0418b57035037971442dcd3525f75" title=" " alt="" coords="474,201,603,242"/>
-<area shape="poly" id="edge7_Node000005_Node000014" title=" " alt="" coords="340,329,392,292,455,253,467,247,469,251,457,257,395,296,343,334"/>
-<area shape="rect" id="Node000016" href="$classyaze_1_1gfx_1_1Tilesheet.html#ab6b8563b96cbcb4ab65d009edf3086fc" title=" " alt="" coords="474,267,603,307"/>
-<area shape="poly" id="edge8_Node000005_Node000016" title=" " alt="" coords="385,329,458,307,459,313,386,334"/>
-<area shape="rect" id="Node000018" href="$classyaze_1_1gfx_1_1Tilesheet.html#aa0896f4f20dc7f09b054aa1d5e7e87a6" title=" " alt="" coords="474,332,603,373"/>
-<area shape="poly" id="edge9_Node000005_Node000018" title=" " alt="" coords="397,350,458,350,458,355,397,355"/>
-<area shape="rect" id="Node000019" href="$classyaze_1_1gfx_1_1Tilesheet.html#ac53e1aec32dc30b280f1c3502b77a5dd" title=" " alt="" coords="474,397,603,438"/>
-<area shape="poly" id="edge10_Node000005_Node000019" title=" " alt="" coords="386,371,459,392,458,397,385,376"/>
-<area shape="poly" id="edge11_Node000005_Node000020" title=" " alt="" coords="384,371,410,389,422,403,429,418,434,445,440,472,447,485,458,498,460,501,457,505,454,502,442,488,435,474,429,446,424,419,417,406,406,393,381,375"/>
-<area shape="poly" id="edge12_Node000005_Node000022" title=" " alt="" coords="344,371,378,402,410,440,426,474,433,504,440,532,458,563,474,578,493,591,490,595,471,582,454,566,435,534,428,505,421,476,406,443,374,406,341,375"/>
-<area shape="rect" id="Node000023" href="$namespaceyaze_1_1gfx.html#abddef303b6a036e2cbce669f424f7317" title=" " alt="" coords="456,462,620,488"/>
-<area shape="poly" id="edge14_Node000005_Node000023" title=" " alt="" coords="379,371,410,389,425,404,434,419,443,434,458,448,467,453,464,458,454,452,438,437,429,422,421,408,406,393,376,376"/>
-<area shape="poly" id="edge13_Node000022_Node000022" title=" " alt="" coords="501,602,493,592,498,582,513,576,538,574,566,577,580,584,577,588,564,582,538,579,514,582,502,586,499,592,505,599"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,157,171,198"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="466,5,610,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,155,157,117,187,98,218,82,277,61,338,46,451,29,452,34,339,51,278,66,220,87,189,102,160,121,113,159"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1ScreenEditor.html#a020825a81755d371ca1664192c29286a" title=" " alt="" coords="230,128,397,169"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="171,164,214,159,215,164,171,170"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Used to render a bitmap to the screen." alt="" coords="470,71,606,111"/>
+<area shape="poly" id="edge8_Node000001_Node000004" title=" " alt="" coords="123,154,167,132,218,114,279,101,341,93,455,87,455,92,342,98,280,106,219,119,169,137,125,159"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="464,209,613,234"/>
+<area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="171,183,448,210,448,216,171,188"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath." alt="" coords="219,243,408,283"/>
+<area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="145,196,244,234,242,239,143,201"/>
+<area shape="rect" id="Node000009" href="$namespaceyaze_1_1gfx.html#af98fbf03d09d9d365f64202db1ecba15" title=" " alt="" coords="222,308,405,333"/>
+<area shape="poly" id="edge11_Node000001_Node000009" title=" " alt="" coords="108,196,156,245,186,271,220,293,233,299,231,304,217,297,183,275,152,249,104,200"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="343,125,394,92,455,57,467,50,470,55,457,61,397,96,346,130"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="395,125,454,110,456,115,396,130"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="379,167,483,201,481,206,377,172"/>
+<area shape="rect" id="Node000007" href="$namespaceyaze_1_1gfx.html#abddef303b6a036e2cbce669f424f7317" title=" " alt="" coords="456,136,620,161"/>
+<area shape="poly" id="edge7_Node000003_Node000007" title=" " alt="" coords="397,146,440,146,440,151,397,151"/>
+<area shape="poly" id="edge6_Node000006_Node000006" title=" " alt="" coords="501,210,493,200,498,190,513,184,538,182,566,185,580,192,577,196,564,190,538,187,514,190,502,194,499,200,505,207"/>
 </map>

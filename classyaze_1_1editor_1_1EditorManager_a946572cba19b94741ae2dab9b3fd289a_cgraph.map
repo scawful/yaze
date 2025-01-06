@@ -1,14 +1,14 @@
 <map id="yaze::editor::EditorManager::LoadRom" name="yaze::editor::EditorManager::LoadRom">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,152,180,193"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1RecentFilesManager.html#adbd4f1df10af5115874360106a030a1a" title=" " alt="" coords="236,5,408,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,150,161,104,226,57,238,50,241,55,229,61,165,108,115,154"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1RecentFilesManager.html#a85659384620411ead3859962d2390f41" title=" " alt="" coords="236,71,408,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="149,149,227,120,244,114,246,119,229,126,151,154"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="248,160,397,185"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="180,170,232,170,232,175,180,175"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1RecentFilesManager.html#a3c01c50b9874c0c004c9d4bfb9927eeb" title=" " alt="" coords="236,209,408,250"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="177,191,224,202,223,208,176,196"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath." alt="" coords="228,275,417,315"/>
-<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="122,191,171,225,229,259,243,266,241,271,226,264,168,230,119,195"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="284,161,277,151,281,141,297,135,322,133,350,136,365,142,362,147,349,141,322,138,298,140,285,145,282,150,288,157"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1RecentFilesManager.html#adbd4f1df10af5115874360106a030a1a" title=" " alt="" coords="240,5,412,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,150,161,104,193,79,226,57,239,50,241,55,229,61,196,83,164,108,115,154"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1RecentFilesManager.html#a85659384620411ead3859962d2390f41" title=" " alt="" coords="240,71,412,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="148,149,227,120,245,114,247,119,229,126,150,154"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="251,160,400,185"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="180,170,236,170,236,175,180,175"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1RecentFilesManager.html#a3c01c50b9874c0c004c9d4bfb9927eeb" title=" " alt="" coords="240,209,412,250"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="178,191,226,203,225,208,177,196"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1editor_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath." alt="" coords="228,275,424,315"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="122,191,170,225,229,259,243,266,241,271,226,264,167,230,119,195"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="287,161,280,151,284,141,300,135,326,133,354,136,369,142,367,147,353,141,326,138,301,140,288,145,285,150,291,157"/>
 </map>

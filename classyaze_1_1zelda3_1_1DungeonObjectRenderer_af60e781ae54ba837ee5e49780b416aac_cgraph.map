@@ -1,27 +1,12 @@
 <map id="yaze::zelda3::DungeonObjectRenderer::LoadObject" name="yaze::zelda3::DungeonObjectRenderer::LoadObject">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,164,191,205"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#afee3308c7846f91798b3add9b90518dc" title=" " alt="" coords="239,56,424,97"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,162,238,117,271,102,273,106,240,122,145,166"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1emu_1_1MemoryImpl.html#aead3c6f07831f8bdf175254d5c81b58e" title=" " alt="" coords="254,131,409,172"/>
-<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="191,169,238,162,239,167,192,174"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6854e9626ddccf657b77cd740f13f1f9" title=" " alt="" coords="239,196,424,237"/>
-<area shape="poly" id="edge6_Node000001_Node000008" title=" " alt="" coords="192,195,223,199,223,205,191,200"/>
-<area shape="rect" id="Node000096" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="257,285,406,311"/>
-<area shape="poly" id="edge12_Node000001_Node000096" title=" " alt="" coords="143,203,291,276,288,281,140,208"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1Cpu.html#a83a5180ad53c1ba559df2f99c6a48202" title=" " alt="" coords="472,5,703,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="414,53,471,40,505,32,506,37,473,45,415,58"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1emu_1_1Cpu.html#af3a91027d2e71e313febcf1a7fd7856a" title=" " alt="" coords="493,55,682,80"/>
-<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="425,71,477,69,477,74,425,76"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1emu_1_1Cpu.html#afaab153573f9c7a07613da6b370db08d" title=" " alt="" coords="502,104,674,130"/>
-<area shape="poly" id="edge4_Node000002_Node000006" title=" " alt="" coords="425,89,487,98,486,104,424,94"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1emu_1_1Cpu.html#aad8a065fd52e121ae96c0149489f62ee" title=" " alt="" coords="478,153,698,179"/>
-<area shape="poly" id="edge7_Node000008_Node000009" title=" " alt="" coords="424,196,503,180,505,185,425,201"/>
-<area shape="rect" id="Node000016" href="$classyaze_1_1emu_1_1Cpu.html#a2ef3e26830cc01fa5401e964e933547a" title=" " alt="" coords="751,179,921,204"/>
-<area shape="poly" id="edge10_Node000008_Node000016" title=" " alt="" coords="424,210,735,194,736,199,424,215"/>
-<area shape="rect" id="Node000086" href="$classyaze_1_1emu_1_1Cpu.html#acdc162ceaa473ce412472ec537c2c51a" title=" " alt="" coords="502,255,674,280"/>
-<area shape="poly" id="edge9_Node000008_Node000086" title=" " alt="" coords="425,233,505,248,503,254,424,238"/>
-<area shape="rect" id="Node000087" href="$classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a4dac73e88a86e0159959407fb13ebfa0" title=" " alt="" coords="488,304,688,345"/>
-<area shape="poly" id="edge11_Node000008_Node000087" title=" " alt="" coords="403,235,425,247,440,258,450,269,459,280,473,291,483,296,481,300,471,295,456,284,446,273,437,262,423,251,401,240"/>
-<area shape="poly" id="edge8_Node000009_Node000016" title=" " alt="" coords="698,175,736,179,736,184,698,180"/>
-<area shape="poly" id="edge13_Node000096_Node000096" title=" " alt="" coords="293,287,285,277,290,267,305,261,331,259,360,261,374,268,372,273,358,267,331,264,307,266,293,271,290,276,297,283"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,191,111"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#afee3308c7846f91798b3add9b90518dc" title=" " alt="" coords="239,5,424,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,68,241,48,242,53,174,73"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6854e9626ddccf657b77cd740f13f1f9" title=" " alt="" coords="239,71,424,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="191,88,223,88,223,94,191,94"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="257,160,406,185"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="160,109,278,151,276,156,158,114"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a4dac73e88a86e0159959407fb13ebfa0" title=" " alt="" coords="472,71,672,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="424,88,456,88,456,94,424,94"/>
+<area shape="poly" id="edge5_Node000008_Node000008" title=" " alt="" coords="293,161,285,151,290,141,305,135,331,133,360,136,374,142,372,147,358,141,331,138,307,140,293,145,290,150,297,157"/>
 </map>

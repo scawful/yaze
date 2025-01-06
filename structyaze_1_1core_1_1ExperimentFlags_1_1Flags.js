@@ -6,8 +6,6 @@ var structyaze_1_1core_1_1ExperimentFlags_1_1Flags =
     [ "kSaveGfxGroups", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html#a26fbe62bb23a612419bd01d0a41f6c20", null ],
     [ "kSaveWithChangeQueue", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html#a1d7872b391f6db3319d0367cfde788cb", null ],
     [ "kDrawDungeonRoomGraphics", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html#aa44897fb8d5b75067e744d34de44582d", null ],
-    [ "kNewFileDialogWrapper", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html#ac4b41b3345be12d7020e094f40a0ffce", null ],
-    [ "kLoadTexturesAsStreaming", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html#a68d7fcfc85b79ab127bc7d84d2887e90", null ],
     [ "kSaveDungeonMaps", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html#a139df348fe7ba7294a64ac19cd097095", null ],
     [ "kSaveGraphicsSheet", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html#a2e20693a1b7f068735d17bdaa063277e", null ],
     [ "kLogToConsole", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html#a3bbcdff100dd5b3b9491892124db52e3", null ],

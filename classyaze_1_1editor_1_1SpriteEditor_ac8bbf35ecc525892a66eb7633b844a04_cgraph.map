@@ -1,7 +1,5 @@
 <map id="yaze::editor::SpriteEditor::DrawCustomSpritesMetadata" name="yaze::editor::SpriteEditor::DrawCustomSpritesMetadata">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,203,79"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a4d86d52b8f942e19c520a6af13bee02b" title=" " alt="" coords="281,5,410,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,43,265,34,266,39,203,48"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath." alt="" coords="251,71,440,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="203,69,236,74,235,79,203,75"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,203,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath." alt="" coords="251,5,440,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,23,235,23,235,28,203,28"/>
 </map>

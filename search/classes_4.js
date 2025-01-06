@@ -11,6 +11,6 @@ var searchData=
   ['exampleselectionwithdeletion_8',['ExampleSelectionWithDeletion',['../structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html',1,'yaze::gui']]],
   ['exampletreenode_9',['ExampleTreeNode',['../structyaze_1_1editor_1_1ExampleTreeNode.html',1,'yaze::editor']]],
   ['expand_10',['Expand',['../classyaze_1_1cli_1_1Expand.html',1,'yaze::cli']]],
-  ['experimentflags_11',['ExperimentFlags',['../classyaze_1_1core_1_1ExperimentFlags.html',1,'yaze::core']]],
+  ['experimentflags_11',['ExperimentFlags',['../classyaze_1_1core_1_1ExperimentFlags.html',1,'yaze::core::ExperimentFlags'],['../classyaze_1_1editor_1_1ExperimentFlags.html',1,'yaze::editor::ExperimentFlags']]],
   ['extensionmanager_12',['ExtensionManager',['../classyaze_1_1editor_1_1ExtensionManager.html',1,'yaze::editor']]]
 ];

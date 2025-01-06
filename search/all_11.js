@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['h_0',['H',['../structyaze_1_1emu_1_1Spc700_1_1Flags.html#a9372934a755822efa5580617deb7370b',1,'yaze::emu::Spc700::Flags']]],
+  ['h_0',['H',['../structyaze_1_1emu_1_1Spc700_1_1Flags.html#a9372934a755822efa5580617deb7370b',1,'yaze::emu::Spc700::Flags::H'],['../structyaze_1_1test_1_1Spc700_1_1Flags.html#a9372934a755822efa5580617deb7370b',1,'yaze::test::Spc700::Flags::H']]],
   ['h_5fcount_5f_1',['h_count_',['../classyaze_1_1emu_1_1Ppu.html#a5ae6104c9b63b8ee606c71ee660ff926',1,'yaze::emu::Ppu']]],
   ['h_5fcount_5fsecond_5f_2',['h_count_second_',['../classyaze_1_1emu_1_1Ppu.html#a96d96b4bffd50591a4918ec19ed18e31',1,'yaze::emu::Ppu']]],
   ['h_5firq_5fenabled_5f_3',['h_irq_enabled_',['../classyaze_1_1emu_1_1Snes.html#a44b2213d346aabf467de654416ffdd53',1,'yaze::emu::Snes']]],
@@ -43,8 +43,8 @@ var searchData=
   ['header_5factive_40',['header_active',['../structyaze_1_1gui_1_1Theme.html#a41538e56d45a2ed60d4118cec431baee',1,'yaze::gui::Theme']]],
   ['header_5fhovered_41',['header_hovered',['../structyaze_1_1gui_1_1Theme.html#a69bfa00c6a24226b914ef7e6d8faaf1b',1,'yaze::gui::Theme']]],
   ['header_5fsize_42',['header_size',['../structyaze_1_1gfx_1_1scad__format_1_1CgxHeader.html#ad27e601cd696d743b03c8574650cc0db',1,'yaze::gfx::scad_format::CgxHeader']]],
-  ['height_43',['height',['../structyaze__bitmap.html#a75f53afcb7b087d543288400730d3297',1,'yaze_bitmap::height'],['../structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#a553d3dac9e73dae2d52f774132dcea99',1,'yaze::zelda3::music::SampleEdit::height'],['../classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3',1,'yaze::gfx::Bitmap::height()'],['../classyaze_1_1gui_1_1Canvas.html#a138ae62c6eb5f771385aa7e6b2f8ebbd',1,'yaze::gui::Canvas::height()'],['../classyaze_1_1zelda3_1_1Sprite.html#aec8a5fc8d13ed9331e3ced8173efc7fc',1,'yaze::zelda3::Sprite::height()']]],
-  ['height_5f_44',['height_',['../classyaze_1_1gfx_1_1Bitmap.html#a39893effa3239a8c1acfd4b009e63443',1,'yaze::gfx::Bitmap::height_'],['../classyaze_1_1zelda3_1_1RoomObject.html#a5d8fb4913316418def7352f19cfe9014',1,'yaze::zelda3::RoomObject::height_'],['../classyaze_1_1zelda3_1_1Sprite.html#a7ba7aab320fb3156b20b9d7839070681',1,'yaze::zelda3::Sprite::height_']]],
+  ['height_43',['height',['../structyaze__bitmap.html#a75f53afcb7b087d543288400730d3297',1,'yaze_bitmap::height'],['../structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#a553d3dac9e73dae2d52f774132dcea99',1,'yaze::zelda3::music::SampleEdit::height'],['../classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3',1,'yaze::gfx::Bitmap::height()'],['../classyaze_1_1gui_1_1Canvas.html#a138ae62c6eb5f771385aa7e6b2f8ebbd',1,'yaze::gui::Canvas::height()'],['../classyaze_1_1zelda3_1_1Sprite.html#aec8a5fc8d13ed9331e3ced8173efc7fc',1,'yaze::zelda3::Sprite::height()'],['../classyaze_1_1gui_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3',1,'yaze::gui::Bitmap::height()']]],
+  ['height_5f_44',['height_',['../classyaze_1_1gfx_1_1Bitmap.html#a39893effa3239a8c1acfd4b009e63443',1,'yaze::gfx::Bitmap::height_'],['../classyaze_1_1zelda3_1_1RoomObject.html#a5d8fb4913316418def7352f19cfe9014',1,'yaze::zelda3::RoomObject::height_'],['../classyaze_1_1zelda3_1_1Sprite.html#a7ba7aab320fb3156b20b9d7839070681',1,'yaze::zelda3::Sprite::height_'],['../classyaze_1_1gui_1_1Bitmap.html#a39893effa3239a8c1acfd4b009e63443',1,'yaze::gui::Bitmap::height_']]],
   ['helpcommand_45',['HelpCommand',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a2ce01552171fe2c443f90b424ffdd398',1,'yaze::cli::anonymous_namespace{z3ed.cc}']]],
   ['hexbyte_46',['HexByte',['../namespaceyaze_1_1core.html#a1f2441e9967fc5718d30608cccc7f74c',1,'yaze::core']]],
   ['hexinputbyte_47',['HexInputByte',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a39fd0fc98cc838a96dce6647bc44c909',1,'yaze::gui::zeml']]],
@@ -53,7 +53,7 @@ var searchData=
   ['hexlonglong_50',['HexLongLong',['../namespaceyaze_1_1core.html#a18ea1e86d2ecdd880587545a3de97e51',1,'yaze::core']]],
   ['hexstringparams_51',['HexStringParams',['../structyaze_1_1core_1_1HexStringParams.html',1,'yaze::core']]],
   ['hexword_52',['HexWord',['../namespaceyaze_1_1core.html#a57150d42af734375f63f98bc6d752bda',1,'yaze::core']]],
-  ['hflip_53',['hFlip',['../structyaze_1_1emu_1_1SpriteAttributes.html#aac8fc7bf7ab208c5ecdbd45bd22531b1',1,'yaze::emu::SpriteAttributes::hFlip'],['../structyaze_1_1emu_1_1TilemapEntry.html#aeaae6fd5cdc2906a4c8d3ac7f23047b3',1,'yaze::emu::TilemapEntry::hFlip']]],
+  ['hflip_53',['hFlip',['../structyaze_1_1emu_1_1SpriteAttributes.html#aac8fc7bf7ab208c5ecdbd45bd22531b1',1,'yaze::emu::SpriteAttributes::hFlip'],['../structyaze_1_1emu_1_1TilemapEntry.html#aeaae6fd5cdc2906a4c8d3ac7f23047b3',1,'yaze::emu::TilemapEntry::hFlip'],['../structyaze_1_1test_1_1SpriteAttributes.html#aac8fc7bf7ab208c5ecdbd45bd22531b1',1,'yaze::test::SpriteAttributes::hFlip']]],
   ['hi_5fres_54',['hi_res',['../structyaze_1_1emu_1_1SETINI.html#a97e5001183e875df1051cd388ed12f64',1,'yaze::emu::SETINI']]],
   ['high_55',['high',['../structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#ab612b34497ef49c4231fc4487244a74e',1,'yaze::zelda3::OverworldEntranceTileTypes']]],
   ['high_5fbit_56',['high_bit',['../structyaze_1_1emu_1_1OAMADDH.html#aae3c265b49d9d956376e6ee1a37487fb',1,'yaze::emu::OAMADDH']]],

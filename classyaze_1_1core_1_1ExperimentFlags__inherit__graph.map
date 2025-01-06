@@ -1,5 +1,0 @@
-<map id="yaze::core::ExperimentFlags" name="yaze::core::ExperimentFlags">
-<area shape="rect" id="Node000001" title="A class to manage experimental feature flags." alt="" coords="5,5,186,31"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1Controller.html" title="Main controller for the application." alt="" coords="26,79,165,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,46,98,79,93,79,93,46"/>
-</map>

@@ -1,11 +1,9 @@
 <map id="yaze::editor::OverworldEditor::LoadSpriteGraphics" name="yaze::editor::OverworldEditor::LoadSpriteGraphics">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,189,111"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="246,5,382,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,68,230,48,232,53,168,73"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Used to render a bitmap to the screen." alt="" coords="246,71,382,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="189,88,230,88,230,94,189,94"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1zelda3_1_1Overworld.html#a3f756e95bf3daf66f09f1f09d69ff7b0" title=" " alt="" coords="237,136,392,177"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="168,109,231,128,229,134,166,114"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="440,71,563,111"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="383,88,424,88,424,94,383,94"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,189,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="237,5,380,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,42,221,37,222,42,190,47"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Used to render a bitmap to the screen." alt="" coords="240,71,376,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="190,70,225,76,224,81,189,76"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="428,71,551,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="377,88,412,88,412,94,377,94"/>
 </map>

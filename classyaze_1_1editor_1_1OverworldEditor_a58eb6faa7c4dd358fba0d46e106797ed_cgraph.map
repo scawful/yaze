@@ -1,21 +1,11 @@
 <map id="yaze::editor::OverworldEditor::RefreshOverworldMap" name="yaze::editor::OverworldEditor::RefreshOverworldMap">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,104,189,145"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="260,5,396,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,101,236,57,253,50,255,55,238,61,141,106"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1Overworld.html#a7035830b7589452ca012eae392aa7aed" title=" " alt="" coords="251,71,406,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="188,109,235,102,236,107,189,114"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1OverworldEditor.html#aa39da036dde898607eb6dadb93523560" title=" " alt="" coords="237,136,420,177"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="189,134,221,139,221,144,188,140"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="260,233,396,274"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="136,143,278,223,275,228,134,147"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1zelda3_1_1Overworld.html#aefb0ff6e39728b1484b9b1a70dec656c" title=" " alt="" coords="474,5,630,46"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="398,133,418,121,433,106,442,90,450,74,466,57,474,52,477,56,470,61,455,77,446,92,438,109,422,125,401,138"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1zelda3_1_1Overworld.html#a90cc1152067e0937c7e48d69e88a563f" title=" " alt="" coords="468,71,636,111"/>
-<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="399,133,464,114,466,119,401,138"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1zelda3_1_1Overworld.html#a2a38fca7d0ac26e4be8d9ed442294f2d" title=" " alt="" coords="474,136,630,177"/>
-<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="420,154,459,154,459,159,420,159"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1zelda3_1_1Overworld.html#a3a15f92a3a718c15b9be75ae134d9b94" title=" " alt="" coords="474,201,630,242"/>
-<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="401,175,466,194,464,199,399,180"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="490,267,614,307"/>
-<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="397,261,475,273,475,278,396,266"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,189,111"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="257,5,400,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,68,241,47,243,52,172,73"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1OverworldEditor.html#aa39da036dde898607eb6dadb93523560" title=" " alt="" coords="237,71,420,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="189,88,221,88,221,94,189,94"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="260,136,396,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="172,109,246,130,244,135,171,114"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="468,136,591,177"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="397,154,453,154,453,159,397,159"/>
 </map>

@@ -2,16 +2,12 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,136,186,177"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1OverworldMap.html#a76b6a69b68a92f0cc2ff69ee3567b1a9" title=" " alt="" coords="234,5,427,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,133,170,95,232,57,246,50,248,55,235,61,173,99,123,138"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1OverworldMap.html#a879fb9353f241b17c00916c238a00860" title=" " alt="" coords="240,71,420,111"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="170,133,239,114,240,119,172,138"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1zelda3_1_1OverworldMap.html#ab267fa7fcc5e19d0a6949eeaf864b1ef" title=" " alt="" coords="240,136,420,177"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="186,154,225,154,225,159,186,159"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1zelda3_1_1OverworldMap.html#a9bd260cacef9b6cd285e5b68773a3332" title=" " alt="" coords="240,201,420,242"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="172,175,240,194,239,199,170,180"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1zelda3_1_1OverworldMap.html#af58fd1aa40e8e3bcf84a0dac84b88d1e" title=" " alt="" coords="240,267,420,307"/>
-<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="123,175,173,213,235,251,248,258,246,263,232,256,170,218,120,179"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a76f67b131d3e1a18357ab82ec362e766" title=" " alt="" coords="475,201,603,242"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="408,44,429,57,460,86,487,121,525,186,520,189,483,124,456,90,425,61,405,49"/>
-<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="421,219,459,219,459,224,421,224"/>
-<area shape="poly" id="edge8_Node000007_Node000003" title=" " alt="" coords="397,264,460,244,461,249,398,269"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1OverworldMap.html#a879fb9353f241b17c00916c238a00860" title=" " alt="" coords="240,71,420,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="170,133,239,114,240,119,172,138"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1OverworldMap.html#ab267fa7fcc5e19d0a6949eeaf864b1ef" title=" " alt="" coords="240,136,420,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="186,154,225,154,225,159,186,159"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1zelda3_1_1OverworldMap.html#a9bd260cacef9b6cd285e5b68773a3332" title=" " alt="" coords="240,201,420,242"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="172,175,240,194,239,199,170,180"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1zelda3_1_1OverworldMap.html#af58fd1aa40e8e3bcf84a0dac84b88d1e" title=" " alt="" coords="240,267,420,307"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="123,175,173,213,235,251,248,258,246,263,232,256,170,218,120,179"/>
 </map>

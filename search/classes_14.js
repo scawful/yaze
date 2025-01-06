@@ -15,5 +15,5 @@ var searchData=
   ['wobjlog_12',['WOBJLOG',['../structyaze_1_1emu_1_1WOBJLOG.html',1,'yaze::emu']]],
   ['wobjsel_13',['WOBJSEL',['../structyaze_1_1emu_1_1WOBJSEL.html',1,'yaze::emu']]],
   ['wramaccessregisters_14',['WramAccessRegisters',['../structyaze_1_1emu_1_1WramAccessRegisters.html',1,'yaze::emu']]],
-  ['writeaction_15',['WriteAction',['../structyaze_1_1Rom_1_1WriteAction.html',1,'yaze::Rom']]]
+  ['writeaction_15',['WriteAction',['../structyaze_1_1Rom_1_1WriteAction.html',1,'yaze::Rom::WriteAction'],['../structyaze_1_1test_1_1Rom_1_1WriteAction.html',1,'yaze::test::Rom::WriteAction']]]
 ];

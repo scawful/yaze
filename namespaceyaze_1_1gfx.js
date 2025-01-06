@@ -30,6 +30,8 @@ var namespaceyaze_1_1gfx =
     [ "PaletteGroup", "structyaze_1_1gfx_1_1PaletteGroup.html", "structyaze_1_1gfx_1_1PaletteGroup" ],
     [ "PaletteGroupMap", "structyaze_1_1gfx_1_1PaletteGroupMap.html", "structyaze_1_1gfx_1_1PaletteGroupMap" ],
     [ "Paletteset", "structyaze_1_1gfx_1_1Paletteset.html", "structyaze_1_1gfx_1_1Paletteset" ],
+    [ "SDL_Surface_Deleter", "structyaze_1_1gfx_1_1SDL__Surface__Deleter.html", "structyaze_1_1gfx_1_1SDL__Surface__Deleter" ],
+    [ "SDL_Texture_Deleter", "structyaze_1_1gfx_1_1SDL__Texture__Deleter.html", "structyaze_1_1gfx_1_1SDL__Texture__Deleter" ],
     [ "SnesColor", "classyaze_1_1gfx_1_1SnesColor.html", "classyaze_1_1gfx_1_1SnesColor" ],
     [ "SnesPalette", "classyaze_1_1gfx_1_1SnesPalette.html", "classyaze_1_1gfx_1_1SnesPalette" ],
     [ "Tile16", "classyaze_1_1gfx_1_1Tile16.html", "classyaze_1_1gfx_1_1Tile16" ],

@@ -1,15 +1,13 @@
 <map id="yaze::test::anonymous_namespace{compression_test::cc}::ExpectDecompressOk" name="yaze::test::anonymous_namespace{compression_test::cc}::ExpectDecompressOk">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,29,215,85"/>
-<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="62,29,63,19,71,10,87,5,110,3,136,5,152,12,149,17,134,10,110,8,88,10,74,15,67,21,67,29"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="530,12,641,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,47,514,27,514,33,215,53"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a3f0d04e790b13bd666e0fdb4b0d04f86" title=" " alt="" coords="263,70,449,95"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="215,65,248,69,247,74,215,71"/>
-<area shape="poly" id="edge5_Node000003_Node000002" title=" " alt="" coords="410,66,516,40,517,45,411,72"/>
-<area shape="rect" id="Node000004" href="$structyaze_1_1gfx_1_1PaletteGroupMap.html#ac810c058bc9d74f40e58e5aa4dbb3d41" title=" " alt="" coords="497,62,674,103"/>
-<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="450,80,481,80,481,85,450,85"/>
-<area shape="rect" id="Node000006" href="$structyaze_1_1gfx_1_1PaletteGroupMap.html#a91a5d448a2489e2a38c5b0c65e9702a3" title=" " alt="" coords="497,128,674,168"/>
-<area shape="poly" id="edge6_Node000003_Node000006" title=" " alt="" coords="404,93,498,120,496,125,403,98"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9" title=" " alt="" coords="508,192,663,218"/>
-<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="374,94,427,135,498,177,515,184,513,189,496,182,424,139,371,98"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="62,29,63,19,71,10,87,5,110,3,136,5,152,12,149,17,134,10,110,8,88,10,74,15,67,21,67,29"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="518,19,630,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,35,262,29,390,24,503,26,503,31,390,29,263,34,216,40"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1test.html#a4e2e79a02c9bbff8d9720d6384296218" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="271,44,441,70"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,54,255,54,255,60,215,60"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1Rom.html#a3f0d04e790b13bd666e0fdb4b0d04f86" title=" " alt="" coords="263,94,449,119"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="216,76,274,87,273,93,215,81"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="413,91,448,80,528,49,530,54,450,85,414,96"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9" title=" " alt="" coords="497,94,651,119"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="449,104,481,104,481,109,449,109"/>
 </map>

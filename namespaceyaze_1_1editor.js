@@ -30,7 +30,9 @@ var namespaceyaze_1_1editor =
     [ "ExampleAppPropertyEditor", "structyaze_1_1editor_1_1ExampleAppPropertyEditor.html", "structyaze_1_1editor_1_1ExampleAppPropertyEditor" ],
     [ "ExampleMemberInfo", "structyaze_1_1editor_1_1ExampleMemberInfo.html", "structyaze_1_1editor_1_1ExampleMemberInfo" ],
     [ "ExampleTreeNode", "structyaze_1_1editor_1_1ExampleTreeNode.html", "structyaze_1_1editor_1_1ExampleTreeNode" ],
+    [ "ExperimentFlags", "classyaze_1_1editor_1_1ExperimentFlags.html", "classyaze_1_1editor_1_1ExperimentFlags" ],
     [ "ExtensionManager", "classyaze_1_1editor_1_1ExtensionManager.html", "classyaze_1_1editor_1_1ExtensionManager" ],
+    [ "FileDialogWrapper", "classyaze_1_1editor_1_1FileDialogWrapper.html", null ],
     [ "FlagsMenu", "structyaze_1_1editor_1_1FlagsMenu.html", "structyaze_1_1editor_1_1FlagsMenu" ],
     [ "GfxGroupEditor", "classyaze_1_1editor_1_1GfxGroupEditor.html", "classyaze_1_1editor_1_1GfxGroupEditor" ],
     [ "GraphicsEditor", "classyaze_1_1editor_1_1GraphicsEditor.html", "classyaze_1_1editor_1_1GraphicsEditor" ],
@@ -43,6 +45,7 @@ var namespaceyaze_1_1editor =
     [ "PaletteEditor", "classyaze_1_1editor_1_1PaletteEditor.html", "classyaze_1_1editor_1_1PaletteEditor" ],
     [ "ParsedElement", "structyaze_1_1editor_1_1ParsedElement.html", "structyaze_1_1editor_1_1ParsedElement" ],
     [ "PopupManager", "classyaze_1_1editor_1_1PopupManager.html", "classyaze_1_1editor_1_1PopupManager" ],
+    [ "Renderer", "classyaze_1_1editor_1_1Renderer.html", "classyaze_1_1editor_1_1Renderer" ],
     [ "ResourceManager", "classyaze_1_1editor_1_1ResourceManager.html", "classyaze_1_1editor_1_1ResourceManager" ],
     [ "ScreenEditor", "classyaze_1_1editor_1_1ScreenEditor.html", "classyaze_1_1editor_1_1ScreenEditor" ],
     [ "SettingsEditor", "classyaze_1_1editor_1_1SettingsEditor.html", "classyaze_1_1editor_1_1SettingsEditor" ],
@@ -69,6 +72,7 @@ var namespaceyaze_1_1editor =
       [ "MyItemColumnID_Quantity", "namespaceyaze_1_1editor.html#ae140ba674954cd458242f15e846c1756abba025e8b1647f3e5b4c3e78429e3e3f", null ],
       [ "MyItemColumnID_Description", "namespaceyaze_1_1editor.html#ae140ba674954cd458242f15e846c1756a65853caa51a38e7a70378dd42bce4ad5", null ]
     ] ],
+    [ "PaletteCategory", "namespaceyaze_1_1editor.html#a82a8956476ffc04750bcfc4120c8b8db", null ],
     [ "DisplayPalette", "namespaceyaze_1_1editor.html#a8657cfd46f4a80e164e0b2331c98ad98", null ],
     [ "FindMatchingCharacter", "namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c", null ],
     [ "FindDictionaryEntry", "namespaceyaze_1_1editor.html#a5f97797d62d6b1878a3b80aac1be3781", null ],
@@ -155,5 +159,6 @@ var namespaceyaze_1_1editor =
     [ "kOWMapTable", "namespaceyaze_1_1editor.html#a1d8e24b671e1338c02fbe726de12a0a3", null ],
     [ "kSpriteTabFlags", "namespaceyaze_1_1editor.html#a861a117f36af4cfe2abaaeb25a2bbc88", null ],
     [ "kSpriteTabBarFlags", "namespaceyaze_1_1editor.html#ae80653744ecd4402e10c58d26015bdd5", null ],
-    [ "kSpriteTableFlags", "namespaceyaze_1_1editor.html#a6d91eaa164b4529e047ae78ef99c47a0", null ]
+    [ "kSpriteTableFlags", "namespaceyaze_1_1editor.html#a6d91eaa164b4529e047ae78ef99c47a0", null ],
+    [ "kPaletteGroupAddressesKeys", "namespaceyaze_1_1editor.html#a56ca525964a966ffda0388092ee28f6f", null ]
 ];

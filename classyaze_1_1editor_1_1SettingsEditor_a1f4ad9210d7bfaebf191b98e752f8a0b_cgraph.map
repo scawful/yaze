@@ -1,7 +1,16 @@
 <map id="yaze::editor::SettingsEditor::DrawGeneralSettings" name="yaze::editor::SettingsEditor::DrawGeneralSettings">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,178,46"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1editor_1_1FlagsMenu.html#a9ec7705691303d073f59115ebc802126" title=" " alt="" coords="226,5,381,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,23,210,23,210,28,178,28"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1ExperimentFlags.html#a98e30d2636e67e3d74a45094733101e9" title=" " alt="" coords="429,13,633,38"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="382,23,413,23,413,28,382,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,104,178,145"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1editor_1_1FlagsMenu.html#a40feb9339d113fb5abc966c34738f9d5" title=" " alt="" coords="226,5,381,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,101,225,57,238,50,241,55,227,61,135,106"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1editor_1_1FlagsMenu.html#a45d0db5dbd68beac54e9859a1856fc58" title=" " alt="" coords="226,71,381,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="177,108,210,103,211,108,178,113"/>
+<area shape="rect" id="Node000005" href="$structyaze_1_1editor_1_1FlagsMenu.html#a8c942a96a2eadcd41f78d6c8b4a8ee28" title=" " alt="" coords="226,136,381,177"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="178,135,211,140,210,145,178,140"/>
+<area shape="rect" id="Node000006" href="$structyaze_1_1editor_1_1FlagsMenu.html#a2a9917c8dab89f300b4289f9e412114e" title=" " alt="" coords="226,201,381,242"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="136,143,227,186,241,192,238,197,225,191,134,148"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1ExperimentFlags.html#a98e30d2636e67e3d74a45094733101e9" title=" " alt="" coords="429,104,584,145"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="355,44,382,57,456,94,453,99,380,61,353,49"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="382,101,414,106,413,112,381,106"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="381,142,413,136,414,142,382,147"/>
+<area shape="poly" id="edge8_Node000006_Node000003" title=" " alt="" coords="353,198,380,186,452,150,454,154,382,191,355,203"/>
 </map>

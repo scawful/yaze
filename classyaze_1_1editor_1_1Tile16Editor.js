@@ -1,6 +1,7 @@
 var classyaze_1_1editor_1_1Tile16Editor =
 [
-    [ "InitBlockset", "classyaze_1_1editor_1_1Tile16Editor.html#a2a82406a489adbc4f52f740a2959e948", null ],
+    [ "Tile16Editor", "classyaze_1_1editor_1_1Tile16Editor.html#aa4d019bb935e10775d9c3df981399349", null ],
+    [ "InitBlockset", "classyaze_1_1editor_1_1Tile16Editor.html#af4da2f6eb3a133951f6d60cf1d9dac4a", null ],
     [ "Update", "classyaze_1_1editor_1_1Tile16Editor.html#af5248200d63e17797a0e46c5a887289d", null ],
     [ "DrawMenu", "classyaze_1_1editor_1_1Tile16Editor.html#a1936f52f7c9c46c7b8c00704d7008b07", null ],
     [ "DrawTile16Editor", "classyaze_1_1editor_1_1Tile16Editor.html#ad90acd59127f0cba15b8acefd02065ba", null ],
@@ -33,13 +34,13 @@ var classyaze_1_1editor_1_1Tile16Editor =
     [ "current_gfx_bmp_", "classyaze_1_1editor_1_1Tile16Editor.html#a08b89680033a225ea354624bfa5a6750", null ],
     [ "transfer_canvas_", "classyaze_1_1editor_1_1Tile16Editor.html#aa8dc89c48bd0fd03488d452d2cea9b8f", null ],
     [ "transfer_blockset_bmp_", "classyaze_1_1editor_1_1Tile16Editor.html#ac7d1ac724af2cd2cf2e3687858f2459f", null ],
-    [ "tile16_individual_", "classyaze_1_1editor_1_1Tile16Editor.html#af11dda90b6ada065bfb124170ce39551", null ],
+    [ "tile16_individual_", "classyaze_1_1editor_1_1Tile16Editor.html#af0a13d67e3a08a7c0c349a0052d2096f", null ],
     [ "current_gfx_individual_", "classyaze_1_1editor_1_1Tile16Editor.html#acb44562358c920567893e4e696850039", null ],
     [ "palette_editor_", "classyaze_1_1editor_1_1Tile16Editor.html#a39858d7f26a5bcf4589035d82b2e91c8", null ],
     [ "palette_", "classyaze_1_1editor_1_1Tile16Editor.html#a61adc8f98eb325913960254df65a8545", null ],
-    [ "transfer_overworld_", "classyaze_1_1editor_1_1Tile16Editor.html#ac309b551aff8196b14fc3ff3a5827c3e", null ],
     [ "status_", "classyaze_1_1editor_1_1Tile16Editor.html#a58ad362d4e7e090f25abeeb5cb3bed96", null ],
     [ "transfer_rom_", "classyaze_1_1editor_1_1Tile16Editor.html#af1515d7f46a859544e2278196190710b", null ],
+    [ "transfer_overworld_", "classyaze_1_1editor_1_1Tile16Editor.html#ac309b551aff8196b14fc3ff3a5827c3e", null ],
     [ "transfer_gfx_", "classyaze_1_1editor_1_1Tile16Editor.html#ae02ba7f4a73e310fde091e709fc24ef8", null ],
     [ "transfer_status_", "classyaze_1_1editor_1_1Tile16Editor.html#abf80f2d4061eb5dd8e622ef357e54679", null ]
 ];

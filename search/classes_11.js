@@ -12,7 +12,7 @@ var searchData=
   ['tile16transfer_9',['Tile16Transfer',['../classyaze_1_1cli_1_1Tile16Transfer.html',1,'yaze::cli']]],
   ['tile32_10',['Tile32',['../classyaze_1_1gfx_1_1Tile32.html',1,'yaze::gfx']]],
   ['tileinfo_11',['TileInfo',['../classyaze_1_1gfx_1_1TileInfo.html',1,'yaze::gfx']]],
-  ['tilemap_12',['Tilemap',['../structyaze_1_1emu_1_1Tilemap.html',1,'yaze::emu']]],
+  ['tilemap_12',['Tilemap',['../structyaze_1_1emu_1_1Tilemap.html',1,'yaze::emu::Tilemap'],['../structyaze_1_1test_1_1Tilemap.html',1,'yaze::test::Tilemap']]],
   ['tilemapentry_13',['TilemapEntry',['../structyaze_1_1emu_1_1TilemapEntry.html',1,'yaze::emu']]],
   ['tilemaplocation_14',['TileMapLocation',['../structyaze_1_1emu_1_1TileMapLocation.html',1,'yaze::emu']]],
   ['tilesheet_15',['Tilesheet',['../classyaze_1_1gfx_1_1Tilesheet.html',1,'yaze::gfx']]],

@@ -2,6 +2,7 @@ var namespaceyaze_1_1zelda3_1_1screen =
 [
     [ "DungeonMap", "structyaze_1_1zelda3_1_1screen_1_1DungeonMap.html", "structyaze_1_1zelda3_1_1screen_1_1DungeonMap" ],
     [ "Inventory", "classyaze_1_1zelda3_1_1screen_1_1Inventory.html", "classyaze_1_1zelda3_1_1screen_1_1Inventory" ],
+    [ "Renderer", "classyaze_1_1zelda3_1_1screen_1_1Renderer.html", "classyaze_1_1zelda3_1_1screen_1_1Renderer" ],
     [ "TitleScreen", "classyaze_1_1zelda3_1_1screen_1_1TitleScreen.html", "classyaze_1_1zelda3_1_1screen_1_1TitleScreen" ],
     [ "LoadDungeonMapGfxFromBinary", "namespaceyaze_1_1zelda3_1_1screen.html#acfae14194326f4ee49f9c31e8fe27173", null ],
     [ "LoadDungeonMapTile16", "namespaceyaze_1_1zelda3_1_1screen.html#a80a08b2ca44757520681ce56aa1fd1da", null ],

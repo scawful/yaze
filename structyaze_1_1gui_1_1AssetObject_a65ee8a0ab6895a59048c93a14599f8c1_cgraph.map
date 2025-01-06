@@ -1,5 +1,8 @@
 <map id="yaze::gui::AssetObject::SortWithSortSpecs" name="yaze::gui::AssetObject::SortWithSortSpecs">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,5,154,46"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1gui_1_1AssetObject.html#adfa1e167c16d446588f3dd56d071ac28" title=" " alt="" coords="202,5,368,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,23,186,23,186,28,154,28"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1gui_1_1AssetObject.html#a87ca7304e6ddd870b881396817f56340" title=" " alt="" coords="416,5,564,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,20,202,19,368,19,400,20,400,25,368,24,202,24,154,26"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1gui_1_1AssetObject.html#adfa1e167c16d446588f3dd56d071ac28" title=" " alt="" coords="202,33,368,74"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="154,33,186,38,186,43,154,38"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="368,40,400,35,401,40,369,45"/>
 </map>

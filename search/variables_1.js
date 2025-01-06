@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['b_0',['B',['../structyaze_1_1emu_1_1Spc700_1_1Flags.html#a37ad3b16c25497c840b84b6375280a16',1,'yaze::emu::Spc700::Flags']]],
+  ['b_0',['B',['../structyaze_1_1emu_1_1Spc700_1_1Flags.html#a37ad3b16c25497c840b84b6375280a16',1,'yaze::emu::Spc700::Flags::B'],['../structyaze_1_1test_1_1Spc700_1_1Flags.html#a37ad3b16c25497c840b84b6375280a16',1,'yaze::test::Spc700::Flags::B']]],
   ['b_1',['b',['../structyaze_1_1emu_1_1Color.html#ae21f87ce751f581f450d28d405247800',1,'yaze::emu::Color']]],
   ['b1_2',['b1',['../structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a3defc654952bb759cb80c8c410db299c',1,'yaze::zelda3::music::SpcCommand']]],
   ['b2_3',['b2',['../structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a631845029edd5d39b402d64ba609577b',1,'yaze::zelda3::music::SpcCommand']]],
@@ -101,10 +101,10 @@ var searchData=
   ['bounding_5fbox_5f_98',['bounding_box_',['../classyaze_1_1zelda3_1_1Sprite.html#a5f9d8570884b7591e11ed644993c268c',1,'yaze::zelda3::Sprite']]],
   ['bpp_99',['bpp',['../structyaze__bitmap.html#ab4ab5935eae3fb291b328c25e0c53cc0',1,'yaze_bitmap']]],
   ['bpp_5f_100',['bpp_',['../classyaze_1_1gfx_1_1GraphicsBuffer.html#a5a3ea3293db352ba41c6990eccf0f966',1,'yaze::gfx::GraphicsBuffer']]],
-  ['breakpoints_5f_101',['breakpoints_',['../classyaze_1_1emu_1_1Cpu.html#ad796950c0e9f4682bced251e55db1116',1,'yaze::emu::Cpu']]],
+  ['breakpoints_5f_101',['breakpoints_',['../classyaze_1_1emu_1_1Cpu.html#ad796950c0e9f4682bced251e55db1116',1,'yaze::emu::Cpu::breakpoints_'],['../classyaze_1_1test_1_1Cpu.html#ad796950c0e9f4682bced251e55db1116',1,'yaze::test::Cpu::breakpoints_']]],
   ['brightness_102',['brightness',['../structyaze_1_1emu_1_1ScreenDisplay.html#a29477c432daf3f1e07c17faa9a231b76',1,'yaze::emu::ScreenDisplay::brightness'],['../classyaze_1_1emu_1_1Ppu.html#afe7e11d8ce0bfe094cfb7237fbf8a535',1,'yaze::emu::Ppu::brightness'],['../structyaze_1_1emu_1_1INIDISP.html#afbdc24aa03b492183fdf9989383217ef',1,'yaze::emu::INIDISP::brightness']]],
   ['brrheader_103',['brrHeader',['../structyaze_1_1emu_1_1DspChannel.html#abbb8bd5519f388259898ace5fc41085e',1,'yaze::emu::DspChannel']]],
-  ['bstep_104',['bstep',['../classyaze_1_1emu_1_1Spc700.html#a20795fa7ea12a1e09f977df235728487',1,'yaze::emu::Spc700']]],
+  ['bstep_104',['bstep',['../classyaze_1_1emu_1_1Spc700.html#a20795fa7ea12a1e09f977df235728487',1,'yaze::emu::Spc700::bstep'],['../classyaze_1_1test_1_1Spc700.html#a20795fa7ea12a1e09f977df235728487',1,'yaze::test::Spc700::bstep']]],
   ['buf_105',['buf',['../structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#aadb07ef633b1216bcd884d207d9b43c4',1,'yaze::zelda3::music::SongSpcBlock::buf'],['../structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a98e8ad2d44b40c6437e4a8c5839ea160',1,'yaze::zelda3::music::ZeldaWave::buf']]],
   ['buffer_106',['buffer',['../structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#abf64a3b7756c907e04ea99a097761883',1,'yaze::editor::MessageEditor::TextBox']]],
   ['bufferoffset_107',['bufferOffset',['../structyaze_1_1emu_1_1DspChannel.html#a9b661b66b0e1f9b6f69ac976d72c33b4',1,'yaze::emu::DspChannel']]],
