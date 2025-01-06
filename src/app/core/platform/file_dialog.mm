@@ -1,11 +1,12 @@
 #include "app/core/platform/file_dialog.h"
 
+#include <iostream>
 #include <string>
 #include <vector>
-#include "imgui/imgui.h"
 
 #if defined(__APPLE__) && defined(__MACH__)
 /* Apple OSX and iOS (Darwin). */
+#include <Foundation/Foundation.h>
 #include <TargetConditionals.h>
 
 #import <CoreText/CoreText.h>
@@ -51,6 +52,13 @@ std::vector<std::string> yaze::core::FileDialogWrapper::GetFilesInFolder(
 std::vector<std::string> yaze::core::FileDialogWrapper::GetSubdirectoriesInFolder(
     const std::string &folder) {
   return {};
+}
+
+std::string yaze::core::GetBundleResourcePath() {
+  NSBundle* bundle = [NSBundle mainBundle];
+  NSString* resourceDirectoryPath = [bundle bundlePath];
+  NSString* path = [resourceDirectoryPath stringByAppendingString:@"/"];
+  return [path UTF8String];
 }
 
 #elif TARGET_OS_MAC == 1
@@ -125,6 +133,14 @@ std::vector<std::string> yaze::core::FileDialogWrapper::GetSubdirectoriesInFolde
   }
   return subdirectories;
 }
+
+std::string yaze::core::GetBundleResourcePath() {
+  NSBundle* bundle = [NSBundle mainBundle];
+  NSString* resourceDirectoryPath = [bundle bundlePath];
+  NSString* path = [resourceDirectoryPath stringByAppendingString:@"/"];
+  return [path UTF8String];
+}
+
 #else
 // Unsupported platform
 #endif  // TARGET_OS_MAC

@@ -4,7 +4,6 @@ set(
   app/core/controller.cc
   app/emu/emulator.cc
   app/core/project.cc
-  app/core/utils/file_util.cc
 )
 
 if (WIN32 OR MINGW OR UNIX AND NOT APPLE)
@@ -17,12 +16,12 @@ endif()
 
 if(APPLE)
     list(APPEND YAZE_APP_CORE_SRC
+      app/core/platform/file_dialog.cc
       app/core/platform/file_dialog.mm
       app/core/platform/app_delegate.mm
       app/core/platform/font_loader.cc
       app/core/platform/font_loader.mm
       app/core/platform/clipboard.mm
-      app/core/platform/file_path.mm
     )
 
     find_library(COCOA_LIBRARY Cocoa)

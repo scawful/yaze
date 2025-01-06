@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "app/core/platform/file_path.h"
+#include "app/core/platform/file_dialog.h"
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
 #include "imgui/imgui.h"

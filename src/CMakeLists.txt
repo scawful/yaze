@@ -34,6 +34,8 @@ foreach (FILE ${YAZE_RESOURCE_FILES})
   )
 endforeach()
 
+add_subdirectory(lib/nativefiledialog-extended)
+
 if (YAZE_BUILD_APP)
   include(app/app.cmake)
 endif()

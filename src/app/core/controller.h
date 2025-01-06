@@ -7,7 +7,7 @@
 
 #include "absl/status/status.h"
 #include "app/core/platform/renderer.h"
-#include "app/core/utils/file_util.h"
+#include "app/core/platform/file_dialog.h"
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
 #include "imgui/backends/imgui_impl_sdl2.h"

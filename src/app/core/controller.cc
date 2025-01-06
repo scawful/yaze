@@ -10,7 +10,7 @@
 #include "app/core/platform/font_loader.h"
 #include "app/editor/editor_manager.h"
 #include "app/gui/style.h"
-#include "core/utils/file_util.h"
+#include "app/core/platform/file_dialog.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
