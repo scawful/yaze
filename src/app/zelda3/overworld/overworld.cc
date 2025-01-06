@@ -281,6 +281,7 @@ absl::Status Overworld::LoadOverworldMaps() {
 
   // Wait for all tasks to complete and check their results
   for (auto &future : futures) {
+    future.wait();
     RETURN_IF_ERROR(future.get());
   }
   return absl::OkStatus();
@@ -447,13 +448,21 @@ absl::Status Overworld::LoadItems() {
 }
 
 absl::Status Overworld::LoadSprites() {
-  for (int i = 0; i < 3; i++) {
-    all_sprites_.emplace_back();
-  }
+  std::vector<std::future<absl::Status>> futures;
+	futures.emplace_back(std::async(std::launch::async, [this]() {
+		return LoadSpritesFromMap(kOverworldSpritesBeginning, 64, 0);
+		}));
+	futures.emplace_back(std::async(std::launch::async, [this]() {
+		return LoadSpritesFromMap(kOverworldSpritesZelda, 144, 1);
+		}));
+	futures.emplace_back(std::async(std::launch::async, [this]() {
+		return LoadSpritesFromMap(kOverworldSpritesAgahnim, 144, 2);
+		}));
 
-  RETURN_IF_ERROR(LoadSpritesFromMap(kOverworldSpritesBeginning, 64, 0));
-  RETURN_IF_ERROR(LoadSpritesFromMap(kOverworldSpritesZelda, 144, 1));
-  RETURN_IF_ERROR(LoadSpritesFromMap(kOverworldSpritesAgahnim, 144, 2));
+	for (auto& future : futures) {
+		future.wait();
+		RETURN_IF_ERROR(future.get());
+	}
   return absl::OkStatus();
 }
 
@@ -484,8 +493,8 @@ absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,
 
       int realX = ((b2 & 0x3F) * 16) + mapX * 512;
       int realY = ((b1 & 0x3F) * 16) + mapY * 512;
-      auto current_gfx = overworld_maps_[i].current_graphics();
-      all_sprites_[game_state].emplace_back(current_gfx, (uint8_t)i, b3,
+      all_sprites_[game_state].emplace_back(*overworld_maps_[i].mutable_current_graphics(), 
+                                            (uint8_t)i, b3,
                                             (uint8_t)(b2 & 0x3F),
                                             (uint8_t)(b1 & 0x3F), realX, realY);
       all_sprites_[game_state][i].Draw();
