@@ -27,13 +27,13 @@ void Room::LoadHeader() {
 
   auto header_location = core::SnesToPc(address);
 
-  bg2_ = (z3_dungeon_room::background2)((rom()->data()[header_location] >> 5) &
+  bg2_ = (background2)((rom()->data()[header_location] >> 5) &
                                         0x07);
   collision_ = (CollisionKey)((rom()->data()[header_location] >> 2) & 0x07);
   is_light_ = ((rom()->data()[header_location]) & 0x01) == 1;
 
   if (is_light_) {
-    bg2_ = z3_dungeon_room::background2::DarkRoom;
+    bg2_ = background2::DarkRoom;
   }
 
   palette = ((rom()->data()[header_location + 1] & 0x3F));
@@ -374,7 +374,7 @@ void Room::LoadObjects() {
           if (nbr_of_staircase < 4) {
             tile_objects_.back().set_options(ObjectOption::Stairs |
                                              tile_objects_.back().options());
-            z3_staircases_.push_back(z3_dungeon_room::staircase(
+            z3_staircases_.push_back(staircase(
                 posX, posY,
                 absl::StrCat("To ", staircase_rooms_[nbr_of_staircase])
                     .data()));
@@ -383,7 +383,7 @@ void Room::LoadObjects() {
             tile_objects_.back().set_options(ObjectOption::Stairs |
                                              tile_objects_.back().options());
             z3_staircases_.push_back(
-                z3_dungeon_room::staircase(posX, posY, "To ???"));
+                staircase(posX, posY, "To ???"));
           }
         }
       }
@@ -479,7 +479,7 @@ void Room::LoadChests() {
       }
 
       chests_in_room_.emplace_back(
-          z3_dungeon_room::chest_data(rom_data[cpos + (i * 3) + 2], big));
+          chest_data(rom_data[cpos + (i * 3) + 2], big));
     }
   }
 }
