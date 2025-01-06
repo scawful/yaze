@@ -177,13 +177,13 @@ class Room : public SharedRom {
   int64_t room_size_pointer_;
 
   std::array<uint8_t, 16> blocks_;
-  std::array<uchar, 16> chest_list_;
+  std::array<z3_chest, 16> chest_list_;
 
   std::array<gfx::Bitmap, 3> background_bmps_;
   std::vector<RoomObject> tile_objects_;
   std::vector<zelda3::Sprite> sprites_;
-  std::vector<z3_staircase> z3_staircases_;
-  std::vector<z3_chest_data> chests_in_room_;
+  std::vector<z3_dungeon_room::staircase> z3_staircases_;
+  std::vector<z3_dungeon_room::chest_data> chests_in_room_;
 
   LayerMergeType layer_merging_;
   CollisionKey collision_;
@@ -191,12 +191,12 @@ class Room : public SharedRom {
   TagKey tag1_;
   TagKey tag2_;
 
-  z3_dungeon_background2 bg2_;
-  z3_dungeon_destination pits_;
-  z3_dungeon_destination stair1_;
-  z3_dungeon_destination stair2_;
-  z3_dungeon_destination stair3_;
-  z3_dungeon_destination stair4_;
+  z3_dungeon_room::background2 bg2_;
+  z3_dungeon_room::destination pits_;
+  z3_dungeon_room::destination stair1_;
+  z3_dungeon_room::destination stair2_;
+  z3_dungeon_room::destination stair3_;
+  z3_dungeon_room::destination stair4_;
 };
 
 constexpr std::string_view kRoomNames[] = {
