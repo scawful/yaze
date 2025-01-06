@@ -533,7 +533,7 @@ void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color) {
 }
 
 void Canvas::DrawBitmapGroup(std::vector<int> &group,
-                             std::vector<gfx::Bitmap> &tile16_individual_,
+                             std::array<gfx::Bitmap, 4096> &tile16_individual_,
                              int tile_size, float scale) {
   if (selected_points_.size() != 2) {
     // points_ should contain exactly two points

@@ -27,6 +27,24 @@
 #include "app/gfx/snes_tile.h"
 
 namespace yaze {
+
+constexpr uint32_t kNumGfxSheets = 223;
+constexpr uint32_t kNumLinkSheets = 14;
+constexpr uint32_t kTile16Ptr = 0x78000;
+constexpr uint32_t kNormalGfxSpaceStart = 0x87000;
+constexpr uint32_t kNormalGfxSpaceEnd = 0xC4200;
+constexpr uint32_t kFontSpriteLocation = 0x70000;
+constexpr uint32_t kGfxGroupsPointer = 0x6237;
+constexpr uint32_t kUncompressedSheetSize = 0x0800;
+constexpr uint32_t kNumMainBlocksets = 37;
+constexpr uint32_t kNumRoomBlocksets = 82;
+constexpr uint32_t kNumSpritesets = 144;
+constexpr uint32_t kNumPalettesets = 72;
+constexpr uint32_t kEntranceGfxGroup = 0x5D97;
+
+// TODO: Verify what this was used for in ZS
+constexpr uint32_t kMaxGraphics = 0xC3FB5;
+
 /**
  * @brief Different versions of the game supported by the Rom class.
  */
@@ -111,53 +129,12 @@ static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
     {Z3_Version::RANDO, {}},
 };
 
-constexpr uint32_t kNumGfxSheets = 223;
-constexpr uint32_t kNumLinkSheets = 14;
-constexpr uint32_t kTile16Ptr = 0x78000;
-constexpr uint32_t kNormalGfxSpaceStart = 0x87000;
-constexpr uint32_t kNormalGfxSpaceEnd = 0xC4200;
-constexpr uint32_t kFontSpriteLocation = 0x70000;
-constexpr uint32_t kGfxGroupsPointer = 0x6237;
-constexpr uint32_t kUncompressedSheetSize = 0x0800;
-constexpr uint32_t kNumMainBlocksets = 37;
-constexpr uint32_t kNumRoomBlocksets = 82;
-constexpr uint32_t kNumSpritesets = 144;
-constexpr uint32_t kNumPalettesets = 72;
-constexpr uint32_t kEntranceGfxGroup = 0x5D97;
-
-// TODO: Verify what this was used for in ZS
-constexpr uint32_t kMaxGraphics = 0xC3FB5;
 
 /**
  * @brief The Rom class is used to load, save, and modify Rom data.
  */
 class Rom {
  public:
-  /**
-   * @brief Loads the players 4bpp graphics sheet from Rom data.
-   */
-  absl::Status LoadLinkGraphics();
-
-  /**
-   * @brief This function iterates over all graphics sheets in the Rom and loads
-   * them into memory. Depending on the sheet's index, it may be uncompressed or
-   * compressed using the LC-LZ2 algorithm. The uncompressed sheets are 3 bits
-   * per pixel (BPP), while the compressed sheets are 4 BPP. The loaded graphics
-   * data is converted to 8 BPP and stored in a bitmap.
-   *
-   * The graphics sheets are divided into the following ranges:
-   *
-   * | Range   | Compression Type | Decompressed Size | Number of Chars |
-   * |---------|------------------|------------------|-----------------|
-   * | 0-112   | Compressed 3bpp BGR | 0x600 chars | Decompressed each |
-   * | 113-114 | Compressed 2bpp | 0x800 chars | Decompressed each |
-   * | 115-126 | Uncompressed 3bpp sprites | 0x600 chars | Each |
-   * | 127-217 | Compressed 3bpp sprites | 0x600 chars | Decompressed each |
-   * | 218-222 | Compressed 2bpp | 0x800 chars | Decompressed each |
-   *
-   */
-  absl::Status LoadAllGraphicsData(bool defer_render = false);
-
   /**
    * Load Rom data from a file.
    *
@@ -180,8 +157,6 @@ class Rom {
    */
   absl::Status SaveToFile(bool backup, bool save_new = false,
                           std::string filename = "");
-
-  absl::Status SaveAllGraphicsData();
 
   /**
    * Saves the given palette to the Rom if any of its colors have been modified.
@@ -222,7 +197,7 @@ class Rom {
   /**
    * @brief Precondition check for reading and writing to the Rom.
    */
-  absl::Status ReadWritePreconditions() {
+  absl::Status ReadWritePreconditions() const {
     if (!is_loaded_) {
       return absl::FailedPreconditionError("ROM file not loaded");
     }
@@ -233,7 +208,6 @@ class Rom {
     return absl::OkStatus();
   }
 
-  // Read functions
   absl::StatusOr<uint8_t> ReadByte(int offset) {
     RETURN_IF_ERROR(ReadWritePreconditions());
     if (offset >= static_cast<int>(rom_data_.size())) {
@@ -251,10 +225,6 @@ class Rom {
     return result;
   }
 
-  uint16_t toint16(int offset) {
-    return (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
-  }
-
   absl::StatusOr<uint32_t> ReadLong(int offset) {
     RETURN_IF_ERROR(ReadWritePreconditions());
     if (offset + 2 >= static_cast<int>(rom_data_.size())) {
@@ -266,7 +236,7 @@ class Rom {
   }
 
   absl::StatusOr<std::vector<uint8_t>> ReadByteVector(uint32_t offset,
-                                                      uint32_t length) {
+                                                      uint32_t length) const {
     RETURN_IF_ERROR(ReadWritePreconditions());
     if (offset + length > static_cast<uint32_t>(rom_data_.size())) {
       return absl::OutOfRangeError("Offset and length out of range");
@@ -281,7 +251,7 @@ class Rom {
   absl::StatusOr<gfx::Tile16> ReadTile16(uint32_t tile16_id) {
     // Skip 8 bytes per tile.
     auto tpos = kTile16Ptr + (tile16_id * 0x08);
-    gfx::Tile16 tile16;
+		gfx::Tile16 tile16 = {};
     ASSIGN_OR_RETURN(auto new_tile0, ReadWord(tpos))
     tile16.tile0_ = gfx::WordToTileInfo(new_tile0);
     tpos += 2;
@@ -306,17 +276,6 @@ class Rom {
     RETURN_IF_ERROR(WriteShort(tpos, gfx::TileInfoToWord(tile.tile2_)));
     tpos += 2;
     RETURN_IF_ERROR(WriteShort(tpos, gfx::TileInfoToWord(tile.tile3_)));
-    return absl::OkStatus();
-  }
-
-  // Write functions
-  absl::Status Write(int addr, int value) {
-    if (addr >= static_cast<int>(rom_data_.size())) {
-      return absl::InvalidArgumentError(absl::StrFormat(
-          "Attempt to write %d value failed, address %d out of range", value,
-          addr));
-    }
-    rom_data_[addr] = value;
     return absl::OkStatus();
   }
 
@@ -419,9 +378,7 @@ class Rom {
 
   uint8_t& operator[](unsigned long i) {
     if (i > size_) {
-      std::cout << "ROM: Index " << i << " out of bounds, size: " << size_
-                << std::endl;
-      return rom_data_[0];
+			throw std::out_of_range("Rom index out of range");
     }
     return rom_data_[i];
   }
@@ -434,14 +391,10 @@ class Rom {
     return is_loaded_;
   }
 
-  // Full graphical data for the game
-  std::vector<uint8_t> graphics_buffer() const { return graphics_buffer_; }
-
   auto title() const { return title_; }
   auto size() const { return size_; }
   auto data() const { return rom_data_.data(); }
   auto mutable_data() { return rom_data_.data(); }
-
   auto begin() { return rom_data_.begin(); }
   auto end() { return rom_data_.end(); }
 
@@ -450,12 +403,9 @@ class Rom {
   auto filename() const { return filename_; }
   auto set_filename(std::string name) { filename_ = name; }
 
-  auto link_graphics() { return link_graphics_; }
-  auto mutable_link_graphics() { return &link_graphics_; }
-  auto gfx_sheets() { return graphics_sheets_; }
-  auto mutable_gfx_sheets() { return &graphics_sheets_; }
-
-  auto palette_group() { return palette_groups_; }
+  std::vector<uint8_t> graphics_buffer() const { return graphics_buffer_; }
+  auto mutable_graphics_buffer() { return &graphics_buffer_; }
+  auto palette_group() const { return palette_groups_; }
   auto mutable_palette_group() { return &palette_groups_; }
   auto dungeon_palette(int i) { return palette_groups_.dungeon_main[i]; }
   auto mutable_dungeon_palette(int i) {
@@ -482,7 +432,7 @@ class Rom {
  private:
   virtual absl::Status WriteHelper(const WriteAction& action) {
     if (std::holds_alternative<uint8_t>(action.value)) {
-      return Write(action.address, std::get<uint8_t>(action.value));
+      return WriteByte(action.address, std::get<uint8_t>(action.value));
     } else if (std::holds_alternative<uint16_t>(action.value) ||
                std::holds_alternative<short>(action.value)) {
       return WriteShort(action.address, std::get<uint16_t>(action.value));
@@ -538,12 +488,6 @@ class Rom {
   // Full contiguous graphics space
   std::vector<uint8_t> graphics_buffer_;
 
-  // All graphics sheets in the game
-  std::array<gfx::Bitmap, kNumGfxSheets> graphics_sheets_;
-
-  // All graphics sheets for Link
-  std::array<gfx::Bitmap, kNumLinkSheets> link_graphics_;
-
   // Label manager for unique resource names.
   ResourceLabelManager resource_label_manager_;
 
@@ -554,6 +498,44 @@ class Rom {
   Z3_Version version_ = Z3_Version::US;
 };
 
+class GraphicsSheetManager {
+public:
+	static GraphicsSheetManager& GetInstance() {
+		static GraphicsSheetManager instance;
+		return instance;
+	}
+  GraphicsSheetManager() = default;
+  virtual ~GraphicsSheetManager() = default;
+  std::array<gfx::Bitmap, kNumGfxSheets>& gfx_sheets() { return gfx_sheets_; }
+  auto gfx_sheet(int i) { return gfx_sheets_[i]; }
+  auto mutable_gfx_sheet(int i) { return &gfx_sheets_[i]; }
+	auto mutable_gfx_sheets() { return &gfx_sheets_; }
+private:
+  std::array<gfx::Bitmap, kNumGfxSheets> gfx_sheets_;
+};
+
+/**
+ * @brief This function iterates over all graphics sheets in the Rom and loads
+ * them into memory. Depending on the sheet's index, it may be uncompressed or
+ * compressed using the LC-LZ2 algorithm. The uncompressed sheets are 3 bits
+ * per pixel (BPP), while the compressed sheets are 4 BPP. The loaded graphics
+ * data is converted to 8 BPP and stored in a bitmap.
+ *
+ * The graphics sheets are divided into the following ranges:
+ *
+ * | Range   | Compression Type | Decompressed Size | Number of Chars |
+ * |---------|------------------|------------------|-----------------|
+ * | 0-112   | Compressed 3bpp BGR | 0x600 chars | Decompressed each |
+ * | 113-114 | Compressed 2bpp | 0x800 chars | Decompressed each |
+ * | 115-126 | Uncompressed 3bpp sprites | 0x600 chars | Each |
+ * | 127-217 | Compressed 3bpp sprites | 0x600 chars | Decompressed each |
+ * | 218-222 | Compressed 2bpp | 0x800 chars | Decompressed each |
+ *
+ */
+absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(Rom& rom, bool defer_render = false);
+
+absl::Status SaveAllGraphicsData(Rom& rom, std::array<gfx::Bitmap, kNumGfxSheets>& gfx_sheets);
+
 /**
  * @brief Loads 2bpp graphics from Rom data.
  *
@@ -563,6 +545,11 @@ class Rom {
  *
  */
 absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom& rom);
+
+/**
+ * @brief Loads the players 4bpp graphics sheet from Rom data.
+ */
+absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(const Rom& rom);
 
 /**
  * @brief A class to hold a shared pointer to a Rom object.

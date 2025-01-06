@@ -6,8 +6,16 @@
 namespace yaze {
 namespace core {
 
-void LoadSystemFonts();
+struct FontConfig {
+	const char* font_path;
+	float font_size;
+};
+
 absl::Status LoadPackageFonts();
+
+absl::Status ReloadPackageFont(const FontConfig& config);
+
+void LoadSystemFonts();
 
 }  // namespace core
 }  // namespace yaze

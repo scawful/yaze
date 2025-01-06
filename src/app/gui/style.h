@@ -66,6 +66,8 @@ void DrawDisplaySettings(ImGuiStyle *ref = nullptr);
 
 void TextWithSeparators(const absl::string_view &text);
 
+void DrawFontManager();
+
 static const char *ExampleNames[] = {
     "Artichoke",      "Arugula",          "Asparagus",    "Avocado",
     "Bamboo Shoots",  "Bean Sprouts",     "Beans",        "Beet",

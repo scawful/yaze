@@ -383,10 +383,10 @@ void ScreenEditor::DrawDungeonMapsEditor() {
 
     if (LoadDungeonMapTile16(rom()->graphics_buffer()).ok()) {
       // TODO: Load roomset gfx based on dungeon ID
-      sheets_.emplace(0, rom()->gfx_sheets()[212]);
-      sheets_.emplace(1, rom()->gfx_sheets()[213]);
-      sheets_.emplace(2, rom()->gfx_sheets()[214]);
-      sheets_.emplace(3, rom()->gfx_sheets()[215]);
+      sheets_.emplace(0, GraphicsSheetManager::GetInstance().gfx_sheets()[212]);
+      sheets_.emplace(1, GraphicsSheetManager::GetInstance().gfx_sheets()[213]);
+      sheets_.emplace(2, GraphicsSheetManager::GetInstance().gfx_sheets()[214]);
+      sheets_.emplace(3, GraphicsSheetManager::GetInstance().gfx_sheets()[215]);
       int current_tile8 = 0;
       int tile_data_offset = 0;
       for (int i = 0; i < 4; ++i) {

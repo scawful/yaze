@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_MESSAGE_EDITOR_H
 #define YAZE_APP_EDITOR_MESSAGE_EDITOR_H
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -81,16 +82,13 @@ class MessageEditor : public Editor, public SharedRom {
   int text_position_ = 0;
   int shown_lines_ = 0;
 
-  uint8_t width_array[kWidthArraySize];
-
   std::string search_text_ = "";
 
+	std::array<uint8_t, kWidthArraySize> width_array = {0};
   std::vector<uint8_t> font_gfx16_data_;
   std::vector<uint8_t> current_font_gfx16_data_;
   std::vector<std::string> parsed_messages_;
-
   std::vector<MessageData> list_of_texts_;
-
   std::vector<DictionaryEntry> all_dictionaries_;
 
   MessageData current_message_;

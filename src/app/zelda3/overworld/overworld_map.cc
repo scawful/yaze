@@ -71,7 +71,13 @@ void OverworldMap::LoadAreaInfo() {
     }
   }
 
-  message_id_ = rom_.toint16(kOverworldMessageIds + (parent_ * 2));
+	auto message_id = rom_.ReadWord(kOverworldMessageIds + (parent_ * 2));
+  if (message_id.ok()) {
+    message_id_ = message_id.value();
+  } else {
+		message_id_ = 0;
+		core::logf("Error reading message id for map %d", parent_);
+  }
 
   if (index_ < kDarkWorldMapIdStart) {
     area_graphics_ = rom_[kAreaGfxIdPtr + parent_];

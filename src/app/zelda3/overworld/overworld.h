@@ -109,16 +109,19 @@ constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
  */
 class Overworld : public SharedRom {
  public:
+  Overworld(Rom& rom) : rom_(rom) {}
+
   absl::Status Load(Rom &rom);
   absl::Status LoadOverworldMaps();
   void LoadTileTypes();
-  void LoadEntrances();
+  absl::Status LoadEntrances();
+  absl::Status LoadHoles();
 
   absl::Status LoadExits();
   absl::Status LoadItems();
   absl::Status LoadSprites();
-  absl::Status LoadSpritesFromMap(int spriteStart, int spriteCount,
-                                  int spriteIndex);
+  absl::Status LoadSpritesFromMap(int sprite_start, int sprite_count,
+                                  int sprite_index);
 
   absl::Status Save(Rom &rom);
   absl::Status SaveOverworldMaps();
@@ -143,7 +146,9 @@ class Overworld : public SharedRom {
     all_entrances_.clear();
     all_exits_.clear();
     all_items_.clear();
-    all_sprites_.clear();
+		for (auto& sprites : all_sprites_) {
+			sprites.clear();
+		}
     is_loaded_ = false;
   }
 
@@ -227,7 +232,7 @@ class Overworld : public SharedRom {
                         int &ttpos);
   void DecompressAllMapTiles();
 
-  Rom rom_;
+  Rom& rom_;
 
   bool is_loaded_ = false;
   bool expanded_tile16_ = false;
@@ -240,8 +245,8 @@ class Overworld : public SharedRom {
 
   OverworldMapTiles map_tiles_;
 
-  std::array<uint8_t, kNumOverworldMaps> map_parent_;
-  std::array<uint8_t, kNumTileTypes> all_tiles_types_;
+	std::array<uint8_t, kNumOverworldMaps> map_parent_ = { 0 };
+	std::array<uint8_t, kNumTileTypes> all_tiles_types_ = { 0 };
   std::vector<gfx::Tile16> tiles16_;
   std::vector<gfx::Tile32> tiles32_;
   std::vector<uint16_t> tiles32_list_;
@@ -251,7 +256,7 @@ class Overworld : public SharedRom {
   std::vector<OverworldEntrance> all_holes_;
   std::vector<OverworldExit> all_exits_;
   std::vector<OverworldItem> all_items_;
-  std::vector<std::vector<Sprite>> all_sprites_;
+  std::array<std::vector<Sprite>, 3> all_sprites_;
   std::vector<uint64_t> deleted_entrances_;
   std::vector<std::vector<uint8_t>> map_data_p1 =
       std::vector<std::vector<uint8_t>>(kNumOverworldMaps);
