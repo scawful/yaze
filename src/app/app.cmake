@@ -49,6 +49,11 @@ target_include_directories(
 )
 
 target_link_libraries(
+  yaze PRIVATE
+  nfd
+)
+
+target_link_libraries(
   yaze PUBLIC
   asar-static
   ${ABSL_TARGETS}

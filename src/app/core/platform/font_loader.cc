@@ -9,7 +9,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "app/core/platform/file_path.h"
+#include "app/core/platform/file_dialog.h"
 #include "app/gui/icons.h"
 #include "imgui/imgui.h"
 
