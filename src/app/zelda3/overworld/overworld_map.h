@@ -110,6 +110,7 @@ class OverworldMap : public gfx::GfxContext {
   auto static_graphics(int i) const { return static_graphics_[i]; }
   auto large_index() const { return large_index_; }
 
+	auto mutable_current_graphics() { return &current_gfx_; }
   auto mutable_area_graphics() { return &area_graphics_; }
   auto mutable_area_palette() { return &area_palette_; }
   auto mutable_sprite_graphics(int i) { return &sprite_graphics_[i]; }
