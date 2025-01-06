@@ -114,13 +114,14 @@ class Overworld : public SharedRom {
   absl::Status Load(Rom &rom);
   absl::Status LoadOverworldMaps();
   void LoadTileTypes();
-  void LoadEntrances();
+  absl::Status LoadEntrances();
+  absl::Status LoadHoles();
 
   absl::Status LoadExits();
   absl::Status LoadItems();
   absl::Status LoadSprites();
-  absl::Status LoadSpritesFromMap(int spriteStart, int spriteCount,
-                                  int spriteIndex);
+  absl::Status LoadSpritesFromMap(int sprite_start, int sprite_count,
+                                  int sprite_index);
 
   absl::Status Save(Rom &rom);
   absl::Status SaveOverworldMaps();
@@ -145,7 +146,9 @@ class Overworld : public SharedRom {
     all_entrances_.clear();
     all_exits_.clear();
     all_items_.clear();
-    all_sprites_.clear();
+		for (auto& sprites : all_sprites_) {
+			sprites.clear();
+		}
     is_loaded_ = false;
   }
 

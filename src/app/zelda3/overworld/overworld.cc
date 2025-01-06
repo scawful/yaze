@@ -25,7 +25,8 @@ absl::Status Overworld::Load(Rom &rom) {
     overworld_maps_.emplace_back(map_index, rom_);
 
   FetchLargeMaps();
-  LoadEntrances();
+  RETURN_IF_ERROR(LoadEntrances());
+  RETURN_IF_ERROR(LoadHoles());
   RETURN_IF_ERROR(LoadExits());
   RETURN_IF_ERROR(LoadItems());
   RETURN_IF_ERROR(LoadSprites());
@@ -294,7 +295,7 @@ void Overworld::LoadTileTypes() {
   }
 }
 
-void Overworld::LoadEntrances() {
+absl::Status Overworld::LoadEntrances() {
   int ow_entrance_map_ptr = kOverworldEntranceMap;
   int ow_entrance_pos_ptr = kOverworldEntrancePos;
   int ow_entrance_id_ptr = kOverworldEntranceEntranceId;
@@ -308,9 +309,9 @@ void Overworld::LoadEntrances() {
   }
 
   for (int i = 0; i < num_entrances; i++) {
-    short map_id = rom()->toint16(ow_entrance_map_ptr + (i * 2));
-    uint16_t map_pos = rom()->toint16(ow_entrance_pos_ptr + (i * 2));
-    uint8_t entrance_id = rom_[ow_entrance_id_ptr + i];
+		ASSIGN_OR_RETURN(auto map_id, rom()->ReadWord(ow_entrance_map_ptr + (i * 2)));
+		ASSIGN_OR_RETURN(auto map_pos, rom()->ReadWord(ow_entrance_pos_ptr + (i * 2)));
+		ASSIGN_OR_RETURN(auto entrance_id, rom()->ReadByte(ow_entrance_id_ptr + i));
     int p = map_pos >> 1;
     int x = (p % 64);
     int y = (p >> 6);
@@ -324,20 +325,25 @@ void Overworld::LoadEntrances() {
         deleted);
   }
 
-  for (int i = 0; i < 0x13; i++) {
-    auto map_id = (short)((rom_[kOverworldHoleArea + (i * 2) + 1] << 8) +
-                          (rom_[kOverworldHoleArea + (i * 2)]));
-    auto map_pos = (short)((rom_[kOverworldHolePos + (i * 2) + 1] << 8) +
-                           (rom_[kOverworldHolePos + (i * 2)]));
-    uint8_t entrance_id = (rom_[kOverworldHoleEntrance + i]);
+  
+  return absl::OkStatus();
+}
+
+absl::Status Overworld::LoadHoles() {
+	constexpr int kNumHoles = 0x13;
+  for (int i = 0; i < kNumHoles; i++) {
+		ASSIGN_OR_RETURN(auto map_id, rom()->ReadWord(kOverworldHoleArea + (i * 2)));
+		ASSIGN_OR_RETURN(auto map_pos, rom()->ReadWord(kOverworldHolePos + (i * 2)));
+		ASSIGN_OR_RETURN(auto entrance_id, rom()->ReadByte(kOverworldHoleEntrance + i));
     int p = (map_pos + 0x400) >> 1;
     int x = (p % 64);
     int y = (p >> 6);
     all_holes_.emplace_back(
-        (x * 16) + (((map_id % 64) - (((map_id % 64) / 8) * 8)) * 512),
-        (y * 16) + (((map_id % 64) / 8) * 512), entrance_id, map_id,
-        (uint16_t)(map_pos + 0x400), true);
+      (x * 16) + (((map_id % 64) - (((map_id % 64) / 8) * 8)) * 512),
+      (y * 16) + (((map_id % 64) / 8) * 512), entrance_id, map_id,
+      (uint16_t)(map_pos + 0x400), true);
   }
+	return absl::OkStatus();
 }
 
 absl::Status Overworld::LoadExits() {
@@ -668,7 +674,7 @@ absl::Status Overworld::SaveLargeMaps() {
 
     // Always write the map parent since it should not matter
     RETURN_IF_ERROR(
-        rom()->Write(kOverworldMapParentId + i, overworld_maps_[i].parent()))
+        rom()->WriteByte(kOverworldMapParentId + i, overworld_maps_[i].parent()))
 
     if (std::find(checked_map.begin(), checked_map.end(), i) !=
         checked_map.end()) {
@@ -1331,10 +1337,10 @@ absl::Status Overworld::SaveMap16Expanded() {
   RETURN_IF_ERROR(rom()->WriteShort(core::SnesToPc(0x02FE33),
                                     core::PcToSnes(kMap16TilesExpanded + 6)));
 
-  RETURN_IF_ERROR(rom()->Write(
+  RETURN_IF_ERROR(rom()->WriteByte(
       core::SnesToPc(0x02FD28),
       static_cast<uint8_t>(core::PcToSnes(kMap16TilesExpanded) >> 16)));
-  RETURN_IF_ERROR(rom()->Write(
+  RETURN_IF_ERROR(rom()->WriteByte(
       core::SnesToPc(0x02FD39),
       static_cast<uint8_t>(core::PcToSnes(kMap16TilesExpanded) >> 16)));
 
@@ -1401,7 +1407,7 @@ absl::Status Overworld::SaveExits() {
   for (int i = 0; i < kNumOverworldExits; i++) {
     RETURN_IF_ERROR(
         rom()->WriteShort(OWExitRoomId + (i * 2), all_exits_[i].room_id_));
-    RETURN_IF_ERROR(rom()->Write(OWExitMapId + i, all_exits_[i].map_id_));
+    RETURN_IF_ERROR(rom()->WriteByte(OWExitMapId + i, all_exits_[i].map_id_));
     RETURN_IF_ERROR(
         rom()->WriteShort(OWExitVram + (i * 2), all_exits_[i].map_pos_));
     RETURN_IF_ERROR(

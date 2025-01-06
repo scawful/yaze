@@ -19,10 +19,14 @@ absl::Status Inventory::Create() {
   }
   RETURN_IF_ERROR(BuildTileset())
   for (int i = 0; i < 0x500; i += 0x08) {
-    tiles_.push_back(gfx::GetTilesInfo(rom()->toint16(i + kBowItemPos)));
-    tiles_.push_back(gfx::GetTilesInfo(rom()->toint16(i + kBowItemPos + 0x02)));
-    tiles_.push_back(gfx::GetTilesInfo(rom()->toint16(i + kBowItemPos + 0x04)));
-    tiles_.push_back(gfx::GetTilesInfo(rom()->toint16(i + kBowItemPos + 0x08)));
+    ASSIGN_OR_RETURN(auto t1, rom()->ReadWord(i + kBowItemPos));
+		ASSIGN_OR_RETURN(auto t2, rom()->ReadWord(i + kBowItemPos + 0x02));
+		ASSIGN_OR_RETURN(auto t3, rom()->ReadWord(i + kBowItemPos + 0x04));
+		ASSIGN_OR_RETURN(auto t4, rom()->ReadWord(i + kBowItemPos + 0x06));
+		tiles_.push_back(gfx::GetTilesInfo(t1));
+		tiles_.push_back(gfx::GetTilesInfo(t2));
+		tiles_.push_back(gfx::GetTilesInfo(t3));
+		tiles_.push_back(gfx::GetTilesInfo(t4));
   }
   const int offsets[] = {0x00, 0x08, 0x800, 0x808};
   auto xx = 0;
