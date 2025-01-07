@@ -201,7 +201,7 @@ absl::Status ScreenEditor::SaveDungeonMaps() {
 }
 
 absl::Status ScreenEditor::LoadDungeonMapTile16(
-    const std::vector<uint8_t>& gfx_data, bool bin_mode) {
+    const std::vector<uint8_t> &gfx_data, bool bin_mode) {
   tile16_sheet_.Init(256, 192, gfx::TileType::Tile16);
 
   for (int i = 0; i < 186; i++) {
@@ -272,7 +272,7 @@ absl::Status ScreenEditor::SaveDungeonMapTile16() {
 }
 
 void ScreenEditor::DrawDungeonMapsTabs() {
-  auto& current_dungeon = dungeon_maps_[selected_dungeon];
+  auto &current_dungeon = dungeon_maps_[selected_dungeon];
   if (ImGui::BeginTabBar("##DungeonMapTabs")) {
     auto nbr_floors =
         current_dungeon.nbr_of_floor + current_dungeon.nbr_of_basement;
@@ -375,6 +375,63 @@ void ScreenEditor::DrawDungeonMapsTabs() {
   }
 }
 
+void ScreenEditor::DrawDungeonMapsRoomGfx() {
+  if (ImGui::BeginChild("##DungeonMapTiles", ImVec2(0, 0), true)) {
+    tilesheet_canvas_.DrawBackground(ImVec2((256 * 2) + 2, (192 * 2) + 4));
+    tilesheet_canvas_.DrawContextMenu();
+    tilesheet_canvas_.DrawTileSelector(32.f);
+    tilesheet_canvas_.DrawBitmap(*tile16_sheet_.bitmap(), 2, true);
+    tilesheet_canvas_.DrawGrid(32.f);
+    tilesheet_canvas_.DrawOverlay();
+
+    if (!tilesheet_canvas_.points().empty()) {
+      selected_tile16_ = tilesheet_canvas_.points().front().x / 32 +
+                         (tilesheet_canvas_.points().front().y / 32) * 16;
+      current_tile16_info = tile16_sheet_.tile_info().at(selected_tile16_);
+
+      // Draw the selected tile
+      if (!screen_canvas_.points().empty()) {
+        dungeon_maps_[selected_dungeon].floor_gfx[floor_number][selected_room] =
+            selected_tile16_;
+        tilesheet_canvas_.mutable_points()->clear();
+      }
+    }
+
+    ImGui::Separator();
+    current_tile_canvas_.DrawBackground();  // ImVec2(64 * 2 + 2, 64 * 2 + 4));
+    current_tile_canvas_.DrawContextMenu();
+    if (current_tile_canvas_.DrawTilePainter(tile8_individual_[selected_tile8_],
+                                             16)) {
+      // Modify the tile16 based on the selected tile and current_tile16_info
+    }
+    current_tile_canvas_.DrawBitmap(tile16_individual_[selected_tile16_], 2,
+                                    4.0f);
+    current_tile_canvas_.DrawGrid(16.f);
+    current_tile_canvas_.DrawOverlay();
+
+    gui::InputTileInfo("TL", &current_tile16_info.tiles[0]);
+    ImGui::SameLine();
+    gui::InputTileInfo("TR", &current_tile16_info.tiles[1]);
+    gui::InputTileInfo("BL", &current_tile16_info.tiles[2]);
+    ImGui::SameLine();
+    gui::InputTileInfo("BR", &current_tile16_info.tiles[3]);
+
+    if (ImGui::Button("Modify Tile16")) {
+      tile16_sheet_.ModifyTile16(
+          rom()->graphics_buffer(), current_tile16_info.tiles[0],
+          current_tile16_info.tiles[1], current_tile16_info.tiles[2],
+          current_tile16_info.tiles[3], selected_tile16_, 212);
+      tile16_individual_[selected_tile16_] =
+          tile16_sheet_.GetTile16(selected_tile16_);
+      RETURN_VOID_IF_ERROR(tile16_individual_[selected_tile16_].ApplyPalette(
+          *rom()->mutable_dungeon_palette(3)));
+      Renderer::GetInstance().RenderBitmap(
+          &tile16_individual_[selected_tile16_]);
+    }
+  }
+  ImGui::EndChild();
+}
+
 void ScreenEditor::DrawDungeonMapsEditor() {
   if (!dungeon_maps_loaded_) {
     if (!LoadDungeonMaps().ok()) {
@@ -444,7 +501,6 @@ void ScreenEditor::DrawDungeonMapsEditor() {
     ImGui::TableSetupColumn("Tiles Gfx");
     ImGui::TableHeadersRow();
 
-    // Dungeon column
     ImGui::TableNextColumn();
     for (int i = 0; i < dungeon_names.size(); i++) {
       rom()->resource_label()->SelectableLabelWithNameEdit(
@@ -455,66 +511,11 @@ void ScreenEditor::DrawDungeonMapsEditor() {
       }
     }
 
-    // Map column
     ImGui::TableNextColumn();
     DrawDungeonMapsTabs();
 
     ImGui::TableNextColumn();
-    if (ImGui::BeginChild("##DungeonMapTiles", ImVec2(0, 0), true)) {
-      tilesheet_canvas_.DrawBackground(ImVec2((256 * 2) + 2, (192 * 2) + 4));
-      tilesheet_canvas_.DrawContextMenu();
-      tilesheet_canvas_.DrawTileSelector(32.f);
-      tilesheet_canvas_.DrawBitmap(*tile16_sheet_.bitmap(), 2, true);
-      tilesheet_canvas_.DrawGrid(32.f);
-      tilesheet_canvas_.DrawOverlay();
-
-      if (!tilesheet_canvas_.points().empty()) {
-        selected_tile16_ = tilesheet_canvas_.points().front().x / 32 +
-                           (tilesheet_canvas_.points().front().y / 32) * 16;
-        current_tile16_info = tile16_sheet_.tile_info().at(selected_tile16_);
-
-        // Draw the selected tile
-        if (!screen_canvas_.points().empty()) {
-          dungeon_maps_[selected_dungeon]
-              .floor_gfx[floor_number][selected_room] = selected_tile16_;
-          tilesheet_canvas_.mutable_points()->clear();
-        }
-      }
-
-      ImGui::Separator();
-      current_tile_canvas_
-          .DrawBackground();  // ImVec2(64 * 2 + 2, 64 * 2 + 4));
-      current_tile_canvas_.DrawContextMenu();
-      if (current_tile_canvas_.DrawTilePainter(
-              tile8_individual_[selected_tile8_], 16)) {
-        // Modify the tile16 based on the selected tile and current_tile16_info
-      }
-      current_tile_canvas_.DrawBitmap(tile16_individual_[selected_tile16_], 2,
-                                      4.0f);
-      current_tile_canvas_.DrawGrid(16.f);
-      current_tile_canvas_.DrawOverlay();
-
-      gui::InputTileInfo("TL", &current_tile16_info.tiles[0]);
-      ImGui::SameLine();
-      gui::InputTileInfo("TR", &current_tile16_info.tiles[1]);
-      gui::InputTileInfo("BL", &current_tile16_info.tiles[2]);
-      ImGui::SameLine();
-      gui::InputTileInfo("BR", &current_tile16_info.tiles[3]);
-
-      if (ImGui::Button("Modify Tile16")) {
-        tile16_sheet_.ModifyTile16(
-            rom()->graphics_buffer(), current_tile16_info.tiles[0],
-            current_tile16_info.tiles[1], current_tile16_info.tiles[2],
-            current_tile16_info.tiles[3], selected_tile16_, 212);
-        tile16_individual_[selected_tile16_] =
-            tile16_sheet_.GetTile16(selected_tile16_);
-        RETURN_VOID_IF_ERROR(tile16_individual_[selected_tile16_].ApplyPalette(
-            *rom()->mutable_dungeon_palette(3)));
-        Renderer::GetInstance().RenderBitmap(
-            &tile16_individual_[selected_tile16_]);
-      }
-    }
-    ImGui::EndChild();
+    DrawDungeonMapsRoomGfx();
 
     ImGui::TableNextColumn();
     tilemap_canvas_.DrawBackground();
@@ -528,7 +529,6 @@ void ScreenEditor::DrawDungeonMapsEditor() {
     tilemap_canvas_.DrawOverlay();
 
     ImGui::Text("Selected tile8: %d", selected_tile8_);
-
     ImGui::Separator();
     ImGui::Text("For use with custom inserted graphics assembly patches.");
     if (ImGui::Button("Load GFX from BIN file")) LoadBinaryGfx();
