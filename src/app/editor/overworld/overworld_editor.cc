@@ -60,9 +60,9 @@ constexpr int kTile16Size = 0x10;
 absl::Status OverworldEditor::Update() {
   status_ = absl::OkStatus();
   if (rom_.is_loaded() && !all_gfx_loaded_) {
-    RETURN_IF_ERROR(tile16_editor_.InitBlockset(
-        tile16_blockset_bmp_, current_gfx_bmp_,
-        *overworld_.mutable_all_tiles_types()));
+    RETURN_IF_ERROR(
+        tile16_editor_.InitBlockset(tile16_blockset_bmp_, current_gfx_bmp_,
+                                    *overworld_.mutable_all_tiles_types()));
     ASSIGN_OR_RETURN(entrance_tiletypes_, zelda3::LoadEntranceTileTypes(rom_));
     all_gfx_loaded_ = true;
   }
@@ -950,24 +950,10 @@ void OverworldEditor::DrawOverworldSprites() {
   int i = 0;
   for (auto &sprite : *overworld_.mutable_sprites(game_state_)) {
     if (!sprite.deleted()) {
-      // int map_id = sprite.map_id();
-      // map x and map y are relative to the map
-      // So we need to check if the map is large or small then add the offset
-
-      // Calculate the superX and superY values
-      // int superY = map_id / 8;
-      // int superX = map_id % 8;
-
-      // Calculate the map_x and map_y values
       int map_x = sprite.map_x();
       int map_y = sprite.map_y();
-
-      // Calculate the actual map_x and map_y values
-      // map_x += superX * 512;
-      // map_y += superY * 512;
-
       ow_map_canvas_.DrawRect(map_x, map_y, kTile16Size, kTile16Size,
-                              /*magenta*/ ImVec4(255, 0, 255, 150));
+                              /*magenta=*/ImVec4(255, 0, 255, 150));
       if (current_mode == EditingMode::SPRITES) {
         HandleEntityDragging(&sprite, ow_map_canvas_.zero_point(),
                              ow_map_canvas_.scrolling(), is_dragging_entity_,
@@ -979,9 +965,11 @@ void OverworldEditor::DrawOverworldSprites() {
           current_sprite_ = sprite;
         }
       }
-      if (sprite_previews_[sprite.id()].is_active()) {
-        ow_map_canvas_.DrawBitmap(sprite_previews_[sprite.id()], map_x, map_y,
-                                  2.0f);
+      if (core::ExperimentFlags::get().overworld.kDrawOverworldSprites) {
+        if (sprite_previews_[sprite.id()].is_active()) {
+          ow_map_canvas_.DrawBitmap(sprite_previews_[sprite.id()], map_x, map_y,
+                                    2.0f);
+        }
       }
 
       ow_map_canvas_.DrawText(absl::StrFormat("%s", sprite.name()), map_x,
@@ -1036,13 +1024,13 @@ absl::Status OverworldEditor::LoadGraphics() {
   RETURN_IF_ERROR(overworld_.Load(rom_))
   palette_ = overworld_.current_area_palette();
 
-	core::logf("Loading overworld graphics.");
+  core::logf("Loading overworld graphics.");
   // Create the area graphics image
   RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
       0x80, kOverworldMapSize, 0x40, overworld_.current_graphics(),
       current_gfx_bmp_, palette_));
 
-	core::logf("Loading overworld tileset.");
+  core::logf("Loading overworld tileset.");
   // Create the tile16 blockset image
   RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
       0x80, 0x2000, 0x08, overworld_.tile16_blockset_data(),
@@ -1052,39 +1040,38 @@ absl::Status OverworldEditor::LoadGraphics() {
   // Copy the tile16 data into individual tiles.
   auto tile16_data = overworld_.tile16_blockset_data();
 
-	core::logf("Loading overworld tile16 graphics.");
+  core::logf("Loading overworld tile16 graphics.");
   // Loop through the tiles and copy their pixel data into separate vectors
   for (uint i = 0; i < zelda3::kNumTile16Individual; i++) {
-    tile16_individual_[i].Create(kTile16Size, kTile16Size, 0x08, kTile16Size * kTile16Size);
+    tile16_individual_[i].Create(kTile16Size, kTile16Size, 0x08,
+                                 kTile16Size * kTile16Size);
 
     // Copy the pixel data for the current tile into the vector
     for (int ty = 0; ty < kTile16Size; ty++) {
       for (int tx = 0; tx < kTile16Size; tx++) {
         int position = tx + (ty * kTile16Size);
         uint8_t value =
-          tile16_data[(i % 8 * kTile16Size) + (i / 8 * kTile16Size * 0x80) +
-          (ty * 0x80) + tx];
+            tile16_data[(i % 8 * kTile16Size) + (i / 8 * kTile16Size * 0x80) +
+                        (ty * 0x80) + tx];
         tile16_individual_[i].mutable_data()[position] = value;
       }
     }
 
     RETURN_IF_ERROR(tile16_individual_[i].ApplyPalette(palette_));
     Renderer::GetInstance().RenderBitmap(&tile16_individual_[i]);
-
   }
 
-	core::logf("Loading overworld maps.");
+  core::logf("Loading overworld maps.");
   // Render the overworld maps loaded from the ROM.
   for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
     overworld_.set_current_map(i);
     auto palette = overworld_.current_area_palette();
     try {
       RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
-        kOverworldMapSize, kOverworldMapSize, 0x80,
-        overworld_.current_map_bitmap_data(), maps_bmp_[i], palette));
-    }
-    catch (const std::bad_alloc& e) {
-			std::cout << "Error: " << e.what() << std::endl;
+          kOverworldMapSize, kOverworldMapSize, 0x80,
+          overworld_.current_map_bitmap_data(), maps_bmp_[i], palette));
+    } catch (const std::bad_alloc &e) {
+      std::cout << "Error: " << e.what() << std::endl;
       continue;
     }
   }
@@ -1098,16 +1085,19 @@ absl::Status OverworldEditor::LoadGraphics() {
 
 absl::Status OverworldEditor::LoadSpriteGraphics() {
   // Render the sprites for each Overworld map
+  const int depth = 0x10;
   for (int i = 0; i < 3; i++)
-    for (auto const &sprite : overworld_.sprites(i)) {
+    for (auto const &sprite : *overworld_.mutable_sprites(i)) {
       int width = sprite.width();
       int height = sprite.height();
-      int depth = 0x10;
-      auto spr_gfx = sprite.PreviewGraphics();
-      if (spr_gfx.empty() || width == 0 || height == 0) {
+      if (width == 0 || height == 0) {
         continue;
       }
-      sprite_previews_[sprite.id()].Create(width, height, depth, spr_gfx);
+      if (sprite_previews_.size() < sprite.id()) {
+        sprite_previews_.resize(sprite.id() + 1);
+      }
+      sprite_previews_[sprite.id()].Create(width, height, depth,
+                                           *sprite.preview_graphics());
       RETURN_IF_ERROR(sprite_previews_[sprite.id()].ApplyPalette(palette_));
       Renderer::GetInstance().RenderBitmap(&(sprite_previews_[sprite.id()]));
     }
@@ -1420,7 +1410,7 @@ void OverworldEditor::DrawUsageGrid() {
   int total_squares = 128;
   int squares_wide = 8;
   int squares_tall = (total_squares + squares_wide - 1) /
-                    squares_wide;  // Ceiling of total_squares/squares_wide
+                     squares_wide;  // Ceiling of total_squares/squares_wide
 
   // Loop through each row
   for (int row = 0; row < squares_tall; ++row) {
