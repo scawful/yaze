@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_DATA_OVERWORLD_H
 #define YAZE_APP_DATA_OVERWORLD_H
 
+#include <array>
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
@@ -109,7 +110,7 @@ constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
  */
 class Overworld : public SharedRom {
  public:
-  Overworld(Rom& rom) : rom_(rom) {}
+  Overworld(Rom &rom) : rom_(rom) {}
 
   absl::Status Load(Rom &rom);
   absl::Status LoadOverworldMaps();
@@ -146,9 +147,9 @@ class Overworld : public SharedRom {
     all_entrances_.clear();
     all_exits_.clear();
     all_items_.clear();
-		for (auto& sprites : all_sprites_) {
-			sprites.clear();
-		}
+    for (auto &sprites : all_sprites_) {
+      sprites.clear();
+    }
     is_loaded_ = false;
   }
 
@@ -232,7 +233,7 @@ class Overworld : public SharedRom {
                         int &ttpos);
   void DecompressAllMapTiles();
 
-  Rom& rom_;
+  Rom &rom_;
 
   bool is_loaded_ = false;
   bool expanded_tile16_ = false;
@@ -245,28 +246,28 @@ class Overworld : public SharedRom {
 
   OverworldMapTiles map_tiles_;
 
-	std::array<uint8_t, kNumOverworldMaps> map_parent_ = { 0 };
-	std::array<uint8_t, kNumTileTypes> all_tiles_types_ = { 0 };
-  std::vector<gfx::Tile16> tiles16_;
-  std::vector<gfx::Tile32> tiles32_;
-  std::vector<uint16_t> tiles32_list_;
-  std::vector<gfx::Tile32> tiles32_unique_;
   std::vector<OverworldMap> overworld_maps_;
   std::vector<OverworldEntrance> all_entrances_;
   std::vector<OverworldEntrance> all_holes_;
   std::vector<OverworldExit> all_exits_;
   std::vector<OverworldItem> all_items_;
-  std::array<std::vector<Sprite>, 3> all_sprites_;
-  std::vector<uint64_t> deleted_entrances_;
-  std::vector<std::vector<uint8_t>> map_data_p1 =
-      std::vector<std::vector<uint8_t>>(kNumOverworldMaps);
-  std::vector<std::vector<uint8_t>> map_data_p2 =
-      std::vector<std::vector<uint8_t>>(kNumOverworldMaps);
 
-  std::vector<int> map_pointers1_id = std::vector<int>(kNumOverworldMaps);
-  std::vector<int> map_pointers2_id = std::vector<int>(kNumOverworldMaps);
-  std::vector<int> map_pointers1 = std::vector<int>(kNumOverworldMaps);
-  std::vector<int> map_pointers2 = std::vector<int>(kNumOverworldMaps);
+  std::vector<gfx::Tile16> tiles16_;
+  std::vector<gfx::Tile32> tiles32_;
+  std::vector<gfx::Tile32> tiles32_unique_;
+
+  std::vector<uint16_t> tiles32_list_;
+  std::vector<uint64_t> deleted_entrances_;
+
+  std::array<uint8_t, kNumOverworldMaps> map_parent_ = {0};
+  std::array<uint8_t, kNumTileTypes> all_tiles_types_ = {0};
+  std::array<std::vector<Sprite>, 3> all_sprites_;
+  std::array<std::vector<uint8_t>, kNumOverworldMaps> map_data_p1;
+  std::array<std::vector<uint8_t>, kNumOverworldMaps> map_data_p2;
+  std::array<int, kNumOverworldMaps> map_pointers1_id;
+  std::array<int, kNumOverworldMaps> map_pointers2_id;
+  std::array<int, kNumOverworldMaps> map_pointers1;
+  std::array<int, kNumOverworldMaps> map_pointers2;
 
   std::vector<absl::flat_hash_map<uint16_t, int>> usage_stats_;
 };
