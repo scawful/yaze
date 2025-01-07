@@ -29,8 +29,8 @@ absl::Status Overworld::Load(Rom &rom) {
   RETURN_IF_ERROR(LoadHoles());
   RETURN_IF_ERROR(LoadExits());
   RETURN_IF_ERROR(LoadItems());
-  RETURN_IF_ERROR(LoadSprites());
   RETURN_IF_ERROR(LoadOverworldMaps());
+  RETURN_IF_ERROR(LoadSprites());
 
   is_loaded_ = true;
   return absl::OkStatus();
@@ -309,9 +309,11 @@ absl::Status Overworld::LoadEntrances() {
   }
 
   for (int i = 0; i < num_entrances; i++) {
-		ASSIGN_OR_RETURN(auto map_id, rom()->ReadWord(ow_entrance_map_ptr + (i * 2)));
-		ASSIGN_OR_RETURN(auto map_pos, rom()->ReadWord(ow_entrance_pos_ptr + (i * 2)));
-		ASSIGN_OR_RETURN(auto entrance_id, rom()->ReadByte(ow_entrance_id_ptr + i));
+    ASSIGN_OR_RETURN(auto map_id,
+                     rom()->ReadWord(ow_entrance_map_ptr + (i * 2)));
+    ASSIGN_OR_RETURN(auto map_pos,
+                     rom()->ReadWord(ow_entrance_pos_ptr + (i * 2)));
+    ASSIGN_OR_RETURN(auto entrance_id, rom()->ReadByte(ow_entrance_id_ptr + i));
     int p = map_pos >> 1;
     int x = (p % 64);
     int y = (p >> 6);
@@ -325,25 +327,27 @@ absl::Status Overworld::LoadEntrances() {
         deleted);
   }
 
-  
   return absl::OkStatus();
 }
 
 absl::Status Overworld::LoadHoles() {
-	constexpr int kNumHoles = 0x13;
+  constexpr int kNumHoles = 0x13;
   for (int i = 0; i < kNumHoles; i++) {
-		ASSIGN_OR_RETURN(auto map_id, rom()->ReadWord(kOverworldHoleArea + (i * 2)));
-		ASSIGN_OR_RETURN(auto map_pos, rom()->ReadWord(kOverworldHolePos + (i * 2)));
-		ASSIGN_OR_RETURN(auto entrance_id, rom()->ReadByte(kOverworldHoleEntrance + i));
+    ASSIGN_OR_RETURN(auto map_id,
+                     rom()->ReadWord(kOverworldHoleArea + (i * 2)));
+    ASSIGN_OR_RETURN(auto map_pos,
+                     rom()->ReadWord(kOverworldHolePos + (i * 2)));
+    ASSIGN_OR_RETURN(auto entrance_id,
+                     rom()->ReadByte(kOverworldHoleEntrance + i));
     int p = (map_pos + 0x400) >> 1;
     int x = (p % 64);
     int y = (p >> 6);
     all_holes_.emplace_back(
-      (x * 16) + (((map_id % 64) - (((map_id % 64) / 8) * 8)) * 512),
-      (y * 16) + (((map_id % 64) / 8) * 512), entrance_id, map_id,
-      (uint16_t)(map_pos + 0x400), true);
+        (x * 16) + (((map_id % 64) - (((map_id % 64) / 8) * 8)) * 512),
+        (y * 16) + (((map_id % 64) / 8) * 512), entrance_id, map_id,
+        (uint16_t)(map_pos + 0x400), true);
   }
-	return absl::OkStatus();
+  return absl::OkStatus();
 }
 
 absl::Status Overworld::LoadExits() {
@@ -455,20 +459,20 @@ absl::Status Overworld::LoadItems() {
 
 absl::Status Overworld::LoadSprites() {
   std::vector<std::future<absl::Status>> futures;
-	futures.emplace_back(std::async(std::launch::async, [this]() {
-		return LoadSpritesFromMap(kOverworldSpritesBeginning, 64, 0);
-		}));
-	futures.emplace_back(std::async(std::launch::async, [this]() {
-		return LoadSpritesFromMap(kOverworldSpritesZelda, 144, 1);
-		}));
-	futures.emplace_back(std::async(std::launch::async, [this]() {
-		return LoadSpritesFromMap(kOverworldSpritesAgahnim, 144, 2);
-		}));
+  futures.emplace_back(std::async(std::launch::async, [this]() {
+    return LoadSpritesFromMap(kOverworldSpritesBeginning, 64, 0);
+  }));
+  futures.emplace_back(std::async(std::launch::async, [this]() {
+    return LoadSpritesFromMap(kOverworldSpritesZelda, 144, 1);
+  }));
+  futures.emplace_back(std::async(std::launch::async, [this]() {
+    return LoadSpritesFromMap(kOverworldSpritesAgahnim, 144, 2);
+  }));
 
-	for (auto& future : futures) {
-		future.wait();
-		RETURN_IF_ERROR(future.get());
-	}
+  for (auto &future : futures) {
+    future.wait();
+    RETURN_IF_ERROR(future.get());
+  }
   return absl::OkStatus();
 }
 
@@ -499,10 +503,9 @@ absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,
 
       int realX = ((b2 & 0x3F) * 16) + mapX * 512;
       int realY = ((b1 & 0x3F) * 16) + mapY * 512;
-      all_sprites_[game_state].emplace_back(*overworld_maps_[i].mutable_current_graphics(), 
-                                            (uint8_t)i, b3,
-                                            (uint8_t)(b2 & 0x3F),
-                                            (uint8_t)(b1 & 0x3F), realX, realY);
+      all_sprites_[game_state].emplace_back(
+          *overworld_maps_[i].mutable_current_graphics(), (uint8_t)i, b3,
+          (uint8_t)(b2 & 0x3F), (uint8_t)(b1 & 0x3F), realX, realY);
       all_sprites_[game_state][i].Draw();
 
       sprite_address += 3;
@@ -673,8 +676,8 @@ absl::Status Overworld::SaveLargeMaps() {
     int parent_x_pos = overworld_maps_[i].parent() % 8;
 
     // Always write the map parent since it should not matter
-    RETURN_IF_ERROR(
-        rom()->WriteByte(kOverworldMapParentId + i, overworld_maps_[i].parent()))
+    RETURN_IF_ERROR(rom()->WriteByte(kOverworldMapParentId + i,
+                                     overworld_maps_[i].parent()))
 
     if (std::find(checked_map.begin(), checked_map.end(), i) !=
         checked_map.end()) {
