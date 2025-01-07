@@ -45,17 +45,22 @@ absl::Status Tile16Editor::InitBlockset(
     const gfx::Bitmap &tile16_blockset_bmp, const gfx::Bitmap &current_gfx_bmp,
     std::array<uint8_t, 0x200> &all_tiles_types) {
   all_tiles_types_ = all_tiles_types;
-  tile16_blockset_bmp_ = tile16_blockset_bmp;
-	current_gfx_bmp_.Create(current_gfx_bmp.width(), current_gfx_bmp.height(),
-		                      current_gfx_bmp.depth(), current_gfx_bmp.vector());
-	core::Renderer::GetInstance().RenderBitmap(&tile16_blockset_bmp_);
+  current_gfx_bmp_.Create(current_gfx_bmp.width(), current_gfx_bmp.height(),
+                          current_gfx_bmp.depth(), current_gfx_bmp.vector());
+  RETURN_IF_ERROR(current_gfx_bmp_.ApplyPalette(current_gfx_bmp.palette()));
+  core::Renderer::GetInstance().RenderBitmap(&current_gfx_bmp_);
+  tile16_blockset_bmp_.Create(
+      tile16_blockset_bmp.width(), tile16_blockset_bmp.height(),
+      tile16_blockset_bmp.depth(), tile16_blockset_bmp.vector());
+  RETURN_IF_ERROR(
+      tile16_blockset_bmp_.ApplyPalette(tile16_blockset_bmp.palette()));
+  core::Renderer::GetInstance().RenderBitmap(&tile16_blockset_bmp_);
   RETURN_IF_ERROR(LoadTile8());
   ImVector<std::string> tile16_names;
   for (int i = 0; i < 0x200; ++i) {
     std::string str = core::HexByte(all_tiles_types_[i]);
     tile16_names.push_back(str);
   }
-
   *tile8_source_canvas_.mutable_labels(0) = tile16_names;
   *tile8_source_canvas_.custom_labels_enabled() = true;
   return absl::OkStatus();
