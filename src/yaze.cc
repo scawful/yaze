@@ -22,23 +22,26 @@ void yaze_check_version(const char *version) {
   }
 }
 
-int yaze_init(yaze_editor_context *yaze_ctx) {
+yaze_status yaze_init(yaze_editor_context *yaze_ctx) {
   if (yaze_ctx->project->rom_filename == nullptr) {
-    return -1;
+    yaze_ctx->error_message = "ROM filename is null";
+    return yaze_status::YAZE_ERROR;
   }
 
   yaze_ctx->rom = yaze_load_rom(yaze_ctx->project->rom_filename);
   if (yaze_ctx->rom == nullptr) {
-    return -1;
+    yaze_ctx->error_message = "Failed to load ROM";
+    return yaze_status::YAZE_ERROR;
   }
 
-  return 0;
+  return yaze_status::YAZE_OK;
 }
 
-void yaze_cleanup(yaze_editor_context *yaze_ctx) {
+yaze_status yaze_shutdown(yaze_editor_context *yaze_ctx) {
   if (yaze_ctx->rom) {
     yaze_unload_rom(yaze_ctx->rom);
   }
+  return yaze_status::YAZE_OK;
 }
 
 yaze_project yaze_load_project(const char *filename) {

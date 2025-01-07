@@ -18,11 +18,19 @@ typedef struct yaze_project yaze_project;
 typedef struct yaze_editor_context {
   z3_rom* rom;
   yaze_project* project;
+  const char* error_message;
 } yaze_editor_context;
 
+typedef enum yaze_status {
+  YAZE_UNKNOWN = -1,
+  YAZE_OK = 0,
+  YAZE_ERROR = 1,
+} yaze_status;
+
 void yaze_check_version(const char* version);
-int yaze_init(yaze_editor_context*);
-void yaze_cleanup(yaze_editor_context*);
+
+yaze_status yaze_init(yaze_editor_context*);
+yaze_status yaze_shutdown(yaze_editor_context*);
 
 struct yaze_project {
   const char* name;
