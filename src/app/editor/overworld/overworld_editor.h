@@ -240,7 +240,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   Rom& rom_;
 
-	Tile16Editor tile16_editor_{ tile16_individual_ };
+  Tile16Editor tile16_editor_{tile16_individual_};
   GfxGroupEditor gfx_group_editor_;
   PaletteEditor palette_editor_;
 
@@ -253,9 +253,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   std::array<gfx::Bitmap, zelda3::kNumOverworldMaps> maps_bmp_;
   gfx::BitmapTable current_graphics_set_;
-  gfx::BitmapTable sprite_previews_;
+  std::vector<gfx::Bitmap> sprite_previews_;
 
-	zelda3::Overworld overworld_{rom_};
+  zelda3::Overworld overworld_{rom_};
   zelda3::OverworldBlockset refresh_blockset_;
 
   zelda3::Sprite current_sprite_;
@@ -263,10 +263,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   zelda3::OverworldEntrance current_entrance_;
   zelda3::OverworldExit current_exit_;
   zelda3::OverworldItem current_item_;
-	zelda3::OverworldEntranceTileTypes entrance_tiletypes_ = {};
+  zelda3::OverworldEntranceTileTypes entrance_tiletypes_ = {};
 
-	zelda3::GameEntity* current_entity_ = nullptr;
-	zelda3::GameEntity* dragged_entity_ = nullptr;
+  zelda3::GameEntity* current_entity_ = nullptr;
+  zelda3::GameEntity* dragged_entity_ = nullptr;
 
   gui::Canvas ow_map_canvas_{"OwMap", kOverworldCanvasSize,
                              gui::CanvasGridSize::k64x64};
