@@ -65,7 +65,7 @@ var searchData=
   ['length_62',['Length',['../structyaze_1_1editor_1_1DictionaryEntry.html#a53f59e0595aa655fdc29cd54269d8871',1,'yaze::editor::DictionaryEntry']]],
   ['length_63',['length',['../structyaze_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a30a88a7eca7315fc5c38421fa8a77df1',1,'yaze::gfx::lc_lz2::CompressionPiece::length'],['../structyaze_1_1test_1_1CompressionPiece.html#a30a88a7eca7315fc5c38421fa8a77df1',1,'yaze::test::CompressionPiece::length']]],
   ['lflag_64',['lflag',['../structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a0d50beb4f54b170a57466174b9ff3695',1,'yaze::zelda3::music::ZeldaWave']]],
-  ['license_65',['License',['../md_README.html#autotoc_md59',1,'']]],
+  ['license_65',['License',['../md_README.html#autotoc_md69',1,'']]],
   ['light_5ftorches_5fto_5fget_5fchest_66',['Light_Torches_to_get_Chest',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468af7edf4aa720007546d7e1e76cda507f5',1,'yaze::zelda3']]],
   ['light_5ftorches_5fto_5fopen_67',['Light_Torches_to_Open',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a204dc45d0e4e7452337d40fc8d1c3da8',1,'yaze::zelda3']]],
   ['light_5fworld_68',['light_world',['../structyaze_1_1zelda3_1_1OverworldMapTiles.html#ac3b1bcb4e4dc8bed23ff857a008131bb',1,'yaze::zelda3::OverworldMapTiles']]],

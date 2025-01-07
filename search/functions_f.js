@@ -48,7 +48,7 @@ var searchData=
   ['ppu_45',['Ppu',['../classyaze_1_1emu_1_1Ppu.html#a3256acbb48fd075a588935aa4563d0d6',1,'yaze::emu::Ppu']]],
   ['ppu_46',['ppu',['../classyaze_1_1emu_1_1Snes.html#a30fb924208f2153a364f9d2be6f69adc',1,'yaze::emu::Snes']]],
   ['pputest_47',['PpuTest',['../classyaze_1_1test_1_1PpuTest.html#a2d6de97f3c5aeeb85e4837befacf8707',1,'yaze::test::PpuTest']]],
-  ['previewgraphics_48',['PreviewGraphics',['../classyaze_1_1zelda3_1_1Sprite.html#a1deb0dd4e8f9a1a0ad197599293845bf',1,'yaze::zelda3::Sprite']]],
+  ['preview_5fgraphics_48',['preview_graphics',['../classyaze_1_1zelda3_1_1Sprite.html#adcfd99ee96f65f156edd907cdc4bac8f',1,'yaze::zelda3::Sprite']]],
   ['printcompressionchain_49',['PrintCompressionChain',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a9eb4d71893f3ec5673e1f6d75599098c',1,'yaze::gfx::lc_lz2']]],
   ['printcompressionpiece_50',['PrintCompressionPiece',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a79e586563008984b912926a967592418',1,'yaze::gfx::lc_lz2']]],
   ['processgraphicsbuffer_51',['ProcessGraphicsBuffer',['../classyaze_1_1zelda3_1_1OverworldMap.html#ac9473645ab1da55339f5329613268a06',1,'yaze::zelda3::OverworldMap']]],

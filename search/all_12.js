@@ -2265,7 +2265,7 @@ var searchData=
   ['inserttext_2262',['InsertText',['../classTextEditor.html#a07ac26fc2d44b7affb5390cf03685d69',1,'TextEditor::InsertText(const std::string &amp;aValue)'],['../classTextEditor.html#aa34cd3378f9bfd5c0dcb312556f4fa80',1,'TextEditor::InsertText(const char *aValue)']]],
   ['inserttextat_2263',['InsertTextAt',['../classTextEditor.html#af338cad3a0f49880e0d00f380c7b5f15',1,'TextEditor']]],
   ['inst_2264',['inst',['../structyaze_1_1zelda3_1_1music_1_1SongRange.html#a51f5ec13feddcd78ecfef4d22908a118',1,'yaze::zelda3::music::SongRange::inst'],['../structyaze_1_1zelda3_1_1music_1_1SongPart.html#a7cd7d31bce8dede4f89a097d5ba44fa7',1,'yaze::zelda3::music::SongPart::inst'],['../structyaze_1_1zelda3_1_1music_1_1Song.html#adbf33cbeacd6ceda3d378d9c63fcb825',1,'yaze::zelda3::music::Song::inst']]],
-  ['installation_2265',['Building and installation',['../md_README.html#autotoc_md57',1,'']]],
+  ['installation_2265',['Building and installation',['../md_README.html#autotoc_md67',1,'']]],
   ['instruction_2266',['instruction',['../classyaze_1_1emu_1_1InstructionEntry.html#a5654f63a191f81bfa2ff2affad74613a',1,'yaze::emu::InstructionEntry']]],
   ['instruction_5f_2267',['instruction_',['../classyaze_1_1zelda3_1_1SpriteInstruction.html#a63832a9df6b05117140bb05d8abc3c63',1,'yaze::zelda3::SpriteInstruction']]],
   ['instruction_5flog_5f_2268',['instruction_log_',['../classyaze_1_1emu_1_1Cpu.html#a54d9f5f2e1b804f7de82309392a02c7f',1,'yaze::emu::Cpu::instruction_log_'],['../classyaze_1_1test_1_1Cpu.html#a54d9f5f2e1b804f7de82309392a02c7f',1,'yaze::test::Cpu::instruction_log_']]],

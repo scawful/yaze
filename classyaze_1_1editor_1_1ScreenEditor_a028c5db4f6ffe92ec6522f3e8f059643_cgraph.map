@@ -1,0 +1,18 @@
+<map id="yaze::editor::ScreenEditor::DrawDungeonMapsRoomGfx" name="yaze::editor::ScreenEditor::DrawDungeonMapsRoomGfx">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,92,200,133"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="251,5,394,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,89,254,50,255,55,157,94"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gui.html#a8c341f6de6c4838b636534e76c1747f6" title=" " alt="" coords="248,70,396,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="199,97,232,92,233,98,200,102"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Used to render a bitmap to the screen." alt="" coords="254,120,390,161"/>
+<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="200,122,239,127,238,132,199,127"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="248,209,397,234"/>
+<area shape="poly" id="edge7_Node000001_Node000009" title=" " alt="" coords="146,131,283,199,280,204,144,136"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="447,21,601,46"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="377,67,453,48,455,53,379,72"/>
+<area shape="rect" id="Node000006" href="$namespaceyaze_1_1gui.html#a2be4bdb4d48912825342ba9df3da5237" title=" " alt="" coords="445,70,603,96"/>
+<area shape="poly" id="edge4_Node000003_Node000006" title=" " alt="" coords="397,80,429,80,429,86,397,86"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="462,120,586,161"/>
+<area shape="poly" id="edge6_Node000007_Node000008" title=" " alt="" coords="391,138,447,138,447,143,391,143"/>
+<area shape="poly" id="edge8_Node000009_Node000009" title=" " alt="" coords="289,210,282,200,286,190,300,184,322,182,347,185,360,192,357,196,346,190,322,187,301,189,290,194,287,200,293,207"/>
+</map>

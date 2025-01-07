@@ -24,6 +24,7 @@ var classyaze_1_1editor_1_1ScreenEditor =
     [ "SaveDungeonMapTile16", "classyaze_1_1editor_1_1ScreenEditor.html#a1b7d5587311e202f4ee2747a2deeffd0", null ],
     [ "DrawDungeonMapsTabs", "classyaze_1_1editor_1_1ScreenEditor.html#adc9fef95b9b01d662a0ab8951f45e876", null ],
     [ "DrawDungeonMapsEditor", "classyaze_1_1editor_1_1ScreenEditor.html#a8b6ca48186a89ef411649eae89289e0b", null ],
+    [ "DrawDungeonMapsRoomGfx", "classyaze_1_1editor_1_1ScreenEditor.html#a028c5db4f6ffe92ec6522f3e8f059643", null ],
     [ "LoadBinaryGfx", "classyaze_1_1editor_1_1ScreenEditor.html#a9777581ef992b35bf02e1c490af2859c", null ],
     [ "current_mode_", "classyaze_1_1editor_1_1ScreenEditor.html#ab8e905b4affccdccaa214328ba8773ff", null ],
     [ "dungeon_maps_loaded_", "classyaze_1_1editor_1_1ScreenEditor.html#a342278609fdee2887fe595f681c23f2f", null ],

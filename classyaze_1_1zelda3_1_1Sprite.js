@@ -8,7 +8,7 @@ var classyaze_1_1zelda3_1_1Sprite =
     [ "DrawSpriteTile", "classyaze_1_1zelda3_1_1Sprite.html#a55446288d9011a7583e99f702436b8b4", null ],
     [ "UpdateMapProperties", "classyaze_1_1zelda3_1_1Sprite.html#ac33a999f64741229b0fff347ac8b36e3", null ],
     [ "UpdateCoordinates", "classyaze_1_1zelda3_1_1Sprite.html#a6a918025452e6fa852d9ecf307d0b3bc", null ],
-    [ "PreviewGraphics", "classyaze_1_1zelda3_1_1Sprite.html#a1deb0dd4e8f9a1a0ad197599293845bf", null ],
+    [ "preview_graphics", "classyaze_1_1zelda3_1_1Sprite.html#adcfd99ee96f65f156edd907cdc4bac8f", null ],
     [ "id", "classyaze_1_1zelda3_1_1Sprite.html#a12825a0f19deeee6cfd7fbb9622759d4", null ],
     [ "set_id", "classyaze_1_1zelda3_1_1Sprite.html#ab0989d4b8500c77e63b95411c635d794", null ],
     [ "x", "classyaze_1_1zelda3_1_1Sprite.html#ae640a5c086d36e3611788acd66cb75f4", null ],

@@ -121,7 +121,7 @@ var searchData=
   ['sprite_5foverflow_118',['sprite_overflow',['../structyaze_1_1emu_1_1STAT77.html#a592dbafcedefc7ff72205cf88451c801',1,'yaze::emu::STAT77']]],
   ['sprite_5fpalette_119',['sprite_palette',['../structz3__overworld__map.html#a7dde1ddd49aab3c88275aff80a7f9cd2',1,'z3_overworld_map']]],
   ['sprite_5fpalette_5f_120',['sprite_palette_',['../classyaze_1_1zelda3_1_1OverworldMap.html#a94ef6f3a99a44970586f17992000ca43',1,'yaze::zelda3::OverworldMap']]],
-  ['sprite_5fpreviews_5f_121',['sprite_previews_',['../classyaze_1_1editor_1_1OverworldEditor.html#ac4ab100dd9cc47647211811fb08f7645',1,'yaze::editor::OverworldEditor']]],
+  ['sprite_5fpreviews_5f_121',['sprite_previews_',['../classyaze_1_1editor_1_1OverworldEditor.html#aaed34f2e7f5af4b781203b15f6bc1c31',1,'yaze::editor::OverworldEditor']]],
   ['sprite_5fsize_122',['sprite_size',['../structyaze_1_1emu_1_1OBJSEL.html#a1af4c12fe4951e80e663f41735bd8ce8',1,'yaze::emu::OBJSEL']]],
   ['sprite_5ftile_5foverflow_123',['sprite_tile_overflow',['../structyaze_1_1emu_1_1STAT77.html#a7e09ad856fcaaebdb4894df1b4a5a059',1,'yaze::emu::STAT77']]],
   ['sprite_5ftileset_5f_124',['sprite_tileset_',['../classyaze_1_1zelda3_1_1Room.html#a9ae83ae7aa2d28fcc8cef2fc0455f073',1,'yaze::zelda3::Room']]],
