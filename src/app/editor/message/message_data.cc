@@ -23,7 +23,7 @@ uint8_t FindDictionaryEntry(uint8_t value) {
 
 TextElement FindMatchingCommand(uint8_t b) {
   TextElement empty_element;
-  for (const auto& text_element : TextCommands) {
+  for (const auto &text_element : TextCommands) {
     if (text_element.ID == b) {
       return text_element;
     }
@@ -33,7 +33,7 @@ TextElement FindMatchingCommand(uint8_t b) {
 
 TextElement FindMatchingSpecial(uint8_t value) {
   auto it = std::find_if(SpecialChars.begin(), SpecialChars.end(),
-                         [value](const TextElement& text_element) {
+                         [value](const TextElement &text_element) {
                            return text_element.ID == value;
                          });
   if (it != SpecialChars.end()) {
@@ -43,9 +43,9 @@ TextElement FindMatchingSpecial(uint8_t value) {
   return TextElement();
 }
 
-ParsedElement FindMatchingElement(const std::string& str) {
+ParsedElement FindMatchingElement(const std::string &str) {
   std::smatch match;
-  for (auto& textElement : TextCommands) {
+  for (auto &textElement : TextCommands) {
     match = textElement.MatchMe(str);
     if (match.size() > 0) {
       if (textElement.HasArgument) {
@@ -144,7 +144,7 @@ std::vector<uint8_t> ParseMessageToData(std::string str) {
   return bytes;
 }
 
-std::vector<DictionaryEntry> BuildDictionaryEntries(Rom* rom) {
+std::vector<DictionaryEntry> BuildDictionaryEntries(Rom *rom) {
   std::vector<DictionaryEntry> AllDictionaries;
   for (int i = 0; i < kNumDictionaryEntries; i++) {
     std::vector<uint8_t> bytes;
@@ -169,12 +169,49 @@ std::vector<DictionaryEntry> BuildDictionaryEntries(Rom* rom) {
   }
 
   std::sort(AllDictionaries.begin(), AllDictionaries.end(),
-            [](const DictionaryEntry& a, const DictionaryEntry& b) {
+            [](const DictionaryEntry &a, const DictionaryEntry &b) {
               return a.Contents.size() > b.Contents.size();
             });
 
   return AllDictionaries;
 }
 
-}  // namespace editor
-}  // namespace yaze
+std::vector<std::string>
+ParseMessageData(std::vector<MessageData> &message_data,
+                 const std::vector<DictionaryEntry> &dictionary_entries) {
+  std::vector<std::string> parsed_messages;
+
+  for (auto &message : message_data) {
+    std::cout << "Message #" << message.ID << " at address "
+              << core::HexLong(message.Address) << std::endl;
+    std::cout << "  " << message.RawString << std::endl;
+
+    std::string parsed_message = "";
+
+    for (const uint8_t &byte : message.Data) {
+      if (CharEncoder.contains(byte)) {
+        parsed_message.push_back(CharEncoder.at(byte));
+      } else {
+        if (byte >= DICTOFF && byte < (DICTOFF + 97)) {
+          auto dic_entry = dictionary_entries[byte];
+          parsed_message.append(dic_entry.Contents);
+        } else {
+          auto text_element = FindMatchingCommand(byte);
+          if (!text_element.Empty()) {
+            if (text_element.ID == kScrollVertical ||
+                text_element.ID == kLine2 || text_element.ID == kLine3) {
+              parsed_message.append("\n");
+            }
+            parsed_message.append(text_element.GenericToken);
+          }
+        }
+      }
+    }
+    parsed_messages.push_back(parsed_message);
+  }
+
+  return parsed_messages;
+}
+
+} // namespace editor
+} // namespace yaze
