@@ -28,10 +28,6 @@ constexpr int kFontGfxMessageDepth = 8;
 constexpr uint8_t kWidthArraySize = 100;
 constexpr uint8_t kBlockTerminator = 0x80;
 constexpr uint8_t kMessageBankChangeId = 0x80;
-constexpr uint8_t kScrollVertical = 0x73;
-constexpr uint8_t kLine1 = 0x74;
-constexpr uint8_t kLine2 = 0x75;
-constexpr uint8_t kLine3 = 0x76;
 
 static TextElement DictionaryElement =
     TextElement(0x80, DICTIONARYTOKEN, true, "Dictionary");

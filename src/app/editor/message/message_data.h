@@ -76,8 +76,12 @@ constexpr int kTextData = 0xE0000;
 constexpr int kTextDataEnd = 0xE7FFF;
 constexpr int kNumDictionaryEntries = 97;
 constexpr int kPointersDictionaries = 0x74703;
+constexpr uint8_t kScrollVertical = 0x73;
+constexpr uint8_t kLine1 = 0x74;
+constexpr uint8_t kLine2 = 0x75;
+constexpr uint8_t kLine3 = 0x76;
 
-std::vector<DictionaryEntry> BuildDictionaryEntries(Rom* rom);
+std::vector<DictionaryEntry> BuildDictionaryEntries(Rom *rom);
 
 std::string ReplaceAllDictionaryWords(std::string str,
                                       std::vector<DictionaryEntry> dictionary);
@@ -94,19 +98,15 @@ struct MessageData {
   std::vector<uint8_t> DataParsed;
 
   MessageData() = default;
-  MessageData(int id, int address, const std::string& rawString,
-              const std::vector<uint8_t>& rawData,
-              const std::string& parsedString,
-              const std::vector<uint8_t>& parsedData)
-      : ID(id),
-        Address(address),
-        RawString(rawString),
-        Data(rawData),
-        DataParsed(parsedData),
-        ContentsParsed(parsedString) {}
+  MessageData(int id, int address, const std::string &rawString,
+              const std::vector<uint8_t> &rawData,
+              const std::string &parsedString,
+              const std::vector<uint8_t> &parsedData)
+      : ID(id), Address(address), RawString(rawString), Data(rawData),
+        DataParsed(parsedData), ContentsParsed(parsedString) {}
 
   // Copy constructor
-  MessageData(const MessageData& other) {
+  MessageData(const MessageData &other) {
     ID = other.ID;
     Address = other.Address;
     RawString = other.RawString;
@@ -119,12 +119,12 @@ struct MessageData {
     return absl::StrFormat("%0X - %s", ID, ContentsParsed);
   }
 
-  std::string OptimizeMessageForDictionary(
-      std::string messageString,
-      const std::vector<DictionaryEntry>& dictionary) {
+  std::string
+  OptimizeMessageForDictionary(std::string messageString,
+                               const std::vector<DictionaryEntry> &dictionary) {
     std::stringstream protons;
     bool command = false;
-    for (const auto& c : messageString) {
+    for (const auto &c : messageString) {
       if (c == '[') {
         command = true;
       } else if (c == ']') {
@@ -146,12 +146,14 @@ struct MessageData {
     return finalString;
   }
 
-  void SetMessage(const std::string& message,
-                  const std::vector<DictionaryEntry>& dictionary) {
+  void SetMessage(const std::string &message,
+                  const std::vector<DictionaryEntry> &dictionary) {
     RawString = message;
     ContentsParsed = OptimizeMessageForDictionary(message, dictionary);
   }
 };
+
+
 
 struct TextElement {
   uint8_t ID;
@@ -163,8 +165,8 @@ struct TextElement {
   bool HasArgument;
 
   TextElement() = default;
-  TextElement(uint8_t id, const std::string& token, bool arg,
-              const std::string& description) {
+  TextElement(uint8_t id, const std::string &token, bool arg,
+              const std::string &description) {
     ID = id;
     Token = token;
     if (arg) {
@@ -203,7 +205,7 @@ struct TextElement {
   bool Empty() const { return ID == 0; }
 
   // Comparison operator
-  bool operator==(const TextElement& other) const { return ID == other.ID; }
+  bool operator==(const TextElement &other) const { return ID == other.ID; }
 };
 
 const static std::string kWindowBorder = "Window border";
@@ -254,7 +256,6 @@ static const std::vector<TextElement> TextCommands = {
     TextElement(0x70, "NONO", false, kCrash),
 };
 
-
 TextElement FindMatchingCommand(uint8_t b);
 
 static const std::vector<TextElement> SpecialChars = {
@@ -296,11 +297,15 @@ struct ParsedElement {
   }
 };
 
-ParsedElement FindMatchingElement(const std::string& str);
+ParsedElement FindMatchingElement(const std::string &str);
 
 std::string ParseTextDataByte(uint8_t value);
 
-}  // namespace editor
-}  // namespace yaze
+std::vector<std::string>
+ParseMessageData(std::vector<MessageData> &message_data,
+                 const std::vector<DictionaryEntry> &dictionary_entries);
 
-#endif  // YAZE_APP_EDITOR_MESSAGE_MESSAGE_DATA_H
+} // namespace editor
+} // namespace yaze
+
+#endif // YAZE_APP_EDITOR_MESSAGE_MESSAGE_DATA_H
