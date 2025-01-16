@@ -3,13 +3,9 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <iostream>
-#include <unordered_map>
 #include <vector>
 
-#include "app/core/common.h"
 #include "app/emu/cpu/clock.h"
-#include "app/emu/cpu/internal/opcodes.h"
 #include "app/emu/memory/memory.h"
 
 namespace yaze {
@@ -797,7 +793,6 @@ class Cpu {
 };
 
 }  // namespace emu
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_EMU_CPU_H_

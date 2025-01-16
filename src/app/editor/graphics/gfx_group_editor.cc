@@ -2,7 +2,6 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
-#include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"

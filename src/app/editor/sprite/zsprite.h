@@ -1,7 +1,6 @@
 #ifndef YAZE_APP_EDITOR_SPRITE_ZSPRITE_H
 #define YAZE_APP_EDITOR_SPRITE_ZSPRITE_H
 
-#include <algorithm>
 #include <cstdint>
 #include <fstream>
 #include <string>
@@ -9,8 +8,6 @@
 
 #include "app/core/constants.h"
 #include "absl/status/status.h"
-#include "app/gfx/snes_tile.h"
-#include "imgui/imgui.h"
 
 namespace yaze {
 namespace editor {

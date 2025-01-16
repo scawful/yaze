@@ -14,7 +14,6 @@ class PopupManager {
 };
 
 } // namespace editor
-
 } // namespace yaze
 
 #endif // YAZE_APP_EDITOR_POPUP_MANAGER_H

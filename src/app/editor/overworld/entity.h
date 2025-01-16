@@ -4,7 +4,10 @@
 #include "imgui/imgui.h"
 
 #include "app/zelda3/common.h"
-#include "app/zelda3/overworld/overworld.h"
+#include "app/zelda3/overworld/overworld_exit.h"
+#include "app/zelda3/overworld/overworld_item.h"
+#include "app/zelda3/overworld/overworld_entrance.h"
+#include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace editor {

@@ -1,12 +1,8 @@
 #ifndef YAZE_APP_EDITOR_MUSIC_EDITOR_H
 #define YAZE_APP_EDITOR_MUSIC_EDITOR_H
 
-#include "absl/strings/str_format.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/editor.h"
-#include "app/gui/canvas.h"
-#include "app/gui/icons.h"
-#include "app/gui/input.h"
 #include "app/rom.h"
 #include "app/zelda3/music/tracker.h"
 #include "imgui/imgui.h"
@@ -50,6 +46,10 @@ static constexpr absl::string_view kSongNotes[] = {
     "C",  "C#", "D",  "D#", "E", "F",  "F#", "G",  "G#", "A",  "A#", "B", "C",
     "C#", "D",  "D#", "E",  "F", "F#", "G",  "G#", "A",  "A#", "B",  "C"};
 
+const ImGuiTableFlags toolset_table_flags_ = ImGuiTableFlags_SizingFixedFit;
+const ImGuiTableFlags music_editor_flags_ = ImGuiTableFlags_SizingFixedFit |
+                                      ImGuiTableFlags_Resizable |
+                                      ImGuiTableFlags_Reorderable;
 /**
  * @class MusicEditor
  * @brief A class for editing music data in a Rom.
@@ -77,10 +77,6 @@ class MusicEditor : public SharedRom, public Editor {
   zelda3::music::Tracker music_tracker_;
 
   AssemblyEditor assembly_editor_;
-  ImGuiTableFlags toolset_table_flags_ = ImGuiTableFlags_SizingFixedFit;
-  ImGuiTableFlags music_editor_flags_ = ImGuiTableFlags_SizingFixedFit |
-                                        ImGuiTableFlags_Resizable |
-                                        ImGuiTableFlags_Reorderable;
 };
 
 }  // namespace editor

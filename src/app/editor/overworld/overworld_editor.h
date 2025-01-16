@@ -89,8 +89,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   }
   absl::Status Save();
 
-  auto overworld() { return &overworld_; }
-
   int jump_to_tab() { return jump_to_tab_; }
   int jump_to_tab_ = -1;
 
@@ -104,24 +102,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status LoadGraphics();
 
  private:
-  /**
-   * @brief Draws the canvas, tile16 selector, and toolset in fullscreen
-   */
   void DrawFullscreenCanvas();
-
-  /**
-   * @brief Toolset for entrances, exits, items, sprites, and transports.
-   */
   void DrawToolset();
-
-  /**
-   * @brief Draws the overworld map settings. Graphics, palettes, etc.
-   */
   void DrawOverworldMapSettings();
-
-  /**
-   * @brief Draw the overworld settings for ZSCustomOverworld.
-   */
   void DrawCustomOverworldMapSettings();
 
   void RefreshChildMap(int i);
@@ -163,10 +146,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
    */
   absl::Status CheckForCurrentMap();
   void CheckForMousePan();
-
-  /**
-   * @brief Allows the user to make changes to the overworld map.
-   */
   void DrawOverworldCanvas();
 
   absl::Status DrawTile16Selector();
