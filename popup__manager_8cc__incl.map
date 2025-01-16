@@ -1,7 +1,5 @@
 <map id="src/app/editor/system/popup_manager.cc" name="src/app/editor/system/popup_manager.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="60,5,207,46"/>
-<area shape="rect" id="Node000002" href="$popup__manager_8h.html" title=" " alt="" coords="5,94,129,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,48,89,83,85,80,115,45"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="153,94,250,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="152,45,183,80,179,84,148,48"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,152,46"/>
+<area shape="rect" id="Node000002" href="$popup__manager_8h.html" title=" " alt="" coords="17,94,140,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,46,81,78,76,78,76,46"/>
 </map>

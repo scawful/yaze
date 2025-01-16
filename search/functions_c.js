@@ -59,7 +59,7 @@ var searchData=
   ['mutable_5farea_5fpalette_56',['mutable_area_palette',['../classyaze_1_1zelda3_1_1OverworldMap.html#aa08d56743cec6094b3a9109445e95125',1,'yaze::zelda3::OverworldMap']]],
   ['mutable_5fbitmap_57',['mutable_bitmap',['../classyaze_1_1gfx_1_1Tilesheet.html#aa0896f4f20dc7f09b054aa1d5e7e87a6',1,'yaze::gfx::Tilesheet']]],
   ['mutable_5fblocks_58',['mutable_blocks',['../classyaze_1_1zelda3_1_1Room.html#a5d02e4d362a9936fa9d85413dc473f1c',1,'yaze::zelda3::Room']]],
-  ['mutable_5fcolor_59',['mutable_color',['../classyaze_1_1gfx_1_1SnesPalette.html#a35c884fd5e8abcc1b2a7bd6f2fee08fe',1,'yaze::gfx::SnesPalette::mutable_color()'],['../classyaze_1_1test_1_1SnesPalette.html#a35c884fd5e8abcc1b2a7bd6f2fee08fe',1,'yaze::test::SnesPalette::mutable_color()']]],
+  ['mutable_5fcolor_59',['mutable_color',['../classyaze_1_1gfx_1_1SnesPalette.html#a35c884fd5e8abcc1b2a7bd6f2fee08fe',1,'yaze::gfx::SnesPalette']]],
   ['mutable_5fcurrent_5fgraphics_60',['mutable_current_graphics',['../classyaze_1_1zelda3_1_1OverworldMap.html#ac2e492cac975f018fe6c5fc31299fb60',1,'yaze::zelda3::OverworldMap']]],
   ['mutable_5fcurrent_5fpalette_61',['mutable_current_palette',['../classyaze_1_1zelda3_1_1OverworldMap.html#abb2df58763a161860ba694582ef31c0f',1,'yaze::zelda3::OverworldMap']]],
   ['mutable_5fcustom_5ftileset_62',['mutable_custom_tileset',['../classyaze_1_1zelda3_1_1OverworldMap.html#aed9669a207763ef9fc67a86adcc45983',1,'yaze::zelda3::OverworldMap']]],

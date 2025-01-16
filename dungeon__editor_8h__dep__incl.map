@@ -1,14 +1,15 @@
 <map id="src/app/editor/dungeon/dungeon_editor.h" name="src/app/editor/dungeon/dungeon_editor.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="148,5,302,46"/>
-<area shape="rect" id="Node000002" href="$memory__editor_8h.html" title=" " alt="" coords="5,94,138,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,56,107,96,105,91,176,51"/>
-<area shape="rect" id="Node000003" href="$editor__manager_8h.html" title=" " alt="" coords="77,183,213,223"/>
-<area shape="poly" id="edge7_Node000001_Node000003" title=" " alt="" coords="212,61,156,183,151,181,207,59"/>
-<area shape="rect" id="Node000010" href="$editor__manager_8cc.html" title=" " alt="" coords="129,271,265,312"/>
-<area shape="poly" id="edge6_Node000001_Node000010" title=" " alt="" coords="232,61,235,136,233,180,227,224,210,272,205,270,222,223,228,180,230,136,226,61"/>
-<area shape="rect" id="Node000011" href="$dungeon__editor_8cc.html" title=" " alt="" coords="288,94,442,135"/>
-<area shape="poly" id="edge5_Node000001_Node000011" title=" " alt="" coords="271,52,335,91,332,96,268,57"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="154,100,161,106,164,115,157,127,139,133,137,128,153,123,159,114,157,109,151,104"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="100,145,130,180,126,184,96,148"/>
-<area shape="poly" id="edge4_Node000003_Node000010" title=" " alt="" coords="167,235,187,270,183,272,162,238"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="120,5,273,46"/>
+<area shape="rect" id="Node000002" href="$dungeon__editor_8cc.html" title=" " alt="" coords="5,94,159,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,58,110,96,106,91,157,53"/>
+<area shape="rect" id="Node000003" href="$editor__manager_8cc.html" title=" " alt="" coords="128,183,265,223"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="199,61,199,182,194,182,194,61"/>
+<area shape="rect" id="Node000004" href="$editor__manager_8h.html" title=" " alt="" coords="234,94,370,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="234,54,280,91,277,96,230,58"/>
+<area shape="poly" id="edge7_Node000004_Node000003" title=" " alt="" coords="268,147,222,184,219,180,265,143"/>
+<area shape="rect" id="Node000005" href="$controller_8cc.html" title=" " alt="" coords="277,271,444,297"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="310,150,318,185,330,222,355,270,350,272,325,224,313,187,305,151"/>
+<area shape="rect" id="Node000006" href="$controller_8h.html" title=" " alt="" coords="339,190,500,216"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="342,142,405,188,401,192,339,146"/>
+<area shape="poly" id="edge6_Node000006_Node000005" title=" " alt="" coords="403,230,372,272,368,269,399,227"/>
 </map>

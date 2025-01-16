@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['z3_5fversion_0',['Z3_Version',['../namespaceyaze.html#a74d8c95a7cc3ccb2b53a1902bbd1c3ec',1,'yaze']]]
+  ['yaze_5fstatus_0',['yaze_status',['../yaze_8h.html#a8b8638fa48e18e420ef66414847265c0',1,'yaze.h']]]
 ];

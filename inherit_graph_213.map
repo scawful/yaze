@@ -1,3 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structyaze_1_1ResourceLabelManager.html" title=" " alt="" coords="5,5,196,31"/>
+<area shape="rect" id="Node000000" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="19,5,100,31"/>
+<area shape="rect" id="Node000001" href="$classyaze_1_1test_1_1MockRom.html" title=" " alt="" coords="162,31,302,56"/>
+<area shape="poly" id="edge75_Node000000_Node000001" title=" " alt="" coords="116,24,161,30,161,36,115,29"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1test_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="5,55,114,80"/>
+<area shape="poly" id="edge76_Node000002_Node000001" title=" " alt="" coords="129,55,161,51,162,56,130,60"/>
 </map>

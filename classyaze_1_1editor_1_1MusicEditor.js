@@ -14,7 +14,5 @@ var classyaze_1_1editor_1_1MusicEditor =
     [ "DrawSongToolset", "classyaze_1_1editor_1_1MusicEditor.html#adfbbedd4af642d136089454fbc76e9df", null ],
     [ "DrawToolset", "classyaze_1_1editor_1_1MusicEditor.html#a923b466ec76879507b53a6712ae54a02", null ],
     [ "music_tracker_", "classyaze_1_1editor_1_1MusicEditor.html#a2aa139b97d71e2e15d08900bfe9325df", null ],
-    [ "assembly_editor_", "classyaze_1_1editor_1_1MusicEditor.html#ae1d595782ad417ddd2dc03abac8fb2fd", null ],
-    [ "toolset_table_flags_", "classyaze_1_1editor_1_1MusicEditor.html#ac8e6fd5545e47dedcba5b29f08b306d6", null ],
-    [ "music_editor_flags_", "classyaze_1_1editor_1_1MusicEditor.html#ac19304456569f679ff2a08091057d047", null ]
+    [ "assembly_editor_", "classyaze_1_1editor_1_1MusicEditor.html#ae1d595782ad417ddd2dc03abac8fb2fd", null ]
 ];

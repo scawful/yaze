@@ -1,18 +1,14 @@
 <map id="src/app/zelda3/music/tracker.h" name="src/app/zelda3/music/tracker.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="235,5,380,46"/>
-<area shape="rect" id="Node000002" href="$music__editor_8h.html" title=" " alt="" coords="155,94,294,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="280,59,245,95,242,92,276,56"/>
-<area shape="rect" id="Node000013" href="$tracker_8cc.html" title="Legacy code from Hyrule Magic TrackerLogic.c." alt="" coords="318,94,462,135"/>
-<area shape="poly" id="edge9_Node000001_Node000013" title=" " alt="" coords="339,56,373,92,370,95,335,59"/>
-<area shape="rect" id="Node000003" href="$memory__editor_8h.html" title=" " alt="" coords="5,183,138,223"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="178,145,107,185,105,180,176,140"/>
-<area shape="rect" id="Node000004" href="$editor__manager_8h.html" title=" " alt="" coords="77,271,213,312"/>
-<area shape="poly" id="edge7_Node000002_Node000004" title=" " alt="" coords="212,150,156,272,151,270,207,148"/>
-<area shape="rect" id="Node000011" href="$editor__manager_8cc.html" title=" " alt="" coords="129,360,265,401"/>
-<area shape="poly" id="edge6_Node000002_Node000011" title=" " alt="" coords="232,150,235,225,233,269,227,313,210,361,205,359,222,311,228,268,230,225,226,150"/>
-<area shape="rect" id="Node000012" href="$music__editor_8cc.html" title=" " alt="" coords="287,183,426,223"/>
-<area shape="poly" id="edge8_Node000002_Node000012" title=" " alt="" coords="269,141,328,180,326,184,266,146"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="154,189,161,194,164,203,157,216,139,222,137,216,153,212,159,203,157,198,151,193"/>
-<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="100,233,130,269,126,273,96,237"/>
-<area shape="poly" id="edge5_Node000004_Node000011" title=" " alt="" coords="167,324,187,358,183,361,162,327"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="137,5,282,46"/>
+<area shape="rect" id="Node000002" href="$music__editor_8h.html" title=" " alt="" coords="57,94,196,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,59,147,95,144,92,178,56"/>
+<area shape="rect" id="Node000012" href="$tracker_8cc.html" title="Legacy code from Hyrule Magic TrackerLogic.c." alt="" coords="220,94,364,135"/>
+<area shape="poly" id="edge6_Node000001_Node000012" title=" " alt="" coords="241,56,275,92,272,95,237,59"/>
+<area shape="rect" id="Node000003" href="$editor__manager_8cc.html" title=" " alt="" coords="5,271,142,312"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="82,146,63,163,49,184,44,206,47,229,64,270,59,272,42,230,39,205,44,182,59,160,78,142"/>
+<area shape="rect" id="Node000004" href="$editor__manager_8h.html" title=" " alt="" coords="59,183,195,223"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="130,150,130,182,124,182,124,150"/>
+<area shape="rect" id="Node000011" href="$music__editor_8cc.html" title=" " alt="" coords="218,183,358,223"/>
+<area shape="poly" id="edge5_Node000002_Node000011" title=" " alt="" coords="178,140,253,180,250,185,175,145"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="109,238,88,272,83,269,105,235"/>
 </map>

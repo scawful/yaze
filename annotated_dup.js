@@ -260,7 +260,6 @@ var annotated_dup =
         [ "PpuTest", "classyaze_1_1test_1_1PpuTest.html", "classyaze_1_1test_1_1PpuTest" ],
         [ "Rom", "classyaze_1_1test_1_1Rom.html", "classyaze_1_1test_1_1Rom" ],
         [ "RomTest", "classyaze_1_1test_1_1RomTest.html", "classyaze_1_1test_1_1RomTest" ],
-        [ "SnesPalette", "classyaze_1_1test_1_1SnesPalette.html", "classyaze_1_1test_1_1SnesPalette" ],
         [ "Spc700", "classyaze_1_1test_1_1Spc700.html", "classyaze_1_1test_1_1Spc700" ],
         [ "Spc700Test", "classyaze_1_1test_1_1Spc700Test.html", "classyaze_1_1test_1_1Spc700Test" ],
         [ "SpriteAttributes", "structyaze_1_1test_1_1SpriteAttributes.html", "structyaze_1_1test_1_1SpriteAttributes" ],

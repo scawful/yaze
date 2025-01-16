@@ -36,7 +36,7 @@ var searchData=
   ['getcharactercolumn_33',['GetCharacterColumn',['../classTextEditor.html#a5db8f77329faa8b9fc8c6a15568f939b',1,'TextEditor']]],
   ['getcharacterindex_34',['GetCharacterIndex',['../classTextEditor.html#a4549652ac52a9936e695614ed588c445',1,'TextEditor']]],
   ['getcolfiledata_35',['GetColFileData',['../namespaceyaze_1_1gfx.html#af8fed1cb0f0baca7110e27e8594da601',1,'yaze::gfx']]],
-  ['getcolor_36',['GetColor',['../classyaze_1_1gfx_1_1SnesPalette.html#a526b8c0d069fd26b5dd6970c81666d0d',1,'yaze::gfx::SnesPalette::GetColor()'],['../classyaze_1_1test_1_1SnesPalette.html#a526b8c0d069fd26b5dd6970c81666d0d',1,'yaze::test::SnesPalette::GetColor()']]],
+  ['getcolor_36',['GetColor',['../classyaze_1_1gfx_1_1SnesPalette.html#a526b8c0d069fd26b5dd6970c81666d0d',1,'yaze::gfx::SnesPalette']]],
   ['getconfigdirectory_37',['GetConfigDirectory',['../namespaceyaze_1_1core.html#a6ce28d9949b2dd0f6b6f6ae922700ae2',1,'yaze::core']]],
   ['getconfiguration_38',['GetConfiguration',['../classyaze_1_1zelda3_1_1SpriteInstruction.html#ac14981bf7b1288751377cf81ed1d8a28',1,'yaze::zelda3::SpriteInstruction::GetConfiguration()'],['../classyaze_1_1zelda3_1_1SpriteAction.html#a7ac52c22e193acdb75a069e96bb7c549',1,'yaze::zelda3::SpriteAction::GetConfiguration()']]],
   ['getcurrentlinetext_39',['GetCurrentLineText',['../classTextEditor.html#a71f7d9d34a2616207a75555b642cdab5',1,'TextEditor']]],

@@ -13,9 +13,5 @@ var message__editor_8h =
     [ "yaze::editor::kFontGfxMessageDepth", "namespaceyaze_1_1editor.html#a98fd94e92b2dbcc22006cbe07ece4f3d", null ],
     [ "yaze::editor::kWidthArraySize", "namespaceyaze_1_1editor.html#ab8dad615541a554df4446d604e0bc187", null ],
     [ "yaze::editor::kBlockTerminator", "namespaceyaze_1_1editor.html#a6dd6b1e09112cd79303b3a45479db4d8", null ],
-    [ "yaze::editor::kMessageBankChangeId", "namespaceyaze_1_1editor.html#abe760cd536283b42d4cfacd143210047", null ],
-    [ "yaze::editor::kScrollVertical", "namespaceyaze_1_1editor.html#a189336bde381ff1453e2be128c0e213b", null ],
-    [ "yaze::editor::kLine1", "namespaceyaze_1_1editor.html#a2a9280f99a655869ec92b6a112f4893c", null ],
-    [ "yaze::editor::kLine2", "namespaceyaze_1_1editor.html#a6e03f0e92717101837c29f9cc3bf172f", null ],
-    [ "yaze::editor::kLine3", "namespaceyaze_1_1editor.html#af1744a66e1114136092a2f6527d4af6a", null ]
+    [ "yaze::editor::kMessageBankChangeId", "namespaceyaze_1_1editor.html#abe760cd536283b42d4cfacd143210047", null ]
 ];

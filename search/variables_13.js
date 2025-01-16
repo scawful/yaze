@@ -105,7 +105,7 @@ var searchData=
   ['tmw_102',['TMW',['../namespaceyaze_1_1emu.html#aceff6f3c67cd8d75e5c5a9b2f6065c9c',1,'yaze::emu']]],
   ['token_103',['Token',['../structyaze_1_1editor_1_1DictionaryEntry.html#a42d8be10d4b8070021776b024f0b3800',1,'yaze::editor::DictionaryEntry::Token'],['../structyaze_1_1editor_1_1TextElement.html#a917c0bff8598acfdf7727b1cdffa28eb',1,'yaze::editor::TextElement::Token']]],
   ['toolset_5ftable_5f_104',['toolset_table_',['../classyaze_1_1editor_1_1OverworldEditor.html#ad2b1bd4d108482ecbc6d451e81b9c502',1,'yaze::editor::OverworldEditor']]],
-  ['toolset_5ftable_5fflags_5f_105',['toolset_table_flags_',['../classyaze_1_1editor_1_1MusicEditor.html#ac8e6fd5545e47dedcba5b29f08b306d6',1,'yaze::editor::MusicEditor']]],
+  ['toolset_5ftable_5fflags_5f_105',['toolset_table_flags_',['../namespaceyaze_1_1editor.html#a77d0c84e9a386f6c31259d53050cd692',1,'yaze::editor']]],
   ['torch_5fdata_106',['torch_data',['../namespaceyaze_1_1zelda3.html#ad0b073513fb64de71f161bc1cf6af0cd',1,'yaze::zelda3']]],
   ['torches_5flength_5fpointer_107',['torches_length_pointer',['../namespaceyaze_1_1zelda3.html#aaa5b9b5e13baecfe2aaee412502a0566',1,'yaze::zelda3']]],
   ['total_5ffloors_5f_108',['total_floors_',['../classyaze_1_1zelda3_1_1TitleScreen.html#a97cf6e74e226a371361612441d8d49ab',1,'yaze::zelda3::TitleScreen']]],

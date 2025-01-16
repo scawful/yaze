@@ -1,6 +1,5 @@
 var snes__palette__test_8cc =
 [
-    [ "yaze::test::SnesPalette", "classyaze_1_1test_1_1SnesPalette.html", "classyaze_1_1test_1_1SnesPalette" ],
     [ "yaze::test::anonymous_namespace{snes_palette_test.cc}::test_convert", "namespaceyaze_1_1test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html#a0492926f27e09c79e929ad1165ae19a5", null ],
     [ "yaze::test::TEST", "namespaceyaze_1_1test.html#aa4190497f642202f0b9c8f0191cfbae5", null ],
     [ "yaze::test::TEST", "namespaceyaze_1_1test.html#a9e0f22ebd3d07f33fab2115e5f2d5111", null ],

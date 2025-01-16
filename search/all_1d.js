@@ -183,7 +183,7 @@ var searchData=
   ['tokenregexstrings_180',['TokenRegexStrings',['../structTextEditor_1_1LanguageDefinition.html#a8d9d3b1eff76ed1b7e8192626d1984ec',1,'TextEditor::LanguageDefinition']]],
   ['tokentype_181',['TokenType',['../namespaceyaze_1_1gui_1_1zeml.html#ab789223ff6fb457facc22ec1800678f1',1,'yaze::gui::zeml']]],
   ['toolset_5ftable_5f_182',['toolset_table_',['../classyaze_1_1editor_1_1OverworldEditor.html#ad2b1bd4d108482ecbc6d451e81b9c502',1,'yaze::editor::OverworldEditor']]],
-  ['toolset_5ftable_5fflags_5f_183',['toolset_table_flags_',['../classyaze_1_1editor_1_1MusicEditor.html#ac8e6fd5545e47dedcba5b29f08b306d6',1,'yaze::editor::MusicEditor']]],
+  ['toolset_5ftable_5fflags_5f_183',['toolset_table_flags_',['../namespaceyaze_1_1editor.html#a77d0c84e9a386f6c31259d53050cd692',1,'yaze::editor']]],
   ['torch_184',['Torch',['../namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8aa8b6ce53a1cdf2ee4d3f16b939029b2b',1,'yaze::zelda3']]],
   ['torch_5fdata_185',['torch_data',['../namespaceyaze_1_1zelda3.html#ad0b073513fb64de71f161bc1cf6af0cd',1,'yaze::zelda3']]],
   ['torch_5fshow_5ffloor_186',['Torch_Show_Floor',['../namespaceyaze_1_1zelda3.html#a44b1e31e5857baaa00dc88ae724003c3afca1c11ad25e05774aca02bc1f61068a',1,'yaze::zelda3']]],

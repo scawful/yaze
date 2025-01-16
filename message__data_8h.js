@@ -13,6 +13,7 @@ var message__data_8h =
     [ "yaze::editor::FindMatchingSpecial", "namespaceyaze_1_1editor.html#ab527313554c1184f4658aefe1f7f055a", null ],
     [ "yaze::editor::FindMatchingElement", "namespaceyaze_1_1editor.html#ad840a81ab7030a220a019f79fbbabb6d", null ],
     [ "yaze::editor::ParseTextDataByte", "namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442", null ],
+    [ "yaze::editor::ParseMessageData", "namespaceyaze_1_1editor.html#a91359909a674306622aa5a533e0c2377", null ],
     [ "yaze::editor::kMessageTerminator", "namespaceyaze_1_1editor.html#a0d4a3ab38797b034b311b39a037a293a", null ],
     [ "yaze::editor::BANKToken", "namespaceyaze_1_1editor.html#a38abfc689f0d81f4917a7af0fd15fac3", null ],
     [ "yaze::editor::DICTIONARYTOKEN", "namespaceyaze_1_1editor.html#a180364fa630f1bbd2b029efa9277f342", null ],
@@ -21,5 +22,9 @@ var message__data_8h =
     [ "yaze::editor::kTextDataEnd", "namespaceyaze_1_1editor.html#afa2bb58012ea2e36ff07daad1c52f812", null ],
     [ "yaze::editor::kNumDictionaryEntries", "namespaceyaze_1_1editor.html#a7da8c45c704303a76331eaade35bc5da", null ],
     [ "yaze::editor::kPointersDictionaries", "namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec", null ],
+    [ "yaze::editor::kScrollVertical", "namespaceyaze_1_1editor.html#a189336bde381ff1453e2be128c0e213b", null ],
+    [ "yaze::editor::kLine1", "namespaceyaze_1_1editor.html#a2a9280f99a655869ec92b6a112f4893c", null ],
+    [ "yaze::editor::kLine2", "namespaceyaze_1_1editor.html#a6e03f0e92717101837c29f9cc3bf172f", null ],
+    [ "yaze::editor::kLine3", "namespaceyaze_1_1editor.html#af1744a66e1114136092a2f6527d4af6a", null ],
     [ "yaze::editor::CHEESE", "namespaceyaze_1_1editor.html#a072e6c59403d75837f1ad24ffd787184", null ]
 ];

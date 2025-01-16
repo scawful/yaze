@@ -1,5 +1,5 @@
 <map id="yaze::editor::OverworldEditor::DrawOverworldMapSettings" name="yaze::editor::OverworldEditor::DrawOverworldMapSettings">
-<area shape="rect" id="Node000001" title="Draws the overworld map settings. Graphics, palettes, etc." alt="" coords="5,104,195,145"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,104,195,145"/>
 <area shape="rect" id="Node000002" href="$namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="257,5,412,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,102,181,70,242,40,258,33,260,38,244,45,184,75,133,106"/>
 <area shape="rect" id="Node000004" href="$namespaceyaze_1_1gui.html#a2be4bdb4d48912825342ba9df3da5237" title=" " alt="" coords="255,55,414,80"/>

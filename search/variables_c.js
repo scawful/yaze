@@ -184,7 +184,7 @@ var searchData=
   ['mundoindex_181',['mUndoIndex',['../classTextEditor.html#a8057103e4e9c385159f7d80cf882c5de',1,'TextEditor']]],
   ['music_5f_182',['music_',['../classyaze_1_1zelda3_1_1RoomEntrance.html#ace215925955fecfd7565d69cf50301f1',1,'yaze::zelda3::RoomEntrance']]],
   ['music_5feditor_5f_183',['music_editor_',['../classyaze_1_1editor_1_1EditorManager.html#a8ca6dd54554e76b0afe239802db22177',1,'yaze::editor::EditorManager']]],
-  ['music_5feditor_5fflags_5f_184',['music_editor_flags_',['../classyaze_1_1editor_1_1MusicEditor.html#ac19304456569f679ff2a08091057d047',1,'yaze::editor::MusicEditor']]],
+  ['music_5feditor_5fflags_5f_184',['music_editor_flags_',['../namespaceyaze_1_1editor.html#a1188682b4736f2d9244023ed720ba1c8',1,'yaze::editor']]],
   ['music_5ftracker_5f_185',['music_tracker_',['../classyaze_1_1editor_1_1MusicEditor.html#a2aa139b97d71e2e15d08900bfe9325df',1,'yaze::editor::MusicEditor']]],
   ['mute_186',['mute',['../classyaze_1_1emu_1_1Dsp.html#ad77e4c6c7a9c377206a7c2f3d3c221c2',1,'yaze::emu::Dsp']]],
   ['mwithinrender_187',['mWithinRender',['../classTextEditor.html#acbb4cc4659b4486d0a1d934582b2efaa',1,'TextEditor']]],

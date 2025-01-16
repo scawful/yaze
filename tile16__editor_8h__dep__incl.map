@@ -4,15 +4,11 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,59,104,95,101,92,140,55"/>
 <area shape="rect" id="Node000003" href="$overworld__editor_8h.html" title=" " alt="" coords="183,94,344,135"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="206,55,245,92,241,95,202,59"/>
-<area shape="rect" id="Node000004" href="$memory__editor_8h.html" title=" " alt="" coords="44,183,176,223"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="217,145,146,185,143,180,214,140"/>
-<area shape="rect" id="Node000005" href="$editor__manager_8h.html" title=" " alt="" coords="115,271,252,312"/>
-<area shape="poly" id="edge8_Node000003_Node000005" title=" " alt="" coords="251,150,195,272,190,270,246,148"/>
-<area shape="rect" id="Node000012" href="$editor__manager_8cc.html" title=" " alt="" coords="167,360,304,401"/>
-<area shape="poly" id="edge7_Node000003_Node000012" title=" " alt="" coords="270,150,274,225,272,269,266,313,248,361,243,359,261,311,267,268,268,225,265,150"/>
-<area shape="rect" id="Node000013" href="$overworld__editor_8cc.html" title=" " alt="" coords="326,183,486,223"/>
-<area shape="poly" id="edge9_Node000003_Node000013" title=" " alt="" coords="310,141,375,180,372,185,307,145"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="193,189,200,194,203,203,195,216,177,222,176,216,192,212,198,203,196,198,189,193"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="138,233,169,269,165,273,134,237"/>
-<area shape="poly" id="edge6_Node000005_Node000012" title=" " alt="" coords="205,324,226,358,221,361,201,327"/>
+<area shape="rect" id="Node000004" href="$editor__manager_8cc.html" title=" " alt="" coords="142,271,278,312"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="218,146,200,163,186,184,181,206,183,229,200,270,195,272,178,230,175,205,181,182,195,160,214,142"/>
+<area shape="rect" id="Node000005" href="$editor__manager_8h.html" title=" " alt="" coords="195,183,332,223"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="266,150,266,182,261,182,261,150"/>
+<area shape="rect" id="Node000012" href="$overworld__editor_8cc.html" title=" " alt="" coords="355,183,516,223"/>
+<area shape="poly" id="edge6_Node000003_Node000012" title=" " alt="" coords="317,140,398,180,395,185,315,144"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="246,238,224,272,220,269,241,235"/>
 </map>
