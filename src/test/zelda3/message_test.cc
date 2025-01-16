@@ -38,6 +38,13 @@ TEST_F(MessageTest, LoadMessagesFromRomOk) {
   [S:##]A
   [3]give
   [2]give >[CH2I]
+
+  Message ID: 2
+  Raw: [S:00][3][][:75][:44][CH2I]
+  Parsed: [S:00][3][][:75][:44][CH2I]
+  Raw Bytes: 7A 00 76 88 8A 75 88 44 68 
+  Parsed Bytes: 7A 00 76 88 8A 75 88 44 68 
+
  */
 TEST_F(MessageTest, VerifySingleMessageFromRomOk) {
   // TODO - Implement this test
