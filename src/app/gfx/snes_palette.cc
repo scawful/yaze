@@ -5,12 +5,10 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
-#include <memory>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"  // for flat_hash_map
-#include "absl/status/status.h"            // for Status
+#include "absl/container/flat_hash_map.h"
+#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/core/constants.h"
 #include "app/gfx/snes_color.h"

@@ -5,6 +5,7 @@
 
 #include "app/core/platform/file_dialog.h"
 #include "app/core/platform/renderer.h"
+#include "app/emu/cpu/internal/opcodes.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/zeml.h"

@@ -1,15 +1,7 @@
-#include <iostream>
-#include <string>
-#include <vector>
-
 #include "app/emu/cpu/cpu.h"
 
 namespace yaze {
 namespace emu {
-
-/**
- * 65816 Instruction Set
- */
 
 void Cpu::And(uint32_t low, uint32_t high) {
   if (GetAccumulatorSize()) {
@@ -397,5 +389,4 @@ void Cpu::ORA(uint32_t low, uint32_t high) {
 }
 
 }  // namespace emu
-
 }  // namespace yaze

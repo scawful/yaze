@@ -2,8 +2,6 @@
 
 #include <cstring>
 
-#include "app/emu/memory/memory.h"
-
 namespace yaze {
 namespace emu {
 

@@ -12,7 +12,6 @@ using ::testing::ElementsAreArray;
 using yaze::gfx::ConvertRgbToSnes;
 using yaze::gfx::ConvertSnesToRgb;
 using yaze::gfx::Extract;
-using yaze::gfx::SnesPalette;
 
 namespace {
 unsigned int test_convert(snes_color col) {

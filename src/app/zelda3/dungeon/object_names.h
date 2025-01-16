@@ -6,7 +6,6 @@
 namespace yaze {
 namespace zelda3 {
 
-
 constexpr static inline absl::string_view Type1RoomObjectNames[] = {
     "Ceiling ↔",
     "Wall (top, north) ↔",
@@ -456,10 +455,7 @@ constexpr static inline absl::string_view Type3RoomObjectNames[] = {
     "Nothing",
 };
 
-
-
 }  // namespace zelda3
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_DUNGEON_OBJECT_NAMES_H

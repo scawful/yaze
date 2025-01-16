@@ -1,7 +1,4 @@
 #include <cstdint>
-#include <iostream>
-#include <stdexcept>
-#include <string>
 #include <vector>
 
 #include "app/emu/cpu/cpu.h"
@@ -9,9 +6,7 @@
 #include "app/emu/video/ppu.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
-#include "app/gfx/snes_tile.h"
 #include "app/rom.h"
-#include "app/zelda3/dungeon/object_names.h"
 
 namespace yaze {
 namespace zelda3 {

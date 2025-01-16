@@ -2,7 +2,6 @@
 #define YAZE_APP_EDITOR_DUNGEONEDITOR_H
 
 #include "absl/container/flat_hash_map.h"
-#include "app/core/common.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/graphics/palette_editor.h"

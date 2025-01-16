@@ -1,9 +1,5 @@
 #include "color.h"
 
-#include <cmath>
-#include <string>
-
-#include "app/gfx/bitmap.h"
 #include "app/gfx/snes_color.h"
 #include "app/gfx/snes_palette.h"
 #include "imgui/imgui.h"
@@ -168,5 +164,4 @@ void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
 }
 
 }  // namespace gui
-
 }  // namespace yaze

@@ -1,6 +1,9 @@
 #ifndef YAZE_APP_EDITOR_SPRITE_EDITOR_H
 #define YAZE_APP_EDITOR_SPRITE_EDITOR_H
 
+#include <cstdint>
+#include <vector>
+
 #include "absl/status/status.h"
 #include "app/editor/sprite/zsprite.h"
 #include "app/editor/editor.h"

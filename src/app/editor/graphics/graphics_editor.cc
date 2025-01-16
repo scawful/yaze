@@ -7,7 +7,6 @@
 #include "app/core/platform/clipboard.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/platform/renderer.h"
-#include "app/editor/graphics/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/compression.h"
 #include "app/gfx/scad_format.h"
