@@ -39,7 +39,7 @@ TEST_F(OverworldTest, OverworldLoadNoRomDataError) {
 TEST_F(OverworldTest, OverworldLoadRomDataOk) {
   // Arrange
   EXPECT_OK(rom()->LoadFromFile("zelda3.sfc"));
-  EXPECT_OK(rom()->LoadAllGraphicsData(/*defer_render=*/true));
+  ASSERT_OK_AND_ASSIGN(auto gfx_data, LoadAllGraphicsData(*rom(), /*defer_render=*/true));
 
   // Act
   auto status = overworld_.Load(*rom());
