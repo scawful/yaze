@@ -83,8 +83,18 @@ const static zelda3_version_pointers zelda3_jp_pointers = {
     0x67DD0,  // kDungeonPalettesGroups
 };
 
+typedef struct zelda3_rom {
+  const char* filename;
+  const uint8_t* data;
+  size_t size;
+  void* impl;  // yaze::Rom*
+} zelda3_rom;
+
+zelda3_rom* yaze_load_rom(const char* filename);
+void yaze_unload_rom(zelda3_rom* rom);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif  // ZELDA_H

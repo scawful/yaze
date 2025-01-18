@@ -11,12 +11,12 @@ extern "C" {
 #include "dungeon.h"
 #include "overworld.h"
 #include "snes_color.h"
+#include "zelda.h"
 
-typedef struct z3_rom z3_rom;
 typedef struct yaze_project yaze_project;
 
 typedef struct yaze_editor_context {
-  z3_rom* rom;
+  zelda3_rom* rom;
   yaze_project* project;
   const char* error_message;
 } yaze_editor_context;
@@ -42,16 +42,6 @@ struct yaze_project {
 
 yaze_project yaze_load_project(const char* filename);
 
-struct z3_rom {
-  const char* filename;
-  const uint8_t* data;
-  size_t size;
-  void* impl;  // yaze::Rom*
-};
-
-z3_rom* yaze_load_rom(const char* filename);
-void yaze_unload_rom(z3_rom* rom);
-
 typedef struct yaze_bitmap {
   int width;
   int height;
@@ -61,12 +51,13 @@ typedef struct yaze_bitmap {
 
 yaze_bitmap yaze_load_bitmap(const char* filename);
 
-snes_color yaze_get_color_from_paletteset(const z3_rom* rom, int palette_set,
-                                          int palette, int color);
+snes_color yaze_get_color_from_paletteset(const zelda3_rom* rom,
+                                          int palette_set, int palette,
+                                          int color);
 
-z3_overworld* yaze_load_overworld(const z3_rom* rom);
+zelda3_overworld* yaze_load_overworld(const zelda3_rom* rom);
 
-z3_dungeon_room* yaze_load_all_rooms(const z3_rom* rom);
+zelda3_dungeon_room* yaze_load_all_rooms(const zelda3_rom* rom);
 
 typedef void (*yaze_initialize_func)(yaze_editor_context* context);
 typedef void (*yaze_cleanup_func)(void);

@@ -60,7 +60,7 @@ typedef struct destination {
   uint8_t target_layer;
 } destination;
 
-typedef struct z3_dungeon_room {
+typedef struct zelda3_dungeon_room {
   background2 bg2;
   dungeon_sprite* sprites;
   object_door* doors;
@@ -69,7 +69,7 @@ typedef struct z3_dungeon_room {
   chest_data* chests_in_room;
   destination pits;
   destination stairs[4];
-} z3_dungeon_room;
+} zelda3_dungeon_room;
 
 #ifdef __cplusplus
 }
