@@ -43,7 +43,7 @@ var classyaze_1_1test_1_1Rom =
     [ "dungeon_palette", "classyaze_1_1test_1_1Rom.html#ac66ee910fc7602a9e87750e6214fe117", null ],
     [ "mutable_dungeon_palette", "classyaze_1_1test_1_1Rom.html#a6a005b3b2e4ceeee4328c6815b955880", null ],
     [ "resource_label", "classyaze_1_1test_1_1Rom.html#a5afd22af393bd1f5e6e317190b31e560", null ],
-    [ "version_constants", "classyaze_1_1test_1_1Rom.html#a76f67b131d3e1a18357ab82ec362e766", null ],
+    [ "version_constants", "classyaze_1_1test_1_1Rom.html#a97d2783a3b91dd4acb21af5547a4ecfa", null ],
     [ "WriteHelper", "classyaze_1_1test_1_1Rom.html#a8b05e9e0a0266a95d15ec694e6b6d4e6", null ],
     [ "ReadHelper", "classyaze_1_1test_1_1Rom.html#ab6617305507a315cc4655e41a019b752", null ],
     [ "LoadZelda3", "classyaze_1_1test_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9", null ],
@@ -61,5 +61,5 @@ var classyaze_1_1test_1_1Rom =
     [ "graphics_buffer_", "classyaze_1_1test_1_1Rom.html#a973094927e5a266698d40d834fc26f5c", null ],
     [ "resource_label_manager_", "classyaze_1_1test_1_1Rom.html#a98dabc039713c62b9dedbd471b4f3064", null ],
     [ "palette_groups_", "classyaze_1_1test_1_1Rom.html#a2a4ba7137dfced685cd4b6432c5fe047", null ],
-    [ "version_", "classyaze_1_1test_1_1Rom.html#a10ab505349748675f9a37037a5a23359", null ]
+    [ "version_", "classyaze_1_1test_1_1Rom.html#a089a86f09767d8d7fb1f253806a33b23", null ]
 ];

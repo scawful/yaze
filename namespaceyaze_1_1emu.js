@@ -25,8 +25,6 @@ var namespaceyaze_1_1emu =
     [ "CGDATAREAD", "structyaze_1_1emu_1_1CGDATAREAD.html", "structyaze_1_1emu_1_1CGDATAREAD" ],
     [ "CGWSEL", "structyaze_1_1emu_1_1CGWSEL.html", "structyaze_1_1emu_1_1CGWSEL" ],
     [ "CharacterLocation", "structyaze_1_1emu_1_1CharacterLocation.html", "structyaze_1_1emu_1_1CharacterLocation" ],
-    [ "Clock", "classyaze_1_1emu_1_1Clock.html", "classyaze_1_1emu_1_1Clock" ],
-    [ "ClockImpl", "classyaze_1_1emu_1_1ClockImpl.html", "classyaze_1_1emu_1_1ClockImpl" ],
     [ "COLDATA", "structyaze_1_1emu_1_1COLDATA.html", "structyaze_1_1emu_1_1COLDATA" ],
     [ "Color", "structyaze_1_1emu_1_1Color.html", "structyaze_1_1emu_1_1Color" ],
     [ "CounterIrqNmiRegisters", "structyaze_1_1emu_1_1CounterIrqNmiRegisters.html", "structyaze_1_1emu_1_1CounterIrqNmiRegisters" ],

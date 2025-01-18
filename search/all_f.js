@@ -103,11 +103,10 @@ var searchData=
   ['frames_100',['Frames',['../structyaze_1_1editor_1_1zsprite_1_1SubEditor.html#a21b0692979d4e6e5df7c833c57962ec6',1,'yaze::editor::zsprite::SubEditor']]],
   ['frames_5f_101',['frames_',['../classyaze_1_1emu_1_1Snes.html#a03bedcd31638400a5f1f0be8131b1ecb',1,'yaze::emu::Snes']]],
   ['freq_102',['freq',['../structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#a8429da2f7cea8517256de196dcccee63',1,'yaze::zelda3::music::ZeldaSfxInstrument']]],
-  ['frequency_103',['frequency',['../classyaze_1_1emu_1_1ClockImpl.html#aa0b4b3589c8cb35d5b8f3622b1516313',1,'yaze::emu::ClockImpl']]],
-  ['from_5fb_104',['from_b',['../structyaze_1_1emu_1_1DmaChannel.html#a512d78862c904374842ccf71f53e6589',1,'yaze::emu::DmaChannel']]],
-  ['full_5fgraphic_105',['full_graphic',['../structyaze_1_1emu_1_1VideoPortControl.html#a0dd5f71b096b82780b19a002a6ef4c48',1,'yaze::emu::VideoPortControl']]],
-  ['full_5fpalette_5f_106',['full_palette_',['../classyaze_1_1editor_1_1DungeonEditor.html#a92881a7497f26c4a0974b528182cf01c',1,'yaze::editor::DungeonEditor']]],
-  ['function_107',['Function',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a86408593c34af77fdd90df932f8b5261',1,'yaze::gui::zeml']]],
-  ['functionality_108',['Extending Functionality',['../md_docs_2getting-started.html#autotoc_md45',1,'']]],
-  ['functions_109',['functions',['../classyaze_1_1zelda3_1_1SpriteBuilder.html#acf250a61a4b1e7f6bf4793892085aa28',1,'yaze::zelda3::SpriteBuilder']]]
+  ['from_5fb_103',['from_b',['../structyaze_1_1emu_1_1DmaChannel.html#a512d78862c904374842ccf71f53e6589',1,'yaze::emu::DmaChannel']]],
+  ['full_5fgraphic_104',['full_graphic',['../structyaze_1_1emu_1_1VideoPortControl.html#a0dd5f71b096b82780b19a002a6ef4c48',1,'yaze::emu::VideoPortControl']]],
+  ['full_5fpalette_5f_105',['full_palette_',['../classyaze_1_1editor_1_1DungeonEditor.html#a92881a7497f26c4a0974b528182cf01c',1,'yaze::editor::DungeonEditor']]],
+  ['function_106',['Function',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a86408593c34af77fdd90df932f8b5261',1,'yaze::gui::zeml']]],
+  ['functionality_107',['Extending Functionality',['../md_docs_2getting-started.html#autotoc_md45',1,'']]],
+  ['functions_108',['functions',['../classyaze_1_1zelda3_1_1SpriteBuilder.html#acf250a61a4b1e7f6bf4793892085aa28',1,'yaze::zelda3::SpriteBuilder']]]
 ];

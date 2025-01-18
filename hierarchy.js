@@ -43,8 +43,7 @@ var hierarchy =
     [ "yaze::emu::CharacterLocation", "structyaze_1_1emu_1_1CharacterLocation.html", null ],
     [ "chest", "structchest.html", null ],
     [ "chest_data", "structchest__data.html", null ],
-    [ "yaze::emu::Clock", "classyaze_1_1emu_1_1Clock.html", [
-      [ "yaze::emu::ClockImpl", "classyaze_1_1emu_1_1ClockImpl.html", null ],
+    [ "Clock", null, [
       [ "yaze::emu::MockClock", "classyaze_1_1emu_1_1MockClock.html", null ]
     ] ],
     [ "yaze::emu::COLDATA", "structyaze_1_1emu_1_1COLDATA.html", null ],
@@ -324,7 +323,6 @@ var hierarchy =
     [ "yaze::emu::TSW", "structyaze_1_1emu_1_1TSW.html", null ],
     [ "TextEditor::UndoRecord", "classTextEditor_1_1UndoRecord.html", null ],
     [ "yaze::editor::zsprite::UserRoutine", "structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html", null ],
-    [ "yaze::VersionConstants", "structyaze_1_1VersionConstants.html", null ],
     [ "yaze::emu::VideoPortControl", "structyaze_1_1emu_1_1VideoPortControl.html", null ],
     [ "yaze::emu::VMADDH", "structyaze_1_1emu_1_1VMADDH.html", null ],
     [ "yaze::emu::VMADDL", "structyaze_1_1emu_1_1VMADDL.html", null ],
@@ -357,6 +355,7 @@ var hierarchy =
     [ "z3_overworld", "structz3__overworld.html", null ],
     [ "z3_overworld_map", "structz3__overworld__map.html", null ],
     [ "z3_rom", "structz3__rom.html", null ],
+    [ "zelda3_version_pointers", "structzelda3__version__pointers.html", null ],
     [ "yaze::zelda3::music::ZeldaInstrument", "structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html", null ],
     [ "yaze::zelda3::music::ZeldaSfxInstrument", "structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html", null ],
     [ "yaze::zelda3::music::ZeldaWave", "structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html", null ],

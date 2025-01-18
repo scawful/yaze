@@ -97,7 +97,7 @@ var searchData=
   ['operator_7c_94',['operator|',['../namespaceyaze_1_1zelda3.html#a599b7198a7dd0ec9da754a83f9a7e5f9',1,'yaze::zelda3']]],
   ['operator_7e_95',['operator~',['../namespaceyaze_1_1zelda3.html#ab057669c20d13c04f18b529d882e5bd7',1,'yaze::zelda3']]],
   ['ophct_96',['OPHCT',['../structyaze_1_1emu_1_1OPHCT.html',1,'yaze::emu::OPHCT'],['../namespaceyaze_1_1emu.html#a2aa96d43dd27038a337b44ff38b959be',1,'yaze::emu::OPHCT']]],
-  ['optimizemessagefordictionary_97',['OptimizeMessageForDictionary',['../structyaze_1_1editor_1_1MessageData.html#a64edc9c8336a227a04af183727836d2f',1,'yaze::editor::MessageData']]],
+  ['optimizemessagefordictionary_97',['OptimizeMessageForDictionary',['../structyaze_1_1editor_1_1MessageData.html#a75d8151d7e7a991a67563bdd81bd76a7',1,'yaze::editor::MessageData']]],
   ['options_98',['options',['../classyaze_1_1zelda3_1_1RoomObject.html#af4be44e2e6210a18098d18f78d7a5ee7',1,'yaze::zelda3::RoomObject']]],
   ['options_5f_99',['options_',['../classyaze_1_1zelda3_1_1RoomObject.html#ae31e1d2cf33b74e2669ed7cd72220e94',1,'yaze::zelda3::RoomObject']]],
   ['opvct_100',['OPVCT',['../structyaze_1_1emu_1_1OPVCT.html',1,'yaze::emu::OPVCT'],['../namespaceyaze_1_1emu.html#a545a4c227524b3c23101577baa3dd208',1,'yaze::emu::OPVCT']]],

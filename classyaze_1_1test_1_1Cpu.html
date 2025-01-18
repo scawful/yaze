@@ -123,13 +123,11 @@ Collaboration diagram for yaze::test::Cpu:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1test_1_1Cpu__coll__graph.png" border="0" usemap="#ayaze_1_1test_1_1Cpu_coll__map" alt="Collaboration graph"/></div>
 <map name="ayaze_1_1test_1_1Cpu_coll__map" id="ayaze_1_1test_1_1Cpu_coll__map">
-<area shape="rect" title=" " alt="" coords="207,94,312,120"/>
+<area shape="rect" title=" " alt="" coords="121,94,225,120"/>
 <area shape="rect" href="structyaze_1_1emu_1_1CpuCallbacks.html" title=" " alt="" coords="5,5,170,31"/>
-<area shape="poly" title=" " alt="" coords="126,36,237,91,234,96,124,41"/>
+<area shape="poly" title=" " alt="" coords="112,40,163,92,159,96,108,44"/>
 <area shape="rect" href="classyaze_1_1emu_1_1Memory.html" title="Memory interface." alt="" coords="194,5,325,31"/>
-<area shape="poly" title=" " alt="" coords="262,47,262,94,257,94,257,47"/>
-<area shape="rect" href="classyaze_1_1emu_1_1Clock.html" title=" " alt="" coords="349,5,466,31"/>
-<area shape="poly" title=" " alt="" coords="375,41,282,96,279,91,373,37"/>
+<area shape="poly" title=" " alt="" coords="239,44,187,96,183,92,235,40"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -142,8 +140,8 @@ Public Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a1bcde25647e62ab20e6fe8697ceb62c1" id="r_a1bcde25647e62ab20e6fe8697ceb62c1"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1bcde25647e62ab20e6fe8697ceb62c1">Cpu</a> (Memory &amp;mem, Clock &amp;vclock, <a class="el" href="structyaze_1_1emu_1_1CpuCallbacks.html">CpuCallbacks</a> &amp;callbacks)</td></tr>
-<tr class="separator:a1bcde25647e62ab20e6fe8697ceb62c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a72d8da678ed9f605c21cfecba18a04f3" id="r_a72d8da678ed9f605c21cfecba18a04f3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a72d8da678ed9f605c21cfecba18a04f3">Cpu</a> (Memory &amp;mem, <a class="el" href="structyaze_1_1emu_1_1CpuCallbacks.html">CpuCallbacks</a> &amp;callbacks)</td></tr>
+<tr class="separator:a72d8da678ed9f605c21cfecba18a04f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab56a4324924b850a5081f0670dd7552c" id="r_ab56a4324924b850a5081f0670dd7552c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab56a4324924b850a5081f0670dd7552c">Reset</a> (bool hard=false)</td></tr>
 <tr class="separator:ab56a4324924b850a5081f0670dd7552c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac2502ad3b5a93d7c3306745da7a50b2e" id="r_ac2502ad3b5a93d7c3306745da7a50b2e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac2502ad3b5a93d7c3306745da7a50b2e">RunOpcode</a> ()</td></tr>
@@ -152,16 +150,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aad8a065fd52e121ae96c0149489f62ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aac0b846abec30dc25411f8d9a19763f5" id="r_aac0b846abec30dc25411f8d9a19763f5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aac0b846abec30dc25411f8d9a19763f5">LogInstructions</a> (uint16_t <a class="el" href="classyaze_1_1emu_1_1Cpu.html#a6149eae26d4ac6e8b5578bd036f597ac">PC</a>, uint8_t opcode, uint16_t operand, bool immediate, bool accumulator_mode)</td></tr>
 <tr class="separator:aac0b846abec30dc25411f8d9a19763f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae2e5ae8a49dddbb9cd4d87807cecff97" id="r_ae2e5ae8a49dddbb9cd4d87807cecff97"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae2e5ae8a49dddbb9cd4d87807cecff97">UpdatePC</a> (uint8_t instruction_length)</td></tr>
-<tr class="separator:ae2e5ae8a49dddbb9cd4d87807cecff97"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0a8539d5a64c950255bfbb7a5bc5a213" id="r_a0a8539d5a64c950255bfbb7a5bc5a213"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0a8539d5a64c950255bfbb7a5bc5a213">UpdateClock</a> (int delta_time)</td></tr>
-<tr class="separator:a0a8539d5a64c950255bfbb7a5bc5a213"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a32670c90122daf9129f8935cb0c23c8f" id="r_a32670c90122daf9129f8935cb0c23c8f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a32670c90122daf9129f8935cb0c23c8f">SetIrq</a> (bool state)</td></tr>
 <tr class="separator:a32670c90122daf9129f8935cb0c23c8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a411e83ff4742e76beb22403cf8e50f79" id="r_a411e83ff4742e76beb22403cf8e50f79"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a411e83ff4742e76beb22403cf8e50f79">Nmi</a> ()</td></tr>
 <tr class="separator:a411e83ff4742e76beb22403cf8e50f79"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a276ca53d0ed4527042db926a4a2cb1ec" id="r_a276ca53d0ed4527042db926a4a2cb1ec"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a276ca53d0ed4527042db926a4a2cb1ec">GetInstructionLength</a> (uint8_t opcode)</td></tr>
-<tr class="separator:a276ca53d0ed4527042db926a4a2cb1ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a90fd92ce0a2f47b19e7fd534118d67b2" id="r_a90fd92ce0a2f47b19e7fd534118d67b2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a90fd92ce0a2f47b19e7fd534118d67b2">DoInterrupt</a> ()</td></tr>
 <tr class="separator:a90fd92ce0a2f47b19e7fd534118d67b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a88704ff8f5c9a7975c38476d98888b2b" id="r_a88704ff8f5c9a7975c38476d98888b2b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a88704ff8f5c9a7975c38476d98888b2b">SetFlags</a> (uint8_t val)</td></tr>
@@ -619,12 +611,10 @@ Private Attributes</h2></td></tr>
 <tr class="separator:ac26554b300f70f64b7479284a987fb94"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5671d42ce5614150e078202dbbd5ad45" id="r_a5671d42ce5614150e078202dbbd5ad45"><td class="memItemLeft" align="right" valign="top">Memory &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5671d42ce5614150e078202dbbd5ad45">memory</a></td></tr>
 <tr class="separator:a5671d42ce5614150e078202dbbd5ad45"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0261b535df2d2f5b7a4348168b675031" id="r_a0261b535df2d2f5b7a4348168b675031"><td class="memItemLeft" align="right" valign="top">Clock &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0261b535df2d2f5b7a4348168b675031">clock</a></td></tr>
-<tr class="separator:a0261b535df2d2f5b7a4348168b675031"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00033">33</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00032">32</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 </div><h2 class="groupheader">Member Enumeration Documentation</h2>
 <a id="afdec6b6a7b1a5e7eba910f389715f4c6" name="afdec6b6a7b1a5e7eba910f389715f4c6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afdec6b6a7b1a5e7eba910f389715f4c6">&#9670;&#160;</a></span>AccessType</h2>
@@ -650,13 +640,13 @@ Private Attributes</h2></td></tr>
 <tr><td class="fieldname"><a id="afdec6b6a7b1a5e7eba910f389715f4c6af6068daa29dbb05a7ead1e3b5a48bbee" name="afdec6b6a7b1a5e7eba910f389715f4c6af6068daa29dbb05a7ead1e3b5a48bbee"></a>Data&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00142">142</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00136">136</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a1bcde25647e62ab20e6fe8697ceb62c1" name="a1bcde25647e62ab20e6fe8697ceb62c1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1bcde25647e62ab20e6fe8697ceb62c1">&#9670;&#160;</a></span>Cpu()</h2>
+<a id="a72d8da678ed9f605c21cfecba18a04f3" name="a72d8da678ed9f605c21cfecba18a04f3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a72d8da678ed9f605c21cfecba18a04f3">&#9670;&#160;</a></span>Cpu()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -672,11 +662,6 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">Clock &amp;</td>          <td class="paramname"><span class="paramname"><em>vclock</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype"><a class="el" href="structyaze_1_1emu_1_1CpuCallbacks.html">CpuCallbacks</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>callbacks</em></span>&#160;)</td>
         </tr>
       </table>
@@ -687,7 +672,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00035">35</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00034">34</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -783,61 +768,7 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8cc_source.html#l01805">1805</a> of file <a class="el" href="cpu_8cc_source.html">cpu.cc</a>.</p>
-
-</div>
-</div>
-<a id="ae2e5ae8a49dddbb9cd4d87807cecff97" name="ae2e5ae8a49dddbb9cd4d87807cecff97"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae2e5ae8a49dddbb9cd4d87807cecff97">&#9670;&#160;</a></span>UpdatePC()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::emu::Cpu::UpdatePC </td>
-          <td>(</td>
-          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>instruction_length</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00045">45</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
-
-</div>
-</div>
-<a id="a0a8539d5a64c950255bfbb7a5bc5a213" name="a0a8539d5a64c950255bfbb7a5bc5a213"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0a8539d5a64c950255bfbb7a5bc5a213">&#9670;&#160;</a></span>UpdateClock()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::emu::Cpu::UpdateClock </td>
-          <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>delta_time</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00046">46</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8cc_source.html#l01802">1802</a> of file <a class="el" href="cpu_8cc_source.html">cpu.cc</a>.</p>
 
 </div>
 </div>
@@ -864,7 +795,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00048">48</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00044">44</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -891,24 +822,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00049">49</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
-
-</div>
-</div>
-<a id="a276ca53d0ed4527042db926a4a2cb1ec" name="a276ca53d0ed4527042db926a4a2cb1ec"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a276ca53d0ed4527042db926a4a2cb1ec">&#9670;&#160;</a></span>GetInstructionLength()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint8_t yaze::emu::Cpu::GetInstructionLength </td>
-          <td>(</td>
-          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>opcode</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00045">45</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -954,7 +868,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00093">93</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00087">87</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -985,7 +899,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00106">106</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00100">100</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1012,7 +926,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00117">117</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00111">111</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1039,7 +953,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00118">118</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00112">112</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1066,7 +980,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00119">119</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00113">113</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1093,7 +1007,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00120">120</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00114">114</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1120,7 +1034,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00121">121</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00115">115</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1147,7 +1061,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00122">122</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00116">116</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1174,7 +1088,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00125">125</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00119">119</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1201,7 +1115,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00126">126</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00120">120</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1228,7 +1142,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00127">127</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00121">121</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1255,7 +1169,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00128">128</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00122">122</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1282,7 +1196,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00129">129</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00123">123</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1309,7 +1223,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00130">130</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00124">124</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1336,7 +1250,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00131">131</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00125">125</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1363,7 +1277,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00134">134</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00128">128</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1390,7 +1304,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00135">135</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00129">129</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1417,7 +1331,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00136">136</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00130">130</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1444,7 +1358,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00137">137</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00131">131</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1471,7 +1385,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00138">138</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00132">132</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1498,7 +1412,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00139">139</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00133">133</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1525,7 +1439,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00140">140</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00134">134</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1552,7 +1466,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00144">144</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00138">138</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1579,7 +1493,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00146">146</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00140">140</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1606,7 +1520,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00153">153</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00147">147</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1642,7 +1556,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00154">154</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00148">148</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1669,7 +1583,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00161">161</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00155">155</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1700,7 +1614,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00168">168</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00162">162</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1746,7 +1660,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00172">172</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00166">166</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1777,7 +1691,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00184">184</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00178">178</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1804,7 +1718,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00190">190</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00184">184</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1835,7 +1749,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00195">195</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00189">189</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1862,7 +1776,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00200">200</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00194">194</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1889,7 +1803,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00205">205</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00199">199</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1916,7 +1830,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00210">210</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00204">204</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1943,7 +1857,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00215">215</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00209">209</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1970,7 +1884,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00221">221</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00215">215</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -1997,7 +1911,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00231">231</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00225">225</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -4889,7 +4803,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00724">724</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00718">718</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -4916,7 +4830,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00725">725</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00719">719</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -4943,7 +4857,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00727">727</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00721">721</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -4970,7 +4884,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00731">731</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00725">725</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -4997,7 +4911,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00732">732</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00726">726</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5024,7 +4938,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00737">737</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00731">731</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5051,7 +4965,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00741">741</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00735">735</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5078,7 +4992,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00743">743</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00737">737</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5105,7 +5019,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00749">749</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00743">743</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5136,7 +5050,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00752">752</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00746">746</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5167,7 +5081,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00769">769</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00763">763</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5194,7 +5108,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00777">777</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00771">771</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5211,7 +5125,7 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00053">53</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00047">47</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5227,7 +5141,7 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00054">54</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00048">48</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5243,7 +5157,7 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00071">71</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00065">65</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5259,7 +5173,7 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00072">72</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00066">66</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5275,7 +5189,7 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00073">73</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00067">67</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5291,7 +5205,7 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00074">74</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00068">68</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5307,7 +5221,7 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00075">75</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00069">69</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5323,7 +5237,7 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00076">76</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00070">70</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5339,7 +5253,7 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00077">77</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00071">71</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5355,7 +5269,7 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00078">78</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00072">72</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5371,7 +5285,7 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00079">79</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00073">73</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5395,7 +5309,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00779">779</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00773">773</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5419,7 +5333,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00781">781</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00775">775</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5443,7 +5357,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00782">782</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00776">776</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5467,7 +5381,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00784">784</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00778">778</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5491,7 +5405,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00785">785</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00779">779</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5515,7 +5429,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00786">786</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00780">780</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5539,7 +5453,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00787">787</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00781">781</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5563,7 +5477,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00788">788</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00782">782</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5587,7 +5501,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00790">790</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00784">784</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>
@@ -5611,31 +5525,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00791">791</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
-
-</div>
-</div>
-<a id="a0261b535df2d2f5b7a4348168b675031" name="a0261b535df2d2f5b7a4348168b675031"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0261b535df2d2f5b7a4348168b675031">&#9670;&#160;</a></span>clock</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">Clock&amp; yaze::emu::Cpu::clock</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00792">792</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cpu_8h_source.html#l00785">785</a> of file <a class="el" href="cpu_8h_source.html">cpu.h</a>.</p>
 
 </div>
 </div>

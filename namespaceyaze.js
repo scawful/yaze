@@ -18,13 +18,6 @@ var namespaceyaze =
     [ "ResourceLabelManager", "structyaze_1_1ResourceLabelManager.html", "structyaze_1_1ResourceLabelManager" ],
     [ "Rom", "classyaze_1_1Rom.html", "classyaze_1_1Rom" ],
     [ "SharedRom", "classyaze_1_1SharedRom.html", "classyaze_1_1SharedRom" ],
-    [ "VersionConstants", "structyaze_1_1VersionConstants.html", "structyaze_1_1VersionConstants" ],
-    [ "Z3_Version", "namespaceyaze.html#a74d8c95a7cc3ccb2b53a1902bbd1c3ec", [
-      [ "US", "namespaceyaze.html#a74d8c95a7cc3ccb2b53a1902bbd1c3eca7516fd43adaa5e0b8a65a672c39845d2", null ],
-      [ "JP", "namespaceyaze.html#a74d8c95a7cc3ccb2b53a1902bbd1c3eca24d22e03afb23edb45c6c8cfa16a280e", null ],
-      [ "SD", "namespaceyaze.html#a74d8c95a7cc3ccb2b53a1902bbd1c3eca38f99abbc1d339c277c0669e7bc373c0", null ],
-      [ "RANDO", "namespaceyaze.html#a74d8c95a7cc3ccb2b53a1902bbd1c3eca9cffbad7f42a5a6e18e4a9431187b051", null ]
-    ] ],
     [ "Load2BppGraphics", "namespaceyaze.html#a3167c1c857f5e405cb39a492529d6557", null ],
     [ "LoadLinkGraphics", "namespaceyaze.html#a3dde9364829e66bec50d5da15df53b6a", null ],
     [ "LoadAllGraphicsData", "namespaceyaze.html#acd38081a0d3a77b20abfb9375574d1b9", null ],

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['jp_0',['JP',['../namespaceyaze.html#a74d8c95a7cc3ccb2b53a1902bbd1c3eca24d22e03afb23edb45c6c8cfa16a280e',1,'yaze']]]
+  ['jp_0',['JP',['../zelda_8h.html#a9b154d4f0904082e537a24b5ae25575daf35882285f7bde3e58305178a023f561',1,'zelda.h']]]
 ];

@@ -99,8 +99,6 @@ var annotated_dup =
         [ "CGDATAREAD", "structyaze_1_1emu_1_1CGDATAREAD.html", "structyaze_1_1emu_1_1CGDATAREAD" ],
         [ "CGWSEL", "structyaze_1_1emu_1_1CGWSEL.html", "structyaze_1_1emu_1_1CGWSEL" ],
         [ "CharacterLocation", "structyaze_1_1emu_1_1CharacterLocation.html", "structyaze_1_1emu_1_1CharacterLocation" ],
-        [ "Clock", "classyaze_1_1emu_1_1Clock.html", "classyaze_1_1emu_1_1Clock" ],
-        [ "ClockImpl", "classyaze_1_1emu_1_1ClockImpl.html", "classyaze_1_1emu_1_1ClockImpl" ],
         [ "COLDATA", "structyaze_1_1emu_1_1COLDATA.html", "structyaze_1_1emu_1_1COLDATA" ],
         [ "Color", "structyaze_1_1emu_1_1Color.html", "structyaze_1_1emu_1_1Color" ],
         [ "CounterIrqNmiRegisters", "structyaze_1_1emu_1_1CounterIrqNmiRegisters.html", "structyaze_1_1emu_1_1CounterIrqNmiRegisters" ],
@@ -312,8 +310,7 @@ var annotated_dup =
       [ "Renderer", "classyaze_1_1Renderer.html", "classyaze_1_1Renderer" ],
       [ "ResourceLabelManager", "structyaze_1_1ResourceLabelManager.html", "structyaze_1_1ResourceLabelManager" ],
       [ "Rom", "classyaze_1_1Rom.html", "classyaze_1_1Rom" ],
-      [ "SharedRom", "classyaze_1_1SharedRom.html", "classyaze_1_1SharedRom" ],
-      [ "VersionConstants", "structyaze_1_1VersionConstants.html", "structyaze_1_1VersionConstants" ]
+      [ "SharedRom", "classyaze_1_1SharedRom.html", "classyaze_1_1SharedRom" ]
     ] ],
     [ "AppDelegate", "classAppDelegate.html", null ],
     [ "AppViewController", "classAppViewController.html", null ],
@@ -338,5 +335,6 @@ var annotated_dup =
     [ "z3_dungeon_room", "structz3__dungeon__room.html", "structz3__dungeon__room" ],
     [ "z3_overworld", "structz3__overworld.html", "structz3__overworld" ],
     [ "z3_overworld_map", "structz3__overworld__map.html", "structz3__overworld__map" ],
-    [ "z3_rom", "structz3__rom.html", "structz3__rom" ]
+    [ "z3_rom", "structz3__rom.html", "structz3__rom" ],
+    [ "zelda3_version_pointers", "structzelda3__version__pointers.html", "structzelda3__version__pointers" ]
 ];

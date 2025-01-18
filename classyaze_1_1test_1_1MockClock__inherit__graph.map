@@ -1,5 +1,5 @@
 <map id="yaze::test::MockClock" name="yaze::test::MockClock">
 <area shape="rect" id="Node000001" title="Mock CPU class for testing." alt="" coords="5,79,152,105"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1Clock.html" title=" " alt="" coords="20,5,137,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="51,5,106,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,46,81,79,76,79,76,46"/>
 </map>

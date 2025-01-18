@@ -1,10 +1,8 @@
 var classyaze_1_1emu_1_1Ppu =
 [
-    [ "Ppu", "classyaze_1_1emu_1_1Ppu.html#a3256acbb48fd075a588935aa4563d0d6", null ],
+    [ "Ppu", "classyaze_1_1emu_1_1Ppu.html#ab35bb7b590fde1a0f9baece7a4068d02", null ],
     [ "Init", "classyaze_1_1emu_1_1Ppu.html#a866656957bc284dadf062c3737e18003", null ],
     [ "Reset", "classyaze_1_1emu_1_1Ppu.html#a39e094298f2a8b2a1120be921f22c0e7", null ],
-    [ "Update", "classyaze_1_1emu_1_1Ppu.html#ab6d5bcd9204b705dfd3f00df94ea5fbb", null ],
-    [ "UpdateClock", "classyaze_1_1emu_1_1Ppu.html#ad2e59a9b0ae38b601a68661a3faaf353", null ],
     [ "HandleFrameStart", "classyaze_1_1emu_1_1Ppu.html#a5428ab6c2b746c3465eb9e127658a4be", null ],
     [ "RunLine", "classyaze_1_1emu_1_1Ppu.html#af5de9a15148e10cab73f74225a1d6fb6", null ],
     [ "HandlePixel", "classyaze_1_1emu_1_1Ppu.html#a0f7dc2daaf65918bc6b57560b80fb489", null ],
@@ -112,7 +110,6 @@ var classyaze_1_1emu_1_1Ppu =
     [ "tilemap_base_address_", "classyaze_1_1emu_1_1Ppu.html#a27f982e869454c67ed73966834edb743", null ],
     [ "screen_brightness_", "classyaze_1_1emu_1_1Ppu.html#a1c85fa10830520a6aca1e767d3ef0f8e", null ],
     [ "memory_", "classyaze_1_1emu_1_1Ppu.html#a8af1df6c2a46f9a51a5774b488f75fd2", null ],
-    [ "clock_", "classyaze_1_1emu_1_1Ppu.html#a32e9afbe67c93dcaf994c13ef1fad71d", null ],
     [ "tilemap_", "classyaze_1_1emu_1_1Ppu.html#a9bb68a2a73c93a8407fa4f1836c23752", null ],
     [ "bg_mode_", "classyaze_1_1emu_1_1Ppu.html#ab474663ae444e6c228646ef17410e014", null ],
     [ "sprites_", "classyaze_1_1emu_1_1Ppu.html#a1516775d17637ae609449d99a292eee3", null ],

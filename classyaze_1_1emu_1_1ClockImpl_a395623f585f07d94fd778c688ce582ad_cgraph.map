@@ -1,9 +1,0 @@
-<map id="yaze::emu::ClockImpl::UpdateClock" name="yaze::emu::ClockImpl::UpdateClock">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,148,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1ClockImpl.html#af9e0974a7765c83bc7b53c53b53d6a39" title=" " alt="" coords="196,5,362,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,45,180,39,180,45,149,50"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1ClockImpl.html#a9eef0ae16c3b4540495330dc07c05520" title=" " alt="" coords="208,71,350,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="149,68,192,75,192,80,148,73"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1ClockImpl.html#ad12f635a256b79df5804659b7de41276" title=" " alt="" coords="410,71,552,111"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="351,88,394,88,394,94,351,94"/>
-</map>

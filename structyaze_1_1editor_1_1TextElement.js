@@ -2,7 +2,7 @@ var structyaze_1_1editor_1_1TextElement =
 [
     [ "TextElement", "structyaze_1_1editor_1_1TextElement.html#a72d66399ec2d66bdeda37a78227b18f2", null ],
     [ "TextElement", "structyaze_1_1editor_1_1TextElement.html#a8e5f8ec73198943dee4767ab0fec11a6", null ],
-    [ "GetParameterizedToken", "structyaze_1_1editor_1_1TextElement.html#a9aed161e6a2a8c6f281e433ca6210469", null ],
+    [ "GetParamToken", "structyaze_1_1editor_1_1TextElement.html#afff106f100633f8e92e71dab9ef01c70", null ],
     [ "ToString", "structyaze_1_1editor_1_1TextElement.html#a0a65c63ecebf870d4175563eb47907c1", null ],
     [ "MatchMe", "structyaze_1_1editor_1_1TextElement.html#adae4011df81ed55417977322553191b9", null ],
     [ "Empty", "structyaze_1_1editor_1_1TextElement.html#ac9eae253ebc3721b18d40c50724fc870", null ],

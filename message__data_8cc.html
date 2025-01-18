@@ -114,37 +114,39 @@ $(function(){initNavTree('message__data_8cc.html',''); initResizable(true); });
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="message__data_8h_source.html">message_data.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="core_2common_8h_source.html">app/core/common.h</a>&quot;</code><br />
+<code>#include &lt;string&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for message_data.cc:</div>
 <div class="dyncontent">
 <div class="center"><img src="message__data_8cc__incl.png" border="0" usemap="#asrc_2app_2editor_2message_2message__data_8cc" alt=""/></div>
 <map name="asrc_2app_2editor_2message_2message__data_8cc" id="asrc_2app_2editor_2message_2message__data_8cc">
-<area shape="rect" title=" " alt="" coords="5,5,163,46"/>
-<area shape="rect" href="message__data_8h.html" title=" " alt="" coords="187,94,304,120"/>
-<area shape="poly" title=" " alt="" coords="125,44,208,84,206,89,123,49"/>
-<area shape="rect" href="core_2common_8h.html" title=" " alt="" coords="122,241,257,267"/>
-<area shape="poly" title=" " alt="" coords="76,47,62,77,51,115,49,155,53,174,61,192,85,216,116,233,113,238,82,221,56,195,48,176,43,156,46,114,57,76,71,45"/>
-<area shape="rect" title=" " alt="" coords="412,168,465,193"/>
-<area shape="poly" title=" " alt="" coords="279,118,399,162,397,167,277,123"/>
-<area shape="rect" title=" " alt="" coords="57,315,111,341"/>
-<area shape="poly" title=" " alt="" coords="187,112,153,118,119,128,86,145,61,169,53,184,48,201,49,236,59,271,72,300,67,302,54,273,44,237,43,200,48,182,57,166,83,140,117,123,152,112,186,107"/>
-<area shape="rect" title=" " alt="" coords="333,241,390,267"/>
-<area shape="poly" title=" " alt="" coords="236,121,213,155,208,174,213,192,229,205,255,218,319,239,317,244,253,223,226,209,208,195,203,174,208,153,232,118"/>
-<area shape="rect" title=" " alt="" coords="441,315,583,341"/>
-<area shape="poly" title=" " alt="" coords="305,111,419,130,470,145,490,155,503,166,521,198,527,234,526,270,522,300,516,299,521,269,522,235,516,200,499,169,487,159,468,150,418,135,304,116"/>
-<area shape="rect" title=" " alt="" coords="214,315,375,341"/>
-<area shape="poly" title=" " alt="" coords="304,112,406,132,451,147,468,156,479,166,490,189,488,212,476,233,456,253,402,287,345,312,343,307,400,282,453,249,472,230,483,211,485,190,475,169,465,160,449,152,405,137,303,118"/>
-<area shape="rect" title=" " alt="" coords="222,168,388,193"/>
-<area shape="poly" title=" " alt="" coords="257,118,288,154,283,157,253,122"/>
-<area shape="rect" href="rom_8h.html" title=" " alt="" coords="70,168,148,193"/>
-<area shape="poly" title=" " alt="" coords="223,123,147,162,145,158,221,118"/>
-<area shape="poly" title=" " alt="" coords="110,194,91,300,86,299,105,193"/>
-<area shape="poly" title=" " alt="" coords="149,190,318,238,317,243,148,195"/>
-<area shape="poly" title=" " alt="" coords="150,184,212,201,244,217,271,240,288,268,295,299,290,300,283,270,267,243,241,222,210,206,148,189"/>
-<area shape="poly" title=" " alt="" coords="125,192,167,229,163,233,121,196"/>
-<area shape="poly" title=" " alt="" coords="173,270,116,308,113,304,170,265"/>
-<area shape="poly" title=" " alt="" coords="245,265,443,309,442,314,244,270"/>
-<area shape="poly" title=" " alt="" coords="209,265,266,304,263,308,206,270"/>
+<area shape="rect" title=" " alt="" coords="133,5,291,46"/>
+<area shape="rect" href="message__data_8h.html" title=" " alt="" coords="154,94,270,120"/>
+<area shape="poly" title=" " alt="" coords="215,46,215,78,209,78,209,46"/>
+<area shape="rect" title=" " alt="" coords="19,315,72,341"/>
+<area shape="poly" title=" " alt="" coords="178,49,106,98,69,131,37,169,21,194,11,216,8,238,13,266,30,301,25,303,8,268,3,238,6,214,16,191,32,166,65,128,103,94,175,44"/>
+<area shape="rect" href="core_2common_8h.html" title=" " alt="" coords="266,241,401,267"/>
+<area shape="poly" title=" " alt="" coords="292,38,348,55,407,81,463,117,486,140,506,166,512,182,511,196,504,208,492,218,458,233,417,244,416,239,456,228,489,213,500,204,506,194,507,182,502,169,482,144,459,121,405,85,346,60,290,44"/>
+<area shape="rect" title=" " alt="" coords="439,168,491,193"/>
+<area shape="poly" title=" " alt="" coords="257,118,425,164,423,170,256,123"/>
+<area shape="poly" title=" " alt="" coords="162,123,113,141,67,170,37,201,21,242,19,257,21,272,32,300,27,302,16,273,14,257,16,241,33,198,64,166,111,136,160,118"/>
+<area shape="rect" title=" " alt="" coords="31,241,89,267"/>
+<area shape="poly" title=" " alt="" coords="165,123,123,141,104,154,87,169,72,197,65,227,60,225,67,195,83,166,101,149,121,136,163,118"/>
+<area shape="rect" title=" " alt="" coords="421,315,563,341"/>
+<area shape="poly" title=" " alt="" coords="271,109,336,115,406,126,467,142,490,153,506,166,516,182,521,199,523,236,516,271,506,302,501,300,511,270,518,235,516,200,511,184,502,169,487,158,465,147,405,131,335,120,270,114"/>
+<area shape="rect" title=" " alt="" coords="147,315,309,341"/>
+<area shape="poly" title=" " alt="" coords="215,120,229,299,223,300,210,120"/>
+<area shape="rect" title=" " alt="" coords="249,168,415,193"/>
+<area shape="poly" title=" " alt="" coords="234,118,300,157,297,162,231,123"/>
+<area shape="rect" href="rom_8h.html" title=" " alt="" coords="97,168,175,193"/>
+<area shape="poly" title=" " alt="" coords="201,122,161,159,158,155,197,118"/>
+<area shape="poly" title=" " alt="" coords="135,194,122,229,102,268,72,305,68,302,98,266,118,226,130,193"/>
+<area shape="poly" title=" " alt="" coords="125,196,85,233,82,229,121,192"/>
+<area shape="poly" title=" " alt="" coords="146,192,214,300,210,303,141,195"/>
+<area shape="poly" title=" " alt="" coords="170,191,286,233,285,238,168,196"/>
+<area shape="poly" title=" " alt="" coords="285,270,88,319,87,314,284,265"/>
+<area shape="poly" title=" " alt="" coords="361,265,452,306,450,311,359,270"/>
+<area shape="poly" title=" " alt="" coords="317,270,260,308,257,304,314,265"/>
 </map>
 </div>
 </div>
@@ -179,6 +181,8 @@ Functions</h2></td></tr>
 <tr class="separator:aa29017b4244db6fa3e3a6fbcb33142b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a91359909a674306622aa5a533e0c2377" id="r_a91359909a674306622aa5a533e0c2377"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a91359909a674306622aa5a533e0c2377">yaze::editor::ParseMessageData</a> (std::vector&lt; <a class="el" href="structyaze_1_1editor_1_1MessageData.html">MessageData</a> &gt; &amp;message_data, const std::vector&lt; <a class="el" href="structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> &gt; &amp;dictionary_entries)</td></tr>
 <tr class="separator:a91359909a674306622aa5a533e0c2377"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aad28fdc5f6cd134f10fb8b729e1206bd" id="r_aad28fdc5f6cd134f10fb8b729e1206bd"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#aad28fdc5f6cd134f10fb8b729e1206bd">yaze::editor::ImportMessageData</a> (std::string_view filename)</td></tr>
+<tr class="separator:aad28fdc5f6cd134f10fb8b729e1206bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

@@ -11,7 +11,6 @@ var classyaze_1_1zelda3_1_1DungeonObjectRenderer =
     [ "tilemap_", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a17d881539d68fbd17e6b6e5f466fa52a", null ],
     [ "rom_data_", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a62f4148a7637bba98ddb4824e812ed15", null ],
     [ "vram_", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a362fcebebede6eb1a7ec8cd2e8d87f51", null ],
-    [ "clock_", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6972fc79216840fd601135e932b31109", null ],
     [ "memory_", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#ad2c7b05d88a7ddb3e96ed28eb2b7ec28", null ],
     [ "cpu_callbacks_", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a9e7af0a3196be5ad3033fcda084cfcee", null ],
     [ "ppu", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#af3727759474e4f774be0f383c84a609d", null ],

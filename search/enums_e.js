@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['z3_5fversion_0',['Z3_Version',['../namespaceyaze.html#a74d8c95a7cc3ccb2b53a1902bbd1c3ec',1,'yaze']]]
+  ['zelda3_5fversion_0',['zelda3_version',['../zelda_8h.html#a9b154d4f0904082e537a24b5ae25575d',1,'zelda.h']]]
 ];

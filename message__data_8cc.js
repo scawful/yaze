@@ -8,5 +8,6 @@ var message__data_8cc =
     [ "yaze::editor::ParseTextDataByte", "namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442", null ],
     [ "yaze::editor::ParseMessageToData", "namespaceyaze_1_1editor.html#ab631002fa2510fae663f6347362ba82d", null ],
     [ "yaze::editor::BuildDictionaryEntries", "namespaceyaze_1_1editor.html#aa29017b4244db6fa3e3a6fbcb33142b0", null ],
-    [ "yaze::editor::ParseMessageData", "namespaceyaze_1_1editor.html#a91359909a674306622aa5a533e0c2377", null ]
+    [ "yaze::editor::ParseMessageData", "namespaceyaze_1_1editor.html#a91359909a674306622aa5a533e0c2377", null ],
+    [ "yaze::editor::ImportMessageData", "namespaceyaze_1_1editor.html#aad28fdc5f6cd134f10fb8b729e1206bd", null ]
 ];

@@ -3,7 +3,7 @@ var searchData=
   ['s_5fkill_5fenemy_5ffor_5fchest_0',['S_Kill_Enemy_for_Chest',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a126e28827ef1590b842f7d7fe141a1d4',1,'yaze::zelda3']]],
   ['s_5fkill_5fenemy_5fto_5fopen_1',['S_Kill_Enemy_to_Open',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a6fd56fda727cfa5970e3a0d16f6dea5e',1,'yaze::zelda3']]],
   ['s_5fpush_5fblock_5fto_5fopen_2',['S_Push_Block_to_Open',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a6ffefb519234f2055b9a5c946d0d2fac',1,'yaze::zelda3']]],
-  ['sd_3',['SD',['../namespaceyaze.html#a74d8c95a7cc3ccb2b53a1902bbd1c3eca38f99abbc1d339c277c0669e7bc373c0',1,'yaze']]],
+  ['sd_3',['SD',['../zelda_8h.html#a9b154d4f0904082e537a24b5ae25575da8268cafd51299d814aba050e5f54f1ac',1,'zelda.h']]],
   ['se_5fkill_5fenemy_5ffor_5fchest_4',['SE_Kill_Enemy_for_Chest',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a7f12bb1903474044d236287fe37ce2fe',1,'yaze::zelda3']]],
   ['se_5fkill_5fenemy_5fto_5fmove_5fblock_5',['SE_Kill_Enemy_to_Move_Block',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a9024dfd424600f401cba474d615fbfe6',1,'yaze::zelda3']]],
   ['se_5fkill_5fenemy_5fto_5fopen_6',['SE_Kill_Enemy_to_Open',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468aece942a35487c5967337f87c5d4760a3',1,'yaze::zelda3']]],

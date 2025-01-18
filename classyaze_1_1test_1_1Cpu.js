@@ -4,16 +4,13 @@ var classyaze_1_1test_1_1Cpu =
       [ "Control", "classyaze_1_1test_1_1Cpu.html#afdec6b6a7b1a5e7eba910f389715f4c6aa1595abbb4c3a326636dd178757cd6c1", null ],
       [ "Data", "classyaze_1_1test_1_1Cpu.html#afdec6b6a7b1a5e7eba910f389715f4c6af6068daa29dbb05a7ead1e3b5a48bbee", null ]
     ] ],
-    [ "Cpu", "classyaze_1_1test_1_1Cpu.html#a1bcde25647e62ab20e6fe8697ceb62c1", null ],
+    [ "Cpu", "classyaze_1_1test_1_1Cpu.html#a72d8da678ed9f605c21cfecba18a04f3", null ],
     [ "Reset", "classyaze_1_1test_1_1Cpu.html#ab56a4324924b850a5081f0670dd7552c", null ],
     [ "RunOpcode", "classyaze_1_1test_1_1Cpu.html#ac2502ad3b5a93d7c3306745da7a50b2e", null ],
     [ "ExecuteInstruction", "classyaze_1_1test_1_1Cpu.html#aad8a065fd52e121ae96c0149489f62ee", null ],
     [ "LogInstructions", "classyaze_1_1test_1_1Cpu.html#aac0b846abec30dc25411f8d9a19763f5", null ],
-    [ "UpdatePC", "classyaze_1_1test_1_1Cpu.html#ae2e5ae8a49dddbb9cd4d87807cecff97", null ],
-    [ "UpdateClock", "classyaze_1_1test_1_1Cpu.html#a0a8539d5a64c950255bfbb7a5bc5a213", null ],
     [ "SetIrq", "classyaze_1_1test_1_1Cpu.html#a32670c90122daf9129f8935cb0c23c8f", null ],
     [ "Nmi", "classyaze_1_1test_1_1Cpu.html#a411e83ff4742e76beb22403cf8e50f79", null ],
-    [ "GetInstructionLength", "classyaze_1_1test_1_1Cpu.html#a276ca53d0ed4527042db926a4a2cb1ec", null ],
     [ "DoInterrupt", "classyaze_1_1test_1_1Cpu.html#a90fd92ce0a2f47b19e7fd534118d67b2", null ],
     [ "SetFlags", "classyaze_1_1test_1_1Cpu.html#a88704ff8f5c9a7975c38476d98888b2b", null ],
     [ "SetZN", "classyaze_1_1test_1_1Cpu.html#a28fa06d025c96e9a86d3bcd7b06ec800", null ],
@@ -237,6 +234,5 @@ var classyaze_1_1test_1_1Cpu =
     [ "int_wanted_", "classyaze_1_1test_1_1Cpu.html#ae5b378938e850ccbfe208f420338f1b4", null ],
     [ "int_delay_", "classyaze_1_1test_1_1Cpu.html#acc444d43210855857a03f377679e3df2", null ],
     [ "callbacks_", "classyaze_1_1test_1_1Cpu.html#ac26554b300f70f64b7479284a987fb94", null ],
-    [ "memory", "classyaze_1_1test_1_1Cpu.html#a5671d42ce5614150e078202dbbd5ad45", null ],
-    [ "clock", "classyaze_1_1test_1_1Cpu.html#a0261b535df2d2f5b7a4348168b675031", null ]
+    [ "memory", "classyaze_1_1test_1_1Cpu.html#a5671d42ce5614150e078202dbbd5ad45", null ]
 ];

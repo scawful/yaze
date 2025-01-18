@@ -1,18 +1,15 @@
 <map id="src/app/emu/cpu/internal/addressing.cc" name="src/app/emu/cpu/internal/addressing.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="143,5,307,46"/>
-<area shape="rect" id="Node000002" href="$cpu_8h.html" title=" " alt="" coords="160,94,291,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="228,46,228,78,222,78,222,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="99,5,263,46"/>
+<area shape="rect" id="Node000002" href="$cpu_8h.html" title=" " alt="" coords="116,94,247,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,46,184,78,178,78,178,46"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="5,168,80,193"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="195,123,89,164,87,159,193,118"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="195,241,255,267"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="198,122,168,141,155,154,145,169,142,187,150,203,166,218,186,231,183,236,163,222,146,206,137,187,140,167,151,151,165,137,195,118"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="446,241,503,267"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="291,110,355,116,421,127,479,143,500,154,515,166,522,182,519,200,500,231,495,229,514,198,517,183,511,169,497,158,477,148,420,132,354,122,291,115"/>
-<area shape="rect" id="Node000006" href="$clock_8h.html" title=" " alt="" coords="154,168,296,193"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="228,120,228,152,222,152,222,120"/>
-<area shape="rect" id="Node000007" href="$memory_8h.html" title=" " alt="" coords="320,168,501,193"/>
-<area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="258,118,366,159,364,164,256,123"/>
-<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="228,194,228,226,222,226,222,194"/>
-<area shape="poly" id="edge8_Node000007_Node000004" title=" " alt="" coords="380,196,271,238,269,233,378,191"/>
-<area shape="poly" id="edge9_Node000007_Node000005" title=" " alt="" coords="423,192,456,228,452,232,419,195"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="159,123,81,162,79,158,156,118"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="162,241,222,267"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="172,122,149,154,143,173,145,193,155,212,169,229,165,232,151,215,140,194,138,173,144,152,167,119"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="268,241,326,267"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="248,111,276,118,304,129,329,145,350,166,356,184,351,202,340,218,327,233,323,229,336,215,346,199,350,184,346,169,326,149,301,134,274,123,246,116"/>
+<area shape="rect" id="Node000006" href="$memory_8h.html" title=" " alt="" coords="154,168,336,193"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="194,118,226,154,222,158,190,122"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="238,195,212,230,208,227,234,192"/>
+<area shape="poly" id="edge7_Node000006_Node000005" title=" " alt="" coords="256,192,282,227,277,230,252,195"/>
 </map>
