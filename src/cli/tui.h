@@ -4,22 +4,49 @@
 #include <ftxui/component/component.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/screen.hpp>
+#include <string>
+#include <vector>
 
 #include "app/rom.h"
 
 namespace yaze {
 namespace cli {
 
-struct Context {
-  bool is_loaded = false;
-
-  ftxui::Component layout;
-  ftxui::Component main_component;
+const std::vector<std::string> kMainMenuEntries = {
+    "Apply BPS Patch",
+    "Generate Save File",
+    "Load ROM",
+    "Palette Editor",
+    "Exit",
 };
 
-void ShowMain();
+enum class MainMenuEntry {
+  kApplyBpsPatch,
+  kGenerateSaveFile,
+  kLoadRom,
+  kPaletteEditor,
+  kExit,
+};
 
-void DrawPaletteEditor(Rom *rom);
+enum LayoutID {
+  kApplyBpsPatch,
+  kGenerateSaveFile,
+  kLoadRom,
+  kPaletteEditor,
+  kExit,
+  kMainMenu,
+  kError,
+};
+
+struct Context {
+  Rom rom;
+  LayoutID current_layout = LayoutID::kMainMenu;
+  std::string error_message;
+};
+
+static Context app_context;
+
+void ShowMain();
 
 }  // namespace cli
 }  // namespace yaze
