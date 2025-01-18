@@ -64,7 +64,7 @@ TEST_F(RomTest, LoadFromFileEmpty) {
 }
 
 TEST_F(RomTest, ReadByteOk) {
-  EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
   for (size_t i = 0; i < kMockRomData.size(); ++i) {
     uint8_t byte;
@@ -79,7 +79,7 @@ TEST_F(RomTest, ReadByteInvalid) {
 }
 
 TEST_F(RomTest, ReadWordOk) {
-  EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
   for (size_t i = 0; i < kMockRomData.size(); i += 2) {
     // Little endian
@@ -95,7 +95,7 @@ TEST_F(RomTest, ReadWordInvalid) {
 }
 
 TEST_F(RomTest, ReadLongOk) {
-  EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
   for (size_t i = 0; i < kMockRomData.size(); i += 4) {
     // Little endian
@@ -112,7 +112,7 @@ TEST_F(RomTest, ReadLongInvalid) {
 }
 
 TEST_F(RomTest, ReadBytesOk) {
-  EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
   std::vector<uint8_t> bytes;
   ASSERT_OK_AND_ASSIGN(bytes, rom_.ReadByteVector(0, kMockRomData.size()));
@@ -125,7 +125,7 @@ TEST_F(RomTest, ReadBytesInvalid) {
 }
 
 TEST_F(RomTest, ReadBytesOutOfRange) {
-  EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
   std::vector<uint8_t> bytes;
   EXPECT_THAT(rom_.ReadByteVector(kMockRomData.size() + 1, 1).status(),
@@ -133,7 +133,7 @@ TEST_F(RomTest, ReadBytesOutOfRange) {
 }
 
 TEST_F(RomTest, WriteByteOk) {
-  EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
   for (size_t i = 0; i < kMockRomData.size(); ++i) {
     EXPECT_OK(rom_.WriteByte(i, 0xFF));
@@ -147,13 +147,13 @@ TEST_F(RomTest, WriteByteInvalid) {
   EXPECT_THAT(rom_.WriteByte(0, 0xFF),
               StatusIs(absl::StatusCode::kFailedPrecondition));
 
-  EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
   EXPECT_THAT(rom_.WriteByte(kMockRomData.size(), 0xFF),
               StatusIs(absl::StatusCode::kOutOfRange));
 }
 
 TEST_F(RomTest, WriteWordOk) {
-  EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
   for (size_t i = 0; i < kMockRomData.size(); i += 2) {
     EXPECT_OK(rom_.WriteWord(i, 0xFFFF));
@@ -167,13 +167,13 @@ TEST_F(RomTest, WriteWordInvalid) {
   EXPECT_THAT(rom_.WriteWord(0, 0xFFFF),
               StatusIs(absl::StatusCode::kFailedPrecondition));
 
-  EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
   EXPECT_THAT(rom_.WriteWord(kMockRomData.size(), 0xFFFF),
               StatusIs(absl::StatusCode::kOutOfRange));
 }
 
 TEST_F(RomTest, WriteLongOk) {
-  EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
   for (size_t i = 0; i < kMockRomData.size(); i += 4) {
     EXPECT_OK(rom_.WriteLong(i, 0xFFFFFF));
@@ -187,14 +187,14 @@ TEST_F(RomTest, WriteLongInvalid) {
   EXPECT_THAT(rom_.WriteLong(0, 0xFFFFFF),
               StatusIs(absl::StatusCode::kFailedPrecondition));
 
-  EXPECT_OK(rom_.LoadFromBytes(kMockRomData));
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
   EXPECT_THAT(rom_.WriteLong(kMockRomData.size(), 0xFFFFFFFF),
               StatusIs(absl::StatusCode::kOutOfRange));
 }
 
 TEST_F(RomTest, WriteTransactionSuccess) {
   MockRom mock_rom;
-  EXPECT_OK(mock_rom.LoadFromBytes(kMockRomData));
+  EXPECT_OK(mock_rom.LoadFromData(kMockRomData));
 
   EXPECT_CALL(mock_rom, WriteHelper(_))
       .WillRepeatedly(Return(absl::OkStatus()));
@@ -207,7 +207,7 @@ TEST_F(RomTest, WriteTransactionSuccess) {
 
 TEST_F(RomTest, WriteTransactionFailure) {
   MockRom mock_rom;
-  EXPECT_OK(mock_rom.LoadFromBytes(kMockRomData));
+  EXPECT_OK(mock_rom.LoadFromData(kMockRomData));
 
   EXPECT_CALL(mock_rom, WriteHelper(_))
       .WillOnce(Return(absl::OkStatus()))
@@ -221,7 +221,7 @@ TEST_F(RomTest, WriteTransactionFailure) {
 
 TEST_F(RomTest, ReadTransactionSuccess) {
   MockRom mock_rom;
-  EXPECT_OK(mock_rom.LoadFromBytes(kMockRomData));
+  EXPECT_OK(mock_rom.LoadFromData(kMockRomData));
   uint8_t byte_val;
   uint16_t word_val;
 
@@ -233,7 +233,7 @@ TEST_F(RomTest, ReadTransactionSuccess) {
 
 TEST_F(RomTest, ReadTransactionFailure) {
   MockRom mock_rom;
-  EXPECT_OK(mock_rom.LoadFromBytes(kMockRomData));
+  EXPECT_OK(mock_rom.LoadFromData(kMockRomData));
   uint8_t byte_val;
 
   EXPECT_EQ(mock_rom.ReadTransaction(byte_val, 0x1000),

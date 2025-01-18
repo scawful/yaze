@@ -702,7 +702,7 @@ absl::Status GraphicsEditor::DrawClipboardImport() {
       const auto clipboard_data =
           std::vector<uint8_t>(text, text + strlen(text));
       ImGui::MemFree((void*)text);
-      status_ = temp_rom_.LoadFromBytes(clipboard_data);
+      status_ = temp_rom_.LoadFromData(clipboard_data);
       is_open_ = true;
       open_memory_editor_ = true;
     }
