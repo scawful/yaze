@@ -50,7 +50,7 @@ yaze_project yaze_load_project(const char *filename) {
   return project;
 }
 
-z3_rom *yaze_load_rom(const char *filename) {
+zelda3_rom *yaze_load_rom(const char *filename) {
   yaze::Rom *internal_rom;
   internal_rom = new yaze::Rom();
   if (!internal_rom->LoadFromFile(filename).ok()) {
@@ -58,7 +58,7 @@ z3_rom *yaze_load_rom(const char *filename) {
     return nullptr;
   }
 
-  z3_rom *rom = new z3_rom();
+  zelda3_rom *rom = new zelda3_rom();
   rom->filename = filename;
   rom->impl = internal_rom;
   rom->data = internal_rom->data();
@@ -66,7 +66,7 @@ z3_rom *yaze_load_rom(const char *filename) {
   return rom;
 }
 
-void yaze_unload_rom(z3_rom *rom) {
+void yaze_unload_rom(zelda3_rom *rom) {
   if (rom->impl) {
     delete static_cast<yaze::Rom *>(rom->impl);
   }
@@ -85,8 +85,9 @@ yaze_bitmap yaze_load_bitmap(const char *filename) {
   return bitmap;
 }
 
-snes_color yaze_get_color_from_paletteset(const z3_rom *rom, int palette_set,
-                                          int palette, int color) {
+snes_color yaze_get_color_from_paletteset(const zelda3_rom *rom,
+                                          int palette_set, int palette,
+                                          int color) {
   snes_color color_struct;
   color_struct.red = 0;
   color_struct.green = 0;
@@ -110,7 +111,7 @@ snes_color yaze_get_color_from_paletteset(const z3_rom *rom, int palette_set,
   return color_struct;
 }
 
-z3_overworld *yaze_load_overworld(const z3_rom *rom) {
+zelda3_overworld *yaze_load_overworld(const zelda3_rom *rom) {
   if (rom->impl == nullptr) {
     return nullptr;
   }
@@ -121,22 +122,22 @@ z3_overworld *yaze_load_overworld(const z3_rom *rom) {
     return nullptr;
   }
 
-  z3_overworld *overworld = new z3_overworld();
+  zelda3_overworld *overworld = new zelda3_overworld();
   overworld->impl = internal_overworld;
   int map_id = 0;
   for (const auto &ow_map : internal_overworld->overworld_maps()) {
-    overworld->maps[map_id] = new z3_overworld_map();
+    overworld->maps[map_id] = new zelda3_overworld_map();
     overworld->maps[map_id]->id = map_id;
     map_id++;
   }
   return overworld;
 }
 
-z3_dungeon_room *yaze_load_all_rooms(const z3_rom *rom) {
+zelda3_dungeon_room *yaze_load_all_rooms(const zelda3_rom *rom) {
   if (rom->impl == nullptr) {
     return nullptr;
   }
   yaze::Rom *internal_rom = static_cast<yaze::Rom *>(rom->impl);
-  z3_dungeon_room *rooms = new z3_dungeon_room[256];
+  zelda3_dungeon_room *rooms = new zelda3_dungeon_room[256];
   return rooms;
 }
