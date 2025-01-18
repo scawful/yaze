@@ -352,7 +352,11 @@
       // Size of the data
       size_t size = [data length];
 
-      PRINT_IF_ERROR(yaze::SharedRom::shared_rom_->LoadFromPointer(bytes, size));
+      std::vector<uint8_t> rom_data;
+      rom_data.resize(size);
+      std::copy(bytes, bytes + size, rom_data.begin());
+
+      PRINT_IF_ERROR(yaze::SharedRom::shared_rom_->LoadFromBytes(rom_data));
       std::string filename = std::string([selectedFileURL.path UTF8String]);
       yaze::SharedRom::shared_rom_->set_filename(filename);
       [selectedFileURL stopAccessingSecurityScopedResource];

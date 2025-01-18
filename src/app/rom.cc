@@ -214,16 +214,15 @@ absl::Status Rom::LoadFromFile(const std::string &filename, bool z3_load) {
   return absl::OkStatus();
 }
 
-absl::Status Rom::LoadFromPointer(uchar *data, size_t length, bool z3_load) {
-  if (!data || length == 0)
+absl::Status Rom::LoadFromData(const std::vector<uint8_t> &data, bool z3_load) {
+  if (data.empty()) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `data` is empty.");
-
+  }
   if (!palette_groups_.empty()) palette_groups_.clear();
-  if (rom_data_.size() < length) rom_data_.resize(length);
 
-  std::copy(data, data + length, rom_data_.begin());
-  size_ = length;
+  rom_data_ = data;
+  size_ = data.size();
   is_loaded_ = true;
 
   if (z3_load) {
@@ -232,15 +231,141 @@ absl::Status Rom::LoadFromPointer(uchar *data, size_t length, bool z3_load) {
   return absl::OkStatus();
 }
 
-absl::Status Rom::LoadFromBytes(const std::vector<uint8_t> &data) {
-  if (data.empty()) {
-    return absl::InvalidArgumentError(
-        "Could not load ROM: parameter `data` is empty.");
+absl::StatusOr<uint8_t> Rom::ReadByte(int offset) {
+  if (offset >= static_cast<int>(rom_data_.size())) {
+    return absl::FailedPreconditionError("Offset out of range");
   }
-  rom_data_ = data;
-  size_ = data.size();
-  is_loaded_ = true;
+  return rom_data_[offset];
+}
+
+absl::StatusOr<uint16_t> Rom::ReadWord(int offset) {
+  if (offset + 1 >= static_cast<int>(rom_data_.size())) {
+    return absl::FailedPreconditionError("Offset out of range");
+  }
+  auto result = (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
+  return result;
+}
+
+absl::StatusOr<uint32_t> Rom::ReadLong(int offset) {
+  if (offset + 2 >= static_cast<int>(rom_data_.size())) {
+    return absl::OutOfRangeError("Offset out of range");
+  }
+  auto result = (uint32_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8) |
+                           (rom_data_[offset + 2] << 16));
+  return result;
+}
+
+absl::StatusOr<std::vector<uint8_t>> Rom::ReadByteVector(
+    uint32_t offset, uint32_t length) const {
+  if (offset + length > static_cast<uint32_t>(rom_data_.size())) {
+    return absl::OutOfRangeError("Offset and length out of range");
+  }
+  std::vector<uint8_t> result;
+  for (uint32_t i = offset; i < offset + length; i++) {
+    result.push_back(rom_data_[i]);
+  }
+  return result;
+}
+
+absl::StatusOr<gfx::Tile16> Rom::ReadTile16(uint32_t tile16_id) {
+  // Skip 8 bytes per tile.
+  auto tpos = kTile16Ptr + (tile16_id * 0x08);
+  gfx::Tile16 tile16 = {};
+  ASSIGN_OR_RETURN(auto new_tile0, ReadWord(tpos))
+  tile16.tile0_ = gfx::WordToTileInfo(new_tile0);
+  tpos += 2;
+  ASSIGN_OR_RETURN(auto new_tile1, ReadWord(tpos))
+  tile16.tile1_ = gfx::WordToTileInfo(new_tile1);
+  tpos += 2;
+  ASSIGN_OR_RETURN(auto new_tile2, ReadWord(tpos))
+  tile16.tile2_ = gfx::WordToTileInfo(new_tile2);
+  tpos += 2;
+  ASSIGN_OR_RETURN(auto new_tile3, ReadWord(tpos))
+  tile16.tile3_ = gfx::WordToTileInfo(new_tile3);
+  return tile16;
+}
+
+absl::Status Rom::WriteTile16(int tile16_id, const gfx::Tile16 &tile) {
+  // Skip 8 bytes per tile.
+  auto tpos = kTile16Ptr + (tile16_id * 0x08);
+  RETURN_IF_ERROR(WriteShort(tpos, gfx::TileInfoToWord(tile.tile0_)));
+  tpos += 2;
+  RETURN_IF_ERROR(WriteShort(tpos, gfx::TileInfoToWord(tile.tile1_)));
+  tpos += 2;
+  RETURN_IF_ERROR(WriteShort(tpos, gfx::TileInfoToWord(tile.tile2_)));
+  tpos += 2;
+  RETURN_IF_ERROR(WriteShort(tpos, gfx::TileInfoToWord(tile.tile3_)));
   return absl::OkStatus();
+}
+
+absl::Status Rom::WriteByte(int addr, uint8_t value) {
+  if (addr >= static_cast<int>(rom_data_.size())) {
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Attempt to write byte %#02x value failed, address %d out of range",
+        value, addr));
+  }
+  rom_data_[addr] = value;
+  core::logf("WriteByte: %#06X: %s", addr, core::HexByte(value).data());
+  return absl::OkStatus();
+}
+
+absl::Status Rom::WriteWord(int addr, uint16_t value) {
+  if (addr + 1 >= static_cast<int>(rom_data_.size())) {
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Attempt to write word %#04x value failed, address %d out of range",
+        value, addr));
+  }
+  rom_data_[addr] = (uint8_t)(value & 0xFF);
+  rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
+  core::logf("WriteWord: %#06X: %s", addr, core::HexWord(value).data());
+  return absl::OkStatus();
+}
+
+absl::Status Rom::WriteShort(int addr, uint16_t value) {
+  if (addr + 1 >= static_cast<int>(rom_data_.size())) {
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Attempt to write short %#04x value failed, address %d out of range",
+        value, addr));
+  }
+  rom_data_[addr] = (uint8_t)(value & 0xFF);
+  rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
+  core::logf("WriteShort: %#06X: %s", addr, core::HexWord(value).data());
+  return absl::OkStatus();
+}
+
+absl::Status Rom::WriteLong(uint32_t addr, uint32_t value) {
+  if (addr + 2 >= static_cast<uint32_t>(rom_data_.size())) {
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Attempt to write long %#06x value failed, address %d out of range",
+        value, addr));
+  }
+  rom_data_[addr] = (uint8_t)(value & 0xFF);
+  rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
+  rom_data_[addr + 2] = (uint8_t)((value >> 16) & 0xFF);
+  core::logf("WriteLong: %#06X: %s", addr, core::HexLong(value).data());
+  return absl::OkStatus();
+}
+
+absl::Status Rom::WriteVector(int addr, std::vector<uint8_t> data) {
+  if (addr + static_cast<int>(data.size()) >
+      static_cast<int>(rom_data_.size())) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Attempt to write vector value failed, address %d out of range", addr));
+  }
+  for (int i = 0; i < static_cast<int>(data.size()); i++) {
+    rom_data_[addr + i] = data[i];
+  }
+  core::logf("WriteVector: %#06X: %s", addr, core::HexByte(data[0]).data());
+  return absl::OkStatus();
+}
+
+absl::Status Rom::WriteColor(uint32_t address, const gfx::SnesColor &color) {
+  uint16_t bgr = ((color.snes() >> 10) & 0x1F) | ((color.snes() & 0x1F) << 10) |
+                 (color.snes() & 0x7C00);
+
+  // Write the 16-bit color value to the ROM at the specified address
+  core::logf("WriteColor: %#06X: %s", address, core::HexWord(bgr).data());
+  return WriteShort(address, bgr);
 }
 
 absl::Status Rom::LoadZelda3() {

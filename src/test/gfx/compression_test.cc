@@ -33,7 +33,8 @@ using ::testing::TypedEq;
 namespace {
 
 std::vector<uint8_t> ExpectCompressOk(Rom& rom, uchar* in, int in_size) {
-  auto load_status = rom.LoadFromPointer(in, in_size, false);
+  std::vector<uint8_t> data(in, in + in_size);
+  auto load_status = rom.LoadFromData(data);
   EXPECT_TRUE(load_status.ok());
   auto compression_status = CompressV3(rom.vector(), 0, in_size);
   EXPECT_TRUE(compression_status.ok());
@@ -43,7 +44,7 @@ std::vector<uint8_t> ExpectCompressOk(Rom& rom, uchar* in, int in_size) {
 
 std::vector<uint8_t> ExpectDecompressBytesOk(Rom& rom,
                                              std::vector<uint8_t>& in) {
-  auto load_status = rom.LoadFromBytes(in);
+  auto load_status = rom.LoadFromData(in);
   EXPECT_TRUE(load_status.ok());
   auto decompression_status = DecompressV2(rom.data(), 0, in.size());
   EXPECT_TRUE(decompression_status.ok());
@@ -52,7 +53,8 @@ std::vector<uint8_t> ExpectDecompressBytesOk(Rom& rom,
 }
 
 std::vector<uint8_t> ExpectDecompressOk(Rom& rom, uchar* in, int in_size) {
-  auto load_status = rom.LoadFromPointer(in, in_size, false);
+  std::vector<uint8_t> data(in, in + in_size);
+  auto load_status = rom.LoadFromData(data);
   EXPECT_TRUE(load_status.ok());
   auto decompression_status = DecompressV2(rom.data(), 0, in_size);
   EXPECT_TRUE(decompression_status.ok());
