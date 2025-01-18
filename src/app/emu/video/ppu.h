@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <vector>
 
-#include "app/emu/cpu/clock.h"
 #include "app/emu/memory/memory.h"
 #include "app/emu/video/ppu_registers.h"
 #include "app/rom.h"
@@ -254,7 +253,7 @@ struct BackgroundLayer {
 class Ppu : public SharedRom {
  public:
   // Initializes the PPU with the necessary resources and dependencies
-  Ppu(Memory& memory, Clock& clock) : memory_(memory), clock_(clock) {}
+  Ppu(Memory& memory) : memory_(memory) {}
 
   // Initialize the frame buffer
   void Init() {
@@ -262,13 +261,7 @@ class Ppu : public SharedRom {
     pixelOutputFormat = 1;
   }
 
-  // Resets the PPU to its initial state
   void Reset();
-
-  // Runs the PPU for one frame.
-  void Update();
-  void UpdateClock(double delta_time) { clock_.UpdateClock(delta_time); }
-
   void HandleFrameStart();
   void RunLine(int line);
   void HandlePixel(int x, int y);
@@ -433,7 +426,6 @@ class Ppu : public SharedRom {
   uint16_t screen_brightness_ = 0x00;
 
   Memory& memory_;
-  Clock& clock_;
 
   Tilemap tilemap_;
   BackgroundMode bg_mode_;
