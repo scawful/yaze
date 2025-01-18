@@ -262,9 +262,9 @@ absl::Status Rom::LoadZelda3() {
             rom_data_.begin() + kTitleStringOffset + kTitleStringLength,
             title_.begin());
   if (rom_data_[kTitleStringOffset + 0x19] == 0) {
-    version_ = Z3_Version::JP;
+    version_ = zelda3_version::JP;
   } else {
-    version_ = Z3_Version::US;
+    version_ = zelda3_version::US;
   }
 
   // Load additional resources
