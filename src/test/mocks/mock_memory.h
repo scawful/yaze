@@ -4,24 +4,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "app/emu/cpu/clock.h"
-#include "app/emu/cpu/cpu.h"
 #include "app/emu/memory/memory.h"
 
 namespace yaze {
 namespace emu {
-
-/**
- * @brief Mock CPU class for testing
- */
-class MockClock : public Clock {
- public:
-  MOCK_METHOD(void, UpdateClock, (double delta), (override));
-  MOCK_METHOD(unsigned long long, GetCycleCount, (), (const, override));
-  MOCK_METHOD(void, ResetAccumulatedTime, (), (override));
-  MOCK_METHOD(void, SetFrequency, (float new_frequency), (override));
-  MOCK_METHOD(float, GetFrequency, (), (const, override));
-};
 
 /**
  * @class MockMemory
