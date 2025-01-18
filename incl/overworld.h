@@ -10,7 +10,7 @@ extern "C" {
 /**
  * @brief Primitive of an overworld map.
  */
-typedef struct z3_overworld_map {
+typedef struct zelda3_overworld_map {
   uint8_t id; /**< ID of the overworld map. */
   uint8_t parent_id;
   uint8_t quadrant_id;
@@ -23,18 +23,18 @@ typedef struct z3_overworld_map {
   uint8_t sprite_palette[3];
   uint8_t area_music[4];
   uint8_t static_graphics[16];
-} z3_overworld_map;
+} zelda3_overworld_map;
 
 /**
  * @brief Primitive of the overworld.
  */
-typedef struct z3_overworld {
-  void *impl; // yaze::Overworld*
-  z3_overworld_map **maps; /**< Pointer to the overworld maps. */
-} z3_overworld;
+typedef struct zelda3_overworld {
+  void *impl;                  // yaze::Overworld*
+  zelda3_overworld_map **maps; /**< Pointer to the overworld maps. */
+} zelda3_overworld;
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // YAZE_OVERWORLD_H
+#endif  // YAZE_OVERWORLD_H
