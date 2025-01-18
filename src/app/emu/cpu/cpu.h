@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <vector>
 
-#include "app/emu/cpu/clock.h"
 #include "app/emu/memory/memory.h"
 
 namespace yaze {
@@ -32,8 +31,8 @@ class InstructionEntry {
 
 class Cpu {
  public:
-  explicit Cpu(Memory& mem, Clock& vclock, CpuCallbacks& callbacks)
-      : memory(mem), clock(vclock), callbacks_(callbacks) {}
+  explicit Cpu(Memory& mem, CpuCallbacks& callbacks)
+      : memory(mem), callbacks_(callbacks) {}
   void Reset(bool hard = false);
 
   void RunOpcode();
@@ -42,13 +41,8 @@ class Cpu {
   void LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
                        bool immediate, bool accumulator_mode);
 
-  void UpdatePC(uint8_t instruction_length) { PC += instruction_length; }
-  void UpdateClock(int delta_time) { clock.UpdateClock(delta_time); }
-
   void SetIrq(bool state) { irq_wanted_ = state; }
   void Nmi() { nmi_wanted_ = true; }
-
-  uint8_t GetInstructionLength(uint8_t opcode);
 
   std::vector<uint32_t> breakpoints_;
   std::vector<InstructionEntry> instruction_log_;
@@ -789,7 +783,6 @@ class Cpu {
 
   CpuCallbacks callbacks_;
   Memory& memory;
-  Clock& clock;
 };
 
 }  // namespace emu

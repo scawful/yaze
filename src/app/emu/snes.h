@@ -4,7 +4,6 @@
 #include <cstdint>
 
 #include "app/emu/audio/apu.h"
-#include "app/emu/cpu/clock.h"
 #include "app/emu/cpu/cpu.h"
 #include "app/emu/memory/memory.h"
 #include "app/emu/video/ppu.h"
@@ -25,18 +24,11 @@ class Snes {
   Snes() = default;
   ~Snes() = default;
 
-  // Initialization
   void Init(std::vector<uint8_t>& rom_data);
   void Reset(bool hard = false);
-
-  // Emulation
   void RunFrame();
   void CatchUpApu();
-
-  // Controller input handling
   void HandleInput();
-
-  // Clock cycling and synchronization
   void RunCycle();
   void RunCycles(int cycles);
   void SyncCycles(bool start, int sync_cycles);
@@ -54,10 +46,13 @@ class Snes {
   uint8_t CpuRead(uint32_t adr);
   void CpuWrite(uint32_t adr, uint8_t val);
   void CpuIdle(bool waiting);
+  void InitAccessTime(bool recalc);
+  std::vector<uint8_t> access_time;
 
   void SetSamples(int16_t* sample_data, int wanted_samples);
   void SetPixels(uint8_t* pixel_data);
   void SetButtonState(int player, int button, bool pressed);
+
   bool running() const { return running_; }
   auto cpu() -> Cpu& { return cpu_; }
   auto ppu() -> Ppu& { return ppu_; }
@@ -65,28 +60,20 @@ class Snes {
   auto Memory() -> MemoryImpl& { return memory_; }
   auto get_ram() -> uint8_t* { return ram; }
   auto mutable_cycles() -> uint64_t& { return cycles_; }
-  void InitAccessTime(bool recalc);
-
-  std::vector<uint8_t> access_time;
 
  private:
-  // Components of the SNES
-  ClockImpl clock_;
   MemoryImpl memory_;
-
   CpuCallbacks cpu_callbacks_ = {
       [&](uint32_t adr) { return CpuRead(adr); },
       [&](uint32_t adr, uint8_t val) { CpuWrite(adr, val); },
       [&](bool waiting) { CpuIdle(waiting); },
   };
-  Cpu cpu_{memory_, clock_, cpu_callbacks_};
-  Ppu ppu_{memory_, clock_};
+  Cpu cpu_{memory_, cpu_callbacks_};
+  Ppu ppu_{memory_};
   Apu apu_{memory_};
 
-  // Currently loaded ROM
   std::vector<uint8_t> rom_data;
 
-  // Emulation state
   bool running_ = false;
 
   // ram

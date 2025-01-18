@@ -36,8 +36,6 @@ static const int kBitDepthsPerMode[10][4] = {
 static const int kSpriteSizes[8][2] = {{8, 16},  {8, 32},  {8, 64},  {16, 32},
                                        {16, 64}, {32, 64}, {16, 32}, {16, 32}};
 
-void Ppu::Update() {}
-
 void Ppu::Reset() {
   memset(vram, 0, sizeof(vram));
   vram_pointer = 0;
