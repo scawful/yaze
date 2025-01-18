@@ -156,7 +156,7 @@ Functions</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="compression__test_8cc_source.html#l00035">35</a> of file <a class="el" href="compression__test_8cc_source.html">compression_test.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="compression_8cc_source.html#l01311">yaze::test::CompressV3()</a>, <a class="el" href="compression__test_8cc_source.html#l00035">ExpectCompressOk()</a>, <a class="el" href="rom_8cc_source.html#l00217">yaze::Rom::LoadFromPointer()</a>, and <a class="el" href="rom_8h_source.html#l00327">yaze::Rom::vector()</a>.</p>
+<p class="reference">References <a class="el" href="compression_8cc_source.html#l01311">yaze::test::CompressV3()</a>, <a class="el" href="compression__test_8cc_source.html#l00035">ExpectCompressOk()</a>, <a class="el" href="rom_8cc_source.html#l00217">yaze::Rom::LoadFromData()</a>, and <a class="el" href="rom_8h_source.html#l00170">yaze::Rom::vector()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="compression__test_8cc_source.html#l00035">ExpectCompressOk()</a>.</p>
 <div class="dynheader">
@@ -165,17 +165,17 @@ Here is the call graph for this function:</div>
 <div class="center"><img src="namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03_a8dd3d3b66e0f8c6c3f419f7e0af8da9b_cgraph.png" border="0" usemap="#anamespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03_a8dd3d3b66e0f8c6c3f419f7e0af8da9b_cgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03_a8dd3d3b66e0f8c6c3f419f7e0af8da9b_cgraph" id="anamespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03_a8dd3d3b66e0f8c6c3f419f7e0af8da9b_cgraph">
 <area shape="rect" title=" " alt="" coords="5,40,201,95"/>
-<area shape="poly" title=" " alt="" coords="56,39,57,29,65,20,81,15,103,13,128,16,143,22,141,27,127,21,103,18,82,20,68,25,62,31,62,39"/>
-<area shape="rect" href="namespaceyaze_1_1test.html#a143e848d987c6b04f56308f2ef6953ae" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="264,5,420,31"/>
-<area shape="poly" title=" " alt="" coords="201,45,261,32,262,37,202,50"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a3f0d04e790b13bd666e0fdb4b0d04f86" title=" " alt="" coords="249,55,435,80"/>
+<area shape="poly" title=" " alt="" coords="58,39,58,29,66,20,81,15,103,13,127,16,142,22,140,27,126,21,103,18,83,20,69,25,63,31,63,39"/>
+<area shape="rect" href="namespaceyaze_1_1test.html#a143e848d987c6b04f56308f2ef6953ae" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="257,5,413,31"/>
+<area shape="poly" title=" " alt="" coords="200,44,256,32,257,37,201,49"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a3aacb1ac78a97db45382a8ad580ec4db" title=" " alt="" coords="249,55,421,80"/>
 <area shape="poly" title=" " alt="" coords="201,65,233,65,233,70,201,70"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="281,104,403,130"/>
-<area shape="poly" title=" " alt="" coords="202,85,266,99,265,104,201,90"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="504,31,616,56"/>
-<area shape="poly" title=" " alt="" coords="435,55,489,49,490,54,436,60"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9" title=" " alt="" coords="483,80,637,106"/>
-<area shape="poly" title=" " alt="" coords="436,76,468,79,467,85,435,81"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="274,104,396,130"/>
+<area shape="poly" title=" " alt="" coords="201,86,259,98,257,103,200,91"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="490,31,602,56"/>
+<area shape="poly" title=" " alt="" coords="421,55,475,49,476,54,422,60"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9" title=" " alt="" coords="469,80,623,106"/>
+<area shape="poly" title=" " alt="" coords="422,75,454,79,453,84,421,81"/>
 </map>
 </div>
 
@@ -200,25 +200,27 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression__test_8cc_source.html#l00044">44</a> of file <a class="el" href="compression__test_8cc_source.html">compression_test.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression__test_8cc_source.html#l00045">45</a> of file <a class="el" href="compression__test_8cc_source.html">compression_test.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00322">yaze::Rom::data()</a>, <a class="el" href="compression_8cc_source.html#l01370">yaze::test::DecompressV2()</a>, <a class="el" href="compression__test_8cc_source.html#l00044">ExpectDecompressBytesOk()</a>, and <a class="el" href="rom_8cc_source.html#l00235">yaze::Rom::LoadFromBytes()</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00165">yaze::Rom::data()</a>, <a class="el" href="compression_8cc_source.html#l01370">yaze::test::DecompressV2()</a>, <a class="el" href="compression__test_8cc_source.html#l00045">ExpectDecompressBytesOk()</a>, and <a class="el" href="rom_8cc_source.html#l00217">yaze::Rom::LoadFromData()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression__test_8cc_source.html#l00044">ExpectDecompressBytesOk()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression__test_8cc_source.html#l00045">ExpectDecompressBytesOk()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03_aea2a498a83c2d824402e1632a4c0c14b_cgraph.png" border="0" usemap="#anamespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03_aea2a498a83c2d824402e1632a4c0c14b_cgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03_aea2a498a83c2d824402e1632a4c0c14b_cgraph" id="anamespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03_aea2a498a83c2d824402e1632a4c0c14b_cgraph">
 <area shape="rect" title=" " alt="" coords="5,29,248,85"/>
-<area shape="poly" title=" " alt="" coords="76,29,77,19,86,10,103,5,127,3,154,5,170,12,168,17,152,10,126,8,104,10,89,15,82,21,81,29"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="522,44,633,70"/>
-<area shape="poly" title=" " alt="" coords="248,34,358,25,417,25,474,29,518,37,517,43,474,34,416,30,358,30,248,40"/>
-<area shape="rect" href="namespaceyaze_1_1test.html#a4e2e79a02c9bbff8d9720d6384296218" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="300,44,470,70"/>
-<area shape="poly" title=" " alt="" coords="248,54,284,54,284,60,248,60"/>
-<area shape="rect" href="classyaze_1_1Rom.html#ac123f719a3dcba1ae47029ee91d1358a" title=" " alt="" coords="296,94,474,119"/>
-<area shape="poly" title=" " alt="" coords="249,78,299,88,298,93,248,83"/>
-<area shape="poly" title=" " alt="" coords="437,90,509,72,510,77,439,96"/>
+<area shape="poly" title=" " alt="" coords="77,29,77,19,86,10,103,5,127,3,153,5,170,12,167,17,152,10,126,8,104,10,89,15,82,21,82,29"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="538,19,649,45"/>
+<area shape="poly" title=" " alt="" coords="248,34,295,29,415,25,522,26,522,32,415,30,296,34,248,39"/>
+<area shape="rect" href="namespaceyaze_1_1test.html#a4e2e79a02c9bbff8d9720d6384296218" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="297,44,467,70"/>
+<area shape="poly" title=" " alt="" coords="248,54,281,54,281,60,248,60"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a3aacb1ac78a97db45382a8ad580ec4db" title=" " alt="" coords="296,94,468,119"/>
+<area shape="poly" title=" " alt="" coords="249,78,297,88,296,93,248,83"/>
+<area shape="poly" title=" " alt="" coords="433,91,467,80,547,49,549,54,469,85,435,96"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9" title=" " alt="" coords="516,94,670,119"/>
+<area shape="poly" title=" " alt="" coords="469,104,500,104,500,109,469,109"/>
 </map>
 </div>
 
@@ -248,27 +250,27 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression__test_8cc_source.html#l00054">54</a> of file <a class="el" href="compression__test_8cc_source.html">compression_test.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression__test_8cc_source.html#l00055">55</a> of file <a class="el" href="compression__test_8cc_source.html">compression_test.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00322">yaze::Rom::data()</a>, <a class="el" href="compression_8cc_source.html#l01370">yaze::test::DecompressV2()</a>, <a class="el" href="compression__test_8cc_source.html#l00054">ExpectDecompressOk()</a>, and <a class="el" href="rom_8cc_source.html#l00217">yaze::Rom::LoadFromPointer()</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00165">yaze::Rom::data()</a>, <a class="el" href="compression_8cc_source.html#l01370">yaze::test::DecompressV2()</a>, <a class="el" href="compression__test_8cc_source.html#l00055">ExpectDecompressOk()</a>, and <a class="el" href="rom_8cc_source.html#l00217">yaze::Rom::LoadFromData()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression__test_8cc_source.html#l00054">ExpectDecompressOk()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression__test_8cc_source.html#l00055">ExpectDecompressOk()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03_a39c906d372ef594237c65bc20d310711_cgraph.png" border="0" usemap="#anamespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03_a39c906d372ef594237c65bc20d310711_cgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03_a39c906d372ef594237c65bc20d310711_cgraph" id="anamespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03_a39c906d372ef594237c65bc20d310711_cgraph">
 <area shape="rect" title=" " alt="" coords="5,29,215,85"/>
-<area shape="poly" title=" " alt="" coords="62,29,63,19,71,10,87,5,110,3,136,5,152,12,149,17,134,10,110,8,88,10,74,15,67,21,67,29"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="518,19,630,45"/>
-<area shape="poly" title=" " alt="" coords="215,35,262,29,390,24,503,26,503,31,390,29,263,34,216,40"/>
-<area shape="rect" href="namespaceyaze_1_1test.html#a4e2e79a02c9bbff8d9720d6384296218" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="271,44,441,70"/>
-<area shape="poly" title=" " alt="" coords="215,54,255,54,255,60,215,60"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a3f0d04e790b13bd666e0fdb4b0d04f86" title=" " alt="" coords="263,94,449,119"/>
-<area shape="poly" title=" " alt="" coords="216,76,274,87,273,93,215,81"/>
-<area shape="poly" title=" " alt="" coords="413,91,448,80,528,49,530,54,450,85,414,96"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9" title=" " alt="" coords="497,94,651,119"/>
-<area shape="poly" title=" " alt="" coords="449,104,481,104,481,109,449,109"/>
+<area shape="poly" title=" " alt="" coords="63,29,64,19,72,10,88,5,110,3,135,5,150,12,148,17,134,10,110,8,89,10,75,15,69,21,69,29"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="504,19,616,45"/>
+<area shape="poly" title=" " alt="" coords="215,35,262,29,382,24,489,26,489,31,382,30,263,34,216,40"/>
+<area shape="rect" href="namespaceyaze_1_1test.html#a4e2e79a02c9bbff8d9720d6384296218" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="264,44,434,70"/>
+<area shape="poly" title=" " alt="" coords="215,54,248,54,248,60,215,60"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a3aacb1ac78a97db45382a8ad580ec4db" title=" " alt="" coords="263,94,435,119"/>
+<area shape="poly" title=" " alt="" coords="216,76,269,87,268,93,215,81"/>
+<area shape="poly" title=" " alt="" coords="400,91,434,80,514,49,516,54,436,85,402,96"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9" title=" " alt="" coords="483,94,637,119"/>
+<area shape="poly" title=" " alt="" coords="436,104,467,104,467,109,436,109"/>
 </map>
 </div>
 
@@ -303,11 +305,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression__test_8cc_source.html#l00063">63</a> of file <a class="el" href="compression__test_8cc_source.html">compression_test.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression__test_8cc_source.html#l00065">65</a> of file <a class="el" href="compression__test_8cc_source.html">compression_test.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="compression__test_8cc_source.html#l00063">ExpectNewCompressionPieceOk()</a>.</p>
+<p class="reference">References <a class="el" href="compression__test_8cc_source.html#l00065">ExpectNewCompressionPieceOk()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression__test_8cc_source.html#l00063">ExpectNewCompressionPieceOk()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression__test_8cc_source.html#l00065">ExpectNewCompressionPieceOk()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -339,11 +341,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression__test_8cc_source.html#l00073">73</a> of file <a class="el" href="compression__test_8cc_source.html">compression_test.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression__test_8cc_source.html#l00075">75</a> of file <a class="el" href="compression__test_8cc_source.html">compression_test.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="compression__test_8cc_source.html#l00073">AssertCompressionQuality()</a>, and <a class="el" href="compression_8cc_source.html#l01311">yaze::test::CompressV3()</a>.</p>
+<p class="reference">References <a class="el" href="compression__test_8cc_source.html#l00075">AssertCompressionQuality()</a>, and <a class="el" href="compression_8cc_source.html#l01311">yaze::test::CompressV3()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression__test_8cc_source.html#l00073">AssertCompressionQuality()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression__test_8cc_source.html#l00075">AssertCompressionQuality()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -377,11 +379,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression__test_8cc_source.html#l00083">83</a> of file <a class="el" href="compression__test_8cc_source.html">compression_test.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression__test_8cc_source.html#l00085">85</a> of file <a class="el" href="compression__test_8cc_source.html">compression_test.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="compression_8cc_source.html#l01311">yaze::test::CompressV3()</a>, and <a class="el" href="compression__test_8cc_source.html#l00083">ExpectCompressV3Ok()</a>.</p>
+<p class="reference">References <a class="el" href="compression_8cc_source.html#l01311">yaze::test::CompressV3()</a>, and <a class="el" href="compression__test_8cc_source.html#l00085">ExpectCompressV3Ok()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression__test_8cc_source.html#l00083">ExpectCompressV3Ok()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression__test_8cc_source.html#l00085">ExpectCompressV3Ok()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -420,11 +422,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="compression__test_8cc_source.html#l00093">93</a> of file <a class="el" href="compression__test_8cc_source.html">compression_test.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression__test_8cc_source.html#l00095">95</a> of file <a class="el" href="compression__test_8cc_source.html">compression_test.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="compression__test_8cc_source.html#l00093">CreateRepeatedBetweenUncompressable()</a>.</p>
+<p class="reference">References <a class="el" href="compression__test_8cc_source.html#l00095">CreateRepeatedBetweenUncompressable()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="compression__test_8cc_source.html#l00093">CreateRepeatedBetweenUncompressable()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="compression__test_8cc_source.html#l00095">CreateRepeatedBetweenUncompressable()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

@@ -2,12 +2,8 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,55,160,80"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#abfad5beaef8b6648f43c1ee018d1b6ee" title=" " alt="" coords="227,5,369,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,51,223,32,224,38,143,57"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1Rom.html#a0241f94c39962115e9602cc5c3c46796" title=" " alt="" coords="208,55,388,80"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="160,65,192,65,192,70,160,70"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1Rom.html#a6bd8ce3b192c32b2ed6c58f7b154787e" title=" " alt="" coords="225,104,371,130"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="143,78,224,97,223,103,141,84"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a407b08f0239ae3a7082b96f65450da42" title="Precondition check for reading and writing to the Rom." alt="" coords="436,55,661,80"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="367,29,465,48,464,54,366,34"/>
-<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="388,65,420,65,420,70,388,70"/>
-<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="366,101,464,81,465,87,367,106"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a0241f94c39962115e9602cc5c3c46796" title=" " alt="" coords="208,55,388,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="160,65,192,65,192,70,160,70"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1Rom.html#a6bd8ce3b192c32b2ed6c58f7b154787e" title=" " alt="" coords="225,104,371,130"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="143,78,224,97,223,103,141,84"/>
 </map>

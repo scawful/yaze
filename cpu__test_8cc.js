@@ -4,7 +4,6 @@ var cpu__test_8cc =
     [ "yaze::test::AsmParser", "classyaze_1_1test_1_1AsmParser.html", "classyaze_1_1test_1_1AsmParser" ],
     [ "yaze::test::Cpu", "classyaze_1_1test_1_1Cpu.html", "classyaze_1_1test_1_1Cpu" ],
     [ "yaze::test::CpuCallbacks", "structyaze_1_1test_1_1CpuCallbacks.html", "structyaze_1_1test_1_1CpuCallbacks" ],
-    [ "yaze::test::MockClock", "classyaze_1_1test_1_1MockClock.html", "classyaze_1_1test_1_1MockClock" ],
     [ "yaze::test::MockMemory", "classyaze_1_1test_1_1MockMemory.html", "classyaze_1_1test_1_1MockMemory" ],
     [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07", null ],
     [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#ab75ba7c87796563b90f2a20ca67b2f9c", null ],

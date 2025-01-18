@@ -24,7 +24,6 @@ var namespaceyaze_1_1test =
     [ "DungeonRoomTest", "classyaze_1_1test_1_1DungeonRoomTest.html", "classyaze_1_1test_1_1DungeonRoomTest" ],
     [ "MessageTest", "classyaze_1_1test_1_1MessageTest.html", "classyaze_1_1test_1_1MessageTest" ],
     [ "MockAudioRam", "classyaze_1_1test_1_1MockAudioRam.html", "classyaze_1_1test_1_1MockAudioRam" ],
-    [ "MockClock", "classyaze_1_1test_1_1MockClock.html", "classyaze_1_1test_1_1MockClock" ],
     [ "MockMemory", "classyaze_1_1test_1_1MockMemory.html", "classyaze_1_1test_1_1MockMemory" ],
     [ "MockPpu", "classyaze_1_1test_1_1MockPpu.html", "classyaze_1_1test_1_1MockPpu" ],
     [ "MockRom", "classyaze_1_1test_1_1MockRom.html", "classyaze_1_1test_1_1MockRom" ],

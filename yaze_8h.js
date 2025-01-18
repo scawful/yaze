@@ -2,10 +2,8 @@ var yaze_8h =
 [
     [ "yaze_editor_context", "structyaze__editor__context.html", "structyaze__editor__context" ],
     [ "yaze_project", "structyaze__project.html", "structyaze__project" ],
-    [ "z3_rom", "structz3__rom.html", "structz3__rom" ],
     [ "yaze_bitmap", "structyaze__bitmap.html", "structyaze__bitmap" ],
     [ "yaze_extension", "structyaze__extension.html", "structyaze__extension" ],
-    [ "z3_rom", "yaze_8h.html#ac77c4e371c3965f72bf4ac3321600f54", null ],
     [ "yaze_project", "yaze_8h.html#aab59cfba52c0fddf9ea046b113ed2395", null ],
     [ "yaze_editor_context", "yaze_8h.html#aa5f9c0aba87080afdbdfe7cb6792d89e", null ],
     [ "yaze_status", "yaze_8h.html#afa3b4d947347ed413689dcd80458ec0f", null ],
@@ -22,10 +20,8 @@ var yaze_8h =
     [ "yaze_init", "yaze_8h.html#abe088dcae9109bc7db5ed27cbf5e00bd", null ],
     [ "yaze_shutdown", "yaze_8h.html#a3a4d65cefe219b2b0de35ddcab2cd374", null ],
     [ "yaze_load_project", "yaze_8h.html#ac6958144cc1209550c0f77e8dce0b8d3", null ],
-    [ "yaze_load_rom", "yaze_8h.html#adfaf105df03accd07b94f1e60c6ed8bf", null ],
-    [ "yaze_unload_rom", "yaze_8h.html#a883ab5865f5e61a639dc3dafcd45e8c7", null ],
     [ "yaze_load_bitmap", "yaze_8h.html#a25bf6669809ad5e1ae299014a5f6fd0a", null ],
-    [ "yaze_get_color_from_paletteset", "yaze_8h.html#adfb236b5541502ced4544a6678e79d0e", null ],
-    [ "yaze_load_overworld", "yaze_8h.html#ac1b3f6a8db6317860537e91d20a2c7f5", null ],
-    [ "yaze_load_all_rooms", "yaze_8h.html#a8d29474bdfecb254378a3a188c516d37", null ]
+    [ "yaze_get_color_from_paletteset", "yaze_8h.html#ac37ec58a0da8b441220024ac2cb73a76", null ],
+    [ "yaze_load_overworld", "yaze_8h.html#a0a526cbc274a334616e24c0779e165cd", null ],
+    [ "yaze_load_all_rooms", "yaze_8h.html#a6b14017ad1ab9e7da860e59f6145c1d1", null ]
 ];

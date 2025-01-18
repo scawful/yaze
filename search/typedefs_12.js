@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['z3_5fdungeon_5froom_0',['z3_dungeon_room',['../dungeon_8h.html#a8f1b29a17d03eb75961d4985a37ff14c',1,'dungeon.h']]],
-  ['z3_5foverworld_1',['z3_overworld',['../incl_2overworld_8h.html#abdc52e81d57a1315f85ad3a9faa486d9',1,'overworld.h']]],
-  ['z3_5foverworld_5fmap_2',['z3_overworld_map',['../incl_2overworld_8h.html#aecefc7cd1d556e95bb7a2d5fe8a2255a',1,'overworld.h']]],
-  ['z3_5from_3',['z3_rom',['../yaze_8h.html#ac77c4e371c3965f72bf4ac3321600f54',1,'yaze.h']]]
+  ['zelda3_5fdungeon_5froom_0',['zelda3_dungeon_room',['../dungeon_8h.html#af25424b13374b13fd0cdb07f2f32a42a',1,'dungeon.h']]],
+  ['zelda3_5foverworld_1',['zelda3_overworld',['../incl_2overworld_8h.html#a4fb19874710badcf3603558580fd236a',1,'overworld.h']]],
+  ['zelda3_5foverworld_5fmap_2',['zelda3_overworld_map',['../incl_2overworld_8h.html#a0fb092c5014355cc0be54729e31a99c7',1,'overworld.h']]],
+  ['zelda3_5from_3',['zelda3_rom',['../zelda_8h.html#a81a5c5c618a19cfba96f863e14006cf9',1,'zelda.h']]]
 ];

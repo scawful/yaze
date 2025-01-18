@@ -29,7 +29,7 @@ var searchData=
   ['wobjlog_26',['WOBJLOG',['../namespaceyaze_1_1emu.html#acd44a920c5f6d46bfeb5eb928916c7ff',1,'yaze::emu']]],
   ['wobjsel_27',['WOBJSEL',['../namespaceyaze_1_1emu.html#ae7e6ab4f47a32ba36476535032a8e109',1,'yaze::emu']]],
   ['world_5f_28',['world_',['../classyaze_1_1zelda3_1_1OverworldMap.html#a724801a58970d61afbd23b60111d3592',1,'yaze::zelda3::OverworldMap']]],
-  ['world_5fid_29',['world_id',['../structz3__overworld__map.html#a7d01ce087b7925710e074ca7a59805a3',1,'z3_overworld_map']]],
+  ['world_5fid_29',['world_id',['../structzelda3__overworld__map.html#a60b0c7857986ba600445293f9074f2df',1,'zelda3_overworld_map']]],
   ['write_30',['write',['../structyaze_1_1emu_1_1ApuCallbacks.html#a118835693d22ce17120819b07e97e529',1,'yaze::emu::ApuCallbacks::write'],['../structyaze_1_1test_1_1ApuCallbacks.html#a118835693d22ce17120819b07e97e529',1,'yaze::test::ApuCallbacks::write']]],
   ['write_5fbyte_31',['write_byte',['../structyaze_1_1emu_1_1CpuCallbacks.html#aebfa8ed4f10eece2dd163c8105aa7458',1,'yaze::emu::CpuCallbacks::write_byte'],['../structyaze_1_1test_1_1CpuCallbacks.html#aebfa8ed4f10eece2dd163c8105aa7458',1,'yaze::test::CpuCallbacks::write_byte']]]
 ];

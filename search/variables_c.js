@@ -51,7 +51,7 @@ var searchData=
   ['map_5fx_5f_48',['map_x_',['../classyaze_1_1zelda3_1_1Sprite.html#a589c529336ae4d05dd31dd6459e7354c',1,'yaze::zelda3::Sprite']]],
   ['map_5fy_5f_49',['map_y_',['../classyaze_1_1zelda3_1_1Sprite.html#a8acbd56cde5b2367ce9dc4abb8763ce6',1,'yaze::zelda3::Sprite']]],
   ['mapdata_50',['mapdata',['../classyaze_1_1zelda3_1_1TitleScreen.html#a88afc4cfa7692fc487d3764b4171b8aa',1,'yaze::zelda3::TitleScreen']]],
-  ['maps_51',['maps',['../structz3__overworld.html#a623e0b2387aa861e1db639b56c42b3d2',1,'z3_overworld']]],
+  ['maps_51',['maps',['../structzelda3__overworld.html#adea43a2d4d987e4e9c742b68f1df487b',1,'zelda3_overworld']]],
   ['maps_5fbmp_5f_52',['maps_bmp_',['../classyaze_1_1editor_1_1OverworldEditor.html#a54c67fbc2513c94180ffb90b8aa8e942',1,'yaze::editor::OverworldEditor']]],
   ['mark_5fend_53',['mark_end',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html#a518dedb944e7ab676e68508a32d08af0',1,'yaze::zelda3::music::Tracker']]],
   ['mark_5ffirst_54',['mark_first',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html#a1460fa50e22e03c99b5112aadf3d7987',1,'yaze::zelda3::music::Tracker']]],

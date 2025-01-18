@@ -20,8 +20,8 @@
 <area shape="poly" id="edge14_Node000001_Node000012" title=" " alt="" coords="80,336,118,385,143,411,170,435,189,447,186,451,167,439,139,415,114,388,76,339"/>
 <area shape="rect" id="Node000013" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#afd4f301bf9cc31c188986af0db90ab75" title=" " alt="" coords="169,521,350,561"/>
 <area shape="poly" id="edge15_Node000001_Node000013" title=" " alt="" coords="73,337,86,373,106,418,134,465,170,506,176,510,172,514,167,510,130,468,101,421,81,375,68,339"/>
-<area shape="rect" id="Node000020" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#a9be49188ea0cb7f389a05bdbe8ea0ec2" title=" " alt="" coords="189,586,330,627"/>
-<area shape="poly" id="edge23_Node000001_Node000020" title=" " alt="" coords="70,337,79,385,97,447,127,513,147,544,171,571,178,577,175,581,167,575,143,547,122,516,92,449,74,386,64,338"/>
+<area shape="rect" id="Node000046" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#a9be49188ea0cb7f389a05bdbe8ea0ec2" title=" " alt="" coords="189,586,330,627"/>
+<area shape="poly" id="edge23_Node000001_Node000046" title=" " alt="" coords="70,337,79,385,97,447,127,513,147,544,171,571,178,577,175,581,167,575,143,547,122,516,92,449,74,386,64,338"/>
 <area shape="rect" id="Node000003" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#a79e586563008984b912926a967592418" title=" " alt="" coords="687,307,845,348"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="547,140,731,295,727,299,543,144"/>
 <area shape="poly" id="edge8_Node000008_Node000003" title=" " alt="" coords="602,402,638,389,714,353,717,358,640,394,604,407"/>
@@ -36,9 +36,9 @@
 <area shape="poly" id="edge18_Node000013_Node000015" title=" " alt="" coords="350,537,487,541,640,556,707,570,706,575,639,561,487,546,350,543"/>
 <area shape="rect" id="Node000016" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#a4e2e79a02c9bbff8d9720d6384296218" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="461,570,576,611"/>
 <area shape="poly" id="edge19_Node000013_Node000016" title=" " alt="" coords="351,556,446,574,445,579,350,561"/>
-<area shape="rect" id="Node000018" href="$classyaze_1_1Rom.html#ac123f719a3dcba1ae47029ee91d1358a" title=" " alt="" coords="430,635,608,661"/>
-<area shape="poly" id="edge20_Node000013_Node000018" title=" " alt="" coords="328,560,352,572,366,585,376,597,385,609,399,620,416,628,414,633,397,625,381,613,371,601,363,589,348,577,325,564"/>
-<area shape="rect" id="Node000019" href="$classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="464,684,573,710"/>
-<area shape="poly" id="edge22_Node000013_Node000019" title=" " alt="" coords="334,560,352,572,363,585,370,598,376,624,382,649,388,660,400,671,423,684,450,692,448,697,421,689,396,675,384,663,377,651,370,625,365,600,359,588,348,576,331,564"/>
+<area shape="rect" id="Node000018" href="$classyaze_1_1Rom.html#a3aacb1ac78a97db45382a8ad580ec4db" title=" " alt="" coords="432,635,605,661"/>
+<area shape="poly" id="edge20_Node000013_Node000018" title=" " alt="" coords="328,560,352,572,366,585,376,597,385,609,399,620,419,629,417,634,397,625,381,613,371,601,363,589,348,577,325,564"/>
+<area shape="rect" id="Node000045" href="$classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="464,684,573,710"/>
+<area shape="poly" id="edge22_Node000013_Node000045" title=" " alt="" coords="334,560,352,572,363,585,370,598,376,624,382,649,388,660,400,671,423,684,450,692,448,697,421,689,396,675,384,663,377,651,370,625,365,600,359,588,348,576,331,564"/>
 <area shape="poly" id="edge21_Node000018_Node000015" title=" " alt="" coords="585,632,639,620,699,605,700,610,640,625,586,637"/>
 </map>

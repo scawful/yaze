@@ -18,14 +18,13 @@ var searchData=
   ['mnemonicmode_15',['MnemonicMode',['../structyaze_1_1emu_1_1MnemonicMode.html',1,'yaze::emu']]],
   ['mnemonicmodehash_16',['MnemonicModeHash',['../structyaze_1_1emu_1_1MnemonicModeHash.html',1,'yaze::emu']]],
   ['mockaudioram_17',['MockAudioRam',['../classyaze_1_1test_1_1MockAudioRam.html',1,'yaze::test']]],
-  ['mockclock_18',['MockClock',['../classyaze_1_1emu_1_1MockClock.html',1,'yaze::emu::MockClock'],['../classyaze_1_1test_1_1MockClock.html',1,'yaze::test::MockClock']]],
-  ['mockmemory_19',['MockMemory',['../classyaze_1_1emu_1_1MockMemory.html',1,'yaze::emu::MockMemory'],['../classyaze_1_1test_1_1MockMemory.html',1,'yaze::test::MockMemory']]],
-  ['mockppu_20',['MockPpu',['../classyaze_1_1test_1_1MockPpu.html',1,'yaze::test']]],
-  ['mockrom_21',['MockRom',['../classyaze_1_1test_1_1MockRom.html',1,'yaze::test']]],
-  ['mosaic_22',['Mosaic',['../structyaze_1_1emu_1_1Mosaic.html',1,'yaze::emu']]],
-  ['mpyh_23',['MPYH',['../structyaze_1_1emu_1_1MPYH.html',1,'yaze::emu']]],
-  ['mpyl_24',['MPYL',['../structyaze_1_1emu_1_1MPYL.html',1,'yaze::emu']]],
-  ['mpym_25',['MPYM',['../structyaze_1_1emu_1_1MPYM.html',1,'yaze::emu']]],
-  ['multiselectwithclipper_26',['MultiSelectWithClipper',['../structyaze_1_1gui_1_1MultiSelectWithClipper.html',1,'yaze::gui']]],
-  ['musiceditor_27',['MusicEditor',['../classyaze_1_1editor_1_1MusicEditor.html',1,'yaze::editor']]]
+  ['mockmemory_18',['MockMemory',['../classyaze_1_1emu_1_1MockMemory.html',1,'yaze::emu::MockMemory'],['../classyaze_1_1test_1_1MockMemory.html',1,'yaze::test::MockMemory']]],
+  ['mockppu_19',['MockPpu',['../classyaze_1_1test_1_1MockPpu.html',1,'yaze::test']]],
+  ['mockrom_20',['MockRom',['../classyaze_1_1test_1_1MockRom.html',1,'yaze::test']]],
+  ['mosaic_21',['Mosaic',['../structyaze_1_1emu_1_1Mosaic.html',1,'yaze::emu']]],
+  ['mpyh_22',['MPYH',['../structyaze_1_1emu_1_1MPYH.html',1,'yaze::emu']]],
+  ['mpyl_23',['MPYL',['../structyaze_1_1emu_1_1MPYL.html',1,'yaze::emu']]],
+  ['mpym_24',['MPYM',['../structyaze_1_1emu_1_1MPYM.html',1,'yaze::emu']]],
+  ['multiselectwithclipper_25',['MultiSelectWithClipper',['../structyaze_1_1gui_1_1MultiSelectWithClipper.html',1,'yaze::gui']]],
+  ['musiceditor_26',['MusicEditor',['../classyaze_1_1editor_1_1MusicEditor.html',1,'yaze::editor']]]
 ];

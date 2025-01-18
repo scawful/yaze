@@ -54,7 +54,6 @@ var namespaceyaze_1_1emu =
     [ "MemoryImpl", "classyaze_1_1emu_1_1MemoryImpl.html", "classyaze_1_1emu_1_1MemoryImpl" ],
     [ "MnemonicMode", "structyaze_1_1emu_1_1MnemonicMode.html", "structyaze_1_1emu_1_1MnemonicMode" ],
     [ "MnemonicModeHash", "structyaze_1_1emu_1_1MnemonicModeHash.html", "structyaze_1_1emu_1_1MnemonicModeHash" ],
-    [ "MockClock", "classyaze_1_1emu_1_1MockClock.html", "classyaze_1_1emu_1_1MockClock" ],
     [ "MockMemory", "classyaze_1_1emu_1_1MockMemory.html", "classyaze_1_1emu_1_1MockMemory" ],
     [ "Mosaic", "structyaze_1_1emu_1_1Mosaic.html", "structyaze_1_1emu_1_1Mosaic" ],
     [ "MPYH", "structyaze_1_1emu_1_1MPYH.html", "structyaze_1_1emu_1_1MPYH" ],

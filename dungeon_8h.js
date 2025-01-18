@@ -6,7 +6,7 @@ var dungeon_8h =
     [ "chest", "structchest.html", "structchest" ],
     [ "chest_data", "structchest__data.html", "structchest__data" ],
     [ "destination", "structdestination.html", "structdestination" ],
-    [ "z3_dungeon_room", "structz3__dungeon__room.html", "structz3__dungeon__room" ],
+    [ "zelda3_dungeon_room", "structzelda3__dungeon__room.html", "structzelda3__dungeon__room" ],
     [ "dungeon_sprite", "dungeon_8h.html#a9ecfc19156f8f627881db2f6c16190ef", null ],
     [ "background2", "dungeon_8h.html#a19113e3ce2572a1ca22bd4a335788119", null ],
     [ "object_door", "dungeon_8h.html#a13622589acc34cfc8bb4e8ad1bb4a772", null ],
@@ -14,7 +14,7 @@ var dungeon_8h =
     [ "chest", "dungeon_8h.html#a09b73d0adf4a21a8bc14d72393f0a2b1", null ],
     [ "chest_data", "dungeon_8h.html#a70c378b5b911fdbc1e978d9354ea9fc0", null ],
     [ "destination", "dungeon_8h.html#a8d82042373c5edcc165e7e3ba2bd7e2e", null ],
-    [ "z3_dungeon_room", "dungeon_8h.html#a8f1b29a17d03eb75961d4985a37ff14c", null ],
+    [ "zelda3_dungeon_room", "dungeon_8h.html#af25424b13374b13fd0cdb07f2f32a42a", null ],
     [ "background2", "dungeon_8h.html#af206bedc320e56e6defeba3fa38d2c58", [
       [ "Off", "dungeon_8h.html#af206bedc320e56e6defeba3fa38d2c58ad8a892b94d3a94ea861543c085ae782b", null ],
       [ "Parallax", "dungeon_8h.html#af206bedc320e56e6defeba3fa38d2c58a2326dd539f0d41c8e4b71a3aae3edb96", null ],
