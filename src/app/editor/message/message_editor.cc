@@ -44,21 +44,22 @@ constexpr ImGuiTableFlags kDictTableFlags =
     ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable;
 
 absl::Status MessageEditor::Initialize() {
-  std::copy(rom()->vector().begin() + kCharactersWidth,
-            rom()->vector().begin() + kCharactersWidth + kWidthArraySize,
-            width_array.begin());
+  for (int i = 0; i < kWidthArraySize; i++) {
+    width_array[i] = rom()->data()[kCharactersWidth + i];
+  }
 
   all_dictionaries_ = BuildDictionaryEntries(rom());
   ReadAllTextDataV2();
 
-  font_preview_colors_.AddColor(0x7FFF); // White
-  font_preview_colors_.AddColor(0x7C00); // Red
-  font_preview_colors_.AddColor(0x03E0); // Green
-  font_preview_colors_.AddColor(0x001F); // Blue
+  font_preview_colors_.AddColor(0x7FFF);  // White
+  font_preview_colors_.AddColor(0x7C00);  // Red
+  font_preview_colors_.AddColor(0x03E0);  // Green
+  font_preview_colors_.AddColor(0x001F);  // Blue
 
   std::vector<uint8_t> data(0x4000, 0);
-  std::copy(rom()->vector().begin() + kGfxFont,
-            rom()->vector().begin() + kGfxFont + 0x4000, data.begin());
+  for (int i = 0; i < 0x4000; i++) {
+    data[i] = rom()->data()[kGfxFont + i];
+  }
   font_gfx16_data_ = gfx::SnesTo8bppSheet(data, /*bpp=*/2, /*num_sheets=*/2);
 
   // 4bpp
@@ -235,23 +236,31 @@ void MessageEditor::ReadAllTextDataV2() {
   while (current_byte != 0xFF) {
     current_byte = rom()->data()[pos++];
     if (current_byte == kMessageTerminator) {
-      auto message =
+      list_of_texts_.push_back(
           MessageData(message_id++, pos, current_raw_message, raw_message,
-                      current_parsed_message, parsed_message);
-
-      list_of_texts_.push_back(message);
-
+                      current_parsed_message, parsed_message));
+      std::cout << "Message ID: " << message_id << std::endl;
+      std::cout << "Raw: " << current_raw_message << std::endl;
+      std::cout << "Parsed: " << current_parsed_message << std::endl;
+      std::cout << "Raw Bytes: ";
+      for (const auto &byte : raw_message) {
+        std::cout << core::HexByte(byte) << " ";
+      }
+      std::cout << std::endl;
+      std::cout << "Parsed Bytes: ";
+      for (const auto &byte : parsed_message) {
+        std::cout << core::HexByte(byte) << " ";
+      }
+      std::cout << std::endl;
       raw_message.clear();
       parsed_message.clear();
       current_raw_message.clear();
       current_parsed_message.clear();
-
       continue;
     }
 
     raw_message.push_back(current_byte);
 
-    // Check for command.
     TextElement text_element = FindMatchingCommand(current_byte);
     if (!text_element.Empty()) {
       parsed_message.push_back(current_byte);
@@ -261,12 +270,10 @@ void MessageEditor::ReadAllTextDataV2() {
         parsed_message.push_back(current_byte);
       }
 
-      current_raw_message.append(
-          text_element.GetParameterizedToken(current_byte));
-      current_parsed_message.append(
-          text_element.GetParameterizedToken(current_byte));
+      current_raw_message.append(text_element.GetParamToken(current_byte));
+      current_parsed_message.append(text_element.GetParamToken(current_byte));
 
-      if (text_element.Token == BANKToken) {
+      if (text_element.Token == kBankToken) {
         pos = kTextData2;
       }
 
@@ -276,8 +283,8 @@ void MessageEditor::ReadAllTextDataV2() {
     // Check for special characters.
     text_element = FindMatchingSpecial(current_byte);
     if (!text_element.Empty()) {
-      current_raw_message.append(text_element.GetParameterizedToken());
-      current_parsed_message.append(text_element.GetParameterizedToken());
+      current_raw_message.append(text_element.GetParamToken());
+      current_parsed_message.append(text_element.GetParamToken());
       parsed_message.push_back(current_byte);
       continue;
     }
@@ -293,9 +300,9 @@ void MessageEditor::ReadAllTextDataV2() {
 
       uint32_t address = core::Get24LocalFromPC(
           rom()->mutable_data(), kPointersDictionaries + (dictionary * 2));
-      uint32_t address_end = core::Get24LocalFromPC(rom()->mutable_data(),
-                                                    kPointersDictionaries +
-                                                        ((dictionary + 1) * 2));
+      uint32_t address_end = core::Get24LocalFromPC(
+          rom()->mutable_data(),
+          kPointersDictionaries + ((dictionary + 1) * 2));
 
       for (uint32_t i = address; i < address_end; i++) {
         parsed_message.push_back(rom()->data()[i]);
@@ -360,12 +367,10 @@ void MessageEditor::ReadAllTextData() {
         temp_bytes_parsed.push_back(current_byte);
       }
 
-      current_message_raw.append(
-          text_element.GetParameterizedToken(current_byte));
-      current_message_parsed.append(
-          text_element.GetParameterizedToken(current_byte));
+      current_message_raw.append(text_element.GetParamToken(current_byte));
+      current_message_parsed.append(text_element.GetParamToken(current_byte));
 
-      if (text_element.Token == BANKToken) {
+      if (text_element.Token == kBankToken) {
         pos = kTextData2;
       }
 
@@ -375,8 +380,8 @@ void MessageEditor::ReadAllTextData() {
     // Check for special characters.
     text_element = FindMatchingSpecial(current_byte);
     if (!text_element.Empty()) {
-      current_message_raw.append(text_element.GetParameterizedToken());
-      current_message_parsed.append(text_element.GetParameterizedToken());
+      current_message_raw.append(text_element.GetParamToken());
+      current_message_parsed.append(text_element.GetParamToken());
       temp_bytes_parsed.push_back(current_byte);
       continue;
     }
@@ -393,9 +398,9 @@ void MessageEditor::ReadAllTextData() {
 
       uint32_t address = core::Get24LocalFromPC(
           rom()->mutable_data(), kPointersDictionaries + (dictionary * 2));
-      uint32_t address_end = core::Get24LocalFromPC(rom()->mutable_data(),
-                                                    kPointersDictionaries +
-                                                        ((dictionary + 1) * 2));
+      uint32_t address_end = core::Get24LocalFromPC(
+          rom()->mutable_data(),
+          kPointersDictionaries + ((dictionary + 1) * 2));
 
       for (uint32_t i = address; i < address_end; i++) {
         temp_bytes_parsed.push_back(rom()->data()[i]);
@@ -437,7 +442,7 @@ DictionaryEntry MessageEditor::GetDictionaryFromID(uint8_t value) {
 void MessageEditor::DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
                                       int sizex, int sizey) {
   const int num_x_tiles = 16;
-  const int img_width = 512; // (imgwidth/2)
+  const int img_width = 512;  // (imgwidth/2)
   int draw_id = srcx + (srcy * 32);
   for (int yl = 0; yl < sizey * 8; yl++) {
     for (int xl = 0; xl < 4; xl++) {
@@ -512,7 +517,7 @@ void MessageEditor::DrawCharacterToPreview(const std::vector<uint8_t> &text) {
       skip_next = true;
 
       continue;
-    } else if (value == 0x6C) // BCD numbers.
+    } else if (value == 0x6C)  // BCD numbers.
     {
       DrawCharacterToPreview('0');
       skip_next = true;
@@ -582,7 +587,7 @@ absl::Status MessageEditor::Undo() {
 absl::Status MessageEditor::Save() {
   std::vector<uint8_t> backup = rom()->vector();
 
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < kWidthArraySize; i++) {
     RETURN_IF_ERROR(rom()->WriteByte(kCharactersWidth + i, width_array[i]));
   }
 
@@ -609,7 +614,7 @@ absl::Status MessageEditor::Save() {
     }
 
     RETURN_IF_ERROR(rom()->WriteByte(
-        pos++, kMessageTerminator)); // , true, "Terminator text"
+        pos++, kMessageTerminator));  // , true, "Terminator text"
   }
 
   // Verify that we didn't go over the space available for the second block.
@@ -619,7 +624,7 @@ absl::Status MessageEditor::Save() {
     return absl::InternalError(DisplayTextOverflowError(pos, false));
   }
 
-  RETURN_IF_ERROR(rom()->WriteByte(pos, 0xFF)); // , true, "End of text"
+  RETURN_IF_ERROR(rom()->WriteByte(pos, 0xFF));  // , true, "End of text"
 
   return absl::OkStatus();
 }
@@ -630,10 +635,10 @@ std::string MessageEditor::DisplayTextOverflowError(int pos, bool bank) {
   std::string posSTR =
       bank ? absl::StrFormat("%X4", pos & 0xFFFF)
            : absl::StrFormat("%X4", (pos - kTextData2) & 0xFFFF);
-  std::string message =
-      absl::StrFormat("There is too much text data in the %s block to save.\n"
-                      "Available: %X4 | Used: %s",
-                      bankSTR, space, posSTR);
+  std::string message = absl::StrFormat(
+      "There is too much text data in the %s block to save.\n"
+      "Available: %X4 | Used: %s",
+      bankSTR, space, posSTR);
   return message;
 }
 
@@ -656,5 +661,5 @@ void MessageEditor::SelectAll() {
   }
 }
 
-} // namespace editor
-} // namespace yaze
+}  // namespace editor
+}  // namespace yaze

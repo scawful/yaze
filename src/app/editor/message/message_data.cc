@@ -1,6 +1,7 @@
 #include "message_data.h"
 
 #include "app/core/common.h"
+#include <string>
 
 namespace yaze {
 namespace editor {
@@ -45,14 +46,14 @@ TextElement FindMatchingSpecial(uint8_t value) {
 
 ParsedElement FindMatchingElement(const std::string &str) {
   std::smatch match;
-  for (auto &textElement : TextCommands) {
-    match = textElement.MatchMe(str);
+  for (auto &text_element : TextCommands) {
+    match = text_element.MatchMe(str);
     if (match.size() > 0) {
-      if (textElement.HasArgument) {
-        return ParsedElement(textElement,
+      if (text_element.HasArgument) {
+        return ParsedElement(text_element,
                              std::stoi(match[1].str(), nullptr, 16));
       } else {
-        return ParsedElement(textElement, 0);
+        return ParsedElement(text_element, 0);
       }
     }
   }
@@ -77,15 +78,15 @@ std::string ParseTextDataByte(uint8_t value) {
   }
 
   // Check for command.
-  TextElement textElement = FindMatchingCommand(value);
-  if (!textElement.Empty()) {
-    return textElement.GenericToken;
+  TextElement text_element = FindMatchingCommand(value);
+  if (!text_element.Empty()) {
+    return text_element.GenericToken;
   }
 
   // Check for special characters.
-  textElement = FindMatchingSpecial(value);
-  if (!textElement.Empty()) {
-    return textElement.GenericToken;
+  text_element = FindMatchingSpecial(value);
+  if (!text_element.Empty()) {
+    return text_element.GenericToken;
   }
 
   // Check for dictionary.
@@ -176,9 +177,9 @@ std::vector<DictionaryEntry> BuildDictionaryEntries(Rom *rom) {
   return AllDictionaries;
 }
 
-std::vector<std::string>
-ParseMessageData(std::vector<MessageData> &message_data,
-                 const std::vector<DictionaryEntry> &dictionary_entries) {
+std::vector<std::string> ParseMessageData(
+    std::vector<MessageData> &message_data,
+    const std::vector<DictionaryEntry> &dictionary_entries) {
   std::vector<std::string> parsed_messages;
 
   for (auto &message : message_data) {
@@ -187,14 +188,17 @@ ParseMessageData(std::vector<MessageData> &message_data,
     std::cout << "  " << message.RawString << std::endl;
 
     std::string parsed_message = "";
-
     for (const uint8_t &byte : message.Data) {
       if (CharEncoder.contains(byte)) {
         parsed_message.push_back(CharEncoder.at(byte));
       } else {
         if (byte >= DICTOFF && byte < (DICTOFF + 97)) {
-          auto dic_entry = dictionary_entries[byte];
-          parsed_message.append(dic_entry.Contents);
+          if (byte > 0 && byte <= dictionary_entries.size()) {
+            auto dic_entry = dictionary_entries[byte];
+            parsed_message.append(dic_entry.Contents);
+          } else {
+            parsed_message.append(dictionary_entries[0].Contents);
+          }
         } else {
           auto text_element = FindMatchingCommand(byte);
           if (!text_element.Empty()) {
@@ -213,5 +217,26 @@ ParseMessageData(std::vector<MessageData> &message_data,
   return parsed_messages;
 }
 
-} // namespace editor
-} // namespace yaze
+std::vector<std::string> ImportMessageData(std::string_view filename) {
+  std::vector<std::string> messages;
+  std::ifstream file(filename.data());
+  if (!file.is_open()) {
+    core::logf("Error opening file: %s", filename);
+    return messages;
+  }
+
+  // Parse a file with dialogue IDs and convert
+  std::string line;
+  while (std::getline(file, line)) {
+    if (line.empty()) {
+      continue;
+    }
+
+    // Get the Dialogue ID and then read until the next header
+  }
+
+  return messages;
+}
+
+}  // namespace editor
+}  // namespace yaze

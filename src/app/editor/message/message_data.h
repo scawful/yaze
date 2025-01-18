@@ -14,7 +14,7 @@ namespace yaze {
 namespace editor {
 
 const uint8_t kMessageTerminator = 0x7F;
-const std::string BANKToken = "BANK";
+const std::string kBankToken = "BANK";
 const std::string DICTIONARYTOKEN = "D";
 constexpr uint8_t DICTOFF = 0x88;
 
@@ -40,7 +40,6 @@ static const std::unordered_map<uint8_t, wchar_t> CharEncoder = {
 
 uint8_t FindMatchingCharacter(char value);
 uint8_t FindDictionaryEntry(uint8_t value);
-
 std::vector<uint8_t> ParseMessageToData(std::string str);
 
 struct DictionaryEntry {
@@ -62,13 +61,13 @@ struct DictionaryEntry {
   }
 
   std::string ReplaceInstancesOfIn(std::string s) const {
-    std::string replacedString = s;
-    size_t pos = replacedString.find(Contents);
+    std::string replaced_string = s;
+    size_t pos = replaced_string.find(Contents);
     while (pos != std::string::npos) {
-      replacedString.replace(pos, Contents.length(), Token);
-      pos = replacedString.find(Contents, pos + Token.length());
+      replaced_string.replace(pos, Contents.length(), Token);
+      pos = replaced_string.find(Contents, pos + Token.length());
     }
-    return replacedString;
+    return replaced_string;
   }
 };
 
@@ -82,7 +81,6 @@ constexpr uint8_t kLine2 = 0x75;
 constexpr uint8_t kLine3 = 0x76;
 
 std::vector<DictionaryEntry> BuildDictionaryEntries(Rom *rom);
-
 std::string ReplaceAllDictionaryWords(std::string str,
                                       std::vector<DictionaryEntry> dictionary);
 
@@ -120,11 +118,11 @@ struct MessageData {
   }
 
   std::string
-  OptimizeMessageForDictionary(std::string messageString,
+  OptimizeMessageForDictionary(std::string message_string,
                                const std::vector<DictionaryEntry> &dictionary) {
     std::stringstream protons;
     bool command = false;
-    for (const auto &c : messageString) {
+    for (const auto &c : message_string) {
       if (c == '[') {
         command = true;
       } else if (c == ']') {
@@ -137,13 +135,13 @@ struct MessageData {
       }
     }
 
-    std::string protonsString = protons.str();
-    std::string replacedString =
-        ReplaceAllDictionaryWords(protonsString, dictionary);
-    std::string finalString =
-        absl::StrReplaceAll(replacedString, {{CHEESE, ""}});
+    std::string protons_string = protons.str();
+    std::string replaced_string =
+        ReplaceAllDictionaryWords(protons_string, dictionary);
+    std::string final_string =
+        absl::StrReplaceAll(replaced_string, {{CHEESE, ""}});
 
-    return finalString;
+    return final_string;
   }
 
   void SetMessage(const std::string &message,
@@ -152,8 +150,6 @@ struct MessageData {
     ContentsParsed = OptimizeMessageForDictionary(message, dictionary);
   }
 };
-
-
 
 struct TextElement {
   uint8_t ID;
@@ -183,7 +179,7 @@ struct TextElement {
     StrictPattern = "^" + Pattern + "$";
   }
 
-  std::string GetParameterizedToken(uint8_t value = 0) const {
+  std::string GetParamToken(uint8_t value = 0) const {
     if (HasArgument) {
       return absl::StrFormat("[%s:%02X]", Token, value);
     } else {
@@ -252,7 +248,7 @@ static const std::vector<TextElement> TextCommands = {
     TextElement(0x68, "CH2I", false, kChoose2Indented),
     TextElement(0x69, "CHI", false, kChooseItem),
     TextElement(0x67, "IMG", false, kNextAttractImage),
-    TextElement(0x80, BANKToken, false, kBankMarker),
+    TextElement(0x80, kBankToken, false, kBankMarker),
     TextElement(0x70, "NONO", false, kCrash),
 };
 
@@ -304,6 +300,8 @@ std::string ParseTextDataByte(uint8_t value);
 std::vector<std::string>
 ParseMessageData(std::vector<MessageData> &message_data,
                  const std::vector<DictionaryEntry> &dictionary_entries);
+
+std::vector<std::string> ImportMessageData(std::string_view filename);
 
 } // namespace editor
 } // namespace yaze
