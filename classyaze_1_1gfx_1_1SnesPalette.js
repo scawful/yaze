@@ -17,6 +17,8 @@ var classyaze_1_1gfx_1_1SnesPalette =
     [ "clear", "classyaze_1_1gfx_1_1SnesPalette.html#aa3d5ad0a0ad19df994e243baf817f598", null ],
     [ "size", "classyaze_1_1gfx_1_1SnesPalette.html#a504a42d10f3d95135b77bb13ef3ec923", null ],
     [ "empty", "classyaze_1_1gfx_1_1SnesPalette.html#aac8e91cfdca9827c7b7220adeccb7eb2", null ],
+    [ "begin", "classyaze_1_1gfx_1_1SnesPalette.html#a19e74a4e0ebec56b1bb0f7e99acbc067", null ],
+    [ "end", "classyaze_1_1gfx_1_1SnesPalette.html#aeb8694af4f5cf6e0b1ea59e88c8353d6", null ],
     [ "operator[]", "classyaze_1_1gfx_1_1SnesPalette.html#aa819bfff19f8c77de36779c8ed4a4349", null ],
     [ "operator()", "classyaze_1_1gfx_1_1SnesPalette.html#a30239b366710af17b9c36979bc4f0a11", null ],
     [ "operator()", "classyaze_1_1gfx_1_1SnesPalette.html#a4ecc7b3ffc2653d8e4fcc0668bb980da", null ],

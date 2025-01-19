@@ -240,6 +240,8 @@ Functions</h2></td></tr>
 <tr class="separator:ac870fb2b7713b670247082c171053148"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0c0dfb85f1e87702458d4dbaae0beef3" id="r_a0c0dfb85f1e87702458d4dbaae0beef3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0c0dfb85f1e87702458d4dbaae0beef3">yaze_unload_rom</a> (<a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom)</td></tr>
 <tr class="separator:a0c0dfb85f1e87702458d4dbaae0beef3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad5d32e01226c1d7167fa6c34c59bb95e" id="r_ad5d32e01226c1d7167fa6c34c59bb95e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad5d32e01226c1d7167fa6c34c59bb95e">yaze_save_rom</a> (<a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom, const char *filename)</td></tr>
+<tr class="separator:ad5d32e01226c1d7167fa6c34c59bb95e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Typedef Documentation</h2>
 <a id="a81a5c5c618a19cfba96f863e14006cf9" name="a81a5c5c618a19cfba96f863e14006cf9"></a>
@@ -343,6 +345,50 @@ Here is the call graph for this function:</div>
 <p class="reference">References <a class="el" href="zelda_8h_source.html#l00090">zelda3_rom::impl</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="yaze__py_8cc_source.html#l00008">BOOST_PYTHON_MODULE()</a>, and <a class="el" href="yaze_8cc_source.html#l00040">yaze_shutdown()</a>.</p>
+
+</div>
+</div>
+<a id="ad5d32e01226c1d7167fa6c34c59bb95e" name="ad5d32e01226c1d7167fa6c34c59bb95e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad5d32e01226c1d7167fa6c34c59bb95e">&#9670;&#160;</a></span>yaze_save_rom()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze_save_rom </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structzelda3__rom.html">zelda3_rom</a> *</td>          <td class="paramname"><span class="paramname"><em>rom</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>filename</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00079">79</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="zelda_8h_source.html#l00090">zelda3_rom::impl</a>, and <a class="el" href="rom_8cc_source.html#l00407">yaze::Rom::SaveToFile()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="zelda_8h_ad5d32e01226c1d7167fa6c34c59bb95e_cgraph.png" border="0" usemap="#azelda_8h_ad5d32e01226c1d7167fa6c34c59bb95e_cgraph" alt=""/></div>
+<map name="azelda_8h_ad5d32e01226c1d7167fa6c34c59bb95e_cgraph" id="azelda_8h_ad5d32e01226c1d7167fa6c34c59bb95e_cgraph">
+<area shape="rect" title=" " alt="" coords="5,80,117,106"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a51e3cd94100f555337a98cbadd587f18" title="Saves the Rom data to a file." alt="" coords="165,80,317,106"/>
+<area shape="poly" title=" " alt="" coords="117,90,149,90,149,96,117,96"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a35886abe051b67913a804e4cbfdc4207" title=" " alt="" coords="400,5,534,31"/>
+<area shape="poly" title=" " alt="" coords="270,77,364,40,387,33,388,38,366,45,272,82"/>
+<area shape="rect" href="classyaze_1_1core_1_1ExperimentFlags.html#a98e30d2636e67e3d74a45094733101e9" title=" " alt="" coords="365,55,569,80"/>
+<area shape="poly" title=" " alt="" coords="317,82,349,78,350,83,318,87"/>
+<area shape="rect" href="classyaze_1_1Rom.html#afde2c40d5cb9eaf14b64dae1da43afd7" title="Saves all palettes in the Rom." alt="" coords="378,104,557,130"/>
+<area shape="poly" title=" " alt="" coords="318,98,362,103,362,108,317,104"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a221aba175da42c9237011a45bc9a19d4" title=" " alt="" coords="367,177,567,203"/>
+<area shape="poly" title=" " alt="" coords="274,104,422,168,420,173,272,109"/>
+<area shape="poly" title=" " alt="" coords="430,179,422,169,427,159,442,153,467,151,495,153,509,160,507,165,493,158,467,156,443,158,430,163,428,168,434,175"/>
+</map>
+</div>
 
 </div>
 </div>

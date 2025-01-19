@@ -10,5 +10,6 @@ var zelda_8h =
       [ "RANDO", "zelda_8h.html#a9b154d4f0904082e537a24b5ae25575daad9bcb06fffaf3416d2484ce5dc97500", null ]
     ] ],
     [ "yaze_load_rom", "zelda_8h.html#ac870fb2b7713b670247082c171053148", null ],
-    [ "yaze_unload_rom", "zelda_8h.html#a0c0dfb85f1e87702458d4dbaae0beef3", null ]
+    [ "yaze_unload_rom", "zelda_8h.html#a0c0dfb85f1e87702458d4dbaae0beef3", null ],
+    [ "yaze_save_rom", "zelda_8h.html#ad5d32e01226c1d7167fa6c34c59bb95e", null ]
 ];

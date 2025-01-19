@@ -1,11 +1,14 @@
 <map id="yaze::cli::anonymous_namespace{tui::cc}::PaletteEditorComponent" name="yaze::cli::anonymous_namespace{tui::cc}::PaletteEditorComponent">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,167,118"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="45,62,46,52,53,44,67,38,86,36,108,39,121,45,119,50,106,44,86,41,68,43,56,48,50,54,50,62"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#aca48c44e4e20f84f95f7d0ee8edf1303" title=" " alt="" coords="215,29,373,85"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="167,75,199,70,200,75,168,80"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c" title=" " alt="" coords="421,63,564,118"/>
-<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="167,93,215,95,373,95,405,93,405,99,373,100,215,100,167,98"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="254,29,255,19,262,10,275,5,294,3,315,5,328,12,325,17,313,10,294,8,276,10,265,15,260,21,260,29"/>
-<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="374,68,406,73,405,79,373,73"/>
-<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="453,62,454,52,461,44,474,38,493,36,514,39,527,45,524,50,512,44,493,41,475,43,464,48,459,54,459,62"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,133,167,189"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="45,133,46,123,53,114,67,109,86,107,108,109,121,116,119,121,106,114,86,112,68,114,56,119,50,125,50,133"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a42e2b26b5b0aaf880b0d9c4c4a255d09" title=" " alt="" coords="222,29,366,85"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,130,222,90,224,95,145,135"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#aca48c44e4e20f84f95f7d0ee8edf1303" title=" " alt="" coords="215,133,373,189"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="167,158,199,158,199,164,167,164"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c" title=" " alt="" coords="421,167,564,222"/>
+<area shape="poly" id="edge8_Node000001_Node000004" title=" " alt="" coords="166,187,215,199,313,205,405,202,406,207,313,211,214,204,164,192"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="254,29,255,19,262,10,275,5,294,3,315,5,328,12,325,17,313,10,294,8,276,10,265,15,260,21,260,29"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="254,133,255,123,262,114,275,109,294,107,315,109,328,116,325,121,313,114,294,112,276,114,265,119,260,125,260,133"/>
+<area shape="poly" id="edge6_Node000003_Node000004" title=" " alt="" coords="374,172,406,177,405,183,373,177"/>
+<area shape="poly" id="edge7_Node000004_Node000004" title=" " alt="" coords="453,166,454,156,461,148,474,142,493,140,514,143,527,149,524,154,512,148,493,145,475,147,464,152,459,158,459,166"/>
 </map>

@@ -203,12 +203,13 @@ $(function(){initNavTree('zelda_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span> </div>
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span><a class="code hl_struct" href="structzelda3__rom.html">zelda3_rom</a>* <a class="code hl_function" href="zelda_8h.html#ac870fb2b7713b670247082c171053148">yaze_load_rom</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* filename);</div>
 <div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span><span class="keywordtype">void</span> <a class="code hl_function" href="zelda_8h.html#a0c0dfb85f1e87702458d4dbaae0beef3">yaze_unload_rom</a>(<a class="code hl_struct" href="structzelda3__rom.html">zelda3_rom</a>* rom);</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span> </div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span><span class="preprocessor">#ifdef __cplusplus</span></div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>}</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span> </div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span><span class="preprocessor">#endif  </span><span class="comment">// ZELDA_H</span></div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span><span class="keywordtype">void</span> <a class="code hl_function" href="zelda_8h.html#ad5d32e01226c1d7167fa6c34c59bb95e">yaze_save_rom</a>(<a class="code hl_struct" href="structzelda3__rom.html">zelda3_rom</a>* rom, <span class="keyword">const</span> <span class="keywordtype">char</span>* filename);</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span> </div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span><span class="preprocessor">#ifdef __cplusplus</span></div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>}</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span> </div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span><span class="preprocessor">#endif  </span><span class="comment">// ZELDA_H</span></div>
 <div class="ttc" id="astructzelda3__rom_html"><div class="ttname"><a href="structzelda3__rom.html">zelda3_rom</a></div><div class="ttdef"><b>Definition</b> <a href="#l00086">zelda.h:86</a></div></div>
 <div class="ttc" id="astructzelda3__rom_html_a2ddaab859d793ff64d168369f5a3bd45"><div class="ttname"><a href="structzelda3__rom.html#a2ddaab859d793ff64d168369f5a3bd45">zelda3_rom::filename</a></div><div class="ttdeci">const char * filename</div><div class="ttdef"><b>Definition</b> <a href="#l00087">zelda.h:87</a></div></div>
 <div class="ttc" id="astructzelda3__rom_html_a3c16f0e528b02b030d23573c04f86b18"><div class="ttname"><a href="structzelda3__rom.html#a3c16f0e528b02b030d23573c04f86b18">zelda3_rom::size</a></div><div class="ttdeci">size_t size</div><div class="ttdef"><b>Definition</b> <a href="#l00089">zelda.h:89</a></div></div>
@@ -240,6 +241,7 @@ $(function(){initNavTree('zelda_8h_source.html',''); initResizable(true); });
 <div class="ttc" id="azelda_8h_html_a9b154d4f0904082e537a24b5ae25575daad9bcb06fffaf3416d2484ce5dc97500"><div class="ttname"><a href="zelda_8h.html#a9b154d4f0904082e537a24b5ae25575daad9bcb06fffaf3416d2484ce5dc97500">RANDO</a></div><div class="ttdeci">@ RANDO</div><div class="ttdef"><b>Definition</b> <a href="#l00017">zelda.h:17</a></div></div>
 <div class="ttc" id="azelda_8h_html_a9b154d4f0904082e537a24b5ae25575daf35882285f7bde3e58305178a023f561"><div class="ttname"><a href="zelda_8h.html#a9b154d4f0904082e537a24b5ae25575daf35882285f7bde3e58305178a023f561">JP</a></div><div class="ttdeci">@ JP</div><div class="ttdef"><b>Definition</b> <a href="#l00015">zelda.h:15</a></div></div>
 <div class="ttc" id="azelda_8h_html_ac870fb2b7713b670247082c171053148"><div class="ttname"><a href="zelda_8h.html#ac870fb2b7713b670247082c171053148">yaze_load_rom</a></div><div class="ttdeci">zelda3_rom * yaze_load_rom(const char *filename)</div><div class="ttdef"><b>Definition</b> <a href="yaze_8cc_source.html#l00053">yaze.cc:53</a></div></div>
+<div class="ttc" id="azelda_8h_html_ad5d32e01226c1d7167fa6c34c59bb95e"><div class="ttname"><a href="zelda_8h.html#ad5d32e01226c1d7167fa6c34c59bb95e">yaze_save_rom</a></div><div class="ttdeci">void yaze_save_rom(zelda3_rom *rom, const char *filename)</div><div class="ttdef"><b>Definition</b> <a href="yaze_8cc_source.html#l00079">yaze.cc:79</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

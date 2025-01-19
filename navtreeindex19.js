@@ -1,5 +1,9 @@
 var NAVTREEINDEX19 =
 {
+"classyaze_1_1test_1_1Cpu.html#ac7a781be2cd56fdb27bb1eca09d8bbdc":[11,0,1,7,8,200],
+"classyaze_1_1test_1_1Cpu.html#ac7a781be2cd56fdb27bb1eca09d8bbdc":[12,0,0,6,6,200],
+"classyaze_1_1test_1_1Cpu.html#ac7afc34d31e69fa063ddf4c854031cc7":[11,0,1,7,8,58],
+"classyaze_1_1test_1_1Cpu.html#ac7afc34d31e69fa063ddf4c854031cc7":[12,0,0,6,6,58],
 "classyaze_1_1test_1_1Cpu.html#ac86865e509992c77195e34581eb14a4f":[11,0,1,7,8,85],
 "classyaze_1_1test_1_1Cpu.html#ac86865e509992c77195e34581eb14a4f":[12,0,0,6,6,85],
 "classyaze_1_1test_1_1Cpu.html#acaea1eee9868075c35fc6fc30472dd76":[11,0,1,7,8,107],
@@ -245,9 +249,5 @@ var NAVTREEINDEX19 =
 "classyaze_1_1test_1_1MockPpu.html#a78f763ebaf1616b77a7cb175e7cccc90":[11,0,1,7,15,4],
 "classyaze_1_1test_1_1MockPpu.html#a78f763ebaf1616b77a7cb175e7cccc90":[12,0,0,6,13,4],
 "classyaze_1_1test_1_1MockPpu.html#a89bb0aa1873f122438651ca1b9d54942":[11,0,1,7,15,3],
-"classyaze_1_1test_1_1MockPpu.html#a89bb0aa1873f122438651ca1b9d54942":[12,0,0,6,13,3],
-"classyaze_1_1test_1_1MockRom.html":[11,0,1,7,16],
-"classyaze_1_1test_1_1MockRom.html":[12,0,0,6,14],
-"classyaze_1_1test_1_1MockRom.html#a057ca093cd2836791657b424cabcbb08":[11,0,1,7,16,1],
-"classyaze_1_1test_1_1MockRom.html#a057ca093cd2836791657b424cabcbb08":[12,0,0,6,14,1]
+"classyaze_1_1test_1_1MockPpu.html#a89bb0aa1873f122438651ca1b9d54942":[12,0,0,6,13,3]
 };

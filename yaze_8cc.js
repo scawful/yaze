@@ -6,6 +6,7 @@ var yaze_8cc =
     [ "yaze_load_project", "yaze_8cc.html#ac6958144cc1209550c0f77e8dce0b8d3", null ],
     [ "yaze_load_rom", "yaze_8cc.html#ac870fb2b7713b670247082c171053148", null ],
     [ "yaze_unload_rom", "yaze_8cc.html#a0c0dfb85f1e87702458d4dbaae0beef3", null ],
+    [ "yaze_save_rom", "yaze_8cc.html#ad5d32e01226c1d7167fa6c34c59bb95e", null ],
     [ "yaze_load_bitmap", "yaze_8cc.html#a25bf6669809ad5e1ae299014a5f6fd0a", null ],
     [ "yaze_get_color_from_paletteset", "yaze_8cc.html#ac37ec58a0da8b441220024ac2cb73a76", null ],
     [ "yaze_load_overworld", "yaze_8cc.html#a0a526cbc274a334616e24c0779e165cd", null ],

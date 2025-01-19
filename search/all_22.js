@@ -67,12 +67,13 @@ var searchData=
   ['yaze_5fok_64',['YAZE_OK',['../yaze_8h.html#a8b8638fa48e18e420ef66414847265c0a07a60c9eac361f06ec1a03be228225ed',1,'yaze.h']]],
   ['yaze_5fproject_65',['yaze_project',['../structyaze__project.html',1,'yaze_project'],['../yaze_8h.html#aab59cfba52c0fddf9ea046b113ed2395',1,'yaze_project:&#160;yaze.h']]],
   ['yaze_5fpy_2ecc_66',['yaze_py.cc',['../yaze__py_8cc.html',1,'']]],
-  ['yaze_5fshutdown_67',['yaze_shutdown',['../yaze_8h.html#a3a4d65cefe219b2b0de35ddcab2cd374',1,'yaze_shutdown(yaze_editor_context *):&#160;yaze.cc'],['../yaze_8cc.html#a111ddb4f9203a195ab49364c285aed8d',1,'yaze_shutdown(yaze_editor_context *yaze_ctx):&#160;yaze.cc']]],
-  ['yaze_5fstatus_68',['yaze_status',['../yaze_8h.html#a8b8638fa48e18e420ef66414847265c0',1,'yaze_status:&#160;yaze.h'],['../yaze_8h.html#afa3b4d947347ed413689dcd80458ec0f',1,'yaze_status:&#160;yaze.h']]],
-  ['yaze_5ftest_2ecc_69',['yaze_test.cc',['../yaze__test_8cc.html',1,'']]],
-  ['yaze_5funknown_70',['YAZE_UNKNOWN',['../yaze_8h.html#a8b8638fa48e18e420ef66414847265c0afc583bbb0069da7a40765619168bfa9c',1,'yaze.h']]],
-  ['yaze_5funload_5from_71',['yaze_unload_rom',['../zelda_8h.html#a0c0dfb85f1e87702458d4dbaae0beef3',1,'yaze_unload_rom(zelda3_rom *rom):&#160;yaze.cc'],['../yaze_8cc.html#a0c0dfb85f1e87702458d4dbaae0beef3',1,'yaze_unload_rom(zelda3_rom *rom):&#160;yaze.cc']]],
-  ['yet_20another_20zelda3_20editor_72',['Yet Another Zelda3 Editor',['../md_README.html',1,'']]],
-  ['ylw_73',['ylw',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#ac7a261707554c6e048c413356600dc45',1,'yaze::cli::anonymous_namespace{z3ed.cc}']]],
-  ['your_20changes_74',['Contributing your Changes',['../md_docs_2contributing.html#autotoc_md42',1,'']]]
+  ['yaze_5fsave_5from_67',['yaze_save_rom',['../zelda_8h.html#ad5d32e01226c1d7167fa6c34c59bb95e',1,'yaze_save_rom(zelda3_rom *rom, const char *filename):&#160;yaze.cc'],['../yaze_8cc.html#ad5d32e01226c1d7167fa6c34c59bb95e',1,'yaze_save_rom(zelda3_rom *rom, const char *filename):&#160;yaze.cc']]],
+  ['yaze_5fshutdown_68',['yaze_shutdown',['../yaze_8h.html#a3a4d65cefe219b2b0de35ddcab2cd374',1,'yaze_shutdown(yaze_editor_context *):&#160;yaze.cc'],['../yaze_8cc.html#a111ddb4f9203a195ab49364c285aed8d',1,'yaze_shutdown(yaze_editor_context *yaze_ctx):&#160;yaze.cc']]],
+  ['yaze_5fstatus_69',['yaze_status',['../yaze_8h.html#a8b8638fa48e18e420ef66414847265c0',1,'yaze_status:&#160;yaze.h'],['../yaze_8h.html#afa3b4d947347ed413689dcd80458ec0f',1,'yaze_status:&#160;yaze.h']]],
+  ['yaze_5ftest_2ecc_70',['yaze_test.cc',['../yaze__test_8cc.html',1,'']]],
+  ['yaze_5funknown_71',['YAZE_UNKNOWN',['../yaze_8h.html#a8b8638fa48e18e420ef66414847265c0afc583bbb0069da7a40765619168bfa9c',1,'yaze.h']]],
+  ['yaze_5funload_5from_72',['yaze_unload_rom',['../zelda_8h.html#a0c0dfb85f1e87702458d4dbaae0beef3',1,'yaze_unload_rom(zelda3_rom *rom):&#160;yaze.cc'],['../yaze_8cc.html#a0c0dfb85f1e87702458d4dbaae0beef3',1,'yaze_unload_rom(zelda3_rom *rom):&#160;yaze.cc']]],
+  ['yet_20another_20zelda3_20editor_73',['Yet Another Zelda3 Editor',['../md_README.html',1,'']]],
+  ['ylw_74',['ylw',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#ac7a261707554c6e048c413356600dc45',1,'yaze::cli::anonymous_namespace{z3ed.cc}']]],
+  ['your_20changes_75',['Contributing your Changes',['../md_docs_2contributing.html#autotoc_md42',1,'']]]
 ];
