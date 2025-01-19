@@ -147,6 +147,8 @@ class SnesPalette {
   void clear() { colors.clear(); }
   auto size() const { return colors.size(); }
   auto empty() const { return colors.empty(); }
+  auto begin() { return colors.begin(); }
+  auto end() { return colors.end(); }
 
   SnesColor &operator[](int i) {
     if (i > colors.size()) {
