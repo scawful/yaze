@@ -57,17 +57,39 @@ void ApplyBpsPatchComponent(ftxui::ScreenInteractive &screen) {
   // Button to apply the patch.
   auto apply_button = Button("Apply Patch", [&] {
     std::vector<uint8_t> source;
+    auto source_contents = core::LoadFile(base_file);
+    std::copy(source_contents.begin(), source_contents.end(),
+              std::back_inserter(source));
     std::vector<uint8_t> patch;
+    auto patch_contents = core::LoadFile(patch_file);
+    std::copy(patch_contents.begin(), patch_contents.end(),
+              std::back_inserter(patch));
     std::vector<uint8_t> patched;
 
-    core::ApplyBpsPatch(source, patch, patched);
-    // ...
-    // Load or open patch_file
-    // Load or open base_file
-    // >>>> Place your BPS patching code here <<<<
-    // ...
+    try {
+      core::ApplyBpsPatch(source, patch, patched);
+    } catch (const std::runtime_error &e) {
+      app_context.error_message = e.what();
+      SwitchComponents(screen, LayoutID::kError);
+      return;
+    }
 
-    // After applying, you could either stay here or return to main menu.
+    // Write the patched data to a new file.
+    // Find the . in the base file name and insert _patched before it.
+    auto dot_pos = base_file.find_last_of('.');
+    auto patched_file = base_file.substr(0, dot_pos) + "_patched" +
+                        base_file.substr(dot_pos, base_file.size() - dot_pos);
+    std::ofstream file(patched_file, std::ios::binary);
+    if (!file.is_open()) {
+      app_context.error_message = "Could not open file for writing.";
+      SwitchComponents(screen, LayoutID::kError);
+      return;
+    }
+
+    file.write(reinterpret_cast<const char *>(patched.data()), patched.size());
+
+    // If the patch was applied successfully, return to the main menu.
+    SwitchComponents(screen, LayoutID::kMainMenu);
   });
 
   // Button to return to main menu without applying.
@@ -261,8 +283,6 @@ void PaletteEditorComponent(ftxui::ScreenInteractive &screen) {
 void MainMenuComponent(ftxui::ScreenInteractive &screen) {
   // Tracks which menu item is selected.
   static int selected = 0;
-
-  // Create menu.
   MenuOption option;
   option.focused_entry = &selected;
   auto menu = Menu(&kMainMenuEntries, &selected, option);
@@ -274,12 +294,20 @@ void MainMenuComponent(ftxui::ScreenInteractive &screen) {
     rom_information = app_context.rom.title();
   }
 
-  // This renderer displays the menu vertically.
+  auto title = border(hbox({
+      text("z3ed") | bold | color(Color::Blue1),
+      separator(),
+      text("v0.1.0") | bold | color(Color::Green1),
+      separator(),
+      text(rom_information) | bold | color(Color::Red1),
+  }));
+
   auto renderer = Renderer(menu, [&] {
     return vbox({
-        text(rom_information) | center | color(Color::Red1),
         separator(),
-        menu->Render(),
+        title | center,
+        separator(),
+        menu->Render() | center,
     });
   });
 
