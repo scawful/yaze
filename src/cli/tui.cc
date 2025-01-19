@@ -13,7 +13,10 @@ using namespace ftxui;
 namespace {
 void SwitchComponents(ftxui::ScreenInteractive &screen, LayoutID layout) {
   app_context.current_layout = layout;
+  screen.Clear();
   screen.ExitLoopClosure()();
+  // Clear the buffer 
+  std::cout << "\033[2J\033[1;1H";
 }
 
 bool HandleInput(ftxui::ScreenInteractive &screen, ftxui::Event &event,
@@ -33,49 +36,11 @@ bool HandleInput(ftxui::ScreenInteractive &screen, ftxui::Event &event,
   return false;
 }
 
-void MainMenuComponent(ftxui::ScreenInteractive &screen) {
-  // Tracks which menu item is selected.
-  static int selected = 0;
-
-  // Create menu.
-  MenuOption option;
-  auto menu = Menu(&kMainMenuEntries, &selected, option);
-  menu = CatchEvent(
-      menu, [&](Event event) { return HandleInput(screen, event, selected); });
-
-  // This renderer displays the menu vertically.
-  auto renderer = Renderer(menu, [&] {
-    return vbox({
-        text("The Legend of Zelda: A Link to the Past") | center |
-            color(Color::Blue),
-        separator(),
-        menu->Render(),
-    });
-  });
-
-  // Catch events like pressing Enter to switch layout or pressing 'q' to exit.
-  auto main_component = CatchEvent(renderer, [&](Event event) {
-    if (event == Event::Return) {
-      if (selected == (int)MainMenuEntry::kApplyBpsPatch) {
-        SwitchComponents(screen, LayoutID::kApplyBpsPatch);
-        return true;
-      } else if (selected == (int)MainMenuEntry::kPaletteEditor) {
-        SwitchComponents(screen, LayoutID::kPaletteEditor);
-        return true;
-      } else if (selected == (int)MainMenuEntry::kExit) {
-        SwitchComponents(screen, LayoutID::kExit);
-        return true;
-      }
-    }
-
-    if (event == Event::Character('q')) {
-      SwitchComponents(screen, LayoutID::kExit);
-      return true;
-    }
-    return false;
-  });
-
-  screen.Loop(main_component);
+void ReturnIfRomNotLoaded(ftxui::ScreenInteractive &screen) {
+  if (!app_context.rom.is_loaded()) {
+    app_context.error_message = "No ROM loaded.";
+    SwitchComponents(screen, LayoutID::kError);
+  }
 }
 
 void ApplyBpsPatchComponent(ftxui::ScreenInteractive &screen) {
@@ -129,6 +94,83 @@ void ApplyBpsPatchComponent(ftxui::ScreenInteractive &screen) {
   screen.Loop(renderer);
 }
 
+void GenerateSaveFileComponent(ftxui::ScreenInteractive &screen) {
+  // Produce a list of ftxui::Checkbox for items and values to set
+  // Link to the past items include Bow, Boomerang, etc.
+
+  const static std::vector<std::string> items = {"Bow",
+                                                 "Boomerang",
+                                                 "Hookshot",
+                                                 "Bombs",
+                                                 "Magic Powder",
+                                                 "Fire Rod",
+                                                 "Ice Rod",
+                                                 "Bombos",
+                                                 "Ether",
+                                                 "Quake",
+                                                 "Lantern",
+                                                 "Hammer",
+                                                 "Shovel",
+                                                 "Flute",
+                                                 "Bug Net",
+                                                 "Book of Mudora",
+                                                 "Cane of Somaria",
+                                                 "Cane of Byrna",
+                                                 "Magic Cape",
+                                                 "Magic Mirror",
+                                                 "Pegasus Boots",
+                                                 "Power Glove",
+                                                 "Titan's Mitt",
+                                                 "Flippers",
+                                                 "Moon Pearl",
+                                                 "Sword",
+                                                 "Shield",
+                                                 "Mail",
+                                                 "Bottle",
+                                                 "Heart Container",
+                                                 "Piece of Heart",
+                                                 "Rupee",
+                                                 "Bomb",
+                                                 "Arrow"};
+
+  std::array<bool, 35> values = {};
+
+  auto checkboxes = Container::Vertical({});
+  for (size_t i = 0; i < items.size(); ++i) {
+    checkboxes->Add(Checkbox(items[i].data(), &values[i]));
+  }
+
+  auto save_button = Button("Generate Save File", [&] {
+    // Generate the save file here.
+    // You can use the values vector to determine which items are checked.
+    // After generating the save file, you could either stay here or return to
+    // the main menu.
+  });
+
+  auto back_button =
+      Button("Back", [&] { SwitchComponents(screen, LayoutID::kMainMenu); });
+
+  auto container = Container::Vertical({
+      checkboxes,
+      save_button,
+      back_button,
+  });
+
+  auto renderer = Renderer(container, [&] {
+    return vbox({text("Generate Save File") | center, separator(),
+                 text("Select items to include in the save file:"),
+                 checkboxes->Render(), separator(),
+                 hbox({
+                     save_button->Render() | center,
+                     separator(),
+                     back_button->Render() | center,
+                 }) | center}) |
+           center;
+  });
+
+  screen.Loop(renderer);
+}
+
 void LoadRomComponent(ftxui::ScreenInteractive &screen) {
   static std::string rom_file;
   auto rom_file_input = Input(&rom_file, "ROM file path");
@@ -171,7 +213,7 @@ void LoadRomComponent(ftxui::ScreenInteractive &screen) {
 void PaletteEditorComponent(ftxui::ScreenInteractive &screen) {
   // Replace with actual data or inputs relevant to the palette editor.
   auto back_button =
-      Button("Back", [&] { app_context.current_layout = LayoutID::kMainMenu; });
+      Button("Back", [&] { SwitchComponents(screen, LayoutID::kMainMenu); });
 
   auto renderer = Renderer(back_button, [&] {
     return vbox({text("Palette Editor") | center, separator(),
@@ -181,6 +223,64 @@ void PaletteEditorComponent(ftxui::ScreenInteractive &screen) {
   });
 
   screen.Loop(renderer);
+}
+
+void MainMenuComponent(ftxui::ScreenInteractive &screen) {
+  // Tracks which menu item is selected.
+  static int selected = 0;
+
+  // Create menu.
+  MenuOption option;
+  auto menu = Menu(&kMainMenuEntries, &selected, option);
+  menu = CatchEvent(
+      menu, [&](Event event) { return HandleInput(screen, event, selected); });
+
+  std::string rom_information = "ROM not loaded";
+  if (app_context.rom.is_loaded()) {
+    rom_information = app_context.rom.title();
+  }
+
+  // This renderer displays the menu vertically.
+  auto renderer = Renderer(menu, [&] {
+    return vbox({
+        text("The Legend of Zelda: A Link to the Past") | center |
+            color(Color::Blue),
+        text(rom_information) | center,
+        separator(),
+        menu->Render(),
+    });
+  });
+
+  // Catch events like pressing Enter to switch layout or pressing 'q' to exit.
+  auto main_component = CatchEvent(renderer, [&](Event event) {
+    if (event == Event::Return) {
+      switch ((MainMenuEntry)selected) {
+        case MainMenuEntry::kApplyBpsPatch:
+          SwitchComponents(screen, LayoutID::kApplyBpsPatch);
+          return true;
+        case MainMenuEntry::kGenerateSaveFile:
+          SwitchComponents(screen, LayoutID::kGenerateSaveFile);
+          return true;
+        case MainMenuEntry::kLoadRom:
+          SwitchComponents(screen, LayoutID::kLoadRom);
+          return true;
+        case MainMenuEntry::kPaletteEditor:
+          SwitchComponents(screen, LayoutID::kPaletteEditor);
+          return true;
+        case MainMenuEntry::kExit:
+          SwitchComponents(screen, LayoutID::kExit);
+          return true;
+      }
+    }
+
+    if (event == Event::Character('q')) {
+      SwitchComponents(screen, LayoutID::kExit);
+      return true;
+    }
+    return false;
+  });
+
+  screen.Loop(main_component);
 }
 
 }  // namespace
@@ -195,14 +295,14 @@ void ShowMain() {
       case LayoutID::kApplyBpsPatch: {
         ApplyBpsPatchComponent(screen);
       } break;
-      case LayoutID::kPaletteEditor: {
-        PaletteEditorComponent(screen);
-      } break;
       case LayoutID::kGenerateSaveFile: {
-        // Implement the save file generation interface here.
+        GenerateSaveFileComponent(screen);
       } break;
       case LayoutID::kLoadRom: {
         LoadRomComponent(screen);
+      } break;
+      case LayoutID::kPaletteEditor: {
+        PaletteEditorComponent(screen);
       } break;
       case LayoutID::kError: {
         // Display error message and return to main menu.
