@@ -5,7 +5,7 @@
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/screen.hpp>
 
-#include "app/core/common.h"
+#include "util/bps.h"
 
 namespace yaze {
 namespace cli {
@@ -56,10 +56,10 @@ void ApplyBpsPatchComponent(ftxui::ScreenInteractive &screen) {
 
   // Button to apply the patch.
   auto apply_button = Button("Apply Patch", [&] {
-    std::vector<uint8_t> source;
-    auto source_contents = core::LoadFile(base_file);
-    std::copy(source_contents.begin(), source_contents.end(),
-              std::back_inserter(source));
+    std::vector<uint8_t> source = app_context.rom.vector();
+    // auto source_contents = core::LoadFile(base_file);
+    // std::copy(source_contents.begin(), source_contents.end(),
+    //           std::back_inserter(source));
     std::vector<uint8_t> patch;
     auto patch_contents = core::LoadFile(patch_file);
     std::copy(patch_contents.begin(), patch_contents.end(),
@@ -67,7 +67,7 @@ void ApplyBpsPatchComponent(ftxui::ScreenInteractive &screen) {
     std::vector<uint8_t> patched;
 
     try {
-      core::ApplyBpsPatch(source, patch, patched);
+      util::ApplyBpsPatch(source, patch, patched);
     } catch (const std::runtime_error &e) {
       app_context.error_message = e.what();
       SwitchComponents(screen, LayoutID::kError);

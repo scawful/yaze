@@ -7,8 +7,8 @@
 #include <iostream>
 #include <string>
 
-#include "absl/strings/str_format.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 
 namespace yaze {
 
@@ -180,9 +180,9 @@ static void logf(const absl::FormatSpec<Args...> &format, const Args &...args) {
 
   std::time_t now_tt = std::chrono::system_clock::to_time_t(timestamp);
   std::tm tm = *std::localtime(&now_tt);
-	message = absl::StrCat("[", tm.tm_hour, ":", tm.tm_min, ":", tm.tm_sec, "] ",
-		message, "\n");
-  
+  message = absl::StrCat("[", tm.tm_hour, ":", tm.tm_min, ":", tm.tm_sec, "] ",
+                         message, "\n");
+
   if (ExperimentFlags::get().kLogToConsole) {
     std::cout << message;
   }
@@ -251,14 +251,6 @@ struct FolderItem {
 };
 
 typedef struct FolderItem FolderItem;
-
-void CreateBpsPatch(const std::vector<uint8_t> &source,
-                    const std::vector<uint8_t> &target,
-                    std::vector<uint8_t> &patch);
-
-void ApplyBpsPatch(const std::vector<uint8_t> &source,
-                   const std::vector<uint8_t> &patch,
-                   std::vector<uint8_t> &target);
 
 }  // namespace core
 }  // namespace yaze

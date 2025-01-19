@@ -15,6 +15,7 @@ if (APPLE)
     ${YAZE_APP_EDITOR_SRC}
     ${YAZE_APP_GFX_SRC}
     ${YAZE_APP_ZELDA3_SRC}
+    ${YAZE_UTIL_SRC}
     ${YAZE_GUI_SRC}
     ${IMGUI_SRC}
     # Bundled Resources
@@ -30,6 +31,7 @@ else()
     ${YAZE_APP_EDITOR_SRC}
     ${YAZE_APP_GFX_SRC}
     ${YAZE_APP_ZELDA3_SRC}
+    ${YAZE_UTIL_SRC}
     ${YAZE_GUI_SRC}
     ${IMGUI_SRC}
   )

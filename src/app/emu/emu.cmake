@@ -7,6 +7,7 @@ add_executable(
   ${YAZE_APP_EDITOR_SRC}
   ${YAZE_APP_GFX_SRC}
   ${YAZE_APP_ZELDA3_SRC}
+  ${YAZE_UTIL_SRC}
   ${YAZE_GUI_SRC}
   ${IMGUI_SRC}
 )
@@ -36,3 +37,7 @@ target_link_libraries(
   ImGui
   ImGuiTestEngine
 )
+
+if (APPLE)
+  target_link_libraries(yaze_emu PUBLIC ${COCOA_LIBRARY})
+endif()
