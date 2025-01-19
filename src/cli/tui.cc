@@ -132,9 +132,6 @@ void GenerateSaveFileComponent(ftxui::ScreenInteractive &screen) {
                                                  "Magic Powder",
                                                  "Fire Rod",
                                                  "Ice Rod",
-                                                 "Bombos",
-                                                 "Ether",
-                                                 "Quake",
                                                  "Lantern",
                                                  "Hammer",
                                                  "Shovel",
@@ -146,26 +143,45 @@ void GenerateSaveFileComponent(ftxui::ScreenInteractive &screen) {
                                                  "Magic Cape",
                                                  "Magic Mirror",
                                                  "Pegasus Boots",
-                                                 "Power Glove",
-                                                 "Titan's Mitt",
                                                  "Flippers",
                                                  "Moon Pearl",
-                                                 "Sword",
-                                                 "Shield",
-                                                 "Mail",
-                                                 "Bottle",
-                                                 "Heart Container",
-                                                 "Piece of Heart",
-                                                 "Rupee",
-                                                 "Bomb",
-                                                 "Arrow"};
+                                                 "Bottle 1",
+                                                 "Bottle 2",
+                                                 "Bottle 3",
+                                                 "Bottle 4"};
 
-  std::array<bool, 35> values = {};
-
+  constexpr size_t kNumItems = 28;
+  std::array<bool, kNumItems> values = {};
   auto checkboxes = Container::Vertical({});
-  for (size_t i = 0; i < items.size(); ++i) {
-    checkboxes->Add(Checkbox(items[i].data(), &values[i]));
+  for (size_t i = 0; i < items.size(); i += 4) {
+    auto row = Container::Horizontal({});
+    for (size_t j = 0; j < 4 && (i + j) < items.size(); ++j) {
+      row->Add(Checkbox(absl::StrCat(items[i + j], " ").data(), &values[i + j]));
+    }
+    checkboxes->Add(row);
   }
+
+  // border container for sword, shield, armor with radioboxes
+  // to select the current item
+  // sword, shield, armor
+
+  static int sword = 0;
+  static int shield = 0;
+  static int armor = 0;
+
+  const std::vector<std::string> sword_items = {"Fighter", "Master", "Tempered",
+                                                "Golden"};
+  const std::vector<std::string> shield_items = {"Small", "Fire", "Mirror"};
+  const std::vector<std::string> armor_items = {"Green", "Blue", "Red"};
+
+  auto sword_radiobox = Radiobox(&sword_items, &sword);
+  auto shield_radiobox = Radiobox(&shield_items, &shield);
+  auto armor_radiobox = Radiobox(&armor_items, &armor);
+  auto equipment_container = Container::Vertical({
+      sword_radiobox,
+      shield_radiobox,
+      armor_radiobox,
+  });
 
   auto save_button = Button("Generate Save File", [&] {
     // Generate the save file here.
@@ -179,6 +195,7 @@ void GenerateSaveFileComponent(ftxui::ScreenInteractive &screen) {
 
   auto container = Container::Vertical({
       checkboxes,
+      equipment_container,
       save_button,
       back_button,
   });
@@ -187,6 +204,7 @@ void GenerateSaveFileComponent(ftxui::ScreenInteractive &screen) {
     return vbox({text("Generate Save File") | center, separator(),
                  text("Select items to include in the save file:"),
                  checkboxes->Render(), separator(),
+                 equipment_container->Render(), separator(),
                  hbox({
                      save_button->Render() | center,
                      separator(),
@@ -324,8 +342,10 @@ void PaletteEditorComponent(ftxui::ScreenInteractive &screen) {
     });
 
     auto palette_editor_renderer = Renderer(palette_editor_container, [&] {
-      return vbox({text("Palette Editor") | center, separator(),
-                   palette_grid->Render(), separator(),
+      return vbox({text(gfx::kPaletteCategoryNames[selected_palette_group]
+                            .data()) |
+                       center,
+                   separator(), palette_grid->Render(), separator(),
                    hbox({
                        save_button->Render() | center,
                        separator(),
