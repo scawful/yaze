@@ -69,13 +69,12 @@ var searchData=
   ['is_5fhole_5f_66',['is_hole_',['../classyaze_1_1zelda3_1_1OverworldEntrance.html#a7e0af673ad4fc7e0e942b8abbe53ca8d',1,'yaze::zelda3::OverworldEntrance::is_hole_'],['../classyaze_1_1zelda3_1_1OverworldExit.html#ae716653f65c926ea8b0f113ee6aff6a3',1,'yaze::zelda3::OverworldExit::is_hole_']]],
   ['is_5fhovered_5f_67',['is_hovered_',['../classyaze_1_1gui_1_1Canvas.html#a0bd0ffdc93c0678c83d09c357468707f',1,'yaze::gui::Canvas']]],
   ['is_5flight_5f_68',['is_light_',['../classyaze_1_1zelda3_1_1Room.html#a5f07506f28416e5b9632b9e726d87cda',1,'yaze::zelda3::Room']]],
-  ['is_5floaded_69',['is_loaded',['../structyaze_1_1cli_1_1Context.html#af6660f922a4fba0bb62e6507e47ed032',1,'yaze::cli::Context']]],
-  ['is_5floaded_5f_70',['is_loaded_',['../classyaze_1_1editor_1_1DungeonEditor.html#a7928da2113db72cf65d741a7a6a1fb5a',1,'yaze::editor::DungeonEditor::is_loaded_'],['../classyaze_1_1Rom.html#aad41eeeb4c2178a007db84794bf5de4d',1,'yaze::Rom::is_loaded_'],['../classyaze_1_1zelda3_1_1Room.html#a6c77701cec2d6491ccda2307b272429f',1,'yaze::zelda3::Room::is_loaded_'],['../classyaze_1_1zelda3_1_1Overworld.html#a083e2220792eedb08bae5de30b5549ad',1,'yaze::zelda3::Overworld::is_loaded_'],['../classyaze_1_1test_1_1Rom.html#aad41eeeb4c2178a007db84794bf5de4d',1,'yaze::test::Rom::is_loaded_']]],
-  ['is_5fopen_5f_71',['is_open_',['../classyaze_1_1editor_1_1GraphicsEditor.html#ac6abffcc7d048915a648a2fc0653e885',1,'yaze::editor::GraphicsEditor']]],
-  ['ischecked_72',['IsChecked',['../structyaze_1_1editor_1_1zsprite_1_1SpriteProperty.html#ac6b2e42c6ba7607e93924cc74e9a665b',1,'yaze::editor::zsprite::SpriteProperty']]],
-  ['item_73',['item',['../structchest.html#a6201d296eb8c2027c68dc63781b6bb84',1,'chest']]],
-  ['items_74',['Items',['../structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#ab4a29a645e3c7311a556aa50e1af2d5c',1,'yaze::gui::GfxSheetAssetBrowser']]],
-  ['items_5fcount_75',['ITEMS_COUNT',['../structyaze_1_1gui_1_1MultiSelectWithClipper.html#a8ac1b4d1e97e502c2a349cc513171a62',1,'yaze::gui::MultiSelectWithClipper']]],
-  ['items_5fdata_5fend_76',['items_data_end',['../namespaceyaze_1_1zelda3.html#afdf2250278d020192f73be4bb002952c',1,'yaze::zelda3']]],
-  ['items_5fdata_5fstart_77',['items_data_start',['../namespaceyaze_1_1zelda3.html#a49fa3f33b28a6c28efe18b254fc94c4e',1,'yaze::zelda3']]]
+  ['is_5floaded_5f_69',['is_loaded_',['../classyaze_1_1editor_1_1DungeonEditor.html#a7928da2113db72cf65d741a7a6a1fb5a',1,'yaze::editor::DungeonEditor::is_loaded_'],['../classyaze_1_1Rom.html#aad41eeeb4c2178a007db84794bf5de4d',1,'yaze::Rom::is_loaded_'],['../classyaze_1_1zelda3_1_1Room.html#a6c77701cec2d6491ccda2307b272429f',1,'yaze::zelda3::Room::is_loaded_'],['../classyaze_1_1zelda3_1_1Overworld.html#a083e2220792eedb08bae5de30b5549ad',1,'yaze::zelda3::Overworld::is_loaded_'],['../classyaze_1_1test_1_1Rom.html#aad41eeeb4c2178a007db84794bf5de4d',1,'yaze::test::Rom::is_loaded_']]],
+  ['is_5fopen_5f_70',['is_open_',['../classyaze_1_1editor_1_1GraphicsEditor.html#ac6abffcc7d048915a648a2fc0653e885',1,'yaze::editor::GraphicsEditor']]],
+  ['ischecked_71',['IsChecked',['../structyaze_1_1editor_1_1zsprite_1_1SpriteProperty.html#ac6b2e42c6ba7607e93924cc74e9a665b',1,'yaze::editor::zsprite::SpriteProperty']]],
+  ['item_72',['item',['../structchest.html#a6201d296eb8c2027c68dc63781b6bb84',1,'chest']]],
+  ['items_73',['Items',['../structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#ab4a29a645e3c7311a556aa50e1af2d5c',1,'yaze::gui::GfxSheetAssetBrowser']]],
+  ['items_5fcount_74',['ITEMS_COUNT',['../structyaze_1_1gui_1_1MultiSelectWithClipper.html#a8ac1b4d1e97e502c2a349cc513171a62',1,'yaze::gui::MultiSelectWithClipper']]],
+  ['items_5fdata_5fend_75',['items_data_end',['../namespaceyaze_1_1zelda3.html#afdf2250278d020192f73be4bb002952c',1,'yaze::zelda3']]],
+  ['items_5fdata_5fstart_76',['items_data_start',['../namespaceyaze_1_1zelda3.html#a49fa3f33b28a6c28efe18b254fc94c4e',1,'yaze::zelda3']]]
 ];

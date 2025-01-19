@@ -212,5 +212,6 @@ var searchData=
   ['subtype3_209',['Subtype3',['../classyaze_1_1zelda3_1_1Subtype3.html#a511e3a730a216870af65e6266d84b033',1,'yaze::zelda3::Subtype3']]],
   ['subw_210',['SUBW',['../classyaze_1_1emu_1_1Spc700.html#a03850ed428978f1b25b3500a822fa27b',1,'yaze::emu::Spc700::SUBW()'],['../classyaze_1_1test_1_1Spc700.html#a03850ed428978f1b25b3500a822fa27b',1,'yaze::test::Spc700::SUBW()']]],
   ['surface_211',['surface',['../classyaze_1_1gfx_1_1Bitmap.html#aba6afeb2e94ce15eb378c7258596a758',1,'yaze::gfx::Bitmap::surface()'],['../classyaze_1_1gui_1_1Bitmap.html#aba6afeb2e94ce15eb378c7258596a758',1,'yaze::gui::Bitmap::surface()']]],
-  ['synccycles_212',['SyncCycles',['../classyaze_1_1emu_1_1Snes.html#ac622beb60f2d1547cb40e3a3b9c3ff53',1,'yaze::emu::Snes']]]
+  ['switchcomponents_212',['SwitchComponents',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
+  ['synccycles_213',['SyncCycles',['../classyaze_1_1emu_1_1Snes.html#ac622beb60f2d1547cb40e3a3b9c3ff53',1,'yaze::emu::Snes']]]
 ];

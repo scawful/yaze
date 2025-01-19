@@ -1,6 +1,6 @@
 var structyaze_1_1cli_1_1Context =
 [
-    [ "is_loaded", "structyaze_1_1cli_1_1Context.html#af6660f922a4fba0bb62e6507e47ed032", null ],
-    [ "layout", "structyaze_1_1cli_1_1Context.html#aad24cee732fed20fc6f6984c13f3dc57", null ],
-    [ "main_component", "structyaze_1_1cli_1_1Context.html#ad67bff941d5ef3006cb751886fe4c98a", null ]
+    [ "rom", "structyaze_1_1cli_1_1Context.html#add97ef1c357e2e6a6a5fa03d00387a00", null ],
+    [ "current_layout", "structyaze_1_1cli_1_1Context.html#ad21ae7184aca49491aa3d0db8c18e63f", null ],
+    [ "error_message", "structyaze_1_1cli_1_1Context.html#a2a5b73602903554095ce69ec41fa0671", null ]
 ];

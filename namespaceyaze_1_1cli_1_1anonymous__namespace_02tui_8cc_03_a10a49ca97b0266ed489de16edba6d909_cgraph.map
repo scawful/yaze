@@ -1,0 +1,11 @@
+<map id="yaze::cli::anonymous_namespace{tui::cc}::PaletteEditorComponent" name="yaze::cli::anonymous_namespace{tui::cc}::PaletteEditorComponent">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,167,118"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="45,62,46,52,53,44,67,38,86,36,108,39,121,45,119,50,106,44,86,41,68,43,56,48,50,54,50,62"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#aca48c44e4e20f84f95f7d0ee8edf1303" title=" " alt="" coords="215,29,373,85"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="167,75,199,70,200,75,168,80"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c" title=" " alt="" coords="421,63,564,118"/>
+<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="167,93,215,95,373,95,405,93,405,99,373,100,215,100,167,98"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="254,29,255,19,262,10,275,5,294,3,315,5,328,12,325,17,313,10,294,8,276,10,265,15,260,21,260,29"/>
+<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="374,68,406,73,405,79,373,73"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="453,62,454,52,461,44,474,38,493,36,514,39,527,45,524,50,512,44,493,41,475,43,464,48,459,54,459,62"/>
+</map>

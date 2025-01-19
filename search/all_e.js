@@ -103,7 +103,7 @@ var searchData=
   ['eor1_100',['EOR1',['../classyaze_1_1emu_1_1Spc700.html#a5089ca3cb83a7cc1b696d5e017a1ba25',1,'yaze::emu::Spc700::EOR1()'],['../classyaze_1_1test_1_1Spc700.html#a5089ca3cb83a7cc1b696d5e017a1ba25',1,'yaze::test::Spc700::EOR1()']]],
   ['eorm_101',['EORM',['../classyaze_1_1emu_1_1Spc700.html#a39ca6e77bbd0efaaff66020177448d6a',1,'yaze::emu::Spc700::EORM()'],['../classyaze_1_1test_1_1Spc700.html#a39ca6e77bbd0efaaff66020177448d6a',1,'yaze::test::Spc700::EORM()']]],
   ['equals_102',['equals',['../text__editor_8cc.html#aeac7f529776b9f402e3ee7c09eb4d6ed',1,'text_editor.cc']]],
-  ['error_5fmessage_103',['error_message',['../structyaze__editor__context.html#a5864fdc76ce969933913a75f2ff4c0c1',1,'yaze_editor_context']]],
+  ['error_5fmessage_103',['error_message',['../structyaze__editor__context.html#a5864fdc76ce969933913a75f2ff4c0c1',1,'yaze_editor_context::error_message'],['../structyaze_1_1cli_1_1Context.html#a2a5b73602903554095ce69ec41fa0671',1,'yaze::cli::Context::error_message']]],
   ['errormarker_104',['ErrorMarker',['../classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a925f0a2ad0b8d8ce7d4562ff043cdbbe',1,'TextEditor']]],
   ['errormarkers_105',['ErrorMarkers',['../classTextEditor.html#a8f5a14943d791c164cce0ea5c21a7db6',1,'TextEditor']]],
   ['evaluatesprites_106',['EvaluateSprites',['../classyaze_1_1emu_1_1Ppu.html#a103cb68f436444a281f274dcdd2ade8f',1,'yaze::emu::Ppu']]],

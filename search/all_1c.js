@@ -496,11 +496,12 @@ var searchData=
   ['sw_5fpush_5fblock_5fto_5fopen_493',['SW_Push_Block_to_Open',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ab3bd809672191b35e4a2ecd5d213648e',1,'yaze::zelda3']]],
   ['switch_5fopen_5fdoor_5fhold_494',['Switch_Open_Door_Hold',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ae643a5479d4acd17194a33018b20fae2',1,'yaze::zelda3']]],
   ['switch_5fopen_5fdoor_5ftoggle_495',['Switch_Open_Door_Toggle',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ac2ecf68c998deaabf707f5a0d906bc80',1,'yaze::zelda3']]],
-  ['sword_5fx_5f_496',['sword_x_',['../classyaze_1_1zelda3_1_1TitleScreen.html#aa252c562dcdd0b465e0d0b249e06dbbc',1,'yaze::zelda3::TitleScreen']]],
-  ['swords_497',['swords',['../structyaze_1_1gfx_1_1PaletteGroupMap.html#a635ac3738f0d152113bd1cd994314b7a',1,'yaze::gfx::PaletteGroupMap']]],
-  ['swordselected_498',['swordSelected',['../classyaze_1_1zelda3_1_1TitleScreen.html#a6df3d1dc17ecdf7d6ae451409ab93bcd',1,'yaze::zelda3::TitleScreen']]],
-  ['symbols_499',['Labels and Symbols',['../md_docs_2asm-style-guide.html#autotoc_md3',1,'']]],
-  ['sync_5fcycle_5f_500',['sync_cycle_',['../classyaze_1_1emu_1_1Snes.html#a98eb3874e72896e6bfb619fcbcead59c',1,'yaze::emu::Snes']]],
-  ['synccycles_501',['SyncCycles',['../classyaze_1_1emu_1_1Snes.html#ac622beb60f2d1547cb40e3a3b9c3ff53',1,'yaze::emu::Snes']]],
-  ['system_502',['System',['../md_docs_2contributing.html#autotoc_md37',1,'1. Extensions System'],['../md_docs_2contributing.html#autotoc_md38',1,'2. Sprite Builder System']]]
+  ['switchcomponents_496',['SwitchComponents',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
+  ['sword_5fx_5f_497',['sword_x_',['../classyaze_1_1zelda3_1_1TitleScreen.html#aa252c562dcdd0b465e0d0b249e06dbbc',1,'yaze::zelda3::TitleScreen']]],
+  ['swords_498',['swords',['../structyaze_1_1gfx_1_1PaletteGroupMap.html#a635ac3738f0d152113bd1cd994314b7a',1,'yaze::gfx::PaletteGroupMap']]],
+  ['swordselected_499',['swordSelected',['../classyaze_1_1zelda3_1_1TitleScreen.html#a6df3d1dc17ecdf7d6ae451409ab93bcd',1,'yaze::zelda3::TitleScreen']]],
+  ['symbols_500',['Labels and Symbols',['../md_docs_2asm-style-guide.html#autotoc_md3',1,'']]],
+  ['sync_5fcycle_5f_501',['sync_cycle_',['../classyaze_1_1emu_1_1Snes.html#a98eb3874e72896e6bfb619fcbcead59c',1,'yaze::emu::Snes']]],
+  ['synccycles_502',['SyncCycles',['../classyaze_1_1emu_1_1Snes.html#ac622beb60f2d1547cb40e3a3b9c3ff53',1,'yaze::emu::Snes']]],
+  ['system_503',['System',['../md_docs_2contributing.html#autotoc_md37',1,'1. Extensions System'],['../md_docs_2contributing.html#autotoc_md38',1,'2. Sprite Builder System']]]
 ];

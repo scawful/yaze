@@ -54,7 +54,7 @@ var searchData=
   ['entrance_5ftiletypes_5f_51',['entrance_tiletypes_',['../classyaze_1_1editor_1_1OverworldEditor.html#a177e1a50f06c6c3b26e8f362eba561c6',1,'yaze::editor::OverworldEditor']]],
   ['entrances_5f_52',['entrances_',['../classyaze_1_1editor_1_1DungeonEditor.html#a249c44e52f82df4b06c94564f3afb333',1,'yaze::editor::DungeonEditor']]],
   ['entries_53',['entries',['../structyaze_1_1emu_1_1Tilemap.html#a99df22d3822fec48f10edbaf60294d24',1,'yaze::emu::Tilemap::entries'],['../structyaze_1_1test_1_1Tilemap.html#a99df22d3822fec48f10edbaf60294d24',1,'yaze::test::Tilemap::entries']]],
-  ['error_5fmessage_54',['error_message',['../structyaze__editor__context.html#a5864fdc76ce969933913a75f2ff4c0c1',1,'yaze_editor_context']]],
+  ['error_5fmessage_54',['error_message',['../structyaze__editor__context.html#a5864fdc76ce969933913a75f2ff4c0c1',1,'yaze_editor_context::error_message'],['../structyaze_1_1cli_1_1Context.html#a2a5b73602903554095ce69ec41fa0671',1,'yaze::cli::Context::error_message']]],
   ['even_5fframe_55',['even_frame',['../classyaze_1_1emu_1_1Ppu.html#a7efc9afaf7bc6356e074ef44f079b36e',1,'yaze::emu::Ppu']]],
   ['evencycle_56',['evenCycle',['../classyaze_1_1emu_1_1Dsp.html#aa1b67a41f387859d75f3df6d76e25f22',1,'yaze::emu::Dsp']]],
   ['exit_5f_57',['exit_',['../classyaze_1_1zelda3_1_1RoomEntrance.html#a7c3b1a0a2e1a6d49bc3c2aa1bc211b7d',1,'yaze::zelda3::RoomEntrance']]],

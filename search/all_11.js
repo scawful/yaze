@@ -19,7 +19,7 @@ var searchData=
   ['handleframestart_16',['HandleFrameStart',['../classyaze_1_1emu_1_1Ppu.html#a5428ab6c2b746c3465eb9e127658a4be',1,'yaze::emu::Ppu']]],
   ['handlegain_17',['HandleGain',['../classyaze_1_1emu_1_1Dsp.html#a0dc25296548e3dfdc1dcf9269c2c6093',1,'yaze::emu::Dsp']]],
   ['handlehexstringparams_18',['HandleHexStringParams',['../namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a5bee52f0340097913cdf52b6f646b3c5',1,'yaze::core::anonymous_namespace{common.cc}']]],
-  ['handleinput_19',['HandleInput',['../classyaze_1_1emu_1_1Snes.html#aef67cb2aaaa77f7f1c9ef01b4e198ec3',1,'yaze::emu::Snes::HandleInput()'],['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae10f383815f98cddb860a8a37de15796',1,'yaze::cli::anonymous_namespace{tui.cc}::HandleInput()']]],
+  ['handleinput_19',['HandleInput',['../classyaze_1_1emu_1_1Snes.html#aef67cb2aaaa77f7f1c9ef01b4e198ec3',1,'yaze::emu::Snes::HandleInput()'],['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a2c1dc8ab15f8e8bbcf375a362c11d942',1,'yaze::cli::anonymous_namespace{tui.cc}::HandleInput()']]],
   ['handlekeyboardinputs_20',['HandleKeyboardInputs',['../classTextEditor.html#a010f96f247602f0b29df66298ed7949f',1,'TextEditor']]],
   ['handlemouseinputs_21',['HandleMouseInputs',['../classTextEditor.html#a250de3b89bb0da5b231d61ecae7afec1',1,'TextEditor']]],
   ['handlenoise_22',['HandleNoise',['../classyaze_1_1emu_1_1Dsp.html#add68a31a651d61101d8751062b7c00b9',1,'yaze::emu::Dsp']]],
