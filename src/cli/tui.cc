@@ -248,12 +248,20 @@ void PaletteEditorComponent(ftxui::ScreenInteractive &screen) {
       Button("Back", [&] { SwitchComponents(screen, LayoutID::kMainMenu); });
 
   static auto palette_groups = app_context.rom.palette_group();
-  auto ftx_palettes = {
-      palette_groups.armors,       palette_groups.swords,
-      palette_groups.shields,      palette_groups.sprites_aux1,
-      palette_groups.sprites_aux2, palette_groups.sprites_aux3,
-      palette_groups.dungeon_main, palette_groups.grass,
-      palette_groups.object_3d,    palette_groups.overworld_mini_map,
+  static std::vector<gfx::PaletteGroup> ftx_palettes = {
+      palette_groups.swords,
+      palette_groups.shields,
+      palette_groups.armors,
+      palette_groups.overworld_main,
+      palette_groups.overworld_aux,
+      palette_groups.global_sprites,
+      palette_groups.sprites_aux1,
+      palette_groups.sprites_aux2,
+      palette_groups.sprites_aux3,
+      palette_groups.dungeon_main,
+      palette_groups.overworld_mini_map,
+      palette_groups.grass,
+      palette_groups.object_3d,
   };
 
   // Create a list of palette groups to pick from
@@ -264,20 +272,94 @@ void PaletteEditorComponent(ftxui::ScreenInteractive &screen) {
       palette_group_names.push_back(gfx::kPaletteCategoryNames[i].data());
     }
   }
-  auto palette_list = Menu(&palette_group_names, &selected_palette_group);
 
-  auto container = Container::Vertical({
-      palette_list,
-      back_button,
-  });
+  static bool show_palette_editor = false;
+  static std::vector<std::vector<Element>> palette_elements;
 
-  auto renderer = Renderer(container, [&] {
-    return vbox({text("Palette Editor") | center, separator(),
-                 palette_list->Render(), separator(),
-                 back_button->Render() | center}) |
-           center;
-  });
-  screen.Loop(renderer);
+  const auto load_palettes_from_current_group = [&]() {
+    auto palette_group = ftx_palettes[selected_palette_group];
+    palette_elements.clear();
+    // Create a list of colors to display in the palette editor.
+    for (size_t i = 0; i < palette_group.size(); ++i) {
+      palette_elements.push_back(std::vector<Element>());
+      for (size_t j = 0; j < palette_group[i].size(); ++j) {
+        auto color = palette_group[i][j];
+        palette_elements[i].push_back(
+            ColorBox(Color::RGB(color.rgb().x, color.rgb().y, color.rgb().z)));
+      }
+    }
+  };
+
+  if (show_palette_editor) {
+    if (palette_elements.empty()) {
+      load_palettes_from_current_group();
+    }
+
+    auto palette_grid = Container::Vertical({});
+    for (const auto &element : palette_elements) {
+      auto row = Container::Horizontal({});
+      for (const auto &color : element) {
+        row->Add(Renderer([color] { return color; }));
+      }
+      palette_grid->Add(row);
+    }
+
+    // Create a button to save the changes to the palette.
+    auto save_button = Button("Save Changes", [&] {
+      // Save the changes to the palette here.
+      // You can use the current_palette vector to determine the new colors.
+      // After saving the changes, you could either stay here or return to the
+      // main menu.
+    });
+
+    auto back_button = Button("Back", [&] {
+      show_palette_editor = false;
+      screen.ExitLoopClosure()();
+    });
+
+    auto palette_editor_container = Container::Vertical({
+        palette_grid,
+        save_button,
+        back_button,
+    });
+
+    auto palette_editor_renderer = Renderer(palette_editor_container, [&] {
+      return vbox({text("Palette Editor") | center, separator(),
+                   palette_grid->Render(), separator(),
+                   hbox({
+                       save_button->Render() | center,
+                       separator(),
+                       back_button->Render() | center,
+                   }) | center}) |
+             center;
+    });
+    screen.Loop(palette_editor_renderer);
+  } else {
+    auto palette_list = Menu(&palette_group_names, &selected_palette_group);
+    palette_list = CatchEvent(palette_list, [&](Event event) {
+      if (event == Event::Return) {
+        // Load the selected palette group into the palette editor.
+        // This will be a separate component.
+        show_palette_editor = true;
+        screen.ExitLoopClosure()();
+        load_palettes_from_current_group();
+        return true;
+      }
+      return false;
+    });
+
+    auto container = Container::Vertical({
+        palette_list,
+        back_button,
+    });
+    auto renderer = Renderer(container, [&] {
+      return vbox({text("Palette Editor") | center, separator(),
+                   palette_list->Render(), separator(),
+                   back_button->Render() | center}) |
+             center;
+    });
+    screen.Loop(renderer);
+  }
 }
 
 void MainMenuComponent(ftxui::ScreenInteractive &screen) {
