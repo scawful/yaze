@@ -34,7 +34,7 @@ namespace {
 
 std::vector<uint8_t> ExpectCompressOk(Rom& rom, uchar* in, int in_size) {
   std::vector<uint8_t> data(in, in + in_size);
-  auto load_status = rom.LoadFromData(data);
+  auto load_status = rom.LoadFromData(data, false);
   EXPECT_TRUE(load_status.ok());
   auto compression_status = CompressV3(rom.vector(), 0, in_size);
   EXPECT_TRUE(compression_status.ok());
@@ -44,7 +44,7 @@ std::vector<uint8_t> ExpectCompressOk(Rom& rom, uchar* in, int in_size) {
 
 std::vector<uint8_t> ExpectDecompressBytesOk(Rom& rom,
                                              std::vector<uint8_t>& in) {
-  auto load_status = rom.LoadFromData(in);
+  auto load_status = rom.LoadFromData(in, false);
   EXPECT_TRUE(load_status.ok());
   auto decompression_status = DecompressV2(rom.data(), 0, in.size());
   EXPECT_TRUE(decompression_status.ok());
@@ -54,7 +54,7 @@ std::vector<uint8_t> ExpectDecompressBytesOk(Rom& rom,
 
 std::vector<uint8_t> ExpectDecompressOk(Rom& rom, uchar* in, int in_size) {
   std::vector<uint8_t> data(in, in + in_size);
-  auto load_status = rom.LoadFromData(data);
+  auto load_status = rom.LoadFromData(data, false);
   EXPECT_TRUE(load_status.ok());
   auto decompression_status = DecompressV2(rom.data(), 0, in_size);
   EXPECT_TRUE(decompression_status.ok());
@@ -63,7 +63,7 @@ std::vector<uint8_t> ExpectDecompressOk(Rom& rom, uchar* in, int in_size) {
 }
 
 std::shared_ptr<CompressionPiece> ExpectNewCompressionPieceOk(
-    const char command, const int length, const std::string args,
+    const char command, const int length, std::string& args,
     const int argument_length) {
   auto new_piece = std::make_shared<CompressionPiece>(command, length, args,
                                                       argument_length);
@@ -145,7 +145,9 @@ TEST(LC_LZ2_CompressionTest, NewDecompressionPieceOk) {
   old_piece.argument_length = argument_length;
   old_piece.next = nullptr;
 
-  auto new_piece = ExpectNewCompressionPieceOk(0x01, 0x01, "aaa", 0x02);
+  std::string new_args = "aaa";
+
+  auto new_piece = ExpectNewCompressionPieceOk(0x01, 0x01, new_args, 0x02);
 
   EXPECT_EQ(old_piece.command, new_piece->command);
   EXPECT_EQ(old_piece.length, new_piece->length);
