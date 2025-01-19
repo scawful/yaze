@@ -92,6 +92,7 @@ typedef struct zelda3_rom {
 
 zelda3_rom* yaze_load_rom(const char* filename);
 void yaze_unload_rom(zelda3_rom* rom);
+void yaze_save_rom(zelda3_rom* rom, const char* filename);
 
 #ifdef __cplusplus
 }
