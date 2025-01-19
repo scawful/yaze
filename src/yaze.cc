@@ -76,6 +76,13 @@ void yaze_unload_rom(zelda3_rom *rom) {
   }
 }
 
+void yaze_save_rom(zelda3_rom *rom, const char *filename) {
+  if (rom->impl) {
+    yaze::Rom *internal_rom = static_cast<yaze::Rom *>(rom->impl);
+    internal_rom->SaveToFile(false, false, filename);
+  }
+}
+
 yaze_bitmap yaze_load_bitmap(const char *filename) {
   yaze_bitmap bitmap;
   bitmap.width = 0;
