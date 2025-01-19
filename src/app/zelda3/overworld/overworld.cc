@@ -15,6 +15,9 @@ namespace yaze {
 namespace zelda3 {
 
 absl::Status Overworld::Load(Rom &rom) {
+  if (rom.size() == 0) {
+    return absl::InvalidArgumentError("ROM file not loaded");
+  }
   rom_ = rom;
 
   RETURN_IF_ERROR(AssembleMap32Tiles());
