@@ -5,6 +5,8 @@
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/screen.hpp>
 
+#include "app/core/common.h"
+
 namespace yaze {
 namespace cli {
 
@@ -12,11 +14,12 @@ using namespace ftxui;
 
 namespace {
 void SwitchComponents(ftxui::ScreenInteractive &screen, LayoutID layout) {
-  app_context.current_layout = layout;
-  screen.Clear();
   screen.ExitLoopClosure()();
-  // Clear the buffer 
-  std::cout << "\033[2J\033[1;1H";
+  screen.Clear();
+  app_context.current_layout = layout;
+
+  // Clear the buffer
+  // std::cout << "\033[2J\033[1;1H";
 }
 
 bool HandleInput(ftxui::ScreenInteractive &screen, ftxui::Event &event,
@@ -53,9 +56,11 @@ void ApplyBpsPatchComponent(ftxui::ScreenInteractive &screen) {
 
   // Button to apply the patch.
   auto apply_button = Button("Apply Patch", [&] {
-    // Once the file paths are entered by the user,
-    // you can load the files and apply the BPS patch here.
+    std::vector<uint8_t> source;
+    std::vector<uint8_t> patch;
+    std::vector<uint8_t> patched;
 
+    core::ApplyBpsPatch(source, patch, patched);
     // ...
     // Load or open patch_file
     // Load or open base_file
@@ -210,18 +215,46 @@ void LoadRomComponent(ftxui::ScreenInteractive &screen) {
   screen.Loop(renderer);
 }
 
+Element ColorBox(const Color &color) {
+  return ftxui::text(" ") | ftxui::bgcolor(color);
+}
+
 void PaletteEditorComponent(ftxui::ScreenInteractive &screen) {
-  // Replace with actual data or inputs relevant to the palette editor.
+  ReturnIfRomNotLoaded(screen);
+
   auto back_button =
       Button("Back", [&] { SwitchComponents(screen, LayoutID::kMainMenu); });
 
-  auto renderer = Renderer(back_button, [&] {
-    return vbox({text("Palette Editor") | center, separator(),
-                 text("Implement your palette editing interface here."),
-                 separator(), back_button->Render() | center}) |
-           center;
+  static auto palette_groups = app_context.rom.palette_group();
+  auto ftx_palettes = {
+      palette_groups.armors,       palette_groups.swords,
+      palette_groups.shields,      palette_groups.sprites_aux1,
+      palette_groups.sprites_aux2, palette_groups.sprites_aux3,
+      palette_groups.dungeon_main, palette_groups.grass,
+      palette_groups.object_3d,    palette_groups.overworld_mini_map,
+  };
+
+  // Create a list of palette groups to pick from
+  static int selected_palette_group = 0;
+  static std::vector<std::string> palette_group_names;
+  if (palette_group_names.empty()) {
+    for (size_t i = 0; i < 14; ++i) {
+      palette_group_names.push_back(gfx::kPaletteCategoryNames[i].data());
+    }
+  }
+  auto palette_list = Menu(&palette_group_names, &selected_palette_group);
+
+  auto container = Container::Vertical({
+      palette_list,
+      back_button,
   });
 
+  auto renderer = Renderer(container, [&] {
+    return vbox({text("Palette Editor") | center, separator(),
+                 palette_list->Render(), separator(),
+                 back_button->Render() | center}) |
+           center;
+  });
   screen.Loop(renderer);
 }
 
@@ -231,6 +264,7 @@ void MainMenuComponent(ftxui::ScreenInteractive &screen) {
 
   // Create menu.
   MenuOption option;
+  option.focused_entry = &selected;
   auto menu = Menu(&kMainMenuEntries, &selected, option);
   menu = CatchEvent(
       menu, [&](Event event) { return HandleInput(screen, event, selected); });
@@ -243,9 +277,7 @@ void MainMenuComponent(ftxui::ScreenInteractive &screen) {
   // This renderer displays the menu vertically.
   auto renderer = Renderer(menu, [&] {
     return vbox({
-        text("The Legend of Zelda: A Link to the Past") | center |
-            color(Color::Blue),
-        text(rom_information) | center,
+        text(rom_information) | center | color(Color::Red1),
         separator(),
         menu->Render(),
     });
@@ -286,11 +318,14 @@ void MainMenuComponent(ftxui::ScreenInteractive &screen) {
 }  // namespace
 
 void ShowMain() {
-  auto screen = ScreenInteractive::FitComponent();
+  auto screen = ScreenInteractive::TerminalOutput();
   while (true) {
     switch (app_context.current_layout) {
       case LayoutID::kMainMenu: {
         MainMenuComponent(screen);
+      } break;
+      case LayoutID::kLoadRom: {
+        LoadRomComponent(screen);
       } break;
       case LayoutID::kApplyBpsPatch: {
         ApplyBpsPatchComponent(screen);
@@ -298,9 +333,7 @@ void ShowMain() {
       case LayoutID::kGenerateSaveFile: {
         GenerateSaveFileComponent(screen);
       } break;
-      case LayoutID::kLoadRom: {
-        LoadRomComponent(screen);
-      } break;
+
       case LayoutID::kPaletteEditor: {
         PaletteEditorComponent(screen);
       } break;
