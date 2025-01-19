@@ -14,6 +14,11 @@ set(
   app/emu/snes.cc
 )
 
+set(
+  YAZE_UTIL_SRC
+  util/bps.cc
+)
+
 set(YAZE_RESOURCE_FILES
   ${CMAKE_SOURCE_DIR}/assets/layouts/overworld.zeml
   ${CMAKE_SOURCE_DIR}/assets/font/Karla-Regular.ttf
