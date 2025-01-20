@@ -348,7 +348,7 @@
 
       auto data = [NSData dataWithContentsOfURL:selectedFileURL];
       // Cast NSData* to uint8_t*
-      uchar *bytes = (uchar *)[data bytes];
+      uint8_t *bytes = (uint8_t *)[data bytes];
       // Size of the data
       size_t size = [data length];
 
