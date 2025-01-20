@@ -6,10 +6,10 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/core/constants.h"
 #include "app/gfx/compression.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace zelda3 {

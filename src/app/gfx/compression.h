@@ -1,13 +1,14 @@
 #ifndef YAZE_APP_GFX_COMPRESSION_H
 #define YAZE_APP_GFX_COMPRESSION_H
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/core/constants.h"
+#include "util/macro.h"
 
 #define BUILD_HEADER(command, length) (command << 5) + (length - 1)
 
@@ -94,27 +95,27 @@ void PrintCompressionChain(const CompressionPiecePointer& chain_head);
 
 // Compression V1
 
-void CheckByteRepeat(const uchar* rom_data, DataSizeArray& data_size_taken,
+void CheckByteRepeat(const uint8_t* rom_data, DataSizeArray& data_size_taken,
                      CommandArgumentArray& cmd_args, uint& src_data_pos,
-                     const uint last_pos);
+                     const unsigned int last_pos);
 
-void CheckWordRepeat(const uchar* rom_data, DataSizeArray& data_size_taken,
+void CheckWordRepeat(const uint8_t* rom_data, DataSizeArray& data_size_taken,
                      CommandArgumentArray& cmd_args, uint& src_data_pos,
-                     const uint last_pos);
+                     const unsigned int last_pos);
 
-void CheckIncByte(const uchar* rom_data, DataSizeArray& data_size_taken,
+void CheckIncByte(const uint8_t* rom_data, DataSizeArray& data_size_taken,
                   CommandArgumentArray& cmd_args, uint& src_data_pos,
-                  const uint last_pos);
+                  const unsigned int last_pos);
 
-void CheckIntraCopy(const uchar* rom_data, DataSizeArray& data_size_taken,
+void CheckIntraCopy(const uint8_t* rom_data, DataSizeArray& data_size_taken,
                     CommandArgumentArray& cmd_args, uint& src_data_pos,
-                    const uint last_pos, uint start);
+                    const unsigned int last_pos, unsigned int start);
 
 void ValidateForByteGain(const DataSizeArray& data_size_taken,
                          const CommandSizeArray& cmd_size, uint& max_win,
                          uint& cmd_with_max);
 
-void CompressionCommandAlternative(const uchar* rom_data,
+void CompressionCommandAlternative(const uint8_t* rom_data,
                                    CompressionPiecePointer& compressed_chain,
                                    const CommandSizeArray& cmd_size,
                                    const CommandArgumentArray& cmd_args,
@@ -123,22 +124,22 @@ void CompressionCommandAlternative(const uchar* rom_data,
 
 // Compression V2
 
-void CheckByteRepeatV2(const uchar* data, uint& src_pos, const uint last_pos,
+void CheckByteRepeatV2(const uint8_t* data, uint& src_pos, const unsigned int last_pos,
                        CompressionCommand& cmd);
 
-void CheckWordRepeatV2(const uchar* data, uint& src_pos, const uint last_pos,
+void CheckWordRepeatV2(const uint8_t* data, uint& src_pos, const unsigned int last_pos,
                        CompressionCommand& cmd);
 
-void CheckIncByteV2(const uchar* data, uint& src_pos, const uint last_pos,
+void CheckIncByteV2(const uint8_t* data, uint& src_pos, const unsigned int last_pos,
                     CompressionCommand& cmd);
 
-void CheckIntraCopyV2(const uchar* data, uint& src_pos, const uint last_pos,
-                      uint start, CompressionCommand& cmd);
+void CheckIntraCopyV2(const uint8_t* data, uint& src_pos, const unsigned int last_pos,
+                      unsigned int start, CompressionCommand& cmd);
 
 void ValidateForByteGainV2(const CompressionCommand& cmd, uint& max_win,
                            uint& cmd_with_max);
 
-void CompressionCommandAlternativeV2(const uchar* data,
+void CompressionCommandAlternativeV2(const uint8_t* data,
                                      const CompressionCommand& cmd,
                                      CompressionPiecePointer& compressed_chain,
                                      uint& src_pos, uint& comp_accumulator,
@@ -148,15 +149,15 @@ void CompressionCommandAlternativeV2(const uchar* data,
  * @brief Compresses a buffer of data using the LC_LZ2 algorithm.
  * \deprecated Use HyruleMagicDecompress instead.
  */
-absl::StatusOr<std::vector<uint8_t>> CompressV2(const uchar* data,
+absl::StatusOr<std::vector<uint8_t>> CompressV2(const uint8_t* data,
                                                 const int start,
                                                 const int length, int mode = 1,
                                                 bool check = false);
 
-absl::StatusOr<std::vector<uint8_t>> CompressGraphics(const uchar* data,
+absl::StatusOr<std::vector<uint8_t>> CompressGraphics(const uint8_t* data,
                                                       const int pos,
                                                       const int length);
-absl::StatusOr<std::vector<uint8_t>> CompressOverworld(const uchar* data,
+absl::StatusOr<std::vector<uint8_t>> CompressOverworld(const uint8_t* data,
                                                        const int pos,
                                                        const int length);
 absl::StatusOr<std::vector<uint8_t>> CompressOverworld(
@@ -178,12 +179,12 @@ struct CompressionContext {
   std::vector<uint8_t> compressed_data;
   std::vector<CompressionPiece> compression_pieces;
   std::vector<uint8_t> compression_string;
-  uint src_pos;
-  uint last_pos;
-  uint start;
-  uint comp_accumulator = 0;
-  uint cmd_with_max = kCommandDirectCopy;
-  uint max_win = 0;
+  unsigned int src_pos;
+  unsigned int last_pos;
+  unsigned int start;
+  unsigned int comp_accumulator = 0;
+  unsigned int cmd_with_max = kCommandDirectCopy;
+  unsigned int max_win = 0;
   CompressionCommand current_cmd = {};
   int mode;
 
@@ -227,8 +228,8 @@ absl::StatusOr<std::vector<uint8_t>> CompressV3(
 
 std::string SetBuffer(const std::vector<uint8_t>& data, int src_pos,
                       int comp_accumulator);
-std::string SetBuffer(const uchar* data, int src_pos, int comp_accumulator);
-void memfill(const uchar* data, std::vector<uint8_t>& buffer, int buffer_pos,
+std::string SetBuffer(const uint8_t* data, int src_pos, int comp_accumulator);
+void memfill(const uint8_t* data, std::vector<uint8_t>& buffer, int buffer_pos,
              int offset, int length);
 
 /**
@@ -236,12 +237,12 @@ void memfill(const uchar* data, std::vector<uint8_t>& buffer, int buffer_pos,
  * @note Works well for graphics but not overworld data. Prefer Hyrule Magic
  * routines for overworld data.
  */
-absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uchar* data, int offset,
-                                                  int size = 0x800,
+absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
+                                                  int offset, int size = 0x800,
                                                   int mode = 1);
-absl::StatusOr<std::vector<uint8_t>> DecompressGraphics(const uchar* data,
+absl::StatusOr<std::vector<uint8_t>> DecompressGraphics(const uint8_t* data,
                                                         int pos, int size);
-absl::StatusOr<std::vector<uint8_t>> DecompressOverworld(const uchar* data,
+absl::StatusOr<std::vector<uint8_t>> DecompressOverworld(const uint8_t* data,
                                                          int pos, int size);
 absl::StatusOr<std::vector<uint8_t>> DecompressOverworld(
     const std::vector<uint8_t> data, int pos, int size);

@@ -1,13 +1,13 @@
 #ifndef YAZE_APP_EDITOR_CODE_MEMORY_EDITOR_H
 #define YAZE_APP_EDITOR_CODE_MEMORY_EDITOR_H
 
-#include "app/core/constants.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/editor/code/memory_editor.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace editor {

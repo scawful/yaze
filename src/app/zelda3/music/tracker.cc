@@ -13,8 +13,8 @@
 #include <cstdio>
 #include <vector>
 
-#include "app/core/constants.h"
 #include "app/rom.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -43,8 +43,8 @@ SongSpcBlock *Tracker::AllocSpcBlock(int len, int bank) {
   ss_num++;
   sbl->start = ss_next;
   sbl->len = len;
-  sbl->buf = (uchar *)malloc(len);
-  sbl->relocs = (ushort *)malloc(32);
+  sbl->buf = (uint8_t *)malloc(len);
+  sbl->relocs = (uint16_t *)malloc(32);
   sbl->relsz = 16;
   sbl->relnum = 0;
   sbl->bank = bank & 7;

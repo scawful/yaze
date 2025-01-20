@@ -7,7 +7,6 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "app/core/constants.h"
 #include "app/core/platform/clipboard.h"
 #include "app/core/platform/renderer.h"
 #include "app/editor/graphics/palette_editor.h"
@@ -24,6 +23,7 @@
 #include "app/zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace editor {
@@ -1041,7 +1041,7 @@ absl::Status OverworldEditor::LoadGraphics() {
 
   core::logf("Loading overworld tile16 graphics.");
   // Loop through the tiles and copy their pixel data into separate vectors
-  for (uint i = 0; i < zelda3::kNumTile16Individual; i++) {
+  for (unsigned int i = 0; i < zelda3::kNumTile16Individual; i++) {
     tile16_individual_[i].Create(kTile16Size, kTile16Size, 0x08,
                                  kTile16Size * kTile16Size);
 
@@ -1214,7 +1214,7 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
 
   // Loop through the tiles and copy their pixel data into separate vectors
   std::vector<std::future<absl::Status>> futures;
-  for (uint i = 0; i < zelda3::kNumTile16Individual; i++) {
+  for (unsigned int i = 0; i < zelda3::kNumTile16Individual; i++) {
     futures.push_back(std::async(
         std::launch::async,
         [&](int index) -> absl::Status {
@@ -1241,7 +1241,7 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
   }
 
   // Render the bitmaps of each tile.
-  for (uint id = 0; id < zelda3::kNumTile16Individual; id++) {
+  for (unsigned int id = 0; id < zelda3::kNumTile16Individual; id++) {
     Renderer::GetInstance().UpdateBitmap(&tile16_individual_[id]);
   }
 

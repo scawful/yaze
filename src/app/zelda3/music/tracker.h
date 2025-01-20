@@ -3,8 +3,8 @@
 
 #include <vector>
 
-#include "app/core/constants.h"
 #include "app/rom.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -61,8 +61,8 @@ struct SongRange {
 };
 
 struct SongPart {
-  uchar flag;
-  uchar inst;
+  uint8_t flag;
+  uint8_t inst;
   short tbl[8];
   unsigned short addr;
 };

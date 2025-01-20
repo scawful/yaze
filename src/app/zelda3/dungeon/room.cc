@@ -6,11 +6,11 @@
 #include <vector>
 
 #include "absl/strings/str_cat.h"
-#include "app/core/constants.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/dungeon/room_tag.h"
 #include "app/zelda3/sprite/sprite.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -27,8 +27,7 @@ void Room::LoadHeader() {
 
   auto header_location = core::SnesToPc(address);
 
-  bg2_ = (background2)((rom()->data()[header_location] >> 5) &
-                                        0x07);
+  bg2_ = (background2)((rom()->data()[header_location] >> 5) & 0x07);
   collision_ = (CollisionKey)((rom()->data()[header_location] >> 2) & 0x07);
   is_light_ = ((rom()->data()[header_location]) & 0x01) == 1;
 
@@ -163,12 +162,12 @@ void Room::LoadRoomFromROM() {
 
   b = rom_data[hpos];
 
-  pits_.target_layer = (uchar)(b & 0x03);
-  stair1_.target_layer = (uchar)((b >> 2) & 0x03);
-  stair2_.target_layer = (uchar)((b >> 4) & 0x03);
-  stair3_.target_layer = (uchar)((b >> 6) & 0x03);
+  pits_.target_layer = (uint8_t)(b & 0x03);
+  stair1_.target_layer = (uint8_t)((b >> 2) & 0x03);
+  stair2_.target_layer = (uint8_t)((b >> 4) & 0x03);
+  stair3_.target_layer = (uint8_t)((b >> 6) & 0x03);
   hpos++;
-  stair4_.target_layer = (uchar)(rom_data[hpos] & 0x03);
+  stair4_.target_layer = (uint8_t)(rom_data[hpos] & 0x03);
   hpos++;
 
   pits_.target = rom_data[hpos];
@@ -193,7 +192,7 @@ void Room::LoadRoomFromROM() {
   //     core::SnesToPc(dungeon_spr_ptrs | spr_ptr + (room_id_ * 2));
 }
 
-void Room::LoadRoomGraphics(uchar entrance_blockset) {
+void Room::LoadRoomGraphics(uint8_t entrance_blockset) {
   const auto &main_gfx = rom()->main_blockset_ids;
   const auto &room_gfx = rom()->room_blockset_ids;
   const auto &sprite_gfx = rom()->spriteset_ids;
@@ -216,7 +215,7 @@ void Room::LoadRoomGraphics(uchar entrance_blockset) {
   blocks_[10] = 115 + 6;
   blocks_[11] = 115 + 7;
   for (int i = 0; i < 4; i++) {
-    blocks_[12 + i] = (uchar)(sprite_gfx[spriteset + 64][i] + 115);
+    blocks_[12 + i] = (uint8_t)(sprite_gfx[spriteset + 64][i] + 115);
   }  // 12-16 sprites
 }
 
@@ -238,7 +237,7 @@ void Room::CopyRoomGraphicsToBuffer() {
     int data = 0;
     int block_offset = blocks_[i] * kGfxBufferRoomOffset;
     while (data < kGfxBufferRoomOffset) {
-      uchar map_byte = gfx_buffer_data[data + block_offset];
+      uint8_t map_byte = gfx_buffer_data[data + block_offset];
       if (i < 4) {
         map_byte += kGfxBufferRoomSpriteLastLineOffset;
       }
@@ -260,7 +259,7 @@ void Room::LoadAnimatedGraphics() {
   auto rom_data = rom()->vector();
   int data = 0;
   while (data < 512) {
-    uchar map_byte =
+    uint8_t map_byte =
         gfx_buffer_data[data + (92 * 2048) + (512 * animated_frame_)];
     current_gfx16_[data + (7 * 2048)] = map_byte;
 
@@ -382,8 +381,7 @@ void Room::LoadObjects() {
           } else {
             tile_objects_.back().set_options(ObjectOption::Stairs |
                                              tile_objects_.back().options());
-            z3_staircases_.push_back(
-                staircase(posX, posY, "To ???"));
+            z3_staircases_.push_back(staircase(posX, posY, "To ???"));
           }
         }
       }
@@ -393,7 +391,7 @@ void Room::LoadObjects() {
           tile_objects_.back().set_options(ObjectOption::Chest |
                                            tile_objects_.back().options());
           // chest_list_.push_back(
-              // z3_chest(posX, posY, chests_in_room_.front().itemIn, false));
+          // z3_chest(posX, posY, chests_in_room_.front().itemIn, false));
           chests_in_room_.erase(chests_in_room_.begin());
         }
       } else if (oid == 0xFB1) {
@@ -401,12 +399,14 @@ void Room::LoadObjects() {
           tile_objects_.back().set_options(ObjectOption::Chest |
                                            tile_objects_.back().options());
           // chest_list_.push_back(
-          //     z3_chest(posX + 1, posY, chests_in_room_.front().item_in, true));
+          //     z3_chest(posX + 1, posY, chests_in_room_.front().item_in,
+          //     true));
           chests_in_room_.erase(chests_in_room_.begin());
         }
       }
     } else {
-      // tile_objects_.push_back(z3_object_door(static_cast<short>((b2 << 8) + b1),
+      // tile_objects_.push_back(z3_object_door(static_cast<short>((b2 << 8) +
+      // b1),
       //                                        0, 0, 0,
       //                                        static_cast<uint8_t>(layer)));
     }

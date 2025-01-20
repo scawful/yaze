@@ -20,11 +20,11 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "app/core/common.h"
-#include "app/core/constants.h"
 #include "app/core/project.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
+#include "util/macro.h"
 
 namespace yaze {
 
@@ -68,7 +68,7 @@ class Rom {
    */
   absl::Status LoadFromFile(const std::string& filename, bool z3_load = true);
   absl::Status LoadFromData(const std::vector<uint8_t>& data,
-                             bool z3_load = true);
+                            bool z3_load = true);
 
   /**
    * @brief Saves the Rom data to a file

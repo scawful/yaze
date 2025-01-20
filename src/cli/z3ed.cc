@@ -1,3 +1,5 @@
+#include "cli/z3ed.h"
+
 #include <cstring>
 #include <iostream>
 #include <memory>
@@ -5,9 +7,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "app/core/constants.h"
-#include "cli/z3ed.h"
 #include "cli/tui.h"
+#include "util/macro.h"
 
 namespace yaze {
 /**

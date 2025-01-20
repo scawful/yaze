@@ -6,7 +6,6 @@
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
-#include "app/core/constants.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/platform/renderer.h"
 #include "app/gfx/bitmap.h"
@@ -17,6 +16,7 @@
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "imgui/imgui.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace editor {
@@ -128,7 +128,7 @@ absl::Status ScreenEditor::LoadDungeonMaps() {
     int pc_ptr_gfx =
         core::SnesToPc(ptr_gfx);  // Contains data for the next 25 rooms
 
-    ASSIGN_OR_RETURN(ushort boss_room_d,
+    ASSIGN_OR_RETURN(uint16_t boss_room_d,
                      rom()->ReadWord(zelda3::kDungeonMapBossRooms + (d * 2)));
 
     ASSIGN_OR_RETURN(nbr_basement_d,

@@ -423,7 +423,7 @@ void OverworldMap::DrawAnimatedTiles() {
 
 void OverworldMap::LoadAreaGraphicsBlocksets() {
   for (int i = 0; i < 4; i++) {
-    uchar value = rom_[rom_.version_constants().kOverworldGfxGroups1 +
+    uint8_t value = rom_[rom_.version_constants().kOverworldGfxGroups1 +
                        (area_graphics_ * 4) + i];
     if (value != 0) {
       static_graphics_[3 + i] = value;
@@ -595,16 +595,16 @@ absl::Status OverworldMap::LoadPalette() {
 
   area_palette_ = std::min((int)area_palette_, 0xA3);
 
-  uchar pal0 = 0;
-  uchar pal1 = rom_[rom_.version_constants().kOverworldMapPaletteGroup +
+  uint8_t pal0 = 0;
+  uint8_t pal1 = rom_[rom_.version_constants().kOverworldMapPaletteGroup +
                     (area_palette_ * 4)];
-  uchar pal2 = rom_[rom_.version_constants().kOverworldMapPaletteGroup +
+  uint8_t pal2 = rom_[rom_.version_constants().kOverworldMapPaletteGroup +
                     (area_palette_ * 4) + 1];
-  uchar pal3 = rom_[rom_.version_constants().kOverworldMapPaletteGroup +
+  uint8_t pal3 = rom_[rom_.version_constants().kOverworldMapPaletteGroup +
                     (area_palette_ * 4) + 2];
-  uchar pal4 =
+  uint8_t pal4 =
       rom_[kOverworldSpritePaletteGroup + (sprite_palette_[game_state_] * 2)];
-  uchar pal5 = rom_[kOverworldSpritePaletteGroup +
+  uint8_t pal5 = rom_[kOverworldSpritePaletteGroup +
                     (sprite_palette_[game_state_] * 2) + 1];
 
   auto grass_pal_group = rom_.palette_group().grass;

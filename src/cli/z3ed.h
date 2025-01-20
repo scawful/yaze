@@ -11,8 +11,8 @@
 
 #include "absl/status/status.h"
 #include "app/core/common.h"
-#include "app/core/constants.h"
 #include "app/rom.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace cli {

@@ -3,9 +3,9 @@
 
 #include <cstdint>
 
-#include "app/core/constants.h"
 #include "app/rom.h"
 #include "app/zelda3/common.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -49,14 +49,14 @@ constexpr int kOverworldHoleEntrance = 0xDB84C;
 class OverworldEntrance : public GameEntity {
  public:
   uint16_t map_pos_;
-  uchar entrance_id_;
-  uchar area_x_;
-  uchar area_y_;
+  uint8_t entrance_id_;
+  uint8_t area_x_;
+  uint8_t area_y_;
   bool is_hole_ = false;
   bool deleted = false;
 
   OverworldEntrance() = default;
-  OverworldEntrance(int x, int y, uchar entrance_id, short map_id,
+  OverworldEntrance(int x, int y, uint8_t entrance_id, short map_id,
                     uint16_t map_pos, bool hole)
       : map_pos_(map_pos), entrance_id_(entrance_id), is_hole_(hole) {
     x_ = x;
@@ -67,8 +67,8 @@ class OverworldEntrance : public GameEntity {
 
     int mapX = (map_id_ - ((map_id_ / 8) * 8));
     int mapY = (map_id_ / 8);
-    area_x_ = (uchar)((std::abs(x - (mapX * 512)) / 16));
-    area_y_ = (uchar)((std::abs(y - (mapY * 512)) / 16));
+    area_x_ = (uint8_t)((std::abs(x - (mapX * 512)) / 16));
+    area_y_ = (uint8_t)((std::abs(y - (mapY * 512)) / 16));
   }
 
   void UpdateMapProperties(uint16_t map_id) override {
@@ -81,8 +81,8 @@ class OverworldEntrance : public GameEntity {
     int mapX = (map_id_ - ((map_id_ / 8) * 8));
     int mapY = (map_id_ / 8);
 
-    area_x_ = (uchar)((std::abs(x_ - (mapX * 512)) / 16));
-    area_y_ = (uchar)((std::abs(y_ - (mapY * 512)) / 16));
+    area_x_ = (uint8_t)((std::abs(x_ - (mapX * 512)) / 16));
+    area_y_ = (uint8_t)((std::abs(y_ - (mapY * 512)) / 16));
 
     map_pos_ = (uint16_t)((((area_y_) << 6) | (area_x_ & 0x3F)) << 1);
   }
