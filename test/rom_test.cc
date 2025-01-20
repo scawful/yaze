@@ -5,7 +5,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "test/core/testing.h"
+#include "test/testing.h"
 
 namespace yaze {
 namespace test {
