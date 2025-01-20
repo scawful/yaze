@@ -5,13 +5,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "absl/flags/flag.h"
 #include "app/core/constants.h"
 #include "cli/z3ed.h"
-#include "tui.h"
-
-ABSL_FLAG(bool, verbose, false, "Enable verbose output");
-ABSL_FLAG(bool, debug, false, "Enable debug output");
+#include "cli/tui.h"
 
 namespace yaze {
 /**
