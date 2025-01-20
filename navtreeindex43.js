@@ -1,7 +1,5 @@
 var NAVTREEINDEX43 =
 {
-"namespaceyaze_1_1zelda3.html#a733c34d8afa79c042f236147bfaa3674":[11,0,1,9,251],
-"namespaceyaze_1_1zelda3.html#a7418e3c6a3518db06948190e0fd931e2":[11,0,1,9,139],
 "namespaceyaze_1_1zelda3.html#a74613b4bf8b1cf0af09575210b5b729e":[11,0,1,9,132],
 "namespaceyaze_1_1zelda3.html#a7745249eeb5c180332b4a0b68f28c4fc":[11,0,1,9,119],
 "namespaceyaze_1_1zelda3.html#a77e91b2dd4b4e263d21875344f253b44":[11,0,1,9,134],
@@ -249,5 +247,7 @@ var NAVTREEINDEX43 =
 "room__object_8cc_source.html":[13,0,2,0,5,0,6],
 "room__object_8h.html":[13,0,2,0,5,0,7],
 "room__object_8h_source.html":[13,0,2,0,5,0,7],
-"room__tag_8h.html":[13,0,2,0,5,0,8]
+"room__tag_8h.html":[13,0,2,0,5,0,8],
+"room__tag_8h_source.html":[13,0,2,0,5,0,8],
+"scad__format_8cc.html":[13,0,2,0,3,4]
 };

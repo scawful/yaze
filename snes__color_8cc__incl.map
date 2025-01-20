@@ -1,15 +1,14 @@
 <map id="src/app/gfx/snes_color.cc" name="src/app/gfx/snes_color.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="91,5,260,31"/>
-<area shape="rect" id="Node000002" href="$src_2app_2gfx_2snes__color_8h.html" title=" " alt="" coords="40,79,180,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,33,133,69,129,66,163,29"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,153,66,178"/>
-<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="101,34,61,52,44,64,30,80,24,94,22,108,28,138,22,139,17,109,19,92,25,78,40,60,58,47,99,29"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="102,153,159,178"/>
-<area shape="poly" id="edge7_Node000001_Node000004" title=" " alt="" coords="191,30,216,63,223,84,219,106,199,130,174,148,171,144,196,127,214,104,218,85,212,66,186,33"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="223,153,320,178"/>
-<area shape="poly" id="edge8_Node000001_Node000005" title=" " alt="" coords="193,29,216,50,239,77,255,108,267,137,262,139,250,110,235,81,212,54,189,33"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="160,76,192,78,203,83,207,92,204,99,197,104,175,108,174,103,195,99,200,96,202,92,199,87,190,83,159,81"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="99,107,61,144,57,140,96,103"/>
-<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="116,104,125,137,120,138,111,106"/>
-<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="139,103,231,144,229,148,136,108"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="84,5,254,31"/>
+<area shape="rect" id="Node000002" href="$snes__color_8h.html" title=" " alt="" coords="45,79,186,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,33,136,68,132,65,158,30"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="5,153,66,178"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="105,34,66,52,49,64,35,80,29,94,27,108,30,138,25,138,22,108,24,92,31,78,45,61,63,47,103,29"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="102,153,159,178"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="181,30,200,64,204,85,201,106,185,128,166,146,162,142,181,125,196,104,199,85,195,66,176,33"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="211,153,308,178"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="182,30,220,78,251,137,246,139,216,80,178,33"/>
+<area shape="poly" id="edge2_Node000002_Node000004" title=" " alt="" coords="104,107,62,144,58,140,100,103"/>
+<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="121,104,127,137,122,138,115,105"/>
+<area shape="poly" id="edge4_Node000002_Node000006" title=" " alt="" coords="141,103,223,143,220,148,139,108"/>
 </map>

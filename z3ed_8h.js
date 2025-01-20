@@ -5,6 +5,7 @@ var z3ed_8h =
     [ "yaze::cli::ApplyPatch", "classyaze_1_1cli_1_1ApplyPatch.html", "classyaze_1_1cli_1_1ApplyPatch" ],
     [ "yaze::cli::AsarPatch", "classyaze_1_1cli_1_1AsarPatch.html", "classyaze_1_1cli_1_1AsarPatch" ],
     [ "yaze::cli::CreatePatch", "classyaze_1_1cli_1_1CreatePatch.html", "classyaze_1_1cli_1_1CreatePatch" ],
+    [ "yaze::cli::Tile16Transfer", "classyaze_1_1cli_1_1Tile16Transfer.html", "classyaze_1_1cli_1_1Tile16Transfer" ],
     [ "yaze::cli::Open", "classyaze_1_1cli_1_1Open.html", "classyaze_1_1cli_1_1Open" ],
     [ "yaze::cli::Backup", "classyaze_1_1cli_1_1Backup.html", "classyaze_1_1cli_1_1Backup" ],
     [ "yaze::cli::Compress", "classyaze_1_1cli_1_1Compress.html", "classyaze_1_1cli_1_1Compress" ],
@@ -12,7 +13,6 @@ var z3ed_8h =
     [ "yaze::cli::SnesToPc", "classyaze_1_1cli_1_1SnesToPc.html", "classyaze_1_1cli_1_1SnesToPc" ],
     [ "yaze::cli::PcToSnes", "classyaze_1_1cli_1_1PcToSnes.html", "classyaze_1_1cli_1_1PcToSnes" ],
     [ "yaze::cli::ReadFromRom", "classyaze_1_1cli_1_1ReadFromRom.html", "classyaze_1_1cli_1_1ReadFromRom" ],
-    [ "yaze::cli::Tile16Transfer", "classyaze_1_1cli_1_1Tile16Transfer.html", "classyaze_1_1cli_1_1Tile16Transfer" ],
     [ "yaze::cli::Expand", "classyaze_1_1cli_1_1Expand.html", "classyaze_1_1cli_1_1Expand" ],
     [ "yaze::cli::Commands", "structyaze_1_1cli_1_1Commands.html", "structyaze_1_1cli_1_1Commands" ],
     [ "yaze::cli::ColorCode", "namespaceyaze_1_1cli.html#a926a1f01429821b946fbc7bf6a0e1c13", [

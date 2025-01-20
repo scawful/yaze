@@ -1,7 +1,5 @@
 var NAVTREEINDEX44 =
 {
-"room__tag_8h_source.html":[13,0,2,0,5,0,8],
-"scad__format_8cc.html":[13,0,2,0,3,4],
 "scad__format_8cc_source.html":[13,0,2,0,3,4],
 "scad__format_8h.html":[13,0,2,0,3,5],
 "scad__format_8h_source.html":[13,0,2,0,3,5],
@@ -17,10 +15,10 @@ var NAVTREEINDEX44 =
 "settings__editor_8h_source.html":[13,0,2,0,1,7,11],
 "snes_8cc.html":[13,0,2,0,2,7],
 "snes_8cc_source.html":[13,0,2,0,2,7],
-"snes_8h.html":[13,0,2,0,2,8],
-"snes_8h_source.html":[13,0,2,0,2,8],
 "snes__color_8cc.html":[13,0,2,0,3,6],
 "snes__color_8cc_source.html":[13,0,2,0,3,6],
+"snes__color_8h.html":[13,0,2,0,3,7],
+"snes__color_8h_source.html":[13,0,2,0,3,7],
 "snes__palette_8cc.html":[13,0,2,0,3,8],
 "snes__palette_8cc_source.html":[13,0,2,0,3,8],
 "snes__palette_8h.html":[13,0,2,0,3,9],
@@ -29,6 +27,8 @@ var NAVTREEINDEX44 =
 "snes__palette__test_8cc_source.html":[13,0,3,1,1],
 "snes__tile_8cc.html":[13,0,2,0,3,10],
 "snes__tile_8cc_source.html":[13,0,2,0,3,10],
+"snes__tile_8h.html":[13,0,2,0,3,11],
+"snes__tile_8h_source.html":[13,0,2,0,3,11],
 "spc700_8cc.html":[13,0,2,0,2,0,5],
 "spc700_8cc_source.html":[13,0,2,0,2,0,5],
 "spc700_8h.html":[13,0,2,0,2,0,6],
@@ -49,10 +49,8 @@ var NAVTREEINDEX44 =
 "sprite__editor_8cc_source.html":[13,0,2,0,1,6,0],
 "sprite__editor_8h.html":[13,0,2,0,1,6,1],
 "sprite__editor_8h_source.html":[13,0,2,0,1,6,1],
-"src_2app_2gfx_2snes__color_8h.html":[13,0,2,0,3,7],
-"src_2app_2gfx_2snes__color_8h_source.html":[13,0,2,0,3,7],
-"src_2app_2gfx_2snes__tile_8h.html":[13,0,2,0,3,11],
-"src_2app_2gfx_2snes__tile_8h_source.html":[13,0,2,0,3,11],
+"src_2app_2emu_2snes_8h.html":[13,0,2,0,2,8],
+"src_2app_2emu_2snes_8h_source.html":[13,0,2,0,2,8],
 "src_2app_2zelda3_2overworld_2overworld_8h.html":[13,0,2,0,5,2,1],
 "src_2app_2zelda3_2overworld_2overworld_8h_source.html":[13,0,2,0,5,2,1],
 "structSDL__Deleter.html":[12,0,8],
@@ -249,5 +247,7 @@ var NAVTREEINDEX44 =
 "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html#aa44897fb8d5b75067e744d34de44582d":[11,0,1,2,3,0,5],
 "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html#aa44897fb8d5b75067e744d34de44582d":[12,0,0,1,1,0,5],
 "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html#adff4b61c1b49f2a235e48f039661678d":[11,0,1,2,3,0,1],
-"structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html#adff4b61c1b49f2a235e48f039661678d":[12,0,0,1,1,0,1]
+"structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html#adff4b61c1b49f2a235e48f039661678d":[12,0,0,1,1,0,1],
+"structyaze_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html":[11,0,1,2,3,0,0],
+"structyaze_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html":[12,0,0,1,1,0,0]
 };

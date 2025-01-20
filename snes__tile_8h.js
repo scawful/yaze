@@ -1,4 +1,4 @@
-var src_2app_2gfx_2snes__tile_8h =
+var snes__tile_8h =
 [
     [ "yaze::gfx::TileInfo", "classyaze_1_1gfx_1_1TileInfo.html", "classyaze_1_1gfx_1_1TileInfo" ],
     [ "yaze::gfx::Tile32", "classyaze_1_1gfx_1_1Tile32.html", "classyaze_1_1gfx_1_1Tile32" ],

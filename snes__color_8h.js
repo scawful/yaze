@@ -1,4 +1,4 @@
-var src_2app_2gfx_2snes__color_8h =
+var snes__color_8h =
 [
     [ "yaze::gfx::SnesColor", "classyaze_1_1gfx_1_1SnesColor.html", "classyaze_1_1gfx_1_1SnesColor" ],
     [ "yaze::gfx::ConvertSnesToRgb", "namespaceyaze_1_1gfx.html#a893d31b6aeb9a3df9754b9def778b458", null ],

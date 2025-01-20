@@ -1,15 +1,14 @@
 <map id="src/app/zelda3/screen/title_screen.h" name="src/app/zelda3/screen/title_screen.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="122,5,271,46"/>
-<area shape="rect" id="Node000002" href="$bitmap_8h.html" title=" " alt="" coords="234,168,351,193"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,45,250,93,283,153,278,155,245,95,210,48"/>
-<area shape="rect" id="Node000017" href="$src_2app_2gfx_2snes__tile_8h.html" title=" " alt="" coords="5,168,135,193"/>
-<area shape="poly" id="edge3_Node000001_Node000017" title=" " alt="" coords="183,48,92,157,88,154,179,45"/>
-<area shape="rect" id="Node000020" href="$rom_8h.html" title=" " alt="" coords="158,94,236,120"/>
-<area shape="poly" id="edge5_Node000001_Node000020" title=" " alt="" coords="199,46,199,78,194,78,194,46"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="216,241,273,267"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="287,195,264,230,259,227,283,192"/>
-<area shape="poly" id="edge4_Node000017_Node000017" title=" " alt="" coords="117,164,147,167,157,172,161,181,152,192,132,197,131,192,150,188,156,180,153,176,145,172,116,170"/>
-<area shape="poly" id="edge7_Node000020_Node000002" title=" " alt="" coords="215,118,266,156,263,161,211,122"/>
-<area shape="poly" id="edge6_Node000020_Node000003" title=" " alt="" coords="202,119,225,192,237,226,232,228,219,194,197,121"/>
-<area shape="poly" id="edge8_Node000020_Node000017" title=" " alt="" coords="176,123,106,162,103,157,174,118"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="98,5,247,46"/>
+<area shape="rect" id="Node000002" href="$bitmap_8h.html" title=" " alt="" coords="210,168,327,193"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,45,226,93,259,153,254,155,221,95,186,48"/>
+<area shape="rect" id="Node000018" href="$snes__tile_8h.html" title=" " alt="" coords="5,168,135,193"/>
+<area shape="poly" id="edge3_Node000001_Node000018" title=" " alt="" coords="159,48,124,96,86,156,82,153,120,92,155,45"/>
+<area shape="rect" id="Node000021" href="$rom_8h.html" title=" " alt="" coords="134,94,212,120"/>
+<area shape="poly" id="edge4_Node000001_Node000021" title=" " alt="" coords="175,46,175,78,170,78,170,46"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="192,241,249,267"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="263,195,240,230,235,227,259,192"/>
+<area shape="poly" id="edge6_Node000021_Node000002" title=" " alt="" coords="191,118,242,156,239,161,187,122"/>
+<area shape="poly" id="edge5_Node000021_Node000003" title=" " alt="" coords="178,119,201,192,213,226,208,228,195,194,173,121"/>
+<area shape="poly" id="edge7_Node000021_Node000018" title=" " alt="" coords="157,122,101,161,98,156,154,118"/>
 </map>
