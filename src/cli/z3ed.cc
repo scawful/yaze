@@ -8,7 +8,12 @@
 #include <vector>
 
 #include "cli/tui.h"
+#include "util/flag.h"
 #include "util/macro.h"
+
+DECLARE_FLAG(std::string, rom_file);
+
+DEFINE_FLAG(std::string, rom_file, "", "The ROM file to load.");
 
 namespace yaze {
 /**
@@ -87,6 +92,19 @@ int RunCommandHandler(int argc, char *argv[]) {
 }  // namespace yaze
 
 int main(int argc, char *argv[]) {
+  std::vector<std::string> tokens;
+  for (int i = 0; i < argc; i++) {
+    tokens.emplace_back(argv[i]);
+  }
+
+  yaze::util::FlagParser flag_parser(yaze::util::global_flag_registry());
+  try {
+    flag_parser.Parse(&tokens);
+  } catch (const std::exception &e) {
+    std::cerr << "Error parsing flags: " << e.what() << std::endl;
+    return EXIT_FAILURE;
+  }
+
   yaze::cli::ShowMain();
   return EXIT_SUCCESS;
   // return yaze::cli::RunCommandHandler(argc, argv);
