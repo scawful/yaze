@@ -2,7 +2,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/core/constants.h"
+#include "util/macro.h"
 #include "app/rom.h"
 #include "cli/z3ed.h"
 
