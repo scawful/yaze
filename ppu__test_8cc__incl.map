@@ -1,5 +1,5 @@
-<map id="src/test/emu/ppu_test.cc" name="src/test/emu/ppu_test.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="643,5,808,31"/>
+<map id="test/emu/ppu_test.cc" name="test/emu/ppu_test.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="654,5,797,31"/>
 <area shape="rect" id="Node000002" href="$ppu_8h.html" title=" " alt="" coords="292,79,434,105"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="664,34,440,78,439,73,663,29"/>
 <area shape="rect" id="Node000042" title=" " alt="" coords="800,153,913,178"/>

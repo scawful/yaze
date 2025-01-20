@@ -1,9 +1,6 @@
 var namespaceyaze_1_1core =
 [
     [ "anonymous_namespace{common.cc}", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html", [
-      [ "encode", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a7d25fb478bb8effa700733c570569231", null ],
-      [ "decode", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a5ccdc753db849c9b4919d9bc3046e91f", null ],
-      [ "crc32", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a22b36c5a55cae026fd8131ae06b8e149", null ],
       [ "ldle", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a3f42e460c8aca7262f168481d03883d4", null ],
       [ "stle", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a9ca88b46161c3ec2e0854a30c4e05f89", null ],
       [ "stle0", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#add7fdeb7cfabec157b3eaff5754486d3", null ],
@@ -51,8 +48,6 @@ var namespaceyaze_1_1core =
     [ "stle16b", "namespaceyaze_1_1core.html#a2cb2c0bf50bac2324d970587cc1b0233", null ],
     [ "ldle16b", "namespaceyaze_1_1core.html#ae36970b562677c5876e1ee584a051530", null ],
     [ "ldle16b_i", "namespaceyaze_1_1core.html#ac9d631f94259376fac0f193ba98bd9b2", null ],
-    [ "CreateBpsPatch", "namespaceyaze_1_1core.html#a1d6fb7654b6d82c76cf2e31fd4f11a5f", null ],
-    [ "ApplyBpsPatch", "namespaceyaze_1_1core.html#a0547d11cc90393910935ab1271f713a4", null ],
     [ "SnesToPc", "namespaceyaze_1_1core.html#a772a2d0d104498cb8100f0b2e717b6a2", null ],
     [ "PcToSnes", "namespaceyaze_1_1core.html#a134be6f5a039339a4a40c50152820e28", null ],
     [ "AddressFromBytes", "namespaceyaze_1_1core.html#a6ce88f9f428f027466401bd0f29af006", null ],

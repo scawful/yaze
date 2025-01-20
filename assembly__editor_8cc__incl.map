@@ -2,8 +2,8 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="480,5,616,46"/>
 <area shape="rect" id="Node000002" href="$assembly__editor_8h.html" title=" " alt="" coords="229,94,355,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="485,49,347,91,346,86,483,44"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="425,249,567,274"/>
-<area shape="poly" id="edge12_Node000001_Node000010" title=" " alt="" coords="549,47,541,112,525,194,510,235,505,234,520,193,536,112,544,46"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="425,249,567,274"/>
+<area shape="poly" id="edge12_Node000001_Node000009" title=" " alt="" coords="549,47,541,112,525,194,510,235,505,234,520,193,536,112,544,46"/>
 <area shape="rect" id="Node000055" href="$text__editor_8h.html" title=" " alt="" coords="5,241,147,282"/>
 <area shape="poly" id="edge16_Node000001_Node000055" title=" " alt="" coords="480,37,361,54,223,81,157,99,99,120,53,143,25,169,20,184,22,199,31,214,43,229,39,232,26,217,17,200,15,183,20,166,50,139,97,115,155,94,221,76,360,49,479,32"/>
 <area shape="rect" id="Node000042" href="$file__dialog_8h.html" title=" " alt="" coords="592,241,734,282"/>
@@ -20,7 +20,7 @@
 <area shape="rect" id="Node000059" href="$style_8h.html" title=" " alt="" coords="196,168,300,193"/>
 <area shape="poly" id="edge9_Node000002_Node000059" title=" " alt="" coords="287,121,266,156,261,153,282,118"/>
 <area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="437,195,356,318,351,315,433,192"/>
-<area shape="poly" id="edge5_Node000004_Node000010" title=" " alt="" coords="453,192,481,234,477,237,449,195"/>
+<area shape="poly" id="edge5_Node000004_Node000009" title=" " alt="" coords="453,192,481,234,477,237,449,195"/>
 <area shape="poly" id="edge8_Node000055_Node000003" title=" " alt="" coords="142,280,297,327,295,332,141,285"/>
 <area shape="poly" id="edge10_Node000059_Node000003" title=" " alt="" coords="257,193,326,315,321,318,252,195"/>
 <area shape="poly" id="edge11_Node000059_Node000055" title=" " alt="" coords="223,196,134,237,132,232,220,192"/>

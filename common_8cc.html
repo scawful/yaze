@@ -113,7 +113,6 @@ $(function(){initNavTree('common_8cc.html',''); initResizable(true); });
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="core_2common_8h_source.html">common.h</a>&quot;</code><br />
-<code>#include &lt;zlib.h&gt;</code><br />
 <code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;cstring&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
@@ -125,23 +124,21 @@ Include dependency graph for common.cc:</div>
 <div class="dyncontent">
 <div class="center"><img src="common_8cc__incl.png" border="0" usemap="#asrc_2app_2core_2common_8cc" alt=""/></div>
 <map name="asrc_2app_2core_2common_8cc" id="asrc_2app_2core_2common_8cc">
-<area shape="rect" title=" " alt="" coords="379,5,543,31"/>
+<area shape="rect" title=" " alt="" coords="353,5,518,31"/>
 <area shape="rect" href="core_2common_8h.html" title=" " alt="" coords="262,79,343,105"/>
-<area shape="poly" title=" " alt="" coords="435,34,344,75,342,70,433,29"/>
+<area shape="poly" title=" " alt="" coords="414,34,340,74,337,69,412,29"/>
 <area shape="rect" title=" " alt="" coords="5,153,66,178"/>
-<area shape="poly" title=" " alt="" coords="413,34,251,82,158,116,78,149,76,144,156,111,249,76,412,29"/>
+<area shape="poly" title=" " alt="" coords="396,34,251,82,79,149,77,144,249,76,394,29"/>
 <area shape="rect" title=" " alt="" coords="358,153,412,178"/>
-<area shape="poly" title=" " alt="" coords="457,33,400,140,396,138,452,30"/>
-<area shape="rect" title=" " alt="" coords="436,153,598,178"/>
-<area shape="poly" title=" " alt="" coords="462,32,462,65,470,104,481,123,494,140,490,143,476,126,465,106,457,66,457,32"/>
-<area shape="rect" title=" " alt="" coords="622,153,764,178"/>
-<area shape="poly" title=" " alt="" coords="467,30,484,66,497,86,513,103,558,129,608,147,606,152,556,134,510,107,493,89,479,69,462,32"/>
-<area shape="rect" title=" " alt="" coords="524,79,574,105"/>
-<area shape="poly" title=" " alt="" coords="477,29,524,67,521,71,474,34"/>
-<area shape="rect" title=" " alt="" coords="599,79,659,105"/>
-<area shape="poly" title=" " alt="" coords="490,29,587,70,585,75,488,34"/>
-<area shape="rect" title=" " alt="" coords="683,79,740,105"/>
-<area shape="poly" title=" " alt="" coords="505,29,669,75,667,81,503,34"/>
+<area shape="poly" title=" " alt="" coords="434,32,397,139,392,137,429,30"/>
+<area shape="rect" title=" " alt="" coords="435,153,577,178"/>
+<area shape="poly" title=" " alt="" coords="442,31,453,64,470,103,491,139,486,141,465,106,448,66,437,32"/>
+<area shape="rect" title=" " alt="" coords="602,153,763,178"/>
+<area shape="poly" title=" " alt="" coords="445,29,472,65,492,85,513,102,561,128,611,145,609,150,559,133,510,107,488,89,468,69,441,33"/>
+<area shape="rect" title=" " alt="" coords="524,79,584,105"/>
+<area shape="poly" title=" " alt="" coords="457,29,522,68,520,73,454,34"/>
+<area shape="rect" title=" " alt="" coords="608,79,666,105"/>
+<area shape="poly" title=" " alt="" coords="471,29,594,73,593,78,469,34"/>
 <area shape="rect" title=" " alt="" coords="89,153,150,178"/>
 <area shape="poly" title=" " alt="" coords="272,108,165,149,163,144,270,103"/>
 <area shape="poly" title=" " alt="" coords="262,106,81,154,80,149,260,101"/>
@@ -150,8 +147,8 @@ Include dependency graph for common.cc:</div>
 <area shape="rect" title=" " alt="" coords="262,153,334,178"/>
 <area shape="poly" title=" " alt="" coords="304,105,302,137,297,137,299,105"/>
 <area shape="poly" title=" " alt="" coords="318,103,361,140,358,144,314,107"/>
-<area shape="poly" title=" " alt="" coords="339,103,467,145,465,150,338,108"/>
-<area shape="poly" title=" " alt="" coords="344,98,612,147,611,152,343,103"/>
+<area shape="poly" title=" " alt="" coords="338,103,458,145,456,150,336,108"/>
+<area shape="poly" title=" " alt="" coords="344,98,603,147,602,152,343,103"/>
 </map>
 </div>
 </div>
@@ -170,12 +167,6 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a7d25fb478bb8effa700733c570569231" id="r_a7d25fb478bb8effa700733c570569231"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a7d25fb478bb8effa700733c570569231">yaze::core::anonymous_namespace{common.cc}::encode</a> (uint64_t data, std::vector&lt; uint8_t &gt; &amp;output)</td></tr>
-<tr class="separator:a7d25fb478bb8effa700733c570569231"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5ccdc753db849c9b4919d9bc3046e91f" id="r_a5ccdc753db849c9b4919d9bc3046e91f"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a5ccdc753db849c9b4919d9bc3046e91f">yaze::core::anonymous_namespace{common.cc}::decode</a> (const std::vector&lt; uint8_t &gt; &amp;input, size_t &amp;offset)</td></tr>
-<tr class="separator:a5ccdc753db849c9b4919d9bc3046e91f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a22b36c5a55cae026fd8131ae06b8e149" id="r_a22b36c5a55cae026fd8131ae06b8e149"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a22b36c5a55cae026fd8131ae06b8e149">yaze::core::anonymous_namespace{common.cc}::crc32</a> (const std::vector&lt; uint8_t &gt; &amp;data)</td></tr>
-<tr class="separator:a22b36c5a55cae026fd8131ae06b8e149"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3f42e460c8aca7262f168481d03883d4" id="r_a3f42e460c8aca7262f168481d03883d4"><td class="memItemLeft" align="right" valign="top">unsigned&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a3f42e460c8aca7262f168481d03883d4">yaze::core::anonymous_namespace{common.cc}::ldle</a> (uint8_t const *const p_arr, unsigned const p_index)</td></tr>
 <tr class="separator:a3f42e460c8aca7262f168481d03883d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9ca88b46161c3ec2e0854a30c4e05f89" id="r_a9ca88b46161c3ec2e0854a30c4e05f89"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a9ca88b46161c3ec2e0854a30c4e05f89">yaze::core::anonymous_namespace{common.cc}::stle</a> (uint8_t *const p_arr, size_t const p_index, unsigned const p_val)</td></tr>
@@ -220,10 +211,6 @@ Functions</h2></td></tr>
 <tr class="memitem:ac9d631f94259376fac0f193ba98bd9b2" id="r_ac9d631f94259376fac0f193ba98bd9b2"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core.html#ac9d631f94259376fac0f193ba98bd9b2">yaze::core::ldle16b_i</a> (uint8_t const *const p_arr, size_t const p_index)</td></tr>
 <tr class="memdesc:ac9d631f94259376fac0f193ba98bd9b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load little endian halfword (16-bit) dereferenced from an arrays of bytes. This version provides an index that will be multiplied by 2 and added to the base address.  <br /></td></tr>
 <tr class="separator:ac9d631f94259376fac0f193ba98bd9b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1d6fb7654b6d82c76cf2e31fd4f11a5f" id="r_a1d6fb7654b6d82c76cf2e31fd4f11a5f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core.html#a1d6fb7654b6d82c76cf2e31fd4f11a5f">yaze::core::CreateBpsPatch</a> (const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;target, std::vector&lt; uint8_t &gt; &amp;patch)</td></tr>
-<tr class="separator:a1d6fb7654b6d82c76cf2e31fd4f11a5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0547d11cc90393910935ab1271f713a4" id="r_a0547d11cc90393910935ab1271f713a4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core.html#a0547d11cc90393910935ab1271f713a4">yaze::core::ApplyBpsPatch</a> (const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;patch, std::vector&lt; uint8_t &gt; &amp;target)</td></tr>
-<tr class="separator:a0547d11cc90393910935ab1271f713a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

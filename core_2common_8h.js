@@ -21,7 +21,5 @@ var core_2common_8h =
     [ "yaze::core::stle16b", "namespaceyaze_1_1core.html#a2cb2c0bf50bac2324d970587cc1b0233", null ],
     [ "yaze::core::ldle16b_i", "namespaceyaze_1_1core.html#ac9d631f94259376fac0f193ba98bd9b2", null ],
     [ "yaze::core::ldle16b", "namespaceyaze_1_1core.html#ae36970b562677c5876e1ee584a051530", null ],
-    [ "yaze::core::CreateBpsPatch", "namespaceyaze_1_1core.html#a1d6fb7654b6d82c76cf2e31fd4f11a5f", null ],
-    [ "yaze::core::ApplyBpsPatch", "namespaceyaze_1_1core.html#a0547d11cc90393910935ab1271f713a4", null ],
     [ "yaze::core::kFastRomRegion", "namespaceyaze_1_1core.html#a147dd50027b3bc7f7f7dbf3600c7d79d", null ]
 ];

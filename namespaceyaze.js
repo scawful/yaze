@@ -10,6 +10,7 @@ var namespaceyaze =
     [ "gfx", "namespaceyaze_1_1gfx.html", "namespaceyaze_1_1gfx" ],
     [ "gui", "namespaceyaze_1_1gui.html", "namespaceyaze_1_1gui" ],
     [ "test", "namespaceyaze_1_1test.html", "namespaceyaze_1_1test" ],
+    [ "util", "namespaceyaze_1_1util.html", "namespaceyaze_1_1util" ],
     [ "zelda3", "namespaceyaze_1_1zelda3.html", "namespaceyaze_1_1zelda3" ],
     [ "GraphicsSheetManager", "classyaze_1_1GraphicsSheetManager.html", "classyaze_1_1GraphicsSheetManager" ],
     [ "Project", "structyaze_1_1Project.html", "structyaze_1_1Project" ],

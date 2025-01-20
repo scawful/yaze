@@ -21,7 +21,7 @@
 <area shape="poly" id="edge9_Node000043_Node000019" title=" " alt="" coords="703,134,722,207,743,255,738,257,717,209,697,136"/>
 <area shape="rect" id="Node000018" href="$dungeon__editor_8h.html" title=" " alt="" coords="731,168,884,208"/>
 <area shape="poly" id="edge10_Node000043_Node000018" title=" " alt="" coords="733,127,784,165,780,169,730,131"/>
-<area shape="rect" id="Node000044" href="$dungeon__room__test_8cc.html" title=" " alt="" coords="908,168,1068,208"/>
-<area shape="poly" id="edge13_Node000043_Node000044" title=" " alt="" coords="776,122,922,165,920,170,774,127"/>
+<area shape="rect" id="Node000044" href="$dungeon__room__test_8cc.html" title=" " alt="" coords="908,168,1046,208"/>
+<area shape="poly" id="edge13_Node000043_Node000044" title=" " alt="" coords="773,122,913,165,912,170,772,127"/>
 <area shape="poly" id="edge11_Node000018_Node000019" title=" " alt="" coords="789,223,766,257,761,254,784,220"/>
 </map>

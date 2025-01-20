@@ -7,7 +7,7 @@ var compression__test_8cc =
     [ "yaze::test::anonymous_namespace{compression_test.cc}::ExpectCompressOk", "namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a8dd3d3b66e0f8c6c3f419f7e0af8da9b", null ],
     [ "yaze::test::anonymous_namespace{compression_test.cc}::ExpectDecompressBytesOk", "namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#aea2a498a83c2d824402e1632a4c0c14b", null ],
     [ "yaze::test::anonymous_namespace{compression_test.cc}::ExpectDecompressOk", "namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a39c906d372ef594237c65bc20d310711", null ],
-    [ "yaze::test::anonymous_namespace{compression_test.cc}::ExpectNewCompressionPieceOk", "namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#abe193c4681aff31e3d2c3b9a07797f51", null ],
+    [ "yaze::test::anonymous_namespace{compression_test.cc}::ExpectNewCompressionPieceOk", "namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a9ceacaaa96ef2d18ba0ce84eb6751d3b", null ],
     [ "yaze::test::anonymous_namespace{compression_test.cc}::AssertCompressionQuality", "namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#adf116b63a46b6698d5d5fe40373a9089", null ],
     [ "yaze::test::anonymous_namespace{compression_test.cc}::ExpectCompressV3Ok", "namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a58140b62f6d943673ace32dabb62fc3c", null ],
     [ "yaze::test::anonymous_namespace{compression_test.cc}::CreateRepeatedBetweenUncompressable", "namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a42fad52e57b19e451335e64fec8771ec", null ],

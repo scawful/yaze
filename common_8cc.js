@@ -1,8 +1,5 @@
 var common_8cc =
 [
-    [ "yaze::core::anonymous_namespace{common.cc}::encode", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a7d25fb478bb8effa700733c570569231", null ],
-    [ "yaze::core::anonymous_namespace{common.cc}::decode", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a5ccdc753db849c9b4919d9bc3046e91f", null ],
-    [ "yaze::core::anonymous_namespace{common.cc}::crc32", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a22b36c5a55cae026fd8131ae06b8e149", null ],
     [ "yaze::core::anonymous_namespace{common.cc}::ldle", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a3f42e460c8aca7262f168481d03883d4", null ],
     [ "yaze::core::anonymous_namespace{common.cc}::stle", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a9ca88b46161c3ec2e0854a30c4e05f89", null ],
     [ "yaze::core::anonymous_namespace{common.cc}::stle0", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#add7fdeb7cfabec157b3eaff5754486d3", null ],
@@ -23,7 +20,5 @@ var common_8cc =
     [ "yaze::core::stle16b_i", "namespaceyaze_1_1core.html#a611a51e1035d450eef5c06263128ce92", null ],
     [ "yaze::core::stle16b", "namespaceyaze_1_1core.html#a2cb2c0bf50bac2324d970587cc1b0233", null ],
     [ "yaze::core::ldle16b", "namespaceyaze_1_1core.html#ae36970b562677c5876e1ee584a051530", null ],
-    [ "yaze::core::ldle16b_i", "namespaceyaze_1_1core.html#ac9d631f94259376fac0f193ba98bd9b2", null ],
-    [ "yaze::core::CreateBpsPatch", "namespaceyaze_1_1core.html#a1d6fb7654b6d82c76cf2e31fd4f11a5f", null ],
-    [ "yaze::core::ApplyBpsPatch", "namespaceyaze_1_1core.html#a0547d11cc90393910935ab1271f713a4", null ]
+    [ "yaze::core::ldle16b_i", "namespaceyaze_1_1core.html#ac9d631f94259376fac0f193ba98bd9b2", null ]
 ];

@@ -11,7 +11,7 @@ var searchData=
   ['empty_8',['empty',['../classyaze_1_1gfx_1_1SnesPalette.html#aac8e91cfdca9827c7b7220adeccb7eb2',1,'yaze::gfx::SnesPalette::empty()'],['../structyaze_1_1gfx_1_1PaletteGroupMap.html#a91a5d448a2489e2a38c5b0c65e9702a3',1,'yaze::gfx::PaletteGroupMap::empty()']]],
   ['emulator_9',['Emulator',['../classyaze_1_1emu_1_1Emulator.html#a9d42da55a4a6e519e18de44de236f3c2',1,'yaze::emu::Emulator']]],
   ['emulator_10',['emulator',['../classyaze_1_1editor_1_1EditorManager.html#acb71e69070ce5a0a4aba6c874f1353e3',1,'yaze::editor::EditorManager']]],
-  ['encode_11',['encode',['../namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a7d25fb478bb8effa700733c570569231',1,'yaze::core::anonymous_namespace{common.cc}']]],
+  ['encode_11',['encode',['../namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#af030929a88a229dd186c01330c979b6c',1,'yaze::util::anonymous_namespace{bps.cc}']]],
   ['end_12',['end',['../classyaze_1_1emu_1_1MemoryImpl.html#a8fd6d380f86fbb2eb76a2a6bdd85b33d',1,'yaze::emu::MemoryImpl::end()'],['../classyaze_1_1gfx_1_1SnesPalette.html#aeb8694af4f5cf6e0b1ea59e88c8353d6',1,'yaze::gfx::SnesPalette::end()'],['../classyaze_1_1gfx_1_1GraphicsBuffer.html#ad22d9ba7a530cf2285e6292a0f415d46',1,'yaze::gfx::GraphicsBuffer::end()'],['../classyaze_1_1gfx_1_1GraphicsBuffer.html#a3cd6d382309cad38e1d4f8ad740e0043',1,'yaze::gfx::GraphicsBuffer::end() const'],['../classyaze_1_1Rom.html#a3bb9d5c0738e212354b766df6d652b50',1,'yaze::Rom::end()'],['../classyaze_1_1test_1_1Rom.html#a3bb9d5c0738e212354b766df6d652b50',1,'yaze::test::Rom::end()']]],
   ['endnopadding_13',['EndNoPadding',['../namespaceyaze_1_1gui.html#a59476f506247500392e1f7512924649a',1,'yaze::gui']]],
   ['endpadding_14',['EndPadding',['../namespaceyaze_1_1gui.html#a703ce750767a17205f5f2fcfc3294a37',1,'yaze::gui']]],
@@ -35,6 +35,6 @@ var searchData=
   ['expectcompressv3ok_32',['ExpectCompressV3Ok',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a58140b62f6d943673ace32dabb62fc3c',1,'yaze::test::anonymous_namespace{compression_test.cc}']]],
   ['expectdecompressbytesok_33',['ExpectDecompressBytesOk',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#aea2a498a83c2d824402e1632a4c0c14b',1,'yaze::test::anonymous_namespace{compression_test.cc}']]],
   ['expectdecompressok_34',['ExpectDecompressOk',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a39c906d372ef594237c65bc20d310711',1,'yaze::test::anonymous_namespace{compression_test.cc}']]],
-  ['expectnewcompressionpieceok_35',['ExpectNewCompressionPieceOk',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#abe193c4681aff31e3d2c3b9a07797f51',1,'yaze::test::anonymous_namespace{compression_test.cc}']]],
+  ['expectnewcompressionpieceok_35',['ExpectNewCompressionPieceOk',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a9ceacaaa96ef2d18ba0ce84eb6751d3b',1,'yaze::test::anonymous_namespace{compression_test.cc}']]],
   ['extract_36',['Extract',['../namespaceyaze_1_1gfx.html#a10d06c5c03e3faef4b05f4183024650e',1,'yaze::gfx::Extract()'],['../namespaceyaze_1_1test.html#a10d06c5c03e3faef4b05f4183024650e',1,'yaze::test::Extract()']]]
 ];

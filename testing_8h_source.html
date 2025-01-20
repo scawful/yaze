@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.13.2"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/test/core/testing.h Source File</title>
+<title>yaze: test/testing.h Source File</title>
 <link rel="icon" href="yaze.ico" type="image/x-icon" />
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
@@ -132,8 +132,7 @@ $(function(){initNavTree('testing_8h_source.html',''); initResizable(true); });
 </div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
-<div class="foldopen" id="foldopen00022" data-start="{" data-end="}">
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html">   22</a></span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze_1_1test.html">test</a> {</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="keyword">namespace </span>test {</div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="comment">// StatusIs is a matcher that matches a status that has the same code and</span></div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="comment">// message as the expected status.</span></div>
@@ -159,20 +158,18 @@ $(function(){initNavTree('testing_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a9a26abfe41bf9190bacbb085d2060936">   43</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a966536ba60abd09d24a03d6824214d30">MATCHER_P</a>(<a class="code hl_function" href="namespaceyaze_1_1test.html#ace6494b75531bde42a021a993af2b3e1">IsOkAndHolds</a>, value, <span class="stringliteral">&quot;&quot;</span>) { <span class="keywordflow">return</span> <a class="code hl_function" href="namespaceyaze_1_1test.html#ace6494b75531bde42a021a993af2b3e1">IsOkAndHolds</a>(arg, value); }</div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>}  <span class="comment">// namespace test</span></div>
-</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_TEST_CORE_TESTING_H</span></div>
-<div class="ttc" id="anamespaceyaze_1_1test_html"><div class="ttname"><a href="namespaceyaze_1_1test.html">yaze::test</a></div><div class="ttdef"><b>Definition</b> <a href="#l00022">testing.h:22</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1test_html_a966536ba60abd09d24a03d6824214d30"><div class="ttname"><a href="namespaceyaze_1_1test.html#a966536ba60abd09d24a03d6824214d30">yaze::test::MATCHER_P</a></div><div class="ttdeci">MATCHER_P(StatusIs, status, &quot;&quot;)</div><div class="ttdef"><b>Definition</b> <a href="#l00026">testing.h:26</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1test_html_ace6494b75531bde42a021a993af2b3e1"><div class="ttname"><a href="namespaceyaze_1_1test.html#ace6494b75531bde42a021a993af2b3e1">yaze::test::IsOkAndHolds</a></div><div class="ttdeci">::testing::AssertionResult IsOkAndHolds(const absl::StatusOr&lt; T &gt; &amp;status_or, const T &amp;value)</div><div class="ttdef"><b>Definition</b> <a href="#l00030">testing.h:30</a></div></div>
-<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="common_8cc_source.html#l00013">common.cc:13</a></div></div>
+<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="common_8cc_source.html#l00011">common.cc:11</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_120ed4da3e3217b1e7fc0b4f48568e79.html">test</a></li><li class="navelem"><a class="el" href="dir_25a9e11dbc65181166ed52990eb35b85.html">core</a></li><li class="navelem"><a class="el" href="testing_8h.html">testing.h</a></li>
+    <li class="navelem"><a class="el" href="dir_13e138d54eb8818da29c3992edef070a.html">test</a></li><li class="navelem"><a class="el" href="testing_8h.html">testing.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.13.2 </li>
   </ul>
 </div>
