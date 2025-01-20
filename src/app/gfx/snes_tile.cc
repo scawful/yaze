@@ -5,22 +5,22 @@
 #include <stdexcept>
 #include <vector>
 
-#include "app/core/constants.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace gfx {
 
 // Bit set for object priority
-constexpr ushort TilePriorityBit = 0x2000;
+constexpr uint16_t TilePriorityBit = 0x2000;
 
 // Bit set for object hflip
-constexpr ushort TileHFlipBit = 0x4000;
+constexpr uint16_t TileHFlipBit = 0x4000;
 
 // Bit set for object vflip
-constexpr ushort TileVFlipBit = 0x8000;
+constexpr uint16_t TileVFlipBit = 0x8000;
 
 // Bits used for tile name
-constexpr ushort TileNameMask = 0x03FF;
+constexpr uint16_t TileNameMask = 0x03FF;
 
 snes_tile8 UnpackBppTile(const std::vector<uint8_t>& data,
                          const uint32_t offset, const uint32_t bpp) {

@@ -10,9 +10,9 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/core/constants.h"
 #include "app/gfx/snes_color.h"
 #include "imgui/imgui.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace gfx {
@@ -224,8 +224,8 @@ SnesPalette::SnesPalette(char *data) {
   assert((sizeof(data) % 4 == 0) && (sizeof(data) <= 32));
   for (unsigned i = 0; i < sizeof(data); i += 2) {
     SnesColor col;
-    col.set_snes(static_cast<uchar>(data[i + 1]) << 8);
-    col.set_snes(col.snes() | static_cast<uchar>(data[i]));
+    col.set_snes(static_cast<uint8_t>(data[i + 1]) << 8);
+    col.set_snes(col.snes() | static_cast<uint8_t>(data[i]));
     snes_color mColor = ConvertSnesToRgb(col.snes());
     col.set_rgb(ImVec4(mColor.red, mColor.green, mColor.blue, 1.f));
     colors.push_back(col);
@@ -271,7 +271,7 @@ SnesPalette ReadPaletteFromRom(int offset, int num_colors, const uint8_t *rom) {
   std::vector<gfx::SnesColor> colors(num_colors);
 
   while (color_offset < num_colors) {
-    short color = (ushort)((rom[offset + 1]) << 8) | rom[offset];
+    short color = (uint16_t)((rom[offset + 1]) << 8) | rom[offset];
     snes_color new_color;
     new_color.red = (color & 0x1F) * 8;
     new_color.green = ((color >> 5) & 0x1F) * 8;

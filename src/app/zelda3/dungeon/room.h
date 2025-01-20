@@ -7,12 +7,12 @@
 #include <string_view>
 #include <vector>
 
-#include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/dungeon/room_tag.h"
 #include "app/zelda3/sprite/sprite.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -79,7 +79,7 @@ constexpr int dungeon_spr_ptrs = 0x090000;
 
 constexpr int NumberOfRooms = 296;
 
-constexpr ushort stairsObjects[] = {0x139, 0x138, 0x13B, 0x12E, 0x12D};
+constexpr uint16_t stairsObjects[] = {0x139, 0x138, 0x13B, 0x12E, 0x12D};
 
 struct LayerMergeType {
   uint8_t ID;
@@ -121,7 +121,7 @@ class Room : public SharedRom {
   void CalculateRoomSize();
   void LoadRoomFromROM();
 
-  void LoadRoomGraphics(uchar entrance_blockset = 0xFF);
+  void LoadRoomGraphics(uint8_t entrance_blockset = 0xFF);
   void CopyRoomGraphicsToBuffer();
   void LoadAnimatedGraphics();
 

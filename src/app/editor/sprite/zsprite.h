@@ -6,8 +6,8 @@
 #include <string>
 #include <vector>
 
-#include "app/core/constants.h"
 #include "absl/status/status.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace editor {
@@ -106,8 +106,8 @@ struct ZSprite {
       offset += sizeof(int);
 
       for (int j = 0; j < tCount; j++) {
-        ushort tid = *reinterpret_cast<ushort*>(&buffer[offset]);
-        offset += sizeof(ushort);
+        uint16_t tid = *reinterpret_cast<uint16_t*>(&buffer[offset]);
+        offset += sizeof(uint16_t);
         uint8_t tpal = *reinterpret_cast<uint8_t*>(&buffer[offset]);
         offset += sizeof(uint8_t);
         bool tmx = *reinterpret_cast<bool*>(&buffer[offset]);
@@ -246,7 +246,7 @@ struct ZSprite {
 
         for (int j = 0; j < editor.Frames[i].Tiles.size(); j++) {
           fs.write(reinterpret_cast<const char*>(&editor.Frames[i].Tiles[j].id),
-                   sizeof(ushort));
+                   sizeof(uint16_t));
           fs.write(
               reinterpret_cast<const char*>(&editor.Frames[i].Tiles[j].palette),
               sizeof(uint8_t));

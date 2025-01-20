@@ -7,9 +7,9 @@
 #include <memory>
 
 #include "absl/status/status.h"
-#include "app/core/constants.h"
 #include "app/core/platform/sdl_deleter.h"
 #include "app/gfx/snes_palette.h"
+#include "util/macro.h"
 
 namespace yaze {
 
@@ -91,10 +91,10 @@ class Bitmap {
 
   void SaveSurfaceToFile(std::string_view filename);
 
-  void Initialize(int width, int height, int depth, std::span<uint8_t>& data);
+  void Initialize(int width, int height, int depth, std::span<uint8_t> &data);
 
   void Create(int width, int height, int depth, int data_size) {
-		Create(width, height, depth, std::vector<uint8_t>(data_size, 0));
+    Create(width, height, depth, std::vector<uint8_t>(data_size, 0));
   }
   void Create(int width, int height, int depth, std::span<uint8_t> data);
   void Create(int width, int height, int depth,
@@ -133,7 +133,7 @@ class Bitmap {
   void Get16x16Tile(int tile_x, int tile_y, std::vector<uint8_t> &tile_data,
                     int &tile_data_offset);
 
-  void WriteToPixel(int position, uchar value) {
+  void WriteToPixel(int position, uint8_t value) {
     if (pixel_data_ == nullptr) {
       pixel_data_ = data_.data();
     }

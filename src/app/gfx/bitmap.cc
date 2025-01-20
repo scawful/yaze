@@ -9,13 +9,8 @@
 #include <memory>
 
 #include "absl/status/status.h"
-#include "app/core/constants.h"
 #include "app/gfx/snes_palette.h"
-
-#define SDL_RETURN_IF_ERROR()                   \
-  if (SDL_GetError() != nullptr) {              \
-    return absl::InternalError(SDL_GetError()); \
-  }
+#include "util/macro.h"
 
 namespace yaze {
 namespace gfx {
@@ -218,7 +213,8 @@ Bitmap::Bitmap(int width, int height, int depth, int data_size) {
   Create(width, height, depth, std::vector<uint8_t>(data_size, 0));
 }
 
-void Bitmap::Initialize(int width, int height, int depth, std::span<uint8_t>& data) {
+void Bitmap::Initialize(int width, int height, int depth,
+                        std::span<uint8_t> &data) {
   width_ = width;
   height_ = height;
   depth_ = depth;
@@ -259,7 +255,8 @@ void Bitmap::Create(int width, int height, int depth, int format,
                                      GetSnesPixelFormat(format)),
       SDL_Surface_Deleter{}};
   if (surface_ == nullptr) {
-    SDL_Log("Bitmap::Create.SDL_CreateRGBSurfaceWithFormat failed: %s\n", SDL_GetError());
+    SDL_Log("Bitmap::Create.SDL_CreateRGBSurfaceWithFormat failed: %s\n",
+            SDL_GetError());
     active_ = false;
     return;
   }
@@ -293,7 +290,8 @@ void Bitmap::CreateTexture(SDL_Renderer *renderer) {
                         SDL_TEXTUREACCESS_STREAMING, width_, height_),
       SDL_Texture_Deleter{}};
   if (texture_ == nullptr) {
-    SDL_Log("Bitmap::CreateTexture.SDL_CreateTextureFromSurface failed: %s\n", SDL_GetError());
+    SDL_Log("Bitmap::CreateTexture.SDL_CreateTextureFromSurface failed: %s\n",
+            SDL_GetError());
   }
   texture_pixels = data_.data();
 
@@ -301,7 +299,8 @@ void Bitmap::CreateTexture(SDL_Renderer *renderer) {
       SDL_ConvertSurfaceFormat(surface_.get(), SDL_PIXELFORMAT_ARGB8888, 0),
       SDL_Surface_Deleter{}};
   if (converted_surface_ == nullptr) {
-    SDL_Log("Bitmap::CreateTexture.SDL_ConvertSurfaceFormat failed: %s\n", SDL_GetError());
+    SDL_Log("Bitmap::CreateTexture.SDL_ConvertSurfaceFormat failed: %s\n",
+            SDL_GetError());
     return;
   }
 

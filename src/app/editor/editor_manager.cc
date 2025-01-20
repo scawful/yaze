@@ -2,7 +2,6 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/match.h"
-#include "app/core/constants.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
@@ -22,6 +21,7 @@
 #include "editor/editor.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace editor {
@@ -62,7 +62,7 @@ absl::Status EditorManager::Update() {
   DrawPopups();
 
   if (rom()->is_loaded() && !rom_assets_loaded_) {
-		auto& sheet_manager = GraphicsSheetManager::GetInstance();
+    auto &sheet_manager = GraphicsSheetManager::GetInstance();
     ASSIGN_OR_RETURN(*sheet_manager.mutable_gfx_sheets(),
                      LoadAllGraphicsData(*rom()))
     RETURN_IF_ERROR(overworld_editor_.LoadGraphics());
@@ -357,15 +357,19 @@ void EditorManager::DrawPopups() {
 }
 
 void EditorManager::DrawHomepage() {
-	TextWrapped("Welcome to the Yet Another Zelda3 Editor (yaze)!");
-	TextWrapped("This editor is designed to be a comprehensive tool for editing the Legend of Zelda: A Link to the Past.");
-	TextWrapped("The editor is still in development, so please report any bugs or issues you encounter.");
+  TextWrapped("Welcome to the Yet Another Zelda3 Editor (yaze)!");
+  TextWrapped(
+      "This editor is designed to be a comprehensive tool for editing the "
+      "Legend of Zelda: A Link to the Past.");
+  TextWrapped(
+      "The editor is still in development, so please report any bugs or issues "
+      "you encounter.");
 
-	static bool managed_startup = false;
-	
-	if (Button("Open ROM", ImVec2(200, 0))) {
-		LoadRom();
-	}
+  static bool managed_startup = false;
+
+  if (Button("Open ROM", ImVec2(200, 0))) {
+    LoadRom();
+  }
   SameLine();
   ImGui::Checkbox("Manage Startup", &managed_startup);
   Separator();
@@ -467,18 +471,18 @@ void EditorManager::DrawMenuContent() {
         flags_menu.DrawSystemFlags();
         EndMenu();
       }
-			if (BeginMenu("Overworld Flags")) {
-				flags_menu.DrawOverworldFlags();
-				EndMenu();
-			}
+      if (BeginMenu("Overworld Flags")) {
+        flags_menu.DrawOverworldFlags();
+        EndMenu();
+      }
       if (BeginMenu("Dungeon Flags")) {
         flags_menu.DrawDungeonFlags();
         EndMenu();
       }
-			if (BeginMenu("Resource Flags")) {
-				flags_menu.DrawResourceFlags();
-				EndMenu();
-			}
+      if (BeginMenu("Resource Flags")) {
+        flags_menu.DrawResourceFlags();
+        EndMenu();
+      }
       EndMenu();
     }
 
@@ -718,7 +722,7 @@ void EditorManager::LoadRom() {
   auto file_name = FileDialogWrapper::ShowOpenFileDialog();
   auto load_rom = rom()->LoadFromFile(file_name);
   if (load_rom.ok()) {
-		current_rom_ = rom();
+    current_rom_ = rom();
     static RecentFilesManager manager("recent_files.txt");
     manager.Load();
     manager.AddFile(file_name);
@@ -736,8 +740,8 @@ void EditorManager::SaveRom() {
   RETURN_VOID_IF_ERROR(status_);
 
   if (core::ExperimentFlags::get().kSaveGraphicsSheet)
-    PRINT_IF_ERROR(SaveAllGraphicsData(*rom(), 
-      GraphicsSheetManager::GetInstance().gfx_sheets()));
+    PRINT_IF_ERROR(SaveAllGraphicsData(
+        *rom(), GraphicsSheetManager::GetInstance().gfx_sheets()));
 
   status_ = rom()->SaveToFile(backup_rom_, save_new_auto_);
 }
@@ -750,13 +754,13 @@ void EditorManager::OpenRomOrProject(const std::string &filename) {
     }
   } else {
     status_ = rom()->LoadFromFile(filename);
-		current_rom_ = rom();
+    current_rom_ = rom();
   }
 }
 
 absl::Status EditorManager::OpenProject() {
   RETURN_IF_ERROR(rom()->LoadFromFile(current_project_.rom_filename_));
-	current_rom_ = rom();
+  current_rom_ = rom();
 
   if (!rom()->resource_label()->LoadLabels(current_project_.labels_filename_)) {
     return absl::InternalError(

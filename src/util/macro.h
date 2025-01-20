@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_CORE_CONSTANTS_H
-#define YAZE_APP_CORE_CONSTANTS_H
+#ifndef YAZE_UTIL_MACRO_H
+#define YAZE_UTIL_MACRO_H
 
 #define TAB_ITEM(w) if (ImGui::BeginTabItem(w)) {
 #define END_TAB_ITEM() \
@@ -109,8 +109,9 @@
     return temp;                        \
   }
 
-using ushort = unsigned short;
-using uint = unsigned int;
-using uchar = unsigned char;
+#define SDL_RETURN_IF_ERROR()                   \
+  if (SDL_GetError() != nullptr) {              \
+    return absl::InternalError(SDL_GetError()); \
+  }
 
-#endif
+#endif  // YAZE_UTIL_MACRO_H

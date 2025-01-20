@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <iostream>
 
-#include "app/core/constants.h"
 #include "app/zelda3/common.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -44,30 +44,31 @@ class OverworldExit : public GameEntity {
  public:
   uint16_t y_scroll_;
   uint16_t x_scroll_;
-  uchar y_player_;
-  uchar x_player_;
-  uchar y_camera_;
-  uchar x_camera_;
-  uchar scroll_mod_y_;
-  uchar scroll_mod_x_;
+  uint8_t y_player_;
+  uint8_t x_player_;
+  uint8_t y_camera_;
+  uint8_t x_camera_;
+  uint8_t scroll_mod_y_;
+  uint8_t scroll_mod_x_;
   uint16_t door_type_1_;
   uint16_t door_type_2_;
   uint16_t room_id_;
   uint16_t map_pos_;  // Position in the vram
-  uchar entrance_id_;
-  uchar area_x_;
-  uchar area_y_;
+  uint8_t entrance_id_;
+  uint8_t area_x_;
+  uint8_t area_y_;
   bool is_hole_ = false;
   bool deleted_ = false;
   bool is_automatic_ = false;
   bool large_map_ = false;
 
   OverworldExit() = default;
-  OverworldExit(uint16_t room_id, uchar map_id, uint16_t vram_location,
+  OverworldExit(uint16_t room_id, uint8_t map_id, uint16_t vram_location,
                 uint16_t y_scroll, uint16_t x_scroll, uint16_t player_y,
                 uint16_t player_x, uint16_t camera_y, uint16_t camera_x,
-                uchar scroll_mod_y, uchar scroll_mod_x, uint16_t door_type_1,
-                uint16_t door_type_2, bool deleted = false)
+                uint8_t scroll_mod_y, uint8_t scroll_mod_x,
+                uint16_t door_type_1, uint16_t door_type_2,
+                bool deleted = false)
       : map_pos_(vram_location),
         entrance_id_(0),
         area_x_(0),
@@ -94,19 +95,19 @@ class OverworldExit : public GameEntity {
     int mapX = (map_id_ - ((map_id_ / 8) * 8));
     int mapY = (map_id_ / 8);
 
-    area_x_ = (uchar)((std::abs(x_ - (mapX * 512)) / 16));
-    area_y_ = (uchar)((std::abs(y_ - (mapY * 512)) / 16));
+    area_x_ = (uint8_t)((std::abs(x_ - (mapX * 512)) / 16));
+    area_y_ = (uint8_t)((std::abs(y_ - (mapY * 512)) / 16));
 
     if (door_type_1 != 0) {
       int p = (door_type_1 & 0x7FFF) >> 1;
-      entrance_id_ = (uchar)(p % 64);
-      area_y_ = (uchar)(p >> 6);
+      entrance_id_ = (uint8_t)(p % 64);
+      area_y_ = (uint8_t)(p >> 6);
     }
 
     if (door_type_2 != 0) {
       int p = (door_type_2 & 0x7FFF) >> 1;
-      entrance_id_ = (uchar)(p % 64);
-      area_y_ = (uchar)(p >> 6);
+      entrance_id_ = (uint8_t)(p % 64);
+      area_y_ = (uint8_t)(p >> 6);
     }
 
     if (map_id_ >= 64) {
@@ -116,8 +117,8 @@ class OverworldExit : public GameEntity {
     mapX = (map_id_ - ((map_id_ / 8) * 8));
     mapY = (map_id_ / 8);
 
-    area_x_ = (uchar)((std::abs(x_ - (mapX * 512)) / 16));
-    area_y_ = (uchar)((std::abs(y_ - (mapY * 512)) / 16));
+    area_x_ = (uint8_t)((std::abs(x_ - (mapX * 512)) / 16));
+    area_y_ = (uint8_t)((std::abs(y_ - (mapY * 512)) / 16));
 
     map_pos_ = (uint16_t)((((area_y_) << 6) | (area_x_ & 0x3F)) << 1);
   }
@@ -139,8 +140,8 @@ class OverworldExit : public GameEntity {
     int mapX = map_id - ((map_id / 8) * 8);
     int mapY = map_id / 8;
 
-    area_x_ = (uchar)((std::abs(x_ - (mapX * 512)) / 16));
-    area_y_ = (uchar)((std::abs(y_ - (mapY * 512)) / 16));
+    area_x_ = (uint8_t)((std::abs(x_ - (mapX * 512)) / 16));
+    area_y_ = (uint8_t)((std::abs(y_ - (mapY * 512)) / 16));
 
     if (map_id >= 64) {
       map_id -= 64;

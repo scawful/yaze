@@ -18,12 +18,12 @@
 namespace yaze {
 namespace editor {
 
-constexpr uint k4BPP = 4;
-constexpr uint kByteSize = 3;
-constexpr uint kMessageIdSize = 5;
-constexpr uint kNumSheetsToLoad = 223;
-constexpr uint kTile8DisplayHeight = 64;
-constexpr uint kOverworldMapSize = 0x200;
+constexpr unsigned int k4BPP = 4;
+constexpr unsigned int kByteSize = 3;
+constexpr unsigned int kMessageIdSize = 5;
+constexpr unsigned int kNumSheetsToLoad = 223;
+constexpr unsigned int kTile8DisplayHeight = 64;
+constexpr unsigned int kOverworldMapSize = 0x200;
 constexpr float kInputFieldSize = 30.f;
 constexpr ImVec2 kOverworldCanvasSize(kOverworldMapSize * 8,
                                       kOverworldMapSize * 8);

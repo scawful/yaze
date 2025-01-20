@@ -104,22 +104,22 @@ class RoomEntrance {
     room_ =
         static_cast<short>((rom[kEntranceRoom + (entrance_id * 2) + 1] << 8) +
                            rom[kEntranceRoom + (entrance_id * 2)]);
-    y_position_ = static_cast<ushort>(
+    y_position_ = static_cast<uint16_t>(
         (rom[kEntranceYPosition + (entrance_id * 2) + 1] << 8) +
         rom[kEntranceYPosition + (entrance_id * 2)]);
-    x_position_ = static_cast<ushort>(
+    x_position_ = static_cast<uint16_t>(
         (rom[kEntranceXPosition + (entrance_id * 2) + 1] << 8) +
         rom[kEntranceXPosition + (entrance_id * 2)]);
-    camera_x_ = static_cast<ushort>(
+    camera_x_ = static_cast<uint16_t>(
         (rom[kEntranceXScroll + (entrance_id * 2) + 1] << 8) +
         rom[kEntranceXScroll + (entrance_id * 2)]);
-    camera_y_ = static_cast<ushort>(
+    camera_y_ = static_cast<uint16_t>(
         (rom[kEntranceYScroll + (entrance_id * 2) + 1] << 8) +
         rom[kEntranceYScroll + (entrance_id * 2)]);
-    camera_trigger_y_ = static_cast<ushort>(
+    camera_trigger_y_ = static_cast<uint16_t>(
         (rom[(kEntranceCameraYTrigger + (entrance_id * 2)) + 1] << 8) +
         rom[kEntranceCameraYTrigger + (entrance_id * 2)]);
-    camera_trigger_x_ = static_cast<ushort>(
+    camera_trigger_x_ = static_cast<uint16_t>(
         (rom[(kEntranceCameraXTrigger + (entrance_id * 2)) + 1] << 8) +
         rom[kEntranceCameraXTrigger + (entrance_id * 2)]);
     blockset_ = rom[kEntranceBlockset + entrance_id];
@@ -148,27 +148,27 @@ class RoomEntrance {
           (rom[kStartingEntranceroom + (entrance_id * 2) + 1] << 8) +
           rom[kStartingEntranceroom + (entrance_id * 2)]);
 
-      y_position_ = static_cast<ushort>(
+      y_position_ = static_cast<uint16_t>(
           (rom[kStartingEntranceYPosition + (entrance_id * 2) + 1] << 8) +
           rom[kStartingEntranceYPosition + (entrance_id * 2)]);
 
-      x_position_ = static_cast<ushort>(
+      x_position_ = static_cast<uint16_t>(
           (rom[kStartingEntranceXPosition + (entrance_id * 2) + 1] << 8) +
           rom[kStartingEntranceXPosition + (entrance_id * 2)]);
 
-      camera_x_ = static_cast<ushort>(
+      camera_x_ = static_cast<uint16_t>(
           (rom[kStartingEntranceXScroll + (entrance_id * 2) + 1] << 8) +
           rom[kStartingEntranceXScroll + (entrance_id * 2)]);
 
-      camera_y_ = static_cast<ushort>(
+      camera_y_ = static_cast<uint16_t>(
           (rom[kStartingEntranceYScroll + (entrance_id * 2) + 1] << 8) +
           rom[kStartingEntranceYScroll + (entrance_id * 2)]);
 
-      camera_trigger_y_ = static_cast<ushort>(
+      camera_trigger_y_ = static_cast<uint16_t>(
           (rom[kStartingEntranceCameraYTrigger + (entrance_id * 2) + 1] << 8) +
           rom[kStartingEntranceCameraYTrigger + (entrance_id * 2)]);
 
-      camera_trigger_x_ = static_cast<ushort>(
+      camera_trigger_x_ = static_cast<uint16_t>(
           (rom[kStartingEntranceCameraXTrigger + (entrance_id * 2) + 1] << 8) +
           rom[kStartingEntranceCameraXTrigger + (entrance_id * 2)]);
 

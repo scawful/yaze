@@ -3,6 +3,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <cstdint>
 #include <array>
 
 #include "absl/status/statusor.h"
@@ -32,7 +33,7 @@ using ::testing::TypedEq;
 
 namespace {
 
-std::vector<uint8_t> ExpectCompressOk(Rom& rom, uchar* in, int in_size) {
+std::vector<uint8_t> ExpectCompressOk(Rom& rom, uint8_t* in, int in_size) {
   std::vector<uint8_t> data(in, in + in_size);
   auto load_status = rom.LoadFromData(data, false);
   EXPECT_TRUE(load_status.ok());
@@ -52,7 +53,7 @@ std::vector<uint8_t> ExpectDecompressBytesOk(Rom& rom,
   return decompressed_bytes;
 }
 
-std::vector<uint8_t> ExpectDecompressOk(Rom& rom, uchar* in, int in_size) {
+std::vector<uint8_t> ExpectDecompressOk(Rom& rom, uint8_t* in, int in_size) {
   std::vector<uint8_t> data(in, in + in_size);
   auto load_status = rom.LoadFromData(data, false);
   EXPECT_TRUE(load_status.ok());
@@ -161,8 +162,8 @@ TEST(LC_LZ2_CompressionTest, NewDecompressionPieceOk) {
 // 0x25 instead of 0x24
 TEST(LC_LZ2_CompressionTest, CompressionSingleSet) {
   Rom rom;
-  uchar single_set[5] = {0x2A, 0x2A, 0x2A, 0x2A, 0x2A};
-  uchar single_set_expected[3] = {BUILD_HEADER(1, 5), 0x2A, 0xFF};
+  uint8_t single_set[5] = {0x2A, 0x2A, 0x2A, 0x2A, 0x2A};
+  uint8_t single_set_expected[3] = {BUILD_HEADER(1, 5), 0x2A, 0xFF};
 
   auto comp_result = ExpectCompressOk(rom, single_set, 5);
   EXPECT_THAT(single_set_expected, ElementsAreArray(comp_result.data(), 3));
@@ -170,8 +171,8 @@ TEST(LC_LZ2_CompressionTest, CompressionSingleSet) {
 
 TEST(LC_LZ2_CompressionTest, CompressionSingleWord) {
   Rom rom;
-  uchar single_word[6] = {0x2A, 0x01, 0x2A, 0x01, 0x2A, 0x01};
-  uchar single_word_expected[4] = {BUILD_HEADER(0x02, 0x06), 0x2A, 0x01, 0xFF};
+  uint8_t single_word[6] = {0x2A, 0x01, 0x2A, 0x01, 0x2A, 0x01};
+  uint8_t single_word_expected[4] = {BUILD_HEADER(0x02, 0x06), 0x2A, 0x01, 0xFF};
 
   auto comp_result = ExpectCompressOk(rom, single_word, 6);
   EXPECT_THAT(single_word_expected, ElementsAreArray(comp_result.data(), 4));
@@ -179,16 +180,16 @@ TEST(LC_LZ2_CompressionTest, CompressionSingleWord) {
 
 TEST(LC_LZ2_CompressionTest, CompressionSingleIncrement) {
   Rom rom;
-  uchar single_inc[3] = {0x01, 0x02, 0x03};
-  uchar single_inc_expected[3] = {BUILD_HEADER(0x03, 0x03), 0x01, 0xFF};
+  uint8_t single_inc[3] = {0x01, 0x02, 0x03};
+  uint8_t single_inc_expected[3] = {BUILD_HEADER(0x03, 0x03), 0x01, 0xFF};
   auto comp_result = ExpectCompressOk(rom, single_inc, 3);
   EXPECT_THAT(single_inc_expected, ElementsAreArray(comp_result.data(), 3));
 }
 
 TEST(LC_LZ2_CompressionTest, CompressionSingleCopy) {
   Rom rom;
-  uchar single_copy[4] = {0x03, 0x0A, 0x07, 0x14};
-  uchar single_copy_expected[6] = {
+  uint8_t single_copy[4] = {0x03, 0x0A, 0x07, 0x14};
+  uint8_t single_copy_expected[6] = {
       BUILD_HEADER(0x00, 0x04), 0x03, 0x0A, 0x07, 0x14, 0xFF};
   auto comp_result = ExpectCompressOk(rom, single_copy, 4);
   EXPECT_THAT(single_copy_expected, ElementsAreArray(comp_result.data(), 6));
@@ -303,12 +304,12 @@ TEST(LC_LZ2_CompressionTest, LengthBorderCompression) {
 
 TEST(LC_LZ2_CompressionTest, CompressionExtendedWordCopy) {
   // ROM rom;
-  // uchar buffer[3000];
+  // uint8_t buffer[3000];
   // for (unsigned int i = 0; i < 3000; i += 2) {
   //   buffer[i] = 0x05;
   //   buffer[i + 1] = 0x06;
   // }
-  // uchar hightlength_word_1050[] = {
+  // uint8_t hightlength_word_1050[] = {
   //     0b11101011, 0xFF, 0x05, 0x06, BUILD_HEADER(0x02, 0x1A), 0x05, 0x06,
   //     0xFF};
 
@@ -340,9 +341,9 @@ TEST(LC_LZ2_CompressionTest, CompressionMixedPatterns) {
 
 TEST(LC_LZ2_CompressionTest, CompressionLongIntraCopy) {
   ROM rom;
-  uchar long_data[15] = {0x05, 0x06, 0x07, 0x08, 0x05, 0x06, 0x07, 0x08,
+  uint8_t long_data[15] = {0x05, 0x06, 0x07, 0x08, 0x05, 0x06, 0x07, 0x08,
                          0x05, 0x06, 0x07, 0x08, 0x05, 0x06, 0x07};
-  uchar long_expected[] = {BUILD_HEADER(0x00, 0x04), 0x05, 0x06, 0x07, 0x08,
+  uint8_t long_expected[] = {BUILD_HEADER(0x00, 0x04), 0x05, 0x06, 0x07, 0x08,
                            BUILD_HEADER(0x04, 0x0C), 0x00, 0x00, 0xFF};
 
   auto comp_result = ExpectCompressOk(rom, long_data, 15);
@@ -403,14 +404,14 @@ TEST(LC_LZ2_CompressionTest, DecompressionValidCommand) {
   Rom rom;
   std::vector<uint8_t> simple_copy_input = {BUILD_HEADER(0x00, 0x02), 0x2A,
                                             0x45, 0xFF};
-  uchar simple_copy_output[2] = {0x2A, 0x45};
+  uint8_t simple_copy_output[2] = {0x2A, 0x45};
   auto decomp_result = ExpectDecompressBytesOk(rom, simple_copy_input);
   EXPECT_THAT(simple_copy_output, ElementsAreArray(decomp_result.data(), 2));
 }
 
 TEST(LC_LZ2_CompressionTest, DecompressionMixingCommand) {
   Rom rom;
-  uchar random1_i[11] = {BUILD_HEADER(0x01, 0x03),
+  uint8_t random1_i[11] = {BUILD_HEADER(0x01, 0x03),
                          0x2A,
                          BUILD_HEADER(0x00, 0x04),
                          0x01,
@@ -421,7 +422,7 @@ TEST(LC_LZ2_CompressionTest, DecompressionMixingCommand) {
                          0x0B,
                          0x16,
                          0xFF};
-  uchar random1_o[9] = {42, 42, 42, 1, 2, 3, 4, 11, 22};
+  uint8_t random1_o[9] = {42, 42, 42, 1, 2, 3, 4, 11, 22};
   auto decomp_result = ExpectDecompressOk(rom, random1_i, 11);
   EXPECT_THAT(random1_o, ElementsAreArray(decomp_result.data(), 9));
 }

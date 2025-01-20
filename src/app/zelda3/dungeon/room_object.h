@@ -81,7 +81,7 @@ class RoomObject : public SharedRom {
                 std::vector<uint8_t>& current_gfx16,
                 std::vector<uint8_t>& tiles_bg1_buffer,
                 std::vector<uint8_t>& tiles_bg2_buffer,
-                ushort tile_under = 0xFFFF);
+                uint16_t tile_under = 0xFFFF);
 
   auto options() const { return options_; }
   void set_options(ObjectOption options) { options_ = options; }

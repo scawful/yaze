@@ -16,19 +16,19 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
-#include "app/core/constants.h"
 #include "app/core/platform/renderer.h"
 #include "app/gfx/compression.h"
 #include "app/gfx/snes_color.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
+#include "util/macro.h"
 
 namespace yaze {
 using core::Renderer;
 constexpr int Uncompressed3BPPSize = 0x0600;
 
 namespace {
-int GetGraphicsAddress(const uchar *data, uint8_t addr, uint32_t ptr1,
+int GetGraphicsAddress(const uint8_t *data, uint8_t addr, uint32_t ptr1,
                        uint32_t ptr2, uint32_t ptr3) {
   return core::SnesToPc(core::AddressFromBytes(
       data[ptr1 + addr], data[ptr2 + addr], data[ptr3 + addr]));
@@ -373,8 +373,8 @@ absl::Status Rom::LoadZelda3() {
   constexpr size_t kBaseRomSize = 1048576;  // 1MB
   constexpr size_t kHeaderSize = 0x200;     // 512 bytes
   if (size_ % kBaseRomSize == kHeaderSize) {
-    auto header =
-        std::vector<uchar>(rom_data_.begin(), rom_data_.begin() + kHeaderSize);
+    auto header = std::vector<uint8_t>(rom_data_.begin(),
+                                       rom_data_.begin() + kHeaderSize);
     rom_data_.erase(rom_data_.begin(), rom_data_.begin() + kHeaderSize);
     size_ -= 0x200;
   }
