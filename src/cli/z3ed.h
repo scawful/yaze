@@ -65,9 +65,11 @@ class CreatePatch : public CommandHandler {
   absl::Status handle(const std::vector<std::string>& arg_vec) override;
 };
 
-/**
- * @brief Open a Rom file and display information about it.
- */
+class Tile16Transfer : public CommandHandler {
+ public:
+  absl::Status handle(const std::vector<std::string>& arg_vec) override;
+};
+
 class Open : public CommandHandler {
  public:
   absl::Status handle(const std::vector<std::string>& arg_vec) override {
@@ -83,9 +85,6 @@ class Open : public CommandHandler {
   }
 };
 
-/**
- * @brief Backup a Rom file.
- */
 class Backup : public CommandHandler {
  public:
   absl::Status handle(const std::vector<std::string>& arg_vec) override {
@@ -100,17 +99,11 @@ class Backup : public CommandHandler {
   }
 };
 
-// Compress Graphics
 class Compress : public CommandHandler {
  public:
   absl::Status handle(const std::vector<std::string>& arg_vec) override;
 };
 
-// Decompress (Export) Graphics
-//
-// -e <rom_file> <bin_file> --mode=<optional:mode>
-//
-// mode:
 class Decompress : public CommandHandler {
  public:
   absl::Status handle(const std::vector<std::string>& arg_vec) override;
@@ -193,17 +186,6 @@ class ReadFromRom : public CommandHandler {
 
     return absl::OkStatus();
   }
-};
-
-/**
- * @brief Transfer tile 16 data from one Rom to another.
-
-  * @param arg_vec `-t <src_rom> <dest_rom> "<tile32_id_list:csv>"`
-  * @return absl::Status
-*/
-class Tile16Transfer : public CommandHandler {
- public:
-  absl::Status handle(const std::vector<std::string>& arg_vec) override;
 };
 
 /**
