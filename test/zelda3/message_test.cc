@@ -42,12 +42,39 @@ TEST_F(MessageTest, LoadMessagesFromRomOk) {
   Message ID: 2
   Raw: [S:00][3][][:75][:44][CH2I]
   Parsed: [S:00][3][][:75][:44][CH2I]
-  Raw Bytes: 7A 00 76 88 8A 75 88 44 68 
-  Parsed Bytes: 7A 00 76 88 8A 75 88 44 68 
+  Raw Bytes: 7A 00 76 88 8A 75 88 44 68
+  Parsed Bytes: 7A 00 76 88 8A 75 88 44 68
 
  */
 TEST_F(MessageTest, VerifySingleMessageFromRomOk) {
   // TODO - Implement this test
+}
+
+TEST_F(MessageTest, ParseSingleMessage_CommandParsing) {
+  std::vector<uint8_t> mock_data = {0x6A, 0x7F, 0x00};
+  int pos = 0;
+
+  auto result = editor::ParseSingleMessage(mock_data, &pos);
+  EXPECT_TRUE(result.ok());
+  const auto message_data = result.value();
+
+  // Verify that the command was recognized and parsed
+  EXPECT_EQ(message_data.ContentsParsed, "[L]");
+  EXPECT_EQ(pos, 2);
+}
+
+TEST_F(MessageTest, ParseSingleMessage_BasicAscii) {
+  std::vector<uint8_t> mock_data = {0x41, 0x42, 0x43, 0x7F,
+                                    0x00};  // A, B, C, terminator
+  int pos = 0;
+
+  auto result = editor::ParseSingleMessage(mock_data, &pos);
+  ASSERT_TRUE(result.ok());
+  const auto message_data = result.value();
+
+  EXPECT_EQ(message_data.RawString, "ABC");
+  EXPECT_EQ(message_data.ContentsParsed, "ABC");
+  EXPECT_EQ(pos, 4);  // consumed all 4 bytes
 }
 
 }  // namespace test
