@@ -1,7 +1,8 @@
 #include "message_data.h"
 
-#include "app/core/common.h"
 #include <string>
+
+#include "app/core/common.h"
 
 namespace yaze {
 namespace editor {
@@ -175,6 +176,86 @@ std::vector<DictionaryEntry> BuildDictionaryEntries(Rom *rom) {
             });
 
   return AllDictionaries;
+}
+
+absl::StatusOr<MessageData> ParseSingleMessage(
+    const std::vector<uint8_t> &rom_data, int *current_pos) {
+  MessageData message_data;
+  int pos = *current_pos;
+  uint8_t current_byte;
+  std::vector<uint8_t> temp_bytes_raw;
+  std::vector<uint8_t> temp_bytes_parsed;
+  std::string current_message_raw;
+  std::string current_message_parsed;
+
+  // Read the message data
+  while (true) {
+    current_byte = rom_data[pos++];
+
+    if (current_byte == kMessageTerminator) {
+      message_data.ID = message_data.ID + 1;
+      message_data.Address = pos;
+      message_data.RawString = current_message_raw;
+      message_data.Data = temp_bytes_raw;
+      message_data.DataParsed = temp_bytes_parsed;
+      message_data.ContentsParsed = current_message_parsed;
+
+      temp_bytes_raw.clear();
+      temp_bytes_parsed.clear();
+      current_message_raw.clear();
+      current_message_parsed.clear();
+
+      break;
+    } else if (current_byte == 0xFF) {
+      break;
+    }
+
+    temp_bytes_raw.push_back(current_byte);
+
+    // Check for command.
+    TextElement text_element = FindMatchingCommand(current_byte);
+    if (!text_element.Empty()) {
+      current_message_raw.append(text_element.GetParamToken());
+      current_message_parsed.append(text_element.GetParamToken());
+      temp_bytes_parsed.push_back(current_byte);
+      continue;
+    }
+
+    // Check for dictionary.
+    int dictionary = FindDictionaryEntry(current_byte);
+    if (dictionary >= 0) {
+      current_message_raw.append("[");
+      current_message_raw.append(DICTIONARYTOKEN);
+      current_message_raw.append(":");
+      current_message_raw.append(core::HexWord(dictionary));
+      current_message_raw.append("]");
+
+      auto mutable_rom_data = const_cast<uint8_t *>(rom_data.data());
+      uint32_t address = core::Get24LocalFromPC(
+          mutable_rom_data, kPointersDictionaries + (dictionary * 2));
+      uint32_t address_end = core::Get24LocalFromPC(
+          mutable_rom_data, kPointersDictionaries + ((dictionary + 1) * 2));
+
+      for (uint32_t i = address; i < address_end; i++) {
+        temp_bytes_parsed.push_back(rom_data[i]);
+        current_message_parsed.append(ParseTextDataByte(rom_data[i]));
+      }
+
+      continue;
+    }
+
+    // Everything else.
+    if (CharEncoder.contains(current_byte)) {
+      std::string str = "";
+      str.push_back(CharEncoder.at(current_byte));
+      current_message_raw.append(str);
+      current_message_parsed.append(str);
+      temp_bytes_parsed.push_back(current_byte);
+    }
+  }
+
+  *current_pos = pos;
+  return message_data;
 }
 
 std::vector<std::string> ParseMessageData(

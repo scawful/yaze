@@ -100,8 +100,12 @@ struct MessageData {
               const std::vector<uint8_t> &rawData,
               const std::string &parsedString,
               const std::vector<uint8_t> &parsedData)
-      : ID(id), Address(address), RawString(rawString), Data(rawData),
-        DataParsed(parsedData), ContentsParsed(parsedString) {}
+      : ID(id),
+        Address(address),
+        RawString(rawString),
+        Data(rawData),
+        DataParsed(parsedData),
+        ContentsParsed(parsedString) {}
 
   // Copy constructor
   MessageData(const MessageData &other) {
@@ -117,9 +121,9 @@ struct MessageData {
     return absl::StrFormat("%0X - %s", ID, ContentsParsed);
   }
 
-  std::string
-  OptimizeMessageForDictionary(std::string message_string,
-                               const std::vector<DictionaryEntry> &dictionary) {
+  std::string OptimizeMessageForDictionary(
+      std::string message_string,
+      const std::vector<DictionaryEntry> &dictionary) {
     std::stringstream protons;
     bool command = false;
     for (const auto &c : message_string) {
@@ -297,13 +301,16 @@ ParsedElement FindMatchingElement(const std::string &str);
 
 std::string ParseTextDataByte(uint8_t value);
 
-std::vector<std::string>
-ParseMessageData(std::vector<MessageData> &message_data,
-                 const std::vector<DictionaryEntry> &dictionary_entries);
+absl::StatusOr<MessageData> ParseSingleMessage(
+    const std::vector<uint8_t> &rom_data, int *current_pos);
+
+std::vector<std::string> ParseMessageData(
+    std::vector<MessageData> &message_data,
+    const std::vector<DictionaryEntry> &dictionary_entries);
 
 std::vector<std::string> ImportMessageData(std::string_view filename);
 
-} // namespace editor
-} // namespace yaze
+}  // namespace editor
+}  // namespace yaze
 
-#endif // YAZE_APP_EDITOR_MESSAGE_MESSAGE_DATA_H
+#endif  // YAZE_APP_EDITOR_MESSAGE_MESSAGE_DATA_H
