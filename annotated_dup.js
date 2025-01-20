@@ -262,6 +262,12 @@ var annotated_dup =
         [ "SpriteBuilderTest", "classyaze_1_1test_1_1SpriteBuilderTest.html", "classyaze_1_1test_1_1SpriteBuilderTest" ],
         [ "Tilemap", "structyaze_1_1test_1_1Tilemap.html", "structyaze_1_1test_1_1Tilemap" ]
       ] ],
+      [ "util", "namespaceyaze_1_1util.html", [
+        [ "Flag", "classyaze_1_1util_1_1Flag.html", "classyaze_1_1util_1_1Flag" ],
+        [ "FlagParser", "classyaze_1_1util_1_1FlagParser.html", "classyaze_1_1util_1_1FlagParser" ],
+        [ "FlagRegistry", "classyaze_1_1util_1_1FlagRegistry.html", "classyaze_1_1util_1_1FlagRegistry" ],
+        [ "IFlag", "classyaze_1_1util_1_1IFlag.html", "classyaze_1_1util_1_1IFlag" ]
+      ] ],
       [ "zelda3", "namespaceyaze_1_1zelda3.html", [
         [ "music", "namespaceyaze_1_1zelda3_1_1music.html", [
           [ "SampleEdit", "structyaze_1_1zelda3_1_1music_1_1SampleEdit.html", "structyaze_1_1zelda3_1_1music_1_1SampleEdit" ],

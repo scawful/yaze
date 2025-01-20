@@ -111,6 +111,8 @@ var hierarchy =
     [ "yaze::editor::ExtensionManager", "classyaze_1_1editor_1_1ExtensionManager.html", null ],
     [ "yaze::core::FileDialogWrapper", "classyaze_1_1core_1_1FileDialogWrapper.html", null ],
     [ "yaze::editor::FileDialogWrapper", "classyaze_1_1editor_1_1FileDialogWrapper.html", null ],
+    [ "yaze::util::FlagParser", "classyaze_1_1util_1_1FlagParser.html", null ],
+    [ "yaze::util::FlagRegistry", "classyaze_1_1util_1_1FlagRegistry.html", null ],
     [ "yaze::core::ExperimentFlags::Flags", "structyaze_1_1core_1_1ExperimentFlags_1_1Flags.html", null ],
     [ "yaze::editor::ExperimentFlags::Flags", "structyaze_1_1editor_1_1ExperimentFlags_1_1Flags.html", null ],
     [ "yaze::emu::Spc700::Flags", "structyaze_1_1emu_1_1Spc700_1_1Flags.html", null ],
@@ -136,6 +138,9 @@ var hierarchy =
     [ "yaze::core::HexStringParams", "structyaze_1_1core_1_1HexStringParams.html", null ],
     [ "yaze::editor::HistoryManager", "classyaze_1_1editor_1_1HistoryManager.html", null ],
     [ "TextEditor::Identifier", "structTextEditor_1_1Identifier.html", null ],
+    [ "yaze::util::IFlag", "classyaze_1_1util_1_1IFlag.html", [
+      [ "yaze::util::Flag< T >", "classyaze_1_1util_1_1Flag.html", null ]
+    ] ],
     [ "ImGuiSelectionBasicStorage", null, [
       [ "yaze::gui::ExampleSelectionWithDeletion", "structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html", null ]
     ] ],

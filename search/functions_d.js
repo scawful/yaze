@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['name_0',['name',['../structyaze_1_1gfx_1_1PaletteGroup.html#ad806aadfe8753d3e926852829f96d5be',1,'yaze::gfx::PaletteGroup::name()'],['../classyaze_1_1zelda3_1_1Sprite.html#a6acd5c8ee4f5ddbb6fed7e565e8e9c2d',1,'yaze::zelda3::Sprite::name()']]],
+  ['name_0',['name',['../structyaze_1_1gfx_1_1PaletteGroup.html#ad806aadfe8753d3e926852829f96d5be',1,'yaze::gfx::PaletteGroup::name()'],['../classyaze_1_1zelda3_1_1Sprite.html#a6acd5c8ee4f5ddbb6fed7e565e8e9c2d',1,'yaze::zelda3::Sprite::name()'],['../classyaze_1_1util_1_1IFlag.html#ad576bd79b5fd17eff6a8e5225a1a867a',1,'yaze::util::IFlag::name()'],['../classyaze_1_1util_1_1Flag.html#a427a7e6699feacdfaa3f7b4dfacb2392',1,'yaze::util::Flag::name()']]],
   ['newframe_1',['NewFrame',['../classyaze_1_1emu_1_1Dsp.html#aa6419eaab5f3412cffcdf09fd76ef227',1,'yaze::emu::Dsp']]],
   ['newsr_2',['NewSR',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html#abe403497078acd2c084a4c506a850c9d',1,'yaze::zelda3::music::Tracker']]],
   ['nmi_3',['Nmi',['../classyaze_1_1emu_1_1Cpu.html#a411e83ff4742e76beb22403cf8e50f79',1,'yaze::emu::Cpu::Nmi()'],['../classyaze_1_1test_1_1Cpu.html#a411e83ff4742e76beb22403cf8e50f79',1,'yaze::test::Cpu::Nmi()']]],

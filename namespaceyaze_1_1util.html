@@ -108,6 +108,7 @@ $(function(){initNavTree('namespaceyaze_1_1util.html',''); initResizable(true); 
 <div class="header">
   <div class="summary">
 <a href="#namespaces">Namespaces</a> &#124;
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">yaze::util Namespace Reference</div></div>
 </div><!--header-->
@@ -118,12 +119,25 @@ Namespaces</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html">anonymous_namespace{bps.cc}</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1util_1_1Flag.html">Flag</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1util_1_1FlagParser.html">FlagParser</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1util_1_1FlagRegistry.html">FlagRegistry</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1util_1_1IFlag.html">IFlag</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a3eadcc44d8287dad5ea9d6dbd25bd44d" id="r_a3eadcc44d8287dad5ea9d6dbd25bd44d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3eadcc44d8287dad5ea9d6dbd25bd44d">CreateBpsPatch</a> (const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;target, std::vector&lt; uint8_t &gt; &amp;patch)</td></tr>
 <tr class="separator:a3eadcc44d8287dad5ea9d6dbd25bd44d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a991030a6ecb07dd710fd4877b48cdcd8" id="r_a991030a6ecb07dd710fd4877b48cdcd8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a991030a6ecb07dd710fd4877b48cdcd8">ApplyBpsPatch</a> (const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;patch, std::vector&lt; uint8_t &gt; &amp;target)</td></tr>
 <tr class="separator:a991030a6ecb07dd710fd4877b48cdcd8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a60afeb1f1afc9e19c61b64749a219577" id="r_a60afeb1f1afc9e19c61b64749a219577"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1util_1_1FlagRegistry.html">FlagRegistry</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a60afeb1f1afc9e19c61b64749a219577">global_flag_registry</a> ()</td></tr>
+<tr class="separator:a60afeb1f1afc9e19c61b64749a219577"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="a3eadcc44d8287dad5ea9d6dbd25bd44d" name="a3eadcc44d8287dad5ea9d6dbd25bd44d"></a>
@@ -183,6 +197,35 @@ Functions</h2></td></tr>
 <p class="definition">Definition at line <a class="el" href="bps_8cc_source.html#l00136">136</a> of file <a class="el" href="bps_8cc_source.html">bps.cc</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tui_8cc_source.html#l00049">yaze::cli::anonymous_namespace{tui.cc}::ApplyBpsPatchComponent()</a>, and <a class="el" href="patch_8cc_source.html#l00010">yaze::cli::ApplyPatch::handle()</a>.</p>
+
+</div>
+</div>
+<a id="a60afeb1f1afc9e19c61b64749a219577" name="a60afeb1f1afc9e19c61b64749a219577"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a60afeb1f1afc9e19c61b64749a219577">&#9670;&#160;</a></span>global_flag_registry()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classyaze_1_1util_1_1FlagRegistry.html">FlagRegistry</a> * yaze::util::global_flag_registry </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="flag_8h_source.html#l00100">100</a> of file <a class="el" href="flag_8h_source.html">flag.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="z3ed_8cc_source.html#l00094">main()</a>.</p>
 
 </div>
 </div>

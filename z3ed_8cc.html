@@ -121,6 +121,7 @@ $(function(){initNavTree('z3ed_8cc.html',''); initResizable(true); });
 <code>#include &lt;unordered_map&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;<a class="el" href="tui_8h_source.html">cli/tui.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="flag_8h_source.html">util/flag.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="macro_8h_source.html">util/macro.h</a>&quot;</code><br />
 </div>
 <p><a href="z3ed_8cc_source.html">Go to the source code of this file.</a></p>
@@ -138,6 +139,10 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a59844154a2e40b989e7dc80afcdd6e10" id="r_a59844154a2e40b989e7dc80afcdd6e10"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a59844154a2e40b989e7dc80afcdd6e10">DECLARE_FLAG</a> (std::string, rom_file)</td></tr>
+<tr class="separator:a59844154a2e40b989e7dc80afcdd6e10"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1519586100621dde15a2ce66a033b176" id="r_a1519586100621dde15a2ce66a033b176"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1519586100621dde15a2ce66a033b176">DEFINE_FLAG</a> (std::string, rom_file, &quot;&quot;, &quot;The ROM file to load.&quot;)</td></tr>
+<tr class="separator:a1519586100621dde15a2ce66a033b176"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2ce01552171fe2c443f90b424ffdd398" id="r_a2ce01552171fe2c443f90b424ffdd398"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a2ce01552171fe2c443f90b424ffdd398">yaze::cli::anonymous_namespace{z3ed.cc}::HelpCommand</a> ()</td></tr>
 <tr class="separator:a2ce01552171fe2c443f90b424ffdd398"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1c411f9b56b338d661c91c0dbdfac795" id="r_a1c411f9b56b338d661c91c0dbdfac795"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a1c411f9b56b338d661c91c0dbdfac795">yaze::cli::anonymous_namespace{z3ed.cc}::RunCommandHandler</a> (int argc, char *argv[])</td></tr>
@@ -159,6 +164,58 @@ Variables</h2></td></tr>
 <tr class="separator:a84debb58d67b1d118f79bd2f409e4240"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a59844154a2e40b989e7dc80afcdd6e10" name="a59844154a2e40b989e7dc80afcdd6e10"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a59844154a2e40b989e7dc80afcdd6e10">&#9670;&#160;</a></span>DECLARE_FLAG()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">DECLARE_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">std::string</td>          <td class="paramname"><span class="paramname"><em></em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">rom_file</td>          <td class="paramname"><span class="paramname"><em></em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1519586100621dde15a2ce66a033b176" name="a1519586100621dde15a2ce66a033b176"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1519586100621dde15a2ce66a033b176">&#9670;&#160;</a></span>DEFINE_FLAG()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">DEFINE_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">std::string</td>          <td class="paramname"><span class="paramname"><em></em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">rom_file</td>          <td class="paramname"><span class="paramname"><em></em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;&quot;</td>          <td class="paramname"><span class="paramname"><em></em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;The ROM file to load.&quot;</td>          <td class="paramname"><span class="paramname"><em></em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a0ddf1224851353fc92bfbff6f499fa97" name="a0ddf1224851353fc92bfbff6f499fa97"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0ddf1224851353fc92bfbff6f499fa97">&#9670;&#160;</a></span>main()</h2>
 
@@ -178,17 +235,23 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="z3ed_8cc_source.html#l00089">89</a> of file <a class="el" href="z3ed_8cc_source.html">z3ed.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="z3ed_8cc_source.html#l00094">94</a> of file <a class="el" href="z3ed_8cc_source.html">z3ed.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tui_8cc_source.html#l00450">yaze::cli::ShowMain()</a>.</p>
+<p class="reference">References <a class="el" href="flag_8h_source.html#l00100">yaze::util::global_flag_registry()</a>, <a class="el" href="flag_8h_source.html#l00123">yaze::util::FlagParser::Parse()</a>, and <a class="el" href="tui_8cc_source.html#l00450">yaze::cli::ShowMain()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="z3ed_8cc_a0ddf1224851353fc92bfbff6f499fa97_cgraph.png" border="0" usemap="#az3ed_8cc_a0ddf1224851353fc92bfbff6f499fa97_cgraph" alt=""/></div>
 <map name="az3ed_8cc_a0ddf1224851353fc92bfbff6f499fa97_cgraph" id="az3ed_8cc_a0ddf1224851353fc92bfbff6f499fa97_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,55,31"/>
-<area shape="rect" href="namespaceyaze_1_1cli.html#a7cde2d3d2d98674ab1401d816314fdb3" title=" " alt="" coords="103,5,236,31"/>
-<area shape="poly" title=" " alt="" coords="55,16,87,16,87,21,55,21"/>
+<area shape="rect" title=" " alt="" coords="5,78,55,104"/>
+<area shape="rect" href="namespaceyaze_1_1util.html#a60afeb1f1afc9e19c61b64749a219577" title=" " alt="" coords="117,5,228,46"/>
+<area shape="poly" title=" " alt="" coords="54,78,111,51,114,55,56,82"/>
+<area shape="rect" href="classyaze_1_1util_1_1FlagParser.html#aa07d8084adebfe9e6c71db34e5fd0110" title=" " alt="" coords="103,71,242,111"/>
+<area shape="poly" title=" " alt="" coords="55,88,87,88,87,94,55,94"/>
+<area shape="rect" href="namespaceyaze_1_1cli.html#a7cde2d3d2d98674ab1401d816314fdb3" title=" " alt="" coords="106,136,239,161"/>
+<area shape="poly" title=" " alt="" coords="56,100,104,121,120,127,118,132,102,125,54,105"/>
+<area shape="rect" href="classyaze_1_1util_1_1FlagParser.html#a43fcdab496791d7851bf54aaeefa910d" title=" " alt="" coords="290,71,438,111"/>
+<area shape="poly" title=" " alt="" coords="242,88,275,88,275,94,242,94"/>
 </map>
 </div>
 

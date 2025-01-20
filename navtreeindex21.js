@@ -245,9 +245,9 @@ var NAVTREEINDEX21 =
 "classyaze_1_1test_1_1integration_1_1TestEditor.html#ad44eb81363bf031fd54b8dd941898a9c":[12,0,0,6,0,0,6],
 "classyaze_1_1test_1_1integration_1_1TestEditor.html#aea334c2389b64b68b19a76a62e6ba67e":[11,0,1,7,2,0,3],
 "classyaze_1_1test_1_1integration_1_1TestEditor.html#aea334c2389b64b68b19a76a62e6ba67e":[12,0,0,6,0,0,3],
-"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html":[11,0,1,9,5],
-"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html":[12,0,0,7,2],
-"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a02a4bb0985c37eecc3cab6c8427da97b":[11,0,1,9,5,7],
-"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a02a4bb0985c37eecc3cab6c8427da97b":[12,0,0,7,2,7],
-"classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a17d881539d68fbd17e6b6e5f466fa52a":[11,0,1,9,5,8]
+"classyaze_1_1util_1_1Flag.html":[11,0,1,8,1],
+"classyaze_1_1util_1_1Flag.html":[12,0,0,7,0],
+"classyaze_1_1util_1_1Flag.html#a18a07395b749058fe7c7d5b3ab0b9a87":[11,0,1,8,1,0],
+"classyaze_1_1util_1_1Flag.html#a18a07395b749058fe7c7d5b3ab0b9a87":[12,0,0,7,0,0],
+"classyaze_1_1util_1_1Flag.html#a427a7e6699feacdfaa3f7b4dfacb2392":[11,0,1,8,1,1]
 };

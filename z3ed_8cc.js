@@ -1,5 +1,7 @@
 var z3ed_8cc =
 [
+    [ "DECLARE_FLAG", "z3ed_8cc.html#a59844154a2e40b989e7dc80afcdd6e10", null ],
+    [ "DEFINE_FLAG", "z3ed_8cc.html#a1519586100621dde15a2ce66a033b176", null ],
     [ "yaze::cli::anonymous_namespace{z3ed.cc}::HelpCommand", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a2ce01552171fe2c443f90b424ffdd398", null ],
     [ "yaze::cli::anonymous_namespace{z3ed.cc}::RunCommandHandler", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a1c411f9b56b338d661c91c0dbdfac795", null ],
     [ "main", "z3ed_8cc.html#a0ddf1224851353fc92bfbff6f499fa97", null ],
