@@ -200,7 +200,7 @@ var namespaceyaze_1_1zelda3 =
     [ "door_pos_right", "namespaceyaze_1_1zelda3.html#aeb8fe4646067b83eb7f89a09d15e5fc1", null ],
     [ "dungeon_spr_ptrs", "namespaceyaze_1_1zelda3.html#afbc9fe85069227dcd4ca9c153940cdb1", null ],
     [ "NumberOfRooms", "namespaceyaze_1_1zelda3.html#a4b6a864121df7d5c8aeeb4b142efe90d", null ],
-    [ "stairsObjects", "namespaceyaze_1_1zelda3.html#a103656680d1929d852ba5286b01d5dd0", null ],
+    [ "stairsObjects", "namespaceyaze_1_1zelda3.html#aa0cc664b6550160edcb41dba09eac552", null ],
     [ "kRoomNames", "namespaceyaze_1_1zelda3.html#a6b3f5be6f1403c5b4c4d4f04b74858ba", null ],
     [ "kEntranceRoom", "namespaceyaze_1_1zelda3.html#a26495cd86a21e1780a9f4483b5049575", null ],
     [ "kEntranceScrollEdge", "namespaceyaze_1_1zelda3.html#aca2ddf66c6a403ee202b1d5390b3b6b2", null ],

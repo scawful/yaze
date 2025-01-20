@@ -1,9 +1,9 @@
 var namespaceyaze_1_1test =
 [
     [ "anonymous_namespace{compression_test.cc}", "namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html", [
-      [ "ExpectCompressOk", "namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a8dd3d3b66e0f8c6c3f419f7e0af8da9b", null ],
+      [ "ExpectCompressOk", "namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#acbf5407ea59e5fbb6227a357802893c1", null ],
       [ "ExpectDecompressBytesOk", "namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#aea2a498a83c2d824402e1632a4c0c14b", null ],
-      [ "ExpectDecompressOk", "namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a39c906d372ef594237c65bc20d310711", null ],
+      [ "ExpectDecompressOk", "namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a99723a1d41ac08d62332d49124d0d186", null ],
       [ "ExpectNewCompressionPieceOk", "namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a9ceacaaa96ef2d18ba0ce84eb6751d3b", null ],
       [ "AssertCompressionQuality", "namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#adf116b63a46b6698d5d5fe40373a9089", null ],
       [ "ExpectCompressV3Ok", "namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a58140b62f6d943673ace32dabb62fc3c", null ],
@@ -409,12 +409,14 @@ var namespaceyaze_1_1test =
     [ "TEST_F", "namespaceyaze_1_1test.html#ae64f85e19d1b9b2de7ad8d9a897523c8", null ],
     [ "TEST_F", "namespaceyaze_1_1test.html#a8642f1406f5d6a0d9234949bb13cb861", null ],
     [ "TEST_F", "namespaceyaze_1_1test.html#a8e4c1a78fac6521bc9104457ffd90b89", null ],
+    [ "TEST_F", "namespaceyaze_1_1test.html#a2ed46ebdb3a4bbcf96e201c813d70453", null ],
+    [ "TEST_F", "namespaceyaze_1_1test.html#a0fe26efa6fcbc692d5e3fa82bf518d5a", null ],
     [ "TEST_F", "namespaceyaze_1_1test.html#a6b1472393441acf4db147bca14e72c71", null ],
     [ "TEST_F", "namespaceyaze_1_1test.html#a0487c575f1901df589f85a3f64e655d1", null ],
     [ "TEST_F", "namespaceyaze_1_1test.html#ae562cd7059ec7571b29261eff9ef82b2", null ],
-    [ "CompressV2", "namespaceyaze_1_1test.html#a0e96f372d460c5b4e9f11e61aefbf9db", null ],
+    [ "CompressV2", "namespaceyaze_1_1test.html#aedac42cb4c5874d584616aabef4ba280", null ],
     [ "CompressV3", "namespaceyaze_1_1test.html#a143e848d987c6b04f56308f2ef6953ae", null ],
-    [ "DecompressV2", "namespaceyaze_1_1test.html#a4e2e79a02c9bbff8d9720d6384296218", null ],
+    [ "DecompressV2", "namespaceyaze_1_1test.html#aa8047f7485c2005f348b064032890690", null ],
     [ "ConvertRgbToSnes", "namespaceyaze_1_1test.html#a4e83a052d42017612243c3f81b538b7d", null ],
     [ "ConvertSnesToRgb", "namespaceyaze_1_1test.html#a893d31b6aeb9a3df9754b9def778b458", null ],
     [ "Extract", "namespaceyaze_1_1test.html#a10d06c5c03e3faef4b05f4183024650e", null ],

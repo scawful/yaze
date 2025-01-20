@@ -39,7 +39,7 @@ var searchData=
   ['getflag_36',['GetFlag',['../classyaze_1_1emu_1_1Cpu.html#a3c0bff124be448b79a52dacfdd60aa7d',1,'yaze::emu::Cpu::GetFlag()'],['../classyaze_1_1test_1_1Cpu.html#a3c0bff124be448b79a52dacfdd60aa7d',1,'yaze::test::Cpu::GetFlag()']]],
   ['getframebuffer_37',['GetFrameBuffer',['../classyaze_1_1emu_1_1Ppu.html#a9c3288d9b80beb5181d833a2b53c10ca',1,'yaze::emu::Ppu']]],
   ['getglyphcolor_38',['GetGlyphColor',['../classTextEditor.html#a09cf8d22e97338a8e08756fb5b47407c',1,'TextEditor']]],
-  ['getgraphicsaddress_39',['GetGraphicsAddress',['../namespaceyaze_1_1anonymous__namespace_02rom_8cc_03.html#a7f057ea40b02094aa861f4724ba77f4c',1,'yaze::anonymous_namespace{rom.cc}']]],
+  ['getgraphicsaddress_39',['GetGraphicsAddress',['../namespaceyaze_1_1anonymous__namespace_02rom_8cc_03.html#a4b20b8563155f4fecd6c29b4024d2828',1,'yaze::anonymous_namespace{rom.cc}']]],
   ['getheaderoffset_40',['GetHeaderOffset',['../classyaze_1_1emu_1_1MemoryImpl.html#a3464e7748de5c434122b4455d6cbb836',1,'yaze::emu::MemoryImpl']]],
   ['getid_41',['GetID',['../namespaceyaze_1_1gui.html#ac4604ede79aa224793b522b22034e68b',1,'yaze::gui']]],
   ['getimagefromclipboard_42',['GetImageFromClipboard',['../namespaceyaze_1_1core.html#a224033814dd0a65e514ab48d90bcc550',1,'yaze::core']]],

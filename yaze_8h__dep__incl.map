@@ -1,14 +1,12 @@
 <map id="incl/yaze.h" name="incl/yaze.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="232,5,314,31"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="178,5,259,31"/>
 <area shape="rect" id="Node000002" href="$extension__manager_8cc.html" title=" " alt="" coords="5,168,160,208"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="218,28,160,46,133,61,110,81,97,101,89,124,84,167,79,167,84,123,92,99,106,77,130,56,158,41,216,23"/>
-<area shape="rect" id="Node000003" href="$extension__manager_8h.html" title=" " alt="" coords="120,79,267,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="252,44,215,81,211,77,248,40"/>
-<area shape="rect" id="Node000039" href="$yaze__py_8cc.html" title=" " alt="" coords="290,79,419,120"/>
-<area shape="poly" id="edge5_Node000001_Node000039" title=" " alt="" coords="298,40,336,77,333,81,295,44"/>
-<area shape="rect" id="Node000040" href="$yaze_8cc.html" title=" " alt="" coords="443,86,530,112"/>
-<area shape="poly" id="edge6_Node000001_Node000040" title=" " alt="" coords="321,34,455,83,453,88,319,39"/>
-<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="158,131,109,169,106,165,155,127"/>
-<area shape="rect" id="Node000004" href="$editor_8h.html" title=" " alt="" coords="184,175,330,201"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="219,130,251,173,246,176,214,134"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,26,134,32,104,43,77,59,55,80,48,101,51,124,59,146,70,166,66,168,54,149,45,125,43,101,51,78,74,54,102,38,132,27,162,21"/>
+<area shape="rect" id="Node000003" href="$extension__manager_8h.html" title=" " alt="" coords="65,79,212,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="197,44,160,81,156,77,194,40"/>
+<area shape="rect" id="Node000039" href="$yaze__py_8cc.html" title=" " alt="" coords="236,79,364,120"/>
+<area shape="poly" id="edge4_Node000001_Node000039" title=" " alt="" coords="244,40,282,77,278,81,240,44"/>
+<area shape="rect" id="Node000040" href="$yaze_8cc.html" title=" " alt="" coords="389,86,475,112"/>
+<area shape="poly" id="edge5_Node000001_Node000040" title=" " alt="" coords="266,34,400,83,398,88,265,39"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="120,134,97,169,93,166,115,132"/>
 </map>

@@ -7,7 +7,7 @@ var classyaze_1_1zelda3_1_1RoomObject =
     ] ],
     [ "RoomObject", "classyaze_1_1zelda3_1_1RoomObject.html#ada6fb8d53c279bb41be8e2a2b9e51f91", null ],
     [ "AddTiles", "classyaze_1_1zelda3_1_1RoomObject.html#a4d44a317ea56cd659ddce9b650e07606", null ],
-    [ "DrawTile", "classyaze_1_1zelda3_1_1RoomObject.html#a7a9417db28e1a58b6a39244a1428d535", null ],
+    [ "DrawTile", "classyaze_1_1zelda3_1_1RoomObject.html#aabb5310703f9b83fb67c7b265b2f41ed", null ],
     [ "options", "classyaze_1_1zelda3_1_1RoomObject.html#af4be44e2e6210a18098d18f78d7a5ee7", null ],
     [ "set_options", "classyaze_1_1zelda3_1_1RoomObject.html#afb81cf6fe16c69444cfd683687f95d11", null ],
     [ "all_bgs_", "classyaze_1_1zelda3_1_1RoomObject.html#a557dccc256dc1195a782354a6b354551", null ],

@@ -81,7 +81,7 @@ var searchData=
   ['loadrom_78',['LoadRom',['../classyaze_1_1editor_1_1EditorManager.html#a946572cba19b94741ae2dab9b3fd289a',1,'yaze::editor::EditorManager']]],
   ['loadromcomponent_79',['LoadRomComponent',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a2d7b3c2328f2fcab44ddbe20d7df3c32',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
   ['loadroomfromrom_80',['LoadRoomFromROM',['../classyaze_1_1zelda3_1_1Room.html#aaeea127cb11925e69bf0ee5fef07de19',1,'yaze::zelda3::Room']]],
-  ['loadroomgraphics_81',['LoadRoomGraphics',['../classyaze_1_1zelda3_1_1Room.html#a323ed37ebec5d858c784178592ab0751',1,'yaze::zelda3::Room']]],
+  ['loadroomgraphics_81',['LoadRoomGraphics',['../classyaze_1_1zelda3_1_1Room.html#a3ef7c65750b189c256c700d2f320e141',1,'yaze::zelda3::Room']]],
   ['loadscr_82',['LoadScr',['../namespaceyaze_1_1gfx_1_1scad__format.html#a254008e54f4315c7d6f3771d95eccae4',1,'yaze::gfx::scad_format']]],
   ['loadshieldpalettes_83',['LoadShieldPalettes',['../namespaceyaze_1_1gfx_1_1palette__group__internal.html#aaf159a86b491f4a7ebd683e085ea33b3',1,'yaze::gfx::palette_group_internal']]],
   ['loadsongs_84',['LoadSongs',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html#ac3c91c8f49743af9f6df4b148aa17609',1,'yaze::zelda3::music::Tracker']]],

@@ -6,10 +6,7 @@
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="199,61,199,182,194,182,194,61"/>
 <area shape="rect" id="Node000004" href="$editor__manager_8h.html" title=" " alt="" coords="234,94,370,135"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="234,54,280,91,277,96,230,58"/>
-<area shape="poly" id="edge7_Node000004_Node000003" title=" " alt="" coords="268,147,222,184,219,180,265,143"/>
-<area shape="rect" id="Node000005" href="$controller_8cc.html" title=" " alt="" coords="277,271,444,297"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="310,150,318,185,330,222,355,270,350,272,325,224,313,187,305,151"/>
-<area shape="rect" id="Node000006" href="$controller_8h.html" title=" " alt="" coords="339,190,500,216"/>
-<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="342,142,405,188,401,192,339,146"/>
-<area shape="poly" id="edge6_Node000006_Node000005" title=" " alt="" coords="403,230,372,272,368,269,399,227"/>
+<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="268,147,222,184,219,180,265,143"/>
+<area shape="rect" id="Node000005" href="$controller_8cc.html" title=" " alt="" coords="289,190,456,216"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="329,145,365,188,361,192,325,148"/>
 </map>

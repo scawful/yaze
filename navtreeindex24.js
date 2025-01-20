@@ -1,6 +1,5 @@
 var NAVTREEINDEX24 =
 {
-"classyaze_1_1zelda3_1_1OverworldMap.html#abf5ef1c79c6fcc6807f168539c70ea3d":[11,0,1,9,14,1],
 "classyaze_1_1zelda3_1_1OverworldMap.html#abf5ef1c79c6fcc6807f168539c70ea3d":[12,0,0,7,11,1],
 "classyaze_1_1zelda3_1_1OverworldMap.html#ac15e10e3b13f68961e865fdb8b9f815e":[11,0,1,9,14,63],
 "classyaze_1_1zelda3_1_1OverworldMap.html#ac15e10e3b13f68961e865fdb8b9f815e":[12,0,0,7,11,63],
@@ -100,12 +99,12 @@ var NAVTREEINDEX24 =
 "classyaze_1_1zelda3_1_1Room.html#a322e683046befa7f1b015388e5a0f8bd":[12,0,0,7,15,35],
 "classyaze_1_1zelda3_1_1Room.html#a32302572e87f0e06a5f79f06082f2bfb":[11,0,1,9,18,64],
 "classyaze_1_1zelda3_1_1Room.html#a32302572e87f0e06a5f79f06082f2bfb":[12,0,0,7,15,64],
-"classyaze_1_1zelda3_1_1Room.html#a323ed37ebec5d858c784178592ab0751":[11,0,1,9,18,6],
-"classyaze_1_1zelda3_1_1Room.html#a323ed37ebec5d858c784178592ab0751":[12,0,0,7,15,6],
 "classyaze_1_1zelda3_1_1Room.html#a3302e2e9fa788868864f33e31c73c2f3":[11,0,1,9,18,25],
 "classyaze_1_1zelda3_1_1Room.html#a3302e2e9fa788868864f33e31c73c2f3":[12,0,0,7,15,25],
 "classyaze_1_1zelda3_1_1Room.html#a395788339cd3b480bbc18deaf32f1989":[11,0,1,9,18,59],
 "classyaze_1_1zelda3_1_1Room.html#a395788339cd3b480bbc18deaf32f1989":[12,0,0,7,15,59],
+"classyaze_1_1zelda3_1_1Room.html#a3ef7c65750b189c256c700d2f320e141":[11,0,1,9,18,6],
+"classyaze_1_1zelda3_1_1Room.html#a3ef7c65750b189c256c700d2f320e141":[12,0,0,7,15,6],
 "classyaze_1_1zelda3_1_1Room.html#a4217f93dee62c9ac60587338731a2c6f":[11,0,1,9,18,15],
 "classyaze_1_1zelda3_1_1Room.html#a4217f93dee62c9ac60587338731a2c6f":[12,0,0,7,15,15],
 "classyaze_1_1zelda3_1_1Room.html#a4f1515d6a5f49d8f5d1029c2a1df5ffb":[11,0,1,9,18,42],
@@ -249,5 +248,6 @@ var NAVTREEINDEX24 =
 "classyaze_1_1zelda3_1_1RoomEntrance.html#adfc0772e2989b3527d388d0fa7122310":[11,0,1,9,19,6],
 "classyaze_1_1zelda3_1_1RoomEntrance.html#adfc0772e2989b3527d388d0fa7122310":[12,0,0,7,16,6],
 "classyaze_1_1zelda3_1_1RoomEntrance.html#ae486a80384b93539389cea9e6b7d1aa3":[11,0,1,9,19,20],
-"classyaze_1_1zelda3_1_1RoomEntrance.html#ae486a80384b93539389cea9e6b7d1aa3":[12,0,0,7,16,20]
+"classyaze_1_1zelda3_1_1RoomEntrance.html#ae486a80384b93539389cea9e6b7d1aa3":[12,0,0,7,16,20],
+"classyaze_1_1zelda3_1_1RoomEntrance.html#ae53df0417b6a6885836cfd3987d96e73":[11,0,1,9,19,3]
 };

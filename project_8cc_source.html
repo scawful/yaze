@@ -114,10 +114,10 @@ $(function(){initNavTree('project_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;fstream&gt;</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;string&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;<a class="code" href="constants_8h.html">app/core/constants.h</a>&quot;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;<a class="code" href="icons_8h.html">app/gui/icons.h</a>&quot;</span></div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;imgui/imgui.h&quot;</span></div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;imgui/misc/cpp/imgui_stdlib.h&quot;</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;<a class="code" href="icons_8h.html">app/gui/icons.h</a>&quot;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;imgui/imgui.h&quot;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;imgui/misc/cpp/imgui_stdlib.h&quot;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;<a class="code" href="macro_8h.html">util/macro.h</a>&quot;</span></div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
@@ -154,7 +154,7 @@ $(function(){initNavTree('project_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> </div>
 <div class="foldopen" id="foldopen00042" data-start="{" data-end="}">
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="structyaze_1_1Project.html#a51b2784cba8c2e77ea445af799fe3880">   42</a></span>absl::Status <a class="code hl_function" href="structyaze_1_1Project.html#a51b2784cba8c2e77ea445af799fe3880">Project::Save</a>() {</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  <a class="code hl_define" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(<a class="code hl_function" href="structyaze_1_1Project.html#a7b27a95cbe3dcb5cae552cc2bc2fb755">CheckForEmptyFields</a>());</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  <a class="code hl_define" href="macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(<a class="code hl_function" href="structyaze_1_1Project.html#a7b27a95cbe3dcb5cae552cc2bc2fb755">CheckForEmptyFields</a>());</div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  std::ofstream out(<a class="code hl_variable" href="structyaze_1_1Project.html#ad39f2cc0e80f0eb6f7493d5d6519ff5a">filepath</a> + <span class="stringliteral">&quot;/&quot;</span> + <a class="code hl_variable" href="structyaze_1_1Project.html#a240f0fe5e09f8926d57c01bbf7ce383b">name</a> + <span class="stringliteral">&quot;.yaze&quot;</span>);</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  <span class="keywordflow">if</span> (!out.good()) {</div>
@@ -313,12 +313,11 @@ $(function(){initNavTree('project_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>}</div>
 </div>
 <div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span> </div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span> </div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>}  <span class="comment">// namespace yaze</span></div>
-<div class="ttc" id="aconstants_8h_html"><div class="ttname"><a href="constants_8h.html">constants.h</a></div></div>
-<div class="ttc" id="aconstants_8h_html_a755e0e0d964b4d81ae730d174c5fa3ce"><div class="ttname"><a href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a></div><div class="ttdeci">#define RETURN_IF_ERROR(expression)</div><div class="ttdef"><b>Definition</b> <a href="constants_8h_source.html#l00062">constants.h:62</a></div></div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aicons_8h_html"><div class="ttname"><a href="icons_8h.html">icons.h</a></div></div>
 <div class="ttc" id="aicons_8h_html_ae1d0ddb2d6f16e5d6e961105a9d7fe90"><div class="ttname"><a href="icons_8h.html#ae1d0ddb2d6f16e5d6e961105a9d7fe90">ICON_MD_CLOSE</a></div><div class="ttdeci">#define ICON_MD_CLOSE</div><div class="ttdef"><b>Definition</b> <a href="icons_8h_source.html#l00416">icons.h:416</a></div></div>
+<div class="ttc" id="amacro_8h_html"><div class="ttname"><a href="macro_8h.html">macro.h</a></div></div>
+<div class="ttc" id="amacro_8h_html_a755e0e0d964b4d81ae730d174c5fa3ce"><div class="ttname"><a href="macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a></div><div class="ttdeci">#define RETURN_IF_ERROR(expression)</div><div class="ttdef"><b>Definition</b> <a href="macro_8h_source.html#l00062">macro.h:62</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="common_8cc_source.html#l00011">common.cc:11</a></div></div>
 <div class="ttc" id="anamespaceyaze_html_a12ad99b5f6533ab824bad2e024695895"><div class="ttname"><a href="namespaceyaze.html#a12ad99b5f6533ab824bad2e024695895">yaze::kEndOfProjectFile</a></div><div class="ttdeci">constexpr char kEndOfProjectFile[]</div><div class="ttdef"><b>Definition</b> <a href="project_8h_source.html#l00016">project.h:16</a></div></div>
 <div class="ttc" id="aproject_8h_html"><div class="ttname"><a href="project_8h.html">project.h</a></div></div>

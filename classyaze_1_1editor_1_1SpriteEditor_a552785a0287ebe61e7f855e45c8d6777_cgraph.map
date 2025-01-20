@@ -1,22 +1,13 @@
 <map id="yaze::editor::SpriteEditor::Update" name="yaze::editor::SpriteEditor::Update">
-<area shape="rect" id="Node000001" title="Updates the sprite editor." alt="" coords="5,99,164,139"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1SpriteEditor.html#aba67b34610ea4479d2c84b0e49e5cebf" title=" " alt="" coords="214,33,372,74"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,96,211,77,212,82,152,101"/>
-<area shape="rect" id="Node000014" href="$classyaze_1_1editor_1_1SpriteEditor.html#a8654819141edd6e0cebe9962da993761" title=" " alt="" coords="212,99,375,139"/>
-<area shape="poly" id="edge6_Node000001_Node000014" title=" " alt="" coords="164,116,196,116,196,122,164,122"/>
-<area shape="rect" id="Node000017" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="653,200,803,225"/>
-<area shape="poly" id="edge12_Node000001_Node000017" title=" " alt="" coords="141,137,269,179,346,199,423,214,467,218,502,218,581,214,637,213,637,218,581,219,502,223,467,223,423,219,344,204,267,184,139,142"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1SpriteEditor.html#a181c7120455cf4b83c70abb729bc272d" title="Draws the current sheets." alt="" coords="423,99,581,139"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="361,72,421,91,420,96,360,77"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1editor_1_1SpriteEditor.html#ac8bbf35ecc525892a66eb7633b844a04" title=" " alt="" coords="629,5,827,46"/>
-<area shape="poly" id="edge3_Node000002_Node000009" title=" " alt="" coords="365,30,423,19,520,13,614,14,614,20,521,18,423,24,366,35"/>
-<area shape="rect" id="Node000011" href="$classyaze_1_1editor_1_1SpriteEditor.html#a2b88bc5b08da9e5634c0dc55ad0eb679" title="Draws the sprite canvas." alt="" coords="423,33,581,74"/>
-<area shape="poly" id="edge4_Node000002_Node000011" title=" " alt="" coords="373,51,407,51,407,56,373,56"/>
-<area shape="poly" id="edge5_Node000011_Node000009" title=" " alt="" coords="581,41,614,37,614,42,582,47"/>
-<area shape="poly" id="edge7_Node000014_Node000003" title=" " alt="" coords="376,116,407,116,407,122,376,122"/>
-<area shape="poly" id="edge8_Node000014_Node000011" title=" " alt="" coords="360,96,420,77,421,82,361,101"/>
-<area shape="rect" id="Node000015" href="$classyaze_1_1editor_1_1SpriteEditor.html#a69a612f6b9fa4f4d003f29bc16584ee3" title="Draws the sprites list." alt="" coords="423,164,581,205"/>
-<area shape="poly" id="edge9_Node000014_Node000015" title=" " alt="" coords="361,137,421,156,420,161,360,142"/>
-<area shape="poly" id="edge10_Node000015_Node000017" title=" " alt="" coords="582,191,638,199,638,204,581,197"/>
-<area shape="poly" id="edge11_Node000017_Node000017" title=" " alt="" coords="691,201,683,191,688,181,703,175,728,173,756,176,770,182,767,187,754,181,728,178,704,180,691,185,688,190,695,197"/>
+<area shape="rect" id="Node000001" title="Updates the sprite editor." alt="" coords="5,71,164,111"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1SpriteEditor.html#aba67b34610ea4479d2c84b0e49e5cebf" title=" " alt="" coords="214,5,372,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,68,211,49,212,54,152,73"/>
+<area shape="rect" id="Node000014" href="$classyaze_1_1editor_1_1SpriteEditor.html#a8654819141edd6e0cebe9962da993761" title=" " alt="" coords="212,71,375,111"/>
+<area shape="poly" id="edge3_Node000001_Node000014" title=" " alt="" coords="164,88,196,88,196,94,164,94"/>
+<area shape="rect" id="Node000017" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="219,160,368,185"/>
+<area shape="poly" id="edge5_Node000001_Node000017" title=" " alt="" coords="140,109,245,151,243,156,138,114"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1SpriteEditor.html#a181c7120455cf4b83c70abb729bc272d" title="Draws the current sheets." alt="" coords="423,39,581,79"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="373,36,408,41,407,47,372,41"/>
+<area shape="poly" id="edge4_Node000014_Node000003" title=" " alt="" coords="375,76,407,71,408,76,376,81"/>
+<area shape="poly" id="edge6_Node000017_Node000017" title=" " alt="" coords="258,161,252,151,256,141,270,135,293,133,319,136,332,142,330,147,317,141,293,138,271,140,259,145,257,150,263,158"/>
 </map>

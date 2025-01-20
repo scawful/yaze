@@ -118,35 +118,7 @@ $(function(){initNavTree('snes__tile_8cc.html',''); initResizable(true); });
 <code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;stdexcept&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
-<code>#include &quot;<a class="el" href="constants_8h_source.html">app/core/constants.h</a>&quot;</code><br />
-</div><div class="textblock"><div class="dynheader">
-Include dependency graph for snes_tile.cc:</div>
-<div class="dyncontent">
-<div class="center"><img src="snes__tile_8cc__incl.png" border="0" usemap="#asrc_2app_2gfx_2snes__tile_8cc" alt=""/></div>
-<map name="asrc_2app_2gfx_2snes__tile_8cc" id="asrc_2app_2gfx_2snes__tile_8cc">
-<area shape="rect" title=" " alt="" coords="239,5,397,31"/>
-<area shape="rect" href="src_2app_2gfx_2snes__tile_8h.html" title=" " alt="" coords="148,79,232,105"/>
-<area shape="poly" title=" " alt="" coords="298,34,227,73,224,69,295,29"/>
-<area shape="rect" title=" " alt="" coords="5,153,66,178"/>
-<area shape="poly" title=" " alt="" coords="264,34,202,53,138,81,95,111,59,143,56,139,91,107,136,77,200,48,263,29"/>
-<area shape="rect" title=" " alt="" coords="248,153,325,178"/>
-<area shape="poly" title=" " alt="" coords="318,32,295,138,290,137,313,31"/>
-<area shape="rect" title=" " alt="" coords="350,153,407,178"/>
-<area shape="poly" title=" " alt="" coords="326,30,370,137,365,139,321,32"/>
-<area shape="rect" title=" " alt="" coords="381,79,445,105"/>
-<area shape="poly" title=" " alt="" coords="336,29,386,67,383,72,333,34"/>
-<area shape="rect" href="constants_8h.html" title=" " alt="" coords="470,79,612,105"/>
-<area shape="poly" title=" " alt="" coords="357,29,489,71,488,76,355,34"/>
-<area shape="poly" title=" " alt="" coords="225,76,247,78,255,83,258,92,253,102,241,107,239,102,250,98,253,92,251,87,246,83,224,81"/>
-<area shape="rect" title=" " alt="" coords="174,153,223,178"/>
-<area shape="poly" title=" " alt="" coords="194,105,198,137,192,138,189,105"/>
-<area shape="poly" title=" " alt="" coords="165,108,77,148,74,143,163,103"/>
-<area shape="rect" title=" " alt="" coords="89,153,150,178"/>
-<area shape="poly" title=" " alt="" coords="180,107,144,143,140,140,177,103"/>
-<area shape="poly" title=" " alt="" coords="208,103,260,141,257,146,205,107"/>
-<area shape="poly" title=" " alt="" coords="223,103,336,145,334,150,221,108"/>
-</map>
-</div>
+<code>#include &quot;<a class="el" href="macro_8h_source.html">util/macro.h</a>&quot;</code><br />
 </div>
 <p><a href="snes__tile_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -188,14 +160,14 @@ Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a190f0051c4478d8676373a01333c0021" id="r_a190f0051c4478d8676373a01333c0021"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a190f0051c4478d8676373a01333c0021">yaze::gfx::TilePriorityBit</a> = 0x2000</td></tr>
-<tr class="separator:a190f0051c4478d8676373a01333c0021"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae0fe732cfccccc76cac72311d73b4761" id="r_ae0fe732cfccccc76cac72311d73b4761"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#ae0fe732cfccccc76cac72311d73b4761">yaze::gfx::TileHFlipBit</a> = 0x4000</td></tr>
-<tr class="separator:ae0fe732cfccccc76cac72311d73b4761"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab207effafbbaa8c82f4d2cb49942a662" id="r_ab207effafbbaa8c82f4d2cb49942a662"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#ab207effafbbaa8c82f4d2cb49942a662">yaze::gfx::TileVFlipBit</a> = 0x8000</td></tr>
-<tr class="separator:ab207effafbbaa8c82f4d2cb49942a662"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab2dd6f59081c68d9aebc7d96dfd5fa43" id="r_ab2dd6f59081c68d9aebc7d96dfd5fa43"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#ab2dd6f59081c68d9aebc7d96dfd5fa43">yaze::gfx::TileNameMask</a> = 0x03FF</td></tr>
-<tr class="separator:ab2dd6f59081c68d9aebc7d96dfd5fa43"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8fb57254803cd278210eca15c3a60ad7" id="r_a8fb57254803cd278210eca15c3a60ad7"><td class="memItemLeft" align="right" valign="top">constexpr uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a8fb57254803cd278210eca15c3a60ad7">yaze::gfx::TilePriorityBit</a> = 0x2000</td></tr>
+<tr class="separator:a8fb57254803cd278210eca15c3a60ad7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae1bcdcfc2fe242b048da81524c6c9bbc" id="r_ae1bcdcfc2fe242b048da81524c6c9bbc"><td class="memItemLeft" align="right" valign="top">constexpr uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#ae1bcdcfc2fe242b048da81524c6c9bbc">yaze::gfx::TileHFlipBit</a> = 0x4000</td></tr>
+<tr class="separator:ae1bcdcfc2fe242b048da81524c6c9bbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c16b75ec37361c49e2e651554e44fdb" id="r_a2c16b75ec37361c49e2e651554e44fdb"><td class="memItemLeft" align="right" valign="top">constexpr uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a2c16b75ec37361c49e2e651554e44fdb">yaze::gfx::TileVFlipBit</a> = 0x8000</td></tr>
+<tr class="separator:a2c16b75ec37361c49e2e651554e44fdb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2ac2c8b176a65259c394aac54d1e69b1" id="r_a2ac2c8b176a65259c394aac54d1e69b1"><td class="memItemLeft" align="right" valign="top">constexpr uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a2ac2c8b176a65259c394aac54d1e69b1">yaze::gfx::TileNameMask</a> = 0x03FF</td></tr>
+<tr class="separator:a2ac2c8b176a65259c394aac54d1e69b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

@@ -118,79 +118,10 @@ $(function(){initNavTree('compression__test_8cc.html',''); initResizable(true); 
 <div class="textblock"><code>#include &quot;<a class="el" href="compression_8h_source.html">app/gfx/compression.h</a>&quot;</code><br />
 <code>#include &lt;gmock/gmock.h&gt;</code><br />
 <code>#include &lt;gtest/gtest.h&gt;</code><br />
+<code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;array&gt;</code><br />
 <code>#include &quot;absl/status/statusor.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="rom_8h_source.html">app/rom.h</a>&quot;</code><br />
-</div><div class="textblock"><div class="dynheader">
-Include dependency graph for compression_test.cc:</div>
-<div class="dyncontent">
-<div class="center"><img src="compression__test_8cc__incl.png" border="0" usemap="#atest_2gfx_2compression__test_8cc" alt=""/></div>
-<map name="atest_2gfx_2compression__test_8cc" id="atest_2gfx_2compression__test_8cc">
-<area shape="rect" title=" " alt="" coords="962,5,1104,46"/>
-<area shape="rect" href="compression_8h.html" title=" " alt="" coords="40,94,192,120"/>
-<area shape="poly" title=" " alt="" coords="962,36,207,100,207,95,961,30"/>
-<area shape="rect" title=" " alt="" coords="173,175,320,201"/>
-<area shape="poly" title=" " alt="" coords="962,43,332,170,316,174,315,169,331,165,961,38"/>
-<area shape="rect" title=" " alt="" coords="1037,94,1150,120"/>
-<area shape="poly" title=" " alt="" coords="1050,45,1077,80,1073,83,1046,48"/>
-<area shape="rect" title=" " alt="" coords="1175,94,1268,120"/>
-<area shape="poly" title=" " alt="" coords="1081,44,1179,85,1177,90,1079,49"/>
-<area shape="rect" title=" " alt="" coords="1293,94,1342,120"/>
-<area shape="poly" title=" " alt="" coords="1105,43,1278,91,1277,96,1104,48"/>
-<area shape="rect" href="rom_8h.html" title=" " alt="" coords="934,94,1012,120"/>
-<area shape="poly" title=" " alt="" coords="1020,48,994,83,989,80,1016,45"/>
-<area shape="rect" title=" " alt="" coords="82,175,150,201"/>
-<area shape="poly" title=" " alt="" coords="119,120,119,159,113,159,113,120"/>
-<area shape="rect" title=" " alt="" coords="671,330,724,356"/>
-<area shape="poly" title=" " alt="" coords="77,123,43,141,27,154,16,169,8,189,10,197,15,207,34,224,60,240,130,268,217,290,314,307,509,328,655,337,655,343,508,334,313,312,216,295,128,273,58,245,31,228,11,210,5,199,3,188,11,166,24,150,40,136,75,118"/>
-<area shape="rect" title=" " alt="" coords="561,256,618,282"/>
-<area shape="poly" title=" " alt="" coords="85,122,54,141,40,154,29,169,21,189,23,198,28,206,54,219,105,230,251,248,415,258,545,264,545,269,415,264,251,253,104,236,53,224,25,210,18,199,16,189,24,166,36,150,50,137,82,118"/>
-<area shape="rect" title=" " alt="" coords="698,256,833,282"/>
-<area shape="poly" title=" " alt="" coords="105,122,88,140,72,163,65,186,67,197,72,206,683,258,682,263,69,211,62,199,60,186,67,161,84,137,101,118"/>
-<area shape="poly" title=" " alt="" coords="137,118,215,165,212,169,134,122"/>
-<area shape="rect" href="constants_8h.html" title=" " alt="" coords="343,175,486,201"/>
-<area shape="poly" title=" " alt="" coords="163,118,355,168,353,173,161,123"/>
-<area shape="poly" title=" " alt="" coords="934,112,551,129,325,147,232,158,162,170,155,172,154,167,161,165,231,152,325,141,550,124,934,107"/>
-<area shape="poly" title=" " alt="" coords="934,112,848,115,742,125,643,142,605,155,579,170,554,195,540,222,538,250,551,281,572,302,599,318,628,328,656,335,655,340,627,334,597,323,569,307,547,283,533,251,535,221,550,192,576,166,603,150,642,137,741,120,847,110,933,106"/>
-<area shape="poly" title=" " alt="" coords="934,111,851,114,751,123,658,141,624,154,600,170,590,185,586,204,586,242,581,242,580,203,586,183,597,166,621,149,657,136,750,118,851,109,934,106"/>
-<area shape="poly" title=" " alt="" coords="934,114,902,120,866,130,831,147,800,170,788,186,779,204,770,242,765,241,774,203,784,183,797,166,828,142,864,125,900,115,933,109"/>
-<area shape="poly" title=" " alt="" coords="934,113,680,130,507,147,332,170,311,174,310,169,331,165,507,142,679,125,933,107"/>
-<area shape="poly" title=" " alt="" coords="934,115,748,136,504,170,483,174,482,169,503,165,747,130,933,109"/>
-<area shape="rect" title=" " alt="" coords="1011,175,1069,201"/>
-<area shape="poly" title=" " alt="" coords="985,118,1022,162,1018,165,981,122"/>
-<area shape="rect" href="zelda_8h.html" title=" " alt="" coords="1093,175,1155,201"/>
-<area shape="poly" title=" " alt="" coords="997,118,1089,165,1086,170,995,122"/>
-<area shape="rect" title=" " alt="" coords="1178,175,1243,201"/>
-<area shape="poly" title=" " alt="" coords="1014,116,1167,165,1171,166,1169,171,1166,170,1012,122"/>
-<area shape="rect" title=" " alt="" coords="1023,330,1083,356"/>
-<area shape="poly" title=" " alt="" coords="1013,115,1026,117,1097,122,1191,126,1239,130,1282,137,1317,148,1342,166,1353,183,1358,199,1357,215,1350,230,1324,256,1286,278,1239,298,1189,314,1099,336,1097,331,1187,309,1237,293,1283,274,1321,252,1346,227,1352,213,1353,200,1348,185,1338,170,1315,153,1280,142,1238,135,1191,131,1097,128,1025,122,1012,120"/>
-<area shape="rect" title=" " alt="" coords="1267,175,1327,201"/>
-<area shape="poly" title=" " alt="" coords="1013,114,1026,117,1141,137,1192,147,1255,165,1259,166,1258,172,1254,170,1191,152,1140,142,1025,122,1012,120"/>
-<area shape="rect" title=" " alt="" coords="1453,175,1507,201"/>
-<area shape="poly" title=" " alt="" coords="1013,115,1026,117,1141,131,1231,135,1322,142,1435,165,1441,167,1439,172,1434,170,1321,147,1231,140,1140,136,1025,122,1012,120"/>
-<area shape="rect" title=" " alt="" coords="1530,175,1576,201"/>
-<area shape="poly" title=" " alt="" coords="1013,115,1026,117,1100,126,1165,130,1275,130,1327,130,1384,135,1446,146,1519,165,1521,166,1520,171,1518,170,1445,151,1383,140,1327,136,1274,135,1164,135,1100,132,1025,122,1012,120"/>
-<area shape="rect" title=" " alt="" coords="1600,175,1661,201"/>
-<area shape="poly" title=" " alt="" coords="1013,115,1026,117,1111,127,1184,132,1308,132,1369,132,1433,136,1505,147,1589,165,1594,167,1593,172,1587,170,1504,152,1432,142,1368,138,1308,137,1184,137,1110,133,1025,122,1012,120"/>
-<area shape="rect" title=" " alt="" coords="1685,175,1824,201"/>
-<area shape="poly" title=" " alt="" coords="1013,115,1026,117,1124,129,1207,136,1349,140,1492,145,1575,152,1674,165,1694,169,1693,174,1673,170,1575,157,1492,150,1349,146,1207,141,1123,135,1025,122,1012,120"/>
-<area shape="rect" title=" " alt="" coords="1261,330,1422,356"/>
-<area shape="poly" title=" " alt="" coords="1013,115,1026,117,1103,122,1205,124,1257,128,1303,135,1342,147,1368,166,1380,183,1385,203,1385,244,1373,284,1358,317,1353,315,1368,282,1379,243,1380,204,1375,186,1365,170,1339,152,1302,140,1256,133,1205,130,1103,127,1025,122,1012,120"/>
-<area shape="rect" title=" " alt="" coords="611,168,735,208"/>
-<area shape="poly" title=" " alt="" coords="935,121,751,169,750,164,933,116"/>
-<area shape="rect" href="core_2common_8h.html" title=" " alt="" coords="908,256,1044,282"/>
-<area shape="poly" title=" " alt="" coords="976,120,978,241,973,241,971,120"/>
-<area shape="rect" href="project_8h.html" title=" " alt="" coords="811,175,935,201"/>
-<area shape="poly" title=" " alt="" coords="960,122,902,167,899,163,956,118"/>
-<area shape="poly" title=" " alt="" coords="929,285,740,333,738,328,928,280"/>
-<area shape="poly" title=" " alt="" coords="991,281,1031,317,1027,321,987,285"/>
-<area shape="poly" title=" " alt="" coords="1039,280,1265,324,1264,329,1038,285"/>
-<area shape="poly" title=" " alt="" coords="875,202,869,241,861,264,847,284,823,304,795,319,740,337,738,332,793,315,820,300,843,280,856,261,864,239,870,201"/>
-<area shape="poly" title=" " alt="" coords="830,204,634,258,632,253,829,199"/>
-<area shape="poly" title=" " alt="" coords="858,203,795,249,792,245,855,199"/>
-<area shape="poly" title=" " alt="" coords="890,199,950,244,946,249,887,203"/>
-</map>
-</div>
 </div>
 <p><a href="compression__test_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -221,12 +152,12 @@ Macros</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a8dd3d3b66e0f8c6c3f419f7e0af8da9b" id="r_a8dd3d3b66e0f8c6c3f419f7e0af8da9b"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a8dd3d3b66e0f8c6c3f419f7e0af8da9b">yaze::test::anonymous_namespace{compression_test.cc}::ExpectCompressOk</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;rom, <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *in, int in_size)</td></tr>
-<tr class="separator:a8dd3d3b66e0f8c6c3f419f7e0af8da9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acbf5407ea59e5fbb6227a357802893c1" id="r_acbf5407ea59e5fbb6227a357802893c1"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#acbf5407ea59e5fbb6227a357802893c1">yaze::test::anonymous_namespace{compression_test.cc}::ExpectCompressOk</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;rom, uint8_t *in, int in_size)</td></tr>
+<tr class="separator:acbf5407ea59e5fbb6227a357802893c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aea2a498a83c2d824402e1632a4c0c14b" id="r_aea2a498a83c2d824402e1632a4c0c14b"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#aea2a498a83c2d824402e1632a4c0c14b">yaze::test::anonymous_namespace{compression_test.cc}::ExpectDecompressBytesOk</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;rom, std::vector&lt; uint8_t &gt; &amp;in)</td></tr>
 <tr class="separator:aea2a498a83c2d824402e1632a4c0c14b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a39c906d372ef594237c65bc20d310711" id="r_a39c906d372ef594237c65bc20d310711"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a39c906d372ef594237c65bc20d310711">yaze::test::anonymous_namespace{compression_test.cc}::ExpectDecompressOk</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;rom, <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *in, int in_size)</td></tr>
-<tr class="separator:a39c906d372ef594237c65bc20d310711"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99723a1d41ac08d62332d49124d0d186" id="r_a99723a1d41ac08d62332d49124d0d186"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a99723a1d41ac08d62332d49124d0d186">yaze::test::anonymous_namespace{compression_test.cc}::ExpectDecompressOk</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;rom, uint8_t *in, int in_size)</td></tr>
+<tr class="separator:a99723a1d41ac08d62332d49124d0d186"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9ceacaaa96ef2d18ba0ce84eb6751d3b" id="r_a9ceacaaa96ef2d18ba0ce84eb6751d3b"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="structyaze_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html">CompressionPiece</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a9ceacaaa96ef2d18ba0ce84eb6751d3b">yaze::test::anonymous_namespace{compression_test.cc}::ExpectNewCompressionPieceOk</a> (const char command, const int length, std::string &amp;args, const int argument_length)</td></tr>
 <tr class="separator:a9ceacaaa96ef2d18ba0ce84eb6751d3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adf116b63a46b6698d5d5fe40373a9089" id="r_adf116b63a46b6698d5d5fe40373a9089"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#adf116b63a46b6698d5d5fe40373a9089">yaze::test::anonymous_namespace{compression_test.cc}::AssertCompressionQuality</a> (const std::vector&lt; uint8_t &gt; &amp;uncompressed_data, const std::vector&lt; uint8_t &gt; &amp;expected_compressed_data)</td></tr>
@@ -275,15 +206,15 @@ Functions</h2></td></tr>
 <tr class="separator:afad12658ca145aee11152446e8637c31"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1e12883087226759fb029c1bf93cb5d6" id="r_a1e12883087226759fb029c1bf93cb5d6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1test.html#a1e12883087226759fb029c1bf93cb5d6">yaze::test::TEST</a> (LC_LZ2_CompressionTest, DecompressionMixingCommand)</td></tr>
 <tr class="separator:a1e12883087226759fb029c1bf93cb5d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0e96f372d460c5b4e9f11e61aefbf9db" id="r_a0e96f372d460c5b4e9f11e61aefbf9db"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1test.html#a0e96f372d460c5b4e9f11e61aefbf9db">yaze::test::CompressV2</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, const int start, const int length, int mode=1, bool check=false)</td></tr>
-<tr class="memdesc:a0e96f372d460c5b4e9f11e61aefbf9db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compresses a buffer of data using the LC_LZ2 algorithm.  <br /></td></tr>
-<tr class="separator:a0e96f372d460c5b4e9f11e61aefbf9db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aedac42cb4c5874d584616aabef4ba280" id="r_aedac42cb4c5874d584616aabef4ba280"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1test.html#aedac42cb4c5874d584616aabef4ba280">yaze::test::CompressV2</a> (const uint8_t *data, const int start, const int length, int mode=1, bool check=false)</td></tr>
+<tr class="memdesc:aedac42cb4c5874d584616aabef4ba280"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compresses a buffer of data using the LC_LZ2 algorithm.  <br /></td></tr>
+<tr class="separator:aedac42cb4c5874d584616aabef4ba280"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a143e848d987c6b04f56308f2ef6953ae" id="r_a143e848d987c6b04f56308f2ef6953ae"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1test.html#a143e848d987c6b04f56308f2ef6953ae">yaze::test::CompressV3</a> (const std::vector&lt; uint8_t &gt; &amp;data, const int start, const int length, int mode=1, bool check=false)</td></tr>
 <tr class="memdesc:a143e848d987c6b04f56308f2ef6953ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compresses a buffer of data using the LC_LZ2 algorithm.  <br /></td></tr>
 <tr class="separator:a143e848d987c6b04f56308f2ef6953ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4e2e79a02c9bbff8d9720d6384296218" id="r_a4e2e79a02c9bbff8d9720d6384296218"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1test.html#a4e2e79a02c9bbff8d9720d6384296218">yaze::test::DecompressV2</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, int offset, int size=0x800, int mode=1)</td></tr>
-<tr class="memdesc:a4e2e79a02c9bbff8d9720d6384296218"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decompresses a buffer of data using the LC_LZ2 algorithm.  <br /></td></tr>
-<tr class="separator:a4e2e79a02c9bbff8d9720d6384296218"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8047f7485c2005f348b064032890690" id="r_aa8047f7485c2005f348b064032890690"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1test.html#aa8047f7485c2005f348b064032890690">yaze::test::DecompressV2</a> (const uint8_t *data, int offset, int size=0x800, int mode=1)</td></tr>
+<tr class="memdesc:aa8047f7485c2005f348b064032890690"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decompresses a buffer of data using the LC_LZ2 algorithm.  <br /></td></tr>
+<tr class="separator:aa8047f7485c2005f348b064032890690"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -321,7 +252,7 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line">(command &lt;&lt; 5) + (length - 1)</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="compression__test_8cc_source.html#l00011">11</a> of file <a class="el" href="compression__test_8cc_source.html">compression_test.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="compression__test_8cc_source.html#l00012">12</a> of file <a class="el" href="compression__test_8cc_source.html">compression_test.cc</a>.</p>
 
 </div>
 </div>

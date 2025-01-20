@@ -2,16 +2,11 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="132,5,295,31"/>
 <area shape="rect" id="Node000002" href="$apu_8cc.html" title=" " alt="" coords="5,79,176,105"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,41,113,81,110,76,178,37"/>
-<area shape="rect" id="Node000003" href="$snes_8cc.html" title=" " alt="" coords="193,241,335,267"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="222,46,264,240,259,241,216,47"/>
-<area shape="rect" id="Node000004" href="$snes_8h.html" title=" " alt="" coords="303,79,438,105"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="255,35,345,76,343,81,253,40"/>
-<area shape="poly" id="edge8_Node000004_Node000003" title=" " alt="" coords="334,115,311,132,291,154,280,177,273,201,267,242,262,241,267,199,275,175,287,151,307,128,331,111"/>
-<area shape="rect" id="Node000005" href="$emu_8cc.html" title=" " alt="" coords="301,160,440,186"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="373,120,373,160,368,160,368,120"/>
-<area shape="rect" id="Node000006" href="$emulator_8h.html" title=" " alt="" coords="464,160,621,186"/>
-<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="412,109,517,157,515,162,409,114"/>
-<area shape="rect" id="Node000016" href="$dma_8h.html" title=" " alt="" coords="646,153,789,193"/>
-<area shape="poly" id="edge6_Node000004_Node000016" title=" " alt="" coords="439,106,646,153,644,158,438,111"/>
-<area shape="poly" id="edge7_Node000016_Node000003" title=" " alt="" coords="631,196,469,225,336,245,335,240,468,220,630,191"/>
+<area shape="rect" id="Node000003" href="$snes_8cc.html" title=" " alt="" coords="142,153,284,178"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="216,47,216,152,210,152,210,47"/>
+<area shape="rect" id="Node000004" href="$snes_8h.html" title=" " alt="" coords="251,79,386,105"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="245,38,302,76,299,81,242,42"/>
+<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="290,116,233,154,230,150,287,111"/>
+<area shape="rect" id="Node000005" href="$emu_8cc.html" title=" " alt="" coords="309,153,448,178"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="340,115,370,150,366,154,336,118"/>
 </map>

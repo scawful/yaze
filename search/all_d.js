@@ -46,11 +46,11 @@ var searchData=
   ['decodeoffset_43',['decodeOffset',['../structyaze_1_1emu_1_1DspChannel.html#a8e5a6b3cf1411f276ce0ced2e79faa3b',1,'yaze::emu::DspChannel']]],
   ['decompress_44',['Decompress',['../classyaze_1_1cli_1_1Decompress.html',1,'yaze::cli']]],
   ['decompressallmaptiles_45',['DecompressAllMapTiles',['../classyaze_1_1zelda3_1_1Overworld.html#a20e517475a9218d16df9ee277d46a99f',1,'yaze::zelda3::Overworld']]],
-  ['decompressgraphics_46',['DecompressGraphics',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a835c13fe4e97f78c57e10ac7ad2428b5',1,'yaze::gfx::lc_lz2']]],
+  ['decompressgraphics_46',['DecompressGraphics',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a6d3317d05116331ae6ce57ae3ecddc62',1,'yaze::gfx::lc_lz2']]],
   ['decompressimportdata_47',['DecompressImportData',['../classyaze_1_1editor_1_1GraphicsEditor.html#aeb7ffcd14b5b14a3f9700ef2a89b8c72',1,'yaze::editor::GraphicsEditor']]],
-  ['decompressoverworld_48',['DecompressOverworld',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a35a3fbb0f6702efaf00ca00b3874dd9f',1,'yaze::gfx::lc_lz2::DecompressOverworld(const uchar *data, int pos, int size)'],['../namespaceyaze_1_1gfx_1_1lc__lz2.html#aca073ea2dad8ca6982fc1f2c5f0087fa',1,'yaze::gfx::lc_lz2::DecompressOverworld(const std::vector&lt; uint8_t &gt; data, int pos, int size)']]],
+  ['decompressoverworld_48',['DecompressOverworld',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a8dcf1b557b4aac854914fdca347252cc',1,'yaze::gfx::lc_lz2::DecompressOverworld(const uint8_t *data, int pos, int size)'],['../namespaceyaze_1_1gfx_1_1lc__lz2.html#aca073ea2dad8ca6982fc1f2c5f0087fa',1,'yaze::gfx::lc_lz2::DecompressOverworld(const std::vector&lt; uint8_t &gt; data, int pos, int size)']]],
   ['decompresssuperdonkey_49',['DecompressSuperDonkey',['../classyaze_1_1editor_1_1GraphicsEditor.html#a5d61d1556a78f3c2bb3d8b800dcc2ba3',1,'yaze::editor::GraphicsEditor']]],
-  ['decompressv2_50',['DecompressV2',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a4e2e79a02c9bbff8d9720d6384296218',1,'yaze::gfx::lc_lz2::DecompressV2()'],['../namespaceyaze_1_1test.html#a4e2e79a02c9bbff8d9720d6384296218',1,'yaze::test::DecompressV2()']]],
+  ['decompressv2_50',['DecompressV2',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#aa8047f7485c2005f348b064032890690',1,'yaze::gfx::lc_lz2::DecompressV2()'],['../namespaceyaze_1_1test.html#aa8047f7485c2005f348b064032890690',1,'yaze::test::DecompressV2()']]],
   ['decrement_51',['decrement',['../structyaze_1_1emu_1_1DmaChannel.html#a852d965089ca37a0a231a0ac10154dc3',1,'yaze::emu::DmaChannel']]],
   ['decw_52',['DECW',['../classyaze_1_1emu_1_1Spc700.html#aac3dd88bb6a8dd6e7c650f0f0d830ee1',1,'yaze::emu::Spc700::DECW()'],['../classyaze_1_1test_1_1Spc700.html#aac3dd88bb6a8dd6e7c650f0f0d830ee1',1,'yaze::test::Spc700::DECW()']]],
   ['default_53',['Default',['../classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a7a1920d61156abc05a60135aefe8bc67',1,'TextEditor']]],
@@ -265,7 +265,7 @@ var searchData=
   ['drawtable_262',['DrawTable',['../namespaceyaze_1_1gui.html#a63cf2c84b704f70ba84ef7a1691e1b85',1,'yaze::gui']]],
   ['drawtext_263',['DrawText',['../classyaze_1_1gui_1_1Canvas.html#aa00df536b73c6142cdf6d25b4310490d',1,'yaze::gui::Canvas']]],
   ['drawtextcommands_264',['DrawTextCommands',['../classyaze_1_1editor_1_1MessageEditor.html#a7c57b31fc61d0a6512ab1264142e70cb',1,'yaze::editor::MessageEditor']]],
-  ['drawtile_265',['DrawTile',['../classyaze_1_1zelda3_1_1RoomObject.html#a7a9417db28e1a58b6a39244a1428d535',1,'yaze::zelda3::RoomObject']]],
+  ['drawtile_265',['DrawTile',['../classyaze_1_1zelda3_1_1RoomObject.html#aabb5310703f9b83fb67c7b265b2f41ed',1,'yaze::zelda3::RoomObject']]],
   ['drawtile16editor_266',['DrawTile16Editor',['../classyaze_1_1editor_1_1Tile16Editor.html#ad90acd59127f0cba15b8acefd02065ba',1,'yaze::editor::Tile16Editor']]],
   ['drawtile16selector_267',['DrawTile16Selector',['../classyaze_1_1editor_1_1OverworldEditor.html#afab13e93a2055e6b761b5b3ded716e43',1,'yaze::editor::OverworldEditor']]],
   ['drawtile8selector_268',['DrawTile8Selector',['../classyaze_1_1editor_1_1OverworldEditor.html#a0d721d008caa92a07dc7a3165aa52070',1,'yaze::editor::OverworldEditor']]],
@@ -323,5 +323,5 @@ var searchData=
   ['dw_5fspr_5fgfx_5fpart2_320',['DW_SPR_GFX_PART2',['../classyaze_1_1editor_1_1OverworldEditor.html#aea8267c4f7c87f90980a353edb9d27a1a9d274650571cbcdfb3d924c6ae55a52d',1,'yaze::editor::OverworldEditor']]],
   ['dw_5fspr_5fpal_5fpart1_321',['DW_SPR_PAL_PART1',['../classyaze_1_1editor_1_1OverworldEditor.html#aea8267c4f7c87f90980a353edb9d27a1afe367e76fb3ce0a6f743525c7e379bc9',1,'yaze::editor::OverworldEditor']]],
   ['dw_5fspr_5fpal_5fpart2_322',['DW_SPR_PAL_PART2',['../classyaze_1_1editor_1_1OverworldEditor.html#aea8267c4f7c87f90980a353edb9d27a1a15e93c1f924790725359e5f3ffa062c8',1,'yaze::editor::OverworldEditor']]],
-  ['dwmapdata_323',['dwmapdata',['../classyaze_1_1zelda3_1_1TitleScreen.html#ab80a6fe0b8fcdd3b3ef484b5cae4287f',1,'yaze::zelda3::TitleScreen']]]
+  ['dwmapdata_323',['dwmapdata',['../classyaze_1_1zelda3_1_1TitleScreen.html#a1f0f8241d3a6ed0d3702556dd308ca37',1,'yaze::zelda3::TitleScreen']]]
 ];

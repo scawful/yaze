@@ -8,7 +8,5 @@
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="165,145,208,153,207,159,164,150"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="224,209,360,250"/>
 <area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="126,151,214,195,225,200,223,205,212,200,123,156"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="260,161,254,151,258,141,271,135,292,133,315,135,327,142,325,147,314,141,292,138,272,140,262,145,260,150,265,158"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="420,209,543,250"/>
-<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="361,227,405,227,405,232,361,232"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="258,161,251,151,255,141,269,135,292,133,318,136,331,142,328,147,316,141,292,138,270,140,259,145,256,150,262,158"/>
 </map>

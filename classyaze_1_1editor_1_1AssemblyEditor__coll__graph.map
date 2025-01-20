@@ -1,16 +1,11 @@
 <map id="yaze::editor::AssemblyEditor" name="yaze::editor::AssemblyEditor">
-<area shape="rect" id="Node000001" title="Text editor for modifying assembly code." alt="" coords="916,67,1098,92"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="674,17,798,43"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="814,42,933,63,932,69,813,47"/>
-<area shape="rect" id="Node000003" href="$structyaze_1_1editor_1_1EditorContext.html" title=" " alt="" coords="320,5,488,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="504,19,674,25,674,31,504,24"/>
-<area shape="rect" id="Node000009" href="$classTextEditor.html" title=" " alt="" coords="696,91,776,116"/>
-<area shape="poly" id="edge3_Node000001_Node000009" title=" " alt="" coords="791,97,892,89,916,87,916,92,893,94,792,103"/>
-<area shape="rect" id="Node000010" href="$structTextEditor_1_1EditorState.html" title=" " alt="" coords="330,133,479,159"/>
-<area shape="poly" id="edge4_Node000009_Node000010" title=" " alt="" coords="495,135,650,116,696,108,696,114,650,121,495,140"/>
-<area shape="rect" id="Node000011" href="$structTextEditor_1_1Coordinates.html" title=" " alt="" coords="5,105,160,131"/>
-<area shape="poly" id="edge7_Node000009_Node000011" title=" " alt="" coords="175,102,183,101,332,94,478,93,696,99,696,104,478,98,332,99,184,106,175,107"/>
-<area shape="poly" id="edge5_Node000010_Node000011" title=" " alt="" coords="134,134,184,146,259,152,329,150,330,155,259,157,183,151,133,139"/>
-<area shape="rect" id="Node000012" href="$structTextEditor_1_1LanguageDefinition.html" title=" " alt="" coords="307,183,502,208"/>
-<area shape="poly" id="edge6_Node000009_Node000012" title=" " alt="" coords="517,183,583,171,649,152,685,134,716,115,718,119,688,139,651,157,584,176,518,188"/>
+<area shape="rect" id="Node000001" title="Text editor for modifying assembly code." alt="" coords="75,183,256,208"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="42,94,166,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="124,131,159,181,155,184,119,134"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1editor_1_1EditorContext.html" title=" " alt="" coords="5,5,174,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="97,46,105,93,100,94,91,47"/>
+<area shape="rect" id="Node000009" href="$classTextEditor.html" title=" " alt="" coords="218,94,297,120"/>
+<area shape="poly" id="edge3_Node000001_Node000009" title=" " alt="" coords="235,133,180,184,176,180,232,129"/>
+<area shape="rect" id="Node000010" href="$structTextEditor_1_1EditorState.html" title=" " alt="" coords="198,5,347,31"/>
+<area shape="poly" id="edge4_Node000009_Node000010" title=" " alt="" coords="270,47,262,94,257,93,265,46"/>
 </map>

@@ -455,8 +455,8 @@ Variables</h2></td></tr>
 <tr class="separator:afbc9fe85069227dcd4ca9c153940cdb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4b6a864121df7d5c8aeeb4b142efe90d" id="r_a4b6a864121df7d5c8aeeb4b142efe90d"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4b6a864121df7d5c8aeeb4b142efe90d">NumberOfRooms</a> = 296</td></tr>
 <tr class="separator:a4b6a864121df7d5c8aeeb4b142efe90d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a103656680d1929d852ba5286b01d5dd0" id="r_a103656680d1929d852ba5286b01d5dd0"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a103656680d1929d852ba5286b01d5dd0">stairsObjects</a> [] = {0x139, 0x138, 0x13B, 0x12E, 0x12D}</td></tr>
-<tr class="separator:a103656680d1929d852ba5286b01d5dd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa0cc664b6550160edcb41dba09eac552" id="r_aa0cc664b6550160edcb41dba09eac552"><td class="memItemLeft" align="right" valign="top">constexpr uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa0cc664b6550160edcb41dba09eac552">stairsObjects</a> [] = {0x139, 0x138, 0x13B, 0x12E, 0x12D}</td></tr>
+<tr class="separator:aa0cc664b6550160edcb41dba09eac552"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6b3f5be6f1403c5b4c4d4f04b74858ba" id="r_a6b3f5be6f1403c5b4c4d4f04b74858ba"><td class="memItemLeft" align="right" valign="top">constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6b3f5be6f1403c5b4c4d4f04b74858ba">kRoomNames</a> []</td></tr>
 <tr class="separator:a6b3f5be6f1403c5b4c4d4f04b74858ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a26495cd86a21e1780a9f4483b5049575" id="r_a26495cd86a21e1780a9f4483b5049575"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a26495cd86a21e1780a9f4483b5049575">kEntranceRoom</a> = 0x14813</td></tr>
@@ -1257,7 +1257,7 @@ Variables</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="overworld__entrance_8h_source.html#l00099">99</a> of file <a class="el" href="overworld__entrance_8h_source.html">overworld_entrance.h</a>.</p>
 
-<p class="reference">References <a class="el" href="constants_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="overworld__entrance_8h_source.html#l00096">yaze::zelda3::OverworldEntranceTileTypes::high</a>, <a class="el" href="overworld__entrance_8h_source.html#l00091">kEntranceTileTypePtrHigh</a>, <a class="el" href="overworld__entrance_8h_source.html#l00090">kEntranceTileTypePtrLow</a>, <a class="el" href="overworld__entrance_8h_source.html#l00092">kNumEntranceTileTypes</a>, <a class="el" href="overworld__entrance_8h_source.html#l00095">yaze::zelda3::OverworldEntranceTileTypes::low</a>, and <a class="el" href="rom_8cc_source.html#l00241">yaze::Rom::ReadWord()</a>.</p>
+<p class="reference">References <a class="el" href="macro_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="overworld__entrance_8h_source.html#l00096">yaze::zelda3::OverworldEntranceTileTypes::high</a>, <a class="el" href="overworld__entrance_8h_source.html#l00091">kEntranceTileTypePtrHigh</a>, <a class="el" href="overworld__entrance_8h_source.html#l00090">kEntranceTileTypePtrLow</a>, <a class="el" href="overworld__entrance_8h_source.html#l00092">kNumEntranceTileTypes</a>, <a class="el" href="overworld__entrance_8h_source.html#l00095">yaze::zelda3::OverworldEntranceTileTypes::low</a>, and <a class="el" href="rom_8cc_source.html#l00241">yaze::Rom::ReadWord()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00059">yaze::editor::OverworldEditor::Update()</a>.</p>
 <div class="dynheader">
@@ -1304,33 +1304,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="dungeon__map_8cc_source.html#l00014">14</a> of file <a class="el" href="dungeon__map_8cc_source.html">dungeon_map.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tilesheet_8h_source.html#l00090">yaze::gfx::Tilesheet::clear()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="#a3f2f6ec0638746ee96b507ea0295625c">LoadDungeonMapTile16()</a>, <a class="el" href="rom_8h_source.html#l00180">yaze::Rom::mutable_dungeon_palette()</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="constants_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, and <a class="el" href="snes__tile_8cc_source.html#l00151">yaze::gfx::SnesTo8bppSheet()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1zelda3_a4159862346f04f2e18e6474c8d44df17_cgraph.png" border="0" usemap="#anamespaceyaze_1_1zelda3_a4159862346f04f2e18e6474c8d44df17_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1zelda3_a4159862346f04f2e18e6474c8d44df17_cgraph" id="anamespaceyaze_1_1zelda3_a4159862346f04f2e18e6474c8d44df17_cgraph">
-<area shape="rect" title=" " alt="" coords="5,201,182,242"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Tilesheet.html#a258335d2c454a2ac0a46781b9fb3769e" title=" " alt="" coords="260,5,389,46"/>
-<area shape="poly" title=" " alt="" coords="105,200,153,130,188,91,228,57,245,47,247,52,231,61,192,95,157,134,109,203"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="256,71,392,111"/>
-<area shape="poly" title=" " alt="" coords="118,199,167,160,228,122,242,115,244,120,231,127,170,165,121,203"/>
-<area shape="rect" href="namespaceyaze_1_1zelda3.html#a3f2f6ec0638746ee96b507ea0295625c" title=" " alt="" coords="236,136,412,177"/>
-<area shape="poly" title=" " alt="" coords="167,198,235,179,236,184,168,203"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a6a005b3b2e4ceeee4328c6815b955880" title=" " alt="" coords="258,201,390,242"/>
-<area shape="poly" title=" " alt="" coords="182,219,243,219,243,224,182,224"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Used to render a bitmap to the screen." alt="" coords="256,267,392,307"/>
-<area shape="poly" title=" " alt="" coords="168,240,242,261,240,266,167,245"/>
-<area shape="rect" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath." alt="" coords="230,332,419,373"/>
-<area shape="poly" title=" " alt="" coords="121,240,170,278,231,317,244,323,242,328,228,321,167,283,118,245"/>
-<area shape="rect" href="namespaceyaze_1_1gfx.html#af98fbf03d09d9d365f64202db1ecba15" title=" " alt="" coords="233,397,416,422"/>
-<area shape="poly" title=" " alt="" coords="109,241,156,311,191,350,231,382,242,388,239,393,228,387,187,353,152,314,104,244"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#ac8762d7ca064094faf9603be575caf07" title=" " alt="" coords="467,71,603,111"/>
-<area shape="poly" title=" " alt="" coords="393,88,451,88,451,94,393,94"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="474,267,597,307"/>
-<area shape="poly" title=" " alt="" coords="393,284,458,284,458,290,393,290"/>
-</map>
-</div>
+<p class="reference">References <a class="el" href="tilesheet_8h_source.html#l00090">yaze::gfx::Tilesheet::clear()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="#a3f2f6ec0638746ee96b507ea0295625c">LoadDungeonMapTile16()</a>, <a class="el" href="rom_8h_source.html#l00180">yaze::Rom::mutable_dungeon_palette()</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, and <a class="el" href="snes__tile_8cc_source.html#l00151">yaze::gfx::SnesTo8bppSheet()</a>.</p>
 
 </div>
 </div>
@@ -1404,7 +1378,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00223">223</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00222">222</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
 
 </div>
 </div>
@@ -1428,7 +1402,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00224">224</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00223">223</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
 
 </div>
 </div>
@@ -1452,7 +1426,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00225">225</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00224">224</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
 
 </div>
 </div>
@@ -1476,7 +1450,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00226">226</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00225">225</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
 
 </div>
 </div>
@@ -1500,9 +1474,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00227">227</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00226">226</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00232">yaze::zelda3::Room::CopyRoomGraphicsToBuffer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00231">yaze::zelda3::Room::CopyRoomGraphicsToBuffer()</a>.</p>
 
 </div>
 </div>
@@ -1526,7 +1500,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00228">228</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00227">227</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
 
 </div>
 </div>
@@ -1550,7 +1524,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00229">229</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00228">228</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
 
 </div>
 </div>
@@ -1574,9 +1548,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00230">230</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="room_8cc_source.html#l00229">229</a> of file <a class="el" href="room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00232">yaze::zelda3::Room::CopyRoomGraphicsToBuffer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00231">yaze::zelda3::Room::CopyRoomGraphicsToBuffer()</a>.</p>
 
 </div>
 </div>
@@ -1626,7 +1600,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00037">37</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00276">yaze::zelda3::Room::LoadObjects()</a>, and <a class="el" href="room_8cc_source.html#l00126">yaze::zelda3::Room::LoadRoomFromROM()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00275">yaze::zelda3::Room::LoadObjects()</a>, and <a class="el" href="room_8cc_source.html#l00125">yaze::zelda3::Room::LoadRoomFromROM()</a>.</p>
 
 </div>
 </div>
@@ -1750,7 +1724,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00043">43</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00018">yaze::zelda3::Room::LoadHeader()</a>, and <a class="el" href="room_8cc_source.html#l00126">yaze::zelda3::Room::LoadRoomFromROM()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00018">yaze::zelda3::Room::LoadHeader()</a>, and <a class="el" href="room_8cc_source.html#l00125">yaze::zelda3::Room::LoadRoomFromROM()</a>.</p>
 
 </div>
 </div>
@@ -1776,7 +1750,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00044">44</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00018">yaze::zelda3::Room::LoadHeader()</a>, and <a class="el" href="room_8cc_source.html#l00126">yaze::zelda3::Room::LoadRoomFromROM()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00018">yaze::zelda3::Room::LoadHeader()</a>, and <a class="el" href="room_8cc_source.html#l00125">yaze::zelda3::Room::LoadRoomFromROM()</a>.</p>
 
 </div>
 </div>
@@ -1878,7 +1852,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00049">49</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00126">yaze::zelda3::Room::LoadRoomFromROM()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00125">yaze::zelda3::Room::LoadRoomFromROM()</a>.</p>
 
 </div>
 </div>
@@ -2482,8 +2456,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a103656680d1929d852ba5286b01d5dd0" name="a103656680d1929d852ba5286b01d5dd0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a103656680d1929d852ba5286b01d5dd0">&#9670;&#160;</a></span>stairsObjects</h2>
+<a id="aa0cc664b6550160edcb41dba09eac552" name="aa0cc664b6550160edcb41dba09eac552"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa0cc664b6550160edcb41dba09eac552">&#9670;&#160;</a></span>stairsObjects</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2492,7 +2466,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a> yaze::zelda3::stairsObjects[] = {0x139, 0x138, 0x13B, 0x12E, 0x12D}</td>
+          <td class="memname">uint16_t yaze::zelda3::stairsObjects[] = {0x139, 0x138, 0x13B, 0x12E, 0x12D}</td>
         </tr>
       </table>
   </td>
@@ -2504,7 +2478,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="room_8h_source.html#l00082">82</a> of file <a class="el" href="room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00276">yaze::zelda3::Room::LoadObjects()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="room_8cc_source.html#l00275">yaze::zelda3::Room::LoadObjects()</a>.</p>
 
 </div>
 </div>

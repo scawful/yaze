@@ -12,8 +12,8 @@ var snes__tile_8cc =
     [ "yaze::gfx::TileInfoToShort", "namespaceyaze_1_1gfx.html#a7219dcf105343b1542cf0dea95e4f7f8", null ],
     [ "yaze::gfx::GetTilesInfo", "namespaceyaze_1_1gfx.html#aa5ae49b02472150a2ad972abf1f7d35a", null ],
     [ "yaze::gfx::CopyTile8bpp16", "namespaceyaze_1_1gfx.html#a3d42dbaf6fa57c5ad4da5b02154ce7c9", null ],
-    [ "yaze::gfx::TilePriorityBit", "namespaceyaze_1_1gfx.html#a190f0051c4478d8676373a01333c0021", null ],
-    [ "yaze::gfx::TileHFlipBit", "namespaceyaze_1_1gfx.html#ae0fe732cfccccc76cac72311d73b4761", null ],
-    [ "yaze::gfx::TileVFlipBit", "namespaceyaze_1_1gfx.html#ab207effafbbaa8c82f4d2cb49942a662", null ],
-    [ "yaze::gfx::TileNameMask", "namespaceyaze_1_1gfx.html#ab2dd6f59081c68d9aebc7d96dfd5fa43", null ]
+    [ "yaze::gfx::TilePriorityBit", "namespaceyaze_1_1gfx.html#a8fb57254803cd278210eca15c3a60ad7", null ],
+    [ "yaze::gfx::TileHFlipBit", "namespaceyaze_1_1gfx.html#ae1bcdcfc2fe242b048da81524c6c9bbc", null ],
+    [ "yaze::gfx::TileVFlipBit", "namespaceyaze_1_1gfx.html#a2c16b75ec37361c49e2e651554e44fdb", null ],
+    [ "yaze::gfx::TileNameMask", "namespaceyaze_1_1gfx.html#a2ac2c8b176a65259c394aac54d1e69b1", null ]
 ];

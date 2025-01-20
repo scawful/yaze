@@ -96,7 +96,7 @@ var searchData=
   ['blue_93',['blue',['../structsnes__color.html#abe07ebebd2f735f932b7a7a065506f9f',1,'snes_color::blue'],['../structyaze_1_1gui_1_1Color.html#af1b40df4ddc487f6602dd628e6a9e5de',1,'yaze::gui::Color::blue']]],
   ['bookmarks_94',['bookmarks',['../classyaze_1_1emu_1_1Emulator.html#ab5dacd9d0b9b7b55557e2acc48d3f670',1,'yaze::emu::Emulator']]],
   ['boss_5froom_95',['boss_room',['../classyaze_1_1editor_1_1ScreenEditor.html#a8de3bfa77c3fe00c2a9a6f719b6622ff',1,'yaze::editor::ScreenEditor::boss_room'],['../structyaze_1_1zelda3_1_1DungeonMap.html#aecb7ad4d854e942189933dbc3942f3bb',1,'yaze::zelda3::DungeonMap::boss_room']]],
-  ['bossroom_96',['bossRoom',['../classyaze_1_1zelda3_1_1TitleScreen.html#a6159799072c11c4f03200962504ee61d',1,'yaze::zelda3::TitleScreen']]],
+  ['bossroom_96',['bossRoom',['../classyaze_1_1zelda3_1_1TitleScreen.html#a7d22501b206314c2a3d96439bf715261',1,'yaze::zelda3::TitleScreen']]],
   ['bounding_5fbox_5f_97',['bounding_box_',['../classyaze_1_1zelda3_1_1Sprite.html#a5f9d8570884b7591e11ed644993c268c',1,'yaze::zelda3::Sprite']]],
   ['bpp_98',['bpp',['../structyaze__bitmap.html#ab4ab5935eae3fb291b328c25e0c53cc0',1,'yaze_bitmap']]],
   ['bpp_5f_99',['bpp_',['../classyaze_1_1gfx_1_1GraphicsBuffer.html#a5a3ea3293db352ba41c6990eccf0f966',1,'yaze::gfx::GraphicsBuffer']]],

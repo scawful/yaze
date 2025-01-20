@@ -1,20 +1,12 @@
 <map id="yaze::emu::Apu" name="yaze::emu::Apu">
-<area shape="rect" id="Node000001" title="The Apu class represents the Audio Processing Unit (APU) of a system." alt="" coords="542,120,649,146"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1MemoryImpl.html" title="Implementation of the Memory interface for emulating memory in a SNES system." alt="" coords="283,51,438,76"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="454,77,519,94,571,117,569,122,517,99,453,82"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1Memory.html" title="Memory interface." alt="" coords="22,5,153,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="168,27,259,42,289,47,288,53,258,47,168,33"/>
-<area shape="rect" id="Node000004" href="$structyaze_1_1emu_1_1DmaChannel.html" title=" " alt="" coords="8,55,167,80"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="182,63,282,62,282,67,182,69"/>
-<area shape="rect" id="Node000005" href="$structyaze_1_1emu_1_1ApuCallbacks.html" title=" " alt="" coords="5,113,170,139"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="185,125,542,129,542,135,185,130"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1emu_1_1Spc700.html" title="The Spc700 class represents the SPC700 processor." alt="" coords="296,164,424,190"/>
-<area shape="poly" id="edge8_Node000008_Node000005" title=" " alt="" coords="163,140,194,147,296,164,295,170,193,152,162,145"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1emu_1_1Dsp.html" title=" " alt="" coords="307,227,414,252"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="416,219,517,177,573,144,576,149,519,182,418,224"/>
-<area shape="rect" id="Node000007" href="$structyaze_1_1emu_1_1DspChannel.html" title=" " alt="" coords="10,240,165,266"/>
-<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="180,246,306,239,307,245,180,251"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="439,161,517,147,541,142,542,147,519,152,440,166"/>
-<area shape="rect" id="Node000009" href="$structyaze_1_1emu_1_1Spc700_1_1Flags.html" title=" " alt="" coords="20,175,155,216"/>
-<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="170,195,258,192,295,187,296,192,259,197,170,200"/>
+<area shape="rect" id="Node000001" title="The Apu class represents the Audio Processing Unit (APU) of a system." alt="" coords="204,183,311,208"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1MemoryImpl.html" title="Implementation of the Memory interface for emulating memory in a SNES system." alt="" coords="5,94,161,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,130,135,156,169,172,204,182,203,187,167,177,132,161,100,134"/>
+<area shape="rect" id="Node000005" href="$structyaze_1_1emu_1_1ApuCallbacks.html" title=" " alt="" coords="148,5,312,31"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="225,47,221,82,223,119,236,153,252,181,247,184,231,156,218,120,215,81,220,46"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1emu_1_1Spc700.html" title="The Spc700 class represents the SPC700 processor." alt="" coords="298,94,426,120"/>
+<area shape="poly" id="edge5_Node000008_Node000005" title=" " alt="" coords="262,37,344,91,342,96,259,42"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1emu_1_1Dsp.html" title=" " alt="" coords="449,94,557,120"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="461,128,375,161,301,185,299,180,373,156,459,123"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="337,132,274,184,270,180,334,128"/>
 </map>

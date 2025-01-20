@@ -19,7 +19,7 @@ var searchData=
   ['add_16',['Add',['../classyaze_1_1editor_1_1HistoryManager.html#aa09be7516a692df2eb5af0cdf262dffd',1,'yaze::editor::HistoryManager']]],
   ['add_5froom_17',['add_room',['../classyaze_1_1editor_1_1DungeonEditor.html#a0867626a4677c96be31fb181fff86ccd',1,'yaze::editor::DungeonEditor']]],
   ['addaction_18',['AddAction',['../classyaze_1_1zelda3_1_1SpriteBuilder.html#a1ad0fb226b371789e19aedd5144e5670',1,'yaze::zelda3::SpriteBuilder']]],
-  ['addalternativecompressioncommand_19',['AddAlternativeCompressionCommand',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a9fb87a7a734d010d823cf2adaa0eb5b4',1,'yaze::gfx::lc_lz2']]],
+  ['addalternativecompressioncommand_19',['AddAlternativeCompressionCommand',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a42748d7d15030f86ba84eb443b930802',1,'yaze::gfx::lc_lz2']]],
   ['addcolor_20',['AddColor',['../classyaze_1_1gfx_1_1SnesPalette.html#a6854313e2b0f605315523b2185efdea2',1,'yaze::gfx::SnesPalette::AddColor(const SnesColor &amp;color)'],['../classyaze_1_1gfx_1_1SnesPalette.html#a9027ac7339965b6ada64b0d46d9d1b27',1,'yaze::gfx::SnesPalette::AddColor(const snes_color &amp;color)'],['../classyaze_1_1gfx_1_1SnesPalette.html#a26f97a1bf8b6f15785061251bd43316c',1,'yaze::gfx::SnesPalette::AddColor(uint16_t color)'],['../structyaze_1_1gfx_1_1PaletteGroup.html#ac2f1743a209c415c37c5c9041586b805',1,'yaze::gfx::PaletteGroup::AddColor()']]],
   ['addcompressiontochain_21',['AddCompressionToChain',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#aaaeeee9ebc06559e9f816a0d4b9fb3c0',1,'yaze::gfx::lc_lz2']]],
   ['addcustominstruction_22',['AddCustomInstruction',['../classyaze_1_1zelda3_1_1SpriteAction.html#aae93d588253489ae313beacf5093cb7c',1,'yaze::zelda3::SpriteAction']]],

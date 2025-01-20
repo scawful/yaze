@@ -1,15 +1,12 @@
 <map id="src/app/gui/modules/asset_browser.h" name="src/app/gui/modules/asset_browser.h">
 <area shape="rect" id="Node000001" title=" " alt="" coords="128,5,266,46"/>
 <area shape="rect" id="Node000002" href="$graphics__editor_8cc.html" title=" " alt="" coords="5,183,159,223"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,57,127,75,110,95,99,117,92,140,85,183,80,182,86,139,94,115,105,93,123,71,145,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,57,129,75,111,95,100,117,92,140,86,183,80,182,87,139,95,115,106,93,125,71,146,53"/>
 <area shape="rect" id="Node000003" href="$graphics__editor_8h.html" title=" " alt="" coords="120,94,273,135"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="199,62,199,94,194,94,194,62"/>
 <area shape="rect" id="Node000012" href="$asset__browser_8cc.html" title=" " alt="" coords="297,94,435,135"/>
-<area shape="poly" id="edge7_Node000001_Node000012" title=" " alt="" coords="250,51,329,91,327,96,247,56"/>
-<area shape="poly" id="edge6_Node000003_Node000002" title=" " alt="" coords="160,146,110,184,106,180,157,142"/>
-<area shape="rect" id="Node000004" href="$editor__manager_8cc.html" title=" " alt="" coords="180,271,317,312"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="206,149,225,223,242,270,237,272,219,224,201,150"/>
-<area shape="rect" id="Node000005" href="$editor__manager_8h.html" title=" " alt="" coords="234,183,370,223"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="234,143,280,180,277,184,230,147"/>
-<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="284,238,263,272,258,269,280,235"/>
+<area shape="poly" id="edge5_Node000001_Node000012" title=" " alt="" coords="250,51,329,91,327,96,247,56"/>
+<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="160,146,110,184,106,180,157,142"/>
+<area shape="rect" id="Node000004" href="$editor__manager_8cc.html" title=" " alt="" coords="183,183,320,223"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="219,147,241,181,237,184,215,149"/>
 </map>

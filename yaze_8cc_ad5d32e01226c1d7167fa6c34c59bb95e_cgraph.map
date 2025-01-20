@@ -1,14 +1,11 @@
 <map id="yaze_save_rom" name="yaze_save_rom">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,80,117,106"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a51e3cd94100f555337a98cbadd587f18" title="Saves the Rom data to a file." alt="" coords="165,80,317,106"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="117,90,149,90,149,96,117,96"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,117,80"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a51e3cd94100f555337a98cbadd587f18" title="Saves the Rom data to a file." alt="" coords="165,55,317,80"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="117,65,149,65,149,70,117,70"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a35886abe051b67913a804e4cbfdc4207" title=" " alt="" coords="400,5,534,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="270,77,364,40,387,33,388,38,366,45,272,82"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="303,51,389,32,391,38,304,57"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1ExperimentFlags.html#a98e30d2636e67e3d74a45094733101e9" title=" " alt="" coords="365,55,569,80"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="317,82,349,78,350,83,318,87"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="317,65,350,65,350,70,317,70"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1Rom.html#afde2c40d5cb9eaf14b64dae1da43afd7" title="Saves all palettes in the Rom." alt="" coords="378,104,557,130"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="318,98,362,103,362,108,317,104"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1Rom.html#a221aba175da42c9237011a45bc9a19d4" title=" " alt="" coords="367,177,567,203"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="274,104,422,168,420,173,272,109"/>
-<area shape="poly" id="edge6_Node000006_Node000006" title=" " alt="" coords="430,179,422,169,427,159,442,153,467,151,495,153,509,160,507,165,493,158,467,156,443,158,430,163,428,168,434,175"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="304,78,391,97,389,103,303,84"/>
 </map>

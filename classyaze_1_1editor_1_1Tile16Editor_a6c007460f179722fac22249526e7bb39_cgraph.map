@@ -1,27 +1,11 @@
 <map id="yaze::editor::Tile16Editor::UpdateTile16Transfer" name="yaze::editor::Tile16Editor::UpdateTile16Transfer">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,268,165,309"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Tile16Editor.html#a754f3f2d8aabe6a205082227b8f71d0d" title=" " alt="" coords="224,169,384,210"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,265,242,214,244,219,133,270"/>
-<area shape="rect" id="Node000011" href="$classyaze_1_1editor_1_1Tile16Editor.html#a277c8c075ae907886686d6d17e8f3028" title=" " alt="" coords="213,365,395,406"/>
-<area shape="poly" id="edge9_Node000001_Node000011" title=" " alt="" coords="134,307,243,356,241,361,132,312"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gui.html#ade93c7dcd1ffbb9d83002534f950c8bc" title=" " alt="" coords="464,5,629,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="320,167,370,112,404,82,442,55,451,50,453,55,444,60,408,86,374,115,324,171"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1gui.html#a25424ecc8f2e33914dbac1c45aaaedbb" title=" " alt="" coords="468,70,625,96"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="332,167,382,135,442,105,460,98,462,103,444,109,385,139,335,171"/>
-<area shape="rect" id="Node000005" href="$namespaceyaze_1_1gui.html#a703ce750767a17205f5f2fcfc3294a37" title=" " alt="" coords="474,120,619,145"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="384,168,474,147,475,152,385,173"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="475,308,618,349"/>
-<area shape="poly" id="edge5_Node000002_Node000007" title=" " alt="" coords="329,208,379,251,444,294,462,302,459,307,442,299,376,256,325,213"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Used to render a bitmap to the screen." alt="" coords="478,169,615,210"/>
-<area shape="poly" id="edge6_Node000002_Node000008" title=" " alt="" coords="384,187,463,187,463,192,384,192"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="472,258,621,284"/>
-<area shape="poly" id="edge7_Node000002_Node000010" title=" " alt="" coords="368,208,492,250,490,255,366,213"/>
-<area shape="poly" id="edge8_Node000010_Node000010" title=" " alt="" coords="507,260,499,250,503,240,520,234,547,232,577,234,592,241,589,246,575,239,547,237,521,239,507,244,504,249,511,256"/>
-<area shape="poly" id="edge11_Node000011_Node000007" title=" " alt="" coords="392,362,459,346,460,351,394,367"/>
-<area shape="rect" id="Node000012" href="$namespaceyaze_1_1gui.html#a134c6e6817a4a8332e3842e4b2cd01f6" title=" " alt="" coords="443,373,650,398"/>
-<area shape="poly" id="edge10_Node000011_Node000012" title=" " alt="" coords="396,383,427,383,427,388,396,388"/>
-<area shape="rect" id="Node000042" href="$namespaceyaze.html#acd38081a0d3a77b20abfb9375574d1b9" title="This function iterates over all graphics sheets in the Rom and loads them into memory...." alt="" coords="458,422,635,448"/>
-<area shape="poly" id="edge12_Node000011_Node000042" title=" " alt="" coords="396,402,465,416,464,421,395,407"/>
-<area shape="rect" id="Node000051" href="$classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath." alt="" coords="452,472,641,513"/>
-<area shape="poly" id="edge13_Node000011_Node000051" title=" " alt="" coords="341,404,389,431,444,458,459,464,458,469,442,463,386,436,338,409"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,67,165,107"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Tile16Editor.html#a754f3f2d8aabe6a205082227b8f71d0d" title=" " alt="" coords="224,33,384,74"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,72,208,66,209,71,165,78"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1editor_1_1Tile16Editor.html#a277c8c075ae907886686d6d17e8f3028" title=" " alt="" coords="213,99,395,139"/>
+<area shape="poly" id="edge4_Node000001_Node000011" title=" " alt="" coords="165,96,197,101,197,106,165,101"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gui.html#ade93c7dcd1ffbb9d83002534f950c8bc" title=" " alt="" coords="443,5,607,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="384,41,427,35,428,41,384,46"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1gui.html#a25424ecc8f2e33914dbac1c45aaaedbb" title=" " alt="" coords="447,70,603,96"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="384,62,432,68,431,73,384,67"/>
 </map>

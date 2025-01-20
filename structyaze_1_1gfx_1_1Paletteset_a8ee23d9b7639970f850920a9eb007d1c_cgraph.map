@@ -1,21 +1,11 @@
 <map id="yaze::gfx::Paletteset::Paletteset" name="yaze::gfx::Paletteset::Paletteset">
-<area shape="rect" id="Node000001" title="Constructor for Paletteset." alt="" coords="5,171,141,212"/>
-<area shape="rect" id="Node000002" href="$main_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="189,179,238,204"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,189,173,189,173,194,141,194"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1Snes.html#ad2f26298fae68793dba09322210f1aee" title=" " alt="" coords="312,5,451,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="214,178,222,149,235,112,255,73,284,40,297,32,300,36,288,44,260,76,240,114,227,151,220,179"/>
-<area shape="rect" id="Node000012" href="$classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="311,55,452,80"/>
-<area shape="poly" id="edge3_Node000002_Node000012" title=" " alt="" coords="218,177,242,134,261,110,284,89,295,83,298,88,288,94,265,113,247,137,223,179"/>
-<area shape="rect" id="Node000013" href="$classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="298,104,465,130"/>
-<area shape="poly" id="edge4_Node000002_Node000013" title=" " alt="" coords="228,176,254,157,285,138,299,133,301,138,287,143,257,161,232,180"/>
-<area shape="rect" id="Node000041" href="$classyaze_1_1emu_1_1Snes.html#aa51ede9b776c0f14095fff7554d7b9d9" title=" " alt="" coords="298,153,465,179"/>
-<area shape="poly" id="edge5_Node000002_Node000041" title=" " alt="" coords="238,185,283,178,284,184,239,191"/>
-<area shape="rect" id="Node000042" href="$classyaze_1_1emu_1_1Snes.html#a553cf3e3b3bb766922ab48b0c0fd000f" title=" " alt="" coords="292,203,472,228"/>
-<area shape="poly" id="edge6_Node000002_Node000042" title=" " alt="" coords="239,192,276,198,276,203,238,198"/>
-<area shape="rect" id="Node000043" href="$classyaze_1_1emu_1_1Snes.html#ae9938c9f8448dd65dba24d06fe2b5d57" title=" " alt="" coords="294,252,469,278"/>
-<area shape="poly" id="edge7_Node000002_Node000043" title=" " alt="" coords="232,202,257,221,287,238,302,244,300,249,285,243,254,226,229,207"/>
-<area shape="rect" id="Node000044" href="$classyaze_1_1emu_1_1Snes.html#a121b2492106d84f9fffcd8b60308328c" title=" " alt="" coords="286,301,477,327"/>
-<area shape="poly" id="edge8_Node000002_Node000044" title=" " alt="" coords="223,204,247,246,265,269,288,288,294,292,291,297,284,292,262,272,243,249,218,206"/>
-<area shape="rect" id="Node000045" href="$classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="320,351,443,376"/>
-<area shape="poly" id="edge9_Node000002_Node000045" title=" " alt="" coords="220,204,227,232,240,269,260,306,288,337,307,349,305,354,284,342,255,309,235,271,222,234,215,206"/>
+<area shape="rect" id="Node000001" title="Constructor for Paletteset." alt="" coords="5,47,141,88"/>
+<area shape="rect" id="Node000002" href="$main_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="189,55,238,80"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,65,173,65,173,70,141,70"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1Snes.html#ad2f26298fae68793dba09322210f1aee" title=" " alt="" coords="300,5,438,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="237,56,285,40,305,33,307,38,287,45,239,61"/>
+<area shape="rect" id="Node000012" href="$classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="298,55,440,80"/>
+<area shape="poly" id="edge3_Node000002_Node000012" title=" " alt="" coords="239,65,283,65,283,70,239,70"/>
+<area shape="rect" id="Node000013" href="$classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="286,104,452,130"/>
+<area shape="poly" id="edge4_Node000002_Node000013" title=" " alt="" coords="239,74,287,90,307,97,305,102,285,95,237,79"/>
 </map>

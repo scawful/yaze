@@ -1,20 +1,11 @@
 <map id="yaze::editor::GraphicsEditor::DrawClipboardImport" name="yaze::editor::GraphicsEditor::DrawClipboardImport">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,193,182,234"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1GraphicsEditor.html#aeb7ffcd14b5b14a3f9700ef2a89b8c72" title=" " alt="" coords="237,136,413,177"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="177,190,224,178,226,184,179,195"/>
-<area shape="rect" id="Node000010" href="$namespaceyaze_1_1gui.html#a85c0af649d4fdc913fcabb1634667602" title=" " alt="" coords="261,201,389,226"/>
-<area shape="poly" id="edge8_Node000001_Node000010" title=" " alt="" coords="182,211,245,211,245,216,182,216"/>
-<area shape="rect" id="Node000011" href="$namespaceyaze_1_1gui.html#addaa747c1d46d2433b56c2386260d979" title=" " alt="" coords="230,250,420,276"/>
-<area shape="poly" id="edge9_Node000001_Node000011" title=" " alt="" coords="182,230,247,244,246,249,181,235"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#a4e2e79a02c9bbff8d9720d6384296218" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="502,5,617,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="351,133,403,95,467,57,487,47,489,52,469,61,406,100,354,138"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="488,71,631,111"/>
-<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="400,133,472,112,474,118,401,138"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Used to render a bitmap to the screen." alt="" coords="492,136,628,177"/>
-<area shape="poly" id="edge4_Node000002_Node000006" title=" " alt="" coords="413,154,476,154,476,159,413,159"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="485,225,634,250"/>
-<area shape="poly" id="edge5_Node000002_Node000008" title=" " alt="" coords="389,175,421,186,508,217,506,222,419,191,387,180"/>
-<area shape="rect" id="Node000009" href="$namespaceyaze_1_1gfx.html#af98fbf03d09d9d365f64202db1ecba15" title=" " alt="" coords="468,274,651,300"/>
-<area shape="poly" id="edge7_Node000002_Node000009" title=" " alt="" coords="404,175,422,186,438,206,446,225,454,244,470,261,475,265,472,269,466,265,449,246,441,227,434,208,418,190,401,179"/>
-<area shape="poly" id="edge6_Node000008_Node000008" title=" " alt="" coords="521,226,513,216,518,206,534,200,560,198,588,201,603,208,601,212,587,206,560,203,535,206,521,210,518,216,525,223"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,182,103"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1GraphicsEditor.html#aeb7ffcd14b5b14a3f9700ef2a89b8c72" title=" " alt="" coords="237,5,413,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="177,60,224,48,226,53,179,65"/>
+<area shape="rect" id="Node000010" href="$namespaceyaze_1_1gui.html#a85c0af649d4fdc913fcabb1634667602" title=" " alt="" coords="261,70,389,96"/>
+<area shape="poly" id="edge3_Node000001_Node000010" title=" " alt="" coords="182,80,245,80,245,86,182,86"/>
+<area shape="rect" id="Node000011" href="$namespaceyaze_1_1gui.html#addaa747c1d46d2433b56c2386260d979" title=" " alt="" coords="230,120,420,145"/>
+<area shape="poly" id="edge4_Node000001_Node000011" title=" " alt="" coords="182,99,247,113,246,118,181,104"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#aa8047f7485c2005f348b064032890690" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="468,5,583,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="414,23,452,23,452,28,414,28"/>
 </map>

@@ -1,23 +1,11 @@
 <map id="yaze::core::Controller::OnEntry" name="yaze::core::Controller::OnEntry">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,262,145,302"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1Controller.html#a8d6d4788e9100d960f35b7270a4795db" title=" " alt="" coords="193,106,332,146"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,259,223,155,226,159,103,263"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1core_1_1Controller.html#ae191a94a55900590a8d6456d06eee08b" title=" " alt="" coords="193,228,332,269"/>
-<area shape="poly" id="edge7_Node000001_Node000010" title=" " alt="" coords="145,267,177,261,178,267,146,272"/>
-<area shape="rect" id="Node000012" href="$classyaze_1_1core_1_1Controller.html#a0c454eb8e88de6a3759996e838faa1ab" title=" " alt="" coords="193,294,332,334"/>
-<area shape="poly" id="edge10_Node000001_Node000012" title=" " alt="" coords="146,291,178,297,177,302,145,297"/>
-<area shape="rect" id="Node000013" href="$classyaze_1_1core_1_1Controller.html#a29913a09f5e1f3ac3bdb7ce3a7264ec0" title=" " alt="" coords="193,359,332,400"/>
-<area shape="poly" id="edge11_Node000001_Node000013" title=" " alt="" coords="115,301,194,344,205,349,203,354,191,349,112,305"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gui.html#abd9a49ec6350e33700334b783e0c9cad" title=" " alt="" coords="380,5,522,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="292,103,379,48,403,35,406,40,381,52,294,107"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="570,171,707,212"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="317,103,362,90,415,81,470,80,523,92,549,104,573,121,613,157,609,161,570,125,547,109,521,97,469,86,415,86,363,95,319,108"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1core_1_1Controller.html#aa07851cfceacc8cc442850133075e4bf" title=" " alt="" coords="382,106,521,146"/>
-<area shape="poly" id="edge4_Node000002_Node000006" title=" " alt="" coords="332,124,366,124,366,129,332,129"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1core_1_1Controller.html#ab5862c085ec09def1c651a394d50d776" title=" " alt="" coords="382,171,521,212"/>
-<area shape="poly" id="edge5_Node000002_Node000008" title=" " alt="" coords="324,145,377,163,375,168,322,150"/>
-<area shape="poly" id="edge6_Node000008_Node000004" title=" " alt="" coords="521,189,555,189,555,194,521,194"/>
-<area shape="poly" id="edge9_Node000010_Node000004" title=" " alt="" coords="332,243,423,235,522,221,555,213,556,219,523,226,423,240,332,248"/>
-<area shape="rect" id="Node000011" href="$classyaze_1_1core_1_1Renderer.html#ad9822300e9d48fac8aaa30c481966b58" title=" " alt="" coords="383,286,519,326"/>
-<area shape="poly" id="edge8_Node000010_Node000011" title=" " alt="" coords="332,267,369,278,367,283,331,272"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,104,145,145"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1Controller.html#a8d6d4788e9100d960f35b7270a4795db" title=" " alt="" coords="193,5,332,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,101,191,57,202,51,205,56,194,61,113,106"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1core_1_1Controller.html#ae191a94a55900590a8d6456d06eee08b" title=" " alt="" coords="193,71,332,111"/>
+<area shape="poly" id="edge2_Node000001_Node000010" title=" " alt="" coords="145,109,177,104,178,109,146,115"/>
+<area shape="rect" id="Node000012" href="$classyaze_1_1core_1_1Controller.html#a0c454eb8e88de6a3759996e838faa1ab" title=" " alt="" coords="193,136,332,177"/>
+<area shape="poly" id="edge3_Node000001_Node000012" title=" " alt="" coords="146,134,178,139,177,144,145,139"/>
+<area shape="rect" id="Node000013" href="$classyaze_1_1core_1_1Controller.html#a29913a09f5e1f3ac3bdb7ce3a7264ec0" title=" " alt="" coords="193,201,332,242"/>
+<area shape="poly" id="edge4_Node000001_Node000013" title=" " alt="" coords="115,143,194,186,205,192,203,196,191,191,112,148"/>
 </map>

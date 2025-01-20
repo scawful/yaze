@@ -1,29 +1,13 @@
 <map id="yaze::editor::SpriteEditor::DrawVanillaSpriteEditor" name="yaze::editor::SpriteEditor::DrawVanillaSpriteEditor">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,185,169,226"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1SpriteEditor.html#a181c7120455cf4b83c70abb729bc272d" title="Draws the current sheets." alt="" coords="217,92,375,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,182,234,137,236,142,136,187"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1editor_1_1SpriteEditor.html#a2b88bc5b08da9e5634c0dc55ad0eb679" title="Draws the sprite canvas." alt="" coords="217,185,375,226"/>
-<area shape="poly" id="edge5_Node000001_Node000008" title=" " alt="" coords="169,203,201,203,201,208,169,208"/>
-<area shape="rect" id="Node000013" href="$classyaze_1_1editor_1_1SpriteEditor.html#a69a612f6b9fa4f4d003f29bc16584ee3" title="Draws the sprites list." alt="" coords="217,296,375,337"/>
-<area shape="poly" id="edge11_Node000001_Node000013" title=" " alt="" coords="128,224,244,286,241,291,126,229"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gui.html#ac4604ede79aa224793b522b22034e68b" title=" " alt="" coords="466,250,577,276"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="329,131,377,172,391,190,400,206,409,221,424,235,453,249,450,254,422,240,404,225,395,209,387,193,373,176,325,135"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6" title=" " alt="" coords="427,5,616,46"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="341,89,422,55,439,49,441,54,424,60,343,94"/>
-<area shape="rect" id="Node000006" href="$namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="444,70,599,96"/>
-<area shape="poly" id="edge4_Node000002_Node000006" title=" " alt="" coords="375,99,429,92,430,98,376,105"/>
-<area shape="poly" id="edge8_Node000008_Node000003" title=" " alt="" coords="376,223,454,243,452,248,375,228"/>
-<area shape="poly" id="edge9_Node000008_Node000006" title=" " alt="" coords="322,183,422,106,439,99,441,104,424,111,325,187"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1editor_1_1SpriteEditor.html#a15bd364cc45b89ac9391918a59d1b747" title="Draws the animation frames manager." alt="" coords="442,120,601,161"/>
-<area shape="poly" id="edge6_Node000008_Node000009" title=" " alt="" coords="368,182,434,163,435,168,369,187"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1editor_1_1SpriteEditor.html#ac8bbf35ecc525892a66eb7633b844a04" title=" " alt="" coords="423,185,620,226"/>
-<area shape="poly" id="edge7_Node000008_Node000010" title=" " alt="" coords="375,203,407,203,407,208,375,208"/>
-<area shape="rect" id="Node000012" href="$namespaceyaze_1_1gui.html#a2be4bdb4d48912825342ba9df3da5237" title=" " alt="" coords="442,300,601,325"/>
-<area shape="poly" id="edge10_Node000008_Node000012" title=" " alt="" coords="325,224,370,256,424,286,440,292,438,297,422,291,367,261,322,229"/>
-<area shape="poly" id="edge12_Node000013_Node000003" title=" " alt="" coords="375,295,450,277,452,282,376,300"/>
-<area shape="rect" id="Node000014" href="$namespaceyaze_1_1core.html#a1f2441e9967fc5718d30608cccc7f74c" title=" " alt="" coords="455,349,588,374"/>
-<area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="376,330,440,343,439,348,375,335"/>
-<area shape="rect" id="Node000015" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="447,422,596,448"/>
-<area shape="poly" id="edge14_Node000013_Node000015" title=" " alt="" coords="335,335,424,385,480,413,477,417,422,389,332,340"/>
-<area shape="poly" id="edge15_Node000015_Node000015" title=" " alt="" coords="484,423,477,414,481,404,497,398,522,396,549,398,563,405,561,410,548,403,522,401,498,403,485,408,482,413,488,420"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,169,111"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1SpriteEditor.html#a181c7120455cf4b83c70abb729bc272d" title="Draws the current sheets." alt="" coords="217,5,375,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,68,213,49,215,54,155,73"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1editor_1_1SpriteEditor.html#a2b88bc5b08da9e5634c0dc55ad0eb679" title="Draws the sprite canvas." alt="" coords="217,71,375,111"/>
+<area shape="poly" id="edge3_Node000001_Node000008" title=" " alt="" coords="169,88,201,88,201,94,169,94"/>
+<area shape="rect" id="Node000013" href="$classyaze_1_1editor_1_1SpriteEditor.html#a69a612f6b9fa4f4d003f29bc16584ee3" title="Draws the sprites list." alt="" coords="217,136,375,177"/>
+<area shape="poly" id="edge5_Node000001_Node000013" title=" " alt="" coords="155,109,215,128,213,133,153,114"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gui.html#ac4604ede79aa224793b522b22034e68b" title=" " alt="" coords="423,78,533,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="355,44,427,70,425,75,354,49"/>
+<area shape="poly" id="edge4_Node000008_Node000003" title=" " alt="" coords="375,88,408,88,408,94,375,94"/>
+<area shape="poly" id="edge6_Node000013_Node000003" title=" " alt="" coords="354,133,425,107,427,112,355,138"/>
 </map>

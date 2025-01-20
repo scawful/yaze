@@ -93,5 +93,5 @@ var searchData=
   ['dungeons_5fstartrooms_90',['dungeons_startrooms',['../namespaceyaze_1_1zelda3.html#a2da013fe0766dd24e24e03dbeecf73e6',1,'yaze::zelda3']]],
   ['dungmap_5fselected_5f_91',['dungmap_selected_',['../classyaze_1_1zelda3_1_1TitleScreen.html#aae369120f12d23313831f8c292f42c4e',1,'yaze::zelda3::TitleScreen']]],
   ['dungmap_5fselected_5ftile_5f_92',['dungmap_selected_tile_',['../classyaze_1_1zelda3_1_1TitleScreen.html#a43ba5656538f3c930b2b8159c5665e23',1,'yaze::zelda3::TitleScreen']]],
-  ['dwmapdata_93',['dwmapdata',['../classyaze_1_1zelda3_1_1TitleScreen.html#ab80a6fe0b8fcdd3b3ef484b5cae4287f',1,'yaze::zelda3::TitleScreen']]]
+  ['dwmapdata_93',['dwmapdata',['../classyaze_1_1zelda3_1_1TitleScreen.html#a1f0f8241d3a6ed0d3702556dd308ca37',1,'yaze::zelda3::TitleScreen']]]
 ];

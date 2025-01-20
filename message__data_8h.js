@@ -13,6 +13,7 @@ var message__data_8h =
     [ "yaze::editor::FindMatchingSpecial", "namespaceyaze_1_1editor.html#ab527313554c1184f4658aefe1f7f055a", null ],
     [ "yaze::editor::FindMatchingElement", "namespaceyaze_1_1editor.html#ad840a81ab7030a220a019f79fbbabb6d", null ],
     [ "yaze::editor::ParseTextDataByte", "namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442", null ],
+    [ "yaze::editor::ParseSingleMessage", "namespaceyaze_1_1editor.html#a7f9b61eee2bb838f10efe0d1062c8990", null ],
     [ "yaze::editor::ParseMessageData", "namespaceyaze_1_1editor.html#a91359909a674306622aa5a533e0c2377", null ],
     [ "yaze::editor::ImportMessageData", "namespaceyaze_1_1editor.html#aad28fdc5f6cd134f10fb8b729e1206bd", null ],
     [ "yaze::editor::kMessageTerminator", "namespaceyaze_1_1editor.html#a0d4a3ab38797b034b311b39a037a293a", null ],

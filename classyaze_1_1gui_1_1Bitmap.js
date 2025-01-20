@@ -19,7 +19,7 @@ var classyaze_1_1gui_1_1Bitmap =
     [ "ApplyPaletteFromPaletteGroup", "classyaze_1_1gui_1_1Bitmap.html#a4b39c45a1a4f7b31c3d5cb862a867fb1", null ],
     [ "Get8x8Tile", "classyaze_1_1gui_1_1Bitmap.html#a581b5605ae5a812935b31354019a15be", null ],
     [ "Get16x16Tile", "classyaze_1_1gui_1_1Bitmap.html#adab34aa5b35c696b6b5831263c6dfc6a", null ],
-    [ "WriteToPixel", "classyaze_1_1gui_1_1Bitmap.html#aefd1651f2d68b9890ece70c68355a34e", null ],
+    [ "WriteToPixel", "classyaze_1_1gui_1_1Bitmap.html#a0b6240e469dae9ab4d88f3e2051d4510", null ],
     [ "WriteColor", "classyaze_1_1gui_1_1Bitmap.html#a748139853655afc687cf9668eeb01443", null ],
     [ "Cleanup", "classyaze_1_1gui_1_1Bitmap.html#aa4b3060bdbe692c4de2f5f26aef82ce7", null ],
     [ "palette", "classyaze_1_1gui_1_1Bitmap.html#ab2230a9d39012a835f250c3be0899829", null ],

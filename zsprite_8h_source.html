@@ -117,8 +117,8 @@ $(function(){initNavTree('zsprite_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;string&gt;</span></div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;<a class="code" href="constants_8h.html">app/core/constants.h</a>&quot;</span></div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;absl/status/status.h&quot;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;absl/status/status.h&quot;</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="macro_8h.html">util/macro.h</a>&quot;</span></div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze_1_1editor.html">editor</a> {</div>
@@ -231,8 +231,8 @@ $(function(){initNavTree('zsprite_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>      offset += <span class="keyword">sizeof</span>(int);</div>
 <div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span> </div>
 <div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>      <span class="keywordflow">for</span> (<span class="keywordtype">int</span> j = 0; j &lt; tCount; j++) {</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>        <a class="code hl_typedef" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a> tid = *<span class="keyword">reinterpret_cast&lt;</span><a class="code hl_typedef" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a>*<span class="keyword">&gt;</span>(&amp;buffer[offset]);</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>        offset += <span class="keyword">sizeof</span>(<a class="code hl_typedef" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a>);</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>        uint16_t tid = *<span class="keyword">reinterpret_cast&lt;</span>uint16_t*<span class="keyword">&gt;</span>(&amp;buffer[offset]);</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>        offset += <span class="keyword">sizeof</span>(uint16_t);</div>
 <div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>        uint8_t tpal = *<span class="keyword">reinterpret_cast&lt;</span>uint8_t*<span class="keyword">&gt;</span>(&amp;buffer[offset]);</div>
 <div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>        offset += <span class="keyword">sizeof</span>(uint8_t);</div>
 <div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>        <span class="keywordtype">bool</span> tmx = *<span class="keyword">reinterpret_cast&lt;</span><span class="keywordtype">bool</span>*<span class="keyword">&gt;</span>(&amp;buffer[offset]);</div>
@@ -373,7 +373,7 @@ $(function(){initNavTree('zsprite_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span> </div>
 <div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> j = 0; j &lt; <a class="code hl_variable" href="structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#af7231d238564bed64778df83045c5bfe">editor</a>.Frames[i].Tiles.size(); j++) {</div>
 <div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>          fs.write(<span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span><span class="keywordtype">char</span>*<span class="keyword">&gt;</span>(&amp;<a class="code hl_variable" href="structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#af7231d238564bed64778df83045c5bfe">editor</a>.Frames[i].Tiles[j].id),</div>
-<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>                   <span class="keyword">sizeof</span>(<a class="code hl_typedef" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a>));</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>                   <span class="keyword">sizeof</span>(uint16_t));</div>
 <div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>          fs.write(</div>
 <div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>              <span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span><span class="keywordtype">char</span>*<span class="keyword">&gt;</span>(&amp;<a class="code hl_variable" href="structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#af7231d238564bed64778df83045c5bfe">editor</a>.Frames[i].Tiles[j].palette),</div>
 <div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>              <span class="keyword">sizeof</span>(uint8_t));</div>
@@ -519,8 +519,7 @@ $(function(){initNavTree('zsprite_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span> </div>
 <div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_EDITOR_SPRITE_ZSPRITE_H</span></div>
-<div class="ttc" id="aconstants_8h_html"><div class="ttname"><a href="constants_8h.html">constants.h</a></div></div>
-<div class="ttc" id="aconstants_8h_html_ae666ff9c44d45e6b7b6b8ed4340dd9c0"><div class="ttname"><a href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a></div><div class="ttdeci">unsigned short ushort</div><div class="ttdef"><b>Definition</b> <a href="constants_8h_source.html#l00112">constants.h:112</a></div></div>
+<div class="ttc" id="amacro_8h_html"><div class="ttname"><a href="macro_8h.html">macro.h</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1editor_1_1zsprite_html"><div class="ttname"><a href="namespaceyaze_1_1editor_1_1zsprite.html">yaze::editor::zsprite</a></div><div class="ttdoc">Namespace for the ZSprite format from Zarby&#39;s ZSpriteMaker.</div><div class="ttdef"><b>Definition</b> <a href="#l00017">zsprite.h:17</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1editor_html"><div class="ttname"><a href="namespaceyaze_1_1editor.html">yaze::editor</a></div><div class="ttdoc">Editors are the view controllers for the application.</div><div class="ttdef"><b>Definition</b> <a href="assembly__editor_8cc_source.html#l00009">assembly_editor.cc:9</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="common_8cc_source.html#l00011">common.cc:11</a></div></div>

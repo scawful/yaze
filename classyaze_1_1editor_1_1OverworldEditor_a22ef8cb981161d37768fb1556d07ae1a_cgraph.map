@@ -1,17 +1,15 @@
 <map id="yaze::editor::OverworldEditor::CheckForCurrentMap" name="yaze::editor::OverworldEditor::CheckForCurrentMap">
-<area shape="rect" id="Node000001" title="Check for changes to the overworld map. Calls RefreshOverworldMap and RefreshTile16Blockset on the cu..." alt="" coords="5,96,189,137"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="488,5,631,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,93,180,69,236,48,297,36,359,27,472,21,472,27,359,33,298,41,237,54,182,74,135,98"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1OverworldEditor.html#a58eb6faa7c4dd358fba0d46e106797ed" title=" " alt="" coords="237,63,420,103"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="188,101,221,96,221,101,189,106"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="492,136,628,177"/>
-<area shape="poly" id="edge9_Node000001_Node000005" title=" " alt="" coords="133,135,181,159,237,178,299,186,362,186,422,181,476,173,477,178,423,186,362,192,299,191,236,183,179,164,131,139"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1editor_1_1OverworldEditor.html#a99a739f0d39071aa7f6987eeb264b3e1" title=" " alt="" coords="237,128,420,169"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="189,126,221,131,221,136,188,132"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="412,60,472,45,474,50,414,65"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1OverworldEditor.html#aa39da036dde898607eb6dadb93523560" title=" " alt="" coords="468,71,651,111"/>
-<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="420,83,452,85,452,90,420,89"/>
-<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="395,101,479,128,478,133,394,106"/>
-<area shape="poly" id="edge7_Node000007_Node000002" title=" " alt="" coords="397,125,418,113,433,99,442,86,451,71,466,57,475,51,478,56,470,61,455,75,446,88,437,103,422,117,399,130"/>
-<area shape="poly" id="edge8_Node000007_Node000005" title=" " alt="" coords="420,149,476,151,476,156,420,154"/>
+<area shape="rect" id="Node000001" title="Check for changes to the overworld map. Calls RefreshOverworldMap and RefreshTile16Blockset on the cu..." alt="" coords="5,61,189,102"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="468,28,611,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,59,179,34,236,14,287,5,328,3,420,14,459,21,458,26,420,19,328,8,288,10,237,19,181,39,133,63"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1OverworldEditor.html#a58eb6faa7c4dd358fba0d46e106797ed" title=" " alt="" coords="237,28,420,69"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="188,66,221,61,221,67,189,71"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="472,93,608,134"/>
+<area shape="poly" id="edge8_Node000001_Node000005" title=" " alt="" coords="133,100,181,124,237,143,288,152,328,154,420,143,458,136,459,141,420,148,328,159,287,157,236,148,179,129,131,105"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1editor_1_1OverworldEditor.html#a99a739f0d39071aa7f6987eeb264b3e1" title=" " alt="" coords="237,93,420,134"/>
+<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="189,92,221,96,221,102,188,97"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="421,46,453,46,453,51,421,51"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="397,67,458,86,456,91,395,72"/>
+<area shape="poly" id="edge6_Node000007_Node000002" title=" " alt="" coords="395,90,456,71,458,77,397,96"/>
+<area shape="poly" id="edge7_Node000007_Node000005" title=" " alt="" coords="421,111,456,111,456,116,421,116"/>
 </map>
