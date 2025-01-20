@@ -1,26 +1,31 @@
-include(../cmake/gtest.cmake)
 
-add_executable(
-  yaze_test
-  test/yaze_test.cc
-  test/rom_test.cc
-  test/gfx/compression_test.cc
-  test/gfx/snes_palette_test.cc
-  test/integration/test_editor.cc
-  test/zelda3/overworld_test.cc
-  test/zelda3/sprite_builder_test.cc
+set(YAZE_SRC_FILES "")
+foreach (file 
   app/rom.cc
   app/core/common.cc
-  ${ASAR_STATIC_SRC}
   ${YAZE_APP_CORE_SRC}
   ${YAZE_APP_EMU_SRC}
   ${YAZE_APP_GFX_SRC}
   ${YAZE_APP_ZELDA3_SRC}
   ${YAZE_APP_EDITOR_SRC}
   ${YAZE_UTIL_SRC}
-  ${YAZE_GUI_SRC}
+  ${YAZE_GUI_SRC})
+  list(APPEND YAZE_SRC_FILES ${CMAKE_SOURCE_DIR}/src/${file})
+endforeach()
+
+add_executable(
+  yaze_test
+  yaze_test.cc
+  rom_test.cc
+  gfx/compression_test.cc
+  gfx/snes_palette_test.cc
+  integration/test_editor.cc
+  zelda3/overworld_test.cc
+  zelda3/sprite_builder_test.cc
+  ${ASAR_STATIC_SRC}
   ${IMGUI_SRC}
   ${IMGUI_TEST_ENGINE_SOURCES}
+  ${YAZE_SRC_FILES}
 )
 
 target_include_directories(
@@ -28,7 +33,7 @@ target_include_directories(
   app/
   lib/
   ${CMAKE_SOURCE_DIR}/incl/
-  ${CMAKE_SOURCE_DIR}/src/
+  ${CMAKE_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
   ${ASAR_INCLUDE_DIR}
   ${SDL2_INCLUDE_DIR}

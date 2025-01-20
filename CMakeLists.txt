@@ -56,3 +56,10 @@ include(cmake/imgui.cmake)
 
 # Project Files
 add_subdirectory(src)
+
+# Tests
+if (YAZE_BUILD_TESTS)
+include(cmake/gtest.cmake)
+add_subdirectory(test)
+endif()
+
