@@ -20,6 +20,7 @@ add_executable(
   gfx/compression_test.cc
   gfx/snes_palette_test.cc
   integration/test_editor.cc
+  zelda3/message_test.cc
   zelda3/overworld_test.cc
   zelda3/sprite_builder_test.cc
   ${ASAR_STATIC_SRC}
