@@ -10,7 +10,7 @@ extern "C" {
 
 #include "dungeon.h"
 #include "overworld.h"
-#include "snes_color.h"
+#include "snes.h"
 #include "zelda.h"
 
 typedef struct yaze_project yaze_project;

@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_GFX_SNES_COLOR_H_
 #define YAZE_APP_GFX_SNES_COLOR_H_
 
-#include <snes_color.h>
+#include <snes.h>
 
 #include <cstdint>
 #include <vector>
