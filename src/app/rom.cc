@@ -27,13 +27,11 @@ namespace yaze {
 using core::Renderer;
 constexpr int Uncompressed3BPPSize = 0x0600;
 
-namespace {
-int GetGraphicsAddress(const uint8_t *data, uint8_t addr, uint32_t ptr1,
-                       uint32_t ptr2, uint32_t ptr3) {
+uint32_t GetGraphicsAddress(const uint8_t *data, uint8_t addr, uint32_t ptr1,
+                            uint32_t ptr2, uint32_t ptr3) {
   return core::SnesToPc(core::AddressFromBytes(
       data[ptr1 + addr], data[ptr2 + addr], data[ptr3 + addr]));
 }
-}  // namespace
 
 absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom &rom) {
   std::vector<uint8_t> sheet;
