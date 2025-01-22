@@ -1,0 +1,7 @@
+<map id="yaze::cli::PcToSnesCommand" name="yaze::cli::PcToSnesCommand">
+<area shape="rect" id="Node000001" title="Convert a PC address to a SNES address." alt="" coords="5,169,198,195"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1cli_1_1CommandHandler.html" title=" " alt="" coords="13,94,190,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,135,104,169,99,169,99,135"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="61,5,142,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="104,47,104,94,99,94,99,47"/>
+</map>

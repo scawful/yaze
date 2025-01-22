@@ -1,0 +1,9 @@
+<map id="src/app/zelda3/hyrule_magic.h" name="src/app/zelda3/hyrule_magic.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="209,5,352,46"/>
+<area shape="rect" id="Node000002" href="$compression_8cc.html" title=" " alt="" coords="5,102,186,127"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,55,123,103,120,99,224,50"/>
+<area shape="rect" id="Node000003" href="$hyrule__magic_8cc.html" title=" " alt="" coords="209,94,352,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="284,62,284,94,278,94,278,62"/>
+<area shape="rect" id="Node000004" href="$tracker_8cc.html" title="Legacy code from Hyrule Magic TrackerLogic.c." alt="" coords="377,94,521,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="334,51,412,91,410,96,331,56"/>
+</map>

@@ -1,10 +1,10 @@
 <map id="yaze::zelda3::Overworld::AssembleMap32Tiles" name="yaze::zelda3::Overworld::AssembleMap32Tiles">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,55,161,96"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1ExperimentFlags.html#a98e30d2636e67e3d74a45094733101e9" title=" " alt="" coords="209,5,413,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,53,208,41,240,33,242,38,209,46,162,58"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1Overworld.html#adce596173df992b103ed68c75e01763c" title=" " alt="" coords="233,55,388,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="161,73,218,73,218,78,161,78"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="236,144,386,170"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="143,94,259,136,257,141,141,99"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="273,145,266,135,270,126,285,119,311,117,339,120,353,127,351,132,337,125,311,123,287,125,274,129,271,135,277,142"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1FeatureFlags.html#ab985b9cb493be9689a8f4baffc09b614" title=" " alt="" coords="209,5,393,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,53,233,33,235,38,161,58"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1Overworld.html#adce596173df992b103ed68c75e01763c" title=" " alt="" coords="223,55,378,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="161,73,207,73,207,78,161,78"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="226,144,376,170"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="141,94,250,135,249,140,139,99"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="265,145,257,135,262,126,277,119,301,117,327,120,341,127,339,132,326,125,301,123,278,125,265,129,263,135,269,142"/>
 </map>

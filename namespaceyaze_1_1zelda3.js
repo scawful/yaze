@@ -1,5 +1,17 @@
 var namespaceyaze_1_1zelda3 =
 [
+    [ "anonymous_namespace{hyrule_magic.cc}", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02hyrule__magic_8cc_03.html", [
+      [ "ldle", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02hyrule__magic_8cc_03.html#a8ab3b57fbac6827915afd65b2f687eb1", null ],
+      [ "stle", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02hyrule__magic_8cc_03.html#a7f54b72dca42c2be9f63de47c27ba43f", null ],
+      [ "stle0", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02hyrule__magic_8cc_03.html#a8c70882aa5e5b1bb8acfb67d19a1cc6d", null ],
+      [ "stle1", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02hyrule__magic_8cc_03.html#ab64bc52b1f8cca1fb0c0416c7c1284c6", null ],
+      [ "stle2", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02hyrule__magic_8cc_03.html#a5b88bc967f9ae776d42cc935b341b288", null ],
+      [ "stle3", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02hyrule__magic_8cc_03.html#afbada1f258409089e8183f259c44f4eb", null ],
+      [ "ldle0", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02hyrule__magic_8cc_03.html#a3bbc2453e74efaf21d58eb29d4e00a27", null ],
+      [ "ldle1", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02hyrule__magic_8cc_03.html#ae1fb2a6ab776d7beb90224a7dce5d28b", null ],
+      [ "ldle2", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02hyrule__magic_8cc_03.html#a18ba82482f1821f52179a8deba75e974", null ],
+      [ "ldle3", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02hyrule__magic_8cc_03.html#a99df28514d1137d065e3d7b6b8e0c4eb", null ]
+    ] ],
     [ "anonymous_namespace{overworld.cc}", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html", [
       [ "GetAllTile16", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html#a7f1673e0c824b4cf30a284499cea45ad", null ],
       [ "CompareItemsArrays", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html#a5b374fda1bb2eb9781736fd765e1ef4b", null ]
@@ -151,6 +163,10 @@ var namespaceyaze_1_1zelda3 =
     [ "operator^", "namespaceyaze_1_1zelda3.html#a5f1053148284ef69ee84ef1d04d61fad", null ],
     [ "operator~", "namespaceyaze_1_1zelda3.html#ab057669c20d13c04f18b529d882e5bd7", null ],
     [ "FetchSubtypeInfo", "namespaceyaze_1_1zelda3.html#abfbe2444d2fac0e5cce5c8368a329835", null ],
+    [ "stle16b_i", "namespaceyaze_1_1zelda3.html#a170971bb7a8dd89072c7180edc712057", null ],
+    [ "stle16b", "namespaceyaze_1_1zelda3.html#a774997795015cda5de65dd2621c1284a", null ],
+    [ "ldle16b", "namespaceyaze_1_1zelda3.html#a23f2763cd8a3044a6a63cfa1c4c0ce53", null ],
+    [ "ldle16b_i", "namespaceyaze_1_1zelda3.html#a197e8a71bbb281224f38410a3025804d", null ],
     [ "LoadEntranceTileTypes", "namespaceyaze_1_1zelda3.html#a0afd16e24367ef62bfa4a2e4c7ad1554", null ],
     [ "LoadDungeonMapGfxFromBinary", "namespaceyaze_1_1zelda3.html#a4159862346f04f2e18e6474c8d44df17", null ],
     [ "LoadDungeonMapTile16", "namespaceyaze_1_1zelda3.html#a3f2f6ec0638746ee96b507ea0295625c", null ],

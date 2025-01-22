@@ -87,6 +87,10 @@ var NAVTREEINDEX28 =
 "hierarchy.html":[12,2],
 "history__manager_8h.html":[13,0,2,0,1,7,6],
 "history__manager_8h_source.html":[13,0,2,0,1,7,6],
+"hyrule__magic_8cc.html":[13,0,2,0,5,6],
+"hyrule__magic_8cc_source.html":[13,0,2,0,5,6],
+"hyrule__magic_8h.html":[13,0,2,0,5,7],
+"hyrule__magic_8h_source.html":[13,0,2,0,5,7],
 "icons_8h.html":[13,0,2,0,4,5],
 "icons_8h.html#a00461479997fc24161e5aef9c2c9cf06":[13,0,2,0,4,5,1551],
 "icons_8h.html#a005556c3bf9f26389a7ba1c73f04434a":[13,0,2,0,4,5,1104],
@@ -245,9 +249,5 @@ var NAVTREEINDEX28 =
 "icons_8h.html#a137ebfcb8cee708ea44c4980d00bc0d9":[13,0,2,0,4,5,1787],
 "icons_8h.html#a14169047b5dfc4cbdf8cc94b8d5f0dbf":[13,0,2,0,4,5,2099],
 "icons_8h.html#a1447e47152f56aa01734b77c26a40819":[13,0,2,0,4,5,61],
-"icons_8h.html#a144867b51e7c8bec7752900a20a75a2e":[13,0,2,0,4,5,312],
-"icons_8h.html#a1452c9e6ed2694f172659aa539f31771":[13,0,2,0,4,5,849],
-"icons_8h.html#a14ad9e1080c8dad4c09b80a9238a9288":[13,0,2,0,4,5,1088],
-"icons_8h.html#a14bbd0e87997f160f792bae43c75670d":[13,0,2,0,4,5,1586],
-"icons_8h.html#a14ded7148bef481ff6b688f261157597":[13,0,2,0,4,5,1689]
+"icons_8h.html#a144867b51e7c8bec7752900a20a75a2e":[13,0,2,0,4,5,312]
 };

@@ -1,5 +1,9 @@
 var NAVTREEINDEX44 =
 {
+"overlord_8h_source.html":[13,0,2,0,5,4,0],
+"overworld_8cc.html":[13,0,2,0,5,2,0],
+"overworld_8cc_source.html":[13,0,2,0,5,2,0],
+"overworld__editor_8cc.html":[13,0,2,0,1,5,2],
 "overworld__editor_8cc_source.html":[13,0,2,0,1,5,2],
 "overworld__editor_8h.html":[13,0,2,0,1,5,3],
 "overworld__editor_8h_source.html":[13,0,2,0,1,5,3],
@@ -35,10 +39,10 @@ var NAVTREEINDEX44 =
 "ppu__registers_8h_source.html":[13,0,2,0,2,3,2],
 "ppu__test_8cc.html":[13,0,3,0,1],
 "ppu__test_8cc_source.html":[13,0,3,0,1],
-"project_8cc.html":[13,0,2,0,0,5],
-"project_8cc_source.html":[13,0,2,0,0,5],
-"project_8h.html":[13,0,2,0,0,6],
-"project_8h_source.html":[13,0,2,0,0,6],
+"project_8cc.html":[13,0,2,0,0,4],
+"project_8cc_source.html":[13,0,2,0,0,4],
+"project_8h.html":[13,0,2,0,0,5],
+"project_8h_source.html":[13,0,2,0,0,5],
 "renderer_8h.html":[13,0,2,0,0,0,11],
 "renderer_8h_source.html":[13,0,2,0,0,0,11],
 "resource__manager_8h.html":[13,0,2,0,1,7,9],
@@ -245,9 +249,5 @@ var NAVTREEINDEX44 =
 "structyaze_1_1Project.html#ad57739ccc5e131b7b37e3c221b7fe974":[11,0,1,10,4],
 "structyaze_1_1Project.html#ad57739ccc5e131b7b37e3c221b7fe974":[12,0,0,10,4],
 "structyaze_1_1ResourceLabelManager.html":[11,0,1,13],
-"structyaze_1_1ResourceLabelManager.html":[12,0,0,13],
-"structyaze_1_1ResourceLabelManager.html#a125a1036183bcb6c99cb2e3df6e5aea1":[11,0,1,13,10],
-"structyaze_1_1ResourceLabelManager.html#a125a1036183bcb6c99cb2e3df6e5aea1":[12,0,0,13,10],
-"structyaze_1_1ResourceLabelManager.html#a3111a44065af307dffd87b22a8cd203a":[11,0,1,13,4],
-"structyaze_1_1ResourceLabelManager.html#a3111a44065af307dffd87b22a8cd203a":[12,0,0,13,4]
+"structyaze_1_1ResourceLabelManager.html":[12,0,0,13]
 };

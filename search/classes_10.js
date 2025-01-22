@@ -21,7 +21,7 @@ var searchData=
   ['snes_5ftile_5finfo_18',['snes_tile_info',['../structsnes__tile__info.html',1,'']]],
   ['snescolor_19',['SnesColor',['../classyaze_1_1gfx_1_1SnesColor.html',1,'yaze::gfx']]],
   ['snespalette_20',['SnesPalette',['../classyaze_1_1gfx_1_1SnesPalette.html',1,'yaze::gfx']]],
-  ['snestopc_21',['SnesToPc',['../classyaze_1_1cli_1_1SnesToPc.html',1,'yaze::cli']]],
+  ['snestopccommand_21',['SnesToPcCommand',['../classyaze_1_1cli_1_1SnesToPcCommand.html',1,'yaze::cli']]],
   ['song_22',['Song',['../structyaze_1_1zelda3_1_1music_1_1Song.html',1,'yaze::zelda3::music']]],
   ['songpart_23',['SongPart',['../structyaze_1_1zelda3_1_1music_1_1SongPart.html',1,'yaze::zelda3::music']]],
   ['songrange_24',['SongRange',['../structyaze_1_1zelda3_1_1music_1_1SongRange.html',1,'yaze::zelda3::music']]],

@@ -27,9 +27,9 @@ var namespaceyaze_1_1cli =
     [ "Decompress", "classyaze_1_1cli_1_1Decompress.html", "classyaze_1_1cli_1_1Decompress" ],
     [ "Expand", "classyaze_1_1cli_1_1Expand.html", "classyaze_1_1cli_1_1Expand" ],
     [ "Open", "classyaze_1_1cli_1_1Open.html", "classyaze_1_1cli_1_1Open" ],
-    [ "PcToSnes", "classyaze_1_1cli_1_1PcToSnes.html", "classyaze_1_1cli_1_1PcToSnes" ],
+    [ "PcToSnesCommand", "classyaze_1_1cli_1_1PcToSnesCommand.html", "classyaze_1_1cli_1_1PcToSnesCommand" ],
     [ "ReadFromRom", "classyaze_1_1cli_1_1ReadFromRom.html", "classyaze_1_1cli_1_1ReadFromRom" ],
-    [ "SnesToPc", "classyaze_1_1cli_1_1SnesToPc.html", "classyaze_1_1cli_1_1SnesToPc" ],
+    [ "SnesToPcCommand", "classyaze_1_1cli_1_1SnesToPcCommand.html", "classyaze_1_1cli_1_1SnesToPcCommand" ],
     [ "Tile16Transfer", "classyaze_1_1cli_1_1Tile16Transfer.html", "classyaze_1_1cli_1_1Tile16Transfer" ],
     [ "MainMenuEntry", "namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395", [
       [ "kLoadRom", "namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a0904aa5cd86ead4695a80b68d96d331b", null ],

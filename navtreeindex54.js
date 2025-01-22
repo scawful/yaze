@@ -1,5 +1,9 @@
 var NAVTREEINDEX54 =
 {
+"yaze_8cc.html#a9fff64bba6ed578ae091960204b84648":[13,0,2,4,0],
+"yaze_8cc.html#ac37ec58a0da8b441220024ac2cb73a76":[13,0,2,4,8],
+"yaze_8cc.html#ac6958144cc1209550c0f77e8dce0b8d3":[13,0,2,4,3],
+"yaze_8cc.html#ac870fb2b7713b670247082c171053148":[13,0,2,4,4],
 "yaze_8cc.html#ad5d32e01226c1d7167fa6c34c59bb95e":[13,0,2,4,6],
 "yaze_8cc_source.html":[13,0,2,4],
 "yaze_8h.html":[13,0,1,3],
@@ -55,8 +59,6 @@ var NAVTREEINDEX54 =
 "z3ed_8cc_source.html":[13,0,2,1,4],
 "z3ed_8h.html":[13,0,2,1,5],
 "z3ed_8h_source.html":[13,0,2,1,5],
-"zelda3_2common_8h.html":[13,0,2,0,5,5],
-"zelda3_2common_8h_source.html":[13,0,2,0,5,5],
 "zelda_8h.html":[13,0,1,4],
 "zelda_8h.html#a0c0dfb85f1e87702458d4dbaae0beef3":[13,0,1,4,5],
 "zelda_8h.html#a81a5c5c618a19cfba96f863e14006cf9":[13,0,1,4,2],

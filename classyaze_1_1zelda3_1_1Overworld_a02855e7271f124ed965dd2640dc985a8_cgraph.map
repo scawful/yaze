@@ -1,10 +1,10 @@
 <map id="yaze::zelda3::Overworld::LoadExits" name="yaze::zelda3::Overworld::LoadExits">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,63,161,103"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1Overworld.html#a330da22ceacac461718bb46435bf02d8" title=" " alt="" coords="233,5,388,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,61,217,46,218,52,162,66"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1ExperimentFlags.html#a98e30d2636e67e3d74a45094733101e9" title=" " alt="" coords="209,70,413,96"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1Overworld.html#a330da22ceacac461718bb46435bf02d8" title=" " alt="" coords="223,5,378,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,60,207,48,208,53,161,65"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1FeatureFlags.html#ab985b9cb493be9689a8f4baffc09b614" title=" " alt="" coords="209,70,393,96"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="161,80,193,80,193,86,161,86"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="236,144,386,169"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="149,101,254,136,253,141,147,106"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="273,145,266,135,270,125,285,119,311,117,339,120,353,126,351,131,337,125,311,122,287,124,274,129,271,134,277,141"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="226,144,376,169"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="146,101,247,135,245,141,145,106"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="265,145,257,135,262,125,277,119,301,117,327,120,341,126,339,131,326,125,301,122,278,124,265,129,263,134,269,141"/>
 </map>

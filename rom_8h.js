@@ -8,6 +8,11 @@ var rom_8h =
     [ "yaze::SaveAllGraphicsData", "namespaceyaze.html#aeb8ae3fba1064ff2cf19393b113fac1c", null ],
     [ "yaze::Load2BppGraphics", "namespaceyaze.html#a3167c1c857f5e405cb39a492529d6557", null ],
     [ "yaze::LoadLinkGraphics", "namespaceyaze.html#a3dde9364829e66bec50d5da15df53b6a", null ],
+    [ "yaze::SnesToPc", "namespaceyaze.html#aefc163a31f0531da9e1636396859b450", null ],
+    [ "yaze::PcToSnes", "namespaceyaze.html#a17bc6f37bc5f5ccbe7d722c42cb8b1ab", null ],
+    [ "yaze::Get24LocalFromPC", "namespaceyaze.html#a8acb4a8f67a09fd9a908aeac107898f7", null ],
+    [ "yaze::AddressFromBytes", "namespaceyaze.html#a9017f3490bdc0bba68696fec505147eb", null ],
+    [ "yaze::MapBankToWordAddress", "namespaceyaze.html#a1807a5da2e83e9e8b0cce7284ec13f1b", null ],
     [ "yaze::kNumGfxSheets", "namespaceyaze.html#ac71d5970d234195c079f64f1a56e4522", null ],
     [ "yaze::kNumLinkSheets", "namespaceyaze.html#a51ca5df538b7f54c045a80783c02b102", null ],
     [ "yaze::kTile16Ptr", "namespaceyaze.html#a928bdc81237834754dbac3f20bde2dca", null ],
@@ -21,5 +26,6 @@ var rom_8h =
     [ "yaze::kNumSpritesets", "namespaceyaze.html#a8ec2f2f56a0053f8169ecb919412cba6", null ],
     [ "yaze::kNumPalettesets", "namespaceyaze.html#ae3027bef139fcf788bb8a0d3f6f1a3ed", null ],
     [ "yaze::kEntranceGfxGroup", "namespaceyaze.html#a70210423b80d30a75edab49bddef04d0", null ],
-    [ "yaze::kMaxGraphics", "namespaceyaze.html#a1811556fa67024bbd32667c731c21036", null ]
+    [ "yaze::kMaxGraphics", "namespaceyaze.html#a1811556fa67024bbd32667c731c21036", null ],
+    [ "yaze::kFastRomRegion", "namespaceyaze.html#a3738198544ab1a8a5cc6e321eb32d50a", null ]
 ];

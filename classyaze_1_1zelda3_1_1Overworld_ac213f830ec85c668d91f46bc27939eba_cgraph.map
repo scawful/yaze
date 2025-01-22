@@ -1,10 +1,10 @@
 <map id="yaze::zelda3::Overworld::AssembleMap16Tiles" name="yaze::zelda3::Overworld::AssembleMap16Tiles">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,47,161,88"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1ExperimentFlags.html#a98e30d2636e67e3d74a45094733101e9" title=" " alt="" coords="209,5,413,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,48,233,32,234,37,162,53"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gfx.html#aa5ae49b02472150a2ad972abf1f7d35a" title=" " alt="" coords="237,55,384,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="161,65,222,65,222,70,161,70"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="236,128,386,154"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="149,86,254,120,253,125,147,91"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="273,129,266,119,270,110,285,103,311,101,339,104,353,111,351,116,337,109,311,107,287,109,274,113,271,119,277,126"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1FeatureFlags.html#ab985b9cb493be9689a8f4baffc09b614" title=" " alt="" coords="209,5,393,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,47,225,32,227,38,161,53"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gfx.html#aa5ae49b02472150a2ad972abf1f7d35a" title=" " alt="" coords="227,55,374,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="161,65,211,65,211,70,161,70"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="226,128,376,154"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="146,86,247,120,245,125,145,91"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="265,129,257,119,262,110,277,103,301,101,327,104,341,111,339,116,326,109,301,107,278,109,265,113,263,119,269,126"/>
 </map>

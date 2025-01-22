@@ -1,5 +1,0 @@
-<map id="yaze::core::stle16b_i" name="yaze::core::stle16b_i">
-<area shape="rect" id="Node000001" title="Store little endian 16&#45;bit value using a byte pointer, offset by an index before dereferencing." alt="" coords="5,5,142,31"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1core.html#a2cb2c0bf50bac2324d970587cc1b0233" title=" " alt="" coords="190,5,316,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,16,174,16,174,21,142,21"/>
-</map>

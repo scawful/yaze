@@ -1,17 +1,5 @@
 var namespaceyaze_1_1core =
 [
-    [ "anonymous_namespace{common.cc}", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html", [
-      [ "ldle", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a3f42e460c8aca7262f168481d03883d4", null ],
-      [ "stle", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a9ca88b46161c3ec2e0854a30c4e05f89", null ],
-      [ "stle0", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#add7fdeb7cfabec157b3eaff5754486d3", null ],
-      [ "stle1", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a170481e823b53d24885da41938c0dbf4", null ],
-      [ "stle2", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#ac0bdba24264e9d2a21e6a9da804c5acd", null ],
-      [ "stle3", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a19194aea13ba75a0dca31cd2d4919d72", null ],
-      [ "ldle0", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#ab398058c34f949af56d2214c1f052abb", null ],
-      [ "ldle1", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a42feaae235cf462ca0171cb490459f7a", null ],
-      [ "ldle2", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#ae45c534800b9d5a30f1647ac5013baea", null ],
-      [ "ldle3", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#ae6064f68a5f5ea3d74189dd5e4a5dea8", null ]
-    ] ],
     [ "anonymous_namespace{font_loader.cc}", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html", [
       [ "SetFontPath", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a0d62353b28e596070a67929b63594ce1", null ],
       [ "LoadFont", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#aeb026c1f2d88cd2c2d4ac9a283861bbe", null ],
@@ -19,7 +7,7 @@ var namespaceyaze_1_1core =
       [ "AddJapaneseFont", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a9986c5e862a6cfc14588a1b618d29f15", null ]
     ] ],
     [ "Controller", "classyaze_1_1core_1_1Controller.html", "classyaze_1_1core_1_1Controller" ],
-    [ "ExperimentFlags", "classyaze_1_1core_1_1ExperimentFlags.html", "classyaze_1_1core_1_1ExperimentFlags" ],
+    [ "FeatureFlags", "classyaze_1_1core_1_1FeatureFlags.html", "classyaze_1_1core_1_1FeatureFlags" ],
     [ "FileDialogWrapper", "classyaze_1_1core_1_1FileDialogWrapper.html", null ],
     [ "FontConfig", "structyaze_1_1core_1_1FontConfig.html", "structyaze_1_1core_1_1FontConfig" ],
     [ "Renderer", "classyaze_1_1core_1_1Renderer.html", "classyaze_1_1core_1_1Renderer" ],
@@ -33,15 +21,6 @@ var namespaceyaze_1_1core =
       [ "kWindows", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648aad547616982f990862d4e1213452c089", null ],
       [ "kLinux", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648ae3f917d82e495f1c002357925ca3047e", null ]
     ] ],
-    [ "Get24LocalFromPC", "namespaceyaze_1_1core.html#aa2886304092e4c8f1cbd33eeb0d7d980", null ],
-    [ "stle16b_i", "namespaceyaze_1_1core.html#a611a51e1035d450eef5c06263128ce92", null ],
-    [ "stle16b", "namespaceyaze_1_1core.html#a2cb2c0bf50bac2324d970587cc1b0233", null ],
-    [ "ldle16b", "namespaceyaze_1_1core.html#ae36970b562677c5876e1ee584a051530", null ],
-    [ "ldle16b_i", "namespaceyaze_1_1core.html#ac9d631f94259376fac0f193ba98bd9b2", null ],
-    [ "SnesToPc", "namespaceyaze_1_1core.html#a772a2d0d104498cb8100f0b2e717b6a2", null ],
-    [ "PcToSnes", "namespaceyaze_1_1core.html#a134be6f5a039339a4a40c50152820e28", null ],
-    [ "AddressFromBytes", "namespaceyaze_1_1core.html#a6ce88f9f428f027466401bd0f29af006", null ],
-    [ "MapBankToWordAddress", "namespaceyaze_1_1core.html#a3b002d05a3b1c3254beed024d7092721", null ],
     [ "CopyImageToClipboard", "namespaceyaze_1_1core.html#a421cc759aa63272bf0079eddf0d32eac", null ],
     [ "GetImageFromClipboard", "namespaceyaze_1_1core.html#a224033814dd0a65e514ab48d90bcc550", null ],
     [ "GetFileExtension", "namespaceyaze_1_1core.html#abc62834eb5824227302b2f2e7f5b375d", null ],
@@ -53,6 +32,5 @@ var namespaceyaze_1_1core =
     [ "GetBundleResourcePath", "namespaceyaze_1_1core.html#a00e77355a028aee0d2e98d928c4931f5", null ],
     [ "LoadPackageFonts", "namespaceyaze_1_1core.html#a1ebfa2ff985b2a41c726bfbaa9a868dd", null ],
     [ "ReloadPackageFont", "namespaceyaze_1_1core.html#a171a8a94e8642f977ca04cf54245cd13", null ],
-    [ "LoadSystemFonts", "namespaceyaze_1_1core.html#aa408d383ff33494e29ea06e0e6774f4c", null ],
-    [ "kFastRomRegion", "namespaceyaze_1_1core.html#a147dd50027b3bc7f7f7dbf3600c7d79d", null ]
+    [ "LoadSystemFonts", "namespaceyaze_1_1core.html#aa408d383ff33494e29ea06e0e6774f4c", null ]
 ];

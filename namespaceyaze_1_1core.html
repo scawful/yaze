@@ -110,19 +110,13 @@ $(function(){initNavTree('namespaceyaze_1_1core.html',''); initResizable(true); 
 <a href="#namespaces">Namespaces</a> &#124;
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#enum-members">Enumerations</a> &#124;
-<a href="#func-members">Functions</a> &#124;
-<a href="#var-members">Variables</a>  </div>
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">yaze::core Namespace Reference</div></div>
 </div><!--header-->
 <div class="contents">
-
-<p>Core application logic and utilities.  
-<a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html">anonymous_namespace{common.cc}</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html">anonymous_namespace{font_loader.cc}</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -131,8 +125,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1core_1_1Controller.html">Controller</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main controller for the application.  <a href="classyaze_1_1core_1_1Controller.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1core_1_1ExperimentFlags.html">ExperimentFlags</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A class to manage experimental feature flags.  <a href="classyaze_1_1core_1_1ExperimentFlags.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1core_1_1FeatureFlags.html">FeatureFlags</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A class to manage experimental feature flags.  <a href="classyaze_1_1core_1_1FeatureFlags.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html">FileDialogWrapper</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -166,26 +160,6 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aa2886304092e4c8f1cbd33eeb0d7d980" id="r_aa2886304092e4c8f1cbd33eeb0d7d980"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa2886304092e4c8f1cbd33eeb0d7d980">Get24LocalFromPC</a> (uint8_t *data, int addr, bool pc)</td></tr>
-<tr class="separator:aa2886304092e4c8f1cbd33eeb0d7d980"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a611a51e1035d450eef5c06263128ce92" id="r_a611a51e1035d450eef5c06263128ce92"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a611a51e1035d450eef5c06263128ce92">stle16b_i</a> (uint8_t *const p_arr, size_t const p_index, uint16_t const p_val)</td></tr>
-<tr class="memdesc:a611a51e1035d450eef5c06263128ce92"><td class="mdescLeft">&#160;</td><td class="mdescRight">Store little endian 16-bit value using a byte pointer, offset by an index before dereferencing.  <br /></td></tr>
-<tr class="separator:a611a51e1035d450eef5c06263128ce92"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2cb2c0bf50bac2324d970587cc1b0233" id="r_a2cb2c0bf50bac2324d970587cc1b0233"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2cb2c0bf50bac2324d970587cc1b0233">stle16b</a> (uint8_t *const p_arr, uint16_t const p_val)</td></tr>
-<tr class="separator:a2cb2c0bf50bac2324d970587cc1b0233"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae36970b562677c5876e1ee584a051530" id="r_ae36970b562677c5876e1ee584a051530"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae36970b562677c5876e1ee584a051530">ldle16b</a> (uint8_t const *const p_arr)</td></tr>
-<tr class="separator:ae36970b562677c5876e1ee584a051530"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac9d631f94259376fac0f193ba98bd9b2" id="r_ac9d631f94259376fac0f193ba98bd9b2"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac9d631f94259376fac0f193ba98bd9b2">ldle16b_i</a> (uint8_t const *const p_arr, size_t const p_index)</td></tr>
-<tr class="memdesc:ac9d631f94259376fac0f193ba98bd9b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load little endian halfword (16-bit) dereferenced from an arrays of bytes. This version provides an index that will be multiplied by 2 and added to the base address.  <br /></td></tr>
-<tr class="separator:ac9d631f94259376fac0f193ba98bd9b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a772a2d0d104498cb8100f0b2e717b6a2" id="r_a772a2d0d104498cb8100f0b2e717b6a2"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a772a2d0d104498cb8100f0b2e717b6a2">SnesToPc</a> (uint32_t addr) noexcept</td></tr>
-<tr class="separator:a772a2d0d104498cb8100f0b2e717b6a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a134be6f5a039339a4a40c50152820e28" id="r_a134be6f5a039339a4a40c50152820e28"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a134be6f5a039339a4a40c50152820e28">PcToSnes</a> (uint32_t addr)</td></tr>
-<tr class="separator:a134be6f5a039339a4a40c50152820e28"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6ce88f9f428f027466401bd0f29af006" id="r_a6ce88f9f428f027466401bd0f29af006"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6ce88f9f428f027466401bd0f29af006">AddressFromBytes</a> (uint8_t bank, uint8_t high, uint8_t low) noexcept</td></tr>
-<tr class="separator:a6ce88f9f428f027466401bd0f29af006"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3b002d05a3b1c3254beed024d7092721" id="r_a3b002d05a3b1c3254beed024d7092721"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3b002d05a3b1c3254beed024d7092721">MapBankToWordAddress</a> (uint8_t bank, uint16_t addr) noexcept</td></tr>
-<tr class="separator:a3b002d05a3b1c3254beed024d7092721"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a421cc759aa63272bf0079eddf0d32eac" id="r_a421cc759aa63272bf0079eddf0d32eac"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a421cc759aa63272bf0079eddf0d32eac">CopyImageToClipboard</a> (const std::vector&lt; uint8_t &gt; &amp;data)</td></tr>
 <tr class="separator:a421cc759aa63272bf0079eddf0d32eac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a224033814dd0a65e514ab48d90bcc550" id="r_a224033814dd0a65e514ab48d90bcc550"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a224033814dd0a65e514ab48d90bcc550">GetImageFromClipboard</a> (std::vector&lt; uint8_t &gt; &amp;data, int &amp;width, int &amp;height)</td></tr>
@@ -211,15 +185,8 @@ Functions</h2></td></tr>
 <tr class="separator:a171a8a94e8642f977ca04cf54245cd13"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa408d383ff33494e29ea06e0e6774f4c" id="r_aa408d383ff33494e29ea06e0e6774f4c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa408d383ff33494e29ea06e0e6774f4c">LoadSystemFonts</a> ()</td></tr>
 <tr class="separator:aa408d383ff33494e29ea06e0e6774f4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
-Variables</h2></td></tr>
-<tr class="memitem:a147dd50027b3bc7f7f7dbf3600c7d79d" id="r_a147dd50027b3bc7f7f7dbf3600c7d79d"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a147dd50027b3bc7f7f7dbf3600c7d79d">kFastRomRegion</a> = 0x808000</td></tr>
-<tr class="separator:a147dd50027b3bc7f7f7dbf3600c7d79d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Core application logic and utilities. </p>
-</div><h2 class="groupheader">Enumeration Type Documentation</h2>
+<h2 class="groupheader">Enumeration Type Documentation</h2>
 <a id="abd79a1a62112b429e30153eb19ffa648" name="abd79a1a62112b429e30153eb19ffa648"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abd79a1a62112b429e30153eb19ffa648">&#9670;&#160;</a></span>Platform</h2>
 
@@ -252,308 +219,6 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="aa2886304092e4c8f1cbd33eeb0d7d980" name="aa2886304092e4c8f1cbd33eeb0d7d980"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa2886304092e4c8f1cbd33eeb0d7d980">&#9670;&#160;</a></span>Get24LocalFromPC()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint32_t yaze::core::Get24LocalFromPC </td>
-          <td>(</td>
-          <td class="paramtype">uint8_t *</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>addr</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>pc</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00059">59</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00125">PcToSnes()</a>, and <a class="el" href="core_2common_8h_source.html#l00117">SnesToPc()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00183">yaze::editor::ParseSingleMessage()</a>, <a class="el" href="message__editor_8cc_source.html#l00327">yaze::editor::MessageEditor::ReadAllTextData()</a>, and <a class="el" href="message__editor_8cc_source.html#l00225">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1core_aa2886304092e4c8f1cbd33eeb0d7d980_cgraph.png" border="0" usemap="#anamespaceyaze_1_1core_aa2886304092e4c8f1cbd33eeb0d7d980_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1core_aa2886304092e4c8f1cbd33eeb0d7d980_cgraph" id="anamespaceyaze_1_1core_aa2886304092e4c8f1cbd33eeb0d7d980_cgraph">
-<area shape="rect" title=" " alt="" coords="5,31,205,56"/>
-<area shape="rect" href="namespaceyaze_1_1core.html#a134be6f5a039339a4a40c50152820e28" title=" " alt="" coords="253,5,398,31"/>
-<area shape="poly" title=" " alt="" coords="205,29,237,26,237,31,205,35"/>
-<area shape="rect" href="namespaceyaze_1_1core.html#a772a2d0d104498cb8100f0b2e717b6a2" title=" " alt="" coords="253,55,398,80"/>
-<area shape="poly" title=" " alt="" coords="205,52,237,55,237,61,205,57"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="a611a51e1035d450eef5c06263128ce92" name="a611a51e1035d450eef5c06263128ce92"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a611a51e1035d450eef5c06263128ce92">&#9670;&#160;</a></span>stle16b_i()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::core::stle16b_i </td>
-          <td>(</td>
-          <td class="paramtype">uint8_t *const</td>          <td class="paramname"><span class="paramname"><em>p_arr</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t const</td>          <td class="paramname"><span class="paramname"><em>p_index</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint16_t const</td>          <td class="paramname"><span class="paramname"><em>p_val</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Store little endian 16-bit value using a byte pointer, offset by an index before dereferencing. </p>
-
-<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00068">68</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="common_8cc_source.html#l00073">stle16b()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="tracker_8cc_source.html#l00799">yaze::zelda3::music::Tracker::SaveSongs()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1core_a611a51e1035d450eef5c06263128ce92_cgraph.png" border="0" usemap="#anamespaceyaze_1_1core_a611a51e1035d450eef5c06263128ce92_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1core_a611a51e1035d450eef5c06263128ce92_cgraph" id="anamespaceyaze_1_1core_a611a51e1035d450eef5c06263128ce92_cgraph">
-<area shape="rect" title="Store little endian 16&#45;bit value using a byte pointer, offset by an index before dereferencing." alt="" coords="5,5,142,31"/>
-<area shape="rect" href="namespaceyaze_1_1core.html#a2cb2c0bf50bac2324d970587cc1b0233" title=" " alt="" coords="190,5,316,31"/>
-<area shape="poly" title=" " alt="" coords="142,16,174,16,174,21,142,21"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="a2cb2c0bf50bac2324d970587cc1b0233" name="a2cb2c0bf50bac2324d970587cc1b0233"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2cb2c0bf50bac2324d970587cc1b0233">&#9670;&#160;</a></span>stle16b()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::core::stle16b </td>
-          <td>(</td>
-          <td class="paramtype">uint8_t *const</td>          <td class="paramname"><span class="paramname"><em>p_arr</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint16_t const</td>          <td class="paramname"><span class="paramname"><em>p_val</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00073">73</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00166">yaze::gfx::HyruleMagicDecompress()</a>, and <a class="el" href="common_8cc_source.html#l00068">stle16b_i()</a>.</p>
-
-</div>
-</div>
-<a id="ae36970b562677c5876e1ee584a051530" name="ae36970b562677c5876e1ee584a051530"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae36970b562677c5876e1ee584a051530">&#9670;&#160;</a></span>ldle16b()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint16_t yaze::core::ldle16b </td>
-          <td>(</td>
-          <td class="paramtype">uint8_t const *const</td>          <td class="paramname"><span class="paramname"><em>p_arr</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00078">78</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="compression_8cc_source.html#l00166">yaze::gfx::HyruleMagicDecompress()</a>, and <a class="el" href="common_8cc_source.html#l00084">ldle16b_i()</a>.</p>
-
-</div>
-</div>
-<a id="ac9d631f94259376fac0f193ba98bd9b2" name="ac9d631f94259376fac0f193ba98bd9b2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac9d631f94259376fac0f193ba98bd9b2">&#9670;&#160;</a></span>ldle16b_i()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint16_t yaze::core::ldle16b_i </td>
-          <td>(</td>
-          <td class="paramtype">uint8_t const *const</td>          <td class="paramname"><span class="paramname"><em>p_arr</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t const</td>          <td class="paramname"><span class="paramname"><em>p_index</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Load little endian halfword (16-bit) dereferenced from an arrays of bytes. This version provides an index that will be multiplied by 2 and added to the base address. </p>
-
-<p class="definition">Definition at line <a class="el" href="common_8cc_source.html#l00084">84</a> of file <a class="el" href="common_8cc_source.html">common.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="common_8cc_source.html#l00078">ldle16b()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="tracker_8cc_source.html#l00799">yaze::zelda3::music::Tracker::SaveSongs()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1core_ac9d631f94259376fac0f193ba98bd9b2_cgraph.png" border="0" usemap="#anamespaceyaze_1_1core_ac9d631f94259376fac0f193ba98bd9b2_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1core_ac9d631f94259376fac0f193ba98bd9b2_cgraph" id="anamespaceyaze_1_1core_ac9d631f94259376fac0f193ba98bd9b2_cgraph">
-<area shape="rect" title="Load little endian halfword (16&#45;bit) dereferenced from an arrays of bytes. This version provides an i..." alt="" coords="5,5,141,31"/>
-<area shape="rect" href="namespaceyaze_1_1core.html#ae36970b562677c5876e1ee584a051530" title=" " alt="" coords="189,5,314,31"/>
-<area shape="poly" title=" " alt="" coords="141,16,173,16,173,21,141,21"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="a772a2d0d104498cb8100f0b2e717b6a2" name="a772a2d0d104498cb8100f0b2e717b6a2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a772a2d0d104498cb8100f0b2e717b6a2">&#9670;&#160;</a></span>SnesToPc()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint32_t yaze::core::SnesToPc </td>
-          <td>(</td>
-          <td class="paramtype">uint32_t</td>          <td class="paramname"><span class="paramname"><em>addr</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00117">117</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
-
-<p class="reference">References <a class="el" href="core_2common_8h_source.html#l00115">kFastRomRegion</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00151">yaze::editor::BuildDictionaryEntries()</a>, <a class="el" href="overworld_8cc_source.html#l00221">yaze::zelda3::Overworld::DecompressAllMapTiles()</a>, <a class="el" href="common_8cc_source.html#l00059">Get24LocalFromPC()</a>, <a class="el" href="rom_8cc_source.html#l00032">yaze::GetGraphicsAddress()</a>, <a class="el" href="z3ed_8h_source.html#l00120">yaze::cli::SnesToPc::handle()</a>, <a class="el" href="room_8cc_source.html#l00255">yaze::zelda3::Room::LoadAnimatedGraphics()</a>, <a class="el" href="room_8cc_source.html#l00463">yaze::zelda3::Room::LoadChests()</a>, <a class="el" href="screen__editor_8cc_source.html#l00112">yaze::editor::ScreenEditor::LoadDungeonMaps()</a>, <a class="el" href="rom_8cc_source.html#l00530">yaze::Rom::LoadGfxGroups()</a>, <a class="el" href="room_8cc_source.html#l00018">yaze::zelda3::Room::LoadHeader()</a>, <a class="el" href="overworld_8cc_source.html#l00415">yaze::zelda3::Overworld::LoadItems()</a>, <a class="el" href="room_8cc_source.html#l00275">yaze::zelda3::Room::LoadObjects()</a>, <a class="el" href="room_8cc_source.html#l00125">yaze::zelda3::Room::LoadRoomFromROM()</a>, <a class="el" href="room_8cc_source.html#l00416">yaze::zelda3::Room::LoadSprites()</a>, <a class="el" href="overworld_8cc_source.html#l00484">yaze::zelda3::Overworld::LoadSpritesFromMap()</a>, <a class="el" href="title__screen_8cc_source.html#l00061">yaze::zelda3::TitleScreen::LoadTitleScreen()</a>, <a class="el" href="screen__editor_8cc_source.html#l00181">yaze::editor::ScreenEditor::SaveDungeonMaps()</a>, <a class="el" href="rom_8cc_source.html#l00563">yaze::Rom::SaveGroupsToRom()</a>, <a class="el" href="overworld_8cc_source.html#l01280">yaze::zelda3::Overworld::SaveMap16Expanded()</a>, and <a class="el" href="memory__editor_8h_source.html#l00019">yaze::editor::MemoryEditorWithDiffChecker::Update()</a>.</p>
-
-</div>
-</div>
-<a id="a134be6f5a039339a4a40c50152820e28" name="a134be6f5a039339a4a40c50152820e28"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a134be6f5a039339a4a40c50152820e28">&#9670;&#160;</a></span>PcToSnes()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint32_t yaze::core::PcToSnes </td>
-          <td>(</td>
-          <td class="paramtype">uint32_t</td>          <td class="paramname"><span class="paramname"><em>addr</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00125">125</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="common_8cc_source.html#l00059">Get24LocalFromPC()</a>, <a class="el" href="z3ed_8h_source.html#l00139">yaze::cli::PcToSnes::handle()</a>, <a class="el" href="overworld_8cc_source.html#l01475">yaze::zelda3::Overworld::SaveItems()</a>, <a class="el" href="overworld_8cc_source.html#l01280">yaze::zelda3::Overworld::SaveMap16Expanded()</a>, <a class="el" href="overworld_8cc_source.html#l01100">yaze::zelda3::Overworld::SaveMap32Expanded()</a>, and <a class="el" href="overworld_8cc_source.html#l00535">yaze::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
-
-</div>
-</div>
-<a id="a6ce88f9f428f027466401bd0f29af006" name="a6ce88f9f428f027466401bd0f29af006"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6ce88f9f428f027466401bd0f29af006">&#9670;&#160;</a></span>AddressFromBytes()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::core::AddressFromBytes </td>
-          <td>(</td>
-          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>bank</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>high</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>low</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00138">138</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00032">yaze::GetGraphicsAddress()</a>.</p>
-
-</div>
-</div>
-<a id="a3b002d05a3b1c3254beed024d7092721" name="a3b002d05a3b1c3254beed024d7092721"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3b002d05a3b1c3254beed024d7092721">&#9670;&#160;</a></span>MapBankToWordAddress()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint32_t yaze::core::MapBankToWordAddress </td>
-          <td>(</td>
-          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>bank</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>addr</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00142">142</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
-
-</div>
-</div>
 <a id="a421cc759aa63272bf0079eddf0d32eac" name="a421cc759aa63272bf0079eddf0d32eac"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a421cc759aa63272bf0079eddf0d32eac">&#9670;&#160;</a></span>CopyImageToClipboard()</h2>
 
@@ -660,7 +325,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="file__dialog_8cc_source.html#l00034">34</a> of file <a class="el" href="file__dialog_8cc_source.html">file_dialog.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tui_8cc_source.html#l00049">yaze::cli::anonymous_namespace{tui.cc}::ApplyBpsPatchComponent()</a>, and <a class="el" href="style_8cc_source.html#l00048">yaze::gui::LoadTheme()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tui_8cc_source.html#l00050">yaze::cli::anonymous_namespace{tui.cc}::ApplyBpsPatchComponent()</a>, and <a class="el" href="style_8cc_source.html#l00048">yaze::gui::LoadTheme()</a>.</p>
 
 </div>
 </div>
@@ -837,33 +502,6 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-</div>
-</div>
-<h2 class="groupheader">Variable Documentation</h2>
-<a id="a147dd50027b3bc7f7f7dbf3600c7d79d" name="a147dd50027b3bc7f7f7dbf3600c7d79d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a147dd50027b3bc7f7f7dbf3600c7d79d">&#9670;&#160;</a></span>kFastRomRegion</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint32_t yaze::core::kFastRomRegion = 0x808000</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel constexpr">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="core_2common_8h_source.html#l00115">115</a> of file <a class="el" href="core_2common_8h_source.html">common.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="core_2common_8h_source.html#l00117">SnesToPc()</a>.</p>
 
 </div>
 </div>
