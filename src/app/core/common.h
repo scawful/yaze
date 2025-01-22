@@ -112,25 +112,6 @@ class ExperimentFlags {
   }
 };
 
-static const std::string kLogFileOut = "yaze_log.txt";
-
-template <typename... Args>
-static void logf(const absl::FormatSpec<Args...> &format, const Args &...args) {
-  std::string message = absl::StrFormat(format, args...);
-  auto timestamp = std::chrono::system_clock::now();
-
-  std::time_t now_tt = std::chrono::system_clock::to_time_t(timestamp);
-  std::tm tm = *std::localtime(&now_tt);
-  message = absl::StrCat("[", tm.tm_hour, ":", tm.tm_min, ":", tm.tm_sec, "] ",
-                         message, "\n");
-
-  if (ExperimentFlags::get().kLogToConsole) {
-    std::cout << message;
-  }
-  static std::ofstream fout(kLogFileOut, std::ios::out | std::ios::app);
-  fout << message;
-}
-
 constexpr uint32_t kFastRomRegion = 0x808000;
 
 inline uint32_t SnesToPc(uint32_t addr) noexcept {

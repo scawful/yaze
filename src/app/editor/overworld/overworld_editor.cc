@@ -24,6 +24,7 @@
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
 #include "util/hex.h"
+#include "util/log.h"
 #include "util/macro.h"
 
 
@@ -1020,18 +1021,18 @@ absl::Status OverworldEditor::Save() {
 }
 
 absl::Status OverworldEditor::LoadGraphics() {
-  core::logf("Loading overworld.");
+  util::logf("Loading overworld.");
   // Load the Link to the Past overworld.
   RETURN_IF_ERROR(overworld_.Load(rom_))
   palette_ = overworld_.current_area_palette();
 
-  core::logf("Loading overworld graphics.");
+  util::logf("Loading overworld graphics.");
   // Create the area graphics image
   RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
       0x80, kOverworldMapSize, 0x40, overworld_.current_graphics(),
       current_gfx_bmp_, palette_));
 
-  core::logf("Loading overworld tileset.");
+  util::logf("Loading overworld tileset.");
   // Create the tile16 blockset image
   RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
       0x80, 0x2000, 0x08, overworld_.tile16_blockset_data(),
@@ -1041,7 +1042,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   // Copy the tile16 data into individual tiles.
   auto tile16_data = overworld_.tile16_blockset_data();
 
-  core::logf("Loading overworld tile16 graphics.");
+  util::logf("Loading overworld tile16 graphics.");
   // Loop through the tiles and copy their pixel data into separate vectors
   for (unsigned int i = 0; i < zelda3::kNumTile16Individual; i++) {
     tile16_individual_[i].Create(kTile16Size, kTile16Size, 0x08,
@@ -1062,7 +1063,7 @@ absl::Status OverworldEditor::LoadGraphics() {
     Renderer::GetInstance().RenderBitmap(&tile16_individual_[i]);
   }
 
-  core::logf("Loading overworld maps.");
+  util::logf("Loading overworld maps.");
   // Render the overworld maps loaded from the ROM.
   for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
     overworld_.set_current_map(i);

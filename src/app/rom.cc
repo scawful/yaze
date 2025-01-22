@@ -22,6 +22,7 @@
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "util/hex.h"
+#include "util/log.h"
 #include "util/macro.h"
 
 namespace yaze {
@@ -304,7 +305,7 @@ absl::Status Rom::WriteByte(int addr, uint8_t value) {
         value, addr));
   }
   rom_data_[addr] = value;
-  core::logf("WriteByte: %#06X: %s", addr, util::HexByte(value).data());
+  util::logf("WriteByte: %#06X: %s", addr, util::HexByte(value).data());
   return absl::OkStatus();
 }
 
@@ -316,7 +317,7 @@ absl::Status Rom::WriteWord(int addr, uint16_t value) {
   }
   rom_data_[addr] = (uint8_t)(value & 0xFF);
   rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
-  core::logf("WriteWord: %#06X: %s", addr, util::HexWord(value).data());
+  util::logf("WriteWord: %#06X: %s", addr, util::HexWord(value).data());
   return absl::OkStatus();
 }
 
@@ -328,7 +329,7 @@ absl::Status Rom::WriteShort(int addr, uint16_t value) {
   }
   rom_data_[addr] = (uint8_t)(value & 0xFF);
   rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
-  core::logf("WriteShort: %#06X: %s", addr, util::HexWord(value).data());
+  util::logf("WriteShort: %#06X: %s", addr, util::HexWord(value).data());
   return absl::OkStatus();
 }
 
@@ -341,7 +342,7 @@ absl::Status Rom::WriteLong(uint32_t addr, uint32_t value) {
   rom_data_[addr] = (uint8_t)(value & 0xFF);
   rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
   rom_data_[addr + 2] = (uint8_t)((value >> 16) & 0xFF);
-  core::logf("WriteLong: %#06X: %s", addr, util::HexLong(value).data());
+  util::logf("WriteLong: %#06X: %s", addr, util::HexLong(value).data());
   return absl::OkStatus();
 }
 
@@ -354,7 +355,7 @@ absl::Status Rom::WriteVector(int addr, std::vector<uint8_t> data) {
   for (int i = 0; i < static_cast<int>(data.size()); i++) {
     rom_data_[addr + i] = data[i];
   }
-  core::logf("WriteVector: %#06X: %s", addr, util::HexByte(data[0]).data());
+  util::logf("WriteVector: %#06X: %s", addr, util::HexByte(data[0]).data());
   return absl::OkStatus();
 }
 
@@ -363,7 +364,7 @@ absl::Status Rom::WriteColor(uint32_t address, const gfx::SnesColor &color) {
                  (color.snes() & 0x7C00);
 
   // Write the 16-bit color value to the ROM at the specified address
-  core::logf("WriteColor: %#06X: %s", address, util::HexWord(bgr).data());
+  util::logf("WriteColor: %#06X: %s", address, util::HexWord(bgr).data());
   return WriteShort(address, bgr);
 }
 
