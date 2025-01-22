@@ -23,7 +23,9 @@
 #include "app/zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
+#include "util/hex.h"
 #include "util/macro.h"
+
 
 namespace yaze {
 namespace editor {
@@ -789,7 +791,7 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
         color = ImVec4(255, 255, 255, 200);
       }
       ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16, color);
-      std::string str = core::HexByte(each.entrance_id_);
+      std::string str = util::HexByte(each.entrance_id_);
 
       if (current_mode == EditingMode::ENTRANCES) {
         HandleEntityDragging(&each, canvas_p0, scrolling, is_dragging_entity_,
@@ -872,7 +874,7 @@ void OverworldEditor::DrawOverworldExits(ImVec2 canvas_p0, ImVec2 scrolling) {
         }
       }
 
-      std::string str = core::HexByte(i);
+      std::string str = util::HexByte(i);
       ow_map_canvas_.DrawText(str, each.x_, each.y_);
     }
     i++;
@@ -1367,7 +1369,7 @@ absl::Status OverworldEditor::UpdateUsageStats() {
                    ImGuiWindowFlags_HorizontalScrollbar)) {
       for (int i = 0; i < 0x81; i++) {
         auto entrance_name = rom_.resource_label()->CreateOrGetLabel(
-            "Dungeon Entrance Names", core::HexByte(i),
+            "Dungeon Entrance Names", util::HexByte(i),
             zelda3::kEntranceNames[i].data());
         std::string str = absl::StrFormat("%#x - %s", i, entrance_name);
         if (Selectable(str.c_str(), selected_entrance_ == i,

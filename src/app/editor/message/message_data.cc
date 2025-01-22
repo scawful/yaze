@@ -3,6 +3,7 @@
 #include <string>
 
 #include "app/core/common.h"
+#include "util/hex.h"
 
 namespace yaze {
 namespace editor {
@@ -227,7 +228,7 @@ absl::StatusOr<MessageData> ParseSingleMessage(
       current_message_raw.append("[");
       current_message_raw.append(DICTIONARYTOKEN);
       current_message_raw.append(":");
-      current_message_raw.append(core::HexWord(dictionary));
+      current_message_raw.append(util::HexWord(dictionary));
       current_message_raw.append("]");
 
       auto mutable_rom_data = const_cast<uint8_t *>(rom_data.data());
@@ -265,7 +266,7 @@ std::vector<std::string> ParseMessageData(
 
   for (auto &message : message_data) {
     std::cout << "Message #" << message.ID << " at address "
-              << core::HexLong(message.Address) << std::endl;
+              << util::HexLong(message.Address) << std::endl;
     std::cout << "  " << message.RawString << std::endl;
 
     std::string parsed_message = "";

@@ -16,6 +16,7 @@
 #include "app/rom.h"
 #include "imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "util/hex.h"
 
 namespace yaze {
 namespace editor {
@@ -131,7 +132,7 @@ void MessageEditor::DrawMessageList() {
 
       for (const auto &message : list_of_texts_) {
         TableNextColumn();
-        if (Button(core::HexWord(message.ID).c_str())) {
+        if (Button(util::HexWord(message.ID).c_str())) {
           current_message_ = message;
           DrawMessagePreview();
         }
@@ -139,7 +140,7 @@ void MessageEditor::DrawMessageList() {
         TextWrapped("%s", parsed_messages_[message.ID].c_str());
         TableNextColumn();
         TextWrapped("%s",
-                    core::HexLong(list_of_texts_[message.ID].Address).c_str());
+                    util::HexLong(list_of_texts_[message.ID].Address).c_str());
       }
 
       EndTable();
@@ -209,7 +210,7 @@ void MessageEditor::DrawDictionary() {
 
       for (const auto &dictionary : all_dictionaries_) {
         TableNextColumn();
-        Text("%s", core::HexWord(dictionary.ID).c_str());
+        Text("%s", util::HexWord(dictionary.ID).c_str());
         TableNextColumn();
         Text("%s", dictionary.Contents.c_str());
       }
@@ -244,12 +245,12 @@ void MessageEditor::ReadAllTextDataV2() {
       std::cout << "Parsed: " << current_parsed_message << std::endl;
       std::cout << "Raw Bytes: ";
       for (const auto &byte : raw_message) {
-        std::cout << core::HexByte(byte) << " ";
+        std::cout << util::HexByte(byte) << " ";
       }
       std::cout << std::endl;
       std::cout << "Parsed Bytes: ";
       for (const auto &byte : parsed_message) {
-        std::cout << core::HexByte(byte) << " ";
+        std::cout << util::HexByte(byte) << " ";
       }
       std::cout << std::endl;
       raw_message.clear();
@@ -295,7 +296,7 @@ void MessageEditor::ReadAllTextDataV2() {
       current_raw_message.append("[");
       current_raw_message.append(DICTIONARYTOKEN);
       current_raw_message.append(":");
-      current_raw_message.append(core::HexWord(dictionary));
+      current_raw_message.append(util::HexWord(dictionary));
       current_raw_message.append("]");
 
       uint32_t address = core::Get24LocalFromPC(
@@ -393,7 +394,7 @@ void MessageEditor::ReadAllTextData() {
       current_message_raw.append("[");
       current_message_raw.append(DICTIONARYTOKEN);
       current_message_raw.append(":");
-      current_message_raw.append(core::HexWord(dictionary));
+      current_message_raw.append(util::HexWord(dictionary));
       current_message_raw.append("]");
 
       uint32_t address = core::Get24LocalFromPC(

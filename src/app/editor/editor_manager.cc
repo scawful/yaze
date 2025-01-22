@@ -21,6 +21,7 @@
 #include "editor/editor.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "util/hex.h"
 #include "util/macro.h"
 
 namespace yaze {
@@ -345,7 +346,7 @@ void EditorManager::DrawPopups() {
   if (BeginPopupModal("ROM Information", nullptr,
                       ImGuiWindowFlags_AlwaysAutoResize)) {
     Text("Title: %s", rom()->title().c_str());
-    Text("ROM Size: %s", core::HexLongLong(rom()->size()).c_str());
+    Text("ROM Size: %s", util::HexLongLong(rom()->size()).c_str());
 
     if (Button("Close", gui::kDefaultModalSize) ||
         IsKeyPressed(ImGuiKey_Escape)) {
