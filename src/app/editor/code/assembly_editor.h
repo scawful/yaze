@@ -11,6 +11,12 @@
 namespace yaze {
 namespace editor {
 
+struct FolderItem {
+  std::string name;
+  std::vector<FolderItem> subfolders;
+  std::vector<std::string> files;
+};
+
 /**
  * @class AssemblyEditor
  * @brief Text editor for modifying assembly code.
@@ -63,7 +69,7 @@ class AssemblyEditor : public Editor {
   int current_file_id_ = 0;
 
   std::string current_file_;
-  core::FolderItem current_folder_;
+  FolderItem current_folder_;
   TextEditor text_editor_;
 };
 

@@ -56,16 +56,6 @@ uint32_t ldle3(uint8_t const *const p_arr) { return ldle(p_arr, 3); }
 
 }  // namespace
 
-
-bool StringReplace(std::string &str, const std::string &from,
-                   const std::string &to) {
-  size_t start = str.find(from);
-  if (start == std::string::npos) return false;
-
-  str.replace(start, from.length(), to);
-  return true;
-}
-
 uint32_t Get24LocalFromPC(uint8_t *data, int addr, bool pc) {
   uint32_t ret =
       (PcToSnes(addr) & 0xFF0000) | (data[addr + 1] << 8) | data[addr];
