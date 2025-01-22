@@ -1,5 +1,7 @@
 var NAVTREEINDEX27 =
 {
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#ad8925128881aab7220508d0f4485d3a4":[12,0,0,8,0,6,49],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#ad8c025ef207a8999d433e850b5237307":[11,0,1,9,2,6,24],
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#ad8c025ef207a8999d433e850b5237307":[12,0,0,8,0,6,24],
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#adc59dce4e301e1fef3d3cc604d94e466":[11,0,1,9,2,6,36],
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#adc59dce4e301e1fef3d3cc604d94e466":[12,0,0,8,0,6,36],
@@ -247,7 +249,5 @@ var NAVTREEINDEX27 =
 "functions_t.html":[12,3,0,19],
 "functions_type.html":[12,3,3],
 "functions_u.html":[12,3,0,20],
-"functions_v.html":[12,3,0,21],
-"functions_vars.html":[12,3,2],
-"functions_vars.html":[12,3,2,0]
+"functions_v.html":[12,3,0,21]
 };

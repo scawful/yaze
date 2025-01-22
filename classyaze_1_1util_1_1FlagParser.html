@@ -131,6 +131,8 @@ Collaboration diagram for yaze::util::FlagParser:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ab39a3030c2b11cf49a6ae7a796079b8a" id="r_ab39a3030c2b11cf49a6ae7a796079b8a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab39a3030c2b11cf49a6ae7a796079b8a">FlagParser</a> (<a class="el" href="classyaze_1_1util_1_1FlagRegistry.html">FlagRegistry</a> *registry)</td></tr>
 <tr class="separator:ab39a3030c2b11cf49a6ae7a796079b8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5d5b0f51665afbb0d6bf9e41859b051" id="r_aa5d5b0f51665afbb0d6bf9e41859b051"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa5d5b0f51665afbb0d6bf9e41859b051">Parse</a> (int argc, char **argv)</td></tr>
+<tr class="separator:aa5d5b0f51665afbb0d6bf9e41859b051"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa07d8084adebfe9e6c71db34e5fd0110" id="r_aa07d8084adebfe9e6c71db34e5fd0110"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa07d8084adebfe9e6c71db34e5fd0110">Parse</a> (std::vector&lt; std::string &gt; *tokens)</td></tr>
 <tr class="separator:aa07d8084adebfe9e6c71db34e5fd0110"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -173,13 +175,57 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="flag_8h_source.html#l00118">118</a> of file <a class="el" href="flag_8h_source.html">flag.h</a>.</p>
 
-<p class="reference">References <a class="el" href="flag_8h_source.html#l00167">registry_</a>.</p>
+<p class="reference">References <a class="el" href="flag_8h_source.html#l00176">registry_</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="aa5d5b0f51665afbb0d6bf9e41859b051" name="aa5d5b0f51665afbb0d6bf9e41859b051"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa5d5b0f51665afbb0d6bf9e41859b051">&#9670;&#160;</a></span>Parse() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::util::FlagParser::Parse </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>argc</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char **</td>          <td class="paramname"><span class="paramname"><em>argv</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="flag_8h_source.html#l00121">121</a> of file <a class="el" href="flag_8h_source.html">flag.h</a>.</p>
+
+<p class="reference">References <a class="el" href="flag_8h_source.html#l00121">Parse()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="main_8cc_source.html#l00019">main()</a>, <a class="el" href="z3ed_8cc_source.html#l00069">main()</a>, and <a class="el" href="flag_8h_source.html#l00121">Parse()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1util_1_1FlagParser_aa5d5b0f51665afbb0d6bf9e41859b051_cgraph.png" border="0" usemap="#aclassyaze_1_1util_1_1FlagParser_aa5d5b0f51665afbb0d6bf9e41859b051_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1util_1_1FlagParser_aa5d5b0f51665afbb0d6bf9e41859b051_cgraph" id="aclassyaze_1_1util_1_1FlagParser_aa5d5b0f51665afbb0d6bf9e41859b051_cgraph">
+<area shape="rect" title=" " alt="" coords="5,29,145,70"/>
+<area shape="poly" title=" " alt="" coords="48,29,46,20,51,11,60,5,75,3,91,5,100,12,97,16,89,10,75,8,62,10,55,14,52,20,53,28"/>
+</map>
+</div>
+
+</div>
+</div>
 <a id="aa07d8084adebfe9e6c71db34e5fd0110" name="aa07d8084adebfe9e6c71db34e5fd0110"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa07d8084adebfe9e6c71db34e5fd0110">&#9670;&#160;</a></span>Parse()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aa07d8084adebfe9e6c71db34e5fd0110">&#9670;&#160;</a></span>Parse() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -201,11 +247,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="flag_8h_source.html#l00123">123</a> of file <a class="el" href="flag_8h_source.html">flag.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="flag_8h_source.html#l00132">132</a> of file <a class="el" href="flag_8h_source.html">flag.h</a>.</p>
 
-<p class="reference">References <a class="el" href="flag_8h_source.html#l00172">ExtractFlagAndValue()</a>, <a class="el" href="classyaze_1_1util_1_1IFlag.html#a1e9b10bfd3a078aee1da0794b1b2fbc3">yaze::util::IFlag::ParseValue()</a>, and <a class="el" href="flag_8h_source.html#l00167">registry_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="z3ed_8cc_source.html#l00094">main()</a>.</p>
+<p class="reference">References <a class="el" href="flag_8h_source.html#l00181">ExtractFlagAndValue()</a>, <a class="el" href="classyaze_1_1util_1_1IFlag.html#a1e9b10bfd3a078aee1da0794b1b2fbc3">yaze::util::IFlag::ParseValue()</a>, and <a class="el" href="flag_8h_source.html#l00176">registry_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -253,9 +297,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="flag_8h_source.html#l00172">172</a> of file <a class="el" href="flag_8h_source.html">flag.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="flag_8h_source.html#l00181">181</a> of file <a class="el" href="flag_8h_source.html">flag.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="flag_8h_source.html#l00123">Parse()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="flag_8h_source.html#l00132">Parse()</a>.</p>
 
 </div>
 </div>
@@ -280,9 +324,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="flag_8h_source.html#l00167">167</a> of file <a class="el" href="flag_8h_source.html">flag.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="flag_8h_source.html#l00176">176</a> of file <a class="el" href="flag_8h_source.html">flag.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="flag_8h_source.html#l00118">FlagParser()</a>, and <a class="el" href="flag_8h_source.html#l00123">Parse()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="flag_8h_source.html#l00118">FlagParser()</a>, and <a class="el" href="flag_8h_source.html#l00132">Parse()</a>.</p>
 
 </div>
 </div>

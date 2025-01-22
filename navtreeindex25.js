@@ -1,5 +1,7 @@
 var NAVTREEINDEX25 =
 {
+"classyaze_1_1zelda3_1_1RoomEntrance.html#a048a3bd84be46a98af158e037036dcfa":[12,0,0,8,16,7],
+"classyaze_1_1zelda3_1_1RoomEntrance.html#a0b3c8722bc896fe368b5906a55f9000e":[11,0,1,9,19,2],
 "classyaze_1_1zelda3_1_1RoomEntrance.html#a0b3c8722bc896fe368b5906a55f9000e":[12,0,0,8,16,2],
 "classyaze_1_1zelda3_1_1RoomEntrance.html#a0c3b458d76acfaf38d20548c8ec0d00b":[11,0,1,9,19,11],
 "classyaze_1_1zelda3_1_1RoomEntrance.html#a0c3b458d76acfaf38d20548c8ec0d00b":[12,0,0,8,16,11],
@@ -247,7 +249,5 @@ var NAVTREEINDEX25 =
 "classyaze_1_1zelda3_1_1SpriteBuilder.html#a2c508ac8284c10b3a97a0d919f6517f9":[12,0,0,8,20,8],
 "classyaze_1_1zelda3_1_1SpriteBuilder.html#a314945ccc19ba8ce21468f0ccc531de1":[11,0,1,9,23,2],
 "classyaze_1_1zelda3_1_1SpriteBuilder.html#a314945ccc19ba8ce21468f0ccc531de1":[12,0,0,8,20,2],
-"classyaze_1_1zelda3_1_1SpriteBuilder.html#a38df538ec2add1fc3ac434a5522d278f":[11,0,1,9,23,10],
-"classyaze_1_1zelda3_1_1SpriteBuilder.html#a38df538ec2add1fc3ac434a5522d278f":[12,0,0,8,20,10],
-"classyaze_1_1zelda3_1_1SpriteBuilder.html#a3f92ed94753a37fb4429a07078b196ba":[11,0,1,9,23,1]
+"classyaze_1_1zelda3_1_1SpriteBuilder.html#a38df538ec2add1fc3ac434a5522d278f":[11,0,1,9,23,10]
 };

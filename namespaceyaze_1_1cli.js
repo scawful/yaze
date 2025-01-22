@@ -9,16 +9,11 @@ var namespaceyaze_1_1cli =
       [ "LoadRomComponent", "namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a2d7b3c2328f2fcab44ddbe20d7df3c32", null ],
       [ "ColorBox", "namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a42e2b26b5b0aaf880b0d9c4c4a255d09", null ],
       [ "PaletteEditorComponent", "namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a10a49ca97b0266ed489de16edba6d909", null ],
+      [ "HelpComponent", "namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#abb3fbd2c5e9c53690714b06d6d882c52", null ],
       [ "MainMenuComponent", "namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a7dfff14a075ea3b86b67ea5eeb640548", null ]
     ] ],
     [ "anonymous_namespace{z3ed.cc}", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html", [
-      [ "HelpCommand", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a2ce01552171fe2c443f90b424ffdd398", null ],
-      [ "RunCommandHandler", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a1c411f9b56b338d661c91c0dbdfac795", null ],
-      [ "ylw", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#ac7a261707554c6e048c413356600dc45", null ],
-      [ "mag", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#aeaf75f18edc75b57f0e8acde19ab944f", null ],
-      [ "red", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a9e25f4412caa3abe0e9980a12d3079f5", null ],
-      [ "reset", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a8078785135a58092912453d6eb98cf16", null ],
-      [ "underline", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a84debb58d67b1d118f79bd2f409e4240", null ]
+      [ "RunCommandHandler", "namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a1c411f9b56b338d661c91c0dbdfac795", null ]
     ] ],
     [ "ApplyPatch", "classyaze_1_1cli_1_1ApplyPatch.html", "classyaze_1_1cli_1_1ApplyPatch" ],
     [ "AsarPatch", "classyaze_1_1cli_1_1AsarPatch.html", "classyaze_1_1cli_1_1AsarPatch" ],
@@ -41,6 +36,7 @@ var namespaceyaze_1_1cli =
       [ "kApplyBpsPatch", "namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a57e5a4c1d9b0cbe935452dfae44794f5", null ],
       [ "kGenerateSaveFile", "namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a32e58e3f081d3cf47b399dbfea2604c1", null ],
       [ "kPaletteEditor", "namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395af28bb58ff40de28e33f3558e7e6b119a", null ],
+      [ "kHelp", "namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a244ce4b6c7f56eaa446d64fc2d068bbb", null ],
       [ "kExit", "namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395ac2477f77de6d38233af46d78ec777846", null ]
     ] ],
     [ "LayoutID", "namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33", [
@@ -48,6 +44,7 @@ var namespaceyaze_1_1cli =
       [ "kApplyBpsPatch", "namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33afb1cff8d82fb71fbc9b02d9168c0d1e3", null ],
       [ "kGenerateSaveFile", "namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33a12b4a262eaa3162ca945f9a64adcd083", null ],
       [ "kPaletteEditor", "namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33a724318eeaede64cad18fefb4cd170c6e", null ],
+      [ "kHelp", "namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33a820bfc28af3d274b2ee7c7d6a53f2df2", null ],
       [ "kExit", "namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33ae7717093a3034b8bfe24213aaa3736fe", null ],
       [ "kMainMenu", "namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33a3c8c2786293aac7d768025f195c03176", null ],
       [ "kError", "namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33a5c7d92d637737b4d301d0cf1af43a06a", null ]

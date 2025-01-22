@@ -25,5 +25,6 @@ var macro_8h =
     [ "TEXT_WITH_SEPARATOR", "macro_8h.html#a76ecc345f3680496c1de21f6d7d39f02", null ],
     [ "TABLE_BORDERS_RESIZABLE", "macro_8h.html#a2156df838e48af22983ff9bf3732f51a", null ],
     [ "CLEAR_AND_RETURN_STATUS", "macro_8h.html#aada67a2281f9b16dbb495ed05b8755e0", null ],
+    [ "RETURN_IF_EXCEPTION", "macro_8h.html#a7c9a94f98921a34151985779cfb8f64a", null ],
     [ "SDL_RETURN_IF_ERROR", "macro_8h.html#a7ff41a09894e97938253afc4e6387add", null ]
 ];

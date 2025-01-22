@@ -125,9 +125,11 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="flag_8h__dep__incl.png" border="0" usemap="#asrc_2util_2flag_8hdep" alt=""/></div>
 <map name="asrc_2util_2flag_8hdep" id="asrc_2util_2flag_8hdep">
-<area shape="rect" title=" " alt="" coords="10,5,105,31"/>
-<area shape="rect" href="z3ed_8cc.html" title=" " alt="" coords="5,79,110,105"/>
-<area shape="poly" title=" " alt="" coords="60,46,60,79,55,79,55,46"/>
+<area shape="rect" title=" " alt="" coords="82,5,176,31"/>
+<area shape="rect" href="main_8cc.html" title=" " alt="" coords="5,79,119,105"/>
+<area shape="poly" title=" " alt="" coords="109,44,75,80,71,77,105,40"/>
+<area shape="rect" href="z3ed_8cc.html" title=" " alt="" coords="143,79,248,105"/>
+<area shape="poly" title=" " alt="" coords="152,40,186,77,182,80,148,44"/>
 </map>
 </div>
 </div>
@@ -188,7 +190,7 @@ Functions</h2></td></tr>
 <b>Value:</b><div class="fragment"><div class="line"><span class="keyword">extern</span> <a class="code hl_class" href="classyaze_1_1util_1_1Flag.html">yaze::util::Flag&lt;type&gt;</a>* FLAGS_##name</div>
 <div class="ttc" id="aclassyaze_1_1util_1_1Flag_html"><div class="ttname"><a href="classyaze_1_1util_1_1Flag.html">yaze::util::Flag</a></div><div class="ttdef"><b>Definition</b> <a href="flag_8h_source.html#l00030">flag.h:30</a></div></div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="flag_8h_source.html#l00106">106</a> of file <a class="el" href="flag_8h_source.html">flag.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="flag_8h_source.html#l00105">105</a> of file <a class="el" href="flag_8h_source.html">flag.h</a>.</p>
 
 </div>
 </div>
@@ -220,10 +222,11 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<b>Value:</b><div class="fragment"><div class="line">  <a class="code hl_class" href="classyaze_1_1util_1_1Flag.html">yaze::util::Flag&lt;type&gt;</a>* FLAGS_##name =  \</div>
-<div class="line">  yaze::util::global_flag_registry()-&gt;RegisterFlag&lt;type&gt;(<span class="stringliteral">&quot;--&quot;</span> #name, (default_val), (help_text))</div>
+<b>Value:</b><div class="fragment"><div class="line">  <a class="code hl_class" href="classyaze_1_1util_1_1Flag.html">yaze::util::Flag&lt;type&gt;</a>* FLAGS_##name =                      \</div>
+<div class="line">      yaze::util::global_flag_registry()-&gt;RegisterFlag&lt;type&gt;( \</div>
+<div class="line">          <span class="stringliteral">&quot;--&quot;</span> #name, (default_val), (help_text))</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="flag_8h_source.html#l00109">109</a> of file <a class="el" href="flag_8h_source.html">flag.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="flag_8h_source.html#l00108">108</a> of file <a class="el" href="flag_8h_source.html">flag.h</a>.</p>
 
 </div>
 </div>

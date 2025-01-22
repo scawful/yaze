@@ -255,13 +255,23 @@ $(function(){initNavTree('macro_8h_source.html',''); initResizable(true); });
 </div>
 <div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span> </div>
 <div class="foldopen" id="foldopen00112" data-start="" data-end="">
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno"><a class="line" href="macro_8h.html#a7ff41a09894e97938253afc4e6387add">  112</a></span><span class="preprocessor">#define SDL_RETURN_IF_ERROR()                   \</span></div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span><span class="preprocessor">  if (SDL_GetError() != nullptr) {              \</span></div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span><span class="preprocessor">    return absl::InternalError(SDL_GetError()); \</span></div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span><span class="preprocessor">  }</span></div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno"><a class="line" href="macro_8h.html#a7c9a94f98921a34151985779cfb8f64a">  112</a></span><span class="preprocessor">#define RETURN_IF_EXCEPTION(expression) \</span></div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span><span class="preprocessor">  try {                                 \</span></div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span><span class="preprocessor">    expression;                         \</span></div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span><span class="preprocessor">  } catch (const std::exception &amp;e) {   \</span></div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span><span class="preprocessor">    std::cerr &lt;&lt; e.what() &lt;&lt; std::endl; \</span></div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span><span class="preprocessor">    return EXIT_FAILURE;                \</span></div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span><span class="preprocessor">  }</span></div>
 </div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span> </div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_UTIL_MACRO_H</span></div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span> </div>
+<div class="foldopen" id="foldopen00120" data-start="" data-end="">
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno"><a class="line" href="macro_8h.html#a7ff41a09894e97938253afc4e6387add">  120</a></span><span class="preprocessor">#define SDL_RETURN_IF_ERROR()                   \</span></div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span><span class="preprocessor">  if (SDL_GetError() != nullptr) {              \</span></div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span><span class="preprocessor">    return absl::InternalError(SDL_GetError()); \</span></div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span><span class="preprocessor">  }</span></div>
+</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span> </div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_UTIL_MACRO_H</span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

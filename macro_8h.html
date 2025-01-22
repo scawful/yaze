@@ -166,6 +166,8 @@ Macros</h2></td></tr>
 <tr class="separator:a2156df838e48af22983ff9bf3732f51a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aada67a2281f9b16dbb495ed05b8755e0" id="r_aada67a2281f9b16dbb495ed05b8755e0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aada67a2281f9b16dbb495ed05b8755e0">CLEAR_AND_RETURN_STATUS</a>(status)</td></tr>
 <tr class="separator:aada67a2281f9b16dbb495ed05b8755e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c9a94f98921a34151985779cfb8f64a" id="r_a7c9a94f98921a34151985779cfb8f64a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7c9a94f98921a34151985779cfb8f64a">RETURN_IF_EXCEPTION</a>(expression)</td></tr>
+<tr class="separator:a7c9a94f98921a34151985779cfb8f64a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7ff41a09894e97938253afc4e6387add" id="r_a7ff41a09894e97938253afc4e6387add"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7ff41a09894e97938253afc4e6387add">SDL_RETURN_IF_ERROR</a>()</td></tr>
 <tr class="separator:a7ff41a09894e97938253afc4e6387add"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -475,7 +477,7 @@ Macros</h2></td></tr>
 </div><!-- fragment -->
 <p class="definition">Definition at line <a class="el" href="macro_8h_source.html#l00036">36</a> of file <a class="el" href="macro_8h_source.html">macro.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="dungeon__editor_8cc_source.html#l00225">yaze::editor::DungeonEditor::DrawToolset()</a>, <a class="el" href="editor__manager_8cc_source.html#l00051">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01106">yaze::editor::OverworldEditor::RefreshChildMap()</a>, <a class="el" href="z3ed_8cc_source.html#l00063">yaze::cli::anonymous_namespace{z3ed.cc}::RunCommandHandler()</a>, <a class="el" href="editor__manager_8cc_source.html#l00733">yaze::editor::EditorManager::SaveRom()</a>, <a class="el" href="memory__editor_8h_source.html#l00019">yaze::editor::MemoryEditorWithDiffChecker::Update()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00371">yaze::editor::Tile16Editor::UpdateTransferTileCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="dungeon__editor_8cc_source.html#l00225">yaze::editor::DungeonEditor::DrawToolset()</a>, <a class="el" href="editor__manager_8cc_source.html#l00051">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01106">yaze::editor::OverworldEditor::RefreshChildMap()</a>, <a class="el" href="z3ed_8cc_source.html#l00048">yaze::cli::anonymous_namespace{z3ed.cc}::RunCommandHandler()</a>, <a class="el" href="editor__manager_8cc_source.html#l00733">yaze::editor::EditorManager::SaveRom()</a>, <a class="el" href="memory__editor_8h_source.html#l00019">yaze::editor::MemoryEditorWithDiffChecker::Update()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00371">yaze::editor::Tile16Editor::UpdateTransferTileCanvas()</a>.</p>
 
 </div>
 </div>
@@ -503,7 +505,7 @@ Macros</h2></td></tr>
 </div><!-- fragment -->
 <p class="definition">Definition at line <a class="el" href="macro_8h_source.html#l00044">44</a> of file <a class="el" href="macro_8h_source.html">macro.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="main_8cc_source.html#l00015">main()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="main_8cc_source.html#l00019">main()</a>.</p>
 
 </div>
 </div>
@@ -801,6 +803,33 @@ Macros</h2></td></tr>
 
 </div>
 </div>
+<a id="a7c9a94f98921a34151985779cfb8f64a" name="a7c9a94f98921a34151985779cfb8f64a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c9a94f98921a34151985779cfb8f64a">&#9670;&#160;</a></span>RETURN_IF_EXCEPTION</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define RETURN_IF_EXCEPTION</td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>expression</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">  <span class="keywordflow">try</span> {                                 \</div>
+<div class="line">    expression;                         \</div>
+<div class="line">  } <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::exception &amp;e) {   \</div>
+<div class="line">    std::cerr &lt;&lt; e.what() &lt;&lt; std::endl; \</div>
+<div class="line">    <span class="keywordflow">return</span> EXIT_FAILURE;                \</div>
+<div class="line">  }</div>
+</div><!-- fragment -->
+<p class="definition">Definition at line <a class="el" href="macro_8h_source.html#l00112">112</a> of file <a class="el" href="macro_8h_source.html">macro.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="main_8cc_source.html#l00019">main()</a>, and <a class="el" href="z3ed_8cc_source.html#l00069">main()</a>.</p>
+
+</div>
+</div>
 <a id="a7ff41a09894e97938253afc4e6387add" name="a7ff41a09894e97938253afc4e6387add"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7ff41a09894e97938253afc4e6387add">&#9670;&#160;</a></span>SDL_RETURN_IF_ERROR</h2>
 
@@ -819,7 +848,7 @@ Macros</h2></td></tr>
 <div class="line">    <span class="keywordflow">return</span> absl::InternalError(SDL_GetError()); \</div>
 <div class="line">  }</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="macro_8h_source.html#l00112">112</a> of file <a class="el" href="macro_8h_source.html">macro.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="macro_8h_source.html#l00120">120</a> of file <a class="el" href="macro_8h_source.html">macro.h</a>.</p>
 
 </div>
 </div>

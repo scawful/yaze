@@ -1,5 +1,7 @@
 var NAVTREEINDEX26 =
 {
+"classyaze_1_1zelda3_1_1SpriteBuilder.html#a38df538ec2add1fc3ac434a5522d278f":[12,0,0,8,20,10],
+"classyaze_1_1zelda3_1_1SpriteBuilder.html#a3f92ed94753a37fb4429a07078b196ba":[11,0,1,9,23,1],
 "classyaze_1_1zelda3_1_1SpriteBuilder.html#a3f92ed94753a37fb4429a07078b196ba":[12,0,0,8,20,1],
 "classyaze_1_1zelda3_1_1SpriteBuilder.html#a56c21fc84c57e72ecb989b32b22487eb":[11,0,1,9,23,9],
 "classyaze_1_1zelda3_1_1SpriteBuilder.html#a56c21fc84c57e72ecb989b32b22487eb":[12,0,0,8,20,9],
@@ -247,7 +249,5 @@ var NAVTREEINDEX26 =
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#ad1330ae293b5e6c8063b8b193a8057a5":[12,0,0,8,0,6,53],
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#ad873bf3329d36099ad3f69c06c4cf82a":[11,0,1,9,2,6,22],
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#ad873bf3329d36099ad3f69c06c4cf82a":[12,0,0,8,0,6,22],
-"classyaze_1_1zelda3_1_1music_1_1Tracker.html#ad8925128881aab7220508d0f4485d3a4":[11,0,1,9,2,6,49],
-"classyaze_1_1zelda3_1_1music_1_1Tracker.html#ad8925128881aab7220508d0f4485d3a4":[12,0,0,8,0,6,49],
-"classyaze_1_1zelda3_1_1music_1_1Tracker.html#ad8c025ef207a8999d433e850b5237307":[11,0,1,9,2,6,24]
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#ad8925128881aab7220508d0f4485d3a4":[11,0,1,9,2,6,49]
 };

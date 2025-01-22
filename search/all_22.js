@@ -76,6 +76,5 @@ var searchData=
   ['yaze_5funknown_73',['YAZE_UNKNOWN',['../yaze_8h.html#a8b8638fa48e18e420ef66414847265c0afc583bbb0069da7a40765619168bfa9c',1,'yaze.h']]],
   ['yaze_5funload_5from_74',['yaze_unload_rom',['../zelda_8h.html#a0c0dfb85f1e87702458d4dbaae0beef3',1,'yaze_unload_rom(zelda3_rom *rom):&#160;yaze.cc'],['../yaze_8cc.html#a0c0dfb85f1e87702458d4dbaae0beef3',1,'yaze_unload_rom(zelda3_rom *rom):&#160;yaze.cc']]],
   ['yet_20another_20zelda3_20editor_75',['Yet Another Zelda3 Editor',['../md_README.html',1,'']]],
-  ['ylw_76',['ylw',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#ac7a261707554c6e048c413356600dc45',1,'yaze::cli::anonymous_namespace{z3ed.cc}']]],
-  ['your_20changes_77',['Contributing your Changes',['../md_docs_2contributing.html#autotoc_md42',1,'']]]
+  ['your_20changes_76',['Contributing your Changes',['../md_docs_2contributing.html#autotoc_md42',1,'']]]
 ];

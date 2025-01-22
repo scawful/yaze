@@ -23,7 +23,7 @@ var searchData=
   ['hdma_5frun_5frequested_20',['hdma_run_requested',['../classyaze_1_1emu_1_1Memory.html#a487fe02329f11c376cf35293f29c7bee',1,'yaze::emu::Memory::hdma_run_requested()'],['../classyaze_1_1emu_1_1MemoryImpl.html#aee42c803ab884f48aed70728cbad01e5',1,'yaze::emu::MemoryImpl::hdma_run_requested()']]],
   ['height_21',['height',['../classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3',1,'yaze::gfx::Bitmap::height()'],['../classyaze_1_1gui_1_1Canvas.html#a138ae62c6eb5f771385aa7e6b2f8ebbd',1,'yaze::gui::Canvas::height()'],['../classyaze_1_1zelda3_1_1Sprite.html#aec8a5fc8d13ed9331e3ced8173efc7fc',1,'yaze::zelda3::Sprite::height()'],['../classyaze_1_1gui_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3',1,'yaze::gui::Bitmap::height()']]],
   ['help_22',['help',['../classyaze_1_1util_1_1IFlag.html#ad9e5f2be7aba3d96b6f0440f07fe15a6',1,'yaze::util::IFlag::help()'],['../classyaze_1_1util_1_1Flag.html#a508fe4bd18cca07a30cca1167ad8d7c4',1,'yaze::util::Flag::help()']]],
-  ['helpcommand_23',['HelpCommand',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a2ce01552171fe2c443f90b424ffdd398',1,'yaze::cli::anonymous_namespace{z3ed.cc}']]],
+  ['helpcomponent_23',['HelpComponent',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#abb3fbd2c5e9c53690714b06d6d882c52',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
   ['hexbyte_24',['HexByte',['../namespaceyaze_1_1core.html#a1f2441e9967fc5718d30608cccc7f74c',1,'yaze::core']]],
   ['hexlong_25',['HexLong',['../namespaceyaze_1_1core.html#a0de2c3f1f2dba2f5581d9d1e3018135f',1,'yaze::core']]],
   ['hexlonglong_26',['HexLongLong',['../namespaceyaze_1_1core.html#a18ea1e86d2ecdd880587545a3de97e51',1,'yaze::core']]],

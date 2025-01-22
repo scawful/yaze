@@ -47,7 +47,7 @@ var searchData=
   ['height_5f_44',['height_',['../classyaze_1_1gfx_1_1Bitmap.html#a39893effa3239a8c1acfd4b009e63443',1,'yaze::gfx::Bitmap::height_'],['../classyaze_1_1zelda3_1_1RoomObject.html#a5d8fb4913316418def7352f19cfe9014',1,'yaze::zelda3::RoomObject::height_'],['../classyaze_1_1zelda3_1_1Sprite.html#a7ba7aab320fb3156b20b9d7839070681',1,'yaze::zelda3::Sprite::height_'],['../classyaze_1_1gui_1_1Bitmap.html#a39893effa3239a8c1acfd4b009e63443',1,'yaze::gui::Bitmap::height_']]],
   ['help_45',['help',['../classyaze_1_1util_1_1IFlag.html#ad9e5f2be7aba3d96b6f0440f07fe15a6',1,'yaze::util::IFlag::help()'],['../classyaze_1_1util_1_1Flag.html#a508fe4bd18cca07a30cca1167ad8d7c4',1,'yaze::util::Flag::help() const override']]],
   ['help_5f_46',['help_',['../classyaze_1_1util_1_1Flag.html#a80b1ce8a7a1478aa009d470e344bbfe5',1,'yaze::util::Flag']]],
-  ['helpcommand_47',['HelpCommand',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a2ce01552171fe2c443f90b424ffdd398',1,'yaze::cli::anonymous_namespace{z3ed.cc}']]],
+  ['helpcomponent_47',['HelpComponent',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#abb3fbd2c5e9c53690714b06d6d882c52',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
   ['hexbyte_48',['HexByte',['../namespaceyaze_1_1core.html#a1f2441e9967fc5718d30608cccc7f74c',1,'yaze::core']]],
   ['hexinputbyte_49',['HexInputByte',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a39fd0fc98cc838a96dce6647bc44c909',1,'yaze::gui::zeml']]],
   ['hexinputword_50',['HexInputWord',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a62763d51488ae2f20570ce8d062e4106',1,'yaze::gui::zeml']]],
