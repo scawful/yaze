@@ -1,5 +1,6 @@
 set(
   YAZE_APP_ZELDA3_SRC
+  app/zelda3/hyrule_magic.cc
   app/zelda3/overworld/overworld_map.cc
   app/zelda3/overworld/overworld.cc
   app/zelda3/screen/inventory.cc

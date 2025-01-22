@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/core/common.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"

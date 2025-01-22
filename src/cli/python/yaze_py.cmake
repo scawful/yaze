@@ -7,7 +7,6 @@ add_library(
   py/yaze_py.cc
   yaze.cc
   app/rom.cc
-  app/core/common.cc
   app/core/labeling.cc
   app/zelda3/overworld/overworld_map.cc
   app/zelda3/overworld/overworld.cc

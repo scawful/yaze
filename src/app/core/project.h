@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/core/common.h"
 #include "app/core/platform/file_dialog.h"
 
 namespace yaze {

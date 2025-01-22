@@ -7,6 +7,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/rom.h"
+#include "app/zelda3/hyrule_magic.h"
 #include "util/macro.h"
 
 #define DEBUG_LOG(msg) std::cout << msg << std::endl
@@ -237,13 +238,13 @@ std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
 
         // rle 16-bit alternating copy
 
-        d = core::ldle16b(src);
+        d = zelda3::ldle16b(src);
 
         src += 2;
 
         while (c > 1) {
           // copy that 16-bit number c/2 times into the b2 buffer.
-          core::stle16b(b2 + bd, d);
+          zelda3::stle16b(b2 + bd, d);
 
           bd += 2;
           c -= 2;  // hence c/2
@@ -276,7 +277,7 @@ std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
         if (p_big_endian) {
           d = (*src << 8) + src[1];
         } else {
-          d = core::ldle16b(src);
+          d = zelda3::ldle16b(src);
         }
 
         while (c--) {
@@ -459,8 +460,8 @@ void CompressionCommandAlternative(const uint8_t* rom_data,
   comp_accumulator = 0;
 }
 
-void CheckByteRepeatV2(const uint8_t* data, uint& src_pos, const unsigned int last_pos,
-                       CompressionCommand& cmd) {
+void CheckByteRepeatV2(const uint8_t* data, uint& src_pos,
+                       const unsigned int last_pos, CompressionCommand& cmd) {
   unsigned int i = 0;
   while (src_pos + i < last_pos && data[src_pos] == data[src_pos + i]) {
     ++i;
@@ -469,8 +470,8 @@ void CheckByteRepeatV2(const uint8_t* data, uint& src_pos, const unsigned int la
   cmd.arguments[kCommandByteFill][0] = data[src_pos];
 }
 
-void CheckWordRepeatV2(const uint8_t* data, uint& src_pos, const unsigned int last_pos,
-                       CompressionCommand& cmd) {
+void CheckWordRepeatV2(const uint8_t* data, uint& src_pos,
+                       const unsigned int last_pos, CompressionCommand& cmd) {
   if (src_pos + 2 <= last_pos && data[src_pos] != data[src_pos + 1]) {
     unsigned int pos = src_pos;
     char byte1 = data[pos];
