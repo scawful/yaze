@@ -109,6 +109,14 @@
     return temp;                        \
   }
 
+#define RETURN_IF_EXCEPTION(expression) \
+  try {                                 \
+    expression;                         \
+  } catch (const std::exception &e) {   \
+    std::cerr << e.what() << std::endl; \
+    return EXIT_FAILURE;                \
+  }
+
 #define SDL_RETURN_IF_ERROR()                   \
   if (SDL_GetError() != nullptr) {              \
     return absl::InternalError(SDL_GetError()); \
