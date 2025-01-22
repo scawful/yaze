@@ -56,15 +56,6 @@ uint32_t ldle3(uint8_t const *const p_arr) { return ldle(p_arr, 3); }
 
 }  // namespace
 
-uint32_t Get24LocalFromPC(uint8_t *data, int addr, bool pc) {
-  uint32_t ret =
-      (PcToSnes(addr) & 0xFF0000) | (data[addr + 1] << 8) | data[addr];
-  if (pc) {
-    return SnesToPc(ret);
-  }
-  return ret;
-}
-
 void stle16b_i(uint8_t *const p_arr, size_t const p_index,
                uint16_t const p_val) {
   stle16b(p_arr + (p_index * 2), p_val);

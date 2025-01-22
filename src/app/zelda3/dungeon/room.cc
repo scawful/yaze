@@ -19,13 +19,13 @@ void Room::LoadHeader() {
   int header_pointer = (rom()->data()[kRoomHeaderPointer + 2] << 16) +
                        (rom()->data()[kRoomHeaderPointer + 1] << 8) +
                        (rom()->data()[kRoomHeaderPointer]);
-  header_pointer = core::SnesToPc(header_pointer);
+  header_pointer = SnesToPc(header_pointer);
 
   int address = (rom()->data()[kRoomHeaderPointerBank] << 16) +
                 (rom()->data()[(header_pointer + 1) + (room_id_ * 2)] << 8) +
                 rom()->data()[(header_pointer) + (room_id_ * 2)];
 
-  auto header_location = core::SnesToPc(address);
+  auto header_location = SnesToPc(address);
 
   bg2_ = (background2)((rom()->data()[header_location] >> 5) & 0x07);
   collision_ = (CollisionKey)((rom()->data()[header_location] >> 2) & 0x07);
@@ -124,7 +124,7 @@ void Room::CalculateRoomSize() {
 
 void Room::LoadRoomFromROM() {
   auto rom_data = rom()->vector();
-  int header_pointer = core::SnesToPc(kRoomHeaderPointer);
+  int header_pointer = SnesToPc(kRoomHeaderPointer);
 
   message_id_ = messages_id_dungeon + (room_id_ * 2);
 
@@ -132,7 +132,7 @@ void Room::LoadRoomFromROM() {
                 (rom()->data()[(header_pointer + 1) + (room_id_ * 2)] << 8) +
                 rom()->data()[(header_pointer) + (room_id_ * 2)];
 
-  int hpos = core::SnesToPc(address);
+  int hpos = SnesToPc(address);
   hpos++;
   uint8_t b = rom_data[hpos];
 
@@ -182,14 +182,14 @@ void Room::LoadRoomFromROM() {
   hpos++;
 
   // Load room objects
-  int object_pointer = core::SnesToPc(room_object_pointer);
+  int object_pointer = SnesToPc(room_object_pointer);
   int room_address = object_pointer + (room_id_ * 3);
-  int objects_location = core::SnesToPc(room_address);
+  int objects_location = SnesToPc(room_address);
 
   // Load sprites
   // int spr_ptr = 0x040000 | rooms_sprite_pointer;
   // int sprite_address =
-  //     core::SnesToPc(dungeon_spr_ptrs | spr_ptr + (room_id_ * 2));
+  //     SnesToPc(dungeon_spr_ptrs | spr_ptr + (room_id_ * 2));
 }
 
 void Room::LoadRoomGraphics(uint8_t entrance_blockset) {
@@ -253,7 +253,7 @@ void Room::CopyRoomGraphicsToBuffer() {
 }
 
 void Room::LoadAnimatedGraphics() {
-  int gfx_ptr = core::SnesToPc(rom()->version_constants().kGfxAnimatedPointer);
+  int gfx_ptr = SnesToPc(rom()->version_constants().kGfxAnimatedPointer);
 
   auto gfx_buffer_data = rom()->graphics_buffer();
   auto rom_data = rom()->vector();
@@ -277,13 +277,13 @@ void Room::LoadObjects() {
   int object_pointer = (rom_data[room_object_pointer + 2] << 16) +
                        (rom_data[room_object_pointer + 1] << 8) +
                        (rom_data[room_object_pointer]);
-  object_pointer = core::SnesToPc(object_pointer);
+  object_pointer = SnesToPc(object_pointer);
   int room_address = object_pointer + (room_id_ * 3);
 
   int tile_address = (rom_data[room_address + 2] << 16) +
                      (rom_data[room_address + 1] << 8) + rom_data[room_address];
 
-  int objects_location = core::SnesToPc(tile_address);
+  int objects_location = SnesToPc(tile_address);
 
   if (objects_location == 0x52CA2) {
     std::cout << "Room ID : " << room_id_ << std::endl;
@@ -422,7 +422,7 @@ void Room::LoadSprites() {
       (0x09 << 16) + (rom_data[sprite_pointer + (room_id_ * 2) + 1] << 8) +
       rom_data[sprite_pointer + (room_id_ * 2)];
 
-  int sprite_address = core::SnesToPc(sprite_address_snes);
+  int sprite_address = SnesToPc(sprite_address_snes);
   bool sortsprites = rom_data[sprite_address] == 1;
   sprite_address += 1;
 
@@ -462,7 +462,7 @@ void Room::LoadSprites() {
 
 void Room::LoadChests() {
   auto rom_data = rom()->vector();
-  uint32_t cpos = core::SnesToPc((rom_data[chests_data_pointer1 + 2] << 16) +
+  uint32_t cpos = SnesToPc((rom_data[chests_data_pointer1 + 2] << 16) +
                                  (rom_data[chests_data_pointer1 + 1] << 8) +
                                  (rom_data[chests_data_pointer1]));
   size_t clength = (rom_data[chests_length_pointer + 1] << 8) +

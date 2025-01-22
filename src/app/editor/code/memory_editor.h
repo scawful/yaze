@@ -31,7 +31,7 @@ struct MemoryEditorWithDiffChecker : public SharedRom {
     static uint64_t convert_address = 0;
     gui::InputHex("SNES to PC", (int *)&convert_address, 6, 200.f);
     SameLine();
-    Text("%x", core::SnesToPc(convert_address));
+    Text("%x", SnesToPc(convert_address));
 
     // mem_edit.DrawWindow("Memory Editor", (void*)&(*rom()), rom()->size());
     BEGIN_TABLE("Memory Comparison", 2, ImGuiTableFlags_Resizable);

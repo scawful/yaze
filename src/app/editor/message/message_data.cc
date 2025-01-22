@@ -154,14 +154,14 @@ std::vector<DictionaryEntry> BuildDictionaryEntries(Rom *rom) {
     std::vector<uint8_t> bytes;
     std::stringstream stringBuilder;
 
-    int address = core::SnesToPc(
+    int address = SnesToPc(
         kTextData + (rom->data()[kPointersDictionaries + (i * 2) + 1] << 8) +
         rom->data()[kPointersDictionaries + (i * 2)]);
 
-    int temppush_backress = core::SnesToPc(
-        kTextData +
-        (rom->data()[kPointersDictionaries + ((i + 1) * 2) + 1] << 8) +
-        rom->data()[kPointersDictionaries + ((i + 1) * 2)]);
+    int temppush_backress =
+        SnesToPc(kTextData +
+                 (rom->data()[kPointersDictionaries + ((i + 1) * 2) + 1] << 8) +
+                 rom->data()[kPointersDictionaries + ((i + 1) * 2)]);
 
     while (address < temppush_backress) {
       uint8_t uint8_tDictionary = rom->data()[address++];
@@ -233,9 +233,9 @@ absl::StatusOr<MessageData> ParseSingleMessage(
       current_message_raw.append("]");
 
       auto mutable_rom_data = const_cast<uint8_t *>(rom_data.data());
-      uint32_t address = core::Get24LocalFromPC(
+      uint32_t address = Get24LocalFromPC(
           mutable_rom_data, kPointersDictionaries + (dictionary * 2));
-      uint32_t address_end = core::Get24LocalFromPC(
+      uint32_t address_end = Get24LocalFromPC(
           mutable_rom_data, kPointersDictionaries + ((dictionary + 1) * 2));
 
       for (uint32_t i = address; i < address_end; i++) {

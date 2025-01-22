@@ -115,14 +115,14 @@ class Decompress : public CommandHandler {
   * @param arg_vec `-s <address>`
   * @return absl::Status
 */
-class SnesToPc : public CommandHandler {
+class SnesToPcCommand : public CommandHandler {
  public:
   absl::Status handle(const std::vector<std::string>& arg_vec) override {
     auto arg = arg_vec[0];
     std::stringstream ss(arg.data());
     uint32_t snes_address;
     ss >> std::hex >> snes_address;
-    uint32_t pc_address = core::SnesToPc(snes_address);
+    uint32_t pc_address = SnesToPc(snes_address);
     std::cout << std::hex << pc_address << std::endl;
     return absl::OkStatus();
   }
@@ -134,14 +134,14 @@ class SnesToPc : public CommandHandler {
   * @param arg_vec `-p <address>`
   * @return absl::Status
 */
-class PcToSnes : public CommandHandler {
+class PcToSnesCommand : public CommandHandler {
  public:
   absl::Status handle(const std::vector<std::string>& arg_vec) override {
     auto arg = arg_vec[0];
     std::stringstream ss(arg.data());
     uint32_t pc_address;
     ss >> std::hex >> pc_address;
-    uint32_t snes_address = core::PcToSnes(pc_address);
+    uint32_t snes_address = PcToSnes(pc_address);
     ColorModifier blue(ColorCode::FG_BLUE);
     std::cout << "SNES LoROM Address: ";
     std::cout << blue << "$" << std::uppercase << std::hex << snes_address
@@ -225,8 +225,8 @@ struct Commands {
       {"-x", std::make_shared<Expand>()},
       {"-i", std::make_shared<Compress>()},    // Import
       {"-e", std::make_shared<Decompress>()},  // Export
-      {"-s", std::make_shared<SnesToPc>()},
-      {"-p", std::make_shared<PcToSnes>()},
+      {"-s", std::make_shared<SnesToPcCommand>()},
+      {"-p", std::make_shared<PcToSnesCommand>()},
       {"-t", std::make_shared<Tile16Transfer>()},
       {"-r", std::make_shared<ReadFromRom>()}  // Read from Rom
   };

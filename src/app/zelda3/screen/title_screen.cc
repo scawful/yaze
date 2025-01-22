@@ -67,7 +67,7 @@ void TitleScreen::LoadTitleScreen() {
     tilesBG2Buffer[i] = 492;
   }
 
-  pos = core::SnesToPc(pos);
+  pos = SnesToPc(pos);
 
   while ((rom_[pos] & 0x80) != 0x80) {
     int dest_addr = pos;  // $03 and $04

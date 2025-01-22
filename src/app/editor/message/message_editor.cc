@@ -299,9 +299,9 @@ void MessageEditor::ReadAllTextDataV2() {
       current_raw_message.append(util::HexWord(dictionary));
       current_raw_message.append("]");
 
-      uint32_t address = core::Get24LocalFromPC(
+      uint32_t address = Get24LocalFromPC(
           rom()->mutable_data(), kPointersDictionaries + (dictionary * 2));
-      uint32_t address_end = core::Get24LocalFromPC(
+      uint32_t address_end = Get24LocalFromPC(
           rom()->mutable_data(),
           kPointersDictionaries + ((dictionary + 1) * 2));
 
@@ -397,9 +397,9 @@ void MessageEditor::ReadAllTextData() {
       current_message_raw.append(util::HexWord(dictionary));
       current_message_raw.append("]");
 
-      uint32_t address = core::Get24LocalFromPC(
+      uint32_t address = Get24LocalFromPC(
           rom()->mutable_data(), kPointersDictionaries + (dictionary * 2));
-      uint32_t address_end = core::Get24LocalFromPC(
+      uint32_t address_end = Get24LocalFromPC(
           rom()->mutable_data(),
           kPointersDictionaries + ((dictionary + 1) * 2));
 
