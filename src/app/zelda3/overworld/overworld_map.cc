@@ -8,6 +8,7 @@
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
+#include "util/hex.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -71,12 +72,12 @@ void OverworldMap::LoadAreaInfo() {
     }
   }
 
-	auto message_id = rom_.ReadWord(kOverworldMessageIds + (parent_ * 2));
+  auto message_id = rom_.ReadWord(kOverworldMessageIds + (parent_ * 2));
   if (message_id.ok()) {
     message_id_ = message_id.value();
   } else {
-		message_id_ = 0;
-		core::logf("Error reading message id for map %d", parent_);
+    message_id_ = 0;
+    core::logf("Error reading message id for map %d", parent_);
   }
 
   if (index_ < kDarkWorldMapIdStart) {
@@ -405,11 +406,11 @@ void OverworldMap::LoadMainBlocksets() {
 // of the 5A sheet, so this will need some special manipulation to make work
 // during the BuildBitmap step (or a new one specifically for animating).
 void OverworldMap::DrawAnimatedTiles() {
-  std::cout << "static_graphics_[6] = " << core::HexByte(static_graphics_[6])
+  std::cout << "static_graphics_[6] = " << util::HexByte(static_graphics_[6])
             << std::endl;
-  std::cout << "static_graphics_[7] = " << core::HexByte(static_graphics_[7])
+  std::cout << "static_graphics_[7] = " << util::HexByte(static_graphics_[7])
             << std::endl;
-  std::cout << "static_graphics_[8] = " << core::HexByte(static_graphics_[8])
+  std::cout << "static_graphics_[8] = " << util::HexByte(static_graphics_[8])
             << std::endl;
   if (static_graphics_[7] == 0x5B) {
     static_graphics_[7] = 0x5A;
@@ -424,7 +425,7 @@ void OverworldMap::DrawAnimatedTiles() {
 void OverworldMap::LoadAreaGraphicsBlocksets() {
   for (int i = 0; i < 4; i++) {
     uint8_t value = rom_[rom_.version_constants().kOverworldGfxGroups1 +
-                       (area_graphics_ * 4) + i];
+                         (area_graphics_ * 4) + i];
     if (value != 0) {
       static_graphics_[3 + i] = value;
     }
@@ -597,15 +598,15 @@ absl::Status OverworldMap::LoadPalette() {
 
   uint8_t pal0 = 0;
   uint8_t pal1 = rom_[rom_.version_constants().kOverworldMapPaletteGroup +
-                    (area_palette_ * 4)];
+                      (area_palette_ * 4)];
   uint8_t pal2 = rom_[rom_.version_constants().kOverworldMapPaletteGroup +
-                    (area_palette_ * 4) + 1];
+                      (area_palette_ * 4) + 1];
   uint8_t pal3 = rom_[rom_.version_constants().kOverworldMapPaletteGroup +
-                    (area_palette_ * 4) + 2];
+                      (area_palette_ * 4) + 2];
   uint8_t pal4 =
       rom_[kOverworldSpritePaletteGroup + (sprite_palette_[game_state_] * 2)];
   uint8_t pal5 = rom_[kOverworldSpritePaletteGroup +
-                    (sprite_palette_[game_state_] * 2) + 1];
+                      (sprite_palette_[game_state_] * 2) + 1];
 
   auto grass_pal_group = rom_.palette_group().grass;
   ASSIGN_OR_RETURN(gfx::SnesColor bgr, grass_pal_group[0].GetColor(0));

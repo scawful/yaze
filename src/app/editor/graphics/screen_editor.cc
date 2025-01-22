@@ -16,6 +16,7 @@
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "imgui/imgui.h"
+#include "util/hex.h"
 #include "util/macro.h"
 
 namespace yaze {
@@ -162,7 +163,7 @@ absl::Status ScreenEditor::LoadDungeonMaps() {
           gdata[j] = rom()->data()[pc_ptr_gfx++];
         }
 
-        std::string label = core::HexByte(rdata[j]);
+        std::string label = util::HexByte(rdata[j]);
         dungeon_map_labels_[d][i][j] = label;
       }
 
@@ -313,7 +314,7 @@ void ScreenEditor::DrawDungeonMapsTabs() {
             std::string label =
                 dungeon_map_labels_[selected_dungeon][floor_number][j];
             screen_canvas_.DrawText(label, (posX * 2), (posY * 2));
-            std::string gfx_id = core::HexByte(tile16_id);
+            std::string gfx_id = util::HexByte(tile16_id);
             screen_canvas_.DrawText(gfx_id, (posX * 2), (posY * 2) + 16);
           }
         }

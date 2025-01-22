@@ -3,6 +3,7 @@
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/style.h"
+#include "util/hex.h"
 
 namespace yaze {
 namespace editor {
@@ -91,7 +92,7 @@ void HandleEntityDragging(zelda3::GameEntity *entity, ImVec2 canvas_p0,
       ImGui::SetDragDropPayload("ENTITY_PAYLOAD", &entity,
                                 sizeof(zelda3::GameEntity));
       Text("Moving %s ID: %s", entity_type.c_str(),
-           core::HexByte(entity->entity_id_).c_str());
+           util::HexByte(entity->entity_id_).c_str());
       ImGui::EndDragDropSource();
     }
     MoveEntityOnGrid(dragged_entity, canvas_p0, scrolling, free_movement);
@@ -126,8 +127,7 @@ bool DrawEntranceInserterPopup() {
 }
 
 // TODO: Implement deleting OverworldEntrance objects, currently only hides them
-bool DrawOverworldEntrancePopup(
-    zelda3::OverworldEntrance &entrance) {
+bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance &entrance) {
   static bool set_done = false;
   if (set_done) {
     set_done = false;
@@ -317,8 +317,7 @@ void DrawItemInsertPopup() {
     BeginChild("ScrollRegion", ImVec2(150, 150), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
     for (size_t i = 0; i < zelda3::kSecretItemNames.size(); i++) {
-      if (Selectable(zelda3::kSecretItemNames[i].c_str(),
-                     i == new_item_id)) {
+      if (Selectable(zelda3::kSecretItemNames[i].c_str(), i == new_item_id)) {
         new_item_id = i;
       }
     }
@@ -351,8 +350,7 @@ bool DrawItemEditorPopup(zelda3::OverworldItem &item) {
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
     ImGui::BeginGroup();
     for (size_t i = 0; i < zelda3::kSecretItemNames.size(); i++) {
-      if (Selectable(zelda3::kSecretItemNames[i].c_str(),
-                     item.id_ == i)) {
+      if (Selectable(zelda3::kSecretItemNames[i].c_str(), item.id_ == i)) {
         item.id_ = i;
       }
     }

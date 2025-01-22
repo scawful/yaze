@@ -17,6 +17,7 @@ set(
 set(
   YAZE_UTIL_SRC
   util/bps.cc
+  util/hex.cc
 )
 
 set(YAZE_RESOURCE_FILES

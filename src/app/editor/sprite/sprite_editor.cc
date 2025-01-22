@@ -5,6 +5,7 @@
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/zelda3/sprite/sprite.h"
+#include "util/hex.h"
 
 namespace yaze {
 namespace editor {
@@ -175,7 +176,9 @@ void SpriteEditor::DrawCurrentSheets() {
     graphics_sheet_canvas_.DrawTileSelector(32);
     for (int i = 0; i < 8; i++) {
       graphics_sheet_canvas_.DrawBitmap(
-          GraphicsSheetManager::GetInstance().gfx_sheets().at(current_sheets_[i]), 1, (i * 0x40) + 1, 2);
+          GraphicsSheetManager::GetInstance().gfx_sheets().at(
+              current_sheets_[i]),
+          1, (i * 0x40) + 1, 2);
     }
     graphics_sheet_canvas_.DrawGrid();
     graphics_sheet_canvas_.DrawOverlay();
@@ -190,7 +193,7 @@ void SpriteEditor::DrawSpritesList() {
     int i = 0;
     for (const auto each_sprite_name : zelda3::kSpriteDefaultNames) {
       rom()->resource_label()->SelectableLabelWithNameEdit(
-          current_sprite_id_ == i, "Sprite Names", core::HexByte(i),
+          current_sprite_id_ == i, "Sprite Names", util::HexByte(i),
           zelda3::kSpriteDefaultNames[i].data());
       if (ImGui::IsItemClicked()) {
         current_sprite_id_ = i;

@@ -13,6 +13,7 @@
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
+#include "util/hex.h"
 
 namespace yaze {
 namespace editor {
@@ -58,7 +59,7 @@ absl::Status Tile16Editor::InitBlockset(
   RETURN_IF_ERROR(LoadTile8());
   ImVector<std::string> tile16_names;
   for (int i = 0; i < 0x200; ++i) {
-    std::string str = core::HexByte(all_tiles_types_[i]);
+    std::string str = util::HexByte(all_tiles_types_[i]);
     tile16_names.push_back(str);
   }
   *tile8_source_canvas_.mutable_labels(0) = tile16_names;

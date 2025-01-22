@@ -9,9 +9,10 @@
 #include "app/gui/input.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/object_names.h"
+#include "app/zelda3/dungeon/room.h"
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
-#include "zelda3/dungeon/room.h"
+#include "util/hex.h"
 
 namespace yaze {
 namespace editor {
@@ -109,7 +110,7 @@ absl::Status DungeonEditor::Initialize() {
   ASSIGN_OR_RETURN(current_palette_group_,
                    gfx::CreatePaletteGroupFromLargePalette(full_palette_));
 
-	graphics_bin_ = GraphicsSheetManager::GetInstance().gfx_sheets();
+  graphics_bin_ = GraphicsSheetManager::GetInstance().gfx_sheets();
   // Create a vector of pointers to the current block bitmaps
   for (int block : rooms_[current_room_id_].blocks()) {
     room_gfx_sheets_.emplace_back(&graphics_bin_[block]);
@@ -327,7 +328,7 @@ void DungeonEditor::DrawRoomSelector() {
       int i = 0;
       for (const auto each_room_name : zelda3::kRoomNames) {
         rom()->resource_label()->SelectableLabelWithNameEdit(
-            current_room_id_ == i, "Dungeon Room Names", core::HexByte(i),
+            current_room_id_ == i, "Dungeon Room Names", util::HexByte(i),
             each_room_name.data());
         if (ImGui::IsItemClicked()) {
           // TODO: Jump to tab if room is already open
@@ -402,7 +403,7 @@ void DungeonEditor::DrawEntranceSelector() {
       for (int i = 0; i < 0x85 + 7; i++) {
         rom()->resource_label()->SelectableLabelWithNameEdit(
             current_entrance_id_ == i, "Dungeon Entrance Names",
-            core::HexByte(i), zelda3::kEntranceNames[i].data());
+            util::HexByte(i), zelda3::kEntranceNames[i].data());
 
         if (ImGui::IsItemClicked()) {
           current_entrance_id_ = i;
