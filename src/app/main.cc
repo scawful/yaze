@@ -5,6 +5,7 @@
 #include "absl/debugging/failure_signal_handler.h"
 #include "absl/debugging/symbolize.h"
 #include "app/core/controller.h"
+#include "util/flag.h"
 
 /**
  * @namespace yaze
@@ -12,19 +13,22 @@
  */
 using namespace yaze;
 
+DECLARE_FLAG(std::string, rom_file);
+DEFINE_FLAG(std::string, rom_file, "", "The ROM file to load.");
+
 int main(int argc, char** argv) {
   absl::InitializeSymbolizer(argv[0]);
-
   absl::FailureSignalHandlerOptions options;
   options.symbolize_stacktrace = true;
   options.use_alternate_stack = true;
   options.alarm_on_failure_secs = true;
   options.call_previous_handler = true;
   absl::InstallFailureSignalHandler(options);
-
-  std::string rom_filename;
-  if (argc > 1) {
-    rom_filename = argv[1];
+  yaze::util::FlagParser parser(yaze::util::global_flag_registry());
+  RETURN_IF_EXCEPTION(parser.Parse(argc, argv));
+  std::string rom_filename = "";
+  if (!FLAGS_rom_file.empty()) {
+    rom_filename = FLAGS_rom_file;
   }
 
 #ifdef __APPLE__
