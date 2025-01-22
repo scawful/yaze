@@ -7,6 +7,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "app/core/features.h"
 #include "app/core/platform/clipboard.h"
 #include "app/core/platform/renderer.h"
 #include "app/editor/graphics/palette_editor.h"
@@ -26,7 +27,6 @@
 #include "util/hex.h"
 #include "util/log.h"
 #include "util/macro.h"
-
 
 namespace yaze {
 namespace editor {
@@ -623,7 +623,7 @@ void OverworldEditor::CheckForMousePan() {
 
 void OverworldEditor::DrawOverworldCanvas() {
   if (all_gfx_loaded_) {
-    if (core::ExperimentFlags::get().overworld.kLoadCustomOverworld) {
+    if (core::FeatureFlags::get().overworld.kLoadCustomOverworld) {
       DrawCustomOverworldMapSettings();
     } else {
       DrawOverworldMapSettings();
@@ -967,7 +967,7 @@ void OverworldEditor::DrawOverworldSprites() {
           current_sprite_ = sprite;
         }
       }
-      if (core::ExperimentFlags::get().overworld.kDrawOverworldSprites) {
+      if (core::FeatureFlags::get().overworld.kDrawOverworldSprites) {
         if (sprite_previews_[sprite.id()].is_active()) {
           ow_map_canvas_.DrawBitmap(sprite_previews_[sprite.id()], map_x, map_y,
                                     2.0f);
@@ -999,22 +999,22 @@ void OverworldEditor::DrawOverworldSprites() {
 }
 
 absl::Status OverworldEditor::Save() {
-  if (core::ExperimentFlags::get().overworld.kSaveOverworldMaps) {
+  if (core::FeatureFlags::get().overworld.kSaveOverworldMaps) {
     RETURN_IF_ERROR(overworld_.CreateTile32Tilemap());
     RETURN_IF_ERROR(overworld_.SaveMap32Tiles());
     RETURN_IF_ERROR(overworld_.SaveMap16Tiles());
     RETURN_IF_ERROR(overworld_.SaveOverworldMaps());
   }
-  if (core::ExperimentFlags::get().overworld.kSaveOverworldEntrances) {
+  if (core::FeatureFlags::get().overworld.kSaveOverworldEntrances) {
     RETURN_IF_ERROR(overworld_.SaveEntrances());
   }
-  if (core::ExperimentFlags::get().overworld.kSaveOverworldExits) {
+  if (core::FeatureFlags::get().overworld.kSaveOverworldExits) {
     RETURN_IF_ERROR(overworld_.SaveExits());
   }
-  if (core::ExperimentFlags::get().overworld.kSaveOverworldItems) {
+  if (core::FeatureFlags::get().overworld.kSaveOverworldItems) {
     RETURN_IF_ERROR(overworld_.SaveItems());
   }
-  if (core::ExperimentFlags::get().overworld.kSaveOverworldProperties) {
+  if (core::FeatureFlags::get().overworld.kSaveOverworldProperties) {
     RETURN_IF_ERROR(overworld_.SaveMapProperties());
   }
   return absl::OkStatus();
@@ -1078,7 +1078,7 @@ absl::Status OverworldEditor::LoadGraphics() {
     }
   }
 
-  if (core::ExperimentFlags::get().overworld.kDrawOverworldSprites) {
+  if (core::FeatureFlags::get().overworld.kDrawOverworldSprites) {
     RETURN_IF_ERROR(LoadSpriteGraphics());
   }
 

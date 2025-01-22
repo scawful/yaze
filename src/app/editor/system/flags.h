@@ -1,13 +1,14 @@
 #ifndef YAZE_APP_EDITOR_UTILS_FLAGS_H
 #define YAZE_APP_EDITOR_UTILS_FLAGS_H
 
+#include "app/core/features.h"
 #include "core/common.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
 namespace editor {
 
-using core::ExperimentFlags;
+using core::FeatureFlags;
 using ImGui::BeginMenu;
 using ImGui::Checkbox;
 using ImGui::EndMenu;
@@ -17,40 +18,39 @@ using ImGui::Separator;
 struct FlagsMenu {
   void DrawOverworldFlags() {
     Checkbox("Enable Overworld Sprites",
-      &ExperimentFlags::get().overworld.kDrawOverworldSprites);
+             &FeatureFlags::get().overworld.kDrawOverworldSprites);
     Separator();
     Checkbox("Save Overworld Maps",
-      &ExperimentFlags::get().overworld.kSaveOverworldMaps);
+             &FeatureFlags::get().overworld.kSaveOverworldMaps);
     Checkbox("Save Overworld Entrances",
-      &ExperimentFlags::get().overworld.kSaveOverworldEntrances);
+             &FeatureFlags::get().overworld.kSaveOverworldEntrances);
     Checkbox("Save Overworld Exits",
-      &ExperimentFlags::get().overworld.kSaveOverworldExits);
+             &FeatureFlags::get().overworld.kSaveOverworldExits);
     Checkbox("Save Overworld Items",
-      &ExperimentFlags::get().overworld.kSaveOverworldItems);
+             &FeatureFlags::get().overworld.kSaveOverworldItems);
     Checkbox("Save Overworld Properties",
-      &ExperimentFlags::get().overworld.kSaveOverworldProperties);
+             &FeatureFlags::get().overworld.kSaveOverworldProperties);
     Checkbox("Load Custom Overworld",
-      &ExperimentFlags::get().overworld.kLoadCustomOverworld);
+             &FeatureFlags::get().overworld.kLoadCustomOverworld);
   }
 
-	void DrawDungeonFlags() {
+  void DrawDungeonFlags() {
     Checkbox("Draw Dungeon Room Graphics",
-      &ExperimentFlags::get().kDrawDungeonRoomGraphics);
+             &FeatureFlags::get().kDrawDungeonRoomGraphics);
     Separator();
-    Checkbox("Save Dungeon Maps", &ExperimentFlags::get().kSaveDungeonMaps);
-	}
+    Checkbox("Save Dungeon Maps", &FeatureFlags::get().kSaveDungeonMaps);
+  }
 
   void DrawResourceFlags() {
-    Checkbox("Save All Palettes", &ExperimentFlags::get().kSaveAllPalettes);
-    Checkbox("Save Gfx Groups", &ExperimentFlags::get().kSaveGfxGroups);
-    Checkbox("Save Graphics Sheets",
-      &ExperimentFlags::get().kSaveGraphicsSheet);
+    Checkbox("Save All Palettes", &FeatureFlags::get().kSaveAllPalettes);
+    Checkbox("Save Gfx Groups", &FeatureFlags::get().kSaveGfxGroups);
+    Checkbox("Save Graphics Sheets", &FeatureFlags::get().kSaveGraphicsSheet);
   }
 
   void DrawSystemFlags() {
-    Checkbox("Enable Console Logging", &ExperimentFlags::get().kLogToConsole);
+    Checkbox("Enable Console Logging", &FeatureFlags::get().kLogToConsole);
     Checkbox("Log Instructions to Emulator Debugger",
-             &ExperimentFlags::get().kLogInstructions);
+             &FeatureFlags::get().kLogInstructions);
   }
 };
 

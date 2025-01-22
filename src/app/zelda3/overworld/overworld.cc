@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/core/features.h"
 #include "app/gfx/compression.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
@@ -113,7 +114,7 @@ absl::Status Overworld::AssembleMap32Tiles() {
                               rom_.version_constants().kMap32TileBL,
                               rom_.version_constants().kMap32TileBR};
   if (rom()->data()[kMap32ExpandedFlagPos] != 0x04 &&
-      core::ExperimentFlags::get().overworld.kLoadCustomOverworld) {
+      core::FeatureFlags::get().overworld.kLoadCustomOverworld) {
     map32address[0] = rom_.version_constants().kMap32TileTL;
     map32address[1] = kMap32TileTRExpanded;
     map32address[2] = kMap32TileBLExpanded;
@@ -162,7 +163,7 @@ absl::Status Overworld::AssembleMap16Tiles() {
   int tpos = kMap16Tiles;
   int num_tile16 = kNumTile16Individual;
   if (rom()->data()[kMap16ExpandedFlagPos] != 0x0F &&
-      core::ExperimentFlags::get().overworld.kLoadCustomOverworld) {
+      core::FeatureFlags::get().overworld.kLoadCustomOverworld) {
     tpos = kMap16TilesExpanded;
     num_tile16 = NumberOfMap16Ex;
     expanded_tile16_ = true;
@@ -306,7 +307,7 @@ absl::Status Overworld::LoadEntrances() {
   int ow_entrance_id_ptr = kOverworldEntranceEntranceId;
   int num_entrances = 129;
   if (rom()->data()[kOverworldEntranceExpandedFlagPos] != 0xB8 &&
-      core::ExperimentFlags::get().overworld.kLoadCustomOverworld) {
+      core::FeatureFlags::get().overworld.kLoadCustomOverworld) {
     ow_entrance_map_ptr = kOverworldEntranceMapExpanded;
     ow_entrance_pos_ptr = kOverworldEntrancePosExpanded;
     ow_entrance_id_ptr = kOverworldEntranceEntranceIdExpanded;
@@ -390,7 +391,7 @@ absl::Status Overworld::LoadExits() {
     uint16_t px = (uint16_t)((rom_data[OWExitXPlayer + (i * 2) + 1] << 8) +
                              rom_data[OWExitXPlayer + (i * 2)]);
 
-    if (core::ExperimentFlags::get().kLogToConsole) {
+    if (core::FeatureFlags::get().kLogToConsole) {
       std::cout << "Exit: " << i << " RoomID: " << exit_room_id
                 << " MapID: " << exit_map_id << " VRAM: " << exit_vram
                 << " YScroll: " << exit_y_scroll
@@ -1082,7 +1083,7 @@ absl::Status Overworld::CreateTile32Tilemap() {
         unique_tiles.size(), LimitOfMap32));
   }
 
-  if (core::ExperimentFlags::get().kLogToConsole) {
+  if (core::FeatureFlags::get().kLogToConsole) {
     std::cout << "Number of unique Tiles32: " << tiles32_unique_.size()
               << " Saved:" << tiles32_unique_.size()
               << " Out of: " << LimitOfMap32 << std::endl;
@@ -1545,7 +1546,7 @@ absl::Status Overworld::SaveItems() {
     return absl::AbortedError("Too many items");
   }
 
-  if (core::ExperimentFlags::get().kLogToConsole) {
+  if (core::FeatureFlags::get().kLogToConsole) {
     std::cout << "End of Items : " << data_pos << std::endl;
   }
 
