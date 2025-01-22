@@ -6,7 +6,6 @@
 #include <sstream>
 #include <vector>
 
-#include "app/core/common.h"
 #include "app/core/features.h"
 #include "app/emu/cpu/internal/opcodes.h"
 

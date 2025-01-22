@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "app/rom.h"
+#include "app/zelda3/hyrule_magic.h"
 #include "util/macro.h"
 
 namespace yaze {
@@ -923,9 +924,9 @@ void Tracker::SaveSongs(Rom &rom) {
         q = 1;
 
         for (n = 0; n < 8; n++) {
-          core::stle16b_i(trtbl->buf, n, SaveSpcCommand(rom, sp->tbl[n], p, q));
+          stle16b_i(trtbl->buf, n, SaveSpcCommand(rom, sp->tbl[n], p, q));
 
-          if (core::ldle16b_i(trtbl->buf, n)) AddSpcReloc(trtbl, n << 1), q = 0;
+          if (ldle16b_i(trtbl->buf, n)) AddSpcReloc(trtbl, n << 1), q = 0;
         }
 
         sp->addr = trtbl->start;

@@ -19,7 +19,6 @@ add_executable(
   cli/handlers/patch.cc
   cli/handlers/tile16_transfer.cc
   app/rom.cc
-  app/core/common.cc
   app/core/project.cc
   app/core/platform/file_dialog.mm
   app/core/platform/file_dialog.cc

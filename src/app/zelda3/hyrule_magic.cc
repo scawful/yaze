@@ -1,15 +1,7 @@
-#include "common.h"
-
-#include <cstdint>
-#include <cstring>
-#include <string>
-#include <vector>
-
-#include "absl/strings/str_cat.h"
-#include "absl/strings/str_format.h"
+#include "hyrule_magic.h"
 
 namespace yaze {
-namespace core {
+namespace zelda3 {
 
 namespace {
 
@@ -76,5 +68,5 @@ uint16_t ldle16b_i(uint8_t const *const p_arr, size_t const p_index) {
   return ldle16b(p_arr + (2 * p_index));
 }
 
-}  // namespace core
+}  // namespace zelda3
 }  // namespace yaze

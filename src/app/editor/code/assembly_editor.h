@@ -3,7 +3,6 @@
 
 #include <string>
 
-#include "app/core/common.h"
 #include "app/editor/editor.h"
 #include "app/gui/modules/text_editor.h"
 #include "app/gui/style.h"

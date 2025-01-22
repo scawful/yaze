@@ -2,7 +2,6 @@
 
 #include <string>
 
-#include "app/core/common.h"
 #include "util/hex.h"
 #include "util/log.h"
 

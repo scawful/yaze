@@ -5,6 +5,7 @@
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/screen.hpp>
 
+#include "absl/strings/str_cat.h"
 #include "util/bps.h"
 
 namespace yaze {
@@ -156,7 +157,8 @@ void GenerateSaveFileComponent(ftxui::ScreenInteractive &screen) {
   for (size_t i = 0; i < items.size(); i += 4) {
     auto row = Container::Horizontal({});
     for (size_t j = 0; j < 4 && (i + j) < items.size(); ++j) {
-      row->Add(Checkbox(absl::StrCat(items[i + j], " ").data(), &values[i + j]));
+      row->Add(
+          Checkbox(absl::StrCat(items[i + j], " ").data(), &values[i + j]));
     }
     checkboxes->Add(row);
   }
@@ -386,7 +388,8 @@ void HelpComponent(ftxui::ScreenInteractive &screen) {
   auto help_text = vbox({
       text("z3ed") | bold | color(Color::Yellow),
       text("by scawful") | color(Color::Magenta),
-      text("The Legend of Zelda: A Link to the Past Hacking Tool") | color(Color::Red),
+      text("The Legend of Zelda: A Link to the Past Hacking Tool") |
+          color(Color::Red),
       separator(),
       hbox({
           text("Command") | bold | underlined,
@@ -474,7 +477,8 @@ void HelpComponent(ftxui::ScreenInteractive &screen) {
 
   auto help_text_component = Renderer([&] { return help_text; });
 
-  auto back_button = Button("Back", [&] { SwitchComponents(screen, LayoutID::kMainMenu); });
+  auto back_button =
+      Button("Back", [&] { SwitchComponents(screen, LayoutID::kMainMenu); });
 
   auto container = Container::Vertical({
       help_text_component,
@@ -483,10 +487,11 @@ void HelpComponent(ftxui::ScreenInteractive &screen) {
 
   auto renderer = Renderer(container, [&] {
     return vbox({
-        help_text_component->Render() | center,
-        separator(),
-        back_button->Render() | center,
-    }) | border;
+               help_text_component->Render() | center,
+               separator(),
+               back_button->Render() | center,
+           }) |
+           border;
   });
 
   screen.Loop(renderer);

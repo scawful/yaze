@@ -2,7 +2,6 @@
 set(YAZE_SRC_FILES "")
 foreach (file 
   app/rom.cc
-  app/core/common.cc
   ${YAZE_APP_CORE_SRC}
   ${YAZE_APP_EMU_SRC}
   ${YAZE_APP_GFX_SRC}

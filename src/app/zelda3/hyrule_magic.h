@@ -1,23 +1,16 @@
-#ifndef YAZE_CORE_COMMON_H
-#define YAZE_CORE_COMMON_H
+#ifndef YAZE_APP_ZELDA3_HYRULE_MAGIC_H
+#define YAZE_APP_ZELDA3_HYRULE_MAGIC_H
 
-#include <chrono>
 #include <cstdint>
-#include <fstream>
-#include <iostream>
+#include <cstring>
 #include <string>
+#include <vector>
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 
 namespace yaze {
-
-/**
- * @namespace yaze::core
- * @brief Core application logic and utilities.
- */
-namespace core {
-
+namespace zelda3 {
 /**
  * @brief Store little endian 16-bit value using a byte pointer, offset by an
  * index before dereferencing
@@ -37,7 +30,7 @@ uint16_t ldle16b_i(uint8_t const *const p_arr, size_t const p_index);
 // Load little endian halfword (16-bit) dereferenced from
 uint16_t ldle16b(uint8_t const *const p_arr);
 
-}  // namespace core
+}  // namespace zelda3
 }  // namespace yaze
 
-#endif
+#endif  // YAZE_APP_ZELDA3_HYRULE_MAGIC_H

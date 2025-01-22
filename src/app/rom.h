@@ -19,7 +19,6 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
-#include "app/core/common.h"
 #include "app/core/project.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
