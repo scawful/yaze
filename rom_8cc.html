@@ -135,6 +135,8 @@ $(function(){initNavTree('rom_8cc.html',''); initResizable(true); });
 <code>#include &quot;<a class="el" href="snes__color_8h_source.html">app/gfx/snes_color.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="snes__palette_8h_source.html">app/gfx/snes_palette.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="snes__tile_8h_source.html">app/gfx/snes_tile.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="hex_8h_source.html">util/hex.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="log_8h_source.html">util/log.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="macro_8h_source.html">util/macro.h</a>&quot;</code><br />
 </div>
 <p><a href="rom_8cc_source.html">Go to the source code of this file.</a></p>
@@ -150,13 +152,11 @@ Namespaces</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze.html">yaze</a></td></tr>
 <tr class="memdesc:namespaceyaze"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main namespace for the application. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1anonymous__namespace_02rom_8cc_03.html">yaze::anonymous_namespace{rom.cc}</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a4b20b8563155f4fecd6c29b4024d2828" id="r_a4b20b8563155f4fecd6c29b4024d2828"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1anonymous__namespace_02rom_8cc_03.html#a4b20b8563155f4fecd6c29b4024d2828">yaze::anonymous_namespace{rom.cc}::GetGraphicsAddress</a> (const uint8_t *data, uint8_t addr, uint32_t ptr1, uint32_t ptr2, uint32_t ptr3)</td></tr>
-<tr class="separator:a4b20b8563155f4fecd6c29b4024d2828"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acf543dde4eeff4bc273d61a4ffda5d41" id="r_acf543dde4eeff4bc273d61a4ffda5d41"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze.html#acf543dde4eeff4bc273d61a4ffda5d41">yaze::GetGraphicsAddress</a> (const uint8_t *data, uint8_t addr, uint32_t ptr1, uint32_t ptr2, uint32_t ptr3)</td></tr>
+<tr class="separator:acf543dde4eeff4bc273d61a4ffda5d41"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3167c1c857f5e405cb39a492529d6557" id="r_a3167c1c857f5e405cb39a492529d6557"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze.html#a3167c1c857f5e405cb39a492529d6557">yaze::Load2BppGraphics</a> (const <a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
 <tr class="memdesc:a3167c1c857f5e405cb39a492529d6557"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads 2bpp graphics from <a class="el" href="classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data.  <br /></td></tr>
 <tr class="separator:a3167c1c857f5e405cb39a492529d6557"><td class="memSeparator" colspan="2">&#160;</td></tr>

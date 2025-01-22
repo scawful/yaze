@@ -178,7 +178,7 @@ var searchData=
   ['strictpattern_175',['StrictPattern',['../structyaze_1_1editor_1_1TextElement.html#a7f7d33254435881f3cb341b8b0a865dc',1,'yaze::editor::TextElement']]],
   ['sub_5fcolor_5fwindow_176',['sub_color_window',['../structyaze_1_1emu_1_1CGWSEL.html#a7bba753237dc8918638100bf8e80c456',1,'yaze::emu::CGWSEL']]],
   ['subcommands_177',['subcommands',['../structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html#a19db5aa9d2ba2f6e049c95eeb81cd5f1',1,'yaze::editor::CommandManager::CommandInfoOrPrefix']]],
-  ['subfolders_178',['subfolders',['../structyaze_1_1core_1_1FolderItem.html#ab9b7307a4154b8efa565bc647083a50d',1,'yaze::core::FolderItem']]],
+  ['subfolders_178',['subfolders',['../structyaze_1_1editor_1_1FolderItem.html#aa6f3f7f16f1f4a3494fb4df7f147c990',1,'yaze::editor::FolderItem']]],
   ['subscreen_5foverlay_5f_179',['subscreen_overlay_',['../classyaze_1_1zelda3_1_1OverworldMap.html#aa50f9583b7396d68bc83f13cc4ee6207',1,'yaze::zelda3::OverworldMap']]],
   ['subscreenenabled_180',['subScreenEnabled',['../structyaze_1_1emu_1_1Layer.html#a8815785b586b3f177dd82dd4fbb81a93',1,'yaze::emu::Layer']]],
   ['subscreenwindowed_181',['subScreenWindowed',['../structyaze_1_1emu_1_1Layer.html#a282f1151610649310fce2f3a398e4e83',1,'yaze::emu::Layer']]],

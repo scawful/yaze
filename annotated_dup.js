@@ -23,10 +23,7 @@ var annotated_dup =
         [ "Controller", "classyaze_1_1core_1_1Controller.html", "classyaze_1_1core_1_1Controller" ],
         [ "ExperimentFlags", "classyaze_1_1core_1_1ExperimentFlags.html", "classyaze_1_1core_1_1ExperimentFlags" ],
         [ "FileDialogWrapper", "classyaze_1_1core_1_1FileDialogWrapper.html", null ],
-        [ "FolderItem", "structyaze_1_1core_1_1FolderItem.html", "structyaze_1_1core_1_1FolderItem" ],
         [ "FontConfig", "structyaze_1_1core_1_1FontConfig.html", "structyaze_1_1core_1_1FontConfig" ],
-        [ "HexStringParams", "structyaze_1_1core_1_1HexStringParams.html", "structyaze_1_1core_1_1HexStringParams" ],
-        [ "NotifyValue", "classyaze_1_1core_1_1NotifyValue.html", "classyaze_1_1core_1_1NotifyValue" ],
         [ "Renderer", "classyaze_1_1core_1_1Renderer.html", "classyaze_1_1core_1_1Renderer" ],
         [ "SDL_Deleter", "structyaze_1_1core_1_1SDL__Deleter.html", "structyaze_1_1core_1_1SDL__Deleter" ],
         [ "SDL_Surface_Deleter", "structyaze_1_1core_1_1SDL__Surface__Deleter.html", "structyaze_1_1core_1_1SDL__Surface__Deleter" ],
@@ -60,6 +57,7 @@ var annotated_dup =
         [ "ExtensionManager", "classyaze_1_1editor_1_1ExtensionManager.html", "classyaze_1_1editor_1_1ExtensionManager" ],
         [ "FileDialogWrapper", "classyaze_1_1editor_1_1FileDialogWrapper.html", null ],
         [ "FlagsMenu", "structyaze_1_1editor_1_1FlagsMenu.html", "structyaze_1_1editor_1_1FlagsMenu" ],
+        [ "FolderItem", "structyaze_1_1editor_1_1FolderItem.html", "structyaze_1_1editor_1_1FolderItem" ],
         [ "GfxGroupEditor", "classyaze_1_1editor_1_1GfxGroupEditor.html", "classyaze_1_1editor_1_1GfxGroupEditor" ],
         [ "GraphicsEditor", "classyaze_1_1editor_1_1GraphicsEditor.html", "classyaze_1_1editor_1_1GraphicsEditor" ],
         [ "HistoryManager", "classyaze_1_1editor_1_1HistoryManager.html", "classyaze_1_1editor_1_1HistoryManager" ],
@@ -266,7 +264,9 @@ var annotated_dup =
         [ "Flag", "classyaze_1_1util_1_1Flag.html", "classyaze_1_1util_1_1Flag" ],
         [ "FlagParser", "classyaze_1_1util_1_1FlagParser.html", "classyaze_1_1util_1_1FlagParser" ],
         [ "FlagRegistry", "classyaze_1_1util_1_1FlagRegistry.html", "classyaze_1_1util_1_1FlagRegistry" ],
-        [ "IFlag", "classyaze_1_1util_1_1IFlag.html", "classyaze_1_1util_1_1IFlag" ]
+        [ "HexStringParams", "structyaze_1_1util_1_1HexStringParams.html", "structyaze_1_1util_1_1HexStringParams" ],
+        [ "IFlag", "classyaze_1_1util_1_1IFlag.html", "classyaze_1_1util_1_1IFlag" ],
+        [ "NotifyValue", "classyaze_1_1util_1_1NotifyValue.html", "classyaze_1_1util_1_1NotifyValue" ]
       ] ],
       [ "zelda3", "namespaceyaze_1_1zelda3.html", [
         [ "music", "namespaceyaze_1_1zelda3_1_1music.html", [

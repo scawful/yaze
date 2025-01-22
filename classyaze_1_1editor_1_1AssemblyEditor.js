@@ -24,6 +24,6 @@ var classyaze_1_1editor_1_1AssemblyEditor =
     [ "active_files_", "classyaze_1_1editor_1_1AssemblyEditor.html#ad1e827000c2ccbb1bd096c18d0992c0e", null ],
     [ "current_file_id_", "classyaze_1_1editor_1_1AssemblyEditor.html#a17842b77e41817077ca4e34974dbc6bc", null ],
     [ "current_file_", "classyaze_1_1editor_1_1AssemblyEditor.html#a06c40fbb7a16b60c027813ac6204e6c9", null ],
-    [ "current_folder_", "classyaze_1_1editor_1_1AssemblyEditor.html#ad5070efb11053aca77b56587857669e7", null ],
+    [ "current_folder_", "classyaze_1_1editor_1_1AssemblyEditor.html#a9f3cd8c1cb567d4fd0096c4300225c01", null ],
     [ "text_editor_", "classyaze_1_1editor_1_1AssemblyEditor.html#a7b6a8e37c0dca591000ac1d11384b40c", null ]
 ];

@@ -37,7 +37,7 @@ var searchData=
   ['updatetile16transfer_34',['UpdateTile16Transfer',['../classyaze_1_1editor_1_1Tile16Editor.html#a6c007460f179722fac22249526e7bb39',1,'yaze::editor::Tile16Editor']]],
   ['updatetransfertilecanvas_35',['UpdateTransferTileCanvas',['../classyaze_1_1editor_1_1Tile16Editor.html#a277c8c075ae907886686d6d17e8f3028',1,'yaze::editor::Tile16Editor']]],
   ['updateusagestats_36',['UpdateUsageStats',['../classyaze_1_1editor_1_1OverworldEditor.html#a14ae026e75243f19defc01df2f7523f2',1,'yaze::editor::OverworldEditor']]],
-  ['uppercase_37',['uppercase',['../structyaze_1_1core_1_1HexStringParams.html#a5a4bd8e1bd355228440292692e63d758',1,'yaze::core::HexStringParams']]],
+  ['uppercase_37',['uppercase',['../structyaze_1_1util_1_1HexStringParams.html#a086adb2b974d1169bf92573083d7d157',1,'yaze::util::HexStringParams']]],
   ['us_38',['US',['../zelda_8h.html#a9b154d4f0904082e537a24b5ae25575da56de89a713ba25cddd89edd52fdf2eaa',1,'zelda.h']]],
   ['usage_5fstats_5f_39',['usage_stats_',['../classyaze_1_1zelda3_1_1Overworld.html#ac4caf660d6332ce4b12809202e7646a2',1,'yaze::zelda3::Overworld']]],
   ['usegain_40',['useGain',['../structyaze_1_1emu_1_1DspChannel.html#a0e85f4e4b96346138f7ec6673d5e8705',1,'yaze::emu::DspChannel']]],

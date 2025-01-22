@@ -57,7 +57,7 @@ var searchData=
   ['ppu_5flatch_5f_54',['ppu_latch_',['../classyaze_1_1emu_1_1Snes.html#afb993056a77c17a13ecb5e4be8526dc4',1,'yaze::emu::Snes']]],
   ['ppu_5ftexture_5f_55',['ppu_texture_',['../classyaze_1_1emu_1_1Emulator.html#a1fe1362e01040f8ccd7bd3914641dcf8',1,'yaze::emu::Emulator']]],
   ['preclampgain_56',['preclampGain',['../structyaze_1_1emu_1_1DspChannel.html#af5037d3c3084f970a6cccd158a19c095',1,'yaze::emu::DspChannel']]],
-  ['prefix_57',['prefix',['../structyaze_1_1core_1_1HexStringParams.html#a5f1ea282d4a201a48765fd2e093b2026',1,'yaze::core::HexStringParams']]],
+  ['prefix_57',['prefix',['../structyaze_1_1util_1_1HexStringParams.html#a3a2cdc8be447566a12b848f9c9f57004',1,'yaze::util::HexStringParams']]],
   ['prev_58',['prev',['../structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#ac68a57b9e3b1359935c1cc6bf92d513b',1,'yaze::zelda3::music::SpcCommand']]],
   ['prevent_5fmath_5fmode_5f_59',['prevent_math_mode_',['../classyaze_1_1emu_1_1Ppu.html#a3887f11169b87118cffea95e37f514d1',1,'yaze::emu::Ppu']]],
   ['preview_5fgfx_5f_60',['preview_gfx_',['../classyaze_1_1zelda3_1_1Sprite.html#a0ba913a4ff6dbdc3f7700aa997a58451',1,'yaze::zelda3::Sprite']]],

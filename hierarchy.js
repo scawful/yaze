@@ -118,7 +118,7 @@ var hierarchy =
     [ "yaze::emu::Spc700::Flags", "structyaze_1_1emu_1_1Spc700_1_1Flags.html", null ],
     [ "yaze::test::Spc700::Flags", "structyaze_1_1test_1_1Spc700_1_1Flags.html", null ],
     [ "yaze::editor::FlagsMenu", "structyaze_1_1editor_1_1FlagsMenu.html", null ],
-    [ "yaze::core::FolderItem", "structyaze_1_1core_1_1FolderItem.html", null ],
+    [ "yaze::editor::FolderItem", "structyaze_1_1editor_1_1FolderItem.html", null ],
     [ "yaze::core::FontConfig", "structyaze_1_1core_1_1FontConfig.html", null ],
     [ "yaze::zelda3::GameEntity", "classyaze_1_1zelda3_1_1GameEntity.html", [
       [ "yaze::zelda3::OverworldEntrance", "classyaze_1_1zelda3_1_1OverworldEntrance.html", null ],
@@ -135,7 +135,7 @@ var hierarchy =
     [ "TextEditor::Glyph", "structTextEditor_1_1Glyph.html", null ],
     [ "yaze::gfx::GraphicsBuffer", "classyaze_1_1gfx_1_1GraphicsBuffer.html", null ],
     [ "yaze::GraphicsSheetManager", "classyaze_1_1GraphicsSheetManager.html", null ],
-    [ "yaze::core::HexStringParams", "structyaze_1_1core_1_1HexStringParams.html", null ],
+    [ "yaze::util::HexStringParams", "structyaze_1_1util_1_1HexStringParams.html", null ],
     [ "yaze::editor::HistoryManager", "classyaze_1_1editor_1_1HistoryManager.html", null ],
     [ "TextEditor::Identifier", "structTextEditor_1_1Identifier.html", null ],
     [ "yaze::util::IFlag", "classyaze_1_1util_1_1IFlag.html", [
@@ -174,7 +174,7 @@ var hierarchy =
     [ "yaze::emu::MPYM", "structyaze_1_1emu_1_1MPYM.html", null ],
     [ "yaze::gui::MultiSelectWithClipper", "structyaze_1_1gui_1_1MultiSelectWithClipper.html", null ],
     [ "yaze::gui::zeml::Node", "structyaze_1_1gui_1_1zeml_1_1Node.html", null ],
-    [ "yaze::core::NotifyValue< T >", "classyaze_1_1core_1_1NotifyValue.html", null ],
+    [ "yaze::util::NotifyValue< T >", "classyaze_1_1util_1_1NotifyValue.html", null ],
     [ "yaze::emu::OAMADDH", "structyaze_1_1emu_1_1OAMADDH.html", null ],
     [ "yaze::emu::OAMADDL", "structyaze_1_1emu_1_1OAMADDL.html", null ],
     [ "yaze::emu::OAMAddress", "structyaze_1_1emu_1_1OAMAddress.html", null ],

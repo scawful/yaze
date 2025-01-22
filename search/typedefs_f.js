@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['undobuffer_0',['UndoBuffer',['../classTextEditor.html#af92672a0daa068f1174b6b75d383d74c',1,'TextEditor']]]
+  ['windowlayer_0',['WindowLayer',['../namespaceyaze_1_1emu.html#a93ee05b57af8d2b02256b9467d725bce',1,'yaze::emu']]]
 ];

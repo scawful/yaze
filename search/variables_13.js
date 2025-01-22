@@ -17,7 +17,7 @@ var searchData=
   ['target_5flayer_14',['target_layer',['../structdestination.html#a63de5eaebd6149a233842e169ebc4984',1,'destination']]],
   ['tbl_15',['tbl',['../structyaze_1_1zelda3_1_1music_1_1SongPart.html#a9014e4a87581bfd015b4bce2c200d2de',1,'yaze::zelda3::music::SongPart::tbl'],['../structyaze_1_1zelda3_1_1music_1_1Song.html#a3a728711fb900ba3f404b6a37cdf1484',1,'yaze::zelda3::music::Song::tbl']]],
   ['temp_5from_5f_16',['temp_rom_',['../classyaze_1_1editor_1_1GraphicsEditor.html#a24845974c632522f7298818b49160c1f',1,'yaze::editor::GraphicsEditor']]],
-  ['temp_5fvalue_5f_17',['temp_value_',['../classyaze_1_1core_1_1NotifyValue.html#a471411b08d77c5c3bd8dc12e9636bf7b',1,'yaze::core::NotifyValue']]],
+  ['temp_5fvalue_5f_17',['temp_value_',['../classyaze_1_1util_1_1NotifyValue.html#af86fe0c86af9ae4305f6acbf5de9debc',1,'yaze::util::NotifyValue']]],
   ['terminated_18',['terminated',['../structyaze_1_1emu_1_1DmaChannel.html#a66a23a67d2809197c30e92da9ad859f9',1,'yaze::emu::DmaChannel']]],
   ['test_5f_19',['test_',['../classyaze_1_1zelda3_1_1Inventory.html#a73f2e4d4f78052ad853866b488264af8',1,'yaze::zelda3::Inventory']]],
   ['test_5feditor_5f_20',['test_editor_',['../classyaze_1_1core_1_1Controller.html#aec1cc3b6d8fead61e896d8cbdbfbaea6',1,'yaze::core::Controller']]],

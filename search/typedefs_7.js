@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['identifiers_0',['Identifiers',['../classTextEditor.html#a54711872295c656130c4f2946e0d2e63',1,'TextEditor']]],
-  ['itemlabelflags_1',['ItemLabelFlags',['../namespaceyaze_1_1gui.html#a5099466527c2ee2b4d9013b4eb50f12f',1,'yaze::gui']]]
+  ['keywords_0',['Keywords',['../classTextEditor.html#a0b28c26a8de0ef1762e229d515901c5d',1,'TextEditor']]]
 ];

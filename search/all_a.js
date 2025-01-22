@@ -133,7 +133,7 @@ var searchData=
   ['append_5fnumber_130',['APPEND_NUMBER',['../macro_8h.html#a6e9350746df40af9eff68f6fe9aff386',1,'macro.h']]],
   ['append_5fnumber_5finner_131',['APPEND_NUMBER_INNER',['../macro_8h.html#a7ce4f33830c140b9d5c668fbcf0998ec',1,'macro.h']]],
   ['appendoperandbytes_132',['AppendOperandBytes',['../classyaze_1_1emu_1_1AsmParser.html#ad4e453afd4cb210ed42eb2cbff80198c',1,'yaze::emu::AsmParser::AppendOperandBytes()'],['../classyaze_1_1test_1_1AsmParser.html#ad4e453afd4cb210ed42eb2cbff80198c',1,'yaze::test::AsmParser::AppendOperandBytes()']]],
-  ['apply_5fchanges_133',['apply_changes',['../classyaze_1_1core_1_1NotifyValue.html#a6fac9da2dae5babac7412484340682e4',1,'yaze::core::NotifyValue']]],
+  ['apply_5fchanges_133',['apply_changes',['../classyaze_1_1util_1_1NotifyValue.html#ac676c031573e7d0a3a496389ed0eb5be',1,'yaze::util::NotifyValue']]],
   ['applybpspatch_134',['ApplyBpsPatch',['../namespaceyaze_1_1util.html#a991030a6ecb07dd710fd4877b48cdcd8',1,'yaze::util']]],
   ['applybpspatchcomponent_135',['ApplyBpsPatchComponent',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a6588526a2719d947bb19f4ad714989a6',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
   ['applydeletionpostloop_136',['ApplyDeletionPostLoop',['../structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html#afc719c78a285e4f75f6777137401c4a5',1,'yaze::gui::ExampleSelectionWithDeletion']]],

@@ -1,6 +1,6 @@
 <map id="yaze::editor::ScreenEditor::LoadDungeonMaps" name="yaze::editor::ScreenEditor::LoadDungeonMaps">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,71,171,112"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1core.html#a1f2441e9967fc5718d30608cccc7f74c" title=" " alt="" coords="227,5,360,31"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1util.html#a3f4d30bc153c6a955a8471f68c18aafd" title=" " alt="" coords="231,5,356,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,68,218,40,235,34,236,39,220,45,144,73"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="219,79,368,104"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="171,89,203,89,203,94,171,94"/>

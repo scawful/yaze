@@ -2,7 +2,7 @@ var namespaceyaze_1_1editor =
 [
     [ "anonymous_namespace{assembly_editor.cc}", "namespaceyaze_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html", [
       [ "RemoveIgnoredFiles", "namespaceyaze_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html#afb9e8d9b03590a412db61ef023a6e689", null ],
-      [ "LoadFolder", "namespaceyaze_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html#a9a373a08d4a71410a4432a2e4fd44d84", null ]
+      [ "LoadFolder", "namespaceyaze_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html#a892d14f134c77a3840951d2cfa0f7ce7", null ]
     ] ],
     [ "anonymous_namespace{dungeon_editor.cc}", "namespaceyaze_1_1editor_1_1anonymous__namespace_02dungeon__editor_8cc_03.html", [
       [ "RenderUnusedSets", "namespaceyaze_1_1editor_1_1anonymous__namespace_02dungeon__editor_8cc_03.html#a49f56fef596e5100283beb1a405fd472", null ]
@@ -34,6 +34,7 @@ var namespaceyaze_1_1editor =
     [ "ExtensionManager", "classyaze_1_1editor_1_1ExtensionManager.html", "classyaze_1_1editor_1_1ExtensionManager" ],
     [ "FileDialogWrapper", "classyaze_1_1editor_1_1FileDialogWrapper.html", null ],
     [ "FlagsMenu", "structyaze_1_1editor_1_1FlagsMenu.html", "structyaze_1_1editor_1_1FlagsMenu" ],
+    [ "FolderItem", "structyaze_1_1editor_1_1FolderItem.html", "structyaze_1_1editor_1_1FolderItem" ],
     [ "GfxGroupEditor", "classyaze_1_1editor_1_1GfxGroupEditor.html", "classyaze_1_1editor_1_1GfxGroupEditor" ],
     [ "GraphicsEditor", "classyaze_1_1editor_1_1GraphicsEditor.html", "classyaze_1_1editor_1_1GraphicsEditor" ],
     [ "HistoryManager", "classyaze_1_1editor_1_1HistoryManager.html", "classyaze_1_1editor_1_1HistoryManager" ],

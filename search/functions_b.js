@@ -51,7 +51,7 @@ var searchData=
   ['loadexits_48',['LoadExits',['../classyaze_1_1zelda3_1_1Overworld.html#a02855e7271f124ed965dd2640dc985a8',1,'yaze::zelda3::Overworld']]],
   ['loadextension_49',['LoadExtension',['../classyaze_1_1editor_1_1ExtensionManager.html#a8d8f5c6bbe45b2f9e216bf7006749ad0',1,'yaze::editor::ExtensionManager']]],
   ['loadfile_50',['LoadFile',['../namespaceyaze_1_1core.html#a52189778cda85a731116f50ab603ca6c',1,'yaze::core::LoadFile()'],['../namespaceyaze_1_1gui_1_1zeml.html#a970f74b3460aaf645f0a45e0a4f561aa',1,'yaze::gui::zeml::LoadFile()']]],
-  ['loadfolder_51',['LoadFolder',['../namespaceyaze_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html#a9a373a08d4a71410a4432a2e4fd44d84',1,'yaze::editor::anonymous_namespace{assembly_editor.cc}']]],
+  ['loadfolder_51',['LoadFolder',['../namespaceyaze_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html#a892d14f134c77a3840951d2cfa0f7ce7',1,'yaze::editor::anonymous_namespace{assembly_editor.cc}']]],
   ['loadfont_52',['LoadFont',['../namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#aeb026c1f2d88cd2c2d4ac9a283861bbe',1,'yaze::core::anonymous_namespace{font_loader.cc}']]],
   ['loadfontfamilies_53',['LoadFontFamilies',['../classyaze_1_1core_1_1Controller.html#aa07851cfceacc8cc442850133075e4bf',1,'yaze::core::Controller']]],
   ['loadfromdata_54',['LoadFromData',['../classyaze_1_1Rom.html#a3aacb1ac78a97db45382a8ad580ec4db',1,'yaze::Rom::LoadFromData()'],['../classyaze_1_1test_1_1Rom.html#a3aacb1ac78a97db45382a8ad580ec4db',1,'yaze::test::Rom::LoadFromData()']]],

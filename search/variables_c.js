@@ -134,7 +134,7 @@ var searchData=
   ['mode7_5fbits_131',['mode7_bits',['../structyaze_1_1emu_1_1ScrollRegister.html#a14770d410ce705c874692203258ca742',1,'yaze::emu::ScrollRegister']]],
   ['modf_132',['modf',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html#ae063ef5bea652de0be5647b37b076c47',1,'yaze::zelda3::music::Tracker']]],
   ['modified_133',['modified',['../classyaze_1_1gfx_1_1SnesColor.html#affd4f4225b5dbffc3bc33fd2ac6d169f',1,'yaze::gfx::SnesColor']]],
-  ['modified_5f_134',['modified_',['../classyaze_1_1core_1_1NotifyValue.html#ad655c4c65e917f4a014b580f6f373dde',1,'yaze::core::NotifyValue::modified_'],['../classyaze_1_1gfx_1_1Bitmap.html#a9b696086f5035d04376b82123b1915ce',1,'yaze::gfx::Bitmap::modified_'],['../classyaze_1_1gui_1_1Bitmap.html#a9b696086f5035d04376b82123b1915ce',1,'yaze::gui::Bitmap::modified_']]],
+  ['modified_5f_134',['modified_',['../classyaze_1_1gfx_1_1Bitmap.html#a9b696086f5035d04376b82123b1915ce',1,'yaze::gfx::Bitmap::modified_'],['../classyaze_1_1util_1_1NotifyValue.html#a4f215603b2e5501223736557760f59ec',1,'yaze::util::NotifyValue::modified_'],['../classyaze_1_1gui_1_1Bitmap.html#a9b696086f5035d04376b82123b1915ce',1,'yaze::gui::Bitmap::modified_']]],
   ['mosaic_135',['MOSAIC',['../namespaceyaze_1_1emu.html#a390fb926778edb7b98eca1e78c149afa',1,'yaze::emu']]],
   ['mosaic_5f_136',['mosaic_',['../classyaze_1_1emu_1_1Ppu.html#a529b0b0394b8264d1c435cf7cc299add',1,'yaze::emu::Ppu::mosaic_'],['../classyaze_1_1zelda3_1_1OverworldMap.html#a8bf79f77aeb50dc40c648ee5ea997169',1,'yaze::zelda3::OverworldMap::mosaic_']]],
   ['mosaic_5fsize_137',['mosaic_size',['../structyaze_1_1emu_1_1Mosaic.html#a5d435be08e95d6ab87e44edd7b76e5a1',1,'yaze::emu::Mosaic']]],

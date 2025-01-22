@@ -10,8 +10,7 @@ var namespaceyaze_1_1core =
       [ "ldle0", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#ab398058c34f949af56d2214c1f052abb", null ],
       [ "ldle1", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a42feaae235cf462ca0171cb490459f7a", null ],
       [ "ldle2", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#ae45c534800b9d5a30f1647ac5013baea", null ],
-      [ "ldle3", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#ae6064f68a5f5ea3d74189dd5e4a5dea8", null ],
-      [ "HandleHexStringParams", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#a5bee52f0340097913cdf52b6f646b3c5", null ]
+      [ "ldle3", "namespaceyaze_1_1core_1_1anonymous__namespace_02common_8cc_03.html#ae6064f68a5f5ea3d74189dd5e4a5dea8", null ]
     ] ],
     [ "anonymous_namespace{font_loader.cc}", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html", [
       [ "SetFontPath", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a0d62353b28e596070a67929b63594ce1", null ],
@@ -22,15 +21,11 @@ var namespaceyaze_1_1core =
     [ "Controller", "classyaze_1_1core_1_1Controller.html", "classyaze_1_1core_1_1Controller" ],
     [ "ExperimentFlags", "classyaze_1_1core_1_1ExperimentFlags.html", "classyaze_1_1core_1_1ExperimentFlags" ],
     [ "FileDialogWrapper", "classyaze_1_1core_1_1FileDialogWrapper.html", null ],
-    [ "FolderItem", "structyaze_1_1core_1_1FolderItem.html", "structyaze_1_1core_1_1FolderItem" ],
     [ "FontConfig", "structyaze_1_1core_1_1FontConfig.html", "structyaze_1_1core_1_1FontConfig" ],
-    [ "HexStringParams", "structyaze_1_1core_1_1HexStringParams.html", "structyaze_1_1core_1_1HexStringParams" ],
-    [ "NotifyValue", "classyaze_1_1core_1_1NotifyValue.html", "classyaze_1_1core_1_1NotifyValue" ],
     [ "Renderer", "classyaze_1_1core_1_1Renderer.html", "classyaze_1_1core_1_1Renderer" ],
     [ "SDL_Deleter", "structyaze_1_1core_1_1SDL__Deleter.html", "structyaze_1_1core_1_1SDL__Deleter" ],
     [ "SDL_Surface_Deleter", "structyaze_1_1core_1_1SDL__Surface__Deleter.html", "structyaze_1_1core_1_1SDL__Surface__Deleter" ],
     [ "SDL_Texture_Deleter", "structyaze_1_1core_1_1SDL__Texture__Deleter.html", "structyaze_1_1core_1_1SDL__Texture__Deleter" ],
-    [ "FolderItem", "namespaceyaze_1_1core.html#a778013ae3dbd2be64704b0eb01769d91", null ],
     [ "Platform", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648", [
       [ "kUnknown", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648a25c2dc47991b3df171ed5192bcf70390", null ],
       [ "kMacOS", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648ad4b84d921444ff96b6ed220a036f9a8a", null ],
@@ -38,11 +33,6 @@ var namespaceyaze_1_1core =
       [ "kWindows", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648aad547616982f990862d4e1213452c089", null ],
       [ "kLinux", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648ae3f917d82e495f1c002357925ca3047e", null ]
     ] ],
-    [ "HexByte", "namespaceyaze_1_1core.html#a1f2441e9967fc5718d30608cccc7f74c", null ],
-    [ "HexWord", "namespaceyaze_1_1core.html#a57150d42af734375f63f98bc6d752bda", null ],
-    [ "HexLong", "namespaceyaze_1_1core.html#a0de2c3f1f2dba2f5581d9d1e3018135f", null ],
-    [ "HexLongLong", "namespaceyaze_1_1core.html#a18ea1e86d2ecdd880587545a3de97e51", null ],
-    [ "StringReplace", "namespaceyaze_1_1core.html#a2efa2fdd38e8bf23d8f3cf7ce03679fc", null ],
     [ "Get24LocalFromPC", "namespaceyaze_1_1core.html#aa2886304092e4c8f1cbd33eeb0d7d980", null ],
     [ "stle16b_i", "namespaceyaze_1_1core.html#a611a51e1035d450eef5c06263128ce92", null ],
     [ "stle16b", "namespaceyaze_1_1core.html#a2cb2c0bf50bac2324d970587cc1b0233", null ],

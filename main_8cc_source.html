@@ -135,8 +135,8 @@ $(function(){initNavTree('main_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  <a class="code hl_class" href="classyaze_1_1util_1_1FlagParser.html">yaze::util::FlagParser</a> parser(<a class="code hl_function" href="namespaceyaze_1_1util.html#a60afeb1f1afc9e19c61b64749a219577">yaze::util::global_flag_registry</a>());</div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  <a class="code hl_define" href="macro_8h.html#a7c9a94f98921a34151985779cfb8f64a">RETURN_IF_EXCEPTION</a>(parser.<a class="code hl_function" href="classyaze_1_1util_1_1FlagParser.html#aa5d5b0f51665afbb0d6bf9e41859b051">Parse</a>(argc, argv));</div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  std::string rom_filename = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="keywordflow">if</span> (!FLAGS_rom_file.empty()) {</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    rom_filename = FLAGS_rom_file;</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="keywordflow">if</span> (!FLAGS_rom_file-&gt;Get().empty()) {</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    rom_filename = FLAGS_rom_file-&gt;Get();</div>
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  }</div>
 <div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
 <div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="preprocessor">#ifdef __APPLE__</span></div>
