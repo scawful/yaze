@@ -96,7 +96,6 @@ class FlagRegistry {
   std::unordered_map<std::string, std::unique_ptr<IFlag>> flags_;
 };
 
-
 inline FlagRegistry* global_flag_registry() {
   // Guaranteed to be initialized once per process.
   static FlagRegistry* registry = new FlagRegistry();
@@ -106,9 +105,10 @@ inline FlagRegistry* global_flag_registry() {
 #define DECLARE_FLAG(type, name) extern yaze::util::Flag<type>* FLAGS_##name
 
 // Defines a global Flag<type>* FLAGS_<name> and registers it.
-#define DEFINE_FLAG(type, name, default_val, help_text)                  \
-  yaze::util::Flag<type>* FLAGS_##name =  \
-  yaze::util::global_flag_registry()->RegisterFlag<type>("--" #name, (default_val), (help_text))
+#define DEFINE_FLAG(type, name, default_val, help_text)       \
+  yaze::util::Flag<type>* FLAGS_##name =                      \
+      yaze::util::global_flag_registry()->RegisterFlag<type>( \
+          "--" #name, (default_val), (help_text))
 
 // Retrieves the current value of a declared flag.
 #define FLAG_VALUE(name) (FLAGS_##name->Get())
@@ -116,6 +116,15 @@ inline FlagRegistry* global_flag_registry() {
 class FlagParser {
  public:
   explicit FlagParser(FlagRegistry* registry) : registry_(registry) {}
+
+  // Parses flags out of the given command line arguments.
+  void Parse(int argc, char** argv) {
+    std::vector<std::string> tokens;
+    for (int i = 0; i < argc; i++) {
+      tokens.push_back(argv[i]);
+    }
+    Parse(&tokens);
+  }
 
   // Parses flags out of the given token list. Recognizes forms:
   // --flag=value or --flag value
