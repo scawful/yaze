@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "app/core/features.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
@@ -18,7 +19,7 @@ OverworldMap::OverworldMap(int index, Rom &rom)
     : index_(index), parent_(index), rom_(rom) {
   LoadAreaInfo();
 
-  if (core::ExperimentFlags::get().overworld.kLoadCustomOverworld) {
+  if (core::FeatureFlags::get().overworld.kLoadCustomOverworld) {
     // If the custom overworld ASM has NOT already been applied, manually set
     // the vanilla values.
     uint8_t asm_version = rom_[OverworldCustomASMHasBeenApplied];

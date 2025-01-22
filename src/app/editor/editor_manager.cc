@@ -2,6 +2,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/match.h"
+#include "app/core/features.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
@@ -732,7 +733,7 @@ void EditorManager::LoadRom() {
 }
 
 void EditorManager::SaveRom() {
-  if (core::ExperimentFlags::get().kSaveDungeonMaps) {
+  if (core::FeatureFlags::get().kSaveDungeonMaps) {
     status_ = screen_editor_.SaveDungeonMaps();
     RETURN_VOID_IF_ERROR(status_);
   }
@@ -740,7 +741,7 @@ void EditorManager::SaveRom() {
   status_ = overworld_editor_.Save();
   RETURN_VOID_IF_ERROR(status_);
 
-  if (core::ExperimentFlags::get().kSaveGraphicsSheet)
+  if (core::FeatureFlags::get().kSaveGraphicsSheet)
     PRINT_IF_ERROR(SaveAllGraphicsData(
         *rom(), GraphicsSheetManager::GetInstance().gfx_sheets()));
 

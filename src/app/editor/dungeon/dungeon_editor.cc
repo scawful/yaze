@@ -1,6 +1,7 @@
 #include "dungeon_editor.h"
 
 #include "absl/container/flat_hash_map.h"
+#include "app/core/features.h"
 #include "app/core/platform/renderer.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
@@ -78,7 +79,7 @@ absl::Status DungeonEditor::Initialize() {
     rooms_.emplace_back(zelda3::Room(/*room_id=*/i));
     rooms_[i].LoadHeader();
     rooms_[i].LoadRoomFromROM();
-    if (core::ExperimentFlags::get().kDrawDungeonRoomGraphics) {
+    if (core::FeatureFlags::get().kDrawDungeonRoomGraphics) {
       rooms_[i].LoadRoomGraphics();
     }
 

@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "app/core/common.h"
+#include "app/core/features.h"
 #include "app/emu/cpu/internal/opcodes.h"
 
 namespace yaze {
@@ -1801,7 +1802,7 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
 
 void Cpu::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
                           bool immediate, bool accumulator_mode) {
-  if (core::ExperimentFlags::get().kLogInstructions) {
+  if (core::FeatureFlags::get().kLogInstructions) {
     std::ostringstream oss;
     oss << "$" << std::uppercase << std::setw(2) << std::setfill('0')
         << static_cast<int>(PB) << ":" << std::hex << PC << ": 0x"

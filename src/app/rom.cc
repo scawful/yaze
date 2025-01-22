@@ -16,6 +16,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
+#include "app/core/features.h"
 #include "app/core/platform/renderer.h"
 #include "app/gfx/compression.h"
 #include "app/gfx/snes_color.h"
@@ -442,9 +443,9 @@ absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
   }
 
   // Run the other save functions
-  if (core::ExperimentFlags::get().kSaveAllPalettes)
+  if (core::FeatureFlags::get().kSaveAllPalettes)
     RETURN_IF_ERROR(SaveAllPalettes());
-  if (core::ExperimentFlags::get().kSaveGfxGroups)
+  if (core::FeatureFlags::get().kSaveGfxGroups)
     RETURN_IF_ERROR(SaveGroupsToRom());
 
   if (save_new) {

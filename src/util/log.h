@@ -9,6 +9,7 @@
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "app/core/features.h"
 
 namespace yaze {
 namespace util {
@@ -25,7 +26,7 @@ static void logf(const absl::FormatSpec<Args...> &format, const Args &...args) {
   message = absl::StrCat("[", tm.tm_hour, ":", tm.tm_min, ":", tm.tm_sec, "] ",
                          message, "\n");
 
-  if (ExperimentFlags::get().kLogToConsole) {
+  if (core::FeatureFlags::get().kLogToConsole) {
     std::cout << message;
   }
   static std::ofstream fout(kLogFileOut, std::ios::out | std::ios::app);
@@ -34,3 +35,5 @@ static void logf(const absl::FormatSpec<Args...> &format, const Args &...args) {
 
 }  // namespace util
 }  // namespace yaze
+
+#endif  // YAZE_UTIL_LOG_H
