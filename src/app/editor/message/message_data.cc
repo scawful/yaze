@@ -4,6 +4,7 @@
 
 #include "app/core/common.h"
 #include "util/hex.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace editor {
@@ -120,7 +121,7 @@ std::vector<uint8_t> ParseMessageToData(std::string str) {
           TextElement(0x80, DICTIONARYTOKEN, true, "Dictionary");
 
       if (!parsedElement.Active) {
-        core::logf("Error parsing message: %s", temp_string);
+        util::logf("Error parsing message: %s", temp_string);
         break;
       } else if (parsedElement.Parent == dictionary_element) {
         bytes.push_back(parsedElement.Value);
@@ -138,7 +139,7 @@ std::vector<uint8_t> ParseMessageToData(std::string str) {
       uint8_t bb = FindMatchingCharacter(temp_string[pos++]);
 
       if (bb != 0xFF) {
-        core::logf("Error parsing message: %s", temp_string);
+        util::logf("Error parsing message: %s", temp_string);
         bytes.push_back(bb);
       }
     }
@@ -303,7 +304,7 @@ std::vector<std::string> ImportMessageData(std::string_view filename) {
   std::vector<std::string> messages;
   std::ifstream file(filename.data());
   if (!file.is_open()) {
-    core::logf("Error opening file: %s", filename);
+    util::logf("Error opening file: %s", filename);
     return messages;
   }
 

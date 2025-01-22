@@ -2,6 +2,7 @@
 #define YAZE_UTIL_HEX_H
 
 #include <cstdint>
+#include <string>
 
 namespace yaze {
 namespace util {
@@ -18,3 +19,5 @@ std::string HexLongLong(uint64_t qword, HexStringParams params = {});
 
 }  // namespace util
 }  // namespace yaze
+
+#endif

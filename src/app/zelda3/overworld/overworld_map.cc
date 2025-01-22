@@ -9,6 +9,7 @@
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "util/hex.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -77,7 +78,7 @@ void OverworldMap::LoadAreaInfo() {
     message_id_ = message_id.value();
   } else {
     message_id_ = 0;
-    core::logf("Error reading message id for map %d", parent_);
+    util::logf("Error reading message id for map %d", parent_);
   }
 
   if (index_ < kDarkWorldMapIdStart) {
