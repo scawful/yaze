@@ -27,8 +27,8 @@ int main(int argc, char** argv) {
   yaze::util::FlagParser parser(yaze::util::global_flag_registry());
   RETURN_IF_EXCEPTION(parser.Parse(argc, argv));
   std::string rom_filename = "";
-  if (!FLAGS_rom_file.empty()) {
-    rom_filename = FLAGS_rom_file;
+  if (!FLAGS_rom_file->Get().empty()) {
+    rom_filename = FLAGS_rom_file->Get();
   }
 
 #ifdef __APPLE__
