@@ -13,7 +13,11 @@ namespace yaze {
 namespace cli {
 
 const std::vector<std::string> kMainMenuEntries = {
-    "Load ROM", "Apply BPS Patch", "Generate Save File", "Palette Editor",
+    "Load ROM",
+    "Apply BPS Patch",
+    "Generate Save File",
+    "Palette Editor",
+    "Help",
     "Exit",
 };
 
@@ -22,6 +26,7 @@ enum class MainMenuEntry {
   kApplyBpsPatch,
   kGenerateSaveFile,
   kPaletteEditor,
+  kHelp,
   kExit,
 };
 
@@ -30,6 +35,7 @@ enum LayoutID {
   kApplyBpsPatch,
   kGenerateSaveFile,
   kPaletteEditor,
+  kHelp,
   kExit,
   kMainMenu,
   kError,

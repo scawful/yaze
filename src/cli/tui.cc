@@ -256,7 +256,7 @@ void LoadRomComponent(ftxui::ScreenInteractive &screen) {
 }
 
 Element ColorBox(const Color &color) {
-  return ftxui::text(" ") | ftxui::bgcolor(color);
+  return ftxui::text("  ") | ftxui::bgcolor(color);
 }
 
 void PaletteEditorComponent(ftxui::ScreenInteractive &screen) {
@@ -382,6 +382,116 @@ void PaletteEditorComponent(ftxui::ScreenInteractive &screen) {
   }
 }
 
+void HelpComponent(ftxui::ScreenInteractive &screen) {
+  auto help_text = vbox({
+      text("z3ed") | bold | color(Color::Yellow),
+      text("by scawful") | color(Color::Magenta),
+      text("The Legend of Zelda: A Link to the Past Hacking Tool") | color(Color::Red),
+      separator(),
+      hbox({
+          text("Command") | bold | underlined,
+          filler(),
+          text("Arg") | bold | underlined,
+          filler(),
+          text("Params") | bold | underlined,
+      }),
+      separator(),
+      hbox({
+          text("Apply BPS Patch"),
+          filler(),
+          text("-a"),
+          filler(),
+          text("<rom_file> <bps_file>"),
+      }),
+      hbox({
+          text("Create BPS Patch"),
+          filler(),
+          text("-c"),
+          filler(),
+          text("<bps_file> <src_file> <modified_file>"),
+      }),
+      separator(),
+      hbox({
+          text("Open ROM"),
+          filler(),
+          text("-o"),
+          filler(),
+          text("<rom_file>"),
+      }),
+      hbox({
+          text("Backup ROM"),
+          filler(),
+          text("-b"),
+          filler(),
+          text("<rom_file> <optional:new_file>"),
+      }),
+      hbox({
+          text("Expand ROM"),
+          filler(),
+          text("-x"),
+          filler(),
+          text("<rom_file> <file_size>"),
+      }),
+      separator(),
+      hbox({
+          text("Transfer Tile16"),
+          filler(),
+          text("-t"),
+          filler(),
+          text("<src_rom> <dest_rom> <tile32_id_list:csv>"),
+      }),
+      separator(),
+      hbox({
+          text("Export Graphics"),
+          filler(),
+          text("-e"),
+          filler(),
+          text("<rom_file> <bin_file>"),
+      }),
+      hbox({
+          text("Import Graphics"),
+          filler(),
+          text("-i"),
+          filler(),
+          text("<bin_file> <rom_file>"),
+      }),
+      separator(),
+      hbox({
+          text("SNES to PC Address"),
+          filler(),
+          text("-s"),
+          filler(),
+          text("<address>"),
+      }),
+      hbox({
+          text("PC to SNES Address"),
+          filler(),
+          text("-p"),
+          filler(),
+          text("<address>"),
+      }),
+  });
+
+  auto help_text_component = Renderer([&] { return help_text; });
+
+  auto back_button = Button("Back", [&] { SwitchComponents(screen, LayoutID::kMainMenu); });
+
+  auto container = Container::Vertical({
+      help_text_component,
+      back_button,
+  });
+
+  auto renderer = Renderer(container, [&] {
+    return vbox({
+        help_text_component->Render() | center,
+        separator(),
+        back_button->Render() | center,
+    }) | border;
+  });
+
+  screen.Loop(renderer);
+}
+
 void MainMenuComponent(ftxui::ScreenInteractive &screen) {
   // Tracks which menu item is selected.
   static int selected = 0;
@@ -429,6 +539,9 @@ void MainMenuComponent(ftxui::ScreenInteractive &screen) {
         case MainMenuEntry::kPaletteEditor:
           SwitchComponents(screen, LayoutID::kPaletteEditor);
           return true;
+        case MainMenuEntry::kHelp:
+          SwitchComponents(screen, LayoutID::kHelp);
+          return true;
         case MainMenuEntry::kExit:
           SwitchComponents(screen, LayoutID::kExit);
           return true;
@@ -463,9 +576,11 @@ void ShowMain() {
       case LayoutID::kGenerateSaveFile: {
         GenerateSaveFileComponent(screen);
       } break;
-
       case LayoutID::kPaletteEditor: {
         PaletteEditorComponent(screen);
+      } break;
+      case LayoutID::kHelp: {
+        HelpComponent(screen);
       } break;
       case LayoutID::kError: {
         // Display error message and return to main menu.
