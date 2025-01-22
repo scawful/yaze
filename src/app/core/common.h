@@ -18,9 +18,6 @@ namespace yaze {
  */
 namespace core {
 
-bool StringReplace(std::string &str, const std::string &from,
-                   const std::string &to);
-
 /**
  * @class ExperimentFlags
  * @brief A class to manage experimental feature flags.
@@ -115,52 +112,6 @@ class ExperimentFlags {
   }
 };
 
-/**
- * @class NotifyValue
- * @brief A class to manage a value that can be modified and notify when it
- * changes.
- */
-template <typename T>
-class NotifyValue {
- public:
-  NotifyValue() : value_(), modified_(false), temp_value_() {}
-  NotifyValue(const T &value)
-      : value_(value), modified_(false), temp_value_() {}
-
-  void set(const T &value) {
-    value_ = value;
-    modified_ = true;
-  }
-
-  const T &get() {
-    modified_ = false;
-    return value_;
-  }
-
-  T &mutable_get() {
-    modified_ = false;
-    temp_value_ = value_;
-    return temp_value_;
-  }
-
-  void apply_changes() {
-    if (temp_value_ != value_) {
-      value_ = temp_value_;
-      modified_ = true;
-    }
-  }
-
-  void operator=(const T &value) { set(value); }
-  operator T() { return get(); }
-
-  bool modified() const { return modified_; }
-
- private:
-  T value_;
-  bool modified_;
-  T temp_value_;
-};
-
 static const std::string kLogFileOut = "yaze_log.txt";
 
 template <typename... Args>
@@ -233,14 +184,6 @@ uint16_t ldle16b_i(uint8_t const *const p_arr, size_t const p_index);
 
 // Load little endian halfword (16-bit) dereferenced from
 uint16_t ldle16b(uint8_t const *const p_arr);
-
-struct FolderItem {
-  std::string name;
-  std::vector<FolderItem> subfolders;
-  std::vector<std::string> files;
-};
-
-typedef struct FolderItem FolderItem;
 
 }  // namespace core
 }  // namespace yaze

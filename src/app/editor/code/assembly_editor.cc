@@ -33,7 +33,7 @@ std::vector<std::string> RemoveIgnoredFiles(
   return filtered_files;
 }
 
-core::FolderItem LoadFolder(const std::string& folder) {
+FolderItem LoadFolder(const std::string& folder) {
   // Check if .gitignore exists in the folder
   std::ifstream gitignore(folder + "/.gitignore");
   std::vector<std::string> ignored_files;
@@ -51,14 +51,14 @@ core::FolderItem LoadFolder(const std::string& folder) {
     }
   }
 
-  core::FolderItem current_folder;
+  FolderItem current_folder;
   current_folder.name = folder;
   auto root_files = FileDialogWrapper::GetFilesInFolder(current_folder.name);
   current_folder.files = RemoveIgnoredFiles(root_files, ignored_files);
 
   for (const auto& subfolder :
        FileDialogWrapper::GetSubdirectoriesInFolder(current_folder.name)) {
-    core::FolderItem folder_item;
+    FolderItem folder_item;
     folder_item.name = subfolder;
     std::string full_folder = current_folder.name + "/" + subfolder;
     auto folder_files = FileDialogWrapper::GetFilesInFolder(full_folder);
@@ -80,7 +80,7 @@ core::FolderItem LoadFolder(const std::string& folder) {
 
     for (const auto& subdir :
          FileDialogWrapper::GetSubdirectoriesInFolder(full_folder)) {
-      core::FolderItem subfolder_item;
+      FolderItem subfolder_item;
       subfolder_item.name = subdir;
       subfolder_item.files = FileDialogWrapper::GetFilesInFolder(subdir);
       folder_item.subfolders.push_back(subfolder_item);

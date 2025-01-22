@@ -14,6 +14,7 @@
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
+#include "util/notify.h"
 
 namespace yaze {
 namespace editor {
@@ -23,7 +24,9 @@ namespace editor {
  */
 class Tile16Editor : public gfx::GfxContext, public SharedRom {
  public:
-	 Tile16Editor(std::array<gfx::Bitmap, zelda3::kNumTile16Individual>& tile16_individual) : tile16_individual_(tile16_individual) {}
+  Tile16Editor(
+      std::array<gfx::Bitmap, zelda3::kNumTile16Individual> &tile16_individual)
+      : tile16_individual_(tile16_individual) {}
   absl::Status InitBlockset(const gfx::Bitmap &tile16_blockset_bmp,
                             const gfx::Bitmap &current_gfx_bmp,
                             std::array<uint8_t, 0x200> &all_tiles_types);
@@ -60,8 +63,8 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
   int current_tile8_ = 0;
   uint8_t current_palette_ = 0;
 
-  core::NotifyValue<uint32_t> notify_tile16;
-  core::NotifyValue<uint8_t> notify_palette;
+  util::NotifyValue<uint32_t> notify_tile16;
+  util::NotifyValue<uint8_t> notify_palette;
 
   std::array<uint8_t, 0x200> all_tiles_types_;
 
@@ -85,7 +88,7 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
   gui::Canvas transfer_canvas_;
   gfx::Bitmap transfer_blockset_bmp_;
 
-  std::array<gfx::Bitmap, zelda3::kNumTile16Individual>& tile16_individual_;
+  std::array<gfx::Bitmap, zelda3::kNumTile16Individual> &tile16_individual_;
   std::vector<gfx::Bitmap> current_gfx_individual_;
 
   PaletteEditor palette_editor_;
@@ -94,8 +97,8 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
   absl::Status status_;
 
   Rom transfer_rom_;
-  zelda3::Overworld transfer_overworld_{ transfer_rom_ };
-	std::array<gfx::Bitmap, kNumGfxSheets> transfer_gfx_;
+  zelda3::Overworld transfer_overworld_{transfer_rom_};
+  std::array<gfx::Bitmap, kNumGfxSheets> transfer_gfx_;
   absl::Status transfer_status_;
 };
 
