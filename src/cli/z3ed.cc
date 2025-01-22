@@ -67,10 +67,8 @@ int RunCommandHandler(int argc, char *argv[]) {
 }  // namespace yaze
 
 int main(int argc, char *argv[]) {
-  std::vector<std::string> tokens;
-  std::copy(argv, argv + argc, std::back_inserter(tokens));
   yaze::util::FlagParser flag_parser(yaze::util::global_flag_registry());
-  RETURN_IF_EXCEPTION(flag_parser.Parse(&tokens));
+  RETURN_IF_EXCEPTION(flag_parser.Parse(argc, argv));
 
   for (const auto &flag : yaze::util::global_flag_registry()->AllFlags()) {
     // Cast the IFlag to a Flag and use Get
