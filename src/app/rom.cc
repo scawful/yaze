@@ -32,8 +32,8 @@ constexpr int Uncompressed3BPPSize = 0x0600;
 
 uint32_t GetGraphicsAddress(const uint8_t *data, uint8_t addr, uint32_t ptr1,
                             uint32_t ptr2, uint32_t ptr3) {
-  return core::SnesToPc(core::AddressFromBytes(
-      data[ptr1 + addr], data[ptr2 + addr], data[ptr3 + addr]));
+  return SnesToPc(AddressFromBytes(data[ptr1 + addr], data[ptr2 + addr],
+                                   data[ptr3 + addr]));
 }
 
 absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom &rom) {
@@ -530,7 +530,7 @@ absl::Status Rom::SaveAllPalettes() {
 
 absl::Status Rom::LoadGfxGroups() {
   ASSIGN_OR_RETURN(auto main_blockset_ptr, ReadWord(kGfxGroupsPointer));
-  main_blockset_ptr = core::SnesToPc(main_blockset_ptr);
+  main_blockset_ptr = SnesToPc(main_blockset_ptr);
 
   for (uint32_t i = 0; i < kNumMainBlocksets; i++) {
     for (int j = 0; j < 8; j++) {
@@ -563,7 +563,7 @@ absl::Status Rom::LoadGfxGroups() {
 
 absl::Status Rom::SaveGroupsToRom() {
   ASSIGN_OR_RETURN(auto main_blockset_ptr, ReadWord(kGfxGroupsPointer));
-  main_blockset_ptr = core::SnesToPc(main_blockset_ptr);
+  main_blockset_ptr = SnesToPc(main_blockset_ptr);
 
   for (uint32_t i = 0; i < kNumMainBlocksets; i++) {
     for (int j = 0; j < 8; j++) {

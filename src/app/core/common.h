@@ -18,41 +18,6 @@ namespace yaze {
  */
 namespace core {
 
-constexpr uint32_t kFastRomRegion = 0x808000;
-
-inline uint32_t SnesToPc(uint32_t addr) noexcept {
-  if (addr >= kFastRomRegion) {
-    addr -= kFastRomRegion;
-  }
-  uint32_t temp = (addr & 0x7FFF) + ((addr / 2) & 0xFF8000);
-  return (temp + 0x0);
-}
-
-inline uint32_t PcToSnes(uint32_t addr) {
-  uint8_t *b = reinterpret_cast<uint8_t *>(&addr);
-  b[2] = static_cast<uint8_t>(b[2] * 2);
-
-  if (b[1] >= 0x80) {
-    b[2] += 1;
-  } else {
-    b[1] += 0x80;
-  }
-
-  return addr;
-}
-
-inline int AddressFromBytes(uint8_t bank, uint8_t high, uint8_t low) noexcept {
-  return (bank << 16) | (high << 8) | low;
-}
-
-inline uint32_t MapBankToWordAddress(uint8_t bank, uint16_t addr) noexcept {
-  uint32_t result = 0;
-  result = (bank << 16) | addr;
-  return result;
-}
-
-uint32_t Get24LocalFromPC(uint8_t *data, int addr, bool pc = true);
-
 /**
  * @brief Store little endian 16-bit value using a byte pointer, offset by an
  * index before dereferencing

@@ -125,9 +125,9 @@ absl::Status ScreenEditor::LoadDungeonMaps() {
                      rom()->ReadWord(zelda3::kDungeonMapGfxPtr + (d * 2)));
     ptr |= 0x0A0000;                   // Add bank to the short ptr
     ptr_gfx |= 0x0A0000;               // Add bank to the short ptr
-    int pc_ptr = core::SnesToPc(ptr);  // Contains data for the next 25 rooms
+    int pc_ptr = SnesToPc(ptr);  // Contains data for the next 25 rooms
     int pc_ptr_gfx =
-        core::SnesToPc(ptr_gfx);  // Contains data for the next 25 rooms
+        SnesToPc(ptr_gfx);  // Contains data for the next 25 rooms
 
     ASSIGN_OR_RETURN(uint16_t boss_room_d,
                      rom()->ReadWord(zelda3::kDungeonMapBossRooms + (d * 2)));
@@ -182,8 +182,8 @@ absl::Status ScreenEditor::SaveDungeonMaps() {
   for (int d = 0; d < 14; d++) {
     int ptr = zelda3::kDungeonMapRoomsPtr + (d * 2);
     int ptr_gfx = zelda3::kDungeonMapGfxPtr + (d * 2);
-    int pc_ptr = core::SnesToPc(ptr);
-    int pc_ptr_gfx = core::SnesToPc(ptr_gfx);
+    int pc_ptr = SnesToPc(ptr);
+    int pc_ptr_gfx = SnesToPc(ptr_gfx);
 
     const int nbr_floors = dungeon_maps_[d].nbr_of_floor;
     const int nbr_basements = dungeon_maps_[d].nbr_of_basement;
