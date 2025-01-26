@@ -5,7 +5,6 @@
 
 #include "absl/status/status.h"
 #include "app/editor/system/command_manager.h"
-#include "app/editor/system/constant_manager.h"
 #include "app/editor/system/extension_manager.h"
 #include "app/editor/system/history_manager.h"
 
@@ -18,7 +17,6 @@ namespace yaze {
 namespace editor {
 
 struct EditorContext {
-  ConstantManager constant_manager;
   CommandManager command_manager;
   ExtensionManager extension_manager;
   HistoryManager history_manager;

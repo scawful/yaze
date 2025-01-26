@@ -1,5 +1,9 @@
 #include "assembly_editor.h"
 
+#include <fstream>
+#include <string>
+#include <vector>
+
 #include "absl/strings/str_cat.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/gui/icons.h"
