@@ -8,7 +8,6 @@
 #include "app/editor/system/constant_manager.h"
 #include "app/editor/system/extension_manager.h"
 #include "app/editor/system/history_manager.h"
-#include "app/editor/system/resource_manager.h"
 
 namespace yaze {
 
@@ -23,7 +22,6 @@ struct EditorContext {
   CommandManager command_manager;
   ExtensionManager extension_manager;
   HistoryManager history_manager;
-  ResourceManager resource_manager;
 };
 
 enum class EditorType {
