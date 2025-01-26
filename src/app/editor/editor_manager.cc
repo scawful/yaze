@@ -13,7 +13,6 @@
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
-#include "app/editor/system/flags.h"
 #include "app/emu/emulator.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
@@ -468,7 +467,7 @@ void EditorManager::DrawMenuContent() {
       MenuItem("Backup ROM", "", &backup_rom_);
       MenuItem("Save New Auto", "", &save_new_auto_);
       Separator();
-      static FlagsMenu flags_menu;
+      static core::FlagsMenu flags_menu;
       if (BeginMenu("System Flags")) {
         flags_menu.DrawSystemFlags();
         EndMenu();

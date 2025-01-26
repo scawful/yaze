@@ -1,9 +1,9 @@
 
 #include "app/editor/system/settings_editor.h"
 
-#include "app/gui/style.h"
 #include "absl/status/status.h"
-#include "app/editor/system/flags.h"
+#include "app/core/features.h"
+#include "app/gui/style.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -49,43 +49,42 @@ absl::Status SettingsEditor::Update() {
 }
 
 void SettingsEditor::DrawGeneralSettings() {
-  static FlagsMenu flags;
+  static core::FlagsMenu flags;
 
   if (BeginTable("##SettingsTable", 4,
                  ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable |
                      ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable)) {
     TableSetupColumn("System Flags", ImGuiTableColumnFlags_WidthStretch);
     TableSetupColumn("Overworld Flags", ImGuiTableColumnFlags_WidthStretch);
-		TableSetupColumn("Dungeon Flags", ImGuiTableColumnFlags_WidthStretch);
+    TableSetupColumn("Dungeon Flags", ImGuiTableColumnFlags_WidthStretch);
     TableSetupColumn("Resource Flags", ImGuiTableColumnFlags_WidthStretch,
                      0.0f);
 
     TableHeadersRow();
 
     TableNextColumn();
-    if (BeginChild("##SystemFlags", ImVec2(0, 0),
-                   ImGuiChildFlags_FrameStyle)) {
+    if (BeginChild("##SystemFlags", ImVec2(0, 0), ImGuiChildFlags_FrameStyle)) {
       flags.DrawSystemFlags();
       EndChild();
     }
 
     TableNextColumn();
-		if (BeginChild("##OverworldFlags", ImVec2(0, 0),
-			ImGuiChildFlags_FrameStyle)) {
-			flags.DrawOverworldFlags();
-			EndChild();
-		}
+    if (BeginChild("##OverworldFlags", ImVec2(0, 0),
+                   ImGuiChildFlags_FrameStyle)) {
+      flags.DrawOverworldFlags();
+      EndChild();
+    }
 
     TableNextColumn();
-		if (BeginChild("##DungeonFlags", ImVec2(0, 0),
-			ImGuiChildFlags_FrameStyle)) {
-			flags.DrawDungeonFlags();
-			EndChild();
-		}
+    if (BeginChild("##DungeonFlags", ImVec2(0, 0),
+                   ImGuiChildFlags_FrameStyle)) {
+      flags.DrawDungeonFlags();
+      EndChild();
+    }
 
     TableNextColumn();
     if (BeginChild("##ResourceFlags", ImVec2(0, 0),
-      ImGuiChildFlags_FrameStyle)) {
+                   ImGuiChildFlags_FrameStyle)) {
       flags.DrawResourceFlags();
       EndChild();
     }
