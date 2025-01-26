@@ -32,8 +32,7 @@ int main(int argc, char** argv) {
   }
 
 #ifdef __APPLE__
-  yaze_run_cocoa_app_delegate(rom_filename.c_str());
-  return EXIT_SUCCESS;
+  return yaze_run_cocoa_app_delegate(rom_filename.c_str());
 #elif defined(_WIN32)
   // We set SDL_MAIN_HANDLED for Win32 to avoid SDL hijacking main()
   SDL_SetMainReady();

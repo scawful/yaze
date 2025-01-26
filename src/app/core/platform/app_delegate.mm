@@ -236,20 +236,26 @@ extern "C" void yaze_initialize_cococa() {
   }
 }
 
-extern "C" void yaze_run_cocoa_app_delegate(const char *filename) {
+extern "C" int yaze_run_cocoa_app_delegate(const char *filename) {
   yaze_initialize_cococa();
   yaze::core::Controller controller;
-  RETURN_VOID_IF_ERROR(controller.OnEntry(filename));
+  EXIT_IF_ERROR(controller.OnEntry(filename));
   while (controller.IsActive()) {
     @autoreleasepool {
       controller.OnInput();
       if (auto status = controller.OnLoad(); !status.ok()) {
+        NSAlert *alert = [[NSAlert alloc] init];
+        [alert setMessageText:@"Error"];
+        [alert setInformativeText:[NSString stringWithUTF8String:status.message().data()]];
+        [alert addButtonWithTitle:@"OK"];
+        [alert runModal];
         break;
       }
       controller.DoRender();
     }
   }
   controller.OnExit();
+  return EXIT_SUCCESS;
 }
 
 #endif
