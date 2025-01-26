@@ -2,12 +2,12 @@
 <area shape="rect" id="Node000001" title="Main controller for the application." alt="" coords="5,271,145,297"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="49,94,173,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,134,80,157,69,183,66,207,67,231,74,270,69,271,61,232,60,207,64,182,75,155,90,131"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes." alt="" coords="149,183,324,208"/>
-<area shape="poly" id="edge6_Node000009_Node000002" title=" " alt="" coords="110,135,111,147,116,157,131,171,150,181,147,185,128,175,112,160,106,148,104,135"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes." alt="" coords="149,183,324,208"/>
+<area shape="poly" id="edge6_Node000007_Node000002" title=" " alt="" coords="110,135,111,147,116,157,131,171,150,181,147,185,128,175,112,160,106,148,104,135"/>
 <area shape="rect" id="Node000003" href="$structyaze_1_1editor_1_1EditorContext.html" title=" " alt="" coords="83,5,251,31"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="153,46,121,95,116,92,149,43"/>
-<area shape="poly" id="edge5_Node000009_Node000003" title=" " alt="" coords="194,41,203,54,218,89,228,125,238,182,233,183,223,126,213,90,198,56,189,44"/>
-<area shape="poly" id="edge3_Node000001_Node000009" title=" " alt="" coords="201,218,99,273,96,268,199,214"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="337,94,458,120"/>
-<area shape="poly" id="edge4_Node000009_Node000010" title=" " alt="" coords="363,130,260,184,258,180,360,125"/>
+<area shape="poly" id="edge5_Node000007_Node000003" title=" " alt="" coords="194,41,203,54,218,89,228,125,238,182,233,183,223,126,213,90,198,56,189,44"/>
+<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="201,218,99,273,96,268,199,214"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="337,94,458,120"/>
+<area shape="poly" id="edge4_Node000007_Node000008" title=" " alt="" coords="363,130,260,184,258,180,360,125"/>
 </map>

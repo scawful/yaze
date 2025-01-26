@@ -4,7 +4,7 @@ var searchData=
   ['gameentity_1',['GameEntity',['../classyaze_1_1zelda3_1_1GameEntity.html#a6bb1a2cdae1be1ad21fc1b637727eb68',1,'yaze::zelda3::GameEntity']]],
   ['generatesavefilecomponent_2',['GenerateSaveFileComponent',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a879bdc125949b92f2e3b4e8f26d26521',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
   ['get_3',['Get',['../classyaze_1_1util_1_1Flag.html#ace9b4f03672ed3ec8aac416df961d3a6',1,'yaze::util::Flag']]],
-  ['get_4',['get',['../classyaze_1_1core_1_1FeatureFlags.html#ab985b9cb493be9689a8f4baffc09b614',1,'yaze::core::FeatureFlags::get()'],['../classyaze_1_1util_1_1NotifyValue.html#a9d6e2d445235242e653130bcef0577d7',1,'yaze::util::NotifyValue::get()'],['../classyaze_1_1editor_1_1FeatureFlags.html#ab985b9cb493be9689a8f4baffc09b614',1,'yaze::editor::FeatureFlags::get()']]],
+  ['get_4',['get',['../classyaze_1_1core_1_1FeatureFlags.html#ab985b9cb493be9689a8f4baffc09b614',1,'yaze::core::FeatureFlags::get()'],['../classyaze_1_1util_1_1NotifyValue.html#a9d6e2d445235242e653130bcef0577d7',1,'yaze::util::NotifyValue::get()']]],
   ['get16x16tile_5',['Get16x16Tile',['../classyaze_1_1gfx_1_1Bitmap.html#adab34aa5b35c696b6b5831263c6dfc6a',1,'yaze::gfx::Bitmap::Get16x16Tile()'],['../classyaze_1_1gui_1_1Bitmap.html#adab34aa5b35c696b6b5831263c6dfc6a',1,'yaze::gui::Bitmap::Get16x16Tile()']]],
   ['get24localfrompc_6',['Get24LocalFromPC',['../namespaceyaze.html#a8acb4a8f67a09fd9a908aeac107898f7',1,'yaze']]],
   ['get8x8tile_7',['Get8x8Tile',['../classyaze_1_1gfx_1_1Bitmap.html#a581b5605ae5a812935b31354019a15be',1,'yaze::gfx::Bitmap::Get8x8Tile()'],['../classyaze_1_1gui_1_1Bitmap.html#a581b5605ae5a812935b31354019a15be',1,'yaze::gui::Bitmap::Get8x8Tile()']]],

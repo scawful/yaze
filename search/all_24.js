@@ -12,11 +12,10 @@ var searchData=
   ['_7ememory_9',['~Memory',['../classyaze_1_1emu_1_1Memory.html#a486b96a3917775bda2f96a0d38b23c76',1,'yaze::emu::Memory']]],
   ['_7epopupmanager_10',['~PopupManager',['../classyaze_1_1editor_1_1PopupManager.html#ae914947572ba7d49efbca036d371bc94',1,'yaze::editor::PopupManager']]],
   ['_7eppuinterface_11',['~PpuInterface',['../classyaze_1_1emu_1_1PpuInterface.html#ad72156d555df5ac5842cd83193dce464',1,'yaze::emu::PpuInterface::~PpuInterface()'],['../classyaze_1_1test_1_1PpuInterface.html#ad72156d555df5ac5842cd83193dce464',1,'yaze::test::PpuInterface::~PpuInterface()']]],
-  ['_7eresourcemanager_12',['~ResourceManager',['../classyaze_1_1editor_1_1ResourceManager.html#af80c0b99fc72a591bb6dadfef83fd0c5',1,'yaze::editor::ResourceManager']]],
-  ['_7eroom_13',['~Room',['../classyaze_1_1zelda3_1_1Room.html#ae5af738c56052e54295451af201a0e4a',1,'yaze::zelda3::Room']]],
-  ['_7esharedrom_14',['~SharedRom',['../classyaze_1_1SharedRom.html#a05ecd0d699123dea3478c1b05f6f1281',1,'yaze::SharedRom']]],
-  ['_7esnes_15',['~Snes',['../classyaze_1_1emu_1_1Snes.html#a447f7314e8df8a75cc4c39a90b4a0284',1,'yaze::emu::Snes']]],
-  ['_7etesteditor_16',['~TestEditor',['../classyaze_1_1test_1_1integration_1_1TestEditor.html#ab11731347892486c3d73cc1755a2cbb1',1,'yaze::test::integration::TestEditor']]],
-  ['_7etexteditor_17',['~TextEditor',['../classTextEditor.html#a67cc14c174c7b66738c40f844d4dd7d7',1,'TextEditor']]],
-  ['_7eundorecord_18',['~UndoRecord',['../classTextEditor_1_1UndoRecord.html#a981455d44f29b51ee6aeb5065afa12ff',1,'TextEditor::UndoRecord']]]
+  ['_7eroom_12',['~Room',['../classyaze_1_1zelda3_1_1Room.html#ae5af738c56052e54295451af201a0e4a',1,'yaze::zelda3::Room']]],
+  ['_7esharedrom_13',['~SharedRom',['../classyaze_1_1SharedRom.html#a05ecd0d699123dea3478c1b05f6f1281',1,'yaze::SharedRom']]],
+  ['_7esnes_14',['~Snes',['../classyaze_1_1emu_1_1Snes.html#a447f7314e8df8a75cc4c39a90b4a0284',1,'yaze::emu::Snes']]],
+  ['_7etesteditor_15',['~TestEditor',['../classyaze_1_1test_1_1integration_1_1TestEditor.html#ab11731347892486c3d73cc1755a2cbb1',1,'yaze::test::integration::TestEditor']]],
+  ['_7etexteditor_16',['~TextEditor',['../classTextEditor.html#a67cc14c174c7b66738c40f844d4dd7d7',1,'TextEditor']]],
+  ['_7eundorecord_17',['~UndoRecord',['../classTextEditor_1_1UndoRecord.html#a981455d44f29b51ee6aeb5065afa12ff',1,'TextEditor::UndoRecord']]]
 ];

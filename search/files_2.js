@@ -15,11 +15,10 @@ var searchData=
   ['compression_2ecc_12',['compression.cc',['../compression_8cc.html',1,'']]],
   ['compression_2eh_13',['compression.h',['../compression_8h.html',1,'']]],
   ['compression_5ftest_2ecc_14',['compression_test.cc',['../compression__test_8cc.html',1,'']]],
-  ['constant_5fmanager_2eh_15',['constant_manager.h',['../constant__manager_8h.html',1,'']]],
-  ['contributing_2emd_16',['contributing.md',['../contributing_8md.html',1,'']]],
-  ['controller_2ecc_17',['controller.cc',['../controller_8cc.html',1,'']]],
-  ['controller_2eh_18',['controller.h',['../controller_8h.html',1,'']]],
-  ['cpu_2ecc_19',['cpu.cc',['../cpu_8cc.html',1,'']]],
-  ['cpu_2eh_20',['cpu.h',['../cpu_8h.html',1,'']]],
-  ['cpu_5ftest_2ecc_21',['cpu_test.cc',['../cpu__test_8cc.html',1,'']]]
+  ['contributing_2emd_15',['contributing.md',['../contributing_8md.html',1,'']]],
+  ['controller_2ecc_16',['controller.cc',['../controller_8cc.html',1,'']]],
+  ['controller_2eh_17',['controller.h',['../controller_8h.html',1,'']]],
+  ['cpu_2ecc_18',['cpu.cc',['../cpu_8cc.html',1,'']]],
+  ['cpu_2eh_19',['cpu.h',['../cpu_8h.html',1,'']]],
+  ['cpu_5ftest_2ecc_20',['cpu_test.cc',['../cpu__test_8cc.html',1,'']]]
 ];

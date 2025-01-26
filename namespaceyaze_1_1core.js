@@ -9,6 +9,7 @@ var namespaceyaze_1_1core =
     [ "Controller", "classyaze_1_1core_1_1Controller.html", "classyaze_1_1core_1_1Controller" ],
     [ "FeatureFlags", "classyaze_1_1core_1_1FeatureFlags.html", "classyaze_1_1core_1_1FeatureFlags" ],
     [ "FileDialogWrapper", "classyaze_1_1core_1_1FileDialogWrapper.html", null ],
+    [ "FlagsMenu", "structyaze_1_1core_1_1FlagsMenu.html", "structyaze_1_1core_1_1FlagsMenu" ],
     [ "FontConfig", "structyaze_1_1core_1_1FontConfig.html", "structyaze_1_1core_1_1FontConfig" ],
     [ "Renderer", "classyaze_1_1core_1_1Renderer.html", "classyaze_1_1core_1_1Renderer" ],
     [ "SDL_Deleter", "structyaze_1_1core_1_1SDL__Deleter.html", "structyaze_1_1core_1_1SDL__Deleter" ],

@@ -22,13 +22,12 @@ var searchData=
   ['compressioncommand_19',['CompressionCommand',['../structyaze_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html',1,'yaze::gfx::lc_lz2']]],
   ['compressioncontext_20',['CompressionContext',['../structyaze_1_1gfx_1_1lc__lz2_1_1CompressionContext.html',1,'yaze::gfx::lc_lz2::CompressionContext'],['../structyaze_1_1test_1_1CompressionContext.html',1,'yaze::test::CompressionContext']]],
   ['compressionpiece_21',['CompressionPiece',['../structyaze_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html',1,'yaze::gfx::lc_lz2::CompressionPiece'],['../structyaze_1_1test_1_1CompressionPiece.html',1,'yaze::test::CompressionPiece']]],
-  ['constantmanager_22',['ConstantManager',['../classyaze_1_1editor_1_1ConstantManager.html',1,'yaze::editor']]],
-  ['context_23',['Context',['../structyaze_1_1cli_1_1Context.html',1,'yaze::cli']]],
-  ['controller_24',['Controller',['../classyaze_1_1core_1_1Controller.html',1,'yaze::core']]],
-  ['coordinates_25',['Coordinates',['../structTextEditor_1_1Coordinates.html',1,'TextEditor']]],
-  ['counterirqnmiregisters_26',['CounterIrqNmiRegisters',['../structyaze_1_1emu_1_1CounterIrqNmiRegisters.html',1,'yaze::emu']]],
-  ['cpu_27',['Cpu',['../classyaze_1_1emu_1_1Cpu.html',1,'yaze::emu::Cpu'],['../classyaze_1_1test_1_1Cpu.html',1,'yaze::test::Cpu']]],
-  ['cpucallbacks_28',['CpuCallbacks',['../structyaze_1_1emu_1_1CpuCallbacks.html',1,'yaze::emu::CpuCallbacks'],['../structyaze_1_1test_1_1CpuCallbacks.html',1,'yaze::test::CpuCallbacks']]],
-  ['cputest_29',['CpuTest',['../classyaze_1_1test_1_1CpuTest.html',1,'yaze::test']]],
-  ['createpatch_30',['CreatePatch',['../classyaze_1_1cli_1_1CreatePatch.html',1,'yaze::cli']]]
+  ['context_22',['Context',['../structyaze_1_1cli_1_1Context.html',1,'yaze::cli']]],
+  ['controller_23',['Controller',['../classyaze_1_1core_1_1Controller.html',1,'yaze::core']]],
+  ['coordinates_24',['Coordinates',['../structTextEditor_1_1Coordinates.html',1,'TextEditor']]],
+  ['counterirqnmiregisters_25',['CounterIrqNmiRegisters',['../structyaze_1_1emu_1_1CounterIrqNmiRegisters.html',1,'yaze::emu']]],
+  ['cpu_26',['Cpu',['../classyaze_1_1emu_1_1Cpu.html',1,'yaze::emu::Cpu'],['../classyaze_1_1test_1_1Cpu.html',1,'yaze::test::Cpu']]],
+  ['cpucallbacks_27',['CpuCallbacks',['../structyaze_1_1emu_1_1CpuCallbacks.html',1,'yaze::emu::CpuCallbacks'],['../structyaze_1_1test_1_1CpuCallbacks.html',1,'yaze::test::CpuCallbacks']]],
+  ['cputest_28',['CpuTest',['../classyaze_1_1test_1_1CpuTest.html',1,'yaze::test']]],
+  ['createpatch_29',['CreatePatch',['../classyaze_1_1cli_1_1CreatePatch.html',1,'yaze::cli']]]
 ];

@@ -1,11 +1,11 @@
 <map id="yaze::editor::SettingsEditor::DrawGeneralSettings" name="yaze::editor::SettingsEditor::DrawGeneralSettings">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,104,178,145"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1editor_1_1FlagsMenu.html#a40feb9339d113fb5abc966c34738f9d5" title=" " alt="" coords="226,5,381,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,101,225,57,238,50,241,55,227,61,135,106"/>
-<area shape="rect" id="Node000004" href="$structyaze_1_1editor_1_1FlagsMenu.html#a45d0db5dbd68beac54e9859a1856fc58" title=" " alt="" coords="226,71,381,111"/>
-<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="177,108,210,103,211,108,178,113"/>
-<area shape="rect" id="Node000005" href="$structyaze_1_1editor_1_1FlagsMenu.html#a8c942a96a2eadcd41f78d6c8b4a8ee28" title=" " alt="" coords="226,136,381,177"/>
-<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="178,135,211,140,210,145,178,140"/>
-<area shape="rect" id="Node000006" href="$structyaze_1_1editor_1_1FlagsMenu.html#a2a9917c8dab89f300b4289f9e412114e" title=" " alt="" coords="226,201,381,242"/>
-<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="136,143,227,186,241,192,238,197,225,191,134,148"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1core_1_1FlagsMenu.html#abc68206a2a17b5a9081d776338b5af1d" title=" " alt="" coords="226,5,374,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,101,225,57,237,51,240,55,227,61,136,106"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1core_1_1FlagsMenu.html#aa33d2f748044e1f59d2ce0936cd994ab" title=" " alt="" coords="226,71,374,111"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="178,108,210,103,211,108,179,113"/>
+<area shape="rect" id="Node000005" href="$structyaze_1_1core_1_1FlagsMenu.html#afa386b1d1c1ee4cab1dc8d0663381dce" title=" " alt="" coords="226,136,374,177"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="179,135,211,140,210,145,178,140"/>
+<area shape="rect" id="Node000006" href="$structyaze_1_1core_1_1FlagsMenu.html#af6b65b7338428e6249fcb0f6943d0613" title=" " alt="" coords="226,201,374,242"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="137,143,227,186,240,192,238,197,225,191,135,148"/>
 </map>
