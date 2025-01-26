@@ -17,6 +17,7 @@ set(
 set(
   YAZE_UTIL_SRC
   util/bps.cc
+  util/flag.cc
   util/hex.cc
 )
 
@@ -133,8 +134,7 @@ if (YAZE_BUILD_LIB)
       FILES
         incl/yaze.h
         incl/zelda.h
-        incl/snes_tile.h
-        incl/snes_color.h
+        incl/snes.h
         incl/overworld.h
         incl/dungeon.h
       DESTINATION
