@@ -46,7 +46,17 @@
     abort();
   }
 
-  _controller = new yaze::app::core::Controller();
+  _controller = new yaze::core::Controller();
+
+  // Setup Dear ImGui context
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO &io = ImGui::GetIO();
+  (void)io;
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+
+  yaze::gui::ColorsYaze();
 
   SDL_SetMainReady();
   SDL_iOSSetEventPump(SDL_TRUE);
@@ -76,23 +86,14 @@
     abort();
   }
 
-  // Setup Dear ImGui context
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGuiIO &io = ImGui::GetIO();
-  (void)io;
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
-
-  yaze::app::gui::ColorsYaze();
-
-  ImGui_ImplSDL2_InitForSDLRenderer(_controller->window(), _controller->renderer());
-  ImGui_ImplSDLRenderer2_Init(_controller->renderer());
+  ImGui_ImplSDL2_InitForSDLRenderer(_controller->window(),
+                                    core::Renderer::GetInstance().renderer());
+  ImGui_ImplSDLRenderer2_Init(core::Renderer::GetInstance().renderer());
 
   if (!_controller->LoadFontFamilies().ok()) {
     abort();
   }
-  _controller->SetupScreen(rom_filename);
+  _controller->Initialize("");
   _controller->set_active(true);
 
   _hoverGestureRecognizer =
