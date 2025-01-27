@@ -7,10 +7,10 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "app/core/platform/file_dialog.h"
 #include "app/core/platform/font_loader.h"
 #include "app/editor/editor_manager.h"
 #include "app/gui/style.h"
-#include "app/core/platform/file_dialog.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
@@ -19,26 +19,17 @@ namespace yaze {
 namespace core {
 
 absl::Status Controller::OnEntry(std::string filename) {
-#if defined(__APPLE__) && defined(__MACH__)
-#if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1
-  platform_ = Platform::kiOS;
-#elif TARGET_OS_MAC == 1
-  platform_ = Platform::kMacOS;
-#endif
-#elif defined(_WIN32)
-  platform_ = Platform::kWindows;
-#elif defined(__linux__)
-  platform_ = Platform::kLinux;
-#else
-  platform_ = Platform::kUnknown;
-#endif
   RETURN_IF_ERROR(CreateWindow())
   RETURN_IF_ERROR(CreateRenderer())
   RETURN_IF_ERROR(CreateGuiContext())
   RETURN_IF_ERROR(LoadAudioDevice())
+  Initialize(filename);
+  return absl::OkStatus();
+}
+
+void Controller::Initialize(std::string filename) {
   editor_manager_.Initialize(filename);
   active_ = true;
-  return absl::OkStatus();
 }
 
 void Controller::OnInput() {
@@ -49,30 +40,30 @@ void Controller::OnInput() {
   while (SDL_PollEvent(&event)) {
     ImGui_ImplSDL2_ProcessEvent(&event);
     switch (event.type) {
-    case SDL_KEYDOWN:
-    case SDL_KEYUP: {
-      ImGuiIO &io = ImGui::GetIO();
-      io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
-      io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
-      io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
-      io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
-      break;
-    }
-    case SDL_WINDOWEVENT:
-      switch (event.window.event) {
-      case SDL_WINDOWEVENT_CLOSE:
-        active_ = false;
+      case SDL_KEYDOWN:
+      case SDL_KEYUP: {
+        ImGuiIO &io = ImGui::GetIO();
+        io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
+        io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
+        io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
+        io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
         break;
-      case SDL_WINDOWEVENT_SIZE_CHANGED:
-        io.DisplaySize.x = static_cast<float>(event.window.data1);
-        io.DisplaySize.y = static_cast<float>(event.window.data2);
+      }
+      case SDL_WINDOWEVENT:
+        switch (event.window.event) {
+          case SDL_WINDOWEVENT_CLOSE:
+            active_ = false;
+            break;
+          case SDL_WINDOWEVENT_SIZE_CHANGED:
+            io.DisplaySize.x = static_cast<float>(event.window.data1);
+            io.DisplaySize.y = static_cast<float>(event.window.data2);
+            break;
+          default:
+            break;
+        }
         break;
       default:
         break;
-      }
-      break;
-    default:
-      break;
     }
   }
 
@@ -153,12 +144,12 @@ absl::Status Controller::CreateWindow() {
   int screen_height = display_mode.h * 0.8;
 
   window_ = std::unique_ptr<SDL_Window, core::SDL_Deleter>(
-      SDL_CreateWindow("Yet Another Zelda3 Editor", // window title
-                        SDL_WINDOWPOS_UNDEFINED,     // initial x position
-                        SDL_WINDOWPOS_UNDEFINED,     // initial y position
-                        screen_width,                // width, in pixels
-                        screen_height,               // height, in pixels
-                        SDL_WINDOW_RESIZABLE),
+      SDL_CreateWindow("Yet Another Zelda3 Editor",  // window title
+                       SDL_WINDOWPOS_UNDEFINED,      // initial x position
+                       SDL_WINDOWPOS_UNDEFINED,      // initial y position
+                       screen_width,                 // width, in pixels
+                       screen_height,                // height, in pixels
+                       SDL_WINDOW_RESIZABLE),
       core::SDL_Deleter());
   if (window_ == nullptr) {
     return absl::InternalError(
@@ -208,7 +199,7 @@ absl::Status Controller::LoadAudioDevice() {
   want.format = AUDIO_S16;
   want.channels = 2;
   want.samples = 2048;
-  want.callback = NULL; // Uses the queue
+  want.callback = NULL;  // Uses the queue
   audio_device_ = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
   if (audio_device_ == 0) {
     return absl::InternalError(
@@ -225,7 +216,7 @@ absl::Status Controller::LoadAudioDevice() {
 absl::Status Controller::LoadConfigFiles() {
   // Create and load a dotfile for the application
   // This will store the user's preferences and settings
-  std::string config_directory = GetConfigDirectory(platform_);
+  std::string config_directory = GetConfigDirectory();
 
   // Create the directory if it doesn't exist
   if (!std::filesystem::exists(config_directory)) {
@@ -250,5 +241,5 @@ absl::Status Controller::LoadConfigFiles() {
   return absl::OkStatus();
 }
 
-} // namespace core
-} // namespace yaze
+}  // namespace core
+}  // namespace yaze

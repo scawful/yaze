@@ -6,8 +6,8 @@
 #include <memory>
 
 #include "absl/status/status.h"
-#include "app/core/platform/renderer.h"
 #include "app/core/platform/file_dialog.h"
+#include "app/core/platform/renderer.h"
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
@@ -30,6 +30,7 @@ class Controller {
  public:
   bool IsActive() const { return active_; }
   absl::Status OnEntry(std::string filename = "");
+  void Initialize(std::string filename = "");
   void OnInput();
   absl::Status OnLoad();
   absl::Status OnTestLoad();
@@ -43,13 +44,6 @@ class Controller {
   absl::Status LoadAudioDevice();
   absl::Status LoadConfigFiles();
 
-  void SetupScreen(std::string filename = "") {
-    editor_manager_.Initialize(filename);
-  }
-  auto editor_manager() -> editor::EditorManager & { return editor_manager_; }
-  auto renderer() -> SDL_Renderer * {
-    return Renderer::GetInstance().renderer();
-  }
   auto window() -> SDL_Window * { return window_.get(); }
   void init_test_editor(editor::Editor *editor) { test_editor_ = editor; }
   void set_active(bool active) { active_ = active; }
@@ -59,7 +53,6 @@ class Controller {
   friend int ::main(int argc, char **argv);
 
   bool active_ = false;
-  Platform platform_ = Platform::kUnknown;
   editor::Editor *test_editor_ = nullptr;
   editor::EditorManager editor_manager_;
 

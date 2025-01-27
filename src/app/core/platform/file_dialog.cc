@@ -56,7 +56,7 @@ std::string LoadConfigFile(const std::string &filename) {
 #else
   platform = Platform::kLinux;
 #endif
-  std::string filepath = GetConfigDirectory(platform) + "/" + filename;
+  std::string filepath = GetConfigDirectory() + "/" + filename;
   std::ifstream file(filepath);
   if (file.is_open()) {
     std::stringstream buffer;
@@ -67,9 +67,8 @@ std::string LoadConfigFile(const std::string &filename) {
   return contents;
 }
 
-void SaveFile(const std::string &filename, const std::string &contents,
-              Platform platform) {
-  std::string filepath = GetConfigDirectory(platform) + "/" + filename;
+void SaveFile(const std::string &filename, const std::string &contents) {
+  std::string filepath = GetConfigDirectory() + "/" + filename;
   std::ofstream file(filepath);
   if (file.is_open()) {
     file << contents;
@@ -77,8 +76,22 @@ void SaveFile(const std::string &filename, const std::string &contents,
   }
 }
 
-std::string GetConfigDirectory(Platform platform) {
+std::string GetConfigDirectory() {
   std::string config_directory = ".yaze";
+  Platform platform;
+#if defined(__APPLE__) && defined(__MACH__)
+#if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1
+  platform = Platform::kiOS;
+#elif TARGET_OS_MAC == 1
+  platform = Platform::kMacOS;
+#endif
+#elif defined(_WIN32)
+  platform = Platform::kWindows;
+#elif defined(__linux__)
+  platform = Platform::kLinux;
+#else
+  platform = Platform::kUnknown;
+#endif
   switch (platform) {
     case Platform::kWindows:
       config_directory = "~/AppData/Roaming/yaze";
