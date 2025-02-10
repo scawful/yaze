@@ -1,7 +1,11 @@
 #ifndef YAZE_APP_CORE_PLATFORM_FONTLOADER_H
 #define YAZE_APP_CORE_PLATFORM_FONTLOADER_H
 
+#include <vector>
+
 #include "absl/status/status.h"
+
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace core {
@@ -9,7 +13,15 @@ namespace core {
 struct FontConfig {
 	const char* font_path;
 	float font_size;
+  ImFontConfig im_font_config;
+  ImFontConfig jp_conf_config;
 };
+
+struct FontState {
+  std::vector<FontConfig> fonts;
+};
+
+static FontState global_font_state;
 
 absl::Status LoadPackageFonts();
 
