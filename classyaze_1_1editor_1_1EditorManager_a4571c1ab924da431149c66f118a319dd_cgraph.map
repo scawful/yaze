@@ -1,11 +1,7 @@
 <map id="yaze::editor::EditorManager::DrawMenuBar" name="yaze::editor::EditorManager::DrawMenuBar">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,180,68"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,180,64"/>
 <area shape="rect" id="Node000002" href="$namespaceyaze_1_1gui.html#a6fe06700256942a0b651ee6086ef590d" title=" " alt="" coords="228,5,424,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,34,212,30,213,35,180,39"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1EditorManager.html#a731c73794f1434dc3353564e319d1be5" title=" " alt="" coords="239,55,413,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="180,55,224,61,223,66,179,61"/>
-<area shape="rect" id="Node000004" href="$structyaze_1_1core_1_1FlagsMenu.html#abc68206a2a17b5a9081d776338b5af1d" title=" " alt="" coords="472,22,620,62"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="413,60,456,53,457,58,414,65"/>
-<area shape="rect" id="Node000006" href="$structyaze_1_1core_1_1FlagsMenu.html#aa33d2f748044e1f59d2ce0936cd994ab" title=" " alt="" coords="472,87,620,128"/>
-<area shape="poly" id="edge4_Node000003_Node000006" title=" " alt="" coords="414,86,457,92,456,97,413,91"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,31,212,28,213,33,180,37"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gui.html#a627566d8500f099dabff60322d3c187e" title=" " alt="" coords="257,55,395,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="180,50,241,56,241,61,179,55"/>
 </map>

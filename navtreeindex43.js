@@ -1,5 +1,9 @@
 var NAVTREEINDEX43 =
 {
+"namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468abace4837abeacf9fcbc84410da4a8dfd":[11,0,1,8,38,55],
+"namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468abd98c5dc44078eae24a1f1a8ad7bf0ce":[11,0,1,8,38,34],
+"namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468abe14219a6a2360a2abdd9cd2d03ba8a2":[11,0,1,8,38,50],
+"namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468abf3bef71311fbea6a7fda44090b85971":[11,0,1,8,38,10],
 "namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ac2675bd91992ef84a73fd16069a3e55d":[11,0,1,8,38,11],
 "namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ac2ecf68c998deaabf707f5a0d906bc80":[11,0,1,8,38,23],
 "namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ac70933e5b9d0dbe898c6764aebdab3e0":[11,0,1,8,38,3],
@@ -245,9 +249,5 @@ var NAVTREEINDEX43 =
 "overworld__map_8cc_source.html":[13,0,2,0,5,2,5],
 "overworld__map_8h.html":[13,0,2,0,5,2,6],
 "overworld__map_8h_source.html":[13,0,2,0,5,2,6],
-"overworld__test_8cc.html":[13,0,3,4,2],
-"overworld__test_8cc_source.html":[13,0,3,4,2],
-"pages.html":[],
-"palette__editor_8cc.html":[13,0,2,0,1,2,4],
-"palette__editor_8cc.html#ad2559c98ebd96ce5373e91ebc28f455a":[13,0,2,0,1,2,4,0]
+"overworld__test_8cc.html":[13,0,3,4,2]
 };

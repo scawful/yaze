@@ -1,5 +1,9 @@
 var NAVTREEINDEX44 =
 {
+"overworld__test_8cc_source.html":[13,0,3,4,2],
+"pages.html":[],
+"palette__editor_8cc.html":[13,0,2,0,1,2,4],
+"palette__editor_8cc.html#ad2559c98ebd96ce5373e91ebc28f455a":[13,0,2,0,1,2,4,0],
 "palette__editor_8cc_source.html":[13,0,2,0,1,2,4],
 "palette__editor_8h.html":[13,0,2,0,1,2,5],
 "palette__editor_8h_source.html":[13,0,2,0,1,2,5],
@@ -245,9 +249,5 @@ var NAVTREEINDEX44 =
 "structyaze_1_1ResourceLabelManager.html#abd4f0d4db9f33c06effbd3d475afa499":[11,0,1,13,5],
 "structyaze_1_1ResourceLabelManager.html#abd4f0d4db9f33c06effbd3d475afa499":[12,0,0,13,5],
 "structyaze_1_1ResourceLabelManager.html#ad9100d41427354258a6777152ed281c0":[11,0,1,13,2],
-"structyaze_1_1ResourceLabelManager.html#ad9100d41427354258a6777152ed281c0":[12,0,0,13,2],
-"structyaze_1_1ResourceLabelManager_1_1ResourceType.html":[11,0,1,13,0],
-"structyaze_1_1ResourceLabelManager_1_1ResourceType.html":[12,0,0,13,0],
-"structyaze_1_1ResourceLabelManager_1_1ResourceType.html#a4f413863d830fa0ac05739c083138adc":[11,0,1,13,0,0],
-"structyaze_1_1ResourceLabelManager_1_1ResourceType.html#a4f413863d830fa0ac05739c083138adc":[12,0,0,13,0,0]
+"structyaze_1_1ResourceLabelManager.html#ad9100d41427354258a6777152ed281c0":[12,0,0,13,2]
 };

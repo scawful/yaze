@@ -1,5 +1,9 @@
 var NAVTREEINDEX45 =
 {
+"structyaze_1_1ResourceLabelManager_1_1ResourceType.html":[11,0,1,13,0],
+"structyaze_1_1ResourceLabelManager_1_1ResourceType.html":[12,0,0,13,0],
+"structyaze_1_1ResourceLabelManager_1_1ResourceType.html#a4f413863d830fa0ac05739c083138adc":[11,0,1,13,0,0],
+"structyaze_1_1ResourceLabelManager_1_1ResourceType.html#a4f413863d830fa0ac05739c083138adc":[12,0,0,13,0,0],
 "structyaze_1_1ResourceLabelManager_1_1ResourceType.html#a772b3a36cea66aae8e1424a5c5e80a61":[11,0,1,13,0,1],
 "structyaze_1_1ResourceLabelManager_1_1ResourceType.html#a772b3a36cea66aae8e1424a5c5e80a61":[12,0,0,13,0,1],
 "structyaze_1_1Rom_1_1WriteAction.html":[11,0,1,14,0],
@@ -140,6 +144,8 @@ var NAVTREEINDEX45 =
 "structyaze_1_1editor_1_1DictionaryEntry.html#ab5edb1bb548b0a34f9f45232009a7159":[12,0,0,2,4,0],
 "structyaze_1_1editor_1_1EditorContext.html":[11,0,1,2,12],
 "structyaze_1_1editor_1_1EditorContext.html":[12,0,0,2,7],
+"structyaze_1_1editor_1_1EditorContext.html#a1df16c363b9f0011b8045bb6a238a53b":[11,0,1,2,12,3],
+"structyaze_1_1editor_1_1EditorContext.html#a1df16c363b9f0011b8045bb6a238a53b":[12,0,0,2,7,3],
 "structyaze_1_1editor_1_1EditorContext.html#a65cc3d53d2411546c0db652c6aea6a66":[11,0,1,2,12,0],
 "structyaze_1_1editor_1_1EditorContext.html#a65cc3d53d2411546c0db652c6aea6a66":[12,0,0,2,7,0],
 "structyaze_1_1editor_1_1EditorContext.html#a6b22152aba0e6b5b2ca0bdb2123904a2":[11,0,1,2,12,1],
@@ -243,11 +249,5 @@ var NAVTREEINDEX45 =
 "structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a728894e560adace1b82c50d57bf5dd45":[11,0,1,2,25,0,15],
 "structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a728894e560adace1b82c50d57bf5dd45":[12,0,0,2,20,0,15],
 "structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a7da250bf93dbdc74159ae892187ebb82":[11,0,1,2,25,0,14],
-"structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a7da250bf93dbdc74159ae892187ebb82":[12,0,0,2,20,0,14],
-"structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a8c81a5d76f26d45fe12346d1860f62d6":[11,0,1,2,25,0,13],
-"structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a8c81a5d76f26d45fe12346d1860f62d6":[12,0,0,2,20,0,13],
-"structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a8d02c6777221bf27921c6cc8eb145712":[11,0,1,2,25,0,0],
-"structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a8d02c6777221bf27921c6cc8eb145712":[12,0,0,2,20,0,0],
-"structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a993c25b42951cd99a1224e631cd16a7b":[11,0,1,2,25,0,17],
-"structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a993c25b42951cd99a1224e631cd16a7b":[12,0,0,2,20,0,17]
+"structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#a7da250bf93dbdc74159ae892187ebb82":[12,0,0,2,20,0,14]
 };

@@ -1,5 +1,15 @@
 var NAVTREEINDEX48 =
 {
+"structyaze_1_1emu_1_1DspChannel.html#a4c536e5e79ce8f1673272ef87dfe88d4":[11,0,1,3,28,26],
+"structyaze_1_1emu_1_1DspChannel.html#a4c536e5e79ce8f1673272ef87dfe88d4":[12,0,0,3,26,26],
+"structyaze_1_1emu_1_1DspChannel.html#a57b53bcf44ba79f053709a3e98460278":[11,0,1,3,28,20],
+"structyaze_1_1emu_1_1DspChannel.html#a57b53bcf44ba79f053709a3e98460278":[12,0,0,3,26,20],
+"structyaze_1_1emu_1_1DspChannel.html#a625e5c213d7f71b7e3bb8bc7790c63b4":[11,0,1,3,28,23],
+"structyaze_1_1emu_1_1DspChannel.html#a625e5c213d7f71b7e3bb8bc7790c63b4":[12,0,0,3,26,23],
+"structyaze_1_1emu_1_1DspChannel.html#a8e5a6b3cf1411f276ce0ced2e79faa3b":[11,0,1,3,28,6],
+"structyaze_1_1emu_1_1DspChannel.html#a8e5a6b3cf1411f276ce0ced2e79faa3b":[12,0,0,3,26,6],
+"structyaze_1_1emu_1_1DspChannel.html#a9b661b66b0e1f9b6f69ac976d72c33b4":[11,0,1,3,28,4],
+"structyaze_1_1emu_1_1DspChannel.html#a9b661b66b0e1f9b6f69ac976d72c33b4":[12,0,0,3,26,4],
 "structyaze_1_1emu_1_1DspChannel.html#a9c9304cabd9304b06be2a602d47fe83c":[11,0,1,3,28,13],
 "structyaze_1_1emu_1_1DspChannel.html#a9c9304cabd9304b06be2a602d47fe83c":[12,0,0,3,26,13],
 "structyaze_1_1emu_1_1DspChannel.html#aa15dc517e4513898951d0f72262b215a":[11,0,1,3,28,3],
@@ -239,15 +249,5 @@ var NAVTREEINDEX48 =
 "structyaze_1_1emu_1_1OPHCT.html#a2296dac17215cb3aaaa3993570ef4e28":[11,0,1,3,61,1],
 "structyaze_1_1emu_1_1OPHCT.html#a2296dac17215cb3aaaa3993570ef4e28":[12,0,0,3,59,1],
 "structyaze_1_1emu_1_1OPHCT.html#af9ad55ebb5ffa645dc10f1763cbb0914":[11,0,1,3,61,0],
-"structyaze_1_1emu_1_1OPHCT.html#af9ad55ebb5ffa645dc10f1763cbb0914":[12,0,0,3,59,0],
-"structyaze_1_1emu_1_1OPVCT.html":[11,0,1,3,62],
-"structyaze_1_1emu_1_1OPVCT.html":[12,0,0,3,60],
-"structyaze_1_1emu_1_1OPVCT.html#a3edeac82f169028ece235a349790c410":[11,0,1,3,62,1],
-"structyaze_1_1emu_1_1OPVCT.html#a3edeac82f169028ece235a349790c410":[12,0,0,3,60,1],
-"structyaze_1_1emu_1_1OPVCT.html#ac5e39c129d017a3beff6eace51e9e323":[11,0,1,3,62,0],
-"structyaze_1_1emu_1_1OPVCT.html#ac5e39c129d017a3beff6eace51e9e323":[12,0,0,3,60,0],
-"structyaze_1_1emu_1_1SETINI.html":[11,0,1,3,68],
-"structyaze_1_1emu_1_1SETINI.html":[12,0,0,3,66],
-"structyaze_1_1emu_1_1SETINI.html#a17a24cb13da4463f2413b7a043b3ef06":[11,0,1,3,68,1],
-"structyaze_1_1emu_1_1SETINI.html#a17a24cb13da4463f2413b7a043b3ef06":[12,0,0,3,66,1]
+"structyaze_1_1emu_1_1OPHCT.html#af9ad55ebb5ffa645dc10f1763cbb0914":[12,0,0,3,59,0]
 };

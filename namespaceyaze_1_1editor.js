@@ -43,6 +43,7 @@ var namespaceyaze_1_1editor =
     [ "PaletteEditor", "classyaze_1_1editor_1_1PaletteEditor.html", "classyaze_1_1editor_1_1PaletteEditor" ],
     [ "ParsedElement", "structyaze_1_1editor_1_1ParsedElement.html", "structyaze_1_1editor_1_1ParsedElement" ],
     [ "PopupManager", "classyaze_1_1editor_1_1PopupManager.html", "classyaze_1_1editor_1_1PopupManager" ],
+    [ "PopupParams", "structyaze_1_1editor_1_1PopupParams.html", "structyaze_1_1editor_1_1PopupParams" ],
     [ "Renderer", "classyaze_1_1editor_1_1Renderer.html", "classyaze_1_1editor_1_1Renderer" ],
     [ "ScreenEditor", "classyaze_1_1editor_1_1ScreenEditor.html", "classyaze_1_1editor_1_1ScreenEditor" ],
     [ "SettingsEditor", "classyaze_1_1editor_1_1SettingsEditor.html", "classyaze_1_1editor_1_1SettingsEditor" ],

@@ -1,5 +1,9 @@
 var NAVTREEINDEX37 =
 {
+"incl_2overworld_8h.html#a4fb19874710badcf3603558580fd236a":[13,0,1,1,3],
+"incl_2overworld_8h_source.html":[13,0,1,1],
+"incl_2snes_8h.html":[13,0,1,2],
+"incl_2snes_8h.html#a100f9af9f8e1bb9d2ad73476ab774655":[13,0,1,2,7],
 "incl_2snes_8h.html#a38e287988459276888c8616ac482a814":[13,0,1,2,9],
 "incl_2snes_8h.html#a484dd55f0e7ececd8310a787de4ecb9f":[13,0,1,2,11],
 "incl_2snes_8h.html#a7010d1b3caf12995e0ecb41a1c446b94":[13,0,1,2,6],
@@ -245,9 +249,5 @@ var NAVTREEINDEX37 =
 "namespaceyaze.html#ae7f4d060a7da8c9ae259ac78937ff0f5":[11,0,1,33],
 "namespaceyaze.html#aeb8ae3fba1064ff2cf19393b113fac1c":[11,0,1,20],
 "namespaceyaze.html#aefc163a31f0531da9e1636396859b450":[11,0,1,21],
-"namespaceyaze_1_1cli.html":[11,0,1,0],
-"namespaceyaze_1_1cli.html#a4faed45116bb119fd88fb89b6eaab816":[11,0,1,0,22],
-"namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395":[11,0,1,0,18],
-"namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a0904aa5cd86ead4695a80b68d96d331b":[11,0,1,0,18,0],
-"namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a244ce4b6c7f56eaa446d64fc2d068bbb":[11,0,1,0,18,4]
+"namespaceyaze_1_1cli.html":[11,0,1,0]
 };

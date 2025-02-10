@@ -197,6 +197,7 @@ var hierarchy =
     [ "yaze::gfx::Paletteset", "structyaze_1_1gfx_1_1Paletteset.html", null ],
     [ "yaze::editor::ParsedElement", "structyaze_1_1editor_1_1ParsedElement.html", null ],
     [ "yaze::editor::PopupManager", "classyaze_1_1editor_1_1PopupManager.html", null ],
+    [ "yaze::editor::PopupParams", "structyaze_1_1editor_1_1PopupParams.html", null ],
     [ "yaze::emu::PpuInterface", "classyaze_1_1emu_1_1PpuInterface.html", [
       [ "yaze::test::MockPpu", "classyaze_1_1test_1_1MockPpu.html", null ]
     ] ],
