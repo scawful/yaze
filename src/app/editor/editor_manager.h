@@ -80,6 +80,9 @@ class EditorManager : public SharedRom {
   bool rom_info_ = false;
   bool backup_rom_ = false;
   bool save_new_auto_ = true;
+  bool save_as_menu_ = false;
+  bool show_emulator_ = false;
+  bool show_memory_editor_ = false;
   bool show_status_ = false;
   bool rom_assets_loaded_ = false;
 

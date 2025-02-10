@@ -53,6 +53,64 @@ void EditorManager::Initialize(std::string filename) {
   if (!filename.empty()) {
     PRINT_IF_ERROR(rom()->LoadFromFile(filename));
   }
+  gui::kMainMenu.emplace_back("File");
+  gui::kMainMenu.emplace_back("Edit");
+  gui::kMainMenu.emplace_back("View");
+  gui::kMainMenu.emplace_back("Tools");
+  gui::kMainMenu.emplace_back("Help");
+
+  gui::AddToFileMenu(absl::StrCat(ICON_MD_FILE_OPEN, " Open"), "Ctrl+O",
+                     [&]() { LoadRom(); });
+
+  std::vector<gui::MenuItem> recent_files;
+  static RecentFilesManager manager("recent_files.txt");
+  manager.Load();
+  if (manager.GetRecentFiles().empty()) {
+    recent_files.emplace_back("No Recent Files", "", nullptr);
+  } else {
+    for (const auto &filePath : manager.GetRecentFiles()) {
+      recent_files.emplace_back(filePath, "",
+                                [&]() { OpenRomOrProject(filePath); });
+    }
+  }
+  gui::AddToFileMenu(
+      "Open Recent", "", nullptr, []() { return true; }, recent_files);
+
+  gui::AddToFileMenu(absl::StrCat(ICON_MD_FILE_DOWNLOAD, " Save"), "Ctrl+S",
+                     [&]() { SaveRom(); });
+  gui::AddToFileMenu(absl::StrCat(ICON_MD_SAVE_AS, " Save As.."), "",
+                     [&]() { save_as_menu_ = true; });
+  gui::AddToFileMenu(absl::StrCat(ICON_MD_CLOSE, " Close"), "",
+                     [&]() { rom()->Close(); });
+  gui::AddToMenu("-", nullptr, gui::MenuType::kFile);
+  std::vector<gui::MenuItem> options_subitems;
+  options_subitems.emplace_back(
+      "Backup ROM", "", [&]() { backup_rom_ |= backup_rom_; },
+      [&]() { return backup_rom_; });
+  gui::AddToFileMenu(
+      absl::StrCat(ICON_MD_SETTINGS, "Options"), "", [&]() {},
+      []() { return true; }, options_subitems);
+
+  gui::AddToFileMenu("Quit", "Ctrl+Q", [&]() { quit_ = true; });
+
+  gui::AddToEditMenu(absl::StrCat(ICON_MD_CONTENT_CUT, " Cut"), "Cmd+X",
+                     [&]() { status_ = current_editor_->Cut(); });
+  gui::AddToEditMenu(absl::StrCat(ICON_MD_CONTENT_COPY, " Copy"), "Cmd+C",
+                     [&]() { status_ = current_editor_->Copy(); });
+  gui::AddToEditMenu(absl::StrCat(ICON_MD_CONTENT_PASTE, " Paste"), "Cmd+V",
+                     [&]() { status_ = current_editor_->Paste(); });
+  gui::AddToEditMenu(absl::StrCat(ICON_MD_UNDO, " Undo"), "Cmd+Z",
+                     [&]() { status_ = current_editor_->Undo(); });
+  gui::AddToEditMenu(absl::StrCat(ICON_MD_REDO, " Redo"), "Cmd+Y",
+                     [&]() { status_ = current_editor_->Redo(); });
+  gui::AddToEditMenu(absl::StrCat(ICON_MD_SEARCH, " Find"), "Cmd+F",
+                     [&]() { status_ = current_editor_->Find(); });
+
+  gui::AddToViewMenu(absl::StrCat(ICON_MD_GAMEPAD, " Emulator"), "",
+                     [&]() { show_emulator_ = true; });
+  gui::AddToViewMenu(absl::StrCat(ICON_MD_MEMORY, " Memory Editor"), "",
+                     [&]() { show_memory_editor_ = true; });
+
   overworld_editor_.Initialize();
 }
 
@@ -382,7 +440,8 @@ void EditorManager::DrawMenuBar() {
   static bool show_display_settings = false;
 
   if (BeginMenuBar()) {
-    DrawMenuContent();
+    gui::DrawMenu(gui::kMainMenu);
+    // DrawMenuContent();
 
     SameLine(GetWindowWidth() - GetStyle().ItemSpacing.x -
              CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x - 110);
