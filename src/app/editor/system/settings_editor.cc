@@ -10,24 +10,16 @@ namespace yaze {
 namespace editor {
 
 using ImGui::BeginChild;
-using ImGui::BeginMenu;
 using ImGui::BeginTabBar;
 using ImGui::BeginTabItem;
 using ImGui::BeginTable;
-using ImGui::Checkbox;
 using ImGui::EndChild;
-using ImGui::EndMenu;
 using ImGui::EndTabBar;
 using ImGui::EndTabItem;
 using ImGui::EndTable;
-using ImGui::TableHeader;
 using ImGui::TableHeadersRow;
 using ImGui::TableNextColumn;
-using ImGui::TableNextRow;
-using ImGui::TableSetBgColor;
-using ImGui::TableSetColumnIndex;
 using ImGui::TableSetupColumn;
-using ImGui::Text;
 
 absl::Status SettingsEditor::Update() {
   if (BeginTabBar("Settings", ImGuiTabBarFlags_None)) {
