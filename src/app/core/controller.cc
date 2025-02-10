@@ -205,7 +205,6 @@ absl::Status Controller::LoadAudioDevice() {
     return absl::InternalError(
         absl::StrFormat("Failed to open audio: %s\n", SDL_GetError()));
   }
-  // audio_buffer_ = new int16_t[audio_frequency_ / 50 * 4];
   audio_buffer_ = std::make_shared<int16_t>(audio_frequency_ / 50 * 4);
   SDL_PauseAudioDevice(audio_device_, 0);
   editor_manager_.emulator().set_audio_buffer(audio_buffer_.get());
