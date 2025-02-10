@@ -11,6 +11,7 @@
 #include <variant>
 #include <vector>
 
+#include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "app/gfx/snes_tile.h"
 #include "imgui/imgui.h"
@@ -67,7 +68,63 @@ void AddTableColumn(Table &table, const std::string &label, GuiElement element);
 
 void DrawTable(Table &params);
 
-} // namespace gui
-} // namespace yaze
+static std::function<bool()> kDefaultEnabledCondition = []() { return false; };
+
+struct MenuItem {
+  std::string name;
+  std::string shortcut;
+  std::function<void()> callback;
+  std::function<bool()> enabled_condition = kDefaultEnabledCondition;
+  std::vector<MenuItem> subitems;
+};
+using Menu = std::vector<MenuItem>;
+
+void DrawMenu(Menu &params);
+
+enum MenuType {
+  kFile,
+  kEdit,
+  kView,
+  kTools,
+  kHelp,
+};
+
+static Menu kMainMenu;
+
+inline void AddToMenu(const std::string &label, const char *icon,
+                      MenuType type) {
+  if (icon) {
+    kMainMenu[type].subitems.emplace_back(absl::StrCat(icon, " ", label), "",
+                                          nullptr);
+  } else {
+    kMainMenu[type].subitems.emplace_back(label, "", nullptr);
+  }
+}
+
+inline void AddToFileMenu(const std::string &label, const std::string &shortcut,
+                          std::function<void()> callback) {
+  kMainMenu[MenuType::kFile].subitems.emplace_back(label, shortcut, callback);
+}
+
+inline void AddToFileMenu(const std::string &label, const std::string &shortcut,
+                          std::function<void()> callback,
+                          std::function<bool()> enabled_condition,
+                          std::vector<MenuItem> subitems) {
+  kMainMenu[MenuType::kFile].subitems.emplace_back(label, shortcut, callback,
+                                                   enabled_condition, subitems);
+}
+
+inline void AddToEditMenu(const std::string &label, const std::string &shortcut,
+                          std::function<void()> callback) {
+  kMainMenu[MenuType::kEdit].subitems.emplace_back(label, shortcut, callback);
+}
+
+inline void AddToViewMenu(const std::string &label, const std::string &shortcut,
+                          std::function<void()> callback) {
+  kMainMenu[MenuType::kView].subitems.emplace_back(label, shortcut, callback);
+}
+
+}  // namespace gui
+}  // namespace yaze
 
 #endif

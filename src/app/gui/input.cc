@@ -255,13 +255,15 @@ bool InputTileInfo(const char* label, gfx::TileInfo* tile_info) {
 
 ImGuiID GetID(const std::string& id) { return ImGui::GetID(id.c_str()); }
 
-void AddTableColumn(Table &table, const std::string &label, GuiElement element) {
+void AddTableColumn(Table& table, const std::string& label,
+                    GuiElement element) {
   table.column_labels.push_back(label);
   table.column_contents.push_back(element);
 }
 
 void DrawTable(Table& params) {
-  if (ImGui::BeginTable(params.id, params.num_columns, params.flags, params.size)) {
+  if (ImGui::BeginTable(params.id, params.num_columns, params.flags,
+                        params.size)) {
     for (int i = 0; i < params.num_columns; ++i)
       ImGui::TableSetupColumn(params.column_labels[i].c_str());
 
@@ -277,6 +279,35 @@ void DrawTable(Table& params) {
       }
     }
     ImGui::EndTable();
+  }
+}
+
+void DrawMenu(Menu& menu) {
+  for (const auto& each_menu : menu) {
+    if (ImGui::BeginMenu(each_menu.name.c_str())) {
+      for (const auto& each_item : each_menu.subitems) {
+        if (!each_item.subitems.empty()) {
+          if (ImGui::BeginMenu(each_item.name.c_str())) {
+            for (const auto& each_subitem : each_item.subitems) {
+              if (ImGui::MenuItem(each_subitem.name.c_str(),
+                                  each_subitem.shortcut.c_str())) {
+                if (each_subitem.callback) each_subitem.callback();
+              }
+            }
+            ImGui::EndMenu();
+          }
+        } else if (each_item.name == "-") {
+          ImGui::Separator();
+        } else {
+          if (ImGui::MenuItem(each_item.name.c_str(),
+                              each_item.shortcut.c_str(),
+                              each_item.enabled_condition())) {
+            if (each_item.callback) each_item.callback();
+          }
+        }
+      }
+      ImGui::EndMenu();
+    }
   }
 }
 
