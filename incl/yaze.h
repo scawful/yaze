@@ -27,6 +27,7 @@ typedef enum yaze_status {
   YAZE_ERROR = 1,
 } yaze_status;
 
+int yaze_app_main(int argc, char** argv);
 void yaze_check_version(const char* version);
 
 yaze_status yaze_init(yaze_editor_context*);
