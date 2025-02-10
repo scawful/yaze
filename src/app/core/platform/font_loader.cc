@@ -98,21 +98,6 @@ absl::Status AddJapaneseFont() {
 absl::Status LoadPackageFonts() {
   ImGuiIO& io = ImGui::GetIO();
 
-  // Icon configuration
-  static const ImWchar icons_ranges[] = {ICON_MIN_MD, 0xf900, 0};
-  ImFontConfig icons_config;
-  icons_config.MergeMode = true;
-  icons_config.GlyphOffset.y = 5.0f;
-  icons_config.GlyphMinAdvanceX = 13.0f;
-  icons_config.PixelSnapH = true;
-
-  // Japanese font configuration
-  ImFontConfig japanese_font_config;
-  japanese_font_config.MergeMode = true;
-  icons_config.GlyphOffset.y = 5.0f;
-  icons_config.GlyphMinAdvanceX = 13.0f;
-  icons_config.PixelSnapH = true;
-
   // List of fonts to be loaded
   std::vector<const char*> font_paths = {
       KARLA_REGULAR, ROBOTO_MEDIUM, COUSINE_REGULAR, IBM_PLEX_JP, DROID_SANS};
