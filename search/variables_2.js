@@ -1,7 +1,7 @@
 var searchData=
 [
   ['c_0',['C',['../structyaze_1_1emu_1_1Spc700_1_1Flags.html#ae930ff35735e8609a50d5008a98658fb',1,'yaze::emu::Spc700::Flags::C'],['../structyaze_1_1test_1_1Spc700_1_1Flags.html#ae930ff35735e8609a50d5008a98658fb',1,'yaze::test::Spc700::Flags::C']]],
-  ['callback_1',['callback',['../structyaze_1_1gui_1_1zeml_1_1Action.html#af048a60926dff362be50f8efaa01c29a',1,'yaze::gui::zeml::Action']]],
+  ['callback_1',['callback',['../structyaze_1_1gui_1_1MenuItem.html#a23b36bed198239d27fd3e83293186fc4',1,'yaze::gui::MenuItem::callback'],['../structyaze_1_1gui_1_1zeml_1_1Action.html#af048a60926dff362be50f8efaa01c29a',1,'yaze::gui::zeml::Action::callback']]],
   ['callbacks_5f_2',['callbacks_',['../classyaze_1_1emu_1_1Apu.html#a248312b56cd2c2fed588e7911d2d4c54',1,'yaze::emu::Apu::callbacks_'],['../classyaze_1_1emu_1_1Spc700.html#aed9add59ca63a896a9a17582cc15db5d',1,'yaze::emu::Spc700::callbacks_'],['../classyaze_1_1emu_1_1Cpu.html#ac26554b300f70f64b7479284a987fb94',1,'yaze::emu::Cpu::callbacks_'],['../classyaze_1_1test_1_1Spc700Test.html#a6ecdf3f6638805ba871148e32d1b3dcb',1,'yaze::test::Spc700Test::callbacks_'],['../classyaze_1_1test_1_1Cpu.html#ac26554b300f70f64b7479284a987fb94',1,'yaze::test::Cpu::callbacks_'],['../classyaze_1_1test_1_1Spc700.html#aed9add59ca63a896a9a17582cc15db5d',1,'yaze::test::Spc700::callbacks_']]],
   ['camera_5fboundary_5ffe_5f_3',['camera_boundary_fe_',['../classyaze_1_1zelda3_1_1RoomEntrance.html#a725b962ee47d1b866eb9c2bc532fbf81',1,'yaze::zelda3::RoomEntrance']]],
   ['camera_5fboundary_5ffn_5f_4',['camera_boundary_fn_',['../classyaze_1_1zelda3_1_1RoomEntrance.html#ac0146430de72355794c266520261bc1b',1,'yaze::zelda3::RoomEntrance']]],

@@ -1,13 +1,5 @@
 var NAVTREEINDEX6 =
 {
-"classyaze_1_1editor_1_1OverworldEditor.html#ae87088c60dda9b82fa273d33271d31c3":[12,0,0,2,22,70],
-"classyaze_1_1editor_1_1OverworldEditor.html#ae8869549ac317eda0fd4fccff907acc0":[11,0,1,2,27,23],
-"classyaze_1_1editor_1_1OverworldEditor.html#ae8869549ac317eda0fd4fccff907acc0":[12,0,0,2,22,23],
-"classyaze_1_1editor_1_1OverworldEditor.html#ae90149bd11c7e73da9d1e946764869c1":[11,0,1,2,27,57],
-"classyaze_1_1editor_1_1OverworldEditor.html#ae90149bd11c7e73da9d1e946764869c1":[12,0,0,2,22,57],
-"classyaze_1_1editor_1_1OverworldEditor.html#ae92daa6ce01246b804d6c5bbd257807f":[11,0,1,2,27,89],
-"classyaze_1_1editor_1_1OverworldEditor.html#ae92daa6ce01246b804d6c5bbd257807f":[12,0,0,2,22,89],
-"classyaze_1_1editor_1_1OverworldEditor.html#aea8267c4f7c87f90980a353edb9d27a1":[11,0,1,2,27,1],
 "classyaze_1_1editor_1_1OverworldEditor.html#aea8267c4f7c87f90980a353edb9d27a1":[12,0,0,2,22,1],
 "classyaze_1_1editor_1_1OverworldEditor.html#aea8267c4f7c87f90980a353edb9d27a1a148371ebaecd6dd4912306b957c46b91":[11,0,1,2,27,1,1],
 "classyaze_1_1editor_1_1OverworldEditor.html#aea8267c4f7c87f90980a353edb9d27a1a148371ebaecd6dd4912306b957c46b91":[12,0,0,2,22,1,1],
@@ -249,5 +241,13 @@ var NAVTREEINDEX6 =
 "classyaze_1_1editor_1_1SettingsEditor.html#acaafae3f676edf353f195992d74059d1":[12,0,0,2,28,0],
 "classyaze_1_1editor_1_1SettingsEditor.html#add68c4f76bd813bd16194cf948e7672d":[11,0,1,2,33,4],
 "classyaze_1_1editor_1_1SettingsEditor.html#add68c4f76bd813bd16194cf948e7672d":[12,0,0,2,28,4],
-"classyaze_1_1editor_1_1SettingsEditor.html#aebb7c260e88a2d6087130a502366c3f8":[11,0,1,2,33,9]
+"classyaze_1_1editor_1_1SettingsEditor.html#aebb7c260e88a2d6087130a502366c3f8":[11,0,1,2,33,9],
+"classyaze_1_1editor_1_1SettingsEditor.html#aebb7c260e88a2d6087130a502366c3f8":[12,0,0,2,28,9],
+"classyaze_1_1editor_1_1SpriteEditor.html":[11,0,1,2,34],
+"classyaze_1_1editor_1_1SpriteEditor.html":[12,0,0,2,29],
+"classyaze_1_1editor_1_1SpriteEditor.html#a07ec22f50553dd8446ecc576b7d3367b":[11,0,1,2,34,16],
+"classyaze_1_1editor_1_1SpriteEditor.html#a07ec22f50553dd8446ecc576b7d3367b":[12,0,0,2,29,16],
+"classyaze_1_1editor_1_1SpriteEditor.html#a08b19adcef55093c57d5411ceeaeebeb":[11,0,1,2,34,25],
+"classyaze_1_1editor_1_1SpriteEditor.html#a08b19adcef55093c57d5411ceeaeebeb":[12,0,0,2,29,25],
+"classyaze_1_1editor_1_1SpriteEditor.html#a098f4ff3c8f79aafe9faf6b98675f67d":[11,0,1,2,34,8]
 };

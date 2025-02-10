@@ -8,5 +8,6 @@ var searchData=
   ['flags_5',['Flags',['../structyaze_1_1core_1_1FeatureFlags_1_1Flags.html',1,'yaze::core::FeatureFlags::Flags'],['../structyaze_1_1emu_1_1Spc700_1_1Flags.html',1,'yaze::emu::Spc700::Flags'],['../structyaze_1_1test_1_1Spc700_1_1Flags.html',1,'yaze::test::Spc700::Flags']]],
   ['flagsmenu_6',['FlagsMenu',['../structyaze_1_1core_1_1FlagsMenu.html',1,'yaze::core']]],
   ['folderitem_7',['FolderItem',['../structyaze_1_1editor_1_1FolderItem.html',1,'yaze::editor']]],
-  ['fontconfig_8',['FontConfig',['../structyaze_1_1core_1_1FontConfig.html',1,'yaze::core']]]
+  ['fontconfig_8',['FontConfig',['../structyaze_1_1core_1_1FontConfig.html',1,'yaze::core']]],
+  ['fontstate_9',['FontState',['../structyaze_1_1core_1_1FontState.html',1,'yaze::core']]]
 ];

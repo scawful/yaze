@@ -117,6 +117,7 @@ var hierarchy =
     [ "yaze::core::FlagsMenu", "structyaze_1_1core_1_1FlagsMenu.html", null ],
     [ "yaze::editor::FolderItem", "structyaze_1_1editor_1_1FolderItem.html", null ],
     [ "yaze::core::FontConfig", "structyaze_1_1core_1_1FontConfig.html", null ],
+    [ "yaze::core::FontState", "structyaze_1_1core_1_1FontState.html", null ],
     [ "yaze::zelda3::GameEntity", "classyaze_1_1zelda3_1_1GameEntity.html", [
       [ "yaze::zelda3::OverworldEntrance", "classyaze_1_1zelda3_1_1OverworldEntrance.html", null ],
       [ "yaze::zelda3::OverworldExit", "classyaze_1_1zelda3_1_1OverworldExit.html", null ],
@@ -162,6 +163,7 @@ var hierarchy =
       [ "yaze::emu::MemoryImpl", "classyaze_1_1emu_1_1MemoryImpl.html", null ],
       [ "yaze::emu::MockMemory", "classyaze_1_1emu_1_1MockMemory.html", null ]
     ] ],
+    [ "yaze::gui::MenuItem", "structyaze_1_1gui_1_1MenuItem.html", null ],
     [ "yaze::editor::MessageData", "structyaze_1_1editor_1_1MessageData.html", null ],
     [ "yaze::emu::MnemonicMode", "structyaze_1_1emu_1_1MnemonicMode.html", null ],
     [ "yaze::emu::MnemonicModeHash", "structyaze_1_1emu_1_1MnemonicModeHash.html", null ],

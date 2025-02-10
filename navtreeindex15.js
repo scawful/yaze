@@ -1,13 +1,5 @@
 var NAVTREEINDEX15 =
 {
-"classyaze_1_1gfx_1_1GraphicsBuffer.html#ad22d9ba7a530cf2285e6292a0f415d46":[12,0,0,4,4,11],
-"classyaze_1_1gfx_1_1GraphicsBuffer.html#ade114332e9b0502443c9a6bc80254f2a":[11,0,1,4,6,7],
-"classyaze_1_1gfx_1_1GraphicsBuffer.html#ade114332e9b0502443c9a6bc80254f2a":[12,0,0,4,4,7],
-"classyaze_1_1gfx_1_1OamTile.html":[11,0,1,4,8],
-"classyaze_1_1gfx_1_1OamTile.html":[12,0,0,4,6],
-"classyaze_1_1gfx_1_1OamTile.html#a07b2f24cee0bdad37a86b3bdbd3e90bc":[11,0,1,4,8,4],
-"classyaze_1_1gfx_1_1OamTile.html#a07b2f24cee0bdad37a86b3bdbd3e90bc":[12,0,0,4,6,4],
-"classyaze_1_1gfx_1_1OamTile.html#a3d23cffc7625a28e1db3223dc80630f5":[11,0,1,4,8,3],
 "classyaze_1_1gfx_1_1OamTile.html#a3d23cffc7625a28e1db3223dc80630f5":[12,0,0,4,6,3],
 "classyaze_1_1gfx_1_1OamTile.html#a9bcd9f22e517cb53e23d84b192c9549f":[11,0,1,4,8,6],
 "classyaze_1_1gfx_1_1OamTile.html#a9bcd9f22e517cb53e23d84b192c9549f":[12,0,0,4,6,6],
@@ -249,5 +241,13 @@ var NAVTREEINDEX15 =
 "classyaze_1_1gui_1_1Bitmap.html":[12,0,0,5,2],
 "classyaze_1_1gui_1_1Bitmap.html#a077d82f2218f1ddcd63922e7187e53e0":[11,0,1,5,4,9],
 "classyaze_1_1gui_1_1Bitmap.html#a077d82f2218f1ddcd63922e7187e53e0":[12,0,0,5,2,9],
-"classyaze_1_1gui_1_1Bitmap.html#a0b6240e469dae9ab4d88f3e2051d4510":[11,0,1,5,4,19]
+"classyaze_1_1gui_1_1Bitmap.html#a0b6240e469dae9ab4d88f3e2051d4510":[11,0,1,5,4,19],
+"classyaze_1_1gui_1_1Bitmap.html#a0b6240e469dae9ab4d88f3e2051d4510":[12,0,0,5,2,19],
+"classyaze_1_1gui_1_1Bitmap.html#a0c938e3c3f656555b3b8c6ef86adb265":[11,0,1,5,4,32],
+"classyaze_1_1gui_1_1Bitmap.html#a0c938e3c3f656555b3b8c6ef86adb265":[12,0,0,5,2,32],
+"classyaze_1_1gui_1_1Bitmap.html#a1725878c64e66f79cecade531d14d384":[11,0,1,5,4,7],
+"classyaze_1_1gui_1_1Bitmap.html#a1725878c64e66f79cecade531d14d384":[12,0,0,5,2,7],
+"classyaze_1_1gui_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98":[11,0,1,5,4,12],
+"classyaze_1_1gui_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98":[12,0,0,5,2,12],
+"classyaze_1_1gui_1_1Bitmap.html#a23788e804babb9cbf0a087eb1fd79d99":[11,0,1,5,4,3]
 };

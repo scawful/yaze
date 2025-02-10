@@ -54,6 +54,5 @@ var namespaceyaze_1_1gui_1_1zeml =
     [ "Bind", "namespaceyaze_1_1gui_1_1zeml.html#a9a1ab3a01c40a1afa16a2c456ca7b282", null ],
     [ "BindAction", "namespaceyaze_1_1gui_1_1zeml.html#a6fc762267f90137907b99c803ac25ed0", null ],
     [ "BindSelectable", "namespaceyaze_1_1gui_1_1zeml.html#ab694ba5e9ccc04b14bc3b627651434e9", null ],
-    [ "LoadFile", "namespaceyaze_1_1gui_1_1zeml.html#a970f74b3460aaf645f0a45e0a4f561aa", null ],
-    [ "ParseDefinitions", "namespaceyaze_1_1gui_1_1zeml.html#a5a38894b3dde2de6dc92a3fe2c30dc9f", null ]
+    [ "LoadFile", "namespaceyaze_1_1gui_1_1zeml.html#a970f74b3460aaf645f0a45e0a4f561aa", null ]
 ];

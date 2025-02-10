@@ -27,7 +27,7 @@ var searchData=
   ['getcharacterindex_24',['GetCharacterIndex',['../classTextEditor.html#a4549652ac52a9936e695614ed588c445',1,'TextEditor']]],
   ['getcolfiledata_25',['GetColFileData',['../namespaceyaze_1_1gfx.html#af8fed1cb0f0baca7110e27e8594da601',1,'yaze::gfx']]],
   ['getcolor_26',['GetColor',['../classyaze_1_1gfx_1_1SnesPalette.html#a526b8c0d069fd26b5dd6970c81666d0d',1,'yaze::gfx::SnesPalette']]],
-  ['getconfigdirectory_27',['GetConfigDirectory',['../namespaceyaze_1_1core.html#a6ce28d9949b2dd0f6b6f6ae922700ae2',1,'yaze::core']]],
+  ['getconfigdirectory_27',['GetConfigDirectory',['../namespaceyaze_1_1core.html#af3dbed157830d6193bd5c7f74b8361a3',1,'yaze::core']]],
   ['getconfiguration_28',['GetConfiguration',['../classyaze_1_1zelda3_1_1SpriteInstruction.html#ac14981bf7b1288751377cf81ed1d8a28',1,'yaze::zelda3::SpriteInstruction::GetConfiguration()'],['../classyaze_1_1zelda3_1_1SpriteAction.html#a7ac52c22e193acdb75a069e96bb7c549',1,'yaze::zelda3::SpriteAction::GetConfiguration()']]],
   ['getcurrentlinetext_29',['GetCurrentLineText',['../classTextEditor.html#a71f7d9d34a2616207a75555b642cdab5',1,'TextEditor']]],
   ['getcursorposition_30',['GetCursorPosition',['../classTextEditor.html#a4a612fee7deb8e2f0d27408846e94905',1,'TextEditor']]],

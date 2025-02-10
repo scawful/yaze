@@ -1,13 +1,5 @@
 var NAVTREEINDEX7 =
 {
-"classyaze_1_1editor_1_1SettingsEditor.html#aebb7c260e88a2d6087130a502366c3f8":[12,0,0,2,28,9],
-"classyaze_1_1editor_1_1SpriteEditor.html":[11,0,1,2,34],
-"classyaze_1_1editor_1_1SpriteEditor.html":[12,0,0,2,29],
-"classyaze_1_1editor_1_1SpriteEditor.html#a07ec22f50553dd8446ecc576b7d3367b":[11,0,1,2,34,16],
-"classyaze_1_1editor_1_1SpriteEditor.html#a07ec22f50553dd8446ecc576b7d3367b":[12,0,0,2,29,16],
-"classyaze_1_1editor_1_1SpriteEditor.html#a08b19adcef55093c57d5411ceeaeebeb":[11,0,1,2,34,25],
-"classyaze_1_1editor_1_1SpriteEditor.html#a08b19adcef55093c57d5411ceeaeebeb":[12,0,0,2,29,25],
-"classyaze_1_1editor_1_1SpriteEditor.html#a098f4ff3c8f79aafe9faf6b98675f67d":[11,0,1,2,34,8],
 "classyaze_1_1editor_1_1SpriteEditor.html#a098f4ff3c8f79aafe9faf6b98675f67d":[12,0,0,2,29,8],
 "classyaze_1_1editor_1_1SpriteEditor.html#a15bd364cc45b89ac9391918a59d1b747":[11,0,1,2,34,15],
 "classyaze_1_1editor_1_1SpriteEditor.html#a15bd364cc45b89ac9391918a59d1b747":[12,0,0,2,29,15],
@@ -249,5 +241,13 @@ var NAVTREEINDEX7 =
 "classyaze_1_1emu_1_1AudioRamImpl.html#a69d1420e0bf9f1c9a97f1e8d255c6b16":[12,0,0,3,4,6],
 "classyaze_1_1emu_1_1AudioRamImpl.html#a9878c8915435d66404858dd76a0196c0":[11,0,1,3,6,4],
 "classyaze_1_1emu_1_1AudioRamImpl.html#a9878c8915435d66404858dd76a0196c0":[12,0,0,3,4,4],
-"classyaze_1_1emu_1_1AudioRamImpl.html#aba9889c3b1daf8a6c841865df38b2573":[11,0,1,3,6,3]
+"classyaze_1_1emu_1_1AudioRamImpl.html#aba9889c3b1daf8a6c841865df38b2573":[11,0,1,3,6,3],
+"classyaze_1_1emu_1_1AudioRamImpl.html#aba9889c3b1daf8a6c841865df38b2573":[12,0,0,3,4,3],
+"classyaze_1_1emu_1_1AudioRamImpl.html#ac0f0e81e1341021a7b1a848d8ee2cd38":[11,0,1,3,6,5],
+"classyaze_1_1emu_1_1AudioRamImpl.html#ac0f0e81e1341021a7b1a848d8ee2cd38":[12,0,0,3,4,5],
+"classyaze_1_1emu_1_1Cpu.html":[11,0,1,3,23],
+"classyaze_1_1emu_1_1Cpu.html":[12,0,0,3,21],
+"classyaze_1_1emu_1_1Cpu.html#a004ff2a9047134aaf53ab06fe93279a6":[11,0,1,3,23,102],
+"classyaze_1_1emu_1_1Cpu.html#a004ff2a9047134aaf53ab06fe93279a6":[12,0,0,3,21,102],
+"classyaze_1_1emu_1_1Cpu.html#a01273c52b8847783e6f0b99373a18d94":[11,0,1,3,23,199]
 };

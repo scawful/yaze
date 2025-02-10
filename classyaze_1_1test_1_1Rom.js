@@ -7,7 +7,7 @@ var classyaze_1_1test_1_1Rom =
     [ "SavePalette", "classyaze_1_1test_1_1Rom.html#abaa145655ce6535abf0026f785839a55", null ],
     [ "SaveAllPalettes", "classyaze_1_1test_1_1Rom.html#afde2c40d5cb9eaf14b64dae1da43afd7", null ],
     [ "Expand", "classyaze_1_1test_1_1Rom.html#a784e5cc628d64f3d058b8fdd74c26047", null ],
-    [ "Close", "classyaze_1_1test_1_1Rom.html#af7f209e2d6aa360a98a61994fb80f48f", null ],
+    [ "Close", "classyaze_1_1test_1_1Rom.html#ac6840844a3206b776b6f287357e22f31", null ],
     [ "ReadByte", "classyaze_1_1test_1_1Rom.html#abfad5beaef8b6648f43c1ee018d1b6ee", null ],
     [ "ReadWord", "classyaze_1_1test_1_1Rom.html#a6bd8ce3b192c32b2ed6c58f7b154787e", null ],
     [ "ReadLong", "classyaze_1_1test_1_1Rom.html#a8c48d143c9e137f8bd0d5983e3ce2a35", null ],

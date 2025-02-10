@@ -1,13 +1,5 @@
 var NAVTREEINDEX37 =
 {
-"icons_8h.html#afff9009d6fef719a3c441cd60de21210":[13,0,2,0,4,5,1471],
-"icons_8h_source.html":[13,0,2,0,4,5],
-"incl_2overworld_8h.html":[13,0,1,1],
-"incl_2overworld_8h.html#a0fb092c5014355cc0be54729e31a99c7":[13,0,1,1,2],
-"incl_2overworld_8h.html#a4fb19874710badcf3603558580fd236a":[13,0,1,1,3],
-"incl_2overworld_8h_source.html":[13,0,1,1],
-"incl_2snes_8h.html":[13,0,1,2],
-"incl_2snes_8h.html#a100f9af9f8e1bb9d2ad73476ab774655":[13,0,1,2,7],
 "incl_2snes_8h.html#a38e287988459276888c8616ac482a814":[13,0,1,2,9],
 "incl_2snes_8h.html#a484dd55f0e7ececd8310a787de4ecb9f":[13,0,1,2,11],
 "incl_2snes_8h.html#a7010d1b3caf12995e0ecb41a1c446b94":[13,0,1,2,6],
@@ -18,7 +10,7 @@ var NAVTREEINDEX37 =
 "input_8cc.html":[13,0,2,0,4,6],
 "input_8cc_source.html":[13,0,2,0,4,6],
 "input_8h.html":[13,0,2,0,4,7],
-"input_8h.html#adf4d73301961430d50d7edd96f92ce38":[13,0,2,0,4,7,1],
+"input_8h.html#adf4d73301961430d50d7edd96f92ce38":[13,0,2,0,4,7,2],
 "input_8h_source.html":[13,0,2,0,4,7],
 "inventory_8cc.html":[13,0,2,0,5,3,2],
 "inventory_8cc_source.html":[13,0,2,0,5,3,2],
@@ -249,5 +241,13 @@ var NAVTREEINDEX37 =
 "namespaceyaze.html#acd38081a0d3a77b20abfb9375574d1b9":[11,0,1,19],
 "namespaceyaze.html#acf543dde4eeff4bc273d61a4ffda5d41":[11,0,1,16],
 "namespaceyaze.html#adc07abaabd36d08f9073b9229ddc5f57":[11,0,1,26],
-"namespaceyaze.html#ae3027bef139fcf788bb8a0d3f6f1a3ed":[11,0,1,40]
+"namespaceyaze.html#ae3027bef139fcf788bb8a0d3f6f1a3ed":[11,0,1,40],
+"namespaceyaze.html#ae7f4d060a7da8c9ae259ac78937ff0f5":[11,0,1,33],
+"namespaceyaze.html#aeb8ae3fba1064ff2cf19393b113fac1c":[11,0,1,20],
+"namespaceyaze.html#aefc163a31f0531da9e1636396859b450":[11,0,1,21],
+"namespaceyaze_1_1cli.html":[11,0,1,0],
+"namespaceyaze_1_1cli.html#a4faed45116bb119fd88fb89b6eaab816":[11,0,1,0,22],
+"namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395":[11,0,1,0,18],
+"namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a0904aa5cd86ead4695a80b68d96d331b":[11,0,1,0,18,0],
+"namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a244ce4b6c7f56eaa446d64fc2d068bbb":[11,0,1,0,18,4]
 };

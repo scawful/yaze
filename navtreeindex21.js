@@ -1,13 +1,5 @@
 var NAVTREEINDEX21 =
 {
-"classyaze_1_1test_1_1Spc700.html#a70129acc7947101c67895c01e1bf0647":[12,0,0,6,20,7],
-"classyaze_1_1test_1_1Spc700.html#a7133b2b25a80ef81d77148bfe046970c":[11,0,1,6,22,132],
-"classyaze_1_1test_1_1Spc700.html#a7133b2b25a80ef81d77148bfe046970c":[12,0,0,6,20,132],
-"classyaze_1_1test_1_1Spc700.html#a73d5283f0cae7bf75c641c0422acbe06":[11,0,1,6,22,29],
-"classyaze_1_1test_1_1Spc700.html#a73d5283f0cae7bf75c641c0422acbe06":[12,0,0,6,20,29],
-"classyaze_1_1test_1_1Spc700.html#a76a74b4095ac1f6d651593d90fa740da":[11,0,1,6,22,117],
-"classyaze_1_1test_1_1Spc700.html#a76a74b4095ac1f6d651593d90fa740da":[12,0,0,6,20,117],
-"classyaze_1_1test_1_1Spc700.html#a77a8f1e9ca70de07fc4d1e027f197ba2":[11,0,1,6,22,33],
 "classyaze_1_1test_1_1Spc700.html#a77a8f1e9ca70de07fc4d1e027f197ba2":[12,0,0,6,20,33],
 "classyaze_1_1test_1_1Spc700.html#a77b70ae01e2c521dfabea42ad510aaa7":[11,0,1,6,22,109],
 "classyaze_1_1test_1_1Spc700.html#a77b70ae01e2c521dfabea42ad510aaa7":[12,0,0,6,20,109],
@@ -249,5 +241,13 @@ var NAVTREEINDEX21 =
 "classyaze_1_1util_1_1IFlag.html#ad9e5f2be7aba3d96b6f0440f07fe15a6":[12,0,0,7,4,2],
 "classyaze_1_1util_1_1NotifyValue.html":[11,0,1,7,7],
 "classyaze_1_1util_1_1NotifyValue.html":[12,0,0,7,5],
-"classyaze_1_1util_1_1NotifyValue.html#a3ec30e0f28aed54366ff93c8d009ab69":[11,0,1,7,7,0]
+"classyaze_1_1util_1_1NotifyValue.html#a3ec30e0f28aed54366ff93c8d009ab69":[11,0,1,7,7,0],
+"classyaze_1_1util_1_1NotifyValue.html#a3ec30e0f28aed54366ff93c8d009ab69":[12,0,0,7,5,0],
+"classyaze_1_1util_1_1NotifyValue.html#a4f215603b2e5501223736557760f59ec":[11,0,1,7,7,10],
+"classyaze_1_1util_1_1NotifyValue.html#a4f215603b2e5501223736557760f59ec":[12,0,0,7,5,10],
+"classyaze_1_1util_1_1NotifyValue.html#a5e043e96e569c1097bc1fc35dfcf18c6":[11,0,1,7,7,1],
+"classyaze_1_1util_1_1NotifyValue.html#a5e043e96e569c1097bc1fc35dfcf18c6":[12,0,0,7,5,1],
+"classyaze_1_1util_1_1NotifyValue.html#a78e4111f387cf8ae3692a7817605f3b1":[11,0,1,7,7,6],
+"classyaze_1_1util_1_1NotifyValue.html#a78e4111f387cf8ae3692a7817605f3b1":[12,0,0,7,5,6],
+"classyaze_1_1util_1_1NotifyValue.html#a9be5d60a130d942274e76c27f8f077d7":[11,0,1,7,7,7]
 };

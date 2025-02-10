@@ -1,9 +1,18 @@
 var input_8h =
 [
     [ "yaze::gui::Table", "structyaze_1_1gui_1_1Table.html", "structyaze_1_1gui_1_1Table" ],
+    [ "yaze::gui::MenuItem", "structyaze_1_1gui_1_1MenuItem.html", "structyaze_1_1gui_1_1MenuItem" ],
     [ "IMGUI_DEFINE_MATH_OPERATORS", "input_8h.html#adf4d73301961430d50d7edd96f92ce38", null ],
     [ "yaze::gui::ItemLabelFlags", "namespaceyaze_1_1gui.html#a5099466527c2ee2b4d9013b4eb50f12f", null ],
     [ "yaze::gui::GuiElement", "namespaceyaze_1_1gui.html#a96a8aa8ae9d402de34a59d1457cfc721", null ],
+    [ "yaze::gui::Menu", "namespaceyaze_1_1gui.html#a81626136e7f5ab72f5c71e37056e99d5", null ],
+    [ "yaze::gui::MenuType", "namespaceyaze_1_1gui.html#a7d7252cc7f3ad2e373ce475ae4a3fa7a", [
+      [ "yaze::gui::kFile", "namespaceyaze_1_1gui.html#a7d7252cc7f3ad2e373ce475ae4a3fa7aa1b7447b0a3103a1e139b65127686983b", null ],
+      [ "yaze::gui::kEdit", "namespaceyaze_1_1gui.html#a7d7252cc7f3ad2e373ce475ae4a3fa7aa2aded08181a8de82191a6b80feda1ab1", null ],
+      [ "yaze::gui::kView", "namespaceyaze_1_1gui.html#a7d7252cc7f3ad2e373ce475ae4a3fa7aa495922ca74ab235f51c87ed9a52cea71", null ],
+      [ "yaze::gui::kTools", "namespaceyaze_1_1gui.html#a7d7252cc7f3ad2e373ce475ae4a3fa7aa43a0e425a3c47611ca24696ea0a53741", null ],
+      [ "yaze::gui::kHelp", "namespaceyaze_1_1gui.html#a7d7252cc7f3ad2e373ce475ae4a3fa7aa3c56d1a1ccfbcd4efc4a102396783334", null ]
+    ] ],
     [ "yaze::gui::InputHex", "namespaceyaze_1_1gui.html#a85c0af649d4fdc913fcabb1634667602", null ],
     [ "yaze::gui::InputHex", "namespaceyaze_1_1gui.html#ab950f3133e3cb956c3c76733c0e16909", null ],
     [ "yaze::gui::InputHexShort", "namespaceyaze_1_1gui.html#a3fc21432778948e49c842ca3cce33c84", null ],
@@ -17,6 +26,12 @@ var input_8h =
     [ "yaze::gui::GetID", "namespaceyaze_1_1gui.html#ac4604ede79aa224793b522b22034e68b", null ],
     [ "yaze::gui::AddTableColumn", "namespaceyaze_1_1gui.html#a4869c3a07239efb126450a3a4a121841", null ],
     [ "yaze::gui::DrawTable", "namespaceyaze_1_1gui.html#a63cf2c84b704f70ba84ef7a1691e1b85", null ],
+    [ "yaze::gui::DrawMenu", "namespaceyaze_1_1gui.html#a627566d8500f099dabff60322d3c187e", null ],
+    [ "yaze::gui::AddToMenu", "namespaceyaze_1_1gui.html#ab836752a785527c824def18b6760050a", null ],
+    [ "yaze::gui::AddToFileMenu", "namespaceyaze_1_1gui.html#a6f86042fca1e028c980e5f33bea4b4bf", null ],
+    [ "yaze::gui::AddToFileMenu", "namespaceyaze_1_1gui.html#a4364cf99d3118ae3b97e08a6b44410fe", null ],
+    [ "yaze::gui::AddToEditMenu", "namespaceyaze_1_1gui.html#a2be9237823b6890341f15933aa231d2a", null ],
+    [ "yaze::gui::AddToViewMenu", "namespaceyaze_1_1gui.html#ac1111c42cd630507fb559c9b83f1d4bd", null ],
     [ "yaze::gui::kDefaultModalSize", "namespaceyaze_1_1gui.html#ab655498d16f5ecf417dddcc70faed138", null ],
     [ "yaze::gui::kZeroPos", "namespaceyaze_1_1gui.html#ab500bfa55478470e1f7cd45806c3728e", null ]
 ];

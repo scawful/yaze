@@ -134,6 +134,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1core_1_1FontConfig.html">FontConfig</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1core_1_1FontState.html">FontState</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1core_1_1Renderer.html">Renderer</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <a class="el" href="classyaze_1_1core_1_1Renderer.html" title="The Renderer class represents the renderer for the Yaze application.">Renderer</a> class represents the renderer for the Yaze application.  <a href="classyaze_1_1core_1_1Renderer.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -174,10 +176,10 @@ Functions</h2></td></tr>
 <tr class="separator:a52189778cda85a731116f50ab603ca6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7345775b8c056bb6c1b6f663eb7e25a8" id="r_a7345775b8c056bb6c1b6f663eb7e25a8"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7345775b8c056bb6c1b6f663eb7e25a8">LoadConfigFile</a> (const std::string &amp;filename)</td></tr>
 <tr class="separator:a7345775b8c056bb6c1b6f663eb7e25a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8a725e8e7dff6b06826090040ea3c2ba" id="r_a8a725e8e7dff6b06826090040ea3c2ba"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8a725e8e7dff6b06826090040ea3c2ba">SaveFile</a> (const std::string &amp;filename, const std::string &amp;contents, <a class="el" href="#abd79a1a62112b429e30153eb19ffa648">Platform</a> platform)</td></tr>
-<tr class="separator:a8a725e8e7dff6b06826090040ea3c2ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6ce28d9949b2dd0f6b6f6ae922700ae2" id="r_a6ce28d9949b2dd0f6b6f6ae922700ae2"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6ce28d9949b2dd0f6b6f6ae922700ae2">GetConfigDirectory</a> (<a class="el" href="#abd79a1a62112b429e30153eb19ffa648">Platform</a> platform)</td></tr>
-<tr class="separator:a6ce28d9949b2dd0f6b6f6ae922700ae2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad2f59a19103453af1c33ddd072d81f07" id="r_ad2f59a19103453af1c33ddd072d81f07"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad2f59a19103453af1c33ddd072d81f07">SaveFile</a> (const std::string &amp;filename, const std::string &amp;contents)</td></tr>
+<tr class="separator:ad2f59a19103453af1c33ddd072d81f07"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3dbed157830d6193bd5c7f74b8361a3" id="r_af3dbed157830d6193bd5c7f74b8361a3"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af3dbed157830d6193bd5c7f74b8361a3">GetConfigDirectory</a> ()</td></tr>
+<tr class="separator:af3dbed157830d6193bd5c7f74b8361a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a00e77355a028aee0d2e98d928c4931f5" id="r_a00e77355a028aee0d2e98d928c4931f5"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a00e77355a028aee0d2e98d928c4931f5">GetBundleResourcePath</a> ()</td></tr>
 <tr class="memdesc:a00e77355a028aee0d2e98d928c4931f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS.  <br /></td></tr>
 <tr class="separator:a00e77355a028aee0d2e98d928c4931f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -327,7 +329,7 @@ Functions</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="file__dialog_8cc_source.html#l00034">34</a> of file <a class="el" href="file__dialog_8cc_source.html">file_dialog.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tui_8cc_source.html#l00050">yaze::cli::anonymous_namespace{tui.cc}::ApplyBpsPatchComponent()</a>, and <a class="el" href="style_8cc_source.html#l00048">yaze::gui::LoadTheme()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tui_8cc_source.html#l00050">yaze::cli::anonymous_namespace{tui.cc}::ApplyBpsPatchComponent()</a>, and <a class="el" href="style_8cc_source.html#l00049">yaze::gui::LoadTheme()</a>.</p>
 
 </div>
 </div>
@@ -348,22 +350,22 @@ Functions</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="file__dialog_8cc_source.html#l00049">49</a> of file <a class="el" href="file__dialog_8cc_source.html">file_dialog.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="file__dialog_8cc_source.html#l00080">GetConfigDirectory()</a>, <a class="el" href="file__dialog_8h_source.html#l00035">kLinux</a>, <a class="el" href="file__dialog_8h_source.html#l00035">kMacOS</a>, and <a class="el" href="file__dialog_8h_source.html#l00035">kWindows</a>.</p>
+<p class="reference">References <a class="el" href="file__dialog_8cc_source.html#l00079">GetConfigDirectory()</a>, <a class="el" href="file__dialog_8h_source.html#l00035">kLinux</a>, <a class="el" href="file__dialog_8h_source.html#l00035">kMacOS</a>, and <a class="el" href="file__dialog_8h_source.html#l00035">kWindows</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1core_a7345775b8c056bb6c1b6f663eb7e25a8_cgraph.png" border="0" usemap="#anamespaceyaze_1_1core_a7345775b8c056bb6c1b6f663eb7e25a8_cgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1core_a7345775b8c056bb6c1b6f663eb7e25a8_cgraph" id="anamespaceyaze_1_1core_a7345775b8c056bb6c1b6f663eb7e25a8_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,176,31"/>
-<area shape="rect" href="namespaceyaze_1_1core.html#a6ce28d9949b2dd0f6b6f6ae922700ae2" title=" " alt="" coords="224,5,416,31"/>
+<area shape="rect" href="namespaceyaze_1_1core.html#af3dbed157830d6193bd5c7f74b8361a3" title=" " alt="" coords="224,5,416,31"/>
 <area shape="poly" title=" " alt="" coords="176,16,208,16,208,21,176,21"/>
 </map>
 </div>
 
 </div>
 </div>
-<a id="a8a725e8e7dff6b06826090040ea3c2ba" name="a8a725e8e7dff6b06826090040ea3c2ba"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8a725e8e7dff6b06826090040ea3c2ba">&#9670;&#160;</a></span>SaveFile()</h2>
+<a id="ad2f59a19103453af1c33ddd072d81f07" name="ad2f59a19103453af1c33ddd072d81f07"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad2f59a19103453af1c33ddd072d81f07">&#9670;&#160;</a></span>SaveFile()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -376,34 +378,29 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>contents</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="#abd79a1a62112b429e30153eb19ffa648">Platform</a></td>          <td class="paramname"><span class="paramname"><em>platform</em></span>&#160;)</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>contents</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="file__dialog_8cc_source.html#l00070">70</a> of file <a class="el" href="file__dialog_8cc_source.html">file_dialog.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="file__dialog_8cc_source.html#l00080">GetConfigDirectory()</a>.</p>
+<p class="reference">References <a class="el" href="file__dialog_8cc_source.html#l00079">GetConfigDirectory()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1core_a8a725e8e7dff6b06826090040ea3c2ba_cgraph.png" border="0" usemap="#anamespaceyaze_1_1core_a8a725e8e7dff6b06826090040ea3c2ba_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1core_a8a725e8e7dff6b06826090040ea3c2ba_cgraph" id="anamespaceyaze_1_1core_a8a725e8e7dff6b06826090040ea3c2ba_cgraph">
+<div class="center"><img src="namespaceyaze_1_1core_ad2f59a19103453af1c33ddd072d81f07_cgraph.png" border="0" usemap="#anamespaceyaze_1_1core_ad2f59a19103453af1c33ddd072d81f07_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1core_ad2f59a19103453af1c33ddd072d81f07_cgraph" id="anamespaceyaze_1_1core_ad2f59a19103453af1c33ddd072d81f07_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,141,31"/>
-<area shape="rect" href="namespaceyaze_1_1core.html#a6ce28d9949b2dd0f6b6f6ae922700ae2" title=" " alt="" coords="189,5,381,31"/>
+<area shape="rect" href="namespaceyaze_1_1core.html#af3dbed157830d6193bd5c7f74b8361a3" title=" " alt="" coords="189,5,381,31"/>
 <area shape="poly" title=" " alt="" coords="141,16,173,16,173,21,141,21"/>
 </map>
 </div>
 
 </div>
 </div>
-<a id="a6ce28d9949b2dd0f6b6f6ae922700ae2" name="a6ce28d9949b2dd0f6b6f6ae922700ae2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6ce28d9949b2dd0f6b6f6ae922700ae2">&#9670;&#160;</a></span>GetConfigDirectory()</h2>
+<a id="af3dbed157830d6193bd5c7f74b8361a3" name="af3dbed157830d6193bd5c7f74b8361a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3dbed157830d6193bd5c7f74b8361a3">&#9670;&#160;</a></span>GetConfigDirectory()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -411,17 +408,17 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">std::string yaze::core::GetConfigDirectory </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="#abd79a1a62112b429e30153eb19ffa648">Platform</a></td>          <td class="paramname"><span class="paramname"><em>platform</em></span></td><td>)</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="file__dialog_8cc_source.html#l00080">80</a> of file <a class="el" href="file__dialog_8cc_source.html">file_dialog.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="file__dialog_8cc_source.html#l00079">79</a> of file <a class="el" href="file__dialog_8cc_source.html">file_dialog.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="file__dialog_8h_source.html#l00035">kLinux</a>, <a class="el" href="file__dialog_8h_source.html#l00035">kMacOS</a>, and <a class="el" href="file__dialog_8h_source.html#l00035">kWindows</a>.</p>
+<p class="reference">References <a class="el" href="file__dialog_8h_source.html#l00035">kiOS</a>, <a class="el" href="file__dialog_8h_source.html#l00035">kLinux</a>, <a class="el" href="file__dialog_8h_source.html#l00035">kMacOS</a>, <a class="el" href="file__dialog_8h_source.html#l00035">kUnknown</a>, and <a class="el" href="file__dialog_8h_source.html#l00035">kWindows</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="file__dialog_8cc_source.html#l00049">LoadConfigFile()</a>, <a class="el" href="controller_8cc_source.html#l00225">yaze::core::Controller::LoadConfigFiles()</a>, and <a class="el" href="file__dialog_8cc_source.html#l00070">SaveFile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="file__dialog_8cc_source.html#l00049">LoadConfigFile()</a>, <a class="el" href="controller_8cc_source.html#l00215">yaze::core::Controller::LoadConfigFiles()</a>, and <a class="el" href="file__dialog_8cc_source.html#l00070">SaveFile()</a>.</p>
 
 </div>
 </div>
@@ -463,9 +460,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="font__loader_8cc_source.html#l00098">98</a> of file <a class="el" href="font__loader_8cc_source.html">font_loader.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="icons_8h_source.html#l00008">ICON_MIN_MD</a>, and <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>.</p>
+<p class="reference">References <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00199">yaze::core::Controller::LoadFontFamilies()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00190">yaze::core::Controller::LoadFontFamilies()</a>.</p>
 
 </div>
 </div>
@@ -484,9 +481,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="font__loader_8cc_source.html#l00137">137</a> of file <a class="el" href="font__loader_8cc_source.html">font_loader.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="font__loader_8cc_source.html#l00122">122</a> of file <a class="el" href="font__loader_8cc_source.html">font_loader.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="font__loader_8h_source.html#l00010">yaze::core::FontConfig::font_path</a>, <a class="el" href="font__loader_8h_source.html#l00011">yaze::core::FontConfig::font_size</a>, and <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>.</p>
+<p class="reference">References <a class="el" href="font__loader_8h_source.html#l00014">yaze::core::FontConfig::font_path</a>, <a class="el" href="font__loader_8h_source.html#l00015">yaze::core::FontConfig::font_size</a>, and <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>.</p>
 
 </div>
 </div>

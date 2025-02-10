@@ -48,7 +48,6 @@ var zeml_8h =
     [ "yaze::gui::zeml::BindAction", "namespaceyaze_1_1gui_1_1zeml.html#a6fc762267f90137907b99c803ac25ed0", null ],
     [ "yaze::gui::zeml::BindSelectable", "namespaceyaze_1_1gui_1_1zeml.html#ab694ba5e9ccc04b14bc3b627651434e9", null ],
     [ "yaze::gui::zeml::MapType", "namespaceyaze_1_1gui_1_1zeml.html#a6a8d0465bb3639ae5cec5439c895f939", null ],
-    [ "yaze::gui::zeml::ParseDefinitions", "namespaceyaze_1_1gui_1_1zeml.html#a5a38894b3dde2de6dc92a3fe2c30dc9f", null ],
     [ "yaze::gui::zeml::ParseFlags", "namespaceyaze_1_1gui_1_1zeml.html#a5df0aad5e198e1be1841ece3528dcd80", null ],
     [ "yaze::gui::zeml::ParseAttributes", "namespaceyaze_1_1gui_1_1zeml.html#ac78c8fee82e6aaf6df53b6b0781d1cec", null ],
     [ "yaze::gui::zeml::ParseNode", "namespaceyaze_1_1gui_1_1zeml.html#accac7b82a1856b4116a1ee235ff533a2", null ],

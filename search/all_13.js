@@ -5,9 +5,10 @@ var searchData=
   ['joypaddata_2',['joypadData',['../structyaze_1_1emu_1_1JoypadRegisters.html#a11184805d9757bc1d776d5d56302b03f',1,'yaze::emu::JoypadRegisters']]],
   ['joypadregisters_3',['JoypadRegisters',['../structyaze_1_1emu_1_1JoypadRegisters.html',1,'yaze::emu']]],
   ['jp_4',['JP',['../zelda_8h.html#a9b154d4f0904082e537a24b5ae25575daf35882285f7bde3e58305178a023f561',1,'zelda.h']]],
-  ['jsl_5',['JSL',['../classyaze_1_1emu_1_1Cpu.html#aeb2f8f2dbdca99dc8e45058571cabdb8',1,'yaze::emu::Cpu::JSL()'],['../classyaze_1_1test_1_1Cpu.html#aeb2f8f2dbdca99dc8e45058571cabdb8',1,'yaze::test::Cpu::JSL()']]],
-  ['jsr_6',['JSR',['../classyaze_1_1emu_1_1Cpu.html#a16fe87970c5888a2a21a04ec83784701',1,'yaze::emu::Cpu::JSR()'],['../classyaze_1_1test_1_1Cpu.html#a16fe87970c5888a2a21a04ec83784701',1,'yaze::test::Cpu::JSR()']]],
-  ['jump_5fto_5ftab_7',['jump_to_tab',['../classyaze_1_1editor_1_1OverworldEditor.html#afe55b1130672c6448209d7562b7628f9',1,'yaze::editor::OverworldEditor']]],
-  ['jump_5fto_5ftab_5f_8',['jump_to_tab_',['../classyaze_1_1editor_1_1OverworldEditor.html#af958a08b4ab56f24797e4258d2a49e4e',1,'yaze::editor::OverworldEditor']]],
-  ['jumptofunction_9',['JumpToFunction',['../classyaze_1_1zelda3_1_1SpriteInstruction.html#a2435f9ddc0c2c05006e60f9a7408ecf4',1,'yaze::zelda3::SpriteInstruction']]]
+  ['jp_5fconf_5fconfig_5',['jp_conf_config',['../structyaze_1_1core_1_1FontConfig.html#a08be7958e34ba664879229db15a29d31',1,'yaze::core::FontConfig']]],
+  ['jsl_6',['JSL',['../classyaze_1_1emu_1_1Cpu.html#aeb2f8f2dbdca99dc8e45058571cabdb8',1,'yaze::emu::Cpu::JSL()'],['../classyaze_1_1test_1_1Cpu.html#aeb2f8f2dbdca99dc8e45058571cabdb8',1,'yaze::test::Cpu::JSL()']]],
+  ['jsr_7',['JSR',['../classyaze_1_1emu_1_1Cpu.html#a16fe87970c5888a2a21a04ec83784701',1,'yaze::emu::Cpu::JSR()'],['../classyaze_1_1test_1_1Cpu.html#a16fe87970c5888a2a21a04ec83784701',1,'yaze::test::Cpu::JSR()']]],
+  ['jump_5fto_5ftab_8',['jump_to_tab',['../classyaze_1_1editor_1_1OverworldEditor.html#afe55b1130672c6448209d7562b7628f9',1,'yaze::editor::OverworldEditor']]],
+  ['jump_5fto_5ftab_5f_9',['jump_to_tab_',['../classyaze_1_1editor_1_1OverworldEditor.html#af958a08b4ab56f24797e4258d2a49e4e',1,'yaze::editor::OverworldEditor']]],
+  ['jumptofunction_10',['JumpToFunction',['../classyaze_1_1zelda3_1_1SpriteInstruction.html#a2435f9ddc0c2c05006e60f9a7408ecf4',1,'yaze::zelda3::SpriteInstruction']]]
 ];

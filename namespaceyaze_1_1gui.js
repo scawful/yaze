@@ -15,6 +15,7 @@ var namespaceyaze_1_1gui =
     [ "DungeonAsset", "structyaze_1_1gui_1_1DungeonAsset.html", "structyaze_1_1gui_1_1DungeonAsset" ],
     [ "ExampleSelectionWithDeletion", "structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html", "structyaze_1_1gui_1_1ExampleSelectionWithDeletion" ],
     [ "GfxSheetAssetBrowser", "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html", "structyaze_1_1gui_1_1GfxSheetAssetBrowser" ],
+    [ "MenuItem", "structyaze_1_1gui_1_1MenuItem.html", "structyaze_1_1gui_1_1MenuItem" ],
     [ "MultiSelectWithClipper", "structyaze_1_1gui_1_1MultiSelectWithClipper.html", "structyaze_1_1gui_1_1MultiSelectWithClipper" ],
     [ "OverworldAsset", "structyaze_1_1gui_1_1OverworldAsset.html", "structyaze_1_1gui_1_1OverworldAsset" ],
     [ "Renderer", "classyaze_1_1gui_1_1Renderer.html", "classyaze_1_1gui_1_1Renderer" ],
@@ -24,6 +25,7 @@ var namespaceyaze_1_1gui =
     [ "UnsortedAsset", "structyaze_1_1gui_1_1UnsortedAsset.html", "structyaze_1_1gui_1_1UnsortedAsset" ],
     [ "ItemLabelFlags", "namespaceyaze_1_1gui.html#a5099466527c2ee2b4d9013b4eb50f12f", null ],
     [ "GuiElement", "namespaceyaze_1_1gui.html#a96a8aa8ae9d402de34a59d1457cfc721", null ],
+    [ "Menu", "namespaceyaze_1_1gui.html#a81626136e7f5ab72f5c71e37056e99d5", null ],
     [ "BitmapTable", "namespaceyaze_1_1gui.html#ac70b35914f079891436c2442779b9113", null ],
     [ "CanvasType", "namespaceyaze_1_1gui.html#a5a4fbc61ba7c366dab30da60463ee4f6", [
       [ "kTile", "namespaceyaze_1_1gui.html#a5a4fbc61ba7c366dab30da60463ee4f6ac06bd766ba0c680aa7ce4145dd31eb99", null ],
@@ -39,6 +41,13 @@ var namespaceyaze_1_1gui =
       [ "k16x16", "namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a10ba45e967f3108e10ed4e3288e6208a", null ],
       [ "k32x32", "namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a20e39deb41b95e8150718fbb7ce02774", null ],
       [ "k64x64", "namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a9420cc1a73b8e176c1b22cf835b3e9f7", null ]
+    ] ],
+    [ "MenuType", "namespaceyaze_1_1gui.html#a7d7252cc7f3ad2e373ce475ae4a3fa7a", [
+      [ "kFile", "namespaceyaze_1_1gui.html#a7d7252cc7f3ad2e373ce475ae4a3fa7aa1b7447b0a3103a1e139b65127686983b", null ],
+      [ "kEdit", "namespaceyaze_1_1gui.html#a7d7252cc7f3ad2e373ce475ae4a3fa7aa2aded08181a8de82191a6b80feda1ab1", null ],
+      [ "kView", "namespaceyaze_1_1gui.html#a7d7252cc7f3ad2e373ce475ae4a3fa7aa495922ca74ab235f51c87ed9a52cea71", null ],
+      [ "kTools", "namespaceyaze_1_1gui.html#a7d7252cc7f3ad2e373ce475ae4a3fa7aa43a0e425a3c47611ca24696ea0a53741", null ],
+      [ "kHelp", "namespaceyaze_1_1gui.html#a7d7252cc7f3ad2e373ce475ae4a3fa7aa3c56d1a1ccfbcd4efc4a102396783334", null ]
     ] ],
     [ "GraphicsBinCanvasPipeline", "namespaceyaze_1_1gui.html#a359973f01787648b92a53d2aa84120a9", null ],
     [ "BitmapCanvasPipeline", "namespaceyaze_1_1gui.html#a134c6e6817a4a8332e3842e4b2cd01f6", null ],
@@ -62,6 +71,12 @@ var namespaceyaze_1_1gui =
     [ "GetID", "namespaceyaze_1_1gui.html#ac4604ede79aa224793b522b22034e68b", null ],
     [ "AddTableColumn", "namespaceyaze_1_1gui.html#a4869c3a07239efb126450a3a4a121841", null ],
     [ "DrawTable", "namespaceyaze_1_1gui.html#a63cf2c84b704f70ba84ef7a1691e1b85", null ],
+    [ "DrawMenu", "namespaceyaze_1_1gui.html#a627566d8500f099dabff60322d3c187e", null ],
+    [ "AddToMenu", "namespaceyaze_1_1gui.html#ab836752a785527c824def18b6760050a", null ],
+    [ "AddToFileMenu", "namespaceyaze_1_1gui.html#a6f86042fca1e028c980e5f33bea4b4bf", null ],
+    [ "AddToFileMenu", "namespaceyaze_1_1gui.html#a4364cf99d3118ae3b97e08a6b44410fe", null ],
+    [ "AddToEditMenu", "namespaceyaze_1_1gui.html#a2be9237823b6890341f15933aa231d2a", null ],
+    [ "AddToViewMenu", "namespaceyaze_1_1gui.html#ac1111c42cd630507fb559c9b83f1d4bd", null ],
     [ "LoadTheme", "namespaceyaze_1_1gui.html#a216f2984ca7cc50dd872c9605352c95e", null ],
     [ "SaveTheme", "namespaceyaze_1_1gui.html#a7f5085854df78a52ad2598b0448850ed", null ],
     [ "ApplyTheme", "namespaceyaze_1_1gui.html#ae9a47f0d85166d6363717c61056b83a3", null ],

@@ -1,13 +1,5 @@
 var NAVTREEINDEX27 =
 {
-"clipboard_8h_source.html":[13,0,2,0,0,0,3],
-"clipboard_8mm.html":[13,0,2,0,0,0,4],
-"clipboard_8mm_source.html":[13,0,2,0,0,0,4],
-"color_8cc.html":[13,0,2,0,4,3],
-"color_8cc_source.html":[13,0,2,0,4,3],
-"color_8h.html":[13,0,2,0,4,4],
-"color_8h_source.html":[13,0,2,0,4,4],
-"command__manager_8cc.html":[13,0,2,0,1,7,0],
 "command__manager_8cc_source.html":[13,0,2,0,1,7,0],
 "command__manager_8h.html":[13,0,2,0,1,7,1],
 "command__manager_8h_source.html":[13,0,2,0,1,7,1],
@@ -249,5 +241,13 @@ var NAVTREEINDEX27 =
 "functions_vars_v.html":[12,3,2,21],
 "functions_vars_w.html":[12,3,2,22],
 "functions_vars_x.html":[12,3,2,23],
-"functions_vars_y.html":[12,3,2,24]
+"functions_vars_y.html":[12,3,2,24],
+"functions_vars_z.html":[12,3,2,25],
+"functions_w.html":[12,3,0,22],
+"functions_x.html":[12,3,0,23],
+"functions_y.html":[12,3,0,24],
+"functions_z.html":[12,3,0,25],
+"functions_~.html":[12,3,0,26],
+"gfx__group__editor_8cc.html":[13,0,2,0,1,2,0],
+"gfx__group__editor_8cc_source.html":[13,0,2,0,1,2,0]
 };
