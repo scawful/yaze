@@ -104,11 +104,10 @@ class Rom {
     size_ = size;
   }
 
-  absl::Status Close() {
+  void Close() {
     rom_data_.clear();
     size_ = 0;
     is_loaded_ = false;
-    return absl::OkStatus();
   }
 
   absl::StatusOr<uint8_t> ReadByte(int offset);

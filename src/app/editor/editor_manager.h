@@ -68,7 +68,6 @@ class EditorManager : public SharedRom {
 
   void DrawMenuBar();
   void DrawMenuContent();
-	void DrawRomMenu();
 
   void LoadRom();
   void SaveRom();
