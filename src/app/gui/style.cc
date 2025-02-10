@@ -1,6 +1,7 @@
 #include "style.h"
 
 #include "app/core/platform/file_dialog.h"
+#include "core/platform/font_loader.h"
 #include "gui/color.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -752,12 +753,21 @@ void TextWithSeparators(const absl::string_view &text) {
 void DrawFontManager() {
   ImGuiIO& io = ImGui::GetIO();
   ImFontAtlas* atlas = io.Fonts;
+
   static ImFont* current_font = atlas->Fonts[0];
   static int current_font_index = 0;
   static int font_size = 16;
   static bool font_selected = false;
+
+  ImGui::Text("Loaded fonts");
+  for (const auto& loaded_font : core::global_font_state.fonts) {
+    ImGui::Text("%s", loaded_font.font_path);
+  }
+  ImGui::Separator();
+
   ImGui::Text("Current Font: %s", current_font->GetDebugName());
   ImGui::Text("Font Size: %d", font_size);
+
   if (ImGui::BeginCombo("Fonts", current_font->GetDebugName())) {
     for (int i = 0; i < atlas->Fonts.Size; i++) {
       bool is_selected = (current_font == atlas->Fonts[i]);
@@ -772,6 +782,7 @@ void DrawFontManager() {
     }
     ImGui::EndCombo();
   }
+
   ImGui::Separator();
   if (ImGui::SliderInt("Font Size", &font_size, 8, 32)) {
     current_font->Scale = font_size / 16.0f;
