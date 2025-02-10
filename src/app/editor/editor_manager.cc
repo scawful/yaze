@@ -435,7 +435,7 @@ void EditorManager::DrawMenuContent() {
 
     if (rom()->is_loaded()) {
       MENU_ITEM("Close") {
-        status_ = rom()->Close();
+        rom()->Close();
         rom_assets_loaded_ = false;
       }
     }
@@ -702,20 +702,6 @@ void EditorManager::DrawMenuContent() {
         !current_project_.labels_filename_.empty()) {
       current_project_.labels_filename_ = rom()->resource_label()->filename_;
     }
-  }
-}
-
-void EditorManager::DrawRomMenu() {
-  if (roms_.empty()) return;
-
-  // Dropdown in the center of the menu bar with ROMs
-  if (BeginMenu("ROM")) {
-    for (size_t i = 0; i < roms_.size(); ++i) {
-      if (MenuItem(roms_[i]->title().c_str())) {
-        current_rom_ = roms_[i].get();
-      }
-    }
-    EndMenu();
   }
 }
 
