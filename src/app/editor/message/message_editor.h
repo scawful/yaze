@@ -6,8 +6,8 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/editor/message/message_data.h"
 #include "app/editor/editor.h"
+#include "app/editor/message/message_data.h"
 #include "app/gfx/bitmap.h"
 #include "app/gui/canvas.h"
 #include "app/rom.h"
@@ -24,6 +24,7 @@ constexpr int kCurrentMessageWidth = 172;
 constexpr int kCurrentMessageHeight = 4096;
 constexpr int kFontGfxMessageSize = 128;
 constexpr int kFontGfxMessageDepth = 8;
+constexpr int kFontGfx16Size = 172 * 4096;
 
 constexpr uint8_t kWidthArraySize = 100;
 constexpr uint8_t kBlockTerminator = 0x80;
@@ -80,7 +81,7 @@ class MessageEditor : public Editor, public SharedRom {
 
   std::string search_text_ = "";
 
-	std::array<uint8_t, kWidthArraySize> width_array = {0};
+  std::array<uint8_t, kWidthArraySize> width_array = {0};
   std::vector<uint8_t> font_gfx16_data_;
   std::vector<uint8_t> current_font_gfx16_data_;
   std::vector<std::string> parsed_messages_;

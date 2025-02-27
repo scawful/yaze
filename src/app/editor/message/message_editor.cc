@@ -301,9 +301,9 @@ void MessageEditor::ReadAllTextDataV2() {
 
       uint32_t address = Get24LocalFromPC(
           rom()->mutable_data(), kPointersDictionaries + (dictionary * 2));
-      uint32_t address_end = Get24LocalFromPC(
-          rom()->mutable_data(),
-          kPointersDictionaries + ((dictionary + 1) * 2));
+      uint32_t address_end =
+          Get24LocalFromPC(rom()->mutable_data(),
+                           kPointersDictionaries + ((dictionary + 1) * 2));
 
       for (uint32_t i = address; i < address_end; i++) {
         parsed_message.push_back(rom()->data()[i]);
@@ -399,9 +399,9 @@ void MessageEditor::ReadAllTextData() {
 
       uint32_t address = Get24LocalFromPC(
           rom()->mutable_data(), kPointersDictionaries + (dictionary * 2));
-      uint32_t address_end = Get24LocalFromPC(
-          rom()->mutable_data(),
-          kPointersDictionaries + ((dictionary + 1) * 2));
+      uint32_t address_end =
+          Get24LocalFromPC(rom()->mutable_data(),
+                           kPointersDictionaries + ((dictionary + 1) * 2));
 
       for (uint32_t i = address; i < address_end; i++) {
         temp_bytes_parsed.push_back(rom()->data()[i]);
@@ -538,7 +538,7 @@ void MessageEditor::DrawCharacterToPreview(const std::vector<uint8_t> &text) {
 void MessageEditor::DrawMessagePreview() {
   // From Parsing.
   text_line_ = 0;
-  for (int i = 0; i < (172 * 4096); i++) {
+  for (int i = 0; i < kFontGfx16Size; i++) {
     current_font_gfx16_data_[i] = 0;
   }
   text_position_ = 0;
@@ -614,18 +614,17 @@ absl::Status MessageEditor::Save() {
       pos++;
     }
 
-    RETURN_IF_ERROR(rom()->WriteByte(
-        pos++, kMessageTerminator));  // , true, "Terminator text"
+    RETURN_IF_ERROR(rom()->WriteByte(pos++, kMessageTerminator));
   }
 
   // Verify that we didn't go over the space available for the second block.
   // 0x14BF available.
   if ((in_second_bank & pos) > kTextData2End) {
-    // rom()->data() = backup;
+    // TODO: Restore the backup.
     return absl::InternalError(DisplayTextOverflowError(pos, false));
   }
 
-  RETURN_IF_ERROR(rom()->WriteByte(pos, 0xFF));  // , true, "End of text"
+  RETURN_IF_ERROR(rom()->WriteByte(pos, 0xFF));
 
   return absl::OkStatus();
 }
