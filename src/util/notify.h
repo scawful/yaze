@@ -17,8 +17,17 @@ class NotifyValue {
       : value_(value), modified_(false), temp_value_() {}
 
   void set(const T &value) {
-    value_ = value;
-    modified_ = true;
+    if (value != value_) {
+      value_ = value;
+      modified_ = true;
+    }
+  }
+
+  void set(T &&value) {
+    if (value != value_) {
+      value_ = std::move(value);
+      modified_ = true;
+    }
   }
 
   const T &get() {
@@ -26,29 +35,35 @@ class NotifyValue {
     return value_;
   }
 
-  T &mutable_get() {
+  T &edit() {
     modified_ = false;
     temp_value_ = value_;
     return temp_value_;
   }
 
-  void apply_changes() {
+  void commit() {
     if (temp_value_ != value_) {
       value_ = temp_value_;
       modified_ = true;
     }
   }
 
-  void operator=(const T &value) { set(value); }
-  operator T() { return get(); }
+  bool consume_modified() {
+    bool modified = modified_;
+    modified_ = false;
+    return modified;
+  }
 
+  operator T() { return get(); }
+  void operator=(const T &value) { set(value); }
   bool modified() const { return modified_; }
 
  private:
   T value_;
-  bool modified_;
   T temp_value_;
+  bool modified_;
 };
+
 }  // namespace util
 }  // namespace yaze
 
