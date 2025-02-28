@@ -16,13 +16,9 @@ namespace yaze {
 namespace gfx {
 
 /**
- * @namespace yaze::gfx::scad_format
- * @brief Loading from prototype SCAD format
- */
-namespace scad_format {
-
-/**
  * @brief Cgx file header
+ *
+ * @details
  * キャラクタ（．ＳＣＨ）ファイル
  * ヘッダー情報
  * アドレス 	       説明
@@ -91,7 +87,6 @@ absl::Status DecodeObjFile(
     std::unordered_map<std::string, std::vector<uint8_t>> decoded_obj,
     std::vector<uint8_t>& decoded_extra_obj, int& obj_loaded);
 
-}  // namespace scad_format
 }  // namespace gfx
 }  // namespace yaze
 

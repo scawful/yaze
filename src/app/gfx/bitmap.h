@@ -3,6 +3,7 @@
 
 #include <SDL.h>
 
+#include <span>
 #include <cstdint>
 #include <memory>
 
