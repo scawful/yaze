@@ -61,8 +61,7 @@ absl::Status LoadFont(const FontConfig& font_config) {
   return absl::OkStatus();
 }
 
-absl::Status AddIconFont() {
-  ImGuiIO& io = ImGui::GetIO();
+absl::Status AddIconFont(const FontConfig& config) {
   static const ImWchar icons_ranges[] = {ICON_MIN_MD, 0xf900, 0};
   ImFontConfig icons_config;
   icons_config.MergeMode = true;
@@ -70,6 +69,7 @@ absl::Status AddIconFont() {
   icons_config.GlyphMinAdvanceX = 13.0f;
   icons_config.PixelSnapH = true;
   std::string icon_font_path = SetFontPath(FONT_ICON_FILE_NAME_MD);
+  ImGuiIO& io = ImGui::GetIO();
   if (!io.Fonts->AddFontFromFileTTF(icon_font_path.c_str(), ICON_FONT_SIZE,
                                     &icons_config, icons_ranges)) {
     return absl::InternalError("Failed to add icon fonts");
@@ -77,14 +77,14 @@ absl::Status AddIconFont() {
   return absl::OkStatus();
 }
 
-absl::Status AddJapaneseFont() {
-  ImGuiIO& io = ImGui::GetIO();
+absl::Status AddJapaneseFont(const FontConfig& config) {
   ImFontConfig japanese_font_config;
   japanese_font_config.MergeMode = true;
   japanese_font_config.GlyphOffset.y = 5.0f;
   japanese_font_config.GlyphMinAdvanceX = 13.0f;
   japanese_font_config.PixelSnapH = true;
   std::string japanese_font_path = SetFontPath(NOTO_SANS_JP);
+  ImGuiIO& io = ImGui::GetIO();
   if (!io.Fonts->AddFontFromFileTTF(japanese_font_path.data(), ICON_FONT_SIZE,
                                     &japanese_font_config,
                                     io.Fonts->GetGlyphRangesJapanese())) {
@@ -96,25 +96,22 @@ absl::Status AddJapaneseFont() {
 }  // namespace
 
 absl::Status LoadPackageFonts() {
-  ImGuiIO& io = ImGui::GetIO();
-
-  // List of fonts to be loaded
-  std::vector<const char*> font_paths = {
-      KARLA_REGULAR, ROBOTO_MEDIUM, COUSINE_REGULAR, IBM_PLEX_JP, DROID_SANS};
+  if (font_registry.fonts.empty()) {
+    // Initialize the font names and sizes
+    font_registry.fonts = {
+        {KARLA_REGULAR, FONT_SIZE_DEFAULT},
+        {ROBOTO_MEDIUM, FONT_SIZE_DEFAULT},
+        {COUSINE_REGULAR, FONT_SIZE_DEFAULT},
+        {IBM_PLEX_JP, FONT_SIZE_DEFAULT},
+        {DROID_SANS, FONT_SIZE_DROID_SANS},
+    };
+  }
 
   // Load fonts with associated icon and Japanese merges
-  for (const auto& font_path : font_paths) {
-    float font_size =
-        (font_path == DROID_SANS) ? FONT_SIZE_DROID_SANS : FONT_SIZE_DEFAULT;
-
-    FontConfig font_config = {font_path, font_size};
+  for (const auto& font_config : font_registry.fonts) {
     RETURN_IF_ERROR(LoadFont(font_config));
-
-    // Merge icon set
-    RETURN_IF_ERROR(AddIconFont());
-
-    // Merge Japanese font
-    RETURN_IF_ERROR(AddJapaneseFont());
+    RETURN_IF_ERROR(AddIconFont(font_config));
+    RETURN_IF_ERROR(AddJapaneseFont(font_config));
   }
   return absl::OkStatus();
 }
@@ -127,8 +124,8 @@ absl::Status ReloadPackageFont(const FontConfig& config) {
     return absl::InternalError(
         absl::StrFormat("Failed to load font from %s", actual_font_path));
   }
-  RETURN_IF_ERROR(AddIconFont());
-  RETURN_IF_ERROR(AddJapaneseFont());
+  RETURN_IF_ERROR(AddIconFont(config));
+  RETURN_IF_ERROR(AddJapaneseFont(config));
   return absl::OkStatus();
 }
 

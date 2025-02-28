@@ -4,15 +4,14 @@
 #include <vector>
 
 #include "absl/status/status.h"
-
 #include "imgui/imgui.h"
 
 namespace yaze {
 namespace core {
 
 struct FontConfig {
-	const char* font_path;
-	float font_size;
+  const char* font_path;
+  float font_size;
   ImFontConfig im_font_config;
   ImFontConfig jp_conf_config;
 };
@@ -21,7 +20,7 @@ struct FontState {
   std::vector<FontConfig> fonts;
 };
 
-static FontState global_font_state;
+static FontState font_registry;
 
 absl::Status LoadPackageFonts();
 
