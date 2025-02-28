@@ -23,6 +23,8 @@ var classyaze_1_1editor_1_1EditorManager =
     [ "save_as_menu_", "classyaze_1_1editor_1_1EditorManager.html#a162423ee5119c021fcdccc5e4aaa1a26", null ],
     [ "show_emulator_", "classyaze_1_1editor_1_1EditorManager.html#ad010169e8e1dd7cac2fc23d4aab0e978", null ],
     [ "show_memory_editor_", "classyaze_1_1editor_1_1EditorManager.html#aa7bff637c74e3a804a2699d82c04a456", null ],
+    [ "show_asm_editor_", "classyaze_1_1editor_1_1EditorManager.html#a94fb3176fb2ae7373fd8fc4d02784d35", null ],
+    [ "show_palette_editor_", "classyaze_1_1editor_1_1EditorManager.html#a2ae8ba24e513f6fa259f171e4d477b7c", null ],
     [ "show_status_", "classyaze_1_1editor_1_1EditorManager.html#abd8b10b8effa17fa71f6be9ce4b140ec", null ],
     [ "rom_assets_loaded_", "classyaze_1_1editor_1_1EditorManager.html#a334e88fc9c866a3c036fad1dc192680a", null ],
     [ "version_", "classyaze_1_1editor_1_1EditorManager.html#affe73c6625559f736677e476796f02a1", null ],

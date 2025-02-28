@@ -1,5 +1,13 @@
 var NAVTREEINDEX48 =
 {
+"structyaze_1_1emu_1_1DspChannel.html#a2411814d2127833790eb14846a79e5e8":[12,0,0,3,26,10],
+"structyaze_1_1emu_1_1DspChannel.html#a2e8b878f7b9a87489ecdda5715c2623b":[11,0,1,3,28,12],
+"structyaze_1_1emu_1_1DspChannel.html#a2e8b878f7b9a87489ecdda5715c2623b":[12,0,0,3,26,12],
+"structyaze_1_1emu_1_1DspChannel.html#a466d092d0065c96495c85d52f7e36d04":[11,0,1,3,28,1],
+"structyaze_1_1emu_1_1DspChannel.html#a466d092d0065c96495c85d52f7e36d04":[12,0,0,3,26,1],
+"structyaze_1_1emu_1_1DspChannel.html#a4acbf03e6fa3a0cb92b2c80ff1d3fd53":[11,0,1,3,28,25],
+"structyaze_1_1emu_1_1DspChannel.html#a4acbf03e6fa3a0cb92b2c80ff1d3fd53":[12,0,0,3,26,25],
+"structyaze_1_1emu_1_1DspChannel.html#a4af0ed15c68d6645bf942cb07ba430fa":[11,0,1,3,28,5],
 "structyaze_1_1emu_1_1DspChannel.html#a4af0ed15c68d6645bf942cb07ba430fa":[12,0,0,3,26,5],
 "structyaze_1_1emu_1_1DspChannel.html#a4c536e5e79ce8f1673272ef87dfe88d4":[11,0,1,3,28,26],
 "structyaze_1_1emu_1_1DspChannel.html#a4c536e5e79ce8f1673272ef87dfe88d4":[12,0,0,3,26,26],
@@ -241,13 +249,5 @@ var NAVTREEINDEX48 =
 "structyaze_1_1emu_1_1OBJSEL.html#a1af4c12fe4951e80e663f41735bd8ce8":[12,0,0,3,58,2],
 "structyaze_1_1emu_1_1OBJSEL.html#a1efe511bf74c2a91071e46e8b5fcbd51":[11,0,1,3,60,3],
 "structyaze_1_1emu_1_1OBJSEL.html#a1efe511bf74c2a91071e46e8b5fcbd51":[12,0,0,3,58,3],
-"structyaze_1_1emu_1_1OBJSEL.html#a220503257d82e4915e6fa3d5dfc94cd8":[11,0,1,3,60,1],
-"structyaze_1_1emu_1_1OBJSEL.html#a220503257d82e4915e6fa3d5dfc94cd8":[12,0,0,3,58,1],
-"structyaze_1_1emu_1_1OBJSEL.html#ac50b611b2b1a6a6f6643e6d802a07706":[11,0,1,3,60,0],
-"structyaze_1_1emu_1_1OBJSEL.html#ac50b611b2b1a6a6f6643e6d802a07706":[12,0,0,3,58,0],
-"structyaze_1_1emu_1_1OPHCT.html":[11,0,1,3,61],
-"structyaze_1_1emu_1_1OPHCT.html":[12,0,0,3,59],
-"structyaze_1_1emu_1_1OPHCT.html#a2296dac17215cb3aaaa3993570ef4e28":[11,0,1,3,61,1],
-"structyaze_1_1emu_1_1OPHCT.html#a2296dac17215cb3aaaa3993570ef4e28":[12,0,0,3,59,1],
-"structyaze_1_1emu_1_1OPHCT.html#af9ad55ebb5ffa645dc10f1763cbb0914":[11,0,1,3,61,0]
+"structyaze_1_1emu_1_1OBJSEL.html#a220503257d82e4915e6fa3d5dfc94cd8":[11,0,1,3,60,1]
 };

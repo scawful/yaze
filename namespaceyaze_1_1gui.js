@@ -25,7 +25,7 @@ var namespaceyaze_1_1gui =
     [ "UnsortedAsset", "structyaze_1_1gui_1_1UnsortedAsset.html", "structyaze_1_1gui_1_1UnsortedAsset" ],
     [ "ItemLabelFlags", "namespaceyaze_1_1gui.html#a5099466527c2ee2b4d9013b4eb50f12f", null ],
     [ "GuiElement", "namespaceyaze_1_1gui.html#a96a8aa8ae9d402de34a59d1457cfc721", null ],
-    [ "Menu", "namespaceyaze_1_1gui.html#a81626136e7f5ab72f5c71e37056e99d5", null ],
+    [ "Menu", "namespaceyaze_1_1gui.html#ab221db29a25f723447bcfbf9c6d1ca4f", null ],
     [ "BitmapTable", "namespaceyaze_1_1gui.html#ac70b35914f079891436c2442779b9113", null ],
     [ "CanvasType", "namespaceyaze_1_1gui.html#a5a4fbc61ba7c366dab30da60463ee4f6", [
       [ "kTile", "namespaceyaze_1_1gui.html#a5a4fbc61ba7c366dab30da60463ee4f6ac06bd766ba0c680aa7ce4145dd31eb99", null ],
@@ -77,6 +77,7 @@ var namespaceyaze_1_1gui =
     [ "AddToFileMenu", "namespaceyaze_1_1gui.html#a4364cf99d3118ae3b97e08a6b44410fe", null ],
     [ "AddToEditMenu", "namespaceyaze_1_1gui.html#a2be9237823b6890341f15933aa231d2a", null ],
     [ "AddToViewMenu", "namespaceyaze_1_1gui.html#ac1111c42cd630507fb559c9b83f1d4bd", null ],
+    [ "AddToHelpMenu", "namespaceyaze_1_1gui.html#a1674e41d44dc0ac3fb6580bfd5fcc6c1", null ],
     [ "LoadTheme", "namespaceyaze_1_1gui.html#a216f2984ca7cc50dd872c9605352c95e", null ],
     [ "SaveTheme", "namespaceyaze_1_1gui.html#a7f5085854df78a52ad2598b0448850ed", null ],
     [ "ApplyTheme", "namespaceyaze_1_1gui.html#ae9a47f0d85166d6363717c61056b83a3", null ],

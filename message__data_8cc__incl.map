@@ -4,11 +4,11 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,49,98,88,95,83,161,44"/>
 <area shape="rect" id="Node000004" title=" " alt="" coords="169,168,222,193"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="194,47,188,81,187,119,192,152,187,153,182,120,183,80,188,46"/>
-<area shape="rect" id="Node000040" href="$hex_8h.html" title=" " alt="" coords="197,94,269,120"/>
-<area shape="poly" id="edge4_Node000001_Node000040" title=" " alt="" coords="207,45,223,78,218,81,202,48"/>
-<area shape="rect" id="Node000041" href="$log_8h.html" title=" " alt="" coords="293,94,362,120"/>
-<area shape="poly" id="edge6_Node000001_Node000041" title=" " alt="" coords="230,44,296,83,293,88,227,49"/>
+<area shape="rect" id="Node000041" href="$hex_8h.html" title=" " alt="" coords="197,94,269,120"/>
+<area shape="poly" id="edge4_Node000001_Node000041" title=" " alt="" coords="207,45,223,78,218,81,202,48"/>
+<area shape="rect" id="Node000042" href="$log_8h.html" title=" " alt="" coords="293,94,362,120"/>
+<area shape="poly" id="edge6_Node000001_Node000042" title=" " alt="" coords="230,44,296,83,293,88,227,49"/>
 <area shape="poly" id="edge2_Node000002_Node000004" title=" " alt="" coords="87,118,161,158,159,162,85,123"/>
-<area shape="poly" id="edge5_Node000040_Node000004" title=" " alt="" coords="229,121,211,155,206,153,224,119"/>
-<area shape="poly" id="edge7_Node000041_Node000004" title=" " alt="" coords="306,123,232,162,230,158,304,118"/>
+<area shape="poly" id="edge5_Node000041_Node000004" title=" " alt="" coords="229,121,211,155,206,153,224,119"/>
+<area shape="poly" id="edge7_Node000042_Node000004" title=" " alt="" coords="306,123,232,162,230,158,304,118"/>
 </map>

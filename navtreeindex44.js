@@ -1,5 +1,13 @@
 var NAVTREEINDEX44 =
 {
+"overworld__exit_8h.html":[13,0,2,0,5,2,3],
+"overworld__exit_8h_source.html":[13,0,2,0,5,2,3],
+"overworld__item_8h.html":[13,0,2,0,5,2,4],
+"overworld__item_8h_source.html":[13,0,2,0,5,2,4],
+"overworld__map_8cc.html":[13,0,2,0,5,2,5],
+"overworld__map_8cc_source.html":[13,0,2,0,5,2,5],
+"overworld__map_8h.html":[13,0,2,0,5,2,6],
+"overworld__map_8h_source.html":[13,0,2,0,5,2,6],
 "overworld__test_8cc.html":[13,0,3,4,2],
 "overworld__test_8cc_source.html":[13,0,3,4,2],
 "pages.html":[],
@@ -241,13 +249,5 @@ var NAVTREEINDEX44 =
 "structyaze_1_1ResourceLabelManager.html#a38663585e2df6a83f111e64b81c6e0af":[12,0,0,13,6],
 "structyaze_1_1ResourceLabelManager.html#a399dced65410748912d155b356b14421":[11,0,1,13,9],
 "structyaze_1_1ResourceLabelManager.html#a399dced65410748912d155b356b14421":[12,0,0,13,9],
-"structyaze_1_1ResourceLabelManager.html#a5558c56c2d26e38c8f85839c1e77c169":[11,0,1,13,7],
-"structyaze_1_1ResourceLabelManager.html#a5558c56c2d26e38c8f85839c1e77c169":[12,0,0,13,7],
-"structyaze_1_1ResourceLabelManager.html#a5f49e237e1c486dc4633cf29db718ad9":[11,0,1,13,8],
-"structyaze_1_1ResourceLabelManager.html#a5f49e237e1c486dc4633cf29db718ad9":[12,0,0,13,8],
-"structyaze_1_1ResourceLabelManager.html#a7cde5d474812f45421c687a16ad49852":[11,0,1,13,3],
-"structyaze_1_1ResourceLabelManager.html#a7cde5d474812f45421c687a16ad49852":[12,0,0,13,3],
-"structyaze_1_1ResourceLabelManager.html#abd4f0d4db9f33c06effbd3d475afa499":[11,0,1,13,5],
-"structyaze_1_1ResourceLabelManager.html#abd4f0d4db9f33c06effbd3d475afa499":[12,0,0,13,5],
-"structyaze_1_1ResourceLabelManager.html#ad9100d41427354258a6777152ed281c0":[11,0,1,13,2]
+"structyaze_1_1ResourceLabelManager.html#a5558c56c2d26e38c8f85839c1e77c169":[11,0,1,13,7]
 };

@@ -46,7 +46,7 @@ var searchData=
   ['selectwordundercursor_43',['SelectWordUnderCursor',['../classTextEditor.html#a1a2d1d3248c5b180a56cbab1c1413f62',1,'TextEditor']]],
   ['sep_44',['SEP',['../classyaze_1_1emu_1_1Cpu.html#a2b1435345b853dcef8f2664f9553fb0f',1,'yaze::emu::Cpu::SEP()'],['../classyaze_1_1test_1_1Cpu.html#a2b1435345b853dcef8f2664f9553fb0f',1,'yaze::test::Cpu::SEP()']]],
   ['serialize_45',['Serialize',['../classyaze_1_1core_1_1FeatureFlags.html#a80ac17435bc19d8cc8826e5cd7f6711a',1,'yaze::core::FeatureFlags']]],
-  ['set_46',['set',['../classyaze_1_1util_1_1NotifyValue.html#af03e1cca6d1cd764a7d022d37674b8eb',1,'yaze::util::NotifyValue']]],
+  ['set_46',['set',['../classyaze_1_1util_1_1NotifyValue.html#af03e1cca6d1cd764a7d022d37674b8eb',1,'yaze::util::NotifyValue::set(const T &amp;value)'],['../classyaze_1_1util_1_1NotifyValue.html#ada6f190f979756e3130c50fbbd6e5e59',1,'yaze::util::NotifyValue::set(T &amp;&amp;value)']]],
   ['set1_47',['SET1',['../classyaze_1_1emu_1_1Spc700.html#a5f756ab55a25efd1445250a871ad3cde',1,'yaze::emu::Spc700::SET1()'],['../classyaze_1_1test_1_1Spc700.html#a5f756ab55a25efd1445250a871ad3cde',1,'yaze::test::Spc700::SET1()']]],
   ['set_5factive_48',['set_active',['../classyaze_1_1core_1_1Controller.html#a913205e423c0305c7fdcd0846b0a9542',1,'yaze::core::Controller::set_active()'],['../classyaze_1_1gfx_1_1Bitmap.html#a7370ee180c7adbcda6b3d99651f0a768',1,'yaze::gfx::Bitmap::set_active()'],['../classyaze_1_1gui_1_1Bitmap.html#a7370ee180c7adbcda6b3d99651f0a768',1,'yaze::gui::Bitmap::set_active()']]],
   ['set_5farea_5fgraphics_49',['set_area_graphics',['../classyaze_1_1zelda3_1_1OverworldMap.html#ab0cd51f833fb244da4a7febccda5a94f',1,'yaze::zelda3::OverworldMap']]],

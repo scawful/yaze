@@ -39,7 +39,7 @@ var hierarchy =
     [ "yaze::emu::CGDATA", "structyaze_1_1emu_1_1CGDATA.html", null ],
     [ "yaze::emu::CGDATAREAD", "structyaze_1_1emu_1_1CGDATAREAD.html", null ],
     [ "yaze::emu::CGWSEL", "structyaze_1_1emu_1_1CGWSEL.html", null ],
-    [ "yaze::gfx::scad_format::CgxHeader", "structyaze_1_1gfx_1_1scad__format_1_1CgxHeader.html", null ],
+    [ "yaze::gfx::CgxHeader", "structyaze_1_1gfx_1_1CgxHeader.html", null ],
     [ "yaze::emu::CharacterLocation", "structyaze_1_1emu_1_1CharacterLocation.html", null ],
     [ "chest", "structchest.html", null ],
     [ "chest_data", "structchest__data.html", null ],

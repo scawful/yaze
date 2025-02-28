@@ -158,8 +158,8 @@ Typedefs</h2></td></tr>
 <tr class="separator:a5099466527c2ee2b4d9013b4eb50f12f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a96a8aa8ae9d402de34a59d1457cfc721" id="r_a96a8aa8ae9d402de34a59d1457cfc721"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#a96a8aa8ae9d402de34a59d1457cfc721">yaze::gui::GuiElement</a> = std::variant&lt;std::function&lt;void()&gt;, std::string&gt;</td></tr>
 <tr class="separator:a96a8aa8ae9d402de34a59d1457cfc721"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a81626136e7f5ab72f5c71e37056e99d5" id="r_a81626136e7f5ab72f5c71e37056e99d5"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#a81626136e7f5ab72f5c71e37056e99d5">yaze::gui::Menu</a> = std::vector&lt;<a class="el" href="structyaze_1_1gui_1_1MenuItem.html">MenuItem</a>&gt;</td></tr>
-<tr class="separator:a81626136e7f5ab72f5c71e37056e99d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab221db29a25f723447bcfbf9c6d1ca4f" id="r_ab221db29a25f723447bcfbf9c6d1ca4f"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#ab221db29a25f723447bcfbf9c6d1ca4f">yaze::gui::Menu</a> = std::array&lt;<a class="el" href="structyaze_1_1gui_1_1MenuItem.html">MenuItem</a>, 5&gt;</td></tr>
+<tr class="separator:ab221db29a25f723447bcfbf9c6d1ca4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -202,7 +202,7 @@ Functions</h2></td></tr>
 <tr class="separator:a4869c3a07239efb126450a3a4a121841"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a63cf2c84b704f70ba84ef7a1691e1b85" id="r_a63cf2c84b704f70ba84ef7a1691e1b85"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#a63cf2c84b704f70ba84ef7a1691e1b85">yaze::gui::DrawTable</a> (<a class="el" href="structyaze_1_1gui_1_1Table.html">Table</a> &amp;params)</td></tr>
 <tr class="separator:a63cf2c84b704f70ba84ef7a1691e1b85"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a627566d8500f099dabff60322d3c187e" id="r_a627566d8500f099dabff60322d3c187e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#a627566d8500f099dabff60322d3c187e">yaze::gui::DrawMenu</a> (<a class="el" href="namespaceyaze_1_1gui.html#a81626136e7f5ab72f5c71e37056e99d5">Menu</a> &amp;menu)</td></tr>
+<tr class="memitem:a627566d8500f099dabff60322d3c187e" id="r_a627566d8500f099dabff60322d3c187e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#a627566d8500f099dabff60322d3c187e">yaze::gui::DrawMenu</a> (<a class="el" href="namespaceyaze_1_1gui.html#ab221db29a25f723447bcfbf9c6d1ca4f">Menu</a> &amp;menu)</td></tr>
 <tr class="separator:a627566d8500f099dabff60322d3c187e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab836752a785527c824def18b6760050a" id="r_ab836752a785527c824def18b6760050a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#ab836752a785527c824def18b6760050a">yaze::gui::AddToMenu</a> (const std::string &amp;label, const char *icon, <a class="el" href="namespaceyaze_1_1gui.html#a7d7252cc7f3ad2e373ce475ae4a3fa7a">MenuType</a> type)</td></tr>
 <tr class="separator:ab836752a785527c824def18b6760050a"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -214,6 +214,8 @@ Functions</h2></td></tr>
 <tr class="separator:a2be9237823b6890341f15933aa231d2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac1111c42cd630507fb559c9b83f1d4bd" id="r_ac1111c42cd630507fb559c9b83f1d4bd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#ac1111c42cd630507fb559c9b83f1d4bd">yaze::gui::AddToViewMenu</a> (const std::string &amp;label, const std::string &amp;shortcut, std::function&lt; void()&gt; callback)</td></tr>
 <tr class="separator:ac1111c42cd630507fb559c9b83f1d4bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1674e41d44dc0ac3fb6580bfd5fcc6c1" id="r_a1674e41d44dc0ac3fb6580bfd5fcc6c1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#a1674e41d44dc0ac3fb6580bfd5fcc6c1">yaze::gui::AddToHelpMenu</a> (const std::string &amp;label, const std::string &amp;shortcut, std::function&lt; void()&gt; callback)</td></tr>
+<tr class="separator:a1674e41d44dc0ac3fb6580bfd5fcc6c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>

@@ -1,5 +1,13 @@
 var NAVTREEINDEX27 =
 {
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#afd4343a98e78cad6ae17d428416e35d7":[12,0,0,8,0,6,37],
+"clipboard_8cc.html":[13,0,2,0,0,0,2],
+"clipboard_8cc_source.html":[13,0,2,0,0,0,2],
+"clipboard_8h.html":[13,0,2,0,0,0,3],
+"clipboard_8h_source.html":[13,0,2,0,0,0,3],
+"clipboard_8mm.html":[13,0,2,0,0,0,4],
+"clipboard_8mm_source.html":[13,0,2,0,0,0,4],
+"color_8cc.html":[13,0,2,0,4,3],
 "color_8cc_source.html":[13,0,2,0,4,3],
 "color_8h.html":[13,0,2,0,4,4],
 "color_8h_source.html":[13,0,2,0,4,4],
@@ -241,13 +249,5 @@ var NAVTREEINDEX27 =
 "functions_vars_r.html":[12,3,2,17],
 "functions_vars_s.html":[12,3,2,18],
 "functions_vars_t.html":[12,3,2,19],
-"functions_vars_u.html":[12,3,2,20],
-"functions_vars_v.html":[12,3,2,21],
-"functions_vars_w.html":[12,3,2,22],
-"functions_vars_x.html":[12,3,2,23],
-"functions_vars_y.html":[12,3,2,24],
-"functions_vars_z.html":[12,3,2,25],
-"functions_w.html":[12,3,0,22],
-"functions_x.html":[12,3,0,23],
-"functions_y.html":[12,3,0,24]
+"functions_vars_u.html":[12,3,2,20]
 };

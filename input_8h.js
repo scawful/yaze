@@ -5,7 +5,7 @@ var input_8h =
     [ "IMGUI_DEFINE_MATH_OPERATORS", "input_8h.html#adf4d73301961430d50d7edd96f92ce38", null ],
     [ "yaze::gui::ItemLabelFlags", "namespaceyaze_1_1gui.html#a5099466527c2ee2b4d9013b4eb50f12f", null ],
     [ "yaze::gui::GuiElement", "namespaceyaze_1_1gui.html#a96a8aa8ae9d402de34a59d1457cfc721", null ],
-    [ "yaze::gui::Menu", "namespaceyaze_1_1gui.html#a81626136e7f5ab72f5c71e37056e99d5", null ],
+    [ "yaze::gui::Menu", "namespaceyaze_1_1gui.html#ab221db29a25f723447bcfbf9c6d1ca4f", null ],
     [ "yaze::gui::MenuType", "namespaceyaze_1_1gui.html#a7d7252cc7f3ad2e373ce475ae4a3fa7a", [
       [ "yaze::gui::kFile", "namespaceyaze_1_1gui.html#a7d7252cc7f3ad2e373ce475ae4a3fa7aa1b7447b0a3103a1e139b65127686983b", null ],
       [ "yaze::gui::kEdit", "namespaceyaze_1_1gui.html#a7d7252cc7f3ad2e373ce475ae4a3fa7aa2aded08181a8de82191a6b80feda1ab1", null ],
@@ -32,6 +32,7 @@ var input_8h =
     [ "yaze::gui::AddToFileMenu", "namespaceyaze_1_1gui.html#a4364cf99d3118ae3b97e08a6b44410fe", null ],
     [ "yaze::gui::AddToEditMenu", "namespaceyaze_1_1gui.html#a2be9237823b6890341f15933aa231d2a", null ],
     [ "yaze::gui::AddToViewMenu", "namespaceyaze_1_1gui.html#ac1111c42cd630507fb559c9b83f1d4bd", null ],
+    [ "yaze::gui::AddToHelpMenu", "namespaceyaze_1_1gui.html#a1674e41d44dc0ac3fb6580bfd5fcc6c1", null ],
     [ "yaze::gui::kDefaultModalSize", "namespaceyaze_1_1gui.html#ab655498d16f5ecf417dddcc70faed138", null ],
     [ "yaze::gui::kZeroPos", "namespaceyaze_1_1gui.html#ab500bfa55478470e1f7cd45806c3728e", null ]
 ];

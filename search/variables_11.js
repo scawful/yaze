@@ -25,7 +25,7 @@ var searchData=
   ['rep_5fcount_22',['rep_count',['../structyaze_1_1emu_1_1DmaChannel.html#aa7b1b898465c2c176c357e05b0b12699',1,'yaze::emu::DmaChannel']]],
   ['requestdelete_23',['RequestDelete',['../structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#ae045e153ba636838f23d9dcebae00d3f',1,'yaze::gui::GfxSheetAssetBrowser']]],
   ['requestsort_24',['RequestSort',['../structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a78b89e4056825c18049694239ab53a8f',1,'yaze::gui::GfxSheetAssetBrowser']]],
-  ['reserved_25',['reserved',['../structyaze_1_1gfx_1_1scad__format_1_1CgxHeader.html#a66f50603f6e9af79f5b174a53876ae94',1,'yaze::gfx::scad_format::CgxHeader']]],
+  ['reserved_25',['reserved',['../structyaze_1_1gfx_1_1CgxHeader.html#af04daa814ba9d8f79ae991090b2ac56b',1,'yaze::gfx::CgxHeader']]],
   ['reset_26',['reset',['../classyaze_1_1emu_1_1Dsp.html#af4cd4657053949aecb3956668e822e2b',1,'yaze::emu::Dsp']]],
   ['reset_5fwanted_5f_27',['reset_wanted_',['../classyaze_1_1emu_1_1Spc700.html#a6c74319f616d9f3bc9fa8e294d9b3cd8',1,'yaze::emu::Spc700::reset_wanted_'],['../classyaze_1_1emu_1_1Cpu.html#a5e00905f9011a222a5140e5d0f39a22c',1,'yaze::emu::Cpu::reset_wanted_'],['../classyaze_1_1test_1_1Cpu.html#a5e00905f9011a222a5140e5d0f39a22c',1,'yaze::test::Cpu::reset_wanted_'],['../classyaze_1_1test_1_1Spc700.html#a6c74319f616d9f3bc9fa8e294d9b3cd8',1,'yaze::test::Spc700::reset_wanted_']]],
   ['resource_5flabel_5fmanager_5f_28',['resource_label_manager_',['../classyaze_1_1Rom.html#a98dabc039713c62b9dedbd471b4f3064',1,'yaze::Rom::resource_label_manager_'],['../classyaze_1_1test_1_1Rom.html#a98dabc039713c62b9dedbd471b4f3064',1,'yaze::test::Rom::resource_label_manager_']]],

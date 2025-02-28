@@ -6,7 +6,7 @@ var searchData=
   ['cgdata_3',['CGDATA',['../structyaze_1_1emu_1_1CGDATA.html',1,'yaze::emu']]],
   ['cgdataread_4',['CGDATAREAD',['../structyaze_1_1emu_1_1CGDATAREAD.html',1,'yaze::emu']]],
   ['cgwsel_5',['CGWSEL',['../structyaze_1_1emu_1_1CGWSEL.html',1,'yaze::emu']]],
-  ['cgxheader_6',['CgxHeader',['../structyaze_1_1gfx_1_1scad__format_1_1CgxHeader.html',1,'yaze::gfx::scad_format']]],
+  ['cgxheader_6',['CgxHeader',['../structyaze_1_1gfx_1_1CgxHeader.html',1,'yaze::gfx']]],
   ['characterlocation_7',['CharacterLocation',['../structyaze_1_1emu_1_1CharacterLocation.html',1,'yaze::emu']]],
   ['chest_8',['chest',['../structchest.html',1,'']]],
   ['chest_5fdata_9',['chest_data',['../structchest__data.html',1,'']]],

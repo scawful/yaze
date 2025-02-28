@@ -188,10 +188,8 @@ var annotated_dup =
           [ "CompressionContext", "structyaze_1_1gfx_1_1lc__lz2_1_1CompressionContext.html", "structyaze_1_1gfx_1_1lc__lz2_1_1CompressionContext" ],
           [ "CompressionPiece", "structyaze_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html", "structyaze_1_1gfx_1_1lc__lz2_1_1CompressionPiece" ]
         ] ],
-        [ "scad_format", "namespaceyaze_1_1gfx_1_1scad__format.html", [
-          [ "CgxHeader", "structyaze_1_1gfx_1_1scad__format_1_1CgxHeader.html", "structyaze_1_1gfx_1_1scad__format_1_1CgxHeader" ]
-        ] ],
         [ "Bitmap", "classyaze_1_1gfx_1_1Bitmap.html", "classyaze_1_1gfx_1_1Bitmap" ],
+        [ "CgxHeader", "structyaze_1_1gfx_1_1CgxHeader.html", "structyaze_1_1gfx_1_1CgxHeader" ],
         [ "GfxContext", "classyaze_1_1gfx_1_1GfxContext.html", null ],
         [ "GraphicsBuffer", "classyaze_1_1gfx_1_1GraphicsBuffer.html", "classyaze_1_1gfx_1_1GraphicsBuffer" ],
         [ "InternalTile16", "structyaze_1_1gfx_1_1InternalTile16.html", "structyaze_1_1gfx_1_1InternalTile16" ],

@@ -1,5 +1,13 @@
 var NAVTREEINDEX47 =
 {
+"structyaze_1_1emu_1_1BGMODE.html#a81ab8eb7ca69deb21b0eb220a50422c2":[12,0,0,3,8,0],
+"structyaze_1_1emu_1_1BGMODE.html#ab5b495b85fe4e551e470ae16cb7f0368":[11,0,1,3,10,2],
+"structyaze_1_1emu_1_1BGMODE.html#ab5b495b85fe4e551e470ae16cb7f0368":[12,0,0,3,8,2],
+"structyaze_1_1emu_1_1BGMODE.html#ae8b082d642fb45bf01a6914883d1a644":[11,0,1,3,10,1],
+"structyaze_1_1emu_1_1BGMODE.html#ae8b082d642fb45bf01a6914883d1a644":[12,0,0,3,8,1],
+"structyaze_1_1emu_1_1BGNBA.html":[11,0,1,3,11],
+"structyaze_1_1emu_1_1BGNBA.html":[12,0,0,3,9],
+"structyaze_1_1emu_1_1BGNBA.html#a271beccb69eb3ee9352b8842df924d9f":[11,0,1,3,11,4],
 "structyaze_1_1emu_1_1BGNBA.html#a271beccb69eb3ee9352b8842df924d9f":[12,0,0,3,9,4],
 "structyaze_1_1emu_1_1BGNBA.html#a6522f22a5b27b751db6a733d9a024e29":[11,0,1,3,11,2],
 "structyaze_1_1emu_1_1BGNBA.html#a6522f22a5b27b751db6a733d9a024e29":[12,0,0,3,9,2],
@@ -241,13 +249,5 @@ var NAVTREEINDEX47 =
 "structyaze_1_1emu_1_1DspChannel.html#a0e85f4e4b96346138f7ec6673d5e8705":[12,0,0,3,26,15],
 "structyaze_1_1emu_1_1DspChannel.html#a0f3d545cf2c196e73dc3c8da4e19ab74":[11,0,1,3,28,9],
 "structyaze_1_1emu_1_1DspChannel.html#a0f3d545cf2c196e73dc3c8da4e19ab74":[12,0,0,3,26,9],
-"structyaze_1_1emu_1_1DspChannel.html#a2411814d2127833790eb14846a79e5e8":[11,0,1,3,28,10],
-"structyaze_1_1emu_1_1DspChannel.html#a2411814d2127833790eb14846a79e5e8":[12,0,0,3,26,10],
-"structyaze_1_1emu_1_1DspChannel.html#a2e8b878f7b9a87489ecdda5715c2623b":[11,0,1,3,28,12],
-"structyaze_1_1emu_1_1DspChannel.html#a2e8b878f7b9a87489ecdda5715c2623b":[12,0,0,3,26,12],
-"structyaze_1_1emu_1_1DspChannel.html#a466d092d0065c96495c85d52f7e36d04":[11,0,1,3,28,1],
-"structyaze_1_1emu_1_1DspChannel.html#a466d092d0065c96495c85d52f7e36d04":[12,0,0,3,26,1],
-"structyaze_1_1emu_1_1DspChannel.html#a4acbf03e6fa3a0cb92b2c80ff1d3fd53":[11,0,1,3,28,25],
-"structyaze_1_1emu_1_1DspChannel.html#a4acbf03e6fa3a0cb92b2c80ff1d3fd53":[12,0,0,3,26,25],
-"structyaze_1_1emu_1_1DspChannel.html#a4af0ed15c68d6645bf942cb07ba430fa":[11,0,1,3,28,5]
+"structyaze_1_1emu_1_1DspChannel.html#a2411814d2127833790eb14846a79e5e8":[11,0,1,3,28,10]
 };
