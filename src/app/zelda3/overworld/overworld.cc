@@ -53,7 +53,7 @@ void Overworld::FetchLargeMaps() {
   overworld_maps_[138].SetAsLargeMap(129, 3);
   overworld_maps_[136].SetAsSmallMap();
 
-  std::array<bool, 0x40> map_checked;
+  std::array<bool, kNumMapsPerWorld> map_checked;
   std::fill(map_checked.begin(), map_checked.end(), false);
 
   int xx = 0;
@@ -105,9 +105,8 @@ absl::StatusOr<uint16_t> Overworld::GetTile16ForTile32(
                     (((arg2 >> (quadrant % 2 == 0 ? 4 : 0)) & 0x0F) * 256));
 }
 
-constexpr int kMap32TilesLength = 0x33F0;
-
 absl::Status Overworld::AssembleMap32Tiles() {
+  constexpr int kMap32TilesLength = 0x33F0;
   int num_tile32 = kMap32TilesLength;
   uint32_t map32address[4] = {rom_.version_constants().kMap32TileTL,
                               rom_.version_constants().kMap32TileTR,
@@ -391,18 +390,13 @@ absl::Status Overworld::LoadExits() {
     uint16_t px = (uint16_t)((rom_data[OWExitXPlayer + (i * 2) + 1] << 8) +
                              rom_data[OWExitXPlayer + (i * 2)]);
 
-    if (core::FeatureFlags::get().kLogToConsole) {
-      std::cout << "Exit: " << i << " RoomID: " << exit_room_id
-                << " MapID: " << exit_map_id << " VRAM: " << exit_vram
-                << " YScroll: " << exit_y_scroll
-                << " XScroll: " << exit_x_scroll << " YPlayer: " << py
-                << " XPlayer: " << px << " YCamera: " << exit_y_camera
-                << " XCamera: " << exit_x_camera
-                << " ScrollModY: " << exit_scroll_mod_y
-                << " ScrollModX: " << exit_scroll_mod_x
-                << " DoorType1: " << exit_door_type_1
-                << " DoorType2: " << exit_door_type_2 << std::endl;
-    }
+    util::logf(
+        "Exit: %d RoomID: %d MapID: %d VRAM: %d YScroll: %d XScroll: "
+        "%d YPlayer: %d XPlayer: %d YCamera: %d XCamera: %d "
+        "ScrollModY: %d ScrollModX: %d DoorType1: %d DoorType2: %d",
+        i, exit_room_id, exit_map_id, exit_vram, exit_y_scroll, exit_x_scroll,
+        py, px, exit_y_camera, exit_x_camera, exit_scroll_mod_y,
+        exit_scroll_mod_x, exit_door_type_1, exit_door_type_2);
 
     exits.emplace_back(exit_room_id, exit_map_id, exit_vram, exit_y_scroll,
                        exit_x_scroll, py, px, exit_y_camera, exit_x_camera,
@@ -675,7 +669,7 @@ absl::Status Overworld::SaveLargeMaps() {
   util::logf("Saving Large Maps");
   std::vector<uint8_t> checked_map;
 
-  for (int i = 0; i < 0x40; i++) {
+  for (int i = 0; i < kNumMapsPerWorld; ++i) {
     int y_pos = i / 8;
     int x_pos = i % 8;
     int parent_y_pos = overworld_maps_[i].parent() / 8;
@@ -1106,8 +1100,7 @@ absl::Status Overworld::SaveMap32Expanded() {
 
   // Updates the pointers too for the tile32
   // Top Right
-  RETURN_IF_ERROR(
-      rom()->WriteLong(0x0176EC, PcToSnes(kMap32TileTRExpanded)));
+  RETURN_IF_ERROR(rom()->WriteLong(0x0176EC, PcToSnes(kMap32TileTRExpanded)));
   RETURN_IF_ERROR(
       rom()->WriteLong(0x0176F3, PcToSnes(kMap32TileTRExpanded + 1)));
   RETURN_IF_ERROR(
@@ -1120,8 +1113,7 @@ absl::Status Overworld::SaveMap32Expanded() {
       rom()->WriteLong(0x01771A, PcToSnes(kMap32TileTRExpanded + 5)));
 
   // BottomLeft
-  RETURN_IF_ERROR(
-      rom()->WriteLong(0x01772C, PcToSnes(kMap32TileBLExpanded)));
+  RETURN_IF_ERROR(rom()->WriteLong(0x01772C, PcToSnes(kMap32TileBLExpanded)));
   RETURN_IF_ERROR(
       rom()->WriteLong(0x017733, PcToSnes(kMap32TileBLExpanded + 1)));
   RETURN_IF_ERROR(
@@ -1134,8 +1126,7 @@ absl::Status Overworld::SaveMap32Expanded() {
       rom()->WriteLong(0x01775A, PcToSnes(kMap32TileBLExpanded + 5)));
 
   // BottomRight
-  RETURN_IF_ERROR(
-      rom()->WriteLong(0x01776C, PcToSnes(kMap32TileBRExpanded)));
+  RETURN_IF_ERROR(rom()->WriteLong(0x01776C, PcToSnes(kMap32TileBRExpanded)));
   RETURN_IF_ERROR(
       rom()->WriteLong(0x017773, PcToSnes(kMap32TileBRExpanded + 1)));
   RETURN_IF_ERROR(
@@ -1279,72 +1270,72 @@ absl::Status Overworld::SaveMap32Tiles() {
 }
 
 absl::Status Overworld::SaveMap16Expanded() {
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x008865),
-                                   PcToSnes(kMap16TilesExpanded)));
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x0EDE4F),
-                                   PcToSnes(kMap16TilesExpanded)));
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x0EDEE9),
-                                   PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x008865), PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x0EDE4F), PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x0EDEE9), PcToSnes(kMap16TilesExpanded)));
 
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x1BBC2D),
-                                   PcToSnes(kMap16TilesExpanded + 2)));
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x1BBC4C),
-                                   PcToSnes(kMap16TilesExpanded)));
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x1BBCC2),
-                                   PcToSnes(kMap16TilesExpanded + 4)));
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x1BBCCB),
-                                   PcToSnes(kMap16TilesExpanded + 6)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x1BBC2D), PcToSnes(kMap16TilesExpanded + 2)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x1BBC4C), PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x1BBCC2), PcToSnes(kMap16TilesExpanded + 4)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x1BBCCB), PcToSnes(kMap16TilesExpanded + 6)));
 
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x1BBEF6),
-                                   PcToSnes(kMap16TilesExpanded)));
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x1BBF23),
-                                   PcToSnes(kMap16TilesExpanded)));
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x1BC041),
-                                   PcToSnes(kMap16TilesExpanded)));
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x1BC9B3),
-                                   PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x1BBEF6), PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x1BBF23), PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x1BC041), PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x1BC9B3), PcToSnes(kMap16TilesExpanded)));
 
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x1BC9BA),
-                                   PcToSnes(kMap16TilesExpanded + 2)));
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x1BC9C1),
-                                   PcToSnes(kMap16TilesExpanded + 4)));
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x1BC9C8),
-                                   PcToSnes(kMap16TilesExpanded + 6)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x1BC9BA), PcToSnes(kMap16TilesExpanded + 2)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x1BC9C1), PcToSnes(kMap16TilesExpanded + 4)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x1BC9C8), PcToSnes(kMap16TilesExpanded + 6)));
 
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x1BCA40),
-                                   PcToSnes(kMap16TilesExpanded)));
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x1BCA47),
-                                   PcToSnes(kMap16TilesExpanded + 2)));
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x1BCA4E),
-                                   PcToSnes(kMap16TilesExpanded + 4)));
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x1BCA55),
-                                   PcToSnes(kMap16TilesExpanded + 6)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x1BCA40), PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x1BCA47), PcToSnes(kMap16TilesExpanded + 2)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x1BCA4E), PcToSnes(kMap16TilesExpanded + 4)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x1BCA55), PcToSnes(kMap16TilesExpanded + 6)));
 
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x02F457),
-                                   PcToSnes(kMap16TilesExpanded)));
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x02F45E),
-                                   PcToSnes(kMap16TilesExpanded + 2)));
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x02F467),
-                                   PcToSnes(kMap16TilesExpanded + 4)));
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x02F46E),
-                                   PcToSnes(kMap16TilesExpanded + 6)));
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x02F51F),
-                                   PcToSnes(kMap16TilesExpanded)));
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x02F526),
-                                   PcToSnes(kMap16TilesExpanded + 4)));
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x02F52F),
-                                   PcToSnes(kMap16TilesExpanded + 2)));
-  RETURN_IF_ERROR(rom()->WriteLong(SnesToPc(0x02F536),
-                                   PcToSnes(kMap16TilesExpanded + 6)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x02F457), PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x02F45E), PcToSnes(kMap16TilesExpanded + 2)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x02F467), PcToSnes(kMap16TilesExpanded + 4)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x02F46E), PcToSnes(kMap16TilesExpanded + 6)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x02F51F), PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x02F526), PcToSnes(kMap16TilesExpanded + 4)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x02F52F), PcToSnes(kMap16TilesExpanded + 2)));
+  RETURN_IF_ERROR(
+      rom()->WriteLong(SnesToPc(0x02F536), PcToSnes(kMap16TilesExpanded + 6)));
 
-  RETURN_IF_ERROR(rom()->WriteShort(SnesToPc(0x02FE1C),
-                                    PcToSnes(kMap16TilesExpanded)));
-  RETURN_IF_ERROR(rom()->WriteShort(SnesToPc(0x02FE23),
-                                    PcToSnes(kMap16TilesExpanded + 4)));
-  RETURN_IF_ERROR(rom()->WriteShort(SnesToPc(0x02FE2C),
-                                    PcToSnes(kMap16TilesExpanded + 2)));
-  RETURN_IF_ERROR(rom()->WriteShort(SnesToPc(0x02FE33),
-                                    PcToSnes(kMap16TilesExpanded + 6)));
+  RETURN_IF_ERROR(
+      rom()->WriteShort(SnesToPc(0x02FE1C), PcToSnes(kMap16TilesExpanded)));
+  RETURN_IF_ERROR(
+      rom()->WriteShort(SnesToPc(0x02FE23), PcToSnes(kMap16TilesExpanded + 4)));
+  RETURN_IF_ERROR(
+      rom()->WriteShort(SnesToPc(0x02FE2C), PcToSnes(kMap16TilesExpanded + 2)));
+  RETURN_IF_ERROR(
+      rom()->WriteShort(SnesToPc(0x02FE33), PcToSnes(kMap16TilesExpanded + 6)));
 
   RETURN_IF_ERROR(rom()->WriteByte(
       SnesToPc(0x02FD28),
@@ -1546,9 +1537,7 @@ absl::Status Overworld::SaveItems() {
     return absl::AbortedError("Too many items");
   }
 
-  if (core::FeatureFlags::get().kLogToConsole) {
-    std::cout << "End of Items : " << data_pos << std::endl;
-  }
+  util::logf("End of Items : %d", data_pos);
 
   return absl::OkStatus();
 }

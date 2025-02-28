@@ -101,6 +101,7 @@ constexpr int NumberOfMap16Ex = 4096;  // 4096
 constexpr int LimitOfMap32 = 8864;
 constexpr int NumberOfOWSprites = 352;
 constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
+constexpr int kNumMapsPerWorld = 0x40;
 
 /**
  * @brief Represents the full Overworld data, light and dark world.
@@ -268,8 +269,6 @@ class Overworld : public SharedRom {
   std::array<int, kNumOverworldMaps> map_pointers2_id;
   std::array<int, kNumOverworldMaps> map_pointers1;
   std::array<int, kNumOverworldMaps> map_pointers2;
-
-  std::vector<absl::flat_hash_map<uint16_t, int>> usage_stats_;
 };
 
 }  // namespace zelda3
