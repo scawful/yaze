@@ -44,7 +44,7 @@ absl::Status ParseThemeContents(const std::string &key,
   return absl::OkStatus();
 }
 
-} // namespace
+}  // namespace
 
 absl::StatusOr<Theme> LoadTheme(const std::string &filename) {
   std::string theme_contents;
@@ -78,18 +78,27 @@ absl::Status SaveTheme(const Theme &theme) {
   theme_stream << theme.name << "Theme\n";
   theme_stream << "MenuBarBg=#" << gui::ColorToHexString(theme.menu_bar_bg)
                << "\n";
-  theme_stream << "TitleBg=#" << gui::ColorToHexString(theme.title_bar_bg) << "\n";
+  theme_stream << "TitleBg=#" << gui::ColorToHexString(theme.title_bar_bg)
+               << "\n";
   theme_stream << "Header=#" << gui::ColorToHexString(theme.header) << "\n";
-  theme_stream << "HeaderHovered=#" << gui::ColorToHexString(theme.header_hovered) << "\n";
-  theme_stream << "HeaderActive=#" << gui::ColorToHexString(theme.header_active) << "\n";
-  theme_stream << "TitleBgActive=#" << gui::ColorToHexString(theme.title_bg_active) << "\n";
-  theme_stream << "TitleBgCollapsed=#" << gui::ColorToHexString(theme.title_bg_collapsed) << "\n";
+  theme_stream << "HeaderHovered=#"
+               << gui::ColorToHexString(theme.header_hovered) << "\n";
+  theme_stream << "HeaderActive=#" << gui::ColorToHexString(theme.header_active)
+               << "\n";
+  theme_stream << "TitleBgActive=#"
+               << gui::ColorToHexString(theme.title_bg_active) << "\n";
+  theme_stream << "TitleBgCollapsed=#"
+               << gui::ColorToHexString(theme.title_bg_collapsed) << "\n";
   theme_stream << "Tab=#" << gui::ColorToHexString(theme.tab) << "\n";
-  theme_stream << "TabHovered=#" << gui::ColorToHexString(theme.tab_hovered) << "\n";
-  theme_stream << "TabActive=#" << gui::ColorToHexString(theme.tab_active) << "\n";
+  theme_stream << "TabHovered=#" << gui::ColorToHexString(theme.tab_hovered)
+               << "\n";
+  theme_stream << "TabActive=#" << gui::ColorToHexString(theme.tab_active)
+               << "\n";
   theme_stream << "Button=#" << gui::ColorToHexString(theme.button) << "\n";
-  theme_stream << "ButtonHovered=#" << gui::ColorToHexString(theme.button_hovered) << "\n";
-  theme_stream << "ButtonActive=#" << gui::ColorToHexString(theme.button_active) << "\n";
+  theme_stream << "ButtonHovered=#"
+               << gui::ColorToHexString(theme.button_hovered) << "\n";
+  theme_stream << "ButtonActive=#" << gui::ColorToHexString(theme.button_active)
+               << "\n";
 
   // Save the theme to a file.
 
@@ -103,16 +112,22 @@ void ApplyTheme(const Theme &theme) {
   colors[ImGuiCol_MenuBarBg] = gui::ConvertColorToImVec4(theme.menu_bar_bg);
   colors[ImGuiCol_TitleBg] = gui::ConvertColorToImVec4(theme.title_bar_bg);
   colors[ImGuiCol_Header] = gui::ConvertColorToImVec4(theme.header);
-  colors[ImGuiCol_HeaderHovered] = gui::ConvertColorToImVec4(theme.header_hovered);
-  colors[ImGuiCol_HeaderActive] = gui::ConvertColorToImVec4(theme.header_active);
-  colors[ImGuiCol_TitleBgActive] = gui::ConvertColorToImVec4(theme.title_bg_active);
-  colors[ImGuiCol_TitleBgCollapsed] = gui::ConvertColorToImVec4(theme.title_bg_collapsed);
+  colors[ImGuiCol_HeaderHovered] =
+      gui::ConvertColorToImVec4(theme.header_hovered);
+  colors[ImGuiCol_HeaderActive] =
+      gui::ConvertColorToImVec4(theme.header_active);
+  colors[ImGuiCol_TitleBgActive] =
+      gui::ConvertColorToImVec4(theme.title_bg_active);
+  colors[ImGuiCol_TitleBgCollapsed] =
+      gui::ConvertColorToImVec4(theme.title_bg_collapsed);
   colors[ImGuiCol_Tab] = gui::ConvertColorToImVec4(theme.tab);
   colors[ImGuiCol_TabHovered] = gui::ConvertColorToImVec4(theme.tab_hovered);
   colors[ImGuiCol_TabActive] = gui::ConvertColorToImVec4(theme.tab_active);
   colors[ImGuiCol_Button] = gui::ConvertColorToImVec4(theme.button);
-  colors[ImGuiCol_ButtonHovered] = gui::ConvertColorToImVec4(theme.button_hovered);
-  colors[ImGuiCol_ButtonActive] = gui::ConvertColorToImVec4(theme.button_active);
+  colors[ImGuiCol_ButtonHovered] =
+      gui::ConvertColorToImVec4(theme.button_hovered);
+  colors[ImGuiCol_ButtonActive] =
+      gui::ConvertColorToImVec4(theme.button_active);
 }
 
 void ColorsYaze() {
@@ -203,7 +218,7 @@ void ColorsYaze() {
   colors[ImGuiCol_TableHeaderBg] = alttpDarkGreen;
   colors[ImGuiCol_TableBorderStrong] = alttpMidGreen;
   colors[ImGuiCol_TableBorderLight] =
-      ImVec4(0.26f, 0.26f, 0.28f, 1.00f); // Prefer using Alpha=1.0 here
+      ImVec4(0.26f, 0.26f, 0.28f, 1.00f);  // Prefer using Alpha=1.0 here
   colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
   colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.07f);
   colors[ImGuiCol_TextSelectedBg] = ImVec4(0.00f, 0.00f, 1.00f, 0.35f);
@@ -277,8 +292,7 @@ static const char *const kIdentifiers[] = {
 
 TextEditor::LanguageDefinition GetAssemblyLanguageDef() {
   TextEditor::LanguageDefinition language_65816;
-  for (auto &k : kKeywords)
-    language_65816.mKeywords.emplace(k);
+  for (auto &k : kKeywords) language_65816.mKeywords.emplace(k);
 
   for (auto &k : kIdentifiers) {
     TextEditor::Identifier id;
@@ -389,24 +403,21 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
 
   // Default to using internal storage as reference
   static bool init = true;
-  if (init && ref == NULL)
-    ref_saved_style = style;
+  if (init && ref == NULL) ref_saved_style = style;
   init = false;
-  if (ref == NULL)
-    ref = &ref_saved_style;
+  if (ref == NULL) ref = &ref_saved_style;
 
   ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
 
-  if (ImGui::ShowStyleSelector("Colors##Selector"))
-    ref_saved_style = style;
+  if (ImGui::ShowStyleSelector("Colors##Selector")) ref_saved_style = style;
   ImGui::ShowFontSelector("Fonts##Selector");
 
   // Simplified Settings (expose floating-pointer border sizes as boolean
   // representing 0.0f or 1.0f)
   if (ImGui::SliderFloat("FrameRounding", &style.FrameRounding, 0.0f, 12.0f,
                          "%.0f"))
-    style.GrabRounding = style.FrameRounding; // Make GrabRounding always the
-                                              // same value as FrameRounding
+    style.GrabRounding = style.FrameRounding;  // Make GrabRounding always the
+                                               // same value as FrameRounding
   {
     bool border = (style.WindowBorderSize > 0.0f);
     if (ImGui::Checkbox("WindowBorder", &border)) {
@@ -429,11 +440,9 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
   }
 
   // Save/Revert button
-  if (ImGui::Button("Save Ref"))
-    *ref = ref_saved_style = style;
+  if (ImGui::Button("Save Ref")) *ref = ref_saved_style = style;
   ImGui::SameLine();
-  if (ImGui::Button("Revert Ref"))
-    style = *ref;
+  if (ImGui::Button("Revert Ref")) style = *ref;
   ImGui::SameLine();
 
   ImGui::Separator();
@@ -605,8 +614,7 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
       ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
       for (int i = 0; i < ImGuiCol_COUNT; i++) {
         const char *name = ImGui::GetStyleColorName(i);
-        if (!filter.PassFilter(name))
-          continue;
+        if (!filter.PassFilter(name)) continue;
         ImGui::PushID(i);
         ImGui::ColorEdit4("##color", (float *)&style.Colors[i],
                           ImGuiColorEditFlags_AlphaBar | alpha_flags);
@@ -651,11 +659,11 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
       if (ImGui::DragFloat(
               "window scale", &window_scale, 0.005f, MIN_SCALE, MAX_SCALE,
               "%.2f",
-              ImGuiSliderFlags_AlwaysClamp)) // Scale only this window
+              ImGuiSliderFlags_AlwaysClamp))  // Scale only this window
         ImGui::SetWindowFontScale(window_scale);
       ImGui::DragFloat("global scale", &io.FontGlobalScale, 0.005f, MIN_SCALE,
                        MAX_SCALE, "%.2f",
-                       ImGuiSliderFlags_AlwaysClamp); // Scale everything
+                       ImGuiSliderFlags_AlwaysClamp);  // Scale everything
       ImGui::PopItemWidth();
 
       ImGui::EndTabItem();
@@ -683,8 +691,7 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
                        &style.CircleTessellationMaxError, 0.005f, 0.10f, 5.0f,
                        "%.2f", ImGuiSliderFlags_AlwaysClamp);
       const bool show_samples = ImGui::IsItemActive();
-      if (show_samples)
-        ImGui::SetNextWindowPos(ImGui::GetCursorScreenPos());
+      if (show_samples) ImGui::SetNextWindowPos(ImGui::GetCursorScreenPos());
       if (show_samples && ImGui::BeginTooltip()) {
         ImGui::TextUnformatted("(R = radius, N = number of segments)");
         ImGui::Spacing();
@@ -725,10 +732,10 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
       ImGui::SameLine();
 
       ImGui::DragFloat("Global Alpha", &style.Alpha, 0.005f, 0.20f, 1.0f,
-                       "%.2f"); // Not exposing zero here so user doesn't
-                                // "lose" the UI (zero alpha clips all
-                                // widgets). But application code could have a
-                                // toggle to switch between zero and non-zero.
+                       "%.2f");  // Not exposing zero here so user doesn't
+                                 // "lose" the UI (zero alpha clips all
+                                 // widgets). But application code could have a
+                                 // toggle to switch between zero and non-zero.
       ImGui::DragFloat("Disabled Alpha", &style.DisabledAlpha, 0.005f, 0.0f,
                        1.0f, "%.2f");
       ImGui::SameLine();
@@ -751,16 +758,16 @@ void TextWithSeparators(const absl::string_view &text) {
 }
 
 void DrawFontManager() {
-  ImGuiIO& io = ImGui::GetIO();
-  ImFontAtlas* atlas = io.Fonts;
+  ImGuiIO &io = ImGui::GetIO();
+  ImFontAtlas *atlas = io.Fonts;
 
-  static ImFont* current_font = atlas->Fonts[0];
+  static ImFont *current_font = atlas->Fonts[0];
   static int current_font_index = 0;
   static int font_size = 16;
   static bool font_selected = false;
 
   ImGui::Text("Loaded fonts");
-  for (const auto& loaded_font : core::global_font_state.fonts) {
+  for (const auto &loaded_font : core::font_registry.fonts) {
     ImGui::Text("%s", loaded_font.font_path);
   }
   ImGui::Separator();
@@ -789,5 +796,5 @@ void DrawFontManager() {
   }
 }
 
-} // namespace gui
-} // namespace yaze
+}  // namespace gui
+}  // namespace yaze
