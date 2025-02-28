@@ -139,8 +139,8 @@ absl::Status Tile16Editor::UpdateBlockset() {
   EndChild();
 
   if (!blockset_canvas_.points().empty()) {
-    notify_tile16.mutable_get() = blockset_canvas_.GetTileIdFromMousePos();
-    notify_tile16.apply_changes();
+    notify_tile16.edit() = blockset_canvas_.GetTileIdFromMousePos();
+    notify_tile16.commit();
 
     if (notify_tile16.modified()) {
       current_tile16_ = notify_tile16.get();
@@ -246,8 +246,8 @@ absl::Status Tile16Editor::DrawTileEditControls() {
   Text("Tile16 ID: %d", current_tile16_);
   Text("Tile8 ID: %d", current_tile8_);
   Text("Options:");
-  gui::InputHexByte("Palette", &notify_palette.mutable_get());
-  notify_palette.apply_changes();
+  gui::InputHexByte("Palette", &notify_palette.edit());
+  notify_palette.commit();
   if (notify_palette.modified()) {
     auto palette = palettesets_[current_palette_].main_;
     auto value = notify_palette.get();
