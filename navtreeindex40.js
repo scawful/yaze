@@ -1,5 +1,6 @@
 var NAVTREEINDEX40 =
 {
+"namespaceyaze_1_1gfx_1_1lc__lz2.html#ae172bb38e1561dad50c293d4f4dc6b54":[11,0,1,4,1,26],
 "namespaceyaze_1_1gfx_1_1lc__lz2.html#ae46fc2024538918c373a89ad89c948c2":[11,0,1,4,1,4],
 "namespaceyaze_1_1gfx_1_1lc__lz2.html#aeab3533c41cb40119b84e3cdeaf095af":[11,0,1,4,1,37],
 "namespaceyaze_1_1gfx_1_1lc__lz2.html#aec23d1294ad507753ddc6597a7365b67":[11,0,1,4,1,41],
@@ -248,6 +249,5 @@ var NAVTREEINDEX40 =
 "namespaceyaze_1_1test.html#a362b9e19167cd17e7851f8f217d750c8":[11,0,1,6,284],
 "namespaceyaze_1_1test.html#a37544f7db70b1c35ee45a442b094d292":[11,0,1,6,36],
 "namespaceyaze_1_1test.html#a38104d56375279d0c4345eb022b396bf":[11,0,1,6,106],
-"namespaceyaze_1_1test.html#a38823bd12bf355443467874c52bf7dd7":[11,0,1,6,76],
-"namespaceyaze_1_1test.html#a3885522516341274085566f6b40880fa":[11,0,1,6,96]
+"namespaceyaze_1_1test.html#a38823bd12bf355443467874c52bf7dd7":[11,0,1,6,76]
 };

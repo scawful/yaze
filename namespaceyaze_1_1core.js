@@ -3,8 +3,8 @@ var namespaceyaze_1_1core =
     [ "anonymous_namespace{font_loader.cc}", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html", [
       [ "SetFontPath", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a0d62353b28e596070a67929b63594ce1", null ],
       [ "LoadFont", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#aeb026c1f2d88cd2c2d4ac9a283861bbe", null ],
-      [ "AddIconFont", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a82cea28d20aa5940139649ecb62852da", null ],
-      [ "AddJapaneseFont", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a9986c5e862a6cfc14588a1b618d29f15", null ]
+      [ "AddIconFont", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a08b31e50b92a5dfc3a79a2910e83536c", null ],
+      [ "AddJapaneseFont", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#ac68b7980e16adf40118f3d3634b4a8cb", null ]
     ] ],
     [ "Controller", "classyaze_1_1core_1_1Controller.html", "classyaze_1_1core_1_1Controller" ],
     [ "FeatureFlags", "classyaze_1_1core_1_1FeatureFlags.html", "classyaze_1_1core_1_1FeatureFlags" ],

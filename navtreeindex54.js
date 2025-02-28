@@ -1,5 +1,6 @@
 var NAVTREEINDEX54 =
 {
+"yaze__test_8cc.html#a0ddf1224851353fc92bfbff6f499fa97":[13,0,3,7,1],
 "yaze__test_8cc.html#a51f528deaaeb973f417b46a2ec36f850":[13,0,3,7,0],
 "yaze__test_8cc_source.html":[13,0,3,7],
 "z3ed_8cc.html":[13,0,2,1,4],

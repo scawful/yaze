@@ -118,10 +118,10 @@ Functions</h2></td></tr>
 <tr class="separator:a0d62353b28e596070a67929b63594ce1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeb026c1f2d88cd2c2d4ac9a283861bbe" id="r_aeb026c1f2d88cd2c2d4ac9a283861bbe"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeb026c1f2d88cd2c2d4ac9a283861bbe">LoadFont</a> (const <a class="el" href="structyaze_1_1core_1_1FontConfig.html">FontConfig</a> &amp;font_config)</td></tr>
 <tr class="separator:aeb026c1f2d88cd2c2d4ac9a283861bbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a82cea28d20aa5940139649ecb62852da" id="r_a82cea28d20aa5940139649ecb62852da"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a82cea28d20aa5940139649ecb62852da">AddIconFont</a> ()</td></tr>
-<tr class="separator:a82cea28d20aa5940139649ecb62852da"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9986c5e862a6cfc14588a1b618d29f15" id="r_a9986c5e862a6cfc14588a1b618d29f15"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9986c5e862a6cfc14588a1b618d29f15">AddJapaneseFont</a> ()</td></tr>
-<tr class="separator:a9986c5e862a6cfc14588a1b618d29f15"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a08b31e50b92a5dfc3a79a2910e83536c" id="r_a08b31e50b92a5dfc3a79a2910e83536c"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a08b31e50b92a5dfc3a79a2910e83536c">AddIconFont</a> (const <a class="el" href="structyaze_1_1core_1_1FontConfig.html">FontConfig</a> &amp;config)</td></tr>
+<tr class="separator:a08b31e50b92a5dfc3a79a2910e83536c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac68b7980e16adf40118f3d3634b4a8cb" id="r_ac68b7980e16adf40118f3d3634b4a8cb"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac68b7980e16adf40118f3d3634b4a8cb">AddJapaneseFont</a> (const <a class="el" href="structyaze_1_1core_1_1FontConfig.html">FontConfig</a> &amp;config)</td></tr>
+<tr class="separator:ac68b7980e16adf40118f3d3634b4a8cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="a0d62353b28e596070a67929b63594ce1" name="a0d62353b28e596070a67929b63594ce1"></a>
@@ -175,7 +175,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="font__loader_8cc_source.html#l00046">46</a> of file <a class="el" href="font__loader_8cc_source.html">font_loader.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="font__loader_8h_source.html#l00014">yaze::core::FontConfig::font_path</a>, <a class="el" href="font__loader_8h_source.html#l00015">yaze::core::FontConfig::font_size</a>, <a class="el" href="font__loader_8cc_source.html#l00046">LoadFont()</a>, and <a class="el" href="font__loader_8cc_source.html#l00032">SetFontPath()</a>.</p>
+<p class="reference">References <a class="el" href="font__loader_8h_source.html#l00013">yaze::core::FontConfig::font_path</a>, <a class="el" href="font__loader_8h_source.html#l00014">yaze::core::FontConfig::font_size</a>, <a class="el" href="font__loader_8cc_source.html#l00046">LoadFont()</a>, and <a class="el" href="font__loader_8cc_source.html#l00032">SetFontPath()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="font__loader_8cc_source.html#l00046">LoadFont()</a>.</p>
 <div class="dynheader">
@@ -195,8 +195,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a82cea28d20aa5940139649ecb62852da" name="a82cea28d20aa5940139649ecb62852da"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a82cea28d20aa5940139649ecb62852da">&#9670;&#160;</a></span>AddIconFont()</h2>
+<a id="a08b31e50b92a5dfc3a79a2910e83536c" name="a08b31e50b92a5dfc3a79a2910e83536c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a08b31e50b92a5dfc3a79a2910e83536c">&#9670;&#160;</a></span>AddIconFont()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -204,7 +204,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">absl::Status yaze::core::anonymous_namespace{font_loader.cc}::AddIconFont </td>
           <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="structyaze_1_1core_1_1FontConfig.html">FontConfig</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>config</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -218,8 +218,8 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03_a82cea28d20aa5940139649ecb62852da_cgraph.png" border="0" usemap="#anamespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03_a82cea28d20aa5940139649ecb62852da_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03_a82cea28d20aa5940139649ecb62852da_cgraph" id="anamespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03_a82cea28d20aa5940139649ecb62852da_cgraph">
+<div class="center"><img src="namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03_a08b31e50b92a5dfc3a79a2910e83536c_cgraph.png" border="0" usemap="#anamespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03_a08b31e50b92a5dfc3a79a2910e83536c_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03_a08b31e50b92a5dfc3a79a2910e83536c_cgraph" id="anamespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03_a08b31e50b92a5dfc3a79a2910e83536c_cgraph">
 <area shape="rect" title=" " alt="" coords="5,29,169,85"/>
 <area shape="poly" title=" " alt="" coords="45,29,46,19,53,10,67,5,87,3,109,5,123,12,121,17,108,10,87,8,68,10,56,15,51,21,51,29"/>
 <area shape="rect" href="namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a0d62353b28e596070a67929b63594ce1" title=" " alt="" coords="217,29,380,85"/>
@@ -232,8 +232,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a9986c5e862a6cfc14588a1b618d29f15" name="a9986c5e862a6cfc14588a1b618d29f15"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9986c5e862a6cfc14588a1b618d29f15">&#9670;&#160;</a></span>AddJapaneseFont()</h2>
+<a id="ac68b7980e16adf40118f3d3634b4a8cb" name="ac68b7980e16adf40118f3d3634b4a8cb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac68b7980e16adf40118f3d3634b4a8cb">&#9670;&#160;</a></span>AddJapaneseFont()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -241,7 +241,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">absl::Status yaze::core::anonymous_namespace{font_loader.cc}::AddJapaneseFont </td>
           <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="structyaze_1_1core_1_1FontConfig.html">FontConfig</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>config</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -255,8 +255,8 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03_a9986c5e862a6cfc14588a1b618d29f15_cgraph.png" border="0" usemap="#anamespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03_a9986c5e862a6cfc14588a1b618d29f15_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03_a9986c5e862a6cfc14588a1b618d29f15_cgraph" id="anamespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03_a9986c5e862a6cfc14588a1b618d29f15_cgraph">
+<div class="center"><img src="namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03_ac68b7980e16adf40118f3d3634b4a8cb_cgraph.png" border="0" usemap="#anamespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03_ac68b7980e16adf40118f3d3634b4a8cb_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03_ac68b7980e16adf40118f3d3634b4a8cb_cgraph" id="anamespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03_ac68b7980e16adf40118f3d3634b4a8cb_cgraph">
 <area shape="rect" title=" " alt="" coords="5,29,169,85"/>
 <area shape="poly" title=" " alt="" coords="45,29,46,19,53,10,67,5,87,3,109,5,123,12,121,17,108,10,87,8,68,10,56,15,51,21,51,29"/>
 <area shape="rect" href="namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a0d62353b28e596070a67929b63594ce1" title=" " alt="" coords="217,29,380,85"/>
