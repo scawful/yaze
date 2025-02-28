@@ -13,7 +13,6 @@
 
 namespace yaze {
 namespace gfx {
-namespace scad_format {
 
 void FindMetastamp() {
   int matching_position = -1;
@@ -275,6 +274,5 @@ absl::Status DecodeObjFile(
   return absl::OkStatus();
 }
 
-}  // namespace scad_format
 }  // namespace gfx
 }  // namespace yaze

@@ -221,7 +221,6 @@ class GraphicsBuffer {
 };
 
 }  // namespace gfx
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_GFX_SNES_TILE_H
