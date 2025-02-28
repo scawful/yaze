@@ -53,11 +53,11 @@ void EditorManager::Initialize(std::string filename) {
   if (!filename.empty()) {
     PRINT_IF_ERROR(rom()->LoadFromFile(filename));
   }
-  gui::kMainMenu.emplace_back("File");
-  gui::kMainMenu.emplace_back("Edit");
-  gui::kMainMenu.emplace_back("View");
-  gui::kMainMenu.emplace_back("Tools");
-  gui::kMainMenu.emplace_back("Help");
+  gui::kMainMenu[gui::MenuType::kFile].name = "File";
+  gui::kMainMenu[gui::MenuType::kEdit].name = "Edit";
+  gui::kMainMenu[gui::MenuType::kView].name = "View";
+  gui::kMainMenu[gui::MenuType::kTools].name = "Tools";
+  gui::kMainMenu[gui::MenuType::kHelp].name = "Help";
 
   gui::AddToFileMenu(absl::StrCat(ICON_MD_FILE_OPEN, " Open"), "Ctrl+O",
                      [&]() { LoadRom(); });
@@ -110,6 +110,15 @@ void EditorManager::Initialize(std::string filename) {
                      [&]() { show_emulator_ = true; });
   gui::AddToViewMenu(absl::StrCat(ICON_MD_MEMORY, " Memory Editor"), "",
                      [&]() { show_memory_editor_ = true; });
+  gui::AddToViewMenu(absl::StrCat(ICON_MD_CODE, " Assembly Editor"), "",
+                     [&]() { show_asm_editor_ = true; });
+  gui::AddToViewMenu(absl::StrCat(ICON_MD_PALETTE, " Palette Editor"), "",
+                     [&]() { show_palette_editor_ = true; });
+  gui::AddToViewMenu(absl::StrCat(ICON_MD_SIM_CARD, " ROM Metadata"), "",
+                     [&]() { rom_info_ = true; });
+
+  gui::AddToHelpMenu(absl::StrCat(ICON_MD_HELP, " About"), "F1",
+                     [&]() { about_ = true; });
 
   overworld_editor_.Initialize();
 }

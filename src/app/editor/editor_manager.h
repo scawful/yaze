@@ -83,6 +83,8 @@ class EditorManager : public SharedRom {
   bool save_as_menu_ = false;
   bool show_emulator_ = false;
   bool show_memory_editor_ = false;
+  bool show_asm_editor_ = false;
+  bool show_palette_editor_ = false;
   bool show_status_ = false;
   bool rom_assets_loaded_ = false;
 
@@ -92,7 +94,7 @@ class EditorManager : public SharedRom {
   emu::Emulator emulator_;
   std::vector<Editor *> active_editors_;
   std::vector<std::unique_ptr<Rom>> roms_;
-	Rom* current_rom_ = nullptr;
+  Rom *current_rom_ = nullptr;
 
   Project current_project_;
   EditorContext editor_context_;

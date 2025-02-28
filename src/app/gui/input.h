@@ -77,7 +77,7 @@ struct MenuItem {
   std::function<bool()> enabled_condition = kDefaultEnabledCondition;
   std::vector<MenuItem> subitems;
 };
-using Menu = std::vector<MenuItem>;
+using Menu = std::array<MenuItem, 5>;
 
 void DrawMenu(Menu &params);
 
@@ -122,6 +122,11 @@ inline void AddToEditMenu(const std::string &label, const std::string &shortcut,
 inline void AddToViewMenu(const std::string &label, const std::string &shortcut,
                           std::function<void()> callback) {
   kMainMenu[MenuType::kView].subitems.emplace_back(label, shortcut, callback);
+}
+
+inline void AddToHelpMenu(const std::string &label, const std::string &shortcut,
+                          std::function<void()> callback) {
+  kMainMenu[MenuType::kHelp].subitems.emplace_back(label, shortcut, callback);
 }
 
 }  // namespace gui
