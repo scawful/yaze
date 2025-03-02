@@ -10,6 +10,7 @@
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
+#include "app/gui/input.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
@@ -26,9 +27,9 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
   Tile16Editor(
       std::array<gfx::Bitmap, zelda3::kNumTile16Individual> &tile16_individual)
       : tile16_individual_(tile16_individual) {}
-  absl::Status InitBlockset(const gfx::Bitmap &tile16_blockset_bmp,
-                            const gfx::Bitmap &current_gfx_bmp,
-                            std::array<uint8_t, 0x200> &all_tiles_types);
+  absl::Status Initialize(const gfx::Bitmap &tile16_blockset_bmp,
+                          const gfx::Bitmap &current_gfx_bmp,
+                          std::array<uint8_t, 0x200> &all_tiles_types);
 
   absl::Status Update();
   absl::Status DrawMenu();
@@ -86,6 +87,8 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
 
   gui::Canvas transfer_canvas_;
   gfx::Bitmap transfer_blockset_bmp_;
+
+  gui::Table tile_edit_table_{"##TileEditTable", 3, ImGuiTableFlags_Borders};
 
   std::array<gfx::Bitmap, zelda3::kNumTile16Individual> &tile16_individual_;
   std::vector<gfx::Bitmap> current_gfx_individual_;
