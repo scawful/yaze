@@ -41,38 +41,30 @@ snes_tile8 UnpackBppTile(const std::vector<uint8_t>& data,
       bpp_pos[1] = offset + col * 2 + 1;
       char mask = 1 << (7 - row);
       tile.data[col * 8 + row] = (data[bpp_pos[0]] & mask) == mask;
-      tile.data[col * 8 + row] |= (uint8_t)((data[bpp_pos[1]] & mask) == mask)
-                                  << 1;
+      tile.data[col * 8 + row] |= ((data[bpp_pos[1]] & mask) == mask) << 1;
       if (bpp == 3) {
         // When we have 3 bitplanes, the bytes for the third bitplane are after
         // the 16 bytes of the 2 bitplanes.
         bpp_pos[2] = offset + 16 + col;
-        tile.data[col * 8 + row] |= (uint8_t)((data[bpp_pos[2]] & mask) == mask)
-                                    << 2;
+        tile.data[col * 8 + row] |= ((data[bpp_pos[2]] & mask) == mask) << 2;
       }
       if (bpp >= 4) {
         // For 4 bitplanes, the 2 added bitplanes are interlaced like the first
         // two.
         bpp_pos[2] = offset + 16 + col * 2;
         bpp_pos[3] = offset + 16 + col * 2 + 1;
-        tile.data[col * 8 + row] |= (uint8_t)((data[bpp_pos[2]] & mask) == mask)
-                                    << 2;
-        tile.data[col * 8 + row] |= (uint8_t)((data[bpp_pos[3]] & mask) == mask)
-                                    << 3;
+        tile.data[col * 8 + row] |= ((data[bpp_pos[2]] & mask) == mask) << 2;
+        tile.data[col * 8 + row] |= ((data[bpp_pos[3]] & mask) == mask) << 3;
       }
       if (bpp == 8) {
         bpp_pos[4] = offset + 32 + col * 2;
         bpp_pos[5] = offset + 32 + col * 2 + 1;
         bpp_pos[6] = offset + 48 + col * 2;
         bpp_pos[7] = offset + 48 + col * 2 + 1;
-        tile.data[col * 8 + row] |= (uint8_t)((data[bpp_pos[4]] & mask) == mask)
-                                    << 4;
-        tile.data[col * 8 + row] |= (uint8_t)((data[bpp_pos[5]] & mask) == mask)
-                                    << 5;
-        tile.data[col * 8 + row] |= (uint8_t)((data[bpp_pos[6]] & mask) == mask)
-                                    << 6;
-        tile.data[col * 8 + row] |= (uint8_t)((data[bpp_pos[7]] & mask) == mask)
-                                    << 7;
+        tile.data[col * 8 + row] |= ((data[bpp_pos[4]] & mask) == mask) << 4;
+        tile.data[col * 8 + row] |= ((data[bpp_pos[5]] & mask) == mask) << 5;
+        tile.data[col * 8 + row] |= ((data[bpp_pos[6]] & mask) == mask) << 6;
+        tile.data[col * 8 + row] |= ((data[bpp_pos[7]] & mask) == mask) << 7;
       }
     }
   }
@@ -97,29 +89,25 @@ std::vector<uint8_t> PackBppTile(const snes_tile8& tile, const uint32_t bpp) {
 
       // 2bpp format
       if (bpp >= 2) {
-        output[col * 2] += (uint8_t)((color & 1) << (7 - row));
-        output[col * 2 + 1] +=
-            (uint8_t)((uint8_t)((color & 2) == 2) << (7 - row));
+        output[col * 2] += ((color & 1) << (7 - row));
+        output[col * 2 + 1] += (((color & 2) == 2) << (7 - row));
       }
 
       // 3bpp format
-      if (bpp == 3)
-        output[16 + col] += (uint8_t)(((color & 4) == 4) << (7 - row));
+      if (bpp == 3) output[16 + col] += (((color & 4) == 4) << (7 - row));
 
       // 4bpp format
       if (bpp >= 4) {
-        output[16 + col * 2] += (uint8_t)(((color & 4) == 4) << (7 - row));
-        output[16 + col * 2 + 1] += (uint8_t)(((color & 8) == 8) << (7 - row));
+        output[16 + col * 2] += (((color & 4) == 4) << (7 - row));
+        output[16 + col * 2 + 1] += (((color & 8) == 8) << (7 - row));
       }
 
       // 8bpp format
       if (bpp == 8) {
-        output[32 + col * 2] += (uint8_t)(((color & 16) == 16) << (7 - row));
-        output[32 + col * 2 + 1] +=
-            (uint8_t)(((color & 32) == 32) << (7 - row));
-        output[48 + col * 2] += (uint8_t)(((color & 64) == 64) << (7 - row));
-        output[48 + col * 2 + 1] +=
-            (uint8_t)(((color & 128) == 128) << (7 - row));
+        output[32 + col * 2] += (((color & 16) == 16) << (7 - row));
+        output[32 + col * 2 + 1] += (((color & 32) == 32) << (7 - row));
+        output[48 + col * 2] += (((color & 64) == 64) << (7 - row));
+        output[48 + col * 2 + 1] += (((color & 128) == 128) << (7 - row));
       }
     }
   }
@@ -399,5 +387,4 @@ void CopyTile8bpp16(int x, int y, int tile, std::vector<uint8_t>& bitmap,
 }
 
 }  // namespace gfx
-
 }  // namespace yaze

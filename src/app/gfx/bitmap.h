@@ -3,9 +3,9 @@
 
 #include <SDL.h>
 
-#include <span>
 #include <cstdint>
 #include <memory>
+#include <span>
 
 #include "absl/status/status.h"
 #include "app/core/platform/sdl_deleter.h"
@@ -81,7 +81,7 @@ class Bitmap {
         data_(data),
         palette_(palette) {
     Create(width, height, depth, data);
-    if (!ApplyPalette(palette).ok()) {
+    if (!SetPalette(palette).ok()) {
       std::cerr << "Error applying palette in bitmap constructor." << std::endl;
     }
   }
@@ -121,12 +121,12 @@ class Bitmap {
   /**
    * @brief Copy color data from the SnesPalette into the SDL_Palette
    */
-  absl::Status ApplyPalette(const SnesPalette &palette);
-  absl::Status ApplyPaletteWithTransparent(const SnesPalette &palette,
-                                           size_t index, int length = 7);
-  void ApplyPalette(const std::vector<SDL_Color> &palette);
-  absl::Status ApplyPaletteFromPaletteGroup(const SnesPalette &palette,
-                                            int palette_id);
+  absl::Status SetPalette(const SnesPalette &palette);
+  absl::Status SetPaletteWithTransparent(const SnesPalette &palette,
+                                         size_t index, int length = 7);
+  void SetPalette(const std::vector<SDL_Color> &palette);
+  absl::Status SetPaletteFromPaletteGroup(const SnesPalette &palette,
+                                          int palette_id);
 
   void Get8x8Tile(int tile_index, int x, int y, std::vector<uint8_t> &tile_data,
                   int &tile_data_offset);

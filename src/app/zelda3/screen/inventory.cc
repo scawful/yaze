@@ -18,13 +18,13 @@ absl::Status Inventory::Create() {
   RETURN_IF_ERROR(BuildTileset())
   for (int i = 0; i < 0x500; i += 0x08) {
     ASSIGN_OR_RETURN(auto t1, rom()->ReadWord(i + kBowItemPos));
-		ASSIGN_OR_RETURN(auto t2, rom()->ReadWord(i + kBowItemPos + 0x02));
-		ASSIGN_OR_RETURN(auto t3, rom()->ReadWord(i + kBowItemPos + 0x04));
-		ASSIGN_OR_RETURN(auto t4, rom()->ReadWord(i + kBowItemPos + 0x06));
-		tiles_.push_back(gfx::GetTilesInfo(t1));
-		tiles_.push_back(gfx::GetTilesInfo(t2));
-		tiles_.push_back(gfx::GetTilesInfo(t3));
-		tiles_.push_back(gfx::GetTilesInfo(t4));
+    ASSIGN_OR_RETURN(auto t2, rom()->ReadWord(i + kBowItemPos + 0x02));
+    ASSIGN_OR_RETURN(auto t3, rom()->ReadWord(i + kBowItemPos + 0x04));
+    ASSIGN_OR_RETURN(auto t4, rom()->ReadWord(i + kBowItemPos + 0x06));
+    tiles_.push_back(gfx::GetTilesInfo(t1));
+    tiles_.push_back(gfx::GetTilesInfo(t2));
+    tiles_.push_back(gfx::GetTilesInfo(t3));
+    tiles_.push_back(gfx::GetTilesInfo(t4));
   }
   const int offsets[] = {0x00, 0x08, 0x800, 0x808};
   auto xx = 0;
@@ -68,7 +68,7 @@ absl::Status Inventory::Create() {
   }
 
   bitmap_.Create(256, 256, 8, data_);
-  RETURN_IF_ERROR(bitmap_.ApplyPalette(palette_));
+  RETURN_IF_ERROR(bitmap_.SetPalette(palette_));
   Renderer::GetInstance().RenderBitmap(&bitmap_);
   return absl::OkStatus();
 }
@@ -87,7 +87,7 @@ absl::Status Inventory::BuildTileset() {
   tilesheets_bmp_.Create(128, 0x130, 64, test_);
   auto hud_pal_group = rom()->palette_group().hud;
   palette_ = hud_pal_group[0];
-  RETURN_IF_ERROR(tilesheets_bmp_.ApplyPalette(palette_))
+  RETURN_IF_ERROR(tilesheets_bmp_.SetPalette(palette_))
   Renderer::GetInstance().RenderBitmap(&tilesheets_bmp_);
   return absl::OkStatus();
 }

@@ -123,11 +123,10 @@ absl::Status ScreenEditor::LoadDungeonMaps() {
                      rom()->ReadWord(zelda3::kDungeonMapRoomsPtr + (d * 2)));
     ASSIGN_OR_RETURN(int ptr_gfx,
                      rom()->ReadWord(zelda3::kDungeonMapGfxPtr + (d * 2)));
-    ptr |= 0x0A0000;                   // Add bank to the short ptr
-    ptr_gfx |= 0x0A0000;               // Add bank to the short ptr
-    int pc_ptr = SnesToPc(ptr);  // Contains data for the next 25 rooms
-    int pc_ptr_gfx =
-        SnesToPc(ptr_gfx);  // Contains data for the next 25 rooms
+    ptr |= 0x0A0000;                     // Add bank to the short ptr
+    ptr_gfx |= 0x0A0000;                 // Add bank to the short ptr
+    int pc_ptr = SnesToPc(ptr);          // Contains data for the next 25 rooms
+    int pc_ptr_gfx = SnesToPc(ptr_gfx);  // Contains data for the next 25 rooms
 
     ASSIGN_OR_RETURN(uint16_t boss_room_d,
                      rom()->ReadWord(zelda3::kDungeonMapBossRooms + (d * 2)));
@@ -230,7 +229,7 @@ absl::Status ScreenEditor::LoadDungeonMapTile16(
     tile16_sheet_.ComposeTile16(gfx_data, t1, t2, t3, t4, sheet_offset);
   }
 
-  RETURN_IF_ERROR(tile16_sheet_.mutable_bitmap()->ApplyPalette(
+  RETURN_IF_ERROR(tile16_sheet_.mutable_bitmap()->SetPalette(
       *rom()->mutable_dungeon_palette(3)));
   Renderer::GetInstance().RenderBitmap(&*tile16_sheet_.mutable_bitmap().get());
 
@@ -238,7 +237,7 @@ absl::Status ScreenEditor::LoadDungeonMapTile16(
     auto tile = tile16_sheet_.GetTile16(i);
     tile16_individual_[i] = tile;
     RETURN_IF_ERROR(
-        tile16_individual_[i].ApplyPalette(*rom()->mutable_dungeon_palette(3)));
+        tile16_individual_[i].SetPalette(*rom()->mutable_dungeon_palette(3)));
     Renderer::GetInstance().RenderBitmap(&tile16_individual_[i]);
   }
 
@@ -424,7 +423,7 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
           current_tile16_info.tiles[3], selected_tile16_, 212);
       tile16_individual_[selected_tile16_] =
           tile16_sheet_.GetTile16(selected_tile16_);
-      RETURN_VOID_IF_ERROR(tile16_individual_[selected_tile16_].ApplyPalette(
+      RETURN_VOID_IF_ERROR(tile16_individual_[selected_tile16_].SetPalette(
           *rom()->mutable_dungeon_palette(3)));
       Renderer::GetInstance().RenderBitmap(
           &tile16_individual_[selected_tile16_]);
@@ -455,7 +454,7 @@ void ScreenEditor::DrawDungeonMapsEditor() {
           int y = (j / 8) * 8;
           sheets_[i].Get8x8Tile(tile_index, 0, 0, tile_data, tile_data_offset);
           tile8_individual_.emplace_back(gfx::Bitmap(8, 8, 4, tile_data));
-          RETURN_VOID_IF_ERROR(tile8_individual_.back().ApplyPalette(
+          RETURN_VOID_IF_ERROR(tile8_individual_.back().SetPalette(
               *rom()->mutable_dungeon_palette(3)));
           Renderer::GetInstance().RenderBitmap(&tile8_individual_.back());
         }
@@ -556,7 +555,7 @@ void ScreenEditor::LoadBinaryGfx() {
           gfx_sheets.emplace_back(converted_bin.begin() + (i * 0x1000),
                                   converted_bin.begin() + ((i + 1) * 0x1000));
           sheets_.emplace(i, gfx::Bitmap(128, 32, 8, gfx_sheets[i]));
-          status_ = sheets_[i].ApplyPalette(*rom()->mutable_dungeon_palette(3));
+          status_ = sheets_[i].SetPalette(*rom()->mutable_dungeon_palette(3));
           if (status_.ok()) {
             Renderer::GetInstance().RenderBitmap(&sheets_[i]);
           }
