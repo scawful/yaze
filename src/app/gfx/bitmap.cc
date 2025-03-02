@@ -271,7 +271,7 @@ void Bitmap::Reformat(int format) {
       SDL_Surface_Deleter());
   surface_->pixels = pixel_data_;
   active_ = true;
-  auto apply_palette = ApplyPalette(palette_);
+  auto apply_palette = SetPalette(palette_);
   if (!apply_palette.ok()) {
     SDL_Log("Failed to apply palette: %s\n", apply_palette.message().data());
     active_ = false;
@@ -326,7 +326,7 @@ void Bitmap::UpdateTexture(SDL_Renderer *renderer) {
   SDL_UnlockTexture(texture_.get());
 }
 
-absl::Status Bitmap::ApplyPalette(const SnesPalette &palette) {
+absl::Status Bitmap::SetPalette(const SnesPalette &palette) {
   if (surface_ == nullptr) {
     return absl::FailedPreconditionError(
         "Surface is null. Palette not applied");
@@ -355,8 +355,8 @@ absl::Status Bitmap::ApplyPalette(const SnesPalette &palette) {
   return absl::OkStatus();
 }
 
-absl::Status Bitmap::ApplyPaletteFromPaletteGroup(const SnesPalette &palette,
-                                                  int palette_id) {
+absl::Status Bitmap::SetPaletteFromPaletteGroup(const SnesPalette &palette,
+                                                int palette_id) {
   auto start_index = palette_id * 8;
   palette_ = palette.sub_palette(start_index, start_index + 8);
   SDL_UnlockSurface(surface_.get());
@@ -379,8 +379,8 @@ absl::Status Bitmap::ApplyPaletteFromPaletteGroup(const SnesPalette &palette,
   return absl::OkStatus();
 }
 
-absl::Status Bitmap::ApplyPaletteWithTransparent(const SnesPalette &palette,
-                                                 size_t index, int length) {
+absl::Status Bitmap::SetPaletteWithTransparent(const SnesPalette &palette,
+                                               size_t index, int length) {
   if (index < 0 || index >= palette.size()) {
     return absl::InvalidArgumentError("Invalid palette index");
   }
@@ -421,7 +421,7 @@ absl::Status Bitmap::ApplyPaletteWithTransparent(const SnesPalette &palette,
   return absl::OkStatus();
 }
 
-void Bitmap::ApplyPalette(const std::vector<SDL_Color> &palette) {
+void Bitmap::SetPalette(const std::vector<SDL_Color> &palette) {
   SDL_UnlockSurface(surface_.get());
   for (size_t i = 0; i < palette.size(); ++i) {
     surface_->format->palette->colors[i].r = palette[i].r;

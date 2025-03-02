@@ -123,7 +123,7 @@ absl::Status DungeonEditor::RefreshGraphics() {
   std::for_each_n(
       rooms_[current_room_id_].blocks().begin(), 8,
       [this](int block) -> absl::Status {
-        RETURN_IF_ERROR(graphics_bin_[block].ApplyPaletteWithTransparent(
+        RETURN_IF_ERROR(graphics_bin_[block].SetPaletteWithTransparent(
             current_palette_group_[current_palette_id_], 0));
         Renderer::GetInstance().UpdateBitmap(&graphics_bin_[block]);
         return absl::OkStatus();
@@ -133,7 +133,7 @@ absl::Status DungeonEditor::RefreshGraphics() {
   std::for_each_n(
       rooms_[current_room_id_].blocks().begin() + 8, 8,
       [this, &sprites_aux1_pal_group](int block) -> absl::Status {
-        RETURN_IF_ERROR(graphics_bin_[block].ApplyPaletteWithTransparent(
+        RETURN_IF_ERROR(graphics_bin_[block].SetPaletteWithTransparent(
             sprites_aux1_pal_group[current_palette_id_], 0));
         Renderer::GetInstance().UpdateBitmap(&graphics_bin_[block]);
         return absl::OkStatus();

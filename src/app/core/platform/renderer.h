@@ -61,7 +61,7 @@ class Renderer {
                                      gfx::Bitmap &bitmap,
                                      gfx::SnesPalette &palette) {
     bitmap.Create(width, height, depth, data);
-    RETURN_IF_ERROR(bitmap.ApplyPalette(palette));
+    RETURN_IF_ERROR(bitmap.SetPalette(palette));
     RenderBitmap(&bitmap);
     return absl::OkStatus();
   }

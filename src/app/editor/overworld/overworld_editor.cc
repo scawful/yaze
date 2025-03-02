@@ -63,8 +63,8 @@ absl::Status OverworldEditor::Update() {
   status_ = absl::OkStatus();
   if (rom_.is_loaded() && !all_gfx_loaded_) {
     RETURN_IF_ERROR(
-        tile16_editor_.InitBlockset(tile16_blockset_bmp_, current_gfx_bmp_,
-                                    *overworld_.mutable_all_tiles_types()));
+        tile16_editor_.Initialize(tile16_blockset_bmp_, current_gfx_bmp_,
+                                  *overworld_.mutable_all_tiles_types()));
     ASSIGN_OR_RETURN(entrance_tiletypes_, zelda3::LoadEntranceTileTypes(rom_));
     all_gfx_loaded_ = true;
   }
@@ -1059,7 +1059,7 @@ absl::Status OverworldEditor::LoadGraphics() {
       }
     }
 
-    RETURN_IF_ERROR(tile16_individual_[i].ApplyPalette(palette_));
+    RETURN_IF_ERROR(tile16_individual_[i].SetPalette(palette_));
     Renderer::GetInstance().RenderBitmap(&tile16_individual_[i]);
   }
 
@@ -1100,7 +1100,7 @@ absl::Status OverworldEditor::LoadSpriteGraphics() {
       }
       sprite_previews_[sprite.id()].Create(width, height, depth,
                                            *sprite.preview_graphics());
-      RETURN_IF_ERROR(sprite_previews_[sprite.id()].ApplyPalette(palette_));
+      RETURN_IF_ERROR(sprite_previews_[sprite.id()].SetPalette(palette_));
       Renderer::GetInstance().RenderBitmap(&(sprite_previews_[sprite.id()]));
     }
   return absl::OkStatus();
@@ -1169,12 +1169,11 @@ absl::Status OverworldEditor::RefreshMapPalette() {
       if (i >= 2) sibling_index += 6;
       RETURN_IF_ERROR(
           overworld_.mutable_overworld_map(sibling_index)->LoadPalette());
-      RETURN_IF_ERROR(
-          maps_bmp_[sibling_index].ApplyPalette(current_map_palette));
+      RETURN_IF_ERROR(maps_bmp_[sibling_index].SetPalette(current_map_palette));
     }
   }
 
-  RETURN_IF_ERROR(maps_bmp_[current_map_].ApplyPalette(current_map_palette));
+  RETURN_IF_ERROR(maps_bmp_[current_map_].SetPalette(current_map_palette));
   return absl::OkStatus();
 }
 
@@ -1210,7 +1209,7 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
   palette_ = overworld_.current_area_palette();
   // Create the tile16 blockset image
   Renderer::GetInstance().UpdateBitmap(&tile16_blockset_bmp_);
-  RETURN_IF_ERROR(tile16_blockset_bmp_.ApplyPalette(palette_));
+  RETURN_IF_ERROR(tile16_blockset_bmp_.SetPalette(palette_));
 
   // Copy the tile16 data into individual tiles.
   const auto tile16_data = overworld_.tile16_blockset_data();
@@ -1232,7 +1231,7 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
             }
           }
           tile16_individual_[index].set_data(tile_data);
-          RETURN_IF_ERROR(tile16_individual_[index].ApplyPalette(palette_));
+          RETURN_IF_ERROR(tile16_individual_[index].SetPalette(palette_));
           return absl::OkStatus();
         },
         i));
