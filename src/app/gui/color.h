@@ -1,10 +1,13 @@
 #ifndef YAZE_GUI_COLOR_H
 #define YAZE_GUI_COLOR_H
 
-// #include <format>
+#if defined(__clang__)
+#include <format>
+#endif
 #include <string>
 
 #include "absl/status/status.h"
+#include "absl/strings/str_format.h"
 #include "app/gfx/snes_palette.h"
 #include "imgui/imgui.h"
 
@@ -23,11 +26,17 @@ inline ImVec4 ConvertColorToImVec4(const Color &color) {
 }
 
 inline std::string ColorToHexString(const Color &color) {
-  return "";
-/* std::format(
+#if defined(__clang__)
+  return std::format(
       "{:02X}{:02X}{:02X}{:02X}", static_cast<int>(color.red * 255),
       static_cast<int>(color.green * 255), static_cast<int>(color.blue * 255),
-      static_cast<int>(color.alpha * 255)); */
+      static_cast<int>(color.alpha * 255));
+#else
+  return absl::StrFormat("%02X%02X%02X%02X", static_cast<int>(color.red * 255),
+                         static_cast<int>(color.green * 255),
+                         static_cast<int>(color.blue * 255),
+                         static_cast<int>(color.alpha * 255));
+#endif
 }
 
 // A utility function to convert an SnesColor object to an ImVec4 with
