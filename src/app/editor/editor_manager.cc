@@ -116,7 +116,18 @@ void EditorManager::Initialize(std::string filename) {
                      [&]() { show_palette_editor_ = true; });
   gui::AddToViewMenu(absl::StrCat(ICON_MD_SIM_CARD, " ROM Metadata"), "",
                      [&]() { rom_info_ = true; });
+  gui::AddToMenu("-", nullptr, gui::MenuType::kView);
+  gui::AddToViewMenu(absl::StrCat(ICON_MD_HELP, " ImGui Demo"), "",
+                     [&]() { show_imgui_demo_ = true; });
+  gui::AddToViewMenu(absl::StrCat(ICON_MD_HELP, " ImGui Metrics"), "",
+                     [&]() { show_imgui_metrics_ = true; });
 
+  gui::AddToHelpMenu(absl::StrCat(ICON_MD_HELP, " How to open a ROM"), "",
+                     [&]() { open_rom_help = true; });
+  gui::AddToHelpMenu(absl::StrCat(ICON_MD_HELP, " Supported Features"), "",
+                     [&]() { open_supported_features = true; });
+  gui::AddToHelpMenu(absl::StrCat(ICON_MD_HELP, " How to manage a project"), "",
+                     [&]() { open_manage_project = true; });
   gui::AddToHelpMenu(absl::StrCat(ICON_MD_HELP, " About"), "F1",
                      [&]() { about_ = true; });
 
@@ -464,6 +475,100 @@ void EditorManager::DrawMenuBar() {
     gui::DrawDisplaySettings();
     End();
   }
+
+  if (show_imgui_demo_) ShowDemoWindow();
+  if (show_imgui_metrics_) ShowMetricsWindow(&show_imgui_metrics_);
+  if (show_memory_editor_) memory_editor_.Update(show_memory_editor_);
+  if (show_asm_editor_) assembly_editor_.Update(show_asm_editor_);
+
+  if (show_emulator_) {
+    Begin("Emulator", &show_emulator_, ImGuiWindowFlags_MenuBar);
+    emulator_.Run();
+    End();
+  }
+
+  if (show_palette_editor_) {
+    Begin("Palette Editor", &show_palette_editor_);
+    status_ = palette_editor_.Update();
+    End();
+  }
+
+  if (open_supported_features) OpenPopup("Supported Features");
+  if (BeginPopupModal("Supported Features", nullptr,
+                      ImGuiWindowFlags_AlwaysAutoResize)) {
+    Text("Overworld");
+    BulletText("LW/DW/SW Tilemap Editing");
+    BulletText("LW/DW/SW Map Properties");
+    BulletText("Create/Delete/Update Entrances");
+    BulletText("Create/Delete/Update Exits");
+    BulletText("Create/Delete/Update Sprites");
+    BulletText("Create/Delete/Update Items");
+
+    Text("Dungeon");
+    BulletText("View Room Header Properties");
+    BulletText("View Entrance Properties");
+
+    Text("Graphics");
+    BulletText("View Decompressed Graphics Sheets");
+    BulletText("View/Update Graphics Groups");
+
+    Text("Palettes");
+    BulletText("View Palette Groups");
+
+    Text("Saveable");
+    BulletText("All Listed Overworld Features");
+    BulletText("Hex Editor Changes");
+
+    if (Button("Close", gui::kDefaultModalSize)) {
+      open_supported_features = false;
+      CloseCurrentPopup();
+    }
+    EndPopup();
+  }
+
+  if (open_rom_help) OpenPopup("Open a ROM");
+  if (BeginPopupModal("Open a ROM", nullptr,
+                      ImGuiWindowFlags_AlwaysAutoResize)) {
+    Text("File -> Open");
+    Text("Select a ROM file to open");
+    Text("Supported ROMs (headered or unheadered):");
+    Text("The Legend of Zelda: A Link to the Past");
+    Text("US Version 1.0");
+    Text("JP Version 1.0");
+
+    if (Button("Close", gui::kDefaultModalSize)) {
+      open_rom_help = false;
+      CloseCurrentPopup();
+    }
+    EndPopup();
+  }
+
+  if (open_manage_project) OpenPopup("Manage Project");
+  if (BeginPopupModal("Manage Project", nullptr,
+                      ImGuiWindowFlags_AlwaysAutoResize)) {
+    Text("Project Menu");
+    Text("Create a new project or open an existing one.");
+    Text("Save the project to save the current state of the project.");
+    TextWrapped(
+        "To save a project, you need to first open a ROM and initialize your "
+        "code path and labels file. Label resource manager can be found in "
+        "the View menu. Code path is set in the Code editor after opening a "
+        "folder.");
+
+    if (Button("Close", gui::kDefaultModalSize)) {
+      open_manage_project = false;
+      CloseCurrentPopup();
+    }
+    EndPopup();
+  }
+
+  if (show_resource_label_manager) {
+    rom()->resource_label()->DisplayLabels(&show_resource_label_manager);
+    if (current_project_.project_opened_ &&
+        !current_project_.labels_filename_.empty()) {
+      current_project_.labels_filename_ = rom()->resource_label()->filename_;
+    }
+  }
 }
 
 void EditorManager::DrawMenuContent() {
@@ -616,41 +721,12 @@ void EditorManager::DrawMenuContent() {
     End();
   }
 
-  if (BeginMenu("Edit")) {
-    MENU_ITEM2("Undo", "Ctrl+Z") { status_ = current_editor_->Undo(); }
-    MENU_ITEM2("Redo", "Ctrl+Y") { status_ = current_editor_->Redo(); }
-    Separator();
-    MENU_ITEM2("Cut", "Ctrl+X") { status_ = current_editor_->Cut(); }
-    MENU_ITEM2("Copy", "Ctrl+C") { status_ = current_editor_->Copy(); }
-    MENU_ITEM2("Paste", "Ctrl+V") { status_ = current_editor_->Paste(); }
-    Separator();
-    MENU_ITEM2("Find", "Ctrl+F") { status_ = current_editor_->Find(); }
-    EndMenu();
-  }
-
   static bool show_imgui_metrics = false;
   static bool show_memory_editor = false;
   static bool show_asm_editor = false;
   static bool show_imgui_demo = false;
   static bool show_palette_editor = false;
   static bool show_emulator = false;
-
-  if (show_imgui_demo) ShowDemoWindow();
-  if (show_imgui_metrics) ShowMetricsWindow(&show_imgui_metrics);
-  if (show_memory_editor) memory_editor_.Update(show_memory_editor);
-  if (show_asm_editor) assembly_editor_.Update(show_asm_editor);
-
-  if (show_emulator) {
-    Begin("Emulator", &show_emulator, ImGuiWindowFlags_MenuBar);
-    emulator_.Run();
-    End();
-  }
-
-  if (show_palette_editor) {
-    Begin("Palette Editor", &show_palette_editor);
-    status_ = palette_editor_.Update();
-    End();
-  }
 
   if (BeginMenu("View")) {
     MenuItem("Emulator", nullptr, &show_emulator);
@@ -676,95 +752,6 @@ void EditorManager::DrawMenuContent() {
       Separator();
       MenuItem("Resource Labels", nullptr, &show_resource_label_manager);
       EndMenu();
-    }
-  }
-
-  static bool open_rom_help = false;
-  static bool open_supported_features = false;
-  static bool open_manage_project = false;
-  if (BeginMenu("Help")) {
-    if (MenuItem("How to open a ROM")) open_rom_help = true;
-    if (MenuItem("Supported Features")) open_supported_features = true;
-    if (MenuItem("How to manage a project")) open_manage_project = true;
-
-    if (MenuItem("About", "F1")) about_ = true;
-    EndMenu();
-  }
-
-  if (open_supported_features) OpenPopup("Supported Features");
-  if (BeginPopupModal("Supported Features", nullptr,
-                      ImGuiWindowFlags_AlwaysAutoResize)) {
-    Text("Overworld");
-    BulletText("LW/DW/SW Tilemap Editing");
-    BulletText("LW/DW/SW Map Properties");
-    BulletText("Create/Delete/Update Entrances");
-    BulletText("Create/Delete/Update Exits");
-    BulletText("Create/Delete/Update Sprites");
-    BulletText("Create/Delete/Update Items");
-
-    Text("Dungeon");
-    BulletText("View Room Header Properties");
-    BulletText("View Entrance Properties");
-
-    Text("Graphics");
-    BulletText("View Decompressed Graphics Sheets");
-    BulletText("View/Update Graphics Groups");
-
-    Text("Palettes");
-    BulletText("View Palette Groups");
-
-    Text("Saveable");
-    BulletText("All Listed Overworld Features");
-    BulletText("Hex Editor Changes");
-
-    if (Button("Close", gui::kDefaultModalSize)) {
-      open_supported_features = false;
-      CloseCurrentPopup();
-    }
-    EndPopup();
-  }
-
-  if (open_rom_help) OpenPopup("Open a ROM");
-  if (BeginPopupModal("Open a ROM", nullptr,
-                      ImGuiWindowFlags_AlwaysAutoResize)) {
-    Text("File -> Open");
-    Text("Select a ROM file to open");
-    Text("Supported ROMs (headered or unheadered):");
-    Text("The Legend of Zelda: A Link to the Past");
-    Text("US Version 1.0");
-    Text("JP Version 1.0");
-
-    if (Button("Close", gui::kDefaultModalSize)) {
-      open_rom_help = false;
-      CloseCurrentPopup();
-    }
-    EndPopup();
-  }
-
-  if (open_manage_project) OpenPopup("Manage Project");
-  if (BeginPopupModal("Manage Project", nullptr,
-                      ImGuiWindowFlags_AlwaysAutoResize)) {
-    Text("Project Menu");
-    Text("Create a new project or open an existing one.");
-    Text("Save the project to save the current state of the project.");
-    TextWrapped(
-        "To save a project, you need to first open a ROM and initialize your "
-        "code path and labels file. Label resource manager can be found in "
-        "the View menu. Code path is set in the Code editor after opening a "
-        "folder.");
-
-    if (Button("Close", gui::kDefaultModalSize)) {
-      open_manage_project = false;
-      CloseCurrentPopup();
-    }
-    EndPopup();
-  }
-
-  if (show_resource_label_manager) {
-    rom()->resource_label()->DisplayLabels(&show_resource_label_manager);
-    if (current_project_.project_opened_ &&
-        !current_project_.labels_filename_.empty()) {
-      current_project_.labels_filename_ = rom()->resource_label()->filename_;
     }
   }
 }
