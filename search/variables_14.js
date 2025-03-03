@@ -9,9 +9,8 @@ var searchData=
   ['unusedbyte_6',['unusedByte',['../structyaze_1_1emu_1_1DmaChannel.html#aae6c94eb054752a85c3585f582b349f2',1,'yaze::emu::DmaChannel']]],
   ['up_5fbutton_7',['up_button',['../structyaze_1_1emu_1_1EmulatorKeybindings.html#a2bdd4d8bc84e492f6ea69eb6f2ac561d',1,'yaze::emu::EmulatorKeybindings']]],
   ['uppercase_8',['uppercase',['../structyaze_1_1util_1_1HexStringParams.html#a086adb2b974d1169bf92573083d7d157',1,'yaze::util::HexStringParams']]],
-  ['usage_5fstats_5f_9',['usage_stats_',['../classyaze_1_1zelda3_1_1Overworld.html#ac4caf660d6332ce4b12809202e7646a2',1,'yaze::zelda3::Overworld']]],
-  ['usegain_10',['useGain',['../structyaze_1_1emu_1_1DspChannel.html#a0e85f4e4b96346138f7ec6673d5e8705',1,'yaze::emu::DspChannel']]],
-  ['usenoise_11',['useNoise',['../structyaze_1_1emu_1_1DspChannel.html#a0f3d545cf2c196e73dc3c8da4e19ab74',1,'yaze::emu::DspChannel']]],
-  ['user_5froutines_12',['user_routines',['../structyaze_1_1editor_1_1zsprite_1_1SubEditor.html#adac6b0ec7050337b2951c14dff0b45c7',1,'yaze::editor::zsprite::SubEditor']]],
-  ['userroutines_13',['userRoutines',['../structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a0fe51a591960bea89589f318b8a4ebe2',1,'yaze::editor::zsprite::ZSprite']]]
+  ['usegain_9',['useGain',['../structyaze_1_1emu_1_1DspChannel.html#a0e85f4e4b96346138f7ec6673d5e8705',1,'yaze::emu::DspChannel']]],
+  ['usenoise_10',['useNoise',['../structyaze_1_1emu_1_1DspChannel.html#a0f3d545cf2c196e73dc3c8da4e19ab74',1,'yaze::emu::DspChannel']]],
+  ['user_5froutines_11',['user_routines',['../structyaze_1_1editor_1_1zsprite_1_1SubEditor.html#adac6b0ec7050337b2951c14dff0b45c7',1,'yaze::editor::zsprite::SubEditor']]],
+  ['userroutines_12',['userRoutines',['../structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a0fe51a591960bea89589f318b8a4ebe2',1,'yaze::editor::zsprite::ZSprite']]]
 ];

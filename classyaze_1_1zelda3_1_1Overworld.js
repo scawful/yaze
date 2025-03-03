@@ -92,6 +92,5 @@ var classyaze_1_1zelda3_1_1Overworld =
     [ "map_pointers1_id", "classyaze_1_1zelda3_1_1Overworld.html#a6efbbe79d25a4ce25b96de39fb63389f", null ],
     [ "map_pointers2_id", "classyaze_1_1zelda3_1_1Overworld.html#ab6e7b2806344de68af63dcd732c02e5a", null ],
     [ "map_pointers1", "classyaze_1_1zelda3_1_1Overworld.html#a172584892dd0a1180e16140ab958fa60", null ],
-    [ "map_pointers2", "classyaze_1_1zelda3_1_1Overworld.html#adcd76e15694f68b04b9c6b2e1d3eacac", null ],
-    [ "usage_stats_", "classyaze_1_1zelda3_1_1Overworld.html#ac4caf660d6332ce4b12809202e7646a2", null ]
+    [ "map_pointers2", "classyaze_1_1zelda3_1_1Overworld.html#adcd76e15694f68b04b9c6b2e1d3eacac", null ]
 ];

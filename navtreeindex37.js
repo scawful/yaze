@@ -156,6 +156,8 @@ var NAVTREEINDEX37 =
 "message__test_8cc_source.html":[13,0,3,4,1],
 "mock__memory_8h.html":[13,0,3,3,0],
 "mock__memory_8h_source.html":[13,0,3,3,0],
+"mock__rom_8h.html":[13,0,3,3,1],
+"mock__rom_8h_source.html":[13,0,3,3,1],
 "music__editor_8cc.html":[13,0,2,0,1,4,0],
 "music__editor_8cc_source.html":[13,0,2,0,1,4,0],
 "music__editor_8h.html":[13,0,2,0,1,4,1],
@@ -247,7 +249,5 @@ var NAVTREEINDEX37 =
 "namespaceyaze.html#a8ec2f2f56a0053f8169ecb919412cba6":[11,0,1,39],
 "namespaceyaze.html#a9017f3490bdc0bba68696fec505147eb":[11,0,1,24],
 "namespaceyaze.html#a928bdc81237834754dbac3f20bde2dca":[11,0,1,31],
-"namespaceyaze.html#a992222fdde7c53740e5f3cc542881b3a":[11,0,1,37],
-"namespaceyaze.html#ac2b08cb603f8f019b669df53fbe14f2a":[11,0,1,38],
-"namespaceyaze.html#ac71d5970d234195c079f64f1a56e4522":[11,0,1,29]
+"namespaceyaze.html#a992222fdde7c53740e5f3cc542881b3a":[11,0,1,37]
 };

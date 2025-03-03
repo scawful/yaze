@@ -12,6 +12,7 @@ var searchData=
   ['message_5feditor_2eh_9',['message_editor.h',['../message__editor_8h.html',1,'']]],
   ['message_5ftest_2ecc_10',['message_test.cc',['../message__test_8cc.html',1,'']]],
   ['mock_5fmemory_2eh_11',['mock_memory.h',['../mock__memory_8h.html',1,'']]],
-  ['music_5feditor_2ecc_12',['music_editor.cc',['../music__editor_8cc.html',1,'']]],
-  ['music_5feditor_2eh_13',['music_editor.h',['../music__editor_8h.html',1,'']]]
+  ['mock_5from_2eh_12',['mock_rom.h',['../mock__rom_8h.html',1,'']]],
+  ['music_5feditor_2ecc_13',['music_editor.cc',['../music__editor_8cc.html',1,'']]],
+  ['music_5feditor_2eh_14',['music_editor.h',['../music__editor_8h.html',1,'']]]
 ];

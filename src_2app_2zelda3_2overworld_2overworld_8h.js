@@ -63,5 +63,6 @@ var src_2app_2zelda3_2overworld_2overworld_8h =
     [ "yaze::zelda3::NumberOfMap16Ex", "namespaceyaze_1_1zelda3.html#a15147ef5d5b48248b07ffacdb989c1f1", null ],
     [ "yaze::zelda3::LimitOfMap32", "namespaceyaze_1_1zelda3.html#a1461a0d9bad1391697e1bee0afc79d17", null ],
     [ "yaze::zelda3::NumberOfOWSprites", "namespaceyaze_1_1zelda3.html#aebdd836608337fa635a795f5ae00536a", null ],
-    [ "yaze::zelda3::NumberOfMap32", "namespaceyaze_1_1zelda3.html#a2d37bd587336f1ddef75a3f812ba5f66", null ]
+    [ "yaze::zelda3::NumberOfMap32", "namespaceyaze_1_1zelda3.html#a2d37bd587336f1ddef75a3f812ba5f66", null ],
+    [ "yaze::zelda3::kNumMapsPerWorld", "namespaceyaze_1_1zelda3.html#a0d1e976ff94ce8a0bde0a7faa3e0a4c4", null ]
 ];

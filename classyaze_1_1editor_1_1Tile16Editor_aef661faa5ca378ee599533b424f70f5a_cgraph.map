@@ -1,11 +1,11 @@
 <map id="yaze::editor::Tile16Editor::DrawTileEditControls" name="yaze::editor::Tile16Editor::DrawTileEditControls">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,165,103"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="218,5,362,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,60,202,47,204,52,161,65"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="213,70,367,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="165,80,197,80,197,86,165,86"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="222,120,358,161"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="161,101,207,115,206,120,159,106"/>
-<area shape="rect" id="Node000004" href="$namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="415,70,566,96"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="367,80,399,80,399,86,367,86"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,84,165,125"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gui.html#a63cf2c84b704f70ba84ef7a1691e1b85" title=" " alt="" coords="221,5,359,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,81,212,41,230,34,232,39,214,46,127,86"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="218,55,362,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="165,91,202,85,203,91,165,96"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="213,120,367,146"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="165,113,198,118,197,123,165,118"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="222,170,358,210"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="137,123,226,161,224,166,135,128"/>
 </map>

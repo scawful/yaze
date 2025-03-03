@@ -1,5 +1,7 @@
 var NAVTREEINDEX44 =
 {
+"overworld__entrance_8h.html":[13,0,2,0,5,2,2],
+"overworld__entrance_8h_source.html":[13,0,2,0,5,2,2],
 "overworld__exit_8h.html":[13,0,2,0,5,2,3],
 "overworld__exit_8h_source.html":[13,0,2,0,5,2,3],
 "overworld__item_8h.html":[13,0,2,0,5,2,4],
@@ -247,7 +249,5 @@ var NAVTREEINDEX44 =
 "structyaze_1_1ResourceLabelManager.html#a33208b26108d4ace4b006e1899d82abe":[12,0,0,13,1],
 "structyaze_1_1ResourceLabelManager.html#a38663585e2df6a83f111e64b81c6e0af":[11,0,1,13,6],
 "structyaze_1_1ResourceLabelManager.html#a38663585e2df6a83f111e64b81c6e0af":[12,0,0,13,6],
-"structyaze_1_1ResourceLabelManager.html#a399dced65410748912d155b356b14421":[11,0,1,13,9],
-"structyaze_1_1ResourceLabelManager.html#a399dced65410748912d155b356b14421":[12,0,0,13,9],
-"structyaze_1_1ResourceLabelManager.html#a5558c56c2d26e38c8f85839c1e77c169":[11,0,1,13,7]
+"structyaze_1_1ResourceLabelManager.html#a399dced65410748912d155b356b14421":[11,0,1,13,9]
 };

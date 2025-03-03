@@ -1,6 +1,5 @@
 var rom__test_8cc =
 [
-    [ "yaze::test::MockRom", "classyaze_1_1test_1_1MockRom.html", "classyaze_1_1test_1_1MockRom" ],
     [ "yaze::test::RomTest", "classyaze_1_1test_1_1RomTest.html", "classyaze_1_1test_1_1RomTest" ],
     [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#a9853b0265931c2e3346e991d89ad8e5d", null ],
     [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#a780c23f4cff8991e55184dd0106f25ef", null ],
