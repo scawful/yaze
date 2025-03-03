@@ -11,7 +11,6 @@ var classyaze_1_1core_1_1Controller =
     [ "CreateWindow", "classyaze_1_1core_1_1Controller.html#a0c454eb8e88de6a3759996e838faa1ab", null ],
     [ "CreateRenderer", "classyaze_1_1core_1_1Controller.html#ae191a94a55900590a8d6456d06eee08b", null ],
     [ "CreateGuiContext", "classyaze_1_1core_1_1Controller.html#a8d6d4788e9100d960f35b7270a4795db", null ],
-    [ "LoadFontFamilies", "classyaze_1_1core_1_1Controller.html#aa07851cfceacc8cc442850133075e4bf", null ],
     [ "LoadAudioDevice", "classyaze_1_1core_1_1Controller.html#a29913a09f5e1f3ac3bdb7ce3a7264ec0", null ],
     [ "LoadConfigFiles", "classyaze_1_1core_1_1Controller.html#af234211945c5144f97e08ac88cf2fb9c", null ],
     [ "window", "classyaze_1_1core_1_1Controller.html#a2ba347d9eb4f1efb9b7d2fd2578610b5", null ],

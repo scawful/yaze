@@ -1,9 +1,5 @@
 var NAVTREEINDEX50 =
 {
-"structyaze_1_1emu_1_1W12SEL.html#ac1c1f0c9464d70dcf892738bcbb863a9":[12,0,0,3,89,6],
-"structyaze_1_1emu_1_1W12SEL.html#ac1e1271c21932b95da73eec077f6e001":[11,0,1,3,91,0],
-"structyaze_1_1emu_1_1W12SEL.html#ac1e1271c21932b95da73eec077f6e001":[12,0,0,3,89,0],
-"structyaze_1_1emu_1_1W12SEL.html#af81fdbd4d7efcc855dd2752fee88dbca":[11,0,1,3,91,7],
 "structyaze_1_1emu_1_1W12SEL.html#af81fdbd4d7efcc855dd2752fee88dbca":[12,0,0,3,89,7],
 "structyaze_1_1emu_1_1W34SEL.html":[11,0,1,3,92],
 "structyaze_1_1emu_1_1W34SEL.html":[12,0,0,3,90],
@@ -249,5 +245,9 @@ var NAVTREEINDEX50 =
 "structyaze_1_1gfx_1_1SDL__Surface__Deleter.html#a8ee568452a4b35496de028e8d057aa87":[12,0,0,4,10,0],
 "structyaze_1_1gfx_1_1SDL__Texture__Deleter.html":[11,0,1,4,13],
 "structyaze_1_1gfx_1_1SDL__Texture__Deleter.html":[12,0,0,4,11],
-"structyaze_1_1gfx_1_1SDL__Texture__Deleter.html#afaf4558073914dd66982c67533f012e4":[11,0,1,4,13,0]
+"structyaze_1_1gfx_1_1SDL__Texture__Deleter.html#afaf4558073914dd66982c67533f012e4":[11,0,1,4,13,0],
+"structyaze_1_1gfx_1_1SDL__Texture__Deleter.html#afaf4558073914dd66982c67533f012e4":[12,0,0,4,11,0],
+"structyaze_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html":[11,0,1,4,1,0],
+"structyaze_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html":[12,0,0,4,0,0],
+"structyaze_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#a03863ade7851638c943ae79e5fd49bfe":[11,0,1,4,1,0,2]
 };

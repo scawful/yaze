@@ -1,7 +1,5 @@
 var NAVTREEINDEX7 =
 {
-"classyaze_1_1editor_1_1SettingsEditor.html#aebb7c260e88a2d6087130a502366c3f8":[12,0,0,2,29,9],
-"classyaze_1_1editor_1_1SpriteEditor.html":[11,0,1,2,35],
 "classyaze_1_1editor_1_1SpriteEditor.html":[12,0,0,2,30],
 "classyaze_1_1editor_1_1SpriteEditor.html#a07ec22f50553dd8446ecc576b7d3367b":[11,0,1,2,35,16],
 "classyaze_1_1editor_1_1SpriteEditor.html#a07ec22f50553dd8446ecc576b7d3367b":[12,0,0,2,30,16],
@@ -249,5 +247,7 @@ var NAVTREEINDEX7 =
 "classyaze_1_1emu_1_1AudioRamImpl.html#a4e7b0e828af431c36e986a7a89fcc4fc":[12,0,0,3,4,0],
 "classyaze_1_1emu_1_1AudioRamImpl.html#a69d1420e0bf9f1c9a97f1e8d255c6b16":[11,0,1,3,6,6],
 "classyaze_1_1emu_1_1AudioRamImpl.html#a69d1420e0bf9f1c9a97f1e8d255c6b16":[12,0,0,3,4,6],
-"classyaze_1_1emu_1_1AudioRamImpl.html#a9878c8915435d66404858dd76a0196c0":[11,0,1,3,6,4]
+"classyaze_1_1emu_1_1AudioRamImpl.html#a9878c8915435d66404858dd76a0196c0":[11,0,1,3,6,4],
+"classyaze_1_1emu_1_1AudioRamImpl.html#a9878c8915435d66404858dd76a0196c0":[12,0,0,3,4,4],
+"classyaze_1_1emu_1_1AudioRamImpl.html#aba9889c3b1daf8a6c841865df38b2573":[11,0,1,3,6,3]
 };

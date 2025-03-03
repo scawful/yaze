@@ -1,7 +1,5 @@
 var NAVTREEINDEX21 =
 {
-"classyaze_1_1test_1_1Spc700.html#a6c74319f616d9f3bc9fa8e294d9b3cd8":[12,0,0,6,20,123],
-"classyaze_1_1test_1_1Spc700.html#a70129acc7947101c67895c01e1bf0647":[11,0,1,6,22,7],
 "classyaze_1_1test_1_1Spc700.html#a70129acc7947101c67895c01e1bf0647":[12,0,0,6,20,7],
 "classyaze_1_1test_1_1Spc700.html#a7133b2b25a80ef81d77148bfe046970c":[11,0,1,6,22,132],
 "classyaze_1_1test_1_1Spc700.html#a7133b2b25a80ef81d77148bfe046970c":[12,0,0,6,20,132],
@@ -249,5 +247,7 @@ var NAVTREEINDEX21 =
 "classyaze_1_1util_1_1IFlag.html#ad576bd79b5fd17eff6a8e5225a1a867a":[12,0,0,7,4,1],
 "classyaze_1_1util_1_1IFlag.html#ad9e5f2be7aba3d96b6f0440f07fe15a6":[11,0,1,7,6,2],
 "classyaze_1_1util_1_1IFlag.html#ad9e5f2be7aba3d96b6f0440f07fe15a6":[12,0,0,7,4,2],
-"classyaze_1_1util_1_1NotifyValue.html":[11,0,1,7,7]
+"classyaze_1_1util_1_1NotifyValue.html":[11,0,1,7,7],
+"classyaze_1_1util_1_1NotifyValue.html":[12,0,0,7,5],
+"classyaze_1_1util_1_1NotifyValue.html#a3bfcbeb0971f644f9888a6476947505e":[11,0,1,7,7,7]
 };
