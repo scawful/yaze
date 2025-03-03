@@ -33,16 +33,14 @@ void Controller::Initialize(std::string filename) {
 }
 
 void Controller::OnInput() {
-  int wheel = 0;
-  SDL_Event event;
   ImGuiIO &io = ImGui::GetIO();
+  SDL_Event event;
 
   while (SDL_PollEvent(&event)) {
     ImGui_ImplSDL2_ProcessEvent(&event);
     switch (event.type) {
       case SDL_KEYDOWN:
       case SDL_KEYUP: {
-        ImGuiIO &io = ImGui::GetIO();
         io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
         io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
         io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
@@ -76,6 +74,8 @@ void Controller::OnInput() {
   io.MouseDown[0] = buttons & SDL_BUTTON(SDL_BUTTON_LEFT);
   io.MouseDown[1] = buttons & SDL_BUTTON(SDL_BUTTON_RIGHT);
   io.MouseDown[2] = buttons & SDL_BUTTON(SDL_BUTTON_MIDDLE);
+
+  int wheel = 0;
   io.MouseWheel = static_cast<float>(wheel);
 }
 
@@ -175,7 +175,7 @@ absl::Status Controller::CreateGuiContext() {
                                     Renderer::GetInstance().renderer());
   ImGui_ImplSDLRenderer2_Init(Renderer::GetInstance().renderer());
 
-  RETURN_IF_ERROR(LoadFontFamilies());
+  RETURN_IF_ERROR(LoadPackageFonts());
 
   // Set the default style
   gui::ColorsYaze();
@@ -185,11 +185,6 @@ absl::Status Controller::CreateGuiContext() {
   ImGui_ImplSDL2_NewFrame();
 
   return absl::OkStatus();
-}
-
-absl::Status Controller::LoadFontFamilies() const {
-  // LoadSystemFonts();
-  return LoadPackageFonts();
 }
 
 absl::Status Controller::LoadAudioDevice() {

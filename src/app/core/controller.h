@@ -40,7 +40,6 @@ class Controller {
   absl::Status CreateWindow();
   absl::Status CreateRenderer();
   absl::Status CreateGuiContext();
-  absl::Status LoadFontFamilies() const;
   absl::Status LoadAudioDevice();
   absl::Status LoadConfigFiles();
 
