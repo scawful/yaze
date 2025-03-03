@@ -170,7 +170,7 @@ void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
                                            refresh_graphics_, *palette);
 
             if (refresh_graphics_) {
-              auto status = bitmap->ApplyPaletteWithTransparent(
+              auto status = bitmap->SetPaletteWithTransparent(
                   *palette, edit_palette_sub_index_);
               Renderer::GetInstance().UpdateBitmap(bitmap);
               refresh_graphics_ = false;
