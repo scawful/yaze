@@ -433,13 +433,9 @@ void EditorManager::DrawHomepage() {
       "The editor is still in development, so please report any bugs or issues "
       "you encounter.");
 
-  static bool managed_startup = false;
-
   if (Button("Open ROM", ImVec2(200, 0))) {
     LoadRom();
   }
-  SameLine();
-  ImGui::Checkbox("Manage Startup", &managed_startup);
   Separator();
 
   settings_editor_.Update();
