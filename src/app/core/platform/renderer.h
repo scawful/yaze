@@ -56,14 +56,14 @@ class Renderer {
     bitmap->UpdateTexture(renderer_.get());
   }
 
-  absl::Status CreateAndRenderBitmap(int width, int height, int depth,
-                                     const std::vector<uint8_t> &data,
-                                     gfx::Bitmap &bitmap,
-                                     gfx::SnesPalette &palette) {
+  void CreateAndRenderBitmap(int width, int height, int depth,
+                             const std::vector<uint8_t> &data,
+                             gfx::Bitmap &bitmap, gfx::SnesPalette &palette) {
     bitmap.Create(width, height, depth, data);
-    RETURN_IF_ERROR(bitmap.SetPalette(palette));
+    if (!bitmap.SetPalette(palette).ok()) {
+      throw std::runtime_error("Failed to set palette");
+    }
     RenderBitmap(&bitmap);
-    return absl::OkStatus();
   }
 
  private:
