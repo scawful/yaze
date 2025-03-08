@@ -85,9 +85,8 @@ class PaletteEditor : public SharedRom, public Editor {
   }
 
   void Initialize() override;
-
+  absl::Status Load() override;
   absl::Status Update() override;
-
   absl::Status Cut() override { return absl::OkStatus(); }
   absl::Status Copy() override { return absl::OkStatus(); }
   absl::Status Paste() override { return absl::OkStatus(); }

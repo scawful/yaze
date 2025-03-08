@@ -59,14 +59,48 @@ using ImGui::Text;
 
 constexpr int kTile16Size = 0x10;
 
+void OverworldEditor::Initialize() {
+  // Load zeml string from layouts/overworld.zeml
+  std::string layout = gui::zeml::LoadFile("overworld.zeml");
+  // Parse the zeml string into a Node object
+  layout_node_ = gui::zeml::Parse(layout);
+
+  gui::zeml::Bind(&*layout_node_.GetNode("OverworldCanvas"),
+                  [this]() { DrawOverworldCanvas(); });
+  gui::zeml::Bind(&*layout_node_.GetNode("OverworldTileSelector"),
+                  [this]() { status_ = DrawTileSelector(); });
+  gui::zeml::Bind(&*layout_node_.GetNode("OwUsageStats"), [this]() {
+    if (rom_.is_loaded()) {
+      status_ = UpdateUsageStats();
+    }
+  });
+  gui::zeml::Bind(&*layout_node_.GetNode("owToolset"),
+                  [this]() { DrawToolset(); });
+  gui::zeml::Bind(&*layout_node_.GetNode("OwTile16Editor"), [this]() {
+    if (rom_.is_loaded()) {
+      status_ = tile16_editor_.Update();
+    }
+  });
+  gui::zeml::Bind(&*layout_node_.GetNode("OwGfxGroupEditor"), [this]() {
+    if (rom_.is_loaded()) {
+      status_ = gfx_group_editor_.Update();
+    }
+  });
+}
+
+absl::Status OverworldEditor::Load() {
+  RETURN_IF_ERROR(
+      tile16_editor_.Initialize(tile16_blockset_bmp_, current_gfx_bmp_,
+                                *overworld_.mutable_all_tiles_types()));
+  ASSIGN_OR_RETURN(entrance_tiletypes_, zelda3::LoadEntranceTileTypes(rom_));
+  all_gfx_loaded_ = true;
+  return absl::OkStatus();
+}
+
 absl::Status OverworldEditor::Update() {
   status_ = absl::OkStatus();
   if (rom_.is_loaded() && !all_gfx_loaded_) {
-    RETURN_IF_ERROR(
-        tile16_editor_.Initialize(tile16_blockset_bmp_, current_gfx_bmp_,
-                                  *overworld_.mutable_all_tiles_types()));
-    ASSIGN_OR_RETURN(entrance_tiletypes_, zelda3::LoadEntranceTileTypes(rom_));
-    all_gfx_loaded_ = true;
+    RETURN_IF_ERROR(Load());
   }
 
   if (overworld_canvas_fullscreen_) {
@@ -1482,35 +1516,6 @@ void OverworldEditor::DrawDebugWindow() {
         overworld_.mutable_map_tiles()->light_world[current_map_].data(),
         overworld_.mutable_map_tiles()->light_world[current_map_].size());
   }
-}
-
-void OverworldEditor::Initialize() {
-  // Load zeml string from layouts/overworld.zeml
-  std::string layout = gui::zeml::LoadFile("overworld.zeml");
-  // Parse the zeml string into a Node object
-  layout_node_ = gui::zeml::Parse(layout);
-
-  gui::zeml::Bind(&*layout_node_.GetNode("OverworldCanvas"),
-                  [this]() { DrawOverworldCanvas(); });
-  gui::zeml::Bind(&*layout_node_.GetNode("OverworldTileSelector"),
-                  [this]() { status_ = DrawTileSelector(); });
-  gui::zeml::Bind(&*layout_node_.GetNode("OwUsageStats"), [this]() {
-    if (rom_.is_loaded()) {
-      status_ = UpdateUsageStats();
-    }
-  });
-  gui::zeml::Bind(&*layout_node_.GetNode("owToolset"),
-                  [this]() { DrawToolset(); });
-  gui::zeml::Bind(&*layout_node_.GetNode("OwTile16Editor"), [this]() {
-    if (rom_.is_loaded()) {
-      status_ = tile16_editor_.Update();
-    }
-  });
-  gui::zeml::Bind(&*layout_node_.GetNode("OwGfxGroupEditor"), [this]() {
-    if (rom_.is_loaded()) {
-      status_ = gfx_group_editor_.Update();
-    }
-  });
 }
 
 }  // namespace editor

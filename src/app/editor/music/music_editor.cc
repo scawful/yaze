@@ -11,6 +11,10 @@ namespace editor {
 
 void MusicEditor::Initialize() {}
 
+absl::Status MusicEditor::Load() {
+  return absl::OkStatus();
+}
+
 absl::Status MusicEditor::Update() {
   if (ImGui::BeginTable("MusicEditorColumns", 2, music_editor_flags_,
                         ImVec2(0, 0))) {

@@ -85,6 +85,10 @@ void MessageEditor::Initialize() {
   DrawMessagePreview();
 }
 
+absl::Status MessageEditor::Load() {
+  return absl::OkStatus();
+}
+
 absl::Status MessageEditor::Update() {
   if (rom()->is_loaded() && !data_loaded_) {
     Initialize();

@@ -42,6 +42,11 @@ constexpr ImGuiTableFlags kGfxEditTableFlags =
 
 void GraphicsEditor::Initialize() {}
 
+absl::Status GraphicsEditor::Load() {
+
+  return absl::OkStatus();
+}
+
 absl::Status GraphicsEditor::Update() {
   if (ImGui::BeginTabBar("##TabBar")) {
     status_ = UpdateGfxEdit();

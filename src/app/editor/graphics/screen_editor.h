@@ -39,9 +39,8 @@ class ScreenEditor : public SharedRom, public Editor {
   }
 
   void Initialize() override;
-
+  absl::Status Load() override;
   absl::Status Update() override;
-
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }

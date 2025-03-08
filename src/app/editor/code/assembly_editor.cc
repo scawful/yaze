@@ -101,6 +101,10 @@ void AssemblyEditor::Initialize() {
   // Set the language definition
 }
 
+absl::Status AssemblyEditor::Load() {
+  return absl::OkStatus();
+}
+
 void AssemblyEditor::OpenFolder(const std::string& folder_path) {
   current_folder_ = LoadFolder(folder_path);
 }

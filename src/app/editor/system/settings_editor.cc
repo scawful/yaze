@@ -23,6 +23,10 @@ using ImGui::TableSetupColumn;
 
 void SettingsEditor::Initialize() {}
 
+absl::Status SettingsEditor::Load() {
+  return absl::OkStatus();
+}
+
 absl::Status SettingsEditor::Update() {
   if (BeginTabBar("Settings", ImGuiTabBarFlags_None)) {
     if (BeginTabItem("General")) {
