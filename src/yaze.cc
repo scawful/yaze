@@ -4,9 +4,11 @@
 #include <memory>
 #include <sstream>
 
+#include "app/core/platform/app_delegate.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "dungeon.h"
+#include "util/flag.h"
 #include "yaze_config.h"
 
 int yaze_app_main(int argc, char **argv) {
