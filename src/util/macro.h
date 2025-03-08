@@ -6,17 +6,6 @@
   ImGui::EndTabItem(); \
   }
 
-#define MENU_ITEM(w) if (ImGui::MenuItem(w))
-#define MENU_ITEM2(w, v) if (ImGui::MenuItem(w, v))
-
-#define BUTTON_COLUMN(w)    \
-  ImGui::TableNextColumn(); \
-  ImGui::Button(w);
-
-#define TEXT_COLUMN(w)      \
-  ImGui::TableNextColumn(); \
-  ImGui::Text(w);
-
 #define BEGIN_TABLE(l, n, f) if (ImGui::BeginTable(l, n, f, ImVec2(0, 0))) {
 #define SETUP_COLUMN(l) ImGui::TableSetupColumn(l);
 
