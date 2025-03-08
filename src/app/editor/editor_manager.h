@@ -39,21 +39,16 @@ class EditorManager : public SharedRom {
  public:
   EditorManager() {
     current_editor_ = &overworld_editor_;
-    active_editors_.push_back(&overworld_editor_);
-    active_editors_.push_back(&dungeon_editor_);
-    active_editors_.push_back(&graphics_editor_);
-    active_editors_.push_back(&palette_editor_);
-    active_editors_.push_back(&sprite_editor_);
-    active_editors_.push_back(&message_editor_);
-    active_editors_.push_back(&screen_editor_);
-    active_editors_.push_back(&settings_editor_);
+    active_editors_ = {&overworld_editor_, &dungeon_editor_, &graphics_editor_,
+                       &palette_editor_,   &sprite_editor_,  &message_editor_,
+                       &screen_editor_,    &settings_editor_};
     std::stringstream ss;
     ss << YAZE_VERSION_MAJOR << "." << YAZE_VERSION_MINOR << "."
        << YAZE_VERSION_PATCH;
     ss >> version_;
   }
 
-  void Initialize(std::string filename = "");
+  void Initialize(const std::string &filename = "");
   absl::Status Update();
 
   auto emulator() -> emu::Emulator & { return emulator_; }
@@ -87,7 +82,6 @@ class EditorManager : public SharedRom {
   bool show_imgui_metrics_ = false;
   bool show_imgui_demo_ = false;
   bool show_palette_editor_ = false;
-  bool show_status_ = false;
   bool show_resource_label_manager = false;
   bool open_supported_features = false;
   bool open_rom_help = false;
