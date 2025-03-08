@@ -53,6 +53,8 @@ class Editor {
   Editor() = default;
   virtual ~Editor() = default;
 
+  virtual void Initialize() = 0;
+
   virtual absl::Status Cut() = 0;
   virtual absl::Status Copy() = 0;
   virtual absl::Status Paste() = 0;

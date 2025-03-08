@@ -1,14 +1,15 @@
 #include "music_editor.h"
 
-#include "imgui/imgui.h"
-
 #include "absl/strings/str_format.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace editor {
+
+void MusicEditor::Initialize() {}
 
 absl::Status MusicEditor::Update() {
   if (ImGui::BeginTable("MusicEditorColumns", 2, music_editor_flags_,

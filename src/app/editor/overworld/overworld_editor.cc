@@ -733,9 +733,9 @@ absl::Status OverworldEditor::DrawAreaGraphics() {
     overworld_.set_current_map(current_map_);
     palette_ = overworld_.current_area_palette();
     gfx::Bitmap bmp;
-    RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
-        0x80, kOverworldMapSize, 0x08, overworld_.current_graphics(), bmp,
-        palette_));
+    Renderer::GetInstance().CreateAndRenderBitmap(0x80, kOverworldMapSize, 0x08,
+                                                  overworld_.current_graphics(),
+                                                  bmp, palette_);
     current_graphics_set_[current_map_] = bmp;
   }
 
@@ -1028,15 +1028,15 @@ absl::Status OverworldEditor::LoadGraphics() {
 
   util::logf("Loading overworld graphics.");
   // Create the area graphics image
-  RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
-      0x80, kOverworldMapSize, 0x40, overworld_.current_graphics(),
-      current_gfx_bmp_, palette_));
+  Renderer::GetInstance().CreateAndRenderBitmap(0x80, kOverworldMapSize, 0x40,
+                                                overworld_.current_graphics(),
+                                                current_gfx_bmp_, palette_);
 
   util::logf("Loading overworld tileset.");
   // Create the tile16 blockset image
-  RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
+  Renderer::GetInstance().CreateAndRenderBitmap(
       0x80, 0x2000, 0x08, overworld_.tile16_blockset_data(),
-      tile16_blockset_bmp_, palette_));
+      tile16_blockset_bmp_, palette_);
   map_blockset_loaded_ = true;
 
   // Copy the tile16 data into individual tiles.
@@ -1069,9 +1069,9 @@ absl::Status OverworldEditor::LoadGraphics() {
     overworld_.set_current_map(i);
     auto palette = overworld_.current_area_palette();
     try {
-      RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
+      Renderer::GetInstance().CreateAndRenderBitmap(
           kOverworldMapSize, kOverworldMapSize, 0x80,
-          overworld_.current_map_bitmap_data(), maps_bmp_[i], palette));
+          overworld_.current_map_bitmap_data(), maps_bmp_[i], palette);
     } catch (const std::bad_alloc &e) {
       std::cout << "Error: " << e.what() << std::endl;
       continue;

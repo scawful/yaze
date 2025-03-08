@@ -33,6 +33,7 @@ class AssemblyEditor : public Editor {
     file_is_loaded_ = false;
   }
 
+  void Initialize() override;
   void Update(bool &is_loaded);
   void InlineUpdate();
 

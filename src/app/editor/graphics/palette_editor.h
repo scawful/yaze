@@ -6,10 +6,10 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/editor.h"
-#include "app/gfx/snes_palette.h"
+#include "app/editor/graphics/gfx_group_editor.h"
 #include "app/gfx/snes_color.h"
+#include "app/gfx/snes_palette.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
 
@@ -17,6 +17,7 @@ namespace yaze {
 namespace editor {
 
 namespace palette_internal {
+
 struct PaletteChange {
   std::string group_name;
   size_t palette_index;
@@ -82,6 +83,8 @@ class PaletteEditor : public SharedRom, public Editor {
     type_ = EditorType::kPalette;
     custom_palette_.push_back(gfx::SnesColor(0x7FFF));
   }
+
+  void Initialize() override;
 
   absl::Status Update() override;
 

@@ -97,6 +97,10 @@ FolderItem LoadFolder(const std::string& folder) {
 
 }  // namespace
 
+void AssemblyEditor::Initialize() {
+  // Set the language definition
+}
+
 void AssemblyEditor::OpenFolder(const std::string& folder_path) {
   current_folder_ = LoadFolder(folder_path);
 }

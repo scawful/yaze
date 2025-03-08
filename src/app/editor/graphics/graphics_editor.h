@@ -58,8 +58,8 @@ class GraphicsEditor : public SharedRom, public Editor {
  public:
   GraphicsEditor() { type_ = EditorType::kGraphics; }
 
+  void Initialize() override;
   absl::Status Update() override;
-
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
@@ -159,7 +159,7 @@ class GraphicsEditor : public SharedRom, public Editor {
 
   Rom temp_rom_;
   Rom tilemap_rom_;
-	zelda3::Overworld overworld_{ temp_rom_ };
+  zelda3::Overworld overworld_{temp_rom_};
   MemoryEditor cgx_memory_editor_;
   MemoryEditor col_memory_editor_;
   PaletteEditor palette_editor_;
@@ -176,7 +176,7 @@ class GraphicsEditor : public SharedRom, public Editor {
   gfx::Bitmap bin_bitmap_;
   gfx::Bitmap link_full_sheet_;
   std::array<gfx::Bitmap, kNumGfxSheets> gfx_sheets_;
-	std::array<gfx::Bitmap, kNumLinkSheets> link_sheets_;
+  std::array<gfx::Bitmap, kNumLinkSheets> link_sheets_;
 
   gfx::PaletteGroup col_file_palette_group_;
   gfx::SnesPalette z3_rom_palette_;

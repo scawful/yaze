@@ -170,6 +170,8 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
   return absl::OkStatus();
 }
 
+void PaletteEditor::Initialize() {}
+
 absl::Status PaletteEditor::Update() {
   if (rom()->is_loaded()) {
     // Initialize the labels

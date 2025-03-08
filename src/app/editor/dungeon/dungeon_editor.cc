@@ -43,7 +43,7 @@ constexpr ImGuiTableFlags kDungeonObjectTableFlags =
 
 absl::Status DungeonEditor::Update() {
   if (!is_loaded_ && rom()->is_loaded()) {
-    RETURN_IF_ERROR(Initialize());
+    Initialize();
     is_loaded_ = true;
   }
 
@@ -72,7 +72,7 @@ absl::Status DungeonEditor::Update() {
   return absl::OkStatus();
 }
 
-absl::Status DungeonEditor::Initialize() {
+void DungeonEditor::Initialize() {
   auto dungeon_man_pal_group = rom()->palette_group().dungeon_main;
 
   for (int i = 0; i < 0x100 + 40; i++) {
@@ -89,9 +89,11 @@ absl::Status DungeonEditor::Initialize() {
     }
 
     auto dungeon_palette_ptr = rom()->paletteset_ids[rooms_[i].palette][0];
-    ASSIGN_OR_RETURN(auto palette_id,
-                     rom()->ReadWord(0xDEC4B + dungeon_palette_ptr));
-    int p_id = palette_id / 180;
+    auto palette_id = rom()->ReadWord(0xDEC4B + dungeon_palette_ptr);
+    if (palette_id.status() != absl::OkStatus()) {
+      continue;
+    }
+    int p_id = palette_id.value() / 180;
     auto color = dungeon_man_pal_group[p_id][3];
     room_palette_[rooms_[i].palette] = color.rgb();
   }
@@ -108,15 +110,19 @@ absl::Status DungeonEditor::Initialize() {
 
   // Load the palette group and palette for the dungeon
   full_palette_ = dungeon_man_pal_group[current_palette_group_id_];
-  ASSIGN_OR_RETURN(current_palette_group_,
-                   gfx::CreatePaletteGroupFromLargePalette(full_palette_));
+  auto current_palette_group =
+      gfx::CreatePaletteGroupFromLargePalette(full_palette_);
+  if (current_palette_group.ok()) {
+    current_palette_group_ = current_palette_group.value();
+  } else {
+    // LOG(ERROR) << "Failed to create palette group from large palette";
+  }
 
   graphics_bin_ = GraphicsSheetManager::GetInstance().gfx_sheets();
   // Create a vector of pointers to the current block bitmaps
   for (int block : rooms_[current_room_id_].blocks()) {
     room_gfx_sheets_.emplace_back(&graphics_bin_[block]);
   }
-  return absl::OkStatus();
 }
 
 absl::Status DungeonEditor::RefreshGraphics() {
