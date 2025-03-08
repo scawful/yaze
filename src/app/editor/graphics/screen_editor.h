@@ -38,6 +38,8 @@ class ScreenEditor : public SharedRom, public Editor {
     type_ = EditorType::kScreen;
   }
 
+  void Initialize() override;
+
   absl::Status Update() override;
 
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }

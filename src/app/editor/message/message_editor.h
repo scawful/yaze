@@ -37,7 +37,7 @@ class MessageEditor : public Editor, public SharedRom {
  public:
   MessageEditor() { type_ = EditorType::kMessage; }
 
-  absl::Status Initialize();
+  void Initialize() override;
   absl::Status Update() override;
   void DrawMessageList();
   void DrawCurrentMessage();

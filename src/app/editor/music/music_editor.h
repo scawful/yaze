@@ -58,8 +58,8 @@ class MusicEditor : public SharedRom, public Editor {
  public:
   MusicEditor() { type_ = EditorType::kMusic; }
 
+  void Initialize() override;
   absl::Status Update() override;
-
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }

@@ -40,6 +40,8 @@ constexpr ImGuiTableFlags kGfxEditTableFlags =
     ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable |
     ImGuiTableFlags_SizingFixedFit;
 
+void GraphicsEditor::Initialize() {}
+
 absl::Status GraphicsEditor::Update() {
   if (ImGui::BeginTabBar("##TabBar")) {
     status_ = UpdateGfxEdit();

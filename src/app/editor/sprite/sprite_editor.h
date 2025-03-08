@@ -5,8 +5,8 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/editor/sprite/zsprite.h"
 #include "app/editor/editor.h"
+#include "app/editor/sprite/zsprite.h"
 #include "app/gui/canvas.h"
 #include "app/rom.h"
 
@@ -37,13 +37,8 @@ class SpriteEditor : public SharedRom, public Editor {
  public:
   SpriteEditor() { type_ = EditorType::kSprite; }
 
-  /**
-   * @brief Updates the sprite editor.
-   *
-   * @return An absl::Status indicating the success or failure of the update.
-   */
+  void Initialize() override;
   absl::Status Update() override;
-
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
@@ -68,9 +63,7 @@ class SpriteEditor : public SharedRom, public Editor {
    * @brief Draws the current sheets.
    */
   void DrawCurrentSheets();
-
   void DrawCustomSprites();
-
   void DrawCustomSpritesMetadata();
 
   /**

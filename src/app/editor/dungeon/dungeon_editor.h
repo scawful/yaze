@@ -42,6 +42,7 @@ class DungeonEditor : public Editor, public SharedRom {
  public:
   DungeonEditor() { type_ = EditorType::kDungeon; }
 
+  void Initialize() override;
   absl::Status Update() override;
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
@@ -53,7 +54,6 @@ class DungeonEditor : public Editor, public SharedRom {
   void add_room(int i) { active_rooms_.push_back(i); }
 
  private:
-  absl::Status Initialize();
   absl::Status RefreshGraphics();
 
   void LoadDungeonRoomSize();

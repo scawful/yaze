@@ -208,9 +208,8 @@ static void ShowExampleAppPropertyEditor(bool* p_open) {
 class SettingsEditor : public Editor {
  public:
   SettingsEditor() : Editor() { type_ = EditorType::kSettings; }
-
+  void Initialize() override;
   absl::Status Update() override;
-
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }

@@ -44,7 +44,7 @@ constexpr ImGuiTableFlags kMessageTableFlags = ImGuiTableFlags_Hideable |
 constexpr ImGuiTableFlags kDictTableFlags =
     ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable;
 
-absl::Status MessageEditor::Initialize() {
+void MessageEditor::Initialize() {
   for (int i = 0; i < kWidthArraySize; i++) {
     width_array[i] = rom()->data()[kCharactersWidth + i];
   }
@@ -64,9 +64,9 @@ absl::Status MessageEditor::Initialize() {
   font_gfx16_data_ = gfx::SnesTo8bppSheet(data, /*bpp=*/2, /*num_sheets=*/2);
 
   // 4bpp
-  RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
+  Renderer::GetInstance().CreateAndRenderBitmap(
       kFontGfxMessageSize, kFontGfxMessageSize, kFontGfxMessageDepth,
-      font_gfx16_data_, font_gfx_bitmap_, font_preview_colors_))
+      font_gfx16_data_, font_gfx_bitmap_, font_preview_colors_);
 
   current_font_gfx16_data_.reserve(kCurrentMessageWidth *
                                    kCurrentMessageHeight);
@@ -75,21 +75,19 @@ absl::Status MessageEditor::Initialize() {
   }
 
   // 8bpp
-  RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
+  Renderer::GetInstance().CreateAndRenderBitmap(
       kCurrentMessageWidth, kCurrentMessageHeight, 64, current_font_gfx16_data_,
-      current_font_gfx16_bitmap_, font_preview_colors_))
+      current_font_gfx16_bitmap_, font_preview_colors_);
 
   *font_gfx_bitmap_.mutable_palette() = font_preview_colors_;
 
   parsed_messages_ = ParseMessageData(list_of_texts_, all_dictionaries_);
   DrawMessagePreview();
-
-  return absl::OkStatus();
 }
 
 absl::Status MessageEditor::Update() {
   if (rom()->is_loaded() && !data_loaded_) {
-    RETURN_IF_ERROR(Initialize());
+    Initialize();
     current_message_ = list_of_texts_[1];
     data_loaded_ = true;
   }
