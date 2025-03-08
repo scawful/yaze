@@ -49,7 +49,7 @@ bool IsEditorActive(Editor *editor, std::vector<Editor *> &active_editors) {
 
 }  // namespace
 
-void EditorManager::Initialize(std::string filename) {
+void EditorManager::Initialize(const std::string &filename) {
   if (!filename.empty()) {
     PRINT_IF_ERROR(rom()->LoadFromFile(filename));
   }
@@ -379,6 +379,7 @@ void EditorManager::ManageKeyboardShortcuts() {
 }
 
 void EditorManager::DrawPopups() {
+  static bool show_status_ = false;
   static absl::Status prev_status;
   if (!status_.ok()) {
     show_status_ = true;
@@ -444,7 +445,7 @@ void EditorManager::DrawHomepage() {
       "The editor is still in development, so please report any bugs or issues "
       "you encounter.");
 
-  if (Button("Open ROM", ImVec2(200, 0))) {
+  if (gui::ClickableText("Open a ROM")) {
     LoadRom();
   }
   Separator();
@@ -580,37 +581,6 @@ void EditorManager::DrawMenuContent() {
       LoadRom();
     }
 
-    if (BeginMenu("Open Recent")) {
-      static RecentFilesManager manager("recent_files.txt");
-      manager.Load();
-      if (manager.GetRecentFiles().empty()) {
-        MenuItem("No Recent Files", nullptr, false, false);
-      } else {
-        for (const auto &filePath : manager.GetRecentFiles()) {
-          if (MenuItem(filePath.c_str())) {
-            OpenRomOrProject(filePath);
-          }
-        }
-      }
-      EndMenu();
-    }
-
-    MENU_ITEM2("Save", "Ctrl+S") {
-      if (rom()->is_loaded()) {
-        SaveRom();
-      }
-    }
-    MENU_ITEM("Save As..") { save_as_menu = true; }
-
-    if (rom()->is_loaded()) {
-      MENU_ITEM("Close") {
-        rom()->Close();
-        rom_assets_loaded_ = false;
-      }
-    }
-
-    Separator();
-
     if (BeginMenu("Project")) {
       if (MenuItem("Create New Project")) {
         // Create a new project
@@ -721,36 +691,12 @@ void EditorManager::DrawMenuContent() {
     End();
   }
 
-  static bool show_imgui_metrics = false;
-  static bool show_memory_editor = false;
-  static bool show_asm_editor = false;
-  static bool show_imgui_demo = false;
-  static bool show_palette_editor = false;
-  static bool show_emulator = false;
-
-  if (BeginMenu("View")) {
-    MenuItem("Emulator", nullptr, &show_emulator);
-    Separator();
-    MenuItem("Memory Editor", nullptr, &show_memory_editor);
-    MenuItem("Assembly Editor", nullptr, &show_asm_editor);
-    MenuItem("Palette Editor", nullptr, &show_palette_editor);
-    Separator();
-    MENU_ITEM("ROM Information") rom_info_ = true;
-    Separator();
-    MenuItem("ImGui Demo", nullptr, &show_imgui_demo);
-    MenuItem("ImGui Metrics", nullptr, &show_imgui_metrics);
-    EndMenu();
-  }
-
-  static bool show_resource_label_manager = false;
   if (current_project_.project_opened_) {
     if (BeginMenu("Project")) {
       Text("Name: %s", current_project_.name.c_str());
       Text("ROM: %s", current_project_.rom_filename_.c_str());
       Text("Labels: %s", current_project_.labels_filename_.c_str());
       Text("Code: %s", current_project_.code_folder_.c_str());
-      Separator();
-      MenuItem("Resource Labels", nullptr, &show_resource_label_manager);
       EndMenu();
     }
   }
