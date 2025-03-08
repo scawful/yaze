@@ -43,6 +43,7 @@ class DungeonEditor : public Editor, public SharedRom {
   DungeonEditor() { type_ = EditorType::kDungeon; }
 
   void Initialize() override;
+  absl::Status Load() override;
   absl::Status Update() override;
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() override { return absl::UnimplementedError("Redo"); }

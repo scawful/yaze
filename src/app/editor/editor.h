@@ -53,7 +53,14 @@ class Editor {
   Editor() = default;
   virtual ~Editor() = default;
 
+  // Initialization of the editor, no ROM assets.
   virtual void Initialize() = 0;
+
+  // Initialization of ROM assets.
+  virtual absl::Status Load() = 0;
+
+  // Update the editor state, ran every frame.
+  virtual absl::Status Update() = 0;
 
   virtual absl::Status Cut() = 0;
   virtual absl::Status Copy() = 0;
@@ -61,8 +68,6 @@ class Editor {
 
   virtual absl::Status Undo() = 0;
   virtual absl::Status Redo() = 0;
-
-  virtual absl::Status Update() = 0;
 
   virtual absl::Status Find() = 0;
 

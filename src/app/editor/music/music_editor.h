@@ -48,8 +48,8 @@ static constexpr absl::string_view kSongNotes[] = {
 
 const ImGuiTableFlags toolset_table_flags_ = ImGuiTableFlags_SizingFixedFit;
 const ImGuiTableFlags music_editor_flags_ = ImGuiTableFlags_SizingFixedFit |
-                                      ImGuiTableFlags_Resizable |
-                                      ImGuiTableFlags_Reorderable;
+                                            ImGuiTableFlags_Resizable |
+                                            ImGuiTableFlags_Reorderable;
 /**
  * @class MusicEditor
  * @brief A class for editing music data in a Rom.
@@ -59,6 +59,7 @@ class MusicEditor : public SharedRom, public Editor {
   MusicEditor() { type_ = EditorType::kMusic; }
 
   void Initialize() override;
+  absl::Status Load() override;
   absl::Status Update() override;
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() override { return absl::UnimplementedError("Redo"); }

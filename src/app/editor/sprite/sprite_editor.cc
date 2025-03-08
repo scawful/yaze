@@ -23,6 +23,10 @@ using ImGui::Text;
 
 void SpriteEditor::Initialize() {}
 
+absl::Status SpriteEditor::Load() {
+  return absl::OkStatus();
+}
+
 absl::Status SpriteEditor::Update() {
   if (rom()->is_loaded() && !sheets_loaded_) {
     // Load the values for current_sheets_ array

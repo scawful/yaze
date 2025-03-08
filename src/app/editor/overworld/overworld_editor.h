@@ -77,7 +77,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   OverworldEditor(Rom& rom) : rom_(rom) { type_ = EditorType::kOverworld; }
 
   void Initialize() override;
-
+  absl::Status Load() override;
   absl::Status Update() final;
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() override { return absl::UnimplementedError("Redo"); }

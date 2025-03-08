@@ -41,6 +41,10 @@ constexpr ImGuiTableFlags kDungeonObjectTableFlags =
     ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
     ImGuiTableFlags_BordersV;
 
+absl::Status DungeonEditor::Load() {
+  return absl::OkStatus();
+}
+
 absl::Status DungeonEditor::Update() {
   if (!is_loaded_ && rom()->is_loaded()) {
     Initialize();

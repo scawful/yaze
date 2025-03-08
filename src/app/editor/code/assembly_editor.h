@@ -34,6 +34,7 @@ class AssemblyEditor : public Editor {
   }
 
   void Initialize() override;
+  absl::Status Load() override;
   void Update(bool &is_loaded);
   void InlineUpdate();
 

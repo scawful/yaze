@@ -172,7 +172,7 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
 
 void PaletteEditor::Initialize() {}
 
-absl::Status PaletteEditor::Update() {
+absl::Status PaletteEditor::Load() {
   if (rom()->is_loaded()) {
     // Initialize the labels
     for (int i = 0; i < kNumPalettes; i++) {
@@ -183,7 +183,10 @@ absl::Status PaletteEditor::Update() {
   } else {
     return absl::NotFoundError("ROM not open, no palettes to display");
   }
+  return absl::OkStatus();
+}
 
+absl::Status PaletteEditor::Update() {
   if (BeginTable("paletteEditorTable", 2, kPaletteTableFlags, ImVec2(0, 0))) {
     TableSetupColumn("Palette Groups", ImGuiTableColumnFlags_WidthStretch,
                      GetContentRegionAvail().x);

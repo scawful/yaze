@@ -450,7 +450,8 @@ void EditorManager::DrawHomepage() {
   }
   Separator();
 
-  settings_editor_.Update();
+  auto settings = settings_editor_.Update();
+  if (!settings.ok()) status_ = settings;
 }
 
 void EditorManager::DrawMenuBar() {

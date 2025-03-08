@@ -28,6 +28,8 @@ constexpr uint32_t kRedPen = 0xFF0000FF;
 
 void ScreenEditor::Initialize() {}
 
+absl::Status ScreenEditor::Load() { return absl::OkStatus(); }
+
 absl::Status ScreenEditor::Update() {
   if (ImGui::BeginTabBar("##ScreenEditorTabBar")) {
     if (ImGui::BeginTabItem("Dungeon Maps")) {

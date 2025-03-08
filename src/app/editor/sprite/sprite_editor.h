@@ -38,6 +38,7 @@ class SpriteEditor : public SharedRom, public Editor {
   SpriteEditor() { type_ = EditorType::kSprite; }
 
   void Initialize() override;
+  absl::Status Load() override;
   absl::Status Update() override;
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
