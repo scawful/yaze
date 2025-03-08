@@ -54,19 +54,16 @@ class AssemblyEditor : public Editor {
  private:
   void DrawFileMenu();
   void DrawEditMenu();
-
   void SetEditorText();
-
   void DrawCurrentFolder();
-
   void DrawFileTabView();
 
   bool file_is_loaded_ = false;
+  int current_file_id_ = 0;
 
   std::vector<std::string> files_;
   std::vector<TextEditor> open_files_;
   ImVector<int> active_files_;
-  int current_file_id_ = 0;
 
   std::string current_file_;
   FolderItem current_folder_;

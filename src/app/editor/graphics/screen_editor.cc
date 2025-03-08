@@ -98,14 +98,34 @@ void ScreenEditor::DrawInventoryToolset() {
     ImGui::TableSetupColumn("#bg3Tool");
     ImGui::TableSetupColumn("#itemTool");
 
-    BUTTON_COLUMN(ICON_MD_UNDO)
-    BUTTON_COLUMN(ICON_MD_REDO)
-    TEXT_COLUMN(ICON_MD_MORE_VERT)
-    BUTTON_COLUMN(ICON_MD_ZOOM_OUT)
-    BUTTON_COLUMN(ICON_MD_ZOOM_IN)
-    TEXT_COLUMN(ICON_MD_MORE_VERT)
-    BUTTON_COLUMN(ICON_MD_DRAW)
-    BUTTON_COLUMN(ICON_MD_BUILD)
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_UNDO)) {
+      // status_ = inventory_.Undo();
+    }
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_REDO)) {
+      // status_ = inventory_.Redo();
+    }
+    ImGui::TableNextColumn();
+    ImGui::Text(ICON_MD_MORE_VERT);
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_ZOOM_OUT)) {
+      screen_canvas_.ZoomOut();
+    }
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_ZOOM_IN)) {
+      screen_canvas_.ZoomIn();
+    }
+    ImGui::TableNextColumn();
+    ImGui::Text(ICON_MD_MORE_VERT);
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_DRAW)) {
+      current_mode_ = EditingMode::DRAW;
+    }
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_BUILD)) {
+      // current_mode_ = EditingMode::BUILD;
+    }
 
     ImGui::EndTable();
   }

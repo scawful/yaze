@@ -499,24 +499,21 @@ absl::Status GraphicsEditor::UpdateScadView() {
 absl::Status GraphicsEditor::DrawToolset() {
   static constexpr absl::string_view kGfxToolsetColumnNames[] = {
       "#memoryEditor",
-      "##separator_gfx1",
   };
 
-  if (ImGui::BeginTable("GraphicsToolset", 2, ImGuiTableFlags_SizingFixedFit,
+  if (ImGui::BeginTable("GraphicsToolset", 1, ImGuiTableFlags_SizingFixedFit,
                         ImVec2(0, 0))) {
     for (const auto& name : kGfxToolsetColumnNames)
       ImGui::TableSetupColumn(name.data());
 
     TableNextColumn();
-    if (Button(ICON_MD_MEMORY)) {
+    if (Button(absl::StrCat(ICON_MD_MEMORY, "Open Memory Editor").c_str())) {
       if (!open_memory_editor_) {
         open_memory_editor_ = true;
       } else {
         open_memory_editor_ = false;
       }
     }
-
-    TEXT_COLUMN("Open Memory Editor")  // Separator
 
     ImGui::EndTable();
   }
