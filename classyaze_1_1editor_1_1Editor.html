@@ -143,6 +143,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a247da2182c494a6505ec0790476930df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a78070dc194ac0104406bc2ff4dd07b1f" id="r_a78070dc194ac0104406bc2ff4dd07b1f"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a78070dc194ac0104406bc2ff4dd07b1f">~Editor</a> ()=default</td></tr>
 <tr class="separator:a78070dc194ac0104406bc2ff4dd07b1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5c1b245617554f101535e1deb3cb5547" id="r_a5c1b245617554f101535e1deb3cb5547"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5c1b245617554f101535e1deb3cb5547">Initialize</a> ()=0</td></tr>
+<tr class="separator:a5c1b245617554f101535e1deb3cb5547"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0c8c0eae68a91298050a709c146a9472" id="r_a0c8c0eae68a91298050a709c146a9472"><td class="memItemLeft" align="right" valign="top">virtual absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0c8c0eae68a91298050a709c146a9472">Cut</a> ()=0</td></tr>
 <tr class="separator:a0c8c0eae68a91298050a709c146a9472"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0d1cad7dc7377bcf699c76dc1da4bd2f" id="r_a0d1cad7dc7377bcf699c76dc1da4bd2f"><td class="memItemLeft" align="right" valign="top">virtual absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0d1cad7dc7377bcf699c76dc1da4bd2f">Copy</a> ()=0</td></tr>
@@ -226,6 +228,33 @@ Protected Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a5c1b245617554f101535e1deb3cb5547" name="a5c1b245617554f101535e1deb3cb5547"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5c1b245617554f101535e1deb3cb5547">&#9670;&#160;</a></span>Initialize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void yaze::editor::Editor::Initialize </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel pure-virtual">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="classyaze_1_1editor_1_1AssemblyEditor.html#a23f6336773b52a1339166359528674f5">yaze::editor::AssemblyEditor</a>, <a class="el" href="classyaze_1_1editor_1_1DungeonEditor.html#a8ed56293f396248b6a62ca128a130a6c">yaze::editor::DungeonEditor</a>, <a class="el" href="classyaze_1_1editor_1_1GraphicsEditor.html#a4ff651cfbe56f7801b81f49bfbb1f3a2">yaze::editor::GraphicsEditor</a>, <a class="el" href="classyaze_1_1editor_1_1MessageEditor.html#a9a0f814cb63b33a9cd3c407a0274240c">yaze::editor::MessageEditor</a>, <a class="el" href="classyaze_1_1editor_1_1MusicEditor.html#a56097a90630db790fdb2f02c84e9dc69">yaze::editor::MusicEditor</a>, <a class="el" href="classyaze_1_1editor_1_1OverworldEditor.html#a795074db61aaf19e9f687a1f357524e2">yaze::editor::OverworldEditor</a>, <a class="el" href="classyaze_1_1editor_1_1PaletteEditor.html#a0c64a377a8f6abacd567fb52aac43d9a">yaze::editor::PaletteEditor</a>, <a class="el" href="classyaze_1_1editor_1_1ScreenEditor.html#a75206045bde5d90bfaffd6e1b29e0fad">yaze::editor::ScreenEditor</a>, <a class="el" href="classyaze_1_1editor_1_1SettingsEditor.html#a8505345e0c9e4e93188ea9a92490539a">yaze::editor::SettingsEditor</a>, and <a class="el" href="classyaze_1_1editor_1_1SpriteEditor.html#a85162089edb2ba429d286d930d70e6d0">yaze::editor::SpriteEditor</a>.</p>
+
+</div>
+</div>
 <a id="a0c8c0eae68a91298050a709c146a9472" name="a0c8c0eae68a91298050a709c146a9472"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0c8c0eae68a91298050a709c146a9472">&#9670;&#160;</a></span>Cut()</h2>
 
@@ -438,9 +467,9 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor_8h_source.html#l00067">67</a> of file <a class="el" href="editor_8h_source.html">editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor_8h_source.html#l00069">69</a> of file <a class="el" href="editor_8h_source.html">editor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="editor_8h_source.html#l00070">type_</a>.</p>
+<p class="reference">References <a class="el" href="editor_8h_source.html#l00072">type_</a>.</p>
 
 </div>
 </div>
@@ -465,9 +494,9 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor_8h_source.html#l00070">70</a> of file <a class="el" href="editor_8h_source.html">editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor_8h_source.html#l00072">72</a> of file <a class="el" href="editor_8h_source.html">editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="assembly__editor_8h_source.html#l00025">yaze::editor::AssemblyEditor::AssemblyEditor()</a>, <a class="el" href="dungeon__editor_8h_source.html#l00043">yaze::editor::DungeonEditor::DungeonEditor()</a>, <a class="el" href="graphics__editor_8h_source.html#l00059">yaze::editor::GraphicsEditor::GraphicsEditor()</a>, <a class="el" href="message__editor_8h_source.html#l00038">yaze::editor::MessageEditor::MessageEditor()</a>, <a class="el" href="music__editor_8h_source.html#l00059">yaze::editor::MusicEditor::MusicEditor()</a>, <a class="el" href="overworld__editor_8h_source.html#l00077">yaze::editor::OverworldEditor::OverworldEditor()</a>, <a class="el" href="palette__editor_8h_source.html#l00081">yaze::editor::PaletteEditor::PaletteEditor()</a>, <a class="el" href="screen__editor_8h_source.html#l00036">yaze::editor::ScreenEditor::ScreenEditor()</a>, <a class="el" href="settings__editor_8h_source.html#l00210">yaze::editor::SettingsEditor::SettingsEditor()</a>, <a class="el" href="sprite__editor_8h_source.html#l00038">yaze::editor::SpriteEditor::SpriteEditor()</a>, and <a class="el" href="editor_8h_source.html#l00067">type()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="assembly__editor_8h_source.html#l00025">yaze::editor::AssemblyEditor::AssemblyEditor()</a>, <a class="el" href="dungeon__editor_8h_source.html#l00043">yaze::editor::DungeonEditor::DungeonEditor()</a>, <a class="el" href="graphics__editor_8h_source.html#l00059">yaze::editor::GraphicsEditor::GraphicsEditor()</a>, <a class="el" href="message__editor_8h_source.html#l00038">yaze::editor::MessageEditor::MessageEditor()</a>, <a class="el" href="music__editor_8h_source.html#l00059">yaze::editor::MusicEditor::MusicEditor()</a>, <a class="el" href="overworld__editor_8h_source.html#l00077">yaze::editor::OverworldEditor::OverworldEditor()</a>, <a class="el" href="palette__editor_8h_source.html#l00082">yaze::editor::PaletteEditor::PaletteEditor()</a>, <a class="el" href="screen__editor_8h_source.html#l00036">yaze::editor::ScreenEditor::ScreenEditor()</a>, <a class="el" href="settings__editor_8h_source.html#l00210">yaze::editor::SettingsEditor::SettingsEditor()</a>, <a class="el" href="sprite__editor_8h_source.html#l00038">yaze::editor::SpriteEditor::SpriteEditor()</a>, and <a class="el" href="editor_8h_source.html#l00069">type()</a>.</p>
 
 </div>
 </div>
@@ -491,7 +520,7 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor_8h_source.html#l00071">71</a> of file <a class="el" href="editor_8h_source.html">editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor_8h_source.html#l00073">73</a> of file <a class="el" href="editor_8h_source.html">editor.h</a>.</p>
 
 </div>
 </div>

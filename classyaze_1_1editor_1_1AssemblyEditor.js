@@ -2,6 +2,7 @@ var classyaze_1_1editor_1_1AssemblyEditor =
 [
     [ "AssemblyEditor", "classyaze_1_1editor_1_1AssemblyEditor.html#a18b7735ffbfc7a0dcb92662f481fee8b", null ],
     [ "ChangeActiveFile", "classyaze_1_1editor_1_1AssemblyEditor.html#a4b745650f8142af416a263bfee0b24c9", null ],
+    [ "Initialize", "classyaze_1_1editor_1_1AssemblyEditor.html#a23f6336773b52a1339166359528674f5", null ],
     [ "Update", "classyaze_1_1editor_1_1AssemblyEditor.html#ab193c7227d5c1acc100a2df54964931d", null ],
     [ "InlineUpdate", "classyaze_1_1editor_1_1AssemblyEditor.html#a14febf83ebe739ea4dff73b278188fae", null ],
     [ "UpdateCodeView", "classyaze_1_1editor_1_1AssemblyEditor.html#a1a633715802319bf04bb52adcd40f4c0", null ],

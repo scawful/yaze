@@ -2,6 +2,7 @@ var classyaze_1_1editor_1_1SpriteEditor =
 [
     [ "OAMConfig", "structyaze_1_1editor_1_1SpriteEditor_1_1OAMConfig.html", "structyaze_1_1editor_1_1SpriteEditor_1_1OAMConfig" ],
     [ "SpriteEditor", "classyaze_1_1editor_1_1SpriteEditor.html#a73afa5ee58b92bb76ff48f3ae145f838", null ],
+    [ "Initialize", "classyaze_1_1editor_1_1SpriteEditor.html#a85162089edb2ba429d286d930d70e6d0", null ],
     [ "Update", "classyaze_1_1editor_1_1SpriteEditor.html#a552785a0287ebe61e7f855e45c8d6777", null ],
     [ "Undo", "classyaze_1_1editor_1_1SpriteEditor.html#a7c3a21b59e98c2f34ed819cdec74496e", null ],
     [ "Redo", "classyaze_1_1editor_1_1SpriteEditor.html#a6a85ffcf6965e27086da683e1f1b1295", null ],

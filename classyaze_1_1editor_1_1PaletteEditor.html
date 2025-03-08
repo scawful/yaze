@@ -136,6 +136,8 @@ Inheritance diagram for yaze::editor::PaletteEditor:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:adff0ccac83563b4b24ab28f88e9d7c01" id="r_adff0ccac83563b4b24ab28f88e9d7c01"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adff0ccac83563b4b24ab28f88e9d7c01">PaletteEditor</a> ()</td></tr>
 <tr class="separator:adff0ccac83563b4b24ab28f88e9d7c01"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c64a377a8f6abacd567fb52aac43d9a" id="r_a0c64a377a8f6abacd567fb52aac43d9a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0c64a377a8f6abacd567fb52aac43d9a">Initialize</a> () override</td></tr>
+<tr class="separator:a0c64a377a8f6abacd567fb52aac43d9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5e144201e8833095dd6ed5e43488292a" id="r_a5e144201e8833095dd6ed5e43488292a"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5e144201e8833095dd6ed5e43488292a">Update</a> () override</td></tr>
 <tr class="separator:a5e144201e8833095dd6ed5e43488292a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abc98f1f83b39e0663a732f33e7a50a0c" id="r_abc98f1f83b39e0663a732f33e7a50a0c"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abc98f1f83b39e0663a732f33e7a50a0c">Cut</a> () override</td></tr>
@@ -213,7 +215,7 @@ Additional Inherited Members</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Allows the user to view and edit in game palettes. </p>
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00079">79</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00080">80</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="adff0ccac83563b4b24ab28f88e9d7c01" name="adff0ccac83563b4b24ab28f88e9d7c01"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adff0ccac83563b4b24ab28f88e9d7c01">&#9670;&#160;</a></span>PaletteEditor()</h2>
@@ -238,13 +240,42 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00081">81</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00082">82</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="palette__editor_8h_source.html#l00114">custom_palette_</a>, <a class="el" href="editor_8h_source.html#l00033">yaze::editor::kPalette</a>, and <a class="el" href="editor_8h_source.html#l00070">yaze::editor::Editor::type_</a>.</p>
+<p class="reference">References <a class="el" href="palette__editor_8h_source.html#l00117">custom_palette_</a>, <a class="el" href="editor_8h_source.html#l00033">yaze::editor::kPalette</a>, and <a class="el" href="editor_8h_source.html#l00072">yaze::editor::Editor::type_</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a0c64a377a8f6abacd567fb52aac43d9a" name="a0c64a377a8f6abacd567fb52aac43d9a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c64a377a8f6abacd567fb52aac43d9a">&#9670;&#160;</a></span>Initialize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::PaletteEditor::Initialize </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel override">override</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#a5c1b245617554f101535e1deb3cb5547">yaze::editor::Editor</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="palette__editor_8cc_source.html#l00173">173</a> of file <a class="el" href="palette__editor_8cc_source.html">palette_editor.cc</a>.</p>
+
+</div>
+</div>
 <a id="a5e144201e8833095dd6ed5e43488292a" name="a5e144201e8833095dd6ed5e43488292a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5e144201e8833095dd6ed5e43488292a">&#9670;&#160;</a></span>Update()</h2>
 
@@ -270,9 +301,9 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#aed50bffbba9a0d98f8f3d24ad753f887">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8cc_source.html#l00173">173</a> of file <a class="el" href="palette__editor_8cc_source.html">palette_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8cc_source.html#l00175">175</a> of file <a class="el" href="palette__editor_8cc_source.html">palette_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="macro_8h_source.html#l00105">CLEAR_AND_RETURN_STATUS</a>, <a class="el" href="palette__editor_8h_source.html#l00110">current_color_</a>, <a class="el" href="palette__editor_8cc_source.html#l00259">DisplayCategoryTable()</a>, <a class="el" href="palette__editor_8cc_source.html#l00222">DrawCustomPalette()</a>, <a class="el" href="palette__editor_8cc_source.html#l00389">DrawModifiedColors()</a>, <a class="el" href="palette__editor_8h_source.html#l00112">gfx_group_editor_</a>, <a class="el" href="snes__palette_8h_source.html#l00020">yaze::gfx::kNumPalettes</a>, <a class="el" href="palette__editor_8cc_source.html#l00048">yaze::editor::kPaletteTableFlags</a>, <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>, <a class="el" href="color_8cc_source.html#l00036">yaze::gui::SnesColorEdit4()</a>, and <a class="el" href="palette__editor_8h_source.html#l00109">status_</a>.</p>
+<p class="reference">References <a class="el" href="macro_8h_source.html#l00105">CLEAR_AND_RETURN_STATUS</a>, <a class="el" href="palette__editor_8h_source.html#l00113">current_color_</a>, <a class="el" href="palette__editor_8cc_source.html#l00261">DisplayCategoryTable()</a>, <a class="el" href="palette__editor_8cc_source.html#l00224">DrawCustomPalette()</a>, <a class="el" href="palette__editor_8cc_source.html#l00391">DrawModifiedColors()</a>, <a class="el" href="palette__editor_8h_source.html#l00115">gfx_group_editor_</a>, <a class="el" href="snes__palette_8h_source.html#l00020">yaze::gfx::kNumPalettes</a>, <a class="el" href="palette__editor_8cc_source.html#l00048">yaze::editor::kPaletteTableFlags</a>, <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>, <a class="el" href="color_8cc_source.html#l00036">yaze::gui::SnesColorEdit4()</a>, and <a class="el" href="palette__editor_8h_source.html#l00112">status_</a>.</p>
 
 </div>
 </div>
@@ -301,7 +332,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#a0c8c0eae68a91298050a709c146a9472">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00088">88</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00091">91</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
 
 </div>
 </div>
@@ -330,7 +361,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#a0d1cad7dc7377bcf699c76dc1da4bd2f">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00089">89</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00092">92</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
 
 </div>
 </div>
@@ -359,7 +390,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#adcc475a4870b75a9db44e78244c6fc4e">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00090">90</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00093">93</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
 
 </div>
 </div>
@@ -388,7 +419,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#af70b26886a360613f59e8f45b4bfcdec">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00091">91</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00094">94</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
 
 </div>
 </div>
@@ -417,7 +448,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#a127b4d84d1a76c5af2998a1a30f45e95">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00092">92</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00095">95</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
 
 </div>
 </div>
@@ -446,7 +477,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#aac357035ff66579bbad4181c5aa47e56">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00093">93</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00096">96</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
 
 </div>
 </div>
@@ -465,11 +496,11 @@ Additional Inherited Members</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8cc_source.html#l00259">259</a> of file <a class="el" href="palette__editor_8cc_source.html">palette_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8cc_source.html#l00261">261</a> of file <a class="el" href="palette__editor_8cc_source.html">palette_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="style_8cc_source.html#l00385">yaze::gui::BeginChildWithScrollbar()</a>, <a class="el" href="palette__editor_8cc_source.html#l00343">DrawPaletteGroup()</a>, and <a class="el" href="palette__editor_8h_source.html#l00109">status_</a>.</p>
+<p class="reference">References <a class="el" href="style_8cc_source.html#l00385">yaze::gui::BeginChildWithScrollbar()</a>, <a class="el" href="palette__editor_8cc_source.html#l00345">DrawPaletteGroup()</a>, and <a class="el" href="palette__editor_8h_source.html#l00112">status_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00173">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00175">Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -508,7 +539,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8cc_source.html#l00445">445</a> of file <a class="el" href="palette__editor_8cc_source.html">palette_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8cc_source.html#l00447">447</a> of file <a class="el" href="palette__editor_8cc_source.html">palette_editor.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="macro_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="snes__palette_8h_source.html#l00138">yaze::gfx::SnesPalette::GetColor()</a>, and <a class="el" href="snes__palette_8h_source.html#l00148">yaze::gfx::SnesPalette::size()</a>.</p>
 <div class="dynheader">
@@ -550,7 +581,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8cc_source.html#l00461">461</a> of file <a class="el" href="palette__editor_8cc_source.html">palette_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8cc_source.html#l00463">463</a> of file <a class="el" href="palette__editor_8cc_source.html">palette_editor.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="macro_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="snes__palette_8h_source.html#l00138">yaze::gfx::SnesPalette::GetColor()</a>, and <a class="el" href="snes__palette_8h_source.html#l00148">yaze::gfx::SnesPalette::size()</a>.</p>
 <div class="dynheader">
@@ -587,11 +618,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8cc_source.html#l00343">343</a> of file <a class="el" href="palette__editor_8cc_source.html">palette_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8cc_source.html#l00345">345</a> of file <a class="el" href="palette__editor_8cc_source.html">palette_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="macro_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="palette__editor_8h_source.html#l00110">current_color_</a>, <a class="el" href="snes__palette_8h_source.html#l00138">yaze::gfx::SnesPalette::GetColor()</a>, <a class="el" href="palette__editor_8cc_source.html#l00405">HandleColorPopup()</a>, <a class="el" href="palette__editor_8cc_source.html#l00052">yaze::editor::kPalNoAlpha</a>, <a class="el" href="snes__palette_8h_source.html#l00145">yaze::gfx::SnesPalette::mutable_color()</a>, <a class="el" href="snes__palette_8h_source.html#l00216">yaze::gfx::PaletteGroup::mutable_palette()</a>, <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>, <a class="el" href="snes__palette_8h_source.html#l00214">yaze::gfx::PaletteGroup::size()</a>, <a class="el" href="snes__palette_8h_source.html#l00148">yaze::gfx::SnesPalette::size()</a>, and <a class="el" href="color_8cc_source.html#l00019">yaze::gui::SnesColorButton()</a>.</p>
+<p class="reference">References <a class="el" href="macro_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="palette__editor_8h_source.html#l00113">current_color_</a>, <a class="el" href="snes__palette_8h_source.html#l00138">yaze::gfx::SnesPalette::GetColor()</a>, <a class="el" href="palette__editor_8cc_source.html#l00407">HandleColorPopup()</a>, <a class="el" href="palette__editor_8cc_source.html#l00052">yaze::editor::kPalNoAlpha</a>, <a class="el" href="snes__palette_8h_source.html#l00145">yaze::gfx::SnesPalette::mutable_color()</a>, <a class="el" href="snes__palette_8h_source.html#l00216">yaze::gfx::PaletteGroup::mutable_palette()</a>, <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>, <a class="el" href="snes__palette_8h_source.html#l00214">yaze::gfx::PaletteGroup::size()</a>, <a class="el" href="snes__palette_8h_source.html#l00148">yaze::gfx::SnesPalette::size()</a>, and <a class="el" href="color_8cc_source.html#l00019">yaze::gui::SnesColorButton()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00259">DisplayCategoryTable()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00261">DisplayCategoryTable()</a>.</p>
 
 </div>
 </div>
@@ -610,11 +641,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8cc_source.html#l00222">222</a> of file <a class="el" href="palette__editor_8cc_source.html">palette_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8cc_source.html#l00224">224</a> of file <a class="el" href="palette__editor_8cc_source.html">palette_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="palette__editor_8h_source.html#l00114">custom_palette_</a>, and <a class="el" href="color_8cc_source.html#l00036">yaze::gui::SnesColorEdit4()</a>.</p>
+<p class="reference">References <a class="el" href="palette__editor_8h_source.html#l00117">custom_palette_</a>, and <a class="el" href="color_8cc_source.html#l00036">yaze::gui::SnesColorEdit4()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00173">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00175">Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -650,11 +681,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8cc_source.html#l00389">389</a> of file <a class="el" href="palette__editor_8cc_source.html">palette_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8cc_source.html#l00391">391</a> of file <a class="el" href="palette__editor_8cc_source.html">palette_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="palette__editor_8h_source.html#l00118">history_</a>, and <a class="el" href="color_8cc_source.html#l00036">yaze::gui::SnesColorEdit4()</a>.</p>
+<p class="reference">References <a class="el" href="palette__editor_8h_source.html#l00121">history_</a>, and <a class="el" href="color_8cc_source.html#l00036">yaze::gui::SnesColorEdit4()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00173">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00175">Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -712,11 +743,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8cc_source.html#l00405">405</a> of file <a class="el" href="palette__editor_8cc_source.html">palette_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8cc_source.html#l00407">407</a> of file <a class="el" href="palette__editor_8cc_source.html">palette_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__color_8cc_source.html#l00033">yaze::gfx::ConvertRgbToSnes()</a>, <a class="el" href="palette__editor_8cc_source.html#l00081">F32_TO_INT8_SAT</a>, <a class="el" href="palette__editor_8h_source.html#l00118">history_</a>, <a class="el" href="palette__editor_8cc_source.html#l00058">yaze::editor::kColorPopupFlags</a>, <a class="el" href="color_8cc_source.html#l00036">yaze::gui::SnesColorEdit4()</a>, and <a class="el" href="snes__palette_8cc_source.html#l00290">yaze::gfx::ToFloatArray()</a>.</p>
+<p class="reference">References <a class="el" href="snes__color_8cc_source.html#l00033">yaze::gfx::ConvertRgbToSnes()</a>, <a class="el" href="palette__editor_8cc_source.html#l00081">F32_TO_INT8_SAT</a>, <a class="el" href="palette__editor_8h_source.html#l00121">history_</a>, <a class="el" href="palette__editor_8cc_source.html#l00058">yaze::editor::kColorPopupFlags</a>, <a class="el" href="color_8cc_source.html#l00036">yaze::gui::SnesColorEdit4()</a>, and <a class="el" href="snes__palette_8cc_source.html#l00290">yaze::gfx::ToFloatArray()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00343">DrawPaletteGroup()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00345">DrawPaletteGroup()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -758,9 +789,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00109">109</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00112">112</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00259">DisplayCategoryTable()</a>, and <a class="el" href="palette__editor_8cc_source.html#l00173">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00261">DisplayCategoryTable()</a>, and <a class="el" href="palette__editor_8cc_source.html#l00175">Update()</a>.</p>
 
 </div>
 </div>
@@ -784,9 +815,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00110">110</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00113">113</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00343">DrawPaletteGroup()</a>, and <a class="el" href="palette__editor_8cc_source.html#l00173">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00345">DrawPaletteGroup()</a>, and <a class="el" href="palette__editor_8cc_source.html#l00175">Update()</a>.</p>
 
 </div>
 </div>
@@ -810,9 +841,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00112">112</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00115">115</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00173">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00175">Update()</a>.</p>
 
 </div>
 </div>
@@ -836,9 +867,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00114">114</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00117">117</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00222">DrawCustomPalette()</a>, and <a class="el" href="palette__editor_8h_source.html#l00081">PaletteEditor()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00224">DrawCustomPalette()</a>, and <a class="el" href="palette__editor_8h_source.html#l00082">PaletteEditor()</a>.</p>
 
 </div>
 </div>
@@ -862,7 +893,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00116">116</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00119">119</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
 
 </div>
 </div>
@@ -886,9 +917,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00118">118</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="palette__editor_8h_source.html#l00121">121</a> of file <a class="el" href="palette__editor_8h_source.html">palette_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00389">DrawModifiedColors()</a>, and <a class="el" href="palette__editor_8cc_source.html#l00405">HandleColorPopup()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00391">DrawModifiedColors()</a>, and <a class="el" href="palette__editor_8cc_source.html#l00407">HandleColorPopup()</a>.</p>
 
 </div>
 </div>

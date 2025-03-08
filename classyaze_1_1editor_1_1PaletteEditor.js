@@ -1,6 +1,7 @@
 var classyaze_1_1editor_1_1PaletteEditor =
 [
     [ "PaletteEditor", "classyaze_1_1editor_1_1PaletteEditor.html#adff0ccac83563b4b24ab28f88e9d7c01", null ],
+    [ "Initialize", "classyaze_1_1editor_1_1PaletteEditor.html#a0c64a377a8f6abacd567fb52aac43d9a", null ],
     [ "Update", "classyaze_1_1editor_1_1PaletteEditor.html#a5e144201e8833095dd6ed5e43488292a", null ],
     [ "Cut", "classyaze_1_1editor_1_1PaletteEditor.html#abc98f1f83b39e0663a732f33e7a50a0c", null ],
     [ "Copy", "classyaze_1_1editor_1_1PaletteEditor.html#a6d64bf2ecfe719870a7912dbb9f5493b", null ],

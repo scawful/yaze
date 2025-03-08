@@ -2,7 +2,7 @@ var classyaze_1_1editor_1_1MessageEditor =
 [
     [ "TextBox", "structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html", "structyaze_1_1editor_1_1MessageEditor_1_1TextBox" ],
     [ "MessageEditor", "classyaze_1_1editor_1_1MessageEditor.html#a57fd1a82e1a7c0267a81ed4a789b9107", null ],
-    [ "Initialize", "classyaze_1_1editor_1_1MessageEditor.html#ad3bdf172b01a514ec30cb9ef518068f8", null ],
+    [ "Initialize", "classyaze_1_1editor_1_1MessageEditor.html#a9a0f814cb63b33a9cd3c407a0274240c", null ],
     [ "Update", "classyaze_1_1editor_1_1MessageEditor.html#a304ea5c627aa7044cd6221eaba59fa25", null ],
     [ "DrawMessageList", "classyaze_1_1editor_1_1MessageEditor.html#ac59f64e5840efa394489416a8b8290ec", null ],
     [ "DrawCurrentMessage", "classyaze_1_1editor_1_1MessageEditor.html#ada2a647c348dc20860b6cec0bc812d38", null ],

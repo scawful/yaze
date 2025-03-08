@@ -15,6 +15,7 @@ var classyaze_1_1editor_1_1DungeonEditor =
       [ "kBlock", "classyaze_1_1editor_1_1DungeonEditor.html#ab7c9a13b87665bd840423dc9c94a7363a2588da66dc50d159740cfcb2088792b0", null ]
     ] ],
     [ "DungeonEditor", "classyaze_1_1editor_1_1DungeonEditor.html#af3c6f8d84e47399b8ebd669eca2a2964", null ],
+    [ "Initialize", "classyaze_1_1editor_1_1DungeonEditor.html#a8ed56293f396248b6a62ca128a130a6c", null ],
     [ "Update", "classyaze_1_1editor_1_1DungeonEditor.html#a1575da4a0378b5c70d0d3ea21f0e4233", null ],
     [ "Undo", "classyaze_1_1editor_1_1DungeonEditor.html#aea35ae879db16bde8547c54efe419a58", null ],
     [ "Redo", "classyaze_1_1editor_1_1DungeonEditor.html#a8432ee48599762bbde500bd6f4f2fd6d", null ],
@@ -23,7 +24,6 @@ var classyaze_1_1editor_1_1DungeonEditor =
     [ "Paste", "classyaze_1_1editor_1_1DungeonEditor.html#a9c06190d425a4336cd62e01a6a861016", null ],
     [ "Find", "classyaze_1_1editor_1_1DungeonEditor.html#adaaf0254345026fc7099688ed947e619", null ],
     [ "add_room", "classyaze_1_1editor_1_1DungeonEditor.html#a0867626a4677c96be31fb181fff86ccd", null ],
-    [ "Initialize", "classyaze_1_1editor_1_1DungeonEditor.html#a6f0796c3c12a67c1c4b2a989d6c5dae6", null ],
     [ "RefreshGraphics", "classyaze_1_1editor_1_1DungeonEditor.html#a0fb4f2c30d76ea757405184e34a64ea8", null ],
     [ "LoadDungeonRoomSize", "classyaze_1_1editor_1_1DungeonEditor.html#a04832bdf64d6e767d5a11317606b04e4", null ],
     [ "UpdateDungeonRoomView", "classyaze_1_1editor_1_1DungeonEditor.html#ad0705b525915d3d3cab1d56df72aff5f", null ],

@@ -2,6 +2,7 @@ var classyaze_1_1editor_1_1Editor =
 [
     [ "Editor", "classyaze_1_1editor_1_1Editor.html#a247da2182c494a6505ec0790476930df", null ],
     [ "~Editor", "classyaze_1_1editor_1_1Editor.html#a78070dc194ac0104406bc2ff4dd07b1f", null ],
+    [ "Initialize", "classyaze_1_1editor_1_1Editor.html#a5c1b245617554f101535e1deb3cb5547", null ],
     [ "Cut", "classyaze_1_1editor_1_1Editor.html#a0c8c0eae68a91298050a709c146a9472", null ],
     [ "Copy", "classyaze_1_1editor_1_1Editor.html#a0d1cad7dc7377bcf699c76dc1da4bd2f", null ],
     [ "Paste", "classyaze_1_1editor_1_1Editor.html#adcc475a4870b75a9db44e78244c6fc4e", null ],

@@ -25,7 +25,7 @@ var classyaze_1_1editor_1_1OverworldEditor =
       [ "DW_SPR_PAL_PART2", "classyaze_1_1editor_1_1OverworldEditor.html#aea8267c4f7c87f90980a353edb9d27a1a15e93c1f924790725359e5f3ffa062c8", null ]
     ] ],
     [ "OverworldEditor", "classyaze_1_1editor_1_1OverworldEditor.html#a1a106c71b0566f96daff4bfb1530a7fe", null ],
-    [ "Initialize", "classyaze_1_1editor_1_1OverworldEditor.html#a452841175e7776fcceec43fe8af478ff", null ],
+    [ "Initialize", "classyaze_1_1editor_1_1OverworldEditor.html#a795074db61aaf19e9f687a1f357524e2", null ],
     [ "Update", "classyaze_1_1editor_1_1OverworldEditor.html#ac30ddbbf543edb8c021a98b46c01e239", null ],
     [ "Undo", "classyaze_1_1editor_1_1OverworldEditor.html#a49dc7b261c7cfabbb2321c84ae79b635", null ],
     [ "Redo", "classyaze_1_1editor_1_1OverworldEditor.html#a7c2f28bb7b9d0ac62b960dc700166d32", null ],

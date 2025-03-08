@@ -1,6 +1,7 @@
 var classyaze_1_1editor_1_1SettingsEditor =
 [
     [ "SettingsEditor", "classyaze_1_1editor_1_1SettingsEditor.html#acaafae3f676edf353f195992d74059d1", null ],
+    [ "Initialize", "classyaze_1_1editor_1_1SettingsEditor.html#a8505345e0c9e4e93188ea9a92490539a", null ],
     [ "Update", "classyaze_1_1editor_1_1SettingsEditor.html#a22ad283ada591bab7a1f64f6fba018dc", null ],
     [ "Undo", "classyaze_1_1editor_1_1SettingsEditor.html#a0b98593274a5ee2d63f36c11c8790d64", null ],
     [ "Redo", "classyaze_1_1editor_1_1SettingsEditor.html#a3c489ee17dd321664f0b71e05665d6f3", null ],

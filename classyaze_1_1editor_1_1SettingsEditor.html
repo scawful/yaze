@@ -142,6 +142,8 @@ Collaboration diagram for yaze::editor::SettingsEditor:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:acaafae3f676edf353f195992d74059d1" id="r_acaafae3f676edf353f195992d74059d1"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acaafae3f676edf353f195992d74059d1">SettingsEditor</a> ()</td></tr>
 <tr class="separator:acaafae3f676edf353f195992d74059d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8505345e0c9e4e93188ea9a92490539a" id="r_a8505345e0c9e4e93188ea9a92490539a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8505345e0c9e4e93188ea9a92490539a">Initialize</a> () override</td></tr>
+<tr class="separator:a8505345e0c9e4e93188ea9a92490539a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a22ad283ada591bab7a1f64f6fba018dc" id="r_a22ad283ada591bab7a1f64f6fba018dc"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a22ad283ada591bab7a1f64f6fba018dc">Update</a> () override</td></tr>
 <tr class="separator:a22ad283ada591bab7a1f64f6fba018dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0b98593274a5ee2d63f36c11c8790d64" id="r_a0b98593274a5ee2d63f36c11c8790d64"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0b98593274a5ee2d63f36c11c8790d64">Undo</a> () override</td></tr>
@@ -208,7 +210,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="settings__editor_8h_source.html#l00210">210</a> of file <a class="el" href="settings__editor_8h_source.html">settings_editor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="classyaze_1_1editor_1_1Editor.html#a247da2182c494a6505ec0790476930df">yaze::editor::Editor::Editor()</a>, <a class="el" href="editor_8h_source.html#l00037">yaze::editor::kSettings</a>, and <a class="el" href="editor_8h_source.html#l00070">yaze::editor::Editor::type_</a>.</p>
+<p class="reference">References <a class="el" href="classyaze_1_1editor_1_1Editor.html#a247da2182c494a6505ec0790476930df">yaze::editor::Editor::Editor()</a>, <a class="el" href="editor_8h_source.html#l00037">yaze::editor::kSettings</a>, and <a class="el" href="editor_8h_source.html#l00072">yaze::editor::Editor::type_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -223,6 +225,35 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a8505345e0c9e4e93188ea9a92490539a" name="a8505345e0c9e4e93188ea9a92490539a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8505345e0c9e4e93188ea9a92490539a">&#9670;&#160;</a></span>Initialize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::SettingsEditor::Initialize </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel override">override</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#a5c1b245617554f101535e1deb3cb5547">yaze::editor::Editor</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="settings__editor_8cc_source.html#l00024">24</a> of file <a class="el" href="settings__editor_8cc_source.html">settings_editor.cc</a>.</p>
+
+</div>
+</div>
 <a id="a22ad283ada591bab7a1f64f6fba018dc" name="a22ad283ada591bab7a1f64f6fba018dc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a22ad283ada591bab7a1f64f6fba018dc">&#9670;&#160;</a></span>Update()</h2>
 
@@ -248,9 +279,9 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#aed50bffbba9a0d98f8f3d24ad753f887">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="settings__editor_8cc_source.html#l00024">24</a> of file <a class="el" href="settings__editor_8cc_source.html">settings_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="settings__editor_8cc_source.html#l00026">26</a> of file <a class="el" href="settings__editor_8cc_source.html">settings_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="style_8cc_source.html#l00760">yaze::gui::DrawFontManager()</a>, and <a class="el" href="settings__editor_8cc_source.html#l00043">DrawGeneralSettings()</a>.</p>
+<p class="reference">References <a class="el" href="style_8cc_source.html#l00760">yaze::gui::DrawFontManager()</a>, and <a class="el" href="settings__editor_8cc_source.html#l00045">DrawGeneralSettings()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -295,7 +326,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#af70b26886a360613f59e8f45b4bfcdec">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="settings__editor_8h_source.html#l00214">214</a> of file <a class="el" href="settings__editor_8h_source.html">settings_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="settings__editor_8h_source.html#l00213">213</a> of file <a class="el" href="settings__editor_8h_source.html">settings_editor.h</a>.</p>
 
 </div>
 </div>
@@ -324,7 +355,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#a127b4d84d1a76c5af2998a1a30f45e95">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="settings__editor_8h_source.html#l00215">215</a> of file <a class="el" href="settings__editor_8h_source.html">settings_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="settings__editor_8h_source.html#l00214">214</a> of file <a class="el" href="settings__editor_8h_source.html">settings_editor.h</a>.</p>
 
 </div>
 </div>
@@ -353,7 +384,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#a0c8c0eae68a91298050a709c146a9472">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="settings__editor_8h_source.html#l00216">216</a> of file <a class="el" href="settings__editor_8h_source.html">settings_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="settings__editor_8h_source.html#l00215">215</a> of file <a class="el" href="settings__editor_8h_source.html">settings_editor.h</a>.</p>
 
 </div>
 </div>
@@ -382,7 +413,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#a0d1cad7dc7377bcf699c76dc1da4bd2f">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="settings__editor_8h_source.html#l00217">217</a> of file <a class="el" href="settings__editor_8h_source.html">settings_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="settings__editor_8h_source.html#l00216">216</a> of file <a class="el" href="settings__editor_8h_source.html">settings_editor.h</a>.</p>
 
 </div>
 </div>
@@ -411,7 +442,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#adcc475a4870b75a9db44e78244c6fc4e">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="settings__editor_8h_source.html#l00218">218</a> of file <a class="el" href="settings__editor_8h_source.html">settings_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="settings__editor_8h_source.html#l00217">217</a> of file <a class="el" href="settings__editor_8h_source.html">settings_editor.h</a>.</p>
 
 </div>
 </div>
@@ -440,7 +471,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#aac357035ff66579bbad4181c5aa47e56">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="settings__editor_8h_source.html#l00219">219</a> of file <a class="el" href="settings__editor_8h_source.html">settings_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="settings__editor_8h_source.html#l00218">218</a> of file <a class="el" href="settings__editor_8h_source.html">settings_editor.h</a>.</p>
 
 </div>
 </div>
@@ -467,11 +498,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="settings__editor_8cc_source.html#l00043">43</a> of file <a class="el" href="settings__editor_8cc_source.html">settings_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="settings__editor_8cc_source.html#l00045">45</a> of file <a class="el" href="settings__editor_8cc_source.html">settings_editor.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="features_8h_source.html#l00130">yaze::core::FlagsMenu::DrawDungeonFlags()</a>, <a class="el" href="features_8h_source.html#l00112">yaze::core::FlagsMenu::DrawOverworldFlags()</a>, <a class="el" href="features_8h_source.html#l00137">yaze::core::FlagsMenu::DrawResourceFlags()</a>, and <a class="el" href="features_8h_source.html#l00143">yaze::core::FlagsMenu::DrawSystemFlags()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="settings__editor_8cc_source.html#l00024">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="settings__editor_8cc_source.html#l00026">Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -514,7 +545,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="settings__editor_8cc_source.html#l00088">88</a> of file <a class="el" href="settings__editor_8cc_source.html">settings_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="settings__editor_8cc_source.html#l00090">90</a> of file <a class="el" href="settings__editor_8cc_source.html">settings_editor.cc</a>.</p>
 
 </div>
 </div>

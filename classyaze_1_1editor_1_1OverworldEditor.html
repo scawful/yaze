@@ -138,8 +138,8 @@ Inheritance diagram for yaze::editor::OverworldEditor:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a1a106c71b0566f96daff4bfb1530a7fe" id="r_a1a106c71b0566f96daff4bfb1530a7fe"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1a106c71b0566f96daff4bfb1530a7fe">OverworldEditor</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
 <tr class="separator:a1a106c71b0566f96daff4bfb1530a7fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a452841175e7776fcceec43fe8af478ff" id="r_a452841175e7776fcceec43fe8af478ff"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a452841175e7776fcceec43fe8af478ff">Initialize</a> ()</td></tr>
-<tr class="separator:a452841175e7776fcceec43fe8af478ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a795074db61aaf19e9f687a1f357524e2" id="r_a795074db61aaf19e9f687a1f357524e2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a795074db61aaf19e9f687a1f357524e2">Initialize</a> () override</td></tr>
+<tr class="separator:a795074db61aaf19e9f687a1f357524e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac30ddbbf543edb8c021a98b46c01e239" id="r_ac30ddbbf543edb8c021a98b46c01e239"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac30ddbbf543edb8c021a98b46c01e239">Update</a> () final</td></tr>
 <tr class="separator:ac30ddbbf543edb8c021a98b46c01e239"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a49dc7b261c7cfabbb2321c84ae79b635" id="r_a49dc7b261c7cfabbb2321c84ae79b635"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a49dc7b261c7cfabbb2321c84ae79b635">Undo</a> () override</td></tr>
@@ -504,16 +504,19 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00077">77</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="editor_8h_source.html#l00032">yaze::editor::kOverworld</a>, <a class="el" href="overworld__editor_8h_source.html#l00220">rom_</a>, and <a class="el" href="editor_8h_source.html#l00070">yaze::editor::Editor::type_</a>.</p>
+<p class="reference">References <a class="el" href="editor_8h_source.html#l00032">yaze::editor::kOverworld</a>, <a class="el" href="overworld__editor_8h_source.html#l00220">rom_</a>, and <a class="el" href="editor_8h_source.html#l00072">yaze::editor::Editor::type_</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a452841175e7776fcceec43fe8af478ff" name="a452841175e7776fcceec43fe8af478ff"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a452841175e7776fcceec43fe8af478ff">&#9670;&#160;</a></span>Initialize()</h2>
+<a id="a795074db61aaf19e9f687a1f357524e2" name="a795074db61aaf19e9f687a1f357524e2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a795074db61aaf19e9f687a1f357524e2">&#9670;&#160;</a></span>Initialize()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void yaze::editor::OverworldEditor::Initialize </td>
@@ -522,7 +525,14 @@ Additional Inherited Members</h2></td></tr>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel override">override</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#a5c1b245617554f101535e1deb3cb5547">yaze::editor::Editor</a>.</p>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01487">1487</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
@@ -530,8 +540,8 @@ Additional Inherited Members</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_a452841175e7776fcceec43fe8af478ff_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_a452841175e7776fcceec43fe8af478ff_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1editor_1_1OverworldEditor_a452841175e7776fcceec43fe8af478ff_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_a452841175e7776fcceec43fe8af478ff_cgraph">
+<div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_a795074db61aaf19e9f687a1f357524e2_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_a795074db61aaf19e9f687a1f357524e2_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1OverworldEditor_a795074db61aaf19e9f687a1f357524e2_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_a795074db61aaf19e9f687a1f357524e2_cgraph">
 <area shape="rect" title=" " alt="" coords="5,47,189,88"/>
 <area shape="rect" href="namespaceyaze_1_1gui_1_1zeml.html#a9a1ab3a01c40a1afa16a2c456ca7b282" title="Bind a callback to a node." alt="" coords="249,5,384,31"/>
 <area shape="poly" title=" " alt="" coords="188,44,241,32,242,37,190,49"/>
@@ -863,25 +873,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01023">1023</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00230">current_gfx_bmp_</a>, <a class="el" href="features_8h_source.html#l00069">yaze::core::FeatureFlags::get()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="src_2app_2zelda3_2overworld_2overworld_8h_source.html#l00096">yaze::zelda3::kNumOverworldMaps</a>, <a class="el" href="src_2app_2zelda3_2overworld_2overworld_8h_source.html#l00097">yaze::zelda3::kNumTile16Individual</a>, <a class="el" href="overworld__editor_8h_source.html#l00026">yaze::editor::kOverworldMapSize</a>, <a class="el" href="overworld__editor_8cc_source.html#l00060">yaze::editor::kTile16Size</a>, <a class="el" href="overworld__editor_8cc_source.html#l01088">LoadSpriteGraphics()</a>, <a class="el" href="overworld__editor_8h_source.html#l00207">map_blockset_loaded_</a>, <a class="el" href="overworld__editor_8h_source.html#l00233">maps_bmp_</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00226">palette_</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="overworld__editor_8h_source.html#l00220">rom_</a>, <a class="el" href="overworld__editor_8h_source.html#l00229">tile16_blockset_bmp_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00215">tile16_individual_</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_ad8777e42d3b62d08401b380cce94230b_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_ad8777e42d3b62d08401b380cce94230b_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1editor_1_1OverworldEditor_ad8777e42d3b62d08401b380cce94230b_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_ad8777e42d3b62d08401b380cce94230b_cgraph">
-<area shape="rect" title="Load the Bitmap objects for each OverworldMap." alt="" coords="5,78,189,118"/>
-<area shape="rect" href="classyaze_1_1core_1_1FeatureFlags.html#ab985b9cb493be9689a8f4baffc09b614" title=" " alt="" coords="237,5,421,31"/>
-<area shape="poly" title=" " alt="" coords="157,75,274,34,276,39,159,80"/>
-<area shape="rect" href="classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="469,62,612,102"/>
-<area shape="poly" title=" " alt="" coords="189,92,453,83,453,88,189,98"/>
-<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#aded47d4407b9bae41a05b3338176f6a5" title=" " alt="" coords="237,106,420,146"/>
-<area shape="poly" title=" " alt="" coords="189,107,222,111,222,116,189,112"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Used to render a bitmap to the screen." alt="" coords="472,139,609,180"/>
-<area shape="poly" title=" " alt="" coords="136,117,183,139,237,156,294,164,352,168,457,165,457,171,351,173,293,169,236,161,182,144,134,121"/>
-<area shape="poly" title=" " alt="" coords="420,105,454,97,455,103,421,110"/>
-<area shape="poly" title=" " alt="" coords="421,138,458,144,457,149,420,143"/>
-</map>
-</div>
+<p class="reference">References <a class="el" href="renderer_8h_source.html#l00059">yaze::core::Renderer::CreateAndRenderBitmap()</a>, <a class="el" href="overworld__editor_8h_source.html#l00230">current_gfx_bmp_</a>, <a class="el" href="features_8h_source.html#l00069">yaze::core::FeatureFlags::get()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="src_2app_2zelda3_2overworld_2overworld_8h_source.html#l00096">yaze::zelda3::kNumOverworldMaps</a>, <a class="el" href="src_2app_2zelda3_2overworld_2overworld_8h_source.html#l00097">yaze::zelda3::kNumTile16Individual</a>, <a class="el" href="overworld__editor_8h_source.html#l00026">yaze::editor::kOverworldMapSize</a>, <a class="el" href="overworld__editor_8cc_source.html#l00060">yaze::editor::kTile16Size</a>, <a class="el" href="overworld__editor_8cc_source.html#l01088">LoadSpriteGraphics()</a>, <a class="el" href="overworld__editor_8h_source.html#l00207">map_blockset_loaded_</a>, <a class="el" href="overworld__editor_8h_source.html#l00233">maps_bmp_</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00226">palette_</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="overworld__editor_8h_source.html#l00220">rom_</a>, <a class="el" href="overworld__editor_8h_source.html#l00229">tile16_blockset_bmp_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00215">tile16_individual_</a>.</p>
 
 </div>
 </div>
@@ -1801,25 +1793,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00730">730</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="style_8cc_source.html#l00385">yaze::gui::BeginChildWithScrollbar()</a>, <a class="el" href="style_8cc_source.html#l00373">yaze::gui::BeginPadding()</a>, <a class="el" href="overworld__editor_8h_source.html#l00252">current_gfx_canvas_</a>, <a class="el" href="overworld__editor_8h_source.html#l00234">current_graphics_set_</a>, <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="style_8cc_source.html#l00377">yaze::gui::EndPadding()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="overworld__editor_8h_source.html#l00026">yaze::editor::kOverworldMapSize</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00226">palette_</a>, and <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>.</p>
+<p class="reference">References <a class="el" href="style_8cc_source.html#l00385">yaze::gui::BeginChildWithScrollbar()</a>, <a class="el" href="style_8cc_source.html#l00373">yaze::gui::BeginPadding()</a>, <a class="el" href="renderer_8h_source.html#l00059">yaze::core::Renderer::CreateAndRenderBitmap()</a>, <a class="el" href="overworld__editor_8h_source.html#l00252">current_gfx_canvas_</a>, <a class="el" href="overworld__editor_8h_source.html#l00234">current_graphics_set_</a>, <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="style_8cc_source.html#l00377">yaze::gui::EndPadding()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="overworld__editor_8h_source.html#l00026">yaze::editor::kOverworldMapSize</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00226">palette_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00760">DrawTileSelector()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_aba76014690b0bb543ccda5d9eb491e3e_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_aba76014690b0bb543ccda5d9eb491e3e_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1editor_1_1OverworldEditor_aba76014690b0bb543ccda5d9eb491e3e_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_aba76014690b0bb543ccda5d9eb491e3e_cgraph">
-<area shape="rect" title=" " alt="" coords="5,88,189,129"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#ade93c7dcd1ffbb9d83002534f950c8bc" title=" " alt="" coords="237,5,401,46"/>
-<area shape="poly" title=" " alt="" coords="153,85,247,49,249,54,155,90"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#a25424ecc8f2e33914dbac1c45aaaedbb" title=" " alt="" coords="241,70,397,96"/>
-<area shape="poly" title=" " alt="" coords="188,95,225,91,225,96,189,101"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#a703ce750767a17205f5f2fcfc3294a37" title=" " alt="" coords="246,120,392,145"/>
-<area shape="poly" title=" " alt="" coords="189,116,231,120,230,125,188,121"/>
-<area shape="rect" href="classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="247,169,390,210"/>
-<area shape="poly" title=" " alt="" coords="156,127,248,161,246,166,154,132"/>
-</map>
-</div>
 
 </div>
 </div>

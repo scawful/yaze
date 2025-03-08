@@ -1,7 +1,7 @@
 var classyaze_1_1editor_1_1EditorManager =
 [
     [ "EditorManager", "classyaze_1_1editor_1_1EditorManager.html#a5e1bc7f274b01593c207c0cd72cc17c3", null ],
-    [ "Initialize", "classyaze_1_1editor_1_1EditorManager.html#a4d1c0006726b919c97b15afb5529e62d", null ],
+    [ "Initialize", "classyaze_1_1editor_1_1EditorManager.html#ac8ac2fe31fc9760ffe56b79f48dc39a0", null ],
     [ "Update", "classyaze_1_1editor_1_1EditorManager.html#ab1925444bb0903c0375991ee96692c21", null ],
     [ "emulator", "classyaze_1_1editor_1_1EditorManager.html#acb71e69070ce5a0a4aba6c874f1353e3", null ],
     [ "quit", "classyaze_1_1editor_1_1EditorManager.html#aa6c97335949b04ba51ae275497c11d30", null ],
@@ -24,8 +24,13 @@ var classyaze_1_1editor_1_1EditorManager =
     [ "show_emulator_", "classyaze_1_1editor_1_1EditorManager.html#ad010169e8e1dd7cac2fc23d4aab0e978", null ],
     [ "show_memory_editor_", "classyaze_1_1editor_1_1EditorManager.html#aa7bff637c74e3a804a2699d82c04a456", null ],
     [ "show_asm_editor_", "classyaze_1_1editor_1_1EditorManager.html#a94fb3176fb2ae7373fd8fc4d02784d35", null ],
+    [ "show_imgui_metrics_", "classyaze_1_1editor_1_1EditorManager.html#acbcf170599937d472f85b437a3259471", null ],
+    [ "show_imgui_demo_", "classyaze_1_1editor_1_1EditorManager.html#a819ede687b7a4e0e80aaa55641071383", null ],
     [ "show_palette_editor_", "classyaze_1_1editor_1_1EditorManager.html#a2ae8ba24e513f6fa259f171e4d477b7c", null ],
-    [ "show_status_", "classyaze_1_1editor_1_1EditorManager.html#abd8b10b8effa17fa71f6be9ce4b140ec", null ],
+    [ "show_resource_label_manager", "classyaze_1_1editor_1_1EditorManager.html#a0586cc163054f3096dd7937fd9400df5", null ],
+    [ "open_supported_features", "classyaze_1_1editor_1_1EditorManager.html#ac9eb9a2e70c319608c47e4a67cfdd747", null ],
+    [ "open_rom_help", "classyaze_1_1editor_1_1EditorManager.html#a9ee9959888bb4a453149e6b766a30d92", null ],
+    [ "open_manage_project", "classyaze_1_1editor_1_1EditorManager.html#acb24dcca78d68351d6a156a1e8ec03f7", null ],
     [ "rom_assets_loaded_", "classyaze_1_1editor_1_1EditorManager.html#a334e88fc9c866a3c036fad1dc192680a", null ],
     [ "version_", "classyaze_1_1editor_1_1EditorManager.html#affe73c6625559f736677e476796f02a1", null ],
     [ "status_", "classyaze_1_1editor_1_1EditorManager.html#a6dc2ae273f19652bf1f85f7b3da695c8", null ],
