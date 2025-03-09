@@ -55,9 +55,13 @@ class ShortcutManager {
     return PrintShortcut(shortcuts_.at(name).keys);
   }
 
+  auto GetShortcuts() const { return shortcuts_; }
+
  private:
   std::unordered_map<std::string, Shortcut> shortcuts_;
 };
+
+void ExecuteShortcuts(const ShortcutManager &shortcut_manager);
 
 }  // namespace editor
 }  // namespace yaze

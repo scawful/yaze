@@ -127,8 +127,9 @@ void EditorManager::Initialize(const std::string &filename) {
        {},
        {},
        {
-           {absl::StrCat(ICON_MD_CONTENT_CUT, " Cut"), "Cmd+X",
-            [&]() { status_ = current_editor_->Cut(); }},
+           {absl::StrCat(ICON_MD_CONTENT_CUT, " Cut"),
+            context_.shortcut_manager.GetKeys("Cut"),
+            context_.shortcut_manager.GetCallback("Cut")},
            {absl::StrCat(ICON_MD_CONTENT_COPY, " Copy"), "Cmd+C",
             [&]() { status_ = current_editor_->Copy(); }},
            {absl::StrCat(ICON_MD_CONTENT_PASTE, " Paste"), "Cmd+V",
@@ -181,7 +182,8 @@ void EditorManager::Initialize(const std::string &filename) {
 }
 
 absl::Status EditorManager::Update() {
-  ManageKeyboardShortcuts();
+  // ManageKeyboardShortcuts();
+  ExecuteShortcuts(context_.shortcut_manager);
 
   DrawMenuBar();
   DrawPopups();
