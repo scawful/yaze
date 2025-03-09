@@ -70,6 +70,9 @@ void EditorManager::Initialize(const std::string &filename) {
   options_subitems.emplace_back(
       "Backup ROM", "", [&]() { backup_rom_ |= backup_rom_; },
       [&]() { return backup_rom_; });
+  options_subitems.emplace_back(
+      "Save New Auto", "", [&]() { save_new_auto_ |= save_new_auto_; },
+      [&]() { return save_new_auto_; });
 
   context_.shortcut_manager.RegisterShortcut(
       "Open", {ImGuiKey_O, ImGuiMod_Ctrl}, [&]() { LoadRom(); });
@@ -98,6 +101,9 @@ void EditorManager::Initialize(const std::string &filename) {
   context_.shortcut_manager.RegisterShortcut(
       "Find", {ImGuiKey_F, ImGuiMod_Ctrl},
       [&]() { status_ = current_editor_->Find(); });
+
+  context_.shortcut_manager.RegisterShortcut("F1", ImGuiKey_F1,
+                                             [&]() { about_ = true; });
 
   gui::kMainMenu = {
       {"File",
@@ -130,16 +136,23 @@ void EditorManager::Initialize(const std::string &filename) {
            {absl::StrCat(ICON_MD_CONTENT_CUT, " Cut"),
             context_.shortcut_manager.GetKeys("Cut"),
             context_.shortcut_manager.GetCallback("Cut")},
-           {absl::StrCat(ICON_MD_CONTENT_COPY, " Copy"), "Cmd+C",
-            [&]() { status_ = current_editor_->Copy(); }},
-           {absl::StrCat(ICON_MD_CONTENT_PASTE, " Paste"), "Cmd+V",
-            [&]() { status_ = current_editor_->Paste(); }},
-           {absl::StrCat(ICON_MD_UNDO, " Undo"), "Cmd+Z",
-            [&]() { status_ = current_editor_->Undo(); }},
-           {absl::StrCat(ICON_MD_REDO, " Redo"), "Cmd+Y",
-            [&]() { status_ = current_editor_->Redo(); }},
-           {absl::StrCat(ICON_MD_SEARCH, " Find"), "Cmd+F",
-            [&]() { status_ = current_editor_->Find(); }},
+           {absl::StrCat(ICON_MD_CONTENT_COPY, " Copy"),
+            context_.shortcut_manager.GetKeys("Copy"),
+            context_.shortcut_manager.GetCallback("Copy")},
+           {absl::StrCat(ICON_MD_CONTENT_PASTE, " Paste"),
+            context_.shortcut_manager.GetKeys("Paste"),
+            context_.shortcut_manager.GetCallback("Paste")},
+           {"-", "", nullptr, []() { return true; }},
+           {absl::StrCat(ICON_MD_UNDO, " Undo"),
+            context_.shortcut_manager.GetKeys("Undo"),
+            context_.shortcut_manager.GetCallback("Undo")},
+           {absl::StrCat(ICON_MD_REDO, " Redo"),
+            context_.shortcut_manager.GetKeys("Redo"),
+            context_.shortcut_manager.GetCallback("Redo")},
+           {"-", "", nullptr, []() { return true; }},
+           {absl::StrCat(ICON_MD_SEARCH, " Find"),
+            context_.shortcut_manager.GetKeys("Find"),
+            context_.shortcut_manager.GetCallback("Find")},
        }},
       {"View",
        {},
@@ -182,8 +195,18 @@ void EditorManager::Initialize(const std::string &filename) {
 }
 
 absl::Status EditorManager::Update() {
-  // ManageKeyboardShortcuts();
   ExecuteShortcuts(context_.shortcut_manager);
+  context_.command_manager.ShowWhichKey();
+
+  // If CMD + R is pressed, reload the top result of recent files
+  if (IsKeyDown(ImGuiKey_R) && GetIO().KeyCtrl) {
+    static RecentFilesManager manager("recent_files.txt");
+    manager.Load();
+    if (!manager.GetRecentFiles().empty()) {
+      auto front = manager.GetRecentFiles().front();
+      OpenRomOrProject(front);
+    }
+  }
 
   DrawMenuBar();
   DrawPopups();
@@ -367,65 +390,6 @@ void EditorManager::ManageActiveEditors() {
   }
 }
 
-void EditorManager::ManageKeyboardShortcuts() {
-  bool ctrl_or_super = (GetIO().KeyCtrl || GetIO().KeySuper);
-
-  context_.command_manager.ShowWhichKey();
-
-  // If CMD + R is pressed, reload the top result of recent files
-  if (IsKeyDown(ImGuiKey_R) && ctrl_or_super) {
-    static RecentFilesManager manager("recent_files.txt");
-    manager.Load();
-    if (!manager.GetRecentFiles().empty()) {
-      auto front = manager.GetRecentFiles().front();
-      OpenRomOrProject(front);
-    }
-  }
-
-  if (IsKeyDown(ImGuiKey_F1)) {
-    about_ = true;
-  }
-
-  // If CMD + Q is pressed, quit the application
-  if (IsKeyDown(ImGuiKey_Q) && ctrl_or_super) {
-    quit_ = true;
-  }
-
-  // If CMD + O is pressed, open a file dialog
-  if (IsKeyDown(ImGuiKey_O) && ctrl_or_super) {
-    LoadRom();
-  }
-
-  // If CMD + S is pressed, save the current ROM
-  if (IsKeyDown(ImGuiKey_S) && ctrl_or_super) {
-    SaveRom();
-  }
-
-  if (IsKeyDown(ImGuiKey_X) && ctrl_or_super) {
-    status_ = current_editor_->Cut();
-  }
-
-  if (IsKeyDown(ImGuiKey_C) && ctrl_or_super) {
-    status_ = current_editor_->Copy();
-  }
-
-  if (IsKeyDown(ImGuiKey_V) && ctrl_or_super) {
-    status_ = current_editor_->Paste();
-  }
-
-  if (IsKeyDown(ImGuiKey_Z) && ctrl_or_super) {
-    status_ = current_editor_->Undo();
-  }
-
-  if (IsKeyDown(ImGuiKey_Y) && ctrl_or_super) {
-    status_ = current_editor_->Redo();
-  }
-
-  if (IsKeyDown(ImGuiKey_F) && ctrl_or_super) {
-    status_ = current_editor_->Find();
-  }
-}
-
 void EditorManager::DrawPopups() {
   static bool show_status_ = false;
   static absl::Status prev_status;
@@ -504,10 +468,11 @@ void EditorManager::DrawHomepage() {
 
 void EditorManager::DrawMenuBar() {
   static bool show_display_settings = false;
+  static bool save_as_menu = false;
+  static bool new_project_menu = false;
 
   if (BeginMenuBar()) {
     gui::DrawMenu(gui::kMainMenu);
-    // DrawMenuContent();
 
     SameLine(GetWindowWidth() - GetStyle().ItemSpacing.x -
              CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x - 110);
@@ -619,70 +584,6 @@ void EditorManager::DrawMenuBar() {
       current_project_.labels_filename_ = rom()->resource_label()->filename_;
     }
   }
-}
-
-void EditorManager::DrawMenuContent() {
-  static bool save_as_menu = false;
-  static bool new_project_menu = false;
-
-  if (BeginMenu("File")) {
-    if (MenuItem("Open", "Ctrl+O")) {
-      LoadRom();
-    }
-
-    if (BeginMenu("Project")) {
-      if (MenuItem("Create New Project")) {
-        // Create a new project
-        new_project_menu = true;
-      }
-      if (MenuItem("Open Project")) {
-        // Open an existing project
-        status_ = current_project_.Open(
-            core::FileDialogWrapper::ShowOpenFileDialog());
-        if (status_.ok()) {
-          status_ = OpenProject();
-        }
-      }
-      if (MenuItem("Save Project")) {
-        // Save the current project
-        status_ = current_project_.Save();
-      }
-
-      EndMenu();
-    }
-
-    if (BeginMenu("Options")) {
-      MenuItem("Backup ROM", "", &backup_rom_);
-      MenuItem("Save New Auto", "", &save_new_auto_);
-      Separator();
-      static core::FlagsMenu flags_menu;
-      if (BeginMenu("System Flags")) {
-        flags_menu.DrawSystemFlags();
-        EndMenu();
-      }
-      if (BeginMenu("Overworld Flags")) {
-        flags_menu.DrawOverworldFlags();
-        EndMenu();
-      }
-      if (BeginMenu("Dungeon Flags")) {
-        flags_menu.DrawDungeonFlags();
-        EndMenu();
-      }
-      if (BeginMenu("Resource Flags")) {
-        flags_menu.DrawResourceFlags();
-        EndMenu();
-      }
-      EndMenu();
-    }
-
-    Separator();
-
-    if (MenuItem("Quit", "Ctrl+Q")) {
-      quit_ = true;
-    }
-
-    EndMenu();
-  }
 
   if (save_as_menu) {
     static std::string save_as_filename = "";
@@ -738,16 +639,6 @@ void EditorManager::DrawMenuContent() {
       new_project_menu = false;
     }
     End();
-  }
-
-  if (current_project_.project_opened_) {
-    if (BeginMenu("Project")) {
-      Text("Name: %s", current_project_.name.c_str());
-      Text("ROM: %s", current_project_.rom_filename_.c_str());
-      Text("Labels: %s", current_project_.labels_filename_.c_str());
-      Text("Code: %s", current_project_.code_folder_.c_str());
-      EndMenu();
-    }
   }
 }
 

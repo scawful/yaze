@@ -56,13 +56,11 @@ class EditorManager : public SharedRom {
 
  private:
   void ManageActiveEditors();
-  void ManageKeyboardShortcuts();
 
   void DrawPopups();
   void DrawHomepage();
 
   void DrawMenuBar();
-  void DrawMenuContent();
 
   void LoadRom();
   void SaveRom();
