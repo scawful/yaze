@@ -2,6 +2,7 @@ var classyaze_1_1editor_1_1MusicEditor =
 [
     [ "MusicEditor", "classyaze_1_1editor_1_1MusicEditor.html#a8b0d28ceab226f86d85b7b46b45c700f", null ],
     [ "Initialize", "classyaze_1_1editor_1_1MusicEditor.html#a56097a90630db790fdb2f02c84e9dc69", null ],
+    [ "Load", "classyaze_1_1editor_1_1MusicEditor.html#a84be574bcadd86951b412cd0c89b6808", null ],
     [ "Update", "classyaze_1_1editor_1_1MusicEditor.html#aa4324eda217548ab93a4385907a58f7f", null ],
     [ "Undo", "classyaze_1_1editor_1_1MusicEditor.html#ac393e32f7d4147480e2325ce9572529f", null ],
     [ "Redo", "classyaze_1_1editor_1_1MusicEditor.html#ac85d21d78d164f6ce6c5f175b877b32c", null ],

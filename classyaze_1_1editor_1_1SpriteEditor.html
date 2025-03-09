@@ -144,6 +144,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a73afa5ee58b92bb76ff48f3ae145f838"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a85162089edb2ba429d286d930d70e6d0" id="r_a85162089edb2ba429d286d930d70e6d0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a85162089edb2ba429d286d930d70e6d0">Initialize</a> () override</td></tr>
 <tr class="separator:a85162089edb2ba429d286d930d70e6d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb7f365deb0a1418fd0f9f128b9cd12f" id="r_aeb7f365deb0a1418fd0f9f128b9cd12f"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeb7f365deb0a1418fd0f9f128b9cd12f">Load</a> () override</td></tr>
+<tr class="separator:aeb7f365deb0a1418fd0f9f128b9cd12f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a552785a0287ebe61e7f855e45c8d6777" id="r_a552785a0287ebe61e7f855e45c8d6777"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a552785a0287ebe61e7f855e45c8d6777">Update</a> () override</td></tr>
 <tr class="separator:a552785a0287ebe61e7f855e45c8d6777"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7c3a21b59e98c2f34ed819cdec74496e" id="r_a7c3a21b59e98c2f34ed819cdec74496e"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7c3a21b59e98c2f34ed819cdec74496e">Undo</a> () override</td></tr>
@@ -261,7 +263,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00038">38</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="editor_8h_source.html#l00035">yaze::editor::kSprite</a>, and <a class="el" href="editor_8h_source.html#l00072">yaze::editor::Editor::type_</a>.</p>
+<p class="reference">References <a class="el" href="editor_8h_source.html#l00037">yaze::editor::kSprite</a>, and <a class="el" href="editor_8h_source.html#l00079">yaze::editor::Editor::type_</a>.</p>
 
 </div>
 </div>
@@ -295,6 +297,35 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="aeb7f365deb0a1418fd0f9f128b9cd12f" name="aeb7f365deb0a1418fd0f9f128b9cd12f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb7f365deb0a1418fd0f9f128b9cd12f">&#9670;&#160;</a></span>Load()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::editor::SpriteEditor::Load </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel override">override</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#aec4a1012c0639bb4b60183a735418b32">yaze::editor::Editor</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8cc_source.html#l00026">26</a> of file <a class="el" href="sprite__editor_8cc_source.html">sprite_editor.cc</a>.</p>
+
+</div>
+</div>
 <a id="a552785a0287ebe61e7f855e45c8d6777" name="a552785a0287ebe61e7f855e45c8d6777"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a552785a0287ebe61e7f855e45c8d6777">&#9670;&#160;</a></span>Update()</h2>
 
@@ -320,9 +351,9 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#aed50bffbba9a0d98f8f3d24ad753f887">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8cc_source.html#l00026">26</a> of file <a class="el" href="sprite__editor_8cc_source.html">sprite_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8cc_source.html#l00030">30</a> of file <a class="el" href="sprite__editor_8cc_source.html">sprite_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="sprite__editor_8cc_source.html#l00221">DrawCustomSprites()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00047">DrawVanillaSpriteEditor()</a>, <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>, <a class="el" href="sprite__editor_8h_source.html#l00078">sheets_loaded_</a>, and <a class="el" href="sprite__editor_8h_source.html#l00105">status_</a>.</p>
+<p class="reference">References <a class="el" href="sprite__editor_8cc_source.html#l00225">DrawCustomSprites()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00051">DrawVanillaSpriteEditor()</a>, <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>, <a class="el" href="sprite__editor_8h_source.html#l00079">sheets_loaded_</a>, and <a class="el" href="sprite__editor_8h_source.html#l00106">status_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -369,7 +400,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#af70b26886a360613f59e8f45b4bfcdec">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00042">42</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00043">43</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
 
 </div>
 </div>
@@ -398,7 +429,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#a127b4d84d1a76c5af2998a1a30f45e95">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00043">43</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00044">44</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
 
 </div>
 </div>
@@ -427,7 +458,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#a0c8c0eae68a91298050a709c146a9472">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00044">44</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00045">45</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
 
 </div>
 </div>
@@ -456,7 +487,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#a0d1cad7dc7377bcf699c76dc1da4bd2f">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00045">45</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00046">46</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
 
 </div>
 </div>
@@ -485,7 +516,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#adcc475a4870b75a9db44e78244c6fc4e">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00046">46</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00047">47</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
 
 </div>
 </div>
@@ -514,7 +545,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#aac357035ff66579bbad4181c5aa47e56">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00047">47</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00048">48</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
 
 </div>
 </div>
@@ -541,11 +572,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8cc_source.html#l00047">47</a> of file <a class="el" href="sprite__editor_8cc_source.html">sprite_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8cc_source.html#l00051">51</a> of file <a class="el" href="sprite__editor_8cc_source.html">sprite_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="sprite__editor_8h_source.html#l00074">active_sprites_</a>, <a class="el" href="sprite__editor_8h_source.html#l00076">current_sprite_id_</a>, <a class="el" href="sprite__editor_8cc_source.html#l00166">DrawCurrentSheets()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00106">DrawSpriteCanvas()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00191">DrawSpritesList()</a>, <a class="el" href="icons_8h_source.html#l00084">ICON_MD_ADD</a>, <a class="el" href="sprite__editor_8h_source.html#l00019">yaze::editor::kSpriteTabBarFlags</a>, and <a class="el" href="sprite__editor_8h_source.html#l00078">sheets_loaded_</a>.</p>
+<p class="reference">References <a class="el" href="sprite__editor_8h_source.html#l00075">active_sprites_</a>, <a class="el" href="sprite__editor_8h_source.html#l00077">current_sprite_id_</a>, <a class="el" href="sprite__editor_8cc_source.html#l00170">DrawCurrentSheets()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00110">DrawSpriteCanvas()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00195">DrawSpritesList()</a>, <a class="el" href="icons_8h_source.html#l00084">ICON_MD_ADD</a>, <a class="el" href="sprite__editor_8h_source.html#l00019">yaze::editor::kSpriteTabBarFlags</a>, and <a class="el" href="sprite__editor_8h_source.html#l00079">sheets_loaded_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00026">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00030">Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -592,11 +623,11 @@ Here is the call graph for this function:</div>
 
 <p>Draws the sprites list. </p>
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8cc_source.html#l00191">191</a> of file <a class="el" href="sprite__editor_8cc_source.html">sprite_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8cc_source.html#l00195">195</a> of file <a class="el" href="sprite__editor_8cc_source.html">sprite_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="sprite__editor_8h_source.html#l00074">active_sprites_</a>, <a class="el" href="sprite__editor_8h_source.html#l00076">current_sprite_id_</a>, <a class="el" href="input_8cc_source.html#l00256">yaze::gui::GetID()</a>, <a class="el" href="hex_8cc_source.html#l00033">yaze::util::HexByte()</a>, and <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>.</p>
+<p class="reference">References <a class="el" href="sprite__editor_8h_source.html#l00075">active_sprites_</a>, <a class="el" href="sprite__editor_8h_source.html#l00077">current_sprite_id_</a>, <a class="el" href="input_8cc_source.html#l00272">yaze::gui::GetID()</a>, <a class="el" href="hex_8cc_source.html#l00033">yaze::util::HexByte()</a>, and <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00047">DrawVanillaSpriteEditor()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00051">DrawVanillaSpriteEditor()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -640,11 +671,11 @@ Here is the call graph for this function:</div>
 
 <p>Draws the sprite canvas. </p>
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8cc_source.html#l00106">106</a> of file <a class="el" href="sprite__editor_8cc_source.html">sprite_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8cc_source.html#l00110">110</a> of file <a class="el" href="sprite__editor_8cc_source.html">sprite_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="sprite__editor_8cc_source.html#l00212">DrawAnimationFrames()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00247">DrawCustomSpritesMetadata()</a>, <a class="el" href="input_8cc_source.html#l00256">yaze::gui::GetID()</a>, <a class="el" href="input_8cc_source.html#l00167">yaze::gui::InputHexByte()</a>, <a class="el" href="input_8cc_source.html#l00153">yaze::gui::InputHexWord()</a>, <a class="el" href="sprite__editor_8h_source.html#l00092">oam_config_</a>, and <a class="el" href="sprite__editor_8h_source.html#l00095">sprite_canvas_</a>.</p>
+<p class="reference">References <a class="el" href="sprite__editor_8cc_source.html#l00216">DrawAnimationFrames()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00251">DrawCustomSpritesMetadata()</a>, <a class="el" href="input_8cc_source.html#l00272">yaze::gui::GetID()</a>, <a class="el" href="input_8cc_source.html#l00167">yaze::gui::InputHexByte()</a>, <a class="el" href="input_8cc_source.html#l00153">yaze::gui::InputHexWord()</a>, <a class="el" href="sprite__editor_8h_source.html#l00093">oam_config_</a>, and <a class="el" href="sprite__editor_8h_source.html#l00096">sprite_canvas_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00221">DrawCustomSprites()</a>, and <a class="el" href="sprite__editor_8cc_source.html#l00047">DrawVanillaSpriteEditor()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00225">DrawCustomSprites()</a>, and <a class="el" href="sprite__editor_8cc_source.html#l00051">DrawVanillaSpriteEditor()</a>.</p>
 
 </div>
 </div>
@@ -673,11 +704,11 @@ Here is the call graph for this function:</div>
 
 <p>Draws the current sheets. </p>
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8cc_source.html#l00166">166</a> of file <a class="el" href="sprite__editor_8cc_source.html">sprite_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8cc_source.html#l00170">170</a> of file <a class="el" href="sprite__editor_8cc_source.html">sprite_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="sprite__editor_8h_source.html#l00077">current_sheets_</a>, <a class="el" href="input_8cc_source.html#l00256">yaze::gui::GetID()</a>, <a class="el" href="rom_8h_source.html#l00270">yaze::GraphicsSheetManager::GetInstance()</a>, <a class="el" href="sprite__editor_8h_source.html#l00099">graphics_sheet_canvas_</a>, and <a class="el" href="input_8cc_source.html#l00167">yaze::gui::InputHexByte()</a>.</p>
+<p class="reference">References <a class="el" href="sprite__editor_8h_source.html#l00078">current_sheets_</a>, <a class="el" href="input_8cc_source.html#l00272">yaze::gui::GetID()</a>, <a class="el" href="rom_8h_source.html#l00270">yaze::GraphicsSheetManager::GetInstance()</a>, <a class="el" href="sprite__editor_8h_source.html#l00100">graphics_sheet_canvas_</a>, and <a class="el" href="input_8cc_source.html#l00167">yaze::gui::InputHexByte()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00221">DrawCustomSprites()</a>, and <a class="el" href="sprite__editor_8cc_source.html#l00047">DrawVanillaSpriteEditor()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00225">DrawCustomSprites()</a>, and <a class="el" href="sprite__editor_8cc_source.html#l00051">DrawVanillaSpriteEditor()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -720,11 +751,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8cc_source.html#l00221">221</a> of file <a class="el" href="sprite__editor_8cc_source.html">sprite_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8cc_source.html#l00225">225</a> of file <a class="el" href="sprite__editor_8cc_source.html">sprite_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="sprite__editor_8cc_source.html#l00166">DrawCurrentSheets()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00247">DrawCustomSpritesMetadata()</a>, and <a class="el" href="sprite__editor_8cc_source.html#l00106">DrawSpriteCanvas()</a>.</p>
+<p class="reference">References <a class="el" href="sprite__editor_8cc_source.html#l00170">DrawCurrentSheets()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00251">DrawCustomSpritesMetadata()</a>, and <a class="el" href="sprite__editor_8cc_source.html#l00110">DrawSpriteCanvas()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00026">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00030">Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -769,11 +800,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8cc_source.html#l00247">247</a> of file <a class="el" href="sprite__editor_8cc_source.html">sprite_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8cc_source.html#l00251">251</a> of file <a class="el" href="sprite__editor_8cc_source.html">sprite_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="sprite__editor_8h_source.html#l00074">active_sprites_</a>, <a class="el" href="sprite__editor_8h_source.html#l00076">current_sprite_id_</a>, <a class="el" href="sprite__editor_8h_source.html#l00103">custom_sprites_</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, and <a class="el" href="sprite__editor_8h_source.html#l00105">status_</a>.</p>
+<p class="reference">References <a class="el" href="sprite__editor_8h_source.html#l00075">active_sprites_</a>, <a class="el" href="sprite__editor_8h_source.html#l00077">current_sprite_id_</a>, <a class="el" href="sprite__editor_8h_source.html#l00104">custom_sprites_</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, and <a class="el" href="sprite__editor_8h_source.html#l00106">status_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00221">DrawCustomSprites()</a>, and <a class="el" href="sprite__editor_8cc_source.html#l00106">DrawSpriteCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00225">DrawCustomSprites()</a>, and <a class="el" href="sprite__editor_8cc_source.html#l00110">DrawSpriteCanvas()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -812,9 +843,9 @@ Here is the call graph for this function:</div>
 
 <p>Draws the animation frames manager. </p>
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8cc_source.html#l00212">212</a> of file <a class="el" href="sprite__editor_8cc_source.html">sprite_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8cc_source.html#l00216">216</a> of file <a class="el" href="sprite__editor_8cc_source.html">sprite_editor.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00106">DrawSpriteCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00110">DrawSpriteCanvas()</a>.</p>
 
 </div>
 </div>
@@ -840,9 +871,9 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <p>Active sprites. </p>
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00074">74</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00075">75</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00247">DrawCustomSpritesMetadata()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00191">DrawSpritesList()</a>, and <a class="el" href="sprite__editor_8cc_source.html#l00047">DrawVanillaSpriteEditor()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00251">DrawCustomSpritesMetadata()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00195">DrawSpritesList()</a>, and <a class="el" href="sprite__editor_8cc_source.html#l00051">DrawVanillaSpriteEditor()</a>.</p>
 
 </div>
 </div>
@@ -867,9 +898,9 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <p>Current sprite ID. </p>
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00076">76</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00077">77</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00247">DrawCustomSpritesMetadata()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00191">DrawSpritesList()</a>, and <a class="el" href="sprite__editor_8cc_source.html#l00047">DrawVanillaSpriteEditor()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00251">DrawCustomSpritesMetadata()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00195">DrawSpritesList()</a>, and <a class="el" href="sprite__editor_8cc_source.html#l00051">DrawVanillaSpriteEditor()</a>.</p>
 
 </div>
 </div>
@@ -893,9 +924,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00077">77</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00078">78</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00166">DrawCurrentSheets()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00170">DrawCurrentSheets()</a>.</p>
 
 </div>
 </div>
@@ -922,9 +953,9 @@ Here is the call graph for this function:</div>
 <div class="line">      <span class="keyword">false</span></div>
 </div><!-- fragment --><p>Flag indicating whether the sheets are loaded or not. </p>
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00078">78</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00079">79</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00047">DrawVanillaSpriteEditor()</a>, and <a class="el" href="sprite__editor_8cc_source.html#l00026">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00051">DrawVanillaSpriteEditor()</a>, and <a class="el" href="sprite__editor_8cc_source.html#l00030">Update()</a>.</p>
 
 </div>
 </div>
@@ -949,9 +980,9 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <p>OAM configuration. </p>
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00092">92</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00093">93</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00106">DrawSpriteCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00110">DrawSpriteCanvas()</a>.</p>
 
 </div>
 </div>
@@ -976,7 +1007,7 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <p>OAM bitmap. </p>
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00093">93</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00094">94</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
 
 </div>
 </div>
@@ -1005,9 +1036,9 @@ Here is the call graph for this function:</div>
 <div class="ttc" id="anamespaceyaze_1_1gui_html_aa7b9cc1741455bb4ffc5ba758912a465a20e39deb41b95e8150718fbb7ce02774"><div class="ttname"><a href="namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a20e39deb41b95e8150718fbb7ce02774">yaze::gui::CanvasGridSize::k32x32</a></div><div class="ttdeci">@ k32x32</div><div class="ttdef"><b>Definition</b> <a href="canvas_8h_source.html#l00024">canvas.h:24</a></div></div>
 </div><!-- fragment --><p>Sprite canvas. </p>
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00095">95</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00096">96</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00106">DrawSpriteCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00110">DrawSpriteCanvas()</a>.</p>
 
 </div>
 </div>
@@ -1036,9 +1067,9 @@ Here is the call graph for this function:</div>
 <div class="ttc" id="anamespaceyaze_1_1gui_html_aa7b9cc1741455bb4ffc5ba758912a465a10ba45e967f3108e10ed4e3288e6208a"><div class="ttname"><a href="namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a10ba45e967f3108e10ed4e3288e6208a">yaze::gui::CanvasGridSize::k16x16</a></div><div class="ttdeci">@ k16x16</div><div class="ttdef"><b>Definition</b> <a href="canvas_8h_source.html#l00024">canvas.h:24</a></div></div>
 </div><!-- fragment --><p>Graphics sheet canvas. </p>
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00099">99</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00100">100</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00166">DrawCurrentSheets()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00170">DrawCurrentSheets()</a>.</p>
 
 </div>
 </div>
@@ -1063,9 +1094,9 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <p>Sprites. </p>
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00103">103</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00104">104</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00247">DrawCustomSpritesMetadata()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00251">DrawCustomSpritesMetadata()</a>.</p>
 
 </div>
 </div>
@@ -1090,9 +1121,9 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <p>Status. </p>
 
-<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00105">105</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sprite__editor_8h_source.html#l00106">106</a> of file <a class="el" href="sprite__editor_8h_source.html">sprite_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00247">DrawCustomSpritesMetadata()</a>, and <a class="el" href="sprite__editor_8cc_source.html#l00026">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00251">DrawCustomSpritesMetadata()</a>, and <a class="el" href="sprite__editor_8cc_source.html#l00030">Update()</a>.</p>
 
 </div>
 </div>

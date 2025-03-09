@@ -16,6 +16,7 @@ var classyaze_1_1editor_1_1DungeonEditor =
     ] ],
     [ "DungeonEditor", "classyaze_1_1editor_1_1DungeonEditor.html#af3c6f8d84e47399b8ebd669eca2a2964", null ],
     [ "Initialize", "classyaze_1_1editor_1_1DungeonEditor.html#a8ed56293f396248b6a62ca128a130a6c", null ],
+    [ "Load", "classyaze_1_1editor_1_1DungeonEditor.html#ac1d1e350b6fe9d7e07f8229174964b29", null ],
     [ "Update", "classyaze_1_1editor_1_1DungeonEditor.html#a1575da4a0378b5c70d0d3ea21f0e4233", null ],
     [ "Undo", "classyaze_1_1editor_1_1DungeonEditor.html#aea35ae879db16bde8547c54efe419a58", null ],
     [ "Redo", "classyaze_1_1editor_1_1DungeonEditor.html#a8432ee48599762bbde500bd6f4f2fd6d", null ],

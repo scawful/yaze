@@ -2,10 +2,6 @@ var macro_8h =
 [
     [ "TAB_ITEM", "macro_8h.html#ad50b96f19fd95562cdbcbaf0e1a0743c", null ],
     [ "END_TAB_ITEM", "macro_8h.html#a81f9a082dfcd5eb1f1c97c06e99afe11", null ],
-    [ "MENU_ITEM", "macro_8h.html#a598a77bad310d5dab053961905b81fb0", null ],
-    [ "MENU_ITEM2", "macro_8h.html#a81bf4b5edc340ee128711177bcd2ed52", null ],
-    [ "BUTTON_COLUMN", "macro_8h.html#ae7499c3a615a8657bdf2d38994f0d231", null ],
-    [ "TEXT_COLUMN", "macro_8h.html#ab26befe35e7dc3925d437d779a8c9f7c", null ],
     [ "BEGIN_TABLE", "macro_8h.html#a4404ca6433f173c3a4f7bca6d431a879", null ],
     [ "SETUP_COLUMN", "macro_8h.html#a0400ff495867d2b1173e970e6d9c478a", null ],
     [ "TABLE_HEADERS", "macro_8h.html#a33caff5b27e68aa2f9e362dc929e052b", null ],

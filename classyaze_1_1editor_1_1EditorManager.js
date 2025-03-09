@@ -39,7 +39,7 @@ var classyaze_1_1editor_1_1EditorManager =
     [ "roms_", "classyaze_1_1editor_1_1EditorManager.html#a3c1b91cf67e523c0d885be652c2a0ce9", null ],
     [ "current_rom_", "classyaze_1_1editor_1_1EditorManager.html#a264fafc6a2aa6ef71c7a33dfc808deec", null ],
     [ "current_project_", "classyaze_1_1editor_1_1EditorManager.html#aeea730dec9b04f7a0dbbbba1e262136a", null ],
-    [ "editor_context_", "classyaze_1_1editor_1_1EditorManager.html#ae0f1cd6f44eb8a98859d97d8fc9bce83", null ],
+    [ "context_", "classyaze_1_1editor_1_1EditorManager.html#ab37cb559d1924b153f1f758b98ff424f", null ],
     [ "current_editor_", "classyaze_1_1editor_1_1EditorManager.html#ac0340e25707cca3bfff0b8384d55ead9", null ],
     [ "assembly_editor_", "classyaze_1_1editor_1_1EditorManager.html#ab9ca0335c439be7a2fd49087c317525b", null ],
     [ "dungeon_editor_", "classyaze_1_1editor_1_1EditorManager.html#a8b2b25455a925ba458a8d48123e54f76", null ],

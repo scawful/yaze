@@ -1,9 +1,11 @@
 <map id="yaze::editor::OverworldEditor::DrawOverworldEdits" name="yaze::editor::OverworldEditor::DrawOverworldEdits">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,39,189,79"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="53,39,51,29,58,20,74,14,97,12,122,14,137,21,135,26,121,20,97,17,75,19,62,24,56,30,59,37"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1OverworldEditor.html#a6a3388989f2d04a1803050b7c9a6bff8" title=" " alt="" coords="237,39,420,79"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,56,221,56,221,62,189,62"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="189,56,221,56,221,62,189,62"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="290,39,288,29,294,20,308,14,328,12,350,14,363,21,361,25,349,20,328,17,309,19,298,24,293,30,295,37"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a6d17a8f9b6ed80bde87b67e8e36e40c1" title=" " alt="" coords="468,5,591,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="420,41,452,36,453,41,421,46"/>
+<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="420,41,452,36,453,41,421,46"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1Bitmap.html#a0b6240e469dae9ab4d88f3e2051d4510" title=" " alt="" coords="468,71,591,111"/>
-<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="421,71,453,76,452,81,420,76"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="421,71,453,76,452,81,420,76"/>
 </map>

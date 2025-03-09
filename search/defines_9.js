@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['next_5fcolumn_0',['NEXT_COLUMN',['../macro_8h.html#a90be36f2e92f476b5bb13517da51afbe',1,'macro.h']]]
+  ['print_5fif_5ferror_0',['PRINT_IF_ERROR',['../macro_8h.html#a5cb25b198dc5695c2269aa5cb3b8698d',1,'macro.h']]]
 ];

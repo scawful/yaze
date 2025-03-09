@@ -4,11 +4,11 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="69,49,42,62,21,78,9,97,8,107,11,119,35,160,68,196,104,225,138,246,136,251,101,229,64,200,31,163,6,121,3,108,4,95,17,74,39,57,66,44"/>
 <area shape="rect" id="Node000003" href="$editor_8h.html" title=" " alt="" coords="21,94,145,120"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="122,48,101,82,96,79,118,45"/>
-<area shape="rect" id="Node000024" href="$text__editor_8h.html" title=" " alt="" coords="103,168,244,208"/>
-<area shape="poly" id="edge3_Node000001_Node000024" title=" " alt="" coords="143,46,160,93,172,152,167,153,155,95,138,47"/>
-<area shape="rect" id="Node000030" href="$style_8h.html" title=" " alt="" coords="220,94,325,120"/>
-<area shape="poly" id="edge5_Node000001_Node000030" title=" " alt="" coords="169,44,239,84,236,88,166,49"/>
-<area shape="poly" id="edge4_Node000024_Node000002" title=" " alt="" coords="176,209,176,241,171,241,171,209"/>
-<area shape="poly" id="edge6_Node000030_Node000002" title=" " alt="" coords="276,120,274,162,269,186,259,210,239,233,215,251,211,246,235,229,254,207,264,185,269,161,271,120"/>
-<area shape="poly" id="edge7_Node000030_Node000024" title=" " alt="" coords="259,122,212,160,208,156,256,118"/>
+<area shape="rect" id="Node000025" href="$text__editor_8h.html" title=" " alt="" coords="103,168,244,208"/>
+<area shape="poly" id="edge3_Node000001_Node000025" title=" " alt="" coords="143,46,160,93,172,152,167,153,155,95,138,47"/>
+<area shape="rect" id="Node000031" href="$style_8h.html" title=" " alt="" coords="220,94,325,120"/>
+<area shape="poly" id="edge5_Node000001_Node000031" title=" " alt="" coords="169,44,239,84,236,88,166,49"/>
+<area shape="poly" id="edge4_Node000025_Node000002" title=" " alt="" coords="176,209,176,241,171,241,171,209"/>
+<area shape="poly" id="edge6_Node000031_Node000002" title=" " alt="" coords="276,120,274,162,269,186,259,210,239,233,215,251,211,246,235,229,254,207,264,185,269,161,271,120"/>
+<area shape="poly" id="edge7_Node000031_Node000025" title=" " alt="" coords="259,122,212,160,208,156,256,118"/>
 </map>

@@ -1,7 +1,7 @@
 var searchData=
 [
   ['c_0',['C',['../structyaze_1_1emu_1_1Spc700_1_1Flags.html#ae930ff35735e8609a50d5008a98658fb',1,'yaze::emu::Spc700::Flags::C'],['../structyaze_1_1test_1_1Spc700_1_1Flags.html#ae930ff35735e8609a50d5008a98658fb',1,'yaze::test::Spc700::Flags::C']]],
-  ['callback_1',['callback',['../structyaze_1_1gui_1_1MenuItem.html#a23b36bed198239d27fd3e83293186fc4',1,'yaze::gui::MenuItem::callback'],['../structyaze_1_1gui_1_1zeml_1_1Action.html#af048a60926dff362be50f8efaa01c29a',1,'yaze::gui::zeml::Action::callback']]],
+  ['callback_1',['callback',['../structyaze_1_1editor_1_1Shortcut.html#a2daee689235aefc261c4638a28a5f122',1,'yaze::editor::Shortcut::callback'],['../structyaze_1_1gui_1_1MenuItem.html#a23b36bed198239d27fd3e83293186fc4',1,'yaze::gui::MenuItem::callback'],['../structyaze_1_1gui_1_1zeml_1_1Action.html#af048a60926dff362be50f8efaa01c29a',1,'yaze::gui::zeml::Action::callback']]],
   ['callbacks_5f_2',['callbacks_',['../classyaze_1_1emu_1_1Apu.html#a248312b56cd2c2fed588e7911d2d4c54',1,'yaze::emu::Apu::callbacks_'],['../classyaze_1_1emu_1_1Spc700.html#aed9add59ca63a896a9a17582cc15db5d',1,'yaze::emu::Spc700::callbacks_'],['../classyaze_1_1emu_1_1Cpu.html#ac26554b300f70f64b7479284a987fb94',1,'yaze::emu::Cpu::callbacks_'],['../classyaze_1_1test_1_1Spc700Test.html#a6ecdf3f6638805ba871148e32d1b3dcb',1,'yaze::test::Spc700Test::callbacks_'],['../classyaze_1_1test_1_1Cpu.html#ac26554b300f70f64b7479284a987fb94',1,'yaze::test::Cpu::callbacks_'],['../classyaze_1_1test_1_1Spc700.html#aed9add59ca63a896a9a17582cc15db5d',1,'yaze::test::Spc700::callbacks_']]],
   ['camera_5fboundary_5ffe_5f_3',['camera_boundary_fe_',['../classyaze_1_1zelda3_1_1RoomEntrance.html#a725b962ee47d1b866eb9c2bc532fbf81',1,'yaze::zelda3::RoomEntrance']]],
   ['camera_5fboundary_5ffn_5f_4',['camera_boundary_fn_',['../classyaze_1_1zelda3_1_1RoomEntrance.html#ac0146430de72355794c266520261bc1b',1,'yaze::zelda3::RoomEntrance']]],
@@ -101,7 +101,7 @@ var searchData=
   ['compression_5fstring_98',['compression_string',['../structyaze_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a668144cb7dba4855ea7279948d29968b',1,'yaze::gfx::lc_lz2::CompressionContext::compression_string'],['../structyaze_1_1test_1_1CompressionContext.html#a668144cb7dba4855ea7279948d29968b',1,'yaze::test::CompressionContext::compression_string']]],
   ['contents_99',['Contents',['../structyaze_1_1editor_1_1DictionaryEntry.html#a6b2beaa9312716f63e1b5ad0cea3d685',1,'yaze::editor::DictionaryEntry']]],
   ['contentsparsed_100',['ContentsParsed',['../structyaze_1_1editor_1_1MessageData.html#ad3e91f53998bea4cf7566f2a2a1bf773',1,'yaze::editor::MessageData']]],
-  ['context_5f_101',['context_',['../classyaze_1_1editor_1_1Editor.html#a675b82bb84652213c66f5290d913e7b5',1,'yaze::editor::Editor']]],
+  ['context_5f_101',['context_',['../classyaze_1_1editor_1_1Editor.html#a675b82bb84652213c66f5290d913e7b5',1,'yaze::editor::Editor::context_'],['../classyaze_1_1editor_1_1EditorManager.html#ab37cb559d1924b153f1f758b98ff424f',1,'yaze::editor::EditorManager::context_']]],
   ['context_5fid_5f_102',['context_id_',['../classyaze_1_1gui_1_1Canvas.html#ad812f985e60b60cc9b1da50d8733bd9e',1,'yaze::gui::Canvas']]],
   ['copied_5fdata_5fgfx_103',['copied_data_gfx',['../classyaze_1_1zelda3_1_1TitleScreen.html#ab713699056d6df69b2dc31774b218fa6',1,'yaze::zelda3::TitleScreen']]],
   ['copied_5fdata_5frooms_104',['copied_data_rooms',['../classyaze_1_1zelda3_1_1TitleScreen.html#a00c11a329ff43505331079b74a68caf0',1,'yaze::zelda3::TitleScreen']]],

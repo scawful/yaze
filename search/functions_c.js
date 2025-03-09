@@ -10,7 +10,7 @@ var searchData=
   ['map_5fx_7',['map_x',['../classyaze_1_1zelda3_1_1Sprite.html#a492be700d2470dd6cb6cd845d4713564',1,'yaze::zelda3::Sprite']]],
   ['map_5fy_8',['map_y',['../classyaze_1_1zelda3_1_1Sprite.html#aef6dc1c4a94891dc5f2080c3b0755fe3',1,'yaze::zelda3::Sprite']]],
   ['mapbanktowordaddress_9',['MapBankToWordAddress',['../namespaceyaze.html#a1807a5da2e83e9e8b0cce7284ec13f1b',1,'yaze']]],
-  ['mapkeytoimguikey_10',['MapKeyToImGuiKey',['../namespaceyaze_1_1editor.html#a11c5e2166d040185d489fe00efd9e596',1,'yaze::editor']]],
+  ['mapkeytoimguikey_10',['MapKeyToImGuiKey',['../namespaceyaze_1_1editor.html#a11c5e2166d040185d489fe00efd9e596',1,'yaze::editor::MapKeyToImGuiKey()'],['../namespaceyaze_1_1gui.html#ac81f2f9ce698693fc3d7e3e1d7f6ed43',1,'yaze::gui::MapKeyToImGuiKey()']]],
   ['maptype_11',['MapType',['../namespaceyaze_1_1gui_1_1zeml.html#a6a8d0465bb3639ae5cec5439c895f939',1,'yaze::gui::zeml']]],
   ['matcher_5fp_12',['MATCHER_P',['../namespaceyaze_1_1test.html#a966536ba60abd09d24a03d6824214d30',1,'yaze::test::MATCHER_P(StatusIs, status, &quot;&quot;)'],['../namespaceyaze_1_1test.html#a9a26abfe41bf9190bacbb085d2060936',1,'yaze::test::MATCHER_P(IsOkAndHolds, value, &quot;&quot;)']]],
   ['matchme_13',['MatchMe',['../structyaze_1_1editor_1_1TextElement.html#adae4011df81ed55417977322553191b9',1,'yaze::editor::TextElement']]],

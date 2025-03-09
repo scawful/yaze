@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['menu_0',['Menu',['../namespaceyaze_1_1gui.html#ab221db29a25f723447bcfbf9c6d1ca4f',1,'yaze::gui']]]
+  ['menu_0',['Menu',['../namespaceyaze_1_1gui.html#a81626136e7f5ab72f5c71e37056e99d5',1,'yaze::gui']]]
 ];

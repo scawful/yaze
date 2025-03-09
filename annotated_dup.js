@@ -72,6 +72,8 @@ var annotated_dup =
         [ "Renderer", "classyaze_1_1editor_1_1Renderer.html", "classyaze_1_1editor_1_1Renderer" ],
         [ "ScreenEditor", "classyaze_1_1editor_1_1ScreenEditor.html", "classyaze_1_1editor_1_1ScreenEditor" ],
         [ "SettingsEditor", "classyaze_1_1editor_1_1SettingsEditor.html", "classyaze_1_1editor_1_1SettingsEditor" ],
+        [ "Shortcut", "structyaze_1_1editor_1_1Shortcut.html", "structyaze_1_1editor_1_1Shortcut" ],
+        [ "ShortcutManager", "classyaze_1_1editor_1_1ShortcutManager.html", "classyaze_1_1editor_1_1ShortcutManager" ],
         [ "SpriteEditor", "classyaze_1_1editor_1_1SpriteEditor.html", "classyaze_1_1editor_1_1SpriteEditor" ],
         [ "SpriteItem", "structyaze_1_1editor_1_1SpriteItem.html", "structyaze_1_1editor_1_1SpriteItem" ],
         [ "TextElement", "structyaze_1_1editor_1_1TextElement.html", "structyaze_1_1editor_1_1TextElement" ],

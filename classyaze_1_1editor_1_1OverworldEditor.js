@@ -26,6 +26,7 @@ var classyaze_1_1editor_1_1OverworldEditor =
     ] ],
     [ "OverworldEditor", "classyaze_1_1editor_1_1OverworldEditor.html#a1a106c71b0566f96daff4bfb1530a7fe", null ],
     [ "Initialize", "classyaze_1_1editor_1_1OverworldEditor.html#a795074db61aaf19e9f687a1f357524e2", null ],
+    [ "Load", "classyaze_1_1editor_1_1OverworldEditor.html#aaa4ee9e9095ee9f1faea6dfbf2c5217a", null ],
     [ "Update", "classyaze_1_1editor_1_1OverworldEditor.html#ac30ddbbf543edb8c021a98b46c01e239", null ],
     [ "Undo", "classyaze_1_1editor_1_1OverworldEditor.html#a49dc7b261c7cfabbb2321c84ae79b635", null ],
     [ "Redo", "classyaze_1_1editor_1_1OverworldEditor.html#a7c2f28bb7b9d0ac62b960dc700166d32", null ],

@@ -172,8 +172,8 @@ Typedefs</h2></td></tr>
 <tr class="separator:a5099466527c2ee2b4d9013b4eb50f12f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a96a8aa8ae9d402de34a59d1457cfc721" id="r_a96a8aa8ae9d402de34a59d1457cfc721"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a96a8aa8ae9d402de34a59d1457cfc721">GuiElement</a> = std::variant&lt;std::function&lt;void()&gt;, std::string&gt;</td></tr>
 <tr class="separator:a96a8aa8ae9d402de34a59d1457cfc721"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab221db29a25f723447bcfbf9c6d1ca4f" id="r_ab221db29a25f723447bcfbf9c6d1ca4f"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab221db29a25f723447bcfbf9c6d1ca4f">Menu</a> = std::array&lt;<a class="el" href="structyaze_1_1gui_1_1MenuItem.html">MenuItem</a>, 5&gt;</td></tr>
-<tr class="separator:ab221db29a25f723447bcfbf9c6d1ca4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a81626136e7f5ab72f5c71e37056e99d5" id="r_a81626136e7f5ab72f5c71e37056e99d5"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a81626136e7f5ab72f5c71e37056e99d5">Menu</a> = std::vector&lt;<a class="el" href="structyaze_1_1gui_1_1MenuItem.html">MenuItem</a>&gt;</td></tr>
+<tr class="separator:a81626136e7f5ab72f5c71e37056e99d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac70b35914f079891436c2442779b9113" id="r_ac70b35914f079891436c2442779b9113"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac70b35914f079891436c2442779b9113">BitmapTable</a></td></tr>
 <tr class="separator:ac70b35914f079891436c2442779b9113"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -194,16 +194,6 @@ Enumerations</h2></td></tr>
 , <a class="el" href="#aa7b9cc1741455bb4ffc5ba758912a465a9420cc1a73b8e176c1b22cf835b3e9f7">k64x64</a>
  }</td></tr>
 <tr class="separator:aa7b9cc1741455bb4ffc5ba758912a465"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7d7252cc7f3ad2e373ce475ae4a3fa7a" id="r_a7d7252cc7f3ad2e373ce475ae4a3fa7a"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7d7252cc7f3ad2e373ce475ae4a3fa7a">MenuType</a> { <br />
-&#160;&#160;<a class="el" href="#a7d7252cc7f3ad2e373ce475ae4a3fa7aa1b7447b0a3103a1e139b65127686983b">kFile</a>
-, <a class="el" href="#a7d7252cc7f3ad2e373ce475ae4a3fa7aa2aded08181a8de82191a6b80feda1ab1">kEdit</a>
-, <a class="el" href="#a7d7252cc7f3ad2e373ce475ae4a3fa7aa495922ca74ab235f51c87ed9a52cea71">kView</a>
-, <a class="el" href="#a7d7252cc7f3ad2e373ce475ae4a3fa7aa43a0e425a3c47611ca24696ea0a53741">kTools</a>
-, <br />
-&#160;&#160;<a class="el" href="#a7d7252cc7f3ad2e373ce475ae4a3fa7aa3c56d1a1ccfbcd4efc4a102396783334">kHelp</a>
-<br />
- }</td></tr>
-<tr class="separator:a7d7252cc7f3ad2e373ce475ae4a3fa7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -239,6 +229,10 @@ Functions</h2></td></tr>
 <tr class="separator:ad6fc4f91fda0b724a3d134d7837af651"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c550be2cd26d4f7af10472461cff8d5" id="r_a9c550be2cd26d4f7af10472461cff8d5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9c550be2cd26d4f7af10472461cff8d5">InputHexByte</a> (const char *label, uint8_t *data, uint8_t max_value, float input_width, bool no_step)</td></tr>
 <tr class="separator:a9c550be2cd26d4f7af10472461cff8d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1f2b653e2fd5b5b6c3741bbe332e3a02" id="r_a1f2b653e2fd5b5b6c3741bbe332e3a02"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1f2b653e2fd5b5b6c3741bbe332e3a02">Paragraph</a> (const std::string &amp;text)</td></tr>
+<tr class="separator:a1f2b653e2fd5b5b6c3741bbe332e3a02"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0fd30b00c2e36f50139ddf4980e72633" id="r_a0fd30b00c2e36f50139ddf4980e72633"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0fd30b00c2e36f50139ddf4980e72633">ClickableText</a> (const std::string &amp;text)</td></tr>
+<tr class="separator:a0fd30b00c2e36f50139ddf4980e72633"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a201299f3c61d29a272f11301c7f03265" id="r_a201299f3c61d29a272f11301c7f03265"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a201299f3c61d29a272f11301c7f03265">ItemLabel</a> (absl::string_view title, <a class="el" href="#a5099466527c2ee2b4d9013b4eb50f12f">ItemLabelFlags</a> flags)</td></tr>
 <tr class="separator:a201299f3c61d29a272f11301c7f03265"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a384cb97485e1d8ed280808163a529998" id="r_a384cb97485e1d8ed280808163a529998"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a384cb97485e1d8ed280808163a529998">ListBox</a> (const char *label, int *current_item, const std::vector&lt; std::string &gt; &amp;items, int height_in_items)</td></tr>
@@ -247,24 +241,14 @@ Functions</h2></td></tr>
 <tr class="separator:a8c341f6de6c4838b636534e76c1747f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac4604ede79aa224793b522b22034e68b" id="r_ac4604ede79aa224793b522b22034e68b"><td class="memItemLeft" align="right" valign="top">ImGuiID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac4604ede79aa224793b522b22034e68b">GetID</a> (const std::string &amp;id)</td></tr>
 <tr class="separator:ac4604ede79aa224793b522b22034e68b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac81f2f9ce698693fc3d7e3e1d7f6ed43" id="r_ac81f2f9ce698693fc3d7e3e1d7f6ed43"><td class="memItemLeft" align="right" valign="top">ImGuiKey&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac81f2f9ce698693fc3d7e3e1d7f6ed43">MapKeyToImGuiKey</a> (char key)</td></tr>
+<tr class="separator:ac81f2f9ce698693fc3d7e3e1d7f6ed43"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4869c3a07239efb126450a3a4a121841" id="r_a4869c3a07239efb126450a3a4a121841"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4869c3a07239efb126450a3a4a121841">AddTableColumn</a> (<a class="el" href="structyaze_1_1gui_1_1Table.html">Table</a> &amp;table, const std::string &amp;label, <a class="el" href="#a96a8aa8ae9d402de34a59d1457cfc721">GuiElement</a> element)</td></tr>
 <tr class="separator:a4869c3a07239efb126450a3a4a121841"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a63cf2c84b704f70ba84ef7a1691e1b85" id="r_a63cf2c84b704f70ba84ef7a1691e1b85"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a63cf2c84b704f70ba84ef7a1691e1b85">DrawTable</a> (<a class="el" href="structyaze_1_1gui_1_1Table.html">Table</a> &amp;params)</td></tr>
 <tr class="separator:a63cf2c84b704f70ba84ef7a1691e1b85"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a627566d8500f099dabff60322d3c187e" id="r_a627566d8500f099dabff60322d3c187e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a627566d8500f099dabff60322d3c187e">DrawMenu</a> (<a class="el" href="#ab221db29a25f723447bcfbf9c6d1ca4f">Menu</a> &amp;menu)</td></tr>
+<tr class="memitem:a627566d8500f099dabff60322d3c187e" id="r_a627566d8500f099dabff60322d3c187e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a627566d8500f099dabff60322d3c187e">DrawMenu</a> (<a class="el" href="#a81626136e7f5ab72f5c71e37056e99d5">Menu</a> &amp;menu)</td></tr>
 <tr class="separator:a627566d8500f099dabff60322d3c187e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab836752a785527c824def18b6760050a" id="r_ab836752a785527c824def18b6760050a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab836752a785527c824def18b6760050a">AddToMenu</a> (const std::string &amp;label, const char *icon, <a class="el" href="#a7d7252cc7f3ad2e373ce475ae4a3fa7a">MenuType</a> type)</td></tr>
-<tr class="separator:ab836752a785527c824def18b6760050a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6f86042fca1e028c980e5f33bea4b4bf" id="r_a6f86042fca1e028c980e5f33bea4b4bf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6f86042fca1e028c980e5f33bea4b4bf">AddToFileMenu</a> (const std::string &amp;label, const std::string &amp;shortcut, std::function&lt; void()&gt; callback)</td></tr>
-<tr class="separator:a6f86042fca1e028c980e5f33bea4b4bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4364cf99d3118ae3b97e08a6b44410fe" id="r_a4364cf99d3118ae3b97e08a6b44410fe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4364cf99d3118ae3b97e08a6b44410fe">AddToFileMenu</a> (const std::string &amp;label, const std::string &amp;shortcut, std::function&lt; void()&gt; callback, std::function&lt; bool()&gt; enabled_condition, std::vector&lt; <a class="el" href="structyaze_1_1gui_1_1MenuItem.html">MenuItem</a> &gt; subitems)</td></tr>
-<tr class="separator:a4364cf99d3118ae3b97e08a6b44410fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2be9237823b6890341f15933aa231d2a" id="r_a2be9237823b6890341f15933aa231d2a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2be9237823b6890341f15933aa231d2a">AddToEditMenu</a> (const std::string &amp;label, const std::string &amp;shortcut, std::function&lt; void()&gt; callback)</td></tr>
-<tr class="separator:a2be9237823b6890341f15933aa231d2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac1111c42cd630507fb559c9b83f1d4bd" id="r_ac1111c42cd630507fb559c9b83f1d4bd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac1111c42cd630507fb559c9b83f1d4bd">AddToViewMenu</a> (const std::string &amp;label, const std::string &amp;shortcut, std::function&lt; void()&gt; callback)</td></tr>
-<tr class="separator:ac1111c42cd630507fb559c9b83f1d4bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1674e41d44dc0ac3fb6580bfd5fcc6c1" id="r_a1674e41d44dc0ac3fb6580bfd5fcc6c1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1674e41d44dc0ac3fb6580bfd5fcc6c1">AddToHelpMenu</a> (const std::string &amp;label, const std::string &amp;shortcut, std::function&lt; void()&gt; callback)</td></tr>
-<tr class="separator:a1674e41d44dc0ac3fb6580bfd5fcc6c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a216f2984ca7cc50dd872c9605352c95e" id="r_a216f2984ca7cc50dd872c9605352c95e"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="structyaze_1_1gui_1_1Theme.html">Theme</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a216f2984ca7cc50dd872c9605352c95e">LoadTheme</a> (const std::string &amp;filename)</td></tr>
 <tr class="separator:a216f2984ca7cc50dd872c9605352c95e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7f5085854df78a52ad2598b0448850ed" id="r_a7f5085854df78a52ad2598b0448850ed"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7f5085854df78a52ad2598b0448850ed">SaveTheme</a> (const <a class="el" href="structyaze_1_1gui_1_1Theme.html">Theme</a> &amp;theme)</td></tr>
@@ -341,7 +325,7 @@ Variables</h2></td></tr>
 <div class="line">  Default = Left,</div>
 <div class="line">}</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="input_8h_source.html#l00046">46</a> of file <a class="el" href="input_8h_source.html">input.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="input_8h_source.html#l00050">50</a> of file <a class="el" href="input_8h_source.html">input.h</a>.</p>
 
 </div>
 </div>
@@ -357,23 +341,23 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="input_8h_source.html#l00056">56</a> of file <a class="el" href="input_8h_source.html">input.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="input_8h_source.html#l00062">62</a> of file <a class="el" href="input_8h_source.html">input.h</a>.</p>
 
 </div>
 </div>
-<a id="ab221db29a25f723447bcfbf9c6d1ca4f" name="ab221db29a25f723447bcfbf9c6d1ca4f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab221db29a25f723447bcfbf9c6d1ca4f">&#9670;&#160;</a></span>Menu</h2>
+<a id="a81626136e7f5ab72f5c71e37056e99d5" name="a81626136e7f5ab72f5c71e37056e99d5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a81626136e7f5ab72f5c71e37056e99d5">&#9670;&#160;</a></span>Menu</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="#ab221db29a25f723447bcfbf9c6d1ca4f">yaze::gui::Menu</a> = std::array&lt;<a class="el" href="structyaze_1_1gui_1_1MenuItem.html">MenuItem</a>, 5&gt;</td>
+          <td class="memname">using <a class="el" href="#a81626136e7f5ab72f5c71e37056e99d5">yaze::gui::Menu</a> = std::vector&lt;<a class="el" href="structyaze_1_1gui_1_1MenuItem.html">MenuItem</a>&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="input_8h_source.html#l00080">80</a> of file <a class="el" href="input_8h_source.html">input.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="input_8h_source.html#l00086">86</a> of file <a class="el" href="input_8h_source.html">input.h</a>.</p>
 
 </div>
 </div>
@@ -481,29 +465,6 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="a7d7252cc7f3ad2e373ce475ae4a3fa7a" name="a7d7252cc7f3ad2e373ce475ae4a3fa7a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7d7252cc7f3ad2e373ce475ae4a3fa7a">&#9670;&#160;</a></span>MenuType</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="#a7d7252cc7f3ad2e373ce475ae4a3fa7a">yaze::gui::MenuType</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a7d7252cc7f3ad2e373ce475ae4a3fa7aa1b7447b0a3103a1e139b65127686983b" name="a7d7252cc7f3ad2e373ce475ae4a3fa7aa1b7447b0a3103a1e139b65127686983b"></a>kFile&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a7d7252cc7f3ad2e373ce475ae4a3fa7aa2aded08181a8de82191a6b80feda1ab1" name="a7d7252cc7f3ad2e373ce475ae4a3fa7aa2aded08181a8de82191a6b80feda1ab1"></a>kEdit&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a7d7252cc7f3ad2e373ce475ae4a3fa7aa495922ca74ab235f51c87ed9a52cea71" name="a7d7252cc7f3ad2e373ce475ae4a3fa7aa495922ca74ab235f51c87ed9a52cea71"></a>kView&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a7d7252cc7f3ad2e373ce475ae4a3fa7aa43a0e425a3c47611ca24696ea0a53741" name="a7d7252cc7f3ad2e373ce475ae4a3fa7aa43a0e425a3c47611ca24696ea0a53741"></a>kTools&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a7d7252cc7f3ad2e373ce475ae4a3fa7aa3c56d1a1ccfbcd4efc4a102396783334" name="a7d7252cc7f3ad2e373ce475ae4a3fa7aa3c56d1a1ccfbcd4efc4a102396783334"></a>kHelp&#160;</td><td class="fielddoc"></td></tr>
-</table>
-
-<p class="definition">Definition at line <a class="el" href="input_8h_source.html#l00084">84</a> of file <a class="el" href="input_8h_source.html">input.h</a>.</p>
-
-</div>
-</div>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="a359973f01787648b92a53d2aa84120a9" name="a359973f01787648b92a53d2aa84120a9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a359973f01787648b92a53d2aa84120a9">&#9670;&#160;</a></span>GraphicsBinCanvasPipeline()</h2>
@@ -608,7 +569,7 @@ Variables</h2></td></tr>
 
 <p class="reference">References <a class="el" href="canvas_8cc_source.html#l00065">yaze::gui::Canvas::DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00460">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00100">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00685">yaze::gui::Canvas::DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00736">yaze::gui::Canvas::DrawOverlay()</a>, and <a class="el" href="canvas_8cc_source.html#l00339">yaze::gui::Canvas::DrawTileSelector()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="gfx__group__editor_8cc_source.html#l00085">yaze::editor::GfxGroupEditor::DrawBlocksetViewer()</a>, <a class="el" href="gfx__group__editor_8cc_source.html#l00124">yaze::editor::GfxGroupEditor::DrawRoomsetViewer()</a>, <a class="el" href="gfx__group__editor_8cc_source.html#l00177">yaze::editor::GfxGroupEditor::DrawSpritesetViewer()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00434">yaze::editor::GraphicsEditor::UpdateScadView()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00376">yaze::editor::Tile16Editor::UpdateTransferTileCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="gfx__group__editor_8cc_source.html#l00085">yaze::editor::GfxGroupEditor::DrawBlocksetViewer()</a>, <a class="el" href="gfx__group__editor_8cc_source.html#l00124">yaze::editor::GfxGroupEditor::DrawRoomsetViewer()</a>, <a class="el" href="gfx__group__editor_8cc_source.html#l00177">yaze::editor::GfxGroupEditor::DrawSpritesetViewer()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00439">yaze::editor::GraphicsEditor::UpdateScadView()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00376">yaze::editor::Tile16Editor::UpdateTransferTileCanvas()</a>.</p>
 
 </div>
 </div>
@@ -678,7 +639,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="color_8cc_source.html#l00010">ConvertSnesColorToImVec4()</a>, and <a class="el" href="snes__color_8h_source.html#l00090">yaze::gfx::SnesColor::snes()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="gfx__group__editor_8cc_source.html#l00216">yaze::editor::anonymous_namespace{gfx_group_editor.cc}::DrawPaletteFromPaletteGroup()</a>, <a class="el" href="palette__editor_8cc_source.html#l00345">yaze::editor::PaletteEditor::DrawPaletteGroup()</a>, and <a class="el" href="color_8cc_source.html#l00123">SelectablePalettePipeline()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="gfx__group__editor_8cc_source.html#l00216">yaze::editor::anonymous_namespace{gfx_group_editor.cc}::DrawPaletteFromPaletteGroup()</a>, <a class="el" href="palette__editor_8cc_source.html#l00348">yaze::editor::PaletteEditor::DrawPaletteGroup()</a>, and <a class="el" href="color_8cc_source.html#l00123">SelectablePalettePipeline()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -724,7 +685,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="snes__color_8cc_source.html#l00033">yaze::gfx::ConvertRgbToSnes()</a>, <a class="el" href="color_8cc_source.html#l00010">ConvertSnesColorToImVec4()</a>, <a class="el" href="snes__color_8h_source.html#l00069">yaze::gfx::SnesColor::set_rgb()</a>, and <a class="el" href="snes__color_8h_source.html#l00082">yaze::gfx::SnesColor::set_snes()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00224">yaze::editor::PaletteEditor::DrawCustomPalette()</a>, <a class="el" href="palette__editor_8cc_source.html#l00391">yaze::editor::PaletteEditor::DrawModifiedColors()</a>, <a class="el" href="palette__editor_8cc_source.html#l00407">yaze::editor::PaletteEditor::HandleColorPopup()</a>, and <a class="el" href="palette__editor_8cc_source.html#l00175">yaze::editor::PaletteEditor::Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00227">yaze::editor::PaletteEditor::DrawCustomPalette()</a>, <a class="el" href="palette__editor_8cc_source.html#l00394">yaze::editor::PaletteEditor::DrawModifiedColors()</a>, <a class="el" href="palette__editor_8cc_source.html#l00410">yaze::editor::PaletteEditor::HandleColorPopup()</a>, and <a class="el" href="palette__editor_8cc_source.html#l00189">yaze::editor::PaletteEditor::Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -766,9 +727,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="color_8cc_source.html#l00050">50</a> of file <a class="el" href="color_8cc_source.html">color.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="macro_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="snes__palette_8h_source.html#l00138">yaze::gfx::SnesPalette::GetColor()</a>, and <a class="el" href="snes__palette_8h_source.html#l00148">yaze::gfx::SnesPalette::size()</a>.</p>
+<p class="reference">References <a class="el" href="macro_8h_source.html#l00059">ASSIGN_OR_RETURN</a>, <a class="el" href="snes__palette_8h_source.html#l00138">yaze::gfx::SnesPalette::GetColor()</a>, and <a class="el" href="snes__palette_8h_source.html#l00148">yaze::gfx::SnesPalette::size()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00048">yaze::editor::ScreenEditor::DrawInventoryMenuEditor()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00050">yaze::editor::ScreenEditor::DrawInventoryMenuEditor()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -812,7 +773,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00148">yaze::gfx::SnesPalette::size()</a>, and <a class="el" href="color_8cc_source.html#l00019">SnesColorButton()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00100">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00589">yaze::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00192">yaze::editor::DungeonEditor::UpdateDungeonRoomView()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00355">yaze::editor::GraphicsEditor::UpdatePaletteColumn()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00100">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00591">yaze::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00196">yaze::editor::DungeonEditor::UpdateDungeonRoomView()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00360">yaze::editor::GraphicsEditor::UpdatePaletteColumn()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -917,7 +878,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="input_8cc_source.html#l00132">kStepFastHex</a>, and <a class="el" href="input_8cc_source.html#l00131">kStepOneHex</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00710">yaze::editor::GraphicsEditor::DrawClipboardImport()</a>, <a class="el" href="entity_8cc_source.html#l00105">yaze::editor::DrawEntranceInserterPopup()</a>, <a class="el" href="entity_8cc_source.html#l00180">yaze::editor::DrawExitEditorPopup()</a>, <a class="el" href="entity_8cc_source.html#l00162">yaze::editor::DrawExitInserterPopup()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00678">yaze::editor::GraphicsEditor::DrawFileImport()</a>, <a class="el" href="entity_8cc_source.html#l00130">yaze::editor::DrawOverworldEntrancePopup()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00589">yaze::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00327">yaze::editor::DungeonEditor::DrawRoomSelector()</a>, <a class="el" href="emulator_8cc_source.html#l00420">yaze::emu::Emulator::RenderMemoryViewer()</a>, <a class="el" href="memory__editor_8h_source.html#l00019">yaze::editor::MemoryEditorWithDiffChecker::Update()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00355">yaze::editor::GraphicsEditor::UpdatePaletteColumn()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00712">yaze::editor::GraphicsEditor::DrawClipboardImport()</a>, <a class="el" href="entity_8cc_source.html#l00105">yaze::editor::DrawEntranceInserterPopup()</a>, <a class="el" href="entity_8cc_source.html#l00180">yaze::editor::DrawExitEditorPopup()</a>, <a class="el" href="entity_8cc_source.html#l00162">yaze::editor::DrawExitInserterPopup()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00680">yaze::editor::GraphicsEditor::DrawFileImport()</a>, <a class="el" href="entity_8cc_source.html#l00130">yaze::editor::DrawOverworldEntrancePopup()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00591">yaze::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00331">yaze::editor::DungeonEditor::DrawRoomSelector()</a>, <a class="el" href="emulator_8cc_source.html#l00420">yaze::emu::Emulator::RenderMemoryViewer()</a>, <a class="el" href="memory__editor_8h_source.html#l00019">yaze::editor::MemoryEditorWithDiffChecker::Update()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00360">yaze::editor::GraphicsEditor::UpdatePaletteColumn()</a>.</p>
 
 </div>
 </div>
@@ -1024,7 +985,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="input_8cc_source.html#l00022">ImGui::InputScalarLeft()</a>, <a class="el" href="input_8cc_source.html#l00132">kStepFastHex</a>, and <a class="el" href="input_8cc_source.html#l00131">kStepOneHex</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00100">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00316">yaze::editor::OverworldEditor::DrawCustomOverworldMapSettings()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00466">yaze::editor::DungeonEditor::DrawDungeonCanvas()</a>, <a class="el" href="screen__editor_8cc_source.html#l00276">yaze::editor::ScreenEditor::DrawDungeonMapsTabs()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00356">yaze::editor::DungeonEditor::DrawEntranceSelector()</a>, <a class="el" href="entity_8cc_source.html#l00180">yaze::editor::DrawExitEditorPopup()</a>, <a class="el" href="entity_8cc_source.html#l00130">yaze::editor::DrawOverworldEntrancePopup()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00246">yaze::editor::OverworldEditor::DrawOverworldMapSettings()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00327">yaze::editor::DungeonEditor::DrawRoomSelector()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00106">yaze::editor::SpriteEditor::DrawSpriteCanvas()</a>, <a class="el" href="input_8cc_source.html#l00242">InputTileInfo()</a>, <a class="el" href="zeml_8cc_source.html#l00380">yaze::gui::zeml::Render()</a>, and <a class="el" href="emulator_8cc_source.html#l00358">yaze::emu::Emulator::RenderBreakpointList()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00100">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00350">yaze::editor::OverworldEditor::DrawCustomOverworldMapSettings()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00470">yaze::editor::DungeonEditor::DrawDungeonCanvas()</a>, <a class="el" href="screen__editor_8cc_source.html#l00298">yaze::editor::ScreenEditor::DrawDungeonMapsTabs()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00360">yaze::editor::DungeonEditor::DrawEntranceSelector()</a>, <a class="el" href="entity_8cc_source.html#l00180">yaze::editor::DrawExitEditorPopup()</a>, <a class="el" href="entity_8cc_source.html#l00130">yaze::editor::DrawOverworldEntrancePopup()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00280">yaze::editor::OverworldEditor::DrawOverworldMapSettings()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00331">yaze::editor::DungeonEditor::DrawRoomSelector()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00110">yaze::editor::SpriteEditor::DrawSpriteCanvas()</a>, <a class="el" href="input_8cc_source.html#l00258">InputTileInfo()</a>, <a class="el" href="zeml_8cc_source.html#l00380">yaze::gui::zeml::Render()</a>, and <a class="el" href="emulator_8cc_source.html#l00358">yaze::emu::Emulator::RenderBreakpointList()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1116,7 +1077,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="input_8cc_source.html#l00022">ImGui::InputScalarLeft()</a>, <a class="el" href="input_8cc_source.html#l00132">kStepFastHex</a>, and <a class="el" href="input_8cc_source.html#l00131">kStepOneHex</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="gfx__group__editor_8cc_source.html#l00085">yaze::editor::GfxGroupEditor::DrawBlocksetViewer()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00166">yaze::editor::SpriteEditor::DrawCurrentSheets()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00316">yaze::editor::OverworldEditor::DrawCustomOverworldMapSettings()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00466">yaze::editor::DungeonEditor::DrawDungeonCanvas()</a>, <a class="el" href="screen__editor_8cc_source.html#l00276">yaze::editor::ScreenEditor::DrawDungeonMapsTabs()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00356">yaze::editor::DungeonEditor::DrawEntranceSelector()</a>, <a class="el" href="entity_8cc_source.html#l00180">yaze::editor::DrawExitEditorPopup()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00094">yaze::editor::GraphicsEditor::DrawGfxEditToolset()</a>, <a class="el" href="entity_8cc_source.html#l00130">yaze::editor::DrawOverworldEntrancePopup()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00246">yaze::editor::OverworldEditor::DrawOverworldMapSettings()</a>, <a class="el" href="gfx__group__editor_8cc_source.html#l00236">yaze::editor::GfxGroupEditor::DrawPaletteViewer()</a>, <a class="el" href="gfx__group__editor_8cc_source.html#l00124">yaze::editor::GfxGroupEditor::DrawRoomsetViewer()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00106">yaze::editor::SpriteEditor::DrawSpriteCanvas()</a>, <a class="el" href="gfx__group__editor_8cc_source.html#l00177">yaze::editor::GfxGroupEditor::DrawSpritesetViewer()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00254">yaze::editor::Tile16Editor::DrawTileEditControls()</a>, <a class="el" href="input_8cc_source.html#l00242">InputTileInfo()</a>, <a class="el" href="zeml_8cc_source.html#l00380">yaze::gui::zeml::Render()</a>, <a class="el" href="emulator_8cc_source.html#l00358">yaze::emu::Emulator::RenderBreakpointList()</a>, and <a class="el" href="gfx__group__editor_8cc_source.html#l00042">yaze::editor::GfxGroupEditor::Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="gfx__group__editor_8cc_source.html#l00085">yaze::editor::GfxGroupEditor::DrawBlocksetViewer()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00170">yaze::editor::SpriteEditor::DrawCurrentSheets()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00350">yaze::editor::OverworldEditor::DrawCustomOverworldMapSettings()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00470">yaze::editor::DungeonEditor::DrawDungeonCanvas()</a>, <a class="el" href="screen__editor_8cc_source.html#l00298">yaze::editor::ScreenEditor::DrawDungeonMapsTabs()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00360">yaze::editor::DungeonEditor::DrawEntranceSelector()</a>, <a class="el" href="entity_8cc_source.html#l00180">yaze::editor::DrawExitEditorPopup()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00099">yaze::editor::GraphicsEditor::DrawGfxEditToolset()</a>, <a class="el" href="entity_8cc_source.html#l00130">yaze::editor::DrawOverworldEntrancePopup()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00280">yaze::editor::OverworldEditor::DrawOverworldMapSettings()</a>, <a class="el" href="gfx__group__editor_8cc_source.html#l00236">yaze::editor::GfxGroupEditor::DrawPaletteViewer()</a>, <a class="el" href="gfx__group__editor_8cc_source.html#l00124">yaze::editor::GfxGroupEditor::DrawRoomsetViewer()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00110">yaze::editor::SpriteEditor::DrawSpriteCanvas()</a>, <a class="el" href="gfx__group__editor_8cc_source.html#l00177">yaze::editor::GfxGroupEditor::DrawSpritesetViewer()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00254">yaze::editor::Tile16Editor::DrawTileEditControls()</a>, <a class="el" href="input_8cc_source.html#l00258">InputTileInfo()</a>, <a class="el" href="zeml_8cc_source.html#l00380">yaze::gui::zeml::Render()</a>, <a class="el" href="emulator_8cc_source.html#l00358">yaze::emu::Emulator::RenderBreakpointList()</a>, and <a class="el" href="gfx__group__editor_8cc_source.html#l00042">yaze::editor::GfxGroupEditor::Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1180,6 +1141,46 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a1f2b653e2fd5b5b6c3741bbe332e3a02" name="a1f2b653e2fd5b5b6c3741bbe332e3a02"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1f2b653e2fd5b5b6c3741bbe332e3a02">&#9670;&#160;</a></span>Paragraph()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">IMGUI_API void yaze::gui::Paragraph </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>text</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="input_8cc_source.html#l00187">187</a> of file <a class="el" href="input_8cc_source.html">input.cc</a>.</p>
+
+</div>
+</div>
+<a id="a0fd30b00c2e36f50139ddf4980e72633" name="a0fd30b00c2e36f50139ddf4980e72633"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0fd30b00c2e36f50139ddf4980e72633">&#9670;&#160;</a></span>ClickableText()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">IMGUI_API bool yaze::gui::ClickableText </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>text</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="input_8cc_source.html#l00191">191</a> of file <a class="el" href="input_8cc_source.html">input.cc</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00485">yaze::editor::EditorManager::DrawHomepage()</a>.</p>
+
+</div>
+</div>
 <a id="a201299f3c61d29a272f11301c7f03265" name="a201299f3c61d29a272f11301c7f03265"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a201299f3c61d29a272f11301c7f03265">&#9670;&#160;</a></span>ItemLabel()</h2>
 
@@ -1199,9 +1200,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="input_8cc_source.html#l00187">187</a> of file <a class="el" href="input_8cc_source.html">input.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="input_8cc_source.html#l00203">203</a> of file <a class="el" href="input_8cc_source.html">input.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="music__editor_8cc_source.html#l00165">yaze::editor::MusicEditor::DrawToolset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="music__editor_8cc_source.html#l00169">yaze::editor::MusicEditor::DrawToolset()</a>.</p>
 
 </div>
 </div>
@@ -1234,7 +1235,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="input_8cc_source.html#l00230">230</a> of file <a class="el" href="input_8cc_source.html">input.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="input_8cc_source.html#l00246">246</a> of file <a class="el" href="input_8cc_source.html">input.cc</a>.</p>
 
 </div>
 </div>
@@ -1257,11 +1258,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="input_8cc_source.html#l00242">242</a> of file <a class="el" href="input_8cc_source.html">input.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="input_8cc_source.html#l00258">258</a> of file <a class="el" href="input_8cc_source.html">input.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="snes__tile_8h_source.html#l00055">yaze::gfx::TileInfo::horizontal_mirror_</a>, <a class="el" href="snes__tile_8h_source.html#l00051">yaze::gfx::TileInfo::id_</a>, <a class="el" href="input_8cc_source.html#l00167">InputHexByte()</a>, <a class="el" href="input_8cc_source.html#l00153">InputHexWord()</a>, <a class="el" href="snes__tile_8h_source.html#l00053">yaze::gfx::TileInfo::over_</a>, <a class="el" href="snes__tile_8h_source.html#l00052">yaze::gfx::TileInfo::palette_</a>, and <a class="el" href="snes__tile_8h_source.html#l00054">yaze::gfx::TileInfo::vertical_mirror_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00380">yaze::editor::ScreenEditor::DrawDungeonMapsRoomGfx()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00402">yaze::editor::ScreenEditor::DrawDungeonMapsRoomGfx()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1295,9 +1296,30 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="input_8cc_source.html#l00256">256</a> of file <a class="el" href="input_8cc_source.html">input.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="input_8cc_source.html#l00272">272</a> of file <a class="el" href="input_8cc_source.html">input.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00166">yaze::editor::SpriteEditor::DrawCurrentSheets()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00106">yaze::editor::SpriteEditor::DrawSpriteCanvas()</a>, and <a class="el" href="sprite__editor_8cc_source.html#l00191">yaze::editor::SpriteEditor::DrawSpritesList()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="sprite__editor_8cc_source.html#l00170">yaze::editor::SpriteEditor::DrawCurrentSheets()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00110">yaze::editor::SpriteEditor::DrawSpriteCanvas()</a>, and <a class="el" href="sprite__editor_8cc_source.html#l00195">yaze::editor::SpriteEditor::DrawSpritesList()</a>.</p>
+
+</div>
+</div>
+<a id="ac81f2f9ce698693fc3d7e3e1d7f6ed43" name="ac81f2f9ce698693fc3d7e3e1d7f6ed43"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac81f2f9ce698693fc3d7e3e1d7f6ed43">&#9670;&#160;</a></span>MapKeyToImGuiKey()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ImGuiKey yaze::gui::MapKeyToImGuiKey </td>
+          <td>(</td>
+          <td class="paramtype">char</td>          <td class="paramname"><span class="paramname"><em>key</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="input_8cc_source.html#l00274">274</a> of file <a class="el" href="input_8cc_source.html">input.cc</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="shortcut__manager_8cc_source.html#l00102">yaze::editor::ParseShortcut()</a>.</p>
 
 </div>
 </div>
@@ -1325,11 +1347,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="input_8cc_source.html#l00258">258</a> of file <a class="el" href="input_8cc_source.html">input.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="input_8cc_source.html#l00337">337</a> of file <a class="el" href="input_8cc_source.html">input.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="input_8h_source.html#l00064">yaze::gui::Table::column_contents</a>, and <a class="el" href="input_8h_source.html#l00063">yaze::gui::Table::column_labels</a>.</p>
+<p class="reference">References <a class="el" href="input_8h_source.html#l00070">yaze::gui::Table::column_contents</a>, and <a class="el" href="input_8h_source.html#l00069">yaze::gui::Table::column_labels</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00098">yaze::editor::OverworldEditor::DrawToolset()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00045">yaze::editor::Tile16Editor::Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00132">yaze::editor::OverworldEditor::DrawToolset()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00045">yaze::editor::Tile16Editor::Initialize()</a>.</p>
 
 </div>
 </div>
@@ -1348,11 +1370,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="input_8cc_source.html#l00264">264</a> of file <a class="el" href="input_8cc_source.html">input.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="input_8cc_source.html#l00343">343</a> of file <a class="el" href="input_8cc_source.html">input.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="input_8h_source.html#l00064">yaze::gui::Table::column_contents</a>, <a class="el" href="input_8h_source.html#l00063">yaze::gui::Table::column_labels</a>, <a class="el" href="input_8h_source.html#l00061">yaze::gui::Table::flags</a>, <a class="el" href="input_8h_source.html#l00059">yaze::gui::Table::id</a>, <a class="el" href="input_8h_source.html#l00060">yaze::gui::Table::num_columns</a>, and <a class="el" href="input_8h_source.html#l00062">yaze::gui::Table::size</a>.</p>
+<p class="reference">References <a class="el" href="input_8h_source.html#l00070">yaze::gui::Table::column_contents</a>, <a class="el" href="input_8h_source.html#l00069">yaze::gui::Table::column_labels</a>, <a class="el" href="input_8h_source.html#l00067">yaze::gui::Table::flags</a>, <a class="el" href="input_8h_source.html#l00065">yaze::gui::Table::id</a>, <a class="el" href="input_8h_source.html#l00066">yaze::gui::Table::num_columns</a>, and <a class="el" href="input_8h_source.html#l00068">yaze::gui::Table::size</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00254">yaze::editor::Tile16Editor::DrawTileEditControls()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00098">yaze::editor::OverworldEditor::DrawToolset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00254">yaze::editor::Tile16Editor::DrawTileEditControls()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00132">yaze::editor::OverworldEditor::DrawToolset()</a>.</p>
 
 </div>
 </div>
@@ -1365,261 +1387,15 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">void yaze::gui::DrawMenu </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="#ab221db29a25f723447bcfbf9c6d1ca4f">Menu</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>menu</em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="#a81626136e7f5ab72f5c71e37056e99d5">Menu</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>menu</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="input_8cc_source.html#l00285">285</a> of file <a class="el" href="input_8cc_source.html">input.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="input_8cc_source.html#l00364">364</a> of file <a class="el" href="input_8cc_source.html">input.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00456">yaze::editor::EditorManager::DrawMenuBar()</a>.</p>
-
-</div>
-</div>
-<a id="ab836752a785527c824def18b6760050a" name="ab836752a785527c824def18b6760050a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab836752a785527c824def18b6760050a">&#9670;&#160;</a></span>AddToMenu()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::gui::AddToMenu </td>
-          <td>(</td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>label</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>icon</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="#a7d7252cc7f3ad2e373ce475ae4a3fa7a">MenuType</a></td>          <td class="paramname"><span class="paramname"><em>type</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="input_8h_source.html#l00094">94</a> of file <a class="el" href="input_8h_source.html">input.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00052">yaze::editor::EditorManager::Initialize()</a>.</p>
-
-</div>
-</div>
-<a id="a6f86042fca1e028c980e5f33bea4b4bf" name="a6f86042fca1e028c980e5f33bea4b4bf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6f86042fca1e028c980e5f33bea4b4bf">&#9670;&#160;</a></span>AddToFileMenu() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::gui::AddToFileMenu </td>
-          <td>(</td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>label</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>shortcut</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::function&lt; void()&gt;</td>          <td class="paramname"><span class="paramname"><em>callback</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="input_8h_source.html#l00104">104</a> of file <a class="el" href="input_8h_source.html">input.h</a>.</p>
-
-<p class="reference">References <a class="el" href="input_8h_source.html#l00085">kFile</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00052">yaze::editor::EditorManager::Initialize()</a>.</p>
-
-</div>
-</div>
-<a id="a4364cf99d3118ae3b97e08a6b44410fe" name="a4364cf99d3118ae3b97e08a6b44410fe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4364cf99d3118ae3b97e08a6b44410fe">&#9670;&#160;</a></span>AddToFileMenu() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::gui::AddToFileMenu </td>
-          <td>(</td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>label</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>shortcut</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::function&lt; void()&gt;</td>          <td class="paramname"><span class="paramname"><em>callback</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::function&lt; bool()&gt;</td>          <td class="paramname"><span class="paramname"><em>enabled_condition</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::vector&lt; <a class="el" href="structyaze_1_1gui_1_1MenuItem.html">MenuItem</a> &gt;</td>          <td class="paramname"><span class="paramname"><em>subitems</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="input_8h_source.html#l00109">109</a> of file <a class="el" href="input_8h_source.html">input.h</a>.</p>
-
-<p class="reference">References <a class="el" href="input_8h_source.html#l00085">kFile</a>.</p>
-
-</div>
-</div>
-<a id="a2be9237823b6890341f15933aa231d2a" name="a2be9237823b6890341f15933aa231d2a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2be9237823b6890341f15933aa231d2a">&#9670;&#160;</a></span>AddToEditMenu()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::gui::AddToEditMenu </td>
-          <td>(</td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>label</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>shortcut</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::function&lt; void()&gt;</td>          <td class="paramname"><span class="paramname"><em>callback</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="input_8h_source.html#l00117">117</a> of file <a class="el" href="input_8h_source.html">input.h</a>.</p>
-
-<p class="reference">References <a class="el" href="input_8h_source.html#l00086">kEdit</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00052">yaze::editor::EditorManager::Initialize()</a>.</p>
-
-</div>
-</div>
-<a id="ac1111c42cd630507fb559c9b83f1d4bd" name="ac1111c42cd630507fb559c9b83f1d4bd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac1111c42cd630507fb559c9b83f1d4bd">&#9670;&#160;</a></span>AddToViewMenu()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::gui::AddToViewMenu </td>
-          <td>(</td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>label</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>shortcut</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::function&lt; void()&gt;</td>          <td class="paramname"><span class="paramname"><em>callback</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="input_8h_source.html#l00122">122</a> of file <a class="el" href="input_8h_source.html">input.h</a>.</p>
-
-<p class="reference">References <a class="el" href="input_8h_source.html#l00087">kView</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00052">yaze::editor::EditorManager::Initialize()</a>.</p>
-
-</div>
-</div>
-<a id="a1674e41d44dc0ac3fb6580bfd5fcc6c1" name="a1674e41d44dc0ac3fb6580bfd5fcc6c1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1674e41d44dc0ac3fb6580bfd5fcc6c1">&#9670;&#160;</a></span>AddToHelpMenu()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::gui::AddToHelpMenu </td>
-          <td>(</td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>label</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>shortcut</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::function&lt; void()&gt;</td>          <td class="paramname"><span class="paramname"><em>callback</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="input_8h_source.html#l00127">127</a> of file <a class="el" href="input_8h_source.html">input.h</a>.</p>
-
-<p class="reference">References <a class="el" href="input_8h_source.html#l00089">kHelp</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00052">yaze::editor::EditorManager::Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00503">yaze::editor::EditorManager::DrawMenuBar()</a>.</p>
 
 </div>
 </div>
@@ -1640,7 +1416,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="style_8cc_source.html#l00049">49</a> of file <a class="el" href="style_8cc_source.html">style.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="file__dialog_8cc_source.html#l00034">yaze::core::LoadFile()</a>, and <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>.</p>
+<p class="reference">References <a class="el" href="file__dialog_8cc_source.html#l00034">yaze::core::LoadFile()</a>, and <a class="el" href="macro_8h_source.html#l00051">RETURN_IF_ERROR</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1836,7 +1612,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="style_8cc_source.html#l00348">348</a> of file <a class="el" href="style_8cc_source.html">style.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01253">yaze::editor::OverworldEditor::DrawOverworldProperties()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00098">yaze::editor::OverworldEditor::DrawToolset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01287">yaze::editor::OverworldEditor::DrawOverworldProperties()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00132">yaze::editor::OverworldEditor::DrawToolset()</a>.</p>
 
 </div>
 </div>
@@ -1857,7 +1633,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="style_8cc_source.html#l00368">368</a> of file <a class="el" href="style_8cc_source.html">style.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01253">yaze::editor::OverworldEditor::DrawOverworldProperties()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00098">yaze::editor::OverworldEditor::DrawToolset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01287">yaze::editor::OverworldEditor::DrawOverworldProperties()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00132">yaze::editor::OverworldEditor::DrawToolset()</a>.</p>
 
 </div>
 </div>
@@ -1878,7 +1654,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="style_8cc_source.html#l00373">373</a> of file <a class="el" href="style_8cc_source.html">style.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00730">yaze::editor::OverworldEditor::DrawAreaGraphics()</a>, <a class="el" href="message__editor_8cc_source.html#l00150">yaze::editor::MessageEditor::DrawCurrentMessage()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00671">yaze::editor::OverworldEditor::DrawTile16Selector()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00760">yaze::editor::OverworldEditor::DrawTileSelector()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00139">yaze::editor::Tile16Editor::UpdateBlockset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00764">yaze::editor::OverworldEditor::DrawAreaGraphics()</a>, <a class="el" href="message__editor_8cc_source.html#l00154">yaze::editor::MessageEditor::DrawCurrentMessage()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00705">yaze::editor::OverworldEditor::DrawTile16Selector()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00794">yaze::editor::OverworldEditor::DrawTileSelector()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00139">yaze::editor::Tile16Editor::UpdateBlockset()</a>.</p>
 
 </div>
 </div>
@@ -1901,7 +1677,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="style_8cc_source.html#l00383">EndNoPadding()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00730">yaze::editor::OverworldEditor::DrawAreaGraphics()</a>, <a class="el" href="message__editor_8cc_source.html#l00150">yaze::editor::MessageEditor::DrawCurrentMessage()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00139">yaze::editor::Tile16Editor::UpdateBlockset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00764">yaze::editor::OverworldEditor::DrawAreaGraphics()</a>, <a class="el" href="message__editor_8cc_source.html#l00154">yaze::editor::MessageEditor::DrawCurrentMessage()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00139">yaze::editor::Tile16Editor::UpdateBlockset()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1932,7 +1708,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="style_8cc_source.html#l00379">379</a> of file <a class="el" href="style_8cc_source.html">style.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00624">yaze::editor::OverworldEditor::DrawOverworldCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00658">yaze::editor::OverworldEditor::DrawOverworldCanvas()</a>.</p>
 
 </div>
 </div>
@@ -1953,7 +1729,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="style_8cc_source.html#l00383">383</a> of file <a class="el" href="style_8cc_source.html">style.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00624">yaze::editor::OverworldEditor::DrawOverworldCanvas()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00671">yaze::editor::OverworldEditor::DrawTile16Selector()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00760">yaze::editor::OverworldEditor::DrawTileSelector()</a>, and <a class="el" href="style_8cc_source.html#l00377">EndPadding()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00658">yaze::editor::OverworldEditor::DrawOverworldCanvas()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00705">yaze::editor::OverworldEditor::DrawTile16Selector()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00794">yaze::editor::OverworldEditor::DrawTileSelector()</a>, and <a class="el" href="style_8cc_source.html#l00377">EndPadding()</a>.</p>
 
 </div>
 </div>
@@ -1974,7 +1750,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="style_8cc_source.html#l00385">385</a> of file <a class="el" href="style_8cc_source.html">style.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00261">yaze::editor::PaletteEditor::DisplayCategoryTable()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00730">yaze::editor::OverworldEditor::DrawAreaGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00671">yaze::editor::OverworldEditor::DrawTile16Selector()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00760">yaze::editor::OverworldEditor::DrawTileSelector()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00139">yaze::editor::Tile16Editor::UpdateBlockset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00264">yaze::editor::PaletteEditor::DisplayCategoryTable()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00764">yaze::editor::OverworldEditor::DrawAreaGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00705">yaze::editor::OverworldEditor::DrawTile16Selector()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00794">yaze::editor::OverworldEditor::DrawTileSelector()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00139">yaze::editor::Tile16Editor::UpdateBlockset()</a>.</p>
 
 </div>
 </div>
@@ -1995,7 +1771,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="style_8cc_source.html#l00390">390</a> of file <a class="el" href="style_8cc_source.html">style.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00624">yaze::editor::OverworldEditor::DrawOverworldCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00658">yaze::editor::OverworldEditor::DrawOverworldCanvas()</a>.</p>
 
 </div>
 </div>
@@ -2016,7 +1792,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="style_8cc_source.html#l00397">397</a> of file <a class="el" href="style_8cc_source.html">style.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00456">yaze::editor::EditorManager::DrawMenuBar()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00503">yaze::editor::EditorManager::DrawMenuBar()</a>.</p>
 
 </div>
 </div>
@@ -2037,7 +1813,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="style_8cc_source.html#l00754">754</a> of file <a class="el" href="style_8cc_source.html">style.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00526">yaze::editor::GraphicsEditor::DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00710">yaze::editor::GraphicsEditor::DrawClipboardImport()</a>, <a class="el" href="canvas_8cc_source.html#l00100">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="entity_8cc_source.html#l00180">yaze::editor::DrawExitEditorPopup()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00740">yaze::editor::GraphicsEditor::DrawExperimentalFeatures()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00678">yaze::editor::GraphicsEditor::DrawFileImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00637">yaze::editor::GraphicsEditor::DrawObjImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00589">yaze::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00655">yaze::editor::GraphicsEditor::DrawTilemapImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00355">yaze::editor::GraphicsEditor::UpdatePaletteColumn()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00528">yaze::editor::GraphicsEditor::DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00712">yaze::editor::GraphicsEditor::DrawClipboardImport()</a>, <a class="el" href="canvas_8cc_source.html#l00100">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="entity_8cc_source.html#l00180">yaze::editor::DrawExitEditorPopup()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00742">yaze::editor::GraphicsEditor::DrawExperimentalFeatures()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00680">yaze::editor::GraphicsEditor::DrawFileImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00639">yaze::editor::GraphicsEditor::DrawObjImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00591">yaze::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00657">yaze::editor::GraphicsEditor::DrawTilemapImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00360">yaze::editor::GraphicsEditor::UpdatePaletteColumn()</a>.</p>
 
 </div>
 </div>
@@ -2058,7 +1834,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="style_8cc_source.html#l00760">760</a> of file <a class="el" href="style_8cc_source.html">style.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="settings__editor_8cc_source.html#l00026">yaze::editor::SettingsEditor::Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="settings__editor_8cc_source.html#l00030">yaze::editor::SettingsEditor::Update()</a>.</p>
 
 </div>
 </div>
@@ -2253,7 +2029,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="input_8h_source.html#l00022">22</a> of file <a class="el" href="input_8h_source.html">input.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00456">yaze::editor::EditorManager::DrawMenuBar()</a>, <a class="el" href="editor__manager_8cc_source.html#l00575">yaze::editor::EditorManager::DrawMenuContent()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00381">yaze::editor::EditorManager::DrawPopups()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00503">yaze::editor::EditorManager::DrawMenuBar()</a>, <a class="el" href="editor__manager_8cc_source.html#l00622">yaze::editor::EditorManager::DrawMenuContent()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00427">yaze::editor::EditorManager::DrawPopups()</a>.</p>
 
 </div>
 </div>

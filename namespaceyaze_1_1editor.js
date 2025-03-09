@@ -17,6 +17,10 @@ var namespaceyaze_1_1editor =
     [ "anonymous_namespace{palette_editor.cc}", "namespaceyaze_1_1editor_1_1anonymous__namespace_02palette__editor_8cc_03.html", [
       [ "CustomFormatString", "namespaceyaze_1_1editor_1_1anonymous__namespace_02palette__editor_8cc_03.html#aad315fe6172d8cdfb032f689c7a46bff", null ]
     ] ],
+    [ "anonymous_namespace{shortcut_manager.cc}", "namespaceyaze_1_1editor_1_1anonymous__namespace_02shortcut__manager_8cc_03.html", [
+      [ "GetKeyName", "namespaceyaze_1_1editor_1_1anonymous__namespace_02shortcut__manager_8cc_03.html#a4145855c2b2efa1fad11c293681c231f", null ],
+      [ "kKeyNames", "namespaceyaze_1_1editor_1_1anonymous__namespace_02shortcut__manager_8cc_03.html#a2c9e59c481faf2614bea832ae9d19df0", null ]
+    ] ],
     [ "palette_internal", "namespaceyaze_1_1editor_1_1palette__internal.html", "namespaceyaze_1_1editor_1_1palette__internal" ],
     [ "zsprite", "namespaceyaze_1_1editor_1_1zsprite.html", "namespaceyaze_1_1editor_1_1zsprite" ],
     [ "AssemblyEditor", "classyaze_1_1editor_1_1AssemblyEditor.html", "classyaze_1_1editor_1_1AssemblyEditor" ],
@@ -47,6 +51,8 @@ var namespaceyaze_1_1editor =
     [ "Renderer", "classyaze_1_1editor_1_1Renderer.html", "classyaze_1_1editor_1_1Renderer" ],
     [ "ScreenEditor", "classyaze_1_1editor_1_1ScreenEditor.html", "classyaze_1_1editor_1_1ScreenEditor" ],
     [ "SettingsEditor", "classyaze_1_1editor_1_1SettingsEditor.html", "classyaze_1_1editor_1_1SettingsEditor" ],
+    [ "Shortcut", "structyaze_1_1editor_1_1Shortcut.html", "structyaze_1_1editor_1_1Shortcut" ],
+    [ "ShortcutManager", "classyaze_1_1editor_1_1ShortcutManager.html", "classyaze_1_1editor_1_1ShortcutManager" ],
     [ "SpriteEditor", "classyaze_1_1editor_1_1SpriteEditor.html", "classyaze_1_1editor_1_1SpriteEditor" ],
     [ "SpriteItem", "structyaze_1_1editor_1_1SpriteItem.html", "structyaze_1_1editor_1_1SpriteItem" ],
     [ "TextElement", "structyaze_1_1editor_1_1TextElement.html", "structyaze_1_1editor_1_1TextElement" ],
@@ -101,6 +107,8 @@ var namespaceyaze_1_1editor =
     [ "kBlocksetCanvasSize", "namespaceyaze_1_1editor.html#a9642f410bca21770ba2cc03f59921fe6", null ],
     [ "kGraphicsBinCanvasSize", "namespaceyaze_1_1editor.html#a991b0440a29e613a11cc075bc576adbf", null ],
     [ "MapKeyToImGuiKey", "namespaceyaze_1_1editor.html#a11c5e2166d040185d489fe00efd9e596", null ],
+    [ "PrintShortcut", "namespaceyaze_1_1editor.html#a815cc68b2b87aa2099008bfddf7fb4bb", null ],
+    [ "ParseShortcut", "namespaceyaze_1_1editor.html#a7770b3397501a43ad49647f7d3f1dbcd", null ],
     [ "kDungeonObjectTableFlags", "namespaceyaze_1_1editor.html#af331a754aa3b338d655987058c1cf4cb", null ],
     [ "kDungeonTabFlags", "namespaceyaze_1_1editor.html#a618e4e59f9ee17b7a31362d6a425b722", null ],
     [ "kDungeonTabBarFlags", "namespaceyaze_1_1editor.html#aef9fc3aa4b7cf20402d52bb6e88b644c", null ],
@@ -164,5 +172,9 @@ var namespaceyaze_1_1editor =
     [ "kSpriteTabFlags", "namespaceyaze_1_1editor.html#a861a117f36af4cfe2abaaeb25a2bbc88", null ],
     [ "kSpriteTabBarFlags", "namespaceyaze_1_1editor.html#ae80653744ecd4402e10c58d26015bdd5", null ],
     [ "kSpriteTableFlags", "namespaceyaze_1_1editor.html#a6d91eaa164b4529e047ae78ef99c47a0", null ],
+    [ "kCtrlKey", "namespaceyaze_1_1editor.html#a3ce36482c9a43acef3c3aa88f7cb1692", null ],
+    [ "kAltKey", "namespaceyaze_1_1editor.html#afb179c5a1d4b1dfaa0d1e85c39a978a9", null ],
+    [ "kShiftKey", "namespaceyaze_1_1editor.html#a62d9b502bbf5ff33330e72b4f33d6f4b", null ],
+    [ "kSuperKey", "namespaceyaze_1_1editor.html#a82de970f565b75a73af6fa1d76315dac", null ],
     [ "kPaletteGroupAddressesKeys", "namespaceyaze_1_1editor.html#a56ca525964a966ffda0388092ee28f6f", null ]
 ];

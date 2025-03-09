@@ -7,6 +7,7 @@ var classyaze_1_1editor_1_1GraphicsEditor =
     ] ],
     [ "GraphicsEditor", "classyaze_1_1editor_1_1GraphicsEditor.html#a962c3dd0edd54427dc0fc089c53cbe6c", null ],
     [ "Initialize", "classyaze_1_1editor_1_1GraphicsEditor.html#a4ff651cfbe56f7801b81f49bfbb1f3a2", null ],
+    [ "Load", "classyaze_1_1editor_1_1GraphicsEditor.html#a440f6028d86e3bcc7d02ab8a93420cdf", null ],
     [ "Update", "classyaze_1_1editor_1_1GraphicsEditor.html#a98e0b834d9e207f1de749b2d6aa72ae8", null ],
     [ "Undo", "classyaze_1_1editor_1_1GraphicsEditor.html#a900d657b95201ae99e2f072162779cb0", null ],
     [ "Redo", "classyaze_1_1editor_1_1GraphicsEditor.html#a77ce8009438d56cdb43f792bd11fb70a", null ],

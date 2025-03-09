@@ -260,6 +260,8 @@ var hierarchy =
         [ "yaze::zelda3::Subtype3", "classyaze_1_1zelda3_1_1Subtype3.html", null ]
       ] ]
     ] ],
+    [ "yaze::editor::Shortcut", "structyaze_1_1editor_1_1Shortcut.html", null ],
+    [ "yaze::editor::ShortcutManager", "classyaze_1_1editor_1_1ShortcutManager.html", null ],
     [ "yaze::emu::SLHV", "structyaze_1_1emu_1_1SLHV.html", null ],
     [ "yaze::emu::Snes", "classyaze_1_1emu_1_1Snes.html", null ],
     [ "snes_color", "structsnes__color.html", null ],

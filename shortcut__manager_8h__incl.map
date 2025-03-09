@@ -1,0 +1,11 @@
+<map id="src/app/editor/system/shortcut_manager.h" name="src/app/editor/system/shortcut_manager.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="112,5,258,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,94,83,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,49,80,88,78,84,149,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="107,94,160,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="175,48,152,82,148,79,170,45"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="184,94,294,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="201,45,224,80,220,83,196,48"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="318,94,415,120"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="232,44,326,85,324,90,230,49"/>
+</map>

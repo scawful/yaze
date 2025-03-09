@@ -140,6 +140,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a1a106c71b0566f96daff4bfb1530a7fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a795074db61aaf19e9f687a1f357524e2" id="r_a795074db61aaf19e9f687a1f357524e2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a795074db61aaf19e9f687a1f357524e2">Initialize</a> () override</td></tr>
 <tr class="separator:a795074db61aaf19e9f687a1f357524e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa4ee9e9095ee9f1faea6dfbf2c5217a" id="r_aaa4ee9e9095ee9f1faea6dfbf2c5217a"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aaa4ee9e9095ee9f1faea6dfbf2c5217a">Load</a> () override</td></tr>
+<tr class="separator:aaa4ee9e9095ee9f1faea6dfbf2c5217a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac30ddbbf543edb8c021a98b46c01e239" id="r_ac30ddbbf543edb8c021a98b46c01e239"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac30ddbbf543edb8c021a98b46c01e239">Update</a> () final</td></tr>
 <tr class="separator:ac30ddbbf543edb8c021a98b46c01e239"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a49dc7b261c7cfabbb2321c84ae79b635" id="r_a49dc7b261c7cfabbb2321c84ae79b635"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a49dc7b261c7cfabbb2321c84ae79b635">Undo</a> () override</td></tr>
@@ -504,7 +506,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00077">77</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="editor_8h_source.html#l00032">yaze::editor::kOverworld</a>, <a class="el" href="overworld__editor_8h_source.html#l00220">rom_</a>, and <a class="el" href="editor_8h_source.html#l00072">yaze::editor::Editor::type_</a>.</p>
+<p class="reference">References <a class="el" href="editor_8h_source.html#l00034">yaze::editor::kOverworld</a>, <a class="el" href="overworld__editor_8h_source.html#l00220">rom_</a>, and <a class="el" href="editor_8h_source.html#l00079">yaze::editor::Editor::type_</a>.</p>
 
 </div>
 </div>
@@ -534,7 +536,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#a5c1b245617554f101535e1deb3cb5547">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01487">1487</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00062">62</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="zeml_8cc_source.html#l00566">yaze::gui::zeml::Bind()</a>, <a class="el" href="overworld__editor_8h_source.html#l00264">layout_node_</a>, <a class="el" href="zeml_8cc_source.html#l00589">yaze::gui::zeml::LoadFile()</a>, and <a class="el" href="zeml_8cc_source.html#l00359">yaze::gui::zeml::Parse()</a>.</p>
 <div class="dynheader">
@@ -551,6 +553,52 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="190,86,242,98,241,103,188,91"/>
 <area shape="rect" href="namespaceyaze_1_1core.html#a00e77355a028aee0d2e98d928c4931f5" title="GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS." alt="" coords="444,55,671,80"/>
 <area shape="poly" title=" " alt="" coords="396,65,428,65,428,70,396,70"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="aaa4ee9e9095ee9f1faea6dfbf2c5217a" name="aaa4ee9e9095ee9f1faea6dfbf2c5217a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa4ee9e9095ee9f1faea6dfbf2c5217a">&#9670;&#160;</a></span>Load()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::editor::OverworldEditor::Load </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel override">override</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#aec4a1012c0639bb4b60183a735418b32">yaze::editor::Editor</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00091">91</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00206">all_gfx_loaded_</a>, <a class="el" href="macro_8h_source.html#l00059">ASSIGN_OR_RETURN</a>, <a class="el" href="overworld__editor_8h_source.html#l00230">current_gfx_bmp_</a>, <a class="el" href="overworld__editor_8h_source.html#l00245">entrance_tiletypes_</a>, <a class="el" href="overworld__editor_8cc_source.html#l00091">Load()</a>, <a class="el" href="overworld__entrance_8h_source.html#l00099">yaze::zelda3::LoadEntranceTileTypes()</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="macro_8h_source.html#l00051">RETURN_IF_ERROR</a>, <a class="el" href="overworld__editor_8h_source.html#l00220">rom_</a>, <a class="el" href="overworld__editor_8h_source.html#l00229">tile16_blockset_bmp_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00222">tile16_editor_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00091">Load()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00100">Update()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_aaa4ee9e9095ee9f1faea6dfbf2c5217a_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_aaa4ee9e9095ee9f1faea6dfbf2c5217a_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1OverworldEditor_aaa4ee9e9095ee9f1faea6dfbf2c5217a_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_aaa4ee9e9095ee9f1faea6dfbf2c5217a_cgraph">
+<area shape="rect" title=" " alt="" coords="5,29,189,70"/>
+<area shape="poly" title=" " alt="" coords="54,29,52,19,59,10,74,5,97,3,122,5,136,11,134,16,120,10,97,8,75,10,62,15,57,21,59,28"/>
+<area shape="rect" href="namespaceyaze_1_1zelda3.html#a0afd16e24367ef62bfa4a2e4c7ad1554" title=" " alt="" coords="237,29,413,70"/>
+<area shape="poly" title=" " alt="" coords="189,47,221,47,221,52,189,52"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a6bd8ce3b192c32b2ed6c58f7b154787e" title=" " alt="" coords="461,37,607,62"/>
+<area shape="poly" title=" " alt="" coords="413,47,446,47,446,52,413,52"/>
 </map>
 </div>
 
@@ -581,24 +629,30 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#aed50bffbba9a0d98f8f3d24ad753f887">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00062">62</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00100">100</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00206">all_gfx_loaded_</a>, <a class="el" href="macro_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="overworld__editor_8h_source.html#l00230">current_gfx_bmp_</a>, <a class="el" href="overworld__editor_8cc_source.html#l00081">DrawFullscreenCanvas()</a>, <a class="el" href="overworld__editor_8h_source.html#l00245">entrance_tiletypes_</a>, <a class="el" href="overworld__editor_8h_source.html#l00264">layout_node_</a>, <a class="el" href="overworld__entrance_8h_source.html#l00099">yaze::zelda3::LoadEntranceTileTypes()</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00210">overworld_canvas_fullscreen_</a>, <a class="el" href="zeml_8cc_source.html#l00380">yaze::gui::zeml::Render()</a>, <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="overworld__editor_8h_source.html#l00220">rom_</a>, <a class="el" href="overworld__editor_8h_source.html#l00265">status_</a>, <a class="el" href="overworld__editor_8h_source.html#l00229">tile16_blockset_bmp_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00222">tile16_editor_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00206">all_gfx_loaded_</a>, <a class="el" href="overworld__editor_8cc_source.html#l00115">DrawFullscreenCanvas()</a>, <a class="el" href="overworld__editor_8h_source.html#l00264">layout_node_</a>, <a class="el" href="overworld__editor_8cc_source.html#l00091">Load()</a>, <a class="el" href="overworld__editor_8h_source.html#l00210">overworld_canvas_fullscreen_</a>, <a class="el" href="zeml_8cc_source.html#l00380">yaze::gui::zeml::Render()</a>, <a class="el" href="macro_8h_source.html#l00051">RETURN_IF_ERROR</a>, <a class="el" href="overworld__editor_8h_source.html#l00220">rom_</a>, <a class="el" href="overworld__editor_8h_source.html#l00265">status_</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00100">Update()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00100">Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_ac30ddbbf543edb8c021a98b46c01e239_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_ac30ddbbf543edb8c021a98b46c01e239_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1OverworldEditor_ac30ddbbf543edb8c021a98b46c01e239_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_ac30ddbbf543edb8c021a98b46c01e239_cgraph">
-<area shape="rect" title=" " alt="" coords="5,71,189,111"/>
-<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a85c7e85183b05afd17cebf8925da2e7e" title=" " alt="" coords="237,5,420,46"/>
-<area shape="poly" title=" " alt="" coords="171,68,238,48,240,53,172,73"/>
-<area shape="rect" href="namespaceyaze_1_1zelda3.html#a0afd16e24367ef62bfa4a2e4c7ad1554" title=" " alt="" coords="240,71,416,111"/>
-<area shape="poly" title=" " alt="" coords="189,88,225,88,225,94,189,94"/>
-<area shape="rect" href="namespaceyaze_1_1gui_1_1zeml.html#a938c099fc662747bd83cb0c3fc3a2358" title="Render a zeml tree." alt="" coords="253,160,404,185"/>
-<area shape="poly" title=" " alt="" coords="158,109,276,151,274,156,156,114"/>
-<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a92ceb324bb2b537690e2fee94ac3f863" title=" " alt="" coords="468,5,651,46"/>
-<area shape="poly" title=" " alt="" coords="420,23,452,23,452,28,420,28"/>
-<area shape="poly" title=" " alt="" coords="290,161,282,151,287,141,303,135,328,133,357,136,371,142,369,147,355,141,328,138,304,140,291,145,288,150,294,157"/>
+<area shape="rect" title=" " alt="" coords="5,119,189,159"/>
+<area shape="poly" title=" " alt="" coords="53,119,51,109,58,100,74,94,97,92,122,94,137,101,135,106,121,100,97,97,75,99,62,104,56,110,59,117"/>
+<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a85c7e85183b05afd17cebf8925da2e7e" title=" " alt="" coords="237,29,420,70"/>
+<area shape="poly" title=" " alt="" coords="148,116,236,81,255,73,257,78,238,85,150,121"/>
+<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#aaa4ee9e9095ee9f1faea6dfbf2c5217a" title=" " alt="" coords="237,119,420,159"/>
+<area shape="poly" title=" " alt="" coords="189,136,221,136,221,142,189,142"/>
+<area shape="rect" href="namespaceyaze_1_1gui_1_1zeml.html#a938c099fc662747bd83cb0c3fc3a2358" title="Render a zeml tree." alt="" coords="253,208,404,233"/>
+<area shape="poly" title=" " alt="" coords="158,157,276,199,274,204,156,162"/>
+<area shape="poly" title=" " alt="" coords="285,29,283,19,290,10,305,5,328,3,353,5,368,11,366,16,352,10,328,8,306,10,293,15,288,21,290,28"/>
+<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a92ceb324bb2b537690e2fee94ac3f863" title=" " alt="" coords="468,29,651,70"/>
+<area shape="poly" title=" " alt="" coords="420,47,452,47,452,52,420,52"/>
+<area shape="poly" title=" " alt="" coords="516,29,514,19,521,10,536,5,560,3,585,5,599,11,597,16,583,10,560,8,538,10,524,15,519,21,521,28"/>
+<area shape="poly" title=" " alt="" coords="285,119,283,109,290,100,305,94,328,92,353,94,368,101,366,106,352,100,328,97,306,99,293,104,288,110,290,117"/>
+<area shape="poly" title=" " alt="" coords="290,209,282,199,287,189,303,183,328,181,357,184,371,190,369,195,355,189,328,186,304,188,291,193,288,198,294,205"/>
 </map>
 </div>
 
@@ -633,7 +687,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00082">Undo()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00098">DrawToolset()</a>, and <a class="el" href="overworld__editor_8h_source.html#l00082">Undo()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00132">DrawToolset()</a>, and <a class="el" href="overworld__editor_8h_source.html#l00082">Undo()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -673,7 +727,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00083">83</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00098">DrawToolset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00132">DrawToolset()</a>.</p>
 
 </div>
 </div>
@@ -808,17 +862,20 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01001">1001</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01035">1035</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="features_8h_source.html#l00069">yaze::core::FeatureFlags::get()</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, and <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>.</p>
+<p class="reference">References <a class="el" href="features_8h_source.html#l00069">yaze::core::FeatureFlags::get()</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="macro_8h_source.html#l00051">RETURN_IF_ERROR</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01035">Save()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01035">Save()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_a0b7e2d152b1dd0d1a810cb3529368be5_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_a0b7e2d152b1dd0d1a810cb3529368be5_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1OverworldEditor_a0b7e2d152b1dd0d1a810cb3529368be5_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_a0b7e2d152b1dd0d1a810cb3529368be5_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,189,46"/>
-<area shape="rect" href="classyaze_1_1core_1_1FeatureFlags.html#ab985b9cb493be9689a8f4baffc09b614" title=" " alt="" coords="237,13,421,38"/>
-<area shape="poly" title=" " alt="" coords="189,23,221,23,221,28,189,28"/>
+<area shape="rect" title=" " alt="" coords="5,29,189,70"/>
+<area shape="poly" title=" " alt="" coords="53,29,51,19,58,10,74,5,97,3,122,5,137,11,135,16,121,10,97,8,75,10,61,15,56,21,59,28"/>
+<area shape="rect" href="classyaze_1_1core_1_1FeatureFlags.html#ab985b9cb493be9689a8f4baffc09b614" title=" " alt="" coords="237,37,421,62"/>
+<area shape="poly" title=" " alt="" coords="189,47,221,47,221,52,189,52"/>
 </map>
 </div>
 
@@ -871,9 +928,28 @@ Here is the call graph for this function:</div>
 <p>Load the <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image.">Bitmap</a> objects for each OverworldMap. </p>
 <p>Calls the Overworld class to load the image data and palettes from the <a class="el" href="classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a>, then renders the area graphics and tile16 blockset <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image.">Bitmap</a> objects before assembling the OverworldMap <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image.">Bitmap</a> objects. </p>
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01023">1023</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01057">1057</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="renderer_8h_source.html#l00059">yaze::core::Renderer::CreateAndRenderBitmap()</a>, <a class="el" href="overworld__editor_8h_source.html#l00230">current_gfx_bmp_</a>, <a class="el" href="features_8h_source.html#l00069">yaze::core::FeatureFlags::get()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="src_2app_2zelda3_2overworld_2overworld_8h_source.html#l00096">yaze::zelda3::kNumOverworldMaps</a>, <a class="el" href="src_2app_2zelda3_2overworld_2overworld_8h_source.html#l00097">yaze::zelda3::kNumTile16Individual</a>, <a class="el" href="overworld__editor_8h_source.html#l00026">yaze::editor::kOverworldMapSize</a>, <a class="el" href="overworld__editor_8cc_source.html#l00060">yaze::editor::kTile16Size</a>, <a class="el" href="overworld__editor_8cc_source.html#l01088">LoadSpriteGraphics()</a>, <a class="el" href="overworld__editor_8h_source.html#l00207">map_blockset_loaded_</a>, <a class="el" href="overworld__editor_8h_source.html#l00233">maps_bmp_</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00226">palette_</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="overworld__editor_8h_source.html#l00220">rom_</a>, <a class="el" href="overworld__editor_8h_source.html#l00229">tile16_blockset_bmp_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00215">tile16_individual_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00230">current_gfx_bmp_</a>, <a class="el" href="features_8h_source.html#l00069">yaze::core::FeatureFlags::get()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="src_2app_2zelda3_2overworld_2overworld_8h_source.html#l00096">yaze::zelda3::kNumOverworldMaps</a>, <a class="el" href="src_2app_2zelda3_2overworld_2overworld_8h_source.html#l00097">yaze::zelda3::kNumTile16Individual</a>, <a class="el" href="overworld__editor_8h_source.html#l00026">yaze::editor::kOverworldMapSize</a>, <a class="el" href="overworld__editor_8cc_source.html#l00060">yaze::editor::kTile16Size</a>, <a class="el" href="overworld__editor_8cc_source.html#l01057">LoadGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01122">LoadSpriteGraphics()</a>, <a class="el" href="overworld__editor_8h_source.html#l00207">map_blockset_loaded_</a>, <a class="el" href="overworld__editor_8h_source.html#l00233">maps_bmp_</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00226">palette_</a>, <a class="el" href="macro_8h_source.html#l00051">RETURN_IF_ERROR</a>, <a class="el" href="overworld__editor_8h_source.html#l00220">rom_</a>, <a class="el" href="overworld__editor_8h_source.html#l00229">tile16_blockset_bmp_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00215">tile16_individual_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01057">LoadGraphics()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_ad8777e42d3b62d08401b380cce94230b_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_ad8777e42d3b62d08401b380cce94230b_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1OverworldEditor_ad8777e42d3b62d08401b380cce94230b_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_ad8777e42d3b62d08401b380cce94230b_cgraph">
+<area shape="rect" title="Load the Bitmap objects for each OverworldMap." alt="" coords="5,48,189,89"/>
+<area shape="poly" title=" " alt="" coords="53,48,51,39,58,29,74,24,97,22,122,24,137,30,135,35,121,29,97,27,75,29,61,34,56,40,59,47"/>
+<area shape="rect" href="classyaze_1_1core_1_1FeatureFlags.html#ab985b9cb493be9689a8f4baffc09b614" title=" " alt="" coords="237,5,421,31"/>
+<area shape="poly" title=" " alt="" coords="188,46,251,32,252,38,189,51"/>
+<area shape="rect" href="classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="469,90,612,130"/>
+<area shape="poly" title=" " alt="" coords="189,72,421,92,454,95,453,101,421,97,189,77"/>
+<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#aded47d4407b9bae41a05b3338176f6a5" title=" " alt="" coords="237,130,420,170"/>
+<area shape="poly" title=" " alt="" coords="158,87,255,122,253,127,156,92"/>
+<area shape="poly" title=" " alt="" coords="420,130,454,124,455,129,421,135"/>
+<area shape="poly" title=" " alt="" coords="289,130,287,120,293,111,307,105,329,103,352,106,365,112,363,117,350,111,329,108,309,110,297,115,292,121,294,129"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -900,25 +976,28 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00081">81</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00115">115</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8cc_source.html#l00624">DrawOverworldCanvas()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00098">DrawToolset()</a>, and <a class="el" href="overworld__editor_8h_source.html#l00210">overworld_canvas_fullscreen_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8cc_source.html#l00115">DrawFullscreenCanvas()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00658">DrawOverworldCanvas()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00132">DrawToolset()</a>, and <a class="el" href="overworld__editor_8h_source.html#l00210">overworld_canvas_fullscreen_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00062">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00115">DrawFullscreenCanvas()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00100">Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_a85c7e85183b05afd17cebf8925da2e7e_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_a85c7e85183b05afd17cebf8925da2e7e_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1OverworldEditor_a85c7e85183b05afd17cebf8925da2e7e_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_a85c7e85183b05afd17cebf8925da2e7e_cgraph">
-<area shape="rect" title=" " alt="" coords="5,67,189,107"/>
+<area shape="rect" title=" " alt="" coords="5,79,189,119"/>
+<area shape="poly" title=" " alt="" coords="53,79,51,69,58,60,74,54,97,52,122,54,137,61,135,66,121,60,97,57,75,59,62,64,56,70,59,77"/>
 <area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a92ceb324bb2b537690e2fee94ac3f863" title=" " alt="" coords="237,33,420,74"/>
-<area shape="poly" title=" " alt="" coords="188,71,221,66,221,72,189,76"/>
-<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#abd85ac71082a0372db173be15e56cba8" title=" " alt="" coords="237,99,420,139"/>
-<area shape="poly" title=" " alt="" coords="189,97,221,102,221,107,188,102"/>
+<area shape="poly" title=" " alt="" coords="188,78,221,72,222,77,189,84"/>
+<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#abd85ac71082a0372db173be15e56cba8" title=" " alt="" coords="237,123,420,163"/>
+<area shape="poly" title=" " alt="" coords="189,114,222,120,221,125,188,119"/>
+<area shape="poly" title=" " alt="" coords="286,33,284,23,291,14,306,9,328,7,353,9,367,15,365,20,351,14,328,12,307,14,294,19,289,25,291,32"/>
 <area shape="rect" href="namespaceyaze_1_1gui.html#a28dd8b4161ca3d4103b8285519a4871a" title=" " alt="" coords="472,5,637,46"/>
 <area shape="poly" title=" " alt="" coords="420,40,456,35,457,40,421,45"/>
 <area shape="rect" href="namespaceyaze_1_1gui.html#a86b74b300fa6a281d7bc15a16b17c2ae" title=" " alt="" coords="468,70,641,96"/>
 <area shape="poly" title=" " alt="" coords="421,63,453,67,452,72,420,68"/>
+<area shape="poly" title=" " alt="" coords="286,123,284,113,291,104,306,98,328,96,353,98,367,105,365,110,351,104,328,101,307,103,294,108,289,114,291,121"/>
 </map>
 </div>
 
@@ -948,11 +1027,11 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <dl class="todo"><dt><b><a class="el" href="todo.html#_todo000014">Todo</a></b></dt><dd>Customizable shortcuts for the Overworld <a class="el" href="classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes.">Editor</a> </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00098">98</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00132">132</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="input_8cc_source.html#l00258">yaze::gui::AddTableColumn()</a>, <a class="el" href="style_8cc_source.html#l00348">yaze::gui::BeginWindowWithDisplaySettings()</a>, <a class="el" href="clipboard_8cc_source.html#l00009">yaze::core::CopyImageToClipboard()</a>, <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00175">current_mode</a>, <a class="el" href="palette__editor_8cc_source.html#l00086">yaze::editor::DisplayPalette()</a>, <a class="el" href="overworld__editor_8h_source.html#l00165">DRAW_TILE</a>, <a class="el" href="overworld__editor_8cc_source.html#l01253">DrawOverworldProperties()</a>, <a class="el" href="input_8cc_source.html#l00264">yaze::gui::DrawTable()</a>, <a class="el" href="style_8cc_source.html#l00368">yaze::gui::EndWindowWithDisplaySettings()</a>, <a class="el" href="overworld__editor_8h_source.html#l00166">ENTRANCES</a>, <a class="el" href="overworld__editor_8h_source.html#l00167">EXITS</a>, <a class="el" href="overworld__editor_8h_source.html#l00223">gfx_group_editor_</a>, <a class="el" href="macro_8h_source.html#l00033">HOVER_HINT</a>, <a class="el" href="icons_8h_source.html#l00098">ICON_MD_ADD_LOCATION</a>, <a class="el" href="icons_8h_source.html#l00463">ICON_MD_CONTENT_COPY</a>, <a class="el" href="icons_8h_source.html#l00610">ICON_MD_DOOR_BACK</a>, <a class="el" href="icons_8h_source.html#l00611">ICON_MD_DOOR_FRONT</a>, <a class="el" href="icons_8h_source.html#l00623">ICON_MD_DRAW</a>, <a class="el" href="icons_8h_source.html#l00889">ICON_MD_GRASS</a>, <a class="el" href="icons_8h_source.html#l00895">ICON_MD_GRID_VIEW</a>, <a class="el" href="icons_8h_source.html#l01241">ICON_MD_MORE_VERT</a>, <a class="el" href="icons_8h_source.html#l01262">ICON_MD_MUSIC_NOTE</a>, <a class="el" href="icons_8h_source.html#l01351">ICON_MD_OPEN_IN_FULL</a>, <a class="el" href="icons_8h_source.html#l01370">ICON_MD_PAN_TOOL_ALT</a>, <a class="el" href="icons_8h_source.html#l01428">ICON_MD_PEST_CONTROL_RODENT</a>, <a class="el" href="icons_8h_source.html#l01568">ICON_MD_REDO</a>, <a class="el" href="icons_8h_source.html#l01928">ICON_MD_TABLE_CHART</a>, <a class="el" href="icons_8h_source.html#l02034">ICON_MD_UNDO</a>, <a class="el" href="icons_8h_source.html#l02189">ICON_MD_ZOOM_IN</a>, <a class="el" href="icons_8h_source.html#l02191">ICON_MD_ZOOM_OUT</a>, <a class="el" href="overworld__editor_8h_source.html#l00168">ITEMS</a>, <a class="el" href="overworld__editor_8h_source.html#l00233">maps_bmp_</a>, <a class="el" href="overworld__editor_8h_source.html#l00171">MUSIC</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00210">overworld_canvas_fullscreen_</a>, <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>, <a class="el" href="overworld__editor_8h_source.html#l00226">palette_</a>, <a class="el" href="overworld__editor_8h_source.html#l00172">PAN</a>, <a class="el" href="overworld__editor_8h_source.html#l00083">Redo()</a>, <a class="el" href="overworld__editor_8h_source.html#l00209">show_tile16_editor_</a>, <a class="el" href="overworld__editor_8h_source.html#l00169">SPRITES</a>, <a class="el" href="overworld__editor_8h_source.html#l00265">status_</a>, <a class="el" href="overworld__editor_8h_source.html#l00222">tile16_editor_</a>, <a class="el" href="overworld__editor_8h_source.html#l00260">toolset_table_</a>, <a class="el" href="overworld__editor_8h_source.html#l00170">TRANSPORTS</a>, and <a class="el" href="overworld__editor_8h_source.html#l00082">Undo()</a>.</p>
+<p class="reference">References <a class="el" href="input_8cc_source.html#l00337">yaze::gui::AddTableColumn()</a>, <a class="el" href="style_8cc_source.html#l00348">yaze::gui::BeginWindowWithDisplaySettings()</a>, <a class="el" href="clipboard_8cc_source.html#l00009">yaze::core::CopyImageToClipboard()</a>, <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00175">current_mode</a>, <a class="el" href="palette__editor_8cc_source.html#l00086">yaze::editor::DisplayPalette()</a>, <a class="el" href="overworld__editor_8h_source.html#l00165">DRAW_TILE</a>, <a class="el" href="overworld__editor_8cc_source.html#l01287">DrawOverworldProperties()</a>, <a class="el" href="input_8cc_source.html#l00343">yaze::gui::DrawTable()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00132">DrawToolset()</a>, <a class="el" href="style_8cc_source.html#l00368">yaze::gui::EndWindowWithDisplaySettings()</a>, <a class="el" href="overworld__editor_8h_source.html#l00166">ENTRANCES</a>, <a class="el" href="overworld__editor_8h_source.html#l00167">EXITS</a>, <a class="el" href="overworld__editor_8h_source.html#l00223">gfx_group_editor_</a>, <a class="el" href="macro_8h_source.html#l00022">HOVER_HINT</a>, <a class="el" href="icons_8h_source.html#l00098">ICON_MD_ADD_LOCATION</a>, <a class="el" href="icons_8h_source.html#l00463">ICON_MD_CONTENT_COPY</a>, <a class="el" href="icons_8h_source.html#l00610">ICON_MD_DOOR_BACK</a>, <a class="el" href="icons_8h_source.html#l00611">ICON_MD_DOOR_FRONT</a>, <a class="el" href="icons_8h_source.html#l00623">ICON_MD_DRAW</a>, <a class="el" href="icons_8h_source.html#l00889">ICON_MD_GRASS</a>, <a class="el" href="icons_8h_source.html#l00895">ICON_MD_GRID_VIEW</a>, <a class="el" href="icons_8h_source.html#l01241">ICON_MD_MORE_VERT</a>, <a class="el" href="icons_8h_source.html#l01262">ICON_MD_MUSIC_NOTE</a>, <a class="el" href="icons_8h_source.html#l01351">ICON_MD_OPEN_IN_FULL</a>, <a class="el" href="icons_8h_source.html#l01370">ICON_MD_PAN_TOOL_ALT</a>, <a class="el" href="icons_8h_source.html#l01428">ICON_MD_PEST_CONTROL_RODENT</a>, <a class="el" href="icons_8h_source.html#l01568">ICON_MD_REDO</a>, <a class="el" href="icons_8h_source.html#l01928">ICON_MD_TABLE_CHART</a>, <a class="el" href="icons_8h_source.html#l02034">ICON_MD_UNDO</a>, <a class="el" href="icons_8h_source.html#l02189">ICON_MD_ZOOM_IN</a>, <a class="el" href="icons_8h_source.html#l02191">ICON_MD_ZOOM_OUT</a>, <a class="el" href="overworld__editor_8h_source.html#l00168">ITEMS</a>, <a class="el" href="overworld__editor_8h_source.html#l00233">maps_bmp_</a>, <a class="el" href="overworld__editor_8h_source.html#l00171">MUSIC</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00210">overworld_canvas_fullscreen_</a>, <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>, <a class="el" href="overworld__editor_8h_source.html#l00226">palette_</a>, <a class="el" href="overworld__editor_8h_source.html#l00172">PAN</a>, <a class="el" href="overworld__editor_8h_source.html#l00083">Redo()</a>, <a class="el" href="overworld__editor_8h_source.html#l00209">show_tile16_editor_</a>, <a class="el" href="overworld__editor_8h_source.html#l00169">SPRITES</a>, <a class="el" href="overworld__editor_8h_source.html#l00265">status_</a>, <a class="el" href="overworld__editor_8h_source.html#l00222">tile16_editor_</a>, <a class="el" href="overworld__editor_8h_source.html#l00260">toolset_table_</a>, <a class="el" href="overworld__editor_8h_source.html#l00170">TRANSPORTS</a>, and <a class="el" href="overworld__editor_8h_source.html#l00082">Undo()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00081">DrawFullscreenCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00115">DrawFullscreenCanvas()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00132">DrawToolset()</a>.</p>
 
 </div>
 </div>
@@ -979,11 +1058,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00246">246</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00280">280</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00193">current_world_</a>, <a class="el" href="overworld__editor_8h_source.html#l00201">game_state_</a>, <a class="el" href="macro_8h_source.html#l00033">HOVER_HINT</a>, <a class="el" href="input_8cc_source.html#l00167">yaze::gui::InputHexByte()</a>, <a class="el" href="input_8cc_source.html#l00153">yaze::gui::InputHexWord()</a>, <a class="el" href="overworld__editor_8h_source.html#l00053">yaze::editor::kGamePartComboString</a>, <a class="el" href="entity_8cc_source.html#l00019">yaze::editor::kInputFieldSize</a>, <a class="el" href="overworld__editor_8cc_source.html#l00242">yaze::editor::kMapSettingsColumnNames</a>, <a class="el" href="overworld__editor_8h_source.html#l00034">yaze::editor::kOWMapFlags</a>, <a class="el" href="overworld__editor_8h_source.html#l00057">yaze::editor::kOWMapTable</a>, <a class="el" href="overworld__editor_8h_source.html#l00050">yaze::editor::kWorldList</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8cc_source.html#l01160">RefreshMapPalette()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01180">RefreshMapProperties()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01124">RefreshOverworldMap()</a>, and <a class="el" href="overworld__editor_8h_source.html#l00265">status_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00193">current_world_</a>, <a class="el" href="overworld__editor_8cc_source.html#l00280">DrawOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8h_source.html#l00201">game_state_</a>, <a class="el" href="macro_8h_source.html#l00022">HOVER_HINT</a>, <a class="el" href="input_8cc_source.html#l00167">yaze::gui::InputHexByte()</a>, <a class="el" href="input_8cc_source.html#l00153">yaze::gui::InputHexWord()</a>, <a class="el" href="overworld__editor_8h_source.html#l00053">yaze::editor::kGamePartComboString</a>, <a class="el" href="entity_8cc_source.html#l00019">yaze::editor::kInputFieldSize</a>, <a class="el" href="overworld__editor_8cc_source.html#l00276">yaze::editor::kMapSettingsColumnNames</a>, <a class="el" href="overworld__editor_8h_source.html#l00034">yaze::editor::kOWMapFlags</a>, <a class="el" href="overworld__editor_8h_source.html#l00057">yaze::editor::kOWMapTable</a>, <a class="el" href="overworld__editor_8h_source.html#l00050">yaze::editor::kWorldList</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8cc_source.html#l01194">RefreshMapPalette()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01214">RefreshMapProperties()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01158">RefreshOverworldMap()</a>, and <a class="el" href="overworld__editor_8h_source.html#l00265">status_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00624">DrawOverworldCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00658">DrawOverworldCanvas()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00280">DrawOverworldMapSettings()</a>.</p>
 
 </div>
 </div>
@@ -1010,11 +1089,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00316">316</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00350">350</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00193">current_world_</a>, <a class="el" href="overworld__editor_8h_source.html#l00201">game_state_</a>, <a class="el" href="macro_8h_source.html#l00033">HOVER_HINT</a>, <a class="el" href="input_8cc_source.html#l00167">yaze::gui::InputHexByte()</a>, <a class="el" href="input_8cc_source.html#l00153">yaze::gui::InputHexWord()</a>, <a class="el" href="overworld__editor_8h_source.html#l00053">yaze::editor::kGamePartComboString</a>, <a class="el" href="entity_8cc_source.html#l00019">yaze::editor::kInputFieldSize</a>, <a class="el" href="overworld__editor_8cc_source.html#l00242">yaze::editor::kMapSettingsColumnNames</a>, <a class="el" href="overworld__editor_8h_source.html#l00034">yaze::editor::kOWMapFlags</a>, <a class="el" href="overworld__editor_8h_source.html#l00057">yaze::editor::kOWMapTable</a>, <a class="el" href="overworld__editor_8h_source.html#l00050">yaze::editor::kWorldList</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8cc_source.html#l01160">RefreshMapPalette()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01180">RefreshMapProperties()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01124">RefreshOverworldMap()</a>, and <a class="el" href="overworld__editor_8h_source.html#l00265">status_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00193">current_world_</a>, <a class="el" href="overworld__editor_8cc_source.html#l00350">DrawCustomOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8h_source.html#l00201">game_state_</a>, <a class="el" href="macro_8h_source.html#l00022">HOVER_HINT</a>, <a class="el" href="input_8cc_source.html#l00167">yaze::gui::InputHexByte()</a>, <a class="el" href="input_8cc_source.html#l00153">yaze::gui::InputHexWord()</a>, <a class="el" href="overworld__editor_8h_source.html#l00053">yaze::editor::kGamePartComboString</a>, <a class="el" href="entity_8cc_source.html#l00019">yaze::editor::kInputFieldSize</a>, <a class="el" href="overworld__editor_8cc_source.html#l00276">yaze::editor::kMapSettingsColumnNames</a>, <a class="el" href="overworld__editor_8h_source.html#l00034">yaze::editor::kOWMapFlags</a>, <a class="el" href="overworld__editor_8h_source.html#l00057">yaze::editor::kOWMapTable</a>, <a class="el" href="overworld__editor_8h_source.html#l00050">yaze::editor::kWorldList</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8cc_source.html#l01194">RefreshMapPalette()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01214">RefreshMapProperties()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01158">RefreshOverworldMap()</a>, and <a class="el" href="overworld__editor_8h_source.html#l00265">status_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00624">DrawOverworldCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00350">DrawCustomOverworldMapSettings()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00658">DrawOverworldCanvas()</a>.</p>
 
 </div>
 </div>
@@ -1041,11 +1120,20 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01109">1109</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01143">1143</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00193">current_world_</a>, <a class="el" href="overworld__editor_8h_source.html#l00233">maps_bmp_</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="macro_8h_source.html#l00036">PRINT_IF_ERROR</a>, and <a class="el" href="overworld__editor_8h_source.html#l00265">status_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00193">current_world_</a>, <a class="el" href="overworld__editor_8h_source.html#l00233">maps_bmp_</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="macro_8h_source.html#l00025">PRINT_IF_ERROR</a>, <a class="el" href="overworld__editor_8cc_source.html#l01143">RefreshChildMap()</a>, and <a class="el" href="overworld__editor_8h_source.html#l00265">status_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01124">RefreshOverworldMap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01143">RefreshChildMap()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01158">RefreshOverworldMap()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_aa39da036dde898607eb6dadb93523560_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_aa39da036dde898607eb6dadb93523560_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1OverworldEditor_aa39da036dde898607eb6dadb93523560_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_aa39da036dde898607eb6dadb93523560_cgraph">
+<area shape="rect" title=" " alt="" coords="5,29,189,70"/>
+<area shape="poly" title=" " alt="" coords="62,29,60,19,66,10,78,5,97,3,117,5,129,11,126,16,115,10,97,8,80,10,69,14,65,20,67,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -1072,25 +1160,23 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01124">1124</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01158">1158</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00195">current_parent_</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="overworld__editor_8h_source.html#l00233">maps_bmp_</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8cc_source.html#l01109">RefreshChildMap()</a>, and <a class="el" href="renderer_8h_source.html#l00055">yaze::core::Renderer::UpdateBitmap()</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00195">current_parent_</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="overworld__editor_8h_source.html#l00233">maps_bmp_</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8cc_source.html#l01143">RefreshChildMap()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01158">RefreshOverworldMap()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00560">CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00471">CheckForOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00316">DrawCustomOverworldMapSettings()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00246">DrawOverworldMapSettings()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00594">CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00505">CheckForOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00350">DrawCustomOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00280">DrawOverworldMapSettings()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01158">RefreshOverworldMap()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_a58eb6faa7c4dd358fba0d46e106797ed_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_a58eb6faa7c4dd358fba0d46e106797ed_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1OverworldEditor_a58eb6faa7c4dd358fba0d46e106797ed_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_a58eb6faa7c4dd358fba0d46e106797ed_cgraph">
-<area shape="rect" title=" " alt="" coords="5,71,189,111"/>
+<area shape="rect" title=" " alt="" coords="5,51,189,91"/>
+<area shape="poly" title=" " alt="" coords="53,51,51,41,58,32,74,26,97,24,122,26,137,33,135,38,121,32,97,29,75,31,62,36,56,42,59,49"/>
 <area shape="rect" href="classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="257,5,400,46"/>
-<area shape="poly" title=" " alt="" coords="171,68,241,47,243,52,172,73"/>
-<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#aa39da036dde898607eb6dadb93523560" title=" " alt="" coords="237,71,420,111"/>
-<area shape="poly" title=" " alt="" coords="189,88,221,88,221,94,189,94"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="260,136,396,177"/>
-<area shape="poly" title=" " alt="" coords="172,109,246,130,244,135,171,114"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="468,136,591,177"/>
-<area shape="poly" title=" " alt="" coords="397,154,453,154,453,159,397,159"/>
+<area shape="poly" title=" " alt="" coords="188,50,241,40,242,45,189,56"/>
+<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#aa39da036dde898607eb6dadb93523560" title=" " alt="" coords="237,95,420,135"/>
+<area shape="poly" title=" " alt="" coords="189,86,222,92,221,97,188,91"/>
+<area shape="poly" title=" " alt="" coords="285,95,283,85,290,76,305,70,328,68,353,70,368,77,366,82,352,76,328,73,306,75,293,80,288,86,290,93"/>
 </map>
 </div>
 
@@ -1119,11 +1205,20 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01160">1160</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01194">1194</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00233">maps_bmp_</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, and <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00233">maps_bmp_</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8cc_source.html#l01194">RefreshMapPalette()</a>, and <a class="el" href="macro_8h_source.html#l00051">RETURN_IF_ERROR</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00316">DrawCustomOverworldMapSettings()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00246">DrawOverworldMapSettings()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00350">DrawCustomOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00280">DrawOverworldMapSettings()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01194">RefreshMapPalette()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_a8fe0bd7dd5f3cd4c40cbee9a49d8a886_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_a8fe0bd7dd5f3cd4c40cbee9a49d8a886_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1OverworldEditor_a8fe0bd7dd5f3cd4c40cbee9a49d8a886_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_a8fe0bd7dd5f3cd4c40cbee9a49d8a886_cgraph">
+<area shape="rect" title=" " alt="" coords="5,29,189,70"/>
+<area shape="poly" title=" " alt="" coords="62,29,60,19,66,10,78,5,97,3,117,5,129,11,126,16,115,10,97,8,80,10,69,14,65,20,67,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -1150,11 +1245,20 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01180">1180</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01214">1214</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00201">game_state_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00201">game_state_</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01214">RefreshMapProperties()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00316">DrawCustomOverworldMapSettings()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00246">DrawOverworldMapSettings()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00350">DrawCustomOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00280">DrawOverworldMapSettings()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01214">RefreshMapProperties()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_a5d0429ad065eff4ddf95bcdc52ac2423_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_a5d0429ad065eff4ddf95bcdc52ac2423_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1OverworldEditor_a5d0429ad065eff4ddf95bcdc52ac2423_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_a5d0429ad065eff4ddf95bcdc52ac2423_cgraph">
+<area shape="rect" title=" " alt="" coords="5,29,189,70"/>
+<area shape="poly" title=" " alt="" coords="62,29,60,19,66,10,78,5,97,3,117,5,129,11,126,16,115,10,97,8,80,10,69,14,65,20,67,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -1181,23 +1285,20 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01201">1201</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01235">1235</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00200">current_blockset_</a>, <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="src_2app_2zelda3_2overworld_2overworld_8h_source.html#l00097">yaze::zelda3::kNumTile16Individual</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00226">palette_</a>, <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="overworld__editor_8h_source.html#l00229">tile16_blockset_bmp_</a>, <a class="el" href="overworld__editor_8h_source.html#l00215">tile16_individual_</a>, and <a class="el" href="renderer_8h_source.html#l00055">yaze::core::Renderer::UpdateBitmap()</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00200">current_blockset_</a>, <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="src_2app_2zelda3_2overworld_2overworld_8h_source.html#l00097">yaze::zelda3::kNumTile16Individual</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00226">palette_</a>, <a class="el" href="overworld__editor_8cc_source.html#l01235">RefreshTile16Blockset()</a>, <a class="el" href="macro_8h_source.html#l00051">RETURN_IF_ERROR</a>, <a class="el" href="overworld__editor_8h_source.html#l00229">tile16_blockset_bmp_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00215">tile16_individual_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00560">CheckForCurrentMap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00594">CheckForCurrentMap()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01235">RefreshTile16Blockset()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_a99a739f0d39071aa7f6987eeb264b3e1_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_a99a739f0d39071aa7f6987eeb264b3e1_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1OverworldEditor_a99a739f0d39071aa7f6987eeb264b3e1_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_a99a739f0d39071aa7f6987eeb264b3e1_cgraph">
-<area shape="rect" title=" " alt="" coords="5,39,189,79"/>
-<area shape="rect" href="classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="237,5,380,46"/>
-<area shape="poly" title=" " alt="" coords="189,42,221,37,222,42,190,47"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="240,71,376,111"/>
-<area shape="poly" title=" " alt="" coords="190,70,225,76,224,81,189,76"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="428,71,551,111"/>
-<area shape="poly" title=" " alt="" coords="377,88,412,88,412,94,377,94"/>
+<area shape="rect" title=" " alt="" coords="5,29,189,70"/>
+<area shape="poly" title=" " alt="" coords="57,29,55,19,62,10,76,5,97,3,120,5,134,11,131,16,119,10,97,8,77,10,65,15,60,20,62,28"/>
+<area shape="rect" href="classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="237,29,380,70"/>
+<area shape="poly" title=" " alt="" coords="189,47,221,47,221,52,189,52"/>
 </map>
 </div>
 
@@ -1235,11 +1336,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00784">784</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00818">818</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00247">current_entity_</a>, <a class="el" href="overworld__editor_8h_source.html#l00242">current_entrance_</a>, <a class="el" href="overworld__editor_8h_source.html#l00196">current_entrance_id_</a>, <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00175">current_mode</a>, <a class="el" href="overworld__editor_8h_source.html#l00193">current_world_</a>, <a class="el" href="overworld__editor_8h_source.html#l00248">dragged_entity_</a>, <a class="el" href="entity_8cc_source.html#l00105">yaze::editor::DrawEntranceInserterPopup()</a>, <a class="el" href="entity_8cc_source.html#l00130">yaze::editor::DrawOverworldEntrancePopup()</a>, <a class="el" href="overworld__editor_8h_source.html#l00166">ENTRANCES</a>, <a class="el" href="entity_8cc_source.html#l00056">yaze::editor::HandleEntityDragging()</a>, <a class="el" href="hex_8cc_source.html#l00033">yaze::util::HexByte()</a>, <a class="el" href="overworld__editor_8h_source.html#l00212">is_dragging_entity_</a>, <a class="el" href="entity_8cc_source.html#l00021">yaze::editor::IsMouseHoveringOverEntity()</a>, <a class="el" href="overworld__editor_8h_source.html#l00093">jump_to_tab_</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00247">current_entity_</a>, <a class="el" href="overworld__editor_8h_source.html#l00242">current_entrance_</a>, <a class="el" href="overworld__editor_8h_source.html#l00196">current_entrance_id_</a>, <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00175">current_mode</a>, <a class="el" href="overworld__editor_8h_source.html#l00193">current_world_</a>, <a class="el" href="overworld__editor_8h_source.html#l00248">dragged_entity_</a>, <a class="el" href="entity_8cc_source.html#l00105">yaze::editor::DrawEntranceInserterPopup()</a>, <a class="el" href="entity_8cc_source.html#l00130">yaze::editor::DrawOverworldEntrancePopup()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00818">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8h_source.html#l00166">ENTRANCES</a>, <a class="el" href="entity_8cc_source.html#l00056">yaze::editor::HandleEntityDragging()</a>, <a class="el" href="hex_8cc_source.html#l00033">yaze::util::HexByte()</a>, <a class="el" href="overworld__editor_8h_source.html#l00212">is_dragging_entity_</a>, <a class="el" href="entity_8cc_source.html#l00021">yaze::editor::IsMouseHoveringOverEntity()</a>, <a class="el" href="overworld__editor_8h_source.html#l00093">jump_to_tab_</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00624">DrawOverworldCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00658">DrawOverworldCanvas()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00818">DrawOverworldEntrances()</a>.</p>
 
 </div>
 </div>
@@ -1270,11 +1371,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00850">850</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00884">884</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00247">current_entity_</a>, <a class="el" href="overworld__editor_8h_source.html#l00243">current_exit_</a>, <a class="el" href="overworld__editor_8h_source.html#l00197">current_exit_id_</a>, <a class="el" href="overworld__editor_8h_source.html#l00175">current_mode</a>, <a class="el" href="overworld__editor_8h_source.html#l00193">current_world_</a>, <a class="el" href="overworld__editor_8h_source.html#l00248">dragged_entity_</a>, <a class="el" href="entity_8cc_source.html#l00180">yaze::editor::DrawExitEditorPopup()</a>, <a class="el" href="entity_8cc_source.html#l00162">yaze::editor::DrawExitInserterPopup()</a>, <a class="el" href="overworld__editor_8h_source.html#l00167">EXITS</a>, <a class="el" href="entity_8cc_source.html#l00056">yaze::editor::HandleEntityDragging()</a>, <a class="el" href="hex_8cc_source.html#l00033">yaze::util::HexByte()</a>, <a class="el" href="overworld__editor_8h_source.html#l00212">is_dragging_entity_</a>, <a class="el" href="entity_8cc_source.html#l00021">yaze::editor::IsMouseHoveringOverEntity()</a>, <a class="el" href="overworld__editor_8h_source.html#l00093">jump_to_tab_</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00247">current_entity_</a>, <a class="el" href="overworld__editor_8h_source.html#l00243">current_exit_</a>, <a class="el" href="overworld__editor_8h_source.html#l00197">current_exit_id_</a>, <a class="el" href="overworld__editor_8h_source.html#l00175">current_mode</a>, <a class="el" href="overworld__editor_8h_source.html#l00193">current_world_</a>, <a class="el" href="overworld__editor_8h_source.html#l00248">dragged_entity_</a>, <a class="el" href="entity_8cc_source.html#l00180">yaze::editor::DrawExitEditorPopup()</a>, <a class="el" href="entity_8cc_source.html#l00162">yaze::editor::DrawExitInserterPopup()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00884">DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8h_source.html#l00167">EXITS</a>, <a class="el" href="entity_8cc_source.html#l00056">yaze::editor::HandleEntityDragging()</a>, <a class="el" href="hex_8cc_source.html#l00033">yaze::util::HexByte()</a>, <a class="el" href="overworld__editor_8h_source.html#l00212">is_dragging_entity_</a>, <a class="el" href="entity_8cc_source.html#l00021">yaze::editor::IsMouseHoveringOverEntity()</a>, <a class="el" href="overworld__editor_8h_source.html#l00093">jump_to_tab_</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00624">DrawOverworldCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00658">DrawOverworldCanvas()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00884">DrawOverworldExits()</a>.</p>
 
 </div>
 </div>
@@ -1301,28 +1402,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00901">901</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00935">935</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00247">current_entity_</a>, <a class="el" href="overworld__editor_8h_source.html#l00244">current_item_</a>, <a class="el" href="overworld__editor_8h_source.html#l00198">current_item_id_</a>, <a class="el" href="overworld__editor_8h_source.html#l00175">current_mode</a>, <a class="el" href="overworld__editor_8h_source.html#l00193">current_world_</a>, <a class="el" href="overworld__editor_8h_source.html#l00248">dragged_entity_</a>, <a class="el" href="entity_8cc_source.html#l00342">yaze::editor::DrawItemEditorPopup()</a>, <a class="el" href="entity_8cc_source.html#l00312">yaze::editor::DrawItemInsertPopup()</a>, <a class="el" href="entity_8cc_source.html#l00056">yaze::editor::HandleEntityDragging()</a>, <a class="el" href="overworld__editor_8h_source.html#l00212">is_dragging_entity_</a>, <a class="el" href="entity_8cc_source.html#l00021">yaze::editor::IsMouseHoveringOverEntity()</a>, <a class="el" href="overworld__editor_8h_source.html#l00168">ITEMS</a>, <a class="el" href="overworld__item_8h_source.html#l00068">yaze::zelda3::kSecretItemNames</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00247">current_entity_</a>, <a class="el" href="overworld__editor_8h_source.html#l00244">current_item_</a>, <a class="el" href="overworld__editor_8h_source.html#l00198">current_item_id_</a>, <a class="el" href="overworld__editor_8h_source.html#l00175">current_mode</a>, <a class="el" href="overworld__editor_8h_source.html#l00193">current_world_</a>, <a class="el" href="overworld__editor_8h_source.html#l00248">dragged_entity_</a>, <a class="el" href="entity_8cc_source.html#l00342">yaze::editor::DrawItemEditorPopup()</a>, <a class="el" href="entity_8cc_source.html#l00312">yaze::editor::DrawItemInsertPopup()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00935">DrawOverworldItems()</a>, <a class="el" href="entity_8cc_source.html#l00056">yaze::editor::HandleEntityDragging()</a>, <a class="el" href="overworld__editor_8h_source.html#l00212">is_dragging_entity_</a>, <a class="el" href="entity_8cc_source.html#l00021">yaze::editor::IsMouseHoveringOverEntity()</a>, <a class="el" href="overworld__editor_8h_source.html#l00168">ITEMS</a>, <a class="el" href="overworld__item_8h_source.html#l00068">yaze::zelda3::kSecretItemNames</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00624">DrawOverworldCanvas()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_a4d762e84fda3f0d0b0be50b95596939c_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_a4d762e84fda3f0d0b0be50b95596939c_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1editor_1_1OverworldEditor_a4d762e84fda3f0d0b0be50b95596939c_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_a4d762e84fda3f0d0b0be50b95596939c_cgraph">
-<area shape="rect" title=" " alt="" coords="5,104,189,145"/>
-<area shape="rect" href="namespaceyaze_1_1editor.html#a8a6a91874dd1ed2bf561ad8dae3a41e5" title=" " alt="" coords="237,5,417,46"/>
-<area shape="poly" title=" " alt="" coords="139,101,236,57,253,50,255,55,238,61,141,106"/>
-<area shape="rect" href="namespaceyaze_1_1editor.html#a3d3544ec9f9029b303d36946d159b102" title=" " alt="" coords="237,71,417,111"/>
-<area shape="poly" title=" " alt="" coords="188,108,221,104,221,109,189,114"/>
-<area shape="rect" href="namespaceyaze_1_1editor.html#a6b13948b033b60fa0dc966717fc52a82" title=" " alt="" coords="245,136,409,177"/>
-<area shape="poly" title=" " alt="" coords="189,134,230,140,229,145,188,140"/>
-<area shape="rect" href="namespaceyaze_1_1editor.html#a71d65cf584d77dc9d9ccb1446d7870f6" title=" " alt="" coords="465,165,658,206"/>
-<area shape="poly" title=" " alt="" coords="133,143,181,167,237,186,291,194,346,198,449,196,449,201,345,204,290,200,236,191,179,172,131,147"/>
-<area shape="poly" title=" " alt="" coords="410,164,450,169,449,174,409,169"/>
-</map>
-</div>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00658">DrawOverworldCanvas()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00935">DrawOverworldItems()</a>.</p>
 
 </div>
 </div>
@@ -1349,11 +1433,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00951">951</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00985">985</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00247">current_entity_</a>, <a class="el" href="overworld__editor_8h_source.html#l00175">current_mode</a>, <a class="el" href="overworld__editor_8h_source.html#l00240">current_sprite_</a>, <a class="el" href="overworld__editor_8h_source.html#l00199">current_sprite_id_</a>, <a class="el" href="overworld__editor_8h_source.html#l00248">dragged_entity_</a>, <a class="el" href="entity_8cc_source.html#l00452">yaze::editor::DrawSpriteEditorPopup()</a>, <a class="el" href="entity_8cc_source.html#l00428">yaze::editor::DrawSpriteInserterPopup()</a>, <a class="el" href="overworld__editor_8h_source.html#l00201">game_state_</a>, <a class="el" href="features_8h_source.html#l00069">yaze::core::FeatureFlags::get()</a>, <a class="el" href="entity_8cc_source.html#l00056">yaze::editor::HandleEntityDragging()</a>, <a class="el" href="overworld__editor_8h_source.html#l00212">is_dragging_entity_</a>, <a class="el" href="entity_8cc_source.html#l00021">yaze::editor::IsMouseHoveringOverEntity()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00060">yaze::editor::kTile16Size</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>, <a class="el" href="overworld__editor_8h_source.html#l00235">sprite_previews_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00169">SPRITES</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00247">current_entity_</a>, <a class="el" href="overworld__editor_8h_source.html#l00175">current_mode</a>, <a class="el" href="overworld__editor_8h_source.html#l00240">current_sprite_</a>, <a class="el" href="overworld__editor_8h_source.html#l00199">current_sprite_id_</a>, <a class="el" href="overworld__editor_8h_source.html#l00248">dragged_entity_</a>, <a class="el" href="overworld__editor_8cc_source.html#l00985">DrawOverworldSprites()</a>, <a class="el" href="entity_8cc_source.html#l00452">yaze::editor::DrawSpriteEditorPopup()</a>, <a class="el" href="entity_8cc_source.html#l00428">yaze::editor::DrawSpriteInserterPopup()</a>, <a class="el" href="overworld__editor_8h_source.html#l00201">game_state_</a>, <a class="el" href="features_8h_source.html#l00069">yaze::core::FeatureFlags::get()</a>, <a class="el" href="entity_8cc_source.html#l00056">yaze::editor::HandleEntityDragging()</a>, <a class="el" href="overworld__editor_8h_source.html#l00212">is_dragging_entity_</a>, <a class="el" href="entity_8cc_source.html#l00021">yaze::editor::IsMouseHoveringOverEntity()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00060">yaze::editor::kTile16Size</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>, <a class="el" href="overworld__editor_8h_source.html#l00235">sprite_previews_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00169">SPRITES</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00624">DrawOverworldCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00658">DrawOverworldCanvas()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00985">DrawOverworldSprites()</a>.</p>
 
 </div>
 </div>
@@ -1380,11 +1464,20 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00391">391</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00425">425</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00193">current_world_</a>, <a class="el" href="overworld__editor_8h_source.html#l00026">yaze::editor::kOverworldMapSize</a>, <a class="el" href="overworld__editor_8h_source.html#l00233">maps_bmp_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00193">current_world_</a>, <a class="el" href="overworld__editor_8cc_source.html#l00425">DrawOverworldMaps()</a>, <a class="el" href="overworld__editor_8h_source.html#l00026">yaze::editor::kOverworldMapSize</a>, <a class="el" href="overworld__editor_8h_source.html#l00233">maps_bmp_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00624">DrawOverworldCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00658">DrawOverworldCanvas()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00425">DrawOverworldMaps()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_a636909991154451c2d1b582cf16aee69_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_a636909991154451c2d1b582cf16aee69_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1OverworldEditor_a636909991154451c2d1b582cf16aee69_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_a636909991154451c2d1b582cf16aee69_cgraph">
+<area shape="rect" title=" " alt="" coords="5,29,189,70"/>
+<area shape="poly" title=" " alt="" coords="62,29,60,19,66,10,78,5,97,3,117,5,129,11,126,16,115,10,97,8,80,10,69,14,65,20,67,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -1411,19 +1504,21 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00408">408</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00442">442</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00202">current_tile16_</a>, <a class="el" href="overworld__editor_8h_source.html#l00193">current_world_</a>, <a class="el" href="overworld__editor_8h_source.html#l00026">yaze::editor::kOverworldMapSize</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>, <a class="el" href="overworld__editor_8cc_source.html#l00445">RenderUpdatedMapBitmap()</a>, and <a class="el" href="overworld__editor_8h_source.html#l00215">tile16_individual_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00202">current_tile16_</a>, <a class="el" href="overworld__editor_8h_source.html#l00193">current_world_</a>, <a class="el" href="overworld__editor_8cc_source.html#l00442">DrawOverworldEdits()</a>, <a class="el" href="overworld__editor_8h_source.html#l00026">yaze::editor::kOverworldMapSize</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>, <a class="el" href="overworld__editor_8cc_source.html#l00479">RenderUpdatedMapBitmap()</a>, and <a class="el" href="overworld__editor_8h_source.html#l00215">tile16_individual_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00471">CheckForOverworldEdits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00505">CheckForOverworldEdits()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00442">DrawOverworldEdits()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_a25910e340d6c8d77f972d29cc0a663c1_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_a25910e340d6c8d77f972d29cc0a663c1_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1OverworldEditor_a25910e340d6c8d77f972d29cc0a663c1_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_a25910e340d6c8d77f972d29cc0a663c1_cgraph">
 <area shape="rect" title=" " alt="" coords="5,39,189,79"/>
+<area shape="poly" title=" " alt="" coords="53,39,51,29,58,20,74,14,97,12,122,14,137,21,135,26,121,20,97,17,75,19,62,24,56,30,59,37"/>
 <area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a6a3388989f2d04a1803050b7c9a6bff8" title=" " alt="" coords="237,39,420,79"/>
 <area shape="poly" title=" " alt="" coords="189,56,221,56,221,62,189,62"/>
+<area shape="poly" title=" " alt="" coords="290,39,288,29,294,20,308,14,328,12,350,14,363,21,361,25,349,20,328,17,309,19,298,24,293,30,295,37"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a6d17a8f9b6ed80bde87b67e8e36e40c1" title=" " alt="" coords="468,5,591,46"/>
 <area shape="poly" title=" " alt="" coords="420,41,452,36,453,41,421,46"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a0b6240e469dae9ab4d88f3e2051d4510" title=" " alt="" coords="468,71,591,111"/>
@@ -1460,17 +1555,18 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00445">445</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00479">479</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00026">yaze::editor::kOverworldMapSize</a>, <a class="el" href="overworld__editor_8cc_source.html#l00060">yaze::editor::kTile16Size</a>, <a class="el" href="overworld__editor_8h_source.html#l00233">maps_bmp_</a>, <a class="el" href="bitmap_8h_source.html#l00174">yaze::gfx::Bitmap::set_modified()</a>, and <a class="el" href="bitmap_8h_source.html#l00137">yaze::gfx::Bitmap::WriteToPixel()</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00026">yaze::editor::kOverworldMapSize</a>, <a class="el" href="overworld__editor_8cc_source.html#l00060">yaze::editor::kTile16Size</a>, <a class="el" href="overworld__editor_8h_source.html#l00233">maps_bmp_</a>, <a class="el" href="overworld__editor_8cc_source.html#l00479">RenderUpdatedMapBitmap()</a>, <a class="el" href="bitmap_8h_source.html#l00174">yaze::gfx::Bitmap::set_modified()</a>, and <a class="el" href="bitmap_8h_source.html#l00137">yaze::gfx::Bitmap::WriteToPixel()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00408">DrawOverworldEdits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00442">DrawOverworldEdits()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00479">RenderUpdatedMapBitmap()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_a6a3388989f2d04a1803050b7c9a6bff8_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_a6a3388989f2d04a1803050b7c9a6bff8_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1OverworldEditor_a6a3388989f2d04a1803050b7c9a6bff8_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_a6a3388989f2d04a1803050b7c9a6bff8_cgraph">
 <area shape="rect" title=" " alt="" coords="5,39,189,79"/>
+<area shape="poly" title=" " alt="" coords="59,39,57,29,63,20,77,14,97,12,119,14,132,21,130,25,117,20,97,17,78,19,66,24,62,30,64,37"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a6d17a8f9b6ed80bde87b67e8e36e40c1" title=" " alt="" coords="237,5,360,46"/>
 <area shape="poly" title=" " alt="" coords="189,41,221,36,221,41,189,46"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a0b6240e469dae9ab4d88f3e2051d4510" title=" " alt="" coords="237,71,360,111"/>
@@ -1508,25 +1604,30 @@ Here is the call graph for this function:</div>
 <p>Check for changes to the overworld map. </p>
 <p>This function either draws the tile painter with the current tile16 or group of tile16 data with ow_map_canvas_ and DrawOverworldEdits or it checks for left mouse button click/drag to select a tile16 or group of tile16 data from the overworld map canvas. Similar to ZScream selection. </p>
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00471">471</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00505">505</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00254">blockset_canvas_</a>, <a class="el" href="overworld__editor_8cc_source.html#l00533">CheckForSelectRectangle()</a>, <a class="el" href="overworld__editor_8h_source.html#l00202">current_tile16_</a>, <a class="el" href="overworld__editor_8h_source.html#l00193">current_world_</a>, <a class="el" href="overworld__editor_8cc_source.html#l00408">DrawOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00060">yaze::editor::kTile16Size</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>, <a class="el" href="overworld__editor_8cc_source.html#l01124">RefreshOverworldMap()</a>, and <a class="el" href="overworld__editor_8h_source.html#l00215">tile16_individual_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00254">blockset_canvas_</a>, <a class="el" href="overworld__editor_8cc_source.html#l00505">CheckForOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00567">CheckForSelectRectangle()</a>, <a class="el" href="overworld__editor_8h_source.html#l00202">current_tile16_</a>, <a class="el" href="overworld__editor_8h_source.html#l00193">current_world_</a>, <a class="el" href="overworld__editor_8cc_source.html#l00442">DrawOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00060">yaze::editor::kTile16Size</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>, <a class="el" href="overworld__editor_8cc_source.html#l01158">RefreshOverworldMap()</a>, and <a class="el" href="overworld__editor_8h_source.html#l00215">tile16_individual_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00624">DrawOverworldCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00505">CheckForOverworldEdits()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00658">DrawOverworldCanvas()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_a5941a5634563f9615d2e112a0e5b11dd_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_a5941a5634563f9615d2e112a0e5b11dd_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1OverworldEditor_a5941a5634563f9615d2e112a0e5b11dd_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_a5941a5634563f9615d2e112a0e5b11dd_cgraph">
-<area shape="rect" title="Check for changes to the overworld map." alt="" coords="5,71,189,111"/>
-<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a9f57113a443edaeb9db6bd3f8f7e50a9" title="Draw and create the tile16 IDs that are currently selected." alt="" coords="237,5,420,46"/>
-<area shape="poly" title=" " alt="" coords="171,68,238,48,240,53,172,73"/>
-<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a25910e340d6c8d77f972d29cc0a663c1" title=" " alt="" coords="237,71,420,111"/>
-<area shape="poly" title=" " alt="" coords="189,88,221,88,221,94,189,94"/>
-<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a58eb6faa7c4dd358fba0d46e106797ed" title=" " alt="" coords="237,136,420,177"/>
-<area shape="poly" title=" " alt="" coords="172,109,240,129,238,134,171,114"/>
-<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a6a3388989f2d04a1803050b7c9a6bff8" title=" " alt="" coords="468,71,651,111"/>
-<area shape="poly" title=" " alt="" coords="420,88,452,88,452,94,420,94"/>
+<area shape="rect" title="Check for changes to the overworld map." alt="" coords="5,119,189,159"/>
+<area shape="poly" title=" " alt="" coords="53,119,51,109,58,100,74,94,97,92,122,94,137,101,135,106,121,100,97,97,75,99,62,104,56,110,59,117"/>
+<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a9f57113a443edaeb9db6bd3f8f7e50a9" title="Draw and create the tile16 IDs that are currently selected." alt="" coords="237,29,420,70"/>
+<area shape="poly" title=" " alt="" coords="148,116,236,81,255,73,257,78,238,85,150,121"/>
+<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a25910e340d6c8d77f972d29cc0a663c1" title=" " alt="" coords="237,119,420,159"/>
+<area shape="poly" title=" " alt="" coords="189,136,221,136,221,142,189,142"/>
+<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a58eb6faa7c4dd358fba0d46e106797ed" title=" " alt="" coords="237,208,420,249"/>
+<area shape="poly" title=" " alt="" coords="153,157,260,199,258,204,151,162"/>
+<area shape="poly" title=" " alt="" coords="285,29,283,19,290,10,305,5,328,3,353,5,368,11,366,16,352,10,328,8,306,10,293,15,288,21,290,28"/>
+<area shape="poly" title=" " alt="" coords="285,119,283,109,290,100,305,94,328,92,353,94,368,101,366,106,352,100,328,97,306,99,293,104,288,110,290,117"/>
+<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a6a3388989f2d04a1803050b7c9a6bff8" title=" " alt="" coords="468,119,651,159"/>
+<area shape="poly" title=" " alt="" coords="420,136,452,136,452,142,420,142"/>
+<area shape="poly" title=" " alt="" coords="516,119,514,109,521,100,536,94,560,92,585,94,599,101,597,106,583,100,560,97,538,99,524,104,519,110,521,117"/>
+<area shape="poly" title=" " alt="" coords="285,208,283,198,290,189,305,183,328,181,353,184,368,190,366,195,352,189,328,187,306,189,293,193,288,199,290,207"/>
 </map>
 </div>
 
@@ -1557,11 +1658,20 @@ Here is the call graph for this function:</div>
 
 <p>Draw and create the tile16 IDs that are currently selected. </p>
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00533">533</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00567">567</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00202">current_tile16_</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00215">tile16_individual_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8cc_source.html#l00567">CheckForSelectRectangle()</a>, <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00202">current_tile16_</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00215">tile16_individual_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00471">CheckForOverworldEdits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00505">CheckForOverworldEdits()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00567">CheckForSelectRectangle()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_a9f57113a443edaeb9db6bd3f8f7e50a9_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_a9f57113a443edaeb9db6bd3f8f7e50a9_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1OverworldEditor_a9f57113a443edaeb9db6bd3f8f7e50a9_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_a9f57113a443edaeb9db6bd3f8f7e50a9_cgraph">
+<area shape="rect" title="Draw and create the tile16 IDs that are currently selected." alt="" coords="5,29,189,70"/>
+<area shape="poly" title=" " alt="" coords="62,29,60,19,66,10,78,5,97,3,117,5,129,11,126,16,115,10,97,8,80,10,69,14,65,20,67,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -1590,29 +1700,31 @@ Here is the call graph for this function:</div>
 
 <p>Check for changes to the overworld map. Calls RefreshOverworldMap and RefreshTile16Blockset on the current map if it is modified and is actively being edited. </p>
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00560">560</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00594">594</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00195">current_parent_</a>, <a class="el" href="overworld__editor_8h_source.html#l00193">current_world_</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="overworld__editor_8h_source.html#l00026">yaze::editor::kOverworldMapSize</a>, <a class="el" href="overworld__editor_8h_source.html#l00233">maps_bmp_</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>, <a class="el" href="overworld__editor_8cc_source.html#l01124">RefreshOverworldMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01201">RefreshTile16Blockset()</a>, <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>, and <a class="el" href="renderer_8h_source.html#l00055">yaze::core::Renderer::UpdateBitmap()</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8cc_source.html#l00594">CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00195">current_parent_</a>, <a class="el" href="overworld__editor_8h_source.html#l00193">current_world_</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="overworld__editor_8h_source.html#l00026">yaze::editor::kOverworldMapSize</a>, <a class="el" href="overworld__editor_8h_source.html#l00233">maps_bmp_</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>, <a class="el" href="overworld__editor_8cc_source.html#l01158">RefreshOverworldMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01235">RefreshTile16Blockset()</a>, and <a class="el" href="macro_8h_source.html#l00051">RETURN_IF_ERROR</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00624">DrawOverworldCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00594">CheckForCurrentMap()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00658">DrawOverworldCanvas()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_a22ef8cb981161d37768fb1556d07ae1a_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_a22ef8cb981161d37768fb1556d07ae1a_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1OverworldEditor_a22ef8cb981161d37768fb1556d07ae1a_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_a22ef8cb981161d37768fb1556d07ae1a_cgraph">
-<area shape="rect" title="Check for changes to the overworld map. Calls RefreshOverworldMap and RefreshTile16Blockset on the cu..." alt="" coords="5,61,189,102"/>
-<area shape="rect" href="classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="468,28,611,69"/>
-<area shape="poly" title=" " alt="" coords="130,59,179,34,236,14,287,5,328,3,420,14,459,21,458,26,420,19,328,8,288,10,237,19,181,39,133,63"/>
-<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a58eb6faa7c4dd358fba0d46e106797ed" title=" " alt="" coords="237,28,420,69"/>
-<area shape="poly" title=" " alt="" coords="188,66,221,61,221,67,189,71"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Used to update a bitmap on the screen." alt="" coords="472,93,608,134"/>
-<area shape="poly" title=" " alt="" coords="133,100,181,124,237,143,288,152,328,154,420,143,458,136,459,141,420,148,328,159,287,157,236,148,179,129,131,105"/>
-<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a99a739f0d39071aa7f6987eeb264b3e1" title=" " alt="" coords="237,93,420,134"/>
-<area shape="poly" title=" " alt="" coords="189,92,221,96,221,102,188,97"/>
-<area shape="poly" title=" " alt="" coords="421,46,453,46,453,51,421,51"/>
-<area shape="poly" title=" " alt="" coords="397,67,458,86,456,91,395,72"/>
-<area shape="poly" title=" " alt="" coords="395,90,456,71,458,77,397,96"/>
-<area shape="poly" title=" " alt="" coords="421,111,456,111,456,116,421,116"/>
+<area shape="rect" title="Check for changes to the overworld map. Calls RefreshOverworldMap and RefreshTile16Blockset on the cu..." alt="" coords="5,53,189,93"/>
+<area shape="poly" title=" " alt="" coords="53,53,51,43,58,34,74,28,97,26,122,28,137,35,135,40,121,34,97,31,75,33,62,38,56,44,59,51"/>
+<area shape="rect" href="classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="488,53,631,93"/>
+<area shape="poly" title=" " alt="" coords="137,50,184,30,236,14,287,6,328,3,369,6,421,14,465,27,506,43,504,48,463,32,419,20,369,11,328,8,288,11,237,20,185,35,139,55"/>
+<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a58eb6faa7c4dd358fba0d46e106797ed" title=" " alt="" coords="237,142,420,183"/>
+<area shape="poly" title=" " alt="" coords="153,91,260,133,258,138,151,96"/>
+<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a99a739f0d39071aa7f6987eeb264b3e1" title=" " alt="" coords="237,53,420,93"/>
+<area shape="poly" title=" " alt="" coords="189,70,221,70,221,76,189,76"/>
+<area shape="poly" title=" " alt="" coords="379,139,467,104,486,97,488,102,469,109,381,144"/>
+<area shape="poly" title=" " alt="" coords="285,142,283,132,290,123,305,117,328,115,353,118,368,124,366,129,352,123,328,121,306,123,293,127,288,133,290,141"/>
+<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#aa39da036dde898607eb6dadb93523560" title=" " alt="" coords="468,142,651,183"/>
+<area shape="poly" title=" " alt="" coords="420,160,452,160,452,165,420,165"/>
+<area shape="poly" title=" " alt="" coords="516,142,514,132,521,123,536,117,560,115,585,118,599,124,597,129,583,123,560,121,538,123,524,127,519,133,521,141"/>
+<area shape="poly" title=" " alt="" coords="420,70,473,70,473,76,420,76"/>
+<area shape="poly" title=" " alt="" coords="285,53,283,43,290,34,305,28,328,26,353,28,368,35,366,40,352,34,328,31,306,33,293,38,288,44,290,51"/>
 </map>
 </div>
 
@@ -1641,11 +1753,20 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00609">609</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00643">643</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00175">current_mode</a>, <a class="el" href="overworld__editor_8h_source.html#l00211">middle_mouse_dragging_</a>, <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>, <a class="el" href="overworld__editor_8h_source.html#l00172">PAN</a>, and <a class="el" href="overworld__editor_8h_source.html#l00176">previous_mode</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8cc_source.html#l00643">CheckForMousePan()</a>, <a class="el" href="overworld__editor_8h_source.html#l00175">current_mode</a>, <a class="el" href="overworld__editor_8h_source.html#l00211">middle_mouse_dragging_</a>, <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>, <a class="el" href="overworld__editor_8h_source.html#l00172">PAN</a>, and <a class="el" href="overworld__editor_8h_source.html#l00176">previous_mode</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00624">DrawOverworldCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00643">CheckForMousePan()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00658">DrawOverworldCanvas()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_a73db519f950eb42a25b47ddb4011c63f_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_a73db519f950eb42a25b47ddb4011c63f_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1OverworldEditor_a73db519f950eb42a25b47ddb4011c63f_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_a73db519f950eb42a25b47ddb4011c63f_cgraph">
+<area shape="rect" title=" " alt="" coords="5,29,189,70"/>
+<area shape="poly" title=" " alt="" coords="62,29,60,19,66,10,78,5,97,3,117,5,129,11,126,16,115,10,97,8,80,10,69,14,65,20,67,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -1672,11 +1793,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00624">624</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00658">658</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00206">all_gfx_loaded_</a>, <a class="el" href="style_8cc_source.html#l00390">yaze::gui::BeginChildBothScrollbars()</a>, <a class="el" href="style_8cc_source.html#l00379">yaze::gui::BeginNoPadding()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00560">CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00609">CheckForMousePan()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00471">CheckForOverworldEdits()</a>, <a class="el" href="overworld__editor_8h_source.html#l00175">current_mode</a>, <a class="el" href="overworld__editor_8h_source.html#l00165">DRAW_TILE</a>, <a class="el" href="overworld__editor_8cc_source.html#l00316">DrawCustomOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00784">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00850">DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00901">DrawOverworldItems()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00391">DrawOverworldMaps()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00246">DrawOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00951">DrawOverworldSprites()</a>, <a class="el" href="style_8cc_source.html#l00383">yaze::gui::EndNoPadding()</a>, <a class="el" href="features_8h_source.html#l00069">yaze::core::FeatureFlags::get()</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>, <a class="el" href="overworld__editor_8h_source.html#l00172">PAN</a>, and <a class="el" href="overworld__editor_8h_source.html#l00265">status_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00206">all_gfx_loaded_</a>, <a class="el" href="style_8cc_source.html#l00390">yaze::gui::BeginChildBothScrollbars()</a>, <a class="el" href="style_8cc_source.html#l00379">yaze::gui::BeginNoPadding()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00594">CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00643">CheckForMousePan()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00505">CheckForOverworldEdits()</a>, <a class="el" href="overworld__editor_8h_source.html#l00175">current_mode</a>, <a class="el" href="overworld__editor_8h_source.html#l00165">DRAW_TILE</a>, <a class="el" href="overworld__editor_8cc_source.html#l00350">DrawCustomOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00658">DrawOverworldCanvas()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00818">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00884">DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00935">DrawOverworldItems()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00425">DrawOverworldMaps()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00280">DrawOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00985">DrawOverworldSprites()</a>, <a class="el" href="style_8cc_source.html#l00383">yaze::gui::EndNoPadding()</a>, <a class="el" href="features_8h_source.html#l00069">yaze::core::FeatureFlags::get()</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>, <a class="el" href="overworld__editor_8h_source.html#l00172">PAN</a>, and <a class="el" href="overworld__editor_8h_source.html#l00265">status_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00081">DrawFullscreenCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00115">DrawFullscreenCanvas()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00658">DrawOverworldCanvas()</a>.</p>
 
 </div>
 </div>
@@ -1703,17 +1824,18 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00671">671</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00705">705</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="style_8cc_source.html#l00385">yaze::gui::BeginChildWithScrollbar()</a>, <a class="el" href="style_8cc_source.html#l00373">yaze::gui::BeginPadding()</a>, <a class="el" href="overworld__editor_8h_source.html#l00254">blockset_canvas_</a>, <a class="el" href="overworld__editor_8h_source.html#l00202">current_tile16_</a>, <a class="el" href="style_8cc_source.html#l00383">yaze::gui::EndNoPadding()</a>, <a class="el" href="overworld__editor_8h_source.html#l00207">map_blockset_loaded_</a>, <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="overworld__editor_8h_source.html#l00209">show_tile16_editor_</a>, <a class="el" href="overworld__editor_8h_source.html#l00229">tile16_blockset_bmp_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00222">tile16_editor_</a>.</p>
+<p class="reference">References <a class="el" href="style_8cc_source.html#l00385">yaze::gui::BeginChildWithScrollbar()</a>, <a class="el" href="style_8cc_source.html#l00373">yaze::gui::BeginPadding()</a>, <a class="el" href="overworld__editor_8h_source.html#l00254">blockset_canvas_</a>, <a class="el" href="overworld__editor_8h_source.html#l00202">current_tile16_</a>, <a class="el" href="overworld__editor_8cc_source.html#l00705">DrawTile16Selector()</a>, <a class="el" href="style_8cc_source.html#l00383">yaze::gui::EndNoPadding()</a>, <a class="el" href="overworld__editor_8h_source.html#l00207">map_blockset_loaded_</a>, <a class="el" href="macro_8h_source.html#l00051">RETURN_IF_ERROR</a>, <a class="el" href="overworld__editor_8h_source.html#l00209">show_tile16_editor_</a>, <a class="el" href="overworld__editor_8h_source.html#l00229">tile16_blockset_bmp_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00222">tile16_editor_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00760">DrawTileSelector()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00705">DrawTile16Selector()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00794">DrawTileSelector()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_afab13e93a2055e6b761b5b3ded716e43_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_afab13e93a2055e6b761b5b3ded716e43_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1OverworldEditor_afab13e93a2055e6b761b5b3ded716e43_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_afab13e93a2055e6b761b5b3ded716e43_cgraph">
 <area shape="rect" title=" " alt="" coords="5,63,189,103"/>
+<area shape="poly" title=" " alt="" coords="55,63,53,53,60,44,75,38,97,36,121,38,135,45,133,50,120,44,97,41,76,43,63,48,58,54,60,61"/>
 <area shape="rect" href="namespaceyaze_1_1gui.html#ade93c7dcd1ffbb9d83002534f950c8bc" title=" " alt="" coords="237,5,401,46"/>
 <area shape="poly" title=" " alt="" coords="177,60,222,48,223,53,179,65"/>
 <area shape="rect" href="namespaceyaze_1_1gui.html#a25424ecc8f2e33914dbac1c45aaaedbb" title=" " alt="" coords="241,70,397,96"/>
@@ -1748,21 +1870,22 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00706">706</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00740">740</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00206">all_gfx_loaded_</a>, <a class="el" href="rom_8h_source.html#l00270">yaze::GraphicsSheetManager::GetInstance()</a>, and <a class="el" href="overworld__editor_8h_source.html#l00256">graphics_bin_canvas_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00206">all_gfx_loaded_</a>, <a class="el" href="overworld__editor_8cc_source.html#l00740">DrawTile8Selector()</a>, <a class="el" href="rom_8h_source.html#l00270">yaze::GraphicsSheetManager::GetInstance()</a>, and <a class="el" href="overworld__editor_8h_source.html#l00256">graphics_bin_canvas_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00760">DrawTileSelector()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00740">DrawTile8Selector()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00794">DrawTileSelector()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_a0d721d008caa92a07dc7a3165aa52070_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_a0d721d008caa92a07dc7a3165aa52070_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1OverworldEditor_a0d721d008caa92a07dc7a3165aa52070_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_a0d721d008caa92a07dc7a3165aa52070_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,189,46"/>
-<area shape="rect" href="classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6" title=" " alt="" coords="237,5,426,46"/>
-<area shape="poly" title=" " alt="" coords="189,23,221,23,221,28,189,28"/>
-<area shape="rect" href="classyaze_1_1GraphicsSheetManager.html#a3d76016049dd542b831156171055b68b" title=" " alt="" coords="474,5,663,46"/>
-<area shape="poly" title=" " alt="" coords="426,23,458,23,458,28,426,28"/>
+<area shape="rect" title=" " alt="" coords="5,29,189,70"/>
+<area shape="poly" title=" " alt="" coords="53,29,51,19,58,10,74,5,97,3,122,5,137,11,135,16,121,10,97,8,75,10,61,15,56,21,58,28"/>
+<area shape="rect" href="classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6" title=" " alt="" coords="237,29,426,70"/>
+<area shape="poly" title=" " alt="" coords="189,47,221,47,221,52,189,52"/>
+<area shape="rect" href="classyaze_1_1GraphicsSheetManager.html#a3d76016049dd542b831156171055b68b" title=" " alt="" coords="474,29,663,70"/>
+<area shape="poly" title=" " alt="" coords="426,47,458,47,458,52,426,52"/>
 </map>
 </div>
 
@@ -1791,11 +1914,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00730">730</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00764">764</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="style_8cc_source.html#l00385">yaze::gui::BeginChildWithScrollbar()</a>, <a class="el" href="style_8cc_source.html#l00373">yaze::gui::BeginPadding()</a>, <a class="el" href="renderer_8h_source.html#l00059">yaze::core::Renderer::CreateAndRenderBitmap()</a>, <a class="el" href="overworld__editor_8h_source.html#l00252">current_gfx_canvas_</a>, <a class="el" href="overworld__editor_8h_source.html#l00234">current_graphics_set_</a>, <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="style_8cc_source.html#l00377">yaze::gui::EndPadding()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="overworld__editor_8h_source.html#l00026">yaze::editor::kOverworldMapSize</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00226">palette_</a>.</p>
+<p class="reference">References <a class="el" href="style_8cc_source.html#l00385">yaze::gui::BeginChildWithScrollbar()</a>, <a class="el" href="style_8cc_source.html#l00373">yaze::gui::BeginPadding()</a>, <a class="el" href="overworld__editor_8h_source.html#l00252">current_gfx_canvas_</a>, <a class="el" href="overworld__editor_8h_source.html#l00234">current_graphics_set_</a>, <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8cc_source.html#l00764">DrawAreaGraphics()</a>, <a class="el" href="style_8cc_source.html#l00377">yaze::gui::EndPadding()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="overworld__editor_8h_source.html#l00026">yaze::editor::kOverworldMapSize</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00226">palette_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00760">DrawTileSelector()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00764">DrawAreaGraphics()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00794">DrawTileSelector()</a>.</p>
 
 </div>
 </div>
@@ -1822,9 +1945,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00760">760</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00794">794</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="style_8cc_source.html#l00385">yaze::gui::BeginChildWithScrollbar()</a>, <a class="el" href="style_8cc_source.html#l00373">yaze::gui::BeginPadding()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00730">DrawAreaGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00671">DrawTile16Selector()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00706">DrawTile8Selector()</a>, <a class="el" href="style_8cc_source.html#l00383">yaze::gui::EndNoPadding()</a>, <a class="el" href="overworld__editor_8h_source.html#l00055">yaze::editor::kTileSelectorTab</a>, and <a class="el" href="overworld__editor_8h_source.html#l00265">status_</a>.</p>
+<p class="reference">References <a class="el" href="style_8cc_source.html#l00385">yaze::gui::BeginChildWithScrollbar()</a>, <a class="el" href="style_8cc_source.html#l00373">yaze::gui::BeginPadding()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00764">DrawAreaGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00705">DrawTile16Selector()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00740">DrawTile8Selector()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00794">DrawTileSelector()</a>, <a class="el" href="style_8cc_source.html#l00383">yaze::gui::EndNoPadding()</a>, <a class="el" href="overworld__editor_8h_source.html#l00055">yaze::editor::kTileSelectorTab</a>, and <a class="el" href="overworld__editor_8h_source.html#l00265">status_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00794">DrawTileSelector()</a>.</p>
 
 </div>
 </div>
@@ -1851,23 +1976,20 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01088">1088</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01122">1122</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00226">palette_</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>, and <a class="el" href="overworld__editor_8h_source.html#l00235">sprite_previews_</a>.</p>
+<p class="reference">References <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01122">LoadSpriteGraphics()</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00226">palette_</a>, <a class="el" href="macro_8h_source.html#l00051">RETURN_IF_ERROR</a>, and <a class="el" href="overworld__editor_8h_source.html#l00235">sprite_previews_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01023">LoadGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01057">LoadGraphics()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01122">LoadSpriteGraphics()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_aded47d4407b9bae41a05b3338176f6a5_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_aded47d4407b9bae41a05b3338176f6a5_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1OverworldEditor_aded47d4407b9bae41a05b3338176f6a5_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_aded47d4407b9bae41a05b3338176f6a5_cgraph">
-<area shape="rect" title=" " alt="" coords="5,39,189,79"/>
-<area shape="rect" href="classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="237,5,380,46"/>
-<area shape="poly" title=" " alt="" coords="189,42,221,37,222,42,190,47"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Used to render a bitmap to the screen." alt="" coords="240,71,376,111"/>
-<area shape="poly" title=" " alt="" coords="190,70,225,76,224,81,189,76"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="428,71,551,111"/>
-<area shape="poly" title=" " alt="" coords="377,88,412,88,412,94,377,94"/>
+<area shape="rect" title=" " alt="" coords="5,29,189,70"/>
+<area shape="poly" title=" " alt="" coords="57,29,55,19,62,10,76,5,97,3,120,5,134,11,131,16,119,10,97,8,77,10,65,15,60,20,62,28"/>
+<area shape="rect" href="classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="237,29,380,70"/>
+<area shape="poly" title=" " alt="" coords="189,47,221,47,221,52,189,52"/>
 </map>
 </div>
 
@@ -1896,17 +2018,18 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01253">1253</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01287">1287</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="style_8cc_source.html#l00348">yaze::gui::BeginWindowWithDisplaySettings()</a>, <a class="el" href="overworld__editor_8h_source.html#l00180">DW_AREA_GFX</a>, <a class="el" href="overworld__editor_8h_source.html#l00182">DW_AREA_PAL</a>, <a class="el" href="overworld__editor_8h_source.html#l00185">DW_SPR_GFX_PART1</a>, <a class="el" href="overworld__editor_8h_source.html#l00186">DW_SPR_GFX_PART2</a>, <a class="el" href="overworld__editor_8h_source.html#l00189">DW_SPR_PAL_PART1</a>, <a class="el" href="overworld__editor_8h_source.html#l00190">DW_SPR_PAL_PART2</a>, <a class="el" href="style_8cc_source.html#l00368">yaze::gui::EndWindowWithDisplaySettings()</a>, <a class="el" href="overworld__editor_8h_source.html#l00223">gfx_group_editor_</a>, <a class="el" href="overworld__editor_8h_source.html#l00179">LW_AREA_GFX</a>, <a class="el" href="overworld__editor_8h_source.html#l00181">LW_AREA_PAL</a>, <a class="el" href="overworld__editor_8h_source.html#l00183">LW_SPR_GFX_PART1</a>, <a class="el" href="overworld__editor_8h_source.html#l00184">LW_SPR_GFX_PART2</a>, <a class="el" href="overworld__editor_8h_source.html#l00187">LW_SPR_PAL_PART1</a>, <a class="el" href="overworld__editor_8h_source.html#l00188">LW_SPR_PAL_PART2</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00258">properties_canvas_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00265">status_</a>.</p>
+<p class="reference">References <a class="el" href="style_8cc_source.html#l00348">yaze::gui::BeginWindowWithDisplaySettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01287">DrawOverworldProperties()</a>, <a class="el" href="overworld__editor_8h_source.html#l00180">DW_AREA_GFX</a>, <a class="el" href="overworld__editor_8h_source.html#l00182">DW_AREA_PAL</a>, <a class="el" href="overworld__editor_8h_source.html#l00185">DW_SPR_GFX_PART1</a>, <a class="el" href="overworld__editor_8h_source.html#l00186">DW_SPR_GFX_PART2</a>, <a class="el" href="overworld__editor_8h_source.html#l00189">DW_SPR_PAL_PART1</a>, <a class="el" href="overworld__editor_8h_source.html#l00190">DW_SPR_PAL_PART2</a>, <a class="el" href="style_8cc_source.html#l00368">yaze::gui::EndWindowWithDisplaySettings()</a>, <a class="el" href="overworld__editor_8h_source.html#l00223">gfx_group_editor_</a>, <a class="el" href="overworld__editor_8h_source.html#l00179">LW_AREA_GFX</a>, <a class="el" href="overworld__editor_8h_source.html#l00181">LW_AREA_PAL</a>, <a class="el" href="overworld__editor_8h_source.html#l00183">LW_SPR_GFX_PART1</a>, <a class="el" href="overworld__editor_8h_source.html#l00184">LW_SPR_GFX_PART2</a>, <a class="el" href="overworld__editor_8h_source.html#l00187">LW_SPR_PAL_PART1</a>, <a class="el" href="overworld__editor_8h_source.html#l00188">LW_SPR_PAL_PART2</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00258">properties_canvas_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00265">status_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00098">DrawToolset()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01358">UpdateUsageStats()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01287">DrawOverworldProperties()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00132">DrawToolset()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01392">UpdateUsageStats()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_a8c3a9537b4b9623c2d72f9fc863fc45b_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_a8c3a9537b4b9623c2d72f9fc863fc45b_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1OverworldEditor_a8c3a9537b4b9623c2d72f9fc863fc45b_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_a8c3a9537b4b9623c2d72f9fc863fc45b_cgraph">
 <area shape="rect" title=" " alt="" coords="5,39,189,79"/>
+<area shape="poly" title=" " alt="" coords="54,39,51,29,59,20,74,14,97,12,122,14,137,21,135,26,121,20,97,17,75,19,62,24,57,30,59,37"/>
 <area shape="rect" href="namespaceyaze_1_1gui.html#acffe7391ebbf95b3313a697bcb629ab3" title=" " alt="" coords="237,5,418,46"/>
 <area shape="poly" title=" " alt="" coords="189,43,221,38,221,44,189,48"/>
 <area shape="rect" href="namespaceyaze_1_1gui.html#a9c7ada455779c5dd4b0ce5a4c5d39fda" title=" " alt="" coords="242,71,412,111"/>
@@ -1939,23 +2062,28 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01358">1358</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01392">1392</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8cc_source.html#l01253">DrawOverworldProperties()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01409">DrawUsageGrid()</a>, <a class="el" href="hex_8cc_source.html#l00033">yaze::util::HexByte()</a>, <a class="el" href="common_8h_source.html#l00048">yaze::zelda3::kEntranceNames</a>, <a class="el" href="overworld__editor_8h_source.html#l00037">yaze::editor::kOWEditFlags</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00258">properties_canvas_</a>, <a class="el" href="overworld__editor_8h_source.html#l00220">rom_</a>, <a class="el" href="overworld__editor_8h_source.html#l00203">selected_entrance_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00204">selected_usage_map_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8cc_source.html#l01287">DrawOverworldProperties()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01443">DrawUsageGrid()</a>, <a class="el" href="hex_8cc_source.html#l00033">yaze::util::HexByte()</a>, <a class="el" href="common_8h_source.html#l00048">yaze::zelda3::kEntranceNames</a>, <a class="el" href="overworld__editor_8h_source.html#l00037">yaze::editor::kOWEditFlags</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, <a class="el" href="overworld__editor_8h_source.html#l00258">properties_canvas_</a>, <a class="el" href="overworld__editor_8h_source.html#l00220">rom_</a>, <a class="el" href="overworld__editor_8h_source.html#l00203">selected_entrance_</a>, <a class="el" href="overworld__editor_8h_source.html#l00204">selected_usage_map_</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01392">UpdateUsageStats()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01392">UpdateUsageStats()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_a14ae026e75243f19defc01df2f7523f2_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_a14ae026e75243f19defc01df2f7523f2_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1editor_1_1OverworldEditor_a14ae026e75243f19defc01df2f7523f2_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_a14ae026e75243f19defc01df2f7523f2_cgraph">
-<area shape="rect" title=" " alt="" coords="5,71,189,111"/>
-<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a8c3a9537b4b9623c2d72f9fc863fc45b" title=" " alt="" coords="237,5,420,46"/>
-<area shape="poly" title=" " alt="" coords="171,68,238,48,240,53,172,73"/>
-<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a374ed17f504a7503785b6af574f9ad32" title=" " alt="" coords="237,71,420,111"/>
-<area shape="poly" title=" " alt="" coords="189,88,221,88,221,94,189,94"/>
-<area shape="rect" href="namespaceyaze_1_1util.html#a3f4d30bc153c6a955a8471f68c18aafd" title=" " alt="" coords="266,136,391,161"/>
-<area shape="poly" title=" " alt="" coords="182,109,259,129,258,134,181,114"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#acffe7391ebbf95b3313a697bcb629ab3" title=" " alt="" coords="468,5,649,46"/>
-<area shape="poly" title=" " alt="" coords="420,23,452,23,452,28,420,28"/>
+<area shape="rect" title=" " alt="" coords="5,119,189,159"/>
+<area shape="poly" title=" " alt="" coords="53,119,51,109,58,100,74,94,97,92,122,94,137,101,135,106,121,100,97,97,75,99,62,104,56,110,59,117"/>
+<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a8c3a9537b4b9623c2d72f9fc863fc45b" title=" " alt="" coords="237,29,420,70"/>
+<area shape="poly" title=" " alt="" coords="148,116,236,81,255,73,257,78,238,85,150,121"/>
+<area shape="rect" href="classyaze_1_1editor_1_1OverworldEditor.html#a374ed17f504a7503785b6af574f9ad32" title=" " alt="" coords="237,119,420,159"/>
+<area shape="poly" title=" " alt="" coords="189,136,221,136,221,142,189,142"/>
+<area shape="rect" href="namespaceyaze_1_1util.html#a3f4d30bc153c6a955a8471f68c18aafd" title=" " alt="" coords="266,184,391,209"/>
+<area shape="poly" title=" " alt="" coords="182,157,259,177,258,182,181,162"/>
+<area shape="poly" title=" " alt="" coords="285,29,283,19,290,10,305,5,328,3,353,5,368,11,366,16,352,10,328,8,306,10,293,15,288,21,290,28"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#acffe7391ebbf95b3313a697bcb629ab3" title=" " alt="" coords="468,29,649,70"/>
+<area shape="poly" title=" " alt="" coords="420,47,452,47,452,52,420,52"/>
+<area shape="poly" title=" " alt="" coords="285,119,283,109,290,100,305,94,328,92,353,94,368,101,366,106,352,100,328,97,306,99,293,104,288,110,290,117"/>
 </map>
 </div>
 
@@ -1984,11 +2112,20 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01409">1409</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01443">1443</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00204">selected_usage_map_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8cc_source.html#l01443">DrawUsageGrid()</a>, and <a class="el" href="overworld__editor_8h_source.html#l00204">selected_usage_map_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01358">UpdateUsageStats()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01443">DrawUsageGrid()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01392">UpdateUsageStats()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_a374ed17f504a7503785b6af574f9ad32_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_a374ed17f504a7503785b6af574f9ad32_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1OverworldEditor_a374ed17f504a7503785b6af574f9ad32_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_a374ed17f504a7503785b6af574f9ad32_cgraph">
+<area shape="rect" title=" " alt="" coords="5,29,189,70"/>
+<area shape="poly" title=" " alt="" coords="62,29,60,19,66,10,78,5,97,3,117,5,129,11,126,16,115,10,97,8,80,10,69,14,65,20,67,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -2015,9 +2152,20 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01457">1457</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l01491">1491</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00202">current_tile16_</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__editor_8h_source.html#l00194">current_map_</a>, <a class="el" href="overworld__editor_8h_source.html#l00202">current_tile16_</a>, <a class="el" href="overworld__editor_8cc_source.html#l01491">DrawDebugWindow()</a>, <a class="el" href="overworld__editor_8h_source.html#l00237">overworld_</a>, and <a class="el" href="overworld__editor_8h_source.html#l00250">ow_map_canvas_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01491">DrawDebugWindow()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1OverworldEditor_afacae18d961e34d0617af016c995fc55_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1OverworldEditor_afacae18d961e34d0617af016c995fc55_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1OverworldEditor_afacae18d961e34d0617af016c995fc55_cgraph" id="aclassyaze_1_1editor_1_1OverworldEditor_afacae18d961e34d0617af016c995fc55_cgraph">
+<area shape="rect" title=" " alt="" coords="5,29,189,70"/>
+<area shape="poly" title=" " alt="" coords="62,29,60,19,66,10,78,5,97,3,117,5,129,11,126,16,115,10,97,8,80,10,69,14,65,20,67,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -2036,7 +2184,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00093">93</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00784">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00850">DrawOverworldExits()</a>, and <a class="el" href="overworld__editor_8h_source.html#l00092">jump_to_tab()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00818">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00884">DrawOverworldExits()</a>, and <a class="el" href="overworld__editor_8h_source.html#l00092">jump_to_tab()</a>.</p>
 
 </div>
 </div>
@@ -2062,7 +2210,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00175">175</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00609">CheckForMousePan()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00624">DrawOverworldCanvas()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00784">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00850">DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00901">DrawOverworldItems()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00951">DrawOverworldSprites()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00098">DrawToolset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00643">CheckForMousePan()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00658">DrawOverworldCanvas()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00818">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00884">DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00935">DrawOverworldItems()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00985">DrawOverworldSprites()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00132">DrawToolset()</a>.</p>
 
 </div>
 </div>
@@ -2088,7 +2236,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00176">176</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00609">CheckForMousePan()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00643">CheckForMousePan()</a>.</p>
 
 </div>
 </div>
@@ -2114,7 +2262,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00193">193</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00560">CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00471">CheckForOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00316">DrawCustomOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00408">DrawOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00784">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00850">DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00901">DrawOverworldItems()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00391">DrawOverworldMaps()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00246">DrawOverworldMapSettings()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01109">RefreshChildMap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00594">CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00505">CheckForOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00350">DrawCustomOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00442">DrawOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00818">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00884">DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00935">DrawOverworldItems()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00425">DrawOverworldMaps()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00280">DrawOverworldMapSettings()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01143">RefreshChildMap()</a>.</p>
 
 </div>
 </div>
@@ -2140,7 +2288,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00194">194</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00560">CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00533">CheckForSelectRectangle()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00730">DrawAreaGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00316">DrawCustomOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01457">DrawDebugWindow()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00408">DrawOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00784">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00246">DrawOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00098">DrawToolset()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01160">RefreshMapPalette()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01180">RefreshMapProperties()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01124">RefreshOverworldMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01201">RefreshTile16Blockset()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00445">RenderUpdatedMapBitmap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00594">CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00567">CheckForSelectRectangle()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00764">DrawAreaGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00350">DrawCustomOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01491">DrawDebugWindow()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00442">DrawOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00818">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00280">DrawOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00132">DrawToolset()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01194">RefreshMapPalette()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01214">RefreshMapProperties()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01158">RefreshOverworldMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01235">RefreshTile16Blockset()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00479">RenderUpdatedMapBitmap()</a>.</p>
 
 </div>
 </div>
@@ -2166,7 +2314,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00195">195</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00560">CheckForCurrentMap()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01124">RefreshOverworldMap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00594">CheckForCurrentMap()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01158">RefreshOverworldMap()</a>.</p>
 
 </div>
 </div>
@@ -2192,7 +2340,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00196">196</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00784">DrawOverworldEntrances()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00818">DrawOverworldEntrances()</a>.</p>
 
 </div>
 </div>
@@ -2218,7 +2366,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00197">197</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00850">DrawOverworldExits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00884">DrawOverworldExits()</a>.</p>
 
 </div>
 </div>
@@ -2244,7 +2392,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00198">198</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00901">DrawOverworldItems()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00935">DrawOverworldItems()</a>.</p>
 
 </div>
 </div>
@@ -2270,7 +2418,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00199">199</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00951">DrawOverworldSprites()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00985">DrawOverworldSprites()</a>.</p>
 
 </div>
 </div>
@@ -2296,7 +2444,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00200">200</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01201">RefreshTile16Blockset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01235">RefreshTile16Blockset()</a>.</p>
 
 </div>
 </div>
@@ -2322,7 +2470,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00201">201</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00316">DrawCustomOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00246">DrawOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00951">DrawOverworldSprites()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01180">RefreshMapProperties()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00350">DrawCustomOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00280">DrawOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00985">DrawOverworldSprites()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01214">RefreshMapProperties()</a>.</p>
 
 </div>
 </div>
@@ -2348,7 +2496,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00202">202</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00471">CheckForOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00533">CheckForSelectRectangle()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01457">DrawDebugWindow()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00408">DrawOverworldEdits()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00671">DrawTile16Selector()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00505">CheckForOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00567">CheckForSelectRectangle()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01491">DrawDebugWindow()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00442">DrawOverworldEdits()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00705">DrawTile16Selector()</a>.</p>
 
 </div>
 </div>
@@ -2374,7 +2522,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00203">203</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01358">UpdateUsageStats()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01392">UpdateUsageStats()</a>.</p>
 
 </div>
 </div>
@@ -2400,7 +2548,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00204">204</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01409">DrawUsageGrid()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01358">UpdateUsageStats()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01443">DrawUsageGrid()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01392">UpdateUsageStats()</a>.</p>
 
 </div>
 </div>
@@ -2426,7 +2574,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00206">206</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00624">DrawOverworldCanvas()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00706">DrawTile8Selector()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00062">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00658">DrawOverworldCanvas()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00740">DrawTile8Selector()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00091">Load()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00100">Update()</a>.</p>
 
 </div>
 </div>
@@ -2452,7 +2600,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00207">207</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00671">DrawTile16Selector()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01023">LoadGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00705">DrawTile16Selector()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01057">LoadGraphics()</a>.</p>
 
 </div>
 </div>
@@ -2502,7 +2650,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00209">209</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00671">DrawTile16Selector()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00098">DrawToolset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00705">DrawTile16Selector()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00132">DrawToolset()</a>.</p>
 
 </div>
 </div>
@@ -2528,7 +2676,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00210">210</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00081">DrawFullscreenCanvas()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00098">DrawToolset()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00062">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00115">DrawFullscreenCanvas()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00132">DrawToolset()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00100">Update()</a>.</p>
 
 </div>
 </div>
@@ -2554,7 +2702,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00211">211</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00609">CheckForMousePan()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00643">CheckForMousePan()</a>.</p>
 
 </div>
 </div>
@@ -2580,7 +2728,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00212">212</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00784">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00850">DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00901">DrawOverworldItems()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00951">DrawOverworldSprites()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00818">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00884">DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00935">DrawOverworldItems()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00985">DrawOverworldSprites()</a>.</p>
 
 </div>
 </div>
@@ -2630,7 +2778,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00215">215</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00471">CheckForOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00533">CheckForSelectRectangle()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00408">DrawOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01023">LoadGraphics()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01201">RefreshTile16Blockset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00505">CheckForOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00567">CheckForSelectRectangle()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00442">DrawOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01057">LoadGraphics()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01235">RefreshTile16Blockset()</a>.</p>
 
 </div>
 </div>
@@ -2704,7 +2852,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00220">220</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01023">LoadGraphics()</a>, <a class="el" href="overworld__editor_8h_source.html#l00077">OverworldEditor()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00062">Update()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01358">UpdateUsageStats()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00091">Load()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01057">LoadGraphics()</a>, <a class="el" href="overworld__editor_8h_source.html#l00077">OverworldEditor()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00100">Update()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01392">UpdateUsageStats()</a>.</p>
 
 </div>
 </div>
@@ -2730,7 +2878,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00222">222</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00671">DrawTile16Selector()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00098">DrawToolset()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00062">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00705">DrawTile16Selector()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00132">DrawToolset()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00091">Load()</a>.</p>
 
 </div>
 </div>
@@ -2756,7 +2904,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00223">223</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01253">DrawOverworldProperties()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00098">DrawToolset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01287">DrawOverworldProperties()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00132">DrawToolset()</a>.</p>
 
 </div>
 </div>
@@ -2806,7 +2954,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00226">226</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00730">DrawAreaGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00098">DrawToolset()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01023">LoadGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01088">LoadSpriteGraphics()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01201">RefreshTile16Blockset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00764">DrawAreaGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00132">DrawToolset()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01057">LoadGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01122">LoadSpriteGraphics()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01235">RefreshTile16Blockset()</a>.</p>
 
 </div>
 </div>
@@ -2856,7 +3004,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00229">229</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00671">DrawTile16Selector()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01023">LoadGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01201">RefreshTile16Blockset()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00062">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00705">DrawTile16Selector()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00091">Load()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01057">LoadGraphics()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01235">RefreshTile16Blockset()</a>.</p>
 
 </div>
 </div>
@@ -2882,7 +3030,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00230">230</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01023">LoadGraphics()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00062">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00091">Load()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01057">LoadGraphics()</a>.</p>
 
 </div>
 </div>
@@ -2932,7 +3080,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00233">233</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00560">CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00391">DrawOverworldMaps()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00098">DrawToolset()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01023">LoadGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01109">RefreshChildMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01160">RefreshMapPalette()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01124">RefreshOverworldMap()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00445">RenderUpdatedMapBitmap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00594">CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00425">DrawOverworldMaps()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00132">DrawToolset()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01057">LoadGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01143">RefreshChildMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01194">RefreshMapPalette()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01158">RefreshOverworldMap()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00479">RenderUpdatedMapBitmap()</a>.</p>
 
 </div>
 </div>
@@ -2958,7 +3106,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00234">234</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00730">DrawAreaGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00764">DrawAreaGraphics()</a>.</p>
 
 </div>
 </div>
@@ -2984,7 +3132,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00235">235</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00951">DrawOverworldSprites()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01088">LoadSpriteGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00985">DrawOverworldSprites()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01122">LoadSpriteGraphics()</a>.</p>
 
 </div>
 </div>
@@ -3010,7 +3158,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00237">237</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00560">CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00471">CheckForOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00533">CheckForSelectRectangle()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00730">DrawAreaGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00316">DrawCustomOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01457">DrawDebugWindow()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00624">DrawOverworldCanvas()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00408">DrawOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00784">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00850">DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00901">DrawOverworldItems()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00246">DrawOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01253">DrawOverworldProperties()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00951">DrawOverworldSprites()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00098">DrawToolset()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01023">LoadGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01088">LoadSpriteGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01109">RefreshChildMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01160">RefreshMapPalette()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01180">RefreshMapProperties()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01124">RefreshOverworldMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01201">RefreshTile16Blockset()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01001">Save()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00062">Update()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01358">UpdateUsageStats()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00594">CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00505">CheckForOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00567">CheckForSelectRectangle()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00764">DrawAreaGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00350">DrawCustomOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01491">DrawDebugWindow()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00658">DrawOverworldCanvas()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00442">DrawOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00818">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00884">DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00935">DrawOverworldItems()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00280">DrawOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01287">DrawOverworldProperties()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00985">DrawOverworldSprites()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00132">DrawToolset()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00091">Load()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01057">LoadGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01122">LoadSpriteGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01143">RefreshChildMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01194">RefreshMapPalette()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01214">RefreshMapProperties()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01158">RefreshOverworldMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01235">RefreshTile16Blockset()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01035">Save()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01392">UpdateUsageStats()</a>.</p>
 
 </div>
 </div>
@@ -3060,7 +3208,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00240">240</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00951">DrawOverworldSprites()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00985">DrawOverworldSprites()</a>.</p>
 
 </div>
 </div>
@@ -3086,7 +3234,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00242">242</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00784">DrawOverworldEntrances()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00818">DrawOverworldEntrances()</a>.</p>
 
 </div>
 </div>
@@ -3112,7 +3260,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00243">243</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00850">DrawOverworldExits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00884">DrawOverworldExits()</a>.</p>
 
 </div>
 </div>
@@ -3138,7 +3286,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00244">244</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00901">DrawOverworldItems()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00935">DrawOverworldItems()</a>.</p>
 
 </div>
 </div>
@@ -3164,7 +3312,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00245">245</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00062">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00091">Load()</a>.</p>
 
 </div>
 </div>
@@ -3190,7 +3338,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00247">247</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00784">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00850">DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00901">DrawOverworldItems()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00951">DrawOverworldSprites()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00818">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00884">DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00935">DrawOverworldItems()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00985">DrawOverworldSprites()</a>.</p>
 
 </div>
 </div>
@@ -3216,7 +3364,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00248">248</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00784">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00850">DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00901">DrawOverworldItems()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00951">DrawOverworldSprites()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00818">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00884">DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00935">DrawOverworldItems()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00985">DrawOverworldSprites()</a>.</p>
 
 </div>
 </div>
@@ -3246,7 +3394,7 @@ Here is the call graph for this function:</div>
 </div><!-- fragment -->
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00250">250</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00560">CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00609">CheckForMousePan()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00471">CheckForOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00533">CheckForSelectRectangle()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01457">DrawDebugWindow()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00624">DrawOverworldCanvas()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00408">DrawOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00784">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00850">DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00901">DrawOverworldItems()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00391">DrawOverworldMaps()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00951">DrawOverworldSprites()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00098">DrawToolset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00594">CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00643">CheckForMousePan()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00505">CheckForOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00567">CheckForSelectRectangle()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01491">DrawDebugWindow()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00658">DrawOverworldCanvas()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00442">DrawOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00818">DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00884">DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00935">DrawOverworldItems()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00425">DrawOverworldMaps()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00985">DrawOverworldSprites()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00132">DrawToolset()</a>.</p>
 
 </div>
 </div>
@@ -3276,7 +3424,7 @@ Here is the call graph for this function:</div>
 </div><!-- fragment -->
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00252">252</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00730">DrawAreaGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00764">DrawAreaGraphics()</a>.</p>
 
 </div>
 </div>
@@ -3305,7 +3453,7 @@ Here is the call graph for this function:</div>
 </div><!-- fragment -->
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00254">254</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00471">CheckForOverworldEdits()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00671">DrawTile16Selector()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00505">CheckForOverworldEdits()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00705">DrawTile16Selector()</a>.</p>
 
 </div>
 </div>
@@ -3335,7 +3483,7 @@ Here is the call graph for this function:</div>
 </div><!-- fragment -->
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00256">256</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00706">DrawTile8Selector()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00740">DrawTile8Selector()</a>.</p>
 
 </div>
 </div>
@@ -3361,7 +3509,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00258">258</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01253">DrawOverworldProperties()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01358">UpdateUsageStats()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01287">DrawOverworldProperties()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01392">UpdateUsageStats()</a>.</p>
 
 </div>
 </div>
@@ -3387,7 +3535,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00260">260</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00098">DrawToolset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00132">DrawToolset()</a>.</p>
 
 </div>
 </div>
@@ -3441,7 +3589,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00264">264</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01487">Initialize()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00062">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00062">Initialize()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00100">Update()</a>.</p>
 
 </div>
 </div>
@@ -3467,7 +3615,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00265">265</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00316">DrawCustomOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00624">DrawOverworldCanvas()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00246">DrawOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01253">DrawOverworldProperties()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00760">DrawTileSelector()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00098">DrawToolset()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01109">RefreshChildMap()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00062">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00350">DrawCustomOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00658">DrawOverworldCanvas()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00280">DrawOverworldMapSettings()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01287">DrawOverworldProperties()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00794">DrawTileSelector()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00132">DrawToolset()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01143">RefreshChildMap()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00100">Update()</a>.</p>
 
 </div>
 </div>

@@ -139,6 +139,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a962c3dd0edd54427dc0fc089c53cbe6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4ff651cfbe56f7801b81f49bfbb1f3a2" id="r_a4ff651cfbe56f7801b81f49bfbb1f3a2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4ff651cfbe56f7801b81f49bfbb1f3a2">Initialize</a> () override</td></tr>
 <tr class="separator:a4ff651cfbe56f7801b81f49bfbb1f3a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a440f6028d86e3bcc7d02ab8a93420cdf" id="r_a440f6028d86e3bcc7d02ab8a93420cdf"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a440f6028d86e3bcc7d02ab8a93420cdf">Load</a> () override</td></tr>
+<tr class="separator:a440f6028d86e3bcc7d02ab8a93420cdf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a98e0b834d9e207f1de749b2d6aa72ae8" id="r_a98e0b834d9e207f1de749b2d6aa72ae8"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a98e0b834d9e207f1de749b2d6aa72ae8">Update</a> () override</td></tr>
 <tr class="separator:a98e0b834d9e207f1de749b2d6aa72ae8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a900d657b95201ae99e2f072162779cb0" id="r_a900d657b95201ae99e2f072162779cb0"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a900d657b95201ae99e2f072162779cb0">Undo</a> () override</td></tr>
@@ -414,7 +416,7 @@ Additional Inherited Members</h2></td></tr>
 <tr><td class="fieldname"><a id="ad451d580c9c4ebb48f636b4c6d40c1efae22acaa6e4e9a5118b4cf5b81f8fbe1e" name="ad451d580c9c4ebb48f636b4c6d40c1efae22acaa6e4e9a5118b4cf5b81f8fbe1e"></a>kFill&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00071">71</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00072">72</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
 </div>
 </div>
@@ -444,7 +446,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00059">59</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="editor_8h_source.html#l00030">yaze::editor::kGraphics</a>, and <a class="el" href="editor_8h_source.html#l00072">yaze::editor::Editor::type_</a>.</p>
+<p class="reference">References <a class="el" href="editor_8h_source.html#l00032">yaze::editor::kGraphics</a>, and <a class="el" href="editor_8h_source.html#l00079">yaze::editor::Editor::type_</a>.</p>
 
 </div>
 </div>
@@ -478,6 +480,35 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="a440f6028d86e3bcc7d02ab8a93420cdf" name="a440f6028d86e3bcc7d02ab8a93420cdf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a440f6028d86e3bcc7d02ab8a93420cdf">&#9670;&#160;</a></span>Load()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::editor::GraphicsEditor::Load </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel override">override</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#aec4a1012c0639bb4b60183a735418b32">yaze::editor::Editor</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00045">45</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+
+</div>
+</div>
 <a id="a98e0b834d9e207f1de749b2d6aa72ae8" name="a98e0b834d9e207f1de749b2d6aa72ae8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a98e0b834d9e207f1de749b2d6aa72ae8">&#9670;&#160;</a></span>Update()</h2>
 
@@ -503,9 +534,9 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#aed50bffbba9a0d98f8f3d24ad753f887">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00045">45</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00050">50</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00156">asset_browser_</a>, <a class="el" href="macro_8h_source.html#l00105">CLEAR_AND_RETURN_STATUS</a>, <a class="el" href="macro_8h_source.html#l00005">END_TAB_ITEM</a>, <a class="el" href="rom_8h_source.html#l00270">yaze::GraphicsSheetManager::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, <a class="el" href="macro_8h_source.html#l00004">TAB_ITEM</a>, <a class="el" href="graphics__editor_8cc_source.html#l00063">UpdateGfxEdit()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00386">UpdateLinkGfxView()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00157">asset_browser_</a>, <a class="el" href="macro_8h_source.html#l00094">CLEAR_AND_RETURN_STATUS</a>, <a class="el" href="macro_8h_source.html#l00005">END_TAB_ITEM</a>, <a class="el" href="rom_8h_source.html#l00270">yaze::GraphicsSheetManager::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00196">status_</a>, <a class="el" href="macro_8h_source.html#l00004">TAB_ITEM</a>, <a class="el" href="graphics__editor_8cc_source.html#l00068">UpdateGfxEdit()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00391">UpdateLinkGfxView()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -550,7 +581,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#af70b26886a360613f59e8f45b4bfcdec">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00063">63</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00064">64</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
 </div>
 </div>
@@ -579,7 +610,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#a127b4d84d1a76c5af2998a1a30f45e95">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00064">64</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00065">65</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
 </div>
 </div>
@@ -608,7 +639,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#a0c8c0eae68a91298050a709c146a9472">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00065">65</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00066">66</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
 </div>
 </div>
@@ -637,7 +668,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#a0d1cad7dc7377bcf699c76dc1da4bd2f">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00066">66</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00067">67</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
 </div>
 </div>
@@ -666,7 +697,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#adcc475a4870b75a9db44e78244c6fc4e">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00067">67</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00068">68</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
 </div>
 </div>
@@ -695,7 +726,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#aac357035ff66579bbad4181c5aa47e56">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00068">68</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00069">69</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
 </div>
 </div>
@@ -722,11 +753,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00063">63</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00068">68</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="graphics__editor_8cc_source.html#l00094">DrawGfxEditToolset()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00038">yaze::editor::kGfxEditTableFlags</a>, <a class="el" href="macro_8h_source.html#l00027">NEXT_COLUMN</a>, <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, <a class="el" href="graphics__editor_8cc_source.html#l00182">UpdateGfxSheetList()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00255">UpdateGfxTabView()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00355">UpdatePaletteColumn()</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8cc_source.html#l00099">DrawGfxEditToolset()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00038">yaze::editor::kGfxEditTableFlags</a>, <a class="el" href="macro_8h_source.html#l00016">NEXT_COLUMN</a>, <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>, <a class="el" href="graphics__editor_8h_source.html#l00196">status_</a>, <a class="el" href="graphics__editor_8cc_source.html#l00187">UpdateGfxSheetList()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00260">UpdateGfxTabView()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00360">UpdatePaletteColumn()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00045">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00050">Update()</a>.</p>
 
 </div>
 </div>
@@ -754,11 +785,11 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <dl class="todo"><dt><b><a class="el" href="todo.html#_todo000004">Todo</a></b></dt><dd>Update the interaction for multi select on sheets </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00182">182</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00187">187</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00109">current_sheet_</a>, <a class="el" href="rom_8h_source.html#l00270">yaze::GraphicsSheetManager::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00188">graphics_bin_canvas_</a>, <a class="el" href="rom_8h_source.html#l00030">yaze::kNumGfxSheets</a>, <a class="el" href="graphics__editor_8h_source.html#l00111">open_sheets_</a>, and <a class="el" href="graphics__editor_8h_source.html#l00118">sheet_scale_</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00110">current_sheet_</a>, <a class="el" href="rom_8h_source.html#l00270">yaze::GraphicsSheetManager::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00189">graphics_bin_canvas_</a>, <a class="el" href="rom_8h_source.html#l00030">yaze::kNumGfxSheets</a>, <a class="el" href="graphics__editor_8h_source.html#l00112">open_sheets_</a>, and <a class="el" href="graphics__editor_8h_source.html#l00119">sheet_scale_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00063">UpdateGfxEdit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00068">UpdateGfxEdit()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -797,11 +828,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00255">255</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00260">260</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00112">child_window_sheets_</a>, <a class="el" href="graphics__editor_8h_source.html#l00108">current_color_</a>, <a class="el" href="graphics__editor_8h_source.html#l00119">current_scale_</a>, <a class="el" href="graphics__editor_8h_source.html#l00109">current_sheet_</a>, <a class="el" href="graphics__editor_8h_source.html#l00189">current_sheet_canvas_</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="rom_8h_source.html#l00270">yaze::GraphicsSheetManager::GetInstance()</a>, <a class="el" href="icons_8h_source.html#l00084">ICON_MD_ADD</a>, <a class="el" href="rom_8h_source.html#l00279">yaze::GraphicsSheetManager::mutable_gfx_sheets()</a>, <a class="el" href="graphics__editor_8h_source.html#l00111">open_sheets_</a>, <a class="el" href="graphics__editor_8h_source.html#l00113">release_queue_</a>, <a class="el" href="graphics__editor_8h_source.html#l00110">tile_size_</a>, and <a class="el" href="renderer_8h_source.html#l00055">yaze::core::Renderer::UpdateBitmap()</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00113">child_window_sheets_</a>, <a class="el" href="graphics__editor_8h_source.html#l00109">current_color_</a>, <a class="el" href="graphics__editor_8h_source.html#l00120">current_scale_</a>, <a class="el" href="graphics__editor_8h_source.html#l00110">current_sheet_</a>, <a class="el" href="graphics__editor_8h_source.html#l00190">current_sheet_canvas_</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="rom_8h_source.html#l00270">yaze::GraphicsSheetManager::GetInstance()</a>, <a class="el" href="icons_8h_source.html#l00084">ICON_MD_ADD</a>, <a class="el" href="rom_8h_source.html#l00279">yaze::GraphicsSheetManager::mutable_gfx_sheets()</a>, <a class="el" href="graphics__editor_8h_source.html#l00112">open_sheets_</a>, <a class="el" href="graphics__editor_8h_source.html#l00114">release_queue_</a>, <a class="el" href="graphics__editor_8h_source.html#l00111">tile_size_</a>, and <a class="el" href="renderer_8h_source.html#l00055">yaze::core::Renderer::UpdateBitmap()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00063">UpdateGfxEdit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00068">UpdateGfxEdit()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -844,11 +875,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00355">355</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00360">360</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00109">current_sheet_</a>, <a class="el" href="graphics__editor_8h_source.html#l00114">edit_palette_group_name_index_</a>, <a class="el" href="graphics__editor_8h_source.html#l00116">edit_palette_index_</a>, <a class="el" href="graphics__editor_8h_source.html#l00117">edit_palette_sub_index_</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="rom_8h_source.html#l00270">yaze::GraphicsSheetManager::GetInstance()</a>, <a class="el" href="input_8cc_source.html#l00134">yaze::gui::InputHex()</a>, <a class="el" href="snes__palette_8h_source.html#l00051">yaze::gfx::kPaletteGroupAddressesKeys</a>, <a class="el" href="graphics__editor_8h_source.html#l00111">open_sheets_</a>, <a class="el" href="graphics__editor_8h_source.html#l00134">refresh_graphics_</a>, <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>, <a class="el" href="color_8cc_source.html#l00123">yaze::gui::SelectablePalettePipeline()</a>, <a class="el" href="style_8cc_source.html#l00754">yaze::gui::TextWithSeparators()</a>, and <a class="el" href="renderer_8h_source.html#l00055">yaze::core::Renderer::UpdateBitmap()</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00110">current_sheet_</a>, <a class="el" href="graphics__editor_8h_source.html#l00115">edit_palette_group_name_index_</a>, <a class="el" href="graphics__editor_8h_source.html#l00117">edit_palette_index_</a>, <a class="el" href="graphics__editor_8h_source.html#l00118">edit_palette_sub_index_</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="rom_8h_source.html#l00270">yaze::GraphicsSheetManager::GetInstance()</a>, <a class="el" href="input_8cc_source.html#l00134">yaze::gui::InputHex()</a>, <a class="el" href="snes__palette_8h_source.html#l00051">yaze::gfx::kPaletteGroupAddressesKeys</a>, <a class="el" href="graphics__editor_8h_source.html#l00112">open_sheets_</a>, <a class="el" href="graphics__editor_8h_source.html#l00135">refresh_graphics_</a>, <a class="el" href="macro_8h_source.html#l00051">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>, <a class="el" href="color_8cc_source.html#l00123">yaze::gui::SelectablePalettePipeline()</a>, <a class="el" href="style_8cc_source.html#l00754">yaze::gui::TextWithSeparators()</a>, and <a class="el" href="renderer_8h_source.html#l00055">yaze::core::Renderer::UpdateBitmap()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00063">UpdateGfxEdit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00068">UpdateGfxEdit()</a>.</p>
 
 </div>
 </div>
@@ -875,11 +906,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00094">94</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00099">99</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="clipboard_8cc_source.html#l00009">yaze::core::CopyImageToClipboard()</a>, <a class="el" href="graphics__editor_8h_source.html#l00108">current_color_</a>, <a class="el" href="graphics__editor_8h_source.html#l00119">current_scale_</a>, <a class="el" href="graphics__editor_8h_source.html#l00109">current_sheet_</a>, <a class="el" href="clipboard_8cc_source.html#l00010">yaze::core::GetImageFromClipboard()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="rom_8h_source.html#l00270">yaze::GraphicsSheetManager::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00158">gfx_edit_mode_</a>, <a class="el" href="rom_8h_source.html#l00276">yaze::GraphicsSheetManager::gfx_sheets()</a>, <a class="el" href="macro_8h_source.html#l00033">HOVER_HINT</a>, <a class="el" href="icons_8h_source.html#l00463">ICON_MD_CONTENT_COPY</a>, <a class="el" href="icons_8h_source.html#l00465">ICON_MD_CONTENT_PASTE</a>, <a class="el" href="icons_8h_source.html#l00623">ICON_MD_DRAW</a>, <a class="el" href="icons_8h_source.html#l00828">ICON_MD_FORMAT_COLOR_FILL</a>, <a class="el" href="icons_8h_source.html#l01678">ICON_MD_SELECT_ALL</a>, <a class="el" href="icons_8h_source.html#l02189">ICON_MD_ZOOM_IN</a>, <a class="el" href="icons_8h_source.html#l02191">ICON_MD_ZOOM_OUT</a>, <a class="el" href="input_8cc_source.html#l00167">yaze::gui::InputHexByte()</a>, <a class="el" href="graphics__editor_8h_source.html#l00074">kFill</a>, <a class="el" href="graphics__editor_8h_source.html#l00073">kPencil</a>, <a class="el" href="graphics__editor_8h_source.html#l00072">kSelect</a>, <a class="el" href="rom_8h_source.html#l00279">yaze::GraphicsSheetManager::mutable_gfx_sheets()</a>, <a class="el" href="graphics__editor_8h_source.html#l00110">tile_size_</a>, and <a class="el" href="renderer_8h_source.html#l00055">yaze::core::Renderer::UpdateBitmap()</a>.</p>
+<p class="reference">References <a class="el" href="clipboard_8cc_source.html#l00009">yaze::core::CopyImageToClipboard()</a>, <a class="el" href="graphics__editor_8h_source.html#l00109">current_color_</a>, <a class="el" href="graphics__editor_8h_source.html#l00120">current_scale_</a>, <a class="el" href="graphics__editor_8h_source.html#l00110">current_sheet_</a>, <a class="el" href="clipboard_8cc_source.html#l00010">yaze::core::GetImageFromClipboard()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="rom_8h_source.html#l00270">yaze::GraphicsSheetManager::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00159">gfx_edit_mode_</a>, <a class="el" href="rom_8h_source.html#l00276">yaze::GraphicsSheetManager::gfx_sheets()</a>, <a class="el" href="macro_8h_source.html#l00022">HOVER_HINT</a>, <a class="el" href="icons_8h_source.html#l00463">ICON_MD_CONTENT_COPY</a>, <a class="el" href="icons_8h_source.html#l00465">ICON_MD_CONTENT_PASTE</a>, <a class="el" href="icons_8h_source.html#l00623">ICON_MD_DRAW</a>, <a class="el" href="icons_8h_source.html#l00828">ICON_MD_FORMAT_COLOR_FILL</a>, <a class="el" href="icons_8h_source.html#l01678">ICON_MD_SELECT_ALL</a>, <a class="el" href="icons_8h_source.html#l02189">ICON_MD_ZOOM_IN</a>, <a class="el" href="icons_8h_source.html#l02191">ICON_MD_ZOOM_OUT</a>, <a class="el" href="input_8cc_source.html#l00167">yaze::gui::InputHexByte()</a>, <a class="el" href="graphics__editor_8h_source.html#l00075">kFill</a>, <a class="el" href="graphics__editor_8h_source.html#l00074">kPencil</a>, <a class="el" href="graphics__editor_8h_source.html#l00073">kSelect</a>, <a class="el" href="rom_8h_source.html#l00279">yaze::GraphicsSheetManager::mutable_gfx_sheets()</a>, <a class="el" href="graphics__editor_8h_source.html#l00111">tile_size_</a>, and <a class="el" href="renderer_8h_source.html#l00055">yaze::core::Renderer::UpdateBitmap()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00063">UpdateGfxEdit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00068">UpdateGfxEdit()</a>.</p>
 
 </div>
 </div>
@@ -906,11 +937,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00386">386</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00391">391</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="macro_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="macro_8h_source.html#l00005">END_TAB_ITEM</a>, <a class="el" href="graphics__editor_8cc_source.html#l00038">yaze::editor::kGfxEditTableFlags</a>, <a class="el" href="snes__tile_8h_source.html#l00016">yaze::gfx::kTilesheetHeight</a>, <a class="el" href="graphics__editor_8h_source.html#l00191">link_canvas_</a>, <a class="el" href="graphics__editor_8h_source.html#l00179">link_sheets_</a>, <a class="el" href="rom_8cc_source.html#l00058">yaze::LoadLinkGraphics()</a>, <a class="el" href="macro_8h_source.html#l00027">NEXT_COLUMN</a>, <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>, and <a class="el" href="macro_8h_source.html#l00004">TAB_ITEM</a>.</p>
+<p class="reference">References <a class="el" href="macro_8h_source.html#l00059">ASSIGN_OR_RETURN</a>, <a class="el" href="macro_8h_source.html#l00005">END_TAB_ITEM</a>, <a class="el" href="graphics__editor_8cc_source.html#l00038">yaze::editor::kGfxEditTableFlags</a>, <a class="el" href="snes__tile_8h_source.html#l00016">yaze::gfx::kTilesheetHeight</a>, <a class="el" href="graphics__editor_8h_source.html#l00192">link_canvas_</a>, <a class="el" href="graphics__editor_8h_source.html#l00180">link_sheets_</a>, <a class="el" href="rom_8cc_source.html#l00058">yaze::LoadLinkGraphics()</a>, <a class="el" href="macro_8h_source.html#l00016">NEXT_COLUMN</a>, <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>, and <a class="el" href="macro_8h_source.html#l00004">TAB_ITEM</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00045">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00050">Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -955,11 +986,11 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <dl class="todo"><dt><b><a class="el" href="todo.html#_todo000005">Todo</a></b></dt><dd>Implement the Super Donkey 1 graphics decompression </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00434">434</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00439">439</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="macro_8h_source.html#l00020">BEGIN_TABLE</a>, <a class="el" href="graphics__editor_8h_source.html#l00176">bin_bitmap_</a>, <a class="el" href="canvas_8cc_source.html#l00831">yaze::gui::BitmapCanvasPipeline()</a>, <a class="el" href="graphics__editor_8h_source.html#l00174">cgx_bitmap_</a>, <a class="el" href="graphics__editor_8h_source.html#l00140">cgx_loaded_</a>, <a class="el" href="graphics__editor_8h_source.html#l00139">col_file_</a>, <a class="el" href="graphics__editor_8cc_source.html#l00526">DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00710">DrawClipboardImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00740">DrawExperimentalFeatures()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00678">DrawFileImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00756">DrawMemoryEditor()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00589">DrawPaletteControls()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00559">DrawScrImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00499">DrawToolset()</a>, <a class="el" href="macro_8h_source.html#l00005">END_TAB_ITEM</a>, <a class="el" href="macro_8h_source.html#l00029">END_TABLE</a>, <a class="el" href="graphics__editor_8h_source.html#l00136">gfx_loaded_</a>, <a class="el" href="graphics__editor_8h_source.html#l00185">import_canvas_</a>, <a class="el" href="macro_8h_source.html#l00027">NEXT_COLUMN</a>, <a class="el" href="graphics__editor_8h_source.html#l00135">open_memory_editor_</a>, <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="graphics__editor_8h_source.html#l00175">scr_bitmap_</a>, <a class="el" href="graphics__editor_8h_source.html#l00186">scr_canvas_</a>, <a class="el" href="graphics__editor_8h_source.html#l00141">scr_loaded_</a>, <a class="el" href="macro_8h_source.html#l00021">SETUP_COLUMN</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00138">super_donkey_</a>, <a class="el" href="macro_8h_source.html#l00004">TAB_ITEM</a>, and <a class="el" href="macro_8h_source.html#l00023">TABLE_HEADERS</a>.</p>
+<p class="reference">References <a class="el" href="macro_8h_source.html#l00009">BEGIN_TABLE</a>, <a class="el" href="graphics__editor_8h_source.html#l00177">bin_bitmap_</a>, <a class="el" href="canvas_8cc_source.html#l00831">yaze::gui::BitmapCanvasPipeline()</a>, <a class="el" href="graphics__editor_8h_source.html#l00175">cgx_bitmap_</a>, <a class="el" href="graphics__editor_8h_source.html#l00141">cgx_loaded_</a>, <a class="el" href="graphics__editor_8h_source.html#l00140">col_file_</a>, <a class="el" href="graphics__editor_8cc_source.html#l00528">DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00712">DrawClipboardImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00742">DrawExperimentalFeatures()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00680">DrawFileImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00758">DrawMemoryEditor()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00591">DrawPaletteControls()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00561">DrawScrImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00504">DrawToolset()</a>, <a class="el" href="macro_8h_source.html#l00005">END_TAB_ITEM</a>, <a class="el" href="macro_8h_source.html#l00018">END_TABLE</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">gfx_loaded_</a>, <a class="el" href="graphics__editor_8h_source.html#l00186">import_canvas_</a>, <a class="el" href="macro_8h_source.html#l00016">NEXT_COLUMN</a>, <a class="el" href="graphics__editor_8h_source.html#l00136">open_memory_editor_</a>, <a class="el" href="macro_8h_source.html#l00051">RETURN_IF_ERROR</a>, <a class="el" href="graphics__editor_8h_source.html#l00176">scr_bitmap_</a>, <a class="el" href="graphics__editor_8h_source.html#l00187">scr_canvas_</a>, <a class="el" href="graphics__editor_8h_source.html#l00142">scr_loaded_</a>, <a class="el" href="macro_8h_source.html#l00010">SETUP_COLUMN</a>, <a class="el" href="graphics__editor_8h_source.html#l00196">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00139">super_donkey_</a>, <a class="el" href="macro_8h_source.html#l00004">TAB_ITEM</a>, and <a class="el" href="macro_8h_source.html#l00012">TABLE_HEADERS</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00045">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00050">Update()</a>.</p>
 
 </div>
 </div>
@@ -986,11 +1017,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00526">526</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00528">528</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00174">cgx_bitmap_</a>, <a class="el" href="graphics__editor_8h_source.html#l00169">cgx_data_</a>, <a class="el" href="graphics__editor_8h_source.html#l00149">cgx_file_name_</a>, <a class="el" href="graphics__editor_8h_source.html#l00148">cgx_file_path_</a>, <a class="el" href="graphics__editor_8h_source.html#l00140">cgx_loaded_</a>, <a class="el" href="graphics__editor_8h_source.html#l00139">col_file_</a>, <a class="el" href="graphics__editor_8h_source.html#l00126">current_bpp_</a>, <a class="el" href="graphics__editor_8h_source.html#l00168">decoded_cgx_</a>, <a class="el" href="graphics__editor_8h_source.html#l00171">decoded_col_</a>, <a class="el" href="graphics__editor_8h_source.html#l00170">extra_cgx_data_</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="scad__format_8cc_source.html#l00042">yaze::gfx::LoadCgx()</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, and <a class="el" href="style_8cc_source.html#l00754">yaze::gui::TextWithSeparators()</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00175">cgx_bitmap_</a>, <a class="el" href="graphics__editor_8h_source.html#l00170">cgx_data_</a>, <a class="el" href="graphics__editor_8h_source.html#l00150">cgx_file_name_</a>, <a class="el" href="graphics__editor_8h_source.html#l00149">cgx_file_path_</a>, <a class="el" href="graphics__editor_8h_source.html#l00141">cgx_loaded_</a>, <a class="el" href="graphics__editor_8h_source.html#l00140">col_file_</a>, <a class="el" href="graphics__editor_8h_source.html#l00127">current_bpp_</a>, <a class="el" href="graphics__editor_8h_source.html#l00169">decoded_cgx_</a>, <a class="el" href="graphics__editor_8h_source.html#l00172">decoded_col_</a>, <a class="el" href="graphics__editor_8h_source.html#l00171">extra_cgx_data_</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00138">is_open_</a>, <a class="el" href="scad__format_8cc_source.html#l00042">yaze::gfx::LoadCgx()</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="graphics__editor_8h_source.html#l00196">status_</a>, and <a class="el" href="style_8cc_source.html#l00754">yaze::gui::TextWithSeparators()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -1017,11 +1048,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00559">559</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00561">561</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00126">current_bpp_</a>, <a class="el" href="graphics__editor_8h_source.html#l00168">decoded_cgx_</a>, <a class="el" href="graphics__editor_8h_source.html#l00171">decoded_col_</a>, <a class="el" href="graphics__editor_8h_source.html#l00173">decoded_scr_data_</a>, <a class="el" href="scad__format_8cc_source.html#l00119">yaze::gfx::DrawScrWithCgx()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="scad__format_8cc_source.html#l00067">yaze::gfx::LoadScr()</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="graphics__editor_8h_source.html#l00175">scr_bitmap_</a>, <a class="el" href="graphics__editor_8h_source.html#l00172">scr_data_</a>, <a class="el" href="graphics__editor_8h_source.html#l00151">scr_file_name_</a>, <a class="el" href="graphics__editor_8h_source.html#l00150">scr_file_path_</a>, <a class="el" href="graphics__editor_8h_source.html#l00141">scr_loaded_</a>, <a class="el" href="graphics__editor_8h_source.html#l00127">scr_mod_value_</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, and <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00127">current_bpp_</a>, <a class="el" href="graphics__editor_8h_source.html#l00169">decoded_cgx_</a>, <a class="el" href="graphics__editor_8h_source.html#l00172">decoded_col_</a>, <a class="el" href="graphics__editor_8h_source.html#l00174">decoded_scr_data_</a>, <a class="el" href="scad__format_8cc_source.html#l00119">yaze::gfx::DrawScrWithCgx()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00138">is_open_</a>, <a class="el" href="scad__format_8cc_source.html#l00067">yaze::gfx::LoadScr()</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="graphics__editor_8h_source.html#l00176">scr_bitmap_</a>, <a class="el" href="graphics__editor_8h_source.html#l00173">scr_data_</a>, <a class="el" href="graphics__editor_8h_source.html#l00152">scr_file_name_</a>, <a class="el" href="graphics__editor_8h_source.html#l00151">scr_file_path_</a>, <a class="el" href="graphics__editor_8h_source.html#l00142">scr_loaded_</a>, <a class="el" href="graphics__editor_8h_source.html#l00128">scr_mod_value_</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, and <a class="el" href="graphics__editor_8h_source.html#l00196">status_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -1048,11 +1079,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00678">678</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00680">680</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00130">bin_size_</a>, <a class="el" href="graphics__editor_8h_source.html#l00123">current_offset_</a>, <a class="el" href="graphics__editor_8cc_source.html#l00766">DecompressImportData()</a>, <a class="el" href="graphics__editor_8h_source.html#l00145">file_path_</a>, <a class="el" href="macro_8h_source.html#l00033">HOVER_HINT</a>, <a class="el" href="input_8cc_source.html#l00134">yaze::gui::InputHex()</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>, and <a class="el" href="style_8cc_source.html#l00754">yaze::gui::TextWithSeparators()</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00131">bin_size_</a>, <a class="el" href="graphics__editor_8h_source.html#l00124">current_offset_</a>, <a class="el" href="graphics__editor_8cc_source.html#l00768">DecompressImportData()</a>, <a class="el" href="graphics__editor_8h_source.html#l00146">file_path_</a>, <a class="el" href="macro_8h_source.html#l00022">HOVER_HINT</a>, <a class="el" href="input_8cc_source.html#l00134">yaze::gui::InputHex()</a>, <a class="el" href="graphics__editor_8h_source.html#l00138">is_open_</a>, <a class="el" href="macro_8h_source.html#l00051">RETURN_IF_ERROR</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="graphics__editor_8h_source.html#l00196">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00161">temp_rom_</a>, and <a class="el" href="style_8cc_source.html#l00754">yaze::gui::TextWithSeparators()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1095,9 +1126,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00637">637</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00639">639</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="macro_8h_source.html#l00033">HOVER_HINT</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="graphics__editor_8h_source.html#l00152">obj_file_path_</a>, <a class="el" href="graphics__editor_8h_source.html#l00142">obj_loaded_</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>, and <a class="el" href="style_8cc_source.html#l00754">yaze::gui::TextWithSeparators()</a>.</p>
+<p class="reference">References <a class="el" href="macro_8h_source.html#l00022">HOVER_HINT</a>, <a class="el" href="graphics__editor_8h_source.html#l00138">is_open_</a>, <a class="el" href="graphics__editor_8h_source.html#l00153">obj_file_path_</a>, <a class="el" href="graphics__editor_8h_source.html#l00143">obj_loaded_</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="graphics__editor_8h_source.html#l00196">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00161">temp_rom_</a>, and <a class="el" href="style_8cc_source.html#l00754">yaze::gui::TextWithSeparators()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1136,9 +1167,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00655">655</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00657">657</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="compression_8cc_source.html#l01372">yaze::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="macro_8h_source.html#l00033">HOVER_HINT</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="compression_8h_source.html#l00053">yaze::gfx::lc_lz2::kNintendoMode1</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, <a class="el" href="style_8cc_source.html#l00754">yaze::gui::TextWithSeparators()</a>, <a class="el" href="graphics__editor_8h_source.html#l00153">tilemap_file_path_</a>, <a class="el" href="graphics__editor_8h_source.html#l00143">tilemap_loaded_</a>, and <a class="el" href="graphics__editor_8h_source.html#l00161">tilemap_rom_</a>.</p>
+<p class="reference">References <a class="el" href="compression_8cc_source.html#l01372">yaze::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="macro_8h_source.html#l00022">HOVER_HINT</a>, <a class="el" href="graphics__editor_8h_source.html#l00138">is_open_</a>, <a class="el" href="compression_8h_source.html#l00053">yaze::gfx::lc_lz2::kNintendoMode1</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="graphics__editor_8h_source.html#l00196">status_</a>, <a class="el" href="style_8cc_source.html#l00754">yaze::gui::TextWithSeparators()</a>, <a class="el" href="graphics__editor_8h_source.html#l00154">tilemap_file_path_</a>, <a class="el" href="graphics__editor_8h_source.html#l00144">tilemap_loaded_</a>, and <a class="el" href="graphics__editor_8h_source.html#l00162">tilemap_rom_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1181,11 +1212,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00499">499</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00504">504</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="icons_8h_source.html#l01193">ICON_MD_MEMORY</a>, <a class="el" href="graphics__editor_8h_source.html#l00135">open_memory_editor_</a>, and <a class="el" href="macro_8h_source.html#l00016">TEXT_COLUMN</a>.</p>
+<p class="reference">References <a class="el" href="icons_8h_source.html#l01193">ICON_MD_MEMORY</a>, and <a class="el" href="graphics__editor_8h_source.html#l00136">open_memory_editor_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -1212,11 +1243,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00589">589</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00591">591</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00139">col_file_</a>, <a class="el" href="graphics__editor_8h_source.html#l00147">col_file_name_</a>, <a class="el" href="graphics__editor_8h_source.html#l00183">col_file_palette_</a>, <a class="el" href="graphics__editor_8h_source.html#l00181">col_file_palette_group_</a>, <a class="el" href="graphics__editor_8h_source.html#l00146">col_file_path_</a>, <a class="el" href="snes__palette_8cc_source.html#l00299">yaze::gfx::CreatePaletteGroupFromColFile()</a>, <a class="el" href="graphics__editor_8h_source.html#l00122">current_palette_</a>, <a class="el" href="graphics__editor_8h_source.html#l00125">current_palette_index_</a>, <a class="el" href="scad__format_8cc_source.html#l00158">yaze::gfx::DecodeColFile()</a>, <a class="el" href="graphics__editor_8h_source.html#l00171">decoded_col_</a>, <a class="el" href="snes__color_8cc_source.html#l00089">yaze::gfx::GetColFileData()</a>, <a class="el" href="macro_8h_source.html#l00033">HOVER_HINT</a>, <a class="el" href="input_8cc_source.html#l00134">yaze::gui::InputHex()</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="snes__palette_8h_source.html#l00051">yaze::gfx::kPaletteGroupAddressesKeys</a>, <a class="el" href="graphics__editor_8h_source.html#l00134">refresh_graphics_</a>, <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>, <a class="el" href="color_8cc_source.html#l00123">yaze::gui::SelectablePalettePipeline()</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>, and <a class="el" href="style_8cc_source.html#l00754">yaze::gui::TextWithSeparators()</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00140">col_file_</a>, <a class="el" href="graphics__editor_8h_source.html#l00148">col_file_name_</a>, <a class="el" href="graphics__editor_8h_source.html#l00184">col_file_palette_</a>, <a class="el" href="graphics__editor_8h_source.html#l00182">col_file_palette_group_</a>, <a class="el" href="graphics__editor_8h_source.html#l00147">col_file_path_</a>, <a class="el" href="snes__palette_8cc_source.html#l00299">yaze::gfx::CreatePaletteGroupFromColFile()</a>, <a class="el" href="graphics__editor_8h_source.html#l00123">current_palette_</a>, <a class="el" href="graphics__editor_8h_source.html#l00126">current_palette_index_</a>, <a class="el" href="scad__format_8cc_source.html#l00158">yaze::gfx::DecodeColFile()</a>, <a class="el" href="graphics__editor_8h_source.html#l00172">decoded_col_</a>, <a class="el" href="snes__color_8cc_source.html#l00089">yaze::gfx::GetColFileData()</a>, <a class="el" href="macro_8h_source.html#l00022">HOVER_HINT</a>, <a class="el" href="input_8cc_source.html#l00134">yaze::gui::InputHex()</a>, <a class="el" href="graphics__editor_8h_source.html#l00138">is_open_</a>, <a class="el" href="snes__palette_8h_source.html#l00051">yaze::gfx::kPaletteGroupAddressesKeys</a>, <a class="el" href="graphics__editor_8h_source.html#l00135">refresh_graphics_</a>, <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>, <a class="el" href="color_8cc_source.html#l00123">yaze::gui::SelectablePalettePipeline()</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="graphics__editor_8h_source.html#l00196">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00161">temp_rom_</a>, and <a class="el" href="style_8cc_source.html#l00754">yaze::gui::TextWithSeparators()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -1243,11 +1274,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00710">710</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00712">712</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00131">clipboard_offset_</a>, <a class="el" href="graphics__editor_8h_source.html#l00132">clipboard_size_</a>, <a class="el" href="graphics__editor_8cc_source.html#l00766">DecompressImportData()</a>, <a class="el" href="input_8cc_source.html#l00134">yaze::gui::InputHex()</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, <a class="el" href="graphics__editor_8h_source.html#l00129">num_sheets_to_load_</a>, <a class="el" href="graphics__editor_8h_source.html#l00135">open_memory_editor_</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>, and <a class="el" href="style_8cc_source.html#l00754">yaze::gui::TextWithSeparators()</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00132">clipboard_offset_</a>, <a class="el" href="graphics__editor_8h_source.html#l00133">clipboard_size_</a>, <a class="el" href="graphics__editor_8cc_source.html#l00768">DecompressImportData()</a>, <a class="el" href="input_8cc_source.html#l00134">yaze::gui::InputHex()</a>, <a class="el" href="graphics__editor_8h_source.html#l00138">is_open_</a>, <a class="el" href="graphics__editor_8h_source.html#l00130">num_sheets_to_load_</a>, <a class="el" href="graphics__editor_8h_source.html#l00136">open_memory_editor_</a>, <a class="el" href="graphics__editor_8h_source.html#l00196">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00161">temp_rom_</a>, and <a class="el" href="style_8cc_source.html#l00754">yaze::gui::TextWithSeparators()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1290,11 +1321,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00740">740</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00742">742</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="graphics__editor_8cc_source.html#l00790">DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8h_source.html#l00145">file_path_</a>, <a class="el" href="macro_8h_source.html#l00062">RETURN_IF_ERROR</a>, and <a class="el" href="style_8cc_source.html#l00754">yaze::gui::TextWithSeparators()</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8cc_source.html#l00792">DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8h_source.html#l00146">file_path_</a>, <a class="el" href="macro_8h_source.html#l00051">RETURN_IF_ERROR</a>, and <a class="el" href="style_8cc_source.html#l00754">yaze::gui::TextWithSeparators()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1337,11 +1368,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00756">756</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00758">758</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00137">is_open_</a>, and <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>.</p>
+<p class="reference">References <a class="el" href="graphics__editor_8h_source.html#l00138">is_open_</a>, and <a class="el" href="graphics__editor_8h_source.html#l00161">temp_rom_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -1368,11 +1399,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00766">766</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00768">768</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="macro_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="graphics__editor_8h_source.html#l00176">bin_bitmap_</a>, <a class="el" href="graphics__editor_8h_source.html#l00139">col_file_</a>, <a class="el" href="graphics__editor_8h_source.html#l00183">col_file_palette_</a>, <a class="el" href="graphics__editor_8h_source.html#l00123">current_offset_</a>, <a class="el" href="graphics__editor_8h_source.html#l00122">current_palette_</a>, <a class="el" href="compression_8cc_source.html#l01372">yaze::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00136">gfx_loaded_</a>, <a class="el" href="graphics__editor_8h_source.html#l00166">import_data_</a>, <a class="el" href="snes__tile_8h_source.html#l00017">yaze::gfx::kTilesheetDepth</a>, <a class="el" href="snes__tile_8h_source.html#l00015">yaze::gfx::kTilesheetWidth</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>, <a class="el" href="snes__tile_8cc_source.html#l00139">yaze::gfx::SnesTo8bppSheet()</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>, and <a class="el" href="graphics__editor_8h_source.html#l00182">z3_rom_palette_</a>.</p>
+<p class="reference">References <a class="el" href="macro_8h_source.html#l00059">ASSIGN_OR_RETURN</a>, <a class="el" href="graphics__editor_8h_source.html#l00177">bin_bitmap_</a>, <a class="el" href="graphics__editor_8h_source.html#l00140">col_file_</a>, <a class="el" href="graphics__editor_8h_source.html#l00184">col_file_palette_</a>, <a class="el" href="graphics__editor_8h_source.html#l00124">current_offset_</a>, <a class="el" href="graphics__editor_8h_source.html#l00123">current_palette_</a>, <a class="el" href="compression_8cc_source.html#l01372">yaze::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00137">gfx_loaded_</a>, <a class="el" href="graphics__editor_8h_source.html#l00167">import_data_</a>, <a class="el" href="snes__tile_8h_source.html#l00017">yaze::gfx::kTilesheetDepth</a>, <a class="el" href="snes__tile_8h_source.html#l00015">yaze::gfx::kTilesheetWidth</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>, <a class="el" href="snes__tile_8cc_source.html#l00139">yaze::gfx::SnesTo8bppSheet()</a>, <a class="el" href="graphics__editor_8h_source.html#l00196">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00161">temp_rom_</a>, and <a class="el" href="graphics__editor_8h_source.html#l00183">z3_rom_palette_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00710">DrawClipboardImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00678">DrawFileImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00712">DrawClipboardImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00680">DrawFileImport()</a>.</p>
 
 </div>
 </div>
@@ -1399,11 +1430,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00790">790</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8cc_source.html#l00792">792</a> of file <a class="el" href="graphics__editor_8cc_source.html">graphics_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="macro_8h_source.html#l00070">ASSIGN_OR_RETURN</a>, <a class="el" href="graphics__editor_8h_source.html#l00139">col_file_</a>, <a class="el" href="graphics__editor_8h_source.html#l00181">col_file_palette_group_</a>, <a class="el" href="graphics__editor_8h_source.html#l00122">current_palette_</a>, <a class="el" href="graphics__editor_8h_source.html#l00125">current_palette_index_</a>, <a class="el" href="compression_8cc_source.html#l01372">yaze::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00178">gfx_sheets_</a>, <a class="el" href="snes__palette_8h_source.html#l00051">yaze::gfx::kPaletteGroupAddressesKeys</a>, <a class="el" href="graphics__editor_8h_source.html#l00031">yaze::editor::kSuperDonkeySprites</a>, <a class="el" href="graphics__editor_8h_source.html#l00023">yaze::editor::kSuperDonkeyTiles</a>, <a class="el" href="snes__tile_8h_source.html#l00017">yaze::gfx::kTilesheetDepth</a>, <a class="el" href="snes__tile_8h_source.html#l00016">yaze::gfx::kTilesheetHeight</a>, <a class="el" href="snes__tile_8h_source.html#l00015">yaze::gfx::kTilesheetWidth</a>, <a class="el" href="graphics__editor_8h_source.html#l00129">num_sheets_to_load_</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>, <a class="el" href="snes__tile_8cc_source.html#l00139">yaze::gfx::SnesTo8bppSheet()</a>, <a class="el" href="graphics__editor_8h_source.html#l00195">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00138">super_donkey_</a>, <a class="el" href="graphics__editor_8h_source.html#l00160">temp_rom_</a>, and <a class="el" href="graphics__editor_8h_source.html#l00182">z3_rom_palette_</a>.</p>
+<p class="reference">References <a class="el" href="macro_8h_source.html#l00059">ASSIGN_OR_RETURN</a>, <a class="el" href="graphics__editor_8h_source.html#l00140">col_file_</a>, <a class="el" href="graphics__editor_8h_source.html#l00182">col_file_palette_group_</a>, <a class="el" href="graphics__editor_8h_source.html#l00123">current_palette_</a>, <a class="el" href="graphics__editor_8h_source.html#l00126">current_palette_index_</a>, <a class="el" href="compression_8cc_source.html#l01372">yaze::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::editor::Renderer::GetInstance()</a>, <a class="el" href="graphics__editor_8h_source.html#l00179">gfx_sheets_</a>, <a class="el" href="snes__palette_8h_source.html#l00051">yaze::gfx::kPaletteGroupAddressesKeys</a>, <a class="el" href="graphics__editor_8h_source.html#l00031">yaze::editor::kSuperDonkeySprites</a>, <a class="el" href="graphics__editor_8h_source.html#l00023">yaze::editor::kSuperDonkeyTiles</a>, <a class="el" href="snes__tile_8h_source.html#l00017">yaze::gfx::kTilesheetDepth</a>, <a class="el" href="snes__tile_8h_source.html#l00016">yaze::gfx::kTilesheetHeight</a>, <a class="el" href="snes__tile_8h_source.html#l00015">yaze::gfx::kTilesheetWidth</a>, <a class="el" href="graphics__editor_8h_source.html#l00130">num_sheets_to_load_</a>, <a class="el" href="renderer_8h_source.html#l00048">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>, <a class="el" href="snes__tile_8cc_source.html#l00139">yaze::gfx::SnesTo8bppSheet()</a>, <a class="el" href="graphics__editor_8h_source.html#l00196">status_</a>, <a class="el" href="graphics__editor_8h_source.html#l00139">super_donkey_</a>, <a class="el" href="graphics__editor_8h_source.html#l00161">temp_rom_</a>, and <a class="el" href="graphics__editor_8h_source.html#l00183">z3_rom_palette_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00740">DrawExperimentalFeatures()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00742">DrawExperimentalFeatures()</a>.</p>
 
 </div>
 </div>
@@ -1428,9 +1459,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00108">108</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00109">109</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00094">DrawGfxEditToolset()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00255">UpdateGfxTabView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00099">DrawGfxEditToolset()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00260">UpdateGfxTabView()</a>.</p>
 
 </div>
 </div>
@@ -1454,9 +1485,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00109">109</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00110">110</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00094">DrawGfxEditToolset()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00182">UpdateGfxSheetList()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00255">UpdateGfxTabView()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00355">UpdatePaletteColumn()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00099">DrawGfxEditToolset()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00187">UpdateGfxSheetList()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00260">UpdateGfxTabView()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00360">UpdatePaletteColumn()</a>.</p>
 
 </div>
 </div>
@@ -1480,9 +1511,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00110">110</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00111">111</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00094">DrawGfxEditToolset()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00255">UpdateGfxTabView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00099">DrawGfxEditToolset()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00260">UpdateGfxTabView()</a>.</p>
 
 </div>
 </div>
@@ -1506,9 +1537,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00111">111</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00112">112</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00182">UpdateGfxSheetList()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00255">UpdateGfxTabView()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00355">UpdatePaletteColumn()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00187">UpdateGfxSheetList()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00260">UpdateGfxTabView()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00360">UpdatePaletteColumn()</a>.</p>
 
 </div>
 </div>
@@ -1532,9 +1563,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00112">112</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00113">113</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00255">UpdateGfxTabView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00260">UpdateGfxTabView()</a>.</p>
 
 </div>
 </div>
@@ -1558,9 +1589,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00113">113</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00114">114</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00255">UpdateGfxTabView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00260">UpdateGfxTabView()</a>.</p>
 
 </div>
 </div>
@@ -1584,9 +1615,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00114">114</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00115">115</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00355">UpdatePaletteColumn()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00360">UpdatePaletteColumn()</a>.</p>
 
 </div>
 </div>
@@ -1610,7 +1641,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00115">115</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00116">116</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
 </div>
 </div>
@@ -1634,9 +1665,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00116">116</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00117">117</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00355">UpdatePaletteColumn()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00360">UpdatePaletteColumn()</a>.</p>
 
 </div>
 </div>
@@ -1660,9 +1691,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00117">117</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00118">118</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00355">UpdatePaletteColumn()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00360">UpdatePaletteColumn()</a>.</p>
 
 </div>
 </div>
@@ -1686,9 +1717,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00118">118</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00119">119</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00182">UpdateGfxSheetList()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00187">UpdateGfxSheetList()</a>.</p>
 
 </div>
 </div>
@@ -1712,9 +1743,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00119">119</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00120">120</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00094">DrawGfxEditToolset()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00255">UpdateGfxTabView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00099">DrawGfxEditToolset()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00260">UpdateGfxTabView()</a>.</p>
 
 </div>
 </div>
@@ -1738,9 +1769,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00122">122</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00123">123</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00766">DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00790">DecompressSuperDonkey()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00589">DrawPaletteControls()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00768">DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00792">DecompressSuperDonkey()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00591">DrawPaletteControls()</a>.</p>
 
 </div>
 </div>
@@ -1764,9 +1795,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00123">123</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00124">124</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00766">DecompressImportData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00678">DrawFileImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00768">DecompressImportData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00680">DrawFileImport()</a>.</p>
 
 </div>
 </div>
@@ -1790,7 +1821,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00124">124</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00125">125</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
 </div>
 </div>
@@ -1814,9 +1845,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00125">125</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00126">126</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00790">DecompressSuperDonkey()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00589">DrawPaletteControls()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00792">DecompressSuperDonkey()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00591">DrawPaletteControls()</a>.</p>
 
 </div>
 </div>
@@ -1840,9 +1871,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00126">126</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00127">127</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00526">DrawCgxImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00559">DrawScrImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00528">DrawCgxImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00561">DrawScrImport()</a>.</p>
 
 </div>
 </div>
@@ -1866,9 +1897,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00127">127</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00128">128</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00559">DrawScrImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00561">DrawScrImport()</a>.</p>
 
 </div>
 </div>
@@ -1892,9 +1923,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00129">129</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00130">130</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00790">DecompressSuperDonkey()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00710">DrawClipboardImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00792">DecompressSuperDonkey()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00712">DrawClipboardImport()</a>.</p>
 
 </div>
 </div>
@@ -1918,9 +1949,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00130">130</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00131">131</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00678">DrawFileImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00680">DrawFileImport()</a>.</p>
 
 </div>
 </div>
@@ -1944,9 +1975,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00131">131</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00132">132</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00710">DrawClipboardImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00712">DrawClipboardImport()</a>.</p>
 
 </div>
 </div>
@@ -1970,9 +2001,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00132">132</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00133">133</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00710">DrawClipboardImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00712">DrawClipboardImport()</a>.</p>
 
 </div>
 </div>
@@ -1996,9 +2027,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00134">134</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00135">135</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00589">DrawPaletteControls()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00355">UpdatePaletteColumn()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00591">DrawPaletteControls()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00360">UpdatePaletteColumn()</a>.</p>
 
 </div>
 </div>
@@ -2022,9 +2053,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00135">135</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00136">136</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00710">DrawClipboardImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00499">DrawToolset()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00712">DrawClipboardImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00504">DrawToolset()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -2048,9 +2079,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00136">136</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00137">137</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00766">DecompressImportData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00768">DecompressImportData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -2074,9 +2105,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00137">137</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00138">138</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00526">DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00710">DrawClipboardImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00678">DrawFileImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00756">DrawMemoryEditor()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00637">DrawObjImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00589">DrawPaletteControls()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00559">DrawScrImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00655">DrawTilemapImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00528">DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00712">DrawClipboardImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00680">DrawFileImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00758">DrawMemoryEditor()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00639">DrawObjImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00591">DrawPaletteControls()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00561">DrawScrImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00657">DrawTilemapImport()</a>.</p>
 
 </div>
 </div>
@@ -2100,9 +2131,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00138">138</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00139">139</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00790">DecompressSuperDonkey()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00792">DecompressSuperDonkey()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -2126,9 +2157,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00139">139</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00140">140</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00766">DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00790">DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00526">DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00589">DrawPaletteControls()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00768">DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00792">DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00528">DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00591">DrawPaletteControls()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -2152,9 +2183,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00140">140</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00141">141</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00526">DrawCgxImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00528">DrawCgxImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -2178,9 +2209,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00141">141</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00142">142</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00559">DrawScrImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00561">DrawScrImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -2204,9 +2235,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00142">142</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00143">143</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00637">DrawObjImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00639">DrawObjImport()</a>.</p>
 
 </div>
 </div>
@@ -2230,9 +2261,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00143">143</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00144">144</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00655">DrawTilemapImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00657">DrawTilemapImport()</a>.</p>
 
 </div>
 </div>
@@ -2256,9 +2287,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00145">145</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00146">146</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00740">DrawExperimentalFeatures()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00678">DrawFileImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00742">DrawExperimentalFeatures()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00680">DrawFileImport()</a>.</p>
 
 </div>
 </div>
@@ -2282,9 +2313,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00146">146</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00147">147</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00589">DrawPaletteControls()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00591">DrawPaletteControls()</a>.</p>
 
 </div>
 </div>
@@ -2308,9 +2339,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00147">147</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00148">148</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00589">DrawPaletteControls()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00591">DrawPaletteControls()</a>.</p>
 
 </div>
 </div>
@@ -2334,9 +2365,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00148">148</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00149">149</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00526">DrawCgxImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00528">DrawCgxImport()</a>.</p>
 
 </div>
 </div>
@@ -2360,9 +2391,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00149">149</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00150">150</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00526">DrawCgxImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00528">DrawCgxImport()</a>.</p>
 
 </div>
 </div>
@@ -2386,9 +2417,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00150">150</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00151">151</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00559">DrawScrImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00561">DrawScrImport()</a>.</p>
 
 </div>
 </div>
@@ -2412,9 +2443,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00151">151</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00152">152</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00559">DrawScrImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00561">DrawScrImport()</a>.</p>
 
 </div>
 </div>
@@ -2438,9 +2469,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00152">152</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00153">153</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00637">DrawObjImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00639">DrawObjImport()</a>.</p>
 
 </div>
 </div>
@@ -2464,9 +2495,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00153">153</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00154">154</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00655">DrawTilemapImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00657">DrawTilemapImport()</a>.</p>
 
 </div>
 </div>
@@ -2490,7 +2521,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00154">154</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00155">155</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
 </div>
 </div>
@@ -2514,9 +2545,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00156">156</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00157">157</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00045">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00050">Update()</a>.</p>
 
 </div>
 </div>
@@ -2540,9 +2571,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00158">158</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00159">159</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00094">DrawGfxEditToolset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00099">DrawGfxEditToolset()</a>.</p>
 
 </div>
 </div>
@@ -2566,9 +2597,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00160">160</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00161">161</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00766">DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00790">DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00710">DrawClipboardImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00678">DrawFileImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00756">DrawMemoryEditor()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00637">DrawObjImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00589">DrawPaletteControls()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00768">DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00792">DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00712">DrawClipboardImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00680">DrawFileImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00758">DrawMemoryEditor()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00639">DrawObjImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00591">DrawPaletteControls()</a>.</p>
 
 </div>
 </div>
@@ -2592,9 +2623,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00161">161</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00162">162</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00655">DrawTilemapImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00657">DrawTilemapImport()</a>.</p>
 
 </div>
 </div>
@@ -2618,7 +2649,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00162">162</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00163">163</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
 </div>
 </div>
@@ -2642,7 +2673,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00163">163</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00164">164</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
 </div>
 </div>
@@ -2666,7 +2697,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00164">164</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00165">165</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
 </div>
 </div>
@@ -2690,7 +2721,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00165">165</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00166">166</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
 </div>
 </div>
@@ -2714,9 +2745,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00166">166</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00167">167</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00766">DecompressImportData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00768">DecompressImportData()</a>.</p>
 
 </div>
 </div>
@@ -2740,7 +2771,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00167">167</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00168">168</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
 </div>
 </div>
@@ -2764,9 +2795,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00168">168</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00169">169</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00526">DrawCgxImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00559">DrawScrImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00528">DrawCgxImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00561">DrawScrImport()</a>.</p>
 
 </div>
 </div>
@@ -2790,9 +2821,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00169">169</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00170">170</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00526">DrawCgxImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00528">DrawCgxImport()</a>.</p>
 
 </div>
 </div>
@@ -2816,9 +2847,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00170">170</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00171">171</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00526">DrawCgxImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00528">DrawCgxImport()</a>.</p>
 
 </div>
 </div>
@@ -2842,9 +2873,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00171">171</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00172">172</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00526">DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00589">DrawPaletteControls()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00559">DrawScrImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00528">DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00591">DrawPaletteControls()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00561">DrawScrImport()</a>.</p>
 
 </div>
 </div>
@@ -2868,9 +2899,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00172">172</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00173">173</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00559">DrawScrImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00561">DrawScrImport()</a>.</p>
 
 </div>
 </div>
@@ -2894,9 +2925,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00173">173</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00174">174</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00559">DrawScrImport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00561">DrawScrImport()</a>.</p>
 
 </div>
 </div>
@@ -2920,9 +2951,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00174">174</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00175">175</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00526">DrawCgxImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00528">DrawCgxImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -2946,9 +2977,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00175">175</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00176">176</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00559">DrawScrImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00561">DrawScrImport()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -2972,9 +3003,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00176">176</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00177">177</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00766">DecompressImportData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00768">DecompressImportData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -2998,7 +3029,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00177">177</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00178">178</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
 </div>
 </div>
@@ -3022,9 +3053,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00178">178</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00179">179</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00790">DecompressSuperDonkey()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00792">DecompressSuperDonkey()</a>.</p>
 
 </div>
 </div>
@@ -3048,9 +3079,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00179">179</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00180">180</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00386">UpdateLinkGfxView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00391">UpdateLinkGfxView()</a>.</p>
 
 </div>
 </div>
@@ -3074,9 +3105,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00181">181</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00182">182</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00790">DecompressSuperDonkey()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00589">DrawPaletteControls()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00792">DecompressSuperDonkey()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00591">DrawPaletteControls()</a>.</p>
 
 </div>
 </div>
@@ -3100,9 +3131,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00182">182</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00183">183</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00766">DecompressImportData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00790">DecompressSuperDonkey()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00768">DecompressImportData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00792">DecompressSuperDonkey()</a>.</p>
 
 </div>
 </div>
@@ -3126,9 +3157,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00183">183</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00184">184</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00766">DecompressImportData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00589">DrawPaletteControls()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00768">DecompressImportData()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00591">DrawPaletteControls()</a>.</p>
 
 </div>
 </div>
@@ -3152,7 +3183,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00184">184</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00185">185</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
 </div>
 </div>
@@ -3176,9 +3207,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00185">185</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00186">186</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -3202,9 +3233,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00186">186</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00187">187</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 
 </div>
 </div>
@@ -3228,7 +3259,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00187">187</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00188">188</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
 </div>
 </div>
@@ -3252,9 +3283,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00188">188</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00189">189</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00182">UpdateGfxSheetList()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00187">UpdateGfxSheetList()</a>.</p>
 
 </div>
 </div>
@@ -3281,9 +3312,9 @@ Here is the call graph for this function:</div>
 <div class="line">                                    <a class="code hl_enumvalue" href="namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a11a498cf7cb38eb25f54cb73197524f9">gui::CanvasGridSize::k8x8</a>}</div>
 <div class="ttc" id="anamespaceyaze_1_1gui_html_aa7b9cc1741455bb4ffc5ba758912a465a11a498cf7cb38eb25f54cb73197524f9"><div class="ttname"><a href="namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a11a498cf7cb38eb25f54cb73197524f9">yaze::gui::CanvasGridSize::k8x8</a></div><div class="ttdeci">@ k8x8</div><div class="ttdef"><b>Definition</b> <a href="canvas_8h_source.html#l00024">canvas.h:24</a></div></div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00189">189</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00190">190</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00255">UpdateGfxTabView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00260">UpdateGfxTabView()</a>.</p>
 
 </div>
 </div>
@@ -3314,9 +3345,9 @@ Here is the call graph for this function:</div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_a33c61ec68c83c1679ac87d9711d7c0b0"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#a33c61ec68c83c1679ac87d9711d7c0b0">yaze::gfx::kTilesheetWidth</a></div><div class="ttdeci">constexpr int kTilesheetWidth</div><div class="ttdef"><b>Definition</b> <a href="snes__tile_8h_source.html#l00015">snes_tile.h:15</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gui_html_aa7b9cc1741455bb4ffc5ba758912a465a10ba45e967f3108e10ed4e3288e6208a"><div class="ttname"><a href="namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a10ba45e967f3108e10ed4e3288e6208a">yaze::gui::CanvasGridSize::k16x16</a></div><div class="ttdeci">@ k16x16</div><div class="ttdef"><b>Definition</b> <a href="canvas_8h_source.html#l00024">canvas.h:24</a></div></div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00191">191</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00192">192</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00386">UpdateLinkGfxView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00391">UpdateLinkGfxView()</a>.</p>
 
 </div>
 </div>
@@ -3340,9 +3371,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00195">195</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="graphics__editor_8h_source.html#l00196">196</a> of file <a class="el" href="graphics__editor_8h_source.html">graphics_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00766">DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00790">DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00526">DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00710">DrawClipboardImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00678">DrawFileImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00637">DrawObjImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00589">DrawPaletteControls()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00559">DrawScrImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00655">DrawTilemapImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00045">Update()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00063">UpdateGfxEdit()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00434">UpdateScadView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00768">DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00792">DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00528">DrawCgxImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00712">DrawClipboardImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00680">DrawFileImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00639">DrawObjImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00591">DrawPaletteControls()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00561">DrawScrImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00657">DrawTilemapImport()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00050">Update()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00068">UpdateGfxEdit()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00439">UpdateScadView()</a>.</p>
 
 </div>
 </div>

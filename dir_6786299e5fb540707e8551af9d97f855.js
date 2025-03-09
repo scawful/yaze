@@ -8,5 +8,7 @@ var dir_6786299e5fb540707e8551af9d97f855 =
     [ "popup_manager.cc", "popup__manager_8cc.html", null ],
     [ "popup_manager.h", "popup__manager_8h.html", "popup__manager_8h" ],
     [ "settings_editor.cc", "settings__editor_8cc.html", null ],
-    [ "settings_editor.h", "settings__editor_8h.html", "settings__editor_8h" ]
+    [ "settings_editor.h", "settings__editor_8h.html", "settings__editor_8h" ],
+    [ "shortcut_manager.cc", "shortcut__manager_8cc.html", "shortcut__manager_8cc" ],
+    [ "shortcut_manager.h", "shortcut__manager_8h.html", "shortcut__manager_8h" ]
 ];

@@ -1,0 +1,6 @@
+<map id="yaze::editor::PaletteEditor::Load" name="yaze::editor::PaletteEditor::Load">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,22,171,62"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="219,29,368,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,40,203,40,203,45,171,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="259,31,252,21,256,11,270,5,293,3,319,5,331,12,329,17,317,10,293,8,272,10,260,15,258,20,263,27"/>
+</map>

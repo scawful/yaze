@@ -6,6 +6,7 @@ var classyaze_1_1editor_1_1ScreenEditor =
     ] ],
     [ "ScreenEditor", "classyaze_1_1editor_1_1ScreenEditor.html#aaacdb9fa861b217d37563bcd8f9040f5", null ],
     [ "Initialize", "classyaze_1_1editor_1_1ScreenEditor.html#a75206045bde5d90bfaffd6e1b29e0fad", null ],
+    [ "Load", "classyaze_1_1editor_1_1ScreenEditor.html#a4e81ecd1bdb86bf3c615a4b680ca8aa6", null ],
     [ "Update", "classyaze_1_1editor_1_1ScreenEditor.html#a532b9b6a1246cbdb46d2b6ff6984ad78", null ],
     [ "Undo", "classyaze_1_1editor_1_1ScreenEditor.html#a0ca5339bd8ad4743196495522d8e6517", null ],
     [ "Redo", "classyaze_1_1editor_1_1ScreenEditor.html#a9243d6fa5b81792cdfd53b9483897fdf", null ],
