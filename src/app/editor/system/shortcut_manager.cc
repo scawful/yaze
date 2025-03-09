@@ -140,28 +140,26 @@ std::vector<ImGuiKey> ParseShortcut(const std::string& shortcut) {
 void ExecuteShortcuts(const ShortcutManager& shortcut_manager) {
   // Check for keyboard shortcuts using the shortcut manager
   for (const auto& shortcut : shortcut_manager.GetShortcuts()) {
-    bool ctrl_pressed = ImGui::GetIO().KeyCtrl;
-    bool alt_pressed = ImGui::GetIO().KeyAlt;
-    bool shift_pressed = ImGui::GetIO().KeyShift;
-    bool super_pressed = ImGui::GetIO().KeySuper;
-    bool keys_pressed = false;
+    bool keys_pressed = true;
     // Check for all the keys in the shortcut
     for (const auto& key : shortcut.second.keys) {
       if (key == ImGuiMod_Ctrl) {
-        keys_pressed = ctrl_pressed;
+        keys_pressed &= ImGui::GetIO().KeyCtrl;
       } else if (key == ImGuiMod_Alt) {
-        keys_pressed = alt_pressed;
+        keys_pressed &= ImGui::GetIO().KeyAlt;
       } else if (key == ImGuiMod_Shift) {
-        keys_pressed = shift_pressed;
+        keys_pressed &= ImGui::GetIO().KeyShift;
       } else if (key == ImGuiMod_Super) {
-        keys_pressed = super_pressed;
+        keys_pressed &= ImGui::GetIO().KeySuper;
       } else {
-        keys_pressed = ImGui::IsKeyDown(key);
+        keys_pressed &= ImGui::IsKeyDown(key);
       }
-
       if (!keys_pressed) {
         break;
       }
+    }
+    if (keys_pressed) {
+      shortcut.second.callback();
     }
   }
 }

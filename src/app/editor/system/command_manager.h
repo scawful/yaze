@@ -10,8 +10,6 @@
 namespace yaze {
 namespace editor {
 
-ImGuiKey MapKeyToImGuiKey(char key);
-
 class CommandManager {
  public:
   CommandManager() = default;
