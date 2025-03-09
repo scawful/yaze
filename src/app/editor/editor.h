@@ -8,6 +8,7 @@
 #include "app/editor/system/extension_manager.h"
 #include "app/editor/system/history_manager.h"
 #include "app/editor/system/popup_manager.h"
+#include "app/editor/system/shortcut_manager.h"
 
 namespace yaze {
 
@@ -22,6 +23,7 @@ struct EditorContext {
   ExtensionManager extension_manager;
   HistoryManager history_manager;
   PopupManager popup_manager;
+  ShortcutManager shortcut_manager;
 };
 
 enum class EditorType {
