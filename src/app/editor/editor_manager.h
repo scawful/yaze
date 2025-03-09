@@ -97,7 +97,7 @@ class EditorManager : public SharedRom {
   Rom *current_rom_ = nullptr;
 
   Project current_project_;
-  EditorContext editor_context_;
+  EditorContext context_;
 
   Editor *current_editor_ = nullptr;
   AssemblyEditor assembly_editor_;

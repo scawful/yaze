@@ -53,14 +53,6 @@ void EditorManager::Initialize(const std::string &filename) {
   if (!filename.empty()) {
     PRINT_IF_ERROR(rom()->LoadFromFile(filename));
   }
-  gui::kMainMenu[gui::MenuType::kFile].name = "File";
-  gui::kMainMenu[gui::MenuType::kEdit].name = "Edit";
-  gui::kMainMenu[gui::MenuType::kView].name = "View";
-  gui::kMainMenu[gui::MenuType::kTools].name = "Tools";
-  gui::kMainMenu[gui::MenuType::kHelp].name = "Help";
-
-  gui::AddToFileMenu(absl::StrCat(ICON_MD_FILE_OPEN, " Open"), "Ctrl+O",
-                     [&]() { LoadRom(); });
 
   std::vector<gui::MenuItem> recent_files;
   static RecentFilesManager manager("recent_files.txt");
@@ -73,63 +65,117 @@ void EditorManager::Initialize(const std::string &filename) {
                                 [&]() { OpenRomOrProject(filePath); });
     }
   }
-  gui::AddToFileMenu(
-      "Open Recent", "", nullptr, []() { return true; }, recent_files);
 
-  gui::AddToFileMenu(absl::StrCat(ICON_MD_FILE_DOWNLOAD, " Save"), "Ctrl+S",
-                     [&]() { SaveRom(); });
-  gui::AddToFileMenu(absl::StrCat(ICON_MD_SAVE_AS, " Save As.."), "",
-                     [&]() { save_as_menu_ = true; });
-  gui::AddToFileMenu(absl::StrCat(ICON_MD_CLOSE, " Close"), "",
-                     [&]() { rom()->Close(); });
-  gui::AddToMenu("-", nullptr, gui::MenuType::kFile);
   std::vector<gui::MenuItem> options_subitems;
   options_subitems.emplace_back(
       "Backup ROM", "", [&]() { backup_rom_ |= backup_rom_; },
       [&]() { return backup_rom_; });
-  gui::AddToFileMenu(
-      absl::StrCat(ICON_MD_SETTINGS, "Options"), "", [&]() {},
-      []() { return true; }, options_subitems);
 
-  gui::AddToFileMenu("Quit", "Ctrl+Q", [&]() { quit_ = true; });
+  context_.shortcut_manager.RegisterShortcut(
+      "Open", {ImGuiKey_O, ImGuiMod_Ctrl}, [&]() { LoadRom(); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Save", {ImGuiKey_S, ImGuiMod_Ctrl}, [&]() { SaveRom(); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Close", {ImGuiKey_W, ImGuiMod_Ctrl}, [&]() { rom()->Close(); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Quit", {ImGuiKey_Q, ImGuiMod_Ctrl}, [&]() { quit_ = true; });
 
-  gui::AddToEditMenu(absl::StrCat(ICON_MD_CONTENT_CUT, " Cut"), "Cmd+X",
-                     [&]() { status_ = current_editor_->Cut(); });
-  gui::AddToEditMenu(absl::StrCat(ICON_MD_CONTENT_COPY, " Copy"), "Cmd+C",
-                     [&]() { status_ = current_editor_->Copy(); });
-  gui::AddToEditMenu(absl::StrCat(ICON_MD_CONTENT_PASTE, " Paste"), "Cmd+V",
-                     [&]() { status_ = current_editor_->Paste(); });
-  gui::AddToEditMenu(absl::StrCat(ICON_MD_UNDO, " Undo"), "Cmd+Z",
-                     [&]() { status_ = current_editor_->Undo(); });
-  gui::AddToEditMenu(absl::StrCat(ICON_MD_REDO, " Redo"), "Cmd+Y",
-                     [&]() { status_ = current_editor_->Redo(); });
-  gui::AddToEditMenu(absl::StrCat(ICON_MD_SEARCH, " Find"), "Cmd+F",
-                     [&]() { status_ = current_editor_->Find(); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Undo", {ImGuiKey_Z, ImGuiMod_Ctrl},
+      [&]() { status_ = current_editor_->Undo(); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Redo", {ImGuiKey_Y, ImGuiMod_Ctrl},
+      [&]() { status_ = current_editor_->Redo(); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Cut", {ImGuiKey_X, ImGuiMod_Ctrl},
+      [&]() { status_ = current_editor_->Cut(); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Copy", {ImGuiKey_C, ImGuiMod_Ctrl},
+      [&]() { status_ = current_editor_->Copy(); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Paste", {ImGuiKey_V, ImGuiMod_Ctrl},
+      [&]() { status_ = current_editor_->Paste(); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Find", {ImGuiKey_F, ImGuiMod_Ctrl},
+      [&]() { status_ = current_editor_->Find(); });
 
-  gui::AddToViewMenu(absl::StrCat(ICON_MD_GAMEPAD, " Emulator"), "",
-                     [&]() { show_emulator_ = true; });
-  gui::AddToViewMenu(absl::StrCat(ICON_MD_MEMORY, " Memory Editor"), "",
-                     [&]() { show_memory_editor_ = true; });
-  gui::AddToViewMenu(absl::StrCat(ICON_MD_CODE, " Assembly Editor"), "",
-                     [&]() { show_asm_editor_ = true; });
-  gui::AddToViewMenu(absl::StrCat(ICON_MD_PALETTE, " Palette Editor"), "",
-                     [&]() { show_palette_editor_ = true; });
-  gui::AddToViewMenu(absl::StrCat(ICON_MD_SIM_CARD, " ROM Metadata"), "",
-                     [&]() { rom_info_ = true; });
-  gui::AddToMenu("-", nullptr, gui::MenuType::kView);
-  gui::AddToViewMenu(absl::StrCat(ICON_MD_HELP, " ImGui Demo"), "",
-                     [&]() { show_imgui_demo_ = true; });
-  gui::AddToViewMenu(absl::StrCat(ICON_MD_HELP, " ImGui Metrics"), "",
-                     [&]() { show_imgui_metrics_ = true; });
-
-  gui::AddToHelpMenu(absl::StrCat(ICON_MD_HELP, " How to open a ROM"), "",
-                     [&]() { open_rom_help = true; });
-  gui::AddToHelpMenu(absl::StrCat(ICON_MD_HELP, " Supported Features"), "",
-                     [&]() { open_supported_features = true; });
-  gui::AddToHelpMenu(absl::StrCat(ICON_MD_HELP, " How to manage a project"), "",
-                     [&]() { open_manage_project = true; });
-  gui::AddToHelpMenu(absl::StrCat(ICON_MD_HELP, " About"), "F1",
-                     [&]() { about_ = true; });
+  gui::kMainMenu = {
+      {"File",
+       {},
+       {},
+       {},
+       {
+           {absl::StrCat(ICON_MD_FILE_OPEN, " Open"),
+            context_.shortcut_manager.GetKeys("Open"),
+            context_.shortcut_manager.GetCallback("Open")},
+           {"Open Recent", "", [&]() {},
+            []() { return !manager.GetRecentFiles().empty(); }, recent_files},
+           {absl::StrCat(ICON_MD_FILE_DOWNLOAD, " Save"),
+            context_.shortcut_manager.GetKeys("Save"),
+            context_.shortcut_manager.GetCallback("Save")},
+           {absl::StrCat(ICON_MD_SAVE_AS, " Save As.."), "",
+            [&]() { save_as_menu_ = true; }},
+           {absl::StrCat(ICON_MD_CLOSE, " Close"), "",
+            [&]() { rom()->Close(); }},
+           {"-", "", nullptr, []() { return true; }},
+           {absl::StrCat(ICON_MD_SETTINGS, "Options"), "", [&]() {},
+            []() { return true; }, options_subitems},
+           {"Quit", "Ctrl+Q", [&]() { quit_ = true; }},
+       }},
+      {"Edit",
+       {},
+       {},
+       {},
+       {
+           {absl::StrCat(ICON_MD_CONTENT_CUT, " Cut"), "Cmd+X",
+            [&]() { status_ = current_editor_->Cut(); }},
+           {absl::StrCat(ICON_MD_CONTENT_COPY, " Copy"), "Cmd+C",
+            [&]() { status_ = current_editor_->Copy(); }},
+           {absl::StrCat(ICON_MD_CONTENT_PASTE, " Paste"), "Cmd+V",
+            [&]() { status_ = current_editor_->Paste(); }},
+           {absl::StrCat(ICON_MD_UNDO, " Undo"), "Cmd+Z",
+            [&]() { status_ = current_editor_->Undo(); }},
+           {absl::StrCat(ICON_MD_REDO, " Redo"), "Cmd+Y",
+            [&]() { status_ = current_editor_->Redo(); }},
+           {absl::StrCat(ICON_MD_SEARCH, " Find"), "Cmd+F",
+            [&]() { status_ = current_editor_->Find(); }},
+       }},
+      {"View",
+       {},
+       {},
+       {},
+       {
+           {absl::StrCat(ICON_MD_GAMEPAD, " Emulator"), "",
+            [&]() { show_emulator_ = true; }},
+           {absl::StrCat(ICON_MD_MEMORY, " Memory Editor"), "",
+            [&]() { show_memory_editor_ = true; }},
+           {absl::StrCat(ICON_MD_CODE, " Assembly Editor"), "",
+            [&]() { show_asm_editor_ = true; }},
+           {absl::StrCat(ICON_MD_PALETTE, " Palette Editor"), "",
+            [&]() { show_palette_editor_ = true; }},
+           {absl::StrCat(ICON_MD_SIM_CARD, " ROM Metadata"), "",
+            [&]() { rom_info_ = true; }},
+           {"-", "", nullptr, []() { return true; }},
+           {absl::StrCat(ICON_MD_HELP, " ImGui Demo"), "",
+            [&]() { show_imgui_demo_ = true; }},
+           {absl::StrCat(ICON_MD_HELP, " ImGui Metrics"), "",
+            [&]() { show_imgui_metrics_ = true; }},
+       }},
+      {"Tools", {}, {}, {}, {}},
+      {"Help",
+       {},
+       {},
+       {},
+       {
+           {absl::StrCat(ICON_MD_HELP, " How to open a ROM"), "",
+            [&]() { open_rom_help = true; }},
+           {absl::StrCat(ICON_MD_HELP, " Supported Features"), "",
+            [&]() { open_supported_features = true; }},
+           {absl::StrCat(ICON_MD_HELP, " How to manage a project"), "",
+            [&]() { open_manage_project = true; }},
+           {absl::StrCat(ICON_MD_HELP, " About"), "F1",
+            [&]() { about_ = true; }},
+       }}};
 
   overworld_editor_.Initialize();
 }
@@ -322,7 +368,7 @@ void EditorManager::ManageActiveEditors() {
 void EditorManager::ManageKeyboardShortcuts() {
   bool ctrl_or_super = (GetIO().KeyCtrl || GetIO().KeySuper);
 
-  editor_context_.command_manager.ShowWhichKey();
+  context_.command_manager.ShowWhichKey();
 
   // If CMD + R is pressed, reload the top result of recent files
   if (IsKeyDown(ImGuiKey_R) && ctrl_or_super) {
