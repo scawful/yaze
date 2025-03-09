@@ -184,6 +184,22 @@ bool InputHexByte(const char* label, uint8_t* data, uint8_t max_value,
   return false;
 }
 
+void Paragraph(const std::string& text) {
+  ImGui::TextWrapped("%s", text.c_str());
+}
+
+bool ClickableText(const std::string& text) {
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+    auto color = ImGui::GetStyleColorVec4(ImGuiCol_TabHovered);
+    ImGui::TextColored(color, "%s", text.c_str());
+  } else {
+    auto color = ImGui::GetStyleColorVec4(ImGuiCol_Tab);
+    ImGui::TextColored(color, "%s", text.c_str());
+  }
+  return ImGui::IsItemClicked();
+}
+
 void ItemLabel(absl::string_view title, ItemLabelFlags flags) {
   ImGuiWindow* window = ImGui::GetCurrentWindow();
   const ImVec2 lineStart = ImGui::GetCursorScreenPos();
@@ -254,6 +270,69 @@ bool InputTileInfo(const char* label, gfx::TileInfo* tile_info) {
 }
 
 ImGuiID GetID(const std::string& id) { return ImGui::GetID(id.c_str()); }
+
+ImGuiKey MapKeyToImGuiKey(char key) {
+  switch (key) {
+    case 'A':
+      return ImGuiKey_A;
+    case 'B':
+      return ImGuiKey_B;
+    case 'C':
+      return ImGuiKey_C;
+    case 'D':
+      return ImGuiKey_D;
+    case 'E':
+      return ImGuiKey_E;
+    case 'F':
+      return ImGuiKey_F;
+    case 'G':
+      return ImGuiKey_G;
+    case 'H':
+      return ImGuiKey_H;
+    case 'I':
+      return ImGuiKey_I;
+    case 'J':
+      return ImGuiKey_J;
+    case 'K':
+      return ImGuiKey_K;
+    case 'L':
+      return ImGuiKey_L;
+    case 'M':
+      return ImGuiKey_M;
+    case 'N':
+      return ImGuiKey_N;
+    case 'O':
+      return ImGuiKey_O;
+    case 'P':
+      return ImGuiKey_P;
+    case 'Q':
+      return ImGuiKey_Q;
+    case 'R':
+      return ImGuiKey_R;
+    case 'S':
+      return ImGuiKey_S;
+    case 'T':
+      return ImGuiKey_T;
+    case 'U':
+      return ImGuiKey_U;
+    case 'V':
+      return ImGuiKey_V;
+    case 'W':
+      return ImGuiKey_W;
+    case 'X':
+      return ImGuiKey_X;
+    case 'Y':
+      return ImGuiKey_Y;
+    case 'Z':
+      return ImGuiKey_Z;
+    case '/':
+      return ImGuiKey_Slash;
+    case '-':
+      return ImGuiKey_Minus;
+    default:
+      return ImGuiKey_COUNT;
+  }
+}
 
 void AddTableColumn(Table& table, const std::string& label,
                     GuiElement element) {
