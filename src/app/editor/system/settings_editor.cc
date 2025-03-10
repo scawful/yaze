@@ -23,9 +23,7 @@ using ImGui::TableSetupColumn;
 
 void SettingsEditor::Initialize() {}
 
-absl::Status SettingsEditor::Load() {
-  return absl::OkStatus();
-}
+absl::Status SettingsEditor::Load() { return absl::OkStatus(); }
 
 absl::Status SettingsEditor::Update() {
   if (BeginTabBar("Settings", ImGuiTabBarFlags_None)) {
@@ -38,6 +36,7 @@ absl::Status SettingsEditor::Update() {
       EndTabItem();
     }
     if (BeginTabItem("Keyboard Shortcuts")) {
+      DrawKeyboardShortcuts();
       EndTabItem();
     }
     EndTabBar();
@@ -91,8 +90,15 @@ void SettingsEditor::DrawGeneralSettings() {
   }
 }
 
-absl::Status SettingsEditor::DrawKeyboardShortcuts() {
-  return absl::OkStatus();
+void SettingsEditor::DrawKeyboardShortcuts() {
+  for (const auto& [name, shortcut] :
+       context_->shortcut_manager.GetShortcuts()) {
+    ImGui::PushID(name.c_str());
+    ImGui::Text("%s", name.c_str());
+    ImGui::SameLine(ImGui::GetWindowWidth() - 100);
+    ImGui::Text("%s", PrintShortcut(shortcut.keys).c_str());
+    ImGui::PopID();
+  }
 }
 
 }  // namespace editor
