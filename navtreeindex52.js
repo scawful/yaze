@@ -14,6 +14,8 @@ var NAVTREEINDEX52 =
 "structyaze_1_1gui_1_1Theme.html#a10bb7d31bf9ccad213ec7fb0fd7e54cd":[12,0,0,5,14,1],
 "structyaze_1_1gui_1_1Theme.html#a19d8db966816f81777888981843eec6c":[11,0,1,5,16,0],
 "structyaze_1_1gui_1_1Theme.html#a19d8db966816f81777888981843eec6c":[12,0,0,5,14,0],
+"structyaze_1_1gui_1_1Theme.html#a1a732c9b70c1d9f49e5f4c5cc9f5e6b1":[11,0,1,5,16,15],
+"structyaze_1_1gui_1_1Theme.html#a1a732c9b70c1d9f49e5f4c5cc9f5e6b1":[12,0,0,5,14,15],
 "structyaze_1_1gui_1_1Theme.html#a3b58f65f04ddc363c48d0569d912c50a":[11,0,1,5,16,7],
 "structyaze_1_1gui_1_1Theme.html#a3b58f65f04ddc363c48d0569d912c50a":[12,0,0,5,14,7],
 "structyaze_1_1gui_1_1Theme.html#a41538e56d45a2ed60d4118cec431baee":[11,0,1,5,16,5],
@@ -26,6 +28,8 @@ var NAVTREEINDEX52 =
 "structyaze_1_1gui_1_1Theme.html#ac01635d43c8c4f2ec85237b9602c2f7b":[12,0,0,5,14,10],
 "structyaze_1_1gui_1_1Theme.html#ac806c9e6ff46343dea7d331d94ad7a78":[11,0,1,5,16,8],
 "structyaze_1_1gui_1_1Theme.html#ac806c9e6ff46343dea7d331d94ad7a78":[12,0,0,5,14,8],
+"structyaze_1_1gui_1_1Theme.html#ad45ad5d9720c5e7d174c77ea63e044b5":[11,0,1,5,16,14],
+"structyaze_1_1gui_1_1Theme.html#ad45ad5d9720c5e7d174c77ea63e044b5":[12,0,0,5,14,14],
 "structyaze_1_1gui_1_1Theme.html#ad91de3e94439e6f53641d462f1d8e4f5":[11,0,1,5,16,11],
 "structyaze_1_1gui_1_1Theme.html#ad91de3e94439e6f53641d462f1d8e4f5":[12,0,0,5,14,11],
 "structyaze_1_1gui_1_1Theme.html#ae012899eb166eb8023398b60593a9733":[11,0,1,5,16,12],
@@ -245,9 +249,5 @@ var NAVTREEINDEX52 =
 "structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#aefea936272105776bc0165dc35c91935":[11,0,1,8,12,0],
 "structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#aefea936272105776bc0165dc35c91935":[12,0,0,8,8,0],
 "structyaze_1_1zelda3_1_1OverworldMapTiles.html":[11,0,1,8,16],
-"structyaze_1_1zelda3_1_1OverworldMapTiles.html":[12,0,0,8,12],
-"structyaze_1_1zelda3_1_1OverworldMapTiles.html#a24021eda0471996e9868d00345bc205b":[11,0,1,8,16,1],
-"structyaze_1_1zelda3_1_1OverworldMapTiles.html#a24021eda0471996e9868d00345bc205b":[12,0,0,8,12,1],
-"structyaze_1_1zelda3_1_1OverworldMapTiles.html#a85b2252548d49352f992aa238745217b":[11,0,1,8,16,2],
-"structyaze_1_1zelda3_1_1OverworldMapTiles.html#a85b2252548d49352f992aa238745217b":[12,0,0,8,12,2]
+"structyaze_1_1zelda3_1_1OverworldMapTiles.html":[12,0,0,8,12]
 };

@@ -7,5 +7,6 @@ var classyaze_1_1editor_1_1ShortcutManager =
     [ "GetShortcut", "classyaze_1_1editor_1_1ShortcutManager.html#a0107534230922d14f007feb6b5d0b509", null ],
     [ "GetCallback", "classyaze_1_1editor_1_1ShortcutManager.html#a584b5a6c66c581965fcc53d9164a9e53", null ],
     [ "GetKeys", "classyaze_1_1editor_1_1ShortcutManager.html#a16076c223b0b3dfea4f5dc03b4223f23", null ],
+    [ "GetShortcuts", "classyaze_1_1editor_1_1ShortcutManager.html#aa126613baf1a31d8bdb2b032b01e3a6a", null ],
     [ "shortcuts_", "classyaze_1_1editor_1_1ShortcutManager.html#acb0d8ebf33e87e1ed7941d9041f17ffd", null ]
 ];

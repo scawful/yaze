@@ -11,5 +11,5 @@ var classyaze_1_1editor_1_1SettingsEditor =
     [ "Paste", "classyaze_1_1editor_1_1SettingsEditor.html#ab116573fb09a76b23b8f92aace5d4463", null ],
     [ "Find", "classyaze_1_1editor_1_1SettingsEditor.html#a36776960cd1414fe7f0977f9d638b34d", null ],
     [ "DrawGeneralSettings", "classyaze_1_1editor_1_1SettingsEditor.html#a1f4ad9210d7bfaebf191b98e752f8a0b", null ],
-    [ "DrawKeyboardShortcuts", "classyaze_1_1editor_1_1SettingsEditor.html#aebb7c260e88a2d6087130a502366c3f8", null ]
+    [ "DrawKeyboardShortcuts", "classyaze_1_1editor_1_1SettingsEditor.html#ab90539b1706c9e00c6070d223623e6b8", null ]
 ];

@@ -1,12 +1,12 @@
 <map id="src/app/editor/system/settings_editor.h" name="src/app/editor/system/settings_editor.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="68,5,214,46"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,94,103,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,48,80,85,77,81,117,44"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="73,168,208,193"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="143,46,143,152,138,152,138,46"/>
-<area shape="rect" id="Node000004" href="$editor_8h.html" title=" " alt="" coords="178,94,303,120"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="167,44,215,82,212,86,164,49"/>
-<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="225,122,172,160,169,156,222,118"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="232,168,281,193"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="246,119,253,152,248,153,241,120"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="100,5,246,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,168,141,193"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,49,122,70,101,95,87,124,80,153,74,152,82,122,96,93,118,66,142,45"/>
+<area shape="rect" id="Node000003" href="$editor_8h.html" title=" " alt="" coords="111,94,235,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="176,46,176,78,170,78,170,46"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="259,94,356,120"/>
+<area shape="poly" id="edge5_Node000001_Node000009" title=" " alt="" coords="208,44,275,83,272,88,205,49"/>
+<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="158,122,104,160,101,156,154,118"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="164,168,214,193"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="178,119,186,152,180,153,173,120"/>
 </map>

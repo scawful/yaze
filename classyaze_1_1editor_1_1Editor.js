@@ -12,6 +12,7 @@ var classyaze_1_1editor_1_1Editor =
     [ "Redo", "classyaze_1_1editor_1_1Editor.html#a127b4d84d1a76c5af2998a1a30f45e95", null ],
     [ "Find", "classyaze_1_1editor_1_1Editor.html#aac357035ff66579bbad4181c5aa47e56", null ],
     [ "type", "classyaze_1_1editor_1_1Editor.html#a65af614b04a79925a1a4c702597521b0", null ],
+    [ "set_context", "classyaze_1_1editor_1_1Editor.html#a027446f4b4564fe8db76db7b865d991e", null ],
     [ "type_", "classyaze_1_1editor_1_1Editor.html#a84126d69916364100eece497a4ced26e", null ],
-    [ "context_", "classyaze_1_1editor_1_1Editor.html#a675b82bb84652213c66f5290d913e7b5", null ]
+    [ "context_", "classyaze_1_1editor_1_1Editor.html#afe8b2977196af9ee2d7f7892fbddc1b6", null ]
 ];

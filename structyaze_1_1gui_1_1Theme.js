@@ -13,5 +13,7 @@ var structyaze_1_1gui_1_1Theme =
     [ "tab_active", "structyaze_1_1gui_1_1Theme.html#ac01635d43c8c4f2ec85237b9602c2f7b", null ],
     [ "button", "structyaze_1_1gui_1_1Theme.html#ad91de3e94439e6f53641d462f1d8e4f5", null ],
     [ "button_hovered", "structyaze_1_1gui_1_1Theme.html#ae012899eb166eb8023398b60593a9733", null ],
-    [ "button_active", "structyaze_1_1gui_1_1Theme.html#a07b0430f0cc98a52a5dc1ba7d499c378", null ]
+    [ "button_active", "structyaze_1_1gui_1_1Theme.html#a07b0430f0cc98a52a5dc1ba7d499c378", null ],
+    [ "clickable_text", "structyaze_1_1gui_1_1Theme.html#ad45ad5d9720c5e7d174c77ea63e044b5", null ],
+    [ "clickable_text_hovered", "structyaze_1_1gui_1_1Theme.html#a1a732c9b70c1d9f49e5f4c5cc9f5e6b1", null ]
 ];

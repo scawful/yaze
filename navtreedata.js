@@ -155,10 +155,10 @@ var NAVTREEINDEX =
 "classyaze_1_1RecentFilesManager.html#a60e6a770c96874eee6730af353aca1a2",
 "classyaze_1_1core_1_1Controller.html#a884d01a0316ab1c649a46688e68baeee",
 "classyaze_1_1editor_1_1DungeonEditor.html#ab7c9a13b87665bd840423dc9c94a7363a2588da66dc50d159740cfcb2088792b0",
-"classyaze_1_1editor_1_1GraphicsEditor.html#a1f35f4b0df79437e129e00d7909e9aaa",
-"classyaze_1_1editor_1_1MessageEditor.html#a817979a564218dcea95a4c6bd8d3717c",
-"classyaze_1_1editor_1_1OverworldEditor.html#ac30ddbbf543edb8c021a98b46c01e239",
-"classyaze_1_1editor_1_1ScreenEditor.html#ace21dd9da5805650a7e1e5cc553dd618",
+"classyaze_1_1editor_1_1GraphicsEditor.html#a21105fd4b3b4f3756cbc770d3cbe4936",
+"classyaze_1_1editor_1_1MessageEditor.html#a825725b1f6cb4ac791b3215edf6c9ca4",
+"classyaze_1_1editor_1_1OverworldEditor.html#ac6e11242492faa30b3dc870ef74519d5",
+"classyaze_1_1editor_1_1ScreenEditor.html#ad68ff8284c9deadb89a062d13cd21a4b",
 "classyaze_1_1emu_1_1Apu.html#a5bbfe6c0f15dac37e74b240cd7ee3ce2",
 "classyaze_1_1emu_1_1Cpu.html#a68274679132af197ed103a61bf1e3fa7",
 "classyaze_1_1emu_1_1Cpu.html#aea4f8753924c8d547cf3963ca42305bb",
@@ -204,8 +204,8 @@ var NAVTREEINDEX =
 "structyaze_1_1emu_1_1TilemapEntry.html#a828cbb0f34624b0c5e43bcf64972c957",
 "structyaze_1_1gfx_1_1PaletteGroupMap.html",
 "structyaze_1_1gui_1_1Theme.html",
-"structyaze_1_1zelda3_1_1OverworldMapTiles.html#ac3b1bcb4e4dc8bed23ff857a008131bb",
-"test.html"
+"structyaze_1_1zelda3_1_1OverworldMapTiles.html#a24021eda0471996e9868d00345bc205b",
+"style_8cc.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronization';

@@ -14,5 +14,5 @@ var editor_8h =
       [ "yaze::editor::EditorType::kMessage", "namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa9b74dc5b6954a9e2ba62b24c1f8c01e0", null ],
       [ "yaze::editor::EditorType::kSettings", "namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aac935a934100d15241aefe3f7081e7767", null ]
     ] ],
-    [ "yaze::editor::kEditorNames", "namespaceyaze_1_1editor.html#a9de5b72d09ff3ed14ae06a1b1fc90367", null ]
+    [ "yaze::editor::kEditorNames", "namespaceyaze_1_1editor.html#a0c6c7a73544930a4412ec23b51c20e6b", null ]
 ];

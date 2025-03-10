@@ -1,5 +1,9 @@
 var NAVTREEINDEX53 =
 {
+"structyaze_1_1zelda3_1_1OverworldMapTiles.html#a24021eda0471996e9868d00345bc205b":[11,0,1,8,16,1],
+"structyaze_1_1zelda3_1_1OverworldMapTiles.html#a24021eda0471996e9868d00345bc205b":[12,0,0,8,12,1],
+"structyaze_1_1zelda3_1_1OverworldMapTiles.html#a85b2252548d49352f992aa238745217b":[11,0,1,8,16,2],
+"structyaze_1_1zelda3_1_1OverworldMapTiles.html#a85b2252548d49352f992aa238745217b":[12,0,0,8,12,2],
 "structyaze_1_1zelda3_1_1OverworldMapTiles.html#ac3b1bcb4e4dc8bed23ff857a008131bb":[11,0,1,8,16,0],
 "structyaze_1_1zelda3_1_1OverworldMapTiles.html#ac3b1bcb4e4dc8bed23ff857a008131bb":[12,0,0,8,12,0],
 "structyaze_1_1zelda3_1_1PseudoVram.html":[11,0,1,8,17],
@@ -245,9 +249,5 @@ var NAVTREEINDEX53 =
 "structzelda3__version__pointers.html#ab4a30d9ca45ee8294ca7d2d0b0522bce":[12,0,25,15],
 "structzelda3__version__pointers.html#ac9f61656c6617eb4b078ef159ee32dc4":[12,0,25,4],
 "structzelda3__version__pointers.html#adebad858d45ab6fbb065f45631107035":[12,0,25,7],
-"structzelda3__version__pointers.html#aeed0d23f5a454d1a241da92c81f83be3":[12,0,25,17],
-"style_8cc.html":[13,0,2,0,4,8],
-"style_8cc_source.html":[13,0,2,0,4,8],
-"style_8h.html":[13,0,2,0,4,9],
-"style_8h_source.html":[13,0,2,0,4,9]
+"structzelda3__version__pointers.html#aeed0d23f5a454d1a241da92c81f83be3":[12,0,25,17]
 };
