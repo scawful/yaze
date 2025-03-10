@@ -43,7 +43,6 @@ absl::Status ParseThemeContents(const std::string &key,
   }
   return absl::OkStatus();
 }
-
 }  // namespace
 
 absl::StatusOr<Theme> LoadTheme(const std::string &filename) {

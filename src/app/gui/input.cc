@@ -189,13 +189,12 @@ void Paragraph(const std::string& text) {
 }
 
 bool ClickableText(const std::string& text) {
+  static auto color = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+  ImGui::TextColored(color, "%s", text.c_str());
   if (ImGui::IsItemHovered()) {
-    ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
-    auto color = ImGui::GetStyleColorVec4(ImGuiCol_TabHovered);
-    ImGui::TextColored(color, "%s", text.c_str());
+    color = ImGui::GetStyleColorVec4(ImGuiCol_TabHovered);
   } else {
-    auto color = ImGui::GetStyleColorVec4(ImGuiCol_Tab);
-    ImGui::TextColored(color, "%s", text.c_str());
+    color = ImGui::GetStyleColorVec4(ImGuiCol_Text);
   }
   return ImGui::IsItemClicked();
 }

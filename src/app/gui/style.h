@@ -33,6 +33,9 @@ struct Theme {
   Color button;
   Color button_hovered;
   Color button_active;
+
+  Color clickable_text;
+  Color clickable_text_hovered;
 };
 
 absl::StatusOr<Theme> LoadTheme(const std::string &filename);
