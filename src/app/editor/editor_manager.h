@@ -42,6 +42,9 @@ class EditorManager : public SharedRom {
     active_editors_ = {&overworld_editor_, &dungeon_editor_, &graphics_editor_,
                        &palette_editor_,   &sprite_editor_,  &message_editor_,
                        &screen_editor_,    &settings_editor_};
+    for (auto *editor : active_editors_) {
+      editor->set_context(&context_);
+    }
     std::stringstream ss;
     ss << YAZE_VERSION_MAJOR << "." << YAZE_VERSION_MINOR << "."
        << YAZE_VERSION_PATCH;

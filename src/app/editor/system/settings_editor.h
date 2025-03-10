@@ -1,10 +1,9 @@
 #ifndef YAZE_APP_EDITOR_SETTINGS_EDITOR_H
 #define YAZE_APP_EDITOR_SETTINGS_EDITOR_H
 
-#include "imgui/imgui.h"
-
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace editor {
@@ -220,8 +219,7 @@ class SettingsEditor : public Editor {
 
  private:
   void DrawGeneralSettings();
-
-  absl::Status DrawKeyboardShortcuts();
+  void DrawKeyboardShortcuts();
 };
 
 }  // namespace editor

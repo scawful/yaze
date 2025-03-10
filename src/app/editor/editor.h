@@ -39,7 +39,7 @@ enum class EditorType {
   kSettings,
 };
 
-constexpr std::array<const char *, 10> kEditorNames = {
+constexpr std::array<const char*, 10> kEditorNames = {
     "Assembly", "Dungeon", "Graphics", "Music",   "Overworld",
     "Palette",  "Screen",  "Sprite",   "Message", "Settings",
 };
@@ -75,9 +75,11 @@ class Editor {
 
   EditorType type() const { return type_; }
 
+  void set_context(EditorContext* context) { context_ = context; }
+
  protected:
   EditorType type_;
-  EditorContext context_;
+  EditorContext* context_ = nullptr;
 };
 
 }  // namespace editor
