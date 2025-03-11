@@ -74,6 +74,15 @@ void EditorManager::Initialize(const std::string &filename) {
       "Save New Auto", "", [&]() { save_new_auto_ |= save_new_auto_; },
       [&]() { return save_new_auto_; });
 
+  std::vector<gui::MenuItem> project_menu_subitems;
+  project_menu_subitems.emplace_back("New Project", "",
+                                     [&]() { new_project_menu = true; });
+  project_menu_subitems.emplace_back("Open Project", "",
+                                     [&]() { OpenProject(); });
+  project_menu_subitems.emplace_back(
+      "Save Project", "", [&]() { SaveProject(); },
+      [&]() { return current_project_.project_opened_; });
+
   context_.shortcut_manager.RegisterShortcut(
       "Open", {ImGuiKey_O, ImGuiMod_Ctrl}, [&]() { LoadRom(); });
   context_.shortcut_manager.RegisterShortcut(
@@ -130,12 +139,15 @@ void EditorManager::Initialize(const std::string &filename) {
             context_.shortcut_manager.GetCallback("Save")},
            {absl::StrCat(ICON_MD_SAVE_AS, " Save As.."), "",
             [&]() { save_as_menu_ = true; }},
+           {absl::StrCat(ICON_MD_BALLOT, " Project"), "", [&]() {},
+            []() { return true; }, project_menu_subitems},
            {absl::StrCat(ICON_MD_CLOSE, " Close"), "",
             [&]() { rom()->Close(); }},
-           {"-", "", nullptr, []() { return true; }},
-           {absl::StrCat(ICON_MD_SETTINGS, "Options"), "", [&]() {},
+           {gui::kSeparator, "", nullptr, []() { return true; }},
+           {absl::StrCat(ICON_MD_SETTINGS, " Options"), "", [&]() {},
             []() { return true; }, options_subitems},
-           {"Quit", "Ctrl+Q", [&]() { quit_ = true; }},
+           {absl::StrCat(ICON_MD_EXIT_TO_APP, " Quit"), "Ctrl+Q",
+            [&]() { quit_ = true; }},
        }},
       {"Edit",
        {},
@@ -151,14 +163,14 @@ void EditorManager::Initialize(const std::string &filename) {
            {absl::StrCat(ICON_MD_CONTENT_PASTE, " Paste"),
             context_.shortcut_manager.GetKeys("Paste"),
             context_.shortcut_manager.GetCallback("Paste")},
-           {"-", "", nullptr, []() { return true; }},
+           {gui::kSeparator, "", nullptr, []() { return true; }},
            {absl::StrCat(ICON_MD_UNDO, " Undo"),
             context_.shortcut_manager.GetKeys("Undo"),
             context_.shortcut_manager.GetCallback("Undo")},
            {absl::StrCat(ICON_MD_REDO, " Redo"),
             context_.shortcut_manager.GetKeys("Redo"),
             context_.shortcut_manager.GetCallback("Redo")},
-           {"-", "", nullptr, []() { return true; }},
+           {gui::kSeparator, "", nullptr, []() { return true; }},
            {absl::StrCat(ICON_MD_SEARCH, " Find"),
             context_.shortcut_manager.GetKeys("Find"),
             context_.shortcut_manager.GetCallback("Find")},
@@ -168,23 +180,30 @@ void EditorManager::Initialize(const std::string &filename) {
        {},
        {},
        {
+           {absl::StrCat(ICON_MD_CODE, " Assembly Editor"), "",
+            [&]() { show_asm_editor_ = true; }},
            {absl::StrCat(ICON_MD_GAMEPAD, " Emulator"), "",
             [&]() { show_emulator_ = true; }},
            {absl::StrCat(ICON_MD_MEMORY, " Memory Editor"), "",
             [&]() { show_memory_editor_ = true; }},
-           {absl::StrCat(ICON_MD_CODE, " Assembly Editor"), "",
-            [&]() { show_asm_editor_ = true; }},
            {absl::StrCat(ICON_MD_PALETTE, " Palette Editor"), "",
             [&]() { show_palette_editor_ = true; }},
            {absl::StrCat(ICON_MD_SIM_CARD, " ROM Metadata"), "",
             [&]() { rom_info_ = true; }},
-           {"-", "", nullptr, []() { return true; }},
+           {gui::kSeparator, "", nullptr, []() { return true; }},
            {absl::StrCat(ICON_MD_HELP, " ImGui Demo"), "",
             [&]() { show_imgui_demo_ = true; }},
            {absl::StrCat(ICON_MD_HELP, " ImGui Metrics"), "",
             [&]() { show_imgui_metrics_ = true; }},
        }},
-      {"Tools", {}, {}, {}, {}},
+      {"Workspace",
+       {},
+       {},
+       {},
+       {
+           {absl::StrCat(ICON_MD_SPACE_DASHBOARD, " Layout"), "",
+            [&]() { show_workspace_layout = true; }},
+       }},
       {"Help",
        {},
        {},
@@ -204,15 +223,18 @@ void EditorManager::Initialize(const std::string &filename) {
 }
 
 absl::Status EditorManager::Update() {
-  DrawMenuBar();
+  // DrawMenuBar();
   DrawPopups();
   ExecuteShortcuts(context_.shortcut_manager);
   context_.command_manager.ShowWhichKey();
 
-  if (!current_rom_) {
-    DrawHomepage();
-  } else {
-    ManageActiveEditors();
+  if (ImGui::Begin("Home", nullptr, ImGuiWindowFlags_None)) {
+    if (!current_rom_) {
+      DrawHomepage();
+    } else {
+      ManageActiveEditors();
+    }
+    ImGui::End();
   }
   return absl::OkStatus();
 }
@@ -380,6 +402,20 @@ void EditorManager::ManageActiveEditors() {
   }
 }
 
+void EditorManager::DrawHomepage() {
+  TextWrapped("Welcome to the Yet Another Zelda3 Editor (yaze)!");
+  TextWrapped(
+      "This editor is designed to be a comprehensive tool for editing the "
+      "Legend of Zelda: A Link to the Past.");
+  TextWrapped(
+      "The editor is still in development, so please report any bugs or issues "
+      "you encounter.");
+
+  if (gui::ClickableText("Open a ROM")) {
+    LoadRom();
+  }
+}
+
 void EditorManager::DrawPopups() {
   static bool show_status_ = false;
   static absl::Status prev_status;
@@ -438,28 +474,9 @@ void EditorManager::DrawPopups() {
   }
 }
 
-void EditorManager::DrawHomepage() {
-  TextWrapped("Welcome to the Yet Another Zelda3 Editor (yaze)!");
-  TextWrapped(
-      "This editor is designed to be a comprehensive tool for editing the "
-      "Legend of Zelda: A Link to the Past.");
-  TextWrapped(
-      "The editor is still in development, so please report any bugs or issues "
-      "you encounter.");
-
-  if (gui::ClickableText("Open a ROM")) {
-    LoadRom();
-  }
-  Separator();
-
-  auto settings = settings_editor_.Update();
-  if (!settings.ok()) status_ = settings;
-}
-
 void EditorManager::DrawMenuBar() {
   static bool show_display_settings = false;
   static bool save_as_menu = false;
-  static bool new_project_menu = false;
 
   if (BeginMenuBar()) {
     gui::DrawMenu(gui::kMainMenu);
@@ -702,6 +719,14 @@ absl::Status EditorManager::OpenProject() {
   current_project_.project_opened_ = true;
 
   return absl::OkStatus();
+}
+
+void EditorManager::SaveProject() {
+  if (current_project_.project_opened_) {
+    status_ = current_project_.Save();
+  } else {
+    new_project_menu = true;
+  }
 }
 
 }  // namespace editor
