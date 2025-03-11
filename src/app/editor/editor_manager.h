@@ -54,22 +54,23 @@ class EditorManager : public SharedRom {
   void Initialize(const std::string &filename = "");
   absl::Status Update();
 
+  void DrawMenuBar();
+
   auto emulator() -> emu::Emulator & { return emulator_; }
   auto quit() const { return quit_; }
 
  private:
   void ManageActiveEditors();
-
-  void DrawPopups();
   void DrawHomepage();
 
-  void DrawMenuBar();
+  void DrawPopups();
 
   void LoadRom();
   void SaveRom();
 
   void OpenRomOrProject(const std::string &filename);
   absl::Status OpenProject();
+  void SaveProject();
 
   bool quit_ = false;
   bool about_ = false;
@@ -80,6 +81,7 @@ class EditorManager : public SharedRom {
   bool open_rom_help = false;
   bool open_manage_project = false;
   bool open_supported_features = false;
+  bool new_project_menu = false;
 
   bool show_emulator_ = false;
   bool show_memory_editor_ = false;
@@ -88,6 +90,7 @@ class EditorManager : public SharedRom {
   bool show_imgui_demo_ = false;
   bool show_palette_editor_ = false;
   bool show_resource_label_manager = false;
+  bool show_workspace_layout = false;
 
   std::string version_ = "";
 
