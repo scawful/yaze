@@ -102,6 +102,15 @@ void EditorManager::Initialize(const std::string &filename) {
       "Find", {ImGuiKey_F, ImGuiMod_Ctrl},
       [&]() { status_ = current_editor_->Find(); });
 
+  context_.shortcut_manager.RegisterShortcut(
+      "Load Last ROM", {ImGuiKey_R, ImGuiMod_Ctrl}, [&]() {
+        manager.Load();
+        if (!manager.GetRecentFiles().empty()) {
+          auto front = manager.GetRecentFiles().front();
+          OpenRomOrProject(front);
+        }
+      });
+
   context_.shortcut_manager.RegisterShortcut("F1", ImGuiKey_F1,
                                              [&]() { about_ = true; });
 
@@ -195,29 +204,10 @@ void EditorManager::Initialize(const std::string &filename) {
 }
 
 absl::Status EditorManager::Update() {
-  ExecuteShortcuts(context_.shortcut_manager);
-  context_.command_manager.ShowWhichKey();
-
-  // If CMD + R is pressed, reload the top result of recent files
-  if (IsKeyDown(ImGuiKey_R) && GetIO().KeyCtrl) {
-    static RecentFilesManager manager("recent_files.txt");
-    manager.Load();
-    if (!manager.GetRecentFiles().empty()) {
-      auto front = manager.GetRecentFiles().front();
-      OpenRomOrProject(front);
-    }
-  }
-
   DrawMenuBar();
   DrawPopups();
-
-  if (rom()->is_loaded() && !rom_assets_loaded_) {
-    auto &sheet_manager = GraphicsSheetManager::GetInstance();
-    ASSIGN_OR_RETURN(*sheet_manager.mutable_gfx_sheets(),
-                     LoadAllGraphicsData(*rom()))
-    RETURN_IF_ERROR(overworld_editor_.LoadGraphics());
-    rom_assets_loaded_ = true;
-  }
+  ExecuteShortcuts(context_.shortcut_manager);
+  context_.command_manager.ShowWhichKey();
 
   if (!current_rom_) {
     DrawHomepage();
@@ -651,6 +641,16 @@ void EditorManager::LoadRom() {
     manager.Load();
     manager.AddFile(file_name);
     manager.Save();
+    auto load_rom_assets = [&]() -> absl::Status {
+      auto &sheet_manager = GraphicsSheetManager::GetInstance();
+      ASSIGN_OR_RETURN(*sheet_manager.mutable_gfx_sheets(),
+                       LoadAllGraphicsData(*rom()))
+      RETURN_IF_ERROR(overworld_editor_.LoadGraphics());
+      return absl::OkStatus();
+    };
+    if (!load_rom_assets().ok()) {
+      status_ = load_rom_assets();
+    }
   }
 }
 

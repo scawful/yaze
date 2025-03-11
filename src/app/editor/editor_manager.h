@@ -75,8 +75,12 @@ class EditorManager : public SharedRom {
   bool about_ = false;
   bool rom_info_ = false;
   bool backup_rom_ = false;
-  bool save_new_auto_ = true;
   bool save_as_menu_ = false;
+  bool save_new_auto_ = true;
+  bool open_rom_help = false;
+  bool open_manage_project = false;
+  bool open_supported_features = false;
+
   bool show_emulator_ = false;
   bool show_memory_editor_ = false;
   bool show_asm_editor_ = false;
@@ -84,10 +88,6 @@ class EditorManager : public SharedRom {
   bool show_imgui_demo_ = false;
   bool show_palette_editor_ = false;
   bool show_resource_label_manager = false;
-  bool open_supported_features = false;
-  bool open_rom_help = false;
-  bool open_manage_project = false;
-  bool rom_assets_loaded_ = false;
 
   std::string version_ = "";
 

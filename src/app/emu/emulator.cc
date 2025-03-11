@@ -537,5 +537,4 @@ void Emulator::RenderCpuInstructionLog(
 }
 
 }  // namespace emu
-
 }  // namespace yaze

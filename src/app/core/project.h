@@ -39,7 +39,7 @@ struct Project {
 
     return absl::OkStatus();
   }
-  absl::Status Open(const std::string &project_path);
+  absl::Status Open(const std::string& project_path);
   absl::Status Save();
 
   bool project_opened_ = false;
@@ -128,6 +128,14 @@ class RecentFilesManager {
   std::vector<std::string> recent_files_;
 };
 
+class VersionControlManager {
+  absl::Status Commit(const std::string& message);
+  absl::Status Pull();
+  absl::Status Push();
+
+ private:
+  std::string repository_path_;
+};
 
 }  // namespace yaze
 
