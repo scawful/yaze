@@ -374,7 +374,7 @@ void DrawMenu(Menu& menu) {
             }
             ImGui::EndMenu();
           }
-        } else if (each_item.name == "-") {
+        } else if (each_item.name == kSeparator) {
           ImGui::Separator();
         } else {
           if (ImGui::MenuItem(each_item.name.c_str(),
