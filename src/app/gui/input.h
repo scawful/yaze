@@ -89,6 +89,8 @@ void DrawMenu(Menu &params);
 
 static Menu kMainMenu;
 
+constexpr std::string kSeparator = "-";
+
 }  // namespace gui
 }  // namespace yaze
 
