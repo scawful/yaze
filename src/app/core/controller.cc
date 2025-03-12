@@ -18,6 +18,29 @@
 namespace yaze {
 namespace core {
 
+namespace {
+// Helper function to draw the main window without docking enabled
+// Should be followed by ImGui::End() to close the window
+void DrawBasicWindow() {
+  constexpr ImGuiWindowFlags kMainEditorFlags =
+      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
+      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar |
+      ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar;
+
+  const ImGuiIO &io = ImGui::GetIO();
+  ImGui_ImplSDLRenderer2_NewFrame();
+  ImGui_ImplSDL2_NewFrame();
+  ImGui::NewFrame();
+  ImGui::SetNextWindowPos(gui::kZeroPos);
+  ImVec2 dimensions(io.DisplaySize.x, io.DisplaySize.y);
+  ImGui::SetNextWindowSize(dimensions, ImGuiCond_Always);
+
+  if (!ImGui::Begin("##YazeMain", nullptr, kMainEditorFlags)) {
+    ImGui::End();
+  }
+}
+}  // namespace
+
 absl::Status Controller::OnEntry(std::string filename) {
   RETURN_IF_ERROR(CreateWindow())
   RETURN_IF_ERROR(CreateRenderer())
@@ -88,28 +111,39 @@ absl::Status Controller::OnLoad() {
   if (editor_manager_.quit()) {
     active_ = false;
   }
-#if TARGET_OS_IPHONE != 1
-  constexpr ImGuiWindowFlags kMainEditorFlags =
-      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
-      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar |
-      ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar;
 
-  const ImGuiIO &io = ImGui::GetIO();
+#if TARGET_OS_IPHONE != 1
   ImGui_ImplSDLRenderer2_NewFrame();
   ImGui_ImplSDL2_NewFrame();
   ImGui::NewFrame();
-  ImGui::SetNextWindowPos(gui::kZeroPos);
-  ImVec2 dimensions(io.DisplaySize.x, io.DisplaySize.y);
-  ImGui::SetNextWindowSize(dimensions, ImGuiCond_Always);
 
-  if (!ImGui::Begin("##YazeMain", nullptr, kMainEditorFlags)) {
-    ImGui::End();
-  }
-#endif
-  RETURN_IF_ERROR(editor_manager_.Update());
-#if TARGET_OS_IPHONE != 1
+  const ImGuiViewport *viewport = ImGui::GetMainViewport();
+  ImGui::SetNextWindowPos(viewport->WorkPos);
+  ImGui::SetNextWindowSize(viewport->WorkSize);
+  ImGui::SetNextWindowViewport(viewport->ID);
+
+  ImGuiWindowFlags window_flags =
+      ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+  window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
+                  ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+  window_flags |=
+      ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+  ImGui::Begin("DockSpaceWindow", nullptr, window_flags);
+  ImGui::PopStyleVar(2);
+
+  // Create DockSpace
+  ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+  ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f),
+                   ImGuiDockNodeFlags_PassthruCentralNode);
+
+  editor_manager_.DrawMenuBar();  // Draw the fixed menu bar at the top
+
   ImGui::End();
 #endif
+  RETURN_IF_ERROR(editor_manager_.Update());
   return absl::OkStatus();
 }
 
@@ -168,6 +202,7 @@ absl::Status Controller::CreateGuiContext() {
 
   ImGuiIO &io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
   // Initialize ImGui based on the backend
   ImGui_ImplSDL2_InitForSDLRenderer(window_.get(),

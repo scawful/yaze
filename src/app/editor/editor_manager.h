@@ -41,7 +41,8 @@ class EditorManager : public SharedRom {
     current_editor_ = &overworld_editor_;
     active_editors_ = {&overworld_editor_, &dungeon_editor_, &graphics_editor_,
                        &palette_editor_,   &sprite_editor_,  &message_editor_,
-                       &screen_editor_,    &settings_editor_};
+                       &music_editor_,     &screen_editor_,  &settings_editor_,
+                       &assembly_editor_};
     for (auto *editor : active_editors_) {
       editor->set_context(&context_);
     }
@@ -53,7 +54,6 @@ class EditorManager : public SharedRom {
 
   void Initialize(const std::string &filename = "");
   absl::Status Update();
-
   void DrawMenuBar();
 
   auto emulator() -> emu::Emulator & { return emulator_; }
@@ -62,7 +62,6 @@ class EditorManager : public SharedRom {
  private:
   void ManageActiveEditors();
   void DrawHomepage();
-
   void DrawPopups();
 
   void LoadRom();

@@ -77,7 +77,11 @@ class Editor {
 
   void set_context(EditorContext* context) { context_ = context; }
 
+  bool* active() { return &active_; }
+  void set_active(bool active) { active_ = active; }
+
  protected:
+  bool active_ = false;
   EditorType type_;
   EditorContext* context_ = nullptr;
 };
