@@ -1,5 +1,14 @@
 var NAVTREEINDEX53 =
 {
+"structyaze_1_1test_1_1SpriteAttributes.html#aa2f9a75ed1ef5be94661376b284cfcc7":[12,0,0,6,22,3],
+"structyaze_1_1test_1_1SpriteAttributes.html#aac8fc7bf7ab208c5ecdbd45bd22531b1":[11,0,1,6,24,5],
+"structyaze_1_1test_1_1SpriteAttributes.html#aac8fc7bf7ab208c5ecdbd45bd22531b1":[12,0,0,6,22,5],
+"structyaze_1_1test_1_1SpriteAttributes.html#ab1590b0468b8c90e2535b2206a4c800b":[11,0,1,6,24,6],
+"structyaze_1_1test_1_1SpriteAttributes.html#ab1590b0468b8c90e2535b2206a4c800b":[12,0,0,6,22,6],
+"structyaze_1_1test_1_1Tilemap.html":[11,0,1,6,26],
+"structyaze_1_1test_1_1Tilemap.html":[12,0,0,6,24],
+"structyaze_1_1test_1_1Tilemap.html#a99df22d3822fec48f10edbaf60294d24":[11,0,1,6,26,0],
+"structyaze_1_1test_1_1Tilemap.html#a99df22d3822fec48f10edbaf60294d24":[12,0,0,6,24,0],
 "structyaze_1_1util_1_1HexStringParams.html":[11,0,1,7,5],
 "structyaze_1_1util_1_1HexStringParams.html":[12,0,0,7,3],
 "structyaze_1_1util_1_1HexStringParams.html#a086adb2b974d1169bf92573083d7d157":[11,0,1,7,5,2],
@@ -240,14 +249,5 @@ var NAVTREEINDEX53 =
 "structyaze__bitmap.html#a28738a795224b50cdc2d721125850760":[12,0,17,3],
 "structyaze__bitmap.html#a75f53afcb7b087d543288400730d3297":[12,0,17,1],
 "structyaze__bitmap.html#ab4ab5935eae3fb291b328c25e0c53cc0":[12,0,17,2],
-"structyaze__bitmap.html#adeb02ea72387c99bf2ba441aaece1760":[12,0,17,0],
-"structyaze__editor__context.html":[12,0,18],
-"structyaze__editor__context.html#a3e747d7d0638142be1b42e0fb5f0bf60":[12,0,18,1],
-"structyaze__editor__context.html#a50323bf40f414a711612e3dbf2c2ff88":[12,0,18,0],
-"structyaze__editor__context.html#a5864fdc76ce969933913a75f2ff4c0c1":[12,0,18,2],
-"structyaze__extension.html":[12,0,19],
-"structyaze__extension.html#a62d89167cd6b0ad7d91811e145290be5":[12,0,19,2],
-"structyaze__extension.html#a78827a2290a2eea969ded6fec5fcc4e9":[12,0,19,1],
-"structyaze__extension.html#a99596502df4c2037a9d22c4f555435ae":[12,0,19,3],
-"structyaze__extension.html#af08fb5a1a5551c79898ebd6a3d375d8c":[12,0,19,0]
+"structyaze__bitmap.html#adeb02ea72387c99bf2ba441aaece1760":[12,0,17,0]
 };

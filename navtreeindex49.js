@@ -1,5 +1,14 @@
 var NAVTREEINDEX49 =
 {
+"structyaze_1_1emu_1_1M7A.html#a3efddecd68c8545349a0675e764c6760":[12,0,0,3,34,0],
+"structyaze_1_1emu_1_1M7B.html":[11,0,1,3,37],
+"structyaze_1_1emu_1_1M7B.html":[12,0,0,3,35],
+"structyaze_1_1emu_1_1M7B.html#a74d755758fd2cbdbab678851ea03f7f4":[11,0,1,3,37,0],
+"structyaze_1_1emu_1_1M7B.html#a74d755758fd2cbdbab678851ea03f7f4":[12,0,0,3,35,0],
+"structyaze_1_1emu_1_1M7C.html":[11,0,1,3,38],
+"structyaze_1_1emu_1_1M7C.html":[12,0,0,3,36],
+"structyaze_1_1emu_1_1M7C.html#a2879e4aa49b4307539247cd94620cddb":[11,0,1,3,38,0],
+"structyaze_1_1emu_1_1M7C.html#a2879e4aa49b4307539247cd94620cddb":[12,0,0,3,36,0],
 "structyaze_1_1emu_1_1M7D.html":[11,0,1,3,39],
 "structyaze_1_1emu_1_1M7D.html":[12,0,0,3,37],
 "structyaze_1_1emu_1_1M7D.html#ad0a48a0708064339490cd858c4e8805a":[11,0,1,3,39,0],
@@ -240,14 +249,5 @@ var NAVTREEINDEX49 =
 "structyaze_1_1emu_1_1SpriteAttributes.html#a15385702e34a8bded11703dcd39a9a90":[12,0,0,3,70,1],
 "structyaze_1_1emu_1_1SpriteAttributes.html#a327d70eccb4ab5d6096655c792e10f0e":[11,0,1,3,72,2],
 "structyaze_1_1emu_1_1SpriteAttributes.html#a327d70eccb4ab5d6096655c792e10f0e":[12,0,0,3,70,2],
-"structyaze_1_1emu_1_1SpriteAttributes.html#a8dde6e05e8e813977539aaccf264830f":[11,0,1,3,72,0],
-"structyaze_1_1emu_1_1SpriteAttributes.html#a8dde6e05e8e813977539aaccf264830f":[12,0,0,3,70,0],
-"structyaze_1_1emu_1_1SpriteAttributes.html#a9a42a22413535002cd9c652e439b3bcd":[11,0,1,3,72,4],
-"structyaze_1_1emu_1_1SpriteAttributes.html#a9a42a22413535002cd9c652e439b3bcd":[12,0,0,3,70,4],
-"structyaze_1_1emu_1_1SpriteAttributes.html#aa2f9a75ed1ef5be94661376b284cfcc7":[11,0,1,3,72,3],
-"structyaze_1_1emu_1_1SpriteAttributes.html#aa2f9a75ed1ef5be94661376b284cfcc7":[12,0,0,3,70,3],
-"structyaze_1_1emu_1_1SpriteAttributes.html#aac8fc7bf7ab208c5ecdbd45bd22531b1":[11,0,1,3,72,5],
-"structyaze_1_1emu_1_1SpriteAttributes.html#aac8fc7bf7ab208c5ecdbd45bd22531b1":[12,0,0,3,70,5],
-"structyaze_1_1emu_1_1SpriteAttributes.html#ab1590b0468b8c90e2535b2206a4c800b":[11,0,1,3,72,6],
-"structyaze_1_1emu_1_1SpriteAttributes.html#ab1590b0468b8c90e2535b2206a4c800b":[12,0,0,3,70,6]
+"structyaze_1_1emu_1_1SpriteAttributes.html#a8dde6e05e8e813977539aaccf264830f":[11,0,1,3,72,0]
 };

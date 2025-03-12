@@ -1,5 +1,8 @@
 var namespaceyaze_1_1core =
 [
+    [ "anonymous_namespace{controller.cc}", "namespaceyaze_1_1core_1_1anonymous__namespace_02controller_8cc_03.html", [
+      [ "DrawBasicWindow", "namespaceyaze_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#ace75a2b7caeb3ce2319d95e0a6081ac5", null ]
+    ] ],
     [ "anonymous_namespace{font_loader.cc}", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html", [
       [ "SetFontPath", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a0d62353b28e596070a67929b63594ce1", null ],
       [ "LoadFont", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#aeb026c1f2d88cd2c2d4ac9a283861bbe", null ],

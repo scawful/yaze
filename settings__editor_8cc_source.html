@@ -174,58 +174,43 @@ $(function(){initNavTree('settings__editor_8cc_source.html',''); initResizable(t
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    TableHeadersRow();</div>
 <div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
 <div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    TableNextColumn();</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    <span class="keywordflow">if</span> (BeginChild(<span class="stringliteral">&quot;##SystemFlags&quot;</span>, ImVec2(0, 0), ImGuiChildFlags_FrameStyle)) {</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>      flags.<a class="code hl_function" href="structyaze_1_1core_1_1FlagsMenu.html#af6b65b7338428e6249fcb0f6943d0613">DrawSystemFlags</a>();</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>      EndChild();</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    }</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    flags.<a class="code hl_function" href="structyaze_1_1core_1_1FlagsMenu.html#af6b65b7338428e6249fcb0f6943d0613">DrawSystemFlags</a>();</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span> </div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    TableNextColumn();</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    flags.<a class="code hl_function" href="structyaze_1_1core_1_1FlagsMenu.html#aa33d2f748044e1f59d2ce0936cd994ab">DrawOverworldFlags</a>();</div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span> </div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    TableNextColumn();</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    <span class="keywordflow">if</span> (BeginChild(<span class="stringliteral">&quot;##OverworldFlags&quot;</span>, ImVec2(0, 0),</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>                   ImGuiChildFlags_FrameStyle)) {</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>      flags.<a class="code hl_function" href="structyaze_1_1core_1_1FlagsMenu.html#aa33d2f748044e1f59d2ce0936cd994ab">DrawOverworldFlags</a>();</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>      EndChild();</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    }</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    TableNextColumn();</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    <span class="keywordflow">if</span> (BeginChild(<span class="stringliteral">&quot;##DungeonFlags&quot;</span>, ImVec2(0, 0),</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>                   ImGuiChildFlags_FrameStyle)) {</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>      flags.<a class="code hl_function" href="structyaze_1_1core_1_1FlagsMenu.html#abc68206a2a17b5a9081d776338b5af1d">DrawDungeonFlags</a>();</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>      EndChild();</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    }</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span> </div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    TableNextColumn();</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    <span class="keywordflow">if</span> (BeginChild(<span class="stringliteral">&quot;##ResourceFlags&quot;</span>, ImVec2(0, 0),</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>                   ImGuiChildFlags_FrameStyle)) {</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>      flags.<a class="code hl_function" href="structyaze_1_1core_1_1FlagsMenu.html#afa386b1d1c1ee4cab1dc8d0663381dce">DrawResourceFlags</a>();</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>      EndChild();</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    }</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    flags.<a class="code hl_function" href="structyaze_1_1core_1_1FlagsMenu.html#abc68206a2a17b5a9081d776338b5af1d">DrawDungeonFlags</a>();</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span> </div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    TableNextColumn();</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    flags.<a class="code hl_function" href="structyaze_1_1core_1_1FlagsMenu.html#afa386b1d1c1ee4cab1dc8d0663381dce">DrawResourceFlags</a>();</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    EndTable();</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  }</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>}</div>
+</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span> </div>
+<div class="foldopen" id="foldopen00078" data-start="{" data-end="}">
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1SettingsEditor.html#ab90539b1706c9e00c6070d223623e6b8">   78</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1SettingsEditor.html#ab90539b1706c9e00c6070d223623e6b8">SettingsEditor::DrawKeyboardShortcuts</a>() {</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [name, shortcut] :</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>       <a class="code hl_variable" href="classyaze_1_1editor_1_1Editor.html#afe8b2977196af9ee2d7f7892fbddc1b6">context_</a>-&gt;shortcut_manager.GetShortcuts()) {</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    ImGui::PushID(name.c_str());</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    ImGui::Text(<span class="stringliteral">&quot;%s&quot;</span>, name.c_str());</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    ImGui::SameLine(ImGui::GetWindowWidth() - 100);</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    ImGui::Text(<span class="stringliteral">&quot;%s&quot;</span>, <a class="code hl_function" href="namespaceyaze_1_1editor.html#a815cc68b2b87aa2099008bfddf7fb4bb">PrintShortcut</a>(shortcut.keys).c_str());</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    ImGui::PopID();</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>  }</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>}</div>
+</div>
 <div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span> </div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    EndTable();</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>  }</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>}</div>
-</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span> </div>
-<div class="foldopen" id="foldopen00093" data-start="{" data-end="}">
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1SettingsEditor.html#ab90539b1706c9e00c6070d223623e6b8">   93</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1SettingsEditor.html#ab90539b1706c9e00c6070d223623e6b8">SettingsEditor::DrawKeyboardShortcuts</a>() {</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [name, shortcut] :</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>       <a class="code hl_variable" href="classyaze_1_1editor_1_1Editor.html#afe8b2977196af9ee2d7f7892fbddc1b6">context_</a>-&gt;shortcut_manager.GetShortcuts()) {</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    ImGui::PushID(name.c_str());</div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    ImGui::Text(<span class="stringliteral">&quot;%s&quot;</span>, name.c_str());</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    ImGui::SameLine(ImGui::GetWindowWidth() - 100);</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    ImGui::Text(<span class="stringliteral">&quot;%s&quot;</span>, <a class="code hl_function" href="namespaceyaze_1_1editor.html#a815cc68b2b87aa2099008bfddf7fb4bb">PrintShortcut</a>(shortcut.keys).c_str());</div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    ImGui::PopID();</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>  }</div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>}</div>
-</div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span> </div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>}  <span class="comment">// namespace editor</span></div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>}  <span class="comment">// namespace yaze</span></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1Editor_html_afe8b2977196af9ee2d7f7892fbddc1b6"><div class="ttname"><a href="classyaze_1_1editor_1_1Editor.html#afe8b2977196af9ee2d7f7892fbddc1b6">yaze::editor::Editor::context_</a></div><div class="ttdeci">EditorContext * context_</div><div class="ttdef"><b>Definition</b> <a href="editor_8h_source.html#l00082">editor.h:82</a></div></div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>}  <span class="comment">// namespace editor</span></div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1Editor_html_afe8b2977196af9ee2d7f7892fbddc1b6"><div class="ttname"><a href="classyaze_1_1editor_1_1Editor.html#afe8b2977196af9ee2d7f7892fbddc1b6">yaze::editor::Editor::context_</a></div><div class="ttdeci">EditorContext * context_</div><div class="ttdef"><b>Definition</b> <a href="editor_8h_source.html#l00086">editor.h:86</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1SettingsEditor_html_a1f4ad9210d7bfaebf191b98e752f8a0b"><div class="ttname"><a href="classyaze_1_1editor_1_1SettingsEditor.html#a1f4ad9210d7bfaebf191b98e752f8a0b">yaze::editor::SettingsEditor::DrawGeneralSettings</a></div><div class="ttdeci">void DrawGeneralSettings()</div><div class="ttdef"><b>Definition</b> <a href="#l00048">settings_editor.cc:48</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1SettingsEditor_html_a22ad283ada591bab7a1f64f6fba018dc"><div class="ttname"><a href="classyaze_1_1editor_1_1SettingsEditor.html#a22ad283ada591bab7a1f64f6fba018dc">yaze::editor::SettingsEditor::Update</a></div><div class="ttdeci">absl::Status Update() override</div><div class="ttdef"><b>Definition</b> <a href="#l00028">settings_editor.cc:28</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1SettingsEditor_html_a65a678b6e8381ca3f64ab76884ac236e"><div class="ttname"><a href="classyaze_1_1editor_1_1SettingsEditor.html#a65a678b6e8381ca3f64ab76884ac236e">yaze::editor::SettingsEditor::Load</a></div><div class="ttdeci">absl::Status Load() override</div><div class="ttdef"><b>Definition</b> <a href="#l00026">settings_editor.cc:26</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1SettingsEditor_html_a8505345e0c9e4e93188ea9a92490539a"><div class="ttname"><a href="classyaze_1_1editor_1_1SettingsEditor.html#a8505345e0c9e4e93188ea9a92490539a">yaze::editor::SettingsEditor::Initialize</a></div><div class="ttdeci">void Initialize() override</div><div class="ttdef"><b>Definition</b> <a href="#l00024">settings_editor.cc:24</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1SettingsEditor_html_ab90539b1706c9e00c6070d223623e6b8"><div class="ttname"><a href="classyaze_1_1editor_1_1SettingsEditor.html#ab90539b1706c9e00c6070d223623e6b8">yaze::editor::SettingsEditor::DrawKeyboardShortcuts</a></div><div class="ttdeci">void DrawKeyboardShortcuts()</div><div class="ttdef"><b>Definition</b> <a href="#l00093">settings_editor.cc:93</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1SettingsEditor_html_ab90539b1706c9e00c6070d223623e6b8"><div class="ttname"><a href="classyaze_1_1editor_1_1SettingsEditor.html#ab90539b1706c9e00c6070d223623e6b8">yaze::editor::SettingsEditor::DrawKeyboardShortcuts</a></div><div class="ttdeci">void DrawKeyboardShortcuts()</div><div class="ttdef"><b>Definition</b> <a href="#l00078">settings_editor.cc:78</a></div></div>
 <div class="ttc" id="afeatures_8h_html"><div class="ttname"><a href="features_8h.html">features.h</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1editor_html"><div class="ttname"><a href="namespaceyaze_1_1editor.html">yaze::editor</a></div><div class="ttdoc">Editors are the view controllers for the application.</div><div class="ttdef"><b>Definition</b> <a href="assembly__editor_8cc_source.html#l00013">assembly_editor.cc:13</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1editor_html_a815cc68b2b87aa2099008bfddf7fb4bb"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a815cc68b2b87aa2099008bfddf7fb4bb">yaze::editor::PrintShortcut</a></div><div class="ttdeci">std::string PrintShortcut(const std::vector&lt; ImGuiKey &gt; &amp;keys)</div><div class="ttdef"><b>Definition</b> <a href="shortcut__manager_8cc_source.html#l00086">shortcut_manager.cc:86</a></div></div>

@@ -1,5 +1,14 @@
 var NAVTREEINDEX54 =
 {
+"structyaze__editor__context.html":[12,0,18],
+"structyaze__editor__context.html#a3e747d7d0638142be1b42e0fb5f0bf60":[12,0,18,1],
+"structyaze__editor__context.html#a50323bf40f414a711612e3dbf2c2ff88":[12,0,18,0],
+"structyaze__editor__context.html#a5864fdc76ce969933913a75f2ff4c0c1":[12,0,18,2],
+"structyaze__extension.html":[12,0,19],
+"structyaze__extension.html#a62d89167cd6b0ad7d91811e145290be5":[12,0,19,2],
+"structyaze__extension.html#a78827a2290a2eea969ded6fec5fcc4e9":[12,0,19,1],
+"structyaze__extension.html#a99596502df4c2037a9d22c4f555435ae":[12,0,19,3],
+"structyaze__extension.html#af08fb5a1a5551c79898ebd6a3d375d8c":[12,0,19,0],
 "structyaze__project.html":[12,0,20],
 "structyaze__project.html#a8ae2f8f736c006c43c1f574ac8a57527":[12,0,20,3],
 "structyaze__project.html#aa01dd899dc23a621e4a4f1de5c6c3722":[12,0,20,0],

@@ -1,5 +1,14 @@
 var NAVTREEINDEX44 =
 {
+"namespaceyaze_1_1zelda3.html#ab50b9ca4453d8c22553f2849274dbee6":[11,0,1,8,197],
+"namespaceyaze_1_1zelda3.html#ab77d18fdb72f1304bcdf701f7401d33d":[11,0,1,8,231],
+"namespaceyaze_1_1zelda3.html#ab856ab8bbcaa17a82b9243a480c43c6f":[11,0,1,8,117],
+"namespaceyaze_1_1zelda3.html#ab8abd76b840f4adcc0f9e30a17d6833f":[11,0,1,8,279],
+"namespaceyaze_1_1zelda3.html#ab8d30c5b41fed3b580fde3311f584a31":[11,0,1,8,285],
+"namespaceyaze_1_1zelda3.html#abbb89208f91e4ee4592b2486be98de7b":[11,0,1,8,237],
+"namespaceyaze_1_1zelda3.html#abef724e274cf2ea2e2648fe43eebecde":[11,0,1,8,143],
+"namespaceyaze_1_1zelda3.html#abfbe2444d2fac0e5cce5c8368a329835":[11,0,1,8,43],
+"namespaceyaze_1_1zelda3.html#abfc1c233e6090d6a6b6f10af7a0910d3":[11,0,1,8,85],
 "namespaceyaze_1_1zelda3.html#ac04d90d39cb3a2bfa0af2d6d487b1295":[11,0,1,8,278],
 "namespaceyaze_1_1zelda3.html#ac0a0309fa60665597343c6ce7028aff7":[11,0,1,8,260],
 "namespaceyaze_1_1zelda3.html#ac0ef12936001b8daaf166ca667a105af":[11,0,1,8,264],
@@ -240,14 +249,5 @@ var NAVTREEINDEX44 =
 "structTextEditor_1_1Coordinates.html#a760ce69a79d86cba45eb9c951fade98e":[12,0,16,1,9],
 "structTextEditor_1_1Coordinates.html#ab72cacf8f0da0e372aa79ae3fd0815ab":[12,0,16,1,2],
 "structTextEditor_1_1Coordinates.html#ade230f62e2e797a0e80b101d372fc563":[12,0,16,1,4],
-"structTextEditor_1_1Coordinates.html#ae2e00ef463aa3a3ba7220c66fa60ca2c":[12,0,16,1,5],
-"structTextEditor_1_1Coordinates.html#afc851102ab611e41dc512160b591d100":[12,0,16,1,1],
-"structTextEditor_1_1Coordinates.html#afd18237a4b1a1de83204b5034efbd93f":[12,0,16,1,7],
-"structTextEditor_1_1Coordinates.html#afe96219032928f08e5bbd4c9c42dccdd":[12,0,16,1,3],
-"structTextEditor_1_1EditorState.html":[12,0,16,2],
-"structTextEditor_1_1EditorState.html#a3edbfbf79eae29c86da59c3ad061da17":[12,0,16,2,0],
-"structTextEditor_1_1EditorState.html#abaf61edf6aac6db8c8f0b02c103cb92a":[12,0,16,2,1],
-"structTextEditor_1_1EditorState.html#afee37ee4b138160efac9bb179385282e":[12,0,16,2,2],
-"structTextEditor_1_1Glyph.html":[12,0,16,3],
-"structTextEditor_1_1Glyph.html#a162ace0fbfbc043e08195a50c2b3bf83":[12,0,16,3,5]
+"structTextEditor_1_1Coordinates.html#ae2e00ef463aa3a3ba7220c66fa60ca2c":[12,0,16,1,5]
 };

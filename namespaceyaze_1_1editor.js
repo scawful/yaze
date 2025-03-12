@@ -9,7 +9,8 @@ var namespaceyaze_1_1editor =
     ] ],
     [ "anonymous_namespace{editor_manager.cc}", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html", [
       [ "BeginCentered", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#a31df2babe81739c8cc81beeb0b148066", null ],
-      [ "IsEditorActive", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#aedd76ea3011012c49dbd8e07e848f046", null ]
+      [ "IsEditorActive", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#aedd76ea3011012c49dbd8e07e848f046", null ],
+      [ "GetEditorName", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#a04a2feb18db36480026c96f4c432701d", null ]
     ] ],
     [ "anonymous_namespace{gfx_group_editor.cc}", "namespaceyaze_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html", [
       [ "DrawPaletteFromPaletteGroup", "namespaceyaze_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html#ab034577d86103210b34c4e4164d82f0c", null ]

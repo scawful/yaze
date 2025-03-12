@@ -1,5 +1,14 @@
 var NAVTREEINDEX51 =
 {
+"structyaze_1_1emu_1_1WindowMaskSettings2.html#ab8e4c636dddf40beb97cc84bed60be2f":[12,0,0,3,98,4],
+"structyaze_1_1emu_1_1WindowPosition.html":[11,0,1,3,101],
+"structyaze_1_1emu_1_1WindowPosition.html":[12,0,0,3,99],
+"structyaze_1_1emu_1_1WindowPosition.html#a1af2e3e67ce5d35a0734cc33ecb785bc":[11,0,1,3,101,0],
+"structyaze_1_1emu_1_1WindowPosition.html#a1af2e3e67ce5d35a0734cc33ecb785bc":[12,0,0,3,99,0],
+"structyaze_1_1emu_1_1WramAccessRegisters.html":[11,0,1,3,104],
+"structyaze_1_1emu_1_1WramAccessRegisters.html":[12,0,0,3,102],
+"structyaze_1_1emu_1_1WramAccessRegisters.html#a3680907b1cc01f57e685613792e8aec7":[11,0,1,3,104,0],
+"structyaze_1_1emu_1_1WramAccessRegisters.html#a3680907b1cc01f57e685613792e8aec7":[12,0,0,3,102,0],
 "structyaze_1_1emu_1_1WramAccessRegisters.html#acdc6e85785d270b82750b50a4b5b98e5":[11,0,1,3,104,1],
 "structyaze_1_1emu_1_1WramAccessRegisters.html#acdc6e85785d270b82750b50a4b5b98e5":[12,0,0,3,102,1],
 "structyaze_1_1gfx_1_1CgxHeader.html":[11,0,1,4,4],
@@ -240,14 +249,5 @@ var NAVTREEINDEX51 =
 "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a77a4f2ebd29b01abe5675ba9c0f62d7f":[12,0,0,5,7,5],
 "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a78b89e4056825c18049694239ab53a8f":[11,0,1,5,9,17],
 "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a78b89e4056825c18049694239ab53a8f":[12,0,0,5,7,17],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a8f62625fdef70a39e42e7c808c4b4a8a":[11,0,1,5,9,25],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a8f62625fdef70a39e42e7c808c4b4a8a":[12,0,0,5,7,25],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a9d5374ae929b57e12ac7134ad6f38f79":[11,0,1,5,9,1],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a9d5374ae929b57e12ac7134ad6f38f79":[12,0,0,5,7,1],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#aa372832c91cf979db3cc1c487145c93e":[11,0,1,5,9,3],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#aa372832c91cf979db3cc1c487145c93e":[12,0,0,5,7,3],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#ab26234ff6fdaf9c3b2f9e0d81829d138":[11,0,1,5,9,14],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#ab26234ff6fdaf9c3b2f9e0d81829d138":[12,0,0,5,7,14],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#ab4a29a645e3c7311a556aa50e1af2d5c":[11,0,1,5,9,13],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#ab4a29a645e3c7311a556aa50e1af2d5c":[12,0,0,5,7,13]
+"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a8f62625fdef70a39e42e7c808c4b4a8a":[11,0,1,5,9,25]
 };
