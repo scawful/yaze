@@ -108,10 +108,9 @@ absl::Status Controller::OnLoad() {
   return absl::OkStatus();
 }
 
-absl::Status Controller::OnTestLoad() {
-  RETURN_IF_ERROR(test_editor_->Update());
-  return absl::OkStatus();
-}
+
+
+
 
 void Controller::DoRender() const {
   ImGui::Render();
