@@ -6,9 +6,9 @@
 #include <memory>
 
 #include "absl/status/status.h"
+#include "app/core/platform/backend.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/platform/renderer.h"
-#include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
@@ -39,7 +39,6 @@ class Controller {
   absl::Status CreateWindow();
   absl::Status CreateRenderer();
   absl::Status CreateGuiContext();
-  absl::Status LoadAudioDevice();
   absl::Status LoadConfigFiles();
 
   auto window() -> SDL_Window * { return window_.get(); }
@@ -51,11 +50,8 @@ class Controller {
 
   bool active_ = false;
   editor::EditorManager editor_manager_;
-
-  int audio_frequency_ = 48000;
-  SDL_AudioDeviceID audio_device_;
-  std::shared_ptr<int16_t> audio_buffer_;
   std::shared_ptr<SDL_Window> window_;
+  core::PlatformBackend<Sdl2Backend> backend_;
 };
 
 }  // namespace core

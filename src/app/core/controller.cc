@@ -22,7 +22,12 @@ absl::Status Controller::OnEntry(std::string filename) {
   RETURN_IF_ERROR(CreateWindow())
   RETURN_IF_ERROR(CreateRenderer())
   RETURN_IF_ERROR(CreateGuiContext())
-  RETURN_IF_ERROR(LoadAudioDevice())
+  backend_.init_audio();
+  // cast to Sdl2backend to access audio buffer and device
+  auto &sdl2_backend = static_cast<Sdl2Backend &>(backend_);
+  editor_manager_.emulator().set_audio_buffer(
+      sdl2_backend.audio_buffer().get());
+  editor_manager_.emulator().set_audio_device_id(sdl2_backend.audio_device());
   Initialize(filename);
   return absl::OkStatus();
 }
@@ -108,10 +113,6 @@ absl::Status Controller::OnLoad() {
   return absl::OkStatus();
 }
 
-
-
-
-
 void Controller::DoRender() const {
   ImGui::Render();
   SDL_RenderClear(Renderer::GetInstance().renderer());
@@ -121,8 +122,7 @@ void Controller::DoRender() const {
 }
 
 void Controller::OnExit() {
-  SDL_PauseAudioDevice(audio_device_, 1);
-  SDL_CloseAudioDevice(audio_device_);
+  backend_.shutdown_audio();
   ImGui_ImplSDLRenderer2_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
@@ -180,29 +180,8 @@ absl::Status Controller::CreateGuiContext() {
   gui::ColorsYaze();
 
   // Build a new ImGui frame
-  ImGui_ImplSDLRenderer2_NewFrame();
-  ImGui_ImplSDL2_NewFrame();
+  backend_.new_frame();
 
-  return absl::OkStatus();
-}
-
-absl::Status Controller::LoadAudioDevice() {
-  SDL_AudioSpec want, have;
-  SDL_memset(&want, 0, sizeof(want));
-  want.freq = audio_frequency_;
-  want.format = AUDIO_S16;
-  want.channels = 2;
-  want.samples = 2048;
-  want.callback = NULL;  // Uses the queue
-  audio_device_ = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
-  if (audio_device_ == 0) {
-    return absl::InternalError(
-        absl::StrFormat("Failed to open audio: %s\n", SDL_GetError()));
-  }
-  audio_buffer_ = std::make_shared<int16_t>(audio_frequency_ / 50 * 4);
-  SDL_PauseAudioDevice(audio_device_, 0);
-  editor_manager_.emulator().set_audio_buffer(audio_buffer_.get());
-  editor_manager_.emulator().set_audio_device_id(audio_device_);
   return absl::OkStatus();
 }
 
