@@ -188,13 +188,14 @@ void Paragraph(const std::string& text) {
   ImGui::TextWrapped("%s", text.c_str());
 }
 
+// TODO: Setup themes and text/clickable colors
 bool ClickableText(const std::string& text) {
-  static auto color = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+  static auto color = ImGui::GetStyleColorVec4(ImGuiCol_Tab);
   ImGui::TextColored(color, "%s", text.c_str());
   if (ImGui::IsItemHovered()) {
     color = ImGui::GetStyleColorVec4(ImGuiCol_TabHovered);
   } else {
-    color = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+    color = ImGui::GetStyleColorVec4(ImGuiCol_Tab);
   }
   return ImGui::IsItemClicked();
 }
