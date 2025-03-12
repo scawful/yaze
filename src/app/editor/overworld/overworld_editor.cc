@@ -93,6 +93,7 @@ absl::Status OverworldEditor::Load() {
       tile16_editor_.Initialize(tile16_blockset_bmp_, current_gfx_bmp_,
                                 *overworld_.mutable_all_tiles_types()));
   ASSIGN_OR_RETURN(entrance_tiletypes_, zelda3::LoadEntranceTileTypes(rom_));
+  RETURN_IF_ERROR(LoadGraphics());
   all_gfx_loaded_ = true;
   return absl::OkStatus();
 }
