@@ -93,6 +93,7 @@ class PaletteEditor : public SharedRom, public Editor {
   absl::Status Undo() override { return absl::OkStatus(); }
   absl::Status Redo() override { return absl::OkStatus(); }
   absl::Status Find() override { return absl::OkStatus(); }
+  absl::Status Save() override { return absl::UnimplementedError("Save"); }
 
   void DisplayCategoryTable();
 

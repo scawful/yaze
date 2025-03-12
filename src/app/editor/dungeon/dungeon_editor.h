@@ -51,6 +51,7 @@ class DungeonEditor : public Editor, public SharedRom {
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
+  absl::Status Save() override { return absl::UnimplementedError("Save"); }
 
   void add_room(int i) { active_rooms_.push_back(i); }
 

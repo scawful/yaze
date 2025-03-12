@@ -67,6 +67,7 @@ class GraphicsEditor : public SharedRom, public Editor {
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
+  absl::Status Save() override { return absl::UnimplementedError("Save"); }
 
  private:
   enum class GfxEditMode {
