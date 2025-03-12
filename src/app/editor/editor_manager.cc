@@ -701,16 +701,20 @@ void EditorManager::LoadRom() {
     manager.Load();
     manager.AddFile(file_name);
     manager.Save();
-    auto load_rom_assets = [&]() -> absl::Status {
-      auto &sheet_manager = GraphicsSheetManager::GetInstance();
-      ASSIGN_OR_RETURN(*sheet_manager.mutable_gfx_sheets(),
-                       LoadAllGraphicsData(*rom()))
-      RETURN_IF_ERROR(overworld_editor_.LoadGraphics());
-      return absl::OkStatus();
-    };
-    if (!load_rom_assets().ok()) {
-      status_ = load_rom_assets();
-    }
+    LoadAssets();
+  }
+}
+
+void EditorManager::LoadAssets() {
+  auto load_rom_assets = [&]() -> absl::Status {
+    auto &sheet_manager = GraphicsSheetManager::GetInstance();
+    ASSIGN_OR_RETURN(*sheet_manager.mutable_gfx_sheets(),
+                     LoadAllGraphicsData(*rom()))
+    RETURN_IF_ERROR(overworld_editor_.LoadGraphics());
+    return absl::OkStatus();
+  };
+  if (!load_rom_assets().ok()) {
+    status_ = load_rom_assets();
   }
 }
 
@@ -739,6 +743,7 @@ void EditorManager::OpenRomOrProject(const std::string &filename) {
   } else {
     status_ = rom()->LoadFromFile(filename);
     current_rom_ = rom();
+    LoadAssets();
   }
 }
 
@@ -756,11 +761,9 @@ absl::Status EditorManager::OpenProject() {
   manager.AddFile(current_project_.filepath + "/" + current_project_.name +
                   ".yaze");
   manager.Save();
-
   assembly_editor_.OpenFolder(current_project_.code_folder_);
-
   current_project_.project_opened_ = true;
-
+  LoadAssets();
   return absl::OkStatus();
 }
 
