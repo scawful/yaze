@@ -15,7 +15,6 @@
 
 namespace yaze {
 namespace test {
-namespace integration {
 
 absl::Status TestEditor::Update() {
   ImGui::NewFrame();
@@ -44,10 +43,7 @@ void TestEditor::RegisterTests(ImGuiTestEngine* engine) {
 }
 
 int RunIntegrationTest() {
-  yaze::test::integration::TestEditor test_editor;
   yaze::core::Controller controller;
-  controller.init_test_editor(&test_editor);
-
   if (!controller.CreateWindow().ok()) {
     return EXIT_FAILURE;
   }
@@ -71,6 +67,7 @@ int RunIntegrationTest() {
       controller.window(), yaze::core::Renderer::GetInstance().renderer());
   ImGui_ImplSDLRenderer2_Init(yaze::core::Renderer::GetInstance().renderer());
 
+  yaze::test::integration::TestEditor test_editor;
   test_editor.RegisterTests(engine);
   ImGuiTestEngine_Start(engine, ImGui::GetCurrentContext());
   controller.set_active(true);
@@ -84,9 +81,7 @@ int RunIntegrationTest() {
 
   while (controller.IsActive()) {
     controller.OnInput();
-    if (const auto status = controller.OnTestLoad(); !status.ok()) {
-      return EXIT_FAILURE;
-    }
+    test_editor.Update();
     controller.DoRender();
   }
 
@@ -95,6 +90,5 @@ int RunIntegrationTest() {
   return EXIT_SUCCESS;
 }
 
-}  // namespace integration
 }  // namespace test
 }  // namespace yaze

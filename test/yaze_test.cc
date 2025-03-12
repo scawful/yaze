@@ -13,11 +13,11 @@ int main(int argc, char* argv[]) {
   absl::InstallFailureSignalHandler(options);
 
   if (argc > 1 && std::string(argv[1]) == "integration") {
-    return yaze::test::integration::RunIntegrationTest();
+    return yaze::test::RunIntegrationTest();
   } else if (argc > 1 && std::string(argv[1]) == "room_object") {
     ::testing::InitGoogleTest(&argc, argv);
     if (!RUN_ALL_TESTS()) {
-      return yaze::test::integration::RunIntegrationTest();
+      return yaze::test::RunIntegrationTest();
     }
   }
 

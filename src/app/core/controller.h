@@ -33,7 +33,6 @@ class Controller {
   void Initialize(std::string filename = "");
   void OnInput();
   absl::Status OnLoad();
-  absl::Status OnTestLoad();
   void DoRender() const;
   void OnExit();
 
@@ -44,7 +43,6 @@ class Controller {
   absl::Status LoadConfigFiles();
 
   auto window() -> SDL_Window * { return window_.get(); }
-  void init_test_editor(editor::Editor *editor) { test_editor_ = editor; }
   void set_active(bool active) { active_ = active; }
   auto active() const { return active_; }
 
@@ -52,7 +50,6 @@ class Controller {
   friend int ::main(int argc, char **argv);
 
   bool active_ = false;
-  editor::Editor *test_editor_ = nullptr;
   editor::EditorManager editor_manager_;
 
   int audio_frequency_ = 48000;
