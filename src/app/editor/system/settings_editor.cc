@@ -60,31 +60,16 @@ void SettingsEditor::DrawGeneralSettings() {
     TableHeadersRow();
 
     TableNextColumn();
-    if (BeginChild("##SystemFlags", ImVec2(0, 0), ImGuiChildFlags_FrameStyle)) {
-      flags.DrawSystemFlags();
-      EndChild();
-    }
+    flags.DrawSystemFlags();
 
     TableNextColumn();
-    if (BeginChild("##OverworldFlags", ImVec2(0, 0),
-                   ImGuiChildFlags_FrameStyle)) {
-      flags.DrawOverworldFlags();
-      EndChild();
-    }
+    flags.DrawOverworldFlags();
 
     TableNextColumn();
-    if (BeginChild("##DungeonFlags", ImVec2(0, 0),
-                   ImGuiChildFlags_FrameStyle)) {
-      flags.DrawDungeonFlags();
-      EndChild();
-    }
+    flags.DrawDungeonFlags();
 
     TableNextColumn();
-    if (BeginChild("##ResourceFlags", ImVec2(0, 0),
-                   ImGuiChildFlags_FrameStyle)) {
-      flags.DrawResourceFlags();
-      EndChild();
-    }
+    flags.DrawResourceFlags();
 
     EndTable();
   }
