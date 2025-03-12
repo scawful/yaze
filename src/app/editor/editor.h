@@ -61,6 +61,9 @@ class Editor {
   // Initialization of ROM assets.
   virtual absl::Status Load() = 0;
 
+  // Save the editor state.
+  virtual absl::Status Save() = 0;
+
   // Update the editor state, ran every frame.
   virtual absl::Status Update() = 0;
 

@@ -50,6 +50,8 @@ class AssemblyEditor : public Editor {
 
   absl::Status Update() override;
 
+  absl::Status Save() override { return absl::UnimplementedError("Save"); }
+
   void OpenFolder(const std::string &folder_path);
 
  private:

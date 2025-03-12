@@ -84,10 +84,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
-  absl::Status Find() override {
-    return absl::UnimplementedError("Find Unused Tiles");
-  }
-  absl::Status Save();
+  absl::Status Find() override { return absl::UnimplementedError("Find"); }
+  absl::Status Save() override;
 
   int jump_to_tab() { return jump_to_tab_; }
   int jump_to_tab_ = -1;

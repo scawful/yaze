@@ -58,7 +58,7 @@ class MessageEditor : public Editor, public SharedRom {
   absl::Status Find() override {
     return absl::UnimplementedError("Find not implemented");
   }
-  absl::Status Save();
+  absl::Status Save() override;
   void Delete();
   void SelectAll();
 
