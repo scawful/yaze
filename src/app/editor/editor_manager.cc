@@ -82,7 +82,7 @@ void EditorManager::Initialize(const std::string &filename) {
   project_menu_subitems.emplace_back("New Project", "",
                                      [&]() { new_project_menu = true; });
   project_menu_subitems.emplace_back("Open Project", "",
-                                     [&]() { OpenProject(); });
+                                     [&]() { status_ = OpenProject(); });
   project_menu_subitems.emplace_back(
       "Save Project", "", [&]() { SaveProject(); },
       [&]() { return current_project_.project_opened_; });
@@ -185,7 +185,8 @@ void EditorManager::Initialize(const std::string &filename) {
        {},
        {
            {absl::StrCat(ICON_MD_CODE, " Assembly Editor"), "",
-            [&]() { show_asm_editor_ = true; }},
+            [&]() { show_asm_editor_ = true; },
+            [&]() { return show_asm_editor_; }},
            {absl::StrCat(ICON_MD_CASTLE, " Dungeon Editor"), "",
             [&]() { dungeon_editor_.set_active(true); },
             [&]() { return *dungeon_editor_.active(); }},
@@ -253,10 +254,8 @@ void EditorManager::Initialize(const std::string &filename) {
 }
 
 absl::Status EditorManager::Update() {
-  // DrawMenuBar();
   DrawPopups();
   ExecuteShortcuts(context_.shortcut_manager);
-  context_.command_manager.ShowWhichKey();
 
   for (auto editor : active_editors_) {
     if (*editor->active()) {
@@ -270,15 +269,13 @@ absl::Status EditorManager::Update() {
   }
 
   static bool show_home = true;
-
-  if (ImGui::Begin("Home", &show_home)) {
-    if (!current_rom_) {
-      DrawHomepage();
-    } else {
-      ManageActiveEditors();
-    }
-    ImGui::End();
+  ImGui::Begin("Home", &show_home);
+  if (!current_rom_) {
+    DrawHomepage();
+  } else {
+    ManageActiveEditors();
   }
+  ImGui::End();
   return absl::OkStatus();
 }
 
