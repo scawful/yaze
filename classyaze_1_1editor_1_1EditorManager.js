@@ -10,6 +10,7 @@ var classyaze_1_1editor_1_1EditorManager =
     [ "DrawHomepage", "classyaze_1_1editor_1_1EditorManager.html#a8caba62b52b6259ac90d7df11a14f53b", null ],
     [ "DrawPopups", "classyaze_1_1editor_1_1EditorManager.html#a412d95d9804bfc2f0070635ba700a1b7", null ],
     [ "LoadRom", "classyaze_1_1editor_1_1EditorManager.html#a946572cba19b94741ae2dab9b3fd289a", null ],
+    [ "LoadAssets", "classyaze_1_1editor_1_1EditorManager.html#a39d7d960d1d446bbf8415b0cdd32334a", null ],
     [ "SaveRom", "classyaze_1_1editor_1_1EditorManager.html#a213b676d9936473bcc8ffb80513dbae5", null ],
     [ "OpenRomOrProject", "classyaze_1_1editor_1_1EditorManager.html#a1ff2aa0d1374440a5ed5d643784c4032", null ],
     [ "OpenProject", "classyaze_1_1editor_1_1EditorManager.html#a2f7b946839734d5ad6ec6782552dd84d", null ],

@@ -14,6 +14,7 @@ var classyaze_1_1editor_1_1AssemblyEditor =
     [ "Redo", "classyaze_1_1editor_1_1AssemblyEditor.html#ace1408deb89a487ea16be40084057d93", null ],
     [ "Find", "classyaze_1_1editor_1_1AssemblyEditor.html#a08bf82c882bff4f6ae3f0d745b825dc3", null ],
     [ "Update", "classyaze_1_1editor_1_1AssemblyEditor.html#aa121f5fca0075dbb45c1c670a53b2636", null ],
+    [ "Save", "classyaze_1_1editor_1_1AssemblyEditor.html#a205ca8fc1dd3bfb02187446d440be187", null ],
     [ "OpenFolder", "classyaze_1_1editor_1_1AssemblyEditor.html#a85cff0f1b9734435c8becb8dad02d6bd", null ],
     [ "DrawFileMenu", "classyaze_1_1editor_1_1AssemblyEditor.html#a71ee09ea0c2d2cb3769a4cca58808d0c", null ],
     [ "DrawEditMenu", "classyaze_1_1editor_1_1AssemblyEditor.html#a5707b03c31f0ffc116e10d9d81fbd154", null ],

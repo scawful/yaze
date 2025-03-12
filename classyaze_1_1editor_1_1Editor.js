@@ -4,6 +4,7 @@ var classyaze_1_1editor_1_1Editor =
     [ "~Editor", "classyaze_1_1editor_1_1Editor.html#a78070dc194ac0104406bc2ff4dd07b1f", null ],
     [ "Initialize", "classyaze_1_1editor_1_1Editor.html#a5c1b245617554f101535e1deb3cb5547", null ],
     [ "Load", "classyaze_1_1editor_1_1Editor.html#aec4a1012c0639bb4b60183a735418b32", null ],
+    [ "Save", "classyaze_1_1editor_1_1Editor.html#a89afe8fdd51463ff3d4259f40c98d464", null ],
     [ "Update", "classyaze_1_1editor_1_1Editor.html#aed50bffbba9a0d98f8f3d24ad753f887", null ],
     [ "Cut", "classyaze_1_1editor_1_1Editor.html#a0c8c0eae68a91298050a709c146a9472", null ],
     [ "Copy", "classyaze_1_1editor_1_1Editor.html#a0d1cad7dc7377bcf699c76dc1da4bd2f", null ],

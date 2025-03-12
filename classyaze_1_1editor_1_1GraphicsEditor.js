@@ -15,6 +15,7 @@ var classyaze_1_1editor_1_1GraphicsEditor =
     [ "Copy", "classyaze_1_1editor_1_1GraphicsEditor.html#a5a25fae04d8f11e23a5bb392ddb0fc52", null ],
     [ "Paste", "classyaze_1_1editor_1_1GraphicsEditor.html#a8cfe302d85d5f0f260d6636ffb1f39aa", null ],
     [ "Find", "classyaze_1_1editor_1_1GraphicsEditor.html#ab4f36209b7be085caa67ed5368523601", null ],
+    [ "Save", "classyaze_1_1editor_1_1GraphicsEditor.html#a1820199f3fc06cf01e8cf608e60ab460", null ],
     [ "UpdateGfxEdit", "classyaze_1_1editor_1_1GraphicsEditor.html#a02020669ab4b81286b4949c756829771", null ],
     [ "UpdateGfxSheetList", "classyaze_1_1editor_1_1GraphicsEditor.html#a50dfe7911a1504dfc01de5d05771e4d3", null ],
     [ "UpdateGfxTabView", "classyaze_1_1editor_1_1GraphicsEditor.html#ae93cad6eb6670dd071fb47bf347a7fde", null ],

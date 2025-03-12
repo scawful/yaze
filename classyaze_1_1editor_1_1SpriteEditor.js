@@ -11,6 +11,7 @@ var classyaze_1_1editor_1_1SpriteEditor =
     [ "Copy", "classyaze_1_1editor_1_1SpriteEditor.html#ac349bfdf54423855e9319f81dffbaf5c", null ],
     [ "Paste", "classyaze_1_1editor_1_1SpriteEditor.html#a3b4127bfcac22c24bfb62d213e68c2ce", null ],
     [ "Find", "classyaze_1_1editor_1_1SpriteEditor.html#a098f4ff3c8f79aafe9faf6b98675f67d", null ],
+    [ "Save", "classyaze_1_1editor_1_1SpriteEditor.html#ac553339df7a4883b38143766fba1286f", null ],
     [ "DrawVanillaSpriteEditor", "classyaze_1_1editor_1_1SpriteEditor.html#a8654819141edd6e0cebe9962da993761", null ],
     [ "DrawSpritesList", "classyaze_1_1editor_1_1SpriteEditor.html#a69a612f6b9fa4f4d003f29bc16584ee3", null ],
     [ "DrawSpriteCanvas", "classyaze_1_1editor_1_1SpriteEditor.html#a2b88bc5b08da9e5634c0dc55ad0eb679", null ],

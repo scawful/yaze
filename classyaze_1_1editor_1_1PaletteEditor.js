@@ -10,6 +10,7 @@ var classyaze_1_1editor_1_1PaletteEditor =
     [ "Undo", "classyaze_1_1editor_1_1PaletteEditor.html#a6467c1d82ff1efafabf265d682e70198", null ],
     [ "Redo", "classyaze_1_1editor_1_1PaletteEditor.html#ae9485cdf2293fff0dfaa3964dd0cb6c0", null ],
     [ "Find", "classyaze_1_1editor_1_1PaletteEditor.html#a3202a27e79a0d9035f733e0e7f5ca306", null ],
+    [ "Save", "classyaze_1_1editor_1_1PaletteEditor.html#aa2d9eea976898db95d551314dfa4455c", null ],
     [ "DisplayCategoryTable", "classyaze_1_1editor_1_1PaletteEditor.html#a35872fbcd8211fdbf6aae3bf3c9ea611", null ],
     [ "EditColorInPalette", "classyaze_1_1editor_1_1PaletteEditor.html#af33bcbc1e8f1627ccbbf2abad17eafca", null ],
     [ "ResetColorToOriginal", "classyaze_1_1editor_1_1PaletteEditor.html#a296649e5c702885dc0a65260feab0ee9", null ],

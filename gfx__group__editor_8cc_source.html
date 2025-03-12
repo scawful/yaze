@@ -225,216 +225,225 @@ $(function(){initNavTree('gfx__group__editor_8cc_source.html',''); initResizable
 <div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>      BeginGroup();</div>
 <div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>      <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 8; i++) {</div>
 <div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>        <span class="keywordtype">int</span> sheet_id = <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;main_blockset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#a1df34b64589a8c02487aa0f6c76e19e9">selected_blockset_</a>][i];</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>        <span class="keyword">auto</span> &amp;sheet = <a class="code hl_function" href="classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6">GraphicsSheetManager::GetInstance</a>().<a class="code hl_function" href="classyaze_1_1GraphicsSheetManager.html#a4871bff3db392ae5107ec5db39fcf1f2">mutable_gfx_sheets</a>()-&gt;at(sheet_id);</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>        <a class="code hl_function" href="namespaceyaze_1_1gui.html#a134c6e6817a4a8332e3842e4b2cd01f6">gui::BitmapCanvasPipeline</a>(<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#af5d2253e39403884de00090fdef15ff5">blockset_canvas_</a>, sheet, 256, 0x10 * 0x04,</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>                                  0x20, <span class="keyword">true</span>, <span class="keyword">false</span>, 22);</div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>      }</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>      EndGroup();</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>    }</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>    EndTable();</div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>  }</div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>}</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>        <span class="keyword">auto</span> &amp;sheet =</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>            <a class="code hl_function" href="classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6">GraphicsSheetManager::GetInstance</a>().<a class="code hl_function" href="classyaze_1_1GraphicsSheetManager.html#a4871bff3db392ae5107ec5db39fcf1f2">mutable_gfx_sheets</a>()-&gt;at(</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>                sheet_id);</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>        <a class="code hl_function" href="namespaceyaze_1_1gui.html#a134c6e6817a4a8332e3842e4b2cd01f6">gui::BitmapCanvasPipeline</a>(<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#af5d2253e39403884de00090fdef15ff5">blockset_canvas_</a>, sheet, 256, 0x10 * 0x04,</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>                                  0x20, <span class="keyword">true</span>, <span class="keyword">false</span>, 22);</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>      }</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>      EndGroup();</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>    }</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>    EndTable();</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>  }</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>}</div>
 </div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span> </div>
-<div class="foldopen" id="foldopen00124" data-start="{" data-end="}">
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1GfxGroupEditor.html#a7629f35f243ffc9fdef04f74e5b8183d">  124</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1GfxGroupEditor.html#a7629f35f243ffc9fdef04f74e5b8183d">GfxGroupEditor::DrawRoomsetViewer</a>() {</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>  Text(<span class="stringliteral">&quot;Values - Overwrites 4 of main blockset&quot;</span>);</div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>  <span class="keywordflow">if</span> (BeginTable(<span class="stringliteral">&quot;##Roomstable&quot;</span>, 3,</div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>                 ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,</div>
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>                 ImVec2(0, 0))) {</div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>    TableSetupColumn(<span class="stringliteral">&quot;List&quot;</span>, ImGuiTableColumnFlags_WidthFixed, 100);</div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>    TableSetupColumn(<span class="stringliteral">&quot;Inputs&quot;</span>, ImGuiTableColumnFlags_WidthStretch,</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>                     GetContentRegionAvail().x);</div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>    TableSetupColumn(<span class="stringliteral">&quot;Sheets&quot;</span>, ImGuiTableColumnFlags_WidthFixed, 256);</div>
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>    TableHeadersRow();</div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>    TableNextRow();</div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span> </div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>    TableNextColumn();</div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>    {</div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>      BeginChild(<span class="stringliteral">&quot;##RoomsetList&quot;</span>);</div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>      <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 0x51; i++) {</div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>        BeginGroup();</div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>        std::string roomset_label = absl::StrFormat(<span class="stringliteral">&quot;0x%02X&quot;</span>, i);</div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>        <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;resource_label()-&gt;SelectableLabelWithNameEdit(</div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>            <span class="keyword">false</span>, <span class="stringliteral">&quot;roomset&quot;</span>, roomset_label, <span class="stringliteral">&quot;Roomset &quot;</span> + roomset_label);</div>
-<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>        <span class="keywordflow">if</span> (IsItemClicked()) {</div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>          <a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#ab5e0e5c9df01f8f3aa57253c98c41516">selected_roomset_</a> = i;</div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>        }</div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>        EndGroup();</div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>      }</div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>      EndChild();</div>
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>    }</div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span> </div>
-<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>    TableNextColumn();</div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>    {</div>
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>      BeginGroup();</div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>      <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 4; i++) {</div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>        SetNextItemWidth(100.f);</div>
-<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>        <a class="code hl_function" href="namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651">gui::InputHexByte</a>((<span class="stringliteral">&quot;0x&quot;</span> + std::to_string(i)).c_str(),</div>
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>                          &amp;<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;room_blockset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#ab5e0e5c9df01f8f3aa57253c98c41516">selected_roomset_</a>][i]);</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>      }</div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>      EndGroup();</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>    }</div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>    TableNextColumn();</div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>    {</div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>      BeginGroup();</div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>      <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 4; i++) {</div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>        <span class="keywordtype">int</span> sheet_id = <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;room_blockset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#ab5e0e5c9df01f8f3aa57253c98c41516">selected_roomset_</a>][i];</div>
-<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>        <span class="keyword">auto</span> &amp;sheet = <a class="code hl_function" href="classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6">GraphicsSheetManager::GetInstance</a>().<a class="code hl_function" href="classyaze_1_1GraphicsSheetManager.html#a4871bff3db392ae5107ec5db39fcf1f2">mutable_gfx_sheets</a>()-&gt;at(sheet_id);</div>
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>        <a class="code hl_function" href="namespaceyaze_1_1gui.html#a134c6e6817a4a8332e3842e4b2cd01f6">gui::BitmapCanvasPipeline</a>(<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#a7e59f0ea3a8dc4ec93164d1cc9ed71e1">roomset_canvas_</a>, sheet, 256, 0x10 * 0x04,</div>
-<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>                                  0x20, <span class="keyword">true</span>, <span class="keyword">false</span>, 23);</div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>      }</div>
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>      EndGroup();</div>
-<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>    }</div>
-<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>    EndTable();</div>
-<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>  }</div>
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>}</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span> </div>
+<div class="foldopen" id="foldopen00126" data-start="{" data-end="}">
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1GfxGroupEditor.html#a7629f35f243ffc9fdef04f74e5b8183d">  126</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1GfxGroupEditor.html#a7629f35f243ffc9fdef04f74e5b8183d">GfxGroupEditor::DrawRoomsetViewer</a>() {</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>  Text(<span class="stringliteral">&quot;Values - Overwrites 4 of main blockset&quot;</span>);</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>  <span class="keywordflow">if</span> (BeginTable(<span class="stringliteral">&quot;##Roomstable&quot;</span>, 3,</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>                 ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>                 ImVec2(0, 0))) {</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>    TableSetupColumn(<span class="stringliteral">&quot;List&quot;</span>, ImGuiTableColumnFlags_WidthFixed, 100);</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>    TableSetupColumn(<span class="stringliteral">&quot;Inputs&quot;</span>, ImGuiTableColumnFlags_WidthStretch,</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>                     GetContentRegionAvail().x);</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>    TableSetupColumn(<span class="stringliteral">&quot;Sheets&quot;</span>, ImGuiTableColumnFlags_WidthFixed, 256);</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>    TableHeadersRow();</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>    TableNextRow();</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span> </div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>    TableNextColumn();</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>    {</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>      BeginChild(<span class="stringliteral">&quot;##RoomsetList&quot;</span>);</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>      <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 0x51; i++) {</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>        BeginGroup();</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>        std::string roomset_label = absl::StrFormat(<span class="stringliteral">&quot;0x%02X&quot;</span>, i);</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>        <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;resource_label()-&gt;SelectableLabelWithNameEdit(</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>            <span class="keyword">false</span>, <span class="stringliteral">&quot;roomset&quot;</span>, roomset_label, <span class="stringliteral">&quot;Roomset &quot;</span> + roomset_label);</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>        <span class="keywordflow">if</span> (IsItemClicked()) {</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>          <a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#ab5e0e5c9df01f8f3aa57253c98c41516">selected_roomset_</a> = i;</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>        }</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>        EndGroup();</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>      }</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>      EndChild();</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>    }</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span> </div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>    TableNextColumn();</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>    {</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>      BeginGroup();</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>      <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 4; i++) {</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>        SetNextItemWidth(100.f);</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>        <a class="code hl_function" href="namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651">gui::InputHexByte</a>((<span class="stringliteral">&quot;0x&quot;</span> + std::to_string(i)).c_str(),</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>                          &amp;<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;room_blockset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#ab5e0e5c9df01f8f3aa57253c98c41516">selected_roomset_</a>][i]);</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>      }</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>      EndGroup();</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>    }</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>    TableNextColumn();</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>    {</div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>      BeginGroup();</div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>      <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 4; i++) {</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>        <span class="keywordtype">int</span> sheet_id = <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;room_blockset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#ab5e0e5c9df01f8f3aa57253c98c41516">selected_roomset_</a>][i];</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>        <span class="keyword">auto</span> &amp;sheet =</div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>            <a class="code hl_function" href="classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6">GraphicsSheetManager::GetInstance</a>().<a class="code hl_function" href="classyaze_1_1GraphicsSheetManager.html#a4871bff3db392ae5107ec5db39fcf1f2">mutable_gfx_sheets</a>()-&gt;at(</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>                sheet_id);</div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>        <a class="code hl_function" href="namespaceyaze_1_1gui.html#a134c6e6817a4a8332e3842e4b2cd01f6">gui::BitmapCanvasPipeline</a>(<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#a7e59f0ea3a8dc4ec93164d1cc9ed71e1">roomset_canvas_</a>, sheet, 256, 0x10 * 0x04,</div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>                                  0x20, <span class="keyword">true</span>, <span class="keyword">false</span>, 23);</div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>      }</div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>      EndGroup();</div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>    }</div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>    EndTable();</div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>  }</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>}</div>
 </div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span> </div>
-<div class="foldopen" id="foldopen00177" data-start="{" data-end="}">
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1GfxGroupEditor.html#acf59f726cc7a4c2a851ff703360bed4d">  177</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1GfxGroupEditor.html#acf59f726cc7a4c2a851ff703360bed4d">GfxGroupEditor::DrawSpritesetViewer</a>(<span class="keywordtype">bool</span> sheet_only) {</div>
-<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>  <span class="keywordflow">if</span> (BeginTable(<span class="stringliteral">&quot;##SpritesTable&quot;</span>, sheet_only ? 1 : 2,</div>
-<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>                 ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,</div>
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>                 ImVec2(0, 0))) {</div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>    <span class="keywordflow">if</span> (!sheet_only) {</div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>      TableSetupColumn(<span class="stringliteral">&quot;Inputs&quot;</span>, ImGuiTableColumnFlags_WidthStretch,</div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>                       GetContentRegionAvail().x);</div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>    }</div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>    TableSetupColumn(<span class="stringliteral">&quot;Sheets&quot;</span>, ImGuiTableColumnFlags_WidthFixed, 256);</div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>    TableHeadersRow();</div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>    TableNextRow();</div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    <span class="keywordflow">if</span> (!sheet_only) {</div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>      TableNextColumn();</div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>      {</div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>        BeginGroup();</div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 4; i++) {</div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>          SetNextItemWidth(100.f);</div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>          <a class="code hl_function" href="namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651">gui::InputHexByte</a>((<span class="stringliteral">&quot;0x&quot;</span> + std::to_string(i)).c_str(),</div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>                            &amp;<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;spriteset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#a413a23b98a3b7ce5c691b53821453652">selected_spriteset_</a>][i]);</div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>        }</div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>        EndGroup();</div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>      }</div>
-<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>    }</div>
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>    TableNextColumn();</div>
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>    {</div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>      BeginGroup();</div>
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>      <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 4; i++) {</div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>        <span class="keywordtype">int</span> sheet_id = <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;spriteset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#a413a23b98a3b7ce5c691b53821453652">selected_spriteset_</a>][i];</div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>        <span class="keyword">auto</span> &amp;sheet = <a class="code hl_function" href="classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6">GraphicsSheetManager::GetInstance</a>().<a class="code hl_function" href="classyaze_1_1GraphicsSheetManager.html#a4871bff3db392ae5107ec5db39fcf1f2">mutable_gfx_sheets</a>()-&gt;at(115 + sheet_id);</div>
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>        <a class="code hl_function" href="namespaceyaze_1_1gui.html#a134c6e6817a4a8332e3842e4b2cd01f6">gui::BitmapCanvasPipeline</a>(<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#abd737ba276ab2a87bdabd6791917d260">spriteset_canvas_</a>, sheet, 256, 0x10 * 0x04,</div>
-<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>                                  0x20, <span class="keyword">true</span>, <span class="keyword">false</span>, 24);</div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>      }</div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>      EndGroup();</div>
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>    }</div>
-<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>    EndTable();</div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>  }</div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>}</div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span> </div>
+<div class="foldopen" id="foldopen00181" data-start="{" data-end="}">
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1GfxGroupEditor.html#acf59f726cc7a4c2a851ff703360bed4d">  181</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1GfxGroupEditor.html#acf59f726cc7a4c2a851ff703360bed4d">GfxGroupEditor::DrawSpritesetViewer</a>(<span class="keywordtype">bool</span> sheet_only) {</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>  <span class="keywordflow">if</span> (BeginTable(<span class="stringliteral">&quot;##SpritesTable&quot;</span>, sheet_only ? 1 : 2,</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>                 ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>                 ImVec2(0, 0))) {</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>    <span class="keywordflow">if</span> (!sheet_only) {</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>      TableSetupColumn(<span class="stringliteral">&quot;Inputs&quot;</span>, ImGuiTableColumnFlags_WidthStretch,</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>                       GetContentRegionAvail().x);</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    }</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>    TableSetupColumn(<span class="stringliteral">&quot;Sheets&quot;</span>, ImGuiTableColumnFlags_WidthFixed, 256);</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>    TableHeadersRow();</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>    TableNextRow();</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>    <span class="keywordflow">if</span> (!sheet_only) {</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>      TableNextColumn();</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>      {</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>        BeginGroup();</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 4; i++) {</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>          SetNextItemWidth(100.f);</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>          <a class="code hl_function" href="namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651">gui::InputHexByte</a>((<span class="stringliteral">&quot;0x&quot;</span> + std::to_string(i)).c_str(),</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>                            &amp;<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;spriteset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#a413a23b98a3b7ce5c691b53821453652">selected_spriteset_</a>][i]);</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>        }</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>        EndGroup();</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>      }</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>    }</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>    TableNextColumn();</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>    {</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>      BeginGroup();</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>      <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 4; i++) {</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>        <span class="keywordtype">int</span> sheet_id = <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;spriteset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#a413a23b98a3b7ce5c691b53821453652">selected_spriteset_</a>][i];</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>        <span class="keyword">auto</span> &amp;sheet =</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>            <a class="code hl_function" href="classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6">GraphicsSheetManager::GetInstance</a>().<a class="code hl_function" href="classyaze_1_1GraphicsSheetManager.html#a4871bff3db392ae5107ec5db39fcf1f2">mutable_gfx_sheets</a>()-&gt;at(</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>                115 + sheet_id);</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>        <a class="code hl_function" href="namespaceyaze_1_1gui.html#a134c6e6817a4a8332e3842e4b2cd01f6">gui::BitmapCanvasPipeline</a>(<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#abd737ba276ab2a87bdabd6791917d260">spriteset_canvas_</a>, sheet, 256, 0x10 * 0x04,</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>                                  0x20, <span class="keyword">true</span>, <span class="keyword">false</span>, 24);</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>      }</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>      EndGroup();</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>    }</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>    EndTable();</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>  }</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>}</div>
 </div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span> </div>
-<div class="foldopen" id="foldopen00215" data-start="{" data-end="}">
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html">  215</a></span><span class="keyword">namespace </span>{</div>
-<div class="foldopen" id="foldopen00216" data-start="{" data-end="}">
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html#ab034577d86103210b34c4e4164d82f0c">  216</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html#ab034577d86103210b34c4e4164d82f0c">DrawPaletteFromPaletteGroup</a>(<a class="code hl_class" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette) {</div>
-<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>  <span class="keywordflow">if</span> (palette.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesPalette.html#aac8e91cfdca9827c7b7220adeccb7eb2">empty</a>()) {</div>
-<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>    <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>  }</div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> n = 0; n &lt; palette.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesPalette.html#a504a42d10f3d95135b77bb13ef3ec923">size</a>(); n++) {</div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>    PushID(n);</div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>    <span class="keywordflow">if</span> ((n % 8) != 0) SameLine(0.0f, GetStyle().ItemSpacing.y);</div>
-<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span> </div>
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>    <span class="comment">// Small icon of the color in the palette</span></div>
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb">gui::SnesColorButton</a>(absl::StrCat(<span class="stringliteral">&quot;Palette&quot;</span>, n), palette[n],</div>
-<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>                             ImGuiColorEditFlags_NoAlpha |</div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>                                 ImGuiColorEditFlags_NoPicker |</div>
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>                                 ImGuiColorEditFlags_NoTooltip)) {</div>
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>    }</div>
-<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span> </div>
-<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>    PopID();</div>
-<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>  }</div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>}</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span> </div>
+<div class="foldopen" id="foldopen00221" data-start="{" data-end="}">
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html">  221</a></span><span class="keyword">namespace </span>{</div>
+<div class="foldopen" id="foldopen00222" data-start="{" data-end="}">
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html#ab034577d86103210b34c4e4164d82f0c">  222</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html#ab034577d86103210b34c4e4164d82f0c">DrawPaletteFromPaletteGroup</a>(<a class="code hl_class" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette) {</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>  <span class="keywordflow">if</span> (palette.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesPalette.html#aac8e91cfdca9827c7b7220adeccb7eb2">empty</a>()) {</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>    <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>  }</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> n = 0; n &lt; palette.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesPalette.html#a504a42d10f3d95135b77bb13ef3ec923">size</a>(); n++) {</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>    PushID(n);</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>    <span class="keywordflow">if</span> ((n % 8) != 0) SameLine(0.0f, GetStyle().ItemSpacing.y);</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span> </div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>    <span class="comment">// Small icon of the color in the palette</span></div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb">gui::SnesColorButton</a>(absl::StrCat(<span class="stringliteral">&quot;Palette&quot;</span>, n), palette[n],</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>                             ImGuiColorEditFlags_NoAlpha |</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>                                 ImGuiColorEditFlags_NoPicker |</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>                                 ImGuiColorEditFlags_NoTooltip)) {</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>    }</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span> </div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>    PopID();</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>  }</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>}</div>
 </div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>}  <span class="comment">// namespace</span></div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>}  <span class="comment">// namespace</span></div>
 </div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span> </div>
-<div class="foldopen" id="foldopen00236" data-start="{" data-end="}">
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1GfxGroupEditor.html#a04921f522f9cb698c3f67d2ac6b6b345">  236</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1GfxGroupEditor.html#a04921f522f9cb698c3f67d2ac6b6b345">GfxGroupEditor::DrawPaletteViewer</a>() {</div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>  <a class="code hl_function" href="namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651">gui::InputHexByte</a>(<span class="stringliteral">&quot;Selected Paletteset&quot;</span>, &amp;<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>);</div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a> &gt;= 71) {</div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a> = 71;</div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>  }</div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>  <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;resource_label()-&gt;SelectableLabelWithNameEdit(</div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>      <span class="keyword">false</span>, <span class="stringliteral">&quot;paletteset&quot;</span>, <span class="stringliteral">&quot;0x&quot;</span> + std::to_string(<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>),</div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>      <span class="stringliteral">&quot;Paletteset &quot;</span> + std::to_string(<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>));</div>
-<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span> </div>
-<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>  uint8_t &amp;dungeon_main_palette_val =</div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>      <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;paletteset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>][0];</div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>  uint8_t &amp;dungeon_spr_pal_1_val =</div>
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>      <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;paletteset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>][1];</div>
-<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>  uint8_t &amp;dungeon_spr_pal_2_val =</div>
-<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>      <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;paletteset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>][2];</div>
-<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>  uint8_t &amp;dungeon_spr_pal_3_val =</div>
-<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>      <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;paletteset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>][3];</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span> </div>
+<div class="foldopen" id="foldopen00242" data-start="{" data-end="}">
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1GfxGroupEditor.html#a04921f522f9cb698c3f67d2ac6b6b345">  242</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1GfxGroupEditor.html#a04921f522f9cb698c3f67d2ac6b6b345">GfxGroupEditor::DrawPaletteViewer</a>() {</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>  <span class="keywordflow">if</span> (!<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;is_loaded()) {</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>    <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>  }</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>  <a class="code hl_function" href="namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651">gui::InputHexByte</a>(<span class="stringliteral">&quot;Selected Paletteset&quot;</span>, &amp;<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>);</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a> &gt;= 71) {</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a> = 71;</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>  }</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>  <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;resource_label()-&gt;SelectableLabelWithNameEdit(</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>      <span class="keyword">false</span>, <span class="stringliteral">&quot;paletteset&quot;</span>, <span class="stringliteral">&quot;0x&quot;</span> + std::to_string(<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>),</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>      <span class="stringliteral">&quot;Paletteset &quot;</span> + std::to_string(<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>));</div>
 <div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span> </div>
-<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>  <a class="code hl_function" href="namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651">gui::InputHexByte</a>(<span class="stringliteral">&quot;Dungeon Main&quot;</span>, &amp;dungeon_main_palette_val);</div>
-<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span> </div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>  <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;resource_label()-&gt;SelectableLabelWithNameEdit(</div>
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>      <span class="keyword">false</span>, kPaletteGroupNames[PaletteCategory::kDungeons].data(),</div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>      std::to_string(dungeon_main_palette_val), <span class="stringliteral">&quot;Unnamed dungeon palette&quot;</span>);</div>
-<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>  <span class="keyword">auto</span> &amp;palette = *<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;mutable_palette_group()-&gt;dungeon_main.mutable_palette(</div>
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>      <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;paletteset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>][0]);</div>
-<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>  DrawPaletteFromPaletteGroup(palette);</div>
-<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>  Separator();</div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span> </div>
-<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>  <a class="code hl_function" href="namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651">gui::InputHexByte</a>(<span class="stringliteral">&quot;Dungeon Spr Pal 1&quot;</span>, &amp;dungeon_spr_pal_1_val);</div>
-<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>  <span class="keyword">auto</span> &amp;spr_aux_pal1 =</div>
-<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>      *<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;mutable_palette_group()-&gt;sprites_aux1.mutable_palette(</div>
-<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>          <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;paletteset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>][1]);</div>
-<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>  DrawPaletteFromPaletteGroup(spr_aux_pal1);</div>
-<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>  SameLine();</div>
-<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>  <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;resource_label()-&gt;SelectableLabelWithNameEdit(</div>
-<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>      <span class="keyword">false</span>, kPaletteGroupNames[PaletteCategory::kSpritesAux1].data(),</div>
-<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>      std::to_string(dungeon_spr_pal_1_val), <span class="stringliteral">&quot;Dungeon Spr Pal 1&quot;</span>);</div>
-<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>  Separator();</div>
-<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span> </div>
-<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>  <a class="code hl_function" href="namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651">gui::InputHexByte</a>(<span class="stringliteral">&quot;Dungeon Spr Pal 2&quot;</span>, &amp;dungeon_spr_pal_2_val);</div>
-<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>  <span class="keyword">auto</span> &amp;spr_aux_pal2 =</div>
-<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>      *<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;mutable_palette_group()-&gt;sprites_aux2.mutable_palette(</div>
-<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>          <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;paletteset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>][2]);</div>
-<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>  DrawPaletteFromPaletteGroup(spr_aux_pal2);</div>
-<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>  SameLine();</div>
-<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>  <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;resource_label()-&gt;SelectableLabelWithNameEdit(</div>
-<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>      <span class="keyword">false</span>, kPaletteGroupNames[PaletteCategory::kSpritesAux2].data(),</div>
-<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>      std::to_string(dungeon_spr_pal_2_val), <span class="stringliteral">&quot;Dungeon Spr Pal 2&quot;</span>);</div>
-<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>  Separator();</div>
-<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span> </div>
-<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>  <a class="code hl_function" href="namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651">gui::InputHexByte</a>(<span class="stringliteral">&quot;Dungeon Spr Pal 3&quot;</span>, &amp;dungeon_spr_pal_3_val);</div>
-<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>  <span class="keyword">auto</span> &amp;spr_aux_pal3 =</div>
-<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>      *<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;mutable_palette_group()-&gt;sprites_aux3.mutable_palette(</div>
-<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>          <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;paletteset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>][3]);</div>
-<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>  DrawPaletteFromPaletteGroup(spr_aux_pal3);</div>
-<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>  SameLine();</div>
-<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>  <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;resource_label()-&gt;SelectableLabelWithNameEdit(</div>
-<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>      <span class="keyword">false</span>, kPaletteGroupNames[PaletteCategory::kSpritesAux3].data(),</div>
-<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>      std::to_string(dungeon_spr_pal_3_val), <span class="stringliteral">&quot;Dungeon Spr Pal 3&quot;</span>);</div>
-<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>}</div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>  uint8_t &amp;dungeon_main_palette_val =</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>      <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;paletteset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>][0];</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>  uint8_t &amp;dungeon_spr_pal_1_val =</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>      <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;paletteset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>][1];</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>  uint8_t &amp;dungeon_spr_pal_2_val =</div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>      <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;paletteset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>][2];</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>  uint8_t &amp;dungeon_spr_pal_3_val =</div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>      <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;paletteset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>][3];</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span> </div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>  <a class="code hl_function" href="namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651">gui::InputHexByte</a>(<span class="stringliteral">&quot;Dungeon Main&quot;</span>, &amp;dungeon_main_palette_val);</div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span> </div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>  <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;resource_label()-&gt;SelectableLabelWithNameEdit(</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>      <span class="keyword">false</span>, kPaletteGroupNames[PaletteCategory::kDungeons].data(),</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>      std::to_string(dungeon_main_palette_val), <span class="stringliteral">&quot;Unnamed dungeon palette&quot;</span>);</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>  <span class="keyword">auto</span> &amp;palette = *<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;mutable_palette_group()-&gt;dungeon_main.mutable_palette(</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>      <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;paletteset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>][0]);</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>  DrawPaletteFromPaletteGroup(palette);</div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>  Separator();</div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span> </div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>  <a class="code hl_function" href="namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651">gui::InputHexByte</a>(<span class="stringliteral">&quot;Dungeon Spr Pal 1&quot;</span>, &amp;dungeon_spr_pal_1_val);</div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>  <span class="keyword">auto</span> &amp;spr_aux_pal1 =</div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>      *<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;mutable_palette_group()-&gt;sprites_aux1.mutable_palette(</div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>          <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;paletteset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>][1]);</div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>  DrawPaletteFromPaletteGroup(spr_aux_pal1);</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>  SameLine();</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>  <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;resource_label()-&gt;SelectableLabelWithNameEdit(</div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>      <span class="keyword">false</span>, kPaletteGroupNames[PaletteCategory::kSpritesAux1].data(),</div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>      std::to_string(dungeon_spr_pal_1_val), <span class="stringliteral">&quot;Dungeon Spr Pal 1&quot;</span>);</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>  Separator();</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span> </div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>  <a class="code hl_function" href="namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651">gui::InputHexByte</a>(<span class="stringliteral">&quot;Dungeon Spr Pal 2&quot;</span>, &amp;dungeon_spr_pal_2_val);</div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>  <span class="keyword">auto</span> &amp;spr_aux_pal2 =</div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>      *<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;mutable_palette_group()-&gt;sprites_aux2.mutable_palette(</div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>          <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;paletteset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>][2]);</div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>  DrawPaletteFromPaletteGroup(spr_aux_pal2);</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>  SameLine();</div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>  <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;resource_label()-&gt;SelectableLabelWithNameEdit(</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>      <span class="keyword">false</span>, kPaletteGroupNames[PaletteCategory::kSpritesAux2].data(),</div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>      std::to_string(dungeon_spr_pal_2_val), <span class="stringliteral">&quot;Dungeon Spr Pal 2&quot;</span>);</div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>  Separator();</div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span> </div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>  <a class="code hl_function" href="namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651">gui::InputHexByte</a>(<span class="stringliteral">&quot;Dungeon Spr Pal 3&quot;</span>, &amp;dungeon_spr_pal_3_val);</div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>  <span class="keyword">auto</span> &amp;spr_aux_pal3 =</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>      *<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;mutable_palette_group()-&gt;sprites_aux3.mutable_palette(</div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>          <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;paletteset_ids[<a class="code hl_variable" href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">selected_paletteset_</a>][3]);</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>  DrawPaletteFromPaletteGroup(spr_aux_pal3);</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>  SameLine();</div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>  <a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;resource_label()-&gt;SelectableLabelWithNameEdit(</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>      <span class="keyword">false</span>, kPaletteGroupNames[PaletteCategory::kSpritesAux3].data(),</div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>      std::to_string(dungeon_spr_pal_3_val), <span class="stringliteral">&quot;Dungeon Spr Pal 3&quot;</span>);</div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>}</div>
 </div>
-<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span> </div>
-<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>}  <span class="comment">// namespace editor</span></div>
-<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span> </div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>}  <span class="comment">// namespace editor</span></div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="acanvas_8h_html"><div class="ttname"><a href="canvas_8h.html">canvas.h</a></div></div>
 <div class="ttc" id="aclassyaze_1_1GraphicsSheetManager_html_a4871bff3db392ae5107ec5db39fcf1f2"><div class="ttname"><a href="classyaze_1_1GraphicsSheetManager.html#a4871bff3db392ae5107ec5db39fcf1f2">yaze::GraphicsSheetManager::mutable_gfx_sheets</a></div><div class="ttdeci">auto mutable_gfx_sheets()</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00279">rom.h:279</a></div></div>
 <div class="ttc" id="aclassyaze_1_1GraphicsSheetManager_html_a7461b2bb28c8da993993abee0fe8cdb6"><div class="ttname"><a href="classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6">yaze::GraphicsSheetManager::GetInstance</a></div><div class="ttdeci">static GraphicsSheetManager &amp; GetInstance()</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00270">rom.h:270</a></div></div>
 <div class="ttc" id="aclassyaze_1_1SharedRom_html_a7e5e36ba40d87c0c81b9056bd00beedc"><div class="ttname"><a href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">yaze::SharedRom::rom</a></div><div class="ttdeci">auto rom()</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00382">rom.h:382</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1GfxGroupEditor_html_a04921f522f9cb698c3f67d2ac6b6b345"><div class="ttname"><a href="classyaze_1_1editor_1_1GfxGroupEditor.html#a04921f522f9cb698c3f67d2ac6b6b345">yaze::editor::GfxGroupEditor::DrawPaletteViewer</a></div><div class="ttdeci">void DrawPaletteViewer()</div><div class="ttdef"><b>Definition</b> <a href="#l00236">gfx_group_editor.cc:236</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1GfxGroupEditor_html_a04921f522f9cb698c3f67d2ac6b6b345"><div class="ttname"><a href="classyaze_1_1editor_1_1GfxGroupEditor.html#a04921f522f9cb698c3f67d2ac6b6b345">yaze::editor::GfxGroupEditor::DrawPaletteViewer</a></div><div class="ttdeci">void DrawPaletteViewer()</div><div class="ttdef"><b>Definition</b> <a href="#l00242">gfx_group_editor.cc:242</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1GfxGroupEditor_html_a1df34b64589a8c02487aa0f6c76e19e9"><div class="ttname"><a href="classyaze_1_1editor_1_1GfxGroupEditor.html#a1df34b64589a8c02487aa0f6c76e19e9">yaze::editor::GfxGroupEditor::selected_blockset_</a></div><div class="ttdeci">uint8_t selected_blockset_</div><div class="ttdef"><b>Definition</b> <a href="gfx__group__editor_8h_source.html#l00032">gfx_group_editor.h:32</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1GfxGroupEditor_html_a413a23b98a3b7ce5c691b53821453652"><div class="ttname"><a href="classyaze_1_1editor_1_1GfxGroupEditor.html#a413a23b98a3b7ce5c691b53821453652">yaze::editor::GfxGroupEditor::selected_spriteset_</a></div><div class="ttdeci">uint8_t selected_spriteset_</div><div class="ttdef"><b>Definition</b> <a href="gfx__group__editor_8h_source.html#l00034">gfx_group_editor.h:34</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1GfxGroupEditor_html_a5821620df0a0b68c4f014249a459583d"><div class="ttname"><a href="classyaze_1_1editor_1_1GfxGroupEditor.html#a5821620df0a0b68c4f014249a459583d">yaze::editor::GfxGroupEditor::Update</a></div><div class="ttdeci">absl::Status Update()</div><div class="ttdef"><b>Definition</b> <a href="#l00042">gfx_group_editor.cc:42</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1GfxGroupEditor_html_a7629f35f243ffc9fdef04f74e5b8183d"><div class="ttname"><a href="classyaze_1_1editor_1_1GfxGroupEditor.html#a7629f35f243ffc9fdef04f74e5b8183d">yaze::editor::GfxGroupEditor::DrawRoomsetViewer</a></div><div class="ttdeci">void DrawRoomsetViewer()</div><div class="ttdef"><b>Definition</b> <a href="#l00124">gfx_group_editor.cc:124</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1GfxGroupEditor_html_a7629f35f243ffc9fdef04f74e5b8183d"><div class="ttname"><a href="classyaze_1_1editor_1_1GfxGroupEditor.html#a7629f35f243ffc9fdef04f74e5b8183d">yaze::editor::GfxGroupEditor::DrawRoomsetViewer</a></div><div class="ttdeci">void DrawRoomsetViewer()</div><div class="ttdef"><b>Definition</b> <a href="#l00126">gfx_group_editor.cc:126</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1GfxGroupEditor_html_a7e59f0ea3a8dc4ec93164d1cc9ed71e1"><div class="ttname"><a href="classyaze_1_1editor_1_1GfxGroupEditor.html#a7e59f0ea3a8dc4ec93164d1cc9ed71e1">yaze::editor::GfxGroupEditor::roomset_canvas_</a></div><div class="ttdeci">gui::Canvas roomset_canvas_</div><div class="ttdef"><b>Definition</b> <a href="gfx__group__editor_8h_source.html#l00038">gfx_group_editor.h:38</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1GfxGroupEditor_html_aa07eaa20fcd0b8b51428613d22fe5303"><div class="ttname"><a href="classyaze_1_1editor_1_1GfxGroupEditor.html#aa07eaa20fcd0b8b51428613d22fe5303">yaze::editor::GfxGroupEditor::selected_paletteset_</a></div><div class="ttdeci">uint8_t selected_paletteset_</div><div class="ttdef"><b>Definition</b> <a href="gfx__group__editor_8h_source.html#l00035">gfx_group_editor.h:35</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1GfxGroupEditor_html_ab5e0e5c9df01f8f3aa57253c98c41516"><div class="ttname"><a href="classyaze_1_1editor_1_1GfxGroupEditor.html#ab5e0e5c9df01f8f3aa57253c98c41516">yaze::editor::GfxGroupEditor::selected_roomset_</a></div><div class="ttdeci">uint8_t selected_roomset_</div><div class="ttdef"><b>Definition</b> <a href="gfx__group__editor_8h_source.html#l00033">gfx_group_editor.h:33</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1GfxGroupEditor_html_abd737ba276ab2a87bdabd6791917d260"><div class="ttname"><a href="classyaze_1_1editor_1_1GfxGroupEditor.html#abd737ba276ab2a87bdabd6791917d260">yaze::editor::GfxGroupEditor::spriteset_canvas_</a></div><div class="ttdeci">gui::Canvas spriteset_canvas_</div><div class="ttdef"><b>Definition</b> <a href="gfx__group__editor_8h_source.html#l00039">gfx_group_editor.h:39</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1GfxGroupEditor_html_acf59f726cc7a4c2a851ff703360bed4d"><div class="ttname"><a href="classyaze_1_1editor_1_1GfxGroupEditor.html#acf59f726cc7a4c2a851ff703360bed4d">yaze::editor::GfxGroupEditor::DrawSpritesetViewer</a></div><div class="ttdeci">void DrawSpritesetViewer(bool sheet_only=false)</div><div class="ttdef"><b>Definition</b> <a href="#l00177">gfx_group_editor.cc:177</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1GfxGroupEditor_html_acf59f726cc7a4c2a851ff703360bed4d"><div class="ttname"><a href="classyaze_1_1editor_1_1GfxGroupEditor.html#acf59f726cc7a4c2a851ff703360bed4d">yaze::editor::GfxGroupEditor::DrawSpritesetViewer</a></div><div class="ttdeci">void DrawSpritesetViewer(bool sheet_only=false)</div><div class="ttdef"><b>Definition</b> <a href="#l00181">gfx_group_editor.cc:181</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1GfxGroupEditor_html_af5d2253e39403884de00090fdef15ff5"><div class="ttname"><a href="classyaze_1_1editor_1_1GfxGroupEditor.html#af5d2253e39403884de00090fdef15ff5">yaze::editor::GfxGroupEditor::blockset_canvas_</a></div><div class="ttdeci">gui::Canvas blockset_canvas_</div><div class="ttdef"><b>Definition</b> <a href="gfx__group__editor_8h_source.html#l00037">gfx_group_editor.h:37</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1GfxGroupEditor_html_af717c706131b3d04d8140179888c5050"><div class="ttname"><a href="classyaze_1_1editor_1_1GfxGroupEditor.html#af717c706131b3d04d8140179888c5050">yaze::editor::GfxGroupEditor::DrawBlocksetViewer</a></div><div class="ttdeci">void DrawBlocksetViewer(bool sheet_only=false)</div><div class="ttdef"><b>Definition</b> <a href="#l00085">gfx_group_editor.cc:85</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1SnesPalette_html"><div class="ttname"><a href="classyaze_1_1gfx_1_1SnesPalette.html">yaze::gfx::SnesPalette</a></div><div class="ttdoc">Represents a palette of colors for the Super Nintendo Entertainment System (SNES).</div><div class="ttdef"><b>Definition</b> <a href="snes__palette_8h_source.html#l00108">snes_palette.h:108</a></div></div>
@@ -443,7 +452,7 @@ $(function(){initNavTree('gfx__group__editor_8cc_source.html',''); initResizable
 <div class="ttc" id="acolor_8h_html"><div class="ttname"><a href="color_8h.html">color.h</a></div></div>
 <div class="ttc" id="agfx__group__editor_8h_html"><div class="ttname"><a href="gfx__group__editor_8h.html">gfx_group_editor.h</a></div></div>
 <div class="ttc" id="ainput_8h_html"><div class="ttname"><a href="input_8h.html">input.h</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03_html_ab034577d86103210b34c4e4164d82f0c"><div class="ttname"><a href="namespaceyaze_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html#ab034577d86103210b34c4e4164d82f0c">yaze::editor::anonymous_namespace{gfx_group_editor.cc}::DrawPaletteFromPaletteGroup</a></div><div class="ttdeci">void DrawPaletteFromPaletteGroup(gfx::SnesPalette &amp;palette)</div><div class="ttdef"><b>Definition</b> <a href="#l00216">gfx_group_editor.cc:216</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03_html_ab034577d86103210b34c4e4164d82f0c"><div class="ttname"><a href="namespaceyaze_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html#ab034577d86103210b34c4e4164d82f0c">yaze::editor::anonymous_namespace{gfx_group_editor.cc}::DrawPaletteFromPaletteGroup</a></div><div class="ttdeci">void DrawPaletteFromPaletteGroup(gfx::SnesPalette &amp;palette)</div><div class="ttdef"><b>Definition</b> <a href="#l00222">gfx_group_editor.cc:222</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1editor_html"><div class="ttname"><a href="namespaceyaze_1_1editor.html">yaze::editor</a></div><div class="ttdoc">Editors are the view controllers for the application.</div><div class="ttdef"><b>Definition</b> <a href="assembly__editor_8cc_source.html#l00013">assembly_editor.cc:13</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_a82a8956476ffc04750bcfc4120c8b8db"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8db">yaze::gfx::PaletteCategory</a></div><div class="ttdeci">PaletteCategory</div><div class="ttdef"><b>Definition</b> <a href="snes__palette_8h_source.html#l00022">snes_palette.h:22</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gui_html_a1136a9ab95fd67e2ab97a00f59818ddb"><div class="ttname"><a href="namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb">yaze::gui::SnesColorButton</a></div><div class="ttdeci">IMGUI_API bool SnesColorButton(absl::string_view id, gfx::SnesColor &amp;color, ImGuiColorEditFlags flags, const ImVec2 &amp;size_arg)</div><div class="ttdef"><b>Definition</b> <a href="color_8cc_source.html#l00019">color.cc:19</a></div></div>

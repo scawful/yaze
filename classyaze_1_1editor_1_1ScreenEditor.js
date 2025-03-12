@@ -14,6 +14,7 @@ var classyaze_1_1editor_1_1ScreenEditor =
     [ "Copy", "classyaze_1_1editor_1_1ScreenEditor.html#a59dfc6057ab5be18ec35c3e2ad9cc900", null ],
     [ "Paste", "classyaze_1_1editor_1_1ScreenEditor.html#a422e5ec8b9eb5215cb305081c8d742df", null ],
     [ "Find", "classyaze_1_1editor_1_1ScreenEditor.html#a66d35adc6745186c6aff1e833f4c39ee", null ],
+    [ "Save", "classyaze_1_1editor_1_1ScreenEditor.html#a4d9a27917a4c0074aa0cced7d5b39cfe", null ],
     [ "SaveDungeonMaps", "classyaze_1_1editor_1_1ScreenEditor.html#a25dff1c3b8b8da71ce58828358db0b59", null ],
     [ "DrawTitleScreenEditor", "classyaze_1_1editor_1_1ScreenEditor.html#a01719afb0800425eb928802c6c0596cd", null ],
     [ "DrawNamingScreenEditor", "classyaze_1_1editor_1_1ScreenEditor.html#ace21dd9da5805650a7e1e5cc553dd618", null ],

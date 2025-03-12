@@ -17,7 +17,7 @@ var classyaze_1_1editor_1_1MessageEditor =
     [ "Undo", "classyaze_1_1editor_1_1MessageEditor.html#a769d6f1ee603665e95a6b1864eced36b", null ],
     [ "Redo", "classyaze_1_1editor_1_1MessageEditor.html#adb6c10e30a9540dbc9e8ca9b13a16305", null ],
     [ "Find", "classyaze_1_1editor_1_1MessageEditor.html#a1ea594cd4681c4d66b833ec242bbbc70", null ],
-    [ "Save", "classyaze_1_1editor_1_1MessageEditor.html#ab9824d1cb4b342ae94bb6bcc51bc1d5e", null ],
+    [ "Save", "classyaze_1_1editor_1_1MessageEditor.html#afd932ba70b442fb9e013aea7356e4da2", null ],
     [ "Delete", "classyaze_1_1editor_1_1MessageEditor.html#a90d85cb6fc78a9bb717e13352fdc5f61", null ],
     [ "SelectAll", "classyaze_1_1editor_1_1MessageEditor.html#a843644c8883ad12bbc74cd550a42616a", null ],
     [ "GetDictionaryFromID", "classyaze_1_1editor_1_1MessageEditor.html#ae7f9d3c567cfaf5316d194860825b05c", null ],

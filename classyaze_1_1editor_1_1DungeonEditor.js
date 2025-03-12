@@ -24,6 +24,7 @@ var classyaze_1_1editor_1_1DungeonEditor =
     [ "Copy", "classyaze_1_1editor_1_1DungeonEditor.html#acdfc87bf1c3409ea52ee0e42ca23c64b", null ],
     [ "Paste", "classyaze_1_1editor_1_1DungeonEditor.html#a9c06190d425a4336cd62e01a6a861016", null ],
     [ "Find", "classyaze_1_1editor_1_1DungeonEditor.html#adaaf0254345026fc7099688ed947e619", null ],
+    [ "Save", "classyaze_1_1editor_1_1DungeonEditor.html#aa7d6a8a27fb6a999b46bbfe1f837ce2e", null ],
     [ "add_room", "classyaze_1_1editor_1_1DungeonEditor.html#a0867626a4677c96be31fb181fff86ccd", null ],
     [ "RefreshGraphics", "classyaze_1_1editor_1_1DungeonEditor.html#a0fb4f2c30d76ea757405184e34a64ea8", null ],
     [ "LoadDungeonRoomSize", "classyaze_1_1editor_1_1DungeonEditor.html#a04832bdf64d6e767d5a11317606b04e4", null ],

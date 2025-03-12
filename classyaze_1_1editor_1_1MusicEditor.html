@@ -171,6 +171,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a4460a1bd7644d7953157805be726106e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0560ab8daa478754b8d6f75824710046" id="r_a0560ab8daa478754b8d6f75824710046"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0560ab8daa478754b8d6f75824710046">Find</a> () override</td></tr>
 <tr class="separator:a0560ab8daa478754b8d6f75824710046"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5f8cf94ed6634bfdeab93017517d7dc1" id="r_a5f8cf94ed6634bfdeab93017517d7dc1"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5f8cf94ed6634bfdeab93017517d7dc1">Save</a> () override</td></tr>
+<tr class="separator:a5f8cf94ed6634bfdeab93017517d7dc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classyaze_1_1SharedRom"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classyaze_1_1SharedRom')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classyaze_1_1SharedRom.html">yaze::SharedRom</a></td></tr>
 <tr class="memitem:ad109cf803983c06ad209360c5ee08101 inherit pub_methods_classyaze_1_1SharedRom" id="r_ad109cf803983c06ad209360c5ee08101"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1SharedRom.html#ad109cf803983c06ad209360c5ee08101">SharedRom</a> ()=default</td></tr>
 <tr class="separator:ad109cf803983c06ad209360c5ee08101 inherit pub_methods_classyaze_1_1SharedRom"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -257,7 +259,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="music__editor_8h_source.html#l00059">59</a> of file <a class="el" href="music__editor_8h_source.html">music_editor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="editor_8h_source.html#l00033">yaze::editor::kMusic</a>, and <a class="el" href="editor_8h_source.html#l00085">yaze::editor::Editor::type_</a>.</p>
+<p class="reference">References <a class="el" href="editor_8h_source.html#l00033">yaze::editor::kMusic</a>, and <a class="el" href="editor_8h_source.html#l00088">yaze::editor::Editor::type_</a>.</p>
 
 </div>
 </div>
@@ -347,7 +349,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="music__editor_8cc_source.html#l00018">18</a> of file <a class="el" href="music__editor_8cc_source.html">music_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="music__editor_8h_source.html#l00080">assembly_editor_</a>, <a class="el" href="music__editor_8cc_source.html#l00040">DrawChannels()</a>, <a class="el" href="music__editor_8cc_source.html#l00093">DrawPianoRoll()</a>, <a class="el" href="music__editor_8cc_source.html#l00169">DrawToolset()</a>, and <a class="el" href="music__editor_8h_source.html#l00050">yaze::editor::music_editor_flags_</a>.</p>
+<p class="reference">References <a class="el" href="music__editor_8h_source.html#l00081">assembly_editor_</a>, <a class="el" href="music__editor_8cc_source.html#l00040">DrawChannels()</a>, <a class="el" href="music__editor_8cc_source.html#l00093">DrawPianoRoll()</a>, <a class="el" href="music__editor_8cc_source.html#l00169">DrawToolset()</a>, and <a class="el" href="music__editor_8h_source.html#l00050">yaze::editor::music_editor_flags_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -541,6 +543,35 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a5f8cf94ed6634bfdeab93017517d7dc1" name="a5f8cf94ed6634bfdeab93017517d7dc1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5f8cf94ed6634bfdeab93017517d7dc1">&#9670;&#160;</a></span>Save()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::editor::MusicEditor::Save </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel override">override</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#a89afe8fdd51463ff3d4259f40c98d464">yaze::editor::Editor</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="music__editor_8h_source.html#l00070">70</a> of file <a class="el" href="music__editor_8h_source.html">music_editor.h</a>.</p>
+
+</div>
+</div>
 <a id="a60de0312fe2a7e3e8921fdf7a2b6e9ff" name="a60de0312fe2a7e3e8921fdf7a2b6e9ff"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a60de0312fe2a7e3e8921fdf7a2b6e9ff">&#9670;&#160;</a></span>DrawChannels()</h2>
 
@@ -694,7 +725,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="music__editor_8cc_source.html#l00169">169</a> of file <a class="el" href="music__editor_8cc_source.html">music_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="icons_8h_source.html#l00071">ICON_MD_ACCESS_TIME</a>, <a class="el" href="icons_8h_source.html#l00722">ICON_MD_FAST_FORWARD</a>, <a class="el" href="icons_8h_source.html#l00723">ICON_MD_FAST_REWIND</a>, <a class="el" href="icons_8h_source.html#l01477">ICON_MD_PLAY_ARROW</a>, <a class="el" href="icons_8h_source.html#l01857">ICON_MD_STOP</a>, <a class="el" href="icons_8h_source.html#l02106">ICON_MD_VOLUME_UP</a>, <a class="el" href="input_8cc_source.html#l00203">yaze::gui::ItemLabel()</a>, <a class="el" href="music__editor_8h_source.html#l00078">music_tracker_</a>, <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>, and <a class="el" href="music__editor_8h_source.html#l00049">yaze::editor::toolset_table_flags_</a>.</p>
+<p class="reference">References <a class="el" href="icons_8h_source.html#l00071">ICON_MD_ACCESS_TIME</a>, <a class="el" href="icons_8h_source.html#l00722">ICON_MD_FAST_FORWARD</a>, <a class="el" href="icons_8h_source.html#l00723">ICON_MD_FAST_REWIND</a>, <a class="el" href="icons_8h_source.html#l01477">ICON_MD_PLAY_ARROW</a>, <a class="el" href="icons_8h_source.html#l01857">ICON_MD_STOP</a>, <a class="el" href="icons_8h_source.html#l02106">ICON_MD_VOLUME_UP</a>, <a class="el" href="input_8cc_source.html#l00203">yaze::gui::ItemLabel()</a>, <a class="el" href="music__editor_8h_source.html#l00079">music_tracker_</a>, <a class="el" href="rom_8h_source.html#l00382">yaze::SharedRom::rom()</a>, and <a class="el" href="music__editor_8h_source.html#l00049">yaze::editor::toolset_table_flags_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="music__editor_8cc_source.html#l00018">Update()</a>.</p>
 <div class="dynheader">
@@ -734,7 +765,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="music__editor_8h_source.html#l00078">78</a> of file <a class="el" href="music__editor_8h_source.html">music_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="music__editor_8h_source.html#l00079">79</a> of file <a class="el" href="music__editor_8h_source.html">music_editor.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="music__editor_8cc_source.html#l00169">DrawToolset()</a>.</p>
 
@@ -760,7 +791,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="music__editor_8h_source.html#l00080">80</a> of file <a class="el" href="music__editor_8h_source.html">music_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="music__editor_8h_source.html#l00081">81</a> of file <a class="el" href="music__editor_8h_source.html">music_editor.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="music__editor_8cc_source.html#l00018">Update()</a>.</p>
 

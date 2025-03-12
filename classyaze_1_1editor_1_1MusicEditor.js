@@ -10,6 +10,7 @@ var classyaze_1_1editor_1_1MusicEditor =
     [ "Copy", "classyaze_1_1editor_1_1MusicEditor.html#a9516d58ac2dc4bf39c503b4f48374195", null ],
     [ "Paste", "classyaze_1_1editor_1_1MusicEditor.html#a4460a1bd7644d7953157805be726106e", null ],
     [ "Find", "classyaze_1_1editor_1_1MusicEditor.html#a0560ab8daa478754b8d6f75824710046", null ],
+    [ "Save", "classyaze_1_1editor_1_1MusicEditor.html#a5f8cf94ed6634bfdeab93017517d7dc1", null ],
     [ "DrawChannels", "classyaze_1_1editor_1_1MusicEditor.html#a60de0312fe2a7e3e8921fdf7a2b6e9ff", null ],
     [ "DrawPianoStaff", "classyaze_1_1editor_1_1MusicEditor.html#a48c16e08a92cf5743590cb889bb2bf5b", null ],
     [ "DrawPianoRoll", "classyaze_1_1editor_1_1MusicEditor.html#ab3953e161ac533ae7b394e9c16ef68da", null ],
