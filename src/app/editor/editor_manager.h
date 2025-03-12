@@ -65,8 +65,8 @@ class EditorManager : public SharedRom {
   void DrawPopups();
 
   void LoadRom();
+  void LoadAssets();
   void SaveRom();
-
   void OpenRomOrProject(const std::string &filename);
   absl::Status OpenProject();
   void SaveProject();
