@@ -707,7 +707,7 @@ void EditorManager::LoadAssets() {
     auto &sheet_manager = GraphicsSheetManager::GetInstance();
     ASSIGN_OR_RETURN(*sheet_manager.mutable_gfx_sheets(),
                      LoadAllGraphicsData(*rom()))
-    RETURN_IF_ERROR(overworld_editor_.LoadGraphics());
+    RETURN_IF_ERROR(overworld_editor_.Load());
     return absl::OkStatus();
   };
   if (!load_rom_assets().ok()) {

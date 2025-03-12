@@ -85,9 +85,7 @@ void MessageEditor::Initialize() {
   DrawMessagePreview();
 }
 
-absl::Status MessageEditor::Load() {
-  return absl::OkStatus();
-}
+absl::Status MessageEditor::Load() { return absl::OkStatus(); }
 
 absl::Status MessageEditor::Update() {
   if (rom()->is_loaded() && !data_loaded_) {
@@ -152,6 +150,9 @@ void MessageEditor::DrawMessageList() {
 }
 
 void MessageEditor::DrawCurrentMessage() {
+  if (!rom()->is_loaded()) {
+    return;
+  }
   Button(absl::StrCat("Message ", current_message_.ID).c_str());
   if (InputTextMultiline("##MessageEditor",
                          &parsed_messages_[current_message_.ID],
