@@ -385,6 +385,7 @@ var namespaceyaze_1_1test =
     [ "TEST", "namespaceyaze_1_1test.html#ade6cb56b0f8515c3db987edd11483707", null ],
     [ "TEST", "namespaceyaze_1_1test.html#af5371068c21237dfb8cde90a97b01d99", null ],
     [ "TEST", "namespaceyaze_1_1test.html#ae4cfe01deb24e697a4f9e36f79132676", null ],
+    [ "RunIntegrationTest", "namespaceyaze_1_1test.html#a1641768a13910eb529e97ac3a66b7162", null ],
     [ "TEST_F", "namespaceyaze_1_1test.html#a9853b0265931c2e3346e991d89ad8e5d", null ],
     [ "TEST_F", "namespaceyaze_1_1test.html#a780c23f4cff8991e55184dd0106f25ef", null ],
     [ "TEST_F", "namespaceyaze_1_1test.html#a942a13590f7efa52c684b7bd8a56dd2a", null ],

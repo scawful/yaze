@@ -1,12 +1,11 @@
 <map id="src/app/editor/system/history_manager.h" name="src/app/editor/system/history_manager.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="130,5,276,46"/>
-<area shape="rect" id="Node000002" href="$editor_8h.html" title=" " alt="" coords="130,94,276,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,62,206,93,200,93,200,62"/>
-<area shape="rect" id="Node000003" href="$controller_8h.html" title=" " alt="" coords="5,175,166,201"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="174,131,105,177,102,172,171,126"/>
-<area shape="rect" id="Node000005" href="$app__delegate_8mm.html" title=" " alt="" coords="72,256,216,297"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="200,136,180,209,158,257,153,255,175,207,195,134"/>
-<area shape="rect" id="Node000009" href="$assembly__editor_8h.html" title=" " alt="" coords="241,168,373,208"/>
-<area shape="poly" id="edge5_Node000002_Node000009" title=" " alt="" coords="232,127,283,165,280,169,229,131"/>
-<area shape="poly" id="edge3_Node000003_Node000005" title=" " alt="" coords="104,212,133,255,129,258,100,215"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="167,5,313,46"/>
+<area shape="rect" id="Node000002" href="$editor_8h.html" title=" " alt="" coords="167,94,313,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="243,62,243,93,238,93,238,62"/>
+<area shape="rect" id="Node000003" href="$app__delegate_8mm.html" title=" " alt="" coords="5,168,150,208"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="202,129,119,169,117,165,200,125"/>
+<area shape="rect" id="Node000004" href="$assembly__editor_8h.html" title=" " alt="" coords="174,168,306,208"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="243,135,243,167,238,167,238,135"/>
+<area shape="rect" id="Node000015" href="$dungeon__editor_8h.html" title=" " alt="" coords="330,168,484,208"/>
+<area shape="poly" id="edge4_Node000002_Node000015" title=" " alt="" coords="281,124,366,165,364,169,278,129"/>
 </map>

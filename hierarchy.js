@@ -196,6 +196,10 @@ var hierarchy =
     [ "yaze::gfx::PaletteGroupMap", "structyaze_1_1gfx_1_1PaletteGroupMap.html", null ],
     [ "yaze::gfx::Paletteset", "structyaze_1_1gfx_1_1Paletteset.html", null ],
     [ "yaze::editor::ParsedElement", "structyaze_1_1editor_1_1ParsedElement.html", null ],
+    [ "yaze::core::PlatformBackend< Derived >", "classyaze_1_1core_1_1PlatformBackend.html", null ],
+    [ "yaze::core::PlatformBackend< Sdl2Backend >", "classyaze_1_1core_1_1PlatformBackend.html", [
+      [ "yaze::core::Sdl2Backend", "classyaze_1_1core_1_1Sdl2Backend.html", null ]
+    ] ],
     [ "yaze::editor::PopupManager", "classyaze_1_1editor_1_1PopupManager.html", null ],
     [ "yaze::editor::PopupParams", "structyaze_1_1editor_1_1PopupParams.html", null ],
     [ "yaze::emu::PpuInterface", "classyaze_1_1emu_1_1PpuInterface.html", [
@@ -325,6 +329,7 @@ var hierarchy =
     [ "yaze::emu::TSW", "structyaze_1_1emu_1_1TSW.html", null ],
     [ "TextEditor::UndoRecord", "classTextEditor_1_1UndoRecord.html", null ],
     [ "yaze::editor::zsprite::UserRoutine", "structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html", null ],
+    [ "yaze::VersionControlManager", "classyaze_1_1VersionControlManager.html", null ],
     [ "yaze::emu::VideoPortControl", "structyaze_1_1emu_1_1VideoPortControl.html", null ],
     [ "yaze::emu::VMADDH", "structyaze_1_1emu_1_1VMADDH.html", null ],
     [ "yaze::emu::VMADDL", "structyaze_1_1emu_1_1VMADDL.html", null ],

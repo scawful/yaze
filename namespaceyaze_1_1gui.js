@@ -93,5 +93,6 @@ var namespaceyaze_1_1gui =
     [ "kStepOneHex", "namespaceyaze_1_1gui.html#a6029f8bda82fb5f101e9ddd63d85e856", null ],
     [ "kStepFastHex", "namespaceyaze_1_1gui.html#ac0d0508a4ca0643d60c606788b50e17d", null ],
     [ "kDefaultModalSize", "namespaceyaze_1_1gui.html#ab655498d16f5ecf417dddcc70faed138", null ],
-    [ "kZeroPos", "namespaceyaze_1_1gui.html#ab500bfa55478470e1f7cd45806c3728e", null ]
+    [ "kZeroPos", "namespaceyaze_1_1gui.html#ab500bfa55478470e1f7cd45806c3728e", null ],
+    [ "kSeparator", "namespaceyaze_1_1gui.html#a01a69c8df4f748999159587dd7124dec", null ]
 ];

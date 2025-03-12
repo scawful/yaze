@@ -68,12 +68,11 @@ var searchData=
   ['assembly_5feditor_5f_65',['assembly_editor_',['../classyaze_1_1editor_1_1EditorManager.html#ab9ca0335c439be7a2fd49087c317525b',1,'yaze::editor::EditorManager::assembly_editor_'],['../classyaze_1_1editor_1_1MusicEditor.html#ae1d595782ad417ddd2dc03abac8fb2fd',1,'yaze::editor::MusicEditor::assembly_editor_']]],
   ['asset_5fbrowser_5f_66',['asset_browser_',['../classyaze_1_1editor_1_1GraphicsEditor.html#ae857fed9adf4ff6c382393b686bcf6cb',1,'yaze::editor::GraphicsEditor']]],
   ['attributes_67',['attributes',['../structyaze_1_1gui_1_1zeml_1_1Node.html#a773fddc97cd18e218a034064e94cb0e6',1,'yaze::gui::zeml::Node']]],
-  ['audio_5fbuffer_5f_68',['audio_buffer_',['../classyaze_1_1core_1_1Controller.html#af5c4b46aa2a92b71634fda7559e4d24c',1,'yaze::core::Controller::audio_buffer_'],['../classyaze_1_1emu_1_1Emulator.html#af5669fdef5b76c99c380321f3aa957aa',1,'yaze::emu::Emulator::audio_buffer_']]],
-  ['audio_5fdevice_5f_69',['audio_device_',['../classyaze_1_1core_1_1Controller.html#a4c4108976b444870b86c9d96d5c72990',1,'yaze::core::Controller::audio_device_'],['../classyaze_1_1emu_1_1Emulator.html#ac105370c85e93559980de1393bca00a2',1,'yaze::emu::Emulator::audio_device_']]],
-  ['audio_5ffrequency_5f_70',['audio_frequency_',['../classyaze_1_1core_1_1Controller.html#aae1c2573de263dec6507f33bbcc6faee',1,'yaze::core::Controller']]],
-  ['audioram_71',['audioRAM',['../classyaze_1_1test_1_1Spc700Test.html#ad0e603960ff448d89a2a331719c4368d',1,'yaze::test::Spc700Test']]],
-  ['auto_5fjoy_5fread_5f_72',['auto_joy_read_',['../classyaze_1_1emu_1_1Snes.html#aa83090e72f5a579aeff5f2654137264c',1,'yaze::emu::Snes']]],
-  ['auto_5fjoy_5ftimer_5f_73',['auto_joy_timer_',['../classyaze_1_1emu_1_1Snes.html#aeb05e0df6d3b942d8ea412fb08501f30',1,'yaze::emu::Snes']]],
-  ['aux1_74',['aux1',['../structyaze_1_1gfx_1_1Paletteset.html#a72aadefb5901777ae333bbd37451f92e',1,'yaze::gfx::Paletteset']]],
-  ['aux2_75',['aux2',['../structyaze_1_1gfx_1_1Paletteset.html#a931ee06cebd5114a00b9128c994a2f8c',1,'yaze::gfx::Paletteset']]]
+  ['audio_5fbuffer_5f_68',['audio_buffer_',['../classyaze_1_1core_1_1Sdl2Backend.html#aafab0a60be5c4dba3fd13ca5d48d10a8',1,'yaze::core::Sdl2Backend::audio_buffer_'],['../classyaze_1_1emu_1_1Emulator.html#af5669fdef5b76c99c380321f3aa957aa',1,'yaze::emu::Emulator::audio_buffer_']]],
+  ['audio_5fdevice_5f_69',['audio_device_',['../classyaze_1_1core_1_1Sdl2Backend.html#a24b9a05fea8c7c80b0e563e246b2fe6f',1,'yaze::core::Sdl2Backend::audio_device_'],['../classyaze_1_1emu_1_1Emulator.html#ac105370c85e93559980de1393bca00a2',1,'yaze::emu::Emulator::audio_device_']]],
+  ['audioram_70',['audioRAM',['../classyaze_1_1test_1_1Spc700Test.html#ad0e603960ff448d89a2a331719c4368d',1,'yaze::test::Spc700Test']]],
+  ['auto_5fjoy_5fread_5f_71',['auto_joy_read_',['../classyaze_1_1emu_1_1Snes.html#aa83090e72f5a579aeff5f2654137264c',1,'yaze::emu::Snes']]],
+  ['auto_5fjoy_5ftimer_5f_72',['auto_joy_timer_',['../classyaze_1_1emu_1_1Snes.html#aeb05e0df6d3b942d8ea412fb08501f30',1,'yaze::emu::Snes']]],
+  ['aux1_73',['aux1',['../structyaze_1_1gfx_1_1Paletteset.html#a72aadefb5901777ae333bbd37451f92e',1,'yaze::gfx::Paletteset']]],
+  ['aux2_74',['aux2',['../structyaze_1_1gfx_1_1Paletteset.html#a931ee06cebd5114a00b9128c994a2f8c',1,'yaze::gfx::Paletteset']]]
 ];

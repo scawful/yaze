@@ -8,7 +8,7 @@ var classyaze_1_1test_1_1integration_1_1TestEditor =
     [ "Undo", "classyaze_1_1test_1_1integration_1_1TestEditor.html#abf9bf5f3c230f3a2d7f823e8926220d2", null ],
     [ "Redo", "classyaze_1_1test_1_1integration_1_1TestEditor.html#ad44eb81363bf031fd54b8dd941898a9c", null ],
     [ "Find", "classyaze_1_1test_1_1integration_1_1TestEditor.html#a745a8d3e202eb7128caa283b02c3323e", null ],
-    [ "Update", "classyaze_1_1test_1_1integration_1_1TestEditor.html#a57f27f46729980f5d2984ca3feb91a84", null ],
-    [ "RegisterTests", "classyaze_1_1test_1_1integration_1_1TestEditor.html#ab2793df2df64f1011f48f69f679db293", null ],
+    [ "Update", "classyaze_1_1test_1_1integration_1_1TestEditor.html#a46fa09a20b2281f02d2c0bace8de5238", null ],
+    [ "RegisterTests", "classyaze_1_1test_1_1integration_1_1TestEditor.html#a68c0b4b34a9b22d3d0b1133538101101", null ],
     [ "engine_", "classyaze_1_1test_1_1integration_1_1TestEditor.html#a517231d77b30888622af03dafca7ad0a", null ]
 ];

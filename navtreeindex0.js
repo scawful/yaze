@@ -29,6 +29,8 @@ var NAVTREEINDEX0 =
 "audio_2internal_2opcodes_8h.html":[13,0,2,0,2,0,0,2],
 "audio_2internal_2opcodes_8h.html#a93cb5efaf6af57a758585c8135874b0e":[13,0,2,0,2,0,0,2,0],
 "audio_2internal_2opcodes_8h_source.html":[13,0,2,0,2,0,0,2],
+"backend_8h.html":[13,0,2,0,0,0,2],
+"backend_8h_source.html":[13,0,2,0,0,0,2],
 "bitmap_8cc.html":[13,0,2,0,3,0],
 "bitmap_8cc_source.html":[13,0,2,0,3,0],
 "bitmap_8h.html":[13,0,2,0,3,1],
@@ -247,7 +249,5 @@ var NAVTREEINDEX0 =
 "classyaze_1_1RecentFilesManager.html":[12,0,0,11],
 "classyaze_1_1RecentFilesManager.html#a2cfb297f0ef3243de5405f2db16994b0":[11,0,1,11,6],
 "classyaze_1_1RecentFilesManager.html#a2cfb297f0ef3243de5405f2db16994b0":[12,0,0,11,6],
-"classyaze_1_1RecentFilesManager.html#a3c01c50b9874c0c004c9d4bfb9927eeb":[11,0,1,11,3],
-"classyaze_1_1RecentFilesManager.html#a3c01c50b9874c0c004c9d4bfb9927eeb":[12,0,0,11,3],
-"classyaze_1_1RecentFilesManager.html#a60e6a770c96874eee6730af353aca1a2":[11,0,1,11,7]
+"classyaze_1_1RecentFilesManager.html#a3c01c50b9874c0c004c9d4bfb9927eeb":[11,0,1,11,3]
 };

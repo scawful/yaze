@@ -26,7 +26,9 @@ var annotated_dup =
         [ "FlagsMenu", "structyaze_1_1core_1_1FlagsMenu.html", "structyaze_1_1core_1_1FlagsMenu" ],
         [ "FontConfig", "structyaze_1_1core_1_1FontConfig.html", "structyaze_1_1core_1_1FontConfig" ],
         [ "FontState", "structyaze_1_1core_1_1FontState.html", "structyaze_1_1core_1_1FontState" ],
+        [ "PlatformBackend", "classyaze_1_1core_1_1PlatformBackend.html", "classyaze_1_1core_1_1PlatformBackend" ],
         [ "Renderer", "classyaze_1_1core_1_1Renderer.html", "classyaze_1_1core_1_1Renderer" ],
+        [ "Sdl2Backend", "classyaze_1_1core_1_1Sdl2Backend.html", "classyaze_1_1core_1_1Sdl2Backend" ],
         [ "SDL_Deleter", "structyaze_1_1core_1_1SDL__Deleter.html", "structyaze_1_1core_1_1SDL__Deleter" ],
         [ "SDL_Surface_Deleter", "structyaze_1_1core_1_1SDL__Surface__Deleter.html", "structyaze_1_1core_1_1SDL__Surface__Deleter" ],
         [ "SDL_Texture_Deleter", "structyaze_1_1core_1_1SDL__Texture__Deleter.html", "structyaze_1_1core_1_1SDL__Texture__Deleter" ]
@@ -314,7 +316,8 @@ var annotated_dup =
       [ "Renderer", "classyaze_1_1Renderer.html", "classyaze_1_1Renderer" ],
       [ "ResourceLabelManager", "structyaze_1_1ResourceLabelManager.html", "structyaze_1_1ResourceLabelManager" ],
       [ "Rom", "classyaze_1_1Rom.html", "classyaze_1_1Rom" ],
-      [ "SharedRom", "classyaze_1_1SharedRom.html", "classyaze_1_1SharedRom" ]
+      [ "SharedRom", "classyaze_1_1SharedRom.html", "classyaze_1_1SharedRom" ],
+      [ "VersionControlManager", "classyaze_1_1VersionControlManager.html", "classyaze_1_1VersionControlManager" ]
     ] ],
     [ "AppDelegate", "classAppDelegate.html", null ],
     [ "AppViewController", "classAppViewController.html", null ],

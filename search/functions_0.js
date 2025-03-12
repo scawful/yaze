@@ -88,5 +88,7 @@ var searchData=
   ['assetobject_85',['AssetObject',['../structyaze_1_1gui_1_1AssetObject.html#a87ca7304e6ddd870b881396817f56340',1,'yaze::gui::AssetObject']]],
   ['assignworldtiles_86',['AssignWorldTiles',['../classyaze_1_1zelda3_1_1Overworld.html#a5392afd12413f3b9de1738df802b976e',1,'yaze::zelda3::Overworld']]],
   ['at_87',['at',['../classyaze_1_1emu_1_1Memory.html#ae6a7fe05ca17fbed99579cfb9a79ba2c',1,'yaze::emu::Memory::at()'],['../classyaze_1_1emu_1_1MemoryImpl.html#a09fc0829ad63d6bff53d0c93d3111ec7',1,'yaze::emu::MemoryImpl::at()'],['../classyaze_1_1gfx_1_1Bitmap.html#a0c938e3c3f656555b3b8c6ef86adb265',1,'yaze::gfx::Bitmap::at()'],['../classyaze_1_1gui_1_1Bitmap.html#a0c938e3c3f656555b3b8c6ef86adb265',1,'yaze::gui::Bitmap::at()']]],
-  ['audioramimpl_88',['AudioRamImpl',['../classyaze_1_1emu_1_1AudioRamImpl.html#a4e7b0e828af431c36e986a7a89fcc4fc',1,'yaze::emu::AudioRamImpl']]]
+  ['audio_5fbuffer_88',['audio_buffer',['../classyaze_1_1core_1_1Sdl2Backend.html#a15aca9baabbb2ce9485a387b8cca051a',1,'yaze::core::Sdl2Backend']]],
+  ['audio_5fdevice_89',['audio_device',['../classyaze_1_1core_1_1Sdl2Backend.html#a6a0bcf3836b03c8320fe52b8fb7bdb95',1,'yaze::core::Sdl2Backend']]],
+  ['audioramimpl_90',['AudioRamImpl',['../classyaze_1_1emu_1_1AudioRamImpl.html#a4e7b0e828af431c36e986a7a89fcc4fc',1,'yaze::emu::AudioRamImpl']]]
 ];
