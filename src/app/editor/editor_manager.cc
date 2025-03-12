@@ -47,6 +47,10 @@ bool IsEditorActive(Editor *editor, std::vector<Editor *> &active_editors) {
          active_editors.end();
 }
 
+std::string GetEditorName(EditorType type) {
+  return kEditorNames[static_cast<int>(type)];
+}
+
 }  // namespace
 
 void EditorManager::Initialize(const std::string &filename) {
@@ -144,8 +148,8 @@ void EditorManager::Initialize(const std::string &filename) {
            {absl::StrCat(ICON_MD_CLOSE, " Close"), "",
             [&]() { rom()->Close(); }},
            {gui::kSeparator, "", nullptr, []() { return true; }},
-           {absl::StrCat(ICON_MD_SETTINGS, " Options"), "", [&]() {},
-            []() { return true; }, options_subitems},
+           {absl::StrCat(ICON_MD_MISCELLANEOUS_SERVICES, " Options"), "",
+            [&]() {}, []() { return true; }, options_subitems},
            {absl::StrCat(ICON_MD_EXIT_TO_APP, " Quit"), "Ctrl+Q",
             [&]() { quit_ = true; }},
        }},
@@ -182,12 +186,38 @@ void EditorManager::Initialize(const std::string &filename) {
        {
            {absl::StrCat(ICON_MD_CODE, " Assembly Editor"), "",
             [&]() { show_asm_editor_ = true; }},
+           {absl::StrCat(ICON_MD_CASTLE, " Dungeon Editor"), "",
+            [&]() { dungeon_editor_.set_active(true); },
+            [&]() { return *dungeon_editor_.active(); }},
+           {absl::StrCat(ICON_MD_PHOTO, " Graphics Editor"), "",
+            [&]() { graphics_editor_.set_active(true); },
+            [&]() { return *graphics_editor_.active(); }},
+           {absl::StrCat(ICON_MD_MUSIC_NOTE, " Music Editor"), "",
+            [&]() { music_editor_.set_active(true); },
+            [&]() { return *music_editor_.active(); }},
+           {absl::StrCat(ICON_MD_LAYERS, " Overworld Editor"), "",
+            [&]() { overworld_editor_.set_active(true); },
+            [&]() { return *overworld_editor_.active(); }},
+           {absl::StrCat(ICON_MD_PALETTE, " Palette Editor"), "",
+            [&]() { palette_editor_.set_active(true); },
+            [&]() { return *palette_editor_.active(); }},
+           {absl::StrCat(ICON_MD_SCREENSHOT, " Screen Editor"), "",
+            [&]() { screen_editor_.set_active(true); },
+            [&]() { return *screen_editor_.active(); }},
+           {absl::StrCat(ICON_MD_SMART_TOY, " Sprite Editor"), "",
+            [&]() { sprite_editor_.set_active(true); },
+            [&]() { return *sprite_editor_.active(); }},
+           {absl::StrCat(ICON_MD_MESSAGE, " Message Editor"), "",
+            [&]() { message_editor_.set_active(true); },
+            [&]() { return *message_editor_.active(); }},
+           {absl::StrCat(ICON_MD_SETTINGS, " Settings Editor"), "",
+            [&]() { settings_editor_.set_active(true); },
+            [&]() { return *settings_editor_.active(); }},
+           {gui::kSeparator, "", nullptr, []() { return true; }},
            {absl::StrCat(ICON_MD_GAMEPAD, " Emulator"), "",
             [&]() { show_emulator_ = true; }},
            {absl::StrCat(ICON_MD_MEMORY, " Memory Editor"), "",
             [&]() { show_memory_editor_ = true; }},
-           {absl::StrCat(ICON_MD_PALETTE, " Palette Editor"), "",
-            [&]() { show_palette_editor_ = true; }},
            {absl::StrCat(ICON_MD_SIM_CARD, " ROM Metadata"), "",
             [&]() { rom_info_ = true; }},
            {gui::kSeparator, "", nullptr, []() { return true; }},
@@ -228,7 +258,20 @@ absl::Status EditorManager::Update() {
   ExecuteShortcuts(context_.shortcut_manager);
   context_.command_manager.ShowWhichKey();
 
-  if (ImGui::Begin("Home", nullptr, ImGuiWindowFlags_None)) {
+  for (auto editor : active_editors_) {
+    if (*editor->active()) {
+      if (ImGui::Begin(GetEditorName(editor->type()).c_str(),
+                       editor->active())) {
+        current_editor_ = editor;
+        status_ = editor->Update();
+        ImGui::End();
+      }
+    }
+  }
+
+  static bool show_home = true;
+
+  if (ImGui::Begin("Home", &show_home)) {
     if (!current_rom_) {
       DrawHomepage();
     } else {
