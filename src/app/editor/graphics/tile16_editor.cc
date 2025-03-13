@@ -85,16 +85,6 @@ absl::Status Tile16Editor::Update() {
     return absl::InvalidArgumentError("Blockset not initialized, open a ROM.");
   }
 
-  RETURN_IF_ERROR(DrawMenu());
-  if (BeginTabBar("Tile16 Editor Tabs")) {
-    DrawTile16Editor();
-    RETURN_IF_ERROR(UpdateTile16Transfer());
-    EndTabBar();
-  }
-  return absl::OkStatus();
-}
-
-absl::Status Tile16Editor::DrawMenu() {
   if (BeginMenuBar()) {
     if (BeginMenu("View")) {
       Checkbox("Show Collision Types",
@@ -102,6 +92,12 @@ absl::Status Tile16Editor::DrawMenu() {
       EndMenu();
     }
     EndMenuBar();
+  }
+
+  if (BeginTabBar("Tile16 Editor Tabs")) {
+    DrawTile16Editor();
+    RETURN_IF_ERROR(UpdateTile16Transfer());
+    EndTabBar();
   }
   return absl::OkStatus();
 }
@@ -118,20 +114,12 @@ void Tile16Editor::DrawTile16Editor() {
       TableNextRow();
       TableNextColumn();
       status_ = UpdateBlockset();
-      if (!status_.ok()) {
-        EndTable();
-      }
 
       TableNextColumn();
       status_ = UpdateTile16Edit();
-      if (status_ != absl::OkStatus()) {
-        EndTable();
-      }
-      status_ = DrawTileEditControls();
 
       EndTable();
     }
-
     EndTabItem();
   }
 }
@@ -248,10 +236,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     tile16_edit_canvas_.DrawOverlay();
   }
   EndChild();
-  return absl::OkStatus();
-}
 
-absl::Status Tile16Editor::DrawTileEditControls() {
   Separator();
   Text("Options:");
   gui::InputHexByte("Palette", &notify_palette.edit());
