@@ -1,16 +1,16 @@
 <map id="yaze::editor::OverworldEditor::Update" name="yaze::editor::OverworldEditor::Update">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,119,189,159"/>
-<area shape="poly" id="edge9_Node000001_Node000001" title=" " alt="" coords="53,119,51,109,58,100,74,94,97,92,122,94,137,101,135,106,121,100,97,97,75,99,62,104,56,110,59,117"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1OverworldEditor.html#a85c7e85183b05afd17cebf8925da2e7e" title=" " alt="" coords="237,29,420,70"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,116,236,81,255,73,257,78,238,85,150,121"/>
-<area shape="rect" id="Node000072" href="$classyaze_1_1editor_1_1OverworldEditor.html#aaa4ee9e9095ee9f1faea6dfbf2c5217a" title=" " alt="" coords="237,119,420,159"/>
-<area shape="poly" id="edge5_Node000001_Node000072" title=" " alt="" coords="189,136,221,136,221,142,189,142"/>
-<area shape="rect" id="Node000077" href="$namespaceyaze_1_1gui_1_1zeml.html#a938c099fc662747bd83cb0c3fc3a2358" title="Render a zeml tree." alt="" coords="253,208,404,233"/>
-<area shape="poly" id="edge7_Node000001_Node000077" title=" " alt="" coords="158,157,276,199,274,204,156,162"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="285,29,283,19,290,10,305,5,328,3,353,5,368,11,366,16,352,10,328,8,306,10,293,15,288,21,290,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,115,189,155"/>
+<area shape="poly" id="edge9_Node000001_Node000001" title=" " alt="" coords="53,115,51,105,58,96,74,90,97,88,122,90,137,97,135,102,121,96,97,93,75,95,62,100,56,106,59,113"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1OverworldEditor.html#a85c7e85183b05afd17cebf8925da2e7e" title=" " alt="" coords="237,73,420,114"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,116,221,110,222,115,189,121"/>
+<area shape="rect" id="Node000072" href="$namespaceyaze_1_1gui_1_1zeml.html#a938c099fc662747bd83cb0c3fc3a2358" title="Render a zeml tree." alt="" coords="253,162,404,188"/>
+<area shape="poly" id="edge7_Node000001_Node000072" title=" " alt="" coords="189,148,239,157,238,162,188,153"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="285,73,283,63,290,54,305,49,328,47,353,49,368,55,366,60,352,54,328,52,306,54,293,59,288,65,290,72"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1OverworldEditor.html#a92ceb324bb2b537690e2fee94ac3f863" title=" " alt="" coords="468,29,651,70"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="420,47,452,47,452,52,420,52"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="420,74,452,67,453,73,421,79"/>
+<area shape="rect" id="Node000060" href="$classyaze_1_1editor_1_1OverworldEditor.html#abd85ac71082a0372db173be15e56cba8" title=" " alt="" coords="468,119,651,159"/>
+<area shape="poly" id="edge5_Node000002_Node000060" title=" " alt="" coords="421,109,453,115,452,121,420,114"/>
 <area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="516,29,514,19,521,10,536,5,560,3,585,5,599,11,597,16,583,10,560,8,538,10,524,15,519,21,521,28"/>
-<area shape="poly" id="edge6_Node000072_Node000072" title=" " alt="" coords="285,119,283,109,290,100,305,94,328,92,353,94,368,101,366,106,352,100,328,97,306,99,293,104,288,110,290,117"/>
-<area shape="poly" id="edge8_Node000077_Node000077" title=" " alt="" coords="290,209,282,199,287,189,303,183,328,181,357,184,371,190,369,195,355,189,328,186,304,188,291,193,288,198,294,205"/>
+<area shape="poly" id="edge6_Node000060_Node000060" title=" " alt="" coords="516,119,514,109,521,100,536,94,560,92,585,94,599,101,597,106,583,100,560,97,538,99,524,104,519,110,521,117"/>
+<area shape="poly" id="edge8_Node000072_Node000072" title=" " alt="" coords="290,163,282,154,287,144,303,138,328,136,357,138,371,145,369,150,355,143,328,141,304,143,291,148,288,153,294,160"/>
 </map>

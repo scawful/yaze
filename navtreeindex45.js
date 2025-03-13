@@ -1,9 +1,5 @@
 var NAVTREEINDEX45 =
 {
-"src_2app_2emu_2snes_8h.html":[13,0,2,0,2,8],
-"src_2app_2emu_2snes_8h_source.html":[13,0,2,0,2,8],
-"src_2app_2zelda3_2overworld_2overworld_8h.html":[13,0,2,0,5,2,1],
-"src_2app_2zelda3_2overworld_2overworld_8h_source.html":[13,0,2,0,5,2,1],
 "structSDL__Deleter.html":[12,0,8],
 "structSDL__Deleter.html#a04c7124e69f1a613c2905ae0d9846999":[12,0,8,1],
 "structSDL__Deleter.html#aa03c4eebf864506a380a5a49b7f791f2":[12,0,8,0],
@@ -249,5 +245,9 @@ var NAVTREEINDEX45 =
 "structyaze_1_1core_1_1SDL__Surface__Deleter.html":[12,0,0,1,10],
 "structyaze_1_1core_1_1SDL__Surface__Deleter.html#a8ee568452a4b35496de028e8d057aa87":[11,0,1,1,12,0],
 "structyaze_1_1core_1_1SDL__Surface__Deleter.html#a8ee568452a4b35496de028e8d057aa87":[12,0,0,1,10,0],
-"structyaze_1_1core_1_1SDL__Texture__Deleter.html":[11,0,1,1,13]
+"structyaze_1_1core_1_1SDL__Texture__Deleter.html":[11,0,1,1,13],
+"structyaze_1_1core_1_1SDL__Texture__Deleter.html":[12,0,0,1,11],
+"structyaze_1_1core_1_1SDL__Texture__Deleter.html#afaf4558073914dd66982c67533f012e4":[11,0,1,1,13,0],
+"structyaze_1_1core_1_1SDL__Texture__Deleter.html#afaf4558073914dd66982c67533f012e4":[12,0,0,1,11,0],
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html":[11,0,1,2,9,0]
 };

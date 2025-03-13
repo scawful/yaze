@@ -1,9 +1,5 @@
 var NAVTREEINDEX38 =
 {
-"md_docs_2contributing.html#autotoc_md42":[3,5],
-"md_docs_2getting-started.html":[4],
-"md_docs_2getting-started.html#autotoc_md44":[4,0],
-"md_docs_2getting-started.html#autotoc_md45":[4,1],
 "md_docs_2getting-started.html#autotoc_md46":[4,2],
 "md_docs_2getting-started.html#autotoc_md47":[4,3],
 "md_docs_2infrastructure.html":[5],
@@ -249,5 +245,9 @@ var NAVTREEINDEX38 =
 "namespaceyaze_1_1editor.html#a2d7a49ee6092e15e8ebbf2384b32af41":[11,0,1,2,86],
 "namespaceyaze_1_1editor.html#a30303af4e4e2edda065a4aa65f9a21f1":[11,0,1,2,87],
 "namespaceyaze_1_1editor.html#a32e9005b4f1ea1908b9fac631338f632":[11,0,1,2,128],
-"namespaceyaze_1_1editor.html#a333d24169dffcc3ea067a7234180dc4a":[11,0,1,2,69]
+"namespaceyaze_1_1editor.html#a333d24169dffcc3ea067a7234180dc4a":[11,0,1,2,69],
+"namespaceyaze_1_1editor.html#a3ce36482c9a43acef3c3aa88f7cb1692":[11,0,1,2,140],
+"namespaceyaze_1_1editor.html#a3d3544ec9f9029b303d36946d159b102":[11,0,1,2,65],
+"namespaceyaze_1_1editor.html#a4026f9eb00c1069527eba5adcf9bf466":[11,0,1,2,127],
+"namespaceyaze_1_1editor.html#a42382673ea2557750ccf0c490e8abc98":[11,0,1,2,84]
 };

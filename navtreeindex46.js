@@ -1,9 +1,5 @@
 var NAVTREEINDEX46 =
 {
-"structyaze_1_1core_1_1SDL__Texture__Deleter.html":[12,0,0,1,11],
-"structyaze_1_1core_1_1SDL__Texture__Deleter.html#afaf4558073914dd66982c67533f012e4":[11,0,1,1,13,0],
-"structyaze_1_1core_1_1SDL__Texture__Deleter.html#afaf4558073914dd66982c67533f012e4":[12,0,0,1,11,0],
-"structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html":[11,0,1,2,9,0],
 "structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html":[12,0,0,2,3,0],
 "structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html#a38141716720e012549e4a2e1789c989f":[11,0,1,2,9,0,0],
 "structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html#a38141716720e012549e4a2e1789c989f":[12,0,0,2,3,0,0],
@@ -249,5 +245,9 @@ var NAVTREEINDEX46 =
 "structyaze_1_1editor_1_1TextElement.html#afff106f100633f8e92e71dab9ef01c70":[12,0,0,2,34,2],
 "structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html":[11,0,1,2,6,0],
 "structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html":[12,0,0,2,0,0],
-"structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a166b67d21301fa43249565ec56148f22":[11,0,1,2,6,0,1]
+"structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a166b67d21301fa43249565ec56148f22":[11,0,1,2,6,0,1],
+"structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a166b67d21301fa43249565ec56148f22":[12,0,0,2,0,0,1],
+"structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a2008b6404fc79881edd9ad60e7f0fe42":[11,0,1,2,6,0,2],
+"structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a2008b6404fc79881edd9ad60e7f0fe42":[12,0,0,2,0,0,2],
+"structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a320ea66f9d77d77ad1397920fe67e0c2":[11,0,1,2,6,0,0]
 };

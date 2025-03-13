@@ -1,9 +1,5 @@
 var NAVTREEINDEX44 =
 {
-"namespaceyaze_1_1zelda3.html#aabbed84401e10f830675c9169cda67d3":[11,0,1,8,115],
-"namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8":[11,0,1,8,35],
-"namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8a080a546abcbea74459f27ba33313993d":[11,0,1,8,35,2],
-"namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8a0b01cc688e1e0b5f6b70f858a1b389ae":[11,0,1,8,35,6],
 "namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8a103b58155b4c5cc09249629e7ccd5dc2":[11,0,1,8,35,5],
 "namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8aa8b6ce53a1cdf2ee4d3f16b939029b2b":[11,0,1,8,35,4],
 "namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8ae1e4c8c9ccd9fc39c391da4bcd093fb2":[11,0,1,8,35,3],
@@ -249,5 +245,9 @@ var NAVTREEINDEX44 =
 "sprite__editor_8cc.html":[13,0,2,0,1,6,0],
 "sprite__editor_8cc_source.html":[13,0,2,0,1,6,0],
 "sprite__editor_8h.html":[13,0,2,0,1,6,1],
-"sprite__editor_8h_source.html":[13,0,2,0,1,6,1]
+"sprite__editor_8h_source.html":[13,0,2,0,1,6,1],
+"src_2app_2emu_2snes_8h.html":[13,0,2,0,2,8],
+"src_2app_2emu_2snes_8h_source.html":[13,0,2,0,2,8],
+"src_2app_2zelda3_2overworld_2overworld_8h.html":[13,0,2,0,5,2,1],
+"src_2app_2zelda3_2overworld_2overworld_8h_source.html":[13,0,2,0,5,2,1]
 };

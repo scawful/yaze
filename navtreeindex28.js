@@ -1,9 +1,5 @@
 var NAVTREEINDEX28 =
 {
-"dungeon_8h.html#af206bedc320e56e6defeba3fa38d2c58a4d6895bfddbaad6a1de54402e2edde1a":[13,0,1,0,15,4],
-"dungeon_8h.html#af206bedc320e56e6defeba3fa38d2c58a5ecbcf0afce98b042f35ec71ba03fa4b":[13,0,1,0,15,6],
-"dungeon_8h.html#af206bedc320e56e6defeba3fa38d2c58a8c3920d5d545844176ad55189fc9d8dc":[13,0,1,0,15,5],
-"dungeon_8h.html#af206bedc320e56e6defeba3fa38d2c58a952e05817c3b0ddebcf28d1a7423e659":[13,0,1,0,15,3],
 "dungeon_8h.html#af206bedc320e56e6defeba3fa38d2c58ab881c2fca9941a632de2b4af173a7906":[13,0,1,0,15,2],
 "dungeon_8h.html#af206bedc320e56e6defeba3fa38d2c58abd4ed2edf2b1c880c6568252e7cc7275":[13,0,1,0,15,8],
 "dungeon_8h.html#af206bedc320e56e6defeba3fa38d2c58ac719d3f34968bcf992d4c0c48841cf63":[13,0,1,0,15,7],
@@ -249,5 +245,9 @@ var NAVTREEINDEX28 =
 "icons_8h.html#a043dd854a8cf00c5fab256df41006d54":[13,0,2,0,4,5,1954],
 "icons_8h.html#a0465793ef9785bfda1af9245ac6db005":[13,0,2,0,4,5,1248],
 "icons_8h.html#a046bf69d31c09989e06f867700d91372":[13,0,2,0,4,5,1491],
-"icons_8h.html#a0493e7651fe70b5886286f64a9a95de8":[13,0,2,0,4,5,155]
+"icons_8h.html#a0493e7651fe70b5886286f64a9a95de8":[13,0,2,0,4,5,155],
+"icons_8h.html#a04a4e307f64ef0fae7b9dbd0d2184ced":[13,0,2,0,4,5,699],
+"icons_8h.html#a04d00cb15aa3e854feb7840cd43759ec":[13,0,2,0,4,5,1743],
+"icons_8h.html#a04d24756de28b77b9e3884833bbb4a7d":[13,0,2,0,4,5,432],
+"icons_8h.html#a04e08c1661adcceeb2487ee65db87ec3":[13,0,2,0,4,5,1728]
 };

@@ -1,9 +1,5 @@
 var NAVTREEINDEX54 =
 {
-"structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#ab28173d4514df73c8c75a2a4e5bf6efe":[12,0,0,8,0,8,6],
-"structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#ae4eb6acbaa3ca64f6691adcfee04368f":[11,0,1,8,3,8,4],
-"structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#ae4eb6acbaa3ca64f6691adcfee04368f":[12,0,0,8,0,8,4],
-"structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html":[11,0,1,8,3,9],
 "structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html":[12,0,0,8,0,9],
 "structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a0d50beb4f54b170a57466174b9ff3695":[11,0,1,8,3,9,2],
 "structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a0d50beb4f54b170a57466174b9ff3695":[12,0,0,8,0,9,2],
