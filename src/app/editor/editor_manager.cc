@@ -263,8 +263,8 @@ absl::Status EditorManager::Update() {
                        editor->active())) {
         current_editor_ = editor;
         status_ = editor->Update();
-        ImGui::End();
       }
+      ImGui::End();
     }
   }
 

@@ -388,8 +388,8 @@ void Render(Node& node) {
         for (auto& child : node.children) {
           Render(child);
         }
-        ImGui::End();
       }
+      ImGui::End();
     } break;
     case WidgetType::Button:
       if (node.attributes.data) {
