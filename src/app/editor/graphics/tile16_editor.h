@@ -32,7 +32,6 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
                           std::array<uint8_t, 0x200> &all_tiles_types);
 
   absl::Status Update();
-  absl::Status DrawMenu();
 
   void DrawTile16Editor();
   absl::Status UpdateTile16Transfer();
@@ -41,8 +40,6 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
   absl::Status DrawToCurrentTile16(ImVec2 pos);
 
   absl::Status UpdateTile16Edit();
-
-  absl::Status DrawTileEditControls();
 
   absl::Status UpdateTransferTileCanvas();
 
