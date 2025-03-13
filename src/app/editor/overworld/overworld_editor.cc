@@ -89,20 +89,17 @@ void OverworldEditor::Initialize() {
 }
 
 absl::Status OverworldEditor::Load() {
+  RETURN_IF_ERROR(LoadGraphics());
   RETURN_IF_ERROR(
       tile16_editor_.Initialize(tile16_blockset_bmp_, current_gfx_bmp_,
                                 *overworld_.mutable_all_tiles_types()));
   ASSIGN_OR_RETURN(entrance_tiletypes_, zelda3::LoadEntranceTileTypes(rom_));
-  RETURN_IF_ERROR(LoadGraphics());
   all_gfx_loaded_ = true;
   return absl::OkStatus();
 }
 
 absl::Status OverworldEditor::Update() {
   status_ = absl::OkStatus();
-  if (rom_.is_loaded() && !all_gfx_loaded_) {
-    RETURN_IF_ERROR(Load());
-  }
 
   if (overworld_canvas_fullscreen_) {
     DrawFullscreenCanvas();
