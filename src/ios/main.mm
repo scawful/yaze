@@ -87,10 +87,10 @@
   }
 
   ImGui_ImplSDL2_InitForSDLRenderer(_controller->window(),
-                                    core::Renderer::GetInstance().renderer());
-  ImGui_ImplSDLRenderer2_Init(core::Renderer::GetInstance().renderer());
+                                    yaze::core::Renderer::GetInstance().renderer());
+  ImGui_ImplSDLRenderer2_Init(yaze::core::Renderer::GetInstance().renderer());
 
-  if (!_controller->LoadFontFamilies().ok()) {
+  if (!LoadPackageFonts().ok()) {
     abort();
   }
   _controller->Initialize("");
@@ -167,8 +167,8 @@
     if (!controller_status.ok()) {
       abort();
     }
-    ImGui::End();
   }
+  ImGui::End();
   _controller->DoRender();
 }
 
@@ -357,7 +357,7 @@
       rom_data.resize(size);
       std::copy(bytes, bytes + size, rom_data.begin());
 
-      PRINT_IF_ERROR(yaze::SharedRom::shared_rom_->LoadFromBytes(rom_data));
+      PRINT_IF_ERROR(yaze::SharedRom::shared_rom_->LoadFromData(rom_data));
       std::string filename = std::string([selectedFileURL.path UTF8String]);
       yaze::SharedRom::shared_rom_->set_filename(filename);
       [selectedFileURL stopAccessingSecurityScopedResource];
