@@ -41,42 +41,9 @@ constexpr ImGuiTableFlags kDungeonObjectTableFlags =
     ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
     ImGuiTableFlags_BordersV;
 
+void DungeonEditor::Initialize() {}
+
 absl::Status DungeonEditor::Load() {
-  return absl::OkStatus();
-}
-
-absl::Status DungeonEditor::Update() {
-  if (!is_loaded_ && rom()->is_loaded()) {
-    Initialize();
-    is_loaded_ = true;
-  }
-
-  if (refresh_graphics_) {
-    RETURN_IF_ERROR(RefreshGraphics());
-    refresh_graphics_ = false;
-  }
-
-  if (ImGui::BeginTabBar("##DungeonEditorTabBar")) {
-    TAB_ITEM("Room Editor")
-    status_ = UpdateDungeonRoomView();
-    END_TAB_ITEM()
-    TAB_ITEM("Usage Statistics")
-    if (is_loaded_) {
-      static bool calc_stats = false;
-      if (!calc_stats) {
-        CalculateUsageStats();
-        calc_stats = true;
-      }
-      DrawUsageStats();
-    }
-    END_TAB_ITEM()
-    ImGui::EndTabBar();
-  }
-
-  return absl::OkStatus();
-}
-
-void DungeonEditor::Initialize() {
   auto dungeon_man_pal_group = rom()->palette_group().dungeon_main;
 
   for (int i = 0; i < 0x100 + 40; i++) {
@@ -114,19 +81,38 @@ void DungeonEditor::Initialize() {
 
   // Load the palette group and palette for the dungeon
   full_palette_ = dungeon_man_pal_group[current_palette_group_id_];
-  auto current_palette_group =
-      gfx::CreatePaletteGroupFromLargePalette(full_palette_);
-  if (current_palette_group.ok()) {
-    current_palette_group_ = current_palette_group.value();
-  } else {
-    // LOG(ERROR) << "Failed to create palette group from large palette";
-  }
+  ASSIGN_OR_RETURN(current_palette_group_,
+                   gfx::CreatePaletteGroupFromLargePalette(full_palette_))
 
   graphics_bin_ = GraphicsSheetManager::GetInstance().gfx_sheets();
   // Create a vector of pointers to the current block bitmaps
   for (int block : rooms_[current_room_id_].blocks()) {
     room_gfx_sheets_.emplace_back(&graphics_bin_[block]);
   }
+  CalculateUsageStats();
+  is_loaded_ = true;
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditor::Update() {
+  if (refresh_graphics_) {
+    RETURN_IF_ERROR(RefreshGraphics());
+    refresh_graphics_ = false;
+  }
+
+  if (ImGui::BeginTabBar("##DungeonEditorTabBar")) {
+    TAB_ITEM("Room Editor")
+    status_ = UpdateDungeonRoomView();
+    END_TAB_ITEM()
+    TAB_ITEM("Usage Statistics")
+    if (is_loaded_) {
+      DrawUsageStats();
+    }
+    END_TAB_ITEM()
+    ImGui::EndTabBar();
+  }
+
+  return absl::OkStatus();
 }
 
 absl::Status DungeonEditor::RefreshGraphics() {

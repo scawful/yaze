@@ -708,6 +708,7 @@ void EditorManager::LoadAssets() {
     ASSIGN_OR_RETURN(*sheet_manager.mutable_gfx_sheets(),
                      LoadAllGraphicsData(*rom()))
     RETURN_IF_ERROR(overworld_editor_.Load());
+    RETURN_IF_ERROR(dungeon_editor_.Load());
     return absl::OkStatus();
   };
   if (!load_rom_assets().ok()) {
