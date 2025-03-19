@@ -10,6 +10,7 @@
 #include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/dungeon/room_tag.h"
 #include "app/zelda3/sprite/sprite.h"
+#include "util/log.h"
 #include "util/macro.h"
 
 namespace yaze {
@@ -71,9 +72,7 @@ void Room::CalculateRoomSize() {
   try {
     // Existing room size address calculation...
     auto room_size_address = 0xF8000 + (room_id_ * 3);
-
-    std::cout << "Room #" << room_id_ << " Address: " << std::hex
-              << room_size_address << std::endl;
+    util::logf("Room #%#03X Addresss: %#06X", room_id_, room_size_address);
 
     // Reading bytes for long address construction
     uint8_t low = rom()->data()[room_size_address];
@@ -82,13 +81,12 @@ void Room::CalculateRoomSize() {
 
     // Constructing the long address
     int long_address = (bank << 16) | (high << 8) | low;
-    std::cout << std::hex << std::setfill('0') << std::setw(6) << long_address
-              << std::endl;
+    util::logf("%#06X", long_address);
     room_size_pointer_ = long_address;
 
     if (long_address == 0x0A8000) {
       // Blank room disregard in size calculation
-      std::cout << "Size of Room #" << room_id_ << ": 0 bytes" << std::endl;
+      util::logf("Size of Room #%#03X: 0 bytes", room_id_);
       room_size_ = 0;
     } else {
       // use the long address to calculate the size of the room
@@ -96,9 +94,7 @@ void Room::CalculateRoomSize() {
       // and subtract the two to get the size of the room
 
       int next_room_address = 0xF8000 + ((room_id_ + 1) * 3);
-
-      std::cout << "Next Room Address: " << std::hex << next_room_address
-                << std::endl;
+      util::logf("Next Room Address: %#06X", next_room_address);
 
       // Reading bytes for long address construction
       uint8_t next_low = rom()->data()[next_room_address];
@@ -107,15 +103,12 @@ void Room::CalculateRoomSize() {
 
       // Constructing the long address
       int next_long_address = (next_bank << 16) | (next_high << 8) | next_low;
-
-      std::cout << std::hex << std::setfill('0') << std::setw(6)
-                << next_long_address << std::endl;
+      util::logf("%#06X", next_long_address);
 
       // Calculate the size of the room
       int room_size = next_long_address - long_address;
       room_size_ = room_size;
-      std::cout << "Size of Room #" << room_id_ << ": " << std::dec << room_size
-                << " bytes" << std::endl;
+      util::logf("Size of Room #%#03X: %d bytes", room_id_, room_size_);
     }
   } catch (const std::exception &e) {
     std::cout << "Error: " << e.what() << std::endl;
@@ -463,8 +456,8 @@ void Room::LoadSprites() {
 void Room::LoadChests() {
   auto rom_data = rom()->vector();
   uint32_t cpos = SnesToPc((rom_data[chests_data_pointer1 + 2] << 16) +
-                                 (rom_data[chests_data_pointer1 + 1] << 8) +
-                                 (rom_data[chests_data_pointer1]));
+                           (rom_data[chests_data_pointer1 + 1] << 8) +
+                           (rom_data[chests_data_pointer1]));
   size_t clength = (rom_data[chests_length_pointer + 1] << 8) +
                    (rom_data[chests_length_pointer]);
 
