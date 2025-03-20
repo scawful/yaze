@@ -44,8 +44,8 @@ absl::StatusOr<Tilesheet> CreateTilesheetFromGraphicsBuffer(
 }
 
 void Tilesheet::Init(int width, int height, TileType tile_type) {
-  bitmap_ = std::make_shared<Bitmap>(width, height, 8, 0x20000);
   internal_data_.resize(0x20000);
+  bitmap_ = std::make_shared<Bitmap>(width, height, 8, internal_data_);
   tile_type_ = tile_type;
   if (tile_type_ == TileType::Tile8) {
     tile_width_ = 8;

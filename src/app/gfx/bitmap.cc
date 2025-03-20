@@ -6,9 +6,11 @@
 #endif
 
 #include <cstdint>
+#include <future>
 #include <memory>
 
 #include "absl/status/status.h"
+#include "app/core/platform/renderer.h"
 #include "app/gfx/snes_palette.h"
 #include "util/macro.h"
 
@@ -207,10 +209,6 @@ Uint32 GetSnesPixelFormat(int format) {
 
 void Bitmap::SaveSurfaceToFile(std::string_view filename) {
   SDL_SaveBMP(surface_.get(), filename.data());
-}
-
-Bitmap::Bitmap(int width, int height, int depth, int data_size) {
-  Create(width, height, depth, std::vector<uint8_t>(data_size, 0));
 }
 
 void Bitmap::Initialize(int width, int height, int depth,

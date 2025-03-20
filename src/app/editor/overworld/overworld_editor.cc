@@ -1077,8 +1077,8 @@ absl::Status OverworldEditor::LoadGraphics() {
   util::logf("Loading overworld tile16 graphics.");
   // Loop through the tiles and copy their pixel data into separate vectors
   for (unsigned int i = 0; i < zelda3::kNumTile16Individual; i++) {
-    tile16_individual_[i].Create(kTile16Size, kTile16Size, 0x08,
-                                 kTile16Size * kTile16Size);
+    std::vector<uint8_t> tile16_data(kTile16Size * kTile16Size);
+    tile16_individual_[i].Create(kTile16Size, kTile16Size, 0x08, tile16_data);
 
     // Copy the pixel data for the current tile into the vector
     for (int ty = 0; ty < kTile16Size; ty++) {
