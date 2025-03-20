@@ -67,8 +67,6 @@ void ConvertPngToSurface(const std::vector<uint8_t> &png_data,
 class Bitmap {
  public:
   Bitmap() = default;
-
-  Bitmap(int width, int height, int depth, int data_size);
   Bitmap(int width, int height, int depth, const std::vector<uint8_t> &data)
       : width_(width), height_(height), depth_(depth), data_(data) {
     Create(width, height, depth, data);
@@ -85,6 +83,7 @@ class Bitmap {
       std::cerr << "Error applying palette in bitmap constructor." << std::endl;
     }
   }
+  void Initialize(int width, int height, int depth, std::span<uint8_t> &data);
 
 #if YAZE_LIB_PNG == 1
   std::vector<uint8_t> GetPngData();
@@ -92,11 +91,6 @@ class Bitmap {
 
   void SaveSurfaceToFile(std::string_view filename);
 
-  void Initialize(int width, int height, int depth, std::span<uint8_t> &data);
-
-  void Create(int width, int height, int depth, int data_size) {
-    Create(width, height, depth, std::vector<uint8_t>(data_size, 0));
-  }
   void Create(int width, int height, int depth, std::span<uint8_t> data);
   void Create(int width, int height, int depth,
               const std::vector<uint8_t> &data);
