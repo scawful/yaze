@@ -1,13 +1,5 @@
 var NAVTREEINDEX45 =
 {
-"structSDL__Deleter.html":[12,0,8],
-"structSDL__Deleter.html#a04c7124e69f1a613c2905ae0d9846999":[12,0,8,1],
-"structSDL__Deleter.html#aa03c4eebf864506a380a5a49b7f791f2":[12,0,8,0],
-"structTextEditor_1_1Breakpoint.html":[12,0,16,0],
-"structTextEditor_1_1Breakpoint.html#a1392b1f30cc531bc5ec395c9e7bc7548":[12,0,16,0,2],
-"structTextEditor_1_1Breakpoint.html#a2a1069e84047f918d79bb95f2b9ce0ce":[12,0,16,0,1],
-"structTextEditor_1_1Breakpoint.html#aeeb993b1a5adb018586f1e6feb9fa9ad":[12,0,16,0,3],
-"structTextEditor_1_1Breakpoint.html#af88e1c4c0f8b523f2d6f75dbbbb552f1":[12,0,16,0,0],
 "structTextEditor_1_1Coordinates.html":[12,0,16,1],
 "structTextEditor_1_1Coordinates.html#a0795b38f9d74c3bee9e0134f783da6f4":[12,0,16,1,6],
 "structTextEditor_1_1Coordinates.html#a1b3843caaa86f7e34fa42d29e5f5ebc0":[12,0,16,1,8],
@@ -249,5 +241,13 @@ var NAVTREEINDEX45 =
 "structyaze_1_1core_1_1SDL__Texture__Deleter.html":[12,0,0,1,11],
 "structyaze_1_1core_1_1SDL__Texture__Deleter.html#afaf4558073914dd66982c67533f012e4":[11,0,1,1,13,0],
 "structyaze_1_1core_1_1SDL__Texture__Deleter.html#afaf4558073914dd66982c67533f012e4":[12,0,0,1,11,0],
-"structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html":[11,0,1,2,9,0]
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html":[11,0,1,2,9,0],
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html":[12,0,0,2,3,0],
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html#a38141716720e012549e4a2e1789c989f":[11,0,1,2,9,0,0],
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html#a38141716720e012549e4a2e1789c989f":[12,0,0,2,3,0,0],
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html#a40125ece089c77d4de4e93cec83bf400":[11,0,1,2,9,0,5],
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html#a40125ece089c77d4de4e93cec83bf400":[12,0,0,2,3,0,5],
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html#a62b321569c3d22a230c471944021b496":[11,0,1,2,9,0,2],
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html#a62b321569c3d22a230c471944021b496":[12,0,0,2,3,0,2],
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html#a98ae23530e6b2fbae9eac86e7a06b98a":[11,0,1,2,9,0,1]
 };

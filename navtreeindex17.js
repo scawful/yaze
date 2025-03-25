@@ -1,13 +1,5 @@
 var NAVTREEINDEX17 =
 {
-"classyaze_1_1gui_1_1Canvas.html#a0bd0ffdc93c0678c83d09c357468707f":[12,0,0,5,3,63],
-"classyaze_1_1gui_1_1Canvas.html#a11fba4e26102cee445fa43d95691d908":[11,0,1,5,5,89],
-"classyaze_1_1gui_1_1Canvas.html#a11fba4e26102cee445fa43d95691d908":[12,0,0,5,3,89],
-"classyaze_1_1gui_1_1Canvas.html#a1221d849ae979959f6286af950ea68cd":[11,0,1,5,5,51],
-"classyaze_1_1gui_1_1Canvas.html#a1221d849ae979959f6286af950ea68cd":[12,0,0,5,3,51],
-"classyaze_1_1gui_1_1Canvas.html#a138ae62c6eb5f771385aa7e6b2f8ebbd":[11,0,1,5,5,49],
-"classyaze_1_1gui_1_1Canvas.html#a138ae62c6eb5f771385aa7e6b2f8ebbd":[12,0,0,5,3,49],
-"classyaze_1_1gui_1_1Canvas.html#a138da043a8552c3c599baff50cf9842f":[11,0,1,5,5,47],
 "classyaze_1_1gui_1_1Canvas.html#a138da043a8552c3c599baff50cf9842f":[12,0,0,5,3,47],
 "classyaze_1_1gui_1_1Canvas.html#a18c23ae6c77304ccf244e8dfc7f382f6":[11,0,1,5,5,64],
 "classyaze_1_1gui_1_1Canvas.html#a18c23ae6c77304ccf244e8dfc7f382f6":[12,0,0,5,3,64],
@@ -249,5 +241,13 @@ var NAVTREEINDEX17 =
 "classyaze_1_1test_1_1Cpu.html#a093646ef2a258d765c562faeb006b9b2":[12,0,0,6,6,160],
 "classyaze_1_1test_1_1Cpu.html#a096dabef6013af37f499bbdedd413df6":[11,0,1,6,8,24],
 "classyaze_1_1test_1_1Cpu.html#a096dabef6013af37f499bbdedd413df6":[12,0,0,6,6,24],
-"classyaze_1_1test_1_1Cpu.html#a098fac9ca8dd6d9d3859da7bf1ed2beb":[11,0,1,6,8,51]
+"classyaze_1_1test_1_1Cpu.html#a098fac9ca8dd6d9d3859da7bf1ed2beb":[11,0,1,6,8,51],
+"classyaze_1_1test_1_1Cpu.html#a098fac9ca8dd6d9d3859da7bf1ed2beb":[12,0,0,6,6,51],
+"classyaze_1_1test_1_1Cpu.html#a0bfb82933619fe13fb8f8e51c86dd9e7":[11,0,1,6,8,37],
+"classyaze_1_1test_1_1Cpu.html#a0bfb82933619fe13fb8f8e51c86dd9e7":[12,0,0,6,6,37],
+"classyaze_1_1test_1_1Cpu.html#a0c304f18bca8329701edc9a15f1de52e":[11,0,1,6,8,69],
+"classyaze_1_1test_1_1Cpu.html#a0c304f18bca8329701edc9a15f1de52e":[12,0,0,6,6,69],
+"classyaze_1_1test_1_1Cpu.html#a0d7557981c654477aa034e1e44344974":[11,0,1,6,8,115],
+"classyaze_1_1test_1_1Cpu.html#a0d7557981c654477aa034e1e44344974":[12,0,0,6,6,115],
+"classyaze_1_1test_1_1Cpu.html#a0e4a98504b26d654fd7223f1e41cc9b1":[11,0,1,6,8,79]
 };

@@ -1,9 +1,0 @@
-<map id="yaze::gfx::Bitmap::Bitmap" name="yaze::gfx::Bitmap::Bitmap">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,129,111"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#af61a1ba34918511ffaf6464a5253a889" title=" " alt="" coords="177,5,300,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,68,168,49,170,54,123,73"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="177,71,300,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="129,88,161,88,161,94,129,94"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="177,136,300,177"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="123,109,170,128,168,133,121,114"/>
-</map>

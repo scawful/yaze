@@ -1,13 +1,5 @@
 var NAVTREEINDEX24 =
 {
-"classyaze_1_1zelda3_1_1OverworldExit.html#a7e59f265a3074c0f43b51bfda88e6a60":[12,0,0,8,9,14],
-"classyaze_1_1zelda3_1_1OverworldExit.html#a9a303da4279d21bdd9e322494fddd39e":[11,0,1,8,13,6],
-"classyaze_1_1zelda3_1_1OverworldExit.html#a9a303da4279d21bdd9e322494fddd39e":[12,0,0,8,9,6],
-"classyaze_1_1zelda3_1_1OverworldExit.html#aa2a84c487b9f3f9b807b613dd44b1472":[11,0,1,8,13,13],
-"classyaze_1_1zelda3_1_1OverworldExit.html#aa2a84c487b9f3f9b807b613dd44b1472":[12,0,0,8,9,13],
-"classyaze_1_1zelda3_1_1OverworldExit.html#aa337f00efc6dc8f762afc5b0fbdc2d9b":[11,0,1,8,13,12],
-"classyaze_1_1zelda3_1_1OverworldExit.html#aa337f00efc6dc8f762afc5b0fbdc2d9b":[12,0,0,8,9,12],
-"classyaze_1_1zelda3_1_1OverworldExit.html#aa393871073932126f955b641d38cbb4c":[11,0,1,8,13,1],
 "classyaze_1_1zelda3_1_1OverworldExit.html#aa393871073932126f955b641d38cbb4c":[12,0,0,8,9,1],
 "classyaze_1_1zelda3_1_1OverworldExit.html#aaec88261bd977f26d7e070dbe013d5b2":[11,0,1,8,13,10],
 "classyaze_1_1zelda3_1_1OverworldExit.html#aaec88261bd977f26d7e070dbe013d5b2":[12,0,0,8,9,10],
@@ -249,5 +241,13 @@ var NAVTREEINDEX24 =
 "classyaze_1_1zelda3_1_1Room.html#a16488c5e4de1d4302a4c9e0b7de7f0da":[12,0,0,8,15,38],
 "classyaze_1_1zelda3_1_1Room.html#a18435570337fd27610a6f65f2e1ca3c8":[11,0,1,8,19,60],
 "classyaze_1_1zelda3_1_1Room.html#a18435570337fd27610a6f65f2e1ca3c8":[12,0,0,8,15,60],
-"classyaze_1_1zelda3_1_1Room.html#a18df0f589ff502f60748fcc048d1e8ec":[11,0,1,8,19,1]
+"classyaze_1_1zelda3_1_1Room.html#a18df0f589ff502f60748fcc048d1e8ec":[11,0,1,8,19,1],
+"classyaze_1_1zelda3_1_1Room.html#a18df0f589ff502f60748fcc048d1e8ec":[12,0,0,8,15,1],
+"classyaze_1_1zelda3_1_1Room.html#a1aa7cda465ad11040f4ce64644fdf7cd":[11,0,1,8,19,14],
+"classyaze_1_1zelda3_1_1Room.html#a1aa7cda465ad11040f4ce64644fdf7cd":[12,0,0,8,15,14],
+"classyaze_1_1zelda3_1_1Room.html#a1c7ba689d56e7928a6e3d513155394e5":[11,0,1,8,19,29],
+"classyaze_1_1zelda3_1_1Room.html#a1c7ba689d56e7928a6e3d513155394e5":[12,0,0,8,15,29],
+"classyaze_1_1zelda3_1_1Room.html#a1ca35c25ce36211a3eca5f6c2a9a4089":[11,0,1,8,19,11],
+"classyaze_1_1zelda3_1_1Room.html#a1ca35c25ce36211a3eca5f6c2a9a4089":[12,0,0,8,15,11],
+"classyaze_1_1zelda3_1_1Room.html#a276273318785da9006ca84280a9c4610":[11,0,1,8,19,53]
 };

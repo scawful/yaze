@@ -1,13 +1,5 @@
 var NAVTREEINDEX47 =
 {
-"structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a320ea66f9d77d77ad1397920fe67e0c2":[12,0,0,2,0,0,0],
-"structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a9a982ff6c9d873603b2a3be5ec3a1a44":[11,0,1,2,6,0,4],
-"structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a9a982ff6c9d873603b2a3be5ec3a1a44":[12,0,0,2,0,0,4],
-"structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#aa89e9b22e3ca54fea486ae9eebd8eab0":[11,0,1,2,6,0,3],
-"structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#aa89e9b22e3ca54fea486ae9eebd8eab0":[12,0,0,2,0,0,3],
-"structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html":[11,0,1,2,7,0],
-"structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html":[12,0,0,2,1,0],
-"structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html#a5101f9d19e9670a88e4ad1e12d5367ce":[11,0,1,2,7,0,4],
 "structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html#a5101f9d19e9670a88e4ad1e12d5367ce":[12,0,0,2,1,0,4],
 "structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html#a805eba5f9dcb459d17ff4b1b9ee4b17d":[11,0,1,2,7,0,5],
 "structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html#a805eba5f9dcb459d17ff4b1b9ee4b17d":[12,0,0,2,1,0,5],
@@ -249,5 +241,13 @@ var NAVTREEINDEX47 =
 "structyaze_1_1emu_1_1CGADD.html":[12,0,0,3,12],
 "structyaze_1_1emu_1_1CGADD.html#af2a5cf14455776cdb3e6a920a8940736":[11,0,1,3,14,0],
 "structyaze_1_1emu_1_1CGADD.html#af2a5cf14455776cdb3e6a920a8940736":[12,0,0,3,12,0],
-"structyaze_1_1emu_1_1CGADSUB.html":[11,0,1,3,15]
+"structyaze_1_1emu_1_1CGADSUB.html":[11,0,1,3,15],
+"structyaze_1_1emu_1_1CGADSUB.html":[12,0,0,3,13],
+"structyaze_1_1emu_1_1CGADSUB.html#a1a792d1b37b1e4503193f78cf5486107":[11,0,1,3,15,3],
+"structyaze_1_1emu_1_1CGADSUB.html#a1a792d1b37b1e4503193f78cf5486107":[12,0,0,3,13,3],
+"structyaze_1_1emu_1_1CGADSUB.html#a1d331c73e4e03a11b3739a12fefd8006":[11,0,1,3,15,2],
+"structyaze_1_1emu_1_1CGADSUB.html#a1d331c73e4e03a11b3739a12fefd8006":[12,0,0,3,13,2],
+"structyaze_1_1emu_1_1CGADSUB.html#a281c7277cf087cc97d5bdce191c2f2e4":[11,0,1,3,15,0],
+"structyaze_1_1emu_1_1CGADSUB.html#a281c7277cf087cc97d5bdce191c2f2e4":[12,0,0,3,13,0],
+"structyaze_1_1emu_1_1CGADSUB.html#a71f49950abee1a73e7e2a26cb3793dba":[11,0,1,3,15,1]
 };

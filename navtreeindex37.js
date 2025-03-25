@@ -1,13 +1,5 @@
 var NAVTREEINDEX37 =
 {
-"icons_8h.html#af033115d633a5b31936b832db1f0e254":[13,0,2,0,4,5,94],
-"icons_8h.html#af03c07a90233a785f850edec663f1e77":[13,0,2,0,4,5,2173],
-"icons_8h.html#af078c33320d1cf1168bad6eb6ab5f62a":[13,0,2,0,4,5,281],
-"icons_8h.html#af082c2b7526b3e2f1bb05dfc0fc5e42a":[13,0,2,0,4,5,1968],
-"icons_8h.html#af0935b95b275e70c6d1d7ab32708f00c":[13,0,2,0,4,5,1219],
-"icons_8h.html#af12f213135d9887b19b431f5a9779daa":[13,0,2,0,4,5,190],
-"icons_8h.html#af159846bc8897958f4b1f50cb8d4c611":[13,0,2,0,4,5,1451],
-"icons_8h.html#af167df39bfbf29d9b1bc5bf98977f74a":[13,0,2,0,4,5,274],
 "icons_8h.html#af1ac7a52ac1ac510bef1d540326f8100":[13,0,2,0,4,5,84],
 "icons_8h.html#af1cecc5c41fd6d0fdb332ddc94fb6f94":[13,0,2,0,4,5,797],
 "icons_8h.html#af1d29a817fd1b030010c96a291672973":[13,0,2,0,4,5,421],
@@ -249,5 +241,13 @@ var NAVTREEINDEX37 =
 "md_docs_2contributing.html#autotoc_md42":[3,5],
 "md_docs_2getting-started.html":[4],
 "md_docs_2getting-started.html#autotoc_md44":[4,0],
-"md_docs_2getting-started.html#autotoc_md45":[4,1]
+"md_docs_2getting-started.html#autotoc_md45":[4,1],
+"md_docs_2getting-started.html#autotoc_md46":[4,2],
+"md_docs_2getting-started.html#autotoc_md47":[4,3],
+"md_docs_2infrastructure.html":[5],
+"md_docs_2infrastructure.html#autotoc_md49":[5,0],
+"md_docs_2infrastructure.html#autotoc_md50":[5,1],
+"md_docs_2infrastructure.html#autotoc_md51":[5,2],
+"md_docs_2infrastructure.html#autotoc_md52":[5,3],
+"md_docs_2infrastructure.html#autotoc_md53":[5,4]
 };

@@ -1,13 +1,5 @@
 var NAVTREEINDEX40 =
 {
-"namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baa77b51a5492c5c30ff2e0d363e7076f1b":[11,0,1,4,21,1],
-"namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baa826db0251f792f5763b484b7abb96fbb":[11,0,1,4,21,3],
-"namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baae51d9a2bf06ec9c737a060897ea2b165":[11,0,1,4,21,2],
-"namespaceyaze_1_1gfx.html#a2e522bffcfdd82bd1db8482717eeb5ae":[11,0,1,4,73],
-"namespaceyaze_1_1gfx.html#a2ea2124761ee1896a17e359c14320939":[11,0,1,4,30],
-"namespaceyaze_1_1gfx.html#a31cc30ac8b84ca5dc7a802c51698e845":[11,0,1,4,106],
-"namespaceyaze_1_1gfx.html#a33c61ec68c83c1679ac87d9711d7c0b0":[11,0,1,4,105],
-"namespaceyaze_1_1gfx.html#a3c4700a0bf17807deebe21067786072a":[11,0,1,4,27],
 "namespaceyaze_1_1gfx.html#a3d42dbaf6fa57c5ad4da5b02154ce7c9":[11,0,1,4,57],
 "namespaceyaze_1_1gfx.html#a3f767446d2678762961318489ff37450":[11,0,1,4,58],
 "namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d":[11,0,1,4,33],
@@ -249,5 +241,13 @@ var NAVTREEINDEX40 =
 "namespaceyaze_1_1gui.html#ac4604ede79aa224793b522b22034e68b":[11,0,1,5,46],
 "namespaceyaze_1_1gui.html#ac70b35914f079891436c2442779b9113":[11,0,1,5,21],
 "namespaceyaze_1_1gui.html#ac795552df5b144846631c846b65a7b6f":[11,0,1,5,68],
-"namespaceyaze_1_1gui.html#ac81f2f9ce698693fc3d7e3e1d7f6ed43":[11,0,1,5,47]
+"namespaceyaze_1_1gui.html#ac81f2f9ce698693fc3d7e3e1d7f6ed43":[11,0,1,5,47],
+"namespaceyaze_1_1gui.html#ac8d8a407cf4b76e12a012f326008d58a":[11,0,1,5,72],
+"namespaceyaze_1_1gui.html#acffe7391ebbf95b3313a697bcb629ab3":[11,0,1,5,57],
+"namespaceyaze_1_1gui.html#ad259f657c6796cb84b6fa1ccb2fb6b7e":[11,0,1,5,30],
+"namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651":[11,0,1,5,39],
+"namespaceyaze_1_1gui.html#addaa747c1d46d2433b56c2386260d979":[11,0,1,5,66],
+"namespaceyaze_1_1gui.html#ade93c7dcd1ffbb9d83002534f950c8bc":[11,0,1,5,63],
+"namespaceyaze_1_1gui.html#ae9a47f0d85166d6363717c61056b83a3":[11,0,1,5,53],
+"namespaceyaze_1_1gui_1_1anonymous__namespace_02canvas_8cc_03.html":[11,0,1,5,0]
 };

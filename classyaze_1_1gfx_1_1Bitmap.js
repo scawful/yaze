@@ -1,12 +1,10 @@
 var classyaze_1_1gfx_1_1Bitmap =
 [
     [ "Bitmap", "classyaze_1_1gfx_1_1Bitmap.html#a581325df602245d58086208cb6e85739", null ],
-    [ "Bitmap", "classyaze_1_1gfx_1_1Bitmap.html#ae304d2cabbc2a5a4082bd2a362ccbb39", null ],
     [ "Bitmap", "classyaze_1_1gfx_1_1Bitmap.html#abfcc8b8d5411f0e1332b695fd446cc61", null ],
     [ "Bitmap", "classyaze_1_1gfx_1_1Bitmap.html#a23788e804babb9cbf0a087eb1fd79d99", null ],
-    [ "SaveSurfaceToFile", "classyaze_1_1gfx_1_1Bitmap.html#a541e0dc36996ded2134de2ea39f9f417", null ],
     [ "Initialize", "classyaze_1_1gfx_1_1Bitmap.html#a68d50d2f50de896172216dbe8f99b8f9", null ],
-    [ "Create", "classyaze_1_1gfx_1_1Bitmap.html#aceb4c6f598ff03d68f6d365404cb7a5d", null ],
+    [ "SaveSurfaceToFile", "classyaze_1_1gfx_1_1Bitmap.html#a541e0dc36996ded2134de2ea39f9f417", null ],
     [ "Create", "classyaze_1_1gfx_1_1Bitmap.html#a1725878c64e66f79cecade531d14d384", null ],
     [ "Create", "classyaze_1_1gfx_1_1Bitmap.html#aa23cce9444734c2f59a1b35defabe716", null ],
     [ "Create", "classyaze_1_1gfx_1_1Bitmap.html#a077d82f2218f1ddcd63922e7187e53e0", null ],

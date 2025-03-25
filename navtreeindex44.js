@@ -1,13 +1,5 @@
 var NAVTREEINDEX44 =
 {
-"namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8a103b58155b4c5cc09249629e7ccd5dc2":[11,0,1,8,35,5],
-"namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8aa8b6ce53a1cdf2ee4d3f16b939029b2b":[11,0,1,8,35,4],
-"namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8ae1e4c8c9ccd9fc39c391da4bcd093fb2":[11,0,1,8,35,3],
-"namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8af44e14d49cd011d1e873d9fe0c4624f1":[11,0,1,8,35,1],
-"namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8af80a4ad87fee7c9fdc19b7769495fdb5":[11,0,1,8,35,0],
-"namespaceyaze_1_1zelda3.html#aad0f93c8898aa9960c49f0925535f057":[11,0,1,8,238],
-"namespaceyaze_1_1zelda3.html#aad378435391c77fde26fd3955221a24b":[11,0,1,8,184],
-"namespaceyaze_1_1zelda3.html#aaef99d099284e48b83af29aea6748d5b":[11,0,1,8,116],
 "namespaceyaze_1_1zelda3.html#aaefc69f1138337fca202cc371d26430a":[11,0,1,8,183],
 "namespaceyaze_1_1zelda3.html#ab044ae61220ad060623de10691e64055":[11,0,1,8,160],
 "namespaceyaze_1_1zelda3.html#ab057669c20d13c04f18b529d882e5bd7":[11,0,1,8,42],
@@ -249,5 +241,13 @@ var NAVTREEINDEX44 =
 "src_2app_2emu_2snes_8h.html":[13,0,2,0,2,8],
 "src_2app_2emu_2snes_8h_source.html":[13,0,2,0,2,8],
 "src_2app_2zelda3_2overworld_2overworld_8h.html":[13,0,2,0,5,2,1],
-"src_2app_2zelda3_2overworld_2overworld_8h_source.html":[13,0,2,0,5,2,1]
+"src_2app_2zelda3_2overworld_2overworld_8h_source.html":[13,0,2,0,5,2,1],
+"structSDL__Deleter.html":[12,0,8],
+"structSDL__Deleter.html#a04c7124e69f1a613c2905ae0d9846999":[12,0,8,1],
+"structSDL__Deleter.html#aa03c4eebf864506a380a5a49b7f791f2":[12,0,8,0],
+"structTextEditor_1_1Breakpoint.html":[12,0,16,0],
+"structTextEditor_1_1Breakpoint.html#a1392b1f30cc531bc5ec395c9e7bc7548":[12,0,16,0,2],
+"structTextEditor_1_1Breakpoint.html#a2a1069e84047f918d79bb95f2b9ce0ce":[12,0,16,0,1],
+"structTextEditor_1_1Breakpoint.html#aeeb993b1a5adb018586f1e6feb9fa9ad":[12,0,16,0,3],
+"structTextEditor_1_1Breakpoint.html#af88e1c4c0f8b523f2d6f75dbbbb552f1":[12,0,16,0,0]
 };

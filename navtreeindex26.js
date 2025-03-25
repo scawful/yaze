@@ -1,13 +1,5 @@
 var NAVTREEINDEX26 =
 {
-"classyaze_1_1zelda3_1_1Sprite.html#a26bc10e3890f986b5ffac8a2cc4c61da":[12,0,0,8,18,28],
-"classyaze_1_1zelda3_1_1Sprite.html#a2813d9532f88bd8ca444acd98028a2ea":[11,0,1,8,22,27],
-"classyaze_1_1zelda3_1_1Sprite.html#a2813d9532f88bd8ca444acd98028a2ea":[12,0,0,8,18,27],
-"classyaze_1_1zelda3_1_1Sprite.html#a28bdcded72c31b6d934fcddea2623344":[11,0,1,8,22,44],
-"classyaze_1_1zelda3_1_1Sprite.html#a28bdcded72c31b6d934fcddea2623344":[12,0,0,8,18,44],
-"classyaze_1_1zelda3_1_1Sprite.html#a3070422abb2ea9f2b0ba795e36aeec9b":[11,0,1,8,22,4],
-"classyaze_1_1zelda3_1_1Sprite.html#a3070422abb2ea9f2b0ba795e36aeec9b":[12,0,0,8,18,4],
-"classyaze_1_1zelda3_1_1Sprite.html#a33986d6ba1e05add5a0df1902791119a":[11,0,1,8,22,0],
 "classyaze_1_1zelda3_1_1Sprite.html#a33986d6ba1e05add5a0df1902791119a":[12,0,0,8,18,0],
 "classyaze_1_1zelda3_1_1Sprite.html#a35e1e5667fc9a525b12ad5619d1c9c3e":[11,0,1,8,22,1],
 "classyaze_1_1zelda3_1_1Sprite.html#a35e1e5667fc9a525b12ad5619d1c9c3e":[12,0,0,8,18,1],
@@ -249,5 +241,13 @@ var NAVTREEINDEX26 =
 "classyaze_1_1zelda3_1_1TitleScreen.html#aadc3905a832ba76767c85f27e67cf601":[12,0,0,8,26,25],
 "classyaze_1_1zelda3_1_1TitleScreen.html#aae369120f12d23313831f8c292f42c4e":[11,0,1,8,30,13],
 "classyaze_1_1zelda3_1_1TitleScreen.html#aae369120f12d23313831f8c292f42c4e":[12,0,0,8,26,13],
-"classyaze_1_1zelda3_1_1TitleScreen.html#ab713699056d6df69b2dc31774b218fa6":[11,0,1,8,30,23]
+"classyaze_1_1zelda3_1_1TitleScreen.html#ab713699056d6df69b2dc31774b218fa6":[11,0,1,8,30,23],
+"classyaze_1_1zelda3_1_1TitleScreen.html#ab713699056d6df69b2dc31774b218fa6":[12,0,0,8,26,23],
+"classyaze_1_1zelda3_1_1TitleScreen.html#ab72a3f608ec62ac86c554902c87ab235":[11,0,1,8,30,17],
+"classyaze_1_1zelda3_1_1TitleScreen.html#ab72a3f608ec62ac86c554902c87ab235":[12,0,0,8,26,17],
+"classyaze_1_1zelda3_1_1TitleScreen.html#abd3fe0e48be82ce845d585eb110e4cc4":[11,0,1,8,30,47],
+"classyaze_1_1zelda3_1_1TitleScreen.html#abd3fe0e48be82ce845d585eb110e4cc4":[12,0,0,8,26,47],
+"classyaze_1_1zelda3_1_1TitleScreen.html#ac0944b93d7d33a52c5028526fa2129fe":[11,0,1,8,30,0],
+"classyaze_1_1zelda3_1_1TitleScreen.html#ac0944b93d7d33a52c5028526fa2129fe":[12,0,0,8,26,0],
+"classyaze_1_1zelda3_1_1TitleScreen.html#ac6ac8a4c165f0aadca4a8ebe5d68c7bd":[11,0,1,8,30,44]
 };

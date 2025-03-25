@@ -1,13 +1,5 @@
 var NAVTREEINDEX54 =
 {
-"structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html":[12,0,0,8,0,9],
-"structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a0d50beb4f54b170a57466174b9ff3695":[11,0,1,8,3,9,2],
-"structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a0d50beb4f54b170a57466174b9ff3695":[12,0,0,8,0,9,2],
-"structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a7a5514ad6bb962060a0f354a258bc072":[11,0,1,8,3,9,0],
-"structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a7a5514ad6bb962060a0f354a258bc072":[12,0,0,8,0,9,0],
-"structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a98e8ad2d44b40c6437e4a8c5839ea160":[11,0,1,8,3,9,4],
-"structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a98e8ad2d44b40c6437e4a8c5839ea160":[12,0,0,8,0,9,4],
-"structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9ad182a0c2d0af79ff188e6dcc2b0a65":[11,0,1,8,3,9,3],
 "structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9ad182a0c2d0af79ff188e6dcc2b0a65":[12,0,0,8,0,9,3],
 "structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9c5b92e655a7b553432bc4a7e581e6b7":[11,0,1,8,3,9,1],
 "structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9c5b92e655a7b553432bc4a7e581e6b7":[12,0,0,8,0,9,1],

@@ -1,13 +1,5 @@
 var NAVTREEINDEX22 =
 {
-"classyaze_1_1test_1_1Spc700.html#ae59736192baa2538f7bed46e3ab1f09d":[12,0,0,6,20,12],
-"classyaze_1_1test_1_1Spc700.html#ae5a634ef206a9cbae75488e54ebb2578":[11,0,1,6,22,77],
-"classyaze_1_1test_1_1Spc700.html#ae5a634ef206a9cbae75488e54ebb2578":[12,0,0,6,20,77],
-"classyaze_1_1test_1_1Spc700.html#ae94785f0da29120e71650bae4635a347":[11,0,1,6,22,137],
-"classyaze_1_1test_1_1Spc700.html#ae94785f0da29120e71650bae4635a347":[12,0,0,6,20,137],
-"classyaze_1_1test_1_1Spc700.html#ae98101f1e5db2a676fa65a968cf8649a":[11,0,1,6,22,1],
-"classyaze_1_1test_1_1Spc700.html#ae98101f1e5db2a676fa65a968cf8649a":[12,0,0,6,20,1],
-"classyaze_1_1test_1_1Spc700.html#aea262b676a2f72f0b14f0ec0b2c857b5":[11,0,1,6,22,59],
 "classyaze_1_1test_1_1Spc700.html#aea262b676a2f72f0b14f0ec0b2c857b5":[12,0,0,6,20,59],
 "classyaze_1_1test_1_1Spc700.html#aeb42192c0d5a149ebb94d394212f33f9":[11,0,1,6,22,16],
 "classyaze_1_1test_1_1Spc700.html#aeb42192c0d5a149ebb94d394212f33f9":[12,0,0,6,20,16],
@@ -249,5 +241,13 @@ var NAVTREEINDEX22 =
 "classyaze_1_1zelda3_1_1Inventory.html":[12,0,0,8,4],
 "classyaze_1_1zelda3_1_1Inventory.html#a06d4a48a808a8789e95c0664a4322003":[11,0,1,8,8,4],
 "classyaze_1_1zelda3_1_1Inventory.html#a06d4a48a808a8789e95c0664a4322003":[12,0,0,8,4,4],
-"classyaze_1_1zelda3_1_1Inventory.html#a0ed0139d195881d6cf22f5d280d618d1":[11,0,1,8,8,0]
+"classyaze_1_1zelda3_1_1Inventory.html#a0ed0139d195881d6cf22f5d280d618d1":[11,0,1,8,8,0],
+"classyaze_1_1zelda3_1_1Inventory.html#a0ed0139d195881d6cf22f5d280d618d1":[12,0,0,8,4,0],
+"classyaze_1_1zelda3_1_1Inventory.html#a403a3654dfc12889b35aa138f0cfa434":[11,0,1,8,8,10],
+"classyaze_1_1zelda3_1_1Inventory.html#a403a3654dfc12889b35aa138f0cfa434":[12,0,0,8,4,10],
+"classyaze_1_1zelda3_1_1Inventory.html#a46f359bdd6ab773784d802a9056f04dc":[11,0,1,8,8,5],
+"classyaze_1_1zelda3_1_1Inventory.html#a46f359bdd6ab773784d802a9056f04dc":[12,0,0,8,4,5],
+"classyaze_1_1zelda3_1_1Inventory.html#a6ca0dba09a0418fcc218263512b90d8d":[11,0,1,8,8,9],
+"classyaze_1_1zelda3_1_1Inventory.html#a6ca0dba09a0418fcc218263512b90d8d":[12,0,0,8,4,9],
+"classyaze_1_1zelda3_1_1Inventory.html#a73f2e4d4f78052ad853866b488264af8":[11,0,1,8,8,8]
 };

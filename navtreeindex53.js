@@ -1,13 +1,5 @@
 var NAVTREEINDEX53 =
 {
-"structyaze_1_1test_1_1Spc700_1_1Flags.html#abfac73976535879c723981efdbda96b3":[12,0,0,6,20,0,0],
-"structyaze_1_1test_1_1Spc700_1_1Flags.html#acf45a7295d64b098b27ece69e09595ea":[11,0,1,6,22,0,1],
-"structyaze_1_1test_1_1Spc700_1_1Flags.html#acf45a7295d64b098b27ece69e09595ea":[12,0,0,6,20,0,1],
-"structyaze_1_1test_1_1Spc700_1_1Flags.html#ae930ff35735e8609a50d5008a98658fb":[11,0,1,6,22,0,7],
-"structyaze_1_1test_1_1Spc700_1_1Flags.html#ae930ff35735e8609a50d5008a98658fb":[12,0,0,6,20,0,7],
-"structyaze_1_1test_1_1SpriteAttributes.html":[11,0,1,6,24],
-"structyaze_1_1test_1_1SpriteAttributes.html":[12,0,0,6,22],
-"structyaze_1_1test_1_1SpriteAttributes.html#a15385702e34a8bded11703dcd39a9a90":[11,0,1,6,24,1],
 "structyaze_1_1test_1_1SpriteAttributes.html#a15385702e34a8bded11703dcd39a9a90":[12,0,0,6,22,1],
 "structyaze_1_1test_1_1SpriteAttributes.html#a327d70eccb4ab5d6096655c792e10f0e":[11,0,1,6,24,2],
 "structyaze_1_1test_1_1SpriteAttributes.html#a327d70eccb4ab5d6096655c792e10f0e":[12,0,0,6,22,2],
@@ -249,5 +241,13 @@ var NAVTREEINDEX53 =
 "structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#ab28173d4514df73c8c75a2a4e5bf6efe":[12,0,0,8,0,8,6],
 "structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#ae4eb6acbaa3ca64f6691adcfee04368f":[11,0,1,8,3,8,4],
 "structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#ae4eb6acbaa3ca64f6691adcfee04368f":[12,0,0,8,0,8,4],
-"structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html":[11,0,1,8,3,9]
+"structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html":[11,0,1,8,3,9],
+"structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html":[12,0,0,8,0,9],
+"structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a0d50beb4f54b170a57466174b9ff3695":[11,0,1,8,3,9,2],
+"structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a0d50beb4f54b170a57466174b9ff3695":[12,0,0,8,0,9,2],
+"structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a7a5514ad6bb962060a0f354a258bc072":[11,0,1,8,3,9,0],
+"structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a7a5514ad6bb962060a0f354a258bc072":[12,0,0,8,0,9,0],
+"structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a98e8ad2d44b40c6437e4a8c5839ea160":[11,0,1,8,3,9,4],
+"structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a98e8ad2d44b40c6437e4a8c5839ea160":[12,0,0,8,0,9,4],
+"structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9ad182a0c2d0af79ff188e6dcc2b0a65":[11,0,1,8,3,9,3]
 };

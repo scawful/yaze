@@ -1,13 +1,5 @@
 var NAVTREEINDEX52 =
 {
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a4af4ab559e54c07bb957760c3db317ec":[12,0,0,5,7,10],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a4de9befc9abfdd17f678aa35ed476728":[11,0,1,5,9,9],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a4de9befc9abfdd17f678aa35ed476728":[12,0,0,5,7,9],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a5155af2c0c1393af51be84ce99d46fff":[11,0,1,5,9,12],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a5155af2c0c1393af51be84ce99d46fff":[12,0,0,5,7,12],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a556c8205f0054e5aaaa9791afcb37a0a":[11,0,1,5,9,4],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a556c8205f0054e5aaaa9791afcb37a0a":[12,0,0,5,7,4],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a6e27f46cfe2f881342e66797c587c9b9":[11,0,1,5,9,2],
 "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a6e27f46cfe2f881342e66797c587c9b9":[12,0,0,5,7,2],
 "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a70fe81df4f910397de367beccaa620e0":[11,0,1,5,9,11],
 "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a70fe81df4f910397de367beccaa620e0":[12,0,0,5,7,11],
@@ -249,5 +241,13 @@ var NAVTREEINDEX52 =
 "structyaze_1_1test_1_1Spc700_1_1Flags.html#a9372934a755822efa5580617deb7370b":[12,0,0,6,20,0,4],
 "structyaze_1_1test_1_1Spc700_1_1Flags.html#a9e44000d10db0e9818071fc0e9551c88":[11,0,1,6,22,0,2],
 "structyaze_1_1test_1_1Spc700_1_1Flags.html#a9e44000d10db0e9818071fc0e9551c88":[12,0,0,6,20,0,2],
-"structyaze_1_1test_1_1Spc700_1_1Flags.html#abfac73976535879c723981efdbda96b3":[11,0,1,6,22,0,0]
+"structyaze_1_1test_1_1Spc700_1_1Flags.html#abfac73976535879c723981efdbda96b3":[11,0,1,6,22,0,0],
+"structyaze_1_1test_1_1Spc700_1_1Flags.html#abfac73976535879c723981efdbda96b3":[12,0,0,6,20,0,0],
+"structyaze_1_1test_1_1Spc700_1_1Flags.html#acf45a7295d64b098b27ece69e09595ea":[11,0,1,6,22,0,1],
+"structyaze_1_1test_1_1Spc700_1_1Flags.html#acf45a7295d64b098b27ece69e09595ea":[12,0,0,6,20,0,1],
+"structyaze_1_1test_1_1Spc700_1_1Flags.html#ae930ff35735e8609a50d5008a98658fb":[11,0,1,6,22,0,7],
+"structyaze_1_1test_1_1Spc700_1_1Flags.html#ae930ff35735e8609a50d5008a98658fb":[12,0,0,6,20,0,7],
+"structyaze_1_1test_1_1SpriteAttributes.html":[11,0,1,6,24],
+"structyaze_1_1test_1_1SpriteAttributes.html":[12,0,0,6,22],
+"structyaze_1_1test_1_1SpriteAttributes.html#a15385702e34a8bded11703dcd39a9a90":[11,0,1,6,24,1]
 };
