@@ -131,8 +131,9 @@ absl::Status Controller::OnLoad() {
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
   ImGui::Begin("DockSpaceWindow", nullptr, window_flags);
-  ImGui::PopStyleVar(2);
+  ImGui::PopStyleVar(3);
 
   // Create DockSpace
   ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
