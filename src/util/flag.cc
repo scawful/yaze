@@ -1,5 +1,9 @@
 #include "flag.h"
 
+#include <iostream>
+
+#include "yaze_config.h"
+
 namespace yaze {
 namespace util {
 
@@ -39,11 +43,53 @@ void FlagParser::Parse(std::vector<std::string>* tokens) {
 
       // Set the parsed value on the matching flag.
       flag_ptr->ParseValue(value_string);
+    } else if (token.rfind("-", 0) == 0) {
+      if (token == "-v" || token == "-version") {
+        std::cout << "Version: " << YAZE_VERSION_MAJOR << "."
+                  << YAZE_VERSION_MINOR << "." << YAZE_VERSION_PATCH << "\n";
+        exit(0);
+      }
+
+      // Check for -h or -help
+      if (token == "-h" || token == "-help") {
+        std::cout << "Available flags:\n";
+        for (const auto& flag :
+             yaze::util::global_flag_registry()->AllFlags()) {
+          std::cout << flag->name() << ": " << flag->help() << "\n";
+        }
+        exit(0);
+      }
+
+      std::string flag_name;
+      if (!ExtractFlag(token, &flag_name)) {
+        throw std::runtime_error("Unrecognized flag: " + token);
+      }
+
     } else {
       leftover.push_back(token);
     }
   }
   *tokens = leftover;
+}
+
+bool FlagParser::ExtractFlagAndValue(const std::string& token,
+                                     std::string* flag_name,
+                                     std::string* value_string) {
+  const size_t eq_pos = token.find('=');
+  if (eq_pos == std::string::npos) {
+    return false;
+  }
+  *flag_name = token.substr(0, eq_pos);
+  *value_string = token.substr(eq_pos + 1);
+  return true;
+}
+
+bool FlagParser::ExtractFlag(const std::string& token, std::string* flag_name) {
+  if (token.rfind("-", 0) == 0) {
+    *flag_name = token;
+    return true;
+  }
+  return false;
 }
 
 }  // namespace util
