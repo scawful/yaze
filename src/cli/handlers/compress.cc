@@ -3,18 +3,16 @@
 namespace yaze {
 namespace cli {
 
-absl::Status Compress::handle(const std::vector<std::string>& arg_vec) {
+absl::Status Compress::Run(const std::vector<std::string>& arg_vec) {
   std::cout << "Compress selected with argument: " << arg_vec[0] << std::endl;
   return absl::OkStatus();
 }
 
-absl::Status Decompress::handle(const std::vector<std::string>& arg_vec) {
-  ColorModifier underline(ColorCode::FG_UNDERLINE);
-  ColorModifier reset(ColorCode::FG_RESET);
+absl::Status Decompress::Run(const std::vector<std::string>& arg_vec) {
   std::cout << "Please specify the tilesheets you want to export\n";
   std::cout << "You can input an individual sheet, a range X-Y, or comma "
                "separate values.\n\n";
-  std::cout << underline << "Tilesheets\n" << reset;
+  std::cout  << "Tilesheets\n";
   std::cout << "0-112 -> compressed 3bpp bgr \n";
   std::cout << "113-114 -> compressed 2bpp\n";
   std::cout << "115-126 -> uncompressed 3bpp sprites\n";

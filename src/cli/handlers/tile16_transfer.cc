@@ -2,14 +2,14 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "util/macro.h"
 #include "app/rom.h"
 #include "cli/z3ed.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace cli {
 
-absl::Status Tile16Transfer::handle(const std::vector<std::string>& arg_vec) {
+absl::Status Tile16Transfer::Run(const std::vector<std::string>& arg_vec) {
   // Load the source rom
   RETURN_IF_ERROR(rom_.LoadFromFile(arg_vec[0]))
 

@@ -10,8 +10,11 @@
 #include "app/rom.h"
 
 namespace yaze {
+/**
+ * @namespace yaze::cli
+ * @brief Namespace for the command line interface.
+ */
 namespace cli {
-
 const std::vector<std::string> kMainMenuEntries = {
     "Load ROM",
     "Apply BPS Patch",
