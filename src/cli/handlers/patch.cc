@@ -1,13 +1,11 @@
-#include "cli/z3ed.h"
-
 #include "asar-dll-bindings/c/asar.h"
-
+#include "cli/z3ed.h"
 #include "util/bps.h"
 
 namespace yaze {
 namespace cli {
 
-absl::Status ApplyPatch::handle(const std::vector<std::string>& arg_vec) {
+absl::Status ApplyPatch::Run(const std::vector<std::string>& arg_vec) {
   std::string rom_filename = arg_vec[1];
   std::string patch_filename = arg_vec[2];
   RETURN_IF_ERROR(rom_.LoadFromFile(rom_filename))
@@ -28,7 +26,7 @@ absl::Status ApplyPatch::handle(const std::vector<std::string>& arg_vec) {
   return absl::OkStatus();
 }
 
-absl::Status AsarPatch::handle(const std::vector<std::string>& arg_vec) {
+absl::Status AsarPatch::Run(const std::vector<std::string>& arg_vec) {
   std::string patch_filename = arg_vec[1];
   std::string rom_filename = arg_vec[2];
   RETURN_IF_ERROR(rom_.LoadFromFile(rom_filename))
@@ -47,7 +45,7 @@ absl::Status AsarPatch::handle(const std::vector<std::string>& arg_vec) {
   return absl::OkStatus();
 }
 
-absl::Status CreatePatch::handle(const std::vector<std::string>& arg_vec) {
+absl::Status CreatePatch::Run(const std::vector<std::string>& arg_vec) {
   std::vector<uint8_t> source;
   std::vector<uint8_t> target;
   std::vector<uint8_t> patch;
