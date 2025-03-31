@@ -11,17 +11,6 @@
 #include "util/flag.h"
 #include "util/macro.h"
 
-DECLARE_FLAG(std::string, rom_file);
-DECLARE_FLAG(std::string, bps_file);
-DECLARE_FLAG(std::string, src_file);
-DECLARE_FLAG(std::string, modified_file);
-DECLARE_FLAG(std::string, bin_file);
-DECLARE_FLAG(std::string, address);
-DECLARE_FLAG(std::string, length);
-DECLARE_FLAG(std::string, file_size);
-DECLARE_FLAG(std::string, dest_rom);
-DECLARE_FLAG(std::string, tile32_id_list);
-
 DEFINE_FLAG(std::string, rom_file, "", "The ROM file to load.");
 DEFINE_FLAG(std::string, bps_file, "", "The BPS file to apply.");
 

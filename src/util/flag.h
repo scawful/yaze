@@ -102,8 +102,6 @@ inline FlagRegistry* global_flag_registry() {
   return registry;
 }
 
-#define DECLARE_FLAG(type, name) extern yaze::util::Flag<type>* FLAGS_##name
-
 // Defines a global Flag<type>* FLAGS_<name> and registers it.
 #define DEFINE_FLAG(type, name, default_val, help_text)       \
   yaze::util::Flag<type>* FLAGS_##name =                      \
@@ -138,15 +136,10 @@ class FlagParser {
   // value. e.g. "--count=42" -> flag_name = "--count", value_string = "42"
   // returns true if '=' was found
   bool ExtractFlagAndValue(const std::string& token, std::string* flag_name,
-                           std::string* value_string) {
-    const size_t eq_pos = token.find('=');
-    if (eq_pos == std::string::npos) {
-      return false;
-    }
-    *flag_name = token.substr(0, eq_pos);
-    *value_string = token.substr(eq_pos + 1);
-    return true;
-  }
+                           std::string* value_string);
+
+  // Mode flag '-'
+  bool ExtractFlag(const std::string& token, std::string* flag_name);
 };
 
 }  // namespace util
