@@ -1,12 +1,5 @@
 var NAVTREEINDEX28 =
 {
-"dungeon__editor_8h.html":[13,0,2,0,1,1,1],
-"dungeon__editor_8h_source.html":[13,0,2,0,1,1,1],
-"dungeon__map_8cc.html":[13,0,2,0,5,3,0],
-"dungeon__map_8cc_source.html":[13,0,2,0,5,3,0],
-"dungeon__map_8h.html":[13,0,2,0,5,3,1],
-"dungeon__map_8h_source.html":[13,0,2,0,5,3,1],
-"dungeon__room__test_8cc.html":[13,0,3,4,0],
 "dungeon__room__test_8cc_source.html":[13,0,3,4,0],
 "editor_8h.html":[13,0,2,0,1,8],
 "editor_8h_source.html":[13,0,2,0,1,8],
@@ -42,9 +35,8 @@ var NAVTREEINDEX28 =
 "flag_8cc.html":[13,0,2,3,2],
 "flag_8cc_source.html":[13,0,2,3,2],
 "flag_8h.html":[13,0,2,3,3],
-"flag_8h.html#a23e2bdf53e7a1cf3e520a0151d12a34d":[13,0,2,3,3,4],
-"flag_8h.html#ad1de0365ec903537745131d8fc935e59":[13,0,2,3,3,5],
-"flag_8h.html#afed9cfc079d2bb93816dbc1a7b3ec6a3":[13,0,2,3,3,6],
+"flag_8h.html#ad1de0365ec903537745131d8fc935e59":[13,0,2,3,3,4],
+"flag_8h.html#afed9cfc079d2bb93816dbc1a7b3ec6a3":[13,0,2,3,3,5],
 "flag_8h_source.html":[13,0,2,3,3],
 "font__loader_8cc.html":[13,0,2,0,0,0,9],
 "font__loader_8cc_source.html":[13,0,2,0,0,0,9],
@@ -100,7 +92,6 @@ var NAVTREEINDEX28 =
 "functions_p.html":[12,3,0,15],
 "functions_q.html":[12,3,0,16],
 "functions_r.html":[12,3,0,17],
-"functions_rela.html":[12,3,6],
 "functions_s.html":[12,3,0,18],
 "functions_t.html":[12,3,0,19],
 "functions_type.html":[12,3,3],
@@ -249,5 +240,14 @@ var NAVTREEINDEX28 =
 "icons_8h.html#a052dee31e815fe32485a9d5f2b02cf4e":[13,0,2,0,4,5,266],
 "icons_8h.html#a05354c2d65c53348d385c598ce41f2b1":[13,0,2,0,4,5,1131],
 "icons_8h.html#a0585ba4dcdc92818658c735881467b7b":[13,0,2,0,4,5,1657],
-"icons_8h.html#a058c5d5590ca16b3c46e4075a5f4b098":[13,0,2,0,4,5,1890]
+"icons_8h.html#a058c5d5590ca16b3c46e4075a5f4b098":[13,0,2,0,4,5,1890],
+"icons_8h.html#a05e5e2a1910b32705fb05405498e8c77":[13,0,2,0,4,5,2141],
+"icons_8h.html#a061ced2c7f26f532343ff7710f25c2ab":[13,0,2,0,4,5,1956],
+"icons_8h.html#a064b4eff7d43eb90f19579106a7431f8":[13,0,2,0,4,5,1272],
+"icons_8h.html#a066e63a6b2498505462c3db95491faee":[13,0,2,0,4,5,1669],
+"icons_8h.html#a0678bd5070ed545ab644181078fa17cb":[13,0,2,0,4,5,1036],
+"icons_8h.html#a0679d0ea0b40121afb994485cce2ca76":[13,0,2,0,4,5,195],
+"icons_8h.html#a067f691215cc664a66375a01f8aa5b8b":[13,0,2,0,4,5,2094],
+"icons_8h.html#a067fd17a0c0cc1ada6d5b88871787ae2":[13,0,2,0,4,5,540],
+"icons_8h.html#a068077d71999f84a659bc5ce02751fd1":[13,0,2,0,4,5,965]
 };

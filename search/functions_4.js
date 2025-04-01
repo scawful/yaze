@@ -39,5 +39,6 @@ var searchData=
   ['expectdecompressok_36',['ExpectDecompressOk',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a99723a1d41ac08d62332d49124d0d186',1,'yaze::test::anonymous_namespace{compression_test.cc}']]],
   ['expectnewcompressionpieceok_37',['ExpectNewCompressionPieceOk',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a9ceacaaa96ef2d18ba0ce84eb6751d3b',1,'yaze::test::anonymous_namespace{compression_test.cc}']]],
   ['extract_38',['Extract',['../namespaceyaze_1_1gfx.html#a10d06c5c03e3faef4b05f4183024650e',1,'yaze::gfx::Extract()'],['../namespaceyaze_1_1test.html#a10d06c5c03e3faef4b05f4183024650e',1,'yaze::test::Extract()']]],
-  ['extractflagandvalue_39',['ExtractFlagAndValue',['../classyaze_1_1util_1_1FlagParser.html#a43fcdab496791d7851bf54aaeefa910d',1,'yaze::util::FlagParser']]]
+  ['extractflag_39',['ExtractFlag',['../classyaze_1_1util_1_1FlagParser.html#ae87e95c42728b7d9e5b30b79aa688d58',1,'yaze::util::FlagParser']]],
+  ['extractflagandvalue_40',['ExtractFlagAndValue',['../classyaze_1_1util_1_1FlagParser.html#a43fcdab496791d7851bf54aaeefa910d',1,'yaze::util::FlagParser']]]
 ];

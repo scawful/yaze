@@ -72,7 +72,7 @@ var searchData=
   ['cmd_69',['cmd',['../structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abcf8ec71d5b830fef6d59ae449c52fde',1,'yaze::zelda3::music::SpcCommand']]],
   ['cmd_5fsize_70',['cmd_size',['../structyaze_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#a31c5e32622fec1ca9100de4ec625f96a',1,'yaze::gfx::lc_lz2::CompressionCommand']]],
   ['cmd_5fwith_5fmax_71',['cmd_with_max',['../structyaze_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a85008e40babd56779897ea865e04f958',1,'yaze::gfx::lc_lz2::CompressionContext::cmd_with_max'],['../structyaze_1_1test_1_1CompressionContext.html#a85008e40babd56779897ea865e04f958',1,'yaze::test::CompressionContext::cmd_with_max']]],
-  ['code_72',['code',['../structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html#a5a1d954fa3aa13b26bfd83cca84a6ccd',1,'yaze::editor::zsprite::UserRoutine::code'],['../classyaze_1_1cli_1_1ColorModifier.html#a11a77718f7775c70110f761f029ccab9',1,'yaze::cli::ColorModifier::code']]],
+  ['code_72',['code',['../structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html#a5a1d954fa3aa13b26bfd83cca84a6ccd',1,'yaze::editor::zsprite::UserRoutine']]],
   ['code_5ffolder_73',['code_folder',['../structyaze__project.html#a8ae2f8f736c006c43c1f574ac8a57527',1,'yaze_project']]],
   ['code_5ffolder_5f_74',['code_folder_',['../structyaze_1_1Project.html#a4ffe8ee5e317c5a16c8e9d30a8765f1f',1,'yaze::Project']]],
   ['col_5ffile_5f_75',['col_file_',['../classyaze_1_1editor_1_1GraphicsEditor.html#a3b97dbedffb38b6e2fb406b381ecad43',1,'yaze::editor::GraphicsEditor']]],

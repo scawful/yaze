@@ -143,5 +143,6 @@ var searchData=
   ['external_5fsync_140',['external_sync',['../structyaze_1_1emu_1_1SETINI.html#af196a13908c98ae9011fe228dd36b0eb',1,'yaze::emu::SETINI']]],
   ['extra_5fcgx_5fdata_5f_141',['extra_cgx_data_',['../classyaze_1_1editor_1_1GraphicsEditor.html#aba39edaf965ceffd5fe1c90168345c73',1,'yaze::editor::GraphicsEditor']]],
   ['extract_142',['Extract',['../namespaceyaze_1_1gfx.html#a10d06c5c03e3faef4b05f4183024650e',1,'yaze::gfx::Extract()'],['../namespaceyaze_1_1test.html#a10d06c5c03e3faef4b05f4183024650e',1,'yaze::test::Extract()']]],
-  ['extractflagandvalue_143',['ExtractFlagAndValue',['../classyaze_1_1util_1_1FlagParser.html#a43fcdab496791d7851bf54aaeefa910d',1,'yaze::util::FlagParser']]]
+  ['extractflag_143',['ExtractFlag',['../classyaze_1_1util_1_1FlagParser.html#ae87e95c42728b7d9e5b30b79aa688d58',1,'yaze::util::FlagParser']]],
+  ['extractflagandvalue_144',['ExtractFlagAndValue',['../classyaze_1_1util_1_1FlagParser.html#a43fcdab496791d7851bf54aaeefa910d',1,'yaze::util::FlagParser']]]
 ];

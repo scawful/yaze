@@ -1,4 +1,4 @@
 var classyaze_1_1cli_1_1Compress =
 [
-    [ "handle", "classyaze_1_1cli_1_1Compress.html#afebd02efe70bf393274285b1a460cf20", null ]
+    [ "Run", "classyaze_1_1cli_1_1Compress.html#a6796464b3bb2cc712e328b791c8ad17e", null ]
 ];

@@ -46,7 +46,6 @@ var hierarchy =
     [ "yaze::emu::COLDATA", "structyaze_1_1emu_1_1COLDATA.html", null ],
     [ "yaze::emu::Color", "structyaze_1_1emu_1_1Color.html", null ],
     [ "yaze::gui::Color", "structyaze_1_1gui_1_1Color.html", null ],
-    [ "yaze::cli::ColorModifier", "classyaze_1_1cli_1_1ColorModifier.html", null ],
     [ "yaze::cli::CommandHandler", "classyaze_1_1cli_1_1CommandHandler.html", [
       [ "yaze::cli::ApplyPatch", "classyaze_1_1cli_1_1ApplyPatch.html", null ],
       [ "yaze::cli::AsarPatch", "classyaze_1_1cli_1_1AsarPatch.html", null ],
@@ -64,7 +63,6 @@ var hierarchy =
     [ "yaze::editor::CommandManager::CommandInfo", "structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html", null ],
     [ "yaze::editor::CommandManager::CommandInfoOrPrefix", "structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html", null ],
     [ "yaze::editor::CommandManager", "classyaze_1_1editor_1_1CommandManager.html", null ],
-    [ "yaze::cli::Commands", "structyaze_1_1cli_1_1Commands.html", null ],
     [ "yaze::gfx::lc_lz2::CompressionCommand", "structyaze_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html", null ],
     [ "yaze::gfx::lc_lz2::CompressionContext", "structyaze_1_1gfx_1_1lc__lz2_1_1CompressionContext.html", null ],
     [ "yaze::test::CompressionContext", "structyaze_1_1test_1_1CompressionContext.html", null ],

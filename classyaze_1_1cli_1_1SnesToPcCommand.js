@@ -1,4 +1,4 @@
 var classyaze_1_1cli_1_1SnesToPcCommand =
 [
-    [ "handle", "classyaze_1_1cli_1_1SnesToPcCommand.html#ae18c283dbde046287112f5c95b82f568", null ]
+    [ "Run", "classyaze_1_1cli_1_1SnesToPcCommand.html#a1829823afb92b629ad854249ef61388e", null ]
 ];

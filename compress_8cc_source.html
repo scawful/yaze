@@ -116,44 +116,39 @@ $(function(){initNavTree('compress_8cc_source.html',''); initResizable(true); })
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1cli.html">    4</a></span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze_1_1cli.html">cli</a> {</div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
 <div class="foldopen" id="foldopen00006" data-start="{" data-end="}">
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno"><a class="line" href="classyaze_1_1cli_1_1Compress.html#afebd02efe70bf393274285b1a460cf20">    6</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1cli_1_1Compress.html#afebd02efe70bf393274285b1a460cf20">Compress::handle</a>(<span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; arg_vec) {</div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno"><a class="line" href="classyaze_1_1cli_1_1Compress.html#a6796464b3bb2cc712e328b791c8ad17e">    6</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1cli_1_1Compress.html#a6796464b3bb2cc712e328b791c8ad17e">Compress::Run</a>(<span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; arg_vec) {</div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;Compress selected with argument: &quot;</span> &lt;&lt; arg_vec[0] &lt;&lt; std::endl;</div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span>}</div>
 </div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
 <div class="foldopen" id="foldopen00011" data-start="{" data-end="}">
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno"><a class="line" href="classyaze_1_1cli_1_1Decompress.html#a10b8074f386c89687b8270a792513197">   11</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1cli_1_1Decompress.html#a10b8074f386c89687b8270a792513197">Decompress::handle</a>(<span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; arg_vec) {</div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>  <a class="code hl_class" href="classyaze_1_1cli_1_1ColorModifier.html">ColorModifier</a> underline(<a class="code hl_enumvalue" href="namespaceyaze_1_1cli.html#a926a1f01429821b946fbc7bf6a0e1c13abd432d1329e89b03bfdace04f4bb63c7">ColorCode::FG_UNDERLINE</a>);</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>  <a class="code hl_class" href="classyaze_1_1cli_1_1ColorModifier.html">ColorModifier</a> reset(<a class="code hl_enumvalue" href="namespaceyaze_1_1cli.html#a926a1f01429821b946fbc7bf6a0e1c13a1cb945599687cd0735552b0ee8b8c188">ColorCode::FG_RESET</a>);</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;Please specify the tilesheets you want to export\n&quot;</span>;</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;You can input an individual sheet, a range X-Y, or comma &quot;</span></div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>               <span class="stringliteral">&quot;separate values.\n\n&quot;</span>;</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  std::cout &lt;&lt; underline &lt;&lt; <span class="stringliteral">&quot;Tilesheets\n&quot;</span> &lt;&lt; reset;</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;0-112 -&gt; compressed 3bpp bgr \n&quot;</span>;</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;113-114 -&gt; compressed 2bpp\n&quot;</span>;</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;115-126 -&gt; uncompressed 3bpp sprites\n&quot;</span>;</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;127-217 -&gt; compressed 3bpp sprites\n&quot;</span>;</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;218-222 -&gt; compressed 2bpp\n&quot;</span>;</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;Enter tilesheets: &quot;</span>;</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  std::string sheet_input;</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  std::cin &gt;&gt; sheet_input;</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;Decompress selected with argument: &quot;</span> &lt;&lt; arg_vec[0] &lt;&lt; std::endl;</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;Decompress not implemented&quot;</span>);</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>}</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno"><a class="line" href="classyaze_1_1cli_1_1Decompress.html#a81210193e93ec55fcabfd6713a1ecde8">   11</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1cli_1_1Decompress.html#a81210193e93ec55fcabfd6713a1ecde8">Decompress::Run</a>(<span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; arg_vec) {</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;Please specify the tilesheets you want to export\n&quot;</span>;</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;You can input an individual sheet, a range X-Y, or comma &quot;</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>               <span class="stringliteral">&quot;separate values.\n\n&quot;</span>;</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>  std::cout  &lt;&lt; <span class="stringliteral">&quot;Tilesheets\n&quot;</span>;</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;0-112 -&gt; compressed 3bpp bgr \n&quot;</span>;</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;113-114 -&gt; compressed 2bpp\n&quot;</span>;</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;115-126 -&gt; uncompressed 3bpp sprites\n&quot;</span>;</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;127-217 -&gt; compressed 3bpp sprites\n&quot;</span>;</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;218-222 -&gt; compressed 2bpp\n&quot;</span>;</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;Enter tilesheets: &quot;</span>;</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  std::string sheet_input;</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  std::cin &gt;&gt; sheet_input;</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;Decompress selected with argument: &quot;</span> &lt;&lt; arg_vec[0] &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;Decompress not implemented&quot;</span>);</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>}</div>
 </div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>}  <span class="comment">// namespace cli</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>}  <span class="comment">// namespace cli</span></div>
 </div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>}  <span class="comment">// namespace yaze</span></div>
-<div class="ttc" id="aclassyaze_1_1cli_1_1ColorModifier_html"><div class="ttname"><a href="classyaze_1_1cli_1_1ColorModifier.html">yaze::cli::ColorModifier</a></div><div class="ttdef"><b>Definition</b> <a href="z3ed_8h_source.html#l00033">z3ed.h:33</a></div></div>
-<div class="ttc" id="aclassyaze_1_1cli_1_1Compress_html_afebd02efe70bf393274285b1a460cf20"><div class="ttname"><a href="classyaze_1_1cli_1_1Compress.html#afebd02efe70bf393274285b1a460cf20">yaze::cli::Compress::handle</a></div><div class="ttdeci">absl::Status handle(const std::vector&lt; std::string &gt; &amp;arg_vec) override</div><div class="ttdef"><b>Definition</b> <a href="#l00006">compress.cc:6</a></div></div>
-<div class="ttc" id="aclassyaze_1_1cli_1_1Decompress_html_a10b8074f386c89687b8270a792513197"><div class="ttname"><a href="classyaze_1_1cli_1_1Decompress.html#a10b8074f386c89687b8270a792513197">yaze::cli::Decompress::handle</a></div><div class="ttdeci">absl::Status handle(const std::vector&lt; std::string &gt; &amp;arg_vec) override</div><div class="ttdef"><b>Definition</b> <a href="#l00011">compress.cc:11</a></div></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1Compress_html_a6796464b3bb2cc712e328b791c8ad17e"><div class="ttname"><a href="classyaze_1_1cli_1_1Compress.html#a6796464b3bb2cc712e328b791c8ad17e">yaze::cli::Compress::Run</a></div><div class="ttdeci">absl::Status Run(const std::vector&lt; std::string &gt; &amp;arg_vec) override</div><div class="ttdef"><b>Definition</b> <a href="#l00006">compress.cc:6</a></div></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1Decompress_html_a81210193e93ec55fcabfd6713a1ecde8"><div class="ttname"><a href="classyaze_1_1cli_1_1Decompress.html#a81210193e93ec55fcabfd6713a1ecde8">yaze::cli::Decompress::Run</a></div><div class="ttdeci">absl::Status Run(const std::vector&lt; std::string &gt; &amp;arg_vec) override</div><div class="ttdef"><b>Definition</b> <a href="#l00011">compress.cc:11</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_html"><div class="ttname"><a href="namespaceyaze_1_1cli.html">yaze::cli</a></div><div class="ttdoc">Namespace for the command line interface.</div><div class="ttdef"><b>Definition</b> <a href="#l00004">compress.cc:4</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1cli_html_a926a1f01429821b946fbc7bf6a0e1c13a1cb945599687cd0735552b0ee8b8c188"><div class="ttname"><a href="namespaceyaze_1_1cli.html#a926a1f01429821b946fbc7bf6a0e1c13a1cb945599687cd0735552b0ee8b8c188">yaze::cli::FG_RESET</a></div><div class="ttdeci">@ FG_RESET</div><div class="ttdef"><b>Definition</b> <a href="z3ed_8h_source.html#l00026">z3ed.h:26</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1cli_html_a926a1f01429821b946fbc7bf6a0e1c13abd432d1329e89b03bfdace04f4bb63c7"><div class="ttname"><a href="namespaceyaze_1_1cli.html#a926a1f01429821b946fbc7bf6a0e1c13abd432d1329e89b03bfdace04f4bb63c7">yaze::cli::FG_UNDERLINE</a></div><div class="ttdeci">@ FG_UNDERLINE</div><div class="ttdef"><b>Definition</b> <a href="z3ed_8h_source.html#l00027">z3ed.h:27</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="controller_8cc_source.html#l00018">controller.cc:18</a></div></div>
 <div class="ttc" id="az3ed_8h_html"><div class="ttname"><a href="z3ed_8h.html">z3ed.h</a></div></div>
 </div><!-- fragment --></div><!-- contents -->

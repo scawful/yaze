@@ -1,13 +1,5 @@
 var NAVTREEINDEX20 =
 {
-"classyaze_1_1test_1_1MockMemory.html#a15205277c994ed80c54182d37c56c917":[12,0,0,6,12,28],
-"classyaze_1_1test_1_1MockMemory.html#a18dc7a72b6ca56a8cef625b8b77c749e":[11,0,1,6,14,7],
-"classyaze_1_1test_1_1MockMemory.html#a18dc7a72b6ca56a8cef625b8b77c749e":[12,0,0,6,12,7],
-"classyaze_1_1test_1_1MockMemory.html#a2586955d48c3018b570c617772876360":[11,0,1,6,14,33],
-"classyaze_1_1test_1_1MockMemory.html#a2586955d48c3018b570c617772876360":[12,0,0,6,12,33],
-"classyaze_1_1test_1_1MockMemory.html#a2641be485b6f8c736d7aaa7414f1275e":[11,0,1,6,14,14],
-"classyaze_1_1test_1_1MockMemory.html#a2641be485b6f8c736d7aaa7414f1275e":[12,0,0,6,12,14],
-"classyaze_1_1test_1_1MockMemory.html#a33783b70e7ec16fa20833fd62ef9d846":[11,0,1,6,14,2],
 "classyaze_1_1test_1_1MockMemory.html#a33783b70e7ec16fa20833fd62ef9d846":[12,0,0,6,12,2],
 "classyaze_1_1test_1_1MockMemory.html#a54dc682bfeebe2107092e8ac09bf5a21":[11,0,1,6,14,26],
 "classyaze_1_1test_1_1MockMemory.html#a54dc682bfeebe2107092e8ac09bf5a21":[12,0,0,6,12,26],
@@ -249,5 +241,13 @@ var NAVTREEINDEX20 =
 "classyaze_1_1test_1_1Rom.html#af90d7c0928f8827c1f7ecef04f6efa8c":[12,0,0,6,18,47],
 "classyaze_1_1test_1_1Rom.html#afde2c40d5cb9eaf14b64dae1da43afd7":[11,0,1,6,20,5],
 "classyaze_1_1test_1_1Rom.html#afde2c40d5cb9eaf14b64dae1da43afd7":[12,0,0,6,18,5],
-"classyaze_1_1test_1_1RomTest.html":[11,0,1,6,21]
+"classyaze_1_1test_1_1RomTest.html":[11,0,1,6,21],
+"classyaze_1_1test_1_1RomTest.html":[12,0,0,6,19],
+"classyaze_1_1test_1_1RomTest.html#a03d655d845f6e5e3579f8eec8f632b76":[11,0,1,6,21,0],
+"classyaze_1_1test_1_1RomTest.html#a03d655d845f6e5e3579f8eec8f632b76":[12,0,0,6,19,0],
+"classyaze_1_1test_1_1Spc700.html":[11,0,1,6,22],
+"classyaze_1_1test_1_1Spc700.html":[12,0,0,6,20],
+"classyaze_1_1test_1_1Spc700.html#a02522223dec18642a4740be6028948f8":[11,0,1,6,22,128],
+"classyaze_1_1test_1_1Spc700.html#a02522223dec18642a4740be6028948f8":[12,0,0,6,20,128],
+"classyaze_1_1test_1_1Spc700.html#a0267db9ede6ba6b8ee8e8164f41aa610":[11,0,1,6,22,57]
 };

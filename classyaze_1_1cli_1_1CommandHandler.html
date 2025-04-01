@@ -138,8 +138,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a5a563d425d0ee2d3779983ca83b35c3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a99057b6c5780d96e56c6be9c9e109eb0" id="r_a99057b6c5780d96e56c6be9c9e109eb0"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a99057b6c5780d96e56c6be9c9e109eb0">~CommandHandler</a> ()=default</td></tr>
 <tr class="separator:a99057b6c5780d96e56c6be9c9e109eb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acf0d674fc4b4f8bfc1536c4b317ef831" id="r_acf0d674fc4b4f8bfc1536c4b317ef831"><td class="memItemLeft" align="right" valign="top">virtual absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acf0d674fc4b4f8bfc1536c4b317ef831">handle</a> (const std::vector&lt; std::string &gt; &amp;arg_vec)=0</td></tr>
-<tr class="separator:acf0d674fc4b4f8bfc1536c4b317ef831"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a119587ea2a63c5a40c6c5c2893f20040" id="r_a119587ea2a63c5a40c6c5c2893f20040"><td class="memItemLeft" align="right" valign="top">virtual absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a119587ea2a63c5a40c6c5c2893f20040">Run</a> (const std::vector&lt; std::string &gt; &amp;arg_vec)=0</td></tr>
+<tr class="separator:a119587ea2a63c5a40c6c5c2893f20040"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -148,7 +148,7 @@ Public Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="z3ed_8h_source.html#l00043">43</a> of file <a class="el" href="z3ed_8h_source.html">z3ed.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="z3ed_8h_source.html#l00019">19</a> of file <a class="el" href="z3ed_8h_source.html">z3ed.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a5a563d425d0ee2d3779983ca83b35c3a" name="a5a563d425d0ee2d3779983ca83b35c3a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5a563d425d0ee2d3779983ca83b35c3a">&#9670;&#160;</a></span>CommandHandler()</h2>
@@ -201,8 +201,8 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="acf0d674fc4b4f8bfc1536c4b317ef831" name="acf0d674fc4b4f8bfc1536c4b317ef831"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acf0d674fc4b4f8bfc1536c4b317ef831">&#9670;&#160;</a></span>handle()</h2>
+<a id="a119587ea2a63c5a40c6c5c2893f20040" name="a119587ea2a63c5a40c6c5c2893f20040"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a119587ea2a63c5a40c6c5c2893f20040">&#9670;&#160;</a></span>Run()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -211,7 +211,7 @@ Public Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual absl::Status yaze::cli::CommandHandler::handle </td>
+          <td class="memname">virtual absl::Status yaze::cli::CommandHandler::Run </td>
           <td>(</td>
           <td class="paramtype">const std::vector&lt; std::string &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>arg_vec</em></span></td><td>)</td>
           <td></td>
@@ -224,7 +224,7 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Implemented in <a class="el" href="classyaze_1_1cli_1_1ApplyPatch.html#ad09fbd364de8de32d372d0a24959f5a6">yaze::cli::ApplyPatch</a>, <a class="el" href="classyaze_1_1cli_1_1AsarPatch.html#ae1b0683ca9b985db4914475c3c5723f2">yaze::cli::AsarPatch</a>, <a class="el" href="classyaze_1_1cli_1_1Backup.html#a845ea1e5e58afebf7321edcb25e57498">yaze::cli::Backup</a>, <a class="el" href="classyaze_1_1cli_1_1Compress.html#afebd02efe70bf393274285b1a460cf20">yaze::cli::Compress</a>, <a class="el" href="classyaze_1_1cli_1_1CreatePatch.html#ad8379b3639cb96421e3d023cf7022063">yaze::cli::CreatePatch</a>, <a class="el" href="classyaze_1_1cli_1_1Decompress.html#a10b8074f386c89687b8270a792513197">yaze::cli::Decompress</a>, <a class="el" href="classyaze_1_1cli_1_1Expand.html#abf197e6e18a4d8ecd1a7a551f2e7d995">yaze::cli::Expand</a>, <a class="el" href="classyaze_1_1cli_1_1Open.html#a93ec2d9f81970f0fba889a94fe92b9f5">yaze::cli::Open</a>, <a class="el" href="classyaze_1_1cli_1_1PcToSnesCommand.html#aee1ca5b2d3042f8535e0e21caeb68ed2">yaze::cli::PcToSnesCommand</a>, <a class="el" href="classyaze_1_1cli_1_1ReadFromRom.html#afc6bebb5b98e24fe362bcf34848e3ca3">yaze::cli::ReadFromRom</a>, <a class="el" href="classyaze_1_1cli_1_1SnesToPcCommand.html#ae18c283dbde046287112f5c95b82f568">yaze::cli::SnesToPcCommand</a>, and <a class="el" href="classyaze_1_1cli_1_1Tile16Transfer.html#a6e8c74f608ec900a390e9f94ca4868a3">yaze::cli::Tile16Transfer</a>.</p>
+<p>Implemented in <a class="el" href="classyaze_1_1cli_1_1ApplyPatch.html#a80e7bf5abc2bc47a79d095a75912b044">yaze::cli::ApplyPatch</a>, <a class="el" href="classyaze_1_1cli_1_1AsarPatch.html#a9a794ec4ea7297ca773bb280d1674c48">yaze::cli::AsarPatch</a>, <a class="el" href="classyaze_1_1cli_1_1Backup.html#a78293d61b98d3d09898b1fda6d4bae56">yaze::cli::Backup</a>, <a class="el" href="classyaze_1_1cli_1_1Compress.html#a6796464b3bb2cc712e328b791c8ad17e">yaze::cli::Compress</a>, <a class="el" href="classyaze_1_1cli_1_1CreatePatch.html#a7b4706567447759477678755fb72c591">yaze::cli::CreatePatch</a>, <a class="el" href="classyaze_1_1cli_1_1Decompress.html#a81210193e93ec55fcabfd6713a1ecde8">yaze::cli::Decompress</a>, <a class="el" href="classyaze_1_1cli_1_1Expand.html#a033e0414f02403f2e8de594e631d5774">yaze::cli::Expand</a>, <a class="el" href="classyaze_1_1cli_1_1Open.html#a9a61d83b48edfd26a2d5da0b929d19bb">yaze::cli::Open</a>, <a class="el" href="classyaze_1_1cli_1_1PcToSnesCommand.html#aea1605095ca923e5052a2596726424a7">yaze::cli::PcToSnesCommand</a>, <a class="el" href="classyaze_1_1cli_1_1ReadFromRom.html#aebfeb82694b26459add5558fbfc397fc">yaze::cli::ReadFromRom</a>, <a class="el" href="classyaze_1_1cli_1_1SnesToPcCommand.html#a1829823afb92b629ad854249ef61388e">yaze::cli::SnesToPcCommand</a>, and <a class="el" href="classyaze_1_1cli_1_1Tile16Transfer.html#a42885dc226ed92f6bd6eb02a91868ca2">yaze::cli::Tile16Transfer</a>.</p>
 
 </div>
 </div>
@@ -241,9 +241,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="z3ed_8h_source.html#l00049">49</a> of file <a class="el" href="z3ed_8h_source.html">z3ed.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="z3ed_8h_source.html#l00025">25</a> of file <a class="el" href="z3ed_8h_source.html">z3ed.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="patch_8cc_source.html#l00010">yaze::cli::ApplyPatch::handle()</a>, <a class="el" href="patch_8cc_source.html#l00031">yaze::cli::AsarPatch::handle()</a>, <a class="el" href="z3ed_8h_source.html#l00089">yaze::cli::Backup::handle()</a>, <a class="el" href="z3ed_8h_source.html#l00198">yaze::cli::Expand::handle()</a>, <a class="el" href="z3ed_8h_source.html#l00074">yaze::cli::Open::handle()</a>, <a class="el" href="z3ed_8h_source.html#l00160">yaze::cli::ReadFromRom::handle()</a>, and <a class="el" href="tile16__transfer_8cc_source.html#l00012">yaze::cli::Tile16Transfer::handle()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="patch_8cc_source.html#l00008">yaze::cli::ApplyPatch::Run()</a>, <a class="el" href="patch_8cc_source.html#l00029">yaze::cli::AsarPatch::Run()</a>, <a class="el" href="z3ed_8h_source.html#l00061">yaze::cli::Backup::Run()</a>, <a class="el" href="z3ed_8h_source.html#l00168">yaze::cli::Expand::Run()</a>, <a class="el" href="z3ed_8h_source.html#l00050">yaze::cli::Open::Run()</a>, <a class="el" href="z3ed_8h_source.html#l00130">yaze::cli::ReadFromRom::Run()</a>, and <a class="el" href="tile16__transfer_8cc_source.html#l00012">yaze::cli::Tile16Transfer::Run()</a>.</p>
 
 </div>
 </div>

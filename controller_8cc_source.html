@@ -255,154 +255,155 @@ $(function(){initNavTree('controller_8cc_source.html',''); initResizable(true); 
 <div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span> </div>
 <div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);</div>
 <div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);</div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>  ImGui::Begin(<span class="stringliteral">&quot;DockSpaceWindow&quot;</span>, <span class="keyword">nullptr</span>, window_flags);</div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>  ImGui::PopStyleVar(2);</div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span> </div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>  <span class="comment">// Create DockSpace</span></div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>  ImGuiID dockspace_id = ImGui::GetID(<span class="stringliteral">&quot;MyDockSpace&quot;</span>);</div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>  ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f),</div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>                   ImGuiDockNodeFlags_PassthruCentralNode);</div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span> </div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>  <a class="code hl_variable" href="classyaze_1_1core_1_1Controller.html#ac4679c506fca7da732d65dad8934ef96">editor_manager_</a>.DrawMenuBar();  <span class="comment">// Draw the fixed menu bar at the top</span></div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span> </div>
-<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>  ImGui::End();</div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>  <a class="code hl_define" href="macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(<a class="code hl_variable" href="classyaze_1_1core_1_1Controller.html#ac4679c506fca7da732d65dad8934ef96">editor_manager_</a>.Update());</div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>}</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>  ImGui::Begin(<span class="stringliteral">&quot;DockSpaceWindow&quot;</span>, <span class="keyword">nullptr</span>, window_flags);</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>  ImGui::PopStyleVar(3);</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span> </div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>  <span class="comment">// Create DockSpace</span></div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>  ImGuiID dockspace_id = ImGui::GetID(<span class="stringliteral">&quot;MyDockSpace&quot;</span>);</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>  ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f),</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>                   ImGuiDockNodeFlags_PassthruCentralNode);</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span> </div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>  <a class="code hl_variable" href="classyaze_1_1core_1_1Controller.html#ac4679c506fca7da732d65dad8934ef96">editor_manager_</a>.DrawMenuBar();  <span class="comment">// Draw the fixed menu bar at the top</span></div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span> </div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>  ImGui::End();</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>  <a class="code hl_define" href="macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(<a class="code hl_variable" href="classyaze_1_1core_1_1Controller.html#ac4679c506fca7da732d65dad8934ef96">editor_manager_</a>.Update());</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>}</div>
 </div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span> </div>
-<div class="foldopen" id="foldopen00150" data-start="{" data-end="}">
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno"><a class="line" href="classyaze_1_1core_1_1Controller.html#a9669e4a71e33f0010248c2ff5dbd37af">  150</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1core_1_1Controller.html#a9669e4a71e33f0010248c2ff5dbd37af">Controller::DoRender</a>()<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>  ImGui::Render();</div>
-<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>  SDL_RenderClear(<a class="code hl_function" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a">Renderer::GetInstance</a>().renderer());</div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>  ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(),</div>
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>                                        <a class="code hl_function" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a">Renderer::GetInstance</a>().renderer());</div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>  SDL_RenderPresent(<a class="code hl_function" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a">Renderer::GetInstance</a>().renderer());</div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>}</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span> </div>
+<div class="foldopen" id="foldopen00151" data-start="{" data-end="}">
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno"><a class="line" href="classyaze_1_1core_1_1Controller.html#a9669e4a71e33f0010248c2ff5dbd37af">  151</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1core_1_1Controller.html#a9669e4a71e33f0010248c2ff5dbd37af">Controller::DoRender</a>()<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>  ImGui::Render();</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>  SDL_RenderClear(<a class="code hl_function" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a">Renderer::GetInstance</a>().renderer());</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>  ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(),</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>                                        <a class="code hl_function" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a">Renderer::GetInstance</a>().renderer());</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>  SDL_RenderPresent(<a class="code hl_function" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a">Renderer::GetInstance</a>().renderer());</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>}</div>
 </div>
-<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span> </div>
-<div class="foldopen" id="foldopen00158" data-start="{" data-end="}">
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno"><a class="line" href="classyaze_1_1core_1_1Controller.html#a024bd35620ff4d5e2fd5dd899e23fc07">  158</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1core_1_1Controller.html#a024bd35620ff4d5e2fd5dd899e23fc07">Controller::OnExit</a>() {</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>  <a class="code hl_variable" href="classyaze_1_1core_1_1Controller.html#a59c8536a4fbea03fa15ce96ab89d88cc">backend_</a>.shutdown_audio();</div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>  ImGui_ImplSDLRenderer2_Shutdown();</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>  ImGui_ImplSDL2_Shutdown();</div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>  ImGui::DestroyContext();</div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>  SDL_Quit();</div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>}</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span> </div>
+<div class="foldopen" id="foldopen00159" data-start="{" data-end="}">
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno"><a class="line" href="classyaze_1_1core_1_1Controller.html#a024bd35620ff4d5e2fd5dd899e23fc07">  159</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1core_1_1Controller.html#a024bd35620ff4d5e2fd5dd899e23fc07">Controller::OnExit</a>() {</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>  <a class="code hl_variable" href="classyaze_1_1core_1_1Controller.html#a59c8536a4fbea03fa15ce96ab89d88cc">backend_</a>.shutdown_audio();</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>  ImGui_ImplSDLRenderer2_Shutdown();</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>  ImGui_ImplSDL2_Shutdown();</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>  ImGui::DestroyContext();</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>  SDL_Quit();</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>}</div>
 </div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span> </div>
-<div class="foldopen" id="foldopen00166" data-start="{" data-end="}">
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno"><a class="line" href="classyaze_1_1core_1_1Controller.html#a0c454eb8e88de6a3759996e838faa1ab">  166</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1core_1_1Controller.html#a0c454eb8e88de6a3759996e838faa1ab">Controller::CreateWindow</a>() {</div>
-<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>  <span class="keyword">auto</span> sdl_flags = SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER;</div>
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span> </div>
-<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>  <span class="keywordflow">if</span> (SDL_Init(sdl_flags) != 0) {</div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>        absl::StrFormat(<span class="stringliteral">&quot;SDL_Init: %s\n&quot;</span>, SDL_GetError()));</div>
-<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>  }</div>
-<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span> </div>
-<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>  SDL_DisplayMode display_mode;</div>
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>  SDL_GetCurrentDisplayMode(0, &amp;display_mode);</div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>  <span class="keywordtype">int</span> screen_width = display_mode.w * 0.8;</div>
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>  <span class="keywordtype">int</span> screen_height = display_mode.h * 0.8;</div>
-<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span> </div>
-<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>  <a class="code hl_variable" href="classyaze_1_1core_1_1Controller.html#adbbf6f92958fd09cf8947f1705f19245">window_</a> = std::unique_ptr&lt;SDL_Window, core::SDL_Deleter&gt;(</div>
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>      SDL_CreateWindow(<span class="stringliteral">&quot;Yet Another Zelda3 Editor&quot;</span>,  <span class="comment">// window title</span></div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>                       SDL_WINDOWPOS_UNDEFINED,      <span class="comment">// initial x position</span></div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>                       SDL_WINDOWPOS_UNDEFINED,      <span class="comment">// initial y position</span></div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>                       screen_width,                 <span class="comment">// width, in pixels</span></div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>                       screen_height,                <span class="comment">// height, in pixels</span></div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>                       SDL_WINDOW_RESIZABLE),</div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>      <a class="code hl_struct" href="structyaze_1_1core_1_1SDL__Deleter.html">core::SDL_Deleter</a>());</div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="classyaze_1_1core_1_1Controller.html#adbbf6f92958fd09cf8947f1705f19245">window_</a> == <span class="keyword">nullptr</span>) {</div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>        absl::StrFormat(<span class="stringliteral">&quot;SDL_CreateWindow: %s\n&quot;</span>, SDL_GetError()));</div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>  }</div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span> </div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>}</div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span> </div>
+<div class="foldopen" id="foldopen00167" data-start="{" data-end="}">
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno"><a class="line" href="classyaze_1_1core_1_1Controller.html#a0c454eb8e88de6a3759996e838faa1ab">  167</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1core_1_1Controller.html#a0c454eb8e88de6a3759996e838faa1ab">Controller::CreateWindow</a>() {</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>  <span class="keyword">auto</span> sdl_flags = SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER;</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span> </div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>  <span class="keywordflow">if</span> (SDL_Init(sdl_flags) != 0) {</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>        absl::StrFormat(<span class="stringliteral">&quot;SDL_Init: %s\n&quot;</span>, SDL_GetError()));</div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>  }</div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span> </div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>  SDL_DisplayMode display_mode;</div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>  SDL_GetCurrentDisplayMode(0, &amp;display_mode);</div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>  <span class="keywordtype">int</span> screen_width = display_mode.w * 0.8;</div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>  <span class="keywordtype">int</span> screen_height = display_mode.h * 0.8;</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span> </div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>  <a class="code hl_variable" href="classyaze_1_1core_1_1Controller.html#adbbf6f92958fd09cf8947f1705f19245">window_</a> = std::unique_ptr&lt;SDL_Window, core::SDL_Deleter&gt;(</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>      SDL_CreateWindow(<span class="stringliteral">&quot;Yet Another Zelda3 Editor&quot;</span>,  <span class="comment">// window title</span></div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>                       SDL_WINDOWPOS_UNDEFINED,      <span class="comment">// initial x position</span></div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>                       SDL_WINDOWPOS_UNDEFINED,      <span class="comment">// initial y position</span></div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>                       screen_width,                 <span class="comment">// width, in pixels</span></div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>                       screen_height,                <span class="comment">// height, in pixels</span></div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>                       SDL_WINDOW_RESIZABLE),</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>      <a class="code hl_struct" href="structyaze_1_1core_1_1SDL__Deleter.html">core::SDL_Deleter</a>());</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="classyaze_1_1core_1_1Controller.html#adbbf6f92958fd09cf8947f1705f19245">window_</a> == <span class="keyword">nullptr</span>) {</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>        absl::StrFormat(<span class="stringliteral">&quot;SDL_CreateWindow: %s\n&quot;</span>, SDL_GetError()));</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>  }</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span> </div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>}</div>
 </div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span> </div>
-<div class="foldopen" id="foldopen00195" data-start="{" data-end="}">
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno"><a class="line" href="classyaze_1_1core_1_1Controller.html#ae191a94a55900590a8d6456d06eee08b">  195</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1core_1_1Controller.html#ae191a94a55900590a8d6456d06eee08b">Controller::CreateRenderer</a>() {</div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>  <span class="keywordflow">return</span> <a class="code hl_function" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a">Renderer::GetInstance</a>().<a class="code hl_function" href="classyaze_1_1core_1_1Renderer.html#ad9822300e9d48fac8aaa30c481966b58">CreateRenderer</a>(<a class="code hl_variable" href="classyaze_1_1core_1_1Controller.html#adbbf6f92958fd09cf8947f1705f19245">window_</a>.get());</div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>}</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span> </div>
+<div class="foldopen" id="foldopen00196" data-start="{" data-end="}">
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno"><a class="line" href="classyaze_1_1core_1_1Controller.html#ae191a94a55900590a8d6456d06eee08b">  196</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1core_1_1Controller.html#ae191a94a55900590a8d6456d06eee08b">Controller::CreateRenderer</a>() {</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>  <span class="keywordflow">return</span> <a class="code hl_function" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a">Renderer::GetInstance</a>().<a class="code hl_function" href="classyaze_1_1core_1_1Renderer.html#ad9822300e9d48fac8aaa30c481966b58">CreateRenderer</a>(<a class="code hl_variable" href="classyaze_1_1core_1_1Controller.html#adbbf6f92958fd09cf8947f1705f19245">window_</a>.get());</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>}</div>
 </div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span> </div>
-<div class="foldopen" id="foldopen00199" data-start="{" data-end="}">
-<div class="line"><a id="l00199" name="l00199"></a><span class="lineno"><a class="line" href="classyaze_1_1core_1_1Controller.html#a8d6d4788e9100d960f35b7270a4795db">  199</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1core_1_1Controller.html#a8d6d4788e9100d960f35b7270a4795db">Controller::CreateGuiContext</a>() {</div>
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>  IMGUI_CHECKVERSION();</div>
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>  ImGui::CreateContext();</div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span> </div>
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>  ImGuiIO &amp;io = ImGui::GetIO();</div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;</div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;</div>
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span> </div>
-<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>  <span class="comment">// Initialize ImGui based on the backend</span></div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>  ImGui_ImplSDL2_InitForSDLRenderer(<a class="code hl_variable" href="classyaze_1_1core_1_1Controller.html#adbbf6f92958fd09cf8947f1705f19245">window_</a>.get(),</div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>                                    <a class="code hl_function" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a">Renderer::GetInstance</a>().renderer());</div>
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>  ImGui_ImplSDLRenderer2_Init(<a class="code hl_function" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a">Renderer::GetInstance</a>().renderer());</div>
-<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span> </div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>  <a class="code hl_define" href="macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(<a class="code hl_function" href="namespaceyaze_1_1core.html#a1ebfa2ff985b2a41c726bfbaa9a868dd">LoadPackageFonts</a>());</div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span> </div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>  <span class="comment">// Set the default style</span></div>
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>  <a class="code hl_function" href="namespaceyaze_1_1gui.html#abd9a49ec6350e33700334b783e0c9cad">gui::ColorsYaze</a>();</div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span> </div>
-<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>  <span class="comment">// Build a new ImGui frame</span></div>
-<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>  <a class="code hl_variable" href="classyaze_1_1core_1_1Controller.html#a59c8536a4fbea03fa15ce96ab89d88cc">backend_</a>.new_frame();</div>
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span> </div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>}</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span> </div>
+<div class="foldopen" id="foldopen00200" data-start="{" data-end="}">
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno"><a class="line" href="classyaze_1_1core_1_1Controller.html#a8d6d4788e9100d960f35b7270a4795db">  200</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1core_1_1Controller.html#a8d6d4788e9100d960f35b7270a4795db">Controller::CreateGuiContext</a>() {</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>  IMGUI_CHECKVERSION();</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>  ImGui::CreateContext();</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span> </div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>  ImGuiIO &amp;io = ImGui::GetIO();</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span> </div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>  <span class="comment">// Initialize ImGui based on the backend</span></div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>  ImGui_ImplSDL2_InitForSDLRenderer(<a class="code hl_variable" href="classyaze_1_1core_1_1Controller.html#adbbf6f92958fd09cf8947f1705f19245">window_</a>.get(),</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>                                    <a class="code hl_function" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a">Renderer::GetInstance</a>().renderer());</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>  ImGui_ImplSDLRenderer2_Init(<a class="code hl_function" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a">Renderer::GetInstance</a>().renderer());</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span> </div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>  <a class="code hl_define" href="macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(<a class="code hl_function" href="namespaceyaze_1_1core.html#a1ebfa2ff985b2a41c726bfbaa9a868dd">LoadPackageFonts</a>());</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span> </div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>  <span class="comment">// Set the default style</span></div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>  <a class="code hl_function" href="namespaceyaze_1_1gui.html#abd9a49ec6350e33700334b783e0c9cad">gui::ColorsYaze</a>();</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span> </div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>  <span class="comment">// Build a new ImGui frame</span></div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>  <a class="code hl_variable" href="classyaze_1_1core_1_1Controller.html#a59c8536a4fbea03fa15ce96ab89d88cc">backend_</a>.new_frame();</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span> </div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>}</div>
 </div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span> </div>
-<div class="foldopen" id="foldopen00223" data-start="{" data-end="}">
-<div class="line"><a id="l00223" name="l00223"></a><span class="lineno"><a class="line" href="classyaze_1_1core_1_1Controller.html#af234211945c5144f97e08ac88cf2fb9c">  223</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1core_1_1Controller.html#af234211945c5144f97e08ac88cf2fb9c">Controller::LoadConfigFiles</a>() {</div>
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>  <span class="comment">// Create and load a dotfile for the application</span></div>
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>  <span class="comment">// This will store the user&#39;s preferences and settings</span></div>
-<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>  std::string config_directory = <a class="code hl_function" href="namespaceyaze_1_1core.html#af3dbed157830d6193bd5c7f74b8361a3">GetConfigDirectory</a>();</div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span> </div>
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>  <span class="comment">// Create the directory if it doesn&#39;t exist</span></div>
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>  <span class="keywordflow">if</span> (!std::filesystem::exists(config_directory)) {</div>
-<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>    <span class="keywordflow">if</span> (!std::filesystem::create_directory(config_directory)) {</div>
-<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>      <span class="keywordflow">return</span> absl::InternalError(absl::StrFormat(</div>
-<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>          <span class="stringliteral">&quot;Failed to create config directory %s&quot;</span>, config_directory));</div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>    }</div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>  }</div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span> </div>
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>  <span class="comment">// Check if the config file exists</span></div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>  std::string config_file = config_directory + <span class="stringliteral">&quot;yaze.cfg&quot;</span>;</div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>  <span class="keywordflow">if</span> (!std::filesystem::exists(config_file)) {</div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>    <span class="comment">// Create the file if it doesn&#39;t exist</span></div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>    std::ofstream file(config_file);</div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>    <span class="keywordflow">if</span> (!file.is_open()) {</div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>      <span class="keywordflow">return</span> absl::InternalError(</div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>          absl::StrFormat(<span class="stringliteral">&quot;Failed to create config file %s&quot;</span>, config_file));</div>
-<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>    }</div>
-<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>    file.close();</div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>  }</div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span> </div>
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>}</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span> </div>
+<div class="foldopen" id="foldopen00224" data-start="{" data-end="}">
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno"><a class="line" href="classyaze_1_1core_1_1Controller.html#af234211945c5144f97e08ac88cf2fb9c">  224</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1core_1_1Controller.html#af234211945c5144f97e08ac88cf2fb9c">Controller::LoadConfigFiles</a>() {</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>  <span class="comment">// Create and load a dotfile for the application</span></div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>  <span class="comment">// This will store the user&#39;s preferences and settings</span></div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>  std::string config_directory = <a class="code hl_function" href="namespaceyaze_1_1core.html#af3dbed157830d6193bd5c7f74b8361a3">GetConfigDirectory</a>();</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span> </div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>  <span class="comment">// Create the directory if it doesn&#39;t exist</span></div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>  <span class="keywordflow">if</span> (!std::filesystem::exists(config_directory)) {</div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>    <span class="keywordflow">if</span> (!std::filesystem::create_directory(config_directory)) {</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>      <span class="keywordflow">return</span> absl::InternalError(absl::StrFormat(</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>          <span class="stringliteral">&quot;Failed to create config directory %s&quot;</span>, config_directory));</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>    }</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>  }</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span> </div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>  <span class="comment">// Check if the config file exists</span></div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>  std::string config_file = config_directory + <span class="stringliteral">&quot;yaze.cfg&quot;</span>;</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>  <span class="keywordflow">if</span> (!std::filesystem::exists(config_file)) {</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>    <span class="comment">// Create the file if it doesn&#39;t exist</span></div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>    std::ofstream file(config_file);</div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>    <span class="keywordflow">if</span> (!file.is_open()) {</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>      <span class="keywordflow">return</span> absl::InternalError(</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>          absl::StrFormat(<span class="stringliteral">&quot;Failed to create config file %s&quot;</span>, config_file));</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>    }</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>    file.close();</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>  }</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span> </div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>}</div>
 </div>
-<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span> </div>
-<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>}  <span class="comment">// namespace core</span></div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span> </div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>}  <span class="comment">// namespace core</span></div>
 </div>
-<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>}  <span class="comment">// namespace yaze</span></div>
 </div>
 <div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_a01f86833b789e985cd84926b41081e84"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#a01f86833b789e985cd84926b41081e84">yaze::core::Controller::OnLoad</a></div><div class="ttdeci">absl::Status OnLoad()</div><div class="ttdef"><b>Definition</b> <a href="#l00110">controller.cc:110</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_a024bd35620ff4d5e2fd5dd899e23fc07"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#a024bd35620ff4d5e2fd5dd899e23fc07">yaze::core::Controller::OnExit</a></div><div class="ttdeci">void OnExit()</div><div class="ttdef"><b>Definition</b> <a href="#l00158">controller.cc:158</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_a0c454eb8e88de6a3759996e838faa1ab"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#a0c454eb8e88de6a3759996e838faa1ab">yaze::core::Controller::CreateWindow</a></div><div class="ttdeci">absl::Status CreateWindow()</div><div class="ttdef"><b>Definition</b> <a href="#l00166">controller.cc:166</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_a024bd35620ff4d5e2fd5dd899e23fc07"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#a024bd35620ff4d5e2fd5dd899e23fc07">yaze::core::Controller::OnExit</a></div><div class="ttdeci">void OnExit()</div><div class="ttdef"><b>Definition</b> <a href="#l00159">controller.cc:159</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_a0c454eb8e88de6a3759996e838faa1ab"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#a0c454eb8e88de6a3759996e838faa1ab">yaze::core::Controller::CreateWindow</a></div><div class="ttdeci">absl::Status CreateWindow()</div><div class="ttdef"><b>Definition</b> <a href="#l00167">controller.cc:167</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_a4da513a611336bcfc09e4c40119c362b"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#a4da513a611336bcfc09e4c40119c362b">yaze::core::Controller::OnInput</a></div><div class="ttdeci">void OnInput()</div><div class="ttdef"><b>Definition</b> <a href="#l00063">controller.cc:63</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_a59c8536a4fbea03fa15ce96ab89d88cc"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#a59c8536a4fbea03fa15ce96ab89d88cc">yaze::core::Controller::backend_</a></div><div class="ttdeci">core::PlatformBackend&lt; Sdl2Backend &gt; backend_</div><div class="ttdef"><b>Definition</b> <a href="controller_8h_source.html#l00054">controller.h:54</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_a884d01a0316ab1c649a46688e68baeee"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#a884d01a0316ab1c649a46688e68baeee">yaze::core::Controller::Initialize</a></div><div class="ttdeci">void Initialize(std::string filename=&quot;&quot;)</div><div class="ttdef"><b>Definition</b> <a href="#l00058">controller.cc:58</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_a8d6d4788e9100d960f35b7270a4795db"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#a8d6d4788e9100d960f35b7270a4795db">yaze::core::Controller::CreateGuiContext</a></div><div class="ttdeci">absl::Status CreateGuiContext()</div><div class="ttdef"><b>Definition</b> <a href="#l00199">controller.cc:199</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_a9669e4a71e33f0010248c2ff5dbd37af"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#a9669e4a71e33f0010248c2ff5dbd37af">yaze::core::Controller::DoRender</a></div><div class="ttdeci">void DoRender() const</div><div class="ttdef"><b>Definition</b> <a href="#l00150">controller.cc:150</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_a8d6d4788e9100d960f35b7270a4795db"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#a8d6d4788e9100d960f35b7270a4795db">yaze::core::Controller::CreateGuiContext</a></div><div class="ttdeci">absl::Status CreateGuiContext()</div><div class="ttdef"><b>Definition</b> <a href="#l00200">controller.cc:200</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_a9669e4a71e33f0010248c2ff5dbd37af"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#a9669e4a71e33f0010248c2ff5dbd37af">yaze::core::Controller::DoRender</a></div><div class="ttdeci">void DoRender() const</div><div class="ttdef"><b>Definition</b> <a href="#l00151">controller.cc:151</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_aa976b011db5eebd07468b52c53500d47"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#aa976b011db5eebd07468b52c53500d47">yaze::core::Controller::active_</a></div><div class="ttdeci">bool active_</div><div class="ttdef"><b>Definition</b> <a href="controller_8h_source.html#l00051">controller.h:51</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_ac0fa260921696ef740c1bc2beb7a74ba"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#ac0fa260921696ef740c1bc2beb7a74ba">yaze::core::Controller::OnEntry</a></div><div class="ttdeci">absl::Status OnEntry(std::string filename=&quot;&quot;)</div><div class="ttdef"><b>Definition</b> <a href="#l00044">controller.cc:44</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_ac4679c506fca7da732d65dad8934ef96"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#ac4679c506fca7da732d65dad8934ef96">yaze::core::Controller::editor_manager_</a></div><div class="ttdeci">editor::EditorManager editor_manager_</div><div class="ttdef"><b>Definition</b> <a href="controller_8h_source.html#l00052">controller.h:52</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_adbbf6f92958fd09cf8947f1705f19245"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#adbbf6f92958fd09cf8947f1705f19245">yaze::core::Controller::window_</a></div><div class="ttdeci">std::shared_ptr&lt; SDL_Window &gt; window_</div><div class="ttdef"><b>Definition</b> <a href="controller_8h_source.html#l00053">controller.h:53</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_ae191a94a55900590a8d6456d06eee08b"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#ae191a94a55900590a8d6456d06eee08b">yaze::core::Controller::CreateRenderer</a></div><div class="ttdeci">absl::Status CreateRenderer()</div><div class="ttdef"><b>Definition</b> <a href="#l00195">controller.cc:195</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_af234211945c5144f97e08ac88cf2fb9c"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#af234211945c5144f97e08ac88cf2fb9c">yaze::core::Controller::LoadConfigFiles</a></div><div class="ttdeci">absl::Status LoadConfigFiles()</div><div class="ttdef"><b>Definition</b> <a href="#l00223">controller.cc:223</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_ae191a94a55900590a8d6456d06eee08b"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#ae191a94a55900590a8d6456d06eee08b">yaze::core::Controller::CreateRenderer</a></div><div class="ttdeci">absl::Status CreateRenderer()</div><div class="ttdef"><b>Definition</b> <a href="#l00196">controller.cc:196</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_af234211945c5144f97e08ac88cf2fb9c"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#af234211945c5144f97e08ac88cf2fb9c">yaze::core::Controller::LoadConfigFiles</a></div><div class="ttdeci">absl::Status LoadConfigFiles()</div><div class="ttdef"><b>Definition</b> <a href="#l00224">controller.cc:224</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1Renderer_html_a8fbf175181e6800faaaecaf7034f8a9a"><div class="ttname"><a href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a">yaze::core::Renderer::GetInstance</a></div><div class="ttdeci">static Renderer &amp; GetInstance()</div><div class="ttdef"><b>Definition</b> <a href="renderer_8h_source.html#l00026">renderer.h:26</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1Renderer_html_ad9822300e9d48fac8aaa30c481966b58"><div class="ttname"><a href="classyaze_1_1core_1_1Renderer.html#ad9822300e9d48fac8aaa30c481966b58">yaze::core::Renderer::CreateRenderer</a></div><div class="ttdeci">absl::Status CreateRenderer(SDL_Window *window)</div><div class="ttdef"><b>Definition</b> <a href="renderer_8h_source.html#l00031">renderer.h:31</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1Sdl2Backend_html"><div class="ttname"><a href="classyaze_1_1core_1_1Sdl2Backend.html">yaze::core::Sdl2Backend</a></div><div class="ttdef"><b>Definition</b> <a href="backend_8h_source.html#l00031">backend.h:31</a></div></div>

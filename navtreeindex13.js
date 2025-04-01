@@ -1,13 +1,5 @@
 var NAVTREEINDEX13 =
 {
-"classyaze_1_1emu_1_1Ppu.html#aa052b49aa1bde07b0cf6b8cf650c5b0b":[12,0,0,3,61,89],
-"classyaze_1_1emu_1_1Ppu.html#aa1d3ea33ab636e8211f3ed62d7c0e0fe":[11,0,1,3,63,97],
-"classyaze_1_1emu_1_1Ppu.html#aa1d3ea33ab636e8211f3ed62d7c0e0fe":[12,0,0,3,61,97],
-"classyaze_1_1emu_1_1Ppu.html#aa2664154402b962443f21a56a92ef8d3":[11,0,1,3,63,14],
-"classyaze_1_1emu_1_1Ppu.html#aa2664154402b962443f21a56a92ef8d3":[12,0,0,3,61,14],
-"classyaze_1_1emu_1_1Ppu.html#aa4b97e21c21284d6b5885f274ad7284f":[11,0,1,3,63,105],
-"classyaze_1_1emu_1_1Ppu.html#aa4b97e21c21284d6b5885f274ad7284f":[12,0,0,3,61,105],
-"classyaze_1_1emu_1_1Ppu.html#aa59a78abcdf4a2ef17feb401b7a3be65":[11,0,1,3,63,86],
 "classyaze_1_1emu_1_1Ppu.html#aa59a78abcdf4a2ef17feb401b7a3be65":[12,0,0,3,61,86],
 "classyaze_1_1emu_1_1Ppu.html#aa6b74bdbc79dccf3f758e21e9b03e037":[11,0,1,3,63,39],
 "classyaze_1_1emu_1_1Ppu.html#aa6b74bdbc79dccf3f758e21e9b03e037":[12,0,0,3,61,39],
@@ -249,5 +241,13 @@ var NAVTREEINDEX13 =
 "classyaze_1_1emu_1_1Spc700.html#a118c52df021da06cffb289e36de095ba":[12,0,0,3,69,97],
 "classyaze_1_1emu_1_1Spc700.html#a1432451833eb544f48add4d280397ac8":[11,0,1,3,71,17],
 "classyaze_1_1emu_1_1Spc700.html#a1432451833eb544f48add4d280397ac8":[12,0,0,3,69,17],
-"classyaze_1_1emu_1_1Spc700.html#a1443b78b63f602f2b6874be4c39fe869":[11,0,1,3,71,8]
+"classyaze_1_1emu_1_1Spc700.html#a1443b78b63f602f2b6874be4c39fe869":[11,0,1,3,71,8],
+"classyaze_1_1emu_1_1Spc700.html#a1443b78b63f602f2b6874be4c39fe869":[12,0,0,3,69,8],
+"classyaze_1_1emu_1_1Spc700.html#a1529cd1c742ba2b7a3094ead65268dbc":[11,0,1,3,71,36],
+"classyaze_1_1emu_1_1Spc700.html#a1529cd1c742ba2b7a3094ead65268dbc":[12,0,0,3,69,36],
+"classyaze_1_1emu_1_1Spc700.html#a1549581dd0b2bf3786c5323907bd1011":[11,0,1,3,71,31],
+"classyaze_1_1emu_1_1Spc700.html#a1549581dd0b2bf3786c5323907bd1011":[12,0,0,3,69,31],
+"classyaze_1_1emu_1_1Spc700.html#a15c9198d78b1b7af5b8b82e66671e1cf":[11,0,1,3,71,49],
+"classyaze_1_1emu_1_1Spc700.html#a15c9198d78b1b7af5b8b82e66671e1cf":[12,0,0,3,69,49],
+"classyaze_1_1emu_1_1Spc700.html#a16b76a437f9574f5981f4c46d907ee96":[11,0,1,3,71,107]
 };

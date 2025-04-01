@@ -1,13 +1,5 @@
 var NAVTREEINDEX3 =
 {
-"classyaze_1_1editor_1_1DungeonEditor.html#a698419d8ece1ecb1bf0e51bb1247b83b":[12,0,0,2,5,61],
-"classyaze_1_1editor_1_1DungeonEditor.html#a6bd3296392d04670b3320b374eb77e5d":[11,0,1,2,11,62],
-"classyaze_1_1editor_1_1DungeonEditor.html#a6bd3296392d04670b3320b374eb77e5d":[12,0,0,2,5,62],
-"classyaze_1_1editor_1_1DungeonEditor.html#a72bd4584fd7124d6d9bbceb158557700":[11,0,1,2,11,31],
-"classyaze_1_1editor_1_1DungeonEditor.html#a72bd4584fd7124d6d9bbceb158557700":[12,0,0,2,5,31],
-"classyaze_1_1editor_1_1DungeonEditor.html#a790e20561541405fc372b70be9104aa0":[11,0,1,2,11,43],
-"classyaze_1_1editor_1_1DungeonEditor.html#a790e20561541405fc372b70be9104aa0":[12,0,0,2,5,43],
-"classyaze_1_1editor_1_1DungeonEditor.html#a7928da2113db72cf65d741a7a6a1fb5a":[11,0,1,2,11,32],
 "classyaze_1_1editor_1_1DungeonEditor.html#a7928da2113db72cf65d741a7a6a1fb5a":[12,0,0,2,5,32],
 "classyaze_1_1editor_1_1DungeonEditor.html#a79482196e3421e4220f1123a4d9918b8":[11,0,1,2,11,45],
 "classyaze_1_1editor_1_1DungeonEditor.html#a79482196e3421e4220f1123a4d9918b8":[12,0,0,2,5,45],
@@ -249,5 +241,13 @@ var NAVTREEINDEX3 =
 "classyaze_1_1editor_1_1ExtensionManager.html#a9a9af8f4bb911261b8316b110d7ede61":[12,0,0,2,12,1],
 "classyaze_1_1editor_1_1ExtensionManager.html#ac09726f4ac7698d0d0df68c331fd74ed":[11,0,1,2,18,2],
 "classyaze_1_1editor_1_1ExtensionManager.html#ac09726f4ac7698d0d0df68c331fd74ed":[12,0,0,2,12,2],
-"classyaze_1_1editor_1_1ExtensionManager.html#aceda1323591da652d454a06c22c9303d":[11,0,1,2,18,3]
+"classyaze_1_1editor_1_1ExtensionManager.html#aceda1323591da652d454a06c22c9303d":[11,0,1,2,18,3],
+"classyaze_1_1editor_1_1ExtensionManager.html#aceda1323591da652d454a06c22c9303d":[12,0,0,2,12,3],
+"classyaze_1_1editor_1_1FileDialogWrapper.html":[11,0,1,2,19],
+"classyaze_1_1editor_1_1FileDialogWrapper.html":[12,0,0,2,13],
+"classyaze_1_1editor_1_1GfxGroupEditor.html":[11,0,1,2,21],
+"classyaze_1_1editor_1_1GfxGroupEditor.html":[12,0,0,2,15],
+"classyaze_1_1editor_1_1GfxGroupEditor.html#a04921f522f9cb698c3f67d2ac6b6b345":[11,0,1,2,21,4],
+"classyaze_1_1editor_1_1GfxGroupEditor.html#a04921f522f9cb698c3f67d2ac6b6b345":[12,0,0,2,15,4],
+"classyaze_1_1editor_1_1GfxGroupEditor.html#a19742215b61d7598ef7ac95494107001":[11,0,1,2,21,7]
 };

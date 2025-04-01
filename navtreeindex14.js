@@ -1,13 +1,5 @@
 var NAVTREEINDEX14 =
 {
-"classyaze_1_1emu_1_1Spc700.html#a1443b78b63f602f2b6874be4c39fe869":[12,0,0,3,69,8],
-"classyaze_1_1emu_1_1Spc700.html#a1529cd1c742ba2b7a3094ead65268dbc":[11,0,1,3,71,36],
-"classyaze_1_1emu_1_1Spc700.html#a1529cd1c742ba2b7a3094ead65268dbc":[12,0,0,3,69,36],
-"classyaze_1_1emu_1_1Spc700.html#a1549581dd0b2bf3786c5323907bd1011":[11,0,1,3,71,31],
-"classyaze_1_1emu_1_1Spc700.html#a1549581dd0b2bf3786c5323907bd1011":[12,0,0,3,69,31],
-"classyaze_1_1emu_1_1Spc700.html#a15c9198d78b1b7af5b8b82e66671e1cf":[11,0,1,3,71,49],
-"classyaze_1_1emu_1_1Spc700.html#a15c9198d78b1b7af5b8b82e66671e1cf":[12,0,0,3,69,49],
-"classyaze_1_1emu_1_1Spc700.html#a16b76a437f9574f5981f4c46d907ee96":[11,0,1,3,71,107],
 "classyaze_1_1emu_1_1Spc700.html#a16b76a437f9574f5981f4c46d907ee96":[12,0,0,3,69,107],
 "classyaze_1_1emu_1_1Spc700.html#a17a706f79a3339a51027ca265b1ccee7":[11,0,1,3,71,27],
 "classyaze_1_1emu_1_1Spc700.html#a17a706f79a3339a51027ca265b1ccee7":[12,0,0,3,69,27],
@@ -249,5 +241,13 @@ var NAVTREEINDEX14 =
 "classyaze_1_1emu_1_1Spc700.html#af670db1f76ee0dfd845cf49f1d63d907":[12,0,0,3,69,10],
 "classyaze_1_1emu_1_1Spc700.html#af7bbb7b6fd9373cb4ae8d21596ab7932":[11,0,1,3,71,3],
 "classyaze_1_1emu_1_1Spc700.html#af7bbb7b6fd9373cb4ae8d21596ab7932":[12,0,0,3,69,3],
-"classyaze_1_1emu_1_1Spc700.html#afa6a12b6bca12df4589abad6c333b5f8":[11,0,1,3,71,5]
+"classyaze_1_1emu_1_1Spc700.html#afa6a12b6bca12df4589abad6c333b5f8":[11,0,1,3,71,5],
+"classyaze_1_1emu_1_1Spc700.html#afa6a12b6bca12df4589abad6c333b5f8":[12,0,0,3,69,5],
+"classyaze_1_1emu_1_1Spc700.html#aff35c5c60fc25d86b288e52dba35a8c5":[11,0,1,3,71,78],
+"classyaze_1_1emu_1_1Spc700.html#aff35c5c60fc25d86b288e52dba35a8c5":[12,0,0,3,69,78],
+"classyaze_1_1gfx_1_1Bitmap.html":[11,0,1,4,3],
+"classyaze_1_1gfx_1_1Bitmap.html":[12,0,0,4,1],
+"classyaze_1_1gfx_1_1Bitmap.html#a077d82f2218f1ddcd63922e7187e53e0":[11,0,1,4,3,7],
+"classyaze_1_1gfx_1_1Bitmap.html#a077d82f2218f1ddcd63922e7187e53e0":[12,0,0,4,1,7],
+"classyaze_1_1gfx_1_1Bitmap.html#a0b6240e469dae9ab4d88f3e2051d4510":[11,0,1,4,3,17]
 };

@@ -1,13 +1,5 @@
 var NAVTREEINDEX11 =
 {
-"classyaze_1_1emu_1_1Emulator.html#a9d42da55a4a6e519e18de44de236f3c2":[12,0,0,3,27,1],
-"classyaze_1_1emu_1_1Emulator.html#aaabb1ccbc8ff73f055fd428bc21a5467":[11,0,1,3,29,18],
-"classyaze_1_1emu_1_1Emulator.html#aaabb1ccbc8ff73f055fd428bc21a5467":[12,0,0,3,27,18],
-"classyaze_1_1emu_1_1Emulator.html#ab2d021138cd2a5e86693e4df419226ba":[11,0,1,3,29,25],
-"classyaze_1_1emu_1_1Emulator.html#ab2d021138cd2a5e86693e4df419226ba":[12,0,0,3,27,25],
-"classyaze_1_1emu_1_1Emulator.html#ab503c0f8f58bb8b7dc0ce77b74868fb8":[11,0,1,3,29,2],
-"classyaze_1_1emu_1_1Emulator.html#ab503c0f8f58bb8b7dc0ce77b74868fb8":[12,0,0,3,27,2],
-"classyaze_1_1emu_1_1Emulator.html#ab5dacd9d0b9b7b55557e2acc48d3f670":[11,0,1,3,29,14],
 "classyaze_1_1emu_1_1Emulator.html#ab5dacd9d0b9b7b55557e2acc48d3f670":[12,0,0,3,27,14],
 "classyaze_1_1emu_1_1Emulator.html#ab75a03f1975467c8952752de41e7cf4f":[11,0,1,3,29,26],
 "classyaze_1_1emu_1_1Emulator.html#ab75a03f1975467c8952752de41e7cf4f":[12,0,0,3,27,26],
@@ -249,5 +241,13 @@ var NAVTREEINDEX11 =
 "classyaze_1_1emu_1_1MemoryImpl.html#afa04ee1fe6267f635bb9da1f039bd61b":[12,0,0,3,44,9],
 "classyaze_1_1emu_1_1MemoryImpl.html#afc2938889beeae99884ea9209fe4cbe5":[11,0,1,3,46,63],
 "classyaze_1_1emu_1_1MemoryImpl.html#afc2938889beeae99884ea9209fe4cbe5":[12,0,0,3,44,63],
-"classyaze_1_1emu_1_1MockMemory.html":[11,0,1,3,49]
+"classyaze_1_1emu_1_1MockMemory.html":[11,0,1,3,49],
+"classyaze_1_1emu_1_1MockMemory.html":[12,0,0,3,47],
+"classyaze_1_1emu_1_1MockMemory.html#a038a9d7c198b312f1e31aaf5b30f7818":[11,0,1,3,49,17],
+"classyaze_1_1emu_1_1MockMemory.html#a038a9d7c198b312f1e31aaf5b30f7818":[12,0,0,3,47,17],
+"classyaze_1_1emu_1_1MockMemory.html#a087ca0e687b2757710d0a1d515e55f62":[11,0,1,3,49,38],
+"classyaze_1_1emu_1_1MockMemory.html#a087ca0e687b2757710d0a1d515e55f62":[12,0,0,3,47,38],
+"classyaze_1_1emu_1_1MockMemory.html#a0d4dd84479c3a3057c01327b58579160":[11,0,1,3,49,34],
+"classyaze_1_1emu_1_1MockMemory.html#a0d4dd84479c3a3057c01327b58579160":[12,0,0,3,47,34],
+"classyaze_1_1emu_1_1MockMemory.html#a0efcfcfc9e0a012ca82bd71a68729648":[11,0,1,3,49,27]
 };

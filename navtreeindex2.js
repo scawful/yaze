@@ -1,13 +1,5 @@
 var NAVTREEINDEX2 =
 {
-"classyaze_1_1core_1_1Controller.html#a2ba347d9eb4f1efb9b7d2fd2578610b5":[12,0,0,1,0,11],
-"classyaze_1_1core_1_1Controller.html#a3b8d4516aea70ac4d233d56a8b9ade4b":[11,0,1,1,2,13],
-"classyaze_1_1core_1_1Controller.html#a3b8d4516aea70ac4d233d56a8b9ade4b":[12,0,0,1,0,13],
-"classyaze_1_1core_1_1Controller.html#a4a8fb48e64d18f18c821c13f0a23666e":[11,0,1,1,2,0],
-"classyaze_1_1core_1_1Controller.html#a4a8fb48e64d18f18c821c13f0a23666e":[12,0,0,1,0,0],
-"classyaze_1_1core_1_1Controller.html#a4da513a611336bcfc09e4c40119c362b":[11,0,1,1,2,3],
-"classyaze_1_1core_1_1Controller.html#a4da513a611336bcfc09e4c40119c362b":[12,0,0,1,0,3],
-"classyaze_1_1core_1_1Controller.html#a59c8536a4fbea03fa15ce96ab89d88cc":[11,0,1,1,2,18],
 "classyaze_1_1core_1_1Controller.html#a59c8536a4fbea03fa15ce96ab89d88cc":[12,0,0,1,0,18],
 "classyaze_1_1core_1_1Controller.html#a884d01a0316ab1c649a46688e68baeee":[11,0,1,1,2,2],
 "classyaze_1_1core_1_1Controller.html#a884d01a0316ab1c649a46688e68baeee":[12,0,0,1,0,2],
@@ -249,5 +241,13 @@ var NAVTREEINDEX2 =
 "classyaze_1_1editor_1_1DungeonEditor.html#a5de723ee65db47a365cde68bd8718e78":[12,0,0,2,5,42],
 "classyaze_1_1editor_1_1DungeonEditor.html#a65773d17054ce554496a31000cc3faa2":[11,0,1,2,11,41],
 "classyaze_1_1editor_1_1DungeonEditor.html#a65773d17054ce554496a31000cc3faa2":[12,0,0,2,5,41],
-"classyaze_1_1editor_1_1DungeonEditor.html#a698419d8ece1ecb1bf0e51bb1247b83b":[11,0,1,2,11,61]
+"classyaze_1_1editor_1_1DungeonEditor.html#a698419d8ece1ecb1bf0e51bb1247b83b":[11,0,1,2,11,61],
+"classyaze_1_1editor_1_1DungeonEditor.html#a698419d8ece1ecb1bf0e51bb1247b83b":[12,0,0,2,5,61],
+"classyaze_1_1editor_1_1DungeonEditor.html#a6bd3296392d04670b3320b374eb77e5d":[11,0,1,2,11,62],
+"classyaze_1_1editor_1_1DungeonEditor.html#a6bd3296392d04670b3320b374eb77e5d":[12,0,0,2,5,62],
+"classyaze_1_1editor_1_1DungeonEditor.html#a72bd4584fd7124d6d9bbceb158557700":[11,0,1,2,11,31],
+"classyaze_1_1editor_1_1DungeonEditor.html#a72bd4584fd7124d6d9bbceb158557700":[12,0,0,2,5,31],
+"classyaze_1_1editor_1_1DungeonEditor.html#a790e20561541405fc372b70be9104aa0":[11,0,1,2,11,43],
+"classyaze_1_1editor_1_1DungeonEditor.html#a790e20561541405fc372b70be9104aa0":[12,0,0,2,5,43],
+"classyaze_1_1editor_1_1DungeonEditor.html#a7928da2113db72cf65d741a7a6a1fb5a":[11,0,1,2,11,32]
 };

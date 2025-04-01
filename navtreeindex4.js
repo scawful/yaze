@@ -1,13 +1,5 @@
 var NAVTREEINDEX4 =
 {
-"classyaze_1_1editor_1_1ExtensionManager.html#aceda1323591da652d454a06c22c9303d":[12,0,0,2,12,3],
-"classyaze_1_1editor_1_1FileDialogWrapper.html":[11,0,1,2,19],
-"classyaze_1_1editor_1_1FileDialogWrapper.html":[12,0,0,2,13],
-"classyaze_1_1editor_1_1GfxGroupEditor.html":[11,0,1,2,21],
-"classyaze_1_1editor_1_1GfxGroupEditor.html":[12,0,0,2,15],
-"classyaze_1_1editor_1_1GfxGroupEditor.html#a04921f522f9cb698c3f67d2ac6b6b345":[11,0,1,2,21,4],
-"classyaze_1_1editor_1_1GfxGroupEditor.html#a04921f522f9cb698c3f67d2ac6b6b345":[12,0,0,2,15,4],
-"classyaze_1_1editor_1_1GfxGroupEditor.html#a19742215b61d7598ef7ac95494107001":[11,0,1,2,21,7],
 "classyaze_1_1editor_1_1GfxGroupEditor.html#a19742215b61d7598ef7ac95494107001":[12,0,0,2,15,7],
 "classyaze_1_1editor_1_1GfxGroupEditor.html#a1df34b64589a8c02487aa0f6c76e19e9":[11,0,1,2,21,8],
 "classyaze_1_1editor_1_1GfxGroupEditor.html#a1df34b64589a8c02487aa0f6c76e19e9":[12,0,0,2,15,8],
@@ -249,5 +241,13 @@ var NAVTREEINDEX4 =
 "classyaze_1_1editor_1_1GraphicsEditor.html#af4fee9576030a88c1e2b467e1eb6b6a9":[12,0,0,2,16,25],
 "classyaze_1_1editor_1_1GraphicsEditor.html#af7dbc2fafbb6cd9fe38d7b0f51ca0f0e":[11,0,1,2,22,91],
 "classyaze_1_1editor_1_1GraphicsEditor.html#af7dbc2fafbb6cd9fe38d7b0f51ca0f0e":[12,0,0,2,16,91],
-"classyaze_1_1editor_1_1GraphicsEditor.html#af7f03c0070650c31c8339de87cb29fa2":[11,0,1,2,22,78]
+"classyaze_1_1editor_1_1GraphicsEditor.html#af7f03c0070650c31c8339de87cb29fa2":[11,0,1,2,22,78],
+"classyaze_1_1editor_1_1GraphicsEditor.html#af7f03c0070650c31c8339de87cb29fa2":[12,0,0,2,16,78],
+"classyaze_1_1editor_1_1GraphicsEditor.html#af92f09e87b0331386b4257572993ed79":[11,0,1,2,22,105],
+"classyaze_1_1editor_1_1GraphicsEditor.html#af92f09e87b0331386b4257572993ed79":[12,0,0,2,16,105],
+"classyaze_1_1editor_1_1GraphicsEditor.html#afbdc42d4f3bfd69646e73b44b13bcc12":[11,0,1,2,22,69],
+"classyaze_1_1editor_1_1GraphicsEditor.html#afbdc42d4f3bfd69646e73b44b13bcc12":[12,0,0,2,16,69],
+"classyaze_1_1editor_1_1GraphicsEditor.html#afdd92e4b7330a4b9013502a0e7a26cce":[11,0,1,2,22,59],
+"classyaze_1_1editor_1_1GraphicsEditor.html#afdd92e4b7330a4b9013502a0e7a26cce":[12,0,0,2,16,59],
+"classyaze_1_1editor_1_1HistoryManager.html":[11,0,1,2,23]
 };

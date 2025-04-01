@@ -1,13 +1,5 @@
 var NAVTREEINDEX10 =
 {
-"classyaze_1_1emu_1_1Cpu.html#ac28d253c8960201e66fd272cc976eabb":[12,0,0,3,21,106],
-"classyaze_1_1emu_1_1Cpu.html#ac52076890ab07fc7384358b6a5d0f53b":[11,0,1,3,23,141],
-"classyaze_1_1emu_1_1Cpu.html#ac52076890ab07fc7384358b6a5d0f53b":[12,0,0,3,21,141],
-"classyaze_1_1emu_1_1Cpu.html#ac5b00e20bd0dd22790f07a204fda2954":[11,0,1,3,23,45],
-"classyaze_1_1emu_1_1Cpu.html#ac5b00e20bd0dd22790f07a204fda2954":[12,0,0,3,21,45],
-"classyaze_1_1emu_1_1Cpu.html#ac6904c8c6b4667bcef9ee86829acab8f":[11,0,1,3,23,161],
-"classyaze_1_1emu_1_1Cpu.html#ac6904c8c6b4667bcef9ee86829acab8f":[12,0,0,3,21,161],
-"classyaze_1_1emu_1_1Cpu.html#ac706e07f6d30a24a3ee86662a1cd432e":[11,0,1,3,23,177],
 "classyaze_1_1emu_1_1Cpu.html#ac706e07f6d30a24a3ee86662a1cd432e":[12,0,0,3,21,177],
 "classyaze_1_1emu_1_1Cpu.html#ac7a781be2cd56fdb27bb1eca09d8bbdc":[11,0,1,3,23,200],
 "classyaze_1_1emu_1_1Cpu.html#ac7a781be2cd56fdb27bb1eca09d8bbdc":[12,0,0,3,21,200],
@@ -249,5 +241,13 @@ var NAVTREEINDEX10 =
 "classyaze_1_1emu_1_1Emulator.html#a8744a05e34c38f5365d8bead60b051b6":[12,0,0,3,27,6],
 "classyaze_1_1emu_1_1Emulator.html#a9548a53ee762f8ae08f6732af5f92cd8":[11,0,1,3,29,11],
 "classyaze_1_1emu_1_1Emulator.html#a9548a53ee762f8ae08f6732af5f92cd8":[12,0,0,3,27,11],
-"classyaze_1_1emu_1_1Emulator.html#a9d42da55a4a6e519e18de44de236f3c2":[11,0,1,3,29,1]
+"classyaze_1_1emu_1_1Emulator.html#a9d42da55a4a6e519e18de44de236f3c2":[11,0,1,3,29,1],
+"classyaze_1_1emu_1_1Emulator.html#a9d42da55a4a6e519e18de44de236f3c2":[12,0,0,3,27,1],
+"classyaze_1_1emu_1_1Emulator.html#aaabb1ccbc8ff73f055fd428bc21a5467":[11,0,1,3,29,18],
+"classyaze_1_1emu_1_1Emulator.html#aaabb1ccbc8ff73f055fd428bc21a5467":[12,0,0,3,27,18],
+"classyaze_1_1emu_1_1Emulator.html#ab2d021138cd2a5e86693e4df419226ba":[11,0,1,3,29,25],
+"classyaze_1_1emu_1_1Emulator.html#ab2d021138cd2a5e86693e4df419226ba":[12,0,0,3,27,25],
+"classyaze_1_1emu_1_1Emulator.html#ab503c0f8f58bb8b7dc0ce77b74868fb8":[11,0,1,3,29,2],
+"classyaze_1_1emu_1_1Emulator.html#ab503c0f8f58bb8b7dc0ce77b74868fb8":[12,0,0,3,27,2],
+"classyaze_1_1emu_1_1Emulator.html#ab5dacd9d0b9b7b55557e2acc48d3f670":[11,0,1,3,29,14]
 };
