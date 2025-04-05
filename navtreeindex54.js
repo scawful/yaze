@@ -1,5 +1,10 @@
 var NAVTREEINDEX54 =
 {
+"structzelda3__dungeon__room.html#a3e4378ef2ad1ec373971935881247a30":[12,0,21,7],
+"structzelda3__dungeon__room.html#abe1933825d1e89747eb0b659498e1225":[12,0,21,6],
+"structzelda3__dungeon__room.html#ac85e6d5d1d8564f9ad5c33f10680615f":[12,0,21,3],
+"structzelda3__dungeon__room.html#ad1310a4a9f02107c85b0e007cda9a924":[12,0,21,1],
+"structzelda3__dungeon__room.html#ade351b10bd951b82be21734ce9dbb2a3":[12,0,21,4],
 "structzelda3__dungeon__room.html#ae5b78c44b478fd46e004550661c76aca":[12,0,21,5],
 "structzelda3__overworld.html":[12,0,22],
 "structzelda3__overworld.html#a0321cc61753220f93beb1ced453d356c":[12,0,22,0],

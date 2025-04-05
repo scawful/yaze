@@ -1,7 +1,5 @@
 var NAVTREEINDEX27 =
 {
-"classyaze_1_1zelda3_1_1TitleScreen.html#ad045e8cf3459f455ee2ab66c93670032":[12,0,0,8,26,8],
-"classyaze_1_1zelda3_1_1TitleScreen.html#ad11ecb022fe8028407980e751708d0ee":[11,0,1,8,30,33],
 "classyaze_1_1zelda3_1_1TitleScreen.html#ad11ecb022fe8028407980e751708d0ee":[12,0,0,8,26,33],
 "classyaze_1_1zelda3_1_1TitleScreen.html#ad3877dfc872593f30ea8f25ed52e1e8b":[11,0,1,8,30,24],
 "classyaze_1_1zelda3_1_1TitleScreen.html#ad3877dfc872593f30ea8f25ed52e1e8b":[12,0,0,8,26,24],
@@ -249,5 +247,7 @@ var NAVTREEINDEX27 =
 "dungeon__map_8cc_source.html":[13,0,2,0,5,3,0],
 "dungeon__map_8h.html":[13,0,2,0,5,3,1],
 "dungeon__map_8h_source.html":[13,0,2,0,5,3,1],
-"dungeon__room__test_8cc.html":[13,0,3,4,0]
+"dungeon__room__test_8cc.html":[13,0,3,4,0],
+"dungeon__room__test_8cc_source.html":[13,0,3,4,0],
+"editor_8h.html":[13,0,2,0,1,8]
 };

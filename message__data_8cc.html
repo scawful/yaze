@@ -113,28 +113,10 @@ $(function(){initNavTree('message__data_8cc.html',''); initResizable(true); });
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="message__data_8h_source.html">message_data.h</a>&quot;</code><br />
+<code>#include &lt;optional&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &quot;<a class="el" href="hex_8h_source.html">util/hex.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="log_8h_source.html">util/log.h</a>&quot;</code><br />
-</div><div class="textblock"><div class="dynheader">
-Include dependency graph for message_data.cc:</div>
-<div class="dyncontent">
-<div class="center"><img src="message__data_8cc__incl.png" border="0" usemap="#asrc_2app_2editor_2message_2message__data_8cc" alt=""/></div>
-<map name="asrc_2app_2editor_2message_2message__data_8cc" id="asrc_2app_2editor_2message_2message__data_8cc">
-<area shape="rect" title=" " alt="" coords="117,5,274,46"/>
-<area shape="rect" href="message__data_8h.html" title=" " alt="" coords="5,94,122,120"/>
-<area shape="poly" title=" " alt="" coords="164,49,98,88,95,83,161,44"/>
-<area shape="rect" title=" " alt="" coords="169,168,222,193"/>
-<area shape="poly" title=" " alt="" coords="194,47,188,81,187,119,192,152,187,153,182,120,183,80,188,46"/>
-<area shape="rect" href="hex_8h.html" title=" " alt="" coords="197,94,269,120"/>
-<area shape="poly" title=" " alt="" coords="207,45,223,78,218,81,202,48"/>
-<area shape="rect" href="log_8h.html" title=" " alt="" coords="293,94,362,120"/>
-<area shape="poly" title=" " alt="" coords="230,44,296,83,293,88,227,49"/>
-<area shape="poly" title=" " alt="" coords="87,118,161,158,159,162,85,123"/>
-<area shape="poly" title=" " alt="" coords="229,121,211,155,206,153,224,119"/>
-<area shape="poly" title=" " alt="" coords="306,123,232,162,230,158,304,118"/>
-</map>
-</div>
 </div>
 <p><a href="message__data_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -151,12 +133,12 @@ Namespaces</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:a03b0a3d0118e4a4e0b4b63532aa03c4c" id="r_a03b0a3d0118e4a4e0b4b63532aa03c4c"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c">yaze::editor::FindMatchingCharacter</a> (char value)</td></tr>
 <tr class="separator:a03b0a3d0118e4a4e0b4b63532aa03c4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5f97797d62d6b1878a3b80aac1be3781" id="r_a5f97797d62d6b1878a3b80aac1be3781"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a5f97797d62d6b1878a3b80aac1be3781">yaze::editor::FindDictionaryEntry</a> (uint8_t value)</td></tr>
-<tr class="separator:a5f97797d62d6b1878a3b80aac1be3781"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae8f8f9d081adc15c016bfda1b2cd1efe" id="r_ae8f8f9d081adc15c016bfda1b2cd1efe"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1editor_1_1TextElement.html">TextElement</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#ae8f8f9d081adc15c016bfda1b2cd1efe">yaze::editor::FindMatchingCommand</a> (uint8_t b)</td></tr>
-<tr class="separator:ae8f8f9d081adc15c016bfda1b2cd1efe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab527313554c1184f4658aefe1f7f055a" id="r_ab527313554c1184f4658aefe1f7f055a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1editor_1_1TextElement.html">TextElement</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#ab527313554c1184f4658aefe1f7f055a">yaze::editor::FindMatchingSpecial</a> (uint8_t value)</td></tr>
-<tr class="separator:ab527313554c1184f4658aefe1f7f055a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af2bcfdac4bd90975500b37f854728a4d" id="r_af2bcfdac4bd90975500b37f854728a4d"><td class="memItemLeft" align="right" valign="top">int8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d">yaze::editor::FindDictionaryEntry</a> (uint8_t value)</td></tr>
+<tr class="separator:af2bcfdac4bd90975500b37f854728a4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aceb6d61973044373dd0f03cfe074b0fe" id="r_aceb6d61973044373dd0f03cfe074b0fe"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="structyaze_1_1editor_1_1TextElement.html">TextElement</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#aceb6d61973044373dd0f03cfe074b0fe">yaze::editor::FindMatchingCommand</a> (uint8_t b)</td></tr>
+<tr class="separator:aceb6d61973044373dd0f03cfe074b0fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a95bb92d26041cf1e3a0b332290bdea54" id="r_a95bb92d26041cf1e3a0b332290bdea54"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="structyaze_1_1editor_1_1TextElement.html">TextElement</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a95bb92d26041cf1e3a0b332290bdea54">yaze::editor::FindMatchingSpecial</a> (uint8_t value)</td></tr>
+<tr class="separator:a95bb92d26041cf1e3a0b332290bdea54"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad840a81ab7030a220a019f79fbbabb6d" id="r_ad840a81ab7030a220a019f79fbbabb6d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1editor_1_1ParsedElement.html">ParsedElement</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#ad840a81ab7030a220a019f79fbbabb6d">yaze::editor::FindMatchingElement</a> (const std::string &amp;str)</td></tr>
 <tr class="separator:ad840a81ab7030a220a019f79fbbabb6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a199dd8e58308137481462885cf847442" id="r_a199dd8e58308137481462885cf847442"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">yaze::editor::ParseTextDataByte</a> (uint8_t value)</td></tr>
@@ -165,6 +147,8 @@ Functions</h2></td></tr>
 <tr class="separator:ab631002fa2510fae663f6347362ba82d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa29017b4244db6fa3e3a6fbcb33142b0" id="r_aa29017b4244db6fa3e3a6fbcb33142b0"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#aa29017b4244db6fa3e3a6fbcb33142b0">yaze::editor::BuildDictionaryEntries</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> *rom)</td></tr>
 <tr class="separator:aa29017b4244db6fa3e3a6fbcb33142b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7075dfdde53bf6bb5ec8a4a5a5123c1f" id="r_a7075dfdde53bf6bb5ec8a4a5a5123c1f"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a7075dfdde53bf6bb5ec8a4a5a5123c1f">yaze::editor::ReplaceAllDictionaryWords</a> (std::string str, std::vector&lt; <a class="el" href="structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> &gt; dictionary)</td></tr>
+<tr class="separator:a7075dfdde53bf6bb5ec8a4a5a5123c1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7f9b61eee2bb838f10efe0d1062c8990" id="r_a7f9b61eee2bb838f10efe0d1062c8990"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="structyaze_1_1editor_1_1MessageData.html">MessageData</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a7f9b61eee2bb838f10efe0d1062c8990">yaze::editor::ParseSingleMessage</a> (const std::vector&lt; uint8_t &gt; &amp;rom_data, int *current_pos)</td></tr>
 <tr class="separator:a7f9b61eee2bb838f10efe0d1062c8990"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a91359909a674306622aa5a533e0c2377" id="r_a91359909a674306622aa5a533e0c2377"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a91359909a674306622aa5a533e0c2377">yaze::editor::ParseMessageData</a> (std::vector&lt; <a class="el" href="structyaze_1_1editor_1_1MessageData.html">MessageData</a> &gt; &amp;message_data, const std::vector&lt; <a class="el" href="structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> &gt; &amp;dictionary_entries)</td></tr>

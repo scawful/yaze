@@ -1,7 +1,5 @@
 var NAVTREEINDEX28 =
 {
-"dungeon__room__test_8cc_source.html":[13,0,3,4,0],
-"editor_8h.html":[13,0,2,0,1,8],
 "editor_8h_source.html":[13,0,2,0,1,8],
 "editor__manager_8cc.html":[13,0,2,0,1,9],
 "editor__manager_8cc_source.html":[13,0,2,0,1,9],
@@ -249,5 +247,7 @@ var NAVTREEINDEX28 =
 "icons_8h.html#a0679d0ea0b40121afb994485cce2ca76":[13,0,2,0,4,5,195],
 "icons_8h.html#a067f691215cc664a66375a01f8aa5b8b":[13,0,2,0,4,5,2094],
 "icons_8h.html#a067fd17a0c0cc1ada6d5b88871787ae2":[13,0,2,0,4,5,540],
-"icons_8h.html#a068077d71999f84a659bc5ce02751fd1":[13,0,2,0,4,5,965]
+"icons_8h.html#a068077d71999f84a659bc5ce02751fd1":[13,0,2,0,4,5,965],
+"icons_8h.html#a06f0a086864b451fe74a7b27ccbca5fc":[13,0,2,0,4,5,1715],
+"icons_8h.html#a06fb58e87e82b9fd6bdfe6a2166c9f97":[13,0,2,0,4,5,1284]
 };

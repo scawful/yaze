@@ -126,74 +126,150 @@ $(function(){initNavTree('message__test_8cc_source.html',''); initResizable(true
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#if defined(__linux__)</span></div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>    GTEST_SKIP();</div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>  }</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>    <a class="code hl_define" href="testing_8h.html#a78b51c162425db9db9990f17fbf61bf1">EXPECT_OK</a>(<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>()-&gt;LoadFromFile(<span class="stringliteral">&quot;zelda3.sfc&quot;</span>));</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>    <a class="code hl_variable" href="classyaze_1_1test_1_1MessageTest.html#a4f5ac26f21093c17b45805abf27c89f8">dictionary_</a> = <a class="code hl_function" href="namespaceyaze_1_1editor.html#aa29017b4244db6fa3e3a6fbcb33142b0">editor::BuildDictionaryEntries</a>(<a class="code hl_function" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>());</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  }</div>
 </div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1MessageTest.html#a238a38bffc7a5d95afda92bba45d38b6">   17</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1test_1_1MessageTest.html#a238a38bffc7a5d95afda92bba45d38b6">TearDown</a>()<span class="keyword"> override </span>{}</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1MessageTest.html#a30c7e97fe3ef199380ce2fd8692ae210">   19</a></span>  <a class="code hl_class" href="classyaze_1_1editor_1_1MessageEditor.html">editor::MessageEditor</a> <a class="code hl_variable" href="classyaze_1_1test_1_1MessageTest.html#a30c7e97fe3ef199380ce2fd8692ae210">message_editor_</a>;</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1MessageTest.html#a4f5ac26f21093c17b45805abf27c89f8">   20</a></span>  std::vector&lt;editor::DictionaryEntry&gt; <a class="code hl_variable" href="classyaze_1_1test_1_1MessageTest.html#a4f5ac26f21093c17b45805abf27c89f8">dictionary_</a>;</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>};</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1MessageTest.html#a238a38bffc7a5d95afda92bba45d38b6">   19</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1test_1_1MessageTest.html#a238a38bffc7a5d95afda92bba45d38b6">TearDown</a>()<span class="keyword"> override </span>{}</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1MessageTest.html#a30c7e97fe3ef199380ce2fd8692ae210">   21</a></span>  <a class="code hl_class" href="classyaze_1_1editor_1_1MessageEditor.html">editor::MessageEditor</a> <a class="code hl_variable" href="classyaze_1_1test_1_1MessageTest.html#a30c7e97fe3ef199380ce2fd8692ae210">message_editor_</a>;</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1MessageTest.html#a4f5ac26f21093c17b45805abf27c89f8">   22</a></span>  std::vector&lt;editor::DictionaryEntry&gt; <a class="code hl_variable" href="classyaze_1_1test_1_1MessageTest.html#a4f5ac26f21093c17b45805abf27c89f8">dictionary_</a>;</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>};</div>
 </div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
-<div class="foldopen" id="foldopen00023" data-start="{" data-end="}">
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a8642f1406f5d6a0d9234949bb13cb861">   23</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, LoadMessagesFromRomOk) {</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  <a class="code hl_define" href="testing_8h.html#a78b51c162425db9db9990f17fbf61bf1">EXPECT_OK</a>(rom()-&gt;LoadFromFile(<span class="stringliteral">&quot;zelda3.sfc&quot;</span>));</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <a class="code hl_define" href="testing_8h.html#a78b51c162425db9db9990f17fbf61bf1">EXPECT_OK</a>(message_editor_.Initialize());</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>}</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
+<div class="foldopen" id="foldopen00025" data-start="{" data-end="}">
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a2ed46ebdb3a4bbcf96e201c813d70453">   25</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseSingleMessage_CommandParsing) {</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  std::vector&lt;uint8_t&gt; mock_data = {0x6A, 0x7F, 0x00};</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  <span class="keywordtype">int</span> pos = 0;</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  <span class="keyword">auto</span> result = <a class="code hl_function" href="namespaceyaze_1_1editor.html#a7f9b61eee2bb838f10efe0d1062c8990">editor::ParseSingleMessage</a>(mock_data, &amp;pos);</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  EXPECT_TRUE(result.ok());</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>  <span class="keyword">const</span> <span class="keyword">auto</span> message_data = result.value();</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>  <span class="comment">// Verify that the command was recognized and parsed</span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  EXPECT_EQ(message_data.ContentsParsed, <span class="stringliteral">&quot;[L]&quot;</span>);</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  EXPECT_EQ(pos, 2);</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>}</div>
 </div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span></div>
-<div class="foldopen" id="foldopen00049" data-start="{" data-end="}">
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a8e4c1a78fac6521bc9104457ffd90b89">   49</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, VerifySingleMessageFromRomOk) {</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  <span class="comment">// TODO - Implement this test</span></div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>}</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
+<div class="foldopen" id="foldopen00038" data-start="{" data-end="}">
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a0fe26efa6fcbc692d5e3fa82bf518d5a">   38</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseSingleMessage_BasicAscii) {</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>  <span class="comment">// A, B, C, terminator</span></div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  std::vector&lt;uint8_t&gt; mock_data = {0x00, 0x01, 0x02, 0x7F, 0x00};</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  <span class="keywordtype">int</span> pos = 0;</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  <span class="keyword">auto</span> result = <a class="code hl_function" href="namespaceyaze_1_1editor.html#a7f9b61eee2bb838f10efe0d1062c8990">editor::ParseSingleMessage</a>(mock_data, &amp;pos);</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  ASSERT_TRUE(result.ok());</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  <span class="keyword">const</span> <span class="keyword">auto</span> message_data = result.value();</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  EXPECT_EQ(pos, 4);  <span class="comment">// consumed all 4 bytes</span></div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  std::vector&lt;editor::MessageData&gt; message_data_vector = {message_data};</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  <span class="keyword">auto</span> parsed = <a class="code hl_function" href="namespaceyaze_1_1editor.html#a91359909a674306622aa5a533e0c2377">editor::ParseMessageData</a>(message_data_vector, dictionary_);</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  EXPECT_THAT(parsed, ::testing::ElementsAre(<span class="stringliteral">&quot;ABC&quot;</span>));</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>}</div>
 </div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> </div>
-<div class="foldopen" id="foldopen00053" data-start="{" data-end="}">
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a2ed46ebdb3a4bbcf96e201c813d70453">   53</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseSingleMessage_CommandParsing) {</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>  std::vector&lt;uint8_t&gt; mock_data = {0x6A, 0x7F, 0x00};</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>  <span class="keywordtype">int</span> pos = 0;</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>  <span class="keyword">auto</span> result = <a class="code hl_function" href="namespaceyaze_1_1editor.html#a7f9b61eee2bb838f10efe0d1062c8990">editor::ParseSingleMessage</a>(mock_data, &amp;pos);</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  EXPECT_TRUE(result.ok());</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>  <span class="keyword">const</span> <span class="keyword">auto</span> message_data = result.value();</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span> </div>
+<div class="foldopen" id="foldopen00054" data-start="{" data-end="}">
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#ad08085947feb6be2f75f9832cb4d1e41">   54</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, FindMatchingCharacter_Success) {</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c">editor::FindMatchingCharacter</a>(<span class="charliteral">&#39;A&#39;</span>), 0x00);</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c">editor::FindMatchingCharacter</a>(<span class="charliteral">&#39;Z&#39;</span>), 0x19);</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c">editor::FindMatchingCharacter</a>(<span class="charliteral">&#39;a&#39;</span>), 0x1A);</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c">editor::FindMatchingCharacter</a>(<span class="charliteral">&#39;z&#39;</span>), 0x33);</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>}</div>
+</div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>  <span class="comment">// Verify that the command was recognized and parsed</span></div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>  EXPECT_EQ(message_data.ContentsParsed, <span class="stringliteral">&quot;[L]&quot;</span>);</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>  EXPECT_EQ(pos, 2);</div>
+<div class="foldopen" id="foldopen00061" data-start="{" data-end="}">
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a6d71d9de972061c7d1161f2fe211f268">   61</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, FindMatchingCharacter_Failure) {</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c">editor::FindMatchingCharacter</a>(<span class="charliteral">&#39;@&#39;</span>), 0xFF);</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c">editor::FindMatchingCharacter</a>(<span class="charliteral">&#39;#&#39;</span>), 0xFF);</div>
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>}</div>
 </div>
 <div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span> </div>
 <div class="foldopen" id="foldopen00066" data-start="{" data-end="}">
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a0fe26efa6fcbc692d5e3fa82bf518d5a">   66</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseSingleMessage_BasicAscii) {</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>  std::vector&lt;uint8_t&gt; mock_data = {0x41, 0x42, 0x43, 0x7F,</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>                                    0x00};  <span class="comment">// A, B, C, terminator</span></div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>  <span class="keywordtype">int</span> pos = 0;</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span> </div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>  <span class="keyword">auto</span> result = <a class="code hl_function" href="namespaceyaze_1_1editor.html#a7f9b61eee2bb838f10efe0d1062c8990">editor::ParseSingleMessage</a>(mock_data, &amp;pos);</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>  ASSERT_TRUE(result.ok());</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  <span class="keyword">const</span> <span class="keyword">auto</span> message_data = result.value();</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  EXPECT_EQ(message_data.RawString, <span class="stringliteral">&quot;ABC&quot;</span>);</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>  EXPECT_EQ(message_data.ContentsParsed, <span class="stringliteral">&quot;ABC&quot;</span>);</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>  EXPECT_EQ(pos, 4);  <span class="comment">// consumed all 4 bytes</span></div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>}</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a68342f10b6a597bcc152ef67b3f7c548">   66</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, FindDictionaryEntry_Success) {</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d">editor::FindDictionaryEntry</a>(0x88), 0x00);</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d">editor::FindDictionaryEntry</a>(0x90), 0x08);</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>}</div>
 </div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span> </div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>}  <span class="comment">// namespace test</span></div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span> </div>
+<div class="foldopen" id="foldopen00071" data-start="{" data-end="}">
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a574bb6c2e1acc97ed1b2add19d60d123">   71</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, FindDictionaryEntry_Failure) {</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d">editor::FindDictionaryEntry</a>(0x00), -1);</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d">editor::FindDictionaryEntry</a>(0xFF), -1);</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>}</div>
+</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span> </div>
+<div class="foldopen" id="foldopen00076" data-start="{" data-end="}">
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#aeb84cae388e8a1d7d54b91782553c90e">   76</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseMessageToData_Basic) {</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>  std::string input = <span class="stringliteral">&quot;[L][C:01]ABC&quot;</span>;</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>  <span class="keyword">auto</span> result = <a class="code hl_function" href="namespaceyaze_1_1editor.html#ab631002fa2510fae663f6347362ba82d">editor::ParseMessageToData</a>(input);</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>  std::vector&lt;uint8_t&gt; expected = {0x6A, 0x77, 0x01, 0x00, 0x01, 0x02};</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>  EXPECT_EQ(result, expected);</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>}</div>
+</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span> </div>
+<div class="foldopen" id="foldopen00083" data-start="{" data-end="}">
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a1f1bc159085d062904110f638cb9cc5b">   83</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ReplaceAllDictionaryWords_Success) {</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>  std::vector&lt;editor::DictionaryEntry&gt; mock_dict = {</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    <a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">editor::DictionaryEntry</a>(0x00, <span class="stringliteral">&quot;test&quot;</span>),</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    <a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">editor::DictionaryEntry</a>(0x01, <span class="stringliteral">&quot;message&quot;</span>)</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>  };</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>  std::string input = <span class="stringliteral">&quot;This is a test message.&quot;</span>;</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>  <span class="keyword">auto</span> result = <a class="code hl_function" href="namespaceyaze_1_1editor.html#a7075dfdde53bf6bb5ec8a4a5a5123c1f">editor::ReplaceAllDictionaryWords</a>(input, mock_dict);</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>  EXPECT_EQ(result, <span class="stringliteral">&quot;This is a [D:00] [D:01].&quot;</span>);</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>}</div>
+</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span> </div>
+<div class="foldopen" id="foldopen00093" data-start="{" data-end="}">
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#afa0d4ec9b35ca1be7f5d4fd460f88d76">   93</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ReplaceAllDictionaryWords_NoMatch) {</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>  std::vector&lt;editor::DictionaryEntry&gt; mock_dict = {</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">editor::DictionaryEntry</a>(0x00, <span class="stringliteral">&quot;hello&quot;</span>)</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>  };</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>  std::string input = <span class="stringliteral">&quot;No matching words.&quot;</span>;</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>  <span class="keyword">auto</span> result = <a class="code hl_function" href="namespaceyaze_1_1editor.html#a7075dfdde53bf6bb5ec8a4a5a5123c1f">editor::ReplaceAllDictionaryWords</a>(input, mock_dict);</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>  EXPECT_EQ(result, <span class="stringliteral">&quot;No matching words.&quot;</span>);</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>}</div>
+</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span> </div>
+<div class="foldopen" id="foldopen00102" data-start="{" data-end="}">
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#acd9cda0b3fc7f3f6dcf21822e6e7826d">  102</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseTextDataByte_Success) {</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">editor::ParseTextDataByte</a>(0x00), <span class="stringliteral">&quot;A&quot;</span>);</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">editor::ParseTextDataByte</a>(0x74), <span class="stringliteral">&quot;[1]&quot;</span>);</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">editor::ParseTextDataByte</a>(0x88), <span class="stringliteral">&quot;[D:0]&quot;</span>);</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>}</div>
+</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span> </div>
+<div class="foldopen" id="foldopen00108" data-start="{" data-end="}">
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a4f57f70714745d0f0a6fdc4892ff92a5">  108</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseTextDataByte_Failure) {</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">editor::ParseTextDataByte</a>(0xFF), <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>}</div>
+</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span> </div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>}  <span class="comment">// namespace test</span></div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="ttc" id="aclassyaze_1_1SharedRom_html_a7e5e36ba40d87c0c81b9056bd00beedc"><div class="ttname"><a href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">yaze::SharedRom::rom</a></div><div class="ttdeci">auto rom()</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00381">rom.h:381</a></div></div>
 <div class="ttc" id="aclassyaze_1_1SharedRom_html_ad109cf803983c06ad209360c5ee08101"><div class="ttname"><a href="classyaze_1_1SharedRom.html#ad109cf803983c06ad209360c5ee08101">yaze::SharedRom::SharedRom</a></div><div class="ttdeci">SharedRom()=default</div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html">yaze::editor::MessageEditor</a></div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00036">message_editor.h:36</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1MessageEditor_html"><div class="ttname"><a href="classyaze_1_1editor_1_1MessageEditor.html">yaze::editor::MessageEditor</a></div><div class="ttdef"><b>Definition</b> <a href="message__editor_8h_source.html#l00033">message_editor.h:33</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1MessageTest_html"><div class="ttname"><a href="classyaze_1_1test_1_1MessageTest.html">yaze::test::MessageTest</a></div><div class="ttdef"><b>Definition</b> <a href="#l00010">message_test.cc:10</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1MessageTest_html_a01ef59a4ca7bf6b8b3b28dba1394c471"><div class="ttname"><a href="classyaze_1_1test_1_1MessageTest.html#a01ef59a4ca7bf6b8b3b28dba1394c471">yaze::test::MessageTest::SetUp</a></div><div class="ttdeci">void SetUp() override</div><div class="ttdef"><b>Definition</b> <a href="#l00012">message_test.cc:12</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1MessageTest_html_a238a38bffc7a5d95afda92bba45d38b6"><div class="ttname"><a href="classyaze_1_1test_1_1MessageTest.html#a238a38bffc7a5d95afda92bba45d38b6">yaze::test::MessageTest::TearDown</a></div><div class="ttdeci">void TearDown() override</div><div class="ttdef"><b>Definition</b> <a href="#l00017">message_test.cc:17</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1MessageTest_html_a30c7e97fe3ef199380ce2fd8692ae210"><div class="ttname"><a href="classyaze_1_1test_1_1MessageTest.html#a30c7e97fe3ef199380ce2fd8692ae210">yaze::test::MessageTest::message_editor_</a></div><div class="ttdeci">editor::MessageEditor message_editor_</div><div class="ttdef"><b>Definition</b> <a href="#l00019">message_test.cc:19</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1MessageTest_html_a4f5ac26f21093c17b45805abf27c89f8"><div class="ttname"><a href="classyaze_1_1test_1_1MessageTest.html#a4f5ac26f21093c17b45805abf27c89f8">yaze::test::MessageTest::dictionary_</a></div><div class="ttdeci">std::vector&lt; editor::DictionaryEntry &gt; dictionary_</div><div class="ttdef"><b>Definition</b> <a href="#l00020">message_test.cc:20</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1MessageTest_html_a238a38bffc7a5d95afda92bba45d38b6"><div class="ttname"><a href="classyaze_1_1test_1_1MessageTest.html#a238a38bffc7a5d95afda92bba45d38b6">yaze::test::MessageTest::TearDown</a></div><div class="ttdeci">void TearDown() override</div><div class="ttdef"><b>Definition</b> <a href="#l00019">message_test.cc:19</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1MessageTest_html_a30c7e97fe3ef199380ce2fd8692ae210"><div class="ttname"><a href="classyaze_1_1test_1_1MessageTest.html#a30c7e97fe3ef199380ce2fd8692ae210">yaze::test::MessageTest::message_editor_</a></div><div class="ttdeci">editor::MessageEditor message_editor_</div><div class="ttdef"><b>Definition</b> <a href="#l00021">message_test.cc:21</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1MessageTest_html_a4f5ac26f21093c17b45805abf27c89f8"><div class="ttname"><a href="classyaze_1_1test_1_1MessageTest.html#a4f5ac26f21093c17b45805abf27c89f8">yaze::test::MessageTest::dictionary_</a></div><div class="ttdeci">std::vector&lt; editor::DictionaryEntry &gt; dictionary_</div><div class="ttdef"><b>Definition</b> <a href="#l00022">message_test.cc:22</a></div></div>
 <div class="ttc" id="amessage__data_8h_html"><div class="ttname"><a href="message__data_8h.html">message_data.h</a></div></div>
 <div class="ttc" id="amessage__editor_8h_html"><div class="ttname"><a href="message__editor_8h.html">message_editor.h</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1editor_html_a7f9b61eee2bb838f10efe0d1062c8990"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a7f9b61eee2bb838f10efe0d1062c8990">yaze::editor::ParseSingleMessage</a></div><div class="ttdeci">absl::StatusOr&lt; MessageData &gt; ParseSingleMessage(const std::vector&lt; uint8_t &gt; &amp;rom_data, int *current_pos)</div><div class="ttdef"><b>Definition</b> <a href="message__data_8cc_source.html#l00182">message_data.cc:182</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_a03b0a3d0118e4a4e0b4b63532aa03c4c"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c">yaze::editor::FindMatchingCharacter</a></div><div class="ttdeci">uint8_t FindMatchingCharacter(char value)</div><div class="ttdef"><b>Definition</b> <a href="message__data_8cc_source.html#l00012">message_data.cc:12</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_a199dd8e58308137481462885cf847442"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">yaze::editor::ParseTextDataByte</a></div><div class="ttdeci">std::string ParseTextDataByte(uint8_t value)</div><div class="ttdef"><b>Definition</b> <a href="message__data_8cc_source.html#l00073">message_data.cc:73</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_a7075dfdde53bf6bb5ec8a4a5a5123c1f"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a7075dfdde53bf6bb5ec8a4a5a5123c1f">yaze::editor::ReplaceAllDictionaryWords</a></div><div class="ttdeci">std::string ReplaceAllDictionaryWords(std::string str, std::vector&lt; DictionaryEntry &gt; dictionary)</div><div class="ttdef"><b>Definition</b> <a href="message__data_8cc_source.html#l00181">message_data.cc:181</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_a7f9b61eee2bb838f10efe0d1062c8990"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a7f9b61eee2bb838f10efe0d1062c8990">yaze::editor::ParseSingleMessage</a></div><div class="ttdeci">absl::StatusOr&lt; MessageData &gt; ParseSingleMessage(const std::vector&lt; uint8_t &gt; &amp;rom_data, int *current_pos)</div><div class="ttdef"><b>Definition</b> <a href="message__data_8cc_source.html#l00192">message_data.cc:192</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_a91359909a674306622aa5a533e0c2377"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a91359909a674306622aa5a533e0c2377">yaze::editor::ParseMessageData</a></div><div class="ttdeci">std::vector&lt; std::string &gt; ParseMessageData(std::vector&lt; MessageData &gt; &amp;message_data, const std::vector&lt; DictionaryEntry &gt; &amp;dictionary_entries)</div><div class="ttdef"><b>Definition</b> <a href="message__data_8cc_source.html#l00272">message_data.cc:272</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_aa29017b4244db6fa3e3a6fbcb33142b0"><div class="ttname"><a href="namespaceyaze_1_1editor.html#aa29017b4244db6fa3e3a6fbcb33142b0">yaze::editor::BuildDictionaryEntries</a></div><div class="ttdeci">std::vector&lt; DictionaryEntry &gt; BuildDictionaryEntries(Rom *rom)</div><div class="ttdef"><b>Definition</b> <a href="message__data_8cc_source.html#l00149">message_data.cc:149</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_ab631002fa2510fae663f6347362ba82d"><div class="ttname"><a href="namespaceyaze_1_1editor.html#ab631002fa2510fae663f6347362ba82d">yaze::editor::ParseMessageToData</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; ParseMessageToData(std::string str)</div><div class="ttdef"><b>Definition</b> <a href="message__data_8cc_source.html#l00102">message_data.cc:102</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_af2bcfdac4bd90975500b37f854728a4d"><div class="ttname"><a href="namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d">yaze::editor::FindDictionaryEntry</a></div><div class="ttdeci">int8_t FindDictionaryEntry(uint8_t value)</div><div class="ttdef"><b>Definition</b> <a href="message__data_8cc_source.html#l00021">message_data.cc:21</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1test_html"><div class="ttname"><a href="namespaceyaze_1_1test.html">yaze::test</a></div><div class="ttdef"><b>Definition</b> <a href="cpu__test_8cc_source.html#l00011">cpu_test.cc:11</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1test_html_a17ff38f6a0d5d4b21e1776fff896ee07"><div class="ttname"><a href="namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07">yaze::test::TEST_F</a></div><div class="ttdeci">TEST_F(CpuTest, AsmParserTokenizerOk)</div><div class="ttdef"><b>Definition</b> <a href="cpu__test_8cc_source.html#l00044">cpu_test.cc:44</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="controller_8cc_source.html#l00018">controller.cc:18</a></div></div>
+<div class="ttc" id="astructyaze_1_1editor_1_1DictionaryEntry_html"><div class="ttname"><a href="structyaze_1_1editor_1_1DictionaryEntry.html">yaze::editor::DictionaryEntry</a></div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00045">message_data.h:45</a></div></div>
 <div class="ttc" id="atesting_8h_html"><div class="ttname"><a href="testing_8h.html">testing.h</a></div></div>
 <div class="ttc" id="atesting_8h_html_a78b51c162425db9db9990f17fbf61bf1"><div class="ttname"><a href="testing_8h.html#a78b51c162425db9db9990f17fbf61bf1">EXPECT_OK</a></div><div class="ttdeci">#define EXPECT_OK(expr)</div><div class="ttdef"><b>Definition</b> <a href="testing_8h_source.html#l00010">testing.h:10</a></div></div>
 </div><!-- fragment --></div><!-- contents -->

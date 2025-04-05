@@ -1,5 +1,10 @@
 var NAVTREEINDEX44 =
 {
+"namespaceyaze_1_1zelda3.html#ac507bdbc1fe4503baebb7c8d6fcc0d55":[11,0,1,8,40],
+"namespaceyaze_1_1zelda3.html#ac59d53b2b92ad62d5b31c8f573665dde":[11,0,1,8,259],
+"namespaceyaze_1_1zelda3.html#ac7a625fa7deb8db0d9fcddb77ff13cd6":[11,0,1,8,177],
+"namespaceyaze_1_1zelda3.html#ac90508fc1717a623e930c68776f43080":[11,0,1,8,88],
+"namespaceyaze_1_1zelda3.html#aca2ddf66c6a403ee202b1d5390b3b6b2":[11,0,1,8,100],
 "namespaceyaze_1_1zelda3.html#aca63e600c9d70992849bc376f7502c93":[11,0,1,8,109],
 "namespaceyaze_1_1zelda3.html#acbd549e1691fc9f4bcef8d4b2970507a":[11,0,1,8,66],
 "namespaceyaze_1_1zelda3.html#acd37ce49857c19fa6b48645d6c96f35c":[11,0,1,8,127],
@@ -244,10 +249,5 @@ var NAVTREEINDEX44 =
 "structTextEditor_1_1Glyph.html#a309580f2aae4914aa423e1d4b901d652":[12,0,16,3,2],
 "structTextEditor_1_1Glyph.html#a7545cbd5cdcca8a4d73fd2218af20019":[12,0,16,3,1],
 "structTextEditor_1_1Glyph.html#a8574ee4841bfd39fc688d72c999d9be7":[12,0,16,3,0],
-"structTextEditor_1_1Glyph.html#ac73459bb7dd69fa94409b5bd7009f5fc":[12,0,16,3,4],
-"structTextEditor_1_1Identifier.html":[12,0,16,4],
-"structTextEditor_1_1Identifier.html#ae3be0995cbd2d21feeb354e722861b4a":[12,0,16,4,1],
-"structTextEditor_1_1Identifier.html#afbad4ba28dc97b44cd3347b9ca87d59b":[12,0,16,4,0],
-"structTextEditor_1_1LanguageDefinition.html":[12,0,16,5],
-"structTextEditor_1_1LanguageDefinition.html#a2854052aa0b3b789c128895538e0bbe2":[12,0,16,5,4]
+"structTextEditor_1_1Glyph.html#ac73459bb7dd69fa94409b5bd7009f5fc":[12,0,16,3,4]
 };
