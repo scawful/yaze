@@ -1,6 +1,5 @@
 var NAVTREEINDEX38 =
 {
-"md_docs_2roadmap.html#autotoc_md63":[6,7],
 "md_docs_2roadmap.html#autotoc_md64":[6,8],
 "memory_8cc.html":[13,0,2,0,2,2,3],
 "memory_8cc_source.html":[13,0,2,0,2,2,3],
@@ -249,5 +248,6 @@ var NAVTREEINDEX38 =
 "namespaceyaze_1_1editor.html#a7da8c45c704303a76331eaade35bc5da":[11,0,1,2,96],
 "namespaceyaze_1_1editor.html#a7f9b61eee2bb838f10efe0d1062c8990":[11,0,1,2,54],
 "namespaceyaze_1_1editor.html#a815cc68b2b87aa2099008bfddf7fb4bb":[11,0,1,2,74],
-"namespaceyaze_1_1editor.html#a82a8956476ffc04750bcfc4120c8b8db":[11,0,1,2,44]
+"namespaceyaze_1_1editor.html#a82a8956476ffc04750bcfc4120c8b8db":[11,0,1,2,44],
+"namespaceyaze_1_1editor.html#a82de970f565b75a73af6fa1d76315dac":[11,0,1,2,143]
 };

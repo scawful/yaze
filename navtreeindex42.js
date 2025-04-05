@@ -1,6 +1,5 @@
 var NAVTREEINDEX42 =
 {
-"namespaceyaze_1_1test.html#a9209f54cdabefe0f4ac4f07d9f6a9a85":[11,0,1,6,205],
 "namespaceyaze_1_1test.html#a939a59cc85fbb2be01b5b40101164169":[11,0,1,6,114],
 "namespaceyaze_1_1test.html#a942a13590f7efa52c684b7bd8a56dd2a":[11,0,1,6,378],
 "namespaceyaze_1_1test.html#a949528132c60424315a72e9ba6cc392b":[11,0,1,6,61],
@@ -180,8 +179,6 @@ var NAVTREEINDEX42 =
 "namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#aea2a498a83c2d824402e1632a4c0c14b":[11,0,1,6,0,1],
 "namespaceyaze_1_1test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html":[11,0,1,6,1],
 "namespaceyaze_1_1test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html#a0492926f27e09c79e929ad1165ae19a5":[11,0,1,6,1,0],
-"namespaceyaze_1_1test_1_1integration.html":[11,0,1,6,2],
-"namespaceyaze_1_1test_1_1integration.html#a5a0d488d0d7c641874f7b8664f5f60d3":[11,0,1,6,2,1],
 "namespaceyaze_1_1util.html":[11,0,1,7],
 "namespaceyaze_1_1util.html#a27c80ad6b675be3cbc3da03416081454":[11,0,1,7,12],
 "namespaceyaze_1_1util.html#a3eadcc44d8287dad5ea9d6dbd25bd44d":[11,0,1,7,8],
@@ -249,5 +246,8 @@ var NAVTREEINDEX42 =
 "namespaceyaze_1_1zelda3.html#a310aac1b2a03f577a12376b08d0075d6":[11,0,1,8,218],
 "namespaceyaze_1_1zelda3.html#a31e5c4ca32c0fb45812b92ea7252540e":[11,0,1,8,227],
 "namespaceyaze_1_1zelda3.html#a32034d01997570c97d5769b7b3c1e1d3":[11,0,1,8,84],
-"namespaceyaze_1_1zelda3.html#a3525b295e69baf4924b5c091853ae01b":[11,0,1,8,262]
+"namespaceyaze_1_1zelda3.html#a3525b295e69baf4924b5c091853ae01b":[11,0,1,8,262],
+"namespaceyaze_1_1zelda3.html#a367cb50c76df42b3ac6350e00800e31c":[11,0,1,8,286],
+"namespaceyaze_1_1zelda3.html#a377a454109e3d95614691ba3ad4d77af":[11,0,1,8,75],
+"namespaceyaze_1_1zelda3.html#a38b6b9e34f1c2e1b34b1a324829875f4":[11,0,1,8,89]
 };

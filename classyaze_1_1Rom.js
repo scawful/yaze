@@ -31,7 +31,6 @@ var classyaze_1_1Rom =
     [ "begin", "classyaze_1_1Rom.html#a19913f4fd3c3cec9cd9d81794e53fa8d", null ],
     [ "end", "classyaze_1_1Rom.html#a3bb9d5c0738e212354b766df6d652b50", null ],
     [ "vector", "classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba", null ],
-    [ "version", "classyaze_1_1Rom.html#a48f55ef3ea71d1982c2e8d8ae04d90d1", null ],
     [ "filename", "classyaze_1_1Rom.html#a35886abe051b67913a804e4cbfdc4207", null ],
     [ "set_filename", "classyaze_1_1Rom.html#a7f4dfb964c1c36ffb9ace5b4f5838524", null ],
     [ "graphics_buffer", "classyaze_1_1Rom.html#a29d16ebe60373eea971fb9f0379217b9", null ],

@@ -12,7 +12,6 @@ var namespaceyaze_1_1test =
     [ "anonymous_namespace{snes_palette_test.cc}", "namespaceyaze_1_1test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html", [
       [ "test_convert", "namespaceyaze_1_1test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html#a0492926f27e09c79e929ad1165ae19a5", null ]
     ] ],
-    [ "integration", "namespaceyaze_1_1test_1_1integration.html", "namespaceyaze_1_1test_1_1integration" ],
     [ "ApuCallbacks", "structyaze_1_1test_1_1ApuCallbacks.html", "structyaze_1_1test_1_1ApuCallbacks" ],
     [ "AsmParser", "classyaze_1_1test_1_1AsmParser.html", "classyaze_1_1test_1_1AsmParser" ],
     [ "AudioRam", "classyaze_1_1test_1_1AudioRam.html", "classyaze_1_1test_1_1AudioRam" ],
@@ -36,6 +35,7 @@ var namespaceyaze_1_1test =
     [ "Spc700Test", "classyaze_1_1test_1_1Spc700Test.html", "classyaze_1_1test_1_1Spc700Test" ],
     [ "SpriteAttributes", "structyaze_1_1test_1_1SpriteAttributes.html", "structyaze_1_1test_1_1SpriteAttributes" ],
     [ "SpriteBuilderTest", "classyaze_1_1test_1_1SpriteBuilderTest.html", "classyaze_1_1test_1_1SpriteBuilderTest" ],
+    [ "TestEditor", "classyaze_1_1test_1_1TestEditor.html", "classyaze_1_1test_1_1TestEditor" ],
     [ "Tilemap", "structyaze_1_1test_1_1Tilemap.html", "structyaze_1_1test_1_1Tilemap" ],
     [ "BackgroundMode", "namespaceyaze_1_1test.html#a5447aec0bc02ba1ff714b6c4c8df382b", null ],
     [ "TEST_F", "namespaceyaze_1_1test.html#a17ff38f6a0d5d4b21e1776fff896ee07", null ],

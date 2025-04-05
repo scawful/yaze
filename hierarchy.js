@@ -95,7 +95,7 @@ var hierarchy =
       [ "yaze::editor::ScreenEditor", "classyaze_1_1editor_1_1ScreenEditor.html", null ],
       [ "yaze::editor::SettingsEditor", "classyaze_1_1editor_1_1SettingsEditor.html", null ],
       [ "yaze::editor::SpriteEditor", "classyaze_1_1editor_1_1SpriteEditor.html", null ],
-      [ "yaze::test::integration::TestEditor", "classyaze_1_1test_1_1integration_1_1TestEditor.html", null ]
+      [ "yaze::test::TestEditor", "classyaze_1_1test_1_1TestEditor.html", null ]
     ] ],
     [ "yaze::editor::EditorContext", "structyaze_1_1editor_1_1EditorContext.html", null ],
     [ "TextEditor::EditorState", "structTextEditor_1_1EditorState.html", null ],

@@ -96,7 +96,7 @@ var searchData=
   ['all_5fdictionaries_5f_93',['all_dictionaries_',['../classyaze_1_1editor_1_1MessageEditor.html#ae8b5601a7b7f0e20149e99bc5056a161',1,'yaze::editor::MessageEditor']]],
   ['all_5fentrances_5f_94',['all_entrances_',['../classyaze_1_1zelda3_1_1Overworld.html#a33b58f0fcecbcfd47dae3203fcfade96',1,'yaze::zelda3::Overworld']]],
   ['all_5fexits_5f_95',['all_exits_',['../classyaze_1_1zelda3_1_1Overworld.html#ad9d11e7111c3df9b2da770c93749ce61',1,'yaze::zelda3::Overworld']]],
-  ['all_5fgfx_5f_96',['all_gfx_',['../classyaze_1_1editor_1_1ScreenEditor.html#ac5200b62dd5d5c7c523d14af3c8ae3a3',1,'yaze::editor::ScreenEditor::all_gfx_'],['../classyaze_1_1zelda3_1_1OverworldMap.html#a4aa26c06de07b338e3ada76abfc69ccb',1,'yaze::zelda3::OverworldMap::all_gfx_']]],
+  ['all_5fgfx_5f_96',['all_gfx_',['../classyaze_1_1editor_1_1ScreenEditor.html#ac5200b62dd5d5c7c523d14af3c8ae3a3',1,'yaze::editor::ScreenEditor']]],
   ['all_5fgfx_5fbmp_97',['all_gfx_bmp',['../classyaze_1_1editor_1_1OverworldEditor.html#a230fcc1c4b6c563fac42b0093f2ba920',1,'yaze::editor::OverworldEditor']]],
   ['all_5fgfx_5floaded_5f_98',['all_gfx_loaded_',['../classyaze_1_1editor_1_1OverworldEditor.html#abfea496728f62ecb07ecdbf06524e3b2',1,'yaze::editor::OverworldEditor']]],
   ['all_5fholes_5f_99',['all_holes_',['../classyaze_1_1zelda3_1_1Overworld.html#af5e22b0d28e94857306d433ec807badf',1,'yaze::zelda3::Overworld']]],

@@ -1,7 +1,7 @@
 var searchData=
 [
   ['table_0',['Table',['../structyaze_1_1gui_1_1Table.html',1,'yaze::gui']]],
-  ['testeditor_1',['TestEditor',['../classyaze_1_1test_1_1integration_1_1TestEditor.html',1,'yaze::test::integration']]],
+  ['testeditor_1',['TestEditor',['../classyaze_1_1test_1_1TestEditor.html',1,'yaze::test']]],
   ['textbox_2',['TextBox',['../structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html',1,'yaze::editor::MessageEditor']]],
   ['texteditor_3',['TextEditor',['../classTextEditor.html',1,'']]],
   ['textelement_4',['TextElement',['../structyaze_1_1editor_1_1TextElement.html',1,'yaze::editor']]],

@@ -124,7 +124,7 @@ Style Guide</h1>
 <p>Assembly code should follow the <a class="el" href="md_docs_2asm-style-guide.html">65816 Style Guide</a>.</p>
 <h1><a class="anchor" id="autotoc_md35"></a>
 Testing Facilities</h1>
-<p>The project includes the <code>yaze_test</code> target which defines unit tests and an integration test window. The unit tests make use of GoogleTest and GoogleMock. The integration test window is an <a class="el" href="namespaceImGui.html">ImGui</a> window build out of the <a class="el" href="classyaze_1_1core_1_1Controller.html" title="Main controller for the application.">yaze::core::Controller</a> and <a class="el" href="classyaze_1_1test_1_1integration_1_1TestEditor.html">yaze::test::integration::TestEditor</a>. The integration test window can be accessed by passing the argument <code>integration</code> to the target.</p>
+<p>The project includes the <code>yaze_test</code> target which defines unit tests and an integration test window. The unit tests make use of GoogleTest and GoogleMock. The integration test window is an <a class="el" href="namespaceImGui.html">ImGui</a> window build out of the <a class="el" href="classyaze_1_1core_1_1Controller.html" title="Main controller for the application.">yaze::core::Controller</a> and yaze::test::integration::TestEditor. The integration test window can be accessed by passing the argument <code>integration</code> to the target.</p>
 <p>New modules should define unit tests in the <code>src/test</code> directory and integration tests in the <code>src/test/integration</code> directory. The <code>yaze_test</code> target will automatically include all tests in these directories.</p>
 <h1><a class="anchor" id="autotoc_md36"></a>
 Key Areas of Contribution</h1>

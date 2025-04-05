@@ -120,47 +120,46 @@ $(function(){initNavTree('main_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span></div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="keyword">using namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a>;</div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="main_8cc.html#a59844154a2e40b989e7dc80afcdd6e10">   16</a></span><a class="code hl_function" href="main_8cc.html#a59844154a2e40b989e7dc80afcdd6e10">DECLARE_FLAG</a>(std::string, rom_file);</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="main_8cc.html#a1519586100621dde15a2ce66a033b176">   17</a></span><a class="code hl_define" href="flag_8h.html#ad1de0365ec903537745131d8fc935e59">DEFINE_FLAG</a>(std::string, rom_file, <span class="stringliteral">&quot;&quot;</span>, <span class="stringliteral">&quot;The ROM file to load.&quot;</span>);</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
-<div class="foldopen" id="foldopen00019" data-start="{" data-end="}">
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="main_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627">   19</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="main_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a>(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span>** argv) {</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  absl::InitializeSymbolizer(argv[0]);</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  absl::FailureSignalHandlerOptions options;</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  options.symbolize_stacktrace = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  options.use_alternate_stack = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  options.alarm_on_failure_secs = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  options.call_previous_handler = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  absl::InstallFailureSignalHandler(options);</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  <a class="code hl_class" href="classyaze_1_1util_1_1FlagParser.html">yaze::util::FlagParser</a> parser(<a class="code hl_function" href="namespaceyaze_1_1util.html#a60afeb1f1afc9e19c61b64749a219577">yaze::util::global_flag_registry</a>());</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  <a class="code hl_define" href="macro_8h.html#a7c9a94f98921a34151985779cfb8f64a">RETURN_IF_EXCEPTION</a>(parser.<a class="code hl_function" href="classyaze_1_1util_1_1FlagParser.html#aa5d5b0f51665afbb0d6bf9e41859b051">Parse</a>(argc, argv));</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  std::string rom_filename = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="keywordflow">if</span> (!FLAGS_rom_file-&gt;Get().empty()) {</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    rom_filename = FLAGS_rom_file-&gt;Get();</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  }</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="preprocessor">#ifdef __APPLE__</span></div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  <span class="keywordflow">return</span> yaze_run_cocoa_app_delegate(rom_filename.c_str());</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="preprocessor">#elif defined(_WIN32)</span></div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <span class="comment">// We set SDL_MAIN_HANDLED for Win32 to avoid SDL hijacking main()</span></div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  SDL_SetMainReady();</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  <span class="keyword">auto</span> controller = std::make_unique&lt;core::Controller&gt;();</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  <a class="code hl_define" href="macro_8h.html#adf4d2e200654d8260cc2244953f64247">EXIT_IF_ERROR</a>(controller-&gt;OnEntry(rom_filename))</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  <span class="keywordflow">while</span> (controller-&gt;IsActive()) {</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    controller-&gt;OnInput();</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <span class="keywordflow">if</span> (<span class="keyword">auto</span> status = controller-&gt;OnLoad(); !status.ok()) {</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>      std::cerr &lt;&lt; status.message() &lt;&lt; std::endl;</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    }</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    controller-&gt;DoRender();</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  }</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  controller-&gt;OnExit();</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span> </div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>  <span class="keywordflow">return</span> EXIT_SUCCESS;</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>}</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="main_8cc.html#a1519586100621dde15a2ce66a033b176">   16</a></span><a class="code hl_define" href="flag_8h.html#ad1de0365ec903537745131d8fc935e59">DEFINE_FLAG</a>(std::string, rom_file, <span class="stringliteral">&quot;&quot;</span>, <span class="stringliteral">&quot;The ROM file to load.&quot;</span>);</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
+<div class="foldopen" id="foldopen00018" data-start="{" data-end="}">
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno"><a class="line" href="main_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627">   18</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="main_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a>(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span>** argv) {</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  absl::InitializeSymbolizer(argv[0]);</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  absl::FailureSignalHandlerOptions options;</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  options.symbolize_stacktrace = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  options.use_alternate_stack = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  options.alarm_on_failure_secs = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  options.call_previous_handler = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  absl::InstallFailureSignalHandler(options);</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  <a class="code hl_class" href="classyaze_1_1util_1_1FlagParser.html">yaze::util::FlagParser</a> parser(<a class="code hl_function" href="namespaceyaze_1_1util.html#a60afeb1f1afc9e19c61b64749a219577">yaze::util::global_flag_registry</a>());</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  <a class="code hl_define" href="macro_8h.html#a7c9a94f98921a34151985779cfb8f64a">RETURN_IF_EXCEPTION</a>(parser.<a class="code hl_function" href="classyaze_1_1util_1_1FlagParser.html#aa5d5b0f51665afbb0d6bf9e41859b051">Parse</a>(argc, argv));</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  std::string rom_filename = <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  <span class="keywordflow">if</span> (!FLAGS_rom_file-&gt;Get().empty()) {</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    rom_filename = FLAGS_rom_file-&gt;Get();</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>  }</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="preprocessor">#ifdef __APPLE__</span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  <span class="keywordflow">return</span> yaze_run_cocoa_app_delegate(rom_filename.c_str());</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="preprocessor">#elif defined(_WIN32)</span></div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  <span class="comment">// We set SDL_MAIN_HANDLED for Win32 to avoid SDL hijacking main()</span></div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  SDL_SetMainReady();</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <span class="keyword">auto</span> controller = std::make_unique&lt;core::Controller&gt;();</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  <a class="code hl_define" href="macro_8h.html#adf4d2e200654d8260cc2244953f64247">EXIT_IF_ERROR</a>(controller-&gt;OnEntry(rom_filename))</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  <span class="keywordflow">while</span> (controller-&gt;IsActive()) {</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    controller-&gt;OnInput();</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    <span class="keywordflow">if</span> (<span class="keyword">auto</span> status = controller-&gt;OnLoad(); !status.ok()) {</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>      std::cerr &lt;&lt; status.message() &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>      <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    }</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    controller-&gt;DoRender();</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  }</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  controller-&gt;OnExit();</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> </div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>  <span class="keywordflow">return</span> EXIT_SUCCESS;</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>}</div>
 </div>
 <div class="ttc" id="aapp__delegate_8h_html"><div class="ttname"><a href="app__delegate_8h.html">app_delegate.h</a></div></div>
 <div class="ttc" id="aclassyaze_1_1util_1_1FlagParser_html"><div class="ttname"><a href="classyaze_1_1util_1_1FlagParser.html">yaze::util::FlagParser</a></div><div class="ttdef"><b>Definition</b> <a href="flag_8h_source.html#l00114">flag.h:114</a></div></div>
@@ -170,8 +169,7 @@ $(function(){initNavTree('main_8cc_source.html',''); initResizable(true); });
 <div class="ttc" id="aflag_8h_html_ad1de0365ec903537745131d8fc935e59"><div class="ttname"><a href="flag_8h.html#ad1de0365ec903537745131d8fc935e59">DEFINE_FLAG</a></div><div class="ttdeci">#define DEFINE_FLAG(type, name, default_val, help_text)</div><div class="ttdef"><b>Definition</b> <a href="flag_8h_source.html#l00106">flag.h:106</a></div></div>
 <div class="ttc" id="amacro_8h_html_a7c9a94f98921a34151985779cfb8f64a"><div class="ttname"><a href="macro_8h.html#a7c9a94f98921a34151985779cfb8f64a">RETURN_IF_EXCEPTION</a></div><div class="ttdeci">#define RETURN_IF_EXCEPTION(expression)</div><div class="ttdef"><b>Definition</b> <a href="macro_8h_source.html#l00101">macro.h:101</a></div></div>
 <div class="ttc" id="amacro_8h_html_adf4d2e200654d8260cc2244953f64247"><div class="ttname"><a href="macro_8h.html#adf4d2e200654d8260cc2244953f64247">EXIT_IF_ERROR</a></div><div class="ttdeci">#define EXIT_IF_ERROR(expression)</div><div class="ttdef"><b>Definition</b> <a href="macro_8h_source.html#l00033">macro.h:33</a></div></div>
-<div class="ttc" id="amain_8cc_html_a3c04138a5bfe5d72780bb7e82a18e627"><div class="ttname"><a href="main_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a></div><div class="ttdeci">int main(int argc, char **argv)</div><div class="ttdef"><b>Definition</b> <a href="#l00019">main.cc:19</a></div></div>
-<div class="ttc" id="amain_8cc_html_a59844154a2e40b989e7dc80afcdd6e10"><div class="ttname"><a href="main_8cc.html#a59844154a2e40b989e7dc80afcdd6e10">DECLARE_FLAG</a></div><div class="ttdeci">DECLARE_FLAG(std::string, rom_file)</div></div>
+<div class="ttc" id="amain_8cc_html_a3c04138a5bfe5d72780bb7e82a18e627"><div class="ttname"><a href="main_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a></div><div class="ttdeci">int main(int argc, char **argv)</div><div class="ttdef"><b>Definition</b> <a href="#l00018">main.cc:18</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1util_html_a60afeb1f1afc9e19c61b64749a219577"><div class="ttname"><a href="namespaceyaze_1_1util.html#a60afeb1f1afc9e19c61b64749a219577">yaze::util::global_flag_registry</a></div><div class="ttdeci">FlagRegistry * global_flag_registry()</div><div class="ttdef"><b>Definition</b> <a href="flag_8h_source.html#l00099">flag.h:99</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="controller_8cc_source.html#l00018">controller.cc:18</a></div></div>
 </div><!-- fragment --></div><!-- contents -->

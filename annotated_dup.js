@@ -232,9 +232,6 @@ var annotated_dup =
         [ "UnsortedAsset", "structyaze_1_1gui_1_1UnsortedAsset.html", "structyaze_1_1gui_1_1UnsortedAsset" ]
       ] ],
       [ "test", "namespaceyaze_1_1test.html", [
-        [ "integration", "namespaceyaze_1_1test_1_1integration.html", [
-          [ "TestEditor", "classyaze_1_1test_1_1integration_1_1TestEditor.html", "classyaze_1_1test_1_1integration_1_1TestEditor" ]
-        ] ],
         [ "ApuCallbacks", "structyaze_1_1test_1_1ApuCallbacks.html", "structyaze_1_1test_1_1ApuCallbacks" ],
         [ "AsmParser", "classyaze_1_1test_1_1AsmParser.html", "classyaze_1_1test_1_1AsmParser" ],
         [ "AudioRam", "classyaze_1_1test_1_1AudioRam.html", "classyaze_1_1test_1_1AudioRam" ],
@@ -258,6 +255,7 @@ var annotated_dup =
         [ "Spc700Test", "classyaze_1_1test_1_1Spc700Test.html", "classyaze_1_1test_1_1Spc700Test" ],
         [ "SpriteAttributes", "structyaze_1_1test_1_1SpriteAttributes.html", "structyaze_1_1test_1_1SpriteAttributes" ],
         [ "SpriteBuilderTest", "classyaze_1_1test_1_1SpriteBuilderTest.html", "classyaze_1_1test_1_1SpriteBuilderTest" ],
+        [ "TestEditor", "classyaze_1_1test_1_1TestEditor.html", "classyaze_1_1test_1_1TestEditor" ],
         [ "Tilemap", "structyaze_1_1test_1_1Tilemap.html", "structyaze_1_1test_1_1Tilemap" ]
       ] ],
       [ "util", "namespaceyaze_1_1util.html", [

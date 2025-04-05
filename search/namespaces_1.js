@@ -29,14 +29,13 @@ var searchData=
   ['yaze_3a_3atest_26',['test',['../namespaceyaze_1_1test.html',1,'yaze']]],
   ['yaze_3a_3atest_3a_3aanonymous_5fnamespace_7bcompression_5ftest_2ecc_7d_27',['anonymous_namespace{compression_test.cc}',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html',1,'yaze::test']]],
   ['yaze_3a_3atest_3a_3aanonymous_5fnamespace_7bsnes_5fpalette_5ftest_2ecc_7d_28',['anonymous_namespace{snes_palette_test.cc}',['../namespaceyaze_1_1test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html',1,'yaze::test']]],
-  ['yaze_3a_3atest_3a_3aintegration_29',['integration',['../namespaceyaze_1_1test_1_1integration.html',1,'yaze::test']]],
-  ['yaze_3a_3autil_30',['util',['../namespaceyaze_1_1util.html',1,'yaze']]],
-  ['yaze_3a_3autil_3a_3aanonymous_5fnamespace_7bbps_2ecc_7d_31',['anonymous_namespace{bps.cc}',['../namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html',1,'yaze::util']]],
-  ['yaze_3a_3autil_3a_3aanonymous_5fnamespace_7bhex_2ecc_7d_32',['anonymous_namespace{hex.cc}',['../namespaceyaze_1_1util_1_1anonymous__namespace_02hex_8cc_03.html',1,'yaze::util']]],
-  ['yaze_3a_3azelda3_33',['zelda3',['../namespaceyaze_1_1zelda3.html',1,'yaze']]],
-  ['yaze_3a_3azelda3_3a_3aanonymous_5fnamespace_7bhyrule_5fmagic_2ecc_7d_34',['anonymous_namespace{hyrule_magic.cc}',['../namespaceyaze_1_1zelda3_1_1anonymous__namespace_02hyrule__magic_8cc_03.html',1,'yaze::zelda3']]],
-  ['yaze_3a_3azelda3_3a_3aanonymous_5fnamespace_7boverworld_2ecc_7d_35',['anonymous_namespace{overworld.cc}',['../namespaceyaze_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html',1,'yaze::zelda3']]],
-  ['yaze_3a_3azelda3_3a_3aanonymous_5fnamespace_7btracker_2ecc_7d_36',['anonymous_namespace{tracker.cc}',['../namespaceyaze_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html',1,'yaze::zelda3']]],
-  ['yaze_3a_3azelda3_3a_3amusic_37',['music',['../namespaceyaze_1_1zelda3_1_1music.html',1,'yaze::zelda3']]],
-  ['yaze_3a_3azelda3_3a_3apalette_5finternal_38',['palette_internal',['../namespaceyaze_1_1zelda3_1_1palette__internal.html',1,'yaze::zelda3']]]
+  ['yaze_3a_3autil_29',['util',['../namespaceyaze_1_1util.html',1,'yaze']]],
+  ['yaze_3a_3autil_3a_3aanonymous_5fnamespace_7bbps_2ecc_7d_30',['anonymous_namespace{bps.cc}',['../namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html',1,'yaze::util']]],
+  ['yaze_3a_3autil_3a_3aanonymous_5fnamespace_7bhex_2ecc_7d_31',['anonymous_namespace{hex.cc}',['../namespaceyaze_1_1util_1_1anonymous__namespace_02hex_8cc_03.html',1,'yaze::util']]],
+  ['yaze_3a_3azelda3_32',['zelda3',['../namespaceyaze_1_1zelda3.html',1,'yaze']]],
+  ['yaze_3a_3azelda3_3a_3aanonymous_5fnamespace_7bhyrule_5fmagic_2ecc_7d_33',['anonymous_namespace{hyrule_magic.cc}',['../namespaceyaze_1_1zelda3_1_1anonymous__namespace_02hyrule__magic_8cc_03.html',1,'yaze::zelda3']]],
+  ['yaze_3a_3azelda3_3a_3aanonymous_5fnamespace_7boverworld_2ecc_7d_34',['anonymous_namespace{overworld.cc}',['../namespaceyaze_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html',1,'yaze::zelda3']]],
+  ['yaze_3a_3azelda3_3a_3aanonymous_5fnamespace_7btracker_2ecc_7d_35',['anonymous_namespace{tracker.cc}',['../namespaceyaze_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html',1,'yaze::zelda3']]],
+  ['yaze_3a_3azelda3_3a_3amusic_36',['music',['../namespaceyaze_1_1zelda3_1_1music.html',1,'yaze::zelda3']]],
+  ['yaze_3a_3azelda3_3a_3apalette_5finternal_37',['palette_internal',['../namespaceyaze_1_1zelda3_1_1palette__internal.html',1,'yaze::zelda3']]]
 ];
