@@ -93,7 +93,7 @@ std::string ParseTextDataByte(uint8_t value) {
   // Check for dictionary.
   int dictionary = FindDictionaryEntry(value);
   if (dictionary >= 0) {
-    return absl::StrFormat("[%s:%2X]", DICTIONARYTOKEN, dictionary);
+    return absl::StrFormat("[%s:%02X]", DICTIONARYTOKEN, dictionary);
   }
 
   return "";
@@ -285,12 +285,14 @@ std::vector<std::string> ParseMessageData(
         parsed_message.push_back(CharEncoder.at(byte));
       } else {
         if (byte >= DICTOFF && byte < (DICTOFF + 97)) {
-          if (byte > 0 && byte <= dictionary_entries.size()) {
-            auto dic_entry = dictionary_entries[byte];
-            parsed_message.append(dic_entry.Contents);
-          } else {
-            parsed_message.append(dictionary_entries[0].Contents);
+          DictionaryEntry dic_entry;
+          for (const auto &entry : dictionary_entries) {
+            if (entry.ID == byte - DICTOFF) {
+              dic_entry = entry;
+              break;
+            }
           }
+          parsed_message.append(dic_entry.Contents);
         } else {
           auto text_element = FindMatchingCommand(byte);
           if (text_element != std::nullopt) {
