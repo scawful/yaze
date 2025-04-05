@@ -8,12 +8,14 @@
 
 namespace yaze {
 namespace test {
-namespace integration {
 
 class TestEditor : public yaze::editor::Editor {
  public:
   TestEditor() = default;
   ~TestEditor() = default;
+  void Initialize() override {
+
+  }
 
   absl::Status Cut() override {
     return absl::UnimplementedError("Not implemented");
@@ -38,6 +40,13 @@ class TestEditor : public yaze::editor::Editor {
 
   absl::Status Update() override;
 
+  absl::Status Save() override {
+    return absl::UnimplementedError("Not implemented");
+  }
+  absl::Status Load() override {
+    return absl::UnimplementedError("Not implemented");
+  }
+
   void RegisterTests(ImGuiTestEngine* engine);
 
  private:
@@ -46,7 +55,6 @@ class TestEditor : public yaze::editor::Editor {
 
 int RunIntegrationTest();
 
-}  // namespace integration
 }  // namespace test
 }  // namespace yaze
 

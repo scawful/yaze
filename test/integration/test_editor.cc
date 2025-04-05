@@ -67,7 +67,7 @@ int RunIntegrationTest() {
       controller.window(), yaze::core::Renderer::GetInstance().renderer());
   ImGui_ImplSDLRenderer2_Init(yaze::core::Renderer::GetInstance().renderer());
 
-  yaze::test::integration::TestEditor test_editor;
+  yaze::test::TestEditor test_editor;
   test_editor.RegisterTests(engine);
   ImGuiTestEngine_Start(engine, ImGui::GetCurrentContext());
   controller.set_active(true);
