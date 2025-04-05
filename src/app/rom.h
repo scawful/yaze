@@ -166,7 +166,6 @@ class Rom {
   auto end() { return rom_data_.end(); }
 
   auto vector() const { return rom_data_; }
-  auto version() const { return version_; }
   auto filename() const { return filename_; }
   auto set_filename(std::string name) { filename_ = name; }
 

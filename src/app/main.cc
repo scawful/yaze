@@ -13,7 +13,6 @@
  */
 using namespace yaze;
 
-DECLARE_FLAG(std::string, rom_file);
 DEFINE_FLAG(std::string, rom_file, "", "The ROM file to load.");
 
 int main(int argc, char** argv) {
