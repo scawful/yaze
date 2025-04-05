@@ -110,7 +110,7 @@ class OverworldMap : public gfx::GfxContext {
   auto static_graphics(int i) const { return static_graphics_[i]; }
   auto large_index() const { return large_index_; }
 
-	auto mutable_current_graphics() { return &current_gfx_; }
+  auto mutable_current_graphics() { return &current_gfx_; }
   auto mutable_area_graphics() { return &area_graphics_; }
   auto mutable_area_palette() { return &area_palette_; }
   auto mutable_sprite_graphics(int i) { return &sprite_graphics_[i]; }
@@ -161,7 +161,8 @@ class OverworldMap : public gfx::GfxContext {
   void LoadAreaGraphicsBlocksets();
   void LoadDeathMountainGFX();
 
-  void ProcessGraphicsBuffer(int index, int static_graphics_offset, int size);
+  void ProcessGraphicsBuffer(int index, int static_graphics_offset, int size,
+                             uint8_t* all_gfx);
   absl::StatusOr<gfx::SnesPalette> GetPalette(const gfx::PaletteGroup& group,
                                               int index, int previous_index,
                                               int limit);
@@ -192,7 +193,6 @@ class OverworldMap : public gfx::GfxContext {
   std::array<uint8_t, 4> area_music_;
   std::array<uint8_t, 16> static_graphics_;
 
-  std::vector<uint8_t> all_gfx_;
   std::vector<uint8_t> current_blockset_;
   std::vector<uint8_t> current_gfx_;
   std::vector<uint8_t> bitmap_data_;
