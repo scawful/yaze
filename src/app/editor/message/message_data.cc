@@ -18,7 +18,7 @@ uint8_t FindMatchingCharacter(char value) {
   return 0xFF;
 }
 
-uint8_t FindDictionaryEntry(uint8_t value) {
+int8_t FindDictionaryEntry(uint8_t value) {
   if (value < DICTOFF || value == 0xFF) {
     return -1;
   }
@@ -51,8 +51,8 @@ ParsedElement FindMatchingElement(const std::string &str) {
     match = text_element.MatchMe(str);
     if (match.size() > 0) {
       if (text_element.HasArgument) {
-        return ParsedElement(text_element,
-                             std::stoi(match[1].str(), nullptr, 16));
+        std::string arg = match[1].str().substr(1);
+        return ParsedElement(text_element, std::stoi(arg, nullptr, 16));
       } else {
         return ParsedElement(text_element, 0);
       }
@@ -93,7 +93,7 @@ std::string ParseTextDataByte(uint8_t value) {
   // Check for dictionary.
   int dictionary = FindDictionaryEntry(value);
   if (dictionary >= 0) {
-    return absl::StrFormat("[%s:%X]", DICTIONARYTOKEN, dictionary);
+    return absl::StrFormat("[%s:%2X]", DICTIONARYTOKEN, dictionary);
   }
 
   return "";

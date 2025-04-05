@@ -39,7 +39,7 @@ static const std::unordered_map<uint8_t, wchar_t> CharEncoder = {
 };
 
 uint8_t FindMatchingCharacter(char value);
-uint8_t FindDictionaryEntry(uint8_t value);
+int8_t FindDictionaryEntry(uint8_t value);
 std::vector<uint8_t> ParseMessageToData(std::string str);
 
 struct DictionaryEntry {
@@ -52,7 +52,7 @@ struct DictionaryEntry {
   DictionaryEntry() = default;
   DictionaryEntry(uint8_t i, std::string s)
       : Contents(s), ID(i), Length(s.length()) {
-    Token = absl::StrFormat("[%s:%00X]", DICTIONARYTOKEN, ID);
+    Token = absl::StrFormat("[%s:%02X]", DICTIONARYTOKEN, ID);
     Data = ParseMessageToData(Contents);
   }
 
@@ -73,7 +73,7 @@ struct DictionaryEntry {
 
 constexpr int kTextData = 0xE0000;
 constexpr int kTextDataEnd = 0xE7FFF;
-constexpr int kNumDictionaryEntries = 97;
+constexpr int kNumDictionaryEntries = 0x61;
 constexpr int kPointersDictionaries = 0x74703;
 constexpr uint8_t kScrollVertical = 0x73;
 constexpr uint8_t kLine1 = 0x74;
