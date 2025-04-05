@@ -5,11 +5,16 @@
 #include <sstream>
 
 #include "app/core/platform/app_delegate.h"
+#include "app/core/controller.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "dungeon.h"
 #include "util/flag.h"
 #include "yaze_config.h"
+
+DEFINE_FLAG(
+    std::string, rom_file, "", "Path to the ROM file to load. "
+    "If not specified, the app will run without a ROM.");
 
 int yaze_app_main(int argc, char **argv) {
   yaze::util::FlagParser parser(yaze::util::global_flag_registry());
@@ -23,7 +28,7 @@ int yaze_app_main(int argc, char **argv) {
   return yaze_run_cocoa_app_delegate(rom_filename.c_str());
 #endif
 
-  auto controller = std::make_unique<core::Controller>();
+  auto controller = std::make_unique<yaze::core::Controller>();
   EXIT_IF_ERROR(controller->OnEntry(rom_filename))
   while (controller->IsActive()) {
     controller->OnInput();

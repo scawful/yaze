@@ -23,8 +23,6 @@ DEFINE_FLAG(std::string, length, "", "The length of the data to read.");
 
 DEFINE_FLAG(std::string, file_size, "", "The size of the file to expand to.");
 DEFINE_FLAG(std::string, dest_rom, "", "The destination ROM file.");
-DEFINE_FLAG(std::string, tile32_id_list, "",
-            "The list of tile32 IDs to transfer.");
 
 int main(int argc, char *argv[]) {
   yaze::util::FlagParser flag_parser(yaze::util::global_flag_registry());
