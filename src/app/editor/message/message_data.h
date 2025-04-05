@@ -256,7 +256,7 @@ static const std::vector<TextElement> TextCommands = {
     TextElement(0x70, "NONO", false, kCrash),
 };
 
-TextElement FindMatchingCommand(uint8_t b);
+std::optional<TextElement> FindMatchingCommand(uint8_t b);
 
 static const std::vector<TextElement> SpecialChars = {
     TextElement(0x43, "...", false, "Ellipsis …"),
@@ -282,7 +282,7 @@ static const std::vector<TextElement> SpecialChars = {
     TextElement(0x4B, "LFR", false, "Link face right"),
 };
 
-TextElement FindMatchingSpecial(uint8_t b);
+std::optional<TextElement> FindMatchingSpecial(uint8_t b);
 
 struct ParsedElement {
   TextElement Parent;

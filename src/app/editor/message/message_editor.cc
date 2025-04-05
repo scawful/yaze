@@ -261,23 +261,25 @@ void MessageEditor::ReadAllTextDataV2() {
       current_raw_message.clear();
       current_parsed_message.clear();
       continue;
+    } else if (current_byte == 0xFF) {
+      break;
     }
 
     raw_message.push_back(current_byte);
 
-    TextElement text_element = FindMatchingCommand(current_byte);
-    if (!text_element.Empty()) {
+    auto text_element = FindMatchingCommand(current_byte);
+    if (text_element != std::nullopt) {
       parsed_message.push_back(current_byte);
-      if (text_element.HasArgument) {
+      if (text_element->HasArgument) {
         current_byte = rom()->data()[pos++];
         raw_message.push_back(current_byte);
         parsed_message.push_back(current_byte);
       }
 
-      current_raw_message.append(text_element.GetParamToken(current_byte));
-      current_parsed_message.append(text_element.GetParamToken(current_byte));
+      current_raw_message.append(text_element->GetParamToken(current_byte));
+      current_parsed_message.append(text_element->GetParamToken(current_byte));
 
-      if (text_element.Token == kBankToken) {
+      if (text_element->Token == kBankToken) {
         pos = kTextData2;
       }
 
@@ -285,10 +287,10 @@ void MessageEditor::ReadAllTextDataV2() {
     }
 
     // Check for special characters.
-    text_element = FindMatchingSpecial(current_byte);
-    if (!text_element.Empty()) {
-      current_raw_message.append(text_element.GetParamToken());
-      current_parsed_message.append(text_element.GetParamToken());
+    auto special_element = FindMatchingSpecial(current_byte);
+    if (special_element != std::nullopt) {
+      current_raw_message.append(special_element->GetParamToken());
+      current_parsed_message.append(special_element->GetParamToken());
       parsed_message.push_back(current_byte);
       continue;
     }
@@ -299,7 +301,7 @@ void MessageEditor::ReadAllTextDataV2() {
       current_raw_message.append("[");
       current_raw_message.append(DICTIONARYTOKEN);
       current_raw_message.append(":");
-      current_raw_message.append(util::HexWord(dictionary));
+      current_raw_message.append(util::HexByte(dictionary));
       current_raw_message.append("]");
 
       uint32_t address = Get24LocalFromPC(
@@ -336,7 +338,6 @@ void MessageEditor::ReadAllTextData() {
 
   std::string current_message_raw;
   std::string current_message_parsed;
-  TextElement text_element;
 
   while (true) {
     current_byte = rom()->data()[pos++];
@@ -361,20 +362,19 @@ void MessageEditor::ReadAllTextData() {
     temp_bytes_raw.push_back(current_byte);
 
     // Check for command.
-    text_element = FindMatchingCommand(current_byte);
-
-    if (!text_element.Empty()) {
+    auto text_element = FindMatchingCommand(current_byte);
+    if (text_element.has_value()) {
       temp_bytes_parsed.push_back(current_byte);
-      if (text_element.HasArgument) {
+      if (text_element->HasArgument) {
         current_byte = rom()->data()[pos++];
         temp_bytes_raw.push_back(current_byte);
         temp_bytes_parsed.push_back(current_byte);
       }
 
-      current_message_raw.append(text_element.GetParamToken(current_byte));
-      current_message_parsed.append(text_element.GetParamToken(current_byte));
+      current_message_raw.append(text_element->GetParamToken(current_byte));
+      current_message_parsed.append(text_element->GetParamToken(current_byte));
 
-      if (text_element.Token == kBankToken) {
+      if (text_element->Token == kBankToken) {
         pos = kTextData2;
       }
 
@@ -382,10 +382,10 @@ void MessageEditor::ReadAllTextData() {
     }
 
     // Check for special characters.
-    text_element = FindMatchingSpecial(current_byte);
-    if (!text_element.Empty()) {
-      current_message_raw.append(text_element.GetParamToken());
-      current_message_parsed.append(text_element.GetParamToken());
+    auto special_element = FindMatchingSpecial(current_byte);
+    if (special_element.has_value()) {
+      current_message_raw.append(special_element->GetParamToken());
+      current_message_parsed.append(special_element->GetParamToken());
       temp_bytes_parsed.push_back(current_byte);
       continue;
     }
@@ -423,24 +423,6 @@ void MessageEditor::ReadAllTextData() {
       temp_bytes_parsed.push_back(current_byte);
     }
   }
-}
-
-std::string ReplaceAllDictionaryWords(std::string str,
-                                      std::vector<DictionaryEntry> dictionary) {
-  std::string temp = str;
-  for (const auto &entry : dictionary) {
-    if (absl::StrContains(temp, entry.Contents)) {
-      temp = absl::StrReplaceAll(temp, {{entry.Contents, entry.Contents}});
-    }
-  }
-  return temp;
-}
-
-DictionaryEntry MessageEditor::GetDictionaryFromID(uint8_t value) {
-  if (value < 0 || value >= all_dictionaries_.size()) {
-    return DictionaryEntry();
-  }
-  return all_dictionaries_[value];
 }
 
 void MessageEditor::DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
@@ -532,8 +514,14 @@ void MessageEditor::DrawCharacterToPreview(const std::vector<uint8_t> &text) {
       // characters.
       DrawStringToPreview("(NAME)");
     } else if (value >= DICTOFF && value < (DICTOFF + 97)) {
-      auto dictionaryEntry = GetDictionaryFromID(value - DICTOFF);
-      DrawCharacterToPreview(dictionaryEntry.Data);
+      int pos = value - DICTOFF;
+      if (pos < 0 || pos >= all_dictionaries_.size()) {
+        // Invalid dictionary entry.
+        std::cerr << "Invalid dictionary entry: " << pos << std::endl;
+        continue;
+      }
+      auto dictionary_entry = all_dictionaries_[pos];
+      DrawCharacterToPreview(dictionary_entry.Data);
     }
   }
 }

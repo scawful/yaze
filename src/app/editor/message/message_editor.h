@@ -30,9 +30,6 @@ constexpr uint8_t kWidthArraySize = 100;
 constexpr uint8_t kBlockTerminator = 0x80;
 constexpr uint8_t kMessageBankChangeId = 0x80;
 
-static TextElement DictionaryElement =
-    TextElement(0x80, DICTIONARYTOKEN, true, "Dictionary");
-
 class MessageEditor : public Editor, public SharedRom {
  public:
   MessageEditor() { type_ = EditorType::kMessage; }
@@ -62,7 +59,6 @@ class MessageEditor : public Editor, public SharedRom {
   void Delete();
   void SelectAll();
 
-  DictionaryEntry GetDictionaryFromID(uint8_t value);
   void DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
                          int sizex = 1, int sizey = 1);
   void DrawCharacterToPreview(char c);

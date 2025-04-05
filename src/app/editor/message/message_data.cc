@@ -1,5 +1,6 @@
 #include "message_data.h"
 
+#include <optional>
 #include <string>
 
 #include "util/hex.h"
@@ -24,17 +25,16 @@ uint8_t FindDictionaryEntry(uint8_t value) {
   return value - DICTOFF;
 }
 
-TextElement FindMatchingCommand(uint8_t b) {
-  TextElement empty_element;
+std::optional<TextElement> FindMatchingCommand(uint8_t b) {
   for (const auto &text_element : TextCommands) {
     if (text_element.ID == b) {
       return text_element;
     }
   }
-  return empty_element;
+  return std::nullopt;
 }
 
-TextElement FindMatchingSpecial(uint8_t value) {
+std::optional<TextElement> FindMatchingSpecial(uint8_t value) {
   auto it = std::find_if(SpecialChars.begin(), SpecialChars.end(),
                          [value](const TextElement &text_element) {
                            return text_element.ID == value;
@@ -42,8 +42,7 @@ TextElement FindMatchingSpecial(uint8_t value) {
   if (it != SpecialChars.end()) {
     return *it;
   }
-
-  return TextElement();
+  return std::nullopt;
 }
 
 ParsedElement FindMatchingElement(const std::string &str) {
@@ -80,15 +79,15 @@ std::string ParseTextDataByte(uint8_t value) {
   }
 
   // Check for command.
-  TextElement text_element = FindMatchingCommand(value);
-  if (!text_element.Empty()) {
-    return text_element.GenericToken;
+  auto text_element = FindMatchingCommand(value);
+  if (text_element != std::nullopt) {
+    return text_element->GenericToken;
   }
 
   // Check for special characters.
-  text_element = FindMatchingSpecial(value);
-  if (!text_element.Empty()) {
-    return text_element.GenericToken;
+  auto special_element = FindMatchingSpecial(value);
+  if (special_element != std::nullopt) {
+    return text_element->GenericToken;
   }
 
   // Check for dictionary.
@@ -214,10 +213,10 @@ absl::StatusOr<MessageData> ParseSingleMessage(
     temp_bytes_raw.push_back(current_byte);
 
     // Check for command.
-    TextElement text_element = FindMatchingCommand(current_byte);
-    if (!text_element.Empty()) {
-      current_message_raw.append(text_element.GetParamToken());
-      current_message_parsed.append(text_element.GetParamToken());
+    auto text_element = FindMatchingCommand(current_byte);
+    if (text_element != std::nullopt) {
+      current_message_raw.append(text_element->GetParamToken());
+      current_message_parsed.append(text_element->GetParamToken());
       temp_bytes_parsed.push_back(current_byte);
       continue;
     }
@@ -283,12 +282,12 @@ std::vector<std::string> ParseMessageData(
           }
         } else {
           auto text_element = FindMatchingCommand(byte);
-          if (!text_element.Empty()) {
-            if (text_element.ID == kScrollVertical ||
-                text_element.ID == kLine2 || text_element.ID == kLine3) {
+          if (text_element != std::nullopt) {
+            if (text_element->ID == kScrollVertical ||
+                text_element->ID == kLine2 || text_element->ID == kLine3) {
               parsed_message.append("\n");
             }
-            parsed_message.append(text_element.GenericToken);
+            parsed_message.append(text_element->GenericToken);
           }
         }
       }
