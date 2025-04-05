@@ -672,9 +672,9 @@ absl::Status OverworldMap::LoadPalette() {
 }
 
 void OverworldMap::ProcessGraphicsBuffer(int index, int static_graphics_offset,
-                                         int size) {
+                                         int size, uint8_t *all_gfx) {
   for (int i = 0; i < size; i++) {
-    auto byte = all_gfx_[i + (static_graphics_offset * size)];
+    auto byte = all_gfx[i + (static_graphics_offset * size)];
     switch (index) {
       case 0:
       case 3:
@@ -688,13 +688,11 @@ void OverworldMap::ProcessGraphicsBuffer(int index, int static_graphics_offset,
 }
 
 absl::Status OverworldMap::BuildTileset() {
-  all_gfx_ = rom_.graphics_buffer();
   if (current_gfx_.size() == 0) current_gfx_.resize(0x10000, 0x00);
-
   for (int i = 0; i < 0x10; i++) {
-    ProcessGraphicsBuffer(i, static_graphics_[i], 0x1000);
+    ProcessGraphicsBuffer(i, static_graphics_[i], 0x1000,
+                          rom_.graphics_buffer().data());
   }
-
   return absl::OkStatus();
 }
 
