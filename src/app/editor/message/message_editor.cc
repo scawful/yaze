@@ -224,7 +224,6 @@ void MessageEditor::DrawDictionary() {
   }
 }
 
-// TODO: Fix the command parsing.
 void MessageEditor::ReadAllTextDataV2() {
   // Read all text data from the ROM.
   int pos = kTextData;
@@ -232,7 +231,6 @@ void MessageEditor::ReadAllTextDataV2() {
 
   std::vector<uint8_t> raw_message;
   std::vector<uint8_t> parsed_message;
-
   std::string current_raw_message;
   std::string current_parsed_message;
 
@@ -243,19 +241,6 @@ void MessageEditor::ReadAllTextDataV2() {
       list_of_texts_.push_back(
           MessageData(message_id++, pos, current_raw_message, raw_message,
                       current_parsed_message, parsed_message));
-      std::cout << "Message ID: " << message_id << std::endl;
-      std::cout << "Raw: " << current_raw_message << std::endl;
-      std::cout << "Parsed: " << current_parsed_message << std::endl;
-      std::cout << "Raw Bytes: ";
-      for (const auto &byte : raw_message) {
-        std::cout << util::HexByte(byte) << " ";
-      }
-      std::cout << std::endl;
-      std::cout << "Parsed Bytes: ";
-      for (const auto &byte : parsed_message) {
-        std::cout << util::HexByte(byte) << " ";
-      }
-      std::cout << std::endl;
       raw_message.clear();
       parsed_message.clear();
       current_raw_message.clear();
