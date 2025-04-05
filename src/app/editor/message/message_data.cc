@@ -178,6 +178,17 @@ std::vector<DictionaryEntry> BuildDictionaryEntries(Rom *rom) {
   return AllDictionaries;
 }
 
+std::string ReplaceAllDictionaryWords(std::string str,
+                                      std::vector<DictionaryEntry> dictionary) {
+  std::string temp = str;
+  for (const auto &entry : dictionary) {
+    if (entry.ContainedInString(temp)) {
+      temp = entry.ReplaceInstancesOfIn(temp);
+    }
+  }
+  return temp;
+}
+
 absl::StatusOr<MessageData> ParseSingleMessage(
     const std::vector<uint8_t> &rom_data, int *current_pos) {
   MessageData message_data;
