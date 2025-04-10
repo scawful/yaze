@@ -8,7 +8,6 @@
 #include "absl/strings/str_cat.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/room_object.h"
-#include "app/zelda3/dungeon/room_tag.h"
 #include "app/zelda3/sprite/sprite.h"
 #include "util/log.h"
 #include "util/macro.h"
