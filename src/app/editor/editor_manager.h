@@ -15,6 +15,7 @@
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
+#include "app/editor/system/popup_manager.h"
 #include "app/editor/system/settings_editor.h"
 #include "app/emu/emulator.h"
 #include "app/gui/input.h"
@@ -50,6 +51,7 @@ class EditorManager : public SharedRom {
     ss << YAZE_VERSION_MAJOR << "." << YAZE_VERSION_MINOR << "."
        << YAZE_VERSION_PATCH;
     ss >> version_;
+    context_.popup_manager = popup_manager_.get();
   }
 
   void Initialize(const std::string &filename = "");
@@ -101,19 +103,7 @@ class EditorManager : public SharedRom {
 
   Project current_project_;
   EditorContext context_;
-
-  Editor *current_editor_ = nullptr;
-  AssemblyEditor assembly_editor_;
-  DungeonEditor dungeon_editor_;
-  GraphicsEditor graphics_editor_;
-  MusicEditor music_editor_;
-  OverworldEditor overworld_editor_{*rom()};
-  PaletteEditor palette_editor_;
-  ScreenEditor screen_editor_;
-  SpriteEditor sprite_editor_;
-  SettingsEditor settings_editor_;
-  MessageEditor message_editor_;
-  MemoryEditorWithDiffChecker memory_editor_;
+  std::unique_ptr<PopupManager> popup_manager_;
 };
 
 }  // namespace editor
