@@ -8,8 +8,6 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
-#include "dungeon.h"
-#include "overworld.h"
 #include "snes.h"
 #include "zelda.h"
 

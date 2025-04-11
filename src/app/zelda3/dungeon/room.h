@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_ZELDA3_DUNGEON_ROOM_H
 #define YAZE_APP_ZELDA3_DUNGEON_ROOM_H
 
-#include <dungeon.h>
+#include <yaze.h>
 
 #include <cstdint>
 #include <string_view>

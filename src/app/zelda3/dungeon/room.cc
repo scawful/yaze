@@ -1,6 +1,6 @@
 #include "room.h"
 
-#include <dungeon.h>
+#include <yaze.h>
 
 #include <cstdint>
 #include <vector>

@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <stdbool.h>
 
 /**
  * @brief Different versions of the game supported by yaze.
@@ -93,6 +94,95 @@ typedef struct zelda3_rom {
 zelda3_rom* yaze_load_rom(const char* filename);
 void yaze_unload_rom(zelda3_rom* rom);
 void yaze_save_rom(zelda3_rom* rom, const char* filename);
+
+/**
+ * @brief Primitive of an overworld map.
+ */
+typedef struct zelda3_overworld_map {
+  uint8_t id; /**< ID of the overworld map. */
+  uint8_t parent_id;
+  uint8_t quadrant_id;
+  uint8_t world_id;
+  uint8_t game_state;
+  uint8_t area_graphics;
+  uint8_t area_palette;
+
+  uint8_t sprite_graphics[3];
+  uint8_t sprite_palette[3];
+  uint8_t area_music[4];
+  uint8_t static_graphics[16];
+} zelda3_overworld_map;
+
+/**
+ * @brief Primitive of the overworld.
+ */
+typedef struct zelda3_overworld {
+  void *impl;                  // yaze::Overworld*
+  zelda3_overworld_map **maps; /**< Pointer to the overworld maps. */
+} zelda3_overworld;
+
+typedef struct dungeon_sprite {
+  const char* name;
+  uint8_t id;
+  uint8_t subtype;
+} dungeon_sprite;
+
+typedef enum background2 {
+  Off,
+  Parallax,
+  Dark,
+  OnTop,
+  Translucent,
+  Addition,
+  Normal,
+  Transparent,
+  DarkRoom
+} background2;
+
+typedef struct object_door {
+  short id;
+  uint8_t x;
+  uint8_t y;
+  uint8_t size;
+  uint8_t type;
+  uint8_t layer;
+} object_door;
+
+typedef struct staircase {
+  uint8_t id;
+  uint8_t room;
+  const char* label;
+} staircase;
+
+typedef struct chest {
+  uint8_t x;
+  uint8_t y;
+  uint8_t item;
+  bool picker;
+  bool big_chest;
+} chest;
+
+typedef struct chest_data {
+  uint8_t id;
+  bool size;
+} chest_data;
+
+typedef struct destination {
+  uint8_t index;
+  uint8_t target;
+  uint8_t target_layer;
+} destination;
+
+typedef struct zelda3_dungeon_room {
+  background2 bg2;
+  dungeon_sprite* sprites;
+  object_door* doors;
+  staircase* staircases;
+  chest* chests;
+  chest_data* chests_in_room;
+  destination pits;
+  destination stairs[4];
+} zelda3_dungeon_room;
 
 #ifdef __cplusplus
 }
