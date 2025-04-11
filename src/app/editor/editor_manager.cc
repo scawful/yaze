@@ -43,56 +43,55 @@ bool BeginCentered(const char *name) {
 }
 
 bool IsEditorActive(Editor *editor, std::vector<Editor *> &active_editors) {
-  return std::find(active_editors.begin(), active_editors.end(), editor) !=
-         active_editors.end();
+  return std::ranges::find(active_editors, editor) != active_editors.end();
 }
 
 std::string GetEditorName(EditorType type) {
   return kEditorNames[static_cast<int>(type)];
 }
 
+void DrawRomSelector(EditorManager &editor_manager) {
+  const auto &roms = editor_manager.GetRoms();
+  const Rom *current_rom = editor_manager.GetCurrentRom();
+
+  SameLine((GetWindowWidth() / 2) - 100);
+  if (current_rom && current_rom->is_loaded()) {
+    SetNextItemWidth(GetWindowWidth() / 4);
+    if (BeginCombo("##ROMSelector", current_rom->filename().c_str())) {
+      for (const auto &rom : roms) {
+        if (MenuItem(rom->filename().c_str())) {
+          editor_manager.SetCurrentRom(rom.get());
+        }
+      }
+      EndCombo();
+    }
+  } else {
+    Text("No ROM loaded");
+  }
+}
+
 }  // namespace
 
 void EditorManager::Initialize(const std::string &filename) {
   if (!filename.empty()) {
-    PRINT_IF_ERROR(rom()->LoadFromFile(filename));
+    PRINT_IF_ERROR(OpenRomOrProject(filename));
   }
 
-  std::vector<gui::MenuItem> recent_files;
-  static RecentFilesManager manager("recent_files.txt");
-  manager.Load();
-  if (manager.GetRecentFiles().empty()) {
-    recent_files.emplace_back("No Recent Files", "", nullptr);
-  } else {
-    for (const auto &filePath : manager.GetRecentFiles()) {
-      recent_files.emplace_back(filePath, "",
-                                [&]() { OpenRomOrProject(filePath); });
-    }
-  }
+  // Initialize popup manager
+  popup_manager_ = std::make_unique<PopupManager>(this);
+  popup_manager_->Initialize();
 
-  std::vector<gui::MenuItem> options_subitems;
-  options_subitems.emplace_back(
-      "Backup ROM", "", [&]() { backup_rom_ |= backup_rom_; },
-      [&]() { return backup_rom_; });
-  options_subitems.emplace_back(
-      "Save New Auto", "", [&]() { save_new_auto_ |= save_new_auto_; },
-      [&]() { return save_new_auto_; });
-
-  std::vector<gui::MenuItem> project_menu_subitems;
-  project_menu_subitems.emplace_back("New Project", "",
-                                     [&]() { new_project_menu = true; });
-  project_menu_subitems.emplace_back("Open Project", "",
-                                     [&]() { status_ = OpenProject(); });
-  project_menu_subitems.emplace_back(
-      "Save Project", "", [&]() { SaveProject(); },
-      [&]() { return current_project_.project_opened_; });
+  // Set the popup manager in the context
+  context_.popup_manager = popup_manager_.get();
 
   context_.shortcut_manager.RegisterShortcut(
       "Open", {ImGuiKey_O, ImGuiMod_Ctrl}, [&]() { LoadRom(); });
   context_.shortcut_manager.RegisterShortcut(
       "Save", {ImGuiKey_S, ImGuiMod_Ctrl}, [&]() { SaveRom(); });
   context_.shortcut_manager.RegisterShortcut(
-      "Close", {ImGuiKey_W, ImGuiMod_Ctrl}, [&]() { rom()->Close(); });
+      "Close", {ImGuiKey_W, ImGuiMod_Ctrl}, [&]() {
+        if (current_rom_) current_rom_->Close();
+      });
   context_.shortcut_manager.RegisterShortcut(
       "Quit", {ImGuiKey_Q, ImGuiMod_Ctrl}, [&]() { quit_ = true; });
 
@@ -117,6 +116,7 @@ void EditorManager::Initialize(const std::string &filename) {
 
   context_.shortcut_manager.RegisterShortcut(
       "Load Last ROM", {ImGuiKey_R, ImGuiMod_Ctrl}, [&]() {
+        static RecentFilesManager manager("recent_files.txt");
         manager.Load();
         if (!manager.GetRecentFiles().empty()) {
           auto front = manager.GetRecentFiles().front();
@@ -124,8 +124,38 @@ void EditorManager::Initialize(const std::string &filename) {
         }
       });
 
-  context_.shortcut_manager.RegisterShortcut("F1", ImGuiKey_F1,
-                                             [&]() { about_ = true; });
+  context_.shortcut_manager.RegisterShortcut(
+      "F1", ImGuiKey_F1, [&]() { popup_manager_->Show("About"); });
+
+  // Initialize menu items
+  std::vector<gui::MenuItem> recent_files;
+  static RecentFilesManager manager("recent_files.txt");
+  manager.Load();
+  if (manager.GetRecentFiles().empty()) {
+    recent_files.emplace_back("No Recent Files", "", nullptr);
+  } else {
+    for (const auto &filePath : manager.GetRecentFiles()) {
+      recent_files.emplace_back(
+          filePath, "", [filePath, this]() { OpenRomOrProject(filePath); });
+    }
+  }
+
+  std::vector<gui::MenuItem> options_subitems;
+  options_subitems.emplace_back(
+      "Backup ROM", "", [&]() { backup_rom_ |= backup_rom_; },
+      [&]() { return backup_rom_; });
+  options_subitems.emplace_back(
+      "Save New Auto", "", [&]() { save_new_auto_ |= save_new_auto_; },
+      [&]() { return save_new_auto_; });
+
+  std::vector<gui::MenuItem> project_menu_subitems;
+  project_menu_subitems.emplace_back(
+      "New Project", "", [&]() { popup_manager_->Show("New Project"); });
+  project_menu_subitems.emplace_back("Open Project", "",
+                                     [&]() { status_ = OpenProject(); });
+  project_menu_subitems.emplace_back(
+      "Save Project", "", [&]() { SaveProject(); },
+      [&]() { return current_project_.project_opened_; });
 
   gui::kMainMenu = {
       {"File",
@@ -142,11 +172,13 @@ void EditorManager::Initialize(const std::string &filename) {
             context_.shortcut_manager.GetKeys("Save"),
             context_.shortcut_manager.GetCallback("Save")},
            {absl::StrCat(ICON_MD_SAVE_AS, " Save As.."), "",
-            [&]() { save_as_menu_ = true; }},
+            [&]() { popup_manager_->Show("Save As.."); }},
            {absl::StrCat(ICON_MD_BALLOT, " Project"), "", [&]() {},
             []() { return true; }, project_menu_subitems},
            {absl::StrCat(ICON_MD_CLOSE, " Close"), "",
-            [&]() { rom()->Close(); }},
+            [&]() {
+              if (current_rom_) current_rom_->Close();
+            }},
            {gui::kSeparator, "", nullptr, []() { return true; }},
            {absl::StrCat(ICON_MD_MISCELLANEOUS_SERVICES, " Options"), "",
             [&]() {}, []() { return true; }, options_subitems},
@@ -184,43 +216,45 @@ void EditorManager::Initialize(const std::string &filename) {
        {},
        {},
        {
+           {absl::StrCat(ICON_MD_HOME, " Home"), "",
+            [&]() { show_homepage_ = true; }},
            {absl::StrCat(ICON_MD_CODE, " Assembly Editor"), "",
             [&]() { show_asm_editor_ = true; },
             [&]() { return show_asm_editor_; }},
            {absl::StrCat(ICON_MD_CASTLE, " Dungeon Editor"), "",
-            [&]() { dungeon_editor_.set_active(true); },
-            [&]() { return *dungeon_editor_.active(); }},
+            [&]() { current_editor_set_->dungeon_editor_.set_active(true); },
+            [&]() { return *current_editor_set_->dungeon_editor_.active(); }},
            {absl::StrCat(ICON_MD_PHOTO, " Graphics Editor"), "",
-            [&]() { graphics_editor_.set_active(true); },
-            [&]() { return *graphics_editor_.active(); }},
+            [&]() { current_editor_set_->graphics_editor_.set_active(true); },
+            [&]() { return *current_editor_set_->graphics_editor_.active(); }},
            {absl::StrCat(ICON_MD_MUSIC_NOTE, " Music Editor"), "",
-            [&]() { music_editor_.set_active(true); },
-            [&]() { return *music_editor_.active(); }},
+            [&]() { current_editor_set_->music_editor_.set_active(true); },
+            [&]() { return *current_editor_set_->music_editor_.active(); }},
            {absl::StrCat(ICON_MD_LAYERS, " Overworld Editor"), "",
-            [&]() { overworld_editor_.set_active(true); },
-            [&]() { return *overworld_editor_.active(); }},
+            [&]() { current_editor_set_->overworld_editor_.set_active(true); },
+            [&]() { return *current_editor_set_->overworld_editor_.active(); }},
            {absl::StrCat(ICON_MD_PALETTE, " Palette Editor"), "",
-            [&]() { palette_editor_.set_active(true); },
-            [&]() { return *palette_editor_.active(); }},
+            [&]() { current_editor_set_->palette_editor_.set_active(true); },
+            [&]() { return *current_editor_set_->palette_editor_.active(); }},
            {absl::StrCat(ICON_MD_SCREENSHOT, " Screen Editor"), "",
-            [&]() { screen_editor_.set_active(true); },
-            [&]() { return *screen_editor_.active(); }},
+            [&]() { current_editor_set_->screen_editor_.set_active(true); },
+            [&]() { return *current_editor_set_->screen_editor_.active(); }},
            {absl::StrCat(ICON_MD_SMART_TOY, " Sprite Editor"), "",
-            [&]() { sprite_editor_.set_active(true); },
-            [&]() { return *sprite_editor_.active(); }},
+            [&]() { current_editor_set_->sprite_editor_.set_active(true); },
+            [&]() { return *current_editor_set_->sprite_editor_.active(); }},
            {absl::StrCat(ICON_MD_MESSAGE, " Message Editor"), "",
-            [&]() { message_editor_.set_active(true); },
-            [&]() { return *message_editor_.active(); }},
+            [&]() { current_editor_set_->message_editor_.set_active(true); },
+            [&]() { return *current_editor_set_->message_editor_.active(); }},
            {absl::StrCat(ICON_MD_SETTINGS, " Settings Editor"), "",
-            [&]() { settings_editor_.set_active(true); },
-            [&]() { return *settings_editor_.active(); }},
+            [&]() { current_editor_set_->settings_editor_.set_active(true); },
+            [&]() { return *current_editor_set_->settings_editor_.active(); }},
            {gui::kSeparator, "", nullptr, []() { return true; }},
            {absl::StrCat(ICON_MD_GAMEPAD, " Emulator"), "",
             [&]() { show_emulator_ = true; }},
            {absl::StrCat(ICON_MD_MEMORY, " Memory Editor"), "",
             [&]() { show_memory_editor_ = true; }},
            {absl::StrCat(ICON_MD_SIM_CARD, " ROM Metadata"), "",
-            [&]() { rom_info_ = true; }},
+            [&]() { popup_manager_->Show("ROM Information"); }},
            {gui::kSeparator, "", nullptr, []() { return true; }},
            {absl::StrCat(ICON_MD_HELP, " ImGui Demo"), "",
             [&]() { show_imgui_demo_ = true; }},
@@ -241,41 +275,38 @@ void EditorManager::Initialize(const std::string &filename) {
        {},
        {
            {absl::StrCat(ICON_MD_HELP, " How to open a ROM"), "",
-            [&]() { open_rom_help = true; }},
+            [&]() { popup_manager_->Show("Open a ROM"); }},
            {absl::StrCat(ICON_MD_HELP, " Supported Features"), "",
-            [&]() { open_supported_features = true; }},
+            [&]() { popup_manager_->Show("Supported Features"); }},
            {absl::StrCat(ICON_MD_HELP, " How to manage a project"), "",
-            [&]() { open_manage_project = true; }},
+            [&]() { popup_manager_->Show("Manage Project"); }},
            {absl::StrCat(ICON_MD_HELP, " About"), "F1",
-            [&]() { about_ = true; }},
+            [&]() { popup_manager_->Show("About"); }},
        }}};
-
-  overworld_editor_.Initialize();
 }
 
 absl::Status EditorManager::Update() {
-  DrawPopups();
+  popup_manager_->DrawPopups();
   ExecuteShortcuts(context_.shortcut_manager);
 
-  for (auto editor : active_editors_) {
-    if (*editor->active()) {
-      if (ImGui::Begin(GetEditorName(editor->type()).c_str(),
-                       editor->active())) {
-        current_editor_ = editor;
-        status_ = editor->Update();
+  if (current_editor_set_) {
+    for (auto editor : current_editor_set_->active_editors_) {
+      if (*editor->active()) {
+        if (ImGui::Begin(GetEditorName(editor->type()).c_str(),
+                         editor->active())) {
+          current_editor_ = editor;
+          status_ = editor->Update();
+        }
+        ImGui::End();
       }
-      ImGui::End();
     }
   }
 
-  static bool show_home = true;
-  ImGui::Begin("Home", &show_home);
-  if (!current_rom_) {
+  if (show_homepage_) {
+    ImGui::Begin("Home", &show_homepage_);
     DrawHomepage();
-  } else {
-    ManageActiveEditors();
+    ImGui::End();
   }
-  ImGui::End();
   return absl::OkStatus();
 }
 
@@ -288,8 +319,13 @@ void EditorManager::DrawHomepage() {
       "The editor is still in development, so please report any bugs or issues "
       "you encounter.");
 
-  if (gui::ClickableText("Open a ROM")) {
-    LoadRom();
+  if (current_rom_) {
+    TextWrapped("Current ROM: %s", current_rom_->filename().c_str());
+  } else {
+    TextWrapped("No ROM loaded.");
+    if (gui::ClickableText("Open a ROM")) {
+      status_ = LoadRom();
+    }
   }
 }
 
@@ -305,6 +341,8 @@ void EditorManager::DrawMenuBar() {
 
   if (BeginMenuBar()) {
     gui::DrawMenu(gui::kMainMenu);
+
+    DrawRomSelector(*this);
 
     SameLine(GetWindowWidth() - GetStyle().ItemSpacing.x -
              CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x - 110);
@@ -325,8 +363,12 @@ void EditorManager::DrawMenuBar() {
 
   if (show_imgui_demo_) ShowDemoWindow();
   if (show_imgui_metrics_) ShowMetricsWindow(&show_imgui_metrics_);
-  if (show_memory_editor_) memory_editor_.Update(show_memory_editor_);
-  if (show_asm_editor_) assembly_editor_.Update(show_asm_editor_);
+  if (show_memory_editor_ && current_editor_set_) {
+    current_editor_set_->memory_editor_.Update(show_memory_editor_);
+  }
+  if (show_asm_editor_ && current_editor_set_) {
+    current_editor_set_->assembly_editor_.Update(show_asm_editor_);
+  }
 
   if (show_emulator_) {
     Begin("Emulator", &show_emulator_, ImGuiWindowFlags_MenuBar);
@@ -334,86 +376,18 @@ void EditorManager::DrawMenuBar() {
     End();
   }
 
-  if (show_palette_editor_) {
+  if (show_palette_editor_ && current_editor_set_) {
     Begin("Palette Editor", &show_palette_editor_);
-    status_ = palette_editor_.Update();
+    status_ = current_editor_set_->palette_editor_.Update();
     End();
   }
 
-  if (open_supported_features) OpenPopup("Supported Features");
-  if (BeginPopupModal("Supported Features", nullptr,
-                      ImGuiWindowFlags_AlwaysAutoResize)) {
-    Text("Overworld");
-    BulletText("LW/DW/SW Tilemap Editing");
-    BulletText("LW/DW/SW Map Properties");
-    BulletText("Create/Delete/Update Entrances");
-    BulletText("Create/Delete/Update Exits");
-    BulletText("Create/Delete/Update Sprites");
-    BulletText("Create/Delete/Update Items");
-
-    Text("Dungeon");
-    BulletText("View Room Header Properties");
-    BulletText("View Entrance Properties");
-
-    Text("Graphics");
-    BulletText("View Decompressed Graphics Sheets");
-    BulletText("View/Update Graphics Groups");
-
-    Text("Palettes");
-    BulletText("View Palette Groups");
-
-    Text("Saveable");
-    BulletText("All Listed Overworld Features");
-    BulletText("Hex Editor Changes");
-
-    if (Button("Close", gui::kDefaultModalSize)) {
-      open_supported_features = false;
-      CloseCurrentPopup();
-    }
-    EndPopup();
-  }
-
-  if (open_rom_help) OpenPopup("Open a ROM");
-  if (BeginPopupModal("Open a ROM", nullptr,
-                      ImGuiWindowFlags_AlwaysAutoResize)) {
-    Text("File -> Open");
-    Text("Select a ROM file to open");
-    Text("Supported ROMs (headered or unheadered):");
-    Text("The Legend of Zelda: A Link to the Past");
-    Text("US Version 1.0");
-    Text("JP Version 1.0");
-
-    if (Button("Close", gui::kDefaultModalSize)) {
-      open_rom_help = false;
-      CloseCurrentPopup();
-    }
-    EndPopup();
-  }
-
-  if (open_manage_project) OpenPopup("Manage Project");
-  if (BeginPopupModal("Manage Project", nullptr,
-                      ImGuiWindowFlags_AlwaysAutoResize)) {
-    Text("Project Menu");
-    Text("Create a new project or open an existing one.");
-    Text("Save the project to save the current state of the project.");
-    TextWrapped(
-        "To save a project, you need to first open a ROM and initialize your "
-        "code path and labels file. Label resource manager can be found in "
-        "the View menu. Code path is set in the Code editor after opening a "
-        "folder.");
-
-    if (Button("Close", gui::kDefaultModalSize)) {
-      open_manage_project = false;
-      CloseCurrentPopup();
-    }
-    EndPopup();
-  }
-
-  if (show_resource_label_manager) {
-    rom()->resource_label()->DisplayLabels(&show_resource_label_manager);
+  if (show_resource_label_manager && current_rom_) {
+    current_rom_->resource_label()->DisplayLabels(&show_resource_label_manager);
     if (current_project_.project_opened_ &&
         !current_project_.labels_filename_.empty()) {
-      current_project_.labels_filename_ = rom()->resource_label()->filename_;
+      current_project_.labels_filename_ =
+          current_rom_->resource_label()->filename_;
     }
   }
 
@@ -422,7 +396,7 @@ void EditorManager::DrawMenuBar() {
     Begin("Save As..", &save_as_menu, ImGuiWindowFlags_AlwaysAutoResize);
     InputText("Filename", &save_as_filename);
     if (Button("Save", gui::kDefaultModalSize)) {
-      SaveRom();
+      status_ = SaveRom();
       save_as_menu = false;
     }
     SameLine();
@@ -474,88 +448,156 @@ void EditorManager::DrawMenuBar() {
   }
 }
 
-void EditorManager::LoadRom() {
+absl::Status EditorManager::LoadRom() {
   auto file_name = FileDialogWrapper::ShowOpenFileDialog();
-  auto load_rom = rom()->LoadFromFile(file_name);
-  if (load_rom.ok()) {
-    current_rom_ = rom();
-    static RecentFilesManager manager("recent_files.txt");
-    manager.Load();
-    manager.AddFile(file_name);
-    manager.Save();
-    LoadAssets();
+  auto new_rom = std::make_unique<Rom>();
+  RETURN_IF_ERROR(new_rom->LoadFromFile(file_name));
+
+  current_rom_ = new_rom.get();
+  roms_.push_back(std::move(new_rom));
+
+  // Create new editor set for this ROM
+  auto editor_set = std::make_unique<EditorSet>(current_rom_);
+  for (auto *editor : editor_set->active_editors_) {
+    editor->set_context(&context_);
   }
+  current_editor_set_ = editor_set.get();
+  editor_sets_[current_rom_] = std::move(editor_set);
+
+  static RecentFilesManager manager("recent_files.txt");
+  manager.Load();
+  manager.AddFile(file_name);
+  manager.Save();
+  RETURN_IF_ERROR(LoadAssets());
+
+  // Show ROM info popup after loading
+  popup_manager_->Show("ROM Information");
+
+  return absl::OkStatus();
 }
 
-void EditorManager::LoadAssets() {
-  auto load_rom_assets = [&]() -> absl::Status {
-    auto &sheet_manager = GraphicsSheetManager::GetInstance();
-    ASSIGN_OR_RETURN(*sheet_manager.mutable_gfx_sheets(),
-                     LoadAllGraphicsData(*rom()))
-    RETURN_IF_ERROR(overworld_editor_.Load());
-    RETURN_IF_ERROR(dungeon_editor_.Load());
-    return absl::OkStatus();
-  };
-  if (!load_rom_assets().ok()) {
-    status_ = load_rom_assets();
+absl::Status EditorManager::LoadAssets() {
+  if (!current_rom_ || !current_editor_set_) {
+    return absl::FailedPreconditionError("No ROM or editor set loaded");
   }
+  current_editor_set_->overworld_editor_.Initialize();
+
+  auto &sheet_manager = GraphicsSheetManager::GetInstance();
+  ASSIGN_OR_RETURN(*sheet_manager.mutable_gfx_sheets(),
+                   LoadAllGraphicsData(*current_rom_));
+  RETURN_IF_ERROR(current_editor_set_->overworld_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set_->dungeon_editor_.Load());
+  return absl::OkStatus();
 }
 
-void EditorManager::SaveRom() {
+absl::Status EditorManager::SaveRom() {
+  if (!current_rom_ || !current_editor_set_) {
+    return absl::FailedPreconditionError("No ROM or editor set loaded");
+  }
+
   if (core::FeatureFlags::get().kSaveDungeonMaps) {
-    status_ = screen_editor_.SaveDungeonMaps();
-    RETURN_VOID_IF_ERROR(status_);
+    RETURN_IF_ERROR(current_editor_set_->screen_editor_.SaveDungeonMaps());
   }
 
-  status_ = overworld_editor_.Save();
-  RETURN_VOID_IF_ERROR(status_);
+  RETURN_IF_ERROR(current_editor_set_->overworld_editor_.Save());
 
   if (core::FeatureFlags::get().kSaveGraphicsSheet)
-    PRINT_IF_ERROR(SaveAllGraphicsData(
-        *rom(), GraphicsSheetManager::GetInstance().gfx_sheets()));
+    RETURN_IF_ERROR(SaveAllGraphicsData(
+        *current_rom_, GraphicsSheetManager::GetInstance().gfx_sheets()));
 
-  status_ = rom()->SaveToFile(backup_rom_, save_new_auto_);
+  return current_rom_->SaveToFile(backup_rom_, save_new_auto_);
 }
 
-void EditorManager::OpenRomOrProject(const std::string &filename) {
+absl::Status EditorManager::OpenRomOrProject(const std::string &filename) {
   if (absl::StrContains(filename, ".yaze")) {
-    status_ = current_project_.Open(filename);
-    if (status_.ok()) {
-      status_ = OpenProject();
-    }
+    RETURN_IF_ERROR(current_project_.Open(filename));
+    RETURN_IF_ERROR(OpenProject());
   } else {
-    status_ = rom()->LoadFromFile(filename);
-    current_rom_ = rom();
-    LoadAssets();
+    auto new_rom = std::make_unique<Rom>();
+    RETURN_IF_ERROR(new_rom->LoadFromFile(filename));
+    current_rom_ = new_rom.get();
+    SharedRom::set_rom(current_rom_);
+    roms_.push_back(std::move(new_rom));
+
+    // Create new editor set for this ROM
+    auto editor_set = std::make_unique<EditorSet>(current_rom_);
+    for (auto *editor : editor_set->active_editors_) {
+      editor->set_context(&context_);
+    }
+    current_editor_set_ = editor_set.get();
+    editor_sets_[current_rom_] = std::move(editor_set);
+    RETURN_IF_ERROR(LoadAssets());
   }
+  return absl::OkStatus();
 }
 
 absl::Status EditorManager::OpenProject() {
-  RETURN_IF_ERROR(rom()->LoadFromFile(current_project_.rom_filename_));
-  current_rom_ = rom();
+  auto new_rom = std::make_unique<Rom>();
+  RETURN_IF_ERROR(new_rom->LoadFromFile(current_project_.rom_filename_));
+  current_rom_ = new_rom.get();
+  roms_.push_back(std::move(new_rom));
 
-  if (!rom()->resource_label()->LoadLabels(current_project_.labels_filename_)) {
+  if (!current_rom_->resource_label()->LoadLabels(
+          current_project_.labels_filename_)) {
     return absl::InternalError(
         "Could not load labels file, update your project file.");
   }
+
+  // Create new editor set for this ROM
+  auto editor_set = std::make_unique<EditorSet>(current_rom_);
+  for (auto *editor : editor_set->active_editors_) {
+    editor->set_context(&context_);
+  }
+  current_editor_set_ = editor_set.get();
+  editor_sets_[current_rom_] = std::move(editor_set);
 
   static RecentFilesManager manager("recent_files.txt");
   manager.Load();
   manager.AddFile(current_project_.filepath + "/" + current_project_.name +
                   ".yaze");
   manager.Save();
-  assembly_editor_.OpenFolder(current_project_.code_folder_);
+  if (current_editor_set_) {
+    current_editor_set_->assembly_editor_.OpenFolder(
+        current_project_.code_folder_);
+  }
   current_project_.project_opened_ = true;
-  LoadAssets();
+  RETURN_IF_ERROR(LoadAssets());
   return absl::OkStatus();
 }
 
-void EditorManager::SaveProject() {
+absl::Status EditorManager::SaveProject() {
   if (current_project_.project_opened_) {
-    status_ = current_project_.Save();
+    RETURN_IF_ERROR(current_project_.Save());
   } else {
     new_project_menu = true;
   }
+  return absl::OkStatus();
+}
+
+absl::Status EditorManager::SetCurrentRom(Rom *rom) {
+  if (!rom) {
+    return absl::InvalidArgumentError("Invalid ROM pointer");
+  }
+
+  auto it = editor_sets_.find(rom);
+  if (it == editor_sets_.end()) {
+    // Create new editor set if it doesn't exist
+    auto editor_set = std::make_unique<EditorSet>(rom);
+    for (auto *editor : editor_set->active_editors_) {
+      editor->set_context(&context_);
+    }
+    current_editor_set_ = editor_set.get();
+
+    editor_sets_[rom] = std::move(editor_set);
+    current_rom_ = rom;
+    RETURN_IF_ERROR(LoadAssets());
+  } else {
+    current_editor_set_ = it->second.get();
+    current_rom_ = rom;
+    SharedRom::set_rom(rom);
+  }
+
+  return absl::OkStatus();
 }
 
 }  // namespace editor

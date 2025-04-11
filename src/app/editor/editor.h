@@ -22,7 +22,7 @@ struct EditorContext {
   CommandManager command_manager;
   ExtensionManager extension_manager;
   HistoryManager history_manager;
-  PopupManager popup_manager;
+  PopupManager* popup_manager = nullptr;
   ShortcutManager shortcut_manager;
 };
 
@@ -75,6 +75,8 @@ class Editor {
   virtual absl::Status Redo() = 0;
 
   virtual absl::Status Find() = 0;
+
+  virtual absl::Status Clear() { return absl::OkStatus(); }
 
   EditorType type() const { return type_; }
 
