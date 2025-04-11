@@ -176,11 +176,15 @@ struct TextElement {
     }
     HasArgument = arg;
     Description = description;
-    Pattern =
-        arg ? "\\[" + Token + ":?([0-9A-F]{1,2})\\]" : "\\[" + Token + "\\]";
-    Pattern = absl::StrReplaceAll(Pattern, {{"[", "\\["}, {"]", "\\]"}});
-    StrictPattern = absl::StrCat("^", Pattern, "$");
-    StrictPattern = "^" + Pattern + "$";
+    if (arg) {
+      Pattern = absl::StrFormat(
+          "\\[%s(:[0-9A-F]{1,2})?\\]",
+          absl::StrReplaceAll(Token, {{"[", "\\["}, {"]", "\\]"}}));
+    } else {
+      Pattern = absl::StrFormat(
+          "\\[%s\\]", absl::StrReplaceAll(Token, {{"[", "\\["}, {"]", "\\]"}}));
+    }
+    StrictPattern = absl::StrFormat("^%s$", Pattern);
   }
 
   std::string GetParamToken(uint8_t value = 0) const {

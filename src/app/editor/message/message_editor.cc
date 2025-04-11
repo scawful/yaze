@@ -41,9 +41,6 @@ constexpr ImGuiTableFlags kMessageTableFlags = ImGuiTableFlags_Hideable |
                                                ImGuiTableFlags_Borders |
                                                ImGuiTableFlags_Resizable;
 
-constexpr ImGuiTableFlags kDictTableFlags =
-    ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable;
-
 void MessageEditor::Initialize() {
   for (int i = 0; i < kWidthArraySize; i++) {
     width_array[i] = rom()->data()[kCharactersWidth + i];
@@ -94,7 +91,7 @@ absl::Status MessageEditor::Update() {
     data_loaded_ = true;
   }
 
-  if (BeginTable("##MessageEditor", 4, kDictTableFlags)) {
+  if (BeginTable("##MessageEditor", 4, kMessageTableFlags)) {
     TableSetupColumn("List");
     TableSetupColumn("Contents");
     TableSetupColumn("Commands");
@@ -145,8 +142,8 @@ void MessageEditor::DrawMessageList() {
 
       EndTable();
     }
-    EndChild();
   }
+  EndChild();
 }
 
 void MessageEditor::DrawCurrentMessage() {
@@ -179,7 +176,7 @@ void MessageEditor::DrawCurrentMessage() {
     Renderer::GetInstance().UpdateBitmap(&current_font_gfx16_bitmap_);
   }
   gui::BeginPadding(1);
-  BeginChild("CurrentGfxFont", ImVec2(0, 0), true,
+  BeginChild("CurrentGfxFont", ImVec2(200, 0), true,
              ImGuiWindowFlags_AlwaysVerticalScrollbar);
   current_font_gfx16_canvas_.DrawBackground();
   gui::EndPadding();
@@ -195,19 +192,22 @@ void MessageEditor::DrawTextCommands() {
                  ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
     for (const auto &text_element : TextCommands) {
       if (Button(text_element.GenericToken.c_str())) {
+        // Insert the command into the message text box.
+        message_text_box_.text.append(text_element.GenericToken);
       }
       SameLine();
       TextWrapped("%s", text_element.Description.c_str());
       Separator();
     }
-    EndChild();
   }
+  EndChild();
 }
 
 void MessageEditor::DrawDictionary() {
   if (ImGui::BeginChild("##DictionaryChild", ImVec2(0, 0), true,
                         ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-    if (BeginTable("##Dictionary", 2, kDictTableFlags)) {
+    if (BeginTable("##Dictionary", 2, kMessageTableFlags)) {
+      TableHeadersRow();
       TableSetupColumn("ID");
       TableSetupColumn("Contents");
 
@@ -219,9 +219,8 @@ void MessageEditor::DrawDictionary() {
       }
       EndTable();
     }
-
-    EndChild();
   }
+  EndChild();
 }
 
 void MessageEditor::ReadAllTextDataV2() {
