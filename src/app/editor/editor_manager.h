@@ -112,17 +112,17 @@ class EditorManager {
 class EditorSet {
 public:
     explicit EditorSet(Rom* rom) 
-        : assembly_editor_(),
-          dungeon_editor_(),
-          graphics_editor_(),
-          music_editor_(),
+        : assembly_editor_(rom),
+          dungeon_editor_(rom),
+          graphics_editor_(rom),
+          music_editor_(rom),
           overworld_editor_(*rom),
-          palette_editor_(),
-          screen_editor_(),
-          sprite_editor_(),
-          settings_editor_(),
-          message_editor_(),
-          memory_editor_() {
+          palette_editor_(rom),
+          screen_editor_(rom),
+          sprite_editor_(rom),
+          settings_editor_(rom),
+          message_editor_(rom),
+          memory_editor_(rom) {
         active_editors_ = {&overworld_editor_, &dungeon_editor_, &graphics_editor_,
                           &palette_editor_, &sprite_editor_, &message_editor_,
                           &music_editor_, &screen_editor_, &settings_editor_,

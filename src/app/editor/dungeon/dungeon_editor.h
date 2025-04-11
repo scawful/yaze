@@ -38,9 +38,11 @@ constexpr ImGuiTableFlags kDungeonTableFlags =
  * tile selector, and object renderer. Additionally, it handles loading room
  * entrances, calculating usage statistics, and rendering set usage.
  */
-class DungeonEditor : public Editor, public SharedRom {
+class DungeonEditor : public Editor {
  public:
-  DungeonEditor() { type_ = EditorType::kDungeon; }
+  explicit DungeonEditor(Rom* rom = nullptr) : rom_(rom) { 
+    type_ = EditorType::kDungeon; 
+  }
 
   void Initialize() override;
   absl::Status Load() override;
@@ -54,6 +56,12 @@ class DungeonEditor : public Editor, public SharedRom {
   absl::Status Save() override { return absl::UnimplementedError("Save"); }
 
   void add_room(int i) { active_rooms_.push_back(i); }
+
+  // Set the ROM pointer
+  void set_rom(Rom* rom) { rom_ = rom; }
+  
+  // Get the ROM pointer
+  Rom* rom() const { return rom_; }
 
  private:
   absl::Status RefreshGraphics();
@@ -138,6 +146,8 @@ class DungeonEditor : public Editor, public SharedRom {
   std::unordered_map<int, ImVec4> room_palette_;
 
   absl::Status status_;
+
+  Rom* rom_;
 };
 
 }  // namespace editor

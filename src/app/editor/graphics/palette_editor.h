@@ -77,9 +77,9 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded);
  * @class PaletteEditor
  * @brief Allows the user to view and edit in game palettes.
  */
-class PaletteEditor : public SharedRom, public Editor {
+class PaletteEditor : public Editor {
  public:
-  PaletteEditor() {
+  explicit PaletteEditor(Rom* rom = nullptr) : rom_(rom) {
     type_ = EditorType::kPalette;
     custom_palette_.push_back(gfx::SnesColor(0x7FFF));
   }
@@ -106,6 +106,12 @@ class PaletteEditor : public SharedRom, public Editor {
 
   void DrawModifiedColors();
 
+  // Set the ROM pointer
+  void set_rom(Rom* rom) { rom_ = rom; }
+  
+  // Get the ROM pointer
+  Rom* rom() const { return rom_; }
+
  private:
   absl::Status HandleColorPopup(gfx::SnesPalette& palette, int i, int j, int n);
 
@@ -119,6 +125,8 @@ class PaletteEditor : public SharedRom, public Editor {
   ImVec4 saved_palette_[256] = {};
 
   palette_internal::PaletteEditorHistory history_;
+
+  Rom* rom_;
 };
 
 }  // namespace editor
