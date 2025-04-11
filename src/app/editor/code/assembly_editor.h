@@ -6,6 +6,7 @@
 #include "app/editor/editor.h"
 #include "app/gui/modules/text_editor.h"
 #include "app/gui/style.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace editor {
@@ -22,7 +23,7 @@ struct FolderItem {
  */
 class AssemblyEditor : public Editor {
  public:
-  AssemblyEditor() {
+  explicit AssemblyEditor(Rom* rom = nullptr) : rom_(rom) {
     text_editor_.SetLanguageDefinition(gui::GetAssemblyLanguageDef());
     text_editor_.SetPalette(TextEditor::GetDarkPalette());
     text_editor_.SetShowWhitespaces(false);
@@ -54,6 +55,12 @@ class AssemblyEditor : public Editor {
 
   void OpenFolder(const std::string &folder_path);
 
+  // Set the ROM pointer
+  void set_rom(Rom* rom) { rom_ = rom; }
+
+  // Get the ROM pointer
+  Rom* rom() const { return rom_; }
+
  private:
   void DrawFileMenu();
   void DrawEditMenu();
@@ -71,6 +78,8 @@ class AssemblyEditor : public Editor {
   std::string current_file_;
   FolderItem current_folder_;
   TextEditor text_editor_;
+
+  Rom* rom_;
 };
 
 }  // namespace editor

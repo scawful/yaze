@@ -54,20 +54,28 @@ const std::string kSuperDonkeySprites[] = {
  * drawing toolsets, palette controls, clipboard imports, experimental features,
  * and memory editor.
  */
-class GraphicsEditor : public SharedRom, public Editor {
+class GraphicsEditor : public Editor {
  public:
-  GraphicsEditor() { type_ = EditorType::kGraphics; }
+  explicit GraphicsEditor(Rom* rom = nullptr) : rom_(rom) { 
+    type_ = EditorType::kGraphics; 
+  }
 
   void Initialize() override;
   absl::Status Load() override;
+  absl::Status Save() override { return absl::UnimplementedError("Save"); }
   absl::Status Update() override;
-  absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
-  absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
+  absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
+  absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
-  absl::Status Save() override { return absl::UnimplementedError("Save"); }
+  
+  // Set the ROM pointer
+  void set_rom(Rom* rom) { rom_ = rom; }
+  
+  // Get the ROM pointer
+  Rom* rom() const { return rom_; }
 
  private:
   enum class GfxEditMode {
@@ -195,6 +203,8 @@ class GraphicsEditor : public SharedRom, public Editor {
       ImVec2(gfx::kTilesheetWidth * 4, gfx::kTilesheetHeight * 0x10 * 4),
       gui::CanvasGridSize::k16x16};
   absl::Status status_;
+
+  Rom* rom_;
 };
 
 }  // namespace editor

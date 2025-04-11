@@ -54,22 +54,31 @@ const ImGuiTableFlags music_editor_flags_ = ImGuiTableFlags_SizingFixedFit |
  * @class MusicEditor
  * @brief A class for editing music data in a Rom.
  */
-class MusicEditor : public SharedRom, public Editor {
+class MusicEditor : public Editor {
  public:
-  MusicEditor() { type_ = EditorType::kMusic; }
+  explicit MusicEditor(Rom* rom = nullptr) : rom_(rom) { 
+    type_ = EditorType::kMusic; 
+  }
 
   void Initialize() override;
   absl::Status Load() override;
+  absl::Status Save() override { return absl::UnimplementedError("Save"); }
   absl::Status Update() override;
-  absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
-  absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
+  absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
+  absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
-  absl::Status Save() override { return absl::UnimplementedError("Save"); }
+  
+  // Set the ROM pointer
+  void set_rom(Rom* rom) { rom_ = rom; }
+  
+  // Get the ROM pointer
+  Rom* rom() const { return rom_; }
 
  private:
+  Rom* rom_;
   void DrawChannels();
   void DrawPianoStaff();
   void DrawPianoRoll();

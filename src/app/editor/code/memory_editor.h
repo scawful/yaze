@@ -2,7 +2,6 @@
 #define YAZE_APP_EDITOR_CODE_MEMORY_EDITOR_H
 
 #include "app/core/platform/file_dialog.h"
-#include "app/editor/code/memory_editor.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
@@ -15,7 +14,9 @@ namespace editor {
 using ImGui::SameLine;
 using ImGui::Text;
 
-struct MemoryEditorWithDiffChecker : public SharedRom {
+struct MemoryEditorWithDiffChecker {
+  explicit MemoryEditorWithDiffChecker(Rom* rom = nullptr) : rom_(rom) {}
+  
   void Update(bool &show_memory_editor) {
     static MemoryEditor mem_edit;
     static MemoryEditor comp_edit;
@@ -56,6 +57,15 @@ struct MemoryEditorWithDiffChecker : public SharedRom {
 
     ImGui::End();
   }
+
+  // Set the ROM pointer
+  void set_rom(Rom* rom) { rom_ = rom; }
+  
+  // Get the ROM pointer
+  Rom* rom() const { return rom_; }
+
+ private:
+  Rom* rom_;
 };
 
 }  // namespace editor

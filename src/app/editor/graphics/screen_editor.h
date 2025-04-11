@@ -28,12 +28,10 @@ namespace editor {
  *
  * The screens that can be edited include the title screen, naming screen,
  * overworld map, inventory menu, and more.
- *
- * The class inherits from the SharedRom class.
  */
-class ScreenEditor : public SharedRom, public Editor {
+class ScreenEditor : public Editor {
  public:
-  ScreenEditor() {
+  explicit ScreenEditor(Rom* rom = nullptr) : rom_(rom) {
     screen_canvas_.SetCanvasSize(ImVec2(512, 512));
     type_ = EditorType::kScreen;
   }
@@ -48,10 +46,17 @@ class ScreenEditor : public SharedRom, public Editor {
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override { return absl::UnimplementedError("Save"); }
+  
+  // Set the ROM pointer
+  void set_rom(Rom* rom) { rom_ = rom; }
+  
+  // Get the ROM pointer
+  Rom* rom() const { return rom_; }
 
   absl::Status SaveDungeonMaps();
 
  private:
+  Rom* rom_;
   void DrawTitleScreenEditor();
   void DrawNamingScreenEditor();
   void DrawOverworldMapEditor();

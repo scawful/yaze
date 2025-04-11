@@ -33,9 +33,11 @@ constexpr ImGuiTableFlags kSpriteTableFlags =
  * This class provides functionality for updating the sprite editor, drawing the
  * editor table, drawing the sprite canvas, and drawing the current sheets.
  */
-class SpriteEditor : public SharedRom, public Editor {
+class SpriteEditor : public Editor {
  public:
-  SpriteEditor() { type_ = EditorType::kSprite; }
+  explicit SpriteEditor(Rom* rom = nullptr) : rom_(rom) { 
+    type_ = EditorType::kSprite; 
+  }
 
   void Initialize() override;
   absl::Status Load() override;
@@ -47,6 +49,12 @@ class SpriteEditor : public SharedRom, public Editor {
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override { return absl::UnimplementedError("Save"); }
+  
+  // Set the ROM pointer
+  void set_rom(Rom* rom) { rom_ = rom; }
+  
+  // Get the ROM pointer
+  Rom* rom() const { return rom_; }
 
  private:
   void DrawVanillaSpriteEditor();
@@ -105,6 +113,8 @@ class SpriteEditor : public SharedRom, public Editor {
   std::vector<zsprite::ZSprite> custom_sprites_; /**< Sprites. */
 
   absl::Status status_; /**< Status. */
+
+  Rom* rom_;
 };
 
 }  // namespace editor
