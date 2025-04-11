@@ -1,0 +1,13 @@
+<map id="incl/yaze.h" name="incl/yaze.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="102,5,184,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,73,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,34,71,72,68,68,124,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="145,153,208,178"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="142,32,135,65,134,85,138,104,146,122,157,139,153,142,141,125,132,105,129,85,130,65,136,31"/>
+<area shape="rect" id="Node000004" href="$incl_2snes_8h.html" title=" " alt="" coords="147,79,206,105"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="151,30,167,64,162,66,146,32"/>
+<area shape="rect" id="Node000006" href="$zelda_8h.html" title=" " alt="" coords="230,79,291,105"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="164,29,229,68,226,73,162,34"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="179,105,179,137,174,137,174,105"/>
+<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="248,107,204,144,200,140,244,103"/>
+</map>

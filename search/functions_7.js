@@ -27,10 +27,11 @@ var searchData=
   ['hexlong_24',['HexLong',['../namespaceyaze_1_1util.html#afdc6f50508cd51e6d8c6b1cbffd46d34',1,'yaze::util']]],
   ['hexlonglong_25',['HexLongLong',['../namespaceyaze_1_1util.html#aae673c9b14bcf937c1a1f925876e1282',1,'yaze::util']]],
   ['hexword_26',['HexWord',['../namespaceyaze_1_1util.html#a27c80ad6b675be3cbc3da03416081454',1,'yaze::util']]],
-  ['historymanager_27',['HistoryManager',['../classyaze_1_1editor_1_1HistoryManager.html#a99d3b579aaba1310a5ce798cf4df7fa1',1,'yaze::editor::HistoryManager']]],
-  ['hlsl_28',['HLSL',['../structTextEditor_1_1LanguageDefinition.html#ac57152f855eed0755732f395ccff8d3a',1,'TextEditor::LanguageDefinition']]],
-  ['holes_29',['holes',['../classyaze_1_1zelda3_1_1Overworld.html#a0a0512a664bd6cd08f0d5244b1f35a07',1,'yaze::zelda3::Overworld']]],
-  ['hover_5fmouse_5fpos_30',['hover_mouse_pos',['../classyaze_1_1gui_1_1Canvas.html#a3cea4228bbc82ef162fa28b9a88cbfb8',1,'yaze::gui::Canvas']]],
-  ['hyrulemagiccompress_31',['HyruleMagicCompress',['../namespaceyaze_1_1gfx.html#ac740e607dcc76bf2c18076778ee5b4ef',1,'yaze::gfx']]],
-  ['hyrulemagicdecompress_32',['HyruleMagicDecompress',['../namespaceyaze_1_1gfx.html#a21be514360ade54dad0e52c660a3ced6',1,'yaze::gfx']]]
+  ['hide_27',['Hide',['../classyaze_1_1editor_1_1PopupManager.html#a480947c734a64622b5213e87eb585d9b',1,'yaze::editor::PopupManager']]],
+  ['historymanager_28',['HistoryManager',['../classyaze_1_1editor_1_1HistoryManager.html#a99d3b579aaba1310a5ce798cf4df7fa1',1,'yaze::editor::HistoryManager']]],
+  ['hlsl_29',['HLSL',['../structTextEditor_1_1LanguageDefinition.html#ac57152f855eed0755732f395ccff8d3a',1,'TextEditor::LanguageDefinition']]],
+  ['holes_30',['holes',['../classyaze_1_1zelda3_1_1Overworld.html#a0a0512a664bd6cd08f0d5244b1f35a07',1,'yaze::zelda3::Overworld']]],
+  ['hover_5fmouse_5fpos_31',['hover_mouse_pos',['../classyaze_1_1gui_1_1Canvas.html#a3cea4228bbc82ef162fa28b9a88cbfb8',1,'yaze::gui::Canvas']]],
+  ['hyrulemagiccompress_32',['HyruleMagicCompress',['../namespaceyaze_1_1gfx.html#ac740e607dcc76bf2c18076778ee5b4ef',1,'yaze::gfx']]],
+  ['hyrulemagicdecompress_33',['HyruleMagicDecompress',['../namespaceyaze_1_1gfx.html#a21be514360ade54dad0e52c660a3ced6',1,'yaze::gfx']]]
 ];

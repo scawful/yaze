@@ -30,7 +30,7 @@ var searchData=
   ['editor_2eh_27',['editor.h',['../editor_8h.html',1,'']]],
   ['editor_5fmanager_2ecc_28',['editor_manager.cc',['../editor__manager_8cc.html',1,'']]],
   ['editor_5fmanager_2eh_29',['editor_manager.h',['../editor__manager_8h.html',1,'']]],
-  ['editor_5fmanager_5f_30',['editor_manager_',['../classyaze_1_1core_1_1Controller.html#ac4679c506fca7da732d65dad8934ef96',1,'yaze::core::Controller']]],
+  ['editor_5fmanager_5f_30',['editor_manager_',['../classyaze_1_1core_1_1Controller.html#ac4679c506fca7da732d65dad8934ef96',1,'yaze::core::Controller::editor_manager_'],['../classyaze_1_1editor_1_1PopupManager.html#a715dd04b044514b20ed7412f900ad4cf',1,'yaze::editor::PopupManager::editor_manager_']]],
   ['editorcontext_31',['EditorContext',['../structyaze_1_1editor_1_1EditorContext.html',1,'yaze::editor']]],
   ['editormanager_32',['EditorManager',['../classyaze_1_1editor_1_1EditorManager.html',1,'yaze::editor::EditorManager'],['../classyaze_1_1editor_1_1EditorManager.html#a5e1bc7f274b01593c207c0cd72cc17c3',1,'yaze::editor::EditorManager::EditorManager()']]],
   ['editorstate_33',['EditorState',['../structTextEditor_1_1EditorState.html',1,'TextEditor']]],

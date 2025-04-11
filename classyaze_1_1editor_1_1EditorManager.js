@@ -41,16 +41,5 @@ var classyaze_1_1editor_1_1EditorManager =
     [ "current_rom_", "classyaze_1_1editor_1_1EditorManager.html#a264fafc6a2aa6ef71c7a33dfc808deec", null ],
     [ "current_project_", "classyaze_1_1editor_1_1EditorManager.html#aeea730dec9b04f7a0dbbbba1e262136a", null ],
     [ "context_", "classyaze_1_1editor_1_1EditorManager.html#ab37cb559d1924b153f1f758b98ff424f", null ],
-    [ "current_editor_", "classyaze_1_1editor_1_1EditorManager.html#ac0340e25707cca3bfff0b8384d55ead9", null ],
-    [ "assembly_editor_", "classyaze_1_1editor_1_1EditorManager.html#ab9ca0335c439be7a2fd49087c317525b", null ],
-    [ "dungeon_editor_", "classyaze_1_1editor_1_1EditorManager.html#a8b2b25455a925ba458a8d48123e54f76", null ],
-    [ "graphics_editor_", "classyaze_1_1editor_1_1EditorManager.html#a6613e4bb4e8796274e2aaed2a02cdc28", null ],
-    [ "music_editor_", "classyaze_1_1editor_1_1EditorManager.html#a8ca6dd54554e76b0afe239802db22177", null ],
-    [ "overworld_editor_", "classyaze_1_1editor_1_1EditorManager.html#a312457b2f97861b984fd89429f129dfb", null ],
-    [ "palette_editor_", "classyaze_1_1editor_1_1EditorManager.html#a827074c6efdbeaab83afd86b6fcef2a9", null ],
-    [ "screen_editor_", "classyaze_1_1editor_1_1EditorManager.html#a9dab544456b55ac6ecb082a1154be6b0", null ],
-    [ "sprite_editor_", "classyaze_1_1editor_1_1EditorManager.html#a6268b05a85c9d3d4b4cbbad32a021108", null ],
-    [ "settings_editor_", "classyaze_1_1editor_1_1EditorManager.html#a5f34566584d41389b445bebc8b1cc91d", null ],
-    [ "message_editor_", "classyaze_1_1editor_1_1EditorManager.html#abba4c5708084e5e0f1f7f233e19ac030", null ],
-    [ "memory_editor_", "classyaze_1_1editor_1_1EditorManager.html#a5974cb97fc7619d68e67dbc3dba2d22b", null ]
+    [ "popup_manager_", "classyaze_1_1editor_1_1EditorManager.html#ae9a431666f10d2734518acc911e504b7", null ]
 ];

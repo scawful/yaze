@@ -1,8 +1,5 @@
 var NAVTREEINDEX46 =
 {
-"structyaze_1_1editor_1_1DictionaryEntry.html#a6b2beaa9312716f63e1b5ad0cea3d685":[12,0,0,2,4,5],
-"structyaze_1_1editor_1_1DictionaryEntry.html#a71f4012ddd4815fad5648ef47c5df5b3":[11,0,1,2,10,1],
-"structyaze_1_1editor_1_1DictionaryEntry.html#a71f4012ddd4815fad5648ef47c5df5b3":[12,0,0,2,4,1],
 "structyaze_1_1editor_1_1DictionaryEntry.html#a84511c3a0cacbd7494a14d5f70dca212":[11,0,1,2,10,6],
 "structyaze_1_1editor_1_1DictionaryEntry.html#a84511c3a0cacbd7494a14d5f70dca212":[12,0,0,2,4,6],
 "structyaze_1_1editor_1_1DictionaryEntry.html#ab0fd085743e4366ce506ce8c76c0eedc":[11,0,1,2,10,3],
@@ -149,6 +146,10 @@ var NAVTREEINDEX46 =
 "structyaze_1_1editor_1_1PopupParams.html":[12,0,0,2,26],
 "structyaze_1_1editor_1_1PopupParams.html#a546c3169bbe7b4a5bc0cb6866f62f6d5":[11,0,1,2,32,0],
 "structyaze_1_1editor_1_1PopupParams.html#a546c3169bbe7b4a5bc0cb6866f62f6d5":[12,0,0,2,26,0],
+"structyaze_1_1editor_1_1PopupParams.html#a6ee0299a3e7d0c71a5fcd0a7337ee359":[11,0,1,2,32,2],
+"structyaze_1_1editor_1_1PopupParams.html#a6ee0299a3e7d0c71a5fcd0a7337ee359":[12,0,0,2,26,2],
+"structyaze_1_1editor_1_1PopupParams.html#a9edd60dd88e8c23fb07dfd5a9ad01b93":[11,0,1,2,32,1],
+"structyaze_1_1editor_1_1PopupParams.html#a9edd60dd88e8c23fb07dfd5a9ad01b93":[12,0,0,2,26,1],
 "structyaze_1_1editor_1_1Shortcut.html":[11,0,1,2,36],
 "structyaze_1_1editor_1_1Shortcut.html":[12,0,0,2,30],
 "structyaze_1_1editor_1_1Shortcut.html#a1347cdfa5c374846fb11fcabc00a12f1":[11,0,1,2,36,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX46 =
 "structyaze_1_1editor_1_1zsprite_1_1OamTile.html#a7bda1b933e1a10c7844ae62ff277c2d1":[11,0,1,2,7,1,5],
 "structyaze_1_1editor_1_1zsprite_1_1OamTile.html#a7bda1b933e1a10c7844ae62ff277c2d1":[12,0,0,2,1,1,5],
 "structyaze_1_1editor_1_1zsprite_1_1OamTile.html#a8175de8ba79bcd86eca2af935c9ea6f3":[11,0,1,2,7,1,3],
-"structyaze_1_1editor_1_1zsprite_1_1OamTile.html#a8175de8ba79bcd86eca2af935c9ea6f3":[12,0,0,2,1,1,3],
-"structyaze_1_1editor_1_1zsprite_1_1OamTile.html#a86dfd2c2c223a10804fa59db10c38c75":[11,0,1,2,7,1,4]
+"structyaze_1_1editor_1_1zsprite_1_1OamTile.html#a8175de8ba79bcd86eca2af935c9ea6f3":[12,0,0,2,1,1,3]
 };

@@ -108,6 +108,7 @@ $(function(){initNavTree('classyaze_1_1editor_1_1PopupManager.html',''); initRes
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-methods">Private Member Functions</a> &#124;
 <a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classyaze_1_1editor_1_1PopupManager-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">yaze::editor::PopupManager Class Reference</div></div>
@@ -115,21 +116,157 @@ $(function(){initNavTree('classyaze_1_1editor_1_1PopupManager.html',''); initRes
 <div class="contents">
 
 <p><code>#include &lt;<a class="el" href="popup__manager_8h_source.html">popup_manager.h</a>&gt;</code></p>
+<div class="dynheader">
+Collaboration diagram for yaze::editor::PopupManager:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1PopupManager__coll__graph.png" border="0" usemap="#ayaze_1_1editor_1_1PopupManager_coll__map" alt="Collaboration graph"/></div>
+<map name="ayaze_1_1editor_1_1PopupManager_coll__map" id="ayaze_1_1editor_1_1PopupManager_coll__map">
+<area shape="rect" title=" " alt="" coords="66,258,244,283"/>
+<area shape="rect" href="classyaze_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes." alt="" coords="68,169,242,195"/>
+<area shape="poly" title=" " alt="" coords="158,210,158,257,153,257,153,210"/>
+<area shape="rect" href="classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="5,5,127,31"/>
+<area shape="poly" title=" " alt="" coords="67,46,69,75,78,105,90,124,105,141,137,166,134,170,102,144,86,127,73,107,64,76,62,47"/>
+<area shape="rect" href="classyaze_1_1emu_1_1Emulator.html" title="A class for emulating and debugging SNES games." alt="" coords="88,80,223,106"/>
+<area shape="poly" title=" " alt="" coords="94,39,143,78,139,82,91,43"/>
+<area shape="poly" title=" " alt="" coords="158,122,158,169,153,169,153,122"/>
+<area shape="rect" href="classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="247,80,328,106"/>
+<area shape="poly" title=" " alt="" coords="263,118,222,147,181,171,178,166,219,143,260,114"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:a6b4dd622a1ccd0b902b870a426ff87ea" id="r_a6b4dd622a1ccd0b902b870a426ff87ea"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6b4dd622a1ccd0b902b870a426ff87ea">PopupManager</a> (<a class="el" href="classyaze_1_1editor_1_1EditorManager.html">EditorManager</a> *editor_manager)</td></tr>
+<tr class="separator:a6b4dd622a1ccd0b902b870a426ff87ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6768a12d6d5f06c1fbefe6dd233d3fc3" id="r_a6768a12d6d5f06c1fbefe6dd233d3fc3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6768a12d6d5f06c1fbefe6dd233d3fc3">Initialize</a> ()</td></tr>
+<tr class="separator:a6768a12d6d5f06c1fbefe6dd233d3fc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2e99b05364c27930477a9c1bb5e42e01" id="r_a2e99b05364c27930477a9c1bb5e42e01"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2e99b05364c27930477a9c1bb5e42e01">DrawPopups</a> ()</td></tr>
+<tr class="separator:a2e99b05364c27930477a9c1bb5e42e01"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3bca3f46adb2d926977ce230cbf3b862" id="r_a3bca3f46adb2d926977ce230cbf3b862"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3bca3f46adb2d926977ce230cbf3b862">Show</a> (const char *name)</td></tr>
 <tr class="separator:a3bca3f46adb2d926977ce230cbf3b862"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a480947c734a64622b5213e87eb585d9b" id="r_a480947c734a64622b5213e87eb585d9b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a480947c734a64622b5213e87eb585d9b">Hide</a> (const char *name)</td></tr>
+<tr class="separator:a480947c734a64622b5213e87eb585d9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c8b8645e8a7dc57e9947649a27bedb9" id="r_a2c8b8645e8a7dc57e9947649a27bedb9"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2c8b8645e8a7dc57e9947649a27bedb9">IsVisible</a> (const char *name) const</td></tr>
+<tr class="separator:a2c8b8645e8a7dc57e9947649a27bedb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0961e701273476f3e83fa6d37024526d" id="r_a0961e701273476f3e83fa6d37024526d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0961e701273476f3e83fa6d37024526d">SetStatus</a> (const absl::Status &amp;status)</td></tr>
+<tr class="separator:a0961e701273476f3e83fa6d37024526d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b9f64833bb9e78343045453d731e019" id="r_a1b9f64833bb9e78343045453d731e019"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1b9f64833bb9e78343045453d731e019">GetStatus</a> () const</td></tr>
+<tr class="separator:a1b9f64833bb9e78343045453d731e019"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
+Private Member Functions</h2></td></tr>
+<tr class="memitem:aafae5cb7c5910d1e8b204146f93a9534" id="r_aafae5cb7c5910d1e8b204146f93a9534"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aafae5cb7c5910d1e8b204146f93a9534">BeginCentered</a> (const char *name)</td></tr>
+<tr class="separator:aafae5cb7c5910d1e8b204146f93a9534"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae3d90b47ee5d32c80d3fc72bf25d682c" id="r_ae3d90b47ee5d32c80d3fc72bf25d682c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae3d90b47ee5d32c80d3fc72bf25d682c">DrawAboutPopup</a> ()</td></tr>
+<tr class="separator:ae3d90b47ee5d32c80d3fc72bf25d682c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad458cd3864a745c5be65d88173b60466" id="r_ad458cd3864a745c5be65d88173b60466"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad458cd3864a745c5be65d88173b60466">DrawRomInfoPopup</a> ()</td></tr>
+<tr class="separator:ad458cd3864a745c5be65d88173b60466"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a746d8891f13f4674f49e14168847ce65" id="r_a746d8891f13f4674f49e14168847ce65"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a746d8891f13f4674f49e14168847ce65">DrawStatusPopup</a> ()</td></tr>
+<tr class="separator:a746d8891f13f4674f49e14168847ce65"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8dc17c9cb5860af25f188a76b1ea102b" id="r_a8dc17c9cb5860af25f188a76b1ea102b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8dc17c9cb5860af25f188a76b1ea102b">DrawSaveAsPopup</a> ()</td></tr>
+<tr class="separator:a8dc17c9cb5860af25f188a76b1ea102b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb89757dc4eda77b48d3458156d23aa5" id="r_aeb89757dc4eda77b48d3458156d23aa5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeb89757dc4eda77b48d3458156d23aa5">DrawNewProjectPopup</a> ()</td></tr>
+<tr class="separator:aeb89757dc4eda77b48d3458156d23aa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ceae3fc4d1eab97bbd90c859204cf62" id="r_a5ceae3fc4d1eab97bbd90c859204cf62"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5ceae3fc4d1eab97bbd90c859204cf62">DrawSupportedFeaturesPopup</a> ()</td></tr>
+<tr class="separator:a5ceae3fc4d1eab97bbd90c859204cf62"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae6a92e37f1201d82cc280b6e68fa22ae" id="r_ae6a92e37f1201d82cc280b6e68fa22ae"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae6a92e37f1201d82cc280b6e68fa22ae">DrawOpenRomHelpPopup</a> ()</td></tr>
+<tr class="separator:ae6a92e37f1201d82cc280b6e68fa22ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af1be6dffae8dbab8d879aca0ef7e73c1" id="r_af1be6dffae8dbab8d879aca0ef7e73c1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af1be6dffae8dbab8d879aca0ef7e73c1">DrawManageProjectPopup</a> ()</td></tr>
+<tr class="separator:af1be6dffae8dbab8d879aca0ef7e73c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
-<tr class="memitem:afcc39671120d6ff3bce8080c38531a7a" id="r_afcc39671120d6ff3bce8080c38531a7a"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structyaze_1_1editor_1_1PopupParams.html">PopupParams</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afcc39671120d6ff3bce8080c38531a7a">popups_</a></td></tr>
-<tr class="separator:afcc39671120d6ff3bce8080c38531a7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a715dd04b044514b20ed7412f900ad4cf" id="r_a715dd04b044514b20ed7412f900ad4cf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1editor_1_1EditorManager.html">EditorManager</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a715dd04b044514b20ed7412f900ad4cf">editor_manager_</a></td></tr>
+<tr class="separator:a715dd04b044514b20ed7412f900ad4cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d5c87c37c995b6c20be3716afed3153" id="r_a6d5c87c37c995b6c20be3716afed3153"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; std::string, <a class="el" href="structyaze_1_1editor_1_1PopupParams.html">PopupParams</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6d5c87c37c995b6c20be3716afed3153">popups_</a></td></tr>
+<tr class="separator:a6d5c87c37c995b6c20be3716afed3153"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa2795d1c987f13149b1a5f58c0d532c4" id="r_aa2795d1c987f13149b1a5f58c0d532c4"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa2795d1c987f13149b1a5f58c0d532c4">status_</a></td></tr>
+<tr class="separator:aa2795d1c987f13149b1a5f58c0d532c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ace65dec0a3a75ce29fa2b17beda78b5b" id="r_ace65dec0a3a75ce29fa2b17beda78b5b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ace65dec0a3a75ce29fa2b17beda78b5b">show_status_</a> = false</td></tr>
+<tr class="separator:ace65dec0a3a75ce29fa2b17beda78b5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9aff420ec30e6477c1fdb5da9c1c26b2" id="r_a9aff420ec30e6477c1fdb5da9c1c26b2"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9aff420ec30e6477c1fdb5da9c1c26b2">prev_status_</a></td></tr>
+<tr class="separator:a9aff420ec30e6477c1fdb5da9c1c26b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="popup__manager_8h_source.html#l00014">14</a> of file <a class="el" href="popup__manager_8h_source.html">popup_manager.h</a>.</p>
-</div><h2 class="groupheader">Member Function Documentation</h2>
+<p class="definition">Definition at line <a class="el" href="popup__manager_8h_source.html#l00023">23</a> of file <a class="el" href="popup__manager_8h_source.html">popup_manager.h</a>.</p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a6b4dd622a1ccd0b902b870a426ff87ea" name="a6b4dd622a1ccd0b902b870a426ff87ea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6b4dd622a1ccd0b902b870a426ff87ea">&#9670;&#160;</a></span>PopupManager()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">yaze::editor::PopupManager::PopupManager </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1editor_1_1EditorManager.html">EditorManager</a> *</td>          <td class="paramname"><span class="paramname"><em>editor_manager</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="popup__manager_8cc_source.html#l00014">14</a> of file <a class="el" href="popup__manager_8cc_source.html">popup_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="popup__manager_8h_source.html#l00076">editor_manager_</a>, and <a class="el" href="popup__manager_8h_source.html#l00078">status_</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a6768a12d6d5f06c1fbefe6dd233d3fc3" name="a6768a12d6d5f06c1fbefe6dd233d3fc3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6768a12d6d5f06c1fbefe6dd233d3fc3">&#9670;&#160;</a></span>Initialize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::PopupManager::Initialize </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="popup__manager_8cc_source.html#l00017">17</a> of file <a class="el" href="popup__manager_8cc_source.html">popup_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="popup__manager_8cc_source.html#l00107">DrawAboutPopup()</a>, <a class="el" href="popup__manager_8cc_source.html#l00227">DrawManageProjectPopup()</a>, <a class="el" href="popup__manager_8cc_source.html#l00145">DrawNewProjectPopup()</a>, <a class="el" href="popup__manager_8cc_source.html#l00214">DrawOpenRomHelpPopup()</a>, <a class="el" href="popup__manager_8cc_source.html#l00119">DrawRomInfoPopup()</a>, <a class="el" href="popup__manager_8cc_source.html#l00131">DrawSaveAsPopup()</a>, <a class="el" href="popup__manager_8cc_source.html#l00185">DrawSupportedFeaturesPopup()</a>, and <a class="el" href="popup__manager_8h_source.html#l00077">popups_</a>.</p>
+
+</div>
+</div>
+<a id="a2e99b05364c27930477a9c1bb5e42e01" name="a2e99b05364c27930477a9c1bb5e42e01"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2e99b05364c27930477a9c1bb5e42e01">&#9670;&#160;</a></span>DrawPopups()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::PopupManager::DrawPopups </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="popup__manager_8cc_source.html#l00028">28</a> of file <a class="el" href="popup__manager_8cc_source.html">popup_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="popup__manager_8cc_source.html#l00085">DrawStatusPopup()</a>, and <a class="el" href="popup__manager_8h_source.html#l00077">popups_</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1PopupManager_a2e99b05364c27930477a9c1bb5e42e01_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1PopupManager_a2e99b05364c27930477a9c1bb5e42e01_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1PopupManager_a2e99b05364c27930477a9c1bb5e42e01_cgraph" id="aclassyaze_1_1editor_1_1PopupManager_a2e99b05364c27930477a9c1bb5e42e01_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,184,46"/>
+<area shape="rect" href="classyaze_1_1editor_1_1PopupManager.html#a746d8891f13f4674f49e14168847ce65" title=" " alt="" coords="232,5,410,46"/>
+<area shape="poly" title=" " alt="" coords="184,23,216,23,216,28,184,28"/>
+<area shape="rect" href="classyaze_1_1editor_1_1PopupManager.html#aafae5cb7c5910d1e8b204146f93a9534" title=" " alt="" coords="458,5,636,46"/>
+<area shape="poly" title=" " alt="" coords="411,23,442,23,442,28,411,28"/>
+</map>
+</div>
+
+</div>
+</div>
 <a id="a3bca3f46adb2d926977ce230cbf3b862" name="a3bca3f46adb2d926977ce230cbf3b862"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3bca3f46adb2d926977ce230cbf3b862">&#9670;&#160;</a></span>Show()</h2>
 
@@ -145,11 +282,79 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p class="definition">Definition at line <a class="el" href="popup__manager_8cc_source.html#l00044">44</a> of file <a class="el" href="popup__manager_8cc_source.html">popup_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="popup__manager_8h_source.html#l00077">popups_</a>.</p>
+
 </div>
 </div>
-<h2 class="groupheader">Member Data Documentation</h2>
-<a id="afcc39671120d6ff3bce8080c38531a7a" name="afcc39671120d6ff3bce8080c38531a7a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afcc39671120d6ff3bce8080c38531a7a">&#9670;&#160;</a></span>popups_</h2>
+<a id="a480947c734a64622b5213e87eb585d9b" name="a480947c734a64622b5213e87eb585d9b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a480947c734a64622b5213e87eb585d9b">&#9670;&#160;</a></span>Hide()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::PopupManager::Hide </td>
+          <td>(</td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>name</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="popup__manager_8cc_source.html#l00051">51</a> of file <a class="el" href="popup__manager_8cc_source.html">popup_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="popup__manager_8h_source.html#l00077">popups_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="popup__manager_8cc_source.html#l00107">DrawAboutPopup()</a>, <a class="el" href="popup__manager_8cc_source.html#l00227">DrawManageProjectPopup()</a>, <a class="el" href="popup__manager_8cc_source.html#l00145">DrawNewProjectPopup()</a>, <a class="el" href="popup__manager_8cc_source.html#l00214">DrawOpenRomHelpPopup()</a>, <a class="el" href="popup__manager_8cc_source.html#l00119">DrawRomInfoPopup()</a>, <a class="el" href="popup__manager_8cc_source.html#l00131">DrawSaveAsPopup()</a>, and <a class="el" href="popup__manager_8cc_source.html#l00185">DrawSupportedFeaturesPopup()</a>.</p>
+
+</div>
+</div>
+<a id="a2c8b8645e8a7dc57e9947649a27bedb9" name="a2c8b8645e8a7dc57e9947649a27bedb9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2c8b8645e8a7dc57e9947649a27bedb9">&#9670;&#160;</a></span>IsVisible()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::editor::PopupManager::IsVisible </td>
+          <td>(</td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>name</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="popup__manager_8cc_source.html#l00059">59</a> of file <a class="el" href="popup__manager_8cc_source.html">popup_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="popup__manager_8h_source.html#l00077">popups_</a>.</p>
+
+</div>
+</div>
+<a id="a0961e701273476f3e83fa6d37024526d" name="a0961e701273476f3e83fa6d37024526d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0961e701273476f3e83fa6d37024526d">&#9670;&#160;</a></span>SetStatus()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::PopupManager::SetStatus </td>
+          <td>(</td>
+          <td class="paramtype">const absl::Status &amp;</td>          <td class="paramname"><span class="paramname"><em>status</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="popup__manager_8cc_source.html#l00067">67</a> of file <a class="el" href="popup__manager_8cc_source.html">popup_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="popup__manager_8h_source.html#l00080">prev_status_</a>, <a class="el" href="popup__manager_8h_source.html#l00079">show_status_</a>, and <a class="el" href="popup__manager_8h_source.html#l00078">status_</a>.</p>
+
+</div>
+</div>
+<a id="a1b9f64833bb9e78343045453d731e019" name="a1b9f64833bb9e78343045453d731e019"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1b9f64833bb9e78343045453d731e019">&#9670;&#160;</a></span>GetStatus()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -158,7 +363,39 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt;<a class="el" href="structyaze_1_1editor_1_1PopupParams.html">PopupParams</a>&gt; yaze::editor::PopupManager::popups_</td>
+          <td class="memname">absl::Status yaze::editor::PopupManager::GetStatus </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="popup__manager_8h_source.html#l00046">46</a> of file <a class="el" href="popup__manager_8h_source.html">popup_manager.h</a>.</p>
+
+<p class="reference">References <a class="el" href="popup__manager_8h_source.html#l00078">status_</a>.</p>
+
+</div>
+</div>
+<a id="aafae5cb7c5910d1e8b204146f93a9534" name="aafae5cb7c5910d1e8b204146f93a9534"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aafae5cb7c5910d1e8b204146f93a9534">&#9670;&#160;</a></span>BeginCentered()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::editor::PopupManager::BeginCentered </td>
+          <td>(</td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>name</em></span></td><td>)</td>
+          <td></td>
         </tr>
       </table>
   </td>
@@ -168,12 +405,476 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="popup__manager_8h_source.html#l00020">20</a> of file <a class="el" href="popup__manager_8h_source.html">popup_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="popup__manager_8cc_source.html#l00075">75</a> of file <a class="el" href="popup__manager_8cc_source.html">popup_manager.cc</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="popup__manager_8cc_source.html#l00085">DrawStatusPopup()</a>.</p>
 
 </div>
 </div>
-<hr/>The documentation for this class was generated from the following file:<ul>
+<a id="ae3d90b47ee5d32c80d3fc72bf25d682c" name="ae3d90b47ee5d32c80d3fc72bf25d682c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae3d90b47ee5d32c80d3fc72bf25d682c">&#9670;&#160;</a></span>DrawAboutPopup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::PopupManager::DrawAboutPopup </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="popup__manager_8cc_source.html#l00107">107</a> of file <a class="el" href="popup__manager_8cc_source.html">popup_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="popup__manager_8h_source.html#l00076">editor_manager_</a>, <a class="el" href="popup__manager_8cc_source.html#l00051">Hide()</a>, and <a class="el" href="input_8h_source.html#l00022">yaze::gui::kDefaultModalSize</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="popup__manager_8cc_source.html#l00017">Initialize()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1PopupManager_ae3d90b47ee5d32c80d3fc72bf25d682c_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1PopupManager_ae3d90b47ee5d32c80d3fc72bf25d682c_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1PopupManager_ae3d90b47ee5d32c80d3fc72bf25d682c_cgraph" id="aclassyaze_1_1editor_1_1PopupManager_ae3d90b47ee5d32c80d3fc72bf25d682c_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,184,46"/>
+<area shape="rect" href="classyaze_1_1editor_1_1PopupManager.html#a480947c734a64622b5213e87eb585d9b" title=" " alt="" coords="232,5,410,46"/>
+<area shape="poly" title=" " alt="" coords="184,23,216,23,216,28,184,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ad458cd3864a745c5be65d88173b60466" name="ad458cd3864a745c5be65d88173b60466"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad458cd3864a745c5be65d88173b60466">&#9670;&#160;</a></span>DrawRomInfoPopup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::PopupManager::DrawRomInfoPopup </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="popup__manager_8cc_source.html#l00119">119</a> of file <a class="el" href="popup__manager_8cc_source.html">popup_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="popup__manager_8h_source.html#l00076">editor_manager_</a>, <a class="el" href="hex_8cc_source.html#l00072">yaze::util::HexLongLong()</a>, <a class="el" href="popup__manager_8cc_source.html#l00051">Hide()</a>, and <a class="el" href="input_8h_source.html#l00022">yaze::gui::kDefaultModalSize</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="popup__manager_8cc_source.html#l00017">Initialize()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1PopupManager_ad458cd3864a745c5be65d88173b60466_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1PopupManager_ad458cd3864a745c5be65d88173b60466_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1PopupManager_ad458cd3864a745c5be65d88173b60466_cgraph" id="aclassyaze_1_1editor_1_1PopupManager_ad458cd3864a745c5be65d88173b60466_cgraph">
+<area shape="rect" title=" " alt="" coords="5,27,184,68"/>
+<area shape="rect" href="namespaceyaze_1_1util.html#aae673c9b14bcf937c1a1f925876e1282" title=" " alt="" coords="242,5,400,31"/>
+<area shape="poly" title=" " alt="" coords="184,33,226,28,227,33,185,39"/>
+<area shape="rect" href="classyaze_1_1editor_1_1PopupManager.html#a480947c734a64622b5213e87eb585d9b" title=" " alt="" coords="232,55,410,96"/>
+<area shape="poly" title=" " alt="" coords="185,56,216,60,216,65,184,61"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a746d8891f13f4674f49e14168847ce65" name="a746d8891f13f4674f49e14168847ce65"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a746d8891f13f4674f49e14168847ce65">&#9670;&#160;</a></span>DrawStatusPopup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::PopupManager::DrawStatusPopup </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="popup__manager_8cc_source.html#l00085">85</a> of file <a class="el" href="popup__manager_8cc_source.html">popup_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="popup__manager_8cc_source.html#l00075">BeginCentered()</a>, <a class="el" href="icons_8h_source.html#l00463">ICON_MD_CONTENT_COPY</a>, <a class="el" href="icons_8h_source.html#l00684">ICON_MD_ERROR</a>, <a class="el" href="input_8h_source.html#l00022">yaze::gui::kDefaultModalSize</a>, <a class="el" href="popup__manager_8h_source.html#l00080">prev_status_</a>, <a class="el" href="popup__manager_8h_source.html#l00079">show_status_</a>, and <a class="el" href="popup__manager_8h_source.html#l00078">status_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="popup__manager_8cc_source.html#l00028">DrawPopups()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1PopupManager_a746d8891f13f4674f49e14168847ce65_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1PopupManager_a746d8891f13f4674f49e14168847ce65_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1PopupManager_a746d8891f13f4674f49e14168847ce65_cgraph" id="aclassyaze_1_1editor_1_1PopupManager_a746d8891f13f4674f49e14168847ce65_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,184,46"/>
+<area shape="rect" href="classyaze_1_1editor_1_1PopupManager.html#aafae5cb7c5910d1e8b204146f93a9534" title=" " alt="" coords="232,5,410,46"/>
+<area shape="poly" title=" " alt="" coords="184,23,216,23,216,28,184,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a8dc17c9cb5860af25f188a76b1ea102b" name="a8dc17c9cb5860af25f188a76b1ea102b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8dc17c9cb5860af25f188a76b1ea102b">&#9670;&#160;</a></span>DrawSaveAsPopup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::PopupManager::DrawSaveAsPopup </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="popup__manager_8cc_source.html#l00131">131</a> of file <a class="el" href="popup__manager_8cc_source.html">popup_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="popup__manager_8cc_source.html#l00051">Hide()</a>, and <a class="el" href="input_8h_source.html#l00022">yaze::gui::kDefaultModalSize</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="popup__manager_8cc_source.html#l00017">Initialize()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1PopupManager_a8dc17c9cb5860af25f188a76b1ea102b_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1PopupManager_a8dc17c9cb5860af25f188a76b1ea102b_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1PopupManager_a8dc17c9cb5860af25f188a76b1ea102b_cgraph" id="aclassyaze_1_1editor_1_1PopupManager_a8dc17c9cb5860af25f188a76b1ea102b_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,184,46"/>
+<area shape="rect" href="classyaze_1_1editor_1_1PopupManager.html#a480947c734a64622b5213e87eb585d9b" title=" " alt="" coords="232,5,410,46"/>
+<area shape="poly" title=" " alt="" coords="184,23,216,23,216,28,184,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="aeb89757dc4eda77b48d3458156d23aa5" name="aeb89757dc4eda77b48d3458156d23aa5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb89757dc4eda77b48d3458156d23aa5">&#9670;&#160;</a></span>DrawNewProjectPopup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::PopupManager::DrawNewProjectPopup </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="popup__manager_8cc_source.html#l00145">145</a> of file <a class="el" href="popup__manager_8cc_source.html">popup_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="popup__manager_8cc_source.html#l00051">Hide()</a>, and <a class="el" href="input_8h_source.html#l00022">yaze::gui::kDefaultModalSize</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="popup__manager_8cc_source.html#l00017">Initialize()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1PopupManager_aeb89757dc4eda77b48d3458156d23aa5_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1PopupManager_aeb89757dc4eda77b48d3458156d23aa5_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1PopupManager_aeb89757dc4eda77b48d3458156d23aa5_cgraph" id="aclassyaze_1_1editor_1_1PopupManager_aeb89757dc4eda77b48d3458156d23aa5_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,184,46"/>
+<area shape="rect" href="classyaze_1_1editor_1_1PopupManager.html#a480947c734a64622b5213e87eb585d9b" title=" " alt="" coords="232,5,410,46"/>
+<area shape="poly" title=" " alt="" coords="184,23,216,23,216,28,184,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a5ceae3fc4d1eab97bbd90c859204cf62" name="a5ceae3fc4d1eab97bbd90c859204cf62"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5ceae3fc4d1eab97bbd90c859204cf62">&#9670;&#160;</a></span>DrawSupportedFeaturesPopup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::PopupManager::DrawSupportedFeaturesPopup </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="popup__manager_8cc_source.html#l00185">185</a> of file <a class="el" href="popup__manager_8cc_source.html">popup_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="popup__manager_8cc_source.html#l00051">Hide()</a>, and <a class="el" href="input_8h_source.html#l00022">yaze::gui::kDefaultModalSize</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="popup__manager_8cc_source.html#l00017">Initialize()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1PopupManager_a5ceae3fc4d1eab97bbd90c859204cf62_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1PopupManager_a5ceae3fc4d1eab97bbd90c859204cf62_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1PopupManager_a5ceae3fc4d1eab97bbd90c859204cf62_cgraph" id="aclassyaze_1_1editor_1_1PopupManager_a5ceae3fc4d1eab97bbd90c859204cf62_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,210,46"/>
+<area shape="rect" href="classyaze_1_1editor_1_1PopupManager.html#a480947c734a64622b5213e87eb585d9b" title=" " alt="" coords="258,5,436,46"/>
+<area shape="poly" title=" " alt="" coords="210,23,242,23,242,28,210,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ae6a92e37f1201d82cc280b6e68fa22ae" name="ae6a92e37f1201d82cc280b6e68fa22ae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae6a92e37f1201d82cc280b6e68fa22ae">&#9670;&#160;</a></span>DrawOpenRomHelpPopup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::PopupManager::DrawOpenRomHelpPopup </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="popup__manager_8cc_source.html#l00214">214</a> of file <a class="el" href="popup__manager_8cc_source.html">popup_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="popup__manager_8cc_source.html#l00051">Hide()</a>, and <a class="el" href="input_8h_source.html#l00022">yaze::gui::kDefaultModalSize</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="popup__manager_8cc_source.html#l00017">Initialize()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1PopupManager_ae6a92e37f1201d82cc280b6e68fa22ae_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1PopupManager_ae6a92e37f1201d82cc280b6e68fa22ae_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1PopupManager_ae6a92e37f1201d82cc280b6e68fa22ae_cgraph" id="aclassyaze_1_1editor_1_1PopupManager_ae6a92e37f1201d82cc280b6e68fa22ae_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,185,46"/>
+<area shape="rect" href="classyaze_1_1editor_1_1PopupManager.html#a480947c734a64622b5213e87eb585d9b" title=" " alt="" coords="233,5,411,46"/>
+<area shape="poly" title=" " alt="" coords="185,23,217,23,217,28,185,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="af1be6dffae8dbab8d879aca0ef7e73c1" name="af1be6dffae8dbab8d879aca0ef7e73c1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af1be6dffae8dbab8d879aca0ef7e73c1">&#9670;&#160;</a></span>DrawManageProjectPopup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::PopupManager::DrawManageProjectPopup </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="popup__manager_8cc_source.html#l00227">227</a> of file <a class="el" href="popup__manager_8cc_source.html">popup_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="popup__manager_8cc_source.html#l00051">Hide()</a>, and <a class="el" href="input_8h_source.html#l00022">yaze::gui::kDefaultModalSize</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="popup__manager_8cc_source.html#l00017">Initialize()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1PopupManager_af1be6dffae8dbab8d879aca0ef7e73c1_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1PopupManager_af1be6dffae8dbab8d879aca0ef7e73c1_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1PopupManager_af1be6dffae8dbab8d879aca0ef7e73c1_cgraph" id="aclassyaze_1_1editor_1_1PopupManager_af1be6dffae8dbab8d879aca0ef7e73c1_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,187,46"/>
+<area shape="rect" href="classyaze_1_1editor_1_1PopupManager.html#a480947c734a64622b5213e87eb585d9b" title=" " alt="" coords="235,5,413,46"/>
+<area shape="poly" title=" " alt="" coords="187,23,219,23,219,28,187,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a715dd04b044514b20ed7412f900ad4cf" name="a715dd04b044514b20ed7412f900ad4cf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a715dd04b044514b20ed7412f900ad4cf">&#9670;&#160;</a></span>editor_manager_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classyaze_1_1editor_1_1EditorManager.html">EditorManager</a>* yaze::editor::PopupManager::editor_manager_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="popup__manager_8h_source.html#l00076">76</a> of file <a class="el" href="popup__manager_8h_source.html">popup_manager.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="popup__manager_8cc_source.html#l00107">DrawAboutPopup()</a>, <a class="el" href="popup__manager_8cc_source.html#l00119">DrawRomInfoPopup()</a>, and <a class="el" href="popup__manager_8cc_source.html#l00014">PopupManager()</a>.</p>
+
+</div>
+</div>
+<a id="a6d5c87c37c995b6c20be3716afed3153" name="a6d5c87c37c995b6c20be3716afed3153"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6d5c87c37c995b6c20be3716afed3153">&#9670;&#160;</a></span>popups_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unordered_map&lt;std::string, <a class="el" href="structyaze_1_1editor_1_1PopupParams.html">PopupParams</a>&gt; yaze::editor::PopupManager::popups_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="popup__manager_8h_source.html#l00077">77</a> of file <a class="el" href="popup__manager_8h_source.html">popup_manager.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="popup__manager_8cc_source.html#l00028">DrawPopups()</a>, <a class="el" href="popup__manager_8cc_source.html#l00051">Hide()</a>, <a class="el" href="popup__manager_8cc_source.html#l00017">Initialize()</a>, <a class="el" href="popup__manager_8cc_source.html#l00059">IsVisible()</a>, and <a class="el" href="popup__manager_8cc_source.html#l00044">Show()</a>.</p>
+
+</div>
+</div>
+<a id="aa2795d1c987f13149b1a5f58c0d532c4" name="aa2795d1c987f13149b1a5f58c0d532c4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa2795d1c987f13149b1a5f58c0d532c4">&#9670;&#160;</a></span>status_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::editor::PopupManager::status_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="popup__manager_8h_source.html#l00078">78</a> of file <a class="el" href="popup__manager_8h_source.html">popup_manager.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="popup__manager_8cc_source.html#l00085">DrawStatusPopup()</a>, <a class="el" href="popup__manager_8h_source.html#l00046">GetStatus()</a>, <a class="el" href="popup__manager_8cc_source.html#l00014">PopupManager()</a>, and <a class="el" href="popup__manager_8cc_source.html#l00067">SetStatus()</a>.</p>
+
+</div>
+</div>
+<a id="ace65dec0a3a75ce29fa2b17beda78b5b" name="ace65dec0a3a75ce29fa2b17beda78b5b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ace65dec0a3a75ce29fa2b17beda78b5b">&#9670;&#160;</a></span>show_status_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::editor::PopupManager::show_status_ = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="popup__manager_8h_source.html#l00079">79</a> of file <a class="el" href="popup__manager_8h_source.html">popup_manager.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="popup__manager_8cc_source.html#l00085">DrawStatusPopup()</a>, and <a class="el" href="popup__manager_8cc_source.html#l00067">SetStatus()</a>.</p>
+
+</div>
+</div>
+<a id="a9aff420ec30e6477c1fdb5da9c1c26b2" name="a9aff420ec30e6477c1fdb5da9c1c26b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9aff420ec30e6477c1fdb5da9c1c26b2">&#9670;&#160;</a></span>prev_status_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::editor::PopupManager::prev_status_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="popup__manager_8h_source.html#l00080">80</a> of file <a class="el" href="popup__manager_8h_source.html">popup_manager.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="popup__manager_8cc_source.html#l00085">DrawStatusPopup()</a>, and <a class="el" href="popup__manager_8cc_source.html#l00067">SetStatus()</a>.</p>
+
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/app/editor/system/<a class="el" href="popup__manager_8h_source.html">popup_manager.h</a></li>
+<li>src/app/editor/system/<a class="el" href="popup__manager_8cc_source.html">popup_manager.cc</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

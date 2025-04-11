@@ -109,18 +109,18 @@ $(function(){initNavTree('room_8h.html',''); initResizable(true); });
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
+<a href="#enum-members">Enumerations</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">room.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;<a class="el" href="dungeon_8h_source.html">dungeon.h</a>&gt;</code><br />
+<div class="textblock"><code>#include &lt;<a class="el" href="yaze_8h_source.html">yaze.h</a>&gt;</code><br />
 <code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;string_view&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;<a class="el" href="bitmap_8h_source.html">app/gfx/bitmap.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="rom_8h_source.html">app/rom.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="room__object_8h_source.html">app/zelda3/dungeon/room_object.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="room__tag_8h_source.html">app/zelda3/dungeon/room_tag.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="sprite_8h_source.html">app/zelda3/sprite/sprite.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="macro_8h_source.html">util/macro.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
@@ -158,6 +158,115 @@ Namespaces</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html">yaze::zelda3</a></td></tr>
 <tr class="memdesc:namespaceyaze_1_1zelda3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Zelda 3 specific classes and functions. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:afb47ec71853bc72be86c1b0c481a3496" id="r_afb47ec71853bc72be86c1b0c481a3496"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#afb47ec71853bc72be86c1b0c481a3496">yaze::zelda3::CollisionKey</a> { <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1zelda3.html#afb47ec71853bc72be86c1b0c481a3496a7261003fdcf5b2687b10e1c8d8760bef">yaze::zelda3::One_Collision</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#afb47ec71853bc72be86c1b0c481a3496a2a4319d5ee5621ed86d66df859d32370">yaze::zelda3::Both</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#afb47ec71853bc72be86c1b0c481a3496ae9da81d0d4f9ee6d7f82e15372617c52">yaze::zelda3::Both_With_Scroll</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#afb47ec71853bc72be86c1b0c481a3496ada191a8e4e07f076cb9ea3fd43b43445">yaze::zelda3::Moving_Floor_Collision</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1zelda3.html#afb47ec71853bc72be86c1b0c481a3496a58a15dcd8225b3b354d3696f1f713a77">yaze::zelda3::Moving_Water_Collision</a>
+<br />
+ }</td></tr>
+<tr class="separator:afb47ec71853bc72be86c1b0c481a3496"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a44b1e31e5857baaa00dc88ae724003c3" id="r_a44b1e31e5857baaa00dc88ae724003c3"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a44b1e31e5857baaa00dc88ae724003c3">yaze::zelda3::EffectKey</a> { <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1zelda3.html#a44b1e31e5857baaa00dc88ae724003c3a340e02929be4aadf9e4bc2ffe1db2bf0">yaze::zelda3::Effect_Nothing</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a44b1e31e5857baaa00dc88ae724003c3a36a708c2065cf7a6eb2a082cd79cf51d">yaze::zelda3::One</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a44b1e31e5857baaa00dc88ae724003c3a204ca752002971506a5caa7f80226c20">yaze::zelda3::Moving_Floor</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a44b1e31e5857baaa00dc88ae724003c3aa71256a38ca8d558e47fbb7463fef422">yaze::zelda3::Moving_Water</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1zelda3.html#a44b1e31e5857baaa00dc88ae724003c3a6fc4335f414e64a079526c84e5ec6218">yaze::zelda3::Four</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a44b1e31e5857baaa00dc88ae724003c3a5e9014f55e554ba28f979d6b6cdd8898">yaze::zelda3::Red_Flashes</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a44b1e31e5857baaa00dc88ae724003c3afca1c11ad25e05774aca02bc1f61068a">yaze::zelda3::Torch_Show_Floor</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a44b1e31e5857baaa00dc88ae724003c3a0f69086acb8b67500b77f1762487222c">yaze::zelda3::Ganon_Room</a>
+<br />
+ }</td></tr>
+<tr class="separator:a44b1e31e5857baaa00dc88ae724003c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a693df677b1b2754452c8b8b4c4a98468" id="r_a693df677b1b2754452c8b8b4c4a98468"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468">yaze::zelda3::TagKey</a> { <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ac87d5992d6bc96c5f44239d9ec324db1">yaze::zelda3::Nothing</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ada24c387898e858cb179df810b04154f">yaze::zelda3::NW_Kill_Enemy_to_Open</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a0a79eaa676a7668fa8d9b6453d3e73d4">yaze::zelda3::NE_Kill_Enemy_to_Open</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ac70933e5b9d0dbe898c6764aebdab3e0">yaze::zelda3::SW_Kill_Enemy_to_Open</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468aece942a35487c5967337f87c5d4760a3">yaze::zelda3::SE_Kill_Enemy_to_Open</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ab553174973329fe8265f063296ee699a">yaze::zelda3::W_Kill_Enemy_to_Open</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a1d05dbcdb37ab994c548ff476e79c0a5">yaze::zelda3::E_Kill_Enemy_to_Open</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a292230f014190eb3b923cd0440bdd140">yaze::zelda3::N_Kill_Enemy_to_Open</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a6fd56fda727cfa5970e3a0d16f6dea5e">yaze::zelda3::S_Kill_Enemy_to_Open</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468af31f5c897b35e529a0581ebe7099c261">yaze::zelda3::Clear_Quadrant_to_Open</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468abf3bef71311fbea6a7fda44090b85971">yaze::zelda3::Clear_Room_to_Open</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ac2675bd91992ef84a73fd16069a3e55d">yaze::zelda3::NW_Push_Block_to_Open</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a682dd7931b825bc66a4a8807163a3b90">yaze::zelda3::NE_Push_Block_to_Open</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ab3bd809672191b35e4a2ecd5d213648e">yaze::zelda3::SW_Push_Block_to_Open</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468aa5bcfd8fcaafc0272893dabf2e4abcd4">yaze::zelda3::SE_Push_Block_to_Open</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468aaa014ddb4fb91b991037a01d8c76b986">yaze::zelda3::W_Push_Block_to_Open</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468aae6e4f7d9319ac3102130bdc19a99a56">yaze::zelda3::E_Push_Block_to_Open</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a1618773816aceeeb8452d286974a5111">yaze::zelda3::N_Push_Block_to_Open</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a6ffefb519234f2055b9a5c946d0d2fac">yaze::zelda3::S_Push_Block_to_Open</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a3c35117a981e12749e5f663e8c0f9dcb">yaze::zelda3::Push_Block_to_Open</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468aa6100cf205a45e5cff26c7d59b6c4aa6">yaze::zelda3::Pull_Lever_to_Open</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a382fc72aaa2ac4c921dcb2b7e6ca625e">yaze::zelda3::Clear_Level_to_Open</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ae643a5479d4acd17194a33018b20fae2">yaze::zelda3::Switch_Open_Door_Hold</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ac2ecf68c998deaabf707f5a0d906bc80">yaze::zelda3::Switch_Open_Door_Toggle</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468aee4e18c1a967e6a70c4519a9d1ce9d47">yaze::zelda3::Turn_off_Water</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ab3c4b887b9e119066e00de5a163249f8">yaze::zelda3::Turn_on_Water</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a899f4c184ae17011d1dede37de23d09d">yaze::zelda3::Water_Gate</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a2d745a47567cd5d54eb480f3caaca77c">yaze::zelda3::Water_Twin</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a091363ea0d1c6fd45f9913f8757a0581">yaze::zelda3::Secret_Wall_Right</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a54975a1b06797944e76dd0bb1a625f43">yaze::zelda3::Secret_Wall_Left</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a820b2346128e4a40177a1f993b8d52b6">yaze::zelda3::Crash1</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a766ec8e12d24c885845b9beabaaf69f0">yaze::zelda3::Crash2</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a8599b09fca21111e661da95b4f3b3ee1">yaze::zelda3::Pull_Switch_to_bomb_Wall</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a82936f94ba9e69a0b8e6cb0d1a9d983d">yaze::zelda3::Holes_0</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468abd98c5dc44078eae24a1f1a8ad7bf0ce">yaze::zelda3::Open_Chest_Activate_Holes_0</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468aff583d031f8c8ad7857373db2e4928c5">yaze::zelda3::Holes_1</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468aade33d5e79273f86acd829cde8ff53a7">yaze::zelda3::Holes_2</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a09be56922301e46e8561f2b35b14fb62">yaze::zelda3::Kill_Enemy_to_clear_level</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a9024dfd424600f401cba474d615fbfe6">yaze::zelda3::SE_Kill_Enemy_to_Move_Block</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a7b45d215a1d2c1a243c2f7f81d444f71">yaze::zelda3::Trigger_activated_Chest</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a80618ea1aaf009004b19662ada8e4236">yaze::zelda3::Pull_lever_to_Bomb_Wall</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468af521805de3b0ec5e99692bbab72c7057">yaze::zelda3::NW_Kill_Enemy_for_Chest</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a9d680fe9298d30a5947b62d691e44ab4">yaze::zelda3::NE_Kill_Enemy_for_Chest</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a7e8d9bcb571b69f4f2cf9842e2e29f96">yaze::zelda3::SW_Kill_Enemy_for_Chest</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a7f12bb1903474044d236287fe37ce2fe">yaze::zelda3::SE_Kill_Enemy_for_Chest</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a2ac03834c8caa52067e487570aa14df8">yaze::zelda3::W_Kill_Enemy_for_Chest</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a4b78b3fcf55d766c98c9ef2cccc10f39">yaze::zelda3::E_Kill_Enemy_for_Chest</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a358311deb926a6bd38b8bc05d5989f76">yaze::zelda3::N_Kill_Enemy_for_Chest</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a126e28827ef1590b842f7d7fe141a1d4">yaze::zelda3::S_Kill_Enemy_for_Chest</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468accdf21d7c867e09c22eaea42d3d13653">yaze::zelda3::Clear_Quadrant_for_Chest</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468abe14219a6a2360a2abdd9cd2d03ba8a2">yaze::zelda3::Clear_Room_for_Chest</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a204dc45d0e4e7452337d40fc8d1c3da8">yaze::zelda3::Light_Torches_to_Open</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ab8e6bc6b7107d01264c838d2279b6fd6">yaze::zelda3::Holes_3</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a81650074c0baca8d14035c360a72beb8">yaze::zelda3::Holes_4</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a65ecc6bb8c038327b3d25cca07575c8f">yaze::zelda3::Holes_5</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468abace4837abeacf9fcbc84410da4a8dfd">yaze::zelda3::Holes_6</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a86c0b404b73e05b64929149e2dc56506">yaze::zelda3::Agahnim_Room</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ac94b7dce770747ef7dc2c4001e4462be">yaze::zelda3::Holes_7</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a7fe16f9c2a46ae665867fc85f5eb9304">yaze::zelda3::Holes_8</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a6cf01a7ce16ce722bdbcab01ad85f4c9">yaze::zelda3::Open_Chest_for_Holes_8</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468af3cba258bf89286ce2067121c55e3651">yaze::zelda3::Push_Block_for_Chest</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ab25fe7b1e4c827d205d03a6701465ba6">yaze::zelda3::Kill_to_open_Ganon_Door</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468af7edf4aa720007546d7e1e76cda507f5">yaze::zelda3::Light_Torches_to_get_Chest</a>
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a067a2c9dbc2ed811337777b3e1f29369">yaze::zelda3::Kill_boss_Again</a>
+<br />
+ }</td></tr>
+<tr class="separator:a693df677b1b2754452c8b8b4c4a98468"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>

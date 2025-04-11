@@ -11,5 +11,12 @@ var message__test_8cc =
     [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#a1f1bc159085d062904110f638cb9cc5b", null ],
     [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#afa0d4ec9b35ca1be7f5d4fd460f88d76", null ],
     [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#acd9cda0b3fc7f3f6dcf21822e6e7826d", null ],
-    [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#a4f57f70714745d0f0a6fdc4892ff92a5", null ]
+    [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#a4f57f70714745d0f0a6fdc4892ff92a5", null ],
+    [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#a3b8a50ab3d18e2b3229b5ee9d1101ff4", null ],
+    [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#aa20071949623c16da824515c716f8fcf", null ],
+    [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#a2dc2ff8ddebe8cb1171db15e23cf4b89", null ],
+    [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#af9ad35af036fcf828cc3830771811fc8", null ],
+    [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#ab97cbc6f032f002b260a9d5c72dee16e", null ],
+    [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#ac5839404009d6ed0cd965b22ab5540dc", null ],
+    [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#aaeee4eb798e2e4de8881645d21aee952", null ]
 ];

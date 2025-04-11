@@ -65,7 +65,7 @@ var searchData=
   ['arguments_62',['arguments',['../structyaze_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#adab97a131ec15f3f1cbada73b29188c0',1,'yaze::gfx::lc_lz2::CompressionCommand']]],
   ['armors_63',['armors',['../structyaze_1_1gfx_1_1PaletteGroupMap.html#a35199d150dfa83325939a618c3b9d4fa',1,'yaze::gfx::PaletteGroupMap']]],
   ['asm_5fparser_64',['asm_parser',['../classyaze_1_1test_1_1CpuTest.html#a307c6c40082b296f17c2073d1450b2a9',1,'yaze::test::CpuTest']]],
-  ['assembly_5feditor_5f_65',['assembly_editor_',['../classyaze_1_1editor_1_1EditorManager.html#ab9ca0335c439be7a2fd49087c317525b',1,'yaze::editor::EditorManager::assembly_editor_'],['../classyaze_1_1editor_1_1MusicEditor.html#ae1d595782ad417ddd2dc03abac8fb2fd',1,'yaze::editor::MusicEditor::assembly_editor_']]],
+  ['assembly_5feditor_5f_65',['assembly_editor_',['../classyaze_1_1editor_1_1MusicEditor.html#ae1d595782ad417ddd2dc03abac8fb2fd',1,'yaze::editor::MusicEditor']]],
   ['asset_5fbrowser_5f_66',['asset_browser_',['../classyaze_1_1editor_1_1GraphicsEditor.html#ae857fed9adf4ff6c382393b686bcf6cb',1,'yaze::editor::GraphicsEditor']]],
   ['attributes_67',['attributes',['../structyaze_1_1gui_1_1zeml_1_1Node.html#a773fddc97cd18e218a034064e94cb0e6',1,'yaze::gui::zeml::Node']]],
   ['audio_5fbuffer_5f_68',['audio_buffer_',['../classyaze_1_1core_1_1Sdl2Backend.html#aafab0a60be5c4dba3fd13ca5d48d10a8',1,'yaze::core::Sdl2Backend::audio_buffer_'],['../classyaze_1_1emu_1_1Emulator.html#af5669fdef5b76c99c380321f3aa957aa',1,'yaze::emu::Emulator::audio_buffer_']]],

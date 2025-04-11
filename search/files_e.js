@@ -10,6 +10,5 @@ var searchData=
   ['room_2eh_7',['room.h',['../room_8h.html',1,'']]],
   ['room_5fentrance_2eh_8',['room_entrance.h',['../room__entrance_8h.html',1,'']]],
   ['room_5fobject_2ecc_9',['room_object.cc',['../room__object_8cc.html',1,'']]],
-  ['room_5fobject_2eh_10',['room_object.h',['../room__object_8h.html',1,'']]],
-  ['room_5ftag_2eh_11',['room_tag.h',['../room__tag_8h.html',1,'']]]
+  ['room_5fobject_2eh_10',['room_object.h',['../room__object_8h.html',1,'']]]
 ];

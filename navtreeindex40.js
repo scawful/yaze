@@ -1,11 +1,5 @@
 var NAVTREEINDEX40 =
 {
-"namespaceyaze_1_1gfx.html#a78da9ee9b2de37e218f0152a1ecc4e36":[11,0,1,4,34],
-"namespaceyaze_1_1gfx.html#a79031ccfd970eb7febc221e6a71dd16a":[11,0,1,4,93],
-"namespaceyaze_1_1gfx.html#a7defcba4175eb8d38335943a94fc81e3":[11,0,1,4,52],
-"namespaceyaze_1_1gfx.html#a7df1f6daec091cef8cf2cfef3a0c7aeb":[11,0,1,4,26],
-"namespaceyaze_1_1gfx.html#a801e13a355e10203fa354ca04529ac94":[11,0,1,4,48],
-"namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8db":[11,0,1,4,22],
 "namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dba0a831653f592380e5468c289248d97ba":[11,0,1,4,22,5],
 "namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dba185f0e372b857b26dbd371e9f54d68f7":[11,0,1,4,22,6],
 "namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dba209403e94e5ae3fecb2e65f298d46370":[11,0,1,4,22,0],
@@ -249,5 +243,11 @@ var NAVTREEINDEX40 =
 "namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a86408593c34af77fdd90df932f8b5261":[11,0,1,5,2,5,12],
 "namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a87b7760f14fbff78d8819291f36ab9a0":[11,0,1,5,2,5,1],
 "namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a8e2688d744f8c314acb52326f5ec2c0e":[11,0,1,5,2,5,6],
-"namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a9bcd3c3f49e92fc9edba1362c9fdb25e":[11,0,1,5,2,5,16]
+"namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a9bcd3c3f49e92fc9edba1362c9fdb25e":[11,0,1,5,2,5,16],
+"namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a9dffbf69ffba8bc38bc4e01abf4b1675":[11,0,1,5,2,5,3],
+"namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43ac89686a387d2b12b3c729ce35a0bcb5b":[11,0,1,5,2,5,0],
+"namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43ac9a123faa6ec225161d25f26796b2960":[11,0,1,5,2,5,18],
+"namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43ad00665cd0efc22379ce24b61e50c16f0":[11,0,1,5,2,5,17],
+"namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43ae69bf4d9adc4bddb109eed1becd717fa":[11,0,1,5,2,5,13],
+"namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43afd974b19acafec5dc7e542582c3a87cc":[11,0,1,5,2,5,8]
 };

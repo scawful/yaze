@@ -1,11 +1,12 @@
 <map id="src/app/editor/system/popup_manager.h" name="src/app/editor/system/popup_manager.h">
 <area shape="rect" id="Node000001" title=" " alt="" coords="171,5,317,46"/>
-<area shape="rect" id="Node000002" href="$editor_8h.html" title=" " alt="" coords="86,102,232,127"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,59,172,103,169,99,212,55"/>
-<area shape="rect" id="Node000037" href="$popup__manager_8cc.html" title=" " alt="" coords="256,94,403,135"/>
-<area shape="poly" id="edge4_Node000001_Node000037" title=" " alt="" coords="276,55,312,92,308,95,272,59"/>
-<area shape="rect" id="Node000003" href="$app__delegate_8mm.html" title=" " alt="" coords="5,183,150,223"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="139,140,98,184,94,181,135,137"/>
-<area shape="rect" id="Node000004" href="$assembly__editor_8h.html" title=" " alt="" coords="174,183,306,223"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="182,137,224,181,220,184,179,140"/>
+<area shape="rect" id="Node000002" href="$editor_8h.html" title=" " alt="" coords="5,102,152,127"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,56,103,103,100,99,192,51"/>
+<area shape="rect" id="Node000007" href="$editor__manager_8h.html" title=" " alt="" coords="176,94,312,135"/>
+<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="246,62,246,94,241,94,241,62"/>
+<area shape="rect" id="Node000014" href="$popup__manager_8cc.html" title=" " alt="" coords="225,183,372,223"/>
+<area shape="poly" id="edge5_Node000001_Node000014" title=" " alt="" coords="293,53,312,71,326,93,332,117,329,141,313,183,308,181,324,140,326,117,321,95,308,74,289,57"/>
+<area shape="rect" id="Node000003" href="$app__delegate_8mm.html" title=" " alt="" coords="6,183,151,223"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="81,143,81,183,76,183,76,143"/>
+<area shape="poly" id="edge4_Node000007_Node000014" title=" " alt="" coords="267,147,288,181,284,184,262,149"/>
 </map>

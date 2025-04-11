@@ -1,5 +1,6 @@
 var NAVTREEINDEX53 =
 {
+"structyaze_1_1util_1_1HexStringParams.html#aacc8ccc62374df2c51bded29cc20589da35c3ace1970663a16e5c65baa5941b13":[11,0,1,7,5,0,0],
 "structyaze_1_1util_1_1HexStringParams.html#aacc8ccc62374df2c51bded29cc20589da35c3ace1970663a16e5c65baa5941b13":[12,0,0,7,3,0,0],
 "structyaze_1_1util_1_1HexStringParams.html#aacc8ccc62374df2c51bded29cc20589da54cea239898fec36fe728dcb8de71694":[11,0,1,7,5,0,3],
 "structyaze_1_1util_1_1HexStringParams.html#aacc8ccc62374df2c51bded29cc20589da54cea239898fec36fe728dcb8de71694":[12,0,0,7,3,0,3],
@@ -248,6 +249,5 @@ var NAVTREEINDEX53 =
 "structyaze__project.html#ab66490373523b4ddeaf85881857022f2":[12,0,20,2],
 "structyaze__project.html#aece42ca37a5482a6207c8dd6cb5956b4":[12,0,20,1],
 "structzelda3__dungeon__room.html":[12,0,21],
-"structzelda3__dungeon__room.html#a22aab9efb3c4bc0c4b1bbf5354e78d10":[12,0,21,2],
-"structzelda3__dungeon__room.html#a23d11d15de835636309f62cb4b813c82":[12,0,21,0]
+"structzelda3__dungeon__room.html#a22aab9efb3c4bc0c4b1bbf5354e78d10":[12,0,21,2]
 };

@@ -1,8 +1,0 @@
-<map id="yaze::editor::EditorManager::DrawPopups" name="yaze::editor::EditorManager::DrawPopups">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,180,76"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1util.html#aae673c9b14bcf937c1a1f925876e1282" title=" " alt="" coords="228,5,385,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,38,213,32,214,37,181,43"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="232,79,381,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="181,68,217,74,216,79,180,73"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="271,80,264,70,268,60,282,54,306,52,333,55,346,62,343,66,331,60,306,57,284,59,272,64,269,69,275,77"/>
-</map>

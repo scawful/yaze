@@ -1,5 +1,25 @@
 var classyaze_1_1editor_1_1PopupManager =
 [
+    [ "PopupManager", "classyaze_1_1editor_1_1PopupManager.html#a6b4dd622a1ccd0b902b870a426ff87ea", null ],
+    [ "Initialize", "classyaze_1_1editor_1_1PopupManager.html#a6768a12d6d5f06c1fbefe6dd233d3fc3", null ],
+    [ "DrawPopups", "classyaze_1_1editor_1_1PopupManager.html#a2e99b05364c27930477a9c1bb5e42e01", null ],
     [ "Show", "classyaze_1_1editor_1_1PopupManager.html#a3bca3f46adb2d926977ce230cbf3b862", null ],
-    [ "popups_", "classyaze_1_1editor_1_1PopupManager.html#afcc39671120d6ff3bce8080c38531a7a", null ]
+    [ "Hide", "classyaze_1_1editor_1_1PopupManager.html#a480947c734a64622b5213e87eb585d9b", null ],
+    [ "IsVisible", "classyaze_1_1editor_1_1PopupManager.html#a2c8b8645e8a7dc57e9947649a27bedb9", null ],
+    [ "SetStatus", "classyaze_1_1editor_1_1PopupManager.html#a0961e701273476f3e83fa6d37024526d", null ],
+    [ "GetStatus", "classyaze_1_1editor_1_1PopupManager.html#a1b9f64833bb9e78343045453d731e019", null ],
+    [ "BeginCentered", "classyaze_1_1editor_1_1PopupManager.html#aafae5cb7c5910d1e8b204146f93a9534", null ],
+    [ "DrawAboutPopup", "classyaze_1_1editor_1_1PopupManager.html#ae3d90b47ee5d32c80d3fc72bf25d682c", null ],
+    [ "DrawRomInfoPopup", "classyaze_1_1editor_1_1PopupManager.html#ad458cd3864a745c5be65d88173b60466", null ],
+    [ "DrawStatusPopup", "classyaze_1_1editor_1_1PopupManager.html#a746d8891f13f4674f49e14168847ce65", null ],
+    [ "DrawSaveAsPopup", "classyaze_1_1editor_1_1PopupManager.html#a8dc17c9cb5860af25f188a76b1ea102b", null ],
+    [ "DrawNewProjectPopup", "classyaze_1_1editor_1_1PopupManager.html#aeb89757dc4eda77b48d3458156d23aa5", null ],
+    [ "DrawSupportedFeaturesPopup", "classyaze_1_1editor_1_1PopupManager.html#a5ceae3fc4d1eab97bbd90c859204cf62", null ],
+    [ "DrawOpenRomHelpPopup", "classyaze_1_1editor_1_1PopupManager.html#ae6a92e37f1201d82cc280b6e68fa22ae", null ],
+    [ "DrawManageProjectPopup", "classyaze_1_1editor_1_1PopupManager.html#af1be6dffae8dbab8d879aca0ef7e73c1", null ],
+    [ "editor_manager_", "classyaze_1_1editor_1_1PopupManager.html#a715dd04b044514b20ed7412f900ad4cf", null ],
+    [ "popups_", "classyaze_1_1editor_1_1PopupManager.html#a6d5c87c37c995b6c20be3716afed3153", null ],
+    [ "status_", "classyaze_1_1editor_1_1PopupManager.html#aa2795d1c987f13149b1a5f58c0d532c4", null ],
+    [ "show_status_", "classyaze_1_1editor_1_1PopupManager.html#ace65dec0a3a75ce29fa2b17beda78b5b", null ],
+    [ "prev_status_", "classyaze_1_1editor_1_1PopupManager.html#a9aff420ec30e6477c1fdb5da9c1c26b2", null ]
 ];
