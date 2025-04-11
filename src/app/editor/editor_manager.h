@@ -3,6 +3,8 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 
+#include <unordered_map>
+
 #include "absl/status/status.h"
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
@@ -25,6 +27,9 @@
 namespace yaze {
 namespace editor {
 
+// Forward declaration
+class EditorSet;
+
 /**
  * @class EditorManager
  * @brief The EditorManager controls the main editor window and manages the
@@ -36,17 +41,9 @@ namespace editor {
  * variable points to the currently active editor in the tab view.
  *
  */
-class EditorManager : public SharedRom {
+class EditorManager {
  public:
   EditorManager() {
-    current_editor_ = &overworld_editor_;
-    active_editors_ = {&overworld_editor_, &dungeon_editor_, &graphics_editor_,
-                       &palette_editor_,   &sprite_editor_,  &message_editor_,
-                       &music_editor_,     &screen_editor_,  &settings_editor_,
-                       &assembly_editor_};
-    for (auto *editor : active_editors_) {
-      editor->set_context(&context_);
-    }
     std::stringstream ss;
     ss << YAZE_VERSION_MAJOR << "." << YAZE_VERSION_MINOR << "."
        << YAZE_VERSION_PATCH;
@@ -60,28 +57,27 @@ class EditorManager : public SharedRom {
 
   auto emulator() -> emu::Emulator & { return emulator_; }
   auto quit() const { return quit_; }
+  auto version() const { return version_; }
+
+  absl::Status SetCurrentRom(Rom *rom);
+  auto GetRoms() -> std::vector<std::unique_ptr<Rom>> & { return roms_; }
+  auto GetCurrentRom() -> Rom * { return current_rom_; }
+  auto GetCurrentEditorSet() -> EditorSet* { return current_editor_set_; }
 
  private:
-  void ManageActiveEditors();
   void DrawHomepage();
   void DrawPopups();
 
-  void LoadRom();
-  void LoadAssets();
-  void SaveRom();
-  void OpenRomOrProject(const std::string &filename);
+  absl::Status LoadRom();
+  absl::Status LoadAssets();
+  absl::Status SaveRom();
+  absl::Status OpenRomOrProject(const std::string &filename);
   absl::Status OpenProject();
-  void SaveProject();
+  absl::Status SaveProject();
 
   bool quit_ = false;
-  bool about_ = false;
-  bool rom_info_ = false;
   bool backup_rom_ = false;
-  bool save_as_menu_ = false;
   bool save_new_auto_ = true;
-  bool open_rom_help = false;
-  bool open_manage_project = false;
-  bool open_supported_features = false;
   bool new_project_menu = false;
 
   bool show_emulator_ = false;
@@ -92,18 +88,60 @@ class EditorManager : public SharedRom {
   bool show_palette_editor_ = false;
   bool show_resource_label_manager = false;
   bool show_workspace_layout = false;
+  bool show_homepage_ = true;
 
   std::string version_ = "";
 
   absl::Status status_;
   emu::Emulator emulator_;
-  std::vector<Editor *> active_editors_;
   std::vector<std::unique_ptr<Rom>> roms_;
-  Rom *current_rom_ = nullptr;
+  std::unordered_map<Rom*, std::unique_ptr<EditorSet>> editor_sets_;
+  Rom* current_rom_ = nullptr;
+  EditorSet* current_editor_set_ = nullptr;
+  Editor* current_editor_ = nullptr;
 
   Project current_project_;
   EditorContext context_;
   std::unique_ptr<PopupManager> popup_manager_;
+};
+
+/**
+ * @class EditorSet
+ * @brief Contains a complete set of editors for a single ROM instance
+ */
+class EditorSet {
+public:
+    explicit EditorSet(Rom* rom) 
+        : assembly_editor_(),
+          dungeon_editor_(),
+          graphics_editor_(),
+          music_editor_(),
+          overworld_editor_(*rom),
+          palette_editor_(),
+          screen_editor_(),
+          sprite_editor_(),
+          settings_editor_(),
+          message_editor_(),
+          memory_editor_() {
+        active_editors_ = {&overworld_editor_, &dungeon_editor_, &graphics_editor_,
+                          &palette_editor_, &sprite_editor_, &message_editor_,
+                          &music_editor_, &screen_editor_, &settings_editor_,
+                          &assembly_editor_};
+    }
+
+    AssemblyEditor assembly_editor_;
+    DungeonEditor dungeon_editor_;
+    GraphicsEditor graphics_editor_;
+    MusicEditor music_editor_;
+    OverworldEditor overworld_editor_;
+    PaletteEditor palette_editor_;
+    ScreenEditor screen_editor_;
+    SpriteEditor sprite_editor_;
+    SettingsEditor settings_editor_;
+    MessageEditor message_editor_;
+    MemoryEditorWithDiffChecker memory_editor_;
+    
+    std::vector<Editor*> active_editors_;
 };
 
 }  // namespace editor

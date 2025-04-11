@@ -18,4 +18,5 @@ set(
   app/editor/system/command_manager.cc
   app/editor/system/extension_manager.cc
   app/editor/system/shortcut_manager.cc
+  app/editor/system/popup_manager.cc
 )
