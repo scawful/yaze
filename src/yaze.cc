@@ -8,7 +8,6 @@
 #include "app/core/controller.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
-#include "dungeon.h"
 #include "util/flag.h"
 #include "yaze_config.h"
 
