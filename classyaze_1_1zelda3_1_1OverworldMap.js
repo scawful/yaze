@@ -1,7 +1,7 @@
 var classyaze_1_1zelda3_1_1OverworldMap =
 [
     [ "OverworldMap", "classyaze_1_1zelda3_1_1OverworldMap.html#a3ab891d3f7c9ea8e57b5aa645bf5099f", null ],
-    [ "OverworldMap", "classyaze_1_1zelda3_1_1OverworldMap.html#abf5ef1c79c6fcc6807f168539c70ea3d", null ],
+    [ "OverworldMap", "classyaze_1_1zelda3_1_1OverworldMap.html#a34bec4f77c8bf80ce86600cd48e759b3", null ],
     [ "BuildMap", "classyaze_1_1zelda3_1_1OverworldMap.html#a700a52d02b02968b1df113f5fc2452c1", null ],
     [ "LoadAreaGraphics", "classyaze_1_1zelda3_1_1OverworldMap.html#a42b3dfddf368bb31ea68607d28509dbf", null ],
     [ "LoadPalette", "classyaze_1_1zelda3_1_1OverworldMap.html#aa9666407b61df643fda421b945919a80", null ],
@@ -53,7 +53,7 @@ var classyaze_1_1zelda3_1_1OverworldMap =
     [ "LoadDeathMountainGFX", "classyaze_1_1zelda3_1_1OverworldMap.html#a879fb9353f241b17c00916c238a00860", null ],
     [ "ProcessGraphicsBuffer", "classyaze_1_1zelda3_1_1OverworldMap.html#ae2aaa49c6aa8c22eebd4903854b80810", null ],
     [ "GetPalette", "classyaze_1_1zelda3_1_1OverworldMap.html#a68999131c24ca9ed4c5c607769aa0d35", null ],
-    [ "rom_", "classyaze_1_1zelda3_1_1OverworldMap.html#a4340cadae54389915835fde2bd967bcf", null ],
+    [ "rom_", "classyaze_1_1zelda3_1_1OverworldMap.html#a49fe0512e5162378185e74088e13a283", null ],
     [ "built_", "classyaze_1_1zelda3_1_1OverworldMap.html#a773a3ab6858db704ce6143e0dfa4295d", null ],
     [ "large_map_", "classyaze_1_1zelda3_1_1OverworldMap.html#ad4488b68ef475f6ef542df8009828ba3", null ],
     [ "initialized_", "classyaze_1_1zelda3_1_1OverworldMap.html#a4d8c34371c99394120268e3c785c9f54", null ],

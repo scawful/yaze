@@ -1,7 +1,7 @@
 var classyaze_1_1editor_1_1SpriteEditor =
 [
     [ "OAMConfig", "structyaze_1_1editor_1_1SpriteEditor_1_1OAMConfig.html", "structyaze_1_1editor_1_1SpriteEditor_1_1OAMConfig" ],
-    [ "SpriteEditor", "classyaze_1_1editor_1_1SpriteEditor.html#a73afa5ee58b92bb76ff48f3ae145f838", null ],
+    [ "SpriteEditor", "classyaze_1_1editor_1_1SpriteEditor.html#af46885f152907149844610d867b06a58", null ],
     [ "Initialize", "classyaze_1_1editor_1_1SpriteEditor.html#a85162089edb2ba429d286d930d70e6d0", null ],
     [ "Load", "classyaze_1_1editor_1_1SpriteEditor.html#aeb7f365deb0a1418fd0f9f128b9cd12f", null ],
     [ "Update", "classyaze_1_1editor_1_1SpriteEditor.html#a552785a0287ebe61e7f855e45c8d6777", null ],
@@ -12,6 +12,8 @@ var classyaze_1_1editor_1_1SpriteEditor =
     [ "Paste", "classyaze_1_1editor_1_1SpriteEditor.html#a3b4127bfcac22c24bfb62d213e68c2ce", null ],
     [ "Find", "classyaze_1_1editor_1_1SpriteEditor.html#a098f4ff3c8f79aafe9faf6b98675f67d", null ],
     [ "Save", "classyaze_1_1editor_1_1SpriteEditor.html#ac553339df7a4883b38143766fba1286f", null ],
+    [ "set_rom", "classyaze_1_1editor_1_1SpriteEditor.html#aae306d78017efe7f39fe4d4a6a4a063e", null ],
+    [ "rom", "classyaze_1_1editor_1_1SpriteEditor.html#a77ade87b7523a956fb179516a35ff498", null ],
     [ "DrawVanillaSpriteEditor", "classyaze_1_1editor_1_1SpriteEditor.html#a8654819141edd6e0cebe9962da993761", null ],
     [ "DrawSpritesList", "classyaze_1_1editor_1_1SpriteEditor.html#a69a612f6b9fa4f4d003f29bc16584ee3", null ],
     [ "DrawSpriteCanvas", "classyaze_1_1editor_1_1SpriteEditor.html#a2b88bc5b08da9e5634c0dc55ad0eb679", null ],
@@ -28,5 +30,6 @@ var classyaze_1_1editor_1_1SpriteEditor =
     [ "sprite_canvas_", "classyaze_1_1editor_1_1SpriteEditor.html#acb72d8273760e0a33bc0ad753ff16a5f", null ],
     [ "graphics_sheet_canvas_", "classyaze_1_1editor_1_1SpriteEditor.html#a8c293cb8f9614047490cd0f558008610", null ],
     [ "custom_sprites_", "classyaze_1_1editor_1_1SpriteEditor.html#a91c039fb363f36292511d14f68eb3117", null ],
-    [ "status_", "classyaze_1_1editor_1_1SpriteEditor.html#a08b19adcef55093c57d5411ceeaeebeb", null ]
+    [ "status_", "classyaze_1_1editor_1_1SpriteEditor.html#a08b19adcef55093c57d5411ceeaeebeb", null ],
+    [ "rom_", "classyaze_1_1editor_1_1SpriteEditor.html#a931924d2a7f7ce116d9aa59fcb5408f0", null ]
 ];

@@ -1,8 +1,7 @@
 <map id="yaze::editor::ScreenEditor::SaveDungeonMaps" name="yaze::editor::ScreenEditor::SaveDungeonMaps">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,171,88"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="219,29,368,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,55,203,51,204,56,172,60"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze.html#aefc163a31f0531da9e1636396859b450" title=" " alt="" coords="236,79,350,104"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="171,75,221,80,221,86,171,80"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="259,31,252,21,256,11,270,5,293,3,319,5,331,12,329,17,317,10,293,8,272,10,260,15,258,20,263,27"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,171,64"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1ScreenEditor.html#a2d50c5d67078645cb2bcd96768a1d83e" title=" " alt="" coords="219,5,412,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,32,203,28,203,33,171,37"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze.html#aefc163a31f0531da9e1636396859b450" title=" " alt="" coords="258,55,372,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="171,50,243,57,242,62,171,55"/>
 </map>

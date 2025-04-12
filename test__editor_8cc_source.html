@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.13.2"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: test/integration/test_editor.cc Source File</title>
+<title>yaze: test/test_editor.cc Source File</title>
 <link rel="icon" href="yaze.ico" type="image/x-icon" />
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
@@ -109,7 +109,7 @@ $(function(){initNavTree('test__editor_8cc_source.html',''); initResizable(true)
   <div class="headertitle"><div class="title">test_editor.cc</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="test__editor_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="test__editor_8h.html">test/integration/test_editor.h</a>&quot;</span></div>
+<a href="test__editor_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="test__editor_8h.html">test/test_editor.h</a>&quot;</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;SDL.h&gt;</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span> </div>
@@ -197,18 +197,21 @@ $(function(){initNavTree('test__editor_8cc_source.html',''); initResizable(true)
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span> </div>
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>  <span class="keywordflow">while</span> (controller.<a class="code hl_function" href="classyaze_1_1core_1_1Controller.html#a4a8fb48e64d18f18c821c13f0a23666e">IsActive</a>()) {</div>
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    controller.<a class="code hl_function" href="classyaze_1_1core_1_1Controller.html#a4da513a611336bcfc09e4c40119c362b">OnInput</a>();</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    test_editor.<a class="code hl_function" href="classyaze_1_1test_1_1TestEditor.html#a46fa09a20b2281f02d2c0bace8de5238">Update</a>();</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    controller.<a class="code hl_function" href="classyaze_1_1core_1_1Controller.html#a9669e4a71e33f0010248c2ff5dbd37af">DoRender</a>();</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>  }</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span> </div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>  ImGuiTestEngine_Stop(engine);</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>  controller.<a class="code hl_function" href="classyaze_1_1core_1_1Controller.html#a024bd35620ff4d5e2fd5dd899e23fc07">OnExit</a>();</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>  <span class="keywordflow">return</span> EXIT_SUCCESS;</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>}</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    <span class="keyword">auto</span> status = test_editor.<a class="code hl_function" href="classyaze_1_1test_1_1TestEditor.html#a46fa09a20b2281f02d2c0bace8de5238">Update</a>();</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    <span class="keywordflow">if</span> (!status.ok()) {</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>      <span class="keywordflow">return</span> EXIT_FAILURE;</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    }</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    controller.<a class="code hl_function" href="classyaze_1_1core_1_1Controller.html#a9669e4a71e33f0010248c2ff5dbd37af">DoRender</a>();</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>  }</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span> </div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>  ImGuiTestEngine_Stop(engine);</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>  controller.<a class="code hl_function" href="classyaze_1_1core_1_1Controller.html#a024bd35620ff4d5e2fd5dd899e23fc07">OnExit</a>();</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>  <span class="keywordflow">return</span> EXIT_SUCCESS;</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>}</div>
 </div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span> </div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>}  <span class="comment">// namespace test</span></div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span> </div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>}  <span class="comment">// namespace test</span></div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1Controller_html"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html">yaze::core::Controller</a></div><div class="ttdoc">Main controller for the application.</div><div class="ttdef"><b>Definition</b> <a href="controller_8h_source.html#l00029">controller.h:29</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_a024bd35620ff4d5e2fd5dd899e23fc07"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#a024bd35620ff4d5e2fd5dd899e23fc07">yaze::core::Controller::OnExit</a></div><div class="ttdeci">void OnExit()</div><div class="ttdef"><b>Definition</b> <a href="controller_8cc_source.html#l00159">controller.cc:159</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_a0c454eb8e88de6a3759996e838faa1ab"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#a0c454eb8e88de6a3759996e838faa1ab">yaze::core::Controller::CreateWindow</a></div><div class="ttdeci">absl::Status CreateWindow()</div><div class="ttdef"><b>Definition</b> <a href="controller_8cc_source.html#l00167">controller.cc:167</a></div></div>
@@ -219,8 +222,8 @@ $(function(){initNavTree('test__editor_8cc_source.html',''); initResizable(true)
 <div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_a9669e4a71e33f0010248c2ff5dbd37af"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#a9669e4a71e33f0010248c2ff5dbd37af">yaze::core::Controller::DoRender</a></div><div class="ttdeci">void DoRender() const</div><div class="ttdef"><b>Definition</b> <a href="controller_8cc_source.html#l00151">controller.cc:151</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1Controller_html_ae191a94a55900590a8d6456d06eee08b"><div class="ttname"><a href="classyaze_1_1core_1_1Controller.html#ae191a94a55900590a8d6456d06eee08b">yaze::core::Controller::CreateRenderer</a></div><div class="ttdeci">absl::Status CreateRenderer()</div><div class="ttdef"><b>Definition</b> <a href="controller_8cc_source.html#l00196">controller.cc:196</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1Renderer_html_a8fbf175181e6800faaaecaf7034f8a9a"><div class="ttname"><a href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a">yaze::core::Renderer::GetInstance</a></div><div class="ttdeci">static Renderer &amp; GetInstance()</div><div class="ttdef"><b>Definition</b> <a href="renderer_8h_source.html#l00026">renderer.h:26</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestEditor_html"><div class="ttname"><a href="classyaze_1_1test_1_1TestEditor.html">yaze::test::TestEditor</a></div><div class="ttdef"><b>Definition</b> <a href="test__editor_8h_source.html#l00012">test_editor.h:12</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestEditor_html_a3a90b1d576afc0310162e5b8b49d8848"><div class="ttname"><a href="classyaze_1_1test_1_1TestEditor.html#a3a90b1d576afc0310162e5b8b49d8848">yaze::test::TestEditor::engine_</a></div><div class="ttdeci">ImGuiTestEngine * engine_</div><div class="ttdef"><b>Definition</b> <a href="test__editor_8h_source.html#l00053">test_editor.h:53</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestEditor_html"><div class="ttname"><a href="classyaze_1_1test_1_1TestEditor.html">yaze::test::TestEditor</a></div><div class="ttdef"><b>Definition</b> <a href="test__editor_8h_source.html#l00011">test_editor.h:11</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestEditor_html_a3a90b1d576afc0310162e5b8b49d8848"><div class="ttname"><a href="classyaze_1_1test_1_1TestEditor.html#a3a90b1d576afc0310162e5b8b49d8848">yaze::test::TestEditor::engine_</a></div><div class="ttdeci">ImGuiTestEngine * engine_</div><div class="ttdef"><b>Definition</b> <a href="test__editor_8h_source.html#l00052">test_editor.h:52</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestEditor_html_a46fa09a20b2281f02d2c0bace8de5238"><div class="ttname"><a href="classyaze_1_1test_1_1TestEditor.html#a46fa09a20b2281f02d2c0bace8de5238">yaze::test::TestEditor::Update</a></div><div class="ttdeci">absl::Status Update() override</div><div class="ttdef"><b>Definition</b> <a href="#l00019">test_editor.cc:19</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestEditor_html_a68c0b4b34a9b22d3d0b1133538101101"><div class="ttname"><a href="classyaze_1_1test_1_1TestEditor.html#a68c0b4b34a9b22d3d0b1133538101101">yaze::test::TestEditor::RegisterTests</a></div><div class="ttdeci">void RegisterTests(ImGuiTestEngine *engine)</div><div class="ttdef"><b>Definition</b> <a href="#l00035">test_editor.cc:35</a></div></div>
 <div class="ttc" id="acontroller_8h_html"><div class="ttname"><a href="controller_8h.html">controller.h</a></div></div>
@@ -236,7 +239,7 @@ $(function(){initNavTree('test__editor_8cc_source.html',''); initResizable(true)
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_13e138d54eb8818da29c3992edef070a.html">test</a></li><li class="navelem"><a class="el" href="dir_bbf9f1b56ba6c621651be8934a24eced.html">integration</a></li><li class="navelem"><a class="el" href="test__editor_8cc.html">test_editor.cc</a></li>
+    <li class="navelem"><a class="el" href="dir_13e138d54eb8818da29c3992edef070a.html">test</a></li><li class="navelem"><a class="el" href="test__editor_8cc.html">test_editor.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.13.2 </li>
   </ul>
 </div>

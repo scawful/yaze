@@ -1,6 +1,6 @@
 var classyaze_1_1editor_1_1PaletteEditor =
 [
-    [ "PaletteEditor", "classyaze_1_1editor_1_1PaletteEditor.html#adff0ccac83563b4b24ab28f88e9d7c01", null ],
+    [ "PaletteEditor", "classyaze_1_1editor_1_1PaletteEditor.html#a62bd7ad9d885ad7a607748da97ee4e2a", null ],
     [ "Initialize", "classyaze_1_1editor_1_1PaletteEditor.html#a0c64a377a8f6abacd567fb52aac43d9a", null ],
     [ "Load", "classyaze_1_1editor_1_1PaletteEditor.html#ab10cbfb1c12e5cf6c2c8d0c818e8e73a", null ],
     [ "Update", "classyaze_1_1editor_1_1PaletteEditor.html#a5e144201e8833095dd6ed5e43488292a", null ],
@@ -17,11 +17,14 @@ var classyaze_1_1editor_1_1PaletteEditor =
     [ "DrawPaletteGroup", "classyaze_1_1editor_1_1PaletteEditor.html#a0ce0856ab44377de66bab970a2d20a2d", null ],
     [ "DrawCustomPalette", "classyaze_1_1editor_1_1PaletteEditor.html#a39217d46dc05ebb4aa02ce277439b8af", null ],
     [ "DrawModifiedColors", "classyaze_1_1editor_1_1PaletteEditor.html#a518eed25361483cc27eb7ac1a26bea9c", null ],
+    [ "set_rom", "classyaze_1_1editor_1_1PaletteEditor.html#a3fedb8c43466136195352d90352e7f88", null ],
+    [ "rom", "classyaze_1_1editor_1_1PaletteEditor.html#aeb8b216ee4bd68cb924185586fe0c9d2", null ],
     [ "HandleColorPopup", "classyaze_1_1editor_1_1PaletteEditor.html#a91ca4b06d24ae8be90d943cc27a0461d", null ],
     [ "status_", "classyaze_1_1editor_1_1PaletteEditor.html#ac079cef27c2bba7100184ca6e2272ba9", null ],
     [ "current_color_", "classyaze_1_1editor_1_1PaletteEditor.html#a93ec20f0031e2447f69e090f54c85988", null ],
     [ "gfx_group_editor_", "classyaze_1_1editor_1_1PaletteEditor.html#ac8a778416d295453b0ca0ee7e11ffa0a", null ],
     [ "custom_palette_", "classyaze_1_1editor_1_1PaletteEditor.html#a2ba58f619e57af4dddfcfdb0626b8512", null ],
     [ "saved_palette_", "classyaze_1_1editor_1_1PaletteEditor.html#a4049f46c90865278944932be25636968", null ],
-    [ "history_", "classyaze_1_1editor_1_1PaletteEditor.html#a9cd6cb1fda7d4c433c57461c594675bb", null ]
+    [ "history_", "classyaze_1_1editor_1_1PaletteEditor.html#a9cd6cb1fda7d4c433c57461c594675bb", null ],
+    [ "rom_", "classyaze_1_1editor_1_1PaletteEditor.html#ab42049384ac38675e504e57512ca02df", null ]
 ];

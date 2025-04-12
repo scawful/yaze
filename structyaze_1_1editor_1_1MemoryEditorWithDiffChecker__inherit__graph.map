@@ -1,5 +1,0 @@
-<map id="yaze::editor::MemoryEditorWithDiffChecker" name="yaze::editor::MemoryEditorWithDiffChecker">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,176,120"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="30,5,151,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,46,93,79,88,79,88,46"/>
-</map>

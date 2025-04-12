@@ -51,6 +51,7 @@ var annotated_dup =
         [ "Editor", "classyaze_1_1editor_1_1Editor.html", "classyaze_1_1editor_1_1Editor" ],
         [ "EditorContext", "structyaze_1_1editor_1_1EditorContext.html", "structyaze_1_1editor_1_1EditorContext" ],
         [ "EditorManager", "classyaze_1_1editor_1_1EditorManager.html", "classyaze_1_1editor_1_1EditorManager" ],
+        [ "EditorSet", "classyaze_1_1editor_1_1EditorSet.html", "classyaze_1_1editor_1_1EditorSet" ],
         [ "ExampleAppPropertyEditor", "structyaze_1_1editor_1_1ExampleAppPropertyEditor.html", "structyaze_1_1editor_1_1ExampleAppPropertyEditor" ],
         [ "ExampleMemberInfo", "structyaze_1_1editor_1_1ExampleMemberInfo.html", "structyaze_1_1editor_1_1ExampleMemberInfo" ],
         [ "ExampleTreeNode", "structyaze_1_1editor_1_1ExampleTreeNode.html", "structyaze_1_1editor_1_1ExampleTreeNode" ],

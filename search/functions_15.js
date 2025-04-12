@@ -6,5 +6,6 @@ var searchData=
   ['validateforbytegain_3',['ValidateForByteGain',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a9be49188ea0cb7f389a05bdbe8ea0ec2',1,'yaze::gfx::lc_lz2']]],
   ['validateforbytegainv2_4',['ValidateForByteGainV2',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a9a41345d31b8daa67a6f479d5408046c',1,'yaze::gfx::lc_lz2']]],
   ['vector_5',['vector',['../classyaze_1_1gfx_1_1Bitmap.html#a68dd3eca8782add2520cadb469a0dce9',1,'yaze::gfx::Bitmap::vector()'],['../classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba',1,'yaze::Rom::vector()'],['../classyaze_1_1gui_1_1Bitmap.html#a68dd3eca8782add2520cadb469a0dce9',1,'yaze::gui::Bitmap::vector()'],['../classyaze_1_1test_1_1Rom.html#a404da5504886938665284f066a7831ba',1,'yaze::test::Rom::vector()']]],
-  ['version_5fconstants_6',['version_constants',['../classyaze_1_1Rom.html#a97d2783a3b91dd4acb21af5547a4ecfa',1,'yaze::Rom::version_constants()'],['../classyaze_1_1test_1_1Rom.html#a97d2783a3b91dd4acb21af5547a4ecfa',1,'yaze::test::Rom::version_constants()']]]
+  ['version_6',['version',['../classyaze_1_1editor_1_1EditorManager.html#aa95eb377a777269cbca416dc70083415',1,'yaze::editor::EditorManager']]],
+  ['version_5fconstants_7',['version_constants',['../classyaze_1_1Rom.html#a97d2783a3b91dd4acb21af5547a4ecfa',1,'yaze::Rom::version_constants()'],['../classyaze_1_1test_1_1Rom.html#a97d2783a3b91dd4acb21af5547a4ecfa',1,'yaze::test::Rom::version_constants()']]]
 ];

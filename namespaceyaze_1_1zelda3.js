@@ -167,7 +167,7 @@ var namespaceyaze_1_1zelda3 =
     [ "stle16b", "namespaceyaze_1_1zelda3.html#a774997795015cda5de65dd2621c1284a", null ],
     [ "ldle16b", "namespaceyaze_1_1zelda3.html#a23f2763cd8a3044a6a63cfa1c4c0ce53", null ],
     [ "ldle16b_i", "namespaceyaze_1_1zelda3.html#a197e8a71bbb281224f38410a3025804d", null ],
-    [ "LoadEntranceTileTypes", "namespaceyaze_1_1zelda3.html#a0afd16e24367ef62bfa4a2e4c7ad1554", null ],
+    [ "LoadEntranceTileTypes", "namespaceyaze_1_1zelda3.html#abed829d1617688b38b43d3bb71b87e95", null ],
     [ "LoadDungeonMapGfxFromBinary", "namespaceyaze_1_1zelda3.html#a4159862346f04f2e18e6474c8d44df17", null ],
     [ "LoadDungeonMapTile16", "namespaceyaze_1_1zelda3.html#a3f2f6ec0638746ee96b507ea0295625c", null ],
     [ "kEntranceNames", "namespaceyaze_1_1zelda3.html#a11f897c391430c3e4e14c91b9606721a", null ],

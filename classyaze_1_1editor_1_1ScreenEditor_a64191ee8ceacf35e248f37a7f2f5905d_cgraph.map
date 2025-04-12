@@ -1,10 +1,11 @@
 <map id="yaze::editor::ScreenEditor::LoadDungeonMaps" name="yaze::editor::ScreenEditor::LoadDungeonMaps">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,171,112"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1util.html#a3f4d30bc153c6a955a8471f68c18aafd" title=" " alt="" coords="231,5,356,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,68,218,40,235,34,236,39,220,45,144,73"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="219,79,368,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="171,89,203,89,203,94,171,94"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze.html#aefc163a31f0531da9e1636396859b450" title=" " alt="" coords="236,128,350,154"/>
-<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="172,109,223,121,221,126,171,114"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="259,80,252,70,256,60,270,54,293,52,319,55,331,62,329,66,317,60,293,57,272,59,260,64,258,69,263,77"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,72,171,113"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="260,5,371,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,69,218,40,244,32,245,37,220,45,139,74"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1util.html#a3f4d30bc153c6a955a8471f68c18aafd" title=" " alt="" coords="253,55,378,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="171,81,237,74,237,79,171,86"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1ScreenEditor.html#a2d50c5d67078645cb2bcd96768a1d83e" title=" " alt="" coords="219,104,412,130"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="171,99,203,102,203,108,171,104"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze.html#aefc163a31f0531da9e1636396859b450" title=" " alt="" coords="258,153,372,179"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="141,111,219,140,244,147,242,152,218,145,139,116"/>
 </map>

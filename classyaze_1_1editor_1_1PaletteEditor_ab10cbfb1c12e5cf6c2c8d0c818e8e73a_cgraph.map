@@ -1,6 +1,9 @@
 <map id="yaze::editor::PaletteEditor::Load" name="yaze::editor::PaletteEditor::Load">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,22,171,62"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="219,29,368,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,40,203,40,203,45,171,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="259,31,252,21,256,11,270,5,293,3,319,5,331,12,329,17,317,10,293,8,272,10,260,15,258,20,263,27"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,171,111"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1ResourceLabelManager.html#a5558c56c2d26e38c8f85839c1e77c169" title=" " alt="" coords="220,5,410,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,68,227,48,228,53,162,73"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a5afd22af393bd1f5e6e317190b31e560" title=" " alt="" coords="247,71,384,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="171,88,232,88,232,94,171,94"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1PaletteEditor.html#aeb8b216ee4bd68cb924185586fe0c9d2" title=" " alt="" coords="219,136,412,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="172,109,247,129,246,134,170,114"/>
 </map>

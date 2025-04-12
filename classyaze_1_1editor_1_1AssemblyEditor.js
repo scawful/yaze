@@ -1,6 +1,6 @@
 var classyaze_1_1editor_1_1AssemblyEditor =
 [
-    [ "AssemblyEditor", "classyaze_1_1editor_1_1AssemblyEditor.html#a18b7735ffbfc7a0dcb92662f481fee8b", null ],
+    [ "AssemblyEditor", "classyaze_1_1editor_1_1AssemblyEditor.html#acce893a4b4cb8a9c48da9c85b955997d", null ],
     [ "ChangeActiveFile", "classyaze_1_1editor_1_1AssemblyEditor.html#a4b745650f8142af416a263bfee0b24c9", null ],
     [ "Initialize", "classyaze_1_1editor_1_1AssemblyEditor.html#a23f6336773b52a1339166359528674f5", null ],
     [ "Load", "classyaze_1_1editor_1_1AssemblyEditor.html#a235fb48c7f0e4176b321bbcd03d3f2b3", null ],
@@ -16,6 +16,8 @@ var classyaze_1_1editor_1_1AssemblyEditor =
     [ "Update", "classyaze_1_1editor_1_1AssemblyEditor.html#aa121f5fca0075dbb45c1c670a53b2636", null ],
     [ "Save", "classyaze_1_1editor_1_1AssemblyEditor.html#a205ca8fc1dd3bfb02187446d440be187", null ],
     [ "OpenFolder", "classyaze_1_1editor_1_1AssemblyEditor.html#a85cff0f1b9734435c8becb8dad02d6bd", null ],
+    [ "set_rom", "classyaze_1_1editor_1_1AssemblyEditor.html#aa7de13cccee71b653be543e0958996af", null ],
+    [ "rom", "classyaze_1_1editor_1_1AssemblyEditor.html#a5fe41afacf342468d7bf8899c44ea7d5", null ],
     [ "DrawFileMenu", "classyaze_1_1editor_1_1AssemblyEditor.html#a71ee09ea0c2d2cb3769a4cca58808d0c", null ],
     [ "DrawEditMenu", "classyaze_1_1editor_1_1AssemblyEditor.html#a5707b03c31f0ffc116e10d9d81fbd154", null ],
     [ "SetEditorText", "classyaze_1_1editor_1_1AssemblyEditor.html#ae05d2701e4bd69ee07fff43b5136b51b", null ],
@@ -28,5 +30,6 @@ var classyaze_1_1editor_1_1AssemblyEditor =
     [ "active_files_", "classyaze_1_1editor_1_1AssemblyEditor.html#ad1e827000c2ccbb1bd096c18d0992c0e", null ],
     [ "current_file_", "classyaze_1_1editor_1_1AssemblyEditor.html#a06c40fbb7a16b60c027813ac6204e6c9", null ],
     [ "current_folder_", "classyaze_1_1editor_1_1AssemblyEditor.html#a9f3cd8c1cb567d4fd0096c4300225c01", null ],
-    [ "text_editor_", "classyaze_1_1editor_1_1AssemblyEditor.html#a7b6a8e37c0dca591000ac1d11384b40c", null ]
+    [ "text_editor_", "classyaze_1_1editor_1_1AssemblyEditor.html#a7b6a8e37c0dca591000ac1d11384b40c", null ],
+    [ "rom_", "classyaze_1_1editor_1_1AssemblyEditor.html#a25fdd9af0e84c4b7bcba74a876436a20", null ]
 ];

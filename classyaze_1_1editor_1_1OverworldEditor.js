@@ -24,7 +24,7 @@ var classyaze_1_1editor_1_1OverworldEditor =
       [ "DW_SPR_PAL_PART1", "classyaze_1_1editor_1_1OverworldEditor.html#aea8267c4f7c87f90980a353edb9d27a1afe367e76fb3ce0a6f743525c7e379bc9", null ],
       [ "DW_SPR_PAL_PART2", "classyaze_1_1editor_1_1OverworldEditor.html#aea8267c4f7c87f90980a353edb9d27a1a15e93c1f924790725359e5f3ffa062c8", null ]
     ] ],
-    [ "OverworldEditor", "classyaze_1_1editor_1_1OverworldEditor.html#a1a106c71b0566f96daff4bfb1530a7fe", null ],
+    [ "OverworldEditor", "classyaze_1_1editor_1_1OverworldEditor.html#afda44b117bb86279016d1cd354f8f8a4", null ],
     [ "Initialize", "classyaze_1_1editor_1_1OverworldEditor.html#a795074db61aaf19e9f687a1f357524e2", null ],
     [ "Load", "classyaze_1_1editor_1_1OverworldEditor.html#aaa4ee9e9095ee9f1faea6dfbf2c5217a", null ],
     [ "Update", "classyaze_1_1editor_1_1OverworldEditor.html#ac30ddbbf543edb8c021a98b46c01e239", null ],
@@ -93,7 +93,7 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "tile16_individual_", "classyaze_1_1editor_1_1OverworldEditor.html#adeae1be7883eff31e2cf5f62f2640fc5", null ],
     [ "tile8_individual_data_", "classyaze_1_1editor_1_1OverworldEditor.html#a5ba34209b92bbef6caeac1e68160adfd", null ],
     [ "tile8_individual_", "classyaze_1_1editor_1_1OverworldEditor.html#a3bda3319686a1c48abc447d252eb8106", null ],
-    [ "rom_", "classyaze_1_1editor_1_1OverworldEditor.html#ae87088c60dda9b82fa273d33271d31c3", null ],
+    [ "rom_", "classyaze_1_1editor_1_1OverworldEditor.html#a21ddb17c0f6062a9055507fe99553649", null ],
     [ "tile16_editor_", "classyaze_1_1editor_1_1OverworldEditor.html#a3d4bc025b428972beadd361eac00a311", null ],
     [ "gfx_group_editor_", "classyaze_1_1editor_1_1OverworldEditor.html#ac11c346f4bf0ccc978d1238f284b4ee5", null ],
     [ "palette_editor_", "classyaze_1_1editor_1_1OverworldEditor.html#abe030f61b009dc95da7c734156e42e7b", null ],

@@ -1,12 +1,13 @@
 <map id="src/app/editor/system/settings_editor.h" name="src/app/editor/system/settings_editor.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="100,5,246,46"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,168,141,193"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,49,122,70,101,95,87,124,80,153,74,152,82,122,96,93,118,66,142,45"/>
-<area shape="rect" id="Node000003" href="$editor_8h.html" title=" " alt="" coords="111,94,235,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="176,46,176,78,170,78,170,46"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="259,94,356,120"/>
-<area shape="poly" id="edge5_Node000001_Node000009" title=" " alt="" coords="208,44,275,83,272,88,205,49"/>
-<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="158,122,104,160,101,156,154,118"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="164,168,214,193"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="178,119,186,152,180,153,173,120"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="75,5,221,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="17,168,153,193"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="75,48,40,67,25,80,13,95,9,112,16,128,31,144,49,157,46,162,27,148,11,131,3,113,8,93,21,76,37,63,73,43"/>
+<area shape="rect" id="Node000003" href="$editor_8h.html" title=" " alt="" coords="23,94,147,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="134,48,106,83,102,80,130,45"/>
+<area shape="rect" id="Node000023" href="$rom_8h.html" title=" " alt="" coords="171,94,250,120"/>
+<area shape="poly" id="edge4_Node000001_Node000023" title=" " alt="" coords="165,45,193,80,189,83,161,48"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="274,94,371,120"/>
+<area shape="poly" id="edge6_Node000001_Node000009" title=" " alt="" coords="192,44,283,85,281,90,190,49"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="88,120,88,152,82,152,82,120"/>
+<area shape="poly" id="edge5_Node000023_Node000002" title=" " alt="" coords="190,123,121,162,118,157,188,118"/>
 </map>

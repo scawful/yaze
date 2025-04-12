@@ -1,8 +1,7 @@
 <map id="yaze::editor::MusicEditor::DrawToolset" name="yaze::editor::MusicEditor::DrawToolset">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,165,76"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gui.html#a201299f3c61d29a272f11301c7f03265" title=" " alt="" coords="220,5,354,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,38,204,31,205,36,166,43"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="213,79,362,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="166,67,198,73,197,78,165,72"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="253,80,247,70,251,60,265,54,287,52,312,55,325,62,322,66,311,60,287,57,266,59,255,64,252,69,258,77"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,165,64"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gui.html#a201299f3c61d29a272f11301c7f03265" title=" " alt="" coords="239,5,374,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,32,223,25,224,30,166,37"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1MusicEditor.html#a131bbdb6ad48b6365c8aba7a4f71467e" title=" " alt="" coords="213,55,400,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="166,50,197,53,197,58,165,55"/>
 </map>

@@ -14,7 +14,7 @@ var classyaze_1_1editor_1_1DungeonEditor =
       [ "kDoor", "classyaze_1_1editor_1_1DungeonEditor.html#ab7c9a13b87665bd840423dc9c94a7363a5441a398ef066c3fa4db72255c175bee", null ],
       [ "kBlock", "classyaze_1_1editor_1_1DungeonEditor.html#ab7c9a13b87665bd840423dc9c94a7363a2588da66dc50d159740cfcb2088792b0", null ]
     ] ],
-    [ "DungeonEditor", "classyaze_1_1editor_1_1DungeonEditor.html#af3c6f8d84e47399b8ebd669eca2a2964", null ],
+    [ "DungeonEditor", "classyaze_1_1editor_1_1DungeonEditor.html#a8c60dfdef37cc75e72a878f23da847cf", null ],
     [ "Initialize", "classyaze_1_1editor_1_1DungeonEditor.html#a8ed56293f396248b6a62ca128a130a6c", null ],
     [ "Load", "classyaze_1_1editor_1_1DungeonEditor.html#ac1d1e350b6fe9d7e07f8229174964b29", null ],
     [ "Update", "classyaze_1_1editor_1_1DungeonEditor.html#a1575da4a0378b5c70d0d3ea21f0e4233", null ],
@@ -26,6 +26,8 @@ var classyaze_1_1editor_1_1DungeonEditor =
     [ "Find", "classyaze_1_1editor_1_1DungeonEditor.html#adaaf0254345026fc7099688ed947e619", null ],
     [ "Save", "classyaze_1_1editor_1_1DungeonEditor.html#aa7d6a8a27fb6a999b46bbfe1f837ce2e", null ],
     [ "add_room", "classyaze_1_1editor_1_1DungeonEditor.html#a0867626a4677c96be31fb181fff86ccd", null ],
+    [ "set_rom", "classyaze_1_1editor_1_1DungeonEditor.html#a67d4329e86fcdc64e3931432d459438d", null ],
+    [ "rom", "classyaze_1_1editor_1_1DungeonEditor.html#ab28f3a2da1281e2b00ddccc6aebe2eb8", null ],
     [ "RefreshGraphics", "classyaze_1_1editor_1_1DungeonEditor.html#a0fb4f2c30d76ea757405184e34a64ea8", null ],
     [ "LoadDungeonRoomSize", "classyaze_1_1editor_1_1DungeonEditor.html#a04832bdf64d6e767d5a11317606b04e4", null ],
     [ "UpdateDungeonRoomView", "classyaze_1_1editor_1_1DungeonEditor.html#ad0705b525915d3d3cab1d56df72aff5f", null ],
@@ -77,5 +79,6 @@ var classyaze_1_1editor_1_1DungeonEditor =
     [ "total_room_size_", "classyaze_1_1editor_1_1DungeonEditor.html#a6bd3296392d04670b3320b374eb77e5d", null ],
     [ "room_size_addresses_", "classyaze_1_1editor_1_1DungeonEditor.html#a80af3041a3836fa0718ce47a993915da", null ],
     [ "room_palette_", "classyaze_1_1editor_1_1DungeonEditor.html#a24ef990165c829e92cf331b8a2ca2c84", null ],
-    [ "status_", "classyaze_1_1editor_1_1DungeonEditor.html#a22ff4bc057344baa8abc0957fb907689", null ]
+    [ "status_", "classyaze_1_1editor_1_1DungeonEditor.html#a22ff4bc057344baa8abc0957fb907689", null ],
+    [ "rom_", "classyaze_1_1editor_1_1DungeonEditor.html#a25fa3fb007e6c33e57a0a360376ee0f7", null ]
 ];

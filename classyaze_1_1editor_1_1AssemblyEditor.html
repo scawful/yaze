@@ -134,22 +134,22 @@ Collaboration diagram for yaze::editor::AssemblyEditor:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1AssemblyEditor__coll__graph.png" border="0" usemap="#ayaze_1_1editor_1_1AssemblyEditor_coll__map" alt="Collaboration graph"/></div>
 <map name="ayaze_1_1editor_1_1AssemblyEditor_coll__map" id="ayaze_1_1editor_1_1AssemblyEditor_coll__map">
-<area shape="rect" title="Text editor for modifying assembly code." alt="" coords="162,183,343,208"/>
-<area shape="rect" href="classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="27,94,152,120"/>
-<area shape="poly" title=" " alt="" coords="127,125,231,180,228,184,125,130"/>
-<area shape="rect" href="structyaze_1_1editor_1_1EditorContext.html" title=" " alt="" coords="5,5,174,31"/>
-<area shape="poly" title=" " alt="" coords="92,47,92,94,87,94,87,47"/>
-<area shape="rect" href="structyaze_1_1editor_1_1FolderItem.html" title=" " alt="" coords="176,94,329,120"/>
-<area shape="poly" title=" " alt="" coords="255,135,255,182,250,182,250,135"/>
-<area shape="rect" href="classTextEditor.html" title=" " alt="" coords="352,94,432,120"/>
-<area shape="poly" title=" " alt="" coords="377,134,348,161,324,174,299,185,297,180,322,170,345,157,373,130"/>
+<area shape="rect" title="Text editor for modifying assembly code." alt="" coords="209,94,390,120"/>
+<area shape="rect" href="classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="5,5,130,31"/>
+<area shape="poly" title=" " alt="" coords="115,34,268,91,266,96,113,39"/>
+<area shape="rect" href="structyaze_1_1editor_1_1FolderItem.html" title=" " alt="" coords="154,5,307,31"/>
+<area shape="poly" title=" " alt="" coords="241,44,254,68,280,91,277,95,250,72,236,46"/>
+<area shape="rect" href="classTextEditor.html" title=" " alt="" coords="330,5,410,31"/>
+<area shape="poly" title=" " alt="" coords="360,46,343,72,318,95,314,92,339,68,356,43"/>
+<area shape="rect" href="classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="434,5,514,31"/>
+<area shape="poly" title=" " alt="" coords="459,45,428,72,399,86,369,96,367,91,397,81,425,68,455,41"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a18b7735ffbfc7a0dcb92662f481fee8b" id="r_a18b7735ffbfc7a0dcb92662f481fee8b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a18b7735ffbfc7a0dcb92662f481fee8b">AssemblyEditor</a> ()</td></tr>
-<tr class="separator:a18b7735ffbfc7a0dcb92662f481fee8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acce893a4b4cb8a9c48da9c85b955997d" id="r_acce893a4b4cb8a9c48da9c85b955997d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acce893a4b4cb8a9c48da9c85b955997d">AssemblyEditor</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> *<a class="el" href="#a5fe41afacf342468d7bf8899c44ea7d5">rom</a>=nullptr)</td></tr>
+<tr class="separator:acce893a4b4cb8a9c48da9c85b955997d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4b745650f8142af416a263bfee0b24c9" id="r_a4b745650f8142af416a263bfee0b24c9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4b745650f8142af416a263bfee0b24c9">ChangeActiveFile</a> (const std::string_view &amp;filename)</td></tr>
 <tr class="separator:a4b745650f8142af416a263bfee0b24c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a23f6336773b52a1339166359528674f5" id="r_a23f6336773b52a1339166359528674f5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a23f6336773b52a1339166359528674f5">Initialize</a> () override</td></tr>
@@ -180,11 +180,19 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a205ca8fc1dd3bfb02187446d440be187"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a85cff0f1b9734435c8becb8dad02d6bd" id="r_a85cff0f1b9734435c8becb8dad02d6bd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a85cff0f1b9734435c8becb8dad02d6bd">OpenFolder</a> (const std::string &amp;folder_path)</td></tr>
 <tr class="separator:a85cff0f1b9734435c8becb8dad02d6bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa7de13cccee71b653be543e0958996af" id="r_aa7de13cccee71b653be543e0958996af"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa7de13cccee71b653be543e0958996af">set_rom</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> *<a class="el" href="#a5fe41afacf342468d7bf8899c44ea7d5">rom</a>)</td></tr>
+<tr class="separator:aa7de13cccee71b653be543e0958996af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5fe41afacf342468d7bf8899c44ea7d5" id="r_a5fe41afacf342468d7bf8899c44ea7d5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1Rom.html">Rom</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5fe41afacf342468d7bf8899c44ea7d5">rom</a> () const</td></tr>
+<tr class="separator:a5fe41afacf342468d7bf8899c44ea7d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classyaze_1_1editor_1_1Editor"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classyaze_1_1editor_1_1Editor')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classyaze_1_1editor_1_1Editor.html">yaze::editor::Editor</a></td></tr>
 <tr class="memitem:a247da2182c494a6505ec0790476930df inherit pub_methods_classyaze_1_1editor_1_1Editor" id="r_a247da2182c494a6505ec0790476930df"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Editor.html#a247da2182c494a6505ec0790476930df">Editor</a> ()=default</td></tr>
 <tr class="separator:a247da2182c494a6505ec0790476930df inherit pub_methods_classyaze_1_1editor_1_1Editor"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a78070dc194ac0104406bc2ff4dd07b1f inherit pub_methods_classyaze_1_1editor_1_1Editor" id="r_a78070dc194ac0104406bc2ff4dd07b1f"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Editor.html#a78070dc194ac0104406bc2ff4dd07b1f">~Editor</a> ()=default</td></tr>
 <tr class="separator:a78070dc194ac0104406bc2ff4dd07b1f inherit pub_methods_classyaze_1_1editor_1_1Editor"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a64935d8998b4748ca14b9865a65e5ac2 inherit pub_methods_classyaze_1_1editor_1_1Editor" id="r_a64935d8998b4748ca14b9865a65e5ac2"><td class="memItemLeft" align="right" valign="top">virtual absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Editor.html#a64935d8998b4748ca14b9865a65e5ac2">Clear</a> ()</td></tr>
+<tr class="separator:a64935d8998b4748ca14b9865a65e5ac2 inherit pub_methods_classyaze_1_1editor_1_1Editor"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:addec01921dc606712f0877859e69c11e inherit pub_methods_classyaze_1_1editor_1_1Editor" id="r_addec01921dc606712f0877859e69c11e"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Editor.html#addec01921dc606712f0877859e69c11e">CleanupUnusedTextures</a> (uint64_t current_time, uint64_t timeout)</td></tr>
+<tr class="separator:addec01921dc606712f0877859e69c11e inherit pub_methods_classyaze_1_1editor_1_1Editor"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a65af614b04a79925a1a4c702597521b0 inherit pub_methods_classyaze_1_1editor_1_1Editor" id="r_a65af614b04a79925a1a4c702597521b0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622a">EditorType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Editor.html#a65af614b04a79925a1a4c702597521b0">type</a> () const</td></tr>
 <tr class="separator:a65af614b04a79925a1a4c702597521b0 inherit pub_methods_classyaze_1_1editor_1_1Editor"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a027446f4b4564fe8db76db7b865d991e inherit pub_methods_classyaze_1_1editor_1_1Editor" id="r_a027446f4b4564fe8db76db7b865d991e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Editor.html#a027446f4b4564fe8db76db7b865d991e">set_context</a> (<a class="el" href="structyaze_1_1editor_1_1EditorContext.html">EditorContext</a> *context)</td></tr>
@@ -225,6 +233,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a9f3cd8c1cb567d4fd0096c4300225c01"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7b6a8e37c0dca591000ac1d11384b40c" id="r_a7b6a8e37c0dca591000ac1d11384b40c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classTextEditor.html">TextEditor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7b6a8e37c0dca591000ac1d11384b40c">text_editor_</a></td></tr>
 <tr class="separator:a7b6a8e37c0dca591000ac1d11384b40c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a25fdd9af0e84c4b7bcba74a876436a20" id="r_a25fdd9af0e84c4b7bcba74a876436a20"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1Rom.html">Rom</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a25fdd9af0e84c4b7bcba74a876436a20">rom_</a></td></tr>
+<tr class="separator:a25fdd9af0e84c4b7bcba74a876436a20"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -239,10 +249,10 @@ Additional Inherited Members</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Text editor for modifying assembly code. </p>
 
-<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00023">23</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00024">24</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a18b7735ffbfc7a0dcb92662f481fee8b" name="a18b7735ffbfc7a0dcb92662f481fee8b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a18b7735ffbfc7a0dcb92662f481fee8b">&#9670;&#160;</a></span>AssemblyEditor()</h2>
+<a id="acce893a4b4cb8a9c48da9c85b955997d" name="acce893a4b4cb8a9c48da9c85b955997d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acce893a4b4cb8a9c48da9c85b955997d">&#9670;&#160;</a></span>AssemblyEditor()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -253,30 +263,32 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">yaze::editor::AssemblyEditor::AssemblyEditor </td>
           <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1Rom.html">Rom</a> *</td>          <td class="paramname"><span class="paramname"><em>rom</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span></td><td>)</td>
           <td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel explicit">explicit</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00025">25</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00026">26</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="style_8cc_source.html#l00292">yaze::gui::GetAssemblyLanguageDef()</a>, <a class="el" href="text__editor_8cc_source.html#l01809">TextEditor::GetDarkPalette()</a>, <a class="el" href="editor_8h_source.html#l00030">yaze::editor::kAssembly</a>, <a class="el" href="assembly__editor_8h_source.html#l00073">text_editor_</a>, and <a class="el" href="editor_8h_source.html#l00088">yaze::editor::Editor::type_</a>.</p>
+<p class="reference">References <a class="el" href="style_8cc_source.html#l00292">yaze::gui::GetAssemblyLanguageDef()</a>, <a class="el" href="text__editor_8cc_source.html#l01809">TextEditor::GetDarkPalette()</a>, <a class="el" href="editor_8h_source.html#l00030">yaze::editor::kAssembly</a>, <a class="el" href="assembly__editor_8h_source.html#l00062">rom()</a>, <a class="el" href="assembly__editor_8h_source.html#l00082">rom_</a>, <a class="el" href="assembly__editor_8h_source.html#l00080">text_editor_</a>, and <a class="el" href="editor_8h_source.html#l00092">yaze::editor::Editor::type_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1editor_1_1AssemblyEditor_a18b7735ffbfc7a0dcb92662f481fee8b_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1AssemblyEditor_a18b7735ffbfc7a0dcb92662f481fee8b_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1editor_1_1AssemblyEditor_a18b7735ffbfc7a0dcb92662f481fee8b_cgraph" id="aclassyaze_1_1editor_1_1AssemblyEditor_a18b7735ffbfc7a0dcb92662f481fee8b_cgraph">
-<area shape="rect" title=" " alt="" coords="5,23,187,64"/>
+<div class="center"><img src="classyaze_1_1editor_1_1AssemblyEditor_acce893a4b4cb8a9c48da9c85b955997d_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1AssemblyEditor_acce893a4b4cb8a9c48da9c85b955997d_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1AssemblyEditor_acce893a4b4cb8a9c48da9c85b955997d_cgraph" id="aclassyaze_1_1editor_1_1AssemblyEditor_acce893a4b4cb8a9c48da9c85b955997d_cgraph">
+<area shape="rect" title=" " alt="" coords="5,47,187,88"/>
 <area shape="rect" href="namespaceyaze_1_1gui.html#a662ce2afc1c96ab4df4f8f645e837981" title=" " alt="" coords="235,5,466,31"/>
-<area shape="poly" title=" " alt="" coords="187,32,219,29,219,34,187,37"/>
+<area shape="poly" title=" " alt="" coords="187,47,265,32,266,37,188,53"/>
 <area shape="rect" href="classTextEditor.html#a36a929a82d045b43480326c73f383cb8" title=" " alt="" coords="263,55,438,80"/>
-<area shape="poly" title=" " alt="" coords="187,49,248,55,247,60,187,55"/>
+<area shape="poly" title=" " alt="" coords="187,65,248,65,248,70,187,70"/>
+<area shape="rect" href="classyaze_1_1editor_1_1AssemblyEditor.html#a5fe41afacf342468d7bf8899c44ea7d5" title=" " alt="" coords="246,104,455,130"/>
+<area shape="poly" title=" " alt="" coords="188,82,266,98,265,103,187,88"/>
 </map>
 </div>
 
@@ -306,9 +318,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00031">31</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00032">32</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00071">current_file_</a>, and <a class="el" href="assembly__editor_8h_source.html#l00064">file_is_loaded_</a>.</p>
+<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00078">current_file_</a>, and <a class="el" href="assembly__editor_8h_source.html#l00071">file_is_loaded_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="assembly__editor_8cc_source.html#l00185">DrawCurrentFolder()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00288">DrawFileMenu()</a>, and <a class="el" href="assembly__editor_8cc_source.html#l00133">InlineUpdate()</a>.</p>
 
@@ -389,7 +401,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="assembly__editor_8cc_source.html#l00112">112</a> of file <a class="el" href="assembly__editor_8cc_source.html">assembly_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00071">current_file_</a>, <a class="el" href="assembly__editor_8cc_source.html#l00301">DrawEditMenu()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00288">DrawFileMenu()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00327">SetEditorText()</a>, and <a class="el" href="assembly__editor_8h_source.html#l00073">text_editor_</a>.</p>
+<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00078">current_file_</a>, <a class="el" href="assembly__editor_8cc_source.html#l00301">DrawEditMenu()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00288">DrawFileMenu()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00327">SetEditorText()</a>, and <a class="el" href="assembly__editor_8h_source.html#l00080">text_editor_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -426,7 +438,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="assembly__editor_8cc_source.html#l00133">133</a> of file <a class="el" href="assembly__editor_8cc_source.html">assembly_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00031">ChangeActiveFile()</a>, <a class="el" href="assembly__editor_8h_source.html#l00071">current_file_</a>, <a class="el" href="assembly__editor_8cc_source.html#l00327">SetEditorText()</a>, and <a class="el" href="assembly__editor_8h_source.html#l00073">text_editor_</a>.</p>
+<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00032">ChangeActiveFile()</a>, <a class="el" href="assembly__editor_8h_source.html#l00078">current_file_</a>, <a class="el" href="assembly__editor_8cc_source.html#l00327">SetEditorText()</a>, and <a class="el" href="assembly__editor_8h_source.html#l00080">text_editor_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -459,7 +471,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="assembly__editor_8cc_source.html#l00147">147</a> of file <a class="el" href="assembly__editor_8cc_source.html">assembly_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00071">current_file_</a>, <a class="el" href="assembly__editor_8h_source.html#l00072">current_folder_</a>, <a class="el" href="assembly__editor_8cc_source.html#l00185">DrawCurrentFolder()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00327">SetEditorText()</a>, <a class="el" href="classyaze_1_1editor_1_1FileDialogWrapper.html#ae9e6b685fe8521a6aa1830edd63e4ce0">yaze::editor::FileDialogWrapper::ShowOpenFolderDialog()</a>, and <a class="el" href="assembly__editor_8h_source.html#l00073">text_editor_</a>.</p>
+<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00078">current_file_</a>, <a class="el" href="assembly__editor_8h_source.html#l00079">current_folder_</a>, <a class="el" href="assembly__editor_8cc_source.html#l00185">DrawCurrentFolder()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00327">SetEditorText()</a>, <a class="el" href="classyaze_1_1editor_1_1FileDialogWrapper.html#ae9e6b685fe8521a6aa1830edd63e4ce0">yaze::editor::FileDialogWrapper::ShowOpenFolderDialog()</a>, and <a class="el" href="assembly__editor_8h_source.html#l00080">text_editor_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -506,7 +518,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="assembly__editor_8cc_source.html#l00342">342</a> of file <a class="el" href="assembly__editor_8cc_source.html">assembly_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00073">text_editor_</a>.</p>
+<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00080">text_editor_</a>.</p>
 
 </div>
 </div>
@@ -537,7 +549,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="assembly__editor_8cc_source.html#l00347">347</a> of file <a class="el" href="assembly__editor_8cc_source.html">assembly_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00073">text_editor_</a>.</p>
+<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00080">text_editor_</a>.</p>
 
 </div>
 </div>
@@ -568,7 +580,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="assembly__editor_8cc_source.html#l00352">352</a> of file <a class="el" href="assembly__editor_8cc_source.html">assembly_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00073">text_editor_</a>.</p>
+<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00080">text_editor_</a>.</p>
 
 </div>
 </div>
@@ -599,7 +611,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="assembly__editor_8cc_source.html#l00357">357</a> of file <a class="el" href="assembly__editor_8cc_source.html">assembly_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00073">text_editor_</a>.</p>
+<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00080">text_editor_</a>.</p>
 
 </div>
 </div>
@@ -630,7 +642,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="assembly__editor_8cc_source.html#l00362">362</a> of file <a class="el" href="assembly__editor_8cc_source.html">assembly_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00073">text_editor_</a>.</p>
+<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00080">text_editor_</a>.</p>
 
 </div>
 </div>
@@ -659,7 +671,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#aac357035ff66579bbad4181c5aa47e56">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00049">49</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00050">50</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
 
 </div>
 </div>
@@ -717,7 +729,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1editor_1_1Editor.html#a89afe8fdd51463ff3d4259f40c98d464">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00053">53</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00054">54</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
 
 </div>
 </div>
@@ -738,7 +750,77 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="assembly__editor_8cc_source.html#l00108">108</a> of file <a class="el" href="assembly__editor_8cc_source.html">assembly_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00072">current_folder_</a>.</p>
+<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00079">current_folder_</a>.</p>
+
+</div>
+</div>
+<a id="aa7de13cccee71b653be543e0958996af" name="aa7de13cccee71b653be543e0958996af"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa7de13cccee71b653be543e0958996af">&#9670;&#160;</a></span>set_rom()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::AssemblyEditor::set_rom </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1Rom.html">Rom</a> *</td>          <td class="paramname"><span class="paramname"><em>rom</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00059">59</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
+
+<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00062">rom()</a>, and <a class="el" href="assembly__editor_8h_source.html#l00082">rom_</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1editor_1_1AssemblyEditor_aa7de13cccee71b653be543e0958996af_cgraph.png" border="0" usemap="#aclassyaze_1_1editor_1_1AssemblyEditor_aa7de13cccee71b653be543e0958996af_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1editor_1_1AssemblyEditor_aa7de13cccee71b653be543e0958996af_cgraph" id="aclassyaze_1_1editor_1_1AssemblyEditor_aa7de13cccee71b653be543e0958996af_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,187,46"/>
+<area shape="rect" href="classyaze_1_1editor_1_1AssemblyEditor.html#a5fe41afacf342468d7bf8899c44ea7d5" title=" " alt="" coords="235,13,444,38"/>
+<area shape="poly" title=" " alt="" coords="187,23,219,23,219,28,187,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a5fe41afacf342468d7bf8899c44ea7d5" name="a5fe41afacf342468d7bf8899c44ea7d5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5fe41afacf342468d7bf8899c44ea7d5">&#9670;&#160;</a></span>rom()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classyaze_1_1Rom.html">Rom</a> * yaze::editor::AssemblyEditor::rom </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00062">62</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
+
+<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00082">rom_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="assembly__editor_8h_source.html#l00026">AssemblyEditor()</a>, and <a class="el" href="assembly__editor_8h_source.html#l00059">set_rom()</a>.</p>
 
 </div>
 </div>
@@ -768,7 +850,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="assembly__editor_8cc_source.html#l00288">288</a> of file <a class="el" href="assembly__editor_8cc_source.html">assembly_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00031">ChangeActiveFile()</a>, and <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>.</p>
+<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00032">ChangeActiveFile()</a>, and <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="assembly__editor_8cc_source.html#l00112">Update()</a>.</p>
 <div class="dynheader">
@@ -812,7 +894,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="assembly__editor_8cc_source.html#l00301">301</a> of file <a class="el" href="assembly__editor_8cc_source.html">assembly_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00073">text_editor_</a>.</p>
+<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00080">text_editor_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="assembly__editor_8cc_source.html#l00112">Update()</a>.</p>
 
@@ -843,7 +925,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="assembly__editor_8cc_source.html#l00327">327</a> of file <a class="el" href="assembly__editor_8cc_source.html">assembly_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00071">current_file_</a>, <a class="el" href="assembly__editor_8h_source.html#l00064">file_is_loaded_</a>, and <a class="el" href="assembly__editor_8h_source.html#l00073">text_editor_</a>.</p>
+<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00078">current_file_</a>, <a class="el" href="assembly__editor_8h_source.html#l00071">file_is_loaded_</a>, and <a class="el" href="assembly__editor_8h_source.html#l00080">text_editor_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="assembly__editor_8cc_source.html#l00133">InlineUpdate()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00112">Update()</a>, and <a class="el" href="assembly__editor_8cc_source.html#l00147">UpdateCodeView()</a>.</p>
 
@@ -874,7 +956,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="assembly__editor_8cc_source.html#l00185">185</a> of file <a class="el" href="assembly__editor_8cc_source.html">assembly_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00031">ChangeActiveFile()</a>, and <a class="el" href="assembly__editor_8h_source.html#l00072">current_folder_</a>.</p>
+<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00032">ChangeActiveFile()</a>, and <a class="el" href="assembly__editor_8h_source.html#l00079">current_folder_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="assembly__editor_8cc_source.html#l00147">UpdateCodeView()</a>.</p>
 <div class="dynheader">
@@ -915,7 +997,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="assembly__editor_8cc_source.html#l00235">235</a> of file <a class="el" href="assembly__editor_8cc_source.html">assembly_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00069">active_files_</a>, <a class="el" href="assembly__editor_8h_source.html#l00071">current_file_</a>, <a class="el" href="assembly__editor_8h_source.html#l00065">current_file_id_</a>, <a class="el" href="assembly__editor_8h_source.html#l00067">files_</a>, <a class="el" href="icons_8h_source.html#l00084">ICON_MD_ADD</a>, <a class="el" href="assembly__editor_8h_source.html#l00068">open_files_</a>, and <a class="el" href="assembly__editor_8h_source.html#l00073">text_editor_</a>.</p>
+<p class="reference">References <a class="el" href="assembly__editor_8h_source.html#l00076">active_files_</a>, <a class="el" href="assembly__editor_8h_source.html#l00078">current_file_</a>, <a class="el" href="assembly__editor_8h_source.html#l00072">current_file_id_</a>, <a class="el" href="assembly__editor_8h_source.html#l00074">files_</a>, <a class="el" href="icons_8h_source.html#l00084">ICON_MD_ADD</a>, <a class="el" href="assembly__editor_8h_source.html#l00075">open_files_</a>, and <a class="el" href="assembly__editor_8h_source.html#l00080">text_editor_</a>.</p>
 
 </div>
 </div>
@@ -940,9 +1022,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00064">64</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00071">71</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="assembly__editor_8h_source.html#l00031">ChangeActiveFile()</a>, and <a class="el" href="assembly__editor_8cc_source.html#l00327">SetEditorText()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="assembly__editor_8h_source.html#l00032">ChangeActiveFile()</a>, and <a class="el" href="assembly__editor_8cc_source.html#l00327">SetEditorText()</a>.</p>
 
 </div>
 </div>
@@ -966,7 +1048,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00065">65</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00072">72</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="assembly__editor_8cc_source.html#l00235">DrawFileTabView()</a>.</p>
 
@@ -992,7 +1074,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00067">67</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00074">74</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="assembly__editor_8cc_source.html#l00235">DrawFileTabView()</a>.</p>
 
@@ -1018,7 +1100,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00068">68</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00075">75</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="assembly__editor_8cc_source.html#l00235">DrawFileTabView()</a>.</p>
 
@@ -1044,7 +1126,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00069">69</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00076">76</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="assembly__editor_8cc_source.html#l00235">DrawFileTabView()</a>.</p>
 
@@ -1070,9 +1152,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00071">71</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00078">78</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="assembly__editor_8h_source.html#l00031">ChangeActiveFile()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00235">DrawFileTabView()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00133">InlineUpdate()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00327">SetEditorText()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00112">Update()</a>, and <a class="el" href="assembly__editor_8cc_source.html#l00147">UpdateCodeView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="assembly__editor_8h_source.html#l00032">ChangeActiveFile()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00235">DrawFileTabView()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00133">InlineUpdate()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00327">SetEditorText()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00112">Update()</a>, and <a class="el" href="assembly__editor_8cc_source.html#l00147">UpdateCodeView()</a>.</p>
 
 </div>
 </div>
@@ -1096,7 +1178,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00072">72</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00079">79</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="assembly__editor_8cc_source.html#l00185">DrawCurrentFolder()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00108">OpenFolder()</a>, and <a class="el" href="assembly__editor_8cc_source.html#l00147">UpdateCodeView()</a>.</p>
 
@@ -1122,9 +1204,35 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00073">73</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00080">80</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="assembly__editor_8h_source.html#l00025">AssemblyEditor()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00347">Copy()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00342">Cut()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00301">DrawEditMenu()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00235">DrawFileTabView()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00133">InlineUpdate()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00352">Paste()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00362">Redo()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00327">SetEditorText()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00357">Undo()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00112">Update()</a>, and <a class="el" href="assembly__editor_8cc_source.html#l00147">UpdateCodeView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="assembly__editor_8h_source.html#l00026">AssemblyEditor()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00347">Copy()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00342">Cut()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00301">DrawEditMenu()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00235">DrawFileTabView()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00133">InlineUpdate()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00352">Paste()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00362">Redo()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00327">SetEditorText()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00357">Undo()</a>, <a class="el" href="assembly__editor_8cc_source.html#l00112">Update()</a>, and <a class="el" href="assembly__editor_8cc_source.html#l00147">UpdateCodeView()</a>.</p>
+
+</div>
+</div>
+<a id="a25fdd9af0e84c4b7bcba74a876436a20" name="a25fdd9af0e84c4b7bcba74a876436a20"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a25fdd9af0e84c4b7bcba74a876436a20">&#9670;&#160;</a></span>rom_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classyaze_1_1Rom.html">Rom</a>* yaze::editor::AssemblyEditor::rom_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="assembly__editor_8h_source.html#l00082">82</a> of file <a class="el" href="assembly__editor_8h_source.html">assembly_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="assembly__editor_8h_source.html#l00026">AssemblyEditor()</a>, <a class="el" href="assembly__editor_8h_source.html#l00062">rom()</a>, and <a class="el" href="assembly__editor_8h_source.html#l00059">set_rom()</a>.</p>
 
 </div>
 </div>

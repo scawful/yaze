@@ -159,6 +159,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1EditorManager.html">EditorManager</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <a class="el" href="classyaze_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes.">EditorManager</a> controls the main editor window and manages the various editor classes.  <a href="classyaze_1_1editor_1_1EditorManager.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1EditorSet.html">EditorSet</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains a complete set of editors for a single ROM instance.  <a href="classyaze_1_1editor_1_1EditorSet.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1editor_1_1ExampleAppPropertyEditor.html">ExampleAppPropertyEditor</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1editor_1_1ExampleMemberInfo.html">ExampleMemberInfo</a></td></tr>
@@ -377,8 +380,6 @@ Variables</h2></td></tr>
 <tr class="separator:a072e6c59403d75837f1ad24ffd787184"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abbdf1fbff1b3b401e9a764c5da0103d1" id="r_abbdf1fbff1b3b401e9a764c5da0103d1"><td class="memItemLeft" align="right" valign="top">constexpr ImGuiTableFlags&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abbdf1fbff1b3b401e9a764c5da0103d1">kMessageTableFlags</a></td></tr>
 <tr class="separator:abbdf1fbff1b3b401e9a764c5da0103d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad83db9d9e78950fa25e06906bbf87e9f" id="r_ad83db9d9e78950fa25e06906bbf87e9f"><td class="memItemLeft" align="right" valign="top">constexpr ImGuiTableFlags&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad83db9d9e78950fa25e06906bbf87e9f">kDictTableFlags</a></td></tr>
-<tr class="separator:ad83db9d9e78950fa25e06906bbf87e9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7125035a631647e03e5efc55b88c4e77" id="r_a7125035a631647e03e5efc55b88c4e77"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7125035a631647e03e5efc55b88c4e77">kGfxFont</a> = 0x70000</td></tr>
 <tr class="separator:a7125035a631647e03e5efc55b88c4e77"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a59d4c715a567f35b7d9423174b899067" id="r_a59d4c715a567f35b7d9423174b899067"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a59d4c715a567f35b7d9423174b899067">kTextData2</a> = 0x75F40</td></tr>
@@ -562,7 +563,7 @@ Variables</h2></td></tr>
 
 <p class="reference">References <a class="el" href="macro_8h_source.html#l00059">ASSIGN_OR_RETURN</a>, <a class="el" href="snes__palette_8h_source.html#l00138">yaze::gfx::SnesPalette::GetColor()</a>, <a class="el" href="palette__editor_8cc_source.html#l00054">kPalButtonFlags2</a>, <a class="el" href="snes__palette_8h_source.html#l00148">yaze::gfx::SnesPalette::size()</a>, and <a class="el" href="macro_8h_source.html#l00087">TEXT_WITH_SEPARATOR</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00130">yaze::editor::OverworldEditor::DrawToolset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00107">yaze::editor::OverworldEditor::DrawToolset()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -595,7 +596,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__data_8cc_source.html#l00012">12</a> of file <a class="el" href="message__data_8cc_source.html">message_data.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00451">yaze::editor::MessageEditor::DrawCharacterToPreview()</a>, <a class="el" href="message__data_8cc_source.html#l00102">ParseMessageToData()</a>, <a class="el" href="message__test_8cc_source.html#l00061">yaze::test::TEST_F()</a>, and <a class="el" href="message__test_8cc_source.html#l00054">yaze::test::TEST_F()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00450">yaze::editor::MessageEditor::DrawCharacterToPreview()</a>, <a class="el" href="message__data_8cc_source.html#l00102">ParseMessageToData()</a>, <a class="el" href="message__test_8cc_source.html#l00061">yaze::test::TEST_F()</a>, and <a class="el" href="message__test_8cc_source.html#l00054">yaze::test::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -618,7 +619,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="message__data_8h_source.html#l00019">DICTOFF</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00192">ParseSingleMessage()</a>, <a class="el" href="message__data_8cc_source.html#l00073">ParseTextDataByte()</a>, <a class="el" href="message__editor_8cc_source.html#l00317">yaze::editor::MessageEditor::ReadAllTextData()</a>, <a class="el" href="message__editor_8cc_source.html#l00227">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>, <a class="el" href="message__test_8cc_source.html#l00071">yaze::test::TEST_F()</a>, and <a class="el" href="message__test_8cc_source.html#l00066">yaze::test::TEST_F()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00192">ParseSingleMessage()</a>, <a class="el" href="message__data_8cc_source.html#l00073">ParseTextDataByte()</a>, <a class="el" href="message__editor_8cc_source.html#l00316">yaze::editor::MessageEditor::ReadAllTextData()</a>, <a class="el" href="message__editor_8cc_source.html#l00226">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>, <a class="el" href="message__test_8cc_source.html#l00071">yaze::test::TEST_F()</a>, and <a class="el" href="message__test_8cc_source.html#l00066">yaze::test::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -639,7 +640,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__data_8cc_source.html#l00028">28</a> of file <a class="el" href="message__data_8cc_source.html">message_data.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00272">ParseMessageData()</a>, <a class="el" href="message__data_8cc_source.html#l00192">ParseSingleMessage()</a>, <a class="el" href="message__data_8cc_source.html#l00073">ParseTextDataByte()</a>, <a class="el" href="message__editor_8cc_source.html#l00317">yaze::editor::MessageEditor::ReadAllTextData()</a>, and <a class="el" href="message__editor_8cc_source.html#l00227">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00272">ParseMessageData()</a>, <a class="el" href="message__data_8cc_source.html#l00192">ParseSingleMessage()</a>, <a class="el" href="message__data_8cc_source.html#l00073">ParseTextDataByte()</a>, <a class="el" href="message__editor_8cc_source.html#l00316">yaze::editor::MessageEditor::ReadAllTextData()</a>, and <a class="el" href="message__editor_8cc_source.html#l00226">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>.</p>
 
 </div>
 </div>
@@ -660,7 +661,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__data_8cc_source.html#l00037">37</a> of file <a class="el" href="message__data_8cc_source.html">message_data.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00073">ParseTextDataByte()</a>, <a class="el" href="message__editor_8cc_source.html#l00317">yaze::editor::MessageEditor::ReadAllTextData()</a>, and <a class="el" href="message__editor_8cc_source.html#l00227">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00073">ParseTextDataByte()</a>, <a class="el" href="message__editor_8cc_source.html#l00316">yaze::editor::MessageEditor::ReadAllTextData()</a>, and <a class="el" href="message__editor_8cc_source.html#l00226">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>.</p>
 
 </div>
 </div>
@@ -706,7 +707,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="message__data_8h_source.html#l00018">DICTIONARYTOKEN</a>, <a class="el" href="message__data_8cc_source.html#l00021">FindDictionaryEntry()</a>, <a class="el" href="message__data_8cc_source.html#l00028">FindMatchingCommand()</a>, and <a class="el" href="message__data_8cc_source.html#l00037">FindMatchingSpecial()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00149">BuildDictionaryEntries()</a>, <a class="el" href="message__data_8cc_source.html#l00192">ParseSingleMessage()</a>, <a class="el" href="message__editor_8cc_source.html#l00317">yaze::editor::MessageEditor::ReadAllTextData()</a>, <a class="el" href="message__editor_8cc_source.html#l00227">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>, <a class="el" href="message__test_8cc_source.html#l00106">yaze::test::TEST_F()</a>, and <a class="el" href="message__test_8cc_source.html#l00100">yaze::test::TEST_F()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00149">BuildDictionaryEntries()</a>, <a class="el" href="message__data_8cc_source.html#l00192">ParseSingleMessage()</a>, <a class="el" href="message__editor_8cc_source.html#l00316">yaze::editor::MessageEditor::ReadAllTextData()</a>, <a class="el" href="message__editor_8cc_source.html#l00226">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>, <a class="el" href="message__test_8cc_source.html#l00106">yaze::test::TEST_F()</a>, and <a class="el" href="message__test_8cc_source.html#l00100">yaze::test::TEST_F()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -741,9 +742,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__data_8cc_source.html#l00102">102</a> of file <a class="el" href="message__data_8cc_source.html">message_data.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="message__data_8h_source.html#l00290">yaze::editor::ParsedElement::Active</a>, <a class="el" href="message__data_8h_source.html#l00018">DICTIONARYTOKEN</a>, <a class="el" href="message__data_8cc_source.html#l00012">FindMatchingCharacter()</a>, <a class="el" href="message__data_8cc_source.html#l00048">FindMatchingElement()</a>, <a class="el" href="message__data_8h_source.html#l00165">yaze::editor::TextElement::HasArgument</a>, <a class="el" href="message__data_8h_source.html#l00159">yaze::editor::TextElement::ID</a>, <a class="el" href="message__data_8h_source.html#l00288">yaze::editor::ParsedElement::Parent</a>, and <a class="el" href="message__data_8h_source.html#l00289">yaze::editor::ParsedElement::Value</a>.</p>
+<p class="reference">References <a class="el" href="message__data_8h_source.html#l00294">yaze::editor::ParsedElement::Active</a>, <a class="el" href="message__data_8h_source.html#l00018">DICTIONARYTOKEN</a>, <a class="el" href="message__data_8cc_source.html#l00012">FindMatchingCharacter()</a>, <a class="el" href="message__data_8cc_source.html#l00048">FindMatchingElement()</a>, <a class="el" href="message__data_8h_source.html#l00165">yaze::editor::TextElement::HasArgument</a>, <a class="el" href="message__data_8h_source.html#l00159">yaze::editor::TextElement::ID</a>, <a class="el" href="message__data_8h_source.html#l00292">yaze::editor::ParsedElement::Parent</a>, and <a class="el" href="message__data_8h_source.html#l00293">yaze::editor::ParsedElement::Value</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__data_8h_source.html#l00053">yaze::editor::DictionaryEntry::DictionaryEntry()</a>, <a class="el" href="message__editor_8cc_source.html#l00152">yaze::editor::MessageEditor::DrawCurrentMessage()</a>, and <a class="el" href="message__test_8cc_source.html#l00076">yaze::test::TEST_F()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__data_8h_source.html#l00053">yaze::editor::DictionaryEntry::DictionaryEntry()</a>, <a class="el" href="message__editor_8cc_source.html#l00149">yaze::editor::MessageEditor::DrawCurrentMessage()</a>, and <a class="el" href="message__test_8cc_source.html#l00076">yaze::test::TEST_F()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -778,7 +779,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="rom_8h_source.html#l00163">yaze::Rom::data()</a>, <a class="el" href="message__data_8h_source.html#l00076">kNumDictionaryEntries</a>, <a class="el" href="message__data_8h_source.html#l00077">kPointersDictionaries</a>, <a class="el" href="message__data_8h_source.html#l00074">kTextData</a>, <a class="el" href="message__data_8cc_source.html#l00073">ParseTextDataByte()</a>, and <a class="el" href="rom_8h_source.html#l00326">yaze::SnesToPc()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00047">yaze::editor::MessageEditor::Initialize()</a>, <a class="el" href="message__test_8cc_source.html#l00012">yaze::test::MessageTest::SetUp()</a>, and <a class="el" href="message__test_8cc_source.html#l00168">yaze::test::TEST_F()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00044">yaze::editor::MessageEditor::Initialize()</a>, <a class="el" href="message__test_8cc_source.html#l00012">yaze::test::MessageTest::SetUp()</a>, and <a class="el" href="message__test_8cc_source.html#l00168">yaze::test::TEST_F()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -873,7 +874,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="message__data_8h_source.html#l00047">yaze::editor::DictionaryEntry::Contents</a>, <a class="el" href="message__data_8h_source.html#l00019">DICTOFF</a>, <a class="el" href="message__data_8cc_source.html#l00028">FindMatchingCommand()</a>, <a class="el" href="hex_8cc_source.html#l00059">yaze::util::HexLong()</a>, <a class="el" href="message__data_8h_source.html#l00080">kLine2</a>, <a class="el" href="message__data_8h_source.html#l00081">kLine3</a>, and <a class="el" href="message__data_8h_source.html#l00078">kScrollVertical</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00047">yaze::editor::MessageEditor::Initialize()</a>, and <a class="el" href="message__test_8cc_source.html#l00038">yaze::test::TEST_F()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00044">yaze::editor::MessageEditor::Initialize()</a>, and <a class="el" href="message__test_8cc_source.html#l00038">yaze::test::TEST_F()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -938,7 +939,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="common_8h_source.html#l00033">yaze::zelda3::GameEntity::x_</a>, and <a class="el" href="common_8h_source.html#l00034">yaze::zelda3::GameEntity::y_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00816">yaze::editor::OverworldEditor::DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00882">yaze::editor::OverworldEditor::DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00933">yaze::editor::OverworldEditor::DrawOverworldItems()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00983">yaze::editor::OverworldEditor::DrawOverworldSprites()</a>, and <a class="el" href="entity_8cc_source.html#l00056">HandleEntityDragging()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00793">yaze::editor::OverworldEditor::DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00859">yaze::editor::OverworldEditor::DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00910">yaze::editor::OverworldEditor::DrawOverworldItems()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00960">yaze::editor::OverworldEditor::DrawOverworldSprites()</a>, and <a class="el" href="entity_8cc_source.html#l00056">HandleEntityDragging()</a>.</p>
 
 </div>
 </div>
@@ -1039,7 +1040,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="common_8h_source.html#l00037">yaze::zelda3::GameEntity::entity_id_</a>, <a class="el" href="classyaze_1_1zelda3_1_1GameEntity.html#a4ba4e9a6d4f44e028042cf18214f8756">yaze::zelda3::GameEntity::entity_type_</a>, <a class="el" href="hex_8cc_source.html#l00033">yaze::util::HexByte()</a>, <a class="el" href="entity_8cc_source.html#l00021">IsMouseHoveringOverEntity()</a>, <a class="el" href="common_8h_source.html#l00023">yaze::zelda3::GameEntity::kEntrance</a>, <a class="el" href="common_8h_source.html#l00024">yaze::zelda3::GameEntity::kExit</a>, <a class="el" href="common_8h_source.html#l00025">yaze::zelda3::GameEntity::kItem</a>, <a class="el" href="common_8h_source.html#l00026">yaze::zelda3::GameEntity::kSprite</a>, <a class="el" href="common_8h_source.html#l00038">yaze::zelda3::GameEntity::map_id_</a>, <a class="el" href="entity_8cc_source.html#l00036">MoveEntityOnGrid()</a>, <a class="el" href="classyaze_1_1zelda3_1_1GameEntity.html#ae6fb12db3dc4ea2f15b02ea0ab56ac86">yaze::zelda3::GameEntity::UpdateMapProperties()</a>, <a class="el" href="common_8h_source.html#l00033">yaze::zelda3::GameEntity::x_</a>, and <a class="el" href="common_8h_source.html#l00034">yaze::zelda3::GameEntity::y_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00816">yaze::editor::OverworldEditor::DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00882">yaze::editor::OverworldEditor::DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00933">yaze::editor::OverworldEditor::DrawOverworldItems()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00983">yaze::editor::OverworldEditor::DrawOverworldSprites()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00793">yaze::editor::OverworldEditor::DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00859">yaze::editor::OverworldEditor::DrawOverworldExits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00910">yaze::editor::OverworldEditor::DrawOverworldItems()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00960">yaze::editor::OverworldEditor::DrawOverworldSprites()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1078,7 +1079,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="icons_8h_source.html#l00362">ICON_MD_CANCEL</a>, <a class="el" href="icons_8h_source.html#l00605">ICON_MD_DONE</a>, and <a class="el" href="input_8cc_source.html#l00134">yaze::gui::InputHex()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00816">yaze::editor::OverworldEditor::DrawOverworldEntrances()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00793">yaze::editor::OverworldEditor::DrawOverworldEntrances()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1112,7 +1113,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="overworld__entrance_8h_source.html#l00056">yaze::zelda3::OverworldEntrance::deleted</a>, <a class="el" href="overworld__entrance_8h_source.html#l00052">yaze::zelda3::OverworldEntrance::entrance_id_</a>, <a class="el" href="icons_8h_source.html#l00362">ICON_MD_CANCEL</a>, <a class="el" href="icons_8h_source.html#l00528">ICON_MD_DELETE</a>, <a class="el" href="icons_8h_source.html#l00605">ICON_MD_DONE</a>, <a class="el" href="input_8cc_source.html#l00134">yaze::gui::InputHex()</a>, <a class="el" href="input_8cc_source.html#l00167">yaze::gui::InputHexByte()</a>, <a class="el" href="input_8cc_source.html#l00153">yaze::gui::InputHexWord()</a>, <a class="el" href="entity_8cc_source.html#l00019">kInputFieldSize</a>, <a class="el" href="common_8h_source.html#l00038">yaze::zelda3::GameEntity::map_id_</a>, <a class="el" href="common_8h_source.html#l00033">yaze::zelda3::GameEntity::x_</a>, and <a class="el" href="common_8h_source.html#l00034">yaze::zelda3::GameEntity::y_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00816">yaze::editor::OverworldEditor::DrawOverworldEntrances()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00793">yaze::editor::OverworldEditor::DrawOverworldEntrances()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1153,7 +1154,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="icons_8h_source.html#l00362">ICON_MD_CANCEL</a>, <a class="el" href="icons_8h_source.html#l00605">ICON_MD_DONE</a>, and <a class="el" href="input_8cc_source.html#l00134">yaze::gui::InputHex()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00882">yaze::editor::OverworldEditor::DrawOverworldExits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00859">yaze::editor::OverworldEditor::DrawOverworldExits()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1186,7 +1187,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="overworld__exit_8h_source.html#l00061">yaze::zelda3::OverworldExit::deleted_</a>, <a class="el" href="overworld__exit_8h_source.html#l00053">yaze::zelda3::OverworldExit::door_type_1_</a>, <a class="el" href="overworld__exit_8h_source.html#l00054">yaze::zelda3::OverworldExit::door_type_2_</a>, <a class="el" href="common_8h_source.html#l00037">yaze::zelda3::GameEntity::entity_id_</a>, <a class="el" href="icons_8h_source.html#l00362">ICON_MD_CANCEL</a>, <a class="el" href="icons_8h_source.html#l00528">ICON_MD_DELETE</a>, <a class="el" href="icons_8h_source.html#l00605">ICON_MD_DONE</a>, <a class="el" href="input_8cc_source.html#l00134">yaze::gui::InputHex()</a>, <a class="el" href="input_8cc_source.html#l00167">yaze::gui::InputHexByte()</a>, <a class="el" href="input_8cc_source.html#l00153">yaze::gui::InputHexWord()</a>, <a class="el" href="overworld__exit_8h_source.html#l00062">yaze::zelda3::OverworldExit::is_automatic_</a>, <a class="el" href="overworld__exit_8h_source.html#l00060">yaze::zelda3::OverworldExit::is_hole_</a>, <a class="el" href="overworld__exit_8h_source.html#l00063">yaze::zelda3::OverworldExit::large_map_</a>, <a class="el" href="common_8h_source.html#l00038">yaze::zelda3::GameEntity::map_id_</a>, <a class="el" href="overworld__exit_8h_source.html#l00055">yaze::zelda3::OverworldExit::room_id_</a>, <a class="el" href="style_8cc_source.html#l00753">yaze::gui::TextWithSeparators()</a>, <a class="el" href="common_8h_source.html#l00033">yaze::zelda3::GameEntity::x_</a>, <a class="el" href="overworld__exit_8h_source.html#l00050">yaze::zelda3::OverworldExit::x_camera_</a>, <a class="el" href="overworld__exit_8h_source.html#l00046">yaze::zelda3::OverworldExit::x_scroll_</a>, <a class="el" href="common_8h_source.html#l00034">yaze::zelda3::GameEntity::y_</a>, <a class="el" href="overworld__exit_8h_source.html#l00049">yaze::zelda3::OverworldExit::y_camera_</a>, and <a class="el" href="overworld__exit_8h_source.html#l00045">yaze::zelda3::OverworldExit::y_scroll_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00882">yaze::editor::OverworldEditor::DrawOverworldExits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00859">yaze::editor::OverworldEditor::DrawOverworldExits()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1225,7 +1226,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="icons_8h_source.html#l00362">ICON_MD_CANCEL</a>, <a class="el" href="icons_8h_source.html#l00605">ICON_MD_DONE</a>, and <a class="el" href="overworld__item_8h_source.html#l00068">yaze::zelda3::kSecretItemNames</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00933">yaze::editor::OverworldEditor::DrawOverworldItems()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00910">yaze::editor::OverworldEditor::DrawOverworldItems()</a>.</p>
 
 </div>
 </div>
@@ -1249,7 +1250,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="overworld__item_8h_source.html#l00065">yaze::zelda3::OverworldItem::deleted</a>, <a class="el" href="icons_8h_source.html#l00416">ICON_MD_CLOSE</a>, <a class="el" href="icons_8h_source.html#l00528">ICON_MD_DELETE</a>, <a class="el" href="icons_8h_source.html#l00605">ICON_MD_DONE</a>, <a class="el" href="overworld__item_8h_source.html#l00060">yaze::zelda3::OverworldItem::id_</a>, and <a class="el" href="overworld__item_8h_source.html#l00068">yaze::zelda3::kSecretItemNames</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00933">yaze::editor::OverworldEditor::DrawOverworldItems()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00910">yaze::editor::OverworldEditor::DrawOverworldItems()</a>.</p>
 
 </div>
 </div>
@@ -1308,7 +1309,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="entity_8cc_source.html#l00379">DrawSpriteTable()</a>, <a class="el" href="icons_8h_source.html#l00362">ICON_MD_CANCEL</a>, and <a class="el" href="icons_8h_source.html#l00605">ICON_MD_DONE</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00983">yaze::editor::OverworldEditor::DrawOverworldSprites()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00960">yaze::editor::OverworldEditor::DrawOverworldSprites()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1343,7 +1344,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="entity_8cc_source.html#l00379">DrawSpriteTable()</a>, <a class="el" href="icons_8h_source.html#l00416">ICON_MD_CLOSE</a>, <a class="el" href="icons_8h_source.html#l00528">ICON_MD_DELETE</a>, <a class="el" href="icons_8h_source.html#l00605">ICON_MD_DONE</a>, <a class="el" href="sprite_8h_source.html#l00344">yaze::zelda3::Sprite::map_id()</a>, <a class="el" href="sprite_8h_source.html#l00354">yaze::zelda3::Sprite::name()</a>, <a class="el" href="sprite_8h_source.html#l00356">yaze::zelda3::Sprite::set_deleted()</a>, <a class="el" href="sprite_8h_source.html#l00339">yaze::zelda3::Sprite::set_id()</a>, and <a class="el" href="sprite_8cc_source.html#l00009">yaze::zelda3::Sprite::UpdateMapProperties()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00983">yaze::editor::OverworldEditor::DrawOverworldSprites()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00960">yaze::editor::OverworldEditor::DrawOverworldSprites()</a>.</p>
 
 </div>
 </div>
@@ -1538,7 +1539,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="shortcut__manager_8h_source.html#l00058">yaze::editor::ShortcutManager::GetShortcuts()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00256">yaze::editor::EditorManager::Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00288">yaze::editor::EditorManager::Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1697,7 +1698,7 @@ Here is the call graph for this function:</div>
 </div><!-- fragment -->
 <p class="definition">Definition at line <a class="el" href="editor_8h_source.html#l00042">42</a> of file <a class="el" href="editor_8h_source.html">editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00050">yaze::editor::anonymous_namespace{editor_manager.cc}::GetEditorName()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00049">yaze::editor::anonymous_namespace{editor_manager.cc}::GetEditorName()</a>.</p>
 
 </div>
 </div>
@@ -1937,7 +1938,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__data_8h_source.html#l00016">16</a> of file <a class="el" href="message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00192">ParseSingleMessage()</a>, <a class="el" href="message__editor_8cc_source.html#l00317">yaze::editor::MessageEditor::ReadAllTextData()</a>, <a class="el" href="message__editor_8cc_source.html#l00227">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>, and <a class="el" href="message__editor_8cc_source.html#l00564">yaze::editor::MessageEditor::Save()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00192">ParseSingleMessage()</a>, <a class="el" href="message__editor_8cc_source.html#l00316">yaze::editor::MessageEditor::ReadAllTextData()</a>, <a class="el" href="message__editor_8cc_source.html#l00226">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>, and <a class="el" href="message__editor_8cc_source.html#l00563">yaze::editor::MessageEditor::Save()</a>.</p>
 
 </div>
 </div>
@@ -1955,7 +1956,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__data_8h_source.html#l00017">17</a> of file <a class="el" href="message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00317">yaze::editor::MessageEditor::ReadAllTextData()</a>, and <a class="el" href="message__editor_8cc_source.html#l00227">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00316">yaze::editor::MessageEditor::ReadAllTextData()</a>, and <a class="el" href="message__editor_8cc_source.html#l00226">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>.</p>
 
 </div>
 </div>
@@ -1973,7 +1974,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__data_8h_source.html#l00018">18</a> of file <a class="el" href="message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__data_8h_source.html#l00053">yaze::editor::DictionaryEntry::DictionaryEntry()</a>, <a class="el" href="message__data_8cc_source.html#l00048">FindMatchingElement()</a>, <a class="el" href="message__data_8cc_source.html#l00102">ParseMessageToData()</a>, <a class="el" href="message__data_8cc_source.html#l00192">ParseSingleMessage()</a>, <a class="el" href="message__data_8cc_source.html#l00073">ParseTextDataByte()</a>, <a class="el" href="message__editor_8cc_source.html#l00317">yaze::editor::MessageEditor::ReadAllTextData()</a>, and <a class="el" href="message__editor_8cc_source.html#l00227">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__data_8h_source.html#l00053">yaze::editor::DictionaryEntry::DictionaryEntry()</a>, <a class="el" href="message__data_8cc_source.html#l00048">FindMatchingElement()</a>, <a class="el" href="message__data_8cc_source.html#l00102">ParseMessageToData()</a>, <a class="el" href="message__data_8cc_source.html#l00192">ParseSingleMessage()</a>, <a class="el" href="message__data_8cc_source.html#l00073">ParseTextDataByte()</a>, <a class="el" href="message__editor_8cc_source.html#l00316">yaze::editor::MessageEditor::ReadAllTextData()</a>, and <a class="el" href="message__editor_8cc_source.html#l00226">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>.</p>
 
 </div>
 </div>
@@ -1999,7 +2000,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__data_8h_source.html#l00019">19</a> of file <a class="el" href="message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00455">yaze::editor::MessageEditor::DrawCharacterToPreview()</a>, <a class="el" href="message__data_8cc_source.html#l00021">FindDictionaryEntry()</a>, <a class="el" href="message__data_8cc_source.html#l00048">FindMatchingElement()</a>, and <a class="el" href="message__data_8cc_source.html#l00272">ParseMessageData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00454">yaze::editor::MessageEditor::DrawCharacterToPreview()</a>, <a class="el" href="message__data_8cc_source.html#l00021">FindDictionaryEntry()</a>, <a class="el" href="message__data_8cc_source.html#l00048">FindMatchingElement()</a>, and <a class="el" href="message__data_8cc_source.html#l00272">ParseMessageData()</a>.</p>
 
 </div>
 </div>
@@ -2025,7 +2026,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__data_8h_source.html#l00074">74</a> of file <a class="el" href="message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00149">BuildDictionaryEntries()</a>, <a class="el" href="message__editor_8cc_source.html#l00608">yaze::editor::MessageEditor::DisplayTextOverflowError()</a>, <a class="el" href="message__editor_8cc_source.html#l00317">yaze::editor::MessageEditor::ReadAllTextData()</a>, <a class="el" href="message__editor_8cc_source.html#l00227">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>, and <a class="el" href="message__editor_8cc_source.html#l00564">yaze::editor::MessageEditor::Save()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00149">BuildDictionaryEntries()</a>, <a class="el" href="message__editor_8cc_source.html#l00607">yaze::editor::MessageEditor::DisplayTextOverflowError()</a>, <a class="el" href="message__editor_8cc_source.html#l00316">yaze::editor::MessageEditor::ReadAllTextData()</a>, <a class="el" href="message__editor_8cc_source.html#l00226">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>, and <a class="el" href="message__editor_8cc_source.html#l00563">yaze::editor::MessageEditor::Save()</a>.</p>
 
 </div>
 </div>
@@ -2051,7 +2052,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__data_8h_source.html#l00075">75</a> of file <a class="el" href="message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00608">yaze::editor::MessageEditor::DisplayTextOverflowError()</a>, and <a class="el" href="message__editor_8cc_source.html#l00564">yaze::editor::MessageEditor::Save()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00607">yaze::editor::MessageEditor::DisplayTextOverflowError()</a>, and <a class="el" href="message__editor_8cc_source.html#l00563">yaze::editor::MessageEditor::Save()</a>.</p>
 
 </div>
 </div>
@@ -2103,7 +2104,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__data_8h_source.html#l00077">77</a> of file <a class="el" href="message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00149">BuildDictionaryEntries()</a>, <a class="el" href="message__data_8cc_source.html#l00192">ParseSingleMessage()</a>, <a class="el" href="message__editor_8cc_source.html#l00317">yaze::editor::MessageEditor::ReadAllTextData()</a>, and <a class="el" href="message__editor_8cc_source.html#l00227">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00149">BuildDictionaryEntries()</a>, <a class="el" href="message__data_8cc_source.html#l00192">ParseSingleMessage()</a>, <a class="el" href="message__editor_8cc_source.html#l00316">yaze::editor::MessageEditor::ReadAllTextData()</a>, and <a class="el" href="message__editor_8cc_source.html#l00226">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>.</p>
 
 </div>
 </div>
@@ -2129,7 +2130,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__data_8h_source.html#l00078">78</a> of file <a class="el" href="message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00455">yaze::editor::MessageEditor::DrawCharacterToPreview()</a>, and <a class="el" href="message__data_8cc_source.html#l00272">ParseMessageData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00454">yaze::editor::MessageEditor::DrawCharacterToPreview()</a>, and <a class="el" href="message__data_8cc_source.html#l00272">ParseMessageData()</a>.</p>
 
 </div>
 </div>
@@ -2155,7 +2156,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__data_8h_source.html#l00079">79</a> of file <a class="el" href="message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00455">yaze::editor::MessageEditor::DrawCharacterToPreview()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00454">yaze::editor::MessageEditor::DrawCharacterToPreview()</a>.</p>
 
 </div>
 </div>
@@ -2181,7 +2182,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__data_8h_source.html#l00080">80</a> of file <a class="el" href="message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00455">yaze::editor::MessageEditor::DrawCharacterToPreview()</a>, and <a class="el" href="message__data_8cc_source.html#l00272">ParseMessageData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00454">yaze::editor::MessageEditor::DrawCharacterToPreview()</a>, and <a class="el" href="message__data_8cc_source.html#l00272">ParseMessageData()</a>.</p>
 
 </div>
 </div>
@@ -2207,7 +2208,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__data_8h_source.html#l00081">81</a> of file <a class="el" href="message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00455">yaze::editor::MessageEditor::DrawCharacterToPreview()</a>, and <a class="el" href="message__data_8cc_source.html#l00272">ParseMessageData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00454">yaze::editor::MessageEditor::DrawCharacterToPreview()</a>, and <a class="el" href="message__data_8cc_source.html#l00272">ParseMessageData()</a>.</p>
 
 </div>
 </div>
@@ -2254,35 +2255,7 @@ Here is the call graph for this function:</div>
 </div><!-- fragment -->
 <p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00040">40</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00123">yaze::editor::MessageEditor::DrawMessageList()</a>.</p>
-
-</div>
-</div>
-<a id="ad83db9d9e78950fa25e06906bbf87e9f" name="ad83db9d9e78950fa25e06906bbf87e9f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad83db9d9e78950fa25e06906bbf87e9f">&#9670;&#160;</a></span>kDictTableFlags</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">ImGuiTableFlags yaze::editor::kDictTableFlags</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel constexpr">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">    ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable</div>
-</div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00044">44</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00207">yaze::editor::MessageEditor::DrawDictionary()</a>, and <a class="el" href="message__editor_8cc_source.html#l00090">yaze::editor::MessageEditor::Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00206">yaze::editor::MessageEditor::DrawDictionary()</a>, <a class="el" href="message__editor_8cc_source.html#l00120">yaze::editor::MessageEditor::DrawMessageList()</a>, and <a class="el" href="message__editor_8cc_source.html#l00087">yaze::editor::MessageEditor::Update()</a>.</p>
 
 </div>
 </div>
@@ -2308,7 +2281,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00018">18</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00047">yaze::editor::MessageEditor::Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00044">yaze::editor::MessageEditor::Initialize()</a>.</p>
 
 </div>
 </div>
@@ -2334,7 +2307,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00019">19</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00608">yaze::editor::MessageEditor::DisplayTextOverflowError()</a>, <a class="el" href="message__editor_8cc_source.html#l00317">yaze::editor::MessageEditor::ReadAllTextData()</a>, <a class="el" href="message__editor_8cc_source.html#l00227">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>, and <a class="el" href="message__editor_8cc_source.html#l00564">yaze::editor::MessageEditor::Save()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00607">yaze::editor::MessageEditor::DisplayTextOverflowError()</a>, <a class="el" href="message__editor_8cc_source.html#l00316">yaze::editor::MessageEditor::ReadAllTextData()</a>, <a class="el" href="message__editor_8cc_source.html#l00226">yaze::editor::MessageEditor::ReadAllTextDataV2()</a>, and <a class="el" href="message__editor_8cc_source.html#l00563">yaze::editor::MessageEditor::Save()</a>.</p>
 
 </div>
 </div>
@@ -2360,7 +2333,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00020">20</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00608">yaze::editor::MessageEditor::DisplayTextOverflowError()</a>, and <a class="el" href="message__editor_8cc_source.html#l00564">yaze::editor::MessageEditor::Save()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00607">yaze::editor::MessageEditor::DisplayTextOverflowError()</a>, and <a class="el" href="message__editor_8cc_source.html#l00563">yaze::editor::MessageEditor::Save()</a>.</p>
 
 </div>
 </div>
@@ -2386,7 +2359,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00021">21</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00047">yaze::editor::MessageEditor::Initialize()</a>, and <a class="el" href="message__editor_8cc_source.html#l00564">yaze::editor::MessageEditor::Save()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00044">yaze::editor::MessageEditor::Initialize()</a>, and <a class="el" href="message__editor_8cc_source.html#l00563">yaze::editor::MessageEditor::Save()</a>.</p>
 
 </div>
 </div>
@@ -2436,7 +2409,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00023">23</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00047">yaze::editor::MessageEditor::Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00044">yaze::editor::MessageEditor::Initialize()</a>.</p>
 
 </div>
 </div>
@@ -2462,7 +2435,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00024">24</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00047">yaze::editor::MessageEditor::Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00044">yaze::editor::MessageEditor::Initialize()</a>.</p>
 
 </div>
 </div>
@@ -2488,7 +2461,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00025">25</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00047">yaze::editor::MessageEditor::Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00044">yaze::editor::MessageEditor::Initialize()</a>.</p>
 
 </div>
 </div>
@@ -2514,7 +2487,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00026">26</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00047">yaze::editor::MessageEditor::Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00044">yaze::editor::MessageEditor::Initialize()</a>.</p>
 
 </div>
 </div>
@@ -2540,7 +2513,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00027">27</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00514">yaze::editor::MessageEditor::DrawMessagePreview()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00513">yaze::editor::MessageEditor::DrawMessagePreview()</a>.</p>
 
 </div>
 </div>
@@ -2566,7 +2539,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00029">29</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00047">yaze::editor::MessageEditor::Initialize()</a>, and <a class="el" href="message__editor_8cc_source.html#l00564">yaze::editor::MessageEditor::Save()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00044">yaze::editor::MessageEditor::Initialize()</a>, and <a class="el" href="message__editor_8cc_source.html#l00563">yaze::editor::MessageEditor::Save()</a>.</p>
 
 </div>
 </div>
@@ -2592,7 +2565,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00030">30</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00564">yaze::editor::MessageEditor::Save()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00563">yaze::editor::MessageEditor::Save()</a>.</p>
 
 </div>
 </div>
@@ -2681,7 +2654,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="entity_8cc_source.html#l00019">19</a> of file <a class="el" href="entity_8cc_source.html">entity.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00348">yaze::editor::OverworldEditor::DrawCustomOverworldMapSettings()</a>, <a class="el" href="entity_8cc_source.html#l00130">DrawOverworldEntrancePopup()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00278">yaze::editor::OverworldEditor::DrawOverworldMapSettings()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00325">yaze::editor::OverworldEditor::DrawCustomOverworldMapSettings()</a>, <a class="el" href="entity_8cc_source.html#l00130">DrawOverworldEntrancePopup()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00255">yaze::editor::OverworldEditor::DrawOverworldMapSettings()</a>.</p>
 
 </div>
 </div>
@@ -2705,9 +2678,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00060">60</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00037">37</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00503">yaze::editor::OverworldEditor::CheckForOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00983">yaze::editor::OverworldEditor::DrawOverworldSprites()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01055">yaze::editor::OverworldEditor::LoadGraphics()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00477">yaze::editor::OverworldEditor::RenderUpdatedMapBitmap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00480">yaze::editor::OverworldEditor::CheckForOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00960">yaze::editor::OverworldEditor::DrawOverworldSprites()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01032">yaze::editor::OverworldEditor::LoadGraphics()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00454">yaze::editor::OverworldEditor::RenderUpdatedMapBitmap()</a>.</p>
 
 </div>
 </div>
@@ -2734,9 +2707,9 @@ Here is the call graph for this function:</div>
 <div class="line">    <span class="stringliteral">&quot;##WorldId&quot;</span>, <span class="stringliteral">&quot;##GfxId&quot;</span>,  <span class="stringliteral">&quot;##PalId&quot;</span>,  <span class="stringliteral">&quot;##SprGfxId&quot;</span>,</div>
 <div class="line">    <span class="stringliteral">&quot;##5thCol&quot;</span>,  <span class="stringliteral">&quot;##6thCol&quot;</span>, <span class="stringliteral">&quot;##7thCol&quot;</span>, <span class="stringliteral">&quot;##8thCol&quot;</span>}</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00274">274</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__editor_8cc_source.html#l00251">251</a> of file <a class="el" href="overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00348">yaze::editor::OverworldEditor::DrawCustomOverworldMapSettings()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00278">yaze::editor::OverworldEditor::DrawOverworldMapSettings()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00325">yaze::editor::OverworldEditor::DrawCustomOverworldMapSettings()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00255">yaze::editor::OverworldEditor::DrawOverworldMapSettings()</a>.</p>
 
 </div>
 </div>
@@ -2884,7 +2857,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00026">26</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00592">yaze::editor::OverworldEditor::CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00762">yaze::editor::OverworldEditor::DrawAreaGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00440">yaze::editor::OverworldEditor::DrawOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00423">yaze::editor::OverworldEditor::DrawOverworldMaps()</a>, <a class="el" href="#a090fa407d64c5928169ffda52eaa3829">kOverworldCanvasSize()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01055">yaze::editor::OverworldEditor::LoadGraphics()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00477">yaze::editor::OverworldEditor::RenderUpdatedMapBitmap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00569">yaze::editor::OverworldEditor::CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00739">yaze::editor::OverworldEditor::DrawAreaGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00417">yaze::editor::OverworldEditor::DrawOverworldEdits()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00400">yaze::editor::OverworldEditor::DrawOverworldMaps()</a>, <a class="el" href="#a090fa407d64c5928169ffda52eaa3829">kOverworldCanvasSize()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01032">yaze::editor::OverworldEditor::LoadGraphics()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00454">yaze::editor::OverworldEditor::RenderUpdatedMapBitmap()</a>.</p>
 
 </div>
 </div>
@@ -2912,7 +2885,7 @@ Here is the call graph for this function:</div>
 </div><!-- fragment -->
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00034">34</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00348">yaze::editor::OverworldEditor::DrawCustomOverworldMapSettings()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00278">yaze::editor::OverworldEditor::DrawOverworldMapSettings()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00325">yaze::editor::OverworldEditor::DrawCustomOverworldMapSettings()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00255">yaze::editor::OverworldEditor::DrawOverworldMapSettings()</a>.</p>
 
 </div>
 </div>
@@ -2966,7 +2939,7 @@ Here is the call graph for this function:</div>
 </div><!-- fragment -->
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00037">37</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01390">yaze::editor::OverworldEditor::UpdateUsageStats()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01367">yaze::editor::OverworldEditor::UpdateUsageStats()</a>.</p>
 
 </div>
 </div>
@@ -2994,7 +2967,7 @@ Here is the call graph for this function:</div>
 </div><!-- fragment -->
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00050">50</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00348">yaze::editor::OverworldEditor::DrawCustomOverworldMapSettings()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00278">yaze::editor::OverworldEditor::DrawOverworldMapSettings()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00325">yaze::editor::OverworldEditor::DrawCustomOverworldMapSettings()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00255">yaze::editor::OverworldEditor::DrawOverworldMapSettings()</a>.</p>
 
 </div>
 </div>
@@ -3020,7 +2993,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00053">53</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00348">yaze::editor::OverworldEditor::DrawCustomOverworldMapSettings()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00278">yaze::editor::OverworldEditor::DrawOverworldMapSettings()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00325">yaze::editor::OverworldEditor::DrawCustomOverworldMapSettings()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00255">yaze::editor::OverworldEditor::DrawOverworldMapSettings()</a>.</p>
 
 </div>
 </div>
@@ -3046,7 +3019,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00055">55</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00792">yaze::editor::OverworldEditor::DrawTileSelector()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00769">yaze::editor::OverworldEditor::DrawTileSelector()</a>.</p>
 
 </div>
 </div>
@@ -3096,7 +3069,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__editor_8h_source.html#l00057">57</a> of file <a class="el" href="overworld__editor_8h_source.html">overworld_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00348">yaze::editor::OverworldEditor::DrawCustomOverworldMapSettings()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00278">yaze::editor::OverworldEditor::DrawOverworldMapSettings()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00325">yaze::editor::OverworldEditor::DrawCustomOverworldMapSettings()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00255">yaze::editor::OverworldEditor::DrawOverworldMapSettings()</a>.</p>
 
 </div>
 </div>

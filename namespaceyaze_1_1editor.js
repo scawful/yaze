@@ -10,7 +10,8 @@ var namespaceyaze_1_1editor =
     [ "anonymous_namespace{editor_manager.cc}", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html", [
       [ "BeginCentered", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#a31df2babe81739c8cc81beeb0b148066", null ],
       [ "IsEditorActive", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#aedd76ea3011012c49dbd8e07e848f046", null ],
-      [ "GetEditorName", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#a04a2feb18db36480026c96f4c432701d", null ]
+      [ "GetEditorName", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#a04a2feb18db36480026c96f4c432701d", null ],
+      [ "DrawRomSelector", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#ae307e16a4a540c2f505e0ad42e86714d", null ]
     ] ],
     [ "anonymous_namespace{gfx_group_editor.cc}", "namespaceyaze_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html", [
       [ "DrawPaletteFromPaletteGroup", "namespaceyaze_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html#ab034577d86103210b34c4e4164d82f0c", null ]
@@ -31,6 +32,7 @@ var namespaceyaze_1_1editor =
     [ "Editor", "classyaze_1_1editor_1_1Editor.html", "classyaze_1_1editor_1_1Editor" ],
     [ "EditorContext", "structyaze_1_1editor_1_1EditorContext.html", "structyaze_1_1editor_1_1EditorContext" ],
     [ "EditorManager", "classyaze_1_1editor_1_1EditorManager.html", "classyaze_1_1editor_1_1EditorManager" ],
+    [ "EditorSet", "classyaze_1_1editor_1_1EditorSet.html", "classyaze_1_1editor_1_1EditorSet" ],
     [ "ExampleAppPropertyEditor", "structyaze_1_1editor_1_1ExampleAppPropertyEditor.html", "structyaze_1_1editor_1_1ExampleAppPropertyEditor" ],
     [ "ExampleMemberInfo", "structyaze_1_1editor_1_1ExampleMemberInfo.html", "structyaze_1_1editor_1_1ExampleMemberInfo" ],
     [ "ExampleTreeNode", "structyaze_1_1editor_1_1ExampleTreeNode.html", "structyaze_1_1editor_1_1ExampleTreeNode" ],
@@ -137,7 +139,6 @@ var namespaceyaze_1_1editor =
     [ "kLine3", "namespaceyaze_1_1editor.html#af1744a66e1114136092a2f6527d4af6a", null ],
     [ "CHEESE", "namespaceyaze_1_1editor.html#a072e6c59403d75837f1ad24ffd787184", null ],
     [ "kMessageTableFlags", "namespaceyaze_1_1editor.html#abbdf1fbff1b3b401e9a764c5da0103d1", null ],
-    [ "kDictTableFlags", "namespaceyaze_1_1editor.html#ad83db9d9e78950fa25e06906bbf87e9f", null ],
     [ "kGfxFont", "namespaceyaze_1_1editor.html#a7125035a631647e03e5efc55b88c4e77", null ],
     [ "kTextData2", "namespaceyaze_1_1editor.html#a59d4c715a567f35b7d9423174b899067", null ],
     [ "kTextData2End", "namespaceyaze_1_1editor.html#aa1be5ac0e95732fd100052c1e380608f", null ],

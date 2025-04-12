@@ -5,17 +5,19 @@ var classyaze_1_1editor_1_1GraphicsEditor =
       [ "kPencil", "classyaze_1_1editor_1_1GraphicsEditor.html#ad451d580c9c4ebb48f636b4c6d40c1efa0833de46bd19decd0a9ce1541b6181ab", null ],
       [ "kFill", "classyaze_1_1editor_1_1GraphicsEditor.html#ad451d580c9c4ebb48f636b4c6d40c1efae22acaa6e4e9a5118b4cf5b81f8fbe1e", null ]
     ] ],
-    [ "GraphicsEditor", "classyaze_1_1editor_1_1GraphicsEditor.html#a962c3dd0edd54427dc0fc089c53cbe6c", null ],
+    [ "GraphicsEditor", "classyaze_1_1editor_1_1GraphicsEditor.html#a19f9ac18b70c9cd5c7fe218652176a9a", null ],
     [ "Initialize", "classyaze_1_1editor_1_1GraphicsEditor.html#a4ff651cfbe56f7801b81f49bfbb1f3a2", null ],
     [ "Load", "classyaze_1_1editor_1_1GraphicsEditor.html#a440f6028d86e3bcc7d02ab8a93420cdf", null ],
+    [ "Save", "classyaze_1_1editor_1_1GraphicsEditor.html#a1820199f3fc06cf01e8cf608e60ab460", null ],
     [ "Update", "classyaze_1_1editor_1_1GraphicsEditor.html#a98e0b834d9e207f1de749b2d6aa72ae8", null ],
-    [ "Undo", "classyaze_1_1editor_1_1GraphicsEditor.html#a900d657b95201ae99e2f072162779cb0", null ],
-    [ "Redo", "classyaze_1_1editor_1_1GraphicsEditor.html#a77ce8009438d56cdb43f792bd11fb70a", null ],
     [ "Cut", "classyaze_1_1editor_1_1GraphicsEditor.html#a820ebf77cda15a3855d9502c63ffb09d", null ],
     [ "Copy", "classyaze_1_1editor_1_1GraphicsEditor.html#a5a25fae04d8f11e23a5bb392ddb0fc52", null ],
     [ "Paste", "classyaze_1_1editor_1_1GraphicsEditor.html#a8cfe302d85d5f0f260d6636ffb1f39aa", null ],
+    [ "Undo", "classyaze_1_1editor_1_1GraphicsEditor.html#a900d657b95201ae99e2f072162779cb0", null ],
+    [ "Redo", "classyaze_1_1editor_1_1GraphicsEditor.html#a77ce8009438d56cdb43f792bd11fb70a", null ],
     [ "Find", "classyaze_1_1editor_1_1GraphicsEditor.html#ab4f36209b7be085caa67ed5368523601", null ],
-    [ "Save", "classyaze_1_1editor_1_1GraphicsEditor.html#a1820199f3fc06cf01e8cf608e60ab460", null ],
+    [ "set_rom", "classyaze_1_1editor_1_1GraphicsEditor.html#ae8336c5018893ccb7fba18d2ac97e20f", null ],
+    [ "rom", "classyaze_1_1editor_1_1GraphicsEditor.html#abecc99781b8ac20e8d8aa04ed833a6e7", null ],
     [ "UpdateGfxEdit", "classyaze_1_1editor_1_1GraphicsEditor.html#a02020669ab4b81286b4949c756829771", null ],
     [ "UpdateGfxSheetList", "classyaze_1_1editor_1_1GraphicsEditor.html#a50dfe7911a1504dfc01de5d05771e4d3", null ],
     [ "UpdateGfxTabView", "classyaze_1_1editor_1_1GraphicsEditor.html#ae93cad6eb6670dd071fb47bf347a7fde", null ],
@@ -109,5 +111,6 @@ var classyaze_1_1editor_1_1GraphicsEditor =
     [ "graphics_bin_canvas_", "classyaze_1_1editor_1_1GraphicsEditor.html#af43d671e88e319d9a63aedeeb9d437c2", null ],
     [ "current_sheet_canvas_", "classyaze_1_1editor_1_1GraphicsEditor.html#ab4411afc3c3325441105fc48b4e069fa", null ],
     [ "link_canvas_", "classyaze_1_1editor_1_1GraphicsEditor.html#a768b578ee23059e813f0c54d1829c01d", null ],
-    [ "status_", "classyaze_1_1editor_1_1GraphicsEditor.html#af92f09e87b0331386b4257572993ed79", null ]
+    [ "status_", "classyaze_1_1editor_1_1GraphicsEditor.html#af92f09e87b0331386b4257572993ed79", null ],
+    [ "rom_", "classyaze_1_1editor_1_1GraphicsEditor.html#a9b72c20e8654d44e7d25b6c2d841d5c0", null ]
 ];

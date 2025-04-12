@@ -1,7 +1,7 @@
-<map id="test/integration/test_editor.h" name="test/integration/test_editor.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="80,5,213,46"/>
-<area shape="rect" id="Node000002" href="$test__editor_8cc.html" title=" " alt="" coords="5,94,139,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,60,91,95,87,92,118,56"/>
-<area shape="rect" id="Node000003" href="$yaze__test_8cc.html" title=" " alt="" coords="163,102,282,127"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="176,56,214,99,210,103,172,60"/>
+<map id="test/test_editor.h" name="test/test_editor.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="82,5,200,31"/>
+<area shape="rect" id="Node000002" href="$test__editor_8cc.html" title=" " alt="" coords="5,79,131,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,44,82,80,79,77,116,40"/>
+<area shape="rect" id="Node000003" href="$yaze__test_8cc.html" title=" " alt="" coords="155,79,274,105"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="166,40,204,77,200,80,163,44"/>
 </map>

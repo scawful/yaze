@@ -366,8 +366,8 @@ Functions</h2></td></tr>
 <tr class="memitem:a197e8a71bbb281224f38410a3025804d" id="r_a197e8a71bbb281224f38410a3025804d"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a197e8a71bbb281224f38410a3025804d">ldle16b_i</a> (uint8_t const *const p_arr, size_t const p_index)</td></tr>
 <tr class="memdesc:a197e8a71bbb281224f38410a3025804d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load little endian halfword (16-bit) dereferenced from an arrays of bytes. This version provides an index that will be multiplied by 2 and added to the base address.  <br /></td></tr>
 <tr class="separator:a197e8a71bbb281224f38410a3025804d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0afd16e24367ef62bfa4a2e4c7ad1554" id="r_a0afd16e24367ef62bfa4a2e4c7ad1554"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html">OverworldEntranceTileTypes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0afd16e24367ef62bfa4a2e4c7ad1554">LoadEntranceTileTypes</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
-<tr class="separator:a0afd16e24367ef62bfa4a2e4c7ad1554"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abed829d1617688b38b43d3bb71b87e95" id="r_abed829d1617688b38b43d3bb71b87e95"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html">OverworldEntranceTileTypes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abed829d1617688b38b43d3bb71b87e95">LoadEntranceTileTypes</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> *rom)</td></tr>
+<tr class="separator:abed829d1617688b38b43d3bb71b87e95"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4159862346f04f2e18e6474c8d44df17" id="r_a4159862346f04f2e18e6474c8d44df17"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4159862346f04f2e18e6474c8d44df17">LoadDungeonMapGfxFromBinary</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;rom, std::array&lt; <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>, 4 &gt; &amp;sheets, <a class="el" href="classyaze_1_1gfx_1_1Tilesheet.html">gfx::Tilesheet</a> &amp;tile16_sheet, std::vector&lt; uint8_t &gt; &amp;gfx_bin_data)</td></tr>
 <tr class="separator:a4159862346f04f2e18e6474c8d44df17"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3f2f6ec0638746ee96b507ea0295625c" id="r_a3f2f6ec0638746ee96b507ea0295625c"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3f2f6ec0638746ee96b507ea0295625c">LoadDungeonMapTile16</a> (const std::vector&lt; uint8_t &gt; &amp;gfx_data, bool bin_mode)</td></tr>
@@ -1373,8 +1373,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a0afd16e24367ef62bfa4a2e4c7ad1554" name="a0afd16e24367ef62bfa4a2e4c7ad1554"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0afd16e24367ef62bfa4a2e4c7ad1554">&#9670;&#160;</a></span>LoadEntranceTileTypes()</h2>
+<a id="abed829d1617688b38b43d3bb71b87e95" name="abed829d1617688b38b43d3bb71b87e95"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abed829d1617688b38b43d3bb71b87e95">&#9670;&#160;</a></span>LoadEntranceTileTypes()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1385,7 +1385,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">absl::StatusOr&lt; <a class="el" href="structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html">OverworldEntranceTileTypes</a> &gt; yaze::zelda3::LoadEntranceTileTypes </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>rom</em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1Rom.html">Rom</a> *</td>          <td class="paramname"><span class="paramname"><em>rom</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -1400,12 +1400,12 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="macro_8h_source.html#l00059">ASSIGN_OR_RETURN</a>, <a class="el" href="overworld__entrance_8h_source.html#l00096">yaze::zelda3::OverworldEntranceTileTypes::high</a>, <a class="el" href="overworld__entrance_8h_source.html#l00091">kEntranceTileTypePtrHigh</a>, <a class="el" href="overworld__entrance_8h_source.html#l00090">kEntranceTileTypePtrLow</a>, <a class="el" href="overworld__entrance_8h_source.html#l00092">kNumEntranceTileTypes</a>, <a class="el" href="overworld__entrance_8h_source.html#l00095">yaze::zelda3::OverworldEntranceTileTypes::low</a>, and <a class="el" href="rom_8cc_source.html#l00241">yaze::Rom::ReadWord()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00091">yaze::editor::OverworldEditor::Load()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00068">yaze::editor::OverworldEditor::Load()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1zelda3_a0afd16e24367ef62bfa4a2e4c7ad1554_cgraph.png" border="0" usemap="#anamespaceyaze_1_1zelda3_a0afd16e24367ef62bfa4a2e4c7ad1554_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1zelda3_a0afd16e24367ef62bfa4a2e4c7ad1554_cgraph" id="anamespaceyaze_1_1zelda3_a0afd16e24367ef62bfa4a2e4c7ad1554_cgraph">
+<div class="center"><img src="namespaceyaze_1_1zelda3_abed829d1617688b38b43d3bb71b87e95_cgraph.png" border="0" usemap="#anamespaceyaze_1_1zelda3_abed829d1617688b38b43d3bb71b87e95_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1zelda3_abed829d1617688b38b43d3bb71b87e95_cgraph" id="anamespaceyaze_1_1zelda3_abed829d1617688b38b43d3bb71b87e95_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,182,46"/>
 <area shape="rect" href="classyaze_1_1Rom.html#a6bd8ce3b192c32b2ed6c58f7b154787e" title=" " alt="" coords="230,13,376,38"/>
 <area shape="poly" title=" " alt="" coords="182,23,215,23,215,28,182,28"/>
@@ -1495,7 +1495,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="common_8h_source.html#l00048">48</a> of file <a class="el" href="common_8h_source.html">common.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="dungeon__editor_8cc_source.html#l00345">yaze::editor::DungeonEditor::DrawEntranceSelector()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01390">yaze::editor::OverworldEditor::UpdateUsageStats()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="dungeon__editor_8cc_source.html#l00345">yaze::editor::DungeonEditor::DrawEntranceSelector()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01367">yaze::editor::OverworldEditor::UpdateUsageStats()</a>.</p>
 
 </div>
 </div>
@@ -4475,7 +4475,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00030">30</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00034">yaze::zelda3::OverworldMap::BuildMap()</a>, <a class="el" href="overworld__map_8cc_source.html#l00067">yaze::zelda3::OverworldMap::LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00593">yaze::zelda3::OverworldMap::LoadPalette()</a>, and <a class="el" href="overworld_8cc_source.html#l01545">yaze::zelda3::Overworld::SaveMapProperties()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00034">yaze::zelda3::OverworldMap::BuildMap()</a>, <a class="el" href="overworld__map_8cc_source.html#l00067">yaze::zelda3::OverworldMap::LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00594">yaze::zelda3::OverworldMap::LoadPalette()</a>, and <a class="el" href="overworld_8cc_source.html#l01538">yaze::zelda3::Overworld::SaveMapProperties()</a>.</p>
 
 </div>
 </div>
@@ -4501,7 +4501,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00031">31</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00067">yaze::zelda3::OverworldMap::LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00593">yaze::zelda3::OverworldMap::LoadPalette()</a>, and <a class="el" href="overworld_8cc_source.html#l01545">yaze::zelda3::Overworld::SaveMapProperties()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00067">yaze::zelda3::OverworldMap::LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00594">yaze::zelda3::OverworldMap::LoadPalette()</a>, and <a class="el" href="overworld_8cc_source.html#l01538">yaze::zelda3::Overworld::SaveMapProperties()</a>.</p>
 
 </div>
 </div>
@@ -4527,7 +4527,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00032">32</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00593">yaze::zelda3::OverworldMap::LoadPalette()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00594">yaze::zelda3::OverworldMap::LoadPalette()</a>.</p>
 
 </div>
 </div>
@@ -4553,7 +4553,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00033">33</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00067">yaze::zelda3::OverworldMap::LoadAreaInfo()</a>, and <a class="el" href="overworld_8cc_source.html#l01545">yaze::zelda3::Overworld::SaveMapProperties()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00067">yaze::zelda3::OverworldMap::LoadAreaInfo()</a>, and <a class="el" href="overworld_8cc_source.html#l01538">yaze::zelda3::Overworld::SaveMapProperties()</a>.</p>
 
 </div>
 </div>
@@ -4631,7 +4631,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00036">36</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00460">yaze::zelda3::Overworld::LoadSprites()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00457">yaze::zelda3::Overworld::LoadSprites()</a>.</p>
 
 </div>
 </div>
@@ -4657,7 +4657,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00037">37</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00460">yaze::zelda3::Overworld::LoadSprites()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00457">yaze::zelda3::Overworld::LoadSprites()</a>.</p>
 
 </div>
 </div>
@@ -4683,7 +4683,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00038">38</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00460">yaze::zelda3::Overworld::LoadSprites()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00457">yaze::zelda3::Overworld::LoadSprites()</a>.</p>
 
 </div>
 </div>
@@ -4709,7 +4709,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00040">40</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00034">yaze::zelda3::OverworldMap::BuildMap()</a>, <a class="el" href="overworld__map_8cc_source.html#l00067">yaze::zelda3::OverworldMap::LoadAreaInfo()</a>, and <a class="el" href="overworld_8cc_source.html#l01545">yaze::zelda3::Overworld::SaveMapProperties()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00034">yaze::zelda3::OverworldMap::BuildMap()</a>, <a class="el" href="overworld__map_8cc_source.html#l00067">yaze::zelda3::OverworldMap::LoadAreaInfo()</a>, and <a class="el" href="overworld_8cc_source.html#l01538">yaze::zelda3::Overworld::SaveMapProperties()</a>.</p>
 
 </div>
 </div>
@@ -4939,7 +4939,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00052">52</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00067">yaze::zelda3::OverworldMap::LoadAreaInfo()</a>, and <a class="el" href="overworld_8cc_source.html#l00668">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00067">yaze::zelda3::OverworldMap::LoadAreaInfo()</a>, and <a class="el" href="overworld_8cc_source.html#l00665">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
 
 </div>
 </div>
@@ -4965,7 +4965,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00055">55</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00668">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00665">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
 
 </div>
 </div>
@@ -4991,7 +4991,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00063">63</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00668">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00665">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
 
 </div>
 </div>
@@ -5017,7 +5017,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00064">64</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00668">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00665">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
 
 </div>
 </div>
@@ -5043,7 +5043,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00065">65</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00668">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00665">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
 
 </div>
 </div>
@@ -5069,7 +5069,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00066">66</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00668">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00665">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
 
 </div>
 </div>
@@ -5095,7 +5095,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00067">67</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00668">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00665">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
 
 </div>
 </div>
@@ -5121,7 +5121,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00069">69</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00668">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00665">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
 
 </div>
 </div>
@@ -5147,7 +5147,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00070">70</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00668">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00665">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
 
 </div>
 </div>
@@ -5173,7 +5173,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00071">71</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00668">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00665">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
 
 </div>
 </div>
@@ -5199,7 +5199,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00072">72</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00668">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00665">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
 
 </div>
 </div>
@@ -5225,7 +5225,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00074">74</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00530">yaze::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00527">yaze::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
 
 </div>
 </div>
@@ -5251,7 +5251,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00076">76</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00668">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00665">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
 
 </div>
 </div>
@@ -5277,7 +5277,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00077">77</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00668">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00665">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
 
 </div>
 </div>
@@ -5351,7 +5351,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00082">82</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00161">yaze::zelda3::Overworld::AssembleMap16Tiles()</a>, and <a class="el" href="overworld_8cc_source.html#l01272">yaze::zelda3::Overworld::SaveMap16Expanded()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00161">yaze::zelda3::Overworld::AssembleMap16Tiles()</a>, and <a class="el" href="overworld_8cc_source.html#l01269">yaze::zelda3::Overworld::SaveMap16Expanded()</a>.</p>
 
 </div>
 </div>
@@ -5377,7 +5377,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00083">83</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00108">yaze::zelda3::Overworld::AssembleMap32Tiles()</a>, and <a class="el" href="overworld_8cc_source.html#l01095">yaze::zelda3::Overworld::SaveMap32Expanded()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00108">yaze::zelda3::Overworld::AssembleMap32Tiles()</a>, and <a class="el" href="overworld_8cc_source.html#l01092">yaze::zelda3::Overworld::SaveMap32Expanded()</a>.</p>
 
 </div>
 </div>
@@ -5403,7 +5403,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00084">84</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00108">yaze::zelda3::Overworld::AssembleMap32Tiles()</a>, and <a class="el" href="overworld_8cc_source.html#l01095">yaze::zelda3::Overworld::SaveMap32Expanded()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00108">yaze::zelda3::Overworld::AssembleMap32Tiles()</a>, and <a class="el" href="overworld_8cc_source.html#l01092">yaze::zelda3::Overworld::SaveMap32Expanded()</a>.</p>
 
 </div>
 </div>
@@ -5429,7 +5429,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00085">85</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00108">yaze::zelda3::Overworld::AssembleMap32Tiles()</a>, and <a class="el" href="overworld_8cc_source.html#l01095">yaze::zelda3::Overworld::SaveMap32Expanded()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00108">yaze::zelda3::Overworld::AssembleMap32Tiles()</a>, and <a class="el" href="overworld_8cc_source.html#l01092">yaze::zelda3::Overworld::SaveMap32Expanded()</a>.</p>
 
 </div>
 </div>
@@ -5559,7 +5559,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00091">91</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00530">yaze::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00527">yaze::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
 
 </div>
 </div>
@@ -5585,7 +5585,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00092">92</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00530">yaze::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00527">yaze::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
 
 </div>
 </div>
@@ -5637,7 +5637,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00095">95</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00161">yaze::zelda3::Overworld::AssembleMap16Tiles()</a>, and <a class="el" href="overworld_8cc_source.html#l01350">yaze::zelda3::Overworld::SaveMap16Tiles()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00161">yaze::zelda3::Overworld::AssembleMap16Tiles()</a>, and <a class="el" href="overworld_8cc_source.html#l01347">yaze::zelda3::Overworld::SaveMap16Tiles()</a>.</p>
 
 </div>
 </div>
@@ -5663,7 +5663,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00096">96</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00221">yaze::zelda3::Overworld::DecompressAllMapTiles()</a>, <a class="el" href="overworld_8cc_source.html#l00989">yaze::zelda3::anonymous_namespace{overworld.cc}::GetAllTile16()</a>, <a class="el" href="overworld_8cc_source.html#l00020">yaze::zelda3::Overworld::Load()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01055">yaze::editor::OverworldEditor::LoadGraphics()</a>, <a class="el" href="overworld_8cc_source.html#l00271">yaze::zelda3::Overworld::LoadOverworldMaps()</a>, <a class="el" href="overworld__map_8cc_source.html#l00593">yaze::zelda3::OverworldMap::LoadPalette()</a>, and <a class="el" href="overworld_8cc_source.html#l00530">yaze::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00221">yaze::zelda3::Overworld::DecompressAllMapTiles()</a>, <a class="el" href="overworld_8cc_source.html#l00986">yaze::zelda3::anonymous_namespace{overworld.cc}::GetAllTile16()</a>, <a class="el" href="overworld_8cc_source.html#l00020">yaze::zelda3::Overworld::Load()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01032">yaze::editor::OverworldEditor::LoadGraphics()</a>, <a class="el" href="overworld_8cc_source.html#l00271">yaze::zelda3::Overworld::LoadOverworldMaps()</a>, <a class="el" href="overworld__map_8cc_source.html#l00594">yaze::zelda3::OverworldMap::LoadPalette()</a>, and <a class="el" href="overworld_8cc_source.html#l00527">yaze::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
 
 </div>
 </div>
@@ -5689,7 +5689,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00097">97</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00161">yaze::zelda3::Overworld::AssembleMap16Tiles()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01055">yaze::editor::OverworldEditor::LoadGraphics()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01233">yaze::editor::OverworldEditor::RefreshTile16Blockset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00161">yaze::zelda3::Overworld::AssembleMap16Tiles()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01032">yaze::editor::OverworldEditor::LoadGraphics()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l01210">yaze::editor::OverworldEditor::RefreshTile16Blockset()</a>.</p>
 
 </div>
 </div>
@@ -5739,7 +5739,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00099">99</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l01350">yaze::zelda3::Overworld::SaveMap16Tiles()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l01347">yaze::zelda3::Overworld::SaveMap16Tiles()</a>.</p>
 
 </div>
 </div>
@@ -5791,7 +5791,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00101">101</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l01035">yaze::zelda3::Overworld::CreateTile32Tilemap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l01032">yaze::zelda3::Overworld::CreateTile32Tilemap()</a>.</p>
 
 </div>
 </div>
@@ -5841,7 +5841,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00103">103</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l01035">yaze::zelda3::Overworld::CreateTile32Tilemap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l01032">yaze::zelda3::Overworld::CreateTile32Tilemap()</a>.</p>
 
 </div>
 </div>
@@ -5867,7 +5867,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld_8h_source.html#l00104">104</a> of file <a class="el" href="overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00668">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00665">yaze::zelda3::Overworld::SaveLargeMaps()</a>.</p>
 
 </div>
 </div>
@@ -5893,7 +5893,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__entrance_8h_source.html#l00013">13</a> of file <a class="el" href="overworld__entrance_8h_source.html">overworld_entrance.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l01371">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l01364">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
 
 </div>
 </div>
@@ -5919,7 +5919,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__entrance_8h_source.html#l00014">14</a> of file <a class="el" href="overworld__entrance_8h_source.html">overworld_entrance.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l01371">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l01364">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
 
 </div>
 </div>
@@ -5945,7 +5945,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__entrance_8h_source.html#l00016">16</a> of file <a class="el" href="overworld__entrance_8h_source.html">overworld_entrance.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00303">yaze::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="overworld_8cc_source.html#l01371">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00303">yaze::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="overworld_8cc_source.html#l01364">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
 
 </div>
 </div>
@@ -5971,7 +5971,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__entrance_8h_source.html#l00017">17</a> of file <a class="el" href="overworld__entrance_8h_source.html">overworld_entrance.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00303">yaze::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="overworld_8cc_source.html#l01371">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00303">yaze::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="overworld_8cc_source.html#l01364">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
 
 </div>
 </div>
@@ -5997,7 +5997,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__entrance_8h_source.html#l00018">18</a> of file <a class="el" href="overworld__entrance_8h_source.html">overworld_entrance.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00303">yaze::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="overworld_8cc_source.html#l01371">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00303">yaze::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="overworld_8cc_source.html#l01364">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
 
 </div>
 </div>
@@ -6023,7 +6023,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__entrance_8h_source.html#l00020">20</a> of file <a class="el" href="overworld__entrance_8h_source.html">overworld_entrance.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00303">yaze::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="overworld_8cc_source.html#l01371">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00303">yaze::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="overworld_8cc_source.html#l01364">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
 
 </div>
 </div>
@@ -6049,7 +6049,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__entrance_8h_source.html#l00021">21</a> of file <a class="el" href="overworld__entrance_8h_source.html">overworld_entrance.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00303">yaze::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="overworld_8cc_source.html#l01371">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00303">yaze::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="overworld_8cc_source.html#l01364">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
 
 </div>
 </div>
@@ -6075,7 +6075,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__entrance_8h_source.html#l00022">22</a> of file <a class="el" href="overworld__entrance_8h_source.html">overworld_entrance.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00303">yaze::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="overworld_8cc_source.html#l01371">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00303">yaze::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="overworld_8cc_source.html#l01364">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
 
 </div>
 </div>
@@ -6101,7 +6101,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__entrance_8h_source.html#l00026">26</a> of file <a class="el" href="overworld__entrance_8h_source.html">overworld_entrance.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00338">yaze::zelda3::Overworld::LoadHoles()</a>, and <a class="el" href="overworld_8cc_source.html#l01371">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00338">yaze::zelda3::Overworld::LoadHoles()</a>, and <a class="el" href="overworld_8cc_source.html#l01364">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
 
 </div>
 </div>
@@ -6127,7 +6127,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__entrance_8h_source.html#l00030">30</a> of file <a class="el" href="overworld__entrance_8h_source.html">overworld_entrance.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00338">yaze::zelda3::Overworld::LoadHoles()</a>, and <a class="el" href="overworld_8cc_source.html#l01371">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00338">yaze::zelda3::Overworld::LoadHoles()</a>, and <a class="el" href="overworld_8cc_source.html#l01364">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
 
 </div>
 </div>
@@ -6153,7 +6153,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__entrance_8h_source.html#l00033">33</a> of file <a class="el" href="overworld__entrance_8h_source.html">overworld_entrance.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00338">yaze::zelda3::Overworld::LoadHoles()</a>, and <a class="el" href="overworld_8cc_source.html#l01371">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00338">yaze::zelda3::Overworld::LoadHoles()</a>, and <a class="el" href="overworld_8cc_source.html#l01364">yaze::zelda3::Overworld::SaveEntrances()</a>.</p>
 
 </div>
 </div>
@@ -6257,7 +6257,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__exit_8h_source.html#l00013">13</a> of file <a class="el" href="overworld__exit_8h_source.html">overworld_exit.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l01405">yaze::zelda3::Overworld::SaveExits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l01398">yaze::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
@@ -6283,7 +6283,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__exit_8h_source.html#l00014">14</a> of file <a class="el" href="overworld__exit_8h_source.html">overworld_exit.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00358">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01405">yaze::zelda3::Overworld::SaveExits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00356">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01398">yaze::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
@@ -6309,7 +6309,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__exit_8h_source.html#l00017">17</a> of file <a class="el" href="overworld__exit_8h_source.html">overworld_exit.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00358">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01405">yaze::zelda3::Overworld::SaveExits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00356">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01398">yaze::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
@@ -6335,7 +6335,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__exit_8h_source.html#l00018">18</a> of file <a class="el" href="overworld__exit_8h_source.html">overworld_exit.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00358">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01405">yaze::zelda3::Overworld::SaveExits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00356">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01398">yaze::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
@@ -6361,7 +6361,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__exit_8h_source.html#l00019">19</a> of file <a class="el" href="overworld__exit_8h_source.html">overworld_exit.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00358">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01405">yaze::zelda3::Overworld::SaveExits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00356">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01398">yaze::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
@@ -6387,7 +6387,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__exit_8h_source.html#l00020">20</a> of file <a class="el" href="overworld__exit_8h_source.html">overworld_exit.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00358">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01405">yaze::zelda3::Overworld::SaveExits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00356">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01398">yaze::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
@@ -6413,7 +6413,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__exit_8h_source.html#l00021">21</a> of file <a class="el" href="overworld__exit_8h_source.html">overworld_exit.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00358">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01405">yaze::zelda3::Overworld::SaveExits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00356">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01398">yaze::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
@@ -6439,7 +6439,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__exit_8h_source.html#l00022">22</a> of file <a class="el" href="overworld__exit_8h_source.html">overworld_exit.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00358">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01405">yaze::zelda3::Overworld::SaveExits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00356">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01398">yaze::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
@@ -6465,7 +6465,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__exit_8h_source.html#l00023">23</a> of file <a class="el" href="overworld__exit_8h_source.html">overworld_exit.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00358">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01405">yaze::zelda3::Overworld::SaveExits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00356">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01398">yaze::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
@@ -6491,7 +6491,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__exit_8h_source.html#l00024">24</a> of file <a class="el" href="overworld__exit_8h_source.html">overworld_exit.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00358">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01405">yaze::zelda3::Overworld::SaveExits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00356">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01398">yaze::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
@@ -6541,7 +6541,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__exit_8h_source.html#l00026">26</a> of file <a class="el" href="overworld__exit_8h_source.html">overworld_exit.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00358">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01405">yaze::zelda3::Overworld::SaveExits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00356">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01398">yaze::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
@@ -6567,7 +6567,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__exit_8h_source.html#l00027">27</a> of file <a class="el" href="overworld__exit_8h_source.html">overworld_exit.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00358">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01405">yaze::zelda3::Overworld::SaveExits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00356">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01398">yaze::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
@@ -6593,7 +6593,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__exit_8h_source.html#l00028">28</a> of file <a class="el" href="overworld__exit_8h_source.html">overworld_exit.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00358">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01405">yaze::zelda3::Overworld::SaveExits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00356">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01398">yaze::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
@@ -6619,7 +6619,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__exit_8h_source.html#l00029">29</a> of file <a class="el" href="overworld__exit_8h_source.html">overworld_exit.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00358">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01405">yaze::zelda3::Overworld::SaveExits()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00356">yaze::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="overworld_8cc_source.html#l01398">yaze::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
@@ -6909,7 +6909,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__item_8h_source.html#l00015">15</a> of file <a class="el" href="overworld__item_8h_source.html">overworld_item.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l01467">yaze::zelda3::Overworld::SaveItems()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l01460">yaze::zelda3::Overworld::SaveItems()</a>.</p>
 
 </div>
 </div>
@@ -6935,7 +6935,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__item_8h_source.html#l00016">16</a> of file <a class="el" href="overworld__item_8h_source.html">overworld_item.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l01467">yaze::zelda3::Overworld::SaveItems()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l01460">yaze::zelda3::Overworld::SaveItems()</a>.</p>
 
 </div>
 </div>
@@ -6961,7 +6961,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__item_8h_source.html#l00017">17</a> of file <a class="el" href="overworld__item_8h_source.html">overworld_item.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00410">yaze::zelda3::Overworld::LoadItems()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00408">yaze::zelda3::Overworld::LoadItems()</a>.</p>
 
 </div>
 </div>
@@ -7011,7 +7011,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__item_8h_source.html#l00019">19</a> of file <a class="el" href="overworld__item_8h_source.html">overworld_item.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l01467">yaze::zelda3::Overworld::SaveItems()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l01460">yaze::zelda3::Overworld::SaveItems()</a>.</p>
 
 </div>
 </div>
@@ -7059,7 +7059,7 @@ Here is the call graph for this function:</div>
 </div><!-- fragment -->
 <p class="definition">Definition at line <a class="el" href="overworld__item_8h_source.html#l00068">68</a> of file <a class="el" href="overworld__item_8h_source.html">overworld_item.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="entity_8cc_source.html#l00342">yaze::editor::DrawItemEditorPopup()</a>, <a class="el" href="entity_8cc_source.html#l00312">yaze::editor::DrawItemInsertPopup()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00933">yaze::editor::OverworldEditor::DrawOverworldItems()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="entity_8cc_source.html#l00342">yaze::editor::DrawItemEditorPopup()</a>, <a class="el" href="entity_8cc_source.html#l00312">yaze::editor::DrawItemInsertPopup()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00910">yaze::editor::OverworldEditor::DrawOverworldItems()</a>.</p>
 
 </div>
 </div>
@@ -7159,7 +7159,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00029">29</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00292">yaze::zelda3::OverworldMap::SetupCustomTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00293">yaze::zelda3::OverworldMap::SetupCustomTileset()</a>.</p>
 
 </div>
 </div>
@@ -7209,7 +7209,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00034">34</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00292">yaze::zelda3::OverworldMap::SetupCustomTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00293">yaze::zelda3::OverworldMap::SetupCustomTileset()</a>.</p>
 
 </div>
 </div>
@@ -7259,7 +7259,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00040">40</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00292">yaze::zelda3::OverworldMap::SetupCustomTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00293">yaze::zelda3::OverworldMap::SetupCustomTileset()</a>.</p>
 
 </div>
 </div>
@@ -7309,7 +7309,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00046">46</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00292">yaze::zelda3::OverworldMap::SetupCustomTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00293">yaze::zelda3::OverworldMap::SetupCustomTileset()</a>.</p>
 
 </div>
 </div>
@@ -7359,7 +7359,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00052">52</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00292">yaze::zelda3::OverworldMap::SetupCustomTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00293">yaze::zelda3::OverworldMap::SetupCustomTileset()</a>.</p>
 
 </div>
 </div>
@@ -7409,7 +7409,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00057">57</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00989">yaze::zelda3::anonymous_namespace{overworld.cc}::GetAllTile16()</a>, <a class="el" href="overworld__map_8cc_source.html#l00067">yaze::zelda3::OverworldMap::LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00180">yaze::zelda3::OverworldMap::LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8cc_source.html#l00371">yaze::zelda3::OverworldMap::LoadMainBlocksetId()</a>, <a class="el" href="overworld_8cc_source.html#l00271">yaze::zelda3::Overworld::LoadOverworldMaps()</a>, <a class="el" href="overworld__map_8cc_source.html#l00593">yaze::zelda3::OverworldMap::LoadPalette()</a>, <a class="el" href="overworld_8cc_source.html#l00201">yaze::zelda3::Overworld::OrganizeMapTiles()</a>, <a class="el" href="overworld_8cc_source.html#l00668">yaze::zelda3::Overworld::SaveLargeMaps()</a>, <a class="el" href="overworld_8cc_source.html#l01545">yaze::zelda3::Overworld::SaveMapProperties()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00292">yaze::zelda3::OverworldMap::SetupCustomTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00986">yaze::zelda3::anonymous_namespace{overworld.cc}::GetAllTile16()</a>, <a class="el" href="overworld__map_8cc_source.html#l00067">yaze::zelda3::OverworldMap::LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00180">yaze::zelda3::OverworldMap::LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8cc_source.html#l00372">yaze::zelda3::OverworldMap::LoadMainBlocksetId()</a>, <a class="el" href="overworld_8cc_source.html#l00271">yaze::zelda3::Overworld::LoadOverworldMaps()</a>, <a class="el" href="overworld__map_8cc_source.html#l00594">yaze::zelda3::OverworldMap::LoadPalette()</a>, <a class="el" href="overworld_8cc_source.html#l00201">yaze::zelda3::Overworld::OrganizeMapTiles()</a>, <a class="el" href="overworld_8cc_source.html#l00665">yaze::zelda3::Overworld::SaveLargeMaps()</a>, <a class="el" href="overworld_8cc_source.html#l01538">yaze::zelda3::Overworld::SaveMapProperties()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00293">yaze::zelda3::OverworldMap::SetupCustomTileset()</a>.</p>
 
 </div>
 </div>
@@ -7435,7 +7435,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00058">58</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00034">yaze::zelda3::OverworldMap::BuildMap()</a>, <a class="el" href="overworld__map_8cc_source.html#l00067">yaze::zelda3::OverworldMap::LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00180">yaze::zelda3::OverworldMap::LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8cc_source.html#l00371">yaze::zelda3::OverworldMap::LoadMainBlocksetId()</a>, <a class="el" href="overworld_8cc_source.html#l00271">yaze::zelda3::Overworld::LoadOverworldMaps()</a>, <a class="el" href="overworld__map_8cc_source.html#l00593">yaze::zelda3::OverworldMap::LoadPalette()</a>, <a class="el" href="overworld_8cc_source.html#l00668">yaze::zelda3::Overworld::SaveLargeMaps()</a>, <a class="el" href="overworld_8cc_source.html#l01545">yaze::zelda3::Overworld::SaveMapProperties()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00292">yaze::zelda3::OverworldMap::SetupCustomTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00034">yaze::zelda3::OverworldMap::BuildMap()</a>, <a class="el" href="overworld__map_8cc_source.html#l00067">yaze::zelda3::OverworldMap::LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00180">yaze::zelda3::OverworldMap::LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8cc_source.html#l00372">yaze::zelda3::OverworldMap::LoadMainBlocksetId()</a>, <a class="el" href="overworld_8cc_source.html#l00271">yaze::zelda3::Overworld::LoadOverworldMaps()</a>, <a class="el" href="overworld__map_8cc_source.html#l00594">yaze::zelda3::OverworldMap::LoadPalette()</a>, <a class="el" href="overworld_8cc_source.html#l00665">yaze::zelda3::Overworld::SaveLargeMaps()</a>, <a class="el" href="overworld_8cc_source.html#l01538">yaze::zelda3::Overworld::SaveMapProperties()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00293">yaze::zelda3::OverworldMap::SetupCustomTileset()</a>.</p>
 
 </div>
 </div>
