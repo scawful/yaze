@@ -109,11 +109,11 @@ constexpr int kNumMapsPerWorld = 0x40;
  * This class is responsible for loading and saving the overworld data,
  * as well as creating the tilesets and tilemaps for the overworld.
  */
-class Overworld : public SharedRom {
+class Overworld {
  public:
-  Overworld(Rom &rom) : rom_(rom) {}
+  Overworld(Rom *rom) : rom_(rom) {}
 
-  absl::Status Load(Rom &rom);
+  absl::Status Load(Rom *rom);
   absl::Status LoadOverworldMaps();
   void LoadTileTypes();
   absl::Status LoadEntrances();
@@ -125,7 +125,7 @@ class Overworld : public SharedRom {
   absl::Status LoadSpritesFromMap(int sprite_start, int sprite_count,
                                   int sprite_index);
 
-  absl::Status Save(Rom &rom);
+  absl::Status Save(Rom *rom);
   absl::Status SaveOverworldMaps();
   absl::Status SaveLargeMaps();
   absl::Status SaveEntrances();
@@ -140,6 +140,9 @@ class Overworld : public SharedRom {
 
   absl::Status SaveMapProperties();
 
+  auto rom() const { return rom_; }
+  auto mutable_rom() { return rom_; }
+
   void Destroy() {
     for (auto &map : overworld_maps_) {
       map.Destroy();
@@ -151,6 +154,9 @@ class Overworld : public SharedRom {
     for (auto &sprites : all_sprites_) {
       sprites.clear();
     }
+    tiles16_.clear();
+    tiles32_.clear();
+    tiles32_unique_.clear();
     is_loaded_ = false;
   }
 
@@ -234,7 +240,7 @@ class Overworld : public SharedRom {
                         int &ttpos);
   void DecompressAllMapTiles();
 
-  Rom &rom_;
+  Rom *rom_;
 
   bool is_loaded_ = false;
   bool expanded_tile16_ = false;

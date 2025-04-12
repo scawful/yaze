@@ -97,13 +97,14 @@ struct OverworldEntranceTileTypes {
 };
 
 inline absl::StatusOr<OverworldEntranceTileTypes> LoadEntranceTileTypes(
-    Rom &rom) {
+    Rom *rom) {
   OverworldEntranceTileTypes tiletypes;
   for (int i = 0; i < kNumEntranceTileTypes; i++) {
-    ASSIGN_OR_RETURN(auto value_low, rom.ReadWord(kEntranceTileTypePtrLow + i));
+    ASSIGN_OR_RETURN(auto value_low,
+                     rom->ReadWord(kEntranceTileTypePtrLow + i));
     tiletypes.low[i] = value_low;
     ASSIGN_OR_RETURN(auto value_high,
-                     rom.ReadWord(kEntranceTileTypePtrHigh + i));
+                     rom->ReadWord(kEntranceTileTypePtrHigh + i));
     tiletypes.high[i] = value_high;
   }
   return tiletypes;

@@ -51,17 +51,17 @@ class EditorManager {
     context_.popup_manager = popup_manager_.get();
   }
 
-  void Initialize(const std::string &filename = "");
+  void Initialize(const std::string& filename = "");
   absl::Status Update();
   void DrawMenuBar();
 
-  auto emulator() -> emu::Emulator & { return emulator_; }
+  auto emulator() -> emu::Emulator& { return emulator_; }
   auto quit() const { return quit_; }
   auto version() const { return version_; }
 
-  absl::Status SetCurrentRom(Rom *rom);
-  auto GetRoms() -> std::vector<std::unique_ptr<Rom>> & { return roms_; }
-  auto GetCurrentRom() -> Rom * { return current_rom_; }
+  absl::Status SetCurrentRom(Rom* rom);
+  auto GetRoms() -> std::vector<std::unique_ptr<Rom>>& { return roms_; }
+  auto GetCurrentRom() -> Rom* { return current_rom_; }
   auto GetCurrentEditorSet() -> EditorSet* { return current_editor_set_; }
 
  private:
@@ -71,7 +71,7 @@ class EditorManager {
   absl::Status LoadRom();
   absl::Status LoadAssets();
   absl::Status SaveRom();
-  absl::Status OpenRomOrProject(const std::string &filename);
+  absl::Status OpenRomOrProject(const std::string& filename);
   absl::Status OpenProject();
   absl::Status SaveProject();
 
@@ -110,38 +110,46 @@ class EditorManager {
  * @brief Contains a complete set of editors for a single ROM instance
  */
 class EditorSet {
-public:
-    explicit EditorSet(Rom* rom) 
-        : assembly_editor_(rom),
-          dungeon_editor_(rom),
-          graphics_editor_(rom),
-          music_editor_(rom),
-          overworld_editor_(*rom),
-          palette_editor_(rom),
-          screen_editor_(rom),
-          sprite_editor_(rom),
-          settings_editor_(rom),
-          message_editor_(rom),
-          memory_editor_(rom) {
-        active_editors_ = {&overworld_editor_, &dungeon_editor_, &graphics_editor_,
-                          &palette_editor_, &sprite_editor_, &message_editor_,
-                          &music_editor_, &screen_editor_, &settings_editor_,
-                          &assembly_editor_};
-    }
+ public:
+  explicit EditorSet(Rom* rom = nullptr)
+      : assembly_editor_(rom),
+        dungeon_editor_(rom),
+        graphics_editor_(rom),
+        music_editor_(rom),
+        overworld_editor_(rom),
+        palette_editor_(rom),
+        screen_editor_(rom),
+        sprite_editor_(rom),
+        settings_editor_(rom),
+        message_editor_(rom),
+        memory_editor_(rom) {
+    active_editors_ = {&overworld_editor_, &dungeon_editor_, &graphics_editor_,
+                       &palette_editor_,   &sprite_editor_,  &message_editor_,
+                       &music_editor_,     &screen_editor_,  &settings_editor_,
+                       &assembly_editor_};
+  }
 
-    AssemblyEditor assembly_editor_;
-    DungeonEditor dungeon_editor_;
-    GraphicsEditor graphics_editor_;
-    MusicEditor music_editor_;
-    OverworldEditor overworld_editor_;
-    PaletteEditor palette_editor_;
-    ScreenEditor screen_editor_;
-    SpriteEditor sprite_editor_;
-    SettingsEditor settings_editor_;
-    MessageEditor message_editor_;
-    MemoryEditorWithDiffChecker memory_editor_;
-    
-    std::vector<Editor*> active_editors_;
+  AssemblyEditor assembly_editor_;
+  DungeonEditor dungeon_editor_;
+  GraphicsEditor graphics_editor_;
+  MusicEditor music_editor_;
+  OverworldEditor overworld_editor_;
+  PaletteEditor palette_editor_;
+  ScreenEditor screen_editor_;
+  SpriteEditor sprite_editor_;
+  SettingsEditor settings_editor_;
+  MessageEditor message_editor_;
+  MemoryEditorWithDiffChecker memory_editor_;
+
+  std::vector<Editor*> active_editors_;
+
+  void CleanupUnusedTextures(uint64_t current_time, uint64_t timeout) {
+    if (active_editors_.size() > 0) {
+      for (auto editor : active_editors_) {
+        editor->CleanupUnusedTextures(current_time, timeout);
+      }
+    }
+  }
 };
 
 }  // namespace editor

@@ -74,7 +74,7 @@ constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
  */
 class OverworldEditor : public Editor, public gfx::GfxContext {
  public:
-  OverworldEditor(Rom& rom) : rom_(rom) { type_ = EditorType::kOverworld; }
+  explicit OverworldEditor(Rom* rom) : rom_(rom) { type_ = EditorType::kOverworld; }
 
   void Initialize() override;
   absl::Status Load() override;
@@ -215,7 +215,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   std::vector<std::vector<uint8_t>> tile8_individual_data_;
   std::vector<gfx::Bitmap> tile8_individual_;
 
-  Rom& rom_;
+  Rom* rom_;
 
   Tile16Editor tile16_editor_{tile16_individual_};
   GfxGroupEditor gfx_group_editor_;

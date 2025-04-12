@@ -78,6 +78,8 @@ class Editor {
 
   virtual absl::Status Clear() { return absl::OkStatus(); }
 
+  virtual void CleanupUnusedTextures(uint64_t current_time, uint64_t timeout) { }
+
   EditorType type() const { return type_; }
 
   void set_context(EditorContext* context) { context_ = context; }

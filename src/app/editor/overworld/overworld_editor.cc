@@ -32,30 +32,7 @@ namespace yaze {
 namespace editor {
 
 using core::Renderer;
-using ImGui::BeginChild;
-using ImGui::BeginTabBar;
-using ImGui::BeginTabItem;
-using ImGui::BeginTable;
-using ImGui::BeginTooltip;
-using ImGui::Button;
-using ImGui::Checkbox;
-using ImGui::EndChild;
-using ImGui::EndTabBar;
-using ImGui::EndTabItem;
-using ImGui::EndTable;
-using ImGui::EndTooltip;
-using ImGui::IsItemHovered;
-using ImGui::NewLine;
-using ImGui::PopStyleColor;
-using ImGui::PushStyleColor;
-using ImGui::SameLine;
-using ImGui::Selectable;
-using ImGui::Separator;
-using ImGui::TableHeadersRow;
-using ImGui::TableNextColumn;
-using ImGui::TableNextRow;
-using ImGui::TableSetupColumn;
-using ImGui::Text;
+using namespace ImGui;
 
 constexpr int kTile16Size = 0x10;
 
@@ -70,19 +47,19 @@ void OverworldEditor::Initialize() {
   gui::zeml::Bind(&*layout_node_.GetNode("OverworldTileSelector"),
                   [this]() { status_ = DrawTileSelector(); });
   gui::zeml::Bind(&*layout_node_.GetNode("OwUsageStats"), [this]() {
-    if (rom_.is_loaded()) {
+    if (rom_->is_loaded()) {
       status_ = UpdateUsageStats();
     }
   });
   gui::zeml::Bind(&*layout_node_.GetNode("owToolset"),
                   [this]() { DrawToolset(); });
   gui::zeml::Bind(&*layout_node_.GetNode("OwTile16Editor"), [this]() {
-    if (rom_.is_loaded()) {
+    if (rom_->is_loaded()) {
       status_ = tile16_editor_.Update();
     }
   });
   gui::zeml::Bind(&*layout_node_.GetNode("OwGfxGroupEditor"), [this]() {
-    if (rom_.is_loaded()) {
+    if (rom_->is_loaded()) {
       status_ = gfx_group_editor_.Update();
     }
   });
@@ -1072,7 +1049,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   map_blockset_loaded_ = true;
 
   // Copy the tile16 data into individual tiles.
-  auto tile16_data = overworld_.tile16_blockset_data();
+  auto tile16_blockset_data = overworld_.tile16_blockset_data();
 
   util::logf("Loading overworld tile16 graphics.");
   // Loop through the tiles and copy their pixel data into separate vectors
@@ -1084,9 +1061,9 @@ absl::Status OverworldEditor::LoadGraphics() {
     for (int ty = 0; ty < kTile16Size; ty++) {
       for (int tx = 0; tx < kTile16Size; tx++) {
         int position = tx + (ty * kTile16Size);
-        uint8_t value =
-            tile16_data[(i % 8 * kTile16Size) + (i / 8 * kTile16Size * 0x80) +
-                        (ty * 0x80) + tx];
+        uint8_t value = tile16_blockset_data[(i % 8 * kTile16Size) +
+                                             (i / 8 * kTile16Size * 0x80) +
+                                             (ty * 0x80) + tx];
         tile16_individual_[i].mutable_data()[position] = value;
       }
     }
@@ -1400,7 +1377,7 @@ absl::Status OverworldEditor::UpdateUsageStats() {
     if (BeginChild("UnusedSpritesetScroll", ImVec2(0, 0), true,
                    ImGuiWindowFlags_HorizontalScrollbar)) {
       for (int i = 0; i < 0x81; i++) {
-        auto entrance_name = rom_.resource_label()->CreateOrGetLabel(
+        auto entrance_name = rom_->resource_label()->CreateOrGetLabel(
             "Dungeon Entrance Names", util::HexByte(i),
             zelda3::kEntranceNames[i].data());
         std::string str = absl::StrFormat("%#x - %s", i, entrance_name);
@@ -1513,6 +1490,35 @@ void OverworldEditor::DrawDebugWindow() {
     mem_edit.DrawContents(
         overworld_.mutable_map_tiles()->light_world[current_map_].data(),
         overworld_.mutable_map_tiles()->light_world[current_map_].size());
+  }
+}
+
+absl::Status OverworldEditor::Clear() {
+  overworld_.Destroy();
+  current_graphics_set_.clear();
+  for (auto &bmp : tile16_individual_) {
+    bmp.Clear();
+  }
+  for (auto &bmp : maps_bmp_) {
+    bmp.Clear();
+  }
+  for (auto &bmp : sprite_previews_) {
+    bmp.Clear();
+  }
+  tile16_blockset_bmp_.Clear();
+  current_gfx_bmp_.Clear();
+  all_gfx_loaded_ = false;
+  map_blockset_loaded_ = false;
+  return absl::OkStatus();
+}
+
+void OverworldEditor::CleanupUnusedTextures(uint64_t current_time,
+                                            uint64_t timeout) {
+  for (auto &bmp : tile16_individual_) {
+    bmp.CleanupUnusedTexture(current_time, timeout);
+  }
+  for (auto &bmp : maps_bmp_) {
+    bmp.CleanupUnusedTexture(current_time, timeout);
   }
 }
 
