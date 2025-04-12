@@ -2,7 +2,6 @@
 #define YAZE_TEST_INTEGRATION_TEST_EDITOR_H
 
 #include "app/editor/editor.h"
-#include "imgui/imgui.h"
 #include "imgui_test_engine/imgui_te_context.h"
 #include "imgui_test_engine/imgui_te_engine.h"
 
