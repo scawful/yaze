@@ -90,6 +90,23 @@ constexpr int CustomAreaSpecificBGASM = 0x140150;
 // 1 byte, not 0 if enabled
 constexpr int kCustomAreaSpecificBGEnabled = 0x140140;
 
+constexpr int HudPalettesMax = 2;
+constexpr int OverworldMainPalettesMax = 6;
+constexpr int OverworldAuxPalettesMax = 20;
+constexpr int OverworldAnimatedPalettesMax = 14;
+constexpr int GlobalSpritePalettesMax = 2;
+constexpr int ArmorPalettesMax = 5;
+constexpr int SwordsPalettesMax = 4;
+constexpr int SpritesAux1PalettesMax = 12;
+constexpr int SpritesAux2PalettesMax = 11;
+constexpr int SpritesAux3PalettesMax = 24;
+constexpr int ShieldsPalettesMax = 3;
+constexpr int DungeonsMainPalettesMax = 20;
+constexpr int OverworldBackgroundPaletteMax = 160;
+constexpr int OverworldGrassPalettesMax = 3;
+constexpr int Object3DPalettesMax = 2;
+constexpr int OverworldMiniMapPalettesMax = 2;
+
 uint32_t GetPaletteAddress(const std::string &group_name, size_t palette_index,
                            size_t color_index);
 
