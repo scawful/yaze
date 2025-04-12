@@ -5,7 +5,6 @@
 
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
-#include "app/zelda3/overworld/overworld_map.h"
 #include "test/testing.h"
 
 namespace yaze {

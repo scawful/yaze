@@ -1,4 +1,4 @@
-#include "test/integration/test_editor.h"
+#include "test/test_editor.h"
 
 #include <SDL.h>
 
@@ -81,7 +81,10 @@ int RunIntegrationTest() {
 
   while (controller.IsActive()) {
     controller.OnInput();
-    test_editor.Update();
+    auto status = test_editor.Update();
+    if (!status.ok()) {
+      return EXIT_FAILURE;
+    }
     controller.DoRender();
   }
 
