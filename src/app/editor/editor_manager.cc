@@ -300,6 +300,15 @@ absl::Status EditorManager::Update() {
         ImGui::End();
       }
     }
+
+    static uint64_t last_cleanup_time = 0;
+    uint64_t current_time = SDL_GetTicks64();
+
+    // Clean up unused textures every 5 seconds
+    if (current_time - last_cleanup_time > 5000) {
+      current_editor_set_->CleanupUnusedTextures(current_time, 5000);
+      last_cleanup_time = current_time;
+    }
   }
 
   if (show_homepage_) {
@@ -481,6 +490,7 @@ absl::Status EditorManager::LoadAssets() {
     return absl::FailedPreconditionError("No ROM or editor set loaded");
   }
   current_editor_set_->overworld_editor_.Initialize();
+  current_editor_set_->message_editor_.Initialize();
 
   auto &sheet_manager = GraphicsSheetManager::GetInstance();
   ASSIGN_OR_RETURN(*sheet_manager.mutable_gfx_sheets(),

@@ -77,7 +77,7 @@ typedef struct OverworldMapTiles {
 class OverworldMap : public gfx::GfxContext {
  public:
   OverworldMap() = default;
-  OverworldMap(int index, Rom& rom);
+  OverworldMap(int index, Rom* rom);
 
   absl::Status BuildMap(int count, int game_state, int world,
                         std::vector<gfx::Tile16>& tiles16,
@@ -148,6 +148,24 @@ class OverworldMap : public gfx::GfxContext {
     current_blockset_.clear();
     current_gfx_.clear();
     bitmap_data_.clear();
+    map_tiles_.light_world.clear();
+    map_tiles_.dark_world.clear();
+    map_tiles_.special_world.clear();
+    built_ = false;
+    initialized_ = false;
+    large_map_ = false;
+    mosaic_ = false;
+    index_ = 0;
+    parent_ = 0;
+    large_index_ = 0;
+    world_ = 0;
+    game_state_ = 0;
+    main_gfx_id_ = 0;
+    message_id_ = 0;
+    area_graphics_ = 0;
+    area_palette_ = 0;
+    animated_gfx_ = 0;
+    subscreen_overlay_ = 0;
   }
 
  private:
@@ -167,7 +185,7 @@ class OverworldMap : public gfx::GfxContext {
                                               int index, int previous_index,
                                               int limit);
 
-  Rom rom_;
+  Rom *rom_;
 
   bool built_ = false;
   bool large_map_ = false;
