@@ -95,13 +95,14 @@ var searchData=
   ['loadswordpalettes_92',['LoadSwordPalettes',['../namespaceyaze_1_1gfx_1_1palette__group__internal.html#af672f9ca4ca0b7621e9e6018910d73bc',1,'yaze::gfx::palette_group_internal']]],
   ['loadsystemfonts_93',['LoadSystemFonts',['../namespaceyaze_1_1core.html#aa408d383ff33494e29ea06e0e6774f4c',1,'yaze::core']]],
   ['loadtheme_94',['LoadTheme',['../namespaceyaze_1_1gui.html#a216f2984ca7cc50dd872c9605352c95e',1,'yaze::gui']]],
-  ['loadtile8_95',['LoadTile8',['../classyaze_1_1editor_1_1Tile16Editor.html#a949d1bf0430e24aa021b6d2ad66a389c',1,'yaze::editor::Tile16Editor']]],
-  ['loadtiletypes_96',['LoadTileTypes',['../classyaze_1_1zelda3_1_1Overworld.html#a6b9e9841d16c98a3fbab7d6b5a170944',1,'yaze::zelda3::Overworld']]],
-  ['loadtitlescreen_97',['LoadTitleScreen',['../classyaze_1_1zelda3_1_1TitleScreen.html#aa82f8973b08e88801d04e2c1844b6d96',1,'yaze::zelda3::TitleScreen']]],
-  ['loadzelda3_98',['LoadZelda3',['../classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9',1,'yaze::Rom::LoadZelda3()'],['../classyaze_1_1test_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9',1,'yaze::test::Rom::LoadZelda3()']]],
-  ['loginstruction_99',['LogInstruction',['../classyaze_1_1emu_1_1Spc700.html#a70129acc7947101c67895c01e1bf0647',1,'yaze::emu::Spc700::LogInstruction()'],['../classyaze_1_1test_1_1Spc700.html#a70129acc7947101c67895c01e1bf0647',1,'yaze::test::Spc700::LogInstruction()']]],
-  ['loginstructions_100',['LogInstructions',['../classyaze_1_1emu_1_1Cpu.html#aac0b846abec30dc25411f8d9a19763f5',1,'yaze::emu::Cpu::LogInstructions()'],['../classyaze_1_1test_1_1Cpu.html#aac0b846abec30dc25411f8d9a19763f5',1,'yaze::test::Cpu::LogInstructions()']]],
-  ['lsr_101',['LSR',['../classyaze_1_1emu_1_1Spc700.html#a5933e96d79fd8cacf3373140d9132309',1,'yaze::emu::Spc700::LSR()'],['../classyaze_1_1emu_1_1Cpu.html#a29faed6bbc611bce0ed5cd23dba77500',1,'yaze::emu::Cpu::LSR()'],['../classyaze_1_1test_1_1Cpu.html#a29faed6bbc611bce0ed5cd23dba77500',1,'yaze::test::Cpu::LSR()'],['../classyaze_1_1test_1_1Spc700.html#a5933e96d79fd8cacf3373140d9132309',1,'yaze::test::Spc700::LSR()']]],
-  ['lsr_102',['Lsr',['../classyaze_1_1emu_1_1Cpu.html#aeef69e95d01044f54452510c045c8880',1,'yaze::emu::Cpu::Lsr()'],['../classyaze_1_1test_1_1Cpu.html#aeef69e95d01044f54452510c045c8880',1,'yaze::test::Cpu::Lsr()']]],
-  ['lua_103',['Lua',['../structTextEditor_1_1LanguageDefinition.html#a4e811b43370cba9ec8b8869ae2bfc4ff',1,'TextEditor::LanguageDefinition']]]
+  ['loadtile16fromscratchspace_95',['LoadTile16FromScratchSpace',['../classyaze_1_1editor_1_1Tile16Editor.html#a5c0381390492a58c01ca897bc726d669',1,'yaze::editor::Tile16Editor']]],
+  ['loadtile8_96',['LoadTile8',['../classyaze_1_1editor_1_1Tile16Editor.html#a949d1bf0430e24aa021b6d2ad66a389c',1,'yaze::editor::Tile16Editor']]],
+  ['loadtiletypes_97',['LoadTileTypes',['../classyaze_1_1zelda3_1_1Overworld.html#a6b9e9841d16c98a3fbab7d6b5a170944',1,'yaze::zelda3::Overworld']]],
+  ['loadtitlescreen_98',['LoadTitleScreen',['../classyaze_1_1zelda3_1_1TitleScreen.html#aa82f8973b08e88801d04e2c1844b6d96',1,'yaze::zelda3::TitleScreen']]],
+  ['loadzelda3_99',['LoadZelda3',['../classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9',1,'yaze::Rom::LoadZelda3()'],['../classyaze_1_1test_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9',1,'yaze::test::Rom::LoadZelda3()']]],
+  ['loginstruction_100',['LogInstruction',['../classyaze_1_1emu_1_1Spc700.html#a70129acc7947101c67895c01e1bf0647',1,'yaze::emu::Spc700::LogInstruction()'],['../classyaze_1_1test_1_1Spc700.html#a70129acc7947101c67895c01e1bf0647',1,'yaze::test::Spc700::LogInstruction()']]],
+  ['loginstructions_101',['LogInstructions',['../classyaze_1_1emu_1_1Cpu.html#aac0b846abec30dc25411f8d9a19763f5',1,'yaze::emu::Cpu::LogInstructions()'],['../classyaze_1_1test_1_1Cpu.html#aac0b846abec30dc25411f8d9a19763f5',1,'yaze::test::Cpu::LogInstructions()']]],
+  ['lsr_102',['LSR',['../classyaze_1_1emu_1_1Spc700.html#a5933e96d79fd8cacf3373140d9132309',1,'yaze::emu::Spc700::LSR()'],['../classyaze_1_1emu_1_1Cpu.html#a29faed6bbc611bce0ed5cd23dba77500',1,'yaze::emu::Cpu::LSR()'],['../classyaze_1_1test_1_1Cpu.html#a29faed6bbc611bce0ed5cd23dba77500',1,'yaze::test::Cpu::LSR()'],['../classyaze_1_1test_1_1Spc700.html#a5933e96d79fd8cacf3373140d9132309',1,'yaze::test::Spc700::LSR()']]],
+  ['lsr_103',['Lsr',['../classyaze_1_1emu_1_1Cpu.html#aeef69e95d01044f54452510c045c8880',1,'yaze::emu::Cpu::Lsr()'],['../classyaze_1_1test_1_1Cpu.html#aeef69e95d01044f54452510c045c8880',1,'yaze::test::Cpu::Lsr()']]],
+  ['lua_104',['Lua',['../structTextEditor_1_1LanguageDefinition.html#a4e811b43370cba9ec8b8869ae2bfc4ff',1,'TextEditor::LanguageDefinition']]]
 ];

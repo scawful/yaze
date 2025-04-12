@@ -196,9 +196,10 @@ var searchData=
   ['drawvanillaspriteeditor_193',['DrawVanillaSpriteEditor',['../classyaze_1_1editor_1_1SpriteEditor.html#a8654819141edd6e0cebe9962da993761',1,'yaze::editor::SpriteEditor']]],
   ['dsp_194',['Dsp',['../classyaze_1_1emu_1_1Dsp.html#acf9d5b3f122a8e054c1d77dff0a65f47',1,'yaze::emu::Dsp']]],
   ['dsp_195',['dsp',['../classyaze_1_1emu_1_1Apu.html#a2764ac75dec1c12445109690f73ec509',1,'yaze::emu::Apu']]],
-  ['dungeon_5fpalette_196',['dungeon_palette',['../classyaze_1_1Rom.html#ac66ee910fc7602a9e87750e6214fe117',1,'yaze::Rom::dungeon_palette()'],['../classyaze_1_1test_1_1Rom.html#ac66ee910fc7602a9e87750e6214fe117',1,'yaze::test::Rom::dungeon_palette()']]],
-  ['dungeonasset_197',['DungeonAsset',['../structyaze_1_1gui_1_1DungeonAsset.html#a206502db76dc8bd6490c6c3384d8e4bf',1,'yaze::gui::DungeonAsset']]],
-  ['dungeoneditor_198',['DungeonEditor',['../classyaze_1_1editor_1_1DungeonEditor.html#a8c60dfdef37cc75e72a878f23da847cf',1,'yaze::editor::DungeonEditor']]],
-  ['dungeonmap_199',['DungeonMap',['../structyaze_1_1zelda3_1_1DungeonMap.html#a430481f2a20a6d7e01126fe96afec1bd',1,'yaze::zelda3::DungeonMap']]],
-  ['dungeonobjectrenderer_200',['DungeonObjectRenderer',['../classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a9b84e2aad4f890c741ae479907808c59',1,'yaze::zelda3::DungeonObjectRenderer']]]
+  ['dumpallocations_196',['DumpAllocations',['../classyaze_1_1core_1_1MemoryTracker.html#a88ed3370f683bdc82f8977f9341b6433',1,'yaze::core::MemoryTracker']]],
+  ['dungeon_5fpalette_197',['dungeon_palette',['../classyaze_1_1Rom.html#ac66ee910fc7602a9e87750e6214fe117',1,'yaze::Rom::dungeon_palette()'],['../classyaze_1_1test_1_1Rom.html#ac66ee910fc7602a9e87750e6214fe117',1,'yaze::test::Rom::dungeon_palette()']]],
+  ['dungeonasset_198',['DungeonAsset',['../structyaze_1_1gui_1_1DungeonAsset.html#a206502db76dc8bd6490c6c3384d8e4bf',1,'yaze::gui::DungeonAsset']]],
+  ['dungeoneditor_199',['DungeonEditor',['../classyaze_1_1editor_1_1DungeonEditor.html#a8c60dfdef37cc75e72a878f23da847cf',1,'yaze::editor::DungeonEditor']]],
+  ['dungeonmap_200',['DungeonMap',['../structyaze_1_1zelda3_1_1DungeonMap.html#a430481f2a20a6d7e01126fe96afec1bd',1,'yaze::zelda3::DungeonMap']]],
+  ['dungeonobjectrenderer_201',['DungeonObjectRenderer',['../classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a9b84e2aad4f890c741ae479907808c59',1,'yaze::zelda3::DungeonObjectRenderer']]]
 ];

@@ -1,0 +1,9 @@
+<map id="yaze::core::SDL_Surface_Deleter::operator()" name="yaze::core::SDL_Surface_Deleter::operator()">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,168,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1MemoryTracker.html#a2ed8fd12acc21dc17b9f1719a41a7b0d" title=" " alt="" coords="216,5,390,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,44,200,39,200,44,168,49"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1MemoryTracker.html#a3015730e5b6ff23a54195f833900b2c6" title=" " alt="" coords="216,71,390,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="168,68,200,73,200,78,168,74"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1MemoryTracker.html#a5c8899aa70e94512c4327d87ac4a9e57" title=" " alt="" coords="438,5,612,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="390,23,422,23,422,28,390,28"/>
+</map>

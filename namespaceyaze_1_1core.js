@@ -15,6 +15,7 @@ var namespaceyaze_1_1core =
     [ "FlagsMenu", "structyaze_1_1core_1_1FlagsMenu.html", "structyaze_1_1core_1_1FlagsMenu" ],
     [ "FontConfig", "structyaze_1_1core_1_1FontConfig.html", "structyaze_1_1core_1_1FontConfig" ],
     [ "FontState", "structyaze_1_1core_1_1FontState.html", "structyaze_1_1core_1_1FontState" ],
+    [ "MemoryTracker", "classyaze_1_1core_1_1MemoryTracker.html", "classyaze_1_1core_1_1MemoryTracker" ],
     [ "PlatformBackend", "classyaze_1_1core_1_1PlatformBackend.html", "classyaze_1_1core_1_1PlatformBackend" ],
     [ "Renderer", "classyaze_1_1core_1_1Renderer.html", "classyaze_1_1core_1_1Renderer" ],
     [ "Sdl2Backend", "classyaze_1_1core_1_1Sdl2Backend.html", "classyaze_1_1core_1_1Sdl2Backend" ],

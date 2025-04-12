@@ -1,6 +1,7 @@
 var hierarchy =
 [
     [ "yaze::gui::zeml::Action", "structyaze_1_1gui_1_1zeml_1_1Action.html", null ],
+    [ "yaze::core::MemoryTracker::AllocationInfo", "structyaze_1_1core_1_1MemoryTracker_1_1AllocationInfo.html", null ],
     [ "yaze::editor::zsprite::AnimationGroup", "structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html", null ],
     [ "AppDelegate", "classAppDelegate.html", null ],
     [ "AppViewController", "classAppViewController.html", null ],
@@ -164,6 +165,7 @@ var hierarchy =
       [ "yaze::emu::MockMemory", "classyaze_1_1emu_1_1MockMemory.html", null ]
     ] ],
     [ "yaze::editor::MemoryEditorWithDiffChecker", "structyaze_1_1editor_1_1MemoryEditorWithDiffChecker.html", null ],
+    [ "yaze::core::MemoryTracker", "classyaze_1_1core_1_1MemoryTracker.html", null ],
     [ "yaze::gui::MenuItem", "structyaze_1_1gui_1_1MenuItem.html", null ],
     [ "yaze::editor::MessageData", "structyaze_1_1editor_1_1MessageData.html", null ],
     [ "yaze::emu::MnemonicMode", "structyaze_1_1emu_1_1MnemonicMode.html", null ],

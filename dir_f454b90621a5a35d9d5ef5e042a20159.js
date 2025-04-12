@@ -12,6 +12,7 @@ var dir_f454b90621a5a35d9d5ef5e042a20159 =
     [ "font_loader.cc", "font__loader_8cc.html", "font__loader_8cc" ],
     [ "font_loader.h", "font__loader_8h.html", "font__loader_8h" ],
     [ "font_loader.mm", "font__loader_8mm.html", null ],
+    [ "memory_tracker.h", "memory__tracker_8h.html", "memory__tracker_8h" ],
     [ "renderer.h", "renderer_8h.html", "renderer_8h" ],
     [ "sdl_deleter.h", "sdl__deleter_8h.html", "sdl__deleter_8h" ],
     [ "view_controller.h", "view__controller_8h.html", null ]

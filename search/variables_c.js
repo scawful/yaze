@@ -185,11 +185,12 @@ var searchData=
   ['music_5feditor_5fflags_5f_182',['music_editor_flags_',['../namespaceyaze_1_1editor.html#a1188682b4736f2d9244023ed720ba1c8',1,'yaze::editor']]],
   ['music_5ftracker_5f_183',['music_tracker_',['../classyaze_1_1editor_1_1MusicEditor.html#a2aa139b97d71e2e15d08900bfe9325df',1,'yaze::editor::MusicEditor']]],
   ['mute_184',['mute',['../classyaze_1_1emu_1_1Dsp.html#ad77e4c6c7a9c377206a7c2f3d3c221c2',1,'yaze::emu::Dsp']]],
-  ['mwithinrender_185',['mWithinRender',['../classTextEditor.html#acbb4cc4659b4486d0a1d934582b2efaa',1,'TextEditor']]],
-  ['mx_5f_186',['mx_',['../classyaze_1_1gfx_1_1OamTile.html#a07b2f24cee0bdad37a86b3bdbd3e90bc',1,'yaze::gfx::OamTile']]],
-  ['mx_5fclick_5f_187',['mx_click_',['../classyaze_1_1zelda3_1_1TitleScreen.html#a5d311d8a6496aaab4d379fa4710a603a',1,'yaze::zelda3::TitleScreen']]],
-  ['mx_5fdist_5f_188',['mx_dist_',['../classyaze_1_1zelda3_1_1TitleScreen.html#a0d11c479bec0870f75175245de9e4692',1,'yaze::zelda3::TitleScreen']]],
-  ['my_5f_189',['my_',['../classyaze_1_1gfx_1_1OamTile.html#aae2b4b8cc136583c9f882356ac719a2e',1,'yaze::gfx::OamTile']]],
-  ['my_5fclick_5f_190',['my_click_',['../classyaze_1_1zelda3_1_1TitleScreen.html#a97fcb5ceb12d25ac473340e882a7dbf2',1,'yaze::zelda3::TitleScreen']]],
-  ['my_5fdist_5f_191',['my_dist_',['../classyaze_1_1zelda3_1_1TitleScreen.html#a7eb7aa79440908836322572c0121c43b',1,'yaze::zelda3::TitleScreen']]]
+  ['mutex_5f_185',['mutex_',['../classyaze_1_1core_1_1MemoryTracker.html#a1d668974cc16499b5f2e983bf31c3dbf',1,'yaze::core::MemoryTracker']]],
+  ['mwithinrender_186',['mWithinRender',['../classTextEditor.html#acbb4cc4659b4486d0a1d934582b2efaa',1,'TextEditor']]],
+  ['mx_5f_187',['mx_',['../classyaze_1_1gfx_1_1OamTile.html#a07b2f24cee0bdad37a86b3bdbd3e90bc',1,'yaze::gfx::OamTile']]],
+  ['mx_5fclick_5f_188',['mx_click_',['../classyaze_1_1zelda3_1_1TitleScreen.html#a5d311d8a6496aaab4d379fa4710a603a',1,'yaze::zelda3::TitleScreen']]],
+  ['mx_5fdist_5f_189',['mx_dist_',['../classyaze_1_1zelda3_1_1TitleScreen.html#a0d11c479bec0870f75175245de9e4692',1,'yaze::zelda3::TitleScreen']]],
+  ['my_5f_190',['my_',['../classyaze_1_1gfx_1_1OamTile.html#aae2b4b8cc136583c9f882356ac719a2e',1,'yaze::gfx::OamTile']]],
+  ['my_5fclick_5f_191',['my_click_',['../classyaze_1_1zelda3_1_1TitleScreen.html#a97fcb5ceb12d25ac473340e882a7dbf2',1,'yaze::zelda3::TitleScreen']]],
+  ['my_5fdist_5f_192',['my_dist_',['../classyaze_1_1zelda3_1_1TitleScreen.html#a7eb7aa79440908836322572c0121c43b',1,'yaze::zelda3::TitleScreen']]]
 ];

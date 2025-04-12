@@ -35,6 +35,8 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "Paste", "classyaze_1_1editor_1_1OverworldEditor.html#aca35a6d1b2fa44f40007889ad79d8ef5", null ],
     [ "Find", "classyaze_1_1editor_1_1OverworldEditor.html#ade0c26509270537ba7863b6c84ea3b76", null ],
     [ "Save", "classyaze_1_1editor_1_1OverworldEditor.html#ae333ba5d7c41f14ad9f56e8414c5369f", null ],
+    [ "Clear", "classyaze_1_1editor_1_1OverworldEditor.html#a07074a9729222f88636cc2a05be2934d", null ],
+    [ "CleanupUnusedTextures", "classyaze_1_1editor_1_1OverworldEditor.html#ade7620eead401a234c0101f9d173b095", null ],
     [ "jump_to_tab", "classyaze_1_1editor_1_1OverworldEditor.html#afe55b1130672c6448209d7562b7628f9", null ],
     [ "LoadGraphics", "classyaze_1_1editor_1_1OverworldEditor.html#ad8777e42d3b62d08401b380cce94230b", null ],
     [ "DrawFullscreenCanvas", "classyaze_1_1editor_1_1OverworldEditor.html#a85c7e85183b05afd17cebf8925da2e7e", null ],

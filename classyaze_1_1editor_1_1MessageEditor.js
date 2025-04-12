@@ -1,7 +1,7 @@
 var classyaze_1_1editor_1_1MessageEditor =
 [
     [ "TextBox", "structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html", "structyaze_1_1editor_1_1MessageEditor_1_1TextBox" ],
-    [ "MessageEditor", "classyaze_1_1editor_1_1MessageEditor.html#a57fd1a82e1a7c0267a81ed4a789b9107", null ],
+    [ "MessageEditor", "classyaze_1_1editor_1_1MessageEditor.html#aa053e9ab0942b2146c57bb8497497b31", null ],
     [ "Initialize", "classyaze_1_1editor_1_1MessageEditor.html#a9a0f814cb63b33a9cd3c407a0274240c", null ],
     [ "Load", "classyaze_1_1editor_1_1MessageEditor.html#a7a14ce80654534bcdcbd129562f08d95", null ],
     [ "Update", "classyaze_1_1editor_1_1MessageEditor.html#a304ea5c627aa7044cd6221eaba59fa25", null ],
@@ -26,6 +26,9 @@ var classyaze_1_1editor_1_1MessageEditor =
     [ "DrawStringToPreview", "classyaze_1_1editor_1_1MessageEditor.html#a6b6747f3937ccb5e419a8229454ce098", null ],
     [ "DrawMessagePreview", "classyaze_1_1editor_1_1MessageEditor.html#aab49ccce5a51c274b885c816ff0d6ac4", null ],
     [ "DisplayTextOverflowError", "classyaze_1_1editor_1_1MessageEditor.html#a6230eee2580dc1e9156ed934039e4970", null ],
+    [ "set_rom", "classyaze_1_1editor_1_1MessageEditor.html#ae1e067d2fa8f7150ca2d61063d6523e0", null ],
+    [ "rom", "classyaze_1_1editor_1_1MessageEditor.html#a23c91e0627d15977203b2a71110fd287", null ],
+    [ "rom_", "classyaze_1_1editor_1_1MessageEditor.html#a4897a547be5d7ad80aabfc55a000d477", null ],
     [ "skip_next", "classyaze_1_1editor_1_1MessageEditor.html#aca5e0ac7e66349059baaa837840554ad", null ],
     [ "data_loaded_", "classyaze_1_1editor_1_1MessageEditor.html#a825725b1f6cb4ac791b3215edf6c9ca4", null ],
     [ "text_line_", "classyaze_1_1editor_1_1MessageEditor.html#a17dc1a6262dda9138eee4b4f28d47e27", null ],

@@ -1,0 +1,11 @@
+<map id="yaze::editor::Tile16Editor::CopyTile16ToClipboard" name="yaze::editor::Tile16Editor::CopyTile16ToClipboard">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,166,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="214,5,350,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,43,198,37,199,42,167,48"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Used to render a bitmap to the screen." alt="" coords="214,71,350,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="167,69,199,75,198,80,166,75"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1Renderer.html#ac8762d7ca064094faf9603be575caf07" title=" " alt="" coords="398,5,534,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="350,23,382,23,382,28,350,28"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="404,71,528,111"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="350,88,389,88,389,94,350,94"/>
+</map>
