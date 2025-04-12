@@ -73,6 +73,11 @@ void DrawRomSelector(EditorManager &editor_manager) {
 }  // namespace
 
 void EditorManager::Initialize(const std::string &filename) {
+  // Create a blank editor set
+  auto blank_editor_set = std::make_unique<EditorSet>();
+  editor_sets_[nullptr] = std::move(blank_editor_set);
+  current_editor_set_ = editor_sets_[nullptr].get();
+
   if (!filename.empty()) {
     PRINT_IF_ERROR(OpenRomOrProject(filename));
   }

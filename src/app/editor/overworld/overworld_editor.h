@@ -86,7 +86,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
+  absl::Status Clear() override;
 
+  void CleanupUnusedTextures(uint64_t current_time, uint64_t timeout) override;
+  
   int jump_to_tab() { return jump_to_tab_; }
   int jump_to_tab_ = -1;
 
