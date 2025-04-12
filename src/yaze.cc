@@ -157,8 +157,8 @@ zelda3_overworld *yaze_load_overworld(const zelda3_rom *rom) {
   }
 
   yaze::Rom *internal_rom = static_cast<yaze::Rom *>(rom->impl);
-  auto internal_overworld = new yaze::zelda3::Overworld(*internal_rom);
-  if (!internal_overworld->Load(*internal_rom).ok()) {
+  auto internal_overworld = new yaze::zelda3::Overworld(internal_rom);
+  if (!internal_overworld->Load(internal_rom).ok()) {
     return nullptr;
   }
 

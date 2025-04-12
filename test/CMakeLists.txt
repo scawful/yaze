@@ -16,9 +16,9 @@ add_executable(
   yaze_test
   yaze_test.cc
   rom_test.cc
+  test_editor.cc
   gfx/compression_test.cc
   gfx/snes_palette_test.cc
-  integration/test_editor.cc
   zelda3/message_test.cc
   zelda3/overworld_test.cc
   zelda3/sprite_builder_test.cc

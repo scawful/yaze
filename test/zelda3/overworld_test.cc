@@ -20,12 +20,12 @@ class OverworldTest : public ::testing::Test, public SharedRom {
   }
   void TearDown() override {}
 
-  zelda3::Overworld overworld_{*rom()};
+  zelda3::Overworld overworld_{rom()};
 };
 
 TEST_F(OverworldTest, OverworldLoadNoRomDataError) {
   Rom rom;
-  EXPECT_THAT(overworld_.Load(rom),
+  EXPECT_THAT(overworld_.Load(&rom),
               StatusIs(absl::StatusCode::kInvalidArgument));
 }
 
