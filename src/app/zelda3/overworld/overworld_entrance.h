@@ -10,6 +10,34 @@
 namespace yaze {
 namespace zelda3 {
 
+// EXPANDED to 0x78000 to 0x7A000
+constexpr int kEntranceRoomEXP = 0x078000;
+constexpr int kEntranceScrollEdgeEXP = 0x078200;
+constexpr int kEntranceCameraYEXP = 0x078A00;
+constexpr int kEntranceCameraXEXP = 0x078C00;
+constexpr int kEntranceYPositionEXP = 0x078E00;
+constexpr int kEntranceXPositionEXP = 0x079000;
+constexpr int kEntranceCameraYTriggerEXP = 0x079200;
+constexpr int kEntranceCameraXTriggerEXP = 0x079400;
+constexpr int kEntranceBlocksetEXP = 0x079600;
+constexpr int kEntranceFloorEXP = 0x079700;
+constexpr int kEntranceDungeonEXP = 0x079800;
+constexpr int kEntranceDoorEXP = 0x079900;
+constexpr int kEntranceLadderBgEXP = 0x079A00;
+constexpr int kEntranceScrollingEXP = 0x079B00;
+constexpr int kEntranceScrollQuadrantEXP = 0x079C00;
+constexpr int kEntranceExitEXP = 0x079D00;
+constexpr int kEntranceMusicEXP = 0x079F00;
+constexpr int kEntranceExtraEXP = 0x07A000;
+constexpr int kEntranceTotalEXP = 0xFF;
+constexpr int kEntranceTotal = 0x84;
+constexpr int kEntranceLinkSpawn = 0x00;
+constexpr int kEntranceNorthTavern = 0x43;
+constexpr int kEntranceEXP = 0x07F000;
+
+constexpr int kEntranceCameraY = 0x014D45;  // 0x14AA9 // 2bytes each room
+constexpr int kEntranceCameraX = 0x014E4F;  // 0x14BB3 // 2bytes
+
 constexpr int kNumOverworldEntrances = 129;
 constexpr int kNumOverworldHoles = 0x13;
 

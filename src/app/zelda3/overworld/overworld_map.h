@@ -211,6 +211,8 @@ class OverworldMap : public gfx::GfxContext {
   std::array<uint8_t, 4> area_music_;
   std::array<uint8_t, 16> static_graphics_;
 
+  std::array<bool, 4> mosaic_expanded_;
+
   std::vector<uint8_t> current_blockset_;
   std::vector<uint8_t> current_gfx_;
   std::vector<uint8_t> bitmap_data_;

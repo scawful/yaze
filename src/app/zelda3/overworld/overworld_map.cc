@@ -9,7 +9,6 @@
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
-#include "util/hex.h"
 #include "util/log.h"
 
 namespace yaze {
@@ -41,7 +40,7 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
       if (index_ >= kSpecialWorldMapIdStart && index_ <= 0x8A &&
           index_ != 0x88) {
         area_graphics_ = (*rom_)[kOverworldSpecialGfxGroup +
-                              (parent_ - kSpecialWorldMapIdStart)];
+                                 (parent_ - kSpecialWorldMapIdStart)];
         area_palette_ = (*rom_)[kOverworldSpecialPalGroup + 1];
       } else if (index_ == 0x88) {
         area_graphics_ = 0x51;
@@ -149,8 +148,8 @@ void OverworldMap::LoadAreaInfo() {
     if ((index_ >= kSpecialWorldMapIdStart && index_ <= 0x8A &&
          index_ != 0x88) ||
         index_ == 0x94) {
-      area_graphics_ =
-          (*rom_)[kOverworldSpecialGfxGroup + (parent_ - kSpecialWorldMapIdStart)];
+      area_graphics_ = (*rom_)[kOverworldSpecialGfxGroup +
+                               (parent_ - kSpecialWorldMapIdStart)];
       area_palette_ = (*rom_)[kOverworldSpecialPalGroup + 1];
     } else if (index_ == 0x88) {
       area_graphics_ = 0x51;
@@ -288,11 +287,66 @@ void OverworldMap::LoadCustomOverworldData() {
   {
     subscreen_overlay_ = 0x0093;
   }
+
+  // Set the main palette values.
+  if (index_ < 0x40)  // LW
+  {
+    area_palette_ = 0;
+  } else if (index_ >= 0x40 && index_ < 0x80)  // DW
+  {
+    area_palette_ = 1;
+  } else if (index_ >= 0x80 && index_ < 0xA0)  // SW
+  {
+    area_palette_ = 0;
+  }
+
+  if (index_ == 0x03 || index_ == 0x05 || index_ == 0x07)  // LW Death Mountain
+  {
+    area_palette_ = 2;
+  } else if (index_ == 0x43 || index_ == 0x45 ||
+             index_ == 0x47)  // DW Death Mountain
+  {
+    area_palette_ = 3;
+  } else if (index_ == 0x88)  // Triforce room
+  {
+    area_palette_ = 4;
+  }
+
+  // Set the mosaic values.
+  switch (index_) {
+    case 0x00:  // Leaving Skull Woods / Lost Woods
+    case 0x40:
+      mosaic_expanded_ = {false, true, false, true};
+      break;
+    case 0x02:  // Going into Skull woods / Lost Woods west
+    case 0x0A:
+    case 0x42:
+    case 0x4A:
+      mosaic_expanded_ = {false, false, true, false};
+      break;
+    case 0x0F:  // Going into Zora's Domain North
+    case 0x10:  // Going into Skull Woods / Lost Woods North
+    case 0x11:
+    case 0x50:
+    case 0x51:
+      mosaic_expanded_ = {true, false, false, false};
+      break;
+    case 0x80:  // Leaving Zora's Domain, the Master Sword area, and the
+                // Triforce area
+    case 0x81:
+    case 0x88:
+      mosaic_expanded_ = {false, true, false, false};
+      break;
+  }
 }
 
 void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
   area_palette_ = (*rom_)[OverworldCustomMainPaletteArray + index_];
   mosaic_ = (*rom_)[OverworldCustomMosaicArray + index_] != 0x00;
+
+  uint8_t mosaicByte = (*rom_)[OverworldCustomMosaicArray + index_];
+  mosaic_expanded_ = {(mosaicByte & 0x08) != 0x00, (mosaicByte & 0x04) != 0x00,
+                      (mosaicByte & 0x02) != 0x00, (mosaicByte & 0x01) != 0x00};
 
   // This is just to load the GFX groups for ROMs that have an older version
   // of the Overworld ASM already applied.
@@ -319,7 +373,7 @@ void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
     for (int i = 0; i < 8; i++) {
       custom_gfx_ids_[i] =
           (uint8_t)(*rom_)[rom_->version_constants().kOverworldGfxGroups2 +
-                        (index_world * 8) + i];
+                           (index_world * 8) + i];
     }
 
     const auto overworldgfxGroups =
@@ -390,15 +444,16 @@ void OverworldMap::LoadSpritesBlocksets() {
   for (int i = 0; i < 4; i++) {
     static_graphics_[12 + i] =
         ((*rom_)[rom_->version_constants().kSpriteBlocksetPointer +
-              (sprite_graphics_[game_state_] * 4) + i] +
+                 (sprite_graphics_[game_state_] * 4) + i] +
          static_graphics_base);
   }
 }
 
 void OverworldMap::LoadMainBlocksets() {
   for (int i = 0; i < 8; i++) {
-    static_graphics_[i] = (*rom_)[rom_->version_constants().kOverworldGfxGroups2 +
-                               (main_gfx_id_ * 8) + i];
+    static_graphics_[i] =
+        (*rom_)[rom_->version_constants().kOverworldGfxGroups2 +
+                (main_gfx_id_ * 8) + i];
   }
 }
 
@@ -409,12 +464,6 @@ void OverworldMap::LoadMainBlocksets() {
 // of the 5A sheet, so this will need some special manipulation to make work
 // during the BuildBitmap step (or a new one specifically for animating).
 void OverworldMap::DrawAnimatedTiles() {
-  std::cout << "static_graphics_[6] = " << util::HexByte(static_graphics_[6])
-            << std::endl;
-  std::cout << "static_graphics_[7] = " << util::HexByte(static_graphics_[7])
-            << std::endl;
-  std::cout << "static_graphics_[8] = " << util::HexByte(static_graphics_[8])
-            << std::endl;
   if (static_graphics_[7] == 0x5B) {
     static_graphics_[7] = 0x5A;
   } else {
@@ -428,7 +477,7 @@ void OverworldMap::DrawAnimatedTiles() {
 void OverworldMap::LoadAreaGraphicsBlocksets() {
   for (int i = 0; i < 4; i++) {
     uint8_t value = (*rom_)[rom_->version_constants().kOverworldGfxGroups1 +
-                         (area_graphics_ * 4) + i];
+                            (area_graphics_ * 4) + i];
     if (value != 0) {
       static_graphics_[3 + i] = value;
     }
@@ -583,7 +632,7 @@ absl::StatusOr<gfx::SnesPalette> OverworldMap::GetPalette(
     int limit) {
   if (index == 255) {
     index = (*rom_)[rom_->version_constants().kOverworldMapPaletteGroup +
-                 (previous_index * 4)];
+                    (previous_index * 4)];
   }
   if (index >= limit) {
     index = limit - 1;
@@ -601,15 +650,15 @@ absl::Status OverworldMap::LoadPalette() {
 
   uint8_t pal0 = 0;
   uint8_t pal1 = (*rom_)[rom_->version_constants().kOverworldMapPaletteGroup +
-                      (area_palette_ * 4)];
+                         (area_palette_ * 4)];
   uint8_t pal2 = (*rom_)[rom_->version_constants().kOverworldMapPaletteGroup +
-                      (area_palette_ * 4) + 1];
+                         (area_palette_ * 4) + 1];
   uint8_t pal3 = (*rom_)[rom_->version_constants().kOverworldMapPaletteGroup +
-                      (area_palette_ * 4) + 2];
-  uint8_t pal4 =
-      (*rom_)[kOverworldSpritePaletteGroup + (sprite_palette_[game_state_] * 2)];
+                         (area_palette_ * 4) + 2];
+  uint8_t pal4 = (*rom_)[kOverworldSpritePaletteGroup +
+                         (sprite_palette_[game_state_] * 2)];
   uint8_t pal5 = (*rom_)[kOverworldSpritePaletteGroup +
-                      (sprite_palette_[game_state_] * 2) + 1];
+                         (sprite_palette_[game_state_] * 2) + 1];
 
   auto grass_pal_group = rom_->palette_group().grass;
   ASSIGN_OR_RETURN(gfx::SnesColor bgr, grass_pal_group[0].GetColor(0));
@@ -623,7 +672,7 @@ absl::Status OverworldMap::LoadPalette() {
   // Additional handling of `pal3` and `parent_`
   if (pal3 == 255) {
     pal3 = (*rom_)[rom_->version_constants().kOverworldMapPaletteGroup +
-                (previous_pal_id * 4) + 2];
+                   (previous_pal_id * 4) + 2];
   }
 
   if (parent_ < kDarkWorldMapIdStart) {
