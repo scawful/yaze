@@ -275,10 +275,6 @@ std::vector<std::string> ParseMessageData(
   std::vector<std::string> parsed_messages;
 
   for (auto &message : message_data) {
-    std::cout << "Message #" << message.ID << " at address "
-              << util::HexLong(message.Address) << std::endl;
-    std::cout << "  " << message.RawString << std::endl;
-
     std::string parsed_message = "";
     for (const uint8_t &byte : message.Data) {
       if (CharEncoder.contains(byte)) {

@@ -127,7 +127,7 @@ void MessageEditor::DrawMessageList() {
 
       TableHeadersRow();
 
-      for (const auto &message : list_of_texts_) {
+      for (const auto& message : list_of_texts_) {
         TableNextColumn();
         if (Button(util::HexWord(message.ID).c_str())) {
           current_message_ = message;
@@ -190,7 +190,7 @@ void MessageEditor::DrawCurrentMessage() {
 void MessageEditor::DrawTextCommands() {
   if (BeginChild("##TextCommands", ImVec2(0, 0), true,
                  ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-    for (const auto &text_element : TextCommands) {
+    for (const auto& text_element : TextCommands) {
       if (Button(text_element.GenericToken.c_str())) {
         // Insert the command into the message text box.
         message_text_box_.text.append(text_element.GenericToken);
@@ -204,14 +204,16 @@ void MessageEditor::DrawTextCommands() {
 }
 
 void MessageEditor::DrawDictionary() {
-  if (ImGui::BeginChild("##DictionaryChild", ImVec2(0, 0), true,
+  if (all_dictionaries_.empty()) {
+    return;
+  }
+  if (ImGui::BeginChild("##DictionaryChild", ImVec2(200, 0), true,
                         ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
     if (BeginTable("##Dictionary", 2, kMessageTableFlags)) {
-      TableHeadersRow();
       TableSetupColumn("ID");
       TableSetupColumn("Contents");
-
-      for (const auto &dictionary : all_dictionaries_) {
+      TableHeadersRow();
+      for (const auto& dictionary : all_dictionaries_) {
         TableNextColumn();
         Text("%s", util::HexWord(dictionary.ID).c_str());
         TableNextColumn();
@@ -451,8 +453,8 @@ void MessageEditor::DrawCharacterToPreview(char c) {
   DrawCharacterToPreview(FindMatchingCharacter(c));
 }
 
-void MessageEditor::DrawCharacterToPreview(const std::vector<uint8_t> &text) {
-  for (const uint8_t &value : text) {
+void MessageEditor::DrawCharacterToPreview(const std::vector<uint8_t>& text) {
+  for (const uint8_t& value : text) {
     if (skip_next) {
       skip_next = false;
       continue;
@@ -570,7 +572,7 @@ absl::Status MessageEditor::Save() {
   int pos = kTextData;
   bool in_second_bank = false;
 
-  for (const auto &message : list_of_texts_) {
+  for (const auto& message : list_of_texts_) {
     for (const auto value : message.Data) {
       RETURN_IF_ERROR(rom()->WriteByte(pos, value));
 
@@ -635,6 +637,17 @@ void MessageEditor::SelectAll() {
     message_text_box_.Focus();
   }
 }
+
+absl::Status MessageEditor::Redo() {
+  // Implementation of redo functionality
+  // This would require tracking a redo stack in the TextBox struct
+  return absl::OkStatus();
+}
+
+absl::Status MessageEditor::Find() {
+  return absl::OkStatus();
+}
+
 
 }  // namespace editor
 }  // namespace yaze
