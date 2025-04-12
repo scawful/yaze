@@ -32,7 +32,9 @@ constexpr uint8_t kMessageBankChangeId = 0x80;
 
 class MessageEditor : public Editor, public SharedRom {
  public:
-  MessageEditor() { type_ = EditorType::kMessage; }
+  explicit MessageEditor(Rom* rom = nullptr) : rom_(rom) {
+    type_ = EditorType::kMessage;
+  }
 
   void Initialize() override;
   absl::Status Load() override;
@@ -49,12 +51,8 @@ class MessageEditor : public Editor, public SharedRom {
   absl::Status Copy() override;
   absl::Status Paste() override;
   absl::Status Undo() override;
-  absl::Status Redo() override {
-    return absl::UnimplementedError("Redo not implemented");
-  }
-  absl::Status Find() override {
-    return absl::UnimplementedError("Find not implemented");
-  }
+  absl::Status Redo() override;
+  absl::Status Find() override;
   absl::Status Save() override;
   void Delete();
   void SelectAll();
@@ -68,7 +66,11 @@ class MessageEditor : public Editor, public SharedRom {
   void DrawMessagePreview();
   std::string DisplayTextOverflowError(int pos, bool bank);
 
+  void set_rom(Rom* rom) { rom_ = rom; }
+  Rom* rom() const { return rom_; }
+
  private:
+  Rom* rom_;
   bool skip_next = false;
   bool data_loaded_ = false;
 

@@ -110,7 +110,7 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
 
   absl::Status status_;
 
-  Rom *transfer_rom_;
+  Rom *transfer_rom_ = nullptr;
   zelda3::Overworld transfer_overworld_{transfer_rom_};
   std::array<gfx::Bitmap, kNumGfxSheets> transfer_gfx_;
   absl::Status transfer_status_;
