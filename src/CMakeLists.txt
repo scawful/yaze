@@ -136,8 +136,6 @@ if (YAZE_BUILD_LIB)
         incl/yaze.h
         incl/zelda.h
         incl/snes.h
-        incl/overworld.h
-        incl/dungeon.h
       DESTINATION
         include
     )

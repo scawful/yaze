@@ -169,7 +169,7 @@ class GraphicsEditor : public Editor {
 
   Rom temp_rom_;
   Rom tilemap_rom_;
-  zelda3::Overworld overworld_{temp_rom_};
+  zelda3::Overworld overworld_{&temp_rom_};
   MemoryEditor cgx_memory_editor_;
   MemoryEditor col_memory_editor_;
   PaletteEditor palette_editor_;
