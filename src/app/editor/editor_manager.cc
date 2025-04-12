@@ -21,7 +21,6 @@
 #include "editor/editor.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
-#include "util/hex.h"
 #include "util/macro.h"
 
 namespace yaze {
@@ -53,6 +52,7 @@ std::string GetEditorName(EditorType type) {
 void DrawRomSelector(EditorManager &editor_manager) {
   const auto &roms = editor_manager.GetRoms();
   const Rom *current_rom = editor_manager.GetCurrentRom();
+  absl::Status status;
 
   SameLine((GetWindowWidth() / 2) - 100);
   if (current_rom && current_rom->is_loaded()) {
@@ -60,10 +60,14 @@ void DrawRomSelector(EditorManager &editor_manager) {
     if (BeginCombo("##ROMSelector", current_rom->filename().c_str())) {
       for (const auto &rom : roms) {
         if (MenuItem(rom->filename().c_str())) {
-          editor_manager.SetCurrentRom(rom.get());
+          status = editor_manager.SetCurrentRom(rom.get());
         }
       }
       EndCombo();
+    }
+    if (!status.ok()) {
+      std::string error_message = status.message().data();
+      throw std::runtime_error(error_message);
     }
   } else {
     Text("No ROM loaded");
@@ -90,9 +94,9 @@ void EditorManager::Initialize(const std::string &filename) {
   context_.popup_manager = popup_manager_.get();
 
   context_.shortcut_manager.RegisterShortcut(
-      "Open", {ImGuiKey_O, ImGuiMod_Ctrl}, [&]() { LoadRom(); });
+      "Open", {ImGuiKey_O, ImGuiMod_Ctrl}, [&]() { status_ = LoadRom(); });
   context_.shortcut_manager.RegisterShortcut(
-      "Save", {ImGuiKey_S, ImGuiMod_Ctrl}, [&]() { SaveRom(); });
+      "Save", {ImGuiKey_S, ImGuiMod_Ctrl}, [&]() { status_ = SaveRom(); });
   context_.shortcut_manager.RegisterShortcut(
       "Close", {ImGuiKey_W, ImGuiMod_Ctrl}, [&]() {
         if (current_rom_) current_rom_->Close();
@@ -125,7 +129,7 @@ void EditorManager::Initialize(const std::string &filename) {
         manager.Load();
         if (!manager.GetRecentFiles().empty()) {
           auto front = manager.GetRecentFiles().front();
-          OpenRomOrProject(front);
+          status_ = OpenRomOrProject(front);
         }
       });
 
@@ -141,7 +145,7 @@ void EditorManager::Initialize(const std::string &filename) {
   } else {
     for (const auto &filePath : manager.GetRecentFiles()) {
       recent_files.emplace_back(
-          filePath, "", [filePath, this]() { OpenRomOrProject(filePath); });
+          filePath, "", [filePath, this]() { status_ = OpenRomOrProject(filePath); });
     }
   }
 
@@ -159,7 +163,7 @@ void EditorManager::Initialize(const std::string &filename) {
   project_menu_subitems.emplace_back("Open Project", "",
                                      [&]() { status_ = OpenProject(); });
   project_menu_subitems.emplace_back(
-      "Save Project", "", [&]() { SaveProject(); },
+      "Save Project", "", [&]() { status_ = SaveProject(); },
       [&]() { return current_project_.project_opened_; });
 
   gui::kMainMenu = {

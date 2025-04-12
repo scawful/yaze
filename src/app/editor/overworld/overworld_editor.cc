@@ -1032,7 +1032,7 @@ absl::Status OverworldEditor::Save() {
 absl::Status OverworldEditor::LoadGraphics() {
   util::logf("Loading overworld.");
   // Load the Link to the Past overworld.
-  RETURN_IF_ERROR(overworld_.Load(rom_))
+  RETURN_IF_ERROR(overworld_.Load(rom_));
   palette_ = overworld_.current_area_palette();
 
   util::logf("Loading overworld graphics.");
