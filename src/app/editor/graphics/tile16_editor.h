@@ -26,7 +26,7 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
  public:
   Tile16Editor(
       std::array<gfx::Bitmap, zelda3::kNumTile16Individual> &tile16_individual)
-      : tile16_individual_(tile16_individual) {}
+      : tile16_individual_(&tile16_individual) {}
   absl::Status Initialize(const gfx::Bitmap &tile16_blockset_bmp,
                           const gfx::Bitmap &current_gfx_bmp,
                           std::array<uint8_t, 0x200> &all_tiles_types);
@@ -46,6 +46,13 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
   absl::Status LoadTile8();
 
   absl::Status SetCurrentTile(int id);
+  
+  // New methods for clipboard and scratch space
+  absl::Status CopyTile16ToClipboard(int tile_id);
+  absl::Status PasteTile16FromClipboard();
+  absl::Status SaveTile16ToScratchSpace(int slot);
+  absl::Status LoadTile16FromScratchSpace(int slot);
+  absl::Status ClearScratchSpace(int slot);
 
  private:
   bool map_blockset_loaded_ = false;
@@ -59,6 +66,14 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
   int current_tile16_ = 0;
   int current_tile8_ = 0;
   uint8_t current_palette_ = 0;
+  
+  // Clipboard for Tile16 graphics
+  gfx::Bitmap clipboard_tile16_;
+  bool clipboard_has_data_ = false;
+  
+  // Scratch space for Tile16 graphics (4 slots)
+  std::array<gfx::Bitmap, 4> scratch_space_;
+  std::array<bool, 4> scratch_space_used_ = {false, false, false, false};
 
   util::NotifyValue<uint32_t> notify_tile16;
   util::NotifyValue<uint8_t> notify_palette;
@@ -87,7 +102,7 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
 
   gui::Table tile_edit_table_{"##TileEditTable", 3, ImGuiTableFlags_Borders};
 
-  std::array<gfx::Bitmap, zelda3::kNumTile16Individual> &tile16_individual_;
+  std::array<gfx::Bitmap, zelda3::kNumTile16Individual> *tile16_individual_ = nullptr;
   std::vector<gfx::Bitmap> current_gfx_individual_;
 
   PaletteEditor palette_editor_;
@@ -95,7 +110,7 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
 
   absl::Status status_;
 
-  Rom transfer_rom_;
+  Rom *transfer_rom_;
   zelda3::Overworld transfer_overworld_{transfer_rom_};
   std::array<gfx::Bitmap, kNumGfxSheets> transfer_gfx_;
   absl::Status transfer_status_;
