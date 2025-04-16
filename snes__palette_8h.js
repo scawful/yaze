@@ -52,5 +52,21 @@ var snes__palette_8h =
     [ "yaze::gfx::kCrystalPalette", "namespaceyaze_1_1gfx.html#a2bf88538fb2ab089256ec5078b94ab45", null ],
     [ "yaze::gfx::CustomAreaSpecificBGPalette", "namespaceyaze_1_1gfx.html#a6bf6a9327bd15e4024a2a14c96e53dc0", null ],
     [ "yaze::gfx::CustomAreaSpecificBGASM", "namespaceyaze_1_1gfx.html#ada46e9a10ee75d226bfe5e13ad2064e3", null ],
-    [ "yaze::gfx::kCustomAreaSpecificBGEnabled", "namespaceyaze_1_1gfx.html#a96590a99c73838604ae8ef112dec16c7", null ]
+    [ "yaze::gfx::kCustomAreaSpecificBGEnabled", "namespaceyaze_1_1gfx.html#a96590a99c73838604ae8ef112dec16c7", null ],
+    [ "yaze::gfx::HudPalettesMax", "namespaceyaze_1_1gfx.html#a3155343d33ccb45cd53f737dd7289552", null ],
+    [ "yaze::gfx::OverworldMainPalettesMax", "namespaceyaze_1_1gfx.html#adc4654786350e46315b74aaa1cbec1d9", null ],
+    [ "yaze::gfx::OverworldAuxPalettesMax", "namespaceyaze_1_1gfx.html#a8d9c974b77e4bd4095035386cddb3d40", null ],
+    [ "yaze::gfx::OverworldAnimatedPalettesMax", "namespaceyaze_1_1gfx.html#a33f1fca349056fd99730ca16d79e3e5a", null ],
+    [ "yaze::gfx::GlobalSpritePalettesMax", "namespaceyaze_1_1gfx.html#afe60ec3ca1f7cc03b5ca2cc3eb0073aa", null ],
+    [ "yaze::gfx::ArmorPalettesMax", "namespaceyaze_1_1gfx.html#a89c37f0c4b0e5c24a13a6078163f4c3c", null ],
+    [ "yaze::gfx::SwordsPalettesMax", "namespaceyaze_1_1gfx.html#acfed1bac442548b95a8ef44914bbf486", null ],
+    [ "yaze::gfx::SpritesAux1PalettesMax", "namespaceyaze_1_1gfx.html#a41abbcefdc61432e456e60269fb0db6b", null ],
+    [ "yaze::gfx::SpritesAux2PalettesMax", "namespaceyaze_1_1gfx.html#a51d9f48b3697d77bc853aa0737377cf5", null ],
+    [ "yaze::gfx::SpritesAux3PalettesMax", "namespaceyaze_1_1gfx.html#a35818cc93581be2b195329d67bbefddf", null ],
+    [ "yaze::gfx::ShieldsPalettesMax", "namespaceyaze_1_1gfx.html#a8613ebdcfb51c9bf3b5c9e9c3d4774f0", null ],
+    [ "yaze::gfx::DungeonsMainPalettesMax", "namespaceyaze_1_1gfx.html#a44cac3c485021d5a492502a536ab8999", null ],
+    [ "yaze::gfx::OverworldBackgroundPaletteMax", "namespaceyaze_1_1gfx.html#ad2ecf4146d5afacefd058c564b032aa3", null ],
+    [ "yaze::gfx::OverworldGrassPalettesMax", "namespaceyaze_1_1gfx.html#a46210ab76d7e158a82917b0310d6cefa", null ],
+    [ "yaze::gfx::Object3DPalettesMax", "namespaceyaze_1_1gfx.html#a0d9c95615a3507966d70e640988fafd4", null ],
+    [ "yaze::gfx::OverworldMiniMapPalettesMax", "namespaceyaze_1_1gfx.html#a48d284c03adc434338ef4f9ada766c28", null ]
 ];

@@ -108,7 +108,8 @@ $(function(){initNavTree('editor__manager_8cc.html',''); initResizable(true); })
 <div class="header">
   <div class="summary">
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">editor_manager.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -134,7 +135,6 @@ $(function(){initNavTree('editor__manager_8cc.html',''); initResizable(true); })
 <code>#include &quot;<a class="el" href="editor_8h_source.html">editor/editor.h</a>&quot;</code><br />
 <code>#include &quot;imgui/imgui.h&quot;</code><br />
 <code>#include &quot;imgui/misc/cpp/imgui_stdlib.h&quot;</code><br />
-<code>#include &quot;<a class="el" href="hex_8h_source.html">util/hex.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="macro_8h_source.html">util/macro.h</a>&quot;</code><br />
 </div>
 <p><a href="editor__manager_8cc_source.html">Go to the source code of this file.</a></p>
@@ -158,8 +158,29 @@ Functions</h2></td></tr>
 <tr class="separator:aedd76ea3011012c49dbd8e07e848f046"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a04a2feb18db36480026c96f4c432701d" id="r_a04a2feb18db36480026c96f4c432701d"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#a04a2feb18db36480026c96f4c432701d">yaze::editor::anonymous_namespace{editor_manager.cc}::GetEditorName</a> (<a class="el" href="namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622a">EditorType</a> type)</td></tr>
 <tr class="separator:a04a2feb18db36480026c96f4c432701d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae307e16a4a540c2f505e0ad42e86714d" id="r_ae307e16a4a540c2f505e0ad42e86714d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#ae307e16a4a540c2f505e0ad42e86714d">yaze::editor::anonymous_namespace{editor_manager.cc}::DrawRomSelector</a> (<a class="el" href="classyaze_1_1editor_1_1EditorManager.html">EditorManager</a> &amp;editor_manager)</td></tr>
-<tr class="separator:ae307e16a4a540c2f505e0ad42e86714d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:a71f5e2369095a77351061be9b7bb8bb1" id="r_a71f5e2369095a77351061be9b7bb8bb1"><td class="memItemLeft" align="right" valign="top">constexpr const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a71f5e2369095a77351061be9b7bb8bb1">yaze::editor::kOverworldEditorName</a> = <a class="el" href="icons_8h.html#a979611caea3e3c9ad69d61287add5da6">ICON_MD_LAYERS</a> &quot; Overworld Editor&quot;</td></tr>
+<tr class="separator:a71f5e2369095a77351061be9b7bb8bb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4aeaba1613d291e363d09328be45faf1" id="r_a4aeaba1613d291e363d09328be45faf1"><td class="memItemLeft" align="right" valign="top">constexpr const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a4aeaba1613d291e363d09328be45faf1">yaze::editor::kGraphicsEditorName</a> = <a class="el" href="icons_8h.html#adfc8fe5594387463357497f6534f56c9">ICON_MD_PHOTO</a> &quot; Graphics Editor&quot;</td></tr>
+<tr class="separator:a4aeaba1613d291e363d09328be45faf1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc7da7308bfe85a16a62542ef04a3472" id="r_adc7da7308bfe85a16a62542ef04a3472"><td class="memItemLeft" align="right" valign="top">constexpr const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#adc7da7308bfe85a16a62542ef04a3472">yaze::editor::kPaletteEditorName</a> = <a class="el" href="icons_8h.html#ad6ecee664ddafe14f73868b7a5ec8a01">ICON_MD_PALETTE</a> &quot; Palette Editor&quot;</td></tr>
+<tr class="separator:adc7da7308bfe85a16a62542ef04a3472"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5882374f18fbf019a8a09a97d4f92d85" id="r_a5882374f18fbf019a8a09a97d4f92d85"><td class="memItemLeft" align="right" valign="top">constexpr const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a5882374f18fbf019a8a09a97d4f92d85">yaze::editor::kScreenEditorName</a> = <a class="el" href="icons_8h.html#a7e4099d65f3be081408177ca03ecb718">ICON_MD_SCREENSHOT</a> &quot; Screen Editor&quot;</td></tr>
+<tr class="separator:a5882374f18fbf019a8a09a97d4f92d85"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a931095f02e21f95d4767ca7ff97bad72" id="r_a931095f02e21f95d4767ca7ff97bad72"><td class="memItemLeft" align="right" valign="top">constexpr const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a931095f02e21f95d4767ca7ff97bad72">yaze::editor::kSpriteEditorName</a> = <a class="el" href="icons_8h.html#af5bb69f87765dd14b911cc1fc54e8594">ICON_MD_SMART_TOY</a> &quot; Sprite Editor&quot;</td></tr>
+<tr class="separator:a931095f02e21f95d4767ca7ff97bad72"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4662e7cb347696014d9405c738e568cf" id="r_a4662e7cb347696014d9405c738e568cf"><td class="memItemLeft" align="right" valign="top">constexpr const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a4662e7cb347696014d9405c738e568cf">yaze::editor::kMessageEditorName</a> = <a class="el" href="icons_8h.html#a6440118b5284313b186ebd1e453cf6e3">ICON_MD_MESSAGE</a> &quot; Message Editor&quot;</td></tr>
+<tr class="separator:a4662e7cb347696014d9405c738e568cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5f2488d1dfa7ebd9aed0439c58ec5f96" id="r_a5f2488d1dfa7ebd9aed0439c58ec5f96"><td class="memItemLeft" align="right" valign="top">constexpr const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a5f2488d1dfa7ebd9aed0439c58ec5f96">yaze::editor::kSettingsEditorName</a> = <a class="el" href="icons_8h.html#a14ded7148bef481ff6b688f261157597">ICON_MD_SETTINGS</a> &quot; Settings Editor&quot;</td></tr>
+<tr class="separator:a5f2488d1dfa7ebd9aed0439c58ec5f96"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9146cd9c67bd60cc88f1a50045bc7606" id="r_a9146cd9c67bd60cc88f1a50045bc7606"><td class="memItemLeft" align="right" valign="top">constexpr const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a9146cd9c67bd60cc88f1a50045bc7606">yaze::editor::kAssemblyEditorName</a> = <a class="el" href="icons_8h.html#a5dc3d46c191f932162f9bffc3ab9547b">ICON_MD_CODE</a> &quot; Assembly Editor&quot;</td></tr>
+<tr class="separator:a9146cd9c67bd60cc88f1a50045bc7606"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a33a411c9d2379eb3cb7e94bd76eef916" id="r_a33a411c9d2379eb3cb7e94bd76eef916"><td class="memItemLeft" align="right" valign="top">constexpr const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a33a411c9d2379eb3cb7e94bd76eef916">yaze::editor::kDungeonEditorName</a> = <a class="el" href="icons_8h.html#a7a71a0c48d207925c4a0e862023e8b93">ICON_MD_CASTLE</a> &quot; Dungeon Editor&quot;</td></tr>
+<tr class="separator:a33a411c9d2379eb3cb7e94bd76eef916"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6b79d859cd4ca38f690950e082e8f025" id="r_a6b79d859cd4ca38f690950e082e8f025"><td class="memItemLeft" align="right" valign="top">constexpr const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a6b79d859cd4ca38f690950e082e8f025">yaze::editor::kMusicEditorName</a> = <a class="el" href="icons_8h.html#a7ff6da7cb09a3ff0031ab47a4fcc0c71">ICON_MD_MUSIC_NOTE</a> &quot; Music Editor&quot;</td></tr>
+<tr class="separator:a6b79d859cd4ca38f690950e082e8f025"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

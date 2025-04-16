@@ -1,0 +1,9 @@
+<map id="yaze::editor::EditorManager::DrawRomSelector" name="yaze::editor::EditorManager::DrawRomSelector">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,180,75"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1EditorManager.html#af060b602b2a51a3ae072edf1e10fb703" title=" " alt="" coords="228,35,402,75"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,52,212,52,212,58,180,58"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1EditorManager.html#ae010594950b0cc8a3fc477163a6934cc" title=" " alt="" coords="450,5,624,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="402,41,434,37,435,42,403,46"/>
+<area shape="rect" id="Node000018" href="$classyaze_1_1SharedRom.html#a7f08a20972402f69c7c388111300db66" title=" " alt="" coords="450,70,624,96"/>
+<area shape="poly" id="edge3_Node000002_Node000018" title=" " alt="" coords="403,63,435,67,434,73,402,69"/>
+</map>

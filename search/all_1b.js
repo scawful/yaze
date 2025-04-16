@@ -128,7 +128,7 @@ var searchData=
   ['rom_5freadable_5f_125',['rom_readable_',['../classyaze_1_1emu_1_1Apu.html#af442e153f924430fdf8a9aa5651b65be',1,'yaze::emu::Apu']]],
   ['rom_5fsize_5f_126',['rom_size_',['../classyaze_1_1emu_1_1MemoryImpl.html#a86ab3bf451d7c462e104e246bd99c7c8',1,'yaze::emu::MemoryImpl']]],
   ['rom_5ftest_2ecc_127',['rom_test.cc',['../rom__test_8cc.html',1,'']]],
-  ['roms_5f_128',['roms_',['../classyaze_1_1editor_1_1EditorManager.html#a3c1b91cf67e523c0d885be652c2a0ce9',1,'yaze::editor::EditorManager']]],
+  ['roms_5f_128',['roms_',['../classyaze_1_1editor_1_1EditorManager.html#ae8bda4de68c7b2cdac92b3732036e828',1,'yaze::editor::EditorManager']]],
   ['romtest_129',['RomTest',['../classyaze_1_1test_1_1RomTest.html',1,'yaze::test']]],
   ['room_130',['Room',['../classyaze_1_1zelda3_1_1Room.html',1,'yaze::zelda3::Room'],['../classyaze_1_1zelda3_1_1Room.html#aeac23ed98bd83514857de8d752cb6ce0',1,'yaze::zelda3::Room::Room()=default'],['../classyaze_1_1zelda3_1_1Room.html#a18df0f589ff502f60748fcc048d1e8ec',1,'yaze::zelda3::Room::Room(int room_id)']]],
   ['room_131',['room',['../structstaircase.html#aaeb97732cd0085d59c457345cd4add3b',1,'staircase']]],

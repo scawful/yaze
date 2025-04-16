@@ -42,7 +42,7 @@ var searchData=
   ['rom_5ffilename_5f_39',['rom_filename_',['../structyaze_1_1Project.html#a98244b71739f152077b2cffc7a864b25',1,'yaze::Project']]],
   ['rom_5freadable_5f_40',['rom_readable_',['../classyaze_1_1emu_1_1Apu.html#af442e153f924430fdf8a9aa5651b65be',1,'yaze::emu::Apu']]],
   ['rom_5fsize_5f_41',['rom_size_',['../classyaze_1_1emu_1_1MemoryImpl.html#a86ab3bf451d7c462e104e246bd99c7c8',1,'yaze::emu::MemoryImpl']]],
-  ['roms_5f_42',['roms_',['../classyaze_1_1editor_1_1EditorManager.html#a3c1b91cf67e523c0d885be652c2a0ce9',1,'yaze::editor::EditorManager']]],
+  ['roms_5f_42',['roms_',['../classyaze_1_1editor_1_1EditorManager.html#ae8bda4de68c7b2cdac92b3732036e828',1,'yaze::editor::EditorManager']]],
   ['room_43',['room',['../structstaircase.html#aaeb97732cd0085d59c457345cd4add3b',1,'staircase']]],
   ['room_5f_44',['room_',['../classyaze_1_1zelda3_1_1RoomEntrance.html#af1bf0374c1c58de35e87acfebc44cf42',1,'yaze::zelda3::RoomEntrance']]],
   ['room_5fblockset_5fids_45',['room_blockset_ids',['../classyaze_1_1Rom.html#a88ec2d03d01e7d4aec9c03e7b2ed78a9',1,'yaze::Rom::room_blockset_ids'],['../classyaze_1_1test_1_1Rom.html#a88ec2d03d01e7d4aec9c03e7b2ed78a9',1,'yaze::test::Rom::room_blockset_ids']]],

@@ -10,8 +10,7 @@ var namespaceyaze_1_1editor =
     [ "anonymous_namespace{editor_manager.cc}", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html", [
       [ "BeginCentered", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#a31df2babe81739c8cc81beeb0b148066", null ],
       [ "IsEditorActive", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#aedd76ea3011012c49dbd8e07e848f046", null ],
-      [ "GetEditorName", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#a04a2feb18db36480026c96f4c432701d", null ],
-      [ "DrawRomSelector", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#ae307e16a4a540c2f505e0ad42e86714d", null ]
+      [ "GetEditorName", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#a04a2feb18db36480026c96f4c432701d", null ]
     ] ],
     [ "anonymous_namespace{gfx_group_editor.cc}", "namespaceyaze_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html", [
       [ "DrawPaletteFromPaletteGroup", "namespaceyaze_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html#ab034577d86103210b34c4e4164d82f0c", null ]
@@ -117,6 +116,16 @@ var namespaceyaze_1_1editor =
     [ "kDungeonTabBarFlags", "namespaceyaze_1_1editor.html#aef9fc3aa4b7cf20402d52bb6e88b644c", null ],
     [ "kDungeonTableFlags", "namespaceyaze_1_1editor.html#a5fbf9b9f005187d191c8378e6364072c", null ],
     [ "kEditorNames", "namespaceyaze_1_1editor.html#a0c6c7a73544930a4412ec23b51c20e6b", null ],
+    [ "kOverworldEditorName", "namespaceyaze_1_1editor.html#a71f5e2369095a77351061be9b7bb8bb1", null ],
+    [ "kGraphicsEditorName", "namespaceyaze_1_1editor.html#a4aeaba1613d291e363d09328be45faf1", null ],
+    [ "kPaletteEditorName", "namespaceyaze_1_1editor.html#adc7da7308bfe85a16a62542ef04a3472", null ],
+    [ "kScreenEditorName", "namespaceyaze_1_1editor.html#a5882374f18fbf019a8a09a97d4f92d85", null ],
+    [ "kSpriteEditorName", "namespaceyaze_1_1editor.html#a931095f02e21f95d4767ca7ff97bad72", null ],
+    [ "kMessageEditorName", "namespaceyaze_1_1editor.html#a4662e7cb347696014d9405c738e568cf", null ],
+    [ "kSettingsEditorName", "namespaceyaze_1_1editor.html#a5f2488d1dfa7ebd9aed0439c58ec5f96", null ],
+    [ "kAssemblyEditorName", "namespaceyaze_1_1editor.html#a9146cd9c67bd60cc88f1a50045bc7606", null ],
+    [ "kDungeonEditorName", "namespaceyaze_1_1editor.html#a33a411c9d2379eb3cb7e94bd76eef916", null ],
+    [ "kMusicEditorName", "namespaceyaze_1_1editor.html#a6b79d859cd4ca38f690950e082e8f025", null ],
     [ "kGfxEditTableFlags", "namespaceyaze_1_1editor.html#aa21356c3f73c152d5ecdcac11bbbcdac", null ],
     [ "kSuperDonkeyTiles", "namespaceyaze_1_1editor.html#aa7e4f5f4067c96e69f95a40beb7a83e5", null ],
     [ "kSuperDonkeySprites", "namespaceyaze_1_1editor.html#a42382673ea2557750ccf0c490e8abc98", null ],

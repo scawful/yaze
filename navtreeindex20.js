@@ -1,5 +1,7 @@
 var NAVTREEINDEX20 =
 {
+"classyaze_1_1test_1_1Cpu.html#ad56f428bfdc024f2a4e143e617d1d373":[12,0,0,6,5,180],
+"classyaze_1_1test_1_1Cpu.html#ad599875d0377c10c8eca0cb2b82e1aab":[11,0,1,6,7,42],
 "classyaze_1_1test_1_1Cpu.html#ad599875d0377c10c8eca0cb2b82e1aab":[12,0,0,6,5,42],
 "classyaze_1_1test_1_1Cpu.html#ad796950c0e9f4682bced251e55db1116":[11,0,1,6,7,211],
 "classyaze_1_1test_1_1Cpu.html#ad796950c0e9f4682bced251e55db1116":[12,0,0,6,5,211],
@@ -247,7 +249,5 @@ var NAVTREEINDEX20 =
 "classyaze_1_1test_1_1OverworldTest.html#a63e704ed3dd7301888c02e18cf50fa00":[12,0,0,6,14,1],
 "classyaze_1_1test_1_1OverworldTest.html#ade0a4d429c7a61d0be9019a42846c3ed":[11,0,1,6,16,2],
 "classyaze_1_1test_1_1OverworldTest.html#ade0a4d429c7a61d0be9019a42846c3ed":[12,0,0,6,14,2],
-"classyaze_1_1test_1_1PpuInterface.html":[11,0,1,6,17],
-"classyaze_1_1test_1_1PpuInterface.html":[12,0,0,6,15],
-"classyaze_1_1test_1_1PpuInterface.html#a4e3519f11646f16198c8c7d551098908":[11,0,1,6,17,1]
+"classyaze_1_1test_1_1PpuInterface.html":[11,0,1,6,17]
 };

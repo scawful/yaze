@@ -43,5 +43,6 @@ var searchData=
   ['horizontalirqtrigger_40',['horizontalIrqTrigger',['../structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#a5ebb527ee002b56a14edd02268f7e4af',1,'yaze::emu::CounterIrqNmiRegisters']]],
   ['horizontalscanlocation_41',['horizontalScanLocation',['../structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#add5d5913078f3d5af987c118e92ad21a',1,'yaze::emu::CounterIrqNmiRegisters']]],
   ['hscroll_42',['hScroll',['../structyaze_1_1emu_1_1BgLayer.html#a822da8bd7639b9e1cbf4170c4edcda9e',1,'yaze::emu::BgLayer']]],
-  ['hud_43',['hud',['../structyaze_1_1gfx_1_1PaletteGroupMap.html#abf3c25ebba26b691bdd08f5b8ca2c90d',1,'yaze::gfx::PaletteGroupMap::hud'],['../structyaze_1_1gfx_1_1Paletteset.html#a4e691551109932639735b4390f69c98d',1,'yaze::gfx::Paletteset::hud']]]
+  ['hud_43',['hud',['../structyaze_1_1gfx_1_1PaletteGroupMap.html#abf3c25ebba26b691bdd08f5b8ca2c90d',1,'yaze::gfx::PaletteGroupMap::hud'],['../structyaze_1_1gfx_1_1Paletteset.html#a4e691551109932639735b4390f69c98d',1,'yaze::gfx::Paletteset::hud']]],
+  ['hudpalettesmax_44',['HudPalettesMax',['../namespaceyaze_1_1gfx.html#a3155343d33ccb45cd53f737dd7289552',1,'yaze::gfx']]]
 ];

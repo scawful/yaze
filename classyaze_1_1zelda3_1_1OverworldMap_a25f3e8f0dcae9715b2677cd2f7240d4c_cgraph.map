@@ -1,5 +1,0 @@
-<map id="yaze::zelda3::OverworldMap::DrawAnimatedTiles" name="yaze::zelda3::OverworldMap::DrawAnimatedTiles">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,186,46"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1util.html#a3f4d30bc153c6a955a8471f68c18aafd" title=" " alt="" coords="234,13,359,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,23,218,23,218,28,186,28"/>
-</map>
