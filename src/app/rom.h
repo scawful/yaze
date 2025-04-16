@@ -168,7 +168,7 @@ class Rom {
   auto vector() const { return rom_data_; }
   auto filename() const { return filename_; }
   auto set_filename(std::string name) { filename_ = name; }
-
+  auto short_name() const { return short_name_; }
   std::vector<uint8_t> graphics_buffer() const { return graphics_buffer_; }
   auto mutable_graphics_buffer() { return &graphics_buffer_; }
   auto palette_group() const { return palette_groups_; }
@@ -247,6 +247,9 @@ class Rom {
 
   // Filename of the ROM
   std::string filename_ = "";
+
+  // Short name of the ROM
+  std::string short_name_ = "";
 
   // Full contiguous rom space
   std::vector<uint8_t> rom_data_;
@@ -384,6 +387,13 @@ class SharedRom {
     }
     Rom* rom = shared_rom_.get();
     return rom;
+  }
+
+  static void set_rom(Rom* rom) {
+    if (!shared_rom_) {
+      shared_rom_ = std::make_shared<Rom>();
+    }
+    shared_rom_ = std::shared_ptr<Rom>(rom);
   }
 
   // private:

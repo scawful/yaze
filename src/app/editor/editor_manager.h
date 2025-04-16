@@ -60,13 +60,12 @@ class EditorManager {
   auto version() const { return version_; }
 
   absl::Status SetCurrentRom(Rom* rom);
-  auto GetRoms() -> std::vector<std::unique_ptr<Rom>>& { return roms_; }
   auto GetCurrentRom() -> Rom* { return current_rom_; }
   auto GetCurrentEditorSet() -> EditorSet* { return current_editor_set_; }
 
  private:
   void DrawHomepage();
-  void DrawPopups();
+  void DrawRomSelector();
 
   absl::Status LoadRom();
   absl::Status LoadAssets();
@@ -94,7 +93,7 @@ class EditorManager {
 
   absl::Status status_;
   emu::Emulator emulator_;
-  std::vector<std::unique_ptr<Rom>> roms_;
+  std::vector<std::shared_ptr<Rom>> roms_;
   std::unordered_map<Rom*, std::unique_ptr<EditorSet>> editor_sets_;
   Rom* current_rom_ = nullptr;
   EditorSet* current_editor_set_ = nullptr;

@@ -176,6 +176,8 @@ absl::Status Rom::LoadFromFile(const std::string &filename, bool z3_load) {
   }
   std::string full_filename = std::filesystem::absolute(filename).string();
   filename_ = full_filename;
+  // Get the short name of the ROM
+  short_name_ = filename_.substr(filename_.find_last_of("/\\") + 1);
 
   std::ifstream file(filename_, std::ios::binary);
   if (!file.is_open()) {
