@@ -192,35 +192,36 @@ void Paragraph(const std::string& text) {
 bool ClickableText(const std::string& text) {
   ImGui::BeginGroup();
   ImGui::PushID(text.c_str());
-  
+
   // Calculate text size
   ImVec2 text_size = ImGui::CalcTextSize(text.c_str());
-  
+
   // Get cursor position for hover detection
   ImVec2 pos = ImGui::GetCursorScreenPos();
   ImRect bb(pos, ImVec2(pos.x + text_size.x, pos.y + text_size.y));
-  
+
   // Add item
   const ImGuiID id = ImGui::GetID(text.c_str());
   bool result = false;
   if (ImGui::ItemAdd(bb, id)) {
     bool hovered = ImGui::IsItemHovered();
     bool clicked = ImGui::IsItemClicked();
-    
+
     // Render text with appropriate color
     ImVec4 color = hovered ? ImGui::GetStyleColorVec4(ImGuiCol_Text)
-                          : ImGui::GetStyleColorVec4(ImGuiCol_TextLink);
-    ImGui::GetWindowDrawList()->AddText(pos, ImGui::ColorConvertFloat4ToU32(color), text.c_str());
-    
+                           : ImGui::GetStyleColorVec4(ImGuiCol_TextLink);
+    ImGui::GetWindowDrawList()->AddText(
+        pos, ImGui::ColorConvertFloat4ToU32(color), text.c_str());
+
     result = clicked;
   }
-  
+
   ImGui::PopID();
-  
+
   // Advance cursor past the text
   ImGui::Dummy(text_size);
   ImGui::EndGroup();
-  
+
   return result;
 }
 
@@ -249,9 +250,9 @@ void ItemLabel(absl::string_view title, ItemLabelFlags flags) {
   ImGui::ItemSize(textRect);
   if (ImGui::ItemAdd(
           textRect, window->GetID(title.data(), title.data() + title.size()))) {
-    ImGui::RenderTextEllipsis(
-        ImGui::GetWindowDrawList(), textRect.Min, textRect.Max, textRect.Max.x,
-        textRect.Max.x, title.data(), title.data() + title.size(), &textSize);
+    ImGui::RenderTextEllipsis(ImGui::GetWindowDrawList(), textRect.Min,
+                              textRect.Max, textRect.Max.x, title.data(),
+                              title.data() + title.size(), &textSize);
 
     if (textRect.GetWidth() < textSize.x && ImGui::IsItemHovered())
       ImGui::SetTooltip("%.*s", (int)title.size(), title.data());
@@ -412,6 +413,11 @@ void DrawMenu(Menu& menu) {
       ImGui::EndMenu();
     }
   }
+}
+
+bool OpenUrl(const std::string& url) {
+  // Open the url in the default browser
+  return system(("open " + url).c_str()) == 0;
 }
 
 }  // namespace gui

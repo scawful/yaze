@@ -91,6 +91,8 @@ static Menu kMainMenu;
 
 constexpr std::string kSeparator = "-";
 
+IMGUI_API bool OpenUrl(const std::string &url);
+
 }  // namespace gui
 }  // namespace yaze
 
