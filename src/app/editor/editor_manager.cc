@@ -49,18 +49,18 @@ std::string GetEditorName(EditorType type) {
   return kEditorNames[static_cast<int>(type)];
 }
 
-void DrawRomSelector(EditorManager &editor_manager) {
-  const auto &roms = editor_manager.GetRoms();
-  const Rom *current_rom = editor_manager.GetCurrentRom();
+}  // namespace
+
+void EditorManager::DrawRomSelector() {
   absl::Status status;
 
   SameLine((GetWindowWidth() / 2) - 100);
-  if (current_rom && current_rom->is_loaded()) {
-    SetNextItemWidth(GetWindowWidth() / 4);
-    if (BeginCombo("##ROMSelector", current_rom->filename().c_str())) {
-      for (const auto &rom : roms) {
-        if (MenuItem(rom->filename().c_str())) {
-          status = editor_manager.SetCurrentRom(rom.get());
+  if (current_rom_ && current_rom_->is_loaded()) {
+    SetNextItemWidth(GetWindowWidth() / 6);
+    if (BeginCombo("##ROMSelector", current_rom_->short_name().c_str())) {
+      for (const auto &rom : roms_) {
+        if (MenuItem(rom->short_name().c_str())) {
+          status = SetCurrentRom(rom.get());
         }
       }
       EndCombo();
@@ -74,7 +74,16 @@ void DrawRomSelector(EditorManager &editor_manager) {
   }
 }
 
-}  // namespace
+constexpr const char *kOverworldEditorName = ICON_MD_LAYERS " Overworld Editor";
+constexpr const char *kGraphicsEditorName = ICON_MD_PHOTO " Graphics Editor";
+constexpr const char *kPaletteEditorName = ICON_MD_PALETTE " Palette Editor";
+constexpr const char *kScreenEditorName = ICON_MD_SCREENSHOT " Screen Editor";
+constexpr const char *kSpriteEditorName = ICON_MD_SMART_TOY " Sprite Editor";
+constexpr const char *kMessageEditorName = ICON_MD_MESSAGE " Message Editor";
+constexpr const char *kSettingsEditorName = ICON_MD_SETTINGS " Settings Editor";
+constexpr const char *kAssemblyEditorName = ICON_MD_CODE " Assembly Editor";
+constexpr const char *kDungeonEditorName = ICON_MD_CASTLE " Dungeon Editor";
+constexpr const char *kMusicEditorName = ICON_MD_MUSIC_NOTE " Music Editor";
 
 void EditorManager::Initialize(const std::string &filename) {
   // Create a blank editor set
@@ -144,8 +153,9 @@ void EditorManager::Initialize(const std::string &filename) {
     recent_files.emplace_back("No Recent Files", "", nullptr);
   } else {
     for (const auto &filePath : manager.GetRecentFiles()) {
-      recent_files.emplace_back(
-          filePath, "", [filePath, this]() { status_ = OpenRomOrProject(filePath); });
+      recent_files.emplace_back(filePath, "", [filePath, this]() {
+        status_ = OpenRomOrProject(filePath);
+      });
     }
   }
 
@@ -227,34 +237,33 @@ void EditorManager::Initialize(const std::string &filename) {
        {
            {absl::StrCat(ICON_MD_HOME, " Home"), "",
             [&]() { show_homepage_ = true; }},
-           {absl::StrCat(ICON_MD_CODE, " Assembly Editor"), "",
-            [&]() { show_asm_editor_ = true; },
+           {kAssemblyEditorName, "", [&]() { show_asm_editor_ = true; },
             [&]() { return show_asm_editor_; }},
-           {absl::StrCat(ICON_MD_CASTLE, " Dungeon Editor"), "",
+           {kDungeonEditorName, "",
             [&]() { current_editor_set_->dungeon_editor_.set_active(true); },
             [&]() { return *current_editor_set_->dungeon_editor_.active(); }},
-           {absl::StrCat(ICON_MD_PHOTO, " Graphics Editor"), "",
+           {kGraphicsEditorName, "",
             [&]() { current_editor_set_->graphics_editor_.set_active(true); },
             [&]() { return *current_editor_set_->graphics_editor_.active(); }},
-           {absl::StrCat(ICON_MD_MUSIC_NOTE, " Music Editor"), "",
+           {kMusicEditorName, "",
             [&]() { current_editor_set_->music_editor_.set_active(true); },
             [&]() { return *current_editor_set_->music_editor_.active(); }},
-           {absl::StrCat(ICON_MD_LAYERS, " Overworld Editor"), "",
+           {kOverworldEditorName, "",
             [&]() { current_editor_set_->overworld_editor_.set_active(true); },
             [&]() { return *current_editor_set_->overworld_editor_.active(); }},
-           {absl::StrCat(ICON_MD_PALETTE, " Palette Editor"), "",
+           {kPaletteEditorName, "",
             [&]() { current_editor_set_->palette_editor_.set_active(true); },
             [&]() { return *current_editor_set_->palette_editor_.active(); }},
-           {absl::StrCat(ICON_MD_SCREENSHOT, " Screen Editor"), "",
+           {kScreenEditorName, "",
             [&]() { current_editor_set_->screen_editor_.set_active(true); },
             [&]() { return *current_editor_set_->screen_editor_.active(); }},
-           {absl::StrCat(ICON_MD_SMART_TOY, " Sprite Editor"), "",
+           {kSpriteEditorName, "",
             [&]() { current_editor_set_->sprite_editor_.set_active(true); },
             [&]() { return *current_editor_set_->sprite_editor_.active(); }},
-           {absl::StrCat(ICON_MD_MESSAGE, " Message Editor"), "",
+           {kMessageEditorName, "",
             [&]() { current_editor_set_->message_editor_.set_active(true); },
             [&]() { return *current_editor_set_->message_editor_.active(); }},
-           {absl::StrCat(ICON_MD_SETTINGS, " Settings Editor"), "",
+           {kSettingsEditorName, "",
             [&]() { current_editor_set_->settings_editor_.set_active(true); },
             [&]() { return *current_editor_set_->settings_editor_.active(); }},
            {gui::kSeparator, "", nullptr, []() { return true; }},
@@ -301,6 +310,17 @@ absl::Status EditorManager::Update() {
   if (current_editor_set_) {
     for (auto editor : current_editor_set_->active_editors_) {
       if (*editor->active()) {
+        if (editor->type() == EditorType::kOverworld) {
+          auto &overworld_editor = static_cast<OverworldEditor &>(*editor);
+          if (overworld_editor.jump_to_tab() != -1) {
+            current_editor_set_->dungeon_editor_.set_active(true);
+            // Set the dungeon editor to the jump to tab
+            current_editor_set_->dungeon_editor_.add_room(
+                overworld_editor.jump_to_tab());
+            overworld_editor.jump_to_tab_ = -1;
+          }
+        }
+
         if (ImGui::Begin(GetEditorName(editor->type()).c_str(),
                          editor->active())) {
           current_editor_ = editor;
@@ -337,20 +357,57 @@ void EditorManager::DrawHomepage() {
       "The editor is still in development, so please report any bugs or issues "
       "you encounter.");
 
-  if (current_rom_) {
-    TextWrapped("Current ROM: %s", current_rom_->filename().c_str());
-  } else {
+  if (!current_rom_) {
     TextWrapped("No ROM loaded.");
     if (gui::ClickableText("Open a ROM")) {
       status_ = LoadRom();
     }
-  }
-}
+    // Checkbox for loading a ROM with custom overworld flag.
+    Checkbox("Load custom overworld features",
+             &core::FeatureFlags::get().overworld.kLoadCustomOverworld);
 
-void EditorManager::DrawPopups() {
-  // This function is now handled by the PopupManager
-  // We'll keep it as a placeholder in case we need to add more popup-related
-  // functionality
+    // Recent Files list
+    TextWrapped("Recent Files");
+    static RecentFilesManager manager("recent_files.txt");
+    manager.Load();
+    for (const auto &file : manager.GetRecentFiles()) {
+      if (gui::ClickableText(file.c_str())) {
+        status_ = OpenRomOrProject(file);
+      }
+    }
+    return;
+  }
+
+  TextWrapped("Current ROM: %s", current_rom_->filename().c_str());
+
+  // Quick buttons for opening editors
+  if (Button(kOverworldEditorName)) {
+    current_editor_set_->overworld_editor_.set_active(true);
+  }
+  ImGui::SameLine();
+  if (Button(kDungeonEditorName)) {
+    current_editor_set_->dungeon_editor_.set_active(true);
+  }
+  ImGui::SameLine();
+  if (Button(kGraphicsEditorName)) {
+    current_editor_set_->graphics_editor_.set_active(true);
+  }
+  ImGui::SameLine();
+  if (Button(kPaletteEditorName)) {
+    current_editor_set_->palette_editor_.set_active(true);
+  }
+  ImGui::SameLine();
+  if (Button(kScreenEditorName)) {
+    current_editor_set_->screen_editor_.set_active(true);
+  }
+  ImGui::SameLine();
+  if (Button(kSpriteEditorName)) {
+    current_editor_set_->sprite_editor_.set_active(true);
+  }
+  ImGui::SameLine();
+  if (Button(kMessageEditorName)) {
+    current_editor_set_->message_editor_.set_active(true);
+  }
 }
 
 void EditorManager::DrawMenuBar() {
@@ -360,7 +417,7 @@ void EditorManager::DrawMenuBar() {
   if (BeginMenuBar()) {
     gui::DrawMenu(gui::kMainMenu);
 
-    DrawRomSelector(*this);
+    DrawRomSelector();
 
     SameLine(GetWindowWidth() - GetStyle().ItemSpacing.x -
              CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x - 110);
@@ -609,11 +666,12 @@ absl::Status EditorManager::SetCurrentRom(Rom *rom) {
 
     editor_sets_[rom] = std::move(editor_set);
     current_rom_ = rom;
+    SharedRom::set_rom(rom);
     RETURN_IF_ERROR(LoadAssets());
   } else {
     current_editor_set_ = it->second.get();
     current_rom_ = rom;
-    SharedRom::set_rom(rom);
+    SharedRom::set_rom(current_rom_);
   }
 
   return absl::OkStatus();
