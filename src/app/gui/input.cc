@@ -190,14 +190,38 @@ void Paragraph(const std::string& text) {
 
 // TODO: Setup themes and text/clickable colors
 bool ClickableText(const std::string& text) {
-  static auto color = ImGui::GetStyleColorVec4(ImGuiCol_Tab);
-  ImGui::TextColored(color, "%s", text.c_str());
-  if (ImGui::IsItemHovered()) {
-    color = ImGui::GetStyleColorVec4(ImGuiCol_TabHovered);
-  } else {
-    color = ImGui::GetStyleColorVec4(ImGuiCol_Tab);
+  ImGui::BeginGroup();
+  ImGui::PushID(text.c_str());
+  
+  // Calculate text size
+  ImVec2 text_size = ImGui::CalcTextSize(text.c_str());
+  
+  // Get cursor position for hover detection
+  ImVec2 pos = ImGui::GetCursorScreenPos();
+  ImRect bb(pos, ImVec2(pos.x + text_size.x, pos.y + text_size.y));
+  
+  // Add item
+  const ImGuiID id = ImGui::GetID(text.c_str());
+  bool result = false;
+  if (ImGui::ItemAdd(bb, id)) {
+    bool hovered = ImGui::IsItemHovered();
+    bool clicked = ImGui::IsItemClicked();
+    
+    // Render text with appropriate color
+    ImVec4 color = hovered ? ImGui::GetStyleColorVec4(ImGuiCol_Text)
+                          : ImGui::GetStyleColorVec4(ImGuiCol_TextLink);
+    ImGui::GetWindowDrawList()->AddText(pos, ImGui::ColorConvertFloat4ToU32(color), text.c_str());
+    
+    result = clicked;
   }
-  return ImGui::IsItemClicked();
+  
+  ImGui::PopID();
+  
+  // Advance cursor past the text
+  ImGui::Dummy(text_size);
+  ImGui::EndGroup();
+  
+  return result;
 }
 
 void ItemLabel(absl::string_view title, ItemLabelFlags flags) {
