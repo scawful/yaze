@@ -51,29 +51,6 @@ std::string GetEditorName(EditorType type) {
 
 }  // namespace
 
-void EditorManager::DrawRomSelector() {
-  absl::Status status;
-
-  SameLine((GetWindowWidth() / 2) - 100);
-  if (current_rom_ && current_rom_->is_loaded()) {
-    SetNextItemWidth(GetWindowWidth() / 6);
-    if (BeginCombo("##ROMSelector", current_rom_->short_name().c_str())) {
-      for (const auto &rom : roms_) {
-        if (MenuItem(rom->short_name().c_str())) {
-          status = SetCurrentRom(rom.get());
-        }
-      }
-      EndCombo();
-    }
-    if (!status.ok()) {
-      std::string error_message = status.message().data();
-      throw std::runtime_error(error_message);
-    }
-  } else {
-    Text("No ROM loaded");
-  }
-}
-
 constexpr const char *kOverworldEditorName = ICON_MD_LAYERS " Overworld Editor";
 constexpr const char *kGraphicsEditorName = ICON_MD_PHOTO " Graphics Editor";
 constexpr const char *kPaletteEditorName = ICON_MD_PALETTE " Palette Editor";
@@ -351,11 +328,16 @@ absl::Status EditorManager::Update() {
 void EditorManager::DrawHomepage() {
   TextWrapped("Welcome to the Yet Another Zelda3 Editor (yaze)!");
   TextWrapped(
-      "This editor is designed to be a comprehensive tool for editing the "
-      "Legend of Zelda: A Link to the Past.");
+      "Comprehensive tool for editing the Legend of Zelda: A Link to the "
+      "Past.");
   TextWrapped(
       "The editor is still in development, so please report any bugs or issues "
       "you encounter.");
+
+  // Hyperlink to github
+  if (gui::ClickableText("https://github.com/scawful/yaze")) {
+    gui::OpenUrl("https://github.com/scawful/yaze");
+  }
 
   if (!current_rom_) {
     TextWrapped("No ROM loaded.");
@@ -407,6 +389,29 @@ void EditorManager::DrawHomepage() {
   ImGui::SameLine();
   if (Button(kMessageEditorName)) {
     current_editor_set_->message_editor_.set_active(true);
+  }
+}
+
+void EditorManager::DrawRomSelector() {
+  absl::Status status;
+
+  SameLine((GetWindowWidth() / 2) - 100);
+  if (current_rom_ && current_rom_->is_loaded()) {
+    SetNextItemWidth(GetWindowWidth() / 6);
+    if (BeginCombo("##ROMSelector", current_rom_->short_name().c_str())) {
+      for (const auto &rom : roms_) {
+        if (MenuItem(rom->short_name().c_str())) {
+          status = SetCurrentRom(rom.get());
+        }
+      }
+      EndCombo();
+    }
+    if (!status.ok()) {
+      std::string error_message = status.message().data();
+      throw std::runtime_error(error_message);
+    }
+  } else {
+    Text("No ROM loaded");
   }
 }
 
@@ -544,9 +549,6 @@ absl::Status EditorManager::LoadRom() {
   manager.AddFile(file_name);
   manager.Save();
   RETURN_IF_ERROR(LoadAssets());
-
-  // Show ROM info popup after loading
-  popup_manager_->Show("ROM Information");
 
   return absl::OkStatus();
 }
