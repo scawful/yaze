@@ -225,9 +225,9 @@ class Room : public SharedRom {
 
   auto blocks() const { return blocks_; }
   auto &mutable_blocks() { return blocks_; }
-  auto layer1() const { return background_bmps_[0]; }
-  auto layer2() const { return background_bmps_[1]; }
-  auto layer3() const { return background_bmps_[2]; }
+  auto &layer1() { return background_bmps_[0]; }
+  auto &layer2() { return background_bmps_[1]; }
+  auto &layer3() { return background_bmps_[2]; }
   auto room_size() const { return room_size_; }
   auto room_size_ptr() const { return room_size_pointer_; }
   auto set_room_size(uint64_t size) { room_size_ = size; }

@@ -406,7 +406,7 @@ absl::Status GraphicsEditor::UpdateLinkGfxView() {
     for (auto& link_sheet : link_sheets_) {
       int x_offset = 0;
       int y_offset = gfx::kTilesheetHeight * i * 4;
-      link_canvas_.DrawContextMenu(&link_sheet);
+      link_canvas_.DrawContextMenu();
       link_canvas_.DrawBitmap(link_sheet, x_offset, y_offset, 4);
       i++;
     }

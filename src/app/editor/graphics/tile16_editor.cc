@@ -274,7 +274,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         TableNextColumn();
         if (BeginChild("Tile8 Selector", ImVec2(0, 0x175), true)) {
           tile8_source_canvas_.DrawBackground();
-          tile8_source_canvas_.DrawContextMenu(&current_gfx_bmp_);
+          tile8_source_canvas_.DrawContextMenu();
           if (tile8_source_canvas_.DrawTileSelector(32)) {
             RETURN_IF_ERROR(current_gfx_individual_[current_tile8_]
                                 .SetPaletteWithTransparent(ow_main_pal_group[0],
@@ -292,7 +292,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         TableNextColumn();
         if (BeginChild("Tile16 Editor", ImVec2(0, 0x175), true)) {
           tile16_edit_canvas_.DrawBackground();
-          tile16_edit_canvas_.DrawContextMenu(&current_tile16_bmp_);
+          tile16_edit_canvas_.DrawContextMenu();
           tile16_edit_canvas_.DrawBitmap(current_tile16_bmp_, 0, 0, 4.0f);
           if (!tile8_source_canvas_.points().empty()) {
             if (tile16_edit_canvas_.DrawTilePainter(

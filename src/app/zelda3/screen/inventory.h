@@ -15,11 +15,11 @@ constexpr int kBowItemPos = 0x6F631;
 
 class Inventory : public SharedRom {
  public:
-  auto Bitmap() const { return bitmap_; }
-  auto Tilesheet() const { return tilesheets_bmp_; }
-  auto Palette() const { return palette_; }
-
   absl::Status Create();
+
+  auto &bitmap() { return bitmap_; }
+  auto &tilesheet() { return tilesheets_bmp_; }
+  auto &palette() { return palette_; }
 
  private:
   absl::Status BuildTileset();
