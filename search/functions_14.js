@@ -22,9 +22,10 @@ var searchData=
   ['updatepalettecolumn_19',['UpdatePaletteColumn',['../classyaze_1_1editor_1_1GraphicsEditor.html#a1d9cb046293a6e98eee05b7ed556d058',1,'yaze::editor::GraphicsEditor']]],
   ['updatescadview_20',['UpdateScadView',['../classyaze_1_1editor_1_1GraphicsEditor.html#ab4d25d9b1d89b8fdeacde5ab989a4923',1,'yaze::editor::GraphicsEditor']]],
   ['updatetexture_21',['UpdateTexture',['../classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98',1,'yaze::gfx::Bitmap::UpdateTexture()'],['../classyaze_1_1gui_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98',1,'yaze::gui::Bitmap::UpdateTexture()']]],
-  ['updatetile16edit_22',['UpdateTile16Edit',['../classyaze_1_1editor_1_1Tile16Editor.html#a6edf31644612357ae6ec5805cdbf5d46',1,'yaze::editor::Tile16Editor']]],
-  ['updatetile16transfer_23',['UpdateTile16Transfer',['../classyaze_1_1editor_1_1Tile16Editor.html#a6c007460f179722fac22249526e7bb39',1,'yaze::editor::Tile16Editor']]],
-  ['updatetransfertilecanvas_24',['UpdateTransferTileCanvas',['../classyaze_1_1editor_1_1Tile16Editor.html#a277c8c075ae907886686d6d17e8f3028',1,'yaze::editor::Tile16Editor']]],
-  ['updateusagestats_25',['UpdateUsageStats',['../classyaze_1_1editor_1_1OverworldEditor.html#a14ae026e75243f19defc01df2f7523f2',1,'yaze::editor::OverworldEditor']]],
-  ['userroutine_26',['UserRoutine',['../structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html#a1bab4ea9f52dc3661efea0b3db41eef8',1,'yaze::editor::zsprite::UserRoutine']]]
+  ['updatetexturedata_22',['UpdateTextureData',['../classyaze_1_1gfx_1_1Bitmap.html#ae54809d052e7f6cbf3b1900d8b13686e',1,'yaze::gfx::Bitmap::UpdateTextureData()'],['../classyaze_1_1gui_1_1Bitmap.html#ae54809d052e7f6cbf3b1900d8b13686e',1,'yaze::gui::Bitmap::UpdateTextureData()']]],
+  ['updatetile16edit_23',['UpdateTile16Edit',['../classyaze_1_1editor_1_1Tile16Editor.html#a6edf31644612357ae6ec5805cdbf5d46',1,'yaze::editor::Tile16Editor']]],
+  ['updatetile16transfer_24',['UpdateTile16Transfer',['../classyaze_1_1editor_1_1Tile16Editor.html#a6c007460f179722fac22249526e7bb39',1,'yaze::editor::Tile16Editor']]],
+  ['updatetransfertilecanvas_25',['UpdateTransferTileCanvas',['../classyaze_1_1editor_1_1Tile16Editor.html#a277c8c075ae907886686d6d17e8f3028',1,'yaze::editor::Tile16Editor']]],
+  ['updateusagestats_26',['UpdateUsageStats',['../classyaze_1_1editor_1_1OverworldEditor.html#a14ae026e75243f19defc01df2f7523f2',1,'yaze::editor::OverworldEditor']]],
+  ['userroutine_27',['UserRoutine',['../structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html#a1bab4ea9f52dc3661efea0b3db41eef8',1,'yaze::editor::zsprite::UserRoutine']]]
 ];

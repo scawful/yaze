@@ -1,12 +1,12 @@
 <map id="yaze::core::Renderer::CreateAndRenderBitmap" name="yaze::core::Renderer::CreateAndRenderBitmap">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,95,176,135"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a1725878c64e66f79cecade531d14d384" title=" " alt="" coords="230,29,354,70"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a1725878c64e66f79cecade531d14d384" title="Create a bitmap with the given dimensions and data." alt="" coords="230,29,354,70"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,92,215,72,216,77,156,97"/>
 <area shape="rect" id="Node000007" href="$classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Used to render a bitmap to the screen." alt="" coords="224,95,360,135"/>
 <area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="176,112,208,112,208,118,176,118"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1gfx_1_1Bitmap.html#a5ae3d83307b41dede2f2ac1c508fae40" title="Copy color data from the SnesPalette into the SDL_Palette." alt="" coords="230,160,354,201"/>
-<area shape="poly" id="edge5_Node000001_Node000009" title=" " alt="" coords="156,133,216,153,215,158,154,138"/>
+<area shape="rect" id="Node000015" href="$classyaze_1_1gfx_1_1Bitmap.html#a5ae3d83307b41dede2f2ac1c508fae40" title="Set the palette for the bitmap." alt="" coords="230,160,354,201"/>
+<area shape="poly" id="edge5_Node000001_Node000015" title=" " alt="" coords="156,133,216,153,215,158,154,138"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="255,29,254,19,260,10,273,5,292,3,313,5,325,11,323,16,311,10,292,8,274,10,263,15,259,20,261,28"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#aceb05ea27e2f1a75c24af5e291956af2" title=" " alt="" coords="408,37,556,62"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a0275436efca736b00dfa4c0ce43e8068" title=" " alt="" coords="408,37,556,62"/>
 <area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="354,47,392,47,392,52,354,52"/>
 </map>

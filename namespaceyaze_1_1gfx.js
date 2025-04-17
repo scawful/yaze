@@ -1,8 +1,5 @@
 var namespaceyaze_1_1gfx =
 [
-    [ "anonymous_namespace{bitmap.cc}", "namespaceyaze_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html", [
-      [ "GetSnesPixelFormat", "namespaceyaze_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#ab86b8c83503ac2af4970abf58fededad", null ]
-    ] ],
     [ "lc_lz2", "namespaceyaze_1_1gfx_1_1lc__lz2.html", "namespaceyaze_1_1gfx_1_1lc__lz2" ],
     [ "palette_group_internal", "namespaceyaze_1_1gfx_1_1palette__group__internal.html", [
       [ "LoadOverworldMainPalettes", "namespaceyaze_1_1gfx_1_1palette__group__internal.html#a3ff7a51ca45527d27ec3e38abd2b9985", null ],
@@ -31,9 +28,9 @@ var namespaceyaze_1_1gfx =
     [ "PaletteGroupMap", "structyaze_1_1gfx_1_1PaletteGroupMap.html", "structyaze_1_1gfx_1_1PaletteGroupMap" ],
     [ "Paletteset", "structyaze_1_1gfx_1_1Paletteset.html", "structyaze_1_1gfx_1_1Paletteset" ],
     [ "SDL_Surface_Deleter", "structyaze_1_1gfx_1_1SDL__Surface__Deleter.html", "structyaze_1_1gfx_1_1SDL__Surface__Deleter" ],
-    [ "SDL_Texture_Deleter", "structyaze_1_1gfx_1_1SDL__Texture__Deleter.html", "structyaze_1_1gfx_1_1SDL__Texture__Deleter" ],
     [ "SnesColor", "classyaze_1_1gfx_1_1SnesColor.html", "classyaze_1_1gfx_1_1SnesColor" ],
     [ "SnesPalette", "classyaze_1_1gfx_1_1SnesPalette.html", "classyaze_1_1gfx_1_1SnesPalette" ],
+    [ "TexturePool", "classyaze_1_1gfx_1_1TexturePool.html", "classyaze_1_1gfx_1_1TexturePool" ],
     [ "Tile16", "classyaze_1_1gfx_1_1Tile16.html", "classyaze_1_1gfx_1_1Tile16" ],
     [ "Tile32", "classyaze_1_1gfx_1_1Tile32.html", "classyaze_1_1gfx_1_1Tile32" ],
     [ "TileInfo", "classyaze_1_1gfx_1_1TileInfo.html", "classyaze_1_1gfx_1_1TileInfo" ],
@@ -65,6 +62,10 @@ var namespaceyaze_1_1gfx =
       [ "Tile8", "namespaceyaze_1_1gfx.html#a54c082e1b81bacbccd15286f5e07a8b0af741ccc3c4a5d5202699b366e0b822a5", null ],
       [ "Tile16", "namespaceyaze_1_1gfx.html#a54c082e1b81bacbccd15286f5e07a8b0a0136ed56bdc945f798e3b2ff271ba011", null ]
     ] ],
+    [ "GetSnesPixelFormat", "namespaceyaze_1_1gfx.html#a88d0646ee27ae9755070c4e936cb36bf", null ],
+    [ "AllocateSurface", "namespaceyaze_1_1gfx.html#a939f49a733491cd8022311c93353dceb", null ],
+    [ "AllocateTexture", "namespaceyaze_1_1gfx.html#a56a0a1b924702a7a25f5790149303869", null ],
+    [ "ExtractTile8Bitmaps", "namespaceyaze_1_1gfx.html#a925eafe7aab166b9775f6ad74a11fea0", null ],
     [ "HyruleMagicCompress", "namespaceyaze_1_1gfx.html#ac740e607dcc76bf2c18076778ee5b4ef", null ],
     [ "HyruleMagicDecompress", "namespaceyaze_1_1gfx.html#a21be514360ade54dad0e52c660a3ced6", null ],
     [ "FindMetastamp", "namespaceyaze_1_1gfx.html#a7df1f6daec091cef8cf2cfef3a0c7aeb", null ],

@@ -2313,7 +2313,7 @@ var searchData=
   ['irq_5fcondition_5f_2310',['irq_condition_',['../classyaze_1_1emu_1_1Snes.html#a42c3c926b614cd53a4617ae6f697e479',1,'yaze::emu::Snes']]],
   ['irq_5fwanted_5f_2311',['irq_wanted_',['../classyaze_1_1emu_1_1Cpu.html#ac1180869a2a79a496c2fbfaf05990484',1,'yaze::emu::Cpu::irq_wanted_'],['../classyaze_1_1test_1_1Cpu.html#ac1180869a2a79a496c2fbfaf05990484',1,'yaze::test::Cpu::irq_wanted_']]],
   ['irqregister_2312',['irqRegister',['../structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#a45cc40eebdf3b9c2d3d8faed04d84a84',1,'yaze::emu::CounterIrqNmiRegisters']]],
-  ['is_5factive_2313',['is_active',['../classyaze_1_1gfx_1_1Bitmap.html#ab92b283c444d5557f7370bae112a12b1',1,'yaze::gfx::Bitmap::is_active()'],['../classyaze_1_1gui_1_1Bitmap.html#ab92b283c444d5557f7370bae112a12b1',1,'yaze::gui::Bitmap::is_active()']]],
+  ['is_5factive_2313',['is_active',['../classyaze_1_1gfx_1_1Bitmap.html#a5df0c9b0c6a7368e87893881c176c919',1,'yaze::gfx::Bitmap::is_active()'],['../classyaze_1_1gui_1_1Bitmap.html#a5df0c9b0c6a7368e87893881c176c919',1,'yaze::gui::Bitmap::is_active()']]],
   ['is_5fautomatic_5f_2314',['is_automatic_',['../classyaze_1_1zelda3_1_1OverworldExit.html#ab4e617715c6602b8324c8f609bef143f',1,'yaze::zelda3::OverworldExit']]],
   ['is_5fdark_5f_2315',['is_dark_',['../classyaze_1_1zelda3_1_1Room.html#a9be733571372a3bef14ea054449a9559',1,'yaze::zelda3::Room']]],
   ['is_5fdragging_5fentity_5f_2316',['is_dragging_entity_',['../classyaze_1_1editor_1_1OverworldEditor.html#a6a201790dc53e63c91e1725826b60b12',1,'yaze::editor::OverworldEditor']]],

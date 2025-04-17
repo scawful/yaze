@@ -122,8 +122,6 @@ $(function(){initNavTree('namespaceyaze_1_1gfx.html',''); initResizable(true); }
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html">anonymous_namespace{bitmap.cc}</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx_1_1lc__lz2.html">lc_lz2</a></td></tr>
 <tr class="memdesc:namespaceyaze_1_1gfx_1_1lc__lz2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains the LC_LZ2 compression algorithm. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -160,13 +158,13 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1gfx_1_1SDL__Surface__Deleter.html">SDL_Surface_Deleter</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1gfx_1_1SDL__Texture__Deleter.html">SDL_Texture_Deleter</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">SNES Color container.  <a href="classyaze_1_1gfx_1_1SnesColor.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">SnesPalette</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents a palette of colors for the Super Nintendo Entertainment System (SNES).  <a href="classyaze_1_1gfx_1_1SnesPalette.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1gfx_1_1TexturePool.html">TexturePool</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1gfx_1_1Tile16.html">Tile16</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tile composition of four 8x8 tiles.  <a href="classyaze_1_1gfx_1_1Tile16.html#details">More...</a><br /></td></tr>
@@ -222,6 +220,18 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a88d0646ee27ae9755070c4e936cb36bf" id="r_a88d0646ee27ae9755070c4e936cb36bf"><td class="memItemLeft" align="right" valign="top">Uint32&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a88d0646ee27ae9755070c4e936cb36bf">GetSnesPixelFormat</a> (int format)</td></tr>
+<tr class="memdesc:a88d0646ee27ae9755070c4e936cb36bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the SDL pixel format for a given bitmap format.  <br /></td></tr>
+<tr class="separator:a88d0646ee27ae9755070c4e936cb36bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a939f49a733491cd8022311c93353dceb" id="r_a939f49a733491cd8022311c93353dceb"><td class="memItemLeft" align="right" valign="top">SDL_Surface *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a939f49a733491cd8022311c93353dceb">AllocateSurface</a> (int width, int height, int depth, Uint32 format)</td></tr>
+<tr class="memdesc:a939f49a733491cd8022311c93353dceb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocate an SDL surface with the given dimensions and format.  <br /></td></tr>
+<tr class="separator:a939f49a733491cd8022311c93353dceb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a56a0a1b924702a7a25f5790149303869" id="r_a56a0a1b924702a7a25f5790149303869"><td class="memItemLeft" align="right" valign="top">SDL_Texture *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a56a0a1b924702a7a25f5790149303869">AllocateTexture</a> (SDL_Renderer *renderer, Uint32 format, int access, int width, int height)</td></tr>
+<tr class="memdesc:a56a0a1b924702a7a25f5790149303869"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocate an SDL texture with the given dimensions and format.  <br /></td></tr>
+<tr class="separator:a56a0a1b924702a7a25f5790149303869"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a925eafe7aab166b9775f6ad74a11fea0" id="r_a925eafe7aab166b9775f6ad74a11fea0"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a925eafe7aab166b9775f6ad74a11fea0">ExtractTile8Bitmaps</a> (const <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &amp;source_bmp, const <a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette, uint8_t palette_index)</td></tr>
+<tr class="memdesc:a925eafe7aab166b9775f6ad74a11fea0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extract 8x8 tiles from a source bitmap.  <br /></td></tr>
+<tr class="separator:a925eafe7aab166b9775f6ad74a11fea0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac740e607dcc76bf2c18076778ee5b4ef" id="r_ac740e607dcc76bf2c18076778ee5b4ef"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac740e607dcc76bf2c18076778ee5b4ef">HyruleMagicCompress</a> (uint8_t const *const src, int const oldsize, int *const size, int const flag)</td></tr>
 <tr class="separator:ac740e607dcc76bf2c18076778ee5b4ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a21be514360ade54dad0e52c660a3ced6" id="r_a21be514360ade54dad0e52c660a3ced6"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a21be514360ade54dad0e52c660a3ced6">HyruleMagicDecompress</a> (uint8_t const *src, int *const size, int const p_big_endian)</td></tr>
@@ -451,7 +461,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00188">188</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00256">256</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
 </div>
 </div>
@@ -539,6 +549,191 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a88d0646ee27ae9755070c4e936cb36bf" name="a88d0646ee27ae9755070c4e936cb36bf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a88d0646ee27ae9755070c4e936cb36bf">&#9670;&#160;</a></span>GetSnesPixelFormat()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Uint32 yaze::gfx::GetSnesPixelFormat </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>format</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the SDL pixel format for a given bitmap format. </p>
+
+<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00190">190</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="bitmap_8h_source.html#l00027">SNES_PIXELFORMAT_2BPP</a>, <a class="el" href="bitmap_8h_source.html#l00031">SNES_PIXELFORMAT_4BPP</a>, and <a class="el" href="bitmap_8h_source.html#l00035">SNES_PIXELFORMAT_8BPP</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00270">yaze::gfx::Bitmap::Create()</a>, and <a class="el" href="bitmap_8cc_source.html#l00302">yaze::gfx::Bitmap::Reformat()</a>.</p>
+
+</div>
+</div>
+<a id="a939f49a733491cd8022311c93353dceb" name="a939f49a733491cd8022311c93353dceb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a939f49a733491cd8022311c93353dceb">&#9670;&#160;</a></span>AllocateSurface()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">SDL_Surface * yaze::gfx::AllocateSurface </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>width</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>height</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>depth</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Uint32</td>          <td class="paramname"><span class="paramname"><em>format</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Allocate an SDL surface with the given dimensions and format. </p>
+
+<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00205">205</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="memory__tracker_8h_source.html#l00016">yaze::core::MemoryTracker::GetInstance()</a>, and <a class="el" href="memory__tracker_8h_source.html#l00021">yaze::core::MemoryTracker::TrackAllocation()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00270">yaze::gfx::Bitmap::Create()</a>, and <a class="el" href="bitmap_8cc_source.html#l00302">yaze::gfx::Bitmap::Reformat()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="namespaceyaze_1_1gfx_a939f49a733491cd8022311c93353dceb_cgraph.png" border="0" usemap="#anamespaceyaze_1_1gfx_a939f49a733491cd8022311c93353dceb_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1gfx_a939f49a733491cd8022311c93353dceb_cgraph" id="anamespaceyaze_1_1gfx_a939f49a733491cd8022311c93353dceb_cgraph">
+<area shape="rect" title="Allocate an SDL surface with the given dimensions and format." alt="" coords="5,46,174,72"/>
+<area shape="rect" href="classyaze_1_1core_1_1MemoryTracker.html#a2ed8fd12acc21dc17b9f1719a41a7b0d" title=" " alt="" coords="222,5,396,46"/>
+<area shape="poly" title=" " alt="" coords="174,44,206,39,207,44,174,49"/>
+<area shape="rect" href="classyaze_1_1core_1_1MemoryTracker.html#ae0519026f74dcbb4f7e32122f39b02cf" title=" " alt="" coords="222,71,396,111"/>
+<area shape="poly" title=" " alt="" coords="174,69,207,73,206,79,174,74"/>
+<area shape="rect" href="classyaze_1_1core_1_1MemoryTracker.html#a5c8899aa70e94512c4327d87ac4a9e57" title=" " alt="" coords="444,5,618,46"/>
+<area shape="poly" title=" " alt="" coords="396,23,428,23,428,28,396,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a56a0a1b924702a7a25f5790149303869" name="a56a0a1b924702a7a25f5790149303869"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a56a0a1b924702a7a25f5790149303869">&#9670;&#160;</a></span>AllocateTexture()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">SDL_Texture * yaze::gfx::AllocateTexture </td>
+          <td>(</td>
+          <td class="paramtype">SDL_Renderer *</td>          <td class="paramname"><span class="paramname"><em>renderer</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Uint32</td>          <td class="paramname"><span class="paramname"><em>format</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>access</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>width</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>height</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Allocate an SDL texture with the given dimensions and format. </p>
+
+<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00216">216</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="memory__tracker_8h_source.html#l00016">yaze::core::MemoryTracker::GetInstance()</a>, and <a class="el" href="memory__tracker_8h_source.html#l00021">yaze::core::MemoryTracker::TrackAllocation()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="namespaceyaze_1_1gfx_a56a0a1b924702a7a25f5790149303869_cgraph.png" border="0" usemap="#anamespaceyaze_1_1gfx_a56a0a1b924702a7a25f5790149303869_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1gfx_a56a0a1b924702a7a25f5790149303869_cgraph" id="anamespaceyaze_1_1gfx_a56a0a1b924702a7a25f5790149303869_cgraph">
+<area shape="rect" title="Allocate an SDL texture with the given dimensions and format." alt="" coords="5,46,172,72"/>
+<area shape="rect" href="classyaze_1_1core_1_1MemoryTracker.html#a2ed8fd12acc21dc17b9f1719a41a7b0d" title=" " alt="" coords="220,5,394,46"/>
+<area shape="poly" title=" " alt="" coords="172,44,204,39,205,44,172,49"/>
+<area shape="rect" href="classyaze_1_1core_1_1MemoryTracker.html#ae0519026f74dcbb4f7e32122f39b02cf" title=" " alt="" coords="220,71,394,111"/>
+<area shape="poly" title=" " alt="" coords="172,69,205,73,204,79,172,74"/>
+<area shape="rect" href="classyaze_1_1core_1_1MemoryTracker.html#a5c8899aa70e94512c4327d87ac4a9e57" title=" " alt="" coords="442,5,616,46"/>
+<area shape="poly" title=" " alt="" coords="394,23,426,23,426,28,394,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a925eafe7aab166b9775f6ad74a11fea0" name="a925eafe7aab166b9775f6ad74a11fea0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a925eafe7aab166b9775f6ad74a11fea0">&#9670;&#160;</a></span>ExtractTile8Bitmaps()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &gt; yaze::gfx::ExtractTile8Bitmaps </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>source_bmp</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>palette</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>palette_index</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Extract 8x8 tiles from a source bitmap. </p>
+
+<p class="definition">Definition at line <a class="el" href="bitmap_8cc_source.html#l00601">601</a> of file <a class="el" href="bitmap_8cc_source.html">bitmap.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00260">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="bitmap_8h_source.html#l00202">yaze::gfx::Bitmap::data()</a>, <a class="el" href="bitmap_8cc_source.html#l00461">yaze::gfx::Bitmap::SetPaletteWithTransparent()</a>, and <a class="el" href="bitmap_8h_source.html#l00198">yaze::gfx::Bitmap::width()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="namespaceyaze_1_1gfx_a925eafe7aab166b9775f6ad74a11fea0_cgraph.png" border="0" usemap="#anamespaceyaze_1_1gfx_a925eafe7aab166b9775f6ad74a11fea0_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1gfx_a925eafe7aab166b9775f6ad74a11fea0_cgraph" id="anamespaceyaze_1_1gfx_a925eafe7aab166b9775f6ad74a11fea0_cgraph">
+<area shape="rect" title="Extract 8x8 tiles from a source bitmap." alt="" coords="5,89,198,115"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a1725878c64e66f79cecade531d14d384" title="Create a bitmap with the given dimensions and data." alt="" coords="273,52,396,93"/>
+<area shape="poly" title=" " alt="" coords="197,87,257,80,258,85,198,93"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a0275436efca736b00dfa4c0ce43e8068" title=" " alt="" coords="471,32,619,57"/>
+<area shape="poly" title=" " alt="" coords="117,86,171,48,207,29,245,14,309,4,374,5,435,13,487,25,486,30,434,18,374,10,309,9,246,19,209,33,174,53,120,91"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="484,82,607,122"/>
+<area shape="poly" title=" " alt="" coords="198,101,246,102,423,102,468,101,468,107,423,107,246,107,198,107"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#ad987c7d51d886293fbd3d46cece825a4" title="Set the palette with a transparent color." alt="" coords="246,167,423,208"/>
+<area shape="poly" title=" " alt="" coords="140,113,264,159,262,164,138,118"/>
+<area shape="poly" title=" " alt="" coords="294,52,292,42,299,33,313,28,334,26,357,28,371,34,369,39,356,33,334,31,314,33,302,38,298,43,300,51"/>
+<area shape="poly" title=" " alt="" coords="396,62,455,54,456,59,397,67"/>
+<area shape="poly" title=" " alt="" coords="397,79,468,89,468,94,396,84"/>
+</map>
+</div>
+
+</div>
+</div>
 <a id="ac740e607dcc76bf2c18076778ee5b4ef" name="ac740e607dcc76bf2c18076778ee5b4ef"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac740e607dcc76bf2c18076778ee5b4ef">&#9670;&#160;</a></span>HyruleMagicCompress()</h2>
 
@@ -900,7 +1095,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="incl_2snes_8h_source.html#l00016">snes_color::blue</a>, <a class="el" href="incl_2snes_8h_source.html#l00017">snes_color::green</a>, <a class="el" href="incl_2snes_8h_source.html#l00015">snes_color::red</a>, <a class="el" href="snes__color_8cc_source.html#l00017">SNES_BLUE_SHIFT</a>, and <a class="el" href="snes__color_8cc_source.html#l00016">SNES_GREEN_SHIFT</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="snes__color_8cc_source.html#l00069">Convert()</a>, <a class="el" href="snes__color_8cc_source.html#l00040">ConvertRgbToSnes()</a>, <a class="el" href="palette__editor_8cc_source.html#l00410">yaze::editor::PaletteEditor::HandleColorPopup()</a>, <a class="el" href="snes__palette_8cc_source.html#l00269">ReadPaletteFromRom()</a>, <a class="el" href="snes__color_8h_source.html#l00069">yaze::gfx::SnesColor::set_rgb()</a>, <a class="el" href="snes__color_8h_source.html#l00041">yaze::gfx::SnesColor::SnesColor()</a>, <a class="el" href="snes__color_8h_source.html#l00052">yaze::gfx::SnesColor::SnesColor()</a>, <a class="el" href="snes__color_8h_source.html#l00057">yaze::gfx::SnesColor::SnesColor()</a>, <a class="el" href="color_8cc_source.html#l00036">yaze::gui::SnesColorEdit4()</a>, <a class="el" href="snes__palette_8cc_source.html#l00255">yaze::gfx::SnesPalette::SnesPalette()</a>, and <a class="el" href="bitmap_8cc_source.html#l00466">yaze::gfx::Bitmap::WriteColor()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="snes__color_8cc_source.html#l00069">Convert()</a>, <a class="el" href="snes__color_8cc_source.html#l00040">ConvertRgbToSnes()</a>, <a class="el" href="palette__editor_8cc_source.html#l00410">yaze::editor::PaletteEditor::HandleColorPopup()</a>, <a class="el" href="snes__palette_8cc_source.html#l00269">ReadPaletteFromRom()</a>, <a class="el" href="snes__color_8h_source.html#l00069">yaze::gfx::SnesColor::set_rgb()</a>, <a class="el" href="snes__color_8h_source.html#l00041">yaze::gfx::SnesColor::SnesColor()</a>, <a class="el" href="snes__color_8h_source.html#l00052">yaze::gfx::SnesColor::SnesColor()</a>, <a class="el" href="snes__color_8h_source.html#l00057">yaze::gfx::SnesColor::SnesColor()</a>, <a class="el" href="color_8cc_source.html#l00036">yaze::gui::SnesColorEdit4()</a>, <a class="el" href="snes__palette_8cc_source.html#l00255">yaze::gfx::SnesPalette::SnesPalette()</a>, and <a class="el" href="bitmap_8cc_source.html#l00521">yaze::gfx::Bitmap::WriteColor()</a>.</p>
 
 </div>
 </div>
@@ -1787,7 +1982,7 @@ Here is the call graph for this function:</div>
 </div><!-- fragment -->
 <p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00027">27</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00195">yaze::gfx::anonymous_namespace{bitmap.cc}::GetSnesPixelFormat()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00190">GetSnesPixelFormat()</a>.</p>
 
 </div>
 </div>
@@ -1816,7 +2011,7 @@ Here is the call graph for this function:</div>
 </div><!-- fragment -->
 <p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00031">31</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00195">yaze::gfx::anonymous_namespace{bitmap.cc}::GetSnesPixelFormat()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00190">GetSnesPixelFormat()</a>.</p>
 
 </div>
 </div>
@@ -1845,7 +2040,7 @@ Here is the call graph for this function:</div>
 </div><!-- fragment -->
 <p class="definition">Definition at line <a class="el" href="bitmap_8h_source.html#l00035">35</a> of file <a class="el" href="bitmap_8h_source.html">bitmap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00195">yaze::gfx::anonymous_namespace{bitmap.cc}::GetSnesPixelFormat()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="bitmap_8cc_source.html#l00190">GetSnesPixelFormat()</a>.</p>
 
 </div>
 </div>

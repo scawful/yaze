@@ -111,6 +111,7 @@ $(function(){initNavTree('bitmap_8h.html',''); initResizable(true); });
 <a href="#namespaces">Namespaces</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#enum-members">Enumerations</a> &#124;
+<a href="#func-members">Functions</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">bitmap.h File Reference</div></div>
 </div><!--header-->
@@ -119,10 +120,10 @@ $(function(){initNavTree('bitmap_8h.html',''); initResizable(true); });
 <code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
 <code>#include &lt;span&gt;</code><br />
+<code>#include &lt;string_view&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;absl/status/status.h&quot;</code><br />
-<code>#include &quot;<a class="el" href="sdl__deleter_8h_source.html">app/core/platform/sdl_deleter.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="snes__palette_8h_source.html">app/gfx/snes_palette.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="macro_8h_source.html">util/macro.h</a>&quot;</code><br />
 </div>
 <p><a href="bitmap_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -154,6 +155,21 @@ Enumerations</h2></td></tr>
 , <a class="el" href="namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baa826db0251f792f5763b484b7abb96fbb">yaze::gfx::k8bpp</a> = 3
  }</td></tr>
 <tr class="separator:a2dbad3152b14109b6d797128f9c2c3ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:a925eafe7aab166b9775f6ad74a11fea0" id="r_a925eafe7aab166b9775f6ad74a11fea0"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a925eafe7aab166b9775f6ad74a11fea0">yaze::gfx::ExtractTile8Bitmaps</a> (const <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &amp;source_bmp, const <a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette, uint8_t palette_index)</td></tr>
+<tr class="memdesc:a925eafe7aab166b9775f6ad74a11fea0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extract 8x8 tiles from a source bitmap.  <br /></td></tr>
+<tr class="separator:a925eafe7aab166b9775f6ad74a11fea0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a88d0646ee27ae9755070c4e936cb36bf" id="r_a88d0646ee27ae9755070c4e936cb36bf"><td class="memItemLeft" align="right" valign="top">Uint32&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a88d0646ee27ae9755070c4e936cb36bf">yaze::gfx::GetSnesPixelFormat</a> (int format)</td></tr>
+<tr class="memdesc:a88d0646ee27ae9755070c4e936cb36bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the SDL pixel format for a given bitmap format.  <br /></td></tr>
+<tr class="separator:a88d0646ee27ae9755070c4e936cb36bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a939f49a733491cd8022311c93353dceb" id="r_a939f49a733491cd8022311c93353dceb"><td class="memItemLeft" align="right" valign="top">SDL_Surface *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a939f49a733491cd8022311c93353dceb">yaze::gfx::AllocateSurface</a> (int width, int height, int depth, Uint32 format)</td></tr>
+<tr class="memdesc:a939f49a733491cd8022311c93353dceb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocate an SDL surface with the given dimensions and format.  <br /></td></tr>
+<tr class="separator:a939f49a733491cd8022311c93353dceb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a56a0a1b924702a7a25f5790149303869" id="r_a56a0a1b924702a7a25f5790149303869"><td class="memItemLeft" align="right" valign="top">SDL_Texture *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a56a0a1b924702a7a25f5790149303869">yaze::gfx::AllocateTexture</a> (SDL_Renderer *renderer, Uint32 format, int access, int width, int height)</td></tr>
+<tr class="memdesc:a56a0a1b924702a7a25f5790149303869"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocate an SDL texture with the given dimensions and format.  <br /></td></tr>
+<tr class="separator:a56a0a1b924702a7a25f5790149303869"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>

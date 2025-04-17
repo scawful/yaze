@@ -75,5 +75,6 @@ var searchData=
   ['auto_5fjoy_5fread_5f_72',['auto_joy_read_',['../classyaze_1_1emu_1_1Snes.html#aa83090e72f5a579aeff5f2654137264c',1,'yaze::emu::Snes']]],
   ['auto_5fjoy_5ftimer_5f_73',['auto_joy_timer_',['../classyaze_1_1emu_1_1Snes.html#aeb05e0df6d3b942d8ea412fb08501f30',1,'yaze::emu::Snes']]],
   ['aux1_74',['aux1',['../structyaze_1_1gfx_1_1Paletteset.html#a72aadefb5901777ae333bbd37451f92e',1,'yaze::gfx::Paletteset']]],
-  ['aux2_75',['aux2',['../structyaze_1_1gfx_1_1Paletteset.html#a931ee06cebd5114a00b9128c994a2f8c',1,'yaze::gfx::Paletteset']]]
+  ['aux2_75',['aux2',['../structyaze_1_1gfx_1_1Paletteset.html#a931ee06cebd5114a00b9128c994a2f8c',1,'yaze::gfx::Paletteset']]],
+  ['available_5ftextures_5f_76',['available_textures_',['../classyaze_1_1gfx_1_1TexturePool.html#af859775164a830c06d858515fa49fad7',1,'yaze::gfx::TexturePool']]]
 ];

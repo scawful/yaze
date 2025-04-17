@@ -238,7 +238,6 @@ var hierarchy =
     [ "yaze::core::SDL_Surface_Deleter", "structyaze_1_1core_1_1SDL__Surface__Deleter.html", null ],
     [ "yaze::gfx::SDL_Surface_Deleter", "structyaze_1_1gfx_1_1SDL__Surface__Deleter.html", null ],
     [ "yaze::core::SDL_Texture_Deleter", "structyaze_1_1core_1_1SDL__Texture__Deleter.html", null ],
-    [ "yaze::gfx::SDL_Texture_Deleter", "structyaze_1_1gfx_1_1SDL__Texture__Deleter.html", null ],
     [ "yaze::emu::SETINI", "structyaze_1_1emu_1_1SETINI.html", null ],
     [ "yaze::SharedRom", "classyaze_1_1SharedRom.html", [
       [ "yaze::editor::GfxGroupEditor", "classyaze_1_1editor_1_1GfxGroupEditor.html", null ],
@@ -303,6 +302,7 @@ var hierarchy =
     [ "yaze::editor::MessageEditor::TextBox", "structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html", null ],
     [ "TextEditor", "classTextEditor.html", null ],
     [ "yaze::editor::TextElement", "structyaze_1_1editor_1_1TextElement.html", null ],
+    [ "yaze::gfx::TexturePool", "classyaze_1_1gfx_1_1TexturePool.html", null ],
     [ "yaze::gui::Theme", "structyaze_1_1gui_1_1Theme.html", null ],
     [ "yaze::emu::Tile", "structyaze_1_1emu_1_1Tile.html", null ],
     [ "yaze::gfx::Tile16", "classyaze_1_1gfx_1_1Tile16.html", null ],

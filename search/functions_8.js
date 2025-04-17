@@ -43,7 +43,7 @@ var searchData=
   ['invalid_40',['Invalid',['../structTextEditor_1_1Coordinates.html#a6c23a0c892c1f905985dc069b9b6def1',1,'TextEditor::Coordinates']]],
   ['inx_41',['INX',['../classyaze_1_1emu_1_1Cpu.html#a80631a780ddf4d2b9efb32e236b447dd',1,'yaze::emu::Cpu::INX()'],['../classyaze_1_1test_1_1Cpu.html#a80631a780ddf4d2b9efb32e236b447dd',1,'yaze::test::Cpu::INX()']]],
   ['iny_42',['INY',['../classyaze_1_1emu_1_1Cpu.html#a83b8640e1a6f8118d2db24297a7e2370',1,'yaze::emu::Cpu::INY()'],['../classyaze_1_1test_1_1Cpu.html#a83b8640e1a6f8118d2db24297a7e2370',1,'yaze::test::Cpu::INY()']]],
-  ['is_5factive_43',['is_active',['../classyaze_1_1gfx_1_1Bitmap.html#ab92b283c444d5557f7370bae112a12b1',1,'yaze::gfx::Bitmap::is_active()'],['../classyaze_1_1gui_1_1Bitmap.html#ab92b283c444d5557f7370bae112a12b1',1,'yaze::gui::Bitmap::is_active()']]],
+  ['is_5factive_43',['is_active',['../classyaze_1_1gfx_1_1Bitmap.html#a5df0c9b0c6a7368e87893881c176c919',1,'yaze::gfx::Bitmap::is_active()'],['../classyaze_1_1gui_1_1Bitmap.html#a5df0c9b0c6a7368e87893881c176c919',1,'yaze::gui::Bitmap::is_active()']]],
   ['is_5finitialized_44',['is_initialized',['../classyaze_1_1zelda3_1_1OverworldMap.html#a69a70946acbf5e7afc940fea274eca61',1,'yaze::zelda3::OverworldMap']]],
   ['is_5flarge_5fmap_45',['is_large_map',['../classyaze_1_1zelda3_1_1OverworldMap.html#a18e1d932c058a79b861fb4aa2a483b33',1,'yaze::zelda3::OverworldMap']]],
   ['is_5floaded_46',['is_loaded',['../classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d',1,'yaze::Rom::is_loaded()'],['../classyaze_1_1zelda3_1_1Overworld.html#a5dc17d2e3e85d5774af6d8fdf25d3e81',1,'yaze::zelda3::Overworld::is_loaded()'],['../classyaze_1_1test_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d',1,'yaze::test::Rom::is_loaded()']]],

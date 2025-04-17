@@ -114,13 +114,16 @@ $(function(){initNavTree('classyaze_1_1zelda3_1_1DungeonObjectRenderer.html','')
 </div><!--header-->
 <div class="contents">
 
+<p>Renders dungeon objects from Link to the Past.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for yaze::zelda3::DungeonObjectRenderer:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1zelda3_1_1DungeonObjectRenderer__inherit__graph.png" border="0" usemap="#ayaze_1_1zelda3_1_1DungeonObjectRenderer_inherit__map" alt="Inheritance graph"/></div>
 <map name="ayaze_1_1zelda3_1_1DungeonObjectRenderer_inherit__map" id="ayaze_1_1zelda3_1_1DungeonObjectRenderer_inherit__map">
-<area shape="rect" title=" " alt="" coords="5,79,191,120"/>
+<area shape="rect" title="Renders dungeon objects from Link to the Past." alt="" coords="5,79,191,120"/>
 <area shape="rect" href="classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="37,5,159,31"/>
 <area shape="poly" title=" " alt="" coords="101,46,101,79,95,79,95,46"/>
 </map>
@@ -131,18 +134,28 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a9b84e2aad4f890c741ae479907808c59" id="r_a9b84e2aad4f890c741ae479907808c59"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9b84e2aad4f890c741ae479907808c59">DungeonObjectRenderer</a> ()=default</td></tr>
 <tr class="separator:a9b84e2aad4f890c741ae479907808c59"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af60e781ae54ba837ee5e49780b416aac" id="r_af60e781ae54ba837ee5e49780b416aac"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af60e781ae54ba837ee5e49780b416aac">LoadObject</a> (uint32_t routine_ptr, std::array&lt; uint8_t, 16 &gt; &amp;sheet_ids)</td></tr>
+<tr class="memdesc:af60e781ae54ba837ee5e49780b416aac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads and renders a dungeon object.  <br /></td></tr>
 <tr class="separator:af60e781ae54ba837ee5e49780b416aac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afee3308c7846f91798b3add9b90518dc" id="r_afee3308c7846f91798b3add9b90518dc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afee3308c7846f91798b3add9b90518dc">ConfigureObject</a> ()</td></tr>
+<tr class="memdesc:afee3308c7846f91798b3add9b90518dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configures the CPU state for object rendering.  <br /></td></tr>
 <tr class="separator:afee3308c7846f91798b3add9b90518dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6854e9626ddccf657b77cd740f13f1f9" id="r_a6854e9626ddccf657b77cd740f13f1f9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6854e9626ddccf657b77cd740f13f1f9">RenderObject</a> (uint32_t routine_ptr)</td></tr>
+<tr class="memdesc:a6854e9626ddccf657b77cd740f13f1f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes the object drawing routine.  <br /></td></tr>
 <tr class="separator:a6854e9626ddccf657b77cd740f13f1f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4dac73e88a86e0159959407fb13ebfa0" id="r_a4dac73e88a86e0159959407fb13ebfa0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4dac73e88a86e0159959407fb13ebfa0">UpdateObjectBitmap</a> ()</td></tr>
+<tr class="memdesc:a4dac73e88a86e0159959407fb13ebfa0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates the bitmap with the rendered object.  <br /></td></tr>
 <tr class="separator:a4dac73e88a86e0159959407fb13ebfa0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca12d8b5f223b8b55024dcc514c21768" id="r_aca12d8b5f223b8b55024dcc514c21768"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aca12d8b5f223b8b55024dcc514c21768">SetPalette</a> (const <a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette, size_t transparent_index=0)</td></tr>
+<tr class="memdesc:aca12d8b5f223b8b55024dcc514c21768"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the palette for the rendered object.  <br /></td></tr>
+<tr class="separator:aca12d8b5f223b8b55024dcc514c21768"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7e93151f394637c698279ceca36c6327" id="r_a7e93151f394637c698279ceca36c6327"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7e93151f394637c698279ceca36c6327">bitmap</a> ()</td></tr>
+<tr class="memdesc:a7e93151f394637c698279ceca36c6327"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the rendered bitmap.  <br /></td></tr>
 <tr class="separator:a7e93151f394637c698279ceca36c6327"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1a09ecf8d49ae69b2ded7ded0841ec05" id="r_a1a09ecf8d49ae69b2ded7ded0841ec05"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1a09ecf8d49ae69b2ded7ded0841ec05">memory</a> ()</td></tr>
+<tr class="memdesc:a1a09ecf8d49ae69b2ded7ded0841ec05"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the memory implementation.  <br /></td></tr>
 <tr class="separator:a1a09ecf8d49ae69b2ded7ded0841ec05"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a02a4bb0985c37eecc3cab6c8427da97b" id="r_a02a4bb0985c37eecc3cab6c8427da97b"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a02a4bb0985c37eecc3cab6c8427da97b">mutable_memory</a> ()</td></tr>
+<tr class="memdesc:a02a4bb0985c37eecc3cab6c8427da97b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets a mutable pointer to the memory implementation.  <br /></td></tr>
 <tr class="separator:a02a4bb0985c37eecc3cab6c8427da97b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classyaze_1_1SharedRom"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classyaze_1_1SharedRom')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classyaze_1_1SharedRom.html">yaze::SharedRom</a></td></tr>
 <tr class="memitem:ad109cf803983c06ad209360c5ee08101 inherit pub_methods_classyaze_1_1SharedRom" id="r_ad109cf803983c06ad209360c5ee08101"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1SharedRom.html#ad109cf803983c06ad209360c5ee08101">SharedRom</a> ()=default</td></tr>
@@ -183,8 +196,10 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:a64665d290e4c842948b006142edb482b inherit pub_static_attribs_classyaze_1_1SharedRom"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock">
-<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00019">19</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
+<div class="textblock"><p>Renders dungeon objects from Link to the Past. </p>
+<p>This class uses the emulator subsystem to simulate the SNES CPU drawing routines for dungeon objects. It captures the tile data written to memory and renders it to a bitmap. </p>
+
+<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00034">34</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a9b84e2aad4f890c741ae479907808c59" name="a9b84e2aad4f890c741ae479907808c59"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9b84e2aad4f890c741ae479907808c59">&#9670;&#160;</a></span>DungeonObjectRenderer()</h2>
@@ -231,22 +246,31 @@ Additional Inherited Members</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Loads and renders a dungeon object. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">routine_ptr</td><td>Pointer to the drawing routine in ROM </td></tr>
+    <tr><td class="paramname">sheet_ids</td><td>Array of graphics sheet IDs used by the object </td></tr>
+  </table>
+  </dd>
+</dl>
+
 <p class="definition">Definition at line <a class="el" href="object__renderer_8cc_source.html#l00006">6</a> of file <a class="el" href="object__renderer_8cc_source.html">object_renderer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="object__renderer_8cc_source.html#l00021">ConfigureObject()</a>, <a class="el" href="object__renderer_8h_source.html#l00038">memory_</a>, <a class="el" href="object__renderer_8cc_source.html#l00061">RenderObject()</a>, <a class="el" href="rom_8h_source.html#l00384">yaze::SharedRom::rom()</a>, <a class="el" href="object__renderer_8h_source.html#l00034">rom_data_</a>, and <a class="el" href="object__renderer_8h_source.html#l00036">vram_</a>.</p>
+<p class="reference">References <a class="el" href="object__renderer_8cc_source.html#l00021">ConfigureObject()</a>, <a class="el" href="object__renderer_8h_source.html#l00099">memory_</a>, <a class="el" href="object__renderer_8cc_source.html#l00061">RenderObject()</a>, <a class="el" href="rom_8h_source.html#l00384">yaze::SharedRom::rom()</a>, <a class="el" href="object__renderer_8h_source.html#l00095">rom_data_</a>, and <a class="el" href="object__renderer_8h_source.html#l00097">vram_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1zelda3_1_1DungeonObjectRenderer_af60e781ae54ba837ee5e49780b416aac_cgraph.png" border="0" usemap="#aclassyaze_1_1zelda3_1_1DungeonObjectRenderer_af60e781ae54ba837ee5e49780b416aac_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1zelda3_1_1DungeonObjectRenderer_af60e781ae54ba837ee5e49780b416aac_cgraph" id="aclassyaze_1_1zelda3_1_1DungeonObjectRenderer_af60e781ae54ba837ee5e49780b416aac_cgraph">
-<area shape="rect" title=" " alt="" coords="5,71,191,111"/>
-<area shape="rect" href="classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#afee3308c7846f91798b3add9b90518dc" title=" " alt="" coords="239,5,424,46"/>
+<area shape="rect" title="Loads and renders a dungeon object." alt="" coords="5,71,191,111"/>
+<area shape="rect" href="classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#afee3308c7846f91798b3add9b90518dc" title="Configures the CPU state for object rendering." alt="" coords="239,5,424,46"/>
 <area shape="poly" title=" " alt="" coords="172,68,241,48,242,53,174,73"/>
-<area shape="rect" href="classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6854e9626ddccf657b77cd740f13f1f9" title=" " alt="" coords="239,71,424,111"/>
+<area shape="rect" href="classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6854e9626ddccf657b77cd740f13f1f9" title="Executes the object drawing routine." alt="" coords="239,71,424,111"/>
 <area shape="poly" title=" " alt="" coords="191,88,223,88,223,94,191,94"/>
 <area shape="rect" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="257,160,406,185"/>
 <area shape="poly" title=" " alt="" coords="160,109,278,151,276,156,158,114"/>
-<area shape="rect" href="classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a4dac73e88a86e0159959407fb13ebfa0" title=" " alt="" coords="472,71,672,111"/>
+<area shape="rect" href="classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a4dac73e88a86e0159959407fb13ebfa0" title="Updates the bitmap with the rendered object." alt="" coords="472,71,672,111"/>
 <area shape="poly" title=" " alt="" coords="424,88,456,88,456,94,424,94"/>
 <area shape="poly" title=" " alt="" coords="293,161,285,151,290,141,305,135,331,133,360,136,374,142,372,147,358,141,331,138,307,140,293,145,290,150,297,157"/>
 </map>
@@ -269,9 +293,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Configures the CPU state for object rendering. </p>
+
 <p class="definition">Definition at line <a class="el" href="object__renderer_8cc_source.html#l00021">21</a> of file <a class="el" href="object__renderer_8cc_source.html">object_renderer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="object__renderer_8h_source.html#l00041">cpu</a>.</p>
+<p class="reference">References <a class="el" href="object__renderer_8h_source.html#l00102">cpu</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="object__renderer_8cc_source.html#l00006">LoadObject()</a>.</p>
 
@@ -291,13 +317,21 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Executes the object drawing routine. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">routine_ptr</td><td>Pointer to the drawing routine in ROM</td></tr>
+  </table>
+  </dd>
+</dl>
 <p>Example: the STA $BF, $CD, $C2, $CE are the location of the object in the room $B2 is used for size loop so if object size is setted on 07 that draw code will be repeated 7 times and since Y is increasing by 4 it makes the object draw from left to right</p>
 <p>RoomDraw_Rightwards2x2_1to15or32: #_018B89: JSR RoomDraw_GetSize_1to15or32 .next #_018B8C: JSR RoomDraw_Rightwards2x2 #_018B8F: DEC.b $B2 #_018B91: BNE .next #_018B93: RTS</p>
 <p>RoomDraw_Rightwards2x2: #_019895: LDA.w RoomDrawObjectData+0,X #_019898: STA.b [$BF],Y #_01989A: LDA.w RoomDrawObjectData+2,X #_01989D: STA.b [$CB],Y #_01989F: LDA.w RoomDrawObjectData+4,X #_0198A2: STA.b [$C2],Y #_0198A4: LDA.w RoomDrawObjectData+6,X #_0198A7: STA.b [$CE],Y #_0198A9: INY #4 #_0198AD: RTS </p>
 
 <p class="definition">Definition at line <a class="el" href="object__renderer_8cc_source.html#l00061">61</a> of file <a class="el" href="object__renderer_8cc_source.html">object_renderer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="object__renderer_8h_source.html#l00041">cpu</a>, and <a class="el" href="object__renderer_8cc_source.html#l00082">UpdateObjectBitmap()</a>.</p>
+<p class="reference">References <a class="el" href="object__renderer_8h_source.html#l00102">cpu</a>, and <a class="el" href="object__renderer_8cc_source.html#l00104">UpdateObjectBitmap()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="object__renderer_8cc_source.html#l00006">LoadObject()</a>.</p>
 <div class="dynheader">
@@ -305,8 +339,8 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1zelda3_1_1DungeonObjectRenderer_a6854e9626ddccf657b77cd740f13f1f9_cgraph.png" border="0" usemap="#aclassyaze_1_1zelda3_1_1DungeonObjectRenderer_a6854e9626ddccf657b77cd740f13f1f9_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1zelda3_1_1DungeonObjectRenderer_a6854e9626ddccf657b77cd740f13f1f9_cgraph" id="aclassyaze_1_1zelda3_1_1DungeonObjectRenderer_a6854e9626ddccf657b77cd740f13f1f9_cgraph">
-<area shape="rect" title=" " alt="" coords="5,39,191,79"/>
-<area shape="rect" href="classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a4dac73e88a86e0159959407fb13ebfa0" title=" " alt="" coords="239,39,439,79"/>
+<area shape="rect" title="Executes the object drawing routine." alt="" coords="5,39,191,79"/>
+<area shape="rect" href="classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a4dac73e88a86e0159959407fb13ebfa0" title="Updates the bitmap with the rendered object." alt="" coords="239,39,439,79"/>
 <area shape="poly" title=" " alt="" coords="191,56,223,56,223,62,191,62"/>
 <area shape="rect" href="classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6" title=" " alt="" coords="487,5,676,46"/>
 <area shape="poly" title=" " alt="" coords="439,43,471,38,472,43,440,48"/>
@@ -332,9 +366,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="object__renderer_8cc_source.html#l00082">82</a> of file <a class="el" href="object__renderer_8cc_source.html">object_renderer.cc</a>.</p>
+<p>Updates the bitmap with the rendered object. </p>
 
-<p class="reference">References <a class="el" href="object__renderer_8h_source.html#l00043">bitmap_</a>, <a class="el" href="rom_8h_source.html#l00272">yaze::GraphicsSheetManager::GetInstance()</a>, <a class="el" href="object__renderer_8h_source.html#l00038">memory_</a>, <a class="el" href="rom_8h_source.html#l00281">yaze::GraphicsSheetManager::mutable_gfx_sheets()</a>, <a class="el" href="object__renderer_8h_source.html#l00033">tilemap_</a>, and <a class="el" href="object__renderer_8h_source.html#l00036">vram_</a>.</p>
+<p class="definition">Definition at line <a class="el" href="object__renderer_8cc_source.html#l00104">104</a> of file <a class="el" href="object__renderer_8cc_source.html">object_renderer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="object__renderer_8h_source.html#l00104">bitmap_</a>, <a class="el" href="rom_8h_source.html#l00272">yaze::GraphicsSheetManager::GetInstance()</a>, <a class="el" href="object__renderer_8h_source.html#l00099">memory_</a>, <a class="el" href="rom_8h_source.html#l00281">yaze::GraphicsSheetManager::mutable_gfx_sheets()</a>, <a class="el" href="object__renderer_8h_source.html#l00094">tilemap_</a>, and <a class="el" href="object__renderer_8h_source.html#l00097">vram_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="object__renderer_8cc_source.html#l00061">RenderObject()</a>.</p>
 <div class="dynheader">
@@ -342,7 +378,7 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1zelda3_1_1DungeonObjectRenderer_a4dac73e88a86e0159959407fb13ebfa0_cgraph.png" border="0" usemap="#aclassyaze_1_1zelda3_1_1DungeonObjectRenderer_a4dac73e88a86e0159959407fb13ebfa0_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1zelda3_1_1DungeonObjectRenderer_a4dac73e88a86e0159959407fb13ebfa0_cgraph" id="aclassyaze_1_1zelda3_1_1DungeonObjectRenderer_a4dac73e88a86e0159959407fb13ebfa0_cgraph">
-<area shape="rect" title=" " alt="" coords="5,39,206,79"/>
+<area shape="rect" title="Updates the bitmap with the rendered object." alt="" coords="5,39,206,79"/>
 <area shape="rect" href="classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6" title=" " alt="" coords="254,5,443,46"/>
 <area shape="poly" title=" " alt="" coords="206,43,238,38,239,43,207,48"/>
 <area shape="rect" href="classyaze_1_1GraphicsSheetManager.html#a4871bff3db392ae5107ec5db39fcf1f2" title=" " alt="" coords="254,71,443,111"/>
@@ -351,6 +387,41 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="443,23,475,23,475,28,443,28"/>
 </map>
 </div>
+
+</div>
+</div>
+<a id="aca12d8b5f223b8b55024dcc514c21768" name="aca12d8b5f223b8b55024dcc514c21768"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aca12d8b5f223b8b55024dcc514c21768">&#9670;&#160;</a></span>SetPalette()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::zelda3::DungeonObjectRenderer::SetPalette </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>palette</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>transparent_index</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the palette for the rendered object. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">palette</td><td>The palette to use for the object </td></tr>
+    <tr><td class="paramname">transparent_index</td><td>Index of the transparent color (default: 0) </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>absl::Status Success or error status </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="object__renderer_8cc_source.html#l00145">145</a> of file <a class="el" href="object__renderer_8cc_source.html">object_renderer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="object__renderer_8h_source.html#l00104">bitmap_</a>, <a class="el" href="macro_8h_source.html#l00051">RETURN_IF_ERROR</a>, and <a class="el" href="object__renderer_8h_source.html#l00097">vram_</a>.</p>
 
 </div>
 </div>
@@ -377,9 +448,12 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00028">28</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
+<p>Gets the rendered bitmap. </p>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image.">gfx::Bitmap</a>* Pointer to the bitmap </dd></dl>
 
-<p class="reference">References <a class="el" href="object__renderer_8h_source.html#l00043">bitmap_</a>.</p>
+<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00077">77</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
+
+<p class="reference">References <a class="el" href="object__renderer_8h_source.html#l00104">bitmap_</a>.</p>
 
 </div>
 </div>
@@ -406,9 +480,12 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00029">29</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
+<p>Gets the memory implementation. </p>
+<dl class="section return"><dt>Returns</dt><dd>Memory implementation </dd></dl>
 
-<p class="reference">References <a class="el" href="object__renderer_8h_source.html#l00038">memory_</a>.</p>
+<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00084">84</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
+
+<p class="reference">References <a class="el" href="object__renderer_8h_source.html#l00099">memory_</a>.</p>
 
 </div>
 </div>
@@ -435,9 +512,12 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00030">30</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
+<p>Gets a mutable pointer to the memory implementation. </p>
+<dl class="section return"><dt>Returns</dt><dd>Mutable pointer to the memory implementation </dd></dl>
 
-<p class="reference">References <a class="el" href="object__renderer_8h_source.html#l00038">memory_</a>.</p>
+<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00091">91</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
+
+<p class="reference">References <a class="el" href="object__renderer_8h_source.html#l00099">memory_</a>.</p>
 
 </div>
 </div>
@@ -462,9 +542,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00033">33</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00094">94</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="object__renderer_8cc_source.html#l00082">UpdateObjectBitmap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="object__renderer_8cc_source.html#l00104">UpdateObjectBitmap()</a>.</p>
 
 </div>
 </div>
@@ -488,7 +568,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00034">34</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00095">95</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="object__renderer_8cc_source.html#l00006">LoadObject()</a>.</p>
 
@@ -514,9 +594,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00036">36</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00097">97</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="object__renderer_8cc_source.html#l00006">LoadObject()</a>, and <a class="el" href="object__renderer_8cc_source.html#l00082">UpdateObjectBitmap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="object__renderer_8cc_source.html#l00006">LoadObject()</a>, <a class="el" href="object__renderer_8cc_source.html#l00145">SetPalette()</a>, and <a class="el" href="object__renderer_8cc_source.html#l00104">UpdateObjectBitmap()</a>.</p>
 
 </div>
 </div>
@@ -540,9 +620,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00038">38</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00099">99</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="object__renderer_8cc_source.html#l00006">LoadObject()</a>, <a class="el" href="object__renderer_8h_source.html#l00029">memory()</a>, <a class="el" href="object__renderer_8h_source.html#l00030">mutable_memory()</a>, and <a class="el" href="object__renderer_8cc_source.html#l00082">UpdateObjectBitmap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="object__renderer_8cc_source.html#l00006">LoadObject()</a>, <a class="el" href="object__renderer_8h_source.html#l00084">memory()</a>, <a class="el" href="object__renderer_8h_source.html#l00091">mutable_memory()</a>, and <a class="el" href="object__renderer_8cc_source.html#l00104">UpdateObjectBitmap()</a>.</p>
 
 </div>
 </div>
@@ -566,7 +646,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00039">39</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00100">100</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
 
 </div>
 </div>
@@ -590,7 +670,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00040">40</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00101">101</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
 
 </div>
 </div>
@@ -614,7 +694,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00041">41</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00102">102</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="object__renderer_8cc_source.html#l00021">ConfigureObject()</a>, and <a class="el" href="object__renderer_8cc_source.html#l00061">RenderObject()</a>.</p>
 
@@ -640,9 +720,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00043">43</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="object__renderer_8h_source.html#l00104">104</a> of file <a class="el" href="object__renderer_8h_source.html">object_renderer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="object__renderer_8h_source.html#l00028">bitmap()</a>, and <a class="el" href="object__renderer_8cc_source.html#l00082">UpdateObjectBitmap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="object__renderer_8h_source.html#l00077">bitmap()</a>, <a class="el" href="object__renderer_8cc_source.html#l00145">SetPalette()</a>, and <a class="el" href="object__renderer_8cc_source.html#l00104">UpdateObjectBitmap()</a>.</p>
 
 </div>
 </div>
