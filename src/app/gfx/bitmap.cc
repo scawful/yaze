@@ -8,17 +8,18 @@
 #include <cstdint>
 #include <future>
 #include <memory>
+#include <iostream>
 
 #include "absl/status/status.h"
-#include "app/core/platform/renderer.h"
+#include "app/core/platform/memory_tracker.h"
 #include "app/gfx/snes_palette.h"
+#include "app/gfx/texture_pool.h"
 #include "util/macro.h"
 
 namespace yaze {
 namespace gfx {
 
 using core::SDL_Surface_Deleter;
-using core::SDL_Texture_Deleter;
 
 #if YAZE_LIB_PNG == 1
 
@@ -183,15 +184,9 @@ void ConvertPngToSurface(const std::vector<uint8_t> &png_data,
   SDL_Log("Successfully created SDL_Surface from PNG data");
 }
 
-std::vector<uint8_t> Bitmap::GetPngData() {
-  std::vector<uint8_t> png_data;
-  ConvertSurfaceToPng(surface_.get(), png_data);
-  return png_data;
-}
-
 #endif  // YAZE_LIB_PNG
 
-namespace {
+// Utility functions
 Uint32 GetSnesPixelFormat(int format) {
   switch (format) {
     case 0:
@@ -205,7 +200,50 @@ Uint32 GetSnesPixelFormat(int format) {
   }
   return SDL_PIXELFORMAT_INDEX8;
 }
-}  // namespace
+
+// Custom allocator for SDL_Surface
+SDL_Surface* AllocateSurface(int width, int height, int depth, Uint32 format) {
+  SDL_Surface *surface =
+      SDL_CreateRGBSurfaceWithFormat(0, width, height, depth, format);
+  if (surface) {
+    core::MemoryTracker::GetInstance().TrackAllocation(
+        surface, width * height * (depth / 8), "SDL_Surface");
+  }
+  return surface;
+}
+
+// Custom allocator for SDL_Texture
+SDL_Texture* AllocateTexture(SDL_Renderer *renderer, Uint32 format, int access,
+                             int width, int height) {
+  SDL_Texture *texture =
+      SDL_CreateTexture(renderer, format, access, width, height);
+  if (texture) {
+    // Estimate size (this is approximate)
+    size_t estimated_size = width * height * 4;  // Assume 4 bytes per pixel
+    core::MemoryTracker::GetInstance().TrackAllocation(texture, estimated_size,
+                                                       "SDL_Texture");
+  }
+  return texture;
+}
+
+// Bitmap class implementation
+Bitmap::Bitmap(int width, int height, int depth, const std::vector<uint8_t> &data)
+    : width_(width), height_(height), depth_(depth), data_(data) {
+  Create(width, height, depth, data);
+}
+
+Bitmap::Bitmap(int width, int height, int depth, const std::vector<uint8_t> &data,
+         const SnesPalette &palette)
+    : width_(width),
+      height_(height),
+      depth_(depth),
+      data_(data),
+      palette_(palette) {
+  Create(width, height, depth, data);
+  if (!SetPalette(palette).ok()) {
+    std::cerr << "Error applying palette in bitmap constructor." << std::endl;
+  }
+}
 
 void Bitmap::SaveSurfaceToFile(std::string_view filename) {
   SDL_SaveBMP(surface_.get(), filename.data());
@@ -226,7 +264,7 @@ void Bitmap::Create(int width, int height, int depth, std::span<uint8_t> data) {
 
 void Bitmap::Create(int width, int height, int depth,
                     const std::vector<uint8_t> &data) {
-  Create(width, height, depth, kIndexed, data);
+  Create(width, height, depth, static_cast<int>(BitmapFormat::kIndexed), data);
 }
 
 void Bitmap::Create(int width, int height, int depth, int format,
@@ -249,8 +287,7 @@ void Bitmap::Create(int width, int height, int depth, int format,
   data_ = data;
   pixel_data_ = data_.data();
   surface_ = std::shared_ptr<SDL_Surface>{
-      SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
-                                     GetSnesPixelFormat(format)),
+      AllocateSurface(width_, height_, depth_, GetSnesPixelFormat(format)),
       SDL_Surface_Deleter{}};
   if (surface_ == nullptr) {
     SDL_Log("Bitmap::Create.SDL_CreateRGBSurfaceWithFormat failed: %s\n",
@@ -264,8 +301,7 @@ void Bitmap::Create(int width, int height, int depth, int format,
 
 void Bitmap::Reformat(int format) {
   surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
-      SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
-                                     GetSnesPixelFormat(format)),
+      AllocateSurface(width_, height_, depth_, GetSnesPixelFormat(format)),
       SDL_Surface_Deleter());
   surface_->pixels = pixel_data_;
   active_ = true;
@@ -274,39 +310,6 @@ void Bitmap::Reformat(int format) {
     SDL_Log("Failed to apply palette: %s\n", apply_palette.message().data());
     active_ = false;
   }
-}
-
-void Bitmap::CreateTexture(SDL_Renderer *renderer) {
-  if (width_ <= 0 || height_ <= 0) {
-    SDL_Log("Invalid texture dimensions: width=%d, height=%d\n", width_,
-            height_);
-    return;
-  }
-
-  texture_ = std::shared_ptr<SDL_Texture>{
-      SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888,
-                        SDL_TEXTUREACCESS_STREAMING, width_, height_),
-      SDL_Texture_Deleter{}};
-  if (texture_ == nullptr) {
-    SDL_Log("Bitmap::CreateTexture.SDL_CreateTextureFromSurface failed: %s\n",
-            SDL_GetError());
-  }
-  texture_pixels = data_.data();
-
-  auto converted_surface_ = std::shared_ptr<SDL_Surface>{
-      SDL_ConvertSurfaceFormat(surface_.get(), SDL_PIXELFORMAT_ARGB8888, 0),
-      SDL_Surface_Deleter{}};
-  if (converted_surface_ == nullptr) {
-    SDL_Log("Bitmap::CreateTexture.SDL_ConvertSurfaceFormat failed: %s\n",
-            SDL_GetError());
-    return;
-  }
-
-  SDL_LockTexture(texture_.get(), nullptr, (void **)&texture_pixels,
-                  &converted_surface_->pitch);
-  memcpy(texture_pixels, converted_surface_->pixels,
-         converted_surface_->h * converted_surface_->pitch);
-  SDL_UnlockTexture(texture_.get());
 }
 
 void Bitmap::UpdateTexture(SDL_Renderer *renderer) {
@@ -322,6 +325,86 @@ void Bitmap::UpdateTexture(SDL_Renderer *renderer) {
   memcpy(texture_pixels, converted_surface->pixels,
          converted_surface->h * converted_surface->pitch);
   SDL_UnlockTexture(texture_.get());
+}
+
+void Bitmap::CreateTexture(SDL_Renderer *renderer) {
+  if (!renderer) {
+    SDL_Log("Invalid renderer passed to CreateTexture");
+    return;
+  }
+
+  if (width_ <= 0 || height_ <= 0) {
+    SDL_Log("Invalid texture dimensions: width=%d, height=%d\n", width_,
+            height_);
+    return;
+  }
+
+  // If we already have a texture, don't create a new one
+  if (texture_) {
+    texture_in_use_ = true;
+    last_used_time_ = SDL_GetTicks64();
+    return;
+  }
+
+  // Get a texture from the pool
+  SDL_Texture *raw_texture = TexturePool::GetInstance().GetTexture(
+      renderer, width_, height_, SDL_PIXELFORMAT_RGB888);
+
+  if (!raw_texture) {
+    SDL_Log("Bitmap::CreateTexture failed to get texture from pool: %s\n",
+            SDL_GetError());
+    return;
+  }
+
+  // Create a shared_ptr with a custom deleter that returns the texture to the
+  // pool
+  texture_ = std::shared_ptr<SDL_Texture>(raw_texture, [this](SDL_Texture *t) {
+    if (t) {
+      TexturePool::GetInstance().ReturnTexture(t, width_, height_,
+                                               SDL_PIXELFORMAT_RGB888);
+    }
+  });
+
+  texture_in_use_ = true;
+  last_used_time_ = SDL_GetTicks64();
+
+  UpdateTextureData();
+}
+
+void Bitmap::UpdateTextureData() {
+  if (!texture_ || !surface_) {
+    return;
+  }
+
+  auto converted_surface = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
+      SDL_ConvertSurfaceFormat(surface_.get(), SDL_PIXELFORMAT_ARGB8888, 0),
+      SDL_Surface_Deleter());
+
+  if (converted_surface == nullptr) {
+    SDL_Log("SDL_ConvertSurfaceFormat failed: %s\n", SDL_GetError());
+    return;
+  }
+
+  void *pixels;
+  int pitch;
+  if (SDL_LockTexture(texture_.get(), nullptr, &pixels, &pitch) != 0) {
+    SDL_Log("SDL_LockTexture failed: %s\n", SDL_GetError());
+    return;
+  }
+
+  memcpy(pixels, converted_surface->pixels,
+         converted_surface->h * converted_surface->pitch);
+
+  SDL_UnlockTexture(texture_.get());
+  modified_ = false;
+}
+
+void Bitmap::CleanupUnusedTexture(uint64_t current_time, uint64_t timeout) {
+  if (texture_ && !texture_in_use_ &&
+      (current_time - last_used_time_ > timeout)) {
+    // Release the texture back to the pool
+    texture_ = nullptr;
+  }
 }
 
 absl::Status Bitmap::SetPalette(const SnesPalette &palette) {
@@ -349,7 +432,6 @@ absl::Status Bitmap::SetPalette(const SnesPalette &palette) {
     sdl_palette->colors[i].a = pal_color.rgb().w;
   }
   SDL_LockSurface(surface_.get());
-  // SDL_RETURN_IF_ERROR()
   return absl::OkStatus();
 }
 
@@ -373,7 +455,6 @@ absl::Status Bitmap::SetPaletteFromPaletteGroup(const SnesPalette &palette,
     }
   }
   SDL_LockSurface(surface_.get());
-  // SDL_RETURN_IF_ERROR()
   return absl::OkStatus();
 }
 
@@ -415,7 +496,6 @@ absl::Status Bitmap::SetPaletteWithTransparent(const SnesPalette &palette,
     i++;
   }
   SDL_LockSurface(surface_.get());
-  // SDL_RETURN_IF_ERROR()
   return absl::OkStatus();
 }
 
@@ -428,6 +508,33 @@ void Bitmap::SetPalette(const std::vector<SDL_Color> &palette) {
     surface_->format->palette->colors[i].a = palette[i].a;
   }
   SDL_LockSurface(surface_.get());
+}
+
+void Bitmap::WriteToPixel(int position, uint8_t value) {
+  if (pixel_data_ == nullptr) {
+    pixel_data_ = data_.data();
+  }
+  pixel_data_[position] = value;
+  modified_ = true;
+}
+
+void Bitmap::WriteColor(int position, const ImVec4 &color) {
+  // Convert ImVec4 (RGBA) to SDL_Color (RGBA)
+  SDL_Color sdl_color;
+  sdl_color.r = static_cast<Uint8>(color.x * 255);
+  sdl_color.g = static_cast<Uint8>(color.y * 255);
+  sdl_color.b = static_cast<Uint8>(color.z * 255);
+  sdl_color.a = static_cast<Uint8>(color.w * 255);
+
+  // Map SDL_Color to the nearest color index in the surface's palette
+  Uint8 index =
+      SDL_MapRGB(surface_->format, sdl_color.r, sdl_color.g, sdl_color.b);
+
+  // Write the color index to the pixel data
+  pixel_data_[position] = index;
+  data_[position] = ConvertRgbToSnes(color);
+
+  modified_ = true;
 }
 
 void Bitmap::Get8x8Tile(int tile_index, int x, int y,
@@ -463,23 +570,84 @@ void Bitmap::Get16x16Tile(int tile_x, int tile_y,
   }
 }
 
-void Bitmap::WriteColor(int position, const ImVec4 &color) {
-  // Convert ImVec4 (RGBA) to SDL_Color (RGBA)
-  SDL_Color sdl_color;
-  sdl_color.r = static_cast<Uint8>(color.x * 255);
-  sdl_color.g = static_cast<Uint8>(color.y * 255);
-  sdl_color.b = static_cast<Uint8>(color.z * 255);
-  sdl_color.a = static_cast<Uint8>(color.w * 255);
+void Bitmap::Cleanup() {
+  active_ = false;
+  width_ = 0;
+  height_ = 0;
+  depth_ = 0;
+  data_size_ = 0;
+  palette_.clear();
+}
 
-  // Map SDL_Color to the nearest color index in the surface's palette
-  Uint8 index =
-      SDL_MapRGB(surface_->format, sdl_color.r, sdl_color.g, sdl_color.b);
+void Bitmap::Clear() {
+  active_ = false;
+  width_ = 0;
+  height_ = 0;
+  depth_ = 0;
+  data_size_ = 0;
+  data_.clear();
+  pixel_data_ = nullptr;
+  texture_pixels = nullptr;
+}
 
-  // Write the color index to the pixel data
-  pixel_data_[position] = index;
-  data_[position] = ConvertRgbToSnes(color);
+#if YAZE_LIB_PNG == 1
+std::vector<uint8_t> Bitmap::GetPngData() {
+  std::vector<uint8_t> png_data;
+  ConvertSurfaceToPng(surface_.get(), png_data);
+  return png_data;
+}
+#endif
 
-  modified_ = true;
+std::vector<gfx::Bitmap> ExtractTile8Bitmaps(const gfx::Bitmap &source_bmp,
+                                             const gfx::SnesPalette &palette,
+                                             uint8_t palette_index) {
+  constexpr int kTileCount = 1024;
+  constexpr int kTileSize = 8;
+  std::vector<gfx::Bitmap> tile_bitmaps;
+  tile_bitmaps.reserve(kTileCount);
+
+  std::vector<std::future<gfx::Bitmap>> futures;
+
+  for (int index = 0; index < kTileCount; ++index) {
+    futures.emplace_back(std::async(std::launch::async, [&source_bmp, &palette,
+                                                         palette_index,
+                                                         index]() {
+      std::array<uint8_t, 0x40> tile_data;
+
+      int num_columns = source_bmp.width() / kTileSize;
+
+      for (int ty = 0; ty < kTileSize; ++ty) {
+        for (int tx = 0; tx < kTileSize; ++tx) {
+          int tile_data_pos = tx + (ty * kTileSize);
+          int src_x = (index % num_columns) * kTileSize + tx;
+          int src_y = (index / num_columns) * kTileSize + ty;
+          int gfx_position = src_x + (src_y * 0x100);
+
+          uint8_t value = source_bmp.data()[gfx_position];
+
+          if (value & 0x80) {
+            value -= 0x88;
+          }
+
+          tile_data[tile_data_pos] = value;
+        }
+      }
+
+      gfx::Bitmap tile_bitmap;
+      tile_bitmap.Create(kTileSize, kTileSize, 8, tile_data);
+      if (!tile_bitmap.SetPaletteWithTransparent(palette, palette_index).ok()) {
+        SDL_Log("Failed to set palette for tile %d\n", index);
+        throw std::runtime_error("Failed to set palette for tile");
+      }
+      return tile_bitmap;
+    }));
+  }
+
+  for (auto &future : futures) {
+    tile_bitmaps.push_back(future.get());
+  }
+
+  return tile_bitmaps;
 }
 
 }  // namespace gfx
