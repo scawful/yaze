@@ -392,27 +392,22 @@ void EditorManager::DrawHomepage() {
   }
 }
 
-void EditorManager::DrawRomSelector() {
-  absl::Status status;
-
+absl::Status EditorManager::DrawRomSelector() {
   SameLine((GetWindowWidth() / 2) - 100);
   if (current_rom_ && current_rom_->is_loaded()) {
     SetNextItemWidth(GetWindowWidth() / 6);
     if (BeginCombo("##ROMSelector", current_rom_->short_name().c_str())) {
       for (const auto &rom : roms_) {
         if (MenuItem(rom->short_name().c_str())) {
-          status = SetCurrentRom(rom.get());
+          RETURN_IF_ERROR(SetCurrentRom(rom.get()));
         }
       }
       EndCombo();
     }
-    if (!status.ok()) {
-      std::string error_message = status.message().data();
-      throw std::runtime_error(error_message);
-    }
   } else {
     Text("No ROM loaded");
   }
+  return absl::OkStatus();
 }
 
 void EditorManager::DrawMenuBar() {
@@ -422,7 +417,7 @@ void EditorManager::DrawMenuBar() {
   if (BeginMenuBar()) {
     gui::DrawMenu(gui::kMainMenu);
 
-    DrawRomSelector();
+    status_ = DrawRomSelector();
 
     SameLine(GetWindowWidth() - GetStyle().ItemSpacing.x -
              CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x - 110);
