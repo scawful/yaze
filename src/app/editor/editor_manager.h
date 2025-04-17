@@ -65,8 +65,7 @@ class EditorManager {
 
  private:
   void DrawHomepage();
-  void DrawRomSelector();
-
+  absl::Status DrawRomSelector();
   absl::Status LoadRom();
   absl::Status LoadAssets();
   absl::Status SaveRom();
