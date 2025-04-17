@@ -1,5 +1,6 @@
 var NAVTREEINDEX3 =
 {
+"classyaze_1_1editor_1_1DungeonEditor.html#a385661ba23b06b8613891ed9fd5b834a":[11,0,1,2,11,59],
 "classyaze_1_1editor_1_1DungeonEditor.html#a385661ba23b06b8613891ed9fd5b834a":[12,0,0,2,5,59],
 "classyaze_1_1editor_1_1DungeonEditor.html#a3ab68c3ea3c3cc036206f7d33862937d":[11,0,1,2,11,54],
 "classyaze_1_1editor_1_1DungeonEditor.html#a3ab68c3ea3c3cc036206f7d33862937d":[12,0,0,2,5,54],
@@ -221,8 +222,6 @@ var NAVTREEINDEX3 =
 "classyaze_1_1editor_1_1EditorManager.html#ac0340e25707cca3bfff0b8384d55ead9":[12,0,0,2,8,38],
 "classyaze_1_1editor_1_1EditorManager.html#ac8ac2fe31fc9760ffe56b79f48dc39a0":[11,0,1,2,14,1],
 "classyaze_1_1editor_1_1EditorManager.html#ac8ac2fe31fc9760ffe56b79f48dc39a0":[12,0,0,2,8,1],
-"classyaze_1_1editor_1_1EditorManager.html#acafb42346e6a4e5f56e8f11b19ab79fa":[11,0,1,2,14,11],
-"classyaze_1_1editor_1_1EditorManager.html#acafb42346e6a4e5f56e8f11b19ab79fa":[12,0,0,2,8,11],
 "classyaze_1_1editor_1_1EditorManager.html#acb71e69070ce5a0a4aba6c874f1353e3":[11,0,1,2,14,4],
 "classyaze_1_1editor_1_1EditorManager.html#acb71e69070ce5a0a4aba6c874f1353e3":[12,0,0,2,8,4],
 "classyaze_1_1editor_1_1EditorManager.html#acbcf170599937d472f85b437a3259471":[11,0,1,2,14,25],
@@ -231,6 +230,8 @@ var NAVTREEINDEX3 =
 "classyaze_1_1editor_1_1EditorManager.html#ad010169e8e1dd7cac2fc23d4aab0e978":[12,0,0,2,8,22],
 "classyaze_1_1editor_1_1EditorManager.html#ad03b5939f208d855ebffc5aeed05c26d":[11,0,1,2,14,33],
 "classyaze_1_1editor_1_1EditorManager.html#ad03b5939f208d855ebffc5aeed05c26d":[12,0,0,2,8,33],
+"classyaze_1_1editor_1_1EditorManager.html#add1f35c5ca58aa1b9a6839173565cbe0":[11,0,1,2,14,11],
+"classyaze_1_1editor_1_1EditorManager.html#add1f35c5ca58aa1b9a6839173565cbe0":[12,0,0,2,8,11],
 "classyaze_1_1editor_1_1EditorManager.html#ae010594950b0cc8a3fc477163a6934cc":[11,0,1,2,14,13],
 "classyaze_1_1editor_1_1EditorManager.html#ae010594950b0cc8a3fc477163a6934cc":[12,0,0,2,8,13],
 "classyaze_1_1editor_1_1EditorManager.html#ae2c0a26e2459aab8d4e7440c50b704fc":[11,0,1,2,14,15],
@@ -248,6 +249,5 @@ var NAVTREEINDEX3 =
 "classyaze_1_1editor_1_1EditorManager.html#affe73c6625559f736677e476796f02a1":[11,0,1,2,14,31],
 "classyaze_1_1editor_1_1EditorManager.html#affe73c6625559f736677e476796f02a1":[12,0,0,2,8,31],
 "classyaze_1_1editor_1_1EditorSet.html":[11,0,1,2,15],
-"classyaze_1_1editor_1_1EditorSet.html":[12,0,0,2,9],
-"classyaze_1_1editor_1_1EditorSet.html#a094b7d7c17157d507b4700a1042d4b75":[11,0,1,2,15,3]
+"classyaze_1_1editor_1_1EditorSet.html":[12,0,0,2,9]
 };

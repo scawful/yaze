@@ -42,6 +42,7 @@ var NAVTREEINDEX0 =
 "canvas_8cc.html":[13,0,2,0,4,1],
 "canvas_8cc_source.html":[13,0,2,0,4,1],
 "canvas_8h.html":[13,0,2,0,4,2],
+"canvas_8h.html#adf4d73301961430d50d7edd96f92ce38":[13,0,2,0,4,2,2],
 "canvas_8h_source.html":[13,0,2,0,4,2],
 "classAppDelegate.html":[12,0,1],
 "classAppViewController.html":[12,0,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX0 =
 "classyaze_1_1RecentFilesManager.html":[11,0,1,11],
 "classyaze_1_1RecentFilesManager.html":[12,0,0,11],
 "classyaze_1_1RecentFilesManager.html#a2cfb297f0ef3243de5405f2db16994b0":[11,0,1,11,6],
-"classyaze_1_1RecentFilesManager.html#a2cfb297f0ef3243de5405f2db16994b0":[12,0,0,11,6],
-"classyaze_1_1RecentFilesManager.html#a3c01c50b9874c0c004c9d4bfb9927eeb":[11,0,1,11,3]
+"classyaze_1_1RecentFilesManager.html#a2cfb297f0ef3243de5405f2db16994b0":[12,0,0,11,6]
 };

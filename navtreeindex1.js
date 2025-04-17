@@ -1,5 +1,6 @@
 var NAVTREEINDEX1 =
 {
+"classyaze_1_1RecentFilesManager.html#a3c01c50b9874c0c004c9d4bfb9927eeb":[11,0,1,11,3],
 "classyaze_1_1RecentFilesManager.html#a3c01c50b9874c0c004c9d4bfb9927eeb":[12,0,0,11,3],
 "classyaze_1_1RecentFilesManager.html#a60e6a770c96874eee6730af353aca1a2":[11,0,1,11,7],
 "classyaze_1_1RecentFilesManager.html#a60e6a770c96874eee6730af353aca1a2":[12,0,0,11,7],
@@ -248,6 +249,5 @@ var NAVTREEINDEX1 =
 "classyaze_1_1core_1_1Controller.html#a3b8d4516aea70ac4d233d56a8b9ade4b":[11,0,1,1,2,13],
 "classyaze_1_1core_1_1Controller.html#a3b8d4516aea70ac4d233d56a8b9ade4b":[12,0,0,1,0,13],
 "classyaze_1_1core_1_1Controller.html#a4a8fb48e64d18f18c821c13f0a23666e":[11,0,1,1,2,0],
-"classyaze_1_1core_1_1Controller.html#a4a8fb48e64d18f18c821c13f0a23666e":[12,0,0,1,0,0],
-"classyaze_1_1core_1_1Controller.html#a4da513a611336bcfc09e4c40119c362b":[11,0,1,1,2,3]
+"classyaze_1_1core_1_1Controller.html#a4a8fb48e64d18f18c821c13f0a23666e":[12,0,0,1,0,0]
 };

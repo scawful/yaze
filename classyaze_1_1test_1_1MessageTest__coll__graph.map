@@ -1,12 +1,11 @@
 <map id="yaze::test::MessageTest" name="yaze::test::MessageTest">
-<area shape="rect" id="Node000001" title=" " alt="" coords="55,169,216,195"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="102,169,262,195"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,80,98,106"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="76,116,126,167,122,171,72,119"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="75,5,196,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="138,47,138,169,133,169,133,47"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1MessageEditor.html" title=" " alt="" coords="174,80,351,106"/>
-<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="171,37,243,78,240,82,168,41"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="234,117,155,171,152,166,231,113"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="220,5,344,31"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="277,47,268,81,263,79,272,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="84,112,165,166,162,171,81,117"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="122,80,243,106"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="185,122,185,169,180,169,180,122"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1MessageEditor.html" title=" " alt="" coords="267,80,444,106"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="319,116,208,171,205,166,316,111"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="293,5,418,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="358,46,358,80,353,80,353,46"/>
 </map>

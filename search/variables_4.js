@@ -62,9 +62,11 @@ var searchData=
   ['expanded_5fentrances_5f_59',['expanded_entrances_',['../classyaze_1_1zelda3_1_1Overworld.html#af57c5a4b4afad92783c63b4987d799b9',1,'yaze::zelda3::Overworld']]],
   ['expanded_5ftile16_5f_60',['expanded_tile16_',['../classyaze_1_1zelda3_1_1Overworld.html#ab35adc7a703893dfe9e0bc579dabf3f4',1,'yaze::zelda3::Overworld']]],
   ['expanded_5ftile32_5f_61',['expanded_tile32_',['../classyaze_1_1zelda3_1_1Overworld.html#a61f78955069f7fae174bb40919c4ae1e',1,'yaze::zelda3::Overworld']]],
-  ['extbg_62',['extbg',['../structyaze_1_1emu_1_1SETINI.html#aeae7814985112b15e2be798893e5f841',1,'yaze::emu::SETINI']]],
-  ['extension_5fmanager_63',['extension_manager',['../structyaze_1_1editor_1_1EditorContext.html#a6b22152aba0e6b5b2ca0bdb2123904a2',1,'yaze::editor::EditorContext']]],
-  ['extensions_5f_64',['extensions_',['../classyaze_1_1editor_1_1ExtensionManager.html#a86a80c43e1757c06b5d218412ec368ae',1,'yaze::editor::ExtensionManager']]],
-  ['external_5fsync_65',['external_sync',['../structyaze_1_1emu_1_1SETINI.html#af196a13908c98ae9011fe228dd36b0eb',1,'yaze::emu::SETINI']]],
-  ['extra_5fcgx_5fdata_5f_66',['extra_cgx_data_',['../classyaze_1_1editor_1_1GraphicsEditor.html#aba39edaf965ceffd5fe1c90168345c73',1,'yaze::editor::GraphicsEditor']]]
+  ['export_5fexpanded_5fmessages_5f_62',['export_expanded_messages_',['../classyaze_1_1editor_1_1MessageEditor.html#aaf1947e311bace5a14c09e8841f5c3a7',1,'yaze::editor::MessageEditor']]],
+  ['export_5ffilename_5f_63',['export_filename_',['../classyaze_1_1editor_1_1MessageEditor.html#ac368d5e20d7bac827b574e5493d51533',1,'yaze::editor::MessageEditor']]],
+  ['extbg_64',['extbg',['../structyaze_1_1emu_1_1SETINI.html#aeae7814985112b15e2be798893e5f841',1,'yaze::emu::SETINI']]],
+  ['extension_5fmanager_65',['extension_manager',['../structyaze_1_1editor_1_1EditorContext.html#a6b22152aba0e6b5b2ca0bdb2123904a2',1,'yaze::editor::EditorContext']]],
+  ['extensions_5f_66',['extensions_',['../classyaze_1_1editor_1_1ExtensionManager.html#a86a80c43e1757c06b5d218412ec368ae',1,'yaze::editor::ExtensionManager']]],
+  ['external_5fsync_67',['external_sync',['../structyaze_1_1emu_1_1SETINI.html#af196a13908c98ae9011fe228dd36b0eb',1,'yaze::emu::SETINI']]],
+  ['extra_5fcgx_5fdata_5f_68',['extra_cgx_data_',['../classyaze_1_1editor_1_1GraphicsEditor.html#aba39edaf965ceffd5fe1c90168345c73',1,'yaze::editor::GraphicsEditor']]]
 ];

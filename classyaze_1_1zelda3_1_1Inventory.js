@@ -1,9 +1,9 @@
 var classyaze_1_1zelda3_1_1Inventory =
 [
-    [ "Bitmap", "classyaze_1_1zelda3_1_1Inventory.html#a0ed0139d195881d6cf22f5d280d618d1", null ],
-    [ "Tilesheet", "classyaze_1_1zelda3_1_1Inventory.html#a8857a2d3fd28e762a8059d274cf453f4", null ],
-    [ "Palette", "classyaze_1_1zelda3_1_1Inventory.html#ad54be409eeedc26e96d134c653a30eb2", null ],
     [ "Create", "classyaze_1_1zelda3_1_1Inventory.html#abbde6e66f3a2292b64c2bea40897e04f", null ],
+    [ "bitmap", "classyaze_1_1zelda3_1_1Inventory.html#a041fb76da7f9e7cef5e9b6ed0566f55d", null ],
+    [ "tilesheet", "classyaze_1_1zelda3_1_1Inventory.html#a59b725dee97974c99a21c88e610ee5a4", null ],
+    [ "palette", "classyaze_1_1zelda3_1_1Inventory.html#a7e50fac9004047e6db8508bea3734732", null ],
     [ "BuildTileset", "classyaze_1_1zelda3_1_1Inventory.html#a06d4a48a808a8789e95c0664a4322003", null ],
     [ "data_", "classyaze_1_1zelda3_1_1Inventory.html#a46f359bdd6ab773784d802a9056f04dc", null ],
     [ "bitmap_", "classyaze_1_1zelda3_1_1Inventory.html#a7921afdc988a96f25f82e94ddee214a3", null ],

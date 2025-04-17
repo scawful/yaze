@@ -11,7 +11,7 @@ var classyaze_1_1editor_1_1EditorManager =
     [ "GetCurrentRom", "classyaze_1_1editor_1_1EditorManager.html#a43368659fa37930f823a79d4f5481d19", null ],
     [ "GetCurrentEditorSet", "classyaze_1_1editor_1_1EditorManager.html#aa10a67fe8c2887bd7597df64e152d198", null ],
     [ "DrawHomepage", "classyaze_1_1editor_1_1EditorManager.html#a8caba62b52b6259ac90d7df11a14f53b", null ],
-    [ "DrawRomSelector", "classyaze_1_1editor_1_1EditorManager.html#acafb42346e6a4e5f56e8f11b19ab79fa", null ],
+    [ "DrawRomSelector", "classyaze_1_1editor_1_1EditorManager.html#add1f35c5ca58aa1b9a6839173565cbe0", null ],
     [ "LoadRom", "classyaze_1_1editor_1_1EditorManager.html#a9e31d2cdbb2d802bf8f2a8f458cb8edf", null ],
     [ "LoadAssets", "classyaze_1_1editor_1_1EditorManager.html#ae010594950b0cc8a3fc477163a6934cc", null ],
     [ "SaveRom", "classyaze_1_1editor_1_1EditorManager.html#aee4518f88461d82f6f90834d98a271a4", null ],

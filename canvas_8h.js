@@ -2,6 +2,7 @@ var canvas_8h =
 [
     [ "yaze::gui::Canvas", "classyaze_1_1gui_1_1Canvas.html", "classyaze_1_1gui_1_1Canvas" ],
     [ "yaze::gui::Bitmap", "classyaze_1_1gui_1_1Bitmap.html", "classyaze_1_1gui_1_1Bitmap" ],
+    [ "IMGUI_DEFINE_MATH_OPERATORS", "canvas_8h.html#adf4d73301961430d50d7edd96f92ce38", null ],
     [ "yaze::gui::BitmapTable", "namespaceyaze_1_1gui.html#ac70b35914f079891436c2442779b9113", null ],
     [ "yaze::gui::CanvasType", "namespaceyaze_1_1gui.html#a5a4fbc61ba7c366dab30da60463ee4f6", [
       [ "yaze::gui::CanvasType::kTile", "namespaceyaze_1_1gui.html#a5a4fbc61ba7c366dab30da60463ee4f6ac06bd766ba0c680aa7ce4145dd31eb99", null ],
@@ -19,5 +20,5 @@ var canvas_8h =
       [ "yaze::gui::CanvasGridSize::k64x64", "namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a9420cc1a73b8e176c1b22cf835b3e9f7", null ]
     ] ],
     [ "yaze::gui::GraphicsBinCanvasPipeline", "namespaceyaze_1_1gui.html#a359973f01787648b92a53d2aa84120a9", null ],
-    [ "yaze::gui::BitmapCanvasPipeline", "namespaceyaze_1_1gui.html#a134c6e6817a4a8332e3842e4b2cd01f6", null ]
+    [ "yaze::gui::BitmapCanvasPipeline", "namespaceyaze_1_1gui.html#a097a97de3f408828135e749498b16bd6", null ]
 ];

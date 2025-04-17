@@ -4,9 +4,9 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,98,138,68,188,40,202,34,204,39,190,45,141,72,101,102"/>
 <area shape="rect" id="Node000008" href="$namespaceyaze_1_1gui_1_1zeml.html#a938c099fc662747bd83cb0c3fc3a2358" title="Render a zeml tree." alt="" coords="208,79,358,104"/>
 <area shape="poly" id="edge2_Node000001_Node000008" title=" " alt="" coords="141,109,192,101,193,107,142,114"/>
-<area shape="rect" id="Node000036" href="$classyaze_1_1emu_1_1Emulator.html#a655e0f73f3f700e8c340c70a2899c61d" title=" " alt="" coords="206,128,360,169"/>
-<area shape="poly" id="edge4_Node000001_Node000036" title=" " alt="" coords="142,127,191,134,190,139,141,132"/>
-<area shape="rect" id="Node000038" href="$classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath." alt="" coords="189,194,378,234"/>
-<area shape="poly" id="edge5_Node000001_Node000038" title=" " alt="" coords="112,139,190,178,207,185,204,190,188,183,110,144"/>
+<area shape="rect" id="Node000031" href="$classyaze_1_1emu_1_1Emulator.html#a655e0f73f3f700e8c340c70a2899c61d" title=" " alt="" coords="206,128,360,169"/>
+<area shape="poly" id="edge4_Node000001_Node000031" title=" " alt="" coords="142,127,191,134,190,139,141,132"/>
+<area shape="rect" id="Node000033" href="$classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath." alt="" coords="189,194,378,234"/>
+<area shape="poly" id="edge5_Node000001_Node000033" title=" " alt="" coords="112,139,190,178,207,185,204,190,188,183,110,144"/>
 <area shape="poly" id="edge3_Node000008_Node000008" title=" " alt="" coords="248,80,241,70,246,60,260,54,283,52,309,55,322,62,320,66,308,60,283,57,261,59,249,64,247,69,253,77"/>
 </map>

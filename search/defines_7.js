@@ -2187,5 +2187,5 @@ var searchData=
   ['im_5fclamp_2184',['IM_CLAMP',['../asset__browser_8h.html#a25d1e4d29150e7587f99e0723493a004',1,'asset_browser.h']]],
   ['im_5fmax_2185',['IM_MAX',['../asset__browser_8h.html#a9d0693fad89638629beea97300c8f8f6',1,'asset_browser.h']]],
   ['im_5fmin_2186',['IM_MIN',['../asset__browser_8h.html#af25a13a96600f1a018104f6c2d3da645',1,'asset_browser.h']]],
-  ['imgui_5fdefine_5fmath_5foperators_2187',['IMGUI_DEFINE_MATH_OPERATORS',['../editor__manager_8h.html#adf4d73301961430d50d7edd96f92ce38',1,'IMGUI_DEFINE_MATH_OPERATORS:&#160;editor_manager.h'],['../input_8h.html#adf4d73301961430d50d7edd96f92ce38',1,'IMGUI_DEFINE_MATH_OPERATORS:&#160;input.h'],['../text__editor_8cc.html#adf4d73301961430d50d7edd96f92ce38',1,'IMGUI_DEFINE_MATH_OPERATORS:&#160;text_editor.cc']]]
+  ['imgui_5fdefine_5fmath_5foperators_2187',['IMGUI_DEFINE_MATH_OPERATORS',['../editor__manager_8h.html#adf4d73301961430d50d7edd96f92ce38',1,'IMGUI_DEFINE_MATH_OPERATORS:&#160;editor_manager.h'],['../canvas_8h.html#adf4d73301961430d50d7edd96f92ce38',1,'IMGUI_DEFINE_MATH_OPERATORS:&#160;canvas.h'],['../input_8h.html#adf4d73301961430d50d7edd96f92ce38',1,'IMGUI_DEFINE_MATH_OPERATORS:&#160;input.h'],['../text__editor_8cc.html#adf4d73301961430d50d7edd96f92ce38',1,'IMGUI_DEFINE_MATH_OPERATORS:&#160;text_editor.cc']]]
 ];

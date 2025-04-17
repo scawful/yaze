@@ -1,0 +1,9 @@
+<map id="yaze::editor::MessageEditor::ImportMessagesFromFile" name="yaze::editor::MessageEditor::ImportMessagesFromFile">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,183,79"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1editor.html#ab631002fa2510fae663f6347362ba82d" title=" " alt="" coords="231,39,409,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,56,215,56,215,62,183,62"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c" title=" " alt="" coords="457,5,626,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="409,43,441,38,442,43,409,48"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1editor.html#ad840a81ab7030a220a019f79fbbabb6d" title=" " alt="" coords="457,71,626,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="409,69,442,74,441,79,409,74"/>
+</map>

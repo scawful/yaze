@@ -43,7 +43,7 @@ var namespaceyaze_1_1gui =
       [ "k64x64", "namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a9420cc1a73b8e176c1b22cf835b3e9f7", null ]
     ] ],
     [ "GraphicsBinCanvasPipeline", "namespaceyaze_1_1gui.html#a359973f01787648b92a53d2aa84120a9", null ],
-    [ "BitmapCanvasPipeline", "namespaceyaze_1_1gui.html#a134c6e6817a4a8332e3842e4b2cd01f6", null ],
+    [ "BitmapCanvasPipeline", "namespaceyaze_1_1gui.html#a097a97de3f408828135e749498b16bd6", null ],
     [ "ConvertSnesColorToImVec4", "namespaceyaze_1_1gui.html#a7133468eeb96ba6d81b2c91bc7118d1d", null ],
     [ "SnesColorButton", "namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb", null ],
     [ "SnesColorEdit4", "namespaceyaze_1_1gui.html#aa32511a1a3eadf62366b193da8b5f3da", null ],
@@ -68,6 +68,7 @@ var namespaceyaze_1_1gui =
     [ "AddTableColumn", "namespaceyaze_1_1gui.html#a4869c3a07239efb126450a3a4a121841", null ],
     [ "DrawTable", "namespaceyaze_1_1gui.html#a63cf2c84b704f70ba84ef7a1691e1b85", null ],
     [ "DrawMenu", "namespaceyaze_1_1gui.html#a627566d8500f099dabff60322d3c187e", null ],
+    [ "OpenUrl", "namespaceyaze_1_1gui.html#a7b898e6c361ce2d367d1e1570f8f6c03", null ],
     [ "LoadTheme", "namespaceyaze_1_1gui.html#a216f2984ca7cc50dd872c9605352c95e", null ],
     [ "SaveTheme", "namespaceyaze_1_1gui.html#a7f5085854df78a52ad2598b0448850ed", null ],
     [ "ApplyTheme", "namespaceyaze_1_1gui.html#ae9a47f0d85166d6363717c61056b83a3", null ],

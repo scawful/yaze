@@ -242,7 +242,6 @@ var hierarchy =
     [ "yaze::emu::SETINI", "structyaze_1_1emu_1_1SETINI.html", null ],
     [ "yaze::SharedRom", "classyaze_1_1SharedRom.html", [
       [ "yaze::editor::GfxGroupEditor", "classyaze_1_1editor_1_1GfxGroupEditor.html", null ],
-      [ "yaze::editor::MessageEditor", "classyaze_1_1editor_1_1MessageEditor.html", null ],
       [ "yaze::editor::Tile16Editor", "classyaze_1_1editor_1_1Tile16Editor.html", null ],
       [ "yaze::emu::Emulator", "classyaze_1_1emu_1_1Emulator.html", null ],
       [ "yaze::emu::Ppu", "classyaze_1_1emu_1_1Ppu.html", null ],
