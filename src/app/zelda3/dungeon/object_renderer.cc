@@ -60,17 +60,39 @@ void DungeonObjectRenderer::ConfigureObject() {
 */
 void DungeonObjectRenderer::RenderObject(uint32_t routine_ptr) {
   cpu.PB = 0x01;
+  cpu.PC = routine_ptr;
 
-  // Push an initial value to the stack we can read later to confirm we are
-  // done
-  cpu.PushLong(0x01 << 16 | routine_ptr);
+  // Set up initial state for object drawing
+  cpu.Y = 0;     // Start at the beginning of the tilemap
+  cpu.D = 0x7E;  // Direct page register for memory access
 
-  int i = 0;
-  while (true) {
+  // Push return address to stack
+  cpu.PushLong(0x01 << 16 | 0xFFFF);  // Push a dummy return address
+
+  // Set up a maximum instruction count to prevent infinite loops
+  const int MAX_INSTRUCTIONS = 10000;
+  int instruction_count = 0;
+
+  // Execute instructions until we hit a return instruction or max count
+  while (instruction_count < MAX_INSTRUCTIONS) {
     uint8_t opcode = cpu.ReadByte(cpu.PB << 16 | cpu.PC);
-    cpu.ExecuteInstruction(opcode);
 
-    i++;
+    // Check for RTS (Return from Subroutine) instruction
+    if (opcode == 0x60) {
+      // Execute the RTS instruction
+      cpu.ExecuteInstruction(opcode);
+      break;  // Exit the loop after RTS
+    }
+
+    // Execute the instruction
+    cpu.ExecuteInstruction(opcode);
+    instruction_count++;
+  }
+
+  // If we hit the max instruction count, log a warning
+  if (instruction_count >= MAX_INSTRUCTIONS) {
+    std::cerr << "Warning: Object rendering hit maximum instruction count"
+              << std::endl;
   }
 
   UpdateObjectBitmap();
@@ -80,34 +102,57 @@ void DungeonObjectRenderer::RenderObject(uint32_t routine_ptr) {
 // Layer 1 (BG2) in TILEMAPA
 // Layer 2 (BG1) in TILEMAPB
 void DungeonObjectRenderer::UpdateObjectBitmap() {
-  tilemap_.reserve(0x2000);
-  for (int i = 0; i < 0x2000; ++i) {
-    tilemap_.push_back(0);
-  }
-  int tilemap_offset = 0;
+  // Initialize the tilemap with zeros
+  tilemap_.resize(0x2000, 0);
 
   // Iterate over tilemap in memory to read tile IDs
   for (int tile_index = 0; tile_index < 512; tile_index++) {
     // Read the tile ID from memory
-    int tile_id = memory_.ReadWord(0x7E2000 + tile_index);
-    std::cout << "Tile ID: " << std::hex << tile_id << std::endl;
+    uint16_t tile_id = memory_.ReadWord(0x7E2000 + tile_index * 2);
 
+    // Skip empty tiles (0x0000)
+    if (tile_id == 0) continue;
+
+    // Calculate sheet number (each sheet contains 32 tiles)
     int sheet_number = tile_id / 32;
-    std::cout << "Sheet number: " << std::hex << sheet_number << std::endl;
 
-    int row = tile_id / 8;
-    int column = tile_id % 8;
+    // Ensure sheet number is valid
+    if (sheet_number >= vram_.sheets.size()) {
+      std::cerr << "Warning: Invalid sheet number " << sheet_number
+                << std::endl;
+      continue;
+    }
 
-    int x = column * 8;
-    int y = row * 8;
+    // Calculate position in the tilemap
+    int tile_x = (tile_index % 32) * 8;
+    int tile_y = (tile_index / 32) * 8;
 
-    auto sheet = GraphicsSheetManager::GetInstance().mutable_gfx_sheets()->at(vram_.sheets[sheet_number]);
+    // Get the graphics sheet
+    auto& sheet = GraphicsSheetManager::GetInstance().mutable_gfx_sheets()->at(
+        vram_.sheets[sheet_number]);
 
-    // Copy the tile from VRAM using the read tile_id
-    sheet.Get8x8Tile(tile_id, x, y, tilemap_, tilemap_offset);
+    // Calculate the offset in the tilemap
+    int tilemap_offset = tile_y * 256 + tile_x;
+
+    // Copy the tile from the graphics sheet to the tilemap
+    sheet.Get8x8Tile(tile_id % 32, 0, 0, tilemap_, tilemap_offset);
   }
 
+  // Create the bitmap from the tilemap
   bitmap_.Create(256, 256, 8, tilemap_);
+}
+
+absl::Status DungeonObjectRenderer::SetPalette(const gfx::SnesPalette& palette,
+                                               size_t transparent_index) {
+  // Apply the palette to the bitmap
+  RETURN_IF_ERROR(
+      bitmap_.SetPaletteWithTransparent(palette, transparent_index));
+
+  // Store the palette in the VRAM structure for future reference
+  vram_.palettes.clear();
+  vram_.palettes.push_back(palette);
+
+  return absl::OkStatus();
 }
 
 }  // namespace zelda3
