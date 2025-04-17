@@ -2,7 +2,9 @@
 #define YAZE_APP_EDITOR_MESSAGE_EDITOR_H
 
 #include <array>
+#include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -16,8 +18,6 @@ namespace yaze {
 namespace editor {
 
 constexpr int kGfxFont = 0x70000;  // 2bpp format
-constexpr int kTextData2 = 0x75F40;
-constexpr int kTextData2End = 0x773FF;
 constexpr int kCharactersWidth = 0x74ADF;
 constexpr int kNumMessages = 396;
 constexpr int kCurrentMessageWidth = 172;
@@ -30,7 +30,7 @@ constexpr uint8_t kWidthArraySize = 100;
 constexpr uint8_t kBlockTerminator = 0x80;
 constexpr uint8_t kMessageBankChangeId = 0x80;
 
-class MessageEditor : public Editor, public SharedRom {
+class MessageEditor : public Editor {
  public:
   explicit MessageEditor(Rom* rom = nullptr) : rom_(rom) {
     type_ = EditorType::kMessage;
@@ -42,10 +42,10 @@ class MessageEditor : public Editor, public SharedRom {
   void DrawMessageList();
   void DrawCurrentMessage();
   void DrawTextCommands();
+  void DrawSpecialCharacters();
   void DrawDictionary();
-
-  void ReadAllTextDataV2();
-  [[deprecated]] void ReadAllTextData();
+  void DrawImportExport();
+  void DrawMessageSettings();
 
   absl::Status Cut() override;
   absl::Status Copy() override;
@@ -66,6 +66,15 @@ class MessageEditor : public Editor, public SharedRom {
   void DrawMessagePreview();
   std::string DisplayTextOverflowError(int pos, bool bank);
 
+  absl::Status ImportMessagesFromFile(const std::string& filename);
+  absl::Status ExportMessagesToFile(const std::string& filename);
+
+  void SetMessageFont(int font_index);
+  void SetMessageColor(int color_index);
+  void SetMessageSpeed(int speed);
+  void SetMessageWindow(int window_type);
+  void SetMessagePosition(int x, int y);
+
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
 
@@ -73,12 +82,17 @@ class MessageEditor : public Editor, public SharedRom {
   Rom* rom_;
   bool skip_next = false;
   bool data_loaded_ = false;
+  bool case_sensitive_ = false;
+  bool match_whole_word_ = false;
+  bool export_expanded_messages_ = false;
 
   int text_line_ = 0;
   int text_position_ = 0;
   int shown_lines_ = 0;
 
   std::string search_text_ = "";
+  std::string import_filename_ = "";
+  std::string export_filename_ = "";
 
   std::array<uint8_t, kWidthArraySize> width_array = {0};
   std::vector<uint8_t> font_gfx16_data_;
@@ -96,6 +110,8 @@ class MessageEditor : public Editor, public SharedRom {
   gui::Canvas font_gfx_canvas_{"##FontGfxCanvas", ImVec2(128, 128)};
   gui::Canvas current_font_gfx16_canvas_{"##CurrentMessageGfx",
                                          ImVec2(172, 4096)};
+  gui::Canvas tile_editor_canvas_{"##TileEditorCanvas", ImVec2(256, 256)};
+  gui::Canvas tile_preview_canvas_{"##TilePreviewCanvas", ImVec2(64, 64)};
 
   struct TextBox {
     std::string text;
@@ -153,6 +169,8 @@ class MessageEditor : public Editor, public SharedRom {
   };
 
   TextBox message_text_box_;
+
+  absl::Status status_;
 };
 
 }  // namespace editor

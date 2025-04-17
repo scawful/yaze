@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_replace.h"
 #include "app/core/platform/renderer.h"
@@ -47,7 +48,7 @@ void MessageEditor::Initialize() {
   }
 
   all_dictionaries_ = BuildDictionaryEntries(rom());
-  ReadAllTextDataV2();
+  ReadAllTextData(rom(), list_of_texts_);
 
   font_preview_colors_.AddColor(0x7FFF);  // White
   font_preview_colors_.AddColor(0x7C00);  // Red
@@ -77,6 +78,7 @@ void MessageEditor::Initialize() {
       current_font_gfx16_bitmap_, font_preview_colors_);
 
   *font_gfx_bitmap_.mutable_palette() = font_preview_colors_;
+  *current_font_gfx16_bitmap_.mutable_palette() = font_preview_colors_;
 
   parsed_messages_ = ParseMessageData(list_of_texts_, all_dictionaries_);
   DrawMessagePreview();
@@ -107,13 +109,15 @@ absl::Status MessageEditor::Update() {
 
     TableNextColumn();
     DrawTextCommands();
+    DrawSpecialCharacters();
 
     TableNextColumn();
     DrawDictionary();
+    DrawImportExport();
 
     EndTable();
   }
-
+  CLEAR_AND_RETURN_STATUS(status_);
   return absl::OkStatus();
 }
 
@@ -126,7 +130,6 @@ void MessageEditor::DrawMessageList() {
       TableSetupColumn("Data");
 
       TableHeadersRow();
-
       for (const auto& message : list_of_texts_) {
         TableNextColumn();
         if (Button(util::HexWord(message.ID).c_str())) {
@@ -172,8 +175,19 @@ void MessageEditor::DrawCurrentMessage() {
   Separator();
 
   Text("Message Preview");
+  if (Button("Create Preview")) {
+    DrawMessagePreview();
+  }
   if (Button("Refresh Bitmap")) {
     Renderer::GetInstance().UpdateBitmap(&current_font_gfx16_bitmap_);
+  }
+  ImGui::SameLine();
+  if (Button("View Palette")) {
+    ImGui::OpenPopup("Palette");
+  }
+  if (ImGui::BeginPopup("Palette")) {
+    status_ = gui::DisplayPalette(font_preview_colors_, true);
+    ImGui::EndPopup();
   }
   gui::BeginPadding(1);
   BeginChild("CurrentGfxFont", ImVec2(200, 0), true,
@@ -188,17 +202,29 @@ void MessageEditor::DrawCurrentMessage() {
 }
 
 void MessageEditor::DrawTextCommands() {
-  if (BeginChild("##TextCommands", ImVec2(0, 0), true,
-                 ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-    for (const auto& text_element : TextCommands) {
-      if (Button(text_element.GenericToken.c_str())) {
-        // Insert the command into the message text box.
-        message_text_box_.text.append(text_element.GenericToken);
-      }
-      SameLine();
-      TextWrapped("%s", text_element.Description.c_str());
-      Separator();
+  ImGui::BeginChild("##TextCommands",
+                    ImVec2(0, ImGui::GetWindowContentRegionMax().y / 2), true,
+                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
+  for (const auto& text_element : TextCommands) {
+    if (Button(text_element.GenericToken.c_str())) {
+      message_text_box_.text.append(text_element.GenericToken);
     }
+    SameLine();
+    TextWrapped("%s", text_element.Description.c_str());
+    Separator();
+  }
+  EndChild();
+}
+
+void MessageEditor::DrawSpecialCharacters() {
+  ImGui::BeginChild("##SpecialChars",
+                    ImVec2(0, ImGui::GetWindowContentRegionMax().y / 2), true,
+                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
+  for (const auto& text_element : SpecialChars) {
+    if (Button(text_element.GenericToken.c_str())) {
+      message_text_box_.text.append(text_element.GenericToken);
+    }
+    Separator();
   }
   EndChild();
 }
@@ -207,8 +233,9 @@ void MessageEditor::DrawDictionary() {
   if (all_dictionaries_.empty()) {
     return;
   }
-  if (ImGui::BeginChild("##DictionaryChild", ImVec2(200, 0), true,
-                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+  if (ImGui::BeginChild("##DictionaryChild",
+                        ImVec2(200, ImGui::GetWindowContentRegionMax().y / 2),
+                        true, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
     if (BeginTable("##Dictionary", 2, kMessageTableFlags)) {
       TableSetupColumn("ID");
       TableSetupColumn("Contents");
@@ -225,189 +252,27 @@ void MessageEditor::DrawDictionary() {
   EndChild();
 }
 
-void MessageEditor::ReadAllTextDataV2() {
-  // Read all text data from the ROM.
-  int pos = kTextData;
-  int message_id = 0;
+void MessageEditor::DrawImportExport() {
+  ImGui::Text("Import Messages");
+  ImGui::Separator();
 
-  std::vector<uint8_t> raw_message;
-  std::vector<uint8_t> parsed_message;
-  std::string current_raw_message;
-  std::string current_parsed_message;
+  static char import_path[256] = "";
+  ImGui::InputText("Import File", import_path, sizeof(import_path));
 
-  uint8_t current_byte = 0;
-  while (current_byte != 0xFF) {
-    current_byte = rom()->data()[pos++];
-    if (current_byte == kMessageTerminator) {
-      list_of_texts_.push_back(
-          MessageData(message_id++, pos, current_raw_message, raw_message,
-                      current_parsed_message, parsed_message));
-      raw_message.clear();
-      parsed_message.clear();
-      current_raw_message.clear();
-      current_parsed_message.clear();
-      continue;
-    } else if (current_byte == 0xFF) {
-      break;
-    }
-
-    raw_message.push_back(current_byte);
-
-    auto text_element = FindMatchingCommand(current_byte);
-    if (text_element != std::nullopt) {
-      parsed_message.push_back(current_byte);
-      if (text_element->HasArgument) {
-        current_byte = rom()->data()[pos++];
-        raw_message.push_back(current_byte);
-        parsed_message.push_back(current_byte);
-      }
-
-      current_raw_message.append(text_element->GetParamToken(current_byte));
-      current_parsed_message.append(text_element->GetParamToken(current_byte));
-
-      if (text_element->Token == kBankToken) {
-        pos = kTextData2;
-      }
-
-      continue;
-    }
-
-    // Check for special characters.
-    auto special_element = FindMatchingSpecial(current_byte);
-    if (special_element != std::nullopt) {
-      current_raw_message.append(special_element->GetParamToken());
-      current_parsed_message.append(special_element->GetParamToken());
-      parsed_message.push_back(current_byte);
-      continue;
-    }
-
-    // Check for dictionary.
-    int dictionary = FindDictionaryEntry(current_byte);
-    if (dictionary >= 0) {
-      current_raw_message.append("[");
-      current_raw_message.append(DICTIONARYTOKEN);
-      current_raw_message.append(":");
-      current_raw_message.append(util::HexByte(dictionary));
-      current_raw_message.append("]");
-
-      uint32_t address = Get24LocalFromPC(
-          rom()->mutable_data(), kPointersDictionaries + (dictionary * 2));
-      uint32_t address_end =
-          Get24LocalFromPC(rom()->mutable_data(),
-                           kPointersDictionaries + ((dictionary + 1) * 2));
-
-      for (uint32_t i = address; i < address_end; i++) {
-        parsed_message.push_back(rom()->data()[i]);
-        current_parsed_message.append(ParseTextDataByte(rom()->data()[i]));
-      }
-
-      continue;
-    }
-
-    // Everything else.
-    if (CharEncoder.contains(current_byte)) {
-      std::string str = "";
-      str.push_back(CharEncoder.at(current_byte));
-      current_raw_message.append(str);
-      current_parsed_message.append(str);
-      parsed_message.push_back(current_byte);
-    }
+  if (ImGui::Button("Import")) {
+    status_ = ImportMessagesFromFile(import_path);
   }
-}
 
-void MessageEditor::ReadAllTextData() {
-  int pos = kTextData;
-  int message_id = 0;
-  uint8_t current_byte;
-  std::vector<uint8_t> temp_bytes_raw;
-  std::vector<uint8_t> temp_bytes_parsed;
+  // Export section
+  ImGui::Spacing();
+  ImGui::Text("Export Messages");
+  ImGui::Separator();
 
-  std::string current_message_raw;
-  std::string current_message_parsed;
+  static char export_path[256] = "";
+  ImGui::InputText("Export File", export_path, sizeof(export_path));
 
-  while (true) {
-    current_byte = rom()->data()[pos++];
-
-    if (current_byte == kMessageTerminator) {
-      auto message =
-          MessageData(message_id++, pos, current_message_raw, temp_bytes_raw,
-                      current_message_parsed, temp_bytes_parsed);
-
-      list_of_texts_.push_back(message);
-
-      temp_bytes_raw.clear();
-      temp_bytes_parsed.clear();
-      current_message_raw.clear();
-      current_message_parsed.clear();
-
-      continue;
-    } else if (current_byte == 0xFF) {
-      break;
-    }
-
-    temp_bytes_raw.push_back(current_byte);
-
-    // Check for command.
-    auto text_element = FindMatchingCommand(current_byte);
-    if (text_element.has_value()) {
-      temp_bytes_parsed.push_back(current_byte);
-      if (text_element->HasArgument) {
-        current_byte = rom()->data()[pos++];
-        temp_bytes_raw.push_back(current_byte);
-        temp_bytes_parsed.push_back(current_byte);
-      }
-
-      current_message_raw.append(text_element->GetParamToken(current_byte));
-      current_message_parsed.append(text_element->GetParamToken(current_byte));
-
-      if (text_element->Token == kBankToken) {
-        pos = kTextData2;
-      }
-
-      continue;
-    }
-
-    // Check for special characters.
-    auto special_element = FindMatchingSpecial(current_byte);
-    if (special_element.has_value()) {
-      current_message_raw.append(special_element->GetParamToken());
-      current_message_parsed.append(special_element->GetParamToken());
-      temp_bytes_parsed.push_back(current_byte);
-      continue;
-    }
-
-    // Check for dictionary.
-    int dictionary = FindDictionaryEntry(current_byte);
-
-    if (dictionary >= 0) {
-      current_message_raw.append("[");
-      current_message_raw.append(DICTIONARYTOKEN);
-      current_message_raw.append(":");
-      current_message_raw.append(util::HexWord(dictionary));
-      current_message_raw.append("]");
-
-      uint32_t address = Get24LocalFromPC(
-          rom()->mutable_data(), kPointersDictionaries + (dictionary * 2));
-      uint32_t address_end =
-          Get24LocalFromPC(rom()->mutable_data(),
-                           kPointersDictionaries + ((dictionary + 1) * 2));
-
-      for (uint32_t i = address; i < address_end; i++) {
-        temp_bytes_parsed.push_back(rom()->data()[i]);
-        current_message_parsed.append(ParseTextDataByte(rom()->data()[i]));
-      }
-
-      continue;
-    }
-
-    // Everything else.
-    if (CharEncoder.contains(current_byte)) {
-      std::string str = "";
-      str.push_back(CharEncoder.at(current_byte));
-      current_message_raw.append(str);
-      current_message_parsed.append(str);
-      temp_bytes_parsed.push_back(current_byte);
-    }
+  if (ImGui::Button("Export")) {
+    status_ = ExportMessagesToFile(export_path);
   }
 }
 
@@ -521,45 +386,9 @@ void MessageEditor::DrawMessagePreview() {
   text_position_ = 0;
   DrawCharacterToPreview(current_message_.Data);
   shown_lines_ = 0;
-}
 
-absl::Status MessageEditor::Cut() {
-  // Ensure that text is currently selected in the text box.
-  if (!message_text_box_.text.empty()) {
-    // Cut the selected text in the control and paste it into the Clipboard.
-    message_text_box_.Cut();
-  }
-  return absl::OkStatus();
-}
-
-absl::Status MessageEditor::Paste() {
-  // Determine if there is any text in the Clipboard to paste into the
-  if (ImGui::GetClipboardText() != nullptr) {
-    // Paste the text from the Clipboard into the text box.
-    message_text_box_.Paste();
-  }
-  return absl::OkStatus();
-}
-
-absl::Status MessageEditor::Copy() {
-  // Ensure that text is selected in the text box.
-  if (message_text_box_.selection_length > 0) {
-    // Copy the selected text to the Clipboard.
-    message_text_box_.Copy();
-  }
-  return absl::OkStatus();
-}
-
-absl::Status MessageEditor::Undo() {
-  // Determine if last operation can be undone in text box.
-  if (message_text_box_.can_undo) {
-    // Undo the last operation.
-    message_text_box_.Undo();
-
-    // clear the undo buffer to prevent last action from being redone.
-    message_text_box_.clearUndo();
-  }
-  return absl::OkStatus();
+  Renderer::GetInstance().UpdateBitmap(&font_gfx_bitmap_);
+  Renderer::GetInstance().RenderBitmap(&current_font_gfx16_bitmap_);
 }
 
 absl::Status MessageEditor::Save() {
@@ -619,6 +448,51 @@ std::string MessageEditor::DisplayTextOverflowError(int pos, bool bank) {
   return message;
 }
 
+absl::Status MessageEditor::Cut() {
+  // Ensure that text is currently selected in the text box.
+  if (!message_text_box_.text.empty()) {
+    // Cut the selected text in the control and paste it into the Clipboard.
+    message_text_box_.Cut();
+  }
+  return absl::OkStatus();
+}
+
+absl::Status MessageEditor::Paste() {
+  // Determine if there is any text in the Clipboard to paste into the
+  if (ImGui::GetClipboardText() != nullptr) {
+    // Paste the text from the Clipboard into the text box.
+    message_text_box_.Paste();
+  }
+  return absl::OkStatus();
+}
+
+absl::Status MessageEditor::Copy() {
+  // Ensure that text is selected in the text box.
+  if (message_text_box_.selection_length > 0) {
+    // Copy the selected text to the Clipboard.
+    message_text_box_.Copy();
+  }
+  return absl::OkStatus();
+}
+
+absl::Status MessageEditor::Undo() {
+  // Determine if last operation can be undone in text box.
+  if (message_text_box_.can_undo) {
+    // Undo the last operation.
+    message_text_box_.Undo();
+
+    // clear the undo buffer to prevent last action from being redone.
+    message_text_box_.clearUndo();
+  }
+  return absl::OkStatus();
+}
+
+absl::Status MessageEditor::Redo() {
+  // Implementation of redo functionality
+  // This would require tracking a redo stack in the TextBox struct
+  return absl::OkStatus();
+}
+
 void MessageEditor::Delete() {
   // Determine if any text is selected in the TextBox control.
   if (message_text_box_.selection_length == 0) {
@@ -638,16 +512,102 @@ void MessageEditor::SelectAll() {
   }
 }
 
-absl::Status MessageEditor::Redo() {
-  // Implementation of redo functionality
-  // This would require tracking a redo stack in the TextBox struct
-  return absl::OkStatus();
-}
-
 absl::Status MessageEditor::Find() {
+  if (ImGui::Begin("Find Text", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    static char find_text[256] = "";
+    ImGui::InputText("Search", find_text, IM_ARRAYSIZE(find_text));
+
+    if (ImGui::Button("Find Next")) {
+      search_text_ = find_text;
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Find All")) {
+      search_text_ = find_text;
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Replace")) {
+      // TODO: Implement replace functionality
+    }
+
+    ImGui::Checkbox("Case Sensitive", &case_sensitive_);
+    ImGui::SameLine();
+    ImGui::Checkbox("Match Whole Word", &match_whole_word_);
+  }
+  ImGui::End();
+
   return absl::OkStatus();
 }
 
+absl::Status MessageEditor::ImportMessagesFromFile(const std::string& path) {
+  // Open the file
+  std::ifstream file(path);
+  if (!file.is_open()) {
+    return absl::NotFoundError("Failed to open file");
+  }
+
+  // Read the file line by line
+  std::string line;
+  int line_number = 0;
+
+  while (std::getline(file, line)) {
+    line_number++;
+
+    // Skip empty lines and comments
+    if (line.empty() || line[0] == '#') {
+      continue;
+    }
+
+    // Parse the line
+    // Format: ID=content
+    size_t equal_pos = line.find('=');
+    if (equal_pos == std::string::npos) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Invalid format at line %d", line_number));
+    }
+
+    std::string id_str = line.substr(0, equal_pos);
+    std::string content = line.substr(equal_pos + 1);
+
+    // Parse the ID
+    int id;
+    if (!absl::SimpleAtoi(id_str, &id)) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Invalid ID at line %d", line_number));
+    }
+
+    // Update a regular message
+    for (auto& message : list_of_texts_) {
+      if (message.ID == id) {
+        message.ContentsParsed = content;
+        message.DataParsed = ParseMessageToData(content);
+        break;
+      }
+    }
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status MessageEditor::ExportMessagesToFile(const std::string& path) {
+  // Open the file
+  std::ofstream file(path);
+  if (!file.is_open()) {
+    return absl::NotFoundError("Failed to open file");
+  }
+
+  // Write a header
+  file << "# Message Export\n";
+  file << "# Format: ID=content\n\n";
+
+  // Write regular messages
+  for (const auto& message : list_of_texts_) {
+    file << absl::StrFormat("%d=%s\n", message.ID, message.ContentsParsed);
+  }
+
+  return absl::OkStatus();
+}
 
 }  // namespace editor
 }  // namespace yaze
