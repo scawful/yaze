@@ -307,6 +307,95 @@ std::vector<std::string> ParseMessageData(
   return parsed_messages;
 }
 
+void ReadAllTextData(Rom *rom, std::vector<MessageData> &list_of_texts_) {
+  // Read all text data from the ROM.
+  int pos = kTextData;
+  int message_id = 0;
+
+  std::vector<uint8_t> raw_message;
+  std::vector<uint8_t> parsed_message;
+  std::string current_raw_message;
+  std::string current_parsed_message;
+
+  uint8_t current_byte = 0;
+  while (current_byte != 0xFF) {
+    current_byte = rom->data()[pos++];
+    if (current_byte == kMessageTerminator) {
+      list_of_texts_.push_back(
+          MessageData(message_id++, pos, current_raw_message, raw_message,
+                      current_parsed_message, parsed_message));
+      raw_message.clear();
+      parsed_message.clear();
+      current_raw_message.clear();
+      current_parsed_message.clear();
+      continue;
+    } else if (current_byte == 0xFF) {
+      break;
+    }
+
+    raw_message.push_back(current_byte);
+
+    auto text_element = FindMatchingCommand(current_byte);
+    if (text_element != std::nullopt) {
+      parsed_message.push_back(current_byte);
+      if (text_element->HasArgument) {
+        current_byte = rom->data()[pos++];
+        raw_message.push_back(current_byte);
+        parsed_message.push_back(current_byte);
+      }
+
+      current_raw_message.append(text_element->GetParamToken(current_byte));
+      current_parsed_message.append(text_element->GetParamToken(current_byte));
+
+      if (text_element->Token == kBankToken) {
+        pos = kTextData2;
+      }
+
+      continue;
+    }
+
+    // Check for special characters.
+    auto special_element = FindMatchingSpecial(current_byte);
+    if (special_element != std::nullopt) {
+      current_raw_message.append(special_element->GetParamToken());
+      current_parsed_message.append(special_element->GetParamToken());
+      parsed_message.push_back(current_byte);
+      continue;
+    }
+
+    // Check for dictionary.
+    int dictionary = FindDictionaryEntry(current_byte);
+    if (dictionary >= 0) {
+      current_raw_message.append("[");
+      current_raw_message.append(DICTIONARYTOKEN);
+      current_raw_message.append(":");
+      current_raw_message.append(util::HexByte(dictionary));
+      current_raw_message.append("]");
+
+      uint32_t address = Get24LocalFromPC(
+          rom->mutable_data(), kPointersDictionaries + (dictionary * 2));
+      uint32_t address_end = Get24LocalFromPC(
+          rom->mutable_data(), kPointersDictionaries + ((dictionary + 1) * 2));
+
+      for (uint32_t i = address; i < address_end; i++) {
+        parsed_message.push_back(rom->data()[i]);
+        current_parsed_message.append(ParseTextDataByte(rom->data()[i]));
+      }
+
+      continue;
+    }
+
+    // Everything else.
+    if (CharEncoder.contains(current_byte)) {
+      std::string str = "";
+      str.push_back(CharEncoder.at(current_byte));
+      current_raw_message.append(str);
+      current_parsed_message.append(str);
+      parsed_message.push_back(current_byte);
+    }
+  }
+}
+
 std::vector<std::string> ImportMessageData(std::string_view filename) {
   std::vector<std::string> messages;
   std::ifstream file(filename.data());
