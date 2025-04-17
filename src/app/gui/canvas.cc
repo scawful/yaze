@@ -10,6 +10,8 @@
 #include "app/gui/style.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
+#include "imgui_memory_editor.h"
 
 namespace yaze {
 namespace gui {
@@ -39,6 +41,13 @@ constexpr uint32_t kOutlineRect = IM_COL32(255, 255, 255, 200);
 
 constexpr ImGuiButtonFlags kMouseFlags =
     ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight;
+
+namespace {
+ImVec2 AlignPosToGrid(ImVec2 pos, float scale) {
+  return ImVec2(std::floor((double)pos.x / scale) * scale,
+                std::floor((double)pos.y / scale) * scale);
+}
+}  // namespace
 
 void Canvas::UpdateColorPainter(gfx::Bitmap &bitmap, const ImVec4 &color,
                                 const std::function<void()> &event,
@@ -97,13 +106,20 @@ void Canvas::DrawBackground(ImVec2 canvas_size, bool can_drag) {
   }
 }
 
-void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
+void Canvas::DrawContextMenu() {
   const ImGuiIO &io = GetIO();
   const ImVec2 scaled_sz(canvas_sz_.x * global_scale_,
                          canvas_sz_.y * global_scale_);
   const ImVec2 origin(canvas_p0_.x + scrolling_.x,
                       canvas_p0_.y + scrolling_.y);  // Lock scrolled origin
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+
+  static bool show_bitmap_data = false;
+  if (show_bitmap_data && bitmap_ != nullptr) {
+    MemoryEditor mem_edit;
+    mem_edit.DrawWindow("Bitmap Data", (void *)bitmap_->data(), bitmap_->size(),
+                        0);
+  }
 
   // Context menu (under default mouse threshold)
   if (ImVec2 drag_delta = GetMouseDragDelta(ImGuiMouseButton_Right);
@@ -124,30 +140,30 @@ void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
       Text("Mouse Position: %.0f x %.0f", mouse_pos.x, mouse_pos.y);
       EndMenu();
     }
-    if (bitmap != nullptr) {
+    if (bitmap_ != nullptr) {
       if (BeginMenu("Bitmap Properties")) {
         Text("Size: %.0f x %.0f", scaled_sz.x, scaled_sz.y);
-        Text("Pitch: %d", bitmap->surface()->pitch);
-        Text("BitsPerPixel: %d", bitmap->surface()->format->BitsPerPixel);
-        Text("BytesPerPixel: %d", bitmap->surface()->format->BytesPerPixel);
+        Text("Pitch: %d", bitmap_->surface()->pitch);
+        Text("BitsPerPixel: %d", bitmap_->surface()->format->BitsPerPixel);
+        Text("BytesPerPixel: %d", bitmap_->surface()->format->BytesPerPixel);
         EndMenu();
       }
       if (BeginMenu("Bitmap Format")) {
         if (MenuItem("Indexed")) {
-          bitmap->Reformat(gfx::BitmapFormat::kIndexed);
-          Renderer::GetInstance().UpdateBitmap(bitmap);
+          bitmap_->Reformat(gfx::BitmapFormat::kIndexed);
+          Renderer::GetInstance().UpdateBitmap(bitmap_);
         }
         if (MenuItem("2BPP")) {
-          bitmap->Reformat(gfx::BitmapFormat::k2bpp);
-          Renderer::GetInstance().UpdateBitmap(bitmap);
+          bitmap_->Reformat(gfx::BitmapFormat::k2bpp);
+          Renderer::GetInstance().UpdateBitmap(bitmap_);
         }
         if (MenuItem("4BPP")) {
-          bitmap->Reformat(gfx::BitmapFormat::k4bpp);
-          Renderer::GetInstance().UpdateBitmap(bitmap);
+          bitmap_->Reformat(gfx::BitmapFormat::k4bpp);
+          Renderer::GetInstance().UpdateBitmap(bitmap_);
         }
         if (MenuItem("8BPP")) {
-          bitmap->Reformat(gfx::BitmapFormat::k8bpp);
-          Renderer::GetInstance().UpdateBitmap(bitmap);
+          bitmap_->Reformat(gfx::BitmapFormat::k8bpp);
+          Renderer::GetInstance().UpdateBitmap(bitmap_);
         }
         EndMenu();
       }
@@ -170,9 +186,9 @@ void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
                                            refresh_graphics_, *palette);
 
             if (refresh_graphics_) {
-              auto status = bitmap->SetPaletteWithTransparent(
+              auto status = bitmap_->SetPaletteWithTransparent(
                   *palette, edit_palette_sub_index_);
-              Renderer::GetInstance().UpdateBitmap(bitmap);
+              Renderer::GetInstance().UpdateBitmap(bitmap_);
               refresh_graphics_ = false;
             }
             ImGui::EndChild();
@@ -180,6 +196,7 @@ void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
         }
         EndMenu();
       }
+      MenuItem("Bitmap Data", nullptr, &show_bitmap_data);
     }
     ImGui::Separator();
     if (BeginMenu("Grid Tile Size")) {
@@ -209,50 +226,46 @@ bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
   // Lock scrolled origin
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+  const auto scaled_size = size * scale;
 
-  if (is_hovered) {
-    // Reset the previous tile hover
-    if (!points_.empty()) {
-      points_.clear();
-    }
+  // Erase the hover when the mouse is not in the canvas window.
+  if (!is_hovered) {
+    points_.clear();
+    return false;
+  }
 
-    // Calculate the coordinates of the mouse
-    ImVec2 painter_pos;
-    painter_pos.x =
-        std::floor((double)mouse_pos.x / (size * scale)) * (size * scale);
-    painter_pos.y =
-        std::floor((double)mouse_pos.y / (size * scale)) * (size * scale);
-
-    mouse_pos_in_canvas_ = painter_pos;
-
-    auto painter_pos_end =
-        ImVec2(painter_pos.x + (size * scale), painter_pos.y + (size * scale));
-    points_.push_back(painter_pos);
-    points_.push_back(painter_pos_end);
-
-    if (bitmap.is_active()) {
-      draw_list_->AddImage(
-          (ImTextureID)(intptr_t)bitmap.texture(),
-          ImVec2(origin.x + painter_pos.x, origin.y + painter_pos.y),
-          ImVec2(origin.x + painter_pos.x + (size)*scale,
-                 origin.y + painter_pos.y + size * scale));
-    }
-
-    if (IsMouseClicked(ImGuiMouseButton_Left)) {
-      // Draw the currently selected tile on the overworld here
-      // Save the coordinates of the selected tile.
-      drawn_tile_pos_ = painter_pos;
-      return true;
-    } else if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-      // Draw the currently selected tile on the overworld here
-      // Save the coordinates of the selected tile.
-      drawn_tile_pos_ = painter_pos;
-      return true;
-    }
-  } else {
-    // Erase the hover when the mouse is not in the canvas window.
+  // Reset the previous tile hover
+  if (!points_.empty()) {
     points_.clear();
   }
+
+  // Calculate the coordinates of the mouse
+  ImVec2 paint_pos = AlignPosToGrid(mouse_pos, scaled_size);
+  mouse_pos_in_canvas_ = paint_pos;
+  auto paint_pos_end =
+      ImVec2(paint_pos.x + scaled_size, paint_pos.y + scaled_size);
+  points_.push_back(paint_pos);
+  points_.push_back(paint_pos_end);
+
+  if (bitmap.is_active()) {
+    draw_list_->AddImage((ImTextureID)(intptr_t)bitmap.texture(),
+                         ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
+                         ImVec2(origin.x + paint_pos.x + scaled_size,
+                                origin.y + paint_pos.y + scaled_size));
+  }
+
+  if (IsMouseClicked(ImGuiMouseButton_Left)) {
+    // Draw the currently selected tile on the overworld here
+    // Save the coordinates of the selected tile.
+    drawn_tile_pos_ = paint_pos;
+    return true;
+  } else if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+    // Draw the currently selected tile on the overworld here
+    // Save the coordinates of the selected tile.
+    drawn_tile_pos_ = paint_pos;
+    return true;
+  }
+
   return false;
 }
 
@@ -264,54 +277,49 @@ bool Canvas::DrawSolidTilePainter(const ImVec4 &color, int tile_size) {
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
   auto scaled_tile_size = tile_size * global_scale_;
-
   static bool is_dragging = false;
   static ImVec2 start_drag_pos;
 
-  if (is_hovered) {
-    // Reset the previous tile hover
-    if (!points_.empty()) {
-      points_.clear();
-    }
+  // Erase the hover when the mouse is not in the canvas window.
+  if (!is_hovered) {
+    points_.clear();
+    return false;
+  }
 
-    // Calculate the coordinates of the mouse
-    ImVec2 painter_pos;
-    painter_pos.x =
-        std::floor((double)mouse_pos.x / scaled_tile_size) * scaled_tile_size;
-    painter_pos.y =
-        std::floor((double)mouse_pos.y / scaled_tile_size) * scaled_tile_size;
-
-    // Clamp the size to a grid
-    painter_pos.x =
-        std::clamp(painter_pos.x, 0.0f, canvas_sz_.x * global_scale_);
-    painter_pos.y =
-        std::clamp(painter_pos.y, 0.0f, canvas_sz_.y * global_scale_);
-
-    points_.push_back(painter_pos);
-    points_.push_back(ImVec2(painter_pos.x + scaled_tile_size,
-                             painter_pos.y + scaled_tile_size));
-
-    draw_list_->AddRectFilled(
-        ImVec2(origin.x + painter_pos.x + 1, origin.y + painter_pos.y + 1),
-        ImVec2(origin.x + painter_pos.x + scaled_tile_size,
-               origin.y + painter_pos.y + scaled_tile_size),
-        IM_COL32(color.x * 255, color.y * 255, color.z * 255, 255));
-
-    if (IsMouseClicked(ImGuiMouseButton_Left)) {
-      is_dragging = true;
-      start_drag_pos = painter_pos;
-    }
-
-    if (is_dragging && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
-      is_dragging = false;
-      drawn_tile_pos_ = start_drag_pos;
-      return true;
-    }
-
-  } else {
-    // Erase the hover when the mouse is not in the canvas window.
+  // Reset the previous tile hover
+  if (!points_.empty()) {
     points_.clear();
   }
+
+  // Calculate the coordinates of the mouse
+  ImVec2 paint_pos = AlignPosToGrid(mouse_pos, scaled_tile_size);
+  mouse_pos_in_canvas_ = paint_pos;
+
+  // Clamp the size to a grid
+  paint_pos.x = std::clamp(paint_pos.x, 0.0f, canvas_sz_.x * global_scale_);
+  paint_pos.y = std::clamp(paint_pos.y, 0.0f, canvas_sz_.y * global_scale_);
+
+  points_.push_back(paint_pos);
+  points_.push_back(
+      ImVec2(paint_pos.x + scaled_tile_size, paint_pos.y + scaled_tile_size));
+
+  draw_list_->AddRectFilled(
+      ImVec2(origin.x + paint_pos.x + 1, origin.y + paint_pos.y + 1),
+      ImVec2(origin.x + paint_pos.x + scaled_tile_size,
+             origin.y + paint_pos.y + scaled_tile_size),
+      IM_COL32(color.x * 255, color.y * 255, color.z * 255, 255));
+
+  if (IsMouseClicked(ImGuiMouseButton_Left)) {
+    is_dragging = true;
+    start_drag_pos = paint_pos;
+  }
+
+  if (is_dragging && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+    is_dragging = false;
+    drawn_tile_pos_ = start_drag_pos;
+    return true;
+  }
+
   return false;
 }
 
@@ -361,13 +369,6 @@ bool Canvas::DrawTileSelector(int size) {
 
   return false;
 }
-
-namespace {
-ImVec2 AlignPosToGrid(ImVec2 pos, float scale) {
-  return ImVec2(std::floor((double)pos.x / scale) * scale,
-                std::floor((double)pos.y / scale) * scale);
-}
-}  // namespace
 
 void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
   const ImGuiIO &io = GetIO();
@@ -457,8 +458,9 @@ void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
   }
 }
 
-void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, bool ready) {
+void Canvas::DrawBitmap(Bitmap &bitmap, int border_offset, bool ready) {
   if (ready) {
+    bitmap_ = &bitmap;
     draw_list_->AddImage(
         (ImTextureID)(intptr_t)bitmap.texture(),
         ImVec2(canvas_p0_.x + border_offset, canvas_p0_.y + border_offset),
@@ -467,10 +469,11 @@ void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, bool ready) {
   }
 }
 
-void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, float scale) {
+void Canvas::DrawBitmap(Bitmap &bitmap, int border_offset, float scale) {
   if (!bitmap.is_active()) {
     return;
   }
+  bitmap_ = &bitmap;
   draw_list_->AddImage((ImTextureID)(intptr_t)bitmap.texture(),
                        ImVec2(canvas_p0_.x, canvas_p0_.y),
                        ImVec2(canvas_p0_.x + (bitmap.width() * scale),
@@ -478,11 +481,12 @@ void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, float scale) {
   draw_list_->AddRect(canvas_p0_, canvas_p1_, kWhiteColor);
 }
 
-void Canvas::DrawBitmap(const Bitmap &bitmap, int x_offset, int y_offset,
-                        float scale, int alpha) {
+void Canvas::DrawBitmap(Bitmap &bitmap, int x_offset, int y_offset, float scale,
+                        int alpha) {
   if (!bitmap.is_active()) {
     return;
   }
+  bitmap_ = &bitmap;
   draw_list_->AddImage(
       (ImTextureID)(intptr_t)bitmap.texture(),
       ImVec2(canvas_p0_.x + x_offset + scrolling_.x,
@@ -828,11 +832,11 @@ void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
   ImGui::EndChild();
 }
 
-void BitmapCanvasPipeline(gui::Canvas &canvas, const gfx::Bitmap &bitmap,
-                          int width, int height, int tile_size, bool is_loaded,
+void BitmapCanvasPipeline(gui::Canvas &canvas, gfx::Bitmap &bitmap, int width,
+                          int height, int tile_size, bool is_loaded,
                           bool scrollbar, int canvas_id) {
-  auto draw_canvas = [](gui::Canvas &canvas, const gfx::Bitmap &bitmap,
-                        int width, int height, int tile_size, bool is_loaded) {
+  auto draw_canvas = [](gui::Canvas &canvas, gfx::Bitmap &bitmap, int width,
+                        int height, int tile_size, bool is_loaded) {
     canvas.DrawBackground(ImVec2(width + 1, height + 1));
     canvas.DrawContextMenu();
     canvas.DrawBitmap(bitmap, 2, is_loaded);

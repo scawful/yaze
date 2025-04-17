@@ -53,7 +53,7 @@ void ScreenEditor::DrawInventoryMenuEditor() {
   static bool create = false;
   if (!create && rom()->is_loaded()) {
     status_ = inventory_.Create();
-    palette_ = inventory_.Palette();
+    palette_ = inventory_.palette();
     create = true;
   }
 
@@ -68,14 +68,14 @@ void ScreenEditor::DrawInventoryMenuEditor() {
     ImGui::TableNextColumn();
     screen_canvas_.DrawBackground();
     screen_canvas_.DrawContextMenu();
-    screen_canvas_.DrawBitmap(inventory_.Bitmap(), 2, create);
+    screen_canvas_.DrawBitmap(inventory_.bitmap(), 2, create);
     screen_canvas_.DrawGrid(32.0f);
     screen_canvas_.DrawOverlay();
 
     ImGui::TableNextColumn();
     tilesheet_canvas_.DrawBackground(ImVec2(128 * 2 + 2, (192 * 2) + 4));
     tilesheet_canvas_.DrawContextMenu();
-    tilesheet_canvas_.DrawBitmap(inventory_.Tilesheet(), 2, create);
+    tilesheet_canvas_.DrawBitmap(inventory_.tilesheet(), 2, create);
     tilesheet_canvas_.DrawGrid(16.0f);
     tilesheet_canvas_.DrawOverlay();
 
