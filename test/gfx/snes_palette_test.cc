@@ -23,11 +23,29 @@ unsigned int test_convert(snes_color col) {
 }
 }  // namespace
 
-TEST(SnesPaletteTest, AddColor) {
-  yaze::gfx::SnesPalette palette;
+// SnesColor Tests
+TEST(SnesColorTest, DefaultConstructor) {
   yaze::gfx::SnesColor color;
-  palette.AddColor(color);
-  ASSERT_EQ(palette.size(), 1);
+  EXPECT_EQ(color.rgb().x, 0.0f);
+  EXPECT_EQ(color.rgb().y, 0.0f);
+  EXPECT_EQ(color.rgb().z, 0.0f);
+  EXPECT_EQ(color.rgb().w, 0.0f);
+  EXPECT_EQ(color.snes(), 0);
+}
+
+TEST(SnesColorTest, RGBConstructor) {
+  ImVec4 rgb(1.0f, 0.5f, 0.25f, 1.0f);
+  yaze::gfx::SnesColor color(rgb);
+  EXPECT_EQ(color.rgb().x, rgb.x);
+  EXPECT_EQ(color.rgb().y, rgb.y);
+  EXPECT_EQ(color.rgb().z, rgb.z);
+  EXPECT_EQ(color.rgb().w, rgb.w);
+}
+
+TEST(SnesColorTest, SNESConstructor) {
+  uint16_t snes = 0x4210;
+  yaze::gfx::SnesColor color(snes);
+  EXPECT_EQ(color.snes(), snes);
 }
 
 TEST(SnesColorTest, ConvertRgbToSnes) {
@@ -89,6 +107,92 @@ TEST(SnesColorTest, Convert) {
   auto snes_string = yaze::gfx::Convert(pal);
   EXPECT_EQ(10, snes_string.size());
   EXPECT_THAT(data, ElementsAreArray(snes_string.data(), 10));
+}
+
+// SnesPalette Tests
+TEST(SnesPaletteTest, DefaultConstructor) {
+  yaze::gfx::SnesPalette palette;
+  EXPECT_TRUE(palette.empty());
+  EXPECT_EQ(palette.size(), 0);
+}
+
+TEST(SnesPaletteTest, AddColor) {
+  yaze::gfx::SnesPalette palette;
+  yaze::gfx::SnesColor color;
+  palette.AddColor(color);
+  ASSERT_EQ(palette.size(), 1);
+}
+
+TEST(SnesPaletteTest, AddMultipleColors) {
+  yaze::gfx::SnesPalette palette;
+  yaze::gfx::SnesColor color1(0x4210);
+  yaze::gfx::SnesColor color2(0x7FFF);
+  palette.AddColor(color1);
+  palette.AddColor(color2);
+  ASSERT_EQ(palette.size(), 2);
+}
+
+TEST(SnesPaletteTest, UpdateColor) {
+  yaze::gfx::SnesPalette palette;
+  yaze::gfx::SnesColor color1(0x4210);
+  yaze::gfx::SnesColor color2(0x7FFF);
+  palette.AddColor(color1);
+  palette.UpdateColor(0, color2);
+  auto result = palette[0];
+  ASSERT_EQ(result.snes(), 0x7FFF);
+}
+
+TEST(SnesPaletteTest, SubPalette) {
+  yaze::gfx::SnesPalette palette;
+  yaze::gfx::SnesColor color1(0x4210);
+  yaze::gfx::SnesColor color2(0x7FFF);
+  yaze::gfx::SnesColor color3(0x1F1F);
+  palette.AddColor(color1);
+  palette.AddColor(color2);
+  palette.AddColor(color3);
+
+  auto sub = palette.sub_palette(1, 3);
+  ASSERT_EQ(sub.size(), 2);
+  auto result = sub[0];
+  ASSERT_EQ(result.snes(), 0x7FFF);
+}
+
+TEST(SnesPaletteTest, VectorConstructor) {
+  std::vector<yaze::gfx::SnesColor> colors = {yaze::gfx::SnesColor(0x4210),
+                                              yaze::gfx::SnesColor(0x7FFF)};
+  yaze::gfx::SnesPalette palette(colors);
+  ASSERT_EQ(palette.size(), 2);
+}
+
+TEST(SnesPaletteTest, Clear) {
+  yaze::gfx::SnesPalette palette;
+  yaze::gfx::SnesColor color(0x4210);
+  palette.AddColor(color);
+  ASSERT_EQ(palette.size(), 1);
+  palette.clear();
+  ASSERT_TRUE(palette.empty());
+}
+
+TEST(SnesPaletteTest, Iterator) {
+  yaze::gfx::SnesPalette palette;
+  yaze::gfx::SnesColor color1(0x4210);
+  yaze::gfx::SnesColor color2(0x7FFF);
+  palette.AddColor(color1);
+  palette.AddColor(color2);
+
+  int count = 0;
+  for (const auto& color : palette) {
+    EXPECT_TRUE(color.snes() == 0x4210 || color.snes() == 0x7FFF);
+    count++;
+  }
+  EXPECT_EQ(count, 2);
+}
+
+TEST(SnesPaletteTest, OperatorAccess) {
+  yaze::gfx::SnesPalette palette;
+  yaze::gfx::SnesColor color(0x4210);
+  palette.AddColor(color);
+  EXPECT_EQ(palette[0].snes(), 0x4210);
 }
 
 }  // namespace test
