@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_CORE_STYLE_H
 #define YAZE_APP_CORE_STYLE_H
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -71,54 +72,152 @@ void TextWithSeparators(const absl::string_view &text);
 
 void DrawFontManager();
 
-static const char *ExampleNames[] = {
-    "Artichoke",      "Arugula",          "Asparagus",    "Avocado",
-    "Bamboo Shoots",  "Bean Sprouts",     "Beans",        "Beet",
-    "Belgian Endive", "Bell Pepper",      "Bitter Gourd", "Bok Choy",
-    "Broccoli",       "Brussels Sprouts", "Burdock Root", "Cabbage",
-    "Calabash",       "Capers",           "Carrot",       "Cassava",
-    "Cauliflower",    "Celery",           "Celery Root",  "Celcuce",
-    "Chayote",        "Chinese Broccoli", "Corn",         "Cucumber"};
+struct TextBox {
+  std::string text;
+  std::string buffer;
+  int cursor_pos = 0;
+  int selection_start = 0;
+  int selection_end = 0;
+  int selection_length = 0;
+  bool has_selection = false;
+  bool has_focus = false;
+  bool changed = false;
+  bool can_undo = false;
 
-struct MultiSelectWithClipper {
-  const int ITEMS_COUNT = 10000;
-  void Update() {
-    // Use default selection.Adapter: Pass index to
-    // SetNextItemSelectionUserData(), store index in Selection
-    static ImGuiSelectionBasicStorage selection;
+  void Undo() {
+    text = buffer;
+    cursor_pos = selection_start;
+    has_selection = false;
+  }
+  void clearUndo() { can_undo = false; }
+  void Copy() { ImGui::SetClipboardText(text.c_str()); }
+  void Cut() {
+    Copy();
+    text.erase(selection_start, selection_end - selection_start);
+    cursor_pos = selection_start;
+    has_selection = false;
+    changed = true;
+  }
+  void Paste() {
+    text.erase(selection_start, selection_end - selection_start);
+    text.insert(selection_start, ImGui::GetClipboardText());
+    std::string str = ImGui::GetClipboardText();
+    cursor_pos = selection_start + str.size();
+    has_selection = false;
+    changed = true;
+  }
+  void clear() {
+    text.clear();
+    buffer.clear();
+    cursor_pos = 0;
+    selection_start = 0;
+    selection_end = 0;
+    selection_length = 0;
+    has_selection = false;
+    has_focus = false;
+    changed = false;
+    can_undo = false;
+  }
+  void SelectAll() {
+    selection_start = 0;
+    selection_end = text.size();
+    selection_length = text.size();
+    has_selection = true;
+  }
+  void Focus() { has_focus = true; }
+};
 
-    ImGui::Text("Selection: %d/%d", selection.Size, ITEMS_COUNT);
-    if (ImGui::BeginChild(
-            "##Basket", ImVec2(-FLT_MIN, ImGui::GetFontSize() * 20),
-            ImGuiChildFlags_FrameStyle | ImGuiChildFlags_ResizeY)) {
+// Generic multi-select component that can be used with different types of data
+template <typename T>
+class MultiSelect {
+ public:
+  // Callback function type for rendering an item
+  using ItemRenderer =
+      std::function<void(int index, const T &item, bool is_selected)>;
+
+  // Constructor with optional title and default flags
+  MultiSelect(
+      const char *title = "Selection",
       ImGuiMultiSelectFlags flags = ImGuiMultiSelectFlags_ClearOnEscape |
-                                    ImGuiMultiSelectFlags_BoxSelect1d;
+                                    ImGuiMultiSelectFlags_BoxSelect1d)
+      : title_(title), flags_(flags), selection_() {}
+
+  // Set the items to display
+  void SetItems(const std::vector<T> &items) { items_ = items; }
+
+  // Set the renderer function for items
+  void SetItemRenderer(ItemRenderer renderer) { item_renderer_ = renderer; }
+
+  // Set the height of the selection area (in font size units)
+  void SetHeight(float height_in_font_units = 20.0f) {
+    height_in_font_units_ = height_in_font_units;
+  }
+
+  // Set the child window flags
+  void SetChildFlags(ImGuiChildFlags flags) { child_flags_ = flags; }
+
+  // Update and render the multi-select component
+  void Update() {
+    ImGui::Text("%s: %d/%d", title_, selection_.Size, items_.size());
+
+    if (ImGui::BeginChild(
+            "##MultiSelectChild",
+            ImVec2(-FLT_MIN, ImGui::GetFontSize() * height_in_font_units_),
+            child_flags_)) {
       ImGuiMultiSelectIO *ms_io =
-          ImGui::BeginMultiSelect(flags, selection.Size, ITEMS_COUNT);
-      selection.ApplyRequests(ms_io);
+          ImGui::BeginMultiSelect(flags_, selection_.Size, items_.size());
+      selection_.ApplyRequests(ms_io);
 
       ImGuiListClipper clipper;
-      clipper.Begin(ITEMS_COUNT);
+      clipper.Begin(items_.size());
       if (ms_io->RangeSrcItem != -1)
-        clipper.IncludeItemByIndex(
-            (int)ms_io->RangeSrcItem);  // Ensure RangeSrc item is not clipped.
+        clipper.IncludeItemByIndex((int)ms_io->RangeSrcItem);
+
       while (clipper.Step()) {
         for (int n = clipper.DisplayStart; n < clipper.DisplayEnd; n++) {
-          char label[64];
-          // sprintf(label, "Object %05d: %s", n,
-          //         ExampleNames[n % IM_ARRAYSIZE(ExampleNames)]);
-          bool item_is_selected = selection.Contains((ImGuiID)n);
+          bool item_is_selected = selection_.Contains((ImGuiID)n);
           ImGui::SetNextItemSelectionUserData(n);
-          ImGui::Selectable(label, item_is_selected);
+
+          if (item_renderer_) {
+            item_renderer_(n, items_[n], item_is_selected);
+          } else {
+            // Default rendering if no custom renderer is provided
+            char label[64];
+            snprintf(label, sizeof(label), "Item %d", n);
+            ImGui::Selectable(label, item_is_selected);
+          }
         }
       }
 
       ms_io = ImGui::EndMultiSelect();
-      selection.ApplyRequests(ms_io);
+      selection_.ApplyRequests(ms_io);
     }
     ImGui::EndChild();
-    ImGui::TreePop();
   }
+
+  // Get the selected indices
+  std::vector<int> GetSelectedIndices() const {
+    std::vector<int> indices;
+    for (int i = 0; i < items_.size(); i++) {
+      if (selection_.Contains((ImGuiID)i)) {
+        indices.push_back(i);
+      }
+    }
+    return indices;
+  }
+
+  // Clear the selection
+  void ClearSelection() { selection_.Clear(); }
+
+ private:
+  const char *title_;
+  ImGuiMultiSelectFlags flags_;
+  ImGuiSelectionBasicStorage selection_;
+  std::vector<T> items_;
+  ItemRenderer item_renderer_;
+  float height_in_font_units_ = 20.0f;
+  ImGuiChildFlags child_flags_ =
+      ImGuiChildFlags_FrameStyle | ImGuiChildFlags_ResizeY;
 };
 
 }  // namespace gui

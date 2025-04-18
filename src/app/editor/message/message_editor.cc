@@ -50,10 +50,10 @@ void MessageEditor::Initialize() {
   all_dictionaries_ = BuildDictionaryEntries(rom());
   ReadAllTextData(rom(), list_of_texts_);
 
-  font_preview_colors_.AddColor(0x7FFF);  // White
-  font_preview_colors_.AddColor(0x7C00);  // Red
-  font_preview_colors_.AddColor(0x03E0);  // Green
-  font_preview_colors_.AddColor(0x001F);  // Blue
+  font_preview_colors_.AddColor(gfx::SnesColor(0x7FFF));  // White
+  font_preview_colors_.AddColor(gfx::SnesColor(0x7C00));  // Red
+  font_preview_colors_.AddColor(gfx::SnesColor(0x03E0));  // Green
+  font_preview_colors_.AddColor(gfx::SnesColor(0x001F));  // Blue
 
   std::vector<uint8_t> data(0x4000, 0);
   for (int i = 0; i < 0x4000; i++) {
@@ -190,8 +190,8 @@ void MessageEditor::DrawCurrentMessage() {
     ImGui::EndPopup();
   }
   gui::BeginPadding(1);
-  BeginChild("CurrentGfxFont", ImVec2(200, 0), true,
-             ImGuiWindowFlags_AlwaysVerticalScrollbar);
+  BeginChild("CurrentGfxFont", ImVec2(current_font_gfx16_bitmap_.width(), 0),
+             true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
   current_font_gfx16_canvas_.DrawBackground();
   gui::EndPadding();
   current_font_gfx16_canvas_.DrawContextMenu();
