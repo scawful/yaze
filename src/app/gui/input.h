@@ -3,15 +3,14 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 
+#include <cctype>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
-#include <optional>
 #include <string>
 #include <variant>
 #include <vector>
 
-#include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "app/gfx/snes_tile.h"
 #include "imgui/imgui.h"
@@ -92,6 +91,21 @@ static Menu kMainMenu;
 constexpr std::string kSeparator = "-";
 
 IMGUI_API bool OpenUrl(const std::string &url);
+
+struct Text {
+  std::string content;
+};
+
+struct Button {
+  std::string label;
+  std::function<void()> callback;
+};
+
+struct Layout {
+  std::vector<std::variant<Text, Button>> elements;
+};
+
+void RenderLayout(const Layout &layout);
 
 }  // namespace gui
 }  // namespace yaze
