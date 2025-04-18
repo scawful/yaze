@@ -1,7 +1,6 @@
 var message__editor_8h =
 [
     [ "yaze::editor::MessageEditor", "classyaze_1_1editor_1_1MessageEditor.html", "classyaze_1_1editor_1_1MessageEditor" ],
-    [ "yaze::editor::MessageEditor::TextBox", "structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html", "structyaze_1_1editor_1_1MessageEditor_1_1TextBox" ],
     [ "yaze::editor::kGfxFont", "namespaceyaze_1_1editor.html#a7125035a631647e03e5efc55b88c4e77", null ],
     [ "yaze::editor::kCharactersWidth", "namespaceyaze_1_1editor.html#a00c4d23b26706fde3a72cdc112aef45b", null ],
     [ "yaze::editor::kNumMessages", "namespaceyaze_1_1editor.html#ae2ea0d3cf9bae097d559d93f326a7b1b", null ],

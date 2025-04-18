@@ -5,7 +5,7 @@ var classyaze_1_1zelda3_1_1DungeonObjectRenderer =
     [ "ConfigureObject", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#afee3308c7846f91798b3add9b90518dc", null ],
     [ "RenderObject", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6854e9626ddccf657b77cd740f13f1f9", null ],
     [ "UpdateObjectBitmap", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a4dac73e88a86e0159959407fb13ebfa0", null ],
-    [ "SetPalette", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#aca12d8b5f223b8b55024dcc514c21768", null ],
+    [ "SetPalette", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a9ae13df0320c2f55fea38e74bccb509c", null ],
     [ "bitmap", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a7e93151f394637c698279ceca36c6327", null ],
     [ "memory", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a1a09ecf8d49ae69b2ded7ded0841ec05", null ],
     [ "mutable_memory", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a02a4bb0985c37eecc3cab6c8427da97b", null ],

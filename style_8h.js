@@ -1,7 +1,8 @@
 var style_8h =
 [
     [ "yaze::gui::Theme", "structyaze_1_1gui_1_1Theme.html", "structyaze_1_1gui_1_1Theme" ],
-    [ "yaze::gui::MultiSelectWithClipper", "structyaze_1_1gui_1_1MultiSelectWithClipper.html", "structyaze_1_1gui_1_1MultiSelectWithClipper" ],
+    [ "yaze::gui::TextBox", "structyaze_1_1gui_1_1TextBox.html", "structyaze_1_1gui_1_1TextBox" ],
+    [ "yaze::gui::MultiSelect< T >", "classyaze_1_1gui_1_1MultiSelect.html", "classyaze_1_1gui_1_1MultiSelect" ],
     [ "yaze::gui::LoadTheme", "namespaceyaze_1_1gui.html#a216f2984ca7cc50dd872c9605352c95e", null ],
     [ "yaze::gui::SaveTheme", "namespaceyaze_1_1gui.html#a7f5085854df78a52ad2598b0448850ed", null ],
     [ "yaze::gui::ApplyTheme", "namespaceyaze_1_1gui.html#ae9a47f0d85166d6363717c61056b83a3", null ],

@@ -2,6 +2,9 @@ var input_8h =
 [
     [ "yaze::gui::Table", "structyaze_1_1gui_1_1Table.html", "structyaze_1_1gui_1_1Table" ],
     [ "yaze::gui::MenuItem", "structyaze_1_1gui_1_1MenuItem.html", "structyaze_1_1gui_1_1MenuItem" ],
+    [ "yaze::gui::Text", "structyaze_1_1gui_1_1Text.html", "structyaze_1_1gui_1_1Text" ],
+    [ "yaze::gui::Button", "structyaze_1_1gui_1_1Button.html", "structyaze_1_1gui_1_1Button" ],
+    [ "yaze::gui::Layout", "structyaze_1_1gui_1_1Layout.html", "structyaze_1_1gui_1_1Layout" ],
     [ "IMGUI_DEFINE_MATH_OPERATORS", "input_8h.html#adf4d73301961430d50d7edd96f92ce38", null ],
     [ "yaze::gui::ItemLabelFlags", "namespaceyaze_1_1gui.html#a5099466527c2ee2b4d9013b4eb50f12f", null ],
     [ "yaze::gui::GuiElement", "namespaceyaze_1_1gui.html#a96a8aa8ae9d402de34a59d1457cfc721", null ],
@@ -24,6 +27,7 @@ var input_8h =
     [ "yaze::gui::DrawTable", "namespaceyaze_1_1gui.html#a63cf2c84b704f70ba84ef7a1691e1b85", null ],
     [ "yaze::gui::DrawMenu", "namespaceyaze_1_1gui.html#a627566d8500f099dabff60322d3c187e", null ],
     [ "yaze::gui::OpenUrl", "namespaceyaze_1_1gui.html#a7b898e6c361ce2d367d1e1570f8f6c03", null ],
+    [ "yaze::gui::RenderLayout", "namespaceyaze_1_1gui.html#a2fab6c87cc29a26e4b09632253507131", null ],
     [ "yaze::gui::kDefaultModalSize", "namespaceyaze_1_1gui.html#ab655498d16f5ecf417dddcc70faed138", null ],
     [ "yaze::gui::kZeroPos", "namespaceyaze_1_1gui.html#ab500bfa55478470e1f7cd45806c3728e", null ],
     [ "yaze::gui::kSeparator", "namespaceyaze_1_1gui.html#a01a69c8df4f748999159587dd7124dec", null ]

@@ -27,6 +27,6 @@ var searchData=
   ['mpyh_24',['MPYH',['../structyaze_1_1emu_1_1MPYH.html',1,'yaze::emu']]],
   ['mpyl_25',['MPYL',['../structyaze_1_1emu_1_1MPYL.html',1,'yaze::emu']]],
   ['mpym_26',['MPYM',['../structyaze_1_1emu_1_1MPYM.html',1,'yaze::emu']]],
-  ['multiselectwithclipper_27',['MultiSelectWithClipper',['../structyaze_1_1gui_1_1MultiSelectWithClipper.html',1,'yaze::gui']]],
+  ['multiselect_27',['MultiSelect',['../classyaze_1_1gui_1_1MultiSelect.html',1,'yaze::gui']]],
   ['musiceditor_28',['MusicEditor',['../classyaze_1_1editor_1_1MusicEditor.html',1,'yaze::editor']]]
 ];

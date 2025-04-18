@@ -107,7 +107,9 @@ $(function(){initNavTree('classyaze_1_1gfx_1_1SnesPalette.html',''); initResizab
 
 <div class="header">
   <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classyaze_1_1gfx_1_1SnesPalette-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">yaze::gfx::SnesPalette Class Reference</div></div>
@@ -119,102 +121,89 @@ $(function(){initNavTree('classyaze_1_1gfx_1_1SnesPalette.html',''); initResizab
 
 <p><code>#include &lt;<a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>&gt;</code></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a8a80f3837feac33fb1a8432e15a04432" id="r_a8a80f3837feac33fb1a8432e15a04432"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8a80f3837feac33fb1a8432e15a04432">ColorArray</a> = std::array&lt;<a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a>, <a class="el" href="#a82b8ee8dd878bba2621d078f986f81aa">kMaxColors</a>&gt;</td></tr>
+<tr class="separator:a8a80f3837feac33fb1a8432e15a04432"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a6333d0223ee96c449cd6c4637ffe9646" id="r_a6333d0223ee96c449cd6c4637ffe9646"><td class="memTemplParams" colspan="2">template&lt;typename T&gt; </td></tr>
-<tr class="memitem:a6333d0223ee96c449cd6c4637ffe9646"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a6333d0223ee96c449cd6c4637ffe9646">SnesPalette</a> (const std::vector&lt; T &gt; &amp;data)</td></tr>
-<tr class="separator:a6333d0223ee96c449cd6c4637ffe9646"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9ff13ab32f1521085b531d2a3b450f4d" id="r_a9ff13ab32f1521085b531d2a3b450f4d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9ff13ab32f1521085b531d2a3b450f4d">SnesPalette</a> ()=default</td></tr>
-<tr class="separator:a9ff13ab32f1521085b531d2a3b450f4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a13222def4a6f23482324225a27903e0a" id="r_a13222def4a6f23482324225a27903e0a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a13222def4a6f23482324225a27903e0a">SnesPalette</a> (char *snesPal)</td></tr>
-<tr class="separator:a13222def4a6f23482324225a27903e0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a837443013432f47923f16a4d671f1563" id="r_a837443013432f47923f16a4d671f1563"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a837443013432f47923f16a4d671f1563">SnesPalette</a> (const unsigned char *snes_pal)</td></tr>
-<tr class="separator:a837443013432f47923f16a4d671f1563"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a92e2f7ca01bfe81ba51f85919f728857" id="r_a92e2f7ca01bfe81ba51f85919f728857"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a92e2f7ca01bfe81ba51f85919f728857">SnesPalette</a> (const std::vector&lt; ImVec4 &gt; &amp;)</td></tr>
-<tr class="separator:a92e2f7ca01bfe81ba51f85919f728857"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a54d4e55c57e60552568fdda802a1512f" id="r_a54d4e55c57e60552568fdda802a1512f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a54d4e55c57e60552568fdda802a1512f">SnesPalette</a> (const std::vector&lt; <a class="el" href="structsnes__color.html">snes_color</a> &gt; &amp;)</td></tr>
-<tr class="separator:a54d4e55c57e60552568fdda802a1512f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4482b6444bf267d464cf4e5e24724bcc" id="r_a4482b6444bf267d464cf4e5e24724bcc"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4482b6444bf267d464cf4e5e24724bcc">SnesPalette</a> (const std::vector&lt; <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &gt; &amp;)</td></tr>
-<tr class="separator:a4482b6444bf267d464cf4e5e24724bcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac1a38bac2f35c108dac3c81253b516ee" id="r_ac1a38bac2f35c108dac3c81253b516ee"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac1a38bac2f35c108dac3c81253b516ee">Create</a> (const std::vector&lt; <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &gt; &amp;cols)</td></tr>
-<tr class="separator:ac1a38bac2f35c108dac3c81253b516ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a666e0d7190b52b8f47dc78e8a9db71b3" id="r_a666e0d7190b52b8f47dc78e8a9db71b3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a666e0d7190b52b8f47dc78e8a9db71b3">Create</a> (std::ranges::range auto &amp;&amp;cols)</td></tr>
-<tr class="separator:a666e0d7190b52b8f47dc78e8a9db71b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6854313e2b0f605315523b2185efdea2" id="r_a6854313e2b0f605315523b2185efdea2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6854313e2b0f605315523b2185efdea2">AddColor</a> (const <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &amp;color)</td></tr>
-<tr class="separator:a6854313e2b0f605315523b2185efdea2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9027ac7339965b6ada64b0d46d9d1b27" id="r_a9027ac7339965b6ada64b0d46d9d1b27"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9027ac7339965b6ada64b0d46d9d1b27">AddColor</a> (const <a class="el" href="structsnes__color.html">snes_color</a> &amp;color)</td></tr>
-<tr class="separator:a9027ac7339965b6ada64b0d46d9d1b27"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a26f97a1bf8b6f15785061251bd43316c" id="r_a26f97a1bf8b6f15785061251bd43316c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a26f97a1bf8b6f15785061251bd43316c">AddColor</a> (uint16_t color)</td></tr>
-<tr class="separator:a26f97a1bf8b6f15785061251bd43316c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a526b8c0d069fd26b5dd6970c81666d0d" id="r_a526b8c0d069fd26b5dd6970c81666d0d"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a526b8c0d069fd26b5dd6970c81666d0d">GetColor</a> (int i) const</td></tr>
-<tr class="separator:a526b8c0d069fd26b5dd6970c81666d0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a35c884fd5e8abcc1b2a7bd6f2fee08fe" id="r_a35c884fd5e8abcc1b2a7bd6f2fee08fe"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a35c884fd5e8abcc1b2a7bd6f2fee08fe">mutable_color</a> (int i)</td></tr>
-<tr class="separator:a35c884fd5e8abcc1b2a7bd6f2fee08fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa3d5ad0a0ad19df994e243baf817f598" id="r_aa3d5ad0a0ad19df994e243baf817f598"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa3d5ad0a0ad19df994e243baf817f598">clear</a> ()</td></tr>
-<tr class="separator:aa3d5ad0a0ad19df994e243baf817f598"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a504a42d10f3d95135b77bb13ef3ec923" id="r_a504a42d10f3d95135b77bb13ef3ec923"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a504a42d10f3d95135b77bb13ef3ec923">size</a> () const</td></tr>
-<tr class="separator:a504a42d10f3d95135b77bb13ef3ec923"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aac8e91cfdca9827c7b7220adeccb7eb2" id="r_aac8e91cfdca9827c7b7220adeccb7eb2"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aac8e91cfdca9827c7b7220adeccb7eb2">empty</a> () const</td></tr>
-<tr class="separator:aac8e91cfdca9827c7b7220adeccb7eb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a93ef1ee0b127b6ba45f0c90ec4d1af46" id="r_a93ef1ee0b127b6ba45f0c90ec4d1af46"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a93ef1ee0b127b6ba45f0c90ec4d1af46">SnesPalette</a> ()</td></tr>
+<tr class="separator:a93ef1ee0b127b6ba45f0c90ec4d1af46"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a37e7e8add8a9dc9e3ac4b58b65db71de" id="r_a37e7e8add8a9dc9e3ac4b58b65db71de"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a37e7e8add8a9dc9e3ac4b58b65db71de">SnesPalette</a> (const std::vector&lt; uint16_t &gt; &amp;colors)</td></tr>
+<tr class="separator:a37e7e8add8a9dc9e3ac4b58b65db71de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5c62fc26c60793c8b358542357c35fa7" id="r_a5c62fc26c60793c8b358542357c35fa7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5c62fc26c60793c8b358542357c35fa7">SnesPalette</a> (const std::vector&lt; <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &gt; &amp;colors)</td></tr>
+<tr class="separator:a5c62fc26c60793c8b358542357c35fa7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaed07ca5ee5c66f239bc709030609fda" id="r_aaed07ca5ee5c66f239bc709030609fda"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aaed07ca5ee5c66f239bc709030609fda">SnesPalette</a> (const char *data, size_t length)</td></tr>
+<tr class="separator:aaed07ca5ee5c66f239bc709030609fda"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a405773b1e590c7a5b8863e9b824a2b0d" id="r_a405773b1e590c7a5b8863e9b824a2b0d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a405773b1e590c7a5b8863e9b824a2b0d">SnesPalette</a> (const std::vector&lt; ImVec4 &gt; &amp;colors)</td></tr>
+<tr class="separator:a405773b1e590c7a5b8863e9b824a2b0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af90f42e5554894f7d2fc530326785a33" id="r_af90f42e5554894f7d2fc530326785a33"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af90f42e5554894f7d2fc530326785a33">operator[]</a> (size_t index) const</td></tr>
+<tr class="separator:af90f42e5554894f7d2fc530326785a33"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb2001e70c7d35d073f13449041b21fa" id="r_acb2001e70c7d35d073f13449041b21fa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acb2001e70c7d35d073f13449041b21fa">operator[]</a> (size_t index)</td></tr>
+<tr class="separator:acb2001e70c7d35d073f13449041b21fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a683161f8ef9326f82fa64f35d4fb3eda" id="r_a683161f8ef9326f82fa64f35d4fb3eda"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a683161f8ef9326f82fa64f35d4fb3eda">size</a> () const</td></tr>
+<tr class="separator:a683161f8ef9326f82fa64f35d4fb3eda"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb01c20c88b1ad90bff7289f1b5c8205" id="r_aeb01c20c88b1ad90bff7289f1b5c8205"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeb01c20c88b1ad90bff7289f1b5c8205">empty</a> () const</td></tr>
+<tr class="separator:aeb01c20c88b1ad90bff7289f1b5c8205"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a19e74a4e0ebec56b1bb0f7e99acbc067" id="r_a19e74a4e0ebec56b1bb0f7e99acbc067"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a19e74a4e0ebec56b1bb0f7e99acbc067">begin</a> ()</td></tr>
 <tr class="separator:a19e74a4e0ebec56b1bb0f7e99acbc067"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeb8694af4f5cf6e0b1ea59e88c8353d6" id="r_aeb8694af4f5cf6e0b1ea59e88c8353d6"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeb8694af4f5cf6e0b1ea59e88c8353d6">end</a> ()</td></tr>
 <tr class="separator:aeb8694af4f5cf6e0b1ea59e88c8353d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa819bfff19f8c77de36779c8ed4a4349" id="r_aa819bfff19f8c77de36779c8ed4a4349"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa819bfff19f8c77de36779c8ed4a4349">operator[]</a> (int i)</td></tr>
-<tr class="separator:aa819bfff19f8c77de36779c8ed4a4349"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a30239b366710af17b9c36979bc4f0a11" id="r_a30239b366710af17b9c36979bc4f0a11"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a30239b366710af17b9c36979bc4f0a11">operator()</a> (int i, const <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &amp;color)</td></tr>
-<tr class="separator:a30239b366710af17b9c36979bc4f0a11"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4ecc7b3ffc2653d8e4fcc0668bb980da" id="r_a4ecc7b3ffc2653d8e4fcc0668bb980da"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4ecc7b3ffc2653d8e4fcc0668bb980da">operator()</a> (int i, const ImVec4 &amp;color)</td></tr>
-<tr class="separator:a4ecc7b3ffc2653d8e4fcc0668bb980da"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8172ae7725a9fe1c23df412b2632a484" id="r_a8172ae7725a9fe1c23df412b2632a484"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">SnesPalette</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8172ae7725a9fe1c23df412b2632a484">sub_palette</a> (int start, int <a class="el" href="#aeb8694af4f5cf6e0b1ea59e88c8353d6">end</a>) const</td></tr>
-<tr class="separator:a8172ae7725a9fe1c23df412b2632a484"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aae6a17a905d9d0e2ef4d506a35da91da" id="r_aae6a17a905d9d0e2ef4d506a35da91da"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aae6a17a905d9d0e2ef4d506a35da91da">begin</a> () const</td></tr>
+<tr class="separator:aae6a17a905d9d0e2ef4d506a35da91da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8e100478009d0ad2aefafbe514674e80" id="r_a8e100478009d0ad2aefafbe514674e80"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8e100478009d0ad2aefafbe514674e80">end</a> () const</td></tr>
+<tr class="separator:a8e100478009d0ad2aefafbe514674e80"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6854313e2b0f605315523b2185efdea2" id="r_a6854313e2b0f605315523b2185efdea2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6854313e2b0f605315523b2185efdea2">AddColor</a> (const <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &amp;color)</td></tr>
+<tr class="separator:a6854313e2b0f605315523b2185efdea2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aee465810f89bc92689da01913646bef2" id="r_aee465810f89bc92689da01913646bef2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aee465810f89bc92689da01913646bef2">UpdateColor</a> (size_t index, const <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &amp;color)</td></tr>
+<tr class="separator:aee465810f89bc92689da01913646bef2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa3d5ad0a0ad19df994e243baf817f598" id="r_aa3d5ad0a0ad19df994e243baf817f598"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa3d5ad0a0ad19df994e243baf817f598">clear</a> ()</td></tr>
+<tr class="separator:aa3d5ad0a0ad19df994e243baf817f598"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa1a0b63e4451628a9b295ddd1ba1677a" id="r_aa1a0b63e4451628a9b295ddd1ba1677a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">SnesPalette</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa1a0b63e4451628a9b295ddd1ba1677a">sub_palette</a> (size_t start, size_t length) const</td></tr>
+<tr class="separator:aa1a0b63e4451628a9b295ddd1ba1677a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd6ca380cfdbc978f6f96fd699052484" id="r_afd6ca380cfdbc978f6f96fd699052484"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afd6ca380cfdbc978f6f96fd699052484">operator==</a> (const <a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">SnesPalette</a> &amp;other) const</td></tr>
+<tr class="separator:afd6ca380cfdbc978f6f96fd699052484"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada0823d0a153d7ca55fc0f95b42e9f07" id="r_ada0823d0a153d7ca55fc0f95b42e9f07"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ada0823d0a153d7ca55fc0f95b42e9f07">operator!=</a> (const <a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">SnesPalette</a> &amp;other) const</td></tr>
+<tr class="separator:ada0823d0a153d7ca55fc0f95b42e9f07"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:a82b8ee8dd878bba2621d078f986f81aa" id="r_a82b8ee8dd878bba2621d078f986f81aa"><td class="memItemLeft" align="right" valign="top">static constexpr size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a82b8ee8dd878bba2621d078f986f81aa">kMaxColors</a> = 256</td></tr>
+<tr class="separator:a82b8ee8dd878bba2621d078f986f81aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
-<tr class="memitem:a201de34c05feb8c14ae85fe0e035ce39" id="r_a201de34c05feb8c14ae85fe0e035ce39"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a201de34c05feb8c14ae85fe0e035ce39">colors</a></td></tr>
-<tr class="separator:a201de34c05feb8c14ae85fe0e035ce39"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9b14bc1de5d1dd131a63d6ac818bb960" id="r_a9b14bc1de5d1dd131a63d6ac818bb960"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a8a80f3837feac33fb1a8432e15a04432">ColorArray</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9b14bc1de5d1dd131a63d6ac818bb960">colors_</a></td></tr>
+<tr class="separator:a9b14bc1de5d1dd131a63d6ac818bb960"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d0e8e179dcde5b8aa01bf739612608d" id="r_a7d0e8e179dcde5b8aa01bf739612608d"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7d0e8e179dcde5b8aa01bf739612608d">size_</a></td></tr>
+<tr class="separator:a7d0e8e179dcde5b8aa01bf739612608d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Represents a palette of colors for the Super Nintendo Entertainment System (SNES). </p>
-<p>The <code><a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES).">SnesPalette</a></code> class provides functionality to create, modify, and access colors in an SNES palette. It supports various constructors to initialize the palette with different types of data. The palette can be modified by adding or changing colors, and it can be cleared to remove all colors. Colors in the palette can be accessed using index-based access or through the <code>GetColor</code> method. The class also provides a method to create a sub-palette by selecting a range of colors from the original palette. </p>
+<p>The <code><a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES).">SnesPalette</a></code> class provides functionality to create, modify, and access colors in an SNES palette. It supports various constructors to initialize the palette with different types of data. The palette can be modified by adding or changing colors, and it can be cleared to remove all colors. Colors in the palette can be accessed using index-based access. The class also provides a method to create a sub-palette by selecting a range of colors from the original palette. </p>
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00125">125</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
-</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a6333d0223ee96c449cd6c4637ffe9646" name="a6333d0223ee96c449cd6c4637ffe9646"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6333d0223ee96c449cd6c4637ffe9646">&#9670;&#160;</a></span>SnesPalette() <span class="overload">[1/7]</span></h2>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00127">127</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
+<a id="a8a80f3837feac33fb1a8432e15a04432" name="a8a80f3837feac33fb1a8432e15a04432"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a80f3837feac33fb1a8432e15a04432">&#9670;&#160;</a></span>ColorArray</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;typename T&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">yaze::gfx::SnesPalette::SnesPalette </td>
-          <td>(</td>
-          <td class="paramtype">const std::vector&lt; T &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span></td><td>)</td>
-          <td></td>
+          <td class="memname">using <a class="el" href="#a8a80f3837feac33fb1a8432e15a04432">yaze::gfx::SnesPalette::ColorArray</a> = std::array&lt;<a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a>, <a class="el" href="#a82b8ee8dd878bba2621d078f986f81aa">kMaxColors</a>&gt;</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel explicit">explicit</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00128">128</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
-
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="snes__palette_8h_source.html#l00194">sub_palette()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00130">130</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
 </div>
 </div>
-<a id="a9ff13ab32f1521085b531d2a3b450f4d" name="a9ff13ab32f1521085b531d2a3b450f4d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9ff13ab32f1521085b531d2a3b450f4d">&#9670;&#160;</a></span>SnesPalette() <span class="overload">[2/7]</span></h2>
+<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a93ef1ee0b127b6ba45f0c90ec4d1af46" name="a93ef1ee0b127b6ba45f0c90ec4d1af46"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a93ef1ee0b127b6ba45f0c90ec4d1af46">&#9670;&#160;</a></span>SnesPalette() <span class="overload">[1/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -231,15 +220,21 @@ template&lt;typename T&gt; </div>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel default">default</span></span>  </td>
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00133">133</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00229">size_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="snes__palette_8h_source.html#l00225">operator!=()</a>, <a class="el" href="snes__palette_8h_source.html#l00213">operator==()</a>, and <a class="el" href="snes__palette_8h_source.html#l00200">sub_palette()</a>.</p>
+
 </div>
 </div>
-<a id="a13222def4a6f23482324225a27903e0a" name="a13222def4a6f23482324225a27903e0a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a13222def4a6f23482324225a27903e0a">&#9670;&#160;</a></span>SnesPalette() <span class="overload">[3/7]</span></h2>
+<a id="a37e7e8add8a9dc9e3ac4b58b65db71de" name="a37e7e8add8a9dc9e3ac4b58b65db71de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a37e7e8add8a9dc9e3ac4b58b65db71de">&#9670;&#160;</a></span>SnesPalette() <span class="overload">[2/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -250,42 +245,25 @@ template&lt;typename T&gt; </div>
         <tr>
           <td class="memname">yaze::gfx::SnesPalette::SnesPalette </td>
           <td>(</td>
-          <td class="paramtype">char *</td>          <td class="paramname"><span class="paramname"><em>snesPal</em></span></td><td>)</td>
+          <td class="paramtype">const std::vector&lt; uint16_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>colors</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel explicit">explicit</span></span>  </td>
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel explicit">explicit</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8cc_source.html#l00223">223</a> of file <a class="el" href="snes__palette_8cc_source.html">snes_palette.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00136">136</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="incl_2snes_8h_source.html#l00016">snes_color::blue</a>, <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>, <a class="el" href="snes__color_8cc_source.html#l00019">yaze::gfx::ConvertSnesToRgb()</a>, <a class="el" href="incl_2snes_8h_source.html#l00017">snes_color::green</a>, <a class="el" href="incl_2snes_8h_source.html#l00015">snes_color::red</a>, <a class="el" href="snes__color_8h_source.html#l00069">yaze::gfx::SnesColor::set_rgb()</a>, <a class="el" href="snes__color_8h_source.html#l00082">yaze::gfx::SnesColor::set_snes()</a>, and <a class="el" href="snes__color_8h_source.html#l00090">yaze::gfx::SnesColor::snes()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1gfx_1_1SnesPalette_a13222def4a6f23482324225a27903e0a_cgraph.png" border="0" usemap="#aclassyaze_1_1gfx_1_1SnesPalette_a13222def4a6f23482324225a27903e0a_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1gfx_1_1SnesPalette_a13222def4a6f23482324225a27903e0a_cgraph" id="aclassyaze_1_1gfx_1_1SnesPalette_a13222def4a6f23482324225a27903e0a_cgraph">
-<area shape="rect" title=" " alt="" coords="5,59,153,99"/>
-<area shape="rect" href="namespaceyaze_1_1gfx.html#a893d31b6aeb9a3df9754b9def778b458" title=" " alt="" coords="385,37,574,63"/>
-<area shape="poly" title=" " alt="" coords="107,56,150,31,200,11,261,3,322,6,379,16,428,29,426,34,378,22,321,12,261,9,201,16,152,36,110,61"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1SnesColor.html#aea6308f5abbe766e900fb8baeb71b257" title=" " alt="" coords="201,25,337,66"/>
-<area shape="poly" title=" " alt="" coords="153,64,185,58,186,63,154,69"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1SnesColor.html#ada2b834470189df9226b2b0f5052538f" title=" " alt="" coords="201,91,337,131"/>
-<area shape="poly" title=" " alt="" coords="154,89,186,95,185,100,153,94"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1SnesColor.html#aef9fc51dbd235362f6c0b5200e976303" title=" " alt="" coords="201,156,337,197"/>
-<area shape="poly" title=" " alt="" coords="120,98,202,141,213,146,210,151,199,146,117,102"/>
-<area shape="poly" title=" " alt="" coords="336,89,418,65,419,70,338,94"/>
-</map>
-</div>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00228">colors_</a>, <a class="el" href="snes__palette_8h_source.html#l00129">kMaxColors</a>, and <a class="el" href="snes__palette_8h_source.html#l00229">size_</a>.</p>
 
 </div>
 </div>
-<a id="a837443013432f47923f16a4d671f1563" name="a837443013432f47923f16a4d671f1563"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a837443013432f47923f16a4d671f1563">&#9670;&#160;</a></span>SnesPalette() <span class="overload">[4/7]</span></h2>
+<a id="a5c62fc26c60793c8b358542357c35fa7" name="a5c62fc26c60793c8b358542357c35fa7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5c62fc26c60793c8b358542357c35fa7">&#9670;&#160;</a></span>SnesPalette() <span class="overload">[3/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -296,42 +274,25 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">yaze::gfx::SnesPalette::SnesPalette </td>
           <td>(</td>
-          <td class="paramtype">const unsigned char *</td>          <td class="paramname"><span class="paramname"><em>snes_pal</em></span></td><td>)</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>colors</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel explicit">explicit</span></span>  </td>
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel explicit">explicit</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8cc_source.html#l00235">235</a> of file <a class="el" href="snes__palette_8cc_source.html">snes_palette.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00145">145</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="incl_2snes_8h_source.html#l00016">snes_color::blue</a>, <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>, <a class="el" href="snes__color_8cc_source.html#l00019">yaze::gfx::ConvertSnesToRgb()</a>, <a class="el" href="incl_2snes_8h_source.html#l00017">snes_color::green</a>, <a class="el" href="incl_2snes_8h_source.html#l00015">snes_color::red</a>, <a class="el" href="snes__color_8h_source.html#l00069">yaze::gfx::SnesColor::set_rgb()</a>, <a class="el" href="snes__color_8h_source.html#l00082">yaze::gfx::SnesColor::set_snes()</a>, and <a class="el" href="snes__color_8h_source.html#l00090">yaze::gfx::SnesColor::snes()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1gfx_1_1SnesPalette_a837443013432f47923f16a4d671f1563_cgraph.png" border="0" usemap="#aclassyaze_1_1gfx_1_1SnesPalette_a837443013432f47923f16a4d671f1563_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1gfx_1_1SnesPalette_a837443013432f47923f16a4d671f1563_cgraph" id="aclassyaze_1_1gfx_1_1SnesPalette_a837443013432f47923f16a4d671f1563_cgraph">
-<area shape="rect" title=" " alt="" coords="5,59,153,99"/>
-<area shape="rect" href="namespaceyaze_1_1gfx.html#a893d31b6aeb9a3df9754b9def778b458" title=" " alt="" coords="385,37,574,63"/>
-<area shape="poly" title=" " alt="" coords="107,56,150,31,200,11,261,3,322,6,379,16,428,29,426,34,378,22,321,12,261,9,201,16,152,36,110,61"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1SnesColor.html#aea6308f5abbe766e900fb8baeb71b257" title=" " alt="" coords="201,25,337,66"/>
-<area shape="poly" title=" " alt="" coords="153,64,185,58,186,63,154,69"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1SnesColor.html#ada2b834470189df9226b2b0f5052538f" title=" " alt="" coords="201,91,337,131"/>
-<area shape="poly" title=" " alt="" coords="154,89,186,95,185,100,153,94"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1SnesColor.html#aef9fc51dbd235362f6c0b5200e976303" title=" " alt="" coords="201,156,337,197"/>
-<area shape="poly" title=" " alt="" coords="120,98,202,141,213,146,210,151,199,146,117,102"/>
-<area shape="poly" title=" " alt="" coords="336,89,418,65,419,70,338,94"/>
-</map>
-</div>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00228">colors_</a>, <a class="el" href="snes__palette_8h_source.html#l00129">kMaxColors</a>, and <a class="el" href="snes__palette_8h_source.html#l00229">size_</a>.</p>
 
 </div>
 </div>
-<a id="a92e2f7ca01bfe81ba51f85919f728857" name="a92e2f7ca01bfe81ba51f85919f728857"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a92e2f7ca01bfe81ba51f85919f728857">&#9670;&#160;</a></span>SnesPalette() <span class="overload">[5/7]</span></h2>
+<a id="aaed07ca5ee5c66f239bc709030609fda" name="aaed07ca5ee5c66f239bc709030609fda"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaed07ca5ee5c66f239bc709030609fda">&#9670;&#160;</a></span>SnesPalette() <span class="overload">[4/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -342,37 +303,29 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">yaze::gfx::SnesPalette::SnesPalette </td>
           <td>(</td>
-          <td class="paramtype">const std::vector&lt; ImVec4 &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>cols</em></span></td><td>)</td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>length</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel explicit">explicit</span></span>  </td>
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel explicit">explicit</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8cc_source.html#l00247">247</a> of file <a class="el" href="snes__palette_8cc_source.html">snes_palette.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00154">154</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>, and <a class="el" href="snes__color_8h_source.html#l00069">yaze::gfx::SnesColor::set_rgb()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1gfx_1_1SnesPalette_a92e2f7ca01bfe81ba51f85919f728857_cgraph.png" border="0" usemap="#aclassyaze_1_1gfx_1_1SnesPalette_a92e2f7ca01bfe81ba51f85919f728857_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1gfx_1_1SnesPalette_a92e2f7ca01bfe81ba51f85919f728857_cgraph" id="aclassyaze_1_1gfx_1_1SnesPalette_a92e2f7ca01bfe81ba51f85919f728857_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,153,46"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1SnesColor.html#aea6308f5abbe766e900fb8baeb71b257" title=" " alt="" coords="201,5,337,46"/>
-<area shape="poly" title=" " alt="" coords="153,23,186,23,186,28,153,28"/>
-<area shape="rect" href="namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d" title=" " alt="" coords="385,13,574,38"/>
-<area shape="poly" title=" " alt="" coords="337,23,370,23,370,28,337,28"/>
-</map>
-</div>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00228">colors_</a>, <a class="el" href="snes__palette_8h_source.html#l00129">kMaxColors</a>, and <a class="el" href="snes__palette_8h_source.html#l00229">size_</a>.</p>
 
 </div>
 </div>
-<a id="a54d4e55c57e60552568fdda802a1512f" name="a54d4e55c57e60552568fdda802a1512f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a54d4e55c57e60552568fdda802a1512f">&#9670;&#160;</a></span>SnesPalette() <span class="overload">[6/7]</span></h2>
+<a id="a405773b1e590c7a5b8863e9b824a2b0d" name="a405773b1e590c7a5b8863e9b824a2b0d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a405773b1e590c7a5b8863e9b824a2b0d">&#9670;&#160;</a></span>SnesPalette() <span class="overload">[5/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -383,69 +336,26 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">yaze::gfx::SnesPalette::SnesPalette </td>
           <td>(</td>
-          <td class="paramtype">const std::vector&lt; <a class="el" href="structsnes__color.html">snes_color</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>cols</em></span></td><td>)</td>
+          <td class="paramtype">const std::vector&lt; ImVec4 &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>colors</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel explicit">explicit</span></span>  </td>
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel explicit">explicit</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8cc_source.html#l00255">255</a> of file <a class="el" href="snes__palette_8cc_source.html">snes_palette.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00163">163</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>, <a class="el" href="snes__color_8cc_source.html#l00033">yaze::gfx::ConvertRgbToSnes()</a>, and <a class="el" href="snes__color_8h_source.html#l00082">yaze::gfx::SnesColor::set_snes()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1gfx_1_1SnesPalette_a54d4e55c57e60552568fdda802a1512f_cgraph.png" border="0" usemap="#aclassyaze_1_1gfx_1_1SnesPalette_a54d4e55c57e60552568fdda802a1512f_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1gfx_1_1SnesPalette_a54d4e55c57e60552568fdda802a1512f_cgraph" id="aclassyaze_1_1gfx_1_1SnesPalette_a54d4e55c57e60552568fdda802a1512f_cgraph">
-<area shape="rect" title=" " alt="" coords="5,27,153,68"/>
-<area shape="rect" href="namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d" title=" " alt="" coords="201,5,390,31"/>
-<area shape="poly" title=" " alt="" coords="153,35,185,30,185,36,154,40"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1SnesColor.html#ada2b834470189df9226b2b0f5052538f" title=" " alt="" coords="227,55,364,96"/>
-<area shape="poly" title=" " alt="" coords="154,54,212,62,211,67,153,60"/>
-<area shape="rect" href="namespaceyaze_1_1gfx.html#a893d31b6aeb9a3df9754b9def778b458" title=" " alt="" coords="438,63,627,88"/>
-<area shape="poly" title=" " alt="" coords="364,73,422,73,422,78,364,78"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="a4482b6444bf267d464cf4e5e24724bcc" name="a4482b6444bf267d464cf4e5e24724bcc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4482b6444bf267d464cf4e5e24724bcc">&#9670;&#160;</a></span>SnesPalette() <span class="overload">[7/7]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">yaze::gfx::SnesPalette::SnesPalette </td>
-          <td>(</td>
-          <td class="paramtype">const std::vector&lt; <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>cols</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel explicit">explicit</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="snes__palette_8cc_source.html#l00263">263</a> of file <a class="el" href="snes__palette_8cc_source.html">snes_palette.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00228">colors_</a>, <a class="el" href="snes__palette_8h_source.html#l00129">kMaxColors</a>, and <a class="el" href="snes__palette_8h_source.html#l00229">size_</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="ac1a38bac2f35c108dac3c81253b516ee" name="ac1a38bac2f35c108dac3c81253b516ee"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac1a38bac2f35c108dac3c81253b516ee">&#9670;&#160;</a></span>Create() <span class="overload">[1/2]</span></h2>
+<a id="af90f42e5554894f7d2fc530326785a33" name="af90f42e5554894f7d2fc530326785a33"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af90f42e5554894f7d2fc530326785a33">&#9670;&#160;</a></span>operator[]() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -454,9 +364,38 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void yaze::gfx::SnesPalette::Create </td>
+          <td class="memname">const <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &amp; yaze::gfx::SnesPalette::operator[] </td>
           <td>(</td>
-          <td class="paramtype">const std::vector&lt; <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>cols</em></span></td><td>)</td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>index</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00171">171</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00228">colors_</a>.</p>
+
+</div>
+</div>
+<a id="acb2001e70c7d35d073f13449041b21fa" name="acb2001e70c7d35d073f13449041b21fa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acb2001e70c7d35d073f13449041b21fa">&#9670;&#160;</a></span>operator[]() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &amp; yaze::gfx::SnesPalette::operator[] </td>
+          <td>(</td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>index</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -467,16 +406,14 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00141">141</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00173">173</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00511">yaze::zelda3::palette_internal::SetColorsPalette()</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00228">colors_</a>.</p>
 
 </div>
 </div>
-<a id="a666e0d7190b52b8f47dc78e8a9db71b3" name="a666e0d7190b52b8f47dc78e8a9db71b3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a666e0d7190b52b8f47dc78e8a9db71b3">&#9670;&#160;</a></span>Create() <span class="overload">[2/2]</span></h2>
+<a id="a683161f8ef9326f82fa64f35d4fb3eda" name="a683161f8ef9326f82fa64f35d4fb3eda"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a683161f8ef9326f82fa64f35d4fb3eda">&#9670;&#160;</a></span>size()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -485,9 +422,71 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void yaze::gfx::SnesPalette::Create </td>
+          <td class="memname">size_t yaze::gfx::SnesPalette::size </td>
           <td>(</td>
-          <td class="paramtype">std::ranges::range auto &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>cols</em></span></td><td>)</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00175">175</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00229">size_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="snes__palette_8cc_source.html#l00266">yaze::gfx::CreatePaletteGroupFromLargePalette()</a>, <a class="el" href="color_8cc_source.html#l00170">yaze::gui::DisplayEditablePalette()</a>, <a class="el" href="palette__editor_8cc_source.html#l00086">yaze::editor::DisplayPalette()</a>, <a class="el" href="color_8cc_source.html#l00054">yaze::gui::DisplayPalette()</a>, <a class="el" href="gfx__group__editor_8cc_source.html#l00222">yaze::editor::anonymous_namespace{gfx_group_editor.cc}::DrawPaletteFromPaletteGroup()</a>, <a class="el" href="palette__editor_8cc_source.html#l00348">yaze::editor::PaletteEditor::DrawPaletteGroup()</a>, <a class="el" href="palette__editor_8cc_source.html#l00450">yaze::editor::PaletteEditor::EditColorInPalette()</a>, <a class="el" href="palette__editor_8cc_source.html#l00466">yaze::editor::PaletteEditor::ResetColorToOriginal()</a>, <a class="el" href="rom_8cc_source.html#l00505">yaze::Rom::SavePalette()</a>, <a class="el" href="color_8cc_source.html#l00127">yaze::gui::SelectablePalettePipeline()</a>, and <a class="el" href="snes__palette__test_8cc_source.html#l00026">yaze::test::TEST()</a>.</p>
+
+</div>
+</div>
+<a id="aeb01c20c88b1ad90bff7289f1b5c8205" name="aeb01c20c88b1ad90bff7289f1b5c8205"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb01c20c88b1ad90bff7289f1b5c8205">&#9670;&#160;</a></span>empty()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gfx::SnesPalette::empty </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00176">176</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00229">size_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="gfx__group__editor_8cc_source.html#l00222">yaze::editor::anonymous_namespace{gfx_group_editor.cc}::DrawPaletteFromPaletteGroup()</a>.</p>
+
+</div>
+</div>
+<a id="a19e74a4e0ebec56b1bb0f7e99acbc067" name="a19e74a4e0ebec56b1bb0f7e99acbc067"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a19e74a4e0ebec56b1bb0f7e99acbc067">&#9670;&#160;</a></span>begin() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto yaze::gfx::SnesPalette::begin </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -498,14 +497,101 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00147">147</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00179">179</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00228">colors_</a>.</p>
+
+</div>
+</div>
+<a id="aeb8694af4f5cf6e0b1ea59e88c8353d6" name="aeb8694af4f5cf6e0b1ea59e88c8353d6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb8694af4f5cf6e0b1ea59e88c8353d6">&#9670;&#160;</a></span>end() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto yaze::gfx::SnesPalette::end </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00180">180</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00228">colors_</a>, and <a class="el" href="snes__palette_8h_source.html#l00229">size_</a>.</p>
+
+</div>
+</div>
+<a id="aae6a17a905d9d0e2ef4d506a35da91da" name="aae6a17a905d9d0e2ef4d506a35da91da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aae6a17a905d9d0e2ef4d506a35da91da">&#9670;&#160;</a></span>begin() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto yaze::gfx::SnesPalette::begin </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00181">181</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00228">colors_</a>.</p>
+
+</div>
+</div>
+<a id="a8e100478009d0ad2aefafbe514674e80" name="a8e100478009d0ad2aefafbe514674e80"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8e100478009d0ad2aefafbe514674e80">&#9670;&#160;</a></span>end() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto yaze::gfx::SnesPalette::end </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00182">182</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00228">colors_</a>, and <a class="el" href="snes__palette_8h_source.html#l00229">size_</a>.</p>
 
 </div>
 </div>
 <a id="a6854313e2b0f605315523b2185efdea2" name="a6854313e2b0f605315523b2185efdea2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6854313e2b0f605315523b2185efdea2">&#9670;&#160;</a></span>AddColor() <span class="overload">[1/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a6854313e2b0f605315523b2185efdea2">&#9670;&#160;</a></span>AddColor()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -527,16 +613,16 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00151">151</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00185">185</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00228">colors_</a>, <a class="el" href="snes__palette_8h_source.html#l00129">kMaxColors</a>, and <a class="el" href="snes__palette_8h_source.html#l00229">size_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="snes__palette_8cc_source.html#l00299">yaze::gfx::CreatePaletteGroupFromColFile()</a>, <a class="el" href="snes__palette_8cc_source.html#l00312">yaze::gfx::CreatePaletteGroupFromLargePalette()</a>, <a class="el" href="snes__palette_8h_source.html#l00194">sub_palette()</a>, and <a class="el" href="snes__palette__test_8cc_source.html#l00026">yaze::test::TEST()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="snes__palette_8cc_source.html#l00253">yaze::gfx::CreatePaletteGroupFromColFile()</a>, <a class="el" href="snes__palette_8cc_source.html#l00266">yaze::gfx::CreatePaletteGroupFromLargePalette()</a>, <a class="el" href="snes__palette_8h_source.html#l00200">sub_palette()</a>, and <a class="el" href="snes__palette__test_8cc_source.html#l00026">yaze::test::TEST()</a>.</p>
 
 </div>
 </div>
-<a id="a9027ac7339965b6ada64b0d46d9d1b27" name="a9027ac7339965b6ada64b0d46d9d1b27"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9027ac7339965b6ada64b0d46d9d1b27">&#9670;&#160;</a></span>AddColor() <span class="overload">[2/3]</span></h2>
+<a id="aee465810f89bc92689da01913646bef2" name="aee465810f89bc92689da01913646bef2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aee465810f89bc92689da01913646bef2">&#9670;&#160;</a></span>UpdateColor()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -545,10 +631,14 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void yaze::gfx::SnesPalette::AddColor </td>
+          <td class="memname">void yaze::gfx::SnesPalette::UpdateColor </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="structsnes__color.html">snes_color</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>color</em></span></td><td>)</td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>index</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>color</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -558,100 +648,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00152">152</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00191">191</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00228">colors_</a>, and <a class="el" href="snes__palette_8h_source.html#l00229">size_</a>.</p>
 
-</div>
-</div>
-<a id="a26f97a1bf8b6f15785061251bd43316c" name="a26f97a1bf8b6f15785061251bd43316c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a26f97a1bf8b6f15785061251bd43316c">&#9670;&#160;</a></span>AddColor() <span class="overload">[3/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::gfx::SnesPalette::AddColor </td>
-          <td>(</td>
-          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>color</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00153">153</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
-
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>.</p>
-
-</div>
-</div>
-<a id="a526b8c0d069fd26b5dd6970c81666d0d" name="a526b8c0d069fd26b5dd6970c81666d0d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a526b8c0d069fd26b5dd6970c81666d0d">&#9670;&#160;</a></span>GetColor()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">absl::StatusOr&lt; <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &gt; yaze::gfx::SnesPalette::GetColor </td>
-          <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>i</em></span></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00155">155</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
-
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00086">yaze::editor::DisplayPalette()</a>, <a class="el" href="color_8cc_source.html#l00050">yaze::gui::DisplayPalette()</a>, <a class="el" href="palette__editor_8cc_source.html#l00348">yaze::editor::PaletteEditor::DrawPaletteGroup()</a>, <a class="el" href="palette__editor_8cc_source.html#l00450">yaze::editor::PaletteEditor::EditColorInPalette()</a>, and <a class="el" href="palette__editor_8cc_source.html#l00466">yaze::editor::PaletteEditor::ResetColorToOriginal()</a>.</p>
-
-</div>
-</div>
-<a id="a35c884fd5e8abcc1b2a7bd6f2fee08fe" name="a35c884fd5e8abcc1b2a7bd6f2fee08fe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a35c884fd5e8abcc1b2a7bd6f2fee08fe">&#9670;&#160;</a></span>mutable_color()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto yaze::gfx::SnesPalette::mutable_color </td>
-          <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>i</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00162">162</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
-
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00348">yaze::editor::PaletteEditor::DrawPaletteGroup()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="color_8cc_source.html#l00170">yaze::gui::DisplayEditablePalette()</a>.</p>
 
 </div>
 </div>
@@ -678,231 +679,14 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00164">164</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00197">197</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>.</p>
-
-</div>
-</div>
-<a id="a504a42d10f3d95135b77bb13ef3ec923" name="a504a42d10f3d95135b77bb13ef3ec923"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a504a42d10f3d95135b77bb13ef3ec923">&#9670;&#160;</a></span>size()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto yaze::gfx::SnesPalette::size </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00165">165</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
-
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="snes__palette_8cc_source.html#l00312">yaze::gfx::CreatePaletteGroupFromLargePalette()</a>, <a class="el" href="palette__editor_8cc_source.html#l00086">yaze::editor::DisplayPalette()</a>, <a class="el" href="color_8cc_source.html#l00050">yaze::gui::DisplayPalette()</a>, <a class="el" href="gfx__group__editor_8cc_source.html#l00222">yaze::editor::anonymous_namespace{gfx_group_editor.cc}::DrawPaletteFromPaletteGroup()</a>, <a class="el" href="palette__editor_8cc_source.html#l00348">yaze::editor::PaletteEditor::DrawPaletteGroup()</a>, <a class="el" href="palette__editor_8cc_source.html#l00450">yaze::editor::PaletteEditor::EditColorInPalette()</a>, <a class="el" href="palette__editor_8cc_source.html#l00466">yaze::editor::PaletteEditor::ResetColorToOriginal()</a>, <a class="el" href="rom_8cc_source.html#l00505">yaze::Rom::SavePalette()</a>, <a class="el" href="color_8cc_source.html#l00123">yaze::gui::SelectablePalettePipeline()</a>, and <a class="el" href="snes__palette__test_8cc_source.html#l00026">yaze::test::TEST()</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00229">size_</a>.</p>
 
 </div>
 </div>
-<a id="aac8e91cfdca9827c7b7220adeccb7eb2" name="aac8e91cfdca9827c7b7220adeccb7eb2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aac8e91cfdca9827c7b7220adeccb7eb2">&#9670;&#160;</a></span>empty()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto yaze::gfx::SnesPalette::empty </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00166">166</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
-
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="gfx__group__editor_8cc_source.html#l00222">yaze::editor::anonymous_namespace{gfx_group_editor.cc}::DrawPaletteFromPaletteGroup()</a>.</p>
-
-</div>
-</div>
-<a id="a19e74a4e0ebec56b1bb0f7e99acbc067" name="a19e74a4e0ebec56b1bb0f7e99acbc067"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a19e74a4e0ebec56b1bb0f7e99acbc067">&#9670;&#160;</a></span>begin()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto yaze::gfx::SnesPalette::begin </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00167">167</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
-
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>.</p>
-
-</div>
-</div>
-<a id="aeb8694af4f5cf6e0b1ea59e88c8353d6" name="aeb8694af4f5cf6e0b1ea59e88c8353d6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeb8694af4f5cf6e0b1ea59e88c8353d6">&#9670;&#160;</a></span>end()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto yaze::gfx::SnesPalette::end </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00168">168</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
-
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="snes__palette_8h_source.html#l00194">sub_palette()</a>.</p>
-
-</div>
-</div>
-<a id="aa819bfff19f8c77de36779c8ed4a4349" name="aa819bfff19f8c77de36779c8ed4a4349"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa819bfff19f8c77de36779c8ed4a4349">&#9670;&#160;</a></span>operator[]()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &amp; yaze::gfx::SnesPalette::operator[] </td>
-          <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>i</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00170">170</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
-
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>.</p>
-
-</div>
-</div>
-<a id="a30239b366710af17b9c36979bc4f0a11" name="a30239b366710af17b9c36979bc4f0a11"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a30239b366710af17b9c36979bc4f0a11">&#9670;&#160;</a></span>operator()() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::gfx::SnesPalette::operator() </td>
-          <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>i</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>color</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00178">178</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
-
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>.</p>
-
-</div>
-</div>
-<a id="a4ecc7b3ffc2653d8e4fcc0668bb980da" name="a4ecc7b3ffc2653d8e4fcc0668bb980da"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4ecc7b3ffc2653d8e4fcc0668bb980da">&#9670;&#160;</a></span>operator()() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::gfx::SnesPalette::operator() </td>
-          <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>i</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const ImVec4 &amp;</td>          <td class="paramname"><span class="paramname"><em>color</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00185">185</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
-
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>.</p>
-
-</div>
-</div>
-<a id="a8172ae7725a9fe1c23df412b2632a484" name="a8172ae7725a9fe1c23df412b2632a484"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8172ae7725a9fe1c23df412b2632a484">&#9670;&#160;</a></span>sub_palette()</h2>
+<a id="aa1a0b63e4451628a9b295ddd1ba1677a" name="aa1a0b63e4451628a9b295ddd1ba1677a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa1a0b63e4451628a9b295ddd1ba1677a">&#9670;&#160;</a></span>sub_palette()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -913,12 +697,12 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname"><a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">SnesPalette</a> yaze::gfx::SnesPalette::sub_palette </td>
           <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>start</em></span>, </td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>start</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>end</em></span>&#160;) const</td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>length</em></span>&#160;) const</td>
         </tr>
       </table>
   </td>
@@ -928,29 +712,26 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00194">194</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00200">200</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00151">AddColor()</a>, <a class="el" href="snes__palette_8h_source.html#l00203">colors</a>, <a class="el" href="snes__palette_8h_source.html#l00168">end()</a>, and <a class="el" href="snes__palette_8h_source.html#l00128">SnesPalette()</a>.</p>
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00185">AddColor()</a>, <a class="el" href="snes__palette_8h_source.html#l00228">colors_</a>, <a class="el" href="snes__palette_8h_source.html#l00229">size_</a>, and <a class="el" href="snes__palette_8h_source.html#l00133">SnesPalette()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1gfx_1_1SnesPalette_a8172ae7725a9fe1c23df412b2632a484_cgraph.png" border="0" usemap="#aclassyaze_1_1gfx_1_1SnesPalette_a8172ae7725a9fe1c23df412b2632a484_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1gfx_1_1SnesPalette_a8172ae7725a9fe1c23df412b2632a484_cgraph" id="aclassyaze_1_1gfx_1_1SnesPalette_a8172ae7725a9fe1c23df412b2632a484_cgraph">
-<area shape="rect" title=" " alt="" coords="5,63,153,103"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1SnesPalette.html#a6854313e2b0f605315523b2185efdea2" title=" " alt="" coords="214,5,362,46"/>
-<area shape="poly" title=" " alt="" coords="152,60,198,47,200,53,154,65"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1SnesPalette.html#aeb8694af4f5cf6e0b1ea59e88c8353d6" title=" " alt="" coords="201,70,375,96"/>
-<area shape="poly" title=" " alt="" coords="153,80,185,80,185,86,153,86"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1SnesPalette.html#a6333d0223ee96c449cd6c4637ffe9646" title=" " alt="" coords="214,120,362,161"/>
-<area shape="poly" title=" " alt="" coords="154,101,200,113,198,119,152,106"/>
+<div class="center"><img src="classyaze_1_1gfx_1_1SnesPalette_aa1a0b63e4451628a9b295ddd1ba1677a_cgraph.png" border="0" usemap="#aclassyaze_1_1gfx_1_1SnesPalette_aa1a0b63e4451628a9b295ddd1ba1677a_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1gfx_1_1SnesPalette_aa1a0b63e4451628a9b295ddd1ba1677a_cgraph" id="aclassyaze_1_1gfx_1_1SnesPalette_aa1a0b63e4451628a9b295ddd1ba1677a_cgraph">
+<area shape="rect" title=" " alt="" coords="5,39,153,79"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1SnesPalette.html#a6854313e2b0f605315523b2185efdea2" title=" " alt="" coords="201,5,348,46"/>
+<area shape="poly" title=" " alt="" coords="153,44,185,38,186,44,154,49"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1SnesPalette.html#a93ef1ee0b127b6ba45f0c90ec4d1af46" title=" " alt="" coords="201,71,348,111"/>
+<area shape="poly" title=" " alt="" coords="154,68,186,74,185,79,153,74"/>
 </map>
 </div>
 
 </div>
 </div>
-<h2 class="groupheader">Member Data Documentation</h2>
-<a id="a201de34c05feb8c14ae85fe0e035ce39" name="a201de34c05feb8c14ae85fe0e035ce39"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a201de34c05feb8c14ae85fe0e035ce39">&#9670;&#160;</a></span>colors</h2>
+<a id="afd6ca380cfdbc978f6f96fd699052484" name="afd6ca380cfdbc978f6f96fd699052484"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd6ca380cfdbc978f6f96fd699052484">&#9670;&#160;</a></span>operator==()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -959,7 +740,112 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt;<a class="el" href="classyaze_1_1gfx_1_1SnesColor.html">SnesColor</a>&gt; yaze::gfx::SnesPalette::colors</td>
+          <td class="memname">bool yaze::gfx::SnesPalette::operator== </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">SnesPalette</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>other</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00213">213</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00228">colors_</a>, <a class="el" href="snes__palette_8h_source.html#l00229">size_</a>, and <a class="el" href="snes__palette_8h_source.html#l00133">SnesPalette()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1gfx_1_1SnesPalette_afd6ca380cfdbc978f6f96fd699052484_cgraph.png" border="0" usemap="#aclassyaze_1_1gfx_1_1SnesPalette_afd6ca380cfdbc978f6f96fd699052484_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1gfx_1_1SnesPalette_afd6ca380cfdbc978f6f96fd699052484_cgraph" id="aclassyaze_1_1gfx_1_1SnesPalette_afd6ca380cfdbc978f6f96fd699052484_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,153,46"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1SnesPalette.html#a93ef1ee0b127b6ba45f0c90ec4d1af46" title=" " alt="" coords="201,5,348,46"/>
+<area shape="poly" title=" " alt="" coords="153,23,185,23,185,28,153,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ada0823d0a153d7ca55fc0f95b42e9f07" name="ada0823d0a153d7ca55fc0f95b42e9f07"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ada0823d0a153d7ca55fc0f95b42e9f07">&#9670;&#160;</a></span>operator!=()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gfx::SnesPalette::operator!= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">SnesPalette</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>other</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00225">225</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+
+<p class="reference">References <a class="el" href="snes__palette_8h_source.html#l00133">SnesPalette()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1gfx_1_1SnesPalette_ada0823d0a153d7ca55fc0f95b42e9f07_cgraph.png" border="0" usemap="#aclassyaze_1_1gfx_1_1SnesPalette_ada0823d0a153d7ca55fc0f95b42e9f07_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1gfx_1_1SnesPalette_ada0823d0a153d7ca55fc0f95b42e9f07_cgraph" id="aclassyaze_1_1gfx_1_1SnesPalette_ada0823d0a153d7ca55fc0f95b42e9f07_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,153,46"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1SnesPalette.html#a93ef1ee0b127b6ba45f0c90ec4d1af46" title=" " alt="" coords="201,5,348,46"/>
+<area shape="poly" title=" " alt="" coords="153,23,185,23,185,28,153,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a82b8ee8dd878bba2621d078f986f81aa" name="a82b8ee8dd878bba2621d078f986f81aa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a82b8ee8dd878bba2621d078f986f81aa">&#9670;&#160;</a></span>kMaxColors</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t yaze::gfx::SnesPalette::kMaxColors = 256</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00129">129</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="snes__palette_8h_source.html#l00185">AddColor()</a>, <a class="el" href="snes__palette_8h_source.html#l00154">SnesPalette()</a>, <a class="el" href="snes__palette_8h_source.html#l00163">SnesPalette()</a>, <a class="el" href="snes__palette_8h_source.html#l00145">SnesPalette()</a>, and <a class="el" href="snes__palette_8h_source.html#l00136">SnesPalette()</a>.</p>
+
+</div>
+</div>
+<a id="a9b14bc1de5d1dd131a63d6ac818bb960" name="a9b14bc1de5d1dd131a63d6ac818bb960"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9b14bc1de5d1dd131a63d6ac818bb960">&#9670;&#160;</a></span>colors_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="#a8a80f3837feac33fb1a8432e15a04432">ColorArray</a> yaze::gfx::SnesPalette::colors_</td>
         </tr>
       </table>
   </td>
@@ -968,17 +854,41 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>The colors in the palette. </p>
 
-<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00203">203</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00228">228</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="snes__palette_8h_source.html#l00152">AddColor()</a>, <a class="el" href="snes__palette_8h_source.html#l00151">AddColor()</a>, <a class="el" href="snes__palette_8h_source.html#l00153">AddColor()</a>, <a class="el" href="snes__palette_8h_source.html#l00167">begin()</a>, <a class="el" href="snes__palette_8h_source.html#l00164">clear()</a>, <a class="el" href="snes__palette_8h_source.html#l00141">Create()</a>, <a class="el" href="snes__palette_8h_source.html#l00147">Create()</a>, <a class="el" href="snes__palette_8h_source.html#l00166">empty()</a>, <a class="el" href="snes__palette_8h_source.html#l00168">end()</a>, <a class="el" href="snes__palette_8h_source.html#l00155">GetColor()</a>, <a class="el" href="snes__palette_8h_source.html#l00162">mutable_color()</a>, <a class="el" href="snes__palette_8h_source.html#l00185">operator()()</a>, <a class="el" href="snes__palette_8h_source.html#l00178">operator()()</a>, <a class="el" href="snes__palette_8h_source.html#l00170">operator[]()</a>, <a class="el" href="snes__palette_8h_source.html#l00165">size()</a>, <a class="el" href="snes__palette_8cc_source.html#l00223">SnesPalette()</a>, <a class="el" href="snes__palette_8cc_source.html#l00247">SnesPalette()</a>, <a class="el" href="snes__palette_8cc_source.html#l00255">SnesPalette()</a>, <a class="el" href="snes__palette_8cc_source.html#l00263">SnesPalette()</a>, <a class="el" href="snes__palette_8h_source.html#l00128">SnesPalette()</a>, <a class="el" href="snes__palette_8cc_source.html#l00235">SnesPalette()</a>, and <a class="el" href="snes__palette_8h_source.html#l00194">sub_palette()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="snes__palette_8h_source.html#l00185">AddColor()</a>, <a class="el" href="snes__palette_8h_source.html#l00179">begin()</a>, <a class="el" href="snes__palette_8h_source.html#l00181">begin()</a>, <a class="el" href="snes__palette_8h_source.html#l00180">end()</a>, <a class="el" href="snes__palette_8h_source.html#l00182">end()</a>, <a class="el" href="snes__palette_8h_source.html#l00213">operator==()</a>, <a class="el" href="snes__palette_8h_source.html#l00173">operator[]()</a>, <a class="el" href="snes__palette_8h_source.html#l00171">operator[]()</a>, <a class="el" href="snes__palette_8h_source.html#l00154">SnesPalette()</a>, <a class="el" href="snes__palette_8h_source.html#l00163">SnesPalette()</a>, <a class="el" href="snes__palette_8h_source.html#l00145">SnesPalette()</a>, <a class="el" href="snes__palette_8h_source.html#l00136">SnesPalette()</a>, <a class="el" href="snes__palette_8h_source.html#l00200">sub_palette()</a>, and <a class="el" href="snes__palette_8h_source.html#l00191">UpdateColor()</a>.</p>
 
 </div>
 </div>
-<hr/>The documentation for this class was generated from the following files:<ul>
+<a id="a7d0e8e179dcde5b8aa01bf739612608d" name="a7d0e8e179dcde5b8aa01bf739612608d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d0e8e179dcde5b8aa01bf739612608d">&#9670;&#160;</a></span>size_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t yaze::gfx::SnesPalette::size_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00229">229</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="snes__palette_8h_source.html#l00185">AddColor()</a>, <a class="el" href="snes__palette_8h_source.html#l00197">clear()</a>, <a class="el" href="snes__palette_8h_source.html#l00176">empty()</a>, <a class="el" href="snes__palette_8h_source.html#l00180">end()</a>, <a class="el" href="snes__palette_8h_source.html#l00182">end()</a>, <a class="el" href="snes__palette_8h_source.html#l00213">operator==()</a>, <a class="el" href="snes__palette_8h_source.html#l00175">size()</a>, <a class="el" href="snes__palette_8h_source.html#l00133">SnesPalette()</a>, <a class="el" href="snes__palette_8h_source.html#l00154">SnesPalette()</a>, <a class="el" href="snes__palette_8h_source.html#l00163">SnesPalette()</a>, <a class="el" href="snes__palette_8h_source.html#l00145">SnesPalette()</a>, <a class="el" href="snes__palette_8h_source.html#l00136">SnesPalette()</a>, <a class="el" href="snes__palette_8h_source.html#l00200">sub_palette()</a>, and <a class="el" href="snes__palette_8h_source.html#l00191">UpdateColor()</a>.</p>
+
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/app/gfx/<a class="el" href="snes__palette_8h_source.html">snes_palette.h</a></li>
-<li>src/app/gfx/<a class="el" href="snes__palette_8cc_source.html">snes_palette.cc</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

@@ -1,6 +1,5 @@
 var classyaze_1_1editor_1_1MessageEditor =
 [
-    [ "TextBox", "structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html", "structyaze_1_1editor_1_1MessageEditor_1_1TextBox" ],
     [ "MessageEditor", "classyaze_1_1editor_1_1MessageEditor.html#aa053e9ab0942b2146c57bb8497497b31", null ],
     [ "Initialize", "classyaze_1_1editor_1_1MessageEditor.html#a9a0f814cb63b33a9cd3c407a0274240c", null ],
     [ "Load", "classyaze_1_1editor_1_1MessageEditor.html#a7a14ce80654534bcdcbd129562f08d95", null ],
@@ -62,6 +61,6 @@ var classyaze_1_1editor_1_1MessageEditor =
     [ "current_font_gfx16_canvas_", "classyaze_1_1editor_1_1MessageEditor.html#a65344708b40f7a237196c635a25844a0", null ],
     [ "tile_editor_canvas_", "classyaze_1_1editor_1_1MessageEditor.html#a88265f38fed95ec651b56b7de08985e3", null ],
     [ "tile_preview_canvas_", "classyaze_1_1editor_1_1MessageEditor.html#a0caa39f40cc9611ad55090fb702892ed", null ],
-    [ "message_text_box_", "classyaze_1_1editor_1_1MessageEditor.html#aadd3f4534fa5d805938c59819e3c300d", null ],
+    [ "message_text_box_", "classyaze_1_1editor_1_1MessageEditor.html#ad8509fbb55cdbaa59f94a9b9fbf8fc6d", null ],
     [ "status_", "classyaze_1_1editor_1_1MessageEditor.html#a71dc4bc3978873b381a078ed46f95048", null ]
 ];

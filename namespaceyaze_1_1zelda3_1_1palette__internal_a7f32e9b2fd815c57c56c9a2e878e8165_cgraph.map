@@ -1,11 +1,11 @@
 <map id="yaze::zelda3::palette_internal::SetColorsPalette" name="yaze::zelda3::palette_internal::SetColorsPalette">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,63,180,103"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1SnesPalette.html#ac1a38bac2f35c108dac3c81253b516ee" title=" " alt="" coords="228,5,375,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,60,212,47,213,53,170,65"/>
-<area shape="rect" id="Node000003" href="$main_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="277,70,326,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="180,80,261,80,261,86,180,86"/>
-<area shape="rect" id="Node000049" href="$classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7" title=" " alt="" coords="239,120,364,161"/>
-<area shape="poly" id="edge4_Node000001_Node000049" title=" " alt="" coords="170,101,224,117,223,122,168,106"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1util.html#a60afeb1f1afc9e19c61b64749a219577" title=" " alt="" coords="423,63,533,103"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="327,80,407,80,407,86,327,86"/>
+<area shape="rect" id="Node000002" href="$main_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="266,41,315,66"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,67,250,57,251,62,180,73"/>
+<area shape="rect" id="Node000048" href="$classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7" title=" " alt="" coords="228,91,353,131"/>
+<area shape="poly" id="edge4_Node000001_Node000048" title=" " alt="" coords="180,93,213,97,212,103,180,98"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1util.html#a60afeb1f1afc9e19c61b64749a219577" title=" " alt="" coords="415,5,525,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="315,47,399,34,400,39,316,53"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1Snes.html#ad2f26298fae68793dba09322210f1aee" title=" " alt="" coords="401,70,539,96"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="316,55,386,67,385,72,315,60"/>
 </map>

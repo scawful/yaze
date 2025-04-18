@@ -1,9 +1,0 @@
-<map id="yaze::gfx::SnesPalette::sub_palette" name="yaze::gfx::SnesPalette::sub_palette">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,153,103"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1SnesPalette.html#a6854313e2b0f605315523b2185efdea2" title=" " alt="" coords="214,5,362,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,60,198,47,200,53,154,65"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1SnesPalette.html#aeb8694af4f5cf6e0b1ea59e88c8353d6" title=" " alt="" coords="201,70,375,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="153,80,185,80,185,86,153,86"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1SnesPalette.html#a6333d0223ee96c449cd6c4637ffe9646" title=" " alt="" coords="214,120,362,161"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="154,101,200,113,198,119,152,106"/>
-</map>

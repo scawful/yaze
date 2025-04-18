@@ -106,7 +106,7 @@ var searchData=
   ['brrheader_103',['brrHeader',['../structyaze_1_1emu_1_1DspChannel.html#abbb8bd5519f388259898ace5fc41085e',1,'yaze::emu::DspChannel']]],
   ['bstep_104',['bstep',['../classyaze_1_1emu_1_1Spc700.html#a20795fa7ea12a1e09f977df235728487',1,'yaze::emu::Spc700::bstep'],['../classyaze_1_1test_1_1Spc700.html#a20795fa7ea12a1e09f977df235728487',1,'yaze::test::Spc700::bstep']]],
   ['buf_105',['buf',['../structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#aadb07ef633b1216bcd884d207d9b43c4',1,'yaze::zelda3::music::SongSpcBlock::buf'],['../structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a98e8ad2d44b40c6437e4a8c5839ea160',1,'yaze::zelda3::music::ZeldaWave::buf']]],
-  ['buffer_106',['buffer',['../structyaze_1_1editor_1_1MessageEditor_1_1TextBox.html#abf64a3b7756c907e04ea99a097761883',1,'yaze::editor::MessageEditor::TextBox']]],
+  ['buffer_106',['buffer',['../structyaze_1_1gui_1_1TextBox.html#af340d4aa4774c7406408a67ddc76beef',1,'yaze::gui::TextBox']]],
   ['bufferoffset_107',['bufferOffset',['../structyaze_1_1emu_1_1DspChannel.html#a9b661b66b0e1f9b6f69ac976d72c33b4',1,'yaze::emu::DspChannel']]],
   ['built_5f_108',['built_',['../classyaze_1_1zelda3_1_1OverworldMap.html#a773a3ab6858db704ce6143e0dfa4295d',1,'yaze::zelda3::OverworldMap']]],
   ['button_109',['button',['../structyaze_1_1gui_1_1Theme.html#ad91de3e94439e6f53641d462f1d8e4f5',1,'yaze::gui::Theme']]],

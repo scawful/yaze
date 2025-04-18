@@ -1,7 +1,7 @@
 var searchData=
 [
   ['l_5fbutton_0',['l_button',['../structyaze_1_1emu_1_1EmulatorKeybindings.html#abaa47b8a06dfd6a25cbe6963b0518525',1,'yaze::emu::EmulatorKeybindings']]],
-  ['label_1',['label',['../structstaircase.html#a270d19c429618770fbb39e7e268bfa5d',1,'staircase']]],
+  ['label_1',['label',['../structstaircase.html#a270d19c429618770fbb39e7e268bfa5d',1,'staircase::label'],['../structyaze_1_1gui_1_1Button.html#ae25cf11323ab4180af3601aac9002393',1,'yaze::gui::Button::label']]],
   ['labels_5f_2',['labels_',['../structyaze_1_1ResourceLabelManager.html#a125a1036183bcb6c99cb2e3df6e5aea1',1,'yaze::ResourceLabelManager::labels_'],['../classyaze_1_1gui_1_1Canvas.html#a9a3abdc32c4acbb4619e4ab6a388ff60',1,'yaze::gui::Canvas::labels_']]],
   ['labels_5ffilename_3',['labels_filename',['../structyaze__project.html#aa9deca5d69c0a57db8d0f093a9aeb2e2',1,'yaze_project']]],
   ['labels_5ffilename_5f_4',['labels_filename_',['../structyaze_1_1Project.html#ad3afa355da51c95e9d6e32a5d2036595',1,'yaze::Project']]],
