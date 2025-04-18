@@ -142,17 +142,14 @@ void DungeonObjectRenderer::UpdateObjectBitmap() {
   bitmap_.Create(256, 256, 8, tilemap_);
 }
 
-absl::Status DungeonObjectRenderer::SetPalette(const gfx::SnesPalette& palette,
-                                               size_t transparent_index) {
+void DungeonObjectRenderer::SetPalette(const gfx::SnesPalette& palette,
+                                       size_t transparent_index) {
   // Apply the palette to the bitmap
-  RETURN_IF_ERROR(
-      bitmap_.SetPaletteWithTransparent(palette, transparent_index));
+  bitmap_.SetPaletteWithTransparent(palette, transparent_index);
 
   // Store the palette in the VRAM structure for future reference
   vram_.palettes.clear();
   vram_.palettes.push_back(palette);
-
-  return absl::OkStatus();
 }
 
 }  // namespace zelda3

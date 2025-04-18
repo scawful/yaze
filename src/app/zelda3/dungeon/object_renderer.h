@@ -65,9 +65,8 @@ class DungeonObjectRenderer : public SharedRom {
    * 
    * @param palette The palette to use for the object
    * @param transparent_index Index of the transparent color (default: 0)
-   * @return absl::Status Success or error status
    */
-  absl::Status SetPalette(const gfx::SnesPalette& palette, size_t transparent_index = 0);
+  void SetPalette(const gfx::SnesPalette& palette, size_t transparent_index = 0);
 
   /**
    * @brief Gets the rendered bitmap

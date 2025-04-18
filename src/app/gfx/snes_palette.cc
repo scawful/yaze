@@ -220,52 +220,6 @@ uint32_t GetPaletteAddress(const std::string &group_name, size_t palette_index,
   return address;
 }
 
-SnesPalette::SnesPalette(char *data) {
-  assert((sizeof(data) % 4 == 0) && (sizeof(data) <= 32));
-  for (unsigned i = 0; i < sizeof(data); i += 2) {
-    SnesColor col;
-    col.set_snes(static_cast<uint8_t>(data[i + 1]) << 8);
-    col.set_snes(col.snes() | static_cast<uint8_t>(data[i]));
-    snes_color mColor = ConvertSnesToRgb(col.snes());
-    col.set_rgb(ImVec4(mColor.red, mColor.green, mColor.blue, 1.f));
-    colors.push_back(col);
-  }
-}
-
-SnesPalette::SnesPalette(const unsigned char *snes_pal) {
-  assert((sizeof(snes_pal) % 4 == 0) && (sizeof(snes_pal) <= 32));
-  for (unsigned i = 0; i < sizeof(snes_pal); i += 2) {
-    SnesColor col;
-    col.set_snes(snes_pal[i + 1] << (uint16_t)8);
-    col.set_snes(col.snes() | snes_pal[i]);
-    snes_color mColor = ConvertSnesToRgb(col.snes());
-    col.set_rgb(ImVec4(mColor.red, mColor.green, mColor.blue, 1.f));
-    colors.push_back(col);
-  }
-}
-
-SnesPalette::SnesPalette(const std::vector<ImVec4> &cols) {
-  for (const auto &each : cols) {
-    SnesColor scol;
-    scol.set_rgb(each);
-    colors.push_back(scol);
-  }
-}
-
-SnesPalette::SnesPalette(const std::vector<snes_color> &cols) {
-  for (const auto &each : cols) {
-    SnesColor scol;
-    scol.set_snes(ConvertRgbToSnes(each));
-    colors.push_back(scol);
-  }
-}
-
-SnesPalette::SnesPalette(const std::vector<SnesColor> &cols) {
-  for (const auto &each : cols) {
-    colors.push_back(each);
-  }
-}
-
 SnesPalette ReadPaletteFromRom(int offset, int num_colors, const uint8_t *rom) {
   int color_offset = 0;
   std::vector<gfx::SnesColor> colors(num_colors);
@@ -302,7 +256,7 @@ absl::StatusOr<PaletteGroup> CreatePaletteGroupFromColFile(
   for (int i = 0; i < palette_rows.size(); i += 8) {
     SnesPalette palette;
     for (int j = 0; j < 8; j++) {
-      palette.AddColor(palette_rows[i + j].rom_color());
+      palette.AddColor(palette_rows[i + j]);
     }
     palette_group.AddPalette(palette);
   }

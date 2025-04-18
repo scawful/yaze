@@ -68,7 +68,7 @@ absl::Status Inventory::Create() {
   }
 
   bitmap_.Create(256, 256, 8, data_);
-  RETURN_IF_ERROR(bitmap_.SetPalette(palette_));
+  bitmap_.SetPalette(palette_);
   Renderer::GetInstance().RenderBitmap(&bitmap_);
   return absl::OkStatus();
 }
@@ -87,7 +87,7 @@ absl::Status Inventory::BuildTileset() {
   tilesheets_bmp_.Create(128, 0x130, 64, test_);
   auto hud_pal_group = rom()->palette_group().hud;
   palette_ = hud_pal_group[0];
-  RETURN_IF_ERROR(tilesheets_bmp_.SetPalette(palette_))
+  tilesheets_bmp_.SetPalette(palette_);
   Renderer::GetInstance().RenderBitmap(&tilesheets_bmp_);
   return absl::OkStatus();
 }

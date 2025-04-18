@@ -9,7 +9,6 @@
 #include <string_view>
 #include <vector>
 
-#include "absl/status/status.h"
 #include "app/gfx/snes_palette.h"
 
 namespace yaze {
@@ -68,12 +67,12 @@ class Bitmap {
  public:
   // Constructors
   Bitmap() = default;
-  
+
   /**
    * @brief Create a bitmap with the given dimensions and data
    */
   Bitmap(int width, int height, int depth, const std::vector<uint8_t> &data);
-  
+
   /**
    * @brief Create a bitmap with the given dimensions, data, and palette
    */
@@ -89,13 +88,13 @@ class Bitmap {
    * @brief Create a bitmap with the given dimensions and data
    */
   void Create(int width, int height, int depth, std::span<uint8_t> data);
-  
+
   /**
    * @brief Create a bitmap with the given dimensions and data
    */
   void Create(int width, int height, int depth,
               const std::vector<uint8_t> &data);
-  
+
   /**
    * @brief Create a bitmap with the given dimensions, format, and data
    */
@@ -140,20 +139,19 @@ class Bitmap {
   /**
    * @brief Set the palette for the bitmap
    */
-  absl::Status SetPalette(const SnesPalette &palette);
-  
+  void SetPalette(const SnesPalette &palette);
+
   /**
    * @brief Set the palette with a transparent color
    */
-  absl::Status SetPaletteWithTransparent(const SnesPalette &palette,
-                                         size_t index, int length = 7);
-  
+  void SetPaletteWithTransparent(const SnesPalette &palette, size_t index,
+                                 int length = 7);
+
   /**
    * @brief Set the palette from a palette group
    */
-  absl::Status SetPaletteFromPaletteGroup(const SnesPalette &palette,
-                                          int palette_id);
-  
+  void SetPaletteFromPaletteGroup(const SnesPalette &palette, int palette_id);
+
   /**
    * @brief Set the palette using SDL colors
    */
@@ -164,7 +162,7 @@ class Bitmap {
    * @brief Write a value to a pixel at the given position
    */
   void WriteToPixel(int position, uint8_t value);
-  
+
   /**
    * @brief Write a color to a pixel at the given position
    */
@@ -187,23 +185,23 @@ class Bitmap {
    * @brief Clean up the bitmap resources
    */
   void Cleanup();
-  
+
   /**
    * @brief Clear the bitmap data
    */
   void Clear();
 
-  const SnesPalette& palette() const { return palette_; }
-  SnesPalette* mutable_palette() { return &palette_; }
+  const SnesPalette &palette() const { return palette_; }
+  SnesPalette *mutable_palette() { return &palette_; }
   int width() const { return width_; }
   int height() const { return height_; }
   int depth() const { return depth_; }
   int size() const { return data_size_; }
-  const uint8_t* data() const { return data_.data(); }
-  std::vector<uint8_t>& mutable_data() { return data_; }
-  SDL_Surface* surface() const { return surface_.get(); }
-  SDL_Texture* texture() const { return texture_.get(); }
-  const std::vector<uint8_t>& vector() const { return data_; }
+  const uint8_t *data() const { return data_.data(); }
+  std::vector<uint8_t> &mutable_data() { return data_; }
+  SDL_Surface *surface() const { return surface_.get(); }
+  SDL_Texture *texture() const { return texture_.get(); }
+  const std::vector<uint8_t> &vector() const { return data_; }
   uint8_t at(int i) const { return data_[i]; }
   bool modified() const { return modified_; }
   bool is_active() const { return active_; }
@@ -233,7 +231,7 @@ class Bitmap {
   // Track the last time this texture was used
   uint64_t last_used_time_ = 0;
 
-  // Pointer to the texture pixels 
+  // Pointer to the texture pixels
   void *texture_pixels = nullptr;
 
   // Pointer to the pixel data
@@ -244,7 +242,7 @@ class Bitmap {
 
   // Data for the bitmap
   std::vector<uint8_t> data_;
-  
+
   // Surface for the bitmap
   std::shared_ptr<SDL_Surface> surface_ = nullptr;
 
@@ -271,12 +269,12 @@ Uint32 GetSnesPixelFormat(int format);
 /**
  * @brief Allocate an SDL surface with the given dimensions and format
  */
-SDL_Surface* AllocateSurface(int width, int height, int depth, Uint32 format);
+SDL_Surface *AllocateSurface(int width, int height, int depth, Uint32 format);
 
 /**
  * @brief Allocate an SDL texture with the given dimensions and format
  */
-SDL_Texture* AllocateTexture(SDL_Renderer *renderer, Uint32 format, int access,
+SDL_Texture *AllocateTexture(SDL_Renderer *renderer, Uint32 format, int access,
                              int width, int height);
 
 }  // namespace gfx

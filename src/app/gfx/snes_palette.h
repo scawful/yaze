@@ -1,10 +1,12 @@
 #ifndef YAZE_APP_GFX_PALETTE_H
 #define YAZE_APP_GFX_PALETTE_H
 
+#include <array>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -48,7 +50,7 @@ static constexpr absl::string_view kPaletteGroupNames[] = {
     "sprites_aux3", "dungeon_main",   "ow_mini_map",  "ow_mini_map",
     "3d_object",    "3d_object"};
 
-constexpr const char *kPaletteGroupAddressesKeys[] = {
+constexpr const char* kPaletteGroupAddressesKeys[] = {
     "ow_main",        "ow_aux",       "ow_animated",  "hud",
     "global_sprites", "armors",       "swords",       "shields",
     "sprites_aux1",   "sprites_aux2", "sprites_aux3", "dungeon_main",
@@ -107,7 +109,7 @@ constexpr int OverworldGrassPalettesMax = 3;
 constexpr int Object3DPalettesMax = 2;
 constexpr int OverworldMiniMapPalettesMax = 2;
 
-uint32_t GetPaletteAddress(const std::string &group_name, size_t palette_index,
+uint32_t GetPaletteAddress(const std::string& group_name, size_t palette_index,
                            size_t color_index);
 
 /**
@@ -118,94 +120,118 @@ uint32_t GetPaletteAddress(const std::string &group_name, size_t palette_index,
  * colors in an SNES palette. It supports various constructors to initialize the
  * palette with different types of data. The palette can be modified by adding
  * or changing colors, and it can be cleared to remove all colors. Colors in the
- * palette can be accessed using index-based access or through the `GetColor`
- * method. The class also provides a method to create a sub-palette by selecting
- * a range of colors from the original palette.
+ * palette can be accessed using index-based access. The class also provides a
+ * method to create a sub-palette by selecting a range of colors from the
+ * original palette.
  */
 class SnesPalette {
  public:
-  template <typename T>
-  explicit SnesPalette(const std::vector<T> &data) {
-    for (const auto &item : data) {
-      colors.emplace_back(SnesColor(item));
+  static constexpr size_t kMaxColors = 256;
+  using ColorArray = std::array<SnesColor, kMaxColors>;
+
+  // Default constructor
+  SnesPalette() : size_(0) {}
+
+  // Constructor from vector of uint16_t (SNES color values)
+  explicit SnesPalette(const std::vector<uint16_t>& colors) : size_(0) {
+    for (const auto& color : colors) {
+      if (size_ < kMaxColors) {
+        colors_[size_++] = SnesColor(color);
+      }
     }
   }
 
-  SnesPalette() = default;
-  explicit SnesPalette(char *snesPal);
-  explicit SnesPalette(const unsigned char *snes_pal);
-  explicit SnesPalette(const std::vector<ImVec4> &);
-  explicit SnesPalette(const std::vector<snes_color> &);
-  explicit SnesPalette(const std::vector<SnesColor> &);
-
-  void Create(const std::vector<SnesColor> &cols) {
-    for (const auto &each : cols) {
-      colors.emplace_back(each);
+  // Constructor from vector of SnesColor
+  explicit SnesPalette(const std::vector<SnesColor>& colors) : size_(0) {
+    for (const auto& color : colors) {
+      if (size_ < kMaxColors) {
+        colors_[size_++] = color;
+      }
     }
   }
 
-  void Create(std::ranges::range auto &&cols) {
-    std::copy(cols.begin(), cols.end(), std::back_inserter(colors));
-  }
-
-  void AddColor(const SnesColor &color) { colors.emplace_back(color); }
-  void AddColor(const snes_color &color) { colors.emplace_back(color); }
-  void AddColor(uint16_t color) { colors.emplace_back(color); }
-
-  absl::StatusOr<SnesColor> GetColor(int i) const {
-    if (i > colors.size()) {
-      return absl::InvalidArgumentError("SnesPalette: Index out of bounds");
+  // Constructor from raw SNES palette data
+  explicit SnesPalette(const char* data, size_t length) : size_(0) {
+    for (size_t i = 0; i < length && size_ < kMaxColors; i += 2) {
+      uint16_t color = (static_cast<uint8_t>(data[i + 1]) << 8) |
+                       static_cast<uint8_t>(data[i]);
+      colors_[size_++] = SnesColor(color);
     }
-    return colors[i];
   }
 
-  auto mutable_color(int i) { return &colors[i]; }
-
-  void clear() { colors.clear(); }
-  auto size() const { return colors.size(); }
-  auto empty() const { return colors.empty(); }
-  auto begin() { return colors.begin(); }
-  auto end() { return colors.end(); }
-
-  SnesColor &operator[](int i) {
-    if (i > colors.size()) {
-      std::cout << "SNESPalette: Index out of bounds" << std::endl;
-      return colors[0];
+  // Constructor from ImVec4 colors
+  explicit SnesPalette(const std::vector<ImVec4>& colors) : size_(0) {
+    for (const auto& color : colors) {
+      if (size_ < kMaxColors) {
+        colors_[size_++] = SnesColor(color);
+      }
     }
-    return colors[i];
   }
 
-  void operator()(int i, const SnesColor &color) {
-    if (i >= colors.size()) {
-      std::cout << "SNESPalette: Index out of bounds" << std::endl;
+  const SnesColor& operator[](size_t index) const { return colors_[index]; }
+
+  SnesColor& operator[](size_t index) { return colors_[index]; }
+
+  size_t size() const { return size_; }
+  bool empty() const { return size_ == 0; }
+
+  // Iterators
+  auto begin() { return colors_.begin(); }
+  auto end() { return colors_.begin() + size_; }
+  auto begin() const { return colors_.begin(); }
+  auto end() const { return colors_.begin() + size_; }
+
+  // Color manipulation
+  void AddColor(const SnesColor& color) {
+    if (size_ < kMaxColors) {
+      colors_[size_++] = color;
     }
-    colors[i] = color;
   }
 
-  void operator()(int i, const ImVec4 &color) {
-    if (i >= colors.size()) {
-      std::cout << "SNESPalette: Index out of bounds" << std::endl;
-      return;
+  void UpdateColor(size_t index, const SnesColor& color) {
+    if (index < size_) {
+      colors_[index] = color;
     }
-    colors[i].set_rgb(color);
-    colors[i].set_modified(true);
   }
 
-  SnesPalette sub_palette(int start, int end) const {
-    SnesPalette pal;
-    for (int i = start; i < end; i++) {
-      pal.AddColor(colors[i]);
+  void clear() { size_ = 0; }
+
+  // Sub-palette creation
+  SnesPalette sub_palette(size_t start, size_t length) const {
+    SnesPalette result;
+    if (start >= size_) {
+      return result;
     }
-    return pal;
+    length = std::min(length, size_ - start);
+    for (size_t i = 0; i < length; ++i) {
+      result.AddColor(colors_[start + i]);
+    }
+    return result;
   }
+
+  // Comparison operators
+  bool operator==(const SnesPalette& other) const {
+    if (size_ != other.size_) {
+      return false;
+    }
+    for (size_t i = 0; i < size_; ++i) {
+      if (colors_[i].snes() != other.colors_[i].snes()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool operator!=(const SnesPalette& other) const { return !(*this == other); }
 
  private:
-  std::vector<SnesColor> colors; /**< The colors in the palette. */
+  ColorArray colors_;
+  size_t size_;
 };
 
-SnesPalette ReadPaletteFromRom(int offset, int num_colors, const uint8_t *rom);
+SnesPalette ReadPaletteFromRom(int offset, int num_colors, const uint8_t* rom);
 
-std::array<float, 4> ToFloatArray(const SnesColor &color);
+std::array<float, 4> ToFloatArray(const SnesColor& color);
 
 /**
  * @brief Represents a group of palettes.
@@ -215,7 +241,7 @@ std::array<float, 4> ToFloatArray(const SnesColor &color);
  */
 struct PaletteGroup {
   PaletteGroup() = default;
-  PaletteGroup(const std::string &name) : name_(name) {}
+  PaletteGroup(const std::string& name) : name_(name) {}
 
   void AddPalette(SnesPalette pal) { palettes.emplace_back(pal); }
 
@@ -240,7 +266,7 @@ struct PaletteGroup {
     return palettes[i];
   }
 
-  const SnesPalette &operator[](int i) const {
+  const SnesPalette& operator[](int i) const {
     if (i > palettes.size()) {
       std::cout << "PaletteGroup: Index out of bounds" << std::endl;
       return palettes[0];
@@ -277,7 +303,7 @@ struct PaletteGroupMap {
   PaletteGroup object_3d = {kPaletteGroupAddressesKeys[13]};
   PaletteGroup overworld_mini_map = {kPaletteGroupAddressesKeys[14]};
 
-  auto get_group(const std::string &group_name) {
+  auto get_group(const std::string& group_name) {
     if (group_name == "ow_main") {
       return &overworld_main;
     } else if (group_name == "ow_aux") {
@@ -314,7 +340,7 @@ struct PaletteGroupMap {
   }
 
   template <typename Func>
-  absl::Status for_each(Func &&func) {
+  absl::Status for_each(Func&& func) {
     RETURN_IF_ERROR(func(overworld_aux));
     RETURN_IF_ERROR(func(overworld_animated));
     RETURN_IF_ERROR(func(hud));
@@ -363,13 +389,13 @@ struct PaletteGroupMap {
 };
 
 absl::StatusOr<PaletteGroup> CreatePaletteGroupFromColFile(
-    std::vector<SnesColor> &colors);
+    std::vector<SnesColor>& colors);
 
 /**
  * @brief Take a SNESPalette, divide it into palettes of 8 colors
  */
 absl::StatusOr<PaletteGroup> CreatePaletteGroupFromLargePalette(
-    SnesPalette &palette, int num_colors = 8);
+    SnesPalette& palette, int num_colors = 8);
 
 /**
  * @brief Loads all the palettes for the game.
@@ -380,8 +406,8 @@ absl::StatusOr<PaletteGroup> CreatePaletteGroupFromLargePalette(
  * groups.
  *
  */
-absl::Status LoadAllPalettes(const std::vector<uint8_t> &rom_data,
-                             PaletteGroupMap &groups);
+absl::Status LoadAllPalettes(const std::vector<uint8_t>& rom_data,
+                             PaletteGroupMap& groups);
 
 /**
  * @brief Represents a set of palettes used in a SNES graphics system.

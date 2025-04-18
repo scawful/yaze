@@ -186,8 +186,8 @@ void Canvas::DrawContextMenu() {
                                            refresh_graphics_, *palette);
 
             if (refresh_graphics_) {
-              auto status = bitmap_->SetPaletteWithTransparent(
-                  *palette, edit_palette_sub_index_);
+              bitmap_->SetPaletteWithTransparent(*palette,
+                                                 edit_palette_sub_index_);
               Renderer::GetInstance().UpdateBitmap(bitmap_);
               refresh_graphics_ = false;
             }

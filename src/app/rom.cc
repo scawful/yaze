@@ -68,7 +68,7 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(
     auto link_sheet_8bpp = gfx::SnesTo8bppSheet(link_sheet_data, /*bpp=*/4);
     link_graphics[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                             gfx::kTilesheetDepth, link_sheet_8bpp);
-    RETURN_IF_ERROR(link_graphics[i].SetPalette(rom.palette_group().armors[0]);)
+    link_graphics[i].SetPalette(rom.palette_group().armors[0]);
     Renderer::GetInstance().RenderBitmap(&link_graphics[i]);
   }
   return link_graphics;
@@ -108,11 +108,11 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
       if (graphics_sheets[i].is_active()) {
         if (i > 115) {
           // Apply sprites palette
-          RETURN_IF_ERROR(graphics_sheets[i].SetPaletteWithTransparent(
-              rom.palette_group().global_sprites[0], 0));
+          graphics_sheets[i].SetPaletteWithTransparent(
+              rom.palette_group().global_sprites[0], 0);
         } else {
-          RETURN_IF_ERROR(graphics_sheets[i].SetPaletteWithTransparent(
-              rom.palette_group().dungeon_main[0], 0));
+          graphics_sheets[i].SetPaletteWithTransparent(
+              rom.palette_group().dungeon_main[0], 0);
         }
       }
 
