@@ -2,11 +2,19 @@
 
 #include <functional>
 #include <string>
+#include <variant>
 
 #include "absl/strings/string_view.h"
 #include "app/gfx/snes_tile.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+
+template <class... Ts>
+struct overloaded : Ts... {
+  using Ts::operator()...;
+};
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
 
 namespace ImGui {
 
@@ -418,6 +426,20 @@ void DrawMenu(Menu& menu) {
 bool OpenUrl(const std::string& url) {
   // Open the url in the default browser
   return system(("open " + url).c_str()) == 0;
+}
+
+void RenderLayout(const Layout& layout) {
+  for (const auto& element : layout.elements) {
+    std::visit(overloaded{[](const Text& text) {
+                            ImGui::Text("%s", text.content.c_str());
+                          },
+                          [](const Button& button) {
+                            if (ImGui::Button(button.label.c_str())) {
+                              button.callback();
+                            }
+                          }},
+               element);
+  }
 }
 
 }  // namespace gui
