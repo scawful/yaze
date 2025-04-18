@@ -98,5 +98,25 @@ std::vector<SnesColor> GetColFileData(uint8_t* data) {
   return colors;
 }
 
+void SnesColor::set_rgb(const ImVec4 val) {
+  rgb_.x = val.x / kColorByteMax;
+  rgb_.y = val.y / kColorByteMax;
+  rgb_.z = val.z / kColorByteMax;
+  snes_color color;
+  color.red = val.x;
+  color.green = val.y;
+  color.blue = val.z;
+  rom_color_ = color;
+  snes_ = ConvertRgbToSnes(color);
+  modified = true;
+}
+
+void SnesColor::set_snes(uint16_t val) {
+  snes_ = val;
+  snes_color col = ConvertSnesToRgb(val);
+  rgb_ = ImVec4(col.red, col.green, col.blue, kColorByteMaxF);
+  modified = true;
+}
+
 }  // namespace gfx
 }  // namespace yaze

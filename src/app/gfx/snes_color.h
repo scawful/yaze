@@ -3,7 +3,6 @@
 
 #include <snes.h>
 
-#include <array>
 #include <cstdint>
 #include <vector>
 
@@ -69,24 +68,8 @@ class SnesColor {
     rom_color_ = color;
   }
 
-  void set_rgb(const ImVec4 val) {
-    rgb_.x = val.x / kColorByteMax;
-    rgb_.y = val.y / kColorByteMax;
-    rgb_.z = val.z / kColorByteMax;
-    snes_color color;
-    color.red = val.x;
-    color.green = val.y;
-    color.blue = val.z;
-    rom_color_ = color;
-    snes_ = ConvertRgbToSnes(color);
-    modified = true;
-  }
-  constexpr void set_snes(uint16_t val) {
-    snes_ = val;
-    snes_color col = ConvertSnesToRgb(val);
-    rgb_ = ImVec4(col.red, col.green, col.blue, 0.f);
-    modified = true;
-  }
+  void set_rgb(const ImVec4 val);
+  void set_snes(uint16_t val);
 
   constexpr ImVec4 rgb() const { return rgb_; }
   constexpr snes_color rom_color() const { return rom_color_; }
