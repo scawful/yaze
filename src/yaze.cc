@@ -4,16 +4,16 @@
 #include <memory>
 #include <sstream>
 
-#include "app/core/platform/app_delegate.h"
 #include "app/core/controller.h"
+#include "app/core/platform/app_delegate.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "util/flag.h"
 #include "yaze_config.h"
 
-DEFINE_FLAG(
-    std::string, rom_file, "", "Path to the ROM file to load. "
-    "If not specified, the app will run without a ROM.");
+DEFINE_FLAG(std::string, rom_file, "",
+            "Path to the ROM file to load. "
+            "If not specified, the app will run without a ROM.");
 
 int yaze_app_main(int argc, char **argv) {
   yaze::util::FlagParser parser(yaze::util::global_flag_registry());
@@ -112,7 +112,10 @@ void yaze_unload_rom(zelda3_rom *rom) {
 void yaze_save_rom(zelda3_rom *rom, const char *filename) {
   if (rom->impl) {
     yaze::Rom *internal_rom = static_cast<yaze::Rom *>(rom->impl);
-    internal_rom->SaveToFile(false, false, filename);
+    if (auto status = internal_rom->SaveToFile(false, false, filename);
+        !status.ok()) {
+      throw std::runtime_error(status.message().data());
+    }
   }
 }
 
@@ -138,12 +141,8 @@ snes_color yaze_get_color_from_paletteset(const zelda3_rom *rom,
     auto get_color =
         internal_rom->palette_group()
             .get_group(yaze::gfx::kPaletteGroupAddressesKeys[palette_set])
-            ->palette(palette)
-            .GetColor(color);
-    if (!get_color.ok()) {
-      return color_struct;
-    }
-    color_struct = get_color.value().rom_color();
+            ->palette(palette)[color];
+    color_struct = get_color.rom_color();
 
     return color_struct;
   }

@@ -618,8 +618,8 @@ absl::Status SetColorsPalette(Rom &rom, int index, gfx::SnesPalette &current,
     }
   }
 
-  current.Create(new_palette);
   for (int i = 0; i < 256; i++) {
+    current[i] = new_palette[i];
     current[(i / 16) * 16].set_transparent(true);
   }
 
@@ -661,7 +661,7 @@ absl::Status OverworldMap::LoadPalette() {
                          (sprite_palette_[game_state_] * 2) + 1];
 
   auto grass_pal_group = rom_->palette_group().grass;
-  ASSIGN_OR_RETURN(gfx::SnesColor bgr, grass_pal_group[0].GetColor(0));
+  auto bgr = grass_pal_group[0][0];
 
   auto ow_aux_pal_group = rom_->palette_group().overworld_aux;
   ASSIGN_OR_RETURN(gfx::SnesPalette aux1,
@@ -677,14 +677,14 @@ absl::Status OverworldMap::LoadPalette() {
 
   if (parent_ < kDarkWorldMapIdStart) {
     pal0 = parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07 ? 2 : 0;
-    ASSIGN_OR_RETURN(bgr, grass_pal_group[0].GetColor(0));
+    bgr = grass_pal_group[0][0];
   } else if (parent_ >= kDarkWorldMapIdStart &&
              parent_ < kSpecialWorldMapIdStart) {
     pal0 = parent_ == 0x43 || parent_ == 0x45 || parent_ == 0x47 ? 3 : 1;
-    ASSIGN_OR_RETURN(bgr, grass_pal_group[0].GetColor(1));
+    bgr = grass_pal_group[0][1];
   } else if (parent_ >= 128 && parent_ < kNumOverworldMaps) {
     pal0 = 0;
-    ASSIGN_OR_RETURN(bgr, grass_pal_group[0].GetColor(2));
+    bgr = grass_pal_group[0][2];
   }
 
   if (parent_ == 0x88) {

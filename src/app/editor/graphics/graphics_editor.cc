@@ -4,6 +4,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
 #include "app/core/platform/clipboard.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/platform/renderer.h"
@@ -42,10 +43,7 @@ constexpr ImGuiTableFlags kGfxEditTableFlags =
 
 void GraphicsEditor::Initialize() {}
 
-absl::Status GraphicsEditor::Load() {
-
-  return absl::OkStatus();
-}
+absl::Status GraphicsEditor::Load() { return absl::OkStatus(); }
 
 absl::Status GraphicsEditor::Update() {
   if (ImGui::BeginTabBar("##TabBar")) {
@@ -374,11 +372,10 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
                                    palette);
 
     if (refresh_graphics_ && !open_sheets_.empty()) {
-      RETURN_IF_ERROR(
-          GraphicsSheetManager::GetInstance()
-              .mutable_gfx_sheets()
-              ->data()[current_sheet_]
-              .SetPaletteWithTransparent(palette, edit_palette_sub_index_));
+      GraphicsSheetManager::GetInstance()
+          .mutable_gfx_sheets()
+          ->data()[current_sheet_]
+          .SetPaletteWithTransparent(palette, edit_palette_sub_index_);
       Renderer::GetInstance().UpdateBitmap(&GraphicsSheetManager::GetInstance()
                                                 .mutable_gfx_sheets()
                                                 ->data()[current_sheet_]);
@@ -777,9 +774,9 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
     auto palette_group = rom()->palette_group().overworld_animated;
     z3_rom_palette_ = palette_group[current_palette_];
     if (col_file_) {
-      status_ = bin_bitmap_.SetPalette(col_file_palette_);
+      bin_bitmap_.SetPalette(col_file_palette_);
     } else {
-      status_ = bin_bitmap_.SetPalette(z3_rom_palette_);
+      bin_bitmap_.SetPalette(z3_rom_palette_);
     }
   }
 
@@ -801,7 +798,7 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
     gfx_sheets_[i] = gfx::Bitmap(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                                  gfx::kTilesheetDepth, converted_sheet);
     if (col_file_) {
-      status_ = gfx_sheets_[i].SetPalette(
+      gfx_sheets_[i].SetPalette(
           col_file_palette_group_[current_palette_index_]);
     } else {
       // ROM palette
@@ -809,7 +806,7 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
       auto palette_group = rom()->palette_group().get_group(
           kPaletteGroupAddressesKeys[current_palette_]);
       z3_rom_palette_ = *palette_group->mutable_palette(current_palette_index_);
-      status_ = gfx_sheets_[i].SetPalette(z3_rom_palette_);
+      gfx_sheets_[i].SetPalette(z3_rom_palette_);
     }
 
     Renderer::GetInstance().RenderBitmap(&gfx_sheets_[i]);
@@ -826,14 +823,14 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
     gfx_sheets_[i] = gfx::Bitmap(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                                  gfx::kTilesheetDepth, converted_sheet);
     if (col_file_) {
-      status_ = gfx_sheets_[i].SetPalette(
+      gfx_sheets_[i].SetPalette(
           col_file_palette_group_[current_palette_index_]);
     } else {
       // ROM palette
       auto palette_group = rom()->palette_group().get_group(
           kPaletteGroupAddressesKeys[current_palette_]);
       z3_rom_palette_ = *palette_group->mutable_palette(current_palette_index_);
-      status_ = gfx_sheets_[i].SetPalette(z3_rom_palette_);
+      gfx_sheets_[i].SetPalette(z3_rom_palette_);
     }
 
     Renderer::GetInstance().RenderBitmap(&gfx_sheets_[i]);

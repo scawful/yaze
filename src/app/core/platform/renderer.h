@@ -60,9 +60,7 @@ class Renderer {
                              const std::vector<uint8_t> &data,
                              gfx::Bitmap &bitmap, gfx::SnesPalette &palette) {
     bitmap.Create(width, height, depth, data);
-    if (!bitmap.SetPalette(palette).ok()) {
-      throw std::runtime_error("Failed to set palette");
-    }
+    bitmap.SetPalette(palette);
     RenderBitmap(&bitmap);
   }
 
