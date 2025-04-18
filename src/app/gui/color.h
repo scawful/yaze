@@ -7,7 +7,6 @@
 #include <string>
 
 #include "absl/status/status.h"
-#include "absl/strings/str_format.h"
 #include "app/gfx/snes_palette.h"
 #include "imgui/imgui.h"
 
@@ -43,6 +42,9 @@ inline std::string ColorToHexString(const Color &color) {
 // normalized color values
 ImVec4 ConvertSnesColorToImVec4(const gfx::SnesColor &color);
 
+// A utility function to convert an ImVec4 to an SnesColor object
+gfx::SnesColor ConvertImVec4ToSnesColor(const ImVec4 &color);
+
 // The wrapper function for ImGui::ColorButton that takes a SnesColor reference
 IMGUI_API bool SnesColorButton(absl::string_view id, gfx::SnesColor &color,
                                ImGuiColorEditFlags flags = 0,
@@ -52,6 +54,12 @@ IMGUI_API bool SnesColorEdit4(absl::string_view label, gfx::SnesColor *color,
                               ImGuiColorEditFlags flags = 0);
 
 absl::Status DisplayPalette(gfx::SnesPalette &palette, bool loaded);
+
+absl::Status DisplayEditablePalette(gfx::SnesPalette &palette,
+                                    const std::string &title = "",
+                                    bool show_color_picker = false,
+                                    int colors_per_row = 8,
+                                    ImGuiColorEditFlags flags = 0);
 
 void SelectablePalettePipeline(uint64_t &palette_id, bool &refresh_graphics,
                                gfx::SnesPalette &palette);
