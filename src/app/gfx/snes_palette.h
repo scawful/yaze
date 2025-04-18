@@ -129,59 +129,26 @@ class SnesPalette {
   static constexpr size_t kMaxColors = 256;
   using ColorArray = std::array<SnesColor, kMaxColors>;
 
-  // Default constructor
   SnesPalette() : size_(0) {}
-
-  // Constructor from vector of uint16_t (SNES color values)
-  explicit SnesPalette(const std::vector<uint16_t>& colors) : size_(0) {
-    for (const auto& color : colors) {
-      if (size_ < kMaxColors) {
-        colors_[size_++] = SnesColor(color);
-      }
-    }
-  }
-
-  // Constructor from vector of SnesColor
-  explicit SnesPalette(const std::vector<SnesColor>& colors) : size_(0) {
-    for (const auto& color : colors) {
-      if (size_ < kMaxColors) {
-        colors_[size_++] = color;
-      }
-    }
-  }
-
-  // Constructor from raw SNES palette data
-  explicit SnesPalette(const char* data, size_t length) : size_(0) {
-    for (size_t i = 0; i < length && size_ < kMaxColors; i += 2) {
-      uint16_t color = (static_cast<uint8_t>(data[i + 1]) << 8) |
-                       static_cast<uint8_t>(data[i]);
-      colors_[size_++] = SnesColor(color);
-    }
-  }
-
-  // Constructor from ImVec4 colors
-  explicit SnesPalette(const std::vector<ImVec4>& colors) : size_(0) {
-    for (const auto& color : colors) {
-      if (size_ < kMaxColors) {
-        colors_[size_++] = SnesColor(color);
-      }
-    }
-  }
+  SnesPalette(char* data);
+  SnesPalette(const unsigned char* snes_pal);
+  SnesPalette(const char* data, size_t length);
+  SnesPalette(const std::vector<uint16_t>& colors);
+  SnesPalette(const std::vector<SnesColor>& colors);
+  SnesPalette(const std::vector<ImVec4>& colors);
 
   const SnesColor& operator[](size_t index) const { return colors_[index]; }
-
   SnesColor& operator[](size_t index) { return colors_[index]; }
 
+  void set_size(size_t size) { size_ = size; }
   size_t size() const { return size_; }
   bool empty() const { return size_ == 0; }
 
-  // Iterators
   auto begin() { return colors_.begin(); }
   auto end() { return colors_.begin() + size_; }
   auto begin() const { return colors_.begin(); }
   auto end() const { return colors_.begin() + size_; }
 
-  // Color manipulation
   void AddColor(const SnesColor& color) {
     if (size_ < kMaxColors) {
       colors_[size_++] = color;
@@ -196,7 +163,6 @@ class SnesPalette {
 
   void clear() { size_ = 0; }
 
-  // Sub-palette creation
   SnesPalette sub_palette(size_t start, size_t length) const {
     SnesPalette result;
     if (start >= size_) {
@@ -209,7 +175,6 @@ class SnesPalette {
     return result;
   }
 
-  // Comparison operators
   bool operator==(const SnesPalette& other) const {
     if (size_ != other.size_) {
       return false;

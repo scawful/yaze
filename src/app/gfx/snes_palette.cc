@@ -17,6 +17,62 @@
 namespace yaze {
 namespace gfx {
 
+SnesPalette::SnesPalette(char *data) {
+  assert((sizeof(data) % 4 == 0) && (sizeof(data) <= 32));
+  for (unsigned i = 0; i < sizeof(data); i += 2) {
+    SnesColor col;
+    col.set_snes(static_cast<uint8_t>(data[i + 1]) << 8);
+    col.set_snes(col.snes() | static_cast<uint8_t>(data[i]));
+    snes_color mColor = ConvertSnesToRgb(col.snes());
+    col.set_rgb(ImVec4(mColor.red, mColor.green, mColor.blue, 1.f));
+    colors_[size_++] = col;
+  }
+}
+
+SnesPalette::SnesPalette(const unsigned char *snes_pal) {
+  assert((sizeof(snes_pal) % 4 == 0) && (sizeof(snes_pal) <= 32));
+  for (unsigned i = 0; i < sizeof(snes_pal); i += 2) {
+    SnesColor col;
+    col.set_snes(snes_pal[i + 1] << (uint16_t)8);
+    col.set_snes(col.snes() | snes_pal[i]);
+    snes_color mColor = ConvertSnesToRgb(col.snes());
+    col.set_rgb(ImVec4(mColor.red, mColor.green, mColor.blue, 1.f));
+    colors_[size_++] = col;
+  }
+}
+
+SnesPalette::SnesPalette(const char *data, size_t length) : size_(0) {
+  for (size_t i = 0; i < length && size_ < kMaxColors; i += 2) {
+    uint16_t color = (static_cast<uint8_t>(data[i + 1]) << 8) |
+                     static_cast<uint8_t>(data[i]);
+    colors_[size_++] = SnesColor(color);
+  }
+}
+
+SnesPalette::SnesPalette(const std::vector<uint16_t> &colors) : size_(0) {
+  for (const auto &color : colors) {
+    if (size_ < kMaxColors) {
+      colors_[size_++] = SnesColor(color);
+    }
+  }
+}
+
+SnesPalette::SnesPalette(const std::vector<SnesColor> &colors) : size_(0) {
+  for (const auto &color : colors) {
+    if (size_ < kMaxColors) {
+      colors_[size_++] = color;
+    }
+  }
+}
+
+SnesPalette::SnesPalette(const std::vector<ImVec4> &colors) : size_(0) {
+  for (const auto &color : colors) {
+    if (size_ < kMaxColors) {
+      colors_[size_++] = SnesColor(color);
+    }
+  }
+}
+
 /**
  * @namespace yaze::gfx::palette_group_internal
  * @brief Internal functions for loading palettes by group.
