@@ -2,9 +2,7 @@
 #define YAZE_APP_EDITOR_MESSAGE_EDITOR_H
 
 #include <array>
-#include <memory>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -12,6 +10,7 @@
 #include "app/editor/message/message_data.h"
 #include "app/gfx/bitmap.h"
 #include "app/gui/canvas.h"
+#include "app/gui/style.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -113,62 +112,7 @@ class MessageEditor : public Editor {
   gui::Canvas tile_editor_canvas_{"##TileEditorCanvas", ImVec2(256, 256)};
   gui::Canvas tile_preview_canvas_{"##TilePreviewCanvas", ImVec2(64, 64)};
 
-  struct TextBox {
-    std::string text;
-    std::string buffer;
-    int cursor_pos = 0;
-    int selection_start = 0;
-    int selection_end = 0;
-    int selection_length = 0;
-    bool has_selection = false;
-    bool has_focus = false;
-    bool changed = false;
-    bool can_undo = false;
-
-    void Undo() {
-      text = buffer;
-      cursor_pos = selection_start;
-      has_selection = false;
-    }
-    void clearUndo() { can_undo = false; }
-    void Copy() { ImGui::SetClipboardText(text.c_str()); }
-    void Cut() {
-      Copy();
-      text.erase(selection_start, selection_end - selection_start);
-      cursor_pos = selection_start;
-      has_selection = false;
-      changed = true;
-    }
-    void Paste() {
-      text.erase(selection_start, selection_end - selection_start);
-      text.insert(selection_start, ImGui::GetClipboardText());
-      std::string str = ImGui::GetClipboardText();
-      cursor_pos = selection_start + str.size();
-      has_selection = false;
-      changed = true;
-    }
-    void clear() {
-      text.clear();
-      buffer.clear();
-      cursor_pos = 0;
-      selection_start = 0;
-      selection_end = 0;
-      selection_length = 0;
-      has_selection = false;
-      has_focus = false;
-      changed = false;
-      can_undo = false;
-    }
-    void SelectAll() {
-      selection_start = 0;
-      selection_end = text.size();
-      selection_length = text.size();
-      has_selection = true;
-    }
-    void Focus() { has_focus = true; }
-  };
-
-  TextBox message_text_box_;
+  gui::TextBox message_text_box_;
 
   absl::Status status_;
 };
