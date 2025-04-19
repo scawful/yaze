@@ -135,6 +135,7 @@ class DungeonEditor : public Editor {
   absl::flat_hash_map<uint16_t, int> palette_usage_;
 
   std::vector<int64_t> room_size_pointers_;
+  std::vector<int64_t> room_sizes_;
 
   uint16_t selected_blockset_ = 0xFFFF;  // 0xFFFF indicates no selection
   uint16_t selected_spriteset_ = 0xFFFF;
