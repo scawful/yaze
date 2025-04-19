@@ -47,15 +47,17 @@ absl::Status DungeonEditor::Load() {
 
   for (int i = 0; i < 0x100 + 40; i++) {
     rooms_.emplace_back(zelda3::Room(/*room_id=*/i));
-    rooms_[i].LoadHeader();
-    rooms_[i].LoadRoomFromROM();
-    if (core::FeatureFlags::get().kDrawDungeonRoomGraphics) {
-      rooms_[i].LoadRoomGraphics();
+    rooms_[i] = zelda3::LoadRoomFromRom(rom(), i);
+
+    auto room_size = zelda3::CalculateRoomSize(rom(), i);
+    room_size_pointers_.push_back(room_size.room_size_pointer);
+    room_sizes_.push_back(room_size.room_size);
+    if (room_size.room_size_pointer != 0x0A8000) {
+      room_size_addresses_[i] = room_size.room_size_pointer;
     }
 
-    room_size_pointers_.push_back(rooms_[i].room_size_ptr());
-    if (rooms_[i].room_size_ptr() != 0x0A8000) {
-      room_size_addresses_[i] = rooms_[i].room_size_ptr();
+    if (core::FeatureFlags::get().kDrawDungeonRoomGraphics) {
+      rooms_[i].LoadRoomGraphics();
     }
 
     auto dungeon_palette_ptr = rom()->paletteset_ids[rooms_[i].palette][0];
@@ -100,14 +102,16 @@ absl::Status DungeonEditor::Update() {
   }
 
   if (ImGui::BeginTabBar("##DungeonEditorTabBar")) {
-    TAB_ITEM("Room Editor")
-    status_ = UpdateDungeonRoomView();
-    END_TAB_ITEM()
-    TAB_ITEM("Usage Statistics")
-    if (is_loaded_) {
-      DrawUsageStats();
+    if (ImGui::BeginTabItem("Room Editor")) {
+      status_ = UpdateDungeonRoomView();
+      ImGui::EndTabItem();
     }
-    END_TAB_ITEM()
+    if (ImGui::BeginTabItem("Usage Statistics")) {
+      if (is_loaded_) {
+        DrawUsageStats();
+      }
+      ImGui::EndTabItem();
+    }
     ImGui::EndTabBar();
   }
 
@@ -161,16 +165,16 @@ void DungeonEditor::LoadDungeonRoomSize() {
         if (i < bank_rooms.second.size() - 1) {
           // Calculate size as difference between current room and next room
           // in the same bank
-          rooms_[room_id].set_room_size(bank_rooms.second[i + 1] - room_ptr);
+          room_sizes_[room_id] = bank_rooms.second[i + 1] - room_ptr;
         } else {
           // Calculate size for the last room in this bank
           int bank_end_address = (bank_rooms.first << 16) | 0xFFFF;
-          rooms_[room_id].set_room_size(bank_end_address - room_ptr + 1);
+          room_sizes_[room_id] = bank_end_address - room_ptr + 1;
         }
-        total_room_size_ += rooms_[room_id].room_size();
+        total_room_size_ += room_sizes_[room_id];
       } else {
         // Room with address 0x0A8000
-        rooms_[room_id].set_room_size(0x00);
+        room_sizes_[room_id] = 0x00;
       }
     }
   }
@@ -762,10 +766,10 @@ void DungeonEditor::DrawUsageGrid() {
       color.y = color.y / 255;
       color.z = color.z / 255;
       color.w = 1.0f;
-      if (rooms_[row * squaresWide + col].room_size() > 0xFFFF) {
+      if (room_sizes_[row * squaresWide + col] > 0xFFFF) {
         color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);  // Or any highlight color
       }
-      if (rooms_[row * squaresWide + col].room_size() == 0) {
+      if (room_sizes_[row * squaresWide + col] == 0) {
         color = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);  // Or any highlight color
       }
       ImGui::PushStyleColor(ImGuiCol_Button, color);
@@ -782,8 +786,7 @@ void DungeonEditor::DrawUsageGrid() {
             ImGuiCol_Button,
             ImVec4(1.0f, 0.5f, 0.0f, 1.0f));  // Or any highlight color
       }
-      if (Button(absl::StrFormat("%#x",
-                                 rooms_[row * squaresWide + col].room_size())
+      if (Button(absl::StrFormat("%#x", room_sizes_[row * squaresWide + col])
                      .c_str(),
                  ImVec2(55, 30))) {
         // Switch over to the room editor tab
@@ -814,8 +817,9 @@ void DungeonEditor::DrawUsageGrid() {
         Text("Floor1: %#02x", room.floor1);
         Text("Floor2: %#02x", room.floor2);
         Text("Message ID: %#04x", room.message_id_);
-        Text("Size: %#016llx", room.room_size());
-        Text("Size Pointer: %#016llx", room.room_size_ptr());
+        Text("Size: %#016llx", room_sizes_[row * squaresWide + col]);
+        Text("Size Pointer: %#016llx",
+             room_size_pointers_[row * squaresWide + col]);
         ImGui::EndTooltip();
       }
 

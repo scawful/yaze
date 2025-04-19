@@ -11,7 +11,6 @@
 #include "app/rom.h"
 #include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/sprite/sprite.h"
-#include "util/macro.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -196,24 +195,9 @@ enum TagKey {
   Kill_boss_Again
 };
 
-static const std::string RoomEffect[] = {"Nothing",
-                                         "Nothing",
-                                         "Moving Floor",
-                                         "Moving Water",
-                                         "Trinexx Shell",
-                                         "Red Flashes",
-                                         "Light Torch to See Floor",
-                                         "Ganon's Darkness"};
-
 class Room : public SharedRom {
  public:
-  Room() = default;
   Room(int room_id) : room_id_(room_id) {}
-  ~Room() = default;
-
-  void LoadHeader();
-  void CalculateRoomSize();
-  void LoadRoomFromROM();
 
   void LoadRoomGraphics(uint8_t entrance_blockset = 0xFF);
   void CopyRoomGraphicsToBuffer();
@@ -228,9 +212,6 @@ class Room : public SharedRom {
   auto &layer1() { return background_bmps_[0]; }
   auto &layer2() { return background_bmps_[1]; }
   auto &layer3() { return background_bmps_[2]; }
-  auto room_size() const { return room_size_; }
-  auto room_size_ptr() const { return room_size_pointer_; }
-  auto set_room_size(uint64_t size) { room_size_ = size; }
 
   uint8_t blockset = 0;
   uint8_t spriteset = 0;
@@ -247,7 +228,6 @@ class Room : public SharedRom {
   std::vector<uint8_t> bg2_buffer_;
   std::vector<uint8_t> current_gfx16_;
 
- private:
   bool is_light_;
   bool is_loaded_;
   bool is_dark_;
@@ -266,9 +246,6 @@ class Room : public SharedRom {
   uint8_t floor1_graphics_;
   uint8_t floor2_graphics_;
   uint8_t layer2_mode_;
-
-  uint64_t room_size_;
-  int64_t room_size_pointer_;
 
   std::array<uint8_t, 16> blocks_;
   std::array<chest, 16> chest_list_;
@@ -292,6 +269,26 @@ class Room : public SharedRom {
   destination stair3_;
   destination stair4_;
 };
+
+// Loads a room from the ROM.
+Room LoadRoomFromRom(Rom *rom, int room_id);
+
+struct RoomSize {
+  int64_t room_size_pointer;
+  int64_t room_size;
+};
+
+// Calculates the size of a room in the ROM.
+RoomSize CalculateRoomSize(Rom *rom, int room_id);
+
+static const std::string RoomEffect[] = {"Nothing",
+                                         "Nothing",
+                                         "Moving Floor",
+                                         "Moving Water",
+                                         "Trinexx Shell",
+                                         "Red Flashes",
+                                         "Light Torch to See Floor",
+                                         "Ganon's Darkness"};
 
 constexpr std::string_view kRoomNames[] = {
     "Ganon",
