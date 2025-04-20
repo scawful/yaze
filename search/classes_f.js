@@ -9,5 +9,6 @@ var searchData=
   ['romtest_6',['RomTest',['../classyaze_1_1test_1_1RomTest.html',1,'yaze::test']]],
   ['room_7',['Room',['../classyaze_1_1zelda3_1_1Room.html',1,'yaze::zelda3']]],
   ['roomentrance_8',['RoomEntrance',['../classyaze_1_1zelda3_1_1RoomEntrance.html',1,'yaze::zelda3']]],
-  ['roomobject_9',['RoomObject',['../classyaze_1_1zelda3_1_1RoomObject.html',1,'yaze::zelda3']]]
+  ['roomobject_9',['RoomObject',['../classyaze_1_1zelda3_1_1RoomObject.html',1,'yaze::zelda3']]],
+  ['roomsize_10',['RoomSize',['../structyaze_1_1zelda3_1_1RoomSize.html',1,'yaze::zelda3']]]
 ];

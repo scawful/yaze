@@ -1,8 +1,0 @@
-<map id="yaze::zelda3::Room::CalculateRoomSize" name="yaze::zelda3::Room::CalculateRoomSize">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,51,146,92"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="194,29,343,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,58,178,53,178,59,146,63"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1Room.html#ab02a36650d2fb342ff2e3731ddbce6b4" title=" " alt="" coords="203,79,334,120"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="146,79,188,85,187,90,146,84"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="236,30,230,21,233,11,247,5,268,3,292,5,304,12,302,17,290,10,268,8,248,10,237,15,235,20,240,27"/>
-</map>

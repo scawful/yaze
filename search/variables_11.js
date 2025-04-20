@@ -55,13 +55,14 @@ var searchData=
   ['room_5fobject_5flayout_5fpointer_52',['room_object_layout_pointer',['../namespaceyaze_1_1zelda3.html#a16a549dbe81fe1cb9d30e7df88fed890',1,'yaze::zelda3']]],
   ['room_5fobject_5fpointer_53',['room_object_pointer',['../namespaceyaze_1_1zelda3.html#adbf17106eb31068575ea3fdd30188d0b',1,'yaze::zelda3']]],
   ['room_5fpalette_5f_54',['room_palette_',['../classyaze_1_1editor_1_1DungeonEditor.html#a24ef990165c829e92cf331b8a2ca2c84',1,'yaze::editor::DungeonEditor']]],
-  ['room_5fsize_5f_55',['room_size_',['../classyaze_1_1zelda3_1_1Room.html#aed61df47d5c85570990573beba3ae89c',1,'yaze::zelda3::Room']]],
+  ['room_5fsize_55',['room_size',['../structyaze_1_1zelda3_1_1RoomSize.html#aa9b701e42f14dc4022a0f13a5901d00b',1,'yaze::zelda3::RoomSize']]],
   ['room_5fsize_5faddresses_5f_56',['room_size_addresses_',['../classyaze_1_1editor_1_1DungeonEditor.html#a80af3041a3836fa0718ce47a993915da',1,'yaze::editor::DungeonEditor']]],
-  ['room_5fsize_5fpointer_5f_57',['room_size_pointer_',['../classyaze_1_1zelda3_1_1Room.html#ac1e67570c939807b24747565601a8136',1,'yaze::zelda3::Room']]],
+  ['room_5fsize_5fpointer_57',['room_size_pointer',['../structyaze_1_1zelda3_1_1RoomSize.html#a6dfdeb7bad4af4b971d5566e36c5216e',1,'yaze::zelda3::RoomSize']]],
   ['room_5fsize_5fpointers_5f_58',['room_size_pointers_',['../classyaze_1_1editor_1_1DungeonEditor.html#ab12b878ff1b86789903d21e2561efcd7',1,'yaze::editor::DungeonEditor']]],
-  ['rooms_5f_59',['rooms_',['../classyaze_1_1editor_1_1DungeonEditor.html#a3ab68c3ea3c3cc036206f7d33862937d',1,'yaze::editor::DungeonEditor']]],
-  ['rooms_5fsprite_5fpointer_60',['rooms_sprite_pointer',['../namespaceyaze_1_1zelda3.html#a5de81bc04b33ac9b922d17605aca2422',1,'yaze::zelda3']]],
-  ['roomset_5fcanvas_5f_61',['roomset_canvas_',['../classyaze_1_1editor_1_1GfxGroupEditor.html#a7e59f0ea3a8dc4ec93164d1cc9ed71e1',1,'yaze::editor::GfxGroupEditor']]],
-  ['routine_5fptr_62',['routine_ptr',['../structyaze_1_1zelda3_1_1SubtypeInfo.html#a588af3eaa775e0044e09658a40575b29',1,'yaze::zelda3::SubtypeInfo']]],
-  ['running_5f_63',['running_',['../classyaze_1_1emu_1_1Emulator.html#aaabb1ccbc8ff73f055fd428bc21a5467',1,'yaze::emu::Emulator::running_'],['../classyaze_1_1emu_1_1Snes.html#a8aebe9ad45fe5796732b320b7c96ff8e',1,'yaze::emu::Snes::running_']]]
+  ['room_5fsizes_5f_59',['room_sizes_',['../classyaze_1_1editor_1_1DungeonEditor.html#a9e72ae0a38d147f5bbb22d3a69bdd731',1,'yaze::editor::DungeonEditor']]],
+  ['rooms_5f_60',['rooms_',['../classyaze_1_1editor_1_1DungeonEditor.html#a3ab68c3ea3c3cc036206f7d33862937d',1,'yaze::editor::DungeonEditor']]],
+  ['rooms_5fsprite_5fpointer_61',['rooms_sprite_pointer',['../namespaceyaze_1_1zelda3.html#a5de81bc04b33ac9b922d17605aca2422',1,'yaze::zelda3']]],
+  ['roomset_5fcanvas_5f_62',['roomset_canvas_',['../classyaze_1_1editor_1_1GfxGroupEditor.html#a7e59f0ea3a8dc4ec93164d1cc9ed71e1',1,'yaze::editor::GfxGroupEditor']]],
+  ['routine_5fptr_63',['routine_ptr',['../structyaze_1_1zelda3_1_1SubtypeInfo.html#a588af3eaa775e0044e09658a40575b29',1,'yaze::zelda3::SubtypeInfo']]],
+  ['running_5f_64',['running_',['../classyaze_1_1emu_1_1Emulator.html#aaabb1ccbc8ff73f055fd428bc21a5467',1,'yaze::emu::Emulator::running_'],['../classyaze_1_1emu_1_1Snes.html#a8aebe9ad45fe5796732b320b7c96ff8e',1,'yaze::emu::Snes::running_']]]
 ];

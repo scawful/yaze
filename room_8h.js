@@ -2,6 +2,7 @@ var room_8h =
 [
     [ "yaze::zelda3::LayerMergeType", "structyaze_1_1zelda3_1_1LayerMergeType.html", "structyaze_1_1zelda3_1_1LayerMergeType" ],
     [ "yaze::zelda3::Room", "classyaze_1_1zelda3_1_1Room.html", "classyaze_1_1zelda3_1_1Room" ],
+    [ "yaze::zelda3::RoomSize", "structyaze_1_1zelda3_1_1RoomSize.html", "structyaze_1_1zelda3_1_1RoomSize" ],
     [ "yaze::zelda3::CollisionKey", "namespaceyaze_1_1zelda3.html#afb47ec71853bc72be86c1b0c481a3496", [
       [ "yaze::zelda3::One_Collision", "namespaceyaze_1_1zelda3.html#afb47ec71853bc72be86c1b0c481a3496a7261003fdcf5b2687b10e1c8d8760bef", null ],
       [ "yaze::zelda3::Both", "namespaceyaze_1_1zelda3.html#afb47ec71853bc72be86c1b0c481a3496a2a4319d5ee5621ed86d66df859d32370", null ],
@@ -85,6 +86,8 @@ var room_8h =
       [ "yaze::zelda3::Light_Torches_to_get_Chest", "namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468af7edf4aa720007546d7e1e76cda507f5", null ],
       [ "yaze::zelda3::Kill_boss_Again", "namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a067a2c9dbc2ed811337777b3e1f29369", null ]
     ] ],
+    [ "yaze::zelda3::LoadRoomFromRom", "namespaceyaze_1_1zelda3.html#aa0d397af98a0f5652a8741144abc15e9", null ],
+    [ "yaze::zelda3::CalculateRoomSize", "namespaceyaze_1_1zelda3.html#a62286f1cb2eebc9d5834551ead453371", null ],
     [ "yaze::zelda3::room_object_layout_pointer", "namespaceyaze_1_1zelda3.html#a16a549dbe81fe1cb9d30e7df88fed890", null ],
     [ "yaze::zelda3::room_object_pointer", "namespaceyaze_1_1zelda3.html#adbf17106eb31068575ea3fdd30188d0b", null ],
     [ "yaze::zelda3::dungeons_main_bg_palette_pointers", "namespaceyaze_1_1zelda3.html#a8beadbdd1f5a372edd9086cf3b62f363", null ],

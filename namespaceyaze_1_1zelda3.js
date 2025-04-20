@@ -40,6 +40,7 @@ var namespaceyaze_1_1zelda3 =
     [ "Room", "classyaze_1_1zelda3_1_1Room.html", "classyaze_1_1zelda3_1_1Room" ],
     [ "RoomEntrance", "classyaze_1_1zelda3_1_1RoomEntrance.html", "classyaze_1_1zelda3_1_1RoomEntrance" ],
     [ "RoomObject", "classyaze_1_1zelda3_1_1RoomObject.html", "classyaze_1_1zelda3_1_1RoomObject" ],
+    [ "RoomSize", "structyaze_1_1zelda3_1_1RoomSize.html", "structyaze_1_1zelda3_1_1RoomSize" ],
     [ "Sprite", "classyaze_1_1zelda3_1_1Sprite.html", "classyaze_1_1zelda3_1_1Sprite" ],
     [ "SpriteAction", "classyaze_1_1zelda3_1_1SpriteAction.html", "classyaze_1_1zelda3_1_1SpriteAction" ],
     [ "SpriteBuilder", "classyaze_1_1zelda3_1_1SpriteBuilder.html", "classyaze_1_1zelda3_1_1SpriteBuilder" ],
@@ -158,6 +159,8 @@ var namespaceyaze_1_1zelda3 =
       [ "Bgr", "namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8a103b58155b4c5cc09249629e7ccd5dc2", null ],
       [ "Stairs", "namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8a0b01cc688e1e0b5f6b70f858a1b389ae", null ]
     ] ],
+    [ "CalculateRoomSize", "namespaceyaze_1_1zelda3.html#a62286f1cb2eebc9d5834551ead453371", null ],
+    [ "LoadRoomFromRom", "namespaceyaze_1_1zelda3.html#aa0d397af98a0f5652a8741144abc15e9", null ],
     [ "operator|", "namespaceyaze_1_1zelda3.html#a599b7198a7dd0ec9da754a83f9a7e5f9", null ],
     [ "operator&", "namespaceyaze_1_1zelda3.html#ac507bdbc1fe4503baebb7c8d6fcc0d55", null ],
     [ "operator^", "namespaceyaze_1_1zelda3.html#a5f1053148284ef69ee84ef1d04d61fad", null ],

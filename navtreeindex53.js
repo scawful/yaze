@@ -1,5 +1,6 @@
 var NAVTREEINDEX53 =
 {
+"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a3fddd2aa7a671a19ee13b8a08e8aed22":[11,0,1,5,10,23],
 "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a3fddd2aa7a671a19ee13b8a08e8aed22":[12,0,0,5,8,23],
 "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a4af4ab559e54c07bb957760c3db317ec":[11,0,1,5,10,10],
 "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a4af4ab559e54c07bb957760c3db317ec":[12,0,0,5,8,10],
@@ -248,6 +249,5 @@ var NAVTREEINDEX53 =
 "structyaze_1_1test_1_1CompressionContext.html#adbf21cd58a3f4f5b2618a2375fac884f":[11,0,1,6,5,7],
 "structyaze_1_1test_1_1CompressionContext.html#adbf21cd58a3f4f5b2618a2375fac884f":[12,0,0,6,3,7],
 "structyaze_1_1test_1_1CompressionContext.html#afd1da16d17deec3d4fb2876490c1dadf":[11,0,1,6,5,9],
-"structyaze_1_1test_1_1CompressionContext.html#afd1da16d17deec3d4fb2876490c1dadf":[12,0,0,6,3,9],
-"structyaze_1_1test_1_1CompressionPiece.html":[11,0,1,6,6]
+"structyaze_1_1test_1_1CompressionContext.html#afd1da16d17deec3d4fb2876490c1dadf":[12,0,0,6,3,9]
 };

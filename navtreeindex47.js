@@ -1,5 +1,6 @@
 var NAVTREEINDEX47 =
 {
+"structyaze_1_1core_1_1FontConfig.html#ad913c3d8ec20cba8e275788f187d8366":[11,0,1,1,6,0],
 "structyaze_1_1core_1_1FontConfig.html#ad913c3d8ec20cba8e275788f187d8366":[12,0,0,1,4,0],
 "structyaze_1_1core_1_1FontState.html":[11,0,1,1,7],
 "structyaze_1_1core_1_1FontState.html":[12,0,0,1,5],
@@ -248,6 +249,5 @@ var NAVTREEINDEX47 =
 "structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a166b67d21301fa43249565ec56148f22":[11,0,1,2,6,0,1],
 "structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a166b67d21301fa43249565ec56148f22":[12,0,0,2,0,0,1],
 "structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a2008b6404fc79881edd9ad60e7f0fe42":[11,0,1,2,6,0,2],
-"structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a2008b6404fc79881edd9ad60e7f0fe42":[12,0,0,2,0,0,2],
-"structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a320ea66f9d77d77ad1397920fe67e0c2":[11,0,1,2,6,0,0]
+"structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a2008b6404fc79881edd9ad60e7f0fe42":[12,0,0,2,0,0,2]
 };

@@ -231,6 +231,7 @@ var hierarchy =
       [ "yaze::test::MockRom", "classyaze_1_1test_1_1MockRom.html", null ]
     ] ],
     [ "yaze::zelda3::RoomEntrance", "classyaze_1_1zelda3_1_1RoomEntrance.html", null ],
+    [ "yaze::zelda3::RoomSize", "structyaze_1_1zelda3_1_1RoomSize.html", null ],
     [ "yaze::zelda3::music::SampleEdit", "structyaze_1_1zelda3_1_1music_1_1SampleEdit.html", null ],
     [ "yaze::emu::ScreenDisplay", "structyaze_1_1emu_1_1ScreenDisplay.html", null ],
     [ "yaze::emu::ScreenMode", "structyaze_1_1emu_1_1ScreenMode.html", null ],

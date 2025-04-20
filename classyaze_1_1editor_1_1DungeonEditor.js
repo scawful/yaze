@@ -73,6 +73,7 @@ var classyaze_1_1editor_1_1DungeonEditor =
     [ "blockset_usage_", "classyaze_1_1editor_1_1DungeonEditor.html#a2f1941a4f5345315dfcc85cee2073117", null ],
     [ "palette_usage_", "classyaze_1_1editor_1_1DungeonEditor.html#a385661ba23b06b8613891ed9fd5b834a", null ],
     [ "room_size_pointers_", "classyaze_1_1editor_1_1DungeonEditor.html#ab12b878ff1b86789903d21e2561efcd7", null ],
+    [ "room_sizes_", "classyaze_1_1editor_1_1DungeonEditor.html#a9e72ae0a38d147f5bbb22d3a69bdd731", null ],
     [ "selected_blockset_", "classyaze_1_1editor_1_1DungeonEditor.html#a057d3c47865f934835da46cf9583389c", null ],
     [ "selected_spriteset_", "classyaze_1_1editor_1_1DungeonEditor.html#a58be0d2dccf63d7b2b1186b6435ccf03", null ],
     [ "selected_palette_", "classyaze_1_1editor_1_1DungeonEditor.html#a698419d8ece1ecb1bf0e51bb1247b83b", null ],

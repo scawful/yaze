@@ -136,8 +136,8 @@ $(function(){initNavTree('renderer_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
 <div class="foldopen" id="foldopen00031" data-start="{" data-end="}">
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="classyaze_1_1core_1_1Renderer.html#ad9822300e9d48fac8aaa30c481966b58">   31</a></span>  absl::Status <a class="code hl_function" href="classyaze_1_1core_1_1Renderer.html#ad9822300e9d48fac8aaa30c481966b58">CreateRenderer</a>(SDL_Window *window) {</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    <a class="code hl_variable" href="classyaze_1_1core_1_1Renderer.html#a422d8800d6d3521697a6b2d394807c42">renderer_</a> = std::unique_ptr&lt;SDL_Renderer, SDL_Deleter&gt;(SDL_CreateRenderer(</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>        window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED));</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    <a class="code hl_variable" href="classyaze_1_1core_1_1Renderer.html#a422d8800d6d3521697a6b2d394807c42">renderer_</a> = std::unique_ptr&lt;SDL_Renderer, SDL_Deleter&gt;(</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>        SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED));</div>
 <div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classyaze_1_1core_1_1Renderer.html#a422d8800d6d3521697a6b2d394807c42">renderer_</a> == <span class="keyword">nullptr</span>) {</div>
 <div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>      <span class="keywordflow">return</span> absl::InternalError(</div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>          absl::StrFormat(<span class="stringliteral">&quot;SDL_CreateRenderer: %s\n&quot;</span>, SDL_GetError()));</div>

@@ -1,0 +1,5 @@
+<map id="yaze::zelda3::CalculateRoomSize" name="yaze::zelda3::CalculateRoomSize">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,215,31"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="263,5,374,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,16,247,16,247,21,215,21"/>
+</map>

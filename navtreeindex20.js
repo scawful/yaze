@@ -1,5 +1,13 @@
 var NAVTREEINDEX20 =
 {
+"classyaze_1_1test_1_1Cpu.html#aa50110d8dea03a4b44d2911333e2dea0":[11,0,1,6,7,123],
+"classyaze_1_1test_1_1Cpu.html#aa50110d8dea03a4b44d2911333e2dea0":[12,0,0,6,5,123],
+"classyaze_1_1test_1_1Cpu.html#aa551140ac9ad214aef6313c32e95e1e3":[11,0,1,6,7,84],
+"classyaze_1_1test_1_1Cpu.html#aa551140ac9ad214aef6313c32e95e1e3":[12,0,0,6,5,84],
+"classyaze_1_1test_1_1Cpu.html#aa87498af13e4c0cd60cc16cc2213365a":[11,0,1,6,7,57],
+"classyaze_1_1test_1_1Cpu.html#aa87498af13e4c0cd60cc16cc2213365a":[12,0,0,6,5,57],
+"classyaze_1_1test_1_1Cpu.html#aa97eb688f0c9a32fd057cf3cb50f090f":[11,0,1,6,7,155],
+"classyaze_1_1test_1_1Cpu.html#aa97eb688f0c9a32fd057cf3cb50f090f":[12,0,0,6,5,155],
 "classyaze_1_1test_1_1Cpu.html#aa9c00415a5ed21e0aacaa3e9d455763d":[11,0,1,6,7,150],
 "classyaze_1_1test_1_1Cpu.html#aa9c00415a5ed21e0aacaa3e9d455763d":[12,0,0,6,5,150],
 "classyaze_1_1test_1_1Cpu.html#aa9e52ad4678a5e0ed74f0602fa105f2c":[11,0,1,6,7,166],
@@ -241,13 +249,5 @@ var NAVTREEINDEX20 =
 "classyaze_1_1test_1_1MockMemory.html#a15205277c994ed80c54182d37c56c917":[11,0,1,6,13,28],
 "classyaze_1_1test_1_1MockMemory.html#a15205277c994ed80c54182d37c56c917":[12,0,0,6,11,28],
 "classyaze_1_1test_1_1MockMemory.html#a18dc7a72b6ca56a8cef625b8b77c749e":[11,0,1,6,13,7],
-"classyaze_1_1test_1_1MockMemory.html#a18dc7a72b6ca56a8cef625b8b77c749e":[12,0,0,6,11,7],
-"classyaze_1_1test_1_1MockMemory.html#a2586955d48c3018b570c617772876360":[11,0,1,6,13,33],
-"classyaze_1_1test_1_1MockMemory.html#a2586955d48c3018b570c617772876360":[12,0,0,6,11,33],
-"classyaze_1_1test_1_1MockMemory.html#a2641be485b6f8c736d7aaa7414f1275e":[11,0,1,6,13,14],
-"classyaze_1_1test_1_1MockMemory.html#a2641be485b6f8c736d7aaa7414f1275e":[12,0,0,6,11,14],
-"classyaze_1_1test_1_1MockMemory.html#a33783b70e7ec16fa20833fd62ef9d846":[11,0,1,6,13,2],
-"classyaze_1_1test_1_1MockMemory.html#a33783b70e7ec16fa20833fd62ef9d846":[12,0,0,6,11,2],
-"classyaze_1_1test_1_1MockMemory.html#a54dc682bfeebe2107092e8ac09bf5a21":[11,0,1,6,13,26],
-"classyaze_1_1test_1_1MockMemory.html#a54dc682bfeebe2107092e8ac09bf5a21":[12,0,0,6,11,26]
+"classyaze_1_1test_1_1MockMemory.html#a18dc7a72b6ca56a8cef625b8b77c749e":[12,0,0,6,11,7]
 };

@@ -2,7 +2,7 @@ var searchData=
 [
   ['c_0',['C',['../structyaze_1_1emu_1_1Spc700_1_1Flags.html#ae930ff35735e8609a50d5008a98658fb',1,'yaze::emu::Spc700::Flags::C'],['../structTextEditor_1_1LanguageDefinition.html#a5f41009cf034aefa31ffda1985f44a03',1,'TextEditor::LanguageDefinition::C()'],['../structyaze_1_1test_1_1Spc700_1_1Flags.html#ae930ff35735e8609a50d5008a98658fb',1,'yaze::test::Spc700::Flags::C']]],
   ['calculatemode7starts_1',['CalculateMode7Starts',['../classyaze_1_1emu_1_1Ppu.html#a3e52c59a1de46f834eb8df2d6ee3ad2a',1,'yaze::emu::Ppu']]],
-  ['calculateroomsize_2',['CalculateRoomSize',['../classyaze_1_1zelda3_1_1Room.html#a74e120c8a930a054e48285bf4be2361c',1,'yaze::zelda3::Room']]],
+  ['calculateroomsize_2',['CalculateRoomSize',['../namespaceyaze_1_1zelda3.html#a62286f1cb2eebc9d5834551ead453371',1,'yaze::zelda3']]],
   ['calculatetileindex_3',['CalculateTileIndex',['../classyaze_1_1gfx_1_1Tilesheet.html#aecf6f58fbf1982872ca968110d482e59',1,'yaze::gfx::Tilesheet']]],
   ['calculateusagestats_4',['CalculateUsageStats',['../classyaze_1_1editor_1_1DungeonEditor.html#aa267137dd569421127c1e7139f9e3848',1,'yaze::editor::DungeonEditor']]],
   ['call_5',['CALL',['../classyaze_1_1emu_1_1Spc700.html#aa559f42deff96f704f0e37e5c9fa513e',1,'yaze::emu::Spc700::CALL()'],['../classyaze_1_1test_1_1Spc700.html#aa559f42deff96f704f0e37e5c9fa513e',1,'yaze::test::Spc700::CALL()']]],

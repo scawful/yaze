@@ -1,5 +1,12 @@
 var NAVTREEINDEX55 =
 {
+"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a5779dea4d583d2a7ac569cb8dc8135c4":[11,0,1,8,3,5,5],
+"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a5779dea4d583d2a7ac569cb8dc8135c4":[12,0,0,8,0,5,5],
+"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a631845029edd5d39b402d64ba609577b":[11,0,1,8,3,5,9],
+"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a631845029edd5d39b402d64ba609577b":[12,0,0,8,0,5,9],
+"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a7687e34a1040b3f0b899728f2f3a3ba1":[11,0,1,8,3,5,11],
+"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a7687e34a1040b3f0b899728f2f3a3ba1":[12,0,0,8,0,5,11],
+"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abcf8ec71d5b830fef6d59ae449c52fde":[11,0,1,8,3,5,4],
 "structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abcf8ec71d5b830fef6d59ae449c52fde":[12,0,0,8,0,5,4],
 "structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abd2c6d8cd99d0510524ee3e1ab3a8fdd":[11,0,1,8,3,5,7],
 "structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abd2c6d8cd99d0510524ee3e1ab3a8fdd":[12,0,0,8,0,5,7],
@@ -242,12 +249,5 @@ var NAVTREEINDEX55 =
 "zelda_8h.html#a9ecfc19156f8f627881db2f6c16190ef":[13,0,1,2,14],
 "zelda_8h.html#ac870fb2b7713b670247082c171053148":[13,0,1,2,24],
 "zelda_8h.html#ad5d32e01226c1d7167fa6c34c59bb95e":[13,0,1,2,26],
-"zelda_8h.html#af206bedc320e56e6defeba3fa38d2c58":[13,0,1,2,23],
-"zelda_8h.html#af206bedc320e56e6defeba3fa38d2c58a2326dd539f0d41c8e4b71a3aae3edb96":[13,0,1,2,23,1],
-"zelda_8h.html#af206bedc320e56e6defeba3fa38d2c58a4d6895bfddbaad6a1de54402e2edde1a":[13,0,1,2,23,4],
-"zelda_8h.html#af206bedc320e56e6defeba3fa38d2c58a5ecbcf0afce98b042f35ec71ba03fa4b":[13,0,1,2,23,6],
-"zelda_8h.html#af206bedc320e56e6defeba3fa38d2c58a8c3920d5d545844176ad55189fc9d8dc":[13,0,1,2,23,5],
-"zelda_8h.html#af206bedc320e56e6defeba3fa38d2c58a952e05817c3b0ddebcf28d1a7423e659":[13,0,1,2,23,3],
-"zelda_8h.html#af206bedc320e56e6defeba3fa38d2c58ab881c2fca9941a632de2b4af173a7906":[13,0,1,2,23,2],
-"zelda_8h.html#af206bedc320e56e6defeba3fa38d2c58abd4ed2edf2b1c880c6568252e7cc7275":[13,0,1,2,23,8]
+"zelda_8h.html#af206bedc320e56e6defeba3fa38d2c58":[13,0,1,2,23]
 };

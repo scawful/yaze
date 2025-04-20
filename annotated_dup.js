@@ -302,6 +302,7 @@ var annotated_dup =
         [ "Room", "classyaze_1_1zelda3_1_1Room.html", "classyaze_1_1zelda3_1_1Room" ],
         [ "RoomEntrance", "classyaze_1_1zelda3_1_1RoomEntrance.html", "classyaze_1_1zelda3_1_1RoomEntrance" ],
         [ "RoomObject", "classyaze_1_1zelda3_1_1RoomObject.html", "classyaze_1_1zelda3_1_1RoomObject" ],
+        [ "RoomSize", "structyaze_1_1zelda3_1_1RoomSize.html", "structyaze_1_1zelda3_1_1RoomSize" ],
         [ "Sprite", "classyaze_1_1zelda3_1_1Sprite.html", "classyaze_1_1zelda3_1_1Sprite" ],
         [ "SpriteAction", "classyaze_1_1zelda3_1_1SpriteAction.html", "classyaze_1_1zelda3_1_1SpriteAction" ],
         [ "SpriteBuilder", "classyaze_1_1zelda3_1_1SpriteBuilder.html", "classyaze_1_1zelda3_1_1SpriteBuilder" ],
