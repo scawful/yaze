@@ -29,8 +29,8 @@ class Renderer {
   }
 
   absl::Status CreateRenderer(SDL_Window *window) {
-    renderer_ = std::unique_ptr<SDL_Renderer, SDL_Deleter>(SDL_CreateRenderer(
-        window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED));
+    renderer_ = std::unique_ptr<SDL_Renderer, SDL_Deleter>(
+        SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED));
     if (renderer_ == nullptr) {
       return absl::InternalError(
           absl::StrFormat("SDL_CreateRenderer: %s\n", SDL_GetError()));
