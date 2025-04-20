@@ -25,8 +25,8 @@ namespace editor {
 class Tile16Editor : public gfx::GfxContext, public SharedRom {
  public:
   Tile16Editor(
-      std::array<gfx::Bitmap, zelda3::kNumTile16Individual> &tile16_individual)
-      : tile16_individual_(&tile16_individual) {}
+      std::array<gfx::Bitmap, zelda3::kNumTile16Individual> *tile16_individual)
+      : tile16_individual_(tile16_individual) {}
   absl::Status Initialize(const gfx::Bitmap &tile16_blockset_bmp,
                           const gfx::Bitmap &current_gfx_bmp,
                           std::array<uint8_t, 0x200> &all_tiles_types);
@@ -46,7 +46,7 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
   absl::Status LoadTile8();
 
   absl::Status SetCurrentTile(int id);
-  
+
   // New methods for clipboard and scratch space
   absl::Status CopyTile16ToClipboard(int tile_id);
   absl::Status PasteTile16FromClipboard();
@@ -66,11 +66,11 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
   int current_tile16_ = 0;
   int current_tile8_ = 0;
   uint8_t current_palette_ = 0;
-  
+
   // Clipboard for Tile16 graphics
   gfx::Bitmap clipboard_tile16_;
   bool clipboard_has_data_ = false;
-  
+
   // Scratch space for Tile16 graphics (4 slots)
   std::array<gfx::Bitmap, 4> scratch_space_;
   std::array<bool, 4> scratch_space_used_ = {false, false, false, false};
@@ -102,7 +102,8 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
 
   gui::Table tile_edit_table_{"##TileEditTable", 3, ImGuiTableFlags_Borders};
 
-  std::array<gfx::Bitmap, zelda3::kNumTile16Individual> *tile16_individual_ = nullptr;
+  std::array<gfx::Bitmap, zelda3::kNumTile16Individual> *tile16_individual_ =
+      nullptr;
   std::vector<gfx::Bitmap> current_gfx_individual_;
 
   PaletteEditor palette_editor_;

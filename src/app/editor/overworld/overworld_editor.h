@@ -220,7 +220,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   Rom* rom_;
 
-  Tile16Editor tile16_editor_{tile16_individual_};
+  Tile16Editor tile16_editor_{&tile16_individual_};
   GfxGroupEditor gfx_group_editor_;
   PaletteEditor palette_editor_;
 
