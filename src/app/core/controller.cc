@@ -64,33 +64,32 @@ void Controller::OnInput() {
   ImGuiIO &io = ImGui::GetIO();
   SDL_Event event;
 
-  while (SDL_PollEvent(&event)) {
-    ImGui_ImplSDL2_ProcessEvent(&event);
-    switch (event.type) {
-      case SDL_KEYDOWN:
-      case SDL_KEYUP: {
-        io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
-        io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
-        io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
-        io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
-        break;
-      }
-      case SDL_WINDOWEVENT:
-        switch (event.window.event) {
-          case SDL_WINDOWEVENT_CLOSE:
-            active_ = false;
-            break;
-          case SDL_WINDOWEVENT_SIZE_CHANGED:
-            io.DisplaySize.x = static_cast<float>(event.window.data1);
-            io.DisplaySize.y = static_cast<float>(event.window.data2);
-            break;
-          default:
-            break;
-        }
-        break;
-      default:
-        break;
+  SDL_WaitEvent(&event);
+  ImGui_ImplSDL2_ProcessEvent(&event);
+  switch (event.type) {
+    case SDL_KEYDOWN:
+    case SDL_KEYUP: {
+      io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
+      io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
+      io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
+      io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
+      break;
     }
+    case SDL_WINDOWEVENT:
+      switch (event.window.event) {
+        case SDL_WINDOWEVENT_CLOSE:
+          active_ = false;
+          break;
+        case SDL_WINDOWEVENT_SIZE_CHANGED:
+          io.DisplaySize.x = static_cast<float>(event.window.data1);
+          io.DisplaySize.y = static_cast<float>(event.window.data2);
+          break;
+        default:
+          break;
+      }
+      break;
+    default:
+      break;
   }
 
   int mouseX;
