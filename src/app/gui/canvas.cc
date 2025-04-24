@@ -167,6 +167,11 @@ void Canvas::DrawContextMenu() {
         }
         EndMenu();
       }
+      if (BeginMenu("View Palette")) {
+        DisplayEditablePalette(*bitmap_->mutable_palette(), "Palette", true, 8);
+        EndMenu();
+      }
+
       if (BeginMenu("Bitmap Palette")) {
         if (rom()->is_loaded()) {
           gui::TextWithSeparators("ROM Palette");
@@ -799,6 +804,20 @@ void Canvas::DrawLayeredElements() {
     ImGui::Dummy(ImVec2(75, 75));
     Text("After reordering, contents of channel 0 appears below channel 1.");
   }
+}
+
+void BeginCanvas(Canvas &canvas, ImVec2 child_size) {
+  gui::BeginPadding(1);
+  ImGui::BeginChild(canvas.canvas_id().c_str(), child_size, true);
+  canvas.DrawBackground();
+  gui::EndPadding();
+  canvas.DrawContextMenu();
+}
+
+void EndCanvas(Canvas &canvas) {
+  canvas.DrawGrid();
+  canvas.DrawOverlay();
+  ImGui::EndChild();
 }
 
 void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
