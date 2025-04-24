@@ -38,13 +38,6 @@ class MessageEditor : public Editor {
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Update() override;
-  void DrawMessageList();
-  void DrawCurrentMessage();
-  void DrawTextCommands();
-  void DrawSpecialCharacters();
-  void DrawDictionary();
-  void DrawImportExport();
-  void DrawMessageSettings();
 
   absl::Status Cut() override;
   absl::Status Copy() override;
@@ -56,6 +49,13 @@ class MessageEditor : public Editor {
   void Delete();
   void SelectAll();
 
+  void DrawMessageList();
+  void DrawCurrentMessage();
+  void DrawTextCommands();
+  void DrawSpecialCharacters();
+  void DrawExpandedMessageSettings();
+  void DrawDictionary();
+
   void DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
                          int sizex = 1, int sizey = 1);
   void DrawCharacterToPreview(char c);
@@ -64,15 +64,6 @@ class MessageEditor : public Editor {
   void DrawStringToPreview(std::string str);
   void DrawMessagePreview();
   std::string DisplayTextOverflowError(int pos, bool bank);
-
-  absl::Status ImportMessagesFromFile(const std::string& filename);
-  absl::Status ExportMessagesToFile(const std::string& filename);
-
-  void SetMessageFont(int font_index);
-  void SetMessageColor(int color_index);
-  void SetMessageSpeed(int speed);
-  void SetMessageWindow(int window_type);
-  void SetMessagePosition(int x, int y);
 
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
@@ -89,9 +80,8 @@ class MessageEditor : public Editor {
   int text_position_ = 0;
   int shown_lines_ = 0;
 
+  std::string expanded_message_address_ = "";
   std::string search_text_ = "";
-  std::string import_filename_ = "";
-  std::string export_filename_ = "";
 
   std::array<uint8_t, kWidthArraySize> width_array = {0};
   std::vector<uint8_t> font_gfx16_data_;
