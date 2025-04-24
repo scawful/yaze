@@ -171,7 +171,7 @@ class Canvas : public SharedRom {
   auto width() const { return canvas_sz_.x; }
   auto height() const { return canvas_sz_.y; }
   auto set_draggable(bool value) { draggable_ = value; }
-
+  auto canvas_id() const { return canvas_id_; }
   auto labels(int i) {
     if (i >= labels_.size()) {
       labels_.push_back(ImVector<std::string>());
@@ -244,6 +244,9 @@ class Canvas : public SharedRom {
   std::string context_id_ = "CanvasContext";
   std::vector<ImVec2> selected_tiles_;
 };
+
+void BeginCanvas(Canvas &canvas, ImVec2 child_size = ImVec2(0, 0));
+void EndCanvas(Canvas &canvas);
 
 void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
                                int num_sheets_to_load, int canvas_id,
