@@ -276,6 +276,7 @@ std::vector<std::string> ParseMessageData(
 
   for (auto &message : message_data) {
     std::string parsed_message = "";
+    int pos = 0;
     for (const uint8_t &byte : message.Data) {
       if (CharEncoder.contains(byte)) {
         parsed_message.push_back(CharEncoder.at(byte));
@@ -296,10 +297,19 @@ std::vector<std::string> ParseMessageData(
                 text_element->ID == kLine2 || text_element->ID == kLine3) {
               parsed_message.append("\n");
             }
-            parsed_message.append(text_element->GenericToken);
+            // If there is a param, add it to the message using GetParamToken.
+            if (text_element->HasArgument) {
+              // The next byte is the param.
+              parsed_message.append(
+                  text_element->GetParamToken(message.Data[pos + 1]));
+              pos++;
+            } else {
+              parsed_message.append(text_element->GetParamToken());
+            }
           }
         }
       }
+      pos++;
     }
     parsed_messages.push_back(parsed_message);
   }

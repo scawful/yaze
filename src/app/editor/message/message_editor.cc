@@ -1,13 +1,11 @@
 #include "message_editor.h"
 
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "absl/strings/str_replace.h"
 #include "app/core/platform/renderer.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -17,6 +15,7 @@
 #include "app/rom.h"
 #include "imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "imgui_memory_editor.h"
 #include "util/hex.h"
 
 namespace yaze {
@@ -30,6 +29,8 @@ using ImGui::Button;
 using ImGui::EndChild;
 using ImGui::EndTable;
 using ImGui::InputTextMultiline;
+using ImGui::PopID;
+using ImGui::PushID;
 using ImGui::SameLine;
 using ImGui::Separator;
 using ImGui::TableHeadersRow;
@@ -90,6 +91,7 @@ absl::Status MessageEditor::Update() {
   if (rom()->is_loaded() && !data_loaded_) {
     Initialize();
     current_message_ = list_of_texts_[1];
+    message_text_box_.text = parsed_messages_[current_message_.ID];
     data_loaded_ = true;
   }
 
@@ -112,8 +114,8 @@ absl::Status MessageEditor::Update() {
     DrawSpecialCharacters();
 
     TableNextColumn();
+    DrawExpandedMessageSettings();
     DrawDictionary();
-    DrawImportExport();
 
     EndTable();
   }
@@ -132,10 +134,11 @@ void MessageEditor::DrawMessageList() {
       TableHeadersRow();
       for (const auto& message : list_of_texts_) {
         TableNextColumn();
+        PushID(message.ID);
         if (Button(util::HexWord(message.ID).c_str())) {
           current_message_ = message;
-          DrawMessagePreview();
         }
+        PopID();
         TableNextColumn();
         TextWrapped("%s", parsed_messages_[message.ID].c_str());
         TableNextColumn();
@@ -154,34 +157,34 @@ void MessageEditor::DrawCurrentMessage() {
     return;
   }
   Button(absl::StrCat("Message ", current_message_.ID).c_str());
-  if (InputTextMultiline("##MessageEditor",
-                         &parsed_messages_[current_message_.ID],
+  if (InputTextMultiline("##MessageEditor", &message_text_box_.text,
                          ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
     current_message_.Data = ParseMessageToData(message_text_box_.text);
     DrawMessagePreview();
   }
   Separator();
 
+  static bool show_message_data = false;
+  if (ImGui::Button("View Message Data")) {
+    show_message_data = true;
+  }
+  if (show_message_data) {
+    MemoryEditor mem_edit;
+    mem_edit.DrawWindow("Message Data", current_message_.Data.data(),
+                        current_message_.Data.size());
+  }
+
   Text("Font Graphics");
-  gui::BeginPadding(1);
-  BeginChild("MessageEditorCanvas", ImVec2(0, 130));
-  font_gfx_canvas_.DrawBackground();
-  font_gfx_canvas_.DrawContextMenu();
+  gui::BeginCanvas(font_gfx_canvas_, ImVec2(0, 130));
   font_gfx_canvas_.DrawBitmap(font_gfx_bitmap_, 0, 0);
-  font_gfx_canvas_.DrawGrid();
-  font_gfx_canvas_.DrawOverlay();
-  EndChild();
-  gui::EndPadding();
+  gui::EndCanvas(font_gfx_canvas_);
   Separator();
 
+  ImGui::BeginChild("##MessagePreview", ImVec2(0, 0), true, 1);
   Text("Message Preview");
   if (Button("Create Preview")) {
     DrawMessagePreview();
   }
-  if (Button("Refresh Bitmap")) {
-    Renderer::GetInstance().UpdateBitmap(&current_font_gfx16_bitmap_);
-  }
-  ImGui::SameLine();
   if (Button("View Palette")) {
     ImGui::OpenPopup("Palette");
   }
@@ -199,6 +202,7 @@ void MessageEditor::DrawCurrentMessage() {
   current_font_gfx16_canvas_.DrawGrid();
   current_font_gfx16_canvas_.DrawOverlay();
   EndChild();
+  ImGui::EndChild();
 }
 
 void MessageEditor::DrawTextCommands() {
@@ -217,14 +221,30 @@ void MessageEditor::DrawTextCommands() {
 }
 
 void MessageEditor::DrawSpecialCharacters() {
-  ImGui::BeginChild("##SpecialChars",
-                    ImVec2(0, ImGui::GetWindowContentRegionMax().y / 2), true,
+  ImGui::BeginChild("##SpecialChars", ImVec2(0, 0), true,
                     ImGuiWindowFlags_AlwaysVerticalScrollbar);
   for (const auto& text_element : SpecialChars) {
     if (Button(text_element.GenericToken.c_str())) {
       message_text_box_.text.append(text_element.GenericToken);
     }
+    SameLine();
+    TextWrapped("%s", text_element.Description.c_str());
     Separator();
+  }
+  EndChild();
+}
+
+void MessageEditor::DrawExpandedMessageSettings() {
+  ImGui::BeginChild("##ExpandedMessageSettings",
+                    ImVec2(0, ImGui::GetWindowContentRegionMax().y / 2), true,
+                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
+  // Input for the address of the expanded messages
+  ImGui::InputText("Address", &expanded_message_address_,
+                   ImGuiInputTextFlags_CharsHexadecimal);
+
+  if (ImGui::Button("Load Expanded Message")) {
+    // Load the expanded message from the address.
+    // TODO: Implement this.
   }
   EndChild();
 }
@@ -234,7 +254,7 @@ void MessageEditor::DrawDictionary() {
     return;
   }
   if (ImGui::BeginChild("##DictionaryChild",
-                        ImVec2(200, ImGui::GetWindowContentRegionMax().y / 2),
+                        ImVec2(0, ImGui::GetWindowContentRegionMax().y / 2),
                         true, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
     if (BeginTable("##Dictionary", 2, kMessageTableFlags)) {
       TableSetupColumn("ID");
@@ -250,30 +270,6 @@ void MessageEditor::DrawDictionary() {
     }
   }
   EndChild();
-}
-
-void MessageEditor::DrawImportExport() {
-  ImGui::Text("Import Messages");
-  ImGui::Separator();
-
-  static char import_path[256] = "";
-  ImGui::InputText("Import File", import_path, sizeof(import_path));
-
-  if (ImGui::Button("Import")) {
-    status_ = ImportMessagesFromFile(import_path);
-  }
-
-  // Export section
-  ImGui::Spacing();
-  ImGui::Text("Export Messages");
-  ImGui::Separator();
-
-  static char export_path[256] = "";
-  ImGui::InputText("Export File", export_path, sizeof(export_path));
-
-  if (ImGui::Button("Export")) {
-    status_ = ExportMessagesToFile(export_path);
-  }
 }
 
 void MessageEditor::DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
@@ -387,8 +383,7 @@ void MessageEditor::DrawMessagePreview() {
   DrawCharacterToPreview(current_message_.Data);
   shown_lines_ = 0;
 
-  Renderer::GetInstance().UpdateBitmap(&font_gfx_bitmap_);
-  Renderer::GetInstance().RenderBitmap(&current_font_gfx16_bitmap_);
+  Renderer::GetInstance().UpdateBitmap(&current_font_gfx16_bitmap_);
 }
 
 absl::Status MessageEditor::Save() {
@@ -536,75 +531,6 @@ absl::Status MessageEditor::Find() {
     ImGui::Checkbox("Match Whole Word", &match_whole_word_);
   }
   ImGui::End();
-
-  return absl::OkStatus();
-}
-
-absl::Status MessageEditor::ImportMessagesFromFile(const std::string& path) {
-  // Open the file
-  std::ifstream file(path);
-  if (!file.is_open()) {
-    return absl::NotFoundError("Failed to open file");
-  }
-
-  // Read the file line by line
-  std::string line;
-  int line_number = 0;
-
-  while (std::getline(file, line)) {
-    line_number++;
-
-    // Skip empty lines and comments
-    if (line.empty() || line[0] == '#') {
-      continue;
-    }
-
-    // Parse the line
-    // Format: ID=content
-    size_t equal_pos = line.find('=');
-    if (equal_pos == std::string::npos) {
-      return absl::InvalidArgumentError(
-          absl::StrFormat("Invalid format at line %d", line_number));
-    }
-
-    std::string id_str = line.substr(0, equal_pos);
-    std::string content = line.substr(equal_pos + 1);
-
-    // Parse the ID
-    int id;
-    if (!absl::SimpleAtoi(id_str, &id)) {
-      return absl::InvalidArgumentError(
-          absl::StrFormat("Invalid ID at line %d", line_number));
-    }
-
-    // Update a regular message
-    for (auto& message : list_of_texts_) {
-      if (message.ID == id) {
-        message.ContentsParsed = content;
-        message.DataParsed = ParseMessageToData(content);
-        break;
-      }
-    }
-  }
-
-  return absl::OkStatus();
-}
-
-absl::Status MessageEditor::ExportMessagesToFile(const std::string& path) {
-  // Open the file
-  std::ofstream file(path);
-  if (!file.is_open()) {
-    return absl::NotFoundError("Failed to open file");
-  }
-
-  // Write a header
-  file << "# Message Export\n";
-  file << "# Format: ID=content\n\n";
-
-  // Write regular messages
-  for (const auto& message : list_of_texts_) {
-    file << absl::StrFormat("%d=%s\n", message.ID, message.ContentsParsed);
-  }
 
   return absl::OkStatus();
 }
