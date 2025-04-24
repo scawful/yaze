@@ -623,6 +623,7 @@ absl::Status SetColorsPalette(Rom &rom, int index, gfx::SnesPalette &current,
     current[(i / 16) * 16].set_transparent(true);
   }
 
+  current.set_size(256);
   return absl::OkStatus();
 }
 }  // namespace palette_internal
