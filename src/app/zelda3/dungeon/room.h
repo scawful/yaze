@@ -79,6 +79,9 @@ constexpr int NumberOfRooms = 296;
 
 constexpr uint16_t stairsObjects[] = {0x139, 0x138, 0x13B, 0x12E, 0x12D};
 
+constexpr int tile_address = 0x001B52;
+constexpr int tile_address_floor = 0x001B5A;
+
 struct LayerMergeType {
   uint8_t ID;
   std::string Name;
@@ -231,7 +234,7 @@ class Room : public SharedRom {
   bool is_light_;
   bool is_loaded_;
   bool is_dark_;
-  bool is_floor_;
+  bool is_floor_ = true;
 
   int room_id_;
   int animated_frame_;

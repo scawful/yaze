@@ -3,6 +3,7 @@
 #include "absl/container/flat_hash_map.h"
 #include "app/core/features.h"
 #include "app/core/platform/renderer.h"
+#include "app/gfx/arena.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
@@ -59,6 +60,8 @@ absl::Status DungeonEditor::Load() {
     if (core::FeatureFlags::get().kDrawDungeonRoomGraphics) {
       rooms_[i].LoadRoomGraphics();
     }
+
+    // rooms_[i].LoadObjects();
 
     auto dungeon_palette_ptr = rom()->paletteset_ids[rooms_[i].palette][0];
     auto palette_id = rom()->ReadWord(0xDEC4B + dungeon_palette_ptr);
@@ -477,11 +480,22 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
   gui::InputHexWord("Message ID", &rooms_[room_id].message_id_);
   SameLine();
 
+  if (Button("Load Room")) {
+    rooms_[room_id].LoadRoomGraphics();
+  }
+
   ImGui::EndGroup();
 
-  canvas_.DrawBackground(ImVec2(0x200, 0x200));
+  canvas_.DrawBackground();
   canvas_.DrawContextMenu();
   if (is_loaded_) {
+    canvas_.DrawBitmap(gfx::Arena::Get().bg1_bitmap(), 0, 0);
+    canvas_.DrawBitmap(gfx::Arena::Get().bg2_bitmap(), 0, 0);
+
+    for (const auto &object : rooms_[room_id].tile_objects_) {
+      canvas_.DrawOutline(object.x_, object.y_, object.width_ * 16,
+                          object.height_ * 16);
+    }
     canvas_.DrawBitmap(rooms_[room_id].layer1(), 0, 0);
   }
   canvas_.DrawGrid();

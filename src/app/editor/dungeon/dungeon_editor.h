@@ -40,8 +40,8 @@ constexpr ImGuiTableFlags kDungeonTableFlags =
  */
 class DungeonEditor : public Editor {
  public:
-  explicit DungeonEditor(Rom* rom = nullptr) : rom_(rom) { 
-    type_ = EditorType::kDungeon; 
+  explicit DungeonEditor(Rom* rom = nullptr) : rom_(rom) {
+    type_ = EditorType::kDungeon;
   }
 
   void Initialize() override;
@@ -57,10 +57,7 @@ class DungeonEditor : public Editor {
 
   void add_room(int i) { active_rooms_.push_back(i); }
 
-  // Set the ROM pointer
   void set_rom(Rom* rom) { rom_ = rom; }
-  
-  // Get the ROM pointer
   Rom* rom() const { return rom_; }
 
  private:
@@ -118,7 +115,7 @@ class DungeonEditor : public Editor {
   gfx::SnesPalette full_palette_;
   gfx::PaletteGroup current_palette_group_;
 
-  gui::Canvas canvas_;
+  gui::Canvas canvas_{"##DungeonCanvas", ImVec2(0x200, 0x200)};
   gui::Canvas room_gfx_canvas_;
   gui::Canvas object_canvas_;
 
