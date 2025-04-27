@@ -51,6 +51,7 @@ var classyaze_1_1gui_1_1Canvas =
     [ "width", "classyaze_1_1gui_1_1Canvas.html#a5b4af30b100372bf2f0e388b1c878d7b", null ],
     [ "height", "classyaze_1_1gui_1_1Canvas.html#a138ae62c6eb5f771385aa7e6b2f8ebbd", null ],
     [ "set_draggable", "classyaze_1_1gui_1_1Canvas.html#a2df594ab793b572c78f0c7ffc1605519", null ],
+    [ "canvas_id", "classyaze_1_1gui_1_1Canvas.html#a9b9d8f1c0e02fd488b1c8aced0ff0600", null ],
     [ "labels", "classyaze_1_1gui_1_1Canvas.html#a1221d849ae979959f6286af950ea68cd", null ],
     [ "mutable_labels", "classyaze_1_1gui_1_1Canvas.html#a86871e0ce37c27eb9186265e2e28a408", null ],
     [ "set_current_labels", "classyaze_1_1gui_1_1Canvas.html#a191f7e8fa4df5626e84c941eaf32da2a", null ],

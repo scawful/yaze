@@ -20,7 +20,7 @@ var searchData=
   ['textwithseparators_17',['TextWithSeparators',['../namespaceyaze_1_1gui.html#addaa747c1d46d2433b56c2386260d979',1,'yaze::gui']]],
   ['tile16_18',['Tile16',['../classyaze_1_1gfx_1_1Tile16.html#a40861c167016189aeb24bc4c48d5248f',1,'yaze::gfx::Tile16::Tile16()=default'],['../classyaze_1_1gfx_1_1Tile16.html#a2559d818181facc5404599f9b5501500',1,'yaze::gfx::Tile16::Tile16(TileInfo t0, TileInfo t1, TileInfo t2, TileInfo t3)']]],
   ['tile16_5fblockset_5fdata_19',['tile16_blockset_data',['../classyaze_1_1zelda3_1_1Overworld.html#a02783586da6044df85cbd56519575e6a',1,'yaze::zelda3::Overworld']]],
-  ['tile16editor_20',['Tile16Editor',['../classyaze_1_1editor_1_1Tile16Editor.html#aa4d019bb935e10775d9c3df981399349',1,'yaze::editor::Tile16Editor']]],
+  ['tile16editor_20',['Tile16Editor',['../classyaze_1_1editor_1_1Tile16Editor.html#a1ac575f6000886a63ea9a8a7770fef97',1,'yaze::editor::Tile16Editor']]],
   ['tile32_21',['Tile32',['../classyaze_1_1gfx_1_1Tile32.html#a615d07f05d95aa4d1596b7f7d108384e',1,'yaze::gfx::Tile32::Tile32()'],['../classyaze_1_1gfx_1_1Tile32.html#ab76e6a21f40271e4b225df262fa5194b',1,'yaze::gfx::Tile32::Tile32(uint16_t t0, uint16_t t1, uint16_t t2, uint16_t t3)'],['../classyaze_1_1gfx_1_1Tile32.html#aeaaff4e02c53e7ff46dcb8dbe9f21174',1,'yaze::gfx::Tile32::Tile32(const Tile32 &amp;other)'],['../classyaze_1_1gfx_1_1Tile32.html#a33fe33740a4e854bf67c99a473262527',1,'yaze::gfx::Tile32::Tile32(uint64_t packedVal)']]],
   ['tile_5fheight_22',['tile_height',['../classyaze_1_1gfx_1_1Tilesheet.html#a1f746ca193a1daa954fd66accdcb1fe4',1,'yaze::gfx::Tilesheet']]],
   ['tile_5finfo_23',['tile_info',['../classyaze_1_1gfx_1_1Tilesheet.html#af9cdd569b47ee2c2d12cd663a1670586',1,'yaze::gfx::Tilesheet']]],

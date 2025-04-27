@@ -19,6 +19,8 @@ var canvas_8h =
       [ "yaze::gui::CanvasGridSize::k32x32", "namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a20e39deb41b95e8150718fbb7ce02774", null ],
       [ "yaze::gui::CanvasGridSize::k64x64", "namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a9420cc1a73b8e176c1b22cf835b3e9f7", null ]
     ] ],
+    [ "yaze::gui::BeginCanvas", "namespaceyaze_1_1gui.html#a329bfec318646ab338eae2167beee7a2", null ],
+    [ "yaze::gui::EndCanvas", "namespaceyaze_1_1gui.html#a16adfc7583097bf343bd2cc7065e445d", null ],
     [ "yaze::gui::GraphicsBinCanvasPipeline", "namespaceyaze_1_1gui.html#a359973f01787648b92a53d2aa84120a9", null ],
     [ "yaze::gui::BitmapCanvasPipeline", "namespaceyaze_1_1gui.html#a097a97de3f408828135e749498b16bd6", null ]
 ];
