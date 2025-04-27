@@ -223,7 +223,7 @@ constexpr int kGfxBufferRoomSpriteStride = 2048;
 constexpr int kGfxBufferRoomSpriteLastLineOffset = 0x88;
 
 void Room::CopyRoomGraphicsToBuffer() {
-  auto gfx_buffer_data = rom()->graphics_buffer();
+  auto gfx_buffer_data = rom()->mutable_graphics_buffer();
 
   // Copy room graphics to buffer
   int sheet_pos = 0;
@@ -231,7 +231,7 @@ void Room::CopyRoomGraphicsToBuffer() {
     int data = 0;
     int block_offset = blocks_[i] * kGfxBufferRoomOffset;
     while (data < kGfxBufferRoomOffset) {
-      uint8_t map_byte = gfx_buffer_data[data + block_offset];
+      uint8_t map_byte = (*gfx_buffer_data)[data + block_offset];
       if (i < 4) {
         map_byte += kGfxBufferRoomSpriteLastLineOffset;
       }
@@ -249,18 +249,18 @@ void Room::CopyRoomGraphicsToBuffer() {
 void Room::LoadAnimatedGraphics() {
   int gfx_ptr = SnesToPc(rom()->version_constants().kGfxAnimatedPointer);
 
-  auto gfx_buffer_data = rom()->graphics_buffer();
+  auto gfx_buffer_data = rom()->mutable_graphics_buffer();
   auto rom_data = rom()->vector();
   int data = 0;
   while (data < 512) {
     uint8_t map_byte =
-        gfx_buffer_data[data + (92 * 2048) + (512 * animated_frame_)];
+        (*gfx_buffer_data)[data + (92 * 2048) + (512 * animated_frame_)];
     current_gfx16_[data + (7 * 2048)] = map_byte;
 
     map_byte =
-        gfx_buffer_data[data +
-                        (rom_data[gfx_ptr + background_tileset_] * 2048) +
-                        (512 * animated_frame_)];
+        (*gfx_buffer_data)[data +
+                           (rom_data[gfx_ptr + background_tileset_] * 2048) +
+                           (512 * animated_frame_)];
     current_gfx16_[data + (7 * 2048) - 512] = map_byte;
     data++;
   }
