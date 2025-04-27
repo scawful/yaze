@@ -23,9 +23,7 @@ using ImGui::Text;
 
 void SpriteEditor::Initialize() {}
 
-absl::Status SpriteEditor::Load() {
-  return absl::OkStatus();
-}
+absl::Status SpriteEditor::Load() { return absl::OkStatus(); }
 
 absl::Status SpriteEditor::Update() {
   if (rom()->is_loaded() && !sheets_loaded_) {
@@ -188,8 +186,8 @@ void SpriteEditor::DrawCurrentSheets() {
     }
     graphics_sheet_canvas_.DrawGrid();
     graphics_sheet_canvas_.DrawOverlay();
-    ImGui::EndChild();
   }
+  ImGui::EndChild();
 }
 
 void SpriteEditor::DrawSpritesList() {
