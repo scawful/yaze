@@ -2,6 +2,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/match.h"
+#include "absl/strings/str_cat.h"
 #include "app/core/features.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/project.h"
@@ -327,14 +328,9 @@ absl::Status EditorManager::Update() {
 
 void EditorManager::DrawHomepage() {
   TextWrapped("Welcome to the Yet Another Zelda3 Editor (yaze)!");
-  TextWrapped(
-      "Comprehensive tool for editing the Legend of Zelda: A Link to the "
-      "Past.");
-  TextWrapped(
-      "The editor is still in development, so please report any bugs or issues "
-      "you encounter.");
-
-  // Hyperlink to github
+  TextWrapped("The Legend of Zelda: A Link to the Past.");
+  TextWrapped("Please report any bugs or issues you encounter.");
+  ImGui::SameLine();
   if (gui::ClickableText("https://github.com/scawful/yaze")) {
     gui::OpenUrl("https://github.com/scawful/yaze");
   }
@@ -344,12 +340,11 @@ void EditorManager::DrawHomepage() {
     if (gui::ClickableText("Open a ROM")) {
       status_ = LoadRom();
     }
-    // Checkbox for loading a ROM with custom overworld flag.
+    SameLine();
     Checkbox("Load custom overworld features",
              &core::FeatureFlags::get().overworld.kLoadCustomOverworld);
 
-    // Recent Files list
-    TextWrapped("Recent Files");
+    ImGui::BeginChild("Recent Files", ImVec2(-1, -1), true);
     static RecentFilesManager manager("recent_files.txt");
     manager.Load();
     for (const auto &file : manager.GetRecentFiles()) {
@@ -357,12 +352,11 @@ void EditorManager::DrawHomepage() {
         status_ = OpenRomOrProject(file);
       }
     }
+    ImGui::EndChild();
     return;
   }
 
   TextWrapped("Current ROM: %s", current_rom_->filename().c_str());
-
-  // Quick buttons for opening editors
   if (Button(kOverworldEditorName)) {
     current_editor_set_->overworld_editor_.set_active(true);
   }
@@ -375,6 +369,10 @@ void EditorManager::DrawHomepage() {
     current_editor_set_->graphics_editor_.set_active(true);
   }
   ImGui::SameLine();
+  if (Button(kMessageEditorName)) {
+    current_editor_set_->message_editor_.set_active(true);
+  }
+
   if (Button(kPaletteEditorName)) {
     current_editor_set_->palette_editor_.set_active(true);
   }
@@ -387,8 +385,12 @@ void EditorManager::DrawHomepage() {
     current_editor_set_->sprite_editor_.set_active(true);
   }
   ImGui::SameLine();
-  if (Button(kMessageEditorName)) {
-    current_editor_set_->message_editor_.set_active(true);
+  if (Button(kMusicEditorName)) {
+    current_editor_set_->music_editor_.set_active(true);
+  }
+
+  if (Button(kSettingsEditorName)) {
+    current_editor_set_->settings_editor_.set_active(true);
   }
 }
 
