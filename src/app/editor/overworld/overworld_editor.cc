@@ -578,12 +578,12 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
 
   // Calculate the index of the map in the `maps_bmp_` vector
   current_map_ = map_x + map_y * 8;
-  const int current_highlighted_map = current_map_;
   if (current_world_ == 1) {
     current_map_ += 0x40;
   } else if (current_world_ == 2) {
     current_map_ += 0x80;
   }
+  const int current_highlighted_map = current_map_;
 
   current_parent_ = overworld_.overworld_map(current_map_)->parent();
 
