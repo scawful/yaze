@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_GFX_SNES_TILE_H
 #define YAZE_APP_GFX_SNES_TILE_H
 
-#include <snes.h>
+#include <yaze.h>
 
 #include <array>
 #include <cstdint>
