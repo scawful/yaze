@@ -1,6 +1,7 @@
 #ifndef YAZE_GUI_CANVAS_H
 #define YAZE_GUI_CANVAS_H
 
+#include "gfx/tilemap.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
 
 #include <cstdint>
@@ -116,8 +117,10 @@ class Canvas : public SharedRom {
   void DrawBitmapTable(const BitmapTable &gfx_bin);
 
   void DrawBitmapGroup(std::vector<int> &group,
-                       std::array<gfx::Bitmap, 4096> &tile16_individual_,
+                       gfx::Tilemap &tilemap,
                        int tile_size, float scale = 1.0f);
+
+  bool DrawTilemapPainter(gfx::Tilemap &tilemap, int current_tile);
 
   void DrawOutline(int x, int y, int w, int h);
   void DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color);

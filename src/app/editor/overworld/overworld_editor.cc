@@ -14,6 +14,7 @@
 #include "app/editor/overworld/entity.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
+#include "app/gfx/tilemap.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
@@ -427,8 +428,8 @@ void OverworldEditor::DrawOverworldEdits() {
   }
 
   // Render the updated map bitmap.
-  RenderUpdatedMapBitmap(mouse_position,
-                         tile16_individual_[current_tile16_].vector());
+  RenderUpdatedMapBitmap(
+      mouse_position, gfx::GetTilemapData(tile16_blockset_, current_tile16_));
 
   // Calculate the correct superX and superY values
   int superY = current_map_ / 8;
@@ -484,8 +485,7 @@ void OverworldEditor::CheckForOverworldEdits() {
   if (!blockset_canvas_.points().empty() &&
       !ow_map_canvas_.select_rect_active()) {
     // Left click is pressed
-    if (ow_map_canvas_.DrawTilePainter(tile16_individual_[current_tile16_],
-                                       kTile16Size)) {
+    if (ow_map_canvas_.DrawTilemapPainter(tile16_blockset_, current_tile16_)) {
       DrawOverworldEdits();
     }
   }
@@ -563,7 +563,7 @@ void OverworldEditor::CheckForSelectRectangle() {
     }
   }
   // Create a composite image of all the tile16s selected
-  ow_map_canvas_.DrawBitmapGroup(tile16_ids, tile16_individual_, 0x10);
+  ow_map_canvas_.DrawBitmapGroup(tile16_ids, tile16_blockset_, 0x10);
 }
 
 absl::Status OverworldEditor::CheckForCurrentMap() {
@@ -685,7 +685,7 @@ absl::Status OverworldEditor::DrawTile16Selector() {
   gui::EndNoPadding();
   {
     blockset_canvas_.DrawContextMenu();
-    blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, /*border_offset=*/2,
+    blockset_canvas_.DrawBitmap(tile16_blockset_.atlas, /*border_offset=*/2,
                                 map_blockset_loaded_);
 
     if (blockset_canvas_.DrawTileSelector(32.0f)) {
@@ -1050,27 +1050,11 @@ absl::Status OverworldEditor::LoadGraphics() {
 
   // Copy the tile16 data into individual tiles.
   auto tile16_blockset_data = overworld_.tile16_blockset_data();
-
   util::logf("Loading overworld tile16 graphics.");
-  // Loop through the tiles and copy their pixel data into separate vectors
-  for (unsigned int i = 0; i < zelda3::kNumTile16Individual; i++) {
-    std::vector<uint8_t> tile16_data(kTile16Size * kTile16Size);
-    tile16_individual_[i].Create(kTile16Size, kTile16Size, 0x08, tile16_data);
 
-    // Copy the pixel data for the current tile into the vector
-    for (int ty = 0; ty < kTile16Size; ty++) {
-      for (int tx = 0; tx < kTile16Size; tx++) {
-        int position = tx + (ty * kTile16Size);
-        uint8_t value = tile16_blockset_data[(i % 8 * kTile16Size) +
-                                             (i / 8 * kTile16Size * 0x80) +
-                                             (ty * 0x80) + tx];
-        tile16_individual_[i].mutable_data()[position] = value;
-      }
-    }
-
-    tile16_individual_[i].SetPalette(palette_);
-    Renderer::GetInstance().RenderBitmap(&tile16_individual_[i]);
-  }
+  tile16_blockset_ =
+      gfx::CreateTilemap(tile16_blockset_data, 0x80, 0x2000, kTile16Size,
+                         zelda3::kNumTile16Individual, palette_);
 
   util::logf("Loading overworld maps.");
   // Render the overworld maps loaded from the ROM.
@@ -1216,46 +1200,11 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
 
   overworld_.set_current_map(current_map_);
   palette_ = overworld_.current_area_palette();
-  // Create the tile16 blockset image
-  Renderer::GetInstance().UpdateBitmap(&tile16_blockset_bmp_);
-  tile16_blockset_bmp_.SetPalette(palette_);
 
-  // Copy the tile16 data into individual tiles.
   const auto tile16_data = overworld_.tile16_blockset_data();
 
-  // Loop through the tiles and copy their pixel data into separate vectors
-  std::vector<std::future<absl::Status>> futures;
-  for (unsigned int i = 0; i < zelda3::kNumTile16Individual; i++) {
-    futures.push_back(std::async(
-        std::launch::async,
-        [&](int index) -> absl::Status {
-          std::vector<uint8_t> tile_data(16 * 16, 0x00);
-          for (int ty = 0; ty < 16; ty++) {
-            for (int tx = 0; tx < 16; tx++) {
-              int position = tx + (ty * 0x10);
-              uint8_t value =
-                  tile16_data[(index % 8 * 16) + (index / 8 * 16 * 0x80) +
-                              (ty * 0x80) + tx];
-              tile_data[position] = value;
-            }
-          }
-          tile16_individual_[index].set_data(tile_data);
-          tile16_individual_[index].SetPalette(palette_);
-          return absl::OkStatus();
-        },
-        i));
-  }
-
-  for (auto &future : futures) {
-    future.wait();
-    RETURN_IF_ERROR(future.get());
-  }
-
-  // Render the bitmaps of each tile.
-  for (unsigned int id = 0; id < zelda3::kNumTile16Individual; id++) {
-    Renderer::GetInstance().UpdateBitmap(&tile16_individual_[id]);
-  }
-
+  gfx::UpdateTilemap(tile16_blockset_, tile16_data);
+  tile16_blockset_.atlas.SetPalette(palette_);
   return absl::OkStatus();
 }
 
@@ -1496,9 +1445,6 @@ void OverworldEditor::DrawDebugWindow() {
 absl::Status OverworldEditor::Clear() {
   overworld_.Destroy();
   current_graphics_set_.clear();
-  for (auto &bmp : tile16_individual_) {
-    bmp.Clear();
-  }
   for (auto &bmp : maps_bmp_) {
     bmp.Clear();
   }
@@ -1514,9 +1460,6 @@ absl::Status OverworldEditor::Clear() {
 
 void OverworldEditor::CleanupUnusedTextures(uint64_t current_time,
                                             uint64_t timeout) {
-  for (auto &bmp : tile16_individual_) {
-    bmp.CleanupUnusedTexture(current_time, timeout);
-  }
   for (auto &bmp : maps_bmp_) {
     bmp.CleanupUnusedTexture(current_time, timeout);
   }

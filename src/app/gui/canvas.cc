@@ -10,7 +10,6 @@
 #include "app/gui/style.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
-#include "imgui/imgui_internal.h"
 #include "imgui_memory_editor.h"
 
 namespace yaze {
@@ -267,6 +266,55 @@ bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
   } else if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
     // Draw the currently selected tile on the overworld here
     // Save the coordinates of the selected tile.
+    drawn_tile_pos_ = paint_pos;
+    return true;
+  }
+
+  return false;
+}
+
+bool Canvas::DrawTilemapPainter(gfx::Tilemap &tilemap, int current_tile) {
+  const ImGuiIO &io = GetIO();
+  const bool is_hovered = IsItemHovered();
+  is_hovered_ = is_hovered;
+  const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
+  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+  const auto scaled_size = tilemap.tile_size.x * global_scale_;
+
+  if (!is_hovered) {
+    points_.clear();
+    return false;
+  }
+
+  if (!points_.empty()) {
+    points_.clear();
+  }
+
+  ImVec2 paint_pos = AlignPosToGrid(mouse_pos, scaled_size);
+  mouse_pos_in_canvas_ = paint_pos;
+
+  points_.push_back(paint_pos);
+  points_.push_back(
+      ImVec2(paint_pos.x + scaled_size, paint_pos.y + scaled_size));
+
+  if (tilemap.tile_bitmaps.find(current_tile) == tilemap.tile_bitmaps.end()) {
+    tilemap.tile_bitmaps[current_tile] = gfx::Bitmap(
+        tilemap.tile_size.x, tilemap.tile_size.y, 8,
+        gfx::GetTilemapData(tilemap, current_tile), tilemap.atlas.palette());
+    auto bitmap_ptr = &tilemap.tile_bitmaps[current_tile];
+    Renderer::GetInstance().RenderBitmap(bitmap_ptr);
+  }
+
+  draw_list_->AddImage(
+      (ImTextureID)(intptr_t)tilemap.tile_bitmaps[current_tile].texture(),
+      ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
+      ImVec2(origin.x + paint_pos.x + scaled_size,
+             origin.y + paint_pos.y + scaled_size));
+
+  if (IsMouseClicked(ImGuiMouseButton_Left)) {
+    drawn_tile_pos_ = paint_pos;
+    return true;
+  } else if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
     drawn_tile_pos_ = paint_pos;
     return true;
   }
@@ -541,8 +589,7 @@ void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color) {
   draw_list_->AddRect(origin, size, color);
 }
 
-void Canvas::DrawBitmapGroup(std::vector<int> &group,
-                             std::array<gfx::Bitmap, 4096> &tile16_individual_,
+void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
                              int tile_size, float scale) {
   if (selected_points_.size() != 2) {
     // points_ should contain exactly two points
@@ -583,13 +630,16 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group,
       int tile_id = group[i];
 
       // Check if tile_id is within the range of tile16_individual_
-      if (tile_id >= 0 && tile_id < tile16_individual_.size()) {
+      auto tilemap_size = tilemap.atlas.width() * tilemap.atlas.height() /
+                          tilemap.map_size.x;
+      if (tile_id >= 0 && tile_id < tilemap_size) {
         // Calculate the position of the tile within the rectangle
         int tile_pos_x = (x + start_tile_x) * tile_size * scale;
         int tile_pos_y = (y + start_tile_y) * tile_size * scale;
 
         // Draw the tile bitmap at the calculated position
-        DrawBitmap(tile16_individual_[tile_id], tile_pos_x, tile_pos_y, scale,
+        gfx::RenderTile(tilemap, tile_id);
+        DrawBitmap(tilemap.tile_bitmaps[tile_id], tile_pos_x, tile_pos_y, scale,
                    150.0f);
         i++;
       }

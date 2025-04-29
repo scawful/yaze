@@ -24,9 +24,7 @@ namespace editor {
  */
 class Tile16Editor : public gfx::GfxContext, public SharedRom {
  public:
-  Tile16Editor(
-      std::array<gfx::Bitmap, zelda3::kNumTile16Individual> *tile16_individual)
-      : tile16_individual_(tile16_individual) {}
+  Tile16Editor(gfx::Tilemap *tile16_blockset) : tile16_blockset_(tile16_blockset) {}
   absl::Status Initialize(const gfx::Bitmap &tile16_blockset_bmp,
                           const gfx::Bitmap &current_gfx_bmp,
                           std::array<uint8_t, 0x200> &all_tiles_types);
@@ -102,8 +100,7 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
 
   gui::Table tile_edit_table_{"##TileEditTable", 3, ImGuiTableFlags_Borders};
 
-  std::array<gfx::Bitmap, zelda3::kNumTile16Individual> *tile16_individual_ =
-      nullptr;
+  gfx::Tilemap *tile16_blockset_ = nullptr;
   std::vector<gfx::Bitmap> current_gfx_individual_;
 
   PaletteEditor palette_editor_;

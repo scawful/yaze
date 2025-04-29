@@ -5,9 +5,10 @@
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/graphics/palette_editor.h"
-#include "app/editor/graphics/tile16_editor.h"
+#include "app/editor/overworld/tile16_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
+#include "app/gfx/tilemap.h"
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
 #include "app/gui/zeml.h"
@@ -74,7 +75,9 @@ constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
  */
 class OverworldEditor : public Editor, public gfx::GfxContext {
  public:
-  explicit OverworldEditor(Rom* rom) : rom_(rom) { type_ = EditorType::kOverworld; }
+  explicit OverworldEditor(Rom* rom) : rom_(rom) {
+    type_ = EditorType::kOverworld;
+  }
 
   void Initialize() override;
   absl::Status Load() override;
@@ -89,7 +92,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status Clear() override;
 
   void CleanupUnusedTextures(uint64_t current_time, uint64_t timeout) override;
-  
+
   int jump_to_tab() { return jump_to_tab_; }
   int jump_to_tab_ = -1;
 
@@ -213,14 +216,14 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool is_dragging_entity_ = false;
 
   std::vector<uint8_t> selected_tile_data_;
-  std::array<gfx::Bitmap, zelda3::kNumTile16Individual> tile16_individual_;
+  gfx::Tilemap tile16_blockset_;
 
   std::vector<std::vector<uint8_t>> tile8_individual_data_;
   std::vector<gfx::Bitmap> tile8_individual_;
 
   Rom* rom_;
 
-  Tile16Editor tile16_editor_{&tile16_individual_};
+  Tile16Editor tile16_editor_{&tile16_blockset_};
   GfxGroupEditor gfx_group_editor_;
   PaletteEditor palette_editor_;
 

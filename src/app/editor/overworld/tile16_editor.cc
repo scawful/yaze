@@ -187,10 +187,11 @@ absl::Status Tile16Editor::UpdateBlockset() {
 
     if (notify_tile16.modified()) {
       current_tile16_ = notify_tile16.get();
-      current_tile16_bmp_ = (*tile16_individual_)[notify_tile16];
+      gfx::RenderTile(*tile16_blockset_, current_tile16_);
+      current_tile16_bmp_ = tile16_blockset_->tile_bitmaps[notify_tile16];
       auto ow_main_pal_group = rom()->palette_group().overworld_main;
       current_tile16_bmp_.SetPalette(ow_main_pal_group[current_palette_]);
-      Renderer::GetInstance().RenderBitmap(&current_tile16_bmp_);
+      Renderer::GetInstance().UpdateBitmap(&current_tile16_bmp_);
     }
   }
 
@@ -487,10 +488,11 @@ absl::Status Tile16Editor::LoadTile8() {
 
 absl::Status Tile16Editor::SetCurrentTile(int id) {
   current_tile16_ = id;
-  current_tile16_bmp_ = (*tile16_individual_)[id];
+  gfx::RenderTile(*tile16_blockset_, current_tile16_);
+  current_tile16_bmp_ = tile16_blockset_->tile_bitmaps[current_tile16_];
   auto ow_main_pal_group = rom()->palette_group().overworld_main;
   current_tile16_bmp_.SetPalette(ow_main_pal_group[current_palette_]);
-  Renderer::GetInstance().RenderBitmap(&current_tile16_bmp_);
+  Renderer::GetInstance().UpdateBitmap(&current_tile16_bmp_);
   return absl::OkStatus();
 }
 
@@ -561,8 +563,11 @@ absl::Status Tile16Editor::CopyTile16ToClipboard(int tile_id) {
   }
 
   // Create a copy of the tile16 bitmap
-  clipboard_tile16_.Create(16, 16, 8, (*tile16_individual_)[tile_id].vector());
-  clipboard_tile16_.SetPalette((*tile16_individual_)[tile_id].palette());
+  gfx::RenderTile(*tile16_blockset_, tile_id);
+  clipboard_tile16_.Create(16, 16, 8,
+                            tile16_blockset_->tile_bitmaps[tile_id].vector());
+  clipboard_tile16_.SetPalette(
+      tile16_blockset_->tile_bitmaps[tile_id].palette());
   core::Renderer::GetInstance().RenderBitmap(&clipboard_tile16_);
 
   clipboard_has_data_ = true;
