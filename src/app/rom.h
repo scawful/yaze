@@ -16,7 +16,6 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "app/core/project.h"
@@ -58,45 +57,17 @@ static const std::map<zelda3_version, zelda3_version_pointers>
  */
 class Rom {
  public:
-  /**
-   * Load Rom data from a file.
-   *
-   * @param filename The name of the file to load.
-   * @param z3_load Whether to load data specific to Zelda 3.
-   *
-   */
   absl::Status LoadFromFile(const std::string& filename, bool z3_load = true);
   absl::Status LoadFromData(const std::vector<uint8_t>& data,
                             bool z3_load = true);
+  absl::Status LoadZelda3();
+  absl::Status LoadGfxGroups();
 
-  /**
-   * @brief Saves the Rom data to a file
-   *
-   * @param backup If true, creates a backup file with timestamp in its name
-   * @param filename The name of the file to save the Rom data to
-   *
-   * @return absl::Status Returns an OK status if the save was successful,
-   * otherwise returns an error status
-   */
+  absl::Status SaveGfxGroups();
   absl::Status SaveToFile(bool backup, bool save_new = false,
                           std::string filename = "");
-
-  /**
-   * Saves the given palette to the Rom if any of its colors have been modified.
-   *
-   * @param index The index of the palette to save.
-   * @param group_name The name of the group containing the palette.
-   * @param palette The palette to save.
-   */
   absl::Status SavePalette(int index, const std::string& group_name,
                            gfx::SnesPalette& palette);
-
-  /**
-   * @brief Saves all palettes in the Rom.
-   *
-   * This function iterates through all palette groups and all palettes in each
-   * group, and saves each palette using the SavePalette() function.
-   */
   absl::Status SaveAllPalettes();
 
   void Expand(int size) {
@@ -106,8 +77,8 @@ class Rom {
 
   void Close() {
     rom_data_.clear();
+    palette_groups_.clear();
     size_ = 0;
-    is_loaded_ = false;
   }
 
   absl::StatusOr<uint8_t> ReadByte(int offset);
@@ -150,14 +121,7 @@ class Rom {
     return rom_data_[i];
   }
 
-  bool is_loaded() const {
-    if (!absl::StrContains(filename_, ".sfc") &&
-        !absl::StrContains(filename_, ".smc")) {
-      return false;
-    }
-    return is_loaded_;
-  }
-
+  bool is_loaded() const { return !rom_data_.empty(); }
   auto title() const { return title_; }
   auto size() const { return size_; }
   auto data() const { return rom_data_.data(); }
@@ -169,7 +133,7 @@ class Rom {
   auto filename() const { return filename_; }
   auto set_filename(std::string name) { filename_ = name; }
   auto short_name() const { return short_name_; }
-  std::vector<uint8_t> graphics_buffer() const { return graphics_buffer_; }
+  auto graphics_buffer() const { return graphics_buffer_; }
   auto mutable_graphics_buffer() { return &graphics_buffer_; }
   auto palette_group() const { return palette_groups_; }
   auto mutable_palette_group() { return &palette_groups_; }
@@ -231,13 +195,6 @@ class Rom {
     }
     return absl::OkStatus();
   }
-
-  absl::Status LoadZelda3();
-  absl::Status LoadGfxGroups();
-  absl::Status SaveGroupsToRom();
-
-  // ROM file loaded flag
-  bool is_loaded_ = false;
 
   // Size of the ROM data.
   unsigned long size_ = 0;

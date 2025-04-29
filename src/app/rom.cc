@@ -174,9 +174,7 @@ absl::Status Rom::LoadFromFile(const std::string &filename, bool z3_load) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `filename` is empty.");
   }
-  std::string full_filename = std::filesystem::absolute(filename).string();
-  filename_ = full_filename;
-  // Get the short name of the ROM
+  filename_ = std::filesystem::absolute(filename).string();
   short_name_ = filename_.substr(filename_.find_last_of("/\\") + 1);
 
   std::ifstream file(filename_, std::ios::binary);
@@ -203,16 +201,12 @@ absl::Status Rom::LoadFromFile(const std::string &filename, bool z3_load) {
   file.read(reinterpret_cast<char *>(rom_data_.data()), size_);
   file.close();
 
-  // Set is_loaded_ flag and return success
-  is_loaded_ = true;
-
   if (z3_load) {
     RETURN_IF_ERROR(LoadZelda3());
   }
 
   // Set up the resource labels
-  std::string resource_label_filename = absl::StrFormat("%s.labels", filename);
-  resource_label_manager_.LoadLabels(resource_label_filename);
+  resource_label_manager_.LoadLabels(absl::StrFormat("%s.labels", filename));
   return absl::OkStatus();
 }
 
@@ -221,12 +215,8 @@ absl::Status Rom::LoadFromData(const std::vector<uint8_t> &data, bool z3_load) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `data` is empty.");
   }
-  if (!palette_groups_.empty()) palette_groups_.clear();
-
   rom_data_ = data;
   size_ = data.size();
-  is_loaded_ = true;
-
   if (z3_load) {
     RETURN_IF_ERROR(LoadZelda3());
   }
@@ -447,7 +437,7 @@ absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
   if (core::FeatureFlags::get().kSaveAllPalettes)
     RETURN_IF_ERROR(SaveAllPalettes());
   if (core::FeatureFlags::get().kSaveGfxGroups)
-    RETURN_IF_ERROR(SaveGroupsToRom());
+    RETURN_IF_ERROR(SaveGfxGroups());
 
   if (save_new) {
     // Create a file of the same name and append the date between the filename
@@ -562,7 +552,7 @@ absl::Status Rom::LoadGfxGroups() {
   return absl::OkStatus();
 }
 
-absl::Status Rom::SaveGroupsToRom() {
+absl::Status Rom::SaveGfxGroups() {
   ASSIGN_OR_RETURN(auto main_blockset_ptr, ReadWord(kGfxGroupsPointer));
   main_blockset_ptr = SnesToPc(main_blockset_ptr);
 
