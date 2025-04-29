@@ -1,5 +1,15 @@
 var NAVTREEINDEX49 =
 {
+"structyaze_1_1emu_1_1CGADSUB.html#a1d331c73e4e03a11b3739a12fefd8006":[11,0,1,3,15,2],
+"structyaze_1_1emu_1_1CGADSUB.html#a1d331c73e4e03a11b3739a12fefd8006":[12,0,0,3,13,2],
+"structyaze_1_1emu_1_1CGADSUB.html#a281c7277cf087cc97d5bdce191c2f2e4":[11,0,1,3,15,0],
+"structyaze_1_1emu_1_1CGADSUB.html#a281c7277cf087cc97d5bdce191c2f2e4":[12,0,0,3,13,0],
+"structyaze_1_1emu_1_1CGADSUB.html#a71f49950abee1a73e7e2a26cb3793dba":[11,0,1,3,15,1],
+"structyaze_1_1emu_1_1CGADSUB.html#a71f49950abee1a73e7e2a26cb3793dba":[12,0,0,3,13,1],
+"structyaze_1_1emu_1_1CGDATA.html":[11,0,1,3,16],
+"structyaze_1_1emu_1_1CGDATA.html":[12,0,0,3,14],
+"structyaze_1_1emu_1_1CGDATA.html#a0a0b9bcb4c2d6584e11832d5272fc2d9":[11,0,1,3,16,1],
+"structyaze_1_1emu_1_1CGDATA.html#a0a0b9bcb4c2d6584e11832d5272fc2d9":[12,0,0,3,14,1],
 "structyaze_1_1emu_1_1CGDATA.html#aad03723ce471bf9f114c234245629352":[11,0,1,3,16,0],
 "structyaze_1_1emu_1_1CGDATA.html#aad03723ce471bf9f114c234245629352":[12,0,0,3,14,0],
 "structyaze_1_1emu_1_1CGDATAREAD.html":[11,0,1,3,17],
@@ -239,15 +249,5 @@ var NAVTREEINDEX49 =
 "structyaze_1_1emu_1_1JoypadRegisters.html#a11184805d9757bc1d776d5d56302b03f":[11,0,1,3,34,0],
 "structyaze_1_1emu_1_1JoypadRegisters.html#a11184805d9757bc1d776d5d56302b03f":[12,0,0,3,32,0],
 "structyaze_1_1emu_1_1JoypadRegisters.html#a43f8e4495bda50e6c5788ebff2fcaf35":[11,0,1,3,34,1],
-"structyaze_1_1emu_1_1JoypadRegisters.html#a43f8e4495bda50e6c5788ebff2fcaf35":[12,0,0,3,32,1],
-"structyaze_1_1emu_1_1Layer.html":[11,0,1,3,35],
-"structyaze_1_1emu_1_1Layer.html":[12,0,0,3,33],
-"structyaze_1_1emu_1_1Layer.html#a282f1151610649310fce2f3a398e4e83":[11,0,1,3,35,3],
-"structyaze_1_1emu_1_1Layer.html#a282f1151610649310fce2f3a398e4e83":[12,0,0,3,33,3],
-"structyaze_1_1emu_1_1Layer.html#a7c68f8d58f535e586ef51af671495f09":[11,0,1,3,35,2],
-"structyaze_1_1emu_1_1Layer.html#a7c68f8d58f535e586ef51af671495f09":[12,0,0,3,33,2],
-"structyaze_1_1emu_1_1Layer.html#a8815785b586b3f177dd82dd4fbb81a93":[11,0,1,3,35,1],
-"structyaze_1_1emu_1_1Layer.html#a8815785b586b3f177dd82dd4fbb81a93":[12,0,0,3,33,1],
-"structyaze_1_1emu_1_1Layer.html#aac334cbb801bb895298aeda9de8e9969":[11,0,1,3,35,0],
-"structyaze_1_1emu_1_1Layer.html#aac334cbb801bb895298aeda9de8e9969":[12,0,0,3,33,0]
+"structyaze_1_1emu_1_1JoypadRegisters.html#a43f8e4495bda50e6c5788ebff2fcaf35":[12,0,0,3,32,1]
 };

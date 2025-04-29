@@ -1,12 +1,12 @@
-<map id="src/app/editor/graphics/tile16_editor.h" name="src/app/editor/graphics/tile16_editor.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="96,5,249,46"/>
-<area shape="rect" id="Node000002" href="$tile16__editor_8cc.html" title=" " alt="" coords="5,94,159,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,59,104,95,101,92,140,55"/>
-<area shape="rect" id="Node000003" href="$overworld__editor_8h.html" title=" " alt="" coords="183,94,344,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="206,55,245,92,241,95,202,59"/>
-<area shape="rect" id="Node000004" href="$editor__manager_8cc.html" title=" " alt="" coords="194,271,330,312"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="249,150,238,183,235,203,238,223,255,270,250,272,233,224,230,203,233,182,244,148"/>
-<area shape="rect" id="Node000005" href="$editor__manager_8h.html" title=" " alt="" coords="247,183,384,223"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="285,147,306,181,301,184,281,149"/>
-<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="298,238,276,272,272,269,293,235"/>
+<map id="src/app/editor/overworld/tile16_editor.h" name="src/app/editor/overworld/tile16_editor.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="97,5,258,46"/>
+<area shape="rect" id="Node000002" href="$overworld__editor_8h.html" title=" " alt="" coords="5,94,166,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,59,108,96,104,92,144,55"/>
+<area shape="rect" id="Node000014" href="$tile16__editor_8cc.html" title=" " alt="" coords="189,94,350,135"/>
+<area shape="poly" id="edge5_Node000001_Node000014" title=" " alt="" coords="211,55,251,92,247,96,207,59"/>
+<area shape="rect" id="Node000003" href="$editor__manager_8cc.html" title=" " alt="" coords="17,271,154,312"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="72,150,61,183,59,203,61,223,78,270,73,272,56,224,54,203,56,182,67,148"/>
+<area shape="rect" id="Node000004" href="$editor__manager_8h.html" title=" " alt="" coords="71,183,207,223"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="108,147,129,181,125,184,103,149"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="121,238,100,272,95,269,117,235"/>
 </map>

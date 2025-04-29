@@ -1,0 +1,7 @@
+<map id="yaze::gfx::GetTilemapData" name="yaze::gfx::GetTilemapData">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,46,176,72"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a2a93bfee737bef55dbf436f2605282ce" title=" " alt="" coords="224,5,347,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,43,208,36,209,41,170,48"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="224,71,347,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,70,209,76,208,81,172,75"/>
+</map>

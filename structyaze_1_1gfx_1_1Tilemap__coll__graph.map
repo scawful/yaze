@@ -1,0 +1,9 @@
+<map id="yaze::gfx::Tilemap" name="yaze::gfx::Tilemap">
+<area shape="rect" id="Node000001" title=" " alt="" coords="116,198,239,223"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="20,94,138,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,129,168,195,164,199,99,133"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="5,5,153,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="82,47,82,94,76,94,76,47"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1gfx_1_1Pair.html" title=" " alt="" coords="161,94,261,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="205,135,184,198,179,196,200,134"/>
+</map>

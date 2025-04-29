@@ -92,7 +92,7 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "middle_mouse_dragging_", "classyaze_1_1editor_1_1OverworldEditor.html#a3b18afd698c71ab9a5e24665df69f9a1", null ],
     [ "is_dragging_entity_", "classyaze_1_1editor_1_1OverworldEditor.html#a6a201790dc53e63c91e1725826b60b12", null ],
     [ "selected_tile_data_", "classyaze_1_1editor_1_1OverworldEditor.html#aca5189873bd74fb1d80ddd8297a0f02e", null ],
-    [ "tile16_individual_", "classyaze_1_1editor_1_1OverworldEditor.html#adeae1be7883eff31e2cf5f62f2640fc5", null ],
+    [ "tile16_blockset_", "classyaze_1_1editor_1_1OverworldEditor.html#a2f3df4c80fdea88e0b51bf3b74c2097f", null ],
     [ "tile8_individual_data_", "classyaze_1_1editor_1_1OverworldEditor.html#a5ba34209b92bbef6caeac1e68160adfd", null ],
     [ "tile8_individual_", "classyaze_1_1editor_1_1OverworldEditor.html#a3bda3319686a1c48abc447d252eb8106", null ],
     [ "rom_", "classyaze_1_1editor_1_1OverworldEditor.html#a21ddb17c0f6062a9055507fe99553649", null ],

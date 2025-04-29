@@ -1,5 +1,9 @@
 var NAVTREEINDEX29 =
 {
+"flag_8h.html":[13,0,2,3,3],
+"flag_8h.html#ad1de0365ec903537745131d8fc935e59":[13,0,2,3,3,4],
+"flag_8h.html#afed9cfc079d2bb93816dbc1a7b3ec6a3":[13,0,2,3,3,5],
+"flag_8h_source.html":[13,0,2,3,3],
 "font__loader_8cc.html":[13,0,2,0,0,0,9],
 "font__loader_8cc_source.html":[13,0,2,0,0,0,9],
 "font__loader_8h.html":[13,0,2,0,0,0,10],
@@ -245,9 +249,5 @@ var NAVTREEINDEX29 =
 "icons_8h.html#a0aa23122cd31ffdfaa5d163f97e7f20d":[13,0,2,0,4,5,1205],
 "icons_8h.html#a0aac86530c1becc4cdc934b545b1d85a":[13,0,2,0,4,5,1123],
 "icons_8h.html#a0b02253c829c479b9de0b53741f215c0":[13,0,2,0,4,5,728],
-"icons_8h.html#a0b927ed0ff48154ce492532769f6a4a9":[13,0,2,0,4,5,1552],
-"icons_8h.html#a0b9e1f2c1b576b3b13be5d99f2876eb0":[13,0,2,0,4,5,244],
-"icons_8h.html#a0bc9b57d89377202dc321b1db066e66a":[13,0,2,0,4,5,29],
-"icons_8h.html#a0bedf3ac5677e9ca789186272ece7bdd":[13,0,2,0,4,5,543],
-"icons_8h.html#a0c1ee9a40d6f89cb60d0a2fc0b9bb80c":[13,0,2,0,4,5,1331]
+"icons_8h.html#a0b927ed0ff48154ce492532769f6a4a9":[13,0,2,0,4,5,1552]
 };

@@ -1,5 +1,15 @@
 var NAVTREEINDEX46 =
 {
+"spc700_8h.html":[13,0,2,0,2,0,6],
+"spc700_8h_source.html":[13,0,2,0,2,0,6],
+"spc700__test_8cc.html":[13,0,3,0,2],
+"spc700__test_8cc_source.html":[13,0,3,0,2],
+"sprite_8cc.html":[13,0,2,0,5,4,1],
+"sprite_8cc_source.html":[13,0,2,0,5,4,1],
+"sprite_8h.html":[13,0,2,0,5,4,2],
+"sprite_8h_source.html":[13,0,2,0,5,4,2],
+"sprite__builder_8cc.html":[13,0,2,0,5,4,3],
+"sprite__builder_8cc_source.html":[13,0,2,0,5,4,3],
 "sprite__builder_8h.html":[13,0,2,0,5,4,4],
 "sprite__builder_8h_source.html":[13,0,2,0,5,4,4],
 "sprite__builder__test_8cc.html":[13,0,3,3,3],
@@ -239,15 +249,5 @@ var NAVTREEINDEX46 =
 "structyaze_1_1core_1_1FontConfig.html#ad913c3d8ec20cba8e275788f187d8366":[11,0,1,1,6,0],
 "structyaze_1_1core_1_1FontConfig.html#ad913c3d8ec20cba8e275788f187d8366":[12,0,0,1,4,0],
 "structyaze_1_1core_1_1FontState.html":[11,0,1,1,7],
-"structyaze_1_1core_1_1FontState.html":[12,0,0,1,5],
-"structyaze_1_1core_1_1FontState.html#af17219adf12d5520031963b966cf8c5e":[11,0,1,1,7,0],
-"structyaze_1_1core_1_1FontState.html#af17219adf12d5520031963b966cf8c5e":[12,0,0,1,5,0],
-"structyaze_1_1core_1_1MemoryTracker_1_1AllocationInfo.html":[11,0,1,1,8,0],
-"structyaze_1_1core_1_1MemoryTracker_1_1AllocationInfo.html":[12,0,0,1,6,0],
-"structyaze_1_1core_1_1MemoryTracker_1_1AllocationInfo.html#ad56279a51751bfa392609c6ceee3fa95":[11,0,1,1,8,0,1],
-"structyaze_1_1core_1_1MemoryTracker_1_1AllocationInfo.html#ad56279a51751bfa392609c6ceee3fa95":[12,0,0,1,6,0,1],
-"structyaze_1_1core_1_1MemoryTracker_1_1AllocationInfo.html#adeaf82442b8fcd82748b430500194650":[11,0,1,1,8,0,0],
-"structyaze_1_1core_1_1MemoryTracker_1_1AllocationInfo.html#adeaf82442b8fcd82748b430500194650":[12,0,0,1,6,0,0],
-"structyaze_1_1core_1_1SDL__Deleter.html":[11,0,1,1,12],
-"structyaze_1_1core_1_1SDL__Deleter.html":[12,0,0,1,10]
+"structyaze_1_1core_1_1FontState.html":[12,0,0,1,5]
 };

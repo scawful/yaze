@@ -1,6 +1,6 @@
 var classyaze_1_1editor_1_1Tile16Editor =
 [
-    [ "Tile16Editor", "classyaze_1_1editor_1_1Tile16Editor.html#a1ac575f6000886a63ea9a8a7770fef97", null ],
+    [ "Tile16Editor", "classyaze_1_1editor_1_1Tile16Editor.html#a095baedad81e9015b9cbf123e5bd00da", null ],
     [ "Initialize", "classyaze_1_1editor_1_1Tile16Editor.html#a73fff2fe1eaa996f8cc6d10e27eee874", null ],
     [ "Update", "classyaze_1_1editor_1_1Tile16Editor.html#af5248200d63e17797a0e46c5a887289d", null ],
     [ "DrawTile16Editor", "classyaze_1_1editor_1_1Tile16Editor.html#ad90acd59127f0cba15b8acefd02065ba", null ],
@@ -42,7 +42,7 @@ var classyaze_1_1editor_1_1Tile16Editor =
     [ "transfer_canvas_", "classyaze_1_1editor_1_1Tile16Editor.html#aa8dc89c48bd0fd03488d452d2cea9b8f", null ],
     [ "transfer_blockset_bmp_", "classyaze_1_1editor_1_1Tile16Editor.html#ac7d1ac724af2cd2cf2e3687858f2459f", null ],
     [ "tile_edit_table_", "classyaze_1_1editor_1_1Tile16Editor.html#ae8cadf950dd10d0fe608925fcfedb65d", null ],
-    [ "tile16_individual_", "classyaze_1_1editor_1_1Tile16Editor.html#aa2568f7fa6b14237f7c18a25dd48623a", null ],
+    [ "tile16_blockset_", "classyaze_1_1editor_1_1Tile16Editor.html#a293eda8e9f8020e4021af9036d43ccda", null ],
     [ "current_gfx_individual_", "classyaze_1_1editor_1_1Tile16Editor.html#acb44562358c920567893e4e696850039", null ],
     [ "palette_editor_", "classyaze_1_1editor_1_1Tile16Editor.html#a39858d7f26a5bcf4589035d82b2e91c8", null ],
     [ "palette_", "classyaze_1_1editor_1_1Tile16Editor.html#a61adc8f98eb325913960254df65a8545", null ],

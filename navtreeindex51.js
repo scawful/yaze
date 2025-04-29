@@ -1,5 +1,15 @@
 var NAVTREEINDEX51 =
 {
+"structyaze_1_1emu_1_1Spc700_1_1Flags.html#abfac73976535879c723981efdbda96b3":[11,0,1,3,71,0,0],
+"structyaze_1_1emu_1_1Spc700_1_1Flags.html#abfac73976535879c723981efdbda96b3":[12,0,0,3,69,0,0],
+"structyaze_1_1emu_1_1Spc700_1_1Flags.html#acf45a7295d64b098b27ece69e09595ea":[11,0,1,3,71,0,1],
+"structyaze_1_1emu_1_1Spc700_1_1Flags.html#acf45a7295d64b098b27ece69e09595ea":[12,0,0,3,69,0,1],
+"structyaze_1_1emu_1_1Spc700_1_1Flags.html#ae930ff35735e8609a50d5008a98658fb":[11,0,1,3,71,0,7],
+"structyaze_1_1emu_1_1Spc700_1_1Flags.html#ae930ff35735e8609a50d5008a98658fb":[12,0,0,3,69,0,7],
+"structyaze_1_1emu_1_1SpriteAttributes.html":[11,0,1,3,72],
+"structyaze_1_1emu_1_1SpriteAttributes.html":[12,0,0,3,70],
+"structyaze_1_1emu_1_1SpriteAttributes.html#a15385702e34a8bded11703dcd39a9a90":[11,0,1,3,72,1],
+"structyaze_1_1emu_1_1SpriteAttributes.html#a15385702e34a8bded11703dcd39a9a90":[12,0,0,3,70,1],
 "structyaze_1_1emu_1_1SpriteAttributes.html#a327d70eccb4ab5d6096655c792e10f0e":[11,0,1,3,72,2],
 "structyaze_1_1emu_1_1SpriteAttributes.html#a327d70eccb4ab5d6096655c792e10f0e":[12,0,0,3,70,2],
 "structyaze_1_1emu_1_1SpriteAttributes.html#a8dde6e05e8e813977539aaccf264830f":[11,0,1,3,72,0],
@@ -239,15 +249,5 @@ var NAVTREEINDEX51 =
 "structyaze_1_1emu_1_1WindowMaskSettings.html#aa1ff63a8634669d90aa7345396888055":[11,0,1,3,99,1],
 "structyaze_1_1emu_1_1WindowMaskSettings.html#aa1ff63a8634669d90aa7345396888055":[12,0,0,3,97,1],
 "structyaze_1_1emu_1_1WindowMaskSettings.html#abee94fa36883ecd3ab721263a1490a4a":[11,0,1,3,99,4],
-"structyaze_1_1emu_1_1WindowMaskSettings.html#abee94fa36883ecd3ab721263a1490a4a":[12,0,0,3,97,4],
-"structyaze_1_1emu_1_1WindowMaskSettings.html#ae80d7e0b0b49e1f25984548c72088b31":[11,0,1,3,99,3],
-"structyaze_1_1emu_1_1WindowMaskSettings.html#ae80d7e0b0b49e1f25984548c72088b31":[12,0,0,3,97,3],
-"structyaze_1_1emu_1_1WindowMaskSettings2.html":[11,0,1,3,100],
-"structyaze_1_1emu_1_1WindowMaskSettings2.html":[12,0,0,3,98],
-"structyaze_1_1emu_1_1WindowMaskSettings2.html#a010dacbf2416df6686d658a110aef022":[11,0,1,3,100,3],
-"structyaze_1_1emu_1_1WindowMaskSettings2.html#a010dacbf2416df6686d658a110aef022":[12,0,0,3,98,3],
-"structyaze_1_1emu_1_1WindowMaskSettings2.html#a4c9cc044d3929270343f85c9f67925f1":[11,0,1,3,100,1],
-"structyaze_1_1emu_1_1WindowMaskSettings2.html#a4c9cc044d3929270343f85c9f67925f1":[12,0,0,3,98,1],
-"structyaze_1_1emu_1_1WindowMaskSettings2.html#a5e0415b40b8482df305fbf044b990802":[11,0,1,3,100,2],
-"structyaze_1_1emu_1_1WindowMaskSettings2.html#a5e0415b40b8482df305fbf044b990802":[12,0,0,3,98,2]
+"structyaze_1_1emu_1_1WindowMaskSettings.html#abee94fa36883ecd3ab721263a1490a4a":[12,0,0,3,97,4]
 };
