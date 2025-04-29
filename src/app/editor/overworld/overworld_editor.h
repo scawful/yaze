@@ -91,8 +91,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status Save() override;
   absl::Status Clear() override;
 
-  void CleanupUnusedTextures(uint64_t current_time, uint64_t timeout) override;
-
   int jump_to_tab() { return jump_to_tab_; }
   int jump_to_tab_ = -1;
 
@@ -215,11 +213,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool middle_mouse_dragging_ = false;
   bool is_dragging_entity_ = false;
 
-  std::vector<uint8_t> selected_tile_data_;
   gfx::Tilemap tile16_blockset_;
-
-  std::vector<std::vector<uint8_t>> tile8_individual_data_;
-  std::vector<gfx::Bitmap> tile8_individual_;
 
   Rom* rom_;
 

@@ -307,15 +307,6 @@ absl::Status EditorManager::Update() {
         ImGui::End();
       }
     }
-
-    static uint64_t last_cleanup_time = 0;
-    uint64_t current_time = SDL_GetTicks64();
-
-    // Clean up unused textures every 5 seconds
-    if (current_time - last_cleanup_time > 5000) {
-      current_editor_set_->CleanupUnusedTextures(current_time, 5000);
-      last_cleanup_time = current_time;
-    }
   }
 
   if (show_homepage_) {

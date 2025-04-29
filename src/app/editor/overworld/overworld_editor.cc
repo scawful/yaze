@@ -1458,12 +1458,5 @@ absl::Status OverworldEditor::Clear() {
   return absl::OkStatus();
 }
 
-void OverworldEditor::CleanupUnusedTextures(uint64_t current_time,
-                                            uint64_t timeout) {
-  for (auto &bmp : maps_bmp_) {
-    bmp.CleanupUnusedTexture(current_time, timeout);
-  }
-}
-
 }  // namespace editor
 }  // namespace yaze
