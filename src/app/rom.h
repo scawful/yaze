@@ -22,6 +22,7 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
+#include "app/snes.h"
 #include "util/macro.h"
 
 namespace yaze {
@@ -116,50 +117,14 @@ class Rom {
     return status;
   }
 
-  uint8_t& operator[](unsigned long i) {
-    if (i >= size_) throw std::out_of_range("Rom index out of range");
-    return rom_data_[i];
-  }
-
-  bool is_loaded() const { return !rom_data_.empty(); }
-  auto title() const { return title_; }
-  auto size() const { return size_; }
-  auto data() const { return rom_data_.data(); }
-  auto mutable_data() { return rom_data_.data(); }
-  auto begin() { return rom_data_.begin(); }
-  auto end() { return rom_data_.end(); }
-
-  auto vector() const { return rom_data_; }
-  auto filename() const { return filename_; }
-  auto set_filename(std::string name) { filename_ = name; }
-  auto short_name() const { return short_name_; }
-  auto graphics_buffer() const { return graphics_buffer_; }
-  auto mutable_graphics_buffer() { return &graphics_buffer_; }
-  auto palette_group() const { return palette_groups_; }
-  auto mutable_palette_group() { return &palette_groups_; }
-  auto dungeon_palette(int i) { return palette_groups_.dungeon_main[i]; }
-  auto mutable_dungeon_palette(int i) {
-    return palette_groups_.dungeon_main.mutable_palette(i);
-  }
-
-  ResourceLabelManager* resource_label() { return &resource_label_manager_; }
-  zelda3_version_pointers version_constants() const {
-    return kVersionConstantsMap.at(version_);
-  }
-
-  std::array<std::array<uint8_t, 8>, kNumMainBlocksets> main_blockset_ids;
-  std::array<std::array<uint8_t, 4>, kNumRoomBlocksets> room_blockset_ids;
-  std::array<std::array<uint8_t, 4>, kNumSpritesets> spriteset_ids;
-  std::array<std::array<uint8_t, 4>, kNumPalettesets> paletteset_ids;
-
   struct WriteAction {
+    using ValueType =
+        std::variant<int, uint8_t, uint16_t, short, std::vector<uint8_t>,
+                     gfx::SnesColor, std::vector<gfx::SnesColor>>;
     int address;
-    std::variant<int, uint8_t, uint16_t, short, std::vector<uint8_t>,
-                 gfx::SnesColor, std::vector<gfx::SnesColor>>
-        value;
+    ValueType value;
   };
 
- private:
   virtual absl::Status WriteHelper(const WriteAction& action) {
     if (std::holds_alternative<uint8_t>(action.value)) {
       return WriteByte(action.address, std::get<uint8_t>(action.value));
@@ -196,6 +161,42 @@ class Rom {
     return absl::OkStatus();
   }
 
+  uint8_t& operator[](unsigned long i) {
+    if (i >= size_) throw std::out_of_range("Rom index out of range");
+    return rom_data_[i];
+  }
+
+  bool is_loaded() const { return !rom_data_.empty(); }
+  auto title() const { return title_; }
+  auto size() const { return size_; }
+  auto data() const { return rom_data_.data(); }
+  auto mutable_data() { return rom_data_.data(); }
+  auto begin() { return rom_data_.begin(); }
+  auto end() { return rom_data_.end(); }
+  auto vector() const { return rom_data_; }
+  auto filename() const { return filename_; }
+  auto set_filename(std::string name) { filename_ = name; }
+  auto short_name() const { return short_name_; }
+  auto graphics_buffer() const { return graphics_buffer_; }
+  auto mutable_graphics_buffer() { return &graphics_buffer_; }
+  auto palette_group() const { return palette_groups_; }
+  auto mutable_palette_group() { return &palette_groups_; }
+  auto dungeon_palette(int i) { return palette_groups_.dungeon_main[i]; }
+  auto mutable_dungeon_palette(int i) {
+    return palette_groups_.dungeon_main.mutable_palette(i);
+  }
+
+  ResourceLabelManager* resource_label() { return &resource_label_manager_; }
+  zelda3_version_pointers version_constants() const {
+    return kVersionConstantsMap.at(version_);
+  }
+
+  std::array<std::array<uint8_t, 8>, kNumMainBlocksets> main_blockset_ids;
+  std::array<std::array<uint8_t, 4>, kNumRoomBlocksets> room_blockset_ids;
+  std::array<std::array<uint8_t, 4>, kNumSpritesets> spriteset_ids;
+  std::array<std::array<uint8_t, 4>, kNumPalettesets> paletteset_ids;
+
+ private:
   // Size of the ROM data.
   unsigned long size_ = 0;
 
@@ -280,48 +281,6 @@ absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom& rom);
  */
 absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(
     const Rom& rom);
-
-constexpr uint32_t kFastRomRegion = 0x808000;
-
-inline uint32_t SnesToPc(uint32_t addr) noexcept {
-  if (addr >= kFastRomRegion) {
-    addr -= kFastRomRegion;
-  }
-  uint32_t temp = (addr & 0x7FFF) + ((addr / 2) & 0xFF8000);
-  return (temp + 0x0);
-}
-
-inline uint32_t PcToSnes(uint32_t addr) {
-  uint8_t* b = reinterpret_cast<uint8_t*>(&addr);
-  b[2] = static_cast<uint8_t>(b[2] * 2);
-
-  if (b[1] >= 0x80) {
-    b[2] += 1;
-  } else {
-    b[1] += 0x80;
-  }
-
-  return addr;
-}
-
-inline uint32_t Get24LocalFromPC(uint8_t* data, int addr, bool pc = true) {
-  uint32_t ret =
-      (PcToSnes(addr) & 0xFF0000) | (data[addr + 1] << 8) | data[addr];
-  if (pc) {
-    return SnesToPc(ret);
-  }
-  return ret;
-}
-
-inline int AddressFromBytes(uint8_t bank, uint8_t high, uint8_t low) noexcept {
-  return (bank << 16) | (high << 8) | low;
-}
-
-inline uint32_t MapBankToWordAddress(uint8_t bank, uint16_t addr) noexcept {
-  uint32_t result = 0;
-  result = (bank << 16) | addr;
-  return result;
-}
 
 /**
  * @brief A class to hold a shared pointer to a Rom object.

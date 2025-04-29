@@ -223,6 +223,231 @@ absl::Status Rom::LoadFromData(const std::vector<uint8_t> &data, bool z3_load) {
   return absl::OkStatus();
 }
 
+absl::Status Rom::LoadZelda3() {
+  // Check if the ROM has a header
+  constexpr size_t kBaseRomSize = 1048576;  // 1MB
+  constexpr size_t kHeaderSize = 0x200;     // 512 bytes
+  if (size_ % kBaseRomSize == kHeaderSize) {
+    auto header = std::vector<uint8_t>(rom_data_.begin(),
+                                       rom_data_.begin() + kHeaderSize);
+    rom_data_.erase(rom_data_.begin(), rom_data_.begin() + kHeaderSize);
+    size_ -= 0x200;
+  }
+
+  // Copy ROM title
+  constexpr uint32_t kTitleStringOffset = 0x7FC0;
+  constexpr uint32_t kTitleStringLength = 20;
+  title_.resize(kTitleStringLength);
+  std::copy(rom_data_.begin() + kTitleStringOffset,
+            rom_data_.begin() + kTitleStringOffset + kTitleStringLength,
+            title_.begin());
+  if (rom_data_[kTitleStringOffset + 0x19] == 0) {
+    version_ = zelda3_version::JP;
+  } else {
+    version_ = zelda3_version::US;
+  }
+
+  // Load additional resources
+  RETURN_IF_ERROR(gfx::LoadAllPalettes(rom_data_, palette_groups_));
+  // TODO Load gfx groups or expanded ZS values
+  RETURN_IF_ERROR(LoadGfxGroups());
+
+  // Expand the ROM data to 2MB without changing the data in the first 1MB
+  rom_data_.resize(kBaseRomSize * 2);
+  size_ = kBaseRomSize * 2;
+
+  return absl::OkStatus();
+}
+
+absl::Status Rom::LoadGfxGroups() {
+  ASSIGN_OR_RETURN(auto main_blockset_ptr, ReadWord(kGfxGroupsPointer));
+  main_blockset_ptr = SnesToPc(main_blockset_ptr);
+
+  for (uint32_t i = 0; i < kNumMainBlocksets; i++) {
+    for (int j = 0; j < 8; j++) {
+      main_blockset_ids[i][j] = rom_data_[main_blockset_ptr + (i * 8) + j];
+    }
+  }
+
+  for (uint32_t i = 0; i < kNumRoomBlocksets; i++) {
+    for (int j = 0; j < 4; j++) {
+      room_blockset_ids[i][j] = rom_data_[kEntranceGfxGroup + (i * 4) + j];
+    }
+  }
+
+  for (uint32_t i = 0; i < kNumSpritesets; i++) {
+    for (int j = 0; j < 4; j++) {
+      spriteset_ids[i][j] =
+          rom_data_[version_constants().kSpriteBlocksetPointer + (i * 4) + j];
+    }
+  }
+
+  for (uint32_t i = 0; i < kNumPalettesets; i++) {
+    for (int j = 0; j < 4; j++) {
+      paletteset_ids[i][j] =
+          rom_data_[version_constants().kDungeonPalettesGroups + (i * 4) + j];
+    }
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status Rom::SaveGfxGroups() {
+  ASSIGN_OR_RETURN(auto main_blockset_ptr, ReadWord(kGfxGroupsPointer));
+  main_blockset_ptr = SnesToPc(main_blockset_ptr);
+
+  for (uint32_t i = 0; i < kNumMainBlocksets; i++) {
+    for (int j = 0; j < 8; j++) {
+      rom_data_[main_blockset_ptr + (i * 8) + j] = main_blockset_ids[i][j];
+    }
+  }
+
+  for (uint32_t i = 0; i < kNumRoomBlocksets; i++) {
+    for (int j = 0; j < 4; j++) {
+      rom_data_[kEntranceGfxGroup + (i * 4) + j] = room_blockset_ids[i][j];
+    }
+  }
+
+  for (uint32_t i = 0; i < kNumSpritesets; i++) {
+    for (int j = 0; j < 4; j++) {
+      rom_data_[version_constants().kSpriteBlocksetPointer + (i * 4) + j] =
+          spriteset_ids[i][j];
+    }
+  }
+
+  for (uint32_t i = 0; i < kNumPalettesets; i++) {
+    for (int j = 0; j < 4; j++) {
+      rom_data_[version_constants().kDungeonPalettesGroups + (i * 4) + j] =
+          paletteset_ids[i][j];
+    }
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
+  absl::Status non_firing_status;
+  if (rom_data_.empty()) {
+    return absl::InternalError("ROM data is empty.");
+  }
+
+  // Check if filename is empty
+  if (filename == "") {
+    filename = filename_;
+  }
+
+  // Check if backup is enabled
+  if (backup) {
+    // Create a backup file with timestamp in its name
+    auto now = std::chrono::system_clock::now();
+    auto now_c = std::chrono::system_clock::to_time_t(now);
+    std::string backup_filename =
+        absl::StrCat(filename, "_backup_", std::ctime(&now_c));
+
+    // Remove newline character from ctime()
+    backup_filename.erase(
+        std::remove(backup_filename.begin(), backup_filename.end(), '\n'),
+        backup_filename.end());
+
+    // Replace spaces with underscores
+    std::replace(backup_filename.begin(), backup_filename.end(), ' ', '_');
+
+    // Now, copy the original file to the backup file
+    try {
+      std::filesystem::copy(filename_, backup_filename,
+                            std::filesystem::copy_options::overwrite_existing);
+    } catch (const std::filesystem::filesystem_error &e) {
+      non_firing_status = absl::InternalError(absl::StrCat(
+          "Could not create backup file: ", backup_filename, " - ", e.what()));
+    }
+  }
+
+  // Run the other save functions
+  if (core::FeatureFlags::get().kSaveAllPalettes)
+    RETURN_IF_ERROR(SaveAllPalettes());
+  if (core::FeatureFlags::get().kSaveGfxGroups)
+    RETURN_IF_ERROR(SaveGfxGroups());
+
+  if (save_new) {
+    // Create a file of the same name and append the date between the filename
+    // and file extension
+    auto now = std::chrono::system_clock::now();
+    auto now_c = std::chrono::system_clock::to_time_t(now);
+    auto filename_no_ext = filename.substr(0, filename.find_last_of("."));
+    std::cout << filename_no_ext << std::endl;
+    filename = absl::StrCat(filename_no_ext, "_", std::ctime(&now_c));
+    // Remove spaces from new_filename and replace with _
+    filename.erase(std::remove(filename.begin(), filename.end(), ' '),
+                   filename.end());
+    // Remove newline character from ctime()
+    filename.erase(std::remove(filename.begin(), filename.end(), '\n'),
+                   filename.end());
+    // Add the file extension back to the new_filename
+    filename = filename + ".sfc";
+    std::cout << filename << std::endl;
+  }
+
+  // Open the file that we know exists for writing
+  std::ofstream file(filename.data(), std::ios::binary | std::ios::app);
+  if (!file) {
+    // Create the file if it does not exist
+    file.open(filename.data(), std::ios::binary);
+    if (!file) {
+      return absl::InternalError(
+          absl::StrCat("Could not open or create ROM file: ", filename));
+    }
+  }
+
+  // Save the data to the file
+  try {
+    file.write(
+        static_cast<const char *>(static_cast<const void *>(rom_data_.data())),
+        rom_data_.size());
+  } catch (const std::ofstream::failure &e) {
+    return absl::InternalError(absl::StrCat(
+        "Error while writing to ROM file: ", filename, " - ", e.what()));
+  }
+
+  // Check for write errors
+  if (!file) {
+    return absl::InternalError(
+        absl::StrCat("Error while writing to ROM file: ", filename));
+  }
+
+  if (!non_firing_status.ok()) {
+    return non_firing_status;
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status Rom::SavePalette(int index, const std::string &group_name,
+                              gfx::SnesPalette &palette) {
+  for (size_t j = 0; j < palette.size(); ++j) {
+    gfx::SnesColor color = palette[j];
+    // If the color is modified, save the color to the ROM
+    if (color.is_modified()) {
+      RETURN_IF_ERROR(
+          WriteColor(gfx::GetPaletteAddress(group_name, index, j), color));
+      color.set_modified(false);  // Reset the modified flag after saving
+    }
+  }
+  return absl::OkStatus();
+}
+
+absl::Status Rom::SaveAllPalettes() {
+  RETURN_IF_ERROR(
+      palette_groups_.for_each([&](gfx::PaletteGroup &group) -> absl::Status {
+        for (size_t i = 0; i < group.size(); ++i) {
+          RETURN_IF_ERROR(
+              SavePalette(i, group.name(), *group.mutable_palette(i)));
+        }
+        return absl::OkStatus();
+      }));
+
+  return absl::OkStatus();
+}
+
 absl::StatusOr<uint8_t> Rom::ReadByte(int offset) {
   if (offset >= static_cast<int>(rom_data_.size())) {
     return absl::FailedPreconditionError("Offset out of range");
@@ -358,231 +583,6 @@ absl::Status Rom::WriteColor(uint32_t address, const gfx::SnesColor &color) {
   // Write the 16-bit color value to the ROM at the specified address
   util::logf("WriteColor: %#06X: %s", address, util::HexWord(bgr).data());
   return WriteShort(address, bgr);
-}
-
-absl::Status Rom::LoadZelda3() {
-  // Check if the ROM has a header
-  constexpr size_t kBaseRomSize = 1048576;  // 1MB
-  constexpr size_t kHeaderSize = 0x200;     // 512 bytes
-  if (size_ % kBaseRomSize == kHeaderSize) {
-    auto header = std::vector<uint8_t>(rom_data_.begin(),
-                                       rom_data_.begin() + kHeaderSize);
-    rom_data_.erase(rom_data_.begin(), rom_data_.begin() + kHeaderSize);
-    size_ -= 0x200;
-  }
-
-  // Copy ROM title
-  constexpr uint32_t kTitleStringOffset = 0x7FC0;
-  constexpr uint32_t kTitleStringLength = 20;
-  title_.resize(kTitleStringLength);
-  std::copy(rom_data_.begin() + kTitleStringOffset,
-            rom_data_.begin() + kTitleStringOffset + kTitleStringLength,
-            title_.begin());
-  if (rom_data_[kTitleStringOffset + 0x19] == 0) {
-    version_ = zelda3_version::JP;
-  } else {
-    version_ = zelda3_version::US;
-  }
-
-  // Load additional resources
-  RETURN_IF_ERROR(gfx::LoadAllPalettes(rom_data_, palette_groups_));
-  // TODO Load gfx groups or expanded ZS values
-  RETURN_IF_ERROR(LoadGfxGroups());
-
-  // Expand the ROM data to 2MB without changing the data in the first 1MB
-  rom_data_.resize(kBaseRomSize * 2);
-  size_ = kBaseRomSize * 2;
-
-  return absl::OkStatus();
-}
-
-absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
-  absl::Status non_firing_status;
-  if (rom_data_.empty()) {
-    return absl::InternalError("ROM data is empty.");
-  }
-
-  // Check if filename is empty
-  if (filename == "") {
-    filename = filename_;
-  }
-
-  // Check if backup is enabled
-  if (backup) {
-    // Create a backup file with timestamp in its name
-    auto now = std::chrono::system_clock::now();
-    auto now_c = std::chrono::system_clock::to_time_t(now);
-    std::string backup_filename =
-        absl::StrCat(filename, "_backup_", std::ctime(&now_c));
-
-    // Remove newline character from ctime()
-    backup_filename.erase(
-        std::remove(backup_filename.begin(), backup_filename.end(), '\n'),
-        backup_filename.end());
-
-    // Replace spaces with underscores
-    std::replace(backup_filename.begin(), backup_filename.end(), ' ', '_');
-
-    // Now, copy the original file to the backup file
-    try {
-      std::filesystem::copy(filename_, backup_filename,
-                            std::filesystem::copy_options::overwrite_existing);
-    } catch (const std::filesystem::filesystem_error &e) {
-      non_firing_status = absl::InternalError(absl::StrCat(
-          "Could not create backup file: ", backup_filename, " - ", e.what()));
-    }
-  }
-
-  // Run the other save functions
-  if (core::FeatureFlags::get().kSaveAllPalettes)
-    RETURN_IF_ERROR(SaveAllPalettes());
-  if (core::FeatureFlags::get().kSaveGfxGroups)
-    RETURN_IF_ERROR(SaveGfxGroups());
-
-  if (save_new) {
-    // Create a file of the same name and append the date between the filename
-    // and file extension
-    auto now = std::chrono::system_clock::now();
-    auto now_c = std::chrono::system_clock::to_time_t(now);
-    auto filename_no_ext = filename.substr(0, filename.find_last_of("."));
-    std::cout << filename_no_ext << std::endl;
-    filename = absl::StrCat(filename_no_ext, "_", std::ctime(&now_c));
-    // Remove spaces from new_filename and replace with _
-    filename.erase(std::remove(filename.begin(), filename.end(), ' '),
-                   filename.end());
-    // Remove newline character from ctime()
-    filename.erase(std::remove(filename.begin(), filename.end(), '\n'),
-                   filename.end());
-    // Add the file extension back to the new_filename
-    filename = filename + ".sfc";
-    std::cout << filename << std::endl;
-  }
-
-  // Open the file that we know exists for writing
-  std::ofstream file(filename.data(), std::ios::binary | std::ios::app);
-  if (!file) {
-    // Create the file if it does not exist
-    file.open(filename.data(), std::ios::binary);
-    if (!file) {
-      return absl::InternalError(
-          absl::StrCat("Could not open or create ROM file: ", filename));
-    }
-  }
-
-  // Save the data to the file
-  try {
-    file.write(
-        static_cast<const char *>(static_cast<const void *>(rom_data_.data())),
-        rom_data_.size());
-  } catch (const std::ofstream::failure &e) {
-    return absl::InternalError(absl::StrCat(
-        "Error while writing to ROM file: ", filename, " - ", e.what()));
-  }
-
-  // Check for write errors
-  if (!file) {
-    return absl::InternalError(
-        absl::StrCat("Error while writing to ROM file: ", filename));
-  }
-
-  if (!non_firing_status.ok()) {
-    return non_firing_status;
-  }
-
-  return absl::OkStatus();
-}
-
-absl::Status Rom::SavePalette(int index, const std::string &group_name,
-                              gfx::SnesPalette &palette) {
-  for (size_t j = 0; j < palette.size(); ++j) {
-    gfx::SnesColor color = palette[j];
-    // If the color is modified, save the color to the ROM
-    if (color.is_modified()) {
-      RETURN_IF_ERROR(
-          WriteColor(gfx::GetPaletteAddress(group_name, index, j), color));
-      color.set_modified(false);  // Reset the modified flag after saving
-    }
-  }
-  return absl::OkStatus();
-}
-
-absl::Status Rom::SaveAllPalettes() {
-  RETURN_IF_ERROR(
-      palette_groups_.for_each([&](gfx::PaletteGroup &group) -> absl::Status {
-        for (size_t i = 0; i < group.size(); ++i) {
-          RETURN_IF_ERROR(
-              SavePalette(i, group.name(), *group.mutable_palette(i)));
-        }
-        return absl::OkStatus();
-      }));
-
-  return absl::OkStatus();
-}
-
-absl::Status Rom::LoadGfxGroups() {
-  ASSIGN_OR_RETURN(auto main_blockset_ptr, ReadWord(kGfxGroupsPointer));
-  main_blockset_ptr = SnesToPc(main_blockset_ptr);
-
-  for (uint32_t i = 0; i < kNumMainBlocksets; i++) {
-    for (int j = 0; j < 8; j++) {
-      main_blockset_ids[i][j] = rom_data_[main_blockset_ptr + (i * 8) + j];
-    }
-  }
-
-  for (uint32_t i = 0; i < kNumRoomBlocksets; i++) {
-    for (int j = 0; j < 4; j++) {
-      room_blockset_ids[i][j] = rom_data_[kEntranceGfxGroup + (i * 4) + j];
-    }
-  }
-
-  for (uint32_t i = 0; i < kNumSpritesets; i++) {
-    for (int j = 0; j < 4; j++) {
-      spriteset_ids[i][j] =
-          rom_data_[version_constants().kSpriteBlocksetPointer + (i * 4) + j];
-    }
-  }
-
-  for (uint32_t i = 0; i < kNumPalettesets; i++) {
-    for (int j = 0; j < 4; j++) {
-      paletteset_ids[i][j] =
-          rom_data_[version_constants().kDungeonPalettesGroups + (i * 4) + j];
-    }
-  }
-
-  return absl::OkStatus();
-}
-
-absl::Status Rom::SaveGfxGroups() {
-  ASSIGN_OR_RETURN(auto main_blockset_ptr, ReadWord(kGfxGroupsPointer));
-  main_blockset_ptr = SnesToPc(main_blockset_ptr);
-
-  for (uint32_t i = 0; i < kNumMainBlocksets; i++) {
-    for (int j = 0; j < 8; j++) {
-      rom_data_[main_blockset_ptr + (i * 8) + j] = main_blockset_ids[i][j];
-    }
-  }
-
-  for (uint32_t i = 0; i < kNumRoomBlocksets; i++) {
-    for (int j = 0; j < 4; j++) {
-      rom_data_[kEntranceGfxGroup + (i * 4) + j] = room_blockset_ids[i][j];
-    }
-  }
-
-  for (uint32_t i = 0; i < kNumSpritesets; i++) {
-    for (int j = 0; j < 4; j++) {
-      rom_data_[version_constants().kSpriteBlocksetPointer + (i * 4) + j] =
-          spriteset_ids[i][j];
-    }
-  }
-
-  for (uint32_t i = 0; i < kNumPalettesets; i++) {
-    for (int j = 0; j < 4; j++) {
-      rom_data_[version_constants().kDungeonPalettesGroups + (i * 4) + j] =
-          paletteset_ids[i][j];
-    }
-  }
-
-  return absl::OkStatus();
 }
 
 std::shared_ptr<Rom> SharedRom::shared_rom_ = nullptr;
