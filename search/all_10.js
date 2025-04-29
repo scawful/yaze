@@ -146,7 +146,7 @@ var searchData=
   ['gnu_20linux_143',['GNU/Linux',['../md_docs_2build-instructions.html#autotoc_md17',1,'']]],
   ['graphics_5fbin_5f_144',['graphics_bin_',['../classyaze_1_1editor_1_1DungeonEditor.html#ac3b5233f2e7563ef9c06eb1290861f93',1,'yaze::editor::DungeonEditor']]],
   ['graphics_5fbin_5fcanvas_5f_145',['graphics_bin_canvas_',['../classyaze_1_1editor_1_1GraphicsEditor.html#af43d671e88e319d9a63aedeeb9d437c2',1,'yaze::editor::GraphicsEditor::graphics_bin_canvas_'],['../classyaze_1_1editor_1_1OverworldEditor.html#ad50b76ad7d4a49ac8f5ea1ce940e6b74',1,'yaze::editor::OverworldEditor::graphics_bin_canvas_']]],
-  ['graphics_5fbuffer_146',['graphics_buffer',['../classyaze_1_1Rom.html#a29d16ebe60373eea971fb9f0379217b9',1,'yaze::Rom::graphics_buffer()'],['../classyaze_1_1test_1_1Rom.html#a29d16ebe60373eea971fb9f0379217b9',1,'yaze::test::Rom::graphics_buffer()']]],
+  ['graphics_5fbuffer_146',['graphics_buffer',['../classyaze_1_1Rom.html#afb7fc8f9976087dd4cd51f936d12369f',1,'yaze::Rom::graphics_buffer()'],['../classyaze_1_1test_1_1Rom.html#afb7fc8f9976087dd4cd51f936d12369f',1,'yaze::test::Rom::graphics_buffer()']]],
   ['graphics_5fbuffer_5f_147',['graphics_buffer_',['../classyaze_1_1editor_1_1GraphicsEditor.html#a60173ccc66c96004f5194089ef4a3c67',1,'yaze::editor::GraphicsEditor::graphics_buffer_'],['../classyaze_1_1Rom.html#a973094927e5a266698d40d834fc26f5c',1,'yaze::Rom::graphics_buffer_'],['../classyaze_1_1test_1_1Rom.html#a973094927e5a266698d40d834fc26f5c',1,'yaze::test::Rom::graphics_buffer_']]],
   ['graphics_5feditor_2ecc_148',['graphics_editor.cc',['../graphics__editor_8cc.html',1,'']]],
   ['graphics_5feditor_2eh_149',['graphics_editor.h',['../graphics__editor_8h.html',1,'']]],

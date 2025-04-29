@@ -114,26 +114,26 @@ $(function(){initNavTree('yaze_8h.html',''); initResizable(true); });
   <div class="headertitle"><div class="title">yaze.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;stddef.h&gt;</code><br />
+<div class="textblock"><code>#include &lt;stdbool.h&gt;</code><br />
+<code>#include &lt;stddef.h&gt;</code><br />
 <code>#include &lt;stdint.h&gt;</code><br />
-<code>#include &quot;<a class="el" href="incl_2snes_8h_source.html">snes.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="zelda_8h_source.html">zelda.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for yaze.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="yaze_8h__incl.png" border="0" usemap="#aincl_2yaze_8h" alt=""/></div>
 <map name="aincl_2yaze_8h" id="aincl_2yaze_8h">
-<area shape="rect" title=" " alt="" coords="102,5,184,31"/>
-<area shape="rect" title=" " alt="" coords="5,79,73,105"/>
-<area shape="poly" title=" " alt="" coords="127,34,71,72,68,68,124,29"/>
-<area shape="rect" title=" " alt="" coords="145,153,208,178"/>
-<area shape="poly" title=" " alt="" coords="142,32,135,65,134,85,138,104,146,122,157,139,153,142,141,125,132,105,129,85,130,65,136,31"/>
-<area shape="rect" href="incl_2snes_8h.html" title=" " alt="" coords="147,79,206,105"/>
-<area shape="poly" title=" " alt="" coords="151,30,167,64,162,66,146,32"/>
-<area shape="rect" href="zelda_8h.html" title=" " alt="" coords="230,79,291,105"/>
-<area shape="poly" title=" " alt="" coords="164,29,229,68,226,73,162,34"/>
-<area shape="poly" title=" " alt="" coords="179,105,179,137,174,137,174,105"/>
-<area shape="poly" title=" " alt="" coords="248,107,204,144,200,140,244,103"/>
+<area shape="rect" title=" " alt="" coords="83,5,164,31"/>
+<area shape="rect" title=" " alt="" coords="5,153,79,178"/>
+<area shape="poly" title=" " alt="" coords="93,34,61,53,47,65,36,80,32,94,30,109,35,138,30,138,25,109,26,93,32,78,43,62,58,48,90,29"/>
+<area shape="rect" title=" " alt="" coords="46,79,113,105"/>
+<area shape="poly" title=" " alt="" coords="118,33,97,67,93,64,114,30"/>
+<area shape="rect" title=" " alt="" coords="169,153,232,178"/>
+<area shape="poly" title=" " alt="" coords="156,29,187,48,201,62,212,78,218,93,219,109,214,139,208,138,213,109,212,94,208,80,197,65,184,53,153,34"/>
+<area shape="rect" href="zelda_8h.html" title=" " alt="" coords="137,79,198,105"/>
+<area shape="poly" title=" " alt="" coords="133,30,154,64,150,67,128,33"/>
+<area shape="poly" title=" " alt="" coords="147,108,78,147,75,142,145,103"/>
+<area shape="poly" title=" " alt="" coords="175,104,191,137,186,140,170,106"/>
 </map>
 </div>
 </div>
@@ -146,6 +146,20 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze__project.html">yaze_project</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze__bitmap.html">yaze_bitmap</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsnes__color.html">snes_color</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of 16-bit RGB SNES color.  <a href="structsnes__color.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsnes__palette.html">snes_palette</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of a SNES color palette.  <a href="structsnes__palette.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsnes__tile8.html">snes_tile8</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsnes__tile__info.html">snes_tile_info</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsnes__tile16.html">snes_tile16</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsnes__tile32.html">snes_tile32</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze__extension.html">yaze_extension</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extension interface for Yaze.  <a href="structyaze__extension.html#details">More...</a><br /></td></tr>
@@ -161,6 +175,20 @@ Typedefs</h2></td></tr>
 <tr class="separator:afa3b4d947347ed413689dcd80458ec0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5ba242cd4dc0870e4e4d6f943a1ad7a7" id="r_a5ba242cd4dc0870e4e4d6f943a1ad7a7"><td class="memItemLeft" align="right" valign="top">typedef struct yaze_bitmap&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5ba242cd4dc0870e4e4d6f943a1ad7a7">yaze_bitmap</a></td></tr>
 <tr class="separator:a5ba242cd4dc0870e4e4d6f943a1ad7a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7010d1b3caf12995e0ecb41a1c446b94" id="r_a7010d1b3caf12995e0ecb41a1c446b94"><td class="memItemLeft" align="right" valign="top">typedef struct snes_color&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7010d1b3caf12995e0ecb41a1c446b94">snes_color</a></td></tr>
+<tr class="memdesc:a7010d1b3caf12995e0ecb41a1c446b94"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of 16-bit RGB SNES color.  <br /></td></tr>
+<tr class="separator:a7010d1b3caf12995e0ecb41a1c446b94"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a100f9af9f8e1bb9d2ad73476ab774655" id="r_a100f9af9f8e1bb9d2ad73476ab774655"><td class="memItemLeft" align="right" valign="top">typedef struct snes_palette&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a100f9af9f8e1bb9d2ad73476ab774655">snes_palette</a></td></tr>
+<tr class="memdesc:a100f9af9f8e1bb9d2ad73476ab774655"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of a SNES color palette.  <br /></td></tr>
+<tr class="separator:a100f9af9f8e1bb9d2ad73476ab774655"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa57d3ad47df22165528207d494c563b2" id="r_aa57d3ad47df22165528207d494c563b2"><td class="memItemLeft" align="right" valign="top">typedef struct snes_tile8&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa57d3ad47df22165528207d494c563b2">snes_tile8</a></td></tr>
+<tr class="separator:aa57d3ad47df22165528207d494c563b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a38e287988459276888c8616ac482a814" id="r_a38e287988459276888c8616ac482a814"><td class="memItemLeft" align="right" valign="top">typedef struct snes_tile_info&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a38e287988459276888c8616ac482a814">snes_tile_info</a></td></tr>
+<tr class="separator:a38e287988459276888c8616ac482a814"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa2e0547a0d9563272f35e2c01ad12d84" id="r_aa2e0547a0d9563272f35e2c01ad12d84"><td class="memItemLeft" align="right" valign="top">typedef struct snes_tile16&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa2e0547a0d9563272f35e2c01ad12d84">snes_tile16</a></td></tr>
+<tr class="separator:aa2e0547a0d9563272f35e2c01ad12d84"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a484dd55f0e7ececd8310a787de4ecb9f" id="r_a484dd55f0e7ececd8310a787de4ecb9f"><td class="memItemLeft" align="right" valign="top">typedef struct snes_tile32&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a484dd55f0e7ececd8310a787de4ecb9f">snes_tile32</a></td></tr>
+<tr class="separator:a484dd55f0e7ececd8310a787de4ecb9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab5ab0deeeaa063d2e5564c5f12900421" id="r_ab5ab0deeeaa063d2e5564c5f12900421"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab5ab0deeeaa063d2e5564c5f12900421">yaze_initialize_func</a>) (<a class="el" href="structyaze__editor__context.html">yaze_editor_context</a> *context)</td></tr>
 <tr class="separator:ab5ab0deeeaa063d2e5564c5f12900421"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a75ef22f3a15fb60314f902a5bf7d0b7e" id="r_a75ef22f3a15fb60314f902a5bf7d0b7e"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a75ef22f3a15fb60314f902a5bf7d0b7e">yaze_cleanup_func</a>) (void)</td></tr>
@@ -257,6 +285,94 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a7010d1b3caf12995e0ecb41a1c446b94" name="a7010d1b3caf12995e0ecb41a1c446b94"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7010d1b3caf12995e0ecb41a1c446b94">&#9670;&#160;</a></span>snes_color</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct snes_color snes_color</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Primitive of 16-bit RGB SNES color. </p>
+
+</div>
+</div>
+<a id="a100f9af9f8e1bb9d2ad73476ab774655" name="a100f9af9f8e1bb9d2ad73476ab774655"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a100f9af9f8e1bb9d2ad73476ab774655">&#9670;&#160;</a></span>snes_palette</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct snes_palette snes_palette</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Primitive of a SNES color palette. </p>
+
+</div>
+</div>
+<a id="aa57d3ad47df22165528207d494c563b2" name="aa57d3ad47df22165528207d494c563b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa57d3ad47df22165528207d494c563b2">&#9670;&#160;</a></span>snes_tile8</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct snes_tile8 snes_tile8</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a38e287988459276888c8616ac482a814" name="a38e287988459276888c8616ac482a814"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a38e287988459276888c8616ac482a814">&#9670;&#160;</a></span>snes_tile_info</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct snes_tile_info snes_tile_info</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa2e0547a0d9563272f35e2c01ad12d84" name="aa2e0547a0d9563272f35e2c01ad12d84"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa2e0547a0d9563272f35e2c01ad12d84">&#9670;&#160;</a></span>snes_tile16</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct snes_tile16 snes_tile16</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a484dd55f0e7ececd8310a787de4ecb9f" name="a484dd55f0e7ececd8310a787de4ecb9f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a484dd55f0e7ececd8310a787de4ecb9f">&#9670;&#160;</a></span>snes_tile32</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct snes_tile32 snes_tile32</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ab5ab0deeeaa063d2e5564c5f12900421" name="ab5ab0deeeaa063d2e5564c5f12900421"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab5ab0deeeaa063d2e5564c5f12900421">&#9670;&#160;</a></span>yaze_initialize_func</h2>
 
@@ -269,7 +385,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00061">61</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00104">104</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
 
 </div>
 </div>
@@ -285,7 +401,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00062">62</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00105">105</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
 
 </div>
 </div>
@@ -527,7 +643,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00131">131</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="incl_2snes_8h_source.html#l00016">snes_color::blue</a>, <a class="el" href="incl_2snes_8h_source.html#l00017">snes_color::green</a>, <a class="el" href="zelda_8h_source.html#l00091">zelda3_rom::impl</a>, <a class="el" href="snes__palette_8h_source.html#l00053">yaze::gfx::kPaletteGroupAddressesKeys</a>, <a class="el" href="rom_8h_source.html#l00174">yaze::Rom::palette_group()</a>, and <a class="el" href="incl_2snes_8h_source.html#l00015">snes_color::red</a>.</p>
+<p class="reference">References <a class="el" href="yaze_8h_source.html#l00058">snes_color::blue</a>, <a class="el" href="yaze_8h_source.html#l00059">snes_color::green</a>, <a class="el" href="zelda_8h_source.html#l00091">zelda3_rom::impl</a>, <a class="el" href="snes__palette_8h_source.html#l00053">yaze::gfx::kPaletteGroupAddressesKeys</a>, <a class="el" href="rom_8h_source.html#l00138">yaze::Rom::palette_group()</a>, and <a class="el" href="yaze_8h_source.html#l00057">snes_color::red</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

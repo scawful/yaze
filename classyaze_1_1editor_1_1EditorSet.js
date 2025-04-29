@@ -1,7 +1,6 @@
 var classyaze_1_1editor_1_1EditorSet =
 [
     [ "EditorSet", "classyaze_1_1editor_1_1EditorSet.html#a641ff69b331c7a79c26dd4228726c3da", null ],
-    [ "CleanupUnusedTextures", "classyaze_1_1editor_1_1EditorSet.html#a5a94ca8f12fee87fa54ddb35a00840d8", null ],
     [ "assembly_editor_", "classyaze_1_1editor_1_1EditorSet.html#ac073c43793ade0d820758bd6d7175322", null ],
     [ "dungeon_editor_", "classyaze_1_1editor_1_1EditorSet.html#a094b7d7c17157d507b4700a1042d4b75", null ],
     [ "graphics_editor_", "classyaze_1_1editor_1_1EditorSet.html#a75df97875600232e9193257a7c59a06a", null ],

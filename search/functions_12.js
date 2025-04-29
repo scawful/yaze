@@ -9,7 +9,7 @@ var searchData=
   ['saveentrances_6',['SaveEntrances',['../classyaze_1_1zelda3_1_1Overworld.html#a923a256c45ae441f308cceb87b3a7a98',1,'yaze::zelda3::Overworld']]],
   ['saveexits_7',['SaveExits',['../classyaze_1_1zelda3_1_1Overworld.html#a958274446b83944244d1d17e0e955c84',1,'yaze::zelda3::Overworld']]],
   ['savefile_8',['SaveFile',['../namespaceyaze_1_1core.html#ad2f59a19103453af1c33ddd072d81f07',1,'yaze::core']]],
-  ['savegroupstorom_9',['SaveGroupsToRom',['../classyaze_1_1Rom.html#a221aba175da42c9237011a45bc9a19d4',1,'yaze::Rom::SaveGroupsToRom()'],['../classyaze_1_1test_1_1Rom.html#a221aba175da42c9237011a45bc9a19d4',1,'yaze::test::Rom::SaveGroupsToRom()']]],
+  ['savegfxgroups_9',['SaveGfxGroups',['../classyaze_1_1Rom.html#a98c204a2d036977bfceeee747d1579dd',1,'yaze::Rom::SaveGfxGroups()'],['../classyaze_1_1test_1_1Rom.html#a98c204a2d036977bfceeee747d1579dd',1,'yaze::test::Rom::SaveGfxGroups()']]],
   ['saveitems_10',['SaveItems',['../classyaze_1_1zelda3_1_1Overworld.html#aa35cdb20fc6f6ff4fee9a355cf37d0bb',1,'yaze::zelda3::Overworld']]],
   ['savekeybindings_11',['SaveKeybindings',['../classyaze_1_1editor_1_1CommandManager.html#adc4086ea45a3cd7d3c8da5540d15fea4',1,'yaze::editor::CommandManager']]],
   ['savelabels_12',['SaveLabels',['../structyaze_1_1ResourceLabelManager.html#ad9100d41427354258a6777152ed281c0',1,'yaze::ResourceLabelManager']]],

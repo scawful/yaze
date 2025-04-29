@@ -13,7 +13,6 @@ var classyaze_1_1editor_1_1Editor =
     [ "Redo", "classyaze_1_1editor_1_1Editor.html#a127b4d84d1a76c5af2998a1a30f45e95", null ],
     [ "Find", "classyaze_1_1editor_1_1Editor.html#aac357035ff66579bbad4181c5aa47e56", null ],
     [ "Clear", "classyaze_1_1editor_1_1Editor.html#a64935d8998b4748ca14b9865a65e5ac2", null ],
-    [ "CleanupUnusedTextures", "classyaze_1_1editor_1_1Editor.html#addec01921dc606712f0877859e69c11e", null ],
     [ "type", "classyaze_1_1editor_1_1Editor.html#a65af614b04a79925a1a4c702597521b0", null ],
     [ "set_context", "classyaze_1_1editor_1_1Editor.html#a027446f4b4564fe8db76db7b865d991e", null ],
     [ "active", "classyaze_1_1editor_1_1Editor.html#a452299050ad2b9d197ab90c9b56dd61a", null ],

@@ -8,5 +8,5 @@ var dir_1f6e893081ea55766fadff5a66800644 =
     [ "emulator.cc", "emulator_8cc.html", "emulator_8cc" ],
     [ "emulator.h", "emulator_8h.html", "emulator_8h" ],
     [ "snes.cc", "snes_8cc.html", "snes_8cc" ],
-    [ "snes.h", "src_2app_2emu_2snes_8h.html", "src_2app_2emu_2snes_8h" ]
+    [ "snes.h", "snes_8h.html", "snes_8h" ]
 ];
