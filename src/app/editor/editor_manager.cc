@@ -551,8 +551,9 @@ absl::Status EditorManager::LoadAssets() {
   auto &sheet_manager = GraphicsSheetManager::GetInstance();
   ASSIGN_OR_RETURN(*sheet_manager.mutable_gfx_sheets(),
                    LoadAllGraphicsData(*current_rom_));
-  RETURN_IF_ERROR(current_editor_set_->overworld_editor_.Load());
-  RETURN_IF_ERROR(current_editor_set_->dungeon_editor_.Load());
+  for (auto &editor : current_editor_set_->active_editors_) {
+    RETURN_IF_ERROR(editor->Load());
+  }
   return absl::OkStatus();
 }
 

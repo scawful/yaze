@@ -140,14 +140,6 @@ class EditorSet {
   MemoryEditorWithDiffChecker memory_editor_;
 
   std::vector<Editor*> active_editors_;
-
-  void CleanupUnusedTextures(uint64_t current_time, uint64_t timeout) {
-    if (active_editors_.size() > 0) {
-      for (auto editor : active_editors_) {
-        editor->CleanupUnusedTextures(current_time, timeout);
-      }
-    }
-  }
 };
 
 }  // namespace editor
