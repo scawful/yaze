@@ -60,6 +60,13 @@ class TileInfo {
         vertical_mirror_(v),
         horizontal_mirror_(h),
         palette_(palette) {}
+  TileInfo(uint8_t b1, uint8_t b2) {
+    id_ = (uint16_t)(((b2 & 0x01) << 8) + (b1));
+    vertical_mirror_ = (b2 & 0x80) == 0x80;
+    horizontal_mirror_ = (b2 & 0x40) == 0x40;
+    over_ = (b2 & 0x20) == 0x20;
+    palette_ = (b2 >> 2) & 0x07;
+  }
 
   bool operator==(const TileInfo& other) const {
     return id_ == other.id_ && over_ == other.over_ &&
