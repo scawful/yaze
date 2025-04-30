@@ -7,7 +7,6 @@
 #include <string_view>
 #include <vector>
 
-#include "app/gfx/bitmap.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/sprite/sprite.h"
@@ -198,23 +197,24 @@ enum TagKey {
   Kill_boss_Again
 };
 
-class Room : public SharedRom {
+class Room {
  public:
-  Room(int room_id) : room_id_(room_id) {}
+  Room() = default;
+  Room(int room_id, Rom *rom) : room_id_(room_id), rom_(rom) {}
 
   void LoadRoomGraphics(uint8_t entrance_blockset = 0xFF);
   void CopyRoomGraphicsToBuffer();
   void LoadAnimatedGraphics();
-
   void LoadObjects();
   void LoadSprites();
   void LoadChests();
 
   auto blocks() const { return blocks_; }
   auto &mutable_blocks() { return blocks_; }
-  auto &layer1() { return background_bmps_[0]; }
-  auto &layer2() { return background_bmps_[1]; }
-  auto &layer3() { return background_bmps_[2]; }
+  auto rom() { return rom_; }
+  auto mutable_rom() { return rom_; }
+
+  Rom *rom_;
 
   uint8_t blockset = 0;
   uint8_t spriteset = 0;
@@ -223,13 +223,9 @@ class Room : public SharedRom {
   uint8_t holewarp = 0;
   uint8_t floor1 = 0;
   uint8_t floor2 = 0;
-
   uint16_t message_id_ = 0;
 
-  gfx::Bitmap current_graphics_;
-  std::vector<uint8_t> bg1_buffer_;
-  std::vector<uint8_t> bg2_buffer_;
-  std::vector<uint8_t> current_gfx16_;
+  std::array<uint8_t, 0x4000> current_gfx16_;
 
   bool is_light_;
   bool is_loaded_;
@@ -253,7 +249,6 @@ class Room : public SharedRom {
   std::array<uint8_t, 16> blocks_;
   std::array<chest, 16> chest_list_;
 
-  std::array<gfx::Bitmap, 3> background_bmps_;
   std::vector<RoomObject> tile_objects_;
   std::vector<zelda3::Sprite> sprites_;
   std::vector<staircase> z3_staircases_;
