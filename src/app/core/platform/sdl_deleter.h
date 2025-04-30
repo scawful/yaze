@@ -3,8 +3,6 @@
 
 #include <SDL.h>
 
-#include "app/core/platform/memory_tracker.h"
-
 namespace yaze {
 namespace core {
 
@@ -19,8 +17,7 @@ struct SDL_Deleter {
 // Custom deleter for SDL_Surface
 struct SDL_Surface_Deleter {
   void operator()(SDL_Surface* p) const {
-    if (p && !MemoryTracker::GetInstance().IsFreed(p)) {
-      MemoryTracker::GetInstance().TrackDeallocation(p);
+    if (p) {
       SDL_FreeSurface(p);
     }
   }
@@ -29,8 +26,7 @@ struct SDL_Surface_Deleter {
 // Custom deleter for SDL_Texture
 struct SDL_Texture_Deleter {
   void operator()(SDL_Texture* p) const {
-    if (p && !MemoryTracker::GetInstance().IsFreed(p)) {
-      MemoryTracker::GetInstance().TrackDeallocation(p);
+    if (p) {
       SDL_DestroyTexture(p);
     }
   }
