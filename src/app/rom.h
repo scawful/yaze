@@ -225,23 +225,6 @@ class Rom {
   zelda3_version version_ = zelda3_version::US;
 };
 
-class GraphicsSheetManager {
- public:
-  static GraphicsSheetManager& GetInstance() {
-    static GraphicsSheetManager instance;
-    return instance;
-  }
-  GraphicsSheetManager() = default;
-  virtual ~GraphicsSheetManager() = default;
-  std::array<gfx::Bitmap, kNumGfxSheets>& gfx_sheets() { return gfx_sheets_; }
-  auto gfx_sheet(int i) { return gfx_sheets_[i]; }
-  auto mutable_gfx_sheet(int i) { return &gfx_sheets_[i]; }
-  auto mutable_gfx_sheets() { return &gfx_sheets_; }
-
- private:
-  std::array<gfx::Bitmap, kNumGfxSheets> gfx_sheets_;
-};
-
 /**
  * @brief This function iterates over all graphics sheets in the Rom and loads
  * them into memory. Depending on the sheet's index, it may be uncompressed or
