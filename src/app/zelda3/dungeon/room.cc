@@ -75,7 +75,7 @@ RoomSize CalculateRoomSize(Rom *rom, int room_id) {
 }
 
 Room LoadRoomFromRom(Rom *rom, int room_id) {
-  Room room(room_id);
+  Room room(room_id, rom);
 
   int header_pointer = (rom->data()[kRoomHeaderPointer + 2] << 16) +
                        (rom->data()[kRoomHeaderPointer + 1] << 8) +

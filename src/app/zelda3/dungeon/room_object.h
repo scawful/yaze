@@ -54,7 +54,7 @@ constexpr int kRoomObjectSubtype3 = 0x84F0;          // JP = Same
 constexpr int kRoomObjectTileAddress = 0x1B52;       // JP = Same
 constexpr int kRoomObjectTileAddressFloor = 0x1B5A;  // JP = Same
 
-class RoomObject : public SharedRom {
+class RoomObject {
  public:
   enum LayerType { BG1 = 0, BG2 = 1, BG3 = 2 };
 
@@ -70,6 +70,10 @@ class RoomObject : public SharedRom {
         oy_(y),
         width_(16),
         height_(16) {}
+
+  void set_rom(Rom* rom) { rom_ = rom; }
+  auto rom() { return rom_; }
+  auto mutable_rom() { return rom_; }
 
   void AddTiles(int nbr, int pos) {
     for (int i = 0; i < nbr; i++) {
@@ -87,7 +91,6 @@ class RoomObject : public SharedRom {
   auto options() const { return options_; }
   void set_options(ObjectOption options) { options_ = options; }
 
- protected:
   bool all_bgs_ = false;
   bool lit_ = false;
 
@@ -114,6 +117,8 @@ class RoomObject : public SharedRom {
 
   LayerType layer_;
   ObjectOption options_ = ObjectOption::Nothing;
+
+  Rom* rom_;
 };
 
 class Subtype1 : public RoomObject {
