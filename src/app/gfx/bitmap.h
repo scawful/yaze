@@ -65,7 +65,6 @@ void ConvertPngToSurface(const std::vector<uint8_t> &png_data,
  */
 class Bitmap {
  public:
-  // Constructors
   Bitmap() = default;
 
   /**
@@ -111,12 +110,8 @@ class Bitmap {
    */
   void SaveSurfaceToFile(std::string_view filename);
 
-  // Texture management
   /**
    * @brief Creates the underlying SDL_Texture to be displayed.
-   *
-   * Converts the surface from a RGB to ARGB format.
-   * Uses SDL_TEXTUREACCESS_STREAMING to allow for live updates.
    */
   void CreateTexture(SDL_Renderer *renderer);
 
@@ -157,7 +152,6 @@ class Bitmap {
    */
   void SetPalette(const std::vector<SDL_Color> &palette);
 
-  // Pixel operations
   /**
    * @brief Write a value to a pixel at the given position
    */
@@ -199,8 +193,8 @@ class Bitmap {
   int size() const { return data_size_; }
   const uint8_t *data() const { return data_.data(); }
   std::vector<uint8_t> &mutable_data() { return data_; }
-  SDL_Surface *surface() const { return surface_.get(); }
-  SDL_Texture *texture() const { return texture_.get(); }
+  SDL_Surface *surface() const { return surface_; }
+  SDL_Texture *texture() const { return texture_; }
   const std::vector<uint8_t> &vector() const { return data_; }
   uint8_t at(int i) const { return data_[i]; }
   bool modified() const { return modified_; }
@@ -210,9 +204,6 @@ class Bitmap {
   void set_modified(bool modified) { modified_ = modified; }
 
 #if YAZE_LIB_PNG == 1
-  /**
-   * @brief Get the bitmap data as PNG
-   */
   std::vector<uint8_t> GetPngData();
 #endif
 
@@ -243,17 +234,16 @@ class Bitmap {
   // Data for the bitmap
   std::vector<uint8_t> data_;
 
-  // Surface for the bitmap
-  std::shared_ptr<SDL_Surface> surface_ = nullptr;
+  // Surface for the bitmap (managed by Arena)
+  SDL_Surface *surface_ = nullptr;
 
-  // Texture for the bitmap
-  std::shared_ptr<SDL_Texture> texture_ = nullptr;
+  // Texture for the bitmap (managed by Arena)
+  SDL_Texture *texture_ = nullptr;
 };
 
 // Type alias for a table of bitmaps
 using BitmapTable = std::unordered_map<int, gfx::Bitmap>;
 
-// Utility functions that operate on Bitmap objects
 /**
  * @brief Extract 8x8 tiles from a source bitmap
  */
@@ -265,17 +255,6 @@ std::vector<gfx::Bitmap> ExtractTile8Bitmaps(const gfx::Bitmap &source_bmp,
  * @brief Get the SDL pixel format for a given bitmap format
  */
 Uint32 GetSnesPixelFormat(int format);
-
-/**
- * @brief Allocate an SDL surface with the given dimensions and format
- */
-SDL_Surface *AllocateSurface(int width, int height, int depth, Uint32 format);
-
-/**
- * @brief Allocate an SDL texture with the given dimensions and format
- */
-SDL_Texture *AllocateTexture(SDL_Renderer *renderer, Uint32 format, int access,
-                             int width, int height);
 
 }  // namespace gfx
 }  // namespace yaze
