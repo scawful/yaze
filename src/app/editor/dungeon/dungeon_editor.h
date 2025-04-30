@@ -95,7 +95,6 @@ class DungeonEditor : public Editor {
 
   int background_type_ = kNoBackground;
   int placement_type_ = kNoType;
-  int current_object_ = 0;
 
   bool is_loaded_ = false;
   bool object_loaded_ = false;
@@ -116,15 +115,14 @@ class DungeonEditor : public Editor {
   gfx::PaletteGroup current_palette_group_;
 
   gui::Canvas canvas_{"##DungeonCanvas", ImVec2(0x200, 0x200)};
-  gui::Canvas room_gfx_canvas_;
+  gui::Canvas room_gfx_canvas_{"##RoomGfxCanvas",
+                               ImVec2(0x100 + 1, 0x10 * 0x40 + 1)};
   gui::Canvas object_canvas_;
 
-  gfx::Bitmap room_gfx_bmp_;
   std::array<gfx::Bitmap, kNumGfxSheets> graphics_bin_;
 
-  std::vector<gfx::Bitmap*> room_gfx_sheets_;
-  std::vector<zelda3::Room> rooms_;
-  std::vector<zelda3::RoomEntrance> entrances_;
+  std::array<zelda3::Room, 0x128> rooms_ = {};
+  std::array<zelda3::RoomEntrance, 0x8C> entrances_ = {};
   zelda3::DungeonObjectRenderer object_renderer_;
 
   absl::flat_hash_map<uint16_t, int> spriteset_usage_;
