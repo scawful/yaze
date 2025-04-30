@@ -42,16 +42,10 @@ class Renderer {
 
   auto renderer() -> SDL_Renderer * { return renderer_.get(); }
 
-  /**
-   * @brief Used to render a bitmap to the screen.
-   */
   void RenderBitmap(gfx::Bitmap *bitmap) {
     bitmap->CreateTexture(renderer_.get());
   }
 
-  /**
-   * @brief Used to update a bitmap on the screen.
-   */
   void UpdateBitmap(gfx::Bitmap *bitmap) {
     bitmap->UpdateTexture(renderer_.get());
   }
@@ -63,6 +57,13 @@ class Renderer {
     bitmap.SetPalette(palette);
     RenderBitmap(&bitmap);
   }
+
+  void Clear() {
+    SDL_SetRenderDrawColor(renderer_.get(), 0x00, 0x00, 0x00, 0x00);
+    SDL_RenderClear(renderer_.get());
+  }
+
+  void Present() { SDL_RenderPresent(renderer_.get()); }
 
  private:
   Renderer() = default;
