@@ -1,9 +1,29 @@
 #ifndef YAZE_SNES_H_
 #define YAZE_SNES_H_
 
+#include <array>
 #include <cstdint>
 
+#include "app/gfx/bitmap.h"
+
 namespace yaze {
+
+class GraphicsSheetManager {
+ public:
+  static GraphicsSheetManager& GetInstance() {
+    static GraphicsSheetManager instance;
+    return instance;
+  }
+  GraphicsSheetManager() = default;
+  virtual ~GraphicsSheetManager() = default;
+  std::array<gfx::Bitmap, 223>& gfx_sheets() { return gfx_sheets_; }
+  auto gfx_sheet(int i) { return gfx_sheets_[i]; }
+  auto mutable_gfx_sheet(int i) { return &gfx_sheets_[i]; }
+  auto mutable_gfx_sheets() { return &gfx_sheets_; }
+
+ private:
+  std::array<gfx::Bitmap, 223> gfx_sheets_;
+};
 
 inline uint32_t SnesToPc(uint32_t addr) noexcept {
   constexpr uint32_t kFastRomRegion = 0x808000;
