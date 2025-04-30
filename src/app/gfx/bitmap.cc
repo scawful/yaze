@@ -7,17 +7,12 @@
 
 #include <cstdint>
 #include <future>
-#include <memory>
 
-#include "app/core/platform/memory_tracker.h"
-#include "app/core/platform/sdl_deleter.h"
+#include "app/gfx/arena.h"
 #include "app/gfx/snes_palette.h"
-#include "app/gfx/texture_pool.h"
 
 namespace yaze {
 namespace gfx {
-
-using core::SDL_Surface_Deleter;
 
 #if YAZE_LIB_PNG == 1
 
@@ -199,32 +194,6 @@ Uint32 GetSnesPixelFormat(int format) {
   return SDL_PIXELFORMAT_INDEX8;
 }
 
-// Custom allocator for SDL_Surface
-SDL_Surface *AllocateSurface(int width, int height, int depth, Uint32 format) {
-  SDL_Surface *surface =
-      SDL_CreateRGBSurfaceWithFormat(0, width, height, depth, format);
-  if (surface) {
-    core::MemoryTracker::GetInstance().TrackAllocation(
-        surface, width * height * (depth / 8), "SDL_Surface");
-  }
-  return surface;
-}
-
-// Custom allocator for SDL_Texture
-SDL_Texture *AllocateTexture(SDL_Renderer *renderer, Uint32 format, int access,
-                             int width, int height) {
-  SDL_Texture *texture =
-      SDL_CreateTexture(renderer, format, access, width, height);
-  if (texture) {
-    // Estimate size (this is approximate)
-    size_t estimated_size = width * height * 4;  // Assume 4 bytes per pixel
-    core::MemoryTracker::GetInstance().TrackAllocation(texture, estimated_size,
-                                                       "SDL_Texture");
-  }
-  return texture;
-}
-
-// Bitmap class implementation
 Bitmap::Bitmap(int width, int height, int depth,
                const std::vector<uint8_t> &data)
     : width_(width), height_(height), depth_(depth), data_(data) {
@@ -243,7 +212,7 @@ Bitmap::Bitmap(int width, int height, int depth,
 }
 
 void Bitmap::SaveSurfaceToFile(std::string_view filename) {
-  SDL_SaveBMP(surface_.get(), filename.data());
+  SDL_SaveBMP(surface_, filename.data());
 }
 
 void Bitmap::Initialize(int width, int height, int depth,
@@ -283,9 +252,8 @@ void Bitmap::Create(int width, int height, int depth, int format,
   data_.reserve(data_size_);
   data_ = data;
   pixel_data_ = data_.data();
-  surface_ = std::shared_ptr<SDL_Surface>{
-      AllocateSurface(width_, height_, depth_, GetSnesPixelFormat(format)),
-      SDL_Surface_Deleter{}};
+  surface_ = Arena::Get().AllocateSurface(width_, height_, depth_,
+                                          GetSnesPixelFormat(format));
   if (surface_ == nullptr) {
     SDL_Log("Bitmap::Create.SDL_CreateRGBSurfaceWithFormat failed: %s\n",
             SDL_GetError());
@@ -297,27 +265,19 @@ void Bitmap::Create(int width, int height, int depth, int format,
 }
 
 void Bitmap::Reformat(int format) {
-  surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
-      AllocateSurface(width_, height_, depth_, GetSnesPixelFormat(format)),
-      SDL_Surface_Deleter());
+  surface_ = Arena::Get().AllocateSurface(width_, height_, depth_,
+                                          GetSnesPixelFormat(format));
   surface_->pixels = pixel_data_;
   active_ = true;
   SetPalette(palette_);
 }
 
 void Bitmap::UpdateTexture(SDL_Renderer *renderer) {
-  auto converted_surface = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
-      SDL_ConvertSurfaceFormat(surface_.get(), SDL_PIXELFORMAT_ARGB8888, 0),
-      SDL_Surface_Deleter());
-  if (converted_surface == nullptr) {
-    SDL_Log("SDL_ConvertSurfaceFormat failed: %s\n", SDL_GetError());
+  if (!texture_) {
+    CreateTexture(renderer);
+    return;
   }
-
-  SDL_LockTexture(texture_.get(), nullptr, (void **)&texture_pixels,
-                  &converted_surface->pitch);
-  memcpy(texture_pixels, converted_surface->pixels,
-         converted_surface->h * converted_surface->pitch);
-  SDL_UnlockTexture(texture_.get());
+  Arena::Get().UpdateTexture(texture_, surface_);
 }
 
 void Bitmap::CreateTexture(SDL_Renderer *renderer) {
@@ -332,35 +292,16 @@ void Bitmap::CreateTexture(SDL_Renderer *renderer) {
     return;
   }
 
-  // If we already have a texture, don't create a new one
-  if (texture_) {
-    texture_in_use_ = true;
-    last_used_time_ = SDL_GetTicks64();
-    return;
-  }
-
-  // Get a texture from the pool
-  SDL_Texture *raw_texture = TexturePool::GetInstance().GetTexture(
-      renderer, width_, height_, SDL_PIXELFORMAT_RGB888);
-
-  if (!raw_texture) {
-    SDL_Log("Bitmap::CreateTexture failed to get texture from pool: %s\n",
+  // Get a texture from the Arena
+  texture_ = Arena::Get().AllocateTexture(renderer, width_, height_);
+  if (!texture_) {
+    SDL_Log("Bitmap::CreateTexture failed to allocate texture: %s\n",
             SDL_GetError());
     return;
   }
 
-  // Create a shared_ptr with a custom deleter that returns the texture to the
-  // pool
-  texture_ = std::shared_ptr<SDL_Texture>(raw_texture, [this](SDL_Texture *t) {
-    if (t) {
-      TexturePool::GetInstance().ReturnTexture(t, width_, height_,
-                                               SDL_PIXELFORMAT_RGB888);
-    }
-  });
-
   texture_in_use_ = true;
   last_used_time_ = SDL_GetTicks64();
-
   UpdateTextureData();
 }
 
@@ -369,33 +310,14 @@ void Bitmap::UpdateTextureData() {
     return;
   }
 
-  auto converted_surface = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
-      SDL_ConvertSurfaceFormat(surface_.get(), SDL_PIXELFORMAT_ARGB8888, 0),
-      SDL_Surface_Deleter());
-
-  if (converted_surface == nullptr) {
-    SDL_Log("SDL_ConvertSurfaceFormat failed: %s\n", SDL_GetError());
-    return;
-  }
-
-  void *pixels;
-  int pitch;
-  if (SDL_LockTexture(texture_.get(), nullptr, &pixels, &pitch) != 0) {
-    SDL_Log("SDL_LockTexture failed: %s\n", SDL_GetError());
-    return;
-  }
-
-  memcpy(pixels, converted_surface->pixels,
-         converted_surface->h * converted_surface->pitch);
-
-  SDL_UnlockTexture(texture_.get());
+  Arena::Get().UpdateTexture(texture_, surface_);
   modified_ = false;
 }
 
 void Bitmap::CleanupUnusedTexture(uint64_t current_time, uint64_t timeout) {
   if (texture_ && !texture_in_use_ &&
       (current_time - last_used_time_ > timeout)) {
-    // Release the texture back to the pool
+    Arena::Get().FreeTexture(texture_);
     texture_ = nullptr;
   }
 }
@@ -415,7 +337,7 @@ void Bitmap::SetPalette(const SnesPalette &palette) {
     throw std::runtime_error("Failed to get SDL palette");
   }
 
-  SDL_UnlockSurface(surface_.get());
+  SDL_UnlockSurface(surface_);
   for (size_t i = 0; i < palette.size(); ++i) {
     auto pal_color = palette[i];
     sdl_palette->colors[i].r = pal_color.rgb().x;
@@ -423,14 +345,14 @@ void Bitmap::SetPalette(const SnesPalette &palette) {
     sdl_palette->colors[i].b = pal_color.rgb().z;
     sdl_palette->colors[i].a = pal_color.rgb().w;
   }
-  SDL_LockSurface(surface_.get());
+  SDL_LockSurface(surface_);
 }
 
 void Bitmap::SetPaletteFromPaletteGroup(const SnesPalette &palette,
                                         int palette_id) {
   auto start_index = palette_id * 8;
   palette_ = palette.sub_palette(start_index, start_index + 8);
-  SDL_UnlockSurface(surface_.get());
+  SDL_UnlockSurface(surface_);
   for (size_t i = 0; i < palette_.size(); ++i) {
     auto pal_color = palette_[i];
     if (pal_color.is_transparent()) {
@@ -445,7 +367,7 @@ void Bitmap::SetPaletteFromPaletteGroup(const SnesPalette &palette,
       surface_->format->palette->colors[i].a = pal_color.rgb().w;
     }
   }
-  SDL_LockSurface(surface_.get());
+  SDL_LockSurface(surface_);
 }
 
 void Bitmap::SetPaletteWithTransparent(const SnesPalette &palette, size_t index,
@@ -475,7 +397,7 @@ void Bitmap::SetPaletteWithTransparent(const SnesPalette &palette, size_t index,
     colors.push_back(pal_color.rgb());
   }
 
-  SDL_UnlockSurface(surface_.get());
+  SDL_UnlockSurface(surface_);
   int i = 0;
   for (auto &each : colors) {
     surface_->format->palette->colors[i].r = each.x;
@@ -484,18 +406,18 @@ void Bitmap::SetPaletteWithTransparent(const SnesPalette &palette, size_t index,
     surface_->format->palette->colors[i].a = each.w;
     i++;
   }
-  SDL_LockSurface(surface_.get());
+  SDL_LockSurface(surface_);
 }
 
 void Bitmap::SetPalette(const std::vector<SDL_Color> &palette) {
-  SDL_UnlockSurface(surface_.get());
+  SDL_UnlockSurface(surface_);
   for (size_t i = 0; i < palette.size(); ++i) {
     surface_->format->palette->colors[i].r = palette[i].r;
     surface_->format->palette->colors[i].g = palette[i].g;
     surface_->format->palette->colors[i].b = palette[i].b;
     surface_->format->palette->colors[i].a = palette[i].a;
   }
-  SDL_LockSurface(surface_.get());
+  SDL_LockSurface(surface_);
 }
 
 void Bitmap::WriteToPixel(int position, uint8_t value) {
@@ -559,6 +481,10 @@ void Bitmap::Get16x16Tile(int tile_x, int tile_y,
 }
 
 void Bitmap::Cleanup() {
+  if (texture_) {
+    Arena::Get().FreeTexture(texture_);
+    texture_ = nullptr;
+  }
   active_ = false;
   width_ = 0;
   height_ = 0;
@@ -568,11 +494,7 @@ void Bitmap::Cleanup() {
 }
 
 void Bitmap::Clear() {
-  active_ = false;
-  width_ = 0;
-  height_ = 0;
-  depth_ = 0;
-  data_size_ = 0;
+  Cleanup();
   data_.clear();
   pixel_data_ = nullptr;
   texture_pixels = nullptr;
@@ -581,7 +503,7 @@ void Bitmap::Clear() {
 #if YAZE_LIB_PNG == 1
 std::vector<uint8_t> Bitmap::GetPngData() {
   std::vector<uint8_t> png_data;
-  ConvertSurfaceToPng(surface_.get(), png_data);
+  ConvertSurfaceToPng(surface_, png_data);
   return png_data;
 }
 #endif
