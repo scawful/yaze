@@ -128,13 +128,15 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ab9486fe9b2a29dae3f97a585da5fb036" id="r_ab9486fe9b2a29dae3f97a585da5fb036"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab9486fe9b2a29dae3f97a585da5fb036">renderer</a> () -&gt; SDL_Renderer *</td></tr>
 <tr class="separator:ab9486fe9b2a29dae3f97a585da5fb036"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af8aa2548cc92e136c2eb83ad5b349eb9" id="r_af8aa2548cc92e136c2eb83ad5b349eb9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af8aa2548cc92e136c2eb83ad5b349eb9">RenderBitmap</a> (<a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> *bitmap)</td></tr>
-<tr class="memdesc:af8aa2548cc92e136c2eb83ad5b349eb9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Used to render a bitmap to the screen.  <br /></td></tr>
 <tr class="separator:af8aa2548cc92e136c2eb83ad5b349eb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a571c9b2494fb642abf7c8ddfe809334a" id="r_a571c9b2494fb642abf7c8ddfe809334a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a571c9b2494fb642abf7c8ddfe809334a">UpdateBitmap</a> (<a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> *bitmap)</td></tr>
-<tr class="memdesc:a571c9b2494fb642abf7c8ddfe809334a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Used to update a bitmap on the screen.  <br /></td></tr>
 <tr class="separator:a571c9b2494fb642abf7c8ddfe809334a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0d5a59f3505536cfb25b54a54c1d855d" id="r_a0d5a59f3505536cfb25b54a54c1d855d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0d5a59f3505536cfb25b54a54c1d855d">CreateAndRenderBitmap</a> (int width, int height, int depth, const std::vector&lt; uint8_t &gt; &amp;data, <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &amp;bitmap, <a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette)</td></tr>
 <tr class="separator:a0d5a59f3505536cfb25b54a54c1d855d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab67317aeec1530597f99599ab0489ac8" id="r_ab67317aeec1530597f99599ab0489ac8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab67317aeec1530597f99599ab0489ac8">Clear</a> ()</td></tr>
+<tr class="separator:ab67317aeec1530597f99599ab0489ac8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad0537d6180745ffe6a92b4e0ae9c5dc6" id="r_ad0537d6180745ffe6a92b4e0ae9c5dc6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad0537d6180745ffe6a92b4e0ae9c5dc6">Present</a> ()</td></tr>
+<tr class="separator:ad0537d6180745ffe6a92b4e0ae9c5dc6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -292,7 +294,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00031">31</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="renderer_8h_source.html#l00070">renderer_</a>.</p>
+<p class="reference">References <a class="el" href="renderer_8h_source.html#l00071">renderer_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00195">yaze::core::Controller::CreateRenderer()</a>.</p>
 
@@ -323,7 +325,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00043">43</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="renderer_8h_source.html#l00070">renderer_</a>.</p>
+<p class="reference">References <a class="el" href="renderer_8h_source.html#l00071">renderer_</a>.</p>
 
 </div>
 </div>
@@ -350,27 +352,21 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>Used to render a bitmap to the screen. </p>
+<p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00045">45</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00048">48</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00323">yaze::gfx::Bitmap::CreateTexture()</a>, and <a class="el" href="renderer_8h_source.html#l00071">renderer_</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00323">yaze::gfx::Bitmap::CreateTexture()</a>, and <a class="el" href="renderer_8h_source.html#l00070">renderer_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="inventory_8cc_source.html#l00076">yaze::zelda3::Inventory::BuildTileset()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00560">yaze::editor::Tile16Editor::CopyTile16ToClipboard()</a>, <a class="el" href="inventory_8cc_source.html#l00013">yaze::zelda3::Inventory::Create()</a>, <a class="el" href="renderer_8h_source.html#l00059">CreateAndRenderBitmap()</a>, <a class="el" href="tilemap_8cc_source.html#l00011">yaze::gfx::CreateTilemap()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00765">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00789">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00525">yaze::editor::GraphicsEditor::DrawCgxImport()</a>, <a class="el" href="screen__editor_8cc_source.html#l00458">yaze::editor::ScreenEditor::DrawDungeonMapsEditor()</a>, <a class="el" href="screen__editor_8cc_source.html#l00401">yaze::editor::ScreenEditor::DrawDungeonMapsRoomGfx()</a>, <a class="el" href="screen__editor_8cc_source.html#l00297">yaze::editor::ScreenEditor::DrawDungeonMapsTabs()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00552">yaze::editor::DungeonEditor::DrawObjectRenderer()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00558">yaze::editor::GraphicsEditor::DrawScrImport()</a>, <a class="el" href="canvas_8cc_source.html#l00276">yaze::gui::Canvas::DrawTilemapPainter()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00024">yaze::editor::Tile16Editor::Initialize()</a>, <a class="el" href="screen__editor_8cc_source.html#l00563">yaze::editor::ScreenEditor::LoadBinaryGfx()</a>, <a class="el" href="dungeon__map_8cc_source.html#l00014">yaze::zelda3::LoadDungeonMapGfxFromBinary()</a>, <a class="el" href="screen__editor_8cc_source.html#l00227">yaze::editor::ScreenEditor::LoadDungeonMapTile16()</a>, <a class="el" href="rom_8cc_source.html#l00058">yaze::LoadLinkGraphics()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00604">yaze::editor::Tile16Editor::LoadTile16FromScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00436">yaze::editor::Tile16Editor::LoadTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00577">yaze::editor::Tile16Editor::PasteTile16FromClipboard()</a>, <a class="el" href="tilemap_8cc_source.html#l00029">yaze::gfx::RenderTile()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00590">yaze::editor::Tile16Editor::SaveTile16ToScratchSpace()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="inventory_8cc_source.html#l00076">yaze::zelda3::Inventory::BuildTileset()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00560">yaze::editor::Tile16Editor::CopyTile16ToClipboard()</a>, <a class="el" href="inventory_8cc_source.html#l00013">yaze::zelda3::Inventory::Create()</a>, <a class="el" href="renderer_8h_source.html#l00053">CreateAndRenderBitmap()</a>, <a class="el" href="tilemap_8cc_source.html#l00011">yaze::gfx::CreateTilemap()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00765">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00789">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00525">yaze::editor::GraphicsEditor::DrawCgxImport()</a>, <a class="el" href="screen__editor_8cc_source.html#l00458">yaze::editor::ScreenEditor::DrawDungeonMapsEditor()</a>, <a class="el" href="screen__editor_8cc_source.html#l00401">yaze::editor::ScreenEditor::DrawDungeonMapsRoomGfx()</a>, <a class="el" href="screen__editor_8cc_source.html#l00297">yaze::editor::ScreenEditor::DrawDungeonMapsTabs()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00542">yaze::editor::DungeonEditor::DrawObjectRenderer()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00558">yaze::editor::GraphicsEditor::DrawScrImport()</a>, <a class="el" href="canvas_8cc_source.html#l00276">yaze::gui::Canvas::DrawTilemapPainter()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00024">yaze::editor::Tile16Editor::Initialize()</a>, <a class="el" href="screen__editor_8cc_source.html#l00563">yaze::editor::ScreenEditor::LoadBinaryGfx()</a>, <a class="el" href="dungeon__map_8cc_source.html#l00014">yaze::zelda3::LoadDungeonMapGfxFromBinary()</a>, <a class="el" href="screen__editor_8cc_source.html#l00227">yaze::editor::ScreenEditor::LoadDungeonMapTile16()</a>, <a class="el" href="rom_8cc_source.html#l00058">yaze::LoadLinkGraphics()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00604">yaze::editor::Tile16Editor::LoadTile16FromScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00436">yaze::editor::Tile16Editor::LoadTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00577">yaze::editor::Tile16Editor::PasteTile16FromClipboard()</a>, <a class="el" href="tilemap_8cc_source.html#l00029">yaze::gfx::RenderTile()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00590">yaze::editor::Tile16Editor::SaveTile16ToScratchSpace()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1core_1_1Renderer_af8aa2548cc92e136c2eb83ad5b349eb9_cgraph.png" border="0" usemap="#aclassyaze_1_1core_1_1Renderer_af8aa2548cc92e136c2eb83ad5b349eb9_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1core_1_1Renderer_af8aa2548cc92e136c2eb83ad5b349eb9_cgraph" id="aclassyaze_1_1core_1_1Renderer_af8aa2548cc92e136c2eb83ad5b349eb9_cgraph">
-<area shape="rect" title="Used to render a bitmap to the screen." alt="" coords="5,71,142,111"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="190,71,313,111"/>
-<area shape="poly" title=" " alt="" coords="142,88,175,88,175,94,142,94"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1TexturePool.html#ab0af497fc94db2a4afe78d533a74b66d" title=" " alt="" coords="361,5,506,46"/>
-<area shape="poly" title=" " alt="" coords="309,68,360,49,362,54,311,73"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1TexturePool.html#a72d3f5e7e4e925ae3e667557256e03b0" title=" " alt="" coords="361,71,506,111"/>
-<area shape="poly" title=" " alt="" coords="313,88,345,88,345,94,313,94"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1TexturePool.html#aa80f4cc857cdf3a25127276c2ddfa83f" title=" " alt="" coords="361,136,506,177"/>
-<area shape="poly" title=" " alt="" coords="311,109,362,128,360,133,309,114"/>
+<area shape="rect" title=" " alt="" coords="5,5,142,46"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="190,5,313,46"/>
+<area shape="poly" title=" " alt="" coords="142,23,175,23,175,28,142,28"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#ae54809d052e7f6cbf3b1900d8b13686e" title="Updates the texture data from the surface." alt="" coords="361,5,494,46"/>
+<area shape="poly" title=" " alt="" coords="313,23,345,23,345,28,313,28"/>
 </map>
 </div>
 
@@ -399,19 +395,17 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>Used to update a bitmap on the screen. </p>
+<p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00049">49</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00055">55</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
+<p class="reference">References <a class="el" href="renderer_8h_source.html#l00071">renderer_</a>, and <a class="el" href="bitmap_8cc_source.html#l00308">yaze::gfx::Bitmap::UpdateTexture()</a>.</p>
 
-<p class="reference">References <a class="el" href="renderer_8h_source.html#l00070">renderer_</a>, and <a class="el" href="bitmap_8cc_source.html#l00308">yaze::gfx::Bitmap::UpdateTexture()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00108">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00097">yaze::editor::GraphicsEditor::DrawGfxEditToolset()</a>, <a class="el" href="message__editor_8cc_source.html#l00376">yaze::editor::MessageEditor::DrawMessagePreview()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00124">yaze::editor::DungeonEditor::RefreshGraphics()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00489">yaze::editor::Tile16Editor::SetCurrentTile()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00172">yaze::editor::Tile16Editor::UpdateBlockset()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00258">yaze::editor::GraphicsEditor::UpdateGfxTabView()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00358">yaze::editor::GraphicsEditor::UpdatePaletteColumn()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00252">yaze::editor::Tile16Editor::UpdateTile16Edit()</a>, and <a class="el" href="tilemap_8cc_source.html#l00024">yaze::gfx::UpdateTilemap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00108">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00097">yaze::editor::GraphicsEditor::DrawGfxEditToolset()</a>, <a class="el" href="message__editor_8cc_source.html#l00376">yaze::editor::MessageEditor::DrawMessagePreview()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00119">yaze::editor::DungeonEditor::RefreshGraphics()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00489">yaze::editor::Tile16Editor::SetCurrentTile()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00172">yaze::editor::Tile16Editor::UpdateBlockset()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00258">yaze::editor::GraphicsEditor::UpdateGfxTabView()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00358">yaze::editor::GraphicsEditor::UpdatePaletteColumn()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00252">yaze::editor::Tile16Editor::UpdateTile16Edit()</a>, and <a class="el" href="tilemap_8cc_source.html#l00024">yaze::gfx::UpdateTilemap()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1core_1_1Renderer_a571c9b2494fb642abf7c8ddfe809334a_cgraph.png" border="0" usemap="#aclassyaze_1_1core_1_1Renderer_a571c9b2494fb642abf7c8ddfe809334a_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1core_1_1Renderer_a571c9b2494fb642abf7c8ddfe809334a_cgraph" id="aclassyaze_1_1core_1_1Renderer_a571c9b2494fb642abf7c8ddfe809334a_cgraph">
-<area shape="rect" title="Used to update a bitmap on the screen." alt="" coords="5,5,142,46"/>
+<area shape="rect" title=" " alt="" coords="5,5,142,46"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="190,5,313,46"/>
 <area shape="poly" title=" " alt="" coords="142,23,175,23,175,28,142,28"/>
 </map>
@@ -466,9 +460,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00059">59</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00053">53</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00257">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="renderer_8h_source.html#l00048">RenderBitmap()</a>, and <a class="el" href="bitmap_8cc_source.html#l00403">yaze::gfx::Bitmap::SetPalette()</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00257">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="renderer_8h_source.html#l00045">RenderBitmap()</a>, and <a class="el" href="bitmap_8cc_source.html#l00403">yaze::gfx::Bitmap::SetPalette()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00046">yaze::editor::MessageEditor::Initialize()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00526">yaze::editor::Tile16Editor::UpdateTransferTileCanvas()</a>.</p>
 <div class="dynheader">
@@ -479,7 +473,7 @@ Here is the call graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="5,95,176,135"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a1725878c64e66f79cecade531d14d384" title="Create a bitmap with the given dimensions and data." alt="" coords="230,29,354,70"/>
 <area shape="poly" title=" " alt="" coords="154,92,215,72,216,77,156,97"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Used to render a bitmap to the screen." alt="" coords="224,95,360,135"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title=" " alt="" coords="224,95,360,135"/>
 <area shape="poly" title=" " alt="" coords="176,112,208,112,208,118,176,118"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a8b0be39d195a5d6d7002d2ecd70f2a3c" title="Set the palette for the bitmap." alt="" coords="230,160,354,201"/>
 <area shape="poly" title=" " alt="" coords="156,133,216,153,215,158,154,138"/>
@@ -488,6 +482,64 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="354,47,392,47,392,52,354,52"/>
 </map>
 </div>
+
+</div>
+</div>
+<a id="ab67317aeec1530597f99599ab0489ac8" name="ab67317aeec1530597f99599ab0489ac8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab67317aeec1530597f99599ab0489ac8">&#9670;&#160;</a></span>Clear()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::core::Renderer::Clear </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00061">61</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
+
+<p class="reference">References <a class="el" href="renderer_8h_source.html#l00071">renderer_</a>.</p>
+
+</div>
+</div>
+<a id="ad0537d6180745ffe6a92b4e0ae9c5dc6" name="ad0537d6180745ffe6a92b4e0ae9c5dc6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad0537d6180745ffe6a92b4e0ae9c5dc6">&#9670;&#160;</a></span>Present()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::core::Renderer::Present </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00066">66</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
+
+<p class="reference">References <a class="el" href="renderer_8h_source.html#l00071">renderer_</a>.</p>
 
 </div>
 </div>
@@ -549,9 +601,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00070">70</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00071">71</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="renderer_8h_source.html#l00031">CreateRenderer()</a>, <a class="el" href="renderer_8h_source.html#l00048">RenderBitmap()</a>, <a class="el" href="renderer_8h_source.html#l00043">renderer()</a>, and <a class="el" href="renderer_8h_source.html#l00055">UpdateBitmap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="renderer_8h_source.html#l00061">Clear()</a>, <a class="el" href="renderer_8h_source.html#l00031">CreateRenderer()</a>, <a class="el" href="renderer_8h_source.html#l00066">Present()</a>, <a class="el" href="renderer_8h_source.html#l00045">RenderBitmap()</a>, <a class="el" href="renderer_8h_source.html#l00043">renderer()</a>, and <a class="el" href="renderer_8h_source.html#l00049">UpdateBitmap()</a>.</p>
 
 </div>
 </div>

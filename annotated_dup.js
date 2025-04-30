@@ -205,7 +205,6 @@ var annotated_dup =
         [ "SDL_Surface_Deleter", "structyaze_1_1gfx_1_1SDL__Surface__Deleter.html", "structyaze_1_1gfx_1_1SDL__Surface__Deleter" ],
         [ "SnesColor", "classyaze_1_1gfx_1_1SnesColor.html", "classyaze_1_1gfx_1_1SnesColor" ],
         [ "SnesPalette", "classyaze_1_1gfx_1_1SnesPalette.html", "classyaze_1_1gfx_1_1SnesPalette" ],
-        [ "TexturePool", "classyaze_1_1gfx_1_1TexturePool.html", "classyaze_1_1gfx_1_1TexturePool" ],
         [ "Tile16", "classyaze_1_1gfx_1_1Tile16.html", "classyaze_1_1gfx_1_1Tile16" ],
         [ "Tile32", "classyaze_1_1gfx_1_1Tile32.html", "classyaze_1_1gfx_1_1Tile32" ],
         [ "TileInfo", "classyaze_1_1gfx_1_1TileInfo.html", "classyaze_1_1gfx_1_1TileInfo" ],

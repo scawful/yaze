@@ -1,5 +1,7 @@
 var NAVTREEINDEX6 =
 {
+"classyaze_1_1editor_1_1OverworldEditor.html#a1827cc7ac76dcd45d3fc4ebeb2442bff":[11,0,1,2,29,84],
+"classyaze_1_1editor_1_1OverworldEditor.html#a1827cc7ac76dcd45d3fc4ebeb2442bff":[12,0,0,2,23,84],
 "classyaze_1_1editor_1_1OverworldEditor.html#a1da0f4e0c03b14a5bfabcc993f4680b2":[11,0,1,2,29,83],
 "classyaze_1_1editor_1_1OverworldEditor.html#a1da0f4e0c03b14a5bfabcc993f4680b2":[12,0,0,2,23,83],
 "classyaze_1_1editor_1_1OverworldEditor.html#a21ddb17c0f6062a9055507fe99553649":[11,0,1,2,29,69],
@@ -247,7 +249,5 @@ var NAVTREEINDEX6 =
 "classyaze_1_1editor_1_1PaletteEditor.html#a9cd6cb1fda7d4c433c57461c594675bb":[11,0,1,2,30,25],
 "classyaze_1_1editor_1_1PaletteEditor.html#a9cd6cb1fda7d4c433c57461c594675bb":[12,0,0,2,24,25],
 "classyaze_1_1editor_1_1PaletteEditor.html#aa2d9eea976898db95d551314dfa4455c":[11,0,1,2,30,10],
-"classyaze_1_1editor_1_1PaletteEditor.html#aa2d9eea976898db95d551314dfa4455c":[12,0,0,2,24,10],
-"classyaze_1_1editor_1_1PaletteEditor.html#aa62e2185170b84e08185e0df31eff3a4":[11,0,1,2,30,6],
-"classyaze_1_1editor_1_1PaletteEditor.html#aa62e2185170b84e08185e0df31eff3a4":[12,0,0,2,24,6]
+"classyaze_1_1editor_1_1PaletteEditor.html#aa2d9eea976898db95d551314dfa4455c":[12,0,0,2,24,10]
 };

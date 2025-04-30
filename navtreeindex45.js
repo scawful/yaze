@@ -1,5 +1,8 @@
 var NAVTREEINDEX45 =
 {
+"namespaceyaze_1_1zelda3.html#aaefc69f1138337fca202cc371d26430a":[11,0,1,8,188],
+"namespaceyaze_1_1zelda3.html#ab044ae61220ad060623de10691e64055":[11,0,1,8,165],
+"namespaceyaze_1_1zelda3.html#ab057669c20d13c04f18b529d882e5bd7":[11,0,1,8,45],
 "namespaceyaze_1_1zelda3.html#ab0cc7741feb75be66d2f690674713feb":[11,0,1,8,270],
 "namespaceyaze_1_1zelda3.html#ab12277550d7aea2b576b2f9688ae60e4":[11,0,1,8,186],
 "namespaceyaze_1_1zelda3.html#ab151afe9a3897a707a02c42d00c2f05e":[11,0,1,8,147],
@@ -210,8 +213,8 @@ var NAVTREEINDEX45 =
 "shortcut__manager_8h_source.html":[13,0,2,0,1,7,10],
 "snes_8cc.html":[13,0,2,0,2,7],
 "snes_8cc_source.html":[13,0,2,0,2,7],
-"snes_8h.html":[13,0,2,0,2,8],
-"snes_8h_source.html":[13,0,2,0,2,8],
+"snes_8h.html":[13,0,2,0,9],
+"snes_8h_source.html":[13,0,2,0,9],
 "snes__color_8cc.html":[13,0,2,0,3,6],
 "snes__color_8cc_source.html":[13,0,2,0,3,6],
 "snes__color_8h.html":[13,0,2,0,3,7],
@@ -246,8 +249,5 @@ var NAVTREEINDEX45 =
 "sprite__editor_8cc_source.html":[13,0,2,0,1,6,0],
 "sprite__editor_8h.html":[13,0,2,0,1,6,1],
 "sprite__editor_8h_source.html":[13,0,2,0,1,6,1],
-"structSDL__Deleter.html":[12,0,9],
-"structSDL__Deleter.html#a04c7124e69f1a613c2905ae0d9846999":[12,0,9,1],
-"structSDL__Deleter.html#aa03c4eebf864506a380a5a49b7f791f2":[12,0,9,0],
-"structTextEditor_1_1Breakpoint.html":[12,0,17,0]
+"structSDL__Deleter.html":[12,0,9]
 };

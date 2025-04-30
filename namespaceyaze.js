@@ -43,6 +43,5 @@ var namespaceyaze =
     [ "kNumSpritesets", "namespaceyaze.html#a8ec2f2f56a0053f8169ecb919412cba6", null ],
     [ "kNumPalettesets", "namespaceyaze.html#ae3027bef139fcf788bb8a0d3f6f1a3ed", null ],
     [ "kEntranceGfxGroup", "namespaceyaze.html#a70210423b80d30a75edab49bddef04d0", null ],
-    [ "kMaxGraphics", "namespaceyaze.html#a1811556fa67024bbd32667c731c21036", null ],
-    [ "kFastRomRegion", "namespaceyaze.html#a3738198544ab1a8a5cc6e321eb32d50a", null ]
+    [ "kMaxGraphics", "namespaceyaze.html#a1811556fa67024bbd32667c731c21036", null ]
 ];

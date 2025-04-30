@@ -115,7 +115,7 @@ $(function(){initNavTree('dma_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;<a class="code" href="memory_8h.html">app/emu/memory/memory.h</a>&quot;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;<a class="code" href="snes_8h.html">app/emu/snes.h</a>&quot;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;<a class="code" href="emu_2snes_8h.html">app/emu/snes.h</a>&quot;</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze_1_1emu.html">emu</a> {</div>
@@ -141,7 +141,8 @@ $(function(){initNavTree('dma_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_EMU_MEMORY_DMA_H</span></div>
 <div class="ttc" id="aclassyaze_1_1emu_1_1MemoryImpl_html"><div class="ttname"><a href="classyaze_1_1emu_1_1MemoryImpl.html">yaze::emu::MemoryImpl</a></div><div class="ttdoc">Implementation of the Memory interface for emulating memory in a SNES system.</div><div class="ttdef"><b>Definition</b> <a href="memory_8h_source.html#l00118">memory.h:118</a></div></div>
-<div class="ttc" id="aclassyaze_1_1emu_1_1Snes_html"><div class="ttname"><a href="classyaze_1_1emu_1_1Snes.html">yaze::emu::Snes</a></div><div class="ttdef"><b>Definition</b> <a href="snes_8h_source.html#l00022">snes.h:22</a></div></div>
+<div class="ttc" id="aclassyaze_1_1emu_1_1Snes_html"><div class="ttname"><a href="classyaze_1_1emu_1_1Snes.html">yaze::emu::Snes</a></div><div class="ttdef"><b>Definition</b> <a href="emu_2snes_8h_source.html#l00022">snes.h:22</a></div></div>
+<div class="ttc" id="aemu_2snes_8h_html"><div class="ttname"><a href="emu_2snes_8h.html">snes.h</a></div></div>
 <div class="ttc" id="amemory_8h_html"><div class="ttname"><a href="memory_8h.html">memory.h</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1emu_html"><div class="ttname"><a href="namespaceyaze_1_1emu.html">yaze::emu</a></div><div class="ttdoc">SNES Emulation and debugging tools.</div><div class="ttdef"><b>Definition</b> <a href="apu_8cc_source.html#l00013">apu.cc:13</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1emu_html_a2a0e8761d0bd636441df9347f8e29584"><div class="ttname"><a href="namespaceyaze_1_1emu.html#a2a0e8761d0bd636441df9347f8e29584">yaze::emu::TransferByte</a></div><div class="ttdeci">void TransferByte(Snes *snes, MemoryImpl *memory, uint16_t aAdr, uint8_t aBank, uint8_t bAdr, bool fromB)</div><div class="ttdef"><b>Definition</b> <a href="dma_8cc_source.html#l00331">dma.cc:331</a></div></div>
@@ -155,7 +156,6 @@ $(function(){initNavTree('dma_8h_source.html',''); initResizable(true); });
 <div class="ttc" id="anamespaceyaze_1_1emu_html_aa2c804845876ebee011545b1f873b01f"><div class="ttname"><a href="namespaceyaze_1_1emu.html#aa2c804845876ebee011545b1f873b01f">yaze::emu::InitHdma</a></div><div class="ttdeci">void InitHdma(Snes *snes, MemoryImpl *memory, bool do_sync, int cpu_cycles)</div><div class="ttdef"><b>Definition</b> <a href="dma_8cc_source.html#l00216">dma.cc:216</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1emu_html_ae78ced4d510e6ab890ac1e877f43f20f"><div class="ttname"><a href="namespaceyaze_1_1emu.html#ae78ced4d510e6ab890ac1e877f43f20f">yaze::emu::DoHdma</a></div><div class="ttdeci">void DoHdma(Snes *snes, MemoryImpl *memory, bool do_sync, int cycles)</div><div class="ttdef"><b>Definition</b> <a href="dma_8cc_source.html#l00256">dma.cc:256</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="controller_8cc_source.html#l00018">controller.cc:18</a></div></div>
-<div class="ttc" id="asnes_8h_html"><div class="ttname"><a href="snes_8h.html">snes.h</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

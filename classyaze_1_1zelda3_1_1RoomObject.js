@@ -6,6 +6,9 @@ var classyaze_1_1zelda3_1_1RoomObject =
       [ "BG3", "classyaze_1_1zelda3_1_1RoomObject.html#a9271f3a50b053b6f15f5c2b4733dde6da252545cd889085166ddfc7d476b50012", null ]
     ] ],
     [ "RoomObject", "classyaze_1_1zelda3_1_1RoomObject.html#ada6fb8d53c279bb41be8e2a2b9e51f91", null ],
+    [ "set_rom", "classyaze_1_1zelda3_1_1RoomObject.html#a876ab67d5c9d17b8c9337a0cee2b569c", null ],
+    [ "rom", "classyaze_1_1zelda3_1_1RoomObject.html#ac2ab1e6584bc8afd79183b10ee1c6b7f", null ],
+    [ "mutable_rom", "classyaze_1_1zelda3_1_1RoomObject.html#a403fc23628dcf864ba64a81fa8942748", null ],
     [ "AddTiles", "classyaze_1_1zelda3_1_1RoomObject.html#a4d44a317ea56cd659ddce9b650e07606", null ],
     [ "DrawTile", "classyaze_1_1zelda3_1_1RoomObject.html#aabb5310703f9b83fb67c7b265b2f41ed", null ],
     [ "options", "classyaze_1_1zelda3_1_1RoomObject.html#af4be44e2e6210a18098d18f78d7a5ee7", null ],
@@ -30,5 +33,6 @@ var classyaze_1_1zelda3_1_1RoomObject =
     [ "preview_object_data_", "classyaze_1_1zelda3_1_1RoomObject.html#a12db80d6e9909dde3a3f84c205bee5fa", null ],
     [ "tiles_", "classyaze_1_1zelda3_1_1RoomObject.html#aa29fb3e0a570d5b73f38eadca1c8b00e", null ],
     [ "layer_", "classyaze_1_1zelda3_1_1RoomObject.html#a0b96cbdcf912d54adb20eb5b3880a668", null ],
-    [ "options_", "classyaze_1_1zelda3_1_1RoomObject.html#ae31e1d2cf33b74e2669ed7cd72220e94", null ]
+    [ "options_", "classyaze_1_1zelda3_1_1RoomObject.html#ae31e1d2cf33b74e2669ed7cd72220e94", null ],
+    [ "rom_", "classyaze_1_1zelda3_1_1RoomObject.html#a0da5fcd732d395df62a9e213fb18c810", null ]
 ];

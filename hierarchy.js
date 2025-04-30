@@ -231,7 +231,13 @@ var hierarchy =
     [ "yaze::test::Rom", "classyaze_1_1test_1_1Rom.html", [
       [ "yaze::test::MockRom", "classyaze_1_1test_1_1MockRom.html", null ]
     ] ],
+    [ "yaze::zelda3::Room", "classyaze_1_1zelda3_1_1Room.html", null ],
     [ "yaze::zelda3::RoomEntrance", "classyaze_1_1zelda3_1_1RoomEntrance.html", null ],
+    [ "yaze::zelda3::RoomObject", "classyaze_1_1zelda3_1_1RoomObject.html", [
+      [ "yaze::zelda3::Subtype1", "classyaze_1_1zelda3_1_1Subtype1.html", null ],
+      [ "yaze::zelda3::Subtype2", "classyaze_1_1zelda3_1_1Subtype2.html", null ],
+      [ "yaze::zelda3::Subtype3", "classyaze_1_1zelda3_1_1Subtype3.html", null ]
+    ] ],
     [ "yaze::zelda3::RoomSize", "structyaze_1_1zelda3_1_1RoomSize.html", null ],
     [ "yaze::zelda3::music::SampleEdit", "structyaze_1_1zelda3_1_1music_1_1SampleEdit.html", null ],
     [ "yaze::emu::ScreenDisplay", "structyaze_1_1emu_1_1ScreenDisplay.html", null ],
@@ -253,13 +259,7 @@ var hierarchy =
       [ "yaze::test::MessageTest", "classyaze_1_1test_1_1MessageTest.html", null ],
       [ "yaze::test::OverworldTest", "classyaze_1_1test_1_1OverworldTest.html", null ],
       [ "yaze::zelda3::DungeonObjectRenderer", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html", null ],
-      [ "yaze::zelda3::Inventory", "classyaze_1_1zelda3_1_1Inventory.html", null ],
-      [ "yaze::zelda3::Room", "classyaze_1_1zelda3_1_1Room.html", null ],
-      [ "yaze::zelda3::RoomObject", "classyaze_1_1zelda3_1_1RoomObject.html", [
-        [ "yaze::zelda3::Subtype1", "classyaze_1_1zelda3_1_1Subtype1.html", null ],
-        [ "yaze::zelda3::Subtype2", "classyaze_1_1zelda3_1_1Subtype2.html", null ],
-        [ "yaze::zelda3::Subtype3", "classyaze_1_1zelda3_1_1Subtype3.html", null ]
-      ] ]
+      [ "yaze::zelda3::Inventory", "classyaze_1_1zelda3_1_1Inventory.html", null ]
     ] ],
     [ "yaze::editor::Shortcut", "structyaze_1_1editor_1_1Shortcut.html", null ],
     [ "yaze::editor::ShortcutManager", "classyaze_1_1editor_1_1ShortcutManager.html", null ],
@@ -307,7 +307,6 @@ var hierarchy =
     [ "yaze::gui::TextBox", "structyaze_1_1gui_1_1TextBox.html", null ],
     [ "TextEditor", "classTextEditor.html", null ],
     [ "yaze::editor::TextElement", "structyaze_1_1editor_1_1TextElement.html", null ],
-    [ "yaze::gfx::TexturePool", "classyaze_1_1gfx_1_1TexturePool.html", null ],
     [ "yaze::gui::Theme", "structyaze_1_1gui_1_1Theme.html", null ],
     [ "yaze::emu::Tile", "structyaze_1_1emu_1_1Tile.html", null ],
     [ "yaze::gfx::Tile16", "classyaze_1_1gfx_1_1Tile16.html", null ],

@@ -1,12 +1,11 @@
 <map id="yaze::Rom::LoadZelda3" name="yaze::Rom::LoadZelda3">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,98,160,123"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,86,160,111"/>
 <area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx.html#acb08518117f632fe321cc8191defe210" title="Loads all the palettes for the game." alt="" coords="212,60,380,86"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,94,203,87,204,92,161,100"/>
-<area shape="rect" id="Node000023" href="$classyaze_1_1Rom.html#a99c1cb4e80c3cafb975d1d74a842c833" title=" " alt="" coords="208,134,385,159"/>
-<area shape="poly" id="edge4_Node000001_Node000023" title=" " alt="" coords="161,121,202,128,201,133,160,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,87,196,82,197,88,160,92"/>
+<area shape="rect" id="Node000023" href="$classyaze_1_1Rom.html#a99c1cb4e80c3cafb975d1d74a842c833" title=" " alt="" coords="208,110,385,135"/>
+<area shape="poly" id="edge4_Node000001_Node000023" title=" " alt="" coords="160,105,192,108,192,113,160,110"/>
 <area shape="rect" id="Node000003" href="$namespaceyaze_1_1gfx_1_1palette__group__internal.html#adb13428aead7660315ed02fb42433b84" title=" " alt="" coords="433,5,631,61"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="376,57,417,50,418,55,376,62"/>
 <area shape="rect" id="Node000007" href="$namespaceyaze_1_1gfx_1_1palette__group__internal.html#a9d94efc6b483a0cdf6633d948208a3d1" title=" " alt="" coords="442,85,622,141"/>
 <area shape="poly" id="edge3_Node000002_Node000007" title=" " alt="" coords="376,84,427,93,427,98,376,89"/>
-<area shape="poly" id="edge5_Node000023_Node000023" title=" " alt="" coords="261,135,254,125,258,115,272,109,296,107,323,110,336,117,333,121,321,115,296,112,274,114,262,119,259,124,265,132"/>
 </map>

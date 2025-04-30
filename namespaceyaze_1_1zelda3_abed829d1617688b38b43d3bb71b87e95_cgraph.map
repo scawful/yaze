@@ -1,5 +1,6 @@
 <map id="yaze::zelda3::LoadEntranceTileTypes" name="yaze::zelda3::LoadEntranceTileTypes">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,182,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a6bd8ce3b192c32b2ed6c58f7b154787e" title=" " alt="" coords="230,13,376,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,23,215,23,215,28,182,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,22,182,62"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a6bd8ce3b192c32b2ed6c58f7b154787e" title=" " alt="" coords="230,29,376,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,40,215,40,215,45,182,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="268,31,261,21,265,11,279,5,303,3,329,5,342,12,339,17,327,10,303,8,281,10,269,15,266,20,272,27"/>
 </map>

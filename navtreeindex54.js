@@ -1,5 +1,10 @@
 var NAVTREEINDEX54 =
 {
+"structyaze_1_1test_1_1CompressionPiece.html#a436a543ffc0db41d9cac13231cee267b":[12,0,0,6,4,2],
+"structyaze_1_1test_1_1CompressionPiece.html#a571f842caef36b0c8873bab8e961b022":[11,0,1,6,6,6],
+"structyaze_1_1test_1_1CompressionPiece.html#a571f842caef36b0c8873bab8e961b022":[12,0,0,6,4,6],
+"structyaze_1_1test_1_1CompressionPiece.html#a599b9363959b7cd34a1345bb8ce0efe5":[11,0,1,6,6,1],
+"structyaze_1_1test_1_1CompressionPiece.html#a599b9363959b7cd34a1345bb8ce0efe5":[12,0,0,6,4,1],
 "structyaze_1_1test_1_1CompressionPiece.html#a92242e2f6f3111be36da8b6404a86770":[11,0,1,6,6,4],
 "structyaze_1_1test_1_1CompressionPiece.html#a92242e2f6f3111be36da8b6404a86770":[12,0,0,6,4,4],
 "structyaze_1_1test_1_1CompressionPiece.html#ae24776fd103eb31f3855592f655fda6d":[11,0,1,6,6,0],
@@ -14,10 +19,12 @@ var NAVTREEINDEX54 =
 "structyaze_1_1test_1_1CpuCallbacks.html#aebfa8ed4f10eece2dd163c8105aa7458":[12,0,0,6,6,1],
 "structyaze_1_1test_1_1Rom_1_1WriteAction.html":[11,0,1,6,19,0],
 "structyaze_1_1test_1_1Rom_1_1WriteAction.html":[12,0,0,6,17,0],
-"structyaze_1_1test_1_1Rom_1_1WriteAction.html#a474fe3286626ff407361df40dc9a0681":[11,0,1,6,19,0,0],
-"structyaze_1_1test_1_1Rom_1_1WriteAction.html#a474fe3286626ff407361df40dc9a0681":[12,0,0,6,17,0,0],
-"structyaze_1_1test_1_1Rom_1_1WriteAction.html#abb6164fd47f546d194402fa1348c2ae4":[11,0,1,6,19,0,1],
-"structyaze_1_1test_1_1Rom_1_1WriteAction.html#abb6164fd47f546d194402fa1348c2ae4":[12,0,0,6,17,0,1],
+"structyaze_1_1test_1_1Rom_1_1WriteAction.html#a474fe3286626ff407361df40dc9a0681":[11,0,1,6,19,0,1],
+"structyaze_1_1test_1_1Rom_1_1WriteAction.html#a474fe3286626ff407361df40dc9a0681":[12,0,0,6,17,0,1],
+"structyaze_1_1test_1_1Rom_1_1WriteAction.html#a6cf40d9119738cdeb4af9fd92e5473bb":[11,0,1,6,19,0,0],
+"structyaze_1_1test_1_1Rom_1_1WriteAction.html#a6cf40d9119738cdeb4af9fd92e5473bb":[12,0,0,6,17,0,0],
+"structyaze_1_1test_1_1Rom_1_1WriteAction.html#abea7910342c339057b81a6207ebb9646":[11,0,1,6,19,0,2],
+"structyaze_1_1test_1_1Rom_1_1WriteAction.html#abea7910342c339057b81a6207ebb9646":[12,0,0,6,17,0,2],
 "structyaze_1_1test_1_1Spc700_1_1Flags.html":[11,0,1,6,21,0],
 "structyaze_1_1test_1_1Spc700_1_1Flags.html":[12,0,0,6,19,0],
 "structyaze_1_1test_1_1Spc700_1_1Flags.html#a0b394943bb22ebf53fdf050477da8256":[11,0,1,6,21,0,6],
@@ -242,12 +249,5 @@ var NAVTREEINDEX54 =
 "structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a5779dea4d583d2a7ac569cb8dc8135c4":[12,0,0,8,0,5,5],
 "structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a631845029edd5d39b402d64ba609577b":[11,0,1,8,3,5,9],
 "structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a631845029edd5d39b402d64ba609577b":[12,0,0,8,0,5,9],
-"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a7687e34a1040b3f0b899728f2f3a3ba1":[11,0,1,8,3,5,11],
-"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a7687e34a1040b3f0b899728f2f3a3ba1":[12,0,0,8,0,5,11],
-"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abcf8ec71d5b830fef6d59ae449c52fde":[11,0,1,8,3,5,4],
-"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abcf8ec71d5b830fef6d59ae449c52fde":[12,0,0,8,0,5,4],
-"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abd2c6d8cd99d0510524ee3e1ab3a8fdd":[11,0,1,8,3,5,7],
-"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abd2c6d8cd99d0510524ee3e1ab3a8fdd":[12,0,0,8,0,5,7],
-"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#ac4b191d5ade6f487037dbbc884122dc3":[11,0,1,8,3,5,0],
-"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#ac4b191d5ade6f487037dbbc884122dc3":[12,0,0,8,0,5,0]
+"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a7687e34a1040b3f0b899728f2f3a3ba1":[11,0,1,8,3,5,11]
 };

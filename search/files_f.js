@@ -10,7 +10,7 @@ var searchData=
   ['shortcut_5fmanager_2ecc_7',['shortcut_manager.cc',['../shortcut__manager_8cc.html',1,'']]],
   ['shortcut_5fmanager_2eh_8',['shortcut_manager.h',['../shortcut__manager_8h.html',1,'']]],
   ['snes_2ecc_9',['snes.cc',['../snes_8cc.html',1,'']]],
-  ['snes_2eh_10',['snes.h',['../snes_8h.html',1,'']]],
+  ['snes_2eh_10',['snes.h',['../emu_2snes_8h.html',1,'(Global Namespace)'],['../snes_8h.html',1,'(Global Namespace)']]],
   ['snes_5fcolor_2ecc_11',['snes_color.cc',['../snes__color_8cc.html',1,'']]],
   ['snes_5fcolor_2eh_12',['snes_color.h',['../snes__color_8h.html',1,'']]],
   ['snes_5fpalette_2ecc_13',['snes_palette.cc',['../snes__palette_8cc.html',1,'']]],

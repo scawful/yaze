@@ -1,5 +1,10 @@
 var NAVTREEINDEX56 =
 {
+"zelda_8h.html#ac870fb2b7713b670247082c171053148":[13,0,1,1,24],
+"zelda_8h.html#ad5d32e01226c1d7167fa6c34c59bb95e":[13,0,1,1,26],
+"zelda_8h.html#af206bedc320e56e6defeba3fa38d2c58":[13,0,1,1,23],
+"zelda_8h.html#af206bedc320e56e6defeba3fa38d2c58a2326dd539f0d41c8e4b71a3aae3edb96":[13,0,1,1,23,1],
+"zelda_8h.html#af206bedc320e56e6defeba3fa38d2c58a4d6895bfddbaad6a1de54402e2edde1a":[13,0,1,1,23,4],
 "zelda_8h.html#af206bedc320e56e6defeba3fa38d2c58a5ecbcf0afce98b042f35ec71ba03fa4b":[13,0,1,1,23,6],
 "zelda_8h.html#af206bedc320e56e6defeba3fa38d2c58a8c3920d5d545844176ad55189fc9d8dc":[13,0,1,1,23,5],
 "zelda_8h.html#af206bedc320e56e6defeba3fa38d2c58a952e05817c3b0ddebcf28d1a7423e659":[13,0,1,1,23,3],

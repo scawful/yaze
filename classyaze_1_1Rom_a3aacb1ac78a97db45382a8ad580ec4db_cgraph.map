@@ -4,9 +4,8 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,30,232,24,233,29,179,36"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9" title=" " alt="" coords="226,55,380,80"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="179,51,210,54,210,60,178,56"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1gfx.html#acb08518117f632fe321cc8191defe210" title="Loads all the palettes for the game." alt="" coords="432,17,601,43"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="380,51,424,44,425,49,381,57"/>
-<area shape="rect" id="Node000025" href="$classyaze_1_1Rom.html#a99c1cb4e80c3cafb975d1d74a842c833" title=" " alt="" coords="428,91,605,116"/>
-<area shape="poly" id="edge4_Node000003_Node000025" title=" " alt="" coords="381,78,422,85,421,90,380,83"/>
-<area shape="poly" id="edge5_Node000025_Node000025" title=" " alt="" coords="481,92,474,82,478,72,493,66,517,64,543,67,556,74,554,78,541,72,517,69,494,71,482,76,479,81,485,89"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1gfx.html#acb08518117f632fe321cc8191defe210" title="Loads all the palettes for the game." alt="" coords="432,29,601,55"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="380,56,417,51,417,57,381,61"/>
+<area shape="rect" id="Node000025" href="$classyaze_1_1Rom.html#a99c1cb4e80c3cafb975d1d74a842c833" title=" " alt="" coords="428,79,605,104"/>
+<area shape="poly" id="edge4_Node000003_Node000025" title=" " alt="" coords="381,74,413,77,412,82,380,79"/>
 </map>

@@ -128,13 +128,15 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ab9486fe9b2a29dae3f97a585da5fb036" id="r_ab9486fe9b2a29dae3f97a585da5fb036"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab9486fe9b2a29dae3f97a585da5fb036">renderer</a> () -&gt; SDL_Renderer *</td></tr>
 <tr class="separator:ab9486fe9b2a29dae3f97a585da5fb036"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af8aa2548cc92e136c2eb83ad5b349eb9" id="r_af8aa2548cc92e136c2eb83ad5b349eb9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af8aa2548cc92e136c2eb83ad5b349eb9">RenderBitmap</a> (<a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> *bitmap)</td></tr>
-<tr class="memdesc:af8aa2548cc92e136c2eb83ad5b349eb9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Used to render a bitmap to the screen.  <br /></td></tr>
 <tr class="separator:af8aa2548cc92e136c2eb83ad5b349eb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a571c9b2494fb642abf7c8ddfe809334a" id="r_a571c9b2494fb642abf7c8ddfe809334a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a571c9b2494fb642abf7c8ddfe809334a">UpdateBitmap</a> (<a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> *bitmap)</td></tr>
-<tr class="memdesc:a571c9b2494fb642abf7c8ddfe809334a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Used to update a bitmap on the screen.  <br /></td></tr>
 <tr class="separator:a571c9b2494fb642abf7c8ddfe809334a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0d5a59f3505536cfb25b54a54c1d855d" id="r_a0d5a59f3505536cfb25b54a54c1d855d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0d5a59f3505536cfb25b54a54c1d855d">CreateAndRenderBitmap</a> (int width, int height, int depth, const std::vector&lt; uint8_t &gt; &amp;data, <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &amp;bitmap, <a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette)</td></tr>
 <tr class="separator:a0d5a59f3505536cfb25b54a54c1d855d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab67317aeec1530597f99599ab0489ac8" id="r_ab67317aeec1530597f99599ab0489ac8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab67317aeec1530597f99599ab0489ac8">Clear</a> ()</td></tr>
+<tr class="separator:ab67317aeec1530597f99599ab0489ac8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad0537d6180745ffe6a92b4e0ae9c5dc6" id="r_ad0537d6180745ffe6a92b4e0ae9c5dc6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad0537d6180745ffe6a92b4e0ae9c5dc6">Present</a> ()</td></tr>
+<tr class="separator:ad0537d6180745ffe6a92b4e0ae9c5dc6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -237,7 +239,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00026">26</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00569">yaze::editor::OverworldEditor::CheckForCurrentMap()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00765">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00789">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00739">yaze::editor::OverworldEditor::DrawAreaGraphics()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00525">yaze::editor::GraphicsEditor::DrawCgxImport()</a>, <a class="el" href="screen__editor_8cc_source.html#l00458">yaze::editor::ScreenEditor::DrawDungeonMapsEditor()</a>, <a class="el" href="screen__editor_8cc_source.html#l00401">yaze::editor::ScreenEditor::DrawDungeonMapsRoomGfx()</a>, <a class="el" href="screen__editor_8cc_source.html#l00297">yaze::editor::ScreenEditor::DrawDungeonMapsTabs()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00097">yaze::editor::GraphicsEditor::DrawGfxEditToolset()</a>, <a class="el" href="message__editor_8cc_source.html#l00376">yaze::editor::MessageEditor::DrawMessagePreview()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00552">yaze::editor::DungeonEditor::DrawObjectRenderer()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00558">yaze::editor::GraphicsEditor::DrawScrImport()</a>, <a class="el" href="message__editor_8cc_source.html#l00046">yaze::editor::MessageEditor::Initialize()</a>, <a class="el" href="screen__editor_8cc_source.html#l00563">yaze::editor::ScreenEditor::LoadBinaryGfx()</a>, <a class="el" href="screen__editor_8cc_source.html#l00227">yaze::editor::ScreenEditor::LoadDungeonMapTile16()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01032">yaze::editor::OverworldEditor::LoadGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01081">yaze::editor::OverworldEditor::LoadSpriteGraphics()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00436">yaze::editor::Tile16Editor::LoadTile8()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00124">yaze::editor::DungeonEditor::RefreshGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01117">yaze::editor::OverworldEditor::RefreshOverworldMap()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00489">yaze::editor::Tile16Editor::SetCurrentTile()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00172">yaze::editor::Tile16Editor::UpdateBlockset()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00258">yaze::editor::GraphicsEditor::UpdateGfxTabView()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00358">yaze::editor::GraphicsEditor::UpdatePaletteColumn()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00252">yaze::editor::Tile16Editor::UpdateTile16Edit()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00526">yaze::editor::Tile16Editor::UpdateTransferTileCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00569">yaze::editor::OverworldEditor::CheckForCurrentMap()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00765">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00789">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00739">yaze::editor::OverworldEditor::DrawAreaGraphics()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00525">yaze::editor::GraphicsEditor::DrawCgxImport()</a>, <a class="el" href="screen__editor_8cc_source.html#l00458">yaze::editor::ScreenEditor::DrawDungeonMapsEditor()</a>, <a class="el" href="screen__editor_8cc_source.html#l00401">yaze::editor::ScreenEditor::DrawDungeonMapsRoomGfx()</a>, <a class="el" href="screen__editor_8cc_source.html#l00297">yaze::editor::ScreenEditor::DrawDungeonMapsTabs()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00097">yaze::editor::GraphicsEditor::DrawGfxEditToolset()</a>, <a class="el" href="message__editor_8cc_source.html#l00376">yaze::editor::MessageEditor::DrawMessagePreview()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00542">yaze::editor::DungeonEditor::DrawObjectRenderer()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00558">yaze::editor::GraphicsEditor::DrawScrImport()</a>, <a class="el" href="message__editor_8cc_source.html#l00046">yaze::editor::MessageEditor::Initialize()</a>, <a class="el" href="screen__editor_8cc_source.html#l00563">yaze::editor::ScreenEditor::LoadBinaryGfx()</a>, <a class="el" href="screen__editor_8cc_source.html#l00227">yaze::editor::ScreenEditor::LoadDungeonMapTile16()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01032">yaze::editor::OverworldEditor::LoadGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01081">yaze::editor::OverworldEditor::LoadSpriteGraphics()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00436">yaze::editor::Tile16Editor::LoadTile8()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00119">yaze::editor::DungeonEditor::RefreshGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01117">yaze::editor::OverworldEditor::RefreshOverworldMap()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00489">yaze::editor::Tile16Editor::SetCurrentTile()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00172">yaze::editor::Tile16Editor::UpdateBlockset()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00258">yaze::editor::GraphicsEditor::UpdateGfxTabView()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00358">yaze::editor::GraphicsEditor::UpdatePaletteColumn()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00252">yaze::editor::Tile16Editor::UpdateTile16Edit()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00526">yaze::editor::Tile16Editor::UpdateTransferTileCanvas()</a>.</p>
 
 </div>
 </div>
@@ -318,9 +320,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Used to render a bitmap to the screen. </p>
-
-<p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00048">48</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00045">45</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
 
 </div>
 </div>
@@ -347,9 +347,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Used to update a bitmap on the screen. </p>
-
-<p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00055">55</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00049">49</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
 
 </div>
 </div>
@@ -400,7 +398,61 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00059">59</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00053">53</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
+
+</div>
+</div>
+<a id="ab67317aeec1530597f99599ab0489ac8" name="ab67317aeec1530597f99599ab0489ac8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab67317aeec1530597f99599ab0489ac8">&#9670;&#160;</a></span>Clear()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::core::Renderer::Clear </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00061">61</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
+
+</div>
+</div>
+<a id="ad0537d6180745ffe6a92b4e0ae9c5dc6" name="ad0537d6180745ffe6a92b4e0ae9c5dc6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad0537d6180745ffe6a92b4e0ae9c5dc6">&#9670;&#160;</a></span>Present()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::core::Renderer::Present </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00066">66</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
 
 </div>
 </div>
@@ -450,7 +502,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00070">70</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="renderer_8h_source.html#l00071">71</a> of file <a class="el" href="renderer_8h_source.html">renderer.h</a>.</p>
 
 </div>
 </div>

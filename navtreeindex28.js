@@ -1,5 +1,7 @@
 var NAVTREEINDEX28 =
 {
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#a169d9ecb5a18433f6f757eebdd0df0ec":[11,0,1,8,3,6,2],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#a169d9ecb5a18433f6f757eebdd0df0ec":[12,0,0,8,0,6,2],
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#a245d5ba4ce1506500e67171ba88b59fc":[11,0,1,8,3,6,45],
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#a245d5ba4ce1506500e67171ba88b59fc":[12,0,0,8,0,6,45],
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#a28311b92f0aa840f6745cc4a16c95450":[11,0,1,8,3,6,0],
@@ -208,6 +210,8 @@ var NAVTREEINDEX28 =
 "editor__manager_8h.html":[13,0,2,0,1,10],
 "editor__manager_8h.html#adf4d73301961430d50d7edd96f92ce38":[13,0,2,0,1,10,2],
 "editor__manager_8h_source.html":[13,0,2,0,1,10],
+"emu_2snes_8h.html":[13,0,2,0,2,8],
+"emu_2snes_8h_source.html":[13,0,2,0,2,8],
 "emu_8cc.html":[13,0,2,0,2,4],
 "emu_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627":[13,0,2,0,2,4,1],
 "emu_8cc_source.html":[13,0,2,0,2,4],
@@ -245,9 +249,5 @@ var NAVTREEINDEX28 =
 "font__loader_8mm.html":[13,0,2,0,0,0,11],
 "font__loader_8mm_source.html":[13,0,2,0,0,0,11],
 "functions.html":[12,3,0],
-"functions.html":[12,3,0,0],
-"functions_b.html":[12,3,0,1],
-"functions_c.html":[12,3,0,2],
-"functions_d.html":[12,3,0,3],
-"functions_e.html":[12,3,0,4]
+"functions.html":[12,3,0,0]
 };

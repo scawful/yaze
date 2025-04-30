@@ -1,5 +1,8 @@
 var NAVTREEINDEX46 =
 {
+"structSDL__Deleter.html#a04c7124e69f1a613c2905ae0d9846999":[12,0,9,1],
+"structSDL__Deleter.html#aa03c4eebf864506a380a5a49b7f791f2":[12,0,9,0],
+"structTextEditor_1_1Breakpoint.html":[12,0,17,0],
 "structTextEditor_1_1Breakpoint.html#a1392b1f30cc531bc5ec395c9e7bc7548":[12,0,17,0,2],
 "structTextEditor_1_1Breakpoint.html#a2a1069e84047f918d79bb95f2b9ce0ce":[12,0,17,0,1],
 "structTextEditor_1_1Breakpoint.html#aeeb993b1a5adb018586f1e6feb9fa9ad":[12,0,17,0,3],
@@ -156,10 +159,12 @@ var NAVTREEINDEX46 =
 "structyaze_1_1ResourceLabelManager_1_1ResourceType.html#a772b3a36cea66aae8e1424a5c5e80a61":[12,0,0,13,0,1],
 "structyaze_1_1Rom_1_1WriteAction.html":[11,0,1,14,0],
 "structyaze_1_1Rom_1_1WriteAction.html":[12,0,0,14,0],
-"structyaze_1_1Rom_1_1WriteAction.html#a474fe3286626ff407361df40dc9a0681":[11,0,1,14,0,0],
-"structyaze_1_1Rom_1_1WriteAction.html#a474fe3286626ff407361df40dc9a0681":[12,0,0,14,0,0],
-"structyaze_1_1Rom_1_1WriteAction.html#abb6164fd47f546d194402fa1348c2ae4":[11,0,1,14,0,1],
-"structyaze_1_1Rom_1_1WriteAction.html#abb6164fd47f546d194402fa1348c2ae4":[12,0,0,14,0,1],
+"structyaze_1_1Rom_1_1WriteAction.html#a474fe3286626ff407361df40dc9a0681":[11,0,1,14,0,1],
+"structyaze_1_1Rom_1_1WriteAction.html#a474fe3286626ff407361df40dc9a0681":[12,0,0,14,0,1],
+"structyaze_1_1Rom_1_1WriteAction.html#a6cf40d9119738cdeb4af9fd92e5473bb":[11,0,1,14,0,0],
+"structyaze_1_1Rom_1_1WriteAction.html#a6cf40d9119738cdeb4af9fd92e5473bb":[12,0,0,14,0,0],
+"structyaze_1_1Rom_1_1WriteAction.html#abea7910342c339057b81a6207ebb9646":[11,0,1,14,0,2],
+"structyaze_1_1Rom_1_1WriteAction.html#abea7910342c339057b81a6207ebb9646":[12,0,0,14,0,2],
 "structyaze_1_1cli_1_1Context.html":[11,0,1,0,6],
 "structyaze_1_1cli_1_1Context.html":[12,0,0,0,5],
 "structyaze_1_1cli_1_1Context.html#a2a5b73602903554095ce69ec41fa0671":[11,0,1,0,6,2],
@@ -244,10 +249,5 @@ var NAVTREEINDEX46 =
 "structyaze_1_1core_1_1SDL__Surface__Deleter.html":[12,0,0,1,11],
 "structyaze_1_1core_1_1SDL__Surface__Deleter.html#a8ee568452a4b35496de028e8d057aa87":[11,0,1,1,13,0],
 "structyaze_1_1core_1_1SDL__Surface__Deleter.html#a8ee568452a4b35496de028e8d057aa87":[12,0,0,1,11,0],
-"structyaze_1_1core_1_1SDL__Texture__Deleter.html":[11,0,1,1,14],
-"structyaze_1_1core_1_1SDL__Texture__Deleter.html":[12,0,0,1,12],
-"structyaze_1_1core_1_1SDL__Texture__Deleter.html#afaf4558073914dd66982c67533f012e4":[11,0,1,1,14,0],
-"structyaze_1_1core_1_1SDL__Texture__Deleter.html#afaf4558073914dd66982c67533f012e4":[12,0,0,1,12,0],
-"structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html":[11,0,1,2,9,0],
-"structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html":[12,0,0,2,3,0]
+"structyaze_1_1core_1_1SDL__Texture__Deleter.html":[11,0,1,1,14]
 };

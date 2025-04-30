@@ -99,7 +99,7 @@ var searchData=
   ['entrance_5ftiletypes_5f_96',['entrance_tiletypes_',['../classyaze_1_1editor_1_1OverworldEditor.html#a177e1a50f06c6c3b26e8f362eba561c6',1,'yaze::editor::OverworldEditor']]],
   ['entrances_97',['ENTRANCES',['../classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8eacbf379de389a64412c5353c6e7157c46',1,'yaze::editor::OverworldEditor']]],
   ['entrances_98',['entrances',['../classyaze_1_1zelda3_1_1Overworld.html#aa89fb081c621db38f659b6273f0d9ab3',1,'yaze::zelda3::Overworld']]],
-  ['entrances_5f_99',['entrances_',['../classyaze_1_1editor_1_1DungeonEditor.html#a249c44e52f82df4b06c94564f3afb333',1,'yaze::editor::DungeonEditor']]],
+  ['entrances_5f_99',['entrances_',['../classyaze_1_1editor_1_1DungeonEditor.html#a9fdd2c4cd412485af298dbeeb3d6d533',1,'yaze::editor::DungeonEditor']]],
   ['entries_100',['entries',['../structyaze_1_1emu_1_1Tilemap.html#a99df22d3822fec48f10edbaf60294d24',1,'yaze::emu::Tilemap::entries'],['../structyaze_1_1test_1_1Tilemap.html#a99df22d3822fec48f10edbaf60294d24',1,'yaze::test::Tilemap::entries']]],
   ['eor_101',['EOR',['../classyaze_1_1emu_1_1Spc700.html#ab101730015ee5d0026969bac0f73b9b1',1,'yaze::emu::Spc700::EOR()'],['../classyaze_1_1emu_1_1Cpu.html#a767c1e311a7d05afe9a529ad48650639',1,'yaze::emu::Cpu::EOR()'],['../classyaze_1_1test_1_1Cpu.html#a767c1e311a7d05afe9a529ad48650639',1,'yaze::test::Cpu::EOR()'],['../classyaze_1_1test_1_1Spc700.html#ab101730015ee5d0026969bac0f73b9b1',1,'yaze::test::Spc700::EOR()']]],
   ['eor_102',['Eor',['../classyaze_1_1emu_1_1Cpu.html#ac706e07f6d30a24a3ee86662a1cd432e',1,'yaze::emu::Cpu::Eor()'],['../classyaze_1_1test_1_1Cpu.html#ac706e07f6d30a24a3ee86662a1cd432e',1,'yaze::test::Cpu::Eor()']]],
