@@ -47,7 +47,6 @@ absl::Status DungeonEditor::Load() {
   auto dungeon_man_pal_group = rom()->palette_group().dungeon_main;
 
   for (int i = 0; i < 0x100 + 40; i++) {
-    rooms_.emplace_back(zelda3::Room(/*room_id=*/i));
     rooms_[i] = zelda3::LoadRoomFromRom(rom(), i);
 
     auto room_size = zelda3::CalculateRoomSize(rom(), i);
@@ -76,11 +75,11 @@ absl::Status DungeonEditor::Load() {
   LoadDungeonRoomSize();
   // LoadRoomEntrances
   for (int i = 0; i < 0x07; ++i) {
-    entrances_.emplace_back(zelda3::RoomEntrance(*rom(), i, true));
+    entrances_[i] = zelda3::RoomEntrance(*rom(), i, true);
   }
 
   for (int i = 0; i < 0x85; ++i) {
-    entrances_.emplace_back(zelda3::RoomEntrance(*rom(), i, false));
+    entrances_[i + 0x07] = zelda3::RoomEntrance(*rom(), i, false);
   }
 
   // Load the palette group and palette for the dungeon
@@ -89,10 +88,6 @@ absl::Status DungeonEditor::Load() {
                    gfx::CreatePaletteGroupFromLargePalette(full_palette_))
 
   graphics_bin_ = GraphicsSheetManager::GetInstance().gfx_sheets();
-  // Create a vector of pointers to the current block bitmaps
-  for (int block : rooms_[current_room_id_].blocks()) {
-    room_gfx_sheets_.emplace_back(&graphics_bin_[block]);
-  }
   CalculateUsageStats();
   is_loaded_ = true;
   return absl::OkStatus();
@@ -489,14 +484,10 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
   canvas_.DrawBackground();
   canvas_.DrawContextMenu();
   if (is_loaded_) {
-    canvas_.DrawBitmap(gfx::Arena::Get().bg1_bitmap(), 0, 0);
-    canvas_.DrawBitmap(gfx::Arena::Get().bg2_bitmap(), 0, 0);
-
     for (const auto &object : rooms_[room_id].tile_objects_) {
       canvas_.DrawOutline(object.x_, object.y_, object.width_ * 16,
                           object.height_ * 16);
     }
-    canvas_.DrawBitmap(rooms_[room_id].layer1(), 0, 0);
   }
   canvas_.DrawGrid();
   canvas_.DrawOverlay();
@@ -504,8 +495,7 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
 
 void DungeonEditor::DrawRoomGraphics() {
   const auto height = 0x40;
-  const int num_sheets = 0x10;
-  room_gfx_canvas_.DrawBackground(ImVec2(0x100 + 1, num_sheets * height + 1));
+  room_gfx_canvas_.DrawBackground();
   room_gfx_canvas_.DrawContextMenu();
   room_gfx_canvas_.DrawTileSelector(32);
   if (is_loaded_) {
@@ -564,7 +554,6 @@ void DungeonEditor::DrawObjectRenderer() {
     for (const auto object_name : zelda3::Type1RoomObjectNames) {
       if (ImGui::Selectable(object_name.data(), selected_object == i)) {
         selected_object = i;
-        current_object_ = i;
         object_renderer_.LoadObject(i,
                                     rooms_[current_room_id_].mutable_blocks());
         Renderer::GetInstance().RenderBitmap(object_renderer_.bitmap());
