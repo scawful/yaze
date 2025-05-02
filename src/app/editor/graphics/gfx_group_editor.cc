@@ -2,6 +2,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
+#include "app/gfx/arena.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
@@ -111,9 +112,7 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
       BeginGroup();
       for (int i = 0; i < 8; i++) {
         int sheet_id = rom()->main_blockset_ids[selected_blockset_][i];
-        auto &sheet =
-            GraphicsSheetManager::GetInstance().mutable_gfx_sheets()->at(
-                sheet_id);
+        auto &sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
         gui::BitmapCanvasPipeline(blockset_canvas_, sheet, 256, 0x10 * 0x04,
                                   0x20, true, false, 22);
       }
@@ -166,9 +165,7 @@ void GfxGroupEditor::DrawRoomsetViewer() {
       BeginGroup();
       for (int i = 0; i < 4; i++) {
         int sheet_id = rom()->room_blockset_ids[selected_roomset_][i];
-        auto &sheet =
-            GraphicsSheetManager::GetInstance().mutable_gfx_sheets()->at(
-                sheet_id);
+        auto &sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
         gui::BitmapCanvasPipeline(roomset_canvas_, sheet, 256, 0x10 * 0x04,
                                   0x20, true, false, 23);
       }
@@ -207,8 +204,7 @@ void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
       for (int i = 0; i < 4; i++) {
         int sheet_id = rom()->spriteset_ids[selected_spriteset_][i];
         auto &sheet =
-            GraphicsSheetManager::GetInstance().mutable_gfx_sheets()->at(
-                115 + sheet_id);
+            gfx::Arena::Get().mutable_gfx_sheets()->at(115 + sheet_id);
         gui::BitmapCanvasPipeline(spriteset_canvas_, sheet, 256, 0x10 * 0x04,
                                   0x20, true, false, 24);
       }

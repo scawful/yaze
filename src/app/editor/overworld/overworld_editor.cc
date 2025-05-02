@@ -12,6 +12,7 @@
 #include "app/core/platform/renderer.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/overworld/entity.h"
+#include "app/gfx/arena.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/tilemap.h"
@@ -717,7 +718,7 @@ void OverworldEditor::DrawTile8Selector() {
   graphics_bin_canvas_.DrawContextMenu();
   if (all_gfx_loaded_) {
     int key = 0;
-    for (auto &value : GraphicsSheetManager::GetInstance().gfx_sheets()) {
+    for (auto &value : gfx::Arena::Get().gfx_sheets()) {
       int offset = 0x40 * (key + 1);
       int top_left_y = graphics_bin_canvas_.zero_point().y + 2;
       if (key >= 1) {

@@ -8,6 +8,7 @@
 #include "app/core/platform/clipboard.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/platform/renderer.h"
+#include "app/gfx/arena.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/compression.h"
 #include "app/gfx/scad_format.h"
@@ -50,10 +51,9 @@ absl::Status GraphicsEditor::Update() {
     status_ = UpdateGfxEdit();
     TAB_ITEM("Sheet Browser")
     if (asset_browser_.Initialized == false) {
-      asset_browser_.Initialize(
-          GraphicsSheetManager::GetInstance().gfx_sheets());
+      asset_browser_.Initialize(gfx::Arena::Get().gfx_sheets());
     }
-    asset_browser_.Draw(GraphicsSheetManager::GetInstance().gfx_sheets());
+    asset_browser_.Draw(gfx::Arena::Get().gfx_sheets());
     END_TAB_ITEM()
     status_ = UpdateScadView();
     status_ = UpdateLinkGfxView();
@@ -121,10 +121,8 @@ void GraphicsEditor::DrawGfxEditToolset() {
 
     TableNextColumn();
     if (Button(ICON_MD_CONTENT_COPY)) {
-      std::vector<uint8_t> png_data = GraphicsSheetManager::GetInstance()
-                                          .gfx_sheets()
-                                          .at(current_sheet_)
-                                          .GetPngData();
+      std::vector<uint8_t> png_data =
+          gfx::Arena::Get().gfx_sheets().at(current_sheet_).GetPngData();
       core::CopyImageToClipboard(png_data);
     }
     HOVER_HINT("Copy to Clipboard");
@@ -135,13 +133,12 @@ void GraphicsEditor::DrawGfxEditToolset() {
       int width, height;
       core::GetImageFromClipboard(png_data, width, height);
       if (png_data.size() > 0) {
-        GraphicsSheetManager::GetInstance()
+        gfx::Arena::Get()
             .mutable_gfx_sheets()
             ->at(current_sheet_)
             .Create(width, height, 8, png_data);
         Renderer::GetInstance().UpdateBitmap(
-            &GraphicsSheetManager::GetInstance().mutable_gfx_sheets()->at(
-                current_sheet_));
+            &gfx::Arena::Get().mutable_gfx_sheets()->at(current_sheet_));
       }
     }
     HOVER_HINT("Paste from Clipboard");
@@ -161,8 +158,7 @@ void GraphicsEditor::DrawGfxEditToolset() {
     }
 
     TableNextColumn();
-    auto bitmap =
-        GraphicsSheetManager::GetInstance().gfx_sheets()[current_sheet_];
+    auto bitmap = gfx::Arena::Get().gfx_sheets()[current_sheet_];
     auto palette = bitmap.palette();
     for (int i = 0; i < palette.size(); i++) {
       ImGui::SameLine();
@@ -201,7 +197,7 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
         (int)ms_io->RangeSrcItem);  // Ensure RangeSrc item is not clipped.
 
   int key = 0;
-  for (auto& value : GraphicsSheetManager::GetInstance().gfx_sheets()) {
+  for (auto& value : gfx::Arena::Get().gfx_sheets()) {
     ImGui::BeginChild(absl::StrFormat("##GfxSheet%02X", key).c_str(),
                       ImVec2(0x100 + 1, 0x40 + 1), true,
                       ImGuiWindowFlags_NoDecoration);
@@ -291,8 +287,7 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
                               ImGuiWindowFlags_AlwaysHorizontalScrollbar);
 
         gfx::Bitmap& current_bitmap =
-            GraphicsSheetManager::GetInstance().mutable_gfx_sheets()->at(
-                sheet_id);
+            gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
 
         auto draw_tile_event = [&]() {
           current_sheet_canvas_.DrawTileOnBitmap(tile_size_, &current_bitmap,
@@ -301,8 +296,7 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
         };
 
         current_sheet_canvas_.UpdateColorPainter(
-            GraphicsSheetManager::GetInstance().mutable_gfx_sheets()->at(
-                sheet_id),
+            gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id),
             current_color_, draw_tile_event, tile_size_, current_scale_);
 
         ImGui::EndChild();
@@ -335,8 +329,7 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
       current_sheet_ = id;
       //  ImVec2(0x100, 0x40),
       current_sheet_canvas_.UpdateColorPainter(
-          GraphicsSheetManager::GetInstance().mutable_gfx_sheets()->at(id),
-          current_color_,
+          gfx::Arena::Get().mutable_gfx_sheets()->at(id), current_color_,
           [&]() {
 
           },
@@ -372,13 +365,12 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
                                    palette);
 
     if (refresh_graphics_ && !open_sheets_.empty()) {
-      GraphicsSheetManager::GetInstance()
+      gfx::Arena::Get()
           .mutable_gfx_sheets()
           ->data()[current_sheet_]
           .SetPaletteWithTransparent(palette, edit_palette_sub_index_);
-      Renderer::GetInstance().UpdateBitmap(&GraphicsSheetManager::GetInstance()
-                                                .mutable_gfx_sheets()
-                                                ->data()[current_sheet_]);
+      Renderer::GetInstance().UpdateBitmap(
+          &gfx::Arena::Get().mutable_gfx_sheets()->data()[current_sheet_]);
       refresh_graphics_ = false;
     }
   }

@@ -26,6 +26,11 @@ class Arena {
   SDL_Surface* AllocateSurface(int width, int height, int depth, int format);
   void FreeSurface(SDL_Surface* surface);
 
+  std::array<gfx::Bitmap, 223>& gfx_sheets() { return gfx_sheets_; }
+  auto gfx_sheet(int i) { return gfx_sheets_[i]; }
+  auto mutable_gfx_sheet(int i) { return &gfx_sheets_[i]; }
+  auto mutable_gfx_sheets() { return &gfx_sheets_; }
+
   auto& bg1() { return bg1_; }
   auto& bg2() { return bg2_; }
 
@@ -41,6 +46,8 @@ class Arena {
 
   std::array<uint16_t, kTotalTiles> layer1_buffer_;
   std::array<uint16_t, kTotalTiles> layer2_buffer_;
+
+  std::array<gfx::Bitmap, 223> gfx_sheets_;
 
   std::unordered_map<SDL_Texture*,
                      std::unique_ptr<SDL_Texture, core::SDL_Texture_Deleter>>
