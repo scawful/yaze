@@ -15,6 +15,7 @@
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/emu/emulator.h"
+#include "app/gfx/arena.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/style.h"
@@ -548,7 +549,7 @@ absl::Status EditorManager::LoadAssets() {
   current_editor_set_->overworld_editor_.Initialize();
   current_editor_set_->message_editor_.Initialize();
 
-  auto &sheet_manager = GraphicsSheetManager::GetInstance();
+  auto &sheet_manager = gfx::Arena::Get();
   ASSIGN_OR_RETURN(*sheet_manager.mutable_gfx_sheets(),
                    LoadAllGraphicsData(*current_rom_));
   for (auto &editor : current_editor_set_->active_editors_) {
@@ -569,8 +570,8 @@ absl::Status EditorManager::SaveRom() {
   RETURN_IF_ERROR(current_editor_set_->overworld_editor_.Save());
 
   if (core::FeatureFlags::get().kSaveGraphicsSheet)
-    RETURN_IF_ERROR(SaveAllGraphicsData(
-        *current_rom_, GraphicsSheetManager::GetInstance().gfx_sheets()));
+    RETURN_IF_ERROR(
+        SaveAllGraphicsData(*current_rom_, gfx::Arena::Get().gfx_sheets()));
 
   return current_rom_->SaveToFile(backup_rom_, save_new_auto_);
 }

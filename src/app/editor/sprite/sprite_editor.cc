@@ -2,6 +2,7 @@
 
 #include "app/core/platform/file_dialog.h"
 #include "app/editor/sprite/zsprite.h"
+#include "app/gfx/arena.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/zelda3/sprite/sprite.h"
@@ -180,9 +181,8 @@ void SpriteEditor::DrawCurrentSheets() {
     graphics_sheet_canvas_.DrawTileSelector(32);
     for (int i = 0; i < 8; i++) {
       graphics_sheet_canvas_.DrawBitmap(
-          GraphicsSheetManager::GetInstance().gfx_sheets().at(
-              current_sheets_[i]),
-          1, (i * 0x40) + 1, 2);
+          gfx::Arena::Get().gfx_sheets().at(current_sheets_[i]), 1,
+          (i * 0x40) + 1, 2);
     }
     graphics_sheet_canvas_.DrawGrid();
     graphics_sheet_canvas_.DrawOverlay();
