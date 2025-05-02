@@ -211,18 +211,6 @@ Bitmap::Bitmap(int width, int height, int depth,
   SetPalette(palette);
 }
 
-void Bitmap::SaveSurfaceToFile(std::string_view filename) {
-  SDL_SaveBMP(surface_, filename.data());
-}
-
-void Bitmap::Initialize(int width, int height, int depth,
-                        std::span<uint8_t> &data) {
-  width_ = width;
-  height_ = height;
-  depth_ = depth;
-  data_ = std::vector<uint8_t>(data.begin(), data.end());
-}
-
 void Bitmap::Create(int width, int height, int depth, std::span<uint8_t> data) {
   data_ = std::vector<uint8_t>(data.begin(), data.end());
   Create(width, height, depth, data_);
@@ -314,14 +302,6 @@ void Bitmap::UpdateTextureData() {
   modified_ = false;
 }
 
-void Bitmap::CleanupUnusedTexture(uint64_t current_time, uint64_t timeout) {
-  if (texture_ && !texture_in_use_ &&
-      (current_time - last_used_time_ > timeout)) {
-    Arena::Get().FreeTexture(texture_);
-    texture_ = nullptr;
-  }
-}
-
 void Bitmap::SetPalette(const SnesPalette &palette) {
   if (surface_ == nullptr) {
     throw std::runtime_error("Surface is null. Palette not applied");
@@ -344,28 +324,6 @@ void Bitmap::SetPalette(const SnesPalette &palette) {
     sdl_palette->colors[i].g = pal_color.rgb().y;
     sdl_palette->colors[i].b = pal_color.rgb().z;
     sdl_palette->colors[i].a = pal_color.rgb().w;
-  }
-  SDL_LockSurface(surface_);
-}
-
-void Bitmap::SetPaletteFromPaletteGroup(const SnesPalette &palette,
-                                        int palette_id) {
-  auto start_index = palette_id * 8;
-  palette_ = palette.sub_palette(start_index, start_index + 8);
-  SDL_UnlockSurface(surface_);
-  for (size_t i = 0; i < palette_.size(); ++i) {
-    auto pal_color = palette_[i];
-    if (pal_color.is_transparent()) {
-      surface_->format->palette->colors[i].r = 0;
-      surface_->format->palette->colors[i].g = 0;
-      surface_->format->palette->colors[i].b = 0;
-      surface_->format->palette->colors[i].a = 0;
-    } else {
-      surface_->format->palette->colors[i].r = pal_color.rgb().x;
-      surface_->format->palette->colors[i].g = pal_color.rgb().y;
-      surface_->format->palette->colors[i].b = pal_color.rgb().z;
-      surface_->format->palette->colors[i].a = pal_color.rgb().w;
-    }
   }
   SDL_LockSurface(surface_);
 }
@@ -478,26 +436,6 @@ void Bitmap::Get16x16Tile(int tile_x, int tile_y,
       tile_data[tile_data_offset++] = pixel_value;
     }
   }
-}
-
-void Bitmap::Cleanup() {
-  if (texture_) {
-    Arena::Get().FreeTexture(texture_);
-    texture_ = nullptr;
-  }
-  active_ = false;
-  width_ = 0;
-  height_ = 0;
-  depth_ = 0;
-  data_size_ = 0;
-  palette_.clear();
-}
-
-void Bitmap::Clear() {
-  Cleanup();
-  data_.clear();
-  pixel_data_ = nullptr;
-  texture_pixels = nullptr;
 }
 
 #if YAZE_LIB_PNG == 1

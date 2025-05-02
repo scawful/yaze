@@ -4,7 +4,6 @@
 #include <SDL.h>
 
 #include <cstdint>
-#include <memory>
 #include <span>
 #include <string_view>
 #include <vector>
@@ -79,11 +78,6 @@ class Bitmap {
          const SnesPalette &palette);
 
   /**
-   * @brief Initialize the bitmap with the given dimensions and data
-   */
-  void Initialize(int width, int height, int depth, std::span<uint8_t> &data);
-
-  /**
    * @brief Create a bitmap with the given dimensions and data
    */
   void Create(int width, int height, int depth, std::span<uint8_t> data);
@@ -106,11 +100,6 @@ class Bitmap {
   void Reformat(int format);
 
   /**
-   * @brief Save the bitmap surface to a file
-   */
-  void SaveSurfaceToFile(std::string_view filename);
-
-  /**
    * @brief Creates the underlying SDL_Texture to be displayed.
    */
   void CreateTexture(SDL_Renderer *renderer);
@@ -126,12 +115,6 @@ class Bitmap {
   void UpdateTextureData();
 
   /**
-   * @brief Clean up unused textures after a timeout
-   */
-  void CleanupUnusedTexture(uint64_t current_time, uint64_t timeout);
-
-  // Palette management
-  /**
    * @brief Set the palette for the bitmap
    */
   void SetPalette(const SnesPalette &palette);
@@ -141,11 +124,6 @@ class Bitmap {
    */
   void SetPaletteWithTransparent(const SnesPalette &palette, size_t index,
                                  int length = 7);
-
-  /**
-   * @brief Set the palette from a palette group
-   */
-  void SetPaletteFromPaletteGroup(const SnesPalette &palette, int palette_id);
 
   /**
    * @brief Set the palette using SDL colors
@@ -162,7 +140,6 @@ class Bitmap {
    */
   void WriteColor(int position, const ImVec4 &color);
 
-  // Tile operations
   /**
    * @brief Extract an 8x8 tile from the bitmap
    */
@@ -174,16 +151,6 @@ class Bitmap {
    */
   void Get16x16Tile(int tile_x, int tile_y, std::vector<uint8_t> &tile_data,
                     int &tile_data_offset);
-
-  /**
-   * @brief Clean up the bitmap resources
-   */
-  void Cleanup();
-
-  /**
-   * @brief Clear the bitmap data
-   */
-  void Clear();
 
   const SnesPalette &palette() const { return palette_; }
   SnesPalette *mutable_palette() { return &palette_; }
