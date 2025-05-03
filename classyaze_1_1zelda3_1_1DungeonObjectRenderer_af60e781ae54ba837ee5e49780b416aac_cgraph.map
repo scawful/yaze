@@ -4,9 +4,9 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,68,241,48,242,53,174,73"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a6854e9626ddccf657b77cd740f13f1f9" title="Executes the object drawing routine." alt="" coords="239,71,424,111"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="191,88,223,88,223,94,191,94"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="257,160,406,185"/>
-<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="160,109,278,151,276,156,158,114"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc" title=" " alt="" coords="257,160,406,185"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="160,109,278,151,276,156,158,114"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a4dac73e88a86e0159959407fb13ebfa0" title="Updates the bitmap with the rendered object." alt="" coords="472,71,672,111"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="424,88,456,88,456,94,424,94"/>
-<area shape="poly" id="edge5_Node000008_Node000008" title=" " alt="" coords="293,161,285,151,290,141,305,135,331,133,360,136,374,142,372,147,358,141,331,138,307,140,293,145,290,150,297,157"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="293,161,285,151,290,141,305,135,331,133,360,136,374,142,372,147,358,141,331,138,307,140,293,145,290,150,297,157"/>
 </map>

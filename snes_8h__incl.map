@@ -1,12 +1,5 @@
 <map id="src/app/snes.h" name="src/app/snes.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="40,5,146,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,55,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="84,33,53,69,49,65,80,29"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="69,153,130,178"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="96,31,101,137,95,137,91,31"/>
-<area shape="rect" id="Node000004" href="$bitmap_8h.html" title=" " alt="" coords="130,79,247,105"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="111,29,162,68,159,72,107,34"/>
-<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="175,107,128,145,125,141,172,103"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="160,153,217,178"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="191,105,191,137,186,137,186,105"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,112,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="28,79,89,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="61,31,61,63,56,63,56,31"/>
 </map>

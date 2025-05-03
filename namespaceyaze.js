@@ -9,7 +9,6 @@ var namespaceyaze =
     [ "test", "namespaceyaze_1_1test.html", "namespaceyaze_1_1test" ],
     [ "util", "namespaceyaze_1_1util.html", "namespaceyaze_1_1util" ],
     [ "zelda3", "namespaceyaze_1_1zelda3.html", "namespaceyaze_1_1zelda3" ],
-    [ "GraphicsSheetManager", "classyaze_1_1GraphicsSheetManager.html", "classyaze_1_1GraphicsSheetManager" ],
     [ "Project", "structyaze_1_1Project.html", "structyaze_1_1Project" ],
     [ "RecentFilesManager", "classyaze_1_1RecentFilesManager.html", "classyaze_1_1RecentFilesManager" ],
     [ "Renderer", "classyaze_1_1Renderer.html", "classyaze_1_1Renderer" ],

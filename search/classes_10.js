@@ -7,7 +7,7 @@ var searchData=
   ['scrollregister_4',['ScrollRegister',['../structyaze_1_1emu_1_1ScrollRegister.html',1,'yaze::emu']]],
   ['sdl2backend_5',['Sdl2Backend',['../classyaze_1_1core_1_1Sdl2Backend.html',1,'yaze::core']]],
   ['sdl_5fdeleter_6',['SDL_Deleter',['../structSDL__Deleter.html',1,'SDL_Deleter'],['../structyaze_1_1core_1_1SDL__Deleter.html',1,'yaze::core::SDL_Deleter']]],
-  ['sdl_5fsurface_5fdeleter_7',['SDL_Surface_Deleter',['../structyaze_1_1core_1_1SDL__Surface__Deleter.html',1,'yaze::core::SDL_Surface_Deleter'],['../structyaze_1_1gfx_1_1SDL__Surface__Deleter.html',1,'yaze::gfx::SDL_Surface_Deleter']]],
+  ['sdl_5fsurface_5fdeleter_7',['SDL_Surface_Deleter',['../structyaze_1_1core_1_1SDL__Surface__Deleter.html',1,'yaze::core']]],
   ['sdl_5ftexture_5fdeleter_8',['SDL_Texture_Deleter',['../structyaze_1_1core_1_1SDL__Texture__Deleter.html',1,'yaze::core']]],
   ['setini_9',['SETINI',['../structyaze_1_1emu_1_1SETINI.html',1,'yaze::emu']]],
   ['settingseditor_10',['SettingsEditor',['../classyaze_1_1editor_1_1SettingsEditor.html',1,'yaze::editor']]],

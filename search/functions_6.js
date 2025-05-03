@@ -3,7 +3,7 @@ var searchData=
   ['game_5fstate_0',['game_state',['../classyaze_1_1zelda3_1_1Sprite.html#a986a640402b62b103a0355b1f615585c',1,'yaze::zelda3::Sprite']]],
   ['gameentity_1',['GameEntity',['../classyaze_1_1zelda3_1_1GameEntity.html#a6bb1a2cdae1be1ad21fc1b637727eb68',1,'yaze::zelda3::GameEntity']]],
   ['generatesavefilecomponent_2',['GenerateSaveFileComponent',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a879bdc125949b92f2e3b4e8f26d26521',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
-  ['get_3',['Get',['../classyaze_1_1util_1_1Flag.html#ace9b4f03672ed3ec8aac416df961d3a6',1,'yaze::util::Flag']]],
+  ['get_3',['Get',['../classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55',1,'yaze::gfx::Arena::Get()'],['../classyaze_1_1util_1_1Flag.html#ace9b4f03672ed3ec8aac416df961d3a6',1,'yaze::util::Flag::Get()']]],
   ['get_4',['get',['../classyaze_1_1core_1_1FeatureFlags.html#ab985b9cb493be9689a8f4baffc09b614',1,'yaze::core::FeatureFlags::get()'],['../classyaze_1_1util_1_1NotifyValue.html#a9d6e2d445235242e653130bcef0577d7',1,'yaze::util::NotifyValue::get()']]],
   ['get16x16tile_5',['Get16x16Tile',['../classyaze_1_1gfx_1_1Bitmap.html#adab34aa5b35c696b6b5831263c6dfc6a',1,'yaze::gfx::Bitmap::Get16x16Tile()'],['../classyaze_1_1gui_1_1Bitmap.html#adab34aa5b35c696b6b5831263c6dfc6a',1,'yaze::gui::Bitmap::Get16x16Tile()']]],
   ['get24localfrompc_6',['Get24LocalFromPC',['../namespaceyaze.html#a8acb4a8f67a09fd9a908aeac107898f7',1,'yaze']]],
@@ -47,7 +47,7 @@ var searchData=
   ['getid_44',['GetID',['../namespaceyaze_1_1gui.html#ac4604ede79aa224793b522b22034e68b',1,'yaze::gui']]],
   ['getimagefromclipboard_45',['GetImageFromClipboard',['../namespaceyaze_1_1core.html#a224033814dd0a65e514ab48d90bcc550',1,'yaze::core']]],
   ['getindexsize_46',['GetIndexSize',['../classyaze_1_1emu_1_1Cpu.html#a55a5bc9511116ca8c868514084e92452',1,'yaze::emu::Cpu::GetIndexSize()'],['../classyaze_1_1test_1_1Cpu.html#a55a5bc9511116ca8c868514084e92452',1,'yaze::test::Cpu::GetIndexSize()']]],
-  ['getinstance_47',['GetInstance',['../classyaze_1_1core_1_1MemoryTracker.html#a2ed8fd12acc21dc17b9f1719a41a7b0d',1,'yaze::core::MemoryTracker::GetInstance()'],['../classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a',1,'yaze::core::Renderer::GetInstance()'],['../classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6',1,'yaze::GraphicsSheetManager::GetInstance()'],['../classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a',1,'yaze::editor::Renderer::GetInstance()'],['../classyaze_1_1gui_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a',1,'yaze::gui::Renderer::GetInstance()'],['../classyaze_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a',1,'yaze::Renderer::GetInstance()'],['../classyaze_1_1zelda3_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a',1,'yaze::zelda3::Renderer::GetInstance()']]],
+  ['getinstance_47',['GetInstance',['../classyaze_1_1core_1_1MemoryTracker.html#a2ed8fd12acc21dc17b9f1719a41a7b0d',1,'yaze::core::MemoryTracker::GetInstance()'],['../classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a',1,'yaze::core::Renderer::GetInstance()'],['../classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a',1,'yaze::editor::Renderer::GetInstance()'],['../classyaze_1_1gui_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a',1,'yaze::gui::Renderer::GetInstance()'],['../classyaze_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a',1,'yaze::Renderer::GetInstance()'],['../classyaze_1_1zelda3_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a',1,'yaze::zelda3::Renderer::GetInstance()']]],
   ['getinstruction_48',['GetInstruction',['../classyaze_1_1emu_1_1InstructionEntry.html#ac3d66a162d16b588c1391204cab45abe',1,'yaze::emu::InstructionEntry']]],
   ['getinterruptflag_49',['GetInterruptFlag',['../classyaze_1_1emu_1_1Cpu.html#a1147c955ec591550cf3ef6bed317fcb0',1,'yaze::emu::Cpu::GetInterruptFlag()'],['../classyaze_1_1test_1_1Cpu.html#a1147c955ec591550cf3ef6bed317fcb0',1,'yaze::test::Cpu::GetInterruptFlag()']]],
   ['getkeyname_50',['GetKeyName',['../namespaceyaze_1_1editor_1_1anonymous__namespace_02shortcut__manager_8cc_03.html#a4145855c2b2efa1fad11c293681c231f',1,'yaze::editor::anonymous_namespace{shortcut_manager.cc}']]],
@@ -105,8 +105,8 @@ var searchData=
   ['getwordat_102',['GetWordAt',['../classTextEditor.html#a527d0a4b850de02053e608a212a7fc85',1,'TextEditor']]],
   ['getwordundercursor_103',['GetWordUnderCursor',['../classTextEditor.html#a3bb387fd74b1d7deb9808b4b3ee1ca22',1,'TextEditor']]],
   ['getzeroflag_104',['GetZeroFlag',['../classyaze_1_1emu_1_1Cpu.html#a4579473c68a1cdc9575533618915efcd',1,'yaze::emu::Cpu::GetZeroFlag()'],['../classyaze_1_1test_1_1Cpu.html#a4579473c68a1cdc9575533618915efcd',1,'yaze::test::Cpu::GetZeroFlag()']]],
-  ['gfx_5fsheet_105',['gfx_sheet',['../classyaze_1_1GraphicsSheetManager.html#a6f227a852c5d1f72ae017cac243fe9b1',1,'yaze::GraphicsSheetManager']]],
-  ['gfx_5fsheets_106',['gfx_sheets',['../classyaze_1_1GraphicsSheetManager.html#aab5b5a32bb727b7a942df264bea783eb',1,'yaze::GraphicsSheetManager']]],
+  ['gfx_5fsheet_105',['gfx_sheet',['../classyaze_1_1gfx_1_1Arena.html#a3621ae26db5f0322530dded1dc2a6dbe',1,'yaze::gfx::Arena']]],
+  ['gfx_5fsheets_106',['gfx_sheets',['../classyaze_1_1gfx_1_1Arena.html#abda8fe883e774ded3e618bb81dca3b74',1,'yaze::gfx::Arena']]],
   ['global_5fflag_5fregistry_107',['global_flag_registry',['../namespaceyaze_1_1util.html#a60afeb1f1afc9e19c61b64749a219577',1,'yaze::util']]],
   ['global_5fscale_108',['global_scale',['../classyaze_1_1gui_1_1Canvas.html#a26794e293b9d996abc70409d6aebfd8e',1,'yaze::gui::Canvas']]],
   ['glsl_109',['GLSL',['../structTextEditor_1_1LanguageDefinition.html#a6bbb79cc9c996f12d49b5707013070ce',1,'TextEditor::LanguageDefinition']]],
@@ -114,6 +114,5 @@ var searchData=
   ['graphics_5fbuffer_111',['graphics_buffer',['../classyaze_1_1Rom.html#afb7fc8f9976087dd4cd51f936d12369f',1,'yaze::Rom::graphics_buffer()'],['../classyaze_1_1test_1_1Rom.html#afb7fc8f9976087dd4cd51f936d12369f',1,'yaze::test::Rom::graphics_buffer()']]],
   ['graphicsbincanvaspipeline_112',['GraphicsBinCanvasPipeline',['../namespaceyaze_1_1gui.html#a359973f01787648b92a53d2aa84120a9',1,'yaze::gui']]],
   ['graphicsbuffer_113',['GraphicsBuffer',['../classyaze_1_1gfx_1_1GraphicsBuffer.html#aaba37539f6cb375a99a514f1b223d394',1,'yaze::gfx::GraphicsBuffer::GraphicsBuffer()=default'],['../classyaze_1_1gfx_1_1GraphicsBuffer.html#a29c6bb09f4ee75e3f5b03763c6d5fa4f',1,'yaze::gfx::GraphicsBuffer::GraphicsBuffer(uint8_t bpp, const std::vector&lt; uint8_t &gt; &amp;data)'],['../classyaze_1_1gfx_1_1GraphicsBuffer.html#a5406828129f931e756d2ec7c533111bf',1,'yaze::gfx::GraphicsBuffer::GraphicsBuffer(uint8_t bpp, std::vector&lt; uint8_t &gt; &amp;&amp;data)']]],
-  ['graphicseditor_114',['GraphicsEditor',['../classyaze_1_1editor_1_1GraphicsEditor.html#a19f9ac18b70c9cd5c7fe218652176a9a',1,'yaze::editor::GraphicsEditor']]],
-  ['graphicssheetmanager_115',['GraphicsSheetManager',['../classyaze_1_1GraphicsSheetManager.html#a3d76016049dd542b831156171055b68b',1,'yaze::GraphicsSheetManager']]]
+  ['graphicseditor_114',['GraphicsEditor',['../classyaze_1_1editor_1_1GraphicsEditor.html#a19f9ac18b70c9cd5c7fe218652176a9a',1,'yaze::editor::GraphicsEditor']]]
 ];

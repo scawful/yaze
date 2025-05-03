@@ -1,8 +1,8 @@
 <map id="yaze::editor::OverworldEditor::DrawTile8Selector" name="yaze::editor::OverworldEditor::DrawTile8Selector">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,29,189,70"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="53,29,51,19,58,10,74,5,97,3,122,5,137,11,135,16,121,10,97,8,75,10,61,15,56,21,58,28"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6" title=" " alt="" coords="237,29,426,70"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="57,29,56,19,62,10,76,5,97,3,120,5,133,11,131,16,118,10,97,8,77,10,65,15,61,20,63,28"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="237,37,374,62"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="189,47,221,47,221,52,189,52"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1GraphicsSheetManager.html#a3d76016049dd542b831156171055b68b" title=" " alt="" coords="474,29,663,70"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="426,47,458,47,458,52,426,52"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Arena.html#a8392acf381212aa4b22fafbdf87e28ca" title=" " alt="" coords="422,37,572,62"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="374,47,406,47,406,52,374,52"/>
 </map>

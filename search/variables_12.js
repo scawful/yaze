@@ -208,11 +208,12 @@ var searchData=
   ['subtype_5fptr_205',['subtype_ptr',['../structyaze_1_1zelda3_1_1SubtypeInfo.html#a38007237e22fe85ce0047c7fd68b15f1',1,'yaze::zelda3::SubtypeInfo']]],
   ['super_5fdonkey_5f_206',['super_donkey_',['../classyaze_1_1editor_1_1GraphicsEditor.html#ae143e980f615c02473c5e72e6b45e08c',1,'yaze::editor::GraphicsEditor']]],
   ['super_5fdonkey_5fcanvas_5f_207',['super_donkey_canvas_',['../classyaze_1_1editor_1_1GraphicsEditor.html#a29cf1278c09c644496f3e8032ce3fdc1',1,'yaze::editor::GraphicsEditor']]],
-  ['surface_5f_208',['surface_',['../classyaze_1_1gfx_1_1Bitmap.html#aa27f00b847a01ee31966e570ffd2b696',1,'yaze::gfx::Bitmap::surface_'],['../classyaze_1_1gui_1_1Bitmap.html#aa27f00b847a01ee31966e570ffd2b696',1,'yaze::gui::Bitmap::surface_']]],
-  ['sustainlevel_209',['sustainLevel',['../structyaze_1_1emu_1_1DspChannel.html#a9c9304cabd9304b06be2a602d47fe83c',1,'yaze::emu::DspChannel']]],
-  ['sword_5fx_5f_210',['sword_x_',['../classyaze_1_1zelda3_1_1TitleScreen.html#aa252c562dcdd0b465e0d0b249e06dbbc',1,'yaze::zelda3::TitleScreen']]],
-  ['swords_211',['swords',['../structyaze_1_1gfx_1_1PaletteGroupMap.html#a635ac3738f0d152113bd1cd994314b7a',1,'yaze::gfx::PaletteGroupMap']]],
-  ['swordselected_212',['swordSelected',['../classyaze_1_1zelda3_1_1TitleScreen.html#a6df3d1dc17ecdf7d6ae451409ab93bcd',1,'yaze::zelda3::TitleScreen']]],
-  ['swordspalettesmax_213',['SwordsPalettesMax',['../namespaceyaze_1_1gfx.html#acfed1bac442548b95a8ef44914bbf486',1,'yaze::gfx']]],
-  ['sync_5fcycle_5f_214',['sync_cycle_',['../classyaze_1_1emu_1_1Snes.html#a98eb3874e72896e6bfb619fcbcead59c',1,'yaze::emu::Snes']]]
+  ['surface_5f_208',['surface_',['../classyaze_1_1gfx_1_1Bitmap.html#a06f2c8e38b83a9e1b2456eb1bec6facd',1,'yaze::gfx::Bitmap::surface_'],['../classyaze_1_1gui_1_1Bitmap.html#a06f2c8e38b83a9e1b2456eb1bec6facd',1,'yaze::gui::Bitmap::surface_']]],
+  ['surfaces_5f_209',['surfaces_',['../classyaze_1_1gfx_1_1Arena.html#a8ec5dee5a6d3293d06f31655d0adfdf0',1,'yaze::gfx::Arena']]],
+  ['sustainlevel_210',['sustainLevel',['../structyaze_1_1emu_1_1DspChannel.html#a9c9304cabd9304b06be2a602d47fe83c',1,'yaze::emu::DspChannel']]],
+  ['sword_5fx_5f_211',['sword_x_',['../classyaze_1_1zelda3_1_1TitleScreen.html#aa252c562dcdd0b465e0d0b249e06dbbc',1,'yaze::zelda3::TitleScreen']]],
+  ['swords_212',['swords',['../structyaze_1_1gfx_1_1PaletteGroupMap.html#a635ac3738f0d152113bd1cd994314b7a',1,'yaze::gfx::PaletteGroupMap']]],
+  ['swordselected_213',['swordSelected',['../classyaze_1_1zelda3_1_1TitleScreen.html#a6df3d1dc17ecdf7d6ae451409ab93bcd',1,'yaze::zelda3::TitleScreen']]],
+  ['swordspalettesmax_214',['SwordsPalettesMax',['../namespaceyaze_1_1gfx.html#acfed1bac442548b95a8ef44914bbf486',1,'yaze::gfx']]],
+  ['sync_5fcycle_5f_215',['sync_cycle_',['../classyaze_1_1emu_1_1Snes.html#a98eb3874e72896e6bfb619fcbcead59c',1,'yaze::emu::Snes']]]
 ];

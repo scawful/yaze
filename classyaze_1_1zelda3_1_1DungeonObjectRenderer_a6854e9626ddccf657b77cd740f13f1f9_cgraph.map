@@ -1,9 +1,5 @@
 <map id="yaze::zelda3::DungeonObjectRenderer::RenderObject" name="yaze::zelda3::DungeonObjectRenderer::RenderObject">
-<area shape="rect" id="Node000001" title="Executes the object drawing routine." alt="" coords="5,39,191,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a4dac73e88a86e0159959407fb13ebfa0" title="Updates the bitmap with the rendered object." alt="" coords="239,39,439,79"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,56,223,56,223,62,191,62"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1GraphicsSheetManager.html#a7461b2bb28c8da993993abee0fe8cdb6" title=" " alt="" coords="487,5,676,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="439,43,471,38,472,43,440,48"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1GraphicsSheetManager.html#a4871bff3db392ae5107ec5db39fcf1f2" title=" " alt="" coords="487,71,676,111"/>
-<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="440,70,472,74,471,79,439,75"/>
+<area shape="rect" id="Node000001" title="Executes the object drawing routine." alt="" coords="5,5,191,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a4dac73e88a86e0159959407fb13ebfa0" title="Updates the bitmap with the rendered object." alt="" coords="239,5,439,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,23,223,23,223,28,191,28"/>
 </map>

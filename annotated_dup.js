@@ -192,6 +192,7 @@ var annotated_dup =
           [ "CompressionContext", "structyaze_1_1gfx_1_1lc__lz2_1_1CompressionContext.html", "structyaze_1_1gfx_1_1lc__lz2_1_1CompressionContext" ],
           [ "CompressionPiece", "structyaze_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html", "structyaze_1_1gfx_1_1lc__lz2_1_1CompressionPiece" ]
         ] ],
+        [ "Arena", "classyaze_1_1gfx_1_1Arena.html", "classyaze_1_1gfx_1_1Arena" ],
         [ "Bitmap", "classyaze_1_1gfx_1_1Bitmap.html", "classyaze_1_1gfx_1_1Bitmap" ],
         [ "CgxHeader", "structyaze_1_1gfx_1_1CgxHeader.html", "structyaze_1_1gfx_1_1CgxHeader" ],
         [ "GfxContext", "classyaze_1_1gfx_1_1GfxContext.html", null ],
@@ -202,7 +203,6 @@ var annotated_dup =
         [ "PaletteGroup", "structyaze_1_1gfx_1_1PaletteGroup.html", "structyaze_1_1gfx_1_1PaletteGroup" ],
         [ "PaletteGroupMap", "structyaze_1_1gfx_1_1PaletteGroupMap.html", "structyaze_1_1gfx_1_1PaletteGroupMap" ],
         [ "Paletteset", "structyaze_1_1gfx_1_1Paletteset.html", "structyaze_1_1gfx_1_1Paletteset" ],
-        [ "SDL_Surface_Deleter", "structyaze_1_1gfx_1_1SDL__Surface__Deleter.html", "structyaze_1_1gfx_1_1SDL__Surface__Deleter" ],
         [ "SnesColor", "classyaze_1_1gfx_1_1SnesColor.html", "classyaze_1_1gfx_1_1SnesColor" ],
         [ "SnesPalette", "classyaze_1_1gfx_1_1SnesPalette.html", "classyaze_1_1gfx_1_1SnesPalette" ],
         [ "Tile16", "classyaze_1_1gfx_1_1Tile16.html", "classyaze_1_1gfx_1_1Tile16" ],
@@ -314,7 +314,6 @@ var annotated_dup =
         [ "SubtypeInfo", "structyaze_1_1zelda3_1_1SubtypeInfo.html", "structyaze_1_1zelda3_1_1SubtypeInfo" ],
         [ "TitleScreen", "classyaze_1_1zelda3_1_1TitleScreen.html", "classyaze_1_1zelda3_1_1TitleScreen" ]
       ] ],
-      [ "GraphicsSheetManager", "classyaze_1_1GraphicsSheetManager.html", "classyaze_1_1GraphicsSheetManager" ],
       [ "Project", "structyaze_1_1Project.html", "structyaze_1_1Project" ],
       [ "RecentFilesManager", "classyaze_1_1RecentFilesManager.html", "classyaze_1_1RecentFilesManager" ],
       [ "Renderer", "classyaze_1_1Renderer.html", "classyaze_1_1Renderer" ],

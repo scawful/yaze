@@ -8,6 +8,7 @@ var hierarchy =
     [ "yaze::emu::Apu", "classyaze_1_1emu_1_1Apu.html", null ],
     [ "yaze::emu::ApuCallbacks", "structyaze_1_1emu_1_1ApuCallbacks.html", null ],
     [ "yaze::test::ApuCallbacks", "structyaze_1_1test_1_1ApuCallbacks.html", null ],
+    [ "yaze::gfx::Arena", "classyaze_1_1gfx_1_1Arena.html", null ],
     [ "yaze::emu::AsmParser", "classyaze_1_1emu_1_1AsmParser.html", null ],
     [ "yaze::test::AsmParser", "classyaze_1_1test_1_1AsmParser.html", null ],
     [ "yaze::gui::AssetObject", "structyaze_1_1gui_1_1AssetObject.html", [
@@ -134,7 +135,6 @@ var hierarchy =
     [ "yaze::gui::GfxSheetAssetBrowser", "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html", null ],
     [ "TextEditor::Glyph", "structTextEditor_1_1Glyph.html", null ],
     [ "yaze::gfx::GraphicsBuffer", "classyaze_1_1gfx_1_1GraphicsBuffer.html", null ],
-    [ "yaze::GraphicsSheetManager", "classyaze_1_1GraphicsSheetManager.html", null ],
     [ "yaze::util::HexStringParams", "structyaze_1_1util_1_1HexStringParams.html", null ],
     [ "yaze::editor::HistoryManager", "classyaze_1_1editor_1_1HistoryManager.html", null ],
     [ "TextEditor::Identifier", "structTextEditor_1_1Identifier.html", null ],
@@ -246,7 +246,6 @@ var hierarchy =
     [ "SDL_Deleter", "structSDL__Deleter.html", null ],
     [ "yaze::core::SDL_Deleter", "structyaze_1_1core_1_1SDL__Deleter.html", null ],
     [ "yaze::core::SDL_Surface_Deleter", "structyaze_1_1core_1_1SDL__Surface__Deleter.html", null ],
-    [ "yaze::gfx::SDL_Surface_Deleter", "structyaze_1_1gfx_1_1SDL__Surface__Deleter.html", null ],
     [ "yaze::core::SDL_Texture_Deleter", "structyaze_1_1core_1_1SDL__Texture__Deleter.html", null ],
     [ "yaze::emu::SETINI", "structyaze_1_1emu_1_1SETINI.html", null ],
     [ "yaze::SharedRom", "classyaze_1_1SharedRom.html", [

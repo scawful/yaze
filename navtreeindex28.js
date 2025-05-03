@@ -1,5 +1,11 @@
 var NAVTREEINDEX28 =
 {
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#a10f7c6425c05a5e25121a882e894e66e":[11,0,1,8,3,6,42],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#a10f7c6425c05a5e25121a882e894e66e":[12,0,0,8,0,6,42],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#a137a2b9f2994b5217feaef0f56abc760":[11,0,1,8,3,6,46],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#a137a2b9f2994b5217feaef0f56abc760":[12,0,0,8,0,6,46],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#a1460fa50e22e03c99b5112aadf3d7987":[11,0,1,8,3,6,15],
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#a1460fa50e22e03c99b5112aadf3d7987":[12,0,0,8,0,6,15],
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#a169d9ecb5a18433f6f757eebdd0df0ec":[11,0,1,8,3,6,2],
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#a169d9ecb5a18433f6f757eebdd0df0ec":[12,0,0,8,0,6,2],
 "classyaze_1_1zelda3_1_1music_1_1Tracker.html#a245d5ba4ce1506500e67171ba88b59fc":[11,0,1,8,3,6,45],
@@ -116,12 +122,12 @@ var NAVTREEINDEX28 =
 "common_8h_source.html":[13,0,2,0,5,5],
 "compress_8cc.html":[13,0,2,1,0,0],
 "compress_8cc_source.html":[13,0,2,1,0,0],
-"compression_8cc.html":[13,0,2,0,3,2],
-"compression_8cc.html#a5d2f30bd1cbcf49f829a7e8eb6173c06":[13,0,2,0,3,2,0],
-"compression_8cc_source.html":[13,0,2,0,3,2],
-"compression_8h.html":[13,0,2,0,3,3],
-"compression_8h.html#aca48128a724010a9277720f53bde1a5a":[13,0,2,0,3,3,3],
-"compression_8h_source.html":[13,0,2,0,3,3],
+"compression_8cc.html":[13,0,2,0,3,4],
+"compression_8cc.html#a5d2f30bd1cbcf49f829a7e8eb6173c06":[13,0,2,0,3,4,0],
+"compression_8cc_source.html":[13,0,2,0,3,4],
+"compression_8h.html":[13,0,2,0,3,5],
+"compression_8h.html#aca48128a724010a9277720f53bde1a5a":[13,0,2,0,3,5,3],
+"compression_8h_source.html":[13,0,2,0,3,5],
 "compression__test_8cc.html":[13,0,3,1,0],
 "compression__test_8cc.html#aca48128a724010a9277720f53bde1a5a":[13,0,3,1,0,3],
 "compression__test_8cc_source.html":[13,0,3,1,0],
@@ -243,11 +249,5 @@ var NAVTREEINDEX28 =
 "flag_8h.html#afed9cfc079d2bb93816dbc1a7b3ec6a3":[13,0,2,3,3,5],
 "flag_8h_source.html":[13,0,2,3,3],
 "font__loader_8cc.html":[13,0,2,0,0,0,9],
-"font__loader_8cc_source.html":[13,0,2,0,0,0,9],
-"font__loader_8h.html":[13,0,2,0,0,0,10],
-"font__loader_8h_source.html":[13,0,2,0,0,0,10],
-"font__loader_8mm.html":[13,0,2,0,0,0,11],
-"font__loader_8mm_source.html":[13,0,2,0,0,0,11],
-"functions.html":[12,3,0],
-"functions.html":[12,3,0,0]
+"font__loader_8cc_source.html":[13,0,2,0,0,0,9]
 };

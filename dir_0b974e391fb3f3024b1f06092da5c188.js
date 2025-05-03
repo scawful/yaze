@@ -1,5 +1,7 @@
 var dir_0b974e391fb3f3024b1f06092da5c188 =
 [
+    [ "arena.cc", "arena_8cc.html", null ],
+    [ "arena.h", "arena_8h.html", "arena_8h" ],
     [ "bitmap.cc", "bitmap_8cc.html", "bitmap_8cc" ],
     [ "bitmap.h", "bitmap_8h.html", "bitmap_8h" ],
     [ "compression.cc", "compression_8cc.html", "compression_8cc" ],

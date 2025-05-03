@@ -18,6 +18,7 @@ var namespaceyaze_1_1gfx =
       [ "Load3DObjectPalettes", "namespaceyaze_1_1gfx_1_1palette__group__internal.html#adb13428aead7660315ed02fb42433b84", null ],
       [ "LoadOverworldMiniMapPalettes", "namespaceyaze_1_1gfx_1_1palette__group__internal.html#a22295c1d4e0875b57cb411c6a76bdce4", null ]
     ] ],
+    [ "Arena", "classyaze_1_1gfx_1_1Arena.html", "classyaze_1_1gfx_1_1Arena" ],
     [ "Bitmap", "classyaze_1_1gfx_1_1Bitmap.html", "classyaze_1_1gfx_1_1Bitmap" ],
     [ "CgxHeader", "structyaze_1_1gfx_1_1CgxHeader.html", "structyaze_1_1gfx_1_1CgxHeader" ],
     [ "GfxContext", "classyaze_1_1gfx_1_1GfxContext.html", null ],
@@ -28,7 +29,6 @@ var namespaceyaze_1_1gfx =
     [ "PaletteGroup", "structyaze_1_1gfx_1_1PaletteGroup.html", "structyaze_1_1gfx_1_1PaletteGroup" ],
     [ "PaletteGroupMap", "structyaze_1_1gfx_1_1PaletteGroupMap.html", "structyaze_1_1gfx_1_1PaletteGroupMap" ],
     [ "Paletteset", "structyaze_1_1gfx_1_1Paletteset.html", "structyaze_1_1gfx_1_1Paletteset" ],
-    [ "SDL_Surface_Deleter", "structyaze_1_1gfx_1_1SDL__Surface__Deleter.html", "structyaze_1_1gfx_1_1SDL__Surface__Deleter" ],
     [ "SnesColor", "classyaze_1_1gfx_1_1SnesColor.html", "classyaze_1_1gfx_1_1SnesColor" ],
     [ "SnesPalette", "classyaze_1_1gfx_1_1SnesPalette.html", "classyaze_1_1gfx_1_1SnesPalette" ],
     [ "Tile16", "classyaze_1_1gfx_1_1Tile16.html", "classyaze_1_1gfx_1_1Tile16" ],
@@ -64,8 +64,6 @@ var namespaceyaze_1_1gfx =
       [ "Tile16", "namespaceyaze_1_1gfx.html#a54c082e1b81bacbccd15286f5e07a8b0a0136ed56bdc945f798e3b2ff271ba011", null ]
     ] ],
     [ "GetSnesPixelFormat", "namespaceyaze_1_1gfx.html#a88d0646ee27ae9755070c4e936cb36bf", null ],
-    [ "AllocateSurface", "namespaceyaze_1_1gfx.html#a939f49a733491cd8022311c93353dceb", null ],
-    [ "AllocateTexture", "namespaceyaze_1_1gfx.html#a56a0a1b924702a7a25f5790149303869", null ],
     [ "ExtractTile8Bitmaps", "namespaceyaze_1_1gfx.html#a925eafe7aab166b9775f6ad74a11fea0", null ],
     [ "HyruleMagicCompress", "namespaceyaze_1_1gfx.html#ac740e607dcc76bf2c18076778ee5b4ef", null ],
     [ "HyruleMagicDecompress", "namespaceyaze_1_1gfx.html#a21be514360ade54dad0e52c660a3ced6", null ],

@@ -1,9 +1,0 @@
-<map id="yaze::gfx::AllocateTexture" name="yaze::gfx::AllocateTexture">
-<area shape="rect" id="Node000001" title="Allocate an SDL texture with the given dimensions and format." alt="" coords="5,46,172,72"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1MemoryTracker.html#a2ed8fd12acc21dc17b9f1719a41a7b0d" title=" " alt="" coords="220,5,394,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,44,204,39,205,44,172,49"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1MemoryTracker.html#ae0519026f74dcbb4f7e32122f39b02cf" title=" " alt="" coords="220,71,394,111"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="172,69,205,73,204,79,172,74"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1MemoryTracker.html#a5c8899aa70e94512c4327d87ac4a9e57" title=" " alt="" coords="442,5,616,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="394,23,426,23,426,28,394,28"/>
-</map>

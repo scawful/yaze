@@ -1,17 +1,5 @@
 var NAVTREEINDEX6 =
 {
-"classyaze_1_1editor_1_1OverworldEditor.html#a1827cc7ac76dcd45d3fc4ebeb2442bff":[11,0,1,2,29,84],
-"classyaze_1_1editor_1_1OverworldEditor.html#a1827cc7ac76dcd45d3fc4ebeb2442bff":[12,0,0,2,23,84],
-"classyaze_1_1editor_1_1OverworldEditor.html#a1da0f4e0c03b14a5bfabcc993f4680b2":[11,0,1,2,29,83],
-"classyaze_1_1editor_1_1OverworldEditor.html#a1da0f4e0c03b14a5bfabcc993f4680b2":[12,0,0,2,23,83],
-"classyaze_1_1editor_1_1OverworldEditor.html#a21ddb17c0f6062a9055507fe99553649":[11,0,1,2,29,69],
-"classyaze_1_1editor_1_1OverworldEditor.html#a21ddb17c0f6062a9055507fe99553649":[12,0,0,2,23,69],
-"classyaze_1_1editor_1_1OverworldEditor.html#a22ef8cb981161d37768fb1556d07ae1a":[11,0,1,2,29,34],
-"classyaze_1_1editor_1_1OverworldEditor.html#a22ef8cb981161d37768fb1556d07ae1a":[12,0,0,2,23,34],
-"classyaze_1_1editor_1_1OverworldEditor.html#a230fcc1c4b6c563fac42b0093f2ba920":[11,0,1,2,29,77],
-"classyaze_1_1editor_1_1OverworldEditor.html#a230fcc1c4b6c563fac42b0093f2ba920":[12,0,0,2,23,77],
-"classyaze_1_1editor_1_1OverworldEditor.html#a25910e340d6c8d77f972d29cc0a663c1":[11,0,1,2,29,30],
-"classyaze_1_1editor_1_1OverworldEditor.html#a25910e340d6c8d77f972d29cc0a663c1":[12,0,0,2,23,30],
 "classyaze_1_1editor_1_1OverworldEditor.html#a27453a2969e8c8fd4936e111c383d300":[11,0,1,2,29,8],
 "classyaze_1_1editor_1_1OverworldEditor.html#a27453a2969e8c8fd4936e111c383d300":[12,0,0,2,23,8],
 "classyaze_1_1editor_1_1OverworldEditor.html#a2dd3a8c1de95c9915302f8c975749a36":[11,0,1,2,29,76],
@@ -249,5 +237,17 @@ var NAVTREEINDEX6 =
 "classyaze_1_1editor_1_1PaletteEditor.html#a9cd6cb1fda7d4c433c57461c594675bb":[11,0,1,2,30,25],
 "classyaze_1_1editor_1_1PaletteEditor.html#a9cd6cb1fda7d4c433c57461c594675bb":[12,0,0,2,24,25],
 "classyaze_1_1editor_1_1PaletteEditor.html#aa2d9eea976898db95d551314dfa4455c":[11,0,1,2,30,10],
-"classyaze_1_1editor_1_1PaletteEditor.html#aa2d9eea976898db95d551314dfa4455c":[12,0,0,2,24,10]
+"classyaze_1_1editor_1_1PaletteEditor.html#aa2d9eea976898db95d551314dfa4455c":[12,0,0,2,24,10],
+"classyaze_1_1editor_1_1PaletteEditor.html#aa62e2185170b84e08185e0df31eff3a4":[11,0,1,2,30,6],
+"classyaze_1_1editor_1_1PaletteEditor.html#aa62e2185170b84e08185e0df31eff3a4":[12,0,0,2,24,6],
+"classyaze_1_1editor_1_1PaletteEditor.html#ab10cbfb1c12e5cf6c2c8d0c818e8e73a":[11,0,1,2,30,2],
+"classyaze_1_1editor_1_1PaletteEditor.html#ab10cbfb1c12e5cf6c2c8d0c818e8e73a":[12,0,0,2,24,2],
+"classyaze_1_1editor_1_1PaletteEditor.html#ab42049384ac38675e504e57512ca02df":[11,0,1,2,30,26],
+"classyaze_1_1editor_1_1PaletteEditor.html#ab42049384ac38675e504e57512ca02df":[12,0,0,2,24,26],
+"classyaze_1_1editor_1_1PaletteEditor.html#abc98f1f83b39e0663a732f33e7a50a0c":[11,0,1,2,30,4],
+"classyaze_1_1editor_1_1PaletteEditor.html#abc98f1f83b39e0663a732f33e7a50a0c":[12,0,0,2,24,4],
+"classyaze_1_1editor_1_1PaletteEditor.html#ac079cef27c2bba7100184ca6e2272ba9":[11,0,1,2,30,20],
+"classyaze_1_1editor_1_1PaletteEditor.html#ac079cef27c2bba7100184ca6e2272ba9":[12,0,0,2,24,20],
+"classyaze_1_1editor_1_1PaletteEditor.html#ac8a778416d295453b0ca0ee7e11ffa0a":[11,0,1,2,30,22],
+"classyaze_1_1editor_1_1PaletteEditor.html#ac8a778416d295453b0ca0ee7e11ffa0a":[12,0,0,2,24,22]
 };

@@ -10,8 +10,6 @@ var bitmap_8h =
     ] ],
     [ "yaze::gfx::ExtractTile8Bitmaps", "namespaceyaze_1_1gfx.html#a925eafe7aab166b9775f6ad74a11fea0", null ],
     [ "yaze::gfx::GetSnesPixelFormat", "namespaceyaze_1_1gfx.html#a88d0646ee27ae9755070c4e936cb36bf", null ],
-    [ "yaze::gfx::AllocateSurface", "namespaceyaze_1_1gfx.html#a939f49a733491cd8022311c93353dceb", null ],
-    [ "yaze::gfx::AllocateTexture", "namespaceyaze_1_1gfx.html#a56a0a1b924702a7a25f5790149303869", null ],
     [ "yaze::gfx::SNES_PIXELFORMAT_INDEXED", "namespaceyaze_1_1gfx.html#a59d25f0a8a35bda5f27d6b8314970616", null ],
     [ "yaze::gfx::SNES_PIXELFORMAT_2BPP", "namespaceyaze_1_1gfx.html#a91535d87ffc80f2931d88d0292a9afaf", null ],
     [ "yaze::gfx::SNES_PIXELFORMAT_4BPP", "namespaceyaze_1_1gfx.html#a773d8b8d1871caffc5115a1e8a2090bb", null ],

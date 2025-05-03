@@ -104,11 +104,13 @@ var searchData=
   ['frame_5fstart_101',['frame_start',['../structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html#a890ae576b46e098309075888052f3727',1,'yaze::editor::zsprite::AnimationGroup']]],
   ['frames_102',['Frames',['../structyaze_1_1editor_1_1zsprite_1_1SubEditor.html#a21b0692979d4e6e5df7c833c57962ec6',1,'yaze::editor::zsprite::SubEditor']]],
   ['frames_5f_103',['frames_',['../classyaze_1_1emu_1_1Snes.html#a03bedcd31638400a5f1f0be8131b1ecb',1,'yaze::emu::Snes']]],
-  ['freq_104',['freq',['../structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#a8429da2f7cea8517256de196dcccee63',1,'yaze::zelda3::music::ZeldaSfxInstrument']]],
-  ['from_5fb_105',['from_b',['../structyaze_1_1emu_1_1DmaChannel.html#a512d78862c904374842ccf71f53e6589',1,'yaze::emu::DmaChannel']]],
-  ['full_5fgraphic_106',['full_graphic',['../structyaze_1_1emu_1_1VideoPortControl.html#a0dd5f71b096b82780b19a002a6ef4c48',1,'yaze::emu::VideoPortControl']]],
-  ['full_5fpalette_5f_107',['full_palette_',['../classyaze_1_1editor_1_1DungeonEditor.html#a92881a7497f26c4a0974b528182cf01c',1,'yaze::editor::DungeonEditor']]],
-  ['function_108',['Function',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a86408593c34af77fdd90df932f8b5261',1,'yaze::gui::zeml']]],
-  ['functionality_109',['Extending Functionality',['../md_docs_2getting-started.html#autotoc_md45',1,'']]],
-  ['functions_110',['functions',['../classyaze_1_1zelda3_1_1SpriteBuilder.html#acf250a61a4b1e7f6bf4793892085aa28',1,'yaze::zelda3::SpriteBuilder']]]
+  ['freesurface_104',['FreeSurface',['../classyaze_1_1gfx_1_1Arena.html#aa0eb6d909ed3d9ce85a61488bb74a7c0',1,'yaze::gfx::Arena']]],
+  ['freetexture_105',['FreeTexture',['../classyaze_1_1gfx_1_1Arena.html#ac2f43b16bb84a6c15db4ff6ecae6a57a',1,'yaze::gfx::Arena']]],
+  ['freq_106',['freq',['../structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#a8429da2f7cea8517256de196dcccee63',1,'yaze::zelda3::music::ZeldaSfxInstrument']]],
+  ['from_5fb_107',['from_b',['../structyaze_1_1emu_1_1DmaChannel.html#a512d78862c904374842ccf71f53e6589',1,'yaze::emu::DmaChannel']]],
+  ['full_5fgraphic_108',['full_graphic',['../structyaze_1_1emu_1_1VideoPortControl.html#a0dd5f71b096b82780b19a002a6ef4c48',1,'yaze::emu::VideoPortControl']]],
+  ['full_5fpalette_5f_109',['full_palette_',['../classyaze_1_1editor_1_1DungeonEditor.html#a92881a7497f26c4a0974b528182cf01c',1,'yaze::editor::DungeonEditor']]],
+  ['function_110',['Function',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a86408593c34af77fdd90df932f8b5261',1,'yaze::gui::zeml']]],
+  ['functionality_111',['Extending Functionality',['../md_docs_2getting-started.html#autotoc_md45',1,'']]],
+  ['functions_112',['functions',['../classyaze_1_1zelda3_1_1SpriteBuilder.html#acf250a61a4b1e7f6bf4793892085aa28',1,'yaze::zelda3::SpriteBuilder']]]
 ];
