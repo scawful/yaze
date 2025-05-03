@@ -1446,14 +1446,6 @@ void OverworldEditor::DrawDebugWindow() {
 absl::Status OverworldEditor::Clear() {
   overworld_.Destroy();
   current_graphics_set_.clear();
-  for (auto &bmp : maps_bmp_) {
-    bmp.Clear();
-  }
-  for (auto &bmp : sprite_previews_) {
-    bmp.Clear();
-  }
-  tile16_blockset_bmp_.Clear();
-  current_gfx_bmp_.Clear();
   all_gfx_loaded_ = false;
   map_blockset_loaded_ = false;
   return absl::OkStatus();
