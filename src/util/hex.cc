@@ -4,25 +4,22 @@
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "absl/strings/str_join.h"
 
 namespace yaze {
 namespace util {
 
 namespace {
 
-void HandleHexStringParams(const std::string &hex,
-                           const HexStringParams &params) {
-  std::string result = hex;
+void HandleHexStringParams(std::string &hex, const HexStringParams &params) {
   switch (params.prefix) {
     case HexStringParams::Prefix::kDollar:
-      result = absl::StrCat("$", result);
+      hex = absl::StrCat("$", hex);
       break;
     case HexStringParams::Prefix::kHash:
-      result = absl::StrCat("#", result);
+      hex = absl::StrCat("#", hex);
       break;
     case HexStringParams::Prefix::k0x:
-      result = absl::StrCat("0x", result);
+      hex = absl::StrCat("0x", hex);
     case HexStringParams::Prefix::kNone:
     default:
       break;
