@@ -34,7 +34,7 @@ absl::Status LoadDungeonMapGfxFromBinary(Rom &rom,
         gfx_sheets.emplace_back(converted_bin.begin() + (i * 0x1000),
                                 converted_bin.begin() + ((i + 1) * 0x1000));
         sheets[i] = gfx::Bitmap(128, 32, 8, gfx_sheets[i]);
-        RETURN_IF_ERROR(sheets[i].SetPalette(*rom.mutable_dungeon_palette(3)));
+        sheets[i].SetPalette(*rom.mutable_dungeon_palette(3));
         core::Renderer::GetInstance().RenderBitmap(&sheets[i]);
       }
     } else {
