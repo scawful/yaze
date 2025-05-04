@@ -6,6 +6,8 @@
 #include <vector>
 
 #include "absl/strings/str_cat.h"
+#include "app/core/platform/renderer.h"
+#include "app/gfx/arena.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/sprite/sprite.h"
@@ -188,13 +190,11 @@ Room LoadRoomFromRom(Rom *rom, int room_id) {
 }
 
 void Room::LoadRoomGraphics(uint8_t entrance_blockset) {
-  const auto &main_gfx = rom()->main_blockset_ids;
   const auto &room_gfx = rom()->room_blockset_ids;
   const auto &sprite_gfx = rom()->spriteset_ids;
-  current_gfx16_.reserve(0x4000);
 
   for (int i = 0; i < 8; i++) {
-    blocks_[i] = main_gfx[blockset][i];
+    blocks_[i] = rom()->main_blockset_ids[blockset][i];
     if (i >= 6 && i <= 6) {
       // 3-6
       if (entrance_blockset != 0xFF &&
@@ -244,6 +244,36 @@ void Room::CopyRoomGraphicsToBuffer() {
   }
 
   LoadAnimatedGraphics();
+}
+
+void Room::RenderRoomGraphics() {
+  CopyRoomGraphicsToBuffer();
+
+  gfx::Arena::Get().bg1().DrawFloor(rom()->vector(), tile_address,
+                                    tile_address_floor, floor1_graphics_);
+  gfx::Arena::Get().bg2().DrawFloor(rom()->vector(), tile_address,
+                                    tile_address_floor, floor2_graphics_);
+
+  gfx::Arena::Get().bg1().DrawBackground(std::span<uint8_t>(current_gfx16_));
+  gfx::Arena::Get().bg2().DrawBackground(std::span<uint8_t>(current_gfx16_));
+
+  auto bg1_palette =
+      rom()->mutable_palette_group()->get_group("dungeon_main")[0].palette(0);
+
+  if (!gfx::Arena::Get().bg1().bitmap().is_active()) {
+    core::Renderer::GetInstance().CreateAndRenderBitmap(
+        0x200, 0x200, 0x200, gfx::Arena::Get().bg1().bitmap().vector(),
+        gfx::Arena::Get().bg1().bitmap(), bg1_palette);
+    core::Renderer::GetInstance().CreateAndRenderBitmap(
+        0x200, 0x200, 0x200, gfx::Arena::Get().bg2().bitmap().vector(),
+        gfx::Arena::Get().bg2().bitmap(), bg1_palette);
+  } else {
+    // Update the bitmap
+    core::Renderer::GetInstance().UpdateBitmap(
+        &gfx::Arena::Get().bg1().bitmap());
+    core::Renderer::GetInstance().UpdateBitmap(
+        &gfx::Arena::Get().bg2().bitmap());
+  }
 }
 
 void Room::LoadAnimatedGraphics() {
