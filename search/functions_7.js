@@ -9,7 +9,7 @@ var searchData=
   ['handleevents_6',['HandleEvents',['../classyaze_1_1emu_1_1Emulator.html#a476e68b4c3a44ef7152278f9cceda30c',1,'yaze::emu::Emulator']]],
   ['handleframestart_7',['HandleFrameStart',['../classyaze_1_1emu_1_1Ppu.html#a5428ab6c2b746c3465eb9e127658a4be',1,'yaze::emu::Ppu']]],
   ['handlegain_8',['HandleGain',['../classyaze_1_1emu_1_1Dsp.html#a0dc25296548e3dfdc1dcf9269c2c6093',1,'yaze::emu::Dsp']]],
-  ['handlehexstringparams_9',['HandleHexStringParams',['../namespaceyaze_1_1util_1_1anonymous__namespace_02hex_8cc_03.html#aa2c11a86c4bb83f3244a68a64e53f2a6',1,'yaze::util::anonymous_namespace{hex.cc}']]],
+  ['handlehexstringparams_9',['HandleHexStringParams',['../namespaceyaze_1_1util_1_1anonymous__namespace_02hex_8cc_03.html#a8df6570682bdbc23efde15272b1b1494',1,'yaze::util::anonymous_namespace{hex.cc}']]],
   ['handleinput_10',['HandleInput',['../classyaze_1_1emu_1_1Snes.html#aef67cb2aaaa77f7f1c9ef01b4e198ec3',1,'yaze::emu::Snes::HandleInput()'],['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a2c1dc8ab15f8e8bbcf375a362c11d942',1,'yaze::cli::anonymous_namespace{tui.cc}::HandleInput()']]],
   ['handlekeyboardinputs_11',['HandleKeyboardInputs',['../classTextEditor.html#a010f96f247602f0b29df66298ed7949f',1,'TextEditor']]],
   ['handlemouseinputs_12',['HandleMouseInputs',['../classTextEditor.html#a250de3b89bb0da5b231d61ecae7afec1',1,'TextEditor']]],

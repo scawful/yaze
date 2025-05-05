@@ -139,7 +139,7 @@ var searchData=
   ['loadoverworldminimappalettes_136',['LoadOverworldMiniMapPalettes',['../namespaceyaze_1_1gfx_1_1palette__group__internal.html#a22295c1d4e0875b57cb411c6a76bdce4',1,'yaze::gfx::palette_group_internal']]],
   ['loadpackagefonts_137',['LoadPackageFonts',['../namespaceyaze_1_1core.html#a1ebfa2ff985b2a41c726bfbaa9a868dd',1,'yaze::core']]],
   ['loadpalette_138',['LoadPalette',['../classyaze_1_1zelda3_1_1OverworldMap.html#aa9666407b61df643fda421b945919a80',1,'yaze::zelda3::OverworldMap']]],
-  ['loadrom_139',['LoadRom',['../classyaze_1_1editor_1_1EditorManager.html#a9e31d2cdbb2d802bf8f2a8f458cb8edf',1,'yaze::editor::EditorManager']]],
+  ['loadrom_139',['LoadRom',['../classyaze_1_1editor_1_1EditorManager.html#a9e31d2cdbb2d802bf8f2a8f458cb8edf',1,'yaze::editor::EditorManager::LoadRom()'],['../classyaze_1_1zelda3_1_1Inventory.html#aa30251762794611ef2534ab5bc9bf3e4',1,'yaze::zelda3::Inventory::LoadRom()']]],
   ['loadromcomponent_140',['LoadRomComponent',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a2d7b3c2328f2fcab44ddbe20d7df3c32',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
   ['loadroomfromrom_141',['LoadRoomFromRom',['../namespaceyaze_1_1zelda3.html#aa0d397af98a0f5652a8741144abc15e9',1,'yaze::zelda3']]],
   ['loadroomgraphics_142',['LoadRoomGraphics',['../classyaze_1_1zelda3_1_1Room.html#a3ef7c65750b189c256c700d2f320e141',1,'yaze::zelda3::Room']]],

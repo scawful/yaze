@@ -4,6 +4,8 @@ var classyaze_1_1zelda3_1_1Inventory =
     [ "bitmap", "classyaze_1_1zelda3_1_1Inventory.html#a041fb76da7f9e7cef5e9b6ed0566f55d", null ],
     [ "tilesheet", "classyaze_1_1zelda3_1_1Inventory.html#a59b725dee97974c99a21c88e610ee5a4", null ],
     [ "palette", "classyaze_1_1zelda3_1_1Inventory.html#a7e50fac9004047e6db8508bea3734732", null ],
+    [ "LoadRom", "classyaze_1_1zelda3_1_1Inventory.html#aa30251762794611ef2534ab5bc9bf3e4", null ],
+    [ "rom", "classyaze_1_1zelda3_1_1Inventory.html#a993ab3e306ed36bf3ba0d8f871e52225", null ],
     [ "BuildTileset", "classyaze_1_1zelda3_1_1Inventory.html#a06d4a48a808a8789e95c0664a4322003", null ],
     [ "data_", "classyaze_1_1zelda3_1_1Inventory.html#a46f359bdd6ab773784d802a9056f04dc", null ],
     [ "bitmap_", "classyaze_1_1zelda3_1_1Inventory.html#a7921afdc988a96f25f82e94ddee214a3", null ],
@@ -11,6 +13,7 @@ var classyaze_1_1zelda3_1_1Inventory =
     [ "test_", "classyaze_1_1zelda3_1_1Inventory.html#a73f2e4d4f78052ad853866b488264af8", null ],
     [ "tilesheets_bmp_", "classyaze_1_1zelda3_1_1Inventory.html#a6ca0dba09a0418fcc218263512b90d8d", null ],
     [ "palette_", "classyaze_1_1zelda3_1_1Inventory.html#a403a3654dfc12889b35aa138f0cfa434", null ],
+    [ "rom_", "classyaze_1_1zelda3_1_1Inventory.html#ace7d7b99b038e351ef4ffabcf16bcb10", null ],
     [ "canvas_", "classyaze_1_1zelda3_1_1Inventory.html#ad76d5f631ded2c8d98a3ec4784c63a62", null ],
     [ "tiles_", "classyaze_1_1zelda3_1_1Inventory.html#af23984d641336e5d22544df14beff8b3", null ]
 ];

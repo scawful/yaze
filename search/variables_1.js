@@ -79,7 +79,7 @@ var searchData=
   ['bin_5fsize_5f_76',['bin_size_',['../classyaze_1_1editor_1_1GraphicsEditor.html#ae678616c5adb199b2d9586986d805336',1,'yaze::editor::GraphicsEditor']]],
   ['binary_5fgfx_5floaded_5f_77',['binary_gfx_loaded_',['../classyaze_1_1editor_1_1ScreenEditor.html#a551d04e698b357e992433d1630b8c63f',1,'yaze::editor::ScreenEditor']]],
   ['bit_5fmode_78',['bit_mode',['../structyaze_1_1gfx_1_1CgxHeader.html#adb41760b1debf1332be25e638484fa1c',1,'yaze::gfx::CgxHeader']]],
-  ['bitmap_5f_79',['bitmap_',['../classyaze_1_1gfx_1_1Tilesheet.html#a520a46ba1392128620f97bd2ae3408a4',1,'yaze::gfx::Tilesheet::bitmap_'],['../classyaze_1_1gui_1_1Canvas.html#a888123021e435f89f3c01436fdf63ca3',1,'yaze::gui::Canvas::bitmap_'],['../classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a5b75c6f248f58db7c6141d64c22497a1',1,'yaze::zelda3::DungeonObjectRenderer::bitmap_'],['../classyaze_1_1zelda3_1_1Inventory.html#a7921afdc988a96f25f82e94ddee214a3',1,'yaze::zelda3::Inventory::bitmap_']]],
+  ['bitmap_5f_79',['bitmap_',['../classyaze_1_1gfx_1_1BackgroundBuffer.html#a86fc7e1bd05f2c34e594aa32bbb545aa',1,'yaze::gfx::BackgroundBuffer::bitmap_'],['../classyaze_1_1gfx_1_1Tilesheet.html#a520a46ba1392128620f97bd2ae3408a4',1,'yaze::gfx::Tilesheet::bitmap_'],['../classyaze_1_1gui_1_1Canvas.html#a888123021e435f89f3c01436fdf63ca3',1,'yaze::gui::Canvas::bitmap_'],['../classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#a5b75c6f248f58db7c6141d64c22497a1',1,'yaze::zelda3::DungeonObjectRenderer::bitmap_'],['../classyaze_1_1zelda3_1_1Inventory.html#a7921afdc988a96f25f82e94ddee214a3',1,'yaze::zelda3::Inventory::bitmap_']]],
   ['bitmap_5fdata_5f_80',['bitmap_data_',['../classyaze_1_1zelda3_1_1OverworldMap.html#a254c5c8d5b9e78ab937e38cdccd5fe10',1,'yaze::zelda3::OverworldMap']]],
   ['blockoffset_81',['blockOffset',['../structyaze_1_1emu_1_1DspChannel.html#aa3ddb0bf368e281b360581954b3e7104',1,'yaze::emu::DspChannel']]],
   ['blocks_5f_82',['blocks_',['../classyaze_1_1zelda3_1_1Room.html#aae5c42aa63f19f3adb802fa07c525777',1,'yaze::zelda3::Room']]],
@@ -105,10 +105,11 @@ var searchData=
   ['bstep_102',['bstep',['../classyaze_1_1emu_1_1Spc700.html#a20795fa7ea12a1e09f977df235728487',1,'yaze::emu::Spc700::bstep'],['../classyaze_1_1test_1_1Spc700.html#a20795fa7ea12a1e09f977df235728487',1,'yaze::test::Spc700::bstep']]],
   ['buf_103',['buf',['../structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#aadb07ef633b1216bcd884d207d9b43c4',1,'yaze::zelda3::music::SongSpcBlock::buf'],['../structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a98e8ad2d44b40c6437e4a8c5839ea160',1,'yaze::zelda3::music::ZeldaWave::buf']]],
   ['buffer_104',['buffer',['../structyaze_1_1gui_1_1TextBox.html#af340d4aa4774c7406408a67ddc76beef',1,'yaze::gui::TextBox']]],
-  ['bufferoffset_105',['bufferOffset',['../structyaze_1_1emu_1_1DspChannel.html#a9b661b66b0e1f9b6f69ac976d72c33b4',1,'yaze::emu::DspChannel']]],
-  ['built_5f_106',['built_',['../classyaze_1_1zelda3_1_1OverworldMap.html#a773a3ab6858db704ce6143e0dfa4295d',1,'yaze::zelda3::OverworldMap']]],
-  ['button_107',['button',['../structyaze_1_1gui_1_1Theme.html#ad91de3e94439e6f53641d462f1d8e4f5',1,'yaze::gui::Theme']]],
-  ['button_5factive_108',['button_active',['../structyaze_1_1gui_1_1Theme.html#a07b0430f0cc98a52a5dc1ba7d499c378',1,'yaze::gui::Theme']]],
-  ['button_5fhovered_109',['button_hovered',['../structyaze_1_1gui_1_1Theme.html#ae012899eb166eb8023398b60593a9733',1,'yaze::gui::Theme']]],
-  ['bytestotransfer_110',['bytesToTransfer',['../structyaze_1_1emu_1_1DmaRegisters.html#aea72bf8cf8d1606ca74b28e763d18331',1,'yaze::emu::DmaRegisters']]]
+  ['buffer_5f_105',['buffer_',['../classyaze_1_1gfx_1_1BackgroundBuffer.html#af4bc9b65d6166b0e988d41e2d5890556',1,'yaze::gfx::BackgroundBuffer']]],
+  ['bufferoffset_106',['bufferOffset',['../structyaze_1_1emu_1_1DspChannel.html#a9b661b66b0e1f9b6f69ac976d72c33b4',1,'yaze::emu::DspChannel']]],
+  ['built_5f_107',['built_',['../classyaze_1_1zelda3_1_1OverworldMap.html#a773a3ab6858db704ce6143e0dfa4295d',1,'yaze::zelda3::OverworldMap']]],
+  ['button_108',['button',['../structyaze_1_1gui_1_1Theme.html#ad91de3e94439e6f53641d462f1d8e4f5',1,'yaze::gui::Theme']]],
+  ['button_5factive_109',['button_active',['../structyaze_1_1gui_1_1Theme.html#a07b0430f0cc98a52a5dc1ba7d499c378',1,'yaze::gui::Theme']]],
+  ['button_5fhovered_110',['button_hovered',['../structyaze_1_1gui_1_1Theme.html#ae012899eb166eb8023398b60593a9733',1,'yaze::gui::Theme']]],
+  ['bytestotransfer_111',['bytesToTransfer',['../structyaze_1_1emu_1_1DmaRegisters.html#aea72bf8cf8d1606ca74b28e763d18331',1,'yaze::emu::DmaRegisters']]]
 ];

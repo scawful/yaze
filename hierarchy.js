@@ -25,6 +25,7 @@ var hierarchy =
       [ "yaze::emu::AudioRamImpl", "classyaze_1_1emu_1_1AudioRamImpl.html", null ],
       [ "yaze::test::MockAudioRam", "classyaze_1_1test_1_1MockAudioRam.html", null ]
     ] ],
+    [ "yaze::gfx::BackgroundBuffer", "classyaze_1_1gfx_1_1BackgroundBuffer.html", null ],
     [ "yaze::emu::BackgroundLayer", "structyaze_1_1emu_1_1BackgroundLayer.html", null ],
     [ "yaze::emu::BGHOFS", "structyaze_1_1emu_1_1BGHOFS.html", null ],
     [ "yaze::emu::BgLayer", "structyaze_1_1emu_1_1BgLayer.html", null ],
@@ -148,6 +149,7 @@ var hierarchy =
     [ "yaze::emu::Input", "structyaze_1_1emu_1_1Input.html", null ],
     [ "yaze::emu::InstructionEntry", "classyaze_1_1emu_1_1InstructionEntry.html", null ],
     [ "yaze::gfx::InternalTile16", "structyaze_1_1gfx_1_1InternalTile16.html", null ],
+    [ "yaze::zelda3::Inventory", "classyaze_1_1zelda3_1_1Inventory.html", null ],
     [ "yaze::emu::JoypadRegisters", "structyaze_1_1emu_1_1JoypadRegisters.html", null ],
     [ "TextEditor::LanguageDefinition", "structTextEditor_1_1LanguageDefinition.html", null ],
     [ "yaze::emu::Layer", "structyaze_1_1emu_1_1Layer.html", null ],
@@ -257,8 +259,7 @@ var hierarchy =
       [ "yaze::test::DungeonRoomTest", "classyaze_1_1test_1_1DungeonRoomTest.html", null ],
       [ "yaze::test::MessageTest", "classyaze_1_1test_1_1MessageTest.html", null ],
       [ "yaze::test::OverworldTest", "classyaze_1_1test_1_1OverworldTest.html", null ],
-      [ "yaze::zelda3::DungeonObjectRenderer", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html", null ],
-      [ "yaze::zelda3::Inventory", "classyaze_1_1zelda3_1_1Inventory.html", null ]
+      [ "yaze::zelda3::DungeonObjectRenderer", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html", null ]
     ] ],
     [ "yaze::editor::Shortcut", "structyaze_1_1editor_1_1Shortcut.html", null ],
     [ "yaze::editor::ShortcutManager", "classyaze_1_1editor_1_1ShortcutManager.html", null ],

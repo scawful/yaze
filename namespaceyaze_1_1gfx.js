@@ -19,6 +19,7 @@ var namespaceyaze_1_1gfx =
       [ "LoadOverworldMiniMapPalettes", "namespaceyaze_1_1gfx_1_1palette__group__internal.html#a22295c1d4e0875b57cb411c6a76bdce4", null ]
     ] ],
     [ "Arena", "classyaze_1_1gfx_1_1Arena.html", "classyaze_1_1gfx_1_1Arena" ],
+    [ "BackgroundBuffer", "classyaze_1_1gfx_1_1BackgroundBuffer.html", "classyaze_1_1gfx_1_1BackgroundBuffer" ],
     [ "Bitmap", "classyaze_1_1gfx_1_1Bitmap.html", "classyaze_1_1gfx_1_1Bitmap" ],
     [ "CgxHeader", "structyaze_1_1gfx_1_1CgxHeader.html", "structyaze_1_1gfx_1_1CgxHeader" ],
     [ "GfxContext", "classyaze_1_1gfx_1_1GfxContext.html", null ],

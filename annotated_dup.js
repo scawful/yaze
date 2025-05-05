@@ -193,6 +193,7 @@ var annotated_dup =
           [ "CompressionPiece", "structyaze_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html", "structyaze_1_1gfx_1_1lc__lz2_1_1CompressionPiece" ]
         ] ],
         [ "Arena", "classyaze_1_1gfx_1_1Arena.html", "classyaze_1_1gfx_1_1Arena" ],
+        [ "BackgroundBuffer", "classyaze_1_1gfx_1_1BackgroundBuffer.html", "classyaze_1_1gfx_1_1BackgroundBuffer" ],
         [ "Bitmap", "classyaze_1_1gfx_1_1Bitmap.html", "classyaze_1_1gfx_1_1Bitmap" ],
         [ "CgxHeader", "structyaze_1_1gfx_1_1CgxHeader.html", "structyaze_1_1gfx_1_1CgxHeader" ],
         [ "GfxContext", "classyaze_1_1gfx_1_1GfxContext.html", null ],

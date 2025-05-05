@@ -1,0 +1,7 @@
+<map id="yaze::gfx::Arena" name="yaze::gfx::Arena">
+<area shape="rect" id="Node000001" title=" " alt="" coords="40,198,150,223"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1BackgroundBuffer.html" title=" " alt="" coords="5,94,185,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,135,98,197,92,197,92,135"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="36,5,154,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="98,47,98,94,92,94,92,47"/>
+</map>
