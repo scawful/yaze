@@ -29,9 +29,6 @@ class FeatureFlags {
     // and tile32 save.
     bool kSaveWithChangeQueue = false;
 
-    // Attempt to run the dungeon room draw routine when opening a room.
-    bool kDrawDungeonRoomGraphics = true;
-
     // Save dungeon map edits to the Rom.
     bool kSaveDungeonMaps = false;
 
@@ -81,8 +78,6 @@ class FeatureFlags {
     result +=
         "kSaveWithChangeQueue: " + std::to_string(get().kSaveWithChangeQueue) +
         "\n";
-    result += "kDrawDungeonRoomGraphics: " +
-              std::to_string(get().kDrawDungeonRoomGraphics) + "\n";
     result +=
         "kSaveDungeonMaps: " + std::to_string(get().kSaveDungeonMaps) + "\n";
     result += "kLogToConsole: " + std::to_string(get().kLogToConsole) + "\n";
@@ -128,9 +123,6 @@ struct FlagsMenu {
   }
 
   void DrawDungeonFlags() {
-    Checkbox("Draw Dungeon Room Graphics",
-             &FeatureFlags::get().kDrawDungeonRoomGraphics);
-    Separator();
     Checkbox("Save Dungeon Maps", &FeatureFlags::get().kSaveDungeonMaps);
   }
 
