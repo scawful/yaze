@@ -548,13 +548,16 @@ absl::Status EditorManager::LoadAssets() {
   }
   current_editor_set_->overworld_editor_.Initialize();
   current_editor_set_->message_editor_.Initialize();
-
-  auto &sheet_manager = gfx::Arena::Get();
-  ASSIGN_OR_RETURN(*sheet_manager.mutable_gfx_sheets(),
+  ASSIGN_OR_RETURN(*gfx::Arena::Get().mutable_gfx_sheets(),
                    LoadAllGraphicsData(*current_rom_));
-  for (auto &editor : current_editor_set_->active_editors_) {
-    RETURN_IF_ERROR(editor->Load());
-  }
+  RETURN_IF_ERROR(current_editor_set_->overworld_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set_->dungeon_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set_->screen_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set_->settings_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set_->sprite_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set_->message_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set_->music_editor_.Load());
+  RETURN_IF_ERROR(current_editor_set_->palette_editor_.Load());
   return absl::OkStatus();
 }
 

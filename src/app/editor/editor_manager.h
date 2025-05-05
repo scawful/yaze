@@ -20,7 +20,6 @@
 #include "app/editor/system/popup_manager.h"
 #include "app/editor/system/settings_editor.h"
 #include "app/emu/emulator.h"
-#include "app/gui/input.h"
 #include "app/rom.h"
 #include "yaze_config.h"
 
