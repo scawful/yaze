@@ -95,21 +95,17 @@ class PaletteEditor : public Editor {
   absl::Status Find() override { return absl::OkStatus(); }
   absl::Status Save() override { return absl::UnimplementedError("Save"); }
 
-  void DisplayCategoryTable();
+  void DrawQuickAccessTab();
 
+  void DrawCustomPalette();
+  absl::Status DrawPaletteGroup(int category, bool right_side = false);
   absl::Status EditColorInPalette(gfx::SnesPalette& palette, int index);
   absl::Status ResetColorToOriginal(gfx::SnesPalette& palette, int index,
                                     const gfx::SnesPalette& originalPalette);
-  absl::Status DrawPaletteGroup(int category, bool right_side = false);
 
-  void DrawCustomPalette();
+  void AddRecentlyUsedColor(const gfx::SnesColor& color);
 
-  void DrawModifiedColors();
-
-  // Set the ROM pointer
   void set_rom(Rom* rom) { rom_ = rom; }
-  
-  // Get the ROM pointer
   Rom* rom() const { return rom_; }
 
  private:
@@ -121,6 +117,9 @@ class PaletteEditor : public Editor {
   GfxGroupEditor gfx_group_editor_;
 
   std::vector<gfx::SnesColor> custom_palette_;
+  std::vector<gfx::SnesColor> recently_used_colors_;
+
+  int edit_palette_index_ = -1;
 
   ImVec4 saved_palette_[256] = {};
 

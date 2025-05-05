@@ -4,7 +4,6 @@
 #include "absl/strings/str_cat.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/color.h"
-#include "app/gui/style.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -37,11 +36,8 @@ using ImGui::SetClipboardText;
 using ImGui::TableHeadersRow;
 using ImGui::TableNextColumn;
 using ImGui::TableNextRow;
-using ImGui::TableSetColumnIndex;
 using ImGui::TableSetupColumn;
 using ImGui::Text;
-using ImGui::TreeNode;
-using ImGui::TreePop;
 
 using namespace gfx;
 
@@ -51,12 +47,14 @@ constexpr ImGuiTableFlags kPaletteTableFlags =
 
 constexpr ImGuiColorEditFlags kPalNoAlpha = ImGuiColorEditFlags_NoAlpha;
 
-constexpr ImGuiColorEditFlags kPalButtonFlags2 = ImGuiColorEditFlags_NoAlpha |
-                                                 ImGuiColorEditFlags_NoPicker |
-                                                 ImGuiColorEditFlags_NoTooltip;
+constexpr ImGuiColorEditFlags kPalButtonFlags = ImGuiColorEditFlags_NoAlpha |
+                                                ImGuiColorEditFlags_NoPicker |
+                                                ImGuiColorEditFlags_NoTooltip;
 
 constexpr ImGuiColorEditFlags kColorPopupFlags =
-    ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha;
+    ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha |
+    ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_DisplayHSV |
+    ImGuiColorEditFlags_DisplayHex;
 
 namespace {
 int CustomFormatString(char* buf, size_t buf_size, const char* fmt, ...) {
@@ -94,7 +92,7 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
   static bool init = false;
   if (loaded && !init) {
     for (int n = 0; n < palette.size(); n++) {
-      ASSIGN_OR_RETURN(auto color, palette.GetColor(n));
+      auto color = palette[n];
       current_palette[n].x = color.rgb().x / 255;
       current_palette[n].y = color.rgb().y / 255;
       current_palette[n].z = color.rgb().z / 255;
@@ -146,7 +144,7 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
       PushID(n);
       if ((n % 8) != 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
 
-      if (ColorButton("##palette", current_palette[n], kPalButtonFlags2,
+      if (ColorButton("##palette", current_palette[n], kPalButtonFlags,
                       ImVec2(20, 20)))
         color = ImVec4(current_palette[n].x, current_palette[n].y,
                        current_palette[n].z, color.w);  // Preserve alpha!
@@ -187,70 +185,162 @@ absl::Status PaletteEditor::Load() {
 }
 
 absl::Status PaletteEditor::Update() {
-  if (BeginTable("paletteEditorTable", 2, kPaletteTableFlags, ImVec2(0, 0))) {
-    TableSetupColumn("Palette Groups", ImGuiTableColumnFlags_WidthStretch,
-                     GetContentRegionAvail().x);
-    TableSetupColumn("Palette Sets and Metadata",
-                     ImGuiTableColumnFlags_WidthStretch,
-                     GetContentRegionAvail().x);
+  static int current_palette_group = 0;
+  if (BeginTable("paletteGroupsTable", 3, kPaletteTableFlags)) {
+    TableSetupColumn("Categories", ImGuiTableColumnFlags_WidthFixed, 200);
+    TableSetupColumn("Palette Editor", ImGuiTableColumnFlags_WidthStretch);
+    TableSetupColumn("Quick Access", ImGuiTableColumnFlags_WidthStretch);
     TableHeadersRow();
+
     TableNextRow();
     TableNextColumn();
-    DrawModifiedColors();
 
-    DrawCustomPalette();
-    Separator();
-    gui::SnesColorEdit4("Current Color Picker", &current_color_,
-                        ImGuiColorEditFlags_NoAlpha);
-    Separator();
-    DisplayCategoryTable();
+    static int selected_category = 0;
+    BeginChild("CategoryList", ImVec2(0, GetContentRegionAvail().y), true);
+
+    for (int i = 0; i < kNumPalettes; i++) {
+      const bool is_selected = (selected_category == i);
+      if (Selectable(std::string(kPaletteCategoryNames[i]).c_str(),
+                     is_selected)) {
+        selected_category = i;
+      }
+    }
+
+    EndChild();
 
     TableNextColumn();
-    gfx_group_editor_.DrawPaletteViewer();
+    BeginChild("PaletteEditor", ImVec2(0, 0), true);
+
+    Text("%s", std::string(kPaletteCategoryNames[selected_category]).c_str());
+
     Separator();
-    static bool in_use = false;
-    ImGui::Checkbox("Palette in use? ", &in_use);
-    Separator();
-    static std::string palette_notes = "Notes about the palette";
-    ImGui::InputTextMultiline("Notes", palette_notes.data(), 1024,
-                              ImVec2(-1, ImGui::GetTextLineHeight() * 4),
-                              ImGuiInputTextFlags_AllowTabInput);
+
+    if (rom()->is_loaded()) {
+      status_ = DrawPaletteGroup(selected_category, true);
+    }
+
+    EndChild();
+
+    TableNextColumn();
+    DrawQuickAccessTab();
 
     EndTable();
   }
 
-  CLEAR_AND_RETURN_STATUS(status_)
-
   return absl::OkStatus();
 }
 
+void PaletteEditor::DrawQuickAccessTab() {
+  BeginChild("QuickAccessPalettes", ImVec2(0, 0), true);
+
+  Text("Custom Palette");
+  DrawCustomPalette();
+
+  Separator();
+
+  // Current color picker with more options
+  BeginGroup();
+  Text("Current Color");
+  gui::SnesColorEdit4("##CurrentColorPicker", &current_color_,
+                      kColorPopupFlags);
+
+  char buf[64];
+  auto col = current_color_.rgb();
+  int cr = F32_TO_INT8_SAT(col.x / 255.0f);
+  int cg = F32_TO_INT8_SAT(col.y / 255.0f);
+  int cb = F32_TO_INT8_SAT(col.z / 255.0f);
+
+  CustomFormatString(buf, IM_ARRAYSIZE(buf), "RGB: %d, %d, %d", cr, cg, cb);
+  Text("%s", buf);
+
+  CustomFormatString(buf, IM_ARRAYSIZE(buf), "SNES: $%04X",
+                     current_color_.snes());
+  Text("%s", buf);
+
+  if (Button("Copy to Clipboard")) {
+    SetClipboardText(buf);
+  }
+  EndGroup();
+
+  Separator();
+
+  // Recently used colors
+  Text("Recently Used Colors");
+  for (int i = 0; i < recently_used_colors_.size(); i++) {
+    PushID(i);
+    if (i % 8 != 0) SameLine();
+    ImVec4 displayColor =
+        gui::ConvertSnesColorToImVec4(recently_used_colors_[i]);
+    if (ImGui::ColorButton("##recent", displayColor)) {
+      // Set as current color
+      current_color_ = recently_used_colors_[i];
+    }
+    PopID();
+  }
+
+  EndChild();
+}
+
 void PaletteEditor::DrawCustomPalette() {
-  if (BeginChild("ColorPalette", ImVec2(0, 40), true,
+  if (BeginChild("ColorPalette", ImVec2(0, 40), ImGuiChildFlags_None,
                  ImGuiWindowFlags_HorizontalScrollbar)) {
     for (int i = 0; i < custom_palette_.size(); i++) {
       PushID(i);
-      SameLine(0.0f, GetStyle().ItemSpacing.y);
-      gui::SnesColorEdit4("##customPalette", &custom_palette_[i],
-                          ImGuiColorEditFlags_NoInputs);
-      // Accept a drag drop target which adds a color to the custom_palette_
+      if (i > 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
+
+      // Add a context menu to each color
+      ImVec4 displayColor = gui::ConvertSnesColorToImVec4(custom_palette_[i]);
+      bool open_color_picker = ImGui::ColorButton(
+          absl::StrFormat("##customPal%d", i).c_str(), displayColor);
+
+      if (open_color_picker) {
+        current_color_ = custom_palette_[i];
+        edit_palette_index_ = i;
+        ImGui::OpenPopup("CustomPaletteColorEdit");
+      }
+
+      if (BeginPopupContextItem()) {
+        // Edit color directly in the popup
+        SnesColor original_color = custom_palette_[i];
+        if (gui::SnesColorEdit4("Edit Color", &custom_palette_[i],
+                                kColorPopupFlags)) {
+          // Color was changed, add to recently used
+          AddRecentlyUsedColor(custom_palette_[i]);
+        }
+
+        if (Button("Delete", ImVec2(-1, 0))) {
+          custom_palette_.erase(custom_palette_.begin() + i);
+        }
+      }
+
+      // Handle drag/drop for palette rearrangement
       if (BeginDragDropTarget()) {
         if (const ImGuiPayload* payload =
                 AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F)) {
-          ImVec4 color = ImVec4(0, 0, 0, 1.0f);
-          memcpy((float*)&color, payload->Data, sizeof(float));
-          custom_palette_.push_back(SnesColor(color));
+          ImVec4 color;
+          memcpy((float*)&color, payload->Data, sizeof(float) * 3);
+          color.w = 1.0f;  // Set alpha to 1.0
+          custom_palette_[i] = SnesColor(color);
+          AddRecentlyUsedColor(custom_palette_[i]);
         }
         EndDragDropTarget();
       }
 
       PopID();
     }
+
     SameLine();
-    if (ImGui::Button("Add Color")) {
+    if (ImGui::Button("+")) {
       custom_palette_.push_back(SnesColor(0x7FFF));
     }
+
     SameLine();
-    if (ImGui::Button("Export to Clipboard")) {
+    if (ImGui::Button("Clear")) {
+      custom_palette_.clear();
+    }
+
+    SameLine();
+    if (ImGui::Button("Export")) {
       std::string clipboard;
       for (const auto& color : custom_palette_) {
         clipboard += absl::StrFormat("$%04X,", color.snes());
@@ -259,89 +349,20 @@ void PaletteEditor::DrawCustomPalette() {
     }
   }
   EndChild();
-}
 
-void PaletteEditor::DisplayCategoryTable() {
-  if (BeginTable("Category Table", 8,
-                 ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
-                     ImGuiTableFlags_SizingStretchSame |
-                     ImGuiTableFlags_Hideable,
-                 ImVec2(0, 0))) {
-    TableSetupColumn("Weapons and Gear");
-    TableSetupColumn("Overworld and Area Colors");
-    TableSetupColumn("Global Sprites");
-    TableSetupColumn("Sprites Aux1");
-    TableSetupColumn("Sprites Aux2");
-    TableSetupColumn("Sprites Aux3");
-    TableSetupColumn("Maps and Items");
-    TableSetupColumn("Dungeons");
-    TableHeadersRow();
-    TableNextRow();
-
-    TableSetColumnIndex(0);
-    if (TreeNode("Sword")) {
-      status_ = DrawPaletteGroup(PaletteCategory::kSword);
-      TreePop();
+  // Color picker popup for custom palette editing
+  if (ImGui::BeginPopup("CustomPaletteColorEdit")) {
+    if (edit_palette_index_ >= 0 &&
+        edit_palette_index_ < custom_palette_.size()) {
+      SnesColor original_color = custom_palette_[edit_palette_index_];
+      if (gui::SnesColorEdit4(
+              "Edit Color", &custom_palette_[edit_palette_index_],
+              kColorPopupFlags | ImGuiColorEditFlags_PickerHueWheel)) {
+        // Color was changed, add to recently used
+        AddRecentlyUsedColor(custom_palette_[edit_palette_index_]);
+      }
     }
-    if (TreeNode("Shield")) {
-      status_ = DrawPaletteGroup(PaletteCategory::kShield);
-      TreePop();
-    }
-    if (TreeNode("Clothes")) {
-      status_ = DrawPaletteGroup(PaletteCategory::kClothes, true);
-      TreePop();
-    }
-
-    TableSetColumnIndex(1);
-    gui::BeginChildWithScrollbar("##WorldPaletteScrollRegion");
-    if (TreeNode("World Colors")) {
-      status_ = DrawPaletteGroup(PaletteCategory::kWorldColors);
-      TreePop();
-    }
-    if (TreeNode("Area Colors")) {
-      status_ = DrawPaletteGroup(PaletteCategory::kAreaColors);
-      TreePop();
-    }
-    EndChild();
-
-    TableSetColumnIndex(2);
-    status_ = DrawPaletteGroup(PaletteCategory::kGlobalSprites, true);
-
-    TableSetColumnIndex(3);
-    status_ = DrawPaletteGroup(PaletteCategory::kSpritesAux1);
-
-    TableSetColumnIndex(4);
-    status_ = DrawPaletteGroup(PaletteCategory::kSpritesAux2);
-
-    TableSetColumnIndex(5);
-    status_ = DrawPaletteGroup(PaletteCategory::kSpritesAux3);
-
-    TableSetColumnIndex(6);
-    gui::BeginChildWithScrollbar("##MapPaletteScrollRegion");
-    if (TreeNode("World Map")) {
-      status_ = DrawPaletteGroup(PaletteCategory::kWorldMap, true);
-      TreePop();
-    }
-    if (TreeNode("Dungeon Map")) {
-      status_ = DrawPaletteGroup(PaletteCategory::kDungeonMap);
-      TreePop();
-    }
-    if (TreeNode("Triforce")) {
-      status_ = DrawPaletteGroup(PaletteCategory::kTriforce);
-      TreePop();
-    }
-    if (TreeNode("Crystal")) {
-      status_ = DrawPaletteGroup(PaletteCategory::kCrystal);
-      TreePop();
-    }
-    EndChild();
-
-    TableSetColumnIndex(7);
-    gui::BeginChildWithScrollbar("##DungeonPaletteScrollRegion");
-    status_ = DrawPaletteGroup(PaletteCategory::kDungeons, true);
-    EndChild();
-
-    EndTable();
+    ImGui::EndPopup();
   }
 }
 
@@ -355,26 +376,30 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category, bool right_side) {
       rom()->mutable_palette_group()->get_group(palette_group_name.data());
   const auto size = palette_group->size();
 
-  static bool edit_color = false;
   for (int j = 0; j < size; j++) {
     gfx::SnesPalette* palette = palette_group->mutable_palette(j);
     auto pal_size = palette->size();
 
+    BeginGroup();
+
+    PushID(j);
+    BeginGroup();
+    rom()->resource_label()->SelectableLabelWithNameEdit(
+        false, palette_group_name.data(), /*key=*/std::to_string(j),
+        "Unnamed Palette");
+    EndGroup();
+
     for (int n = 0; n < pal_size; n++) {
       PushID(n);
-      if (!right_side) {
-        if ((n % 7) != 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
-      } else {
-        if ((n % 15) != 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
-      }
+      if (n > 0 && n % 8 != 0) SameLine(0.0f, 2.0f);
 
       auto popup_id =
           absl::StrCat(kPaletteCategoryNames[category].data(), j, "_", n);
 
-      // Small icon of the color in the palette
-      if (gui::SnesColorButton(popup_id, *palette->mutable_color(n),
-                               kPalNoAlpha)) {
-        ASSIGN_OR_RETURN(current_color_, palette->GetColor(n));
+      ImVec4 displayColor = gui::ConvertSnesColorToImVec4((*palette)[n]);
+      if (ImGui::ColorButton(popup_id.c_str(), displayColor)) {
+        current_color_ = (*palette)[n];
+        AddRecentlyUsedColor(current_color_);
       }
 
       if (BeginPopupContextItem(popup_id.c_str())) {
@@ -382,49 +407,64 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category, bool right_side) {
       }
       PopID();
     }
-    SameLine();
-    rom()->resource_label()->SelectableLabelWithNameEdit(
-        false, palette_group_name.data(), /*key=*/std::to_string(j),
-        "Unnamed Palette");
-    if (right_side) Separator();
+    PopID();
+    EndGroup();
+
+    if (j < size - 1) {
+      Separator();
+    }
   }
   return absl::OkStatus();
 }
 
-void PaletteEditor::DrawModifiedColors() {
-  if (BeginChild("ModifiedColors", ImVec2(0, 100), true,
-                 ImGuiWindowFlags_HorizontalScrollbar)) {
-    for (int i = 0; i < history_.size(); i++) {
-      PushID(i);
-      gui::SnesColorEdit4("Original ", &history_.GetOriginalColor(i),
-                          ImGuiColorEditFlags_NoInputs);
-      SameLine(0.0f, GetStyle().ItemSpacing.y);
-      gui::SnesColorEdit4("Modified ", &history_.GetModifiedColor(i),
-                          ImGuiColorEditFlags_NoInputs);
-      PopID();
-    }
+void PaletteEditor::AddRecentlyUsedColor(const SnesColor& color) {
+  // Check if color already exists in recently used
+  auto it = std::find_if(
+      recently_used_colors_.begin(), recently_used_colors_.end(),
+      [&color](const SnesColor& c) { return c.snes() == color.snes(); });
+
+  // If found, remove it to re-add at front
+  if (it != recently_used_colors_.end()) {
+    recently_used_colors_.erase(it);
   }
-  EndChild();
+
+  // Add at front
+  recently_used_colors_.insert(recently_used_colors_.begin(), color);
+
+  // Limit size
+  if (recently_used_colors_.size() > 16) {
+    recently_used_colors_.pop_back();
+  }
 }
 
 absl::Status PaletteEditor::HandleColorPopup(gfx::SnesPalette& palette, int i,
                                              int j, int n) {
   auto col = gfx::ToFloatArray(palette[n]);
   auto original_color = palette[n];
+
   if (gui::SnesColorEdit4("Edit Color", &palette[n], kColorPopupFlags)) {
     history_.RecordChange(/*group_name=*/std::string(kPaletteGroupNames[i]),
                           /*palette_index=*/j, /*color_index=*/n,
                           original_color, palette[n]);
     palette[n].set_modified(true);
+
+    // Add to recently used colors
+    AddRecentlyUsedColor(palette[n]);
   }
+
+  // Color information display
+  char buf[64];
+  int cr = F32_TO_INT8_SAT(col[0]);
+  int cg = F32_TO_INT8_SAT(col[1]);
+  int cb = F32_TO_INT8_SAT(col[2]);
+
+  Text("RGB: %d, %d, %d", cr, cg, cb);
+  Text("SNES: $%04X", palette[n].snes());
+
+  Separator();
 
   if (Button("Copy as..", ImVec2(-1, 0))) OpenPopup("Copy");
   if (BeginPopup("Copy")) {
-    int cr = F32_TO_INT8_SAT(col[0]);
-    int cg = F32_TO_INT8_SAT(col[1]);
-    int cb = F32_TO_INT8_SAT(col[2]);
-    char buf[64];
-
     CustomFormatString(buf, IM_ARRAYSIZE(buf), "(%.3ff, %.3ff, %.3ff)", col[0],
                        col[1], col[2]);
     if (Selectable(buf)) SetClipboardText(buf);
@@ -443,6 +483,11 @@ absl::Status PaletteEditor::HandleColorPopup(gfx::SnesPalette& palette, int i,
     EndPopup();
   }
 
+  // Add a button to add this color to custom palette
+  if (Button("Add to Custom Palette", ImVec2(-1, 0))) {
+    custom_palette_.push_back(palette[n]);
+  }
+
   EndPopup();
   return absl::OkStatus();
 }
@@ -454,11 +499,14 @@ absl::Status PaletteEditor::EditColorInPalette(gfx::SnesPalette& palette,
   }
 
   // Get the current color
-  ASSIGN_OR_RETURN(auto color, palette.GetColor(index));
+  auto color = palette[index];
   auto currentColor = color.rgb();
   if (ColorPicker4("Color Picker", (float*)&palette[index])) {
     // The color was modified, update it in the palette
-    palette(index, currentColor);
+    palette[index] = gui::ConvertImVec4ToSnesColor(currentColor);
+
+    // Add to recently used colors
+    AddRecentlyUsedColor(palette[index]);
   }
   return absl::OkStatus();
 }
@@ -469,9 +517,9 @@ absl::Status PaletteEditor::ResetColorToOriginal(
   if (index >= palette.size() || index >= originalPalette.size()) {
     return absl::InvalidArgumentError("Index out of bounds");
   }
-  ASSIGN_OR_RETURN(auto color, originalPalette.GetColor(index));
+  auto color = originalPalette[index];
   auto originalColor = color.rgb();
-  palette(index, originalColor);
+  palette[index] = gui::ConvertImVec4ToSnesColor(originalColor);
   return absl::OkStatus();
 }
 
