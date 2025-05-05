@@ -1,7 +1,6 @@
 #include "dungeon_editor.h"
 
 #include "absl/container/flat_hash_map.h"
-#include "app/core/features.h"
 #include "app/core/platform/renderer.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/snes_palette.h"
@@ -47,20 +46,16 @@ absl::Status DungeonEditor::Load() {
   auto dungeon_man_pal_group = rom()->palette_group().dungeon_main;
 
   for (int i = 0; i < 0x100 + 40; i++) {
-    rooms_[i] = zelda3::LoadRoomFromRom(rom(), i);
+    rooms_[i] = zelda3::LoadRoomFromRom(rom_, i);
 
-    auto room_size = zelda3::CalculateRoomSize(rom(), i);
+    auto room_size = zelda3::CalculateRoomSize(rom_, i);
     room_size_pointers_.push_back(room_size.room_size_pointer);
     room_sizes_.push_back(room_size.room_size);
     if (room_size.room_size_pointer != 0x0A8000) {
       room_size_addresses_[i] = room_size.room_size_pointer;
     }
 
-    if (core::FeatureFlags::get().kDrawDungeonRoomGraphics) {
-      rooms_[i].LoadRoomGraphics();
-    }
-
-    // rooms_[i].LoadObjects();
+    rooms_[i].LoadObjects();
 
     auto dungeon_palette_ptr = rom()->paletteset_ids[rooms_[i].palette][0];
     auto palette_id = rom()->ReadWord(0xDEC4B + dungeon_palette_ptr);
@@ -87,7 +82,6 @@ absl::Status DungeonEditor::Load() {
   ASSIGN_OR_RETURN(current_palette_group_,
                    gfx::CreatePaletteGroupFromLargePalette(full_palette_))
 
-  graphics_bin_ = GraphicsSheetManager::GetInstance().gfx_sheets();
   CalculateUsageStats();
   is_loaded_ = true;
   return absl::OkStatus();
@@ -117,22 +111,26 @@ absl::Status DungeonEditor::Update() {
 }
 
 absl::Status DungeonEditor::RefreshGraphics() {
-  std::for_each_n(rooms_[current_room_id_].blocks().begin(), 8,
-                  [this](int block) -> absl::Status {
-                    graphics_bin_[block].SetPaletteWithTransparent(
-                        current_palette_group_[current_palette_id_], 0);
-                    Renderer::GetInstance().UpdateBitmap(&graphics_bin_[block]);
-                    return absl::OkStatus();
-                  });
+  std::for_each_n(
+      rooms_[current_room_id_].blocks().begin(), 8,
+      [this](int block) -> absl::Status {
+        gfx::Arena::Get().gfx_sheets()[block].SetPaletteWithTransparent(
+            current_palette_group_[current_palette_id_], 0);
+        Renderer::GetInstance().UpdateBitmap(
+            &gfx::Arena::Get().gfx_sheets()[block]);
+        return absl::OkStatus();
+      });
 
   auto sprites_aux1_pal_group = rom()->palette_group().sprites_aux1;
-  std::for_each_n(rooms_[current_room_id_].blocks().begin() + 8, 8,
-                  [this, &sprites_aux1_pal_group](int block) -> absl::Status {
-                    graphics_bin_[block].SetPaletteWithTransparent(
-                        sprites_aux1_pal_group[current_palette_id_], 0);
-                    Renderer::GetInstance().UpdateBitmap(&graphics_bin_[block]);
-                    return absl::OkStatus();
-                  });
+  std::for_each_n(
+      rooms_[current_room_id_].blocks().begin() + 8, 8,
+      [this, &sprites_aux1_pal_group](int block) -> absl::Status {
+        gfx::Arena::Get().gfx_sheets()[block].SetPaletteWithTransparent(
+            sprites_aux1_pal_group[current_palette_id_], 0);
+        Renderer::GetInstance().UpdateBitmap(
+            &gfx::Arena::Get().gfx_sheets()[block]);
+        return absl::OkStatus();
+      });
   return absl::OkStatus();
 }
 
@@ -476,17 +474,26 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
   SameLine();
 
   if (Button("Load Room")) {
-    rooms_[room_id].LoadRoomGraphics();
+    rooms_[room_id].LoadRoomGraphics(rooms_[room_id].blockset);
+    rooms_[room_id].RenderRoomGraphics();
   }
+
+  static bool show_objects = false;
+  ImGui::Checkbox("Show Objects", &show_objects);
 
   ImGui::EndGroup();
 
   canvas_.DrawBackground();
   canvas_.DrawContextMenu();
   if (is_loaded_) {
-    for (const auto &object : rooms_[room_id].tile_objects_) {
-      canvas_.DrawOutline(object.x_, object.y_, object.width_ * 16,
-                          object.height_ * 16);
+    canvas_.DrawBitmap(gfx::Arena::Get().bg1().bitmap(), 0, true);
+    canvas_.DrawBitmap(gfx::Arena::Get().bg2().bitmap(), 0, true);
+
+    if (show_objects) {
+      for (const auto &object : rooms_[room_id].tile_objects_) {
+        canvas_.DrawOutline(object.x_, object.y_, object.width_ * 16,
+                            object.height_ * 16);
+      }
     }
   }
   canvas_.DrawGrid();
@@ -508,7 +515,9 @@ void DungeonEditor::DrawRoomGraphics() {
         top_left_y = room_gfx_canvas_.zero_point().y + height * current_block;
       }
       room_gfx_canvas_.draw_list()->AddImage(
-          (ImTextureID)(intptr_t)graphics_bin_[block].texture(),
+          (ImTextureID)(intptr_t)gfx::Arena::Get()
+              .gfx_sheets()[block]
+              .texture(),
           ImVec2(room_gfx_canvas_.zero_point().x + 2, top_left_y),
           ImVec2(room_gfx_canvas_.zero_point().x + 0x100,
                  room_gfx_canvas_.zero_point().y + offset));
