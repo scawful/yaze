@@ -197,16 +197,16 @@ var NAVTREEINDEX =
 "namespaceyaze_1_1util_1_1anonymous__namespace_02hex_8cc_03.html",
 "namespaceyaze_1_1zelda3.html#a9490ecf2dca104bfd1d4d40b44f5e747",
 "screen__editor_8h_source.html",
-"structyaze_1_1core_1_1FeatureFlags_1_1Flags_1_1Overworld.html#a0a87ac590f280455753314c326db8a16",
-"structyaze_1_1editor_1_1TextElement.html#a4ab6b7eff1865bcf5d26c4ccc4e4437b",
-"structyaze_1_1emu_1_1BackgroundLayer.html#a99125faf9e0971e6bc3d2858b82a0305",
-"structyaze_1_1emu_1_1EmulatorKeybindings.html#aded4e63369bb502bb5c599ff82e5d89b",
-"structyaze_1_1emu_1_1ScreenMode.html#a0e22ddeb2bcf8ec3365f91729c1afe1c",
-"structyaze_1_1emu_1_1WOBJSEL.html#ad7fad5d56808b2dc41502cbd4b033541",
-"structyaze_1_1gui_1_1Button.html",
-"structyaze_1_1gui_1_1zeml_1_1WidgetAttributes.html#af85645098bd2d37981b440358711119a",
-"structyaze_1_1zelda3_1_1music_1_1SongRange.html#a51f5ec13feddcd78ecfef4d22908a118",
-"yaze_8h.html#a9fff64bba6ed578ae091960204b84648"
+"structyaze_1_1core_1_1FeatureFlags_1_1Flags_1_1Overworld.html#a158c2456cdf1224ebe3a5a24303b9211",
+"structyaze_1_1editor_1_1TextElement.html#a72d66399ec2d66bdeda37a78227b18f2",
+"structyaze_1_1emu_1_1BackgroundLayer.html#abb070b5352ad6d2a7ebfac2e3df4db3d",
+"structyaze_1_1emu_1_1Emulator_1_1Bookmark.html",
+"structyaze_1_1emu_1_1ScreenMode.html#a50e047035739789711b2a02b896a7c3b",
+"structyaze_1_1emu_1_1WOBJSEL.html#ade166ee6e0a076e20945d635a5e48340",
+"structyaze_1_1gui_1_1Button.html#ab88e64066c56418393e6fd510e0bf87e",
+"structyaze_1_1test_1_1ApuCallbacks.html",
+"structyaze_1_1zelda3_1_1music_1_1SongRange.html#a7dcbcc7cc38d2e435e8f95bf341eb70f",
+"yaze_8h.html#aa57d3ad47df22165528207d494c563b2"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronization';
