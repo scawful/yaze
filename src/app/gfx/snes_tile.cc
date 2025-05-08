@@ -5,8 +5,6 @@
 #include <stdexcept>
 #include <vector>
 
-#include "util/macro.h"
-
 namespace yaze {
 namespace gfx {
 
@@ -128,15 +126,7 @@ std::vector<uint8_t> ConvertBpp(const std::vector<uint8_t>& tiles,
   return converted;
 }
 
-std::vector<uint8_t> Convert3bppTo4bpp(const std::vector<uint8_t>& tiles) {
-  return ConvertBpp(tiles, 3, 4);
-}
-
-std::vector<uint8_t> Convert4bppTo3bpp(const std::vector<uint8_t>& tiles) {
-  return ConvertBpp(tiles, 4, 3);
-}
-
-std::vector<uint8_t> SnesTo8bppSheet(const std::vector<uint8_t>& sheet, int bpp,
+std::vector<uint8_t> SnesTo8bppSheet(std::span<uint8_t> sheet, int bpp,
                                      int num_sheets) {
   int xx = 0;  // positions where we are at on the sheet
   int yy = 0;
@@ -382,6 +372,45 @@ void CopyTile8bpp16(int x, int y, int tile, std::vector<uint8_t>& bitmap,
     for (int xx = 0; xx < 0x10; xx++) {
       bitmap[dest_pos + xx + (yy * 0x200)] =
           blockset[src_pos + xx + (yy * 0x80)];
+    }
+  }
+}
+
+void LoadSNES4bppGFXToIndexedColorMatrix(std::span<uint8_t> src,
+                                         std::span<uint8_t> dest) {
+  uint8_t b0;
+  uint8_t b1;
+  uint8_t b2;
+  uint8_t b3;
+  int res;
+  int mul;
+  int yAdder = 0;
+  int srcIndex;
+  int destX;
+  int destY;
+  int destIndex;
+  int mainIndexLimit = src.size() / 32;
+  for (int mainIndex = 0; mainIndex <= mainIndexLimit; mainIndex += 32) {
+    srcIndex = (mainIndex << 5);
+    if (srcIndex + 31 >= src.size()) return;
+    destX = mainIndex & 0x0F;
+    destY = mainIndex >> 4;
+    destIndex = ((destY << 7) + destX) << 3;
+    if (destIndex + 903 >= dest.size()) return;
+    for (int i = 0; i < 16; i += 2) {
+      mul = 1;
+      b0 = src[srcIndex + i];
+      b1 = src[srcIndex + i + 1];
+      b2 = src[srcIndex + i + 16];
+      b3 = src[srcIndex + i + 17];
+      for (int j = 0; j < 8; j++) {
+        res = ((b0 & mul) | ((b1 & mul) << 1) | ((b2 & mul) << 2) |
+               ((b3 & mul) << 3)) >>
+              j;
+        dest[destIndex + (7 - j) + yAdder] = res;
+        mul <<= 1;
+      }
+      yAdder += 128;
     }
   }
 }
