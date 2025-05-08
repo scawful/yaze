@@ -149,10 +149,10 @@ absl::Status Controller::OnLoad() {
 
 void Controller::DoRender() const {
   ImGui::Render();
-  SDL_RenderClear(Renderer::GetInstance().renderer());
+  SDL_RenderClear(Renderer::Get().renderer());
   ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(),
-                                        Renderer::GetInstance().renderer());
-  SDL_RenderPresent(Renderer::GetInstance().renderer());
+                                        Renderer::Get().renderer());
+  SDL_RenderPresent(Renderer::Get().renderer());
 }
 
 void Controller::OnExit() {
@@ -193,7 +193,7 @@ absl::Status Controller::CreateWindow() {
 }
 
 absl::Status Controller::CreateRenderer() {
-  return Renderer::GetInstance().CreateRenderer(window_.get());
+  return Renderer::Get().CreateRenderer(window_.get());
 }
 
 absl::Status Controller::CreateGuiContext() {
@@ -206,8 +206,8 @@ absl::Status Controller::CreateGuiContext() {
 
   // Initialize ImGui based on the backend
   ImGui_ImplSDL2_InitForSDLRenderer(window_.get(),
-                                    Renderer::GetInstance().renderer());
-  ImGui_ImplSDLRenderer2_Init(Renderer::GetInstance().renderer());
+                                    Renderer::Get().renderer());
+  ImGui_ImplSDLRenderer2_Init(Renderer::Get().renderer());
 
   RETURN_IF_ERROR(LoadPackageFonts());
 

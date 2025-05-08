@@ -56,13 +56,13 @@ class Sdl2Backend : public PlatformBackend<Sdl2Backend> {
       throw std::runtime_error("Failed to create window");
     }
 
-    if (!Renderer::GetInstance().CreateRenderer(window.get()).ok()) {
+    if (!Renderer::Get().CreateRenderer(window.get()).ok()) {
       throw std::runtime_error("Failed to create renderer");
     }
 
     ImGui_ImplSDL2_InitForSDLRenderer(window.get(),
-                                      Renderer::GetInstance().renderer());
-    ImGui_ImplSDLRenderer2_Init(Renderer::GetInstance().renderer());
+                                      Renderer::Get().renderer());
+    ImGui_ImplSDLRenderer2_Init(Renderer::Get().renderer());
   }
 
   void init_audio() {
@@ -91,7 +91,7 @@ class Sdl2Backend : public PlatformBackend<Sdl2Backend> {
   void shutdown() {
     ImGui_ImplSDL2_Shutdown();
     ImGui_ImplSDLRenderer2_Shutdown();
-    SDL_DestroyRenderer(Renderer::GetInstance().renderer());
+    SDL_DestroyRenderer(Renderer::Get().renderer());
     SDL_DestroyWindow(window.get());
     SDL_Quit();
   }
@@ -103,10 +103,10 @@ class Sdl2Backend : public PlatformBackend<Sdl2Backend> {
 
   void render() {
     ImGui::Render();
-    SDL_RenderClear(Renderer::GetInstance().renderer());
+    SDL_RenderClear(Renderer::Get().renderer());
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(),
-                                          Renderer::GetInstance().renderer());
-    SDL_RenderPresent(Renderer::GetInstance().renderer());
+                                          Renderer::Get().renderer());
+    SDL_RenderPresent(Renderer::Get().renderer());
   }
 
   auto window_ptr() -> SDL_Window * { return window.get(); }

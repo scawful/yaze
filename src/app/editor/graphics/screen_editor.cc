@@ -8,6 +8,7 @@
 #include "absl/strings/string_view.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/platform/renderer.h"
+#include "app/gfx/arena.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gfx/tilesheet.h"
@@ -15,6 +16,7 @@
 #include "app/gui/color.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
+#include "app/snes.h"
 #include "imgui/imgui.h"
 #include "util/hex.h"
 #include "util/macro.h"
@@ -28,14 +30,37 @@ constexpr uint32_t kRedPen = 0xFF0000FF;
 
 void ScreenEditor::Initialize() {}
 
-absl::Status ScreenEditor::Load() { return absl::OkStatus(); }
+absl::Status ScreenEditor::Load() {
+  RETURN_IF_ERROR(LoadDungeonMaps());
+  RETURN_IF_ERROR(LoadDungeonMapTile16(rom()->graphics_buffer()));
+  // TODO: Load roomset gfx based on dungeon ID
+  sheets_.emplace(0, gfx::Arena::Get().gfx_sheets()[212]);
+  sheets_.emplace(1, gfx::Arena::Get().gfx_sheets()[213]);
+  sheets_.emplace(2, gfx::Arena::Get().gfx_sheets()[214]);
+  sheets_.emplace(3, gfx::Arena::Get().gfx_sheets()[215]);
+  // int current_tile8 = 0;
+  // int tile_data_offset = 0;
+  // for (int i = 0; i < 4; ++i) {
+  //   for (int j = 0; j < 32; j++) {
+  //     std::vector<uint8_t> tile_data(64, 0);  // 8x8 tile (64 bytes
+  //     int tile_index = current_tile8 + j;
+  //     int x = (j % 8) * 8;
+  //     int y = (j / 8) * 8;
+  //     sheets_[i].Get8x8Tile(tile_index, 0, 0, tile_data,
+  //     tile_data_offset); tile8_individual_.emplace_back(gfx::Bitmap(8, 8,
+  //     4, tile_data)); tile8_individual_.back().SetPalette(
+  //         *rom()->mutable_dungeon_palette(3));
+  //     Renderer::Get().RenderBitmap(&tile8_individual_.back());
+  //   }
+  //   tile_data_offset = 0;
+  // }
+  return absl::OkStatus();
+}
 
 absl::Status ScreenEditor::Update() {
   if (ImGui::BeginTabBar("##ScreenEditorTabBar")) {
     if (ImGui::BeginTabItem("Dungeon Maps")) {
-      if (rom()->is_loaded()) {
-        DrawDungeonMapsEditor();
-      }
+      DrawDungeonMapsEditor();
       ImGui::EndTabItem();
     }
     DrawInventoryMenuEditor();
@@ -226,6 +251,9 @@ absl::Status ScreenEditor::SaveDungeonMaps() {
 
 absl::Status ScreenEditor::LoadDungeonMapTile16(
     const std::vector<uint8_t> &gfx_data, bool bin_mode) {
+  tile16_blockset_.tile_size = {16, 16};
+  tile16_blockset_.map_size = {186, 186};
+  tile16_blockset_.atlas.Create(256, 192, 8, gfx_data);
   tile16_sheet_.Init(256, 192, gfx::TileType::Tile16);
 
   for (int i = 0; i < 186; i++) {
@@ -250,18 +278,21 @@ absl::Status ScreenEditor::LoadDungeonMapTile16(
     if (bin_mode) {
       sheet_offset = 0;
     }
+    ComposeTile16(tile16_blockset_, gfx_data, t1, t2, t3, t4, sheet_offset);
     tile16_sheet_.ComposeTile16(gfx_data, t1, t2, t3, t4, sheet_offset);
   }
 
   tile16_sheet_.mutable_bitmap()->SetPalette(
       *rom()->mutable_dungeon_palette(3));
-  Renderer::GetInstance().RenderBitmap(&*tile16_sheet_.mutable_bitmap().get());
+  tile16_blockset_.atlas.SetPalette(*rom()->mutable_dungeon_palette(3));
+  Renderer::Get().RenderBitmap(&tile16_blockset_.atlas);
+  Renderer::Get().RenderBitmap(&*tile16_sheet_.mutable_bitmap().get());
 
   for (int i = 0; i < tile16_sheet_.num_tiles(); ++i) {
     auto tile = tile16_sheet_.GetTile16(i);
     tile16_individual_[i] = tile;
     tile16_individual_[i].SetPalette(*rom()->mutable_dungeon_palette(3));
-    Renderer::GetInstance().RenderBitmap(&tile16_individual_[i]);
+    Renderer::Get().RenderBitmap(&tile16_individual_[i]);
   }
 
   return absl::OkStatus();
@@ -319,14 +350,9 @@ void ScreenEditor::DrawDungeonMapsTabs() {
             int posX = ((j % 5) * 32);
             int posY = ((j / 5) * 32);
 
-            if (tile16_individual_.count(tile16_id) == 0) {
-              tile16_individual_[tile16_id] =
-                  tile16_sheet_.GetTile16(tile16_id);
-              Renderer::GetInstance().RenderBitmap(
-                  &tile16_individual_[tile16_id]);
-            }
-            screen_canvas_.DrawBitmap(tile16_individual_[tile16_id], (posX * 2),
-                                      (posY * 2), 4.0f);
+            gfx::RenderTile(tile16_blockset_, tile16_id);
+            screen_canvas_.DrawBitmap(tile16_blockset_.tile_bitmaps[tile16_id],
+                                      (posX * 2), (posY * 2), 4.0f);
 
             if (current_dungeon.floor_rooms[floor_number][j] == boss_room) {
               screen_canvas_.DrawOutlineWithColor((posX * 2), (posY * 2), 64,
@@ -423,10 +449,11 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
     ImGui::Separator();
     current_tile_canvas_.DrawBackground();  // ImVec2(64 * 2 + 2, 64 * 2 + 4));
     current_tile_canvas_.DrawContextMenu();
-    if (current_tile_canvas_.DrawTilePainter(tile8_individual_[selected_tile8_],
-                                             16)) {
-      // Modify the tile16 based on the selected tile and current_tile16_info
-    }
+    // if
+    // (current_tile_canvas_.DrawTilePainter(tile8_individual_[selected_tile8_],
+    //  16)) {
+    // Modify the tile16 based on the selected tile and current_tile16_info
+    // }
     current_tile_canvas_.DrawBitmap(tile16_individual_[selected_tile16_], 2,
                                     4.0f);
     current_tile_canvas_.DrawGrid(16.f);
@@ -448,7 +475,7 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
           tile16_sheet_.GetTile16(selected_tile16_);
       tile16_individual_[selected_tile16_].SetPalette(
           *rom()->mutable_dungeon_palette(3));
-      Renderer::GetInstance().RenderBitmap(
+      Renderer::Get().RenderBitmap(
           &tile16_individual_[selected_tile16_]);
     }
   }
@@ -456,39 +483,6 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
 }
 
 void ScreenEditor::DrawDungeonMapsEditor() {
-  if (!dungeon_maps_loaded_) {
-    if (!LoadDungeonMaps().ok()) {
-      ImGui::Text("Failed to load dungeon maps");
-    }
-
-    if (LoadDungeonMapTile16(rom()->graphics_buffer()).ok()) {
-      // TODO: Load roomset gfx based on dungeon ID
-      sheets_.emplace(0, GraphicsSheetManager::GetInstance().gfx_sheets()[212]);
-      sheets_.emplace(1, GraphicsSheetManager::GetInstance().gfx_sheets()[213]);
-      sheets_.emplace(2, GraphicsSheetManager::GetInstance().gfx_sheets()[214]);
-      sheets_.emplace(3, GraphicsSheetManager::GetInstance().gfx_sheets()[215]);
-      int current_tile8 = 0;
-      int tile_data_offset = 0;
-      for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 32; j++) {
-          std::vector<uint8_t> tile_data(64, 0);  // 8x8 tile (64 bytes
-          int tile_index = current_tile8 + j;
-          int x = (j % 8) * 8;
-          int y = (j / 8) * 8;
-          sheets_[i].Get8x8Tile(tile_index, 0, 0, tile_data, tile_data_offset);
-          tile8_individual_.emplace_back(gfx::Bitmap(8, 8, 4, tile_data));
-          tile8_individual_.back().SetPalette(
-              *rom()->mutable_dungeon_palette(3));
-          Renderer::GetInstance().RenderBitmap(&tile8_individual_.back());
-        }
-        tile_data_offset = 0;
-      }
-      dungeon_maps_loaded_ = true;
-    } else {
-      ImGui::Text("Failed to load dungeon map tile16");
-    }
-  }
-
   if (ImGui::BeginTable("##DungeonMapToolset", 2,
                         ImGuiTableFlags_SizingFixedFit)) {
     ImGui::TableSetupColumn("Draw Mode");
@@ -569,7 +563,6 @@ void ScreenEditor::LoadBinaryGfx() {
       std::vector<uint8_t> bin_data((std::istreambuf_iterator<char>(file)),
                                     std::istreambuf_iterator<char>());
       auto converted_bin = gfx::SnesTo8bppSheet(bin_data, 4, 4);
-      gfx_bin_data_ = converted_bin;
       tile16_sheet_.clear();
       if (LoadDungeonMapTile16(converted_bin, true).ok()) {
         sheets_.clear();
@@ -579,7 +572,7 @@ void ScreenEditor::LoadBinaryGfx() {
                                   converted_bin.begin() + ((i + 1) * 0x1000));
           sheets_.emplace(i, gfx::Bitmap(128, 32, 8, gfx_sheets[i]));
           sheets_[i].SetPalette(*rom()->mutable_dungeon_palette(3));
-          Renderer::GetInstance().RenderBitmap(&sheets_[i]);
+          Renderer::Get().RenderBitmap(&sheets_[i]);
         }
         binary_gfx_loaded_ = true;
       } else {

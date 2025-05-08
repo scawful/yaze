@@ -150,20 +150,17 @@ void Canvas::DrawContextMenu() {
       if (BeginMenu("Bitmap Format")) {
         if (MenuItem("Indexed")) {
           bitmap_->Reformat(gfx::BitmapFormat::kIndexed);
-          Renderer::GetInstance().UpdateBitmap(bitmap_);
-        }
-        if (MenuItem("2BPP")) {
-          bitmap_->Reformat(gfx::BitmapFormat::k2bpp);
-          Renderer::GetInstance().UpdateBitmap(bitmap_);
+          Renderer::Get().UpdateBitmap(bitmap_);
         }
         if (MenuItem("4BPP")) {
           bitmap_->Reformat(gfx::BitmapFormat::k4bpp);
-          Renderer::GetInstance().UpdateBitmap(bitmap_);
+          Renderer::Get().UpdateBitmap(bitmap_);
         }
         if (MenuItem("8BPP")) {
           bitmap_->Reformat(gfx::BitmapFormat::k8bpp);
-          Renderer::GetInstance().UpdateBitmap(bitmap_);
+          Renderer::Get().UpdateBitmap(bitmap_);
         }
+
         EndMenu();
       }
       if (BeginMenu("View Palette")) {
@@ -192,7 +189,7 @@ void Canvas::DrawContextMenu() {
             if (refresh_graphics_) {
               bitmap_->SetPaletteWithTransparent(*palette,
                                                  edit_palette_sub_index_);
-              Renderer::GetInstance().UpdateBitmap(bitmap_);
+              Renderer::Get().UpdateBitmap(bitmap_);
               refresh_graphics_ = false;
             }
             ImGui::EndChild();
@@ -302,7 +299,7 @@ bool Canvas::DrawTilemapPainter(gfx::Tilemap &tilemap, int current_tile) {
         tilemap.tile_size.x, tilemap.tile_size.y, 8,
         gfx::GetTilemapData(tilemap, current_tile), tilemap.atlas.palette());
     auto bitmap_ptr = &tilemap.tile_bitmaps[current_tile];
-    Renderer::GetInstance().RenderBitmap(bitmap_ptr);
+    Renderer::Get().RenderBitmap(bitmap_ptr);
   }
 
   draw_list_->AddImage(
@@ -511,17 +508,6 @@ void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
   }
 }
 
-void Canvas::DrawBitmap(Bitmap &bitmap, int border_offset, bool ready) {
-  if (ready) {
-    bitmap_ = &bitmap;
-    draw_list_->AddImage(
-        (ImTextureID)(intptr_t)bitmap.texture(),
-        ImVec2(canvas_p0_.x + border_offset, canvas_p0_.y + border_offset),
-        ImVec2(canvas_p0_.x + (bitmap.width() * 2),
-               canvas_p0_.y + (bitmap.height() * 2)));
-  }
-}
-
 void Canvas::DrawBitmap(Bitmap &bitmap, int border_offset, float scale) {
   if (!bitmap.is_active()) {
     return;
@@ -548,6 +534,22 @@ void Canvas::DrawBitmap(Bitmap &bitmap, int x_offset, int y_offset, float scale,
           canvas_p0_.x + x_offset + scrolling_.x + (bitmap.width() * scale),
           canvas_p0_.y + y_offset + scrolling_.y + (bitmap.height() * scale)),
       ImVec2(0, 0), ImVec2(1, 1), IM_COL32(255, 255, 255, alpha));
+}
+
+void Canvas::DrawBitmap(Bitmap &bitmap, ImVec2 dest_pos, ImVec2 dest_size,
+                        ImVec2 src_pos, ImVec2 src_size) {
+  if (!bitmap.is_active()) {
+    return;
+  }
+  bitmap_ = &bitmap;
+  draw_list_->AddImage(
+      (ImTextureID)(intptr_t)bitmap.texture(),
+      ImVec2(canvas_p0_.x + dest_pos.x, canvas_p0_.y + dest_pos.y),
+      ImVec2(canvas_p0_.x + dest_pos.x + dest_size.x,
+             canvas_p0_.y + dest_pos.y + dest_size.y),
+      ImVec2(src_pos.x / bitmap.width(), src_pos.y / bitmap.height()),
+      ImVec2((src_pos.x + src_size.x) / bitmap.width(),
+             (src_pos.y + src_size.y) / bitmap.height()));
 }
 
 // TODO: Add parameters for sizing and positioning
@@ -630,8 +632,8 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
       int tile_id = group[i];
 
       // Check if tile_id is within the range of tile16_individual_
-      auto tilemap_size = tilemap.atlas.width() * tilemap.atlas.height() /
-                          tilemap.map_size.x;
+      auto tilemap_size =
+          tilemap.atlas.width() * tilemap.atlas.height() / tilemap.map_size.x;
       if (tile_id >= 0 && tile_id < tilemap_size) {
         // Calculate the position of the tile within the rectangle
         int tile_pos_x = (x + start_tile_x) * tile_size * scale;

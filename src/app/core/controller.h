@@ -7,13 +7,7 @@
 
 #include "absl/status/status.h"
 #include "app/core/platform/backend.h"
-#include "app/core/platform/file_dialog.h"
-#include "app/core/platform/renderer.h"
 #include "app/editor/editor_manager.h"
-#include "imgui/backends/imgui_impl_sdl2.h"
-#include "imgui/backends/imgui_impl_sdlrenderer2.h"
-#include "imgui/imconfig.h"
-#include "imgui/imgui.h"
 
 int main(int argc, char **argv);
 

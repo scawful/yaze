@@ -110,14 +110,14 @@ class Canvas : public SharedRom {
                       float scale = 1.0f);
 
   // Draws the contents of the Bitmap image to the Canvas
-  void DrawBitmap(Bitmap &bitmap, int border_offset = 0, bool ready = true);
   void DrawBitmap(Bitmap &bitmap, int border_offset, float scale);
-  void DrawBitmap(Bitmap &bitmap, int x_offset = 0, int y_offset = 0,
-                  float scale = 1.0f, int alpha = 255);
+  void DrawBitmap(Bitmap &bitmap, int x_offset, int y_offset, float scale = 1.0f,
+                  int alpha = 255);
+  void DrawBitmap(Bitmap &bitmap, ImVec2 dest_pos, ImVec2 dest_size,
+                  ImVec2 src_pos, ImVec2 src_size);
   void DrawBitmapTable(const BitmapTable &gfx_bin);
 
-  void DrawBitmapGroup(std::vector<int> &group,
-                       gfx::Tilemap &tilemap,
+  void DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
                        int tile_size, float scale = 1.0f);
 
   bool DrawTilemapPainter(gfx::Tilemap &tilemap, int current_tile);

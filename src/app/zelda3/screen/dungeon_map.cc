@@ -35,7 +35,7 @@ absl::Status LoadDungeonMapGfxFromBinary(Rom &rom,
                                 converted_bin.begin() + ((i + 1) * 0x1000));
         sheets[i] = gfx::Bitmap(128, 32, 8, gfx_sheets[i]);
         sheets[i].SetPalette(*rom.mutable_dungeon_palette(3));
-        core::Renderer::GetInstance().RenderBitmap(&sheets[i]);
+        core::Renderer::Get().RenderBitmap(&sheets[i]);
       }
     } else {
       return absl::InternalError("Failed to load dungeon map tile16");

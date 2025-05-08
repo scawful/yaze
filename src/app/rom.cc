@@ -22,6 +22,7 @@
 #include "app/gfx/snes_color.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
+#include "app/snes.h"
 #include "util/hex.h"
 #include "util/log.h"
 #include "util/macro.h"
@@ -69,7 +70,7 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(
     link_graphics[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                             gfx::kTilesheetDepth, link_sheet_8bpp);
     link_graphics[i].SetPalette(rom.palette_group().armors[0]);
-    Renderer::GetInstance().RenderBitmap(&link_graphics[i]);
+    Renderer::Get().RenderBitmap(&link_graphics[i]);
   }
   return link_graphics;
 }
@@ -117,7 +118,7 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
       }
 
       if (!defer_render) {
-        graphics_sheets[i].CreateTexture(Renderer::GetInstance().renderer());
+        graphics_sheets[i].CreateTexture(Renderer::Get().renderer());
       }
 
       for (int j = 0; j < graphics_sheets[i].size(); ++j) {

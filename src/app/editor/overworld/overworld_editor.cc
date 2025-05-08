@@ -609,7 +609,7 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
       ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
     RefreshOverworldMap();
     RETURN_IF_ERROR(RefreshTile16Blockset());
-    Renderer::GetInstance().UpdateBitmap(&maps_bmp_[current_map_]);
+    Renderer::Get().UpdateBitmap(&maps_bmp_[current_map_]);
     maps_bmp_[current_map_].set_modified(false);
   }
 
@@ -743,7 +743,7 @@ absl::Status OverworldEditor::DrawAreaGraphics() {
     overworld_.set_current_map(current_map_);
     palette_ = overworld_.current_area_palette();
     gfx::Bitmap bmp;
-    Renderer::GetInstance().CreateAndRenderBitmap(0x80, kOverworldMapSize, 0x08,
+    Renderer::Get().CreateAndRenderBitmap(0x80, kOverworldMapSize, 0x08,
                                                   overworld_.current_graphics(),
                                                   bmp, palette_);
     current_graphics_set_[current_map_] = bmp;
@@ -1038,13 +1038,13 @@ absl::Status OverworldEditor::LoadGraphics() {
 
   util::logf("Loading overworld graphics.");
   // Create the area graphics image
-  Renderer::GetInstance().CreateAndRenderBitmap(0x80, kOverworldMapSize, 0x40,
+  Renderer::Get().CreateAndRenderBitmap(0x80, kOverworldMapSize, 0x40,
                                                 overworld_.current_graphics(),
                                                 current_gfx_bmp_, palette_);
 
   util::logf("Loading overworld tileset.");
   // Create the tile16 blockset image
-  Renderer::GetInstance().CreateAndRenderBitmap(
+  Renderer::Get().CreateAndRenderBitmap(
       0x80, 0x2000, 0x08, overworld_.tile16_blockset_data(),
       tile16_blockset_bmp_, palette_);
   map_blockset_loaded_ = true;
@@ -1063,7 +1063,7 @@ absl::Status OverworldEditor::LoadGraphics() {
     overworld_.set_current_map(i);
     auto palette = overworld_.current_area_palette();
     try {
-      Renderer::GetInstance().CreateAndRenderBitmap(
+      Renderer::Get().CreateAndRenderBitmap(
           kOverworldMapSize, kOverworldMapSize, 0x80,
           overworld_.current_map_bitmap_data(), maps_bmp_[i], palette);
     } catch (const std::bad_alloc &e) {
@@ -1095,7 +1095,7 @@ absl::Status OverworldEditor::LoadSpriteGraphics() {
       sprite_previews_[sprite.id()].Create(width, height, depth,
                                            *sprite.preview_graphics());
       sprite_previews_[sprite.id()].SetPalette(palette_);
-      Renderer::GetInstance().RenderBitmap(&(sprite_previews_[sprite.id()]));
+      Renderer::Get().RenderBitmap(&(sprite_previews_[sprite.id()]));
     }
   return absl::OkStatus();
 }
@@ -1147,7 +1147,7 @@ void OverworldEditor::RefreshOverworldMap() {
   int n = is_large ? 4 : 1;
   // We do texture updating on the main thread
   for (int i = 0; i < n; ++i) {
-    Renderer::GetInstance().UpdateBitmap(&maps_bmp_[indices[i]]);
+    Renderer::Get().UpdateBitmap(&maps_bmp_[indices[i]]);
   }
 }
 

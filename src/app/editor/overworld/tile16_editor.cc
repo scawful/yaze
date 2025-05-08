@@ -28,20 +28,13 @@ absl::Status Tile16Editor::Initialize(
   current_gfx_bmp_.Create(current_gfx_bmp.width(), current_gfx_bmp.height(),
                           current_gfx_bmp.depth(), current_gfx_bmp.vector());
   current_gfx_bmp_.SetPalette(current_gfx_bmp.palette());
-  core::Renderer::GetInstance().RenderBitmap(&current_gfx_bmp_);
+  core::Renderer::Get().RenderBitmap(&current_gfx_bmp_);
   tile16_blockset_bmp_.Create(
       tile16_blockset_bmp.width(), tile16_blockset_bmp.height(),
       tile16_blockset_bmp.depth(), tile16_blockset_bmp.vector());
   tile16_blockset_bmp_.SetPalette(tile16_blockset_bmp.palette());
-  core::Renderer::GetInstance().RenderBitmap(&tile16_blockset_bmp_);
-  RETURN_IF_ERROR(LoadTile8());
-  // current_gfx_individual_ = gfx::ExtractTile8Bitmaps(
-  //     current_gfx_bmp_, rom()->palette_group().overworld_main[0],
-  //     current_palette_);
-  // for (auto &bmp : current_gfx_individual_) {
-  //   core::Renderer::GetInstance().RenderBitmap(&bmp);
-  // }
-  // map_blockset_loaded_ = true;
+  core::Renderer::Get().RenderBitmap(&tile16_blockset_bmp_);
+  // RETURN_IF_ERROR(LoadTile8());
   ImVector<std::string> tile16_names;
   for (int i = 0; i < 0x200; ++i) {
     std::string str = util::HexByte(all_tiles_types_[i]);
@@ -191,7 +184,7 @@ absl::Status Tile16Editor::UpdateBlockset() {
       current_tile16_bmp_ = tile16_blockset_->tile_bitmaps[notify_tile16];
       auto ow_main_pal_group = rom()->palette_group().overworld_main;
       current_tile16_bmp_.SetPalette(ow_main_pal_group[current_palette_]);
-      Renderer::GetInstance().UpdateBitmap(&current_tile16_bmp_);
+      Renderer::Get().UpdateBitmap(&current_tile16_bmp_);
     }
   }
 
@@ -277,7 +270,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
           if (tile8_source_canvas_.DrawTileSelector(32)) {
             current_gfx_individual_[current_tile8_].SetPaletteWithTransparent(
                 ow_main_pal_group[0], current_palette_);
-            Renderer::GetInstance().UpdateBitmap(
+            Renderer::Get().UpdateBitmap(
                 &current_gfx_individual_[current_tile8_]);
           }
           tile8_source_canvas_.DrawBitmap(current_gfx_bmp_, 0, 0, 4.0f);
@@ -297,7 +290,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
                     current_gfx_individual_[current_tile8_], 16, 2.0f)) {
               RETURN_IF_ERROR(DrawToCurrentTile16(
                   tile16_edit_canvas_.drawn_tile_position()));
-              Renderer::GetInstance().UpdateBitmap(&current_tile16_bmp_);
+              Renderer::Get().UpdateBitmap(&current_tile16_bmp_);
             }
           }
           tile16_edit_canvas_.DrawGrid();
@@ -346,10 +339,10 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
 
           if (value > 0x00) {
             current_gfx_bmp_.SetPaletteWithTransparent(palette, value);
-            Renderer::GetInstance().UpdateBitmap(&current_gfx_bmp_);
+            Renderer::Get().UpdateBitmap(&current_gfx_bmp_);
 
             current_tile16_bmp_.SetPaletteWithTransparent(palette, value);
-            Renderer::GetInstance().UpdateBitmap(&current_tile16_bmp_);
+            Renderer::Get().UpdateBitmap(&current_tile16_bmp_);
           }
         }
 
@@ -426,8 +419,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     current_tile8_ = x + (y * 8);
     current_gfx_individual_[current_tile8_].SetPaletteWithTransparent(
         ow_main_pal_group[0], current_palette_);
-    Renderer::GetInstance().UpdateBitmap(
-        &current_gfx_individual_[current_tile8_]);
+    Renderer::Get().UpdateBitmap(&current_gfx_individual_[current_tile8_]);
   }
 
   return absl::OkStatus();
@@ -478,7 +470,7 @@ absl::Status Tile16Editor::LoadTile8() {
     tile_bitmap.Create(0x08, 0x08, 0x08, tile_data);
     tile_bitmap.SetPaletteWithTransparent(ow_main_pal_group[0],
                                           current_palette_);
-    Renderer::GetInstance().RenderBitmap(&tile_bitmap);
+    Renderer::Get().RenderBitmap(&tile_bitmap);
   }
 
   map_blockset_loaded_ = true;
@@ -492,7 +484,7 @@ absl::Status Tile16Editor::SetCurrentTile(int id) {
   current_tile16_bmp_ = tile16_blockset_->tile_bitmaps[current_tile16_];
   auto ow_main_pal_group = rom()->palette_group().overworld_main;
   current_tile16_bmp_.SetPalette(ow_main_pal_group[current_palette_]);
-  Renderer::GetInstance().UpdateBitmap(&current_tile16_bmp_);
+  Renderer::Get().UpdateBitmap(&current_tile16_bmp_);
   return absl::OkStatus();
 }
 
@@ -543,7 +535,7 @@ absl::Status Tile16Editor::UpdateTransferTileCanvas() {
     palette_ = transfer_overworld_.current_area_palette();
 
     // Create the tile16 blockset image
-    Renderer::GetInstance().CreateAndRenderBitmap(
+    Renderer::Get().CreateAndRenderBitmap(
         0x80, 0x2000, 0x80, transfer_overworld_.tile16_blockset_data(),
         transfer_blockset_bmp_, palette_);
     transfer_blockset_loaded_ = true;
@@ -565,10 +557,10 @@ absl::Status Tile16Editor::CopyTile16ToClipboard(int tile_id) {
   // Create a copy of the tile16 bitmap
   gfx::RenderTile(*tile16_blockset_, tile_id);
   clipboard_tile16_.Create(16, 16, 8,
-                            tile16_blockset_->tile_bitmaps[tile_id].vector());
+                           tile16_blockset_->tile_bitmaps[tile_id].vector());
   clipboard_tile16_.SetPalette(
       tile16_blockset_->tile_bitmaps[tile_id].palette());
-  core::Renderer::GetInstance().RenderBitmap(&clipboard_tile16_);
+  core::Renderer::Get().RenderBitmap(&clipboard_tile16_);
 
   clipboard_has_data_ = true;
   return absl::OkStatus();
@@ -582,7 +574,7 @@ absl::Status Tile16Editor::PasteTile16FromClipboard() {
   // Copy the clipboard data to the current tile16
   current_tile16_bmp_.Create(16, 16, 8, clipboard_tile16_.vector());
   current_tile16_bmp_.SetPalette(clipboard_tile16_.palette());
-  core::Renderer::GetInstance().RenderBitmap(&current_tile16_bmp_);
+  core::Renderer::Get().RenderBitmap(&current_tile16_bmp_);
 
   return absl::OkStatus();
 }
@@ -595,7 +587,7 @@ absl::Status Tile16Editor::SaveTile16ToScratchSpace(int slot) {
   // Create a copy of the current tile16 bitmap
   scratch_space_[slot].Create(16, 16, 8, current_tile16_bmp_.vector());
   scratch_space_[slot].SetPalette(current_tile16_bmp_.palette());
-  core::Renderer::GetInstance().RenderBitmap(&scratch_space_[slot]);
+  core::Renderer::Get().RenderBitmap(&scratch_space_[slot]);
 
   scratch_space_used_[slot] = true;
   return absl::OkStatus();
@@ -613,7 +605,7 @@ absl::Status Tile16Editor::LoadTile16FromScratchSpace(int slot) {
   // Copy the scratch space data to the current tile16
   current_tile16_bmp_.Create(16, 16, 8, scratch_space_[slot].vector());
   current_tile16_bmp_.SetPalette(scratch_space_[slot].palette());
-  core::Renderer::GetInstance().RenderBitmap(&current_tile16_bmp_);
+  core::Renderer::Get().RenderBitmap(&current_tile16_bmp_);
 
   return absl::OkStatus();
 }

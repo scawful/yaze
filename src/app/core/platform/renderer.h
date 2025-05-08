@@ -23,7 +23,7 @@ namespace core {
  */
 class Renderer {
  public:
-  static Renderer &GetInstance() {
+  static Renderer &Get() {
     static Renderer instance;
     return instance;
   }
