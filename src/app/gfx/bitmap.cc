@@ -185,10 +185,8 @@ Uint32 GetSnesPixelFormat(int format) {
     case 0:
       return SDL_PIXELFORMAT_INDEX8;
     case 1:
-      return SNES_PIXELFORMAT_2BPP;
-    case 2:
       return SNES_PIXELFORMAT_4BPP;
-    case 3:
+    case 2:
       return SNES_PIXELFORMAT_8BPP;
   }
   return SDL_PIXELFORMAT_INDEX8;
@@ -288,8 +286,6 @@ void Bitmap::CreateTexture(SDL_Renderer *renderer) {
     return;
   }
 
-  texture_in_use_ = true;
-  last_used_time_ = SDL_GetTicks64();
   UpdateTextureData();
 }
 
@@ -445,54 +441,6 @@ std::vector<uint8_t> Bitmap::GetPngData() {
   return png_data;
 }
 #endif
-
-std::vector<gfx::Bitmap> ExtractTile8Bitmaps(const gfx::Bitmap &source_bmp,
-                                             const gfx::SnesPalette &palette,
-                                             uint8_t palette_index) {
-  constexpr int kTileCount = 1024;
-  constexpr int kTileSize = 8;
-  std::vector<gfx::Bitmap> tile_bitmaps;
-  tile_bitmaps.reserve(kTileCount);
-
-  std::vector<std::future<gfx::Bitmap>> futures;
-
-  for (int index = 0; index < kTileCount; ++index) {
-    futures.emplace_back(std::async(
-        std::launch::async, [&source_bmp, &palette, palette_index, index]() {
-          std::array<uint8_t, 0x40> tile_data;
-
-          int num_columns = source_bmp.width() / kTileSize;
-
-          for (int ty = 0; ty < kTileSize; ++ty) {
-            for (int tx = 0; tx < kTileSize; ++tx) {
-              int tile_data_pos = tx + (ty * kTileSize);
-              int src_x = (index % num_columns) * kTileSize + tx;
-              int src_y = (index / num_columns) * kTileSize + ty;
-              int gfx_position = src_x + (src_y * 0x100);
-
-              uint8_t value = source_bmp.data()[gfx_position];
-
-              if (value & 0x80) {
-                value -= 0x88;
-              }
-
-              tile_data[tile_data_pos] = value;
-            }
-          }
-
-          gfx::Bitmap tile_bitmap;
-          tile_bitmap.Create(kTileSize, kTileSize, 8, tile_data);
-          tile_bitmap.SetPaletteWithTransparent(palette, palette_index);
-          return tile_bitmap;
-        }));
-  }
-
-  for (auto &future : futures) {
-    tile_bitmaps.push_back(future.get());
-  }
-
-  return tile_bitmaps;
-}
 
 }  // namespace gfx
 }  // namespace yaze

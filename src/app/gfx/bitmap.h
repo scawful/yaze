@@ -5,7 +5,6 @@
 
 #include <cstdint>
 #include <span>
-#include <string_view>
 #include <vector>
 
 #include "app/gfx/snes_palette.h"
@@ -22,10 +21,6 @@ namespace gfx {
 constexpr Uint32 SNES_PIXELFORMAT_INDEXED =
     SDL_DEFINE_PIXELFORMAT(SDL_PIXELTYPE_INDEX8, 0, 0, 8, 1);
 
-constexpr Uint32 SNES_PIXELFORMAT_2BPP = SDL_DEFINE_PIXELFORMAT(
-    /*type=*/SDL_PIXELTYPE_INDEX8, /*order=*/0,
-    /*layouts=*/0, /*bits=*/2, /*bytes=*/1);
-
 constexpr Uint32 SNES_PIXELFORMAT_4BPP = SDL_DEFINE_PIXELFORMAT(
     /*type=*/SDL_PIXELTYPE_INDEX8, /*order=*/0,
     /*layouts=*/0, /*bits=*/4, /*bytes=*/1);
@@ -36,9 +31,8 @@ constexpr Uint32 SNES_PIXELFORMAT_8BPP = SDL_DEFINE_PIXELFORMAT(
 
 enum BitmapFormat {
   kIndexed = 0,
-  k2bpp = 1,
-  k4bpp = 2,
-  k8bpp = 3,
+  k4bpp = 1,
+  k8bpp = 2,
 };
 
 #if YAZE_LIB_PNG == 1
@@ -183,12 +177,6 @@ class Bitmap {
   bool active_ = false;
   bool modified_ = false;
 
-  // Track if this texture is currently in use
-  bool texture_in_use_ = false;
-
-  // Track the last time this texture was used
-  uint64_t last_used_time_ = 0;
-
   // Pointer to the texture pixels
   void *texture_pixels = nullptr;
 
@@ -210,13 +198,6 @@ class Bitmap {
 
 // Type alias for a table of bitmaps
 using BitmapTable = std::unordered_map<int, gfx::Bitmap>;
-
-/**
- * @brief Extract 8x8 tiles from a source bitmap
- */
-std::vector<gfx::Bitmap> ExtractTile8Bitmaps(const gfx::Bitmap &source_bmp,
-                                             const gfx::SnesPalette &palette,
-                                             uint8_t palette_index);
 
 /**
  * @brief Get the SDL pixel format for a given bitmap format
