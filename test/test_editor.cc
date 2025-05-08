@@ -64,8 +64,8 @@ int RunIntegrationTest() {
 
   // Initialize ImGui for SDL
   ImGui_ImplSDL2_InitForSDLRenderer(
-      controller.window(), yaze::core::Renderer::GetInstance().renderer());
-  ImGui_ImplSDLRenderer2_Init(yaze::core::Renderer::GetInstance().renderer());
+      controller.window(), yaze::core::Renderer::Get().renderer());
+  ImGui_ImplSDLRenderer2_Init(yaze::core::Renderer::Get().renderer());
 
   yaze::test::TestEditor test_editor;
   test_editor.RegisterTests(engine);

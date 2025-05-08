@@ -49,7 +49,7 @@ using ImGui::Text;
 void Emulator::Run() {
   static bool loaded = false;
   if (!snes_.running() && rom()->is_loaded()) {
-    ppu_texture_ = SDL_CreateTexture(core::Renderer::GetInstance().renderer(),
+    ppu_texture_ = SDL_CreateTexture(core::Renderer::Get().renderer(),
                                      SDL_PIXELFORMAT_ARGB8888,
                                      SDL_TEXTUREACCESS_STREAMING, 512, 480);
     if (ppu_texture_ == NULL) {
