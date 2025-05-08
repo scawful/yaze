@@ -22,7 +22,7 @@ constexpr int kNumMessages = 396;
 constexpr int kCurrentMessageWidth = 172;
 constexpr int kCurrentMessageHeight = 4096;
 constexpr int kFontGfxMessageSize = 128;
-constexpr int kFontGfxMessageDepth = 8;
+constexpr int kFontGfxMessageDepth = 64;
 constexpr int kFontGfx16Size = 172 * 4096;
 
 constexpr uint8_t kWidthArraySize = 100;
@@ -85,6 +85,7 @@ class MessageEditor : public Editor {
 
   std::array<uint8_t, kWidthArraySize> width_array = {0};
   std::vector<uint8_t> font_gfx16_data_;
+  std::array<uint8_t, 0x4000> raw_font_gfx_data_;
   std::vector<uint8_t> current_font_gfx16_data_;
   std::vector<std::string> parsed_messages_;
   std::vector<MessageData> list_of_texts_;
@@ -98,9 +99,7 @@ class MessageEditor : public Editor {
 
   gui::Canvas font_gfx_canvas_{"##FontGfxCanvas", ImVec2(128, 128)};
   gui::Canvas current_font_gfx16_canvas_{"##CurrentMessageGfx",
-                                         ImVec2(172, 4096)};
-  gui::Canvas tile_editor_canvas_{"##TileEditorCanvas", ImVec2(256, 256)};
-  gui::Canvas tile_preview_canvas_{"##TilePreviewCanvas", ImVec2(64, 64)};
+                                         ImVec2(172 * 2, 4096)};
 
   gui::TextBox message_text_box_;
 
