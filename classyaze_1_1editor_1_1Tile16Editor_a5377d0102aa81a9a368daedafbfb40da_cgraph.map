@@ -1,11 +1,11 @@
 <map id="yaze::editor::Tile16Editor::PasteTile16FromClipboard" name="yaze::editor::Tile16Editor::PasteTile16FromClipboard">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,39,186,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="234,5,370,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,42,218,36,219,42,187,47"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title=" " alt="" coords="234,71,370,111"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="187,70,219,75,218,81,186,76"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1Renderer.html#ac8762d7ca064094faf9603be575caf07" title=" " alt="" coords="418,5,554,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="370,23,402,23,402,28,370,28"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="424,71,548,111"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="370,88,409,88,409,94,370,94"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="234,16,397,41"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,44,218,39,219,45,186,49"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title=" " alt="" coords="247,67,384,107"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="186,68,232,74,232,79,185,73"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1Renderer.html#ac8762d7ca064094faf9603be575caf07" title=" " alt="" coords="445,5,581,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="397,25,429,24,429,29,397,30"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="452,71,575,111"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="384,86,436,87,436,92,384,91"/>
 </map>

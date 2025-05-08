@@ -1,11 +1,11 @@
 <map id="yaze::editor::ScreenEditor::LoadDungeonMapTile16" name="yaze::editor::ScreenEditor::LoadDungeonMapTile16">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,100,173,141"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="246,5,389,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,97,220,57,238,49,240,54,222,61,133,102"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title=" " alt="" coords="249,71,386,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,107,234,99,234,104,173,112"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1editor_1_1ScreenEditor.html#a2d50c5d67078645cb2bcd96768a1d83e" title=" " alt="" coords="221,136,414,161"/>
-<area shape="poly" id="edge3_Node000001_Node000010" title=" " alt="" coords="173,128,205,132,205,137,173,133"/>
-<area shape="rect" id="Node000011" href="$namespaceyaze_1_1gfx.html#abddef303b6a036e2cbce669f424f7317" title=" " alt="" coords="235,185,400,210"/>
-<area shape="poly" id="edge4_Node000001_Node000011" title=" " alt="" coords="138,139,222,171,244,178,242,183,220,176,136,144"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,84,173,125"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="232,5,402,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,81,220,41,243,33,245,38,222,46,131,86"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title=" " alt="" coords="249,55,386,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,91,234,84,234,89,173,97"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1editor_1_1ScreenEditor.html#a2d50c5d67078645cb2bcd96768a1d83e" title=" " alt="" coords="221,120,414,146"/>
+<area shape="poly" id="edge3_Node000001_Node000010" title=" " alt="" coords="173,112,205,116,205,122,173,118"/>
+<area shape="rect" id="Node000011" href="$namespaceyaze_1_1gfx.html#abddef303b6a036e2cbce669f424f7317" title=" " alt="" coords="235,169,400,195"/>
+<area shape="poly" id="edge4_Node000001_Node000011" title=" " alt="" coords="138,123,222,156,244,162,242,167,220,161,136,128"/>
 </map>

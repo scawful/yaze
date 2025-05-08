@@ -40,6 +40,7 @@ var classyaze_1_1editor_1_1MessageEditor =
     [ "search_text_", "classyaze_1_1editor_1_1MessageEditor.html#a44675c54c7a7f90867e88ca5abe87938", null ],
     [ "width_array", "classyaze_1_1editor_1_1MessageEditor.html#a449398ce0bda0096eba638ddbd1cdd0b", null ],
     [ "font_gfx16_data_", "classyaze_1_1editor_1_1MessageEditor.html#ac226102c807cdfcf51e650b7813447d5", null ],
+    [ "raw_font_gfx_data_", "classyaze_1_1editor_1_1MessageEditor.html#a8e5f4f4462db596e15daba7ab798ae59", null ],
     [ "current_font_gfx16_data_", "classyaze_1_1editor_1_1MessageEditor.html#ac2564f3ce5f03ff67e6f820f5e13ab3d", null ],
     [ "parsed_messages_", "classyaze_1_1editor_1_1MessageEditor.html#a1145de6a088d7372def27b7a10488eeb", null ],
     [ "list_of_texts_", "classyaze_1_1editor_1_1MessageEditor.html#abfd9f8d6a94a14cbbd9d7196a9aa8438", null ],
@@ -50,8 +51,6 @@ var classyaze_1_1editor_1_1MessageEditor =
     [ "font_preview_colors_", "classyaze_1_1editor_1_1MessageEditor.html#accbb3e03d3bfac92d85de0ad8044b35b", null ],
     [ "font_gfx_canvas_", "classyaze_1_1editor_1_1MessageEditor.html#a6636672d3a3afd53a90059491ea9ba4e", null ],
     [ "current_font_gfx16_canvas_", "classyaze_1_1editor_1_1MessageEditor.html#a65344708b40f7a237196c635a25844a0", null ],
-    [ "tile_editor_canvas_", "classyaze_1_1editor_1_1MessageEditor.html#a88265f38fed95ec651b56b7de08985e3", null ],
-    [ "tile_preview_canvas_", "classyaze_1_1editor_1_1MessageEditor.html#a0caa39f40cc9611ad55090fb702892ed", null ],
     [ "message_text_box_", "classyaze_1_1editor_1_1MessageEditor.html#ad8509fbb55cdbaa59f94a9b9fbf8fc6d", null ],
     [ "status_", "classyaze_1_1editor_1_1MessageEditor.html#a71dc4bc3978873b381a078ed46f95048", null ]
 ];

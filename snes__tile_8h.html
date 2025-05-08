@@ -118,6 +118,7 @@ $(function(){initNavTree('snes__tile_8h.html',''); initResizable(true); });
 <code>#include &lt;array&gt;</code><br />
 <code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;cstring&gt;</code><br />
+<code>#include &lt;span&gt;</code><br />
 <code>#include &lt;stdexcept&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 </div>
@@ -151,8 +152,8 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:af98fbf03d09d9d365f64202db1ecba15" id="r_af98fbf03d09d9d365f64202db1ecba15"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#af98fbf03d09d9d365f64202db1ecba15">yaze::gfx::SnesTo8bppSheet</a> (const std::vector&lt; uint8_t &gt; &amp;sheet, int bpp, int num_sheets)</td></tr>
-<tr class="separator:af98fbf03d09d9d365f64202db1ecba15"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a960630bcf8c1227f79ff2cf1f6c034bb" id="r_a960630bcf8c1227f79ff2cf1f6c034bb"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a960630bcf8c1227f79ff2cf1f6c034bb">yaze::gfx::SnesTo8bppSheet</a> (std::span&lt; uint8_t &gt; sheet, int bpp, int num_sheets)</td></tr>
+<tr class="separator:a960630bcf8c1227f79ff2cf1f6c034bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7defcba4175eb8d38335943a94fc81e3" id="r_a7defcba4175eb8d38335943a94fc81e3"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a7defcba4175eb8d38335943a94fc81e3">yaze::gfx::Bpp8SnesToIndexed</a> (std::vector&lt; uint8_t &gt; data, uint64_t bpp)</td></tr>
 <tr class="separator:a7defcba4175eb8d38335943a94fc81e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aca63ef185d9f075d91c1515a5ccfc4a8" id="r_aca63ef185d9f075d91c1515a5ccfc4a8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structsnes__tile8.html">snes_tile8</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#aca63ef185d9f075d91c1515a5ccfc4a8">yaze::gfx::UnpackBppTile</a> (const std::vector&lt; uint8_t &gt; &amp;data, const uint32_t offset, const uint32_t bpp)</td></tr>
@@ -161,12 +162,10 @@ Functions</h2></td></tr>
 <tr class="separator:a7260886a737941c53866529577b27e13"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a801e13a355e10203fa354ca04529ac94" id="r_a801e13a355e10203fa354ca04529ac94"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a801e13a355e10203fa354ca04529ac94">yaze::gfx::ConvertBpp</a> (const std::vector&lt; uint8_t &gt; &amp;tiles, uint32_t from_bpp, uint32_t to_bpp)</td></tr>
 <tr class="separator:a801e13a355e10203fa354ca04529ac94"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad622598c7ed27b1a0fa2651de6f5c415" id="r_ad622598c7ed27b1a0fa2651de6f5c415"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#ad622598c7ed27b1a0fa2651de6f5c415">yaze::gfx::Convert3bppTo4bpp</a> (const std::vector&lt; uint8_t &gt; &amp;tiles)</td></tr>
-<tr class="separator:ad622598c7ed27b1a0fa2651de6f5c415"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af73d224e370ce5d8b6f0e363cce5d2a8" id="r_af73d224e370ce5d8b6f0e363cce5d2a8"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#af73d224e370ce5d8b6f0e363cce5d2a8">yaze::gfx::Convert4bppTo3bpp</a> (const std::vector&lt; uint8_t &gt; &amp;tiles)</td></tr>
-<tr class="separator:af73d224e370ce5d8b6f0e363cce5d2a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3d42dbaf6fa57c5ad4da5b02154ce7c9" id="r_a3d42dbaf6fa57c5ad4da5b02154ce7c9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a3d42dbaf6fa57c5ad4da5b02154ce7c9">yaze::gfx::CopyTile8bpp16</a> (int x, int y, int tile, std::vector&lt; uint8_t &gt; &amp;bitmap, std::vector&lt; uint8_t &gt; &amp;blockset)</td></tr>
 <tr class="separator:a3d42dbaf6fa57c5ad4da5b02154ce7c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc742fff7ad616816ba2007849d4c91a" id="r_abc742fff7ad616816ba2007849d4c91a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#abc742fff7ad616816ba2007849d4c91a">yaze::gfx::LoadSNES4bppGFXToIndexedColorMatrix</a> (std::span&lt; uint8_t &gt; src, std::span&lt; uint8_t &gt; dest)</td></tr>
+<tr class="separator:abc742fff7ad616816ba2007849d4c91a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a66b9ad66f02a591afa773753724ea892" id="r_a66b9ad66f02a591afa773753724ea892"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a66b9ad66f02a591afa773753724ea892">yaze::gfx::TileInfoToWord</a> (<a class="el" href="classyaze_1_1gfx_1_1TileInfo.html">TileInfo</a> tile_info)</td></tr>
 <tr class="separator:a66b9ad66f02a591afa773753724ea892"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abddef303b6a036e2cbce669f424f7317" id="r_abddef303b6a036e2cbce669f424f7317"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1gfx_1_1TileInfo.html">TileInfo</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#abddef303b6a036e2cbce669f424f7317">yaze::gfx::WordToTileInfo</a> (uint16_t word)</td></tr>

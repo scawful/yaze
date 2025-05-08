@@ -1,12 +1,8 @@
 <map id="yaze::editor::OverworldEditor::RefreshTile16Blockset" name="yaze::editor::OverworldEditor::RefreshTile16Blockset">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,189,111"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="55,71,53,61,60,52,75,46,97,44,121,46,135,53,133,58,120,52,97,49,76,51,63,56,58,62,60,69"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx.html#a2ceb066551815eb3f3473a316fe8827d" title=" " alt="" coords="237,78,401,104"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="189,88,221,88,221,94,189,94"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="449,5,585,46"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="359,75,438,49,440,54,361,80"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1Bitmap.html#a7a4eaa09fc2375d4fc438296ef20ac3d" title=" " alt="" coords="456,71,579,111"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="401,88,440,88,440,94,401,94"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title=" " alt="" coords="449,136,585,177"/>
-<area shape="poly" id="edge5_Node000002_Node000007" title=" " alt="" coords="361,102,440,128,438,133,359,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,189,70"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="55,29,53,19,60,10,75,5,97,3,121,5,135,11,133,16,120,10,97,8,76,10,63,15,58,21,60,28"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx.html#a2ceb066551815eb3f3473a316fe8827d" title=" " alt="" coords="237,37,401,62"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="189,47,221,47,221,52,189,52"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a7a4eaa09fc2375d4fc438296ef20ac3d" title=" " alt="" coords="449,29,572,70"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="401,47,434,47,434,52,401,52"/>
 </map>

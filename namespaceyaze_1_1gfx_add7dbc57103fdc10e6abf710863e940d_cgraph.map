@@ -1,11 +1,9 @@
 <map id="yaze::gfx::RenderTile" name="yaze::gfx::RenderTile">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,70,144,96"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="209,5,345,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,67,193,47,194,52,123,72"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1gfx.html#a85cdb560638714d7afc71b20b1b8526c" title=" " alt="" coords="192,70,362,96"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="144,80,176,80,176,86,144,86"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title=" " alt="" coords="209,120,345,161"/>
-<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="123,94,194,114,193,119,122,99"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1Renderer.html#ac8762d7ca064094faf9603be575caf07" title=" " alt="" coords="410,5,546,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="345,23,395,23,395,28,345,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,46,144,72"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx.html#a85cdb560638714d7afc71b20b1b8526c" title=" " alt="" coords="192,46,362,72"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,56,176,56,176,62,144,62"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a2a93bfee737bef55dbf436f2605282ce" title=" " alt="" coords="410,5,533,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="355,43,394,36,395,41,356,48"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="410,71,533,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="360,70,395,76,394,81,359,75"/>
 </map>

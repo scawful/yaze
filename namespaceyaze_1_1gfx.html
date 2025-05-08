@@ -288,12 +288,8 @@ Functions</h2></td></tr>
 <tr class="separator:a7260886a737941c53866529577b27e13"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a801e13a355e10203fa354ca04529ac94" id="r_a801e13a355e10203fa354ca04529ac94"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a801e13a355e10203fa354ca04529ac94">ConvertBpp</a> (const std::vector&lt; uint8_t &gt; &amp;tiles, uint32_t from_bpp, uint32_t to_bpp)</td></tr>
 <tr class="separator:a801e13a355e10203fa354ca04529ac94"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad622598c7ed27b1a0fa2651de6f5c415" id="r_ad622598c7ed27b1a0fa2651de6f5c415"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad622598c7ed27b1a0fa2651de6f5c415">Convert3bppTo4bpp</a> (const std::vector&lt; uint8_t &gt; &amp;tiles)</td></tr>
-<tr class="separator:ad622598c7ed27b1a0fa2651de6f5c415"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af73d224e370ce5d8b6f0e363cce5d2a8" id="r_af73d224e370ce5d8b6f0e363cce5d2a8"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af73d224e370ce5d8b6f0e363cce5d2a8">Convert4bppTo3bpp</a> (const std::vector&lt; uint8_t &gt; &amp;tiles)</td></tr>
-<tr class="separator:af73d224e370ce5d8b6f0e363cce5d2a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af98fbf03d09d9d365f64202db1ecba15" id="r_af98fbf03d09d9d365f64202db1ecba15"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af98fbf03d09d9d365f64202db1ecba15">SnesTo8bppSheet</a> (const std::vector&lt; uint8_t &gt; &amp;sheet, int bpp, int num_sheets)</td></tr>
-<tr class="separator:af98fbf03d09d9d365f64202db1ecba15"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a960630bcf8c1227f79ff2cf1f6c034bb" id="r_a960630bcf8c1227f79ff2cf1f6c034bb"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a960630bcf8c1227f79ff2cf1f6c034bb">SnesTo8bppSheet</a> (std::span&lt; uint8_t &gt; sheet, int bpp, int num_sheets)</td></tr>
+<tr class="separator:a960630bcf8c1227f79ff2cf1f6c034bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7defcba4175eb8d38335943a94fc81e3" id="r_a7defcba4175eb8d38335943a94fc81e3"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7defcba4175eb8d38335943a94fc81e3">Bpp8SnesToIndexed</a> (std::vector&lt; uint8_t &gt; data, uint64_t bpp)</td></tr>
 <tr class="separator:a7defcba4175eb8d38335943a94fc81e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a66b9ad66f02a591afa773753724ea892" id="r_a66b9ad66f02a591afa773753724ea892"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a66b9ad66f02a591afa773753724ea892">TileInfoToWord</a> (<a class="el" href="classyaze_1_1gfx_1_1TileInfo.html">TileInfo</a> tile_info)</td></tr>
@@ -306,6 +302,8 @@ Functions</h2></td></tr>
 <tr class="separator:aa5ae49b02472150a2ad972abf1f7d35a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3d42dbaf6fa57c5ad4da5b02154ce7c9" id="r_a3d42dbaf6fa57c5ad4da5b02154ce7c9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3d42dbaf6fa57c5ad4da5b02154ce7c9">CopyTile8bpp16</a> (int x, int y, int tile, std::vector&lt; uint8_t &gt; &amp;bitmap, std::vector&lt; uint8_t &gt; &amp;blockset)</td></tr>
 <tr class="separator:a3d42dbaf6fa57c5ad4da5b02154ce7c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc742fff7ad616816ba2007849d4c91a" id="r_abc742fff7ad616816ba2007849d4c91a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abc742fff7ad616816ba2007849d4c91a">LoadSNES4bppGFXToIndexedColorMatrix</a> (std::span&lt; uint8_t &gt; src, std::span&lt; uint8_t &gt; dest)</td></tr>
+<tr class="separator:abc742fff7ad616816ba2007849d4c91a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2064ed9f541dd72deb72f78523e006c4" id="r_a2064ed9f541dd72deb72f78523e006c4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1gfx_1_1Tilemap.html">Tilemap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2064ed9f541dd72deb72f78523e006c4">CreateTilemap</a> (std::vector&lt; uint8_t &gt; &amp;data, int width, int height, int tile_size, int num_tiles, <a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">SnesPalette</a> &amp;palette)</td></tr>
 <tr class="separator:a2064ed9f541dd72deb72f78523e006c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2ceb066551815eb3f3473a316fe8827d" id="r_a2ceb066551815eb3f3473a316fe8827d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2ceb066551815eb3f3473a316fe8827d">UpdateTilemap</a> (<a class="el" href="structyaze_1_1gfx_1_1Tilemap.html">Tilemap</a> &amp;tilemap, const std::vector&lt; uint8_t &gt; &amp;data)</td></tr>
@@ -662,7 +660,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00018">18</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00136">yaze::SaveAllGraphicsData()</a>, and <a class="el" href="overworld_8cc_source.html#l00527">yaze::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00137">yaze::SaveAllGraphicsData()</a>, and <a class="el" href="overworld_8cc_source.html#l00527">yaze::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
 
 </div>
 </div>
@@ -771,7 +769,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="scad__format_8cc_source.html#l00042">42</a> of file <a class="el" href="scad__format_8cc_source.html">scad_format.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__tile_8cc_source.html#l00199">Bpp8SnesToIndexed()</a>.</p>
+<p class="reference">References <a class="el" href="snes__tile_8cc_source.html#l00189">Bpp8SnesToIndexed()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00517">yaze::editor::GraphicsEditor::DrawCgxImport()</a>.</p>
 <div class="dynheader">
@@ -815,7 +813,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="scad__format_8cc_source.html#l00067">67</a> of file <a class="el" href="scad__format_8cc_source.html">scad_format.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__tile_8cc_source.html#l00364">GetTilesInfo()</a>, and <a class="el" href="snes__tile_8cc_source.html#l00333">TileInfoToShort()</a>.</p>
+<p class="reference">References <a class="el" href="snes__tile_8cc_source.html#l00354">GetTilesInfo()</a>, and <a class="el" href="snes__tile_8cc_source.html#l00323">TileInfoToShort()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00550">yaze::editor::GraphicsEditor::DrawScrImport()</a>.</p>
 <div class="dynheader">
@@ -866,7 +864,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="scad__format_8cc_source.html#l00119">119</a> of file <a class="el" href="scad__format_8cc_source.html">scad_format.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__tile_8cc_source.html#l00364">GetTilesInfo()</a>.</p>
+<p class="reference">References <a class="el" href="snes__tile_8cc_source.html#l00354">GetTilesInfo()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00550">yaze::editor::GraphicsEditor::DrawScrImport()</a>.</p>
 <div class="dynheader">
@@ -992,7 +990,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="yaze_8h_source.html#l00058">snes_color::blue</a>, <a class="el" href="yaze_8h_source.html#l00059">snes_color::green</a>, <a class="el" href="yaze_8h_source.html#l00057">snes_color::red</a>, <a class="el" href="snes__color_8cc_source.html#l00017">SNES_BLUE_SHIFT</a>, and <a class="el" href="snes__color_8cc_source.html#l00016">SNES_GREEN_SHIFT</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="snes__color_8cc_source.html#l00069">Convert()</a>, <a class="el" href="snes__color_8cc_source.html#l00040">ConvertRgbToSnes()</a>, <a class="el" href="palette__editor_8cc_source.html#l00410">yaze::editor::PaletteEditor::HandleColorPopup()</a>, <a class="el" href="snes__palette_8cc_source.html#l00279">ReadPaletteFromRom()</a>, <a class="el" href="snes__color_8cc_source.html#l00101">yaze::gfx::SnesColor::set_rgb()</a>, <a class="el" href="snes__color_8h_source.html#l00043">yaze::gfx::SnesColor::SnesColor()</a>, <a class="el" href="snes__color_8h_source.html#l00056">yaze::gfx::SnesColor::SnesColor()</a>, <a class="el" href="snes__color_8h_source.html#l00061">yaze::gfx::SnesColor::SnesColor()</a>, <a class="el" href="color_8cc_source.html#l00040">yaze::gui::SnesColorEdit4()</a>, and <a class="el" href="bitmap_8cc_source.html#l00389">yaze::gfx::Bitmap::WriteColor()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="snes__color_8cc_source.html#l00069">Convert()</a>, <a class="el" href="snes__color_8cc_source.html#l00040">ConvertRgbToSnes()</a>, <a class="el" href="palette__editor_8cc_source.html#l00440">yaze::editor::PaletteEditor::HandleColorPopup()</a>, <a class="el" href="snes__palette_8cc_source.html#l00279">ReadPaletteFromRom()</a>, <a class="el" href="snes__color_8cc_source.html#l00101">yaze::gfx::SnesColor::set_rgb()</a>, <a class="el" href="snes__color_8h_source.html#l00043">yaze::gfx::SnesColor::SnesColor()</a>, <a class="el" href="snes__color_8h_source.html#l00056">yaze::gfx::SnesColor::SnesColor()</a>, <a class="el" href="snes__color_8h_source.html#l00061">yaze::gfx::SnesColor::SnesColor()</a>, <a class="el" href="color_8cc_source.html#l00040">yaze::gui::SnesColorEdit4()</a>, and <a class="el" href="bitmap_8cc_source.html#l00389">yaze::gfx::Bitmap::WriteColor()</a>.</p>
 
 </div>
 </div>
@@ -1225,7 +1223,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="snes__palette_8cc_source.html#l00238">kPaletteGroupAddressMap</a>, and <a class="el" href="snes__palette_8cc_source.html#l00256">kPaletteGroupColorCounts</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00424">yaze::Rom::SavePalette()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00425">yaze::Rom::SavePalette()</a>.</p>
 
 </div>
 </div>
@@ -1290,7 +1288,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="snes__color_8h_source.html#l00074">yaze::gfx::SnesColor::rgb()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00410">yaze::editor::PaletteEditor::HandleColorPopup()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00440">yaze::editor::PaletteEditor::HandleColorPopup()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1409,7 +1407,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="snes__palette_8cc_source.html#l00216">yaze::gfx::palette_group_internal::Load3DObjectPalettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00135">yaze::gfx::palette_group_internal::LoadArmorPalettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00195">yaze::gfx::palette_group_internal::LoadDungeonMainPalettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00125">yaze::gfx::palette_group_internal::LoadGlobalSpritePalettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00205">yaze::gfx::palette_group_internal::LoadGrassColors()</a>, <a class="el" href="snes__palette_8cc_source.html#l00115">yaze::gfx::palette_group_internal::LoadHUDPalettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00104">yaze::gfx::palette_group_internal::LoadOverworldAnimatedPalettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00092">yaze::gfx::palette_group_internal::LoadOverworldAuxiliaryPalettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00081">yaze::gfx::palette_group_internal::LoadOverworldMainPalettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00226">yaze::gfx::palette_group_internal::LoadOverworldMiniMapPalettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00155">yaze::gfx::palette_group_internal::LoadShieldPalettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00165">yaze::gfx::palette_group_internal::LoadSpriteAux1Palettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00175">yaze::gfx::palette_group_internal::LoadSpriteAux2Palettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00185">yaze::gfx::palette_group_internal::LoadSpriteAux3Palettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00145">yaze::gfx::palette_group_internal::LoadSwordPalettes()</a>, and <a class="el" href="macro_8h_source.html#l00051">RETURN_IF_ERROR</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00226">yaze::Rom::LoadZelda3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00227">yaze::Rom::LoadZelda3()</a>.</p>
 
 </div>
 </div>
@@ -1437,11 +1435,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00025">25</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00023">23</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="yaze_8h_source.html#l00074">snes_tile8::data</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="snes__tile_8cc_source.html#l00117">ConvertBpp()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="snes__tile_8cc_source.html#l00115">ConvertBpp()</a>.</p>
 
 </div>
 </div>
@@ -1464,11 +1462,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00074">74</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00072">72</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="yaze_8h_source.html#l00074">snes_tile8::data</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="snes__tile_8cc_source.html#l00117">ConvertBpp()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="snes__tile_8cc_source.html#l00115">ConvertBpp()</a>.</p>
 
 </div>
 </div>
@@ -1496,11 +1494,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00117">117</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00115">115</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__tile_8cc_source.html#l00074">PackBppTile()</a>, and <a class="el" href="snes__tile_8cc_source.html#l00025">UnpackBppTile()</a>.</p>
+<p class="reference">References <a class="el" href="snes__tile_8cc_source.html#l00072">PackBppTile()</a>, and <a class="el" href="snes__tile_8cc_source.html#l00023">UnpackBppTile()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="snes__tile_8cc_source.html#l00131">Convert3bppTo4bpp()</a>, <a class="el" href="snes__tile_8cc_source.html#l00135">Convert4bppTo3bpp()</a>, and <a class="el" href="snes__tile_8h_source.html#l00197">yaze::gfx::GraphicsBuffer::to_bpp()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="snes__tile_8h_source.html#l00198">yaze::gfx::GraphicsBuffer::to_bpp()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1516,78 +1514,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ad622598c7ed27b1a0fa2651de6f5c415" name="ad622598c7ed27b1a0fa2651de6f5c415"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad622598c7ed27b1a0fa2651de6f5c415">&#9670;&#160;</a></span>Convert3bppTo4bpp()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt; uint8_t &gt; yaze::gfx::Convert3bppTo4bpp </td>
-          <td>(</td>
-          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>tiles</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00131">131</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="snes__tile_8cc_source.html#l00117">ConvertBpp()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1gfx_ad622598c7ed27b1a0fa2651de6f5c415_cgraph.png" border="0" usemap="#anamespaceyaze_1_1gfx_ad622598c7ed27b1a0fa2651de6f5c415_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1gfx_ad622598c7ed27b1a0fa2651de6f5c415_cgraph" id="anamespaceyaze_1_1gfx_ad622598c7ed27b1a0fa2651de6f5c415_cgraph">
-<area shape="rect" title=" " alt="" coords="5,31,198,56"/>
-<area shape="rect" href="namespaceyaze_1_1gfx.html#a801e13a355e10203fa354ca04529ac94" title=" " alt="" coords="246,31,390,56"/>
-<area shape="poly" title=" " alt="" coords="198,41,231,41,231,46,198,46"/>
-<area shape="rect" href="namespaceyaze_1_1gfx.html#a7260886a737941c53866529577b27e13" title=" " alt="" coords="446,5,596,31"/>
-<area shape="poly" title=" " alt="" coords="390,32,430,27,430,32,391,37"/>
-<area shape="rect" href="namespaceyaze_1_1gfx.html#aca63ef185d9f075d91c1515a5ccfc4a8" title=" " alt="" coords="438,55,603,80"/>
-<area shape="poly" title=" " alt="" coords="391,49,423,53,422,59,390,55"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="af73d224e370ce5d8b6f0e363cce5d2a8" name="af73d224e370ce5d8b6f0e363cce5d2a8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af73d224e370ce5d8b6f0e363cce5d2a8">&#9670;&#160;</a></span>Convert4bppTo3bpp()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt; uint8_t &gt; yaze::gfx::Convert4bppTo3bpp </td>
-          <td>(</td>
-          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>tiles</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00135">135</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="snes__tile_8cc_source.html#l00117">ConvertBpp()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1gfx_af73d224e370ce5d8b6f0e363cce5d2a8_cgraph.png" border="0" usemap="#anamespaceyaze_1_1gfx_af73d224e370ce5d8b6f0e363cce5d2a8_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1gfx_af73d224e370ce5d8b6f0e363cce5d2a8_cgraph" id="anamespaceyaze_1_1gfx_af73d224e370ce5d8b6f0e363cce5d2a8_cgraph">
-<area shape="rect" title=" " alt="" coords="5,31,198,56"/>
-<area shape="rect" href="namespaceyaze_1_1gfx.html#a801e13a355e10203fa354ca04529ac94" title=" " alt="" coords="246,31,390,56"/>
-<area shape="poly" title=" " alt="" coords="198,41,231,41,231,46,198,46"/>
-<area shape="rect" href="namespaceyaze_1_1gfx.html#a7260886a737941c53866529577b27e13" title=" " alt="" coords="446,5,596,31"/>
-<area shape="poly" title=" " alt="" coords="390,32,430,27,430,32,391,37"/>
-<area shape="rect" href="namespaceyaze_1_1gfx.html#aca63ef185d9f075d91c1515a5ccfc4a8" title=" " alt="" coords="438,55,603,80"/>
-<area shape="poly" title=" " alt="" coords="391,49,423,53,422,59,390,55"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="af98fbf03d09d9d365f64202db1ecba15" name="af98fbf03d09d9d365f64202db1ecba15"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af98fbf03d09d9d365f64202db1ecba15">&#9670;&#160;</a></span>SnesTo8bppSheet()</h2>
+<a id="a960630bcf8c1227f79ff2cf1f6c034bb" name="a960630bcf8c1227f79ff2cf1f6c034bb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a960630bcf8c1227f79ff2cf1f6c034bb">&#9670;&#160;</a></span>SnesTo8bppSheet()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1595,7 +1523,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">std::vector&lt; uint8_t &gt; yaze::gfx::SnesTo8bppSheet </td>
           <td>(</td>
-          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>sheet</em></span>, </td>
+          <td class="paramtype">std::span&lt; uint8_t &gt;</td>          <td class="paramname"><span class="paramname"><em>sheet</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1610,11 +1538,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00139">139</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00129">129</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__tile_8h_source.html#l00019">kGraphicsBitmap</a>.</p>
+<p class="reference">References <a class="el" href="snes__tile_8h_source.html#l00020">kGraphicsBitmap</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00757">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00781">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="message__editor_8cc_source.html#l00046">yaze::editor::MessageEditor::Initialize()</a>, <a class="el" href="rom_8cc_source.html#l00039">yaze::Load2BppGraphics()</a>, <a class="el" href="rom_8cc_source.html#l00077">yaze::LoadAllGraphicsData()</a>, <a class="el" href="screen__editor_8cc_source.html#l00563">yaze::editor::ScreenEditor::LoadBinaryGfx()</a>, <a class="el" href="dungeon__map_8cc_source.html#l00014">yaze::zelda3::LoadDungeonMapGfxFromBinary()</a>, and <a class="el" href="rom_8cc_source.html#l00058">yaze::LoadLinkGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00757">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00781">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="message__editor_8cc_source.html#l00046">yaze::editor::MessageEditor::Initialize()</a>, <a class="el" href="rom_8cc_source.html#l00040">yaze::Load2BppGraphics()</a>, <a class="el" href="rom_8cc_source.html#l00078">yaze::LoadAllGraphicsData()</a>, <a class="el" href="screen__editor_8cc_source.html#l00557">yaze::editor::ScreenEditor::LoadBinaryGfx()</a>, <a class="el" href="dungeon__map_8cc_source.html#l00014">yaze::zelda3::LoadDungeonMapGfxFromBinary()</a>, and <a class="el" href="rom_8cc_source.html#l00059">yaze::LoadLinkGraphics()</a>.</p>
 
 </div>
 </div>
@@ -1637,9 +1565,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00199">199</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00189">189</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="scad__format_8cc_source.html#l00042">LoadCgx()</a>, and <a class="el" href="rom_8cc_source.html#l00136">yaze::SaveAllGraphicsData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="scad__format_8cc_source.html#l00042">LoadCgx()</a>, and <a class="el" href="rom_8cc_source.html#l00137">yaze::SaveAllGraphicsData()</a>.</p>
 
 </div>
 </div>
@@ -1658,11 +1586,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00301">301</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00291">291</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__tile_8h_source.html#l00055">yaze::gfx::TileInfo::horizontal_mirror_</a>, <a class="el" href="snes__tile_8h_source.html#l00051">yaze::gfx::TileInfo::id_</a>, <a class="el" href="snes__tile_8h_source.html#l00053">yaze::gfx::TileInfo::over_</a>, <a class="el" href="snes__tile_8h_source.html#l00052">yaze::gfx::TileInfo::palette_</a>, and <a class="el" href="snes__tile_8h_source.html#l00054">yaze::gfx::TileInfo::vertical_mirror_</a>.</p>
+<p class="reference">References <a class="el" href="snes__tile_8h_source.html#l00056">yaze::gfx::TileInfo::horizontal_mirror_</a>, <a class="el" href="snes__tile_8h_source.html#l00052">yaze::gfx::TileInfo::id_</a>, <a class="el" href="snes__tile_8h_source.html#l00054">yaze::gfx::TileInfo::over_</a>, <a class="el" href="snes__tile_8h_source.html#l00053">yaze::gfx::TileInfo::palette_</a>, and <a class="el" href="snes__tile_8h_source.html#l00055">yaze::gfx::TileInfo::vertical_mirror_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00270">yaze::editor::ScreenEditor::SaveDungeonMapTile16()</a>, and <a class="el" href="rom_8cc_source.html#l00505">yaze::Rom::WriteTile16()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00301">yaze::editor::ScreenEditor::SaveDungeonMapTile16()</a>, and <a class="el" href="rom_8cc_source.html#l00506">yaze::Rom::WriteTile16()</a>.</p>
 
 </div>
 </div>
@@ -1681,9 +1609,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00318">318</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00308">308</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00227">yaze::editor::ScreenEditor::LoadDungeonMapTile16()</a>, and <a class="el" href="rom_8cc_source.html#l00487">yaze::Rom::ReadTile16()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00252">yaze::editor::ScreenEditor::LoadDungeonMapTile16()</a>, and <a class="el" href="rom_8cc_source.html#l00488">yaze::Rom::ReadTile16()</a>.</p>
 
 </div>
 </div>
@@ -1702,9 +1630,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00333">333</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00323">323</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__tile_8h_source.html#l00055">yaze::gfx::TileInfo::horizontal_mirror_</a>, <a class="el" href="snes__tile_8h_source.html#l00051">yaze::gfx::TileInfo::id_</a>, <a class="el" href="snes__tile_8h_source.html#l00053">yaze::gfx::TileInfo::over_</a>, <a class="el" href="snes__tile_8h_source.html#l00052">yaze::gfx::TileInfo::palette_</a>, <a class="el" href="snes__tile_8cc_source.html#l00017">TileHFlipBit</a>, <a class="el" href="snes__tile_8cc_source.html#l00023">TileNameMask</a>, <a class="el" href="snes__tile_8cc_source.html#l00014">TilePriorityBit</a>, <a class="el" href="snes__tile_8cc_source.html#l00020">TileVFlipBit</a>, and <a class="el" href="snes__tile_8h_source.html#l00054">yaze::gfx::TileInfo::vertical_mirror_</a>.</p>
+<p class="reference">References <a class="el" href="snes__tile_8h_source.html#l00056">yaze::gfx::TileInfo::horizontal_mirror_</a>, <a class="el" href="snes__tile_8h_source.html#l00052">yaze::gfx::TileInfo::id_</a>, <a class="el" href="snes__tile_8h_source.html#l00054">yaze::gfx::TileInfo::over_</a>, <a class="el" href="snes__tile_8h_source.html#l00053">yaze::gfx::TileInfo::palette_</a>, <a class="el" href="snes__tile_8cc_source.html#l00015">TileHFlipBit</a>, <a class="el" href="snes__tile_8cc_source.html#l00021">TileNameMask</a>, <a class="el" href="snes__tile_8cc_source.html#l00012">TilePriorityBit</a>, <a class="el" href="snes__tile_8cc_source.html#l00018">TileVFlipBit</a>, and <a class="el" href="snes__tile_8h_source.html#l00055">yaze::gfx::TileInfo::vertical_mirror_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="scad__format_8cc_source.html#l00067">LoadScr()</a>.</p>
 
@@ -1725,9 +1653,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00364">364</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00354">354</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="snes__tile_8cc_source.html#l00017">TileHFlipBit</a>, <a class="el" href="snes__tile_8cc_source.html#l00023">TileNameMask</a>, <a class="el" href="snes__tile_8cc_source.html#l00014">TilePriorityBit</a>, and <a class="el" href="snes__tile_8cc_source.html#l00020">TileVFlipBit</a>.</p>
+<p class="reference">References <a class="el" href="snes__tile_8cc_source.html#l00015">TileHFlipBit</a>, <a class="el" href="snes__tile_8cc_source.html#l00021">TileNameMask</a>, <a class="el" href="snes__tile_8cc_source.html#l00012">TilePriorityBit</a>, and <a class="el" href="snes__tile_8cc_source.html#l00018">TileVFlipBit</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld_8cc_source.html#l00161">yaze::zelda3::Overworld::AssembleMap16Tiles()</a>, <a class="el" href="inventory_8cc_source.html#l00013">yaze::zelda3::Inventory::Create()</a>, <a class="el" href="background__buffer_8cc_source.html#l00059">yaze::gfx::BackgroundBuffer::DrawBackground()</a>, <a class="el" href="scad__format_8cc_source.html#l00119">DrawScrWithCgx()</a>, and <a class="el" href="scad__format_8cc_source.html#l00067">LoadScr()</a>.</p>
 
@@ -1767,9 +1695,32 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00376">376</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00366">366</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00796">yaze::zelda3::OverworldMap::BuildBitmap()</a>.</p>
+
+</div>
+</div>
+<a id="abc742fff7ad616816ba2007849d4c91a" name="abc742fff7ad616816ba2007849d4c91a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abc742fff7ad616816ba2007849d4c91a">&#9670;&#160;</a></span>LoadSNES4bppGFXToIndexedColorMatrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::gfx::LoadSNES4bppGFXToIndexedColorMatrix </td>
+          <td>(</td>
+          <td class="paramtype">std::span&lt; uint8_t &gt;</td>          <td class="paramname"><span class="paramname"><em>src</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::span&lt; uint8_t &gt;</td>          <td class="paramname"><span class="paramname"><em>dest</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00379">379</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
 
 </div>
 </div>
@@ -1814,7 +1765,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="tilemap_8cc_source.html#l00011">11</a> of file <a class="el" href="tilemap_8cc_source.html">tilemap.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tilemap_8h_source.html#l00016">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="tilemap_8h_source.html#l00019">yaze::gfx::Tilemap::map_size</a>, <a class="el" href="renderer_8h_source.html#l00045">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="bitmap_8cc_source.html#l00305">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="tilemap_8h_source.html#l00018">yaze::gfx::Tilemap::tile_size</a>, <a class="el" href="tilemap_8h_source.html#l00011">yaze::gfx::Pair::x</a>, and <a class="el" href="tilemap_8h_source.html#l00012">yaze::gfx::Pair::y</a>.</p>
+<p class="reference">References <a class="el" href="tilemap_8h_source.html#l00016">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="tilemap_8h_source.html#l00019">yaze::gfx::Tilemap::map_size</a>, <a class="el" href="bitmap_8cc_source.html#l00305">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="tilemap_8h_source.html#l00018">yaze::gfx::Tilemap::tile_size</a>, <a class="el" href="tilemap_8h_source.html#l00011">yaze::gfx::Pair::x</a>, and <a class="el" href="tilemap_8h_source.html#l00012">yaze::gfx::Pair::y</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01033">yaze::editor::OverworldEditor::LoadGraphics()</a>.</p>
 <div class="dynheader">
@@ -1822,15 +1773,11 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1gfx_a2064ed9f541dd72deb72f78523e006c4_cgraph.png" border="0" usemap="#anamespaceyaze_1_1gfx_a2064ed9f541dd72deb72f78523e006c4_cgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1gfx_a2064ed9f541dd72deb72f78523e006c4_cgraph" id="anamespaceyaze_1_1gfx_a2064ed9f541dd72deb72f78523e006c4_cgraph">
-<area shape="rect" title=" " alt="" coords="5,78,166,104"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="214,5,350,46"/>
-<area shape="poly" title=" " alt="" coords="126,75,203,49,205,54,127,80"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title=" " alt="" coords="214,71,350,111"/>
-<area shape="poly" title=" " alt="" coords="166,88,198,88,198,94,166,94"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a8b0be39d195a5d6d7002d2ecd70f2a3c" title="Set the palette for the bitmap." alt="" coords="220,136,344,177"/>
-<area shape="poly" title=" " alt="" coords="127,102,206,128,204,133,126,107"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#ac8762d7ca064094faf9603be575caf07" title=" " alt="" coords="398,5,534,46"/>
-<area shape="poly" title=" " alt="" coords="350,23,382,23,382,28,350,28"/>
+<area shape="rect" title=" " alt="" coords="5,13,166,38"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a8b0be39d195a5d6d7002d2ecd70f2a3c" title="Set the palette for the bitmap." alt="" coords="214,5,337,46"/>
+<area shape="poly" title=" " alt="" coords="166,23,198,23,198,28,166,28"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a05432a1e204b43ea1cb4820449b7e0b8" title=" " alt="" coords="385,5,508,46"/>
+<area shape="poly" title=" " alt="" coords="338,23,369,23,369,28,338,28"/>
 </map>
 </div>
 
@@ -1857,7 +1804,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="tilemap_8cc_source.html#l00024">24</a> of file <a class="el" href="tilemap_8cc_source.html">tilemap.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tilemap_8h_source.html#l00016">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="bitmap_8h_source.html#l00170">yaze::gfx::Bitmap::set_data()</a>, and <a class="el" href="renderer_8h_source.html#l00049">yaze::core::Renderer::UpdateBitmap()</a>.</p>
+<p class="reference">References <a class="el" href="tilemap_8h_source.html#l00016">yaze::gfx::Tilemap::atlas</a>, and <a class="el" href="bitmap_8h_source.html#l00170">yaze::gfx::Bitmap::set_data()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01195">yaze::editor::OverworldEditor::RefreshTile16Blockset()</a>.</p>
 <div class="dynheader">
@@ -1865,15 +1812,11 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1gfx_a2ceb066551815eb3f3473a316fe8827d_cgraph.png" border="0" usemap="#anamespaceyaze_1_1gfx_a2ceb066551815eb3f3473a316fe8827d_cgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1gfx_a2ceb066551815eb3f3473a316fe8827d_cgraph" id="anamespaceyaze_1_1gfx_a2ceb066551815eb3f3473a316fe8827d_cgraph">
-<area shape="rect" title=" " alt="" coords="5,78,170,104"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="218,5,354,46"/>
-<area shape="poly" title=" " alt="" coords="128,75,207,49,208,54,130,80"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a7a4eaa09fc2375d4fc438296ef20ac3d" title=" " alt="" coords="224,71,348,111"/>
-<area shape="poly" title=" " alt="" coords="170,88,209,88,209,94,170,94"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title=" " alt="" coords="218,136,354,177"/>
-<area shape="poly" title=" " alt="" coords="130,102,208,128,207,133,128,107"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#ac8762d7ca064094faf9603be575caf07" title=" " alt="" coords="402,5,538,46"/>
-<area shape="poly" title=" " alt="" coords="354,23,386,23,386,28,354,28"/>
+<area shape="rect" title=" " alt="" coords="5,13,170,38"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a7a4eaa09fc2375d4fc438296ef20ac3d" title=" " alt="" coords="218,5,341,46"/>
+<area shape="poly" title=" " alt="" coords="170,23,202,23,202,28,170,28"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a0275436efca736b00dfa4c0ce43e8068" title=" " alt="" coords="389,13,537,38"/>
+<area shape="poly" title=" " alt="" coords="341,23,374,23,374,28,341,28"/>
 </map>
 </div>
 
@@ -1900,23 +1843,21 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="tilemap_8cc_source.html#l00029">29</a> of file <a class="el" href="tilemap_8cc_source.html">tilemap.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::GetInstance()</a>, <a class="el" href="tilemap_8cc_source.html#l00039">GetTilemapData()</a>, <a class="el" href="renderer_8h_source.html#l00045">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="tilemap_8h_source.html#l00017">yaze::gfx::Tilemap::tile_bitmaps</a>, <a class="el" href="tilemap_8h_source.html#l00018">yaze::gfx::Tilemap::tile_size</a>, <a class="el" href="tilemap_8h_source.html#l00011">yaze::gfx::Pair::x</a>, and <a class="el" href="tilemap_8h_source.html#l00012">yaze::gfx::Pair::y</a>.</p>
+<p class="reference">References <a class="el" href="tilemap_8cc_source.html#l00039">GetTilemapData()</a>, <a class="el" href="tilemap_8h_source.html#l00017">yaze::gfx::Tilemap::tile_bitmaps</a>, <a class="el" href="tilemap_8h_source.html#l00018">yaze::gfx::Tilemap::tile_size</a>, <a class="el" href="tilemap_8h_source.html#l00011">yaze::gfx::Pair::x</a>, and <a class="el" href="tilemap_8h_source.html#l00012">yaze::gfx::Pair::y</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00560">yaze::editor::Tile16Editor::CopyTile16ToClipboard()</a>, <a class="el" href="canvas_8cc_source.html#l00592">yaze::gui::Canvas::DrawBitmapGroup()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00489">yaze::editor::Tile16Editor::SetCurrentTile()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00172">yaze::editor::Tile16Editor::UpdateBlockset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00552">yaze::editor::Tile16Editor::CopyTile16ToClipboard()</a>, <a class="el" href="canvas_8cc_source.html#l00594">yaze::gui::Canvas::DrawBitmapGroup()</a>, <a class="el" href="screen__editor_8cc_source.html#l00328">yaze::editor::ScreenEditor::DrawDungeonMapsTabs()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00481">yaze::editor::Tile16Editor::SetCurrentTile()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00165">yaze::editor::Tile16Editor::UpdateBlockset()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1gfx_add7dbc57103fdc10e6abf710863e940d_cgraph.png" border="0" usemap="#anamespaceyaze_1_1gfx_add7dbc57103fdc10e6abf710863e940d_cgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1gfx_add7dbc57103fdc10e6abf710863e940d_cgraph" id="anamespaceyaze_1_1gfx_add7dbc57103fdc10e6abf710863e940d_cgraph">
-<area shape="rect" title=" " alt="" coords="5,70,144,96"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="209,5,345,46"/>
-<area shape="poly" title=" " alt="" coords="122,67,193,47,194,52,123,72"/>
-<area shape="rect" href="namespaceyaze_1_1gfx.html#a85cdb560638714d7afc71b20b1b8526c" title=" " alt="" coords="192,70,362,96"/>
-<area shape="poly" title=" " alt="" coords="144,80,176,80,176,86,144,86"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title=" " alt="" coords="209,120,345,161"/>
-<area shape="poly" title=" " alt="" coords="123,94,194,114,193,119,122,99"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#ac8762d7ca064094faf9603be575caf07" title=" " alt="" coords="410,5,546,46"/>
-<area shape="poly" title=" " alt="" coords="345,23,395,23,395,28,345,28"/>
+<area shape="rect" title=" " alt="" coords="5,46,144,72"/>
+<area shape="rect" href="namespaceyaze_1_1gfx.html#a85cdb560638714d7afc71b20b1b8526c" title=" " alt="" coords="192,46,362,72"/>
+<area shape="poly" title=" " alt="" coords="144,56,176,56,176,62,144,62"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a2a93bfee737bef55dbf436f2605282ce" title=" " alt="" coords="410,5,533,46"/>
+<area shape="poly" title=" " alt="" coords="355,43,394,36,395,41,356,48"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="410,71,533,111"/>
+<area shape="poly" title=" " alt="" coords="360,70,395,76,394,81,359,75"/>
 </map>
 </div>
 
@@ -1945,7 +1886,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="tilemap_8h_source.html#l00016">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="tilemap_8h_source.html#l00019">yaze::gfx::Tilemap::map_size</a>, <a class="el" href="tilemap_8h_source.html#l00018">yaze::gfx::Tilemap::tile_size</a>, <a class="el" href="bitmap_8h_source.html#l00165">yaze::gfx::Bitmap::vector()</a>, <a class="el" href="bitmap_8h_source.html#l00157">yaze::gfx::Bitmap::width()</a>, and <a class="el" href="tilemap_8h_source.html#l00011">yaze::gfx::Pair::x</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00419">yaze::editor::OverworldEditor::DrawOverworldEdits()</a>, <a class="el" href="canvas_8cc_source.html#l00276">yaze::gui::Canvas::DrawTilemapPainter()</a>, and <a class="el" href="tilemap_8cc_source.html#l00029">RenderTile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00419">yaze::editor::OverworldEditor::DrawOverworldEdits()</a>, <a class="el" href="canvas_8cc_source.html#l00273">yaze::gui::Canvas::DrawTilemapPainter()</a>, and <a class="el" href="tilemap_8cc_source.html#l00029">RenderTile()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2484,7 +2425,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="snes__palette_8h_source.html#l00022">22</a> of file <a class="el" href="snes__palette_8h_source.html">snes_palette.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00175">yaze::editor::PaletteEditor::Load()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="palette__editor_8cc_source.html#l00173">yaze::editor::PaletteEditor::Load()</a>, and <a class="el" href="palette__editor_8cc_source.html#l00187">yaze::editor::PaletteEditor::Update()</a>.</p>
 
 </div>
 </div>
@@ -3540,9 +3481,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00014">14</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00012">12</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="snes__tile_8cc_source.html#l00364">GetTilesInfo()</a>, and <a class="el" href="snes__tile_8cc_source.html#l00333">TileInfoToShort()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="snes__tile_8cc_source.html#l00354">GetTilesInfo()</a>, and <a class="el" href="snes__tile_8cc_source.html#l00323">TileInfoToShort()</a>.</p>
 
 </div>
 </div>
@@ -3566,9 +3507,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00017">17</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00015">15</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="snes__tile_8cc_source.html#l00364">GetTilesInfo()</a>, and <a class="el" href="snes__tile_8cc_source.html#l00333">TileInfoToShort()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="snes__tile_8cc_source.html#l00354">GetTilesInfo()</a>, and <a class="el" href="snes__tile_8cc_source.html#l00323">TileInfoToShort()</a>.</p>
 
 </div>
 </div>
@@ -3592,9 +3533,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00020">20</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00018">18</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="snes__tile_8cc_source.html#l00364">GetTilesInfo()</a>, and <a class="el" href="snes__tile_8cc_source.html#l00333">TileInfoToShort()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="snes__tile_8cc_source.html#l00354">GetTilesInfo()</a>, and <a class="el" href="snes__tile_8cc_source.html#l00323">TileInfoToShort()</a>.</p>
 
 </div>
 </div>
@@ -3618,9 +3559,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00023">23</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00021">21</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="snes__tile_8cc_source.html#l00364">GetTilesInfo()</a>, and <a class="el" href="snes__tile_8cc_source.html#l00333">TileInfoToShort()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="snes__tile_8cc_source.html#l00354">GetTilesInfo()</a>, and <a class="el" href="snes__tile_8cc_source.html#l00323">TileInfoToShort()</a>.</p>
 
 </div>
 </div>
@@ -3644,9 +3585,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__tile_8h_source.html#l00015">15</a> of file <a class="el" href="snes__tile_8h_source.html">snes_tile.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__tile_8h_source.html#l00016">16</a> of file <a class="el" href="snes__tile_8h_source.html">snes_tile.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00757">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00781">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="rom_8cc_source.html#l00077">yaze::LoadAllGraphicsData()</a>, and <a class="el" href="rom_8cc_source.html#l00058">yaze::LoadLinkGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00757">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00781">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="rom_8cc_source.html#l00078">yaze::LoadAllGraphicsData()</a>, and <a class="el" href="rom_8cc_source.html#l00059">yaze::LoadLinkGraphics()</a>.</p>
 
 </div>
 </div>
@@ -3670,9 +3611,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__tile_8h_source.html#l00016">16</a> of file <a class="el" href="snes__tile_8h_source.html">snes_tile.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__tile_8h_source.html#l00017">17</a> of file <a class="el" href="snes__tile_8h_source.html">snes_tile.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00781">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="rom_8cc_source.html#l00077">yaze::LoadAllGraphicsData()</a>, <a class="el" href="rom_8cc_source.html#l00058">yaze::LoadLinkGraphics()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00380">yaze::editor::GraphicsEditor::UpdateLinkGfxView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00781">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="rom_8cc_source.html#l00078">yaze::LoadAllGraphicsData()</a>, <a class="el" href="rom_8cc_source.html#l00059">yaze::LoadLinkGraphics()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00380">yaze::editor::GraphicsEditor::UpdateLinkGfxView()</a>.</p>
 
 </div>
 </div>
@@ -3696,9 +3637,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="snes__tile_8h_source.html#l00017">17</a> of file <a class="el" href="snes__tile_8h_source.html">snes_tile.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__tile_8h_source.html#l00018">18</a> of file <a class="el" href="snes__tile_8h_source.html">snes_tile.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00757">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00781">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="rom_8cc_source.html#l00077">yaze::LoadAllGraphicsData()</a>, and <a class="el" href="rom_8cc_source.html#l00058">yaze::LoadLinkGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00757">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00781">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="rom_8cc_source.html#l00078">yaze::LoadAllGraphicsData()</a>, and <a class="el" href="rom_8cc_source.html#l00059">yaze::LoadLinkGraphics()</a>.</p>
 
 </div>
 </div>
@@ -3724,9 +3665,9 @@ Here is the call graph for this function:</div>
 <b>Initial value:</b><div class="fragment"><div class="line">= {0x80, 0x40, 0x20, 0x10,</div>
 <div class="line">                                        0x08, 0x04, 0x02, 0x01}</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="snes__tile_8h_source.html#l00019">19</a> of file <a class="el" href="snes__tile_8h_source.html">snes_tile.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="snes__tile_8h_source.html#l00020">20</a> of file <a class="el" href="snes__tile_8h_source.html">snes_tile.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="snes__tile_8cc_source.html#l00139">SnesTo8bppSheet()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="snes__tile_8cc_source.html#l00129">SnesTo8bppSheet()</a>.</p>
 
 </div>
 </div>

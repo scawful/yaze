@@ -1,16 +1,16 @@
 <map id="yaze::editor::OverworldEditor::CheckForCurrentMap" name="yaze::editor::OverworldEditor::CheckForCurrentMap">
-<area shape="rect" id="Node000001" title="Check for changes to the overworld map. Calls RefreshOverworldMap and RefreshTile16Blockset on the cu..." alt="" coords="5,87,189,127"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="53,87,51,77,58,68,74,62,97,60,122,62,137,69,135,74,121,68,97,65,75,67,62,72,56,78,59,85"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="488,5,631,46"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="139,84,185,64,236,48,297,37,359,29,472,23,473,28,360,34,298,42,237,54,187,69,141,89"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1OverworldEditor.html#a58eb6faa7c4dd358fba0d46e106797ed" title=" " alt="" coords="237,87,420,127"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="189,104,221,104,221,110,189,110"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1editor_1_1OverworldEditor.html#a99a739f0d39071aa7f6987eeb264b3e1" title=" " alt="" coords="237,176,420,217"/>
-<area shape="poly" id="edge8_Node000001_Node000005" title=" " alt="" coords="153,125,260,167,258,172,151,130"/>
-<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="388,84,484,49,486,54,389,89"/>
-<area shape="poly" id="edge7_Node000003_Node000003" title=" " alt="" coords="285,87,283,77,290,68,305,62,328,60,353,62,368,69,366,74,352,68,328,65,306,67,293,72,288,78,290,85"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1OverworldEditor.html#aa39da036dde898607eb6dadb93523560" title=" " alt="" coords="468,95,651,135"/>
-<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="420,107,452,109,452,114,420,113"/>
-<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="516,95,514,85,521,76,536,70,560,68,585,70,599,77,597,82,583,76,560,73,538,75,524,80,519,86,521,93"/>
-<area shape="poly" id="edge9_Node000005_Node000005" title=" " alt="" coords="285,176,283,166,290,157,305,151,328,149,353,152,368,158,366,163,352,157,328,155,306,157,293,161,288,167,290,175"/>
+<area shape="rect" id="Node000001" title="Check for changes to the overworld map. Calls RefreshOverworldMap and RefreshTile16Blockset on the cu..." alt="" coords="5,79,189,120"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="53,79,51,69,58,60,74,55,97,53,122,55,137,61,135,66,121,60,97,58,75,60,62,64,56,70,59,78"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="474,5,645,31"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="139,76,185,57,236,41,293,30,351,22,459,16,459,21,351,28,294,35,237,46,187,62,141,81"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1OverworldEditor.html#a58eb6faa7c4dd358fba0d46e106797ed" title=" " alt="" coords="237,79,420,120"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="189,97,221,97,221,102,189,102"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1editor_1_1OverworldEditor.html#a99a739f0d39071aa7f6987eeb264b3e1" title=" " alt="" coords="237,168,420,209"/>
+<area shape="poly" id="edge8_Node000001_Node000005" title=" " alt="" coords="153,118,260,160,258,165,151,123"/>
+<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="376,76,467,41,491,33,493,38,469,46,378,81"/>
+<area shape="poly" id="edge7_Node000003_Node000003" title=" " alt="" coords="285,79,283,69,290,60,305,55,328,53,353,55,368,61,366,66,352,60,328,58,306,60,293,64,288,70,290,78"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1OverworldEditor.html#aa39da036dde898607eb6dadb93523560" title=" " alt="" coords="468,79,651,120"/>
+<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="420,97,452,97,452,102,420,102"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="516,79,514,69,521,60,536,55,560,53,585,55,599,61,597,66,583,60,560,58,538,60,524,64,519,70,521,78"/>
+<area shape="poly" id="edge9_Node000005_Node000005" title=" " alt="" coords="285,168,283,159,290,149,305,144,328,142,353,144,368,150,366,155,352,149,328,147,306,149,293,154,288,160,290,167"/>
 </map>

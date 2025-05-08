@@ -1,0 +1,14 @@
+<map id="yaze::editor::PaletteEditor::DrawQuickAccessTab" name="yaze::editor::PaletteEditor::DrawQuickAccessTab">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,25,171,66"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gui.html#a7133468eeb96ba6d81b2c91bc7118d1d" title=" " alt="" coords="645,22,827,63"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,22,218,11,328,3,438,5,542,13,630,23,630,29,541,18,438,11,328,9,219,16,161,27"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1PaletteEditor.html#a39217d46dc05ebb4aa02ce277439b8af" title=" " alt="" coords="219,25,384,66"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="171,43,203,43,203,48,171,48"/>
+<area shape="rect" id="Node000006" href="$namespaceyaze_1_1gui.html#aa32511a1a3eadf62366b193da8b5f3da" title=" " alt="" coords="432,81,597,106"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="164,64,219,75,321,86,417,90,416,95,320,91,218,80,163,69"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1SnesColor.html#a0a6bc657e8a8778b7672d2e6102771e2" title=" " alt="" coords="875,30,1035,56"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="827,40,859,40,859,45,827,45"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="384,42,630,41,630,46,384,48"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="385,61,440,74,439,79,384,67"/>
+<area shape="poly" id="edge6_Node000006_Node000002" title=" " alt="" coords="573,77,630,64,631,70,575,83"/>
+</map>

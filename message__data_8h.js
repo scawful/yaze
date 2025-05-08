@@ -16,7 +16,6 @@ var message__data_8h =
     [ "yaze::editor::ParseSingleMessage", "namespaceyaze_1_1editor.html#a7f9b61eee2bb838f10efe0d1062c8990", null ],
     [ "yaze::editor::ParseMessageData", "namespaceyaze_1_1editor.html#a91359909a674306622aa5a533e0c2377", null ],
     [ "yaze::editor::ReadAllTextData", "namespaceyaze_1_1editor.html#a99c9eea01d5b08f81107f35f926a74b6", null ],
-    [ "yaze::editor::ImportMessageData", "namespaceyaze_1_1editor.html#aad28fdc5f6cd134f10fb8b729e1206bd", null ],
     [ "yaze::editor::kMessageTerminator", "namespaceyaze_1_1editor.html#a0d4a3ab38797b034b311b39a037a293a", null ],
     [ "yaze::editor::kBankToken", "namespaceyaze_1_1editor.html#a03ed5e244fc1d22abedc9549954318f7", null ],
     [ "yaze::editor::DICTIONARYTOKEN", "namespaceyaze_1_1editor.html#a180364fa630f1bbd2b029efa9277f342", null ],

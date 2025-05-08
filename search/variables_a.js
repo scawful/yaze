@@ -260,7 +260,7 @@ var searchData=
   ['kowedittable_257',['kOWEditTable',['../namespaceyaze_1_1editor.html#aa7eb073b2dec436454b35ff273655642',1,'yaze::editor']]],
   ['kowmapflags_258',['kOWMapFlags',['../namespaceyaze_1_1editor.html#a21a3ee57d060881f0c1f7e062418a71f',1,'yaze::editor']]],
   ['kowmaptable_259',['kOWMapTable',['../namespaceyaze_1_1editor.html#a1d8e24b671e1338c02fbe726de12a0a3',1,'yaze::editor']]],
-  ['kpalbuttonflags2_260',['kPalButtonFlags2',['../namespaceyaze_1_1editor.html#a30303af4e4e2edda065a4aa65f9a21f1',1,'yaze::editor']]],
+  ['kpalbuttonflags_260',['kPalButtonFlags',['../namespaceyaze_1_1editor.html#ad218da6f4c76c74e66b860fd7b85f851',1,'yaze::editor']]],
   ['kpaletteeditorname_261',['kPaletteEditorName',['../namespaceyaze_1_1editor.html#adc7da7308bfe85a16a62542ef04a3472',1,'yaze::editor']]],
   ['kpalettegroupaddresseskeys_262',['kPaletteGroupAddressesKeys',['../namespaceyaze_1_1gfx.html#a56ca525964a966ffda0388092ee28f6f',1,'yaze::gfx::kPaletteGroupAddressesKeys'],['../namespaceyaze_1_1editor.html#a56ca525964a966ffda0388092ee28f6f',1,'yaze::editor::kPaletteGroupAddressesKeys']]],
   ['kpalettegroupaddressmap_263',['kPaletteGroupAddressMap',['../namespaceyaze_1_1gfx.html#a2e522bffcfdd82bd1db8482717eeb5ae',1,'yaze::gfx']]],

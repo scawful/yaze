@@ -1,9 +1,5 @@
 var NAVTREEINDEX24 =
 {
-"classyaze_1_1zelda3_1_1GameEntity.html#aee3698feddd380f910b96d88539e779e":[11,0,1,8,7,3],
-"classyaze_1_1zelda3_1_1GameEntity.html#aee3698feddd380f910b96d88539e779e":[12,0,0,8,3,3],
-"classyaze_1_1zelda3_1_1Inventory.html":[11,0,1,8,8],
-"classyaze_1_1zelda3_1_1Inventory.html":[12,0,0,8,4],
 "classyaze_1_1zelda3_1_1Inventory.html#a041fb76da7f9e7cef5e9b6ed0566f55d":[11,0,1,8,8,1],
 "classyaze_1_1zelda3_1_1Inventory.html#a041fb76da7f9e7cef5e9b6ed0566f55d":[12,0,0,8,4,1],
 "classyaze_1_1zelda3_1_1Inventory.html#a06d4a48a808a8789e95c0664a4322003":[11,0,1,8,8,6],
@@ -249,5 +245,9 @@ var NAVTREEINDEX24 =
 "classyaze_1_1zelda3_1_1OverworldExit.html":[11,0,1,8,13],
 "classyaze_1_1zelda3_1_1OverworldExit.html":[12,0,0,8,9],
 "classyaze_1_1zelda3_1_1OverworldExit.html#a0e9607948ec332acffc250b87b4d815f":[11,0,1,8,13,5],
-"classyaze_1_1zelda3_1_1OverworldExit.html#a0e9607948ec332acffc250b87b4d815f":[12,0,0,8,9,5]
+"classyaze_1_1zelda3_1_1OverworldExit.html#a0e9607948ec332acffc250b87b4d815f":[12,0,0,8,9,5],
+"classyaze_1_1zelda3_1_1OverworldExit.html#a12bcb9d33b5a173a2e73ba6850e55835":[11,0,1,8,13,21],
+"classyaze_1_1zelda3_1_1OverworldExit.html#a12bcb9d33b5a173a2e73ba6850e55835":[12,0,0,8,9,21],
+"classyaze_1_1zelda3_1_1OverworldExit.html#a2348d6630eb77d24c38830371fae0342":[11,0,1,8,13,9],
+"classyaze_1_1zelda3_1_1OverworldExit.html#a2348d6630eb77d24c38830371fae0342":[12,0,0,8,9,9]
 };

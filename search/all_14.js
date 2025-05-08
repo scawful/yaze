@@ -340,7 +340,7 @@ var searchData=
   ['kowmapflags_337',['kOWMapFlags',['../namespaceyaze_1_1editor.html#a21a3ee57d060881f0c1f7e062418a71f',1,'yaze::editor']]],
   ['kowmaptable_338',['kOWMapTable',['../namespaceyaze_1_1editor.html#a1d8e24b671e1338c02fbe726de12a0a3',1,'yaze::editor']]],
   ['kpaint_339',['kPaint',['../namespaceyaze_1_1gui.html#a24eebca5b3fe9d6e674cefcb0a64e7e4abe579a9078c06d1cd7c291ae5c92485f',1,'yaze::gui']]],
-  ['kpalbuttonflags2_340',['kPalButtonFlags2',['../namespaceyaze_1_1editor.html#a30303af4e4e2edda065a4aa65f9a21f1',1,'yaze::editor']]],
+  ['kpalbuttonflags_340',['kPalButtonFlags',['../namespaceyaze_1_1editor.html#ad218da6f4c76c74e66b860fd7b85f851',1,'yaze::editor']]],
   ['kpalette_341',['kPalette',['../namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aab7016fa0536d3c2f14454c2bb0b203cb',1,'yaze::editor']]],
   ['kpaletteeditor_342',['kPaletteEditor',['../namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33a724318eeaede64cad18fefb4cd170c6e',1,'yaze::cli::kPaletteEditor'],['../namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395af28bb58ff40de28e33f3558e7e6b119a',1,'yaze::cli::kPaletteEditor']]],
   ['kpaletteeditorname_343',['kPaletteEditorName',['../namespaceyaze_1_1editor.html#adc7da7308bfe85a16a62542ef04a3472',1,'yaze::editor']]],

@@ -1,6 +1,6 @@
 <map id="yaze::editor::OverworldEditor::LoadSpriteGraphics" name="yaze::editor::OverworldEditor::LoadSpriteGraphics">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,29,189,70"/>
-<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="57,29,55,19,62,10,76,5,97,3,120,5,134,11,131,16,119,10,97,8,77,10,65,15,60,20,62,28"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Renderer.html#a8fbf175181e6800faaaecaf7034f8a9a" title=" " alt="" coords="237,29,380,70"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="55,29,52,19,59,10,74,5,97,3,121,5,136,11,134,16,120,10,97,8,76,10,63,15,58,21,60,28"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="237,37,407,62"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,47,221,47,221,52,189,52"/>
 </map>
