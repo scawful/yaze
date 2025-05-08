@@ -56,27 +56,27 @@ void MessageEditor::Initialize() {
   font_preview_colors_.AddColor(gfx::SnesColor(0x03E0));  // Green
   font_preview_colors_.AddColor(gfx::SnesColor(0x001F));  // Blue
 
-  std::vector<uint8_t> data(0x4000, 0);
   for (int i = 0; i < 0x4000; i++) {
-    data[i] = rom()->data()[kGfxFont + i];
+    raw_font_gfx_data_[i] = rom()->data()[kGfxFont + i];
   }
-  font_gfx16_data_ = gfx::SnesTo8bppSheet(data, /*bpp=*/2, /*num_sheets=*/2);
+  font_gfx16_data_ =
+      gfx::SnesTo8bppSheet(raw_font_gfx_data_, /*bpp=*/2, /*num_sheets=*/2);
 
   // 4bpp
-  Renderer::GetInstance().CreateAndRenderBitmap(
+  Renderer::Get().CreateAndRenderBitmap(
       kFontGfxMessageSize, kFontGfxMessageSize, kFontGfxMessageDepth,
       font_gfx16_data_, font_gfx_bitmap_, font_preview_colors_);
 
   current_font_gfx16_data_.reserve(kCurrentMessageWidth *
                                    kCurrentMessageHeight);
-  for (int i = 0; i < kCurrentMessageWidth * kCurrentMessageHeight; i++) {
-    current_font_gfx16_data_.push_back(0);
-  }
+  std::fill(current_font_gfx16_data_.begin(), current_font_gfx16_data_.end(), 
+            0);
 
   // 8bpp
-  Renderer::GetInstance().CreateAndRenderBitmap(
-      kCurrentMessageWidth, kCurrentMessageHeight, 64, current_font_gfx16_data_,
-      current_font_gfx16_bitmap_, font_preview_colors_);
+  Renderer::Get().CreateAndRenderBitmap(
+      kCurrentMessageWidth, kCurrentMessageHeight, 172,
+      current_font_gfx16_data_, current_font_gfx16_bitmap_,
+      font_preview_colors_);
 
   *font_gfx_bitmap_.mutable_palette() = font_preview_colors_;
   *current_font_gfx16_bitmap_.mutable_palette() = font_preview_colors_;
@@ -137,6 +137,8 @@ void MessageEditor::DrawMessageList() {
         PushID(message.ID);
         if (Button(util::HexWord(message.ID).c_str())) {
           current_message_ = message;
+          message_text_box_.text = parsed_messages_[message.ID];
+          DrawMessagePreview();
         }
         PopID();
         TableNextColumn();
@@ -182,9 +184,6 @@ void MessageEditor::DrawCurrentMessage() {
 
   ImGui::BeginChild("##MessagePreview", ImVec2(0, 0), true, 1);
   Text("Message Preview");
-  if (Button("Create Preview")) {
-    DrawMessagePreview();
-  }
   if (Button("View Palette")) {
     ImGui::OpenPopup("Palette");
   }
@@ -193,12 +192,32 @@ void MessageEditor::DrawCurrentMessage() {
     ImGui::EndPopup();
   }
   gui::BeginPadding(1);
-  BeginChild("CurrentGfxFont", ImVec2(current_font_gfx16_bitmap_.width(), 0),
-             true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+  BeginChild("CurrentGfxFont", ImVec2(340, 0), true,
+             ImGuiWindowFlags_AlwaysVerticalScrollbar);
   current_font_gfx16_canvas_.DrawBackground();
   gui::EndPadding();
   current_font_gfx16_canvas_.DrawContextMenu();
-  current_font_gfx16_canvas_.DrawBitmap(current_font_gfx16_bitmap_, 0, 0);
+
+  // Handle mouse wheel scrolling
+  if (ImGui::IsWindowHovered()) {
+    float wheel = ImGui::GetIO().MouseWheel;
+    if (wheel > 0 && shown_lines_ > 0) {
+      shown_lines_--;
+    } else if (wheel < 0 && shown_lines_ < text_line_ - 2) {
+      shown_lines_++;
+    }
+  }
+
+  // Draw only the visible portion of the text
+  current_font_gfx16_canvas_.DrawBitmap(
+      current_font_gfx16_bitmap_, ImVec2(0, 0),  // Destination position
+      ImVec2(340,
+             font_gfx_canvas_.canvas_size().y),  // Destination size
+      ImVec2(0, shown_lines_ * 16),              // Source position
+      ImVec2(170,
+             font_gfx_canvas_.canvas_size().y / 2)  // Source size
+  );
+
   current_font_gfx16_canvas_.DrawGrid();
   current_font_gfx16_canvas_.DrawOverlay();
   EndChild();
@@ -235,8 +254,7 @@ void MessageEditor::DrawSpecialCharacters() {
 }
 
 void MessageEditor::DrawExpandedMessageSettings() {
-  ImGui::BeginChild("##ExpandedMessageSettings",
-                    ImVec2(0, ImGui::GetWindowContentRegionMax().y / 2), true,
+  ImGui::BeginChild("##ExpandedMessageSettings", ImVec2(0, 100), true,
                     ImGuiWindowFlags_AlwaysVerticalScrollbar);
   // Input for the address of the expanded messages
   ImGui::InputText("Address", &expanded_message_address_,
@@ -283,9 +301,7 @@ void MessageEditor::DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
       int my = yl;
 
       // Formula information to get tile index position in the array.
-      // ((ID / nbrofXtiles) * (imgwidth/2) + (ID - ((ID/16)*16) ))
-      int tx = ((draw_id / num_x_tiles) * img_width) +
-               ((draw_id - ((draw_id / 16) * 16)) * 4);
+      int tx = ((draw_id / num_x_tiles) * img_width) + ((draw_id & 0xF) << 2);
       uint8_t pixel = font_gfx16_data_[tx + (yl * 64) + xl];
 
       // nx,ny = object position, xx,yy = tile position, xl,yl = pixel
@@ -322,8 +338,9 @@ void MessageEditor::DrawCharacterToPreview(const std::vector<uint8_t>& text) {
     }
 
     if (value < 100) {
-      int srcy = value / 16;
-      int srcx = value - (value & (~0xF));
+      // int srcy = value / 16;
+      int srcy = value >> 4;
+      int srcx = value & 0xF;
 
       if (text_position_ >= 170) {
         text_position_ = 0;
@@ -376,14 +393,15 @@ void MessageEditor::DrawCharacterToPreview(const std::vector<uint8_t>& text) {
 void MessageEditor::DrawMessagePreview() {
   // From Parsing.
   text_line_ = 0;
-  for (int i = 0; i < kFontGfx16Size; i++) {
-    current_font_gfx16_data_[i] = 0;
-  }
+  std::fill(current_font_gfx16_data_.begin(), current_font_gfx16_data_.end(),
+            0);
   text_position_ = 0;
   DrawCharacterToPreview(current_message_.Data);
   shown_lines_ = 0;
 
-  Renderer::GetInstance().UpdateBitmap(&current_font_gfx16_bitmap_);
+  // Update the bitmap with the new data
+  current_font_gfx16_bitmap_.mutable_data() = current_font_gfx16_data_;
+  Renderer::Get().UpdateBitmap(&current_font_gfx16_bitmap_);
 }
 
 absl::Status MessageEditor::Save() {

@@ -317,8 +317,6 @@ constexpr int kTextData2End = 0x773FF;
 // Reads all text data from the ROM and returns a vector of MessageData objects.
 void ReadAllTextData(Rom *rom, std::vector<MessageData> &list_of_texts_);
 
-std::vector<std::string> ImportMessageData(std::string_view filename);
-
 }  // namespace editor
 }  // namespace yaze
 

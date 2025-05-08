@@ -3,6 +3,7 @@
 #include <optional>
 #include <string>
 
+#include "app/snes.h"
 #include "util/hex.h"
 #include "util/log.h"
 
@@ -376,11 +377,8 @@ void ReadAllTextData(Rom *rom, std::vector<MessageData> &list_of_texts_) {
     // Check for dictionary.
     int dictionary = FindDictionaryEntry(current_byte);
     if (dictionary >= 0) {
-      current_raw_message.append("[");
-      current_raw_message.append(DICTIONARYTOKEN);
-      current_raw_message.append(":");
-      current_raw_message.append(util::HexByte(dictionary));
-      current_raw_message.append("]");
+      current_raw_message.append(absl::StrFormat("[%s:%s]", DICTIONARYTOKEN,
+                                                 util::HexByte(dictionary)));
 
       uint32_t address = Get24LocalFromPC(
           rom->mutable_data(), kPointersDictionaries + (dictionary * 2));
@@ -404,27 +402,6 @@ void ReadAllTextData(Rom *rom, std::vector<MessageData> &list_of_texts_) {
       parsed_message.push_back(current_byte);
     }
   }
-}
-
-std::vector<std::string> ImportMessageData(std::string_view filename) {
-  std::vector<std::string> messages;
-  std::ifstream file(filename.data());
-  if (!file.is_open()) {
-    util::logf("Error opening file: %s", filename);
-    return messages;
-  }
-
-  // Parse a file with dialogue IDs and convert
-  std::string line;
-  while (std::getline(file, line)) {
-    if (line.empty()) {
-      continue;
-    }
-
-    // Get the Dialogue ID and then read until the next header
-  }
-
-  return messages;
 }
 
 }  // namespace editor
