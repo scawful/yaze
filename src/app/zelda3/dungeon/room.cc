@@ -9,6 +9,7 @@
 #include "app/core/platform/renderer.h"
 #include "app/gfx/arena.h"
 #include "app/rom.h"
+#include "app/snes.h"
 #include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/sprite/sprite.h"
 #include "util/log.h"
@@ -261,18 +262,16 @@ void Room::RenderRoomGraphics() {
       rom()->mutable_palette_group()->get_group("dungeon_main")[0].palette(0);
 
   if (!gfx::Arena::Get().bg1().bitmap().is_active()) {
-    core::Renderer::GetInstance().CreateAndRenderBitmap(
+    core::Renderer::Get().CreateAndRenderBitmap(
         0x200, 0x200, 0x200, gfx::Arena::Get().bg1().bitmap().vector(),
         gfx::Arena::Get().bg1().bitmap(), bg1_palette);
-    core::Renderer::GetInstance().CreateAndRenderBitmap(
+    core::Renderer::Get().CreateAndRenderBitmap(
         0x200, 0x200, 0x200, gfx::Arena::Get().bg2().bitmap().vector(),
         gfx::Arena::Get().bg2().bitmap(), bg1_palette);
   } else {
     // Update the bitmap
-    core::Renderer::GetInstance().UpdateBitmap(
-        &gfx::Arena::Get().bg1().bitmap());
-    core::Renderer::GetInstance().UpdateBitmap(
-        &gfx::Arena::Get().bg2().bitmap());
+    core::Renderer::Get().UpdateBitmap(&gfx::Arena::Get().bg1().bitmap());
+    core::Renderer::Get().UpdateBitmap(&gfx::Arena::Get().bg2().bitmap());
   }
 }
 

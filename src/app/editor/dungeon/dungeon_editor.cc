@@ -116,7 +116,7 @@ absl::Status DungeonEditor::RefreshGraphics() {
       [this](int block) -> absl::Status {
         gfx::Arena::Get().gfx_sheets()[block].SetPaletteWithTransparent(
             current_palette_group_[current_palette_id_], 0);
-        Renderer::GetInstance().UpdateBitmap(
+        Renderer::Get().UpdateBitmap(
             &gfx::Arena::Get().gfx_sheets()[block]);
         return absl::OkStatus();
       });
@@ -127,7 +127,7 @@ absl::Status DungeonEditor::RefreshGraphics() {
       [this, &sprites_aux1_pal_group](int block) -> absl::Status {
         gfx::Arena::Get().gfx_sheets()[block].SetPaletteWithTransparent(
             sprites_aux1_pal_group[current_palette_id_], 0);
-        Renderer::GetInstance().UpdateBitmap(
+        Renderer::Get().UpdateBitmap(
             &gfx::Arena::Get().gfx_sheets()[block]);
         return absl::OkStatus();
       });
@@ -563,10 +563,9 @@ void DungeonEditor::DrawObjectRenderer() {
     for (const auto object_name : zelda3::Type1RoomObjectNames) {
       if (ImGui::Selectable(object_name.data(), selected_object == i)) {
         selected_object = i;
-        object_renderer_.LoadObject(i,
-                                    rooms_[current_room_id_].mutable_blocks());
-        Renderer::GetInstance().RenderBitmap(object_renderer_.bitmap());
-        object_loaded_ = true;
+        // object_renderer_.LoadObject(i,
+        //                             rooms_[current_room_id_].mutable_blocks());
+        // object_loaded_ = true;
       }
       i += 1;
     }
@@ -580,9 +579,6 @@ void DungeonEditor::DrawObjectRenderer() {
     object_canvas_.DrawBackground(ImVec2(256 + 1, 0x10 * 0x40 + 1));
     object_canvas_.DrawContextMenu();
     object_canvas_.DrawTileSelector(32);
-    if (object_loaded_) {
-      object_canvas_.DrawBitmap(*object_renderer_.bitmap(), 0, 0);
-    }
     object_canvas_.DrawGrid(32.0f);
     object_canvas_.DrawOverlay();
 
@@ -593,8 +589,8 @@ void DungeonEditor::DrawObjectRenderer() {
   if (object_loaded_) {
     ImGui::Begin("Memory Viewer", &object_loaded_, 0);
     static MemoryEditor mem_edit;
-    mem_edit.DrawContents((void *)object_renderer_.mutable_memory(),
-                          object_renderer_.mutable_memory()->size());
+    // mem_edit.DrawContents(object_renderer_.mutable_memory()->data(),
+    // object_renderer_.mutable_memory()->size());
     ImGui::End();
   }
 }

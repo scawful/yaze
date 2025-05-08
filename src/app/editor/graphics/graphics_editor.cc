@@ -137,7 +137,7 @@ void GraphicsEditor::DrawGfxEditToolset() {
             .mutable_gfx_sheets()
             ->at(current_sheet_)
             .Create(width, height, 8, png_data);
-        Renderer::GetInstance().UpdateBitmap(
+        Renderer::Get().UpdateBitmap(
             &gfx::Arena::Get().mutable_gfx_sheets()->at(current_sheet_));
       }
     }
@@ -292,7 +292,7 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
         auto draw_tile_event = [&]() {
           current_sheet_canvas_.DrawTileOnBitmap(tile_size_, &current_bitmap,
                                                  current_color_);
-          Renderer::GetInstance().UpdateBitmap(&current_bitmap);
+          Renderer::Get().UpdateBitmap(&current_bitmap);
         };
 
         current_sheet_canvas_.UpdateColorPainter(
@@ -369,7 +369,7 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
           .mutable_gfx_sheets()
           ->data()[current_sheet_]
           .SetPaletteWithTransparent(palette, edit_palette_sub_index_);
-      Renderer::GetInstance().UpdateBitmap(
+      Renderer::Get().UpdateBitmap(
           &gfx::Arena::Get().mutable_gfx_sheets()->data()[current_sheet_]);
       refresh_graphics_ = false;
     }
@@ -468,7 +468,7 @@ absl::Status GraphicsEditor::UpdateScadView() {
     //   for (int i = 0; i < kNumGfxSheets; i++) {
     //     status_ = graphics_bin_[i].SetPalette(
     //         col_file_palette_group_[current_palette_index_]);
-    //     Renderer::GetInstance().UpdateBitmap(&graphics_bin_[i]);
+    //     Renderer::Get().UpdateBitmap(&graphics_bin_[i]);
     //   }
     //   refresh_graphics_ = false;
     // }
@@ -540,7 +540,7 @@ absl::Status GraphicsEditor::DrawCgxImport() {
     cgx_bitmap_.Create(0x80, 0x200, 8, decoded_cgx_);
     if (col_file_) {
       cgx_bitmap_.SetPalette(decoded_col_);
-      Renderer::GetInstance().RenderBitmap(&cgx_bitmap_);
+      Renderer::Get().RenderBitmap(&cgx_bitmap_);
     }
   }
 
@@ -570,7 +570,7 @@ absl::Status GraphicsEditor::DrawScrImport() {
     scr_bitmap_.Create(0x100, 0x100, 8, decoded_scr_data_);
     if (scr_loaded_) {
       scr_bitmap_.SetPalette(decoded_col_);
-      Renderer::GetInstance().RenderBitmap(&scr_bitmap_);
+      Renderer::Get().RenderBitmap(&scr_bitmap_);
     }
   }
 
@@ -772,7 +772,7 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
     }
   }
 
-  Renderer::GetInstance().RenderBitmap(&bin_bitmap_);
+  Renderer::Get().RenderBitmap(&bin_bitmap_);
   gfx_loaded_ = true;
 
   return absl::OkStatus();
@@ -801,7 +801,7 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
       gfx_sheets_[i].SetPalette(z3_rom_palette_);
     }
 
-    Renderer::GetInstance().RenderBitmap(&gfx_sheets_[i]);
+    Renderer::Get().RenderBitmap(&gfx_sheets_[i]);
     i++;
   }
 
@@ -825,7 +825,7 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
       gfx_sheets_[i].SetPalette(z3_rom_palette_);
     }
 
-    Renderer::GetInstance().RenderBitmap(&gfx_sheets_[i]);
+    Renderer::Get().RenderBitmap(&gfx_sheets_[i]);
     i++;
   }
   super_donkey_ = true;

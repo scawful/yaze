@@ -7,6 +7,7 @@
 #include "app/editor/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
+#include "app/gfx/tilemap.h"
 #include "app/gfx/tilesheet.h"
 #include "app/gui/canvas.h"
 #include "app/rom.h"
@@ -46,17 +47,12 @@ class ScreenEditor : public Editor {
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override { return absl::UnimplementedError("Save"); }
-  
-  // Set the ROM pointer
   void set_rom(Rom* rom) { rom_ = rom; }
-  
-  // Get the ROM pointer
   Rom* rom() const { return rom_; }
 
   absl::Status SaveDungeonMaps();
 
  private:
-  Rom* rom_;
   void DrawTitleScreenEditor();
   void DrawNamingScreenEditor();
   void DrawOverworldMapEditor();
@@ -66,7 +62,7 @@ class ScreenEditor : public Editor {
   void DrawInventoryToolset();
 
   absl::Status LoadDungeonMaps();
-  absl::Status LoadDungeonMapTile16(const std::vector<uint8_t> &gfx_data,
+  absl::Status LoadDungeonMapTile16(const std::vector<uint8_t>& gfx_data,
                                     bool bin_mode = false);
   absl::Status SaveDungeonMapTile16();
 
@@ -80,7 +76,6 @@ class ScreenEditor : public Editor {
 
   EditingMode current_mode_ = EditingMode::DRAW;
 
-  bool dungeon_maps_loaded_ = false;
   bool binary_gfx_loaded_ = false;
 
   uint8_t selected_room = 0;
@@ -94,19 +89,15 @@ class ScreenEditor : public Editor {
   bool copy_button_pressed = false;
   bool paste_button_pressed = false;
 
-  std::array<uint16_t, 4> current_tile16_data_;
   std::unordered_map<int, gfx::Bitmap> tile16_individual_;
   std::vector<gfx::Bitmap> tile8_individual_;
-  std::vector<uint8_t> all_gfx_;
-  std::vector<uint8_t> gfx_bin_data_;
   std::vector<zelda3::DungeonMap> dungeon_maps_;
   std::vector<std::vector<std::array<std::string, 25>>> dungeon_map_labels_;
-
-  absl::Status status_;
 
   gfx::SnesPalette palette_;
   gfx::BitmapTable sheets_;
   gfx::Tilesheet tile16_sheet_;
+  gfx::Tilemap tile16_blockset_;
   gfx::InternalTile16 current_tile16_info;
 
   gui::Canvas current_tile_canvas_{"##CurrentTileCanvas", ImVec2(32, 32),
@@ -117,6 +108,8 @@ class ScreenEditor : public Editor {
                               gui::CanvasGridSize::k8x8, 2.f};
 
   zelda3::Inventory inventory_;
+  Rom* rom_;
+  absl::Status status_;
 };
 
 }  // namespace editor

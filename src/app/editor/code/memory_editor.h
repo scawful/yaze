@@ -4,6 +4,7 @@
 #include "app/core/platform/file_dialog.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
+#include "app/snes.h"
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
 #include "util/macro.h"

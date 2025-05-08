@@ -22,7 +22,6 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
-#include "app/snes.h"
 #include "util/macro.h"
 
 namespace yaze {
