@@ -12,9 +12,7 @@ class TestEditor : public yaze::editor::Editor {
  public:
   TestEditor() = default;
   ~TestEditor() = default;
-  void Initialize() override {
-
-  }
+  void Initialize() override {}
 
   absl::Status Cut() override {
     return absl::UnimplementedError("Not implemented");

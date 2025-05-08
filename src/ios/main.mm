@@ -87,8 +87,8 @@
   }
 
   ImGui_ImplSDL2_InitForSDLRenderer(_controller->window(),
-                                    yaze::core::Renderer::GetInstance().renderer());
-  ImGui_ImplSDLRenderer2_Init(yaze::core::Renderer::GetInstance().renderer());
+                                    yaze::core::Renderer::Get().renderer());
+  ImGui_ImplSDLRenderer2_Init(yaze::core::Renderer::Get().renderer());
 
   if (!LoadPackageFonts().ok()) {
     abort();
