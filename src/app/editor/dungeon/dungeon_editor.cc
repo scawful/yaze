@@ -70,11 +70,11 @@ absl::Status DungeonEditor::Load() {
   LoadDungeonRoomSize();
   // LoadRoomEntrances
   for (int i = 0; i < 0x07; ++i) {
-    entrances_[i] = zelda3::RoomEntrance(*rom(), i, true);
+    entrances_[i] = zelda3::RoomEntrance(rom(), i, true);
   }
 
   for (int i = 0; i < 0x85; ++i) {
-    entrances_[i + 0x07] = zelda3::RoomEntrance(*rom(), i, false);
+    entrances_[i + 0x07] = zelda3::RoomEntrance(rom(), i, false);
   }
 
   // Load the palette group and palette for the dungeon
