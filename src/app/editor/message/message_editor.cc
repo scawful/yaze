@@ -69,7 +69,7 @@ void MessageEditor::Initialize() {
 
   current_font_gfx16_data_.reserve(kCurrentMessageWidth *
                                    kCurrentMessageHeight);
-  std::fill(current_font_gfx16_data_.begin(), current_font_gfx16_data_.end(), 
+  std::fill(current_font_gfx16_data_.begin(), current_font_gfx16_data_.end(),
             0);
 
   // 8bpp

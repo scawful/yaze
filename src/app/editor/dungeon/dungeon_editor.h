@@ -123,7 +123,7 @@ class DungeonEditor : public Editor {
 
   std::array<zelda3::Room, 0x128> rooms_ = {};
   std::array<zelda3::RoomEntrance, 0x8C> entrances_ = {};
-  zelda3::DungeonObjectRenderer object_renderer_;
+  // zelda3::DungeonObjectRenderer object_renderer_;
 
   absl::flat_hash_map<uint16_t, int> spriteset_usage_;
   absl::flat_hash_map<uint16_t, int> blockset_usage_;
