@@ -107,6 +107,8 @@ struct Layout {
 
 void RenderLayout(const Layout &layout);
 
+void MemoryEditorPopup(const std::string &label, std::span<uint8_t> memory);
+
 }  // namespace gui
 }  // namespace yaze
 
