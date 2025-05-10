@@ -8,6 +8,7 @@
 #include "app/gfx/snes_tile.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+#include "imgui_memory_editor.h"
 
 template <class... Ts>
 struct overloaded : Ts... {
@@ -439,6 +440,19 @@ void RenderLayout(const Layout& layout) {
                             }
                           }},
                element);
+  }
+}
+
+void MemoryEditorPopup(const std::string& label, std::span<uint8_t> memory) {
+  static bool open = false;
+  static MemoryEditor editor;
+  if (ImGui::Button("View Data")) {
+    open = true;
+  }
+  if (open) {
+    ImGui::Begin(label.c_str(), &open);
+    editor.DrawContents(memory.data(), memory.size());
+    ImGui::End();
   }
 }
 
