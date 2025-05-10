@@ -264,6 +264,8 @@ absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom& rom);
 absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(
     const Rom& rom);
 
+absl::StatusOr<gfx::Bitmap> LoadFontGraphics(const Rom& rom);
+
 /**
  * @brief A class to hold a shared pointer to a Rom object.
  */
