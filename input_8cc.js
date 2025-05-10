@@ -22,6 +22,7 @@ var input_8cc =
     [ "yaze::gui::DrawMenu", "namespaceyaze_1_1gui.html#a627566d8500f099dabff60322d3c187e", null ],
     [ "yaze::gui::OpenUrl", "namespaceyaze_1_1gui.html#a7b898e6c361ce2d367d1e1570f8f6c03", null ],
     [ "yaze::gui::RenderLayout", "namespaceyaze_1_1gui.html#a2fab6c87cc29a26e4b09632253507131", null ],
+    [ "yaze::gui::MemoryEditorPopup", "namespaceyaze_1_1gui.html#a5d17b111857a66c28a91fc117027a574", null ],
     [ "yaze::gui::kStepOneHex", "namespaceyaze_1_1gui.html#a6029f8bda82fb5f101e9ddd63d85e856", null ],
     [ "yaze::gui::kStepFastHex", "namespaceyaze_1_1gui.html#ac0d0508a4ca0643d60c606788b50e17d", null ]
 ];

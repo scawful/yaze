@@ -1,15 +1,5 @@
 var NAVTREEINDEX23 =
 {
-"classyaze_1_1test_1_1Spc700.html#aea262b676a2f72f0b14f0ec0b2c857b5":[11,0,1,6,21,59],
-"classyaze_1_1test_1_1Spc700.html#aea262b676a2f72f0b14f0ec0b2c857b5":[12,0,0,6,19,59],
-"classyaze_1_1test_1_1Spc700.html#aeb42192c0d5a149ebb94d394212f33f9":[11,0,1,6,21,16],
-"classyaze_1_1test_1_1Spc700.html#aeb42192c0d5a149ebb94d394212f33f9":[12,0,0,6,19,16],
-"classyaze_1_1test_1_1Spc700.html#aeb73d338f215b0bb98ee7c601cd06446":[11,0,1,6,21,108],
-"classyaze_1_1test_1_1Spc700.html#aeb73d338f215b0bb98ee7c601cd06446":[12,0,0,6,19,108],
-"classyaze_1_1test_1_1Spc700.html#aec90adcc0c537971e9313f710a4839fd":[11,0,1,6,21,116],
-"classyaze_1_1test_1_1Spc700.html#aec90adcc0c537971e9313f710a4839fd":[12,0,0,6,19,116],
-"classyaze_1_1test_1_1Spc700.html#aec933e6fee8a8562c97a0bb1ede87ea7":[11,0,1,6,21,102],
-"classyaze_1_1test_1_1Spc700.html#aec933e6fee8a8562c97a0bb1ede87ea7":[12,0,0,6,19,102],
 "classyaze_1_1test_1_1Spc700.html#aed9add59ca63a896a9a17582cc15db5d":[11,0,1,6,21,120],
 "classyaze_1_1test_1_1Spc700.html#aed9add59ca63a896a9a17582cc15db5d":[12,0,0,6,19,120],
 "classyaze_1_1test_1_1Spc700.html#aee051911db8330b3d69e90b81d94512a":[11,0,1,6,21,50],
@@ -249,5 +239,15 @@ var NAVTREEINDEX23 =
 "classyaze_1_1zelda3_1_1GameEntity.html#aee3698feddd380f910b96d88539e779e":[11,0,1,8,7,3],
 "classyaze_1_1zelda3_1_1GameEntity.html#aee3698feddd380f910b96d88539e779e":[12,0,0,8,3,3],
 "classyaze_1_1zelda3_1_1Inventory.html":[11,0,1,8,8],
-"classyaze_1_1zelda3_1_1Inventory.html":[12,0,0,8,4]
+"classyaze_1_1zelda3_1_1Inventory.html":[12,0,0,8,4],
+"classyaze_1_1zelda3_1_1Inventory.html#a041fb76da7f9e7cef5e9b6ed0566f55d":[11,0,1,8,8,1],
+"classyaze_1_1zelda3_1_1Inventory.html#a041fb76da7f9e7cef5e9b6ed0566f55d":[12,0,0,8,4,1],
+"classyaze_1_1zelda3_1_1Inventory.html#a06d4a48a808a8789e95c0664a4322003":[11,0,1,8,8,6],
+"classyaze_1_1zelda3_1_1Inventory.html#a06d4a48a808a8789e95c0664a4322003":[12,0,0,8,4,6],
+"classyaze_1_1zelda3_1_1Inventory.html#a403a3654dfc12889b35aa138f0cfa434":[11,0,1,8,8,12],
+"classyaze_1_1zelda3_1_1Inventory.html#a403a3654dfc12889b35aa138f0cfa434":[12,0,0,8,4,12],
+"classyaze_1_1zelda3_1_1Inventory.html#a46f359bdd6ab773784d802a9056f04dc":[11,0,1,8,8,7],
+"classyaze_1_1zelda3_1_1Inventory.html#a46f359bdd6ab773784d802a9056f04dc":[12,0,0,8,4,7],
+"classyaze_1_1zelda3_1_1Inventory.html#a59b725dee97974c99a21c88e610ee5a4":[11,0,1,8,8,2],
+"classyaze_1_1zelda3_1_1Inventory.html#a59b725dee97974c99a21c88e610ee5a4":[12,0,0,8,4,2]
 };

@@ -1,15 +1,5 @@
 var NAVTREEINDEX28 =
 {
-"classyaze_1_1zelda3_1_1TitleScreen.html#ab713699056d6df69b2dc31774b218fa6":[11,0,1,8,31,23],
-"classyaze_1_1zelda3_1_1TitleScreen.html#ab713699056d6df69b2dc31774b218fa6":[12,0,0,8,27,23],
-"classyaze_1_1zelda3_1_1TitleScreen.html#ab72a3f608ec62ac86c554902c87ab235":[11,0,1,8,31,17],
-"classyaze_1_1zelda3_1_1TitleScreen.html#ab72a3f608ec62ac86c554902c87ab235":[12,0,0,8,27,17],
-"classyaze_1_1zelda3_1_1TitleScreen.html#abd3fe0e48be82ce845d585eb110e4cc4":[11,0,1,8,31,47],
-"classyaze_1_1zelda3_1_1TitleScreen.html#abd3fe0e48be82ce845d585eb110e4cc4":[12,0,0,8,27,47],
-"classyaze_1_1zelda3_1_1TitleScreen.html#ac0944b93d7d33a52c5028526fa2129fe":[11,0,1,8,31,0],
-"classyaze_1_1zelda3_1_1TitleScreen.html#ac0944b93d7d33a52c5028526fa2129fe":[12,0,0,8,27,0],
-"classyaze_1_1zelda3_1_1TitleScreen.html#ac6ac8a4c165f0aadca4a8ebe5d68c7bd":[11,0,1,8,31,44],
-"classyaze_1_1zelda3_1_1TitleScreen.html#ac6ac8a4c165f0aadca4a8ebe5d68c7bd":[12,0,0,8,27,44],
 "classyaze_1_1zelda3_1_1TitleScreen.html#acabbdc63a7537921aedd737feecd81ab":[11,0,1,8,31,11],
 "classyaze_1_1zelda3_1_1TitleScreen.html#acabbdc63a7537921aedd737feecd81ab":[12,0,0,8,27,11],
 "classyaze_1_1zelda3_1_1TitleScreen.html#acf8120ec3b54b59e72747a3224c468ce":[11,0,1,8,31,19],
@@ -249,5 +239,15 @@ var NAVTREEINDEX28 =
 "editor_8h_source.html":[13,0,2,0,1,8],
 "editor__manager_8cc.html":[13,0,2,0,1,9],
 "editor__manager_8cc_source.html":[13,0,2,0,1,9],
-"editor__manager_8h.html":[13,0,2,0,1,10]
+"editor__manager_8h.html":[13,0,2,0,1,10],
+"editor__manager_8h.html#adf4d73301961430d50d7edd96f92ce38":[13,0,2,0,1,10,2],
+"editor__manager_8h_source.html":[13,0,2,0,1,10],
+"emu_2snes_8h.html":[13,0,2,0,2,8],
+"emu_2snes_8h_source.html":[13,0,2,0,2,8],
+"emu_8cc.html":[13,0,2,0,2,4],
+"emu_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627":[13,0,2,0,2,4,1],
+"emu_8cc_source.html":[13,0,2,0,2,4],
+"emulator_8cc.html":[13,0,2,0,2,5],
+"emulator_8cc_source.html":[13,0,2,0,2,5],
+"emulator_8h.html":[13,0,2,0,2,6]
 };

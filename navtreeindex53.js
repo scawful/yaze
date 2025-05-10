@@ -1,11 +1,5 @@
 var NAVTREEINDEX53 =
 {
-"structyaze_1_1gui_1_1Color.html#a48502467033d9191c22883f6a0fa9a09":[12,0,0,5,5,0],
-"structyaze_1_1gui_1_1Color.html#ad880cdabdb32ad1d5a0c00d54d4e8e36":[11,0,1,5,7,3],
-"structyaze_1_1gui_1_1Color.html#ad880cdabdb32ad1d5a0c00d54d4e8e36":[12,0,0,5,5,3],
-"structyaze_1_1gui_1_1Color.html#af1b40df4ddc487f6602dd628e6a9e5de":[11,0,1,5,7,1],
-"structyaze_1_1gui_1_1Color.html#af1b40df4ddc487f6602dd628e6a9e5de":[12,0,0,5,5,1],
-"structyaze_1_1gui_1_1Color.html#afff6ec23c27d488cfb0ed0a59b19fde5":[11,0,1,5,7,2],
 "structyaze_1_1gui_1_1Color.html#afff6ec23c27d488cfb0ed0a59b19fde5":[12,0,0,5,5,2],
 "structyaze_1_1gui_1_1DungeonAsset.html":[11,0,1,5,8],
 "structyaze_1_1gui_1_1DungeonAsset.html":[12,0,0,5,6],
@@ -249,5 +243,11 @@ var NAVTREEINDEX53 =
 "structyaze_1_1test_1_1ApuCallbacks.html#a118835693d22ce17120819b07e97e529":[12,0,0,6,0,0],
 "structyaze_1_1test_1_1ApuCallbacks.html#a1580bfb125e5ef3aa4ce7d9ba97e671b":[11,0,1,6,2,2],
 "structyaze_1_1test_1_1ApuCallbacks.html#a1580bfb125e5ef3aa4ce7d9ba97e671b":[12,0,0,6,0,2],
-"structyaze_1_1test_1_1ApuCallbacks.html#ab3fe2128178c59e8b6b272e141dd3f00":[11,0,1,6,2,1]
+"structyaze_1_1test_1_1ApuCallbacks.html#ab3fe2128178c59e8b6b272e141dd3f00":[11,0,1,6,2,1],
+"structyaze_1_1test_1_1ApuCallbacks.html#ab3fe2128178c59e8b6b272e141dd3f00":[12,0,0,6,0,1],
+"structyaze_1_1test_1_1CompressionContext.html":[11,0,1,6,5],
+"structyaze_1_1test_1_1CompressionContext.html":[12,0,0,6,3],
+"structyaze_1_1test_1_1CompressionContext.html#a0980a37280efd9378e4b99430f2c1f88":[11,0,1,6,5,8],
+"structyaze_1_1test_1_1CompressionContext.html#a0980a37280efd9378e4b99430f2c1f88":[12,0,0,6,3,8],
+"structyaze_1_1test_1_1CompressionContext.html#a189481810b400d3f56acebf6533baa1f":[11,0,1,6,5,2]
 };

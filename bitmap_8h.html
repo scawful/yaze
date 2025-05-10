@@ -119,7 +119,6 @@ $(function(){initNavTree('bitmap_8h.html',''); initResizable(true); });
 <div class="textblock"><code>#include &lt;SDL.h&gt;</code><br />
 <code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;span&gt;</code><br />
-<code>#include &lt;string_view&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;<a class="el" href="snes__palette_8h_source.html">app/gfx/snes_palette.h</a>&quot;</code><br />
 </div>
@@ -148,17 +147,13 @@ Typedefs</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
 <tr class="memitem:a2dbad3152b14109b6d797128f9c2c3ba" id="r_a2dbad3152b14109b6d797128f9c2c3ba"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3ba">yaze::gfx::BitmapFormat</a> { <a class="el" href="namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baa5172f5b5640d9778d46551616f815c63">yaze::gfx::kIndexed</a> = 0
-, <a class="el" href="namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baa77b51a5492c5c30ff2e0d363e7076f1b">yaze::gfx::k2bpp</a> = 1
-, <a class="el" href="namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baae51d9a2bf06ec9c737a060897ea2b165">yaze::gfx::k4bpp</a> = 2
-, <a class="el" href="namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baa826db0251f792f5763b484b7abb96fbb">yaze::gfx::k8bpp</a> = 3
+, <a class="el" href="namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baae51d9a2bf06ec9c737a060897ea2b165">yaze::gfx::k4bpp</a> = 1
+, <a class="el" href="namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baa826db0251f792f5763b484b7abb96fbb">yaze::gfx::k8bpp</a> = 2
  }</td></tr>
 <tr class="separator:a2dbad3152b14109b6d797128f9c2c3ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a925eafe7aab166b9775f6ad74a11fea0" id="r_a925eafe7aab166b9775f6ad74a11fea0"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a925eafe7aab166b9775f6ad74a11fea0">yaze::gfx::ExtractTile8Bitmaps</a> (const <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &amp;source_bmp, const <a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette, uint8_t palette_index)</td></tr>
-<tr class="memdesc:a925eafe7aab166b9775f6ad74a11fea0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extract 8x8 tiles from a source bitmap.  <br /></td></tr>
-<tr class="separator:a925eafe7aab166b9775f6ad74a11fea0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a88d0646ee27ae9755070c4e936cb36bf" id="r_a88d0646ee27ae9755070c4e936cb36bf"><td class="memItemLeft" align="right" valign="top">Uint32&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a88d0646ee27ae9755070c4e936cb36bf">yaze::gfx::GetSnesPixelFormat</a> (int format)</td></tr>
 <tr class="memdesc:a88d0646ee27ae9755070c4e936cb36bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the SDL pixel format for a given bitmap format.  <br /></td></tr>
 <tr class="separator:a88d0646ee27ae9755070c4e936cb36bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -167,8 +162,6 @@ Functions</h2></td></tr>
 Variables</h2></td></tr>
 <tr class="memitem:a59d25f0a8a35bda5f27d6b8314970616" id="r_a59d25f0a8a35bda5f27d6b8314970616"><td class="memItemLeft" align="right" valign="top">constexpr Uint32&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a59d25f0a8a35bda5f27d6b8314970616">yaze::gfx::SNES_PIXELFORMAT_INDEXED</a></td></tr>
 <tr class="separator:a59d25f0a8a35bda5f27d6b8314970616"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a91535d87ffc80f2931d88d0292a9afaf" id="r_a91535d87ffc80f2931d88d0292a9afaf"><td class="memItemLeft" align="right" valign="top">constexpr Uint32&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a91535d87ffc80f2931d88d0292a9afaf">yaze::gfx::SNES_PIXELFORMAT_2BPP</a></td></tr>
-<tr class="separator:a91535d87ffc80f2931d88d0292a9afaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a773d8b8d1871caffc5115a1e8a2090bb" id="r_a773d8b8d1871caffc5115a1e8a2090bb"><td class="memItemLeft" align="right" valign="top">constexpr Uint32&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a773d8b8d1871caffc5115a1e8a2090bb">yaze::gfx::SNES_PIXELFORMAT_4BPP</a></td></tr>
 <tr class="separator:a773d8b8d1871caffc5115a1e8a2090bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a526b13f553a3d35517d0538e61e69987" id="r_a526b13f553a3d35517d0538e61e69987"><td class="memItemLeft" align="right" valign="top">constexpr Uint32&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a526b13f553a3d35517d0538e61e69987">yaze::gfx::SNES_PIXELFORMAT_8BPP</a></td></tr>

@@ -1,7 +1,11 @@
 <map id="yaze::gfx::UpdateTilemap" name="yaze::gfx::UpdateTilemap">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,170,38"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a7a4eaa09fc2375d4fc438296ef20ac3d" title=" " alt="" coords="218,5,341,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,23,202,23,202,28,170,28"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a0275436efca736b00dfa4c0ce43e8068" title=" " alt="" coords="389,13,537,38"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="341,23,374,23,374,28,341,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,70,170,96"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="218,13,381,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,67,234,41,235,46,139,72"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Bitmap.html#a7a4eaa09fc2375d4fc438296ef20ac3d" title=" " alt="" coords="238,63,361,103"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="170,80,222,80,222,86,170,86"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title=" " alt="" coords="231,128,368,169"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="132,94,217,120,216,125,131,99"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1Renderer.html#ac8762d7ca064094faf9603be575caf07" title=" " alt="" coords="429,5,565,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="381,23,413,23,413,28,381,28"/>
 </map>

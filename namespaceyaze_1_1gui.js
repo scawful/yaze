@@ -78,6 +78,7 @@ var namespaceyaze_1_1gui =
     [ "DrawMenu", "namespaceyaze_1_1gui.html#a627566d8500f099dabff60322d3c187e", null ],
     [ "OpenUrl", "namespaceyaze_1_1gui.html#a7b898e6c361ce2d367d1e1570f8f6c03", null ],
     [ "RenderLayout", "namespaceyaze_1_1gui.html#a2fab6c87cc29a26e4b09632253507131", null ],
+    [ "MemoryEditorPopup", "namespaceyaze_1_1gui.html#a5d17b111857a66c28a91fc117027a574", null ],
     [ "LoadTheme", "namespaceyaze_1_1gui.html#a216f2984ca7cc50dd872c9605352c95e", null ],
     [ "SaveTheme", "namespaceyaze_1_1gui.html#a7f5085854df78a52ad2598b0448850ed", null ],
     [ "ApplyTheme", "namespaceyaze_1_1gui.html#ae9a47f0d85166d6363717c61056b83a3", null ],

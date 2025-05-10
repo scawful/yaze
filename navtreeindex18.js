@@ -1,15 +1,5 @@
 var NAVTREEINDEX18 =
 {
-"classyaze_1_1gui_1_1Canvas.html#a49545e3d19ee62eaa59f0bdd7495d719":[11,0,1,5,6,43],
-"classyaze_1_1gui_1_1Canvas.html#a49545e3d19ee62eaa59f0bdd7495d719":[12,0,0,5,4,43],
-"classyaze_1_1gui_1_1Canvas.html#a4b04fb517b545c49c5cb538439d316bb":[11,0,1,5,6,20],
-"classyaze_1_1gui_1_1Canvas.html#a4b04fb517b545c49c5cb538439d316bb":[12,0,0,5,4,20],
-"classyaze_1_1gui_1_1Canvas.html#a4ce0ed62d0a344360c162936dfb1dcaa":[11,0,1,5,6,4],
-"classyaze_1_1gui_1_1Canvas.html#a4ce0ed62d0a344360c162936dfb1dcaa":[12,0,0,5,4,4],
-"classyaze_1_1gui_1_1Canvas.html#a4e859171161c1ef5364b1f13238400c9":[11,0,1,5,6,11],
-"classyaze_1_1gui_1_1Canvas.html#a4e859171161c1ef5364b1f13238400c9":[12,0,0,5,4,11],
-"classyaze_1_1gui_1_1Canvas.html#a52f5cb5a36ba5cf315dbfa464401ce5e":[11,0,1,5,6,69],
-"classyaze_1_1gui_1_1Canvas.html#a52f5cb5a36ba5cf315dbfa464401ce5e":[12,0,0,5,4,69],
 "classyaze_1_1gui_1_1Canvas.html#a532038da57a64fa8f26c0a14bba26b11":[11,0,1,5,6,40],
 "classyaze_1_1gui_1_1Canvas.html#a532038da57a64fa8f26c0a14bba26b11":[12,0,0,5,4,40],
 "classyaze_1_1gui_1_1Canvas.html#a540be39e0e87048add648ae8ee47a09f":[11,0,1,5,6,60],
@@ -249,5 +239,15 @@ var NAVTREEINDEX18 =
 "classyaze_1_1test_1_1Cpu.html#a0c304f18bca8329701edc9a15f1de52e":[11,0,1,6,7,69],
 "classyaze_1_1test_1_1Cpu.html#a0c304f18bca8329701edc9a15f1de52e":[12,0,0,6,5,69],
 "classyaze_1_1test_1_1Cpu.html#a0d7557981c654477aa034e1e44344974":[11,0,1,6,7,115],
-"classyaze_1_1test_1_1Cpu.html#a0d7557981c654477aa034e1e44344974":[12,0,0,6,5,115]
+"classyaze_1_1test_1_1Cpu.html#a0d7557981c654477aa034e1e44344974":[12,0,0,6,5,115],
+"classyaze_1_1test_1_1Cpu.html#a0e4a98504b26d654fd7223f1e41cc9b1":[11,0,1,6,7,79],
+"classyaze_1_1test_1_1Cpu.html#a0e4a98504b26d654fd7223f1e41cc9b1":[12,0,0,6,5,79],
+"classyaze_1_1test_1_1Cpu.html#a102883f5080f5082e0054d7bd7d78b5e":[11,0,1,6,7,97],
+"classyaze_1_1test_1_1Cpu.html#a102883f5080f5082e0054d7bd7d78b5e":[12,0,0,6,5,97],
+"classyaze_1_1test_1_1Cpu.html#a1147c955ec591550cf3ef6bed317fcb0":[11,0,1,6,7,28],
+"classyaze_1_1test_1_1Cpu.html#a1147c955ec591550cf3ef6bed317fcb0":[12,0,0,6,5,28],
+"classyaze_1_1test_1_1Cpu.html#a1537b95dc0121cb4ef31ab12576b0ee7":[11,0,1,6,7,65],
+"classyaze_1_1test_1_1Cpu.html#a1537b95dc0121cb4ef31ab12576b0ee7":[12,0,0,6,5,65],
+"classyaze_1_1test_1_1Cpu.html#a16fe87970c5888a2a21a04ec83784701":[11,0,1,6,7,116],
+"classyaze_1_1test_1_1Cpu.html#a16fe87970c5888a2a21a04ec83784701":[12,0,0,6,5,116]
 };

@@ -1,11 +1,5 @@
 var NAVTREEINDEX46 =
 {
-"settings__editor_8h_source.html":[13,0,2,0,1,7,8],
-"shortcut__manager_8cc.html":[13,0,2,0,1,7,9],
-"shortcut__manager_8cc_source.html":[13,0,2,0,1,7,9],
-"shortcut__manager_8h.html":[13,0,2,0,1,7,10],
-"shortcut__manager_8h_source.html":[13,0,2,0,1,7,10],
-"snes_8cc.html":[13,0,2,0,2,7],
 "snes_8cc_source.html":[13,0,2,0,2,7],
 "snes_8h.html":[13,0,2,0,9],
 "snes_8h_source.html":[13,0,2,0,9],
@@ -249,5 +243,11 @@ var NAVTREEINDEX46 =
 "structyaze_1_1core_1_1FeatureFlags_1_1Flags_1_1Overworld.html#a3dc714d04ccda9ea69cb7fb67d21df1b":[12,0,0,1,1,0,0,1],
 "structyaze_1_1core_1_1FeatureFlags_1_1Flags_1_1Overworld.html#aba2f92dc3f2094b1e319892d4166ef85":[11,0,1,1,3,0,0,6],
 "structyaze_1_1core_1_1FeatureFlags_1_1Flags_1_1Overworld.html#aba2f92dc3f2094b1e319892d4166ef85":[12,0,0,1,1,0,0,6],
-"structyaze_1_1core_1_1FeatureFlags_1_1Flags_1_1Overworld.html#acd6cf1f6ea1cbae92b37599f037646cc":[11,0,1,1,3,0,0,2]
+"structyaze_1_1core_1_1FeatureFlags_1_1Flags_1_1Overworld.html#acd6cf1f6ea1cbae92b37599f037646cc":[11,0,1,1,3,0,0,2],
+"structyaze_1_1core_1_1FeatureFlags_1_1Flags_1_1Overworld.html#acd6cf1f6ea1cbae92b37599f037646cc":[12,0,0,1,1,0,0,2],
+"structyaze_1_1core_1_1FlagsMenu.html":[11,0,1,1,5],
+"structyaze_1_1core_1_1FlagsMenu.html":[12,0,0,1,3],
+"structyaze_1_1core_1_1FlagsMenu.html#aa33d2f748044e1f59d2ce0936cd994ab":[11,0,1,1,5,0],
+"structyaze_1_1core_1_1FlagsMenu.html#aa33d2f748044e1f59d2ce0936cd994ab":[12,0,0,1,3,0],
+"structyaze_1_1core_1_1FlagsMenu.html#abc68206a2a17b5a9081d776338b5af1d":[11,0,1,1,5,1]
 };

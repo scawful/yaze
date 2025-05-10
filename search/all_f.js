@@ -9,7 +9,7 @@ var searchData=
   ['feedbackvolume_6',['feedbackVolume',['../classyaze_1_1emu_1_1Dsp.html#a2eff19774c6cdc0c4836076428942897',1,'yaze::emu::Dsp']]],
   ['fetchlargemaps_7',['FetchLargeMaps',['../classyaze_1_1zelda3_1_1Overworld.html#a0b91d3efb0ae226fe000ff953882ae0a',1,'yaze::zelda3::Overworld']]],
   ['fetchsubtypeinfo_8',['FetchSubtypeInfo',['../namespaceyaze_1_1zelda3.html#abfbe2444d2fac0e5cce5c8368a329835',1,'yaze::zelda3']]],
-  ['fetchtiledatafromgraphicsbuffer_9',['FetchTileDataFromGraphicsBuffer',['../classyaze_1_1gfx_1_1Tilesheet.html#a55c4b2160f2e98e77586f57eadadb9db',1,'yaze::gfx::Tilesheet']]],
+  ['fetchtiledatafromgraphicsbuffer_9',['FetchTileDataFromGraphicsBuffer',['../classyaze_1_1gfx_1_1Tilesheet.html#a55c4b2160f2e98e77586f57eadadb9db',1,'yaze::gfx::Tilesheet::FetchTileDataFromGraphicsBuffer()'],['../namespaceyaze_1_1gfx_1_1anonymous__namespace_02tilemap_8cc_03.html#acad0ad87eba819101a6df19f912a3fb3',1,'yaze::gfx::anonymous_namespace{tilemap.cc}::FetchTileDataFromGraphicsBuffer()']]],
   ['fil1_10',['fil1',['../namespaceyaze_1_1zelda3_1_1music.html#a14cb98e5f9eacb05f5e56c05cab7ba8c',1,'yaze::zelda3::music']]],
   ['fil2_11',['fil2',['../namespaceyaze_1_1zelda3_1_1music.html#a763e28f8ac2058f8fca36a359e5751ee',1,'yaze::zelda3::music']]],
   ['fil3_12',['fil3',['../namespaceyaze_1_1zelda3_1_1music.html#a055b36c6d1e33bf6dd434636e811b7f1',1,'yaze::zelda3::music']]],

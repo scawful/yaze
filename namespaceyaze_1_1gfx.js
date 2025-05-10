@@ -1,5 +1,11 @@
 var namespaceyaze_1_1gfx =
 [
+    [ "anonymous_namespace{tilemap.cc}", "namespaceyaze_1_1gfx_1_1anonymous__namespace_02tilemap_8cc_03.html", [
+      [ "FetchTileDataFromGraphicsBuffer", "namespaceyaze_1_1gfx_1_1anonymous__namespace_02tilemap_8cc_03.html#acad0ad87eba819101a6df19f912a3fb3", null ],
+      [ "MirrorTileDataVertically", "namespaceyaze_1_1gfx_1_1anonymous__namespace_02tilemap_8cc_03.html#aa54837539667fc48e7f09f3f23971240", null ],
+      [ "MirrorTileDataHorizontally", "namespaceyaze_1_1gfx_1_1anonymous__namespace_02tilemap_8cc_03.html#ae2e81f1fdd4afb1968f8fb7de6ac74fa", null ],
+      [ "ComposeAndPlaceTilePart", "namespaceyaze_1_1gfx_1_1anonymous__namespace_02tilemap_8cc_03.html#a508f2b61283381bc576c808d12a96454", null ]
+    ] ],
     [ "lc_lz2", "namespaceyaze_1_1gfx_1_1lc__lz2.html", "namespaceyaze_1_1gfx_1_1lc__lz2" ],
     [ "palette_group_internal", "namespaceyaze_1_1gfx_1_1palette__group__internal.html", [
       [ "LoadOverworldMainPalettes", "namespaceyaze_1_1gfx_1_1palette__group__internal.html#a3ff7a51ca45527d27ec3e38abd2b9985", null ],
@@ -40,7 +46,6 @@ var namespaceyaze_1_1gfx =
     [ "BitmapTable", "namespaceyaze_1_1gfx.html#ac70b35914f079891436c2442779b9113", null ],
     [ "BitmapFormat", "namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3ba", [
       [ "kIndexed", "namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baa5172f5b5640d9778d46551616f815c63", null ],
-      [ "k2bpp", "namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baa77b51a5492c5c30ff2e0d363e7076f1b", null ],
       [ "k4bpp", "namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baae51d9a2bf06ec9c737a060897ea2b165", null ],
       [ "k8bpp", "namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baa826db0251f792f5763b484b7abb96fbb", null ]
     ] ],
@@ -65,7 +70,6 @@ var namespaceyaze_1_1gfx =
       [ "Tile16", "namespaceyaze_1_1gfx.html#a54c082e1b81bacbccd15286f5e07a8b0a0136ed56bdc945f798e3b2ff271ba011", null ]
     ] ],
     [ "GetSnesPixelFormat", "namespaceyaze_1_1gfx.html#a88d0646ee27ae9755070c4e936cb36bf", null ],
-    [ "ExtractTile8Bitmaps", "namespaceyaze_1_1gfx.html#a925eafe7aab166b9775f6ad74a11fea0", null ],
     [ "HyruleMagicCompress", "namespaceyaze_1_1gfx.html#ac740e607dcc76bf2c18076778ee5b4ef", null ],
     [ "HyruleMagicDecompress", "namespaceyaze_1_1gfx.html#a21be514360ade54dad0e52c660a3ced6", null ],
     [ "FindMetastamp", "namespaceyaze_1_1gfx.html#a7df1f6daec091cef8cf2cfef3a0c7aeb", null ],
@@ -102,10 +106,10 @@ var namespaceyaze_1_1gfx =
     [ "CreateTilemap", "namespaceyaze_1_1gfx.html#a2064ed9f541dd72deb72f78523e006c4", null ],
     [ "UpdateTilemap", "namespaceyaze_1_1gfx.html#a2ceb066551815eb3f3473a316fe8827d", null ],
     [ "RenderTile", "namespaceyaze_1_1gfx.html#add7dbc57103fdc10e6abf710863e940d", null ],
+    [ "ComposeTile16", "namespaceyaze_1_1gfx.html#af64c2db0348f9d69a13b2cd77ef9ac1d", null ],
     [ "GetTilemapData", "namespaceyaze_1_1gfx.html#a85cdb560638714d7afc71b20b1b8526c", null ],
     [ "CreateTilesheetFromGraphicsBuffer", "namespaceyaze_1_1gfx.html#a3f767446d2678762961318489ff37450", null ],
     [ "SNES_PIXELFORMAT_INDEXED", "namespaceyaze_1_1gfx.html#a59d25f0a8a35bda5f27d6b8314970616", null ],
-    [ "SNES_PIXELFORMAT_2BPP", "namespaceyaze_1_1gfx.html#a91535d87ffc80f2931d88d0292a9afaf", null ],
     [ "SNES_PIXELFORMAT_4BPP", "namespaceyaze_1_1gfx.html#a773d8b8d1871caffc5115a1e8a2090bb", null ],
     [ "SNES_PIXELFORMAT_8BPP", "namespaceyaze_1_1gfx.html#a526b13f553a3d35517d0538e61e69987", null ],
     [ "kMatchedBytes", "namespaceyaze_1_1gfx.html#a92d603df30bc135d4a2c89595dc5dcc2", null ],

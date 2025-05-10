@@ -1,11 +1,5 @@
 var NAVTREEINDEX45 =
 {
-"namespaceyaze_1_1zelda3.html#a9490ecf2dca104bfd1d4d40b44f5e747a4404a122c1d7b78cf18b6265c8e0ee59":[11,0,1,8,38,2],
-"namespaceyaze_1_1zelda3.html#a9490ecf2dca104bfd1d4d40b44f5e747ad57c678319b4dbc801c759910f417fdc":[11,0,1,8,38,6],
-"namespaceyaze_1_1zelda3.html#a9490ecf2dca104bfd1d4d40b44f5e747ae9536c38b4bb6b601bab83bfc2bed29b":[11,0,1,8,38,4],
-"namespaceyaze_1_1zelda3.html#a96678ef2cc89582d5d8a7f2b74c5f69b":[11,0,1,8,33],
-"namespaceyaze_1_1zelda3.html#a9674f96015da115df6610300a744f6f1":[11,0,1,8,196],
-"namespaceyaze_1_1zelda3.html#a9788f71fa31f76d752e019285a1ec5cf":[11,0,1,8,61],
 "namespaceyaze_1_1zelda3.html#a983a46759f61bc10c22666455013d166":[11,0,1,8,174],
 "namespaceyaze_1_1zelda3.html#a984626c3994bd2b649c3b69438171e8d":[11,0,1,8,255],
 "namespaceyaze_1_1zelda3.html#a989c343a868d7dadaebe677d108a9e7a":[11,0,1,8,224],
@@ -249,5 +243,11 @@ var NAVTREEINDEX45 =
 "sdl__deleter_8h_source.html":[13,0,2,0,0,0,14],
 "settings__editor_8cc.html":[13,0,2,0,1,7,7],
 "settings__editor_8cc_source.html":[13,0,2,0,1,7,7],
-"settings__editor_8h.html":[13,0,2,0,1,7,8]
+"settings__editor_8h.html":[13,0,2,0,1,7,8],
+"settings__editor_8h_source.html":[13,0,2,0,1,7,8],
+"shortcut__manager_8cc.html":[13,0,2,0,1,7,9],
+"shortcut__manager_8cc_source.html":[13,0,2,0,1,7,9],
+"shortcut__manager_8h.html":[13,0,2,0,1,7,10],
+"shortcut__manager_8h_source.html":[13,0,2,0,1,7,10],
+"snes_8cc.html":[13,0,2,0,2,7]
 };

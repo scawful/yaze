@@ -28,6 +28,7 @@ var input_8h =
     [ "yaze::gui::DrawMenu", "namespaceyaze_1_1gui.html#a627566d8500f099dabff60322d3c187e", null ],
     [ "yaze::gui::OpenUrl", "namespaceyaze_1_1gui.html#a7b898e6c361ce2d367d1e1570f8f6c03", null ],
     [ "yaze::gui::RenderLayout", "namespaceyaze_1_1gui.html#a2fab6c87cc29a26e4b09632253507131", null ],
+    [ "yaze::gui::MemoryEditorPopup", "namespaceyaze_1_1gui.html#a5d17b111857a66c28a91fc117027a574", null ],
     [ "yaze::gui::kDefaultModalSize", "namespaceyaze_1_1gui.html#ab655498d16f5ecf417dddcc70faed138", null ],
     [ "yaze::gui::kZeroPos", "namespaceyaze_1_1gui.html#ab500bfa55478470e1f7cd45806c3728e", null ],
     [ "yaze::gui::kSeparator", "namespaceyaze_1_1gui.html#a01a69c8df4f748999159587dd7124dec", null ]

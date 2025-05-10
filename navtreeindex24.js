@@ -1,15 +1,5 @@
 var NAVTREEINDEX24 =
 {
-"classyaze_1_1zelda3_1_1Inventory.html#a041fb76da7f9e7cef5e9b6ed0566f55d":[11,0,1,8,8,1],
-"classyaze_1_1zelda3_1_1Inventory.html#a041fb76da7f9e7cef5e9b6ed0566f55d":[12,0,0,8,4,1],
-"classyaze_1_1zelda3_1_1Inventory.html#a06d4a48a808a8789e95c0664a4322003":[11,0,1,8,8,6],
-"classyaze_1_1zelda3_1_1Inventory.html#a06d4a48a808a8789e95c0664a4322003":[12,0,0,8,4,6],
-"classyaze_1_1zelda3_1_1Inventory.html#a403a3654dfc12889b35aa138f0cfa434":[11,0,1,8,8,12],
-"classyaze_1_1zelda3_1_1Inventory.html#a403a3654dfc12889b35aa138f0cfa434":[12,0,0,8,4,12],
-"classyaze_1_1zelda3_1_1Inventory.html#a46f359bdd6ab773784d802a9056f04dc":[11,0,1,8,8,7],
-"classyaze_1_1zelda3_1_1Inventory.html#a46f359bdd6ab773784d802a9056f04dc":[12,0,0,8,4,7],
-"classyaze_1_1zelda3_1_1Inventory.html#a59b725dee97974c99a21c88e610ee5a4":[11,0,1,8,8,2],
-"classyaze_1_1zelda3_1_1Inventory.html#a59b725dee97974c99a21c88e610ee5a4":[12,0,0,8,4,2],
 "classyaze_1_1zelda3_1_1Inventory.html#a6ca0dba09a0418fcc218263512b90d8d":[11,0,1,8,8,11],
 "classyaze_1_1zelda3_1_1Inventory.html#a6ca0dba09a0418fcc218263512b90d8d":[12,0,0,8,4,11],
 "classyaze_1_1zelda3_1_1Inventory.html#a73f2e4d4f78052ad853866b488264af8":[11,0,1,8,8,10],
@@ -249,5 +239,15 @@ var NAVTREEINDEX24 =
 "classyaze_1_1zelda3_1_1OverworldExit.html#a12bcb9d33b5a173a2e73ba6850e55835":[11,0,1,8,13,21],
 "classyaze_1_1zelda3_1_1OverworldExit.html#a12bcb9d33b5a173a2e73ba6850e55835":[12,0,0,8,9,21],
 "classyaze_1_1zelda3_1_1OverworldExit.html#a2348d6630eb77d24c38830371fae0342":[11,0,1,8,13,9],
-"classyaze_1_1zelda3_1_1OverworldExit.html#a2348d6630eb77d24c38830371fae0342":[12,0,0,8,9,9]
+"classyaze_1_1zelda3_1_1OverworldExit.html#a2348d6630eb77d24c38830371fae0342":[12,0,0,8,9,9],
+"classyaze_1_1zelda3_1_1OverworldExit.html#a44cd62616c911c64b984a763d6fe36fc":[11,0,1,8,13,15],
+"classyaze_1_1zelda3_1_1OverworldExit.html#a44cd62616c911c64b984a763d6fe36fc":[12,0,0,8,9,15],
+"classyaze_1_1zelda3_1_1OverworldExit.html#a4c5a03a86f3c3fbc332cbfcefac40210":[11,0,1,8,13,4],
+"classyaze_1_1zelda3_1_1OverworldExit.html#a4c5a03a86f3c3fbc332cbfcefac40210":[12,0,0,8,9,4],
+"classyaze_1_1zelda3_1_1OverworldExit.html#a4f0be53169e64f8dc6b9c7d81bd74283":[11,0,1,8,13,2],
+"classyaze_1_1zelda3_1_1OverworldExit.html#a4f0be53169e64f8dc6b9c7d81bd74283":[12,0,0,8,9,2],
+"classyaze_1_1zelda3_1_1OverworldExit.html#a5b394da0b28d133a1c868d96c43c1eab":[11,0,1,8,13,16],
+"classyaze_1_1zelda3_1_1OverworldExit.html#a5b394da0b28d133a1c868d96c43c1eab":[12,0,0,8,9,16],
+"classyaze_1_1zelda3_1_1OverworldExit.html#a738b8a450ae31a96753239dea2263a29":[11,0,1,8,13,19],
+"classyaze_1_1zelda3_1_1OverworldExit.html#a738b8a450ae31a96753239dea2263a29":[12,0,0,8,9,19]
 };

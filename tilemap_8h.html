@@ -114,21 +114,22 @@ $(function(){initNavTree('tilemap_8h.html',''); initResizable(true); });
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="bitmap_8h_source.html">app/gfx/bitmap.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="snes__tile_8h_source.html">app/gfx/snes_tile.h</a>&quot;</code><br />
 <code>#include &quot;absl/container/flat_hash_map.h&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for tilemap.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="tilemap_8h__incl.png" border="0" usemap="#asrc_2app_2gfx_2tilemap_8h" alt=""/></div>
 <map name="asrc_2app_2gfx_2tilemap_8h" id="asrc_2app_2gfx_2tilemap_8h">
-<area shape="rect" title=" " alt="" coords="77,5,218,31"/>
-<area shape="rect" href="bitmap_8h.html" title=" " alt="" coords="17,86,134,112"/>
-<area shape="poly" title=" " alt="" coords="138,33,98,77,94,73,134,30"/>
-<area shape="rect" title=" " alt="" coords="158,79,281,120"/>
-<area shape="poly" title=" " alt="" coords="160,30,193,66,189,69,156,33"/>
-<area shape="rect" title=" " alt="" coords="5,168,63,193"/>
-<area shape="poly" title=" " alt="" coords="71,114,50,155,45,152,67,111"/>
-<area shape="rect" title=" " alt="" coords="86,168,147,193"/>
-<area shape="poly" title=" " alt="" coords="84,111,106,152,101,155,79,114"/>
+<area shape="rect" title=" " alt="" coords="140,5,281,31"/>
+<area shape="rect" href="bitmap_8h.html" title=" " alt="" coords="5,86,122,112"/>
+<area shape="poly" title=" " alt="" coords="189,34,101,81,98,76,187,29"/>
+<area shape="rect" href="snes__tile_8h.html" title=" " alt="" coords="146,86,275,112"/>
+<area shape="poly" title=" " alt="" coords="213,31,213,71,208,71,208,31"/>
+<area shape="rect" title=" " alt="" coords="299,79,422,120"/>
+<area shape="poly" title=" " alt="" coords="234,29,311,69,309,74,232,34"/>
+<area shape="rect" title=" " alt="" coords="35,168,92,193"/>
+<area shape="poly" title=" " alt="" coords="66,113,66,152,61,152,61,113"/>
 </map>
 </div>
 </div>
@@ -158,6 +159,8 @@ Functions</h2></td></tr>
 <tr class="separator:a2ceb066551815eb3f3473a316fe8827d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:add7dbc57103fdc10e6abf710863e940d" id="r_add7dbc57103fdc10e6abf710863e940d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#add7dbc57103fdc10e6abf710863e940d">yaze::gfx::RenderTile</a> (<a class="el" href="structyaze_1_1gfx_1_1Tilemap.html">Tilemap</a> &amp;tilemap, int tile_id)</td></tr>
 <tr class="separator:add7dbc57103fdc10e6abf710863e940d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af64c2db0348f9d69a13b2cd77ef9ac1d" id="r_af64c2db0348f9d69a13b2cd77ef9ac1d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#af64c2db0348f9d69a13b2cd77ef9ac1d">yaze::gfx::ComposeTile16</a> (<a class="el" href="structyaze_1_1gfx_1_1Tilemap.html">Tilemap</a> &amp;tilemap, const std::vector&lt; uint8_t &gt; &amp;data, const <a class="el" href="classyaze_1_1gfx_1_1TileInfo.html">TileInfo</a> &amp;top_left, const <a class="el" href="classyaze_1_1gfx_1_1TileInfo.html">TileInfo</a> &amp;top_right, const <a class="el" href="classyaze_1_1gfx_1_1TileInfo.html">TileInfo</a> &amp;bottom_left, const <a class="el" href="classyaze_1_1gfx_1_1TileInfo.html">TileInfo</a> &amp;bottom_right, int sheet_offset)</td></tr>
+<tr class="separator:af64c2db0348f9d69a13b2cd77ef9ac1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a85cdb560638714d7afc71b20b1b8526c" id="r_a85cdb560638714d7afc71b20b1b8526c"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a85cdb560638714d7afc71b20b1b8526c">yaze::gfx::GetTilemapData</a> (<a class="el" href="structyaze_1_1gfx_1_1Tilemap.html">Tilemap</a> &amp;tilemap, int tile_id)</td></tr>
 <tr class="separator:a85cdb560638714d7afc71b20b1b8526c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>

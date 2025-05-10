@@ -40,8 +40,6 @@ var classyaze_1_1gui_1_1Bitmap =
     [ "data_size_", "classyaze_1_1gui_1_1Bitmap.html#a6eadee134a9beb98c8aabfa809d92958", null ],
     [ "active_", "classyaze_1_1gui_1_1Bitmap.html#add7e842114b9468d5debcee8e5e949d3", null ],
     [ "modified_", "classyaze_1_1gui_1_1Bitmap.html#a9b696086f5035d04376b82123b1915ce", null ],
-    [ "texture_in_use_", "classyaze_1_1gui_1_1Bitmap.html#ad739c70000cf092f4d2902aab525535a", null ],
-    [ "last_used_time_", "classyaze_1_1gui_1_1Bitmap.html#a3924875c3821096af0a26c81bdc7aca1", null ],
     [ "texture_pixels", "classyaze_1_1gui_1_1Bitmap.html#ac4324517f92d404ea71c2bc7b9eb8036", null ],
     [ "pixel_data_", "classyaze_1_1gui_1_1Bitmap.html#a412edae11ee0612cad4a6691211df16c", null ],
     [ "palette_", "classyaze_1_1gui_1_1Bitmap.html#ae3d7a292bdf5c64aa11b34efa13fa38c", null ],
