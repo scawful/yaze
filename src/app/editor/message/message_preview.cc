@@ -32,14 +32,16 @@ void MessagePreview::DrawTileToPreview(int x, int y, int srcx, int srcy,
   }
 }
 
-void MessagePreview::DrawStringToPreview(std::string str) {
-  for (const auto c : str) {
+void MessagePreview::DrawStringToPreview(const std::string& str) {
+  for (const auto& c : str) {
     DrawCharacterToPreview(c);
   }
 }
 
 void MessagePreview::DrawCharacterToPreview(char c) {
-  DrawCharacterToPreview(FindMatchingCharacter(c));
+  std::vector<uint8_t> text;
+  text.push_back(FindMatchingCharacter(c));
+  DrawCharacterToPreview(text);
 }
 
 void MessagePreview::DrawCharacterToPreview(const std::vector<uint8_t>& text) {
@@ -87,7 +89,8 @@ void MessagePreview::DrawCharacterToPreview(const std::vector<uint8_t>& text) {
     } else if (value == 0x6A) {
       // Includes parentheses to be longer, since player names can be up to 6
       // characters.
-      DrawStringToPreview("(NAME)");
+      const std::string name = "(NAME)";
+      DrawStringToPreview(name);
     } else if (value >= DICTOFF && value < (DICTOFF + 97)) {
       int pos = value - DICTOFF;
       if (pos < 0 || pos >= all_dictionaries_.size()) {

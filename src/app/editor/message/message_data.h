@@ -83,8 +83,8 @@ constexpr uint8_t kLine3 = 0x76;
 std::vector<DictionaryEntry> BuildDictionaryEntries(Rom *rom);
 std::string ReplaceAllDictionaryWords(std::string str,
                                       std::vector<DictionaryEntry> dictionary);
-DictionaryEntry FindRealDictionaryEntry(uint8_t value,
-                                        std::vector<DictionaryEntry> dictionary);
+DictionaryEntry FindRealDictionaryEntry(
+    uint8_t value, std::vector<DictionaryEntry> dictionary);
 
 // Inserted into commands to protect them from dictionary replacements.
 const std::string CHEESE = "\uBEBE";
@@ -117,10 +117,6 @@ struct MessageData {
     Data = other.Data;
     DataParsed = other.DataParsed;
     ContentsParsed = other.ContentsParsed;
-  }
-
-  std::string ToString() const {
-    return absl::StrFormat("%0X - %s", ID, ContentsParsed);
   }
 
   std::string OptimizeMessageForDictionary(
@@ -195,10 +191,6 @@ struct TextElement {
     } else {
       return absl::StrFormat("[%s]", Token);
     }
-  }
-
-  std::string ToString() const {
-    return absl::StrFormat("%s %s", GenericToken, Description);
   }
 
   std::smatch MatchMe(std::string dfrag) const {

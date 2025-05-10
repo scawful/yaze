@@ -20,7 +20,7 @@ struct MessagePreview {
   void DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
                          int sizex = 1, int sizey = 1);
 
-  void DrawStringToPreview(std::string str);
+  void DrawStringToPreview(const std::string& str);
   void DrawCharacterToPreview(char c);
   void DrawCharacterToPreview(const std::vector<uint8_t>& text);
 

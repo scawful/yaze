@@ -143,7 +143,10 @@ void MessageEditor::DrawCurrentMessage() {
   Button(absl::StrCat("Message ", current_message_.ID).c_str());
   if (InputTextMultiline("##MessageEditor", &message_text_box_.text,
                          ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-    current_message_.Data = ParseMessageToData(message_text_box_.text);
+    std::string temp = message_text_box_.text;
+    // Strip newline characters.
+    temp.erase(std::remove(temp.begin(), temp.end(), '\n'), temp.end());
+    current_message_.Data = ParseMessageToData(temp);
     DrawMessagePreview();
   }
   Separator();
@@ -159,7 +162,7 @@ void MessageEditor::DrawCurrentMessage() {
     ImGui::EndPopup();
   }
   gui::BeginPadding(1);
-  BeginChild("CurrentGfxFont", ImVec2(344, 0), true,
+  BeginChild("CurrentGfxFont", ImVec2(348, 0), true,
              ImGuiWindowFlags_NoScrollWithMouse);
   current_font_gfx16_canvas_.DrawBackground();
   gui::EndPadding();
@@ -202,13 +205,14 @@ void MessageEditor::DrawFontAtlas() {
 void MessageEditor::DrawExpandedMessageSettings() {
   ImGui::BeginChild("##ExpandedMessageSettings", ImVec2(0, 100), true,
                     ImGuiWindowFlags_AlwaysVerticalScrollbar);
-  // Input for the address of the expanded messages
-  ImGui::InputText("Address", &expanded_message_address_,
-                   ImGuiInputTextFlags_CharsHexadecimal);
-
+  ImGui::Text("Expanded Messages");
+  static std::string expanded_message_path = "";
   if (ImGui::Button("Load Expanded Message")) {
-    // Load the expanded message from the address.
-    // TODO: Implement this.
+    expanded_message_path = core::FileDialogWrapper::ShowOpenFileDialog();
+    if (!expanded_message_path.empty()) {
+      // Load the expanded message from the path.
+      // TODO: Implement this.
+    }
   }
   EndChild();
 }
@@ -217,9 +221,12 @@ void MessageEditor::DrawTextCommands() {
   ImGui::BeginChild("##TextCommands",
                     ImVec2(0, ImGui::GetWindowContentRegionMax().y / 3), true,
                     ImGuiWindowFlags_AlwaysVerticalScrollbar);
+  static uint8_t command_parameter = 0;
+  gui::InputHexByte("Command Parameter", &command_parameter);
   for (const auto& text_element : TextCommands) {
     if (Button(text_element.GenericToken.c_str())) {
-      message_text_box_.text.append(text_element.GenericToken);
+      message_text_box_.text.append(
+          text_element.GetParamToken(command_parameter));
     }
     SameLine();
     TextWrapped("%s", text_element.Description.c_str());

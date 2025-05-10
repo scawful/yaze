@@ -62,16 +62,14 @@ class MessageEditor : public Editor {
 
  private:
   Rom* rom_;
-  bool data_loaded_ = false;
   bool case_sensitive_ = false;
   bool match_whole_word_ = false;
-
-  std::string expanded_message_address_ = "";
   std::string search_text_ = "";
 
   std::array<uint8_t, 0x4000> raw_font_gfx_data_;
   std::vector<std::string> parsed_messages_;
   std::vector<MessageData> list_of_texts_;
+  std::vector<MessageData> expanded_messages_;
 
   MessageData current_message_;
   MessagePreview message_preview_;
