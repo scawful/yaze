@@ -13,13 +13,14 @@ var searchData=
   ['findmatchingspecial_10',['FindMatchingSpecial',['../namespaceyaze_1_1editor.html#a95bb92d26041cf1e3a0b332290bdea54',1,'yaze::editor']]],
   ['findmetastamp_11',['FindMetastamp',['../namespaceyaze_1_1gfx.html#a7df1f6daec091cef8cf2cfef3a0c7aeb',1,'yaze::gfx']]],
   ['findnextword_12',['FindNextWord',['../classTextEditor.html#a53bf9593d3a939c1527880fd9056783e',1,'TextEditor']]],
-  ['findwordend_13',['FindWordEnd',['../classTextEditor.html#a8171a76adf4e1fc6a699f60b60eb7902',1,'TextEditor']]],
-  ['findwordstart_14',['FindWordStart',['../classTextEditor.html#a5111c6334e494708b38cabd576f42b71',1,'TextEditor']]],
-  ['flag_15',['Flag',['../classyaze_1_1util_1_1Flag.html#a18a07395b749058fe7c7d5b3ab0b9a87',1,'yaze::util::Flag']]],
-  ['flagparser_16',['FlagParser',['../classyaze_1_1util_1_1FlagParser.html#ab39a3030c2b11cf49a6ae7a796079b8a',1,'yaze::util::FlagParser']]],
-  ['flagstobyte_17',['FlagsToByte',['../classyaze_1_1emu_1_1Spc700.html#a6ba480f69b668f222134b5dd71f619a3',1,'yaze::emu::Spc700::FlagsToByte()'],['../classyaze_1_1test_1_1Spc700.html#a6ba480f69b668f222134b5dd71f619a3',1,'yaze::test::Spc700::FlagsToByte()']]],
-  ['focus_18',['Focus',['../structyaze_1_1gui_1_1TextBox.html#a814579de55d968ae10560ae4e8ea176a',1,'yaze::gui::TextBox']]],
-  ['for_5feach_19',['for_each',['../structyaze_1_1gfx_1_1PaletteGroupMap.html#a40a66b477eec40339a17508a0e3c1160',1,'yaze::gfx::PaletteGroupMap']]],
-  ['freesurface_20',['FreeSurface',['../classyaze_1_1gfx_1_1Arena.html#aa0eb6d909ed3d9ce85a61488bb74a7c0',1,'yaze::gfx::Arena']]],
-  ['freetexture_21',['FreeTexture',['../classyaze_1_1gfx_1_1Arena.html#ac2f43b16bb84a6c15db4ff6ecae6a57a',1,'yaze::gfx::Arena']]]
+  ['findrealdictionaryentry_13',['FindRealDictionaryEntry',['../namespaceyaze_1_1editor.html#a508cbba41214d784ba112a4c3f14ec78',1,'yaze::editor']]],
+  ['findwordend_14',['FindWordEnd',['../classTextEditor.html#a8171a76adf4e1fc6a699f60b60eb7902',1,'TextEditor']]],
+  ['findwordstart_15',['FindWordStart',['../classTextEditor.html#a5111c6334e494708b38cabd576f42b71',1,'TextEditor']]],
+  ['flag_16',['Flag',['../classyaze_1_1util_1_1Flag.html#a18a07395b749058fe7c7d5b3ab0b9a87',1,'yaze::util::Flag']]],
+  ['flagparser_17',['FlagParser',['../classyaze_1_1util_1_1FlagParser.html#ab39a3030c2b11cf49a6ae7a796079b8a',1,'yaze::util::FlagParser']]],
+  ['flagstobyte_18',['FlagsToByte',['../classyaze_1_1emu_1_1Spc700.html#a6ba480f69b668f222134b5dd71f619a3',1,'yaze::emu::Spc700::FlagsToByte()'],['../classyaze_1_1test_1_1Spc700.html#a6ba480f69b668f222134b5dd71f619a3',1,'yaze::test::Spc700::FlagsToByte()']]],
+  ['focus_19',['Focus',['../structyaze_1_1gui_1_1TextBox.html#a814579de55d968ae10560ae4e8ea176a',1,'yaze::gui::TextBox']]],
+  ['for_5feach_20',['for_each',['../structyaze_1_1gfx_1_1PaletteGroupMap.html#a40a66b477eec40339a17508a0e3c1160',1,'yaze::gfx::PaletteGroupMap']]],
+  ['freesurface_21',['FreeSurface',['../classyaze_1_1gfx_1_1Arena.html#aa0eb6d909ed3d9ce85a61488bb74a7c0',1,'yaze::gfx::Arena']]],
+  ['freetexture_22',['FreeTexture',['../classyaze_1_1gfx_1_1Arena.html#ac2f43b16bb84a6c15db4ff6ecae6a57a',1,'yaze::gfx::Arena']]]
 ];

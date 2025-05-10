@@ -1,0 +1,5 @@
+<map id="yaze::editor::MessageEditor::DrawExpandedMessageSettings" name="yaze::editor::MessageEditor::DrawExpandedMessageSettings">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,220,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath." alt="" coords="268,5,457,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,23,252,23,252,28,220,28"/>
+</map>

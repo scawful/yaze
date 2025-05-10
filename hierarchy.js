@@ -172,6 +172,7 @@ var hierarchy =
     [ "yaze::core::MemoryTracker", "classyaze_1_1core_1_1MemoryTracker.html", null ],
     [ "yaze::gui::MenuItem", "structyaze_1_1gui_1_1MenuItem.html", null ],
     [ "yaze::editor::MessageData", "structyaze_1_1editor_1_1MessageData.html", null ],
+    [ "yaze::editor::MessagePreview", "structyaze_1_1editor_1_1MessagePreview.html", null ],
     [ "yaze::emu::MnemonicMode", "structyaze_1_1emu_1_1MnemonicMode.html", null ],
     [ "yaze::emu::MnemonicModeHash", "structyaze_1_1emu_1_1MnemonicModeHash.html", null ],
     [ "yaze::emu::Mosaic", "structyaze_1_1emu_1_1Mosaic.html", null ],

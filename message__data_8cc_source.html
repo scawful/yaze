@@ -168,379 +168,392 @@ $(function(){initNavTree('message__data_8cc_source.html',''); initResizable(true
 <div class="foldopen" id="foldopen00049" data-start="{" data-end="}">
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor.html#ad840a81ab7030a220a019f79fbbabb6d">   49</a></span><a class="code hl_struct" href="structyaze_1_1editor_1_1ParsedElement.html">ParsedElement</a> <a class="code hl_function" href="namespaceyaze_1_1editor.html#ad840a81ab7030a220a019f79fbbabb6d">FindMatchingElement</a>(<span class="keyword">const</span> std::string &amp;str) {</div>
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  std::smatch match;</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;text_element : TextCommands) {</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    match = text_element.MatchMe(str);</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <span class="keywordflow">if</span> (match.size() &gt; 0) {</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>      <span class="keywordflow">if</span> (text_element.HasArgument) {</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>        std::string arg = match[1].str().substr(1);</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>        <span class="keywordflow">return</span> <a class="code hl_struct" href="structyaze_1_1editor_1_1ParsedElement.html">ParsedElement</a>(text_element, std::stoi(arg, <span class="keyword">nullptr</span>, 16));</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>      } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        <span class="keywordflow">return</span> <a class="code hl_struct" href="structyaze_1_1editor_1_1ParsedElement.html">ParsedElement</a>(text_element, 0);</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>      }</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    }</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>  }</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span> </div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>  <span class="keyword">const</span> <span class="keyword">auto</span> dictionary_element =</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>      <a class="code hl_struct" href="structyaze_1_1editor_1_1TextElement.html">TextElement</a>(0x80, <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a180364fa630f1bbd2b029efa9277f342">DICTIONARYTOKEN</a>, <span class="keyword">true</span>, <span class="stringliteral">&quot;Dictionary&quot;</span>);</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  std::vector&lt;TextElement&gt; commands_and_chars = TextCommands;</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  commands_and_chars.insert(commands_and_chars.end(), SpecialChars.begin(),</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>                            SpecialChars.end());</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>  <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;text_element : commands_and_chars) {</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    match = text_element.MatchMe(str);</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    <span class="keywordflow">if</span> (match.size() &gt; 0) {</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>      <span class="keywordflow">if</span> (text_element.HasArgument) {</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        std::string arg = match[1].str().substr(1);</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>        <span class="keywordflow">return</span> <a class="code hl_struct" href="structyaze_1_1editor_1_1ParsedElement.html">ParsedElement</a>(text_element, std::stoi(arg, <span class="keyword">nullptr</span>, 16));</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>      } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>        <span class="keywordflow">return</span> <a class="code hl_struct" href="structyaze_1_1editor_1_1ParsedElement.html">ParsedElement</a>(text_element, 0);</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>      }</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    }</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>  }</div>
 <div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span> </div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>  match = dictionary_element.MatchMe(str);</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>  <span class="keywordflow">if</span> (match.size() &gt; 0) {</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    <span class="keywordflow">return</span> <a class="code hl_struct" href="structyaze_1_1editor_1_1ParsedElement.html">ParsedElement</a>(dictionary_element,</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>                         <a class="code hl_variable" href="namespaceyaze_1_1editor.html#abb2b75ac1fb7f044b8c0305ce0abf927">DICTOFF</a> + std::stoi(match[1].str(), <span class="keyword">nullptr</span>, 16));</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>  }</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>  <span class="keywordflow">return</span> <a class="code hl_struct" href="structyaze_1_1editor_1_1ParsedElement.html">ParsedElement</a>();</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>}</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>  <span class="keyword">const</span> <span class="keyword">auto</span> dictionary_element =</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>      <a class="code hl_struct" href="structyaze_1_1editor_1_1TextElement.html">TextElement</a>(0x80, <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a180364fa630f1bbd2b029efa9277f342">DICTIONARYTOKEN</a>, <span class="keyword">true</span>, <span class="stringliteral">&quot;Dictionary&quot;</span>);</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>  match = dictionary_element.MatchMe(str);</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>  <span class="keywordflow">if</span> (match.size() &gt; 0) {</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    <span class="keywordflow">return</span> <a class="code hl_struct" href="structyaze_1_1editor_1_1ParsedElement.html">ParsedElement</a>(dictionary_element,</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>                         <a class="code hl_variable" href="namespaceyaze_1_1editor.html#abb2b75ac1fb7f044b8c0305ce0abf927">DICTOFF</a> + std::stoi(match[1].str(), <span class="keyword">nullptr</span>, 16));</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  }</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>  <span class="keywordflow">return</span> <a class="code hl_struct" href="structyaze_1_1editor_1_1ParsedElement.html">ParsedElement</a>();</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>}</div>
 </div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
-<div class="foldopen" id="foldopen00074" data-start="{" data-end="}">
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">   74</a></span>std::string <a class="code hl_function" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">ParseTextDataByte</a>(uint8_t value) {</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  <span class="keywordflow">if</span> (CharEncoder.contains(value)) {</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    <span class="keywordtype">char</span> c = CharEncoder.at(value);</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    std::string str = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    str.push_back(c);</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    <span class="keywordflow">return</span> str;</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>  }</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span> </div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>  <span class="comment">// Check for command.</span></div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>  <span class="keyword">auto</span> text_element = <a class="code hl_function" href="namespaceyaze_1_1editor.html#aceb6d61973044373dd0f03cfe074b0fe">FindMatchingCommand</a>(value);</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>  <span class="keywordflow">if</span> (text_element != std::nullopt) {</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    <span class="keywordflow">return</span> text_element-&gt;GenericToken;</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>  }</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span> </div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>  <span class="comment">// Check for special characters.</span></div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>  <span class="keyword">auto</span> special_element = <a class="code hl_function" href="namespaceyaze_1_1editor.html#a95bb92d26041cf1e3a0b332290bdea54">FindMatchingSpecial</a>(value);</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>  <span class="keywordflow">if</span> (special_element != std::nullopt) {</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    <span class="keywordflow">return</span> text_element-&gt;GenericToken;</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>  }</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span> </div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>  <span class="comment">// Check for dictionary.</span></div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>  <span class="keywordtype">int</span> dictionary = <a class="code hl_function" href="namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d">FindDictionaryEntry</a>(value);</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>  <span class="keywordflow">if</span> (dictionary &gt;= 0) {</div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    <span class="keywordflow">return</span> absl::StrFormat(<span class="stringliteral">&quot;[%s:%02X]&quot;</span>, <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a180364fa630f1bbd2b029efa9277f342">DICTIONARYTOKEN</a>, dictionary);</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>  }</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span> </div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>  <span class="keywordflow">return</span> <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>}</div>
-</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span> </div>
+<div class="foldopen" id="foldopen00077" data-start="{" data-end="}">
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">   77</a></span>std::string <a class="code hl_function" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">ParseTextDataByte</a>(uint8_t value) {</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>  <span class="keywordflow">if</span> (CharEncoder.contains(value)) {</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    <span class="keywordtype">char</span> c = CharEncoder.at(value);</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    std::string str = <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    str.push_back(c);</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    <span class="keywordflow">return</span> str;</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>  }</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span> </div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>  <span class="comment">// Check for command.</span></div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>  <span class="keyword">auto</span> text_element = <a class="code hl_function" href="namespaceyaze_1_1editor.html#aceb6d61973044373dd0f03cfe074b0fe">FindMatchingCommand</a>(value);</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>  <span class="keywordflow">if</span> (text_element != std::nullopt) {</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    <span class="keywordflow">return</span> text_element-&gt;GenericToken;</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>  }</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span> </div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>  <span class="comment">// Check for special characters.</span></div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>  <span class="keyword">auto</span> special_element = <a class="code hl_function" href="namespaceyaze_1_1editor.html#a95bb92d26041cf1e3a0b332290bdea54">FindMatchingSpecial</a>(value);</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>  <span class="keywordflow">if</span> (special_element != std::nullopt) {</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    <span class="keywordflow">return</span> text_element-&gt;GenericToken;</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>  }</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span> </div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>  <span class="comment">// Check for dictionary.</span></div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>  <span class="keywordtype">int</span> dictionary = <a class="code hl_function" href="namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d">FindDictionaryEntry</a>(value);</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>  <span class="keywordflow">if</span> (dictionary &gt;= 0) {</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    <span class="keywordflow">return</span> absl::StrFormat(<span class="stringliteral">&quot;[%s:%02X]&quot;</span>, <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a180364fa630f1bbd2b029efa9277f342">DICTIONARYTOKEN</a>, dictionary);</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>  }</div>
 <div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span> </div>
-<div class="foldopen" id="foldopen00103" data-start="{" data-end="}">
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor.html#ab631002fa2510fae663f6347362ba82d">  103</a></span>std::vector&lt;uint8_t&gt; <a class="code hl_function" href="namespaceyaze_1_1editor.html#ab631002fa2510fae663f6347362ba82d">ParseMessageToData</a>(std::string str) {</div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>  std::vector&lt;uint8_t&gt; bytes;</div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>  std::string temp_string = str;</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>  <span class="keywordtype">int</span> pos = 0;</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span> </div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>  <span class="keywordflow">while</span> (pos &lt; temp_string.size()) {</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>    <span class="comment">// Get next text fragment.</span></div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>    <span class="keywordflow">if</span> (temp_string[pos] == <span class="charliteral">&#39;[&#39;</span>) {</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>      <span class="keywordtype">int</span> next = temp_string.find(<span class="charliteral">&#39;]&#39;</span>, pos);</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>      <span class="keywordflow">if</span> (next == -1) {</div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>        <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>      }</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span> </div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>      <a class="code hl_struct" href="structyaze_1_1editor_1_1ParsedElement.html">ParsedElement</a> parsedElement =</div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>          <a class="code hl_function" href="namespaceyaze_1_1editor.html#ad840a81ab7030a220a019f79fbbabb6d">FindMatchingElement</a>(temp_string.substr(pos, next - pos + 1));</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span> </div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>      <span class="keyword">const</span> <span class="keyword">auto</span> dictionary_element =</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>          <a class="code hl_struct" href="structyaze_1_1editor_1_1TextElement.html">TextElement</a>(0x80, <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a180364fa630f1bbd2b029efa9277f342">DICTIONARYTOKEN</a>, <span class="keyword">true</span>, <span class="stringliteral">&quot;Dictionary&quot;</span>);</div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span> </div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>      <span class="keywordflow">if</span> (!parsedElement.<a class="code hl_variable" href="structyaze_1_1editor_1_1ParsedElement.html#aa82ec84f467e9f8e5577f1e0e35740d7">Active</a>) {</div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>        util::logf(<span class="stringliteral">&quot;Error parsing message: %s&quot;</span>, temp_string);</div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>        <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>      } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (parsedElement.<a class="code hl_variable" href="structyaze_1_1editor_1_1ParsedElement.html#a886d6e52ee31417037d6ed7b73c23b70">Parent</a> == dictionary_element) {</div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>        bytes.push_back(parsedElement.<a class="code hl_variable" href="structyaze_1_1editor_1_1ParsedElement.html#afc80cfa64f0d742c55ee5528254c201b">Value</a>);</div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>      } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>        bytes.push_back(parsedElement.<a class="code hl_variable" href="structyaze_1_1editor_1_1ParsedElement.html#a886d6e52ee31417037d6ed7b73c23b70">Parent</a>.<a class="code hl_variable" href="structyaze_1_1editor_1_1TextElement.html#a1867a95c0275dd516d0c7193aa4b0c78">ID</a>);</div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span> </div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>        <span class="keywordflow">if</span> (parsedElement.<a class="code hl_variable" href="structyaze_1_1editor_1_1ParsedElement.html#a886d6e52ee31417037d6ed7b73c23b70">Parent</a>.<a class="code hl_variable" href="structyaze_1_1editor_1_1TextElement.html#a4ab6b7eff1865bcf5d26c4ccc4e4437b">HasArgument</a>) {</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>          bytes.push_back(parsedElement.<a class="code hl_variable" href="structyaze_1_1editor_1_1ParsedElement.html#afc80cfa64f0d742c55ee5528254c201b">Value</a>);</div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>        }</div>
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>      }</div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span> </div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>      pos = next + 1;</div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>      <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>    } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>      uint8_t bb = <a class="code hl_function" href="namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c">FindMatchingCharacter</a>(temp_string[pos++]);</div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span> </div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>      <span class="keywordflow">if</span> (bb != 0xFF) {</div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>        util::logf(<span class="stringliteral">&quot;Error parsing message: %s&quot;</span>, temp_string);</div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>        bytes.push_back(bb);</div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>      }</div>
-<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>    }</div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>  }</div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span> </div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>  <span class="keywordflow">return</span> bytes;</div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>}</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>  <span class="keywordflow">return</span> <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>}</div>
 </div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span> </div>
-<div class="foldopen" id="foldopen00150" data-start="{" data-end="}">
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor.html#aa29017b4244db6fa3e3a6fbcb33142b0">  150</a></span>std::vector&lt;DictionaryEntry&gt; <a class="code hl_function" href="namespaceyaze_1_1editor.html#aa29017b4244db6fa3e3a6fbcb33142b0">BuildDictionaryEntries</a>(<a class="code hl_class" href="classyaze_1_1Rom.html">Rom</a> *rom) {</div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>  std::vector&lt;DictionaryEntry&gt; AllDictionaries;</div>
-<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a7da8c45c704303a76331eaade35bc5da">kNumDictionaryEntries</a>; i++) {</div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>    std::vector&lt;uint8_t&gt; bytes;</div>
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>    std::stringstream stringBuilder;</div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span> </div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>    <span class="keywordtype">int</span> address = <a class="code hl_function" href="namespaceyaze.html#aefc163a31f0531da9e1636396859b450">SnesToPc</a>(</div>
-<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>        <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a473fd190fc829bc2a054131640c2f620">kTextData</a> + (rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>()[<a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + (i * 2) + 1] &lt;&lt; 8) +</div>
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>        rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>()[<a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + (i * 2)]);</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span> </div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>    <span class="keywordtype">int</span> temppush_backress =</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>        <a class="code hl_function" href="namespaceyaze.html#aefc163a31f0531da9e1636396859b450">SnesToPc</a>(<a class="code hl_variable" href="namespaceyaze_1_1editor.html#a473fd190fc829bc2a054131640c2f620">kTextData</a> +</div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>                 (rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>()[<a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + ((i + 1) * 2) + 1] &lt;&lt; 8) +</div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>                 rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>()[<a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + ((i + 1) * 2)]);</div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span> </div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>    <span class="keywordflow">while</span> (address &lt; temppush_backress) {</div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>      uint8_t uint8_tDictionary = rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>()[address++];</div>
-<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>      bytes.push_back(uint8_tDictionary);</div>
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>      stringBuilder &lt;&lt; <a class="code hl_function" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">ParseTextDataByte</a>(uint8_tDictionary);</div>
-<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>    }</div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span> </div>
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>    AllDictionaries.push_back(<a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a>{(uint8_t)i, stringBuilder.str()});</div>
-<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>  }</div>
-<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span> </div>
-<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>  std::sort(AllDictionaries.begin(), AllDictionaries.end(),</div>
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>            [](<span class="keyword">const</span> <a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> &amp;a, <span class="keyword">const</span> <a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> &amp;b) {</div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>              return a.Contents.size() &gt; b.Contents.size();</div>
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>            });</div>
-<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span> </div>
-<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>  <span class="keywordflow">return</span> AllDictionaries;</div>
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>}</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span> </div>
+<div class="foldopen" id="foldopen00106" data-start="{" data-end="}">
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor.html#ab631002fa2510fae663f6347362ba82d">  106</a></span>std::vector&lt;uint8_t&gt; <a class="code hl_function" href="namespaceyaze_1_1editor.html#ab631002fa2510fae663f6347362ba82d">ParseMessageToData</a>(std::string str) {</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>  std::vector&lt;uint8_t&gt; bytes;</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>  std::string temp_string = str;</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>  <span class="keywordtype">int</span> pos = 0;</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>  <span class="keywordflow">while</span> (pos &lt; temp_string.size()) {</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>    <span class="comment">// Get next text fragment.</span></div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>    <span class="keywordflow">if</span> (temp_string[pos] == <span class="charliteral">&#39;[&#39;</span>) {</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>      <span class="keywordtype">int</span> next = temp_string.find(<span class="charliteral">&#39;]&#39;</span>, pos);</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>      <span class="keywordflow">if</span> (next == -1) {</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>        <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>      }</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span> </div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>      <a class="code hl_struct" href="structyaze_1_1editor_1_1ParsedElement.html">ParsedElement</a> parsedElement =</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>          <a class="code hl_function" href="namespaceyaze_1_1editor.html#ad840a81ab7030a220a019f79fbbabb6d">FindMatchingElement</a>(temp_string.substr(pos, next - pos + 1));</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span> </div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>      <span class="keyword">const</span> <span class="keyword">auto</span> dictionary_element =</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>          <a class="code hl_struct" href="structyaze_1_1editor_1_1TextElement.html">TextElement</a>(0x80, <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a180364fa630f1bbd2b029efa9277f342">DICTIONARYTOKEN</a>, <span class="keyword">true</span>, <span class="stringliteral">&quot;Dictionary&quot;</span>);</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span> </div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>      <span class="keywordflow">if</span> (!parsedElement.<a class="code hl_variable" href="structyaze_1_1editor_1_1ParsedElement.html#aa82ec84f467e9f8e5577f1e0e35740d7">Active</a>) {</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>        util::logf(<span class="stringliteral">&quot;Error parsing message: %s&quot;</span>, temp_string);</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>        <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>      } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (parsedElement.<a class="code hl_variable" href="structyaze_1_1editor_1_1ParsedElement.html#a886d6e52ee31417037d6ed7b73c23b70">Parent</a> == dictionary_element) {</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>        bytes.push_back(parsedElement.<a class="code hl_variable" href="structyaze_1_1editor_1_1ParsedElement.html#afc80cfa64f0d742c55ee5528254c201b">Value</a>);</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>      } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>        bytes.push_back(parsedElement.<a class="code hl_variable" href="structyaze_1_1editor_1_1ParsedElement.html#a886d6e52ee31417037d6ed7b73c23b70">Parent</a>.<a class="code hl_variable" href="structyaze_1_1editor_1_1TextElement.html#a1867a95c0275dd516d0c7193aa4b0c78">ID</a>);</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span> </div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>        <span class="keywordflow">if</span> (parsedElement.<a class="code hl_variable" href="structyaze_1_1editor_1_1ParsedElement.html#a886d6e52ee31417037d6ed7b73c23b70">Parent</a>.<a class="code hl_variable" href="structyaze_1_1editor_1_1TextElement.html#a4ab6b7eff1865bcf5d26c4ccc4e4437b">HasArgument</a>) {</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>          bytes.push_back(parsedElement.<a class="code hl_variable" href="structyaze_1_1editor_1_1ParsedElement.html#afc80cfa64f0d742c55ee5528254c201b">Value</a>);</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>        }</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>      }</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span> </div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>      pos = next + 1;</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>      <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>    } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>      uint8_t bb = <a class="code hl_function" href="namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c">FindMatchingCharacter</a>(temp_string[pos++]);</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span> </div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>      <span class="keywordflow">if</span> (bb != 0xFF) {</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>        bytes.push_back(bb);</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>      }</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>    }</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>  }</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span> </div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>  <span class="keywordflow">return</span> bytes;</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>}</div>
 </div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span> </div>
-<div class="foldopen" id="foldopen00182" data-start="{" data-end="}">
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor.html#a7075dfdde53bf6bb5ec8a4a5a5123c1f">  182</a></span>std::string <a class="code hl_function" href="namespaceyaze_1_1editor.html#a7075dfdde53bf6bb5ec8a4a5a5123c1f">ReplaceAllDictionaryWords</a>(std::string str,</div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>                                      std::vector&lt;DictionaryEntry&gt; dictionary) {</div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>  std::string temp = str;</div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;entry : dictionary) {</div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>    <span class="keywordflow">if</span> (entry.ContainedInString(temp)) {</div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>      temp = entry.ReplaceInstancesOfIn(temp);</div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    }</div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>  }</div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>  <span class="keywordflow">return</span> temp;</div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>}</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span> </div>
+<div class="foldopen" id="foldopen00151" data-start="{" data-end="}">
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor.html#aa29017b4244db6fa3e3a6fbcb33142b0">  151</a></span>std::vector&lt;DictionaryEntry&gt; <a class="code hl_function" href="namespaceyaze_1_1editor.html#aa29017b4244db6fa3e3a6fbcb33142b0">BuildDictionaryEntries</a>(<a class="code hl_class" href="classyaze_1_1Rom.html">Rom</a> *rom) {</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>  std::vector&lt;DictionaryEntry&gt; AllDictionaries;</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a7da8c45c704303a76331eaade35bc5da">kNumDictionaryEntries</a>; i++) {</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>    std::vector&lt;uint8_t&gt; bytes;</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>    std::stringstream stringBuilder;</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span> </div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>    <span class="keywordtype">int</span> address = <a class="code hl_function" href="namespaceyaze.html#aefc163a31f0531da9e1636396859b450">SnesToPc</a>(</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>        <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a473fd190fc829bc2a054131640c2f620">kTextData</a> + (rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>()[<a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + (i * 2) + 1] &lt;&lt; 8) +</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>        rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>()[<a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + (i * 2)]);</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span> </div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>    <span class="keywordtype">int</span> temppush_backress =</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>        <a class="code hl_function" href="namespaceyaze.html#aefc163a31f0531da9e1636396859b450">SnesToPc</a>(<a class="code hl_variable" href="namespaceyaze_1_1editor.html#a473fd190fc829bc2a054131640c2f620">kTextData</a> +</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>                 (rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>()[<a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + ((i + 1) * 2) + 1] &lt;&lt; 8) +</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>                 rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>()[<a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + ((i + 1) * 2)]);</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span> </div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>    <span class="keywordflow">while</span> (address &lt; temppush_backress) {</div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>      uint8_t uint8_tDictionary = rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>()[address++];</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>      bytes.push_back(uint8_tDictionary);</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>      stringBuilder &lt;&lt; <a class="code hl_function" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">ParseTextDataByte</a>(uint8_tDictionary);</div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>    }</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span> </div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>    AllDictionaries.push_back(<a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a>{(uint8_t)i, stringBuilder.str()});</div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>  }</div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span> </div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>  std::sort(AllDictionaries.begin(), AllDictionaries.end(),</div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>            [](<span class="keyword">const</span> <a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> &amp;a, <span class="keyword">const</span> <a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> &amp;b) {</div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>              return a.Contents.size() &gt; b.Contents.size();</div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>            });</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span> </div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>  <span class="keywordflow">return</span> AllDictionaries;</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>}</div>
 </div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span> </div>
-<div class="foldopen" id="foldopen00193" data-start="{" data-end="}">
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor.html#a7f9b61eee2bb838f10efe0d1062c8990">  193</a></span>absl::StatusOr&lt;MessageData&gt; <a class="code hl_function" href="namespaceyaze_1_1editor.html#a7f9b61eee2bb838f10efe0d1062c8990">ParseSingleMessage</a>(</div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;rom_data, <span class="keywordtype">int</span> *current_pos) {</div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>  <a class="code hl_struct" href="structyaze_1_1editor_1_1MessageData.html">MessageData</a> message_data;</div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>  <span class="keywordtype">int</span> pos = *current_pos;</div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>  uint8_t current_byte;</div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>  std::vector&lt;uint8_t&gt; temp_bytes_raw;</div>
-<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>  std::vector&lt;uint8_t&gt; temp_bytes_parsed;</div>
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>  std::string current_message_raw;</div>
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>  std::string current_message_parsed;</div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span> </div>
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>  <span class="comment">// Read the message data</span></div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>  <span class="keywordflow">while</span> (<span class="keyword">true</span>) {</div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>    current_byte = rom_data[pos++];</div>
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span> </div>
-<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>    <span class="keywordflow">if</span> (current_byte == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a0d4a3ab38797b034b311b39a037a293a">kMessageTerminator</a>) {</div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>      message_data.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageData.html#a7fae1b753a46d7078aaa53b745ab1398">ID</a> = message_data.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageData.html#a7fae1b753a46d7078aaa53b745ab1398">ID</a> + 1;</div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>      message_data.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageData.html#a247d00ae24f16435849870e1160dc7c4">Address</a> = pos;</div>
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>      message_data.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageData.html#aa9c436a0d715955159df69060e04aa32">RawString</a> = current_message_raw;</div>
-<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>      message_data.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageData.html#a2ebee010cbc75c331b31e761d90f6628">Data</a> = temp_bytes_raw;</div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>      message_data.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageData.html#a4a22ce91a8141b3744ca0ce73a5d9f4d">DataParsed</a> = temp_bytes_parsed;</div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>      message_data.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageData.html#ad3e91f53998bea4cf7566f2a2a1bf773">ContentsParsed</a> = current_message_parsed;</div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span> </div>
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>      temp_bytes_raw.clear();</div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>      temp_bytes_parsed.clear();</div>
-<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>      current_message_raw.clear();</div>
-<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>      current_message_parsed.clear();</div>
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span> </div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (current_byte == 0xFF) {</div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>    }</div>
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span> </div>
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>    temp_bytes_raw.push_back(current_byte);</div>
-<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span> </div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>    <span class="comment">// Check for command.</span></div>
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>    <span class="keyword">auto</span> text_element = <a class="code hl_function" href="namespaceyaze_1_1editor.html#aceb6d61973044373dd0f03cfe074b0fe">FindMatchingCommand</a>(current_byte);</div>
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>    <span class="keywordflow">if</span> (text_element != std::nullopt) {</div>
-<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>      current_message_raw.append(text_element-&gt;GetParamToken());</div>
-<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>      current_message_parsed.append(text_element-&gt;GetParamToken());</div>
-<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>      temp_bytes_parsed.push_back(current_byte);</div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>      <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span> </div>
+<div class="foldopen" id="foldopen00183" data-start="{" data-end="}">
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor.html#a7075dfdde53bf6bb5ec8a4a5a5123c1f">  183</a></span>std::string <a class="code hl_function" href="namespaceyaze_1_1editor.html#a7075dfdde53bf6bb5ec8a4a5a5123c1f">ReplaceAllDictionaryWords</a>(std::string str,</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>                                      std::vector&lt;DictionaryEntry&gt; dictionary) {</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>  std::string temp = str;</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;entry : dictionary) {</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>    <span class="keywordflow">if</span> (entry.ContainedInString(temp)) {</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>      temp = entry.ReplaceInstancesOfIn(temp);</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>    }</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>  }</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>  <span class="keywordflow">return</span> temp;</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>}</div>
+</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span> </div>
+<div class="foldopen" id="foldopen00194" data-start="{" data-end="}">
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor.html#a508cbba41214d784ba112a4c3f14ec78">  194</a></span><a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> <a class="code hl_function" href="namespaceyaze_1_1editor.html#a508cbba41214d784ba112a4c3f14ec78">FindRealDictionaryEntry</a>(</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>    uint8_t value, std::vector&lt;DictionaryEntry&gt; dictionary) {</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;entry : dictionary) {</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>    <span class="keywordflow">if</span> (entry.ID + <a class="code hl_variable" href="namespaceyaze_1_1editor.html#abb2b75ac1fb7f044b8c0305ce0abf927">DICTOFF</a> == value) {</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>      <span class="keywordflow">return</span> entry;</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>    }</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>  }</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>  <span class="keywordflow">return</span> <a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a>();</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>}</div>
+</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span> </div>
+<div class="foldopen" id="foldopen00204" data-start="{" data-end="}">
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor.html#a7f9b61eee2bb838f10efe0d1062c8990">  204</a></span>absl::StatusOr&lt;MessageData&gt; <a class="code hl_function" href="namespaceyaze_1_1editor.html#a7f9b61eee2bb838f10efe0d1062c8990">ParseSingleMessage</a>(</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;rom_data, <span class="keywordtype">int</span> *current_pos) {</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>  <a class="code hl_struct" href="structyaze_1_1editor_1_1MessageData.html">MessageData</a> message_data;</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>  <span class="keywordtype">int</span> pos = *current_pos;</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>  uint8_t current_byte;</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>  std::vector&lt;uint8_t&gt; temp_bytes_raw;</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>  std::vector&lt;uint8_t&gt; temp_bytes_parsed;</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>  std::string current_message_raw;</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>  std::string current_message_parsed;</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span> </div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>  <span class="comment">// Read the message data</span></div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>  <span class="keywordflow">while</span> (<span class="keyword">true</span>) {</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>    current_byte = rom_data[pos++];</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span> </div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>    <span class="keywordflow">if</span> (current_byte == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a0d4a3ab38797b034b311b39a037a293a">kMessageTerminator</a>) {</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>      message_data.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageData.html#a7fae1b753a46d7078aaa53b745ab1398">ID</a> = message_data.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageData.html#a7fae1b753a46d7078aaa53b745ab1398">ID</a> + 1;</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>      message_data.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageData.html#a247d00ae24f16435849870e1160dc7c4">Address</a> = pos;</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>      message_data.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageData.html#aa9c436a0d715955159df69060e04aa32">RawString</a> = current_message_raw;</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>      message_data.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageData.html#a2ebee010cbc75c331b31e761d90f6628">Data</a> = temp_bytes_raw;</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>      message_data.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageData.html#a4a22ce91a8141b3744ca0ce73a5d9f4d">DataParsed</a> = temp_bytes_parsed;</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>      message_data.<a class="code hl_variable" href="structyaze_1_1editor_1_1MessageData.html#ad3e91f53998bea4cf7566f2a2a1bf773">ContentsParsed</a> = current_message_parsed;</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span> </div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>      temp_bytes_raw.clear();</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>      temp_bytes_parsed.clear();</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>      current_message_raw.clear();</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>      current_message_parsed.clear();</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span> </div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>      <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (current_byte == 0xFF) {</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>      <span class="keywordflow">break</span>;</div>
 <div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>    }</div>
 <div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span> </div>
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>    <span class="comment">// Check for dictionary.</span></div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>    <span class="keywordtype">int</span> dictionary = <a class="code hl_function" href="namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d">FindDictionaryEntry</a>(current_byte);</div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>    <span class="keywordflow">if</span> (dictionary &gt;= 0) {</div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>      current_message_raw.append(<span class="stringliteral">&quot;[&quot;</span>);</div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>      current_message_raw.append(<a class="code hl_variable" href="namespaceyaze_1_1editor.html#a180364fa630f1bbd2b029efa9277f342">DICTIONARYTOKEN</a>);</div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>      current_message_raw.append(<span class="stringliteral">&quot;:&quot;</span>);</div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>      current_message_raw.append(<a class="code hl_function" href="namespaceyaze_1_1util.html#a27c80ad6b675be3cbc3da03416081454">util::HexWord</a>(dictionary));</div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>      current_message_raw.append(<span class="stringliteral">&quot;]&quot;</span>);</div>
-<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span> </div>
-<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>      <span class="keyword">auto</span> mutable_rom_data = <span class="keyword">const_cast&lt;</span>uint8_t *<span class="keyword">&gt;</span>(rom_data.data());</div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>      uint32_t address = <a class="code hl_function" href="namespaceyaze.html#a8acb4a8f67a09fd9a908aeac107898f7">Get24LocalFromPC</a>(</div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>          mutable_rom_data, <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + (dictionary * 2));</div>
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>      uint32_t address_end = <a class="code hl_function" href="namespaceyaze.html#a8acb4a8f67a09fd9a908aeac107898f7">Get24LocalFromPC</a>(</div>
-<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>          mutable_rom_data, <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + ((dictionary + 1) * 2));</div>
-<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span> </div>
-<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>      <span class="keywordflow">for</span> (uint32_t i = address; i &lt; address_end; i++) {</div>
-<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>        temp_bytes_parsed.push_back(rom_data[i]);</div>
-<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>        current_message_parsed.append(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">ParseTextDataByte</a>(rom_data[i]));</div>
-<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>      }</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>    temp_bytes_raw.push_back(current_byte);</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span> </div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>    <span class="comment">// Check for command.</span></div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>    <span class="keyword">auto</span> text_element = <a class="code hl_function" href="namespaceyaze_1_1editor.html#aceb6d61973044373dd0f03cfe074b0fe">FindMatchingCommand</a>(current_byte);</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>    <span class="keywordflow">if</span> (text_element != std::nullopt) {</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>      current_message_raw.append(text_element-&gt;GetParamToken());</div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>      current_message_parsed.append(text_element-&gt;GetParamToken());</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>      temp_bytes_parsed.push_back(current_byte);</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>      <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>    }</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span> </div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>    <span class="comment">// Check for dictionary.</span></div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>    <span class="keywordtype">int</span> dictionary = <a class="code hl_function" href="namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d">FindDictionaryEntry</a>(current_byte);</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>    <span class="keywordflow">if</span> (dictionary &gt;= 0) {</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>      current_message_raw.append(<span class="stringliteral">&quot;[&quot;</span>);</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>      current_message_raw.append(<a class="code hl_variable" href="namespaceyaze_1_1editor.html#a180364fa630f1bbd2b029efa9277f342">DICTIONARYTOKEN</a>);</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>      current_message_raw.append(<span class="stringliteral">&quot;:&quot;</span>);</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>      current_message_raw.append(<a class="code hl_function" href="namespaceyaze_1_1util.html#a27c80ad6b675be3cbc3da03416081454">util::HexWord</a>(dictionary));</div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>      current_message_raw.append(<span class="stringliteral">&quot;]&quot;</span>);</div>
 <div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span> </div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>      <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>    }</div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span> </div>
-<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>    <span class="comment">// Everything else.</span></div>
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>    <span class="keywordflow">if</span> (CharEncoder.contains(current_byte)) {</div>
-<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>      std::string str = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>      str.push_back(CharEncoder.at(current_byte));</div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>      current_message_raw.append(str);</div>
-<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>      current_message_parsed.append(str);</div>
-<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>      temp_bytes_parsed.push_back(current_byte);</div>
-<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>    }</div>
-<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>  }</div>
-<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span> </div>
-<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>  *current_pos = pos;</div>
-<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>  <span class="keywordflow">return</span> message_data;</div>
-<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>}</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>      <span class="keyword">auto</span> mutable_rom_data = <span class="keyword">const_cast&lt;</span>uint8_t *<span class="keyword">&gt;</span>(rom_data.data());</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>      uint32_t address = <a class="code hl_function" href="namespaceyaze.html#a8acb4a8f67a09fd9a908aeac107898f7">Get24LocalFromPC</a>(</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>          mutable_rom_data, <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + (dictionary * 2));</div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>      uint32_t address_end = <a class="code hl_function" href="namespaceyaze.html#a8acb4a8f67a09fd9a908aeac107898f7">Get24LocalFromPC</a>(</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>          mutable_rom_data, <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + ((dictionary + 1) * 2));</div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span> </div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>      <span class="keywordflow">for</span> (uint32_t i = address; i &lt; address_end; i++) {</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>        temp_bytes_parsed.push_back(rom_data[i]);</div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>        current_message_parsed.append(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">ParseTextDataByte</a>(rom_data[i]));</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>      }</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span> </div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>      <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>    }</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span> </div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>    <span class="comment">// Everything else.</span></div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>    <span class="keywordflow">if</span> (CharEncoder.contains(current_byte)) {</div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>      std::string str = <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>      str.push_back(CharEncoder.at(current_byte));</div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>      current_message_raw.append(str);</div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>      current_message_parsed.append(str);</div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>      temp_bytes_parsed.push_back(current_byte);</div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>    }</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>  }</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span> </div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>  *current_pos = pos;</div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>  <span class="keywordflow">return</span> message_data;</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>}</div>
 </div>
-<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span> </div>
-<div class="foldopen" id="foldopen00273" data-start="{" data-end="}">
-<div class="line"><a id="l00273" name="l00273"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor.html#a91359909a674306622aa5a533e0c2377">  273</a></span>std::vector&lt;std::string&gt; <a class="code hl_function" href="namespaceyaze_1_1editor.html#a91359909a674306622aa5a533e0c2377">ParseMessageData</a>(</div>
-<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>    std::vector&lt;MessageData&gt; &amp;message_data,</div>
-<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>    <span class="keyword">const</span> std::vector&lt;DictionaryEntry&gt; &amp;dictionary_entries) {</div>
-<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>  std::vector&lt;std::string&gt; parsed_messages;</div>
-<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span> </div>
-<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>  <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;message : message_data) {</div>
-<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>    std::string parsed_message = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>    <span class="keywordtype">int</span> pos = 0;</div>
-<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> uint8_t &amp;<span class="keywordtype">byte</span> : message.Data) {</div>
-<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>      <span class="keywordflow">if</span> (CharEncoder.contains(<span class="keywordtype">byte</span>)) {</div>
-<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>        parsed_message.push_back(CharEncoder.at(<span class="keywordtype">byte</span>));</div>
-<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>      } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>        <span class="keywordflow">if</span> (<span class="keywordtype">byte</span> &gt;= <a class="code hl_variable" href="namespaceyaze_1_1editor.html#abb2b75ac1fb7f044b8c0305ce0abf927">DICTOFF</a> &amp;&amp; <span class="keywordtype">byte</span> &lt; (<a class="code hl_variable" href="namespaceyaze_1_1editor.html#abb2b75ac1fb7f044b8c0305ce0abf927">DICTOFF</a> + 97)) {</div>
-<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>          <a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> dic_entry;</div>
-<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>          <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;entry : dictionary_entries) {</div>
-<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>            <span class="keywordflow">if</span> (entry.ID == <span class="keywordtype">byte</span> - <a class="code hl_variable" href="namespaceyaze_1_1editor.html#abb2b75ac1fb7f044b8c0305ce0abf927">DICTOFF</a>) {</div>
-<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>              dic_entry = entry;</div>
-<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>              <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>            }</div>
-<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>          }</div>
-<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>          parsed_message.append(dic_entry.<a class="code hl_variable" href="structyaze_1_1editor_1_1DictionaryEntry.html#a6b2beaa9312716f63e1b5ad0cea3d685">Contents</a>);</div>
-<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>        } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>          <span class="keyword">auto</span> text_element = <a class="code hl_function" href="namespaceyaze_1_1editor.html#aceb6d61973044373dd0f03cfe074b0fe">FindMatchingCommand</a>(<span class="keywordtype">byte</span>);</div>
-<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>          <span class="keywordflow">if</span> (text_element != std::nullopt) {</div>
-<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>            <span class="keywordflow">if</span> (text_element-&gt;ID == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a189336bde381ff1453e2be128c0e213b">kScrollVertical</a> ||</div>
-<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>                text_element-&gt;ID == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a6e03f0e92717101837c29f9cc3bf172f">kLine2</a> || text_element-&gt;ID == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#af1744a66e1114136092a2f6527d4af6a">kLine3</a>) {</div>
-<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>              parsed_message.append(<span class="stringliteral">&quot;\n&quot;</span>);</div>
-<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>            }</div>
-<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>            <span class="comment">// If there is a param, add it to the message using GetParamToken.</span></div>
-<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>            <span class="keywordflow">if</span> (text_element-&gt;HasArgument) {</div>
-<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>              <span class="comment">// The next byte is the param.</span></div>
-<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>              parsed_message.append(</div>
-<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>                  text_element-&gt;GetParamToken(message.Data[pos + 1]));</div>
-<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>              pos++;</div>
-<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>            } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>              parsed_message.append(text_element-&gt;GetParamToken());</div>
-<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>            }</div>
-<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>          }</div>
-<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>        }</div>
-<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>      }</div>
-<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>      pos++;</div>
-<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>    }</div>
-<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>    parsed_messages.push_back(parsed_message);</div>
-<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>  }</div>
-<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span> </div>
-<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>  <span class="keywordflow">return</span> parsed_messages;</div>
-<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>}</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span> </div>
+<div class="foldopen" id="foldopen00284" data-start="{" data-end="}">
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor.html#a91359909a674306622aa5a533e0c2377">  284</a></span>std::vector&lt;std::string&gt; <a class="code hl_function" href="namespaceyaze_1_1editor.html#a91359909a674306622aa5a533e0c2377">ParseMessageData</a>(</div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>    std::vector&lt;MessageData&gt; &amp;message_data,</div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>    <span class="keyword">const</span> std::vector&lt;DictionaryEntry&gt; &amp;dictionary_entries) {</div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>  std::vector&lt;std::string&gt; parsed_messages;</div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span> </div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>  <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;message : message_data) {</div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>    std::string parsed_message = <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>    <span class="keywordtype">int</span> pos = 0;</div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> uint8_t &amp;<span class="keywordtype">byte</span> : message.Data) {</div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>      <span class="keywordflow">if</span> (CharEncoder.contains(<span class="keywordtype">byte</span>)) {</div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>        parsed_message.push_back(CharEncoder.at(<span class="keywordtype">byte</span>));</div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>      } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>        <span class="keywordflow">if</span> (<span class="keywordtype">byte</span> &gt;= <a class="code hl_variable" href="namespaceyaze_1_1editor.html#abb2b75ac1fb7f044b8c0305ce0abf927">DICTOFF</a> &amp;&amp; <span class="keywordtype">byte</span> &lt; (<a class="code hl_variable" href="namespaceyaze_1_1editor.html#abb2b75ac1fb7f044b8c0305ce0abf927">DICTOFF</a> + 97)) {</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>          <a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> dic_entry;</div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>          <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;entry : dictionary_entries) {</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>            <span class="keywordflow">if</span> (entry.ID == <span class="keywordtype">byte</span> - <a class="code hl_variable" href="namespaceyaze_1_1editor.html#abb2b75ac1fb7f044b8c0305ce0abf927">DICTOFF</a>) {</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>              dic_entry = entry;</div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>              <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>            }</div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>          }</div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>          parsed_message.append(dic_entry.<a class="code hl_variable" href="structyaze_1_1editor_1_1DictionaryEntry.html#a6b2beaa9312716f63e1b5ad0cea3d685">Contents</a>);</div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>        } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>          <span class="keyword">auto</span> text_element = <a class="code hl_function" href="namespaceyaze_1_1editor.html#aceb6d61973044373dd0f03cfe074b0fe">FindMatchingCommand</a>(<span class="keywordtype">byte</span>);</div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>          <span class="keywordflow">if</span> (text_element != std::nullopt) {</div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>            <span class="keywordflow">if</span> (text_element-&gt;ID == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a189336bde381ff1453e2be128c0e213b">kScrollVertical</a> ||</div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>                text_element-&gt;ID == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a6e03f0e92717101837c29f9cc3bf172f">kLine2</a> || text_element-&gt;ID == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#af1744a66e1114136092a2f6527d4af6a">kLine3</a>) {</div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>              parsed_message.append(<span class="stringliteral">&quot;\n&quot;</span>);</div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>            }</div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>            <span class="comment">// If there is a param, add it to the message using GetParamToken.</span></div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>            <span class="keywordflow">if</span> (text_element-&gt;HasArgument) {</div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>              <span class="comment">// The next byte is the param.</span></div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>              parsed_message.append(</div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>                  text_element-&gt;GetParamToken(message.Data[pos + 1]));</div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>              pos++;</div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>            } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>              parsed_message.append(text_element-&gt;GetParamToken());</div>
+<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>            }</div>
+<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>          }</div>
+<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span>        }</div>
+<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span>      }</div>
+<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span>      pos++;</div>
+<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>    }</div>
+<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>    parsed_messages.push_back(parsed_message);</div>
+<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>  }</div>
+<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span> </div>
+<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>  <span class="keywordflow">return</span> parsed_messages;</div>
+<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span>}</div>
 </div>
-<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span> </div>
-<div class="foldopen" id="foldopen00321" data-start="{" data-end="}">
-<div class="line"><a id="l00321" name="l00321"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor.html#a99c9eea01d5b08f81107f35f926a74b6">  321</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1editor.html#a99c9eea01d5b08f81107f35f926a74b6">ReadAllTextData</a>(<a class="code hl_class" href="classyaze_1_1Rom.html">Rom</a> *rom, std::vector&lt;MessageData&gt; &amp;list_of_texts_) {</div>
-<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span>  <span class="comment">// Read all text data from the ROM.</span></div>
-<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span>  <span class="keywordtype">int</span> pos = <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a473fd190fc829bc2a054131640c2f620">kTextData</a>;</div>
-<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span>  <span class="keywordtype">int</span> message_id = 0;</div>
-<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span> </div>
-<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>  std::vector&lt;uint8_t&gt; raw_message;</div>
-<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>  std::vector&lt;uint8_t&gt; parsed_message;</div>
-<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>  std::string current_raw_message;</div>
-<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>  std::string current_parsed_message;</div>
-<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span> </div>
-<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span>  uint8_t current_byte = 0;</div>
-<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span>  <span class="keywordflow">while</span> (current_byte != 0xFF) {</div>
-<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span>    current_byte = rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>()[pos++];</div>
-<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>    <span class="keywordflow">if</span> (current_byte == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a0d4a3ab38797b034b311b39a037a293a">kMessageTerminator</a>) {</div>
-<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span>      list_of_texts_.push_back(</div>
-<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span>          <a class="code hl_struct" href="structyaze_1_1editor_1_1MessageData.html">MessageData</a>(message_id++, pos, current_raw_message, raw_message,</div>
-<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span>                      current_parsed_message, parsed_message));</div>
-<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>      raw_message.clear();</div>
-<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span>      parsed_message.clear();</div>
-<div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span>      current_raw_message.clear();</div>
-<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span>      current_parsed_message.clear();</div>
-<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span>      <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (current_byte == 0xFF) {</div>
-<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>    }</div>
-<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span> </div>
-<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span>    raw_message.push_back(current_byte);</div>
-<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span> </div>
-<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>    <span class="keyword">auto</span> text_element = <a class="code hl_function" href="namespaceyaze_1_1editor.html#aceb6d61973044373dd0f03cfe074b0fe">FindMatchingCommand</a>(current_byte);</div>
-<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>    <span class="keywordflow">if</span> (text_element != std::nullopt) {</div>
-<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>      parsed_message.push_back(current_byte);</div>
-<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>      <span class="keywordflow">if</span> (text_element-&gt;HasArgument) {</div>
-<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>        current_byte = rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>()[pos++];</div>
-<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>        raw_message.push_back(current_byte);</div>
-<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>        parsed_message.push_back(current_byte);</div>
-<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span>      }</div>
+<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span> </div>
+<div class="foldopen" id="foldopen00332" data-start="{" data-end="}">
+<div class="line"><a id="l00332" name="l00332"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1editor.html#a99c9eea01d5b08f81107f35f926a74b6">  332</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1editor.html#a99c9eea01d5b08f81107f35f926a74b6">ReadAllTextData</a>(<a class="code hl_class" href="classyaze_1_1Rom.html">Rom</a> *rom, std::vector&lt;MessageData&gt; &amp;list_of_texts_) {</div>
+<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span>  <span class="comment">// Read all text data from the ROM.</span></div>
+<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>  <span class="keywordtype">int</span> pos = <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a473fd190fc829bc2a054131640c2f620">kTextData</a>;</div>
+<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span>  <span class="keywordtype">int</span> message_id = 0;</div>
+<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span> </div>
+<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span>  std::vector&lt;uint8_t&gt; raw_message;</div>
+<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>  std::vector&lt;uint8_t&gt; parsed_message;</div>
+<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span>  std::string current_raw_message;</div>
+<div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span>  std::string current_parsed_message;</div>
+<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span> </div>
+<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span>  uint8_t current_byte = 0;</div>
+<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span>  <span class="keywordflow">while</span> (current_byte != 0xFF) {</div>
+<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>    current_byte = rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>()[pos++];</div>
+<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>    <span class="keywordflow">if</span> (current_byte == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a0d4a3ab38797b034b311b39a037a293a">kMessageTerminator</a>) {</div>
+<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>      list_of_texts_.push_back(</div>
+<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span>          <a class="code hl_struct" href="structyaze_1_1editor_1_1MessageData.html">MessageData</a>(message_id++, pos, current_raw_message, raw_message,</div>
+<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span>                      current_parsed_message, parsed_message));</div>
+<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>      raw_message.clear();</div>
+<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>      parsed_message.clear();</div>
+<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>      current_raw_message.clear();</div>
+<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>      current_parsed_message.clear();</div>
+<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>      <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (current_byte == 0xFF) {</div>
+<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>      <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span>    }</div>
 <div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span> </div>
-<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>      current_raw_message.append(text_element-&gt;GetParamToken(current_byte));</div>
-<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>      current_parsed_message.append(text_element-&gt;GetParamToken(current_byte));</div>
-<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span> </div>
-<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>      <span class="keywordflow">if</span> (text_element-&gt;Token == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a03ed5e244fc1d22abedc9549954318f7">kBankToken</a>) {</div>
-<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span>        pos = <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a59d4c715a567f35b7d9423174b899067">kTextData2</a>;</div>
-<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>      }</div>
-<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span> </div>
-<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>      <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>    }</div>
-<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span> </div>
-<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span>    <span class="comment">// Check for special characters.</span></div>
-<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>    <span class="keyword">auto</span> special_element = <a class="code hl_function" href="namespaceyaze_1_1editor.html#a95bb92d26041cf1e3a0b332290bdea54">FindMatchingSpecial</a>(current_byte);</div>
-<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>    <span class="keywordflow">if</span> (special_element != std::nullopt) {</div>
-<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span>      current_raw_message.append(special_element-&gt;GetParamToken());</div>
-<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span>      current_parsed_message.append(special_element-&gt;GetParamToken());</div>
-<div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span>      parsed_message.push_back(current_byte);</div>
-<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span>      <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span>    }</div>
-<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span> </div>
-<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>    <span class="comment">// Check for dictionary.</span></div>
-<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>    <span class="keywordtype">int</span> dictionary = <a class="code hl_function" href="namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d">FindDictionaryEntry</a>(current_byte);</div>
-<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>    <span class="keywordflow">if</span> (dictionary &gt;= 0) {</div>
-<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>      current_raw_message.append(absl::StrFormat(<span class="stringliteral">&quot;[%s:%s]&quot;</span>, <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a180364fa630f1bbd2b029efa9277f342">DICTIONARYTOKEN</a>,</div>
-<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span>                                                 <a class="code hl_function" href="namespaceyaze_1_1util.html#a3f4d30bc153c6a955a8471f68c18aafd">util::HexByte</a>(dictionary)));</div>
-<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span> </div>
-<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span>      uint32_t address = <a class="code hl_function" href="namespaceyaze.html#a8acb4a8f67a09fd9a908aeac107898f7">Get24LocalFromPC</a>(</div>
-<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>          rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6">mutable_data</a>(), <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + (dictionary * 2));</div>
-<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span>      uint32_t address_end = <a class="code hl_function" href="namespaceyaze.html#a8acb4a8f67a09fd9a908aeac107898f7">Get24LocalFromPC</a>(</div>
-<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>          rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6">mutable_data</a>(), <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + ((dictionary + 1) * 2));</div>
+<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>    raw_message.push_back(current_byte);</div>
+<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span> </div>
+<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>    <span class="keyword">auto</span> text_element = <a class="code hl_function" href="namespaceyaze_1_1editor.html#aceb6d61973044373dd0f03cfe074b0fe">FindMatchingCommand</a>(current_byte);</div>
+<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>    <span class="keywordflow">if</span> (text_element != std::nullopt) {</div>
+<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span>      parsed_message.push_back(current_byte);</div>
+<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>      <span class="keywordflow">if</span> (text_element-&gt;HasArgument) {</div>
+<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>        current_byte = rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>()[pos++];</div>
+<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>        raw_message.push_back(current_byte);</div>
+<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>        parsed_message.push_back(current_byte);</div>
+<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span>      }</div>
+<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span> </div>
+<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>      current_raw_message.append(text_element-&gt;GetParamToken(current_byte));</div>
+<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>      current_parsed_message.append(text_element-&gt;GetParamToken(current_byte));</div>
+<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span> </div>
+<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span>      <span class="keywordflow">if</span> (text_element-&gt;Token == <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a03ed5e244fc1d22abedc9549954318f7">kBankToken</a>) {</div>
+<div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span>        pos = <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a59d4c715a567f35b7d9423174b899067">kTextData2</a>;</div>
+<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span>      }</div>
+<div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span> </div>
+<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span>      <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>    }</div>
+<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span> </div>
+<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>    <span class="comment">// Check for special characters.</span></div>
+<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>    <span class="keyword">auto</span> special_element = <a class="code hl_function" href="namespaceyaze_1_1editor.html#a95bb92d26041cf1e3a0b332290bdea54">FindMatchingSpecial</a>(current_byte);</div>
+<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span>    <span class="keywordflow">if</span> (special_element != std::nullopt) {</div>
+<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span>      current_raw_message.append(special_element-&gt;GetParamToken());</div>
+<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span>      current_parsed_message.append(special_element-&gt;GetParamToken());</div>
+<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>      parsed_message.push_back(current_byte);</div>
+<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span>      <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>    }</div>
 <div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span> </div>
-<div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span>      <span class="keywordflow">for</span> (uint32_t i = address; i &lt; address_end; i++) {</div>
-<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>        parsed_message.push_back(rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>()[i]);</div>
-<div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span>        current_parsed_message.append(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">ParseTextDataByte</a>(rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>()[i]));</div>
-<div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span>      }</div>
-<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span> </div>
-<div class="line"><a id="l00393" name="l00393"></a><span class="lineno">  393</span>      <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span>    }</div>
-<div class="line"><a id="l00395" name="l00395"></a><span class="lineno">  395</span> </div>
-<div class="line"><a id="l00396" name="l00396"></a><span class="lineno">  396</span>    <span class="comment">// Everything else.</span></div>
-<div class="line"><a id="l00397" name="l00397"></a><span class="lineno">  397</span>    <span class="keywordflow">if</span> (CharEncoder.contains(current_byte)) {</div>
-<div class="line"><a id="l00398" name="l00398"></a><span class="lineno">  398</span>      std::string str = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00399" name="l00399"></a><span class="lineno">  399</span>      str.push_back(CharEncoder.at(current_byte));</div>
-<div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span>      current_raw_message.append(str);</div>
-<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span>      current_parsed_message.append(str);</div>
-<div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span>      parsed_message.push_back(current_byte);</div>
-<div class="line"><a id="l00403" name="l00403"></a><span class="lineno">  403</span>    }</div>
-<div class="line"><a id="l00404" name="l00404"></a><span class="lineno">  404</span>  }</div>
-<div class="line"><a id="l00405" name="l00405"></a><span class="lineno">  405</span>}</div>
-</div>
+<div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span>    <span class="comment">// Check for dictionary.</span></div>
+<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>    <span class="keywordtype">int</span> dictionary = <a class="code hl_function" href="namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d">FindDictionaryEntry</a>(current_byte);</div>
+<div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span>    <span class="keywordflow">if</span> (dictionary &gt;= 0) {</div>
+<div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span>      current_raw_message.append(absl::StrFormat(<span class="stringliteral">&quot;[%s:%s]&quot;</span>, <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a180364fa630f1bbd2b029efa9277f342">DICTIONARYTOKEN</a>,</div>
+<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span>                                                 <a class="code hl_function" href="namespaceyaze_1_1util.html#a3f4d30bc153c6a955a8471f68c18aafd">util::HexByte</a>(dictionary)));</div>
+<div class="line"><a id="l00393" name="l00393"></a><span class="lineno">  393</span> </div>
+<div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span>      uint32_t address = <a class="code hl_function" href="namespaceyaze.html#a8acb4a8f67a09fd9a908aeac107898f7">Get24LocalFromPC</a>(</div>
+<div class="line"><a id="l00395" name="l00395"></a><span class="lineno">  395</span>          rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6">mutable_data</a>(), <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + (dictionary * 2));</div>
+<div class="line"><a id="l00396" name="l00396"></a><span class="lineno">  396</span>      uint32_t address_end = <a class="code hl_function" href="namespaceyaze.html#a8acb4a8f67a09fd9a908aeac107898f7">Get24LocalFromPC</a>(</div>
+<div class="line"><a id="l00397" name="l00397"></a><span class="lineno">  397</span>          rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6">mutable_data</a>(), <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">kPointersDictionaries</a> + ((dictionary + 1) * 2));</div>
+<div class="line"><a id="l00398" name="l00398"></a><span class="lineno">  398</span> </div>
+<div class="line"><a id="l00399" name="l00399"></a><span class="lineno">  399</span>      <span class="keywordflow">for</span> (uint32_t i = address; i &lt; address_end; i++) {</div>
+<div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span>        parsed_message.push_back(rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>()[i]);</div>
+<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span>        current_parsed_message.append(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">ParseTextDataByte</a>(rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>()[i]));</div>
+<div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span>      }</div>
+<div class="line"><a id="l00403" name="l00403"></a><span class="lineno">  403</span> </div>
+<div class="line"><a id="l00404" name="l00404"></a><span class="lineno">  404</span>      <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00405" name="l00405"></a><span class="lineno">  405</span>    }</div>
 <div class="line"><a id="l00406" name="l00406"></a><span class="lineno">  406</span> </div>
-<div class="line"><a id="l00407" name="l00407"></a><span class="lineno">  407</span>}  <span class="comment">// namespace editor</span></div>
-<div class="line"><a id="l00408" name="l00408"></a><span class="lineno">  408</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00407" name="l00407"></a><span class="lineno">  407</span>    <span class="comment">// Everything else.</span></div>
+<div class="line"><a id="l00408" name="l00408"></a><span class="lineno">  408</span>    <span class="keywordflow">if</span> (CharEncoder.contains(current_byte)) {</div>
+<div class="line"><a id="l00409" name="l00409"></a><span class="lineno">  409</span>      std::string str = <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a id="l00410" name="l00410"></a><span class="lineno">  410</span>      str.push_back(CharEncoder.at(current_byte));</div>
+<div class="line"><a id="l00411" name="l00411"></a><span class="lineno">  411</span>      current_raw_message.append(str);</div>
+<div class="line"><a id="l00412" name="l00412"></a><span class="lineno">  412</span>      current_parsed_message.append(str);</div>
+<div class="line"><a id="l00413" name="l00413"></a><span class="lineno">  413</span>      parsed_message.push_back(current_byte);</div>
+<div class="line"><a id="l00414" name="l00414"></a><span class="lineno">  414</span>    }</div>
+<div class="line"><a id="l00415" name="l00415"></a><span class="lineno">  415</span>  }</div>
+<div class="line"><a id="l00416" name="l00416"></a><span class="lineno">  416</span>}</div>
+</div>
+<div class="line"><a id="l00417" name="l00417"></a><span class="lineno">  417</span> </div>
+<div class="line"><a id="l00418" name="l00418"></a><span class="lineno">  418</span>}  <span class="comment">// namespace editor</span></div>
+<div class="line"><a id="l00419" name="l00419"></a><span class="lineno">  419</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html"><div class="ttname"><a href="classyaze_1_1Rom.html">yaze::Rom</a></div><div class="ttdoc">The Rom class is used to load, save, and modify Rom data.</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00058">rom.h:58</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html_a4b8d9753f385d6cb23821df4bcc689c6"><div class="ttname"><a href="classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6">yaze::Rom::mutable_data</a></div><div class="ttdeci">auto mutable_data()</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00172">rom.h:172</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html_a93944ed80bd748997b06d82f9b8b050d"><div class="ttname"><a href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">yaze::Rom::data</a></div><div class="ttdeci">auto data() const</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00171">rom.h:171</a></div></div>
@@ -552,24 +565,25 @@ $(function(){initNavTree('message__data_8cc_source.html',''); initResizable(true
 <div class="ttc" id="anamespaceyaze_1_1editor_html_a03ed5e244fc1d22abedc9549954318f7"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a03ed5e244fc1d22abedc9549954318f7">yaze::editor::kBankToken</a></div><div class="ttdeci">const std::string kBankToken</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00016">message_data.h:16</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1editor_html_a0d4a3ab38797b034b311b39a037a293a"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a0d4a3ab38797b034b311b39a037a293a">yaze::editor::kMessageTerminator</a></div><div class="ttdeci">const uint8_t kMessageTerminator</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00015">message_data.h:15</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1editor_html_a180364fa630f1bbd2b029efa9277f342"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a180364fa630f1bbd2b029efa9277f342">yaze::editor::DICTIONARYTOKEN</a></div><div class="ttdeci">const std::string DICTIONARYTOKEN</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00017">message_data.h:17</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1editor_html_a189336bde381ff1453e2be128c0e213b"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a189336bde381ff1453e2be128c0e213b">yaze::editor::kScrollVertical</a></div><div class="ttdeci">constexpr uint8_t kScrollVertical</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00077">message_data.h:77</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1editor_html_a199dd8e58308137481462885cf847442"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">yaze::editor::ParseTextDataByte</a></div><div class="ttdeci">std::string ParseTextDataByte(uint8_t value)</div><div class="ttdef"><b>Definition</b> <a href="#l00074">message_data.cc:74</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1editor_html_a473fd190fc829bc2a054131640c2f620"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a473fd190fc829bc2a054131640c2f620">yaze::editor::kTextData</a></div><div class="ttdeci">constexpr int kTextData</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00073">message_data.h:73</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1editor_html_a59d4c715a567f35b7d9423174b899067"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a59d4c715a567f35b7d9423174b899067">yaze::editor::kTextData2</a></div><div class="ttdeci">constexpr int kTextData2</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00314">message_data.h:314</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1editor_html_a6e03f0e92717101837c29f9cc3bf172f"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a6e03f0e92717101837c29f9cc3bf172f">yaze::editor::kLine2</a></div><div class="ttdeci">constexpr uint8_t kLine2</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00079">message_data.h:79</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1editor_html_a7075dfdde53bf6bb5ec8a4a5a5123c1f"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a7075dfdde53bf6bb5ec8a4a5a5123c1f">yaze::editor::ReplaceAllDictionaryWords</a></div><div class="ttdeci">std::string ReplaceAllDictionaryWords(std::string str, std::vector&lt; DictionaryEntry &gt; dictionary)</div><div class="ttdef"><b>Definition</b> <a href="#l00182">message_data.cc:182</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1editor_html_a70cc399beb413359a70ca254b143d6ec"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">yaze::editor::kPointersDictionaries</a></div><div class="ttdeci">constexpr int kPointersDictionaries</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00076">message_data.h:76</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1editor_html_a7da8c45c704303a76331eaade35bc5da"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a7da8c45c704303a76331eaade35bc5da">yaze::editor::kNumDictionaryEntries</a></div><div class="ttdeci">constexpr int kNumDictionaryEntries</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00075">message_data.h:75</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1editor_html_a7f9b61eee2bb838f10efe0d1062c8990"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a7f9b61eee2bb838f10efe0d1062c8990">yaze::editor::ParseSingleMessage</a></div><div class="ttdeci">absl::StatusOr&lt; MessageData &gt; ParseSingleMessage(const std::vector&lt; uint8_t &gt; &amp;rom_data, int *current_pos)</div><div class="ttdef"><b>Definition</b> <a href="#l00193">message_data.cc:193</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1editor_html_a91359909a674306622aa5a533e0c2377"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a91359909a674306622aa5a533e0c2377">yaze::editor::ParseMessageData</a></div><div class="ttdeci">std::vector&lt; std::string &gt; ParseMessageData(std::vector&lt; MessageData &gt; &amp;message_data, const std::vector&lt; DictionaryEntry &gt; &amp;dictionary_entries)</div><div class="ttdef"><b>Definition</b> <a href="#l00273">message_data.cc:273</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_a189336bde381ff1453e2be128c0e213b"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a189336bde381ff1453e2be128c0e213b">yaze::editor::kScrollVertical</a></div><div class="ttdeci">constexpr uint8_t kScrollVertical</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00078">message_data.h:78</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_a199dd8e58308137481462885cf847442"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">yaze::editor::ParseTextDataByte</a></div><div class="ttdeci">std::string ParseTextDataByte(uint8_t value)</div><div class="ttdef"><b>Definition</b> <a href="#l00077">message_data.cc:77</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_a473fd190fc829bc2a054131640c2f620"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a473fd190fc829bc2a054131640c2f620">yaze::editor::kTextData</a></div><div class="ttdeci">constexpr int kTextData</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00074">message_data.h:74</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_a508cbba41214d784ba112a4c3f14ec78"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a508cbba41214d784ba112a4c3f14ec78">yaze::editor::FindRealDictionaryEntry</a></div><div class="ttdeci">DictionaryEntry FindRealDictionaryEntry(uint8_t value, std::vector&lt; DictionaryEntry &gt; dictionary)</div><div class="ttdef"><b>Definition</b> <a href="#l00194">message_data.cc:194</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_a59d4c715a567f35b7d9423174b899067"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a59d4c715a567f35b7d9423174b899067">yaze::editor::kTextData2</a></div><div class="ttdeci">constexpr int kTextData2</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00309">message_data.h:309</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_a6e03f0e92717101837c29f9cc3bf172f"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a6e03f0e92717101837c29f9cc3bf172f">yaze::editor::kLine2</a></div><div class="ttdeci">constexpr uint8_t kLine2</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00080">message_data.h:80</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_a7075dfdde53bf6bb5ec8a4a5a5123c1f"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a7075dfdde53bf6bb5ec8a4a5a5123c1f">yaze::editor::ReplaceAllDictionaryWords</a></div><div class="ttdeci">std::string ReplaceAllDictionaryWords(std::string str, std::vector&lt; DictionaryEntry &gt; dictionary)</div><div class="ttdef"><b>Definition</b> <a href="#l00183">message_data.cc:183</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_a70cc399beb413359a70ca254b143d6ec"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a70cc399beb413359a70ca254b143d6ec">yaze::editor::kPointersDictionaries</a></div><div class="ttdeci">constexpr int kPointersDictionaries</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00077">message_data.h:77</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_a7da8c45c704303a76331eaade35bc5da"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a7da8c45c704303a76331eaade35bc5da">yaze::editor::kNumDictionaryEntries</a></div><div class="ttdeci">constexpr int kNumDictionaryEntries</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00076">message_data.h:76</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_a7f9b61eee2bb838f10efe0d1062c8990"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a7f9b61eee2bb838f10efe0d1062c8990">yaze::editor::ParseSingleMessage</a></div><div class="ttdeci">absl::StatusOr&lt; MessageData &gt; ParseSingleMessage(const std::vector&lt; uint8_t &gt; &amp;rom_data, int *current_pos)</div><div class="ttdef"><b>Definition</b> <a href="#l00204">message_data.cc:204</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_a91359909a674306622aa5a533e0c2377"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a91359909a674306622aa5a533e0c2377">yaze::editor::ParseMessageData</a></div><div class="ttdeci">std::vector&lt; std::string &gt; ParseMessageData(std::vector&lt; MessageData &gt; &amp;message_data, const std::vector&lt; DictionaryEntry &gt; &amp;dictionary_entries)</div><div class="ttdef"><b>Definition</b> <a href="#l00284">message_data.cc:284</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1editor_html_a95bb92d26041cf1e3a0b332290bdea54"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a95bb92d26041cf1e3a0b332290bdea54">yaze::editor::FindMatchingSpecial</a></div><div class="ttdeci">std::optional&lt; TextElement &gt; FindMatchingSpecial(uint8_t value)</div><div class="ttdef"><b>Definition</b> <a href="#l00038">message_data.cc:38</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1editor_html_a99c9eea01d5b08f81107f35f926a74b6"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a99c9eea01d5b08f81107f35f926a74b6">yaze::editor::ReadAllTextData</a></div><div class="ttdeci">void ReadAllTextData(Rom *rom, std::vector&lt; MessageData &gt; &amp;list_of_texts_)</div><div class="ttdef"><b>Definition</b> <a href="#l00321">message_data.cc:321</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1editor_html_aa29017b4244db6fa3e3a6fbcb33142b0"><div class="ttname"><a href="namespaceyaze_1_1editor.html#aa29017b4244db6fa3e3a6fbcb33142b0">yaze::editor::BuildDictionaryEntries</a></div><div class="ttdeci">std::vector&lt; DictionaryEntry &gt; BuildDictionaryEntries(Rom *rom)</div><div class="ttdef"><b>Definition</b> <a href="#l00150">message_data.cc:150</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1editor_html_ab631002fa2510fae663f6347362ba82d"><div class="ttname"><a href="namespaceyaze_1_1editor.html#ab631002fa2510fae663f6347362ba82d">yaze::editor::ParseMessageToData</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; ParseMessageToData(std::string str)</div><div class="ttdef"><b>Definition</b> <a href="#l00103">message_data.cc:103</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_a99c9eea01d5b08f81107f35f926a74b6"><div class="ttname"><a href="namespaceyaze_1_1editor.html#a99c9eea01d5b08f81107f35f926a74b6">yaze::editor::ReadAllTextData</a></div><div class="ttdeci">void ReadAllTextData(Rom *rom, std::vector&lt; MessageData &gt; &amp;list_of_texts_)</div><div class="ttdef"><b>Definition</b> <a href="#l00332">message_data.cc:332</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_aa29017b4244db6fa3e3a6fbcb33142b0"><div class="ttname"><a href="namespaceyaze_1_1editor.html#aa29017b4244db6fa3e3a6fbcb33142b0">yaze::editor::BuildDictionaryEntries</a></div><div class="ttdeci">std::vector&lt; DictionaryEntry &gt; BuildDictionaryEntries(Rom *rom)</div><div class="ttdef"><b>Definition</b> <a href="#l00151">message_data.cc:151</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_ab631002fa2510fae663f6347362ba82d"><div class="ttname"><a href="namespaceyaze_1_1editor.html#ab631002fa2510fae663f6347362ba82d">yaze::editor::ParseMessageToData</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; ParseMessageToData(std::string str)</div><div class="ttdef"><b>Definition</b> <a href="#l00106">message_data.cc:106</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1editor_html_abb2b75ac1fb7f044b8c0305ce0abf927"><div class="ttname"><a href="namespaceyaze_1_1editor.html#abb2b75ac1fb7f044b8c0305ce0abf927">yaze::editor::DICTOFF</a></div><div class="ttdeci">constexpr uint8_t DICTOFF</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00018">message_data.h:18</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1editor_html_aceb6d61973044373dd0f03cfe074b0fe"><div class="ttname"><a href="namespaceyaze_1_1editor.html#aceb6d61973044373dd0f03cfe074b0fe">yaze::editor::FindMatchingCommand</a></div><div class="ttdeci">std::optional&lt; TextElement &gt; FindMatchingCommand(uint8_t b)</div><div class="ttdef"><b>Definition</b> <a href="#l00029">message_data.cc:29</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1editor_html_ad840a81ab7030a220a019f79fbbabb6d"><div class="ttname"><a href="namespaceyaze_1_1editor.html#ad840a81ab7030a220a019f79fbbabb6d">yaze::editor::FindMatchingElement</a></div><div class="ttdeci">ParsedElement FindMatchingElement(const std::string &amp;str)</div><div class="ttdef"><b>Definition</b> <a href="#l00049">message_data.cc:49</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1editor_html_af1744a66e1114136092a2f6527d4af6a"><div class="ttname"><a href="namespaceyaze_1_1editor.html#af1744a66e1114136092a2f6527d4af6a">yaze::editor::kLine3</a></div><div class="ttdeci">constexpr uint8_t kLine3</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00080">message_data.h:80</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1editor_html_af1744a66e1114136092a2f6527d4af6a"><div class="ttname"><a href="namespaceyaze_1_1editor.html#af1744a66e1114136092a2f6527d4af6a">yaze::editor::kLine3</a></div><div class="ttdeci">constexpr uint8_t kLine3</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00081">message_data.h:81</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1editor_html_af2bcfdac4bd90975500b37f854728a4d"><div class="ttname"><a href="namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d">yaze::editor::FindDictionaryEntry</a></div><div class="ttdeci">int8_t FindDictionaryEntry(uint8_t value)</div><div class="ttdef"><b>Definition</b> <a href="#l00022">message_data.cc:22</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1util_html_a27c80ad6b675be3cbc3da03416081454"><div class="ttname"><a href="namespaceyaze_1_1util.html#a27c80ad6b675be3cbc3da03416081454">yaze::util::HexWord</a></div><div class="ttdeci">std::string HexWord(uint16_t word, HexStringParams params)</div><div class="ttdef"><b>Definition</b> <a href="hex_8cc_source.html#l00043">hex.cc:43</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1util_html_a3f4d30bc153c6a955a8471f68c18aafd"><div class="ttname"><a href="namespaceyaze_1_1util.html#a3f4d30bc153c6a955a8471f68c18aafd">yaze::util::HexByte</a></div><div class="ttdeci">std::string HexByte(uint8_t byte, HexStringParams params)</div><div class="ttdef"><b>Definition</b> <a href="hex_8cc_source.html#l00030">hex.cc:30</a></div></div>
@@ -577,22 +591,22 @@ $(function(){initNavTree('message__data_8cc_source.html',''); initResizable(true
 <div class="ttc" id="anamespaceyaze_html_a8acb4a8f67a09fd9a908aeac107898f7"><div class="ttname"><a href="namespaceyaze.html#a8acb4a8f67a09fd9a908aeac107898f7">yaze::Get24LocalFromPC</a></div><div class="ttdeci">uint32_t Get24LocalFromPC(uint8_t *data, int addr, bool pc=true)</div><div class="ttdef"><b>Definition</b> <a href="snes_8h_source.html#l00030">snes.h:30</a></div></div>
 <div class="ttc" id="anamespaceyaze_html_aefc163a31f0531da9e1636396859b450"><div class="ttname"><a href="namespaceyaze.html#aefc163a31f0531da9e1636396859b450">yaze::SnesToPc</a></div><div class="ttdeci">uint32_t SnesToPc(uint32_t addr) noexcept</div><div class="ttdef"><b>Definition</b> <a href="snes_8h_source.html#l00008">snes.h:8</a></div></div>
 <div class="ttc" id="asnes_8h_html"><div class="ttname"><a href="snes_8h.html">snes.h</a></div></div>
-<div class="ttc" id="astructyaze_1_1editor_1_1DictionaryEntry_html"><div class="ttname"><a href="structyaze_1_1editor_1_1DictionaryEntry.html">yaze::editor::DictionaryEntry</a></div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00044">message_data.h:44</a></div></div>
-<div class="ttc" id="astructyaze_1_1editor_1_1DictionaryEntry_html_a6b2beaa9312716f63e1b5ad0cea3d685"><div class="ttname"><a href="structyaze_1_1editor_1_1DictionaryEntry.html#a6b2beaa9312716f63e1b5ad0cea3d685">yaze::editor::DictionaryEntry::Contents</a></div><div class="ttdeci">std::string Contents</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00046">message_data.h:46</a></div></div>
-<div class="ttc" id="astructyaze_1_1editor_1_1MessageData_html"><div class="ttname"><a href="structyaze_1_1editor_1_1MessageData.html">yaze::editor::MessageData</a></div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00089">message_data.h:89</a></div></div>
-<div class="ttc" id="astructyaze_1_1editor_1_1MessageData_html_a247d00ae24f16435849870e1160dc7c4"><div class="ttname"><a href="structyaze_1_1editor_1_1MessageData.html#a247d00ae24f16435849870e1160dc7c4">yaze::editor::MessageData::Address</a></div><div class="ttdeci">int Address</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00091">message_data.h:91</a></div></div>
-<div class="ttc" id="astructyaze_1_1editor_1_1MessageData_html_a2ebee010cbc75c331b31e761d90f6628"><div class="ttname"><a href="structyaze_1_1editor_1_1MessageData.html#a2ebee010cbc75c331b31e761d90f6628">yaze::editor::MessageData::Data</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; Data</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00094">message_data.h:94</a></div></div>
-<div class="ttc" id="astructyaze_1_1editor_1_1MessageData_html_a4a22ce91a8141b3744ca0ce73a5d9f4d"><div class="ttname"><a href="structyaze_1_1editor_1_1MessageData.html#a4a22ce91a8141b3744ca0ce73a5d9f4d">yaze::editor::MessageData::DataParsed</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; DataParsed</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00095">message_data.h:95</a></div></div>
-<div class="ttc" id="astructyaze_1_1editor_1_1MessageData_html_a7fae1b753a46d7078aaa53b745ab1398"><div class="ttname"><a href="structyaze_1_1editor_1_1MessageData.html#a7fae1b753a46d7078aaa53b745ab1398">yaze::editor::MessageData::ID</a></div><div class="ttdeci">int ID</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00090">message_data.h:90</a></div></div>
-<div class="ttc" id="astructyaze_1_1editor_1_1MessageData_html_aa9c436a0d715955159df69060e04aa32"><div class="ttname"><a href="structyaze_1_1editor_1_1MessageData.html#aa9c436a0d715955159df69060e04aa32">yaze::editor::MessageData::RawString</a></div><div class="ttdeci">std::string RawString</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00092">message_data.h:92</a></div></div>
-<div class="ttc" id="astructyaze_1_1editor_1_1MessageData_html_ad3e91f53998bea4cf7566f2a2a1bf773"><div class="ttname"><a href="structyaze_1_1editor_1_1MessageData.html#ad3e91f53998bea4cf7566f2a2a1bf773">yaze::editor::MessageData::ContentsParsed</a></div><div class="ttdeci">std::string ContentsParsed</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00093">message_data.h:93</a></div></div>
-<div class="ttc" id="astructyaze_1_1editor_1_1ParsedElement_html"><div class="ttname"><a href="structyaze_1_1editor_1_1ParsedElement.html">yaze::editor::ParsedElement</a></div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00290">message_data.h:290</a></div></div>
-<div class="ttc" id="astructyaze_1_1editor_1_1ParsedElement_html_a886d6e52ee31417037d6ed7b73c23b70"><div class="ttname"><a href="structyaze_1_1editor_1_1ParsedElement.html#a886d6e52ee31417037d6ed7b73c23b70">yaze::editor::ParsedElement::Parent</a></div><div class="ttdeci">TextElement Parent</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00291">message_data.h:291</a></div></div>
-<div class="ttc" id="astructyaze_1_1editor_1_1ParsedElement_html_aa82ec84f467e9f8e5577f1e0e35740d7"><div class="ttname"><a href="structyaze_1_1editor_1_1ParsedElement.html#aa82ec84f467e9f8e5577f1e0e35740d7">yaze::editor::ParsedElement::Active</a></div><div class="ttdeci">bool Active</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00293">message_data.h:293</a></div></div>
-<div class="ttc" id="astructyaze_1_1editor_1_1ParsedElement_html_afc80cfa64f0d742c55ee5528254c201b"><div class="ttname"><a href="structyaze_1_1editor_1_1ParsedElement.html#afc80cfa64f0d742c55ee5528254c201b">yaze::editor::ParsedElement::Value</a></div><div class="ttdeci">uint8_t Value</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00292">message_data.h:292</a></div></div>
-<div class="ttc" id="astructyaze_1_1editor_1_1TextElement_html"><div class="ttname"><a href="structyaze_1_1editor_1_1TextElement.html">yaze::editor::TextElement</a></div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00157">message_data.h:157</a></div></div>
-<div class="ttc" id="astructyaze_1_1editor_1_1TextElement_html_a1867a95c0275dd516d0c7193aa4b0c78"><div class="ttname"><a href="structyaze_1_1editor_1_1TextElement.html#a1867a95c0275dd516d0c7193aa4b0c78">yaze::editor::TextElement::ID</a></div><div class="ttdeci">uint8_t ID</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00158">message_data.h:158</a></div></div>
-<div class="ttc" id="astructyaze_1_1editor_1_1TextElement_html_a4ab6b7eff1865bcf5d26c4ccc4e4437b"><div class="ttname"><a href="structyaze_1_1editor_1_1TextElement.html#a4ab6b7eff1865bcf5d26c4ccc4e4437b">yaze::editor::TextElement::HasArgument</a></div><div class="ttdeci">bool HasArgument</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00164">message_data.h:164</a></div></div>
+<div class="ttc" id="astructyaze_1_1editor_1_1DictionaryEntry_html"><div class="ttname"><a href="structyaze_1_1editor_1_1DictionaryEntry.html">yaze::editor::DictionaryEntry</a></div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00045">message_data.h:45</a></div></div>
+<div class="ttc" id="astructyaze_1_1editor_1_1DictionaryEntry_html_a6b2beaa9312716f63e1b5ad0cea3d685"><div class="ttname"><a href="structyaze_1_1editor_1_1DictionaryEntry.html#a6b2beaa9312716f63e1b5ad0cea3d685">yaze::editor::DictionaryEntry::Contents</a></div><div class="ttdeci">std::string Contents</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00047">message_data.h:47</a></div></div>
+<div class="ttc" id="astructyaze_1_1editor_1_1MessageData_html"><div class="ttname"><a href="structyaze_1_1editor_1_1MessageData.html">yaze::editor::MessageData</a></div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00092">message_data.h:92</a></div></div>
+<div class="ttc" id="astructyaze_1_1editor_1_1MessageData_html_a247d00ae24f16435849870e1160dc7c4"><div class="ttname"><a href="structyaze_1_1editor_1_1MessageData.html#a247d00ae24f16435849870e1160dc7c4">yaze::editor::MessageData::Address</a></div><div class="ttdeci">int Address</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00094">message_data.h:94</a></div></div>
+<div class="ttc" id="astructyaze_1_1editor_1_1MessageData_html_a2ebee010cbc75c331b31e761d90f6628"><div class="ttname"><a href="structyaze_1_1editor_1_1MessageData.html#a2ebee010cbc75c331b31e761d90f6628">yaze::editor::MessageData::Data</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; Data</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00097">message_data.h:97</a></div></div>
+<div class="ttc" id="astructyaze_1_1editor_1_1MessageData_html_a4a22ce91a8141b3744ca0ce73a5d9f4d"><div class="ttname"><a href="structyaze_1_1editor_1_1MessageData.html#a4a22ce91a8141b3744ca0ce73a5d9f4d">yaze::editor::MessageData::DataParsed</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; DataParsed</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00098">message_data.h:98</a></div></div>
+<div class="ttc" id="astructyaze_1_1editor_1_1MessageData_html_a7fae1b753a46d7078aaa53b745ab1398"><div class="ttname"><a href="structyaze_1_1editor_1_1MessageData.html#a7fae1b753a46d7078aaa53b745ab1398">yaze::editor::MessageData::ID</a></div><div class="ttdeci">int ID</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00093">message_data.h:93</a></div></div>
+<div class="ttc" id="astructyaze_1_1editor_1_1MessageData_html_aa9c436a0d715955159df69060e04aa32"><div class="ttname"><a href="structyaze_1_1editor_1_1MessageData.html#aa9c436a0d715955159df69060e04aa32">yaze::editor::MessageData::RawString</a></div><div class="ttdeci">std::string RawString</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00095">message_data.h:95</a></div></div>
+<div class="ttc" id="astructyaze_1_1editor_1_1MessageData_html_ad3e91f53998bea4cf7566f2a2a1bf773"><div class="ttname"><a href="structyaze_1_1editor_1_1MessageData.html#ad3e91f53998bea4cf7566f2a2a1bf773">yaze::editor::MessageData::ContentsParsed</a></div><div class="ttdeci">std::string ContentsParsed</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00096">message_data.h:96</a></div></div>
+<div class="ttc" id="astructyaze_1_1editor_1_1ParsedElement_html"><div class="ttname"><a href="structyaze_1_1editor_1_1ParsedElement.html">yaze::editor::ParsedElement</a></div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00285">message_data.h:285</a></div></div>
+<div class="ttc" id="astructyaze_1_1editor_1_1ParsedElement_html_a886d6e52ee31417037d6ed7b73c23b70"><div class="ttname"><a href="structyaze_1_1editor_1_1ParsedElement.html#a886d6e52ee31417037d6ed7b73c23b70">yaze::editor::ParsedElement::Parent</a></div><div class="ttdeci">TextElement Parent</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00286">message_data.h:286</a></div></div>
+<div class="ttc" id="astructyaze_1_1editor_1_1ParsedElement_html_aa82ec84f467e9f8e5577f1e0e35740d7"><div class="ttname"><a href="structyaze_1_1editor_1_1ParsedElement.html#aa82ec84f467e9f8e5577f1e0e35740d7">yaze::editor::ParsedElement::Active</a></div><div class="ttdeci">bool Active</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00288">message_data.h:288</a></div></div>
+<div class="ttc" id="astructyaze_1_1editor_1_1ParsedElement_html_afc80cfa64f0d742c55ee5528254c201b"><div class="ttname"><a href="structyaze_1_1editor_1_1ParsedElement.html#afc80cfa64f0d742c55ee5528254c201b">yaze::editor::ParsedElement::Value</a></div><div class="ttdeci">uint8_t Value</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00287">message_data.h:287</a></div></div>
+<div class="ttc" id="astructyaze_1_1editor_1_1TextElement_html"><div class="ttname"><a href="structyaze_1_1editor_1_1TextElement.html">yaze::editor::TextElement</a></div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00156">message_data.h:156</a></div></div>
+<div class="ttc" id="astructyaze_1_1editor_1_1TextElement_html_a1867a95c0275dd516d0c7193aa4b0c78"><div class="ttname"><a href="structyaze_1_1editor_1_1TextElement.html#a1867a95c0275dd516d0c7193aa4b0c78">yaze::editor::TextElement::ID</a></div><div class="ttdeci">uint8_t ID</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00157">message_data.h:157</a></div></div>
+<div class="ttc" id="astructyaze_1_1editor_1_1TextElement_html_a4ab6b7eff1865bcf5d26c4ccc4e4437b"><div class="ttname"><a href="structyaze_1_1editor_1_1TextElement.html#a4ab6b7eff1865bcf5d26c4ccc4e4437b">yaze::editor::TextElement::HasArgument</a></div><div class="ttdeci">bool HasArgument</div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00163">message_data.h:163</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

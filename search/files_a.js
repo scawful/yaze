@@ -11,9 +11,11 @@ var searchData=
   ['message_5fdata_2eh_8',['message_data.h',['../message__data_8h.html',1,'']]],
   ['message_5feditor_2ecc_9',['message_editor.cc',['../message__editor_8cc.html',1,'']]],
   ['message_5feditor_2eh_10',['message_editor.h',['../message__editor_8h.html',1,'']]],
-  ['message_5ftest_2ecc_11',['message_test.cc',['../message__test_8cc.html',1,'']]],
-  ['mock_5fmemory_2eh_12',['mock_memory.h',['../mock__memory_8h.html',1,'']]],
-  ['mock_5from_2eh_13',['mock_rom.h',['../mock__rom_8h.html',1,'']]],
-  ['music_5feditor_2ecc_14',['music_editor.cc',['../music__editor_8cc.html',1,'']]],
-  ['music_5feditor_2eh_15',['music_editor.h',['../music__editor_8h.html',1,'']]]
+  ['message_5fpreview_2ecc_11',['message_preview.cc',['../message__preview_8cc.html',1,'']]],
+  ['message_5fpreview_2eh_12',['message_preview.h',['../message__preview_8h.html',1,'']]],
+  ['message_5ftest_2ecc_13',['message_test.cc',['../message__test_8cc.html',1,'']]],
+  ['mock_5fmemory_2eh_14',['mock_memory.h',['../mock__memory_8h.html',1,'']]],
+  ['mock_5from_2eh_15',['mock_rom.h',['../mock__rom_8h.html',1,'']]],
+  ['music_5feditor_2ecc_16',['music_editor.cc',['../music__editor_8cc.html',1,'']]],
+  ['music_5feditor_2eh_17',['music_editor.h',['../music__editor_8h.html',1,'']]]
 ];

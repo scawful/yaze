@@ -1,5 +1,15 @@
 var NAVTREEINDEX52 =
 {
+"structyaze_1_1emu_1_1WindowLayer.html":[12,0,0,3,96],
+"structyaze_1_1emu_1_1WindowLayer.html#a71938d37bbd6259034218156fd44c163":[11,0,1,3,98,1],
+"structyaze_1_1emu_1_1WindowLayer.html#a71938d37bbd6259034218156fd44c163":[12,0,0,3,96,1],
+"structyaze_1_1emu_1_1WindowLayer.html#aa0b84df4c222bfaa69482b33737fce74":[11,0,1,3,98,3],
+"structyaze_1_1emu_1_1WindowLayer.html#aa0b84df4c222bfaa69482b33737fce74":[12,0,0,3,96,3],
+"structyaze_1_1emu_1_1WindowLayer.html#ab2b1f7c3b68e7418207dc423f1ac79a6":[11,0,1,3,98,4],
+"structyaze_1_1emu_1_1WindowLayer.html#ab2b1f7c3b68e7418207dc423f1ac79a6":[12,0,0,3,96,4],
+"structyaze_1_1emu_1_1WindowLayer.html#abda5aeda08c6b8fa7596d987c2669ff0":[11,0,1,3,98,0],
+"structyaze_1_1emu_1_1WindowLayer.html#abda5aeda08c6b8fa7596d987c2669ff0":[12,0,0,3,96,0],
+"structyaze_1_1emu_1_1WindowLayer.html#ac55ee8de38996ce66d6325c7944735f6":[11,0,1,3,98,2],
 "structyaze_1_1emu_1_1WindowLayer.html#ac55ee8de38996ce66d6325c7944735f6":[12,0,0,3,96,2],
 "structyaze_1_1emu_1_1WindowMaskSettings.html":[11,0,1,3,99],
 "structyaze_1_1emu_1_1WindowMaskSettings.html":[12,0,0,3,97],
@@ -239,15 +249,5 @@ var NAVTREEINDEX52 =
 "structyaze_1_1gui_1_1Button.html":[12,0,0,5,3],
 "structyaze_1_1gui_1_1Button.html#ab88e64066c56418393e6fd510e0bf87e":[11,0,1,5,5,1],
 "structyaze_1_1gui_1_1Button.html#ab88e64066c56418393e6fd510e0bf87e":[12,0,0,5,3,1],
-"structyaze_1_1gui_1_1Button.html#ae25cf11323ab4180af3601aac9002393":[11,0,1,5,5,0],
-"structyaze_1_1gui_1_1Button.html#ae25cf11323ab4180af3601aac9002393":[12,0,0,5,3,0],
-"structyaze_1_1gui_1_1Color.html":[11,0,1,5,7],
-"structyaze_1_1gui_1_1Color.html":[12,0,0,5,5],
-"structyaze_1_1gui_1_1Color.html#a48502467033d9191c22883f6a0fa9a09":[11,0,1,5,7,0],
-"structyaze_1_1gui_1_1Color.html#a48502467033d9191c22883f6a0fa9a09":[12,0,0,5,5,0],
-"structyaze_1_1gui_1_1Color.html#ad880cdabdb32ad1d5a0c00d54d4e8e36":[11,0,1,5,7,3],
-"structyaze_1_1gui_1_1Color.html#ad880cdabdb32ad1d5a0c00d54d4e8e36":[12,0,0,5,5,3],
-"structyaze_1_1gui_1_1Color.html#af1b40df4ddc487f6602dd628e6a9e5de":[11,0,1,5,7,1],
-"structyaze_1_1gui_1_1Color.html#af1b40df4ddc487f6602dd628e6a9e5de":[12,0,0,5,5,1],
-"structyaze_1_1gui_1_1Color.html#afff6ec23c27d488cfb0ed0a59b19fde5":[11,0,1,5,7,2]
+"structyaze_1_1gui_1_1Button.html#ae25cf11323ab4180af3601aac9002393":[11,0,1,5,5,0]
 };

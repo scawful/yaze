@@ -97,7 +97,7 @@ var searchData=
   ['consume_5fmodified_94',['consume_modified',['../classyaze_1_1util_1_1NotifyValue.html#a3bfcbeb0971f644f9888a6476947505e',1,'yaze::util::NotifyValue']]],
   ['containedinstring_95',['ContainedInString',['../structyaze_1_1editor_1_1DictionaryEntry.html#a295d4ae9e0e49ca5b30a8efac2a35972',1,'yaze::editor::DictionaryEntry']]],
   ['convert_96',['Convert',['../namespaceyaze_1_1gfx.html#a58538e81c6b1b5c0d28310f84eced8b7',1,'yaze::gfx']]],
-  ['convertbpp_97',['ConvertBpp',['../namespaceyaze_1_1gfx.html#a801e13a355e10203fa354ca04529ac94',1,'yaze::gfx']]],
+  ['convertbpp_97',['ConvertBpp',['../namespaceyaze_1_1gfx.html#aca0ab154feaf9fd61510d5f26832e054',1,'yaze::gfx']]],
   ['convertcolortoimvec4_98',['ConvertColorToImVec4',['../namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924',1,'yaze::gui']]],
   ['convertimvec4tosnescolor_99',['ConvertImVec4ToSnesColor',['../namespaceyaze_1_1gui.html#ad6ba4f05b40456918b1e49bfbb876c14',1,'yaze::gui']]],
   ['convertrgbtosnes_100',['ConvertRgbToSnes',['../namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d',1,'yaze::gfx::ConvertRgbToSnes(const snes_color &amp;color)'],['../namespaceyaze_1_1gfx.html#a78da9ee9b2de37e218f0152a1ecc4e36',1,'yaze::gfx::ConvertRgbToSnes(const ImVec4 &amp;color)'],['../namespaceyaze_1_1test.html#a4e83a052d42017612243c3f81b538b7d',1,'yaze::test::ConvertRgbToSnes()']]],

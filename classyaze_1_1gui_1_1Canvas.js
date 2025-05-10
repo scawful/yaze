@@ -13,7 +13,7 @@ var classyaze_1_1gui_1_1Canvas =
     [ "DrawTilePainter", "classyaze_1_1gui_1_1Canvas.html#a7c4c7b27651a4090ba8c40a58d6939dc", null ],
     [ "DrawSolidTilePainter", "classyaze_1_1gui_1_1Canvas.html#a4e859171161c1ef5364b1f13238400c9", null ],
     [ "DrawTileOnBitmap", "classyaze_1_1gui_1_1Canvas.html#a83a73b54866f99c7950fbf79c3b7b9e5", null ],
-    [ "DrawTileSelector", "classyaze_1_1gui_1_1Canvas.html#ada9bc58e1ad2b625f78d7c3f21b8efbd", null ],
+    [ "DrawTileSelector", "classyaze_1_1gui_1_1Canvas.html#a6a667bbd9d7981b0904555ea75c90e46", null ],
     [ "DrawSelectRect", "classyaze_1_1gui_1_1Canvas.html#ab27210853ee82941262e4fa43ffdc378", null ],
     [ "DrawBitmap", "classyaze_1_1gui_1_1Canvas.html#a06eab9bafdad1cdd915c22937e07bf2d", null ],
     [ "DrawBitmap", "classyaze_1_1gui_1_1Canvas.html#a38a471697e1d89d166cece6a4aee4596", null ],

@@ -1,5 +1,15 @@
 var NAVTREEINDEX51 =
 {
+"structyaze_1_1emu_1_1ScreenMode.html#a6a7fe13a726e57f001638b8410ad0795":[12,0,0,3,64,2],
+"structyaze_1_1emu_1_1ScreenMode.html#a81959ec7a85e3faa556069c41d961cdd":[11,0,1,3,66,4],
+"structyaze_1_1emu_1_1ScreenMode.html#a81959ec7a85e3faa556069c41d961cdd":[12,0,0,3,64,4],
+"structyaze_1_1emu_1_1ScreenMode.html#abfb5295c34c419669cbbd1ed6a39eb07":[11,0,1,3,66,5],
+"structyaze_1_1emu_1_1ScreenMode.html#abfb5295c34c419669cbbd1ed6a39eb07":[12,0,0,3,64,5],
+"structyaze_1_1emu_1_1ScreenMode.html#acc93f6148e8954d6034442ae0f0b6596":[11,0,1,3,66,1],
+"structyaze_1_1emu_1_1ScreenMode.html#acc93f6148e8954d6034442ae0f0b6596":[12,0,0,3,64,1],
+"structyaze_1_1emu_1_1ScrollRegister.html":[11,0,1,3,67],
+"structyaze_1_1emu_1_1ScrollRegister.html":[12,0,0,3,65],
+"structyaze_1_1emu_1_1ScrollRegister.html#a08ac97f7e46a43ef773f1dfb6b2fbf1a":[11,0,1,3,67,2],
 "structyaze_1_1emu_1_1ScrollRegister.html#a08ac97f7e46a43ef773f1dfb6b2fbf1a":[12,0,0,3,65,2],
 "structyaze_1_1emu_1_1ScrollRegister.html#a14770d410ce705c874692203258ca742":[11,0,1,3,67,1],
 "structyaze_1_1emu_1_1ScrollRegister.html#a14770d410ce705c874692203258ca742":[12,0,0,3,65,1],
@@ -239,15 +249,5 @@ var NAVTREEINDEX51 =
 "structyaze_1_1emu_1_1WOBJSEL.html#ad7fad5d56808b2dc41502cbd4b033541":[12,0,0,3,101,7],
 "structyaze_1_1emu_1_1WOBJSEL.html#ade166ee6e0a076e20945d635a5e48340":[11,0,1,3,103,4],
 "structyaze_1_1emu_1_1WOBJSEL.html#ade166ee6e0a076e20945d635a5e48340":[12,0,0,3,101,4],
-"structyaze_1_1emu_1_1WindowLayer.html":[11,0,1,3,98],
-"structyaze_1_1emu_1_1WindowLayer.html":[12,0,0,3,96],
-"structyaze_1_1emu_1_1WindowLayer.html#a71938d37bbd6259034218156fd44c163":[11,0,1,3,98,1],
-"structyaze_1_1emu_1_1WindowLayer.html#a71938d37bbd6259034218156fd44c163":[12,0,0,3,96,1],
-"structyaze_1_1emu_1_1WindowLayer.html#aa0b84df4c222bfaa69482b33737fce74":[11,0,1,3,98,3],
-"structyaze_1_1emu_1_1WindowLayer.html#aa0b84df4c222bfaa69482b33737fce74":[12,0,0,3,96,3],
-"structyaze_1_1emu_1_1WindowLayer.html#ab2b1f7c3b68e7418207dc423f1ac79a6":[11,0,1,3,98,4],
-"structyaze_1_1emu_1_1WindowLayer.html#ab2b1f7c3b68e7418207dc423f1ac79a6":[12,0,0,3,96,4],
-"structyaze_1_1emu_1_1WindowLayer.html#abda5aeda08c6b8fa7596d987c2669ff0":[11,0,1,3,98,0],
-"structyaze_1_1emu_1_1WindowLayer.html#abda5aeda08c6b8fa7596d987c2669ff0":[12,0,0,3,96,0],
-"structyaze_1_1emu_1_1WindowLayer.html#ac55ee8de38996ce66d6325c7944735f6":[11,0,1,3,98,2]
+"structyaze_1_1emu_1_1WindowLayer.html":[11,0,1,3,98]
 };

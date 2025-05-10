@@ -65,6 +65,7 @@ var annotated_dup =
         [ "MemoryEditorWithDiffChecker", "structyaze_1_1editor_1_1MemoryEditorWithDiffChecker.html", "structyaze_1_1editor_1_1MemoryEditorWithDiffChecker" ],
         [ "MessageData", "structyaze_1_1editor_1_1MessageData.html", "structyaze_1_1editor_1_1MessageData" ],
         [ "MessageEditor", "classyaze_1_1editor_1_1MessageEditor.html", "classyaze_1_1editor_1_1MessageEditor" ],
+        [ "MessagePreview", "structyaze_1_1editor_1_1MessagePreview.html", "structyaze_1_1editor_1_1MessagePreview" ],
         [ "MusicEditor", "classyaze_1_1editor_1_1MusicEditor.html", "classyaze_1_1editor_1_1MusicEditor" ],
         [ "OverworldEditor", "classyaze_1_1editor_1_1OverworldEditor.html", "classyaze_1_1editor_1_1OverworldEditor" ],
         [ "PaletteEditor", "classyaze_1_1editor_1_1PaletteEditor.html", "classyaze_1_1editor_1_1PaletteEditor" ],

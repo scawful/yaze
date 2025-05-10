@@ -280,12 +280,12 @@ Functions</h2></td></tr>
 <tr class="memitem:acb08518117f632fe321cc8191defe210" id="r_acb08518117f632fe321cc8191defe210"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acb08518117f632fe321cc8191defe210">LoadAllPalettes</a> (const std::vector&lt; uint8_t &gt; &amp;rom_data, <a class="el" href="structyaze_1_1gfx_1_1PaletteGroupMap.html">PaletteGroupMap</a> &amp;groups)</td></tr>
 <tr class="memdesc:acb08518117f632fe321cc8191defe210"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads all the palettes for the game.  <br /></td></tr>
 <tr class="separator:acb08518117f632fe321cc8191defe210"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aca63ef185d9f075d91c1515a5ccfc4a8" id="r_aca63ef185d9f075d91c1515a5ccfc4a8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structsnes__tile8.html">snes_tile8</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aca63ef185d9f075d91c1515a5ccfc4a8">UnpackBppTile</a> (const std::vector&lt; uint8_t &gt; &amp;data, const uint32_t offset, const uint32_t bpp)</td></tr>
-<tr class="separator:aca63ef185d9f075d91c1515a5ccfc4a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa50c94ff8a438c8d1f9d8a74115c5304" id="r_aa50c94ff8a438c8d1f9d8a74115c5304"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structsnes__tile8.html">snes_tile8</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa50c94ff8a438c8d1f9d8a74115c5304">UnpackBppTile</a> (std::span&lt; uint8_t &gt; data, const uint32_t offset, const uint32_t bpp)</td></tr>
+<tr class="separator:aa50c94ff8a438c8d1f9d8a74115c5304"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7260886a737941c53866529577b27e13" id="r_a7260886a737941c53866529577b27e13"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7260886a737941c53866529577b27e13">PackBppTile</a> (const <a class="el" href="structsnes__tile8.html">snes_tile8</a> &amp;tile, const uint32_t bpp)</td></tr>
 <tr class="separator:a7260886a737941c53866529577b27e13"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a801e13a355e10203fa354ca04529ac94" id="r_a801e13a355e10203fa354ca04529ac94"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a801e13a355e10203fa354ca04529ac94">ConvertBpp</a> (const std::vector&lt; uint8_t &gt; &amp;tiles, uint32_t from_bpp, uint32_t to_bpp)</td></tr>
-<tr class="separator:a801e13a355e10203fa354ca04529ac94"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca0ab154feaf9fd61510d5f26832e054" id="r_aca0ab154feaf9fd61510d5f26832e054"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aca0ab154feaf9fd61510d5f26832e054">ConvertBpp</a> (std::span&lt; uint8_t &gt; tiles, uint32_t from_bpp, uint32_t to_bpp)</td></tr>
+<tr class="separator:aca0ab154feaf9fd61510d5f26832e054"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a960630bcf8c1227f79ff2cf1f6c034bb" id="r_a960630bcf8c1227f79ff2cf1f6c034bb"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a960630bcf8c1227f79ff2cf1f6c034bb">SnesTo8bppSheet</a> (std::span&lt; uint8_t &gt; sheet, int bpp, int num_sheets)</td></tr>
 <tr class="separator:a960630bcf8c1227f79ff2cf1f6c034bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7defcba4175eb8d38335943a94fc81e3" id="r_a7defcba4175eb8d38335943a94fc81e3"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7defcba4175eb8d38335943a94fc81e3">Bpp8SnesToIndexed</a> (std::vector&lt; uint8_t &gt; data, uint64_t bpp)</td></tr>
@@ -300,8 +300,8 @@ Functions</h2></td></tr>
 <tr class="separator:aa5ae49b02472150a2ad972abf1f7d35a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3d42dbaf6fa57c5ad4da5b02154ce7c9" id="r_a3d42dbaf6fa57c5ad4da5b02154ce7c9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3d42dbaf6fa57c5ad4da5b02154ce7c9">CopyTile8bpp16</a> (int x, int y, int tile, std::vector&lt; uint8_t &gt; &amp;bitmap, std::vector&lt; uint8_t &gt; &amp;blockset)</td></tr>
 <tr class="separator:a3d42dbaf6fa57c5ad4da5b02154ce7c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abc742fff7ad616816ba2007849d4c91a" id="r_abc742fff7ad616816ba2007849d4c91a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abc742fff7ad616816ba2007849d4c91a">LoadSNES4bppGFXToIndexedColorMatrix</a> (std::span&lt; uint8_t &gt; src, std::span&lt; uint8_t &gt; dest)</td></tr>
-<tr class="separator:abc742fff7ad616816ba2007849d4c91a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a14d88ea53c85352a630e25486a7f2661" id="r_a14d88ea53c85352a630e25486a7f2661"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a14d88ea53c85352a630e25486a7f2661">LoadSNES4bppGFXToIndexedColorMatrix</a> (std::span&lt; uint8_t &gt; src)</td></tr>
+<tr class="separator:a14d88ea53c85352a630e25486a7f2661"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2064ed9f541dd72deb72f78523e006c4" id="r_a2064ed9f541dd72deb72f78523e006c4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1gfx_1_1Tilemap.html">Tilemap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2064ed9f541dd72deb72f78523e006c4">CreateTilemap</a> (std::vector&lt; uint8_t &gt; &amp;data, int width, int height, int tile_size, int num_tiles, <a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">SnesPalette</a> &amp;palette)</td></tr>
 <tr class="separator:a2064ed9f541dd72deb72f78523e006c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2ceb066551815eb3f3473a316fe8827d" id="r_a2ceb066551815eb3f3473a316fe8827d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2ceb066551815eb3f3473a316fe8827d">UpdateTilemap</a> (<a class="el" href="structyaze_1_1gfx_1_1Tilemap.html">Tilemap</a> &amp;tilemap, const std::vector&lt; uint8_t &gt; &amp;data)</td></tr>
@@ -606,7 +606,7 @@ Variables</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="compression_8cc_source.html#l00018">18</a> of file <a class="el" href="compression_8cc_source.html">compression.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00137">yaze::SaveAllGraphicsData()</a>, and <a class="el" href="overworld_8cc_source.html#l00532">yaze::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00194">yaze::SaveAllGraphicsData()</a>, and <a class="el" href="overworld_8cc_source.html#l00532">yaze::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
 
 </div>
 </div>
@@ -1169,7 +1169,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="snes__palette_8cc_source.html#l00238">kPaletteGroupAddressMap</a>, and <a class="el" href="snes__palette_8cc_source.html#l00256">kPaletteGroupColorCounts</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00425">yaze::Rom::SavePalette()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00482">yaze::Rom::SavePalette()</a>.</p>
 
 </div>
 </div>
@@ -1353,12 +1353,12 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="snes__palette_8cc_source.html#l00216">yaze::gfx::palette_group_internal::Load3DObjectPalettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00135">yaze::gfx::palette_group_internal::LoadArmorPalettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00195">yaze::gfx::palette_group_internal::LoadDungeonMainPalettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00125">yaze::gfx::palette_group_internal::LoadGlobalSpritePalettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00205">yaze::gfx::palette_group_internal::LoadGrassColors()</a>, <a class="el" href="snes__palette_8cc_source.html#l00115">yaze::gfx::palette_group_internal::LoadHUDPalettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00104">yaze::gfx::palette_group_internal::LoadOverworldAnimatedPalettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00092">yaze::gfx::palette_group_internal::LoadOverworldAuxiliaryPalettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00081">yaze::gfx::palette_group_internal::LoadOverworldMainPalettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00226">yaze::gfx::palette_group_internal::LoadOverworldMiniMapPalettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00155">yaze::gfx::palette_group_internal::LoadShieldPalettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00165">yaze::gfx::palette_group_internal::LoadSpriteAux1Palettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00175">yaze::gfx::palette_group_internal::LoadSpriteAux2Palettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00185">yaze::gfx::palette_group_internal::LoadSpriteAux3Palettes()</a>, <a class="el" href="snes__palette_8cc_source.html#l00145">yaze::gfx::palette_group_internal::LoadSwordPalettes()</a>, and <a class="el" href="macro_8h_source.html#l00051">RETURN_IF_ERROR</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00227">yaze::Rom::LoadZelda3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom_8cc_source.html#l00284">yaze::Rom::LoadZelda3()</a>.</p>
 
 </div>
 </div>
-<a id="aca63ef185d9f075d91c1515a5ccfc4a8" name="aca63ef185d9f075d91c1515a5ccfc4a8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aca63ef185d9f075d91c1515a5ccfc4a8">&#9670;&#160;</a></span>UnpackBppTile()</h2>
+<a id="aa50c94ff8a438c8d1f9d8a74115c5304" name="aa50c94ff8a438c8d1f9d8a74115c5304"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa50c94ff8a438c8d1f9d8a74115c5304">&#9670;&#160;</a></span>UnpackBppTile()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1366,7 +1366,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname"><a class="el" href="structsnes__tile8.html">snes_tile8</a> yaze::gfx::UnpackBppTile </td>
           <td>(</td>
-          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
+          <td class="paramtype">std::span&lt; uint8_t &gt;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1416,8 +1416,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a801e13a355e10203fa354ca04529ac94" name="a801e13a355e10203fa354ca04529ac94"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a801e13a355e10203fa354ca04529ac94">&#9670;&#160;</a></span>ConvertBpp()</h2>
+<a id="aca0ab154feaf9fd61510d5f26832e054" name="aca0ab154feaf9fd61510d5f26832e054"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aca0ab154feaf9fd61510d5f26832e054">&#9670;&#160;</a></span>ConvertBpp()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1425,7 +1425,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">std::vector&lt; uint8_t &gt; yaze::gfx::ConvertBpp </td>
           <td>(</td>
-          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>tiles</em></span>, </td>
+          <td class="paramtype">std::span&lt; uint8_t &gt;</td>          <td class="paramname"><span class="paramname"><em>tiles</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1448,12 +1448,12 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1gfx_a801e13a355e10203fa354ca04529ac94_cgraph.png" border="0" usemap="#anamespaceyaze_1_1gfx_a801e13a355e10203fa354ca04529ac94_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1gfx_a801e13a355e10203fa354ca04529ac94_cgraph" id="anamespaceyaze_1_1gfx_a801e13a355e10203fa354ca04529ac94_cgraph">
+<div class="center"><img src="namespaceyaze_1_1gfx_aca0ab154feaf9fd61510d5f26832e054_cgraph.png" border="0" usemap="#anamespaceyaze_1_1gfx_aca0ab154feaf9fd61510d5f26832e054_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1gfx_aca0ab154feaf9fd61510d5f26832e054_cgraph" id="anamespaceyaze_1_1gfx_aca0ab154feaf9fd61510d5f26832e054_cgraph">
 <area shape="rect" title=" " alt="" coords="5,31,150,56"/>
 <area shape="rect" href="namespaceyaze_1_1gfx.html#a7260886a737941c53866529577b27e13" title=" " alt="" coords="205,5,356,31"/>
 <area shape="poly" title=" " alt="" coords="150,32,189,27,190,32,150,37"/>
-<area shape="rect" href="namespaceyaze_1_1gfx.html#aca63ef185d9f075d91c1515a5ccfc4a8" title=" " alt="" coords="198,55,363,80"/>
+<area shape="rect" href="namespaceyaze_1_1gfx.html#aa50c94ff8a438c8d1f9d8a74115c5304" title=" " alt="" coords="198,55,363,80"/>
 <area shape="poly" title=" " alt="" coords="150,49,182,53,182,59,150,55"/>
 </map>
 </div>
@@ -1488,7 +1488,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="snes__tile_8h_source.html#l00020">kGraphicsBitmap</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00757">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00781">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="message__editor_8cc_source.html#l00046">yaze::editor::MessageEditor::Initialize()</a>, <a class="el" href="rom_8cc_source.html#l00040">yaze::Load2BppGraphics()</a>, <a class="el" href="rom_8cc_source.html#l00078">yaze::LoadAllGraphicsData()</a>, <a class="el" href="screen__editor_8cc_source.html#l00557">yaze::editor::ScreenEditor::LoadBinaryGfx()</a>, <a class="el" href="dungeon__map_8cc_source.html#l00014">yaze::zelda3::LoadDungeonMapGfxFromBinary()</a>, and <a class="el" href="rom_8cc_source.html#l00059">yaze::LoadLinkGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00757">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00781">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="message__editor_8cc_source.html#l00046">yaze::editor::MessageEditor::Initialize()</a>, <a class="el" href="rom_8cc_source.html#l00040">yaze::Load2BppGraphics()</a>, <a class="el" href="rom_8cc_source.html#l00135">yaze::LoadAllGraphicsData()</a>, <a class="el" href="screen__editor_8cc_source.html#l00557">yaze::editor::ScreenEditor::LoadBinaryGfx()</a>, <a class="el" href="dungeon__map_8cc_source.html#l00014">yaze::zelda3::LoadDungeonMapGfxFromBinary()</a>, and <a class="el" href="rom_8cc_source.html#l00058">yaze::LoadLinkGraphics()</a>.</p>
 
 </div>
 </div>
@@ -1513,7 +1513,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00189">189</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="scad__format_8cc_source.html#l00042">LoadCgx()</a>, and <a class="el" href="rom_8cc_source.html#l00137">yaze::SaveAllGraphicsData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="scad__format_8cc_source.html#l00042">LoadCgx()</a>, and <a class="el" href="rom_8cc_source.html#l00194">yaze::SaveAllGraphicsData()</a>.</p>
 
 </div>
 </div>
@@ -1536,7 +1536,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="snes__tile_8h_source.html#l00056">yaze::gfx::TileInfo::horizontal_mirror_</a>, <a class="el" href="snes__tile_8h_source.html#l00052">yaze::gfx::TileInfo::id_</a>, <a class="el" href="snes__tile_8h_source.html#l00054">yaze::gfx::TileInfo::over_</a>, <a class="el" href="snes__tile_8h_source.html#l00053">yaze::gfx::TileInfo::palette_</a>, and <a class="el" href="snes__tile_8h_source.html#l00055">yaze::gfx::TileInfo::vertical_mirror_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00301">yaze::editor::ScreenEditor::SaveDungeonMapTile16()</a>, and <a class="el" href="rom_8cc_source.html#l00506">yaze::Rom::WriteTile16()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00301">yaze::editor::ScreenEditor::SaveDungeonMapTile16()</a>, and <a class="el" href="rom_8cc_source.html#l00563">yaze::Rom::WriteTile16()</a>.</p>
 
 </div>
 </div>
@@ -1557,7 +1557,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="snes__tile_8cc_source.html#l00308">308</a> of file <a class="el" href="snes__tile_8cc_source.html">snes_tile.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00252">yaze::editor::ScreenEditor::LoadDungeonMapTile16()</a>, and <a class="el" href="rom_8cc_source.html#l00488">yaze::Rom::ReadTile16()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00252">yaze::editor::ScreenEditor::LoadDungeonMapTile16()</a>, and <a class="el" href="rom_8cc_source.html#l00545">yaze::Rom::ReadTile16()</a>.</p>
 
 </div>
 </div>
@@ -1647,21 +1647,17 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="abc742fff7ad616816ba2007849d4c91a" name="abc742fff7ad616816ba2007849d4c91a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abc742fff7ad616816ba2007849d4c91a">&#9670;&#160;</a></span>LoadSNES4bppGFXToIndexedColorMatrix()</h2>
+<a id="a14d88ea53c85352a630e25486a7f2661" name="a14d88ea53c85352a630e25486a7f2661"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a14d88ea53c85352a630e25486a7f2661">&#9670;&#160;</a></span>LoadSNES4bppGFXToIndexedColorMatrix()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void yaze::gfx::LoadSNES4bppGFXToIndexedColorMatrix </td>
+          <td class="memname">std::vector&lt; uint8_t &gt; yaze::gfx::LoadSNES4bppGFXToIndexedColorMatrix </td>
           <td>(</td>
-          <td class="paramtype">std::span&lt; uint8_t &gt;</td>          <td class="paramname"><span class="paramname"><em>src</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype">std::span&lt; uint8_t &gt;</td>          <td class="paramname"><span class="paramname"><em>src</em></span></td><td>)</td>
           <td></td>
-          <td class="paramtype">std::span&lt; uint8_t &gt;</td>          <td class="paramname"><span class="paramname"><em>dest</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1799,7 +1795,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="tilemap_8h_source.html#l00017">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::core::Renderer::Get()</a>, <a class="el" href="tilemap_8cc_source.html#l00137">GetTilemapData()</a>, <a class="el" href="bitmap_8h_source.html#l00149">yaze::gfx::Bitmap::palette()</a>, <a class="el" href="renderer_8h_source.html#l00045">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="tilemap_8h_source.html#l00018">yaze::gfx::Tilemap::tile_bitmaps</a>, <a class="el" href="tilemap_8h_source.html#l00019">yaze::gfx::Tilemap::tile_size</a>, <a class="el" href="renderer_8h_source.html#l00049">yaze::core::Renderer::UpdateBitmap()</a>, <a class="el" href="tilemap_8h_source.html#l00012">yaze::gfx::Pair::x</a>, and <a class="el" href="tilemap_8h_source.html#l00013">yaze::gfx::Pair::y</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00552">yaze::editor::Tile16Editor::CopyTile16ToClipboard()</a>, <a class="el" href="canvas_8cc_source.html#l00594">yaze::gui::Canvas::DrawBitmapGroup()</a>, <a class="el" href="screen__editor_8cc_source.html#l00328">yaze::editor::ScreenEditor::DrawDungeonMapsTabs()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00481">yaze::editor::Tile16Editor::SetCurrentTile()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00165">yaze::editor::Tile16Editor::UpdateBlockset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00552">yaze::editor::Tile16Editor::CopyTile16ToClipboard()</a>, <a class="el" href="canvas_8cc_source.html#l00597">yaze::gui::Canvas::DrawBitmapGroup()</a>, <a class="el" href="screen__editor_8cc_source.html#l00328">yaze::editor::ScreenEditor::DrawDungeonMapsTabs()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00481">yaze::editor::Tile16Editor::SetCurrentTile()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00165">yaze::editor::Tile16Editor::UpdateBlockset()</a>.</p>
 
 </div>
 </div>
@@ -3560,7 +3556,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="snes__tile_8h_source.html#l00016">16</a> of file <a class="el" href="snes__tile_8h_source.html">snes_tile.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00757">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00781">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="rom_8cc_source.html#l00078">yaze::LoadAllGraphicsData()</a>, and <a class="el" href="rom_8cc_source.html#l00059">yaze::LoadLinkGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00757">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00781">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="rom_8cc_source.html#l00135">yaze::LoadAllGraphicsData()</a>, and <a class="el" href="rom_8cc_source.html#l00058">yaze::LoadLinkGraphics()</a>.</p>
 
 </div>
 </div>
@@ -3586,7 +3582,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="snes__tile_8h_source.html#l00017">17</a> of file <a class="el" href="snes__tile_8h_source.html">snes_tile.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00781">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="rom_8cc_source.html#l00078">yaze::LoadAllGraphicsData()</a>, <a class="el" href="rom_8cc_source.html#l00059">yaze::LoadLinkGraphics()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00380">yaze::editor::GraphicsEditor::UpdateLinkGfxView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00781">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="rom_8cc_source.html#l00135">yaze::LoadAllGraphicsData()</a>, <a class="el" href="rom_8cc_source.html#l00058">yaze::LoadLinkGraphics()</a>, and <a class="el" href="graphics__editor_8cc_source.html#l00380">yaze::editor::GraphicsEditor::UpdateLinkGfxView()</a>.</p>
 
 </div>
 </div>
@@ -3612,7 +3608,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="snes__tile_8h_source.html#l00018">18</a> of file <a class="el" href="snes__tile_8h_source.html">snes_tile.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00757">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00781">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="rom_8cc_source.html#l00078">yaze::LoadAllGraphicsData()</a>, and <a class="el" href="rom_8cc_source.html#l00059">yaze::LoadLinkGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00757">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00781">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="rom_8cc_source.html#l00135">yaze::LoadAllGraphicsData()</a>, and <a class="el" href="rom_8cc_source.html#l00058">yaze::LoadLinkGraphics()</a>.</p>
 
 </div>
 </div>

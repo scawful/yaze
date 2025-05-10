@@ -1,5 +1,15 @@
 var NAVTREEINDEX49 =
 {
+"structyaze_1_1emu_1_1BackgroundLayer.html#ac8d405ff4b82ef249bda766257dec6d0":[12,0,0,3,5,7],
+"structyaze_1_1emu_1_1BgLayer.html":[11,0,1,3,9],
+"structyaze_1_1emu_1_1BgLayer.html":[12,0,0,3,7],
+"structyaze_1_1emu_1_1BgLayer.html#a2f4648acbe8677772907c9b409015eec":[11,0,1,3,9,3],
+"structyaze_1_1emu_1_1BgLayer.html#a2f4648acbe8677772907c9b409015eec":[12,0,0,3,7,3],
+"structyaze_1_1emu_1_1BgLayer.html#a73569847028bd08b274259f388ca8db3":[11,0,1,3,9,1],
+"structyaze_1_1emu_1_1BgLayer.html#a73569847028bd08b274259f388ca8db3":[12,0,0,3,7,1],
+"structyaze_1_1emu_1_1BgLayer.html#a80a0d6132812a861f35a21ee88d76b2a":[11,0,1,3,9,7],
+"structyaze_1_1emu_1_1BgLayer.html#a80a0d6132812a861f35a21ee88d76b2a":[12,0,0,3,7,7],
+"structyaze_1_1emu_1_1BgLayer.html#a822da8bd7639b9e1cbf4170c4edcda9e":[11,0,1,3,9,0],
 "structyaze_1_1emu_1_1BgLayer.html#a822da8bd7639b9e1cbf4170c4edcda9e":[12,0,0,3,7,0],
 "structyaze_1_1emu_1_1BgLayer.html#a96d4ff2dfd86645f950e1cbdd235fabb":[11,0,1,3,9,2],
 "structyaze_1_1emu_1_1BgLayer.html#a96d4ff2dfd86645f950e1cbdd235fabb":[12,0,0,3,7,2],
@@ -239,15 +249,5 @@ var NAVTREEINDEX49 =
 "structyaze_1_1emu_1_1EmulatorKeybindings.html#aded4e63369bb502bb5c599ff82e5d89b":[12,0,0,3,28,7],
 "structyaze_1_1emu_1_1Emulator_1_1Bookmark.html":[11,0,1,3,29,0],
 "structyaze_1_1emu_1_1Emulator_1_1Bookmark.html":[12,0,0,3,27,0],
-"structyaze_1_1emu_1_1Emulator_1_1Bookmark.html#a0c2985b0f928a6ea19cf5de06be55b7c":[11,0,1,3,29,0,0],
-"structyaze_1_1emu_1_1Emulator_1_1Bookmark.html#a0c2985b0f928a6ea19cf5de06be55b7c":[12,0,0,3,27,0,0],
-"structyaze_1_1emu_1_1Emulator_1_1Bookmark.html#ac440f222d2c5536f31ea76cca89805fe":[11,0,1,3,29,0,1],
-"structyaze_1_1emu_1_1Emulator_1_1Bookmark.html#ac440f222d2c5536f31ea76cca89805fe":[12,0,0,3,27,0,1],
-"structyaze_1_1emu_1_1INIDISP.html":[11,0,1,3,31],
-"structyaze_1_1emu_1_1INIDISP.html":[12,0,0,3,29],
-"structyaze_1_1emu_1_1INIDISP.html#aa99311599b01e6928c55ae8c11a107d2":[11,0,1,3,31,2],
-"structyaze_1_1emu_1_1INIDISP.html#aa99311599b01e6928c55ae8c11a107d2":[12,0,0,3,29,2],
-"structyaze_1_1emu_1_1INIDISP.html#ad5e0985664dd5a8e25687c331f5fdc2b":[11,0,1,3,31,1],
-"structyaze_1_1emu_1_1INIDISP.html#ad5e0985664dd5a8e25687c331f5fdc2b":[12,0,0,3,29,1],
-"structyaze_1_1emu_1_1INIDISP.html#afbdc24aa03b492183fdf9989383217ef":[11,0,1,3,31,0]
+"structyaze_1_1emu_1_1Emulator_1_1Bookmark.html#a0c2985b0f928a6ea19cf5de06be55b7c":[11,0,1,3,29,0,0]
 };

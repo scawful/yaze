@@ -1,0 +1,12 @@
+<map id="yaze::LoadFontGraphics" name="yaze::LoadFontGraphics">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,66,166,92"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a1725878c64e66f79cecade531d14d384" title="Create a bitmap with the given dimensions and data." alt="" coords="214,29,337,70"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,64,198,59,199,64,167,69"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="220,94,331,120"/>
+<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="167,88,205,94,204,99,166,94"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="240,29,238,19,244,10,257,5,275,3,295,5,307,11,305,16,294,10,275,8,258,10,248,14,244,20,245,28"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a0275436efca736b00dfa4c0ce43e8068" title=" " alt="" coords="385,9,533,34"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="337,38,370,33,370,38,338,43"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Bitmap.html#a985c964b37adc34496b5c6898712c8c0" title=" " alt="" coords="398,59,521,99"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="338,57,382,64,381,69,337,62"/>
+</map>

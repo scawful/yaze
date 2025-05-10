@@ -29,7 +29,7 @@ var searchData=
   ['adsrstate_26',['adsrState',['../structyaze_1_1emu_1_1DspChannel.html#a2e8b878f7b9a87489ecdda5715c2623b',1,'yaze::emu::DspChannel']]],
   ['all_5fbgs_27',['all_bgs',['../classyaze_1_1zelda3_1_1Subtype1.html#af11e8745852c5bde795da5c3d4b32d11',1,'yaze::zelda3::Subtype1::all_bgs'],['../classyaze_1_1zelda3_1_1Subtype2.html#ab0492f53ec2492470100af357b42eefa',1,'yaze::zelda3::Subtype2::all_bgs'],['../classyaze_1_1zelda3_1_1Subtype3.html#a3b4bcd85b289010eef764aa2ae1578f9',1,'yaze::zelda3::Subtype3::all_bgs']]],
   ['all_5fbgs_5f_28',['all_bgs_',['../classyaze_1_1zelda3_1_1RoomObject.html#a557dccc256dc1195a782354a6b354551',1,'yaze::zelda3::RoomObject']]],
-  ['all_5fdictionaries_5f_29',['all_dictionaries_',['../classyaze_1_1editor_1_1MessageEditor.html#ae8b5601a7b7f0e20149e99bc5056a161',1,'yaze::editor::MessageEditor']]],
+  ['all_5fdictionaries_5f_29',['all_dictionaries_',['../structyaze_1_1editor_1_1MessagePreview.html#abf6cc53c1b88d9e202cdf45b8219647f',1,'yaze::editor::MessagePreview']]],
   ['all_5fentrances_5f_30',['all_entrances_',['../classyaze_1_1zelda3_1_1Overworld.html#a33b58f0fcecbcfd47dae3203fcfade96',1,'yaze::zelda3::Overworld']]],
   ['all_5fexits_5f_31',['all_exits_',['../classyaze_1_1zelda3_1_1Overworld.html#ad9d11e7111c3df9b2da770c93749ce61',1,'yaze::zelda3::Overworld']]],
   ['all_5fgfx_5fbmp_32',['all_gfx_bmp',['../classyaze_1_1editor_1_1OverworldEditor.html#a230fcc1c4b6c563fac42b0093f2ba920',1,'yaze::editor::OverworldEditor']]],

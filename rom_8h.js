@@ -7,6 +7,7 @@ var rom_8h =
     [ "yaze::SaveAllGraphicsData", "namespaceyaze.html#aeb8ae3fba1064ff2cf19393b113fac1c", null ],
     [ "yaze::Load2BppGraphics", "namespaceyaze.html#a3167c1c857f5e405cb39a492529d6557", null ],
     [ "yaze::LoadLinkGraphics", "namespaceyaze.html#a3dde9364829e66bec50d5da15df53b6a", null ],
+    [ "yaze::LoadFontGraphics", "namespaceyaze.html#ac3b63569c41736a1d31eb6fbb8eaa64d", null ],
     [ "yaze::kNumGfxSheets", "namespaceyaze.html#ac71d5970d234195c079f64f1a56e4522", null ],
     [ "yaze::kNumLinkSheets", "namespaceyaze.html#a51ca5df538b7f54c045a80783c02b102", null ],
     [ "yaze::kTile16Ptr", "namespaceyaze.html#a928bdc81237834754dbac3f20bde2dca", null ],

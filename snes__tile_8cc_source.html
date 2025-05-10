@@ -132,8 +132,8 @@ $(function(){initNavTree('snes__tile_8cc_source.html',''); initResizable(true); 
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1gfx.html#a2ac2c8b176a65259c394aac54d1e69b1">   21</a></span><span class="keyword">constexpr</span> uint16_t <a class="code hl_variable" href="namespaceyaze_1_1gfx.html#a2ac2c8b176a65259c394aac54d1e69b1">TileNameMask</a> = 0x03FF;</div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
 <div class="foldopen" id="foldopen00023" data-start="{" data-end="}">
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1gfx.html#aca63ef185d9f075d91c1515a5ccfc4a8">   23</a></span><a class="code hl_struct" href="structsnes__tile8.html">snes_tile8</a> <a class="code hl_function" href="namespaceyaze_1_1gfx.html#aca63ef185d9f075d91c1515a5ccfc4a8">UnpackBppTile</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; data,</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>                         <span class="keyword">const</span> uint32_t offset, <span class="keyword">const</span> uint32_t bpp) {</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1gfx.html#aa50c94ff8a438c8d1f9d8a74115c5304">   23</a></span><a class="code hl_struct" href="structsnes__tile8.html">snes_tile8</a> <a class="code hl_function" href="namespaceyaze_1_1gfx.html#aa50c94ff8a438c8d1f9d8a74115c5304">UnpackBppTile</a>(std::span&lt;uint8_t&gt; data, <span class="keyword">const</span> uint32_t offset,</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>                         <span class="keyword">const</span> uint32_t bpp) {</div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <a class="code hl_struct" href="structsnes__tile8.html">snes_tile8</a> tile;</div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  assert(bpp &gt;= 1 &amp;&amp; bpp &lt;= 8);</div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> bpp_pos[8];  <span class="comment">// More for conveniance and readibility</span></div>
@@ -228,13 +228,13 @@ $(function(){initNavTree('snes__tile_8cc_source.html',''); initResizable(true); 
 </div>
 <div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span> </div>
 <div class="foldopen" id="foldopen00115" data-start="{" data-end="}">
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1gfx.html#a801e13a355e10203fa354ca04529ac94">  115</a></span>std::vector&lt;uint8_t&gt; <a class="code hl_function" href="namespaceyaze_1_1gfx.html#a801e13a355e10203fa354ca04529ac94">ConvertBpp</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; tiles,</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>                                uint32_t from_bpp, uint32_t to_bpp) {</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1gfx.html#aca0ab154feaf9fd61510d5f26832e054">  115</a></span>std::vector&lt;uint8_t&gt; <a class="code hl_function" href="namespaceyaze_1_1gfx.html#aca0ab154feaf9fd61510d5f26832e054">ConvertBpp</a>(std::span&lt;uint8_t&gt; tiles, uint32_t from_bpp,</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>                                uint32_t to_bpp) {</div>
 <div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>  <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> nb_tile = tiles.size() / (from_bpp * 8);</div>
 <div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>  std::vector&lt;uint8_t&gt; converted(nb_tile * to_bpp * 8);</div>
 <div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span> </div>
 <div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>  <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i = 0; i &lt; nb_tile; i++) {</div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>    <a class="code hl_struct" href="structsnes__tile8.html">snes_tile8</a> tile = <a class="code hl_function" href="namespaceyaze_1_1gfx.html#aca63ef185d9f075d91c1515a5ccfc4a8">UnpackBppTile</a>(tiles, i * from_bpp * 8, from_bpp);</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>    <a class="code hl_struct" href="structsnes__tile8.html">snes_tile8</a> tile = <a class="code hl_function" href="namespaceyaze_1_1gfx.html#aa50c94ff8a438c8d1f9d8a74115c5304">UnpackBppTile</a>(tiles, i * from_bpp * 8, from_bpp);</div>
 <div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>    std::vector&lt;uint8_t&gt; packed_tile = <a class="code hl_function" href="namespaceyaze_1_1gfx.html#a7260886a737941c53866529577b27e13">PackBppTile</a>(tile, to_bpp);</div>
 <div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>    std::memcpy(converted.data() + i * to_bpp * 8, packed_tile.data(),</div>
 <div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>                to_bpp * 8);</div>
@@ -508,48 +508,54 @@ $(function(){initNavTree('snes__tile_8cc_source.html',''); initResizable(true); 
 </div>
 <div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span> </div>
 <div class="foldopen" id="foldopen00379" data-start="{" data-end="}">
-<div class="line"><a id="l00379" name="l00379"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1gfx.html#abc742fff7ad616816ba2007849d4c91a">  379</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1gfx.html#abc742fff7ad616816ba2007849d4c91a">LoadSNES4bppGFXToIndexedColorMatrix</a>(std::span&lt;uint8_t&gt; src,</div>
-<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>                                         std::span&lt;uint8_t&gt; dest) {</div>
-<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span>  uint8_t b0;</div>
-<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span>  uint8_t b1;</div>
-<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span>  uint8_t b2;</div>
-<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>  uint8_t b3;</div>
-<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span>  <span class="keywordtype">int</span> res;</div>
-<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>  <span class="keywordtype">int</span> mul;</div>
-<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span>  <span class="keywordtype">int</span> yAdder = 0;</div>
-<div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span>  <span class="keywordtype">int</span> srcIndex;</div>
-<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>  <span class="keywordtype">int</span> destX;</div>
-<div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span>  <span class="keywordtype">int</span> destY;</div>
-<div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span>  <span class="keywordtype">int</span> destIndex;</div>
-<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span>  <span class="keywordtype">int</span> mainIndexLimit = src.size() / 32;</div>
-<div class="line"><a id="l00393" name="l00393"></a><span class="lineno">  393</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> mainIndex = 0; mainIndex &lt;= mainIndexLimit; mainIndex += 32) {</div>
-<div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span>    srcIndex = (mainIndex &lt;&lt; 5);</div>
-<div class="line"><a id="l00395" name="l00395"></a><span class="lineno">  395</span>    <span class="keywordflow">if</span> (srcIndex + 31 &gt;= src.size()) <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l00396" name="l00396"></a><span class="lineno">  396</span>    destX = mainIndex &amp; 0x0F;</div>
-<div class="line"><a id="l00397" name="l00397"></a><span class="lineno">  397</span>    destY = mainIndex &gt;&gt; 4;</div>
-<div class="line"><a id="l00398" name="l00398"></a><span class="lineno">  398</span>    destIndex = ((destY &lt;&lt; 7) + destX) &lt;&lt; 3;</div>
-<div class="line"><a id="l00399" name="l00399"></a><span class="lineno">  399</span>    <span class="keywordflow">if</span> (destIndex + 903 &gt;= dest.size()) <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 16; i += 2) {</div>
-<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span>      mul = 1;</div>
-<div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span>      b0 = src[srcIndex + i];</div>
-<div class="line"><a id="l00403" name="l00403"></a><span class="lineno">  403</span>      b1 = src[srcIndex + i + 1];</div>
-<div class="line"><a id="l00404" name="l00404"></a><span class="lineno">  404</span>      b2 = src[srcIndex + i + 16];</div>
-<div class="line"><a id="l00405" name="l00405"></a><span class="lineno">  405</span>      b3 = src[srcIndex + i + 17];</div>
-<div class="line"><a id="l00406" name="l00406"></a><span class="lineno">  406</span>      <span class="keywordflow">for</span> (<span class="keywordtype">int</span> j = 0; j &lt; 8; j++) {</div>
-<div class="line"><a id="l00407" name="l00407"></a><span class="lineno">  407</span>        res = ((b0 &amp; mul) | ((b1 &amp; mul) &lt;&lt; 1) | ((b2 &amp; mul) &lt;&lt; 2) |</div>
-<div class="line"><a id="l00408" name="l00408"></a><span class="lineno">  408</span>               ((b3 &amp; mul) &lt;&lt; 3)) &gt;&gt;</div>
-<div class="line"><a id="l00409" name="l00409"></a><span class="lineno">  409</span>              j;</div>
-<div class="line"><a id="l00410" name="l00410"></a><span class="lineno">  410</span>        dest[destIndex + (7 - j) + yAdder] = res;</div>
-<div class="line"><a id="l00411" name="l00411"></a><span class="lineno">  411</span>        mul &lt;&lt;= 1;</div>
-<div class="line"><a id="l00412" name="l00412"></a><span class="lineno">  412</span>      }</div>
-<div class="line"><a id="l00413" name="l00413"></a><span class="lineno">  413</span>      yAdder += 128;</div>
-<div class="line"><a id="l00414" name="l00414"></a><span class="lineno">  414</span>    }</div>
-<div class="line"><a id="l00415" name="l00415"></a><span class="lineno">  415</span>  }</div>
-<div class="line"><a id="l00416" name="l00416"></a><span class="lineno">  416</span>}</div>
+<div class="line"><a id="l00379" name="l00379"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1gfx.html#a14d88ea53c85352a630e25486a7f2661">  379</a></span>std::vector&lt;uint8_t&gt; <a class="code hl_function" href="namespaceyaze_1_1gfx.html#a14d88ea53c85352a630e25486a7f2661">LoadSNES4bppGFXToIndexedColorMatrix</a>(</div>
+<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>    std::span&lt;uint8_t&gt; src) {</div>
+<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span>  std::vector&lt;uint8_t&gt; dest;</div>
+<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span>  uint8_t b0;</div>
+<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span>  uint8_t b1;</div>
+<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>  uint8_t b2;</div>
+<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span>  uint8_t b3;</div>
+<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>  <span class="keywordtype">int</span> res;</div>
+<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span>  <span class="keywordtype">int</span> mul;</div>
+<div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span>  <span class="keywordtype">int</span> y_adder = 0;</div>
+<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>  <span class="keywordtype">int</span> src_index;</div>
+<div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span>  <span class="keywordtype">int</span> dest_x;</div>
+<div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span>  <span class="keywordtype">int</span> dest_y;</div>
+<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span>  <span class="keywordtype">int</span> dest_index;</div>
+<div class="line"><a id="l00393" name="l00393"></a><span class="lineno">  393</span>  <span class="keywordtype">int</span> main_index_limit = src.size() / 32;</div>
+<div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> main_index = 0; main_index &lt;= main_index_limit; main_index += 32) {</div>
+<div class="line"><a id="l00395" name="l00395"></a><span class="lineno">  395</span>    src_index = (main_index &lt;&lt; 5);</div>
+<div class="line"><a id="l00396" name="l00396"></a><span class="lineno">  396</span>    <span class="keywordflow">if</span> (src_index + 31 &gt;= src.size()) {</div>
+<div class="line"><a id="l00397" name="l00397"></a><span class="lineno">  397</span>      <span class="keywordflow">throw</span> std::invalid_argument(<span class="stringliteral">&quot;src_index + 31 &gt;= src.size()&quot;</span>);</div>
+<div class="line"><a id="l00398" name="l00398"></a><span class="lineno">  398</span>    }</div>
+<div class="line"><a id="l00399" name="l00399"></a><span class="lineno">  399</span>    dest_x = main_index &amp; 0x0F;</div>
+<div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span>    dest_y = main_index &gt;&gt; 4;</div>
+<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span>    dest_index = ((dest_y &lt;&lt; 7) + dest_x) &lt;&lt; 3;</div>
+<div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span>    <span class="keywordflow">if</span> (dest_index + 903 &gt;= dest.size()) {</div>
+<div class="line"><a id="l00403" name="l00403"></a><span class="lineno">  403</span>      <span class="keywordflow">throw</span> std::invalid_argument(<span class="stringliteral">&quot;dest_index + 903 &gt;= dest.size()&quot;</span>);</div>
+<div class="line"><a id="l00404" name="l00404"></a><span class="lineno">  404</span>    }</div>
+<div class="line"><a id="l00405" name="l00405"></a><span class="lineno">  405</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 16; i += 2) {</div>
+<div class="line"><a id="l00406" name="l00406"></a><span class="lineno">  406</span>      mul = 1;</div>
+<div class="line"><a id="l00407" name="l00407"></a><span class="lineno">  407</span>      b0 = src[src_index + i];</div>
+<div class="line"><a id="l00408" name="l00408"></a><span class="lineno">  408</span>      b1 = src[src_index + i + 1];</div>
+<div class="line"><a id="l00409" name="l00409"></a><span class="lineno">  409</span>      b2 = src[src_index + i + 16];</div>
+<div class="line"><a id="l00410" name="l00410"></a><span class="lineno">  410</span>      b3 = src[src_index + i + 17];</div>
+<div class="line"><a id="l00411" name="l00411"></a><span class="lineno">  411</span>      <span class="keywordflow">for</span> (<span class="keywordtype">int</span> j = 0; j &lt; 8; j++) {</div>
+<div class="line"><a id="l00412" name="l00412"></a><span class="lineno">  412</span>        res = ((b0 &amp; mul) | ((b1 &amp; mul) &lt;&lt; 1) | ((b2 &amp; mul) &lt;&lt; 2) |</div>
+<div class="line"><a id="l00413" name="l00413"></a><span class="lineno">  413</span>               ((b3 &amp; mul) &lt;&lt; 3)) &gt;&gt;</div>
+<div class="line"><a id="l00414" name="l00414"></a><span class="lineno">  414</span>              j;</div>
+<div class="line"><a id="l00415" name="l00415"></a><span class="lineno">  415</span>        dest[dest_index + (7 - j) + y_adder] = res;</div>
+<div class="line"><a id="l00416" name="l00416"></a><span class="lineno">  416</span>        mul &lt;&lt;= 1;</div>
+<div class="line"><a id="l00417" name="l00417"></a><span class="lineno">  417</span>      }</div>
+<div class="line"><a id="l00418" name="l00418"></a><span class="lineno">  418</span>      y_adder += 128;</div>
+<div class="line"><a id="l00419" name="l00419"></a><span class="lineno">  419</span>    }</div>
+<div class="line"><a id="l00420" name="l00420"></a><span class="lineno">  420</span>  }</div>
+<div class="line"><a id="l00421" name="l00421"></a><span class="lineno">  421</span>  <span class="keywordflow">return</span> dest;</div>
+<div class="line"><a id="l00422" name="l00422"></a><span class="lineno">  422</span>}</div>
 </div>
-<div class="line"><a id="l00417" name="l00417"></a><span class="lineno">  417</span> </div>
-<div class="line"><a id="l00418" name="l00418"></a><span class="lineno">  418</span>}  <span class="comment">// namespace gfx</span></div>
-<div class="line"><a id="l00419" name="l00419"></a><span class="lineno">  419</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00423" name="l00423"></a><span class="lineno">  423</span> </div>
+<div class="line"><a id="l00424" name="l00424"></a><span class="lineno">  424</span>}  <span class="comment">// namespace gfx</span></div>
+<div class="line"><a id="l00425" name="l00425"></a><span class="lineno">  425</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1TileInfo_html"><div class="ttname"><a href="classyaze_1_1gfx_1_1TileInfo.html">yaze::gfx::TileInfo</a></div><div class="ttdoc">SNES 16-bit tile metadata container.</div><div class="ttdef"><b>Definition</b> <a href="snes__tile_8h_source.html#l00050">snes_tile.h:50</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1TileInfo_html_a1f25958d86007fecd8c79ff7ce5f8dd5"><div class="ttname"><a href="classyaze_1_1gfx_1_1TileInfo.html#a1f25958d86007fecd8c79ff7ce5f8dd5">yaze::gfx::TileInfo::id_</a></div><div class="ttdeci">uint16_t id_</div><div class="ttdef"><b>Definition</b> <a href="snes__tile_8h_source.html#l00052">snes_tile.h:52</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1TileInfo_html_a3133db93fb276804d01a25bdc34b5df8"><div class="ttname"><a href="classyaze_1_1gfx_1_1TileInfo.html#a3133db93fb276804d01a25bdc34b5df8">yaze::gfx::TileInfo::palette_</a></div><div class="ttdeci">uint8_t palette_</div><div class="ttdef"><b>Definition</b> <a href="snes__tile_8h_source.html#l00053">snes_tile.h:53</a></div></div>
@@ -557,6 +563,7 @@ $(function(){initNavTree('snes__tile_8cc_source.html',''); initResizable(true); 
 <div class="ttc" id="aclassyaze_1_1gfx_1_1TileInfo_html_a5c94f3e624e47718ccb6f70524a8b615"><div class="ttname"><a href="classyaze_1_1gfx_1_1TileInfo.html#a5c94f3e624e47718ccb6f70524a8b615">yaze::gfx::TileInfo::over_</a></div><div class="ttdeci">bool over_</div><div class="ttdef"><b>Definition</b> <a href="snes__tile_8h_source.html#l00054">snes_tile.h:54</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1TileInfo_html_a8bdea21bc4f8f89decc82a55e25b5182"><div class="ttname"><a href="classyaze_1_1gfx_1_1TileInfo.html#a8bdea21bc4f8f89decc82a55e25b5182">yaze::gfx::TileInfo::vertical_mirror_</a></div><div class="ttdeci">bool vertical_mirror_</div><div class="ttdef"><b>Definition</b> <a href="snes__tile_8h_source.html#l00055">snes_tile.h:55</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html"><div class="ttname"><a href="namespaceyaze_1_1gfx.html">yaze::gfx</a></div><div class="ttdoc">Contains classes for handling graphical data.</div><div class="ttdef"><b>Definition</b> <a href="arena_8cc_source.html#l00008">arena.cc:8</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1gfx_html_a14d88ea53c85352a630e25486a7f2661"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#a14d88ea53c85352a630e25486a7f2661">yaze::gfx::LoadSNES4bppGFXToIndexedColorMatrix</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; LoadSNES4bppGFXToIndexedColorMatrix(std::span&lt; uint8_t &gt; src)</div><div class="ttdef"><b>Definition</b> <a href="#l00379">snes_tile.cc:379</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_a2ac2c8b176a65259c394aac54d1e69b1"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#a2ac2c8b176a65259c394aac54d1e69b1">yaze::gfx::TileNameMask</a></div><div class="ttdeci">constexpr uint16_t TileNameMask</div><div class="ttdef"><b>Definition</b> <a href="#l00021">snes_tile.cc:21</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_a2c16b75ec37361c49e2e651554e44fdb"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#a2c16b75ec37361c49e2e651554e44fdb">yaze::gfx::TileVFlipBit</a></div><div class="ttdeci">constexpr uint16_t TileVFlipBit</div><div class="ttdef"><b>Definition</b> <a href="#l00018">snes_tile.cc:18</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_a3d42dbaf6fa57c5ad4da5b02154ce7c9"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#a3d42dbaf6fa57c5ad4da5b02154ce7c9">yaze::gfx::CopyTile8bpp16</a></div><div class="ttdeci">void CopyTile8bpp16(int x, int y, int tile, std::vector&lt; uint8_t &gt; &amp;bitmap, std::vector&lt; uint8_t &gt; &amp;blockset)</div><div class="ttdef"><b>Definition</b> <a href="#l00366">snes_tile.cc:366</a></div></div>
@@ -564,14 +571,13 @@ $(function(){initNavTree('snes__tile_8cc_source.html',''); initResizable(true); 
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_a7219dcf105343b1542cf0dea95e4f7f8"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#a7219dcf105343b1542cf0dea95e4f7f8">yaze::gfx::TileInfoToShort</a></div><div class="ttdeci">uint16_t TileInfoToShort(TileInfo tile_info)</div><div class="ttdef"><b>Definition</b> <a href="#l00323">snes_tile.cc:323</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_a7260886a737941c53866529577b27e13"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#a7260886a737941c53866529577b27e13">yaze::gfx::PackBppTile</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; PackBppTile(const snes_tile8 &amp;tile, const uint32_t bpp)</div><div class="ttdef"><b>Definition</b> <a href="#l00072">snes_tile.cc:72</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_a7defcba4175eb8d38335943a94fc81e3"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#a7defcba4175eb8d38335943a94fc81e3">yaze::gfx::Bpp8SnesToIndexed</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; Bpp8SnesToIndexed(std::vector&lt; uint8_t &gt; data, uint64_t bpp)</div><div class="ttdef"><b>Definition</b> <a href="#l00189">snes_tile.cc:189</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1gfx_html_a801e13a355e10203fa354ca04529ac94"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#a801e13a355e10203fa354ca04529ac94">yaze::gfx::ConvertBpp</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; ConvertBpp(const std::vector&lt; uint8_t &gt; &amp;tiles, uint32_t from_bpp, uint32_t to_bpp)</div><div class="ttdef"><b>Definition</b> <a href="#l00115">snes_tile.cc:115</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_a8fb57254803cd278210eca15c3a60ad7"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#a8fb57254803cd278210eca15c3a60ad7">yaze::gfx::TilePriorityBit</a></div><div class="ttdeci">constexpr uint16_t TilePriorityBit</div><div class="ttdef"><b>Definition</b> <a href="#l00012">snes_tile.cc:12</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_a960630bcf8c1227f79ff2cf1f6c034bb"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#a960630bcf8c1227f79ff2cf1f6c034bb">yaze::gfx::SnesTo8bppSheet</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; SnesTo8bppSheet(std::span&lt; uint8_t &gt; sheet, int bpp, int num_sheets)</div><div class="ttdef"><b>Definition</b> <a href="#l00129">snes_tile.cc:129</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1gfx_html_aa50c94ff8a438c8d1f9d8a74115c5304"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#aa50c94ff8a438c8d1f9d8a74115c5304">yaze::gfx::UnpackBppTile</a></div><div class="ttdeci">snes_tile8 UnpackBppTile(std::span&lt; uint8_t &gt; data, const uint32_t offset, const uint32_t bpp)</div><div class="ttdef"><b>Definition</b> <a href="#l00023">snes_tile.cc:23</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_aa5ae49b02472150a2ad972abf1f7d35a"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#aa5ae49b02472150a2ad972abf1f7d35a">yaze::gfx::GetTilesInfo</a></div><div class="ttdeci">TileInfo GetTilesInfo(uint16_t tile)</div><div class="ttdef"><b>Definition</b> <a href="#l00354">snes_tile.cc:354</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_aa922bcd5f021d803c8d6fe22e37af0ef"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#aa922bcd5f021d803c8d6fe22e37af0ef">yaze::gfx::kGraphicsBitmap</a></div><div class="ttdeci">constexpr uint8_t kGraphicsBitmap[8]</div><div class="ttdef"><b>Definition</b> <a href="snes__tile_8h_source.html#l00020">snes_tile.h:20</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1gfx_html_abc742fff7ad616816ba2007849d4c91a"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#abc742fff7ad616816ba2007849d4c91a">yaze::gfx::LoadSNES4bppGFXToIndexedColorMatrix</a></div><div class="ttdeci">void LoadSNES4bppGFXToIndexedColorMatrix(std::span&lt; uint8_t &gt; src, std::span&lt; uint8_t &gt; dest)</div><div class="ttdef"><b>Definition</b> <a href="#l00379">snes_tile.cc:379</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_abddef303b6a036e2cbce669f424f7317"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#abddef303b6a036e2cbce669f424f7317">yaze::gfx::WordToTileInfo</a></div><div class="ttdeci">TileInfo WordToTileInfo(uint16_t word)</div><div class="ttdef"><b>Definition</b> <a href="#l00308">snes_tile.cc:308</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1gfx_html_aca63ef185d9f075d91c1515a5ccfc4a8"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#aca63ef185d9f075d91c1515a5ccfc4a8">yaze::gfx::UnpackBppTile</a></div><div class="ttdeci">snes_tile8 UnpackBppTile(const std::vector&lt; uint8_t &gt; &amp;data, const uint32_t offset, const uint32_t bpp)</div><div class="ttdef"><b>Definition</b> <a href="#l00023">snes_tile.cc:23</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1gfx_html_aca0ab154feaf9fd61510d5f26832e054"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#aca0ab154feaf9fd61510d5f26832e054">yaze::gfx::ConvertBpp</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; ConvertBpp(std::span&lt; uint8_t &gt; tiles, uint32_t from_bpp, uint32_t to_bpp)</div><div class="ttdef"><b>Definition</b> <a href="#l00115">snes_tile.cc:115</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_ae1bcdcfc2fe242b048da81524c6c9bbc"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#ae1bcdcfc2fe242b048da81524c6c9bbc">yaze::gfx::TileHFlipBit</a></div><div class="ttdeci">constexpr uint16_t TileHFlipBit</div><div class="ttdef"><b>Definition</b> <a href="#l00015">snes_tile.cc:15</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="controller_8cc_source.html#l00018">controller.cc:18</a></div></div>
 <div class="ttc" id="asnes__tile_8h_html"><div class="ttname"><a href="snes__tile_8h.html">snes_tile.h</a></div></div>
