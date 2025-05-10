@@ -13,9 +13,9 @@
 #include "app/gui/canvas.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
+#include "gui/input.h"
 #include "imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
-#include "imgui_memory_editor.h"
 #include "util/hex.h"
 
 namespace yaze {
@@ -45,62 +45,44 @@ constexpr ImGuiTableFlags kMessageTableFlags = ImGuiTableFlags_Hideable |
 
 void MessageEditor::Initialize() {
   for (int i = 0; i < kWidthArraySize; i++) {
-    width_array[i] = rom()->data()[kCharactersWidth + i];
+    message_preview_.width_array[i] = rom()->data()[kCharactersWidth + i];
   }
 
-  all_dictionaries_ = BuildDictionaryEntries(rom());
+  message_preview_.all_dictionaries_ = BuildDictionaryEntries(rom());
   ReadAllTextData(rom(), list_of_texts_);
-
-  font_preview_colors_.AddColor(gfx::SnesColor(0x7FFF));  // White
-  font_preview_colors_.AddColor(gfx::SnesColor(0x7C00));  // Red
-  font_preview_colors_.AddColor(gfx::SnesColor(0x03E0));  // Green
-  font_preview_colors_.AddColor(gfx::SnesColor(0x001F));  // Blue
+  font_preview_colors_ = rom()->palette_group().hud.palette(0);
 
   for (int i = 0; i < 0x4000; i++) {
     raw_font_gfx_data_[i] = rom()->data()[kGfxFont + i];
   }
-  font_gfx16_data_ =
+  message_preview_.font_gfx16_data_ =
       gfx::SnesTo8bppSheet(raw_font_gfx_data_, /*bpp=*/2, /*num_sheets=*/2);
-
-  // 4bpp
   Renderer::Get().CreateAndRenderBitmap(
       kFontGfxMessageSize, kFontGfxMessageSize, kFontGfxMessageDepth,
-      font_gfx16_data_, font_gfx_bitmap_, font_preview_colors_);
-
-  current_font_gfx16_data_.reserve(kCurrentMessageWidth *
-                                   kCurrentMessageHeight);
-  std::fill(current_font_gfx16_data_.begin(), current_font_gfx16_data_.end(),
-            0);
-
-  // 8bpp
-  Renderer::Get().CreateAndRenderBitmap(
-      kCurrentMessageWidth, kCurrentMessageHeight, 172,
-      current_font_gfx16_data_, current_font_gfx16_bitmap_,
+      message_preview_.font_gfx16_data_, font_gfx_bitmap_,
       font_preview_colors_);
-
   *font_gfx_bitmap_.mutable_palette() = font_preview_colors_;
   *current_font_gfx16_bitmap_.mutable_palette() = font_preview_colors_;
 
-  parsed_messages_ = ParseMessageData(list_of_texts_, all_dictionaries_);
+  auto load_font = LoadFontGraphics(*rom());
+  if (load_font.ok()) {
+    message_preview_.font_gfx16_data_2_ = load_font.value().vector();
+  }
+  parsed_messages_ =
+      ParseMessageData(list_of_texts_, message_preview_.all_dictionaries_);
+  current_message_ = list_of_texts_[1];
+  message_text_box_.text = parsed_messages_[current_message_.ID];
   DrawMessagePreview();
 }
 
 absl::Status MessageEditor::Load() { return absl::OkStatus(); }
 
 absl::Status MessageEditor::Update() {
-  if (rom()->is_loaded() && !data_loaded_) {
-    Initialize();
-    current_message_ = list_of_texts_[1];
-    message_text_box_.text = parsed_messages_[current_message_.ID];
-    data_loaded_ = true;
-  }
-
   if (BeginTable("##MessageEditor", 4, kMessageTableFlags)) {
     TableSetupColumn("List");
     TableSetupColumn("Contents");
+    TableSetupColumn("Font Atlas");
     TableSetupColumn("Commands");
-    TableSetupColumn("Dictionary");
-
     TableHeadersRow();
 
     TableNextColumn();
@@ -110,11 +92,12 @@ absl::Status MessageEditor::Update() {
     DrawCurrentMessage();
 
     TableNextColumn();
-    DrawTextCommands();
-    DrawSpecialCharacters();
+    DrawFontAtlas();
+    DrawExpandedMessageSettings();
 
     TableNextColumn();
-    DrawExpandedMessageSettings();
+    DrawTextCommands();
+    DrawSpecialCharacters();
     DrawDictionary();
 
     EndTable();
@@ -124,8 +107,10 @@ absl::Status MessageEditor::Update() {
 }
 
 void MessageEditor::DrawMessageList() {
+  gui::BeginNoPadding();
   if (BeginChild("##MessagesList", ImVec2(0, 0), true,
                  ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+    gui::EndNoPadding();
     if (BeginTable("##MessagesTable", 3, kMessageTableFlags)) {
       TableSetupColumn("ID");
       TableSetupColumn("Contents");
@@ -155,9 +140,6 @@ void MessageEditor::DrawMessageList() {
 }
 
 void MessageEditor::DrawCurrentMessage() {
-  if (!rom()->is_loaded()) {
-    return;
-  }
   Button(absl::StrCat("Message ", current_message_.ID).c_str());
   if (InputTextMultiline("##MessageEditor", &message_text_box_.text,
                          ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
@@ -165,22 +147,7 @@ void MessageEditor::DrawCurrentMessage() {
     DrawMessagePreview();
   }
   Separator();
-
-  static bool show_message_data = false;
-  if (ImGui::Button("View Message Data")) {
-    show_message_data = true;
-  }
-  if (show_message_data) {
-    MemoryEditor mem_edit;
-    mem_edit.DrawWindow("Message Data", current_message_.Data.data(),
-                        current_message_.Data.size());
-  }
-
-  Text("Font Graphics");
-  gui::BeginCanvas(font_gfx_canvas_, ImVec2(0, 130));
-  font_gfx_canvas_.DrawBitmap(font_gfx_bitmap_, 0, 0);
-  gui::EndCanvas(font_gfx_canvas_);
-  Separator();
+  gui::MemoryEditorPopup("Message Data", current_message_.Data);
 
   ImGui::BeginChild("##MessagePreview", ImVec2(0, 0), true, 1);
   Text("Message Preview");
@@ -192,8 +159,8 @@ void MessageEditor::DrawCurrentMessage() {
     ImGui::EndPopup();
   }
   gui::BeginPadding(1);
-  BeginChild("CurrentGfxFont", ImVec2(340, 0), true,
-             ImGuiWindowFlags_AlwaysVerticalScrollbar);
+  BeginChild("CurrentGfxFont", ImVec2(344, 0), true,
+             ImGuiWindowFlags_NoScrollWithMouse);
   current_font_gfx16_canvas_.DrawBackground();
   gui::EndPadding();
   current_font_gfx16_canvas_.DrawContextMenu();
@@ -201,10 +168,11 @@ void MessageEditor::DrawCurrentMessage() {
   // Handle mouse wheel scrolling
   if (ImGui::IsWindowHovered()) {
     float wheel = ImGui::GetIO().MouseWheel;
-    if (wheel > 0 && shown_lines_ > 0) {
-      shown_lines_--;
-    } else if (wheel < 0 && shown_lines_ < text_line_ - 2) {
-      shown_lines_++;
+    if (wheel > 0 && message_preview_.shown_lines > 0) {
+      message_preview_.shown_lines--;
+    } else if (wheel < 0 &&
+               message_preview_.shown_lines < message_preview_.text_line - 2) {
+      message_preview_.shown_lines++;
     }
   }
 
@@ -212,8 +180,8 @@ void MessageEditor::DrawCurrentMessage() {
   current_font_gfx16_canvas_.DrawBitmap(
       current_font_gfx16_bitmap_, ImVec2(0, 0),  // Destination position
       ImVec2(340,
-             font_gfx_canvas_.canvas_size().y),  // Destination size
-      ImVec2(0, shown_lines_ * 16),              // Source position
+             font_gfx_canvas_.canvas_size().y),      // Destination size
+      ImVec2(0, message_preview_.shown_lines * 16),  // Source position
       ImVec2(170,
              font_gfx_canvas_.canvas_size().y / 2)  // Source size
   );
@@ -224,33 +192,11 @@ void MessageEditor::DrawCurrentMessage() {
   ImGui::EndChild();
 }
 
-void MessageEditor::DrawTextCommands() {
-  ImGui::BeginChild("##TextCommands",
-                    ImVec2(0, ImGui::GetWindowContentRegionMax().y / 2), true,
-                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
-  for (const auto& text_element : TextCommands) {
-    if (Button(text_element.GenericToken.c_str())) {
-      message_text_box_.text.append(text_element.GenericToken);
-    }
-    SameLine();
-    TextWrapped("%s", text_element.Description.c_str());
-    Separator();
-  }
-  EndChild();
-}
-
-void MessageEditor::DrawSpecialCharacters() {
-  ImGui::BeginChild("##SpecialChars", ImVec2(0, 0), true,
-                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
-  for (const auto& text_element : SpecialChars) {
-    if (Button(text_element.GenericToken.c_str())) {
-      message_text_box_.text.append(text_element.GenericToken);
-    }
-    SameLine();
-    TextWrapped("%s", text_element.Description.c_str());
-    Separator();
-  }
-  EndChild();
+void MessageEditor::DrawFontAtlas() {
+  gui::BeginCanvas(font_gfx_canvas_, ImVec2(256, 256));
+  font_gfx_canvas_.DrawBitmap(font_gfx_bitmap_, 0, 0, 2.0f);
+  font_gfx_canvas_.DrawTileSelector(16, 32);
+  gui::EndCanvas(font_gfx_canvas_);
 }
 
 void MessageEditor::DrawExpandedMessageSettings() {
@@ -267,18 +213,44 @@ void MessageEditor::DrawExpandedMessageSettings() {
   EndChild();
 }
 
-void MessageEditor::DrawDictionary() {
-  if (all_dictionaries_.empty()) {
-    return;
+void MessageEditor::DrawTextCommands() {
+  ImGui::BeginChild("##TextCommands",
+                    ImVec2(0, ImGui::GetWindowContentRegionMax().y / 3), true,
+                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
+  for (const auto& text_element : TextCommands) {
+    if (Button(text_element.GenericToken.c_str())) {
+      message_text_box_.text.append(text_element.GenericToken);
+    }
+    SameLine();
+    TextWrapped("%s", text_element.Description.c_str());
+    Separator();
   }
-  if (ImGui::BeginChild("##DictionaryChild",
-                        ImVec2(0, ImGui::GetWindowContentRegionMax().y / 2),
-                        true, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+  EndChild();
+}
+
+void MessageEditor::DrawSpecialCharacters() {
+  ImGui::BeginChild("##SpecialChars",
+                    ImVec2(0, ImGui::GetWindowContentRegionMax().y / 3), true,
+                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
+  for (const auto& text_element : SpecialChars) {
+    if (Button(text_element.GenericToken.c_str())) {
+      message_text_box_.text.append(text_element.GenericToken);
+    }
+    SameLine();
+    TextWrapped("%s", text_element.Description.c_str());
+    Separator();
+  }
+  EndChild();
+}
+
+void MessageEditor::DrawDictionary() {
+  if (ImGui::BeginChild("##DictionaryChild", ImVec2(0, 200), true,
+                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
     if (BeginTable("##Dictionary", 2, kMessageTableFlags)) {
       TableSetupColumn("ID");
       TableSetupColumn("Contents");
       TableHeadersRow();
-      for (const auto& dictionary : all_dictionaries_) {
+      for (const auto& dictionary : message_preview_.all_dictionaries_) {
         TableNextColumn();
         Text("%s", util::HexWord(dictionary.ID).c_str());
         TableNextColumn();
@@ -290,125 +262,26 @@ void MessageEditor::DrawDictionary() {
   EndChild();
 }
 
-void MessageEditor::DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
-                                      int sizex, int sizey) {
-  const int num_x_tiles = 16;
-  const int img_width = 512;  // (imgwidth/2)
-  int draw_id = srcx + (srcy * 32);
-  for (int yl = 0; yl < sizey * 8; yl++) {
-    for (int xl = 0; xl < 4; xl++) {
-      int mx = xl;
-      int my = yl;
-
-      // Formula information to get tile index position in the array.
-      int tx = ((draw_id / num_x_tiles) * img_width) + ((draw_id & 0xF) << 2);
-      uint8_t pixel = font_gfx16_data_[tx + (yl * 64) + xl];
-
-      // nx,ny = object position, xx,yy = tile position, xl,yl = pixel
-      // position
-      int index = x + (y * 172) + (mx * 2) + (my * 172);
-      if ((pixel & 0x0F) != 0) {
-        current_font_gfx16_data_[index + 1] =
-            (uint8_t)((pixel & 0x0F) + (0 * 4));
-      }
-
-      if (((pixel >> 4) & 0x0F) != 0) {
-        current_font_gfx16_data_[index + 0] =
-            (uint8_t)(((pixel >> 4) & 0x0F) + (0 * 4));
-      }
-    }
-  }
-}
-
-void MessageEditor::DrawStringToPreview(std::string str) {
-  for (const auto c : str) {
-    DrawCharacterToPreview(c);
-  }
-}
-
-void MessageEditor::DrawCharacterToPreview(char c) {
-  DrawCharacterToPreview(FindMatchingCharacter(c));
-}
-
-void MessageEditor::DrawCharacterToPreview(const std::vector<uint8_t>& text) {
-  for (const uint8_t& value : text) {
-    if (skip_next) {
-      skip_next = false;
-      continue;
-    }
-
-    if (value < 100) {
-      // int srcy = value / 16;
-      int srcy = value >> 4;
-      int srcx = value & 0xF;
-
-      if (text_position_ >= 170) {
-        text_position_ = 0;
-        text_line_++;
-      }
-
-      DrawTileToPreview(text_position_, text_line_ * 16, srcx, srcy, 0, 1, 2);
-      text_position_ += width_array[value];
-    } else if (value == kLine1) {
-      text_position_ = 0;
-      text_line_ = 0;
-    } else if (value == kScrollVertical) {
-      text_position_ = 0;
-      text_line_ += 1;
-    } else if (value == kLine2) {
-      text_position_ = 0;
-      text_line_ = 1;
-    } else if (value == kLine3) {
-      text_position_ = 0;
-      text_line_ = 2;
-    } else if (value == 0x6B || value == 0x6D || value == 0x6E ||
-               value == 0x77 || value == 0x78 || value == 0x79 ||
-               value == 0x7A) {
-      skip_next = true;
-
-      continue;
-    } else if (value == 0x6C)  // BCD numbers.
-    {
-      DrawCharacterToPreview('0');
-      skip_next = true;
-
-      continue;
-    } else if (value == 0x6A) {
-      // Includes parentheses to be longer, since player names can be up to 6
-      // characters.
-      DrawStringToPreview("(NAME)");
-    } else if (value >= DICTOFF && value < (DICTOFF + 97)) {
-      int pos = value - DICTOFF;
-      if (pos < 0 || pos >= all_dictionaries_.size()) {
-        // Invalid dictionary entry.
-        std::cerr << "Invalid dictionary entry: " << pos << std::endl;
-        continue;
-      }
-      auto dictionary_entry = all_dictionaries_[pos];
-      DrawCharacterToPreview(dictionary_entry.Data);
-    }
-  }
-}
-
 void MessageEditor::DrawMessagePreview() {
-  // From Parsing.
-  text_line_ = 0;
-  std::fill(current_font_gfx16_data_.begin(), current_font_gfx16_data_.end(),
-            0);
-  text_position_ = 0;
-  DrawCharacterToPreview(current_message_.Data);
-  shown_lines_ = 0;
-
-  // Update the bitmap with the new data
-  current_font_gfx16_bitmap_.mutable_data() = current_font_gfx16_data_;
-  Renderer::Get().UpdateBitmap(&current_font_gfx16_bitmap_);
+  message_preview_.DrawMessagePreview(current_message_);
+  if (current_font_gfx16_bitmap_.is_active()) {
+    current_font_gfx16_bitmap_.mutable_data() =
+        message_preview_.current_preview_data_;
+    Renderer::Get().UpdateBitmap(&current_font_gfx16_bitmap_);
+  } else {
+    Renderer::Get().CreateAndRenderBitmap(
+        kCurrentMessageWidth, kCurrentMessageHeight, 172,
+        message_preview_.current_preview_data_, current_font_gfx16_bitmap_,
+        font_preview_colors_);
+  }
 }
 
 absl::Status MessageEditor::Save() {
   std::vector<uint8_t> backup = rom()->vector();
 
   for (int i = 0; i < kWidthArraySize; i++) {
-    RETURN_IF_ERROR(rom()->WriteByte(kCharactersWidth + i, width_array[i]));
+    RETURN_IF_ERROR(rom()->WriteByte(kCharactersWidth + i,
+                                     message_preview_.width_array[i]));
   }
 
   int pos = kTextData;
