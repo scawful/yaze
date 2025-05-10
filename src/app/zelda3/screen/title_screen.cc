@@ -4,6 +4,7 @@
 
 #include "app/gfx/bitmap.h"
 #include "app/rom.h"
+#include "app/snes.h"
 
 namespace yaze {
 namespace zelda3 {

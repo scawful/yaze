@@ -5,8 +5,8 @@
 extern "C" {
 #endif
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /**
  * @brief Different versions of the game supported by yaze.
@@ -117,8 +117,8 @@ typedef struct zelda3_overworld_map {
  * @brief Primitive of the overworld.
  */
 typedef struct zelda3_overworld {
-  void *impl;                  // yaze::Overworld*
-  zelda3_overworld_map **maps; /**< Pointer to the overworld maps. */
+  void* impl;                  // yaze::Overworld*
+  zelda3_overworld_map** maps; /**< Pointer to the overworld maps. */
 } zelda3_overworld;
 
 typedef struct dungeon_sprite {
