@@ -16,6 +16,7 @@ const uint8_t kMessageTerminator = 0x7F;
 const std::string kBankToken = "BANK";
 const std::string DICTIONARYTOKEN = "D";
 constexpr uint8_t DICTOFF = 0x88;
+constexpr uint8_t kWidthArraySize = 100;
 
 static const std::unordered_map<uint8_t, wchar_t> CharEncoder = {
     {0x00, 'A'},  {0x01, 'B'},  {0x02, 'C'},  {0x03, 'D'},  {0x04, 'E'},
@@ -82,6 +83,8 @@ constexpr uint8_t kLine3 = 0x76;
 std::vector<DictionaryEntry> BuildDictionaryEntries(Rom *rom);
 std::string ReplaceAllDictionaryWords(std::string str,
                                       std::vector<DictionaryEntry> dictionary);
+DictionaryEntry FindRealDictionaryEntry(uint8_t value,
+                                        std::vector<DictionaryEntry> dictionary);
 
 // Inserted into commands to protect them from dictionary replacements.
 const std::string CHEESE = "\uBEBE";

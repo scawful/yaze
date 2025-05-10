@@ -190,6 +190,16 @@ std::string ReplaceAllDictionaryWords(std::string str,
   return temp;
 }
 
+DictionaryEntry FindRealDictionaryEntry(uint8_t value,
+                                        std::vector<DictionaryEntry> dictionary) {
+  for (const auto &entry : dictionary) {
+    if (entry.ID + DICTOFF == value) {
+      return entry;
+    }
+  }
+  return DictionaryEntry();
+}
+
 absl::StatusOr<MessageData> ParseSingleMessage(
     const std::vector<uint8_t> &rom_data, int *current_pos) {
   MessageData message_data;
