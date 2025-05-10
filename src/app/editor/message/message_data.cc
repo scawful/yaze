@@ -48,7 +48,10 @@ std::optional<TextElement> FindMatchingSpecial(uint8_t value) {
 
 ParsedElement FindMatchingElement(const std::string &str) {
   std::smatch match;
-  for (auto &text_element : TextCommands) {
+  std::vector<TextElement> commands_and_chars = TextCommands;
+  commands_and_chars.insert(commands_and_chars.end(), SpecialChars.begin(),
+                            SpecialChars.end());
+  for (auto &text_element : commands_and_chars) {
     match = text_element.MatchMe(str);
     if (match.size() > 0) {
       if (text_element.HasArgument) {
@@ -104,7 +107,6 @@ std::vector<uint8_t> ParseMessageToData(std::string str) {
   std::vector<uint8_t> bytes;
   std::string temp_string = str;
   int pos = 0;
-
   while (pos < temp_string.size()) {
     // Get next text fragment.
     if (temp_string[pos] == '[') {
@@ -138,7 +140,6 @@ std::vector<uint8_t> ParseMessageToData(std::string str) {
       uint8_t bb = FindMatchingCharacter(temp_string[pos++]);
 
       if (bb != 0xFF) {
-        util::logf("Error parsing message: %s", temp_string);
         bytes.push_back(bb);
       }
     }
@@ -190,8 +191,8 @@ std::string ReplaceAllDictionaryWords(std::string str,
   return temp;
 }
 
-DictionaryEntry FindRealDictionaryEntry(uint8_t value,
-                                        std::vector<DictionaryEntry> dictionary) {
+DictionaryEntry FindRealDictionaryEntry(
+    uint8_t value, std::vector<DictionaryEntry> dictionary) {
   for (const auto &entry : dictionary) {
     if (entry.ID + DICTOFF == value) {
       return entry;
