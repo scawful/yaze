@@ -20,8 +20,8 @@ constexpr uint16_t TileVFlipBit = 0x8000;
 // Bits used for tile name
 constexpr uint16_t TileNameMask = 0x03FF;
 
-snes_tile8 UnpackBppTile(const std::vector<uint8_t>& data,
-                         const uint32_t offset, const uint32_t bpp) {
+snes_tile8 UnpackBppTile(std::span<uint8_t> data, const uint32_t offset,
+                         const uint32_t bpp) {
   snes_tile8 tile;
   assert(bpp >= 1 && bpp <= 8);
   unsigned int bpp_pos[8];  // More for conveniance and readibility
@@ -112,8 +112,8 @@ std::vector<uint8_t> PackBppTile(const snes_tile8& tile, const uint32_t bpp) {
   return output;
 }
 
-std::vector<uint8_t> ConvertBpp(const std::vector<uint8_t>& tiles,
-                                uint32_t from_bpp, uint32_t to_bpp) {
+std::vector<uint8_t> ConvertBpp(std::span<uint8_t> tiles, uint32_t from_bpp,
+                                uint32_t to_bpp) {
   unsigned int nb_tile = tiles.size() / (from_bpp * 8);
   std::vector<uint8_t> converted(nb_tile * to_bpp * 8);
 
@@ -376,43 +376,49 @@ void CopyTile8bpp16(int x, int y, int tile, std::vector<uint8_t>& bitmap,
   }
 }
 
-void LoadSNES4bppGFXToIndexedColorMatrix(std::span<uint8_t> src,
-                                         std::span<uint8_t> dest) {
+std::vector<uint8_t> LoadSNES4bppGFXToIndexedColorMatrix(
+    std::span<uint8_t> src) {
+  std::vector<uint8_t> dest;
   uint8_t b0;
   uint8_t b1;
   uint8_t b2;
   uint8_t b3;
   int res;
   int mul;
-  int yAdder = 0;
-  int srcIndex;
-  int destX;
-  int destY;
-  int destIndex;
-  int mainIndexLimit = src.size() / 32;
-  for (int mainIndex = 0; mainIndex <= mainIndexLimit; mainIndex += 32) {
-    srcIndex = (mainIndex << 5);
-    if (srcIndex + 31 >= src.size()) return;
-    destX = mainIndex & 0x0F;
-    destY = mainIndex >> 4;
-    destIndex = ((destY << 7) + destX) << 3;
-    if (destIndex + 903 >= dest.size()) return;
+  int y_adder = 0;
+  int src_index;
+  int dest_x;
+  int dest_y;
+  int dest_index;
+  int main_index_limit = src.size() / 32;
+  for (int main_index = 0; main_index <= main_index_limit; main_index += 32) {
+    src_index = (main_index << 5);
+    if (src_index + 31 >= src.size()) {
+      throw std::invalid_argument("src_index + 31 >= src.size()");
+    }
+    dest_x = main_index & 0x0F;
+    dest_y = main_index >> 4;
+    dest_index = ((dest_y << 7) + dest_x) << 3;
+    if (dest_index + 903 >= dest.size()) {
+      throw std::invalid_argument("dest_index + 903 >= dest.size()");
+    }
     for (int i = 0; i < 16; i += 2) {
       mul = 1;
-      b0 = src[srcIndex + i];
-      b1 = src[srcIndex + i + 1];
-      b2 = src[srcIndex + i + 16];
-      b3 = src[srcIndex + i + 17];
+      b0 = src[src_index + i];
+      b1 = src[src_index + i + 1];
+      b2 = src[src_index + i + 16];
+      b3 = src[src_index + i + 17];
       for (int j = 0; j < 8; j++) {
         res = ((b0 & mul) | ((b1 & mul) << 1) | ((b2 & mul) << 2) |
                ((b3 & mul) << 3)) >>
               j;
-        dest[destIndex + (7 - j) + yAdder] = res;
+        dest[dest_index + (7 - j) + y_adder] = res;
         mul <<= 1;
       }
-      yAdder += 128;
+      y_adder += 128;
     }
   }
+  return dest;
 }
 
 }  // namespace gfx
