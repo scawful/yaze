@@ -103,7 +103,7 @@ class Canvas : public SharedRom {
 
   // Dictates which tile is currently selected based on what the user clicks
   // in the canvas window. Represented and split apart into a grid of tiles.
-  bool DrawTileSelector(int size);
+  bool DrawTileSelector(int size, int size_y = 0);
 
   // Draws the selection rectangle when the user is selecting multiple tiles
   void DrawSelectRect(int current_map, int tile_size = 0x10,

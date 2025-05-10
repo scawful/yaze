@@ -394,11 +394,14 @@ void Canvas::DrawTileOnBitmap(int tile_size, gfx::Bitmap *bitmap,
   }
 }
 
-bool Canvas::DrawTileSelector(int size) {
+bool Canvas::DrawTileSelector(int size, int size_y) {
   const ImGuiIO &io = GetIO();
   const bool is_hovered = IsItemHovered();
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+  if (size_y == 0) {
+    size_y = size;
+  }
 
   if (is_hovered && IsMouseClicked(ImGuiMouseButton_Left)) {
     if (!points_.empty()) {
@@ -409,7 +412,7 @@ bool Canvas::DrawTileSelector(int size) {
     painter_pos.y = std::floor((double)mouse_pos.y / size) * size;
 
     points_.push_back(painter_pos);
-    points_.push_back(ImVec2(painter_pos.x + size, painter_pos.y + size));
+    points_.push_back(ImVec2(painter_pos.x + size, painter_pos.y + size_y));
     mouse_pos_in_canvas_ = painter_pos;
   }
 
