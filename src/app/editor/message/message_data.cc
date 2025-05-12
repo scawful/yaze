@@ -329,9 +329,8 @@ std::vector<std::string> ParseMessageData(
   return parsed_messages;
 }
 
-void ReadAllTextData(Rom *rom, std::vector<MessageData> &list_of_texts_) {
-  // Read all text data from the ROM.
-  int pos = kTextData;
+std::vector<MessageData> ReadAllTextData(uint8_t *rom, int pos) {
+  std::vector<MessageData> list_of_texts;
   int message_id = 0;
 
   std::vector<uint8_t> raw_message;
@@ -341,9 +340,9 @@ void ReadAllTextData(Rom *rom, std::vector<MessageData> &list_of_texts_) {
 
   uint8_t current_byte = 0;
   while (current_byte != 0xFF) {
-    current_byte = rom->data()[pos++];
+    current_byte = rom[pos++];
     if (current_byte == kMessageTerminator) {
-      list_of_texts_.push_back(
+      list_of_texts.push_back(
           MessageData(message_id++, pos, current_raw_message, raw_message,
                       current_parsed_message, parsed_message));
       raw_message.clear();
@@ -361,7 +360,7 @@ void ReadAllTextData(Rom *rom, std::vector<MessageData> &list_of_texts_) {
     if (text_element != std::nullopt) {
       parsed_message.push_back(current_byte);
       if (text_element->HasArgument) {
-        current_byte = rom->data()[pos++];
+        current_byte = rom[pos++];
         raw_message.push_back(current_byte);
         parsed_message.push_back(current_byte);
       }
@@ -391,14 +390,14 @@ void ReadAllTextData(Rom *rom, std::vector<MessageData> &list_of_texts_) {
       current_raw_message.append(absl::StrFormat("[%s:%s]", DICTIONARYTOKEN,
                                                  util::HexByte(dictionary)));
 
-      uint32_t address = Get24LocalFromPC(
-          rom->mutable_data(), kPointersDictionaries + (dictionary * 2));
-      uint32_t address_end = Get24LocalFromPC(
-          rom->mutable_data(), kPointersDictionaries + ((dictionary + 1) * 2));
+      uint32_t address =
+          Get24LocalFromPC(rom, kPointersDictionaries + (dictionary * 2));
+      uint32_t address_end =
+          Get24LocalFromPC(rom, kPointersDictionaries + ((dictionary + 1) * 2));
 
       for (uint32_t i = address; i < address_end; i++) {
-        parsed_message.push_back(rom->data()[i]);
-        current_parsed_message.append(ParseTextDataByte(rom->data()[i]));
+        parsed_message.push_back(rom[i]);
+        current_parsed_message.append(ParseTextDataByte(rom[i]));
       }
 
       continue;
@@ -413,6 +412,8 @@ void ReadAllTextData(Rom *rom, std::vector<MessageData> &list_of_texts_) {
       parsed_message.push_back(current_byte);
     }
   }
+
+  return list_of_texts;
 }
 
 }  // namespace editor

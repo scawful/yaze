@@ -310,7 +310,7 @@ constexpr int kTextData2 = 0x75F40;
 constexpr int kTextData2End = 0x773FF;
 
 // Reads all text data from the ROM and returns a vector of MessageData objects.
-void ReadAllTextData(Rom *rom, std::vector<MessageData> &list_of_texts_);
+std::vector<MessageData> ReadAllTextData(uint8_t *rom, int pos = kTextData);
 
 }  // namespace editor
 }  // namespace yaze
