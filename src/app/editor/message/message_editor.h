@@ -37,16 +37,6 @@ class MessageEditor : public Editor {
   absl::Status Load() override;
   absl::Status Update() override;
 
-  absl::Status Cut() override;
-  absl::Status Copy() override;
-  absl::Status Paste() override;
-  absl::Status Undo() override;
-  absl::Status Redo() override;
-  absl::Status Find() override;
-  absl::Status Save() override;
-  void Delete();
-  void SelectAll();
-
   void DrawMessageList();
   void DrawCurrentMessage();
   void DrawFontAtlas();
@@ -55,13 +45,23 @@ class MessageEditor : public Editor {
   void DrawExpandedMessageSettings();
   void DrawDictionary();
   void DrawMessagePreview();
-  std::string DisplayTextOverflowError(int pos, bool bank);
+
+  absl::Status Save() override;
+  absl::Status SaveExpandedMessages();
+
+  absl::Status Cut() override;
+  absl::Status Copy() override;
+  absl::Status Paste() override;
+  absl::Status Undo() override;
+  absl::Status Redo() override;
+  absl::Status Find() override;
+  void Delete();
+  void SelectAll();
 
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
 
  private:
-  Rom* rom_;
   bool case_sensitive_ = false;
   bool match_whole_word_ = false;
   std::string search_text_ = "";
@@ -81,10 +81,9 @@ class MessageEditor : public Editor {
   gui::Canvas font_gfx_canvas_{"##FontGfxCanvas", ImVec2(256, 256)};
   gui::Canvas current_font_gfx16_canvas_{"##CurrentMessageGfx",
                                          ImVec2(172 * 2, 4096)};
-
   gui::TextBox message_text_box_;
-
-  absl::Status status_;
+  Rom* rom_;
+  Rom expanded_message_bin_;
 };
 
 }  // namespace editor

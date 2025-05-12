@@ -21,6 +21,21 @@
 namespace yaze {
 namespace editor {
 
+namespace {
+std::string DisplayTextOverflowError(int pos, bool bank) {
+  int space = bank ? kTextDataEnd - kTextData : kTextData2End - kTextData2;
+  std::string bankSTR = bank ? "1st" : "2nd";
+  std::string posSTR =
+      bank ? absl::StrFormat("%X4", pos & 0xFFFF)
+           : absl::StrFormat("%X4", (pos - kTextData2) & 0xFFFF);
+  std::string message = absl::StrFormat(
+      "There is too much text data in the %s block to save.\n"
+      "Available: %X4 | Used: %s",
+      bankSTR, space, posSTR);
+  return message;
+}
+}  // namespace
+
 using core::Renderer;
 
 using ImGui::BeginChild;
@@ -49,7 +64,7 @@ void MessageEditor::Initialize() {
   }
 
   message_preview_.all_dictionaries_ = BuildDictionaryEntries(rom());
-  ReadAllTextData(rom(), list_of_texts_);
+  list_of_texts_ = ReadAllTextData(rom()->mutable_data());
   font_preview_colors_ = rom()->palette_group().hud.palette(0);
 
   for (int i = 0; i < 0x4000; i++) {
@@ -102,7 +117,6 @@ absl::Status MessageEditor::Update() {
 
     EndTable();
   }
-  CLEAR_AND_RETURN_STATUS(status_);
   return absl::OkStatus();
 }
 
@@ -132,6 +146,22 @@ void MessageEditor::DrawMessageList() {
         TextWrapped("%s",
                     util::HexLong(list_of_texts_[message.ID].Address).c_str());
       }
+      for (const auto& expanded_message : expanded_messages_) {
+        TableNextColumn();
+        PushID(expanded_message.ID + 0x18D);
+        if (Button(util::HexWord(expanded_message.ID + 0x18D).c_str())) {
+          current_message_ = expanded_message;
+          message_text_box_.text =
+              parsed_messages_[expanded_message.ID + 0x18D];
+          DrawMessagePreview();
+        }
+        PopID();
+        TableNextColumn();
+        TextWrapped("%s",
+                    parsed_messages_[expanded_message.ID + 0x18C].c_str());
+        TableNextColumn();
+        TextWrapped("%s", util::HexLong(expanded_message.Address).c_str());
+      }
 
       EndTable();
     }
@@ -158,7 +188,7 @@ void MessageEditor::DrawCurrentMessage() {
     ImGui::OpenPopup("Palette");
   }
   if (ImGui::BeginPopup("Palette")) {
-    status_ = gui::DisplayPalette(font_preview_colors_, true);
+    gui::DisplayPalette(font_preview_colors_, true);
     ImGui::EndPopup();
   }
   gui::BeginPadding(1);
@@ -211,15 +241,44 @@ void MessageEditor::DrawExpandedMessageSettings() {
     expanded_message_path = core::FileDialogWrapper::ShowOpenFileDialog();
     if (!expanded_message_path.empty()) {
       // Load the expanded message from the path.
-      // TODO: Implement this.
+      static Rom expanded_message_rom;
+      if (!expanded_message_rom.LoadFromFile(expanded_message_path, false)
+               .ok()) {
+        context_->popup_manager->Show("Error");
+      }
+      expanded_messages_ =
+          ReadAllTextData(expanded_message_rom.mutable_data(), 0);
+      auto parsed_expanded_messages = ParseMessageData(
+          expanded_messages_, message_preview_.all_dictionaries_);
+      // Insert into parsed_messages
+      for (const auto& expanded_message : expanded_messages_) {
+        parsed_messages_.push_back(
+            parsed_expanded_messages[expanded_message.ID]);
+      }
     }
   }
+
+  if (expanded_messages_.size() > 0) {
+    ImGui::Text("Expanded Path: %s", expanded_message_path.c_str());
+    ImGui::Text("Expanded Messages: %lu", expanded_messages_.size());
+    if (ImGui::Button("Add New Message")) {
+      MessageData new_message;
+      new_message.ID = expanded_messages_.back().ID + 1;
+      new_message.Address = expanded_messages_.back().Address +
+                            expanded_messages_.back().Data.size();
+      expanded_messages_.push_back(new_message);
+    }
+    if (ImGui::Button("Save Expanded Messages")) {
+      PRINT_IF_ERROR(SaveExpandedMessages());
+    }
+  }
+
   EndChild();
 }
 
 void MessageEditor::DrawTextCommands() {
   ImGui::BeginChild("##TextCommands",
-                    ImVec2(0, ImGui::GetWindowContentRegionMax().y / 3), true,
+                    ImVec2(0, ImGui::GetContentRegionAvail().y / 2), true,
                     ImGuiWindowFlags_AlwaysVerticalScrollbar);
   static uint8_t command_parameter = 0;
   gui::InputHexByte("Command Parameter", &command_parameter);
@@ -237,7 +296,7 @@ void MessageEditor::DrawTextCommands() {
 
 void MessageEditor::DrawSpecialCharacters() {
   ImGui::BeginChild("##SpecialChars",
-                    ImVec2(0, ImGui::GetWindowContentRegionMax().y / 3), true,
+                    ImVec2(0, ImGui::GetContentRegionAvail().y / 2), true,
                     ImGuiWindowFlags_AlwaysVerticalScrollbar);
   for (const auto& text_element : SpecialChars) {
     if (Button(text_element.GenericToken.c_str())) {
@@ -251,7 +310,8 @@ void MessageEditor::DrawSpecialCharacters() {
 }
 
 void MessageEditor::DrawDictionary() {
-  if (ImGui::BeginChild("##DictionaryChild", ImVec2(0, 200), true,
+  if (ImGui::BeginChild("##DictionaryChild",
+                        ImVec2(0, ImGui::GetContentRegionAvail().y), true,
                         ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
     if (BeginTable("##Dictionary", 2, kMessageTableFlags)) {
       TableSetupColumn("ID");
@@ -319,7 +379,7 @@ absl::Status MessageEditor::Save() {
   // Verify that we didn't go over the space available for the second block.
   // 0x14BF available.
   if ((in_second_bank & pos) > kTextData2End) {
-    // TODO: Restore the backup.
+    std::copy(backup.begin(), backup.end(), rom()->mutable_data());
     return absl::InternalError(DisplayTextOverflowError(pos, false));
   }
 
@@ -328,17 +388,17 @@ absl::Status MessageEditor::Save() {
   return absl::OkStatus();
 }
 
-std::string MessageEditor::DisplayTextOverflowError(int pos, bool bank) {
-  int space = bank ? kTextDataEnd - kTextData : kTextData2End - kTextData2;
-  std::string bankSTR = bank ? "1st" : "2nd";
-  std::string posSTR =
-      bank ? absl::StrFormat("%X4", pos & 0xFFFF)
-           : absl::StrFormat("%X4", (pos - kTextData2) & 0xFFFF);
-  std::string message = absl::StrFormat(
-      "There is too much text data in the %s block to save.\n"
-      "Available: %X4 | Used: %s",
-      bankSTR, space, posSTR);
-  return message;
+absl::Status MessageEditor::SaveExpandedMessages() {
+  for (const auto& expanded_message : expanded_messages_) {
+    std::copy(expanded_message.Data.begin(), expanded_message.Data.end(),
+              expanded_message_bin_.mutable_data() + expanded_message.Address);
+  }
+  RETURN_IF_ERROR(expanded_message_bin_.WriteByte(
+      expanded_messages_.back().Address + expanded_messages_.back().Data.size(),
+      0xFF));
+  RETURN_IF_ERROR(expanded_message_bin_.SaveToFile(
+      Rom::SaveSettings{.backup = true, .save_new = false, .z3_save = false}));
+  return absl::OkStatus();
 }
 
 absl::Status MessageEditor::Cut() {
