@@ -687,7 +687,7 @@ absl::Status OverworldEditor::DrawTile16Selector() {
   {
     blockset_canvas_.DrawContextMenu();
     blockset_canvas_.DrawBitmap(tile16_blockset_.atlas, /*border_offset=*/2,
-                                map_blockset_loaded_);
+                                map_blockset_loaded_, /*scale=*/2);
 
     if (blockset_canvas_.DrawTileSelector(32.0f)) {
       // Open the tile16 editor to the tile
