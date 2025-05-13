@@ -49,12 +49,13 @@ absl::Status GraphicsEditor::Load() { return absl::OkStatus(); }
 absl::Status GraphicsEditor::Update() {
   if (ImGui::BeginTabBar("##TabBar")) {
     status_ = UpdateGfxEdit();
-    TAB_ITEM("Sheet Browser")
-    if (asset_browser_.Initialized == false) {
-      asset_browser_.Initialize(gfx::Arena::Get().gfx_sheets());
+    if (ImGui::BeginTabItem("Sheet Browser")) {
+      if (asset_browser_.Initialized == false) {
+        asset_browser_.Initialize(gfx::Arena::Get().gfx_sheets());
+      }
+      asset_browser_.Draw(gfx::Arena::Get().gfx_sheets());
+      ImGui::EndTabItem();
     }
-    asset_browser_.Draw(gfx::Arena::Get().gfx_sheets());
-    END_TAB_ITEM()
     status_ = UpdateScadView();
     status_ = UpdateLinkGfxView();
     ImGui::EndTabBar();
@@ -72,17 +73,16 @@ absl::Status GraphicsEditor::UpdateGfxEdit() {
         ImGui::TableSetupColumn(name);
 
       ImGui::TableHeadersRow();
-
-      NEXT_COLUMN();
+      ImGui::TableNextColumn();
       status_ = UpdateGfxSheetList();
 
-      NEXT_COLUMN();
+      ImGui::TableNextColumn();
       if (rom()->is_loaded()) {
         DrawGfxEditToolset();
         status_ = UpdateGfxTabView();
       }
 
-      NEXT_COLUMN();
+      ImGui::TableNextColumn();
       if (rom()->is_loaded()) {
         status_ = UpdatePaletteColumn();
       }
@@ -387,7 +387,7 @@ absl::Status GraphicsEditor::UpdateLinkGfxView() {
 
     ImGui::TableHeadersRow();
 
-    NEXT_COLUMN();
+    ImGui::TableNextColumn();
     link_canvas_.DrawBackground();
     link_canvas_.DrawGrid(16.0f);
 
@@ -402,10 +402,10 @@ absl::Status GraphicsEditor::UpdateLinkGfxView() {
     link_canvas_.DrawOverlay();
     link_canvas_.DrawGrid();
 
-    NEXT_COLUMN();
+    ImGui::TableNextColumn();
     ImGui::Text("Placeholder");
 
-    NEXT_COLUMN();
+    ImGui::TableNextColumn();
     if (ImGui::Button("Load Link Graphics (Experimental)")) {
       if (rom()->is_loaded()) {
         // Load Links graphics from the ROM

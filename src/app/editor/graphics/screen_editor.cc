@@ -73,44 +73,44 @@ absl::Status ScreenEditor::Update() {
 }
 
 void ScreenEditor::DrawInventoryMenuEditor() {
-  TAB_ITEM("Inventory Menu")
+  if (ImGui::BeginTabItem("Inventory Menu")) {
+    static bool create = false;
+    if (!create && rom()->is_loaded()) {
+      status_ = inventory_.Create();
+      palette_ = inventory_.palette();
+      create = true;
+    }
 
-  static bool create = false;
-  if (!create && rom()->is_loaded()) {
-    status_ = inventory_.Create();
-    palette_ = inventory_.palette();
-    create = true;
+    DrawInventoryToolset();
+
+    if (ImGui::BeginTable("InventoryScreen", 3, ImGuiTableFlags_Resizable)) {
+      ImGui::TableSetupColumn("Canvas");
+      ImGui::TableSetupColumn("Tiles");
+      ImGui::TableSetupColumn("Palette");
+      ImGui::TableHeadersRow();
+
+      ImGui::TableNextColumn();
+      screen_canvas_.DrawBackground();
+      screen_canvas_.DrawContextMenu();
+      screen_canvas_.DrawBitmap(inventory_.bitmap(), 2, create);
+      screen_canvas_.DrawGrid(32.0f);
+      screen_canvas_.DrawOverlay();
+
+      ImGui::TableNextColumn();
+      tilesheet_canvas_.DrawBackground(ImVec2(128 * 2 + 2, (192 * 2) + 4));
+      tilesheet_canvas_.DrawContextMenu();
+      tilesheet_canvas_.DrawBitmap(inventory_.tilesheet(), 2, create);
+      tilesheet_canvas_.DrawGrid(16.0f);
+      tilesheet_canvas_.DrawOverlay();
+
+      ImGui::TableNextColumn();
+      gui::DisplayPalette(palette_, create);
+
+      ImGui::EndTable();
+    }
+    ImGui::Separator();
+    ImGui::EndTabItem();
   }
-
-  DrawInventoryToolset();
-
-  if (ImGui::BeginTable("InventoryScreen", 3, ImGuiTableFlags_Resizable)) {
-    ImGui::TableSetupColumn("Canvas");
-    ImGui::TableSetupColumn("Tiles");
-    ImGui::TableSetupColumn("Palette");
-    ImGui::TableHeadersRow();
-
-    ImGui::TableNextColumn();
-    screen_canvas_.DrawBackground();
-    screen_canvas_.DrawContextMenu();
-    screen_canvas_.DrawBitmap(inventory_.bitmap(), 2, create);
-    screen_canvas_.DrawGrid(32.0f);
-    screen_canvas_.DrawOverlay();
-
-    ImGui::TableNextColumn();
-    tilesheet_canvas_.DrawBackground(ImVec2(128 * 2 + 2, (192 * 2) + 4));
-    tilesheet_canvas_.DrawContextMenu();
-    tilesheet_canvas_.DrawBitmap(inventory_.tilesheet(), 2, create);
-    tilesheet_canvas_.DrawGrid(16.0f);
-    tilesheet_canvas_.DrawOverlay();
-
-    ImGui::TableNextColumn();
-    status_ = gui::DisplayPalette(palette_, create);
-
-    ImGui::EndTable();
-  }
-  ImGui::Separator();
-  END_TAB_ITEM()
 }
 
 void ScreenEditor::DrawInventoryToolset() {

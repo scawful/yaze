@@ -53,13 +53,13 @@ IMGUI_API bool SnesColorButton(absl::string_view id, gfx::SnesColor &color,
 IMGUI_API bool SnesColorEdit4(absl::string_view label, gfx::SnesColor *color,
                               ImGuiColorEditFlags flags = 0);
 
-absl::Status DisplayPalette(gfx::SnesPalette &palette, bool loaded);
+IMGUI_API bool DisplayPalette(gfx::SnesPalette &palette, bool loaded);
 
-absl::Status DisplayEditablePalette(gfx::SnesPalette &palette,
-                                    const std::string &title = "",
-                                    bool show_color_picker = false,
-                                    int colors_per_row = 8,
-                                    ImGuiColorEditFlags flags = 0);
+IMGUI_API absl::Status DisplayEditablePalette(gfx::SnesPalette &palette,
+                                              const std::string &title = "",
+                                              bool show_color_picker = false,
+                                              int colors_per_row = 8,
+                                              ImGuiColorEditFlags flags = 0);
 
 void SelectablePalettePipeline(uint64_t &palette_id, bool &refresh_graphics,
                                gfx::SnesPalette &palette);

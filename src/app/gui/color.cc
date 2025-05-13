@@ -51,7 +51,7 @@ IMGUI_API bool SnesColorEdit4(absl::string_view label, gfx::SnesColor* color,
   return pressed;
 }
 
-absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
+IMGUI_API bool DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
   static ImVec4 color = ImVec4(0, 0, 0, 255.f);
   ImGuiColorEditFlags misc_flags = ImGuiColorEditFlags_AlphaPreview |
                                    ImGuiColorEditFlags_NoDragDrop |
@@ -121,7 +121,7 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
   ImGui::ColorPicker4("##picker", (float*)&color,
                       misc_flags | ImGuiColorEditFlags_NoSidePreview |
                           ImGuiColorEditFlags_NoSmallPreview);
-  return absl::OkStatus();
+  return true;
 }
 
 void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
