@@ -576,7 +576,10 @@ absl::Status EditorManager::SaveRom() {
     RETURN_IF_ERROR(
         SaveAllGraphicsData(*current_rom_, gfx::Arena::Get().gfx_sheets()));
 
-  return current_rom_->SaveToFile(backup_rom_, save_new_auto_);
+  Rom::SaveSettings settings;
+  settings.backup = backup_rom_;
+  settings.save_new = save_new_auto_;
+  return current_rom_->SaveToFile(settings);
 }
 
 absl::Status EditorManager::OpenRomOrProject(const std::string &filename) {

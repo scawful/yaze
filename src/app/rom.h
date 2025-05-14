@@ -57,6 +57,13 @@ static const std::map<zelda3_version, zelda3_version_pointers>
  */
 class Rom {
  public:
+  struct SaveSettings {
+    bool backup = false;
+    bool save_new = false;
+    bool z3_save = true;
+    std::string filename = "";
+  };
+
   absl::Status LoadFromFile(const std::string& filename, bool z3_load = true);
   absl::Status LoadFromData(const std::vector<uint8_t>& data,
                             bool z3_load = true);
@@ -64,8 +71,7 @@ class Rom {
   absl::Status LoadGfxGroups();
 
   absl::Status SaveGfxGroups();
-  absl::Status SaveToFile(bool backup, bool save_new = false,
-                          std::string filename = "");
+  absl::Status SaveToFile(const SaveSettings& settings);
   absl::Status SavePalette(int index, const std::string& group_name,
                            gfx::SnesPalette& palette);
   absl::Status SaveAllPalettes();
