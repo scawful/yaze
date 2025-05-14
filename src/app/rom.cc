@@ -261,10 +261,9 @@ absl::Status Rom::LoadFromFile(const std::string &filename, bool z3_load) {
 
   if (z3_load) {
     RETURN_IF_ERROR(LoadZelda3());
+    resource_label_manager_.LoadLabels(absl::StrFormat("%s.labels", filename));
   }
 
-  // Set up the resource labels
-  resource_label_manager_.LoadLabels(absl::StrFormat("%s.labels", filename));
   return absl::OkStatus();
 }
 
@@ -383,11 +382,15 @@ absl::Status Rom::SaveGfxGroups() {
   return absl::OkStatus();
 }
 
-absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
+absl::Status Rom::SaveToFile(const SaveSettings &settings) {
   absl::Status non_firing_status;
   if (rom_data_.empty()) {
     return absl::InternalError("ROM data is empty.");
   }
+
+  std::string filename = settings.filename;
+  auto backup = settings.backup;
+  auto save_new = settings.save_new;
 
   // Check if filename is empty
   if (filename == "") {
@@ -421,10 +424,12 @@ absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
   }
 
   // Run the other save functions
-  if (core::FeatureFlags::get().kSaveAllPalettes)
-    RETURN_IF_ERROR(SaveAllPalettes());
-  if (core::FeatureFlags::get().kSaveGfxGroups)
-    RETURN_IF_ERROR(SaveGfxGroups());
+  if (settings.z3_save) {
+    if (core::FeatureFlags::get().kSaveAllPalettes)
+      RETURN_IF_ERROR(SaveAllPalettes());
+    if (core::FeatureFlags::get().kSaveGfxGroups)
+      RETURN_IF_ERROR(SaveGfxGroups());
+  }
 
   if (save_new) {
     // Create a file of the same name and append the date between the filename
