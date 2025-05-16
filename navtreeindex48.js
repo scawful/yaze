@@ -1,5 +1,15 @@
 var NAVTREEINDEX48 =
 {
+"structyaze_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#af7177e54f40c90c6b66fe213aaa40d1b":[12,0,0,2,34,0,3],
+"structyaze_1_1editor_1_1SpriteItem.html":[11,0,1,2,42],
+"structyaze_1_1editor_1_1SpriteItem.html":[12,0,0,2,35],
+"structyaze_1_1editor_1_1SpriteItem.html#ae826d5c1e077d4bc2f485747cbc146a4":[11,0,1,2,42,1],
+"structyaze_1_1editor_1_1SpriteItem.html#ae826d5c1e077d4bc2f485747cbc146a4":[12,0,0,2,35,1],
+"structyaze_1_1editor_1_1SpriteItem.html#aed6568e263a1e8e0716a92401ff289c0":[11,0,1,2,42,0],
+"structyaze_1_1editor_1_1SpriteItem.html#aed6568e263a1e8e0716a92401ff289c0":[12,0,0,2,35,0],
+"structyaze_1_1editor_1_1TextElement.html":[11,0,1,2,43],
+"structyaze_1_1editor_1_1TextElement.html":[12,0,0,2,36],
+"structyaze_1_1editor_1_1TextElement.html#a0a3a517b28528a10a53248c1a03cb62e":[11,0,1,2,43,11],
 "structyaze_1_1editor_1_1TextElement.html#a0a3a517b28528a10a53248c1a03cb62e":[12,0,0,2,36,11],
 "structyaze_1_1editor_1_1TextElement.html#a1867a95c0275dd516d0c7193aa4b0c78":[11,0,1,2,43,6],
 "structyaze_1_1editor_1_1TextElement.html#a1867a95c0275dd516d0c7193aa4b0c78":[12,0,0,2,36,6],
@@ -239,15 +249,5 @@ var NAVTREEINDEX48 =
 "structyaze_1_1emu_1_1BackgroundLayer.html#a3660e89e847d3f4096faa1c6c13a8806":[12,0,0,3,5,8],
 "structyaze_1_1emu_1_1BackgroundLayer.html#a427f3b672272b77146bf80a64f560e8a":[11,0,1,3,7,10],
 "structyaze_1_1emu_1_1BackgroundLayer.html#a427f3b672272b77146bf80a64f560e8a":[12,0,0,3,5,10],
-"structyaze_1_1emu_1_1BackgroundLayer.html#a521b9a2ed94812e307fdd5f6deeee9f1":[11,0,1,3,7,9],
-"structyaze_1_1emu_1_1BackgroundLayer.html#a521b9a2ed94812e307fdd5f6deeee9f1":[12,0,0,3,5,9],
-"structyaze_1_1emu_1_1BackgroundLayer.html#a56fbfde50416c3df523c591e1a74bcfd":[11,0,1,3,7,4],
-"structyaze_1_1emu_1_1BackgroundLayer.html#a56fbfde50416c3df523c591e1a74bcfd":[12,0,0,3,5,4],
-"structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822":[11,0,1,3,7,0],
-"structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822":[12,0,0,3,5,0],
-"structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822a32397e7b452045b821e5c7be9d5df1e1":[11,0,1,3,7,0,3],
-"structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822a32397e7b452045b821e5c7be9d5df1e1":[12,0,0,3,5,0,3],
-"structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822a7915383cc2c1fff7ccfb328167cde9bf":[11,0,1,3,7,0,1],
-"structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822a7915383cc2c1fff7ccfb328167cde9bf":[12,0,0,3,5,0,1],
-"structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822a7bcea1112a95a00ed61d6b680f628c84":[11,0,1,3,7,0,0]
+"structyaze_1_1emu_1_1BackgroundLayer.html#a521b9a2ed94812e307fdd5f6deeee9f1":[11,0,1,3,7,9]
 };

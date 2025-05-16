@@ -1,5 +1,15 @@
 var NAVTREEINDEX55 =
 {
+"structyaze_1_1zelda3_1_1music_1_1Song.html#aa9955a44a5054b8f44fb50572d19f7a8":[12,0,0,8,0,1,6],
+"structyaze_1_1zelda3_1_1music_1_1Song.html#ab0486f32fded23ea3644260b811ef286":[11,0,1,8,3,1,0],
+"structyaze_1_1zelda3_1_1music_1_1Song.html#ab0486f32fded23ea3644260b811ef286":[12,0,0,8,0,1,0],
+"structyaze_1_1zelda3_1_1music_1_1Song.html#ab24bf212639d288edea31f6565d8f84d":[11,0,1,8,3,1,3],
+"structyaze_1_1zelda3_1_1music_1_1Song.html#ab24bf212639d288edea31f6565d8f84d":[12,0,0,8,0,1,3],
+"structyaze_1_1zelda3_1_1music_1_1Song.html#adbf33cbeacd6ceda3d378d9c63fcb825":[11,0,1,8,3,1,1],
+"structyaze_1_1zelda3_1_1music_1_1Song.html#adbf33cbeacd6ceda3d378d9c63fcb825":[12,0,0,8,0,1,1],
+"structyaze_1_1zelda3_1_1music_1_1Song.html#af89989b0a00f480c0e43e6bb7dd5ad34":[11,0,1,8,3,1,5],
+"structyaze_1_1zelda3_1_1music_1_1Song.html#af89989b0a00f480c0e43e6bb7dd5ad34":[12,0,0,8,0,1,5],
+"structyaze_1_1zelda3_1_1music_1_1SongPart.html":[11,0,1,8,3,2],
 "structyaze_1_1zelda3_1_1music_1_1SongPart.html":[12,0,0,8,0,2],
 "structyaze_1_1zelda3_1_1music_1_1SongPart.html#a059a2853417c6c91157bc09f87a1d43f":[11,0,1,8,3,2,3],
 "structyaze_1_1zelda3_1_1music_1_1SongPart.html#a059a2853417c6c91157bc09f87a1d43f":[12,0,0,8,0,2,3],
@@ -239,15 +249,5 @@ var NAVTREEINDEX55 =
 "yaze_8cc.html#a0c0dfb85f1e87702458d4dbaae0beef3":[13,0,2,4,7],
 "yaze_8cc.html#a111ddb4f9203a195ab49364c285aed8d":[13,0,2,4,4],
 "yaze_8cc.html#a25bf6669809ad5e1ae299014a5f6fd0a":[13,0,2,4,9],
-"yaze_8cc.html#a396799212dcd857614ee23b702a94f3b":[13,0,2,4,0],
-"yaze_8cc.html#a440a6545b01877e0afee7ba8a54ad27e":[13,0,2,4,1],
-"yaze_8cc.html#a5e4ad2419923bd64992af472ddea386e":[13,0,2,4,3],
-"yaze_8cc.html#a6b14017ad1ab9e7da860e59f6145c1d1":[13,0,2,4,12],
-"yaze_8cc.html#a9fff64bba6ed578ae091960204b84648":[13,0,2,4,2],
-"yaze_8cc.html#ac37ec58a0da8b441220024ac2cb73a76":[13,0,2,4,10],
-"yaze_8cc.html#ac6958144cc1209550c0f77e8dce0b8d3":[13,0,2,4,5],
-"yaze_8cc.html#ac870fb2b7713b670247082c171053148":[13,0,2,4,6],
-"yaze_8cc.html#ad5d32e01226c1d7167fa6c34c59bb95e":[13,0,2,4,8],
-"yaze_8cc_source.html":[13,0,2,4],
-"yaze_8h.html":[13,0,1,0]
+"yaze_8cc.html#a396799212dcd857614ee23b702a94f3b":[13,0,2,4,0]
 };
