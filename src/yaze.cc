@@ -112,7 +112,8 @@ void yaze_unload_rom(zelda3_rom *rom) {
 void yaze_save_rom(zelda3_rom *rom, const char *filename) {
   if (rom->impl) {
     yaze::Rom *internal_rom = static_cast<yaze::Rom *>(rom->impl);
-    if (auto status = internal_rom->SaveToFile(false, false, filename);
+    if (auto status = internal_rom->SaveToFile(yaze::Rom::SaveSettings{
+            .backup = true, .save_new = false, .filename = filename});
         !status.ok()) {
       throw std::runtime_error(status.message().data());
     }
