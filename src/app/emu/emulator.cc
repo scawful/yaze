@@ -58,8 +58,8 @@ void Emulator::Run() {
     }
     rom_data_ = rom()->vector();
     snes_.Init(rom_data_);
-    wanted_frames_ = 1.0 / (snes_.Memory().pal_timing() ? 50.0 : 60.0);
-    wanted_samples_ = 48000 / (snes_.Memory().pal_timing() ? 50 : 60);
+    wanted_frames_ = 1.0 / (snes_.memory().pal_timing() ? 50.0 : 60.0);
+    wanted_samples_ = 48000 / (snes_.memory().pal_timing() ? 50 : 60);
     loaded = true;
 
     count_frequency = SDL_GetPerformanceFrequency();
@@ -491,8 +491,8 @@ void Emulator::RenderMemoryViewer() {
                           ImGuiWindowFlags_NoMove |
                               ImGuiWindowFlags_NoScrollbar |
                               ImGuiWindowFlags_NoScrollWithMouse)) {
-      mem_edit.DrawContents((void*)snes_.Memory().rom_.data(),
-                            snes_.Memory().rom_.size());
+      mem_edit.DrawContents((void*)snes_.memory().rom_.data(),
+                            snes_.memory().rom_.size());
       ImGui::EndChild();
     }
 
