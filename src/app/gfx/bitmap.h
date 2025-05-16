@@ -151,7 +151,7 @@ class Bitmap {
   int width() const { return width_; }
   int height() const { return height_; }
   int depth() const { return depth_; }
-  int size() const { return data_size_; }
+  int size() const { return data_.size(); }
   const uint8_t *data() const { return data_.data(); }
   std::vector<uint8_t> &mutable_data() { return data_; }
   SDL_Surface *surface() const { return surface_; }
@@ -172,7 +172,6 @@ class Bitmap {
   int width_ = 0;
   int height_ = 0;
   int depth_ = 0;
-  int data_size_ = 0;
 
   bool active_ = false;
   bool modified_ = false;

@@ -40,7 +40,7 @@ class SnesColor {
   constexpr SnesColor()
       : rgb_({0.f, 0.f, 0.f, 0.f}), snes_(0), rom_color_({0, 0, 0}) {}
 
-  constexpr explicit SnesColor(const ImVec4 val) : rgb_(val) {
+  explicit SnesColor(const ImVec4 val) : rgb_(val) {
     snes_color color;
     color.red = static_cast<uint8_t>(val.x) / kColorByteMax;
     color.green = static_cast<uint8_t>(val.y) / kColorByteMax;
@@ -48,7 +48,7 @@ class SnesColor {
     snes_ = ConvertRgbToSnes(color);
   }
 
-  constexpr explicit SnesColor(const uint16_t val) : snes_(val) {
+  explicit SnesColor(const uint16_t val) : snes_(val) {
     snes_color color = ConvertSnesToRgb(val);
     rgb_ = ImVec4(color.red, color.green, color.blue, 0.f);
   }
