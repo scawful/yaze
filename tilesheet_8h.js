@@ -5,6 +5,5 @@ var tilesheet_8h =
     [ "yaze::gfx::TileType", "namespaceyaze_1_1gfx.html#a54c082e1b81bacbccd15286f5e07a8b0", [
       [ "yaze::gfx::TileType::Tile8", "namespaceyaze_1_1gfx.html#a54c082e1b81bacbccd15286f5e07a8b0af741ccc3c4a5d5202699b366e0b822a5", null ],
       [ "yaze::gfx::TileType::Tile16", "namespaceyaze_1_1gfx.html#a54c082e1b81bacbccd15286f5e07a8b0a0136ed56bdc945f798e3b2ff271ba011", null ]
-    ] ],
-    [ "yaze::gfx::CreateTilesheetFromGraphicsBuffer", "namespaceyaze_1_1gfx.html#a3f767446d2678762961318489ff37450", null ]
+    ] ]
 ];

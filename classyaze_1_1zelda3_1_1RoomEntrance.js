@@ -1,8 +1,8 @@
 var classyaze_1_1zelda3_1_1RoomEntrance =
 [
     [ "RoomEntrance", "classyaze_1_1zelda3_1_1RoomEntrance.html#aadfb6123754a68d9b22edffbefd49546", null ],
-    [ "RoomEntrance", "classyaze_1_1zelda3_1_1RoomEntrance.html#a75c13893ececca3104f78dc477bba71e", null ],
-    [ "Save", "classyaze_1_1zelda3_1_1RoomEntrance.html#a0b3c8722bc896fe368b5906a55f9000e", null ],
+    [ "RoomEntrance", "classyaze_1_1zelda3_1_1RoomEntrance.html#a2e35975a7f39a621c22940dcc3f6a2e7", null ],
+    [ "Save", "classyaze_1_1zelda3_1_1RoomEntrance.html#a01b529bef2affc7695004083df0ed1fe", null ],
     [ "entrance_id_", "classyaze_1_1zelda3_1_1RoomEntrance.html#ae53df0417b6a6885836cfd3987d96e73", null ],
     [ "x_position_", "classyaze_1_1zelda3_1_1RoomEntrance.html#ac8c5a8a13ec392ef1d24ca287626c86d", null ],
     [ "y_position_", "classyaze_1_1zelda3_1_1RoomEntrance.html#a4cfcd4b6843cccb5f109045f9b4726c8", null ],

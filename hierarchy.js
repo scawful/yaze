@@ -243,6 +243,8 @@ var hierarchy =
     ] ],
     [ "yaze::zelda3::RoomSize", "structyaze_1_1zelda3_1_1RoomSize.html", null ],
     [ "yaze::zelda3::music::SampleEdit", "structyaze_1_1zelda3_1_1music_1_1SampleEdit.html", null ],
+    [ "yaze::Rom::SaveSettings", "structyaze_1_1Rom_1_1SaveSettings.html", null ],
+    [ "yaze::test::Rom::SaveSettings", "structyaze_1_1test_1_1Rom_1_1SaveSettings.html", null ],
     [ "yaze::emu::ScreenDisplay", "structyaze_1_1emu_1_1ScreenDisplay.html", null ],
     [ "yaze::emu::ScreenMode", "structyaze_1_1emu_1_1ScreenMode.html", null ],
     [ "yaze::emu::ScrollRegister", "structyaze_1_1emu_1_1ScrollRegister.html", null ],

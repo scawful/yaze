@@ -1,12 +1,13 @@
 var classyaze_1_1Rom =
 [
+    [ "SaveSettings", "structyaze_1_1Rom_1_1SaveSettings.html", "structyaze_1_1Rom_1_1SaveSettings" ],
     [ "WriteAction", "structyaze_1_1Rom_1_1WriteAction.html", "structyaze_1_1Rom_1_1WriteAction" ],
     [ "LoadFromFile", "classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f", null ],
     [ "LoadFromData", "classyaze_1_1Rom.html#a3aacb1ac78a97db45382a8ad580ec4db", null ],
     [ "LoadZelda3", "classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9", null ],
     [ "LoadGfxGroups", "classyaze_1_1Rom.html#a99c1cb4e80c3cafb975d1d74a842c833", null ],
     [ "SaveGfxGroups", "classyaze_1_1Rom.html#a98c204a2d036977bfceeee747d1579dd", null ],
-    [ "SaveToFile", "classyaze_1_1Rom.html#a51e3cd94100f555337a98cbadd587f18", null ],
+    [ "SaveToFile", "classyaze_1_1Rom.html#a85481fc21993edbc298608a66cb70ba9", null ],
     [ "SavePalette", "classyaze_1_1Rom.html#abaa145655ce6535abf0026f785839a55", null ],
     [ "SaveAllPalettes", "classyaze_1_1Rom.html#afde2c40d5cb9eaf14b64dae1da43afd7", null ],
     [ "Expand", "classyaze_1_1Rom.html#a784e5cc628d64f3d058b8fdd74c26047", null ],

@@ -1,7 +1,6 @@
 var namespaceyaze_1_1gfx =
 [
     [ "anonymous_namespace{tilemap.cc}", "namespaceyaze_1_1gfx_1_1anonymous__namespace_02tilemap_8cc_03.html", [
-      [ "FetchTileDataFromGraphicsBuffer", "namespaceyaze_1_1gfx_1_1anonymous__namespace_02tilemap_8cc_03.html#acad0ad87eba819101a6df19f912a3fb3", null ],
       [ "MirrorTileDataVertically", "namespaceyaze_1_1gfx_1_1anonymous__namespace_02tilemap_8cc_03.html#aa54837539667fc48e7f09f3f23971240", null ],
       [ "MirrorTileDataHorizontally", "namespaceyaze_1_1gfx_1_1anonymous__namespace_02tilemap_8cc_03.html#ae2e81f1fdd4afb1968f8fb7de6ac74fa", null ],
       [ "ComposeAndPlaceTilePart", "namespaceyaze_1_1gfx_1_1anonymous__namespace_02tilemap_8cc_03.html#a508f2b61283381bc576c808d12a96454", null ]
@@ -106,9 +105,12 @@ var namespaceyaze_1_1gfx =
     [ "CreateTilemap", "namespaceyaze_1_1gfx.html#a2064ed9f541dd72deb72f78523e006c4", null ],
     [ "UpdateTilemap", "namespaceyaze_1_1gfx.html#a2ceb066551815eb3f3473a316fe8827d", null ],
     [ "RenderTile", "namespaceyaze_1_1gfx.html#add7dbc57103fdc10e6abf710863e940d", null ],
+    [ "RenderTile16", "namespaceyaze_1_1gfx.html#a65d6ace8b115cdcc7607e60dc744b309", null ],
+    [ "UpdateTile16", "namespaceyaze_1_1gfx.html#a3e6fa2a2909d5dd9dfe748dbc691aa06", null ],
+    [ "FetchTileDataFromGraphicsBuffer", "namespaceyaze_1_1gfx.html#ab1a956018883111c3a96be7777cb86d6", null ],
+    [ "ModifyTile16", "namespaceyaze_1_1gfx.html#a397e84472b7ae0309b3e692909c0f30b", null ],
     [ "ComposeTile16", "namespaceyaze_1_1gfx.html#af64c2db0348f9d69a13b2cd77ef9ac1d", null ],
     [ "GetTilemapData", "namespaceyaze_1_1gfx.html#a85cdb560638714d7afc71b20b1b8526c", null ],
-    [ "CreateTilesheetFromGraphicsBuffer", "namespaceyaze_1_1gfx.html#a3f767446d2678762961318489ff37450", null ],
     [ "SNES_PIXELFORMAT_INDEXED", "namespaceyaze_1_1gfx.html#a59d25f0a8a35bda5f27d6b8314970616", null ],
     [ "SNES_PIXELFORMAT_4BPP", "namespaceyaze_1_1gfx.html#a773d8b8d1871caffc5115a1e8a2090bb", null ],
     [ "SNES_PIXELFORMAT_8BPP", "namespaceyaze_1_1gfx.html#a526b13f553a3d35517d0538e61e69987", null ],

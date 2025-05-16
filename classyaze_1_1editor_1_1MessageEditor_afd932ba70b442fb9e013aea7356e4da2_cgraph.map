@@ -1,9 +1,7 @@
 <map id="yaze::editor::MessageEditor::Save" name="yaze::editor::MessageEditor::Save">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,183,103"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1MessageEditor.html#a6230eee2580dc1e9156ed934039e4970" title=" " alt="" coords="245,5,422,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,59,230,48,231,53,182,65"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1MessageEditor.html#a23c91e0627d15977203b2a71110fd287" title=" " alt="" coords="231,70,436,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="183,80,215,80,215,86,183,86"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="272,120,394,145"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="184,99,257,114,256,119,183,104"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,183,64"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1MessageEditor.html#a23c91e0627d15977203b2a71110fd287" title=" " alt="" coords="231,5,436,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,31,215,28,215,33,183,37"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="272,55,394,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="183,50,257,57,256,63,183,55"/>
 </map>

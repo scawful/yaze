@@ -135,6 +135,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:ad1dcf60d4ca3d385ee232da8af4281ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a405a4d2abe5d7e2618e2d2dcf715913c" id="r_a405a4d2abe5d7e2618e2d2dcf715913c"><td class="memItemLeft" align="right" valign="top">absl::flat_hash_map&lt; int, <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">Bitmap</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a405a4d2abe5d7e2618e2d2dcf715913c">tile_bitmaps</a></td></tr>
 <tr class="separator:a405a4d2abe5d7e2618e2d2dcf715913c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed69c7cdbc0fd42afbf89edc2e40beee" id="r_aed69c7cdbc0fd42afbf89edc2e40beee"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::array&lt; <a class="el" href="classyaze_1_1gfx_1_1TileInfo.html">gfx::TileInfo</a>, 4 &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aed69c7cdbc0fd42afbf89edc2e40beee">tile_info</a></td></tr>
+<tr class="separator:aed69c7cdbc0fd42afbf89edc2e40beee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0cdcea996714617b7e773b61bcd2044f" id="r_a0cdcea996714617b7e773b61bcd2044f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1gfx_1_1Pair.html">Pair</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0cdcea996714617b7e773b61bcd2044f">tile_size</a></td></tr>
 <tr class="separator:a0cdcea996714617b7e773b61bcd2044f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a96c1a0624b30cf8883b2f4718609fb62" id="r_a96c1a0624b30cf8883b2f4718609fb62"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1gfx_1_1Pair.html">Pair</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a96c1a0624b30cf8883b2f4718609fb62">map_size</a></td></tr>
@@ -158,7 +160,7 @@ Public Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="tilemap_8h_source.html#l00017">17</a> of file <a class="el" href="tilemap_8h_source.html">tilemap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tilemap_8cc_source.html#l00091">yaze::gfx::anonymous_namespace{tilemap.cc}::ComposeAndPlaceTilePart()</a>, <a class="el" href="tilemap_8cc_source.html#l00116">yaze::gfx::ComposeTile16()</a>, <a class="el" href="tilemap_8cc_source.html#l00011">yaze::gfx::CreateTilemap()</a>, <a class="el" href="canvas_8cc_source.html#l00597">yaze::gui::Canvas::DrawBitmapGroup()</a>, <a class="el" href="canvas_8cc_source.html#l00273">yaze::gui::Canvas::DrawTilemapPainter()</a>, <a class="el" href="tilemap_8cc_source.html#l00137">yaze::gfx::GetTilemapData()</a>, <a class="el" href="tilemap_8cc_source.html#l00029">yaze::gfx::RenderTile()</a>, and <a class="el" href="tilemap_8cc_source.html#l00024">yaze::gfx::UpdateTilemap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tilemap_8cc_source.html#l00121">yaze::gfx::anonymous_namespace{tilemap.cc}::ComposeAndPlaceTilePart()</a>, <a class="el" href="tilemap_8cc_source.html#l00170">yaze::gfx::ComposeTile16()</a>, <a class="el" href="tilemap_8cc_source.html#l00012">yaze::gfx::CreateTilemap()</a>, <a class="el" href="canvas_8cc_source.html#l00597">yaze::gui::Canvas::DrawBitmapGroup()</a>, <a class="el" href="canvas_8cc_source.html#l00273">yaze::gui::Canvas::DrawTilemapPainter()</a>, <a class="el" href="tilemap_8cc_source.html#l00193">yaze::gfx::GetTilemapData()</a>, <a class="el" href="tilemap_8cc_source.html#l00146">yaze::gfx::ModifyTile16()</a>, <a class="el" href="tilemap_8cc_source.html#l00030">yaze::gfx::RenderTile()</a>, <a class="el" href="tilemap_8cc_source.html#l00042">yaze::gfx::RenderTile16()</a>, <a class="el" href="tilemap_8cc_source.html#l00059">yaze::gfx::UpdateTile16()</a>, and <a class="el" href="tilemap_8cc_source.html#l00025">yaze::gfx::UpdateTilemap()</a>.</p>
 
 </div>
 </div>
@@ -176,7 +178,25 @@ Public Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="tilemap_8h_source.html#l00018">18</a> of file <a class="el" href="tilemap_8h_source.html">tilemap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tilemap_8cc_source.html#l00116">yaze::gfx::ComposeTile16()</a>, <a class="el" href="canvas_8cc_source.html#l00597">yaze::gui::Canvas::DrawBitmapGroup()</a>, <a class="el" href="canvas_8cc_source.html#l00273">yaze::gui::Canvas::DrawTilemapPainter()</a>, and <a class="el" href="tilemap_8cc_source.html#l00029">yaze::gfx::RenderTile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00597">yaze::gui::Canvas::DrawBitmapGroup()</a>, <a class="el" href="canvas_8cc_source.html#l00273">yaze::gui::Canvas::DrawTilemapPainter()</a>, <a class="el" href="tilemap_8cc_source.html#l00030">yaze::gfx::RenderTile()</a>, <a class="el" href="tilemap_8cc_source.html#l00042">yaze::gfx::RenderTile16()</a>, and <a class="el" href="tilemap_8cc_source.html#l00059">yaze::gfx::UpdateTile16()</a>.</p>
+
+</div>
+</div>
+<a id="aed69c7cdbc0fd42afbf89edc2e40beee" name="aed69c7cdbc0fd42afbf89edc2e40beee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aed69c7cdbc0fd42afbf89edc2e40beee">&#9670;&#160;</a></span>tile_info</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;std::array&lt;<a class="el" href="classyaze_1_1gfx_1_1TileInfo.html">gfx::TileInfo</a>, 4&gt; &gt; yaze::gfx::Tilemap::tile_info</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="tilemap_8h_source.html#l00019">19</a> of file <a class="el" href="tilemap_8h_source.html">tilemap.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="tilemap_8cc_source.html#l00170">yaze::gfx::ComposeTile16()</a>, and <a class="el" href="tilemap_8cc_source.html#l00146">yaze::gfx::ModifyTile16()</a>.</p>
 
 </div>
 </div>
@@ -192,9 +212,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tilemap_8h_source.html#l00019">19</a> of file <a class="el" href="tilemap_8h_source.html">tilemap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tilemap_8h_source.html#l00020">20</a> of file <a class="el" href="tilemap_8h_source.html">tilemap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tilemap_8cc_source.html#l00116">yaze::gfx::ComposeTile16()</a>, <a class="el" href="tilemap_8cc_source.html#l00011">yaze::gfx::CreateTilemap()</a>, <a class="el" href="canvas_8cc_source.html#l00273">yaze::gui::Canvas::DrawTilemapPainter()</a>, <a class="el" href="tilemap_8cc_source.html#l00137">yaze::gfx::GetTilemapData()</a>, and <a class="el" href="tilemap_8cc_source.html#l00029">yaze::gfx::RenderTile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tilemap_8cc_source.html#l00170">yaze::gfx::ComposeTile16()</a>, <a class="el" href="tilemap_8cc_source.html#l00012">yaze::gfx::CreateTilemap()</a>, <a class="el" href="canvas_8cc_source.html#l00273">yaze::gui::Canvas::DrawTilemapPainter()</a>, <a class="el" href="tilemap_8cc_source.html#l00193">yaze::gfx::GetTilemapData()</a>, <a class="el" href="tilemap_8cc_source.html#l00146">yaze::gfx::ModifyTile16()</a>, <a class="el" href="tilemap_8cc_source.html#l00030">yaze::gfx::RenderTile()</a>, <a class="el" href="tilemap_8cc_source.html#l00042">yaze::gfx::RenderTile16()</a>, and <a class="el" href="tilemap_8cc_source.html#l00059">yaze::gfx::UpdateTile16()</a>.</p>
 
 </div>
 </div>
@@ -210,9 +230,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tilemap_8h_source.html#l00020">20</a> of file <a class="el" href="tilemap_8h_source.html">tilemap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tilemap_8h_source.html#l00021">21</a> of file <a class="el" href="tilemap_8h_source.html">tilemap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tilemap_8cc_source.html#l00011">yaze::gfx::CreateTilemap()</a>, <a class="el" href="canvas_8cc_source.html#l00597">yaze::gui::Canvas::DrawBitmapGroup()</a>, and <a class="el" href="tilemap_8cc_source.html#l00137">yaze::gfx::GetTilemapData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tilemap_8cc_source.html#l00012">yaze::gfx::CreateTilemap()</a>, <a class="el" href="canvas_8cc_source.html#l00597">yaze::gui::Canvas::DrawBitmapGroup()</a>, and <a class="el" href="tilemap_8cc_source.html#l00193">yaze::gfx::GetTilemapData()</a>.</p>
 
 </div>
 </div>

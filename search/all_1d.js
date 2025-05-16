@@ -102,7 +102,7 @@ var searchData=
   ['tile_5fedit_5ftable_5f_99',['tile_edit_table_',['../classyaze_1_1editor_1_1Tile16Editor.html#ae8cadf950dd10d0fe608925fcfedb65d',1,'yaze::editor::Tile16Editor']]],
   ['tile_5fheight_100',['tile_height',['../classyaze_1_1gfx_1_1Tilesheet.html#a1f746ca193a1daa954fd66accdcb1fe4',1,'yaze::gfx::Tilesheet']]],
   ['tile_5fheight_5f_101',['tile_height_',['../classyaze_1_1gfx_1_1Tilesheet.html#a57019540b45f989e6051444e2df41b23',1,'yaze::gfx::Tilesheet']]],
-  ['tile_5finfo_102',['tile_info',['../classyaze_1_1gfx_1_1Tilesheet.html#af9cdd569b47ee2c2d12cd663a1670586',1,'yaze::gfx::Tilesheet']]],
+  ['tile_5finfo_102',['tile_info',['../structyaze_1_1gfx_1_1Tilemap.html#aed69c7cdbc0fd42afbf89edc2e40beee',1,'yaze::gfx::Tilemap::tile_info'],['../classyaze_1_1gfx_1_1Tilesheet.html#af9cdd569b47ee2c2d12cd663a1670586',1,'yaze::gfx::Tilesheet::tile_info() const']]],
   ['tile_5finfo_5f_103',['tile_info_',['../classyaze_1_1gfx_1_1Tilesheet.html#a5d8bdb45f11dcc81a001d763d352af29',1,'yaze::gfx::Tilesheet']]],
   ['tile_5fmap_5faddress_104',['tile_map_address',['../structyaze_1_1emu_1_1TileMapLocation.html#a5172bf107ef591c0e90960cba3981c14',1,'yaze::emu::TileMapLocation']]],
   ['tile_5fobjects_5f_105',['tile_objects_',['../classyaze_1_1zelda3_1_1Room.html#a081ef02646596e3b9c4a830cdaff6271',1,'yaze::zelda3::Room']]],

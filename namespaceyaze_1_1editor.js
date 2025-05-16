@@ -15,6 +15,9 @@ var namespaceyaze_1_1editor =
     [ "anonymous_namespace{gfx_group_editor.cc}", "namespaceyaze_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html", [
       [ "DrawPaletteFromPaletteGroup", "namespaceyaze_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html#ab034577d86103210b34c4e4164d82f0c", null ]
     ] ],
+    [ "anonymous_namespace{message_editor.cc}", "namespaceyaze_1_1editor_1_1anonymous__namespace_02message__editor_8cc_03.html", [
+      [ "DisplayTextOverflowError", "namespaceyaze_1_1editor_1_1anonymous__namespace_02message__editor_8cc_03.html#aef9df899003974391ac30afec5b1d4c5", null ]
+    ] ],
     [ "anonymous_namespace{palette_editor.cc}", "namespaceyaze_1_1editor_1_1anonymous__namespace_02palette__editor_8cc_03.html", [
       [ "CustomFormatString", "namespaceyaze_1_1editor_1_1anonymous__namespace_02palette__editor_8cc_03.html#aad315fe6172d8cdfb032f689c7a46bff", null ]
     ] ],
@@ -93,7 +96,7 @@ var namespaceyaze_1_1editor =
     [ "FindRealDictionaryEntry", "namespaceyaze_1_1editor.html#a508cbba41214d784ba112a4c3f14ec78", null ],
     [ "ParseSingleMessage", "namespaceyaze_1_1editor.html#a7f9b61eee2bb838f10efe0d1062c8990", null ],
     [ "ParseMessageData", "namespaceyaze_1_1editor.html#a91359909a674306622aa5a533e0c2377", null ],
-    [ "ReadAllTextData", "namespaceyaze_1_1editor.html#a99c9eea01d5b08f81107f35f926a74b6", null ],
+    [ "ReadAllTextData", "namespaceyaze_1_1editor.html#a023f96d1797f02dbaad61f338fb0ccd0", null ],
     [ "IsMouseHoveringOverEntity", "namespaceyaze_1_1editor.html#a71d65cf584d77dc9d9ccb1446d7870f6", null ],
     [ "MoveEntityOnGrid", "namespaceyaze_1_1editor.html#a06ac44536e73112b10156d6ea830d66c", null ],
     [ "HandleEntityDragging", "namespaceyaze_1_1editor.html#a6b13948b033b60fa0dc966717fc52a82", null ],
