@@ -58,7 +58,7 @@ class SnesColor {
         snes_(ConvertRgbToSnes(val)),
         rom_color_(val) {}
 
-  constexpr SnesColor(uint8_t r, uint8_t g, uint8_t b) {
+  SnesColor(uint8_t r, uint8_t g, uint8_t b) {
     rgb_ = ImVec4(r, g, b, kColorByteMaxF);
     snes_color color;
     color.red = r;

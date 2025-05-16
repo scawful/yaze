@@ -18,6 +18,7 @@ add_executable(
   rom_test.cc
   test_editor.cc
   hex_test.cc
+  gfx/snes_tile_test.cc
   gfx/compression_test.cc
   gfx/snes_palette_test.cc
   zelda3/message_test.cc
