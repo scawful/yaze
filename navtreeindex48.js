@@ -1,5 +1,7 @@
 var NAVTREEINDEX48 =
 {
+"structyaze_1_1editor_1_1SpriteItem.html#aed6568e263a1e8e0716a92401ff289c0":[12,0,0,2,35,0],
+"structyaze_1_1editor_1_1TextElement.html":[11,0,1,2,43],
 "structyaze_1_1editor_1_1TextElement.html":[12,0,0,2,36],
 "structyaze_1_1editor_1_1TextElement.html#a0a3a517b28528a10a53248c1a03cb62e":[11,0,1,2,43,11],
 "structyaze_1_1editor_1_1TextElement.html#a0a3a517b28528a10a53248c1a03cb62e":[12,0,0,2,36,11],
@@ -247,7 +249,5 @@ var NAVTREEINDEX48 =
 "structyaze_1_1emu_1_1BackgroundLayer.html#a56fbfde50416c3df523c591e1a74bcfd":[12,0,0,3,5,4],
 "structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822":[11,0,1,3,7,0],
 "structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822":[12,0,0,3,5,0],
-"structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822a32397e7b452045b821e5c7be9d5df1e1":[11,0,1,3,7,0,3],
-"structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822a32397e7b452045b821e5c7be9d5df1e1":[12,0,0,3,5,0,3],
-"structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822a7915383cc2c1fff7ccfb328167cde9bf":[11,0,1,3,7,0,1]
+"structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822a32397e7b452045b821e5c7be9d5df1e1":[11,0,1,3,7,0,3]
 };

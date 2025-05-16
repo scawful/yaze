@@ -1,5 +1,7 @@
 var NAVTREEINDEX49 =
 {
+"structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822a32397e7b452045b821e5c7be9d5df1e1":[12,0,0,3,5,0,3],
+"structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822a7915383cc2c1fff7ccfb328167cde9bf":[11,0,1,3,7,0,1],
 "structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822a7915383cc2c1fff7ccfb328167cde9bf":[12,0,0,3,5,0,1],
 "structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822a7bcea1112a95a00ed61d6b680f628c84":[11,0,1,3,7,0,0],
 "structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822a7bcea1112a95a00ed61d6b680f628c84":[12,0,0,3,5,0,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX49 =
 "structyaze_1_1emu_1_1EmulatorKeybindings.html#a53478d92046f5e5e0d6bf1d07fb0c8dd":[12,0,0,3,28,11],
 "structyaze_1_1emu_1_1EmulatorKeybindings.html#a5ba0fcfe453193dc2f031bb580de1ade":[11,0,1,3,30,10],
 "structyaze_1_1emu_1_1EmulatorKeybindings.html#a5ba0fcfe453193dc2f031bb580de1ade":[12,0,0,3,28,10],
-"structyaze_1_1emu_1_1EmulatorKeybindings.html#a5dd87731aa8e98258aa6e486e316ee1e":[11,0,1,3,30,1],
-"structyaze_1_1emu_1_1EmulatorKeybindings.html#a5dd87731aa8e98258aa6e486e316ee1e":[12,0,0,3,28,1],
-"structyaze_1_1emu_1_1EmulatorKeybindings.html#a6276d2284e3ced2a2193774e866c24d4":[11,0,1,3,30,5]
+"structyaze_1_1emu_1_1EmulatorKeybindings.html#a5dd87731aa8e98258aa6e486e316ee1e":[11,0,1,3,30,1]
 };
