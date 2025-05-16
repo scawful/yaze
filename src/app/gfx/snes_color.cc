@@ -39,9 +39,9 @@ uint16_t ConvertRgbToSnes(const snes_color& color) {
 
 uint16_t ConvertRgbToSnes(const ImVec4& color) {
   snes_color new_color;
-  new_color.red = color.x * kColorByteMax;
-  new_color.green = color.y * kColorByteMax;
-  new_color.blue = color.z * kColorByteMax;
+  new_color.red = static_cast<uint8_t>(color.x) * kColorByteMax;
+  new_color.green = static_cast<uint8_t>(color.y) * kColorByteMax;
+  new_color.blue = static_cast<uint8_t>(color.z) * kColorByteMax;
   return ConvertRgbToSnes(new_color);
 }
 
