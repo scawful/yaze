@@ -188,9 +188,5 @@ var namespaceyaze_1_1editor =
     [ "kSpriteTabFlags", "namespaceyaze_1_1editor.html#a861a117f36af4cfe2abaaeb25a2bbc88", null ],
     [ "kSpriteTabBarFlags", "namespaceyaze_1_1editor.html#ae80653744ecd4402e10c58d26015bdd5", null ],
     [ "kSpriteTableFlags", "namespaceyaze_1_1editor.html#a6d91eaa164b4529e047ae78ef99c47a0", null ],
-    [ "kCtrlKey", "namespaceyaze_1_1editor.html#a3ce36482c9a43acef3c3aa88f7cb1692", null ],
-    [ "kAltKey", "namespaceyaze_1_1editor.html#afb179c5a1d4b1dfaa0d1e85c39a978a9", null ],
-    [ "kShiftKey", "namespaceyaze_1_1editor.html#a62d9b502bbf5ff33330e72b4f33d6f4b", null ],
-    [ "kSuperKey", "namespaceyaze_1_1editor.html#a82de970f565b75a73af6fa1d76315dac", null ],
     [ "kPaletteGroupAddressesKeys", "namespaceyaze_1_1editor.html#a56ca525964a966ffda0388092ee28f6f", null ]
 ];
