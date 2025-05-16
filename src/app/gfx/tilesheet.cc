@@ -9,40 +9,6 @@
 namespace yaze {
 namespace gfx {
 
-absl::StatusOr<Tilesheet> CreateTilesheetFromGraphicsBuffer(
-    const uint8_t* graphics_buffer, int width, int height, TileType tile_type,
-    int sheet_id) {
-  Tilesheet tilesheet;
-
-  // Calculate the offset in the graphics buffer based on the sheet ID
-  int sheet_offset = sheet_id * width * height;
-
-  // Initialize the tilesheet with the specified width, height, and tile type
-  tilesheet.Init(width, height, tile_type);
-
-  // Iterate over the tiles in the sheet and copy them into the tilesheet
-  for (int row = 0; row < height; ++row) {
-    for (int col = 0; col < width; ++col) {
-      // Calculate the index of the current tile in the graphics buffer
-      int tile_index = sheet_offset + (row * width + col) * 64;
-
-      // Copy the tile data into the tilesheet
-      for (int y = 0; y < 8; ++y) {
-        for (int x = 0; x < 8; ++x) {
-          int src_index = tile_index + (y * 8 + x);
-          int dest_x = col * 8 + x;
-          int dest_y = row * 8 + y;
-          int dest_index = (dest_y * width * 8) + dest_x;
-          tilesheet.mutable_bitmap()->mutable_data()[dest_index] =
-              graphics_buffer[src_index];
-        }
-      }
-    }
-  }
-
-  return tilesheet;
-}
-
 void Tilesheet::Init(int width, int height, TileType tile_type) {
   internal_data_.resize(0x20000);
   bitmap_ = std::make_shared<Bitmap>(width, height, 8, internal_data_);

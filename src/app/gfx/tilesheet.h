@@ -127,10 +127,6 @@ class Tilesheet {
   std::shared_ptr<Bitmap> bitmap_;
 };
 
-absl::StatusOr<Tilesheet> CreateTilesheetFromGraphicsBuffer(
-    const uint8_t* graphics_buffer, int width, int height, TileType tile_type,
-    int sheet_id);
-
 }  // namespace gfx
 }  // namespace yaze
 
