@@ -4,6 +4,7 @@
 
 #include "app/core/platform/renderer.h"
 #include "app/gfx/bitmap.h"
+#include "app/gfx/snes_tile.h"
 
 namespace yaze {
 namespace gfx {
@@ -38,7 +39,34 @@ void RenderTile(Tilemap &tilemap, int tile_id) {
   }
 }
 
-namespace {
+void RenderTile16(Tilemap &tilemap, int tile_id) {
+  if (tilemap.tile_bitmaps.find(tile_id) == tilemap.tile_bitmaps.end()) {
+    int tiles_per_row = tilemap.atlas.width() / tilemap.tile_size.x;
+    int tile_x = (tile_id % tiles_per_row) * tilemap.tile_size.x;
+    int tile_y = (tile_id / tiles_per_row) * tilemap.tile_size.y;
+    std::vector<uint8_t> tile_data(tilemap.tile_size.x * tilemap.tile_size.y,
+                                   0x00);
+    int tile_data_offset = 0;
+    tilemap.atlas.Get16x16Tile(tile_x, tile_y, tile_data, tile_data_offset);
+    tilemap.tile_bitmaps[tile_id] =
+        Bitmap(tilemap.tile_size.x, tilemap.tile_size.y, 8, tile_data,
+               tilemap.atlas.palette());
+    auto bitmap_ptr = &tilemap.tile_bitmaps[tile_id];
+    core::Renderer::Get().RenderBitmap(bitmap_ptr);
+  }
+}
+
+void UpdateTile16(Tilemap &tilemap, int tile_id) {
+  int tiles_per_row = tilemap.atlas.width() / tilemap.tile_size.x;
+  int tile_x = (tile_id % tiles_per_row) * tilemap.tile_size.x;
+  int tile_y = (tile_id / tiles_per_row) * tilemap.tile_size.y;
+  std::vector<uint8_t> tile_data(tilemap.tile_size.x * tilemap.tile_size.y,
+                                 0x00);
+  int tile_data_offset = 0;
+  tilemap.atlas.Get16x16Tile(tile_x, tile_y, tile_data, tile_data_offset);
+  tilemap.tile_bitmaps[tile_id].set_data(tile_data);
+  core::Renderer::Get().UpdateBitmap(&tilemap.tile_bitmaps[tile_id]);
+}
 
 std::vector<uint8_t> FetchTileDataFromGraphicsBuffer(
     const std::vector<uint8_t> &data, int tile_id, int sheet_offset) {
@@ -71,6 +99,8 @@ std::vector<uint8_t> FetchTileDataFromGraphicsBuffer(
   }
   return tile_data;
 }
+
+namespace {
 
 void MirrorTileDataVertically(std::vector<uint8_t> &tile_data) {
   for (int y = 0; y < 4; ++y) {
@@ -113,11 +143,35 @@ void ComposeAndPlaceTilePart(Tilemap &tilemap, const std::vector<uint8_t> &data,
 }
 }  // namespace
 
+void ModifyTile16(Tilemap &tilemap, const std::vector<uint8_t> &data,
+                  const TileInfo &top_left, const TileInfo &top_right,
+                  const TileInfo &bottom_left, const TileInfo &bottom_right,
+                  int sheet_offset, int tile_id) {
+  // Calculate the base position for this Tile16 in the full-size bitmap
+  int tiles_per_row = tilemap.atlas.width() / tilemap.tile_size.x;
+  int tile16_row = tile_id / tiles_per_row;
+  int tile16_column = tile_id % tiles_per_row;
+  int base_x = tile16_column * tilemap.tile_size.x;
+  int base_y = tile16_row * tilemap.tile_size.y;
+
+  // Compose and place each part of the Tile16
+  ComposeAndPlaceTilePart(tilemap, data, top_left, base_x, base_y,
+                          sheet_offset);
+  ComposeAndPlaceTilePart(tilemap, data, top_right, base_x + 8, base_y,
+                          sheet_offset);
+  ComposeAndPlaceTilePart(tilemap, data, bottom_left, base_x, base_y + 8,
+                          sheet_offset);
+  ComposeAndPlaceTilePart(tilemap, data, bottom_right, base_x + 8, base_y + 8,
+                          sheet_offset);
+
+  tilemap.tile_info[tile_id] = {top_left, top_right, bottom_left, bottom_right};
+}
+
 void ComposeTile16(Tilemap &tilemap, const std::vector<uint8_t> &data,
                    const TileInfo &top_left, const TileInfo &top_right,
                    const TileInfo &bottom_left, const TileInfo &bottom_right,
                    int sheet_offset) {
-  int num_tiles = tilemap.tile_bitmaps.size();
+  int num_tiles = tilemap.tile_info.size();
   int tiles_per_row = tilemap.atlas.width() / tilemap.tile_size.x;
   int tile16_row = num_tiles / tiles_per_row;
   int tile16_column = num_tiles % tiles_per_row;
@@ -132,12 +186,13 @@ void ComposeTile16(Tilemap &tilemap, const std::vector<uint8_t> &data,
                           sheet_offset);
   ComposeAndPlaceTilePart(tilemap, data, bottom_right, base_x + 8, base_y + 8,
                           sheet_offset);
+
+  tilemap.tile_info.push_back({top_left, top_right, bottom_left, bottom_right});
 }
 
 std::vector<uint8_t> GetTilemapData(Tilemap &tilemap, int tile_id) {
   int tile_size = tilemap.tile_size.x;
   std::vector<uint8_t> data(tile_size * tile_size);
-
   int num_tiles = tilemap.map_size.x;
   int index = tile_id * tile_size * tile_size;
   int width = tilemap.atlas.width();
