@@ -6,7 +6,6 @@
 #endif
 
 #include <cstdint>
-#include <future>
 
 #include "app/gfx/arena.h"
 #include "app/gfx/snes_palette.h"
@@ -230,12 +229,11 @@ void Bitmap::Create(int width, int height, int depth, int format,
   width_ = width;
   height_ = height;
   depth_ = depth;
-  data_size_ = data.size();
-  if (data_size_ == 0) {
+  if (data.size() == 0) {
     SDL_Log("Data provided to Bitmap is empty.\n");
     return;
   }
-  data_.reserve(data_size_);
+  data_.reserve(data.size());
   data_ = data;
   pixel_data_ = data_.data();
   surface_ = Arena::Get().AllocateSurface(width_, height_, depth_,
@@ -263,6 +261,7 @@ void Bitmap::UpdateTexture(SDL_Renderer *renderer) {
     CreateTexture(renderer);
     return;
   }
+  memcpy(surface_->pixels, data_.data(), data_.size());
   Arena::Get().UpdateTexture(texture_, surface_);
 }
 
@@ -379,6 +378,7 @@ void Bitmap::WriteToPixel(int position, uint8_t value) {
     pixel_data_ = data_.data();
   }
   pixel_data_[position] = value;
+  data_[position] = value;
   modified_ = true;
 }
 
