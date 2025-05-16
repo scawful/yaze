@@ -94,10 +94,10 @@ std::string PrintShortcut(const std::vector<ImGuiKey>& keys) {
   return shortcut;
 }
 
-constexpr std::string kCtrlKey = "Ctrl";
-constexpr std::string kAltKey = "Alt";
-constexpr std::string kShiftKey = "Shift";
-constexpr std::string kSuperKey = "Super";
+const static std::string kCtrlKey = "Ctrl";
+const static std::string kAltKey = "Alt";
+const static std::string kShiftKey = "Shift";
+const static std::string kSuperKey = "Super";
 
 std::vector<ImGuiKey> ParseShortcut(const std::string& shortcut) {
   std::vector<ImGuiKey> shortcuts;
