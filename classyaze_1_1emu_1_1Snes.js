@@ -29,7 +29,7 @@ var classyaze_1_1emu_1_1Snes =
     [ "cpu", "classyaze_1_1emu_1_1Snes.html#a8dd716e4ae561f358d40be65f9cc9847", null ],
     [ "ppu", "classyaze_1_1emu_1_1Snes.html#a30fb924208f2153a364f9d2be6f69adc", null ],
     [ "apu", "classyaze_1_1emu_1_1Snes.html#a5f4b8b830b46e8b590319bd24dec91fd", null ],
-    [ "Memory", "classyaze_1_1emu_1_1Snes.html#aa51ede9b776c0f14095fff7554d7b9d9", null ],
+    [ "memory", "classyaze_1_1emu_1_1Snes.html#ae55211e6c9c0884f73b2890da336fe82", null ],
     [ "get_ram", "classyaze_1_1emu_1_1Snes.html#a5f804ce15176736facc90658d926509a", null ],
     [ "mutable_cycles", "classyaze_1_1emu_1_1Snes.html#a05fa3257d744b2f2be072db807a93d07", null ],
     [ "access_time", "classyaze_1_1emu_1_1Snes.html#a3c6153e69b2bccfc0c75f149e9e39ada", null ],

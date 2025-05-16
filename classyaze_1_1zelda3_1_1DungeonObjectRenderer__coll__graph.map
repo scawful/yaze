@@ -1,0 +1,11 @@
+<map id="yaze::zelda3::DungeonObjectRenderer" name="yaze::zelda3::DungeonObjectRenderer">
+<area shape="rect" id="Node000001" title="Renders dungeon objects from Link to the Past." alt="" coords="208,94,393,135"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1zelda3_1_1PseudoVram.html" title="Simulates the SNES VRAM for object rendering." alt="" coords="5,5,177,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,35,257,91,255,96,131,40"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="200,5,280,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="258,43,290,92,286,95,254,45"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1emu_1_1Snes.html" title=" " alt="" coords="304,5,419,31"/>
+<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="348,46,315,95,311,92,343,43"/>
+<area shape="rect" id="Node000029" href="$classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="443,5,560,31"/>
+<area shape="poly" id="edge4_Node000001_Node000029" title=" " alt="" coords="463,40,344,96,342,91,461,35"/>
+</map>

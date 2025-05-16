@@ -103,7 +103,7 @@ var searchData=
   ['sndinsts_100',['sndinsts',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html#ab10df3eb977949505a6aa463662066c3',1,'yaze::zelda3::music::Tracker']]],
   ['sndlen1_101',['sndlen1',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html#a05b3919cf07737c61990969931fce73d',1,'yaze::zelda3::music::Tracker']]],
   ['sndlen2_102',['sndlen2',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html#ad873bf3329d36099ad3f69c06c4cf82a',1,'yaze::zelda3::music::Tracker']]],
-  ['snes_5f_103',['snes_',['../classyaze_1_1emu_1_1Emulator.html#a123fbe1bb0092c69bbd461cbd6314565',1,'yaze::emu::Emulator::snes_'],['../classyaze_1_1gfx_1_1SnesColor.html#a0abbae9b26b066a00a98afb18175623b',1,'yaze::gfx::SnesColor::snes_']]],
+  ['snes_5f_103',['snes_',['../classyaze_1_1emu_1_1Emulator.html#a123fbe1bb0092c69bbd461cbd6314565',1,'yaze::emu::Emulator::snes_'],['../classyaze_1_1gfx_1_1SnesColor.html#a0abbae9b26b066a00a98afb18175623b',1,'yaze::gfx::SnesColor::snes_'],['../classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#ad0c942a8343f681caccc595e5443457d',1,'yaze::zelda3::DungeonObjectRenderer::snes_']]],
   ['snes_5fblue_5fmask_104',['SNES_BLUE_MASK',['../namespaceyaze_1_1gfx.html#aa7968f1891adda4d3f224100ed006a76',1,'yaze::gfx']]],
   ['snes_5fblue_5fshift_105',['SNES_BLUE_SHIFT',['../namespaceyaze_1_1gfx.html#a6f318f42cd06cb5344977f66ecec8491',1,'yaze::gfx']]],
   ['snes_5fgreen_5fmask_106',['SNES_GREEN_MASK',['../namespaceyaze_1_1gfx.html#a16bca2c689cfce1349f2d1f0790dbe96',1,'yaze::gfx']]],

@@ -88,6 +88,7 @@ var hierarchy =
     [ "yaze::emu::DspChannel", "structyaze_1_1emu_1_1DspChannel.html", null ],
     [ "dungeon_sprite", "structdungeon__sprite.html", null ],
     [ "yaze::zelda3::DungeonMap", "structyaze_1_1zelda3_1_1DungeonMap.html", null ],
+    [ "yaze::zelda3::DungeonObjectRenderer", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html", null ],
     [ "yaze::editor::Editor", "classyaze_1_1editor_1_1Editor.html", [
       [ "yaze::editor::AssemblyEditor", "classyaze_1_1editor_1_1AssemblyEditor.html", null ],
       [ "yaze::editor::DungeonEditor", "classyaze_1_1editor_1_1DungeonEditor.html", null ],
@@ -105,6 +106,7 @@ var hierarchy =
     [ "yaze::editor::EditorManager", "classyaze_1_1editor_1_1EditorManager.html", null ],
     [ "yaze::editor::EditorSet", "classyaze_1_1editor_1_1EditorSet.html", null ],
     [ "TextEditor::EditorState", "structTextEditor_1_1EditorState.html", null ],
+    [ "yaze::emu::Emulator", "classyaze_1_1emu_1_1Emulator.html", null ],
     [ "yaze::emu::EmulatorKeybindings", "structyaze_1_1emu_1_1EmulatorKeybindings.html", null ],
     [ "yaze::editor::ExampleAppPropertyEditor", "structyaze_1_1editor_1_1ExampleAppPropertyEditor.html", null ],
     [ "yaze::editor::ExampleMemberInfo", "structyaze_1_1editor_1_1ExampleMemberInfo.html", null ],
@@ -256,13 +258,11 @@ var hierarchy =
     [ "yaze::SharedRom", "classyaze_1_1SharedRom.html", [
       [ "yaze::editor::GfxGroupEditor", "classyaze_1_1editor_1_1GfxGroupEditor.html", null ],
       [ "yaze::editor::Tile16Editor", "classyaze_1_1editor_1_1Tile16Editor.html", null ],
-      [ "yaze::emu::Emulator", "classyaze_1_1emu_1_1Emulator.html", null ],
       [ "yaze::emu::Ppu", "classyaze_1_1emu_1_1Ppu.html", null ],
       [ "yaze::gui::Canvas", "classyaze_1_1gui_1_1Canvas.html", null ],
       [ "yaze::test::DungeonRoomTest", "classyaze_1_1test_1_1DungeonRoomTest.html", null ],
       [ "yaze::test::MessageTest", "classyaze_1_1test_1_1MessageTest.html", null ],
-      [ "yaze::test::OverworldTest", "classyaze_1_1test_1_1OverworldTest.html", null ],
-      [ "yaze::zelda3::DungeonObjectRenderer", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html", null ]
+      [ "yaze::test::OverworldTest", "classyaze_1_1test_1_1OverworldTest.html", null ]
     ] ],
     [ "yaze::editor::Shortcut", "structyaze_1_1editor_1_1Shortcut.html", null ],
     [ "yaze::editor::ShortcutManager", "classyaze_1_1editor_1_1ShortcutManager.html", null ],

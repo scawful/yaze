@@ -120,7 +120,7 @@ var searchData=
   ['position_117',['position',['../structyaze_1_1emu_1_1WindowPosition.html#a1af2e3e67ce5d35a0734cc33ecb785bc',1,'yaze::emu::WindowPosition']]],
   ['power_5f_118',['power_',['../classyaze_1_1emu_1_1Emulator.html#a6cb9bbefae5b801bb60a64cc0b55ddf5',1,'yaze::emu::Emulator']]],
   ['ppu_119',['Ppu',['../classyaze_1_1emu_1_1Ppu.html',1,'yaze::emu::Ppu'],['../classyaze_1_1emu_1_1Ppu.html#ab35bb7b590fde1a0f9baece7a4068d02',1,'yaze::emu::Ppu::Ppu()']]],
-  ['ppu_120',['ppu',['../classyaze_1_1zelda3_1_1DungeonObjectRenderer.html#af3727759474e4f774be0f383c84a609d',1,'yaze::zelda3::DungeonObjectRenderer::ppu'],['../classyaze_1_1emu_1_1Snes.html#a30fb924208f2153a364f9d2be6f69adc',1,'yaze::emu::Snes::ppu()']]],
+  ['ppu_120',['ppu',['../classyaze_1_1emu_1_1Snes.html#a30fb924208f2153a364f9d2be6f69adc',1,'yaze::emu::Snes']]],
   ['ppu_2ecc_121',['ppu.cc',['../ppu_8cc.html',1,'']]],
   ['ppu_2eh_122',['ppu.h',['../ppu_8h.html',1,'']]],
   ['ppu1_5fopen_5fbus_5f_123',['ppu1_open_bus_',['../classyaze_1_1emu_1_1Ppu.html#a18acadc5ce49598d9d51a1d6feeafc9a',1,'yaze::emu::Ppu']]],

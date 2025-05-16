@@ -1,11 +1,12 @@
 <map id="yaze::editor::PopupManager" name="yaze::editor::PopupManager">
-<area shape="rect" id="Node000001" title=" " alt="" coords="116,183,294,208"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes." alt="" coords="118,94,292,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="208,135,208,182,202,182,202,135"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1Emulator.html" title="A class for emulating and debugging SNES games." alt="" coords="5,5,141,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="101,39,141,68,182,91,180,96,138,72,98,43"/>
-<area shape="rect" id="Node000029" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="165,5,245,31"/>
-<area shape="poly" id="edge3_Node000002_Node000029" title=" " alt="" coords="208,47,208,94,202,94,202,47"/>
-<area shape="rect" id="Node000033" href="$classyaze_1_1editor_1_1EditorSet.html" title="Contains a complete set of editors for a single ROM instance." alt="" coords="269,5,413,31"/>
-<area shape="poly" id="edge4_Node000002_Node000033" title=" " alt="" coords="322,45,290,72,243,96,240,91,288,68,319,41"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="106,271,284,297"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes." alt="" coords="108,183,282,208"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,224,198,271,192,271,192,224"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1Emulator.html" title="A class for emulating and debugging SNES games." alt="" coords="127,94,262,120"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="198,135,198,182,192,182,192,135"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="5,5,86,31"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="37,45,30,82,31,101,38,118,57,140,81,157,107,170,134,180,132,185,105,175,78,162,53,144,34,121,26,102,25,82,32,44"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="81,37,175,91,172,96,78,41"/>
+<area shape="rect" id="Node000033" href="$classyaze_1_1editor_1_1EditorSet.html" title="Contains a complete set of editors for a single ROM instance." alt="" coords="287,94,431,120"/>
+<area shape="poly" id="edge5_Node000002_Node000033" title=" " alt="" coords="324,130,219,184,217,180,321,125"/>
 </map>
