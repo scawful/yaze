@@ -1,9 +1,5 @@
 var NAVTREEINDEX46 =
 {
-"snes__tile_8h_source.html":[13,0,2,0,3,15],
-"spc700_8cc.html":[13,0,2,0,2,0,5],
-"spc700_8cc_source.html":[13,0,2,0,2,0,5],
-"spc700_8h.html":[13,0,2,0,2,0,6],
 "spc700_8h_source.html":[13,0,2,0,2,0,6],
 "spc700__test_8cc.html":[13,0,3,0,2],
 "spc700__test_8cc_source.html":[13,0,3,0,2],
@@ -249,5 +245,9 @@ var NAVTREEINDEX46 =
 "structyaze_1_1core_1_1FlagsMenu.html#af6b65b7338428e6249fcb0f6943d0613":[12,0,0,1,3,3],
 "structyaze_1_1core_1_1FlagsMenu.html#afa386b1d1c1ee4cab1dc8d0663381dce":[11,0,1,1,5,2],
 "structyaze_1_1core_1_1FlagsMenu.html#afa386b1d1c1ee4cab1dc8d0663381dce":[12,0,0,1,3,2],
-"structyaze_1_1core_1_1FontConfig.html":[11,0,1,1,6]
+"structyaze_1_1core_1_1FontConfig.html":[11,0,1,1,6],
+"structyaze_1_1core_1_1FontConfig.html":[12,0,0,1,4],
+"structyaze_1_1core_1_1FontConfig.html#a08be7958e34ba664879229db15a29d31":[11,0,1,1,6,3],
+"structyaze_1_1core_1_1FontConfig.html#a08be7958e34ba664879229db15a29d31":[12,0,0,1,4,3],
+"structyaze_1_1core_1_1FontConfig.html#a465df9ee52ec656957f2fcdd7e73dcd2":[11,0,1,1,6,1]
 };
