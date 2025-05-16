@@ -57,7 +57,7 @@ class Snes {
   auto cpu() -> Cpu& { return cpu_; }
   auto ppu() -> Ppu& { return ppu_; }
   auto apu() -> Apu& { return apu_; }
-  auto Memory() -> MemoryImpl& { return memory_; }
+  auto memory() -> MemoryImpl& { return memory_; }
   auto get_ram() -> uint8_t* { return ram; }
   auto mutable_cycles() -> uint64_t& { return cycles_; }
 
