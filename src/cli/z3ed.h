@@ -11,6 +11,7 @@
 
 #include "absl/status/status.h"
 #include "app/rom.h"
+#include "app/snes.h"
 #include "util/macro.h"
 
 namespace yaze {
@@ -60,12 +61,13 @@ class Backup : public CommandHandler {
  public:
   absl::Status Run(const std::vector<std::string>& arg_vec) override {
     RETURN_IF_ERROR(rom_.LoadFromFile(arg_vec[0]))
+    Rom::SaveSettings settings;
+    settings.backup = true;
     if (arg_vec.size() == 2) {
       // Optional filename added
-      RETURN_IF_ERROR(rom_.SaveToFile(/*backup=*/true, false, arg_vec[1]))
-    } else {
-      RETURN_IF_ERROR(rom_.SaveToFile(/*backup=*/true))
+      settings.filename = arg_vec[1];
     }
+    RETURN_IF_ERROR(rom_.SaveToFile(settings))
     return absl::OkStatus();
   }
 };
