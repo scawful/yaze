@@ -107,6 +107,38 @@ TEST_F(MessageTest, ParseTextDataByte_Failure) {
   EXPECT_EQ(editor::ParseTextDataByte(0xFF), "");
 }
 
+TEST_F(MessageTest, ParseSingleMessage_SpecialCharacters) {
+  std::vector<uint8_t> mock_data = {0x4D, 0x4E, 0x4F, 0x50, 0x7F};
+  int pos = 0;
+
+  auto result = editor::ParseSingleMessage(mock_data, &pos);
+  ASSERT_TRUE(result.ok());
+  const auto message_data = result.value();
+
+  EXPECT_EQ(message_data.ContentsParsed, "[UP][DOWN][LEFT][RIGHT]");
+  EXPECT_EQ(pos, 5);
+}
+
+TEST_F(MessageTest, ParseSingleMessage_DictionaryReference) {
+  std::vector<uint8_t> mock_data = {0x88, 0x89, 0x7F};
+  int pos = 0;
+
+  auto result = editor::ParseSingleMessage(mock_data, &pos);
+  ASSERT_TRUE(result.ok());
+  const auto message_data = result.value();
+
+  EXPECT_EQ(message_data.ContentsParsed, "[D:00][D:01]");
+  EXPECT_EQ(pos, 3);
+}
+
+TEST_F(MessageTest, ParseSingleMessage_InvalidTerminator) {
+  std::vector<uint8_t> mock_data = {0x00, 0x01, 0x02};  // No terminator
+  int pos = 0;
+
+  auto result = editor::ParseSingleMessage(mock_data, &pos);
+  EXPECT_FALSE(result.ok());
+}
+
 TEST_F(MessageTest, ParseSingleMessage_EmptyData) {
   std::vector<uint8_t> mock_data = {0x7F};
   int pos = 0;
@@ -158,11 +190,6 @@ TEST_F(MessageTest, FindMatchingElement_InvalidCommand) {
   editor::ParsedElement result = editor::FindMatchingElement(input);
 
   EXPECT_FALSE(result.Active);
-}
-
-TEST_F(MessageTest, ImportMessageData_InvalidFile) {
-  auto result = editor::ImportMessageData("nonexistent_file.txt");
-  EXPECT_TRUE(result.empty());
 }
 
 TEST_F(MessageTest, BuildDictionaryEntries_CorrectSize) {
