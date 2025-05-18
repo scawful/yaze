@@ -8,7 +8,6 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/tilemap.h"
-#include "app/gfx/tilesheet.h"
 #include "app/gui/canvas.h"
 #include "app/rom.h"
 #include "app/zelda3/screen/dungeon_map.h"
@@ -50,7 +49,7 @@ class ScreenEditor : public Editor {
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
 
-  absl::Status SaveDungeonMaps();
+  std::vector<zelda3::DungeonMap> dungeon_maps_;
 
  private:
   void DrawTitleScreenEditor();
@@ -61,7 +60,6 @@ class ScreenEditor : public Editor {
   void DrawToolset();
   void DrawInventoryToolset();
 
-  absl::Status LoadDungeonMaps();
   absl::Status LoadDungeonMapTile16(const std::vector<uint8_t>& gfx_data,
                                     bool bin_mode = false);
   absl::Status SaveDungeonMapTile16();
@@ -79,7 +77,6 @@ class ScreenEditor : public Editor {
   bool binary_gfx_loaded_ = false;
 
   uint8_t selected_room = 0;
-  uint8_t boss_room = 0;
 
   int selected_tile16_ = 0;
   int selected_tile8_ = 0;
@@ -91,14 +88,12 @@ class ScreenEditor : public Editor {
 
   std::unordered_map<int, gfx::Bitmap> tile16_individual_;
   std::vector<gfx::Bitmap> tile8_individual_;
-  std::vector<zelda3::DungeonMap> dungeon_maps_;
-  std::vector<std::vector<std::array<std::string, 25>>> dungeon_map_labels_;
+  zelda3::DungeonMapLabels dungeon_map_labels_;
 
   gfx::SnesPalette palette_;
   gfx::BitmapTable sheets_;
-  gfx::Tilesheet tile16_sheet_;
   gfx::Tilemap tile16_blockset_;
-  gfx::InternalTile16 current_tile16_info;
+  std::array<gfx::TileInfo, 4> current_tile16_info;
 
   gui::Canvas current_tile_canvas_{"##CurrentTileCanvas", ImVec2(32, 32),
                                    gui::CanvasGridSize::k16x16, 2.0f};

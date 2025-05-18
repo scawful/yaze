@@ -9,5 +9,4 @@ set(
   app/gfx/snes_tile.cc
   app/gfx/snes_color.cc
   app/gfx/tilemap.cc
-  app/gfx/tilesheet.cc
 )

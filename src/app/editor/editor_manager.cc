@@ -567,7 +567,8 @@ absl::Status EditorManager::SaveRom() {
   }
 
   if (core::FeatureFlags::get().kSaveDungeonMaps) {
-    RETURN_IF_ERROR(current_editor_set_->screen_editor_.SaveDungeonMaps());
+    RETURN_IF_ERROR(zelda3::SaveDungeonMaps(
+        *current_rom_, current_editor_set_->screen_editor_.dungeon_maps_));
   }
 
   RETURN_IF_ERROR(current_editor_set_->overworld_editor_.Save());
