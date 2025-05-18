@@ -5,7 +5,8 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/gfx/tilesheet.h"
+#include "app/gfx/bitmap.h"
+#include "app/gfx/tilemap.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -31,17 +32,20 @@ constexpr int kTriforceFaces = 0x04FFE4;     // group of 5
 
 constexpr int kCrystalVertices = 0x04FF98;
 
+constexpr int kNumDungeons = 14;
+constexpr int kNumRooms = 25;
+
 struct DungeonMap {
   unsigned short boss_room = 0xFFFF;
   unsigned char nbr_of_floor = 0;
   unsigned char nbr_of_basement = 0;
-  std::vector<std::array<uint8_t, 25>> floor_rooms;
-  std::vector<std::array<uint8_t, 25>> floor_gfx;
+  std::vector<std::array<uint8_t, kNumRooms>> floor_rooms;
+  std::vector<std::array<uint8_t, kNumRooms>> floor_gfx;
 
   DungeonMap(unsigned short boss_room, unsigned char nbr_of_floor,
              unsigned char nbr_of_basement,
-             const std::vector<std::array<uint8_t, 25>> &floor_rooms,
-             const std::vector<std::array<uint8_t, 25>> &floor_gfx)
+             const std::vector<std::array<uint8_t, kNumRooms>> &floor_rooms,
+             const std::vector<std::array<uint8_t, kNumRooms>> &floor_gfx)
       : boss_room(boss_room),
         nbr_of_floor(nbr_of_floor),
         nbr_of_basement(nbr_of_basement),
@@ -49,12 +53,22 @@ struct DungeonMap {
         floor_gfx(floor_gfx) {}
 };
 
-absl::Status LoadDungeonMapTile16(const std::vector<uint8_t> &gfx_data,
+using DungeonMapLabels =
+    std::array<std::vector<std::array<std::string, 25>>, kNumDungeons>;
+
+absl::StatusOr<std::vector<zelda3::DungeonMap>> LoadDungeonMaps(
+    Rom &rom, DungeonMapLabels &dungeon_map_labels);
+
+absl::Status SaveDungeonMaps(Rom &rom, std::vector<DungeonMap> &dungeon_maps);
+
+absl::Status LoadDungeonMapTile16(gfx::Tilemap &tile16_blockset, Rom &rom,
+                                  const std::vector<uint8_t> &gfx_data,
                                   bool bin_mode);
+
+absl::Status SaveDungeonMapTile16(gfx::Tilemap &tile16_blockset, Rom &rom);
 
 absl::Status LoadDungeonMapGfxFromBinary(Rom &rom,
                                          std::array<gfx::Bitmap, 4> &sheets,
-                                         gfx::Tilesheet &tile16_sheet,
                                          std::vector<uint8_t> &gfx_bin_data);
 
 }  // namespace zelda3
