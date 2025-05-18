@@ -11,12 +11,10 @@
 #include "app/gfx/arena.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
-#include "app/gfx/tilesheet.h"
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
-#include "app/snes.h"
 #include "imgui/imgui.h"
 #include "util/hex.h"
 #include "util/macro.h"
@@ -31,29 +29,30 @@ constexpr uint32_t kRedPen = 0xFF0000FF;
 void ScreenEditor::Initialize() {}
 
 absl::Status ScreenEditor::Load() {
-  RETURN_IF_ERROR(LoadDungeonMaps());
-  RETURN_IF_ERROR(LoadDungeonMapTile16(rom()->graphics_buffer()));
+  ASSIGN_OR_RETURN(dungeon_maps_,
+                   zelda3::LoadDungeonMaps(*rom(), dungeon_map_labels_));
+  RETURN_IF_ERROR(zelda3::LoadDungeonMapTile16(
+      tile16_blockset_, *rom(), rom()->graphics_buffer(), false));
   // TODO: Load roomset gfx based on dungeon ID
-  sheets_.emplace(0, gfx::Arena::Get().gfx_sheets()[212]);
-  sheets_.emplace(1, gfx::Arena::Get().gfx_sheets()[213]);
-  sheets_.emplace(2, gfx::Arena::Get().gfx_sheets()[214]);
-  sheets_.emplace(3, gfx::Arena::Get().gfx_sheets()[215]);
-  // int current_tile8 = 0;
-  // int tile_data_offset = 0;
-  // for (int i = 0; i < 4; ++i) {
-  //   for (int j = 0; j < 32; j++) {
-  //     std::vector<uint8_t> tile_data(64, 0);  // 8x8 tile (64 bytes
-  //     int tile_index = current_tile8 + j;
-  //     int x = (j % 8) * 8;
-  //     int y = (j / 8) * 8;
-  //     sheets_[i].Get8x8Tile(tile_index, 0, 0, tile_data,
-  //     tile_data_offset); tile8_individual_.emplace_back(gfx::Bitmap(8, 8,
-  //     4, tile_data)); tile8_individual_.back().SetPalette(
-  //         *rom()->mutable_dungeon_palette(3));
-  //     Renderer::Get().RenderBitmap(&tile8_individual_.back());
-  //   }
-  //   tile_data_offset = 0;
-  // }
+  sheets_.try_emplace(0, gfx::Arena::Get().gfx_sheets()[212]);
+  sheets_.try_emplace(1, gfx::Arena::Get().gfx_sheets()[213]);
+  sheets_.try_emplace(2, gfx::Arena::Get().gfx_sheets()[214]);
+  sheets_.try_emplace(3, gfx::Arena::Get().gfx_sheets()[215]);
+  int current_tile8 = 0;
+  int tile_data_offset = 0;
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 32; j++) {
+      std::vector<uint8_t> tile_data(64, 0);  // 8x8 tile (64 bytes
+      int tile_index = current_tile8 + j;
+      int x = (j % 8) * 8;
+      int y = (j / 8) * 8;
+      sheets_[i].Get8x8Tile(tile_index, x, y, tile_data, tile_data_offset);
+      tile8_individual_.emplace_back(gfx::Bitmap(8, 8, 4, tile_data));
+      tile8_individual_.back().SetPalette(*rom()->mutable_dungeon_palette(3));
+      Renderer::Get().RenderBitmap(&tile8_individual_.back());
+    }
+    tile_data_offset = 0;
+  }
   return absl::OkStatus();
 }
 
@@ -158,173 +157,6 @@ void ScreenEditor::DrawInventoryToolset() {
   }
 }
 
-absl::Status ScreenEditor::LoadDungeonMaps() {
-  std::vector<std::array<uint8_t, 25>> current_floor_rooms_d;
-  std::vector<std::array<uint8_t, 25>> current_floor_gfx_d;
-  int total_floors_d;
-  uint8_t nbr_floor_d;
-  uint8_t nbr_basement_d;
-
-  for (int d = 0; d < 14; d++) {
-    current_floor_rooms_d.clear();
-    current_floor_gfx_d.clear();
-    ASSIGN_OR_RETURN(int ptr,
-                     rom()->ReadWord(zelda3::kDungeonMapRoomsPtr + (d * 2)));
-    ASSIGN_OR_RETURN(int ptr_gfx,
-                     rom()->ReadWord(zelda3::kDungeonMapGfxPtr + (d * 2)));
-    ptr |= 0x0A0000;                     // Add bank to the short ptr
-    ptr_gfx |= 0x0A0000;                 // Add bank to the short ptr
-    int pc_ptr = SnesToPc(ptr);          // Contains data for the next 25 rooms
-    int pc_ptr_gfx = SnesToPc(ptr_gfx);  // Contains data for the next 25 rooms
-
-    ASSIGN_OR_RETURN(uint16_t boss_room_d,
-                     rom()->ReadWord(zelda3::kDungeonMapBossRooms + (d * 2)));
-
-    ASSIGN_OR_RETURN(nbr_basement_d,
-                     rom()->ReadByte(zelda3::kDungeonMapFloors + (d * 2)));
-    nbr_basement_d &= 0x0F;
-
-    ASSIGN_OR_RETURN(nbr_floor_d,
-                     rom()->ReadByte(zelda3::kDungeonMapFloors + (d * 2)));
-    nbr_floor_d &= 0xF0;
-    nbr_floor_d = nbr_floor_d >> 4;
-
-    total_floors_d = nbr_basement_d + nbr_floor_d;
-
-    dungeon_map_labels_.emplace_back();
-
-    // for each floor in the dungeon
-    for (int i = 0; i < total_floors_d; i++) {
-      dungeon_map_labels_[d].emplace_back();
-
-      std::array<uint8_t, 25> rdata;
-      std::array<uint8_t, 25> gdata;
-
-      // for each room on the floor
-      for (int j = 0; j < 25; j++) {
-        gdata[j] = 0xFF;
-        rdata[j] = rom()->data()[pc_ptr + j + (i * 25)];  // Set the rooms
-
-        if (rdata[j] == 0x0F) {
-          gdata[j] = 0xFF;
-        } else {
-          gdata[j] = rom()->data()[pc_ptr_gfx++];
-        }
-
-        std::string label = util::HexByte(rdata[j]);
-        dungeon_map_labels_[d][i][j] = label;
-      }
-
-      current_floor_gfx_d.push_back(gdata);    // Add new floor gfx data
-      current_floor_rooms_d.push_back(rdata);  // Add new floor data
-    }
-
-    dungeon_maps_.emplace_back(boss_room_d, nbr_floor_d, nbr_basement_d,
-                               current_floor_rooms_d, current_floor_gfx_d);
-  }
-
-  return absl::OkStatus();
-}
-
-absl::Status ScreenEditor::SaveDungeonMaps() {
-  for (int d = 0; d < 14; d++) {
-    int ptr = zelda3::kDungeonMapRoomsPtr + (d * 2);
-    int ptr_gfx = zelda3::kDungeonMapGfxPtr + (d * 2);
-    int pc_ptr = SnesToPc(ptr);
-    int pc_ptr_gfx = SnesToPc(ptr_gfx);
-
-    const int nbr_floors = dungeon_maps_[d].nbr_of_floor;
-    const int nbr_basements = dungeon_maps_[d].nbr_of_basement;
-    for (int i = 0; i < nbr_floors + nbr_basements; i++) {
-      for (int j = 0; j < 25; j++) {
-        RETURN_IF_ERROR(rom()->WriteByte(pc_ptr + j + (i * 25),
-                                         dungeon_maps_[d].floor_rooms[i][j]));
-        RETURN_IF_ERROR(rom()->WriteByte(pc_ptr_gfx + j + (i * 25),
-                                         dungeon_maps_[d].floor_gfx[i][j]));
-        pc_ptr_gfx++;
-      }
-    }
-  }
-
-  return absl::OkStatus();
-}
-
-absl::Status ScreenEditor::LoadDungeonMapTile16(
-    const std::vector<uint8_t> &gfx_data, bool bin_mode) {
-  tile16_blockset_.tile_size = {16, 16};
-  tile16_blockset_.map_size = {186, 186};
-  tile16_blockset_.atlas.Create(256, 192, 8, gfx_data);
-  tile16_sheet_.Init(256, 192, gfx::TileType::Tile16);
-
-  for (int i = 0; i < 186; i++) {
-    int addr = zelda3::kDungeonMapTile16;
-    if (rom()->data()[zelda3::kDungeonMapExpCheck] != 0xB9) {
-      addr = zelda3::kDungeonMapTile16Expanded;
-    }
-
-    ASSIGN_OR_RETURN(auto tl, rom()->ReadWord(addr + (i * 8)));
-    gfx::TileInfo t1 = gfx::WordToTileInfo(tl);  // Top left
-
-    ASSIGN_OR_RETURN(auto tr, rom()->ReadWord(addr + 2 + (i * 8)));
-    gfx::TileInfo t2 = gfx::WordToTileInfo(tr);  // Top right
-
-    ASSIGN_OR_RETURN(auto bl, rom()->ReadWord(addr + 4 + (i * 8)));
-    gfx::TileInfo t3 = gfx::WordToTileInfo(bl);  // Bottom left
-
-    ASSIGN_OR_RETURN(auto br, rom()->ReadWord(addr + 6 + (i * 8)));
-    gfx::TileInfo t4 = gfx::WordToTileInfo(br);  // Bottom right
-
-    int sheet_offset = 212;
-    if (bin_mode) {
-      sheet_offset = 0;
-    }
-    ComposeTile16(tile16_blockset_, gfx_data, t1, t2, t3, t4, sheet_offset);
-    tile16_sheet_.ComposeTile16(gfx_data, t1, t2, t3, t4, sheet_offset);
-  }
-
-  tile16_sheet_.mutable_bitmap()->SetPalette(
-      *rom()->mutable_dungeon_palette(3));
-  tile16_blockset_.atlas.SetPalette(*rom()->mutable_dungeon_palette(3));
-  Renderer::Get().RenderBitmap(&tile16_blockset_.atlas);
-  Renderer::Get().RenderBitmap(&*tile16_sheet_.mutable_bitmap().get());
-
-  for (int i = 0; i < tile16_sheet_.num_tiles(); ++i) {
-    auto tile = tile16_sheet_.GetTile16(i);
-    tile16_individual_[i] = tile;
-    tile16_individual_[i].SetPalette(*rom()->mutable_dungeon_palette(3));
-    Renderer::Get().RenderBitmap(&tile16_individual_[i]);
-  }
-
-  return absl::OkStatus();
-}
-
-absl::Status ScreenEditor::SaveDungeonMapTile16() {
-  for (int i = 0; i < 186; i++) {
-    int addr = zelda3::kDungeonMapTile16;
-    if (rom()->data()[zelda3::kDungeonMapExpCheck] != 0xB9) {
-      addr = zelda3::kDungeonMapTile16Expanded;
-    }
-
-    gfx::TileInfo t1 = tile16_sheet_.tile_info()[i].tiles[0];
-    gfx::TileInfo t2 = tile16_sheet_.tile_info()[i].tiles[1];
-    gfx::TileInfo t3 = tile16_sheet_.tile_info()[i].tiles[2];
-    gfx::TileInfo t4 = tile16_sheet_.tile_info()[i].tiles[3];
-
-    auto tl = gfx::TileInfoToWord(t1);
-    RETURN_IF_ERROR(rom()->WriteWord(addr + (i * 8), tl));
-
-    auto tr = gfx::TileInfoToWord(t2);
-    RETURN_IF_ERROR(rom()->WriteWord(addr + 2 + (i * 8), tr));
-
-    auto bl = gfx::TileInfoToWord(t3);
-    RETURN_IF_ERROR(rom()->WriteWord(addr + 4 + (i * 8), bl));
-
-    auto br = gfx::TileInfoToWord(t4);
-    RETURN_IF_ERROR(rom()->WriteWord(addr + 6 + (i * 8), br));
-  }
-  return absl::OkStatus();
-}
-
 void ScreenEditor::DrawDungeonMapsTabs() {
   auto &current_dungeon = dungeon_maps_[selected_dungeon];
   if (ImGui::BeginTabBar("##DungeonMapTabs")) {
@@ -344,13 +176,13 @@ void ScreenEditor::DrawDungeonMapsTabs() {
         screen_canvas_.DrawTileSelector(64.f);
 
         auto boss_room = current_dungeon.boss_room;
-        for (int j = 0; j < 25; j++) {
+        for (int j = 0; j < zelda3::kNumRooms; j++) {
           if (current_dungeon.floor_rooms[floor_number][j] != 0x0F) {
             int tile16_id = current_dungeon.floor_gfx[floor_number][j];
             int posX = ((j % 5) * 32);
             int posY = ((j / 5) * 32);
 
-            gfx::RenderTile(tile16_blockset_, tile16_id);
+            gfx::RenderTile16(tile16_blockset_, tile16_id);
             screen_canvas_.DrawBitmap(tile16_blockset_.tile_bitmaps[tile16_id],
                                       (posX * 2), (posY * 2), 4.0f);
 
@@ -428,17 +260,19 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
   if (ImGui::BeginChild("##DungeonMapTiles", ImVec2(0, 0), true)) {
     tilesheet_canvas_.DrawBackground(ImVec2((256 * 2) + 2, (192 * 2) + 4));
     tilesheet_canvas_.DrawContextMenu();
-    tilesheet_canvas_.DrawTileSelector(32.f);
-    tilesheet_canvas_.DrawBitmap(*tile16_sheet_.bitmap(), 2, true);
+    if (tilesheet_canvas_.DrawTileSelector(32.f)) {
+      selected_tile16_ = tilesheet_canvas_.points().front().x / 32 +
+                         (tilesheet_canvas_.points().front().y / 32) * 16;
+      gfx::RenderTile16(tile16_blockset_, selected_tile16_);
+      std::copy(tile16_blockset_.tile_info[selected_tile16_].begin(),
+                tile16_blockset_.tile_info[selected_tile16_].end(),
+                current_tile16_info.begin());
+    }
+    tilesheet_canvas_.DrawBitmap(tile16_blockset_.atlas, 1, 1, 2.0f);
     tilesheet_canvas_.DrawGrid(32.f);
     tilesheet_canvas_.DrawOverlay();
 
     if (!tilesheet_canvas_.points().empty()) {
-      selected_tile16_ = tilesheet_canvas_.points().front().x / 32 +
-                         (tilesheet_canvas_.points().front().y / 32) * 16;
-      current_tile16_info = tile16_sheet_.tile_info().at(selected_tile16_);
-
-      // Draw the selected tile
       if (!screen_canvas_.points().empty()) {
         dungeon_maps_[selected_dungeon].floor_gfx[floor_number][selected_room] =
             selected_tile16_;
@@ -454,51 +288,40 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
     //  16)) {
     // Modify the tile16 based on the selected tile and current_tile16_info
     // }
-    current_tile_canvas_.DrawBitmap(tile16_individual_[selected_tile16_], 2,
-                                    4.0f);
+    current_tile_canvas_.DrawBitmap(
+        tile16_blockset_.tile_bitmaps[selected_tile16_], 2, 4.0f);
     current_tile_canvas_.DrawGrid(16.f);
     current_tile_canvas_.DrawOverlay();
 
-    gui::InputTileInfo("TL", &current_tile16_info.tiles[0]);
+    gui::InputTileInfo("TL", &current_tile16_info[0]);
     ImGui::SameLine();
-    gui::InputTileInfo("TR", &current_tile16_info.tiles[1]);
-    gui::InputTileInfo("BL", &current_tile16_info.tiles[2]);
+    gui::InputTileInfo("TR", &current_tile16_info[1]);
+    gui::InputTileInfo("BL", &current_tile16_info[2]);
     ImGui::SameLine();
-    gui::InputTileInfo("BR", &current_tile16_info.tiles[3]);
+    gui::InputTileInfo("BR", &current_tile16_info[3]);
 
     if (ImGui::Button("Modify Tile16")) {
-      tile16_sheet_.ModifyTile16(
-          rom()->graphics_buffer(), current_tile16_info.tiles[0],
-          current_tile16_info.tiles[1], current_tile16_info.tiles[2],
-          current_tile16_info.tiles[3], selected_tile16_, 212);
-      tile16_individual_[selected_tile16_] =
-          tile16_sheet_.GetTile16(selected_tile16_);
-      tile16_individual_[selected_tile16_].SetPalette(
-          *rom()->mutable_dungeon_palette(3));
-      Renderer::Get().RenderBitmap(
-          &tile16_individual_[selected_tile16_]);
+      gfx::ModifyTile16(tile16_blockset_, rom()->graphics_buffer(),
+                        current_tile16_info[0], current_tile16_info[1],
+                        current_tile16_info[2], current_tile16_info[3], 212,
+                        selected_tile16_);
+      gfx::UpdateTile16(tile16_blockset_, selected_tile16_);
     }
   }
   ImGui::EndChild();
 }
 
 void ScreenEditor::DrawDungeonMapsEditor() {
-  if (ImGui::BeginTable("##DungeonMapToolset", 2,
-                        ImGuiTableFlags_SizingFixedFit)) {
-    ImGui::TableSetupColumn("Draw Mode");
-    ImGui::TableSetupColumn("Edit Mode");
-
-    ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_DRAW)) {
-      current_mode_ = EditingMode::DRAW;
-    }
-
-    ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_EDIT)) {
-      current_mode_ = EditingMode::EDIT;
-    }
-
-    ImGui::EndTable();
+  if (ImGui::Button(ICON_MD_DRAW)) {
+    current_mode_ = EditingMode::DRAW;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_EDIT)) {
+    current_mode_ = EditingMode::EDIT;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_SAVE)) {
+    PRINT_IF_ERROR(zelda3::SaveDungeonMapTile16(tile16_blockset_, *rom()));
   }
 
   static std::vector<std::string> dungeon_names = {
@@ -563,8 +386,9 @@ void ScreenEditor::LoadBinaryGfx() {
       std::vector<uint8_t> bin_data((std::istreambuf_iterator<char>(file)),
                                     std::istreambuf_iterator<char>());
       auto converted_bin = gfx::SnesTo8bppSheet(bin_data, 4, 4);
-      tile16_sheet_.clear();
-      if (LoadDungeonMapTile16(converted_bin, true).ok()) {
+      if (zelda3::LoadDungeonMapTile16(tile16_blockset_, *rom(), converted_bin,
+                                       true)
+              .ok()) {
         sheets_.clear();
         std::vector<std::vector<uint8_t>> gfx_sheets;
         for (int i = 0; i < 4; i++) {
