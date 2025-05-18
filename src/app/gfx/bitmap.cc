@@ -6,6 +6,8 @@
 #endif
 
 #include <cstdint>
+#include <span>
+#include <stdexcept>
 
 #include "app/gfx/arena.h"
 #include "app/gfx/snes_palette.h"
@@ -178,7 +180,11 @@ void ConvertPngToSurface(const std::vector<uint8_t> &png_data,
 
 #endif  // YAZE_LIB_PNG
 
-// Utility functions
+class BitmapError : public std::runtime_error {
+ public:
+  using std::runtime_error::runtime_error;
+};
+
 Uint32 GetSnesPixelFormat(int format) {
   switch (format) {
     case 0:
@@ -187,8 +193,9 @@ Uint32 GetSnesPixelFormat(int format) {
       return SNES_PIXELFORMAT_4BPP;
     case 2:
       return SNES_PIXELFORMAT_8BPP;
+    default:
+      return SDL_PIXELFORMAT_INDEX8;
   }
-  return SDL_PIXELFORMAT_INDEX8;
 }
 
 Bitmap::Bitmap(int width, int height, int depth,
@@ -202,8 +209,8 @@ Bitmap::Bitmap(int width, int height, int depth,
     : width_(width),
       height_(height),
       depth_(depth),
-      data_(data),
-      palette_(palette) {
+      palette_(palette),
+      data_(data) {
   Create(width, height, depth, data);
   SetPalette(palette);
 }
@@ -229,7 +236,7 @@ void Bitmap::Create(int width, int height, int depth, int format,
   width_ = width;
   height_ = height;
   depth_ = depth;
-  if (data.size() == 0) {
+  if (data.empty()) {
     SDL_Log("Data provided to Bitmap is empty.\n");
     return;
   }
@@ -299,17 +306,17 @@ void Bitmap::UpdateTextureData() {
 
 void Bitmap::SetPalette(const SnesPalette &palette) {
   if (surface_ == nullptr) {
-    throw std::runtime_error("Surface is null. Palette not applied");
+    throw BitmapError("Surface is null. Palette not applied");
   }
   if (surface_->format == nullptr || surface_->format->palette == nullptr) {
-    throw std::runtime_error(
+    throw BitmapError(
         "Surface format or palette is null. Palette not applied.");
   }
   palette_ = palette;
 
   SDL_Palette *sdl_palette = surface_->format->palette;
   if (sdl_palette == nullptr) {
-    throw std::runtime_error("Failed to get SDL palette");
+    throw BitmapError("Failed to get SDL palette");
   }
 
   SDL_UnlockSurface(surface_);
@@ -325,7 +332,7 @@ void Bitmap::SetPalette(const SnesPalette &palette) {
 
 void Bitmap::SetPaletteWithTransparent(const SnesPalette &palette, size_t index,
                                        int length) {
-  if (index < 0 || index >= palette.size()) {
+  if (index >= palette.size()) {
     throw std::invalid_argument("Invalid palette index");
   }
 
@@ -338,21 +345,21 @@ void Bitmap::SetPaletteWithTransparent(const SnesPalette &palette, size_t index,
   }
 
   if (surface_ == nullptr) {
-    throw std::runtime_error("Surface is null. Palette not applied");
+    throw BitmapError("Surface is null. Palette not applied");
   }
 
   auto start_index = index * 7;
   palette_ = palette.sub_palette(start_index, start_index + 7);
   std::vector<ImVec4> colors;
   colors.push_back(ImVec4(0, 0, 0, 0));
-  for (int i = start_index; i < start_index + 7; ++i) {
-    auto pal_color = palette[i];
+  for (size_t i = start_index; i < start_index + 7; ++i) {
+    auto &pal_color = palette[i];
     colors.push_back(pal_color.rgb());
   }
 
   SDL_UnlockSurface(surface_);
   int i = 0;
-  for (auto &each : colors) {
+  for (const auto &each : colors) {
     surface_->format->palette->colors[i].r = each.x;
     surface_->format->palette->colors[i].g = each.y;
     surface_->format->palette->colors[i].b = each.z;
@@ -410,7 +417,7 @@ void Bitmap::Get8x8Tile(int tile_index, int x, int y,
   for (int i = 0; i < 8; i++) {
     for (int j = 0; j < 8; j++) {
       int pixel_offset = tile_offset + (tile_y + i) * width_ + tile_x + j;
-      int pixel_value = data_[pixel_offset];
+      uint8_t pixel_value = data_[pixel_offset];
       tile_data[tile_data_offset] = pixel_value;
       tile_data_offset++;
     }
@@ -426,10 +433,11 @@ void Bitmap::Get16x16Tile(int tile_x, int tile_y,
       int pixel_x = tile_x + tx;
       int pixel_y = tile_y + ty;
       int pixel_offset = (pixel_y * width_) + pixel_x;
-      int pixel_value = data_[pixel_offset];
+      uint8_t pixel_value = data_[pixel_offset];
 
       // Store the pixel value in the tile data
-      tile_data[tile_data_offset++] = pixel_value;
+      tile_data_offset++;
+      tile_data[tile_data_offset] = pixel_value;
     }
   }
 }
