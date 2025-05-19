@@ -760,7 +760,7 @@ absl::Status ValidateCompressionResult(CompressionPiecePointer& chain_head,
     RETURN_IF_ERROR(
         temp_rom.LoadFromData(CreateCompressionString(chain_head->next, mode)))
     ASSIGN_OR_RETURN(auto decomp_data,
-                     DecompressV2(temp_rom.data(), 0, temp_rom.size()))
+                     DecompressV2(temp_rom.data(), 0, temp_rom.size()));
     if (!std::equal(decomp_data.begin() + start, decomp_data.end(),
                     temp_rom.begin())) {
       return absl::InternalError(absl::StrFormat(
@@ -1180,7 +1180,7 @@ absl::Status ValidateCompressionResultV3(const CompressionContext& context) {
     Rom temp_rom;
     RETURN_IF_ERROR(temp_rom.LoadFromData(context.compressed_data));
     ASSIGN_OR_RETURN(auto decomp_data,
-                     DecompressV2(temp_rom.data(), 0, temp_rom.size()))
+                     DecompressV2(temp_rom.data(), 0, temp_rom.size()));
 
     if (!std::equal(decomp_data.begin() + context.start, decomp_data.end(),
                     temp_rom.begin())) {

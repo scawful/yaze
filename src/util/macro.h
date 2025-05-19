@@ -65,7 +65,7 @@
   if (!error_or_value.ok()) {                                                 \
     return error_or_value.status();                                           \
   }                                                                           \
-  type_variable_name = std::move(*error_or_value);
+  type_variable_name = std::move(*error_or_value)
 
 #define ASSIGN_OR_LOG_ERROR(type_variable_name, expression)         \
   ASSIGN_OR_LOG_ERROR_IMPL(APPEND_NUMBER(error_or_value, __LINE__), \

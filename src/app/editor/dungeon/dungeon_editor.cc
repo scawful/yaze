@@ -80,7 +80,7 @@ absl::Status DungeonEditor::Load() {
   // Load the palette group and palette for the dungeon
   full_palette_ = dungeon_man_pal_group[current_palette_group_id_];
   ASSIGN_OR_RETURN(current_palette_group_,
-                   gfx::CreatePaletteGroupFromLargePalette(full_palette_))
+                   gfx::CreatePaletteGroupFromLargePalette(full_palette_));
 
   CalculateUsageStats();
   is_loaded_ = true;

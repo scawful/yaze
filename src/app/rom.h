@@ -180,7 +180,7 @@ class Rom {
   auto end() { return rom_data_.end(); }
   auto vector() const { return rom_data_; }
   auto filename() const { return filename_; }
-  auto set_filename(std::string name) { filename_ = name; }
+  auto set_filename(std::string_view name) { filename_ = name; }
   auto short_name() const { return short_name_; }
   auto graphics_buffer() const { return graphics_buffer_; }
   auto mutable_graphics_buffer() { return &graphics_buffer_; }
