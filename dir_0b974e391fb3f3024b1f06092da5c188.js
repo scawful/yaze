@@ -17,7 +17,5 @@ var dir_0b974e391fb3f3024b1f06092da5c188 =
     [ "snes_tile.cc", "snes__tile_8cc.html", "snes__tile_8cc" ],
     [ "snes_tile.h", "snes__tile_8h.html", "snes__tile_8h" ],
     [ "tilemap.cc", "tilemap_8cc.html", "tilemap_8cc" ],
-    [ "tilemap.h", "tilemap_8h.html", "tilemap_8h" ],
-    [ "tilesheet.cc", "tilesheet_8cc.html", null ],
-    [ "tilesheet.h", "tilesheet_8h.html", "tilesheet_8h" ]
+    [ "tilemap.h", "tilemap_8h.html", "tilemap_8h" ]
 ];

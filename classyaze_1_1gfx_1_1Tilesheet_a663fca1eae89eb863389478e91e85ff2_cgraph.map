@@ -1,7 +1,0 @@
-<map id="yaze::gfx::Tilesheet::Tilesheet" name="yaze::gfx::Tilesheet::Tilesheet">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,135,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Tilesheet.html#a19ceb619b6449928c89a97c94889b916" title=" " alt="" coords="183,5,312,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,44,167,38,168,43,135,49"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Tilesheet.html#a7e5c282f85377a4c1682f86d0e5d56ad" title=" " alt="" coords="183,71,312,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="135,68,168,74,167,79,134,73"/>
-</map>

@@ -26,10 +26,10 @@ var namespaceyaze_1_1gfx =
     [ "Arena", "classyaze_1_1gfx_1_1Arena.html", "classyaze_1_1gfx_1_1Arena" ],
     [ "BackgroundBuffer", "classyaze_1_1gfx_1_1BackgroundBuffer.html", "classyaze_1_1gfx_1_1BackgroundBuffer" ],
     [ "Bitmap", "classyaze_1_1gfx_1_1Bitmap.html", "classyaze_1_1gfx_1_1Bitmap" ],
+    [ "BitmapError", "classyaze_1_1gfx_1_1BitmapError.html", null ],
     [ "CgxHeader", "structyaze_1_1gfx_1_1CgxHeader.html", "structyaze_1_1gfx_1_1CgxHeader" ],
     [ "GfxContext", "classyaze_1_1gfx_1_1GfxContext.html", null ],
     [ "GraphicsBuffer", "classyaze_1_1gfx_1_1GraphicsBuffer.html", "classyaze_1_1gfx_1_1GraphicsBuffer" ],
-    [ "InternalTile16", "structyaze_1_1gfx_1_1InternalTile16.html", "structyaze_1_1gfx_1_1InternalTile16" ],
     [ "OamTile", "classyaze_1_1gfx_1_1OamTile.html", "classyaze_1_1gfx_1_1OamTile" ],
     [ "Pair", "structyaze_1_1gfx_1_1Pair.html", "structyaze_1_1gfx_1_1Pair" ],
     [ "PaletteGroup", "structyaze_1_1gfx_1_1PaletteGroup.html", "structyaze_1_1gfx_1_1PaletteGroup" ],
@@ -41,7 +41,6 @@ var namespaceyaze_1_1gfx =
     [ "Tile32", "classyaze_1_1gfx_1_1Tile32.html", "classyaze_1_1gfx_1_1Tile32" ],
     [ "TileInfo", "classyaze_1_1gfx_1_1TileInfo.html", "classyaze_1_1gfx_1_1TileInfo" ],
     [ "Tilemap", "structyaze_1_1gfx_1_1Tilemap.html", "structyaze_1_1gfx_1_1Tilemap" ],
-    [ "Tilesheet", "classyaze_1_1gfx_1_1Tilesheet.html", "classyaze_1_1gfx_1_1Tilesheet" ],
     [ "BitmapTable", "namespaceyaze_1_1gfx.html#ac70b35914f079891436c2442779b9113", null ],
     [ "BitmapFormat", "namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3ba", [
       [ "kIndexed", "namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baa5172f5b5640d9778d46551616f815c63", null ],
@@ -63,10 +62,6 @@ var namespaceyaze_1_1gfx =
       [ "kDungeonMap", "namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dba69e677e331f6bd566413f27d9fe64f09", null ],
       [ "kTriforce", "namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dbad8fee2a50a54fcd05736b1cbded9b91a", null ],
       [ "kCrystal", "namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dba88eb78a13c2d02166e0cf9c2fdd458c4", null ]
-    ] ],
-    [ "TileType", "namespaceyaze_1_1gfx.html#a54c082e1b81bacbccd15286f5e07a8b0", [
-      [ "Tile8", "namespaceyaze_1_1gfx.html#a54c082e1b81bacbccd15286f5e07a8b0af741ccc3c4a5d5202699b366e0b822a5", null ],
-      [ "Tile16", "namespaceyaze_1_1gfx.html#a54c082e1b81bacbccd15286f5e07a8b0a0136ed56bdc945f798e3b2ff271ba011", null ]
     ] ],
     [ "GetSnesPixelFormat", "namespaceyaze_1_1gfx.html#a88d0646ee27ae9755070c4e936cb36bf", null ],
     [ "HyruleMagicCompress", "namespaceyaze_1_1gfx.html#ac740e607dcc76bf2c18076778ee5b4ef", null ],

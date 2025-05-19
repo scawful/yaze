@@ -150,7 +150,6 @@ var hierarchy =
     [ "yaze::emu::INIDISP", "structyaze_1_1emu_1_1INIDISP.html", null ],
     [ "yaze::emu::Input", "structyaze_1_1emu_1_1Input.html", null ],
     [ "yaze::emu::InstructionEntry", "classyaze_1_1emu_1_1InstructionEntry.html", null ],
-    [ "yaze::gfx::InternalTile16", "structyaze_1_1gfx_1_1InternalTile16.html", null ],
     [ "yaze::zelda3::Inventory", "classyaze_1_1zelda3_1_1Inventory.html", null ],
     [ "yaze::emu::JoypadRegisters", "structyaze_1_1emu_1_1JoypadRegisters.html", null ],
     [ "TextEditor::LanguageDefinition", "structTextEditor_1_1LanguageDefinition.html", null ],
@@ -244,6 +243,9 @@ var hierarchy =
       [ "yaze::zelda3::Subtype3", "classyaze_1_1zelda3_1_1Subtype3.html", null ]
     ] ],
     [ "yaze::zelda3::RoomSize", "structyaze_1_1zelda3_1_1RoomSize.html", null ],
+    [ "std::runtime_error", null, [
+      [ "yaze::gfx::BitmapError", "classyaze_1_1gfx_1_1BitmapError.html", null ]
+    ] ],
     [ "yaze::zelda3::music::SampleEdit", "structyaze_1_1zelda3_1_1music_1_1SampleEdit.html", null ],
     [ "yaze::Rom::SaveSettings", "structyaze_1_1Rom_1_1SaveSettings.html", null ],
     [ "yaze::test::Rom::SaveSettings", "structyaze_1_1test_1_1Rom_1_1SaveSettings.html", null ],
@@ -320,7 +322,6 @@ var hierarchy =
     [ "yaze::test::Tilemap", "structyaze_1_1test_1_1Tilemap.html", null ],
     [ "yaze::emu::TilemapEntry", "structyaze_1_1emu_1_1TilemapEntry.html", null ],
     [ "yaze::emu::TileMapLocation", "structyaze_1_1emu_1_1TileMapLocation.html", null ],
-    [ "yaze::gfx::Tilesheet", "classyaze_1_1gfx_1_1Tilesheet.html", null ],
     [ "yaze::emu::Timer", "structyaze_1_1emu_1_1Timer.html", null ],
     [ "yaze::zelda3::TitleScreen", "classyaze_1_1zelda3_1_1TitleScreen.html", null ],
     [ "yaze::emu::TM", "structyaze_1_1emu_1_1TM.html", null ],

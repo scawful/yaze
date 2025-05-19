@@ -9,7 +9,6 @@ var searchData=
   ['not1_6',['NOT1',['../classyaze_1_1emu_1_1Spc700.html#a16b76a437f9574f5981f4c46d907ee96',1,'yaze::emu::Spc700::NOT1()'],['../classyaze_1_1test_1_1Spc700.html#a16b76a437f9574f5981f4c46d907ee96',1,'yaze::test::Spc700::NOT1()']]],
   ['notc_7',['NOTC',['../classyaze_1_1emu_1_1Spc700.html#a920808e5ffd0598476d16861729fd4bd',1,'yaze::emu::Spc700::NOTC()'],['../classyaze_1_1test_1_1Spc700.html#a920808e5ffd0598476d16861729fd4bd',1,'yaze::test::Spc700::NOTC()']]],
   ['notifyvalue_8',['NotifyValue',['../classyaze_1_1util_1_1NotifyValue.html#a3ec30e0f28aed54366ff93c8d009ab69',1,'yaze::util::NotifyValue::NotifyValue()'],['../classyaze_1_1util_1_1NotifyValue.html#a5e043e96e569c1097bc1fc35dfcf18c6',1,'yaze::util::NotifyValue::NotifyValue(const T &amp;value)']]],
-  ['num_5ftiles_9',['num_tiles',['../classyaze_1_1gfx_1_1Tilesheet.html#ac53e1aec32dc30b280f1c3502b77a5dd',1,'yaze::gfx::Tilesheet']]],
-  ['nx_10',['nx',['../classyaze_1_1zelda3_1_1Sprite.html#adbbc2669926bc228ccb2d0a20e01bc6a',1,'yaze::zelda3::Sprite']]],
-  ['ny_11',['ny',['../classyaze_1_1zelda3_1_1Sprite.html#af2bd1685f01fc3cfe9c164793855461f',1,'yaze::zelda3::Sprite']]]
+  ['nx_9',['nx',['../classyaze_1_1zelda3_1_1Sprite.html#adbbc2669926bc228ccb2d0a20e01bc6a',1,'yaze::zelda3::Sprite']]],
+  ['ny_10',['ny',['../classyaze_1_1zelda3_1_1Sprite.html#af2bd1685f01fc3cfe9c164793855461f',1,'yaze::zelda3::Sprite']]]
 ];

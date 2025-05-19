@@ -1,7 +1,0 @@
-<map id="yaze::gfx::Tilesheet::MirrorTileData" name="yaze::gfx::Tilesheet::MirrorTileData">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,135,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Tilesheet.html#aa12d614c105cbb92aec3366fe98593c1" title=" " alt="" coords="183,5,358,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,46,167,40,168,45,135,51"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Tilesheet.html#a526353a29170ce540ce01c65c1cc0882" title=" " alt="" coords="190,71,351,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="135,67,175,73,174,78,135,72"/>
-</map>

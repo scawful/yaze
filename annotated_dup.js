@@ -196,10 +196,10 @@ var annotated_dup =
         [ "Arena", "classyaze_1_1gfx_1_1Arena.html", "classyaze_1_1gfx_1_1Arena" ],
         [ "BackgroundBuffer", "classyaze_1_1gfx_1_1BackgroundBuffer.html", "classyaze_1_1gfx_1_1BackgroundBuffer" ],
         [ "Bitmap", "classyaze_1_1gfx_1_1Bitmap.html", "classyaze_1_1gfx_1_1Bitmap" ],
+        [ "BitmapError", "classyaze_1_1gfx_1_1BitmapError.html", null ],
         [ "CgxHeader", "structyaze_1_1gfx_1_1CgxHeader.html", "structyaze_1_1gfx_1_1CgxHeader" ],
         [ "GfxContext", "classyaze_1_1gfx_1_1GfxContext.html", null ],
         [ "GraphicsBuffer", "classyaze_1_1gfx_1_1GraphicsBuffer.html", "classyaze_1_1gfx_1_1GraphicsBuffer" ],
-        [ "InternalTile16", "structyaze_1_1gfx_1_1InternalTile16.html", "structyaze_1_1gfx_1_1InternalTile16" ],
         [ "OamTile", "classyaze_1_1gfx_1_1OamTile.html", "classyaze_1_1gfx_1_1OamTile" ],
         [ "Pair", "structyaze_1_1gfx_1_1Pair.html", "structyaze_1_1gfx_1_1Pair" ],
         [ "PaletteGroup", "structyaze_1_1gfx_1_1PaletteGroup.html", "structyaze_1_1gfx_1_1PaletteGroup" ],
@@ -210,8 +210,7 @@ var annotated_dup =
         [ "Tile16", "classyaze_1_1gfx_1_1Tile16.html", "classyaze_1_1gfx_1_1Tile16" ],
         [ "Tile32", "classyaze_1_1gfx_1_1Tile32.html", "classyaze_1_1gfx_1_1Tile32" ],
         [ "TileInfo", "classyaze_1_1gfx_1_1TileInfo.html", "classyaze_1_1gfx_1_1TileInfo" ],
-        [ "Tilemap", "structyaze_1_1gfx_1_1Tilemap.html", "structyaze_1_1gfx_1_1Tilemap" ],
-        [ "Tilesheet", "classyaze_1_1gfx_1_1Tilesheet.html", "classyaze_1_1gfx_1_1Tilesheet" ]
+        [ "Tilemap", "structyaze_1_1gfx_1_1Tilemap.html", "structyaze_1_1gfx_1_1Tilemap" ]
       ] ],
       [ "gui", "namespaceyaze_1_1gui.html", [
         [ "zeml", "namespaceyaze_1_1gui_1_1zeml.html", [

@@ -16,13 +16,12 @@ var searchData=
   ['tilemap_13',['Tilemap',['../structyaze_1_1emu_1_1Tilemap.html',1,'yaze::emu::Tilemap'],['../structyaze_1_1gfx_1_1Tilemap.html',1,'yaze::gfx::Tilemap'],['../structyaze_1_1test_1_1Tilemap.html',1,'yaze::test::Tilemap']]],
   ['tilemapentry_14',['TilemapEntry',['../structyaze_1_1emu_1_1TilemapEntry.html',1,'yaze::emu']]],
   ['tilemaplocation_15',['TileMapLocation',['../structyaze_1_1emu_1_1TileMapLocation.html',1,'yaze::emu']]],
-  ['tilesheet_16',['Tilesheet',['../classyaze_1_1gfx_1_1Tilesheet.html',1,'yaze::gfx']]],
-  ['timer_17',['Timer',['../structyaze_1_1emu_1_1Timer.html',1,'yaze::emu']]],
-  ['titlescreen_18',['TitleScreen',['../classyaze_1_1zelda3_1_1TitleScreen.html',1,'yaze::zelda3']]],
-  ['tm_19',['TM',['../structyaze_1_1emu_1_1TM.html',1,'yaze::emu']]],
-  ['tmw_20',['TMW',['../structyaze_1_1emu_1_1TMW.html',1,'yaze::emu']]],
-  ['token_21',['Token',['../structyaze_1_1gui_1_1zeml_1_1Token.html',1,'yaze::gui::zeml']]],
-  ['tracker_22',['Tracker',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html',1,'yaze::zelda3::music']]],
-  ['ts_23',['TS',['../structyaze_1_1emu_1_1TS.html',1,'yaze::emu']]],
-  ['tsw_24',['TSW',['../structyaze_1_1emu_1_1TSW.html',1,'yaze::emu']]]
+  ['timer_16',['Timer',['../structyaze_1_1emu_1_1Timer.html',1,'yaze::emu']]],
+  ['titlescreen_17',['TitleScreen',['../classyaze_1_1zelda3_1_1TitleScreen.html',1,'yaze::zelda3']]],
+  ['tm_18',['TM',['../structyaze_1_1emu_1_1TM.html',1,'yaze::emu']]],
+  ['tmw_19',['TMW',['../structyaze_1_1emu_1_1TMW.html',1,'yaze::emu']]],
+  ['token_20',['Token',['../structyaze_1_1gui_1_1zeml_1_1Token.html',1,'yaze::gui::zeml']]],
+  ['tracker_21',['Tracker',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html',1,'yaze::zelda3::music']]],
+  ['ts_22',['TS',['../structyaze_1_1emu_1_1TS.html',1,'yaze::emu']]],
+  ['tsw_23',['TSW',['../structyaze_1_1emu_1_1TSW.html',1,'yaze::emu']]]
 ];

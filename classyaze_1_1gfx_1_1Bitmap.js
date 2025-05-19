@@ -22,7 +22,7 @@ var classyaze_1_1gfx_1_1Bitmap =
     [ "width", "classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050", null ],
     [ "height", "classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3", null ],
     [ "depth", "classyaze_1_1gfx_1_1Bitmap.html#a985c964b37adc34496b5c6898712c8c0", null ],
-    [ "size", "classyaze_1_1gfx_1_1Bitmap.html#aadcb6338e71a1511b85196b9fa7b9b13", null ],
+    [ "size", "classyaze_1_1gfx_1_1Bitmap.html#a2bb925db328fd0eda93b660fad899446", null ],
     [ "data", "classyaze_1_1gfx_1_1Bitmap.html#a0275436efca736b00dfa4c0ce43e8068", null ],
     [ "mutable_data", "classyaze_1_1gfx_1_1Bitmap.html#aba6e7ff12ec269f3d2de46bf600f7fa6", null ],
     [ "surface", "classyaze_1_1gfx_1_1Bitmap.html#ad0562f88c0824e2b837278b1e987e92f", null ],

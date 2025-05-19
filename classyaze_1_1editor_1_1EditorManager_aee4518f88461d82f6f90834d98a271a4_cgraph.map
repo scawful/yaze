@@ -1,11 +1,11 @@
 <map id="yaze::editor::EditorManager::SaveRom" name="yaze::editor::EditorManager::SaveRom">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,180,88"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="251,5,388,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,46,242,32,243,37,181,51"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1FeatureFlags.html#ab985b9cb493be9689a8f4baffc09b614" title=" " alt="" coords="228,55,412,80"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="180,65,212,65,212,70,180,70"/>
-<area shape="rect" id="Node000005" href="$namespaceyaze.html#aeb8ae3fba1064ff2cf19393b113fac1c" title=" " alt="" coords="231,104,408,130"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="181,84,243,98,242,103,179,89"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Arena.html#a8392acf381212aa4b22fafbdf87e28ca" title=" " alt="" coords="460,5,610,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="389,16,444,16,444,21,389,21"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,72,180,113"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="264,5,401,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,69,227,40,252,33,254,38,228,45,145,74"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1FeatureFlags.html#ab985b9cb493be9689a8f4baffc09b614" title=" " alt="" coords="240,55,424,80"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="180,81,224,76,225,81,180,86"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze.html#aeb8ae3fba1064ff2cf19393b113fac1c" title=" " alt="" coords="244,104,421,130"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="180,99,228,104,228,109,180,104"/>
+<area shape="rect" id="Node000014" href="$namespaceyaze_1_1zelda3.html#af70cfbe4687d031dd8b789801a1374bb" title="Save the dungeon maps to the ROM." alt="" coords="228,153,437,179"/>
+<area shape="poly" id="edge4_Node000001_Node000014" title=" " alt="" coords="147,111,228,140,254,147,252,152,227,145,145,116"/>
 </map>

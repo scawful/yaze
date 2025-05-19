@@ -119,6 +119,9 @@ $(function(){initNavTree('dungeon__map_8cc.html',''); initResizable(true); });
 <code>#include &quot;<a class="el" href="renderer_8h_source.html">app/core/platform/renderer.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="bitmap_8h_source.html">app/gfx/bitmap.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="snes__tile_8h_source.html">app/gfx/snes_tile.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="tilemap_8h_source.html">app/gfx/tilemap.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="snes_8h_source.html">app/snes.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="hex_8h_source.html">util/hex.h</a>&quot;</code><br />
 </div>
 <p><a href="dungeon__map_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -133,8 +136,21 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a4159862346f04f2e18e6474c8d44df17" id="r_a4159862346f04f2e18e6474c8d44df17"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a4159862346f04f2e18e6474c8d44df17">yaze::zelda3::LoadDungeonMapGfxFromBinary</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;rom, std::array&lt; <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>, 4 &gt; &amp;sheets, <a class="el" href="classyaze_1_1gfx_1_1Tilesheet.html">gfx::Tilesheet</a> &amp;tile16_sheet, std::vector&lt; uint8_t &gt; &amp;gfx_bin_data)</td></tr>
-<tr class="separator:a4159862346f04f2e18e6474c8d44df17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac43baaf06960b7d372d8b22f0c5d6cac" id="r_ac43baaf06960b7d372d8b22f0c5d6cac"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; <a class="el" href="structyaze_1_1zelda3_1_1DungeonMap.html">DungeonMap</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#ac43baaf06960b7d372d8b22f0c5d6cac">yaze::zelda3::LoadDungeonMaps</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;rom, <a class="el" href="namespaceyaze_1_1zelda3.html#ac0a8cde407955921c482ea61a6856a41">DungeonMapLabels</a> &amp;dungeon_map_labels)</td></tr>
+<tr class="memdesc:ac43baaf06960b7d372d8b22f0c5d6cac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load the dungeon maps from the ROM.  <br /></td></tr>
+<tr class="separator:ac43baaf06960b7d372d8b22f0c5d6cac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af70cfbe4687d031dd8b789801a1374bb" id="r_af70cfbe4687d031dd8b789801a1374bb"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#af70cfbe4687d031dd8b789801a1374bb">yaze::zelda3::SaveDungeonMaps</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;rom, std::vector&lt; <a class="el" href="structyaze_1_1zelda3_1_1DungeonMap.html">DungeonMap</a> &gt; &amp;dungeon_maps)</td></tr>
+<tr class="memdesc:af70cfbe4687d031dd8b789801a1374bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Save the dungeon maps to the ROM.  <br /></td></tr>
+<tr class="separator:af70cfbe4687d031dd8b789801a1374bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4ac909ac2ccc7d3a70ae66895e832b28" id="r_a4ac909ac2ccc7d3a70ae66895e832b28"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a4ac909ac2ccc7d3a70ae66895e832b28">yaze::zelda3::LoadDungeonMapTile16</a> (<a class="el" href="structyaze_1_1gfx_1_1Tilemap.html">gfx::Tilemap</a> &amp;tile16_blockset, <a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;rom, const std::vector&lt; uint8_t &gt; &amp;gfx_data, bool bin_mode)</td></tr>
+<tr class="memdesc:a4ac909ac2ccc7d3a70ae66895e832b28"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load the dungeon map tile16 from the ROM.  <br /></td></tr>
+<tr class="separator:a4ac909ac2ccc7d3a70ae66895e832b28"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ad5f0a9ef45edbbc2a8ac4ae5ababa8" id="r_a6ad5f0a9ef45edbbc2a8ac4ae5ababa8"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a6ad5f0a9ef45edbbc2a8ac4ae5ababa8">yaze::zelda3::SaveDungeonMapTile16</a> (<a class="el" href="structyaze_1_1gfx_1_1Tilemap.html">gfx::Tilemap</a> &amp;tile16_blockset, <a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
+<tr class="memdesc:a6ad5f0a9ef45edbbc2a8ac4ae5ababa8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Save the dungeon map tile16 to the ROM.  <br /></td></tr>
+<tr class="separator:a6ad5f0a9ef45edbbc2a8ac4ae5ababa8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a13bd041f5d57b7f9c6a99d9ce4bcc729" id="r_a13bd041f5d57b7f9c6a99d9ce4bcc729"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a13bd041f5d57b7f9c6a99d9ce4bcc729">yaze::zelda3::LoadDungeonMapGfxFromBinary</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;rom, <a class="el" href="structyaze_1_1gfx_1_1Tilemap.html">gfx::Tilemap</a> &amp;tile16_blockset, std::array&lt; <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>, 4 &gt; &amp;sheets, std::vector&lt; uint8_t &gt; &amp;gfx_bin_data)</td></tr>
+<tr class="memdesc:a13bd041f5d57b7f9c6a99d9ce4bcc729"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load the dungeon map gfx from binary.  <br /></td></tr>
+<tr class="separator:a13bd041f5d57b7f9c6a99d9ce4bcc729"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->
