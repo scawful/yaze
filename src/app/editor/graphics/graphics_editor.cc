@@ -756,7 +756,7 @@ absl::Status GraphicsEditor::DrawMemoryEditor() {
 
 absl::Status GraphicsEditor::DecompressImportData(int size) {
   ASSIGN_OR_RETURN(import_data_, gfx::lc_lz2::DecompressV2(
-                                     temp_rom_.data(), current_offset_, size))
+                                     temp_rom_.data(), current_offset_, size));
 
   auto converted_sheet = gfx::SnesTo8bppSheet(import_data_, 3);
   bin_bitmap_.Create(gfx::kTilesheetWidth, 0x2000, gfx::kTilesheetDepth,
@@ -785,7 +785,7 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
         std::stoi(offset, nullptr, 16);  // convert hex string to int
     ASSIGN_OR_RETURN(
         auto decompressed_data,
-        gfx::lc_lz2::DecompressV2(temp_rom_.data(), offset_value, 0x1000))
+        gfx::lc_lz2::DecompressV2(temp_rom_.data(), offset_value, 0x1000));
     auto converted_sheet = gfx::SnesTo8bppSheet(decompressed_data, 3);
     gfx_sheets_[i] = gfx::Bitmap(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                                  gfx::kTilesheetDepth, converted_sheet);
@@ -810,7 +810,7 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
         std::stoi(offset, nullptr, 16);  // convert hex string to int
     ASSIGN_OR_RETURN(
         auto decompressed_data,
-        gfx::lc_lz2::DecompressV2(temp_rom_.data(), offset_value, 0x1000))
+        gfx::lc_lz2::DecompressV2(temp_rom_.data(), offset_value, 0x1000));
     auto converted_sheet = gfx::SnesTo8bppSheet(decompressed_data, 3);
     gfx_sheets_[i] = gfx::Bitmap(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                                  gfx::kTilesheetDepth, converted_sheet);

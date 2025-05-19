@@ -46,7 +46,7 @@ absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom &rom) {
                                      rom.version_constants().kOverworldGfxPtr2,
                                      rom.version_constants().kOverworldGfxPtr3);
     ASSIGN_OR_RETURN(auto decomp_sheet,
-                     gfx::lc_lz2::DecompressV2(rom.data(), offset))
+                     gfx::lc_lz2::DecompressV2(rom.data(), offset));
     auto converted_sheet = gfx::SnesTo8bppSheet(decomp_sheet, 2);
     for (const auto &each_pixel : converted_sheet) {
       sheet.push_back(each_pixel);
@@ -64,7 +64,7 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(
     ASSIGN_OR_RETURN(
         auto link_sheet_data,
         rom.ReadByteVector(/*offset=*/kLinkGfxOffset + (i * kLinkGfxLength),
-                           /*length=*/kLinkGfxLength))
+                           /*length=*/kLinkGfxLength));
     auto link_sheet_8bpp = gfx::SnesTo8bppSheet(link_sheet_data, /*bpp=*/4);
     link_graphics[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                             gfx::kTilesheetDepth, link_sheet_8bpp);
@@ -155,7 +155,7 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
           rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
           rom.version_constants().kOverworldGfxPtr2,
           rom.version_constants().kOverworldGfxPtr3);
-      ASSIGN_OR_RETURN(sheet, gfx::lc_lz2::DecompressV2(rom.data(), offset))
+      ASSIGN_OR_RETURN(sheet, gfx::lc_lz2::DecompressV2(rom.data(), offset));
       bpp3 = true;
     }
 
@@ -222,6 +222,7 @@ absl::Status SaveAllGraphicsData(
           rom.version_constants().kOverworldGfxPtr2,
           rom.version_constants().kOverworldGfxPtr3);
       std::copy(final_data.begin(), final_data.end(), rom.begin() + offset);
+      std::ranges::copy(final_data, rom.begin() + offset);
     }
   }
   return absl::OkStatus();
@@ -551,16 +552,16 @@ absl::StatusOr<gfx::Tile16> Rom::ReadTile16(uint32_t tile16_id) {
   // Skip 8 bytes per tile.
   auto tpos = kTile16Ptr + (tile16_id * 0x08);
   gfx::Tile16 tile16 = {};
-  ASSIGN_OR_RETURN(auto new_tile0, ReadWord(tpos))
+  ASSIGN_OR_RETURN(auto new_tile0, ReadWord(tpos));
   tile16.tile0_ = gfx::WordToTileInfo(new_tile0);
   tpos += 2;
-  ASSIGN_OR_RETURN(auto new_tile1, ReadWord(tpos))
+  ASSIGN_OR_RETURN(auto new_tile1, ReadWord(tpos));
   tile16.tile1_ = gfx::WordToTileInfo(new_tile1);
   tpos += 2;
-  ASSIGN_OR_RETURN(auto new_tile2, ReadWord(tpos))
+  ASSIGN_OR_RETURN(auto new_tile2, ReadWord(tpos));
   tile16.tile2_ = gfx::WordToTileInfo(new_tile2);
   tpos += 2;
-  ASSIGN_OR_RETURN(auto new_tile3, ReadWord(tpos))
+  ASSIGN_OR_RETURN(auto new_tile3, ReadWord(tpos));
   tile16.tile3_ = gfx::WordToTileInfo(new_tile3);
   return tile16;
 }
