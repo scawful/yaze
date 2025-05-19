@@ -11,14 +11,13 @@
 #include "app/snes.h"
 #include "util/hex.h"
 
-namespace yaze {
-namespace zelda3 {
+namespace yaze::zelda3 {
 
-absl::StatusOr<std::vector<zelda3::DungeonMap>> LoadDungeonMaps(
+absl::StatusOr<std::vector<DungeonMap>> LoadDungeonMaps(
     Rom &rom, DungeonMapLabels &dungeon_map_labels) {
-  std::vector<zelda3::DungeonMap> dungeon_maps;
-  std::vector<std::array<uint8_t, 25>> current_floor_rooms_d;
-  std::vector<std::array<uint8_t, 25>> current_floor_gfx_d;
+  std::vector<DungeonMap> dungeon_maps;
+  std::vector<std::array<uint8_t, kNumRooms>> current_floor_rooms_d;
+  std::vector<std::array<uint8_t, kNumRooms>> current_floor_gfx_d;
   int total_floors_d;
   uint8_t nbr_floor_d;
   uint8_t nbr_basement_d;
@@ -26,24 +25,20 @@ absl::StatusOr<std::vector<zelda3::DungeonMap>> LoadDungeonMaps(
   for (int d = 0; d < kNumDungeons; d++) {
     current_floor_rooms_d.clear();
     current_floor_gfx_d.clear();
-    ASSIGN_OR_RETURN(int ptr,
-                     rom.ReadWord(zelda3::kDungeonMapRoomsPtr + (d * 2)));
-    ASSIGN_OR_RETURN(int ptr_gfx,
-                     rom.ReadWord(zelda3::kDungeonMapGfxPtr + (d * 2)));
+    ASSIGN_OR_RETURN(int ptr, rom.ReadWord(kDungeonMapRoomsPtr + (d * 2)));
+    ASSIGN_OR_RETURN(int ptr_gfx, rom.ReadWord(kDungeonMapGfxPtr + (d * 2)));
     ptr |= 0x0A0000;                     // Add bank to the short ptr
     ptr_gfx |= 0x0A0000;                 // Add bank to the short ptr
     int pc_ptr = SnesToPc(ptr);          // Contains data for the next 25 rooms
     int pc_ptr_gfx = SnesToPc(ptr_gfx);  // Contains data for the next 25 rooms
 
     ASSIGN_OR_RETURN(uint16_t boss_room_d,
-                     rom.ReadWord(zelda3::kDungeonMapBossRooms + (d * 2)));
+                     rom.ReadWord(kDungeonMapBossRooms + (d * 2)));
 
-    ASSIGN_OR_RETURN(nbr_basement_d,
-                     rom.ReadByte(zelda3::kDungeonMapFloors + (d * 2)));
+    ASSIGN_OR_RETURN(nbr_basement_d, rom.ReadByte(kDungeonMapFloors + (d * 2)));
     nbr_basement_d &= 0x0F;
 
-    ASSIGN_OR_RETURN(nbr_floor_d,
-                     rom.ReadByte(zelda3::kDungeonMapFloors + (d * 2)));
+    ASSIGN_OR_RETURN(nbr_floor_d, rom.ReadByte(kDungeonMapFloors + (d * 2)));
     nbr_floor_d &= 0xF0;
     nbr_floor_d = nbr_floor_d >> 4;
 
@@ -53,19 +48,15 @@ absl::StatusOr<std::vector<zelda3::DungeonMap>> LoadDungeonMaps(
     for (int i = 0; i < total_floors_d; i++) {
       dungeon_map_labels[d].emplace_back();
 
-      std::array<uint8_t, 25> rdata;
-      std::array<uint8_t, 25> gdata;
+      std::array<uint8_t, kNumRooms> rdata;
+      std::array<uint8_t, kNumRooms> gdata;
 
       // for each room on the floor
-      for (int j = 0; j < 25; j++) {
+      for (int j = 0; j < kNumRooms; j++) {
         gdata[j] = 0xFF;
-        rdata[j] = rom.data()[pc_ptr + j + (i * 25)];  // Set the rooms
+        rdata[j] = rom.data()[pc_ptr + j + (i * kNumRooms)];  // Set the rooms
 
-        if (rdata[j] == 0x0F) {
-          gdata[j] = 0xFF;
-        } else {
-          gdata[j] = rom.data()[pc_ptr_gfx++];
-        }
+        gdata[j] = rdata[j] == 0x0F ? 0xFF : rom.data()[pc_ptr_gfx++];
 
         std::string label = util::HexByte(rdata[j]);
         dungeon_map_labels[d][i][j] = label;
@@ -84,18 +75,18 @@ absl::StatusOr<std::vector<zelda3::DungeonMap>> LoadDungeonMaps(
 
 absl::Status SaveDungeonMaps(Rom &rom, std::vector<DungeonMap> &dungeon_maps) {
   for (int d = 0; d < kNumDungeons; d++) {
-    int ptr = zelda3::kDungeonMapRoomsPtr + (d * 2);
-    int ptr_gfx = zelda3::kDungeonMapGfxPtr + (d * 2);
+    int ptr = kDungeonMapRoomsPtr + (d * 2);
+    int ptr_gfx = kDungeonMapGfxPtr + (d * 2);
     int pc_ptr = SnesToPc(ptr);
     int pc_ptr_gfx = SnesToPc(ptr_gfx);
 
     const int nbr_floors = dungeon_maps[d].nbr_of_floor;
     const int nbr_basements = dungeon_maps[d].nbr_of_basement;
     for (int i = 0; i < nbr_floors + nbr_basements; i++) {
-      for (int j = 0; j < 25; j++) {
-        RETURN_IF_ERROR(rom.WriteByte(pc_ptr + j + (i * 25),
+      for (int j = 0; j < kNumRooms; j++) {
+        RETURN_IF_ERROR(rom.WriteByte(pc_ptr + j + (i * kNumRooms),
                                       dungeon_maps[d].floor_rooms[i][j]));
-        RETURN_IF_ERROR(rom.WriteByte(pc_ptr_gfx + j + (i * 25),
+        RETURN_IF_ERROR(rom.WriteByte(pc_ptr_gfx + j + (i * kNumRooms),
                                       dungeon_maps[d].floor_gfx[i][j]));
         pc_ptr_gfx++;
       }
@@ -113,10 +104,10 @@ absl::Status LoadDungeonMapTile16(gfx::Tilemap &tile16_blockset, Rom &rom,
   tile16_blockset.atlas.Create(256, 192, 8,
                                std::vector<uint8_t>(256 * 192, 0x00));
 
-  for (int i = 0; i < 186; i++) {
-    int addr = zelda3::kDungeonMapTile16;
-    if (rom.data()[zelda3::kDungeonMapExpCheck] != 0xB9) {
-      addr = zelda3::kDungeonMapTile16Expanded;
+  for (int i = 0; i < kNumDungeonMapTile16; i++) {
+    int addr = kDungeonMapTile16;
+    if (rom.data()[kDungeonMapExpCheck] != 0xB9) {
+      addr = kDungeonMapTile16Expanded;
     }
 
     ASSIGN_OR_RETURN(auto tl, rom.ReadWord(addr + (i * 8)));
@@ -144,10 +135,10 @@ absl::Status LoadDungeonMapTile16(gfx::Tilemap &tile16_blockset, Rom &rom,
 }
 
 absl::Status SaveDungeonMapTile16(gfx::Tilemap &tile16_blockset, Rom &rom) {
-  for (int i = 0; i < 186; i++) {
-    int addr = zelda3::kDungeonMapTile16;
-    if (rom.data()[zelda3::kDungeonMapExpCheck] != 0xB9) {
-      addr = zelda3::kDungeonMapTile16Expanded;
+  for (int i = 0; i < kNumDungeonMapTile16; i++) {
+    int addr = kDungeonMapTile16;
+    if (rom.data()[kDungeonMapExpCheck] != 0xB9) {
+      addr = kDungeonMapTile16Expanded;
     }
 
     gfx::TileInfo t1 = tile16_blockset.tile_info[i][0];
@@ -171,6 +162,7 @@ absl::Status SaveDungeonMapTile16(gfx::Tilemap &tile16_blockset, Rom &rom) {
 }
 
 absl::Status LoadDungeonMapGfxFromBinary(Rom &rom,
+                                         gfx::Tilemap &tile16_blockset,
                                          std::array<gfx::Bitmap, 4> &sheets,
                                          std::vector<uint8_t> &gfx_bin_data) {
   std::string bin_file = core::FileDialogWrapper::ShowOpenFileDialog();
@@ -179,29 +171,28 @@ absl::Status LoadDungeonMapGfxFromBinary(Rom &rom,
   }
 
   std::ifstream file(bin_file, std::ios::binary);
-  if (file.is_open()) {
-    // Read the gfx data into a buffer
-    std::vector<uint8_t> bin_data((std::istreambuf_iterator<char>(file)),
-                                  std::istreambuf_iterator<char>());
-    auto converted_bin = gfx::SnesTo8bppSheet(bin_data, 4, 4);
-    gfx_bin_data = converted_bin;
-    // if (LoadDungeonMapTile16(converted_bin, true).ok()) {
-    //   std::vector<std::vector<uint8_t>> gfx_sheets;
-    //   for (int i = 0; i < 4; i++) {
-    //     gfx_sheets.emplace_back(converted_bin.begin() + (i * 0x1000),
-    //                             converted_bin.begin() + ((i + 1) * 0x1000));
-    //     sheets[i] = gfx::Bitmap(128, 32, 8, gfx_sheets[i]);
-    //     sheets[i].SetPalette(*rom.mutable_dungeon_palette(3));
-    //     core::Renderer::Get().RenderBitmap(&sheets[i]);
-    //   }
-    // } else {
-    //   return absl::InternalError("Failed to load dungeon map tile16");
-    // }
-    file.close();
+  if (!file.is_open()) {
+    return absl::InternalError("Failed to open file");
   }
+
+  // Read the gfx data into a buffer
+  std::vector<uint8_t> bin_data((std::istreambuf_iterator<char>(file)),
+                                std::istreambuf_iterator<char>());
+  auto converted_bin = gfx::SnesTo8bppSheet(bin_data, 4, 4);
+  gfx_bin_data = converted_bin;
+  if (LoadDungeonMapTile16(tile16_blockset, rom, converted_bin, true).ok()) {
+    std::vector<std::vector<uint8_t>> gfx_sheets;
+    for (int i = 0; i < 4; i++) {
+      gfx_sheets.emplace_back(converted_bin.begin() + (i * 0x1000),
+                              converted_bin.begin() + ((i + 1) * 0x1000));
+      sheets[i] = gfx::Bitmap(128, 32, 8, gfx_sheets[i]);
+      sheets[i].SetPalette(*rom.mutable_dungeon_palette(3));
+      core::Renderer::Get().RenderBitmap(&sheets[i]);
+    }
+  }
+  file.close();
 
   return absl::OkStatus();
 }
 
-}  // namespace zelda3
-}  // namespace yaze
+}  // namespace yaze::zelda3

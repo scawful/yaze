@@ -9,8 +9,7 @@
 #include "app/gfx/tilemap.h"
 #include "app/rom.h"
 
-namespace yaze {
-namespace zelda3 {
+namespace yaze::zelda3 {
 
 constexpr int kDungeonMapRoomsPtr = 0x57605;  // 14 pointers of map data
 constexpr int kDungeonMapFloors = 0x575D9;    // 14 words values
@@ -34,7 +33,11 @@ constexpr int kCrystalVertices = 0x04FF98;
 
 constexpr int kNumDungeons = 14;
 constexpr int kNumRooms = 25;
+constexpr int kNumDungeonMapTile16 = 186;
 
+/**
+ * @brief DungeonMap represents the map menu for a dungeon.
+ */
 struct DungeonMap {
   unsigned short boss_room = 0xFFFF;
   unsigned char nbr_of_floor = 0;
@@ -54,24 +57,58 @@ struct DungeonMap {
 };
 
 using DungeonMapLabels =
-    std::array<std::vector<std::array<std::string, 25>>, kNumDungeons>;
+    std::array<std::vector<std::array<std::string, kNumRooms>>, kNumDungeons>;
 
-absl::StatusOr<std::vector<zelda3::DungeonMap>> LoadDungeonMaps(
+/**
+ * @brief Load the dungeon maps from the ROM.
+ *
+ * @param rom
+ * @param dungeon_map_labels
+ * @return absl::StatusOr<std::vector<DungeonMap>>
+ */
+absl::StatusOr<std::vector<DungeonMap>> LoadDungeonMaps(
     Rom &rom, DungeonMapLabels &dungeon_map_labels);
 
+/**
+ * @brief Save the dungeon maps to the ROM.
+ *
+ * @param rom
+ * @param dungeon_maps
+ */
 absl::Status SaveDungeonMaps(Rom &rom, std::vector<DungeonMap> &dungeon_maps);
 
+/**
+ * @brief Load the dungeon map tile16 from the ROM.
+ *
+ * @param tile16_blockset
+ * @param rom
+ * @param gfx_data
+ * @param bin_mode
+ */
 absl::Status LoadDungeonMapTile16(gfx::Tilemap &tile16_blockset, Rom &rom,
                                   const std::vector<uint8_t> &gfx_data,
                                   bool bin_mode);
 
+/**
+ * @brief Save the dungeon map tile16 to the ROM.
+ *
+ * @param tile16_blockset
+ * @param rom
+ */
 absl::Status SaveDungeonMapTile16(gfx::Tilemap &tile16_blockset, Rom &rom);
 
+/**
+ * @brief Load the dungeon map gfx from binary.
+ *
+ * @param rom
+ * @param tile16_blockset
+ * @param sheets
+ * @param gfx_bin_data
+ */
 absl::Status LoadDungeonMapGfxFromBinary(Rom &rom,
+                                         gfx::Tilemap &tile16_blockset,
                                          std::array<gfx::Bitmap, 4> &sheets,
                                          std::vector<uint8_t> &gfx_bin_data);
-
-}  // namespace zelda3
-}  // namespace yaze
+}  // namespace yaze::zelda3
 
 #endif  // YAZE_APP_ZELDA3_SCREEN_DUNGEON_MAP_H
