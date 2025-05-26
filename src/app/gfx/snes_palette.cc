@@ -14,8 +14,7 @@
 #include "imgui/imgui.h"
 #include "util/macro.h"
 
-namespace yaze {
-namespace gfx {
+namespace yaze::gfx {
 
 SnesPalette::SnesPalette(char *data) {
   assert((sizeof(data) % 4 == 0) && (sizeof(data) <= 32));
@@ -359,5 +358,4 @@ absl::Status LoadAllPalettes(const std::vector<uint8_t> &rom_data,
 
 std::unordered_map<uint8_t, gfx::Paletteset> GfxContext::palettesets_;
 
-}  // namespace gfx
-}  // namespace yaze
+}  // namespace yaze::gfx
