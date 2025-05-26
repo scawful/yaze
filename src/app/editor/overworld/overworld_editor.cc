@@ -30,40 +30,136 @@
 #include "util/log.h"
 #include "util/macro.h"
 
-namespace yaze {
-namespace editor {
+namespace yaze::editor {
 
 using core::Renderer;
 using namespace ImGui;
 
 constexpr int kTile16Size = 0x10;
+constexpr float kInputFieldSize = 30.f;
 
 void OverworldEditor::Initialize() {
-  // Load zeml string from layouts/overworld.zeml
-  std::string layout = gui::zeml::LoadFile("overworld.zeml");
-  // Parse the zeml string into a Node object
-  layout_node_ = gui::zeml::Parse(layout);
+  layout_node_ = gui::zeml::Parse(gui::zeml::LoadFile("overworld.zeml"));
 
-  gui::zeml::Bind(&*layout_node_.GetNode("OverworldCanvas"),
+  gui::zeml::Bind(std::to_address(layout_node_.GetNode("OverworldCanvas")),
                   [this]() { DrawOverworldCanvas(); });
-  gui::zeml::Bind(&*layout_node_.GetNode("OverworldTileSelector"),
-                  [this]() { status_ = DrawTileSelector(); });
-  gui::zeml::Bind(&*layout_node_.GetNode("OwUsageStats"), [this]() {
-    if (rom_->is_loaded()) {
-      status_ = UpdateUsageStats();
-    }
-  });
-  gui::zeml::Bind(&*layout_node_.GetNode("owToolset"),
+  gui::zeml::Bind(
+      std::to_address(layout_node_.GetNode("OverworldTileSelector")),
+      [this]() { status_ = DrawTileSelector(); });
+  gui::zeml::Bind(std::to_address(layout_node_.GetNode("OwUsageStats")),
+                  [this]() {
+                    if (rom_->is_loaded()) {
+                      status_ = UpdateUsageStats();
+                    }
+                  });
+  gui::zeml::Bind(std::to_address(layout_node_.GetNode("owToolset")),
                   [this]() { DrawToolset(); });
-  gui::zeml::Bind(&*layout_node_.GetNode("OwTile16Editor"), [this]() {
-    if (rom_->is_loaded()) {
-      status_ = tile16_editor_.Update();
-    }
+  gui::zeml::Bind(std::to_address(layout_node_.GetNode("OwTile16Editor")),
+                  [this]() {
+                    if (rom_->is_loaded()) {
+                      status_ = tile16_editor_.Update();
+                    }
+                  });
+  gui::zeml::Bind(std::to_address(layout_node_.GetNode("OwGfxGroupEditor")),
+                  [this]() {
+                    if (rom_->is_loaded()) {
+                      status_ = gfx_group_editor_.Update();
+                    }
+                  });
+
+  gui::AddTableColumn(toolset_table_, "##Undo", [&]() {
+    if (Button(ICON_MD_UNDO)) status_ = Undo();
   });
-  gui::zeml::Bind(&*layout_node_.GetNode("OwGfxGroupEditor"), [this]() {
-    if (rom_->is_loaded()) {
-      status_ = gfx_group_editor_.Update();
+  gui::AddTableColumn(toolset_table_, "##Redo", [&]() {
+    if (Button(ICON_MD_REDO)) status_ = Redo();
+  });
+  gui::AddTableColumn(toolset_table_, "##Sep1", ICON_MD_MORE_VERT);
+  gui::AddTableColumn(toolset_table_, "##ZoomOut", [&]() {
+    if (Button(ICON_MD_ZOOM_OUT)) ow_map_canvas_.ZoomOut();
+  });
+  gui::AddTableColumn(toolset_table_, "##ZoomIn", [&]() {
+    if (Button(ICON_MD_ZOOM_IN)) ow_map_canvas_.ZoomIn();
+  });
+  gui::AddTableColumn(toolset_table_, "##Fullscreen", [&]() {
+    if (Button(ICON_MD_OPEN_IN_FULL))
+      overworld_canvas_fullscreen_ = !overworld_canvas_fullscreen_;
+    HOVER_HINT("Fullscreen Canvas");
+  });
+  gui::AddTableColumn(toolset_table_, "##Sep2", ICON_MD_MORE_VERT);
+  gui::AddTableColumn(toolset_table_, "##Pan", [&]() {
+    if (Selectable(ICON_MD_PAN_TOOL_ALT, current_mode == EditingMode::PAN)) {
+      current_mode = EditingMode::PAN;
+      ow_map_canvas_.set_draggable(true);
     }
+    HOVER_HINT("Pan (Right click and drag)");
+  });
+  gui::AddTableColumn(toolset_table_, "##DrawTile", [&]() {
+    if (Selectable(ICON_MD_DRAW, current_mode == EditingMode::DRAW_TILE)) {
+      current_mode = EditingMode::DRAW_TILE;
+    }
+    HOVER_HINT("Draw Tile");
+  });
+  gui::AddTableColumn(toolset_table_, "##Entrances", [&]() {
+    if (Selectable(ICON_MD_DOOR_FRONT, current_mode == EditingMode::ENTRANCES))
+      current_mode = EditingMode::ENTRANCES;
+    HOVER_HINT("Entrances");
+  });
+  gui::AddTableColumn(toolset_table_, "##Exits", [&]() {
+    if (Selectable(ICON_MD_DOOR_BACK, current_mode == EditingMode::EXITS))
+      current_mode = EditingMode::EXITS;
+    HOVER_HINT("Exits");
+  });
+  gui::AddTableColumn(toolset_table_, "##Items", [&]() {
+    if (Selectable(ICON_MD_GRASS, current_mode == EditingMode::ITEMS))
+      current_mode = EditingMode::ITEMS;
+    HOVER_HINT("Items");
+  });
+  gui::AddTableColumn(toolset_table_, "##Sprites", [&]() {
+    if (Selectable(ICON_MD_PEST_CONTROL_RODENT,
+                   current_mode == EditingMode::SPRITES))
+      current_mode = EditingMode::SPRITES;
+    HOVER_HINT("Sprites");
+  });
+  gui::AddTableColumn(toolset_table_, "##Transports", [&]() {
+    if (Selectable(ICON_MD_ADD_LOCATION,
+                   current_mode == EditingMode::TRANSPORTS))
+      current_mode = EditingMode::TRANSPORTS;
+    HOVER_HINT("Transports");
+  });
+  gui::AddTableColumn(toolset_table_, "##Music", [&]() {
+    if (Selectable(ICON_MD_MUSIC_NOTE, current_mode == EditingMode::MUSIC))
+      current_mode = EditingMode::MUSIC;
+    HOVER_HINT("Music");
+  });
+  gui::AddTableColumn(toolset_table_, "##Tile16Editor", [&]() {
+    if (Button(ICON_MD_GRID_VIEW)) show_tile16_editor_ = !show_tile16_editor_;
+    HOVER_HINT("Tile16 Editor");
+  });
+  gui::AddTableColumn(toolset_table_, "##GfxGroupEditor", [&]() {
+    if (Button(ICON_MD_TABLE_CHART))
+      show_gfx_group_editor_ = !show_gfx_group_editor_;
+    HOVER_HINT("Gfx Group Editor");
+  });
+  gui::AddTableColumn(toolset_table_, "##sep3", ICON_MD_MORE_VERT);
+  gui::AddTableColumn(toolset_table_, "##Properties", [&]() {
+    if (Button(ICON_MD_CONTENT_COPY)) {
+      std::vector<uint8_t> png_data;
+      png_data = maps_bmp_[current_map_].GetPngData();
+      if (png_data.size() > 0) {
+        core::CopyImageToClipboard(png_data);
+      } else {
+        status_ = absl::InternalError(
+            "Failed to convert overworld map surface to PNG");
+      }
+    }
+    HOVER_HINT("Copy Map to Clipboard");
+  });
+  gui::AddTableColumn(toolset_table_, "##Palette", [&]() {
+    status_ = DisplayPalette(palette_, overworld_.is_loaded());
+  });
+  gui::AddTableColumn(toolset_table_, "##Sep4", ICON_MD_MORE_VERT);
+  gui::AddTableColumn(toolset_table_, "##Properties", [&]() {
+    Checkbox("Properties", &show_properties_editor_);
   });
 }
 
@@ -79,12 +175,7 @@ absl::Status OverworldEditor::Load() {
 
 absl::Status OverworldEditor::Update() {
   status_ = absl::OkStatus();
-
-  if (overworld_canvas_fullscreen_) {
-    DrawFullscreenCanvas();
-  }
-
-  // Draw the overworld editor layout from the ZEML file
+  if (overworld_canvas_fullscreen_) DrawFullscreenCanvas();
   gui::zeml::Render(layout_node_);
   return status_;
 }
@@ -107,107 +198,7 @@ void OverworldEditor::DrawFullscreenCanvas() {
 }
 
 void OverworldEditor::DrawToolset() {
-  static bool show_gfx_group = false;
-  static bool show_properties = false;
-
-  if (toolset_table_.column_contents.empty()) {
-    gui::AddTableColumn(toolset_table_, "##Undo", [&]() {
-      if (Button(ICON_MD_UNDO)) status_ = Undo();
-    });
-    gui::AddTableColumn(toolset_table_, "##Redo", [&]() {
-      if (Button(ICON_MD_REDO)) status_ = Redo();
-    });
-    gui::AddTableColumn(toolset_table_, "##Sep1", ICON_MD_MORE_VERT);
-    gui::AddTableColumn(toolset_table_, "##ZoomOut", [&]() {
-      if (Button(ICON_MD_ZOOM_OUT)) ow_map_canvas_.ZoomOut();
-    });
-    gui::AddTableColumn(toolset_table_, "##ZoomIn", [&]() {
-      if (Button(ICON_MD_ZOOM_IN)) ow_map_canvas_.ZoomIn();
-    });
-    gui::AddTableColumn(toolset_table_, "##Fullscreen", [&]() {
-      if (Button(ICON_MD_OPEN_IN_FULL))
-        overworld_canvas_fullscreen_ = !overworld_canvas_fullscreen_;
-      HOVER_HINT("Fullscreen Canvas")
-    });
-    gui::AddTableColumn(toolset_table_, "##Sep2", ICON_MD_MORE_VERT);
-    gui::AddTableColumn(toolset_table_, "##Pan", [&]() {
-      if (Selectable(ICON_MD_PAN_TOOL_ALT, current_mode == EditingMode::PAN)) {
-        current_mode = EditingMode::PAN;
-        ow_map_canvas_.set_draggable(true);
-      }
-      HOVER_HINT("Pan (Right click and drag)");
-    });
-    gui::AddTableColumn(toolset_table_, "##DrawTile", [&]() {
-      if (Selectable(ICON_MD_DRAW, current_mode == EditingMode::DRAW_TILE)) {
-        current_mode = EditingMode::DRAW_TILE;
-      }
-      HOVER_HINT("Draw Tile");
-    });
-    gui::AddTableColumn(toolset_table_, "##Entrances", [&]() {
-      if (Selectable(ICON_MD_DOOR_FRONT,
-                     current_mode == EditingMode::ENTRANCES))
-        current_mode = EditingMode::ENTRANCES;
-      HOVER_HINT("Entrances");
-    });
-    gui::AddTableColumn(toolset_table_, "##Exits", [&]() {
-      if (Selectable(ICON_MD_DOOR_BACK, current_mode == EditingMode::EXITS))
-        current_mode = EditingMode::EXITS;
-      HOVER_HINT("Exits");
-    });
-    gui::AddTableColumn(toolset_table_, "##Items", [&]() {
-      if (Selectable(ICON_MD_GRASS, current_mode == EditingMode::ITEMS))
-        current_mode = EditingMode::ITEMS;
-      HOVER_HINT("Items");
-    });
-    gui::AddTableColumn(toolset_table_, "##Sprites", [&]() {
-      if (Selectable(ICON_MD_PEST_CONTROL_RODENT,
-                     current_mode == EditingMode::SPRITES))
-        current_mode = EditingMode::SPRITES;
-      HOVER_HINT("Sprites");
-    });
-    gui::AddTableColumn(toolset_table_, "##Transports", [&]() {
-      if (Selectable(ICON_MD_ADD_LOCATION,
-                     current_mode == EditingMode::TRANSPORTS))
-        current_mode = EditingMode::TRANSPORTS;
-      HOVER_HINT("Transports");
-    });
-    gui::AddTableColumn(toolset_table_, "##Music", [&]() {
-      if (Selectable(ICON_MD_MUSIC_NOTE, current_mode == EditingMode::MUSIC))
-        current_mode = EditingMode::MUSIC;
-      HOVER_HINT("Music");
-    });
-    gui::AddTableColumn(toolset_table_, "##Tile16Editor", [&]() {
-      if (Button(ICON_MD_GRID_VIEW)) show_tile16_editor_ = !show_tile16_editor_;
-      HOVER_HINT("Tile16 Editor");
-    });
-    gui::AddTableColumn(toolset_table_, "##GfxGroupEditor", [&]() {
-      if (Button(ICON_MD_TABLE_CHART)) show_gfx_group = !show_gfx_group;
-      HOVER_HINT("Gfx Group Editor");
-    });
-    gui::AddTableColumn(toolset_table_, "##sep3", ICON_MD_MORE_VERT);
-    gui::AddTableColumn(toolset_table_, "##Properties", [&]() {
-      if (Button(ICON_MD_CONTENT_COPY)) {
-        std::vector<uint8_t> png_data;
-        png_data = maps_bmp_[current_map_].GetPngData();
-        if (png_data.size() > 0) {
-          core::CopyImageToClipboard(png_data);
-        } else {
-          status_ = absl::InternalError(
-              "Failed to convert overworld map surface to PNG");
-        }
-      }
-      HOVER_HINT("Copy Map to Clipboard");
-    });
-    gui::AddTableColumn(toolset_table_, "##Palette", [&]() {
-      status_ = DisplayPalette(palette_, overworld_.is_loaded());
-    });
-    gui::AddTableColumn(toolset_table_, "##Sep4", ICON_MD_MORE_VERT);
-    gui::AddTableColumn(toolset_table_, "##Properties",
-                        [&]() { Checkbox("Properties", &show_properties); });
-
-  } else {
-    gui::DrawTable(toolset_table_);
-  }
+  gui::DrawTable(toolset_table_);
 
   if (show_tile16_editor_) {
     ImGui::Begin("Tile16 Editor", &show_tile16_editor_,
@@ -216,36 +207,38 @@ void OverworldEditor::DrawToolset() {
     ImGui::End();
   }
 
-  if (show_gfx_group) {
-    gui::BeginWindowWithDisplaySettings("Gfx Group Editor", &show_gfx_group);
+  if (show_gfx_group_editor_) {
+    gui::BeginWindowWithDisplaySettings("Gfx Group Editor",
+                                        &show_gfx_group_editor_);
     status_ = gfx_group_editor_.Update();
     gui::EndWindowWithDisplaySettings();
   }
 
-  if (show_properties) {
-    ImGui::Begin("Properties", &show_properties);
+  if (show_properties_editor_) {
+    ImGui::Begin("Properties", &show_properties_editor_);
     DrawOverworldProperties();
     ImGui::End();
   }
 
   // TODO: Customizable shortcuts for the Overworld Editor
   if (!ImGui::IsAnyItemActive()) {
+    using enum EditingMode;
     if (ImGui::IsKeyDown(ImGuiKey_1)) {
-      current_mode = EditingMode::PAN;
+      current_mode = PAN;
     } else if (ImGui::IsKeyDown(ImGuiKey_2)) {
-      current_mode = EditingMode::DRAW_TILE;
+      current_mode = DRAW_TILE;
     } else if (ImGui::IsKeyDown(ImGuiKey_3)) {
-      current_mode = EditingMode::ENTRANCES;
+      current_mode = ENTRANCES;
     } else if (ImGui::IsKeyDown(ImGuiKey_4)) {
-      current_mode = EditingMode::EXITS;
+      current_mode = EXITS;
     } else if (ImGui::IsKeyDown(ImGuiKey_5)) {
-      current_mode = EditingMode::ITEMS;
+      current_mode = ITEMS;
     } else if (ImGui::IsKeyDown(ImGuiKey_6)) {
-      current_mode = EditingMode::SPRITES;
+      current_mode = SPRITES;
     } else if (ImGui::IsKeyDown(ImGuiKey_7)) {
-      current_mode = EditingMode::TRANSPORTS;
+      current_mode = TRANSPORTS;
     } else if (ImGui::IsKeyDown(ImGuiKey_8)) {
-      current_mode = EditingMode::MUSIC;
+      current_mode = MUSIC;
     }
   }
 }
@@ -325,7 +318,7 @@ void OverworldEditor::DrawOverworldMapSettings() {
 }
 
 void OverworldEditor::DrawCustomOverworldMapSettings() {
-  if (BeginTable(kOWMapTable.data(), 15, kOWMapFlags, ImVec2(0, 0), -1)) {
+  if (BeginTable(kOWMapTable.data(), 8, kOWMapFlags, ImVec2(0, 0), -1)) {
     for (const auto &name : kMapSettingsColumnNames)
       ImGui::TableSetupColumn(name);
 
@@ -333,20 +326,27 @@ void OverworldEditor::DrawCustomOverworldMapSettings() {
     ImGui::SetNextItemWidth(120.f);
     ImGui::Combo("##world", &current_world_, kWorldList.data(), 3);
 
-    static const std::array<std::string, 8> kCustomMapSettingsColumnNames = {
-        "TileGfx0", "TileGfx1", "TileGfx2", "TileGfx3",
-        "TileGfx4", "TileGfx5", "TileGfx6", "TileGfx7"};
-    for (int i = 0; i < 8; ++i) {
-      TableNextColumn();
-      ImGui::BeginGroup();
-      if (gui::InputHexByte(kCustomMapSettingsColumnNames[i].data(),
-                            overworld_.mutable_overworld_map(current_map_)
-                                ->mutable_custom_tileset(i),
-                            kInputFieldSize)) {
-        RefreshMapProperties();
-        RefreshOverworldMap();
+    TableNextColumn();
+
+    if (ImGui::Button("Tile Graphics", ImVec2(120, 0))) {
+      ImGui::OpenPopup("TileGraphicsPopup");
+    }
+    if (ImGui::BeginPopup("TileGraphicsPopup")) {
+      static const std::array<std::string, 8> kCustomMapSettingsColumnNames = {
+          "TileGfx0", "TileGfx1", "TileGfx2", "TileGfx3",
+          "TileGfx4", "TileGfx5", "TileGfx6", "TileGfx7"};
+      for (int i = 0; i < 8; ++i) {
+        ImGui::BeginGroup();
+        if (gui::InputHexByte(kCustomMapSettingsColumnNames[i].data(),
+                              overworld_.mutable_overworld_map(current_map_)
+                                  ->mutable_custom_tileset(i),
+                              kInputFieldSize)) {
+          RefreshMapProperties();
+          RefreshOverworldMap();
+        }
+        ImGui::EndGroup();
       }
-      ImGui::EndGroup();
+      ImGui::EndPopup();
     }
 
     TableNextColumn();
@@ -404,8 +404,9 @@ void OverworldEditor::DrawOverworldMaps() {
   int yy = 0;
   for (int i = 0; i < 0x40; i++) {
     int world_index = i + (current_world_ * 0x40);
-    int map_x = (xx * kOverworldMapSize * ow_map_canvas_.global_scale());
-    int map_y = (yy * kOverworldMapSize * ow_map_canvas_.global_scale());
+    int scale = static_cast<int>(ow_map_canvas_.global_scale());
+    int map_x = (xx * kOverworldMapSize * scale);
+    int map_y = (yy * kOverworldMapSize * scale);
     ow_map_canvas_.DrawBitmap(maps_bmp_[world_index], map_x, map_y,
                               ow_map_canvas_.global_scale());
     xx++;
@@ -463,8 +464,8 @@ void OverworldEditor::RenderUpdatedMapBitmap(
 
   // Calculate the pixel start position based on tile index and tile size
   ImVec2 start_position;
-  start_position.x = tile_index_x * kTile16Size;
-  start_position.y = tile_index_y * kTile16Size;
+  start_position.x = static_cast<float>(tile_index_x * kTile16Size);
+  start_position.y = static_cast<float>(tile_index_y * kTile16Size);
 
   // Update the bitmap's pixel data based on the start_position and tile_data
   gfx::Bitmap &current_bitmap = maps_bmp_[current_map_];
@@ -482,13 +483,12 @@ void OverworldEditor::RenderUpdatedMapBitmap(
 void OverworldEditor::CheckForOverworldEdits() {
   CheckForSelectRectangle();
 
-  // User has selected a tile they want to draw from the blockset.
+  // User has selected a tile they want to draw from the blockset
+  // and clicked on the canvas.
   if (!blockset_canvas_.points().empty() &&
-      !ow_map_canvas_.select_rect_active()) {
-    // Left click is pressed
-    if (ow_map_canvas_.DrawTilemapPainter(tile16_blockset_, current_tile16_)) {
-      DrawOverworldEdits();
-    }
+      !ow_map_canvas_.select_rect_active() &&
+      ow_map_canvas_.DrawTilemapPainter(tile16_blockset_, current_tile16_)) {
+    DrawOverworldEdits();
   }
 
   if (ow_map_canvas_.select_rect_active()) {
@@ -738,14 +738,13 @@ void OverworldEditor::DrawTile8Selector() {
 }
 
 absl::Status OverworldEditor::DrawAreaGraphics() {
-  if (overworld_.is_loaded() &&
-      current_graphics_set_.count(current_map_) == 0) {
+  if (overworld_.is_loaded() && current_graphics_set_.contains(current_map_)) {
     overworld_.set_current_map(current_map_);
     palette_ = overworld_.current_area_palette();
     gfx::Bitmap bmp;
     Renderer::Get().CreateAndRenderBitmap(0x80, kOverworldMapSize, 0x08,
-                                                  overworld_.current_graphics(),
-                                                  bmp, palette_);
+                                          overworld_.current_graphics(), bmp,
+                                          palette_);
     current_graphics_set_[current_map_] = bmp;
   }
 
@@ -1039,14 +1038,14 @@ absl::Status OverworldEditor::LoadGraphics() {
   util::logf("Loading overworld graphics.");
   // Create the area graphics image
   Renderer::Get().CreateAndRenderBitmap(0x80, kOverworldMapSize, 0x40,
-                                                overworld_.current_graphics(),
-                                                current_gfx_bmp_, palette_);
+                                        overworld_.current_graphics(),
+                                        current_gfx_bmp_, palette_);
 
   util::logf("Loading overworld tileset.");
   // Create the tile16 blockset image
-  Renderer::Get().CreateAndRenderBitmap(
-      0x80, 0x2000, 0x08, overworld_.tile16_blockset_data(),
-      tile16_blockset_bmp_, palette_);
+  Renderer::Get().CreateAndRenderBitmap(0x80, 0x2000, 0x08,
+                                        overworld_.tile16_blockset_data(),
+                                        tile16_blockset_bmp_, palette_);
   map_blockset_loaded_ = true;
 
   // Copy the tile16 data into individual tiles.
@@ -1117,7 +1116,7 @@ void OverworldEditor::RefreshChildMap(int map_index) {
 
 void OverworldEditor::RefreshOverworldMap() {
   std::vector<std::future<void>> futures;
-  int indices[4];
+  std::array<int, 4> indices = {0, 0, 0, 0};
 
   auto refresh_map_async = [this](int map_index) {
     RefreshChildMap(map_index);
@@ -1172,7 +1171,7 @@ absl::Status OverworldEditor::RefreshMapPalette() {
 }
 
 void OverworldEditor::RefreshMapProperties() {
-  auto &current_ow_map = *overworld_.mutable_overworld_map(current_map_);
+  const auto &current_ow_map = *overworld_.mutable_overworld_map(current_map_);
   if (current_ow_map.is_large_map()) {
     // We need to copy the properties from the parent map to the children
     for (int i = 1; i < 4; i++) {
@@ -1277,32 +1276,32 @@ void OverworldEditor::DrawOverworldProperties() {
   }
 
   Text("Area Gfx LW/DW");
-  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32,
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 32,
                                     OverworldProperty::LW_AREA_GFX);
   SameLine();
-  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32,
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 32,
                                     OverworldProperty::DW_AREA_GFX);
   ImGui::Separator();
 
   Text("Sprite Gfx LW/DW");
-  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32,
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 32,
                                     OverworldProperty::LW_SPR_GFX_PART1);
   SameLine();
-  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32,
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 32,
                                     OverworldProperty::DW_SPR_GFX_PART1);
   SameLine();
-  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32,
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 32,
                                     OverworldProperty::LW_SPR_GFX_PART2);
   SameLine();
-  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32,
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 32,
                                     OverworldProperty::DW_SPR_GFX_PART2);
   ImGui::Separator();
 
   Text("Area Pal LW/DW");
-  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32,
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 32,
                                     OverworldProperty::LW_AREA_PAL);
   SameLine();
-  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 2.0f, 32,
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 32,
                                     OverworldProperty::DW_AREA_PAL);
 
   static bool show_gfx_group = false;
@@ -1451,5 +1450,4 @@ absl::Status OverworldEditor::Clear() {
   return absl::OkStatus();
 }
 
-}  // namespace editor
-}  // namespace yaze
+}  // namespace yaze::editor
