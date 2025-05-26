@@ -35,6 +35,8 @@ absl::Status Tile16Editor::Initialize(
   tile16_blockset_bmp_.SetPalette(tile16_blockset_bmp.palette());
   core::Renderer::Get().RenderBitmap(&tile16_blockset_bmp_);
   // RETURN_IF_ERROR(LoadTile8());
+  map_blockset_loaded_ = true;
+
   ImVector<std::string> tile16_names;
   for (int i = 0; i < 0x200; ++i) {
     std::string str = util::HexByte(all_tiles_types_[i]);
@@ -473,8 +475,6 @@ absl::Status Tile16Editor::LoadTile8() {
     Renderer::Get().RenderBitmap(&tile_bitmap);
   }
 
-  map_blockset_loaded_ = true;
-
   return absl::OkStatus();
 }
 
@@ -487,8 +487,6 @@ absl::Status Tile16Editor::SetCurrentTile(int id) {
   Renderer::Get().UpdateBitmap(&current_tile16_bmp_);
   return absl::OkStatus();
 }
-
-#pragma mark - Tile16Transfer
 
 absl::Status Tile16Editor::UpdateTile16Transfer() {
   if (BeginTabItem("Tile16 Transfer")) {
@@ -527,7 +525,7 @@ absl::Status Tile16Editor::UpdateTransferTileCanvas() {
 
   // TODO: Implement tile16 transfer
   if (transfer_started_ && !transfer_blockset_loaded_) {
-    ASSIGN_OR_RETURN(transfer_gfx_, LoadAllGraphicsData(*transfer_rom_))
+    ASSIGN_OR_RETURN(transfer_gfx_, LoadAllGraphicsData(*transfer_rom_));
 
     // Load the Link to the Past overworld.
     PRINT_IF_ERROR(transfer_overworld_.Load(transfer_rom_))

@@ -23,9 +23,7 @@ constexpr unsigned int k4BPP = 4;
 constexpr unsigned int kByteSize = 3;
 constexpr unsigned int kMessageIdSize = 5;
 constexpr unsigned int kNumSheetsToLoad = 223;
-constexpr unsigned int kTile8DisplayHeight = 64;
 constexpr unsigned int kOverworldMapSize = 0x200;
-constexpr float kInputFieldSize = 30.f;
 constexpr ImVec2 kOverworldCanvasSize(kOverworldMapSize * 8,
                                       kOverworldMapSize * 8);
 constexpr ImVec2 kCurrentGfxCanvasSize(0x100 + 1, 0x10 * 0x40 + 1);
@@ -209,6 +207,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool map_blockset_loaded_ = false;
   bool selected_tile_loaded_ = false;
   bool show_tile16_editor_ = false;
+  bool show_gfx_group_editor_ = false;
+  bool show_properties_editor_ = false;
   bool overworld_canvas_fullscreen_ = false;
   bool middle_mouse_dragging_ = false;
   bool is_dragging_entity_ = false;

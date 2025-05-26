@@ -9,8 +9,7 @@
 #include "app/gui/icons.h"
 #include "app/gui/modules/text_editor.h"
 
-namespace yaze {
-namespace editor {
+namespace yaze::editor {
 
 using core::FileDialogWrapper;
 
@@ -22,15 +21,14 @@ std::vector<std::string> RemoveIgnoredFiles(
   std::vector<std::string> filtered_files;
   for (const auto& file : files) {
     // Remove subdirectory files
-    if (file.find('/') != std::string::npos) {
+    if (file.contains('/')) {
       continue;
     }
     // Make sure the file has an extension
-    if (file.find('.') == std::string::npos) {
+    if (!file.contains('.')) {
       continue;
     }
-    if (std::find(ignored_files.begin(), ignored_files.end(), file) ==
-        ignored_files.end()) {
+    if (std::ranges::find(ignored_files, file) == ignored_files.end()) {
       filtered_files.push_back(file);
     }
   }
@@ -68,15 +66,14 @@ FolderItem LoadFolder(const std::string& folder) {
     auto folder_files = FileDialogWrapper::GetFilesInFolder(full_folder);
     for (const auto& files : folder_files) {
       // Remove subdirectory files
-      if (files.find('/') != std::string::npos) {
+      if (files.contains('/')) {
         continue;
       }
       // Make sure the file has an extension
-      if (files.find('.') == std::string::npos) {
+      if (!files.contains('.')) {
         continue;
       }
-      if (std::find(ignored_files.begin(), ignored_files.end(), files) !=
-          ignored_files.end()) {
+      if (std::ranges::find(ignored_files, files) != ignored_files.end()) {
         continue;
       }
       folder_item.files.push_back(files);
@@ -101,9 +98,7 @@ void AssemblyEditor::Initialize() {
   // Set the language definition
 }
 
-absl::Status AssemblyEditor::Load() {
-  return absl::OkStatus();
-}
+absl::Status AssemblyEditor::Load() { return absl::OkStatus(); }
 
 void AssemblyEditor::OpenFolder(const std::string& folder_path) {
   current_folder_ = LoadFolder(folder_path);
@@ -131,7 +126,6 @@ void AssemblyEditor::Update(bool& is_loaded) {
 }
 
 void AssemblyEditor::InlineUpdate() {
-  ChangeActiveFile("assets/asm/template_song.asm");
   auto cpos = text_editor_.GetCursorPosition();
   SetEditorText();
   ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1,
@@ -237,8 +231,8 @@ void AssemblyEditor::DrawFileTabView() {
 
   if (ImGui::BeginTabBar("AssemblyFileTabBar", ImGuiTabBarFlags_None)) {
     if (ImGui::TabItemButton(ICON_MD_ADD, ImGuiTabItemFlags_None)) {
-      if (std::find(active_files_.begin(), active_files_.end(),
-                    current_file_id_) != active_files_.end()) {
+      if (std::ranges::find(active_files_, current_file_id_) !=
+          active_files_.end()) {
         // Room is already open
         next_tab_id++;
       }
@@ -366,5 +360,4 @@ absl::Status AssemblyEditor::Redo() {
 
 absl::Status AssemblyEditor::Update() { return absl::OkStatus(); }
 
-}  // namespace editor
-}  // namespace yaze
+}  // namespace yaze::editor

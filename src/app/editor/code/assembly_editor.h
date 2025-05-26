@@ -55,10 +55,7 @@ class AssemblyEditor : public Editor {
 
   void OpenFolder(const std::string &folder_path);
 
-  // Set the ROM pointer
   void set_rom(Rom* rom) { rom_ = rom; }
-
-  // Get the ROM pointer
   Rom* rom() const { return rom_; }
 
  private:
