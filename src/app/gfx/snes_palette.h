@@ -395,10 +395,11 @@ struct Paletteset {
    * @param spr2 The second sprite palette.
    * @param comp The composite palette.
    */
-  Paletteset(gfx::SnesPalette main, gfx::SnesPalette animated,
-             gfx::SnesPalette aux1, gfx::SnesPalette aux2,
-             gfx::SnesColor background, gfx::SnesPalette hud,
-             gfx::SnesPalette spr, gfx::SnesPalette spr2, gfx::SnesPalette comp)
+  Paletteset(const gfx::SnesPalette& main, const gfx::SnesPalette& animated,
+             const gfx::SnesPalette& aux1, const gfx::SnesPalette& aux2,
+             const gfx::SnesColor& background, const gfx::SnesPalette& hud,
+             const gfx::SnesPalette& spr, const gfx::SnesPalette& spr2,
+             const gfx::SnesPalette& comp)
       : main_(main),
         animated(animated),
         aux1(aux1),
