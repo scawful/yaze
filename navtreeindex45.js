@@ -1,5 +1,8 @@
 var NAVTREEINDEX45 =
 {
+"namespaceyaze_1_1zelda3.html#ada48040365b4c81ea24e3313bbb84f7f":[11,0,1,8,254],
+"namespaceyaze_1_1zelda3.html#ada97ba977781a8d06fd59837a290f9b6":[11,0,1,8,323],
+"namespaceyaze_1_1zelda3.html#adbf17106eb31068575ea3fdd30188d0b":[11,0,1,8,68],
 "namespaceyaze_1_1zelda3.html#adbfeff680da7524cc836a51e71b08c20":[11,0,1,8,246],
 "namespaceyaze_1_1zelda3.html#adc513472e47065de3e94600aceb86b69":[11,0,1,8,316],
 "namespaceyaze_1_1zelda3.html#adc7a44403a309bba04259cd65b181719":[11,0,1,8,260],
@@ -246,8 +249,5 @@ var NAVTREEINDEX45 =
 "structTextEditor_1_1LanguageDefinition.html#a67baa43cd1ef6d9aef8739e2369fc8b7":[12,0,17,5,7],
 "structTextEditor_1_1LanguageDefinition.html#a68dd7ed9ff3f921cdd5eba80ac61ec6b":[12,0,17,5,11],
 "structTextEditor_1_1LanguageDefinition.html#a711208616bcfb7d671e268e8811bd64d":[12,0,17,5,5],
-"structTextEditor_1_1LanguageDefinition.html#a77668454aaac7f3aa9358d01acda0376":[12,0,17,5,15],
-"structTextEditor_1_1LanguageDefinition.html#a8ab84264ac8f88f35c4de22102507399":[12,0,17,5,2],
-"structTextEditor_1_1LanguageDefinition.html#a8d9d3b1eff76ed1b7e8192626d1984ec":[12,0,17,5,1],
-"structTextEditor_1_1LanguageDefinition.html#ab0c6722298c1d597ae4f3e266935b318":[12,0,17,5,12]
+"structTextEditor_1_1LanguageDefinition.html#a77668454aaac7f3aa9358d01acda0376":[12,0,17,5,15]
 };

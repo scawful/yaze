@@ -1,7 +1,7 @@
 var structyaze_1_1gfx_1_1Paletteset =
 [
     [ "Paletteset", "structyaze_1_1gfx_1_1Paletteset.html#abf0729ec3cba7683d6a537284b1a7948", null ],
-    [ "Paletteset", "structyaze_1_1gfx_1_1Paletteset.html#a8ee23d9b7639970f850920a9eb007d1c", null ],
+    [ "Paletteset", "structyaze_1_1gfx_1_1Paletteset.html#a40541d6a1202810314a7c45072d04371", null ],
     [ "main_", "structyaze_1_1gfx_1_1Paletteset.html#a2b0478e407c3acca34da25e5d1d49bb0", null ],
     [ "animated", "structyaze_1_1gfx_1_1Paletteset.html#a4b0a93a437e28101894c6155fe17b130", null ],
     [ "aux1", "structyaze_1_1gfx_1_1Paletteset.html#a72aadefb5901777ae333bbd37451f92e", null ],

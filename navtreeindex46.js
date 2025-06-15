@@ -1,5 +1,8 @@
 var NAVTREEINDEX46 =
 {
+"structTextEditor_1_1LanguageDefinition.html#a8ab84264ac8f88f35c4de22102507399":[12,0,17,5,2],
+"structTextEditor_1_1LanguageDefinition.html#a8d9d3b1eff76ed1b7e8192626d1984ec":[12,0,17,5,1],
+"structTextEditor_1_1LanguageDefinition.html#ab0c6722298c1d597ae4f3e266935b318":[12,0,17,5,12],
 "structTextEditor_1_1LanguageDefinition.html#abf9ed270616ed79eb80c5f97805b184b":[12,0,17,5,9],
 "structTextEditor_1_1LanguageDefinition.html#abfb75894b7d636fc35af95b28127a418":[12,0,17,5,0],
 "structTextEditor_1_1LanguageDefinition.html#ac40f4cc01836db6f18dbf21f25121f2d":[12,0,17,5,3],
@@ -246,8 +249,5 @@ var NAVTREEINDEX46 =
 "structyaze_1_1editor_1_1DictionaryEntry.html#a295d4ae9e0e49ca5b30a8efac2a35972":[11,0,1,2,11,2],
 "structyaze_1_1editor_1_1DictionaryEntry.html#a295d4ae9e0e49ca5b30a8efac2a35972":[12,0,0,2,4,2],
 "structyaze_1_1editor_1_1DictionaryEntry.html#a42d8be10d4b8070021776b024f0b3800":[11,0,1,2,11,8],
-"structyaze_1_1editor_1_1DictionaryEntry.html#a42d8be10d4b8070021776b024f0b3800":[12,0,0,2,4,8],
-"structyaze_1_1editor_1_1DictionaryEntry.html#a53f59e0595aa655fdc29cd54269d8871":[11,0,1,2,11,7],
-"structyaze_1_1editor_1_1DictionaryEntry.html#a53f59e0595aa655fdc29cd54269d8871":[12,0,0,2,4,7],
-"structyaze_1_1editor_1_1DictionaryEntry.html#a6b2beaa9312716f63e1b5ad0cea3d685":[11,0,1,2,11,5]
+"structyaze_1_1editor_1_1DictionaryEntry.html#a42d8be10d4b8070021776b024f0b3800":[12,0,0,2,4,8]
 };

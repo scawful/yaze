@@ -1,7 +1,5 @@
 <map id="yaze::editor::AssemblyEditor::InlineUpdate" name="yaze::editor::AssemblyEditor::InlineUpdate">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,187,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1AssemblyEditor.html#a4b745650f8142af416a263bfee0b24c9" title=" " alt="" coords="235,5,416,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,43,219,38,220,44,187,48"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1AssemblyEditor.html#ae05d2701e4bd69ee07fff43b5136b51b" title=" " alt="" coords="235,71,416,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="187,69,220,74,219,79,187,74"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,187,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1AssemblyEditor.html#ae05d2701e4bd69ee07fff43b5136b51b" title=" " alt="" coords="235,5,416,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,23,219,23,219,28,187,28"/>
 </map>

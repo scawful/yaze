@@ -175,7 +175,6 @@ var namespaceyaze_1_1editor =
     [ "kByteSize", "namespaceyaze_1_1editor.html#aa19b000d1fccab47624593821858eac0", null ],
     [ "kMessageIdSize", "namespaceyaze_1_1editor.html#afb0fe3cb3d65d1bbe1466284308ad8bc", null ],
     [ "kNumSheetsToLoad", "namespaceyaze_1_1editor.html#a6b56576c02ee38f7f1eecd135aa1f43c", null ],
-    [ "kTile8DisplayHeight", "namespaceyaze_1_1editor.html#a4026f9eb00c1069527eba5adcf9bf466", null ],
     [ "kOverworldMapSize", "namespaceyaze_1_1editor.html#a32e9005b4f1ea1908b9fac631338f632", null ],
     [ "kOWMapFlags", "namespaceyaze_1_1editor.html#a21a3ee57d060881f0c1f7e062418a71f", null ],
     [ "kToolsetTableFlags", "namespaceyaze_1_1editor.html#a615aec1dbd7a854131aa04103e8ea5b6", null ],

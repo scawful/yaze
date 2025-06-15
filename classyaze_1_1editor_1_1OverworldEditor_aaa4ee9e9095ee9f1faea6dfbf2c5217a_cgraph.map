@@ -5,10 +5,10 @@
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="188,67,224,60,225,65,189,72"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1OverworldEditor.html#ad8777e42d3b62d08401b380cce94230b" title="Load the Bitmap objects for each OverworldMap." alt="" coords="237,111,420,152"/>
 <area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="189,102,222,109,221,114,188,108"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a6bd8ce3b192c32b2ed6c58f7b154787e" title=" " alt="" coords="475,29,621,55"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="417,40,459,40,459,45,417,45"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="512,31,504,21,509,11,524,5,548,3,575,5,589,12,586,17,574,10,548,8,525,10,512,15,510,20,516,27"/>
-<area shape="poly" id="edge7_Node000004_Node000004" title=" " alt="" coords="287,111,285,101,292,92,306,87,328,85,352,87,366,93,364,98,351,92,328,90,307,92,295,96,290,102,292,110"/>
-<area shape="rect" id="Node000005" href="$namespaceyaze_1_1gfx.html#a2064ed9f541dd72deb72f78523e006c4" title=" " alt="" coords="468,119,628,144"/>
-<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="421,129,452,129,452,134,421,134"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a6bd8ce3b192c32b2ed6c58f7b154787e" title=" " alt="" coords="480,29,626,55"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="417,40,464,40,464,45,417,45"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="516,31,508,21,513,11,528,5,553,3,581,5,595,12,592,17,579,10,553,8,529,10,517,15,514,20,520,27"/>
+<area shape="poly" id="edge7_Node000004_Node000004" title=" " alt="" coords="286,111,284,101,291,92,306,87,328,85,353,87,367,93,365,98,351,92,328,90,307,92,294,96,289,102,291,110"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1core_1_1Renderer.html#a0d5a59f3505536cfb25b54a54c1d855d" title=" " alt="" coords="468,111,638,152"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="420,129,453,129,453,134,420,134"/>
 </map>
