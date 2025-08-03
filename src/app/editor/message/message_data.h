@@ -12,9 +12,9 @@
 namespace yaze {
 namespace editor {
 
-const uint8_t kMessageTerminator = 0x7F;
 const std::string kBankToken = "BANK";
 const std::string DICTIONARYTOKEN = "D";
+constexpr uint8_t kMessageTerminator = 0x7F;
 constexpr uint8_t DICTOFF = 0x88;
 constexpr uint8_t kWidthArraySize = 100;
 
@@ -50,18 +50,18 @@ struct DictionaryEntry {
   std::string Token = "";
 
   DictionaryEntry() = default;
-  DictionaryEntry(uint8_t i, std::string s)
-      : Contents(s), ID(i), Length(s.length()) {
+  DictionaryEntry(uint8_t i, std::string_view s)
+      : ID(i), Contents(s), Length(s.length()) {
     Token = absl::StrFormat("[%s:%02X]", DICTIONARYTOKEN, ID);
     Data = ParseMessageToData(Contents);
   }
 
-  bool ContainedInString(std::string s) const {
-    return s.find(Contents) != std::string::npos;
+  bool ContainedInString(std::string_view s) const {
+    return s.contains(Contents);
   }
 
-  std::string ReplaceInstancesOfIn(std::string s) const {
-    std::string replaced_string = s;
+  std::string ReplaceInstancesOfIn(std::string_view s) const {
+    auto replaced_string = std::string(s);
     size_t pos = replaced_string.find(Contents);
     while (pos != std::string::npos) {
       replaced_string.replace(pos, Contents.length(), Token);
@@ -105,9 +105,9 @@ struct MessageData {
       : ID(id),
         Address(address),
         RawString(rawString),
+        ContentsParsed(parsedString),
         Data(rawData),
-        DataParsed(parsedData),
-        ContentsParsed(parsedString) {}
+        DataParsed(parsedData) {}
 
   // Copy constructor
   MessageData(const MessageData &other) {
@@ -120,7 +120,7 @@ struct MessageData {
   }
 
   std::string OptimizeMessageForDictionary(
-      std::string message_string,
+      std::string_view message_string,
       const std::vector<DictionaryEntry> &dictionary) {
     std::stringstream protons;
     bool command = false;
@@ -288,11 +288,8 @@ struct ParsedElement {
   bool Active = false;
 
   ParsedElement() = default;
-  ParsedElement(TextElement textElement, uint8_t value) {
-    Parent = textElement;
-    Value = value;
-    Active = true;
-  }
+  ParsedElement(const TextElement &textElement, uint8_t value)
+      : Parent(textElement), Value(value), Active(true) {}
 };
 
 ParsedElement FindMatchingElement(const std::string &str);

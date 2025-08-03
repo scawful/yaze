@@ -6,6 +6,7 @@
 
 #include "app/core/controller.h"
 #include "app/core/platform/app_delegate.h"
+#include "app/editor/message/message_data.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "util/flag.h"
@@ -94,7 +95,7 @@ zelda3_rom *yaze_load_rom(const char *filename) {
   zelda3_rom *rom = new zelda3_rom();
   rom->filename = filename;
   rom->impl = internal_rom;
-  rom->data = internal_rom->data();
+  rom->data = const_cast<uint8_t *>(internal_rom->data());
   rom->size = internal_rom->size();
   return rom;
 }
@@ -180,4 +181,29 @@ zelda3_dungeon_room *yaze_load_all_rooms(const zelda3_rom *rom) {
   yaze::Rom *internal_rom = static_cast<yaze::Rom *>(rom->impl);
   zelda3_dungeon_room *rooms = new zelda3_dungeon_room[256];
   return rooms;
+}
+
+yaze_status yaze_load_messages(zelda3_rom *rom, zelda3_message **messages) {
+  if (rom->impl == nullptr) {
+    return yaze_status::YAZE_ERROR;
+  }
+
+  // Use LoadAllTextData from message_data.h
+  std::vector<yaze::editor::MessageData> message_data =
+      yaze::editor::ReadAllTextData(rom->data, 0);
+  for (const auto &message : message_data) {
+    messages[message.ID] = new zelda3_message();
+    messages[message.ID]->id = message.ID;
+    messages[message.ID]->address = message.Address;
+    messages[message.ID]->raw_string = reinterpret_cast<uint8_t *>(
+        const_cast<char *>(message.RawString.data()));
+    messages[message.ID]->contents_parsed = reinterpret_cast<uint8_t *>(
+        const_cast<char *>(message.ContentsParsed.data()));
+    messages[message.ID]->data =
+        reinterpret_cast<uint8_t *>(const_cast<uint8_t *>(message.Data.data()));
+    messages[message.ID]->data_parsed = reinterpret_cast<uint8_t *>(
+        const_cast<uint8_t *>(message.DataParsed.data()));
+  }
+
+  return yaze_status::YAZE_OK;
 }
