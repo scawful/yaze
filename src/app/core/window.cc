@@ -83,5 +83,46 @@ absl::Status ShutdownWindow(Window& window) {
   return absl::OkStatus();
 }
 
+absl::Status HandleEvents(Window &window) {
+  SDL_Event event;
+  ImGuiIO &io = ImGui::GetIO();
+  SDL_WaitEvent(&event);
+  ImGui_ImplSDL2_ProcessEvent(&event);
+  switch (event.type) {
+    case SDL_KEYDOWN:
+    case SDL_KEYUP: {
+      io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
+      io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
+      io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
+      io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
+      break;
+    }
+    case SDL_WINDOWEVENT:
+      switch (event.window.event) {
+        case SDL_WINDOWEVENT_CLOSE:
+          window.active_ = false;
+          break;
+        case SDL_WINDOWEVENT_SIZE_CHANGED:
+          io.DisplaySize.x = static_cast<float>(event.window.data1);
+          io.DisplaySize.y = static_cast<float>(event.window.data2);
+          break;
+      }
+      break;
+  }
+  int mouseX;
+  int mouseY;
+  const int buttons = SDL_GetMouseState(&mouseX, &mouseY);
+
+  io.DeltaTime = 1.0f / 60.0f;
+  io.MousePos = ImVec2(static_cast<float>(mouseX), static_cast<float>(mouseY));
+  io.MouseDown[0] = buttons & SDL_BUTTON(SDL_BUTTON_LEFT);
+  io.MouseDown[1] = buttons & SDL_BUTTON(SDL_BUTTON_RIGHT);
+  io.MouseDown[2] = buttons & SDL_BUTTON(SDL_BUTTON_MIDDLE);
+
+  int wheel = 0;
+  io.MouseWheel = static_cast<float>(wheel);
+  return absl::OkStatus();
+}
+
 }  // namespace core
 }  // namespace yaze

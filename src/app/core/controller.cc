@@ -16,64 +16,19 @@ absl::Status Controller::OnEntry(std::string filename) {
   RETURN_IF_ERROR(CreateWindow(window_, SDL_WINDOW_RESIZABLE));
   editor_manager_.emulator().set_audio_buffer(window_.audio_buffer_.get());
   editor_manager_.emulator().set_audio_device_id(window_.audio_device_);
-  Initialize(filename);
+  editor_manager_.Initialize(filename);
+  active_ = true;
   return absl::OkStatus();
 }
 
-void Controller::Initialize(std::string filename) {
-  editor_manager_.Initialize(filename);
-  active_ = true;
-}
-
 void Controller::OnInput() {
-  ImGuiIO &io = ImGui::GetIO();
-  SDL_Event event;
-
-  SDL_WaitEvent(&event);
-  ImGui_ImplSDL2_ProcessEvent(&event);
-  switch (event.type) {
-    case SDL_KEYDOWN:
-    case SDL_KEYUP: {
-      io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
-      io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
-      io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
-      io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
-      break;
-    }
-    case SDL_WINDOWEVENT:
-      switch (event.window.event) {
-        case SDL_WINDOWEVENT_CLOSE:
-          active_ = false;
-          break;
-        case SDL_WINDOWEVENT_SIZE_CHANGED:
-          io.DisplaySize.x = static_cast<float>(event.window.data1);
-          io.DisplaySize.y = static_cast<float>(event.window.data2);
-          break;
-        default:
-          break;
-      }
-      break;
-    default:
-      break;
-  }
-
-  int mouseX;
-  int mouseY;
-  const int buttons = SDL_GetMouseState(&mouseX, &mouseY);
-
-  io.DeltaTime = 1.0f / 60.0f;
-  io.MousePos = ImVec2(static_cast<float>(mouseX), static_cast<float>(mouseY));
-  io.MouseDown[0] = buttons & SDL_BUTTON(SDL_BUTTON_LEFT);
-  io.MouseDown[1] = buttons & SDL_BUTTON(SDL_BUTTON_RIGHT);
-  io.MouseDown[2] = buttons & SDL_BUTTON(SDL_BUTTON_MIDDLE);
-
-  int wheel = 0;
-  io.MouseWheel = static_cast<float>(wheel);
+  PRINT_IF_ERROR(HandleEvents(window_));
 }
 
 absl::Status Controller::OnLoad() {
-  if (editor_manager_.quit()) {
+  if (editor_manager_.quit() || !window_.active_) {
     active_ = false;
+    return absl::OkStatus();
   }
 
 #if TARGET_OS_IPHONE != 1
@@ -120,9 +75,7 @@ void Controller::DoRender() const {
   SDL_RenderPresent(Renderer::Get().renderer());
 }
 
-void Controller::OnExit() {
-  PRINT_IF_ERROR(ShutdownWindow(window_));
-}
+void Controller::OnExit() { PRINT_IF_ERROR(ShutdownWindow(window_)); }
 
 }  // namespace core
 }  // namespace yaze
