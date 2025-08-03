@@ -36,10 +36,10 @@ std::optional<TextElement> FindMatchingCommand(uint8_t b) {
 }
 
 std::optional<TextElement> FindMatchingSpecial(uint8_t value) {
-  auto it = std::find_if(SpecialChars.begin(), SpecialChars.end(),
-                         [value](const TextElement &text_element) {
-                           return text_element.ID == value;
-                         });
+  auto it = std::ranges::find_if(SpecialChars,
+                                 [value](const TextElement &text_element) {
+                                   return text_element.ID == value;
+                                 });
   if (it != SpecialChars.end()) {
     return *it;
   }
@@ -83,15 +83,15 @@ std::string ParseTextDataByte(uint8_t value) {
   }
 
   // Check for command.
-  auto text_element = FindMatchingCommand(value);
-  if (text_element != std::nullopt) {
+  if (auto text_element = FindMatchingCommand(value);
+      text_element != std::nullopt) {
     return text_element->GenericToken;
   }
 
   // Check for special characters.
-  auto special_element = FindMatchingSpecial(value);
-  if (special_element != std::nullopt) {
-    return text_element->GenericToken;
+  if (auto special_element = FindMatchingSpecial(value);
+      special_element != std::nullopt) {
+    return special_element->GenericToken;
   }
 
   // Check for dictionary.
@@ -172,10 +172,10 @@ std::vector<DictionaryEntry> BuildDictionaryEntries(Rom *rom) {
     AllDictionaries.push_back(DictionaryEntry{(uint8_t)i, stringBuilder.str()});
   }
 
-  std::sort(AllDictionaries.begin(), AllDictionaries.end(),
-            [](const DictionaryEntry &a, const DictionaryEntry &b) {
-              return a.Contents.size() > b.Contents.size();
-            });
+  std::ranges::sort(AllDictionaries,
+                    [](const DictionaryEntry &a, const DictionaryEntry &b) {
+                      return a.Contents.size() > b.Contents.size();
+                    });
 
   return AllDictionaries;
 }
@@ -318,6 +318,10 @@ std::vector<std::string> ParseMessageData(
             } else {
               parsed_message.append(text_element->GetParamToken());
             }
+          }
+          auto special_element = FindMatchingSpecial(byte);
+          if (special_element != std::nullopt) {
+            parsed_message.append(special_element->GetParamToken());
           }
         }
       }
