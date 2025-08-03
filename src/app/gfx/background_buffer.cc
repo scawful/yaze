@@ -4,12 +4,10 @@
 #include <cstdint>
 #include <vector>
 
-#include "absl/log/log.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 
-namespace yaze {
-namespace gfx {
+namespace yaze::gfx {
 
 BackgroundBuffer::BackgroundBuffer(int width, int height)
     : width_(width), height_(height) {
@@ -31,9 +29,7 @@ uint16_t BackgroundBuffer::GetTileAt(int x, int y) const {
   return 0;
 }
 
-void BackgroundBuffer::ClearBuffer() {
-  std::fill(buffer_.begin(), buffer_.end(), 0);
-}
+void BackgroundBuffer::ClearBuffer() { std::ranges::fill(buffer_, 0); }
 
 void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
                                 const uint8_t* tiledata, int indexoffset) {
@@ -78,7 +74,7 @@ void BackgroundBuffer::DrawBackground(std::span<uint8_t> gfx16_data) {
 void BackgroundBuffer::DrawFloor(const std::vector<uint8_t>& rom_data,
                                  int tile_address, int tile_address_floor,
                                  uint8_t floor_graphics) {
-  uint8_t f = (uint8_t)(floor_graphics << 4);
+  auto f = (uint8_t)(floor_graphics << 4);
 
   // Create floor tiles from ROM data
   gfx::TileInfo floorTile1(rom_data[tile_address + f],
@@ -115,5 +111,4 @@ void BackgroundBuffer::DrawFloor(const std::vector<uint8_t>& rom_data,
   }
 }
 
-}  // namespace gfx
-}  // namespace yaze
+}  // namespace yaze::gfx

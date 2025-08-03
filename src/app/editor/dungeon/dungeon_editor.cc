@@ -14,8 +14,7 @@
 #include "imgui_memory_editor.h"
 #include "util/hex.h"
 
-namespace yaze {
-namespace editor {
+namespace yaze::editor {
 
 using core::Renderer;
 
@@ -112,24 +111,19 @@ absl::Status DungeonEditor::Update() {
 
 absl::Status DungeonEditor::RefreshGraphics() {
   std::for_each_n(
-      rooms_[current_room_id_].blocks().begin(), 8,
-      [this](int block) -> absl::Status {
+      rooms_[current_room_id_].blocks().begin(), 8, [this](int block) {
         gfx::Arena::Get().gfx_sheets()[block].SetPaletteWithTransparent(
             current_palette_group_[current_palette_id_], 0);
-        Renderer::Get().UpdateBitmap(
-            &gfx::Arena::Get().gfx_sheets()[block]);
-        return absl::OkStatus();
+        Renderer::Get().UpdateBitmap(&gfx::Arena::Get().gfx_sheets()[block]);
       });
 
   auto sprites_aux1_pal_group = rom()->palette_group().sprites_aux1;
   std::for_each_n(
       rooms_[current_room_id_].blocks().begin() + 8, 8,
-      [this, &sprites_aux1_pal_group](int block) -> absl::Status {
+      [this, &sprites_aux1_pal_group](int block) {
         gfx::Arena::Get().gfx_sheets()[block].SetPaletteWithTransparent(
             sprites_aux1_pal_group[current_palette_id_], 0);
-        Renderer::Get().UpdateBitmap(
-            &gfx::Arena::Get().gfx_sheets()[block]);
-        return absl::OkStatus();
+        Renderer::Get().UpdateBitmap(&gfx::Arena::Get().gfx_sheets()[block]);
       });
   return absl::OkStatus();
 }
@@ -144,18 +138,17 @@ void DungeonEditor::LoadDungeonRoomSize() {
   // Process and calculate room sizes within each bank
   for (auto &bank_rooms : rooms_by_bank) {
     // Sort the rooms within this bank
-    std::sort(bank_rooms.second.begin(), bank_rooms.second.end());
+    std::ranges::sort(bank_rooms.second);
 
     for (size_t i = 0; i < bank_rooms.second.size(); ++i) {
       int room_ptr = bank_rooms.second[i];
 
       // Identify the room ID for the current room pointer
       int room_id =
-          std::find_if(room_size_addresses_.begin(), room_size_addresses_.end(),
-                       [room_ptr](const auto &entry) {
-                         return entry.second == room_ptr;
-                       })
-              ->first;
+          std::ranges::find_if(room_size_addresses_, [room_ptr](
+                                                         const auto &entry) {
+            return entry.second == room_ptr;
+          })->first;
 
       if (room_ptr != 0x0A8000) {
         if (i < bank_rooms.second.size() - 1) {
@@ -218,21 +211,13 @@ absl::Status DungeonEditor::UpdateDungeonRoomView() {
 }
 
 void DungeonEditor::DrawToolset() {
-  if (BeginTable("DWToolset", 13, ImGuiTableFlags_SizingFixedFit,
+  if (BeginTable("DWToolset", 14, ImGuiTableFlags_SizingFixedFit,
                  ImVec2(0, 0))) {
-    TableSetupColumn("#undoTool");
-    TableSetupColumn("#redoTool");
-    TableSetupColumn("#separator");
-    TableSetupColumn("#anyTool");
-
-    TableSetupColumn("#bg1Tool");
-    TableSetupColumn("#bg2Tool");
-    TableSetupColumn("#bg3Tool");
-    TableSetupColumn("#separator");
-    TableSetupColumn("#spriteTool");
-    TableSetupColumn("#itemTool");
-    TableSetupColumn("#doorTool");
-    TableSetupColumn("#blockTool");
+    static std::array<const char *, 14> tool_names = {
+        "Undo",      "Redo",   "Separator", "Any",  "BG1",   "BG2",    "BG3",
+        "Separator", "Sprite", "Item",      "Door", "Block", "Palette"};
+    std::ranges::for_each(tool_names,
+                          [](const char *name) { TableSetupColumn(name); });
 
     TableNextColumn();
     if (Button(ICON_MD_UNDO)) {
@@ -837,5 +822,4 @@ void DungeonEditor::DrawUsageGrid() {
   }
 }
 
-}  // namespace editor
-}  // namespace yaze
+}  // namespace yaze::editor
