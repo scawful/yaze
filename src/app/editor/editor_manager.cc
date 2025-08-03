@@ -33,20 +33,6 @@ using core::FileDialogWrapper;
 
 namespace {
 
-bool BeginCentered(const char *name) {
-  ImGuiIO const &io = GetIO();
-  ImVec2 pos(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);
-  SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-  ImGuiWindowFlags flags =
-      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration |
-      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings;
-  return Begin(name, nullptr, flags);
-}
-
-bool IsEditorActive(Editor *editor, std::vector<Editor *> &active_editors) {
-  return std::ranges::find(active_editors, editor) != active_editors.end();
-}
-
 std::string GetEditorName(EditorType type) {
   return kEditorNames[static_cast<int>(type)];
 }
@@ -82,37 +68,37 @@ void EditorManager::Initialize(const std::string &filename) {
   context_.popup_manager = popup_manager_.get();
 
   context_.shortcut_manager.RegisterShortcut(
-      "Open", {ImGuiKey_O, ImGuiMod_Ctrl}, [&]() { status_ = LoadRom(); });
+      "Open", {ImGuiKey_O, ImGuiMod_Ctrl}, [this]() { status_ = LoadRom(); });
   context_.shortcut_manager.RegisterShortcut(
-      "Save", {ImGuiKey_S, ImGuiMod_Ctrl}, [&]() { status_ = SaveRom(); });
+      "Save", {ImGuiKey_S, ImGuiMod_Ctrl}, [this]() { status_ = SaveRom(); });
   context_.shortcut_manager.RegisterShortcut(
-      "Close", {ImGuiKey_W, ImGuiMod_Ctrl}, [&]() {
+      "Close", {ImGuiKey_W, ImGuiMod_Ctrl}, [this]() {
         if (current_rom_) current_rom_->Close();
       });
   context_.shortcut_manager.RegisterShortcut(
-      "Quit", {ImGuiKey_Q, ImGuiMod_Ctrl}, [&]() { quit_ = true; });
+      "Quit", {ImGuiKey_Q, ImGuiMod_Ctrl}, [this]() { quit_ = true; });
 
   context_.shortcut_manager.RegisterShortcut(
       "Undo", {ImGuiKey_Z, ImGuiMod_Ctrl},
-      [&]() { status_ = current_editor_->Undo(); });
+      [this]() { status_ = current_editor_->Undo(); });
   context_.shortcut_manager.RegisterShortcut(
       "Redo", {ImGuiKey_Y, ImGuiMod_Ctrl},
-      [&]() { status_ = current_editor_->Redo(); });
+      [this]() { status_ = current_editor_->Redo(); });
   context_.shortcut_manager.RegisterShortcut(
       "Cut", {ImGuiKey_X, ImGuiMod_Ctrl},
-      [&]() { status_ = current_editor_->Cut(); });
+      [this]() { status_ = current_editor_->Cut(); });
   context_.shortcut_manager.RegisterShortcut(
       "Copy", {ImGuiKey_C, ImGuiMod_Ctrl},
-      [&]() { status_ = current_editor_->Copy(); });
+      [this]() { status_ = current_editor_->Copy(); });
   context_.shortcut_manager.RegisterShortcut(
       "Paste", {ImGuiKey_V, ImGuiMod_Ctrl},
-      [&]() { status_ = current_editor_->Paste(); });
+      [this]() { status_ = current_editor_->Paste(); });
   context_.shortcut_manager.RegisterShortcut(
       "Find", {ImGuiKey_F, ImGuiMod_Ctrl},
-      [&]() { status_ = current_editor_->Find(); });
+      [this]() { status_ = current_editor_->Find(); });
 
   context_.shortcut_manager.RegisterShortcut(
-      "Load Last ROM", {ImGuiKey_R, ImGuiMod_Ctrl}, [&]() {
+      "Load Last ROM", {ImGuiKey_R, ImGuiMod_Ctrl}, [this]() {
         static RecentFilesManager manager("recent_files.txt");
         manager.Load();
         if (!manager.GetRecentFiles().empty()) {
@@ -122,7 +108,7 @@ void EditorManager::Initialize(const std::string &filename) {
       });
 
   context_.shortcut_manager.RegisterShortcut(
-      "F1", ImGuiKey_F1, [&]() { popup_manager_->Show("About"); });
+      "F1", ImGuiKey_F1, [this]() { popup_manager_->Show("About"); });
 
   // Initialize menu items
   std::vector<gui::MenuItem> recent_files;
@@ -140,20 +126,20 @@ void EditorManager::Initialize(const std::string &filename) {
 
   std::vector<gui::MenuItem> options_subitems;
   options_subitems.emplace_back(
-      "Backup ROM", "", [&]() { backup_rom_ |= backup_rom_; },
-      [&]() { return backup_rom_; });
+      "Backup ROM", "", [this]() { backup_rom_ |= backup_rom_; },
+      [this]() { return backup_rom_; });
   options_subitems.emplace_back(
-      "Save New Auto", "", [&]() { save_new_auto_ |= save_new_auto_; },
-      [&]() { return save_new_auto_; });
+      "Save New Auto", "", [this]() { save_new_auto_ |= save_new_auto_; },
+      [this]() { return save_new_auto_; });
 
   std::vector<gui::MenuItem> project_menu_subitems;
   project_menu_subitems.emplace_back(
-      "New Project", "", [&]() { popup_manager_->Show("New Project"); });
+      "New Project", "", [this]() { popup_manager_->Show("New Project"); });
   project_menu_subitems.emplace_back("Open Project", "",
-                                     [&]() { status_ = OpenProject(); });
+                                     [this]() { status_ = OpenProject(); });
   project_menu_subitems.emplace_back(
-      "Save Project", "", [&]() { status_ = SaveProject(); },
-      [&]() { return current_project_.project_opened_; });
+      "Save Project", "", [this]() { status_ = SaveProject(); },
+      [this]() { return current_project_.project_opened_; });
 
   gui::kMainMenu = {
       {"File",
@@ -164,24 +150,24 @@ void EditorManager::Initialize(const std::string &filename) {
            {absl::StrCat(ICON_MD_FILE_OPEN, " Open"),
             context_.shortcut_manager.GetKeys("Open"),
             context_.shortcut_manager.GetCallback("Open")},
-           {"Open Recent", "", [&]() {},
+           {"Open Recent", "", []() {},
             []() { return !manager.GetRecentFiles().empty(); }, recent_files},
            {absl::StrCat(ICON_MD_FILE_DOWNLOAD, " Save"),
             context_.shortcut_manager.GetKeys("Save"),
             context_.shortcut_manager.GetCallback("Save")},
            {absl::StrCat(ICON_MD_SAVE_AS, " Save As.."), "",
-            [&]() { popup_manager_->Show("Save As.."); }},
-           {absl::StrCat(ICON_MD_BALLOT, " Project"), "", [&]() {},
+            [this]() { popup_manager_->Show("Save As.."); }},
+           {absl::StrCat(ICON_MD_BALLOT, " Project"), "", []() {},
             []() { return true; }, project_menu_subitems},
            {absl::StrCat(ICON_MD_CLOSE, " Close"), "",
-            [&]() {
+            [this]() {
               if (current_rom_) current_rom_->Close();
             }},
            {gui::kSeparator, "", nullptr, []() { return true; }},
            {absl::StrCat(ICON_MD_MISCELLANEOUS_SERVICES, " Options"), "",
-            [&]() {}, []() { return true; }, options_subitems},
+            []() {}, []() { return true; }, options_subitems},
            {absl::StrCat(ICON_MD_EXIT_TO_APP, " Quit"), "Ctrl+Q",
-            [&]() { quit_ = true; }},
+            [this]() { quit_ = true; }},
        }},
       {"Edit",
        {},
@@ -286,34 +272,35 @@ absl::Status EditorManager::Update() {
   popup_manager_->DrawPopups();
   ExecuteShortcuts(context_.shortcut_manager);
 
-  if (current_editor_set_) {
-    for (auto editor : current_editor_set_->active_editors_) {
-      if (*editor->active()) {
-        if (editor->type() == EditorType::kOverworld) {
-          auto &overworld_editor = static_cast<OverworldEditor &>(*editor);
-          if (overworld_editor.jump_to_tab() != -1) {
-            current_editor_set_->dungeon_editor_.set_active(true);
-            // Set the dungeon editor to the jump to tab
-            current_editor_set_->dungeon_editor_.add_room(
-                overworld_editor.jump_to_tab());
-            overworld_editor.jump_to_tab_ = -1;
-          }
-        }
-
-        if (ImGui::Begin(GetEditorName(editor->type()).c_str(),
-                         editor->active())) {
-          current_editor_ = editor;
-          status_ = editor->Update();
-        }
-        ImGui::End();
-      }
-    }
-  }
-
   if (show_homepage_) {
     ImGui::Begin("Home", &show_homepage_);
     DrawHomepage();
     ImGui::End();
+  }
+
+  if (!current_editor_set_) {
+    return absl::OkStatus();
+  }
+  for (auto editor : current_editor_set_->active_editors_) {
+    if (*editor->active()) {
+      if (editor->type() == EditorType::kOverworld) {
+        auto &overworld_editor = static_cast<OverworldEditor &>(*editor);
+        if (overworld_editor.jump_to_tab() != -1) {
+          current_editor_set_->dungeon_editor_.set_active(true);
+          // Set the dungeon editor to the jump to tab
+          current_editor_set_->dungeon_editor_.add_room(
+              overworld_editor.jump_to_tab());
+          overworld_editor.jump_to_tab_ = -1;
+        }
+      }
+
+      if (ImGui::Begin(GetEditorName(editor->type()).c_str(),
+                       editor->active())) {
+        current_editor_ = editor;
+        status_ = editor->Update();
+      }
+      ImGui::End();
+    }
   }
   return absl::OkStatus();
 }
@@ -591,7 +578,6 @@ absl::Status EditorManager::OpenRomOrProject(const std::string &filename) {
     auto new_rom = std::make_unique<Rom>();
     RETURN_IF_ERROR(new_rom->LoadFromFile(filename));
     current_rom_ = new_rom.get();
-    SharedRom::set_rom(current_rom_);
     roms_.push_back(std::move(new_rom));
 
     // Create new editor set for this ROM
@@ -665,12 +651,10 @@ absl::Status EditorManager::SetCurrentRom(Rom *rom) {
 
     editor_sets_[rom] = std::move(editor_set);
     current_rom_ = rom;
-    SharedRom::set_rom(rom);
     RETURN_IF_ERROR(LoadAssets());
   } else {
     current_editor_set_ = it->second.get();
     current_rom_ = rom;
-    SharedRom::set_rom(current_rom_);
   }
 
   return absl::OkStatus();

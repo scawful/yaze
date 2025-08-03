@@ -8,12 +8,8 @@ namespace yaze {
 namespace gui {
 
 ImVec4 ConvertSnesColorToImVec4(const gfx::SnesColor& color) {
-  return ImVec4(static_cast<float>(color.rgb().x) / 255.0f,
-                static_cast<float>(color.rgb().y) / 255.0f,
-                static_cast<float>(color.rgb().z) / 255.0f,
-                1.0f  // Assuming alpha is always fully opaque for SNES colors,
-                      // adjust if necessary
-  );
+  return ImVec4(color.rgb().x / 255.0f, color.rgb().y / 255.0f,
+                color.rgb().z / 255.0f, 1.0f);
 }
 
 gfx::SnesColor ConvertImVec4ToSnesColor(const ImVec4& color) {

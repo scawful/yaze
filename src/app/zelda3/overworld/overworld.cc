@@ -55,7 +55,7 @@ void Overworld::FetchLargeMaps() {
   overworld_maps_[136].SetAsSmallMap();
 
   std::array<bool, kNumMapsPerWorld> map_checked;
-  std::fill(map_checked.begin(), map_checked.end(), false);
+  std::ranges::fill(map_checked, false);
 
   int xx = 0;
   int yy = 0;
