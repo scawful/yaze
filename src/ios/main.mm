@@ -77,14 +77,6 @@
 
   // Enable native IME.
   SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
-  if (!_controller->CreateWindow().ok()) {
-    printf("Error creating window: %s\n", SDL_GetError());
-    abort();
-  }
-  if (!_controller->CreateRenderer().ok()) {
-    printf("Error creating renderer: %s\n", SDL_GetError());
-    abort();
-  }
 
   ImGui_ImplSDL2_InitForSDLRenderer(_controller->window(),
                                     yaze::core::Renderer::Get().renderer());
@@ -93,7 +85,6 @@
   if (!LoadPackageFonts().ok()) {
     abort();
   }
-  _controller->Initialize("");
   _controller->set_active(true);
 
   _hoverGestureRecognizer =
@@ -357,9 +348,10 @@
       rom_data.resize(size);
       std::copy(bytes, bytes + size, rom_data.begin());
 
-      PRINT_IF_ERROR(yaze::SharedRom::shared_rom_->LoadFromData(rom_data));
+      // TODO: Re-implmenent this without the SharedRom singleton 
+      // PRINT_IF_ERROR(yaze::SharedRom::shared_rom_->LoadFromData(rom_data));
       std::string filename = std::string([selectedFileURL.path UTF8String]);
-      yaze::SharedRom::shared_rom_->set_filename(filename);
+      // yaze::SharedRom::shared_rom_->set_filename(filename);
       [selectedFileURL stopAccessingSecurityScopedResource];
 
     } else {

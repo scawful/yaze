@@ -9,7 +9,6 @@ The goal of yaze is to build a cross platform editor for the Legend of Zelda: A 
 - **yaze**: Desktop application for Windows/macOS/Linux
 - **z3ed**: Command Line Interface
 - **yaze_c**: C Library
-- **yaze_py**: Python Module
 - **yaze_test**: Unit test executable
 - **yaze_ios**: iOS application
 
@@ -23,7 +22,6 @@ The goal of yaze is to build a cross platform editor for the Legend of Zelda: A 
   - **app**:  Contains the GUI editor `yaze`
   - **app/emu**:  Contains a standalone Snes emulator application `yaze_emu`
   - **cli**:  Contains the command line interface `z3ed`
-  - **cli/python**:   Contains the Python module `yaze_py`
   - **ios**:  Contains the iOS application `yaze_ios`
   - **lib**:  Contains the dependencies as git submodules
   - **test**: Contains testing interface `yaze_test`
@@ -37,11 +35,10 @@ See [build-instructions.md](docs/build-instructions.md) for more information.
 - **ImGui**: GUI library
 - **Abseil**: C++ library
 - **libpng**: Image library
-- **Boost**: Python library
 
 ## Flow of Control
 
-- app/yaze.cc
+- app/main.cc
   - Initializes `absl::FailureSignalHandler` for stack tracing.
   - Runs the `core::Controller` loop.
 - app/core/controller.cc
@@ -74,8 +71,6 @@ See [build-instructions.md](docs/build-instructions.md) for more information.
 - app/rom.h
 
 The Rom class provides methods to manipulate and access data from a ROM.
-
-Currently implemented as a singleton with SharedRom which is not great but has helped with development velocity. Potential room for improvement is to refactor the editors to take the ROM as a parameter.
 
 ## Bitmap
 

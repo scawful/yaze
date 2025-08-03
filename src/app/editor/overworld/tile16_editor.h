@@ -22,9 +22,10 @@ namespace editor {
 /**
  * @brief Popup window to edit Tile16 data
  */
-class Tile16Editor : public gfx::GfxContext, public SharedRom {
+class Tile16Editor : public gfx::GfxContext {
  public:
-  Tile16Editor(gfx::Tilemap *tile16_blockset) : tile16_blockset_(tile16_blockset) {}
+  Tile16Editor(Rom *rom, gfx::Tilemap *tile16_blockset)
+      : rom_(rom), tile16_blockset_(tile16_blockset) {}
   absl::Status Initialize(const gfx::Bitmap &tile16_blockset_bmp,
                           const gfx::Bitmap &current_gfx_bmp,
                           std::array<uint8_t, 0x200> &all_tiles_types);
@@ -52,7 +53,11 @@ class Tile16Editor : public gfx::GfxContext, public SharedRom {
   absl::Status LoadTile16FromScratchSpace(int slot);
   absl::Status ClearScratchSpace(int slot);
 
+  void set_rom(Rom *rom) { rom_ = rom; }
+  Rom *rom() const { return rom_; }
+
  private:
+  Rom *rom_ = nullptr;
   bool map_blockset_loaded_ = false;
   bool transfer_started_ = false;
   bool transfer_blockset_loaded_ = false;

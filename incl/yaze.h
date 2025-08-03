@@ -35,8 +35,6 @@ struct yaze_project {
   const char* name;
   const char* filepath;
   const char* rom_filename;
-  const char* code_folder;
-  const char* labels_filename;
 };
 
 yaze_project yaze_load_project(const char* filename);
@@ -93,14 +91,61 @@ typedef struct snes_tile32 {
   uint16_t t3;
 } snes_tile32;
 
+/**
+ * @brief Get a color from a palette set.
+ *
+ * @details This function gets a color from a palette set and returns it as a
+ * snes_color object.
+ *
+ * @param rom The ROM to get the color from.
+ * @param palette_set The palette set to get the color from.
+ * @param palette The palette to get the color from.
+ * @param color The color to get from the palette.
+ * @return The color from the palette set.
+ */
 snes_color yaze_get_color_from_paletteset(const zelda3_rom* rom,
                                           int palette_set, int palette,
                                           int color);
 
+/**
+ * @brief Load the overworld from the ROM.
+ *
+ * @param rom The ROM to load the overworld from.
+ * @return The status of the operation. If the operation is successful, the
+ * overworld object will be populated with the overworld from the ROM.
+ */
 zelda3_overworld* yaze_load_overworld(const zelda3_rom* rom);
 
+/**
+ * @brief Load all rooms from the ROM.
+ *
+ * @details This function loads all rooms from the ROM and returns them as an
+ * array of rooms.
+ *
+ * @param rom The ROM to load rooms from.
+ * @return The status of the operation. If the operation is successful, the
+ * rooms array will be populated with the rooms from the ROM.
+ */
 zelda3_dungeon_room* yaze_load_all_rooms(const zelda3_rom* rom);
 
+/**
+ * @brief Load all messages from the ROM.
+ *
+ * @details This function loads all messages from the ROM and returns them as an
+ * array of messages.
+ *
+ * @param rom The ROM to load messages from.
+ * @param messages Pointer to an array of messages.
+ * @return The status of the operation. If the operation is successful, the
+ * messages array will be populated with the messages from the ROM.
+ */
+yaze_status yaze_load_messages(zelda3_rom* rom, zelda3_message** messages);
+
+/**
+ * @brief Function pointer to initialize the extension.
+ *
+ * @param context The editor context.
+ */
 typedef void (*yaze_initialize_func)(yaze_editor_context* context);
 typedef void (*yaze_cleanup_func)(void);
 

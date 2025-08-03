@@ -31,7 +31,8 @@ constexpr ImVec2 kBlocksetCanvasSize(0x100 + 1, 0x4000 + 1);
 constexpr ImVec2 kGraphicsBinCanvasSize(0x100 + 1, kNumSheetsToLoad * 0x40 + 1);
 
 constexpr ImGuiTableFlags kOWMapFlags =
-    ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable;
+    ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable |
+    ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp;
 constexpr ImGuiTableFlags kToolsetTableFlags = ImGuiTableFlags_SizingFixedFit;
 constexpr ImGuiTableFlags kOWEditFlags =
     ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
@@ -75,6 +76,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
  public:
   explicit OverworldEditor(Rom* rom) : rom_(rom) {
     type_ = EditorType::kOverworld;
+    gfx_group_editor_.set_rom(rom);
   }
 
   void Initialize() override;
@@ -212,12 +214,13 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool overworld_canvas_fullscreen_ = false;
   bool middle_mouse_dragging_ = false;
   bool is_dragging_entity_ = false;
+  bool current_map_lock_ = false;
 
   gfx::Tilemap tile16_blockset_;
 
   Rom* rom_;
 
-  Tile16Editor tile16_editor_{&tile16_blockset_};
+  Tile16Editor tile16_editor_{rom_, &tile16_blockset_};
   GfxGroupEditor gfx_group_editor_;
   PaletteEditor palette_editor_;
 
