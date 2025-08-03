@@ -24,7 +24,6 @@ class Controller {
  public:
   bool IsActive() const { return active_; }
   absl::Status OnEntry(std::string filename = "");
-  void Initialize(std::string filename = "");
   void OnInput();
   absl::Status OnLoad();
   void DoRender() const;

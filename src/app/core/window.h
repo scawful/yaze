@@ -17,10 +17,11 @@ struct Window {
   std::shared_ptr<SDL_Window> window_;
   SDL_AudioDeviceID audio_device_;
   std::shared_ptr<int16_t> audio_buffer_;
+  bool active_ = true;
 };
 
 absl::Status CreateWindow(Window &window, int flags);
-
+absl::Status HandleEvents(Window &window);
 absl::Status ShutdownWindow(Window &window);
 
 /**
